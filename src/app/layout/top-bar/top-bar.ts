@@ -5,14 +5,15 @@ import { AuthService } from '../../core/auth/auth.service';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { ThemeService } from '../../core/theme/theme.service';
 import { AskPanelService } from '../../features/ask/ask-panel.service';
+import { CommandPaletteService } from '../../features/command-palette/command-palette.service';
 import { LanguageSwitcher } from '../../shared/language-switcher/language-switcher';
 import { Avatar } from '../../shared/ui/avatar/avatar';
 import { Icon } from '../../shared/ui/icon/icon';
 
 /**
- * Application top bar (58px): brand, ⌘K search button that opens the Ask CoreFlow
- * panel, theme toggle, language switcher, notifications bell, Copilot button
- * (inert), and the current user's avatar.
+ * Application top bar (58px): brand, ⌘K search button that opens the command
+ * palette, theme toggle, language switcher, notifications bell, a spark button
+ * that opens the Ask CoreFlow chat, and the current user's avatar.
  */
 @Component({
   selector: 'app-top-bar',
@@ -37,7 +38,7 @@ import { Icon } from '../../shared/ui/icon/icon';
 
       <button
         type="button"
-        (click)="ask.show()"
+        (click)="palette.show()"
         [attr.aria-label]="ask.streaming() ? ('ask.working' | transloco) : null"
         class="flex h-[38px] w-[540px] max-w-full flex-none cursor-text items-center gap-2.5 rounded-[10px] border border-border bg-bg pr-2.5 pl-3 text-[13.5px] text-fg-subtle hover:border-border-strong"
         [class.border-accent-border]="ask.streaming()"
@@ -94,8 +95,9 @@ import { Icon } from '../../shared/ui/icon/icon';
 
         <button
           type="button"
-          (click)="comingSoon()"
-          [attr.aria-label]="'topbar.copilot' | transloco"
+          (click)="ask.show()"
+          [attr.aria-label]="'ask.title' | transloco"
+          [title]="'ask.title' | transloco"
           class="flex h-9 w-9 items-center justify-center rounded-[9px] border border-accent-border bg-accent-soft text-accent hover:bg-accent-soft/70"
         >
           <app-icon name="spark" [size]="18" />
@@ -112,13 +114,14 @@ export class TopBar {
   protected readonly auth = inject(AuthService);
   protected readonly theme = inject(ThemeService);
   protected readonly ask = inject(AskPanelService);
+  protected readonly palette = inject(CommandPaletteService);
   private readonly notifications = inject(NotificationService);
 
   @HostListener('document:keydown', ['$event'])
   protected onKeydown(event: KeyboardEvent): void {
     if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
       event.preventDefault();
-      this.ask.toggle();
+      this.palette.toggle();
     }
   }
 

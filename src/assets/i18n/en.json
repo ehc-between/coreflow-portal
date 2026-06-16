@@ -36,6 +36,25 @@
     "comingSoon": "This is coming soon.",
     "org": "Organization"
   },
+  "commandPalette": {
+    "placeholder": "Ask CoreFlow to do something, or search…",
+    "esc": "esc",
+    "agentActions": "Agent actions",
+    "goTo": "Go to",
+    "askFor": "Ask CoreFlow: \"{{query}}\"",
+    "actions": {
+      "draftNcr": "Draft a non-conformance report",
+      "isoGap": "Run an ISO clause gap analysis",
+      "summarizeDoc": "Summarize a document",
+      "createProcedure": "Create a procedure from a template",
+      "projectStatus": "Generate a project status report",
+      "trainingQuiz": "Build a training quiz",
+      "registerDeviation": "Register a deviation",
+      "riskAnalysis": "Run a risk analysis",
+      "planAudit": "Plan an internal audit",
+      "assignTask": "Assign a task to a teammate"
+    }
+  },
   "theme": {
     "toggle": "Toggle theme",
     "light": "Light",
@@ -200,7 +219,7 @@
       "restricted": "Restricted",
       "restrictedHint": "Only the owner and the people and departments you choose.",
       "peopleAndDepartments": "People & departments",
-      "addPlaceholder": "Add a person or department…",
+      "addPlaceholder": "Add person or department…",
       "person": "Person",
       "department": "Department",
       "level": "Access level",

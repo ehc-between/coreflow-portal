@@ -36,6 +36,25 @@
     "comingSoon": "Dette kommer snart.",
     "org": "Organisasjon"
   },
+  "commandPalette": {
+    "placeholder": "Be CoreFlow gjøre noe, eller søk …",
+    "esc": "esc",
+    "agentActions": "Agenthandlinger",
+    "goTo": "Gå til",
+    "askFor": "Spør CoreFlow: «{{query}}»",
+    "actions": {
+      "draftNcr": "Lag et avviksrapportutkast",
+      "isoGap": "Kjør en gap-analyse av ISO-krav",
+      "summarizeDoc": "Oppsummer et dokument",
+      "createProcedure": "Opprett en prosedyre fra en mal",
+      "projectStatus": "Lag en prosjektstatusrapport",
+      "trainingQuiz": "Bygg en opplæringsquiz",
+      "registerDeviation": "Registrer et avvik",
+      "riskAnalysis": "Kjør en risikoanalyse",
+      "planAudit": "Planlegg en intern revisjon",
+      "assignTask": "Tildel en oppgave til en kollega"
+    }
+  },
   "theme": {
     "toggle": "Bytt tema",
     "light": "Lyst",
@@ -200,7 +219,7 @@
       "restricted": "Begrenset",
       "restrictedHint": "Bare eieren og personene og avdelingene du velger.",
       "peopleAndDepartments": "Personer og avdelinger",
-      "addPlaceholder": "Legg til en person eller avdeling …",
+      "addPlaceholder": "Legg til person eller avdeling …",
       "person": "Person",
       "department": "Avdeling",
       "level": "Tilgangsnivå",

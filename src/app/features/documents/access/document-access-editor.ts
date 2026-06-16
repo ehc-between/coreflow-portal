@@ -82,12 +82,18 @@ interface OwnerOption {
               <button
                 type="button"
                 (click)="onVisibilityChange(option.value)"
-                [class.border-accent-border]="visibility() === option.value"
+                [class.border-accent]="visibility() === option.value"
                 [class.bg-accent-soft]="visibility() === option.value"
+                [class.ring-1]="visibility() === option.value"
+                [class.ring-accent]="visibility() === option.value"
                 [class.border-border]="visibility() !== option.value"
                 class="flex flex-col gap-1 rounded-tile border bg-surface px-3.5 py-3 text-left transition-colors hover:border-border-strong"
               >
-                <span class="flex items-center gap-2 text-[13.5px] font-semibold text-fg">
+                <span
+                  class="flex items-center gap-2 text-[13.5px] font-semibold"
+                  [class.text-accent]="visibility() === option.value"
+                  [class.text-fg]="visibility() !== option.value"
+                >
                   <app-icon [name]="option.icon" [size]="15" />
                   {{ option.labelKey | transloco }}
                 </span>
@@ -115,8 +121,8 @@ interface OwnerOption {
           </span>
 
           @if (canManage()) {
-            <div class="flex flex-col gap-2 sm:flex-row sm:items-start">
-              <div class="relative flex-1">
+            <div class="flex flex-col gap-2">
+              <div class="relative">
                 <input
                   type="text"
                   [ngModel]="query()"
@@ -125,11 +131,11 @@ interface OwnerOption {
                   [placeholder]="'documents.access.addPlaceholder' | transloco"
                   [attr.aria-label]="'documents.access.peopleAndDepartments' | transloco"
                   autocomplete="off"
-                  class="h-10 w-full rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
+                  class="h-10 w-full rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-ellipsis text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
                 />
                 @if (pickerOpen() && filteredSubjects().length) {
                   <ul
-                    class="animate-cf-pop absolute z-30 mt-1.5 max-h-64 w-full overflow-auto rounded-tile border border-border bg-surface p-1 shadow-pop"
+                    class="animate-cf-pop absolute top-full left-0 z-50 mt-1.5 max-h-64 w-full overflow-auto rounded-tile border border-border bg-surface p-1 shadow-pop"
                   >
                     @for (subject of filteredSubjects(); track subject.subject_type + subject.id) {
                       <li>
@@ -153,7 +159,7 @@ interface OwnerOption {
                               }}</span>
                             }
                           </span>
-                          <app-badge tone="neutral">{{
+                          <app-badge tone="neutral" class="flex-none">{{
                             (subject.subject_type === 'department'
                               ? 'documents.access.department'
                               : 'documents.access.person'
@@ -166,7 +172,7 @@ interface OwnerOption {
                 }
               </div>
 
-              <div class="cf-select sm:w-40">
+              <div class="cf-select">
                 <select
                   [ngModel]="pendingLevel()"
                   (ngModelChange)="pendingLevel.set($event)"
@@ -242,7 +248,13 @@ interface OwnerOption {
       }
     `,
   ],
-  host: { '(document:click)': 'onDocumentClick($event)' },
+  host: {
+    '(document:click)': 'onDocumentClick($event)',
+    // Lift the whole editor above sibling cards while the suggestions dropdown is
+    // open so it can never be painted over by the comments card below it.
+    '[class.relative]': 'pickerOpen()',
+    '[class.z-40]': 'pickerOpen()',
+  },
 })
 export class DocumentAccessEditor {
   private readonly api = inject(DocumentsApi);

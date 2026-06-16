@@ -57,6 +57,12 @@ export class AskPanelService {
     this._open.set(true);
   }
 
+  /** Open the panel and immediately submit `prompt` (e.g. from a command-palette action). */
+  showWith(prompt: string): void {
+    this._open.set(true);
+    this.send(prompt);
+  }
+
   /** Minimize: hide the view only. The stream keeps running and the thread is kept. */
   hide(): void {
     this._open.set(false);
