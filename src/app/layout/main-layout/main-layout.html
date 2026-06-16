@@ -1,0 +1,13 @@
+<div class="relative flex h-screen w-full flex-col overflow-hidden bg-bg text-fg">
+  <app-top-bar />
+
+  <div class="flex min-h-0 flex-1">
+    <app-side-nav />
+    <main class="min-w-0 flex-1 overflow-y-auto">
+      <router-outlet />
+    </main>
+  </div>
+
+  <app-notifications />
+  <app-ask-panel />
+</div>

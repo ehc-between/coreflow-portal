@@ -1,0 +1,361 @@
+/* Global, app-wide styles (design tokens + base).
+   Tailwind itself is loaded via src/tailwind.css (kept separate so Sass never
+   tries to resolve the bare "tailwindcss" import). The CSS variables below are
+   the single source of truth for the CoreFlow palette; tailwind.css maps them
+   into @theme so utilities like `bg-surface` / `text-fg-muted` resolve here and
+   follow the active theme automatically.
+
+   Dark mode is driven by `[data-theme="dark"]` on <html> (set by ThemeService),
+   NOT Tailwind's `.dark` class. Prefer Tailwind utility classes in templates. */
+
+:root {
+  color-scheme: light;
+
+  --bg: #f4f5f8;
+  --surface: #ffffff;
+  --surface-2: #f0f2f6;
+  --surface-3: #e7eaf0;
+  --border: #e3e6ec;
+  --border-strong: #d2d7e0;
+  --fg: #13161c;
+  --fg-muted: #586071;
+  --fg-subtle: #8b94a4;
+  --accent: #5a4be6;
+  --accent-2: #7c6ef2;
+  --accent-soft: #eeecfd;
+  --accent-border: #d8d2fb;
+  --pass: #108a52;
+  --pass-soft: #e3f4ec;
+  --warn: #b5740a;
+  --warn-soft: #fbf0db;
+  --fail: #cf3a3a;
+  --fail-soft: #fbe6e6;
+  --info: #2f6fdb;
+  --info-soft: #e7effb;
+  --shadow: 0 1px 2px rgba(16, 18, 24, 0.04), 0 4px 16px rgba(16, 18, 24, 0.06);
+  --shadow-lg: 0 18px 50px rgba(16, 18, 24, 0.18);
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg: #0b0d12;
+  --surface: #14171e;
+  --surface-2: #1a1e27;
+  --surface-3: #232834;
+  --border: #262b36;
+  --border-strong: #343b49;
+  --fg: #eceef3;
+  --fg-muted: #99a2b3;
+  --fg-subtle: #697283;
+  --accent: #8579f6;
+  --accent-2: #9a8ff8;
+  --accent-soft: #1f1d3b;
+  --accent-border: #322e5d;
+  --pass: #34c780;
+  --pass-soft: #10271d;
+  --warn: #e0a23c;
+  --warn-soft: #2a2110;
+  --fail: #f2706b;
+  --fail-soft: #2c1616;
+  --info: #5b97ef;
+  --info-soft: #11203a;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 6px 20px rgba(0, 0, 0, 0.42);
+  --shadow-lg: 0 22px 60px rgba(0, 0, 0, 0.6);
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family:
+    'Hanken Grotesk',
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@keyframes cf-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes cf-pop {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes cf-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+@keyframes cf-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes cf-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Shared "paper" document surface and body typography. Used by both the read
+   view (rendered, sanitized HTML) and the editor canvas (TipTap ProseMirror).
+   An A4-ish column on a white sheet with a subtle shadow and generous padding. */
+.cf-doc {
+  width: 100%;
+  max-width: 820px;
+  margin: 0 auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow);
+  padding: 64px 72px;
+  color: var(--fg);
+  font-family: 'Hanken Grotesk', Georgia, serif;
+  font-size: 15.5px;
+  line-height: 1.6;
+}
+
+/* The editor instance fills the form column (matching the Type/Title fields and
+   toolbar width) rather than the narrower A4 column used by the read view. */
+.cf-doc--wide {
+  max-width: none;
+}
+
+@media (max-width: 720px) {
+  .cf-doc {
+    padding: 32px 24px;
+  }
+}
+
+.cf-doc:focus {
+  outline: none;
+}
+
+.cf-doc > :first-child {
+  margin-top: 0;
+}
+
+.cf-doc > :last-child {
+  margin-bottom: 0;
+}
+
+.cf-doc p {
+  margin: 0 0 0.45em;
+}
+
+.cf-doc h1,
+.cf-doc h2,
+.cf-doc h3 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  color: var(--fg);
+  margin: 1.4em 0 0.5em;
+}
+
+.cf-doc h1 {
+  font-size: 1.85em;
+}
+
+.cf-doc h2 {
+  font-size: 1.45em;
+}
+
+.cf-doc h3 {
+  font-size: 1.2em;
+}
+
+.cf-doc strong {
+  font-weight: 700;
+}
+
+.cf-doc em {
+  font-style: italic;
+}
+
+.cf-doc u {
+  text-decoration: underline;
+}
+
+.cf-doc s {
+  text-decoration: line-through;
+}
+
+.cf-doc a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.cf-doc ul,
+.cf-doc ol {
+  margin: 0 0 0.45em;
+  padding-left: 1.5em;
+}
+
+.cf-doc ul {
+  list-style: disc;
+}
+
+.cf-doc ol {
+  list-style: decimal;
+}
+
+.cf-doc li {
+  margin: 0.25em 0;
+}
+
+.cf-doc li::marker {
+  color: var(--fg-muted);
+}
+
+.cf-doc blockquote {
+  margin: 0 0 0.45em;
+  padding: 0.2em 1em;
+  border-left: 3px solid var(--accent-border);
+  color: var(--fg-muted);
+  font-style: italic;
+}
+
+.cf-doc code {
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 0.08em 0.34em;
+}
+
+.cf-doc pre {
+  margin: 0 0 0.45em;
+  padding: 0.8em 1em;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-tile);
+  overflow-x: auto;
+}
+
+.cf-doc pre code {
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.cf-doc table {
+  width: 100%;
+  margin: 0 0 0.45em;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.cf-doc th,
+.cf-doc td {
+  border: 1px solid var(--border-strong);
+  padding: 0.45em 0.65em;
+  text-align: left;
+  vertical-align: top;
+}
+
+.cf-doc th {
+  background: var(--surface-2);
+  font-weight: 700;
+}
+
+/* TipTap selection cell + drag handles. */
+.cf-doc .selectedCell:after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--accent-soft);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.cf-doc .tableWrapper {
+  overflow-x: auto;
+}
+
+/* Placeholder shown by @tiptap/extension-placeholder on an empty editor. */
+.cf-doc p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  color: var(--fg-subtle);
+  pointer-events: none;
+}
+
+/* Inline highlight wrapping an open comment's anchored text in the read view.
+   `cf-comment-mark--active` is toggled when its sidebar entry is focused. */
+.cf-comment-mark {
+  background: var(--warn-soft);
+  border-radius: 3px;
+  box-shadow: inset 0 -2px 0 var(--warn);
+  padding: 0.05em 0;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.cf-comment-mark:hover,
+.cf-comment-mark--active {
+  background: var(--accent-soft);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}

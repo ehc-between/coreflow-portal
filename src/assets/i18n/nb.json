@@ -1,0 +1,404 @@
+{
+  "app": {
+    "title": "CoreFlow Portal"
+  },
+  "nav": {
+    "sections": {
+      "workspace": "Arbeidsområde",
+      "quality": "Kvalitet · QMS",
+      "modules": "Moduler",
+      "administration": "Administrasjon"
+    },
+    "dashboard": "Oversikt",
+    "organizations": "Organisasjoner",
+    "myWork": "Mitt arbeid",
+    "review": "Trenger din gjennomgang",
+    "inspections": "Inspeksjoner",
+    "deviations": "Avvik",
+    "risk": "Risiko",
+    "audits": "Revisjon",
+    "iso": "ISO og standarder",
+    "documents": "Dokumenter",
+    "people": "Personer og roller",
+    "projects": "Prosjekter",
+    "procedures": "Prosedyrer",
+    "training": "Opplæring",
+    "reports": "Rapporter",
+    "settings": "Innstillinger",
+    "customize": "Tilpass arbeidsområde",
+    "customizeHint": "Slå moduler på eller av for dette arbeidsområdet.",
+    "addModule": "Legg til modul"
+  },
+  "topbar": {
+    "searchPlaceholder": "Spør CoreFlow, eller hopp til hva som helst …",
+    "notifications": "Varsler",
+    "copilot": "Copilot",
+    "comingSoon": "Dette kommer snart.",
+    "org": "Organisasjon"
+  },
+  "theme": {
+    "toggle": "Bytt tema",
+    "light": "Lyst",
+    "dark": "Mørkt"
+  },
+  "workspace": {
+    "role": "Kvalitetsleder"
+  },
+  "org": {
+    "switch": "Bytt organisasjon",
+    "none": "Ingen organisasjon",
+    "current": "Gjeldende organisasjon"
+  },
+  "module": {
+    "comingSoon": "Denne modulen er på vei. Agenten din gjør den klar."
+  },
+  "ask": {
+    "title": "Spør CoreFlow",
+    "intro": "Still et spørsmål om dokumentene og arbeidet ditt. Vi svarer i et enkelt språk og lenker til dokumentene vi brukte.",
+    "placeholder": "Spør CoreFlow …",
+    "thinking": "Leter gjennom dokumentene dine …",
+    "send": "Send",
+    "stop": "Stopp",
+    "minimize": "Minimer",
+    "working": "CoreFlow jobber … Åpne",
+    "newChat": "Ny samtale",
+    "chooseOption": "Velg «{{option}}»",
+    "sources": "Kilder",
+    "proposal": {
+      "added": "Utkast lagt til i gjennomgangslisten din",
+      "link": "Gå til gjennomgangslisten"
+    },
+    "notConfigured": {
+      "title": "Spør CoreFlow er ikke satt opp ennå",
+      "body": "Når det er slått på, kan du stille spørsmål om dokumentene dine her."
+    },
+    "error": {
+      "body": "Noe gikk galt. Prøv igjen."
+    }
+  },
+  "documents": {
+    "title": "Dokumenter",
+    "subtitle": "Finn, les og godkjenn organisasjonens dokumenter.",
+    "new": "Nytt dokument",
+    "create": "Opprett dokument",
+    "cancel": "Avbryt",
+    "searchPlaceholder": "Søk i dokumenter …",
+    "filterStatus": "Filtrer på status",
+    "empty": "Ingen dokumenter ennå.",
+    "noResults": "Ingen dokumenter samsvarer med søket ditt.",
+    "notFound": "Vi fant ikke dokumentet.",
+    "backToList": "Alle dokumenter",
+    "history": "Revisjonshistorikk",
+    "noRevisions": "Ingen revisjoner ennå.",
+    "noContent": "Dette dokumentet har ikke noe innhold ennå.",
+    "revShort": "Rev {{rev}}",
+    "viewingRevision": "Viser Rev {{rev}}",
+    "backToCurrent": "Tilbake til gjeldende",
+    "revisionLoadError": "Vi kunne ikke laste den revisjonen.",
+    "approve": "Godkjenn",
+    "requestChanges": "Be om endringer",
+    "approvedToast": "Dokument godkjent.",
+    "requestChangesToast": "Be om endringer kommer snart.",
+    "createdToast": "Dokument opprettet.",
+    "download": "Last ned",
+    "downloadPdf": "Last ned PDF",
+    "downloadWord": "Last ned Word",
+    "exportUnavailable": "Eksport er ikke tilgjengelig ennå. Prøv igjen senere.",
+    "edit": "Rediger",
+    "comments": {
+      "title": "Kommentarer",
+      "empty": "Ingen kommentarer på denne revisjonen ennå.",
+      "add": "Legg til kommentar",
+      "placeholder": "Skriv en kommentar…",
+      "save": "Lagre",
+      "suggest": "Foreslå en endring",
+      "suggestion": "Foreslått endring",
+      "approve": "Godkjenn",
+      "edit": "Rediger",
+      "reject": "Avvis",
+      "undo": "Angre",
+      "delete": "Slett",
+      "statusOpen": "Åpen",
+      "statusAccepted": "Godkjent – venter på lagring",
+      "statusResolved": "Løst",
+      "statusRejected": "Avvist",
+      "saveRevision": "Lagre {{ count }} endring(er) som ny revisjon",
+      "savedToast": "{{ count }} endring(er) lagret som rev. {{ rev }}.",
+      "skippedToast": "{{ count }} endring(er) kunne ikke brukes fordi teksten de viser til er endret.",
+      "appliedToast": "Endringen ble lagt til som en ny revisjon.",
+      "anchorNotFoundToast": "Teksten denne kommentaren viser til er endret, så forslaget kan ikke brukes."
+    },
+    "meta": {
+      "code": "Kode",
+      "type": "Type",
+      "revision": "Revisjon",
+      "status": "Status"
+    },
+    "editor": {
+      "save": "Lagre",
+      "savedToast": "Endringene er lagret.",
+      "backToDocument": "Tilbake til dokumentet",
+      "placeholder": "Begynn å skrive, eller merk tekst og be KI redigere den …",
+      "linkPrompt": "Skriv inn en lenke-URL",
+      "bold": "Fet",
+      "italic": "Kursiv",
+      "underline": "Understreket",
+      "strike": "Gjennomstreket",
+      "h1": "Overskrift 1",
+      "h2": "Overskrift 2",
+      "h3": "Overskrift 3",
+      "bulletList": "Punktliste",
+      "orderedList": "Nummerert liste",
+      "blockquote": "Sitat",
+      "code": "Innebygd kode",
+      "link": "Lenke",
+      "alignLeft": "Venstrejuster",
+      "alignCenter": "Midtstill",
+      "alignRight": "Høyrejuster",
+      "insertTable": "Sett inn tabell",
+      "addRow": "Legg til rad",
+      "addColumn": "Legg til kolonne",
+      "deleteRow": "Slett rad",
+      "deleteColumn": "Slett kolonne",
+      "deleteTable": "Slett tabell",
+      "undo": "Angre",
+      "redo": "Gjør om",
+      "ai": {
+        "improve": "Forbedre",
+        "rewrite": "Skriv om",
+        "shorten": "Forkort",
+        "expand": "Utvid",
+        "fix": "Rett grammatikk",
+        "translate": "Oversett",
+        "translateEnglish": "Engelsk",
+        "translateNorwegian": "Norsk",
+        "ask": "Be KI redigere …",
+        "askPlaceholder": "Beskriv endringen …",
+        "run": "Bruk",
+        "continue": "Fortsett å skrive",
+        "working": "Jobber …",
+        "suggestion": "Forslag",
+        "error": "Noe gikk galt. Prøv igjen.",
+        "notConfigured": "KI-redigering er ikke satt opp ennå.",
+        "accept": "Godta",
+        "reject": "Avvis",
+        "dismiss": "Lukk",
+        "original": "Original",
+        "suggested": "Forslag",
+        "addingNew": "Legger til nytt innhold",
+        "close": "Lukk"
+      }
+    },
+    "access": {
+      "sectionTitle": "Eier og tilgang",
+      "sectionHint": "Angi hvem som eier dokumentet og hvem som kan se det.",
+      "sharingTitle": "Deling og tilgang",
+      "owner": "Eier",
+      "visibility": "Hvem kan se dette",
+      "organization": "Organisasjon",
+      "organizationHint": "Alle i organisasjonen din kan se dette dokumentet.",
+      "restricted": "Begrenset",
+      "restrictedHint": "Bare eieren og personene og avdelingene du velger.",
+      "peopleAndDepartments": "Personer og avdelinger",
+      "addPlaceholder": "Legg til en person eller avdeling …",
+      "person": "Person",
+      "department": "Avdeling",
+      "level": "Tilgangsnivå",
+      "view": "Kan se",
+      "edit": "Kan redigere",
+      "remove": "Fjern",
+      "noGrants": "Ingen er lagt til ennå.",
+      "savedToast": "Tilgang oppdatert.",
+      "grantAddedToast": "Tilgang gitt.",
+      "grantRemovedToast": "Tilgang fjernet."
+    },
+    "fields": {
+      "type": "Type",
+      "title": "Tittel",
+      "codeOptional": "Dokumentkode (valgfritt)",
+      "content": "Innhold"
+    },
+    "status": {
+      "all": "Alle statuser",
+      "draft": "Utkast",
+      "in_review": "Til gjennomgang",
+      "approved": "Godkjent",
+      "obsolete": "Utgått",
+      "superseded": "Erstattet"
+    }
+  },
+  "review": {
+    "title": "Trenger din gjennomgang",
+    "subtitle": "Utkast som venter på din godkjenning før de publiseres.",
+    "empty": "Du er à jour. Ingenting trenger gjennomgang.",
+    "queuedAt": "Lagt til {{date}}",
+    "open": "Åpne",
+    "reject": "Avvis",
+    "backToFeed": "Tilbake til gjennomgang",
+    "reviewTitle": "Gjennomgå forslag",
+    "saveDraft": "Lagre utkast",
+    "approveAndPublish": "Godkjenn og publiser",
+    "notPending": "Dette forslaget er allerede behandlet og kan ikke lenger redigeres.",
+    "notFound": "Fant ikke forslaget.",
+    "savedToast": "Utkast lagret.",
+    "publishedToast": "Dokument publisert.",
+    "rejectedToast": "Utkast avvist."
+  },
+  "settings": {
+    "title": "Organisasjonsinnstillinger",
+    "subtitle": "Administrer innstillinger for gjeldende organisasjon.",
+    "noOrg": "Velg en organisasjon for å administrere innstillingene.",
+    "save": "Lagre",
+    "cancel": "Avbryt",
+    "departments": {
+      "title": "Avdelinger",
+      "name": "Navn",
+      "create": "Opprett avdeling",
+      "rename": "Gi nytt navn",
+      "delete": "Slett",
+      "empty": "Ingen avdelinger ennå.",
+      "notFound": "Fant ikke avdelingen.",
+      "backToList": "Alle avdelinger",
+      "memberCount": "{{count}} medlemmer",
+      "nameTaken": "En avdeling med dette navnet finnes allerede.",
+      "confirmDelete": "Slette avdelingen «{{name}}»?",
+      "createdToast": "Avdeling opprettet.",
+      "renamedToast": "Avdeling fikk nytt navn.",
+      "deletedToast": "Avdeling slettet."
+    },
+    "member": {
+      "title": "Medlemmer",
+      "email": "E-post",
+      "name": "Fullt navn",
+      "empty": "Ingen medlemmer i denne avdelingen ennå.",
+      "add": "Legg til medlem",
+      "remove": "Fjern",
+      "select": "Medlem",
+      "selectPlaceholder": "Velg et medlem …",
+      "allAdded": "Alle medlemmer i organisasjonen er allerede i denne avdelingen.",
+      "addedToast": "Medlem lagt til.",
+      "removedToast": "Medlem fjernet.",
+      "addFailed": "Kunne ikke legge til medlemmet. Prøv igjen."
+    }
+  },
+  "auth": {
+    "login": "Logg inn",
+    "logout": "Logg ut",
+    "signedInAs": "Innlogget som {{name}}",
+    "label": {
+      "email": "E-post",
+      "password": "Passord"
+    },
+    "action": {
+      "signIn": "Logg inn",
+      "signingIn": "Logger inn …"
+    },
+    "error": {
+      "invalidCredentials": "Feil e-post eller passord."
+    }
+  },
+  "login": {
+    "title": "Logg inn",
+    "subtitle": "Skriv inn legitimasjonen din for å få tilgang til portalen."
+  },
+  "language": {
+    "label": "Språk",
+    "en": "Engelsk",
+    "nb": "Norsk"
+  },
+  "dashboard": {
+    "welcome": "Velkommen til CoreFlow",
+    "subtitle": "Portalgrunnlaget er klart. Begynn å bygge funksjoner her.",
+    "agentRole": "Arbeidsplanlegger",
+    "kpi": {
+      "deviations": {
+        "label": "Åpne avvik",
+        "delta": "-2 denne uken"
+      },
+      "audits": {
+        "label": "Revisjoner forfaller",
+        "delta": "2 denne måneden"
+      },
+      "passRate": {
+        "label": "Godkjentandel"
+      },
+      "overdue": {
+        "label": "Forfalte oppgaver",
+        "delta": "krever oppmerksomhet"
+      }
+    }
+  },
+  "admin": {
+    "copy": "Kopier",
+    "copiedToast": "Kopiert",
+    "role": {
+      "admin": "Administrator",
+      "member": "Medlem"
+    },
+    "org": {
+      "title": "Organisasjoner",
+      "subtitle": "Opprett og administrer organisasjoner på tvers av plattformen.",
+      "create": "Opprett organisasjon",
+      "name": "Navn",
+      "slug": "Slug",
+      "slugOptional": "Slug (valgfritt)",
+      "members": "Medlemmer",
+      "created": "Opprettet",
+      "empty": "Ingen organisasjoner ennå.",
+      "notFound": "Fant ikke organisasjonen.",
+      "backToList": "Alle organisasjoner",
+      "slugTaken": "Denne slug-en er allerede i bruk. Velg en annen.",
+      "createdToast": "Organisasjon opprettet."
+    },
+    "members": {
+      "title": "Medlemmer",
+      "email": "E-post",
+      "name": "Fullt navn",
+      "roles": "Roller",
+      "empty": "Ingen medlemmer ennå."
+    },
+    "invite": {
+      "title": "Inviter bruker",
+      "send": "Send invitasjon",
+      "role": "Rolle",
+      "expires": "Utløper",
+      "revoke": "Trekk tilbake",
+      "pending": "Ventende invitasjoner",
+      "pendingEmpty": "Ingen ventende invitasjoner.",
+      "conflict": "Det finnes allerede et medlem eller en ventende invitasjon for denne e-posten.",
+      "emailNote": "En e-post sendes automatisk når e-postlevering er konfigurert.",
+      "linkTitle": "Invitasjonslenke",
+      "linkHint": "Del denne lenken slik at brukeren kan godta invitasjonen.",
+      "createdToast": "Invitasjon opprettet.",
+      "revokedToast": "Invitasjon trukket tilbake."
+    }
+  },
+  "invite": {
+    "accept": "Godta invitasjon",
+    "invalid": {
+      "title": "Invitasjon utilgjengelig",
+      "body": "Denne invitasjonen er ugyldig, utløpt eller allerede brukt."
+    },
+    "existing": {
+      "body": "Du har allerede en konto — logg inn for å bli med i {{org}}."
+    },
+    "new": {
+      "body": "Du er invitert til å bli med i {{org}}. Velg et passord for å komme i gang."
+    },
+    "roleLabel": "Rolle",
+    "fullName": "Fullt navn",
+    "password": "Passord",
+    "error": "Vi kunne ikke godta denne invitasjonen. Prøv igjen.",
+    "toLogin": "Gå til innlogging"
+  },
+  "common": {
+    "loading": "Laster …",
+    "dismiss": "Lukk"
+  },
+  "errors": {
+    "network": "Får ikke kontakt med serveren. Sjekk tilkoblingen og prøv igjen.",
+    "server": "Noe gikk galt hos oss. Prøv igjen om litt.",
+    "notFound": "Vi fant ikke det du lette etter.",
+    "generic": "Noe gikk galt. Prøv igjen."
+  }
+}

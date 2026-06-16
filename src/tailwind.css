@@ -1,0 +1,53 @@
+/* Tailwind CSS v4 entrypoint.
+   v4 auto-detects template sources, so no @source/content config is needed for
+   the standard src/ layout. Keep this file as plain CSS.
+
+   The @theme block maps the CoreFlow design tokens (CSS variables defined in
+   styles.scss) onto Tailwind's token namespaces, so utilities resolve to the
+   live variables and follow the active theme:
+     bg-surface, bg-surface-2, text-fg-muted, border-border, text-accent,
+     bg-accent-soft, text-pass, font-display, font-mono, rounded-card,
+     shadow-card, etc.
+   Dark mode is driven by [data-theme="dark"] on <html> (see styles.scss), not
+   Tailwind's .dark class, so no `dark:` variants are used. */
+@import 'tailwindcss';
+
+@theme {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-fg-subtle: var(--fg-subtle);
+  --color-accent: var(--accent);
+  --color-accent-2: var(--accent-2);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-border: var(--accent-border);
+  --color-pass: var(--pass);
+  --color-pass-soft: var(--pass-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-fail: var(--fail);
+  --color-fail-soft: var(--fail-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+
+  --font-display: 'Bricolage Grotesque', sans-serif;
+  --font-sans: 'Hanken Grotesk', system-ui, -apple-system, sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+
+  --radius-card: 14px;
+  --radius-tile: 10px;
+
+  --shadow-card: var(--shadow);
+  --shadow-pop: var(--shadow-lg);
+
+  --animate-cf-up: cf-up 0.22s ease both;
+  --animate-cf-pop: cf-pop 0.2s ease both;
+  --animate-cf-pulse: cf-pulse 1.6s ease-in-out infinite;
+  --animate-cf-blink: cf-blink 1s step-end infinite;
+  --animate-cf-slide-in: cf-slide-in 0.2s ease both;
+}

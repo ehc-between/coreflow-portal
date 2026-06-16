@@ -1,0 +1,95 @@
+<div class="mx-auto max-w-[1080px] px-8 pt-7 pb-12">
+  <a
+    routerLink="/settings"
+    class="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
+  >
+    <app-icon name="back" [size]="16" />
+    {{ 'settings.departments.backToList' | transloco }}
+  </a>
+
+  @if (loading()) {
+    <div class="py-10 text-center text-[14px] text-fg-muted">
+      {{ 'common.loading' | transloco }}
+    </div>
+  } @else if (department(); as department) {
+    <div class="mb-[18px]">
+      <h1 class="font-display text-[26px] font-bold tracking-[-0.025em] text-fg">
+        {{ department.name }}
+      </h1>
+      <div class="mt-1.5 text-[14px] text-fg-muted">
+        {{ 'settings.departments.memberCount' | transloco: { count: department.members.length } }}
+      </div>
+    </div>
+
+    <div class="grid gap-5 lg:grid-cols-[1fr_320px]">
+      <app-card [padded]="false">
+        <div class="border-b border-border px-4 py-3">
+          <h2 class="font-display text-[16px] font-bold tracking-[-0.02em] text-fg">
+            {{ 'settings.member.title' | transloco }}
+          </h2>
+        </div>
+        @if (department.members.length === 0) {
+          <div class="px-4 py-8 text-center text-[14px] text-fg-muted">
+            {{ 'settings.member.empty' | transloco }}
+          </div>
+        } @else {
+          <table class="w-full text-left text-[13.5px]">
+            <thead>
+              <tr class="border-b border-border text-[12px] font-semibold text-fg-subtle">
+                <th class="px-4 py-3 font-semibold">{{ 'settings.member.email' | transloco }}</th>
+                <th class="px-4 py-3 font-semibold">{{ 'settings.member.name' | transloco }}</th>
+                <th class="px-4 py-3"></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (member of department.members; track member.user_id) {
+                <tr class="border-b border-border last:border-b-0">
+                  <td class="px-4 py-3 text-fg">{{ member.email }}</td>
+                  <td class="px-4 py-3 text-fg-muted">{{ member.full_name }}</td>
+                  <td class="px-4 py-3 text-right">
+                    <app-button variant="ghost" size="sm" (click)="remove(member)">
+                      {{ 'settings.member.remove' | transloco }}
+                    </app-button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </app-card>
+
+      <app-card>
+        <h2 class="font-display text-[16px] font-bold tracking-[-0.02em] text-fg">
+          {{ 'settings.member.add' | transloco }}
+        </h2>
+        @if (addableMembers().length === 0) {
+          <p class="mt-3 text-[13px] text-fg-muted">{{ 'settings.member.allAdded' | transloco }}</p>
+        } @else {
+          <form class="mt-4 flex flex-col gap-4" [formGroup]="addForm" (ngSubmit)="add()">
+            <app-form-field inputId="member-user" [label]="'settings.member.select' | transloco">
+              <select id="member-user" formControlName="user_id">
+                <option value="" disabled>
+                  {{ 'settings.member.selectPlaceholder' | transloco }}
+                </option>
+                @for (member of addableMembers(); track member.user_id) {
+                  <option [value]="member.user_id">
+                    {{ member.full_name }} — {{ member.email }}
+                  </option>
+                }
+              </select>
+            </app-form-field>
+
+            <app-button type="submit" [full]="true" [loading]="adding()" class="mt-1">
+              <app-icon name="userplus" [size]="15" />
+              {{ 'settings.member.add' | transloco }}
+            </app-button>
+          </form>
+        }
+      </app-card>
+    </div>
+  } @else {
+    <div class="py-10 text-center text-[14px] text-fg-muted">
+      {{ 'settings.departments.notFound' | transloco }}
+    </div>
+  }
+</div>

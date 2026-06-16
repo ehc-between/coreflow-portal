@@ -1,0 +1,404 @@
+{
+  "app": {
+    "title": "CoreFlow Portal"
+  },
+  "nav": {
+    "sections": {
+      "workspace": "Workspace",
+      "quality": "Quality · QMS",
+      "modules": "Modules",
+      "administration": "Administration"
+    },
+    "dashboard": "Dashboard",
+    "organizations": "Organizations",
+    "myWork": "My Work",
+    "review": "Needs your review",
+    "inspections": "Inspections",
+    "deviations": "Deviations",
+    "risk": "Risk",
+    "audits": "Audits",
+    "iso": "ISO & Standards",
+    "documents": "Documents",
+    "people": "People & Roles",
+    "projects": "Projects",
+    "procedures": "Procedures",
+    "training": "Training",
+    "reports": "Reports",
+    "settings": "Settings",
+    "customize": "Customize workspace",
+    "customizeHint": "Toggle modules on or off for this workspace.",
+    "addModule": "Add module"
+  },
+  "topbar": {
+    "searchPlaceholder": "Ask CoreFlow, or jump to anything…",
+    "notifications": "Notifications",
+    "copilot": "Copilot",
+    "comingSoon": "This is coming soon.",
+    "org": "Organization"
+  },
+  "theme": {
+    "toggle": "Toggle theme",
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "workspace": {
+    "role": "QA Manager"
+  },
+  "org": {
+    "switch": "Switch organization",
+    "none": "No organization",
+    "current": "Current organization"
+  },
+  "module": {
+    "comingSoon": "This module is on the way. Your agent is getting it ready."
+  },
+  "ask": {
+    "title": "Ask CoreFlow",
+    "intro": "Ask a question about your documents and work. We'll answer in plain language and link the documents we used.",
+    "placeholder": "Ask CoreFlow…",
+    "thinking": "Looking through your documents…",
+    "send": "Send",
+    "stop": "Stop",
+    "minimize": "Minimize",
+    "working": "CoreFlow is working… Open",
+    "newChat": "New chat",
+    "chooseOption": "Choose \"{{option}}\"",
+    "sources": "Sources",
+    "proposal": {
+      "added": "Draft added to your review feed",
+      "link": "Go to review feed"
+    },
+    "notConfigured": {
+      "title": "Ask CoreFlow isn't set up yet",
+      "body": "Once it's turned on, you can ask questions about your documents right here."
+    },
+    "error": {
+      "body": "Something went wrong. Please try again."
+    }
+  },
+  "documents": {
+    "title": "Documents",
+    "subtitle": "Find, read and approve your organization's documents.",
+    "new": "New document",
+    "create": "Create document",
+    "cancel": "Cancel",
+    "searchPlaceholder": "Search documents…",
+    "filterStatus": "Filter by status",
+    "empty": "No documents yet.",
+    "noResults": "No documents match your search.",
+    "notFound": "We couldn't find that document.",
+    "backToList": "All documents",
+    "history": "Revision history",
+    "noRevisions": "No revisions yet.",
+    "noContent": "This document has no content yet.",
+    "revShort": "Rev {{rev}}",
+    "viewingRevision": "Viewing Rev {{rev}}",
+    "backToCurrent": "Back to current",
+    "revisionLoadError": "We couldn't load that revision.",
+    "approve": "Approve",
+    "requestChanges": "Request changes",
+    "approvedToast": "Document approved.",
+    "requestChangesToast": "Request changes is coming soon.",
+    "createdToast": "Document created.",
+    "download": "Download",
+    "downloadPdf": "Download PDF",
+    "downloadWord": "Download Word",
+    "exportUnavailable": "Export isn't available yet. Please try again later.",
+    "edit": "Edit",
+    "comments": {
+      "title": "Comments",
+      "empty": "No comments on this revision yet.",
+      "add": "Add comment",
+      "placeholder": "Add a comment…",
+      "save": "Save",
+      "suggest": "Suggest a fix",
+      "suggestion": "Suggested change",
+      "approve": "Approve",
+      "edit": "Edit",
+      "reject": "Reject",
+      "undo": "Undo",
+      "delete": "Delete",
+      "statusOpen": "Open",
+      "statusAccepted": "Accepted — pending save",
+      "statusResolved": "Resolved",
+      "statusRejected": "Rejected",
+      "saveRevision": "Save {{ count }} change(s) as new revision",
+      "savedToast": "{{ count }} change(s) saved as Rev {{ rev }}.",
+      "skippedToast": "{{ count }} change(s) couldn't be applied because the text they refer to has changed.",
+      "appliedToast": "Change applied as a new revision.",
+      "anchorNotFoundToast": "The text this comment refers to has changed, so the suggestion can't be applied."
+    },
+    "meta": {
+      "code": "Code",
+      "type": "Type",
+      "revision": "Revision",
+      "status": "Status"
+    },
+    "editor": {
+      "save": "Save",
+      "savedToast": "Changes saved.",
+      "backToDocument": "Back to document",
+      "placeholder": "Start writing, or select text and ask AI to edit it…",
+      "linkPrompt": "Enter a link URL",
+      "bold": "Bold",
+      "italic": "Italic",
+      "underline": "Underline",
+      "strike": "Strikethrough",
+      "h1": "Heading 1",
+      "h2": "Heading 2",
+      "h3": "Heading 3",
+      "bulletList": "Bulleted list",
+      "orderedList": "Numbered list",
+      "blockquote": "Quote",
+      "code": "Inline code",
+      "link": "Link",
+      "alignLeft": "Align left",
+      "alignCenter": "Align center",
+      "alignRight": "Align right",
+      "insertTable": "Insert table",
+      "addRow": "Add row",
+      "addColumn": "Add column",
+      "deleteRow": "Delete row",
+      "deleteColumn": "Delete column",
+      "deleteTable": "Delete table",
+      "undo": "Undo",
+      "redo": "Redo",
+      "ai": {
+        "improve": "Improve",
+        "rewrite": "Rewrite",
+        "shorten": "Shorten",
+        "expand": "Expand",
+        "fix": "Fix grammar",
+        "translate": "Translate",
+        "translateEnglish": "English",
+        "translateNorwegian": "Norwegian",
+        "ask": "Ask AI to edit…",
+        "askPlaceholder": "Describe the change…",
+        "run": "Apply",
+        "continue": "Continue writing",
+        "working": "Working…",
+        "suggestion": "Suggestion",
+        "error": "Something went wrong. Please try again.",
+        "notConfigured": "AI editing isn't set up yet.",
+        "accept": "Accept",
+        "reject": "Reject",
+        "dismiss": "Dismiss",
+        "original": "Original",
+        "suggested": "Suggested",
+        "addingNew": "Adding new content",
+        "close": "Close"
+      }
+    },
+    "access": {
+      "sectionTitle": "Owner & access",
+      "sectionHint": "Set who owns this document and who can see it.",
+      "sharingTitle": "Sharing & access",
+      "owner": "Owner",
+      "visibility": "Who can see this",
+      "organization": "Organization",
+      "organizationHint": "Everyone in your organization can view this document.",
+      "restricted": "Restricted",
+      "restrictedHint": "Only the owner and the people and departments you choose.",
+      "peopleAndDepartments": "People & departments",
+      "addPlaceholder": "Add a person or department…",
+      "person": "Person",
+      "department": "Department",
+      "level": "Access level",
+      "view": "Can view",
+      "edit": "Can edit",
+      "remove": "Remove",
+      "noGrants": "No one has been added yet.",
+      "savedToast": "Access updated.",
+      "grantAddedToast": "Access granted.",
+      "grantRemovedToast": "Access removed."
+    },
+    "fields": {
+      "type": "Type",
+      "title": "Title",
+      "codeOptional": "Document code (optional)",
+      "content": "Content"
+    },
+    "status": {
+      "all": "All statuses",
+      "draft": "Draft",
+      "in_review": "In review",
+      "approved": "Approved",
+      "obsolete": "Obsolete",
+      "superseded": "Superseded"
+    }
+  },
+  "review": {
+    "title": "Needs your review",
+    "subtitle": "Drafts waiting for your approval before they're published.",
+    "empty": "You're all caught up. Nothing needs your review.",
+    "queuedAt": "Added {{date}}",
+    "open": "Open",
+    "reject": "Reject",
+    "backToFeed": "Back to review",
+    "reviewTitle": "Review proposal",
+    "saveDraft": "Save draft",
+    "approveAndPublish": "Approve & publish",
+    "notPending": "This proposal has already been handled and can no longer be edited.",
+    "notFound": "Proposal not found.",
+    "savedToast": "Draft saved.",
+    "publishedToast": "Document published.",
+    "rejectedToast": "Draft rejected."
+  },
+  "settings": {
+    "title": "Org Settings",
+    "subtitle": "Manage settings for the current organization.",
+    "noOrg": "Select an organization to manage its settings.",
+    "save": "Save",
+    "cancel": "Cancel",
+    "departments": {
+      "title": "Departments",
+      "name": "Name",
+      "create": "Create department",
+      "rename": "Rename",
+      "delete": "Delete",
+      "empty": "No departments yet.",
+      "notFound": "Department not found.",
+      "backToList": "All departments",
+      "memberCount": "{{count}} members",
+      "nameTaken": "A department with that name already exists.",
+      "confirmDelete": "Delete the department \"{{name}}\"?",
+      "createdToast": "Department created.",
+      "renamedToast": "Department renamed.",
+      "deletedToast": "Department deleted."
+    },
+    "member": {
+      "title": "Members",
+      "email": "Email",
+      "name": "Full name",
+      "empty": "No members in this department yet.",
+      "add": "Add member",
+      "remove": "Remove",
+      "select": "Member",
+      "selectPlaceholder": "Select a member…",
+      "allAdded": "All organization members are already in this department.",
+      "addedToast": "Member added.",
+      "removedToast": "Member removed.",
+      "addFailed": "Couldn't add that member. Please try again."
+    }
+  },
+  "auth": {
+    "login": "Sign in",
+    "logout": "Sign out",
+    "signedInAs": "Signed in as {{name}}",
+    "label": {
+      "email": "Email",
+      "password": "Password"
+    },
+    "action": {
+      "signIn": "Sign in",
+      "signingIn": "Signing in…"
+    },
+    "error": {
+      "invalidCredentials": "Incorrect email or password."
+    }
+  },
+  "login": {
+    "title": "Sign in",
+    "subtitle": "Enter your credentials to access the portal."
+  },
+  "language": {
+    "label": "Language",
+    "en": "English",
+    "nb": "Norwegian"
+  },
+  "dashboard": {
+    "welcome": "Welcome to CoreFlow",
+    "subtitle": "Your portal scaffold is ready. Start building features here.",
+    "agentRole": "Work Planner",
+    "kpi": {
+      "deviations": {
+        "label": "Open deviations",
+        "delta": "-2 this week"
+      },
+      "audits": {
+        "label": "Audits due",
+        "delta": "2 this month"
+      },
+      "passRate": {
+        "label": "Pass rate"
+      },
+      "overdue": {
+        "label": "Overdue tasks",
+        "delta": "needs attention"
+      }
+    }
+  },
+  "admin": {
+    "copy": "Copy",
+    "copiedToast": "Copied",
+    "role": {
+      "admin": "Administrator",
+      "member": "Member"
+    },
+    "org": {
+      "title": "Organizations",
+      "subtitle": "Create and manage organizations across the platform.",
+      "create": "Create organization",
+      "name": "Name",
+      "slug": "Slug",
+      "slugOptional": "Slug (optional)",
+      "members": "Members",
+      "created": "Created",
+      "empty": "No organizations yet.",
+      "notFound": "Organization not found.",
+      "backToList": "All organizations",
+      "slugTaken": "That slug is already taken. Choose another.",
+      "createdToast": "Organization created."
+    },
+    "members": {
+      "title": "Members",
+      "email": "Email",
+      "name": "Full name",
+      "roles": "Roles",
+      "empty": "No members yet."
+    },
+    "invite": {
+      "title": "Invite user",
+      "send": "Send invitation",
+      "role": "Role",
+      "expires": "Expires",
+      "revoke": "Revoke",
+      "pending": "Pending invitations",
+      "pendingEmpty": "No pending invitations.",
+      "conflict": "There's already a member or pending invitation for this email.",
+      "emailNote": "An email is sent automatically when email delivery is configured.",
+      "linkTitle": "Invitation link",
+      "linkHint": "Share this link so the user can accept the invitation.",
+      "createdToast": "Invitation created.",
+      "revokedToast": "Invitation revoked."
+    }
+  },
+  "invite": {
+    "accept": "Accept invitation",
+    "invalid": {
+      "title": "Invitation unavailable",
+      "body": "This invitation is invalid, expired, or has already been used."
+    },
+    "existing": {
+      "body": "You already have an account — sign in to join {{org}}."
+    },
+    "new": {
+      "body": "You've been invited to join {{org}}. Set a password to get started."
+    },
+    "roleLabel": "Role",
+    "fullName": "Full name",
+    "password": "Password",
+    "error": "We couldn't accept this invitation. Please try again.",
+    "toLogin": "Go to sign in"
+  },
+  "common": {
+    "loading": "Loading…",
+    "dismiss": "Dismiss"
+  },
+  "errors": {
+    "network": "Can't reach the server. Check your connection and try again.",
+    "server": "Something went wrong on our end. Please try again shortly.",
+    "notFound": "We couldn't find what you were looking for.",
+    "generic": "Something went wrong. Please try again."
+  }
+}

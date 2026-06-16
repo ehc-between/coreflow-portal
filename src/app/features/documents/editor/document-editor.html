@@ -1,0 +1,487 @@
+<div class="flex flex-col gap-4">
+  <div
+    class="sticky top-0 z-20 flex flex-wrap items-center gap-1 rounded-tile border border-border bg-surface px-2 py-1.5 shadow-card"
+  >
+    <button
+      type="button"
+      class="cf-tool"
+      [class.is-active]="isActive('bold')"
+      (click)="toggleBold()"
+      [attr.aria-label]="'documents.editor.bold' | transloco"
+      [title]="'documents.editor.bold' | transloco"
+    >
+      <span class="font-bold">B</span>
+    </button>
+    <button
+      type="button"
+      class="cf-tool"
+      [class.is-active]="isActive('italic')"
+      (click)="toggleItalic()"
+      [attr.aria-label]="'documents.editor.italic' | transloco"
+      [title]="'documents.editor.italic' | transloco"
+    >
+      <span class="italic">I</span>
+    </button>
+    <button
+      type="button"
+      class="cf-tool"
+      [class.is-active]="isActive('underline')"
+      (click)="toggleUnderline()"
+      [attr.aria-label]="'documents.editor.underline' | transloco"
+      [title]="'documents.editor.underline' | transloco"
+    >
+      <span class="underline">U</span>
+    </button>
+    <button
+      type="button"
+      class="cf-tool"
+      [class.is-active]="isActive('strike')"
+      (click)="toggleStrike()"
+      [attr.aria-label]="'documents.editor.strike' | transloco"
+      [title]="'documents.editor.strike' | transloco"
+    >
+      <span class="line-through">S</span>
+    </button>
+
+    <span class="cf-tool-sep"></span>
+
+    <button
+      type="button"
+      class="cf-tool"
+      [class.is-active]="isActive('heading', { level: 1 })"
+      (click)="toggleHeading(1)"
+      [attr.aria-label]="'documents.editor.h1' | transloco"
+      [title]="'documents.editor.h1' | transloco"
+    >
+      H1
+    </button>
+    <button
+      type="button"
+      class="cf-tool"
+      [class.is-active]="isActive('heading', { level: 2 })"
+      (click)="toggleHeading(2)"
+      [attr.aria-label]="'documents.editor.h2' | transloco"
+      [title]="'documents.editor.h2' | transloco"
+    >
+      H2
+    </button>
+    <button
+      type="button"
+      class="cf-tool"
+      [class.is-active]="isActive('heading', { level: 3 })"
+      (click)="toggleHeading(3)"
+      [attr.aria-label]="'documents.editor.h3' | transloco"
+      [title]="'documents.editor.h3' | transloco"
+    >
+      H3
+    </button>
+
+    <span class="cf-tool-sep"></span>
+
+    <button
+      type="button"
+      class="cf-tool"
+      [class.is-active]="isActive('bulletList')"
+      (click)="toggleBulletList()"
+      [attr.aria-label]="'documents.editor.bulletList' | transloco"
+      [title]="'documents.editor.bulletList' | transloco"
+    >
+      &bull;&nbsp;&mdash;
+    </button>
+    <button
+      type="button"
+      class="cf-tool"
+      [class.is-active]="isActive('orderedList')"
+      (click)="toggleOrderedList()"
+      [attr.aria-label]="'documents.editor.orderedList' | transloco"
+      [title]="'documents.editor.orderedList' | transloco"
+    >
+      1.
+    </button>
+    <button
+      type="button"
+      class="cf-tool"
+      [class.is-active]="isActive('blockquote')"
+      (click)="toggleBlockquote()"
+      [attr.aria-label]="'documents.editor.blockquote' | transloco"
+      [title]="'documents.editor.blockquote' | transloco"
+    >
+      &ldquo;
+    </button>
+    <button
+      type="button"
+      class="cf-tool"
+      [class.is-active]="isActive('code')"
+      (click)="toggleCode()"
+      [attr.aria-label]="'documents.editor.code' | transloco"
+      [title]="'documents.editor.code' | transloco"
+    >
+      <span class="font-mono">&lt;&gt;</span>
+    </button>
+    <button
+      type="button"
+      class="cf-tool"
+      [class.is-active]="isActive('link')"
+      (click)="toggleLink()"
+      [attr.aria-label]="'documents.editor.link' | transloco"
+      [title]="'documents.editor.link' | transloco"
+    >
+      <app-icon name="link" [size]="16" />
+    </button>
+
+    <span class="cf-tool-sep"></span>
+
+    <button
+      type="button"
+      class="cf-tool"
+      [class.is-active]="isActive({ textAlign: 'left' })"
+      (click)="setAlign('left')"
+      [attr.aria-label]="'documents.editor.alignLeft' | transloco"
+      [title]="'documents.editor.alignLeft' | transloco"
+    >
+      &#8801;&#8592;
+    </button>
+    <button
+      type="button"
+      class="cf-tool"
+      [class.is-active]="isActive({ textAlign: 'center' })"
+      (click)="setAlign('center')"
+      [attr.aria-label]="'documents.editor.alignCenter' | transloco"
+      [title]="'documents.editor.alignCenter' | transloco"
+    >
+      &#8801;
+    </button>
+    <button
+      type="button"
+      class="cf-tool"
+      [class.is-active]="isActive({ textAlign: 'right' })"
+      (click)="setAlign('right')"
+      [attr.aria-label]="'documents.editor.alignRight' | transloco"
+      [title]="'documents.editor.alignRight' | transloco"
+    >
+      &#8594;&#8801;
+    </button>
+
+    <span class="cf-tool-sep"></span>
+
+    @if (inTable) {
+      <button
+        type="button"
+        class="cf-tool"
+        (click)="addRowAfter()"
+        [attr.aria-label]="'documents.editor.addRow' | transloco"
+        [title]="'documents.editor.addRow' | transloco"
+      >
+        +R
+      </button>
+      <button
+        type="button"
+        class="cf-tool"
+        (click)="addColumnAfter()"
+        [attr.aria-label]="'documents.editor.addColumn' | transloco"
+        [title]="'documents.editor.addColumn' | transloco"
+      >
+        +C
+      </button>
+      <button
+        type="button"
+        class="cf-tool"
+        (click)="deleteRow()"
+        [attr.aria-label]="'documents.editor.deleteRow' | transloco"
+        [title]="'documents.editor.deleteRow' | transloco"
+      >
+        &minus;R
+      </button>
+      <button
+        type="button"
+        class="cf-tool"
+        (click)="deleteColumn()"
+        [attr.aria-label]="'documents.editor.deleteColumn' | transloco"
+        [title]="'documents.editor.deleteColumn' | transloco"
+      >
+        &minus;C
+      </button>
+      <button
+        type="button"
+        class="cf-tool"
+        (click)="deleteTable()"
+        [attr.aria-label]="'documents.editor.deleteTable' | transloco"
+        [title]="'documents.editor.deleteTable' | transloco"
+      >
+        <app-icon name="x" [size]="15" />
+      </button>
+    } @else {
+      <button
+        type="button"
+        class="cf-tool"
+        (click)="insertTable()"
+        [attr.aria-label]="'documents.editor.insertTable' | transloco"
+        [title]="'documents.editor.insertTable' | transloco"
+      >
+        &#9638;
+      </button>
+    }
+
+    <span class="cf-tool-sep"></span>
+
+    <button
+      type="button"
+      class="cf-tool"
+      (click)="undo()"
+      [attr.aria-label]="'documents.editor.undo' | transloco"
+      [title]="'documents.editor.undo' | transloco"
+    >
+      <app-icon name="back" [size]="16" />
+    </button>
+    <button
+      type="button"
+      class="cf-tool"
+      (click)="redo()"
+      [attr.aria-label]="'documents.editor.redo' | transloco"
+      [title]="'documents.editor.redo' | transloco"
+    >
+      <app-icon name="arrow" [size]="16" />
+    </button>
+
+    <span class="cf-tool-sep"></span>
+
+    <button
+      type="button"
+      class="cf-tool gap-1.5 px-2.5 text-accent"
+      (click)="continueWriting()"
+      [attr.aria-label]="'documents.editor.ai.continue' | transloco"
+      [title]="'documents.editor.ai.continue' | transloco"
+    >
+      <app-icon name="spark" [size]="15" />
+      <span>{{ 'documents.editor.ai.continue' | transloco }}</span>
+    </button>
+
+    @if (!embedded()) {
+      <span class="ml-auto"></span>
+
+      <button type="button" class="cf-tool px-3 text-fg-muted" (click)="onCancel()">
+        {{ 'documents.cancel' | transloco }}
+      </button>
+      <button
+        type="button"
+        class="cf-tool gap-1.5 bg-accent px-3.5 text-white hover:bg-accent-2 hover:text-white"
+        [disabled]="!canSave()"
+        (click)="onSave()"
+      >
+        @if (saving()) {
+          <span class="animate-cf-pulse inline-flex"><app-icon name="spark" [size]="15" /></span>
+        }
+        {{ 'documents.editor.save' | transloco }}
+      </button>
+    }
+  </div>
+
+  <div class="relative">
+    <div
+      #host
+      [attr.data-placeholder]="'documents.editor.placeholder' | transloco"
+      [attr.data-link-prompt]="'documents.editor.linkPrompt' | transloco"
+    ></div>
+
+    @if (bubbleVisible()) {
+      <div
+        class="fixed z-[45]"
+        [style.top]="bubbleStyle()['top']"
+        [style.left]="bubbleStyle()['left']"
+        [style.transform]="bubbleStyle()['transform']"
+      >
+        <div
+          class="flex flex-col gap-1.5 rounded-tile border border-border bg-surface p-1.5 shadow-pop"
+        >
+          <div class="flex items-center gap-1">
+            @for (action of quickActions; track action.mode) {
+              <button type="button" class="cf-tool px-2.5" (click)="runQuickAction(action.mode)">
+                {{ action.labelKey | transloco }}
+              </button>
+            }
+            <button
+              type="button"
+              class="cf-tool px-2.5"
+              [class.is-active]="showTranslate()"
+              (click)="openTranslate()"
+            >
+              {{ 'documents.editor.ai.translate' | transloco }}
+            </button>
+            <span class="cf-tool-sep"></span>
+            <button
+              type="button"
+              class="cf-tool gap-1.5 px-2.5 text-accent"
+              [class.is-active]="showCustom()"
+              (click)="openCustom()"
+            >
+              <app-icon name="spark" [size]="14" />
+              {{ 'documents.editor.ai.ask' | transloco }}
+            </button>
+          </div>
+
+          @if (showTranslate()) {
+            <div class="flex items-center gap-1 border-t border-border pt-1.5">
+              @for (preset of translatePresets; track preset.instruction) {
+                <button
+                  type="button"
+                  class="cf-tool px-2.5"
+                  (click)="translateTo(preset.instruction)"
+                >
+                  {{ preset.key | transloco }}
+                </button>
+              }
+            </div>
+          }
+
+          @if (showCustom()) {
+            <form
+              class="flex items-center gap-1.5 border-t border-border pt-1.5"
+              (ngSubmit)="submitCustom()"
+            >
+              <input
+                type="text"
+                [(ngModel)]="customInstruction"
+                name="instruction"
+                [placeholder]="'documents.editor.ai.askPlaceholder' | transloco"
+                [attr.aria-label]="'documents.editor.ai.ask' | transloco"
+                class="h-8 w-64 rounded-[8px] border border-border bg-bg px-2.5 text-[13px] text-fg outline-none focus:border-accent"
+              />
+              <button
+                type="submit"
+                class="flex h-8 w-8 flex-none items-center justify-center rounded-[8px] bg-accent text-white hover:bg-accent-2"
+                [attr.aria-label]="'documents.editor.ai.run' | transloco"
+              >
+                <app-icon name="send" [size]="15" />
+              </button>
+            </form>
+          }
+        </div>
+      </div>
+    }
+  </div>
+
+  @if (ai(); as session) {
+    <div class="fixed inset-0 z-[44] flex justify-end">
+      <button
+        type="button"
+        (click)="rejectAi()"
+        [attr.aria-label]="'documents.editor.ai.close' | transloco"
+        class="absolute inset-0 cursor-default bg-black/30 sm:hidden"
+      ></button>
+      <aside
+        class="animate-cf-slide-in relative flex h-full w-full max-w-[420px] flex-col border-l border-border bg-surface shadow-pop"
+      >
+        <header class="flex flex-none items-center gap-2.5 border-b border-border px-4 py-3">
+          <span
+            class="flex h-7 w-7 flex-none items-center justify-center rounded-[8px] bg-accent-soft text-accent"
+          >
+            <app-icon name="spark" [size]="16" />
+          </span>
+          <span
+            class="min-w-0 flex-1 truncate font-display text-[15px] font-bold tracking-[-0.02em] text-fg"
+          >
+            @if (aiActionLabelKey(session); as labelKey) {
+              {{ labelKey | transloco }}
+            } @else {
+              {{ session.instruction }}
+            }
+          </span>
+          <button
+            type="button"
+            (click)="rejectAi()"
+            [attr.aria-label]="'documents.editor.ai.close' | transloco"
+            class="flex h-8 w-8 flex-none items-center justify-center rounded-[9px] text-fg-muted hover:bg-surface-2 hover:text-fg"
+          >
+            <app-icon name="x" [size]="18" />
+          </button>
+        </header>
+
+        <div class="flex-1 overflow-y-auto px-4 py-4">
+          @if (session.phase === 'error') {
+            <p
+              role="alert"
+              class="rounded-tile border border-fail/30 bg-fail-soft px-3 py-2 text-[13px] font-medium text-fail"
+            >
+              {{ 'documents.editor.ai.error' | transloco }}
+            </p>
+          } @else if (session.phase === 'not-configured') {
+            <div class="flex flex-col items-center gap-3 py-10 text-center">
+              <span
+                class="flex h-11 w-11 items-center justify-center rounded-card border border-border bg-surface-2 text-fg-muted"
+              >
+                <app-icon name="spark" [size]="20" />
+              </span>
+              <p class="max-w-[280px] text-[13px] text-fg-muted">
+                {{ 'documents.editor.ai.notConfigured' | transloco }}
+              </p>
+            </div>
+          } @else {
+            <div class="flex flex-col gap-4">
+              <section class="flex flex-col gap-2">
+                <div class="text-[11px] font-bold tracking-[0.08em] text-fg-subtle uppercase">
+                  {{ 'documents.editor.ai.original' | transloco }}
+                </div>
+                @if (session.insert) {
+                  <p class="text-[13px] text-fg-muted italic">
+                    {{ 'documents.editor.ai.addingNew' | transloco }}
+                  </p>
+                } @else {
+                  <div
+                    class="cf-doc !max-w-none !border-0 !p-0 !text-[14px] !shadow-none"
+                    [innerHTML]="aiPreview(session.selectionHtml)"
+                  ></div>
+                }
+              </section>
+
+              <section class="flex flex-col gap-2 border-t border-border pt-4">
+                <div class="text-[11px] font-bold tracking-[0.08em] text-fg-subtle uppercase">
+                  {{ 'documents.editor.ai.suggested' | transloco }}
+                </div>
+                @if (session.phase === 'streaming' && !session.html) {
+                  <p class="animate-cf-pulse text-[13px] text-fg-muted">
+                    {{ 'documents.editor.ai.working' | transloco }}
+                  </p>
+                } @else {
+                  <div
+                    class="cf-doc !max-w-none !border-0 !p-0 !text-[14px] !shadow-none"
+                    [innerHTML]="aiPreview(session.html)"
+                  ></div>
+                }
+              </section>
+            </div>
+          }
+        </div>
+
+        @if (session.phase === 'review') {
+          <div class="flex flex-none items-center gap-2 border-t border-border px-4 py-3">
+            <button
+              type="button"
+              class="cf-tool gap-1.5 bg-accent px-3.5 text-white hover:bg-accent-2 hover:text-white"
+              (click)="acceptAi()"
+            >
+              <app-icon name="check" [size]="15" />
+              {{ 'documents.editor.ai.accept' | transloco }}
+            </button>
+            <button
+              type="button"
+              class="cf-tool border border-border bg-surface px-3 text-fg"
+              (click)="rejectAi()"
+            >
+              {{ 'documents.editor.ai.reject' | transloco }}
+            </button>
+          </div>
+        } @else if (session.phase === 'error' || session.phase === 'not-configured') {
+          <div class="flex flex-none items-center border-t border-border px-4 py-3">
+            <button
+              type="button"
+              class="cf-tool border border-border bg-surface px-3 text-fg"
+              (click)="rejectAi()"
+            >
+              {{ 'documents.editor.ai.dismiss' | transloco }}
+            </button>
+          </div>
+        }
+      </aside>
+    </div>
+  }
+</div>

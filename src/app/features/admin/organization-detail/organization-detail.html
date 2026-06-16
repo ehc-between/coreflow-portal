@@ -1,0 +1,172 @@
+<div class="mx-auto max-w-[1080px] px-8 pt-7 pb-12">
+  <a
+    routerLink="/admin/organizations"
+    class="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
+  >
+    <app-icon name="back" [size]="16" />
+    {{ 'admin.org.backToList' | transloco }}
+  </a>
+
+  @if (loading()) {
+    <div class="py-10 text-center text-[14px] text-fg-muted">
+      {{ 'common.loading' | transloco }}
+    </div>
+  } @else if (org(); as org) {
+    <div class="mb-[18px]">
+      <h1 class="font-display text-[26px] font-bold tracking-[-0.025em] text-fg">{{ org.name }}</h1>
+      <div class="mt-1.5 text-[14px] text-fg-muted">{{ org.slug }}</div>
+    </div>
+
+    <div class="grid gap-5 lg:grid-cols-[1fr_340px]">
+      <div class="flex flex-col gap-5">
+        <app-card [padded]="false">
+          <div class="border-b border-border px-4 py-3">
+            <h2 class="font-display text-[16px] font-bold tracking-[-0.02em] text-fg">
+              {{ 'admin.members.title' | transloco }}
+            </h2>
+          </div>
+          @if (org.members.length === 0) {
+            <div class="px-4 py-8 text-center text-[14px] text-fg-muted">
+              {{ 'admin.members.empty' | transloco }}
+            </div>
+          } @else {
+            <table class="w-full text-left text-[13.5px]">
+              <thead>
+                <tr class="border-b border-border text-[12px] font-semibold text-fg-subtle">
+                  <th class="px-4 py-3 font-semibold">{{ 'admin.members.email' | transloco }}</th>
+                  <th class="px-4 py-3 font-semibold">{{ 'admin.members.name' | transloco }}</th>
+                  <th class="px-4 py-3 font-semibold">{{ 'admin.members.roles' | transloco }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (member of org.members; track member.user_id) {
+                  <tr class="border-b border-border last:border-b-0">
+                    <td class="px-4 py-3 text-fg">{{ member.email }}</td>
+                    <td class="px-4 py-3 text-fg-muted">{{ member.full_name }}</td>
+                    <td class="px-4 py-3">
+                      <span class="flex flex-wrap gap-1.5">
+                        @for (role of member.roles; track role) {
+                          <app-badge tone="accent">{{ roleBadgeKey(role) | transloco }}</app-badge>
+                        }
+                      </span>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+        </app-card>
+
+        <app-card [padded]="false">
+          <div class="border-b border-border px-4 py-3">
+            <h2 class="font-display text-[16px] font-bold tracking-[-0.02em] text-fg">
+              {{ 'admin.invite.pending' | transloco }}
+            </h2>
+          </div>
+          @if (invitations().length === 0) {
+            <div class="px-4 py-8 text-center text-[14px] text-fg-muted">
+              {{ 'admin.invite.pendingEmpty' | transloco }}
+            </div>
+          } @else {
+            <table class="w-full text-left text-[13.5px]">
+              <thead>
+                <tr class="border-b border-border text-[12px] font-semibold text-fg-subtle">
+                  <th class="px-4 py-3 font-semibold">{{ 'admin.members.email' | transloco }}</th>
+                  <th class="px-4 py-3 font-semibold">{{ 'admin.invite.role' | transloco }}</th>
+                  <th class="px-4 py-3 font-semibold">{{ 'admin.invite.expires' | transloco }}</th>
+                  <th class="px-4 py-3"></th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (invitation of invitations(); track invitation.id) {
+                  <tr class="border-b border-border last:border-b-0">
+                    <td class="px-4 py-3 text-fg">{{ invitation.email }}</td>
+                    <td class="px-4 py-3">
+                      <app-badge tone="neutral">
+                        {{ roleBadgeKey(invitation.role_key) | transloco }}
+                      </app-badge>
+                    </td>
+                    <td class="px-4 py-3 text-fg-muted">
+                      {{ invitation.expires_at | date: 'medium' }}
+                    </td>
+                    <td class="px-4 py-3 text-right">
+                      <app-button variant="ghost" size="sm" (click)="revoke(invitation)">
+                        {{ 'admin.invite.revoke' | transloco }}
+                      </app-button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+        </app-card>
+      </div>
+
+      <app-card>
+        <h2 class="font-display text-[16px] font-bold tracking-[-0.02em] text-fg">
+          {{ 'admin.invite.title' | transloco }}
+        </h2>
+        <form class="mt-4 flex flex-col gap-4" [formGroup]="form" (ngSubmit)="invite()">
+          <app-form-field inputId="invite-email" [label]="'admin.members.email' | transloco">
+            <input id="invite-email" type="email" formControlName="email" autocomplete="off" />
+          </app-form-field>
+
+          <app-form-field inputId="invite-role" [label]="'admin.invite.role' | transloco">
+            <select id="invite-role" formControlName="role_key">
+              @for (role of roleOptions; track role) {
+                <option [value]="role">{{ roleBadgeKey(role) | transloco }}</option>
+              }
+            </select>
+          </app-form-field>
+
+          @if (inviteConflict()) {
+            <p
+              role="alert"
+              class="rounded-tile border border-fail/30 bg-fail-soft px-3 py-2 text-[13px] font-medium text-fail"
+            >
+              {{ 'admin.invite.conflict' | transloco }}
+            </p>
+          }
+
+          <app-button type="submit" [full]="true" [loading]="inviting()" class="mt-1">
+            <app-icon name="userplus" [size]="15" />
+            {{ 'admin.invite.send' | transloco }}
+          </app-button>
+
+          <p class="text-[12px] leading-snug text-fg-subtle">
+            {{ 'admin.invite.emailNote' | transloco }}
+          </p>
+        </form>
+
+        @if (lastInvite(); as invite) {
+          <div class="mt-5 rounded-tile border border-accent-border bg-accent-soft p-3">
+            <p class="text-[13px] font-semibold text-accent">
+              {{ 'admin.invite.linkTitle' | transloco }}
+            </p>
+            <p class="mt-0.5 text-[12px] text-fg-muted">
+              {{ 'admin.invite.linkHint' | transloco }}
+            </p>
+            <div class="mt-2 flex items-center gap-2">
+              <input
+                type="text"
+                readonly
+                [value]="invite.accept_url"
+                [attr.aria-label]="'admin.invite.linkTitle' | transloco"
+                (focus)="$any($event.target).select()"
+                class="h-9 w-full rounded-[10px] border border-border bg-bg px-3 text-[12.5px] text-fg outline-none"
+              />
+              <app-button variant="secondary" size="sm" (click)="copyAcceptUrl()">
+                <app-icon name="link" [size]="15" />
+                {{ 'admin.copy' | transloco }}
+              </app-button>
+            </div>
+          </div>
+        }
+      </app-card>
+    </div>
+  } @else {
+    <div class="py-10 text-center text-[14px] text-fg-muted">
+      {{ 'admin.org.notFound' | transloco }}
+    </div>
+  }
+</div>
