@@ -419,5 +419,300 @@
     "server": "Noe gikk galt hos oss. Prøv igjen om litt.",
     "notFound": "Vi fant ikke det du lette etter.",
     "generic": "Noe gikk galt. Prøv igjen."
+  },
+  "deviations": {
+    "title": "Avvik",
+    "subtitle": "Følg avvik og korrigerende tiltak på tvers av standardene dine.",
+    "new": "Nytt avvik",
+    "empty": "Ingen avvik samsvarer med filtrene dine.",
+    "backToList": "Tilbake til avvik",
+    "searchPlaceholder": "Søk i avvik…",
+    "status": {
+      "open": "Åpen",
+      "investigating": "Under utredning",
+      "action": "Tiltak",
+      "verification": "Verifisering",
+      "closed": "Lukket",
+      "cancelled": "Avbrutt"
+    },
+    "severity": {
+      "low": "Lav",
+      "medium": "Middels",
+      "high": "Høy",
+      "critical": "Kritisk"
+    },
+    "source": {
+      "internal": "Intern",
+      "audit": "Revisjon",
+      "inspection": "Inspeksjon",
+      "customer": "Kunde",
+      "incident": "Hendelse",
+      "other": "Annet"
+    },
+    "standards": {
+      "iso9001": "ISO 9001",
+      "iso14001": "ISO 14001",
+      "iso45001": "ISO 45001",
+      "iso27001": "ISO 27001",
+      "gdpr": "GDPR"
+    },
+    "visibility": {
+      "organization": "Hele organisasjonen",
+      "restricted": "Begrenset"
+    },
+    "filters": {
+      "sort": "Sortering",
+      "status": "Status",
+      "type": "Type",
+      "standard": "Standard",
+      "severity": "Alvorlighet",
+      "source": "Kilde",
+      "owner": "Eier",
+      "department": "Avdeling",
+      "tag": "Etikett",
+      "dueBefore": "Frist før",
+      "dueAfter": "Frist etter",
+      "allStatuses": "Alle statuser",
+      "allTypes": "Alle typer",
+      "allStandards": "Alle standarder",
+      "allSeverities": "Alle alvorlighetsgrader",
+      "allSources": "Alle kilder",
+      "allOwners": "Alle eiere",
+      "allDepartments": "Alle avdelinger",
+      "clear": "Tøm filtre"
+    },
+    "sort": {
+      "newest": "Nyeste først",
+      "oldest": "Eldste først",
+      "dueSoonest": "Frist snarest",
+      "severity": "Alvorlighet",
+      "code": "Kode"
+    },
+    "pagination": {
+      "range": "{{ from }}–{{ to }} av {{ total }}",
+      "prev": "Forrige",
+      "next": "Neste"
+    },
+    "dynamicField": {
+      "choose": "Velg…"
+    },
+    "create": {
+      "pickType": "Velg en avvikstype for å starte.",
+      "changeType": "Endre type",
+      "noTypesTitle": "Ingen avvikstyper ennå",
+      "noTypesHint": "En administrator må opprette en avvikstype før avvik kan registreres.",
+      "detailsSection": "Typedetaljer",
+      "submit": "Opprett avvik",
+      "cancel": "Avbryt",
+      "unassigned": "Ikke tildelt",
+      "none": "Ingen",
+      "addClause": "Legg til klausul",
+      "removeClause": "Fjern klausul",
+      "clausePlaceholder": "Klausul (f.eks. 8.7)",
+      "tagPlaceholder": "Legg til en etikett og trykk Enter",
+      "removeTag": "Fjern etikett",
+      "rootCauseMethodPlaceholder": "f.eks. 5 hvorfor, Ishikawa",
+      "titleRequired": "En tittel er påkrevd.",
+      "createdToast": "Avvik opprettet.",
+      "validationToast": "Noen detaljer må rettes. Sjekk de markerte feltene.",
+      "badReferenceToast": "Valgt eier eller avdeling er ikke gyldig for denne organisasjonen.",
+      "fields": {
+        "title": "Tittel",
+        "description": "Beskrivelse",
+        "severity": "Alvorlighet",
+        "source": "Kilde",
+        "standards": "Standarder",
+        "clauses": "Klausuler",
+        "tags": "Etiketter",
+        "owner": "Eier",
+        "department": "Avdeling",
+        "due": "Frist",
+        "visibility": "Synlighet",
+        "rootCause": "Rotårsak",
+        "rootCauseMethod": "Rotårsaksmetode"
+      }
+    },
+    "detail": {
+      "edit": "Rediger",
+      "save": "Lagre endringer",
+      "cancel": "Avbryt",
+      "delete": "Slett",
+      "changeStatus": "Endre status",
+      "deleteConfirm": "Slette avvik {{ code }}? Dette kan ikke angres.",
+      "deletedToast": "Avvik slettet.",
+      "savedToast": "Avvik oppdatert.",
+      "statusChangedToast": "Status oppdatert.",
+      "notFound": "Dette avviket finnes ikke, eller du har ikke tilgang til det.",
+      "notProvided": "Ikke oppgitt",
+      "owner": "Eier",
+      "auditTrail": "Revisjonsspor",
+      "noEvents": "Ingen aktivitet registrert ennå.",
+      "meta": {
+        "raised": "Registrert",
+        "due": "Frist",
+        "closed": "Lukket",
+        "source": "Kilde"
+      }
+    },
+    "actions": {
+      "title": "Korrigerende og forebyggende tiltak",
+      "add": "Legg til tiltak",
+      "save": "Lagre",
+      "cancel": "Avbryt",
+      "delete": "Slett tiltak",
+      "empty": "Ingen tiltak ennå.",
+      "unassigned": "Ikke tildelt",
+      "dueLabel": "Frist {{ date }}",
+      "markVerified": "Merk som verifisert",
+      "notVerified": "Ikke verifisert",
+      "editNotes": "Notater",
+      "notesPlaceholder": "Legg til et verifiseringsnotat…",
+      "addedToast": "Tiltak lagt til.",
+      "savedToast": "Tiltak oppdatert.",
+      "removedToast": "Tiltak fjernet.",
+      "fields": {
+        "kind": "Type",
+        "description": "Beskrivelse",
+        "owner": "Eier",
+        "due": "Frist",
+        "status": "Status",
+        "effectiveness": "Effektivitet"
+      },
+      "kind": {
+        "containment": "Strakstiltak",
+        "corrective": "Korrigerende",
+        "preventive": "Forebyggende"
+      },
+      "status": {
+        "open": "Åpen",
+        "in_progress": "Pågår",
+        "done": "Fullført",
+        "verified": "Verifisert",
+        "cancelled": "Avbrutt"
+      },
+      "effectiveness": {
+        "pending": "Effektivitet venter",
+        "effective": "Effektivt",
+        "not_effective": "Ikke effektivt"
+      }
+    },
+    "access": {
+      "sharingTitle": "Deling og tilgang",
+      "owner": "Eier",
+      "unassigned": "Ikke tildelt",
+      "visibility": "Hvem kan se dette",
+      "organization": "Organisasjon",
+      "organizationHint": "Alle i organisasjonen din kan se dette avviket.",
+      "restricted": "Begrenset",
+      "restrictedHint": "Kun eieren og personene og avdelingene du velger.",
+      "peopleAndDepartments": "Personer og avdelinger",
+      "addPlaceholder": "Legg til person eller avdeling…",
+      "person": "Person",
+      "department": "Avdeling",
+      "level": "Tilgangsnivå",
+      "view": "Kan se",
+      "edit": "Kan redigere",
+      "remove": "Fjern",
+      "noGrants": "Ingen er lagt til ennå.",
+      "savedToast": "Tilgang oppdatert.",
+      "grantAddedToast": "Tilgang gitt.",
+      "grantRemovedToast": "Tilgang fjernet."
+    },
+    "types": {
+      "title": "Avvikstyper",
+      "subtitle": "Definer de konfigurerbare typene og feltskjemaene avvik registreres mot.",
+      "link": "Administrer typer",
+      "new": "Ny type",
+      "editTitle": "Rediger type",
+      "backToTypes": "Tilbake til typer",
+      "empty": "Ingen avvikstyper ennå. Opprett en for å begynne å registrere avvik.",
+      "fieldCount": "{{ count }} felter",
+      "active": "Aktiv",
+      "inactive": "Inaktiv",
+      "delete": "Slett type",
+      "deletedToast": "Avvikstype slettet.",
+      "inUseToast": "Denne typen er i bruk og kan ikke slettes.",
+      "fieldTypes": {
+        "text": "Tekst",
+        "textarea": "Avsnitt",
+        "number": "Tall",
+        "date": "Dato",
+        "select": "Enkeltvalg",
+        "multiselect": "Flervalg",
+        "checkbox": "Avkrysning",
+        "user": "Person",
+        "department": "Avdeling"
+      },
+      "editor": {
+        "name": "Navn",
+        "key": "Nøkkel",
+        "description": "Beskrivelse",
+        "codePrefix": "Kodeprefiks",
+        "codePrefixPlaceholder": "f.eks. NC",
+        "isActive": "Aktiv (tilgjengelig ved registrering av avvik)",
+        "standards": "Standarder",
+        "schemaSection": "Skjemafelter",
+        "noFields": "Ingen felter ennå. Legg til et felt for å fange typespesifikke detaljer.",
+        "addField": "Legg til felt",
+        "removeField": "Fjern felt",
+        "moveUp": "Flytt felt opp",
+        "moveDown": "Flytt felt ned",
+        "fieldLabel": "Etikett",
+        "fieldKey": "Nøkkel",
+        "fieldType": "Type",
+        "fieldRequired": "Påkrevd",
+        "options": "Alternativer",
+        "addOption": "Legg til alternativ",
+        "removeOption": "Fjern alternativ",
+        "optionPlaceholder": "Alternativverdi",
+        "placeholderHint": "Plassholder (valgfritt)",
+        "helpHint": "Hjelpetekst (valgfritt)",
+        "showPreview": "Vis forhåndsvisning",
+        "hidePreview": "Skjul forhåndsvisning",
+        "preview": "Forhåndsvisning",
+        "save": "Lagre type",
+        "cancel": "Avbryt",
+        "createdToast": "Avvikstype opprettet.",
+        "savedToast": "Avvikstype oppdatert.",
+        "validationToast": "Noen detaljer må rettes. Sjekk de uthevede feltene.",
+        "saveFailedToast": "Typen kunne ikke lagres. Prøv igjen.",
+        "errors": {
+          "nameRequired": "Et navn er påkrevd.",
+          "prefixRequired": "Et kodeprefiks er påkrevd.",
+          "fieldKeyRequired": "En nøkkel er påkrevd.",
+          "fieldKeyDuplicate": "Nøkler må være unike innenfor typen.",
+          "fieldLabelRequired": "En etikett er påkrevd.",
+          "fieldOptionsRequired": "Legg til minst ett alternativ.",
+          "keyTaken": "Denne nøkkelen er allerede i bruk."
+        }
+      }
+    },
+    "stats": {
+      "title": "Avviksstatistikk",
+      "subtitle": "Aggregerte mål på tvers av avvikene dine. Filtrer for å fokusere, klikk en søyle for å borre inn.",
+      "link": "Statistikk",
+      "empty": "Ingen avvik samsvarer med disse filtrene ennå.",
+      "noData": "Ingen data.",
+      "unknownDepartment": "Ukjent avdeling",
+      "cards": {
+        "total": "Totalt",
+        "open": "Åpne",
+        "overdue": "Forfalt",
+        "closed": "Lukket",
+        "openActions": "Åpne tiltak",
+        "overdueActions": "Forfalte tiltak"
+      },
+      "breakdowns": {
+        "byStatus": "Etter status",
+        "bySeverity": "Etter alvorlighet",
+        "byStandard": "Etter standard",
+        "byType": "Etter type",
+        "byDepartment": "Etter avdeling",
+        "byClause": "Etter punkt (topp)"
+      },
+      "trend": {
+        "title": "Opprettet over tid"
+      }
+    }
   }
 }

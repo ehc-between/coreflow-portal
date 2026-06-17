@@ -1,0 +1,177 @@
+import { Injectable, inject } from '@angular/core';
+import { Observable } from 'rxjs';
+import { ApiService } from '../http/api.service';
+import {
+  AccessGrant,
+  AccessGrantInput,
+  AccessSubjects,
+  Action,
+  ActionInput,
+  CreateDeviationRequest,
+  DeviationAccess,
+  DeviationDetail,
+  DeviationFilters,
+  DeviationListItem,
+  DeviationListResponse,
+  DeviationStats,
+  DeviationType,
+  DeviationTypeInput,
+  UpdateDeviationRequest,
+} from './deviation.models';
+
+/**
+ * Org-scoped Deviations API. Goes through ApiService, so requests carry the
+ * in-memory bearer token (attached by the auth interceptor) and the configured
+ * base URL. Callers pass the current org id and gate actions on the relevant
+ * `deviations:*` permission for that org.
+ *
+ * This is the complete client for the deviations module — list/create are wired
+ * now; detail, edit, actions, access and stats are reused by later surfaces.
+ */
+@Injectable({ providedIn: 'root' })
+export class DeviationsApi {
+  private readonly api = inject(ApiService);
+
+  // --- Deviation types -------------------------------------------------------
+
+  /** List the org's deviation types (used by the create form's type picker). */
+  listTypes(orgId: string): Observable<DeviationType[]> {
+    return this.api.get<DeviationType[]>(`v1/orgs/${orgId}/deviation-types`);
+  }
+
+  getType(orgId: string, typeId: string): Observable<DeviationType> {
+    return this.api.get<DeviationType>(`v1/orgs/${orgId}/deviation-types/${typeId}`);
+  }
+
+  /** Create a deviation type (admin form-builder — built in a later dispatch). */
+  createType(orgId: string, body: DeviationTypeInput): Observable<DeviationType> {
+    return this.api.post<DeviationType>(`v1/orgs/${orgId}/deviation-types`, body);
+  }
+
+  updateType(
+    orgId: string,
+    typeId: string,
+    body: Partial<DeviationTypeInput>,
+  ): Observable<DeviationType> {
+    return this.api.patch<DeviationType>(`v1/orgs/${orgId}/deviation-types/${typeId}`, body);
+  }
+
+  deleteType(orgId: string, typeId: string): Observable<void> {
+    return this.api.delete<void>(`v1/orgs/${orgId}/deviation-types/${typeId}`);
+  }
+
+  // --- Deviations ------------------------------------------------------------
+
+  /** Page of deviations matching the filters, plus the unpaged total. */
+  listDeviations(orgId: string, filters: DeviationFilters = {}): Observable<DeviationListResponse> {
+    return this.api.get<DeviationListResponse>(`v1/orgs/${orgId}/deviations`, {
+      params: {
+        status: filters.status,
+        type_id: filters.type_id,
+        standard: filters.standard,
+        severity: filters.severity,
+        tag: filters.tag,
+        clause: filters.clause,
+        owner_user_id: filters.owner_user_id,
+        department_id: filters.department_id,
+        source: filters.source,
+        due_before: filters.due_before,
+        due_after: filters.due_after,
+        q: filters.q,
+        sort: filters.sort,
+        limit: filters.limit,
+        offset: filters.offset,
+      },
+    });
+  }
+
+  getDeviation(orgId: string, deviationId: string): Observable<DeviationDetail> {
+    return this.api.get<DeviationDetail>(`v1/orgs/${orgId}/deviations/${deviationId}`);
+  }
+
+  createDeviation(orgId: string, body: CreateDeviationRequest): Observable<DeviationListItem> {
+    return this.api.post<DeviationListItem>(`v1/orgs/${orgId}/deviations`, body);
+  }
+
+  updateDeviation(
+    orgId: string,
+    deviationId: string,
+    patch: UpdateDeviationRequest,
+  ): Observable<DeviationDetail> {
+    return this.api.patch<DeviationDetail>(`v1/orgs/${orgId}/deviations/${deviationId}`, patch);
+  }
+
+  deleteDeviation(orgId: string, deviationId: string): Observable<void> {
+    return this.api.delete<void>(`v1/orgs/${orgId}/deviations/${deviationId}`);
+  }
+
+  // --- Actions ---------------------------------------------------------------
+
+  addAction(orgId: string, deviationId: string, body: ActionInput): Observable<Action> {
+    return this.api.post<Action>(`v1/orgs/${orgId}/deviations/${deviationId}/actions`, body);
+  }
+
+  updateAction(
+    orgId: string,
+    deviationId: string,
+    actionId: string,
+    body: ActionInput,
+  ): Observable<Action> {
+    return this.api.patch<Action>(
+      `v1/orgs/${orgId}/deviations/${deviationId}/actions/${actionId}`,
+      body,
+    );
+  }
+
+  deleteAction(orgId: string, deviationId: string, actionId: string): Observable<void> {
+    return this.api.delete<void>(`v1/orgs/${orgId}/deviations/${deviationId}/actions/${actionId}`);
+  }
+
+  // --- Access ----------------------------------------------------------------
+
+  getAccess(orgId: string, deviationId: string): Observable<DeviationAccess> {
+    return this.api.get<DeviationAccess>(`v1/orgs/${orgId}/deviations/${deviationId}/access`);
+  }
+
+  addGrant(orgId: string, deviationId: string, body: AccessGrantInput): Observable<AccessGrant> {
+    return this.api.post<AccessGrant>(
+      `v1/orgs/${orgId}/deviations/${deviationId}/access/grants`,
+      body,
+    );
+  }
+
+  removeGrant(orgId: string, deviationId: string, grantId: string): Observable<void> {
+    return this.api.delete<void>(
+      `v1/orgs/${orgId}/deviations/${deviationId}/access/grants/${grantId}`,
+    );
+  }
+
+  // --- Stats -----------------------------------------------------------------
+
+  /** Aggregate metrics for the stats dashboard (same filters as the list). */
+  getStats(orgId: string, filters: DeviationFilters = {}): Observable<DeviationStats> {
+    return this.api.get<DeviationStats>(`v1/orgs/${orgId}/deviations/stats`, {
+      params: {
+        status: filters.status,
+        type_id: filters.type_id,
+        standard: filters.standard,
+        severity: filters.severity,
+        tag: filters.tag,
+        clause: filters.clause,
+        owner_user_id: filters.owner_user_id,
+        department_id: filters.department_id,
+        source: filters.source,
+        due_before: filters.due_before,
+        due_after: filters.due_after,
+        q: filters.q,
+      },
+    });
+  }
+
+  // --- Subjects --------------------------------------------------------------
+
+  /** Subjects (org users + departments) for the owner / department / access pickers. */
+  listAccessSubjects(orgId: string): Observable<AccessSubjects> {
+    return this.api.get<AccessSubjects>(`v1/orgs/${orgId}/access-subjects`);
+  }
+}
