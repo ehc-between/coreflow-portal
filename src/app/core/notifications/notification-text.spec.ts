@@ -57,6 +57,25 @@ describe('notificationText', () => {
   });
 });
 
+describe('notificationText description fallback', () => {
+  it('uses the deviation title when an action has no description', () => {
+    const text = notificationText(
+      make('notifications.actionDueSoon', { days: 3, description: '', deviation_title: 'Spill' }),
+    );
+    expect(text.params['description']).toBe('Spill');
+  });
+
+  it('keeps a non-empty description', () => {
+    const text = notificationText(
+      make('notifications.actionAssigned', {
+        description: 'Recalibrate',
+        deviation_title: 'Spill',
+      }),
+    );
+    expect(text.params['description']).toBe('Recalibrate');
+  });
+});
+
 describe('notificationLink', () => {
   it('links to the deviation from params', () => {
     expect(notificationLink(make('notifications.actionAssigned'))).toEqual([

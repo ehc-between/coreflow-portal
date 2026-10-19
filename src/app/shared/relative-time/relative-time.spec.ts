@@ -14,6 +14,12 @@ describe('formatRelativeTime', () => {
     expect(formatRelativeTime('2026-10-19T11:59:30Z', 'en', now)).toBe('now');
   });
 
+  it('reads an offset-less backend timestamp as UTC', () => {
+    expect(formatRelativeTime('2026-10-19T11:55:00', 'en', now)).toBe('5 minutes ago');
+    expect(formatRelativeTime('2026-10-19T11:55:00.123456', 'en', now)).toBe('5 minutes ago');
+    expect(formatRelativeTime('2026-10-19T13:55:00+02:00', 'en', now)).toBe('5 minutes ago');
+  });
+
   it('returns an empty string for invalid input', () => {
     expect(formatRelativeTime('nope', 'en', now)).toBe('');
   });

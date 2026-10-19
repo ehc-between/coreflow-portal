@@ -25,7 +25,8 @@ export const NOTIFICATION_FALLBACK_KEY = 'notifications.fallback';
  * due today / tomorrow, one day overdue, and assignments without an actor.
  */
 export function notificationText(notification: UserNotification): NotificationText {
-  const { title_key: key, params } = notification;
+  const { title_key: key } = notification;
+  const params = withDescriptionFallback(notification.params);
   if (!KNOWN_KEYS.has(key)) {
     return { key: NOTIFICATION_FALLBACK_KEY, params };
   }
@@ -40,6 +41,19 @@ export function notificationText(notification: UserNotification): NotificationTe
   }
   // Overdue.
   return { key: days === 1 ? `${key}One` : key, params };
+}
+
+/**
+ * Action titles end in ": {{description}}". Descriptions are optional, so fall
+ * back to the deviation's title rather than render a dangling ": ".
+ */
+function withDescriptionFallback(
+  params: Readonly<Record<string, unknown>>,
+): Readonly<Record<string, unknown>> {
+  if (!('description' in params) || String(params['description'] ?? '').trim()) {
+    return params;
+  }
+  return { ...params, description: params['deviation_title'] ?? '' };
 }
 
 /** Portal route a notification links to (every kind belongs to a deviation). */

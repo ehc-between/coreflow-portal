@@ -12,9 +12,13 @@ const UNITS: readonly [Intl.RelativeTimeFormatUnit, number][] = [
 /**
  * Format an ISO timestamp relative to `now` ("5 minutes ago", "for 5 minutter
  * siden") in the given UI language. Anything under a minute is "now".
+ *
+ * The backend serialises naive UTC datetimes without an offset
+ * ("2026-10-19T10:00:00"), which `Date` would read as *local* time; a
+ * date-time without `Z` / `±hh:mm` is therefore treated as UTC.
  */
 export function formatRelativeTime(iso: string, lang: string, now: number = Date.now()): string {
-  const then = new Date(iso).getTime();
+  const then = new Date(withUtcDefault(iso)).getTime();
   if (Number.isNaN(then)) {
     return '';
   }
@@ -26,6 +30,11 @@ export function formatRelativeTime(iso: string, lang: string, now: number = Date
     }
   }
   return format.format(0, 'second');
+}
+
+/** Append `Z` to an ISO date-time that carries no timezone designator. */
+function withUtcDefault(iso: string): string {
+  return /T\d{2}:\d{2}(:\d{2}(\.\d+)?)?$/.test(iso) ? `${iso}Z` : iso;
 }
 
 /**

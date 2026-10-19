@@ -3,6 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { APP_CONFIG } from '../config/app-config';
+import { SKIP_ERROR_TOAST } from '../http/error.interceptor';
 import { UserNotificationsApi } from './user-notifications-api';
 
 const BASE = 'http://test/api';
@@ -68,5 +69,27 @@ describe('UserNotificationsApi', () => {
     expect(req.request.method).toBe('PUT');
     expect(req.request.body).toEqual({ org_id: 'org-1', email_digest: false });
     req.flush({ items: [] });
+  });
+
+  it('suppresses the generic error toast for background and self-reporting calls', () => {
+    api.unreadCount('org-1').subscribe();
+    api.list({ org_id: 'org-1' }).subscribe();
+    api.markAllRead('org-1').subscribe();
+    api.getPreferences().subscribe();
+    const reqs = [
+      http.expectOne((r) => r.url === `${BASE}/v1/me/notifications/unread-count`),
+      http.expectOne((r) => r.url === `${BASE}/v1/me/notifications`),
+      http.expectOne((r) => r.url === `${BASE}/v1/me/notifications/read-all`),
+      http.expectOne(`${BASE}/v1/me/notification-preferences`),
+    ];
+    for (const req of reqs) {
+      expect(req.request.context.get(SKIP_ERROR_TOAST)).toBe(true);
+      req.flush({});
+    }
+
+    api.updatePreference({ org_id: 'org-1', email_digest: true }).subscribe();
+    const put = http.expectOne(`${BASE}/v1/me/notification-preferences`);
+    expect(put.request.context.get(SKIP_ERROR_TOAST)).toBe(true);
+    put.flush({ items: [] });
   });
 });

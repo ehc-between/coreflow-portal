@@ -1,6 +1,8 @@
+import { HttpContext } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from '../http/api.service';
+import { SKIP_ERROR_TOAST } from '../http/error.interceptor';
 import {
   MarkAllReadResponse,
   NotificationPreferencesResponse,
@@ -10,6 +12,13 @@ import {
   UserNotificationList,
   UserNotificationListQuery,
 } from './user-notification.models';
+
+/**
+ * Suppresses the generic error toast. These callers either run in the background
+ * (the unread-count poll must not toast every minute while offline) or show their
+ * own in-place error / toast. Server and network errors are still reported.
+ */
+const skipToast = (): HttpContext => new HttpContext().set(SKIP_ERROR_TOAST, true);
 
 /**
  * HTTP client for the signed-in user's notification inbox and email-digest
@@ -27,12 +36,14 @@ export class UserNotificationsApi {
         limit: query.limit,
         offset: query.offset,
       },
+      context: skipToast(),
     });
   }
 
   unreadCount(orgId?: string | null): Observable<UnreadCountResponse> {
     return this.api.get<UnreadCountResponse>('v1/me/notifications/unread-count', {
       params: { org_id: orgId },
+      context: skipToast(),
     });
   }
 
@@ -49,17 +60,22 @@ export class UserNotificationsApi {
       {},
       {
         params: { org_id: orgId },
+        context: skipToast(),
       },
     );
   }
 
   getPreferences(): Observable<NotificationPreferencesResponse> {
-    return this.api.get<NotificationPreferencesResponse>('v1/me/notification-preferences');
+    return this.api.get<NotificationPreferencesResponse>('v1/me/notification-preferences', {
+      context: skipToast(),
+    });
   }
 
   updatePreference(
     body: UpdateNotificationPreferenceRequest,
   ): Observable<NotificationPreferencesResponse> {
-    return this.api.put<NotificationPreferencesResponse>('v1/me/notification-preferences', body);
+    return this.api.put<NotificationPreferencesResponse>('v1/me/notification-preferences', body, {
+      context: skipToast(),
+    });
   }
 }
