@@ -115,6 +115,27 @@
           </form>
         </app-card>
       </div>
+
+      <app-confirm-dialog
+        [open]="pendingDelete() !== null"
+        [busy]="deleting()"
+        [title]="'settings.departments.deleteTitle' | transloco"
+        [message]="
+          'settings.departments.confirmDelete' | transloco: { name: pendingDelete()?.name ?? '' }
+        "
+        [confirmLabel]="'settings.departments.delete' | transloco"
+        [cancelLabel]="'settings.cancel' | transloco"
+        (confirmed)="confirmDelete()"
+        (cancelled)="cancelDelete()"
+      />
     </section>
+
+    <div *appHasPermission="'org:manage'" class="mt-10">
+      <app-org-members />
+    </div>
+
+    <div *appHasPermission="'users:invite'" class="mt-10">
+      <app-org-invitations />
+    </div>
   }
 </div>

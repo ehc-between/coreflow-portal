@@ -7,3 +7,4 @@ export { FormField } from './form-field/form-field';
 export { SectionLabel } from './section-label/section-label';
 export { KpiTile, type KpiTone } from './kpi-tile/kpi-tile';
 export { AgentBanner } from './agent-banner/agent-banner';
+export { ConfirmDialog } from './confirm-dialog/confirm-dialog';
