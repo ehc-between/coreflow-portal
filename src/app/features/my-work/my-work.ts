@@ -277,6 +277,12 @@ export class MyWork {
   protected readonly statusTone = statusTone;
   protected readonly statusLabelKey = statusLabelKey;
 
+  /**
+   * The signed-in user's id, as a computed so the load effect only re-runs
+   * when the id changes — not on every token refresh (which sets a new user
+   * object with the same id).
+   */
+  private readonly userId = computed(() => this.auth.user()?.id ?? null);
   private readonly permissions = computed(() => this.selectedOrg.currentOrg()?.permissions ?? []);
   protected readonly showOwned = computed(() => this.permissions().includes('deviations:read'));
   protected readonly showApprovals = computed(() =>
@@ -298,7 +304,7 @@ export class MyWork {
 
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();
-      const userId = this.auth.user()?.id ?? null;
+      const userId = this.userId();
       const showOwned = this.showOwned();
       const showApprovals = this.showApprovals();
       untracked(() => this.load(orgId, userId, showOwned, showApprovals));
