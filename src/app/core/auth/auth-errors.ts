@@ -62,6 +62,31 @@ export function retryAfterSeconds(error: unknown): number | null {
   return Number.isFinite(header) && header >= 0 ? header : null;
 }
 
+/** A translated message: i18n key plus optional interpolation params. */
+export interface TranslatedMessage {
+  readonly key: string;
+  readonly params?: Record<string, unknown>;
+}
+
+/**
+ * Message for a rate-limited (429) response, showing the wait time when known:
+ * `<keyBase>Seconds` (`{{seconds}}`, under a minute), `<keyBase>Minutes`
+ * (`{{minutes}}`, rounded up) or plain `<keyBase>`. Null when not a 429.
+ */
+export function rateLimitMessage(error: unknown, keyBase: string): TranslatedMessage | null {
+  if ((error as { status?: number } | null)?.status !== 429) {
+    return null;
+  }
+  const seconds = retryAfterSeconds(error);
+  if (seconds === null) {
+    return { key: keyBase };
+  }
+  if (seconds < 60) {
+    return { key: `${keyBase}Seconds`, params: { seconds: Math.max(seconds, 1) } };
+  }
+  return { key: `${keyBase}Minutes`, params: { minutes: Math.ceil(seconds / 60) } };
+}
+
 /** Group validator: `newPassword` and `confirmPassword` controls must match. */
 export const passwordsMatchValidator: ValidatorFn = (
   group: AbstractControl,

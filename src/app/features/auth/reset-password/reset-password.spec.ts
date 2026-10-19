@@ -13,6 +13,7 @@ const STRONG = 'correct-horse-battery';
 function setup(token: string | null) {
   const result$ = new Subject<void>();
   const auth = { confirmPasswordReset: vi.fn(() => result$) };
+  const route = { snapshot: { queryParamMap: convertToParamMap(token ? { token } : {}) } };
 
   TestBed.configureTestingModule({
     imports: [ResetPassword, TranslocoTestingModule.forRoot({ langs: { en: {} } })],
@@ -23,7 +24,7 @@ function setup(token: string | null) {
       { provide: ThemeService, useValue: { theme: () => 'light', toggle: vi.fn() } },
       {
         provide: ActivatedRoute,
-        useValue: { snapshot: { queryParamMap: convertToParamMap(token ? { token } : {}) } },
+        useValue: route,
       },
     ],
   });
@@ -51,7 +52,7 @@ function setup(token: string | null) {
     fixture.detectChanges();
   }
 
-  return { fixture, el, auth, result$, navigate, fill, submit };
+  return { fixture, el, auth, result$, navigate, route, fill, submit };
 }
 
 describe('ResetPassword', () => {
@@ -59,6 +60,25 @@ describe('ResetPassword', () => {
     const { el } = setup(null);
     expect(el.textContent).toContain('auth.reset.invalidTitle');
     expect(el.querySelector('form')).toBeNull();
+  });
+
+  it('removes the token from the address bar and history on load', () => {
+    const { navigate, route, el } = setup('tkn');
+    expect(navigate).toHaveBeenCalledTimes(1);
+    expect(navigate).toHaveBeenCalledWith([], {
+      relativeTo: route,
+      queryParams: { token: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+    // The form stays usable: the token lives on in memory.
+    expect(el.querySelector('form')).not.toBeNull();
+  });
+
+  it('does not navigate when there is no token (e.g. a reload after scrubbing)', () => {
+    const { navigate, el } = setup(null);
+    expect(navigate).not.toHaveBeenCalled();
+    expect(el.textContent).toContain('auth.reset.invalidTitle');
   });
 
   it('submits the token + new password and returns to login with a notice', () => {

@@ -8,6 +8,7 @@ import {
   passwordsMatchValidator,
 } from '../../../core/auth/auth-errors';
 import { AuthService } from '../../../core/auth/auth.service';
+import { takeQueryToken } from '../../../core/auth/take-query-token';
 import { NewPasswordFields } from '../../../shared/new-password-fields/new-password-fields';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
@@ -16,7 +17,8 @@ import { AuthShell } from '../auth-shell/auth-shell';
 
 /**
  * Public reset-password page, reached from the emailed `/reset-password?token=`
- * link. On success the user is sent to /login with a success notice; an
+ * link. The token is taken into memory and removed from the URL right away.
+ * On success the user is sent to /login with a success notice; an
  * invalid or expired token shows a message and a link to request a new one.
  */
 @Component({
@@ -71,7 +73,8 @@ export class ResetPassword {
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
-  private readonly token = inject(ActivatedRoute).snapshot.queryParamMap.get('token') ?? '';
+  /** Read once, then scrubbed from the address bar; kept in memory only. */
+  private readonly token = takeQueryToken(inject(ActivatedRoute), this.router);
 
   protected readonly form = this.fb.nonNullable.group(
     {

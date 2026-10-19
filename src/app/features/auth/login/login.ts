@@ -2,18 +2,12 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { retryAfterSeconds } from '../../../core/auth/auth-errors';
+import { TranslatedMessage, rateLimitMessage } from '../../../core/auth/auth-errors';
 import { AuthService, LoginNotice } from '../../../core/auth/auth.service';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
 import { FormField } from '../../../shared/ui/form-field/form-field';
 import { AuthShell } from '../auth-shell/auth-shell';
-
-/** A translated message: i18n key plus optional interpolation params. */
-interface Message {
-  readonly key: string;
-  readonly params?: Record<string, unknown>;
-}
 
 const NOTICE_KEYS: Record<LoginNotice, string> = {
   passwordReset: 'auth.notice.passwordReset',
@@ -43,7 +37,7 @@ export class Login {
   });
 
   protected readonly submitting = signal(false);
-  protected readonly error = signal<Message | null>(null);
+  protected readonly error = signal<TranslatedMessage | null>(null);
   protected readonly notice = signal<string | null>(
     NOTICE_KEYS[inject(ActivatedRoute).snapshot.queryParamMap.get('notice') as LoginNotice] ?? null,
   );
@@ -74,24 +68,12 @@ export class Login {
 }
 
 /** Map a login failure to a translated message (rate limit vs. bad credentials). */
-export function loginErrorMessage(error: unknown): Message {
-  const status = (error as { status?: number } | null)?.status;
-  if (status === 429) {
-    const seconds = retryAfterSeconds(error);
-    if (seconds === null) {
-      return { key: 'auth.error.tooManyAttempts' };
-    }
-    if (seconds < 60) {
-      return {
-        key: 'auth.error.tooManyAttemptsSeconds',
-        params: { seconds: Math.max(seconds, 1) },
-      };
-    }
-    return {
-      key: 'auth.error.tooManyAttemptsMinutes',
-      params: { minutes: Math.ceil(seconds / 60) },
-    };
+export function loginErrorMessage(error: unknown): TranslatedMessage {
+  const rateLimited = rateLimitMessage(error, 'auth.error.tooManyAttempts');
+  if (rateLimited) {
+    return rateLimited;
   }
+  const status = (error as { status?: number } | null)?.status;
   if (status === 401 || status === 400 || status === 422) {
     return { key: 'auth.error.invalidCredentials' };
   }
