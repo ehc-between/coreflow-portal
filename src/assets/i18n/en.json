@@ -313,7 +313,56 @@
       "signingIn": "Signing in…"
     },
     "error": {
-      "invalidCredentials": "Incorrect email or password."
+      "invalidCredentials": "Incorrect email or password.",
+      "tooManyAttempts": "Too many sign-in attempts. Please wait a moment and try again.",
+      "tooManyAttemptsSeconds": "Too many sign-in attempts. Try again in {{seconds}} sec.",
+      "tooManyAttemptsMinutes": "Too many sign-in attempts. Try again in {{minutes}} min."
+    },
+    "menu": {
+      "label": "Account menu",
+      "changePassword": "Change password",
+      "logoutAll": "Sign out of all devices",
+      "logoutAllFailed": "Couldn't sign out of all devices. Please try again."
+    },
+    "notice": {
+      "passwordReset": "Your password has been reset. Sign in with your new password.",
+      "signedOutAll": "You've been signed out of all devices."
+    },
+    "password": {
+      "new": "New password",
+      "confirm": "Confirm new password",
+      "policy": "Use at least 12 characters. It can't be your email address or a commonly used password.",
+      "tooShort": "Use at least {{min}} characters.",
+      "mismatch": "The passwords don't match.",
+      "weak": "That password isn't strong enough. Use at least 12 characters, and avoid your email address and commonly used passwords."
+    },
+    "changePassword": {
+      "title": "Change password",
+      "subtitle": "Other devices will be signed out. You'll stay signed in here.",
+      "current": "Current password",
+      "submit": "Change password",
+      "saving": "Saving…",
+      "success": "Your password has been changed.",
+      "wrongCurrent": "Your current password is incorrect."
+    },
+    "forgot": {
+      "link": "Forgot password?",
+      "title": "Reset your password",
+      "subtitle": "Enter your email address and we'll send you a link to choose a new password.",
+      "submit": "Send reset link",
+      "sending": "Sending…",
+      "sentTitle": "Check your email",
+      "sentBody": "If an account exists for {{email}}, we've sent an email with a link to reset your password.",
+      "backToLogin": "Back to sign in"
+    },
+    "reset": {
+      "title": "Choose a new password",
+      "subtitle": "Enter a new password for your account.",
+      "submit": "Set new password",
+      "saving": "Saving…",
+      "invalidTitle": "Reset link unavailable",
+      "invalidBody": "This password reset link is invalid or has expired.",
+      "requestNew": "Request a new link"
     }
   },
   "login": {

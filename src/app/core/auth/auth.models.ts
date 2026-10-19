@@ -33,3 +33,25 @@ export interface ChangePasswordRequest {
   readonly old_password: string;
   readonly new_password: string;
 }
+
+/** Forgot-password request body (`POST auth/password-reset/request`). */
+export interface PasswordResetRequest {
+  readonly email: string;
+}
+
+/** Reset-password confirmation body (`POST auth/password-reset/confirm`). */
+export interface PasswordResetConfirmRequest {
+  readonly token: string;
+  readonly new_password: string;
+}
+
+/**
+ * Structured error detail returned by auth endpoints, e.g.
+ * `{"detail": {"code": "weak_password", "message": "..."}}` or
+ * `{"detail": {"code": "too_many_attempts", "retry_after": 60}}`.
+ */
+export interface AuthErrorDetail {
+  readonly code: string;
+  readonly message?: string;
+  readonly retry_after?: number;
+}

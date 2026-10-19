@@ -1,15 +1,21 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpContext } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable, catchError, finalize, map, of, shareReplay, tap } from 'rxjs';
 import { APP_CONFIG } from '../config/app-config';
+import { SKIP_ERROR_TOAST } from '../http/error.interceptor';
 import {
   AuthSession,
   AuthUser,
   ChangePasswordRequest,
   LoginRequest,
   OrgMembership,
+  PasswordResetConfirmRequest,
+  PasswordResetRequest,
 } from './auth.models';
+
+/** Query param the login page reads to show a one-off notice after a redirect. */
+export type LoginNotice = 'passwordReset' | 'signedOutAll';
 
 /**
  * First-party email/password auth facade. Holds the access token in MEMORY
@@ -69,7 +75,10 @@ export class AuthService {
   login(email: string, password: string): Observable<AuthUser> {
     const body: LoginRequest = { email, password };
     return this.http
-      .post<AuthSession>(`${this.authBaseUrl}/login`, body, { withCredentials: true })
+      .post<AuthSession>(`${this.authBaseUrl}/login`, body, {
+        withCredentials: true,
+        context: this.handledInPlace(),
+      })
       .pipe(
         tap((session) => this.applySession(session)),
         map((session) => session.user),
@@ -110,25 +119,72 @@ export class AuthService {
   /** Sign out: clear the server cookie, drop in-memory state, return to /login. */
   logout(): void {
     this.http
-      .post(`${this.authBaseUrl}/logout`, null, { withCredentials: true })
-      .pipe(finalize(() => this.clearState()))
+      .post(`${this.authBaseUrl}/logout`, null, {
+        withCredentials: true,
+        context: this.handledInPlace(),
+      })
       .subscribe({
-        next: () => void this.router.navigateByUrl('/login'),
-        error: () => void this.router.navigateByUrl('/login'),
+        next: () => this.signedOut(),
+        error: () => this.signedOut(),
       });
   }
 
-  /** Revoke every session for the current user (all devices). */
+  /**
+   * Revoke every session for the current user (all devices). On success the
+   * local state is cleared and the user is sent to /login; on failure the
+   * caller decides how to surface the error (state is left intact).
+   */
   logoutAll(): Observable<void> {
-    return this.http.post<void>(`${this.authBaseUrl}/logout-all`, null, { withCredentials: true });
+    return this.http
+      .post(`${this.authBaseUrl}/logout-all`, null, {
+        withCredentials: true,
+        context: this.handledInPlace(),
+      })
+      .pipe(
+        tap(() => this.signedOut('signedOutAll')),
+        map(() => undefined),
+      );
   }
 
-  /** Change the current user's password. */
+  /**
+   * Change the current user's password. Other sessions are revoked server-side;
+   * this one survives. Errors (400 wrong current password, 422 weak password)
+   * are handled in place by the caller.
+   */
   changePassword(oldPassword: string, newPassword: string): Observable<void> {
     const body: ChangePasswordRequest = { old_password: oldPassword, new_password: newPassword };
-    return this.http.post<void>(`${this.authBaseUrl}/change-password`, body, {
-      withCredentials: true,
-    });
+    return this.http
+      .post(`${this.authBaseUrl}/change-password`, body, {
+        withCredentials: true,
+        context: this.handledInPlace(),
+      })
+      .pipe(map(() => undefined));
+  }
+
+  /**
+   * Ask for a password-reset email. The server always answers 202 whether or
+   * not the account exists, so callers must show a neutral confirmation.
+   */
+  requestPasswordReset(email: string): Observable<void> {
+    const body: PasswordResetRequest = { email };
+    return this.http
+      .post(`${this.authBaseUrl}/password-reset/request`, body, {
+        context: this.handledInPlace(),
+      })
+      .pipe(map(() => undefined));
+  }
+
+  /**
+   * Set a new password using the emailed reset token. 400 means the token is
+   * invalid/expired; 422 means the new password fails the policy.
+   */
+  confirmPasswordReset(token: string, newPassword: string): Observable<void> {
+    const body: PasswordResetConfirmRequest = { token, new_password: newPassword };
+    return this.http
+      .post(`${this.authBaseUrl}/password-reset/confirm`, body, {
+        context: this.handledInPlace(),
+      })
+      .pipe(map(() => undefined));
   }
 
   /**
@@ -145,6 +201,17 @@ export class AuthService {
   clearState(): void {
     this._accessToken.set(null);
     this._user.set(null);
+  }
+
+  /** Drop local state and land on the login page (optionally with a notice). */
+  private signedOut(notice?: LoginNotice): void {
+    this.clearState();
+    void this.router.navigate(['/login'], notice ? { queryParams: { notice } } : {});
+  }
+
+  /** Errors from these calls are shown in place, not as a generic toast. */
+  private handledInPlace(): HttpContext {
+    return new HttpContext().set(SKIP_ERROR_TOAST, true);
   }
 
   private applySession(session: AuthSession): void {

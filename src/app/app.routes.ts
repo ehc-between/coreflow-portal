@@ -34,6 +34,18 @@ export const routes: Routes = [
       import('./features/auth/accept-invite/accept-invite').then((m) => m.AcceptInvite),
   },
 
+  // Public password-reset flow — kept outside the protected shell.
+  {
+    path: 'forgot-password',
+    loadComponent: () =>
+      import('./features/auth/forgot-password/forgot-password').then((m) => m.ForgotPassword),
+  },
+  {
+    path: 'reset-password',
+    loadComponent: () =>
+      import('./features/auth/reset-password/reset-password').then((m) => m.ResetPassword),
+  },
+
   // Authenticated application shell. Feature areas are lazy-loaded children.
   {
     path: '',
@@ -49,6 +61,10 @@ export const routes: Routes = [
         path: 'settings',
         canActivate: [authGuard, orgManageGuard],
         loadChildren: () => import('./features/org-settings/org-settings.routes'),
+      },
+      {
+        path: 'account',
+        loadChildren: () => import('./features/account/account.routes'),
       },
       {
         path: 'documents',

@@ -313,7 +313,56 @@
       "signingIn": "Logger inn …"
     },
     "error": {
-      "invalidCredentials": "Feil e-post eller passord."
+      "invalidCredentials": "Feil e-post eller passord.",
+      "tooManyAttempts": "For mange innloggingsforsøk. Vent litt og prøv igjen.",
+      "tooManyAttemptsSeconds": "For mange innloggingsforsøk. Prøv igjen om {{seconds}} sek.",
+      "tooManyAttemptsMinutes": "For mange innloggingsforsøk. Prøv igjen om {{minutes}} min."
+    },
+    "menu": {
+      "label": "Kontomeny",
+      "changePassword": "Endre passord",
+      "logoutAll": "Logg ut av alle enheter",
+      "logoutAllFailed": "Kunne ikke logge ut av alle enheter. Prøv igjen."
+    },
+    "notice": {
+      "passwordReset": "Passordet ditt er tilbakestilt. Logg inn med det nye passordet.",
+      "signedOutAll": "Du er logget ut av alle enheter."
+    },
+    "password": {
+      "new": "Nytt passord",
+      "confirm": "Bekreft nytt passord",
+      "policy": "Bruk minst 12 tegn. Passordet kan ikke være e-postadressen din eller et vanlig passord.",
+      "tooShort": "Bruk minst {{min}} tegn.",
+      "mismatch": "Passordene er ikke like.",
+      "weak": "Passordet er ikke sterkt nok. Bruk minst 12 tegn, og unngå e-postadressen din og vanlige passord."
+    },
+    "changePassword": {
+      "title": "Endre passord",
+      "subtitle": "Andre enheter blir logget ut. Du forblir innlogget her.",
+      "current": "Nåværende passord",
+      "submit": "Endre passord",
+      "saving": "Lagrer …",
+      "success": "Passordet ditt er endret.",
+      "wrongCurrent": "Det nåværende passordet er feil."
+    },
+    "forgot": {
+      "link": "Glemt passordet?",
+      "title": "Tilbakestill passordet",
+      "subtitle": "Skriv inn e-postadressen din, så sender vi deg en lenke for å velge et nytt passord.",
+      "submit": "Send lenke",
+      "sending": "Sender …",
+      "sentTitle": "Sjekk e-posten din",
+      "sentBody": "Hvis det finnes en konto for {{email}}, har vi sendt en e-post med en lenke for å tilbakestille passordet.",
+      "backToLogin": "Tilbake til innlogging"
+    },
+    "reset": {
+      "title": "Velg et nytt passord",
+      "subtitle": "Skriv inn et nytt passord for kontoen din.",
+      "submit": "Lagre nytt passord",
+      "saving": "Lagrer …",
+      "invalidTitle": "Lenken er ikke tilgjengelig",
+      "invalidBody": "Denne lenken for å tilbakestille passordet er ugyldig eller utløpt.",
+      "requestNew": "Be om en ny lenke"
     }
   },
   "login": {
