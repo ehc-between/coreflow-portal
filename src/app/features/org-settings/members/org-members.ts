@@ -19,7 +19,7 @@ import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
 import { Icon } from '../../../shared/ui/icon/icon';
-import { canEditMember, grantableRoles, isSelf, primaryRole } from './member-rules';
+import { canEditMember, grantableRoles, isSelf, roleSelectValue } from './member-rules';
 
 /**
  * Settings → Members (requires `org:manage`): lists org members with their role and
@@ -61,7 +61,7 @@ export class OrgMembers {
 
   protected readonly roleNameKey = roleNameKey;
   protected readonly roleDescriptionKey = roleDescriptionKey;
-  protected readonly primaryRole = primaryRole;
+  protected readonly roleSelectValue = roleSelectValue;
 
   constructor() {
     effect(() => {
@@ -92,11 +92,11 @@ export class OrgMembers {
   protected changeRole(member: OrgMember, select: HTMLSelectElement): void {
     const orgId = this.orgId();
     const roleKey = select.value;
-    if (!orgId || !this.canEdit(member) || roleKey === primaryRole(member)) {
+    if (!orgId || !this.canEdit(member) || roleKey === roleSelectValue(member)) {
       return;
     }
     if (!this.grantable().some((role) => role.key === roleKey)) {
-      select.value = primaryRole(member);
+      select.value = roleSelectValue(member);
       return;
     }
 
@@ -120,7 +120,7 @@ export class OrgMembers {
       },
       error: (error: unknown) => {
         this.savingId.set(null);
-        select.value = primaryRole(member);
+        select.value = roleSelectValue(member);
         this.fail(error, 'changeRole', orgId);
       },
     });

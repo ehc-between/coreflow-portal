@@ -47,8 +47,15 @@
                       roleNameKey(invitation.role_key) | transloco
                     }}</app-badge>
                   </td>
-                  <td class="px-4 py-3 text-fg-muted">
-                    {{ invitation.expires_at | date: 'medium' }}
+                  <td class="px-4 py-3 text-fg-muted" [attr.data-invitation-id]="invitation.id">
+                    <span class="flex flex-wrap items-center gap-1.5">
+                      {{ invitation.expires_at | date: 'medium' }}
+                      @if (isExpired(invitation)) {
+                        <app-badge tone="warn">{{
+                          'settings.invitations.expired' | transloco
+                        }}</app-badge>
+                      }
+                    </span>
                   </td>
                   <td class="px-4 py-3">
                     <span class="flex justify-end gap-1">

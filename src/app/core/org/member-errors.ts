@@ -20,6 +20,17 @@ function detailOf(error: HttpErrorResponse): string {
 }
 
 /**
+ * A 403 is either the permission dependency ("Insufficient permissions" — the
+ * caller lacks the endpoint permission) or the service's escalation check
+ * ("... permissions you do not hold"). Only the latter is an escalation.
+ */
+function forbiddenKey(detail: string): string {
+  return detail.includes('do not hold') || detail.includes("don't hold")
+    ? 'settings.errors.escalation'
+    : 'settings.errors.forbidden';
+}
+
+/**
  * Maps a failed user-management request to a translated (i18n key) message.
  * Covers the documented 400/403/404/409 outcomes per action; anything else falls
  * back to the neutral network/server/generic messages.
@@ -45,7 +56,7 @@ export function memberErrorKey(error: unknown, action: MemberAction): string {
           : 'settings.errors.alreadyMember';
       }
       if (status === 400) return 'settings.errors.unknownRole';
-      if (status === 403) return 'settings.errors.escalation';
+      if (status === 403) return forbiddenKey(detail);
       break;
     case 'changeRole':
       if (status === 400) {
@@ -53,13 +64,12 @@ export function memberErrorKey(error: unknown, action: MemberAction): string {
           ? 'settings.errors.selfChange'
           : 'settings.errors.unknownRole';
       }
-      if (status === 403) return 'settings.errors.escalation';
+      if (status === 403) return forbiddenKey(detail);
       if (status === 404) return 'settings.errors.notMember';
       if (status === 409) return 'settings.errors.lastManager';
       break;
     case 'remove':
-      if (status === 400) return 'settings.errors.selfChange';
-      if (status === 403) return 'settings.errors.escalation';
+      if (status === 403) return forbiddenKey(detail);
       if (status === 404) return 'settings.errors.notMember';
       if (status === 409) return 'settings.errors.lastManager';
       break;

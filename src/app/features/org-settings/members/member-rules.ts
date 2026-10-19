@@ -30,7 +30,14 @@ export function canEditMember(
   return member.roles.every((key) => grantable.has(key));
 }
 
-/** The role shown in a member's role select (a member normally holds exactly one). */
-export function primaryRole(member: Pick<OrgMember, 'roles'>): string {
-  return member.roles[0] ?? '';
+/** Select value for a member holding several roles (a "Multiple roles" placeholder). */
+export const MULTIPLE_ROLES = '';
+
+/**
+ * The value selected in a member's role select: their role when they hold
+ * exactly one, otherwise the "Multiple roles" placeholder — so picking any single
+ * role is a real change that collapses the member to that one role.
+ */
+export function roleSelectValue(member: Pick<OrgMember, 'roles'>): string {
+  return member.roles.length === 1 ? member.roles[0] : MULTIPLE_ROLES;
 }

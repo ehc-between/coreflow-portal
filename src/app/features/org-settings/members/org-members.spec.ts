@@ -35,7 +35,7 @@ interface MembersInternals {
   members(): readonly OrgMember[];
 }
 
-function setup(): {
+function setup(members: OrgMember[] = MEMBERS): {
   fixture: ComponentFixture<OrgMembers>;
   http: HttpTestingController;
   cmp: MembersInternals;
@@ -58,7 +58,7 @@ function setup(): {
   fixture.detectChanges();
   const http = TestBed.inject(HttpTestingController);
   http.expectOne(`${BASE}/v1/orgs/${ORG}/roles`).flush(ROLES);
-  http.expectOne(`${BASE}/v1/orgs/${ORG}/members`).flush(MEMBERS);
+  http.expectOne(`${BASE}/v1/orgs/${ORG}/members`).flush(members);
   fixture.detectChanges();
   return { fixture, http, cmp: fixture.componentInstance as unknown as MembersInternals };
 }
@@ -126,6 +126,30 @@ describe('OrgMembers', () => {
     expect(notifications.notifications().at(-1)?.message).toBe('settings.errors.lastManager');
   });
 
+  it('shows all roles and a placeholder for a multi-role member, collapsing on change', () => {
+    const multi: OrgMember = {
+      user_id: 'u-3',
+      email: 'cy@x.no',
+      full_name: 'Cy',
+      is_active: true,
+      roles: ['auditor', 'member'],
+    };
+    const { fixture, http, cmp } = setup([...MEMBERS, multi]);
+    const cells = row(fixture, 'u-3');
+    expect(cells.querySelectorAll('app-badge').length).toBeGreaterThanOrEqual(2);
+    const select = cells.querySelector('select')!;
+    expect(select.value).toBe('');
+    expect(select.options[0].textContent).toContain('settings.members.multipleRoles');
+
+    // Picking one of the roles they already hold is still a real change.
+    select.value = 'member';
+    select.dispatchEvent(new Event('change'));
+    const req = http.expectOne(`${BASE}/v1/orgs/${ORG}/members/u-3`);
+    expect(req.request.body).toEqual({ role_key: 'member' });
+    req.flush({ ...multi, roles: ['member'] });
+    expect(cmp.members().find((m) => m.user_id === 'u-3')!.roles).toEqual(['member']);
+  });
+
   it('removes a member only after confirmation', () => {
     const { http, cmp } = setup();
     cmp.askRemove(MEMBERS[1]);
@@ -153,7 +177,10 @@ describe('OrgMembers', () => {
     cmp.confirmRemove();
     http
       .expectOne(`${BASE}/v1/orgs/${ORG}/members/u-1`)
-      .flush({ detail: 'nope' }, { status: 403, statusText: 'Forbidden' });
+      .flush(
+        { detail: 'You cannot modify a member with permissions you do not hold' },
+        { status: 403, statusText: 'Forbidden' },
+      );
     expect(cmp.errorKey()).toBe('settings.errors.escalation');
     expect(cmp.members()).toHaveLength(3);
   });

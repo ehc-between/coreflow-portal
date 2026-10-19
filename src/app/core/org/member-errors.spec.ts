@@ -18,7 +18,16 @@ describe('memberErrorKey', () => {
     expect(memberErrorKey(err(400, "Unknown role 'x'"), 'invite')).toBe(
       'settings.errors.unknownRole',
     );
-    expect(memberErrorKey(err(403), 'invite')).toBe('settings.errors.escalation');
+    expect(
+      memberErrorKey(
+        err(403, 'You cannot grant a role with permissions you do not hold'),
+        'invite',
+      ),
+    ).toBe('settings.errors.escalation');
+    expect(memberErrorKey(err(403, 'Insufficient permissions'), 'invite')).toBe(
+      'settings.errors.forbidden',
+    );
+    expect(memberErrorKey(err(403), 'invite')).toBe('settings.errors.forbidden');
   });
 
   it('maps role-change errors', () => {
@@ -28,13 +37,27 @@ describe('memberErrorKey', () => {
     expect(memberErrorKey(err(400, "Unknown role 'x'"), 'changeRole')).toBe(
       'settings.errors.unknownRole',
     );
-    expect(memberErrorKey(err(403), 'changeRole')).toBe('settings.errors.escalation');
+    expect(
+      memberErrorKey(
+        err(403, 'You cannot modify a member with permissions you do not hold'),
+        'changeRole',
+      ),
+    ).toBe('settings.errors.escalation');
+    expect(memberErrorKey(err(403, 'Insufficient permissions'), 'changeRole')).toBe(
+      'settings.errors.forbidden',
+    );
     expect(memberErrorKey(err(404), 'changeRole')).toBe('settings.errors.notMember');
     expect(memberErrorKey(err(409), 'changeRole')).toBe('settings.errors.lastManager');
   });
 
   it('maps remove errors', () => {
-    expect(memberErrorKey(err(403), 'remove')).toBe('settings.errors.escalation');
+    expect(
+      memberErrorKey(
+        err(403, 'You cannot modify a member with permissions you do not hold'),
+        'remove',
+      ),
+    ).toBe('settings.errors.escalation');
+    expect(memberErrorKey(err(400), 'remove')).toBe('errors.generic');
     expect(memberErrorKey(err(404), 'remove')).toBe('settings.errors.notMember');
     expect(memberErrorKey(err(409), 'remove')).toBe('settings.errors.lastManager');
   });

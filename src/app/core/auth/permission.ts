@@ -16,3 +16,15 @@ export function hasPermission(permission: string, orgId?: string): boolean {
   const auth = inject(AuthService);
   return (auth.orgs()[orgId]?.permissions ?? []).includes(permission);
 }
+
+/**
+ * Pure any-of check: whether `granted` contains `required` (a single key) or at
+ * least one of `required` (a list of keys).
+ */
+export function hasAnyPermission(
+  granted: readonly string[] | null | undefined,
+  required: string | readonly string[],
+): boolean {
+  const list = typeof required === 'string' ? [required] : required;
+  return list.some((permission) => (granted ?? []).includes(permission));
+}

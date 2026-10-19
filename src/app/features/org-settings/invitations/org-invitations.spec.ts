@@ -6,7 +6,7 @@ import { TranslocoTestingModule } from '@jsverse/transloco';
 import { APP_CONFIG } from '../../../core/config/app-config';
 import { OrgInvitation, OrgRole } from '../../../core/org/org.models';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
-import { OrgInvitations } from './org-invitations';
+import { OrgInvitations, isInvitationExpired } from './org-invitations';
 
 const BASE = 'http://test/api';
 const ORG = 'org-1';
@@ -23,7 +23,7 @@ const PENDING: OrgInvitation = {
   role_key: 'member',
   status: 'pending',
   created_at: '2026-10-01T00:00:00Z',
-  expires_at: '2026-10-08T00:00:00Z',
+  expires_at: '2020-10-08T00:00:00Z',
 };
 
 interface InvitationsInternals {
@@ -62,6 +62,15 @@ function setup(): {
   fixture.detectChanges();
   return { fixture, http, cmp: fixture.componentInstance as unknown as InvitationsInternals };
 }
+
+describe('isInvitationExpired', () => {
+  it('marks invitations past expires_at as expired', () => {
+    const now = Date.parse('2026-10-10T00:00:00Z');
+    expect(isInvitationExpired({ expires_at: '2026-10-08T00:00:00Z' }, now)).toBe(true);
+    expect(isInvitationExpired({ expires_at: '2026-10-12T00:00:00Z' }, now)).toBe(false);
+    expect(isInvitationExpired({ expires_at: 'garbage' }, now)).toBe(false);
+  });
+});
 
 describe('OrgInvitations', () => {
   afterEach(() => TestBed.inject(HttpTestingController).verify());
@@ -116,6 +125,15 @@ describe('OrgInvitations', () => {
         { status: 409, statusText: 'Conflict' },
       );
     expect(cmp.inviteErrorKey()).toBe('settings.errors.invitePending');
+  });
+
+  it('shows an expired badge in the pending list', () => {
+    const { fixture } = setup();
+    // PENDING expired in 2020.
+    const cell = (fixture.nativeElement as HTMLElement).querySelector(
+      '[data-invitation-id="i-1"]',
+    )!;
+    expect(cell.textContent).toContain('settings.invitations.expired');
   });
 
   it('revokes only after confirmation', () => {

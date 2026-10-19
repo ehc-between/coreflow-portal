@@ -24,6 +24,15 @@ import { FormField } from '../../../shared/ui/form-field/form-field';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { grantableRoles } from '../members/member-rules';
 
+/** Whether `invitation` is past `expires_at` (relative to `now`, default: the current time). */
+export function isInvitationExpired(
+  invitation: Pick<OrgInvitation, 'expires_at'>,
+  now: number = Date.now(),
+): boolean {
+  const expires = Date.parse(invitation.expires_at);
+  return !Number.isNaN(expires) && expires <= now;
+}
+
 /** Preferred default role in the invite form, when the caller may grant it. */
 const DEFAULT_ROLE = 'member';
 
@@ -132,6 +141,11 @@ export class OrgInvitations {
         this.inviteErrorKey.set(memberErrorKey(error, 'invite'));
       },
     });
+  }
+
+  /** Past its expiry (the backend may still list it as pending until cleaned up). */
+  protected isExpired(invitation: OrgInvitation): boolean {
+    return isInvitationExpired(invitation);
   }
 
   protected acceptUrl(invitation: OrgInvitation): string | null {

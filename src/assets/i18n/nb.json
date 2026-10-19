@@ -320,7 +320,8 @@
       "roleChangedToast": "Rollen til {{name}} er oppdatert.",
       "roleChangeHint": "Rolleendringer trer i kraft neste gang medlemmets økt fornyes (innen 15 minutter).",
       "empty": "Ingen medlemmer ennå.",
-      "aboutRoles": "Om rollene"
+      "aboutRoles": "Om rollene",
+      "multipleRoles": "Flere roller"
     },
     "invitations": {
       "title": "Invitasjoner",
@@ -345,7 +346,8 @@
       "revokeTitle": "Trekk tilbake invitasjon",
       "revokeConfirm": "Trekke tilbake invitasjonen til {{email}}? Lenken slutter å virke.",
       "revokedToast": "Invitasjonen er trukket tilbake.",
-      "noGrantable": "Du har ikke tilgang til å invitere med noen rolle."
+      "noGrantable": "Du har ikke tilgang til å invitere med noen rolle.",
+      "expired": "Utløpt"
     },
     "errors": {
       "invitePending": "Det finnes allerede en ventende invitasjon for denne e-postadressen.",
@@ -817,11 +819,11 @@
     },
     "quality_manager": {
       "name": "Kvalitetsleder",
-      "description": "Drifter styringssystemet: dokumenter, godkjenninger, avvik og avvikstyper."
+      "description": "Drifter styringssystemet: dokumenter, godkjenninger, avvik og avvikstyper; kan invitere brukere og lese revisjonsloggen."
     },
     "auditor": {
       "name": "Revisor",
-      "description": "Lesetilgang for interne og eksterne revisjoner."
+      "description": "Lesetilgang og tilgang til revisjonsloggen; kan registrere revisjonsfunn som avvik."
     },
     "dpo": {
       "name": "Personvernombud",

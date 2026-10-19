@@ -63,6 +63,18 @@
                 <td class="px-4 py-3 text-fg-muted">{{ member.email }}</td>
                 <td class="px-4 py-3">
                   @if (canEdit(member)) {
+                    @if (member.roles.length > 1) {
+                      <span class="mb-1.5 flex flex-wrap gap-1.5">
+                        @for (role of member.roles; track role) {
+                          <app-badge
+                            tone="accent"
+                            [attr.title]="roleDescriptionKey(role) | transloco"
+                          >
+                            {{ roleNameKey(role) | transloco }}
+                          </app-badge>
+                        }
+                      </span>
+                    }
                     <select
                       class="h-8 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg outline-none focus:border-accent disabled:opacity-60"
                       [attr.aria-label]="
@@ -71,10 +83,15 @@
                       [disabled]="savingId() === member.user_id"
                       (change)="changeRole(member, $any($event.target))"
                     >
+                      @if (member.roles.length !== 1) {
+                        <option value="" disabled selected>
+                          {{ 'settings.members.multipleRoles' | transloco }}
+                        </option>
+                      }
                       @for (role of grantable(); track role.key) {
                         <option
                           [value]="role.key"
-                          [selected]="role.key === primaryRole(member)"
+                          [selected]="role.key === roleSelectValue(member)"
                           [attr.title]="roleDescriptionKey(role.key) | transloco"
                         >
                           {{ roleNameKey(role.key) | transloco }}

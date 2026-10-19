@@ -320,7 +320,8 @@
       "roleChangedToast": "Role updated for {{name}}.",
       "roleChangeHint": "Role changes take effect the next time the member's session refreshes (within 15 minutes).",
       "empty": "No members yet.",
-      "aboutRoles": "About the roles"
+      "aboutRoles": "About the roles",
+      "multipleRoles": "Multiple roles"
     },
     "invitations": {
       "title": "Invitations",
@@ -345,7 +346,8 @@
       "revokeTitle": "Revoke invitation",
       "revokeConfirm": "Revoke the invitation to {{email}}? The link will stop working.",
       "revokedToast": "Invitation revoked.",
-      "noGrantable": "You don't have permission to invite with any role."
+      "noGrantable": "You don't have permission to invite with any role.",
+      "expired": "Expired"
     },
     "errors": {
       "invitePending": "There is already a pending invitation for this email.",
@@ -817,11 +819,11 @@
     },
     "quality_manager": {
       "name": "Quality manager",
-      "description": "Runs the management system: documents, approvals, deviations and deviation types."
+      "description": "Runs the management system: documents, approvals, deviations and deviation types; can invite users and read the audit log."
     },
     "auditor": {
       "name": "Auditor",
-      "description": "Read-only access for internal and external audits."
+      "description": "Read access plus the audit log; can record audit findings as deviations."
     },
     "dpo": {
       "name": "Data protection officer",

@@ -6,8 +6,9 @@ export interface NavItem {
   readonly labelKey: string;
   /** Icon name (see shared Icon set). */
   readonly icon: string;
-  /** Optional permission gating the item's visibility (e.g. dashboard). */
-  readonly permission?: string;
+  /** Optional permission gating the item's visibility (e.g. dashboard); a list
+   *  means the user needs ANY one of them. */
+  readonly permission?: string | readonly string[];
   /** Placeholder agent context, rendered on the module placeholder page. */
   readonly agentName?: string;
   readonly agentRole?: string;
@@ -143,15 +144,15 @@ export const NAV_ITEMS: readonly NavItem[] = NAV_SECTIONS.flatMap((s) => s.items
 
 /**
  * Org Settings nav item. Kept out of NAV_SECTIONS / NAV_ITEMS because its route
- * is registered explicitly (with the orgManageGuard) rather than via the shared
- * module placeholder, and the side-nav gates it on `org:manage` in the current
- * org (via *appHasPermission).
+ * is registered explicitly (with the settingsGuard) rather than via the shared
+ * module placeholder, and the side-nav shows it when the user holds `org:manage`
+ * OR `users:invite` in the current org (via *appHasPermission).
  */
 export const SETTINGS_NAV_ITEM: NavItem = {
   path: 'settings',
   labelKey: 'nav.settings',
   icon: 'sliders',
-  permission: 'org:manage',
+  permission: ['org:manage', 'users:invite'],
 };
 
 /**

@@ -1,9 +1,16 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { HasPermissionDirective } from '../../../core/auth/has-permission.directive';
+import { hasAnyPermission } from '../../../core/auth/permission';
 import { OrgApi } from '../../../core/org/org-api';
 import { DepartmentSummary } from '../../../core/org/org.models';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
@@ -17,10 +24,11 @@ import { OrgInvitations } from '../invitations/org-invitations';
 import { OrgMembers } from '../members/org-members';
 
 /**
- * Org Settings shell, scoped to the currently selected org. Hosts the
- * Departments section (list + create + rename + delete), then Members
- * (`org:manage`) and Invitations (`users:invite`), each gated on its permission. Reacts to org
- * switches by reloading departments for the new org and dropping stale state.
+ * Org Settings shell, scoped to the currently selected org. Hosts Departments
+ * (list + create + rename + delete) and Members — both `org:manage` — and
+ * Invitations (`users:invite`); each section renders (and loads) only when the
+ * selected org grants its permission, so an invite-only user sees Invitations
+ * alone. Reacts to org switches by reloading and dropping stale state.
  */
 @Component({
   selector: 'app-org-settings',
@@ -28,7 +36,6 @@ import { OrgMembers } from '../members/org-members';
     ReactiveFormsModule,
     RouterLink,
     TranslocoPipe,
-    HasPermissionDirective,
     Card,
     FormField,
     Button,
@@ -48,6 +55,12 @@ export class OrgSettings {
 
   /** The active org id; the page is scoped to and reloads on changes to it. */
   protected readonly orgId = this.selectedOrg.currentOrgId;
+
+  private readonly granted = computed(() => this.selectedOrg.currentOrg()?.permissions ?? []);
+  /** Departments + Members. */
+  protected readonly canManage = computed(() => hasAnyPermission(this.granted(), 'org:manage'));
+  /** Invitations. */
+  protected readonly canInvite = computed(() => hasAnyPermission(this.granted(), 'users:invite'));
 
   protected readonly departments = signal<readonly DepartmentSummary[]>([]);
   protected readonly loading = signal(false);
@@ -74,11 +87,13 @@ export class OrgSettings {
   constructor() {
     effect(() => {
       const orgId = this.orgId();
+      const canManage = this.canManage();
       // Drop any stale data from a previously selected org.
       this.departments.set([]);
       this.editingId.set(null);
       this.pendingDelete.set(null);
-      if (orgId) {
+      // Departments need org:manage — don't request them (403) for invite-only users.
+      if (orgId && canManage) {
         this.load(orgId);
       }
     });

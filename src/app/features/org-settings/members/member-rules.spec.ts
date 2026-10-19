@@ -1,5 +1,11 @@
 import { OrgMember, OrgRole } from '../../../core/org/org.models';
-import { canEditMember, grantableRoles, isSelf, primaryRole } from './member-rules';
+import {
+  canEditMember,
+  grantableRoles,
+  isSelf,
+  MULTIPLE_ROLES,
+  roleSelectValue,
+} from './member-rules';
 
 const role = (key: string, grantable: boolean): OrgRole => ({
   key,
@@ -42,8 +48,9 @@ describe('member rules', () => {
     expect(canEditMember(member('u-1', ['member']), [], 'me')).toBe(false);
   });
 
-  it('picks the first role as primary', () => {
-    expect(primaryRole(member('u', ['auditor', 'member']))).toBe('auditor');
-    expect(primaryRole(member('u', []))).toBe('');
+  it('selects the single role, or the multiple-roles placeholder', () => {
+    expect(roleSelectValue(member('u', ['auditor']))).toBe('auditor');
+    expect(roleSelectValue(member('u', ['auditor', 'member']))).toBe(MULTIPLE_ROLES);
+    expect(roleSelectValue(member('u', []))).toBe(MULTIPLE_ROLES);
   });
 });
