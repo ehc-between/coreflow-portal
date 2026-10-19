@@ -7,6 +7,13 @@ const routes: Routes = [
     path: 'password',
     loadComponent: () => import('./change-password/change-password').then((m) => m.ChangePassword),
   },
+  {
+    path: 'notifications',
+    loadComponent: () =>
+      import('./notification-preferences/notification-preferences').then(
+        (m) => m.NotificationPreferences,
+      ),
+  },
 ];
 
 export default routes;

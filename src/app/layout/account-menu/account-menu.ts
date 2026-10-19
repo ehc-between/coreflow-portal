@@ -8,7 +8,7 @@ import { Icon } from '../../shared/ui/icon/icon';
 
 /**
  * Top-bar avatar menu: shows the signed-in user (name + email) and offers
- * "Change password", "Sign out" and "Sign out of all devices". Closes on
+ * "Change password", "Notification settings", "Sign out" and "Sign out of all devices". Closes on
  * outside-click and Escape.
  */
 @Component({
@@ -58,6 +58,15 @@ import { Icon } from '../../shared/ui/icon/icon';
         >
           <span class="flex text-fg-subtle"><app-icon name="lock" [size]="16" /></span>
           {{ 'auth.menu.changePassword' | transloco }}
+        </a>
+        <a
+          role="menuitem"
+          routerLink="/account/notifications"
+          (click)="close()"
+          class="flex items-center gap-2.5 rounded-[9px] px-2 py-2 text-[13px] font-medium text-fg hover:bg-surface-2"
+        >
+          <span class="flex text-fg-subtle"><app-icon name="bell" [size]="16" /></span>
+          {{ 'auth.menu.notificationSettings' | transloco }}
         </a>
         <button
           type="button"

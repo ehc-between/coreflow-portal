@@ -321,6 +321,7 @@
     "menu": {
       "label": "Account menu",
       "changePassword": "Change password",
+      "notificationSettings": "Notification settings",
       "logoutAll": "Sign out of all devices",
       "logoutAllFailed": "Couldn't sign out of all devices. Please try again."
     },
@@ -785,6 +786,46 @@
       "trend": {
         "title": "Opened over time"
       }
+    }
+  },
+  "notifications": {
+    "deviationAssigned": "{{actor_name}} assigned you deviation {{code}}: {{title}}",
+    "deviationAssignedNoActor": "You were assigned deviation {{code}}: {{title}}",
+    "actionAssigned": "{{actor_name}} assigned you an action on {{deviation_code}}: {{description}}",
+    "actionAssignedNoActor": "You were assigned an action on {{deviation_code}}: {{description}}",
+    "deviationDueSoon": "Deviation {{code}} is due in {{days}} days: {{title}}",
+    "deviationDueSoonToday": "Deviation {{code}} is due today: {{title}}",
+    "deviationDueSoonTomorrow": "Deviation {{code}} is due tomorrow: {{title}}",
+    "deviationOverdue": "Deviation {{code}} is {{days}} days overdue: {{title}}",
+    "deviationOverdueOne": "Deviation {{code}} is 1 day overdue: {{title}}",
+    "actionDueSoon": "An action on {{deviation_code}} is due in {{days}} days: {{description}}",
+    "actionDueSoonToday": "An action on {{deviation_code}} is due today: {{description}}",
+    "actionDueSoonTomorrow": "An action on {{deviation_code}} is due tomorrow: {{description}}",
+    "actionOverdue": "An action on {{deviation_code}} is {{days}} days overdue: {{description}}",
+    "actionOverdueOne": "An action on {{deviation_code}} is 1 day overdue: {{description}}",
+    "fallback": "You have a new notification.",
+    "bellUnread": "Notifications, {{count}} unread",
+    "panel": {
+      "title": "Notifications",
+      "markAllRead": "Mark all as read",
+      "markAllFailed": "Couldn't mark notifications as read. Please try again.",
+      "loading": "Loading…",
+      "error": "Couldn't load notifications.",
+      "retry": "Try again",
+      "empty": "You're all caught up.",
+      "loadMore": "Load more",
+      "unread": "Unread",
+      "settings": "Notification settings"
+    },
+    "preferences": {
+      "title": "Notification settings",
+      "subtitle": "Choose which organizations send you a daily email summary of your notifications.",
+      "emailDigest": "Daily email digest",
+      "emailDigestHint": "The digest includes new assignments and deadlines from the past day. You'll still see every notification in the app.",
+      "empty": "You're not a member of any organizations yet.",
+      "loadError": "Couldn't load your notification settings. Please try again later.",
+      "saved": "Notification settings saved.",
+      "saveFailed": "Couldn't save your notification settings. Please try again."
     }
   }
 }
