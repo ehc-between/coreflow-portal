@@ -60,6 +60,25 @@ describe('buildDashboardTiles', () => {
     expect(tiles.find((t) => t.id === 'openDeviations')?.link).toBe('/deviations');
   });
 
+  it('drills each stats tile into the exact filtered list behind its number', () => {
+    const tiles = buildDashboardTiles({
+      stats: ready(stats()),
+      pendingProposals: HIDDEN,
+      documentsInReview: HIDDEN,
+    });
+    const target = (id: string) => {
+      const t = tiles.find((tile) => tile.id === id);
+      return [t?.link, t?.queryParams];
+    };
+    expect(target('openDeviations')).toEqual(['/deviations', { active: 'true' }]);
+    expect(target('overdueDeviations')).toEqual([
+      '/deviations',
+      { overdue: 'true', sort: 'due_at' },
+    ]);
+    expect(target('openActions')).toEqual(['/deviations/actions', undefined]);
+    expect(target('overdueActions')).toEqual(['/deviations/actions', { overdue: 'true' }]);
+  });
+
   it('omits tiles for sources the user may not see', () => {
     const tiles = buildDashboardTiles({
       stats: HIDDEN,

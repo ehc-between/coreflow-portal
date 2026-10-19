@@ -81,7 +81,13 @@ export function buildDashboardTiles(sources: DashboardSources): readonly Dashboa
   const tiles: (DashboardTile | null)[] = [
     tile(
       stats,
-      { id: 'openDeviations', labelKey: 'dashboard.tiles.openDeviations', link: '/deviations' },
+      {
+        id: 'openDeviations',
+        labelKey: 'dashboard.tiles.openDeviations',
+        link: '/deviations',
+        // Stats "open" = not closed / cancelled, i.e. the list's `active` filter.
+        queryParams: { active: 'true' },
+      },
       statsValue((s) => s.open),
       (v) => (v > 0 ? 'accent' : 'neutral'),
     ),
@@ -91,15 +97,16 @@ export function buildDashboardTiles(sources: DashboardSources): readonly Dashboa
         id: 'overdueDeviations',
         labelKey: 'dashboard.tiles.overdueDeviations',
         link: '/deviations',
-        // No server-side "overdue" filter yet: soonest-due first surfaces them.
-        queryParams: { sort: 'due_at' },
+        queryParams: { overdue: 'true', sort: 'due_at' },
       },
       statsValue((s) => s.overdue),
       alertTone,
     ),
     tile(
       stats,
-      { id: 'openActions', labelKey: 'dashboard.tiles.openActions', link: '/deviations/stats' },
+      // Action counts are org-wide (every deviation the user may view), so they
+      // drill into the org-wide actions list, not the user's own My Work queue.
+      { id: 'openActions', labelKey: 'dashboard.tiles.openActions', link: '/deviations/actions' },
       statsValue((s) => s.open_actions),
       (v) => (v > 0 ? 'info' : 'neutral'),
     ),
@@ -108,7 +115,8 @@ export function buildDashboardTiles(sources: DashboardSources): readonly Dashboa
       {
         id: 'overdueActions',
         labelKey: 'dashboard.tiles.overdueActions',
-        link: '/deviations/stats',
+        link: '/deviations/actions',
+        queryParams: { overdue: 'true' },
       },
       statsValue((s) => s.overdue_actions),
       alertTone,

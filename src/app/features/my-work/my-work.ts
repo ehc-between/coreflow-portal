@@ -16,6 +16,7 @@ import { AuthService } from '../../core/auth/auth.service';
 import { DeviationsApi } from '../../core/deviations/deviations-api';
 import { DocumentsApi } from '../../core/documents/documents-api';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
+import { ActionListRow } from '../deviations/actions/action-list-row';
 import { AgentBanner } from '../../shared/ui/agent-banner/agent-banner';
 import { Badge } from '../../shared/ui/badge/badge';
 import { Card } from '../../shared/ui/card/card';
@@ -29,13 +30,18 @@ import {
 } from '../deviations/deviation-enums';
 import {
   ApprovalItem,
+  MyActions,
   OwnedDeviation,
   assembleApprovals,
+  assembleMyActions,
   assembleOwnedDeviations,
 } from './my-work-data';
 
 /** Max deviations fetched for the "I own" list (the backend's page cap). */
 const OWNED_LIMIT = 200;
+
+/** Max actions shown in "My CAPA actions"; the rest are on the actions list. */
+const ACTIONS_LIMIT = 50;
 
 interface OwnedResult {
   readonly items: readonly OwnedDeviation[];
@@ -45,15 +51,15 @@ interface OwnedResult {
 
 /**
  * Personal work queue for the current org: deviations the user owns (active
- * only, soonest due first, overdue highlighted; `deviations:read`), and items
- * awaiting the user's approval — pending AI proposals plus documents in review
- * (`documents:approve`). Cross-deviation CAPA actions assigned to the user need
- * a backend endpoint that doesn't exist yet, so that section is an explicit
- * "coming soon" note rather than partial data. Reloads on org switch.
+ * only, filtered server-side; soonest due first, overdue highlighted), the
+ * user's open CAPA actions across all deviations (both `deviations:read`), and
+ * items awaiting the user's approval — pending AI proposals plus documents in
+ * review (`documents:approve`). The actions section is anchored at `#actions`.
+ * Reloads on org switch.
  */
 @Component({
   selector: 'app-my-work',
-  imports: [DatePipe, RouterLink, TranslocoPipe, AgentBanner, Badge, Card, Icon],
+  imports: [DatePipe, RouterLink, TranslocoPipe, ActionListRow, AgentBanner, Badge, Card, Icon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mx-auto max-w-[960px] px-8 pt-7 pb-12">
@@ -155,6 +161,17 @@ interface OwnedResult {
                     @if (o.value.truncated) {
                       <p class="border-t border-border px-4 py-2.5 text-[12.5px] text-fg-subtle">
                         {{ 'myWork.owned.truncated' | transloco: { limit: ownedLimit } }}
+                        <a
+                          routerLink="/deviations"
+                          [queryParams]="{
+                            owner_user_id: userId(),
+                            active: 'true',
+                            sort: 'due_at',
+                          }"
+                          class="font-semibold text-accent hover:underline"
+                        >
+                          {{ 'myWork.owned.viewAll' | transloco }}
+                        </a>
                       </p>
                     }
                   }
@@ -242,25 +259,67 @@ interface OwnedResult {
         }
       }
 
-      <!-- My CAPA actions: needs a cross-deviation backend endpoint -->
-      @if (showOwned()) {
-        <section>
-          <h2 class="mb-2.5 font-display text-[17px] font-bold tracking-[-0.02em] text-fg">
-            {{ 'myWork.actions.title' | transloco }}
-          </h2>
-          <app-card>
-            <div class="flex items-start gap-3">
-              <span
-                class="flex h-8 w-8 flex-none items-center justify-center rounded-tile border border-border bg-surface-2 text-fg-subtle"
-              >
-                <app-icon name="clock" [size]="16" />
-              </span>
-              <p class="text-[13.5px] leading-relaxed text-fg-muted">
-                {{ 'myWork.actions.comingSoon' | transloco }}
-              </p>
+      <!-- My CAPA actions (open + in progress, across all deviations) -->
+      @if (actions(); as m) {
+        @if (m.state !== 'hidden') {
+          <section id="actions" class="mb-6 scroll-mt-6">
+            <div class="mb-2.5 flex items-center gap-2">
+              <h2 class="font-display text-[17px] font-bold tracking-[-0.02em] text-fg">
+                {{ 'myWork.actions.title' | transloco }}
+              </h2>
+              @if (m.state === 'ready') {
+                <app-badge tone="neutral">{{ m.value.total }}</app-badge>
+                @if (m.value.overdueCount > 0) {
+                  <app-badge tone="fail">
+                    {{ 'myWork.owned.overdueCount' | transloco: { count: m.value.overdueCount } }}
+                  </app-badge>
+                }
+              }
             </div>
-          </app-card>
-        </section>
+            <app-card [padded]="false">
+              @switch (m.state) {
+                @case ('loading') {
+                  <p class="py-8 text-center text-[14px] text-fg-muted">
+                    {{ 'common.loading' | transloco }}
+                  </p>
+                }
+                @case ('error') {
+                  <p class="py-8 text-center text-[14px] text-fail">
+                    {{ 'myWork.loadFailed' | transloco }}
+                  </p>
+                }
+                @case ('ready') {
+                  @if (m.value.items.length === 0) {
+                    <p class="py-8 text-center text-[14px] text-fg-muted">
+                      {{ 'myWork.actions.empty' | transloco }}
+                    </p>
+                  } @else {
+                    <ul class="divide-y divide-border">
+                      @for (action of m.value.items; track action.id) {
+                        <li><app-action-list-row [action]="action" /></li>
+                      }
+                    </ul>
+                    @if (m.value.truncated) {
+                      <p class="border-t border-border px-4 py-2.5 text-[12.5px] text-fg-subtle">
+                        {{
+                          'myWork.actions.truncated'
+                            | transloco: { shown: m.value.items.length, total: m.value.total }
+                        }}
+                        <a
+                          routerLink="/deviations/actions"
+                          [queryParams]="{ owner_user_id: 'me' }"
+                          class="font-semibold text-accent hover:underline"
+                        >
+                          {{ 'myWork.actions.viewAll' | transloco }}
+                        </a>
+                      </p>
+                    }
+                  }
+                }
+              }
+            </app-card>
+          </section>
+        }
       }
     </div>
   `,
@@ -282,7 +341,7 @@ export class MyWork {
    * when the id changes — not on every token refresh (which sets a new user
    * object with the same id).
    */
-  private readonly userId = computed(() => this.auth.user()?.id ?? null);
+  protected readonly userId = computed(() => this.auth.user()?.id ?? null);
   private readonly permissions = computed(() => this.selectedOrg.currentOrg()?.permissions ?? []);
   protected readonly showOwned = computed(() => this.permissions().includes('deviations:read'));
   protected readonly showApprovals = computed(() =>
@@ -291,6 +350,7 @@ export class MyWork {
 
   protected readonly owned = signal<Loadable<OwnedResult>>(HIDDEN);
   protected readonly approvals = signal<Loadable<readonly ApprovalItem[]>>(HIDDEN);
+  protected readonly actions = signal<Loadable<MyActions>>(HIDDEN);
 
   protected readonly overdueCount = computed(() => {
     const o = this.owned();
@@ -328,6 +388,7 @@ export class MyWork {
     const canLoad = orgId !== null && userId !== null;
     this.owned.set(canLoad && showOwned ? LOADING : HIDDEN);
     this.approvals.set(canLoad && showApprovals ? LOADING : HIDDEN);
+    this.actions.set(canLoad && showOwned ? LOADING : HIDDEN);
     if (!canLoad) {
       return;
     }
@@ -335,7 +396,12 @@ export class MyWork {
     if (showOwned) {
       this.requests.add(
         this.deviationsApi
-          .listDeviations(orgId, { owner_user_id: userId, sort: 'due_at', limit: OWNED_LIMIT })
+          .listDeviations(orgId, {
+            owner_user_id: userId,
+            active: true,
+            sort: 'due_at',
+            limit: OWNED_LIMIT,
+          })
           .subscribe({
             next: (page) =>
               this.owned.set(
@@ -346,6 +412,25 @@ export class MyWork {
               ),
             error: () => this.owned.set(FAILED),
           }),
+      );
+      this.requests.add(
+        forkJoin({
+          page: this.deviationsApi.listActions(orgId, {
+            owner_user_id: 'me',
+            sort: 'due_at',
+            limit: ACTIONS_LIMIT,
+          }),
+          // Exact overdue count, even when the page above is capped.
+          overdue: this.deviationsApi.listActions(orgId, {
+            owner_user_id: 'me',
+            overdue: true,
+            limit: 1,
+          }),
+        }).subscribe({
+          next: ({ page, overdue }) =>
+            this.actions.set(ready(assembleMyActions(page, overdue.total))),
+          error: () => this.actions.set(FAILED),
+        }),
       );
     }
     if (showApprovals) {
