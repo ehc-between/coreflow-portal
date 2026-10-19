@@ -15,7 +15,9 @@ import {
   DeviationListResponse,
   DeviationStats,
   DeviationType,
+  DeviationTypeDraftResponse,
   DeviationTypeInput,
+  Standard,
   UpdateDeviationRequest,
 } from './deviation.models';
 
@@ -58,6 +60,23 @@ export class DeviationsApi {
 
   deleteType(orgId: string, typeId: string): Observable<void> {
     return this.api.delete<void>(`v1/orgs/${orgId}/deviation-types/${typeId}`);
+  }
+
+  /**
+   * Ask the AI to draft a full deviation type from a short description, to
+   * populate the editor for review. Not org-prefixed in the path — the org is
+   * passed in the body. 503 if AI isn't configured; 502 on a design failure.
+   */
+  draftType(
+    orgId: string,
+    description: string,
+    standards?: readonly Standard[],
+  ): Observable<DeviationTypeDraftResponse> {
+    return this.api.post<DeviationTypeDraftResponse>('v1/ai/deviation-type-draft', {
+      org_id: orgId,
+      description,
+      standards,
+    });
   }
 
   // --- Deviations ------------------------------------------------------------

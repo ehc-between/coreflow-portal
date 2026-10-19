@@ -1,8 +1,15 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { AuthService } from '../../core/auth/auth.service';
 import {
   ClauseRef,
@@ -29,6 +36,7 @@ import {
   standardLabelKey,
 } from './deviation-enums';
 import { DynamicField, DynamicFieldOption } from './dynamic-field';
+import { groupFieldsIntoSections } from './types/type-schema';
 
 /** A clause row being edited (standard + free-text clause). */
 interface ClauseRow {
@@ -415,20 +423,28 @@ interface ClauseRow {
             </div>
           </app-card>
 
-          @if (selectedType()!.schema.length) {
+          @if (schemaSections().length) {
             <app-card>
-              <p class="mb-4 text-[13px] font-semibold text-fg-muted">
-                {{ 'deviations.create.detailsSection' | transloco }}
-              </p>
-              <div class="flex flex-col gap-4">
-                @for (def of selectedType()!.schema; track def.key) {
-                  <app-dynamic-field
-                    [field]="def"
-                    [value]="data()[def.key]"
-                    [options]="optionsFor(def.type)"
-                    [error]="dataErrors()[def.key] ?? null"
-                    (valueChange)="setData(def.key, $event)"
-                  />
+              <div class="flex flex-col gap-6">
+                @for (section of schemaSections(); track section.title) {
+                  <div class="flex flex-col gap-4">
+                    @if (!section.isDefault) {
+                      <p class="text-[13px] font-semibold text-fg-muted">{{ section.title }}</p>
+                    }
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      @for (def of section.fields; track def.key) {
+                        <div [class.sm:col-span-2]="def.width === 'full'">
+                          <app-dynamic-field
+                            [field]="def"
+                            [value]="data()[def.key]"
+                            [options]="optionsFor(def.type)"
+                            [error]="dataErrors()[def.key] ?? null"
+                            (valueChange)="setData(def.key, $event)"
+                          />
+                        </div>
+                      }
+                    </div>
+                  </div>
                 }
               </div>
             </app-card>
@@ -477,6 +493,7 @@ export class DeviationNew {
   private readonly auth = inject(AuthService);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly notifications = inject(NotificationService);
+  private readonly transloco = inject(TranslocoService);
   private readonly router = inject(Router);
 
   protected readonly orgId = this.selectedOrg.currentOrgId;
@@ -516,6 +533,16 @@ export class DeviationNew {
   protected readonly data = signal<Record<string, unknown>>({});
   protected readonly dataErrors = signal<Record<string, string>>({});
   protected readonly titleError = signal(false);
+
+  /** The chosen type's schema grouped into render sections for the 2-col grid. */
+  protected readonly schemaSections = computed(() => {
+    const type = this.selectedType();
+    if (!type) {
+      return [];
+    }
+    const defaultTitle = this.transloco.translate('deviations.create.detailsSection');
+    return groupFieldsIntoSections(type.schema, defaultTitle);
+  });
 
   private currentOrgId: string | null = null;
 

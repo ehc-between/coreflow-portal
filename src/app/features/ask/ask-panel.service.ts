@@ -38,11 +38,17 @@ export class AskPanelService {
   private readonly _open = signal(false);
   private readonly _state = signal<AskPanelState>('chat');
   private readonly _thread = signal<readonly AskTurn[]>([]);
+  private readonly _working = signal<string | null>(null);
 
   /** Whether the Ask CoreFlow panel is currently shown. */
   readonly open = this._open.asReadonly();
   readonly state = this._state.asReadonly();
   readonly thread = this._thread.asReadonly();
+
+  /** The latest backend status label for the in-flight turn, or null. Set by a
+   *  `status` event during the silent tool-execution gap; cleared once the
+   *  assistant text starts streaming and when the turn finishes. */
+  readonly working = this._working.asReadonly();
 
   /** True while the latest assistant turn is still streaming. */
   readonly streaming = computed(() => this._thread().at(-1)?.status === 'streaming');
@@ -81,6 +87,7 @@ export class AskPanelService {
     }
 
     this.stream?.cancel();
+    this._working.set(null);
 
     const userTurn: AskTurn = { id: this.nextId++, role: 'user', text: value };
     const assistantTurn: AskTurn = {
@@ -97,7 +104,12 @@ export class AskPanelService {
 
     this.stream = this.ai.ask(messages, orgId, (event) => {
       switch (event.type) {
+        case 'status':
+          this._working.set(event.text);
+          break;
         case 'delta':
+          // Visible text is now the progress signal; retire the status label.
+          this._working.set(null);
           this.patch(assistantId, (turn) => ({ ...turn, text: turn.text + event.text }));
           break;
         case 'sources':
@@ -116,16 +128,19 @@ export class AskPanelService {
           }));
           break;
         case 'done':
+          this._working.set(null);
           this.patch(assistantId, (turn) => ({ ...turn, status: 'done' }));
           this.stream = null;
           break;
         case 'error':
+          this._working.set(null);
           this.patch(assistantId, (turn) => ({ ...turn, status: 'error' }));
           this.stream = null;
           break;
         case 'not-configured':
           // A 503 at request start: drop the just-added user+assistant turns so
           // no phantom error bubble lingers, then show the calm "not set up" view.
+          this._working.set(null);
           this.stream?.cancel();
           this.stream = null;
           this._thread.update((turns) =>
@@ -141,6 +156,7 @@ export class AskPanelService {
   stop(): void {
     this.stream?.cancel();
     this.stream = null;
+    this._working.set(null);
     this._thread.update((turns) =>
       turns.map((turn) =>
         turn.status === 'streaming'

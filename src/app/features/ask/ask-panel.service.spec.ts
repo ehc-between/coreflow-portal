@@ -41,6 +41,24 @@ describe('AskPanelService', () => {
     expect(svc.thread().at(-1)?.text).toBe('Working');
   });
 
+  it('a status event sets the working label; a delta clears it; done clears it', () => {
+    const svc = setup();
+    svc.send('draft a policy');
+    expect(svc.working()).toBeNull();
+
+    emit({ type: 'status', text: 'Looking through your documents…' });
+    expect(svc.working()).toBe('Looking through your documents…');
+
+    emit({ type: 'delta', text: 'Here' });
+    expect(svc.working()).toBeNull();
+
+    emit({ type: 'status', text: 'Creating a deviation type…' });
+    expect(svc.working()).toBe('Creating a deviation type…');
+
+    emit({ type: 'done' });
+    expect(svc.working()).toBeNull();
+  });
+
   it('hide() minimizes without aborting the stream or clearing the thread', () => {
     const svc = setup();
     svc.show();

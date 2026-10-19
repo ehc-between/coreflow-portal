@@ -17,20 +17,38 @@ function setup(field: FieldDef) {
 
 describe('DynamicField', () => {
   it('renders a text input for a text field', () => {
-    const { fixture } = setup({ key: 'note', label: 'Note', type: 'text', required: false });
+    const { fixture } = setup({
+      key: 'note',
+      label: 'Note',
+      type: 'text',
+      required: false,
+      width: 'full',
+    });
     fixture.detectChanges();
     const input = fixture.nativeElement.querySelector('input[type="text"]');
     expect(input).toBeTruthy();
   });
 
   it('renders a date input for a date field', () => {
-    const { fixture } = setup({ key: 'when', label: 'When', type: 'date', required: true });
+    const { fixture } = setup({
+      key: 'when',
+      label: 'When',
+      type: 'date',
+      required: true,
+      width: 'full',
+    });
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('input[type="date"]')).toBeTruthy();
   });
 
   it('emits the typed value for a text field', () => {
-    const { fixture } = setup({ key: 'note', label: 'Note', type: 'text', required: false });
+    const { fixture } = setup({
+      key: 'note',
+      label: 'Note',
+      type: 'text',
+      required: false,
+      width: 'full',
+    });
     fixture.detectChanges();
     const emitted: unknown[] = [];
     fixture.componentInstance.valueChange.subscribe((v) => emitted.push(v));
@@ -48,6 +66,7 @@ describe('DynamicField', () => {
       label: 'Tags',
       type: 'multiselect',
       required: false,
+      width: 'full',
       options: ['a', 'b'],
     });
     ref.setInput('value', ['a']);
@@ -74,6 +93,7 @@ describe('DynamicField', () => {
       label: 'Reviewer',
       type: 'user',
       required: false,
+      width: 'full',
     });
     ref.setInput('options', [{ id: 'u-1', name: 'Ada' }]);
     fixture.detectChanges();
@@ -84,7 +104,13 @@ describe('DynamicField', () => {
   });
 
   it('shows the server error message when provided', () => {
-    const { ref, fixture } = setup({ key: 'note', label: 'Note', type: 'text', required: false });
+    const { ref, fixture } = setup({
+      key: 'note',
+      label: 'Note',
+      type: 'text',
+      required: false,
+      width: 'full',
+    });
     ref.setInput('error', 'This is required');
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('This is required');

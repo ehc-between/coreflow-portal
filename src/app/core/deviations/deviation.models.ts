@@ -31,6 +31,9 @@ export type FieldType =
   | 'user'
   | 'department';
 
+/** How wide a field renders in the deviation form layout. */
+export type FieldWidth = 'full' | 'half';
+
 /** A single dynamic field in a deviation type's schema. */
 export interface FieldDef {
   readonly key: string;
@@ -41,6 +44,16 @@ export interface FieldDef {
   readonly options?: readonly string[];
   readonly help?: string;
   readonly placeholder?: string;
+  /**
+   * Column width in the form layout: `full` spans both columns, `half` is one
+   * of a two-column pair. Defaults to `full`.
+   */
+  readonly width: FieldWidth;
+  /**
+   * The section this field belongs to, grouping fields in list order. A
+   * `null`/empty section is the default (first, untitled) section.
+   */
+  readonly section?: string | null;
 }
 
 /** A deviation type: its identity, the standards it covers and its dynamic schema. */
@@ -64,6 +77,16 @@ export interface DeviationTypeInput {
   readonly code_prefix: string;
   readonly schema: readonly FieldDef[];
   readonly is_active?: boolean;
+}
+
+/** AI-proposed draft of a deviation type, to populate the editor for review. */
+export interface DeviationTypeDraftResponse {
+  readonly name: string;
+  readonly key: string;
+  readonly code_prefix: string;
+  readonly description: string | null;
+  readonly standards: readonly Standard[];
+  readonly schema: readonly FieldDef[];
 }
 
 /** A standard + clause reference pair (e.g. iso9001 / "8.7"). */

@@ -49,6 +49,7 @@ import {
   statusTone,
 } from './deviation-enums';
 import { DynamicField, DynamicFieldOption } from './dynamic-field';
+import { groupFieldsIntoSections } from './types/type-schema';
 
 /**
  * Deviation detail, scoped to the currently selected org. A header band (code,
@@ -295,14 +296,27 @@ import { DynamicField, DynamicFieldOption } from './dynamic-field';
                     </div>
                   </div>
 
-                  @for (def of schema(); track def.key) {
-                    <div>
-                      <dt class="text-[11px] font-bold tracking-[0.08em] text-fg-subtle uppercase">
-                        {{ def.label }}
-                      </dt>
-                      <dd class="mt-1 text-[13.5px] whitespace-pre-line text-fg">
-                        {{ displayValue(def) }}
-                      </dd>
+                  @for (section of schemaSections(); track section.title) {
+                    <div class="flex flex-col gap-3">
+                      @if (!section.isDefault) {
+                        <p class="text-[11px] font-bold tracking-[0.08em] text-fg-subtle uppercase">
+                          {{ section.title }}
+                        </p>
+                      }
+                      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        @for (def of section.fields; track def.key) {
+                          <div [class.sm:col-span-2]="def.width === 'full'">
+                            <dt
+                              class="text-[11px] font-bold tracking-[0.08em] text-fg-subtle uppercase"
+                            >
+                              {{ def.label }}
+                            </dt>
+                            <dd class="mt-1 text-[13.5px] whitespace-pre-line text-fg">
+                              {{ displayValue(def) }}
+                            </dd>
+                          </div>
+                        }
+                      </div>
                     </div>
                   }
                 </dl>
@@ -420,19 +434,29 @@ import { DynamicField, DynamicFieldOption } from './dynamic-field';
                     </div>
                   </div>
 
-                  @if (schema().length) {
-                    <div class="flex flex-col gap-4 border-t border-border pt-4">
-                      <p class="text-[13px] font-semibold text-fg-muted">
-                        {{ 'deviations.create.detailsSection' | transloco }}
-                      </p>
-                      @for (def of schema(); track def.key) {
-                        <app-dynamic-field
-                          [field]="def"
-                          [value]="data()[def.key]"
-                          [options]="optionsFor(def.type)"
-                          [error]="dataErrors()[def.key] ?? null"
-                          (valueChange)="setData(def.key, $event)"
-                        />
+                  @if (schemaSections().length) {
+                    <div class="flex flex-col gap-6 border-t border-border pt-4">
+                      @for (section of schemaSections(); track section.title) {
+                        <div class="flex flex-col gap-4">
+                          @if (!section.isDefault) {
+                            <p class="text-[13px] font-semibold text-fg-muted">
+                              {{ section.title }}
+                            </p>
+                          }
+                          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            @for (def of section.fields; track def.key) {
+                              <div [class.sm:col-span-2]="def.width === 'full'">
+                                <app-dynamic-field
+                                  [field]="def"
+                                  [value]="data()[def.key]"
+                                  [options]="optionsFor(def.type)"
+                                  [error]="dataErrors()[def.key] ?? null"
+                                  (valueChange)="setData(def.key, $event)"
+                                />
+                              </div>
+                            }
+                          </div>
+                        </div>
                       }
                     </div>
                   }
@@ -611,6 +635,14 @@ export class DeviationDetail {
 
   /** The type's dynamic field schema, for read-only and edit rendering. */
   protected readonly schema = computed<readonly FieldDef[]>(() => this.type()?.schema ?? []);
+
+  /** The schema grouped into render sections for the 2-col grid (read + edit). */
+  protected readonly schemaSections = computed(() =>
+    groupFieldsIntoSections(
+      this.schema(),
+      this.transloco.translate('deviations.create.detailsSection'),
+    ),
+  );
 
   /** Whether the current user can edit (drives the actions panel controls too). */
   protected readonly canWrite = computed(() =>

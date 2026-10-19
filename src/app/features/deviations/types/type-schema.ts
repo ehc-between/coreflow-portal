@@ -1,4 +1,4 @@
-import { FieldDef, FieldType } from '../../../core/deviations/deviation.models';
+import { FieldDef, FieldType, FieldWidth } from '../../../core/deviations/deviation.models';
 import { fieldTypeHasOptions } from '../deviation-enums';
 
 /** A draft schema field row in the type editor (mutable, pre-validation). */
@@ -10,6 +10,19 @@ export interface DraftField {
   options: string[];
   help: string;
   placeholder: string;
+  width: FieldWidth;
+  /** Section this field belongs to; `null`/empty is the default section. */
+  section: string | null;
+}
+
+/** A draft field plus editor-only bookkeeping (whether its key was hand-edited). */
+export type DraftFieldState = DraftField & { keyTouched?: boolean };
+
+/** A titled group of draft fields in the sectioned builder UI. */
+export interface DraftSection {
+  /** Display title; empty string is the default (untitled) section. */
+  title: string;
+  fields: DraftFieldState[];
 }
 
 /** Per-field validation messages, keyed by the field's draft id (its index). */
@@ -43,7 +56,7 @@ export function slugify(value: string): string {
 }
 
 /** A fresh, empty draft field (added when the user inserts a row). */
-export function emptyDraftField(): DraftField {
+export function emptyDraftField(section: string | null = null): DraftField {
   return {
     key: '',
     label: '',
@@ -52,6 +65,8 @@ export function emptyDraftField(): DraftField {
     options: [],
     help: '',
     placeholder: '',
+    width: 'full',
+    section,
   };
 }
 
@@ -65,7 +80,18 @@ export function toDraftField(def: FieldDef): DraftField {
     options: [...(def.options ?? [])],
     help: def.help ?? '',
     placeholder: def.placeholder ?? '',
+    width: def.width ?? 'full',
+    section: def.section ?? null,
   };
+}
+
+/**
+ * Maps a `FieldDef` (e.g. from an AI-drafted schema) into an editor field row,
+ * marking the key as hand-set so it isn't re-derived from the label. Round-trip
+ * safe with {@link toFieldDef}.
+ */
+export function fromFieldDef(def: FieldDef): DraftFieldState {
+  return { ...toDraftField(def), keyTouched: true };
 }
 
 /** Serialises a draft row into the `FieldDef` the API expects. */
@@ -78,6 +104,7 @@ export function toFieldDef(draft: DraftField): FieldDef {
   };
   const help = draft.help.trim();
   const placeholder = draft.placeholder.trim();
+  const section = draft.section?.trim() ?? '';
   return {
     ...base,
     ...(fieldTypeHasOptions(draft.type)
@@ -85,7 +112,86 @@ export function toFieldDef(draft: DraftField): FieldDef {
       : {}),
     ...(help ? { help } : {}),
     ...(placeholder ? { placeholder } : {}),
+    width: draft.width,
+    ...(section ? { section } : { section: null }),
   };
+}
+
+/**
+ * Groups ordered draft fields into sections in list order: a field's `section`
+ * starts (or continues) a section keyed by its trimmed title; `null`/empty maps
+ * to the default first section, which is always present (given `defaultTitle`)
+ * so the builder has somewhere to drop fields. Section order follows first
+ * appearance; within a section, fields keep their relative order.
+ */
+export function groupIntoSections(
+  fields: readonly DraftFieldState[],
+  defaultTitle: string,
+): DraftSection[] {
+  const sections: DraftSection[] = [{ title: '', fields: [] }];
+  const byTitle = new Map<string, DraftSection>([['', sections[0]]]);
+  for (const field of fields) {
+    const title = field.section?.trim() ? field.section.trim() : '';
+    let section = byTitle.get(title);
+    if (!section) {
+      section = { title, fields: [] };
+      byTitle.set(title, section);
+      sections.push(section);
+    }
+    section.fields.push(field);
+  }
+  if (sections[0].title === '') {
+    sections[0].title = defaultTitle;
+  }
+  return sections;
+}
+
+/** A titled group of stored schema fields, for rendering the deviation form. */
+export interface FieldSection {
+  /** Display title; the default first section carries `defaultTitle`. */
+  readonly title: string;
+  /** Whether this is the default (first, originally untitled) section. */
+  readonly isDefault: boolean;
+  readonly fields: readonly FieldDef[];
+}
+
+/**
+ * Groups a stored `FieldDef[]` schema into render sections in list order,
+ * mirroring {@link groupIntoSections}: a `null`/empty `section` maps to the
+ * default first section (flagged `isDefault`), other sections appear in
+ * first-appearance order; within a section fields keep their relative order.
+ * The default section is only included when it actually holds fields.
+ */
+export function groupFieldsIntoSections(
+  fields: readonly FieldDef[],
+  defaultTitle: string,
+): FieldSection[] {
+  const defaultSection = { title: defaultTitle, isDefault: true, fields: [] as FieldDef[] };
+  const sections: { title: string; isDefault: boolean; fields: FieldDef[] }[] = [defaultSection];
+  const byTitle = new Map<string, (typeof sections)[number]>([['', defaultSection]]);
+  for (const field of fields) {
+    const title = field.section?.trim() ? field.section.trim() : '';
+    let section = byTitle.get(title);
+    if (!section) {
+      section = { title, isDefault: false, fields: [] };
+      byTitle.set(title, section);
+      sections.push(section);
+    }
+    section.fields.push(field);
+  }
+  return sections.filter((section) => section.fields.length > 0);
+}
+
+/**
+ * Flattens sectioned draft fields back into an ordered list, stamping each
+ * field with its section's title (the first/default section flattens to
+ * `null`). Inverse of {@link groupIntoSections} for save / validation.
+ */
+export function flattenSections(sections: readonly DraftSection[]): DraftFieldState[] {
+  return sections.flatMap((section, index) => {
+    const title = index === 0 ? null : section.title.trim() || null;
+    return section.fields.map((field) => ({ ...field, section: title }));
+  });
 }
 
 /**

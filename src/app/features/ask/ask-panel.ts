@@ -196,10 +196,6 @@ marked.setOptions({ gfm: true, breaks: true });
                     <div class="flex flex-col gap-2">
                       @if (turn.text) {
                         <div class="cf-prose" [innerHTML]="render(turn.text)"></div>
-                      } @else if (turn.status === 'streaming') {
-                        <p class="animate-cf-pulse text-[13.5px] text-fg-muted">
-                          {{ 'ask.thinking' | transloco }}
-                        </p>
                       }
 
                       @if (turn.status === 'error') {
@@ -284,6 +280,17 @@ marked.setOptions({ gfm: true, breaks: true });
                     </div>
                   }
                 }
+
+                @if (streaming()) {
+                  <div class="flex items-center gap-2 text-[13.5px] text-fg-muted">
+                    <span class="flex flex-none text-accent">
+                      <app-icon name="spark" [size]="15" class="animate-cf-pulse" />
+                    </span>
+                    <span class="animate-cf-pulse">{{
+                      working() ?? ('ask.workingInThread' | transloco)
+                    }}</span>
+                  </div>
+                }
               </div>
             }
           </div>
@@ -341,6 +348,7 @@ export class AskPanel {
   protected readonly state = this.panel.state;
   protected readonly thread = this.panel.thread;
   protected readonly streaming = this.panel.streaming;
+  protected readonly working = this.panel.working;
 
   protected readonly canSubmit = computed(
     () => this.question().trim().length > 0 && !this.streaming(),
@@ -358,6 +366,7 @@ export class AskPanel {
     effect(() => {
       const turns = this.thread();
       void turns.at(-1)?.text;
+      void this.working();
       queueMicrotask(() => {
         const el = this.scrollRef()?.nativeElement;
         if (el) {

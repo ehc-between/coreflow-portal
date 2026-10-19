@@ -130,6 +130,25 @@ describe('DeviationsApi', () => {
     req.flush({});
   });
 
+  it('posts an AI type-draft request to the non-org-prefixed endpoint', () => {
+    api.draftType(ORG, 'GDPR breach for ISO 27001', ['gdpr', 'iso27001']).subscribe();
+    const req = http.expectOne(`${BASE}/v1/ai/deviation-type-draft`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({
+      org_id: ORG,
+      description: 'GDPR breach for ISO 27001',
+      standards: ['gdpr', 'iso27001'],
+    });
+    req.flush({
+      name: 'GDPR breach',
+      key: 'gdpr_breach',
+      code_prefix: 'PB',
+      description: null,
+      standards: ['gdpr'],
+      schema: [],
+    });
+  });
+
   it('lists access subjects for the pickers', () => {
     api.listAccessSubjects(ORG).subscribe();
     const req = http.expectOne(`${BASE}/v1/orgs/${ORG}/access-subjects`);

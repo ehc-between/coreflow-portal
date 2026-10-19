@@ -24,6 +24,7 @@ export interface ConversationTurn {
  */
 export type AskEvent =
   | { readonly type: 'delta'; readonly text: string }
+  | { readonly type: 'status'; readonly text: string }
   | { readonly type: 'sources'; readonly sources: readonly AskSource[] }
   | { readonly type: 'proposal'; readonly proposal_id: string; readonly title: string }
   | { readonly type: 'question'; readonly question: string; readonly options: readonly string[] }
