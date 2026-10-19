@@ -6,7 +6,10 @@ export interface NavItem {
   readonly labelKey: string;
   /** Icon name (see shared Icon set). */
   readonly icon: string;
-  /** Optional permission gating the item's visibility (e.g. dashboard). */
+  /**
+   * Optional permission gating the item's visibility in the current org. Keep
+   * in sync with the route's `permissionGuard` (app.routes).
+   */
   readonly permission?: string;
   /** Placeholder agent context, rendered on the module placeholder page. */
   readonly agentName?: string;
@@ -63,6 +66,7 @@ export const NAV_SECTIONS: readonly NavSection[] = [
         path: 'deviations',
         labelKey: 'nav.deviations',
         icon: 'alert',
+        permission: 'deviations:read',
         agentName: 'Nils',
         agentRole: 'Deviation Analyst',
       },
@@ -96,6 +100,7 @@ export const NAV_SECTIONS: readonly NavSection[] = [
         path: 'documents',
         labelKey: 'nav.documents',
         icon: 'documents',
+        permission: 'documents:read',
         agentName: 'Dora',
         agentRole: 'Document Steward',
       },

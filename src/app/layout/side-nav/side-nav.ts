@@ -14,7 +14,8 @@ import { OrgSwitcher } from '../org-switcher/org-switcher';
 /**
  * Sidebar navigation (248px): org switcher, grouped nav sections with active
  * states, a "customize workspace" mode that reveals per-item visibility toggles
- * (local signal), and a bottom user card. Dashboard is permission-gated.
+ * (local signal), and a bottom user card. Items with a `permission` are hidden
+ * unless the current org grants it (in addition to the customize visibility).
  */
 @Component({
   selector: 'app-side-nav',
@@ -52,7 +53,9 @@ import { OrgSwitcher } from '../org-switcher/org-switcher';
         @for (item of section.items; track item.path) {
           @if (item.permission) {
             <ng-container *appHasPermission="item.permission">
-              <ng-container *ngTemplateOutlet="navLink; context: { $implicit: item }" />
+              @if (isVisible(item) || customizing()) {
+                <ng-container *ngTemplateOutlet="navLink; context: { $implicit: item }" />
+              }
             </ng-container>
           } @else if (isVisible(item) || customizing()) {
             <ng-container *ngTemplateOutlet="navLink; context: { $implicit: item }" />

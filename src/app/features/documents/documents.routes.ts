@@ -1,6 +1,11 @@
 import { Routes } from '@angular/router';
+import { permissionGuard } from '../../core/auth/permission.guard';
 
-/** Documents feature routes (lazy-loaded from app.routes, scoped to the current org). */
+/**
+ * Documents feature routes (lazy-loaded from app.routes, scoped to the current
+ * org). The whole module is gated on `documents:read` upstream; authoring pages
+ * additionally require `documents:draft` and send a denied user back to the list.
+ */
 const routes: Routes = [
   {
     path: '',
@@ -8,10 +13,12 @@ const routes: Routes = [
   },
   {
     path: 'new',
+    canActivate: [permissionGuard('documents:draft', { redirectTo: '/documents' })],
     loadComponent: () => import('./document-new').then((m) => m.DocumentNew),
   },
   {
     path: ':id/edit',
+    canActivate: [permissionGuard('documents:draft', { redirectTo: '/documents' })],
     loadComponent: () => import('./editor/document-editor-page').then((m) => m.DocumentEditorPage),
   },
   {

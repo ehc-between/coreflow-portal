@@ -418,7 +418,8 @@
     "network": "Får ikke kontakt med serveren. Sjekk tilkoblingen og prøv igjen.",
     "server": "Noe gikk galt hos oss. Prøv igjen om litt.",
     "notFound": "Vi fant ikke det du lette etter.",
-    "generic": "Noe gikk galt. Prøv igjen."
+    "generic": "Noe gikk galt. Prøv igjen.",
+    "forbidden": "Du har ikke tilgang til den siden."
   },
   "deviations": {
     "title": "Avvik",
