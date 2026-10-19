@@ -7,7 +7,7 @@ import { NAV_ITEMS } from './layout/nav';
 
 // Nav items backed by a real feature surface — excluded from the placeholder
 // generation below (they get explicit routes).
-const REAL_MODULE_PATHS = new Set(['dashboard', 'documents', 'review', 'deviations']);
+const REAL_MODULE_PATHS = new Set(['dashboard', 'my-work', 'documents', 'review', 'deviations']);
 
 // Every other nav item resolves to the shared module placeholder, carrying its
 // title + agent context via route data.
@@ -44,6 +44,10 @@ export const routes: Routes = [
       {
         path: 'dashboard',
         loadChildren: () => import('./features/dashboard/dashboard.routes'),
+      },
+      {
+        path: 'my-work',
+        loadChildren: () => import('./features/my-work/my-work.routes'),
       },
       {
         path: 'settings',
