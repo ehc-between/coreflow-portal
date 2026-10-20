@@ -33,6 +33,7 @@ import {
 import { DeviationsApi } from '../../core/deviations/deviations-api';
 import {
   invalidDataErrors,
+  isDeviationClosedError,
   notifyDeviationSaveError,
 } from '../../core/deviations/deviation-errors';
 import { httpErrorMessageKey } from '../../core/http/error.interceptor';
@@ -633,6 +634,7 @@ type StatusRejection = WorkflowError & {
                 [highlighted]="blockingActionIds()"
                 (actionsChange)="actions.set($event)"
                 (changed)="reloadEvents()"
+                (stale)="refreshDeviation()"
               />
             </app-card>
 
@@ -722,6 +724,7 @@ type StatusRejection = WorkflowError & {
                     (ownerChange)="onOwnerChange($event)"
                     (visibilityChange)="onVisibilityChange($event)"
                     (grantsChange)="grants.set($event)"
+                    (stale)="refreshDeviation()"
                   />
                 </div>
               </app-card>
@@ -1244,6 +1247,12 @@ export class DeviationDetail {
       return;
     }
     notifyDeviationSaveError(this.notifications, error);
+    if (isDeviationClosedError(error)) {
+      // Someone closed it meanwhile: leave edit mode and reload, which shows
+      // the closed (locked) state.
+      this.editing.set(false);
+      this.refreshDeviation();
+    }
   }
 
   protected onOwnerChange(ownerUserId: string): void {
@@ -1307,7 +1316,7 @@ export class DeviationDetail {
   }
 
   /** Re-fetch the deviation (allowed transitions, actions, events) without a loading state. */
-  private refreshDeviation(): void {
+  protected refreshDeviation(): void {
     const orgId = this.orgId();
     const dev = this.deviation();
     if (!orgId || !dev) {

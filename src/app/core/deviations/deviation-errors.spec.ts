@@ -3,6 +3,7 @@ import {
   codedErrorDetail,
   deviationErrorMessage,
   invalidDataErrors,
+  isDeviationClosedError,
   notifyDeviationSaveError,
 } from './deviation-errors';
 
@@ -25,10 +26,31 @@ describe('deviation errors', () => {
     ).toEqual({ message: 'deviations.errors.duplicate_field_key', params: { key: 'a' } });
   });
 
-  it('falls back to the backend message for unknown codes', () => {
+  it('never shows the English message: unknown codes get a translated generic text', () => {
     expect(deviationErrorMessage(http(422, { code: 'brand_new', message: 'Raw text' }))).toEqual({
-      message: 'Raw text',
+      message: 'errors.generic',
     });
+  });
+
+  it('reuses the workflow reasons for workflow codes on ordinary saves', () => {
+    expect(deviationErrorMessage(http(409, { code: 'deviation_closed', message: 'x' }))).toEqual({
+      message: 'deviations.workflow.reasons.deviation_closed',
+    });
+    expect(isDeviationClosedError(http(409, { code: 'deviation_closed', message: 'x' }))).toBe(
+      true,
+    );
+    expect(isDeviationClosedError(http(409, { code: 'open_actions', message: 'x' }))).toBe(false);
+  });
+
+  it('explains a coded 403 / 404 but leaves an uncoded 403 to the auth layer', () => {
+    expect(
+      deviationErrorMessage(http(403, { code: 'insufficient_permissions', message: 'x' })),
+    ).toEqual({ message: 'deviations.errors.insufficient_permissions', params: {} });
+    expect(deviationErrorMessage(http(404, { code: 'action_not_found', message: 'x' }))).toEqual({
+      message: 'deviations.errors.action_not_found',
+      params: {},
+    });
+    expect(deviationErrorMessage(http(403, 'Forbidden'))).toBeNull();
   });
 
   it('falls back to the caller key, then the status message, for uncoded errors', () => {
@@ -38,7 +60,6 @@ describe('deviation errors', () => {
     expect(deviationErrorMessage(http(500, null), 'deviations.types.inUseToast')).toEqual({
       message: 'errors.server',
     });
-    expect(deviationErrorMessage(http(403, null))).toBeNull();
   });
 
   it('extracts per-field errors from coded and legacy 422s only', () => {

@@ -20,9 +20,31 @@ export const DEVIATION_ERROR_CODES = [
   'invalid_visibility',
   'invalid_access_level',
   'invalid_subject_type',
+  'deviation_type_not_found',
+  'deviation_not_found',
+  'action_not_found',
+  'grant_not_found',
+  'insufficient_permissions',
 ] as const;
 
 export type DeviationErrorCode = (typeof DEVIATION_ERROR_CODES)[number];
+
+/**
+ * Workflow codes the backend also returns on ordinary saves and action / access
+ * changes (e.g. `deviation_closed` when someone closed the deviation meanwhile).
+ * They reuse the status menu's `deviations.workflow.reasons.<code>` texts.
+ */
+export const WORKFLOW_ERROR_CODES = [
+  'deviation_closed',
+  'invalid_transition',
+  'reason_required',
+  'root_cause_required',
+  'open_actions',
+  'verification_required',
+] as const;
+
+/** Translated generic text for a coded error the UI doesn't know yet. */
+export const UNKNOWN_ERROR_KEY = 'errors.generic';
 
 /** A coded error detail: `code` + params are the contract, `message` an English fallback. */
 export interface CodedErrorDetail {
@@ -73,8 +95,9 @@ export function deviationErrorKey(code: DeviationErrorCode): string {
 
 /**
  * The user-facing message for a coded deviation error: the translated code
- * (with its params), else the backend's own `message`, else null (not a coded
- * error — the caller decides).
+ * (with its params), or the workflow reason. An unknown code gets a translated
+ * generic message: the backend's `message` is English and is never shown.
+ * Null when the error carries no code — the caller decides.
  */
 export function codedErrorMessage(error: unknown): ErrorMessage | null {
   const detail = codedErrorDetail(error);
@@ -84,20 +107,32 @@ export function codedErrorMessage(error: unknown): ErrorMessage | null {
   if (isDeviationErrorCode(detail.code)) {
     return { message: deviationErrorKey(detail.code), params: { ...detail.params } };
   }
-  return detail.message ? { message: detail.message } : null;
+  if ((WORKFLOW_ERROR_CODES as readonly string[]).includes(detail.code)) {
+    return { message: `deviations.workflow.reasons.${detail.code}` };
+  }
+  return { message: UNKNOWN_ERROR_KEY };
+}
+
+/** Whether a failed save was rejected because the deviation is (now) closed. */
+export function isDeviationClosedError(error: unknown): boolean {
+  return codedErrorDetail(error)?.code === 'deviation_closed';
 }
 
 /**
  * A message for any failed deviation request whose generic toast is suppressed
  * (SKIP_ERROR_TOAST): the coded message, else `fallbackKey`, else the neutral
- * status-based message. Null for 401/403, which the auth layer owns.
+ * status-based message. Null for 401 (the auth layer owns it) and an uncoded
+ * 403; a coded 403 (`insufficient_permissions`) is explained.
  */
 export function deviationErrorMessage(error: unknown, fallbackKey?: string): ErrorMessage | null {
   const status = error instanceof HttpErrorResponse ? error.status : -1;
-  if (status === 401 || status === 403) {
+  if (status === 401) {
     return null;
   }
   const coded = codedErrorMessage(error);
+  if (status === 403 && !coded) {
+    return null;
+  }
   if (coded) {
     return coded;
   }

@@ -16,7 +16,10 @@ import {
   AccessSubjectType,
   DeviationVisibility,
 } from '../../../core/deviations/deviation.models';
-import { notifyDeviationError } from '../../../core/deviations/deviation-errors';
+import {
+  isDeviationClosedError,
+  notifyDeviationError,
+} from '../../../core/deviations/deviation-errors';
 import { DeviationsApi } from '../../../core/deviations/deviations-api';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
@@ -273,6 +276,12 @@ export class DeviationAccessEditor {
   readonly ownerChange = output<string>();
   readonly visibilityChange = output<DeviationVisibility>();
   readonly grantsChange = output<readonly AccessGrant[]>();
+  /**
+   * Fires when the server rejected a change because the deviation is now
+   * closed (someone else closed it meanwhile): the host reloads it so the page
+   * switches to its locked state.
+   */
+  readonly stale = output<void>();
 
   protected readonly orgId = this.selectedOrg.currentOrgId;
 
@@ -343,7 +352,7 @@ export class DeviationAccessEditor {
         this.ownerChange.emit(userId);
         this.notifications.success('deviations.access.savedToast');
       },
-      error: (error: unknown) => notifyDeviationError(this.notifications, error),
+      error: (error: unknown) => this.onError(error),
     });
   }
 
@@ -361,7 +370,7 @@ export class DeviationAccessEditor {
         this.visibilityChange.emit(visibility);
         this.notifications.success('deviations.access.savedToast');
       },
-      error: (error: unknown) => notifyDeviationError(this.notifications, error),
+      error: (error: unknown) => this.onError(error),
     });
   }
 
@@ -386,7 +395,7 @@ export class DeviationAccessEditor {
           this.grantsChange.emit([...this.grants(), grant]);
           this.notifications.success('deviations.access.grantAddedToast');
         },
-        error: (error: unknown) => notifyDeviationError(this.notifications, error),
+        error: (error: unknown) => this.onError(error),
       });
   }
 
@@ -402,7 +411,7 @@ export class DeviationAccessEditor {
         this.grantsChange.emit(remaining);
         this.notifications.info('deviations.access.grantRemovedToast');
       },
-      error: (error: unknown) => notifyDeviationError(this.notifications, error),
+      error: (error: unknown) => this.onError(error),
     });
   }
 
@@ -436,5 +445,13 @@ export class DeviationAccessEditor {
         ]);
       },
     });
+  }
+
+  /** Explain a failed change; a now-closed deviation also asks the host to reload. */
+  private onError(error: unknown): void {
+    notifyDeviationError(this.notifications, error);
+    if (isDeviationClosedError(error)) {
+      this.stale.emit();
+    }
   }
 }

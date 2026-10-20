@@ -1009,7 +1009,12 @@
       "subject_not_member": "Den personen er ikke medlem av denne organisasjonen.",
       "invalid_visibility": "Den synlighetsinnstillingen er ikke gyldig.",
       "invalid_access_level": "Det tilgangsnivået er ikke gyldig.",
-      "invalid_subject_type": "Tilgang kan bare gis til en person eller en avdeling."
+      "invalid_subject_type": "Tilgang kan bare gis til en person eller en avdeling.",
+      "deviation_type_not_found": "Denne avvikstypen finnes ikke lenger.",
+      "deviation_not_found": "Dette avviket finnes ikke lenger, eller du har ikke lenger tilgang til det.",
+      "action_not_found": "Dette tiltaket finnes ikke lenger.",
+      "grant_not_found": "Denne tilgangen er allerede fjernet.",
+      "insufficient_permissions": "Du har ikke tillatelse til å gjøre dette."
     }
   },
   "notifications": {

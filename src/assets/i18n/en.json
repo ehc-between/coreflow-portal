@@ -1009,7 +1009,12 @@
       "subject_not_member": "That person is not a member of this organisation.",
       "invalid_visibility": "That visibility setting is not valid.",
       "invalid_access_level": "That access level is not valid.",
-      "invalid_subject_type": "Access can only be given to a person or a department."
+      "invalid_subject_type": "Access can only be given to a person or a department.",
+      "deviation_type_not_found": "This deviation type no longer exists.",
+      "deviation_not_found": "This deviation no longer exists, or you no longer have access to it.",
+      "action_not_found": "This action no longer exists.",
+      "grant_not_found": "This access has already been removed.",
+      "insufficient_permissions": "You don’t have permission to do this."
     }
   },
   "notifications": {

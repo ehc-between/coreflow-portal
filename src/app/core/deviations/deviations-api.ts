@@ -188,7 +188,11 @@ export class DeviationsApi {
   }
 
   addAction(orgId: string, deviationId: string, body: ActionInput): Observable<Action> {
-    return this.api.post<Action>(`v1/orgs/${orgId}/deviations/${deviationId}/actions`, body);
+    return this.api.post<Action>(
+      `v1/orgs/${orgId}/deviations/${deviationId}/actions`,
+      body,
+      IN_PLACE,
+    );
   }
 
   updateAction(
@@ -200,11 +204,15 @@ export class DeviationsApi {
     return this.api.patch<Action>(
       `v1/orgs/${orgId}/deviations/${deviationId}/actions/${actionId}`,
       body,
+      IN_PLACE,
     );
   }
 
   deleteAction(orgId: string, deviationId: string, actionId: string): Observable<void> {
-    return this.api.delete<void>(`v1/orgs/${orgId}/deviations/${deviationId}/actions/${actionId}`);
+    return this.api.delete<void>(
+      `v1/orgs/${orgId}/deviations/${deviationId}/actions/${actionId}`,
+      IN_PLACE,
+    );
   }
 
   // --- Access ----------------------------------------------------------------

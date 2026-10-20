@@ -1,6 +1,7 @@
 import {
   DEVIATION_ERROR_CODES,
   DeviationErrorCode,
+  WORKFLOW_ERROR_CODES,
   deviationErrorKey,
 } from '../../core/deviations/deviation-errors';
 import en from '../../../assets/i18n/en.json';
@@ -68,6 +69,7 @@ const ENUMS: Record<string, { values: readonly string[]; key: (v: string) => str
       'open_actions',
       'verification_required',
       'deviation_closed',
+      'reopen_requires_manage',
       'something_new',
     ],
     key: workflowReasonKey,
@@ -77,6 +79,10 @@ const ENUMS: Record<string, { values: readonly string[]; key: (v: string) => str
   deviationError: {
     values: DEVIATION_ERROR_CODES,
     key: (c) => deviationErrorKey(c as DeviationErrorCode),
+  },
+  workflowError: {
+    values: WORKFLOW_ERROR_CODES,
+    key: (c) => `deviations.workflow.reasons.${c}`,
   },
   eventField: { values: EVENT_FIELD_NAMES, key: (f) => eventFieldKey(f) ?? '' },
 };
