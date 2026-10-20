@@ -8,6 +8,7 @@ import { ConfirmDialog } from './confirm-dialog';
     <button type="button" id="trigger" (click)="open.set(true)">Open</button>
     <app-confirm-dialog
       [open]="open()"
+      [busy]="busy()"
       title="Delete?"
       message="This cannot be undone."
       confirmLabel="Delete"
@@ -21,6 +22,7 @@ import { ConfirmDialog } from './confirm-dialog';
 class Host {
   readonly open = signal(false);
   readonly second = signal(false);
+  readonly busy = signal(false);
   confirmed = 0;
 }
 
@@ -104,6 +106,31 @@ describe('ConfirmDialog', () => {
     cancel.dispatchEvent(back);
     expect(back.defaultPrevented).toBe(true);
     expect(document.activeElement).toBe(confirm);
+  });
+
+  it('refocuses the panel when busy disables the focused button', async () => {
+    const { fixture, root } = await setup();
+    await openFromTrigger(fixture, root);
+    const dialog = root.querySelector<HTMLElement>('[role="alertdialog"]')!;
+
+    // A disabled button drops focus to <body>; simulate that before busy renders.
+    (document.activeElement as HTMLElement).blur();
+    fixture.componentInstance.busy.set(true);
+    await fixture.whenStable();
+    expect(document.activeElement).toBe(dialog);
+  });
+
+  it('leaves focus alone when busy turns on while focus is inside the panel', async () => {
+    const { fixture, root } = await setup();
+    await openFromTrigger(fixture, root);
+    const dialog = root.querySelector<HTMLElement>('[role="alertdialog"]')!;
+    dialog.querySelector<HTMLElement>('h2')!.tabIndex = -1;
+    const heading = dialog.querySelector<HTMLElement>('h2')!;
+    heading.focus();
+
+    fixture.componentInstance.busy.set(true);
+    await fixture.whenStable();
+    expect(document.activeElement).toBe(heading);
   });
 
   it('emits confirmed and cancels on Escape', async () => {

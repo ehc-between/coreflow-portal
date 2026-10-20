@@ -120,6 +120,15 @@ export class ConfirmDialog {
       }
       this.wasOpen = open;
     });
+
+    // While busy the buttons are disabled, so a focused cancel button drops focus
+    // to <body> (escaping the trap). Pull it back onto the panel.
+    afterRenderEffect(() => {
+      const panel = this.panel()?.nativeElement;
+      if (this.open() && this.busy() && panel && !panel.contains(document.activeElement)) {
+        panel.focus();
+      }
+    });
   }
 
   protected trapTab(event: KeyboardEvent): void {
