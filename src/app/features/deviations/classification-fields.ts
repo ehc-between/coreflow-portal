@@ -49,7 +49,7 @@ import { ClauseRow } from './deviation-edit';
             <div class="cf-select w-[160px] flex-none">
               <select
                 [value]="row.standard"
-                [attr.aria-label]="'deviations.create.fields.standards' | transloco"
+                [attr.aria-label]="'deviations.create.clauseStandardLabel' | transloco"
                 (change)="setClauseStandard($index, $any($event.target).value)"
               >
                 @for (option of standardOptions; track option) {
@@ -63,7 +63,7 @@ import { ClauseRow } from './deviation-edit';
               type="text"
               [value]="row.clause"
               (input)="setClauseValue($index, $any($event.target).value)"
-              [attr.aria-label]="'deviations.create.fields.clauses' | transloco"
+              [attr.aria-label]="'deviations.create.clauseLabel' | transloco"
               [placeholder]="'deviations.create.clausePlaceholder' | transloco"
               autocomplete="off"
               class="h-10 flex-1 rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"

@@ -27,6 +27,7 @@ import {
 } from '../../../core/deviations/deviation.models';
 import { codedErrorDetail, notifyDeviationError } from '../../../core/deviations/deviation-errors';
 import { DeviationsApi } from '../../../core/deviations/deviations-api';
+import { LanguageService } from '../../../core/i18n/language.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { Button } from '../../../shared/ui/button/button';
@@ -619,6 +620,7 @@ export class DeviationTypeEditor {
   private readonly api = inject(DeviationsApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly notifications = inject(NotificationService);
+  private readonly language = inject(LanguageService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 
@@ -851,7 +853,7 @@ export class DeviationTypeEditor {
     }
     this.drafting.set(true);
     const standards = this.standards().length ? this.standards() : undefined;
-    this.api.draftType(orgId, prompt, standards).subscribe({
+    this.api.draftType(orgId, prompt, standards, this.language.active()).subscribe({
       next: (draft) => {
         this.drafting.set(false);
         this.applyDraft(draft);

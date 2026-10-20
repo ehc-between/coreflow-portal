@@ -81,17 +81,22 @@ export class DeviationsApi {
   /**
    * Ask the AI to draft a full deviation type from a short description, to
    * populate the editor for review. Not org-prefixed in the path — the org is
-   * passed in the body. 503 if AI isn't configured; 502 on a design failure.
+   * passed in the body. `lang` is the UI language the names, labels, options,
+   * help and section titles should be written in (the type is org data the
+   * portal can't translate later). 503 if AI isn't configured; 502 on a design
+   * failure.
    */
   draftType(
     orgId: string,
     description: string,
     standards?: readonly Standard[],
+    lang?: string,
   ): Observable<DeviationTypeDraftResponse> {
     return this.api.post<DeviationTypeDraftResponse>('v1/ai/deviation-type-draft', {
       org_id: orgId,
       description,
       standards,
+      lang,
     });
   }
 

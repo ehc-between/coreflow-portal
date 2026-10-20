@@ -811,6 +811,8 @@
       "addClause": "Legg til punkt",
       "removeClause": "Fjern punkt",
       "clausePlaceholder": "Punkt (f.eks. 8.7)",
+      "clauseStandardLabel": "Standard for punktet",
+      "clauseLabel": "Punktnummer",
       "tagPlaceholder": "Legg til en etikett og trykk Enter",
       "removeTag": "Fjern etikett",
       "titleRequired": "En tittel er påkrevd.",
