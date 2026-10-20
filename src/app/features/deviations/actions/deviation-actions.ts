@@ -141,7 +141,14 @@ interface OwnerOption {
       } @else {
         <ul class="flex flex-col gap-2.5">
           @for (action of actions(); track action.id) {
-            <li class="rounded-tile border border-border bg-surface p-3.5">
+            <li
+              class="rounded-tile border bg-surface p-3.5"
+              [class.border-border]="!highlighted().includes(action.id)"
+              [class.border-fail]="highlighted().includes(action.id)"
+              [class.ring-2]="highlighted().includes(action.id)"
+              [class.ring-fail-soft]="highlighted().includes(action.id)"
+              [attr.data-blocking]="highlighted().includes(action.id) ? 'true' : null"
+            >
               <div class="flex items-start gap-2.5">
                 <span class="min-w-0 flex-1">
                   <span class="mb-1 flex flex-wrap items-center gap-1.5">
@@ -338,6 +345,8 @@ export class DeviationActions {
   readonly actions = input.required<readonly Action[]>();
   readonly owners = input<readonly OwnerOption[]>([]);
   readonly canEdit = input(false);
+  /** Action ids to highlight (e.g. the ones blocking a status change). */
+  readonly highlighted = input<readonly string[]>([]);
 
   /** Emits the new full actions list whenever one is added / changed / removed. */
   readonly actionsChange = output<readonly Action[]>();

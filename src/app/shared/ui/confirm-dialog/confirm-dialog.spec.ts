@@ -148,3 +148,46 @@ describe('ConfirmDialog', () => {
     expect(fixture.componentInstance.open()).toBe(false);
   });
 });
+
+@Component({
+  imports: [ConfirmDialog],
+  template: `
+    <app-confirm-dialog
+      [open]="true"
+      [confirmDisabled]="!reason()"
+      title="Why?"
+      message="Give a reason"
+      confirmLabel="Go"
+      cancelLabel="Cancel"
+    >
+      <textarea id="projected"></textarea>
+    </app-confirm-dialog>
+  `,
+})
+class ProjectingHost {
+  readonly reason = signal('');
+}
+
+describe('ConfirmDialog content + confirmDisabled', () => {
+  afterEach(() => document.body.replaceChildren());
+
+  it('projects extra controls and disables only the confirm button', async () => {
+    TestBed.configureTestingModule({
+      imports: [ProjectingHost],
+      providers: [provideZonelessChangeDetection()],
+    });
+    const fixture = TestBed.createComponent(ProjectingHost);
+    document.body.appendChild(fixture.nativeElement);
+    await fixture.whenStable();
+    const dialog = (fixture.nativeElement as HTMLElement).querySelector('[role="alertdialog"]')!;
+    expect(dialog.querySelector('#projected')).toBeTruthy();
+
+    const [cancel, confirm] = buttonsIn(dialog);
+    expect(cancel.disabled).toBe(false);
+    expect(confirm.disabled).toBe(true);
+
+    fixture.componentInstance.reason.set('because');
+    await fixture.whenStable();
+    expect(confirm.disabled).toBe(false);
+  });
+});

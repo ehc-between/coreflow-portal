@@ -696,6 +696,7 @@
       "delete": "Delete",
       "changeStatus": "Change status",
       "deleteConfirm": "Delete deviation {{ code }}? This cannot be undone.",
+      "deleteTitle": "Delete deviation?",
       "deletedToast": "Deviation deleted.",
       "savedToast": "Deviation updated.",
       "statusChangedToast": "Status updated.",
@@ -709,6 +710,25 @@
         "due": "Due",
         "closed": "Closed",
         "source": "Source"
+      }
+    },
+    "workflow": {
+      "reasonHint": "Requires a reason",
+      "noTransitions": "No status changes are available from here.",
+      "rejected": "Could not change status to {{ status }}: {{ reason }}",
+      "blockingActions": "Blocking actions",
+      "dismiss": "Dismiss",
+      "reasonTitle": "Change status to {{ status }}",
+      "reasonPrompt": "This change needs a reason. It is recorded in the audit trail.",
+      "reasonLabel": "Reason",
+      "reasonConfirm": "Change status",
+      "reasons": {
+        "invalid_transition": "This status change is not allowed from the current status.",
+        "reason_required": "A reason is required for this status change.",
+        "root_cause_required": "Record a root cause before closing.",
+        "open_actions": "All actions must be done or verified first.",
+        "verification_required": "The effectiveness of the actions must be verified first.",
+        "unknown": "This status change is not allowed right now."
       }
     },
     "actions": {

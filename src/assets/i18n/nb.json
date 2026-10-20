@@ -696,6 +696,7 @@
       "delete": "Slett",
       "changeStatus": "Endre status",
       "deleteConfirm": "Slette avvik {{ code }}? Dette kan ikke angres.",
+      "deleteTitle": "Slette avviket?",
       "deletedToast": "Avvik slettet.",
       "savedToast": "Avvik oppdatert.",
       "statusChangedToast": "Status oppdatert.",
@@ -709,6 +710,25 @@
         "due": "Frist",
         "closed": "Lukket",
         "source": "Kilde"
+      }
+    },
+    "workflow": {
+      "reasonHint": "Krever begrunnelse",
+      "noTransitions": "Ingen statusendringer er tilgjengelige herfra.",
+      "rejected": "Kunne ikke endre status til {{ status }}: {{ reason }}",
+      "blockingActions": "Blokkerende tiltak",
+      "dismiss": "Lukk",
+      "reasonTitle": "Endre status til {{ status }}",
+      "reasonPrompt": "Denne endringen krever en begrunnelse. Den lagres i revisjonssporet.",
+      "reasonLabel": "Begrunnelse",
+      "reasonConfirm": "Endre status",
+      "reasons": {
+        "invalid_transition": "Denne statusendringen er ikke tillatt fra nåværende status.",
+        "reason_required": "Denne statusendringen krever en begrunnelse.",
+        "root_cause_required": "Registrer en rotårsak før avviket lukkes.",
+        "open_actions": "Alle tiltak må være fullført eller verifisert først.",
+        "verification_required": "Effekten av tiltakene må verifiseres først.",
+        "unknown": "Denne statusendringen er ikke tillatt akkurat nå."
       }
     },
     "actions": {
