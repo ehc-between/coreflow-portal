@@ -4,7 +4,7 @@
  */
 
 /** Parent record kinds an attachment can hang off. */
-export type AttachmentEntityType = 'document' | 'deviation' | 'deviation_action';
+export type AttachmentEntityType = 'document' | 'deviation' | 'deviation_action' | 'standard';
 
 export type AttachmentStatus = 'pending' | 'available' | 'deleted';
 

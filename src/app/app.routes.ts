@@ -8,7 +8,14 @@ import { NAV_ITEMS } from './layout/nav';
 
 // Nav items backed by a real feature surface — excluded from the placeholder
 // generation below (they get explicit routes).
-const REAL_MODULE_PATHS = new Set(['dashboard', 'my-work', 'documents', 'review', 'deviations']);
+const REAL_MODULE_PATHS = new Set([
+  'dashboard',
+  'my-work',
+  'documents',
+  'review',
+  'deviations',
+  'standards',
+]);
 
 // Every other nav item resolves to the shared module placeholder, carrying its
 // title + agent context via route data.
@@ -91,6 +98,14 @@ export const routes: Routes = [
         canActivate: [permissionGuard('deviations:read')],
         loadChildren: () => import('./features/deviations/deviations.routes'),
       },
+      {
+        path: 'standards',
+        // Module-level read gate; manage actions are gated inside the pages.
+        canActivate: [permissionGuard('standards:read')],
+        loadChildren: () => import('./features/standards/standards.routes'),
+      },
+      // The module used to live at /iso (placeholder) — keep old links working.
+      { path: 'iso', pathMatch: 'full', redirectTo: 'standards' },
       {
         path: 'admin/organizations',
         canActivate: [authGuard, superAdminGuard],

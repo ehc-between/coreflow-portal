@@ -1007,5 +1007,142 @@
       "deleteFailed": "Couldn’t delete the attachment. Try again.",
       "generic": "Something went wrong with the attachment. Try again."
     }
+  },
+  "standards": {
+    "title": "ISO & Standards",
+    "subtitle": "Track how your management system covers each standard, clause by clause.",
+    "loadError": "Couldn't load your standards. Try again.",
+    "notFound": "This standard wasn't found.",
+    "backToOverview": "All standards",
+    "backToStandard": "Back to standard",
+    "completeness": "Completeness",
+    "edition": "Edition {{edition}}",
+    "counts": {
+      "covered": "{{count}} covered",
+      "partial": "{{count}} partial",
+      "not_started": "{{count}} not started",
+      "not_applicable": "{{count}} not applicable"
+    },
+    "status": {
+      "covered": "Covered",
+      "partial": "Partial",
+      "not_started": "Not started",
+      "not_applicable": "Not applicable"
+    },
+    "filter": {
+      "label": "Filter by status",
+      "all": "All",
+      "gaps": "Gaps"
+    },
+    "themes": {
+      "organizational": "Organizational controls",
+      "people": "People controls",
+      "physical": "Physical controls",
+      "technological": "Technological controls"
+    },
+    "entity": {
+      "document": "Document",
+      "deviation": "Deviation",
+      "deviation_action": "Action",
+      "attachment": "Attachment"
+    },
+    "overview": {
+      "noneEnabled": "No standards enabled yet",
+      "noneEnabledHint": "Enable a standard below to start mapping your documents and deviations to its requirements.",
+      "available": "Available standards",
+      "chapters": "Completeness per chapter",
+      "open": "Open",
+      "enable": "Enable",
+      "disable": "Disable",
+      "toggleError": "Couldn't update the standard. Try again."
+    },
+    "view": {
+      "coveredOf": "{{covered}} of {{total}} requirements covered",
+      "mapWithAi": "Map with AI",
+      "notEnabled": "This standard is not enabled for your organisation, so progress is not tracked.",
+      "searchPlaceholder": "Search clauses and requirements …",
+      "expandAll": "Expand all",
+      "collapseAll": "Collapse all",
+      "expand": "Expand {{number}}",
+      "collapse": "Collapse {{number}}",
+      "noMatches": "No requirements match this filter.",
+      "evidenceCount": "{{count}} linked evidence",
+      "suggestionCount": "{{count}} suggestions to review"
+    },
+    "gaps": {
+      "title": "Gaps",
+      "none": "No gaps — every applicable requirement is covered.",
+      "showAll": "Show all {{count}}",
+      "showLess": "Show fewer"
+    },
+    "job": {
+      "mapping": "Mapping your records to the requirements …",
+      "extracting": "Extracting clause text from your copy …",
+      "mapDone": "Mapping finished: {{count}} new suggestions to review.",
+      "extractDone": "Clause text extracted from your copy.",
+      "failed": "The job failed. Try again later.",
+      "pollFailed": "Couldn't check the job's progress.",
+      "startFailed": "Couldn't start the job. Try again."
+    },
+    "licensed": {
+      "title": "Your licensed copy",
+      "hint": "Upload your organisation's own licensed PDF of the standard to show its clause text next to our explanations. It is only visible inside your organisation.",
+      "extracted": "Clause text available",
+      "extract": "Extract clause text"
+    },
+    "clause": {
+      "control": "Annex control",
+      "explanation": "What this means",
+      "explanationHint": "CoreFlow's own explanation — not the text of the standard.",
+      "licensedText": "Standard text",
+      "licensedBadge": "From your licensed copy",
+      "licensedHint": "Taken from the copy of the standard your organisation uploaded.",
+      "subclauses": "Sub-clauses",
+      "requirements": "Requirements ({{count}})",
+      "noRequirements": "This clause has no requirements of its own.",
+      "notFound": "This clause wasn't found."
+    },
+    "requirement": {
+      "manual": "Set manually",
+      "evidenceExamples": "Typical evidence",
+      "justification": "Justification",
+      "justificationRequired": "Explain why this requirement does not apply.",
+      "note": "Note",
+      "assess": "Assess applicability and status",
+      "applicable": "Applies to our organisation",
+      "manualStatus": "Status",
+      "automatic": "Automatic (from evidence)",
+      "save": "Save",
+      "cancel": "Cancel",
+      "saveError": "Couldn't save. Try again."
+    },
+    "evidence": {
+      "title": "Evidence",
+      "add": "Link evidence",
+      "none": "No evidence linked yet.",
+      "fromAi": "suggested by AI",
+      "confirmedBy": "confirmed by {{name}}",
+      "remove": "Remove {{name}}",
+      "cancel": "Cancel",
+      "searchPlaceholder": "Search by title or code …",
+      "noResults": "No matches.",
+      "error": "Couldn't update the evidence. Try again.",
+      "unavailable": "Unavailable record"
+    },
+    "suggestions": {
+      "title": "Suggestions to review",
+      "confidence": "{{pct}}% confidence",
+      "confirm": "Confirm",
+      "reject": "Reject"
+    },
+    "supports": {
+      "title": "Supports requirements",
+      "add": "Link",
+      "none": "Not linked to any standard requirement.",
+      "noStandards": "No standards are enabled for your organisation.",
+      "searchPlaceholder": "Search requirements by clause or text …",
+      "suggested": "Suggested — review to confirm",
+      "remove": "Remove link to {{ref}}"
+    }
   }
 }
