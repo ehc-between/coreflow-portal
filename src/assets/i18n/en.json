@@ -379,25 +379,47 @@
     "nb": "Norwegian"
   },
   "dashboard": {
-    "welcome": "Welcome to CoreFlow",
-    "subtitle": "Your portal scaffold is ready. Start building features here.",
+    "title": "Dashboard",
+    "subtitle": "Quality overview for {{org}}",
     "agentRole": "Work Planner",
-    "kpi": {
-      "deviations": {
-        "label": "Open deviations",
-        "delta": "-2 this week"
-      },
-      "audits": {
-        "label": "Audits due",
-        "delta": "2 this month"
-      },
-      "passRate": {
-        "label": "Pass rate"
-      },
-      "overdue": {
-        "label": "Overdue tasks",
-        "delta": "needs attention"
-      }
+    "noAccess": "There is nothing on the dashboard for your role in this organization yet.",
+    "noDeviations": "No deviations have been recorded yet.",
+    "loadFailed": "Could not load",
+    "tiles": {
+      "openDeviations": "Open deviations",
+      "overdueDeviations": "Overdue deviations",
+      "openActions": "Open actions",
+      "overdueActions": "Overdue actions",
+      "pendingProposals": "Proposals to review",
+      "documentsInReview": "Documents in review"
+    },
+    "charts": {
+      "bySeverity": "Deviations by severity",
+      "trend": "Deviations opened, last {{months}} months",
+      "allStats": "All statistics"
+    }
+  },
+  "myWork": {
+    "title": "My Work",
+    "subtitle": "What is on your plate in this organization.",
+    "noAccess": "There is nothing assigned to you here for your role yet.",
+    "loadFailed": "Could not load this list. Please try again.",
+    "owned": {
+      "title": "Deviations I own",
+      "empty": "You don’t own any open deviations.",
+      "overdueCount": "{{count}} overdue",
+      "noDueDate": "No due date",
+      "truncated": "Showing the first {{limit}} deviations you own. Use the deviations list to see the rest."
+    },
+    "approvals": {
+      "title": "Awaiting my approval",
+      "empty": "Nothing is waiting for your approval.",
+      "proposal": "Proposal",
+      "document": "In review"
+    },
+    "actions": {
+      "title": "My CAPA actions",
+      "comingSoon": "Coming soon: corrective and preventive actions assigned to you across all deviations will be listed here. Until then, you can find them on each deviation."
     }
   },
   "admin": {

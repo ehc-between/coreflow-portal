@@ -379,25 +379,47 @@
     "nb": "Norsk"
   },
   "dashboard": {
-    "welcome": "Velkommen til CoreFlow",
-    "subtitle": "Portalgrunnlaget er klart. Begynn å bygge funksjoner her.",
+    "title": "Dashbord",
+    "subtitle": "Kvalitetsoversikt for {{org}}",
     "agentRole": "Arbeidsplanlegger",
-    "kpi": {
-      "deviations": {
-        "label": "Åpne avvik",
-        "delta": "-2 denne uken"
-      },
-      "audits": {
-        "label": "Revisjoner forfaller",
-        "delta": "2 denne måneden"
-      },
-      "passRate": {
-        "label": "Godkjentandel"
-      },
-      "overdue": {
-        "label": "Forfalte oppgaver",
-        "delta": "krever oppmerksomhet"
-      }
+    "noAccess": "Det er ingenting på dashbordet for din rolle i denne organisasjonen ennå.",
+    "noDeviations": "Ingen avvik er registrert ennå.",
+    "loadFailed": "Kunne ikke laste",
+    "tiles": {
+      "openDeviations": "Åpne avvik",
+      "overdueDeviations": "Forfalte avvik",
+      "openActions": "Åpne tiltak",
+      "overdueActions": "Forfalte tiltak",
+      "pendingProposals": "Forslag til gjennomgang",
+      "documentsInReview": "Dokumenter til gjennomgang"
+    },
+    "charts": {
+      "bySeverity": "Avvik etter alvorlighetsgrad",
+      "trend": "Avvik opprettet, siste {{months}} måneder",
+      "allStats": "All statistikk"
+    }
+  },
+  "myWork": {
+    "title": "Mitt arbeid",
+    "subtitle": "Det som ligger på ditt bord i denne organisasjonen.",
+    "noAccess": "Det er ingenting tildelt deg her for din rolle ennå.",
+    "loadFailed": "Kunne ikke laste denne listen. Prøv igjen.",
+    "owned": {
+      "title": "Avvik jeg eier",
+      "empty": "Du eier ingen åpne avvik.",
+      "overdueCount": "{{count}} forfalt",
+      "noDueDate": "Ingen frist",
+      "truncated": "Viser de første {{limit}} avvikene du eier. Bruk avvikslisten for å se resten."
+    },
+    "approvals": {
+      "title": "Venter på min godkjenning",
+      "empty": "Ingenting venter på din godkjenning.",
+      "proposal": "Forslag",
+      "document": "Til gjennomgang"
+    },
+    "actions": {
+      "title": "Mine korrigerende tiltak",
+      "comingSoon": "Kommer snart: korrigerende og forebyggende tiltak tildelt deg på tvers av alle avvik vil vises her. Inntil da finner du dem på hvert avvik."
     }
   },
   "admin": {

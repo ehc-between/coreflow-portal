@@ -470,6 +470,7 @@ export class DeviationsList {
     const owner = params.get('owner_user_id');
     const clause = params.get('clause');
     const tag = params.get('tag');
+    const sort = params.get('sort');
     if (status) {
       this.status.set(status as DeviationStatus);
     }
@@ -496,6 +497,9 @@ export class DeviationsList {
     }
     if (tag) {
       this.tag.set(tag);
+    }
+    if (sort && this.sortOptions.some((option) => option.value === sort)) {
+      this.sort.set(sort);
     }
   }
 
