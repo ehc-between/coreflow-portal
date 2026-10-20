@@ -1185,7 +1185,8 @@
       "loadFailed": "Couldn’t load attachments.",
       "downloadFailed": "Couldn’t download the file. Try again.",
       "deleteFailed": "Couldn’t delete the attachment. Try again.",
-      "generic": "Something went wrong with the attachment. Try again."
+      "generic": "Something went wrong with the attachment. Try again.",
+      "deviationClosed": "This deviation is closed. Reopen it to change its attachments."
     }
   },
   "standards": {

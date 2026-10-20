@@ -1,6 +1,7 @@
 import { HttpContext, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, concat, defer, from, map, of, switchMap, throwError } from 'rxjs';
+import { errorCodeOf } from '../documents/document-errors';
 import { SKIP_ERROR_TOAST } from '../http/error.interceptor';
 import { ApiService } from '../http/api.service';
 import {
@@ -35,6 +36,8 @@ export class AttachmentUploadError extends Error {
     readonly status: number,
     /** The pending attachment + upload URL, once created — lets a retry skip create. */
     readonly created: CreateAttachmentResponse | null = null,
+    /** The backend's machine-readable error code (e.g. `deviation_closed`), if any. */
+    readonly code: string | null = null,
   ) {
     super(`Attachment upload failed at ${phase} (${status})`);
     this.name = 'AttachmentUploadError';
@@ -137,7 +140,9 @@ export class AttachmentsApi {
               sha256,
             }).pipe(
               catchError((e: unknown) =>
-                throwError(() => new AttachmentUploadError('create', statusOf(e))),
+                throwError(
+                  () => new AttachmentUploadError('create', statusOf(e), null, errorCodeOf(e)),
+                ),
               ),
             );
 
@@ -164,7 +169,9 @@ export class AttachmentsApi {
     const complete$ = this.complete(orgId, created.attachment.id).pipe(
       map((attachment): UploadEvent => ({ kind: 'done', attachment })),
       catchError((e: unknown) =>
-        throwError(() => new AttachmentUploadError('complete', statusOf(e), created)),
+        throwError(
+          () => new AttachmentUploadError('complete', statusOf(e), created, errorCodeOf(e)),
+        ),
       ),
     );
     return concat(

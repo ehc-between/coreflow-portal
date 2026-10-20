@@ -1185,7 +1185,8 @@
       "loadFailed": "Kunne ikke laste inn vedlegg.",
       "downloadFailed": "Kunne ikke laste ned filen. Prøv igjen.",
       "deleteFailed": "Kunne ikke slette vedlegget. Prøv igjen.",
-      "generic": "Noe gikk galt med vedlegget. Prøv igjen."
+      "generic": "Noe gikk galt med vedlegget. Prøv igjen.",
+      "deviationClosed": "Avviket er lukket. Gjenåpne det for å endre vedleggene."
     }
   },
   "standards": {

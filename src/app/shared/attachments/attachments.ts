@@ -21,7 +21,13 @@ import {
   AttachmentEntityType,
   CreateAttachmentResponse,
 } from '../../core/attachments/attachment.models';
-import { formatBytes, preCheckFile, uploadErrorKey } from '../../core/attachments/attachment-utils';
+import {
+  attachmentCodeKey,
+  formatBytes,
+  preCheckFile,
+  uploadErrorKey,
+} from '../../core/attachments/attachment-utils';
+import { errorCodeOf } from '../../core/documents/document-errors';
 import { AttachmentUploadError, AttachmentsApi } from '../../core/attachments/attachments-api';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { Icon } from '../ui/icon/icon';
@@ -510,7 +516,8 @@ export class Attachments {
         this.deletingId.set(null);
         const status = err instanceof HttpErrorResponse ? err.status : 0;
         this.actionErrorKey.set(
-          status === 403 ? 'attachments.errors.forbidden' : 'attachments.errors.deleteFailed',
+          attachmentCodeKey(errorCodeOf(err)) ??
+            (status === 403 ? 'attachments.errors.forbidden' : 'attachments.errors.deleteFailed'),
         );
       },
     });
@@ -611,11 +618,14 @@ export class Attachments {
       return;
     }
     const created = err instanceof AttachmentUploadError ? err.created : null;
+    const code = err instanceof AttachmentUploadError ? err.code : null;
     this.patch(key, {
       state: 'error',
-      errorKey: uploadErrorKey(phase, status),
-      // Size / type / permission refusals won't change on retry.
-      retryable: !(phase === 'create' && (status === 403 || status === 413 || status === 415)),
+      errorKey: uploadErrorKey(phase, status, code),
+      // Size / type / permission refusals (and a closed deviation) won't change on retry.
+      retryable:
+        attachmentCodeKey(code) === null &&
+        !(phase === 'create' && (status === 403 || status === 413 || status === 415)),
       created: created ?? this.uploads().find((u) => u.key === key)?.created ?? null,
     });
   }

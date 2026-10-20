@@ -79,6 +79,16 @@ describe('attachment utils', () => {
     expect(uploadErrorKey('hash', 0)).toBe('attachments.errors.readFailed');
   });
 
+  it('uploadErrorKey prefers a known backend code over the status', () => {
+    expect(uploadErrorKey('create', 409, 'deviation_closed')).toBe(
+      'attachments.errors.deviationClosed',
+    );
+    expect(uploadErrorKey('complete', 409, 'deviation_closed')).toBe(
+      'attachments.errors.deviationClosed',
+    );
+    expect(uploadErrorKey('create', 409, 'something_else')).toBe('attachments.errors.notUploaded');
+  });
+
   it('formatBytes renders human-readable sizes', () => {
     expect(formatBytes(512)).toBe('512 B');
     expect(formatBytes(1536)).toBe('1.5 KB');
