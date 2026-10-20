@@ -144,3 +144,17 @@ describe('reviewState calendar dates', () => {
     ).toBe('due');
   });
 });
+
+describe('reviewState never-approved documents', () => {
+  it('ignores a detail without an approved revision', () => {
+    expect(
+      reviewState({ status: 'draft', current_revision: null, next_review_at: '2026-10-01' }, NOW),
+    ).toBeNull();
+  });
+
+  it('counts only approved list rows unless the backend flags overdue', () => {
+    expect(reviewState({ status: 'draft', next_review_at: '2026-10-01' }, NOW)).toBeNull();
+    expect(reviewState({ status: 'approved', next_review_at: '2026-10-01' }, NOW)).toBe('overdue');
+    expect(reviewState({ status: 'in_review', review_overdue: true }, NOW)).toBe('overdue');
+  });
+});

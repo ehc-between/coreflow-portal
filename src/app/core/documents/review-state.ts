@@ -11,6 +11,20 @@ export interface Reviewable {
   readonly status: string;
   readonly next_review_at?: string | null;
   readonly review_overdue?: boolean;
+  /** Detail only: the last approved revision (null until the first approval). */
+  readonly current_revision?: unknown;
+}
+
+/**
+ * Whether the document has an approved revision; periodic review only applies
+ * then (as on the backend). List rows carry no approved-revision marker
+ * (drafters see the working letter), so only `approved` rows count as known.
+ */
+function hasApprovedRevision(doc: Reviewable): boolean {
+  if ('current_revision' in doc) {
+    return !!doc.current_revision;
+  }
+  return doc.status === 'approved';
 }
 
 /**
@@ -35,7 +49,7 @@ function today(now: Date): number {
  * `review_overdue` it decides overdue; otherwise a review is overdue only when
  * `next_review_at` is strictly before today's local date. "Due" is a heads-up
  * for reviews within {@link REVIEW_DUE_SOON_DAYS} days (today included).
- * Obsolete documents are never flagged.
+ * Obsolete and never-approved documents are never flagged.
  */
 export function reviewState(doc: Reviewable, now: Date = new Date()): ReviewState {
   if (doc.status === 'obsolete') {
@@ -43,6 +57,9 @@ export function reviewState(doc: Reviewable, now: Date = new Date()): ReviewStat
   }
   if (doc.review_overdue === true) {
     return 'overdue';
+  }
+  if (!hasApprovedRevision(doc)) {
+    return null;
   }
   const due = doc.next_review_at ? dayNumber(doc.next_review_at) : null;
   if (due === null) {

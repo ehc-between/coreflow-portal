@@ -1048,7 +1048,16 @@
     "documentChangesRequestedNoActor": "Changes were requested to {{doc_code}} Rev {{rev}}: {{title}}",
     "documentReviewDueToday": "Document {{doc_code}} is due for periodic review today: {{title}}",
     "documentReviewDueTomorrow": "Document {{doc_code}} is due for periodic review tomorrow: {{title}}",
-    "documentReviewOverdueOne": "Periodic review of document {{doc_code}} is 1 day overdue (due {{due_date}}): {{title}}"
+    "documentReviewOverdueOne": "Periodic review of document {{doc_code}} is 1 day overdue (due {{due_date}}): {{title}}",
+    "documentSubmittedNoCode": "{{actor_name}} submitted Rev {{rev}} of {{title}} for review",
+    "documentSubmittedNoActorNoCode": "Rev {{rev}} of {{title}} was submitted for review",
+    "documentChangesRequestedNoCode": "{{actor_name}} requested changes to Rev {{rev}} of {{title}}",
+    "documentChangesRequestedNoActorNoCode": "Changes were requested to Rev {{rev}} of {{title}}",
+    "documentReviewDueNoCode": "Document {{title}} is due for periodic review in {{days}} days ({{due_date}})",
+    "documentReviewDueTodayNoCode": "Document {{title}} is due for periodic review today",
+    "documentReviewDueTomorrowNoCode": "Document {{title}} is due for periodic review tomorrow",
+    "documentReviewOverdueNoCode": "Periodic review of document {{title}} is {{days}} days overdue (due {{due_date}})",
+    "documentReviewOverdueOneNoCode": "Periodic review of document {{title}} is 1 day overdue (due {{due_date}})"
   },
   "roles": {
     "admin": {

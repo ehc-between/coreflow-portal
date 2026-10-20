@@ -1048,7 +1048,16 @@
     "documentChangesRequestedNoActor": "Det er bedt om endringer i {{doc_code}} Rev {{rev}}: {{title}}",
     "documentReviewDueToday": "Dokument {{doc_code}} skal gjennomgås i dag: {{title}}",
     "documentReviewDueTomorrow": "Dokument {{doc_code}} skal gjennomgås i morgen: {{title}}",
-    "documentReviewOverdueOne": "Gjennomgangen av dokument {{doc_code}} har passert fristen med 1 dag ({{due_date}}): {{title}}"
+    "documentReviewOverdueOne": "Gjennomgangen av dokument {{doc_code}} har passert fristen med 1 dag ({{due_date}}): {{title}}",
+    "documentSubmittedNoCode": "{{actor_name}} har sendt Rev {{rev}} av {{title}} til godkjenning",
+    "documentSubmittedNoActorNoCode": "Rev {{rev}} av {{title}} er sendt til godkjenning",
+    "documentChangesRequestedNoCode": "{{actor_name}} har bedt om endringer i Rev {{rev}} av {{title}}",
+    "documentChangesRequestedNoActorNoCode": "Det er bedt om endringer i Rev {{rev}} av {{title}}",
+    "documentReviewDueNoCode": "Dokumentet {{title}} skal gjennomgås om {{days}} dager ({{due_date}})",
+    "documentReviewDueTodayNoCode": "Dokumentet {{title}} skal gjennomgås i dag",
+    "documentReviewDueTomorrowNoCode": "Dokumentet {{title}} skal gjennomgås i morgen",
+    "documentReviewOverdueNoCode": "Gjennomgangen av dokumentet {{title}} har passert fristen med {{days}} dager ({{due_date}})",
+    "documentReviewOverdueOneNoCode": "Gjennomgangen av dokumentet {{title}} har passert fristen med 1 dag ({{due_date}})"
   },
   "roles": {
     "admin": {

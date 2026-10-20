@@ -10,7 +10,7 @@ import {
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { Subject, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
+import { Subject, Subscription, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
 import { HasPermissionDirective } from '../../core/auth/has-permission.directive';
 import {
   DocumentSearchResult,
@@ -213,6 +213,8 @@ export class DocumentsList {
   protected readonly searching = signal(false);
 
   private readonly search$ = new Subject<{ orgId: string; q: string }>();
+  /** The in-flight list request; a new load cancels it so a stale page never wins. */
+  private listRequest: Subscription | null = null;
 
   constructor() {
     this.search$
@@ -300,8 +302,9 @@ export class DocumentsList {
   }
 
   private loadList(orgId: string): void {
+    this.listRequest?.unsubscribe();
     this.loading.set(true);
-    this.api
+    this.listRequest = this.api
       .listPage(orgId, {
         status: this.status() || undefined,
         review_due: this.reviewDue() || undefined,
