@@ -31,6 +31,7 @@ import { Badge } from '../../shared/ui/badge/badge';
 import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
 import { Attachments } from '../../shared/attachments/attachments';
+import { SupportsRequirements } from '../../shared/requirement-links/supports-requirements';
 import { Icon } from '../../shared/ui/icon/icon';
 import { DocumentAccessEditor } from './access/document-access-editor';
 import { DocumentComments } from './comments/document-comments';
@@ -81,6 +82,7 @@ import { DocumentWorkflowActions } from './workflow/document-workflow-actions';
     DocumentAcknowledge,
     DocumentAcknowledgementList,
     DocumentDeleteAction,
+    SupportsRequirements,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { '(document:click)': 'closeDownload()' },
@@ -323,6 +325,10 @@ import { DocumentWorkflowActions } from './workflow/document-workflow-actions';
 
             <app-card>
               <app-attachments entityType="document" [entityId]="doc.id" [canEdit]="canEdit()" />
+            </app-card>
+
+            <app-card *appHasPermission="'standards:read'">
+              <app-supports-requirements entityType="document" [entityId]="doc.id" />
             </app-card>
 
             @if (access(); as acc) {

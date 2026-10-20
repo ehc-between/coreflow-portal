@@ -39,6 +39,7 @@ import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog/confirm-dialog';
 import { Attachments } from '../../shared/attachments/attachments';
+import { SupportsRequirements } from '../../shared/requirement-links/supports-requirements';
 import { Icon } from '../../shared/ui/icon/icon';
 import { DeviationAccessEditor } from './access/deviation-access-editor';
 import { DeviationActions } from './actions/deviation-actions';
@@ -109,6 +110,7 @@ type StatusRejection = WorkflowError & {
     Attachments,
     Alert,
     ConfirmDialog,
+    SupportsRequirements,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -633,6 +635,14 @@ type StatusRejection = WorkflowError & {
               <p class="px-4 pb-3.5 text-[13.5px] text-fg">
                 {{ dev.owner_name || ('deviations.access.unassigned' | transloco) }}
               </p>
+            </app-card>
+
+            <app-card *appHasPermission="'standards:read'">
+              <app-supports-requirements
+                entityType="deviation"
+                [entityId]="dev.id"
+                [actions]="actions()"
+              />
             </app-card>
 
             <app-card [padded]="false">
