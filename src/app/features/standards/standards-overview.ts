@@ -141,15 +141,20 @@ import { ProgressRing } from '../../shared/ui/progress-ring/progress-ring';
                   >
                     @for (bar of list; track bar.number) {
                       <li>
-                        <div class="mb-1 flex items-center gap-2 text-[12.5px]">
+                        <a
+                          [routerLink]="['/standards', std.key, bar.number]"
+                          class="group mb-1 flex items-center gap-2 text-[12.5px]"
+                        >
                           <span class="w-9 flex-none font-mono text-fg-subtle">{{
                             bar.number
                           }}</span>
-                          <span class="min-w-0 flex-1 truncate text-fg" [title]="bar.title">{{
-                            bar.title
-                          }}</span>
+                          <span
+                            class="min-w-0 flex-1 truncate text-fg group-hover:text-accent"
+                            [title]="bar.title"
+                            >{{ bar.title }}</span
+                          >
                           <span class="flex-none font-semibold text-fg-muted">{{ bar.pct }}%</span>
-                        </div>
+                        </a>
                         <app-progress-bar
                           [value]="bar.pct"
                           [color]="pctColor(bar.pct)"

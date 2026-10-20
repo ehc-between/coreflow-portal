@@ -156,7 +156,7 @@ interface LinkGroup {
                     /></span>
                   }
                   <a
-                    [routerLink]="['/standards', link.standard_key, 'clauses', link.clause_number]"
+                    [routerLink]="['/standards', link.standard_key, link.clause_number]"
                     [queryParams]="{ req: link.requirement_ref }"
                     class="min-w-0 flex-1 truncate text-[12.5px] font-medium text-fg hover:text-accent hover:underline"
                     [title]="link.requirement_ref"

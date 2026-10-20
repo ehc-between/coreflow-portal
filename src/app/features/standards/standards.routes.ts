@@ -1,9 +1,27 @@
-import { Routes } from '@angular/router';
+import { inject } from '@angular/core';
+import { RedirectFunction, Router, Routes } from '@angular/router';
+import { workspaceMatcher } from './workspace/workspace-data';
+
+/**
+ * Old clause pages (`/standards/:key/clauses/:number?req=…`) now live inside
+ * the workspace: redirect to that section, keeping `?req=` so the requirement
+ * is still scrolled to and highlighted.
+ */
+export const legacyClauseRedirect: RedirectFunction = ({ params, queryParams }) =>
+  inject(Router).createUrlTree(
+    ['/standards', params['key'], ...(params['number'] ? [params['number']] : [])],
+    { queryParams },
+  );
 
 /**
  * ISO & standards feature routes (lazy-loaded from app.routes, scoped to the
  * current org). The whole module is gated on `standards:read` upstream; manage
  * actions inside the pages are gated on `standards:manage`.
+ *
+ * - `''` — the overview (entry point).
+ * - `:key` and `:key/:number` — the document workspace, one route config so
+ *   moving between sections reuses the component.
+ * - `:key/clauses[/:number]` — legacy, redirects into the workspace.
  */
 const routes: Routes = [
   {
@@ -11,12 +29,17 @@ const routes: Routes = [
     loadComponent: () => import('./standards-overview').then((m) => m.StandardsOverview),
   },
   {
-    path: ':key',
-    loadComponent: () => import('./standard-view').then((m) => m.StandardView),
+    path: ':key/clauses/:number',
+    redirectTo: legacyClauseRedirect,
   },
   {
-    path: ':key/clauses/:number',
-    loadComponent: () => import('./clause-detail').then((m) => m.ClauseDetailPage),
+    // The old clause list without a number: the top of the workspace.
+    path: ':key/clauses',
+    redirectTo: legacyClauseRedirect,
+  },
+  {
+    matcher: workspaceMatcher,
+    loadComponent: () => import('./workspace/standard-workspace').then((m) => m.StandardWorkspace),
   },
 ];
 
