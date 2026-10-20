@@ -25,7 +25,7 @@ import {
   actionStatusTone,
   effectivenessLabelKey,
   effectivenessTone,
-  isOverdue,
+  isActionOverdue,
 } from '../deviation-enums';
 
 /** An org user pickable as an action owner. */
@@ -368,7 +368,7 @@ export class DeviationActions {
   protected readonly notesDraft = signal('');
 
   protected overdue(action: Action): boolean {
-    return isOverdue(action.due_at, action.status);
+    return isActionOverdue(action.due_at, action.status);
   }
 
   protected startAdd(): void {
