@@ -65,6 +65,21 @@ describe('DocumentsApi document control', () => {
     }
   });
 
+  it('deletes a document, sending a trimmed reason only when given', () => {
+    api.delete(ORG, DOC, '  Duplicate of QM-2  ').subscribe();
+    const withReason = http.expectOne(`${URL}/${DOC}`);
+    expect(withReason.request.method).toBe('DELETE');
+    expect(withReason.request.body).toEqual({ reason: 'Duplicate of QM-2' });
+    expect(withReason.request.context.get(SKIP_ERROR_TOAST)).toBe(true);
+    withReason.flush(null, { status: 204, statusText: 'No Content' });
+
+    api.delete(ORG, DOC).subscribe();
+    const withoutReason = http.expectOne(`${URL}/${DOC}`);
+    expect(withoutReason.request.method).toBe('DELETE');
+    expect(withoutReason.request.body).toBeNull();
+    withoutReason.flush(null, { status: 204, statusText: 'No Content' });
+  });
+
   it('sends a trimmed change reason with a new revision, and omits a blank one', () => {
     api.addRevision(ORG, DOC, '<p>x</p>', '  Updated scope  ').subscribe();
     const withReason = http.expectOne(`${URL}/${DOC}/revisions`);

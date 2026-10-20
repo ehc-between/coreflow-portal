@@ -152,6 +152,19 @@ export class DocumentsApi {
     return this.workflow(orgId, documentId, 'obsolete', { reason });
   }
 
+  /**
+   * Delete a document (204). A trimmed `reason` is sent when given — required
+   * for an obsolete document (422 `reason_required`); 409
+   * `has_approved_revision` when it must be made obsolete first.
+   */
+  delete(orgId: string, documentId: string, reason?: string | null): Observable<void> {
+    const trimmed = reason?.trim();
+    return this.api.delete<void>(`v1/orgs/${orgId}/documents/${documentId}`, {
+      ...IN_PLACE,
+      body: trimmed ? { reason: trimmed } : undefined,
+    });
+  }
+
   /** Record that the caller has read and understood the current approved revision. */
   acknowledge(orgId: string, documentId: string): Observable<DocumentDetail> {
     return this.workflow(orgId, documentId, 'acknowledge', null);

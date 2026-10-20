@@ -292,6 +292,24 @@
       },
       "obsoleteNotice": "Dokumentet er utgått"
     },
+    "delete": {
+      "title": "Slett dokument",
+      "action": "Slett",
+      "hint": "Fjerner dokumentet og revisjonshistorikken permanent.",
+      "hintObsolete": "Fjerner dette utgåtte dokumentet permanent. Du blir bedt om en begrunnelse, som lagres i revisjonsloggen.",
+      "blockedHint": "Godkjente dokumenter kan ikke slettes. Gjør dokumentet utgått først, og slett det deretter.",
+      "confirmTitle": "Slette {{code}}?",
+      "confirmBody": "Dokumentet og revisjonshistorikken fjernes. Dette kan ikke angres.",
+      "reasonBody": "Dokumentet og revisjonshistorikken fjernes. Dette kan ikke angres. Begrunnelsen lagres i revisjonsloggen.",
+      "reasonLabel": "Begrunnelse for sletting",
+      "reasonPlaceholder": "Hvorfor slettes dokumentet?",
+      "deletedToast": "Dokumentet er slettet.",
+      "errors": {
+        "hasApprovedRevision": "Dokumentet har en godkjent revisjon. Gjør det utgått før du sletter det.",
+        "reasonRequired": "Legg inn en begrunnelse før du sletter et utgått dokument.",
+        "notFound": "Dokumentet finnes ikke lenger."
+      }
+    },
     "review": {
       "title": "Periodisk gjennomgang",
       "overdue": "Gjennomgang forfalt",

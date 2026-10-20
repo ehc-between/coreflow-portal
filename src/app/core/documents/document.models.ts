@@ -125,6 +125,10 @@ export interface DocumentDetail {
   readonly pending_change_request?: PendingChangeRequest | null;
   /** Why the document was made obsolete (set with status `obsolete`). */
   readonly obsolete_reason?: string | null;
+  /** Whether the caller may delete this document now (their rights and its state). */
+  readonly can_delete?: boolean;
+  /** Deleting needs a recorded reason (an obsolete document). */
+  readonly delete_requires_reason?: boolean;
 }
 
 /** Who may see a document: open to the whole org, or restricted to named subjects. */

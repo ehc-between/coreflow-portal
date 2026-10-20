@@ -292,6 +292,24 @@
       },
       "obsoleteNotice": "This document is obsolete"
     },
+    "delete": {
+      "title": "Delete document",
+      "action": "Delete",
+      "hint": "Permanently removes this document and its revision history.",
+      "hintObsolete": "Permanently removes this obsolete document. You'll be asked for a reason, which is recorded in the audit log.",
+      "blockedHint": "Approved documents can't be deleted. Make the document obsolete first, then delete it.",
+      "confirmTitle": "Delete {{code}}?",
+      "confirmBody": "The document and its revision history are removed. This can't be undone.",
+      "reasonBody": "The document and its revision history are removed. This can't be undone. The reason is recorded in the audit log.",
+      "reasonLabel": "Reason for deletion",
+      "reasonPlaceholder": "Why is this document being deleted?",
+      "deletedToast": "Document deleted.",
+      "errors": {
+        "hasApprovedRevision": "This document has an approved revision. Make it obsolete before deleting it.",
+        "reasonRequired": "Add a reason before deleting an obsolete document.",
+        "notFound": "This document no longer exists."
+      }
+    },
     "review": {
       "title": "Periodic review",
       "overdue": "Review overdue",

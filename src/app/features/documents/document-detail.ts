@@ -36,6 +36,7 @@ import { DocumentAccessEditor } from './access/document-access-editor';
 import { DocumentComments } from './comments/document-comments';
 import { statusLabelKey, statusTone } from './document-status';
 import { DocumentAcknowledge } from './workflow/document-acknowledge';
+import { DocumentDeleteAction } from './workflow/document-delete-action';
 import { DocumentAcknowledgementList } from './workflow/document-acknowledgement-list';
 import { reviewLabelKey, reviewState, reviewTone } from './workflow/document-review';
 import { DocumentReviewPanel } from './workflow/document-review-panel';
@@ -56,7 +57,9 @@ import { DocumentWorkflowActions } from './workflow/document-workflow-actions';
  * see {@link DocumentWorkflowActions}). Readers see the last approved revision;
  * drafters can switch between it and the working draft. Periodic review and
  * read-and-understood acknowledgement live in the sidebar / under the body.
- * Navigates back to the list on org switch.
+ * Delete (when the backend reports `can_delete`) lives at the foot of the
+ * sidebar — see {@link DocumentDeleteAction}. Navigates back to the list on
+ * org switch.
  */
 @Component({
   selector: 'app-document-detail',
@@ -77,6 +80,7 @@ import { DocumentWorkflowActions } from './workflow/document-workflow-actions';
     DocumentReviewPanel,
     DocumentAcknowledge,
     DocumentAcknowledgementList,
+    DocumentDeleteAction,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { '(document:click)': 'closeDownload()' },
@@ -355,6 +359,13 @@ import { DocumentWorkflowActions } from './workflow/document-workflow-actions';
                 (revisionApplied)="reload()"
               />
             }
+
+            <app-document-delete-action
+              [document]="doc"
+              [canManage]="canManage()"
+              (deleted)="onDeleted()"
+              (reloadRequested)="reload()"
+            />
           </div>
         </div>
       } @else {
@@ -570,6 +581,11 @@ export class DocumentDetail {
 
   protected backToCurrent(): void {
     this.viewedRevision.set(null);
+  }
+
+  /** The document is gone: back to the list (the delete action showed the toast). */
+  protected onDeleted(): void {
+    void this.router.navigateByUrl('/documents');
   }
 
   /** Re-fetch the document after a comment approval published a new revision. */

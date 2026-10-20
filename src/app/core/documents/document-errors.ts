@@ -8,7 +8,8 @@ export type DocumentWorkflowAction =
   | 'obsolete'
   | 'saveRevision'
   | 'acknowledge'
-  | 'updateControl';
+  | 'updateControl'
+  | 'delete';
 
 /**
  * The machine-readable error code in a backend error body. Accepts the
@@ -46,6 +47,8 @@ const CODE_KEYS: Readonly<Record<string, string>> = {
   change_reason_required: 'documents.workflow.errors.changeReasonRequired',
   obsolete: 'documents.workflow.errors.obsolete',
   no_approved_revision: 'documents.workflow.errors.noApprovedRevision',
+  has_approved_revision: 'documents.delete.errors.hasApprovedRevision',
+  reason_required: 'documents.delete.errors.reasonRequired',
 };
 
 /**
@@ -71,6 +74,17 @@ export function documentErrorKey(error: unknown, action: DocumentWorkflowAction)
   }
   if (status === 403) {
     return 'documents.workflow.errors.forbidden';
+  }
+  if (action === 'delete') {
+    if (status === 409) {
+      return 'documents.delete.errors.hasApprovedRevision';
+    }
+    if (status === 422) {
+      return 'documents.delete.errors.reasonRequired';
+    }
+    if (status === 404) {
+      return 'documents.delete.errors.notFound';
+    }
   }
   if (status === 409) {
     // A conflict without a known code: the document moved on under us.
