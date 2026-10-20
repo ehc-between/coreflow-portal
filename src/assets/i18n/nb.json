@@ -321,6 +321,7 @@
     "menu": {
       "label": "Kontomeny",
       "changePassword": "Endre passord",
+      "notificationSettings": "Varslingsinnstillinger",
       "logoutAll": "Logg ut av alle enheter",
       "logoutAllFailed": "Kunne ikke logge ut av alle enheter. Prøv igjen."
     },
@@ -789,6 +790,46 @@
       "trend": {
         "title": "Opprettet over tid"
       }
+    }
+  },
+  "notifications": {
+    "deviationAssigned": "{{actor_name}} har tildelt deg avvik {{code}}: {{title}}",
+    "deviationAssignedNoActor": "Du har fått tildelt avvik {{code}}: {{title}}",
+    "actionAssigned": "{{actor_name}} har tildelt deg et tiltak på {{deviation_code}}: {{description}}",
+    "actionAssignedNoActor": "Du har fått tildelt et tiltak på {{deviation_code}}: {{description}}",
+    "deviationDueSoon": "Avvik {{code}} har frist om {{days}} dager: {{title}}",
+    "deviationDueSoonToday": "Avvik {{code}} har frist i dag: {{title}}",
+    "deviationDueSoonTomorrow": "Avvik {{code}} har frist i morgen: {{title}}",
+    "deviationOverdue": "Avvik {{code}} har passert fristen med {{days}} dager: {{title}}",
+    "deviationOverdueOne": "Avvik {{code}} har passert fristen med 1 dag: {{title}}",
+    "actionDueSoon": "Et tiltak på {{deviation_code}} har frist om {{days}} dager: {{description}}",
+    "actionDueSoonToday": "Et tiltak på {{deviation_code}} har frist i dag: {{description}}",
+    "actionDueSoonTomorrow": "Et tiltak på {{deviation_code}} har frist i morgen: {{description}}",
+    "actionOverdue": "Et tiltak på {{deviation_code}} har passert fristen med {{days}} dager: {{description}}",
+    "actionOverdueOne": "Et tiltak på {{deviation_code}} har passert fristen med 1 dag: {{description}}",
+    "fallback": "Du har et nytt varsel.",
+    "bellUnread": "Varsler, {{count}} uleste",
+    "panel": {
+      "title": "Varsler",
+      "markAllRead": "Merk alle som lest",
+      "markAllFailed": "Kunne ikke merke varslene som lest. Prøv igjen.",
+      "loading": "Laster …",
+      "error": "Kunne ikke laste varsler.",
+      "retry": "Prøv igjen",
+      "empty": "Du har ingen nye varsler.",
+      "loadMore": "Last inn flere",
+      "unread": "Ulest",
+      "settings": "Varslingsinnstillinger"
+    },
+    "preferences": {
+      "title": "Varslingsinnstillinger",
+      "subtitle": "Velg hvilke organisasjoner som skal sende deg en daglig e-postoppsummering av varslene dine.",
+      "emailDigest": "Daglig e-postoppsummering",
+      "emailDigestHint": "Oppsummeringen inneholder nye tildelinger og frister fra siste døgn. Du ser fortsatt alle varsler i appen.",
+      "empty": "Du er ikke medlem av noen organisasjoner ennå.",
+      "loadError": "Kunne ikke laste varslingsinnstillingene. Prøv igjen senere.",
+      "saved": "Varslingsinnstillingene er lagret.",
+      "saveFailed": "Kunne ikke lagre varslingsinnstillingene. Prøv igjen."
     }
   }
 }
