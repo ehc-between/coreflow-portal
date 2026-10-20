@@ -1,6 +1,12 @@
 import { Routes } from '@angular/router';
+import { permissionGuard } from '../../core/auth/permission.guard';
 
-/** Deviations feature routes (lazy-loaded from app.routes, scoped to the current org). */
+/**
+ * Deviations feature routes (lazy-loaded from app.routes, scoped to the current
+ * org). The whole module (list, stats, detail) is gated on `deviations:read`
+ * upstream; filing needs `deviations:write` and type administration
+ * `deviations:admin`. A denied user is sent back to the list.
+ */
 const routes: Routes = [
   {
     path: '',
@@ -8,6 +14,7 @@ const routes: Routes = [
   },
   {
     path: 'new',
+    canActivate: [permissionGuard('deviations:write', { redirectTo: '/deviations' })],
     loadComponent: () => import('./deviation-new').then((m) => m.DeviationNew),
   },
   {
@@ -15,15 +22,22 @@ const routes: Routes = [
     loadComponent: () => import('./stats/deviation-stats').then((m) => m.DeviationStatsPage),
   },
   {
+    path: 'actions',
+    loadComponent: () => import('./actions/actions-list').then((m) => m.ActionsList),
+  },
+  {
     path: 'types',
+    canActivate: [permissionGuard('deviations:admin', { redirectTo: '/deviations' })],
     loadComponent: () => import('./types/deviation-types-list').then((m) => m.DeviationTypesList),
   },
   {
     path: 'types/new',
+    canActivate: [permissionGuard('deviations:admin', { redirectTo: '/deviations' })],
     loadComponent: () => import('./types/deviation-type-editor').then((m) => m.DeviationTypeEditor),
   },
   {
     path: 'types/:id',
+    canActivate: [permissionGuard('deviations:admin', { redirectTo: '/deviations' })],
     loadComponent: () => import('./types/deviation-type-editor').then((m) => m.DeviationTypeEditor),
   },
   {

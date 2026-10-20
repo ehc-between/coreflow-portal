@@ -1,23 +1,22 @@
 import { ChangeDetectionStrategy, Component, HostListener, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { AuthService } from '../../core/auth/auth.service';
-import { NotificationService } from '../../core/notifications/notification.service';
 import { ThemeService } from '../../core/theme/theme.service';
 import { AskPanelService } from '../../features/ask/ask-panel.service';
 import { CommandPaletteService } from '../../features/command-palette/command-palette.service';
 import { LanguageSwitcher } from '../../shared/language-switcher/language-switcher';
-import { Avatar } from '../../shared/ui/avatar/avatar';
 import { Icon } from '../../shared/ui/icon/icon';
+import { AccountMenu } from '../account-menu/account-menu';
+import { NotificationBell } from '../notification-bell/notification-bell';
 
 /**
  * Application top bar (58px): brand, ⌘K search button that opens the command
  * palette, theme toggle, language switcher, notifications bell, a spark button
- * that opens the Ask CoreFlow chat, and the current user's avatar.
+ * that opens the Ask CoreFlow chat, and the current user's account menu.
  */
 @Component({
   selector: 'app-top-bar',
-  imports: [RouterLink, TranslocoPipe, Icon, Avatar, LanguageSwitcher],
+  imports: [RouterLink, TranslocoPipe, Icon, LanguageSwitcher, AccountMenu, NotificationBell],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <header
@@ -81,17 +80,7 @@ import { Icon } from '../../shared/ui/icon/icon';
 
         <app-language-switcher />
 
-        <button
-          type="button"
-          (click)="comingSoon()"
-          [attr.aria-label]="'topbar.notifications' | transloco"
-          class="relative flex h-9 w-9 items-center justify-center rounded-[9px] border border-transparent bg-transparent text-fg-muted hover:bg-surface-2 hover:text-fg"
-        >
-          <app-icon name="bell" [size]="18" />
-          <span
-            class="absolute top-1.5 right-1.5 h-[7px] w-[7px] rounded-full border-[1.5px] border-surface bg-fail"
-          ></span>
-        </button>
+        <app-notification-bell />
 
         <button
           type="button"
@@ -103,19 +92,15 @@ import { Icon } from '../../shared/ui/icon/icon';
           <app-icon name="spark" [size]="18" />
         </button>
 
-        <span class="ml-1">
-          <app-avatar [name]="auth.displayName()" size="md" />
-        </span>
+        <app-account-menu />
       </div>
     </header>
   `,
 })
 export class TopBar {
-  protected readonly auth = inject(AuthService);
   protected readonly theme = inject(ThemeService);
   protected readonly ask = inject(AskPanelService);
   protected readonly palette = inject(CommandPaletteService);
-  private readonly notifications = inject(NotificationService);
 
   @HostListener('document:keydown', ['$event'])
   protected onKeydown(event: KeyboardEvent): void {
@@ -123,9 +108,5 @@ export class TopBar {
       event.preventDefault();
       this.palette.toggle();
     }
-  }
-
-  protected comingSoon(): void {
-    this.notifications.info('topbar.comingSoon');
   }
 }

@@ -283,7 +283,8 @@
       "confirmDelete": "Slette avdelingen «{{name}}»?",
       "createdToast": "Avdeling opprettet.",
       "renamedToast": "Avdeling fikk nytt navn.",
-      "deletedToast": "Avdeling slettet."
+      "deletedToast": "Avdeling slettet.",
+      "deleteTitle": "Slett avdeling"
     },
     "member": {
       "title": "Medlemmer",
@@ -298,6 +299,68 @@
       "addedToast": "Medlem lagt til.",
       "removedToast": "Medlem fjernet.",
       "addFailed": "Kunne ikke legge til medlemmet. Prøv igjen."
+    },
+    "members": {
+      "title": "Medlemmer",
+      "subtitle": "Personer med tilgang til organisasjonen, rollen deres og kontostatus.",
+      "name": "Navn",
+      "email": "E-post",
+      "role": "Rolle",
+      "status": "Status",
+      "actions": "Handlinger",
+      "active": "Aktiv",
+      "inactive": "Deaktivert",
+      "you": "(deg)",
+      "selfHint": "Du kan ikke endre din egen rolle eller fjerne deg selv.",
+      "changeRoleFor": "Endre rolle for {{name}}",
+      "remove": "Fjern",
+      "removeTitle": "Fjern medlem",
+      "removeConfirm": "Fjerne {{name}} fra organisasjonen? Kontoen og innholdet vedkommende har laget, beholdes.",
+      "removedToast": "{{name}} ble fjernet fra organisasjonen.",
+      "roleChangedToast": "Rollen til {{name}} er oppdatert.",
+      "roleChangeHint": "Rolleendringer trer i kraft neste gang medlemmets økt fornyes (innen 15 minutter).",
+      "empty": "Ingen medlemmer ennå.",
+      "aboutRoles": "Om rollene",
+      "multipleRoles": "Flere roller"
+    },
+    "invitations": {
+      "title": "Invitasjoner",
+      "subtitle": "Inviter personer på e-post og hold oversikt over invitasjoner som ikke er godtatt ennå.",
+      "pending": "Ventende invitasjoner",
+      "empty": "Ingen ventende invitasjoner.",
+      "email": "E-post",
+      "role": "Rolle",
+      "expires": "Utløper",
+      "invite": "Inviter bruker",
+      "send": "Send invitasjon",
+      "emailNote": "En e-post sendes automatisk når e-postlevering er konfigurert.",
+      "linkTitle": "Invitasjonslenke",
+      "linkHint": "Del denne lenken med {{email}} slik at vedkommende kan godta invitasjonen.",
+      "linkOnceNote": "Invitasjonslenker kan bare kopieres rett etter at de er opprettet. Trekk tilbake invitasjonen og send den på nytt for å få en ny lenke.",
+      "copy": "Kopier",
+      "copyLink": "Kopier lenke",
+      "copiedToast": "Lenken er kopiert.",
+      "copyFailed": "Kunne ikke kopiere lenken. Merk den og kopier den manuelt.",
+      "createdToast": "Invitasjon sendt til {{email}}.",
+      "revoke": "Trekk tilbake",
+      "revokeTitle": "Trekk tilbake invitasjon",
+      "revokeConfirm": "Trekke tilbake invitasjonen til {{email}}? Lenken slutter å virke.",
+      "revokedToast": "Invitasjonen er trukket tilbake.",
+      "noGrantable": "Du har ikke tilgang til å invitere med noen rolle.",
+      "expired": "Utløpt"
+    },
+    "errors": {
+      "invitePending": "Det finnes allerede en ventende invitasjon for denne e-postadressen.",
+      "alreadyMember": "Denne personen er allerede medlem av organisasjonen.",
+      "unknownRole": "Rollen er ikke tilgjengelig. Last inn siden på nytt og prøv igjen.",
+      "escalation": "Du kan ikke gi eller endre en rolle med tilganger du ikke har selv.",
+      "selfChange": "Du kan ikke endre din egen rolle.",
+      "notMember": "Denne personen er ikke lenger medlem av organisasjonen. Listen er oppdatert.",
+      "lastManager": "Organisasjonen må ha minst én aktiv administrator. Gjør noen andre til administrator først.",
+      "invitationNotFound": "Invitasjonen finnes ikke lenger. Listen er oppdatert.",
+      "forbidden": "Du har ikke tilgang til å gjøre dette.",
+      "selfDeactivate": "Du kan ikke deaktivere din egen konto.",
+      "userNotFound": "Brukeren finnes ikke lenger."
     }
   },
   "auth": {
@@ -313,7 +376,60 @@
       "signingIn": "Logger inn …"
     },
     "error": {
-      "invalidCredentials": "Feil e-post eller passord."
+      "invalidCredentials": "Feil e-post eller passord.",
+      "tooManyAttempts": "For mange innloggingsforsøk. Vent litt og prøv igjen.",
+      "tooManyAttemptsSeconds": "For mange innloggingsforsøk. Prøv igjen om {{seconds}} sek.",
+      "tooManyAttemptsMinutes": "For mange innloggingsforsøk. Prøv igjen om {{minutes}} min."
+    },
+    "menu": {
+      "label": "Kontomeny",
+      "changePassword": "Endre passord",
+      "notificationSettings": "Varslingsinnstillinger",
+      "logoutAll": "Logg ut av alle enheter",
+      "logoutAllFailed": "Kunne ikke logge ut av alle enheter. Prøv igjen."
+    },
+    "notice": {
+      "passwordReset": "Passordet ditt er tilbakestilt. Logg inn med det nye passordet.",
+      "signedOutAll": "Du er logget ut av alle enheter."
+    },
+    "password": {
+      "new": "Nytt passord",
+      "confirm": "Bekreft nytt passord",
+      "policy": "Bruk minst 12 tegn. Passordet kan ikke være e-postadressen din eller et vanlig passord.",
+      "tooShort": "Bruk minst {{min}} tegn.",
+      "mismatch": "Passordene er ikke like.",
+      "weak": "Passordet er ikke sterkt nok. Bruk minst 12 tegn, og unngå e-postadressen din og vanlige passord."
+    },
+    "changePassword": {
+      "title": "Endre passord",
+      "subtitle": "Andre enheter blir logget ut. Du forblir innlogget her.",
+      "current": "Nåværende passord",
+      "submit": "Endre passord",
+      "saving": "Lagrer …",
+      "success": "Passordet ditt er endret.",
+      "wrongCurrent": "Det nåværende passordet er feil."
+    },
+    "forgot": {
+      "link": "Glemt passordet?",
+      "title": "Tilbakestill passordet",
+      "subtitle": "Skriv inn e-postadressen din, så sender vi deg en lenke for å velge et nytt passord.",
+      "submit": "Send lenke",
+      "sending": "Sender …",
+      "sentTitle": "Sjekk e-posten din",
+      "sentBody": "Hvis det finnes en konto for {{email}}, har vi sendt en e-post med en lenke for å tilbakestille passordet.",
+      "backToLogin": "Tilbake til innlogging",
+      "tooManyRequests": "For mange forespørsler om tilbakestilling. Vent litt og prøv igjen.",
+      "tooManyRequestsSeconds": "For mange forespørsler om tilbakestilling. Prøv igjen om {{seconds}} sek.",
+      "tooManyRequestsMinutes": "For mange forespørsler om tilbakestilling. Prøv igjen om {{minutes}} min."
+    },
+    "reset": {
+      "title": "Velg et nytt passord",
+      "subtitle": "Skriv inn et nytt passord for kontoen din.",
+      "submit": "Lagre nytt passord",
+      "saving": "Lagrer …",
+      "invalidTitle": "Lenken er ikke tilgjengelig",
+      "invalidBody": "Denne lenken for å tilbakestille passordet er ugyldig eller utløpt.",
+      "requestNew": "Be om en ny lenke"
     }
   },
   "login": {
@@ -326,34 +442,55 @@
     "nb": "Norsk"
   },
   "dashboard": {
-    "welcome": "Velkommen til CoreFlow",
-    "subtitle": "Portalgrunnlaget er klart. Begynn å bygge funksjoner her.",
+    "title": "Dashbord",
+    "subtitle": "Kvalitetsoversikt for {{org}}",
     "agentRole": "Arbeidsplanlegger",
-    "kpi": {
-      "deviations": {
-        "label": "Åpne avvik",
-        "delta": "-2 denne uken"
-      },
-      "audits": {
-        "label": "Revisjoner forfaller",
-        "delta": "2 denne måneden"
-      },
-      "passRate": {
-        "label": "Godkjentandel"
-      },
-      "overdue": {
-        "label": "Forfalte oppgaver",
-        "delta": "krever oppmerksomhet"
-      }
+    "noAccess": "Det er ingenting på dashbordet for din rolle i denne organisasjonen ennå.",
+    "noDeviations": "Ingen avvik er registrert ennå.",
+    "loadFailed": "Kunne ikke laste",
+    "tiles": {
+      "openDeviations": "Åpne avvik",
+      "overdueDeviations": "Forfalte avvik",
+      "openActions": "Åpne tiltak",
+      "overdueActions": "Forfalte tiltak",
+      "pendingProposals": "Forslag til gjennomgang",
+      "documentsInReview": "Dokumenter til gjennomgang"
+    },
+    "charts": {
+      "bySeverity": "Avvik etter alvorlighetsgrad",
+      "trend": "Avvik opprettet, siste {{months}} måneder",
+      "allStats": "All statistikk"
+    }
+  },
+  "myWork": {
+    "title": "Mitt arbeid",
+    "subtitle": "Det som ligger på ditt bord i denne organisasjonen.",
+    "noAccess": "Det er ingenting tildelt deg her for din rolle ennå.",
+    "loadFailed": "Kunne ikke laste denne listen. Prøv igjen.",
+    "owned": {
+      "title": "Avvik jeg eier",
+      "empty": "Du eier ingen åpne avvik.",
+      "overdueCount": "{{count}} forfalt",
+      "noDueDate": "Ingen frist",
+      "truncated": "Viser de {{limit}} med nærmest frist av dine aktive avvik.",
+      "viewAll": "Vis alle"
+    },
+    "approvals": {
+      "title": "Venter på min godkjenning",
+      "empty": "Ingenting venter på din godkjenning.",
+      "proposal": "Forslag",
+      "document": "Til gjennomgang"
+    },
+    "actions": {
+      "title": "Mine korrigerende tiltak",
+      "empty": "Du har ingen åpne tiltak.",
+      "truncated": "Viser de {{shown}} med nærmest frist av dine {{total}} åpne tiltak.",
+      "viewAll": "Vis alle"
     }
   },
   "admin": {
     "copy": "Kopier",
     "copiedToast": "Kopiert",
-    "role": {
-      "admin": "Administrator",
-      "member": "Medlem"
-    },
     "org": {
       "title": "Organisasjoner",
       "subtitle": "Opprett og administrer organisasjoner på tvers av plattformen.",
@@ -374,7 +511,9 @@
       "email": "E-post",
       "name": "Fullt navn",
       "roles": "Roller",
-      "empty": "Ingen medlemmer ennå."
+      "empty": "Ingen medlemmer ennå.",
+      "status": "Status",
+      "actions": "Handlinger"
     },
     "invite": {
       "title": "Inviter bruker",
@@ -390,6 +529,19 @@
       "linkHint": "Del denne lenken slik at brukeren kan godta invitasjonen.",
       "createdToast": "Invitasjon opprettet.",
       "revokedToast": "Invitasjon trukket tilbake."
+    },
+    "users": {
+      "active": "Aktiv",
+      "inactive": "Deaktivert",
+      "deactivate": "Deaktiver",
+      "reactivate": "Aktiver igjen",
+      "deactivateTitle": "Deaktiver bruker",
+      "reactivateTitle": "Aktiver bruker igjen",
+      "deactivateConfirm": "Deaktivere {{name}}? Vedkommende logges ut og kan ikke lenger logge inn i noen organisasjon. Medlemskapene beholdes.",
+      "reactivateConfirm": "Aktivere {{name}} igjen? Vedkommende kan logge inn igjen med de eksisterende medlemskapene.",
+      "deactivatedToast": "{{name}} er deaktivert.",
+      "reactivatedToast": "{{name}} er aktivert igjen.",
+      "cancel": "Avbryt"
     }
   },
   "invite": {
@@ -418,7 +570,8 @@
     "network": "Får ikke kontakt med serveren. Sjekk tilkoblingen og prøv igjen.",
     "server": "Noe gikk galt hos oss. Prøv igjen om litt.",
     "notFound": "Vi fant ikke det du lette etter.",
-    "generic": "Noe gikk galt. Prøv igjen."
+    "generic": "Noe gikk galt. Prøv igjen.",
+    "forbidden": "Du har ikke tilgang til den siden."
   },
   "deviations": {
     "title": "Avvik",
@@ -479,7 +632,11 @@
       "allSources": "Alle kilder",
       "allOwners": "Alle eiere",
       "allDepartments": "Alle avdelinger",
-      "clear": "Tøm filtre"
+      "clear": "Tøm filtre",
+      "scope": "Aktive / forfalte",
+      "allScopes": "Åpne og lukkede",
+      "scopeActive": "Kun aktive",
+      "scopeOverdue": "Kun forfalte"
     },
     "sort": {
       "newest": "Nyeste først",
@@ -736,6 +893,119 @@
       "trend": {
         "title": "Opprettet over tid"
       }
+    },
+    "actionsList": {
+      "link": "Tiltak",
+      "title": "Korrigerende og forebyggende tiltak",
+      "subtitle": "Åpne tiltak på tvers av alle avvik du har tilgang til, med nærmest frist først.",
+      "scope": "Hvilke tiltak",
+      "scopeOpen": "Alle åpne tiltak",
+      "scopeOverdue": "Kun forfalte",
+      "ownerMe": "Tildelt meg",
+      "empty": "Ingen tiltak samsvarer med disse filtrene."
+    }
+  },
+  "notifications": {
+    "deviationAssigned": "{{actor_name}} har tildelt deg avvik {{code}}: {{title}}",
+    "deviationAssignedNoActor": "Du har fått tildelt avvik {{code}}: {{title}}",
+    "actionAssigned": "{{actor_name}} har tildelt deg et tiltak på {{deviation_code}}: {{description}}",
+    "actionAssignedNoActor": "Du har fått tildelt et tiltak på {{deviation_code}}: {{description}}",
+    "deviationDueSoon": "Avvik {{code}} har frist om {{days}} dager: {{title}}",
+    "deviationDueSoonToday": "Avvik {{code}} har frist i dag: {{title}}",
+    "deviationDueSoonTomorrow": "Avvik {{code}} har frist i morgen: {{title}}",
+    "deviationOverdue": "Avvik {{code}} har passert fristen med {{days}} dager: {{title}}",
+    "deviationOverdueOne": "Avvik {{code}} har passert fristen med 1 dag: {{title}}",
+    "actionDueSoon": "Et tiltak på {{deviation_code}} har frist om {{days}} dager: {{description}}",
+    "actionDueSoonToday": "Et tiltak på {{deviation_code}} har frist i dag: {{description}}",
+    "actionDueSoonTomorrow": "Et tiltak på {{deviation_code}} har frist i morgen: {{description}}",
+    "actionOverdue": "Et tiltak på {{deviation_code}} har passert fristen med {{days}} dager: {{description}}",
+    "actionOverdueOne": "Et tiltak på {{deviation_code}} har passert fristen med 1 dag: {{description}}",
+    "fallback": "Du har et nytt varsel.",
+    "bellUnread": "Varsler, {{count}} uleste",
+    "panel": {
+      "title": "Varsler",
+      "markAllRead": "Merk alle som lest",
+      "markAllFailed": "Kunne ikke merke varslene som lest. Prøv igjen.",
+      "loading": "Laster …",
+      "error": "Kunne ikke laste varsler.",
+      "retry": "Prøv igjen",
+      "empty": "Du har ingen nye varsler.",
+      "loadMore": "Last inn flere",
+      "unread": "Ulest",
+      "settings": "Varslingsinnstillinger"
+    },
+    "preferences": {
+      "title": "Varslingsinnstillinger",
+      "subtitle": "Velg hvilke organisasjoner som skal sende deg en daglig e-postoppsummering av varslene dine.",
+      "emailDigest": "Daglig e-postoppsummering",
+      "emailDigestHint": "Oppsummeringen inneholder nye tildelinger og frister fra siste døgn. Du ser fortsatt alle varsler i appen.",
+      "empty": "Du er ikke medlem av noen organisasjoner ennå.",
+      "loadError": "Kunne ikke laste varslingsinnstillingene. Prøv igjen senere.",
+      "saved": "Varslingsinnstillingene er lagret.",
+      "saveFailed": "Kunne ikke lagre varslingsinnstillingene. Prøv igjen."
+    }
+  },
+  "roles": {
+    "admin": {
+      "name": "Administrator",
+      "description": "Full tilgang, inkludert organisasjonsinnstillinger, medlemmer og invitasjoner."
+    },
+    "quality_manager": {
+      "name": "Kvalitetsleder",
+      "description": "Drifter styringssystemet: dokumenter, godkjenninger, avvik og avvikstyper; kan invitere brukere og lese revisjonsloggen."
+    },
+    "auditor": {
+      "name": "Revisor",
+      "description": "Lesetilgang og tilgang til revisjonsloggen; kan registrere revisjonsfunn som avvik."
+    },
+    "dpo": {
+      "name": "Personvernombud",
+      "description": "Personvernombud (DPO): håndterer personverndokumenter og avvik."
+    },
+    "ciso": {
+      "name": "Informasjonssikkerhetsansvarlig",
+      "description": "Informasjonssikkerhetsansvarlig (CISO): håndterer sikkerhetsdokumenter og avvik."
+    },
+    "member": {
+      "name": "Medlem",
+      "description": "Daglig tilgang: lese dokumenter, og melde og følge opp avvik."
+    }
+  },
+  "attachments": {
+    "title": "Vedlegg",
+    "empty": "Ingen vedlegg ennå.",
+    "attach": "Legg ved fil",
+    "dropHint": "Slipp filer her eller klikk for å velge",
+    "download": "Last ned",
+    "delete": "Slett",
+    "deleteNamed": "Slett {{name}}",
+    "confirmDelete": "Slette «{{name}}»? Den vil ikke lenger være tilgjengelig som dokumentasjon.",
+    "cancel": "Avbryt",
+    "cancelUpload": "Avbryt opplasting",
+    "retry": "Prøv igjen",
+    "dismiss": "Lukk",
+    "unavailable": "Filvedlegg er ikke satt opp på denne serveren.",
+    "state": {
+      "hashing": "Klargjør…",
+      "uploading": "Laster opp…",
+      "completing": "Kontrollerer…",
+      "error": "Mislyktes"
+    },
+    "errors": {
+      "empty": "Filen er tom.",
+      "tooLarge": "Filen er større enn tillatt.",
+      "typeNotAllowed": "Denne filtypen er ikke tillatt.",
+      "invalid": "Filen kunne ikke godtas. Sjekk navnet og prøv igjen.",
+      "notUploaded": "Opplastingen ble ikke fullført. Prøv igjen.",
+      "verifyFailed": "Den opplastede filen kunne ikke kontrolleres. Prøv igjen.",
+      "uploadFailed": "Opplastingen mislyktes. Sjekk tilkoblingen og prøv igjen.",
+      "readFailed": "Filen kunne ikke leses.",
+      "forbidden": "Du har ikke tilgang til å endre vedlegg her.",
+      "notFound": "Vedlegget finnes ikke lenger.",
+      "loadFailed": "Kunne ikke laste inn vedlegg.",
+      "downloadFailed": "Kunne ikke laste ned filen. Prøv igjen.",
+      "deleteFailed": "Kunne ikke slette vedlegget. Prøv igjen.",
+      "generic": "Noe gikk galt med vedlegget. Prøv igjen."
     }
   }
 }

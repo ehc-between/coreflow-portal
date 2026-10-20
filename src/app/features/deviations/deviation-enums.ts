@@ -196,3 +196,17 @@ export function actionStatusLabelKey(status: string): string {
 export function effectivenessLabelKey(effectiveness: string): string {
   return `deviations.actions.effectiveness.${effectiveness}`;
 }
+
+/** Action statuses that still need work (the backend's "open actions"). */
+const OPEN_ACTION_STATUSES: ReadonlySet<string> = new Set(['open', 'in_progress']);
+
+/**
+ * True when an action is still open / in progress and past its due date —
+ * the same rule as the backend's `overdue=true` filter and stats.
+ */
+export function isActionOverdue(dueAt: string | undefined | null, status: string): boolean {
+  if (!dueAt || !OPEN_ACTION_STATUSES.has(status)) {
+    return false;
+  }
+  return new Date(dueAt).getTime() < Date.now();
+}

@@ -6,7 +6,9 @@ import {
   AccessGrantInput,
   AccessSubjects,
   Action,
+  ActionFilters,
   ActionInput,
+  ActionListResponse,
   CreateDeviationRequest,
   DeviationAccess,
   DeviationDetail,
@@ -97,6 +99,8 @@ export class DeviationsApi {
         due_before: filters.due_before,
         due_after: filters.due_after,
         q: filters.q,
+        active: filters.active || undefined,
+        overdue: filters.overdue || undefined,
         sort: filters.sort,
         limit: filters.limit,
         offset: filters.offset,
@@ -125,6 +129,25 @@ export class DeviationsApi {
   }
 
   // --- Actions ---------------------------------------------------------------
+
+  /**
+   * CAPA actions across every deviation the caller may view (`deviations:read`).
+   * Defaults to open + in-progress actions, soonest due first.
+   */
+  listActions(orgId: string, filters: ActionFilters = {}): Observable<ActionListResponse> {
+    return this.api.get<ActionListResponse>(`v1/orgs/${orgId}/actions`, {
+      params: {
+        owner_user_id: filters.owner_user_id,
+        status: filters.status,
+        overdue: filters.overdue || undefined,
+        due_before: filters.due_before,
+        due_after: filters.due_after,
+        sort: filters.sort,
+        limit: filters.limit,
+        offset: filters.offset,
+      },
+    });
+  }
 
   addAction(orgId: string, deviationId: string, body: ActionInput): Observable<Action> {
     return this.api.post<Action>(`v1/orgs/${orgId}/deviations/${deviationId}/actions`, body);

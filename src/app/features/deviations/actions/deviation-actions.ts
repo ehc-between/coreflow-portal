@@ -14,6 +14,7 @@ import { NotificationService } from '../../../core/notifications/notification.se
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
+import { Attachments } from '../../../shared/attachments/attachments';
 import { Icon } from '../../../shared/ui/icon/icon';
 import {
   ACTION_KIND_OPTIONS,
@@ -24,7 +25,7 @@ import {
   actionStatusTone,
   effectivenessLabelKey,
   effectivenessTone,
-  isOverdue,
+  isActionOverdue,
 } from '../deviation-enums';
 
 /** An org user pickable as an action owner. */
@@ -44,7 +45,7 @@ interface OwnerOption {
  */
 @Component({
   selector: 'app-deviation-actions',
-  imports: [DatePipe, FormsModule, TranslocoPipe, Badge, Button, Icon],
+  imports: [DatePipe, FormsModule, TranslocoPipe, Badge, Button, Icon, Attachments],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div>
@@ -203,6 +204,13 @@ interface OwnerOption {
                 </p>
               }
 
+              <app-attachments
+                entityType="deviation_action"
+                [entityId]="action.id"
+                [canEdit]="canEdit()"
+                [compact]="true"
+              />
+
               @if (canEdit()) {
                 <div class="mt-3 flex flex-wrap items-end gap-3 border-t border-border pt-3">
                   <div class="flex flex-col gap-1">
@@ -360,7 +368,7 @@ export class DeviationActions {
   protected readonly notesDraft = signal('');
 
   protected overdue(action: Action): boolean {
-    return isOverdue(action.due_at, action.status);
+    return isActionOverdue(action.due_at, action.status);
   }
 
   protected startAdd(): void {

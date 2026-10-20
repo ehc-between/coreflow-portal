@@ -1,128 +1,87 @@
-<div class="relative flex min-h-screen items-center justify-center bg-bg px-4 text-fg">
-  <div class="absolute top-4 right-4 flex items-center gap-1.5">
-    <button
-      type="button"
-      (click)="theme.toggle()"
-      [attr.aria-label]="'theme.toggle' | transloco"
-      class="flex h-9 w-9 items-center justify-center rounded-[9px] border border-transparent bg-transparent text-fg-muted hover:bg-surface-2 hover:text-fg"
-    >
-      <app-icon [name]="theme.theme() === 'dark' ? 'sun' : 'moon'" [size]="18" />
-    </button>
-    <app-language-switcher />
-  </div>
+<app-auth-shell>
+  @switch (state()) {
+    @case ('loading') {
+      <p class="py-6 text-center text-[14px] text-fg-muted">
+        {{ 'common.loading' | transloco }}
+      </p>
+    }
 
-  <div class="w-full max-w-sm">
-    <div class="mb-6 flex items-center gap-2.5">
-      <span
-        class="flex h-[34px] w-[34px] items-center justify-center rounded-[10px] bg-[linear-gradient(135deg,var(--accent),var(--accent-2))] text-white shadow-[0_3px_10px_rgba(90,75,230,0.4)]"
+    @case ('invalid') {
+      <h1 class="font-display text-[22px] font-bold tracking-[-0.02em] text-fg">
+        {{ 'invite.invalid.title' | transloco }}
+      </h1>
+      <p class="mt-1 text-[13.5px] text-fg-muted">
+        {{ 'invite.invalid.body' | transloco }}
+      </p>
+      <a
+        routerLink="/login"
+        class="mt-5 inline-flex items-center gap-1.5 text-[13.5px] font-semibold text-accent hover:underline"
       >
-        <app-icon name="spark" [size]="20" />
-      </span>
-      <span class="font-display text-[22px] font-bold tracking-[-0.02em]">CoreFlow</span>
-    </div>
+        {{ 'invite.toLogin' | transloco }}
+        <app-icon name="arrow" [size]="15" />
+      </a>
+    }
 
-    <app-card>
-      <div class="p-2">
-        @switch (state()) {
-          @case ('loading') {
-            <p class="py-6 text-center text-[14px] text-fg-muted">
-              {{ 'common.loading' | transloco }}
-            </p>
-          }
+    @case ('existing-user') {
+      <h1 class="font-display text-[22px] font-bold tracking-[-0.02em] text-fg">
+        {{ 'invite.accept' | transloco }}
+      </h1>
+      @if (preview(); as preview) {
+        <p class="mt-1 text-[13.5px] text-fg-muted">
+          {{ 'invite.existing.body' | transloco: { org: preview.org_name } }}
+        </p>
+      }
+      <a
+        routerLink="/login"
+        class="mt-5 inline-block w-full rounded-tile bg-accent px-5 py-2.5 text-center text-[15px] font-semibold text-white hover:bg-accent-2"
+      >
+        {{ 'auth.action.signIn' | transloco }}
+      </a>
+    }
 
-          @case ('invalid') {
-            <h1 class="font-display text-[22px] font-bold tracking-[-0.02em] text-fg">
-              {{ 'invite.invalid.title' | transloco }}
-            </h1>
-            <p class="mt-1 text-[13.5px] text-fg-muted">
-              {{ 'invite.invalid.body' | transloco }}
-            </p>
-            <a
-              routerLink="/login"
-              class="mt-5 inline-flex items-center gap-1.5 text-[13.5px] font-semibold text-accent hover:underline"
-            >
-              {{ 'invite.toLogin' | transloco }}
-              <app-icon name="arrow" [size]="15" />
-            </a>
-          }
+    @case ('new-user') {
+      <h1 class="font-display text-[22px] font-bold tracking-[-0.02em] text-fg">
+        {{ 'invite.accept' | transloco }}
+      </h1>
+      @if (preview(); as preview) {
+        <p class="mt-1 text-[13.5px] text-fg-muted">
+          {{ 'invite.new.body' | transloco: { org: preview.org_name } }}
+        </p>
+        <div class="mt-4 rounded-tile border border-border bg-surface-2 px-3 py-2.5 text-[13px]">
+          <div class="text-fg">{{ preview.email }}</div>
+          <div class="mt-0.5 text-fg-subtle">
+            {{ 'invite.roleLabel' | transloco }}:
+            {{ 'roles.' + preview.role_key + '.name' | transloco }}
+          </div>
+        </div>
+      }
 
-          @case ('existing-user') {
-            <h1 class="font-display text-[22px] font-bold tracking-[-0.02em] text-fg">
-              {{ 'invite.accept' | transloco }}
-            </h1>
-            @if (preview(); as preview) {
-              <p class="mt-1 text-[13.5px] text-fg-muted">
-                {{ 'invite.existing.body' | transloco: { org: preview.org_name } }}
-              </p>
-            }
-            <a
-              routerLink="/login"
-              class="mt-5 inline-block w-full rounded-tile bg-accent px-5 py-2.5 text-center text-[15px] font-semibold text-white hover:bg-accent-2"
-            >
-              {{ 'auth.action.signIn' | transloco }}
-            </a>
-          }
+      <form class="mt-5 flex flex-col gap-4" [formGroup]="form" (ngSubmit)="acceptNewUser()">
+        <app-form-field inputId="invite-name" [label]="'invite.fullName' | transloco">
+          <input id="invite-name" type="text" formControlName="full_name" autocomplete="name" />
+        </app-form-field>
 
-          @case ('new-user') {
-            <h1 class="font-display text-[22px] font-bold tracking-[-0.02em] text-fg">
-              {{ 'invite.accept' | transloco }}
-            </h1>
-            @if (preview(); as preview) {
-              <p class="mt-1 text-[13.5px] text-fg-muted">
-                {{ 'invite.new.body' | transloco: { org: preview.org_name } }}
-              </p>
-              <div
-                class="mt-4 rounded-tile border border-border bg-surface-2 px-3 py-2.5 text-[13px]"
-              >
-                <div class="text-fg">{{ preview.email }}</div>
-                <div class="mt-0.5 text-fg-subtle">
-                  {{ 'invite.roleLabel' | transloco }}:
-                  {{ 'admin.role.' + preview.role_key | transloco }}
-                </div>
-              </div>
-            }
+        <app-form-field inputId="invite-password" [label]="'invite.password' | transloco">
+          <input
+            id="invite-password"
+            type="password"
+            formControlName="password"
+            autocomplete="new-password"
+            aria-describedby="invite-password-hint"
+          />
+        </app-form-field>
+        <p id="invite-password-hint" class="-mt-2 text-[12.5px] text-fg-subtle">
+          {{ 'auth.password.policy' | transloco }}
+        </p>
 
-            <form class="mt-5 flex flex-col gap-4" [formGroup]="form" (ngSubmit)="acceptNewUser()">
-              <app-form-field inputId="invite-name" [label]="'invite.fullName' | transloco">
-                <input
-                  id="invite-name"
-                  type="text"
-                  formControlName="full_name"
-                  autocomplete="name"
-                />
-              </app-form-field>
-
-              <app-form-field inputId="invite-password" [label]="'invite.password' | transloco">
-                <input
-                  id="invite-password"
-                  type="password"
-                  formControlName="password"
-                  autocomplete="new-password"
-                />
-              </app-form-field>
-
-              @if (failed()) {
-                <p
-                  role="alert"
-                  class="rounded-tile border border-fail/30 bg-fail-soft px-3 py-2 text-[13px] font-medium text-fail"
-                >
-                  {{ 'invite.error' | transloco }}
-                </p>
-              }
-
-              <app-button
-                type="submit"
-                size="lg"
-                [full]="true"
-                [loading]="submitting()"
-                class="mt-1"
-              >
-                {{ 'invite.accept' | transloco }}
-              </app-button>
-            </form>
-          }
+        @if (error(); as error) {
+          <app-alert>{{ error | transloco }}</app-alert>
         }
-      </div>
-    </app-card>
-  </div>
-</div>
+
+        <app-button type="submit" size="lg" [full]="true" [loading]="submitting()" class="mt-1">
+          {{ 'invite.accept' | transloco }}
+        </app-button>
+      </form>
+    }
+  }
+</app-auth-shell>

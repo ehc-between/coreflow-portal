@@ -139,9 +139,41 @@ export interface Action {
   readonly completed_at?: string;
   readonly verified_at?: string;
   readonly verified_by_user_id?: string;
+  readonly verified_by_name?: string;
   readonly effectiveness?: ActionEffectiveness;
   readonly notes?: string;
   readonly created_at: string;
+}
+
+/** A row in the cross-deviation action list: the action plus its parent deviation's headline. */
+export interface ActionListItem extends Action {
+  readonly deviation_code: string;
+  readonly deviation_title: string;
+  readonly deviation_status: DeviationStatus;
+  readonly deviation_severity: Severity;
+}
+
+/**
+ * Filters for `GET orgs/{org}/actions`. With no `status` the backend returns
+ * open + in-progress actions; `overdue` narrows to those past their due date.
+ */
+export interface ActionFilters {
+  /** A user id, or `me` for the caller. */
+  readonly owner_user_id?: string;
+  readonly status?: readonly ActionStatus[];
+  readonly overdue?: boolean;
+  readonly due_before?: string;
+  readonly due_after?: string;
+  /** `due_at` (default, undated last), `created_at`, `status`, `kind`, `deviation_code`; `-` prefix for descending. */
+  readonly sort?: string;
+  readonly limit?: number;
+  readonly offset?: number;
+}
+
+/** A page of actions plus the unpaged total. */
+export interface ActionListResponse {
+  readonly items: readonly ActionListItem[];
+  readonly total: number;
 }
 
 /** Body for creating or updating an action (all fields optional on update). */
@@ -261,6 +293,10 @@ export interface DeviationFilters {
   readonly due_before?: string;
   readonly due_after?: string;
   readonly q?: string;
+  /** Only deviations that are not closed or cancelled. */
+  readonly active?: boolean;
+  /** Only deviations that are not closed or cancelled and past their due date. */
+  readonly overdue?: boolean;
   readonly sort?: string;
   readonly limit?: number;
   readonly offset?: number;

@@ -1,7 +1,7 @@
 import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subject, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
 import { HasPermissionDirective } from '../../core/auth/has-permission.directive';
@@ -146,6 +146,7 @@ interface Row {
 export class DocumentsList {
   private readonly api = inject(DocumentsApi);
   private readonly selectedOrg = inject(SelectedOrgService);
+  private readonly route = inject(ActivatedRoute);
 
   protected readonly orgId = this.selectedOrg.currentOrgId;
   protected readonly statusFilters = STATUS_FILTERS;
@@ -179,7 +180,7 @@ export class DocumentsList {
       const orgId = this.orgId();
       // Reset transient state when the active org changes.
       this.query.set('');
-      this.status.set('');
+      this.status.set(this.initialStatus());
       this.searching.set(false);
       this.rows.set([]);
       if (orgId) {
@@ -213,6 +214,12 @@ export class DocumentsList {
     if (orgId) {
       this.loadList(orgId);
     }
+  }
+
+  /** A `?status=` drill-down (e.g. from the dashboard), when it names a known status. */
+  private initialStatus(): DocumentStatus | '' {
+    const status = this.route.snapshot.queryParamMap.get('status');
+    return STATUS_FILTERS.find((option) => option === status) ?? '';
   }
 
   private loadList(orgId: string): void {

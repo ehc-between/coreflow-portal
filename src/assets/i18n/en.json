@@ -283,7 +283,8 @@
       "confirmDelete": "Delete the department \"{{name}}\"?",
       "createdToast": "Department created.",
       "renamedToast": "Department renamed.",
-      "deletedToast": "Department deleted."
+      "deletedToast": "Department deleted.",
+      "deleteTitle": "Delete department"
     },
     "member": {
       "title": "Members",
@@ -298,6 +299,68 @@
       "addedToast": "Member added.",
       "removedToast": "Member removed.",
       "addFailed": "Couldn't add that member. Please try again."
+    },
+    "members": {
+      "title": "Members",
+      "subtitle": "People with access to this organization, their role and account status.",
+      "name": "Name",
+      "email": "Email",
+      "role": "Role",
+      "status": "Status",
+      "actions": "Actions",
+      "active": "Active",
+      "inactive": "Inactive",
+      "you": "(you)",
+      "selfHint": "You can't change your own role or remove yourself.",
+      "changeRoleFor": "Change role for {{name}}",
+      "remove": "Remove",
+      "removeTitle": "Remove member",
+      "removeConfirm": "Remove {{name}} from this organization? Their account and the content they created are kept.",
+      "removedToast": "{{name}} was removed from the organization.",
+      "roleChangedToast": "Role updated for {{name}}.",
+      "roleChangeHint": "Role changes take effect the next time the member's session refreshes (within 15 minutes).",
+      "empty": "No members yet.",
+      "aboutRoles": "About the roles",
+      "multipleRoles": "Multiple roles"
+    },
+    "invitations": {
+      "title": "Invitations",
+      "subtitle": "Invite people by email and keep track of invitations that are not accepted yet.",
+      "pending": "Pending invitations",
+      "empty": "No pending invitations.",
+      "email": "Email",
+      "role": "Role",
+      "expires": "Expires",
+      "invite": "Invite user",
+      "send": "Send invitation",
+      "emailNote": "An email is sent automatically when email delivery is configured.",
+      "linkTitle": "Invitation link",
+      "linkHint": "Share this link with {{email}} so they can accept the invitation.",
+      "linkOnceNote": "Invitation links can only be copied right after they are created. To get a new link, revoke the invitation and send it again.",
+      "copy": "Copy",
+      "copyLink": "Copy link",
+      "copiedToast": "Link copied.",
+      "copyFailed": "Couldn't copy the link. Select it and copy it manually.",
+      "createdToast": "Invitation sent to {{email}}.",
+      "revoke": "Revoke",
+      "revokeTitle": "Revoke invitation",
+      "revokeConfirm": "Revoke the invitation to {{email}}? The link will stop working.",
+      "revokedToast": "Invitation revoked.",
+      "noGrantable": "You don't have permission to invite with any role.",
+      "expired": "Expired"
+    },
+    "errors": {
+      "invitePending": "There is already a pending invitation for this email.",
+      "alreadyMember": "This person is already a member of the organization.",
+      "unknownRole": "That role is not available. Reload the page and try again.",
+      "escalation": "You can't grant or change a role with permissions you don't have yourself.",
+      "selfChange": "You can't change your own role.",
+      "notMember": "This person is no longer a member of the organization. The list has been updated.",
+      "lastManager": "The organization needs at least one active administrator. Make someone else an administrator first.",
+      "invitationNotFound": "This invitation no longer exists. The list has been updated.",
+      "forbidden": "You don't have permission to do that.",
+      "selfDeactivate": "You can't deactivate your own account.",
+      "userNotFound": "That user no longer exists."
     }
   },
   "auth": {
@@ -313,7 +376,60 @@
       "signingIn": "Signing in…"
     },
     "error": {
-      "invalidCredentials": "Incorrect email or password."
+      "invalidCredentials": "Incorrect email or password.",
+      "tooManyAttempts": "Too many sign-in attempts. Please wait a moment and try again.",
+      "tooManyAttemptsSeconds": "Too many sign-in attempts. Try again in {{seconds}} sec.",
+      "tooManyAttemptsMinutes": "Too many sign-in attempts. Try again in {{minutes}} min."
+    },
+    "menu": {
+      "label": "Account menu",
+      "changePassword": "Change password",
+      "notificationSettings": "Notification settings",
+      "logoutAll": "Sign out of all devices",
+      "logoutAllFailed": "Couldn't sign out of all devices. Please try again."
+    },
+    "notice": {
+      "passwordReset": "Your password has been reset. Sign in with your new password.",
+      "signedOutAll": "You've been signed out of all devices."
+    },
+    "password": {
+      "new": "New password",
+      "confirm": "Confirm new password",
+      "policy": "Use at least 12 characters. It can't be your email address or a commonly used password.",
+      "tooShort": "Use at least {{min}} characters.",
+      "mismatch": "The passwords don't match.",
+      "weak": "That password isn't strong enough. Use at least 12 characters, and avoid your email address and commonly used passwords."
+    },
+    "changePassword": {
+      "title": "Change password",
+      "subtitle": "Other devices will be signed out. You'll stay signed in here.",
+      "current": "Current password",
+      "submit": "Change password",
+      "saving": "Saving…",
+      "success": "Your password has been changed.",
+      "wrongCurrent": "Your current password is incorrect."
+    },
+    "forgot": {
+      "link": "Forgot password?",
+      "title": "Reset your password",
+      "subtitle": "Enter your email address and we'll send you a link to choose a new password.",
+      "submit": "Send reset link",
+      "sending": "Sending…",
+      "sentTitle": "Check your email",
+      "sentBody": "If an account exists for {{email}}, we've sent an email with a link to reset your password.",
+      "backToLogin": "Back to sign in",
+      "tooManyRequests": "Too many reset requests. Please wait a moment and try again.",
+      "tooManyRequestsSeconds": "Too many reset requests. Try again in {{seconds}} sec.",
+      "tooManyRequestsMinutes": "Too many reset requests. Try again in {{minutes}} min."
+    },
+    "reset": {
+      "title": "Choose a new password",
+      "subtitle": "Enter a new password for your account.",
+      "submit": "Set new password",
+      "saving": "Saving…",
+      "invalidTitle": "Reset link unavailable",
+      "invalidBody": "This password reset link is invalid or has expired.",
+      "requestNew": "Request a new link"
     }
   },
   "login": {
@@ -326,34 +442,55 @@
     "nb": "Norwegian"
   },
   "dashboard": {
-    "welcome": "Welcome to CoreFlow",
-    "subtitle": "Your portal scaffold is ready. Start building features here.",
+    "title": "Dashboard",
+    "subtitle": "Quality overview for {{org}}",
     "agentRole": "Work Planner",
-    "kpi": {
-      "deviations": {
-        "label": "Open deviations",
-        "delta": "-2 this week"
-      },
-      "audits": {
-        "label": "Audits due",
-        "delta": "2 this month"
-      },
-      "passRate": {
-        "label": "Pass rate"
-      },
-      "overdue": {
-        "label": "Overdue tasks",
-        "delta": "needs attention"
-      }
+    "noAccess": "There is nothing on the dashboard for your role in this organization yet.",
+    "noDeviations": "No deviations have been recorded yet.",
+    "loadFailed": "Could not load",
+    "tiles": {
+      "openDeviations": "Open deviations",
+      "overdueDeviations": "Overdue deviations",
+      "openActions": "Open actions",
+      "overdueActions": "Overdue actions",
+      "pendingProposals": "Proposals to review",
+      "documentsInReview": "Documents in review"
+    },
+    "charts": {
+      "bySeverity": "Deviations by severity",
+      "trend": "Deviations opened, last {{months}} months",
+      "allStats": "All statistics"
+    }
+  },
+  "myWork": {
+    "title": "My Work",
+    "subtitle": "What is on your plate in this organization.",
+    "noAccess": "There is nothing assigned to you here for your role yet.",
+    "loadFailed": "Could not load this list. Please try again.",
+    "owned": {
+      "title": "Deviations I own",
+      "empty": "You don’t own any open deviations.",
+      "overdueCount": "{{count}} overdue",
+      "noDueDate": "No due date",
+      "truncated": "Showing the {{limit}} soonest due of your active deviations.",
+      "viewAll": "View all"
+    },
+    "approvals": {
+      "title": "Awaiting my approval",
+      "empty": "Nothing is waiting for your approval.",
+      "proposal": "Proposal",
+      "document": "In review"
+    },
+    "actions": {
+      "title": "My CAPA actions",
+      "empty": "You have no open actions.",
+      "truncated": "Showing the {{shown}} soonest due of your {{total}} open actions.",
+      "viewAll": "View all"
     }
   },
   "admin": {
     "copy": "Copy",
     "copiedToast": "Copied",
-    "role": {
-      "admin": "Administrator",
-      "member": "Member"
-    },
     "org": {
       "title": "Organizations",
       "subtitle": "Create and manage organizations across the platform.",
@@ -374,7 +511,9 @@
       "email": "Email",
       "name": "Full name",
       "roles": "Roles",
-      "empty": "No members yet."
+      "empty": "No members yet.",
+      "status": "Status",
+      "actions": "Actions"
     },
     "invite": {
       "title": "Invite user",
@@ -390,6 +529,19 @@
       "linkHint": "Share this link so the user can accept the invitation.",
       "createdToast": "Invitation created.",
       "revokedToast": "Invitation revoked."
+    },
+    "users": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "deactivate": "Deactivate",
+      "reactivate": "Reactivate",
+      "deactivateTitle": "Deactivate user",
+      "reactivateTitle": "Reactivate user",
+      "deactivateConfirm": "Deactivate {{name}}? They are signed out and can no longer sign in to any organization. Memberships are kept.",
+      "reactivateConfirm": "Reactivate {{name}}? They can sign in again with their existing memberships.",
+      "deactivatedToast": "{{name}} was deactivated.",
+      "reactivatedToast": "{{name}} was reactivated.",
+      "cancel": "Cancel"
     }
   },
   "invite": {
@@ -418,7 +570,8 @@
     "network": "Can't reach the server. Check your connection and try again.",
     "server": "Something went wrong on our end. Please try again shortly.",
     "notFound": "We couldn't find what you were looking for.",
-    "generic": "Something went wrong. Please try again."
+    "generic": "Something went wrong. Please try again.",
+    "forbidden": "You don't have access to that page."
   },
   "deviations": {
     "title": "Deviations",
@@ -479,7 +632,11 @@
       "allSources": "All sources",
       "allOwners": "All owners",
       "allDepartments": "All departments",
-      "clear": "Clear filters"
+      "clear": "Clear filters",
+      "scope": "Active / overdue",
+      "allScopes": "Open and closed",
+      "scopeActive": "Active only",
+      "scopeOverdue": "Overdue only"
     },
     "sort": {
       "newest": "Newest first",
@@ -736,6 +893,119 @@
       "trend": {
         "title": "Opened over time"
       }
+    },
+    "actionsList": {
+      "link": "Actions",
+      "title": "Corrective & preventive actions",
+      "subtitle": "Open actions across all deviations you can see, soonest due first.",
+      "scope": "Which actions",
+      "scopeOpen": "All open actions",
+      "scopeOverdue": "Overdue only",
+      "ownerMe": "Assigned to me",
+      "empty": "No actions match these filters."
+    }
+  },
+  "notifications": {
+    "deviationAssigned": "{{actor_name}} assigned you deviation {{code}}: {{title}}",
+    "deviationAssignedNoActor": "You were assigned deviation {{code}}: {{title}}",
+    "actionAssigned": "{{actor_name}} assigned you an action on {{deviation_code}}: {{description}}",
+    "actionAssignedNoActor": "You were assigned an action on {{deviation_code}}: {{description}}",
+    "deviationDueSoon": "Deviation {{code}} is due in {{days}} days: {{title}}",
+    "deviationDueSoonToday": "Deviation {{code}} is due today: {{title}}",
+    "deviationDueSoonTomorrow": "Deviation {{code}} is due tomorrow: {{title}}",
+    "deviationOverdue": "Deviation {{code}} is {{days}} days overdue: {{title}}",
+    "deviationOverdueOne": "Deviation {{code}} is 1 day overdue: {{title}}",
+    "actionDueSoon": "An action on {{deviation_code}} is due in {{days}} days: {{description}}",
+    "actionDueSoonToday": "An action on {{deviation_code}} is due today: {{description}}",
+    "actionDueSoonTomorrow": "An action on {{deviation_code}} is due tomorrow: {{description}}",
+    "actionOverdue": "An action on {{deviation_code}} is {{days}} days overdue: {{description}}",
+    "actionOverdueOne": "An action on {{deviation_code}} is 1 day overdue: {{description}}",
+    "fallback": "You have a new notification.",
+    "bellUnread": "Notifications, {{count}} unread",
+    "panel": {
+      "title": "Notifications",
+      "markAllRead": "Mark all as read",
+      "markAllFailed": "Couldn't mark notifications as read. Please try again.",
+      "loading": "Loading…",
+      "error": "Couldn't load notifications.",
+      "retry": "Try again",
+      "empty": "You're all caught up.",
+      "loadMore": "Load more",
+      "unread": "Unread",
+      "settings": "Notification settings"
+    },
+    "preferences": {
+      "title": "Notification settings",
+      "subtitle": "Choose which organizations send you a daily email summary of your notifications.",
+      "emailDigest": "Daily email digest",
+      "emailDigestHint": "The digest includes new assignments and deadlines from the past day. You'll still see every notification in the app.",
+      "empty": "You're not a member of any organizations yet.",
+      "loadError": "Couldn't load your notification settings. Please try again later.",
+      "saved": "Notification settings saved.",
+      "saveFailed": "Couldn't save your notification settings. Please try again."
+    }
+  },
+  "roles": {
+    "admin": {
+      "name": "Administrator",
+      "description": "Full access, including organization settings, members and invitations."
+    },
+    "quality_manager": {
+      "name": "Quality manager",
+      "description": "Runs the management system: documents, approvals, deviations and deviation types; can invite users and read the audit log."
+    },
+    "auditor": {
+      "name": "Auditor",
+      "description": "Read access plus the audit log; can record audit findings as deviations."
+    },
+    "dpo": {
+      "name": "Data protection officer",
+      "description": "Data protection officer (DPO): handles privacy documents and deviations."
+    },
+    "ciso": {
+      "name": "Information security lead",
+      "description": "Information security lead (CISO): handles security documents and deviations."
+    },
+    "member": {
+      "name": "Member",
+      "description": "Everyday access: read documents, and report and follow up deviations."
+    }
+  },
+  "attachments": {
+    "title": "Attachments",
+    "empty": "No attachments yet.",
+    "attach": "Attach file",
+    "dropHint": "Drop files here or click to choose",
+    "download": "Download",
+    "delete": "Delete",
+    "deleteNamed": "Delete {{name}}",
+    "confirmDelete": "Delete “{{name}}”? It will no longer be available as evidence.",
+    "cancel": "Cancel",
+    "cancelUpload": "Cancel upload",
+    "retry": "Retry",
+    "dismiss": "Dismiss",
+    "unavailable": "File attachments aren’t set up on this server.",
+    "state": {
+      "hashing": "Preparing…",
+      "uploading": "Uploading…",
+      "completing": "Verifying…",
+      "error": "Failed"
+    },
+    "errors": {
+      "empty": "The file is empty.",
+      "tooLarge": "The file is larger than allowed.",
+      "typeNotAllowed": "This file type isn’t allowed.",
+      "invalid": "The file couldn’t be accepted. Check the name and try again.",
+      "notUploaded": "The upload didn’t finish. Try again.",
+      "verifyFailed": "The uploaded file couldn’t be verified. Try again.",
+      "uploadFailed": "The upload failed. Check your connection and try again.",
+      "readFailed": "The file couldn’t be read.",
+      "forbidden": "You don’t have access to change attachments here.",
+      "notFound": "The attachment no longer exists.",
+      "loadFailed": "Couldn’t load attachments.",
+      "downloadFailed": "Couldn’t download the file. Try again.",
+      "deleteFailed": "Couldn’t delete the attachment. Try again.",
+      "generic": "Something went wrong with the attachment. Try again."
     }
   }
 }

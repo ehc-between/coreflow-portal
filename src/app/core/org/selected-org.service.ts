@@ -1,4 +1,4 @@
-import { Injectable, computed, effect, inject, signal } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
 import { AuthService } from '../auth/auth.service';
 
 /** A single organisation the current user belongs to, flattened for the UI. */
@@ -35,39 +35,52 @@ export class SelectedOrgService {
       .sort((a, b) => a.name.localeCompare(b.name));
   });
 
-  private readonly _currentOrgId = signal<string | null>(null);
+  /**
+   * The org the user explicitly switched to this session, tagged with the user
+   * it belongs to so a later sign-in as someone else never inherits it.
+   */
+  private readonly _explicit = signal<{ readonly userId: string; readonly orgId: string } | null>(
+    null,
+  );
 
-  /** The active org id (null when signed out or membership-less). */
-  readonly currentOrgId = this._currentOrgId.asReadonly();
+  /**
+   * The active org id (null when signed out or membership-less). Derived
+   * synchronously from the auth state — not set by an effect — so it is
+   * already correct the moment a session is restored. Route guards rely on
+   * this: on a hard refresh they evaluate permissions right after the silent
+   * refresh resolves, before any change detection (and thus effects) has run.
+   * Resolution order: explicit choice (if still a member) → persisted choice
+   * (if still a member) → first org → null.
+   */
+  readonly currentOrgId = computed<string | null>(() => {
+    const user = this.auth.user();
+    if (!user) {
+      return null;
+    }
+    const orgs = this.orgs();
+    const isMember = (id: string | null | undefined): id is string =>
+      !!id && orgs.some((org) => org.id === id);
+    const explicit = this._explicit();
+    if (explicit?.userId === user.id && isMember(explicit.orgId)) {
+      return explicit.orgId;
+    }
+    const stored = this.readStoredOrgId(user.id);
+    return isMember(stored) ? stored : (orgs[0]?.id ?? null);
+  });
 
   /** The active org object, or null. */
   readonly currentOrg = computed<Org | null>(() => {
-    const id = this._currentOrgId();
+    const id = this.currentOrgId();
     return this.orgs().find((org) => org.id === id) ?? null;
   });
 
-  constructor() {
-    effect(() => {
-      const user = this.auth.user();
-      if (!user) {
-        this._currentOrgId.set(null);
-        return;
-      }
-      const orgs = this.orgs();
-      const stored = this.readStoredOrgId(user.id);
-      const resolved =
-        (stored && orgs.some((org) => org.id === stored) ? stored : null) ?? orgs[0]?.id ?? null;
-      this._currentOrgId.set(resolved);
-    });
-  }
-
   /** Switch the active org and persist the choice for this user. */
   setCurrentOrg(orgId: string): void {
-    this._currentOrgId.set(orgId);
     const userId = this.auth.user()?.id;
     if (!userId) {
       return;
     }
+    this._explicit.set({ userId, orgId });
     try {
       globalThis.localStorage?.setItem(ORG_STORAGE_PREFIX + userId, orgId);
     } catch {

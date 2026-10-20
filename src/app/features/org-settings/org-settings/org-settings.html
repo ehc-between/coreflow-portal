@@ -13,108 +13,142 @@
       </div>
     </app-card>
   } @else {
-    <section>
-      <h2 class="mb-3 font-display text-[18px] font-bold tracking-[-0.02em] text-fg">
-        {{ 'settings.departments.title' | transloco }}
-      </h2>
+    <div class="flex flex-col gap-10">
+      @if (canManage()) {
+        <section data-testid="settings-departments">
+          <h2 class="mb-3 font-display text-[18px] font-bold tracking-[-0.02em] text-fg">
+            {{ 'settings.departments.title' | transloco }}
+          </h2>
 
-      <div class="grid gap-5 lg:grid-cols-[1fr_320px]">
-        <app-card [padded]="false">
-          @if (loading()) {
-            <div class="px-4 py-10 text-center text-[14px] text-fg-muted">
-              {{ 'common.loading' | transloco }}
-            </div>
-          } @else if (departments().length === 0) {
-            <div class="px-4 py-10 text-center text-[14px] text-fg-muted">
-              {{ 'settings.departments.empty' | transloco }}
-            </div>
-          } @else {
-            <ul>
-              @for (department of departments(); track department.id) {
-                <li
-                  class="flex items-center gap-3 border-b border-border px-4 py-3 last:border-b-0 hover:bg-surface-2"
-                >
-                  @if (editingId() === department.id) {
-                    <form
-                      class="flex flex-1 items-center gap-2"
-                      [formGroup]="renameForm"
-                      (ngSubmit)="rename(department)"
+          <div class="grid gap-5 lg:grid-cols-[1fr_320px]">
+            <app-card [padded]="false">
+              @if (loading()) {
+                <div class="px-4 py-10 text-center text-[14px] text-fg-muted">
+                  {{ 'common.loading' | transloco }}
+                </div>
+              } @else if (departments().length === 0) {
+                <div class="px-4 py-10 text-center text-[14px] text-fg-muted">
+                  {{ 'settings.departments.empty' | transloco }}
+                </div>
+              } @else {
+                <ul>
+                  @for (department of departments(); track department.id) {
+                    <li
+                      class="flex items-center gap-3 border-b border-border px-4 py-3 last:border-b-0 hover:bg-surface-2"
                     >
-                      <div class="flex flex-1 flex-col gap-1">
-                        <input
-                          type="text"
-                          formControlName="name"
-                          autocomplete="off"
-                          [attr.aria-label]="'settings.departments.name' | transloco"
-                          class="h-9 w-full rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg outline-none focus:border-accent"
-                        />
-                        @if (renameTaken()) {
-                          <p role="alert" class="text-[12px] font-medium text-fail">
-                            {{ 'settings.departments.nameTaken' | transloco }}
-                          </p>
-                        }
-                      </div>
-                      <app-button type="submit" size="sm" [loading]="renaming()">
-                        {{ 'settings.save' | transloco }}
-                      </app-button>
-                      <app-button type="button" variant="ghost" size="sm" (click)="cancelRename()">
-                        {{ 'settings.cancel' | transloco }}
-                      </app-button>
-                    </form>
-                  } @else {
-                    <a
-                      [routerLink]="['/settings/departments', department.id]"
-                      class="flex-1 truncate font-semibold text-accent hover:underline"
-                    >
-                      {{ department.name }}
-                    </a>
-                    <span class="text-[13px] text-fg-muted">
-                      {{
-                        'settings.departments.memberCount'
-                          | transloco: { count: department.member_count }
-                      }}
-                    </span>
-                    <app-button variant="ghost" size="sm" (click)="startRename(department)">
-                      {{ 'settings.departments.rename' | transloco }}
-                    </app-button>
-                    <app-button variant="ghost" size="sm" (click)="remove(department)">
-                      {{ 'settings.departments.delete' | transloco }}
-                    </app-button>
+                      @if (editingId() === department.id) {
+                        <form
+                          class="flex flex-1 items-center gap-2"
+                          [formGroup]="renameForm"
+                          (ngSubmit)="rename(department)"
+                        >
+                          <div class="flex flex-1 flex-col gap-1">
+                            <input
+                              type="text"
+                              formControlName="name"
+                              autocomplete="off"
+                              [attr.aria-label]="'settings.departments.name' | transloco"
+                              class="h-9 w-full rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg outline-none focus:border-accent"
+                            />
+                            @if (renameTaken()) {
+                              <p role="alert" class="text-[12px] font-medium text-fail">
+                                {{ 'settings.departments.nameTaken' | transloco }}
+                              </p>
+                            }
+                          </div>
+                          <app-button type="submit" size="sm" [loading]="renaming()">
+                            {{ 'settings.save' | transloco }}
+                          </app-button>
+                          <app-button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            (click)="cancelRename()"
+                          >
+                            {{ 'settings.cancel' | transloco }}
+                          </app-button>
+                        </form>
+                      } @else {
+                        <a
+                          [routerLink]="['/settings/departments', department.id]"
+                          class="flex-1 truncate font-semibold text-accent hover:underline"
+                        >
+                          {{ department.name }}
+                        </a>
+                        <span class="text-[13px] text-fg-muted">
+                          {{
+                            'settings.departments.memberCount'
+                              | transloco: { count: department.member_count }
+                          }}
+                        </span>
+                        <app-button variant="ghost" size="sm" (click)="startRename(department)">
+                          {{ 'settings.departments.rename' | transloco }}
+                        </app-button>
+                        <app-button variant="ghost" size="sm" (click)="remove(department)">
+                          {{ 'settings.departments.delete' | transloco }}
+                        </app-button>
+                      }
+                    </li>
                   }
-                </li>
+                </ul>
               }
-            </ul>
-          }
-        </app-card>
+            </app-card>
 
-        <app-card>
-          <h3 class="font-display text-[16px] font-bold tracking-[-0.02em] text-fg">
-            {{ 'settings.departments.create' | transloco }}
-          </h3>
-          <form class="mt-4 flex flex-col gap-4" [formGroup]="createForm" (ngSubmit)="create()">
-            <app-form-field
-              inputId="department-name"
-              [label]="'settings.departments.name' | transloco"
-            >
-              <input id="department-name" type="text" formControlName="name" autocomplete="off" />
-            </app-form-field>
+            <app-card>
+              <h3 class="font-display text-[16px] font-bold tracking-[-0.02em] text-fg">
+                {{ 'settings.departments.create' | transloco }}
+              </h3>
+              <form class="mt-4 flex flex-col gap-4" [formGroup]="createForm" (ngSubmit)="create()">
+                <app-form-field
+                  inputId="department-name"
+                  [label]="'settings.departments.name' | transloco"
+                >
+                  <input
+                    id="department-name"
+                    type="text"
+                    formControlName="name"
+                    autocomplete="off"
+                  />
+                </app-form-field>
 
-            @if (nameTaken()) {
-              <p
-                role="alert"
-                class="rounded-tile border border-fail/30 bg-fail-soft px-3 py-2 text-[13px] font-medium text-fail"
-              >
-                {{ 'settings.departments.nameTaken' | transloco }}
-              </p>
-            }
+                @if (nameTaken()) {
+                  <p
+                    role="alert"
+                    class="rounded-tile border border-fail/30 bg-fail-soft px-3 py-2 text-[13px] font-medium text-fail"
+                  >
+                    {{ 'settings.departments.nameTaken' | transloco }}
+                  </p>
+                }
 
-            <app-button type="submit" [full]="true" [loading]="creating()" class="mt-1">
-              <app-icon name="plus" [size]="15" />
-              {{ 'settings.departments.create' | transloco }}
-            </app-button>
-          </form>
-        </app-card>
-      </div>
-    </section>
+                <app-button type="submit" [full]="true" [loading]="creating()" class="mt-1">
+                  <app-icon name="plus" [size]="15" />
+                  {{ 'settings.departments.create' | transloco }}
+                </app-button>
+              </form>
+            </app-card>
+          </div>
+
+          <app-confirm-dialog
+            [open]="pendingDelete() !== null"
+            [busy]="deleting()"
+            [title]="'settings.departments.deleteTitle' | transloco"
+            [message]="
+              'settings.departments.confirmDelete'
+                | transloco: { name: pendingDelete()?.name ?? '' }
+            "
+            [confirmLabel]="'settings.departments.delete' | transloco"
+            [cancelLabel]="'settings.cancel' | transloco"
+            (confirmed)="confirmDelete()"
+            (cancelled)="cancelDelete()"
+          />
+        </section>
+
+        <app-org-members />
+      }
+
+      @if (canInvite()) {
+        <app-org-invitations />
+      }
+    </div>
   }
 </div>

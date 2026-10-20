@@ -1,13 +1,14 @@
 import { Route, Routes } from '@angular/router';
 import { authGuard } from './core/auth/auth.guard';
-import { orgManageGuard } from './core/auth/org-manage.guard';
+import { settingsGuard } from './core/auth/org-manage.guard';
+import { permissionGuard } from './core/auth/permission.guard';
 import { superAdminGuard } from './core/auth/super-admin.guard';
 import { MainLayout } from './layout/main-layout/main-layout';
 import { NAV_ITEMS } from './layout/nav';
 
 // Nav items backed by a real feature surface — excluded from the placeholder
 // generation below (they get explicit routes).
-const REAL_MODULE_PATHS = new Set(['dashboard', 'documents', 'review', 'deviations']);
+const REAL_MODULE_PATHS = new Set(['dashboard', 'my-work', 'documents', 'review', 'deviations']);
 
 // Every other nav item resolves to the shared module placeholder, carrying its
 // title + agent context via route data.
@@ -34,6 +35,18 @@ export const routes: Routes = [
       import('./features/auth/accept-invite/accept-invite').then((m) => m.AcceptInvite),
   },
 
+  // Public password-reset flow — kept outside the protected shell.
+  {
+    path: 'forgot-password',
+    loadComponent: () =>
+      import('./features/auth/forgot-password/forgot-password').then((m) => m.ForgotPassword),
+  },
+  {
+    path: 'reset-password',
+    loadComponent: () =>
+      import('./features/auth/reset-password/reset-password').then((m) => m.ResetPassword),
+  },
+
   // Authenticated application shell. Feature areas are lazy-loaded children.
   {
     path: '',
@@ -43,15 +56,29 @@ export const routes: Routes = [
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
       {
         path: 'dashboard',
+        // The default landing page. A user without dashboard:view falls back
+        // silently to My Work (always available) — no warning, since they may
+        // simply have signed in. Must not redirect to /dashboard (loop).
+        canActivate: [permissionGuard('dashboard:view', { redirectTo: '/my-work', notify: false })],
         loadChildren: () => import('./features/dashboard/dashboard.routes'),
       },
       {
+        path: 'my-work',
+        loadChildren: () => import('./features/my-work/my-work.routes'),
+      },
+      {
         path: 'settings',
-        canActivate: [authGuard, orgManageGuard],
+        canActivate: [authGuard, settingsGuard],
         loadChildren: () => import('./features/org-settings/org-settings.routes'),
       },
       {
+        path: 'account',
+        loadChildren: () => import('./features/account/account.routes'),
+      },
+      {
         path: 'documents',
+        // Module-level read gate; sub-pages add stricter guards in the feature routes.
+        canActivate: [permissionGuard('documents:read')],
         loadChildren: () => import('./features/documents/documents.routes'),
       },
       {
@@ -60,6 +87,8 @@ export const routes: Routes = [
       },
       {
         path: 'deviations',
+        // Module-level read gate; sub-pages add stricter guards in the feature routes.
+        canActivate: [permissionGuard('deviations:read')],
         loadChildren: () => import('./features/deviations/deviations.routes'),
       },
       {

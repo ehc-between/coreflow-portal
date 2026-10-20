@@ -3,13 +3,14 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { InvitationApi, InvitePreview, isNewUserSession } from '../../../core/admin/invitation-api';
+import { PASSWORD_MIN_LENGTH, isWeakPasswordError } from '../../../core/auth/auth-errors';
 import { AuthService } from '../../../core/auth/auth.service';
-import { ThemeService } from '../../../core/theme/theme.service';
-import { LanguageSwitcher } from '../../../shared/language-switcher/language-switcher';
+import { takeQueryToken } from '../../../core/auth/take-query-token';
+import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
-import { Card } from '../../../shared/ui/card/card';
 import { FormField } from '../../../shared/ui/form-field/form-field';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { AuthShell } from '../auth-shell/auth-shell';
 
 type ViewState = 'loading' | 'invalid' | 'new-user' | 'existing-user';
 
@@ -24,11 +25,11 @@ type ViewState = 'loading' | 'invalid' | 'new-user' | 'existing-user';
     ReactiveFormsModule,
     RouterLink,
     TranslocoPipe,
-    Card,
+    AuthShell,
     FormField,
     Button,
     Icon,
-    LanguageSwitcher,
+    Alert,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './accept-invite.html',
@@ -39,22 +40,23 @@ export class AcceptInvite implements OnInit {
   private readonly router = inject(Router);
   private readonly invitations = inject(InvitationApi);
   private readonly auth = inject(AuthService);
-  protected readonly theme = inject(ThemeService);
 
   protected readonly state = signal<ViewState>('loading');
   protected readonly preview = signal<InvitePreview | null>(null);
   protected readonly submitting = signal(false);
-  protected readonly failed = signal(false);
+  /** i18n key of the submit error shown in place, or null. */
+  protected readonly error = signal<string | null>(null);
 
   private token = '';
 
   protected readonly form = this.fb.nonNullable.group({
     full_name: [''],
-    password: ['', [Validators.required, Validators.minLength(8)]],
+    password: ['', [Validators.required, Validators.minLength(PASSWORD_MIN_LENGTH)]],
   });
 
   ngOnInit(): void {
-    this.token = this.route.snapshot.queryParamMap.get('token') ?? '';
+    // Read once, then scrubbed from the address bar; kept in memory only.
+    this.token = takeQueryToken(this.route, this.router);
     if (!this.token) {
       this.state.set('invalid');
       return;
@@ -80,7 +82,7 @@ export class AcceptInvite implements OnInit {
     }
 
     this.submitting.set(true);
-    this.failed.set(false);
+    this.error.set(null);
     const { full_name, password } = this.form.getRawValue();
     const trimmedName = full_name.trim();
 
@@ -97,9 +99,9 @@ export class AcceptInvite implements OnInit {
           this.submitting.set(false);
           this.state.set('existing-user');
         },
-        error: () => {
+        error: (err: unknown) => {
           this.submitting.set(false);
-          this.failed.set(true);
+          this.error.set(isWeakPasswordError(err) ? 'auth.password.weak' : 'invite.error');
         },
       });
   }

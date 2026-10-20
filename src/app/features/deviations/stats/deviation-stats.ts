@@ -32,7 +32,9 @@ import {
   standardLabelKey,
   statusLabelKey,
 } from '../deviation-enums';
-import { RawBucket, StatBar, maxCount, recordToBuckets, toBars } from './stats-bars';
+import { StatBarList } from './stat-bar-list';
+import { RawBucket, StatBar, recordToBuckets, toBars } from './stats-bars';
+import { TrendChart } from './trend-chart';
 
 /** A breakdown section: a heading, its bars and the list filter key it drills into. */
 interface Breakdown {
@@ -55,7 +57,7 @@ const TOP_CLAUSES = 8;
  */
 @Component({
   selector: 'app-deviation-stats',
-  imports: [FormsModule, RouterLink, TranslocoPipe, Card, Icon, KpiTile],
+  imports: [FormsModule, RouterLink, TranslocoPipe, Card, Icon, KpiTile, StatBarList, TrendChart],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mx-auto max-w-[1180px] px-8 pt-7 pb-12">
@@ -239,41 +241,11 @@ const TOP_CLAUSES = 8;
                 <p class="mb-3 text-[13px] font-semibold text-fg-muted">
                   {{ breakdown.titleKey | transloco }}
                 </p>
-                @if (breakdown.bars.length === 0) {
-                  <p class="py-2 text-[13px] text-fg-subtle">
-                    {{ 'deviations.stats.noData' | transloco }}
-                  </p>
-                } @else {
-                  <ul class="flex flex-col gap-2.5">
-                    @for (bar of breakdown.bars; track bar.id) {
-                      <li>
-                        <button
-                          type="button"
-                          [disabled]="breakdown.filterKey === null"
-                          (click)="drillDown(breakdown.filterKey, bar.id)"
-                          class="group block w-full text-left enabled:cursor-pointer"
-                        >
-                          <div class="mb-1 flex items-baseline justify-between gap-3">
-                            <span
-                              class="truncate text-[13px] text-fg group-enabled:group-hover:text-accent"
-                              >{{ bar.label }}</span
-                            >
-                            <span class="flex-none text-[12.5px] font-semibold text-fg-muted">
-                              {{ bar.count }}
-                              <span class="text-fg-subtle">· {{ bar.percent }}%</span>
-                            </span>
-                          </div>
-                          <div class="h-2 overflow-hidden rounded-full bg-surface-2">
-                            <div
-                              class="h-full rounded-full bg-accent transition-[width]"
-                              [style.width.%]="bar.percent"
-                            ></div>
-                          </div>
-                        </button>
-                      </li>
-                    }
-                  </ul>
-                }
+                <app-stat-bar-list
+                  [bars]="breakdown.bars"
+                  [drillable]="breakdown.filterKey !== null"
+                  (selectBar)="drillDown(breakdown.filterKey, $event)"
+                />
               </app-card>
             }
           </div>
@@ -282,27 +254,7 @@ const TOP_CLAUSES = 8;
             <p class="mb-4 text-[13px] font-semibold text-fg-muted">
               {{ 'deviations.stats.trend.title' | transloco }}
             </p>
-            @if (trend().length === 0) {
-              <p class="py-2 text-[13px] text-fg-subtle">
-                {{ 'deviations.stats.noData' | transloco }}
-              </p>
-            } @else {
-              <div class="flex items-end gap-2" style="height: 160px">
-                @for (point of trend(); track point.month) {
-                  <div class="flex flex-1 flex-col items-center justify-end gap-1.5">
-                    <span class="text-[11px] font-semibold text-fg-muted">{{ point.count }}</span>
-                    <div
-                      class="w-full max-w-[40px] rounded-t-[4px] bg-accent"
-                      [style.height.%]="trendHeight(point.count)"
-                      [title]="point.count"
-                    ></div>
-                    <span class="text-[10.5px] whitespace-nowrap text-fg-subtle">{{
-                      monthLabel(point.month)
-                    }}</span>
-                  </div>
-                }
-              </div>
-            }
+            <app-trend-chart [points]="trend()" />
           </app-card>
         }
       }
@@ -447,7 +399,6 @@ export class DeviationStatsPage {
   });
 
   protected readonly trend = computed(() => this.stats()?.opened_over_time ?? []);
-  private readonly trendMax = computed(() => maxCount(this.trend()));
 
   constructor() {
     effect(() => {
@@ -525,22 +476,6 @@ export class DeviationStatsPage {
       queryParams[filterKey] = value;
     }
     void this.router.navigate(['/deviations'], { queryParams });
-  }
-
-  protected trendHeight(count: number): number {
-    const max = this.trendMax();
-    return max === 0 ? 0 : Math.round((count / max) * 100);
-  }
-
-  protected monthLabel(month: string): string {
-    // `month` is `YYYY-MM`; render as a short localised month + 2-digit year.
-    const [year, m] = month.split('-');
-    const date = new Date(Number(year), Number(m) - 1, 1);
-    const formatted = new Intl.DateTimeFormat(this.transloco.getActiveLang(), {
-      month: 'short',
-      year: '2-digit',
-    }).format(date);
-    return formatted;
   }
 
   private resetFilters(): void {

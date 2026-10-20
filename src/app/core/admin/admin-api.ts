@@ -1,7 +1,10 @@
+import { HttpContext } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from '../http/api.service';
+import { SKIP_ERROR_TOAST } from '../http/error.interceptor';
 import {
+  AdminUser,
   CreateInvitationRequest,
   CreateOrgRequest,
   CreatedInvitation,
@@ -42,5 +45,19 @@ export class AdminApi {
 
   revokeInvitation(invitationId: string): Observable<{ ok: boolean }> {
     return this.api.post<{ ok: boolean }>(`v1/admin/invitations/${invitationId}/revoke`, null);
+  }
+
+  /** Globally disable an account (all orgs) and revoke its sessions. Superuser only. */
+  deactivateUser(userId: string): Observable<AdminUser> {
+    return this.api.post<AdminUser>(`v1/admin/users/${userId}/deactivate`, null, {
+      context: new HttpContext().set(SKIP_ERROR_TOAST, true),
+    });
+  }
+
+  /** Re-enable a deactivated account. Superuser only. */
+  reactivateUser(userId: string): Observable<AdminUser> {
+    return this.api.post<AdminUser>(`v1/admin/users/${userId}/reactivate`, null, {
+      context: new HttpContext().set(SKIP_ERROR_TOAST, true),
+    });
   }
 }

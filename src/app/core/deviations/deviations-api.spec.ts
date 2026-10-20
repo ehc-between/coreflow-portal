@@ -82,6 +82,54 @@ describe('DeviationsApi', () => {
     req.flush({ items: [], total: 0 });
   });
 
+  it('sends active / overdue only when set', () => {
+    api.listDeviations(ORG, { owner_user_id: 'u-1', active: true, overdue: false }).subscribe();
+    const req = http.expectOne((r) => r.url === `${BASE}/v1/orgs/${ORG}/deviations`);
+    expect(req.request.params.get('active')).toBe('true');
+    expect(req.request.params.has('overdue')).toBe(false);
+    req.flush({ items: [], total: 0 });
+
+    api.listDeviations(ORG, { overdue: true }).subscribe();
+    const req2 = http.expectOne((r) => r.url === `${BASE}/v1/orgs/${ORG}/deviations`);
+    expect(req2.request.params.get('overdue')).toBe('true');
+    expect(req2.request.params.has('active')).toBe(false);
+    req2.flush({ items: [], total: 0 });
+  });
+
+  it('lists org-wide actions with filters, repeating status', () => {
+    api
+      .listActions(ORG, {
+        owner_user_id: 'me',
+        status: ['open', 'in_progress'],
+        overdue: true,
+        due_before: '2026-11-01',
+        due_after: '2026-10-01',
+        sort: '-due_at',
+        limit: 100,
+        offset: 25,
+      })
+      .subscribe();
+    const req = http.expectOne((r) => r.url === `${BASE}/v1/orgs/${ORG}/actions`);
+    expect(req.request.method).toBe('GET');
+    const params = req.request.params;
+    expect(params.get('owner_user_id')).toBe('me');
+    expect(params.getAll('status')).toEqual(['open', 'in_progress']);
+    expect(params.get('overdue')).toBe('true');
+    expect(params.get('due_before')).toBe('2026-11-01');
+    expect(params.get('due_after')).toBe('2026-10-01');
+    expect(params.get('sort')).toBe('-due_at');
+    expect(params.get('limit')).toBe('100');
+    expect(params.get('offset')).toBe('25');
+    req.flush({ items: [], total: 0 });
+  });
+
+  it('lists actions with no query params by default', () => {
+    api.listActions(ORG).subscribe();
+    const req = http.expectOne(`${BASE}/v1/orgs/${ORG}/actions`);
+    expect(req.request.params.keys()).toEqual([]);
+    req.flush({ items: [], total: 0 });
+  });
+
   it('posts a create-deviation body', () => {
     const body: CreateDeviationRequest = {
       type_id: 't-1',
