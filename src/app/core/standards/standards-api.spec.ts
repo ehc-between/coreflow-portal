@@ -3,6 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { APP_CONFIG } from '../config/app-config';
+import { SKIP_ERROR_TOAST } from '../http/error.interceptor';
 import { JOB_POLL_INTERVAL_MS, StandardsApi, isJobFinished } from './standards-api';
 import { StandardJob } from './standards.models';
 
@@ -62,19 +63,23 @@ describe('StandardsApi', () => {
     api.getTree(ORG, 'iso27001').subscribe();
     http.expectOne(`${ROOT}/standards/iso27001/tree`).flush([]);
 
-    api.getClause(ORG, 'iso27001', 'A.5.1').subscribe();
-    const req = http.expectOne(`${ROOT}/standards/iso27001/clauses/A.5.1`);
+    api.getClause(ORG, 'iso27001-2022', 'A.8.13').subscribe();
+    const req = http.expectOne(`${ROOT}/standards/iso27001-2022/clauses/A.8.13`);
     expect(req.request.method).toBe('GET');
     req.flush({});
   });
 
-  it('patches a requirement by its URL-encoded ref', () => {
+  it('patches a requirement by its opaque, qualified ref (encoded, without toasts)', () => {
     api
-      .updateRequirement(ORG, 'iso9001:4.1/1', { applicable: false, justification: 'n/a' })
+      .updateRequirement(ORG, 'iso27001-2022:A.8.13.r1', {
+        applicable: false,
+        justification: 'n/a',
+      })
       .subscribe();
-    const req = http.expectOne(`${ROOT}/standard-requirements/iso9001%3A4.1/1`);
+    const req = http.expectOne(`${ROOT}/standard-requirements/iso27001-2022%3AA.8.13.r1`);
     expect(req.request.method).toBe('PATCH');
     expect(req.request.body).toEqual({ applicable: false, justification: 'n/a' });
+    expect(req.request.context.get(SKIP_ERROR_TOAST)).toBe(true);
     req.flush({});
   });
 

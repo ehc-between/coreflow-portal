@@ -43,11 +43,19 @@ export function checklistItems(text: LocalizedText | null | undefined, lang: str
     .filter((line) => line.length > 0);
 }
 
-/** Status shown for a requirement: not-applicable wins over the coverage status. */
+/**
+ * Status shown for a requirement: not applicable when the org marked it so
+ * (`applicable: false`) or the server reports `not_applicable`.
+ */
 export function effectiveStatus(
   req: Pick<Requirement, 'status' | 'applicable'>,
 ): RequirementStatus {
   return req.applicable ? req.status : 'not_applicable';
+}
+
+/** Whether a requirement counts toward completeness (is applicable). */
+export function isApplicable(req: Pick<Requirement, 'status' | 'applicable'>): boolean {
+  return effectiveStatus(req) !== 'not_applicable';
 }
 
 export function statusLabelKey(status: RequirementStatus): string {
@@ -100,7 +108,7 @@ export function computeRollup(node: Pick<ClauseNode, 'requirements' | 'children'
   let notStarted = 0;
   const visit = (n: Pick<ClauseNode, 'requirements' | 'children'>): void => {
     for (const req of n.requirements) {
-      if (!req.applicable) {
+      if (!isApplicable(req)) {
         continue;
       }
       applicable++;
@@ -190,7 +198,7 @@ export function filterTree(
       parentHit ||
       !q ||
       node.number.toLowerCase().startsWith(q) ||
-      node.title.toLowerCase().includes(q);
+      localized(node.title, lang).toLowerCase().includes(q);
     const requirements = node.requirements.filter(
       (req) =>
         matchesFilter(req, filter) &&
@@ -224,7 +232,7 @@ export interface GapItem {
  * Every applicable requirement that is not started or only partially covered —
  * not-started first, then by clause number.
  */
-export function collectGaps(nodes: readonly ClauseNode[]): GapItem[] {
+export function collectGaps(nodes: readonly ClauseNode[], lang = 'en'): GapItem[] {
   const gaps: GapItem[] = [];
   const visit = (node: ClauseNode): void => {
     for (const req of node.requirements) {
@@ -234,7 +242,7 @@ export function collectGaps(nodes: readonly ClauseNode[]): GapItem[] {
           requirement: req,
           status,
           clauseNumber: node.number,
-          clauseTitle: node.title,
+          clauseTitle: localized(node.title, lang),
         });
       }
     }
@@ -283,12 +291,12 @@ export interface ChapterBar {
   readonly covered: number;
 }
 
-export function chapterBars(nodes: readonly ClauseNode[]): ChapterBar[] {
+export function chapterBars(nodes: readonly ClauseNode[], lang = 'en'): ChapterBar[] {
   return nodes
     .filter((n) => n.rollup.applicable > 0)
     .map((n) => ({
       number: n.number,
-      title: n.title,
+      title: localized(n.title, lang),
       pct: n.rollup.pct,
       applicable: n.rollup.applicable,
       covered: n.rollup.covered,
@@ -312,7 +320,7 @@ export interface RequirementOption {
   readonly standardKey: string;
   readonly standardName: string;
   readonly clauseNumber: string;
-  readonly clauseTitle: string;
+  readonly clauseTitle: LocalizedText;
   readonly text: LocalizedText;
 }
 
@@ -324,7 +332,7 @@ export function flattenRequirements(
   const out: RequirementOption[] = [];
   const visit = (node: ClauseNode): void => {
     for (const req of node.requirements) {
-      if (!req.applicable) {
+      if (!isApplicable(req)) {
         continue;
       }
       out.push({
@@ -361,7 +369,7 @@ export function searchRequirements(
     }
     const haystack = [
       option.clauseNumber,
-      option.clauseTitle,
+      localized(option.clauseTitle, lang),
       option.standardName,
       localized(option.text, lang),
     ]
@@ -375,4 +383,39 @@ export function searchRequirements(
     }
   }
   return hits;
+}
+
+/** A standards call whose failure is explained inline. */
+export type StandardsOperation = 'map' | 'extract' | 'save';
+
+/** Structured `detail.code` of an API error body, if any. */
+function errorCode(error: unknown): string | null {
+  const body = (error as { error?: unknown } | null)?.error;
+  const detail = (body as { detail?: unknown } | null)?.detail;
+  const code = (detail as { code?: unknown } | null)?.code;
+  return typeof code === 'string' ? code : null;
+}
+
+/**
+ * i18n key explaining a failed standards call: 409 `standard_not_enabled`
+ * (AI mapping), 409 `no_licensed_pdf` (extraction), 503 when AI isn't
+ * configured, and 422 `justification_required` (marking a requirement not
+ * applicable without a justification). Anything else gets the generic message.
+ */
+export function standardsErrorKey(error: unknown, op: StandardsOperation): string {
+  const status = (error as { status?: unknown } | null)?.status;
+  const code = errorCode(error);
+  if (code === 'standard_not_enabled') {
+    return 'standards.errors.notEnabled';
+  }
+  if (code === 'no_licensed_pdf') {
+    return 'standards.errors.noLicensedPdf';
+  }
+  if (code === 'justification_required') {
+    return 'standards.requirement.justificationRequired';
+  }
+  if (op === 'map' && status === 503) {
+    return 'standards.errors.aiUnavailable';
+  }
+  return op === 'save' ? 'standards.requirement.saveError' : 'standards.job.startFailed';
 }

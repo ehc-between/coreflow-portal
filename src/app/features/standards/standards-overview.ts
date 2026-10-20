@@ -15,7 +15,8 @@ import { HasPermissionDirective } from '../../core/auth/has-permission.directive
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { StandardsApi } from '../../core/standards/standards-api';
 import { ChapterBar, chapterBars, pctColor } from '../../core/standards/standards-data';
-import { StandardSummary } from '../../core/standards/standards.models';
+import { ClauseNode, StandardSummary } from '../../core/standards/standards.models';
+import { LanguageService } from '../../core/i18n/language.service';
 import { Badge } from '../../shared/ui/badge/badge';
 import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
@@ -223,9 +224,19 @@ import { ProgressRing } from '../../shared/ui/progress-ring/progress-ring';
 export class StandardsOverview {
   private readonly api = inject(StandardsApi);
   private readonly selectedOrg = inject(SelectedOrgService);
+  private readonly language = inject(LanguageService);
 
   protected readonly standards = signal<readonly StandardSummary[]>([]);
-  protected readonly bars = signal<Readonly<Record<string, readonly ChapterBar[]>>>({});
+  private readonly trees = signal<Readonly<Record<string, readonly ClauseNode[]>>>({});
+  /** Per-chapter bars, re-titled on language switch. */
+  protected readonly bars = computed(() => {
+    const lang = this.language.active();
+    const out: Record<string, readonly ChapterBar[]> = {};
+    for (const [key, tree] of Object.entries(this.trees())) {
+      out[key] = chapterBars(tree, lang);
+    }
+    return out;
+  });
   protected readonly loading = signal(true);
   protected readonly loadError = signal(false);
   protected readonly togglingKey = signal<string | null>(null);
@@ -273,7 +284,7 @@ export class StandardsOverview {
     this.sub?.unsubscribe();
     this.barsSub?.unsubscribe();
     this.standards.set([]);
-    this.bars.set({});
+    this.trees.set({});
     this.loadError.set(false);
     if (!orgId) {
       this.loading.set(false);
@@ -305,13 +316,13 @@ export class StandardsOverview {
       enabled.map((s) => [s.key, this.api.getTree(orgId, s.key).pipe(catchError(() => of(null)))]),
     );
     this.barsSub = forkJoin(requests).subscribe((trees) => {
-      const out: Record<string, readonly ChapterBar[]> = {};
+      const out: Record<string, readonly ClauseNode[]> = {};
       for (const [key, tree] of Object.entries(trees)) {
         if (tree) {
-          out[key] = chapterBars(tree);
+          out[key] = tree;
         }
       }
-      this.bars.set(out);
+      this.trees.set(out);
     });
   }
 }

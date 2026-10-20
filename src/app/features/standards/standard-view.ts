@@ -29,6 +29,7 @@ import {
   hasAnnexChildren,
   localized,
   pctColor,
+  standardsErrorKey,
   statusFilterLabelKey,
   statusLabelKey,
   statusTone,
@@ -155,9 +156,9 @@ const GAP_PREVIEW = 8;
             />
           </div>
         }
-        @if (mapStartError()) {
+        @if (mapStartError(); as key) {
           <p class="mb-4 text-[13px] text-fail" role="alert">
-            {{ 'standards.job.startFailed' | transloco }}
+            {{ key | transloco }}
           </p>
         }
 
@@ -310,9 +311,9 @@ const GAP_PREVIEW = 8;
                         (finished)="onExtractFinished($event)"
                       />
                     }
-                    @if (extractStartError()) {
+                    @if (extractStartError(); as key) {
                       <p class="text-[12.5px] text-fail" role="alert">
-                        {{ 'standards.job.startFailed' | transloco }}
+                        {{ key | transloco }}
                       </p>
                     }
                     <app-button
@@ -364,8 +365,8 @@ const GAP_PREVIEW = 8;
                 <span
                   class="truncate text-[13.5px] text-fg"
                   [class.font-semibold]="depth === 0"
-                  [title]="node.title"
-                  >{{ node.title }}</span
+                  [title]="text(node.title)"
+                  >{{ text(node.title) }}</span
                 >
               </a>
               @if (node.rollup.applicable > 0) {
@@ -492,11 +493,12 @@ export class StandardView {
   protected readonly mapJobId = signal<string | null>(null);
   protected readonly mapRunning = signal(false);
   protected readonly startingMap = signal(false);
-  protected readonly mapStartError = signal(false);
+  /** i18n key explaining why AI mapping couldn't start, or null. */
+  protected readonly mapStartError = signal<string | null>(null);
   protected readonly extractJobId = signal<string | null>(null);
   protected readonly extractRunning = signal(false);
   protected readonly startingExtract = signal(false);
-  protected readonly extractStartError = signal(false);
+  protected readonly extractStartError = signal<string | null>(null);
   protected readonly showAllGaps = signal(false);
 
   protected readonly filters = STATUS_FILTERS;
@@ -517,7 +519,7 @@ export class StandardView {
     filterTree(this.tree(), this.filter(), this.query(), this.language.active()),
   );
 
-  protected readonly gaps = computed(() => collectGaps(this.tree()));
+  protected readonly gaps = computed(() => collectGaps(this.tree(), this.language.active()));
   protected readonly shownGaps = computed(() =>
     this.showAllGaps() ? this.gaps() : this.gaps().slice(0, GAP_PREVIEW),
   );
@@ -596,16 +598,16 @@ export class StandardView {
       return;
     }
     this.startingMap.set(true);
-    this.mapStartError.set(false);
+    this.mapStartError.set(null);
     this.api.startAiMap(orgId, this.key()).subscribe({
       next: ({ job_id }) => {
         this.startingMap.set(false);
         this.mapRunning.set(true);
         this.mapJobId.set(job_id);
       },
-      error: () => {
+      error: (err: unknown) => {
         this.startingMap.set(false);
-        this.mapStartError.set(true);
+        this.mapStartError.set(standardsErrorKey(err, 'map'));
       },
     });
   }
@@ -624,16 +626,16 @@ export class StandardView {
       return;
     }
     this.startingExtract.set(true);
-    this.extractStartError.set(false);
+    this.extractStartError.set(null);
     this.api.extractLicensedText(orgId, this.key()).subscribe({
       next: ({ job_id }) => {
         this.startingExtract.set(false);
         this.extractRunning.set(true);
         this.extractJobId.set(job_id);
       },
-      error: () => {
+      error: (err: unknown) => {
         this.startingExtract.set(false);
-        this.extractStartError.set(true);
+        this.extractStartError.set(standardsErrorKey(err, 'extract'));
       },
     });
   }

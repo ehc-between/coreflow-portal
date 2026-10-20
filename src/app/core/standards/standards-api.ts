@@ -1,6 +1,8 @@
+import { HttpContext } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, exhaustMap, takeWhile, timer } from 'rxjs';
 import { ApiService } from '../http/api.service';
+import { SKIP_ERROR_TOAST } from '../http/error.interceptor';
 import {
   ClauseDetail,
   ClauseNode,
@@ -16,6 +18,9 @@ import {
 
 /** Default poll interval for background standards jobs. */
 export const JOB_POLL_INTERVAL_MS = 1500;
+
+/** Calls whose failures the pages explain inline (see `standardsErrorKey`). */
+const INLINE_ERRORS = { context: new HttpContext().set(SKIP_ERROR_TOAST, true) };
 
 /** A job is finished once it is neither queued nor running. */
 export function isJobFinished(job: StandardJob): boolean {
@@ -74,6 +79,7 @@ export class StandardsApi {
     return this.api.patch<RequirementDetail>(
       `${this.base(orgId)}/standard-requirements/${ref.split('/').map(encodeURIComponent).join('/')}`,
       patch,
+      INLINE_ERRORS,
     );
   }
 
@@ -114,6 +120,7 @@ export class StandardsApi {
     return this.api.post<StandardJobStarted>(
       `${this.base(orgId)}/standards/${encodeURIComponent(key)}/ai-map`,
       documentId ? { document_id: documentId } : {},
+      INLINE_ERRORS,
     );
   }
 
@@ -122,6 +129,7 @@ export class StandardsApi {
     return this.api.post<StandardJobStarted>(
       `${this.base(orgId)}/standards/${encodeURIComponent(key)}/licensed-text/extract`,
       {},
+      INLINE_ERRORS,
     );
   }
 

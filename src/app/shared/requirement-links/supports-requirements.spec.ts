@@ -33,7 +33,8 @@ function link(over: Partial<RequirementLink> = {}): RequirementLink {
 const TREE: ClauseNode[] = [
   {
     number: '7.5',
-    title: 'Documented information',
+    title: { en: 'Documented information', nb: 'Dokumentert informasjon' },
+    guidance: null,
     kind: 'clause',
     theme: null,
     summary: null,

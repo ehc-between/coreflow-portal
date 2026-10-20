@@ -1100,7 +1100,9 @@
       "subclauses": "Underklausuler",
       "requirements": "Krav ({{count}})",
       "noRequirements": "Denne klausulen har ingen egne krav.",
-      "notFound": "Fant ikke denne klausulen."
+      "notFound": "Fant ikke denne klausulen.",
+      "guidance": "Veiledning",
+      "guidanceHint": "CoreFlows egne råd om hvordan klausulen kan oppfylles."
     },
     "requirement": {
       "manual": "Satt manuelt",
@@ -1143,6 +1145,11 @@
       "searchPlaceholder": "Søk etter krav på klausul eller tekst …",
       "suggested": "Forslag — gjennomgå for å bekrefte",
       "remove": "Fjern koblingen til {{ref}}"
+    },
+    "errors": {
+      "notEnabled": "Aktiver standarden før du kobler med AI.",
+      "noLicensedPdf": "Last opp organisasjonens eksemplar av standarden først.",
+      "aiUnavailable": "Kobling med AI er ikke tilgjengelig akkurat nå."
     }
   }
 }

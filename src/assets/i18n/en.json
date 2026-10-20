@@ -1100,7 +1100,9 @@
       "subclauses": "Sub-clauses",
       "requirements": "Requirements ({{count}})",
       "noRequirements": "This clause has no requirements of its own.",
-      "notFound": "This clause wasn't found."
+      "notFound": "This clause wasn't found.",
+      "guidance": "Guidance",
+      "guidanceHint": "CoreFlow's own advice on how to meet this clause."
     },
     "requirement": {
       "manual": "Set manually",
@@ -1143,6 +1145,11 @@
       "searchPlaceholder": "Search requirements by clause or text …",
       "suggested": "Suggested — review to confirm",
       "remove": "Remove link to {{ref}}"
+    },
+    "errors": {
+      "notEnabled": "Enable this standard before mapping with AI.",
+      "noLicensedPdf": "Upload your organisation's copy of the standard first.",
+      "aiUnavailable": "AI mapping is not available right now."
     }
   }
 }

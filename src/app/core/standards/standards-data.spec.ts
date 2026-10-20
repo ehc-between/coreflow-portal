@@ -16,6 +16,7 @@ import {
   matchesFilter,
   replaceRequirement,
   searchRequirements,
+  standardsErrorKey,
   statusTone,
 } from './standards-data';
 import { ClauseNode, Requirement, RequirementStatus } from './standards.models';
@@ -39,7 +40,8 @@ function req(ref: string, status: RequirementStatus, over: Partial<Requirement> 
 function node(number: string, over: Partial<ClauseNode> = {}): ClauseNode {
   const base: ClauseNode = {
     number,
-    title: `Clause ${number}`,
+    title: { en: `Clause ${number}`, nb: `Klausul ${number}` },
+    guidance: null,
     kind: 'clause',
     theme: null,
     summary: null,
@@ -55,11 +57,11 @@ function node(number: string, over: Partial<ClauseNode> = {}): ClauseNode {
 function sampleTree(): ClauseNode[] {
   return [
     node('4', {
-      title: 'Context of the organization',
+      title: { en: 'Context of the organization', nb: 'Organisasjonens kontekst' },
       children: [
         node('4.1', { requirements: [req('r-4.1-a', 'covered')] }),
         node('4.2', {
-          title: 'Interested parties',
+          title: { en: 'Interested parties', nb: 'Interessenter' },
           requirements: [
             req('r-4.2-a', 'partial'),
             req('r-4.2-b', 'not_started', { applicable: false, justification: 'n/a' }),
@@ -68,7 +70,7 @@ function sampleTree(): ClauseNode[] {
       ],
     }),
     node('5', {
-      title: 'Leadership',
+      title: { en: 'Leadership', nb: 'Lederskap' },
       children: [node('5.1', { requirements: [req('r-5.1-a', 'not_started')] })],
     }),
   ];
@@ -156,7 +158,7 @@ describe('standards-data', () => {
     });
 
     it('chapterBars lists top-level chapters with applicable requirements', () => {
-      const tree = [...sampleTree(), node('A', { title: 'Annex' })];
+      const tree = [...sampleTree(), node('A', { title: { en: 'Annex', nb: 'Vedlegg' } })];
       expect(chapterBars(tree)).toEqual([
         { number: '4', title: 'Context of the organization', pct: 50, applicable: 2, covered: 1 },
         { number: '5', title: 'Leadership', pct: 0, applicable: 1, covered: 0 },
@@ -282,6 +284,73 @@ describe('standards-data', () => {
       expect(searchRequirements(options, '9001 5.1', 'en').map((o) => o.ref)).toEqual(['r-5.1-a']);
       expect(searchRequirements(options, 'krav', 'nb', new Set(['r-4.1-a'])).length).toBe(2);
       expect(searchRequirements(options, 'requirement', 'en', new Set(), 1).length).toBe(1);
+    });
+  });
+
+  describe('final API contract', () => {
+    it('treats a server-reported not_applicable status as not applicable everywhere', () => {
+      const tree = [
+        node('8', {
+          requirements: [
+            req('iso27001-2022:A.8.13.r1', 'covered'),
+            req('iso27001-2022:A.8.13.r2', 'not_applicable'),
+          ],
+        }),
+      ];
+      expect(tree[0].rollup).toEqual({
+        applicable: 1,
+        covered: 1,
+        partial: 0,
+        not_started: 0,
+        pct: 100,
+      });
+      expect(statusTone(effectiveStatus(tree[0].requirements[1]))).toBe('neutral');
+      expect(filterTree(tree, 'not_applicable')[0].requirements.map((r) => r.ref)).toEqual([
+        'iso27001-2022:A.8.13.r2',
+      ]);
+      expect(filterTree(tree, 'gaps')).toEqual([]);
+      expect(collectGaps(tree)).toEqual([]);
+      expect(flattenRequirements(tree, 'iso27001-2022', 'ISO 27001').map((o) => o.ref)).toEqual([
+        'iso27001-2022:A.8.13.r1',
+      ]);
+    });
+
+    it('localizes clause titles in bars, gaps, search and the picker', () => {
+      const tree = sampleTree();
+      expect(chapterBars(tree, 'nb').map((b) => b.title)).toEqual([
+        'Organisasjonens kontekst',
+        'Lederskap',
+      ]);
+      expect(collectGaps(tree, 'nb').map((g) => g.clauseTitle)).toEqual([
+        'Klausul 5.1',
+        'Interessenter',
+      ]);
+      expect(allNodeNumbers(filterTree(tree, 'all', 'interessenter', 'nb'))).toEqual(['4', '4.2']);
+      const options = flattenRequirements(tree, 'iso9001', 'ISO 9001');
+      expect(searchRequirements(options, 'interessenter', 'nb').map((o) => o.ref)).toEqual([
+        'r-4.2-a',
+      ]);
+    });
+
+    it('maps API errors to inline messages', () => {
+      const err = (status: number, code?: string) => ({
+        status,
+        error: code ? { detail: { code, message: 'x' } } : { detail: 'x' },
+      });
+      expect(standardsErrorKey(err(409, 'standard_not_enabled'), 'map')).toBe(
+        'standards.errors.notEnabled',
+      );
+      expect(standardsErrorKey(err(503), 'map')).toBe('standards.errors.aiUnavailable');
+      expect(standardsErrorKey(err(500), 'map')).toBe('standards.job.startFailed');
+      expect(standardsErrorKey(err(409, 'no_licensed_pdf'), 'extract')).toBe(
+        'standards.errors.noLicensedPdf',
+      );
+      expect(standardsErrorKey(err(503), 'extract')).toBe('standards.job.startFailed');
+      expect(standardsErrorKey(err(422, 'justification_required'), 'save')).toBe(
+        'standards.requirement.justificationRequired',
+      );
+      expect(standardsErrorKey(err(500), 'save')).toBe('standards.requirement.saveError');
+      expect(standardsErrorKey(null, 'save')).toBe('standards.requirement.saveError');
     });
   });
 });

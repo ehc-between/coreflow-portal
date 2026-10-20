@@ -19,6 +19,7 @@ import {
   checklistItems,
   effectiveStatus,
   localized,
+  standardsErrorKey,
   statusLabelKey,
   statusTone,
 } from '../../core/standards/standards-data';
@@ -350,9 +351,9 @@ export function entityRoute(type: LinkEntityType, id: string): readonly string[]
                     (ngModelChange)="formNote.set($event)"
                   ></textarea>
                 </app-form-field>
-                @if (saveError()) {
+                @if (saveError(); as key) {
                   <p class="text-[12.5px] text-fail" role="alert">
-                    {{ 'standards.requirement.saveError' | transloco }}
+                    {{ key | transloco }}
                   </p>
                 }
                 <div class="flex justify-end gap-2">
@@ -391,7 +392,8 @@ export class RequirementCard {
 
   protected readonly editing = signal(false);
   protected readonly saving = signal(false);
-  protected readonly saveError = signal(false);
+  /** i18n key explaining a failed save, or null. */
+  protected readonly saveError = signal<string | null>(null);
   protected readonly formApplicable = signal(true);
   protected readonly formJustification = signal('');
   protected readonly formOverride = signal<'' | CoverageOverride>('');
@@ -497,7 +499,7 @@ export class RequirementCard {
     this.formOverride.set(req.status_override ?? '');
     this.formNote.set(req.note ?? '');
     this.justificationMissing.set(false);
-    this.saveError.set(false);
+    this.saveError.set(null);
     this.editing.set(true);
   }
 
@@ -514,7 +516,7 @@ export class RequirementCard {
     }
     this.justificationMissing.set(false);
     this.saving.set(true);
-    this.saveError.set(false);
+    this.saveError.set(null);
     this.api
       .updateRequirement(orgId, this.requirement().ref, {
         applicable,
@@ -528,9 +530,9 @@ export class RequirementCard {
           this.editing.set(false);
           this.updated.emit(req);
         },
-        error: () => {
+        error: (err: unknown) => {
           this.saving.set(false);
-          this.saveError.set(true);
+          this.saveError.set(standardsErrorKey(err, 'save'));
         },
       });
   }

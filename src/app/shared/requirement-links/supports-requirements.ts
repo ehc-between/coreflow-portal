@@ -97,7 +97,7 @@ import { Icon } from '../ui/icon/icon';
                     >
                       <span class="block text-[11.5px] text-fg-subtle"
                         >{{ option.standardName }} · {{ option.clauseNumber }}
-                        {{ option.clauseTitle }}</span
+                        {{ title(option) }}</span
                       >
                       <span class="line-clamp-2 block text-[12.5px] text-fg">{{
                         text(option)
@@ -242,6 +242,10 @@ export class SupportsRequirements {
 
   protected text(option: RequirementOption): string {
     return localized(option.text, this.language.active());
+  }
+
+  protected title(option: RequirementOption): string {
+    return localized(option.clauseTitle, this.language.active());
   }
 
   protected standardName(key: string): string {

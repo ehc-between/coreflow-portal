@@ -52,7 +52,10 @@ export type ClauseKind = 'clause' | 'annex_control';
 
 /** A requirement inside the clause tree. */
 export interface Requirement {
-  /** Stable requirement reference (unique across standards). */
+  /**
+   * Opaque, standard-qualified requirement reference ("<standard key>:<ref>",
+   * e.g. "iso27001-2022:A.8.13.r1"). Always sent back exactly as received.
+   */
   readonly ref: string;
   readonly text: LocalizedText;
   readonly evidence_examples: LocalizedText;
@@ -71,12 +74,15 @@ export interface Requirement {
 /** A node of `GET standards/{key}/tree`. */
 export interface ClauseNode {
   readonly number: string;
-  readonly title: string;
+  /** Clause title — our own Norwegian translation, falling back to English. */
+  readonly title: LocalizedText;
   readonly kind: ClauseKind;
   /** Annex A control theme (e.g. "organizational"); null for regular clauses. */
   readonly theme: string | null;
   /** Our own explanation; may be empty. */
   readonly summary: LocalizedText | null;
+  /** Our own implementation guidance, when the catalogue has any. */
+  readonly guidance: LocalizedText | null;
   readonly rollup: ClauseRollup;
   readonly children: readonly ClauseNode[];
   readonly requirements: readonly Requirement[];
@@ -118,7 +124,10 @@ export interface RequirementLink {
   readonly clause_number: string;
   readonly entity_type: LinkEntityType;
   readonly entity_id: string;
-  /** Display label of the linked record (null if it no longer resolves). */
+  /**
+   * Display label of the linked record (null if it no longer resolves). For
+   * deviations this is the code only, never the title.
+   */
   readonly entity_label: string | null;
   readonly status: LinkStatus;
   readonly source: LinkSource;

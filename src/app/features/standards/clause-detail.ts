@@ -19,7 +19,11 @@ import { LanguageService } from '../../core/i18n/language.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { StandardsApi } from '../../core/standards/standards-api';
 import { localized, pctColor } from '../../core/standards/standards-data';
-import { ClauseDetail, RequirementDetail } from '../../core/standards/standards.models';
+import {
+  ClauseDetail,
+  LocalizedText,
+  RequirementDetail,
+} from '../../core/standards/standards.models';
 import { Badge } from '../../shared/ui/badge/badge';
 import { Card } from '../../shared/ui/card/card';
 import { Icon } from '../../shared/ui/icon/icon';
@@ -73,7 +77,7 @@ import { themeKey } from './standard-themes';
               }
             </div>
             <h1 class="font-display text-[24px] font-bold tracking-[-0.025em] text-fg">
-              {{ c.title }}
+              {{ text(c.title) }}
             </h1>
           </div>
           @if (c.rollup.applicable > 0) {
@@ -94,6 +98,18 @@ import { themeKey } from './standard-themes';
               </h2>
               <p class="mb-2 text-[11.5px] text-fg-subtle">
                 {{ 'standards.clause.explanationHint' | transloco }}
+              </p>
+              <p class="text-[14px] leading-relaxed whitespace-pre-line text-fg">{{ text }}</p>
+            </app-card>
+          }
+
+          @if (guidance(); as text) {
+            <app-card>
+              <h2 class="mb-1 font-display text-[15px] font-bold tracking-[-0.02em] text-fg">
+                {{ 'standards.clause.guidance' | transloco }}
+              </h2>
+              <p class="mb-2 text-[11.5px] text-fg-subtle">
+                {{ 'standards.clause.guidanceHint' | transloco }}
               </p>
               <p class="text-[14px] leading-relaxed whitespace-pre-line text-fg">{{ text }}</p>
             </app-card>
@@ -139,7 +155,7 @@ import { themeKey } from './standard-themes';
                         child.number
                       }}</span>
                       <span class="min-w-0 flex-1 truncate text-[13.5px] text-fg">{{
-                        child.title
+                        text(child.title)
                       }}</span>
                       @if (child.rollup.applicable > 0) {
                         <span class="text-[12px] font-semibold text-fg-muted"
@@ -207,6 +223,14 @@ export class ClauseDetailPage {
   protected readonly summary = computed(() =>
     localized(this.clause()?.summary, this.language.active()),
   );
+
+  protected readonly guidance = computed(() =>
+    localized(this.clause()?.guidance, this.language.active()),
+  );
+
+  protected text(value: LocalizedText | null | undefined): string {
+    return localized(value, this.language.active());
+  }
 
   protected readonly canManage = computed(() =>
     (this.selectedOrg.currentOrg()?.permissions ?? []).includes('standards:manage'),
