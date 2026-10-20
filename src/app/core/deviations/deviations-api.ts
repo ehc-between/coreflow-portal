@@ -1,6 +1,8 @@
+import { HttpContext } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from '../http/api.service';
+import { SKIP_ERROR_TOAST } from '../http/error.interceptor';
 import {
   AccessGrant,
   AccessGrantInput,
@@ -16,6 +18,7 @@ import {
   DeviationListItem,
   DeviationListResponse,
   DeviationStats,
+  DeviationStatus,
   DeviationType,
   DeviationTypeDraftResponse,
   DeviationTypeInput,
@@ -122,6 +125,26 @@ export class DeviationsApi {
     patch: UpdateDeviationRequest,
   ): Observable<DeviationDetail> {
     return this.api.patch<DeviationDetail>(`v1/orgs/${orgId}/deviations/${deviationId}`, patch);
+  }
+
+  /**
+   * Move a deviation to another workflow status (`PATCH {status, status_reason?}`).
+   * The generic error toast is suppressed: a 409 carries a workflow code
+   * (`invalid_transition`, `reason_required`, `open_actions`, …) the caller
+   * explains in place, and the caller toasts any other failure itself.
+   */
+  changeStatus(
+    orgId: string,
+    deviationId: string,
+    status: DeviationStatus,
+    statusReason?: string,
+  ): Observable<DeviationDetail> {
+    const body: UpdateDeviationRequest = statusReason
+      ? { status, status_reason: statusReason }
+      : { status };
+    return this.api.patch<DeviationDetail>(`v1/orgs/${orgId}/deviations/${deviationId}`, body, {
+      context: new HttpContext().set(SKIP_ERROR_TOAST, true),
+    });
   }
 
   deleteDeviation(orgId: string, deviationId: string): Observable<void> {

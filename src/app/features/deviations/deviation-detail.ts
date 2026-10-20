@@ -3,11 +3,13 @@ import { DatePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  ElementRef,
   computed,
   effect,
   inject,
   input,
   signal,
+  viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -25,22 +27,38 @@ import {
   FieldDef,
   Severity,
   Source,
-  UpdateDeviationRequest,
+  Standard,
 } from '../../core/deviations/deviation.models';
 import { DeviationsApi } from '../../core/deviations/deviations-api';
+import { httpErrorMessageKey } from '../../core/http/error.interceptor';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
+import { Alert } from '../../shared/ui/alert/alert';
 import { Badge } from '../../shared/ui/badge/badge';
 import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
+import { ConfirmDialog } from '../../shared/ui/confirm-dialog/confirm-dialog';
 import { Attachments } from '../../shared/attachments/attachments';
 import { Icon } from '../../shared/ui/icon/icon';
 import { DeviationAccessEditor } from './access/deviation-access-editor';
 import { DeviationActions } from './actions/deviation-actions';
+import { DeviationClassificationFields } from './classification-fields';
+import { ClauseRow, buildDeviationPatch, editFormFrom } from './deviation-edit';
+import {
+  STATUS_REASON_MAX,
+  StatusMenuEntry,
+  WorkflowError,
+  editLockKey,
+  isStillBlocked,
+  lacksEditReach,
+  parseWorkflowError,
+  statusLockedKey,
+  statusMenuEntries,
+  workflowReasonKey,
+} from './deviation-workflow';
 import {
   SEVERITY_OPTIONS,
   SOURCE_OPTIONS,
-  STATUS_OPTIONS,
   isOverdue,
   severityLabelKey,
   severityTone,
@@ -52,14 +70,25 @@ import {
 import { DynamicField, DynamicFieldOption } from './dynamic-field';
 import { groupFieldsIntoSections } from './types/type-schema';
 
+/** A rejected status change: the workflow error plus the status that was attempted. */
+type StatusRejection = WorkflowError & {
+  readonly status: DeviationStatus;
+  /** i18n key explaining the rejection, resolved when it happened. */
+  readonly reasonKey: string;
+};
+
 /**
  * Deviation detail, scoped to the currently selected org. A header band (code,
  * title, type, status / severity badges, standards + clauses, owner, raised /
  * due / closed dates) over the body — core fields plus the type's dynamic `data`
  * rendered read-only, switchable into an inline editor (reusing
  * {@link DynamicField}). Alongside: the CAPA actions panel, the audit-trail
- * timeline and the access / sharing panel. Status changes and delete are inline.
- * 404 / no-access shows a not-found card; navigates back to the list on org switch.
+ * timeline and the access / sharing panel. The status menu offers only the
+ * workflow's `allowed_transitions` (blocked ones disabled with an explanation),
+ * asks for a reason where required and explains a 409 rejection in place,
+ * highlighting the blocking actions. Delete goes through the shared confirm
+ * dialog. 404 / no-access shows a not-found card; navigates back to the list on
+ * org switch.
  */
 @Component({
   selector: 'app-deviation-detail',
@@ -76,7 +105,10 @@ import { groupFieldsIntoSections } from './types/type-schema';
     DynamicField,
     DeviationActions,
     DeviationAccessEditor,
+    DeviationClassificationFields,
     Attachments,
+    Alert,
+    ConfirmDialog,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -117,49 +149,74 @@ import { groupFieldsIntoSections } from './types/type-schema';
 
           <div class="flex flex-none items-center gap-2">
             @if (!editing()) {
-              <div *appHasPermission="'deviations:write'" class="relative">
-                <app-button variant="secondary" (click)="toggleStatusMenu($event)">
+              <div
+                *appHasPermission="'deviations:write'"
+                #statusTrigger
+                class="relative"
+                [attr.title]="statusLockedKey() ? (statusLockedKey()! | transloco) : null"
+                data-testid="status-trigger"
+              >
+                <app-button
+                  variant="secondary"
+                  [disabled]="statusLockedKey() !== null"
+                  (click)="toggleStatusMenu($event)"
+                >
                   <app-icon name="flag" [size]="15" />
                   {{ 'deviations.detail.changeStatus' | transloco }}
                   <app-icon name="chevron" [size]="14" />
                 </app-button>
                 @if (statusMenuOpen()) {
                   <div
-                    class="animate-cf-pop absolute right-0 z-30 mt-1.5 w-52 rounded-tile border border-border bg-surface p-1 shadow-pop"
+                    class="animate-cf-pop absolute right-0 z-30 mt-1.5 w-72 rounded-tile border border-border bg-surface p-1 shadow-pop"
+                    data-testid="status-menu"
                   >
-                    @for (option of statusOptions; track option) {
+                    <div
+                      class="flex w-full items-center gap-2 px-2.5 py-2 text-[13.5px] font-semibold text-fg"
+                    >
+                      <app-icon name="check" [size]="15" class="text-accent" />
+                      {{ statusLabelKey(dev.status) | transloco }}
+                    </div>
+                    @for (entry of statusEntries(); track entry.status) {
                       <button
                         type="button"
-                        [disabled]="savingStatus() || option === dev.status"
-                        (click)="changeStatus(option)"
-                        class="flex w-full items-center gap-2 rounded-[8px] px-2.5 py-2 text-left text-[13.5px] text-fg hover:bg-surface-2 disabled:opacity-50"
+                        [disabled]="savingStatus() || entry.blockedBy !== null"
+                        [attr.data-status]="entry.status"
+                        (click)="pickStatus(entry)"
+                        class="flex w-full items-start gap-2 rounded-[8px] px-2.5 py-2 text-left text-[13.5px] text-fg hover:bg-surface-2 disabled:cursor-not-allowed disabled:hover:bg-transparent"
                       >
-                        @if (option === dev.status) {
-                          <app-icon name="check" [size]="15" class="text-accent" />
-                        } @else {
-                          <span class="w-[15px]"></span>
-                        }
-                        {{ statusLabelKey(option) | transloco }}
+                        <span class="mt-0.5 w-[15px] flex-none"></span>
+                        <span class="min-w-0 flex-1">
+                          <span class="block" [class.opacity-50]="entry.blockedBy !== null">{{
+                            statusLabelKey(entry.status) | transloco
+                          }}</span>
+                          @if (entry.blockedBy) {
+                            <span class="mt-0.5 block text-[12px] text-fg-muted">{{
+                              reasonKeyFor(entry.blockedBy, entry.status) | transloco
+                            }}</span>
+                          } @else if (entry.requiresReason) {
+                            <span class="mt-0.5 block text-[12px] text-fg-subtle">{{
+                              'deviations.workflow.reasonHint' | transloco
+                            }}</span>
+                          }
+                        </span>
                       </button>
                     }
                   </div>
                 }
               </div>
 
-              <app-button
-                *appHasPermission="'deviations:write'"
-                variant="secondary"
-                (click)="startEdit(dev)"
-              >
-                <app-icon name="procedures" [size]="15" />
-                {{ 'deviations.detail.edit' | transloco }}
-              </app-button>
+              @if (canEditThis()) {
+                <app-button variant="secondary" (click)="startEdit(dev)">
+                  <app-icon name="procedures" [size]="15" />
+                  {{ 'deviations.detail.edit' | transloco }}
+                </app-button>
+              }
 
               <app-button
                 *appHasPermission="'deviations:manage'"
                 variant="secondary"
                 [loading]="deleting()"
-                (click)="remove()"
+                (click)="confirmDelete.set(true)"
               >
                 <app-icon name="x" [size]="15" />
                 {{ 'deviations.detail.delete' | transloco }}
@@ -175,6 +232,46 @@ import { groupFieldsIntoSections } from './types/type-schema';
             }
           </div>
         </div>
+
+        @if (canWrite() && editLockKey(); as lockKey) {
+          <div class="mb-[18px]" data-testid="edit-lock-note">
+            <app-alert tone="info">{{ lockKey | transloco }}</app-alert>
+          </div>
+        }
+
+        @if (workflowError(); as wfError) {
+          <div class="mb-[18px] flex flex-col gap-2" data-testid="workflow-error">
+            <app-alert tone="error">
+              {{
+                'deviations.workflow.rejected'
+                  | transloco
+                    : {
+                        status: (statusLabelKey(wfError.status) | transloco),
+                        reason: (wfError.reasonKey | transloco),
+                      }
+              }}
+            </app-alert>
+            @if (wfError.blocking.length) {
+              <div class="rounded-tile border border-fail/30 bg-surface px-3 py-2">
+                <p class="text-[12.5px] font-semibold text-fg-muted">
+                  {{ 'deviations.workflow.blockingActions' | transloco }}
+                </p>
+                <ul class="mt-1 list-disc pl-5 text-[13px] text-fg">
+                  @for (b of wfError.blocking; track b.action_id) {
+                    <li>{{ b.description }}</li>
+                  }
+                </ul>
+              </div>
+            }
+            <button
+              type="button"
+              (click)="workflowError.set(null)"
+              class="w-fit text-[12.5px] font-semibold text-fg-muted hover:text-fg hover:underline"
+            >
+              {{ 'deviations.workflow.dismiss' | transloco }}
+            </button>
+          </div>
+        }
 
         <div class="grid gap-5 lg:grid-cols-[1fr_320px]">
           <div class="flex flex-col gap-5">
@@ -224,8 +321,20 @@ import { groupFieldsIntoSections } from './types/type-schema';
                 </div>
               </div>
 
-              @if (dev.standards.length || dev.clauses.length || dev.tags.length) {
+              @if (
+                dev.standards.length || dev.clauses.length || dev.tags.length || dev.department_id
+              ) {
                 <div class="mt-4 flex flex-col gap-2.5 border-t border-border pt-4">
+                  @if (dev.department_id) {
+                    <div class="flex flex-wrap items-center gap-1.5">
+                      <span class="text-[12px] font-semibold text-fg-subtle">{{
+                        'deviations.create.fields.department' | transloco
+                      }}</span>
+                      <span class="text-[13px] text-fg">{{
+                        departmentName(dev.department_id)
+                      }}</span>
+                    </div>
+                  }
                   @if (dev.standards.length) {
                     <div class="flex flex-wrap items-center gap-1.5">
                       <span class="text-[12px] font-semibold text-fg-subtle">{{
@@ -436,6 +545,33 @@ import { groupFieldsIntoSections } from './types/type-schema';
                     </div>
                   </div>
 
+                  <!-- Classification: department, standards, clauses, tags -->
+                  <div class="flex flex-col gap-4 border-t border-border pt-4">
+                    <div class="flex flex-col gap-1.5 sm:max-w-[50%]">
+                      <label for="edit-dept" class="text-[13px] font-semibold text-fg-muted">
+                        {{ 'deviations.create.fields.department' | transloco }}
+                      </label>
+                      <div class="cf-select">
+                        <select
+                          id="edit-dept"
+                          [ngModel]="departmentId()"
+                          (ngModelChange)="departmentId.set($event)"
+                        >
+                          <option value="">{{ 'deviations.create.none' | transloco }}</option>
+                          @for (dept of departments(); track dept.id) {
+                            <option [value]="dept.id">{{ dept.name }}</option>
+                          }
+                        </select>
+                      </div>
+                    </div>
+                    <app-deviation-classification-fields
+                      idPrefix="edit"
+                      [(standards)]="standards"
+                      [(clauses)]="clauses"
+                      [(tags)]="tags"
+                    />
+                  </div>
+
                   @if (schemaSections().length) {
                     <div class="flex flex-col gap-6 border-t border-border pt-4">
                       @for (section of schemaSections(); track section.title) {
@@ -471,14 +607,19 @@ import { groupFieldsIntoSections } from './types/type-schema';
                 [deviationId]="dev.id"
                 [actions]="actions()"
                 [owners]="owners()"
-                [canEdit]="canWrite()"
+                [canEdit]="canEditThis()"
+                [highlighted]="blockingActionIds()"
                 (actionsChange)="actions.set($event)"
                 (changed)="reloadEvents()"
               />
             </app-card>
 
             <app-card>
-              <app-attachments entityType="deviation" [entityId]="dev.id" [canEdit]="canWrite()" />
+              <app-attachments
+                entityType="deviation"
+                [entityId]="dev.id"
+                [canEdit]="canWrite() && !lacksEditReach()"
+              />
             </app-card>
           </div>
 
@@ -553,6 +694,57 @@ import { groupFieldsIntoSections } from './types/type-schema';
             }
           </div>
         </div>
+
+        <app-confirm-dialog
+          [open]="confirmDelete()"
+          [busy]="deleting()"
+          [title]="'deviations.detail.deleteTitle' | transloco"
+          [message]="'deviations.detail.deleteConfirm' | transloco: { code: dev.code }"
+          [confirmLabel]="'deviations.detail.delete' | transloco"
+          [cancelLabel]="'deviations.detail.cancel' | transloco"
+          (confirmed)="remove()"
+          (cancelled)="confirmDelete.set(false)"
+        />
+
+        <app-confirm-dialog
+          [open]="reasonFor() !== null"
+          [busy]="savingStatus()"
+          confirmVariant="primary"
+          [confirmDisabled]="!statusReason().trim()"
+          initialFocus="#status-reason"
+          [returnFocus]="statusTriggerButton()"
+          [title]="
+            'deviations.workflow.reasonTitle'
+              | transloco: { status: (statusLabelKey(reasonFor() ?? dev.status) | transloco) }
+          "
+          [message]="'deviations.workflow.reasonPrompt' | transloco"
+          [confirmLabel]="'deviations.workflow.reasonConfirm' | transloco"
+          [cancelLabel]="'deviations.detail.cancel' | transloco"
+          (confirmed)="submitReason()"
+          (cancelled)="closeReason()"
+        >
+          <div class="mt-3 flex flex-col gap-1.5">
+            <label for="status-reason" class="text-[13px] font-semibold text-fg-muted">
+              {{ 'deviations.workflow.reasonLabel' | transloco }}
+              <span class="text-fail" aria-hidden="true">*</span>
+            </label>
+            <textarea
+              id="status-reason"
+              rows="3"
+              [value]="statusReason()"
+              [maxLength]="reasonMax"
+              aria-describedby="status-reason-count"
+              (input)="statusReason.set($any($event.target).value)"
+              class="w-full rounded-[10px] border border-border bg-bg px-3 py-2.5 text-[13.5px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
+            ></textarea>
+            <p id="status-reason-count" class="text-right text-[12px] text-fg-subtle">
+              {{
+                'deviations.workflow.reasonCount'
+                  | transloco: { count: statusReason().length, max: reasonMax }
+              }}
+            </p>
+          </div>
+        </app-confirm-dialog>
       } @else {
         <app-card>
           <div class="px-2 py-10 text-center text-[14px] text-fg-muted">
@@ -599,7 +791,6 @@ export class DeviationDetail {
 
   protected readonly orgId = this.selectedOrg.currentOrgId;
 
-  protected readonly statusOptions = STATUS_OPTIONS;
   protected readonly severityOptions = SEVERITY_OPTIONS;
   protected readonly sourceOptions = SOURCE_OPTIONS;
   protected readonly statusTone = statusTone;
@@ -624,6 +815,21 @@ export class DeviationDetail {
   protected readonly statusMenuOpen = signal(false);
   protected readonly savingStatus = signal(false);
   protected readonly deleting = signal(false);
+  protected readonly confirmDelete = signal(false);
+
+  // Status workflow state
+  /** Target status awaiting a reason (the reason dialog is open while set). */
+  protected readonly reasonFor = signal<DeviationStatus | null>(null);
+  protected readonly statusReason = signal('');
+  /** The last status change the workflow rejected (409), explained in place. */
+  protected readonly workflowError = signal<StatusRejection | null>(null);
+  protected readonly blockingActionIds = computed(() =>
+    (this.workflowError()?.blocking ?? []).map((b) => b.action_id),
+  );
+  protected readonly statusEntries = computed<readonly StatusMenuEntry[]>(() => {
+    const dev = this.deviation();
+    return dev ? statusMenuEntries(dev) : [];
+  });
 
   // Edit mode state
   protected readonly editing = signal(false);
@@ -635,6 +841,10 @@ export class DeviationDetail {
   protected readonly dueAt = signal('');
   protected readonly rootCause = signal('');
   protected readonly rootCauseMethod = signal('');
+  protected readonly standards = signal<readonly Standard[]>([]);
+  protected readonly clauses = signal<readonly ClauseRow[]>([]);
+  protected readonly tags = signal<readonly string[]>([]);
+  protected readonly departmentId = signal('');
   protected readonly data = signal<Record<string, unknown>>({});
   protected readonly dataErrors = signal<Record<string, string>>({});
   protected readonly titleError = signal(false);
@@ -650,10 +860,34 @@ export class DeviationDetail {
     ),
   );
 
-  /** Whether the current user can edit (drives the actions panel controls too). */
+  /** Whether the current user holds org-level write. */
   protected readonly canWrite = computed(() =>
     (this.selectedOrg.currentOrg()?.permissions ?? []).includes('deviations:write'),
   );
+  private readonly canManage = computed(() =>
+    (this.selectedOrg.currentOrg()?.permissions ?? []).includes('deviations:manage'),
+  );
+
+  /** Org write but no edit reach on this (restricted) deviation. */
+  protected readonly lacksEditReach = computed(() => {
+    const dev = this.deviation();
+    return dev ? lacksEditReach(dev) : false;
+  });
+  /** Why the deviation can't be edited right now (closed / no reach), or null. */
+  protected readonly editLockKey = computed(() => {
+    const dev = this.deviation();
+    return dev ? editLockKey(dev) : null;
+  });
+  /** Edit + action controls: org write, and the deviation is open to edits. */
+  protected readonly canEditThis = computed(() => this.canWrite() && this.editLockKey() === null);
+  /** Why "Change status" is disabled (no transitions offered), or null. */
+  protected readonly statusLockedKey = computed(() => {
+    const dev = this.deviation();
+    return dev ? statusLockedKey(dev) : null;
+  });
+
+  protected readonly reasonMax = STATUS_REASON_MAX;
+  private readonly statusTrigger = viewChild<ElementRef<HTMLElement>>('statusTrigger');
 
   private currentOrgId: string | null = null;
 
@@ -675,6 +909,10 @@ export class DeviationDetail {
 
   protected overdue(dev: DeviationDetailModel): boolean {
     return isOverdue(dev.due_at, dev.status);
+  }
+
+  protected departmentName(id: string): string {
+    return this.departments().find((d) => d.id === id)?.name ?? '—';
   }
 
   protected optionsFor(type: string): readonly DynamicFieldOption[] {
@@ -726,8 +964,26 @@ export class DeviationDetail {
     }
   }
 
+  /** Explanation key for a workflow code on a move to `to` (permission-phrased for reopening). */
+  protected reasonKeyFor(
+    code: string | null | undefined,
+    to: DeviationStatus,
+    from: DeviationStatus = this.deviation()?.status ?? to,
+  ): string {
+    return workflowReasonKey(code, { from, to, canManage: this.canManage() });
+  }
+
+  /** The native "Change status" button, so the reason dialog can return focus to it. */
+  protected statusTriggerButton(): HTMLElement | null {
+    const host = this.statusTrigger()?.nativeElement;
+    return host?.querySelector<HTMLElement>('button') ?? host ?? null;
+  }
+
   protected toggleStatusMenu(event: Event): void {
     event.stopPropagation();
+    if (this.statusLockedKey() !== null) {
+      return;
+    }
     this.statusMenuOpen.update((open) => !open);
   }
 
@@ -737,7 +993,39 @@ export class DeviationDetail {
     }
   }
 
-  protected changeStatus(status: DeviationStatus): void {
+  /** A status-menu pick: blocked entries are inert, reason-required ones open the dialog. */
+  protected pickStatus(entry: StatusMenuEntry): void {
+    if (entry.blockedBy !== null || this.savingStatus()) {
+      return;
+    }
+    this.statusMenuOpen.set(false);
+    if (entry.requiresReason) {
+      this.openReason(entry.status);
+      return;
+    }
+    this.changeStatus(entry.status);
+  }
+
+  protected submitReason(): void {
+    const status = this.reasonFor();
+    const reason = this.statusReason().trim();
+    if (status === null || !reason) {
+      return;
+    }
+    this.changeStatus(status, reason);
+  }
+
+  protected closeReason(): void {
+    this.reasonFor.set(null);
+    this.statusReason.set('');
+  }
+
+  private openReason(status: DeviationStatus): void {
+    this.statusReason.set('');
+    this.reasonFor.set(status);
+  }
+
+  protected changeStatus(status: DeviationStatus, reason?: string): void {
     const orgId = this.orgId();
     const dev = this.deviation();
     if (!orgId || !dev || this.savingStatus() || status === dev.status) {
@@ -745,14 +1033,45 @@ export class DeviationDetail {
     }
     this.statusMenuOpen.set(false);
     this.savingStatus.set(true);
-    this.api.updateDeviation(orgId, dev.id, { status }).subscribe({
+    this.api.changeStatus(orgId, dev.id, status, reason).subscribe({
       next: (updated) => {
         this.savingStatus.set(false);
+        this.closeReason();
+        this.workflowError.set(null);
         this.applyUpdated(updated);
         this.notifications.success('deviations.detail.statusChangedToast');
       },
-      error: () => this.savingStatus.set(false),
+      error: (error: unknown) => {
+        this.savingStatus.set(false);
+        this.handleStatusError(status, reason, error);
+      },
     });
+  }
+
+  private handleStatusError(status: DeviationStatus, reason: string | undefined, error: unknown) {
+    const rejection = parseWorkflowError(error);
+    if (!rejection) {
+      // The generic toast is suppressed for this request; 401/403 belong to the auth layer.
+      if (error instanceof HttpErrorResponse && error.status !== 401 && error.status !== 403) {
+        this.notifications.error(httpErrorMessageKey(error.status));
+      }
+      return;
+    }
+    if (rejection.code === 'reason_required' && !reason) {
+      // The menu didn't know a reason was needed (stale data / older API): ask now.
+      this.openReason(status);
+      return;
+    }
+    const from = this.deviation()?.status ?? status;
+    this.closeReason();
+    // Explained inline only (alert + highlighted actions); no toast on top.
+    this.workflowError.set({
+      ...rejection,
+      status,
+      reasonKey: this.reasonKeyFor(rejection.code, status, from),
+    });
+    // The allowed transitions / actions may be stale; refresh them in place.
+    this.refreshDeviation();
   }
 
   protected remove(): void {
@@ -761,30 +1080,35 @@ export class DeviationDetail {
     if (!orgId || !dev || this.deleting()) {
       return;
     }
-    const message = this.transloco.translate('deviations.detail.deleteConfirm', { code: dev.code });
-    if (!globalThis.confirm(message)) {
-      return;
-    }
     this.deleting.set(true);
     this.api.deleteDeviation(orgId, dev.id).subscribe({
       next: () => {
         this.deleting.set(false);
+        this.confirmDelete.set(false);
         this.notifications.info('deviations.detail.deletedToast');
         void this.router.navigateByUrl('/deviations');
       },
-      error: () => this.deleting.set(false),
+      error: () => {
+        this.deleting.set(false);
+        this.confirmDelete.set(false);
+      },
     });
   }
 
   protected startEdit(dev: DeviationDetailModel): void {
-    this.title.set(dev.title);
-    this.description.set(dev.description ?? '');
-    this.severity.set(dev.severity);
-    this.source.set(dev.source);
-    this.dueAt.set(dev.due_at ? dev.due_at.slice(0, 10) : '');
-    this.rootCause.set(dev.root_cause ?? '');
-    this.rootCauseMethod.set(dev.root_cause_method ?? '');
-    this.data.set({ ...dev.data });
+    const form = editFormFrom(dev);
+    this.title.set(form.title);
+    this.description.set(form.description);
+    this.severity.set(form.severity);
+    this.source.set(form.source);
+    this.dueAt.set(form.dueAt);
+    this.rootCause.set(form.rootCause);
+    this.rootCauseMethod.set(form.rootCauseMethod);
+    this.standards.set(form.standards);
+    this.clauses.set(form.clauses);
+    this.tags.set(form.tags);
+    this.departmentId.set(form.departmentId);
+    this.data.set(form.data);
     this.dataErrors.set({});
     this.titleError.set(false);
     this.editing.set(true);
@@ -818,7 +1142,20 @@ export class DeviationDetail {
     }
     this.titleError.set(false);
 
-    const patch = this.buildPatch(dev);
+    const patch = buildDeviationPatch(dev, {
+      title: this.title(),
+      description: this.description(),
+      severity: this.severity(),
+      source: this.source(),
+      dueAt: this.dueAt(),
+      rootCause: this.rootCause(),
+      rootCauseMethod: this.rootCauseMethod(),
+      standards: this.standards(),
+      clauses: this.clauses(),
+      tags: this.tags(),
+      departmentId: this.departmentId(),
+      data: this.data(),
+    });
     if (Object.keys(patch).length === 0) {
       this.editing.set(false);
       return;
@@ -831,6 +1168,7 @@ export class DeviationDetail {
         this.savingEdit.set(false);
         this.editing.set(false);
         this.applyUpdated(updated);
+        this.clearResolvedWorkflowError();
         this.notifications.success('deviations.detail.savedToast');
       },
       error: (error: unknown) => {
@@ -838,46 +1176,6 @@ export class DeviationDetail {
         this.handleEditError(error);
       },
     });
-  }
-
-  /** Only send fields that actually changed (data is sent whole if any key differs). */
-  private buildPatch(dev: DeviationDetailModel): UpdateDeviationRequest {
-    const patch: Record<string, unknown> = {};
-    const title = this.title().trim();
-    if (title !== dev.title) {
-      patch['title'] = title;
-    }
-    const description = this.description().trim();
-    if (description !== (dev.description ?? '')) {
-      patch['description'] = description;
-    }
-    if (this.severity() !== dev.severity) {
-      patch['severity'] = this.severity();
-    }
-    if (this.source() !== dev.source) {
-      patch['source'] = this.source();
-    }
-    const due = this.dueAt() || undefined;
-    const currentDue = dev.due_at ? dev.due_at.slice(0, 10) : undefined;
-    if (due !== currentDue) {
-      patch['due_at'] = this.dueAt() || null;
-    }
-    const rootCause = this.rootCause().trim();
-    if (rootCause !== (dev.root_cause ?? '')) {
-      patch['root_cause'] = rootCause;
-    }
-    const rootCauseMethod = this.rootCauseMethod().trim();
-    if (rootCauseMethod !== (dev.root_cause_method ?? '')) {
-      patch['root_cause_method'] = rootCauseMethod;
-    }
-    if (this.dataChanged(dev.data)) {
-      patch['data'] = this.data();
-    }
-    return patch as UpdateDeviationRequest;
-  }
-
-  private dataChanged(original: Record<string, unknown>): boolean {
-    return JSON.stringify(original) !== JSON.stringify(this.data());
   }
 
   private handleEditError(error: unknown): void {
@@ -935,7 +1233,38 @@ export class DeviationDetail {
       next: (dev) => {
         this.events.set(dev.events);
         this.actions.set(dev.actions);
+        // Action changes can unblock (or block) transitions such as closing.
+        const current = this.deviation();
+        if (current) {
+          this.deviation.set({ ...current, allowed_transitions: dev.allowed_transitions });
+        }
+        this.clearResolvedWorkflowError();
       },
+    });
+  }
+
+  /**
+   * Drop the 409 explanation (and its action highlight) once fresh transitions
+   * show the attempted status is no longer blocked. Not run on the refresh right
+   * after the 409 itself, so the explanation always shows at least once.
+   */
+  private clearResolvedWorkflowError(): void {
+    const error = this.workflowError();
+    const dev = this.deviation();
+    if (error && dev && !isStillBlocked(dev, error.status)) {
+      this.workflowError.set(null);
+    }
+  }
+
+  /** Re-fetch the deviation (allowed transitions, actions, events) without a loading state. */
+  private refreshDeviation(): void {
+    const orgId = this.orgId();
+    const dev = this.deviation();
+    if (!orgId || !dev) {
+      return;
+    }
+    this.api.getDeviation(orgId, dev.id).subscribe({
+      next: (fresh) => this.applyUpdated(fresh),
     });
   }
 
@@ -950,6 +1279,9 @@ export class DeviationDetail {
     this.loading.set(true);
     this.editing.set(false);
     this.access.set(null);
+    this.workflowError.set(null);
+    this.closeReason();
+    this.confirmDelete.set(false);
     this.api.getDeviation(orgId, id).subscribe({
       next: (dev) => {
         this.deviation.set(dev);

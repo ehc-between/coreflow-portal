@@ -239,6 +239,42 @@ export interface DeviationDetail extends DeviationListItem {
   readonly data: Record<string, unknown>;
   readonly actions: readonly Action[];
   readonly events: readonly DeviationEvent[];
+  /**
+   * Status transitions the workflow offers from the current status. Blocked
+   * ones carry `blocked_by`. Optional so an API without the workflow rules
+   * still renders.
+   */
+  readonly allowed_transitions?: readonly DeviationTransition[];
+}
+
+/** Error codes the deviation workflow returns (409) or uses to block a transition. */
+export type WorkflowErrorCode =
+  | 'invalid_transition'
+  | 'reason_required'
+  | 'root_cause_required'
+  | 'open_actions'
+  | 'verification_required'
+  | 'deviation_closed';
+
+/** One status the deviation can move to, as offered by `GET deviations/{id}`. */
+export interface DeviationTransition {
+  readonly to: DeviationStatus;
+  readonly requires_reason: boolean;
+  /** Present when the transition is currently blocked; explains why. */
+  readonly blocked_by?: WorkflowErrorCode | null;
+}
+
+/** An action that blocks a status transition (e.g. still open when closing). */
+export interface WorkflowBlockingAction {
+  readonly action_id: string;
+  readonly description: string;
+}
+
+/** The `detail` body of a 409 from a rejected status change. */
+export interface WorkflowErrorDetail {
+  readonly code: WorkflowErrorCode;
+  readonly message: string;
+  readonly blocking?: readonly WorkflowBlockingAction[];
 }
 
 /** Body for creating a deviation. `data` holds the dynamic schema values. */
@@ -269,12 +305,16 @@ export interface UpdateDeviationRequest {
   readonly tags?: readonly string[];
   readonly severity?: Severity;
   readonly status?: DeviationStatus;
+  /** Why the status is changing (max 2000 chars); required by transitions with `requires_reason`. */
+  readonly status_reason?: string;
   readonly source?: Source;
   readonly owner_user_id?: string;
-  readonly department_id?: string;
+  /** `null` clears the department. */
+  readonly department_id?: string | null;
   readonly due_at?: string;
   readonly root_cause?: string;
-  readonly root_cause_method?: string;
+  /** `null` clears the method. */
+  readonly root_cause_method?: string | null;
   readonly data?: Record<string, unknown>;
   readonly visibility?: DeviationVisibility;
 }
