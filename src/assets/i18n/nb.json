@@ -1281,7 +1281,6 @@
     "loadError": "Kunne ikke laste standardene. Prøv igjen.",
     "notFound": "Fant ikke denne standarden.",
     "backToOverview": "Alle standarder",
-    "backToStandard": "Tilbake til standarden",
     "completeness": "Dekningsgrad",
     "edition": "Utgave {{edition}}",
     "counts": {
@@ -1297,7 +1296,6 @@
       "not_applicable": "Ikke relevant"
     },
     "filter": {
-      "label": "Filtrer på status",
       "all": "Alle",
       "gaps": "Mangler"
     },
@@ -1329,20 +1327,14 @@
       "coveredOf": "{{covered}} av {{total}} krav dekket",
       "mapWithAi": "Koble med AI",
       "notEnabled": "Denne standarden er ikke aktivert for organisasjonen, så fremdriften følges ikke.",
-      "searchPlaceholder": "Søk i klausuler og krav …",
-      "expandAll": "Utvid alle",
       "collapseAll": "Skjul alle",
       "expand": "Utvid {{number}}",
       "collapse": "Skjul {{number}}",
-      "noMatches": "Ingen krav samsvarer med filteret.",
       "evidenceCount": "{{count}} koblede bevis",
       "suggestionCount": "{{count}} forslag til gjennomgang"
     },
     "gaps": {
-      "title": "Mangler",
-      "none": "Ingen mangler — alle relevante krav er dekket.",
-      "showAll": "Vis alle {{count}}",
-      "showLess": "Vis færre"
+      "none": "Ingen mangler — alle relevante krav er dekket."
     },
     "job": {
       "mapping": "Kobler registreringene til kravene …",
@@ -1363,15 +1355,11 @@
     },
     "clause": {
       "control": "Vedleggstiltak",
-      "explanation": "Hva dette betyr",
       "explanationHint": "CoreFlows egen forklaring — ikke teksten i standarden.",
       "licensedText": "Standardens tekst",
       "licensedBadge": "Fra deres lisensierte eksemplar",
       "licensedHint": "Hentet fra eksemplaret av standarden som organisasjonen har lastet opp.",
-      "subclauses": "Underklausuler",
       "requirements": "Krav ({{count}})",
-      "noRequirements": "Denne klausulen har ingen egne krav.",
-      "notFound": "Fant ikke denne klausulen.",
       "guidance": "Veiledning",
       "guidanceHint": "CoreFlows egne råd om hvordan klausulen kan oppfylles."
     },
@@ -1424,6 +1412,25 @@
       "notEnabled": "Aktiver standarden før du kobler med AI.",
       "noLicensedPdf": "Last opp organisasjonens eksemplar av standarden først.",
       "aiUnavailable": "Kobling med AI er ikke tilgjengelig akkurat nå."
+    },
+    "workspace": {
+      "contents": "Innhold",
+      "tocLabel": "Innholdsfortegnelse: {{name}}",
+      "searchPlaceholder": "Filtrer på nummer eller tittel",
+      "onlyGaps": "Bare mangler",
+      "noTocMatches": "Ingen avsnitt samsvarer.",
+      "hideContents": "Skjul innhold",
+      "resize": "Endre bredden på innholdet",
+      "shortcutsHint": "Snarveier: j / k neste og forrige avsnitt, / søk i innholdet.",
+      "previous": "Forrige avsnitt",
+      "next": "Neste avsnitt",
+      "sectionNav": "Naviger fra avsnitt {{number}}",
+      "breadcrumb": "Plassering i standarden",
+      "licensedCopy": "Lisensiert eksemplar",
+      "close": "Lukk",
+      "noLicensedText": "Eksemplaret deres har ingen tekst for denne klausulen.",
+      "licensedError": "Kunne ikke hente teksten fra eksemplaret. Prøv igjen.",
+      "empty": "Denne standarden har ingen avsnitt."
     }
   }
 }

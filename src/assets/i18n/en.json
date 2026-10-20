@@ -1281,7 +1281,6 @@
     "loadError": "Couldn't load your standards. Try again.",
     "notFound": "This standard wasn't found.",
     "backToOverview": "All standards",
-    "backToStandard": "Back to standard",
     "completeness": "Completeness",
     "edition": "Edition {{edition}}",
     "counts": {
@@ -1297,7 +1296,6 @@
       "not_applicable": "Not applicable"
     },
     "filter": {
-      "label": "Filter by status",
       "all": "All",
       "gaps": "Gaps"
     },
@@ -1329,20 +1327,14 @@
       "coveredOf": "{{covered}} of {{total}} requirements covered",
       "mapWithAi": "Map with AI",
       "notEnabled": "This standard is not enabled for your organisation, so progress is not tracked.",
-      "searchPlaceholder": "Search clauses and requirements …",
-      "expandAll": "Expand all",
       "collapseAll": "Collapse all",
       "expand": "Expand {{number}}",
       "collapse": "Collapse {{number}}",
-      "noMatches": "No requirements match this filter.",
       "evidenceCount": "{{count}} linked evidence",
       "suggestionCount": "{{count}} suggestions to review"
     },
     "gaps": {
-      "title": "Gaps",
-      "none": "No gaps — every applicable requirement is covered.",
-      "showAll": "Show all {{count}}",
-      "showLess": "Show fewer"
+      "none": "No gaps — every applicable requirement is covered."
     },
     "job": {
       "mapping": "Mapping your records to the requirements …",
@@ -1363,15 +1355,11 @@
     },
     "clause": {
       "control": "Annex control",
-      "explanation": "What this means",
       "explanationHint": "CoreFlow's own explanation — not the text of the standard.",
       "licensedText": "Standard text",
       "licensedBadge": "From your licensed copy",
       "licensedHint": "Taken from the copy of the standard your organisation uploaded.",
-      "subclauses": "Sub-clauses",
       "requirements": "Requirements ({{count}})",
-      "noRequirements": "This clause has no requirements of its own.",
-      "notFound": "This clause wasn't found.",
       "guidance": "Guidance",
       "guidanceHint": "CoreFlow's own advice on how to meet this clause."
     },
@@ -1424,6 +1412,25 @@
       "notEnabled": "Enable this standard before mapping with AI.",
       "noLicensedPdf": "Upload your organisation's copy of the standard first.",
       "aiUnavailable": "AI mapping is not available right now."
+    },
+    "workspace": {
+      "contents": "Contents",
+      "tocLabel": "Table of contents: {{name}}",
+      "searchPlaceholder": "Filter by number or title",
+      "onlyGaps": "Only gaps",
+      "noTocMatches": "No sections match.",
+      "hideContents": "Hide contents",
+      "resize": "Resize contents",
+      "shortcutsHint": "Shortcuts: j / k next and previous section, / search contents.",
+      "previous": "Previous section",
+      "next": "Next section",
+      "sectionNav": "Navigate from section {{number}}",
+      "breadcrumb": "Location in the standard",
+      "licensedCopy": "Licensed copy",
+      "close": "Close",
+      "noLicensedText": "Your copy has no text for this clause.",
+      "licensedError": "Couldn't load the text from your copy. Try again.",
+      "empty": "This standard has no sections."
     }
   }
 }
