@@ -124,6 +124,20 @@ export interface DocumentDetail {
   readonly pending_change_request?: PendingChangeRequest | null;
   /** Why the document was made obsolete (set with status `obsolete`). */
   readonly obsolete_reason?: string | null;
+  /** Whether the caller may delete this document now (their rights and its state). */
+  readonly can_delete?: boolean;
+  /** Deleting needs a recorded reason (an obsolete document). */
+  readonly delete_requires_reason?: boolean;
+}
+
+/** A soft-deleted document, as listed for org admins (`GET documents/deleted`). */
+export interface DeletedDocument {
+  readonly id: string;
+  readonly title: string;
+  readonly doc_code: string | null;
+  readonly deleted_at: string;
+  readonly deleted_by_name: string | null;
+  readonly deleted_reason: string | null;
 }
 
 /** Who may see a document: open to the whole org, or restricted to named subjects. */

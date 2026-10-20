@@ -294,6 +294,25 @@
       },
       "obsoleteNotice": "This document is obsolete"
     },
+    "delete": {
+      "title": "Delete document",
+      "action": "Delete",
+      "hint": "Removes this document and its revision history.",
+      "hintObsolete": "Removes this obsolete document. You'll be asked for a reason. The reason is kept with the deleted document's record for administrators.",
+      "blockedHint": "Approved documents can't be deleted. Make it obsolete instead; an organization administrator can then delete it.",
+      "adminOnlyHint": "Only an organization administrator can delete obsolete documents.",
+      "confirmTitle": "Delete {{code}}?",
+      "confirmBody": "The document and its revision history are removed. This can't be undone.",
+      "reasonBody": "The document and its revision history are removed. This can't be undone. The reason is kept with the deleted document's record for administrators.",
+      "reasonLabel": "Reason for deletion",
+      "reasonPlaceholder": "Why is this document being deleted?",
+      "deletedToast": "Document deleted.",
+      "errors": {
+        "hasApprovedRevision": "Approved documents can't be deleted. Make it obsolete instead; an organization administrator can then delete it.",
+        "reasonRequired": "Add a reason before deleting an obsolete document.",
+        "notFound": "This document no longer exists."
+      }
+    },
     "review": {
       "title": "Periodic review",
       "overdue": "Review overdue",
@@ -352,6 +371,20 @@
     "title": "Org Settings",
     "subtitle": "Manage settings for the current organization.",
     "noOrg": "Select an organization to manage its settings.",
+    "deletedDocuments": {
+      "title": "Deleted documents",
+      "subtitle": "Documents removed from this organization, newest first.",
+      "open": "View deleted documents",
+      "back": "Back to settings",
+      "empty": "No documents have been deleted.",
+      "loadError": "Couldn't load deleted documents.",
+      "document": "Document",
+      "deletedAt": "Deleted",
+      "deletedBy": "Deleted by",
+      "reason": "Reason",
+      "unknownUser": "Unknown user",
+      "noReason": "No reason given"
+    },
     "save": "Save",
     "cancel": "Cancel",
     "departments": {

@@ -47,6 +47,22 @@ describe('documentErrorKey', () => {
     );
   });
 
+  it('translates the delete error codes and statuses', () => {
+    expect(
+      documentErrorKey(httpError(409, { detail: { code: 'has_approved_revision' } }), 'delete'),
+    ).toBe('documents.delete.errors.hasApprovedRevision');
+    expect(
+      documentErrorKey(httpError(422, { detail: { code: 'reason_required' } }), 'delete'),
+    ).toBe('documents.delete.errors.reasonRequired');
+    expect(documentErrorKey(httpError(409), 'delete')).toBe(
+      'documents.delete.errors.hasApprovedRevision',
+    );
+    // A 422 without the code is plain validation: generic, not "reason required".
+    expect(documentErrorKey(httpError(422), 'delete')).toBe('errors.generic');
+    expect(documentErrorKey(httpError(404), 'delete')).toBe('documents.delete.errors.notFound');
+    expect(documentErrorKey(httpError(403), 'delete')).toBe('documents.workflow.errors.forbidden');
+  });
+
   it('falls back to neutral messages', () => {
     expect(documentErrorKey(httpError(0), 'approve')).toBe('errors.network');
     expect(documentErrorKey(httpError(503), 'approve')).toBe('errors.server');

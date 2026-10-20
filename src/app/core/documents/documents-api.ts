@@ -13,6 +13,7 @@ import {
   CommentStatus,
   CreateCommentRequest,
   CreateDocumentRequest,
+  DeletedDocument,
   DocumentAccess,
   DocumentAcknowledgements,
   DocumentControlUpdate,
@@ -139,6 +140,30 @@ export class DocumentsApi {
   /** Retire a document with a recorded reason (`documents:approve`). */
   obsolete(orgId: string, documentId: string, reason: string): Observable<DocumentDetail> {
     return this.workflow(orgId, documentId, 'obsolete', { reason });
+  }
+
+  /**
+   * Delete a document (204). A trimmed `reason` is sent when given — required
+   * for an obsolete document (422 `reason_required`); 409
+   * `has_approved_revision` when it must be made obsolete first.
+   */
+  delete(orgId: string, documentId: string, reason?: string | null): Observable<void> {
+    const trimmed = reason?.trim();
+    return this.api.delete<void>(`v1/orgs/${orgId}/documents/${documentId}`, {
+      ...IN_PLACE,
+      body: trimmed ? { reason: trimmed } : undefined,
+    });
+  }
+
+  /** Soft-deleted documents in the org, newest first (`org:manage`). */
+  listDeleted(orgId: string): Observable<DeletedDocument[]> {
+    return this.api
+      .get<DeletedDocument[]>(`v1/orgs/${orgId}/documents/deleted`)
+      .pipe(
+        map((items) =>
+          [...items].sort((a, b) => Date.parse(b.deleted_at) - Date.parse(a.deleted_at)),
+        ),
+      );
   }
 
   /** Record that the caller has read and understood the current approved revision. */

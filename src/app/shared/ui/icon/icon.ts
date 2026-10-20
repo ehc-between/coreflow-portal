@@ -122,6 +122,9 @@ const ICONS: Record<string, IconDef> = {
   inbox: {
     parts: ['M4 13l2.2-7.5h11.6L20 13', 'M4 13v6h16v-6', 'M4 13h4l1.2 2.2h5.6L16 13h4'],
   },
+  trash: {
+    parts: ['M4 7h16', 'M9.5 7V4.5h5V7', 'M6.5 7l.9 12.5h9.2L17.5 7', 'M10 11v5', 'M14 11v5'],
+  },
   checkcircle: { parts: [{ c: [12, 12, 9] }, 'M8.5 12l2.3 2.3L15.6 9.4'] },
   upload: { parts: ['M12 16V5', 'M8 9l4-4 4 4', 'M5 19h14'] },
   grip: {

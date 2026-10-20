@@ -294,6 +294,25 @@
       },
       "obsoleteNotice": "Dokumentet er utgått"
     },
+    "delete": {
+      "title": "Slett dokument",
+      "action": "Slett",
+      "hint": "Fjerner dokumentet og revisjonshistorikken.",
+      "hintObsolete": "Fjerner dette utgåtte dokumentet. Du blir bedt om en begrunnelse. Begrunnelsen lagres sammen med det slettede dokumentet og er synlig for administratorer.",
+      "blockedHint": "Godkjente dokumenter kan ikke slettes. Gjør dokumentet utgått i stedet; en administrator kan deretter slette det.",
+      "adminOnlyHint": "Bare en administrator for organisasjonen kan slette utgåtte dokumenter.",
+      "confirmTitle": "Slette {{code}}?",
+      "confirmBody": "Dokumentet og revisjonshistorikken fjernes. Dette kan ikke angres.",
+      "reasonBody": "Dokumentet og revisjonshistorikken fjernes. Dette kan ikke angres. Begrunnelsen lagres sammen med det slettede dokumentet og er synlig for administratorer.",
+      "reasonLabel": "Begrunnelse for sletting",
+      "reasonPlaceholder": "Hvorfor slettes dokumentet?",
+      "deletedToast": "Dokumentet er slettet.",
+      "errors": {
+        "hasApprovedRevision": "Godkjente dokumenter kan ikke slettes. Gjør dokumentet utgått i stedet; en administrator kan deretter slette det.",
+        "reasonRequired": "Legg inn en begrunnelse før du sletter et utgått dokument.",
+        "notFound": "Dokumentet finnes ikke lenger."
+      }
+    },
     "review": {
       "title": "Periodisk gjennomgang",
       "overdue": "Gjennomgang forfalt",
@@ -352,6 +371,20 @@
     "title": "Organisasjonsinnstillinger",
     "subtitle": "Administrer innstillinger for gjeldende organisasjon.",
     "noOrg": "Velg en organisasjon for å administrere innstillingene.",
+    "deletedDocuments": {
+      "title": "Slettede dokumenter",
+      "subtitle": "Dokumenter som er fjernet fra organisasjonen, nyeste først.",
+      "open": "Vis slettede dokumenter",
+      "back": "Tilbake til innstillinger",
+      "empty": "Ingen dokumenter er slettet.",
+      "loadError": "Kunne ikke laste slettede dokumenter.",
+      "document": "Dokument",
+      "deletedAt": "Slettet",
+      "deletedBy": "Slettet av",
+      "reason": "Begrunnelse",
+      "unknownUser": "Ukjent bruker",
+      "noReason": "Ingen begrunnelse oppgitt"
+    },
     "save": "Lagre",
     "cancel": "Avbryt",
     "departments": {
