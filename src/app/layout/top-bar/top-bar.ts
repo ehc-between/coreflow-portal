@@ -1,23 +1,22 @@
 import { ChangeDetectionStrategy, Component, HostListener, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { AuthService } from '../../core/auth/auth.service';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { ThemeService } from '../../core/theme/theme.service';
 import { AskPanelService } from '../../features/ask/ask-panel.service';
 import { CommandPaletteService } from '../../features/command-palette/command-palette.service';
 import { LanguageSwitcher } from '../../shared/language-switcher/language-switcher';
-import { Avatar } from '../../shared/ui/avatar/avatar';
 import { Icon } from '../../shared/ui/icon/icon';
+import { AccountMenu } from '../account-menu/account-menu';
 
 /**
  * Application top bar (58px): brand, ⌘K search button that opens the command
  * palette, theme toggle, language switcher, notifications bell, a spark button
- * that opens the Ask CoreFlow chat, and the current user's avatar.
+ * that opens the Ask CoreFlow chat, and the current user's account menu.
  */
 @Component({
   selector: 'app-top-bar',
-  imports: [RouterLink, TranslocoPipe, Icon, Avatar, LanguageSwitcher],
+  imports: [RouterLink, TranslocoPipe, Icon, LanguageSwitcher, AccountMenu],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <header
@@ -103,15 +102,12 @@ import { Icon } from '../../shared/ui/icon/icon';
           <app-icon name="spark" [size]="18" />
         </button>
 
-        <span class="ml-1">
-          <app-avatar [name]="auth.displayName()" size="md" />
-        </span>
+        <app-account-menu />
       </div>
     </header>
   `,
 })
 export class TopBar {
-  protected readonly auth = inject(AuthService);
   protected readonly theme = inject(ThemeService);
   protected readonly ask = inject(AskPanelService);
   protected readonly palette = inject(CommandPaletteService);

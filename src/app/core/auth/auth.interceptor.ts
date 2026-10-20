@@ -5,11 +5,22 @@ import { Observable, catchError, switchMap, throwError } from 'rxjs';
 import { APP_CONFIG } from '../config/app-config';
 import { AuthService } from './auth.service';
 
-/** Auth endpoints that manage the session themselves — never add a bearer / retry. */
-const AUTH_ENDPOINTS = ['/v1/auth/login', '/v1/auth/refresh', '/v1/auth/logout'];
+/**
+ * Auth endpoints that manage the session themselves or are public — never add a
+ * bearer / retry. Matched on the exact path suffix so that e.g. `logout-all`
+ * (which DOES need the bearer) is not mistaken for `logout`.
+ */
+const AUTH_ENDPOINTS = [
+  '/v1/auth/login',
+  '/v1/auth/refresh',
+  '/v1/auth/logout',
+  '/v1/auth/password-reset/request',
+  '/v1/auth/password-reset/confirm',
+];
 
 function isAuthEndpoint(url: string): boolean {
-  return AUTH_ENDPOINTS.some((path) => url.includes(path));
+  const path = url.split(/[?#]/)[0].replace(/\/+$/, '');
+  return AUTH_ENDPOINTS.some((endpoint) => path.endsWith(endpoint));
 }
 
 function withBearer(req: HttpRequest<unknown>, token: string): HttpRequest<unknown> {

@@ -87,6 +87,8 @@ const ICONS: Record<string, IconDef> = {
   arrow: { parts: ['M5 12h14', 'M13 6l6 6-6 6'] },
   back: { parts: ['M19 12H5', 'M11 6l-6 6 6 6'] },
   lock: { parts: ['M6 11h12v9H6z', 'M9 11V8a3 3 0 016 0v3'] },
+  logout: { parts: ['M10 4H5v16h5', 'M15 8l4 4-4 4', 'M19 12H9'] },
+  devices: { parts: ['M3 5h13v9H3z', 'M7 18h5', 'M9.5 14v4', 'M18 9h3v10h-3z'] },
   comment: { parts: ['M21 12a8 8 0 01-11.6 7.1L4 20l1-4.4A8 8 0 1121 12z'] },
   history: {
     parts: [{ c: [12, 12, 8.5] }, 'M12 7.5V12l3.2 1.8', 'M3.5 7.5l1 1.6 1.7-.8'],
