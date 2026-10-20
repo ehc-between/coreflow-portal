@@ -9,6 +9,9 @@ export interface LocalizedText {
   readonly nb: string;
 }
 
+/** Per-language lists (e.g. typical evidence); a language may be missing. */
+export type LocalizedList = Readonly<Partial<Record<'en' | 'nb', readonly string[]>>>;
+
 /** Coverage status of a single requirement. */
 export type RequirementStatus = 'covered' | 'partial' | 'not_started' | 'not_applicable';
 
@@ -58,7 +61,8 @@ export interface Requirement {
    */
   readonly ref: string;
   readonly text: LocalizedText;
-  readonly evidence_examples: LocalizedText;
+  /** Typical evidence, one item per entry. */
+  readonly evidence_examples: LocalizedList | null;
   readonly status: RequirementStatus;
   readonly applicable: boolean;
   readonly justification: string | null;

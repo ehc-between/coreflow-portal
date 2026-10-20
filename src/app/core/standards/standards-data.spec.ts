@@ -25,7 +25,7 @@ function req(ref: string, status: RequirementStatus, over: Partial<Requirement> 
   return {
     ref,
     text: { en: `Requirement ${ref}`, nb: `Krav ${ref}` },
-    evidence_examples: { en: '', nb: '' },
+    evidence_examples: { en: [], nb: [] },
     status,
     applicable: true,
     justification: null,
@@ -89,9 +89,29 @@ describe('standards-data', () => {
   });
 
   describe('checklistItems', () => {
-    it('splits lines and strips bullets / numbering', () => {
-      const text = { en: '- Policy document\n* Minutes\n\n1. Records\n2) Log', nb: '' };
-      expect(checklistItems(text, 'en')).toEqual(['Policy document', 'Minutes', 'Records', 'Log']);
+    // The real API shape: per-language arrays of strings.
+    const examples = {
+      en: ['Information security policy', '  Topic-specific policies ', ''],
+      nb: ['Informasjonssikkerhetspolicy', 'Temaspesifikke retningslinjer'],
+    };
+
+    it('returns the active language items, trimmed, without blanks', () => {
+      expect(checklistItems(examples, 'en')).toEqual([
+        'Information security policy',
+        'Topic-specific policies',
+      ]);
+      expect(checklistItems(examples, 'nb')).toEqual([
+        'Informasjonssikkerhetspolicy',
+        'Temaspesifikke retningslinjer',
+      ]);
+    });
+
+    it('falls back to English, then Norwegian, then nothing', () => {
+      expect(checklistItems({ en: ['A'] }, 'nb')).toEqual(['A']);
+      expect(checklistItems({ en: [], nb: ['B'] }, 'en')).toEqual(['B']);
+      expect(checklistItems({ en: ['A'], nb: ['B'] }, 'de')).toEqual(['A']);
+      expect(checklistItems({}, 'en')).toEqual([]);
+      expect(checklistItems(null, 'en')).toEqual([]);
     });
   });
 
@@ -351,6 +371,83 @@ describe('standards-data', () => {
       );
       expect(standardsErrorKey(err(500), 'save')).toBe('standards.requirement.saveError');
       expect(standardsErrorKey(null, 'save')).toBe('standards.requirement.saveError');
+    });
+  });
+
+  describe('real catalogue shape (excerpt of iso27001-2022, Annex A.5.1)', () => {
+    // Mirrors GET standards/iso27001-2022/tree: qualified refs, {en, nb} titles,
+    // per-language evidence arrays, theme on the control group and controls.
+    const reqApi = (n: number, status: RequirementStatus, en: string[], nb: string[]) =>
+      req(`iso27001-2022:A.5.1.r${n}`, status, { evidence_examples: { en, nb } });
+    const control = node('A.5.1', {
+      title: {
+        en: 'Policies for information security',
+        nb: 'Retningslinjer for informasjonssikkerhet',
+      },
+      kind: 'annex_control',
+      theme: 'organizational',
+      requirements: [
+        reqApi(
+          1,
+          'covered',
+          ['Information security policy', 'Topic-specific policies', 'Approval workflow log'],
+          [
+            'Informasjonssikkerhetspolicy',
+            'Temaspesifikke retningslinjer',
+            'Logg over godkjenningsflyt',
+          ],
+        ),
+        reqApi(
+          2,
+          'partial',
+          ['Intranet page or employee handbook', 'Policy acknowledgement records'],
+          [
+            'Intranettside eller personalhåndbok',
+            'Kvitteringer for lest og forstått retningslinje',
+          ],
+        ),
+        reqApi(3, 'not_started', ['Version history', 'Management review minutes'], []),
+      ],
+    });
+    const group = node('A.5', {
+      title: { en: 'Organizational controls', nb: 'Organisatoriske tiltak' },
+      theme: 'organizational',
+      children: [control],
+    });
+    const annex = node('A', {
+      title: { en: 'Information security controls reference', nb: 'Referanse for tiltak' },
+      children: [group],
+    });
+
+    it('rolls up, filters and lists gaps on the real shape', () => {
+      expect(annex.rollup).toEqual({
+        applicable: 3,
+        covered: 1,
+        partial: 1,
+        not_started: 1,
+        pct: 33,
+      });
+      expect(hasAnnexChildren(group)).toBe(true);
+      expect(groupByTheme(group.children).map((g) => g.theme)).toEqual(['organizational']);
+      expect(collectGaps([annex], 'nb').map((g) => [g.clauseNumber, g.clauseTitle])).toEqual([
+        ['A.5.1', 'Retningslinjer for informasjonssikkerhet'],
+        ['A.5.1', 'Retningslinjer for informasjonssikkerhet'],
+      ]);
+      expect(allNodeNumbers(filterTree([annex], 'all', 'A.5.1'))).toEqual(['A', 'A.5', 'A.5.1']);
+    });
+
+    it('renders the evidence checklist from the arrays (no string parsing)', () => {
+      const [r1, , r3] = control.requirements;
+      expect(checklistItems(r1.evidence_examples, 'nb')).toEqual([
+        'Informasjonssikkerhetspolicy',
+        'Temaspesifikke retningslinjer',
+        'Logg over godkjenningsflyt',
+      ]);
+      // nb missing for r3 -> English fallback.
+      expect(checklistItems(r3.evidence_examples, 'nb')).toEqual([
+        'Version history',
+        'Management review minutes',
+      ]);
     });
   });
 });

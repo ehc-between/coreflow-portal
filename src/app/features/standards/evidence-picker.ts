@@ -2,13 +2,23 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  computed,
   inject,
   output,
   signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { Subject, Subscription, catchError, debounceTime, map, of, switchMap } from 'rxjs';
+import {
+  Observable,
+  Subject,
+  Subscription,
+  catchError,
+  debounceTime,
+  map,
+  of,
+  switchMap,
+} from 'rxjs';
 import { DeviationsApi } from '../../core/deviations/deviations-api';
 import { DocumentsApi } from '../../core/documents/documents-api';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
@@ -23,6 +33,17 @@ export interface EvidencePick {
 }
 
 type PickerKind = 'document' | 'deviation';
+
+/** Which permission lets the user search each record kind. */
+const KIND_PERMISSIONS: readonly (readonly [PickerKind, string])[] = [
+  ['document', 'documents:read'],
+  ['deviation', 'deviations:read'],
+];
+
+interface SearchOutcome {
+  readonly results: readonly EvidencePick[];
+  readonly error: boolean;
+}
 
 const SEARCH_DEBOUNCE_MS = 250;
 const RESULT_LIMIT = 10;
@@ -40,7 +61,7 @@ const RESULT_LIMIT = 10;
     <div class="rounded-tile border border-border bg-surface-2 p-2.5">
       <div class="mb-2 flex items-center gap-2">
         <div class="flex rounded-[8px] border border-border bg-surface p-0.5" role="group">
-          @for (k of kinds; track k) {
+          @for (k of kinds(); track k) {
             <button
               type="button"
               class="rounded-[6px] px-2.5 py-1 text-[12px] font-semibold"
@@ -62,35 +83,43 @@ const RESULT_LIMIT = 10;
           <app-icon name="x" [size]="14" />
         </button>
       </div>
-      <input
-        type="search"
-        class="h-9 w-full rounded-[8px] border border-border bg-bg px-3 text-[13px] text-fg outline-none focus:border-accent"
-        [ngModel]="query()"
-        (ngModelChange)="onQuery($event)"
-        [placeholder]="'standards.evidence.searchPlaceholder' | transloco"
-        [attr.aria-label]="'standards.evidence.searchPlaceholder' | transloco"
-      />
-      @if (searching()) {
-        <p class="mt-2 text-[12.5px] text-fg-muted">{{ 'common.loading' | transloco }}</p>
-      } @else if (query().trim() && results().length === 0) {
-        <p class="mt-2 text-[12.5px] text-fg-muted">
-          {{ 'standards.evidence.noResults' | transloco }}
-        </p>
-      }
-      @if (results().length > 0) {
-        <ul class="mt-1.5 flex flex-col">
-          @for (r of results(); track r.entity_id) {
-            <li>
-              <button
-                type="button"
-                class="w-full truncate rounded-[6px] px-2 py-1.5 text-left text-[13px] text-fg hover:bg-surface"
-                (click)="picked.emit(r)"
-              >
-                {{ r.label }}
-              </button>
-            </li>
-          }
-        </ul>
+      @if (kinds().length === 0) {
+        <p class="text-[12.5px] text-fg-muted">{{ 'standards.evidence.noAccess' | transloco }}</p>
+      } @else {
+        <input
+          type="search"
+          class="h-9 w-full rounded-[8px] border border-border bg-bg px-3 text-[13px] text-fg outline-none focus:border-accent"
+          [ngModel]="query()"
+          (ngModelChange)="onQuery($event)"
+          [placeholder]="'standards.evidence.searchPlaceholder' | transloco"
+          [attr.aria-label]="'standards.evidence.searchPlaceholder' | transloco"
+        />
+        @if (searching()) {
+          <p class="mt-2 text-[12.5px] text-fg-muted">{{ 'common.loading' | transloco }}</p>
+        } @else if (searchError()) {
+          <p class="mt-2 text-[12.5px] text-fail" role="alert">
+            {{ 'standards.evidence.searchError' | transloco }}
+          </p>
+        } @else if (query().trim() && results().length === 0) {
+          <p class="mt-2 text-[12.5px] text-fg-muted">
+            {{ 'standards.evidence.noResults' | transloco }}
+          </p>
+        }
+        @if (results().length > 0) {
+          <ul class="mt-1.5 flex flex-col">
+            @for (r of results(); track r.entity_id) {
+              <li>
+                <button
+                  type="button"
+                  class="w-full truncate rounded-[6px] px-2 py-1.5 text-left text-[13px] text-fg hover:bg-surface"
+                  (click)="picked.emit(r)"
+                >
+                  {{ r.label }}
+                </button>
+              </li>
+            }
+          </ul>
+        }
       }
     </div>
   `,
@@ -103,11 +132,22 @@ export class EvidencePicker {
   readonly picked = output<EvidencePick>();
   readonly cancelled = output<void>();
 
-  protected readonly kinds: readonly PickerKind[] = ['document', 'deviation'];
-  protected readonly kind = signal<PickerKind>('document');
+  /** Record kinds the user may search (documents:read / deviations:read). */
+  protected readonly kinds = computed<readonly PickerKind[]>(() => {
+    const granted = this.selectedOrg.currentOrg()?.permissions ?? [];
+    return KIND_PERMISSIONS.filter(([, perm]) => granted.includes(perm)).map(([kind]) => kind);
+  });
+  private readonly chosenKind = signal<PickerKind | null>(null);
+  /** The chosen kind if still allowed, else the first allowed one. */
+  protected readonly kind = computed<PickerKind | null>(() => {
+    const kinds = this.kinds();
+    const chosen = this.chosenKind();
+    return chosen && kinds.includes(chosen) ? chosen : (kinds[0] ?? null);
+  });
   protected readonly query = signal('');
   protected readonly results = signal<readonly EvidencePick[]>([]);
   protected readonly searching = signal(false);
+  protected readonly searchError = signal(false);
 
   private readonly search$ = new Subject<{ kind: PickerKind; q: string }>();
   private readonly sub: Subscription;
@@ -118,15 +158,16 @@ export class EvidencePicker {
         debounceTime(SEARCH_DEBOUNCE_MS),
         switchMap(({ kind, q }) => this.search(kind, q)),
       )
-      .subscribe((results) => {
+      .subscribe(({ results, error }) => {
         this.results.set(results);
+        this.searchError.set(error);
         this.searching.set(false);
       });
     inject(DestroyRef).onDestroy(() => this.sub.unsubscribe());
   }
 
   protected setKind(kind: PickerKind): void {
-    this.kind.set(kind);
+    this.chosenKind.set(kind);
     this.trigger();
   }
 
@@ -137,19 +178,21 @@ export class EvidencePicker {
 
   private trigger(): void {
     const q = this.query().trim();
-    if (!q) {
+    const kind = this.kind();
+    this.searchError.set(false);
+    if (!q || !kind) {
       this.results.set([]);
       this.searching.set(false);
       return;
     }
     this.searching.set(true);
-    this.search$.next({ kind: this.kind(), q });
+    this.search$.next({ kind, q });
   }
 
-  private search(kind: PickerKind, q: string) {
+  private search(kind: PickerKind, q: string): Observable<SearchOutcome> {
     const orgId = this.selectedOrg.currentOrgId();
     if (!orgId) {
-      return of([] as EvidencePick[]);
+      return of({ results: [], error: false });
     }
     const request =
       kind === 'document'
@@ -171,6 +214,9 @@ export class EvidencePicker {
               })),
             ),
           );
-    return request.pipe(catchError(() => of([] as EvidencePick[])));
+    return request.pipe(
+      map((results): SearchOutcome => ({ results, error: false })),
+      catchError(() => of<SearchOutcome>({ results: [], error: true })),
+    );
   }
 }

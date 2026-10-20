@@ -25,6 +25,19 @@ import {
 import { LinkEntityType, RequirementLink } from '../../core/standards/standards.models';
 import { Icon } from '../ui/icon/icon';
 
+/** A CAPA action whose links are shown under the deviation (structurally an `Action`). */
+export interface LinkedAction {
+  readonly id: string;
+  readonly description: string;
+}
+
+interface LinkGroup {
+  readonly key: string;
+  /** Action description, or null for the record's own links. */
+  readonly label: string | null;
+  readonly links: readonly RequirementLink[];
+}
+
 /**
  * "Supports requirements" panel for a record (document / deviation): the
  * standard requirements this record is evidence for, with AI suggestions to
@@ -112,70 +125,81 @@ import { Icon } from '../ui/icon/icon';
 
         @if (loading()) {
           <p class="text-[12.5px] text-fg-muted">{{ 'common.loading' | transloco }}</p>
-        } @else if (visible().length === 0) {
+        } @else if (groups().length === 0) {
           <p class="text-[12.5px] text-fg-muted">{{ 'standards.supports.none' | transloco }}</p>
         } @else {
-          <ul class="flex flex-col gap-1.5">
-            @for (link of visible(); track link.id) {
-              <li
-                class="flex items-center gap-2 rounded-tile border px-2.5 py-1.5"
-                [class]="
-                  link.status === 'suggested'
-                    ? 'border-accent-border bg-accent-soft/40'
-                    : 'border-border bg-surface'
-                "
+          @for (group of groups(); track group.key) {
+            @if (group.label) {
+              <div
+                class="mt-2.5 mb-1 truncate text-[11.5px] font-semibold text-fg-subtle"
+                [title]="group.label"
+                data-testid="action-group"
               >
-                @if (link.status === 'suggested') {
-                  <span
-                    class="flex flex-none text-accent"
-                    [title]="'standards.supports.suggested' | transloco"
-                    ><app-icon name="spark" [size]="13"
-                  /></span>
-                }
-                <a
-                  [routerLink]="['/standards', link.standard_key, 'clauses', link.clause_number]"
-                  [queryParams]="{ req: link.requirement_ref }"
-                  class="min-w-0 flex-1 truncate text-[12.5px] font-medium text-fg hover:text-accent hover:underline"
-                  [title]="link.requirement_ref"
-                  >{{ standardName(link.standard_key) }} · {{ link.clause_number }}</a
-                >
-                @if (canManage()) {
-                  @if (link.status === 'suggested') {
-                    <button
-                      type="button"
-                      class="flex flex-none rounded-[6px] p-1 text-pass hover:bg-surface-2 disabled:opacity-60"
-                      [attr.aria-label]="'standards.suggestions.confirm' | transloco"
-                      [disabled]="busyId() === link.id"
-                      (click)="confirm(link)"
-                    >
-                      <app-icon name="check" [size]="13" />
-                    </button>
-                    <button
-                      type="button"
-                      class="flex flex-none rounded-[6px] p-1 text-fg-subtle hover:bg-surface-2 hover:text-fail disabled:opacity-60"
-                      [attr.aria-label]="'standards.suggestions.reject' | transloco"
-                      [disabled]="busyId() === link.id"
-                      (click)="reject(link)"
-                    >
-                      <app-icon name="x" [size]="13" />
-                    </button>
-                  } @else {
-                    <button
-                      type="button"
-                      class="flex flex-none rounded-[6px] p-1 text-fg-subtle hover:bg-surface-2 hover:text-fail disabled:opacity-60"
-                      [attr.aria-label]="
-                        'standards.supports.remove' | transloco: { ref: link.clause_number }
-                      "
-                      [disabled]="busyId() === link.id"
-                      (click)="remove(link)"
-                    >
-                      <app-icon name="x" [size]="13" />
-                    </button>
-                  }
-                }
-              </li>
+                {{ 'standards.supports.onAction' | transloco: { action: group.label } }}
+              </div>
             }
-          </ul>
+            <ul class="flex flex-col gap-1.5">
+              @for (link of group.links; track link.id) {
+                <li
+                  class="flex items-center gap-2 rounded-tile border px-2.5 py-1.5"
+                  [class]="
+                    link.status === 'suggested'
+                      ? 'border-accent-border bg-accent-soft/40'
+                      : 'border-border bg-surface'
+                  "
+                >
+                  @if (link.status === 'suggested') {
+                    <span
+                      class="flex flex-none text-accent"
+                      [title]="'standards.supports.suggested' | transloco"
+                      ><app-icon name="spark" [size]="13"
+                    /></span>
+                  }
+                  <a
+                    [routerLink]="['/standards', link.standard_key, 'clauses', link.clause_number]"
+                    [queryParams]="{ req: link.requirement_ref }"
+                    class="min-w-0 flex-1 truncate text-[12.5px] font-medium text-fg hover:text-accent hover:underline"
+                    [title]="link.requirement_ref"
+                    >{{ standardName(link.standard_key) }} · {{ link.clause_number }}</a
+                  >
+                  @if (canManage()) {
+                    @if (link.status === 'suggested') {
+                      <button
+                        type="button"
+                        class="flex flex-none rounded-[6px] p-1 text-pass hover:bg-surface-2 disabled:opacity-60"
+                        [attr.aria-label]="'standards.suggestions.confirm' | transloco"
+                        [disabled]="busyId() === link.id"
+                        (click)="confirm(link)"
+                      >
+                        <app-icon name="check" [size]="13" />
+                      </button>
+                      <button
+                        type="button"
+                        class="flex flex-none rounded-[6px] p-1 text-fg-subtle hover:bg-surface-2 hover:text-fail disabled:opacity-60"
+                        [attr.aria-label]="'standards.suggestions.reject' | transloco"
+                        [disabled]="busyId() === link.id"
+                        (click)="reject(link)"
+                      >
+                        <app-icon name="x" [size]="13" />
+                      </button>
+                    } @else {
+                      <button
+                        type="button"
+                        class="flex flex-none rounded-[6px] p-1 text-fg-subtle hover:bg-surface-2 hover:text-fail disabled:opacity-60"
+                        [attr.aria-label]="
+                          'standards.supports.remove' | transloco: { ref: link.clause_number }
+                        "
+                        [disabled]="busyId() === link.id"
+                        (click)="remove(link)"
+                      >
+                        <app-icon name="x" [size]="13" />
+                      </button>
+                    }
+                  }
+                </li>
+              }
+            </ul>
+          }
         }
 
         @if (error()) {
@@ -194,8 +218,14 @@ export class SupportsRequirements {
 
   readonly entityType = input.required<LinkEntityType>();
   readonly entityId = input.required<string>();
+  /**
+   * The record's CAPA actions (deviations only): links on each action
+   * (entity_type `deviation_action`) are listed grouped under it.
+   */
+  readonly actions = input<readonly LinkedAction[]>([]);
 
   protected readonly links = signal<readonly RequirementLink[]>([]);
+  private readonly actionLinks = signal<readonly RequirementLink[]>([]);
   protected readonly loading = signal(true);
   protected readonly error = signal(false);
   protected readonly busyId = signal<string | null>(null);
@@ -213,6 +243,27 @@ export class SupportsRequirements {
   /** Confirmed links and pending suggestions (rejected ones are hidden). */
   protected readonly visible = computed(() => this.links().filter((l) => l.status !== 'rejected'));
 
+  /** The record's own links, then each action's links under its description. */
+  protected readonly groups = computed<readonly LinkGroup[]>(() => {
+    const shown = this.actionLinks().filter((l) => l.status !== 'rejected');
+    const groups: LinkGroup[] = [{ key: 'self', label: null, links: this.visible() }];
+    for (const action of this.actions()) {
+      groups.push({
+        key: action.id,
+        label: action.description,
+        links: shown.filter((l) => l.entity_id === action.id),
+      });
+    }
+    return groups.filter((g) => g.links.length > 0);
+  });
+
+  /** Stable key of the action ids, so action links reload only when the set changes. */
+  private readonly actionIds = computed(() =>
+    this.actions()
+      .map((a) => a.id)
+      .join(','),
+  );
+
   protected readonly matches = computed(() =>
     searchRequirements(
       this.options(),
@@ -223,6 +274,7 @@ export class SupportsRequirements {
   );
 
   private sub: Subscription | null = null;
+  private actionSub: Subscription | null = null;
   private optionsSub: Subscription | null = null;
   private optionsOrgId: string | null = null;
 
@@ -234,8 +286,14 @@ export class SupportsRequirements {
       const entityId = this.entityId();
       untracked(() => this.load(canRead ? orgId : null, entityType, entityId));
     });
+    effect(() => {
+      const orgId = this.canRead() ? this.selectedOrg.currentOrgId() : null;
+      const ids = this.actionIds();
+      untracked(() => this.loadActionLinks(orgId, ids ? ids.split(',') : []));
+    });
     inject(DestroyRef).onDestroy(() => {
       this.sub?.unsubscribe();
+      this.actionSub?.unsubscribe();
       this.optionsSub?.unsubscribe();
     });
   }
@@ -304,11 +362,12 @@ export class SupportsRequirements {
     call(orgId).subscribe({
       next: (updated) => {
         this.busyId.set(null);
-        this.links.update((list) =>
+        const apply = (list: readonly RequirementLink[]): readonly RequirementLink[] =>
           updated
             ? list.map((l) => (l.id === updated.id ? updated : l))
-            : list.filter((l) => l.id !== link.id),
-        );
+            : list.filter((l) => l.id !== link.id);
+        this.links.update(apply);
+        this.actionLinks.update(apply);
       },
       error: () => {
         this.busyId.set(null);
@@ -341,6 +400,21 @@ export class SupportsRequirements {
         this.error.set(true);
       },
     });
+  }
+
+  private loadActionLinks(orgId: string | null, actionIds: readonly string[]): void {
+    this.actionSub?.unsubscribe();
+    if (!orgId || actionIds.length === 0) {
+      this.actionLinks.set([]);
+      return;
+    }
+    this.actionSub = forkJoin(
+      actionIds.map((id) =>
+        this.api
+          .listLinks(orgId, { entity_type: 'deviation_action', entity_id: id })
+          .pipe(catchError(() => of([] as RequirementLink[]))),
+      ),
+    ).subscribe((lists) => this.actionLinks.set(lists.flat()));
   }
 
   /** Lazily load every requirement of the org's enabled standards (once per org). */

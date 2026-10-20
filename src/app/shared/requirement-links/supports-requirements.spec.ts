@@ -44,7 +44,7 @@ const TREE: ClauseNode[] = [
       {
         ref: 'r-7.5',
         text: { en: 'Documents are controlled', nb: 'Dokumenter er styrt' },
-        evidence_examples: { en: '', nb: '' },
+        evidence_examples: { en: [], nb: [] },
         status: 'covered',
         applicable: true,
         justification: null,
@@ -56,7 +56,7 @@ const TREE: ClauseNode[] = [
       {
         ref: 'r-7.5-b',
         text: { en: 'Records are retained', nb: 'Registreringer oppbevares' },
-        evidence_examples: { en: '', nb: '' },
+        evidence_examples: { en: [], nb: [] },
         status: 'not_started',
         applicable: true,
         justification: null,
@@ -69,7 +69,11 @@ const TREE: ClauseNode[] = [
   },
 ];
 
-async function setup(permissions: string[]) {
+async function setup(
+  permissions: string[],
+  entityType: 'document' | 'deviation' = 'document',
+  actions: { id: string; description: string }[] = [],
+) {
   TestBed.configureTestingModule({
     imports: [SupportsRequirements, TranslocoTestingModule.forRoot({ langs: { en: {} } })],
     providers: [
@@ -91,8 +95,9 @@ async function setup(permissions: string[]) {
     ],
   });
   const fixture = TestBed.createComponent(SupportsRequirements);
-  fixture.componentRef.setInput('entityType', 'document');
+  fixture.componentRef.setInput('entityType', entityType);
   fixture.componentRef.setInput('entityId', 'doc-1');
+  fixture.componentRef.setInput('actions', actions);
   fixture.detectChanges();
   await fixture.whenStable();
   const http = TestBed.inject(HttpTestingController);
@@ -185,5 +190,43 @@ describe('SupportsRequirements', () => {
     create.flush(link({ id: 'l-9', requirement_ref: 'r-7.5-b', clause_number: '7.5' }));
     await render();
     expect(el.querySelectorAll('ul > li').length).toBe(2);
+  });
+
+  it('groups links on the deviation actions under each action', async () => {
+    const { http, el, render } = await setup(['standards:read'], 'deviation', [
+      { id: 'act-1', description: 'Retrain staff' },
+      { id: 'act-2', description: 'Replace valve' },
+    ]);
+    http
+      .expectOne(
+        (r) => r.url === `${ROOT}/requirement-links` && r.params.get('entity_type') === 'deviation',
+      )
+      .flush([link({ entity_type: 'deviation', entity_id: 'doc-1' })]);
+    http
+      .expectOne(`${ROOT}/standards`)
+      .flush([{ key: 'iso9001', name: 'ISO 9001', enabled: true }]);
+    const actionReqs = http.match(
+      (r) =>
+        r.url === `${ROOT}/requirement-links` && r.params.get('entity_type') === 'deviation_action',
+    );
+    expect(actionReqs.map((r) => r.request.params.get('entity_id'))).toEqual(['act-1', 'act-2']);
+    actionReqs[0].flush([
+      link({
+        id: 'l-a',
+        entity_type: 'deviation_action',
+        entity_id: 'act-1',
+        clause_number: '10.2',
+      }),
+    ]);
+    actionReqs[1].flush([]);
+    await render();
+
+    const headers = Array.from(el.querySelectorAll('[data-testid="action-group"]')).map((h) =>
+      h.textContent?.trim(),
+    );
+    expect(headers).toHaveLength(1);
+    expect(headers[0]).toContain('standards.supports.onAction');
+    expect(el.textContent).toContain('ISO 9001 · 10.2');
+    expect(el.querySelectorAll('li')).toHaveLength(2);
   });
 });

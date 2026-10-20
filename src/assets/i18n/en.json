@@ -1054,7 +1054,9 @@
       "open": "Open",
       "enable": "Enable",
       "disable": "Disable",
-      "toggleError": "Couldn't update the standard. Try again."
+      "toggleError": "Couldn't update the standard. Try again.",
+      "disableTitle": "Disable this standard?",
+      "disableMessage": "{{name}} will no longer be tracked. Your assessments and evidence links are kept and come back if you enable it again."
     },
     "view": {
       "coveredOf": "{{covered}} of {{total}} requirements covered",
@@ -1082,7 +1084,9 @@
       "extractDone": "Clause text extracted from your copy.",
       "failed": "The job failed. Try again later.",
       "pollFailed": "Couldn't check the job's progress.",
-      "startFailed": "Couldn't start the job. Try again."
+      "startFailed": "Couldn't start the job. Try again.",
+      "queued": "Waiting to start …",
+      "stalled": "The job is waiting for a worker. It will run when one is available — check back later."
     },
     "licensed": {
       "title": "Your licensed copy",
@@ -1129,7 +1133,9 @@
       "searchPlaceholder": "Search by title or code …",
       "noResults": "No matches.",
       "error": "Couldn't update the evidence. Try again.",
-      "unavailable": "Unavailable record"
+      "unavailable": "Unavailable record",
+      "noAccess": "You don't have access to any records you can link here.",
+      "searchError": "Search failed. Try again."
     },
     "suggestions": {
       "title": "Suggestions to review",
@@ -1144,7 +1150,8 @@
       "noStandards": "No standards are enabled for your organisation.",
       "searchPlaceholder": "Search requirements by clause or text …",
       "suggested": "Suggested — review to confirm",
-      "remove": "Remove link to {{ref}}"
+      "remove": "Remove link to {{ref}}",
+      "onAction": "On action: {{action}}"
     },
     "errors": {
       "notEnabled": "Enable this standard before mapping with AI.",

@@ -497,7 +497,11 @@ import { groupFieldsIntoSections } from './types/type-schema';
             </app-card>
 
             <app-card *appHasPermission="'standards:read'">
-              <app-supports-requirements entityType="deviation" [entityId]="dev.id" />
+              <app-supports-requirements
+                entityType="deviation"
+                [entityId]="dev.id"
+                [actions]="actions()"
+              />
             </app-card>
 
             <app-card [padded]="false">

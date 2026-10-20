@@ -13,7 +13,8 @@ import {
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { Subscription, forkJoin } from 'rxjs';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { Subscription, debounceTime, forkJoin } from 'rxjs';
 import { HasPermissionDirective } from '../../core/auth/has-permission.directive';
 import { LanguageService } from '../../core/i18n/language.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
@@ -21,6 +22,7 @@ import { StandardsApi } from '../../core/standards/standards-api';
 import {
   STATUS_FILTERS,
   StatusFilter,
+  ThemeGroup,
   allNodeNumbers,
   collectGaps,
   effectiveStatus,
@@ -50,6 +52,9 @@ import { ProgressBar } from '../../shared/ui/progress-bar/progress-bar';
 import { ProgressRing } from '../../shared/ui/progress-ring/progress-ring';
 import { StandardJobProgress } from './job-progress';
 import { themeKey } from './standard-themes';
+
+/** Tree search debounce. */
+const SEARCH_DEBOUNCE_MS = 200;
 
 /** How many gaps the side list shows before "show all". */
 const GAP_PREVIEW = 8;
@@ -432,8 +437,8 @@ const GAP_PREVIEW = 8;
                 </ul>
               }
               @if (node.children.length > 0) {
-                @if (hasAnnexChildren(node)) {
-                  @for (group of groupByTheme(node.children); track group.theme) {
+                @if (themeGroups().get(node.number); as groups) {
+                  @for (group of groups; track group.theme) {
                     @if (group.theme) {
                       <div
                         class="pt-2 pb-1 text-[11px] font-bold tracking-[0.08em] text-fg-subtle uppercase"
@@ -506,18 +511,37 @@ export class StandardView {
   protected readonly pctColor = pctColor;
   protected readonly statusLabelKey = statusLabelKey;
   protected readonly filterLabelKey = statusFilterLabelKey;
-  protected readonly hasAnnexChildren = hasAnnexChildren;
-  protected readonly groupByTheme = groupByTheme;
 
   protected readonly canManage = computed(() =>
     (this.selectedOrg.currentOrg()?.permissions ?? []).includes('standards:manage'),
   );
 
-  protected readonly filtering = computed(() => this.filter() !== 'all' || !!this.query().trim());
+  /** The search box value, debounced so typing doesn't re-filter the tree on every key. */
+  private readonly debouncedQuery = toSignal(
+    toObservable(this.query).pipe(debounceTime(SEARCH_DEBOUNCE_MS)),
+    { initialValue: '' },
+  );
+
+  protected readonly filtering = computed(
+    () => this.filter() !== 'all' || !!this.debouncedQuery().trim(),
+  );
 
   protected readonly visibleTree = computed(() =>
-    filterTree(this.tree(), this.filter(), this.query(), this.language.active()),
+    filterTree(this.tree(), this.filter(), this.debouncedQuery(), this.language.active()),
   );
+
+  /** Annex A theme groups per visible node whose children are controls (memoised). */
+  protected readonly themeGroups = computed(() => {
+    const groups = new Map<string, ThemeGroup[]>();
+    const visit = (node: ClauseNode): void => {
+      if (hasAnnexChildren(node)) {
+        groups.set(node.number, groupByTheme(node.children));
+      }
+      node.children.forEach(visit);
+    };
+    this.visibleTree().forEach(visit);
+    return groups;
+  });
 
   protected readonly gaps = computed(() => collectGaps(this.tree(), this.language.active()));
   protected readonly shownGaps = computed(() =>
@@ -612,10 +636,10 @@ export class StandardView {
     });
   }
 
-  protected onMapFinished(job: StandardJob): void {
-    // The result banner stays up; free the button and refresh the counts.
+  protected onMapFinished(job: StandardJob | null): void {
+    // The result banner stays up; always free the button, refresh on success.
     this.mapRunning.set(false);
-    if (job.status === 'done') {
+    if (job?.status === 'done') {
       this.reload();
     }
   }
@@ -640,9 +664,10 @@ export class StandardView {
     });
   }
 
-  protected onExtractFinished(job: StandardJob): void {
+  protected onExtractFinished(job: StandardJob | null): void {
     this.extractRunning.set(false);
-    if (job.status === 'done') {
+    if (job?.status === 'done') {
+      // Re-fetch the list so has_licensed_text reflects the extracted copy.
       this.reload();
     }
   }

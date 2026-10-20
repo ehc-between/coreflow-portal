@@ -1054,7 +1054,9 @@
       "open": "Åpne",
       "enable": "Aktiver",
       "disable": "Deaktiver",
-      "toggleError": "Kunne ikke oppdatere standarden. Prøv igjen."
+      "toggleError": "Kunne ikke oppdatere standarden. Prøv igjen.",
+      "disableTitle": "Deaktivere denne standarden?",
+      "disableMessage": "{{name}} følges ikke lenger opp. Vurderinger og koblede bevis beholdes og kommer tilbake hvis du aktiverer den igjen."
     },
     "view": {
       "coveredOf": "{{covered}} av {{total}} krav dekket",
@@ -1082,7 +1084,9 @@
       "extractDone": "Klausulteksten er hentet fra eksemplaret deres.",
       "failed": "Jobben feilet. Prøv igjen senere.",
       "pollFailed": "Kunne ikke sjekke fremdriften.",
-      "startFailed": "Kunne ikke starte jobben. Prøv igjen."
+      "startFailed": "Kunne ikke starte jobben. Prøv igjen.",
+      "queued": "Venter på å starte …",
+      "stalled": "Jobben venter på en ledig prosess. Den kjøres når en blir ledig — sjekk igjen senere."
     },
     "licensed": {
       "title": "Deres lisensierte eksemplar",
@@ -1129,7 +1133,9 @@
       "searchPlaceholder": "Søk på tittel eller kode …",
       "noResults": "Ingen treff.",
       "error": "Kunne ikke oppdatere bevisene. Prøv igjen.",
-      "unavailable": "Utilgjengelig post"
+      "unavailable": "Utilgjengelig post",
+      "noAccess": "Du har ikke tilgang til poster som kan kobles her.",
+      "searchError": "Søket feilet. Prøv igjen."
     },
     "suggestions": {
       "title": "Forslag til gjennomgang",
@@ -1144,7 +1150,8 @@
       "noStandards": "Ingen standarder er aktivert for organisasjonen.",
       "searchPlaceholder": "Søk etter krav på klausul eller tekst …",
       "suggested": "Forslag — gjennomgå for å bekrefte",
-      "remove": "Fjern koblingen til {{ref}}"
+      "remove": "Fjern koblingen til {{ref}}",
+      "onAction": "På tiltak: {{action}}"
     },
     "errors": {
       "notEnabled": "Aktiver standarden før du kobler med AI.",

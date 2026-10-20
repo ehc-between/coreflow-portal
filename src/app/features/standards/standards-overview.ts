@@ -20,6 +20,7 @@ import { LanguageService } from '../../core/i18n/language.service';
 import { Badge } from '../../shared/ui/badge/badge';
 import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
+import { ConfirmDialog } from '../../shared/ui/confirm-dialog/confirm-dialog';
 import { Icon } from '../../shared/ui/icon/icon';
 import { ProgressBar } from '../../shared/ui/progress-bar/progress-bar';
 import { ProgressRing } from '../../shared/ui/progress-ring/progress-ring';
@@ -39,6 +40,7 @@ import { ProgressRing } from '../../shared/ui/progress-ring/progress-ring';
     Badge,
     Button,
     Card,
+    ConfirmDialog,
     Icon,
     ProgressBar,
     ProgressRing,
@@ -159,18 +161,19 @@ import { ProgressRing } from '../../shared/ui/progress-ring/progress-ring';
                 }
 
                 <div class="mt-4 flex items-center justify-between gap-2">
-                  <a [routerLink]="['/standards', std.key]">
-                    <app-button variant="secondary" size="sm">
-                      {{ 'standards.overview.open' | transloco }}
-                      <app-icon name="arrow" [size]="14" />
-                    </app-button>
+                  <a
+                    [routerLink]="['/standards', std.key]"
+                    class="inline-flex h-8 items-center justify-center gap-2 rounded-tile border border-border bg-surface px-3 text-[13px] font-semibold text-fg transition-colors hover:border-border-strong hover:bg-surface-2"
+                  >
+                    {{ 'standards.overview.open' | transloco }}
+                    <app-icon name="arrow" [size]="14" />
                   </a>
                   <app-button
                     *appHasPermission="'standards:manage'"
                     variant="ghost"
                     size="sm"
                     [loading]="togglingKey() === std.key"
-                    (click)="setEnabled(std, false)"
+                    (click)="pendingDisable.set(std)"
                   >
                     {{ 'standards.overview.disable' | transloco }}
                   </app-button>
@@ -212,6 +215,20 @@ import { ProgressRing } from '../../shared/ui/progress-ring/progress-ring';
           </app-card>
         }
 
+        <app-confirm-dialog
+          [open]="pendingDisable() !== null"
+          [busy]="togglingKey() !== null"
+          confirmVariant="danger"
+          [title]="'standards.overview.disableTitle' | transloco"
+          [message]="
+            'standards.overview.disableMessage' | transloco: { name: pendingDisable()?.name ?? '' }
+          "
+          [confirmLabel]="'standards.overview.disable' | transloco"
+          [cancelLabel]="'standards.requirement.cancel' | transloco"
+          (confirmed)="confirmDisable()"
+          (cancelled)="pendingDisable.set(null)"
+        />
+
         @if (toggleError()) {
           <p class="mt-3 text-[13px] text-fail" role="alert">
             {{ 'standards.overview.toggleError' | transloco }}
@@ -241,6 +258,8 @@ export class StandardsOverview {
   protected readonly loadError = signal(false);
   protected readonly togglingKey = signal<string | null>(null);
   protected readonly toggleError = signal(false);
+  /** Standard awaiting confirmation before it is disabled. */
+  protected readonly pendingDisable = signal<StandardSummary | null>(null);
 
   protected readonly enabled = computed(() => this.standards().filter((s) => s.enabled));
   protected readonly available = computed(() => this.standards().filter((s) => !s.enabled));
@@ -261,6 +280,13 @@ export class StandardsOverview {
     });
   }
 
+  protected confirmDisable(): void {
+    const std = this.pendingDisable();
+    if (std) {
+      this.setEnabled(std, false);
+    }
+  }
+
   protected setEnabled(std: StandardSummary, enabled: boolean): void {
     const orgId = this.selectedOrg.currentOrgId();
     if (!orgId || this.togglingKey()) {
@@ -271,10 +297,12 @@ export class StandardsOverview {
     this.api.setEnabled(orgId, std.key, enabled).subscribe({
       next: () => {
         this.togglingKey.set(null);
+        this.pendingDisable.set(null);
         this.load(orgId);
       },
       error: () => {
         this.togglingKey.set(null);
+        this.pendingDisable.set(null);
         this.toggleError.set(true);
       },
     });

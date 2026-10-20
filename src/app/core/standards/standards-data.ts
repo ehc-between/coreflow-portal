@@ -2,6 +2,7 @@ import type { BadgeTone } from '../../shared/ui/badge/badge';
 import {
   ClauseNode,
   ClauseRollup,
+  LocalizedList,
   LocalizedText,
   Requirement,
   RequirementStatus,
@@ -35,12 +36,18 @@ export function localized(text: LocalizedText | null | undefined, lang: string):
   return value || text.en || text.nb || '';
 }
 
-/** Split localized multi-line evidence examples into checklist items. */
-export function checklistItems(text: LocalizedText | null | undefined, lang: string): string[] {
-  return localized(text, lang)
-    .split(/\r?\n/)
-    .map((line) => line.replace(/^\s*(?:[-*•]|\d+[.)])\s*/, '').trim())
-    .filter((line) => line.length > 0);
+/**
+ * Evidence checklist items in the active language, falling back to English
+ * then Norwegian when that language has none. Blank entries are dropped.
+ */
+export function checklistItems(list: LocalizedList | null | undefined, lang: string): string[] {
+  const pick = (items: readonly string[] | undefined): readonly string[] | undefined =>
+    Array.isArray(items) && items.length > 0 ? items : undefined;
+  const byLang = list as Readonly<Record<string, readonly string[] | undefined>> | null | undefined;
+  const items = pick(byLang?.[lang]) ?? pick(list?.en) ?? pick(list?.nb) ?? [];
+  return items
+    .map((item) => (typeof item === 'string' ? item.trim() : ''))
+    .filter((item) => item.length > 0);
 }
 
 /**
