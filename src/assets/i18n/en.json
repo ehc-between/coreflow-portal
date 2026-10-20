@@ -811,6 +811,8 @@
       "addClause": "Add clause",
       "removeClause": "Remove clause",
       "clausePlaceholder": "Clause (e.g. 8.7)",
+      "clauseStandardLabel": "Standard for this clause",
+      "clauseLabel": "Clause number",
       "tagPlaceholder": "Add a tag and press Enter",
       "removeTag": "Remove tag",
       "titleRequired": "A title is required.",
