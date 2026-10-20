@@ -11,8 +11,11 @@ export const FILTERED = '[Filtered]';
  * Query-param names treated as secret, case-insensitive: `token`, `code`,
  * `secret`, `password`, optionally prefixed with `xxx_` / `xxx-` (so
  * `access_token`, `reset-token`, `auth_code` match, but `postcode` does not).
+ * Also the signing params of presigned S3 URLs, `X-Amz-Signature` and
+ * `X-Amz-Credential` (`X-Amz-Security-Token` is already covered by `token`).
  */
-const SECRET_PARAM = /^(?:.*[_-])?(?:token|code|secret|password)$/i;
+const SECRET_PARAM =
+  /^(?:(?:.*[_-])?(?:token|code|secret|password)|x-amz-(?:signature|credential))$/i;
 
 /**
  * API paths that carry a secret as a path segment: the public invitation
@@ -22,7 +25,7 @@ const SECRET_PATH = /(\/invitations\/)(?!accept(?:[/?#;:,)\s]|$))[^/?#\s"':;,)]+
 
 /** Same idea as {@link SECRET_PARAM}, for params embedded in arbitrary text. */
 const SECRET_PARAM_IN_TEXT =
-  /((?:^|[?&#;])(?:[\w.-]*[_-])?(?:token|code|secret|password)=)[^&#\s"']*/gi;
+  /((?:^|[?&#;])(?:(?:[\w.-]*[_-])?(?:token|code|secret|password)|x-amz-(?:signature|credential))=)[^&#\s"']*/gi;
 
 /** Whether a (possibly percent-encoded) param name is a secret one. */
 export function isSecretParam(name: string): boolean {

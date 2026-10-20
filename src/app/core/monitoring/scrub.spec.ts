@@ -30,6 +30,16 @@ describe('scrubUrl', () => {
     );
   });
 
+  it('redacts the signing params of presigned S3 URLs', () => {
+    expect(
+      scrubUrl(
+        'https://s3.example.com/b/k?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA%2F20261020%2Feu%2Fs3%2Faws4_request&X-Amz-Date=20261020T000000Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Security-Token=t&X-Amz-Signature=abc123',
+      ),
+    ).toBe(
+      `https://s3.example.com/b/k?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=${F}&X-Amz-Date=20261020T000000Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Security-Token=${F}&X-Amz-Signature=${F}`,
+    );
+  });
+
   it('handles relative, protocol-relative and query-only URLs', () => {
     expect(scrubUrl('/invite/accept?token=xyz')).toBe(`/invite/accept?token=${F}`);
     expect(scrubUrl('invite/accept?token=xyz')).toBe(`invite/accept?token=${F}`);
@@ -76,6 +86,12 @@ describe('scrubUrl', () => {
 });
 
 describe('scrubText', () => {
+  it('redacts presigned S3 signing params embedded in text', () => {
+    expect(
+      scrubText('PUT failed: https://s3.example.com/k?x-amz-signature=abc&X-Amz-Date=1 (403)'),
+    ).toBe(`PUT failed: https://s3.example.com/k?x-amz-signature=${F}&X-Amz-Date=1 (403)`);
+  });
+
   it('redacts URLs embedded in error messages', () => {
     expect(
       scrubText('Http failure response for /api/v1/invitations/abc123: 500 Internal Server Error'),
