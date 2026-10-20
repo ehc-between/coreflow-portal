@@ -353,7 +353,10 @@
       "sending": "Sending…",
       "sentTitle": "Check your email",
       "sentBody": "If an account exists for {{email}}, we've sent an email with a link to reset your password.",
-      "backToLogin": "Back to sign in"
+      "backToLogin": "Back to sign in",
+      "tooManyRequests": "Too many reset requests. Please wait a moment and try again.",
+      "tooManyRequestsSeconds": "Too many reset requests. Try again in {{seconds}} sec.",
+      "tooManyRequestsMinutes": "Too many reset requests. Try again in {{minutes}} min."
     },
     "reset": {
       "title": "Choose a new password",

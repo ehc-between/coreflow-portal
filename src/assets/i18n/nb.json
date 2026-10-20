@@ -353,7 +353,10 @@
       "sending": "Sender …",
       "sentTitle": "Sjekk e-posten din",
       "sentBody": "Hvis det finnes en konto for {{email}}, har vi sendt en e-post med en lenke for å tilbakestille passordet.",
-      "backToLogin": "Tilbake til innlogging"
+      "backToLogin": "Tilbake til innlogging",
+      "tooManyRequests": "For mange forespørsler om tilbakestilling. Vent litt og prøv igjen.",
+      "tooManyRequestsSeconds": "For mange forespørsler om tilbakestilling. Prøv igjen om {{seconds}} sek.",
+      "tooManyRequestsMinutes": "For mange forespørsler om tilbakestilling. Prøv igjen om {{minutes}} min."
     },
     "reset": {
       "title": "Velg et nytt passord",

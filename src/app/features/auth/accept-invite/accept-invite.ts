@@ -5,6 +5,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { InvitationApi, InvitePreview, isNewUserSession } from '../../../core/admin/invitation-api';
 import { PASSWORD_MIN_LENGTH, isWeakPasswordError } from '../../../core/auth/auth-errors';
 import { AuthService } from '../../../core/auth/auth.service';
+import { takeQueryToken } from '../../../core/auth/take-query-token';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
 import { FormField } from '../../../shared/ui/form-field/form-field';
@@ -54,7 +55,8 @@ export class AcceptInvite implements OnInit {
   });
 
   ngOnInit(): void {
-    this.token = this.route.snapshot.queryParamMap.get('token') ?? '';
+    // Read once, then scrubbed from the address bar; kept in memory only.
+    this.token = takeQueryToken(this.route, this.router);
     if (!this.token) {
       this.state.set('invalid');
       return;

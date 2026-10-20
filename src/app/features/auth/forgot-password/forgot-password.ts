@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslatedMessage, rateLimitMessage } from '../../../core/auth/auth-errors';
 import { AuthService } from '../../../core/auth/auth.service';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
@@ -46,8 +47,8 @@ import { AuthShell } from '../auth-shell/auth-shell';
             <input id="forgot-email" type="email" formControlName="email" autocomplete="email" />
           </app-form-field>
 
-          @if (failed()) {
-            <app-alert>{{ 'errors.generic' | transloco }}</app-alert>
+          @if (error(); as error) {
+            <app-alert>{{ error.key | transloco: error.params }}</app-alert>
           }
 
           <app-button type="submit" size="lg" [full]="true" [loading]="submitting()" class="mt-1">
@@ -75,7 +76,8 @@ export class ForgotPassword {
   });
 
   protected readonly submitting = signal(false);
-  protected readonly failed = signal(false);
+  /** Submit error shown in place (rate-limit wait time or generic), or null. */
+  protected readonly error = signal<TranslatedMessage | null>(null);
   /** Email the (neutral) confirmation refers to, once submitted. */
   protected readonly sentTo = signal<string | null>(null);
 
@@ -86,7 +88,7 @@ export class ForgotPassword {
     }
 
     this.submitting.set(true);
-    this.failed.set(false);
+    this.error.set(null);
     const email = this.form.getRawValue().email.trim();
 
     this.auth.requestPasswordReset(email).subscribe({
@@ -94,10 +96,15 @@ export class ForgotPassword {
         this.submitting.set(false);
         this.sentTo.set(email);
       },
-      error: () => {
+      error: (err: unknown) => {
         this.submitting.set(false);
-        this.failed.set(true);
+        this.error.set(forgotPasswordErrorMessage(err));
       },
     });
   }
+}
+
+/** Map a reset-request failure: rate limit (with wait time) vs. generic. */
+export function forgotPasswordErrorMessage(error: unknown): TranslatedMessage {
+  return rateLimitMessage(error, 'auth.forgot.tooManyRequests') ?? { key: 'errors.generic' };
 }
