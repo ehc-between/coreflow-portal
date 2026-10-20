@@ -614,8 +614,8 @@ export class Attachments {
     this.patch(key, {
       state: 'error',
       errorKey: uploadErrorKey(phase, status),
-      // Size / type refusals won't change on retry.
-      retryable: !(phase === 'create' && (status === 413 || status === 415)),
+      // Size / type / permission refusals won't change on retry.
+      retryable: !(phase === 'create' && (status === 403 || status === 413 || status === 415)),
       created: created ?? this.uploads().find((u) => u.key === key)?.created ?? null,
     });
   }

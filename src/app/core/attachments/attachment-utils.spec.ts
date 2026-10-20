@@ -37,6 +37,13 @@ describe('attachment utils', () => {
     expect(contentTypeFor({ name: 'blob', type: '' })).toBe('application/octet-stream');
   });
 
+  it('contentTypeFor normalises non-standard ZIP types to application/zip', () => {
+    expect(contentTypeFor({ name: 'a.zip', type: 'application/x-zip-compressed' })).toBe(
+      'application/zip',
+    );
+    expect(contentTypeFor({ name: 'a.zip', type: 'application/x-zip' })).toBe('application/zip');
+  });
+
   it('preCheckFile rejects empty, oversized and blocked files', () => {
     expect(preCheckFile({ name: 'a.pdf', size: 0 })).toBe('attachments.errors.empty');
     expect(preCheckFile({ name: 'a.pdf', size: MAX_ATTACHMENT_BYTES + 1 })).toBe(
@@ -47,6 +54,16 @@ describe('attachment utils', () => {
       'attachments.errors.typeNotAllowed',
     );
     expect(preCheckFile({ name: 'report.pdf', size: 10 })).toBeNull();
+  });
+
+  it('preCheckFile strips trailing dots and spaces before the extension check', () => {
+    expect(preCheckFile({ name: 'setup.exe.', size: 10 })).toBe(
+      'attachments.errors.typeNotAllowed',
+    );
+    expect(preCheckFile({ name: 'setup.exe . ', size: 10 })).toBe(
+      'attachments.errors.typeNotAllowed',
+    );
+    expect(preCheckFile({ name: 'report.pdf.', size: 10 })).toBeNull();
   });
 
   it('uploadErrorKey maps statuses to neutral keys per phase', () => {

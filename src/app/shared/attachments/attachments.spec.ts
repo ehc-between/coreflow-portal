@@ -130,6 +130,23 @@ describe('Attachments', () => {
     expect(uploads?.textContent).not.toContain('attachments.retry');
   });
 
+  it('shows a translated error without retry when create is forbidden (403)', async () => {
+    const { fixture, http, el } = setup(true);
+    await render(fixture);
+    expectList(http).flush([]);
+
+    fixture.componentInstance.addFiles([new File(['abc'], 'a.pdf', { type: 'application/pdf' })]);
+    (await nextRequest(http, (r) => r.url === LIST_URL && r.method === 'POST')).flush(
+      { detail: 'nope' },
+      { status: 403, statusText: 'Forbidden' },
+    );
+    await render(fixture);
+
+    const uploads = el.querySelector('[data-testid="attachments-uploads"]');
+    expect(uploads?.textContent).toContain('attachments.errors.forbidden');
+    expect(uploads?.textContent).not.toContain('attachments.retry');
+  });
+
   it('offers retry after a verification mismatch (422 on complete) and resumes without re-creating', async () => {
     const { fixture, http, el } = setup(true);
     await render(fixture);

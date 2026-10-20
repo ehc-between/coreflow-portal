@@ -72,15 +72,34 @@ const MIME_BY_EXTENSION: Readonly<Record<string, string>> = {
   eml: 'message/rfc822',
 };
 
-/** Lower-cased extension without the dot ('' when none). */
+/**
+ * Non-standard ZIP MIME types some browsers/platforms report (e.g. Windows
+ * reports `application/x-zip-compressed`), normalised to the canonical type the
+ * backend allow-list expects.
+ */
+const MIME_ALIASES: Readonly<Record<string, string>> = {
+  'application/x-zip-compressed': 'application/zip',
+  'application/x-zip': 'application/zip',
+};
+
+/**
+ * Lower-cased extension without the dot ('' when none). Trailing dots and spaces
+ * are stripped first, as the backend does (Windows ignores them, so `evil.exe. `
+ * is still an `.exe`).
+ */
 export function fileExtension(filename: string): string {
-  const dot = filename.lastIndexOf('.');
-  return dot > 0 ? filename.slice(dot + 1).toLowerCase() : '';
+  const name = filename.replace(/[. ]+$/, '');
+  const dot = name.lastIndexOf('.');
+  return dot > 0 ? name.slice(dot + 1).toLowerCase() : '';
 }
 
-/** The browser-reported MIME type, else a guess from the extension. */
+/** The browser-reported MIME type (aliases normalised), else a guess from the extension. */
 export function contentTypeFor(file: { readonly name: string; readonly type: string }): string {
-  return file.type || MIME_BY_EXTENSION[fileExtension(file.name)] || 'application/octet-stream';
+  const reported = file.type.toLowerCase();
+  if (reported) {
+    return MIME_ALIASES[reported] ?? file.type;
+  }
+  return MIME_BY_EXTENSION[fileExtension(file.name)] || 'application/octet-stream';
 }
 
 /** Lower-case hex encoding of raw bytes. */
