@@ -139,6 +139,11 @@ describe('StandardWorkspace', () => {
         },
       ],
     });
+    await mount(number, reqRef);
+  }
+
+  /** Create the workspace (again) and answer its two loads. */
+  async function mount(number?: string, reqRef?: string): Promise<void> {
     fixture = TestBed.createComponent(StandardWorkspace);
     fixture.componentRef.setInput('key', KEY);
     if (number) {
@@ -156,7 +161,10 @@ describe('StandardWorkspace', () => {
     await render();
   }
 
-  afterEach(() => http.verify());
+  afterEach(() => {
+    http.verify();
+    vi.restoreAllMocks();
+  });
 
   const tocEntry = (number: string) => el.querySelector<HTMLAnchorElement>(`#${tocDomId(number)}`);
   const current = () => el.querySelector('nav [aria-current="location"]')?.id ?? null;
@@ -231,6 +239,126 @@ describe('StandardWorkspace', () => {
     const sections = Array.from(el.querySelectorAll('section[id^="sec-"]')).map((s) => s.id);
     expect(sections).toEqual(['sec-4', 'sec-4_2', 'sec-A', 'sec-A_5', 'sec-A_5_1']);
     expect(tocNumbers()).not.toContain('6');
+  });
+
+  const expandButton = (number: string) =>
+    tocEntry(number)!.parentElement!.querySelector<HTMLButtonElement>('button[aria-expanded]')!;
+
+  it('keeps the TOC where it is when entries are toggled; reveals only a new current section', async () => {
+    await setup('4.2');
+    const nav = el.querySelector<HTMLElement>('app-standard-toc nav')!;
+    const writes: number[] = [];
+    let top = 0;
+    Object.defineProperty(nav, 'scrollTop', {
+      configurable: true,
+      get: () => top,
+      set: (value: number) => {
+        writes.push(value);
+        top = value;
+      },
+    });
+    // Every TOC entry reports itself far below the visible part of the list.
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: Element,
+    ) {
+      return (
+        this.id.startsWith('toc-')
+          ? { top: 900, bottom: 920, height: 20, left: 0, right: 0, width: 0 }
+          : { top: 0, bottom: 300, height: 300, left: 0, right: 0, width: 0 }
+      ) as DOMRect;
+    });
+
+    expandButton('A').click();
+    await render();
+    expandButton('4').click();
+    await render();
+    expect(writes).toEqual([]);
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'j' }));
+    await render();
+    expect(current()).toBe(tocDomId('6'));
+    expect(writes.length).toBeGreaterThan(0);
+  });
+
+  it('opens only the current path in the TOC and keeps what the user expanded', async () => {
+    await setup('4.2');
+    expandButton('A').click();
+    await render();
+    expect(tocNumbers()).toEqual(['4', '4_1', '4_2', '6', 'A', 'A_5']);
+    tocEntry('6')!.click();
+    await render();
+    // Chapter 4 closes behind the reader; Annex A stays open.
+    expect(tocNumbers()).toEqual(['4', '6', 'A', 'A_5']);
+  });
+
+  it('restores the expanded requirement after Back from an evidence link', async () => {
+    await setup('4.2');
+    el.querySelector<HTMLButtonElement>('#sec-4_2 app-requirement-row button')!.click();
+    await render();
+    fixture.destroy();
+
+    const router = TestBed.inject(Router);
+    vi.spyOn(router, 'currentNavigation').mockReturnValue({ trigger: 'popstate' } as never);
+    await mount('4.2');
+    expect(current()).toBe(tocDomId('4.2'));
+    expect(
+      el.querySelector('#sec-4_2 app-requirement-row button[aria-expanded="true"]'),
+    ).not.toBeNull();
+  });
+
+  it('does not restore on a fresh visit (not back / forward)', async () => {
+    await setup('4.2');
+    el.querySelector<HTMLButtonElement>('#sec-4_2 app-requirement-row button')!.click();
+    await render();
+    fixture.destroy();
+    await mount('4.2');
+    expect(
+      el.querySelector('#sec-4_2 app-requirement-row button[aria-expanded="true"]'),
+    ).toBeNull();
+  });
+
+  it('resizes the TOC with arrows, Home and End', async () => {
+    await setup();
+    const handle = el.querySelector<HTMLElement>('[role="separator"]')!;
+    const key = async (k: string) => {
+      handle.dispatchEvent(new KeyboardEvent('keydown', { key: k, cancelable: true }));
+      await render();
+      return handle.getAttribute('aria-valuenow');
+    };
+    expect(await key('End')).toBe('520');
+    expect(await key('ArrowLeft')).toBe('504');
+    expect(await key('Home')).toBe('240');
+  });
+
+  it('opens the TOC as a modal drawer on small screens', async () => {
+    const view = window as unknown as { matchMedia?: unknown };
+    const original = view.matchMedia;
+    view.matchMedia = () => ({
+      matches: false,
+      addEventListener: () => undefined,
+      removeEventListener: () => undefined,
+    });
+    try {
+      await setup();
+      const aside = el.querySelector<HTMLElement>('#standard-toc')!;
+      expect(aside.hasAttribute('inert')).toBe(true);
+      el.querySelector<HTMLButtonElement>('header button[aria-controls="standard-toc"]')!.click();
+      await render();
+      expect(aside.getAttribute('role')).toBe('dialog');
+      expect(aside.getAttribute('aria-modal')).toBe('true');
+      expect(aside.hasAttribute('inert')).toBe(false);
+      expect(aside.nextElementSibling?.hasAttribute('inert')).toBe(true);
+      // j / k stay off while the drawer is open.
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'j' }));
+      await render();
+      expect(current()).toBe(tocDomId('4'));
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', cancelable: true }));
+      await render();
+      expect(aside.getAttribute('role')).toBeNull();
+      expect(aside.hasAttribute('inert')).toBe(true);
+    } finally {
+      view.matchMedia = original;
+    }
   });
 
   it('saves an assessment inline and updates the TOC roll-up immediately', async () => {

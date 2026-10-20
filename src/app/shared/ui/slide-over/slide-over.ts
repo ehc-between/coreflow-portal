@@ -1,17 +1,18 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  DOCUMENT,
   ElementRef,
   afterRenderEffect,
+  inject,
   input,
   output,
   viewChild,
 } from '@angular/core';
+import { trapTabKey } from '../focus-trap';
 import { Icon } from '../icon/icon';
 
 let nextId = 0;
-
-const FOCUSABLE = 'button:not([disabled]):not([tabindex="-1"]), [href], input, select, textarea';
 
 /**
  * Modal side panel sliding in from the right edge. Purely presentational: the
@@ -20,7 +21,8 @@ const FOCUSABLE = 'button:not([disabled]):not([tabindex="-1"]), [href], input, s
  *
  * Accessibility: modal `dialog` labelled by its title; focus moves into the
  * panel on open, Tab is trapped inside, Escape and a backdrop click close it,
- * and focus returns to the opener on close.
+ * and focus returns to the opener on close. A dialog opened on top of it (e.g.
+ * a confirm dialog from projected content) keeps Escape and Tab to itself.
  *
  *   <app-slide-over [open]="open()" [title]="'x.title' | transloco"
  *     [closeLabel]="'common.close' | transloco" (closed)="open.set(false)">
@@ -31,7 +33,7 @@ const FOCUSABLE = 'button:not([disabled]):not([tabindex="-1"]), [href], input, s
   selector: 'app-slide-over',
   imports: [Icon],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { '(document:keydown.escape)': 'onEscape()' },
+  host: { '(document:keydown.escape)': 'onEscape($event)' },
   template: `
     @if (open()) {
       <div class="fixed inset-0 z-50 flex justify-end">
@@ -93,6 +95,7 @@ export class SlideOver {
 
   protected readonly titleId = `slide-over-${nextId++}-title`;
 
+  private readonly document = inject(DOCUMENT);
   private readonly panel = viewChild<ElementRef<HTMLElement>>('panel');
   private returnFocusTo: HTMLElement | null = null;
   private wasOpen = false;
@@ -102,7 +105,7 @@ export class SlideOver {
       const open = this.open();
       const panel = this.panel()?.nativeElement;
       if (open && !this.wasOpen) {
-        const active = document.activeElement;
+        const active = this.document.activeElement;
         this.returnFocusTo = active instanceof HTMLElement ? active : null;
         panel?.focus();
       } else if (!open && this.wasOpen) {
@@ -118,30 +121,23 @@ export class SlideOver {
 
   protected trapTab(event: KeyboardEvent): void {
     const panel = this.panel()?.nativeElement;
-    if (event.key !== 'Tab' || !panel) {
-      return;
-    }
-    const focusable = Array.from(panel.querySelectorAll<HTMLElement>(FOCUSABLE));
-    if (focusable.length === 0) {
-      event.preventDefault();
-      panel.focus();
-      return;
-    }
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
-    const active = document.activeElement;
-    if (event.shiftKey && (active === first || active === panel)) {
-      event.preventDefault();
-      last.focus();
-    } else if (!event.shiftKey && active === last) {
-      event.preventDefault();
-      first.focus();
+    if (panel && !event.defaultPrevented && this.isTopmost(panel)) {
+      trapTabKey(panel, event);
     }
   }
 
-  protected onEscape(): void {
-    if (this.open()) {
-      this.closed.emit();
+  protected onEscape(event: Event): void {
+    const panel = this.panel()?.nativeElement;
+    if (!this.open() || !panel || event.defaultPrevented || !this.isTopmost(panel)) {
+      return;
     }
+    event.preventDefault();
+    this.closed.emit();
+  }
+
+  /** Whether no other modal dialog is open on top of this panel. */
+  private isTopmost(panel: HTMLElement): boolean {
+    const modals = this.document.querySelectorAll('[aria-modal="true"]');
+    return modals.length === 0 || modals[modals.length - 1] === panel;
   }
 }

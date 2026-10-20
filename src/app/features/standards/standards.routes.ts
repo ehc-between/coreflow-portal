@@ -8,9 +8,10 @@ import { workspaceMatcher } from './workspace/workspace-data';
  * is still scrolled to and highlighted.
  */
 export const legacyClauseRedirect: RedirectFunction = ({ params, queryParams }) =>
-  inject(Router).createUrlTree(['/standards', params['key'], params['number']], {
-    queryParams,
-  });
+  inject(Router).createUrlTree(
+    ['/standards', params['key'], ...(params['number'] ? [params['number']] : [])],
+    { queryParams },
+  );
 
 /**
  * ISO & standards feature routes (lazy-loaded from app.routes, scoped to the
@@ -20,7 +21,7 @@ export const legacyClauseRedirect: RedirectFunction = ({ params, queryParams }) 
  * - `''` — the overview (entry point).
  * - `:key` and `:key/:number` — the document workspace, one route config so
  *   moving between sections reuses the component.
- * - `:key/clauses/:number` — legacy, redirects into the workspace.
+ * - `:key/clauses[/:number]` — legacy, redirects into the workspace.
  */
 const routes: Routes = [
   {
@@ -29,6 +30,11 @@ const routes: Routes = [
   },
   {
     path: ':key/clauses/:number',
+    redirectTo: legacyClauseRedirect,
+  },
+  {
+    // The old clause list without a number: the top of the workspace.
+    path: ':key/clauses',
     redirectTo: legacyClauseRedirect,
   },
   {

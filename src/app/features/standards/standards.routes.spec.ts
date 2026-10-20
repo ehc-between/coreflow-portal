@@ -41,6 +41,14 @@ describe('standards routes', () => {
     expect(page.req()).toBe('r1');
   });
 
+  it('redirects the old clause list without a number to the top of the workspace', async () => {
+    const { harness, router } = await setup();
+    const page = await harness.navigateByUrl('/standards/iso9001/clauses', PageStub);
+    expect(router.url).toBe('/standards/iso9001');
+    expect(page.key()).toBe('iso9001');
+    expect(page.number()).toBeUndefined();
+  });
+
   it('opens the workspace at the top or at a section with one route', async () => {
     const { harness, router } = await setup();
     const top = await harness.navigateByUrl('/standards/iso9001', PageStub);

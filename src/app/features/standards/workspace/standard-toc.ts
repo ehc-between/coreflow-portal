@@ -242,16 +242,26 @@ export class StandardToc {
   private readonly searchInput = viewChild<ElementRef<HTMLInputElement>>('search');
   private readonly scroller = viewChild<ElementRef<HTMLElement>>('scroller');
 
+  /** The entry last scrolled into view; other row changes never move the TOC. */
+  private lastRevealed: string | null = null;
+
   constructor() {
-    // Keep the current entry in view as the reader moves through the document.
+    // Keep the current entry in view as the reader moves through the document —
+    // only when the current section changes. Rows are tracked only to retry
+    // while the new entry isn't rendered yet (e.g. its parent just expanded);
+    // expanding, collapsing, searching or saving leaves the TOC where it is.
     afterRenderEffect(() => {
       const active = this.active();
       this.rows();
       const scroller = this.scroller()?.nativeElement;
-      if (!active || !scroller) {
+      if (!active || !scroller || active === this.lastRevealed) {
         return;
       }
-      untracked(() => this.reveal(scroller, active));
+      untracked(() => {
+        if (this.reveal(scroller, active)) {
+          this.lastRevealed = active;
+        }
+      });
     });
   }
 
@@ -284,10 +294,11 @@ export class StandardToc {
     this.navigate.emit(number);
   }
 
-  private reveal(scroller: HTMLElement, number: string): void {
+  /** Scroll the entry into view if needed; false while it isn't rendered. */
+  private reveal(scroller: HTMLElement, number: string): boolean {
     const entry = scroller.ownerDocument.getElementById(tocDomId(number));
     if (!entry || !scroller.contains(entry)) {
-      return;
+      return false;
     }
     const box = scroller.getBoundingClientRect();
     const rect = entry.getBoundingClientRect();
@@ -295,5 +306,6 @@ export class StandardToc {
     if (rect.top < box.top + margin || rect.bottom > box.bottom - margin) {
       scroller.scrollTop += rect.top - box.top - box.height / 3;
     }
+    return true;
   }
 }

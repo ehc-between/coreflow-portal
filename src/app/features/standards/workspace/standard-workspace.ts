@@ -36,6 +36,7 @@ import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { ProgressRing } from '../../../shared/ui/progress-ring/progress-ring';
+import { trapTabKey } from '../../../shared/ui/focus-trap';
 import { SlideOver } from '../../../shared/ui/slide-over/slide-over';
 import { StandardJobProgress } from '../job-progress';
 import { requirementAnchorId } from '../requirement-card';
@@ -47,6 +48,7 @@ import {
   applyRequirementDetails,
   clauseOfRequirement,
   countGaps,
+  effectiveTocExpansion,
   filterGaps,
   flattenSections,
   indexTree,
@@ -60,6 +62,7 @@ import {
   tocRows,
   treeCompleteness,
 } from './workspace-data';
+import { WorkspaceMemory } from './workspace-memory';
 import { NearViewport, WorkspaceScroll } from './workspace-scroll';
 
 /** TOC search debounce. */
@@ -70,6 +73,12 @@ const URL_SYNC_MS = 300;
 const SCROLL_OFFSET = 12;
 /** How long a deep-linked requirement stays highlighted. */
 const HIGHLIGHT_MS = 6000;
+/** After a deep-link jump the scroll-spy may not rewrite the URL for this long. */
+const DEEP_LINK_URL_HOLD_MS = 1000;
+/** Upper bound on keeping a jump target pinned while content above it renders. */
+const PIN_MAX_MS = 8000;
+/** Keys that scroll the document; pressing one releases a pinned jump target. */
+const SCROLL_KEYS = new Set(['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' ']);
 
 const TOC_MIN = 240;
 const TOC_MAX = 520;
@@ -152,11 +161,17 @@ function clampWidth(width: number): number {
           ></button>
         }
         <aside
+          #tocAside
           id="standard-toc"
-          class="flex-col border-r border-border bg-surface"
+          class="flex-col border-r border-border bg-surface outline-none"
+          tabindex="-1"
           [class]="tocClasses()"
           [style.width.px]="isDesktop() ? tocWidth() : null"
           [attr.inert]="tocInert() ? '' : null"
+          [attr.role]="drawerModal() ? 'dialog' : null"
+          [attr.aria-modal]="drawerModal() ? 'true' : null"
+          [attr.aria-label]="drawerModal() ? ('standards.workspace.contents' | transloco) : null"
+          (keydown)="onDrawerKeydown($event)"
         >
           <app-standard-toc
             class="block h-full"
@@ -193,7 +208,7 @@ function clampWidth(width: number): number {
           ></div>
         }
 
-        <div class="flex min-w-0 flex-1 flex-col">
+        <div class="flex min-w-0 flex-1 flex-col" [attr.inert]="drawerModal() ? '' : null">
           <!-- Sticky header -->
           <header
             class="flex flex-none items-center gap-3 border-b border-border bg-surface px-3 py-2 sm:px-4"
@@ -492,7 +507,10 @@ export class StandardWorkspace {
   /** Requirements kept visible under "only gaps" after the user worked on them. */
   private readonly keepRefs = signal<ReadonlySet<string>>(new Set());
   protected readonly tocQuery = signal('');
-  private readonly tocExpanded = signal<ReadonlySet<string>>(new Set());
+  /** TOC nodes the user expanded by hand (kept as the reader moves on). */
+  private readonly tocUserExpanded = signal<ReadonlySet<string>>(new Set());
+  /** Nodes on the current path the user collapsed by hand. */
+  private readonly tocUserCollapsed = signal<ReadonlySet<string>>(new Set());
   protected readonly expandedRefs = signal<ReadonlySet<string>>(new Set());
   protected readonly highlightRef = signal<string | null>(null);
   protected readonly renderedUnits = signal<ReadonlySet<string>>(new Set());
@@ -521,6 +539,8 @@ export class StandardWorkspace {
 
   private readonly scrollerRef = viewChild<ElementRef<HTMLElement>>('scroller');
   private readonly tocButton = viewChild<ElementRef<HTMLElement>>('tocButton');
+  private readonly tocAside = viewChild<ElementRef<HTMLElement>>('tocAside');
+  private readonly memory = inject(WorkspaceMemory);
   private readonly toc = viewChild(StandardToc);
 
   protected readonly canManage = computed(() =>
@@ -621,6 +641,10 @@ export class StandardWorkspace {
   );
 
   private readonly activePath = computed(() => sectionPath(this.index(), this.active()));
+  /** Only the current path opens on its own; manual expand / collapse is respected. */
+  private readonly tocExpanded = computed(() =>
+    effectiveTocExpansion(this.tocUserExpanded(), this.tocUserCollapsed(), this.activePath()),
+  );
   protected readonly activePathSet = computed(() => new Set(this.activePath()));
   protected readonly breadcrumb = computed(() => {
     const nodes = this.index().nodes;
@@ -639,6 +663,8 @@ export class StandardWorkspace {
     }`;
   });
   protected readonly tocInert = computed(() => !this.isDesktop() && !this.drawerOpen());
+  /** The mobile drawer is open: it is a modal dialog and the page behind it is inert. */
+  protected readonly drawerModal = computed(() => !this.isDesktop() && this.drawerOpen());
 
   private sub: Subscription | null = null;
   private loadedOrgId: string | null = null;
@@ -652,6 +678,15 @@ export class StandardWorkspace {
   private settleTimer: ReturnType<typeof setTimeout> | null = null;
   private highlightTimer: ReturnType<typeof setTimeout> | null = null;
   private detachScroll: (() => void) | null = null;
+  /** Element kept at the top while lazily rendered content above it appears. */
+  private pinnedId: string | null = null;
+  private pinTimer: ReturnType<typeof setTimeout> | null = null;
+  private urlHoldUntil = 0;
+  private lastScrollTop = 0;
+  /** Came back via browser back / forward: restore the remembered state once. */
+  private restoreFromMemory = untracked(
+    () => this.router.currentNavigation()?.trigger === 'popstate',
+  );
   private readonly clauseSubs = new Map<string, Subscription>();
 
   constructor() {
@@ -703,8 +738,11 @@ export class StandardWorkspace {
     inject(DestroyRef).onDestroy(() => {
       this.sub?.unsubscribe();
       this.clauseSubs.forEach((s) => s.unsubscribe());
+      this.remember();
       this.detachScroll?.();
-      [this.urlTimer, this.settleTimer, this.highlightTimer].forEach((t) => t && clearTimeout(t));
+      [this.urlTimer, this.settleTimer, this.highlightTimer, this.pinTimer].forEach(
+        (t) => t && clearTimeout(t),
+      );
     });
   }
 
@@ -748,9 +786,15 @@ export class StandardWorkspace {
     if (!this.standard()) {
       return;
     }
-    if (event.key === 'Escape' && !this.isDesktop() && this.drawerOpen()) {
-      this.closeDrawer();
+    if (event.key === 'Escape' && this.drawerModal()) {
+      if (!event.defaultPrevented) {
+        event.preventDefault();
+        this.closeDrawer();
+      }
       return;
+    }
+    if (this.pinnedId && SCROLL_KEYS.has(event.key)) {
+      this.releasePin();
     }
     if (
       event.defaultPrevented ||
@@ -794,6 +838,10 @@ export class StandardWorkspace {
     const initial = !this.routeSynced;
     this.routeSynced = true;
     this.expectedNumber = number;
+    this.urlHoldUntil = Date.now() + DEEP_LINK_URL_HOLD_MS;
+    if (initial && this.restoreFromMemory && this.restoreSnapshot(number)) {
+      return;
+    }
     const target = number && this.index().nodes.has(number) ? number : null;
     if (!target) {
       const first = this.order()[0] ?? null;
@@ -816,6 +864,7 @@ export class StandardWorkspace {
       clearTimeout(this.highlightTimer);
     }
     this.highlightTimer = setTimeout(() => this.highlightRef.set(null), HIGHLIGHT_MS);
+    this.urlHoldUntil = Date.now() + DEEP_LINK_URL_HOLD_MS;
     this.scrollToSection(clause, 'instant', requirementAnchorId(ref));
   }
 
@@ -833,6 +882,7 @@ export class StandardWorkspace {
     if (!unit) {
       return;
     }
+    this.releasePin(false);
     this.spyLocked = true;
     this.setActive(number, false);
     if (!this.renderedUnits().has(unit)) {
@@ -868,10 +918,52 @@ export class StandardWorkspace {
             this.scrollTo(scroller, corrected, false);
           }
         }
-        this.settleTimer = setTimeout(() => (this.spyLocked = false), 150);
+        this.settleTimer = null;
+        this.pin(elementId);
       },
       smooth ? 700 : 60,
     );
+  }
+
+  /**
+   * Keep `elementId` at the top while chapters above it render (their real
+   * heights replace the placeholders) until the reader scrolls themselves.
+   * The scroll-spy stays paused meanwhile, so the highlight stays on the target.
+   */
+  private pin(elementId: string): void {
+    this.pinnedId = elementId;
+    this.spyLocked = true;
+    if (this.pinTimer) {
+      clearTimeout(this.pinTimer);
+    }
+    this.pinTimer = setTimeout(() => this.releasePin(), PIN_MAX_MS);
+  }
+
+  /** The reader took over scrolling (or a new jump starts): stop re-anchoring. */
+  private releasePin(unlockSpy = true): void {
+    if (this.pinTimer) {
+      clearTimeout(this.pinTimer);
+      this.pinTimer = null;
+    }
+    const wasPinned = this.pinnedId !== null;
+    this.pinnedId = null;
+    if (unlockSpy && wasPinned && !this.settleTimer) {
+      this.spyLocked = false;
+    }
+  }
+
+  /** After content rendered above a pinned target, put it back at the top. */
+  private reanchor(): void {
+    const id = this.pinnedId;
+    const scroller = this.scrollerRef()?.nativeElement;
+    const el = id ? this.document.getElementById(id) : null;
+    if (!scroller || !el) {
+      return;
+    }
+    const top = this.offsetWithin(scroller, el);
+    if (Math.abs(top - scroller.scrollTop) > 2) {
+      this.scrollTo(scroller, top, false);
+    }
   }
 
   private offsetWithin(scroller: HTMLElement, el: HTMLElement): number {
@@ -891,13 +983,11 @@ export class StandardWorkspace {
   /** Make `number` current: TOC highlight + its path expanded; spy updates also sync the URL. */
   private setActive(number: string, fromSpy: boolean): void {
     this.active.set(number);
-    const path = sectionPath(this.index(), number);
-    if (path.some((n) => !this.tocExpanded().has(n))) {
-      this.tocExpanded.update((set) => {
-        const next = new Set(set);
-        path.forEach((n) => next.add(n));
-        return next;
-      });
+    // A manual collapse only sticks while the reader stays on that path.
+    const path = new Set(sectionPath(this.index(), number));
+    const collapsed = this.tocUserCollapsed();
+    if ([...collapsed].some((n) => !path.has(n))) {
+      this.tocUserCollapsed.set(new Set([...collapsed].filter((n) => path.has(n))));
     }
     if (fromSpy) {
       this.scheduleUrlSync(number);
@@ -908,19 +998,26 @@ export class StandardWorkspace {
     if (this.urlTimer) {
       clearTimeout(this.urlTimer);
     }
-    this.urlTimer = setTimeout(() => {
-      this.urlTimer = null;
-      if (this.active() !== number || this.number() === number) {
-        return;
-      }
-      this.expectedNumber = number;
-      void this.router.navigate(['/standards', this.key(), number], { replaceUrl: true });
-    }, URL_SYNC_MS);
+    this.urlTimer = setTimeout(
+      () => {
+        this.urlTimer = null;
+        if (this.active() !== number || this.number() === number) {
+          return;
+        }
+        this.expectedNumber = number;
+        void this.router.navigate(['/standards', this.key(), number], { replaceUrl: true });
+      },
+      Math.max(URL_SYNC_MS, this.urlHoldUntil - Date.now()),
+    );
   }
 
   private attachScroller(el: HTMLElement): void {
+    this.detachScroll?.();
     this.scroll.attach(el);
+    // Any scrolling gesture of the reader's own releases a pinned jump target.
+    const release = (): void => this.releasePin();
     const onScroll = (): void => {
+      this.lastScrollTop = el.scrollTop;
       if (this.spyLocked) {
         return;
       }
@@ -931,25 +1028,61 @@ export class StandardWorkspace {
         }
       }
     };
+    const gestures = ['wheel', 'touchstart', 'pointerdown'] as const;
     el.addEventListener('scroll', onScroll, { passive: true });
-    this.detachScroll = () => el.removeEventListener('scroll', onScroll);
+    gestures.forEach((type) => el.addEventListener(type, release, { passive: true }));
+    this.detachScroll = () => {
+      el.removeEventListener('scroll', onScroll);
+      gestures.forEach((type) => el.removeEventListener(type, release));
+    };
   }
 
   protected renderUnit(key: string): void {
     if (!this.renderedUnits().has(key)) {
       this.renderedUnits.update((set) => new Set(set).add(key));
+      if (this.pinnedId) {
+        afterNextRender(() => this.reanchor(), { injector: this.injector });
+      }
     }
   }
 
   // --- TOC -------------------------------------------------------------------
 
   protected toggleTocNode(number: string): void {
-    this.toggleIn(this.tocExpanded, number);
+    const onPath = this.activePath().includes(number);
+    if (this.tocExpanded().has(number)) {
+      this.tocUserExpanded.update((set) => {
+        const next = new Set(set);
+        next.delete(number);
+        return next;
+      });
+      if (onPath) {
+        this.tocUserCollapsed.update((set) => new Set(set).add(number));
+      }
+    } else {
+      this.tocUserCollapsed.update((set) => {
+        const next = new Set(set);
+        next.delete(number);
+        return next;
+      });
+      if (!onPath) {
+        this.tocUserExpanded.update((set) => new Set(set).add(number));
+      }
+    }
   }
 
   protected collapseToc(): void {
-    // Keep the path to the current section open so the highlight stays visible.
-    this.tocExpanded.set(new Set(this.activePath().slice(0, -1)));
+    // Back to "only the current path": the highlight stays visible.
+    this.tocUserExpanded.set(new Set());
+    this.tocUserCollapsed.set(new Set());
+  }
+
+  /** Mobile drawer: keep Tab inside while it is open as a modal. */
+  protected onDrawerKeydown(event: KeyboardEvent): void {
+    const aside = this.tocAside()?.nativeElement;
+    if (aside && this.drawerModal() && !event.defaultPrevented) {
+      trapTabKey(aside, event);
+    }
   }
 
   protected setGapsOnly(on: boolean): void {
@@ -1015,12 +1148,18 @@ export class StandardWorkspace {
   }
 
   protected resizeKey(event: KeyboardEvent): void {
-    const step = event.key === 'ArrowLeft' ? -16 : event.key === 'ArrowRight' ? 16 : 0;
-    if (!step) {
+    const width = this.tocWidth();
+    const targets: Record<string, number> = {
+      ArrowLeft: width - 16,
+      ArrowRight: width + 16,
+      Home: TOC_MIN,
+      End: TOC_MAX,
+    };
+    if (!(event.key in targets)) {
       return;
     }
     event.preventDefault();
-    this.tocWidth.set(clampWidth(this.tocWidth() + step));
+    this.tocWidth.set(clampWidth(targets[event.key]));
     this.savePrefs();
   }
 
@@ -1158,6 +1297,7 @@ export class StandardWorkspace {
     this.sub?.unsubscribe();
     this.loadedOrgId = orgId;
     if (key !== this.loadedKey) {
+      this.remember();
       this.loadedKey = key;
       this.resetDocumentState();
     }
@@ -1187,13 +1327,75 @@ export class StandardWorkspace {
     });
   }
 
+  /** Remember what is open and where the reader is, for Back from an evidence link. */
+  private remember(): void {
+    const orgId = this.loadedOrgId;
+    const key = this.loadedKey;
+    if (!orgId || !key || !this.routeSynced) {
+      return;
+    }
+    this.memory.save(orgId, key, {
+      active: this.active(),
+      scrollTop: this.lastScrollTop,
+      expandedRefs: this.expandedRefs(),
+      renderedUnits: this.renderedUnits(),
+      openGuidance: this.openGuidance(),
+      openLicensed: this.openLicensed(),
+      tocUserExpanded: this.tocUserExpanded(),
+      gapsOnly: this.gapsOnly(),
+      keepRefs: this.keepRefs(),
+    });
+  }
+
+  /**
+   * Back / forward into the workspace: reopen what was open and return to the
+   * exact scroll position (same chapters rendered, so the same heights).
+   * Returns false when there is nothing to restore for this URL.
+   */
+  private restoreSnapshot(number: string | null): boolean {
+    this.restoreFromMemory = false;
+    const orgId = this.loadedOrgId;
+    const key = this.loadedKey;
+    const snap = orgId && key ? this.memory.get(orgId, key) : null;
+    if (!snap || (number !== null && number !== snap.active)) {
+      return false;
+    }
+    this.gapsOnly.set(snap.gapsOnly);
+    this.keepRefs.set(snap.keepRefs);
+    this.expandedRefs.set(snap.expandedRefs);
+    this.openGuidance.set(snap.openGuidance);
+    this.openLicensed.set(snap.openLicensed);
+    this.tocUserExpanded.set(snap.tocUserExpanded);
+    this.renderedUnits.set(snap.renderedUnits);
+    this.spyLocked = true;
+    if (snap.active) {
+      this.setActive(snap.active, false);
+    }
+    afterNextRender(
+      () => {
+        const scroller = this.scrollerRef()?.nativeElement;
+        if (scroller) {
+          scroller.scrollTop = snap.scrollTop;
+          this.lastScrollTop = snap.scrollTop;
+        }
+        this.settleTimer = setTimeout(() => {
+          this.settleTimer = null;
+          this.spyLocked = false;
+        }, 150);
+      },
+      { injector: this.injector },
+    );
+    return true;
+  }
+
   private resetDocumentState(): void {
     this.routeSynced = false;
     this.expectedNumber = null;
     this.handledReq = null;
     this.active.set(null);
     this.renderedUnits.set(new Set());
-    this.tocExpanded.set(new Set());
+    this.tocUserExpanded.set(new Set());
+    this.tocUserCollapsed.set(new Set());
     this.expandedRefs.set(new Set());
     this.openGuidance.set(new Set());
     this.openLicensed.set(new Set());

@@ -422,29 +422,66 @@ export function isTypingTarget(target: EventTarget | null): boolean {
   return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || !!el.isContentEditable;
 }
 
+/** Places where workspace shortcuts never apply: dialogs and the evidence picker. */
+const SHORTCUT_FREE_ZONES = '[role="dialog"], [role="alertdialog"], app-evidence-picker';
+
+/** Whether a key event comes from inside a dialog or the evidence picker. */
+export function isInsideDialog(target: EventTarget | null): boolean {
+  const el = target as Element | null;
+  return !!el && typeof el.closest === 'function' && el.closest(SHORTCUT_FREE_ZONES) !== null;
+}
+
 /**
  * Workspace shortcut for a keydown: `j` / Alt+↓ next section, `k` / Alt+↑
- * previous, `/` focus the TOC search. Ignored while typing or with Ctrl/Meta.
+ * previous, `/` focus the TOC search. Ignored while typing, inside dialogs or
+ * the evidence picker, and with Ctrl/Meta. A held-down navigation key (auto
+ * repeat) is ignored, so it can't flood the history with one entry per repeat.
  */
 export function shortcutFor(
-  event: Pick<KeyboardEvent, 'key' | 'altKey' | 'ctrlKey' | 'metaKey' | 'target'>,
+  event: Pick<KeyboardEvent, 'key' | 'altKey' | 'ctrlKey' | 'metaKey' | 'target'> & {
+    readonly repeat?: boolean;
+  },
 ): WorkspaceShortcut | null {
-  if (event.ctrlKey || event.metaKey || isTypingTarget(event.target)) {
+  if (
+    event.ctrlKey ||
+    event.metaKey ||
+    isTypingTarget(event.target) ||
+    isInsideDialog(event.target)
+  ) {
     return null;
   }
+  let shortcut: WorkspaceShortcut | null = null;
   if (event.altKey) {
-    return event.key === 'ArrowDown' ? 'next' : event.key === 'ArrowUp' ? 'prev' : null;
+    shortcut = event.key === 'ArrowDown' ? 'next' : event.key === 'ArrowUp' ? 'prev' : null;
+  } else if (event.key === 'j') {
+    shortcut = 'next';
+  } else if (event.key === 'k') {
+    shortcut = 'prev';
+  } else if (event.key === '/') {
+    shortcut = 'search';
   }
-  switch (event.key) {
-    case 'j':
-      return 'next';
-    case 'k':
-      return 'prev';
-    case '/':
-      return 'search';
-    default:
-      return null;
+  if (event.repeat && (shortcut === 'next' || shortcut === 'prev')) {
+    return null;
   }
+  return shortcut;
+}
+
+// --- TOC expansion ------------------------------------------------------------
+
+/**
+ * Expanded TOC nodes: only the path to the current section opens on its own;
+ * nodes the user expanded stay open, and path nodes the user collapsed stay
+ * collapsed (until the reader leaves that path).
+ */
+export function effectiveTocExpansion(
+  userExpanded: ReadonlySet<string>,
+  userCollapsed: ReadonlySet<string>,
+  activePath: readonly string[],
+): Set<string> {
+  const out = new Set(userExpanded);
+  activePath.forEach((n) => out.add(n));
+  userCollapsed.forEach((n) => out.delete(n));
+  return out;
 }
 
 // --- Live updates --------------------------------------------------------------

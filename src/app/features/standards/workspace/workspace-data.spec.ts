@@ -13,7 +13,9 @@ import {
   countGaps,
   filterGaps,
   flattenSections,
+  effectiveTocExpansion,
   indexTree,
+  isInsideDialog,
   isAtBottom,
   isTypingTarget,
   neighbours,
@@ -406,6 +408,47 @@ describe('workspace keyboard shortcuts', () => {
     expect(key('k', { metaKey: true })).toBeNull();
     expect(isTypingTarget(document.createElement('button'))).toBe(false);
     expect(isTypingTarget(document.createElement('select'))).toBe(true);
+  });
+
+  it('ignores held-down navigation keys (auto repeat) but not a repeated slash', () => {
+    expect(key('j', { repeat: true })).toBeNull();
+    expect(key('k', { repeat: true })).toBeNull();
+    expect(key('ArrowDown', { altKey: true, repeat: true })).toBeNull();
+    expect(key('/', { repeat: true })).toBe('search');
+  });
+
+  it('ignores keys inside dialogs and the evidence picker', () => {
+    const dialog = document.createElement('div');
+    dialog.setAttribute('role', 'dialog');
+    const inDialog = document.createElement('button');
+    dialog.appendChild(inDialog);
+    const alert = document.createElement('div');
+    alert.setAttribute('role', 'alertdialog');
+    const inAlert = document.createElement('button');
+    alert.appendChild(inAlert);
+    const picker = document.createElement('app-evidence-picker');
+    const inPicker = document.createElement('button');
+    picker.appendChild(inPicker);
+    expect(key('j', { target: inDialog })).toBeNull();
+    expect(key('k', { target: inAlert })).toBeNull();
+    expect(key('j', { target: inPicker })).toBeNull();
+    expect(isInsideDialog(document.createElement('button'))).toBe(false);
+    expect(key('j', { target: document.createElement('button') })).toBe('next');
+  });
+});
+
+describe('workspace TOC expansion', () => {
+  it('opens only the current path on its own and keeps manual choices', () => {
+    const none = new Set<string>();
+    expect([...effectiveTocExpansion(none, none, ['6', '6.1'])]).toEqual(['6', '6.1']);
+    // Moving on closes the old path; a node the user opened stays open.
+    expect([...effectiveTocExpansion(new Set(['4']), none, ['A', 'A.5'])].sort()).toEqual([
+      '4',
+      'A',
+      'A.5',
+    ]);
+    // A path node the user collapsed stays collapsed.
+    expect([...effectiveTocExpansion(none, new Set(['A']), ['A', 'A.5'])]).toEqual(['A.5']);
   });
 });
 

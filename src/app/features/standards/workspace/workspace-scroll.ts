@@ -35,16 +35,30 @@ export class WorkspaceScroll implements OnDestroy {
 
   private spy: IntersectionObserver | null = null;
   private lazy: IntersectionObserver | null = null;
+  private root: HTMLElement | null = null;
   private attached = false;
   private readonly sections = new Map<Element, string>();
   private readonly nearCallbacks = new Map<Element, () => void>();
 
-  /** Start observing inside `root` (the workspace's scroll container). */
+  /**
+   * Observe inside `root` (the workspace's scroll container). Attaching to a
+   * new root (the container was re-created, e.g. another standard opened in
+   * the same component) disconnects the old observers and re-observes every
+   * registered element against the new one.
+   */
   attach(root: HTMLElement): void {
-    if (this.attached) {
+    if (this.attached && root === this.root) {
       return;
     }
+    this.spy?.disconnect();
+    this.lazy?.disconnect();
+    this.spy = null;
+    this.lazy = null;
+    this.root = root;
     this.attached = true;
+    if (this.crossing().size > 0) {
+      this.crossing.set(new Set());
+    }
     if (typeof IntersectionObserver === 'undefined') {
       this.flushNear();
       return;
