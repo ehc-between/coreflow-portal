@@ -1,25 +1,36 @@
-import { ChangeDetectionStrategy, Component, effect, inject, input, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  input,
+  signal,
+} from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { DocumentDetail as DocumentDetailModel } from '../../../core/documents/document.models';
+import { documentErrorKey } from '../../../core/documents/document-errors';
 import { DocumentsApi } from '../../../core/documents/documents-api';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { Badge } from '../../../shared/ui/badge/badge';
 import { Card } from '../../../shared/ui/card/card';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { PromptDialog } from '../../../shared/ui/prompt-dialog/prompt-dialog';
 import { statusLabelKey, statusTone } from '../document-status';
 import { DocumentEditor } from './document-editor';
 
 /**
  * Editor route for a document (`/documents/:id/edit`, gated `documents:draft`
- * upstream). Loads the current revision HTML into {@link DocumentEditor}, saves
- * a new revision on Save, then returns to the read view. Navigates back to the
- * detail view on org switch.
+ * upstream). Loads the working draft (else the approved revision) into
+ * {@link DocumentEditor}. Save asks for a change reason — required once an
+ * approved revision exists — then saves a new draft revision and returns to the
+ * read view. Navigates back to the detail view on org switch.
  */
 @Component({
   selector: 'app-document-editor-page',
-  imports: [TranslocoPipe, DocumentEditor, Card, Badge, Icon],
+  imports: [TranslocoPipe, DocumentEditor, Card, Badge, Icon, PromptDialog],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mx-auto max-w-[980px] px-8 pt-7 pb-12">
@@ -50,11 +61,39 @@ import { DocumentEditor } from './document-editor';
           </h1>
         </div>
 
+        @if (doc.status === 'in_review') {
+          <p
+            role="status"
+            class="mb-4 rounded-tile border border-warn/30 bg-warn-soft px-4 py-3 text-[13.5px] font-medium text-warn"
+          >
+            {{ 'documents.editor.inReviewWarning' | transloco }}
+          </p>
+        }
+
         <app-document-editor
           [content]="initialHtml()"
           [saving]="saving()"
           (save)="onSave($event)"
           (cancelEdit)="back()"
+        />
+
+        <app-prompt-dialog
+          [open]="pendingHtml() !== null"
+          [title]="'documents.workflow.changeReasonTitle' | transloco"
+          [message]="
+            (reasonRequired()
+              ? 'documents.workflow.changeReasonBodyRequired'
+              : 'documents.workflow.changeReasonBodyOptional'
+            ) | transloco
+          "
+          [label]="'documents.workflow.changeReasonLabel' | transloco"
+          [placeholder]="'documents.workflow.changeReasonPlaceholder' | transloco"
+          [required]="reasonRequired()"
+          [confirmLabel]="'documents.editor.save' | transloco"
+          [cancelLabel]="'common.cancel' | transloco"
+          [busy]="saving()"
+          (confirmed)="saveWithReason($event)"
+          (cancelled)="pendingHtml.set(null)"
         />
       } @else {
         <app-card>
@@ -83,6 +122,11 @@ export class DocumentEditorPage {
   protected readonly initialHtml = signal('');
   protected readonly loading = signal(true);
   protected readonly saving = signal(false);
+  /** Edited HTML waiting on the change-reason dialog; null when it's closed. */
+  protected readonly pendingHtml = signal<string | null>(null);
+
+  /** A change reason is mandatory once the document has an approved revision. */
+  protected readonly reasonRequired = computed(() => !!this.document()?.current_revision);
 
   private currentOrgId: string | null = null;
 
@@ -101,19 +145,31 @@ export class DocumentEditorPage {
     });
   }
 
+  /** Editor Save: collect the change reason before saving. */
   protected onSave(html: string): void {
+    if (!this.saving()) {
+      this.pendingHtml.set(html);
+    }
+  }
+
+  protected saveWithReason(reason: string): void {
     const orgId = this.orgId();
-    if (!orgId || this.saving()) {
+    const html = this.pendingHtml();
+    if (!orgId || html === null || this.saving()) {
       return;
     }
     this.saving.set(true);
-    this.api.addRevision(orgId, this.id(), html).subscribe({
+    this.api.addRevision(orgId, this.id(), html, reason).subscribe({
       next: () => {
         this.saving.set(false);
+        this.pendingHtml.set(null);
         this.notifications.success('documents.editor.savedToast');
         void this.router.navigate(['/documents', this.id()]);
       },
-      error: () => this.saving.set(false),
+      error: (error: unknown) => {
+        this.saving.set(false);
+        this.notifications.error(documentErrorKey(error, 'saveRevision'));
+      },
     });
   }
 
@@ -126,7 +182,8 @@ export class DocumentEditorPage {
     this.api.get(orgId, id).subscribe({
       next: (document) => {
         this.document.set(document);
-        this.initialHtml.set(document.current_revision?.content ?? '');
+        // Continue the working draft when there is one; else start from approved.
+        this.initialHtml.set((document.draft_revision ?? document.current_revision)?.content ?? '');
         this.loading.set(false);
       },
       error: () => {

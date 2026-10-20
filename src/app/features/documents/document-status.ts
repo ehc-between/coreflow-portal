@@ -10,6 +10,7 @@ export function statusTone(status: string): BadgeTone {
       return 'warn';
     case 'obsolete':
     case 'superseded':
+    case 'withdrawn':
       return 'neutral';
     case 'draft':
     default:

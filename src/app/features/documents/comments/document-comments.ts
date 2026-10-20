@@ -12,7 +12,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer } from '@angular/platform-browser';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { Editor } from '@tiptap/core';
 import Link from '@tiptap/extension-link';
 import { TableKit } from '@tiptap/extension-table';
@@ -20,7 +20,8 @@ import TextAlign from '@tiptap/extension-text-align';
 import Underline from '@tiptap/extension-underline';
 import StarterKit from '@tiptap/starter-kit';
 import { AuthService } from '../../../core/auth/auth.service';
-import { Comment } from '../../../core/documents/document.models';
+import { Comment, DocumentDetail, DocumentRevision } from '../../../core/documents/document.models';
+import { documentErrorKey } from '../../../core/documents/document-errors';
 import { DocumentsApi } from '../../../core/documents/documents-api';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
@@ -287,6 +288,7 @@ interface SuggestState {
 })
 export class DocumentComments {
   private readonly api = inject(DocumentsApi);
+  private readonly transloco = inject(TranslocoService);
   private readonly auth = inject(AuthService);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly notifications = inject(NotificationService);
@@ -690,8 +692,17 @@ export class DocumentComments {
     const appliedIds = resolvable.map((x) => x.comment.id);
 
     this.savingRevision.set(true);
-    this.api.addRevision(orgId, this.documentId(), finalHtml).subscribe({
-      next: (revision) => {
+    // The backend requires a change reason once an approved revision exists.
+    const reason = this.transloco.translate('documents.comments.changeReason', {
+      count: appliedIds.length,
+    });
+    this.api.addRevision(orgId, this.documentId(), finalHtml, reason).subscribe({
+      next: (response) => {
+        const revision = savedRevision(response);
+        if (!revision) {
+          this.finishSave(appliedIds.length, '', skipped);
+          return;
+        }
         let pending = appliedIds.length;
         for (const id of appliedIds) {
           this.api.resolveComment(orgId, this.documentId(), id, revision.id).subscribe({
@@ -709,11 +720,14 @@ export class DocumentComments {
           });
         }
       },
-      error: () => this.savingRevision.set(false),
+      error: (error: unknown) => {
+        this.savingRevision.set(false);
+        this.notifications.error(documentErrorKey(error, 'saveRevision'));
+      },
     });
   }
 
-  private finishSave(count: number, rev: number, skipped: number): void {
+  private finishSave(count: number, rev: string | number, skipped: number): void {
     this.savingRevision.set(false);
     this.notifications.success('documents.comments.savedToast', { count, rev });
     if (skipped > 0) {
@@ -820,4 +834,15 @@ export class DocumentComments {
   private replaceComment(updated: Comment): void {
     this.comments.update((list) => list.map((c) => (c.id === updated.id ? updated : c)));
   }
+}
+
+/**
+ * The revision a save created. The endpoint answers with the updated document
+ * (the new revision is its draft); older backends answered with the revision.
+ */
+function savedRevision(response: DocumentDetail | DocumentRevision): DocumentRevision | null {
+  if ('revisions' in response) {
+    return response.draft_revision ?? response.current_revision ?? null;
+  }
+  return response;
 }

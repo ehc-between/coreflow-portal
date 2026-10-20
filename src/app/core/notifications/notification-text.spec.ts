@@ -84,3 +84,125 @@ describe('notificationLink', () => {
     ]);
   });
 });
+
+describe('document notifications', () => {
+  function docNotification(title_key: string, params: Record<string, unknown> = {}) {
+    return {
+      ...make(title_key),
+      kind: 'document_submitted' as const,
+      entity_type: 'document' as const,
+      entity_id: 'doc-9',
+      params: { document_id: 'doc-1', doc_code: 'QM-1', title: 'Quality manual', ...params },
+    };
+  }
+
+  it('words submitted / changes-requested around the actor', () => {
+    expect(
+      notificationText(docNotification('notifications.documentSubmitted', { actor_name: 'Ada' }))
+        .key,
+    ).toBe('notifications.documentSubmitted');
+    expect(
+      notificationText(
+        docNotification('notifications.documentChangesRequested', { actor_name: null }),
+      ).key,
+    ).toBe('notifications.documentChangesRequestedNoActor');
+  });
+
+  it('words review reminders like other due-soon / overdue reminders', () => {
+    const key = (k: string, days: number) => notificationText(docNotification(k, { days })).key;
+    expect(key('notifications.documentReviewDue', 0)).toBe('notifications.documentReviewDueToday');
+    expect(key('notifications.documentReviewDue', 1)).toBe(
+      'notifications.documentReviewDueTomorrow',
+    );
+    expect(key('notifications.documentReviewDue', 14)).toBe('notifications.documentReviewDue');
+    expect(key('notifications.documentReviewOverdue', 1)).toBe(
+      'notifications.documentReviewOverdueOne',
+    );
+    expect(key('notifications.documentReviewOverdue', 5)).toBe(
+      'notifications.documentReviewOverdue',
+    );
+  });
+
+  it('links to the document from params', () => {
+    expect(notificationLink(docNotification('notifications.documentSubmitted'))).toEqual([
+      '/documents',
+      'doc-1',
+    ]);
+  });
+
+  it('falls back to the document entity when params carry no id', () => {
+    const notification = { ...docNotification('notifications.documentSubmitted'), params: {} };
+    expect(notificationLink(notification)).toEqual(['/documents', 'doc-9']);
+  });
+});
+
+describe('document notifications without a code', () => {
+  const kinds: [string, Record<string, unknown>, string][] = [
+    [
+      'notifications.documentSubmitted',
+      { actor_name: 'Ada' },
+      'notifications.documentSubmittedNoCode',
+    ],
+    [
+      'notifications.documentChangesRequested',
+      { actor_name: null },
+      'notifications.documentChangesRequestedNoActorNoCode',
+    ],
+    ['notifications.documentReviewDue', { days: 0 }, 'notifications.documentReviewDueTodayNoCode'],
+    [
+      'notifications.documentReviewOverdue',
+      { days: 3 },
+      'notifications.documentReviewOverdueNoCode',
+    ],
+  ];
+
+  for (const [key, params, expected] of kinds) {
+    it(`uses the NoCode wording for ${key} when doc_code is null`, () => {
+      const notification = {
+        ...make(key),
+        entity_type: 'document' as const,
+        params: { document_id: 'doc-1', title: 'Quality manual', doc_code: null, ...params },
+      };
+      expect(notificationText(notification).key).toBe(expected);
+    });
+  }
+
+  it('keeps the coded wording when doc_code is present', () => {
+    const notification = {
+      ...make('notifications.documentReviewOverdue'),
+      params: { document_id: 'doc-1', title: 'Quality manual', doc_code: 'QM-1', days: 3 },
+    };
+    expect(notificationText(notification).key).toBe('notifications.documentReviewOverdue');
+  });
+});
+
+describe('notification due dates', () => {
+  const review = (lang?: string) =>
+    notificationText(
+      {
+        ...make('notifications.documentReviewDue'),
+        params: {
+          document_id: 'doc-1',
+          doc_code: 'QM-1',
+          title: 'T',
+          days: 5,
+          due_date: '2026-11-03',
+        },
+      },
+      lang,
+    ).params['due_date'];
+
+  it('formats due_date for the UI language without shifting the day', () => {
+    expect(review('en')).toBe(
+      new Intl.DateTimeFormat('en', { dateStyle: 'medium', timeZone: 'UTC' }).format(
+        new Date(Date.UTC(2026, 10, 3)),
+      ),
+    );
+    expect(review('nb')).toContain('2026');
+    expect(review('nb')).not.toBe('2026-11-03');
+  });
+
+  it('leaves due_date untouched without a language', () => {
+    expect(review()).toBe('2026-11-03');
+  });
+});

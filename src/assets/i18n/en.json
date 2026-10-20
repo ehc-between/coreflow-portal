@@ -117,7 +117,6 @@
     "approve": "Approve",
     "requestChanges": "Request changes",
     "approvedToast": "Document approved.",
-    "requestChangesToast": "Request changes is coming soon.",
     "createdToast": "Document created.",
     "download": "Download",
     "downloadPdf": "Download PDF",
@@ -145,7 +144,8 @@
       "savedToast": "{{ count }} change(s) saved as Rev {{ rev }}.",
       "skippedToast": "{{ count }} change(s) couldn't be applied because the text they refer to has changed.",
       "appliedToast": "Change applied as a new revision.",
-      "anchorNotFoundToast": "The text this comment refers to has changed, so the suggestion can't be applied."
+      "anchorNotFoundToast": "The text this comment refers to has changed, so the suggestion can't be applied.",
+      "changeReason": "Applied {{count}} review comment(s)"
     },
     "meta": {
       "code": "Code",
@@ -206,7 +206,8 @@
         "suggested": "Suggested",
         "addingNew": "Adding new content",
         "close": "Close"
-      }
+      },
+      "inReviewWarning": "This document is in review. Saving withdraws the submitted revision and returns it to draft."
     },
     "access": {
       "sectionTitle": "Owner & access",
@@ -243,12 +244,92 @@
       "in_review": "In review",
       "approved": "Approved",
       "obsolete": "Obsolete",
-      "superseded": "Superseded"
+      "superseded": "Superseded",
+      "withdrawn": "Withdrawn"
+    },
+    "workflow": {
+      "submit": "Submit for review",
+      "submitTitle": "Submit for review?",
+      "submitBody": "Approvers will be notified and can approve this draft or send it back with comments.",
+      "submittedToast": "Submitted for review.",
+      "approveTitle": "Approve this revision?",
+      "approveBody": "Rev {{rev}} becomes the approved version that everyone reads.",
+      "requestChangesTitle": "Request changes",
+      "requestChangesBody": "The document goes back to draft and the author sees your comment.",
+      "commentLabel": "What needs to change?",
+      "commentPlaceholder": "Describe the changes you need…",
+      "sendBack": "Send back to draft",
+      "changesRequestedToast": "Changes requested. The document is back in draft.",
+      "obsolete": "Make obsolete",
+      "obsoleteTitle": "Make this document obsolete?",
+      "obsoleteBody": "It is withdrawn from use and can no longer be edited. The revision history is kept.",
+      "reasonLabel": "Reason",
+      "obsoletePlaceholder": "Why is this document being withdrawn?",
+      "obsoletedToast": "Document made obsolete.",
+      "changesRequested": "Changes requested",
+      "changesRequestedBy": "Changes requested by {{name}}",
+      "viewingDraft": "Draft Rev {{rev}} — not approved yet.",
+      "readersSee": "Readers still see approved Rev {{rev}}.",
+      "viewingApproved": "Approved Rev {{rev}} — what readers see.",
+      "draftPending": "A draft (Rev {{rev}}) is in progress.",
+      "neverApproved": "Readers can't see this document until it is approved.",
+      "changeReasonShown": "Reason for change: {{reason}}",
+      "versionSwitch": "Choose which version to view",
+      "approvedRev": "Approved · Rev {{rev}}",
+      "draftRev": "Draft · Rev {{rev}}",
+      "changeReasonTitle": "Reason for change",
+      "changeReasonBodyRequired": "Describe what changed and why. This is recorded in the revision history.",
+      "changeReasonBodyOptional": "Optionally describe this change. It is recorded in the revision history.",
+      "changeReasonLabel": "Reason for change",
+      "changeReasonPlaceholder": "For example: updated the approval steps after the audit",
+      "errors": {
+        "selfApproval": "You authored this revision, so someone else needs to approve it.",
+        "notInReview": "This document isn't in review any more. We've refreshed it to show its current status.",
+        "notDraft": "Only a draft can be submitted for review.",
+        "changeReasonRequired": "Add a reason for the change before saving.",
+        "forbidden": "You don't have permission to do that.",
+        "conflict": "This document was changed by someone else. Refresh and try again.",
+        "obsolete": "This document is obsolete and can no longer be changed.",
+        "noApprovedRevision": "There is no approved revision to confirm yet."
+      },
+      "obsoleteNotice": "This document is obsolete"
+    },
+    "review": {
+      "title": "Periodic review",
+      "overdue": "Review overdue",
+      "dueSoon": "Review due",
+      "interval": "Review interval",
+      "noInterval": "No periodic review",
+      "everyMonths": "Every {{months}} months",
+      "nextReview": "Next review",
+      "nextReviewHint": "Leave empty to schedule it from the interval at the next approval.",
+      "edit": "Edit review settings",
+      "savedToast": "Review settings saved.",
+      "filter": "Review due"
+    },
+    "ack": {
+      "requireLabel": "Require \"Read and understood\"",
+      "requireHint": "Readers confirm they have read each approved revision.",
+      "required": "Read and understood",
+      "done": "You confirmed you read and understood Rev {{rev}} on {{date}}.",
+      "promptTitle": "Please confirm you have read this document",
+      "promptBody": "The owner asks everyone to confirm they have read and understood Rev {{rev}}.",
+      "button": "Read and understood",
+      "confirmTitle": "Read and understood",
+      "confirmBody": "I confirm that I have read and understood \"{{title}}\", Rev {{rev}}.",
+      "savedToast": "Thanks — your confirmation is recorded.",
+      "listTitle": "Read and understood",
+      "progress": "{{done}} of {{total}}",
+      "loadError": "We couldn't load who has confirmed.",
+      "pending": "Not yet ({{count}})",
+      "nonePending": "Everyone has confirmed.",
+      "acknowledged": "Confirmed ({{count}})",
+      "noneYet": "No one has confirmed yet."
     }
   },
   "review": {
     "title": "Needs your review",
-    "subtitle": "Drafts waiting for your approval before they're published.",
+    "subtitle": "Documents waiting for your approval and drafts proposed for the library.",
     "empty": "You're all caught up. Nothing needs your review.",
     "queuedAt": "Added {{date}}",
     "open": "Open",
@@ -256,12 +337,16 @@
     "backToFeed": "Back to review",
     "reviewTitle": "Review proposal",
     "saveDraft": "Save draft",
-    "approveAndPublish": "Approve & publish",
+    "approveAndPublish": "Accept & submit for review",
     "notPending": "This proposal has already been handled and can no longer be edited.",
     "notFound": "Proposal not found.",
     "savedToast": "Draft saved.",
-    "publishedToast": "Document published.",
-    "rejectedToast": "Draft rejected."
+    "publishedToast": "Document created and submitted for review.",
+    "rejectedToast": "Draft rejected.",
+    "documentsHeading": "Documents awaiting approval ({{count}})",
+    "proposalsHeading": "Proposed drafts ({{count}})",
+    "submittedAt": "Submitted {{date}}",
+    "reviewDocument": "Review"
   },
   "settings": {
     "title": "Org Settings",
@@ -564,7 +649,18 @@
   },
   "common": {
     "loading": "Loading…",
-    "dismiss": "Dismiss"
+    "dismiss": "Dismiss",
+    "cancel": "Cancel",
+    "save": "Save",
+    "yes": "Yes",
+    "no": "No",
+    "pagination": {
+      "label": "Pagination",
+      "range": "{{ from }}–{{ to }} of {{ total }}",
+      "rangeOpen": "{{ from }}–{{ to }}",
+      "prev": "Previous",
+      "next": "Next"
+    }
   },
   "errors": {
     "network": "Can't reach the server. Check your connection and try again.",
@@ -968,7 +1064,25 @@
       "loadError": "Couldn't load your notification settings. Please try again later.",
       "saved": "Notification settings saved.",
       "saveFailed": "Couldn't save your notification settings. Please try again."
-    }
+    },
+    "documentReviewDue": "Document {{doc_code}} is due for periodic review in {{days}} days ({{due_date}}): {{title}}",
+    "documentReviewOverdue": "Periodic review of document {{doc_code}} is {{days}} days overdue (due {{due_date}}): {{title}}",
+    "documentSubmitted": "{{actor_name}} submitted {{doc_code}} Rev {{rev}} for review: {{title}}",
+    "documentChangesRequested": "{{actor_name}} requested changes to {{doc_code}} Rev {{rev}}: {{title}}",
+    "documentSubmittedNoActor": "{{doc_code}} Rev {{rev}} was submitted for review: {{title}}",
+    "documentChangesRequestedNoActor": "Changes were requested to {{doc_code}} Rev {{rev}}: {{title}}",
+    "documentReviewDueToday": "Document {{doc_code}} is due for periodic review today: {{title}}",
+    "documentReviewDueTomorrow": "Document {{doc_code}} is due for periodic review tomorrow: {{title}}",
+    "documentReviewOverdueOne": "Periodic review of document {{doc_code}} is 1 day overdue (due {{due_date}}): {{title}}",
+    "documentSubmittedNoCode": "{{actor_name}} submitted Rev {{rev}} of {{title}} for review",
+    "documentSubmittedNoActorNoCode": "Rev {{rev}} of {{title}} was submitted for review",
+    "documentChangesRequestedNoCode": "{{actor_name}} requested changes to Rev {{rev}} of {{title}}",
+    "documentChangesRequestedNoActorNoCode": "Changes were requested to Rev {{rev}} of {{title}}",
+    "documentReviewDueNoCode": "Document {{title}} is due for periodic review in {{days}} days ({{due_date}})",
+    "documentReviewDueTodayNoCode": "Document {{title}} is due for periodic review today",
+    "documentReviewDueTomorrowNoCode": "Document {{title}} is due for periodic review tomorrow",
+    "documentReviewOverdueNoCode": "Periodic review of document {{title}} is {{days}} days overdue (due {{due_date}})",
+    "documentReviewOverdueOneNoCode": "Periodic review of document {{title}} is 1 day overdue (due {{due_date}})"
   },
   "roles": {
     "admin": {

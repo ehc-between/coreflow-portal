@@ -1,16 +1,24 @@
+import { HttpContext } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { ApiService } from '../http/api.service';
+import { SKIP_ERROR_TOAST } from '../http/error.interceptor';
+import { reviewState } from './review-state';
 import {
   AccessGrant,
   AccessGrantInput,
   AccessSubjects,
+  AcknowledgementEntry,
   Comment,
   CommentStatus,
   CreateCommentRequest,
   CreateDocumentRequest,
   DocumentAccess,
+  DocumentAcknowledgements,
+  DocumentControlUpdate,
   DocumentDetail,
+  DocumentListQuery,
+  DocumentPage,
   DocumentRevision,
   DocumentSearchResult,
   DocumentStatus,
@@ -23,6 +31,12 @@ import {
   ProposalEdit,
   UpdateCommentRequest,
 } from './document.models';
+
+/**
+ * Document-control mutations surface their own specific messages (see
+ * `documentErrorKey`), so they opt out of the interceptor's generic toast.
+ */
+const IN_PLACE = { context: new HttpContext().set(SKIP_ERROR_TOAST, true) };
 
 /**
  * Org-scoped Documents + Proposals API. Goes through ApiService, so requests
@@ -41,6 +55,16 @@ export class DocumentsApi {
     return this.api.get<DocumentSummary[]>(`v1/orgs/${orgId}/documents`, {
       params: { status: filters.status, type: filters.type },
     });
+  }
+
+  /**
+   * One page of the documents list plus the total. The endpoint returns the
+   * whole (unpaged) list, so the review-due filter and paging are applied here.
+   */
+  listPage(orgId: string, query: DocumentListQuery = {}): Observable<DocumentPage> {
+    return this.list(orgId, { status: query.status, type: query.type }).pipe(
+      map((documents) => toDocumentPage(documents, query)),
+    );
   }
 
   search(orgId: string, q: string, limit = 20): Observable<DocumentSearchResult[]> {
@@ -64,15 +88,27 @@ export class DocumentsApi {
     return this.api.post<DocumentDetail>(`v1/orgs/${orgId}/documents`, body);
   }
 
-  /** Save edited document body as a new revision. The content is sanitized HTML. */
+  /**
+   * Save edited document body as a new draft revision. The content is sanitized
+   * HTML; `changeReason` is required by the backend once an approved revision
+   * exists. Responds with the updated document (the new revision is its draft).
+   */
   addRevision(
     orgId: string,
     documentId: string,
     contentHtml: string,
-  ): Observable<DocumentRevision> {
-    return this.api.post<DocumentRevision>(`v1/orgs/${orgId}/documents/${documentId}/revisions`, {
-      content_html: contentHtml,
-    });
+    changeReason?: string,
+  ): Observable<DocumentDetail> {
+    const body: { content_html: string; change_reason?: string } = { content_html: contentHtml };
+    const reason = changeReason?.trim();
+    if (reason) {
+      body.change_reason = reason;
+    }
+    return this.api.post<DocumentDetail>(
+      `v1/orgs/${orgId}/documents/${documentId}/revisions`,
+      body,
+      IN_PLACE,
+    );
   }
 
   /** Fetch a document export (PDF or Word) as raw file bytes. */
@@ -82,12 +118,66 @@ export class DocumentsApi {
     });
   }
 
-  approve(orgId: string, documentId: string): Observable<DocumentDetail> {
-    return this.api.post<DocumentDetail>(`v1/orgs/${orgId}/documents/${documentId}/approve`, null);
+  /** Submit the working draft for review (draft → in_review; `documents:draft`). */
+  submit(orgId: string, documentId: string): Observable<DocumentDetail> {
+    return this.workflow(orgId, documentId, 'submit', null);
   }
 
-  obsolete(orgId: string, documentId: string): Observable<DocumentDetail> {
-    return this.api.post<DocumentDetail>(`v1/orgs/${orgId}/documents/${documentId}/obsolete`, null);
+  /** Send an in-review document back to draft with a reviewer comment (`documents:approve`). */
+  requestChanges(orgId: string, documentId: string, comment: string): Observable<DocumentDetail> {
+    return this.workflow(orgId, documentId, 'request-changes', { comment });
+  }
+
+  /**
+   * Approve the in-review revision (`documents:approve`). 409 with code
+   * `self_approval` (approver authored it) or `not_in_review`.
+   */
+  approve(orgId: string, documentId: string): Observable<DocumentDetail> {
+    return this.workflow(orgId, documentId, 'approve', null);
+  }
+
+  /** Retire a document with a recorded reason (`documents:approve`). */
+  obsolete(orgId: string, documentId: string, reason: string): Observable<DocumentDetail> {
+    return this.workflow(orgId, documentId, 'obsolete', { reason });
+  }
+
+  /** Record that the caller has read and understood the current approved revision. */
+  acknowledge(orgId: string, documentId: string): Observable<DocumentDetail> {
+    return this.workflow(orgId, documentId, 'acknowledge', null);
+  }
+
+  /** Update periodic review / acknowledgement settings (owner or `documents:approve`). */
+  updateControl(
+    orgId: string,
+    documentId: string,
+    body: DocumentControlUpdate,
+  ): Observable<DocumentDetail> {
+    return this.api.patch<DocumentDetail>(
+      `v1/orgs/${orgId}/documents/${documentId}`,
+      body,
+      IN_PLACE,
+    );
+  }
+
+  /** Who has / hasn't acknowledged the current approved revision (owners + approvers). */
+  listAcknowledgements(orgId: string, documentId: string): Observable<DocumentAcknowledgements> {
+    return this.api
+      .get<AcknowledgementsResponse>(`v1/orgs/${orgId}/documents/${documentId}/acknowledgements`)
+      .pipe(map(toAcknowledgements));
+  }
+
+  /** POST a document-control transition; errors are shown in place by the caller. */
+  private workflow(
+    orgId: string,
+    documentId: string,
+    action: string,
+    body: unknown,
+  ): Observable<DocumentDetail> {
+    return this.api.post<DocumentDetail>(
+      `v1/orgs/${orgId}/documents/${documentId}/${action}`,
+      body,
+      IN_PLACE,
+    );
   }
 
   /** Anchored comments on a document, optionally filtered by revision and status. */
@@ -241,4 +331,54 @@ export class DocumentsApi {
       `v1/orgs/${orgId}/documents/${documentId}/access/grants/${grantId}`,
     );
   }
+}
+
+/**
+ * One page of the full (unpaged) documents list: filtered to review-due
+ * documents when asked, then sliced to `offset`/`limit`, with the filtered
+ * length as the total.
+ */
+export function toDocumentPage(
+  documents: readonly DocumentSummary[],
+  query: DocumentListQuery = {},
+): DocumentPage {
+  const rows = query.review_due ? documents.filter((doc) => reviewState(doc) !== null) : documents;
+  const offset = query.offset ?? 0;
+  const limit = query.limit ?? rows.length;
+  return { items: rows.slice(offset, offset + limit), total: rows.length };
+}
+
+/** Raw acknowledgement person: the display name may arrive under a few keys. */
+interface RawAcknowledgementEntry {
+  readonly user_id: string;
+  readonly name?: string | null;
+  readonly user_name?: string | null;
+  readonly full_name?: string | null;
+  readonly email?: string | null;
+  readonly acknowledged_at?: string | null;
+}
+
+interface AcknowledgementsResponse {
+  readonly revision?: string | null;
+  readonly acknowledged?: readonly RawAcknowledgementEntry[];
+  readonly pending?: readonly RawAcknowledgementEntry[];
+  readonly not_acknowledged?: readonly RawAcknowledgementEntry[];
+}
+
+function toEntry(raw: RawAcknowledgementEntry): AcknowledgementEntry {
+  return {
+    user_id: raw.user_id,
+    name: raw.name || raw.full_name || raw.user_name || raw.email || raw.user_id,
+    email: raw.email ?? null,
+    acknowledged_at: raw.acknowledged_at ?? null,
+  };
+}
+
+/** Normalise the acknowledgement report (acknowledged + not-yet lists). */
+export function toAcknowledgements(response: AcknowledgementsResponse): DocumentAcknowledgements {
+  return {
+    revision: response.revision ?? null,
+    acknowledged: (response.acknowledged ?? []).map(toEntry),
+    pending: (response.pending ?? response.not_acknowledged ?? []).map(toEntry),
+  };
 }
