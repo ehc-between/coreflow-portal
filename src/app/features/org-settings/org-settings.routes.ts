@@ -9,6 +9,12 @@ const routes: Routes = [
     loadComponent: () => import('./org-settings/org-settings').then((m) => m.OrgSettings),
   },
   {
+    path: 'deleted-documents',
+    canActivate: [orgManageGuard],
+    loadComponent: () =>
+      import('./deleted-documents/deleted-documents').then((m) => m.DeletedDocuments),
+  },
+  {
     path: 'departments/:deptId',
     canActivate: [orgManageGuard],
     loadComponent: () =>

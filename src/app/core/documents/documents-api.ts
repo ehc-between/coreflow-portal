@@ -13,6 +13,7 @@ import {
   CommentStatus,
   CreateCommentRequest,
   CreateDocumentRequest,
+  DeletedDocument,
   DocumentAccess,
   DocumentAcknowledgements,
   DocumentControlUpdate,
@@ -163,6 +164,17 @@ export class DocumentsApi {
       ...IN_PLACE,
       body: trimmed ? { reason: trimmed } : undefined,
     });
+  }
+
+  /** Soft-deleted documents in the org, newest first (`org:manage`). */
+  listDeleted(orgId: string): Observable<DeletedDocument[]> {
+    return this.api
+      .get<DeletedDocument[]>(`v1/orgs/${orgId}/documents/deleted`)
+      .pipe(
+        map((items) =>
+          [...items].sort((a, b) => Date.parse(b.deleted_at) - Date.parse(a.deleted_at)),
+        ),
+      );
   }
 
   /** Record that the caller has read and understood the current approved revision. */

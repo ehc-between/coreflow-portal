@@ -57,9 +57,8 @@ describe('documentErrorKey', () => {
     expect(documentErrorKey(httpError(409), 'delete')).toBe(
       'documents.delete.errors.hasApprovedRevision',
     );
-    expect(documentErrorKey(httpError(422), 'delete')).toBe(
-      'documents.delete.errors.reasonRequired',
-    );
+    // A 422 without the code is plain validation: generic, not "reason required".
+    expect(documentErrorKey(httpError(422), 'delete')).toBe('errors.generic');
     expect(documentErrorKey(httpError(404), 'delete')).toBe('documents.delete.errors.notFound');
     expect(documentErrorKey(httpError(403), 'delete')).toBe('documents.workflow.errors.forbidden');
   });

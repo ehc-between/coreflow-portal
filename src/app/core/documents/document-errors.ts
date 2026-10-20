@@ -79,9 +79,7 @@ export function documentErrorKey(error: unknown, action: DocumentWorkflowAction)
     if (status === 409) {
       return 'documents.delete.errors.hasApprovedRevision';
     }
-    if (status === 422) {
-      return 'documents.delete.errors.reasonRequired';
-    }
+    // A 422 without the reason_required code is a validation error: generic.
     if (status === 404) {
       return 'documents.delete.errors.notFound';
     }

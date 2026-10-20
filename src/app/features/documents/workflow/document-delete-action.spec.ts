@@ -36,7 +36,11 @@ function doc(status: DocumentStatus, extra: Partial<DocumentDetail> = {}): Docum
   };
 }
 
-async function setup(document_: DocumentDetail, canManage = true) {
+async function setup(
+  document_: DocumentDetail,
+  canManage = true,
+  permissions: string[] = ['documents:draft'],
+) {
   const notifications = { success: vi.fn(), warning: vi.fn(), info: vi.fn(), error: vi.fn() };
   TestBed.configureTestingModule({
     imports: [DocumentDeleteAction, TranslocoTestingModule.forRoot({ langs: { en: {} } })],
@@ -50,7 +54,7 @@ async function setup(document_: DocumentDetail, canManage = true) {
         provide: SelectedOrgService,
         useValue: {
           currentOrgId: signal(ORG).asReadonly(),
-          currentOrg: signal({ id: ORG, name: 'Org', roles: [], permissions: [] }).asReadonly(),
+          currentOrg: signal({ id: ORG, name: 'Org', roles: [], permissions }).asReadonly(),
         },
       },
     ],
@@ -135,6 +139,7 @@ describe('DocumentDeleteAction', () => {
     await fixture.whenStable();
 
     expect(confirmIn(root).disabled).toBe(true);
+    expect(dialog(root)!.querySelector('textarea')!.getAttribute('maxlength')).toBe('1000');
     const textarea = dialog(root)!.querySelector('textarea')!;
     textarea.value = '  Duplicate of QM-2  ';
     textarea.dispatchEvent(new Event('input'));
@@ -188,8 +193,8 @@ describe('DocumentDeleteAction', () => {
     expect(dialog(root)).toBeNull();
   });
 
-  it('shows a permission message on 403 without reloading', async () => {
-    const { fixture, root, http, notifications, reloads } = await setup(
+  it('shows a permission message on 403 and reloads the document', async () => {
+    const { fixture, root, http, notifications, deleted, reloads } = await setup(
       doc('draft', { can_delete: true }),
     );
     deleteButton(root)!.click();
@@ -200,6 +205,37 @@ describe('DocumentDeleteAction', () => {
       .expectOne(DOC_URL)
       .flush({ detail: 'Forbidden' }, { status: 403, statusText: 'Forbidden' });
     expect(notifications.error).toHaveBeenCalledWith('documents.workflow.errors.forbidden');
+    expect(reloads()).toBe(1);
+    expect(deleted()).toBe(0);
+  });
+
+  it('treats a 404 as already deleted and leaves for the list', async () => {
+    const { fixture, root, http, notifications, deleted, reloads } = await setup(
+      doc('draft', { can_delete: true }),
+    );
+    deleteButton(root)!.click();
+    await fixture.whenStable();
+    confirmIn(root).click();
+
+    http
+      .expectOne(DOC_URL)
+      .flush({ detail: 'Not found' }, { status: 404, statusText: 'Not Found' });
+    expect(notifications.error).toHaveBeenCalledWith('documents.delete.errors.notFound');
+    expect(deleted()).toBe(1);
     expect(reloads()).toBe(0);
+  });
+
+  it('tells approvers without org:manage that only admins delete obsolete documents', async () => {
+    const obsolete = doc('obsolete', { current_revision: rev('obsolete'), can_delete: false });
+    const approver = await setup(obsolete, true, ['documents:approve']);
+    expect(deleteButton(approver.root)).toBeNull();
+    expect(approver.root.querySelector('[data-testid="delete-admin-only"]')?.textContent).toContain(
+      'documents.delete.adminOnlyHint',
+    );
+    document.body.replaceChildren();
+    TestBed.resetTestingModule();
+
+    const drafter = await setup(obsolete, true, ['documents:draft']);
+    expect(drafter.root.querySelector('[data-testid="delete-admin-only"]')).toBeNull();
   });
 });

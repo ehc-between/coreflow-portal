@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -28,15 +29,17 @@ const STALE_CODES = new Set(['has_approved_revision', 'reason_required']);
  * Deleting confirms in a dialog — or asks for a required reason when
  * `delete_requires_reason` (an obsolete document). Approved documents that are
  * not obsolete can't be deleted; managers (`canManage`) see a hint to make the
- * document obsolete first instead. Emits `deleted` after a 204, and
- * `reloadRequested` when an error shows our copy is out of date.
+ * document obsolete instead. Only org admins (`org:manage`) delete obsolete
+ * documents; approvers without it see a hint saying so. Emits `deleted` after a
+ * 204 (or a 404: already gone), and `reloadRequested` after a 403 or when an
+ * error code shows our copy is out of date.
  */
 @Component({
   selector: 'app-document-delete-action',
   imports: [TranslocoPipe, Button, Card, Icon, ConfirmDialog, PromptDialog],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    @if (canDelete() || blocked()) {
+    @if (canDelete() || blocked() || adminOnly()) {
       <app-card>
         <h2 class="font-display text-[15px] font-bold tracking-[-0.02em] text-fg">
           {{ 'documents.delete.title' | transloco }}
@@ -52,9 +55,13 @@ const STALE_CODES = new Set(['has_approved_revision', 'reason_required']);
             <app-icon name="trash" [size]="15" />
             {{ 'documents.delete.action' | transloco }}
           </app-button>
-        } @else {
+        } @else if (blocked()) {
           <p data-testid="delete-blocked" class="mt-1 text-[13px] leading-snug text-fg-muted">
             {{ 'documents.delete.blockedHint' | transloco }}
+          </p>
+        } @else {
+          <p data-testid="delete-admin-only" class="mt-1 text-[13px] leading-snug text-fg-muted">
+            {{ 'documents.delete.adminOnlyHint' | transloco }}
           </p>
         }
       </app-card>
@@ -79,6 +86,7 @@ const STALE_CODES = new Set(['has_approved_revision', 'reason_required']);
       [label]="'documents.delete.reasonLabel' | transloco"
       [placeholder]="'documents.delete.reasonPlaceholder' | transloco"
       [required]="true"
+      [maxLength]="1000"
       confirmVariant="danger"
       [confirmLabel]="'documents.delete.action' | transloco"
       [cancelLabel]="'common.cancel' | transloco"
@@ -116,6 +124,16 @@ export class DocumentDeleteAction {
       this.canManage() && !this.canDelete() && doc.status !== 'obsolete' && !!doc.current_revision
     );
   });
+  /** An approver without `org:manage` on an obsolete document: only admins delete those. */
+  protected readonly adminOnly = computed(() => {
+    const permissions = this.selectedOrg.currentOrg()?.permissions ?? [];
+    return (
+      !this.canDelete() &&
+      this.document().status === 'obsolete' &&
+      permissions.includes('documents:approve') &&
+      !permissions.includes('org:manage')
+    );
+  });
 
   protected remove(reason: string | null): void {
     const orgId = this.selectedOrg.currentOrgId();
@@ -134,8 +152,13 @@ export class DocumentDeleteAction {
         this.busy.set(false);
         this.open.set(false);
         this.notifications.error(documentErrorKey(error, 'delete'));
+        const status = error instanceof HttpErrorResponse ? error.status : null;
         const code = errorCodeOf(error);
-        if (code && STALE_CODES.has(code)) {
+        if (status === 404) {
+          // Already gone (deleted elsewhere): leave the page for the list.
+          this.deleted.emit();
+        } else if (status === 403 || (code && STALE_CODES.has(code))) {
+          // Rights or state changed under us: re-fetch so can_delete is current.
           this.reloadRequested.emit();
         }
       },
