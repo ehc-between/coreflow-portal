@@ -4,7 +4,9 @@ import {
   ActionKind,
   ActionStatus,
   DeviationStatus,
+  DeviationVisibility,
   FieldType,
+  RootCauseMethod,
   Severity,
   Source,
   Standard,
@@ -209,4 +211,64 @@ export function isActionOverdue(dueAt: string | undefined | null, status: string
     return false;
   }
   return new Date(dueAt).getTime() < Date.now();
+}
+
+// --- Root cause, visibility, access ----------------------------------------
+
+/** Root-cause analysis methods in display order. */
+export const ROOT_CAUSE_METHOD_OPTIONS: readonly RootCauseMethod[] = [
+  'five_why',
+  'fishbone',
+  '8d',
+  'other',
+];
+
+/** i18n key for a root-cause method label. */
+export function rootCauseMethodLabelKey(method: string): string {
+  return `deviations.rootCauseMethod.${method}`;
+}
+
+/** Deviation visibilities. */
+export const VISIBILITY_OPTIONS: readonly DeviationVisibility[] = ['organization', 'restricted'];
+
+/** i18n key for a visibility label. */
+export function visibilityLabelKey(visibility: string): string {
+  return `deviations.visibility.${visibility}`;
+}
+
+// --- Dynamic field validation ---------------------------------------------
+
+/**
+ * The backend's per-field validation messages (422 `detail.data`), which are
+ * English free text, mapped to i18n keys. Anything unrecognised falls back to
+ * a generic "invalid value" message rather than leaking English into the UI.
+ */
+const FIELD_ERROR_KEYS: Readonly<Record<string, string>> = {
+  'This field is required': 'required',
+  'Must be a string': 'text',
+  'Must be a number': 'number',
+  'Must be an ISO date': 'date',
+  'Must be a boolean': 'checkbox',
+  'Must be one of the allowed options': 'option',
+  'Must be a subset of the allowed options': 'options',
+  'Must reference a user in this organization': 'user',
+  'Must reference a department in this organization': 'department',
+};
+
+/** Every field-error code the UI can show (for the i18n coverage spec). */
+export const FIELD_ERROR_CODES: readonly string[] = [...Object.values(FIELD_ERROR_KEYS), 'invalid'];
+
+/** i18n key for a backend dynamic-field validation message. */
+export function fieldErrorKey(message: string): string {
+  const code = FIELD_ERROR_KEYS[message.trim().replace(/\.$/, '')] ?? 'invalid';
+  return `deviations.fieldErrors.${code}`;
+}
+
+/** Map a 422 `{field: message}` body to `{field: i18n key}`. */
+export function fieldErrorKeys(errors: Readonly<Record<string, unknown>>): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [field, message] of Object.entries(errors)) {
+    out[field] = fieldErrorKey(typeof message === 'string' ? message : '');
+  }
+  return out;
 }

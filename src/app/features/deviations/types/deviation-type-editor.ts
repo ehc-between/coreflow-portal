@@ -15,7 +15,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import {
   DeviationType,
   DeviationTypeDraftResponse,
@@ -291,7 +291,10 @@ import {
                         [name]="'sectitle-' + s"
                         autocomplete="off"
                         [placeholder]="
-                          'deviations.types.editor.sectionTitlePlaceholder' | transloco
+                          (s === 0
+                            ? 'deviations.types.editor.defaultSection'
+                            : 'deviations.types.editor.sectionTitlePlaceholder'
+                          ) | transloco
                         "
                         [attr.aria-label]="'deviations.types.editor.sectionTitle' | transloco"
                         class="h-9 flex-1 rounded-[10px] border border-transparent bg-transparent px-2 text-[14px] font-semibold text-fg outline-none hover:border-border focus:border-accent focus:bg-bg focus:shadow-[0_0_0_3px_var(--accent-soft)]"
@@ -618,8 +621,6 @@ export class DeviationTypeEditor {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 
-  private readonly transloco = inject(TranslocoService);
-
   protected readonly orgId = this.selectedOrg.currentOrgId;
   protected readonly standardOptions = STANDARD_OPTIONS;
   protected readonly fieldTypeOptions = FIELD_TYPE_OPTIONS;
@@ -683,8 +684,7 @@ export class DeviationTypeEditor {
   });
 
   constructor() {
-    const defaultTitle = this.transloco.translate('deviations.types.editor.defaultSection');
-    this.sections.set([{ title: defaultTitle, fields: [] }]);
+    this.sections.set([{ title: '', fields: [] }]);
 
     effect(() => {
       const orgId = this.orgId();
@@ -943,8 +943,7 @@ export class DeviationTypeEditor {
   /** Groups a stored/drafted schema into the sectioned builder state. */
   private setSectionsFromSchema(schema: readonly FieldDef[]): void {
     const drafts = schema.map(fromFieldDef);
-    const defaultTitle = this.transloco.translate('deviations.types.editor.defaultSection');
-    this.sections.set(groupIntoSections(drafts, defaultTitle));
+    this.sections.set(groupIntoSections(drafts, ''));
   }
 
   private handleError(error: unknown): void {

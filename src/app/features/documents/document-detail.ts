@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { LocalDatePipe } from '../../shared/locale/locale-pipes';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -48,7 +48,7 @@ import { statusLabelKey, statusTone } from './document-status';
 @Component({
   selector: 'app-document-detail',
   imports: [
-    DatePipe,
+    LocalDatePipe,
     RouterLink,
     TranslocoPipe,
     HasPermissionDirective,
@@ -261,7 +261,7 @@ import { statusLabelKey, statusTone } from './document-status';
                             }}</app-badge>
                           </span>
                           <span class="block text-[12px] text-fg-subtle">
-                            {{ rev.created_at | date: 'medium' }}
+                            {{ rev.created_at | localDate: 'medium' }}
                           </span>
                         </span>
                       </button>

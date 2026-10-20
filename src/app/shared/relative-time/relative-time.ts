@@ -1,4 +1,5 @@
 import { Pipe, PipeTransform } from '@angular/core';
+import { withUtcDefault } from '../../core/i18n/locale';
 
 const UNITS: readonly [Intl.RelativeTimeFormatUnit, number][] = [
   ['year', 365 * 24 * 3600],
@@ -30,11 +31,6 @@ export function formatRelativeTime(iso: string, lang: string, now: number = Date
     }
   }
   return format.format(0, 'second');
-}
-
-/** Append `Z` to an ISO date-time that carries no timezone designator. */
-function withUtcDefault(iso: string): string {
-  return /T\d{2}:\d{2}(:\d{2}(\.\d+)?)?$/.test(iso) ? `${iso}Z` : iso;
 }
 
 /**

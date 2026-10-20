@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { DatePipe } from '@angular/common';
+import { formatNumber } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -13,7 +13,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { HasPermissionDirective } from '../../core/auth/has-permission.directive';
 import {
   AccessGrant,
@@ -25,12 +25,14 @@ import {
   DeviationType,
   DeviationVisibility,
   FieldDef,
+  RootCauseMethod,
   Severity,
   Source,
   Standard,
 } from '../../core/deviations/deviation.models';
 import { DeviationsApi } from '../../core/deviations/deviations-api';
 import { httpErrorMessageKey } from '../../core/http/error.interceptor';
+import { LanguageService } from '../../core/i18n/language.service';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { Alert } from '../../shared/ui/alert/alert';
@@ -39,11 +41,13 @@ import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog/confirm-dialog';
 import { Attachments } from '../../shared/attachments/attachments';
+import { LocalDatePipe, formatLocalDate } from '../../shared/locale/locale-pipes';
 import { Icon } from '../../shared/ui/icon/icon';
 import { DeviationAccessEditor } from './access/deviation-access-editor';
 import { DeviationActions } from './actions/deviation-actions';
 import { DeviationClassificationFields } from './classification-fields';
 import { ClauseRow, buildDeviationPatch, editFormFrom } from './deviation-edit';
+import { EventText, describeEvent } from './deviation-events';
 import {
   STATUS_REASON_MAX,
   StatusMenuEntry,
@@ -57,9 +61,12 @@ import {
   workflowReasonKey,
 } from './deviation-workflow';
 import {
+  ROOT_CAUSE_METHOD_OPTIONS,
   SEVERITY_OPTIONS,
   SOURCE_OPTIONS,
+  fieldErrorKeys,
   isOverdue,
+  rootCauseMethodLabelKey,
   severityLabelKey,
   severityTone,
   sourceLabelKey,
@@ -93,7 +100,7 @@ type StatusRejection = WorkflowError & {
 @Component({
   selector: 'app-deviation-detail',
   imports: [
-    DatePipe,
+    LocalDatePipe,
     FormsModule,
     RouterLink,
     TranslocoPipe,
@@ -282,7 +289,7 @@ type StatusRejection = WorkflowError & {
                     {{ 'deviations.detail.meta.raised' | transloco }}
                   </div>
                   <div class="mt-0.5 text-[13px] text-fg">
-                    {{ dev.raised_at | date: 'mediumDate' }}
+                    {{ dev.raised_at | localDate: 'mediumDate' }}
                   </div>
                 </div>
                 <div>
@@ -296,7 +303,7 @@ type StatusRejection = WorkflowError & {
                         [class.font-semibold]="overdue(dev)"
                         [class.text-fg]="!overdue(dev)"
                       >
-                        {{ dev.due_at | date: 'mediumDate' }}
+                        {{ dev.due_at | localDate: 'mediumDate' }}
                       </span>
                     } @else {
                       <span class="text-fg-subtle">—</span>
@@ -308,7 +315,7 @@ type StatusRejection = WorkflowError & {
                     {{ 'deviations.detail.meta.closed' | transloco }}
                   </div>
                   <div class="mt-0.5 text-[13px] text-fg">
-                    {{ dev.closed_at ? (dev.closed_at | date: 'mediumDate') : '—' }}
+                    {{ dev.closed_at ? (dev.closed_at | localDate: 'mediumDate') : '—' }}
                   </div>
                 </div>
                 <div>
@@ -402,7 +409,12 @@ type StatusRejection = WorkflowError & {
                         {{ 'deviations.create.fields.rootCauseMethod' | transloco }}
                       </dt>
                       <dd class="mt-1 text-[13.5px] text-fg">
-                        {{ dev.root_cause_method || ('deviations.detail.notProvided' | transloco) }}
+                        {{
+                          (dev.root_cause_method
+                            ? rootCauseMethodLabelKey(dev.root_cause_method)
+                            : 'deviations.detail.notProvided'
+                          ) | transloco
+                        }}
                       </dd>
                     </div>
                   </div>
@@ -534,14 +546,20 @@ type StatusRejection = WorkflowError & {
                       <label for="edit-rcm" class="text-[13px] font-semibold text-fg-muted">
                         {{ 'deviations.create.fields.rootCauseMethod' | transloco }}
                       </label>
-                      <input
-                        id="edit-rcm"
-                        type="text"
-                        [ngModel]="rootCauseMethod()"
-                        (ngModelChange)="rootCauseMethod.set($event)"
-                        autocomplete="off"
-                        class="h-10 w-full rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
-                      />
+                      <div class="cf-select">
+                        <select
+                          id="edit-rcm"
+                          [ngModel]="rootCauseMethod()"
+                          (ngModelChange)="rootCauseMethod.set($event)"
+                        >
+                          <option value="">{{ 'deviations.create.none' | transloco }}</option>
+                          @for (option of rootCauseMethodOptions; track option) {
+                            <option [value]="option">
+                              {{ rootCauseMethodLabelKey(option) | transloco }}
+                            </option>
+                          }
+                        </select>
+                      </div>
                     </div>
                   </div>
 
@@ -647,21 +665,33 @@ type StatusRejection = WorkflowError & {
                 </p>
               } @else {
                 <ul class="px-4 pb-4">
-                  @for (event of events(); track event.id) {
+                  @for (row of timeline(); track row.event.id) {
                     <li class="flex gap-2.5 pb-3 last:pb-0">
                       <span class="mt-0.5 flex flex-none text-fg-subtle">
-                        <app-icon [name]="eventIcon(event.kind)" [size]="15" />
+                        <app-icon [name]="eventIcon(row.event.kind)" [size]="15" />
                       </span>
                       <span class="min-w-0 flex-1">
                         <span class="block text-[13px] font-medium text-fg">{{
-                          event.summary
+                          row.text.summary
                         }}</span>
-                        @if (event.detail) {
-                          <span class="block text-[12.5px] text-fg-muted">{{ event.detail }}</span>
+                        @if (row.text.detail) {
+                          <span class="block text-[12.5px] whitespace-pre-line text-fg-muted">{{
+                            row.text.detail
+                          }}</span>
                         }
                         <span class="block text-[12px] text-fg-subtle">
-                          {{ event.actor_name ? event.actor_name + ' · ' : ''
-                          }}{{ event.created_at | date: 'medium' }}
+                          @if (row.event.actor_name) {
+                            {{
+                              'deviations.events.byline'
+                                | transloco
+                                  : {
+                                      actor: row.event.actor_name,
+                                      date: (row.event.created_at | localDate: 'medium'),
+                                    }
+                            }}
+                          } @else {
+                            {{ row.event.created_at | localDate: 'medium' }}
+                          }
                         </span>
                       </span>
                     </li>
@@ -783,7 +813,7 @@ export class DeviationDetail {
   private readonly api = inject(DeviationsApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly notifications = inject(NotificationService);
-  private readonly transloco = inject(TranslocoService);
+  private readonly language = inject(LanguageService);
   private readonly router = inject(Router);
 
   /** Route param `id`, bound via withComponentInputBinding(). */
@@ -793,6 +823,8 @@ export class DeviationDetail {
 
   protected readonly severityOptions = SEVERITY_OPTIONS;
   protected readonly sourceOptions = SOURCE_OPTIONS;
+  protected readonly rootCauseMethodOptions = ROOT_CAUSE_METHOD_OPTIONS;
+  protected readonly rootCauseMethodLabelKey = rootCauseMethodLabelKey;
   protected readonly statusTone = statusTone;
   protected readonly severityTone = severityTone;
   protected readonly statusLabelKey = statusLabelKey;
@@ -840,7 +872,7 @@ export class DeviationDetail {
   protected readonly source = signal<Source>('internal');
   protected readonly dueAt = signal('');
   protected readonly rootCause = signal('');
-  protected readonly rootCauseMethod = signal('');
+  protected readonly rootCauseMethod = signal<RootCauseMethod | ''>('');
   protected readonly standards = signal<readonly Standard[]>([]);
   protected readonly clauses = signal<readonly ClauseRow[]>([]);
   protected readonly tags = signal<readonly string[]>([]);
@@ -856,8 +888,24 @@ export class DeviationDetail {
   protected readonly schemaSections = computed(() =>
     groupFieldsIntoSections(
       this.schema(),
-      this.transloco.translate('deviations.create.detailsSection'),
+      this.language.translate('deviations.create.detailsSection'),
     ),
+  );
+
+  /**
+   * The audit trail localised from each event's kind + structured detail (the
+   * backend's `summary` is English). Re-evaluates on language switch.
+   */
+  protected readonly timeline = computed<readonly { event: DeviationEvent; text: EventText }[]>(
+    () => {
+      const t = (key: string, params?: Record<string, unknown>) =>
+        this.language.translate(key, params);
+      const owners = this.owners();
+      const departments = this.departments();
+      const subjectName = (type: string, id: string) =>
+        (type === 'department' ? departments : owners).find((s) => s.id === id)?.name;
+      return this.events().map((event) => ({ event, text: describeEvent(event, t, subjectName) }));
+    },
   );
 
   /** Whether the current user holds org-level write. */
@@ -932,7 +980,13 @@ export class DeviationDetail {
       return '—';
     }
     if (typeof value === 'boolean') {
-      return value ? '✓' : '—';
+      return this.language.translate(value ? 'deviations.detail.yes' : 'deviations.detail.no');
+    }
+    if (def.type === 'date' && typeof value === 'string') {
+      return formatLocalDate(value, 'mediumDate', this.language.locale()) || value;
+    }
+    if (def.type === 'number' && typeof value === 'number') {
+      return formatNumber(value, this.language.locale(), '1.0-6');
     }
     if (Array.isArray(value)) {
       return value.length ? value.map((v) => String(v)).join(', ') : '—';
@@ -1186,7 +1240,7 @@ export class DeviationDetail {
       const fieldErrors = (error.error as { detail?: { data?: Record<string, string> } } | null)
         ?.detail?.data;
       if (fieldErrors && typeof fieldErrors === 'object') {
-        this.dataErrors.set({ ...fieldErrors });
+        this.dataErrors.set(fieldErrorKeys(fieldErrors));
         this.notifications.error('deviations.create.validationToast');
         return;
       }

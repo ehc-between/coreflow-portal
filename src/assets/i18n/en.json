@@ -564,7 +564,8 @@
   },
   "common": {
     "loading": "Loading…",
-    "dismiss": "Dismiss"
+    "dismiss": "Dismiss",
+    "cancel": "Cancel"
   },
   "errors": {
     "network": "Can't reach the server. Check your connection and try again.",
@@ -668,7 +669,6 @@
       "clausePlaceholder": "Clause (e.g. 8.7)",
       "tagPlaceholder": "Add a tag and press Enter",
       "removeTag": "Remove tag",
-      "rootCauseMethodPlaceholder": "e.g. 5 Whys, Ishikawa",
       "titleRequired": "A title is required.",
       "createdToast": "Deviation created.",
       "validationToast": "Some details need fixing. Check the highlighted fields.",
@@ -710,7 +710,9 @@
         "due": "Due",
         "closed": "Closed",
         "source": "Source"
-      }
+      },
+      "yes": "Yes",
+      "no": "No"
     },
     "workflow": {
       "reasonHint": "Requires a reason",
@@ -723,7 +725,7 @@
       "reasonLabel": "Reason",
       "reasonConfirm": "Change status",
       "reasonCount": "{{ count }}/{{ max }}",
-      "closedNote": "This deviation is closed or cancelled. Reopen it before making changes.",
+      "closedNote": "This deviation is closed or cancelled and is read-only. A closed deviation can be reopened by a deviation manager; a cancelled deviation cannot be reopened.",
       "noEditAccess": "You do not have edit access to this deviation.",
       "reasons": {
         "invalid_transition": "This status change is not allowed from the current status.",
@@ -731,8 +733,8 @@
         "root_cause_required": "Record a root cause before closing.",
         "open_actions": "All actions must be done or verified first.",
         "verification_required": "The effectiveness of the corrective actions must be verified first.",
-        "deviation_closed": "Reopen the deviation before changing it",
-        "reopen_requires_manage": "Only deviation managers can reopen a closed or cancelled deviation.",
+        "deviation_closed": "Reopen the deviation before changing it.",
+        "reopen_requires_manage": "Only deviation managers can reopen a closed deviation.",
         "unknown": "This status change is not allowed right now."
       }
     },
@@ -776,6 +778,12 @@
         "pending": "Effectiveness pending",
         "effective": "Effective",
         "not_effective": "Not effective"
+      },
+      "kindNoun": {
+        "containment": "Containment action",
+        "corrective": "Corrective action",
+        "preventive": "Preventive action",
+        "unknown": "Action"
       }
     },
     "access": {
@@ -809,6 +817,7 @@
       "backToTypes": "Back to types",
       "empty": "No deviation types yet. Create one to start raising deviations.",
       "fieldCount": "{{ count }} fields",
+      "fieldCountOne": "1 field",
       "active": "Active",
       "inactive": "Inactive",
       "delete": "Delete type",
@@ -928,6 +937,63 @@
       "scopeOverdue": "Overdue only",
       "ownerMe": "Assigned to me",
       "empty": "No actions match these filters."
+    },
+    "rootCauseMethod": {
+      "five_why": "5 Whys",
+      "fishbone": "Fishbone (Ishikawa)",
+      "8d": "8D",
+      "other": "Other"
+    },
+    "events": {
+      "created": "Deviation created",
+      "deleted": "Deviation deleted",
+      "statusChanged": "Status changed from {{ from }} to {{ to }}",
+      "statusChangedGeneric": "Status changed",
+      "reason": "Reason: {{ reason }}",
+      "updated": "Deviation updated",
+      "updatedFields": "Updated {{ fields }}",
+      "noChanges": "Saved with no changes",
+      "actionAdded": "{{ action }} added",
+      "actionUpdated": "{{ action }} updated",
+      "actionStatus": "{{ action }} updated: {{ status }}",
+      "actionRemoved": "{{ action }} removed",
+      "accessGranted": "Access granted to {{ subject }}: {{ level }}",
+      "accessRevoked": "Access removed from {{ subject }}",
+      "accessChanged": "Access changed",
+      "subject": {
+        "user": "a person",
+        "department": "a department"
+      },
+      "byline": "{{ actor }} · {{ date }}",
+      "fields": {
+        "title": "title",
+        "description": "description",
+        "standards": "standards",
+        "clauses": "clauses",
+        "tags": "tags",
+        "severity": "severity",
+        "source": "source",
+        "root_cause": "root cause",
+        "root_cause_method": "root cause method",
+        "due_at": "due date",
+        "data": "type details",
+        "owner": "owner",
+        "department": "department",
+        "visibility": "visibility",
+        "status": "status"
+      }
+    },
+    "fieldErrors": {
+      "required": "This field is required.",
+      "text": "Enter text.",
+      "number": "Enter a valid number.",
+      "date": "Enter a valid date.",
+      "checkbox": "This checkbox has an invalid value.",
+      "option": "Choose one of the listed options.",
+      "options": "Choose only from the listed options.",
+      "user": "Choose a person in this organisation.",
+      "department": "Choose a department in this organisation.",
+      "invalid": "This value is not valid."
     }
   },
   "notifications": {

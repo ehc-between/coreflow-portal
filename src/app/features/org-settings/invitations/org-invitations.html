@@ -49,7 +49,7 @@
                   </td>
                   <td class="px-4 py-3 text-fg-muted" [attr.data-invitation-id]="invitation.id">
                     <span class="flex flex-wrap items-center gap-1.5">
-                      {{ invitation.expires_at | date: 'medium' }}
+                      {{ invitation.expires_at | localDate: 'medium' }}
                       @if (isExpired(invitation)) {
                         <app-badge tone="warn">{{
                           'settings.invitations.expired' | transloco

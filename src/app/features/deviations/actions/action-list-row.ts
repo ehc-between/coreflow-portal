@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { LocalDatePipe } from '../../../shared/locale/locale-pipes';
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -20,7 +20,7 @@ import {
  */
 @Component({
   selector: 'app-action-list-row',
-  imports: [DatePipe, RouterLink, TranslocoPipe, Badge, Icon],
+  imports: [LocalDatePipe, RouterLink, TranslocoPipe, Badge, Icon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @let a = action();
@@ -59,7 +59,7 @@ import {
           <app-icon name="alert" [size]="13" />
         }
         @if (a.due_at) {
-          {{ a.due_at | date: 'mediumDate' }}
+          {{ a.due_at | localDate: 'mediumDate' }}
         } @else {
           {{ 'myWork.owned.noDueDate' | transloco }}
         }

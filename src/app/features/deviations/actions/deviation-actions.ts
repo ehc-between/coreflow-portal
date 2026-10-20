@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { LocalDatePipe } from '../../../shared/locale/locale-pipes';
 import { ChangeDetectionStrategy, Component, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -45,7 +45,7 @@ interface OwnerOption {
  */
 @Component({
   selector: 'app-deviation-actions',
-  imports: [DatePipe, FormsModule, TranslocoPipe, Badge, Button, Icon, Attachments],
+  imports: [LocalDatePipe, FormsModule, TranslocoPipe, Badge, Button, Icon, Attachments],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div>
@@ -183,7 +183,7 @@ interface OwnerOption {
                       >
                         <app-icon name="calendar" [size]="13" />{{
                           'deviations.actions.dueLabel'
-                            | transloco: { date: (action.due_at | date: 'mediumDate') }
+                            | transloco: { date: (action.due_at | localDate: 'mediumDate') }
                         }}
                       </span>
                     }

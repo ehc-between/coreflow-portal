@@ -12,6 +12,7 @@ import { authInterceptor } from './core/auth/auth.interceptor';
 import { AuthService } from './core/auth/auth.service';
 import { errorInterceptor } from './core/http/error.interceptor';
 import { provideI18n } from './core/i18n/i18n.providers';
+import { LanguageService } from './core/i18n/language.service';
 import { provideSentry } from './core/monitoring/sentry';
 import { ThemeService } from './core/theme/theme.service';
 
@@ -33,6 +34,11 @@ export const appConfig: ApplicationConfig = {
       inject(ThemeService);
     }),
     ...provideI18n(),
+    // Instantiate LanguageService at startup: it registers the locale data and
+    // keeps <html lang> in step with the active language.
+    provideAppInitializer(() => {
+      inject(LanguageService);
+    }),
     ...provideSentry(),
   ],
 };

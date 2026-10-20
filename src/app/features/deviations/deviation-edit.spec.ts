@@ -80,8 +80,8 @@ describe('buildDeviationPatch', () => {
 
 describe('buildDeviationPatch root cause method', () => {
   it('sends null (not an empty string) when the method is cleared', () => {
-    const dev = { ...base, root_cause_method: '5why' };
-    expect(buildDeviationPatch(dev, { ...editFormFrom(dev), rootCauseMethod: '  ' })).toEqual({
+    const dev: DeviationDetail = { ...base, root_cause_method: 'five_why' };
+    expect(buildDeviationPatch(dev, { ...editFormFrom(dev), rootCauseMethod: '' })).toEqual({
       root_cause_method: null,
     });
   });

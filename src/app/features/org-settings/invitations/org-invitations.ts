@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { LocalDatePipe } from '../../../shared/locale/locale-pipes';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -48,7 +48,7 @@ const DEFAULT_ROLE = 'member';
   selector: 'app-org-invitations',
   imports: [
     ReactiveFormsModule,
-    DatePipe,
+    LocalDatePipe,
     TranslocoPipe,
     Card,
     FormField,

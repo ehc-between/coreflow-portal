@@ -482,7 +482,7 @@
       "document": "Til gjennomgang"
     },
     "actions": {
-      "title": "Mine korrigerende tiltak",
+      "title": "Mine tiltak",
       "empty": "Du har ingen åpne tiltak.",
       "truncated": "Viser de {{shown}} med nærmest frist av dine {{total}} åpne tiltak.",
       "viewAll": "Vis alle"
@@ -564,7 +564,8 @@
   },
   "common": {
     "loading": "Laster …",
-    "dismiss": "Lukk"
+    "dismiss": "Lukk",
+    "cancel": "Avbryt"
   },
   "errors": {
     "network": "Får ikke kontakt med serveren. Sjekk tilkoblingen og prøv igjen.",
@@ -618,7 +619,7 @@
       "status": "Status",
       "type": "Type",
       "standard": "Standard",
-      "severity": "Alvorlighet",
+      "severity": "Alvorlighetsgrad",
       "source": "Kilde",
       "owner": "Eier",
       "department": "Avdeling",
@@ -642,7 +643,7 @@
       "newest": "Nyeste først",
       "oldest": "Eldste først",
       "dueSoonest": "Frist snarest",
-      "severity": "Alvorlighet",
+      "severity": "Alvorlighetsgrad",
       "code": "Kode"
     },
     "pagination": {
@@ -663,12 +664,11 @@
       "cancel": "Avbryt",
       "unassigned": "Ikke tildelt",
       "none": "Ingen",
-      "addClause": "Legg til klausul",
-      "removeClause": "Fjern klausul",
-      "clausePlaceholder": "Klausul (f.eks. 8.7)",
+      "addClause": "Legg til punkt",
+      "removeClause": "Fjern punkt",
+      "clausePlaceholder": "Punkt (f.eks. 8.7)",
       "tagPlaceholder": "Legg til en etikett og trykk Enter",
       "removeTag": "Fjern etikett",
-      "rootCauseMethodPlaceholder": "f.eks. 5 hvorfor, Ishikawa",
       "titleRequired": "En tittel er påkrevd.",
       "createdToast": "Avvik opprettet.",
       "validationToast": "Noen detaljer må rettes. Sjekk de markerte feltene.",
@@ -676,10 +676,10 @@
       "fields": {
         "title": "Tittel",
         "description": "Beskrivelse",
-        "severity": "Alvorlighet",
+        "severity": "Alvorlighetsgrad",
         "source": "Kilde",
         "standards": "Standarder",
-        "clauses": "Klausuler",
+        "clauses": "Punkter",
         "tags": "Etiketter",
         "owner": "Eier",
         "department": "Avdeling",
@@ -710,7 +710,9 @@
         "due": "Frist",
         "closed": "Lukket",
         "source": "Kilde"
-      }
+      },
+      "yes": "Ja",
+      "no": "Nei"
     },
     "workflow": {
       "reasonHint": "Krever begrunnelse",
@@ -723,7 +725,7 @@
       "reasonLabel": "Begrunnelse",
       "reasonConfirm": "Endre status",
       "reasonCount": "{{ count }}/{{ max }}",
-      "closedNote": "Dette avviket er lukket eller kansellert. Gjenåpne det før du gjør endringer.",
+      "closedNote": "Dette avviket er lukket eller avbrutt og kan ikke endres. Et lukket avvik kan gjenåpnes av en avviksansvarlig; et avbrutt avvik kan ikke gjenåpnes.",
       "noEditAccess": "Du har ikke redigeringstilgang til dette avviket.",
       "reasons": {
         "invalid_transition": "Denne statusendringen er ikke tillatt fra nåværende status.",
@@ -731,8 +733,8 @@
         "root_cause_required": "Registrer en rotårsak før avviket lukkes.",
         "open_actions": "Alle tiltak må være fullført eller verifisert først.",
         "verification_required": "Effekten av de korrigerende tiltakene må verifiseres først.",
-        "deviation_closed": "Gjenåpne avviket før du endrer det",
-        "reopen_requires_manage": "Bare avviksansvarlige kan gjenåpne et lukket eller kansellert avvik.",
+        "deviation_closed": "Gjenåpne avviket før du endrer det.",
+        "reopen_requires_manage": "Bare avviksansvarlige kan gjenåpne et lukket avvik.",
         "unknown": "Denne statusendringen er ikke tillatt akkurat nå."
       }
     },
@@ -762,8 +764,8 @@
       },
       "kind": {
         "containment": "Strakstiltak",
-        "corrective": "Korrigerende",
-        "preventive": "Forebyggende"
+        "corrective": "Korrigerende tiltak",
+        "preventive": "Forebyggende tiltak"
       },
       "status": {
         "open": "Åpen",
@@ -773,9 +775,15 @@
         "cancelled": "Avbrutt"
       },
       "effectiveness": {
-        "pending": "Effektivitet venter",
+        "pending": "Effektivitet ikke vurdert",
         "effective": "Effektivt",
         "not_effective": "Ikke effektivt"
+      },
+      "kindNoun": {
+        "containment": "Strakstiltak",
+        "corrective": "Korrigerende tiltak",
+        "preventive": "Forebyggende tiltak",
+        "unknown": "Tiltak"
       }
     },
     "access": {
@@ -809,6 +817,7 @@
       "backToTypes": "Tilbake til typer",
       "empty": "Ingen avvikstyper ennå. Opprett en for å begynne å registrere avvik.",
       "fieldCount": "{{ count }} felter",
+      "fieldCountOne": "1 felt",
       "active": "Aktiv",
       "inactive": "Inaktiv",
       "delete": "Slett type",
@@ -909,7 +918,7 @@
       },
       "breakdowns": {
         "byStatus": "Etter status",
-        "bySeverity": "Etter alvorlighet",
+        "bySeverity": "Etter alvorlighetsgrad",
         "byStandard": "Etter standard",
         "byType": "Etter type",
         "byDepartment": "Etter avdeling",
@@ -928,6 +937,63 @@
       "scopeOverdue": "Kun forfalte",
       "ownerMe": "Tildelt meg",
       "empty": "Ingen tiltak samsvarer med disse filtrene."
+    },
+    "rootCauseMethod": {
+      "five_why": "5 hvorfor",
+      "fishbone": "Fiskebeinsdiagram (Ishikawa)",
+      "8d": "8D",
+      "other": "Annet"
+    },
+    "events": {
+      "created": "Avvik registrert",
+      "deleted": "Avvik slettet",
+      "statusChanged": "Status endret fra {{ from }} til {{ to }}",
+      "statusChangedGeneric": "Status endret",
+      "reason": "Begrunnelse: {{ reason }}",
+      "updated": "Avvik oppdatert",
+      "updatedFields": "Endret {{ fields }}",
+      "noChanges": "Lagret uten endringer",
+      "actionAdded": "{{ action }} lagt til",
+      "actionUpdated": "{{ action }} oppdatert",
+      "actionStatus": "{{ action }} oppdatert: {{ status }}",
+      "actionRemoved": "{{ action }} fjernet",
+      "accessGranted": "Tilgang gitt til {{ subject }}: {{ level }}",
+      "accessRevoked": "Tilgang fjernet fra {{ subject }}",
+      "accessChanged": "Tilgang endret",
+      "subject": {
+        "user": "en person",
+        "department": "en avdeling"
+      },
+      "byline": "{{ actor }} · {{ date }}",
+      "fields": {
+        "title": "tittel",
+        "description": "beskrivelse",
+        "standards": "standarder",
+        "clauses": "punkter",
+        "tags": "etiketter",
+        "severity": "alvorlighetsgrad",
+        "source": "kilde",
+        "root_cause": "rotårsak",
+        "root_cause_method": "rotårsaksmetode",
+        "due_at": "frist",
+        "data": "typedetaljer",
+        "owner": "eier",
+        "department": "avdeling",
+        "visibility": "synlighet",
+        "status": "status"
+      }
+    },
+    "fieldErrors": {
+      "required": "Dette feltet er påkrevd.",
+      "text": "Skriv inn tekst.",
+      "number": "Skriv inn et gyldig tall.",
+      "date": "Skriv inn en gyldig dato.",
+      "checkbox": "Avkrysningsfeltet har en ugyldig verdi.",
+      "option": "Velg ett av alternativene i listen.",
+      "options": "Velg bare blant alternativene i listen.",
+      "user": "Velg en person i denne organisasjonen.",
+      "department": "Velg en avdeling i denne organisasjonen.",
+      "invalid": "Denne verdien er ikke gyldig."
     }
   },
   "notifications": {

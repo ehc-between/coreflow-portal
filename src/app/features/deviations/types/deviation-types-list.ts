@@ -84,7 +84,12 @@ import { standardLabelKey } from '../deviation-enums';
                     }
                   </span>
                   <span class="w-[84px] flex-none text-right text-[12.5px] text-fg-muted">
-                    {{ 'deviations.types.fieldCount' | transloco: { count: type.schema.length } }}
+                    {{
+                      (type.schema.length === 1
+                        ? 'deviations.types.fieldCountOne'
+                        : 'deviations.types.fieldCount'
+                      ) | transloco: { count: type.schema.length }
+                    }}
                   </span>
                   <button
                     type="button"
