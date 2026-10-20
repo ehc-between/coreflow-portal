@@ -1,6 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideZonelessChangeDetection, signal } from '@angular/core';
+import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 import { TranslocoTestingModule } from '@jsverse/transloco';
 import { NEVER, Observable, of, throwError } from 'rxjs';
@@ -10,6 +11,7 @@ import { DeviationDetail as DeviationDetailModel } from '../../core/deviations/d
 import { DeviationsApi } from '../../core/deviations/deviations-api';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
+import { Attachments } from '../../shared/attachments/attachments';
 import { DeviationDetail } from './deviation-detail';
 
 function deviation(overrides: Partial<DeviationDetailModel> = {}): DeviationDetailModel {
@@ -374,11 +376,29 @@ describe('DeviationDetail QA follow-ups', () => {
     expect(trigger.getAttribute('title')).toContain('deviations.workflow.noEditAccess');
   });
 
+  it.each(['closed', 'cancelled'] as const)(
+    'makes deviation attachments read-only when %s',
+    async (status) => {
+      const { fixture } = await setup(
+        deviation({
+          status,
+          allowed_transitions: [{ to: 'investigating', requires_reason: true }],
+        }),
+      );
+      const attachments = fixture.debugElement.query(By.directive(Attachments))
+        .componentInstance as Attachments;
+      expect(attachments.canEdit()).toBe(false);
+    },
+  );
+
   it('keeps edit controls on an open deviation with transitions', async () => {
-    const { root } = await setup();
+    const { fixture, root } = await setup();
     expect(root.querySelector('[data-testid="edit-lock-note"]')).toBeNull();
     expect(buttonByText(root, 'deviations.detail.edit')).toBeTruthy();
     expect(buttonByText(root, 'deviations.actions.add')).toBeTruthy();
+    const attachments = fixture.debugElement.query(By.directive(Attachments))
+      .componentInstance as Attachments;
+    expect(attachments.canEdit()).toBe(true);
   });
 
   it('phrases a non-manager reopen rejection as a permission message', async () => {

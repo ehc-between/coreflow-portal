@@ -51,7 +51,6 @@ import {
   WorkflowError,
   editLockKey,
   isStillBlocked,
-  lacksEditReach,
   parseWorkflowError,
   statusLockedKey,
   statusMenuEntries,
@@ -620,7 +619,7 @@ type StatusRejection = WorkflowError & {
               <app-attachments
                 entityType="deviation"
                 [entityId]="dev.id"
-                [canEdit]="canWrite() && !lacksEditReach()"
+                [canEdit]="canEditThis()"
               />
             </app-card>
           </div>
@@ -878,11 +877,6 @@ export class DeviationDetail {
     (this.selectedOrg.currentOrg()?.permissions ?? []).includes('deviations:manage'),
   );
 
-  /** Org write but no edit reach on this (restricted) deviation. */
-  protected readonly lacksEditReach = computed(() => {
-    const dev = this.deviation();
-    return dev ? lacksEditReach(dev) : false;
-  });
   /** Why the deviation can't be edited right now (closed / no reach), or null. */
   protected readonly editLockKey = computed(() => {
     const dev = this.deviation();
