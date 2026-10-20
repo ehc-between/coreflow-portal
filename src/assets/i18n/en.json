@@ -346,10 +346,12 @@
       "noneYet": "No one has confirmed yet."
     },
     "requirements": {
-      "count": "{{count}} linked",
+      "count": "{{count}} requirements",
       "none": "Not linked",
       "suggested": "{{count}} AI suggestions to review",
-      "filterUnlinked": "Not linked to requirements"
+      "filterUnlinked": "Not linked to requirements",
+      "countOne": "1 requirement",
+      "suggestedOne": "1 AI suggestion to review"
     }
   },
   "review": {
@@ -1415,7 +1417,8 @@
       "suggested": "Suggested — review to confirm",
       "remove": "Remove link to {{ref}}",
       "onAction": "On action: {{action}}",
-      "moreLabel": "Show {{count}} more linked requirements"
+      "moreLabel": "Show {{count}} more linked requirements",
+      "moreLabelOne": "Show 1 more linked requirement"
     },
     "errors": {
       "notEnabled": "Enable this standard before mapping with AI.",
@@ -1462,7 +1465,10 @@
       "thinking": "Analysing the requirement …",
       "guidanceError": "Couldn't finish the guidance. Try again.",
       "sources": "Based on",
-      "suggestionBadge": "{{count}} AI suggestions"
+      "suggestionBadge": "{{count}} AI suggestions",
+      "suggestionBadgeOne": "1 AI suggestion",
+      "temporarilyUnavailable": "AI help is temporarily unavailable. Try again in a moment.",
+      "guidanceReady": "Guidance ready."
     },
     "mapping": {
       "never": "Existing documents haven't been mapped to this standard yet.",
@@ -1472,7 +1478,9 @@
       "lastMapped": "Last mapped {{date}} · {{count}} suggestions",
       "showSuggestions": "Show {{count}} requirements with suggestions",
       "failed": "The last mapping failed.",
-      "retry": "Try again"
+      "retry": "Try again",
+      "lastMappedOne": "Last mapped {{date}} · 1 suggestion",
+      "showSuggestionsOne": "Show 1 requirement with suggestions"
     }
   }
 }

@@ -5,6 +5,7 @@ import { LocalDatePipe } from '../../../shared/locale/locale-pipes';
 import { Button } from '../../../shared/ui/button/button';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { mappingState } from './workspace-data';
+import { pluralKey } from '../../../shared/i18n/plural';
 
 /**
  * The workspace header's AI mapping status, from the standard's `last_mapping`:
@@ -65,7 +66,7 @@ import { mappingState } from './workspace-data';
         >
           <span class="flex text-accent"><app-icon name="spark" [size]="13" /></span>
           <span>{{
-            'standards.mapping.lastMapped'
+            plural('standards.mapping.lastMapped', m?.suggestions_created)
               | transloco
                 : {
                     date: m?.finished_at | localDate: 'mediumDate',
@@ -80,7 +81,10 @@ import { mappingState } from './workspace-data';
               data-testid="mapping-show-suggestions"
               (click)="showSuggestions.emit()"
             >
-              {{ 'standards.mapping.showSuggestions' | transloco: { count: pendingCount() } }}
+              {{
+                plural('standards.mapping.showSuggestions', pendingCount())
+                  | transloco: { count: pendingCount() }
+              }}
             </button>
           }
         </div>
@@ -120,5 +124,6 @@ export class MappingStatus {
   readonly map = output<void>();
   readonly showSuggestions = output<void>();
 
+  protected readonly plural = pluralKey;
   protected readonly state = computed(() => mappingState(this.mapping()));
 }

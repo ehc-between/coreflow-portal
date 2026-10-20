@@ -29,6 +29,7 @@ import { Icon } from '../../shared/ui/icon/icon';
 import { Pager } from '../../shared/ui/pager/pager';
 import { STATUS_FILTERS, statusLabelKey, statusTone } from './document-status';
 import { ReviewState, reviewLabelKey, reviewState, reviewTone } from './workflow/document-review';
+import { pluralKey } from '../../shared/i18n/plural';
 
 /** Rows per page of the documents list. */
 export const DOCUMENTS_PAGE_SIZE = 25;
@@ -193,7 +194,7 @@ interface Row {
                         >
                           <app-icon name="link" [size]="12" />
                           {{
-                            'documents.requirements.count'
+                            plural('documents.requirements.count', row.links?.confirmed)
                               | transloco: { count: row.links?.confirmed ?? 0 }
                           }}
                         </span>
@@ -206,14 +207,14 @@ interface Row {
                         <span
                           class="inline-flex items-center gap-0.5 rounded-full bg-accent-soft px-1.5 py-0.5 text-[11px] font-semibold text-accent"
                           [title]="
-                            'documents.requirements.suggested'
+                            plural('documents.requirements.suggested', row.links?.suggested)
                               | transloco: { count: row.links?.suggested ?? 0 }
                           "
                           data-testid="requirement-suggested"
                         >
                           <app-icon name="spark" [size]="11" />{{ row.links?.suggested }}
                           <span class="sr-only">{{
-                            'documents.requirements.suggested'
+                            plural('documents.requirements.suggested', row.links?.suggested)
                               | transloco: { count: row.links?.suggested ?? 0 }
                           }}</span>
                         </span>
@@ -264,6 +265,7 @@ export class DocumentsList {
   protected readonly statusLabelKey = statusLabelKey;
   protected readonly reviewTone = reviewTone;
   protected readonly reviewLabelKey = reviewLabelKey;
+  protected readonly plural = pluralKey;
   protected readonly pageSize = DOCUMENTS_PAGE_SIZE;
 
   protected readonly query = signal('');

@@ -71,12 +71,52 @@ describe('SseClient', () => {
     ]);
   });
 
-  it('maps a 503 to a single not-configured event', async () => {
-    fetchMock.mockResolvedValue(new Response('', { status: 503 }));
+  it('maps a "not configured" 503 to a single not-configured event', async () => {
+    fetchMock.mockResolvedValue(
+      new Response(JSON.stringify({ detail: 'AI is not configured' }), { status: 503 }),
+    );
     const events: { type: string }[] = [];
     client.post('v1/x', {}, (e) => events.push(e));
     await until(events, 'not-configured');
     expect(events).toEqual([{ type: 'not-configured' }]);
+  });
+
+  it('treats any other 503 as a (retryable) error', async () => {
+    fetchMock.mockResolvedValue(
+      new Response(JSON.stringify({ detail: 'Model overloaded' }), { status: 503 }),
+    );
+    const events: { type: string }[] = [];
+    client.post('v1/x', {}, (e) => events.push(e));
+    await until(events, 'error');
+    expect(events).toEqual([{ type: 'error', message: '' }]);
+
+    fetchMock.mockResolvedValue(new Response('<html>busy</html>', { status: 503 }));
+    const more: { type: string }[] = [];
+    client.post('v1/x', {}, (e) => more.push(e));
+    await until(more, 'error');
+    expect(more).toEqual([{ type: 'error', message: '' }]);
+  });
+
+  it('ends with an error when the stream hits EOF without done / error', async () => {
+    fetchMock.mockResolvedValue(streamResponse(['data: {"type":"delta","text":"Half"}\n\n']));
+    const events: { type: string }[] = [];
+    client.post('v1/x', {}, (e) => events.push(e));
+    await until(events, 'error');
+    expect(events).toEqual([
+      { type: 'delta', text: 'Half' },
+      { type: 'error', message: '' },
+    ]);
+  });
+
+  it('delivers a final message that lacks the trailing blank line', async () => {
+    fetchMock.mockResolvedValue(
+      streamResponse(['data: {"type":"delta","text":"A"}\n\n', 'data: {"type":"done"}']),
+    );
+    const events: { type: string }[] = [];
+    client.post('v1/x', {}, (e) => events.push(e));
+    await until(events, 'done');
+    await new Promise((resolve) => setTimeout(resolve));
+    expect(events).toEqual([{ type: 'delta', text: 'A' }, { type: 'done' }]);
   });
 
   it('maps other failures to a single error event', async () => {

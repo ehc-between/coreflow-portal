@@ -349,7 +349,9 @@
       "count": "{{count}} krav",
       "none": "Ikke koblet",
       "suggested": "{{count}} KI-forslag til gjennomgang",
-      "filterUnlinked": "Uten kravkobling"
+      "filterUnlinked": "Uten kravkobling",
+      "countOne": "1 krav",
+      "suggestedOne": "1 KI-forslag til gjennomgang"
     }
   },
   "review": {
@@ -1415,7 +1417,8 @@
       "suggested": "Forslag — gjennomgå for å bekrefte",
       "remove": "Fjern koblingen til {{ref}}",
       "onAction": "På tiltak: {{action}}",
-      "moreLabel": "Vis {{count}} flere koblede krav"
+      "moreLabel": "Vis {{count}} flere koblede krav",
+      "moreLabelOne": "Vis 1 koblet krav til"
     },
     "errors": {
       "notEnabled": "Aktiver standarden før du kobler med AI.",
@@ -1462,7 +1465,10 @@
       "thinking": "Analyserer kravet …",
       "guidanceError": "Kunne ikke fullføre veiledningen. Prøv igjen.",
       "sources": "Basert på",
-      "suggestionBadge": "{{count}} KI-forslag"
+      "suggestionBadge": "{{count}} KI-forslag",
+      "suggestionBadgeOne": "1 KI-forslag",
+      "temporarilyUnavailable": "KI-hjelp er midlertidig utilgjengelig. Prøv igjen om litt.",
+      "guidanceReady": "Veiledningen er klar."
     },
     "mapping": {
       "never": "Eksisterende dokumenter er ikke kartlagt ennå.",
@@ -1472,7 +1478,9 @@
       "lastMapped": "Sist kartlagt {{date}} · {{count}} forslag",
       "showSuggestions": "Vis {{count}} krav med forslag",
       "failed": "Siste kartlegging feilet.",
-      "retry": "Prøv igjen"
+      "retry": "Prøv igjen",
+      "lastMappedOne": "Sist kartlagt {{date}} · 1 forslag",
+      "showSuggestionsOne": "Vis 1 krav med forslag"
     }
   }
 }

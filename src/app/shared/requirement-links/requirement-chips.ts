@@ -4,6 +4,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { shortRef } from '../../core/standards/standards-data';
 import { RequirementLink } from '../../core/standards/standards.models';
 import { Icon } from '../ui/icon/icon';
+import { pluralKey } from '../i18n/plural';
 
 /** Chips shown before the "+N" overflow chip. */
 export const REQUIREMENT_CHIPS_MAX = 6;
@@ -53,7 +54,9 @@ export const REQUIREMENT_CHIPS_MAX = 6;
           <button
             type="button"
             class="rounded-full border border-border px-2 py-0.5 text-[11.5px] font-semibold text-fg-muted hover:border-accent hover:text-accent"
-            [attr.aria-label]="'standards.supports.moreLabel' | transloco: { count: hidden() }"
+            [attr.aria-label]="
+              plural('standards.supports.moreLabel', hidden()) | transloco: { count: hidden() }
+            "
             data-testid="requirement-chips-more"
             (click)="more.emit()"
           >
@@ -72,6 +75,7 @@ export class RequirementChips {
   /** The "+N" chip was clicked. */
   readonly more = output<void>();
 
+  protected readonly plural = pluralKey;
   /** Confirmed before suggested, then by ref. */
   protected readonly sorted = computed(() =>
     this.links()

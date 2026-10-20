@@ -432,8 +432,11 @@ export function standardsErrorKey(error: unknown, op: StandardsOperation): strin
   if (code === 'justification_required') {
     return 'standards.requirement.justificationRequired';
   }
-  if ((op === 'map' || op === 'draft') && status === 503) {
+  if (op === 'map' && status === 503) {
     return 'standards.errors.aiUnavailable';
+  }
+  if (op === 'draft' && status === 503) {
+    return 'standards.ai.temporarilyUnavailable';
   }
   return op === 'save' ? 'standards.requirement.saveError' : 'standards.job.startFailed';
 }

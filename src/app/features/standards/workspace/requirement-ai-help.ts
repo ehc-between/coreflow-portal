@@ -27,6 +27,8 @@ import { Button } from '../../../shared/ui/button/button';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { StandardJobProgress } from '../job-progress';
 
+let nextGuidanceId = 0;
+
 /** Streamed "help me fulfil this" guidance for one requirement. */
 export interface Guidance {
   readonly text: string;
@@ -167,6 +169,7 @@ export function applyGuidanceEvent(guidance: Guidance, event: GuidanceEvent): Gu
                 type="button"
                 class="flex rounded-[6px] p-1 text-fg-subtle hover:bg-surface-2 hover:text-fg"
                 [attr.aria-expanded]="guidanceOpen()"
+                [attr.aria-controls]="guidanceBodyId"
                 [attr.aria-label]="
                   (guidanceOpen() ? 'standards.ai.collapse' : 'standards.ai.expand') | transloco
                 "
@@ -181,54 +184,64 @@ export function applyGuidanceEvent(guidance: Guidance, event: GuidanceEvent): Gu
                 />
               </button>
             </div>
-            @if (guidanceOpen()) {
-              <div class="px-3 py-2.5" aria-live="polite">
-                @if (g.text) {
+            <!-- Announced once, when the guidance finishes (not every streamed delta). -->
+            <p class="sr-only" role="status" data-testid="guidance-status">
+              @if (g.status === 'done') {
+                {{ 'standards.ai.guidanceReady' | transloco }}
+              }
+            </p>
+            <div
+              [id]="guidanceBodyId"
+              class="px-3 py-2.5"
+              data-testid="guidance-body"
+              [hidden]="!guidanceOpen()"
+              [attr.aria-busy]="g.status === 'streaming'"
+            >
+              @if (g.text) {
+                <div
+                  class="cf-prose text-[13px] leading-relaxed text-fg"
+                  data-testid="guidance-text"
+                  [innerHTML]="g.text | appMarkdown"
+                ></div>
+              } @else if (g.status === 'streaming') {
+                <p class="flex items-center gap-2 text-[12.5px] text-fg-muted">
+                  <span class="animate-cf-pulse inline-flex text-accent"
+                    ><app-icon name="spark" [size]="13"
+                  /></span>
+                  {{ 'standards.ai.thinking' | transloco }}
+                </p>
+              }
+              @if (g.status === 'error') {
+                <p class="mt-1.5 text-[12.5px] text-fail" role="alert">
+                  {{ 'standards.ai.guidanceError' | transloco }}
+                </p>
+              }
+              @if (g.sources.length > 0) {
+                <div class="mt-2.5">
                   <div
-                    class="cf-prose text-[13px] leading-relaxed text-fg"
-                    data-testid="guidance-text"
-                    [innerHTML]="g.text | appMarkdown"
-                  ></div>
-                } @else if (g.status === 'streaming') {
-                  <p class="flex items-center gap-2 text-[12.5px] text-fg-muted">
-                    <span class="animate-cf-pulse inline-flex text-accent"
-                      ><app-icon name="spark" [size]="13"
-                    /></span>
-                    {{ 'standards.ai.thinking' | transloco }}
-                  </p>
-                }
-                @if (g.status === 'error') {
-                  <p class="mt-1.5 text-[12.5px] text-fail" role="alert">
-                    {{ 'standards.ai.guidanceError' | transloco }}
-                  </p>
-                }
-                @if (g.sources.length > 0) {
-                  <div class="mt-2.5">
-                    <div
-                      class="mb-1 text-[11px] font-bold tracking-[0.08em] text-fg-subtle uppercase"
-                    >
-                      {{ 'standards.ai.sources' | transloco }}
-                    </div>
-                    <ul class="flex flex-wrap gap-1.5" data-testid="guidance-sources">
-                      @for (source of g.sources; track source.id) {
-                        <li>
-                          <a
-                            [routerLink]="['/documents', source.id]"
-                            class="inline-flex max-w-[260px] items-center gap-1 rounded-full border border-border bg-bg px-2 py-0.5 text-[12px] text-fg hover:border-accent hover:text-accent"
-                          >
-                            <app-icon name="documents" [size]="12" />
-                            <span class="truncate">{{ source.title }}</span>
-                            @if (source.doc_code) {
-                              <span class="flex-none text-fg-subtle">{{ source.doc_code }}</span>
-                            }
-                          </a>
-                        </li>
-                      }
-                    </ul>
+                    class="mb-1 text-[11px] font-bold tracking-[0.08em] text-fg-subtle uppercase"
+                  >
+                    {{ 'standards.ai.sources' | transloco }}
                   </div>
-                }
-              </div>
-            }
+                  <ul class="flex flex-wrap gap-1.5" data-testid="guidance-sources">
+                    @for (source of g.sources; track source.id) {
+                      <li>
+                        <a
+                          [routerLink]="['/documents', source.id]"
+                          class="inline-flex max-w-[260px] items-center gap-1 rounded-full border border-border bg-bg px-2 py-0.5 text-[12px] text-fg hover:border-accent hover:text-accent"
+                        >
+                          <app-icon name="documents" [size]="12" />
+                          <span class="truncate">{{ source.title }}</span>
+                          @if (source.doc_code) {
+                            <span class="flex-none text-fg-subtle">{{ source.doc_code }}</span>
+                          }
+                        </a>
+                      </li>
+                    }
+                  </ul>
+                </div>
+              }
+            </div>
           </div>
         }
 
@@ -281,6 +294,9 @@ export class RequirementAiHelp {
   protected readonly draftRunning = signal(false);
   protected readonly startingDraft = signal(false);
   protected readonly draftError = signal<string | null>(null);
+
+  /** DOM id of the guidance body (target of the collapse toggle's aria-controls). */
+  protected readonly guidanceBodyId = `ai-guidance-${nextGuidanceId++}`;
 
   private stream: SseStream | null = null;
 

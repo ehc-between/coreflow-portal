@@ -20,9 +20,11 @@ export type SseControlEvent =
  * parsing each `data: <json>` message into an event.
  *
  * The request is outside HttpClient, so the bearer token is attached manually
- * from {@link AuthService.accessToken} (kept in memory). A 503 (AI not
- * configured) becomes a single `not-configured` event and any other failure a
- * single `error` event, so callers render calm states without inspecting HTTP.
+ * from {@link AuthService.accessToken} (kept in memory). A 503 whose body says
+ * AI is not configured becomes a single `not-configured` event; any other
+ * failure (including a transient 503, or a stream that ends without `done` /
+ * `error`) becomes a single `error` event, so callers render calm states
+ * without inspecting HTTP.
  * Zoneless friendly: events are delivered through the caller's callback.
  */
 @Injectable({ providedIn: 'root' })
@@ -68,7 +70,7 @@ export class SseClient {
       return;
     }
 
-    if (response.status === 503) {
+    if (response.status === 503 && isNotConfiguredDetail(await readDetail(response))) {
       onEvent({ type: 'not-configured' });
       return;
     }
@@ -81,6 +83,14 @@ export class SseClient {
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     let buffer = '';
+    let ended = false;
+    const deliver = (event: E | SseControlEvent): void => {
+      const type = (event as { type?: unknown }).type;
+      if (type === 'done' || type === 'error') {
+        ended = true;
+      }
+      onEvent(event);
+    };
 
     try {
       for (;;) {
@@ -95,15 +105,43 @@ export class SseClient {
         while (separator !== -1) {
           const rawMessage = buffer.slice(0, separator);
           buffer = buffer.slice(separator + 2);
-          emitSseMessage(rawMessage, onEvent);
+          emitSseMessage(rawMessage, deliver);
           separator = buffer.indexOf('\n\n');
         }
       }
+      // A final message without the trailing blank line.
+      buffer += decoder.decode();
+      if (buffer.trim()) {
+        emitSseMessage(buffer, deliver);
+      }
     } catch {
-      if (!signal.aborted) {
+      if (!signal.aborted && !ended) {
         onEvent({ type: 'error', message: '' });
       }
+      return;
     }
+    // EOF without `done` / `error` (e.g. the connection dropped): end the stream
+    // as an error so the caller leaves its streaming state.
+    if (!ended && !signal.aborted) {
+      onEvent({ type: 'error', message: '' });
+    }
+  }
+}
+
+/** The 503 `detail` that means AI is not set up (vs. a transient outage). */
+export const AI_NOT_CONFIGURED_DETAIL = 'AI is not configured';
+
+export function isNotConfiguredDetail(detail: unknown): boolean {
+  return detail === AI_NOT_CONFIGURED_DETAIL;
+}
+
+/** The JSON body's `detail`, or null when the body isn't JSON. */
+async function readDetail(response: Response): Promise<unknown> {
+  try {
+    const body = (await response.json()) as { detail?: unknown } | null;
+    return body?.detail ?? null;
+  } catch {
+    return null;
   }
 }
 

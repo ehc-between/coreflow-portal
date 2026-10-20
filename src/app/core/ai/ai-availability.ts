@@ -1,4 +1,5 @@
 import { Injectable, signal } from '@angular/core';
+import { isNotConfiguredDetail } from './sse-client';
 
 /**
  * Whether the AI features are configured on the server, learned lazily: the
@@ -18,7 +19,12 @@ export class AiAvailability {
   }
 }
 
-/** Whether an HTTP error means "AI is not configured" (503). */
+/**
+ * Whether an HTTP error means "AI is not configured": a 503 whose body's
+ * `detail` says so. Any other 503 is a transient outage (retryable), not a
+ * reason to hide AI for the session.
+ */
 export function isAiNotConfigured(error: unknown): boolean {
-  return (error as { status?: unknown } | null)?.status === 503;
+  const err = error as { status?: unknown; error?: { detail?: unknown } | null } | null;
+  return err?.status === 503 && isNotConfiguredDetail(err.error?.detail);
 }

@@ -132,18 +132,28 @@ describe('RequirementAiHelp', () => {
     expect(text.querySelector('li')?.textContent).toBe('signed by management');
     // Clearly labelled as an AI suggestion.
     expect(el.textContent).toContain('standards.ai.suggestionLabel');
-    // Still streaming: no regenerate yet.
+    // Still streaming: no regenerate yet; busy for assistive tech, nothing announced.
     expect(el.querySelector('[data-testid="guidance-regenerate"]')).toBeNull();
+    const body = el.querySelector<HTMLElement>('[data-testid="guidance-body"]')!;
+    expect(body.getAttribute('aria-busy')).toBe('true');
+    expect(el.querySelector('[data-testid="guidance-status"]')?.textContent?.trim()).toBe('');
 
     emit({ type: 'done' });
     await render();
+    expect(body.getAttribute('aria-busy')).toBe('false');
+    expect(el.querySelector('[data-testid="guidance-status"]')?.textContent).toContain(
+      'standards.ai.guidanceReady',
+    );
     const source = el.querySelector<HTMLAnchorElement>('[data-testid="guidance-sources"] a')!;
     expect(source.getAttribute('href')).toBe('/documents/d1');
     expect(source.textContent).toContain('P-1');
 
-    el.querySelector<HTMLButtonElement>('[data-testid="guidance-toggle"]')!.click();
+    const toggle = el.querySelector<HTMLButtonElement>('[data-testid="guidance-toggle"]')!;
+    expect(toggle.getAttribute('aria-controls')).toBe(body.id);
+    toggle.click();
     await render();
-    expect(el.querySelector('[data-testid="guidance-text"]')).toBeNull();
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    expect(body.hidden).toBe(true);
 
     el.querySelector<HTMLButtonElement>('[data-testid="guidance-regenerate"]')!.click();
     await render();
@@ -243,7 +253,10 @@ describe('RequirementAiHelp', () => {
     button('ai-suggest')!.click();
     http
       .expectOne(`${ROOT}/standards/iso/ai-map`)
-      .flush({ detail: 'off' }, { status: 503, statusText: 'Service Unavailable' });
+      .flush(
+        { detail: 'AI is not configured' },
+        { status: 503, statusText: 'Service Unavailable' },
+      );
     await render();
     expect(el.querySelector('[data-testid="ai-off"]')?.textContent).toContain(
       'standards.ai.notConfigured',
@@ -252,6 +265,37 @@ describe('RequirementAiHelp', () => {
     expect(button('ai-suggest')).toBeNull();
     expect(button('ai-draft')).toBeNull();
     expect(TestBed.inject(AiAvailability).unavailable()).toBe(true);
+  });
+
+  it('shows a retryable inline error for a transient 503 (AI stays available)', async () => {
+    await setup(['standards:read', 'standards:manage', 'documents:draft']);
+    button('ai-draft')!.click();
+    http
+      .expectOne(`${ROOT}/standard-requirements/iso%3A5.2.r1/ai-draft`)
+      .flush({ detail: 'Model overloaded' }, { status: 503, statusText: 'Service Unavailable' });
+    await render();
+    expect(el.querySelector('[role="alert"]')?.textContent).toContain(
+      'standards.ai.temporarilyUnavailable',
+    );
+    expect(el.querySelector('[data-testid="ai-off"]')).toBeNull();
+    expect(TestBed.inject(AiAvailability).unavailable()).toBe(false);
+
+    // Retry works.
+    button('ai-draft')!.click();
+    http.expectOne(`${ROOT}/standard-requirements/iso%3A5.2.r1/ai-draft`).flush({ job_id: 'j-3' });
+    await render();
+    await render();
+    http.expectOne(`${ROOT}/standard-jobs/j-3`).flush({
+      id: 'j-3',
+      kind: 'ai_draft',
+      status: 'done',
+      progress: 100,
+      suggestions_created: 0,
+      proposal_id: 'p-3',
+    });
+    await render();
+    expect(el.querySelector('[role="alert"]')).toBeNull();
+    expect(el.textContent).toContain('standards.ai.draftReady');
   });
 
   it('treats a not-configured guidance stream the same way', async () => {

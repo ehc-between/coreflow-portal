@@ -13,6 +13,7 @@ import { Icon } from '../../../shared/ui/icon/icon';
 import { RequirementCard, requirementAnchorId } from '../requirement-card';
 import { RequirementAiHelp } from './requirement-ai-help';
 import { shortRef, toRequirementDetail } from './workspace-data';
+import { pluralKey } from '../../../shared/i18n/plural';
 
 /**
  * One requirement inside a workspace section: a compact, clickable summary
@@ -84,7 +85,8 @@ import { shortRef, toRequirementDetail } from './workspace-data';
               "
             >
               <app-icon name="spark" [size]="12" />{{
-                'standards.ai.suggestionBadge' | transloco: { count: req.suggested_links.length }
+                plural('standards.ai.suggestionBadge', req.suggested_links.length)
+                  | transloco: { count: req.suggested_links.length }
               }}
             </span>
           }
@@ -134,6 +136,7 @@ export class RequirementRow {
   readonly updated = output<RequirementDetail>();
   readonly linksChanged = output<void>();
 
+  protected readonly plural = pluralKey;
   protected readonly anchorId = computed(() => requirementAnchorId(this.requirement().ref));
   protected readonly panelId = computed(() => `${this.anchorId()}-panel`);
   protected readonly ref = computed(() => shortRef(this.requirement().ref));
