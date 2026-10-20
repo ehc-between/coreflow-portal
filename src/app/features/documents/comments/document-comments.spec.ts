@@ -193,6 +193,7 @@ describe('DocumentComments', () => {
     expect(html).toContain('sleepy cat');
     expect(html).not.toContain('brown fox');
     expect(html).not.toContain('lazy dog');
+    expect(revReq.request.body.change_reason).toContain('documents.comments.changeReason');
     revReq.flush({ id: 'rev-2', rev: 2, status: 'draft', author_user_id: 'u-1', created_at: 'x' });
 
     for (const id of ['c-1', 'c-2']) {

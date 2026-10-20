@@ -35,15 +35,28 @@ import { Icon } from '../../shared/ui/icon/icon';
 import { DocumentAccessEditor } from './access/document-access-editor';
 import { DocumentComments } from './comments/document-comments';
 import { statusLabelKey, statusTone } from './document-status';
+import { DocumentAcknowledge } from './workflow/document-acknowledge';
+import { DocumentAcknowledgementList } from './workflow/document-acknowledgement-list';
+import { reviewLabelKey, reviewState, reviewTone } from './workflow/document-review';
+import { DocumentReviewPanel } from './workflow/document-review-panel';
+import {
+  DocumentVersionBanner,
+  VersionView,
+  defaultVersionView,
+} from './workflow/document-version-banner';
+import { DocumentWorkflowActions } from './workflow/document-workflow-actions';
 
 /**
  * Document detail, scoped to the currently selected org. Renders the current
  * revision's sanitized HTML as a styled "paper" page under an ISO controlled-
  * document header band (code, title, type, status, revision, owner), with the
  * revision history alongside. Actions: Edit (gated `documents:draft`) into the
- * rich-text editor; Download as PDF / Word (the export blob flow); and — gated
- * `documents:approve` — Approve / Request changes. Navigates back to the list on
- * org switch.
+ * rich-text editor; Download as PDF / Word (the export blob flow); and the
+ * document-control workflow (submit / request changes / approve / obsolete —
+ * see {@link DocumentWorkflowActions}). Readers see the last approved revision;
+ * drafters can switch between it and the working draft. Periodic review and
+ * read-and-understood acknowledgement live in the sidebar / under the body.
+ * Navigates back to the list on org switch.
  */
 @Component({
   selector: 'app-document-detail',
@@ -59,6 +72,11 @@ import { statusLabelKey, statusTone } from './document-status';
     DocumentAccessEditor,
     DocumentComments,
     Attachments,
+    DocumentWorkflowActions,
+    DocumentVersionBanner,
+    DocumentReviewPanel,
+    DocumentAcknowledge,
+    DocumentAcknowledgementList,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { '(document:click)': 'closeDownload()' },
@@ -87,6 +105,9 @@ import { statusLabelKey, statusTone } from './document-status';
               <app-badge [tone]="statusTone(doc.status)">{{
                 statusLabelKey(doc.status) | transloco
               }}</app-badge>
+              @if (review(); as r) {
+                <app-badge [tone]="reviewTone(r)">{{ reviewLabelKey(r) | transloco }}</app-badge>
+              }
             </div>
             <h1 class="font-display text-[26px] font-bold tracking-[-0.025em] text-fg">
               {{ doc.title }}
@@ -139,17 +160,11 @@ import { statusLabelKey, statusTone } from './document-status';
                 </a>
               }
 
-              @if (doc.status !== 'approved' && doc.status !== 'obsolete') {
-                <div *appHasPermission="'documents:approve'" class="flex items-center gap-2">
-                  <app-button variant="secondary" (click)="requestChanges()">
-                    {{ 'documents.requestChanges' | transloco }}
-                  </app-button>
-                  <app-button [loading]="approving()" (click)="approve()">
-                    <app-icon name="check" [size]="15" />
-                    {{ 'documents.approve' | transloco }}
-                  </app-button>
-                </div>
-              }
+              <app-document-workflow-actions
+                [document]="doc"
+                (changed)="onDocumentChange($event)"
+                (reloadRequested)="reload()"
+              />
             }
           </div>
         </div>
@@ -195,6 +210,14 @@ import { statusLabelKey, statusTone } from './document-status';
               </div>
             </div>
 
+            @if (!viewedRevision()) {
+              <app-document-version-banner
+                [document]="doc"
+                [view]="versionView()"
+                (viewChange)="versionView.set($event)"
+              />
+            }
+
             @if (viewedRevision(); as rev) {
               <div
                 class="mb-4 flex items-center justify-between gap-3 rounded-tile border border-border bg-surface-2 px-4 py-3"
@@ -223,6 +246,10 @@ import { statusLabelKey, statusTone } from './document-status';
                   {{ 'documents.noContent' | transloco }}
                 </p>
               </app-card>
+            }
+
+            @if (showingApproved()) {
+              <app-document-acknowledge [document]="doc" (changed)="onDocumentChange($event)" />
             }
           </div>
 
@@ -263,6 +290,11 @@ import { statusLabelKey, statusTone } from './document-status';
                           <span class="block text-[12px] text-fg-subtle">
                             {{ rev.created_at | date: 'medium' }}
                           </span>
+                          @if (rev.change_reason) {
+                            <span class="mt-0.5 block text-[12px] leading-snug text-fg-muted">{{
+                              rev.change_reason
+                            }}</span>
+                          }
                         </span>
                       </button>
                     </li>
@@ -270,6 +302,20 @@ import { statusLabelKey, statusTone } from './document-status';
                 </ul>
               }
             </app-card>
+
+            <app-document-review-panel
+              [document]="doc"
+              [canManage]="canManage()"
+              (changed)="onDocumentChange($event)"
+            />
+
+            @if (canManage() && doc.acknowledgement?.required && doc.current_revision) {
+              <app-document-acknowledgement-list
+                [documentId]="doc.id"
+                [revisionId]="doc.current_revision.id"
+                [acknowledgedAt]="doc.acknowledgement?.acknowledged_at ?? null"
+              />
+            }
 
             <app-card>
               <app-attachments entityType="document" [entityId]="doc.id" [canEdit]="canEdit()" />
@@ -304,7 +350,7 @@ import { statusLabelKey, statusTone } from './document-status';
                 [docElement]="docBodyEl()"
                 [documentId]="doc.id"
                 [revisionId]="revId"
-                [revisionHtml]="(viewedRevision() ?? doc.current_revision)?.content ?? ''"
+                [revisionHtml]="(viewedRevision() ?? baseRevision())?.content ?? ''"
                 [canEdit]="canEdit()"
                 (revisionApplied)="reload()"
               />
@@ -342,7 +388,8 @@ export class DocumentDetail {
 
   protected readonly document = signal<DocumentDetailModel | null>(null);
   protected readonly loading = signal(true);
-  protected readonly approving = signal(false);
+  protected readonly reviewTone = reviewTone;
+  protected readonly reviewLabelKey = reviewLabelKey;
   protected readonly exporting = signal(false);
   protected readonly downloadOpen = signal(false);
 
@@ -362,19 +409,50 @@ export class DocumentDetail {
     return (this.selectedOrg.currentOrg()?.permissions ?? []).includes('documents:approve');
   });
 
-  /** A historical revision being viewed read-only; null means the current revision. */
+  /** Periodic-review standing for the header badge. */
+  protected readonly review = computed(() => {
+    const doc = this.document();
+    return doc ? reviewState(doc) : null;
+  });
+
+  /** Drafters: whether the approved revision or the working draft is shown. */
+  protected readonly versionView = signal<VersionView>('approved');
+
+  /**
+   * The revision shown when no history entry is picked: the working draft when
+   * the drafter switched to it (or nothing is approved yet), else the last
+   * approved revision readers see.
+   */
+  protected readonly baseRevision = computed<DocumentRevision | null>(() => {
+    const doc = this.document();
+    if (!doc) {
+      return null;
+    }
+    if (this.versionView() === 'draft' && doc.draft_revision) {
+      return doc.draft_revision;
+    }
+    return doc.current_revision ?? doc.draft_revision ?? null;
+  });
+
+  /** True while the approved revision (what readers see) is on screen. */
+  protected readonly showingApproved = computed(() => {
+    const current = this.document()?.current_revision;
+    return !this.viewedRevision() && !!current && this.baseRevision()?.id === current.id;
+  });
+
+  /** A historical revision being viewed read-only; null means the base revision. */
   protected readonly viewedRevision = signal<DocumentRevision | null>(null);
   protected readonly revisionLoading = signal(false);
 
-  /** True while viewing a revision that is not the document's current one. */
+  /** True while viewing a revision that is neither the approved one nor the draft. */
   protected readonly viewingOldRevision = computed(() => {
     const viewed = this.viewedRevision();
-    return viewed !== null && viewed.id !== this.document()?.current_revision?.id;
+    return viewed !== null && viewed.id !== this.baseRevision()?.id;
   });
 
-  /** The revision body to render, sanitized for safe [innerHTML]: viewed if set, else current. */
+  /** The revision body to render, sanitized for safe [innerHTML]: viewed if set, else base. */
   protected readonly contentHtml = computed(() => {
-    const raw = (this.viewedRevision() ?? this.document()?.current_revision)?.content;
+    const raw = (this.viewedRevision() ?? this.baseRevision())?.content;
     if (!raw) {
       return null;
     }
@@ -383,7 +461,7 @@ export class DocumentDetail {
 
   /** The revision the comments panel operates on: the viewed one, else current. */
   protected readonly activeRevisionId = computed(
-    () => (this.viewedRevision() ?? this.document()?.current_revision)?.id ?? null,
+    () => (this.viewedRevision() ?? this.baseRevision())?.id ?? null,
   );
 
   /** Edit access for the AI suggestion flow (matches the Edit gate). */
@@ -450,25 +528,11 @@ export class DocumentDetail {
     URL.revokeObjectURL(url);
   }
 
-  protected approve(): void {
-    const orgId = this.orgId();
-    if (!orgId || this.approving()) {
-      return;
-    }
-    this.approving.set(true);
-    this.api.approve(orgId, this.id()).subscribe({
-      next: (document) => {
-        this.document.set(document);
-        this.approving.set(false);
-        this.notifications.success('documents.approvedToast');
-      },
-      error: () => this.approving.set(false),
-    });
-  }
-
-  protected requestChanges(): void {
-    // The full request-changes flow lands in a later ticket; acknowledge for now.
-    this.notifications.info('documents.requestChangesToast');
+  /** A workflow action, settings save or acknowledgement returned the updated document. */
+  protected onDocumentChange(document: DocumentDetailModel): void {
+    this.document.set(document);
+    this.viewedRevision.set(null);
+    this.versionView.set(defaultVersionView(document));
   }
 
   protected isSelected(rev: DocumentRevision): boolean {
@@ -476,7 +540,7 @@ export class DocumentDetail {
     if (viewed) {
       return viewed.id === rev.id;
     }
-    return rev.id === this.document()?.current_revision?.id;
+    return rev.id === this.baseRevision()?.id;
   }
 
   protected viewRevision(rev: DocumentRevision): void {
@@ -485,7 +549,9 @@ export class DocumentDetail {
     if (!orgId || !doc || this.revisionLoading()) {
       return;
     }
-    if (rev.id === doc.current_revision?.id) {
+    // The approved revision and the draft are already loaded: switch to them.
+    if (rev.id === doc.current_revision?.id || rev.id === doc.draft_revision?.id) {
+      this.versionView.set(rev.id === doc.current_revision?.id ? 'approved' : 'draft');
       this.viewedRevision.set(null);
       return;
     }
@@ -536,6 +602,7 @@ export class DocumentDetail {
     this.api.get(orgId, id).subscribe({
       next: (document) => {
         this.document.set(document);
+        this.versionView.set(defaultVersionView(document));
         this.loading.set(false);
         this.loadAccess(orgId, id);
       },

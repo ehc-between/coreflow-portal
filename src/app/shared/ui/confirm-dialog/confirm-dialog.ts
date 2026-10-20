@@ -23,6 +23,9 @@ const FOCUSABLE = 'button:not([disabled]):not([tabindex="-1"]), [href], input, s
  * Shift+Tab are trapped inside the dialog, and focus returns to the element that
  * opened it when it closes. Escape and a backdrop click cancel (unless `busy`).
  *
+ * Extra body content (e.g. a reason field) can be projected below the message;
+ * `confirmDisabled` keeps the confirm action off until it is valid.
+ *
  *   <app-confirm-dialog
  *     [open]="pending() !== null"
  *     [title]="'x.title' | transloco"
@@ -64,13 +67,19 @@ const FOCUSABLE = 'button:not([disabled]):not([tabindex="-1"]), [href], input, s
           <p [id]="messageId" class="mt-2 text-[13.5px] leading-relaxed text-fg-muted">
             {{ message() }}
           </p>
+          <ng-content />
           <div class="mt-5 flex justify-end gap-2">
             <span data-role="cancel">
               <app-button variant="secondary" [disabled]="busy()" (click)="cancelled.emit()">
                 {{ cancelLabel() }}
               </app-button>
             </span>
-            <app-button [variant]="confirmVariant()" [loading]="busy()" (click)="confirmed.emit()">
+            <app-button
+              [variant]="confirmVariant()"
+              [loading]="busy()"
+              [disabled]="confirmDisabled()"
+              (click)="confirmed.emit()"
+            >
               {{ confirmLabel() }}
             </app-button>
           </div>
@@ -88,6 +97,8 @@ export class ConfirmDialog {
   readonly confirmVariant = input<ButtonVariant>('danger');
   /** Disables the actions (and Escape/backdrop dismissal) while the action runs. */
   readonly busy = input(false);
+  /** Disables only the confirm action (e.g. while a projected field is invalid). */
+  readonly confirmDisabled = input(false);
 
   readonly confirmed = output<void>();
   readonly cancelled = output<void>();

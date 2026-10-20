@@ -117,7 +117,6 @@
     "approve": "Godkjenn",
     "requestChanges": "Be om endringer",
     "approvedToast": "Dokument godkjent.",
-    "requestChangesToast": "Be om endringer kommer snart.",
     "createdToast": "Dokument opprettet.",
     "download": "Last ned",
     "downloadPdf": "Last ned PDF",
@@ -145,7 +144,8 @@
       "savedToast": "{{ count }} endring(er) lagret som rev. {{ rev }}.",
       "skippedToast": "{{ count }} endring(er) kunne ikke brukes fordi teksten de viser til er endret.",
       "appliedToast": "Endringen ble lagt til som en ny revisjon.",
-      "anchorNotFoundToast": "Teksten denne kommentaren viser til er endret, så forslaget kan ikke brukes."
+      "anchorNotFoundToast": "Teksten denne kommentaren viser til er endret, så forslaget kan ikke brukes.",
+      "changeReason": "Brukte {{count}} kommentar(er) fra gjennomgang"
     },
     "meta": {
       "code": "Kode",
@@ -244,6 +244,85 @@
       "approved": "Godkjent",
       "obsolete": "Utgått",
       "superseded": "Erstattet"
+    },
+    "workflow": {
+      "submit": "Send til godkjenning",
+      "submitTitle": "Sende til godkjenning?",
+      "submitBody": "Godkjennerne varsles og kan godkjenne utkastet eller sende det tilbake med kommentarer.",
+      "submittedToast": "Sendt til godkjenning.",
+      "approveTitle": "Godkjenne denne revisjonen?",
+      "approveBody": "Rev {{rev}} blir den godkjente versjonen som alle leser.",
+      "requestChangesTitle": "Be om endringer",
+      "requestChangesBody": "Dokumentet går tilbake til utkast, og forfatteren ser kommentaren din.",
+      "commentLabel": "Hva må endres?",
+      "commentPlaceholder": "Beskriv endringene som trengs …",
+      "sendBack": "Send tilbake til utkast",
+      "changesRequestedToast": "Endringer etterspurt. Dokumentet er tilbake som utkast.",
+      "obsolete": "Gjør utgått",
+      "obsoleteTitle": "Gjøre dette dokumentet utgått?",
+      "obsoleteBody": "Det trekkes tilbake fra bruk og kan ikke lenger redigeres. Revisjonshistorikken beholdes.",
+      "reasonLabel": "Begrunnelse",
+      "obsoletePlaceholder": "Hvorfor trekkes dokumentet tilbake?",
+      "obsoletedToast": "Dokumentet er satt som utgått.",
+      "changesRequested": "Endringer etterspurt",
+      "changesRequestedBy": "Endringer etterspurt av {{name}}",
+      "viewingDraft": "Utkast Rev {{rev}} – ikke godkjent ennå.",
+      "readersSee": "Leserne ser fortsatt godkjent Rev {{rev}}.",
+      "viewingApproved": "Godkjent Rev {{rev}} – det leserne ser.",
+      "draftPending": "Et utkast (Rev {{rev}}) er under arbeid.",
+      "neverApproved": "Leserne kan ikke se dokumentet før det er godkjent.",
+      "changeReasonShown": "Endringsbegrunnelse: {{reason}}",
+      "versionSwitch": "Velg hvilken versjon som vises",
+      "approvedRev": "Godkjent · Rev {{rev}}",
+      "draftRev": "Utkast · Rev {{rev}}",
+      "changeReasonTitle": "Endringsbegrunnelse",
+      "changeReasonBodyRequired": "Beskriv hva som er endret og hvorfor. Dette lagres i revisjonshistorikken.",
+      "changeReasonBodyOptional": "Beskriv gjerne endringen. Den lagres i revisjonshistorikken.",
+      "changeReasonLabel": "Endringsbegrunnelse",
+      "changeReasonPlaceholder": "For eksempel: oppdatert godkjenningstrinnene etter revisjonen",
+      "errors": {
+        "selfApproval": "Du har skrevet denne revisjonen, så noen andre må godkjenne den.",
+        "notInReview": "Dokumentet er ikke lenger til godkjenning. Vi har oppdatert visningen med gjeldende status.",
+        "notDraft": "Bare et utkast kan sendes til godkjenning.",
+        "changeReasonRequired": "Legg inn en endringsbegrunnelse før du lagrer.",
+        "forbidden": "Du har ikke tilgang til å gjøre dette.",
+        "conflict": "Dokumentet er endret av noen andre. Last inn på nytt og prøv igjen.",
+        "obsolete": "Dokumentet er utgått og kan ikke lenger endres.",
+        "noApprovedRevision": "Det finnes ingen godkjent revisjon å bekrefte ennå."
+      },
+      "obsoleteNotice": "Dokumentet er utgått"
+    },
+    "review": {
+      "title": "Periodisk gjennomgang",
+      "overdue": "Gjennomgang forfalt",
+      "dueSoon": "Gjennomgang snart",
+      "interval": "Gjennomgangsintervall",
+      "noInterval": "Ingen periodisk gjennomgang",
+      "everyMonths": "Hver {{months}}. måned",
+      "nextReview": "Neste gjennomgang",
+      "nextReviewHint": "La stå tomt for å beregne datoen fra intervallet ved neste godkjenning.",
+      "edit": "Endre gjennomgang",
+      "savedToast": "Innstillingene for gjennomgang er lagret.",
+      "filter": "Gjennomgang forfaller"
+    },
+    "ack": {
+      "requireLabel": "Krev «Lest og forstått»",
+      "requireHint": "Leserne bekrefter at de har lest hver godkjente revisjon.",
+      "required": "Lest og forstått",
+      "done": "Du bekreftet at du leste og forsto Rev {{rev}} {{date}}.",
+      "promptTitle": "Bekreft at du har lest dokumentet",
+      "promptBody": "Eieren ber alle bekrefte at de har lest og forstått Rev {{rev}}.",
+      "button": "Lest og forstått",
+      "confirmTitle": "Lest og forstått",
+      "confirmBody": "Jeg bekrefter at jeg har lest og forstått «{{title}}», Rev {{rev}}.",
+      "savedToast": "Takk – bekreftelsen din er registrert.",
+      "listTitle": "Lest og forstått",
+      "progress": "{{done}} av {{total}}",
+      "loadError": "Vi kunne ikke hente hvem som har bekreftet.",
+      "pending": "Ikke ennå ({{count}})",
+      "nonePending": "Alle har bekreftet.",
+      "acknowledged": "Bekreftet ({{count}})",
+      "noneYet": "Ingen har bekreftet ennå."
     }
   },
   "review": {
@@ -261,7 +340,11 @@
     "notFound": "Fant ikke forslaget.",
     "savedToast": "Utkast lagret.",
     "publishedToast": "Dokument publisert.",
-    "rejectedToast": "Utkast avvist."
+    "rejectedToast": "Utkast avvist.",
+    "documentsHeading": "Dokumenter som venter på godkjenning ({{count}})",
+    "proposalsHeading": "Foreslåtte utkast ({{count}})",
+    "submittedAt": "Sendt {{date}}",
+    "reviewDocument": "Gå gjennom"
   },
   "settings": {
     "title": "Organisasjonsinnstillinger",
@@ -564,7 +647,18 @@
   },
   "common": {
     "loading": "Laster …",
-    "dismiss": "Lukk"
+    "dismiss": "Lukk",
+    "cancel": "Avbryt",
+    "save": "Lagre",
+    "yes": "Ja",
+    "no": "Nei",
+    "pagination": {
+      "label": "Sidenavigering",
+      "range": "{{ from }}–{{ to }} av {{ total }}",
+      "rangeOpen": "{{ from }}–{{ to }}",
+      "prev": "Forrige",
+      "next": "Neste"
+    }
   },
   "errors": {
     "network": "Får ikke kontakt med serveren. Sjekk tilkoblingen og prøv igjen.",
@@ -943,7 +1037,11 @@
       "loadError": "Kunne ikke laste varslingsinnstillingene. Prøv igjen senere.",
       "saved": "Varslingsinnstillingene er lagret.",
       "saveFailed": "Kunne ikke lagre varslingsinnstillingene. Prøv igjen."
-    }
+    },
+    "documentReviewDue": "Dokumentet {{title}} skal snart gjennomgås",
+    "documentReviewOverdue": "Den periodiske gjennomgangen av {{title}} er forfalt",
+    "documentSubmitted": "{{title}} er sendt til deg for godkjenning",
+    "documentChangesRequested": "Det er bedt om endringer i {{title}}"
   },
   "roles": {
     "admin": {

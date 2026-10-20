@@ -84,3 +84,40 @@ describe('notificationLink', () => {
     ]);
   });
 });
+
+describe('document notifications', () => {
+  function docNotification(title_key: string, params: Record<string, unknown> = {}) {
+    return {
+      ...make(title_key),
+      kind: 'document_submitted' as const,
+      entity_type: 'document' as const,
+      entity_id: 'doc-9',
+      params: { document_id: 'doc-1', title: 'Quality manual', ...params },
+    };
+  }
+
+  it('translates the document-control keys as-is (no overdue/due-soon variants)', () => {
+    for (const key of [
+      'notifications.documentReviewDue',
+      'notifications.documentReviewOverdue',
+      'notifications.documentSubmitted',
+      'notifications.documentChangesRequested',
+    ]) {
+      const text = notificationText(docNotification(key, { days: 1 }));
+      expect(text.key).toBe(key);
+      expect(text.params['title']).toBe('Quality manual');
+    }
+  });
+
+  it('links to the document from params', () => {
+    expect(notificationLink(docNotification('notifications.documentSubmitted'))).toEqual([
+      '/documents',
+      'doc-1',
+    ]);
+  });
+
+  it('falls back to the document entity when params carry no id', () => {
+    const notification = { ...docNotification('notifications.documentSubmitted'), params: {} };
+    expect(notificationLink(notification)).toEqual(['/documents', 'doc-9']);
+  });
+});

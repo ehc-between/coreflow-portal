@@ -6,6 +6,14 @@ export interface NotificationText {
   readonly params: Readonly<Record<string, unknown>>;
 }
 
+/** Document-control title keys: translated as-is (no wording variants). */
+const DOCUMENT_KEYS = new Set([
+  'notifications.documentReviewDue',
+  'notifications.documentReviewOverdue',
+  'notifications.documentSubmitted',
+  'notifications.documentChangesRequested',
+]);
+
 /** Title keys the portal knows how to translate. */
 const KNOWN_KEYS = new Set([
   'notifications.deviationAssigned',
@@ -14,6 +22,7 @@ const KNOWN_KEYS = new Set([
   'notifications.deviationOverdue',
   'notifications.actionDueSoon',
   'notifications.actionOverdue',
+  ...DOCUMENT_KEYS,
 ]);
 
 /** Fallback title for keys introduced by a newer backend. */
@@ -29,6 +38,9 @@ export function notificationText(notification: UserNotification): NotificationTe
   const params = withDescriptionFallback(notification.params);
   if (!KNOWN_KEYS.has(key)) {
     return { key: NOTIFICATION_FALLBACK_KEY, params };
+  }
+  if (DOCUMENT_KEYS.has(key)) {
+    return { key, params };
   }
   if (key.endsWith('Assigned')) {
     return { key: params['actor_name'] ? key : `${key}NoActor`, params };
@@ -56,11 +68,18 @@ function withDescriptionFallback(
   return { ...params, description: params['deviation_title'] ?? '' };
 }
 
-/** Portal route a notification links to (every kind belongs to a deviation). */
+/** Portal route a notification links to: its deviation or its document. */
 export function notificationLink(notification: UserNotification): string[] | null {
   const deviationId = notification.params['deviation_id'];
   if (typeof deviationId === 'string' && deviationId) {
     return ['/deviations', deviationId];
   }
-  return notification.entity_type === 'deviation' ? ['/deviations', notification.entity_id] : null;
+  const documentId = notification.params['document_id'];
+  if (typeof documentId === 'string' && documentId) {
+    return ['/documents', documentId];
+  }
+  if (notification.entity_type === 'deviation') {
+    return ['/deviations', notification.entity_id];
+  }
+  return notification.entity_type === 'document' ? ['/documents', notification.entity_id] : null;
 }

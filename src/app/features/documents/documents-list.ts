@@ -16,7 +16,12 @@ import { Badge } from '../../shared/ui/badge/badge';
 import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
 import { Icon } from '../../shared/ui/icon/icon';
+import { Pager } from '../../shared/ui/pager/pager';
 import { STATUS_FILTERS, statusLabelKey, statusTone } from './document-status';
+import { ReviewState, reviewLabelKey, reviewState, reviewTone } from './workflow/document-review';
+
+/** Rows per page of the documents list. */
+export const DOCUMENTS_PAGE_SIZE = 25;
 
 /** A unified list row: either a list document or a search hit. */
 interface Row {
@@ -25,17 +30,20 @@ interface Row {
   readonly doc_code: string;
   readonly status: string;
   readonly type: string;
-  readonly current_rev?: number | null;
+  readonly current_rev?: string | number | null;
   readonly updated_at?: string;
   readonly snippet?: string;
+  readonly review?: ReviewState;
 }
 
 /**
  * Documents list, scoped to the currently selected org. Shows a searchable,
- * status-filterable table of the org's documents and a New document action
- * (gated on `documents:draft`). A non-empty search box switches to the search
- * endpoint; clearing it (or changing the status filter) returns to the full
- * list. Reloads on org switch.
+ * status-filterable, paginated table of the org's documents and a New document
+ * action (gated on `documents:draft`). Rows flag periodic reviews that are due
+ * soon or overdue, and a "Review due" toggle narrows the list to them. A
+ * non-empty search box switches to the search endpoint (unpaginated); clearing
+ * it (or changing a filter) returns to the first page of the list. Reloads on
+ * org switch.
  */
 @Component({
   selector: 'app-documents-list',
@@ -49,6 +57,7 @@ interface Row {
     Badge,
     Button,
     Icon,
+    Pager,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -93,6 +102,20 @@ interface Row {
             <option [value]="option">{{ statusLabelKey(option) | transloco }}</option>
           }
         </select>
+        <button
+          type="button"
+          [attr.aria-pressed]="reviewDue()"
+          (click)="onReviewDueToggle()"
+          class="flex h-10 items-center gap-2 rounded-[10px] border px-3 text-[13.5px] font-semibold transition-colors"
+          [class]="
+            reviewDue()
+              ? 'border-warn/40 bg-warn-soft text-warn'
+              : 'border-border bg-bg text-fg-muted hover:text-fg'
+          "
+        >
+          <app-icon name="history" [size]="15" />
+          {{ 'documents.review.filter' | transloco }}
+        </button>
       </div>
 
       <app-card [padded]="false">
@@ -120,6 +143,11 @@ interface Row {
                       }}</span>
                     }
                   </span>
+                  @if (row.review; as review) {
+                    <app-badge [tone]="reviewTone(review)">{{
+                      reviewLabelKey(review) | transloco
+                    }}</app-badge>
+                  }
                   <app-badge tone="neutral">{{ row.type }}</app-badge>
                   <app-badge [tone]="statusTone(row.status)">{{
                     statusLabelKey(row.status) | transloco
@@ -140,6 +168,16 @@ interface Row {
           </ul>
         }
       </app-card>
+
+      @if (!loading() && !searching()) {
+        <app-pager
+          [offset]="offset()"
+          [pageSize]="pageSize"
+          [count]="rows().length"
+          [total]="total()"
+          (pageChange)="goToPage($event)"
+        />
+      }
     </div>
   `,
 })
@@ -152,9 +190,17 @@ export class DocumentsList {
   protected readonly statusFilters = STATUS_FILTERS;
   protected readonly statusTone = statusTone;
   protected readonly statusLabelKey = statusLabelKey;
+  protected readonly reviewTone = reviewTone;
+  protected readonly reviewLabelKey = reviewLabelKey;
+  protected readonly pageSize = DOCUMENTS_PAGE_SIZE;
 
   protected readonly query = signal('');
   protected readonly status = signal<DocumentStatus | ''>('');
+  /** Only documents whose periodic review is due soon or overdue. */
+  protected readonly reviewDue = signal(false);
+  protected readonly offset = signal(0);
+  /** Unpaged total; null when the backend doesn't report one. */
+  protected readonly total = signal<number | null>(null);
   protected readonly rows = signal<readonly Row[]>([]);
   protected readonly loading = signal(false);
   protected readonly searching = signal(false);
@@ -181,6 +227,8 @@ export class DocumentsList {
       // Reset transient state when the active org changes.
       this.query.set('');
       this.status.set(this.initialStatus());
+      this.reviewDue.set(this.route.snapshot.queryParamMap.get('review') === 'due');
+      this.offset.set(0);
       this.searching.set(false);
       this.rows.set([]);
       if (orgId) {
@@ -197,6 +245,7 @@ export class DocumentsList {
     }
     if (q.length === 0) {
       this.searching.set(false);
+      this.offset.set(0);
       this.loadList(orgId);
       return;
     }
@@ -211,6 +260,26 @@ export class DocumentsList {
     // A status filter applies to the full list, so clear any active search.
     this.query.set('');
     this.searching.set(false);
+    this.offset.set(0);
+    if (orgId) {
+      this.loadList(orgId);
+    }
+  }
+
+  protected onReviewDueToggle(): void {
+    this.reviewDue.update((on) => !on);
+    this.query.set('');
+    this.searching.set(false);
+    this.offset.set(0);
+    const orgId = this.orgId();
+    if (orgId) {
+      this.loadList(orgId);
+    }
+  }
+
+  protected goToPage(offset: number): void {
+    const orgId = this.orgId();
+    this.offset.set(offset);
     if (orgId) {
       this.loadList(orgId);
     }
@@ -224,14 +293,21 @@ export class DocumentsList {
 
   private loadList(orgId: string): void {
     this.loading.set(true);
-    const status = this.status() || undefined;
-    this.api.list(orgId, { status }).subscribe({
-      next: (documents) => {
-        this.rows.set(documents.map(this.fromSummary));
-        this.loading.set(false);
-      },
-      error: () => this.loading.set(false),
-    });
+    this.api
+      .listPage(orgId, {
+        status: this.status() || undefined,
+        review_due: this.reviewDue() || undefined,
+        limit: this.pageSize,
+        offset: this.offset(),
+      })
+      .subscribe({
+        next: (page) => {
+          this.rows.set(page.items.map((doc) => this.fromSummary(doc)));
+          this.total.set(page.total);
+          this.loading.set(false);
+        },
+        error: () => this.loading.set(false),
+      });
   }
 
   private fromSummary(doc: DocumentSummary): Row {
@@ -243,6 +319,7 @@ export class DocumentsList {
       type: doc.type,
       current_rev: doc.current_rev,
       updated_at: doc.updated_at,
+      review: reviewState(doc),
     };
   }
 
