@@ -206,7 +206,8 @@
         "suggested": "Forslag",
         "addingNew": "Legger til nytt innhold",
         "close": "Lukk"
-      }
+      },
+      "inReviewWarning": "Dokumentet er til godkjenning. Lagring trekker tilbake den innsendte revisjonen og gjør den til utkast igjen."
     },
     "access": {
       "sectionTitle": "Eier og tilgang",
@@ -243,7 +244,8 @@
       "in_review": "Til gjennomgang",
       "approved": "Godkjent",
       "obsolete": "Utgått",
-      "superseded": "Erstattet"
+      "superseded": "Erstattet",
+      "withdrawn": "Trukket tilbake"
     },
     "workflow": {
       "submit": "Send til godkjenning",
@@ -327,7 +329,7 @@
   },
   "review": {
     "title": "Trenger din gjennomgang",
-    "subtitle": "Utkast som venter på din godkjenning før de publiseres.",
+    "subtitle": "Dokumenter som venter på din godkjenning, og foreslåtte utkast til dokumentbiblioteket.",
     "empty": "Du er à jour. Ingenting trenger gjennomgang.",
     "queuedAt": "Lagt til {{date}}",
     "open": "Åpne",
@@ -335,11 +337,11 @@
     "backToFeed": "Tilbake til gjennomgang",
     "reviewTitle": "Gjennomgå forslag",
     "saveDraft": "Lagre utkast",
-    "approveAndPublish": "Godkjenn og publiser",
+    "approveAndPublish": "Godta og send til godkjenning",
     "notPending": "Dette forslaget er allerede behandlet og kan ikke lenger redigeres.",
     "notFound": "Fant ikke forslaget.",
     "savedToast": "Utkast lagret.",
-    "publishedToast": "Dokument publisert.",
+    "publishedToast": "Dokumentet er opprettet og sendt til godkjenning.",
     "rejectedToast": "Utkast avvist.",
     "documentsHeading": "Dokumenter som venter på godkjenning ({{count}})",
     "proposalsHeading": "Foreslåtte utkast ({{count}})",
@@ -1038,10 +1040,15 @@
       "saved": "Varslingsinnstillingene er lagret.",
       "saveFailed": "Kunne ikke lagre varslingsinnstillingene. Prøv igjen."
     },
-    "documentReviewDue": "Dokumentet {{title}} skal snart gjennomgås",
-    "documentReviewOverdue": "Den periodiske gjennomgangen av {{title}} er forfalt",
-    "documentSubmitted": "{{title}} er sendt til deg for godkjenning",
-    "documentChangesRequested": "Det er bedt om endringer i {{title}}"
+    "documentReviewDue": "Dokument {{doc_code}} skal gjennomgås om {{days}} dager ({{due_date}}): {{title}}",
+    "documentReviewOverdue": "Gjennomgangen av dokument {{doc_code}} har passert fristen med {{days}} dager ({{due_date}}): {{title}}",
+    "documentSubmitted": "{{actor_name}} har sendt {{doc_code}} Rev {{rev}} til godkjenning: {{title}}",
+    "documentChangesRequested": "{{actor_name}} har bedt om endringer i {{doc_code}} Rev {{rev}}: {{title}}",
+    "documentSubmittedNoActor": "{{doc_code}} Rev {{rev}} er sendt til godkjenning: {{title}}",
+    "documentChangesRequestedNoActor": "Det er bedt om endringer i {{doc_code}} Rev {{rev}}: {{title}}",
+    "documentReviewDueToday": "Dokument {{doc_code}} skal gjennomgås i dag: {{title}}",
+    "documentReviewDueTomorrow": "Dokument {{doc_code}} skal gjennomgås i morgen: {{title}}",
+    "documentReviewOverdueOne": "Gjennomgangen av dokument {{doc_code}} har passert fristen med 1 dag ({{due_date}}): {{title}}"
   },
   "roles": {
     "admin": {

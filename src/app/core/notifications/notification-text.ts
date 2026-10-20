@@ -6,12 +6,17 @@ export interface NotificationText {
   readonly params: Readonly<Record<string, unknown>>;
 }
 
-/** Document-control title keys: translated as-is (no wording variants). */
+/** Document workflow keys worded around the acting user (`actor_name`, may be null). */
+const DOCUMENT_ACTOR_KEYS = new Set([
+  'notifications.documentSubmitted',
+  'notifications.documentChangesRequested',
+]);
+
+/** Document-control title keys. Review reminders follow the due-soon / overdue variants. */
 const DOCUMENT_KEYS = new Set([
   'notifications.documentReviewDue',
   'notifications.documentReviewOverdue',
-  'notifications.documentSubmitted',
-  'notifications.documentChangesRequested',
+  ...DOCUMENT_ACTOR_KEYS,
 ]);
 
 /** Title keys the portal knows how to translate. */
@@ -39,14 +44,11 @@ export function notificationText(notification: UserNotification): NotificationTe
   if (!KNOWN_KEYS.has(key)) {
     return { key: NOTIFICATION_FALLBACK_KEY, params };
   }
-  if (DOCUMENT_KEYS.has(key)) {
-    return { key, params };
-  }
-  if (key.endsWith('Assigned')) {
+  if (key.endsWith('Assigned') || DOCUMENT_ACTOR_KEYS.has(key)) {
     return { key: params['actor_name'] ? key : `${key}NoActor`, params };
   }
   const days = Number(params['days']);
-  if (key.endsWith('DueSoon')) {
+  if (key.endsWith('DueSoon') || key === 'notifications.documentReviewDue') {
     if (days <= 0) return { key: `${key}Today`, params };
     if (days === 1) return { key: `${key}Tomorrow`, params };
     return { key, params };

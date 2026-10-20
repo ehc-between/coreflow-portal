@@ -17,14 +17,13 @@ export interface DocumentSummary {
   readonly review_overdue?: boolean;
 }
 
-/** A page of the documents list plus the unpaged total. */
+/** A page of the documents list plus the total matching rows. */
 export interface DocumentPage {
   readonly items: readonly DocumentSummary[];
-  /** Unpaged total; null when the backend did not report one. */
-  readonly total: number | null;
+  readonly total: number;
 }
 
-/** Filters + paging for the documents list. */
+/** Filters + client-side paging for the documents list. */
 export interface DocumentListQuery {
   readonly status?: DocumentStatus;
   readonly type?: string;

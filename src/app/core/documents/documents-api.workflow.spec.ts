@@ -120,55 +120,42 @@ describe('DocumentsApi document control', () => {
     });
   });
 
-  it('pages the list with limit/offset and the review-due filter', () => {
+  it('pages the full list client-side, sending no paging params', () => {
     let page: unknown;
-    api
-      .listPage(ORG, { status: 'approved', review_due: true, limit: 25, offset: 50 })
-      .subscribe((p) => (page = p));
+    api.listPage(ORG, { status: 'approved', limit: 2, offset: 2 }).subscribe((p) => (page = p));
     const req = http.expectOne((r) => r.url === URL);
     expect(req.request.params.get('status')).toBe('approved');
-    expect(req.request.params.get('review_due')).toBe('true');
-    expect(req.request.params.get('limit')).toBe('25');
-    expect(req.request.params.get('offset')).toBe('50');
-    req.flush({ items: [summary('a')], total: 51 });
-    expect(page).toEqual({ items: [summary('a')], total: 51 });
-  });
-
-  it('keeps list() returning a plain array for either response shape', () => {
-    let rows: unknown;
-    api.list(ORG, { status: 'in_review' }).subscribe((r) => (rows = r));
-    http.expectOne((r) => r.url === URL).flush({ items: [summary('a')], total: 1 });
-    expect(rows).toEqual([summary('a')]);
-
-    api.list(ORG).subscribe((r) => (rows = r));
-    http.expectOne((r) => r.url === URL).flush([summary('b')]);
-    expect(rows).toEqual([summary('b')]);
+    expect(req.request.params.has('limit')).toBe(false);
+    expect(req.request.params.has('offset')).toBe(false);
+    expect(req.request.params.has('review_due')).toBe(false);
+    req.flush([summary('a'), summary('b'), summary('c')]);
+    expect(page).toEqual({ items: [summary('c')], total: 3 });
   });
 });
 
 describe('toDocumentPage', () => {
-  it('treats a bare array as a page with an unknown total', () => {
-    expect(toDocumentPage([summary('a')])).toEqual({ items: [summary('a')], total: null });
-  });
+  const all = [
+    summary('a'),
+    { ...summary('b'), review_overdue: true },
+    { ...summary('c'), review_overdue: true },
+    { ...summary('d'), review_overdue: true },
+  ];
 
-  it('filters and slices a bare (unpaged) array client-side for a query', () => {
-    const all = [
-      summary('a'),
-      { ...summary('b'), review_overdue: true },
-      { ...summary('c'), review_overdue: true },
-      { ...summary('d'), review_overdue: true },
-    ];
+  it('slices to the requested page with the full total', () => {
     expect(toDocumentPage(all, { limit: 2, offset: 2 })).toEqual({
       items: [all[2], all[3]],
       total: 4,
     });
+  });
+
+  it('filters to review-due documents before paging', () => {
     expect(toDocumentPage(all, { review_due: true, limit: 2, offset: 0 })).toEqual({
       items: [all[1], all[2]],
       total: 3,
     });
   });
 
-  it('tolerates an envelope without a total', () => {
-    expect(toDocumentPage({ items: [] })).toEqual({ items: [], total: null });
+  it('returns everything without a query', () => {
+    expect(toDocumentPage(all)).toEqual({ items: all, total: 4 });
   });
 });

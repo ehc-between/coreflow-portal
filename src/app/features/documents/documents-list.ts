@@ -1,5 +1,12 @@
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  inject,
+  signal,
+  untracked,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -199,8 +206,8 @@ export class DocumentsList {
   /** Only documents whose periodic review is due soon or overdue. */
   protected readonly reviewDue = signal(false);
   protected readonly offset = signal(0);
-  /** Unpaged total; null when the backend doesn't report one. */
-  protected readonly total = signal<number | null>(null);
+  /** Total rows matching the filters. */
+  protected readonly total = signal(0);
   protected readonly rows = signal<readonly Row[]>([]);
   protected readonly loading = signal(false);
   protected readonly searching = signal(false);
@@ -224,7 +231,8 @@ export class DocumentsList {
 
     effect(() => {
       const orgId = this.orgId();
-      // Reset transient state when the active org changes.
+      // Reset transient state when the active org changes. Only the org is a
+      // dependency: the filter / paging signals read below must not re-run this.
       this.query.set('');
       this.status.set(this.initialStatus());
       this.reviewDue.set(this.route.snapshot.queryParamMap.get('review') === 'due');
@@ -232,7 +240,7 @@ export class DocumentsList {
       this.searching.set(false);
       this.rows.set([]);
       if (orgId) {
-        this.loadList(orgId);
+        untracked(() => this.loadList(orgId));
       }
     });
   }

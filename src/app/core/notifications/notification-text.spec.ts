@@ -96,17 +96,31 @@ describe('document notifications', () => {
     };
   }
 
-  it('translates the document-control keys as-is (no overdue/due-soon variants)', () => {
-    for (const key of [
-      'notifications.documentReviewDue',
+  it('words submitted / changes-requested around the actor', () => {
+    expect(
+      notificationText(docNotification('notifications.documentSubmitted', { actor_name: 'Ada' }))
+        .key,
+    ).toBe('notifications.documentSubmitted');
+    expect(
+      notificationText(
+        docNotification('notifications.documentChangesRequested', { actor_name: null }),
+      ).key,
+    ).toBe('notifications.documentChangesRequestedNoActor');
+  });
+
+  it('words review reminders like other due-soon / overdue reminders', () => {
+    const key = (k: string, days: number) => notificationText(docNotification(k, { days })).key;
+    expect(key('notifications.documentReviewDue', 0)).toBe('notifications.documentReviewDueToday');
+    expect(key('notifications.documentReviewDue', 1)).toBe(
+      'notifications.documentReviewDueTomorrow',
+    );
+    expect(key('notifications.documentReviewDue', 14)).toBe('notifications.documentReviewDue');
+    expect(key('notifications.documentReviewOverdue', 1)).toBe(
+      'notifications.documentReviewOverdueOne',
+    );
+    expect(key('notifications.documentReviewOverdue', 5)).toBe(
       'notifications.documentReviewOverdue',
-      'notifications.documentSubmitted',
-      'notifications.documentChangesRequested',
-    ]) {
-      const text = notificationText(docNotification(key, { days: 1 }));
-      expect(text.key).toBe(key);
-      expect(text.params['title']).toBe('Quality manual');
-    }
+    );
   });
 
   it('links to the document from params', () => {

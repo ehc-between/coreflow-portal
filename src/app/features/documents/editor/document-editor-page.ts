@@ -61,6 +61,15 @@ import { DocumentEditor } from './document-editor';
           </h1>
         </div>
 
+        @if (doc.status === 'in_review') {
+          <p
+            role="status"
+            class="mb-4 rounded-tile border border-warn/30 bg-warn-soft px-4 py-3 text-[13.5px] font-medium text-warn"
+          >
+            {{ 'documents.editor.inReviewWarning' | transloco }}
+          </p>
+        }
+
         <app-document-editor
           [content]="initialHtml()"
           [saving]="saving()"

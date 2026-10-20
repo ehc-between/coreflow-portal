@@ -206,7 +206,8 @@
         "suggested": "Suggested",
         "addingNew": "Adding new content",
         "close": "Close"
-      }
+      },
+      "inReviewWarning": "This document is in review. Saving withdraws the submitted revision and returns it to draft."
     },
     "access": {
       "sectionTitle": "Owner & access",
@@ -243,7 +244,8 @@
       "in_review": "In review",
       "approved": "Approved",
       "obsolete": "Obsolete",
-      "superseded": "Superseded"
+      "superseded": "Superseded",
+      "withdrawn": "Withdrawn"
     },
     "workflow": {
       "submit": "Submit for review",
@@ -327,7 +329,7 @@
   },
   "review": {
     "title": "Needs your review",
-    "subtitle": "Drafts waiting for your approval before they're published.",
+    "subtitle": "Documents waiting for your approval and drafts proposed for the library.",
     "empty": "You're all caught up. Nothing needs your review.",
     "queuedAt": "Added {{date}}",
     "open": "Open",
@@ -335,11 +337,11 @@
     "backToFeed": "Back to review",
     "reviewTitle": "Review proposal",
     "saveDraft": "Save draft",
-    "approveAndPublish": "Approve & publish",
+    "approveAndPublish": "Accept & submit for review",
     "notPending": "This proposal has already been handled and can no longer be edited.",
     "notFound": "Proposal not found.",
     "savedToast": "Draft saved.",
-    "publishedToast": "Document published.",
+    "publishedToast": "Document created and submitted for review.",
     "rejectedToast": "Draft rejected.",
     "documentsHeading": "Documents awaiting approval ({{count}})",
     "proposalsHeading": "Proposed drafts ({{count}})",
@@ -1038,10 +1040,15 @@
       "saved": "Notification settings saved.",
       "saveFailed": "Couldn't save your notification settings. Please try again."
     },
-    "documentReviewDue": "Document {{title}} is due for its periodic review",
-    "documentReviewOverdue": "The periodic review of {{title}} is overdue",
-    "documentSubmitted": "{{title}} was submitted for your review",
-    "documentChangesRequested": "Changes were requested on {{title}}"
+    "documentReviewDue": "Document {{doc_code}} is due for periodic review in {{days}} days ({{due_date}}): {{title}}",
+    "documentReviewOverdue": "Periodic review of document {{doc_code}} is {{days}} days overdue (due {{due_date}}): {{title}}",
+    "documentSubmitted": "{{actor_name}} submitted {{doc_code}} Rev {{rev}} for review: {{title}}",
+    "documentChangesRequested": "{{actor_name}} requested changes to {{doc_code}} Rev {{rev}}: {{title}}",
+    "documentSubmittedNoActor": "{{doc_code}} Rev {{rev}} was submitted for review: {{title}}",
+    "documentChangesRequestedNoActor": "Changes were requested to {{doc_code}} Rev {{rev}}: {{title}}",
+    "documentReviewDueToday": "Document {{doc_code}} is due for periodic review today: {{title}}",
+    "documentReviewDueTomorrow": "Document {{doc_code}} is due for periodic review tomorrow: {{title}}",
+    "documentReviewOverdueOne": "Periodic review of document {{doc_code}} is 1 day overdue (due {{due_date}}): {{title}}"
   },
   "roles": {
     "admin": {

@@ -55,40 +55,37 @@ async function setup() {
 }
 
 describe('DocumentsList', () => {
-  it('loads the first page and pages forward with the offset', async () => {
+  it('pages the full list client-side', async () => {
     const { fixture, root, http } = await setup();
-    const first = http.expectOne((r) => r.url === URL);
-    expect(first.request.params.get('limit')).toBe(String(DOCUMENTS_PAGE_SIZE));
-    expect(first.request.params.get('offset')).toBe('0');
-    first.flush({
-      items: Array.from({ length: DOCUMENTS_PAGE_SIZE }, (_, i) => summary(i)),
-      total: DOCUMENTS_PAGE_SIZE + 3,
-    });
+    const all = Array.from({ length: DOCUMENTS_PAGE_SIZE + 3 }, (_, i) => summary(i));
+    const req = http.expectOne((r) => r.url === URL);
+    expect(req.request.params.has('limit')).toBe(false);
+    req.flush(all);
     await fixture.whenStable();
+    expect(root.querySelectorAll('li').length).toBe(DOCUMENTS_PAGE_SIZE);
 
     const next = Array.from(root.querySelectorAll<HTMLButtonElement>('nav button'))[1];
     next.click();
     const second = http.expectOne((r) => r.url === URL);
-    expect(second.request.params.get('offset')).toBe(String(DOCUMENTS_PAGE_SIZE));
-    second.flush({ items: [summary(99)], total: DOCUMENTS_PAGE_SIZE + 3 });
+    second.flush(all);
+    await fixture.whenStable();
+    expect(root.querySelectorAll('li').length).toBe(3);
     http.verify();
   });
 
   it('badges overdue reviews and filters to review-due documents', async () => {
     const { fixture, root, http } = await setup();
-    http
-      .expectOne((r) => r.url === URL)
-      .flush({ items: [summary(1, { review_overdue: true }), summary(2)], total: 2 });
+    const all = [summary(1, { review_overdue: true }), summary(2)];
+    http.expectOne((r) => r.url === URL).flush(all);
     await fixture.whenStable();
     expect(root.textContent).toContain('documents.review.overdue');
     expect(root.querySelector('nav')).toBeNull();
 
-    const toggle = root.querySelector<HTMLButtonElement>('button[aria-pressed]')!;
-    toggle.click();
-    const filtered = http.expectOne((r) => r.url === URL);
-    expect(filtered.request.params.get('review_due')).toBe('true');
-    expect(filtered.request.params.get('offset')).toBe('0');
-    filtered.flush({ items: [], total: 0 });
+    root.querySelector<HTMLButtonElement>('button[aria-pressed]')!.click();
+    http.expectOne((r) => r.url === URL).flush(all);
+    await fixture.whenStable();
+    expect(root.querySelectorAll('li').length).toBe(1);
+    expect(root.textContent).toContain('Doc 1');
     http.verify();
   });
 });

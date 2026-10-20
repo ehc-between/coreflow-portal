@@ -118,3 +118,29 @@ describe('controlChanges', () => {
     });
   });
 });
+
+describe('reviewState calendar dates', () => {
+  // 00:30 local time: a UTC-based comparison could land on the previous day.
+  const earlyMorning = new Date(2026, 9, 20, 0, 30);
+
+  it('is not overdue on the review date itself', () => {
+    expect(reviewState({ status: 'approved', next_review_at: '2026-10-20' }, earlyMorning)).toBe(
+      'due',
+    );
+  });
+
+  it('is overdue only from the day after', () => {
+    expect(reviewState({ status: 'approved', next_review_at: '2026-10-19' }, earlyMorning)).toBe(
+      'overdue',
+    );
+  });
+
+  it('defers to an explicit backend flag', () => {
+    expect(
+      reviewState(
+        { status: 'approved', next_review_at: '2026-10-19', review_overdue: false },
+        earlyMorning,
+      ),
+    ).toBe('due');
+  });
+});

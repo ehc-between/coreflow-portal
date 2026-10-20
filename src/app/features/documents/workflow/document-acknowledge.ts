@@ -19,7 +19,7 @@ import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog'
 import { Icon } from '../../../shared/ui/icon/icon';
 
 /**
- * "Read and understood" strip shown under an approved document whose owner
+ * "Read and understood" strip shown under a document's approved revision when the owner
  * requires acknowledgement. Readers confirm (via a dialog) that they have read
  * the current approved revision; once done it shows when they confirmed.
  * Renders nothing when acknowledgement isn't required or nothing is approved.
@@ -87,7 +87,9 @@ export class DocumentAcknowledge {
 
   protected readonly applies = computed(() => {
     const doc = this.document();
-    return doc.status === 'approved' && !!doc.current_revision && !!doc.acknowledgement?.required;
+    // Any live document with an approved revision: drafters and approvers may be
+    // looking at it while a newer draft is in progress.
+    return doc.status !== 'obsolete' && !!doc.current_revision && !!doc.acknowledgement?.required;
   });
 
   protected readonly acknowledgedAt = computed(

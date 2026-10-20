@@ -52,30 +52,19 @@ export class DocumentsApi {
     orgId: string,
     filters: { status?: DocumentStatus; type?: string } = {},
   ): Observable<DocumentSummary[]> {
-    return this.api
-      .get<DocumentListResponse>(`v1/orgs/${orgId}/documents`, {
-        params: { status: filters.status, type: filters.type },
-      })
-      .pipe(map((response) => [...toDocumentPage(response).items]));
+    return this.api.get<DocumentSummary[]>(`v1/orgs/${orgId}/documents`, {
+      params: { status: filters.status, type: filters.type },
+    });
   }
 
   /**
-   * One page of the documents list plus the unpaged total. Accepts the paged
-   * `{items, total}` envelope; a bare array is the full, unpaged list, so it is
-   * filtered (review due) and sliced to the page here.
+   * One page of the documents list plus the total. The endpoint returns the
+   * whole (unpaged) list, so the review-due filter and paging are applied here.
    */
   listPage(orgId: string, query: DocumentListQuery = {}): Observable<DocumentPage> {
-    return this.api
-      .get<DocumentListResponse>(`v1/orgs/${orgId}/documents`, {
-        params: {
-          status: query.status,
-          type: query.type,
-          review_due: query.review_due || undefined,
-          limit: query.limit,
-          offset: query.offset,
-        },
-      })
-      .pipe(map((response) => toDocumentPage(response, query)));
+    return this.list(orgId, { status: query.status, type: query.type }).pipe(
+      map((documents) => toDocumentPage(documents, query)),
+    );
   }
 
   search(orgId: string, q: string, limit = 20): Observable<DocumentSearchResult[]> {
@@ -344,35 +333,19 @@ export class DocumentsApi {
   }
 }
 
-/** The list endpoint answers with a paged envelope (or, on older backends, a bare array). */
-type DocumentListResponse =
-  | readonly DocumentSummary[]
-  | { readonly items: readonly DocumentSummary[]; readonly total?: number | null };
-
 /**
- * Normalise the documents list response into a page. A bare array is the
- * whole (unpaged, unfiltered-by-review) list: when a query is given it is
- * filtered and sliced client-side, with the filtered length as the total.
+ * One page of the full (unpaged) documents list: filtered to review-due
+ * documents when asked, then sliced to `offset`/`limit`, with the filtered
+ * length as the total.
  */
 export function toDocumentPage(
-  response: DocumentListResponse | null | undefined,
-  query?: DocumentListQuery,
+  documents: readonly DocumentSummary[],
+  query: DocumentListQuery = {},
 ): DocumentPage {
-  if (Array.isArray(response)) {
-    if (!query) {
-      return { items: response, total: null };
-    }
-    const all: readonly DocumentSummary[] = response;
-    const rows = query.review_due ? all.filter((doc) => reviewState(doc) !== null) : all;
-    const offset = query.offset ?? 0;
-    const limit = query.limit ?? rows.length;
-    return { items: rows.slice(offset, offset + limit), total: rows.length };
-  }
-  const envelope = response as { items?: readonly DocumentSummary[]; total?: number | null };
-  return {
-    items: envelope?.items ?? [],
-    total: typeof envelope?.total === 'number' ? envelope.total : null,
-  };
+  const rows = query.review_due ? documents.filter((doc) => reviewState(doc) !== null) : documents;
+  const offset = query.offset ?? 0;
+  const limit = query.limit ?? rows.length;
+  return { items: rows.slice(offset, offset + limit), total: rows.length };
 }
 
 /** Raw acknowledgement person: the display name may arrive under a few keys. */
