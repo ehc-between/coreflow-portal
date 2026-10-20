@@ -409,7 +409,8 @@
       "empty": "You don’t own any open deviations.",
       "overdueCount": "{{count}} overdue",
       "noDueDate": "No due date",
-      "truncated": "Showing the first {{limit}} deviations you own. Use the deviations list to see the rest."
+      "truncated": "Showing the {{limit}} soonest due of your active deviations.",
+      "viewAll": "View all"
     },
     "approvals": {
       "title": "Awaiting my approval",
@@ -419,7 +420,9 @@
     },
     "actions": {
       "title": "My CAPA actions",
-      "comingSoon": "Coming soon: corrective and preventive actions assigned to you across all deviations will be listed here. Until then, you can find them on each deviation."
+      "empty": "You have no open actions.",
+      "truncated": "Showing the {{shown}} soonest due of your {{total}} open actions.",
+      "viewAll": "View all"
     }
   },
   "admin": {
@@ -555,7 +558,11 @@
       "allSources": "All sources",
       "allOwners": "All owners",
       "allDepartments": "All departments",
-      "clear": "Clear filters"
+      "clear": "Clear filters",
+      "scope": "Active / overdue",
+      "allScopes": "Open and closed",
+      "scopeActive": "Active only",
+      "scopeOverdue": "Overdue only"
     },
     "sort": {
       "newest": "Newest first",
@@ -812,6 +819,16 @@
       "trend": {
         "title": "Opened over time"
       }
+    },
+    "actionsList": {
+      "link": "Actions",
+      "title": "Corrective & preventive actions",
+      "subtitle": "Open actions across all deviations you can see, soonest due first.",
+      "scope": "Which actions",
+      "scopeOpen": "All open actions",
+      "scopeOverdue": "Overdue only",
+      "ownerMe": "Assigned to me",
+      "empty": "No actions match these filters."
     }
   },
   "notifications": {

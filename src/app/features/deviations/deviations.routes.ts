@@ -22,6 +22,10 @@ const routes: Routes = [
     loadComponent: () => import('./stats/deviation-stats').then((m) => m.DeviationStatsPage),
   },
   {
+    path: 'actions',
+    loadComponent: () => import('./actions/actions-list').then((m) => m.ActionsList),
+  },
+  {
     path: 'types',
     canActivate: [permissionGuard('deviations:admin', { redirectTo: '/deviations' })],
     loadComponent: () => import('./types/deviation-types-list').then((m) => m.DeviationTypesList),

@@ -409,7 +409,8 @@
       "empty": "Du eier ingen åpne avvik.",
       "overdueCount": "{{count}} forfalt",
       "noDueDate": "Ingen frist",
-      "truncated": "Viser de første {{limit}} avvikene du eier. Bruk avvikslisten for å se resten."
+      "truncated": "Viser de {{limit}} med nærmest frist av dine aktive avvik.",
+      "viewAll": "Vis alle"
     },
     "approvals": {
       "title": "Venter på min godkjenning",
@@ -419,7 +420,9 @@
     },
     "actions": {
       "title": "Mine korrigerende tiltak",
-      "comingSoon": "Kommer snart: korrigerende og forebyggende tiltak tildelt deg på tvers av alle avvik vil vises her. Inntil da finner du dem på hvert avvik."
+      "empty": "Du har ingen åpne tiltak.",
+      "truncated": "Viser de {{shown}} med nærmest frist av dine {{total}} åpne tiltak.",
+      "viewAll": "Vis alle"
     }
   },
   "admin": {
@@ -555,7 +558,11 @@
       "allSources": "Alle kilder",
       "allOwners": "Alle eiere",
       "allDepartments": "Alle avdelinger",
-      "clear": "Tøm filtre"
+      "clear": "Tøm filtre",
+      "scope": "Aktive / forfalte",
+      "allScopes": "Åpne og lukkede",
+      "scopeActive": "Kun aktive",
+      "scopeOverdue": "Kun forfalte"
     },
     "sort": {
       "newest": "Nyeste først",
@@ -812,6 +819,16 @@
       "trend": {
         "title": "Opprettet over tid"
       }
+    },
+    "actionsList": {
+      "link": "Tiltak",
+      "title": "Korrigerende og forebyggende tiltak",
+      "subtitle": "Åpne tiltak på tvers av alle avvik du har tilgang til, med nærmest frist først.",
+      "scope": "Hvilke tiltak",
+      "scopeOpen": "Alle åpne tiltak",
+      "scopeOverdue": "Kun forfalte",
+      "ownerMe": "Tildelt meg",
+      "empty": "Ingen tiltak samsvarer med disse filtrene."
     }
   },
   "notifications": {

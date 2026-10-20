@@ -43,6 +43,12 @@ import {
 
 const PAGE_SIZE = 25;
 
+/**
+ * Server-side open-state filter: `active` hides closed / cancelled deviations,
+ * `overdue` additionally keeps only those past their due date.
+ */
+type DeviationScope = '' | 'active' | 'overdue';
+
 /** A sortable column option for the list. */
 interface SortOption {
   readonly value: string;
@@ -53,7 +59,8 @@ interface SortOption {
  * Deviations list, scoped to the currently selected org. A filterable, sortable,
  * paginated table over the org's deviations, with a New deviation action (gated
  * on `deviations:write`). Filters, the search box, sort and pagination all feed
- * the list endpoint's query params. Reloads on org switch.
+ * the list endpoint's query params. Drill-downs seed the filters from the URL
+ * (`?status=`, `?active=true`, `?overdue=true`, `?sort=`, …). Reloads on org switch.
  */
 @Component({
   selector: 'app-deviations-list',
@@ -81,6 +88,12 @@ interface SortOption {
           </div>
         </div>
         <div class="flex items-center gap-2">
+          <a routerLink="/deviations/actions">
+            <app-button variant="secondary">
+              <app-icon name="check" [size]="15" />
+              {{ 'deviations.actionsList.link' | transloco }}
+            </app-button>
+          </a>
           <a routerLink="/deviations/stats">
             <app-button variant="secondary">
               <app-icon name="reports" [size]="15" />
@@ -140,6 +153,17 @@ interface SortOption {
             @for (option of statusOptions; track option) {
               <option [value]="option">{{ statusLabelKey(option) | transloco }}</option>
             }
+          </select>
+        </div>
+        <div class="cf-select">
+          <select
+            [ngModel]="scope()"
+            (ngModelChange)="onFilterChange('scope', $event)"
+            [attr.aria-label]="'deviations.filters.scope' | transloco"
+          >
+            <option value="">{{ 'deviations.filters.allScopes' | transloco }}</option>
+            <option value="active">{{ 'deviations.filters.scopeActive' | transloco }}</option>
+            <option value="overdue">{{ 'deviations.filters.scopeOverdue' | transloco }}</option>
           </select>
         </div>
         <div class="cf-select">
@@ -395,6 +419,7 @@ export class DeviationsList {
 
   protected readonly query = signal('');
   protected readonly status = signal<DeviationStatus | ''>('');
+  protected readonly scope = signal<DeviationScope>('');
   protected readonly typeId = signal('');
   protected readonly standard = signal<Standard | ''>('');
   protected readonly severity = signal<Severity | ''>('');
@@ -425,6 +450,7 @@ export class DeviationsList {
     () =>
       this.query() !== '' ||
       this.status() !== '' ||
+      this.scope() !== '' ||
       this.typeId() !== '' ||
       this.standard() !== '' ||
       this.severity() !== '' ||
@@ -471,6 +497,11 @@ export class DeviationsList {
     const clause = params.get('clause');
     const tag = params.get('tag');
     const sort = params.get('sort');
+    if (params.get('overdue') === 'true') {
+      this.scope.set('overdue');
+    } else if (params.get('active') === 'true') {
+      this.scope.set('active');
+    }
     if (status) {
       this.status.set(status as DeviationStatus);
     }
@@ -528,6 +559,7 @@ export class DeviationsList {
   protected onFilterChange(
     key:
       | 'status'
+      | 'scope'
       | 'typeId'
       | 'standard'
       | 'severity'
@@ -541,6 +573,9 @@ export class DeviationsList {
     switch (key) {
       case 'status':
         this.status.set(value as DeviationStatus | '');
+        break;
+      case 'scope':
+        this.scope.set(value as DeviationScope);
         break;
       case 'typeId':
         this.typeId.set(value);
@@ -589,6 +624,7 @@ export class DeviationsList {
   private resetFilters(): void {
     this.query.set('');
     this.status.set('');
+    this.scope.set('');
     this.typeId.set('');
     this.standard.set('');
     this.severity.set('');
@@ -623,6 +659,8 @@ export class DeviationsList {
     return {
       q: this.query().trim() || undefined,
       status: this.status() || undefined,
+      active: this.scope() === 'active' || undefined,
+      overdue: this.scope() === 'overdue' || undefined,
       type_id: this.typeId() || undefined,
       standard: this.standard() || undefined,
       severity: this.severity() || undefined,
