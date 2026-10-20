@@ -15,6 +15,7 @@ import { LanguageService } from '../../../core/i18n/language.service';
 import { localized, statusLabelKey } from '../../../core/standards/standards-data';
 import { LocalizedText } from '../../../core/standards/standards.models';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { Switch } from '../../../shared/ui/switch/switch';
 import { themeKey } from '../standard-themes';
 import { SectionStatus, TocRow, tocDomId } from './workspace-data';
 
@@ -31,12 +32,13 @@ const DOT_CLASSES: Record<SectionStatus, string> = {
  * Annex A grouped by theme) as collapsible entries with a status dot and, on
  * chapters, the coverage %. The current section is highlighted
  * (`aria-current="location"`) and kept in view. A search box filters by number
- * or title; the "only gaps" switch filters both the TOC and the document.
- * Purely presentational — the workspace owns every piece of state.
+ * or title; the "only gaps" and "has AI suggestions" switches filter both the
+ * TOC and the document. Purely presentational — the workspace owns every piece
+ * of state.
  */
 @Component({
   selector: 'app-standard-toc',
-  imports: [RouterLink, TranslocoPipe, Icon],
+  imports: [RouterLink, TranslocoPipe, Icon, Switch],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="flex h-full min-h-0 flex-col">
@@ -84,28 +86,21 @@ const DOT_CLASSES: Record<SectionStatus, string> = {
             >/</kbd
           >
         </div>
-        <button
-          type="button"
-          role="switch"
-          class="mt-2.5 flex w-full items-center gap-2.5 rounded-[8px] px-1 py-1 text-left text-[13px] text-fg"
-          [attr.aria-checked]="gapsOnly()"
-          (click)="gapsOnlyChange.emit(!gapsOnly())"
-        >
-          <span
-            class="relative inline-flex h-[18px] w-8 flex-none rounded-full transition-colors motion-reduce:transition-none"
-            [class]="gapsOnly() ? 'bg-accent' : 'bg-border-strong'"
-            aria-hidden="true"
+        <div class="mt-2.5 flex flex-col gap-0.5">
+          <app-switch
+            [checked]="gapsOnly()"
+            [count]="gapCount()"
+            (checkedChange)="gapsOnlyChange.emit($event)"
+            >{{ 'standards.workspace.onlyGaps' | transloco }}</app-switch
           >
-            <span
-              class="absolute top-[2px] h-[14px] w-[14px] rounded-full bg-white shadow transition-[left] motion-reduce:transition-none"
-              [style.left.px]="gapsOnly() ? 16 : 2"
-            ></span>
-          </span>
-          <span class="flex-1 font-medium">{{ 'standards.workspace.onlyGaps' | transloco }}</span>
-          <span class="text-[12px] font-semibold text-fg-subtle tabular-nums">{{
-            gapCount()
-          }}</span>
-        </button>
+          <app-switch
+            data-testid="filter-suggestions"
+            [checked]="suggestionsOnly()"
+            [count]="suggestionCount()"
+            (checkedChange)="suggestionsOnlyChange.emit($event)"
+            >{{ 'standards.workspace.hasAiSuggestions' | transloco }}</app-switch
+          >
+        </div>
       </div>
 
       <nav
@@ -225,11 +220,15 @@ export class StandardToc {
   readonly query = input('');
   readonly gapsOnly = input(false);
   readonly gapCount = input(0);
+  readonly suggestionsOnly = input(false);
+  /** Requirements with AI suggestions waiting for review. */
+  readonly suggestionCount = input(0);
   /** Rendered as the mobile drawer (close icon instead of "hide"). */
   readonly drawer = input(false);
 
   readonly queryChange = output<string>();
   readonly gapsOnlyChange = output<boolean>();
+  readonly suggestionsOnlyChange = output<boolean>();
   readonly nodeToggled = output<string>();
   readonly navigate = output<string>();
   readonly collapseAll = output<void>();

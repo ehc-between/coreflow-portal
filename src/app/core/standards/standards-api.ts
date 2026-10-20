@@ -1,12 +1,15 @@
 import { HttpContext } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, exhaustMap, takeWhile, timer } from 'rxjs';
+import { SseClient, SseStream } from '../ai/sse-client';
 import { ApiService } from '../http/api.service';
 import { SKIP_ERROR_TOAST } from '../http/error.interceptor';
 import {
+  AiMapTarget,
   ClauseDetail,
   ClauseNode,
   CreateRequirementLinkRequest,
+  GuidanceEvent,
   RequirementDetail,
   RequirementLink,
   RequirementLinkQuery,
@@ -23,8 +26,13 @@ export const JOB_POLL_INTERVAL_MS = 1500;
 const INLINE_ERRORS = { context: new HttpContext().set(SKIP_ERROR_TOAST, true) };
 
 /** A job is finished once it is neither queued nor running. */
-export function isJobFinished(job: StandardJob): boolean {
+export function isJobFinished(job: Pick<StandardJob, 'status'>): boolean {
   return job.status !== 'queued' && job.status !== 'running';
+}
+
+/** Requirement refs may contain "/" (the backend matches them as a path): encode per segment. */
+export function requirementPath(ref: string): string {
+  return ref.split('/').map(encodeURIComponent).join('/');
 }
 
 /**
@@ -37,6 +45,7 @@ export function isJobFinished(job: StandardJob): boolean {
 @Injectable({ providedIn: 'root' })
 export class StandardsApi {
   private readonly api = inject(ApiService);
+  private readonly sse = inject(SseClient);
 
   private base(orgId: string): string {
     return `v1/orgs/${orgId}`;
@@ -77,7 +86,7 @@ export class StandardsApi {
     patch: RequirementPatch,
   ): Observable<RequirementDetail> {
     return this.api.patch<RequirementDetail>(
-      `${this.base(orgId)}/standard-requirements/${ref.split('/').map(encodeURIComponent).join('/')}`,
+      `${this.base(orgId)}/standard-requirements/${requirementPath(ref)}`,
       patch,
       INLINE_ERRORS,
     );
@@ -115,12 +124,46 @@ export class StandardsApi {
 
   // --- Background jobs -------------------------------------------------------
 
-  /** Queue AI mapping of the org's records to this standard (optionally one document). */
-  startAiMap(orgId: string, key: string, documentId?: string): Observable<StandardJobStarted> {
+  /**
+   * Queue AI mapping of the org's records to this standard: everything, one
+   * document (`document_id`, or a plain id) or one requirement (`requirement_ref`).
+   */
+  startAiMap(
+    orgId: string,
+    key: string,
+    target?: string | AiMapTarget,
+  ): Observable<StandardJobStarted> {
+    const body: AiMapTarget = typeof target === 'string' ? { document_id: target } : (target ?? {});
     return this.api.post<StandardJobStarted>(
       `${this.base(orgId)}/standards/${encodeURIComponent(key)}/ai-map`,
-      documentId ? { document_id: documentId } : {},
+      body,
       INLINE_ERRORS,
+    );
+  }
+
+  /** Queue an AI draft document for a requirement (job kind `ai_draft`, yields a proposal). */
+  startAiDraft(orgId: string, ref: string, lang: string): Observable<StandardJobStarted> {
+    return this.api.post<StandardJobStarted>(
+      `${this.base(orgId)}/standard-requirements/${requirementPath(ref)}/ai-draft`,
+      { lang },
+      INLINE_ERRORS,
+    );
+  }
+
+  /**
+   * Stream AI guidance for fulfilling a requirement (SSE: `delta`, `sources`,
+   * `done`, `error`; a 503 arrives as `not-configured`). Cancel the handle to abort.
+   */
+  streamGuidance(
+    orgId: string,
+    ref: string,
+    lang: string,
+    onEvent: (event: GuidanceEvent) => void,
+  ): SseStream {
+    return this.sse.post<GuidanceEvent>(
+      `${this.base(orgId)}/standard-requirements/${requirementPath(ref)}/ai-help`,
+      { lang },
+      onEvent,
     );
   }
 

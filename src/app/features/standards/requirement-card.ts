@@ -142,6 +142,77 @@ export function entityRoute(type: LinkEntityType, id: string): readonly string[]
         </p>
       }
 
+      <!-- AI suggestions (pending review): highlighted, above the evidence -->
+      @if (suggestions().length > 0) {
+        <div
+          class="mt-4 rounded-tile border border-accent-border bg-accent-soft/40 px-3 py-2.5"
+          data-testid="ai-suggestions"
+        >
+          <h3 class="flex items-center gap-1.5 text-[13px] font-bold text-fg">
+            <span class="flex text-accent"><app-icon name="spark" [size]="14" /></span>
+            {{ 'standards.suggestions.aiTitle' | transloco: { count: suggestions().length } }}
+          </h3>
+          <p class="mt-0.5 mb-2 text-[11.5px] text-fg-muted">
+            {{ 'standards.suggestions.hint' | transloco }}
+          </p>
+          <ul class="flex flex-col gap-2">
+            @for (link of suggestions(); track link.id) {
+              <li class="rounded-tile border border-accent-border bg-surface px-3 py-2">
+                <div class="flex items-start gap-2">
+                  <span class="min-w-0 flex-1">
+                    @if (route(link); as r) {
+                      <a
+                        [routerLink]="r"
+                        class="text-[13px] font-semibold text-fg hover:text-accent hover:underline"
+                        >{{ labelOf(link) }}</a
+                      >
+                    } @else {
+                      <span class="text-[13px] font-semibold text-fg">{{ labelOf(link) }}</span>
+                    }
+                    <span class="ml-1 text-[11.5px] text-fg-subtle">
+                      {{ 'standards.entity.' + link.entity_type | transloco }}
+                      @if (link.confidence !== null && link.confidence !== undefined) {
+                        ·
+                        {{
+                          'standards.suggestions.confidence'
+                            | transloco: { pct: confidencePct(link.confidence) }
+                        }}
+                      }
+                    </span>
+                    @if (link.rationale) {
+                      <span class="mt-0.5 block text-[12.5px] text-fg-muted">{{
+                        link.rationale
+                      }}</span>
+                    }
+                  </span>
+                  @if (canManage()) {
+                    <span class="flex flex-none gap-1">
+                      <app-button
+                        size="sm"
+                        variant="secondary"
+                        [disabled]="busyLinkId() === link.id"
+                        (click)="confirmLink(link)"
+                      >
+                        <app-icon name="check" [size]="13" />
+                        {{ 'standards.suggestions.confirm' | transloco }}
+                      </app-button>
+                      <app-button
+                        size="sm"
+                        variant="ghost"
+                        [disabled]="busyLinkId() === link.id"
+                        (click)="rejectLink(link)"
+                      >
+                        {{ 'standards.suggestions.reject' | transloco }}
+                      </app-button>
+                    </span>
+                  }
+                </div>
+              </li>
+            }
+          </ul>
+        </div>
+      }
+
       <!-- Evidence -->
       <div class="mt-4">
         <div class="mb-1.5 flex items-center justify-between gap-2">
@@ -219,76 +290,14 @@ export function entityRoute(type: LinkEntityType, id: string): readonly string[]
         }
       </div>
 
-      <!-- AI suggestions -->
-      @if (suggestions().length > 0) {
-        <div class="mt-4">
-          <h3 class="mb-1.5 flex items-center gap-1.5 text-[13px] font-bold text-fg">
-            <span class="flex text-accent"><app-icon name="spark" [size]="14" /></span>
-            {{ 'standards.suggestions.title' | transloco }}
-          </h3>
-          <ul class="flex flex-col gap-2">
-            @for (link of suggestions(); track link.id) {
-              <li class="rounded-tile border border-accent-border bg-accent-soft/40 px-3 py-2">
-                <div class="flex items-start gap-2">
-                  <span class="min-w-0 flex-1">
-                    @if (route(link); as r) {
-                      <a
-                        [routerLink]="r"
-                        class="text-[13px] font-semibold text-fg hover:text-accent hover:underline"
-                        >{{ labelOf(link) }}</a
-                      >
-                    } @else {
-                      <span class="text-[13px] font-semibold text-fg">{{ labelOf(link) }}</span>
-                    }
-                    <span class="ml-1 text-[11.5px] text-fg-subtle">
-                      {{ 'standards.entity.' + link.entity_type | transloco }}
-                      @if (link.confidence !== null && link.confidence !== undefined) {
-                        ·
-                        {{
-                          'standards.suggestions.confidence'
-                            | transloco: { pct: confidencePct(link.confidence) }
-                        }}
-                      }
-                    </span>
-                    @if (link.rationale) {
-                      <span class="mt-0.5 block text-[12.5px] text-fg-muted">{{
-                        link.rationale
-                      }}</span>
-                    }
-                  </span>
-                  @if (canManage()) {
-                    <span class="flex flex-none gap-1">
-                      <app-button
-                        size="sm"
-                        variant="secondary"
-                        [disabled]="busyLinkId() === link.id"
-                        (click)="confirmLink(link)"
-                      >
-                        <app-icon name="check" [size]="13" />
-                        {{ 'standards.suggestions.confirm' | transloco }}
-                      </app-button>
-                      <app-button
-                        size="sm"
-                        variant="ghost"
-                        [disabled]="busyLinkId() === link.id"
-                        (click)="rejectLink(link)"
-                      >
-                        {{ 'standards.suggestions.reject' | transloco }}
-                      </app-button>
-                    </span>
-                  }
-                </div>
-              </li>
-            }
-          </ul>
-        </div>
-      }
-
       @if (linkError()) {
         <p class="mt-2 text-[12.5px] text-fail" role="alert">
           {{ 'standards.evidence.error' | transloco }}
         </p>
       }
+
+      <!-- Extra content from the host (the workspace row projects its AI help here) -->
+      <ng-content />
 
       <!-- Assessment -->
       @if (canManage()) {

@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   effect,
   inject,
   signal,
@@ -13,12 +14,14 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { Subject, Subscription, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
 import { HasPermissionDirective } from '../../core/auth/has-permission.directive';
 import {
+  DocumentRequirementLinks,
   DocumentSearchResult,
   DocumentStatus,
   DocumentSummary,
 } from '../../core/documents/document.models';
 import { DocumentsApi } from '../../core/documents/documents-api';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
+import { shortRef } from '../../core/standards/standards-data';
 import { Badge } from '../../shared/ui/badge/badge';
 import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
@@ -26,6 +29,7 @@ import { Icon } from '../../shared/ui/icon/icon';
 import { Pager } from '../../shared/ui/pager/pager';
 import { STATUS_FILTERS, statusLabelKey, statusTone } from './document-status';
 import { ReviewState, reviewLabelKey, reviewState, reviewTone } from './workflow/document-review';
+import { pluralKey } from '../../shared/i18n/plural';
 
 /** Rows per page of the documents list. */
 export const DOCUMENTS_PAGE_SIZE = 25;
@@ -41,13 +45,18 @@ interface Row {
   readonly updated_at?: string;
   readonly snippet?: string;
   readonly review?: ReviewState;
+  /** Requirement link counts (list rows only; search hits don't carry them). */
+  readonly links?: DocumentRequirementLinks | null;
 }
 
 /**
  * Documents list, scoped to the currently selected org. Shows a searchable,
  * status-filterable, paginated table of the org's documents and a New document
  * action (gated on `documents:draft`). Rows flag periodic reviews that are due
- * soon or overdue, and a "Review due" toggle narrows the list to them. A
+ * soon or overdue, and a "Review due" toggle narrows the list to them. With
+ * `standards:read`, a "Requirements" chip shows how many standard requirements
+ * each document is confirmed evidence for (plus pending AI suggestions), and a
+ * "Not linked to requirements" toggle narrows the list to unlinked ones. A
  * non-empty search box switches to the search endpoint (unpaginated); clearing
  * it (or changing a filter) returns to the first page of the list. Reloads on
  * org switch.
@@ -123,6 +132,23 @@ interface Row {
           <app-icon name="history" [size]="15" />
           {{ 'documents.review.filter' | transloco }}
         </button>
+        @if (canReadStandards()) {
+          <button
+            type="button"
+            data-testid="filter-unlinked"
+            [attr.aria-pressed]="unlinked()"
+            (click)="onUnlinkedToggle()"
+            class="flex h-10 items-center gap-2 rounded-[10px] border px-3 text-[13.5px] font-semibold transition-colors"
+            [class]="
+              unlinked()
+                ? 'border-accent-border bg-accent-soft text-accent'
+                : 'border-border bg-bg text-fg-muted hover:text-fg'
+            "
+          >
+            <app-icon name="link" [size]="15" />
+            {{ 'documents.requirements.filterUnlinked' | transloco }}
+          </button>
+        }
       </div>
 
       <app-card [padded]="false">
@@ -154,6 +180,46 @@ interface Row {
                     <app-badge [tone]="reviewTone(review)">{{
                       reviewLabelKey(review) | transloco
                     }}</app-badge>
+                  }
+                  @if (canReadStandards() && row.links !== undefined) {
+                    <span
+                      class="flex w-[104px] flex-none items-center justify-end gap-1"
+                      data-testid="requirement-cell"
+                    >
+                      @if (row.links?.confirmed) {
+                        <span
+                          class="inline-flex items-center gap-1 rounded-full border border-border bg-surface-2 px-2 py-0.5 text-[11.5px] font-semibold whitespace-nowrap text-fg"
+                          [title]="linkTitle(row.links)"
+                          data-testid="requirement-count"
+                        >
+                          <app-icon name="link" [size]="12" />
+                          {{
+                            plural('documents.requirements.count', row.links?.confirmed)
+                              | transloco: { count: row.links?.confirmed ?? 0 }
+                          }}
+                        </span>
+                      } @else {
+                        <span class="text-[12px] text-fg-subtle">{{
+                          'documents.requirements.none' | transloco
+                        }}</span>
+                      }
+                      @if (row.links?.suggested) {
+                        <span
+                          class="inline-flex items-center gap-0.5 rounded-full bg-accent-soft px-1.5 py-0.5 text-[11px] font-semibold text-accent"
+                          [title]="
+                            plural('documents.requirements.suggested', row.links?.suggested)
+                              | transloco: { count: row.links?.suggested ?? 0 }
+                          "
+                          data-testid="requirement-suggested"
+                        >
+                          <app-icon name="spark" [size]="11" />{{ row.links?.suggested }}
+                          <span class="sr-only">{{
+                            plural('documents.requirements.suggested', row.links?.suggested)
+                              | transloco: { count: row.links?.suggested ?? 0 }
+                          }}</span>
+                        </span>
+                      }
+                    </span>
                   }
                   <app-badge tone="neutral">{{ row.type }}</app-badge>
                   <app-badge [tone]="statusTone(row.status)">{{
@@ -199,12 +265,19 @@ export class DocumentsList {
   protected readonly statusLabelKey = statusLabelKey;
   protected readonly reviewTone = reviewTone;
   protected readonly reviewLabelKey = reviewLabelKey;
+  protected readonly plural = pluralKey;
   protected readonly pageSize = DOCUMENTS_PAGE_SIZE;
 
   protected readonly query = signal('');
   protected readonly status = signal<DocumentStatus | ''>('');
   /** Only documents whose periodic review is due soon or overdue. */
   protected readonly reviewDue = signal(false);
+  /** Only documents without a confirmed requirement link. */
+  protected readonly unlinked = signal(false);
+
+  protected readonly canReadStandards = computed(() =>
+    (this.selectedOrg.currentOrg()?.permissions ?? []).includes('standards:read'),
+  );
   protected readonly offset = signal(0);
   /** Total rows matching the filters. */
   protected readonly total = signal(0);
@@ -238,6 +311,7 @@ export class DocumentsList {
       this.query.set('');
       this.status.set(this.initialStatus());
       this.reviewDue.set(this.route.snapshot.queryParamMap.get('review') === 'due');
+      this.unlinked.set(this.route.snapshot.queryParamMap.get('requirements') === 'none');
       this.offset.set(0);
       this.searching.set(false);
       this.rows.set([]);
@@ -287,6 +361,22 @@ export class DocumentsList {
     }
   }
 
+  protected onUnlinkedToggle(): void {
+    this.unlinked.update((on) => !on);
+    this.query.set('');
+    this.searching.set(false);
+    this.offset.set(0);
+    const orgId = this.orgId();
+    if (orgId) {
+      this.loadList(orgId);
+    }
+  }
+
+  /** Tooltip of the requirement chip: the linked refs (short form). */
+  protected linkTitle(links: DocumentRequirementLinks | null | undefined): string {
+    return (links?.refs ?? []).map(shortRef).join(', ');
+  }
+
   protected goToPage(offset: number): void {
     const orgId = this.orgId();
     this.offset.set(offset);
@@ -308,6 +398,7 @@ export class DocumentsList {
       .listPage(orgId, {
         status: this.status() || undefined,
         review_due: this.reviewDue() || undefined,
+        unlinked: (this.canReadStandards() && this.unlinked()) || undefined,
         limit: this.pageSize,
         offset: this.offset(),
       })
@@ -331,6 +422,7 @@ export class DocumentsList {
       current_rev: doc.current_rev,
       updated_at: doc.updated_at,
       review: reviewState(doc),
+      links: doc.requirement_links,
     };
   }
 

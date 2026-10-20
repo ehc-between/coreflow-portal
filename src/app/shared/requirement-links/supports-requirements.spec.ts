@@ -146,6 +146,29 @@ describe('SupportsRequirements', () => {
     expect(el.querySelectorAll('li button').length).toBe(0);
   });
 
+  it('emits the shown links (for the chip row) as they load and change', async () => {
+    const { fixture, http, el, render } = await setup(['standards:read', 'standards:manage']);
+    const emitted: (readonly RequirementLink[])[] = [];
+    fixture.componentInstance.linksChange.subscribe((links) => emitted.push(links));
+    expectLinks(http).flush([
+      link(),
+      link({ id: 'l-2', status: 'rejected' }),
+      link({ id: 'l-3', clause_number: '8.1', status: 'suggested', source: 'ai' }),
+    ]);
+    http.expectOne(`${ROOT}/standards`).flush([]);
+    await render();
+    expect(emitted.at(-1)?.map((l) => l.id)).toEqual(['l-1', 'l-3']);
+
+    // Rejecting the suggestion drops it from the emitted list.
+    const reject = el.querySelectorAll<HTMLButtonElement>('li button')[2];
+    reject.click();
+    http
+      .expectOne(`${ROOT}/requirement-links/l-3/reject`)
+      .flush(link({ id: 'l-3', status: 'rejected', source: 'ai' }));
+    await render();
+    expect(emitted.at(-1)?.map((l) => l.id)).toEqual(['l-1']);
+  });
+
   it('confirms a suggestion and links a new requirement for managers', async () => {
     const { http, el, render } = await setup(['standards:read', 'standards:manage']);
     expectLinks(http).flush([link({ id: 'l-3', status: 'suggested', source: 'ai' })]);

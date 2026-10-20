@@ -392,8 +392,19 @@ export function searchRequirements(
   return hits;
 }
 
+/** "iso27001-2022:A.8.13.r1" → "A.8.13.r1" (display only; the API gets the full ref). */
+export function shortRef(ref: string): string {
+  const i = ref.indexOf(':');
+  return i >= 0 ? ref.slice(i + 1) : ref;
+}
+
+/** Whether a requirement has AI suggestions waiting for review. */
+export function hasPendingSuggestions(req: Pick<Requirement, 'suggested_links'>): boolean {
+  return req.suggested_links.length > 0;
+}
+
 /** A standards call whose failure is explained inline. */
-export type StandardsOperation = 'map' | 'extract' | 'save';
+export type StandardsOperation = 'map' | 'extract' | 'save' | 'draft';
 
 /** Structured `detail.code` of an API error body, if any. */
 function errorCode(error: unknown): string | null {
@@ -423,6 +434,9 @@ export function standardsErrorKey(error: unknown, op: StandardsOperation): strin
   }
   if (op === 'map' && status === 503) {
     return 'standards.errors.aiUnavailable';
+  }
+  if (op === 'draft' && status === 503) {
+    return 'standards.ai.temporarilyUnavailable';
   }
   return op === 'save' ? 'standards.requirement.saveError' : 'standards.job.startFailed';
 }

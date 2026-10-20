@@ -344,6 +344,14 @@
       "nonePending": "Alle har bekreftet.",
       "acknowledged": "Bekreftet ({{count}})",
       "noneYet": "Ingen har bekreftet ennå."
+    },
+    "requirements": {
+      "count": "{{count}} krav",
+      "none": "Ikke koblet",
+      "suggested": "{{count}} KI-forslag til gjennomgang",
+      "filterUnlinked": "Uten kravkobling",
+      "countOne": "1 krav",
+      "suggestedOne": "1 KI-forslag til gjennomgang"
     }
   },
   "review": {
@@ -1396,7 +1404,9 @@
       "title": "Forslag til gjennomgang",
       "confidence": "{{pct}} % sikkerhet",
       "confirm": "Bekreft",
-      "reject": "Avvis"
+      "reject": "Avvis",
+      "aiTitle": "KI-forslag til gjennomgang ({{count}})",
+      "hint": "Foreslått av KI – bekreft det som stemmer, og avvis resten."
     },
     "supports": {
       "title": "Støtter krav",
@@ -1406,7 +1416,9 @@
       "searchPlaceholder": "Søk etter krav på klausul eller tekst …",
       "suggested": "Forslag — gjennomgå for å bekrefte",
       "remove": "Fjern koblingen til {{ref}}",
-      "onAction": "På tiltak: {{action}}"
+      "onAction": "På tiltak: {{action}}",
+      "moreLabel": "Vis {{count}} flere koblede krav",
+      "moreLabelOne": "Vis 1 koblet krav til"
     },
     "errors": {
       "notEnabled": "Aktiver standarden før du kobler med AI.",
@@ -1430,7 +1442,45 @@
       "close": "Lukk",
       "noLicensedText": "Eksemplaret deres har ingen tekst for denne klausulen.",
       "licensedError": "Kunne ikke hente teksten fra eksemplaret. Prøv igjen.",
-      "empty": "Denne standarden har ingen avsnitt."
+      "empty": "Denne standarden har ingen avsnitt.",
+      "hasAiSuggestions": "Har KI-forslag",
+      "noAiSuggestions": "Ingen krav har KI-forslag til gjennomgang."
+    },
+    "ai": {
+      "title": "KI-hjelp",
+      "disclaimer": "Forslag fra KI – kontroller dem alltid før bruk.",
+      "notConfigured": "KI-hjelp er ikke satt opp for organisasjonen ennå.",
+      "suggestEvidence": "Foreslå bevis",
+      "helpMe": "Hjelp meg å oppfylle",
+      "draftDocument": "Lag utkast til dokument",
+      "suggesting": "Leter etter bevis i registreringene deres …",
+      "drafting": "Lager utkast til dokument …",
+      "draftReady": "Utkast klart for gjennomgang.",
+      "openDraft": "Åpne utkastet i Gjennomgang",
+      "guidanceTitle": "Slik oppfyller dere kravet",
+      "suggestionLabel": "(KI-forslag)",
+      "regenerate": "Lag på nytt",
+      "collapse": "Skjul veiledningen",
+      "expand": "Vis veiledningen",
+      "thinking": "Analyserer kravet …",
+      "guidanceError": "Kunne ikke fullføre veiledningen. Prøv igjen.",
+      "sources": "Basert på",
+      "suggestionBadge": "{{count}} KI-forslag",
+      "suggestionBadgeOne": "1 KI-forslag",
+      "temporarilyUnavailable": "KI-hjelp er midlertidig utilgjengelig. Prøv igjen om litt.",
+      "guidanceReady": "Veiledningen er klar."
+    },
+    "mapping": {
+      "never": "Eksisterende dokumenter er ikke kartlagt ennå.",
+      "neverHint": "La KI foreslå hvilke av dokumentene deres som er bevis for hvert krav. Dere bekrefter hvert forslag.",
+      "mapExisting": "Kartlegg eksisterende dokumenter",
+      "running": "Kartlegger dokumentene …",
+      "lastMapped": "Sist kartlagt {{date}} · {{count}} forslag",
+      "showSuggestions": "Vis {{count}} krav med forslag",
+      "failed": "Siste kartlegging feilet.",
+      "retry": "Prøv igjen",
+      "lastMappedOne": "Sist kartlagt {{date}} · 1 forslag",
+      "showSuggestionsOne": "Vis 1 krav med forslag"
     }
   }
 }

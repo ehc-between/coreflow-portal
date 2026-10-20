@@ -11,6 +11,7 @@ import {
 } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
+import { RouterLink } from '@angular/router';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { StandardsApi } from '../../core/standards/standards-api';
 import { StandardJob } from '../../core/standards/standards.models';
@@ -31,7 +32,7 @@ export const QUEUED_STALL_MS = 3 * 60_000;
  */
 @Component({
   selector: 'app-standard-job-progress',
-  imports: [TranslocoPipe, Alert, Icon, ProgressBar],
+  imports: [RouterLink, TranslocoPipe, Alert, Icon, ProgressBar],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (stalled()) {
@@ -50,6 +51,16 @@ export const QUEUED_STALL_MS = 3 * 60_000;
         <app-alert tone="success">
           @if (kind() === 'map') {
             {{ 'standards.job.mapDone' | transloco: { count: j.suggestions_created } }}
+          } @else if (kind() === 'draft') {
+            {{ 'standards.ai.draftReady' | transloco }}
+            @if (j.proposal_id) {
+              <a
+                [routerLink]="['/review', j.proposal_id]"
+                class="mt-0.5 block font-semibold underline"
+                data-testid="draft-link"
+                >{{ 'standards.ai.openDraft' | transloco }}</a
+              >
+            }
           } @else {
             {{ 'standards.job.extractDone' | transloco }}
           }
@@ -82,7 +93,8 @@ export class StandardJobProgress {
   private readonly selectedOrg = inject(SelectedOrgService);
 
   readonly jobId = input.required<string>();
-  readonly kind = input<'map' | 'extract'>('map');
+  /** Done message: suggestions count (map), extracted (extract), or a link to the drafted proposal (draft). */
+  readonly kind = input<'map' | 'extract' | 'draft'>('map');
   readonly labelKey = input.required<string>();
   /** The final snapshot (done / failed), or null if we stopped watching without one. */
   readonly finished = output<StandardJob | null>();

@@ -2,6 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { SseClient } from '../ai/sse-client';
 import { APP_CONFIG } from '../config/app-config';
 import { SKIP_ERROR_TOAST } from '../http/error.interceptor';
 import { JOB_POLL_INTERVAL_MS, StandardsApi, isJobFinished } from './standards-api';
@@ -126,6 +127,38 @@ describe('StandardsApi', () => {
     const one = http.expectOne(`${ROOT}/standards/iso9001/ai-map`);
     expect(one.request.body).toEqual({ document_id: 'doc-1' });
     one.flush({ job_id: 'j-2' });
+  });
+
+  it('starts a requirement-scoped AI mapping', () => {
+    api.startAiMap(ORG, 'iso27001', { requirement_ref: 'iso27001:A.5.1.r1' }).subscribe();
+    const req = http.expectOne(`${ROOT}/standards/iso27001/ai-map`);
+    expect(req.request.body).toEqual({ requirement_ref: 'iso27001:A.5.1.r1' });
+    expect(req.request.context.get(SKIP_ERROR_TOAST)).toBe(true);
+    req.flush({ job_id: 'j-4' });
+  });
+
+  it('starts an AI draft for a requirement (ref encoded per segment)', () => {
+    api.startAiDraft(ORG, 'iso27001:A.5/1.r1', 'nb').subscribe();
+    const req = http.expectOne(`${ROOT}/standard-requirements/iso27001%3AA.5/1.r1/ai-draft`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ lang: 'nb' });
+    expect(req.request.context.get(SKIP_ERROR_TOAST)).toBe(true);
+    req.flush({ job_id: 'j-5' });
+  });
+
+  it('streams requirement guidance through the SSE client', () => {
+    const sse = TestBed.inject(SseClient);
+    const cancel = vi.fn();
+    const post = vi.spyOn(sse, 'post').mockReturnValue({ cancel });
+    const onEvent = vi.fn();
+    const stream = api.streamGuidance(ORG, 'iso27001:A.5.1.r1', 'en', onEvent);
+    expect(post).toHaveBeenCalledWith(
+      `v1/orgs/${ORG}/standard-requirements/iso27001%3AA.5.1.r1/ai-help`,
+      { lang: 'en' },
+      onEvent,
+    );
+    stream.cancel();
+    expect(cancel).toHaveBeenCalled();
   });
 
   it('starts licensed-text extraction', () => {

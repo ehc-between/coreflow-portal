@@ -19,6 +19,7 @@ import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription, debounceTime, forkJoin } from 'rxjs';
+import { AiAvailability, isAiNotConfigured } from '../../../core/ai/ai-availability';
 import { HasPermissionDirective } from '../../../core/auth/has-permission.directive';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
@@ -41,18 +42,24 @@ import { SlideOver } from '../../../shared/ui/slide-over/slide-over';
 import { StandardJobProgress } from '../job-progress';
 import { requirementAnchorId } from '../requirement-card';
 import { ClauseSection, LicensedState, SectionLink } from './clause-section';
+import { MappingStatus } from './mapping-status';
 import { StandardToc } from './standard-toc';
 import {
   RenderUnit,
   SectionView,
   applyRequirementDetails,
   clauseOfRequirement,
+  ContentFilter,
   countGaps,
+  countWithSuggestions,
   effectiveTocExpansion,
-  filterGaps,
+  filterRequirements,
   flattenSections,
   indexTree,
   isAtBottom,
+  isContentFiltered,
+  mappingState,
+  matchesContentFilter,
   neighbours,
   pickActiveSection,
   renderUnits,
@@ -130,6 +137,7 @@ function clampWidth(width: number): number {
     SlideOver,
     StandardJobProgress,
     ClauseSection,
+    MappingStatus,
     StandardToc,
     NearViewport,
   ],
@@ -183,9 +191,12 @@ function clampWidth(width: number): number {
             [query]="tocQuery()"
             [gapsOnly]="gapsOnly()"
             [gapCount]="gapCount()"
+            [suggestionsOnly]="suggestionsOnly()"
+            [suggestionCount]="suggestionCount()"
             [drawer]="!isDesktop()"
             (queryChange)="tocQuery.set($event)"
             (gapsOnlyChange)="setGapsOnly($event)"
+            (suggestionsOnlyChange)="setSuggestionsOnly($event)"
             (nodeToggled)="toggleTocNode($event)"
             (navigate)="onNavigate($event)"
             (collapseAll)="collapseToc()"
@@ -314,7 +325,7 @@ function clampWidth(width: number): number {
                   }}</span>
                 </app-button>
               }
-              @if (std.enabled) {
+              @if (std.enabled && !aiOff()) {
                 <app-button
                   *appHasPermission="'standards:manage'"
                   size="sm"
@@ -332,14 +343,27 @@ function clampWidth(width: number): number {
             </div>
           </header>
 
-          @if (mapJobId() || mapStartError()) {
-            <div class="flex-none border-b border-border bg-surface px-4 py-2.5">
+          @if (mapJobId() || mapStartError() || showMappingStatus()) {
+            <div
+              class="flex flex-none flex-col gap-2 border-b border-border bg-surface px-4 py-2.5"
+            >
               @if (mapJobId(); as jobId) {
                 <app-standard-job-progress
                   [jobId]="jobId"
                   kind="map"
                   labelKey="standards.job.mapping"
                   (finished)="onMapFinished($event)"
+                />
+              } @else if (showMappingStatus()) {
+                <app-mapping-status
+                  [mapping]="std.last_mapping"
+                  [canMap]="canManage()"
+                  [aiOff]="aiOff()"
+                  [starting]="startingMap()"
+                  [pendingCount]="suggestionCount()"
+                  [suggestionsOnly]="suggestionsOnly()"
+                  (map)="startMap()"
+                  (showSuggestions)="setSuggestionsOnly(true)"
                 />
               }
               @if (mapStartError(); as key) {
@@ -374,6 +398,12 @@ function clampWidth(width: number): number {
                       'standards.workspace.onlyGaps' | transloco
                     }}</app-badge>
                   }
+                  @if (suggestionsOnly()) {
+                    ·
+                    <app-badge tone="accent">{{
+                      'standards.workspace.hasAiSuggestions' | transloco
+                    }}</app-badge>
+                  }
                 </p>
                 @if (!std.enabled) {
                   <div
@@ -386,9 +416,7 @@ function clampWidth(width: number): number {
 
               @if (units().length === 0) {
                 <p class="py-16 text-center text-[14px] text-fg-muted">
-                  {{
-                    (gapsOnly() ? 'standards.gaps.none' : 'standards.workspace.empty') | transloco
-                  }}
+                  {{ emptyKey() | transloco }}
                 </p>
               }
               @for (unit of units(); track unit.key) {
@@ -504,7 +532,9 @@ export class StandardWorkspace {
   /** Current section (scroll-spy / navigation). */
   protected readonly active = signal<string | null>(null);
   protected readonly gapsOnly = signal(false);
-  /** Requirements kept visible under "only gaps" after the user worked on them. */
+  /** Show only requirements with AI suggestions waiting for review. */
+  protected readonly suggestionsOnly = signal(false);
+  /** Requirements kept visible under a content filter after the user worked on them. */
   private readonly keepRefs = signal<ReadonlySet<string>>(new Set());
   protected readonly tocQuery = signal('');
   /** TOC nodes the user expanded by hand (kept as the reader moves on). */
@@ -525,6 +555,8 @@ export class StandardWorkspace {
   protected readonly licensedPanelOpen = signal(false);
 
   protected readonly mapJobId = signal<string | null>(null);
+  /** Mapping jobs already watched to the end (never re-watched from a stale `last_mapping`). */
+  private readonly finishedMapJobs = new Set<string>();
   protected readonly mapRunning = signal(false);
   protected readonly startingMap = signal(false);
   protected readonly mapStartError = signal<string | null>(null);
@@ -543,6 +575,9 @@ export class StandardWorkspace {
   private readonly memory = inject(WorkspaceMemory);
   private readonly toc = viewChild(StandardToc);
 
+  private readonly availability = inject(AiAvailability);
+  protected readonly aiOff = this.availability.unavailable;
+
   protected readonly canManage = computed(() =>
     (this.selectedOrg.currentOrg()?.permissions ?? []).includes('standards:manage'),
   );
@@ -555,17 +590,42 @@ export class StandardWorkspace {
   private readonly index = computed(() => indexTree(this.tree()));
   protected readonly completeness = computed(() => treeCompleteness(this.tree()));
   protected readonly gapCount = computed(() => countGaps(this.tree()));
+  protected readonly suggestionCount = computed(() => countWithSuggestions(this.tree()));
 
-  /** The document as shown: the whole tree, or only its gaps. */
-  private readonly contentTree = computed(() =>
-    this.gapsOnly() ? filterGaps(this.tree(), this.keepRefs()) : this.tree(),
+  private readonly contentFilter = computed<ContentFilter>(() => ({
+    gaps: this.gapsOnly(),
+    suggestions: this.suggestionsOnly(),
+  }));
+  private readonly filtered = computed(() => isContentFiltered(this.contentFilter()));
+
+  /** The document as shown: the whole tree, or only what the content filters keep. */
+  private readonly contentTree = computed(() => {
+    const filter = this.contentFilter();
+    return isContentFiltered(filter)
+      ? filterRequirements(this.tree(), (r) => matchesContentFilter(r, filter), this.keepRefs())
+      : this.tree();
+  });
+
+  /** Message when the (filtered) document is empty. */
+  protected readonly emptyKey = computed(() =>
+    this.suggestionsOnly()
+      ? 'standards.workspace.noAiSuggestions'
+      : this.gapsOnly()
+        ? 'standards.gaps.none'
+        : 'standards.workspace.empty',
   );
+
+  /** The AI mapping status line shows for enabled standards whose API reports `last_mapping`. */
+  protected readonly showMappingStatus = computed(() => {
+    const std = this.standard();
+    return !!std && std.enabled && std.last_mapping !== undefined;
+  });
   /** Document positions of the full tree (filtered views keep this order). */
   private readonly fullOrder = computed(
     () => new Map(flattenSections(this.tree()).map((s, i) => [s.number, i] as const)),
   );
   private readonly sections = computed(() => {
-    const fresh = this.gapsOnly()
+    const fresh = this.filtered()
       ? flattenSections(this.contentTree(), this.fullOrder())
       : flattenSections(this.contentTree());
     // Reuse unchanged section views so an inline save re-renders only the
@@ -636,7 +696,7 @@ export class StandardWorkspace {
       expanded: this.tocExpanded(),
       query: this.debouncedQuery(),
       lang: this.language.active(),
-      include: this.gapsOnly() ? new Set(this.order()) : null,
+      include: this.filtered() ? new Set(this.order()) : null,
     }),
   );
 
@@ -855,7 +915,7 @@ export class StandardWorkspace {
 
   /** Expand, highlight and scroll to a requirement (deep link `?req=`). */
   private revealRequirement(ref: string, clause: string): void {
-    if (this.gapsOnly()) {
+    if (this.filtered()) {
       this.keepRefs.update((set) => new Set(set).add(ref));
     }
     this.expandedRefs.update((set) => new Set(set).add(ref));
@@ -874,9 +934,10 @@ export class StandardWorkspace {
    * settles, so the TOC doesn't flicker through the sections passed over.
    */
   private scrollToSection(number: string, mode: ScrollMode, elementId?: string): void {
-    if (!this.position().has(number) && this.gapsOnly()) {
-      // The target is filtered out by "only gaps": show everything again.
+    if (!this.position().has(number) && this.filtered()) {
+      // The target is filtered out by a content filter: show everything again.
       this.gapsOnly.set(false);
+      this.suggestionsOnly.set(false);
     }
     const unit = this.unitOf().get(number);
     if (!unit) {
@@ -1086,8 +1147,16 @@ export class StandardWorkspace {
   }
 
   protected setGapsOnly(on: boolean): void {
+    this.applyFilter(() => this.gapsOnly.set(on));
+  }
+
+  protected setSuggestionsOnly(on: boolean): void {
+    this.applyFilter(() => this.suggestionsOnly.set(on));
+  }
+
+  private applyFilter(change: () => void): void {
     this.keepRefs.set(new Set());
-    this.gapsOnly.set(on);
+    change();
     const current = this.active();
     const target = current && this.position().has(current) ? current : (this.order()[0] ?? null);
     if (target) {
@@ -1179,7 +1248,7 @@ export class StandardWorkspace {
 
   /** An assessment was saved: patch the tree, recomputing every roll-up on its path. */
   protected onRequirementUpdated(detail: RequirementDetail): void {
-    if (this.gapsOnly()) {
+    if (this.filtered()) {
       this.keepRefs.update((set) => new Set(set).add(detail.ref));
     }
     this.tree.update((tree) => applyRequirementDetails(tree, [detail]));
@@ -1192,7 +1261,7 @@ export class StandardWorkspace {
     if (!orgId || !clause) {
       return;
     }
-    if (this.gapsOnly()) {
+    if (this.filtered()) {
       this.keepRefs.update((set) => new Set(set).add(ref));
     }
     this.clauseSubs.get(clause)?.unsubscribe();
@@ -1250,6 +1319,9 @@ export class StandardWorkspace {
       },
       error: (err: unknown) => {
         this.startingMap.set(false);
+        if (isAiNotConfigured(err)) {
+          this.availability.markUnavailable();
+        }
         this.mapStartError.set(standardsErrorKey(err, 'map'));
       },
     });
@@ -1257,9 +1329,33 @@ export class StandardWorkspace {
 
   protected onMapFinished(job: StandardJob | null): void {
     this.mapRunning.set(false);
+    const jobId = this.mapJobId();
+    if (jobId) {
+      this.finishedMapJobs.add(jobId);
+    }
     if (job?.status === 'done') {
+      // The status line ("last mapped …") takes over from the progress bar.
+      this.mapJobId.set(null);
       this.load(this.selectedOrg.currentOrgId(), this.key(), false);
     }
+  }
+
+  /**
+   * Enabling a standard queues a whole-standard mapping on its own: watch a
+   * running `last_mapping` like one started here (once per job).
+   */
+  private watchRunningMapping(std: StandardSummary | null): void {
+    const mapping = std?.enabled ? std.last_mapping : null;
+    if (
+      !mapping ||
+      mappingState(mapping) !== 'running' ||
+      this.mapJobId() ||
+      this.finishedMapJobs.has(mapping.job_id)
+    ) {
+      return;
+    }
+    this.mapRunning.set(true);
+    this.mapJobId.set(mapping.job_id);
   }
 
   protected startExtract(): void {
@@ -1313,8 +1409,10 @@ export class StandardWorkspace {
       tree: this.api.getTree(orgId, key),
     }).subscribe({
       next: ({ list, tree }) => {
-        this.standard.set(list.find((s) => s.key === key) ?? null);
+        const std = list.find((s) => s.key === key) ?? null;
+        this.standard.set(std);
         this.tree.set(tree);
+        this.watchRunningMapping(std);
         this.loading.set(false);
       },
       error: () => {
@@ -1343,6 +1441,7 @@ export class StandardWorkspace {
       openLicensed: this.openLicensed(),
       tocUserExpanded: this.tocUserExpanded(),
       gapsOnly: this.gapsOnly(),
+      suggestionsOnly: this.suggestionsOnly(),
       keepRefs: this.keepRefs(),
     });
   }
@@ -1361,6 +1460,7 @@ export class StandardWorkspace {
       return false;
     }
     this.gapsOnly.set(snap.gapsOnly);
+    this.suggestionsOnly.set(snap.suggestionsOnly);
     this.keepRefs.set(snap.keepRefs);
     this.expandedRefs.set(snap.expandedRefs);
     this.openGuidance.set(snap.openGuidance);

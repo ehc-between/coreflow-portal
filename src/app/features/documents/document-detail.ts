@@ -27,10 +27,12 @@ import {
 import { DocumentsApi } from '../../core/documents/documents-api';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
+import { RequirementLink } from '../../core/standards/standards.models';
 import { Badge } from '../../shared/ui/badge/badge';
 import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
 import { Attachments } from '../../shared/attachments/attachments';
+import { RequirementChips } from '../../shared/requirement-links/requirement-chips';
 import { SupportsRequirements } from '../../shared/requirement-links/supports-requirements';
 import { Icon } from '../../shared/ui/icon/icon';
 import { DocumentAccessEditor } from './access/document-access-editor';
@@ -83,6 +85,7 @@ import { DocumentWorkflowActions } from './workflow/document-workflow-actions';
     DocumentAcknowledgementList,
     DocumentDeleteAction,
     SupportsRequirements,
+    RequirementChips,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { '(document:click)': 'closeDownload()' },
@@ -118,6 +121,11 @@ import { DocumentWorkflowActions } from './workflow/document-workflow-actions';
             <h1 class="font-display text-[26px] font-bold tracking-[-0.025em] text-fg">
               {{ doc.title }}
             </h1>
+            <app-requirement-chips
+              class="mt-2 block"
+              [links]="requirementLinks()"
+              (more)="showRequirementPanel()"
+            />
           </div>
 
           <div class="flex flex-none items-center gap-2">
@@ -260,6 +268,18 @@ import { DocumentWorkflowActions } from './workflow/document-workflow-actions';
           </div>
 
           <div class="flex flex-col gap-5">
+            <app-card
+              *appHasPermission="'standards:read'"
+              id="supports-requirements"
+              class="scroll-mt-6"
+            >
+              <app-supports-requirements
+                entityType="document"
+                [entityId]="doc.id"
+                (linksChange)="requirementLinks.set($event)"
+              />
+            </app-card>
+
             <app-card [padded]="false">
               <h2
                 class="px-4 pt-3.5 pb-1 font-display text-[15px] font-bold tracking-[-0.02em] text-fg"
@@ -325,10 +345,6 @@ import { DocumentWorkflowActions } from './workflow/document-workflow-actions';
 
             <app-card>
               <app-attachments entityType="document" [entityId]="doc.id" [canEdit]="canEdit()" />
-            </app-card>
-
-            <app-card *appHasPermission="'standards:read'">
-              <app-supports-requirements entityType="document" [entityId]="doc.id" />
             </app-card>
 
             @if (access(); as acc) {
@@ -404,6 +420,8 @@ export class DocumentDetail {
   protected readonly statusLabelKey = statusLabelKey;
 
   protected readonly document = signal<DocumentDetailModel | null>(null);
+  /** The requirements this document supports (mirrored from the panel, for the chip row). */
+  protected readonly requirementLinks = signal<readonly RequirementLink[]>([]);
   protected readonly loading = signal(true);
   protected readonly reviewTone = reviewTone;
   protected readonly reviewLabelKey = reviewLabelKey;
@@ -501,6 +519,12 @@ export class DocumentDetail {
         this.load(orgId, id);
       }
     });
+  }
+
+  /** "+N" on the chip row: bring the full "Supports requirements" panel into view. */
+  protected showRequirementPanel(): void {
+    const panel = globalThis.document?.getElementById('supports-requirements');
+    panel?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
   }
 
   protected toggleDownload(event: Event): void {

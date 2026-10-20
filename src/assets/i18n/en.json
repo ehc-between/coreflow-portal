@@ -344,6 +344,14 @@
       "nonePending": "Everyone has confirmed.",
       "acknowledged": "Confirmed ({{count}})",
       "noneYet": "No one has confirmed yet."
+    },
+    "requirements": {
+      "count": "{{count}} requirements",
+      "none": "Not linked",
+      "suggested": "{{count}} AI suggestions to review",
+      "filterUnlinked": "Not linked to requirements",
+      "countOne": "1 requirement",
+      "suggestedOne": "1 AI suggestion to review"
     }
   },
   "review": {
@@ -1396,7 +1404,9 @@
       "title": "Suggestions to review",
       "confidence": "{{pct}}% confidence",
       "confirm": "Confirm",
-      "reject": "Reject"
+      "reject": "Reject",
+      "aiTitle": "AI suggestions to review ({{count}})",
+      "hint": "Suggested by AI — confirm what is right and reject the rest."
     },
     "supports": {
       "title": "Supports requirements",
@@ -1406,7 +1416,9 @@
       "searchPlaceholder": "Search requirements by clause or text …",
       "suggested": "Suggested — review to confirm",
       "remove": "Remove link to {{ref}}",
-      "onAction": "On action: {{action}}"
+      "onAction": "On action: {{action}}",
+      "moreLabel": "Show {{count}} more linked requirements",
+      "moreLabelOne": "Show 1 more linked requirement"
     },
     "errors": {
       "notEnabled": "Enable this standard before mapping with AI.",
@@ -1430,7 +1442,45 @@
       "close": "Close",
       "noLicensedText": "Your copy has no text for this clause.",
       "licensedError": "Couldn't load the text from your copy. Try again.",
-      "empty": "This standard has no sections."
+      "empty": "This standard has no sections.",
+      "hasAiSuggestions": "Has AI suggestions",
+      "noAiSuggestions": "No requirements have AI suggestions to review."
+    },
+    "ai": {
+      "title": "AI help",
+      "disclaimer": "Suggestions from AI — always check them before use.",
+      "notConfigured": "AI help isn't set up for your organisation yet.",
+      "suggestEvidence": "Suggest evidence",
+      "helpMe": "Help me fulfil this",
+      "draftDocument": "Draft a document",
+      "suggesting": "Looking for evidence among your records …",
+      "drafting": "Drafting a document …",
+      "draftReady": "Draft ready for review.",
+      "openDraft": "Open the draft in Review",
+      "guidanceTitle": "How to fulfil this requirement",
+      "suggestionLabel": "(AI suggestion)",
+      "regenerate": "Regenerate",
+      "collapse": "Hide guidance",
+      "expand": "Show guidance",
+      "thinking": "Analysing the requirement …",
+      "guidanceError": "Couldn't finish the guidance. Try again.",
+      "sources": "Based on",
+      "suggestionBadge": "{{count}} AI suggestions",
+      "suggestionBadgeOne": "1 AI suggestion",
+      "temporarilyUnavailable": "AI help is temporarily unavailable. Try again in a moment.",
+      "guidanceReady": "Guidance ready."
+    },
+    "mapping": {
+      "never": "Existing documents haven't been mapped to this standard yet.",
+      "neverHint": "Let AI suggest which of your documents are evidence for each requirement. You confirm every suggestion.",
+      "mapExisting": "Map existing documents",
+      "running": "Mapping your documents …",
+      "lastMapped": "Last mapped {{date}} · {{count}} suggestions",
+      "showSuggestions": "Show {{count}} requirements with suggestions",
+      "failed": "The last mapping failed.",
+      "retry": "Try again",
+      "lastMappedOne": "Last mapped {{date}} · 1 suggestion",
+      "showSuggestionsOne": "Show 1 requirement with suggestions"
     }
   }
 }

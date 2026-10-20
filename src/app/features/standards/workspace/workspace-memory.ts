@@ -10,6 +10,7 @@ export interface WorkspaceSnapshot {
   readonly openLicensed: ReadonlySet<string>;
   readonly tocUserExpanded: ReadonlySet<string>;
   readonly gapsOnly: boolean;
+  readonly suggestionsOnly: boolean;
   readonly keepRefs: ReadonlySet<string>;
 }
 

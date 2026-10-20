@@ -12,6 +12,7 @@ import {
   ClauseNode,
   Requirement,
   RequirementDetail,
+  RequirementLink,
   RequirementStatus,
   StandardSummary,
 } from '../../../core/standards/standards.models';
@@ -103,6 +104,14 @@ describe('StandardWorkspace', () => {
   let fixture: ComponentFixture<StandardWorkspace>;
   let http: HttpTestingController;
   let el: HTMLElement;
+  /** What the mocked API answers for the standard and its tree (tests may override). */
+  let fixtureStandard: StandardSummary = STANDARD;
+  let fixtureTree: ClauseNode[] = TREE;
+
+  beforeEach(() => {
+    fixtureStandard = STANDARD;
+    fixtureTree = TREE;
+  });
 
   async function render(): Promise<void> {
     await tick();
@@ -154,8 +163,8 @@ describe('StandardWorkspace', () => {
     }
     fixture.detectChanges();
     http = TestBed.inject(HttpTestingController);
-    http.expectOne(`${ROOT}/standards`).flush([STANDARD]);
-    http.expectOne(`${ROOT}/standards/${KEY}/tree`).flush(TREE);
+    http.expectOne(`${ROOT}/standards`).flush([fixtureStandard]);
+    http.expectOne(`${ROOT}/standards/${KEY}/tree`).flush(fixtureTree);
     el = fixture.nativeElement as HTMLElement;
     await render();
     await render();
@@ -396,5 +405,125 @@ describe('StandardWorkspace', () => {
     expect(el.querySelector('#sec-4_2 app-requirement-row')?.textContent).toContain(
       'standards.status.covered',
     );
+  });
+
+  // --- AI suggestions & mapping status ----------------------------------------
+
+  const suggestion: RequirementLink = {
+    id: 'l-1',
+    requirement_ref: 'iso:4.1.r1',
+    standard_key: KEY,
+    clause_number: '4.1',
+    entity_type: 'document',
+    entity_id: 'd-1',
+    entity_label: 'Quality policy',
+    status: 'suggested',
+    source: 'ai',
+    confidence: 0.8,
+    rationale: 'Mentions the policy',
+    created_at: '2026-10-01T00:00:00Z',
+  };
+
+  /** TREE with an AI suggestion on 4.1's requirement. */
+  function treeWithSuggestion(): ClauseNode[] {
+    const [four, ...rest] = TREE;
+    const [c41, c42] = four.children;
+    const r41 = { ...c41.requirements[0], suggested_links: [suggestion] };
+    return [{ ...four, children: [{ ...c41, requirements: [r41] }, c42] }, ...rest];
+  }
+
+  const sectionIds = () => Array.from(el.querySelectorAll('section[id^="sec-"]')).map((s) => s.id);
+
+  it('badges a requirement with pending AI suggestions and highlights them when expanded', async () => {
+    fixtureTree = treeWithSuggestion();
+    await setup('4.1');
+    const row = el.querySelector('#sec-4_1 app-requirement-row')!;
+    expect(row.querySelector('[data-testid="ai-suggestion-badge"]')?.textContent).toContain(
+      'standards.ai.suggestionBadge',
+    );
+    row.querySelector<HTMLButtonElement>('button')!.click();
+    await render();
+    const block = row.querySelector('[data-testid="ai-suggestions"]')!;
+    expect(block.textContent).toContain('Quality policy');
+    expect(block.textContent).toContain('standards.suggestions.confirm');
+    // The AI help section sits right in the row.
+    expect(row.querySelector('app-requirement-ai-help [data-testid="ai-help"]')).not.toBeNull();
+  });
+
+  it('filters the TOC and the document to requirements with AI suggestions', async () => {
+    fixtureTree = treeWithSuggestion();
+    await setup();
+    const filter = el.querySelector<HTMLElement>('[data-testid="filter-suggestions"]')!;
+    expect(filter.textContent).toContain('1');
+    filter.querySelector('button')!.click();
+    await render();
+    expect(sectionIds()).toEqual(['sec-4', 'sec-4_1']);
+    expect(tocNumbers()).toEqual(['4', '4_1']);
+    expect(filter.querySelector('button')?.getAttribute('aria-checked')).toBe('true');
+  });
+
+  it('shows the empty message when no requirement has AI suggestions', async () => {
+    await setup();
+    el.querySelector<HTMLButtonElement>('[data-testid="filter-suggestions"] button')!.click();
+    await render();
+    expect(sectionIds()).toEqual([]);
+    expect(el.textContent).toContain('standards.workspace.noAiSuggestions');
+  });
+
+  it('shows no mapping status when the API does not report last_mapping', async () => {
+    await setup();
+    expect(el.querySelector('app-mapping-status')).toBeNull();
+  });
+
+  it('never mapped: the banner maps the existing documents in one click', async () => {
+    fixtureStandard = { ...STANDARD, last_mapping: null };
+    await setup();
+    expect(el.querySelector('[data-testid="mapping-never"]')).not.toBeNull();
+    el.querySelector<HTMLButtonElement>('[data-testid="mapping-never"] app-button button')!.click();
+    const start = http.expectOne(`${ROOT}/standards/${KEY}/ai-map`);
+    expect(start.request.body).toEqual({});
+    start.flush({ job_id: 'j-9' });
+    await render();
+    expect(el.querySelector('app-standard-job-progress')).not.toBeNull();
+    expect(el.querySelector('app-mapping-status')).toBeNull();
+  });
+
+  it('watches a running (auto-queued) mapping and then shows when it was last mapped', async () => {
+    fixtureStandard = {
+      ...STANDARD,
+      last_mapping: { job_id: 'j-7', status: 'running', finished_at: null, suggestions_created: 0 },
+    };
+    await setup();
+    await render();
+    http.expectOne(`${ROOT}/standard-jobs/j-7`).flush({
+      id: 'j-7',
+      kind: 'ai_map',
+      status: 'done',
+      progress: 100,
+      suggestions_created: 1,
+      scope: 'standard',
+    });
+    await render();
+    // Done: the workspace reloads the standard + tree.
+    http.expectOne(`${ROOT}/standards`).flush([
+      {
+        ...STANDARD,
+        last_mapping: {
+          job_id: 'j-7',
+          status: 'done',
+          finished_at: '2026-10-19T08:00:00Z',
+          suggestions_created: 1,
+        },
+      },
+    ]);
+    http.expectOne(`${ROOT}/standards/${KEY}/tree`).flush(treeWithSuggestion());
+    await render();
+    expect(el.querySelector('app-standard-job-progress')).toBeNull();
+    const done = el.querySelector('[data-testid="mapping-done"]')!;
+    expect(done.textContent).toContain('standards.mapping.lastMapped');
+    // "Show requirements with suggestions" turns the filter on.
+    done.querySelector<HTMLButtonElement>('[data-testid="mapping-show-suggestions"]')!.click();
+    await render();
+    expect(sectionIds()).toEqual(['sec-4', 'sec-4_1']);
   });
 });

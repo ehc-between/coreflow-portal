@@ -4,6 +4,7 @@ import {
   effectiveStatus,
   groupByTheme,
   hasAnnexChildren,
+  hasPendingSuggestions,
   localized,
   replaceRequirement,
 } from '../../../core/standards/standards-data';
@@ -228,8 +229,46 @@ export function filterGaps(
   nodes: readonly ClauseNode[],
   keep: ReadonlySet<string> = new Set(),
 ): ClauseNode[] {
+  return filterRequirements(nodes, isGap, keep);
+}
+
+/** The workspace's content filters ("only gaps", "has AI suggestions"); both may be on. */
+export interface ContentFilter {
+  readonly gaps: boolean;
+  readonly suggestions: boolean;
+}
+
+export function isContentFiltered(filter: ContentFilter): boolean {
+  return filter.gaps || filter.suggestions;
+}
+
+/** Whether a requirement passes every active content filter. */
+export function matchesContentFilter(req: Requirement, filter: ContentFilter): boolean {
+  return (!filter.gaps || isGap(req)) && (!filter.suggestions || hasPendingSuggestions(req));
+}
+
+/** Number of requirements in the tree with AI suggestions waiting for review. */
+export function countWithSuggestions(nodes: readonly ClauseNode[]): number {
+  let count = 0;
+  const visit = (node: ClauseNode): void => {
+    count += node.requirements.filter(hasPendingSuggestions).length;
+    node.children.forEach(visit);
+  };
+  nodes.forEach(visit);
+  return count;
+}
+
+/**
+ * Prune the tree to the requirements matching `predicate` (plus those in
+ * `keep`); sections without any left disappear. Roll-ups stay full.
+ */
+export function filterRequirements(
+  nodes: readonly ClauseNode[],
+  predicate: (req: Requirement) => boolean,
+  keep: ReadonlySet<string> = new Set(),
+): ClauseNode[] {
   const visit = (node: ClauseNode): ClauseNode | null => {
-    const requirements = node.requirements.filter((r) => isGap(r) || keep.has(r.ref));
+    const requirements = node.requirements.filter((r) => predicate(r) || keep.has(r.ref));
     const children = node.children
       .map(visit)
       .filter((child): child is ClauseNode => child !== null);
@@ -239,6 +278,28 @@ export function filterGaps(
     return { ...node, requirements, children };
   };
   return nodes.map(visit).filter((n): n is ClauseNode => n !== null);
+}
+
+// --- AI mapping status ----------------------------------------------------------
+
+/** What the workspace header says about the standard's AI mapping. */
+export type MappingState = 'never' | 'running' | 'done' | 'failed';
+
+export function mappingState(
+  mapping: { readonly status: string } | null | undefined,
+): MappingState {
+  if (!mapping) {
+    return 'never';
+  }
+  switch (mapping.status) {
+    case 'queued':
+    case 'running':
+      return 'running';
+    case 'done':
+      return 'done';
+    default:
+      return 'failed';
+  }
 }
 
 // --- Table of contents ---------------------------------------------------------
@@ -564,8 +625,4 @@ export function tocDomId(number: string): string {
   return `toc-${number.replace(/[^A-Za-z0-9_-]/g, '_')}`;
 }
 
-/** "iso27001-2022:A.8.13.r1" → "A.8.13.r1" (display only; the API gets the full ref). */
-export function shortRef(ref: string): string {
-  const i = ref.indexOf(':');
-  return i >= 0 ? ref.slice(i + 1) : ref;
-}
+export { shortRef } from '../../../core/standards/standards-data';
