@@ -239,11 +239,26 @@ export function visibilityLabelKey(visibility: string): string {
 // --- Dynamic field validation ---------------------------------------------
 
 /**
- * The backend's per-field validation messages (422 `detail.data`), which are
- * English free text, mapped to i18n keys. Anything unrecognised falls back to
- * a generic "invalid value" message rather than leaking English into the UI.
+ * Backend field-error codes (422 `detail.data[key].code`) → UI error code.
+ * The UI codes name the `deviations.fieldErrors.*` keys.
  */
-const FIELD_ERROR_KEYS: Readonly<Record<string, string>> = {
+const FIELD_ERROR_BY_CODE: Readonly<Record<string, string>> = {
+  required: 'required',
+  not_string: 'text',
+  not_number: 'number',
+  invalid_date: 'date',
+  not_boolean: 'checkbox',
+  invalid_option: 'option',
+  invalid_options: 'options',
+  unknown_user: 'user',
+  unknown_department: 'department',
+};
+
+/**
+ * Legacy backend (before coded field errors): English free-text messages,
+ * matched exactly. Kept so the portal works against both API versions.
+ */
+const FIELD_ERROR_BY_MESSAGE: Readonly<Record<string, string>> = {
   'This field is required': 'required',
   'Must be a string': 'text',
   'Must be a number': 'number',
@@ -255,20 +270,39 @@ const FIELD_ERROR_KEYS: Readonly<Record<string, string>> = {
   'Must reference a department in this organization': 'department',
 };
 
-/** Every field-error code the UI can show (for the i18n coverage spec). */
-export const FIELD_ERROR_CODES: readonly string[] = [...Object.values(FIELD_ERROR_KEYS), 'invalid'];
+/** Backend field-error codes the UI understands (for the i18n coverage spec). */
+export const BACKEND_FIELD_ERROR_CODES: readonly string[] = Object.keys(FIELD_ERROR_BY_CODE);
 
-/** i18n key for a backend dynamic-field validation message. */
-export function fieldErrorKey(message: string): string {
-  const code = FIELD_ERROR_KEYS[message.trim().replace(/\.$/, '')] ?? 'invalid';
-  return `deviations.fieldErrors.${code}`;
+/** Every UI field-error code (for the i18n coverage spec). */
+export const FIELD_ERROR_CODES: readonly string[] = [
+  ...new Set([...Object.values(FIELD_ERROR_BY_CODE), 'invalid']),
+];
+
+/**
+ * i18n key for one dynamic-field error: a coded `{code, params, message}`
+ * object (current API) or an English string (legacy API). Unrecognised errors
+ * fall back to a generic "invalid value" message rather than leaking English.
+ */
+export function fieldErrorKey(error: unknown): string {
+  const byMessage = (message: unknown) =>
+    typeof message === 'string'
+      ? FIELD_ERROR_BY_MESSAGE[message.trim().replace(/\.$/, '')]
+      : undefined;
+  let code: string | undefined;
+  if (typeof error === 'string') {
+    code = byMessage(error);
+  } else if (error && typeof error === 'object') {
+    const { code: raw, message } = error as { code?: unknown; message?: unknown };
+    code = (typeof raw === 'string' ? FIELD_ERROR_BY_CODE[raw] : undefined) ?? byMessage(message);
+  }
+  return `deviations.fieldErrors.${code ?? 'invalid'}`;
 }
 
-/** Map a 422 `{field: message}` body to `{field: i18n key}`. */
+/** Map a 422 `detail.data` (`{field: error}`) to `{field: i18n key}`. */
 export function fieldErrorKeys(errors: Readonly<Record<string, unknown>>): Record<string, string> {
   const out: Record<string, string> = {};
-  for (const [field, message] of Object.entries(errors)) {
-    out[field] = fieldErrorKey(typeof message === 'string' ? message : '');
+  for (const [field, error] of Object.entries(errors)) {
+    out[field] = fieldErrorKey(error);
   }
   return out;
 }

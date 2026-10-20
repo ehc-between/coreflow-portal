@@ -1,8 +1,8 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { DeviationType } from '../../../core/deviations/deviation.models';
+import { notifyDeviationError } from '../../../core/deviations/deviation-errors';
 import { DeviationsApi } from '../../../core/deviations/deviations-api';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
@@ -157,7 +157,10 @@ export class DeviationTypesList {
         this.types.set(this.types().map((t) => (t.id === updated.id ? updated : t)));
         this.busyId.set(null);
       },
-      error: () => this.busyId.set(null),
+      error: (error: unknown) => {
+        this.busyId.set(null);
+        notifyDeviationError(this.notifications, error);
+      },
     });
   }
 
@@ -175,9 +178,8 @@ export class DeviationTypesList {
       },
       error: (error: unknown) => {
         this.busyId.set(null);
-        if (error instanceof HttpErrorResponse && error.status === 409) {
-          this.notifications.error('deviations.types.inUseToast');
-        }
+        // A legacy (uncoded) 409 on delete always meant "in use".
+        notifyDeviationError(this.notifications, error, 'deviations.types.inUseToast');
       },
     });
   }

@@ -981,7 +981,8 @@
         "department": "avdeling",
         "visibility": "synlighet",
         "status": "status"
-      }
+      },
+      "accessLevelChanged": "Tilgang for {{ subject }} endret til: {{ level }}"
     },
     "fieldErrors": {
       "required": "Dette feltet er påkrevd.",
@@ -994,6 +995,21 @@
       "user": "Velg en person i denne organisasjonen.",
       "department": "Velg en avdeling i denne organisasjonen.",
       "invalid": "Denne verdien er ikke gyldig."
+    },
+    "errors": {
+      "duplicate_field_key": "To felter bruker nøkkelen «{{ key }}». Nøkler må være unike innenfor typen.",
+      "options_required": "Feltet «{{ key }}» må ha minst ett alternativ.",
+      "invalid_type_key": "Bruk bare små bokstaver, sifre, «-» og «_» i nøkkelen.",
+      "type_key_exists": "Det finnes allerede en avvikstype med nøkkelen «{{ key }}».",
+      "type_in_use": "Denne typen har avvik og kan ikke slettes. Deaktiver den i stedet.",
+      "type_inactive": "Denne avvikstypen er inaktiv. Velg en aktiv type.",
+      "invalid_clause": "Hvert punkt må ha en standard og et punktnummer.",
+      "owner_not_member": "Valgt eier er ikke medlem av denne organisasjonen.",
+      "department_not_in_org": "Valgt avdeling tilhører ikke denne organisasjonen.",
+      "subject_not_member": "Den personen er ikke medlem av denne organisasjonen.",
+      "invalid_visibility": "Den synlighetsinnstillingen er ikke gyldig.",
+      "invalid_access_level": "Det tilgangsnivået er ikke gyldig.",
+      "invalid_subject_type": "Tilgang kan bare gis til en person eller en avdeling."
     }
   },
   "notifications": {

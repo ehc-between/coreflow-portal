@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -22,6 +21,10 @@ import {
   Standard,
 } from '../../core/deviations/deviation.models';
 import { DeviationsApi } from '../../core/deviations/deviations-api';
+import {
+  invalidDataErrors,
+  notifyDeviationSaveError,
+} from '../../core/deviations/deviation-errors';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { Badge } from '../../shared/ui/badge/badge';
@@ -559,21 +562,13 @@ export class DeviationNew {
   }
 
   private handleError(error: unknown): void {
-    if (!(error instanceof HttpErrorResponse)) {
+    const fieldErrors = invalidDataErrors(error);
+    if (fieldErrors) {
+      this.dataErrors.set(fieldErrorKeys(fieldErrors));
+      this.notifications.error('deviations.create.validationToast');
       return;
     }
-    if (error.status === 422) {
-      const fieldErrors = (error.error as { detail?: { data?: Record<string, string> } } | null)
-        ?.detail?.data;
-      if (fieldErrors && typeof fieldErrors === 'object') {
-        this.dataErrors.set(fieldErrorKeys(fieldErrors));
-        this.notifications.error('deviations.create.validationToast');
-        return;
-      }
-    }
-    if (error.status === 400) {
-      this.notifications.error('deviations.create.badReferenceToast');
-    }
+    notifyDeviationSaveError(this.notifications, error);
   }
 
   private loadTypes(orgId: string): void {

@@ -102,4 +102,58 @@ describe('describeEvent', () => {
   it('falls back to the backend summary for unknown kinds', () => {
     expect(describeEvent(ev('comment', 'Some backend text'), t).summary).toBe('Some backend text');
   });
+
+  describe('current (coded) API kinds', () => {
+    it('names the removed action from detail.kind', () => {
+      expect(
+        describeEvent(ev('action_removed', 'x', { action_id: 'a1', kind: 'preventive' }), t)
+          .summary,
+      ).toBe('deviations.events.actionRemoved{"action":"deviations.actions.kindNoun.preventive"}');
+    });
+
+    it('only calls out the action status when it is among the changed fields', () => {
+      const statusChange = describeEvent(
+        ev('action_updated', 'x', {
+          action_id: 'a1',
+          kind: 'corrective',
+          status: 'done',
+          fields: ['status'],
+        }),
+        t,
+      );
+      expect(statusChange.summary).toContain('deviations.events.actionStatus');
+      const otherEdit = describeEvent(
+        ev('action_updated', 'x', {
+          action_id: 'a1',
+          kind: 'corrective',
+          status: 'open',
+          fields: ['description'],
+        }),
+        t,
+      );
+      expect(otherEdit.summary).toBe(
+        'deviations.events.actionUpdated{"action":"deviations.actions.kindNoun.corrective"}',
+      );
+    });
+
+    it('describes grants, level changes and revocations', () => {
+      const base = { grant_id: 'g1', subject_type: 'user', subject_id: 'u1' };
+      expect(
+        describeEvent(
+          ev('access_granted', 'x', { ...base, level: 'view', previous_level: null }),
+          t,
+        ).summary,
+      ).toContain('deviations.events.accessGranted');
+      expect(
+        describeEvent(
+          ev('access_granted', 'x', { ...base, level: 'edit', previous_level: 'view' }),
+          t,
+        ).summary,
+      ).toContain('deviations.events.accessLevelChanged');
+      // access_revoked carries the revoked level but is still a revocation.
+      expect(describeEvent(ev('access_revoked', 'x', { ...base, level: 'edit' }), t).summary).toBe(
+        'deviations.events.accessRevoked{"subject":"deviations.events.subject.user"}',
+      );
+    });
+  });
 });

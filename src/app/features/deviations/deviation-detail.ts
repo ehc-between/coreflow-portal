@@ -31,6 +31,10 @@ import {
   Standard,
 } from '../../core/deviations/deviation.models';
 import { DeviationsApi } from '../../core/deviations/deviations-api';
+import {
+  invalidDataErrors,
+  notifyDeviationSaveError,
+} from '../../core/deviations/deviation-errors';
 import { httpErrorMessageKey } from '../../core/http/error.interceptor';
 import { LanguageService } from '../../core/i18n/language.service';
 import { NotificationService } from '../../core/notifications/notification.service';
@@ -1233,21 +1237,13 @@ export class DeviationDetail {
   }
 
   private handleEditError(error: unknown): void {
-    if (!(error instanceof HttpErrorResponse)) {
+    const fieldErrors = invalidDataErrors(error);
+    if (fieldErrors) {
+      this.dataErrors.set(fieldErrorKeys(fieldErrors));
+      this.notifications.error('deviations.create.validationToast');
       return;
     }
-    if (error.status === 422) {
-      const fieldErrors = (error.error as { detail?: { data?: Record<string, string> } } | null)
-        ?.detail?.data;
-      if (fieldErrors && typeof fieldErrors === 'object') {
-        this.dataErrors.set(fieldErrorKeys(fieldErrors));
-        this.notifications.error('deviations.create.validationToast');
-        return;
-      }
-    }
-    if (error.status === 400) {
-      this.notifications.error('deviations.create.badReferenceToast');
-    }
+    notifyDeviationSaveError(this.notifications, error);
   }
 
   protected onOwnerChange(ownerUserId: string): void {

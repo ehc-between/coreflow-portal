@@ -16,6 +16,7 @@ import {
   AccessSubjectType,
   DeviationVisibility,
 } from '../../../core/deviations/deviation.models';
+import { notifyDeviationError } from '../../../core/deviations/deviation-errors';
 import { DeviationsApi } from '../../../core/deviations/deviations-api';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
@@ -342,6 +343,7 @@ export class DeviationAccessEditor {
         this.ownerChange.emit(userId);
         this.notifications.success('deviations.access.savedToast');
       },
+      error: (error: unknown) => notifyDeviationError(this.notifications, error),
     });
   }
 
@@ -359,6 +361,7 @@ export class DeviationAccessEditor {
         this.visibilityChange.emit(visibility);
         this.notifications.success('deviations.access.savedToast');
       },
+      error: (error: unknown) => notifyDeviationError(this.notifications, error),
     });
   }
 
@@ -383,6 +386,7 @@ export class DeviationAccessEditor {
           this.grantsChange.emit([...this.grants(), grant]);
           this.notifications.success('deviations.access.grantAddedToast');
         },
+        error: (error: unknown) => notifyDeviationError(this.notifications, error),
       });
   }
 
@@ -398,6 +402,7 @@ export class DeviationAccessEditor {
         this.grantsChange.emit(remaining);
         this.notifications.info('deviations.access.grantRemovedToast');
       },
+      error: (error: unknown) => notifyDeviationError(this.notifications, error),
     });
   }
 

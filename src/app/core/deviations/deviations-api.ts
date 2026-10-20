@@ -27,6 +27,13 @@ import {
 } from './deviation.models';
 
 /**
+ * Mutations whose failures the feature explains in place (coded 4xx details
+ * mapped to translated messages via deviation-errors), so the interceptor's
+ * generic toast is suppressed; callers toast every failure themselves.
+ */
+const IN_PLACE = { context: new HttpContext().set(SKIP_ERROR_TOAST, true) };
+
+/**
  * Org-scoped Deviations API. Goes through ApiService, so requests carry the
  * in-memory bearer token (attached by the auth interceptor) and the configured
  * base URL. Callers pass the current org id and gate actions on the relevant
@@ -52,7 +59,7 @@ export class DeviationsApi {
 
   /** Create a deviation type (admin form-builder — built in a later dispatch). */
   createType(orgId: string, body: DeviationTypeInput): Observable<DeviationType> {
-    return this.api.post<DeviationType>(`v1/orgs/${orgId}/deviation-types`, body);
+    return this.api.post<DeviationType>(`v1/orgs/${orgId}/deviation-types`, body, IN_PLACE);
   }
 
   updateType(
@@ -60,11 +67,15 @@ export class DeviationsApi {
     typeId: string,
     body: Partial<DeviationTypeInput>,
   ): Observable<DeviationType> {
-    return this.api.patch<DeviationType>(`v1/orgs/${orgId}/deviation-types/${typeId}`, body);
+    return this.api.patch<DeviationType>(
+      `v1/orgs/${orgId}/deviation-types/${typeId}`,
+      body,
+      IN_PLACE,
+    );
   }
 
   deleteType(orgId: string, typeId: string): Observable<void> {
-    return this.api.delete<void>(`v1/orgs/${orgId}/deviation-types/${typeId}`);
+    return this.api.delete<void>(`v1/orgs/${orgId}/deviation-types/${typeId}`, IN_PLACE);
   }
 
   /**
@@ -116,7 +127,7 @@ export class DeviationsApi {
   }
 
   createDeviation(orgId: string, body: CreateDeviationRequest): Observable<DeviationListItem> {
-    return this.api.post<DeviationListItem>(`v1/orgs/${orgId}/deviations`, body);
+    return this.api.post<DeviationListItem>(`v1/orgs/${orgId}/deviations`, body, IN_PLACE);
   }
 
   updateDeviation(
@@ -124,7 +135,11 @@ export class DeviationsApi {
     deviationId: string,
     patch: UpdateDeviationRequest,
   ): Observable<DeviationDetail> {
-    return this.api.patch<DeviationDetail>(`v1/orgs/${orgId}/deviations/${deviationId}`, patch);
+    return this.api.patch<DeviationDetail>(
+      `v1/orgs/${orgId}/deviations/${deviationId}`,
+      patch,
+      IN_PLACE,
+    );
   }
 
   /**
@@ -202,12 +217,14 @@ export class DeviationsApi {
     return this.api.post<AccessGrant>(
       `v1/orgs/${orgId}/deviations/${deviationId}/access/grants`,
       body,
+      IN_PLACE,
     );
   }
 
   removeGrant(orgId: string, deviationId: string, grantId: string): Observable<void> {
     return this.api.delete<void>(
       `v1/orgs/${orgId}/deviations/${deviationId}/access/grants/${grantId}`,
+      IN_PLACE,
     );
   }
 

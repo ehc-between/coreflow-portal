@@ -25,6 +25,7 @@ import {
   FieldWidth,
   Standard,
 } from '../../../core/deviations/deviation.models';
+import { codedErrorDetail, notifyDeviationError } from '../../../core/deviations/deviation-errors';
 import { DeviationsApi } from '../../../core/deviations/deviations-api';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
@@ -947,21 +948,26 @@ export class DeviationTypeEditor {
   }
 
   private handleError(error: unknown): void {
-    if (!(error instanceof HttpErrorResponse)) {
-      return;
-    }
-    if (error.status === 409) {
+    const coded = codedErrorDetail(error);
+    if (coded?.code === 'type_key_exists') {
       this.keyError.set('deviations.types.editor.errors.keyTaken');
       return;
     }
-    if (error.status === 422) {
-      const detail = (error.error as { detail?: Record<string, string> } | null)?.detail;
-      if (detail?.['key']) {
+    if (coded?.code === 'invalid_type_key') {
+      this.keyError.set('deviations.errors.invalid_type_key');
+      return;
+    }
+    if (!coded && error instanceof HttpErrorResponse) {
+      // Legacy (uncoded) API: a 409, or a 422 naming `key`, meant the key clashed.
+      const legacy = (error.error as { detail?: unknown } | null)?.detail;
+      const namesKey =
+        !!legacy && typeof legacy === 'object' && !!(legacy as Record<string, unknown>)['key'];
+      if (error.status === 409 || (error.status === 422 && namesKey)) {
         this.keyError.set('deviations.types.editor.errors.keyTaken');
         return;
       }
     }
-    this.notifications.error('deviations.types.editor.saveFailedToast');
+    notifyDeviationError(this.notifications, error, 'deviations.types.editor.saveFailedToast');
   }
 
   private load(orgId: string, id: string): void {

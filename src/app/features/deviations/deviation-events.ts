@@ -22,6 +22,10 @@ export const EVENT_KINDS = [
   'deleted',
   'action_added',
   'action_updated',
+  'action_removed',
+  'access_granted',
+  'access_revoked',
+  // Legacy (pre-coded API): grant / revoke / removal shared these kinds.
   'access_changed',
 ] as const;
 
@@ -142,10 +146,20 @@ export function describeEvent(
         }),
         detail: null,
       };
+    case 'action_removed':
+      return {
+        summary: t('deviations.events.actionRemoved', {
+          action: t(actionNounKey(actionKindFrom(event))),
+        }),
+        detail: null,
+      };
     case 'action_updated': {
       const action = t(actionNounKey(actionKindFrom(event)));
       const status = str(detail['status']);
-      if (status) {
+      const fields = Array.isArray(detail['fields']) ? (detail['fields'] as unknown[]) : null;
+      // Current API: `fields` lists what changed; only call out the status
+      // when it is among them. Legacy API: `status` alone, no `fields`.
+      if (status && (fields === null || fields.includes('status'))) {
         return {
           summary: t('deviations.events.actionStatus', {
             action,
@@ -154,17 +168,18 @@ export function describeEvent(
           detail: null,
         };
       }
-      const removed = /\bremoved\b/i.test(event.summary ?? '');
+      // Legacy API logged a removal as action_updated with only an action_id.
+      const removed = fields === null && !status && /\bremoved\b/i.test(event.summary ?? '');
       return {
         summary: t(
           removed ? 'deviations.events.actionRemoved' : 'deviations.events.actionUpdated',
-          {
-            action,
-          },
+          { action },
         ),
         detail: null,
       };
     }
+    case 'access_granted':
+    case 'access_revoked':
     case 'access_changed': {
       const subjectType = str(detail['subject_type']);
       const subjectId = str(detail['subject_id']);
@@ -179,13 +194,21 @@ export function describeEvent(
             : 'deviations.events.subject.user',
         );
       const level = str(detail['level']);
+      const levelLabel = t(level === 'edit' ? 'deviations.access.edit' : 'deviations.access.view');
+      // Legacy access_changed: a level means granted, none means revoked.
+      const revoked =
+        event.kind === 'access_revoked' || (event.kind === 'access_changed' && !level);
+      if (revoked) {
+        return { summary: t('deviations.events.accessRevoked', { subject }), detail: null };
+      }
+      const previous = str(detail['previous_level']);
       return {
-        summary: level
-          ? t('deviations.events.accessGranted', {
-              subject,
-              level: t(level === 'edit' ? 'deviations.access.edit' : 'deviations.access.view'),
-            })
-          : t('deviations.events.accessRevoked', { subject }),
+        summary: t(
+          previous && previous !== level
+            ? 'deviations.events.accessLevelChanged'
+            : 'deviations.events.accessGranted',
+          { subject, level: levelLabel },
+        ),
         detail: null,
       };
     }

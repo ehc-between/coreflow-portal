@@ -1,8 +1,14 @@
+import {
+  DEVIATION_ERROR_CODES,
+  DeviationErrorCode,
+  deviationErrorKey,
+} from '../../core/deviations/deviation-errors';
 import en from '../../../assets/i18n/en.json';
 import nb from '../../../assets/i18n/nb.json';
 import {
   ACTION_KIND_OPTIONS,
   ACTION_STATUS_OPTIONS,
+  BACKEND_FIELD_ERROR_CODES,
   EFFECTIVENESS_OPTIONS,
   FIELD_ERROR_CODES,
   FIELD_TYPE_OPTIONS,
@@ -67,6 +73,11 @@ const ENUMS: Record<string, { values: readonly string[]; key: (v: string) => str
     key: workflowReasonKey,
   },
   fieldError: { values: FIELD_ERROR_CODES, key: (c) => `deviations.fieldErrors.${c}` },
+  backendFieldError: { values: BACKEND_FIELD_ERROR_CODES, key: (code) => fieldErrorKey({ code }) },
+  deviationError: {
+    values: DEVIATION_ERROR_CODES,
+    key: (c) => deviationErrorKey(c as DeviationErrorCode),
+  },
   eventField: { values: EVENT_FIELD_NAMES, key: (f) => eventFieldKey(f) ?? '' },
 };
 
@@ -103,6 +114,7 @@ describe('deviation i18n coverage', () => {
       'deviations.events.subject.user',
       'deviations.events.subject.department',
       'deviations.events.byline',
+      'deviations.events.accessLevelChanged',
       'deviations.access.view',
       'deviations.access.edit',
       'deviations.workflow.reasons.reopen_requires_manage',
@@ -118,6 +130,25 @@ describe('deviation i18n coverage', () => {
     expect(fieldErrorKey('This field is required')).toBe('deviations.fieldErrors.required');
     expect(fieldErrorKey('Must be a number')).toBe('deviations.fieldErrors.number');
     expect(fieldErrorKey('Something unexpected')).toBe('deviations.fieldErrors.invalid');
+  });
+
+  it('maps coded field errors by code, with the legacy message as a fallback', () => {
+    expect(
+      fieldErrorKey({ code: 'invalid_option', params: { options: ['a'] }, message: 'x' }),
+    ).toBe('deviations.fieldErrors.option');
+    expect(fieldErrorKey({ code: 'not_number', params: {}, message: '' })).toBe(
+      'deviations.fieldErrors.number',
+    );
+    expect(fieldErrorKey({ code: 'brand_new', message: 'This field is required' })).toBe(
+      'deviations.fieldErrors.required',
+    );
+    expect(fieldErrorKey({ code: 'brand_new' })).toBe('deviations.fieldErrors.invalid');
+    // Every backend code maps to a real UI code, never the generic fallback.
+    expect(
+      BACKEND_FIELD_ERROR_CODES.filter(
+        (code) => fieldErrorKey({ code }) === 'deviations.fieldErrors.invalid',
+      ),
+    ).toEqual([]);
   });
 
   it('keeps en and nb at full key parity', () => {
