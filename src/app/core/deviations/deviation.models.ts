@@ -253,7 +253,8 @@ export type WorkflowErrorCode =
   | 'reason_required'
   | 'root_cause_required'
   | 'open_actions'
-  | 'verification_required';
+  | 'verification_required'
+  | 'deviation_closed';
 
 /** One status the deviation can move to, as offered by `GET deviations/{id}`. */
 export interface DeviationTransition {
@@ -304,7 +305,7 @@ export interface UpdateDeviationRequest {
   readonly tags?: readonly string[];
   readonly severity?: Severity;
   readonly status?: DeviationStatus;
-  /** Why the status is changing; required by transitions with `requires_reason`. */
+  /** Why the status is changing (max 2000 chars); required by transitions with `requires_reason`. */
   readonly status_reason?: string;
   readonly source?: Source;
   readonly owner_user_id?: string;
@@ -312,7 +313,8 @@ export interface UpdateDeviationRequest {
   readonly department_id?: string | null;
   readonly due_at?: string;
   readonly root_cause?: string;
-  readonly root_cause_method?: string;
+  /** `null` clears the method. */
+  readonly root_cause_method?: string | null;
   readonly data?: Record<string, unknown>;
   readonly visibility?: DeviationVisibility;
 }

@@ -722,12 +722,17 @@
       "reasonPrompt": "This change needs a reason. It is recorded in the audit trail.",
       "reasonLabel": "Reason",
       "reasonConfirm": "Change status",
+      "reasonCount": "{{ count }}/{{ max }}",
+      "closedNote": "This deviation is closed or cancelled. Reopen it before making changes.",
+      "noEditAccess": "You do not have edit access to this deviation.",
       "reasons": {
         "invalid_transition": "This status change is not allowed from the current status.",
         "reason_required": "A reason is required for this status change.",
         "root_cause_required": "Record a root cause before closing.",
         "open_actions": "All actions must be done or verified first.",
-        "verification_required": "The effectiveness of the actions must be verified first.",
+        "verification_required": "The effectiveness of the corrective actions must be verified first.",
+        "deviation_closed": "Reopen the deviation before changing it",
+        "reopen_requires_manage": "Only deviation managers can reopen a closed or cancelled deviation.",
         "unknown": "This status change is not allowed right now."
       }
     },

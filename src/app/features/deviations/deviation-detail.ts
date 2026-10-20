@@ -3,11 +3,13 @@ import { DatePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  ElementRef,
   computed,
   effect,
   inject,
   input,
   signal,
+  viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -28,6 +30,7 @@ import {
   Standard,
 } from '../../core/deviations/deviation.models';
 import { DeviationsApi } from '../../core/deviations/deviations-api';
+import { httpErrorMessageKey } from '../../core/http/error.interceptor';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { Alert } from '../../shared/ui/alert/alert';
@@ -42,10 +45,14 @@ import { DeviationActions } from './actions/deviation-actions';
 import { DeviationClassificationFields } from './classification-fields';
 import { ClauseRow, buildDeviationPatch, editFormFrom } from './deviation-edit';
 import {
+  STATUS_REASON_MAX,
   StatusMenuEntry,
   WorkflowError,
+  editLockKey,
+  isStillBlocked,
+  lacksEditReach,
   parseWorkflowError,
-  statusErrorKey,
+  statusLockedKey,
   statusMenuEntries,
   workflowReasonKey,
 } from './deviation-workflow';
@@ -64,7 +71,11 @@ import { DynamicField, DynamicFieldOption } from './dynamic-field';
 import { groupFieldsIntoSections } from './types/type-schema';
 
 /** A rejected status change: the workflow error plus the status that was attempted. */
-type StatusRejection = WorkflowError & { readonly status: DeviationStatus };
+type StatusRejection = WorkflowError & {
+  readonly status: DeviationStatus;
+  /** i18n key explaining the rejection, resolved when it happened. */
+  readonly reasonKey: string;
+};
 
 /**
  * Deviation detail, scoped to the currently selected org. A header band (code,
@@ -138,8 +149,18 @@ type StatusRejection = WorkflowError & { readonly status: DeviationStatus };
 
           <div class="flex flex-none items-center gap-2">
             @if (!editing()) {
-              <div *appHasPermission="'deviations:write'" class="relative">
-                <app-button variant="secondary" (click)="toggleStatusMenu($event)">
+              <div
+                *appHasPermission="'deviations:write'"
+                #statusTrigger
+                class="relative"
+                [attr.title]="statusLockedKey() ? (statusLockedKey()! | transloco) : null"
+                data-testid="status-trigger"
+              >
+                <app-button
+                  variant="secondary"
+                  [disabled]="statusLockedKey() !== null"
+                  (click)="toggleStatusMenu($event)"
+                >
                   <app-icon name="flag" [size]="15" />
                   {{ 'deviations.detail.changeStatus' | transloco }}
                   <app-icon name="chevron" [size]="14" />
@@ -170,7 +191,7 @@ type StatusRejection = WorkflowError & { readonly status: DeviationStatus };
                           }}</span>
                           @if (entry.blockedBy) {
                             <span class="mt-0.5 block text-[12px] text-fg-muted">{{
-                              workflowReasonKey(entry.blockedBy) | transloco
+                              reasonKeyFor(entry.blockedBy, entry.status) | transloco
                             }}</span>
                           } @else if (entry.requiresReason) {
                             <span class="mt-0.5 block text-[12px] text-fg-subtle">{{
@@ -179,23 +200,17 @@ type StatusRejection = WorkflowError & { readonly status: DeviationStatus };
                           }
                         </span>
                       </button>
-                    } @empty {
-                      <p class="px-2.5 py-2 text-[12.5px] text-fg-muted">
-                        {{ 'deviations.workflow.noTransitions' | transloco }}
-                      </p>
                     }
                   </div>
                 }
               </div>
 
-              <app-button
-                *appHasPermission="'deviations:write'"
-                variant="secondary"
-                (click)="startEdit(dev)"
-              >
-                <app-icon name="procedures" [size]="15" />
-                {{ 'deviations.detail.edit' | transloco }}
-              </app-button>
+              @if (canEditThis()) {
+                <app-button variant="secondary" (click)="startEdit(dev)">
+                  <app-icon name="procedures" [size]="15" />
+                  {{ 'deviations.detail.edit' | transloco }}
+                </app-button>
+              }
 
               <app-button
                 *appHasPermission="'deviations:manage'"
@@ -218,6 +233,12 @@ type StatusRejection = WorkflowError & { readonly status: DeviationStatus };
           </div>
         </div>
 
+        @if (canWrite() && editLockKey(); as lockKey) {
+          <div class="mb-[18px]" data-testid="edit-lock-note">
+            <app-alert tone="info">{{ lockKey | transloco }}</app-alert>
+          </div>
+        }
+
         @if (workflowError(); as wfError) {
           <div class="mb-[18px] flex flex-col gap-2" data-testid="workflow-error">
             <app-alert tone="error">
@@ -226,7 +247,7 @@ type StatusRejection = WorkflowError & { readonly status: DeviationStatus };
                   | transloco
                     : {
                         status: (statusLabelKey(wfError.status) | transloco),
-                        reason: (workflowReasonKey(wfError.code) | transloco),
+                        reason: (wfError.reasonKey | transloco),
                       }
               }}
             </app-alert>
@@ -586,7 +607,7 @@ type StatusRejection = WorkflowError & { readonly status: DeviationStatus };
                 [deviationId]="dev.id"
                 [actions]="actions()"
                 [owners]="owners()"
-                [canEdit]="canWrite()"
+                [canEdit]="canEditThis()"
                 [highlighted]="blockingActionIds()"
                 (actionsChange)="actions.set($event)"
                 (changed)="reloadEvents()"
@@ -594,7 +615,11 @@ type StatusRejection = WorkflowError & { readonly status: DeviationStatus };
             </app-card>
 
             <app-card>
-              <app-attachments entityType="deviation" [entityId]="dev.id" [canEdit]="canWrite()" />
+              <app-attachments
+                entityType="deviation"
+                [entityId]="dev.id"
+                [canEdit]="canWrite() && !lacksEditReach()"
+              />
             </app-card>
           </div>
 
@@ -686,6 +711,8 @@ type StatusRejection = WorkflowError & { readonly status: DeviationStatus };
           [busy]="savingStatus()"
           confirmVariant="primary"
           [confirmDisabled]="!statusReason().trim()"
+          initialFocus="#status-reason"
+          [returnFocus]="statusTriggerButton()"
           [title]="
             'deviations.workflow.reasonTitle'
               | transloco: { status: (statusLabelKey(reasonFor() ?? dev.status) | transloco) }
@@ -705,9 +732,17 @@ type StatusRejection = WorkflowError & { readonly status: DeviationStatus };
               id="status-reason"
               rows="3"
               [value]="statusReason()"
+              [maxLength]="reasonMax"
+              aria-describedby="status-reason-count"
               (input)="statusReason.set($any($event.target).value)"
               class="w-full rounded-[10px] border border-border bg-bg px-3 py-2.5 text-[13.5px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
             ></textarea>
+            <p id="status-reason-count" class="text-right text-[12px] text-fg-subtle">
+              {{
+                'deviations.workflow.reasonCount'
+                  | transloco: { count: statusReason().length, max: reasonMax }
+              }}
+            </p>
           </div>
         </app-confirm-dialog>
       } @else {
@@ -756,7 +791,6 @@ export class DeviationDetail {
 
   protected readonly orgId = this.selectedOrg.currentOrgId;
 
-  protected readonly workflowReasonKey = workflowReasonKey;
   protected readonly severityOptions = SEVERITY_OPTIONS;
   protected readonly sourceOptions = SOURCE_OPTIONS;
   protected readonly statusTone = statusTone;
@@ -826,10 +860,34 @@ export class DeviationDetail {
     ),
   );
 
-  /** Whether the current user can edit (drives the actions panel controls too). */
+  /** Whether the current user holds org-level write. */
   protected readonly canWrite = computed(() =>
     (this.selectedOrg.currentOrg()?.permissions ?? []).includes('deviations:write'),
   );
+  private readonly canManage = computed(() =>
+    (this.selectedOrg.currentOrg()?.permissions ?? []).includes('deviations:manage'),
+  );
+
+  /** Org write but no edit reach on this (restricted) deviation. */
+  protected readonly lacksEditReach = computed(() => {
+    const dev = this.deviation();
+    return dev ? lacksEditReach(dev) : false;
+  });
+  /** Why the deviation can't be edited right now (closed / no reach), or null. */
+  protected readonly editLockKey = computed(() => {
+    const dev = this.deviation();
+    return dev ? editLockKey(dev) : null;
+  });
+  /** Edit + action controls: org write, and the deviation is open to edits. */
+  protected readonly canEditThis = computed(() => this.canWrite() && this.editLockKey() === null);
+  /** Why "Change status" is disabled (no transitions offered), or null. */
+  protected readonly statusLockedKey = computed(() => {
+    const dev = this.deviation();
+    return dev ? statusLockedKey(dev) : null;
+  });
+
+  protected readonly reasonMax = STATUS_REASON_MAX;
+  private readonly statusTrigger = viewChild<ElementRef<HTMLElement>>('statusTrigger');
 
   private currentOrgId: string | null = null;
 
@@ -906,8 +964,26 @@ export class DeviationDetail {
     }
   }
 
+  /** Explanation key for a workflow code on a move to `to` (permission-phrased for reopening). */
+  protected reasonKeyFor(
+    code: string | null | undefined,
+    to: DeviationStatus,
+    from: DeviationStatus = this.deviation()?.status ?? to,
+  ): string {
+    return workflowReasonKey(code, { from, to, canManage: this.canManage() });
+  }
+
+  /** The native "Change status" button, so the reason dialog can return focus to it. */
+  protected statusTriggerButton(): HTMLElement | null {
+    const host = this.statusTrigger()?.nativeElement;
+    return host?.querySelector<HTMLElement>('button') ?? host ?? null;
+  }
+
   protected toggleStatusMenu(event: Event): void {
     event.stopPropagation();
+    if (this.statusLockedKey() !== null) {
+      return;
+    }
     this.statusMenuOpen.update((open) => !open);
   }
 
@@ -975,9 +1051,9 @@ export class DeviationDetail {
   private handleStatusError(status: DeviationStatus, reason: string | undefined, error: unknown) {
     const rejection = parseWorkflowError(error);
     if (!rejection) {
-      const key = statusErrorKey(error);
-      if (key) {
-        this.notifications.error(key);
+      // The generic toast is suppressed for this request; 401/403 belong to the auth layer.
+      if (error instanceof HttpErrorResponse && error.status !== 401 && error.status !== 403) {
+        this.notifications.error(httpErrorMessageKey(error.status));
       }
       return;
     }
@@ -986,9 +1062,14 @@ export class DeviationDetail {
       this.openReason(status);
       return;
     }
+    const from = this.deviation()?.status ?? status;
     this.closeReason();
-    this.workflowError.set({ ...rejection, status });
-    this.notifications.error(workflowReasonKey(rejection.code));
+    // Explained inline only (alert + highlighted actions); no toast on top.
+    this.workflowError.set({
+      ...rejection,
+      status,
+      reasonKey: this.reasonKeyFor(rejection.code, status, from),
+    });
     // The allowed transitions / actions may be stale; refresh them in place.
     this.refreshDeviation();
   }
@@ -1087,6 +1168,7 @@ export class DeviationDetail {
         this.savingEdit.set(false);
         this.editing.set(false);
         this.applyUpdated(updated);
+        this.clearResolvedWorkflowError();
         this.notifications.success('deviations.detail.savedToast');
       },
       error: (error: unknown) => {
@@ -1156,8 +1238,22 @@ export class DeviationDetail {
         if (current) {
           this.deviation.set({ ...current, allowed_transitions: dev.allowed_transitions });
         }
+        this.clearResolvedWorkflowError();
       },
     });
+  }
+
+  /**
+   * Drop the 409 explanation (and its action highlight) once fresh transitions
+   * show the attempted status is no longer blocked. Not run on the refresh right
+   * after the 409 itself, so the explanation always shows at least once.
+   */
+  private clearResolvedWorkflowError(): void {
+    const error = this.workflowError();
+    const dev = this.deviation();
+    if (error && dev && !isStillBlocked(dev, error.status)) {
+      this.workflowError.set(null);
+    }
   }
 
   /** Re-fetch the deviation (allowed transitions, actions, events) without a loading state. */

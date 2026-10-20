@@ -58,7 +58,10 @@ interface ApiMock {
   deleteDeviation: ReturnType<typeof vi.fn>;
 }
 
-async function setup(dev = deviation()): Promise<{
+async function setup(
+  dev = deviation(),
+  permissions: readonly string[] = ['deviations:write', 'deviations:manage'],
+): Promise<{
   fixture: ComponentFixture<DeviationDetail>;
   root: HTMLElement;
   api: ApiMock;
@@ -80,7 +83,7 @@ async function setup(dev = deviation()): Promise<{
     id: 'org1',
     name: 'Org',
     roles: [],
-    permissions: ['deviations:write', 'deviations:manage'],
+    permissions,
   };
   TestBed.configureTestingModule({
     imports: [DeviationDetail, TranslocoTestingModule.forRoot({ langs: { en: {} } })],
@@ -198,7 +201,8 @@ describe('DeviationDetail status workflow', () => {
     expect(alert.textContent).toContain('deviations.workflow.rejected');
     expect(alert.textContent).toContain('Replace valve');
     expect(root.querySelector('li[data-blocking="true"]')).toBeTruthy();
-    expect(notify.error).toHaveBeenCalledWith('deviations.workflow.reasons.open_actions');
+    // Explained inline only: no toast on top of the alert.
+    expect(notify.error).not.toHaveBeenCalled();
     // Re-fetches so the menu reflects the current workflow state.
     expect(api.getDeviation).toHaveBeenCalledTimes(2);
   });
@@ -280,5 +284,163 @@ describe('DeviationDetail edit classification', () => {
       tags: ['leak'],
       department_id: 'dep1',
     });
+  });
+});
+
+describe('DeviationDetail QA follow-ups', () => {
+  afterEach(() => document.body.replaceChildren());
+
+  function reject(code: string, blocking: unknown[] = []) {
+    return throwError(
+      () =>
+        new HttpErrorResponse({
+          status: 409,
+          error: { detail: { code, message: 'server text', blocking } },
+        }),
+    );
+  }
+
+  async function openReasonDialog(fixture: ComponentFixture<DeviationDetail>, root: HTMLElement) {
+    const menu = await openStatusMenu(fixture, root);
+    menu.querySelector<HTMLButtonElement>('button[data-status="cancelled"]')!.click();
+    await fixture.whenStable();
+  }
+
+  it('caps the reason at 2000 chars with a live counter', async () => {
+    const { fixture, root } = await setup();
+    await openReasonDialog(fixture, root);
+
+    const textarea = root.querySelector<HTMLTextAreaElement>('#status-reason')!;
+    expect(textarea.maxLength).toBe(2000);
+    expect(textarea.getAttribute('aria-describedby')).toBe('status-reason-count');
+    textarea.value = 'abc';
+    textarea.dispatchEvent(new Event('input'));
+    await fixture.whenStable();
+    const counter = root.querySelector<HTMLElement>('#status-reason-count')!;
+    expect(counter.textContent).toContain('deviations.workflow.reasonCount');
+  });
+
+  it('focuses the reason textarea on open and returns focus to Change status on close', async () => {
+    const { fixture, root } = await setup();
+    await openReasonDialog(fixture, root);
+    expect(document.activeElement?.id).toBe('status-reason');
+
+    buttonByText(root.querySelector('[role="alertdialog"]')!, 'deviations.detail.cancel').click();
+    await fixture.whenStable();
+    expect(root.querySelector('[role="alertdialog"]')).toBeNull();
+    expect(document.activeElement).toBe(buttonByText(root, 'deviations.detail.changeStatus'));
+  });
+
+  it('disables Change status with an explanation when no transitions are offered', async () => {
+    const { fixture, root } = await setup(
+      deviation({ status: 'closed', allowed_transitions: [] }),
+      ['deviations:write'],
+    );
+    const trigger = root.querySelector<HTMLElement>('[data-testid="status-trigger"]')!;
+    expect(trigger.getAttribute('title')).toContain('deviations.workflow.noTransitions');
+    const button = buttonByText(root, 'deviations.detail.changeStatus');
+    expect(button.disabled).toBe(true);
+    button.click();
+    await fixture.whenStable();
+    expect(root.querySelector('[data-testid="status-menu"]')).toBeNull();
+  });
+
+  it('hides edit controls on a closed deviation and says why', async () => {
+    const { root } = await setup(
+      deviation({
+        status: 'closed',
+        allowed_transitions: [{ to: 'investigating', requires_reason: true }],
+      }),
+    );
+    expect(root.querySelector('[data-testid="edit-lock-note"]')?.textContent).toContain(
+      'deviations.workflow.closedNote',
+    );
+    expect(() => buttonByText(root, 'deviations.detail.edit')).toThrow();
+    expect(() => buttonByText(root, 'deviations.actions.add')).toThrow();
+    // Reopening stays possible.
+    expect(buttonByText(root, 'deviations.detail.changeStatus').disabled).toBe(false);
+  });
+
+  it('hides edit controls without edit reach (empty transitions on an open deviation)', async () => {
+    const { root } = await setup(deviation({ status: 'open', allowed_transitions: [] }), [
+      'deviations:write',
+    ]);
+    expect(root.querySelector('[data-testid="edit-lock-note"]')?.textContent).toContain(
+      'deviations.workflow.noEditAccess',
+    );
+    expect(() => buttonByText(root, 'deviations.detail.edit')).toThrow();
+    expect(() => buttonByText(root, 'deviations.actions.add')).toThrow();
+    const trigger = root.querySelector<HTMLElement>('[data-testid="status-trigger"]')!;
+    expect(trigger.getAttribute('title')).toContain('deviations.workflow.noEditAccess');
+  });
+
+  it('keeps edit controls on an open deviation with transitions', async () => {
+    const { root } = await setup();
+    expect(root.querySelector('[data-testid="edit-lock-note"]')).toBeNull();
+    expect(buttonByText(root, 'deviations.detail.edit')).toBeTruthy();
+    expect(buttonByText(root, 'deviations.actions.add')).toBeTruthy();
+  });
+
+  it('phrases a non-manager reopen rejection as a permission message', async () => {
+    const { fixture, root, api } = await setup(
+      deviation({
+        status: 'closed',
+        allowed_transitions: [{ to: 'investigating', requires_reason: false }],
+      }),
+      ['deviations:write'],
+    );
+    api.changeStatus.mockReturnValue(reject('invalid_transition'));
+    const menu = await openStatusMenu(fixture, root);
+    menu.querySelector<HTMLButtonElement>('button[data-status="investigating"]')!.click();
+    await fixture.whenStable();
+    const alert = root.querySelector<HTMLElement>('[data-testid="workflow-error"]')!;
+    expect(alert.textContent).toContain('deviations.workflow.rejected');
+    const component = fixture.componentInstance as unknown as {
+      workflowError: () => { reasonKey: string } | null;
+    };
+    expect(component.workflowError()?.reasonKey).toBe(
+      'deviations.workflow.reasons.reopen_requires_manage',
+    );
+  });
+
+  it('clears the 409 explanation once reloaded transitions unblock the target', async () => {
+    const { fixture, root, api } = await setup(
+      deviation({ allowed_transitions: [{ to: 'closed', requires_reason: false }] }),
+    );
+    api.changeStatus.mockReturnValue(
+      reject('open_actions', [{ action_id: 'a1', description: 'Replace valve' }]),
+    );
+    api.getDeviation.mockReturnValue(
+      of(
+        deviation({
+          allowed_transitions: [
+            { to: 'closed', requires_reason: false, blocked_by: 'open_actions' },
+          ],
+        }),
+      ),
+    );
+    const menu = await openStatusMenu(fixture, root);
+    menu.querySelector<HTMLButtonElement>('button[data-status="closed"]')!.click();
+    await fixture.whenStable();
+    expect(root.querySelector('[data-testid="workflow-error"]')).toBeTruthy();
+    expect(root.querySelector('li[data-blocking="true"]')).toBeTruthy();
+
+    // An action change reloads transitions; closing is no longer blocked.
+    api.getDeviation.mockReturnValue(
+      of(deviation({ allowed_transitions: [{ to: 'closed', requires_reason: false }] })),
+    );
+    (fixture.componentInstance as unknown as { reloadEvents: () => void }).reloadEvents();
+    await fixture.whenStable();
+    expect(root.querySelector('[data-testid="workflow-error"]')).toBeNull();
+    expect(root.querySelector('li[data-blocking="true"]')).toBeNull();
+  });
+
+  it('toasts non-workflow failures with the shared error mapping', async () => {
+    const { fixture, root, api, notify } = await setup();
+    api.changeStatus.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 503 })));
+    const menu = await openStatusMenu(fixture, root);
+    menu.querySelector<HTMLButtonElement>('button[data-status="action"]')!.click();
+    await fixture.whenStable();
+    expect(notify.error).toHaveBeenCalledWith('errors.server');
   });
 });

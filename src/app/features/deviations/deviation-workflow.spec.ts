@@ -1,8 +1,11 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { DeviationDetail } from '../../core/deviations/deviation.models';
 import {
+  editLockKey,
+  isStillBlocked,
+  lacksEditReach,
   parseWorkflowError,
-  statusErrorKey,
+  statusLockedKey,
   statusMenuEntries,
   workflowReasonKey,
 } from './deviation-workflow';
@@ -102,12 +105,58 @@ describe('parseWorkflowError', () => {
   });
 });
 
-describe('statusErrorKey', () => {
-  it('maps statuses to neutral keys and leaves auth to the auth layer', () => {
-    expect(statusErrorKey(new HttpErrorResponse({ status: 0 }))).toBe('errors.network');
-    expect(statusErrorKey(new HttpErrorResponse({ status: 503 }))).toBe('errors.server');
-    expect(statusErrorKey(new HttpErrorResponse({ status: 404 }))).toBe('errors.notFound');
-    expect(statusErrorKey(new HttpErrorResponse({ status: 400 }))).toBe('errors.generic');
-    expect(statusErrorKey(new HttpErrorResponse({ status: 403 }))).toBeNull();
+describe('workflowReasonKey context', () => {
+  it('phrases a non-manager reopen rejection as a permission message', () => {
+    const ctx = { from: 'closed' as const, to: 'investigating' as const, canManage: false };
+    expect(workflowReasonKey('invalid_transition', ctx)).toBe(
+      'deviations.workflow.reasons.reopen_requires_manage',
+    );
+    expect(workflowReasonKey('invalid_transition', { ...ctx, canManage: true })).toBe(
+      'deviations.workflow.reasons.invalid_transition',
+    );
+    expect(workflowReasonKey('invalid_transition', { ...ctx, from: 'open' })).toBe(
+      'deviations.workflow.reasons.invalid_transition',
+    );
+    expect(workflowReasonKey('deviation_closed')).toBe(
+      'deviations.workflow.reasons.deviation_closed',
+    );
+  });
+});
+
+describe('edit / status locks', () => {
+  it('treats an empty transition list on an open deviation as no edit reach', () => {
+    const d = dev({ status: 'investigating', allowed_transitions: [] });
+    expect(lacksEditReach(d)).toBe(true);
+    expect(editLockKey(d)).toBe('deviations.workflow.noEditAccess');
+    expect(statusLockedKey(d)).toBe('deviations.workflow.noEditAccess');
+  });
+
+  it('locks editing on closed/cancelled deviations, explaining an empty menu', () => {
+    const d = dev({ status: 'closed', allowed_transitions: [] });
+    expect(lacksEditReach(d)).toBe(false);
+    expect(editLockKey(d)).toBe('deviations.workflow.closedNote');
+    expect(statusLockedKey(d)).toBe('deviations.workflow.noTransitions');
+    expect(editLockKey(dev({ status: 'cancelled' }))).toBe('deviations.workflow.closedNote');
+  });
+
+  it('leaves an open deviation with transitions (or an older API) unlocked', () => {
+    const d = dev({ allowed_transitions: [{ to: 'investigating', requires_reason: false }] });
+    expect(editLockKey(d)).toBeNull();
+    expect(statusLockedKey(d)).toBeNull();
+    expect(statusLockedKey(dev())).toBeNull();
+    expect(lacksEditReach(dev())).toBe(false);
+  });
+});
+
+describe('isStillBlocked', () => {
+  it('is false only when the target is offered without a block', () => {
+    const blocked = dev({
+      allowed_transitions: [{ to: 'closed', requires_reason: false, blocked_by: 'open_actions' }],
+    });
+    const free = dev({ allowed_transitions: [{ to: 'closed', requires_reason: false }] });
+    expect(isStillBlocked(blocked, 'closed')).toBe(true);
+    expect(isStillBlocked(free, 'closed')).toBe(false);
+    expect(isStillBlocked(free, 'action')).toBe(true);
+    expect(isStillBlocked(dev(), 'closed')).toBe(true);
   });
 });

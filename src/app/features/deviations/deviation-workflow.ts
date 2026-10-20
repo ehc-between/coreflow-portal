@@ -28,7 +28,18 @@ const WORKFLOW_CODES: readonly WorkflowErrorCode[] = [
   'root_cause_required',
   'open_actions',
   'verification_required',
+  'deviation_closed',
 ];
+
+/** Max length of a status-change reason (backend `status_reason` limit). */
+export const STATUS_REASON_MAX = 2000;
+
+const TERMINAL: readonly DeviationStatus[] = ['closed', 'cancelled'];
+
+/** Closed / cancelled: the deviation must be reopened before it can be changed. */
+export function isTerminalStatus(status: DeviationStatus): boolean {
+  return TERMINAL.includes(status);
+}
 
 function isWorkflowCode(code: unknown): code is WorkflowErrorCode {
   return typeof code === 'string' && (WORKFLOW_CODES as readonly string[]).includes(code);
@@ -60,10 +71,69 @@ export function statusMenuEntries(dev: DeviationDetail): readonly StatusMenuEntr
  * i18n key explaining a workflow code (used both for blocked menu entries and
  * 409 messages). Unknown codes fall back to a generic explanation.
  */
-export function workflowReasonKey(code: string | null | undefined): string {
+export function workflowReasonKey(
+  code: string | null | undefined,
+  context?: {
+    readonly from: DeviationStatus;
+    readonly to: DeviationStatus;
+    readonly canManage: boolean;
+  },
+): string {
+  // Reopening a closed/cancelled deviation is manage-only; the backend reports
+  // it as invalid_transition, which we phrase as a permission message.
+  if (
+    code === 'invalid_transition' &&
+    context &&
+    !context.canManage &&
+    isTerminalStatus(context.from) &&
+    !isTerminalStatus(context.to)
+  ) {
+    return 'deviations.workflow.reasons.reopen_requires_manage';
+  }
   return isWorkflowCode(code)
     ? `deviations.workflow.reasons.${code}`
     : 'deviations.workflow.reasons.unknown';
+}
+
+/**
+ * The API sent an explicit, empty transition list on a deviation that is not
+ * closed/cancelled. Every open status has at least one move for an editor, so
+ * this means the user has org write but no edit reach on this (restricted)
+ * deviation.
+ */
+export function lacksEditReach(dev: DeviationDetail): boolean {
+  return (
+    dev.allowed_transitions !== undefined &&
+    dev.allowed_transitions.length === 0 &&
+    !isTerminalStatus(dev.status)
+  );
+}
+
+/** Why editing is locked (closed/cancelled, or no edit reach), or null when editable. */
+export function editLockKey(dev: DeviationDetail): string | null {
+  if (isTerminalStatus(dev.status)) {
+    return 'deviations.workflow.closedNote';
+  }
+  return lacksEditReach(dev) ? 'deviations.workflow.noEditAccess' : null;
+}
+
+/** Why the status menu is disabled (no transitions offered), or null when usable. */
+export function statusLockedKey(dev: DeviationDetail): string | null {
+  if (dev.allowed_transitions === undefined || dev.allowed_transitions.length > 0) {
+    return null;
+  }
+  return lacksEditReach(dev)
+    ? 'deviations.workflow.noEditAccess'
+    : 'deviations.workflow.noTransitions';
+}
+
+/**
+ * Whether a move to `status` is still blocked per the deviation's current
+ * transitions. Without transitions (older API) we can't tell, so it stays blocked.
+ */
+export function isStillBlocked(dev: DeviationDetail, status: DeviationStatus): boolean {
+  const transition = dev.allowed_transitions?.find((t) => t.to === status);
+  return transition === undefined || !!transition.blocked_by;
 }
 
 /**
@@ -99,25 +169,4 @@ export function parseWorkflowError(error: unknown): WorkflowError | null {
     message: typeof message === 'string' ? message : '',
     blocking: blockingActions,
   };
-}
-
-/**
- * i18n key for a non-workflow failure of a status change (the generic toast is
- * suppressed upstream). Null for 401/403, which the auth layer owns.
- */
-export function statusErrorKey(error: unknown): string | null {
-  const status = error instanceof HttpErrorResponse ? error.status : -1;
-  if (status === 401 || status === 403) {
-    return null;
-  }
-  if (status === 0) {
-    return 'errors.network';
-  }
-  if (status === 404) {
-    return 'errors.notFound';
-  }
-  if (status >= 500) {
-    return 'errors.server';
-  }
-  return 'errors.generic';
 }

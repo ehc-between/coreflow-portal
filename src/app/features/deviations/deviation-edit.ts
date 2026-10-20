@@ -100,7 +100,8 @@ export function buildDeviationPatch(
   }
   const rootCauseMethod = form.rootCauseMethod.trim();
   if (rootCauseMethod !== (dev.root_cause_method ?? '')) {
-    patch['root_cause_method'] = rootCauseMethod;
+    // The backend's method is a closed set: clearing it means null, not ''.
+    patch['root_cause_method'] = rootCauseMethod || null;
   }
   if (!sameList(form.standards, dev.standards)) {
     patch['standards'] = [...form.standards];

@@ -5,6 +5,7 @@ import {
   afterRenderEffect,
   input,
   output,
+  untracked,
   viewChild,
 } from '@angular/core';
 import { Button, ButtonVariant } from '../button/button';
@@ -99,6 +100,10 @@ export class ConfirmDialog {
   readonly busy = input(false);
   /** Disables only the confirm button (e.g. until a required reason is typed). */
   readonly confirmDisabled = input(false);
+  /** CSS selector (inside the dialog, incl. projected content) to focus on open instead of cancel. */
+  readonly initialFocus = input<string | null>(null);
+  /** Element to focus on close instead of whatever was focused when it opened. */
+  readonly returnFocus = input<HTMLElement | null>(null);
 
   readonly confirmed = output<void>();
   readonly cancelled = output<void>();
@@ -120,10 +125,12 @@ export class ConfirmDialog {
       if (open && !this.wasOpen) {
         const active = document.activeElement;
         this.returnFocusTo = active instanceof HTMLElement ? active : null;
+        const selector = untracked(this.initialFocus);
+        const initial = selector ? panel?.querySelector<HTMLElement>(selector) : null;
         const cancel = panel?.querySelector<HTMLElement>('[data-role="cancel"] button');
-        (cancel ?? panel)?.focus();
+        (initial ?? cancel ?? panel)?.focus();
       } else if (!open && this.wasOpen) {
-        const target = this.returnFocusTo;
+        const target = untracked(this.returnFocus) ?? this.returnFocusTo;
         this.returnFocusTo = null;
         if (target?.isConnected) {
           target.focus();
