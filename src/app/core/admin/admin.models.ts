@@ -1,5 +1,7 @@
+import { KnownRoleKey } from '../org/roles';
+
 /** A role a user can be invited with / hold in an organisation. */
-export type RoleKey = 'admin' | 'member';
+export type RoleKey = KnownRoleKey;
 
 /** Response from creating an organisation. */
 export interface CreatedOrg {
@@ -64,4 +66,13 @@ export interface CreateOrgRequest {
 export interface CreateInvitationRequest {
   readonly email: string;
   readonly role_key: RoleKey;
+}
+
+/** A platform user account as returned by the super-admin user endpoints. */
+export interface AdminUser {
+  readonly id: string;
+  readonly email: string;
+  readonly full_name: string | null;
+  readonly is_active: boolean;
+  readonly is_superuser: boolean;
 }

@@ -283,7 +283,8 @@
       "confirmDelete": "Delete the department \"{{name}}\"?",
       "createdToast": "Department created.",
       "renamedToast": "Department renamed.",
-      "deletedToast": "Department deleted."
+      "deletedToast": "Department deleted.",
+      "deleteTitle": "Delete department"
     },
     "member": {
       "title": "Members",
@@ -298,6 +299,68 @@
       "addedToast": "Member added.",
       "removedToast": "Member removed.",
       "addFailed": "Couldn't add that member. Please try again."
+    },
+    "members": {
+      "title": "Members",
+      "subtitle": "People with access to this organization, their role and account status.",
+      "name": "Name",
+      "email": "Email",
+      "role": "Role",
+      "status": "Status",
+      "actions": "Actions",
+      "active": "Active",
+      "inactive": "Inactive",
+      "you": "(you)",
+      "selfHint": "You can't change your own role or remove yourself.",
+      "changeRoleFor": "Change role for {{name}}",
+      "remove": "Remove",
+      "removeTitle": "Remove member",
+      "removeConfirm": "Remove {{name}} from this organization? Their account and the content they created are kept.",
+      "removedToast": "{{name}} was removed from the organization.",
+      "roleChangedToast": "Role updated for {{name}}.",
+      "roleChangeHint": "Role changes take effect the next time the member's session refreshes (within 15 minutes).",
+      "empty": "No members yet.",
+      "aboutRoles": "About the roles",
+      "multipleRoles": "Multiple roles"
+    },
+    "invitations": {
+      "title": "Invitations",
+      "subtitle": "Invite people by email and keep track of invitations that are not accepted yet.",
+      "pending": "Pending invitations",
+      "empty": "No pending invitations.",
+      "email": "Email",
+      "role": "Role",
+      "expires": "Expires",
+      "invite": "Invite user",
+      "send": "Send invitation",
+      "emailNote": "An email is sent automatically when email delivery is configured.",
+      "linkTitle": "Invitation link",
+      "linkHint": "Share this link with {{email}} so they can accept the invitation.",
+      "linkOnceNote": "Invitation links can only be copied right after they are created. To get a new link, revoke the invitation and send it again.",
+      "copy": "Copy",
+      "copyLink": "Copy link",
+      "copiedToast": "Link copied.",
+      "copyFailed": "Couldn't copy the link. Select it and copy it manually.",
+      "createdToast": "Invitation sent to {{email}}.",
+      "revoke": "Revoke",
+      "revokeTitle": "Revoke invitation",
+      "revokeConfirm": "Revoke the invitation to {{email}}? The link will stop working.",
+      "revokedToast": "Invitation revoked.",
+      "noGrantable": "You don't have permission to invite with any role.",
+      "expired": "Expired"
+    },
+    "errors": {
+      "invitePending": "There is already a pending invitation for this email.",
+      "alreadyMember": "This person is already a member of the organization.",
+      "unknownRole": "That role is not available. Reload the page and try again.",
+      "escalation": "You can't grant or change a role with permissions you don't have yourself.",
+      "selfChange": "You can't change your own role.",
+      "notMember": "This person is no longer a member of the organization. The list has been updated.",
+      "lastManager": "The organization needs at least one active administrator. Make someone else an administrator first.",
+      "invitationNotFound": "This invitation no longer exists. The list has been updated.",
+      "forbidden": "You don't have permission to do that.",
+      "selfDeactivate": "You can't deactivate your own account.",
+      "userNotFound": "That user no longer exists."
     }
   },
   "auth": {
@@ -428,10 +491,6 @@
   "admin": {
     "copy": "Copy",
     "copiedToast": "Copied",
-    "role": {
-      "admin": "Administrator",
-      "member": "Member"
-    },
     "org": {
       "title": "Organizations",
       "subtitle": "Create and manage organizations across the platform.",
@@ -452,7 +511,9 @@
       "email": "Email",
       "name": "Full name",
       "roles": "Roles",
-      "empty": "No members yet."
+      "empty": "No members yet.",
+      "status": "Status",
+      "actions": "Actions"
     },
     "invite": {
       "title": "Invite user",
@@ -468,6 +529,19 @@
       "linkHint": "Share this link so the user can accept the invitation.",
       "createdToast": "Invitation created.",
       "revokedToast": "Invitation revoked."
+    },
+    "users": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "deactivate": "Deactivate",
+      "reactivate": "Reactivate",
+      "deactivateTitle": "Deactivate user",
+      "reactivateTitle": "Reactivate user",
+      "deactivateConfirm": "Deactivate {{name}}? They are signed out and can no longer sign in to any organization. Memberships are kept.",
+      "reactivateConfirm": "Reactivate {{name}}? They can sign in again with their existing memberships.",
+      "deactivatedToast": "{{name}} was deactivated.",
+      "reactivatedToast": "{{name}} was reactivated.",
+      "cancel": "Cancel"
     }
   },
   "invite": {
@@ -869,6 +943,32 @@
       "loadError": "Couldn't load your notification settings. Please try again later.",
       "saved": "Notification settings saved.",
       "saveFailed": "Couldn't save your notification settings. Please try again."
+    }
+  },
+  "roles": {
+    "admin": {
+      "name": "Administrator",
+      "description": "Full access, including organization settings, members and invitations."
+    },
+    "quality_manager": {
+      "name": "Quality manager",
+      "description": "Runs the management system: documents, approvals, deviations and deviation types; can invite users and read the audit log."
+    },
+    "auditor": {
+      "name": "Auditor",
+      "description": "Read access plus the audit log; can record audit findings as deviations."
+    },
+    "dpo": {
+      "name": "Data protection officer",
+      "description": "Data protection officer (DPO): handles privacy documents and deviations."
+    },
+    "ciso": {
+      "name": "Information security lead",
+      "description": "Information security lead (CISO): handles security documents and deviations."
+    },
+    "member": {
+      "name": "Member",
+      "description": "Everyday access: read documents, and report and follow up deviations."
     }
   }
 }

@@ -89,6 +89,16 @@ describe('permissionGuard', () => {
     expect(notifications.notifications()).toEqual([]);
   });
 
+  it('accepts a list and allows a user holding ANY one of the permissions', () => {
+    auth.signIn(user({ a: ['users:invite'] }));
+    expect(url(run(permissionGuard(['org:manage', 'users:invite'])))).toBe(true);
+  });
+
+  it('denies a list when the user holds none of the permissions', () => {
+    auth.signIn(user({ a: ['dashboard:view'] }));
+    expect(url(run(permissionGuard(['org:manage', 'users:invite'])))).toBe('/dashboard');
+  });
+
   it('redirects to the dashboard with a warning by default', () => {
     auth.signIn(user({ a: ['documents:read'] }));
     expect(url(run(permissionGuard('documents:draft')))).toBe('/dashboard');

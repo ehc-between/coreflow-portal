@@ -1,37 +1,14 @@
-import { inject } from '@angular/core';
-import { CanActivateFn, Router } from '@angular/router';
-import { map } from 'rxjs';
-import { SelectedOrgService } from '../org/selected-org.service';
-import { AuthService } from './auth.service';
-
-const MANAGE_PERMISSION = 'org:manage';
+import { CanActivateFn } from '@angular/router';
+import { permissionGuard } from './permission.guard';
 
 /**
- * Guards the org-settings area. Allows navigation only for an authenticated user
- * holding `org:manage` in their currently selected org. When no session is
- * present (e.g. the access token was lost on a full reload) a silent refresh is
- * attempted first; an authenticated user without the permission is sent to the
- * dashboard, an unauthenticated one to the login page.
+ * Org-settings management surfaces (departments, members): requires `org:manage`.
+ * A user who reached Settings via `users:invite` alone is sent back to the
+ * Settings page (their Invitations view) rather than the dashboard.
  */
-export const orgManageGuard: CanActivateFn = () => {
-  const auth = inject(AuthService);
-  const selectedOrg = inject(SelectedOrgService);
-  const router = inject(Router);
+export const orgManageGuard: CanActivateFn = permissionGuard('org:manage', {
+  redirectTo: '/settings',
+});
 
-  // Captured-reference signal read (not the inject()-based hasPermission helper),
-  // so it stays valid inside the async restoreSession callback below.
-  const canManage = () => (selectedOrg.currentOrg()?.permissions ?? []).includes(MANAGE_PERMISSION);
-
-  if (auth.isAuthenticated()) {
-    return canManage() || router.createUrlTree(['/dashboard']);
-  }
-
-  return auth.restoreSession().pipe(
-    map(() => {
-      if (!auth.isAuthenticated()) {
-        return router.createUrlTree(['/login']);
-      }
-      return canManage() || router.createUrlTree(['/dashboard']);
-    }),
-  );
-};
+/** The Settings area: reachable with `org:manage` OR `users:invite` (invitations only). */
+export const settingsGuard: CanActivateFn = permissionGuard(['org:manage', 'users:invite']);

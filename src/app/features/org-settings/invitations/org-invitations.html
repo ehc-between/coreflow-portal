@@ -1,0 +1,176 @@
+<section>
+  <h2 class="mb-1 font-display text-[18px] font-bold tracking-[-0.02em] text-fg">
+    {{ 'settings.invitations.title' | transloco }}
+  </h2>
+  <p class="mb-3 text-[13.5px] text-fg-muted">{{ 'settings.invitations.subtitle' | transloco }}</p>
+
+  <div class="grid gap-5 lg:grid-cols-[1fr_320px]">
+    <app-card [padded]="false">
+      <div class="border-b border-border px-4 py-3">
+        <h3 class="font-display text-[15px] font-bold tracking-[-0.02em] text-fg">
+          {{ 'settings.invitations.pending' | transloco }}
+        </h3>
+      </div>
+      @if (loading() && invitations().length === 0) {
+        <div class="px-4 py-10 text-center text-[14px] text-fg-muted">
+          {{ 'common.loading' | transloco }}
+        </div>
+      } @else if (invitations().length === 0) {
+        <div class="px-4 py-10 text-center text-[14px] text-fg-muted">
+          {{ 'settings.invitations.empty' | transloco }}
+        </div>
+      } @else {
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-[13.5px]">
+            <thead>
+              <tr class="border-b border-border text-[12px] font-semibold text-fg-subtle">
+                <th class="px-4 py-3 font-semibold">
+                  {{ 'settings.invitations.email' | transloco }}
+                </th>
+                <th class="px-4 py-3 font-semibold">
+                  {{ 'settings.invitations.role' | transloco }}
+                </th>
+                <th class="px-4 py-3 font-semibold">
+                  {{ 'settings.invitations.expires' | transloco }}
+                </th>
+                <th class="px-4 py-3">
+                  <span class="sr-only">{{ 'settings.members.actions' | transloco }}</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (invitation of invitations(); track invitation.id) {
+                <tr class="border-b border-border last:border-b-0">
+                  <td class="px-4 py-3 text-fg">{{ invitation.email }}</td>
+                  <td class="px-4 py-3">
+                    <app-badge tone="neutral">{{
+                      roleNameKey(invitation.role_key) | transloco
+                    }}</app-badge>
+                  </td>
+                  <td class="px-4 py-3 text-fg-muted" [attr.data-invitation-id]="invitation.id">
+                    <span class="flex flex-wrap items-center gap-1.5">
+                      {{ invitation.expires_at | date: 'medium' }}
+                      @if (isExpired(invitation)) {
+                        <app-badge tone="warn">{{
+                          'settings.invitations.expired' | transloco
+                        }}</app-badge>
+                      }
+                    </span>
+                  </td>
+                  <td class="px-4 py-3">
+                    <span class="flex justify-end gap-1">
+                      @if (acceptUrl(invitation); as url) {
+                        <app-button variant="ghost" size="sm" (click)="copy(url)">
+                          <app-icon name="link" [size]="15" />
+                          {{ 'settings.invitations.copyLink' | transloco }}
+                        </app-button>
+                      }
+                      <app-button variant="ghost" size="sm" (click)="askRevoke(invitation)">
+                        {{ 'settings.invitations.revoke' | transloco }}
+                      </app-button>
+                    </span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <p class="border-t border-border px-4 py-2 text-[12px] text-fg-subtle">
+          {{ 'settings.invitations.linkOnceNote' | transloco }}
+        </p>
+      }
+    </app-card>
+
+    <app-card>
+      <h3 class="font-display text-[16px] font-bold tracking-[-0.02em] text-fg">
+        {{ 'settings.invitations.invite' | transloco }}
+      </h3>
+      @if (grantable().length === 0 && roles().length > 0) {
+        <p class="mt-3 text-[13px] text-fg-muted">
+          {{ 'settings.invitations.noGrantable' | transloco }}
+        </p>
+      } @else {
+        <form class="mt-4 flex flex-col gap-4" [formGroup]="form" (ngSubmit)="invite()">
+          <app-form-field
+            inputId="org-invite-email"
+            [label]="'settings.invitations.email' | transloco"
+          >
+            <input id="org-invite-email" type="email" formControlName="email" autocomplete="off" />
+          </app-form-field>
+
+          <app-form-field
+            inputId="org-invite-role"
+            [label]="'settings.invitations.role' | transloco"
+          >
+            <select id="org-invite-role" formControlName="role_key">
+              @for (role of grantable(); track role.key) {
+                <option [value]="role.key">{{ roleNameKey(role.key) | transloco }}</option>
+              }
+            </select>
+          </app-form-field>
+          @if (selectedRole(); as roleKey) {
+            <p class="-mt-2 text-[12px] leading-snug text-fg-subtle">
+              {{ roleDescriptionKey(roleKey) | transloco }}
+            </p>
+          }
+
+          @if (inviteErrorKey(); as key) {
+            <p
+              role="alert"
+              class="rounded-tile border border-fail/30 bg-fail-soft px-3 py-2 text-[13px] font-medium text-fail"
+            >
+              {{ key | transloco }}
+            </p>
+          }
+
+          <app-button type="submit" [full]="true" [loading]="inviting()" class="mt-1">
+            <app-icon name="userplus" [size]="15" />
+            {{ 'settings.invitations.send' | transloco }}
+          </app-button>
+
+          <p class="text-[12px] leading-snug text-fg-subtle">
+            {{ 'settings.invitations.emailNote' | transloco }}
+          </p>
+        </form>
+      }
+
+      @if (lastInvite(); as invite) {
+        <div class="mt-5 rounded-tile border border-accent-border bg-accent-soft p-3">
+          <p class="text-[13px] font-semibold text-accent">
+            {{ 'settings.invitations.linkTitle' | transloco }}
+          </p>
+          <p class="mt-0.5 text-[12px] text-fg-muted">
+            {{ 'settings.invitations.linkHint' | transloco: { email: invite.email } }}
+          </p>
+          <div class="mt-2 flex items-center gap-2">
+            <input
+              type="text"
+              readonly
+              [value]="invite.accept_url"
+              [attr.aria-label]="'settings.invitations.linkTitle' | transloco"
+              (focus)="$any($event.target).select()"
+              class="h-9 w-full rounded-[10px] border border-border bg-bg px-3 text-[12.5px] text-fg outline-none"
+            />
+            <app-button variant="secondary" size="sm" (click)="copy(invite.accept_url)">
+              <app-icon name="link" [size]="15" />
+              {{ 'settings.invitations.copy' | transloco }}
+            </app-button>
+          </div>
+        </div>
+      }
+    </app-card>
+  </div>
+
+  <app-confirm-dialog
+    [open]="pendingRevoke() !== null"
+    [busy]="revoking()"
+    [title]="'settings.invitations.revokeTitle' | transloco"
+    [message]="
+      'settings.invitations.revokeConfirm' | transloco: { email: pendingRevoke()?.email ?? '' }
+    "
+    [confirmLabel]="'settings.invitations.revoke' | transloco"
+    [cancelLabel]="'settings.cancel' | transloco"
+    (confirmed)="confirmRevoke()"
+    (cancelled)="cancelRevoke()"
+  />
+</section>

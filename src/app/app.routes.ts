@@ -1,6 +1,6 @@
 import { Route, Routes } from '@angular/router';
 import { authGuard } from './core/auth/auth.guard';
-import { orgManageGuard } from './core/auth/org-manage.guard';
+import { settingsGuard } from './core/auth/org-manage.guard';
 import { permissionGuard } from './core/auth/permission.guard';
 import { superAdminGuard } from './core/auth/super-admin.guard';
 import { MainLayout } from './layout/main-layout/main-layout';
@@ -68,7 +68,7 @@ export const routes: Routes = [
       },
       {
         path: 'settings',
-        canActivate: [authGuard, orgManageGuard],
+        canActivate: [authGuard, settingsGuard],
         loadChildren: () => import('./features/org-settings/org-settings.routes'),
       },
       {

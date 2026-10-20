@@ -1,6 +1,8 @@
 import { Routes } from '@angular/router';
+import { orgManageGuard } from '../../core/auth/org-manage.guard';
 
-/** Org-settings feature routes (guarded + scoped to the current org upstream). */
+/** Org-settings feature routes. The shell route needs `org:manage` OR `users:invite`
+ *  (settingsGuard upstream); department pages need `org:manage`. */
 const routes: Routes = [
   {
     path: '',
@@ -8,6 +10,7 @@ const routes: Routes = [
   },
   {
     path: 'departments/:deptId',
+    canActivate: [orgManageGuard],
     loadComponent: () =>
       import('./department-detail/department-detail').then((m) => m.DepartmentDetail),
   },

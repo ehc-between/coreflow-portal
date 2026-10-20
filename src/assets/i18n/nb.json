@@ -283,7 +283,8 @@
       "confirmDelete": "Slette avdelingen «{{name}}»?",
       "createdToast": "Avdeling opprettet.",
       "renamedToast": "Avdeling fikk nytt navn.",
-      "deletedToast": "Avdeling slettet."
+      "deletedToast": "Avdeling slettet.",
+      "deleteTitle": "Slett avdeling"
     },
     "member": {
       "title": "Medlemmer",
@@ -298,6 +299,68 @@
       "addedToast": "Medlem lagt til.",
       "removedToast": "Medlem fjernet.",
       "addFailed": "Kunne ikke legge til medlemmet. Prøv igjen."
+    },
+    "members": {
+      "title": "Medlemmer",
+      "subtitle": "Personer med tilgang til organisasjonen, rollen deres og kontostatus.",
+      "name": "Navn",
+      "email": "E-post",
+      "role": "Rolle",
+      "status": "Status",
+      "actions": "Handlinger",
+      "active": "Aktiv",
+      "inactive": "Deaktivert",
+      "you": "(deg)",
+      "selfHint": "Du kan ikke endre din egen rolle eller fjerne deg selv.",
+      "changeRoleFor": "Endre rolle for {{name}}",
+      "remove": "Fjern",
+      "removeTitle": "Fjern medlem",
+      "removeConfirm": "Fjerne {{name}} fra organisasjonen? Kontoen og innholdet vedkommende har laget, beholdes.",
+      "removedToast": "{{name}} ble fjernet fra organisasjonen.",
+      "roleChangedToast": "Rollen til {{name}} er oppdatert.",
+      "roleChangeHint": "Rolleendringer trer i kraft neste gang medlemmets økt fornyes (innen 15 minutter).",
+      "empty": "Ingen medlemmer ennå.",
+      "aboutRoles": "Om rollene",
+      "multipleRoles": "Flere roller"
+    },
+    "invitations": {
+      "title": "Invitasjoner",
+      "subtitle": "Inviter personer på e-post og hold oversikt over invitasjoner som ikke er godtatt ennå.",
+      "pending": "Ventende invitasjoner",
+      "empty": "Ingen ventende invitasjoner.",
+      "email": "E-post",
+      "role": "Rolle",
+      "expires": "Utløper",
+      "invite": "Inviter bruker",
+      "send": "Send invitasjon",
+      "emailNote": "En e-post sendes automatisk når e-postlevering er konfigurert.",
+      "linkTitle": "Invitasjonslenke",
+      "linkHint": "Del denne lenken med {{email}} slik at vedkommende kan godta invitasjonen.",
+      "linkOnceNote": "Invitasjonslenker kan bare kopieres rett etter at de er opprettet. Trekk tilbake invitasjonen og send den på nytt for å få en ny lenke.",
+      "copy": "Kopier",
+      "copyLink": "Kopier lenke",
+      "copiedToast": "Lenken er kopiert.",
+      "copyFailed": "Kunne ikke kopiere lenken. Merk den og kopier den manuelt.",
+      "createdToast": "Invitasjon sendt til {{email}}.",
+      "revoke": "Trekk tilbake",
+      "revokeTitle": "Trekk tilbake invitasjon",
+      "revokeConfirm": "Trekke tilbake invitasjonen til {{email}}? Lenken slutter å virke.",
+      "revokedToast": "Invitasjonen er trukket tilbake.",
+      "noGrantable": "Du har ikke tilgang til å invitere med noen rolle.",
+      "expired": "Utløpt"
+    },
+    "errors": {
+      "invitePending": "Det finnes allerede en ventende invitasjon for denne e-postadressen.",
+      "alreadyMember": "Denne personen er allerede medlem av organisasjonen.",
+      "unknownRole": "Rollen er ikke tilgjengelig. Last inn siden på nytt og prøv igjen.",
+      "escalation": "Du kan ikke gi eller endre en rolle med tilganger du ikke har selv.",
+      "selfChange": "Du kan ikke endre din egen rolle.",
+      "notMember": "Denne personen er ikke lenger medlem av organisasjonen. Listen er oppdatert.",
+      "lastManager": "Organisasjonen må ha minst én aktiv administrator. Gjør noen andre til administrator først.",
+      "invitationNotFound": "Invitasjonen finnes ikke lenger. Listen er oppdatert.",
+      "forbidden": "Du har ikke tilgang til å gjøre dette.",
+      "selfDeactivate": "Du kan ikke deaktivere din egen konto.",
+      "userNotFound": "Brukeren finnes ikke lenger."
     }
   },
   "auth": {
@@ -428,10 +491,6 @@
   "admin": {
     "copy": "Kopier",
     "copiedToast": "Kopiert",
-    "role": {
-      "admin": "Administrator",
-      "member": "Medlem"
-    },
     "org": {
       "title": "Organisasjoner",
       "subtitle": "Opprett og administrer organisasjoner på tvers av plattformen.",
@@ -452,7 +511,9 @@
       "email": "E-post",
       "name": "Fullt navn",
       "roles": "Roller",
-      "empty": "Ingen medlemmer ennå."
+      "empty": "Ingen medlemmer ennå.",
+      "status": "Status",
+      "actions": "Handlinger"
     },
     "invite": {
       "title": "Inviter bruker",
@@ -468,6 +529,19 @@
       "linkHint": "Del denne lenken slik at brukeren kan godta invitasjonen.",
       "createdToast": "Invitasjon opprettet.",
       "revokedToast": "Invitasjon trukket tilbake."
+    },
+    "users": {
+      "active": "Aktiv",
+      "inactive": "Deaktivert",
+      "deactivate": "Deaktiver",
+      "reactivate": "Aktiver igjen",
+      "deactivateTitle": "Deaktiver bruker",
+      "reactivateTitle": "Aktiver bruker igjen",
+      "deactivateConfirm": "Deaktivere {{name}}? Vedkommende logges ut og kan ikke lenger logge inn i noen organisasjon. Medlemskapene beholdes.",
+      "reactivateConfirm": "Aktivere {{name}} igjen? Vedkommende kan logge inn igjen med de eksisterende medlemskapene.",
+      "deactivatedToast": "{{name}} er deaktivert.",
+      "reactivatedToast": "{{name}} er aktivert igjen.",
+      "cancel": "Avbryt"
     }
   },
   "invite": {
@@ -869,6 +943,32 @@
       "loadError": "Kunne ikke laste varslingsinnstillingene. Prøv igjen senere.",
       "saved": "Varslingsinnstillingene er lagret.",
       "saveFailed": "Kunne ikke lagre varslingsinnstillingene. Prøv igjen."
+    }
+  },
+  "roles": {
+    "admin": {
+      "name": "Administrator",
+      "description": "Full tilgang, inkludert organisasjonsinnstillinger, medlemmer og invitasjoner."
+    },
+    "quality_manager": {
+      "name": "Kvalitetsleder",
+      "description": "Drifter styringssystemet: dokumenter, godkjenninger, avvik og avvikstyper; kan invitere brukere og lese revisjonsloggen."
+    },
+    "auditor": {
+      "name": "Revisor",
+      "description": "Lesetilgang og tilgang til revisjonsloggen; kan registrere revisjonsfunn som avvik."
+    },
+    "dpo": {
+      "name": "Personvernombud",
+      "description": "Personvernombud (DPO): håndterer personverndokumenter og avvik."
+    },
+    "ciso": {
+      "name": "Informasjonssikkerhetsansvarlig",
+      "description": "Informasjonssikkerhetsansvarlig (CISO): håndterer sikkerhetsdokumenter og avvik."
+    },
+    "member": {
+      "name": "Medlem",
+      "description": "Daglig tilgang: lese dokumenter, og melde og følge opp avvik."
     }
   }
 }

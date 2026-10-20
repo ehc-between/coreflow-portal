@@ -36,6 +36,10 @@
                   <th class="px-4 py-3 font-semibold">{{ 'admin.members.email' | transloco }}</th>
                   <th class="px-4 py-3 font-semibold">{{ 'admin.members.name' | transloco }}</th>
                   <th class="px-4 py-3 font-semibold">{{ 'admin.members.roles' | transloco }}</th>
+                  <th class="px-4 py-3 font-semibold">{{ 'admin.members.status' | transloco }}</th>
+                  <th class="px-4 py-3">
+                    <span class="sr-only">{{ 'admin.members.actions' | transloco }}</span>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -49,6 +53,38 @@
                           <app-badge tone="accent">{{ roleBadgeKey(role) | transloco }}</app-badge>
                         }
                       </span>
+                    </td>
+                    <td class="px-4 py-3">
+                      @switch (isActive(member)) {
+                        @case (true) {
+                          <app-badge tone="pass">{{ 'admin.users.active' | transloco }}</app-badge>
+                        }
+                        @case (false) {
+                          <app-badge tone="neutral">
+                            {{ 'admin.users.inactive' | transloco }}
+                          </app-badge>
+                        }
+                      }
+                    </td>
+                    <td class="px-4 py-3 text-right">
+                      @if (isActive(member) === true) {
+                        <app-button
+                          variant="ghost"
+                          size="sm"
+                          [disabled]="isSelf(member)"
+                          (click)="askToggle(member, 'deactivate')"
+                        >
+                          {{ 'admin.users.deactivate' | transloco }}
+                        </app-button>
+                      } @else if (isActive(member) === false) {
+                        <app-button
+                          variant="ghost"
+                          size="sm"
+                          (click)="askToggle(member, 'reactivate')"
+                        >
+                          {{ 'admin.users.reactivate' | transloco }}
+                        </app-button>
+                      }
                     </td>
                   </tr>
                 }
@@ -170,3 +206,32 @@
     </div>
   }
 </div>
+
+<app-confirm-dialog
+  [open]="pendingToggle() !== null"
+  [busy]="toggling()"
+  [confirmVariant]="pendingToggle()?.action === 'reactivate' ? 'primary' : 'danger'"
+  [title]="
+    (pendingToggle()?.action === 'reactivate'
+      ? 'admin.users.reactivateTitle'
+      : 'admin.users.deactivateTitle'
+    ) | transloco
+  "
+  [message]="
+    (pendingToggle()?.action === 'reactivate'
+      ? 'admin.users.reactivateConfirm'
+      : 'admin.users.deactivateConfirm'
+    )
+      | transloco
+        : {
+            name: pendingToggle()?.member?.full_name || pendingToggle()?.member?.email || '',
+          }
+  "
+  [confirmLabel]="
+    (pendingToggle()?.action === 'reactivate' ? 'admin.users.reactivate' : 'admin.users.deactivate')
+      | transloco
+  "
+  [cancelLabel]="'admin.users.cancel' | transloco"
+  (confirmed)="confirmToggle()"
+  (cancelled)="cancelToggle()"
+/>

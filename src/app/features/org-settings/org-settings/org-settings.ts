@@ -1,26 +1,49 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
+import { hasAnyPermission } from '../../../core/auth/permission';
 import { OrgApi } from '../../../core/org/org-api';
 import { DepartmentSummary } from '../../../core/org/org.models';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
+import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
 import { FormField } from '../../../shared/ui/form-field/form-field';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { OrgInvitations } from '../invitations/org-invitations';
+import { OrgMembers } from '../members/org-members';
 
 /**
- * Org Settings shell, scoped to the currently selected org. For now it hosts a
- * single Departments section (list + create + rename + delete); the layout is
- * structured so further org-settings sections can be added below. Reacts to org
- * switches by reloading departments for the new org and dropping stale state.
+ * Org Settings shell, scoped to the currently selected org. Hosts Departments
+ * (list + create + rename + delete) and Members — both `org:manage` — and
+ * Invitations (`users:invite`); each section renders (and loads) only when the
+ * selected org grants its permission, so an invite-only user sees Invitations
+ * alone. Reacts to org switches by reloading and dropping stale state.
  */
 @Component({
   selector: 'app-org-settings',
-  imports: [ReactiveFormsModule, RouterLink, TranslocoPipe, Card, FormField, Button, Icon],
+  imports: [
+    ReactiveFormsModule,
+    RouterLink,
+    TranslocoPipe,
+    Card,
+    FormField,
+    Button,
+    Icon,
+    ConfirmDialog,
+    OrgMembers,
+    OrgInvitations,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './org-settings.html',
 })
@@ -29,10 +52,15 @@ export class OrgSettings {
   private readonly orgApi = inject(OrgApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly notifications = inject(NotificationService);
-  private readonly transloco = inject(TranslocoService);
 
   /** The active org id; the page is scoped to and reloads on changes to it. */
   protected readonly orgId = this.selectedOrg.currentOrgId;
+
+  private readonly granted = computed(() => this.selectedOrg.currentOrg()?.permissions ?? []);
+  /** Departments + Members. */
+  protected readonly canManage = computed(() => hasAnyPermission(this.granted(), 'org:manage'));
+  /** Invitations. */
+  protected readonly canInvite = computed(() => hasAnyPermission(this.granted(), 'users:invite'));
 
   protected readonly departments = signal<readonly DepartmentSummary[]>([]);
   protected readonly loading = signal(false);
@@ -43,6 +71,10 @@ export class OrgSettings {
   protected readonly editingId = signal<string | null>(null);
   protected readonly renameTaken = signal(false);
   protected readonly renaming = signal(false);
+
+  /** Department awaiting delete confirmation. */
+  protected readonly pendingDelete = signal<DepartmentSummary | null>(null);
+  protected readonly deleting = signal(false);
 
   protected readonly createForm = this.fb.nonNullable.group({
     name: ['', [Validators.required]],
@@ -55,10 +87,13 @@ export class OrgSettings {
   constructor() {
     effect(() => {
       const orgId = this.orgId();
+      const canManage = this.canManage();
       // Drop any stale data from a previously selected org.
       this.departments.set([]);
       this.editingId.set(null);
-      if (orgId) {
+      this.pendingDelete.set(null);
+      // Departments need org:manage — don't request them (403) for invite-only users.
+      if (orgId && canManage) {
         this.load(orgId);
       }
     });
@@ -132,18 +167,31 @@ export class OrgSettings {
   }
 
   protected remove(department: DepartmentSummary): void {
+    this.pendingDelete.set(department);
+  }
+
+  protected cancelDelete(): void {
+    this.pendingDelete.set(null);
+  }
+
+  protected confirmDelete(): void {
     const orgId = this.orgId();
-    const message = this.transloco.translate('settings.departments.confirmDelete', {
-      name: department.name,
-    });
-    if (!orgId || !globalThis.confirm?.(message)) {
+    const department = this.pendingDelete();
+    if (!orgId || !department || this.deleting()) {
       return;
     }
 
+    this.deleting.set(true);
     this.orgApi.deleteDepartment(orgId, department.id).subscribe({
       next: () => {
+        this.deleting.set(false);
+        this.pendingDelete.set(null);
         this.notifications.success('settings.departments.deletedToast');
         this.load(orgId);
+      },
+      error: () => {
+        this.deleting.set(false);
+        this.pendingDelete.set(null);
       },
     });
   }

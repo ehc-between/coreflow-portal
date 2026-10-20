@@ -4,6 +4,7 @@ import { map } from 'rxjs';
 import { NotificationService } from '../notifications/notification.service';
 import { SelectedOrgService } from '../org/selected-org.service';
 import { AuthService } from './auth.service';
+import { hasAnyPermission } from './permission';
 
 /** i18n key of the warning shown when a guard turns a signed-in user away. */
 export const FORBIDDEN_MESSAGE_KEY = 'errors.forbidden';
@@ -30,6 +31,7 @@ export interface PermissionGuardOptions {
 /**
  * Builds a route guard that allows navigation only for an authenticated user
  * holding `permission` in their currently selected org (`SelectedOrgService`).
+ * A list means ANY one of the permissions suffices.
  *
  * Session restore: when no session is present (hard refresh — the in-memory
  * access token is gone) it waits for the single-flight silent refresh before
@@ -39,7 +41,7 @@ export interface PermissionGuardOptions {
  * authenticated one lacking the permission to `redirectTo` with a warning.
  */
 export function permissionGuard(
-  permission: string,
+  permission: string | readonly string[],
   options: PermissionGuardOptions = {},
 ): CanActivateFn {
   const { redirectTo = DEFAULT_DENIED_REDIRECT, notify = true } = options;
@@ -53,7 +55,7 @@ export function permissionGuard(
     // Captured-reference reads (not the inject()-based hasPermission helper),
     // so they stay valid inside the async restoreSession callback.
     const decide = (): boolean | UrlTree => {
-      if ((selectedOrg.currentOrg()?.permissions ?? []).includes(permission)) {
+      if (hasAnyPermission(selectedOrg.currentOrg()?.permissions, permission)) {
         return true;
       }
       // Dedupe: a fall-through chain (e.g. /documents/new → /documents →
