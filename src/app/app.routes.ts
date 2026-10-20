@@ -1,6 +1,7 @@
 import { Route, Routes } from '@angular/router';
 import { authGuard } from './core/auth/auth.guard';
 import { orgManageGuard } from './core/auth/org-manage.guard';
+import { permissionGuard } from './core/auth/permission.guard';
 import { superAdminGuard } from './core/auth/super-admin.guard';
 import { MainLayout } from './layout/main-layout/main-layout';
 import { NAV_ITEMS } from './layout/nav';
@@ -43,6 +44,10 @@ export const routes: Routes = [
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
       {
         path: 'dashboard',
+        // The default landing page. A user without dashboard:view falls back
+        // silently to My Work (always available) — no warning, since they may
+        // simply have signed in. Must not redirect to /dashboard (loop).
+        canActivate: [permissionGuard('dashboard:view', { redirectTo: '/my-work', notify: false })],
         loadChildren: () => import('./features/dashboard/dashboard.routes'),
       },
       {
@@ -52,6 +57,8 @@ export const routes: Routes = [
       },
       {
         path: 'documents',
+        // Module-level read gate; sub-pages add stricter guards in the feature routes.
+        canActivate: [permissionGuard('documents:read')],
         loadChildren: () => import('./features/documents/documents.routes'),
       },
       {
@@ -60,6 +67,8 @@ export const routes: Routes = [
       },
       {
         path: 'deviations',
+        // Module-level read gate; sub-pages add stricter guards in the feature routes.
+        canActivate: [permissionGuard('deviations:read')],
         loadChildren: () => import('./features/deviations/deviations.routes'),
       },
       {
