@@ -970,5 +970,42 @@
       "name": "Medlem",
       "description": "Daglig tilgang: lese dokumenter, og melde og følge opp avvik."
     }
+  },
+  "attachments": {
+    "title": "Vedlegg",
+    "empty": "Ingen vedlegg ennå.",
+    "attach": "Legg ved fil",
+    "dropHint": "Slipp filer her eller klikk for å velge",
+    "download": "Last ned",
+    "delete": "Slett",
+    "deleteNamed": "Slett {{name}}",
+    "confirmDelete": "Slette «{{name}}»? Den vil ikke lenger være tilgjengelig som dokumentasjon.",
+    "cancel": "Avbryt",
+    "cancelUpload": "Avbryt opplasting",
+    "retry": "Prøv igjen",
+    "dismiss": "Lukk",
+    "unavailable": "Filvedlegg er ikke satt opp på denne serveren.",
+    "state": {
+      "hashing": "Klargjør…",
+      "uploading": "Laster opp…",
+      "completing": "Kontrollerer…",
+      "error": "Mislyktes"
+    },
+    "errors": {
+      "empty": "Filen er tom.",
+      "tooLarge": "Filen er større enn tillatt.",
+      "typeNotAllowed": "Denne filtypen er ikke tillatt.",
+      "invalid": "Filen kunne ikke godtas. Sjekk navnet og prøv igjen.",
+      "notUploaded": "Opplastingen ble ikke fullført. Prøv igjen.",
+      "verifyFailed": "Den opplastede filen kunne ikke kontrolleres. Prøv igjen.",
+      "uploadFailed": "Opplastingen mislyktes. Sjekk tilkoblingen og prøv igjen.",
+      "readFailed": "Filen kunne ikke leses.",
+      "forbidden": "Du har ikke tilgang til å endre vedlegg her.",
+      "notFound": "Vedlegget finnes ikke lenger.",
+      "loadFailed": "Kunne ikke laste inn vedlegg.",
+      "downloadFailed": "Kunne ikke laste ned filen. Prøv igjen.",
+      "deleteFailed": "Kunne ikke slette vedlegget. Prøv igjen.",
+      "generic": "Noe gikk galt med vedlegget. Prøv igjen."
+    }
   }
 }

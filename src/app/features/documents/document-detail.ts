@@ -30,6 +30,7 @@ import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { Badge } from '../../shared/ui/badge/badge';
 import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
+import { Attachments } from '../../shared/attachments/attachments';
 import { Icon } from '../../shared/ui/icon/icon';
 import { DocumentAccessEditor } from './access/document-access-editor';
 import { DocumentComments } from './comments/document-comments';
@@ -57,6 +58,7 @@ import { statusLabelKey, statusTone } from './document-status';
     Icon,
     DocumentAccessEditor,
     DocumentComments,
+    Attachments,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { '(document:click)': 'closeDownload()' },
@@ -267,6 +269,10 @@ import { statusLabelKey, statusTone } from './document-status';
                   }
                 </ul>
               }
+            </app-card>
+
+            <app-card>
+              <app-attachments entityType="document" [entityId]="doc.id" [canEdit]="canEdit()" />
             </app-card>
 
             @if (access(); as acc) {

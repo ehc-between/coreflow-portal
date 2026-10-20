@@ -970,5 +970,42 @@
       "name": "Member",
       "description": "Everyday access: read documents, and report and follow up deviations."
     }
+  },
+  "attachments": {
+    "title": "Attachments",
+    "empty": "No attachments yet.",
+    "attach": "Attach file",
+    "dropHint": "Drop files here or click to choose",
+    "download": "Download",
+    "delete": "Delete",
+    "deleteNamed": "Delete {{name}}",
+    "confirmDelete": "Delete “{{name}}”? It will no longer be available as evidence.",
+    "cancel": "Cancel",
+    "cancelUpload": "Cancel upload",
+    "retry": "Retry",
+    "dismiss": "Dismiss",
+    "unavailable": "File attachments aren’t set up on this server.",
+    "state": {
+      "hashing": "Preparing…",
+      "uploading": "Uploading…",
+      "completing": "Verifying…",
+      "error": "Failed"
+    },
+    "errors": {
+      "empty": "The file is empty.",
+      "tooLarge": "The file is larger than allowed.",
+      "typeNotAllowed": "This file type isn’t allowed.",
+      "invalid": "The file couldn’t be accepted. Check the name and try again.",
+      "notUploaded": "The upload didn’t finish. Try again.",
+      "verifyFailed": "The uploaded file couldn’t be verified. Try again.",
+      "uploadFailed": "The upload failed. Check your connection and try again.",
+      "readFailed": "The file couldn’t be read.",
+      "forbidden": "You don’t have access to change attachments here.",
+      "notFound": "The attachment no longer exists.",
+      "loadFailed": "Couldn’t load attachments.",
+      "downloadFailed": "Couldn’t download the file. Try again.",
+      "deleteFailed": "Couldn’t delete the attachment. Try again.",
+      "generic": "Something went wrong with the attachment. Try again."
+    }
   }
 }

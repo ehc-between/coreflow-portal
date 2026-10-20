@@ -33,6 +33,7 @@ import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { Badge } from '../../shared/ui/badge/badge';
 import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
+import { Attachments } from '../../shared/attachments/attachments';
 import { Icon } from '../../shared/ui/icon/icon';
 import { DeviationAccessEditor } from './access/deviation-access-editor';
 import { DeviationActions } from './actions/deviation-actions';
@@ -75,6 +76,7 @@ import { groupFieldsIntoSections } from './types/type-schema';
     DynamicField,
     DeviationActions,
     DeviationAccessEditor,
+    Attachments,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -473,6 +475,10 @@ import { groupFieldsIntoSections } from './types/type-schema';
                 (actionsChange)="actions.set($event)"
                 (changed)="reloadEvents()"
               />
+            </app-card>
+
+            <app-card>
+              <app-attachments entityType="deviation" [entityId]="dev.id" [canEdit]="canWrite()" />
             </app-card>
           </div>
 
