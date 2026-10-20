@@ -9,8 +9,28 @@ export interface DocumentSummary {
   readonly doc_code: string;
   readonly status: DocumentStatus;
   readonly owner_user_id: string;
-  readonly current_rev: number | null;
+  readonly current_rev: string | number | null;
   readonly updated_at: string;
+  /** When the next periodic review is due (ISO date); null when no interval is set. */
+  readonly next_review_at?: string | null;
+  /** True once `next_review_at` has passed. */
+  readonly review_overdue?: boolean;
+}
+
+/** A page of the documents list plus the total matching rows. */
+export interface DocumentPage {
+  readonly items: readonly DocumentSummary[];
+  readonly total: number;
+}
+
+/** Filters + client-side paging for the documents list. */
+export interface DocumentListQuery {
+  readonly status?: DocumentStatus;
+  readonly type?: string;
+  /** Only documents whose periodic review is due soon or overdue. */
+  readonly review_due?: boolean;
+  readonly limit?: number;
+  readonly offset?: number;
 }
 
 /** A hit from the document search endpoint. */
@@ -29,14 +49,56 @@ export type ExportFormat = 'pdf' | 'docx';
 /** A single revision of a document. */
 export interface DocumentRevision {
   readonly id: string;
-  readonly rev: number;
+  /** Revision label (A, B, … Z, AA, …). */
+  readonly rev: string | number;
   /** The revision body as sanitized HTML. */
   readonly content?: string;
   readonly status: string;
   readonly author_user_id: string;
   readonly approved_by_user_id?: string | null;
   readonly approved_at?: string | null;
+  /** Why this revision was made; required once an approved revision exists. */
+  readonly change_reason?: string | null;
   readonly created_at: string;
+}
+
+/** The caller's read-and-understood state for the current approved revision. */
+export interface DocumentAcknowledgementState {
+  /** Whether readers must acknowledge the approved revision. */
+  readonly required: boolean;
+  /** When the caller acknowledged the current approved revision, else null. */
+  readonly acknowledged_at: string | null;
+}
+
+/** The open "request changes" that sent a document back to draft. */
+export interface PendingChangeRequest {
+  readonly comment: string;
+  /** Display name of the reviewer who asked for changes. */
+  readonly by_name: string | null;
+  readonly at: string;
+}
+
+/** Document-control settings editable via `PATCH documents/{id}` (all optional). */
+export interface DocumentControlUpdate {
+  readonly review_interval_months?: number | null;
+  readonly next_review_at?: string | null;
+  readonly acknowledgement_required?: boolean;
+}
+
+/** One person in the acknowledgement report. */
+export interface AcknowledgementEntry {
+  readonly user_id: string;
+  readonly name: string;
+  readonly email?: string | null;
+  readonly acknowledged_at?: string | null;
+}
+
+/** Who has (and hasn't yet) read and understood the current approved revision. */
+export interface DocumentAcknowledgements {
+  /** The approved revision label the lists refer to; null if never approved. */
+  readonly revision: string | null;
+  readonly acknowledged: readonly AcknowledgementEntry[];
+  readonly pending: readonly AcknowledgementEntry[];
 }
 
 /** Full document detail, including the current revision and revision history. */
@@ -48,8 +110,34 @@ export interface DocumentDetail {
   readonly status: DocumentStatus;
   readonly owner_user_id: string;
   readonly clause_ref?: string | null;
+  /** The last approved revision — what readers see. Null until first approval. */
   readonly current_revision: DocumentRevision | null;
   readonly revisions: readonly DocumentRevision[];
+  // Document control (review workflow, periodic review, acknowledgement).
+  /** The working draft / in-review revision; only returned to drafters. */
+  readonly draft_revision?: DocumentRevision | null;
+  /** Periodic review interval in months; null when no periodic review is set. */
+  readonly review_interval_months?: number | null;
+  readonly next_review_at?: string | null;
+  readonly review_overdue?: boolean;
+  readonly acknowledgement?: DocumentAcknowledgementState;
+  readonly pending_change_request?: PendingChangeRequest | null;
+  /** Why the document was made obsolete (set with status `obsolete`). */
+  readonly obsolete_reason?: string | null;
+  /** Whether the caller may delete this document now (their rights and its state). */
+  readonly can_delete?: boolean;
+  /** Deleting needs a recorded reason (an obsolete document). */
+  readonly delete_requires_reason?: boolean;
+}
+
+/** A soft-deleted document, as listed for org admins (`GET documents/deleted`). */
+export interface DeletedDocument {
+  readonly id: string;
+  readonly title: string;
+  readonly doc_code: string | null;
+  readonly deleted_at: string;
+  readonly deleted_by_name: string | null;
+  readonly deleted_reason: string | null;
 }
 
 /** Who may see a document: open to the whole org, or restricted to named subjects. */

@@ -117,7 +117,6 @@
     "approve": "Approve",
     "requestChanges": "Request changes",
     "approvedToast": "Document approved.",
-    "requestChangesToast": "Request changes is coming soon.",
     "createdToast": "Document created.",
     "download": "Download",
     "downloadPdf": "Download PDF",
@@ -145,7 +144,8 @@
       "savedToast": "{{ count }} change(s) saved as Rev {{ rev }}.",
       "skippedToast": "{{ count }} change(s) couldn't be applied because the text they refer to has changed.",
       "appliedToast": "Change applied as a new revision.",
-      "anchorNotFoundToast": "The text this comment refers to has changed, so the suggestion can't be applied."
+      "anchorNotFoundToast": "The text this comment refers to has changed, so the suggestion can't be applied.",
+      "changeReason": "Applied {{count}} review comment(s)"
     },
     "meta": {
       "code": "Code",
@@ -206,7 +206,8 @@
         "suggested": "Suggested",
         "addingNew": "Adding new content",
         "close": "Close"
-      }
+      },
+      "inReviewWarning": "This document is in review. Saving withdraws the submitted revision and returns it to draft."
     },
     "access": {
       "sectionTitle": "Owner & access",
@@ -243,12 +244,111 @@
       "in_review": "In review",
       "approved": "Approved",
       "obsolete": "Obsolete",
-      "superseded": "Superseded"
+      "superseded": "Superseded",
+      "withdrawn": "Withdrawn"
+    },
+    "workflow": {
+      "submit": "Submit for review",
+      "submitTitle": "Submit for review?",
+      "submitBody": "Approvers will be notified and can approve this draft or send it back with comments.",
+      "submittedToast": "Submitted for review.",
+      "approveTitle": "Approve this revision?",
+      "approveBody": "Rev {{rev}} becomes the approved version that everyone reads.",
+      "requestChangesTitle": "Request changes",
+      "requestChangesBody": "The document goes back to draft and the author sees your comment.",
+      "commentLabel": "What needs to change?",
+      "commentPlaceholder": "Describe the changes you need…",
+      "sendBack": "Send back to draft",
+      "changesRequestedToast": "Changes requested. The document is back in draft.",
+      "obsolete": "Make obsolete",
+      "obsoleteTitle": "Make this document obsolete?",
+      "obsoleteBody": "It is withdrawn from use and can no longer be edited. The revision history is kept.",
+      "reasonLabel": "Reason",
+      "obsoletePlaceholder": "Why is this document being withdrawn?",
+      "obsoletedToast": "Document made obsolete.",
+      "changesRequested": "Changes requested",
+      "changesRequestedBy": "Changes requested by {{name}}",
+      "viewingDraft": "Draft Rev {{rev}} — not approved yet.",
+      "readersSee": "Readers still see approved Rev {{rev}}.",
+      "viewingApproved": "Approved Rev {{rev}} — what readers see.",
+      "draftPending": "A draft (Rev {{rev}}) is in progress.",
+      "neverApproved": "Readers can't see this document until it is approved.",
+      "changeReasonShown": "Reason for change: {{reason}}",
+      "versionSwitch": "Choose which version to view",
+      "approvedRev": "Approved · Rev {{rev}}",
+      "draftRev": "Draft · Rev {{rev}}",
+      "changeReasonTitle": "Reason for change",
+      "changeReasonBodyRequired": "Describe what changed and why. This is recorded in the revision history.",
+      "changeReasonBodyOptional": "Optionally describe this change. It is recorded in the revision history.",
+      "changeReasonLabel": "Reason for change",
+      "changeReasonPlaceholder": "For example: updated the approval steps after the audit",
+      "errors": {
+        "selfApproval": "You authored this revision, so someone else needs to approve it.",
+        "notInReview": "This document isn't in review any more. We've refreshed it to show its current status.",
+        "notDraft": "Only a draft can be submitted for review.",
+        "changeReasonRequired": "Add a reason for the change before saving.",
+        "forbidden": "You don't have permission to do that.",
+        "conflict": "This document was changed by someone else. Refresh and try again.",
+        "obsolete": "This document is obsolete and can no longer be changed.",
+        "noApprovedRevision": "There is no approved revision to confirm yet."
+      },
+      "obsoleteNotice": "This document is obsolete"
+    },
+    "delete": {
+      "title": "Delete document",
+      "action": "Delete",
+      "hint": "Removes this document and its revision history.",
+      "hintObsolete": "Removes this obsolete document. You'll be asked for a reason. The reason is kept with the deleted document's record for administrators.",
+      "blockedHint": "Approved documents can't be deleted. Make it obsolete instead; an organization administrator can then delete it.",
+      "adminOnlyHint": "Only an organization administrator can delete obsolete documents.",
+      "confirmTitle": "Delete {{code}}?",
+      "confirmBody": "The document and its revision history are removed. This can't be undone.",
+      "reasonBody": "The document and its revision history are removed. This can't be undone. The reason is kept with the deleted document's record for administrators.",
+      "reasonLabel": "Reason for deletion",
+      "reasonPlaceholder": "Why is this document being deleted?",
+      "deletedToast": "Document deleted.",
+      "errors": {
+        "hasApprovedRevision": "Approved documents can't be deleted. Make it obsolete instead; an organization administrator can then delete it.",
+        "reasonRequired": "Add a reason before deleting an obsolete document.",
+        "notFound": "This document no longer exists."
+      }
+    },
+    "review": {
+      "title": "Periodic review",
+      "overdue": "Review overdue",
+      "dueSoon": "Review due",
+      "interval": "Review interval",
+      "noInterval": "No periodic review",
+      "everyMonths": "Every {{months}} months",
+      "nextReview": "Next review",
+      "nextReviewHint": "Leave empty to schedule it from the interval at the next approval.",
+      "edit": "Edit review settings",
+      "savedToast": "Review settings saved.",
+      "filter": "Review due"
+    },
+    "ack": {
+      "requireLabel": "Require \"Read and understood\"",
+      "requireHint": "Readers confirm they have read each approved revision.",
+      "required": "Read and understood",
+      "done": "You confirmed you read and understood Rev {{rev}} on {{date}}.",
+      "promptTitle": "Please confirm you have read this document",
+      "promptBody": "The owner asks everyone to confirm they have read and understood Rev {{rev}}.",
+      "button": "Read and understood",
+      "confirmTitle": "Read and understood",
+      "confirmBody": "I confirm that I have read and understood \"{{title}}\", Rev {{rev}}.",
+      "savedToast": "Thanks — your confirmation is recorded.",
+      "listTitle": "Read and understood",
+      "progress": "{{done}} of {{total}}",
+      "loadError": "We couldn't load who has confirmed.",
+      "pending": "Not yet ({{count}})",
+      "nonePending": "Everyone has confirmed.",
+      "acknowledged": "Confirmed ({{count}})",
+      "noneYet": "No one has confirmed yet."
     }
   },
   "review": {
     "title": "Needs your review",
-    "subtitle": "Drafts waiting for your approval before they're published.",
+    "subtitle": "Documents waiting for your approval and drafts proposed for the library.",
     "empty": "You're all caught up. Nothing needs your review.",
     "queuedAt": "Added {{date}}",
     "open": "Open",
@@ -256,17 +356,35 @@
     "backToFeed": "Back to review",
     "reviewTitle": "Review proposal",
     "saveDraft": "Save draft",
-    "approveAndPublish": "Approve & publish",
+    "approveAndPublish": "Accept & submit for review",
     "notPending": "This proposal has already been handled and can no longer be edited.",
     "notFound": "Proposal not found.",
     "savedToast": "Draft saved.",
-    "publishedToast": "Document published.",
-    "rejectedToast": "Draft rejected."
+    "publishedToast": "Document created and submitted for review.",
+    "rejectedToast": "Draft rejected.",
+    "documentsHeading": "Documents awaiting approval ({{count}})",
+    "proposalsHeading": "Proposed drafts ({{count}})",
+    "submittedAt": "Submitted {{date}}",
+    "reviewDocument": "Review"
   },
   "settings": {
     "title": "Org Settings",
     "subtitle": "Manage settings for the current organization.",
     "noOrg": "Select an organization to manage its settings.",
+    "deletedDocuments": {
+      "title": "Deleted documents",
+      "subtitle": "Documents removed from this organization, newest first.",
+      "open": "View deleted documents",
+      "back": "Back to settings",
+      "empty": "No documents have been deleted.",
+      "loadError": "Couldn't load deleted documents.",
+      "document": "Document",
+      "deletedAt": "Deleted",
+      "deletedBy": "Deleted by",
+      "reason": "Reason",
+      "unknownUser": "Unknown user",
+      "noReason": "No reason given"
+    },
     "save": "Save",
     "cancel": "Cancel",
     "departments": {
@@ -361,6 +479,14 @@
       "forbidden": "You don't have permission to do that.",
       "selfDeactivate": "You can't deactivate your own account.",
       "userNotFound": "That user no longer exists."
+    },
+    "documents": {
+      "title": "Documents",
+      "segregation": "Require a different approver than the author",
+      "segregationHint": "When on, the author of a document revision cannot approve it themselves.",
+      "loadError": "Couldn't load the document settings.",
+      "saved": "Document settings saved.",
+      "saveFailed": "Couldn't save the document settings."
     }
   },
   "auth": {
@@ -564,7 +690,18 @@
   },
   "common": {
     "loading": "Loading…",
-    "dismiss": "Dismiss"
+    "dismiss": "Dismiss",
+    "cancel": "Cancel",
+    "save": "Save",
+    "yes": "Yes",
+    "no": "No",
+    "pagination": {
+      "label": "Pagination",
+      "range": "{{ from }}–{{ to }} of {{ total }}",
+      "rangeOpen": "{{ from }}–{{ to }}",
+      "prev": "Previous",
+      "next": "Next"
+    }
   },
   "errors": {
     "network": "Can't reach the server. Check your connection and try again.",
@@ -668,7 +805,6 @@
       "clausePlaceholder": "Clause (e.g. 8.7)",
       "tagPlaceholder": "Add a tag and press Enter",
       "removeTag": "Remove tag",
-      "rootCauseMethodPlaceholder": "e.g. 5 Whys, Ishikawa",
       "titleRequired": "A title is required.",
       "createdToast": "Deviation created.",
       "validationToast": "Some details need fixing. Check the highlighted fields.",
@@ -696,6 +832,7 @@
       "delete": "Delete",
       "changeStatus": "Change status",
       "deleteConfirm": "Delete deviation {{ code }}? This cannot be undone.",
+      "deleteTitle": "Delete deviation?",
       "deletedToast": "Deviation deleted.",
       "savedToast": "Deviation updated.",
       "statusChangedToast": "Status updated.",
@@ -709,6 +846,32 @@
         "due": "Due",
         "closed": "Closed",
         "source": "Source"
+      },
+      "yes": "Yes",
+      "no": "No"
+    },
+    "workflow": {
+      "reasonHint": "Requires a reason",
+      "noTransitions": "No status changes are available from here.",
+      "rejected": "Could not change status to {{ status }}: {{ reason }}",
+      "blockingActions": "Blocking actions",
+      "dismiss": "Dismiss",
+      "reasonTitle": "Change status to {{ status }}",
+      "reasonPrompt": "This change needs a reason. It is recorded in the audit trail.",
+      "reasonLabel": "Reason",
+      "reasonConfirm": "Change status",
+      "reasonCount": "{{ count }}/{{ max }}",
+      "closedNote": "This deviation is closed or cancelled and is read-only. A closed deviation can be reopened by a deviation manager; a cancelled deviation cannot be reopened.",
+      "noEditAccess": "You do not have edit access to this deviation.",
+      "reasons": {
+        "invalid_transition": "This status change is not allowed from the current status.",
+        "reason_required": "A reason is required for this status change.",
+        "root_cause_required": "Record a root cause before closing.",
+        "open_actions": "All actions must be done or verified first.",
+        "verification_required": "The effectiveness of the corrective actions must be verified first.",
+        "deviation_closed": "Reopen the deviation before changing it.",
+        "reopen_requires_manage": "Only deviation managers can reopen a closed deviation.",
+        "unknown": "This status change is not allowed right now."
       }
     },
     "actions": {
@@ -751,6 +914,12 @@
         "pending": "Effectiveness pending",
         "effective": "Effective",
         "not_effective": "Not effective"
+      },
+      "kindNoun": {
+        "containment": "Containment action",
+        "corrective": "Corrective action",
+        "preventive": "Preventive action",
+        "unknown": "Action"
       }
     },
     "access": {
@@ -784,6 +953,7 @@
       "backToTypes": "Back to types",
       "empty": "No deviation types yet. Create one to start raising deviations.",
       "fieldCount": "{{ count }} fields",
+      "fieldCountOne": "1 field",
       "active": "Active",
       "inactive": "Inactive",
       "delete": "Delete type",
@@ -903,6 +1073,84 @@
       "scopeOverdue": "Overdue only",
       "ownerMe": "Assigned to me",
       "empty": "No actions match these filters."
+    },
+    "rootCauseMethod": {
+      "five_why": "5 Whys",
+      "fishbone": "Fishbone (Ishikawa)",
+      "8d": "8D",
+      "other": "Other"
+    },
+    "events": {
+      "created": "Deviation created",
+      "deleted": "Deviation deleted",
+      "statusChanged": "Status changed from {{ from }} to {{ to }}",
+      "statusChangedGeneric": "Status changed",
+      "reason": "Reason: {{ reason }}",
+      "updated": "Deviation updated",
+      "updatedFields": "Updated {{ fields }}",
+      "noChanges": "Saved with no changes",
+      "actionAdded": "{{ action }} added",
+      "actionUpdated": "{{ action }} updated",
+      "actionStatus": "{{ action }} updated: {{ status }}",
+      "actionRemoved": "{{ action }} removed",
+      "accessGranted": "Access granted to {{ subject }}: {{ level }}",
+      "accessRevoked": "Access removed from {{ subject }}",
+      "accessChanged": "Access changed",
+      "subject": {
+        "user": "a person",
+        "department": "a department"
+      },
+      "byline": "{{ actor }} · {{ date }}",
+      "fields": {
+        "title": "title",
+        "description": "description",
+        "standards": "standards",
+        "clauses": "clauses",
+        "tags": "tags",
+        "severity": "severity",
+        "source": "source",
+        "root_cause": "root cause",
+        "root_cause_method": "root cause method",
+        "due_at": "due date",
+        "data": "type details",
+        "owner": "owner",
+        "department": "department",
+        "visibility": "visibility",
+        "status": "status"
+      },
+      "accessLevelChanged": "Access for {{ subject }} changed to: {{ level }}"
+    },
+    "fieldErrors": {
+      "required": "This field is required.",
+      "text": "Enter text.",
+      "number": "Enter a valid number.",
+      "date": "Enter a valid date.",
+      "checkbox": "This checkbox has an invalid value.",
+      "option": "Choose one of the listed options.",
+      "options": "Choose only from the listed options.",
+      "user": "Choose a person in this organisation.",
+      "department": "Choose a department in this organisation.",
+      "invalid": "This value is not valid."
+    },
+    "errors": {
+      "duplicate_field_key": "Two fields use the key “{{ key }}”. Keys must be unique within the type.",
+      "options_required": "The field “{{ key }}” needs at least one option.",
+      "invalid_type_key": "Use only lowercase letters, digits, “-” and “_” in the key.",
+      "type_key_exists": "A deviation type with the key “{{ key }}” already exists.",
+      "type_in_use": "This type has deviations and can’t be deleted. Deactivate it instead.",
+      "type_inactive": "This deviation type is inactive. Choose an active type.",
+      "invalid_clause": "Each clause needs a standard and a clause number.",
+      "owner_not_member": "The chosen owner is not a member of this organisation.",
+      "department_not_in_org": "The chosen department does not belong to this organisation.",
+      "subject_not_member": "That person is not a member of this organisation.",
+      "invalid_visibility": "That visibility setting is not valid.",
+      "invalid_access_level": "That access level is not valid.",
+      "invalid_subject_type": "Access can only be given to a person or a department.",
+      "deviation_type_not_found": "This deviation type no longer exists.",
+      "deviation_not_found": "This deviation no longer exists, or you no longer have access to it.",
+      "action_not_found": "This action no longer exists.",
+      "grant_not_found": "This access has already been removed.",
+      "insufficient_permissions": "You don’t have permission to do this."
     }
   },
   "notifications": {
@@ -943,7 +1191,25 @@
       "loadError": "Couldn't load your notification settings. Please try again later.",
       "saved": "Notification settings saved.",
       "saveFailed": "Couldn't save your notification settings. Please try again."
-    }
+    },
+    "documentReviewDue": "Document {{doc_code}} is due for periodic review in {{days}} days ({{due_date}}): {{title}}",
+    "documentReviewOverdue": "Periodic review of document {{doc_code}} is {{days}} days overdue (due {{due_date}}): {{title}}",
+    "documentSubmitted": "{{actor_name}} submitted {{doc_code}} Rev {{rev}} for review: {{title}}",
+    "documentChangesRequested": "{{actor_name}} requested changes to {{doc_code}} Rev {{rev}}: {{title}}",
+    "documentSubmittedNoActor": "{{doc_code}} Rev {{rev}} was submitted for review: {{title}}",
+    "documentChangesRequestedNoActor": "Changes were requested to {{doc_code}} Rev {{rev}}: {{title}}",
+    "documentReviewDueToday": "Document {{doc_code}} is due for periodic review today: {{title}}",
+    "documentReviewDueTomorrow": "Document {{doc_code}} is due for periodic review tomorrow: {{title}}",
+    "documentReviewOverdueOne": "Periodic review of document {{doc_code}} is 1 day overdue (due {{due_date}}): {{title}}",
+    "documentSubmittedNoCode": "{{actor_name}} submitted Rev {{rev}} of {{title}} for review",
+    "documentSubmittedNoActorNoCode": "Rev {{rev}} of {{title}} was submitted for review",
+    "documentChangesRequestedNoCode": "{{actor_name}} requested changes to Rev {{rev}} of {{title}}",
+    "documentChangesRequestedNoActorNoCode": "Changes were requested to Rev {{rev}} of {{title}}",
+    "documentReviewDueNoCode": "Document {{title}} is due for periodic review in {{days}} days ({{due_date}})",
+    "documentReviewDueTodayNoCode": "Document {{title}} is due for periodic review today",
+    "documentReviewDueTomorrowNoCode": "Document {{title}} is due for periodic review tomorrow",
+    "documentReviewOverdueNoCode": "Periodic review of document {{title}} is {{days}} days overdue (due {{due_date}})",
+    "documentReviewOverdueOneNoCode": "Periodic review of document {{title}} is 1 day overdue (due {{due_date}})"
   },
   "roles": {
     "admin": {
@@ -1005,7 +1271,159 @@
       "loadFailed": "Couldn’t load attachments.",
       "downloadFailed": "Couldn’t download the file. Try again.",
       "deleteFailed": "Couldn’t delete the attachment. Try again.",
-      "generic": "Something went wrong with the attachment. Try again."
+      "generic": "Something went wrong with the attachment. Try again.",
+      "deviationClosed": "This deviation is closed. Reopen it to change its attachments."
+    }
+  },
+  "standards": {
+    "title": "ISO & Standards",
+    "subtitle": "Track how your management system covers each standard, clause by clause.",
+    "loadError": "Couldn't load your standards. Try again.",
+    "notFound": "This standard wasn't found.",
+    "backToOverview": "All standards",
+    "backToStandard": "Back to standard",
+    "completeness": "Completeness",
+    "edition": "Edition {{edition}}",
+    "counts": {
+      "covered": "{{count}} covered",
+      "partial": "{{count}} partial",
+      "not_started": "{{count}} not started",
+      "not_applicable": "{{count}} not applicable"
+    },
+    "status": {
+      "covered": "Covered",
+      "partial": "Partial",
+      "not_started": "Not started",
+      "not_applicable": "Not applicable"
+    },
+    "filter": {
+      "label": "Filter by status",
+      "all": "All",
+      "gaps": "Gaps"
+    },
+    "themes": {
+      "organizational": "Organizational controls",
+      "people": "People controls",
+      "physical": "Physical controls",
+      "technological": "Technological controls"
+    },
+    "entity": {
+      "document": "Document",
+      "deviation": "Deviation",
+      "deviation_action": "Action",
+      "attachment": "Attachment"
+    },
+    "overview": {
+      "noneEnabled": "No standards enabled yet",
+      "noneEnabledHint": "Enable a standard below to start mapping your documents and deviations to its requirements.",
+      "available": "Available standards",
+      "chapters": "Completeness per chapter",
+      "open": "Open",
+      "enable": "Enable",
+      "disable": "Disable",
+      "toggleError": "Couldn't update the standard. Try again.",
+      "disableTitle": "Disable this standard?",
+      "disableMessage": "{{name}} will no longer be tracked. Your assessments and evidence links are kept and come back if you enable it again."
+    },
+    "view": {
+      "coveredOf": "{{covered}} of {{total}} requirements covered",
+      "mapWithAi": "Map with AI",
+      "notEnabled": "This standard is not enabled for your organisation, so progress is not tracked.",
+      "searchPlaceholder": "Search clauses and requirements …",
+      "expandAll": "Expand all",
+      "collapseAll": "Collapse all",
+      "expand": "Expand {{number}}",
+      "collapse": "Collapse {{number}}",
+      "noMatches": "No requirements match this filter.",
+      "evidenceCount": "{{count}} linked evidence",
+      "suggestionCount": "{{count}} suggestions to review"
+    },
+    "gaps": {
+      "title": "Gaps",
+      "none": "No gaps — every applicable requirement is covered.",
+      "showAll": "Show all {{count}}",
+      "showLess": "Show fewer"
+    },
+    "job": {
+      "mapping": "Mapping your records to the requirements …",
+      "extracting": "Extracting clause text from your copy …",
+      "mapDone": "Mapping finished: {{count}} new suggestions to review.",
+      "extractDone": "Clause text extracted from your copy.",
+      "failed": "The job failed. Try again later.",
+      "pollFailed": "Couldn't check the job's progress.",
+      "startFailed": "Couldn't start the job. Try again.",
+      "queued": "Waiting to start …",
+      "stalled": "The job is waiting for a worker. It will run when one is available — check back later."
+    },
+    "licensed": {
+      "title": "Your licensed copy",
+      "hint": "Upload your organisation's own licensed PDF of the standard to show its clause text next to our explanations. It is only visible inside your organisation.",
+      "extracted": "Clause text available",
+      "extract": "Extract clause text"
+    },
+    "clause": {
+      "control": "Annex control",
+      "explanation": "What this means",
+      "explanationHint": "CoreFlow's own explanation — not the text of the standard.",
+      "licensedText": "Standard text",
+      "licensedBadge": "From your licensed copy",
+      "licensedHint": "Taken from the copy of the standard your organisation uploaded.",
+      "subclauses": "Sub-clauses",
+      "requirements": "Requirements ({{count}})",
+      "noRequirements": "This clause has no requirements of its own.",
+      "notFound": "This clause wasn't found.",
+      "guidance": "Guidance",
+      "guidanceHint": "CoreFlow's own advice on how to meet this clause."
+    },
+    "requirement": {
+      "manual": "Set manually",
+      "evidenceExamples": "Typical evidence",
+      "justification": "Justification",
+      "justificationRequired": "Explain why this requirement does not apply.",
+      "note": "Note",
+      "assess": "Assess applicability and status",
+      "applicable": "Applies to our organisation",
+      "manualStatus": "Status",
+      "automatic": "Automatic (from evidence)",
+      "save": "Save",
+      "cancel": "Cancel",
+      "saveError": "Couldn't save. Try again."
+    },
+    "evidence": {
+      "title": "Evidence",
+      "add": "Link evidence",
+      "none": "No evidence linked yet.",
+      "fromAi": "suggested by AI",
+      "confirmedBy": "confirmed by {{name}}",
+      "remove": "Remove {{name}}",
+      "cancel": "Cancel",
+      "searchPlaceholder": "Search by title or code …",
+      "noResults": "No matches.",
+      "error": "Couldn't update the evidence. Try again.",
+      "unavailable": "Unavailable record",
+      "noAccess": "You don't have access to any records you can link here.",
+      "searchError": "Search failed. Try again."
+    },
+    "suggestions": {
+      "title": "Suggestions to review",
+      "confidence": "{{pct}}% confidence",
+      "confirm": "Confirm",
+      "reject": "Reject"
+    },
+    "supports": {
+      "title": "Supports requirements",
+      "add": "Link",
+      "none": "Not linked to any standard requirement.",
+      "noStandards": "No standards are enabled for your organisation.",
+      "searchPlaceholder": "Search requirements by clause or text …",
+      "suggested": "Suggested — review to confirm",
+      "remove": "Remove link to {{ref}}",
+      "onAction": "On action: {{action}}"
+    },
+    "errors": {
+      "notEnabled": "Enable this standard before mapping with AI.",
+      "noLicensedPdf": "Upload your organisation's copy of the standard first.",
+      "aiUnavailable": "AI mapping is not available right now."
     }
   }
 }

@@ -11,6 +11,7 @@ import {
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { LocalNumberPipe } from '../../../shared/locale/locale-pipes';
 import { Subscription } from 'rxjs';
 import { ActionListItem } from '../../../core/deviations/deviation.models';
 import { DeviationsApi } from '../../../core/deviations/deviations-api';
@@ -38,7 +39,16 @@ const PAGE_SIZE = 25;
  */
 @Component({
   selector: 'app-actions-list',
-  imports: [FormsModule, RouterLink, TranslocoPipe, Button, Card, Icon, ActionListRow],
+  imports: [
+    FormsModule,
+    RouterLink,
+    TranslocoPipe,
+    LocalNumberPipe,
+    Button,
+    Card,
+    Icon,
+    ActionListRow,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mx-auto max-w-[1180px] px-8 pt-7 pb-12">
@@ -110,7 +120,12 @@ const PAGE_SIZE = 25;
           <span class="text-[13px] text-fg-subtle">
             {{
               'deviations.pagination.range'
-                | transloco: { from: rangeFrom(), to: rangeTo(), total: total() }
+                | transloco
+                  : {
+                      from: (rangeFrom() | localNumber),
+                      to: (rangeTo() | localNumber),
+                      total: (total() | localNumber),
+                    }
             }}
           </span>
           <div class="flex items-center gap-2">

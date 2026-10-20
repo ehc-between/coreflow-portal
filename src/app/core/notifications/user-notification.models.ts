@@ -6,14 +6,18 @@ export type UserNotificationKind =
   | 'deviation_due_soon'
   | 'deviation_overdue'
   | 'action_due_soon'
-  | 'action_overdue';
+  | 'action_overdue'
+  | 'document_review_due'
+  | 'document_review_overdue'
+  | 'document_submitted'
+  | 'document_changes_requested';
 
-export type UserNotificationEntityType = 'deviation' | 'deviation_action';
+export type UserNotificationEntityType = 'deviation' | 'deviation_action' | 'document';
 
 /**
  * One inbox entry. The backend sends no rendered text: `title_key` is an i18n
  * key under `notifications.*` and `params` holds its interpolation values
- * (always including `deviation_id`).
+ * (including `deviation_id` for deviation kinds, `document_id` for document kinds).
  */
 export interface UserNotification {
   readonly id: string;

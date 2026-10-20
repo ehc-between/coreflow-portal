@@ -136,17 +136,36 @@ export function preCheckFile(file: {
 /** Which step of the upload handshake failed. */
 export type UploadPhase = 'hash' | 'create' | 'upload' | 'complete';
 
+/** Backend error codes with a dedicated attachments message. */
+const CODE_KEYS: Readonly<Record<string, string>> = {
+  deviation_closed: 'attachments.errors.deviationClosed',
+};
+
+/** The message key for a known backend error code on an attachment call, or null. */
+export function attachmentCodeKey(code: string | null | undefined): string | null {
+  return (code && CODE_KEYS[code]) || null;
+}
+
 /**
  * Maps a failed step + HTTP status to a neutral, translated message key.
  * 503 is not mapped here — callers treat it as "not set up on this server".
+ * A known backend `code` (e.g. 409 `deviation_closed`) wins over the status.
  */
-export function uploadErrorKey(phase: UploadPhase, status: number): string {
+export function uploadErrorKey(
+  phase: UploadPhase,
+  status: number,
+  code: string | null = null,
+): string {
   if (phase === 'hash') {
     return 'attachments.errors.readFailed';
   }
   if (phase === 'upload') {
     // Direct-to-storage failures (network, expired URL, checksum rejected).
     return 'attachments.errors.uploadFailed';
+  }
+  const coded = attachmentCodeKey(code);
+  if (coded) {
+    return coded;
   }
   switch (status) {
     case 413:

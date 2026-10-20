@@ -14,6 +14,11 @@ export interface RequestOptions {
   readonly context?: HttpContext;
 }
 
+/** DELETE options: a DELETE may also carry a JSON body (e.g. a recorded reason). */
+export interface DeleteOptions extends RequestOptions {
+  readonly body?: unknown;
+}
+
 /**
  * Thin, typed wrapper around HttpClient that prefixes every request with the
  * configured backend base URL. Feature data services should depend on this
@@ -47,8 +52,11 @@ export class ApiService {
     return this.http.patch<T>(this.url(path), body, this.toHttpOptions(options));
   }
 
-  delete<T>(path: string, options: RequestOptions = {}): Observable<T> {
-    return this.http.delete<T>(this.url(path), this.toHttpOptions(options));
+  delete<T>(path: string, options: DeleteOptions = {}): Observable<T> {
+    return this.http.delete<T>(this.url(path), {
+      ...this.toHttpOptions(options),
+      body: options.body,
+    });
   }
 
   /** GET the response as a binary Blob (e.g. a file export), through the same

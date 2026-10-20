@@ -5,6 +5,7 @@ import {
   afterRenderEffect,
   input,
   output,
+  untracked,
   viewChild,
 } from '@angular/core';
 import { Button, ButtonVariant } from '../button/button';
@@ -22,6 +23,9 @@ const FOCUSABLE = 'button:not([disabled]):not([tabindex="-1"]), [href], input, s
  * moves to the cancel button on open (so a stray Enter never confirms), Tab /
  * Shift+Tab are trapped inside the dialog, and focus returns to the element that
  * opened it when it closes. Escape and a backdrop click cancel (unless `busy`).
+ *
+ * Extra controls (e.g. a reason textarea) can be projected between the message
+ * and the buttons; pair them with `confirmDisabled` for required input.
  *
  *   <app-confirm-dialog
  *     [open]="pending() !== null"
@@ -64,13 +68,19 @@ const FOCUSABLE = 'button:not([disabled]):not([tabindex="-1"]), [href], input, s
           <p [id]="messageId" class="mt-2 text-[13.5px] leading-relaxed text-fg-muted">
             {{ message() }}
           </p>
+          <ng-content />
           <div class="mt-5 flex justify-end gap-2">
             <span data-role="cancel">
               <app-button variant="secondary" [disabled]="busy()" (click)="cancelled.emit()">
                 {{ cancelLabel() }}
               </app-button>
             </span>
-            <app-button [variant]="confirmVariant()" [loading]="busy()" (click)="confirmed.emit()">
+            <app-button
+              [variant]="confirmVariant()"
+              [loading]="busy()"
+              [disabled]="confirmDisabled()"
+              (click)="confirmed.emit()"
+            >
               {{ confirmLabel() }}
             </app-button>
           </div>
@@ -88,6 +98,12 @@ export class ConfirmDialog {
   readonly confirmVariant = input<ButtonVariant>('danger');
   /** Disables the actions (and Escape/backdrop dismissal) while the action runs. */
   readonly busy = input(false);
+  /** Disables only the confirm button (e.g. until a required reason is typed). */
+  readonly confirmDisabled = input(false);
+  /** CSS selector (inside the dialog, incl. projected content) to focus on open instead of cancel. */
+  readonly initialFocus = input<string | null>(null);
+  /** Element to focus on close instead of whatever was focused when it opened. */
+  readonly returnFocus = input<HTMLElement | null>(null);
 
   readonly confirmed = output<void>();
   readonly cancelled = output<void>();
@@ -109,10 +125,12 @@ export class ConfirmDialog {
       if (open && !this.wasOpen) {
         const active = document.activeElement;
         this.returnFocusTo = active instanceof HTMLElement ? active : null;
+        const selector = untracked(this.initialFocus);
+        const initial = selector ? panel?.querySelector<HTMLElement>(selector) : null;
         const cancel = panel?.querySelector<HTMLElement>('[data-role="cancel"] button');
-        (cancel ?? panel)?.focus();
+        (initial ?? cancel ?? panel)?.focus();
       } else if (!open && this.wasOpen) {
-        const target = this.returnFocusTo;
+        const target = untracked(this.returnFocus) ?? this.returnFocusTo;
         this.returnFocusTo = null;
         if (target?.isConnected) {
           target.focus();

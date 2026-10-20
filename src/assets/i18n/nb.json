@@ -17,7 +17,7 @@
     "deviations": "Avvik",
     "risk": "Risiko",
     "audits": "Revisjon",
-    "iso": "ISO og standarder",
+    "iso": "ISO & standarder",
     "documents": "Dokumenter",
     "people": "Personer og roller",
     "projects": "Prosjekter",
@@ -117,7 +117,6 @@
     "approve": "Godkjenn",
     "requestChanges": "Be om endringer",
     "approvedToast": "Dokument godkjent.",
-    "requestChangesToast": "Be om endringer kommer snart.",
     "createdToast": "Dokument opprettet.",
     "download": "Last ned",
     "downloadPdf": "Last ned PDF",
@@ -145,7 +144,8 @@
       "savedToast": "{{ count }} endring(er) lagret som rev. {{ rev }}.",
       "skippedToast": "{{ count }} endring(er) kunne ikke brukes fordi teksten de viser til er endret.",
       "appliedToast": "Endringen ble lagt til som en ny revisjon.",
-      "anchorNotFoundToast": "Teksten denne kommentaren viser til er endret, så forslaget kan ikke brukes."
+      "anchorNotFoundToast": "Teksten denne kommentaren viser til er endret, så forslaget kan ikke brukes.",
+      "changeReason": "Brukte {{count}} kommentar(er) fra gjennomgang"
     },
     "meta": {
       "code": "Kode",
@@ -206,7 +206,8 @@
         "suggested": "Forslag",
         "addingNew": "Legger til nytt innhold",
         "close": "Lukk"
-      }
+      },
+      "inReviewWarning": "Dokumentet er til godkjenning. Lagring trekker tilbake den innsendte revisjonen og gjør den til utkast igjen."
     },
     "access": {
       "sectionTitle": "Eier og tilgang",
@@ -243,12 +244,111 @@
       "in_review": "Til gjennomgang",
       "approved": "Godkjent",
       "obsolete": "Utgått",
-      "superseded": "Erstattet"
+      "superseded": "Erstattet",
+      "withdrawn": "Trukket tilbake"
+    },
+    "workflow": {
+      "submit": "Send til godkjenning",
+      "submitTitle": "Sende til godkjenning?",
+      "submitBody": "Godkjennerne varsles og kan godkjenne utkastet eller sende det tilbake med kommentarer.",
+      "submittedToast": "Sendt til godkjenning.",
+      "approveTitle": "Godkjenne denne revisjonen?",
+      "approveBody": "Rev {{rev}} blir den godkjente versjonen som alle leser.",
+      "requestChangesTitle": "Be om endringer",
+      "requestChangesBody": "Dokumentet går tilbake til utkast, og forfatteren ser kommentaren din.",
+      "commentLabel": "Hva må endres?",
+      "commentPlaceholder": "Beskriv endringene som trengs …",
+      "sendBack": "Send tilbake til utkast",
+      "changesRequestedToast": "Endringer etterspurt. Dokumentet er tilbake som utkast.",
+      "obsolete": "Gjør utgått",
+      "obsoleteTitle": "Gjøre dette dokumentet utgått?",
+      "obsoleteBody": "Det trekkes tilbake fra bruk og kan ikke lenger redigeres. Revisjonshistorikken beholdes.",
+      "reasonLabel": "Begrunnelse",
+      "obsoletePlaceholder": "Hvorfor trekkes dokumentet tilbake?",
+      "obsoletedToast": "Dokumentet er satt som utgått.",
+      "changesRequested": "Endringer etterspurt",
+      "changesRequestedBy": "Endringer etterspurt av {{name}}",
+      "viewingDraft": "Utkast Rev {{rev}} – ikke godkjent ennå.",
+      "readersSee": "Leserne ser fortsatt godkjent Rev {{rev}}.",
+      "viewingApproved": "Godkjent Rev {{rev}} – det leserne ser.",
+      "draftPending": "Et utkast (Rev {{rev}}) er under arbeid.",
+      "neverApproved": "Leserne kan ikke se dokumentet før det er godkjent.",
+      "changeReasonShown": "Endringsbegrunnelse: {{reason}}",
+      "versionSwitch": "Velg hvilken versjon som vises",
+      "approvedRev": "Godkjent · Rev {{rev}}",
+      "draftRev": "Utkast · Rev {{rev}}",
+      "changeReasonTitle": "Endringsbegrunnelse",
+      "changeReasonBodyRequired": "Beskriv hva som er endret og hvorfor. Dette lagres i revisjonshistorikken.",
+      "changeReasonBodyOptional": "Beskriv gjerne endringen. Den lagres i revisjonshistorikken.",
+      "changeReasonLabel": "Endringsbegrunnelse",
+      "changeReasonPlaceholder": "For eksempel: oppdatert godkjenningstrinnene etter revisjonen",
+      "errors": {
+        "selfApproval": "Du har skrevet denne revisjonen, så noen andre må godkjenne den.",
+        "notInReview": "Dokumentet er ikke lenger til godkjenning. Vi har oppdatert visningen med gjeldende status.",
+        "notDraft": "Bare et utkast kan sendes til godkjenning.",
+        "changeReasonRequired": "Legg inn en endringsbegrunnelse før du lagrer.",
+        "forbidden": "Du har ikke tilgang til å gjøre dette.",
+        "conflict": "Dokumentet er endret av noen andre. Last inn på nytt og prøv igjen.",
+        "obsolete": "Dokumentet er utgått og kan ikke lenger endres.",
+        "noApprovedRevision": "Det finnes ingen godkjent revisjon å bekrefte ennå."
+      },
+      "obsoleteNotice": "Dokumentet er utgått"
+    },
+    "delete": {
+      "title": "Slett dokument",
+      "action": "Slett",
+      "hint": "Fjerner dokumentet og revisjonshistorikken.",
+      "hintObsolete": "Fjerner dette utgåtte dokumentet. Du blir bedt om en begrunnelse. Begrunnelsen lagres sammen med det slettede dokumentet og er synlig for administratorer.",
+      "blockedHint": "Godkjente dokumenter kan ikke slettes. Gjør dokumentet utgått i stedet; en administrator kan deretter slette det.",
+      "adminOnlyHint": "Bare en administrator for organisasjonen kan slette utgåtte dokumenter.",
+      "confirmTitle": "Slette {{code}}?",
+      "confirmBody": "Dokumentet og revisjonshistorikken fjernes. Dette kan ikke angres.",
+      "reasonBody": "Dokumentet og revisjonshistorikken fjernes. Dette kan ikke angres. Begrunnelsen lagres sammen med det slettede dokumentet og er synlig for administratorer.",
+      "reasonLabel": "Begrunnelse for sletting",
+      "reasonPlaceholder": "Hvorfor slettes dokumentet?",
+      "deletedToast": "Dokumentet er slettet.",
+      "errors": {
+        "hasApprovedRevision": "Godkjente dokumenter kan ikke slettes. Gjør dokumentet utgått i stedet; en administrator kan deretter slette det.",
+        "reasonRequired": "Legg inn en begrunnelse før du sletter et utgått dokument.",
+        "notFound": "Dokumentet finnes ikke lenger."
+      }
+    },
+    "review": {
+      "title": "Periodisk gjennomgang",
+      "overdue": "Gjennomgang forfalt",
+      "dueSoon": "Gjennomgang snart",
+      "interval": "Gjennomgangsintervall",
+      "noInterval": "Ingen periodisk gjennomgang",
+      "everyMonths": "Hver {{months}}. måned",
+      "nextReview": "Neste gjennomgang",
+      "nextReviewHint": "La stå tomt for å beregne datoen fra intervallet ved neste godkjenning.",
+      "edit": "Endre gjennomgang",
+      "savedToast": "Innstillingene for gjennomgang er lagret.",
+      "filter": "Gjennomgang forfaller"
+    },
+    "ack": {
+      "requireLabel": "Krev «Lest og forstått»",
+      "requireHint": "Leserne bekrefter at de har lest hver godkjente revisjon.",
+      "required": "Lest og forstått",
+      "done": "Du bekreftet at du leste og forsto Rev {{rev}} {{date}}.",
+      "promptTitle": "Bekreft at du har lest dokumentet",
+      "promptBody": "Eieren ber alle bekrefte at de har lest og forstått Rev {{rev}}.",
+      "button": "Lest og forstått",
+      "confirmTitle": "Lest og forstått",
+      "confirmBody": "Jeg bekrefter at jeg har lest og forstått «{{title}}», Rev {{rev}}.",
+      "savedToast": "Takk – bekreftelsen din er registrert.",
+      "listTitle": "Lest og forstått",
+      "progress": "{{done}} av {{total}}",
+      "loadError": "Vi kunne ikke hente hvem som har bekreftet.",
+      "pending": "Ikke ennå ({{count}})",
+      "nonePending": "Alle har bekreftet.",
+      "acknowledged": "Bekreftet ({{count}})",
+      "noneYet": "Ingen har bekreftet ennå."
     }
   },
   "review": {
     "title": "Trenger din gjennomgang",
-    "subtitle": "Utkast som venter på din godkjenning før de publiseres.",
+    "subtitle": "Dokumenter som venter på din godkjenning, og foreslåtte utkast til dokumentbiblioteket.",
     "empty": "Du er à jour. Ingenting trenger gjennomgang.",
     "queuedAt": "Lagt til {{date}}",
     "open": "Åpne",
@@ -256,17 +356,35 @@
     "backToFeed": "Tilbake til gjennomgang",
     "reviewTitle": "Gjennomgå forslag",
     "saveDraft": "Lagre utkast",
-    "approveAndPublish": "Godkjenn og publiser",
+    "approveAndPublish": "Godta og send til godkjenning",
     "notPending": "Dette forslaget er allerede behandlet og kan ikke lenger redigeres.",
     "notFound": "Fant ikke forslaget.",
     "savedToast": "Utkast lagret.",
-    "publishedToast": "Dokument publisert.",
-    "rejectedToast": "Utkast avvist."
+    "publishedToast": "Dokumentet er opprettet og sendt til godkjenning.",
+    "rejectedToast": "Utkast avvist.",
+    "documentsHeading": "Dokumenter som venter på godkjenning ({{count}})",
+    "proposalsHeading": "Foreslåtte utkast ({{count}})",
+    "submittedAt": "Sendt {{date}}",
+    "reviewDocument": "Gå gjennom"
   },
   "settings": {
     "title": "Organisasjonsinnstillinger",
     "subtitle": "Administrer innstillinger for gjeldende organisasjon.",
     "noOrg": "Velg en organisasjon for å administrere innstillingene.",
+    "deletedDocuments": {
+      "title": "Slettede dokumenter",
+      "subtitle": "Dokumenter som er fjernet fra organisasjonen, nyeste først.",
+      "open": "Vis slettede dokumenter",
+      "back": "Tilbake til innstillinger",
+      "empty": "Ingen dokumenter er slettet.",
+      "loadError": "Kunne ikke laste slettede dokumenter.",
+      "document": "Dokument",
+      "deletedAt": "Slettet",
+      "deletedBy": "Slettet av",
+      "reason": "Begrunnelse",
+      "unknownUser": "Ukjent bruker",
+      "noReason": "Ingen begrunnelse oppgitt"
+    },
     "save": "Lagre",
     "cancel": "Avbryt",
     "departments": {
@@ -361,6 +479,14 @@
       "forbidden": "Du har ikke tilgang til å gjøre dette.",
       "selfDeactivate": "Du kan ikke deaktivere din egen konto.",
       "userNotFound": "Brukeren finnes ikke lenger."
+    },
+    "documents": {
+      "title": "Dokumenter",
+      "segregation": "Krev en annen godkjenner enn forfatteren",
+      "segregationHint": "Når dette er på, kan ikke forfatteren av en dokumentrevisjon godkjenne den selv.",
+      "loadError": "Kunne ikke laste dokumentinnstillingene.",
+      "saved": "Dokumentinnstillingene er lagret.",
+      "saveFailed": "Kunne ikke lagre dokumentinnstillingene."
     }
   },
   "auth": {
@@ -482,7 +608,7 @@
       "document": "Til gjennomgang"
     },
     "actions": {
-      "title": "Mine korrigerende tiltak",
+      "title": "Mine tiltak",
       "empty": "Du har ingen åpne tiltak.",
       "truncated": "Viser de {{shown}} med nærmest frist av dine {{total}} åpne tiltak.",
       "viewAll": "Vis alle"
@@ -564,7 +690,18 @@
   },
   "common": {
     "loading": "Laster …",
-    "dismiss": "Lukk"
+    "dismiss": "Lukk",
+    "cancel": "Avbryt",
+    "save": "Lagre",
+    "yes": "Ja",
+    "no": "Nei",
+    "pagination": {
+      "label": "Sidenavigering",
+      "range": "{{ from }}–{{ to }} av {{ total }}",
+      "rangeOpen": "{{ from }}–{{ to }}",
+      "prev": "Forrige",
+      "next": "Neste"
+    }
   },
   "errors": {
     "network": "Får ikke kontakt med serveren. Sjekk tilkoblingen og prøv igjen.",
@@ -618,7 +755,7 @@
       "status": "Status",
       "type": "Type",
       "standard": "Standard",
-      "severity": "Alvorlighet",
+      "severity": "Alvorlighetsgrad",
       "source": "Kilde",
       "owner": "Eier",
       "department": "Avdeling",
@@ -642,7 +779,7 @@
       "newest": "Nyeste først",
       "oldest": "Eldste først",
       "dueSoonest": "Frist snarest",
-      "severity": "Alvorlighet",
+      "severity": "Alvorlighetsgrad",
       "code": "Kode"
     },
     "pagination": {
@@ -663,12 +800,11 @@
       "cancel": "Avbryt",
       "unassigned": "Ikke tildelt",
       "none": "Ingen",
-      "addClause": "Legg til klausul",
-      "removeClause": "Fjern klausul",
-      "clausePlaceholder": "Klausul (f.eks. 8.7)",
+      "addClause": "Legg til punkt",
+      "removeClause": "Fjern punkt",
+      "clausePlaceholder": "Punkt (f.eks. 8.7)",
       "tagPlaceholder": "Legg til en etikett og trykk Enter",
       "removeTag": "Fjern etikett",
-      "rootCauseMethodPlaceholder": "f.eks. 5 hvorfor, Ishikawa",
       "titleRequired": "En tittel er påkrevd.",
       "createdToast": "Avvik opprettet.",
       "validationToast": "Noen detaljer må rettes. Sjekk de markerte feltene.",
@@ -676,10 +812,10 @@
       "fields": {
         "title": "Tittel",
         "description": "Beskrivelse",
-        "severity": "Alvorlighet",
+        "severity": "Alvorlighetsgrad",
         "source": "Kilde",
         "standards": "Standarder",
-        "clauses": "Klausuler",
+        "clauses": "Punkter",
         "tags": "Etiketter",
         "owner": "Eier",
         "department": "Avdeling",
@@ -696,6 +832,7 @@
       "delete": "Slett",
       "changeStatus": "Endre status",
       "deleteConfirm": "Slette avvik {{ code }}? Dette kan ikke angres.",
+      "deleteTitle": "Slette avviket?",
       "deletedToast": "Avvik slettet.",
       "savedToast": "Avvik oppdatert.",
       "statusChangedToast": "Status oppdatert.",
@@ -709,6 +846,32 @@
         "due": "Frist",
         "closed": "Lukket",
         "source": "Kilde"
+      },
+      "yes": "Ja",
+      "no": "Nei"
+    },
+    "workflow": {
+      "reasonHint": "Krever begrunnelse",
+      "noTransitions": "Ingen statusendringer er tilgjengelige herfra.",
+      "rejected": "Kunne ikke endre status til {{ status }}: {{ reason }}",
+      "blockingActions": "Blokkerende tiltak",
+      "dismiss": "Lukk",
+      "reasonTitle": "Endre status til {{ status }}",
+      "reasonPrompt": "Denne endringen krever en begrunnelse. Den lagres i revisjonssporet.",
+      "reasonLabel": "Begrunnelse",
+      "reasonConfirm": "Endre status",
+      "reasonCount": "{{ count }}/{{ max }}",
+      "closedNote": "Dette avviket er lukket eller avbrutt og kan ikke endres. Et lukket avvik kan gjenåpnes av en avviksansvarlig; et avbrutt avvik kan ikke gjenåpnes.",
+      "noEditAccess": "Du har ikke redigeringstilgang til dette avviket.",
+      "reasons": {
+        "invalid_transition": "Denne statusendringen er ikke tillatt fra nåværende status.",
+        "reason_required": "Denne statusendringen krever en begrunnelse.",
+        "root_cause_required": "Registrer en rotårsak før avviket lukkes.",
+        "open_actions": "Alle tiltak må være fullført eller verifisert først.",
+        "verification_required": "Effekten av de korrigerende tiltakene må verifiseres først.",
+        "deviation_closed": "Gjenåpne avviket før du endrer det.",
+        "reopen_requires_manage": "Bare avviksansvarlige kan gjenåpne et lukket avvik.",
+        "unknown": "Denne statusendringen er ikke tillatt akkurat nå."
       }
     },
     "actions": {
@@ -737,8 +900,8 @@
       },
       "kind": {
         "containment": "Strakstiltak",
-        "corrective": "Korrigerende",
-        "preventive": "Forebyggende"
+        "corrective": "Korrigerende tiltak",
+        "preventive": "Forebyggende tiltak"
       },
       "status": {
         "open": "Åpen",
@@ -748,9 +911,15 @@
         "cancelled": "Avbrutt"
       },
       "effectiveness": {
-        "pending": "Effektivitet venter",
+        "pending": "Effektivitet ikke vurdert",
         "effective": "Effektivt",
         "not_effective": "Ikke effektivt"
+      },
+      "kindNoun": {
+        "containment": "Strakstiltak",
+        "corrective": "Korrigerende tiltak",
+        "preventive": "Forebyggende tiltak",
+        "unknown": "Tiltak"
       }
     },
     "access": {
@@ -784,6 +953,7 @@
       "backToTypes": "Tilbake til typer",
       "empty": "Ingen avvikstyper ennå. Opprett en for å begynne å registrere avvik.",
       "fieldCount": "{{ count }} felter",
+      "fieldCountOne": "1 felt",
       "active": "Aktiv",
       "inactive": "Inaktiv",
       "delete": "Slett type",
@@ -884,7 +1054,7 @@
       },
       "breakdowns": {
         "byStatus": "Etter status",
-        "bySeverity": "Etter alvorlighet",
+        "bySeverity": "Etter alvorlighetsgrad",
         "byStandard": "Etter standard",
         "byType": "Etter type",
         "byDepartment": "Etter avdeling",
@@ -903,6 +1073,84 @@
       "scopeOverdue": "Kun forfalte",
       "ownerMe": "Tildelt meg",
       "empty": "Ingen tiltak samsvarer med disse filtrene."
+    },
+    "rootCauseMethod": {
+      "five_why": "5 hvorfor",
+      "fishbone": "Fiskebeinsdiagram (Ishikawa)",
+      "8d": "8D",
+      "other": "Annet"
+    },
+    "events": {
+      "created": "Avvik registrert",
+      "deleted": "Avvik slettet",
+      "statusChanged": "Status endret fra {{ from }} til {{ to }}",
+      "statusChangedGeneric": "Status endret",
+      "reason": "Begrunnelse: {{ reason }}",
+      "updated": "Avvik oppdatert",
+      "updatedFields": "Endret {{ fields }}",
+      "noChanges": "Lagret uten endringer",
+      "actionAdded": "{{ action }} lagt til",
+      "actionUpdated": "{{ action }} oppdatert",
+      "actionStatus": "{{ action }} oppdatert: {{ status }}",
+      "actionRemoved": "{{ action }} fjernet",
+      "accessGranted": "Tilgang gitt til {{ subject }}: {{ level }}",
+      "accessRevoked": "Tilgang fjernet fra {{ subject }}",
+      "accessChanged": "Tilgang endret",
+      "subject": {
+        "user": "en person",
+        "department": "en avdeling"
+      },
+      "byline": "{{ actor }} · {{ date }}",
+      "fields": {
+        "title": "tittel",
+        "description": "beskrivelse",
+        "standards": "standarder",
+        "clauses": "punkter",
+        "tags": "etiketter",
+        "severity": "alvorlighetsgrad",
+        "source": "kilde",
+        "root_cause": "rotårsak",
+        "root_cause_method": "rotårsaksmetode",
+        "due_at": "frist",
+        "data": "typedetaljer",
+        "owner": "eier",
+        "department": "avdeling",
+        "visibility": "synlighet",
+        "status": "status"
+      },
+      "accessLevelChanged": "Tilgang for {{ subject }} endret til: {{ level }}"
+    },
+    "fieldErrors": {
+      "required": "Dette feltet er påkrevd.",
+      "text": "Skriv inn tekst.",
+      "number": "Skriv inn et gyldig tall.",
+      "date": "Skriv inn en gyldig dato.",
+      "checkbox": "Avkrysningsfeltet har en ugyldig verdi.",
+      "option": "Velg ett av alternativene i listen.",
+      "options": "Velg bare blant alternativene i listen.",
+      "user": "Velg en person i denne organisasjonen.",
+      "department": "Velg en avdeling i denne organisasjonen.",
+      "invalid": "Denne verdien er ikke gyldig."
+    },
+    "errors": {
+      "duplicate_field_key": "To felter bruker nøkkelen «{{ key }}». Nøkler må være unike innenfor typen.",
+      "options_required": "Feltet «{{ key }}» må ha minst ett alternativ.",
+      "invalid_type_key": "Bruk bare små bokstaver, sifre, «-» og «_» i nøkkelen.",
+      "type_key_exists": "Det finnes allerede en avvikstype med nøkkelen «{{ key }}».",
+      "type_in_use": "Denne typen har avvik og kan ikke slettes. Deaktiver den i stedet.",
+      "type_inactive": "Denne avvikstypen er inaktiv. Velg en aktiv type.",
+      "invalid_clause": "Hvert punkt må ha en standard og et punktnummer.",
+      "owner_not_member": "Valgt eier er ikke medlem av denne organisasjonen.",
+      "department_not_in_org": "Valgt avdeling tilhører ikke denne organisasjonen.",
+      "subject_not_member": "Den personen er ikke medlem av denne organisasjonen.",
+      "invalid_visibility": "Den synlighetsinnstillingen er ikke gyldig.",
+      "invalid_access_level": "Det tilgangsnivået er ikke gyldig.",
+      "invalid_subject_type": "Tilgang kan bare gis til en person eller en avdeling.",
+      "deviation_type_not_found": "Denne avvikstypen finnes ikke lenger.",
+      "deviation_not_found": "Dette avviket finnes ikke lenger, eller du har ikke lenger tilgang til det.",
+      "action_not_found": "Dette tiltaket finnes ikke lenger.",
+      "grant_not_found": "Denne tilgangen er allerede fjernet.",
+      "insufficient_permissions": "Du har ikke tillatelse til å gjøre dette."
     }
   },
   "notifications": {
@@ -943,7 +1191,25 @@
       "loadError": "Kunne ikke laste varslingsinnstillingene. Prøv igjen senere.",
       "saved": "Varslingsinnstillingene er lagret.",
       "saveFailed": "Kunne ikke lagre varslingsinnstillingene. Prøv igjen."
-    }
+    },
+    "documentReviewDue": "Dokument {{doc_code}} skal gjennomgås om {{days}} dager ({{due_date}}): {{title}}",
+    "documentReviewOverdue": "Gjennomgangen av dokument {{doc_code}} har passert fristen med {{days}} dager ({{due_date}}): {{title}}",
+    "documentSubmitted": "{{actor_name}} har sendt {{doc_code}} Rev {{rev}} til godkjenning: {{title}}",
+    "documentChangesRequested": "{{actor_name}} har bedt om endringer i {{doc_code}} Rev {{rev}}: {{title}}",
+    "documentSubmittedNoActor": "{{doc_code}} Rev {{rev}} er sendt til godkjenning: {{title}}",
+    "documentChangesRequestedNoActor": "Det er bedt om endringer i {{doc_code}} Rev {{rev}}: {{title}}",
+    "documentReviewDueToday": "Dokument {{doc_code}} skal gjennomgås i dag: {{title}}",
+    "documentReviewDueTomorrow": "Dokument {{doc_code}} skal gjennomgås i morgen: {{title}}",
+    "documentReviewOverdueOne": "Gjennomgangen av dokument {{doc_code}} har passert fristen med 1 dag ({{due_date}}): {{title}}",
+    "documentSubmittedNoCode": "{{actor_name}} har sendt Rev {{rev}} av {{title}} til godkjenning",
+    "documentSubmittedNoActorNoCode": "Rev {{rev}} av {{title}} er sendt til godkjenning",
+    "documentChangesRequestedNoCode": "{{actor_name}} har bedt om endringer i Rev {{rev}} av {{title}}",
+    "documentChangesRequestedNoActorNoCode": "Det er bedt om endringer i Rev {{rev}} av {{title}}",
+    "documentReviewDueNoCode": "Dokumentet {{title}} skal gjennomgås om {{days}} dager ({{due_date}})",
+    "documentReviewDueTodayNoCode": "Dokumentet {{title}} skal gjennomgås i dag",
+    "documentReviewDueTomorrowNoCode": "Dokumentet {{title}} skal gjennomgås i morgen",
+    "documentReviewOverdueNoCode": "Gjennomgangen av dokumentet {{title}} har passert fristen med {{days}} dager ({{due_date}})",
+    "documentReviewOverdueOneNoCode": "Gjennomgangen av dokumentet {{title}} har passert fristen med 1 dag ({{due_date}})"
   },
   "roles": {
     "admin": {
@@ -1005,7 +1271,159 @@
       "loadFailed": "Kunne ikke laste inn vedlegg.",
       "downloadFailed": "Kunne ikke laste ned filen. Prøv igjen.",
       "deleteFailed": "Kunne ikke slette vedlegget. Prøv igjen.",
-      "generic": "Noe gikk galt med vedlegget. Prøv igjen."
+      "generic": "Noe gikk galt med vedlegget. Prøv igjen.",
+      "deviationClosed": "Avviket er lukket. Gjenåpne det for å endre vedleggene."
+    }
+  },
+  "standards": {
+    "title": "ISO & standarder",
+    "subtitle": "Følg hvordan styringssystemet dekker hver standard, klausul for klausul.",
+    "loadError": "Kunne ikke laste standardene. Prøv igjen.",
+    "notFound": "Fant ikke denne standarden.",
+    "backToOverview": "Alle standarder",
+    "backToStandard": "Tilbake til standarden",
+    "completeness": "Dekningsgrad",
+    "edition": "Utgave {{edition}}",
+    "counts": {
+      "covered": "{{count}} dekket",
+      "partial": "{{count}} delvis",
+      "not_started": "{{count}} ikke startet",
+      "not_applicable": "{{count}} ikke relevant"
+    },
+    "status": {
+      "covered": "Dekket",
+      "partial": "Delvis",
+      "not_started": "Ikke startet",
+      "not_applicable": "Ikke relevant"
+    },
+    "filter": {
+      "label": "Filtrer på status",
+      "all": "Alle",
+      "gaps": "Mangler"
+    },
+    "themes": {
+      "organizational": "Organisatoriske tiltak",
+      "people": "Personrelaterte tiltak",
+      "physical": "Fysiske tiltak",
+      "technological": "Teknologiske tiltak"
+    },
+    "entity": {
+      "document": "Dokument",
+      "deviation": "Avvik",
+      "deviation_action": "Tiltak",
+      "attachment": "Vedlegg"
+    },
+    "overview": {
+      "noneEnabled": "Ingen standarder er aktivert ennå",
+      "noneEnabledHint": "Aktiver en standard nedenfor for å begynne å koble dokumenter og avvik til kravene.",
+      "available": "Tilgjengelige standarder",
+      "chapters": "Dekningsgrad per kapittel",
+      "open": "Åpne",
+      "enable": "Aktiver",
+      "disable": "Deaktiver",
+      "toggleError": "Kunne ikke oppdatere standarden. Prøv igjen.",
+      "disableTitle": "Deaktivere denne standarden?",
+      "disableMessage": "{{name}} følges ikke lenger opp. Vurderinger og koblede bevis beholdes og kommer tilbake hvis du aktiverer den igjen."
+    },
+    "view": {
+      "coveredOf": "{{covered}} av {{total}} krav dekket",
+      "mapWithAi": "Koble med AI",
+      "notEnabled": "Denne standarden er ikke aktivert for organisasjonen, så fremdriften følges ikke.",
+      "searchPlaceholder": "Søk i klausuler og krav …",
+      "expandAll": "Utvid alle",
+      "collapseAll": "Skjul alle",
+      "expand": "Utvid {{number}}",
+      "collapse": "Skjul {{number}}",
+      "noMatches": "Ingen krav samsvarer med filteret.",
+      "evidenceCount": "{{count}} koblede bevis",
+      "suggestionCount": "{{count}} forslag til gjennomgang"
+    },
+    "gaps": {
+      "title": "Mangler",
+      "none": "Ingen mangler — alle relevante krav er dekket.",
+      "showAll": "Vis alle {{count}}",
+      "showLess": "Vis færre"
+    },
+    "job": {
+      "mapping": "Kobler registreringene til kravene …",
+      "extracting": "Henter klausultekst fra eksemplaret deres …",
+      "mapDone": "Koblingen er ferdig: {{count}} nye forslag til gjennomgang.",
+      "extractDone": "Klausulteksten er hentet fra eksemplaret deres.",
+      "failed": "Jobben feilet. Prøv igjen senere.",
+      "pollFailed": "Kunne ikke sjekke fremdriften.",
+      "startFailed": "Kunne ikke starte jobben. Prøv igjen.",
+      "queued": "Venter på å starte …",
+      "stalled": "Jobben venter på en ledig prosess. Den kjøres når en blir ledig — sjekk igjen senere."
+    },
+    "licensed": {
+      "title": "Deres lisensierte eksemplar",
+      "hint": "Last opp organisasjonens egen lisensierte PDF av standarden for å vise klausulteksten ved siden av våre forklaringer. Den er bare synlig i organisasjonen.",
+      "extracted": "Klausultekst tilgjengelig",
+      "extract": "Hent klausultekst"
+    },
+    "clause": {
+      "control": "Vedleggstiltak",
+      "explanation": "Hva dette betyr",
+      "explanationHint": "CoreFlows egen forklaring — ikke teksten i standarden.",
+      "licensedText": "Standardens tekst",
+      "licensedBadge": "Fra deres lisensierte eksemplar",
+      "licensedHint": "Hentet fra eksemplaret av standarden som organisasjonen har lastet opp.",
+      "subclauses": "Underklausuler",
+      "requirements": "Krav ({{count}})",
+      "noRequirements": "Denne klausulen har ingen egne krav.",
+      "notFound": "Fant ikke denne klausulen.",
+      "guidance": "Veiledning",
+      "guidanceHint": "CoreFlows egne råd om hvordan klausulen kan oppfylles."
+    },
+    "requirement": {
+      "manual": "Satt manuelt",
+      "evidenceExamples": "Typiske bevis",
+      "justification": "Begrunnelse",
+      "justificationRequired": "Forklar hvorfor kravet ikke er relevant.",
+      "note": "Notat",
+      "assess": "Vurder relevans og status",
+      "applicable": "Gjelder for organisasjonen",
+      "manualStatus": "Status",
+      "automatic": "Automatisk (fra bevis)",
+      "save": "Lagre",
+      "cancel": "Avbryt",
+      "saveError": "Kunne ikke lagre. Prøv igjen."
+    },
+    "evidence": {
+      "title": "Bevis",
+      "add": "Koble bevis",
+      "none": "Ingen bevis er koblet ennå.",
+      "fromAi": "foreslått av AI",
+      "confirmedBy": "bekreftet av {{name}}",
+      "remove": "Fjern {{name}}",
+      "cancel": "Avbryt",
+      "searchPlaceholder": "Søk på tittel eller kode …",
+      "noResults": "Ingen treff.",
+      "error": "Kunne ikke oppdatere bevisene. Prøv igjen.",
+      "unavailable": "Utilgjengelig post",
+      "noAccess": "Du har ikke tilgang til poster som kan kobles her.",
+      "searchError": "Søket feilet. Prøv igjen."
+    },
+    "suggestions": {
+      "title": "Forslag til gjennomgang",
+      "confidence": "{{pct}} % sikkerhet",
+      "confirm": "Bekreft",
+      "reject": "Avvis"
+    },
+    "supports": {
+      "title": "Støtter krav",
+      "add": "Koble",
+      "none": "Ikke koblet til noen krav i standardene.",
+      "noStandards": "Ingen standarder er aktivert for organisasjonen.",
+      "searchPlaceholder": "Søk etter krav på klausul eller tekst …",
+      "suggested": "Forslag — gjennomgå for å bekrefte",
+      "remove": "Fjern koblingen til {{ref}}",
+      "onAction": "På tiltak: {{action}}"
+    },
+    "errors": {
+      "notEnabled": "Aktiver standarden før du kobler med AI.",
+      "noLicensedPdf": "Last opp organisasjonens eksemplar av standarden først.",
+      "aiUnavailable": "Kobling med AI er ikke tilgjengelig akkurat nå."
     }
   }
 }

@@ -4,7 +4,9 @@ import {
   ActionKind,
   ActionStatus,
   DeviationStatus,
+  DeviationVisibility,
   FieldType,
+  RootCauseMethod,
   Severity,
   Source,
   Standard,
@@ -209,4 +211,98 @@ export function isActionOverdue(dueAt: string | undefined | null, status: string
     return false;
   }
   return new Date(dueAt).getTime() < Date.now();
+}
+
+// --- Root cause, visibility, access ----------------------------------------
+
+/** Root-cause analysis methods in display order. */
+export const ROOT_CAUSE_METHOD_OPTIONS: readonly RootCauseMethod[] = [
+  'five_why',
+  'fishbone',
+  '8d',
+  'other',
+];
+
+/** i18n key for a root-cause method label. */
+export function rootCauseMethodLabelKey(method: string): string {
+  return `deviations.rootCauseMethod.${method}`;
+}
+
+/** Deviation visibilities. */
+export const VISIBILITY_OPTIONS: readonly DeviationVisibility[] = ['organization', 'restricted'];
+
+/** i18n key for a visibility label. */
+export function visibilityLabelKey(visibility: string): string {
+  return `deviations.visibility.${visibility}`;
+}
+
+// --- Dynamic field validation ---------------------------------------------
+
+/**
+ * Backend field-error codes (422 `detail.data[key].code`) → UI error code.
+ * The UI codes name the `deviations.fieldErrors.*` keys.
+ */
+const FIELD_ERROR_BY_CODE: Readonly<Record<string, string>> = {
+  required: 'required',
+  not_string: 'text',
+  not_number: 'number',
+  invalid_date: 'date',
+  not_boolean: 'checkbox',
+  invalid_option: 'option',
+  invalid_options: 'options',
+  unknown_user: 'user',
+  unknown_department: 'department',
+};
+
+/**
+ * Legacy backend (before coded field errors): English free-text messages,
+ * matched exactly. Kept so the portal works against both API versions.
+ */
+const FIELD_ERROR_BY_MESSAGE: Readonly<Record<string, string>> = {
+  'This field is required': 'required',
+  'Must be a string': 'text',
+  'Must be a number': 'number',
+  'Must be an ISO date': 'date',
+  'Must be a boolean': 'checkbox',
+  'Must be one of the allowed options': 'option',
+  'Must be a subset of the allowed options': 'options',
+  'Must reference a user in this organization': 'user',
+  'Must reference a department in this organization': 'department',
+};
+
+/** Backend field-error codes the UI understands (for the i18n coverage spec). */
+export const BACKEND_FIELD_ERROR_CODES: readonly string[] = Object.keys(FIELD_ERROR_BY_CODE);
+
+/** Every UI field-error code (for the i18n coverage spec). */
+export const FIELD_ERROR_CODES: readonly string[] = [
+  ...new Set([...Object.values(FIELD_ERROR_BY_CODE), 'invalid']),
+];
+
+/**
+ * i18n key for one dynamic-field error: a coded `{code, params, message}`
+ * object (current API) or an English string (legacy API). Unrecognised errors
+ * fall back to a generic "invalid value" message rather than leaking English.
+ */
+export function fieldErrorKey(error: unknown): string {
+  const byMessage = (message: unknown) =>
+    typeof message === 'string'
+      ? FIELD_ERROR_BY_MESSAGE[message.trim().replace(/\.$/, '')]
+      : undefined;
+  let code: string | undefined;
+  if (typeof error === 'string') {
+    code = byMessage(error);
+  } else if (error && typeof error === 'object') {
+    const { code: raw, message } = error as { code?: unknown; message?: unknown };
+    code = (typeof raw === 'string' ? FIELD_ERROR_BY_CODE[raw] : undefined) ?? byMessage(message);
+  }
+  return `deviations.fieldErrors.${code ?? 'invalid'}`;
+}
+
+/** Map a 422 `detail.data` (`{field: error}`) to `{field: i18n key}`. */
+export function fieldErrorKeys(errors: Readonly<Record<string, unknown>>): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [field, error] of Object.entries(errors)) {
+    out[field] = fieldErrorKey(error);
+  }
+  return out;
 }

@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { LocalDayPipe, LocalNumberPipe } from '../../shared/locale/locale-pipes';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -65,7 +65,8 @@ interface SortOption {
 @Component({
   selector: 'app-deviations-list',
   imports: [
-    DatePipe,
+    LocalDayPipe,
+    LocalNumberPipe,
     FormsModule,
     RouterLink,
     TranslocoPipe,
@@ -323,7 +324,7 @@ interface SortOption {
                         [class.font-semibold]="overdue(row)"
                         [class.text-fg-subtle]="!overdue(row)"
                       >
-                        {{ row.due_at | date: 'mediumDate' }}
+                        {{ row.due_at | localDay }}
                       </span>
                     } @else {
                       <span class="text-fg-subtle">—</span>
@@ -341,7 +342,12 @@ interface SortOption {
           <span class="text-[13px] text-fg-subtle">
             {{
               'deviations.pagination.range'
-                | transloco: { from: rangeFrom(), to: rangeTo(), total: total() }
+                | transloco
+                  : {
+                      from: (rangeFrom() | localNumber),
+                      to: (rangeTo() | localNumber),
+                      total: (total() | localNumber),
+                    }
             }}
           </span>
           <div class="flex items-center gap-2">

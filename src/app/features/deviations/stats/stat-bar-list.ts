@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { LocalNumberPipe, LocalPercentPipe } from '../../../shared/locale/locale-pipes';
 import { StatBar } from './stats-bars';
 
 /**
@@ -10,7 +11,7 @@ import { StatBar } from './stats-bars';
  */
 @Component({
   selector: 'app-stat-bar-list',
-  imports: [TranslocoPipe],
+  imports: [TranslocoPipe, LocalNumberPipe, LocalPercentPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (bars().length === 0) {
@@ -32,8 +33,8 @@ import { StatBar } from './stats-bars';
                   bar.label
                 }}</span>
                 <span class="flex-none text-[12.5px] font-semibold text-fg-muted">
-                  {{ bar.count }}
-                  <span class="text-fg-subtle">· {{ bar.percent }}%</span>
+                  {{ bar.count | localNumber }}
+                  <span class="text-fg-subtle">· {{ bar.percent | localPercent }}</span>
                 </span>
               </div>
               <div class="h-2 overflow-hidden rounded-full bg-surface-2">

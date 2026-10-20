@@ -140,7 +140,7 @@ export interface DynamicFieldOption {
         <p class="text-[12px] text-fg-subtle">{{ field().help }}</p>
       }
       @if (error()) {
-        <p class="text-[12px] font-medium text-fail">{{ error() }}</p>
+        <p class="text-[12px] font-medium text-fail">{{ error()! | transloco }}</p>
       }
     </div>
   `,
@@ -173,7 +173,7 @@ export class DynamicField {
   readonly value = input<unknown>();
   /** Option lists for `user` / `department` fields (org users / departments). */
   readonly options = input<readonly DynamicFieldOption[]>([]);
-  /** Server-side validation message to show under the control. */
+  /** i18n key of the validation message to show under the control. */
   readonly error = input<string | null>(null);
 
   readonly valueChange = output<unknown>();

@@ -74,6 +74,7 @@ describe('Settings access for a users:invite-only user', () => {
 
     http.expectNone(`${BASE}/v1/orgs/${ORG}/departments`);
     http.expectNone(`${BASE}/v1/orgs/${ORG}/members`);
+    http.expectNone(`${BASE}/v1/orgs/${ORG}/settings`);
     http.expectOne(`${BASE}/v1/orgs/${ORG}/roles`).flush([]);
     http.expectOne(`${BASE}/v1/orgs/${ORG}/invitations`).flush([]);
     await fixture.whenStable();
@@ -93,11 +94,15 @@ describe('Settings access for a users:invite-only user', () => {
     http.expectOne(`${BASE}/v1/orgs/${ORG}/departments`).flush([]);
     http.expectOne(`${BASE}/v1/orgs/${ORG}/roles`).flush([]);
     http.expectOne(`${BASE}/v1/orgs/${ORG}/members`).flush([]);
+    http
+      .expectOne(`${BASE}/v1/orgs/${ORG}/settings`)
+      .flush({ require_document_segregation: false });
     http.expectNone(`${BASE}/v1/orgs/${ORG}/invitations`);
     await fixture.whenStable();
 
     const root = fixture.nativeElement as HTMLElement;
     expect(root.querySelector('[data-testid="settings-departments"]')).not.toBeNull();
+    expect(root.querySelector('[data-testid="settings-documents"]')).not.toBeNull();
     expect(root.querySelector('app-org-members')).not.toBeNull();
     expect(root.querySelector('app-org-invitations')).toBeNull();
   });

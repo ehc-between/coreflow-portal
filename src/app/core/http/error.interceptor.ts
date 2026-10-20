@@ -36,7 +36,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         }
 
         if (!isAuth && !req.context.get(SKIP_ERROR_TOAST)) {
-          notifications.error(messageKeyFor(error.status));
+          notifications.error(httpErrorMessageKey(error.status));
         }
       }
       return throwError(() => error);
@@ -44,8 +44,11 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   );
 };
 
-/** Maps an HTTP status to an i18n key for a neutral user-facing message. */
-function messageKeyFor(status: number): string {
+/**
+ * Maps an HTTP status to an i18n key for a neutral user-facing message. Exported
+ * so callers that opt out via SKIP_ERROR_TOAST can still toast consistently.
+ */
+export function httpErrorMessageKey(status: number): string {
   if (status === 0) {
     return 'errors.network';
   }

@@ -1,6 +1,8 @@
+import { HttpContext } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from '../http/api.service';
+import { SKIP_ERROR_TOAST } from '../http/error.interceptor';
 import {
   AccessGrant,
   AccessGrantInput,
@@ -16,12 +18,20 @@ import {
   DeviationListItem,
   DeviationListResponse,
   DeviationStats,
+  DeviationStatus,
   DeviationType,
   DeviationTypeDraftResponse,
   DeviationTypeInput,
   Standard,
   UpdateDeviationRequest,
 } from './deviation.models';
+
+/**
+ * Mutations whose failures the feature explains in place (coded 4xx details
+ * mapped to translated messages via deviation-errors), so the interceptor's
+ * generic toast is suppressed; callers toast every failure themselves.
+ */
+const IN_PLACE = { context: new HttpContext().set(SKIP_ERROR_TOAST, true) };
 
 /**
  * Org-scoped Deviations API. Goes through ApiService, so requests carry the
@@ -49,7 +59,7 @@ export class DeviationsApi {
 
   /** Create a deviation type (admin form-builder — built in a later dispatch). */
   createType(orgId: string, body: DeviationTypeInput): Observable<DeviationType> {
-    return this.api.post<DeviationType>(`v1/orgs/${orgId}/deviation-types`, body);
+    return this.api.post<DeviationType>(`v1/orgs/${orgId}/deviation-types`, body, IN_PLACE);
   }
 
   updateType(
@@ -57,11 +67,15 @@ export class DeviationsApi {
     typeId: string,
     body: Partial<DeviationTypeInput>,
   ): Observable<DeviationType> {
-    return this.api.patch<DeviationType>(`v1/orgs/${orgId}/deviation-types/${typeId}`, body);
+    return this.api.patch<DeviationType>(
+      `v1/orgs/${orgId}/deviation-types/${typeId}`,
+      body,
+      IN_PLACE,
+    );
   }
 
   deleteType(orgId: string, typeId: string): Observable<void> {
-    return this.api.delete<void>(`v1/orgs/${orgId}/deviation-types/${typeId}`);
+    return this.api.delete<void>(`v1/orgs/${orgId}/deviation-types/${typeId}`, IN_PLACE);
   }
 
   /**
@@ -113,7 +127,7 @@ export class DeviationsApi {
   }
 
   createDeviation(orgId: string, body: CreateDeviationRequest): Observable<DeviationListItem> {
-    return this.api.post<DeviationListItem>(`v1/orgs/${orgId}/deviations`, body);
+    return this.api.post<DeviationListItem>(`v1/orgs/${orgId}/deviations`, body, IN_PLACE);
   }
 
   updateDeviation(
@@ -121,7 +135,31 @@ export class DeviationsApi {
     deviationId: string,
     patch: UpdateDeviationRequest,
   ): Observable<DeviationDetail> {
-    return this.api.patch<DeviationDetail>(`v1/orgs/${orgId}/deviations/${deviationId}`, patch);
+    return this.api.patch<DeviationDetail>(
+      `v1/orgs/${orgId}/deviations/${deviationId}`,
+      patch,
+      IN_PLACE,
+    );
+  }
+
+  /**
+   * Move a deviation to another workflow status (`PATCH {status, status_reason?}`).
+   * The generic error toast is suppressed: a 409 carries a workflow code
+   * (`invalid_transition`, `reason_required`, `open_actions`, …) the caller
+   * explains in place, and the caller toasts any other failure itself.
+   */
+  changeStatus(
+    orgId: string,
+    deviationId: string,
+    status: DeviationStatus,
+    statusReason?: string,
+  ): Observable<DeviationDetail> {
+    const body: UpdateDeviationRequest = statusReason
+      ? { status, status_reason: statusReason }
+      : { status };
+    return this.api.patch<DeviationDetail>(`v1/orgs/${orgId}/deviations/${deviationId}`, body, {
+      context: new HttpContext().set(SKIP_ERROR_TOAST, true),
+    });
   }
 
   deleteDeviation(orgId: string, deviationId: string): Observable<void> {
@@ -150,7 +188,11 @@ export class DeviationsApi {
   }
 
   addAction(orgId: string, deviationId: string, body: ActionInput): Observable<Action> {
-    return this.api.post<Action>(`v1/orgs/${orgId}/deviations/${deviationId}/actions`, body);
+    return this.api.post<Action>(
+      `v1/orgs/${orgId}/deviations/${deviationId}/actions`,
+      body,
+      IN_PLACE,
+    );
   }
 
   updateAction(
@@ -162,11 +204,15 @@ export class DeviationsApi {
     return this.api.patch<Action>(
       `v1/orgs/${orgId}/deviations/${deviationId}/actions/${actionId}`,
       body,
+      IN_PLACE,
     );
   }
 
   deleteAction(orgId: string, deviationId: string, actionId: string): Observable<void> {
-    return this.api.delete<void>(`v1/orgs/${orgId}/deviations/${deviationId}/actions/${actionId}`);
+    return this.api.delete<void>(
+      `v1/orgs/${orgId}/deviations/${deviationId}/actions/${actionId}`,
+      IN_PLACE,
+    );
   }
 
   // --- Access ----------------------------------------------------------------
@@ -179,12 +225,14 @@ export class DeviationsApi {
     return this.api.post<AccessGrant>(
       `v1/orgs/${orgId}/deviations/${deviationId}/access/grants`,
       body,
+      IN_PLACE,
     );
   }
 
   removeGrant(orgId: string, deviationId: string, grantId: string): Observable<void> {
     return this.api.delete<void>(
       `v1/orgs/${orgId}/deviations/${deviationId}/access/grants/${grantId}`,
+      IN_PLACE,
     );
   }
 

@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -9,18 +8,23 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { AuthService } from '../../core/auth/auth.service';
+import { LanguageService } from '../../core/i18n/language.service';
 import {
-  ClauseRef,
   CreateDeviationRequest,
   DeviationType,
   DeviationVisibility,
+  RootCauseMethod,
   Severity,
   Source,
   Standard,
 } from '../../core/deviations/deviation.models';
 import { DeviationsApi } from '../../core/deviations/deviations-api';
+import {
+  invalidDataErrors,
+  notifyDeviationSaveError,
+} from '../../core/deviations/deviation-errors';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { Badge } from '../../shared/ui/badge/badge';
@@ -28,21 +32,19 @@ import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
 import { Icon } from '../../shared/ui/icon/icon';
 import {
+  ROOT_CAUSE_METHOD_OPTIONS,
   SEVERITY_OPTIONS,
   SOURCE_OPTIONS,
-  STANDARD_OPTIONS,
+  fieldErrorKeys,
+  rootCauseMethodLabelKey,
   severityLabelKey,
   sourceLabelKey,
   standardLabelKey,
 } from './deviation-enums';
+import { DeviationClassificationFields } from './classification-fields';
+import { ClauseRow, toClauseRefs } from './deviation-edit';
 import { DynamicField, DynamicFieldOption } from './dynamic-field';
 import { groupFieldsIntoSections } from './types/type-schema';
-
-/** A clause row being edited (standard + free-text clause). */
-interface ClauseRow {
-  standard: Standard;
-  clause: string;
-}
 
 /**
  * New deviation flow, scoped to the currently selected org. Step 1 picks a
@@ -55,7 +57,17 @@ interface ClauseRow {
  */
 @Component({
   selector: 'app-deviation-new',
-  imports: [FormsModule, RouterLink, TranslocoPipe, Card, Button, Icon, Badge, DynamicField],
+  imports: [
+    FormsModule,
+    RouterLink,
+    TranslocoPipe,
+    Card,
+    Button,
+    Icon,
+    Badge,
+    DynamicField,
+    DeviationClassificationFields,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mx-auto max-w-[980px] px-8 pt-7 pb-12">
@@ -210,110 +222,12 @@ interface ClauseRow {
           </app-card>
 
           <app-card>
-            <div class="flex flex-col gap-4">
-              <div class="flex flex-col gap-2">
-                <span class="text-[13px] font-semibold text-fg-muted">
-                  {{ 'deviations.create.fields.standards' | transloco }}
-                </span>
-                <div class="flex flex-wrap gap-x-4 gap-y-2">
-                  @for (option of standardOptions; track option) {
-                    <label class="flex cursor-pointer items-center gap-2 text-[13.5px] text-fg">
-                      <input
-                        type="checkbox"
-                        [checked]="standards().includes(option)"
-                        (change)="toggleStandard(option)"
-                        class="h-4 w-4 accent-[var(--accent)]"
-                      />
-                      {{ standardLabelKey(option) | transloco }}
-                    </label>
-                  }
-                </div>
-              </div>
-
-              <div class="flex flex-col gap-2">
-                <span class="text-[13px] font-semibold text-fg-muted">
-                  {{ 'deviations.create.fields.clauses' | transloco }}
-                </span>
-                @for (row of clauses(); track $index) {
-                  <div class="flex items-center gap-2">
-                    <div class="cf-select w-[160px] flex-none">
-                      <select
-                        [ngModel]="row.standard"
-                        (ngModelChange)="setClauseStandard($index, $event)"
-                        [name]="'clause-std-' + $index"
-                      >
-                        @for (option of standardOptions; track option) {
-                          <option [value]="option">
-                            {{ standardLabelKey(option) | transloco }}
-                          </option>
-                        }
-                      </select>
-                    </div>
-                    <input
-                      type="text"
-                      [ngModel]="row.clause"
-                      (ngModelChange)="setClauseValue($index, $event)"
-                      [name]="'clause-val-' + $index"
-                      [placeholder]="'deviations.create.clausePlaceholder' | transloco"
-                      autocomplete="off"
-                      class="h-10 flex-1 rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
-                    />
-                    <button
-                      type="button"
-                      [attr.aria-label]="'deviations.create.removeClause' | transloco"
-                      (click)="removeClause($index)"
-                      class="flex flex-none rounded-[8px] p-2 text-fg-subtle hover:bg-surface-2 hover:text-fg"
-                    >
-                      <app-icon name="x" [size]="15" />
-                    </button>
-                  </div>
-                }
-                <button
-                  type="button"
-                  (click)="addClause()"
-                  class="inline-flex w-fit items-center gap-1.5 text-[12.5px] font-semibold text-accent hover:underline"
-                >
-                  <app-icon name="plus" [size]="14" />
-                  {{ 'deviations.create.addClause' | transloco }}
-                </button>
-              </div>
-
-              <div class="flex flex-col gap-2">
-                <label for="dev-tag" class="text-[13px] font-semibold text-fg-muted">
-                  {{ 'deviations.create.fields.tags' | transloco }}
-                </label>
-                @if (tags().length) {
-                  <div class="flex flex-wrap gap-1.5">
-                    @for (t of tags(); track t) {
-                      <span
-                        class="inline-flex items-center gap-1 rounded-full border border-border bg-surface-2 px-2.5 py-0.5 text-[12px] font-medium text-fg"
-                      >
-                        {{ t }}
-                        <button
-                          type="button"
-                          [attr.aria-label]="'deviations.create.removeTag' | transloco"
-                          (click)="removeTag(t)"
-                          class="flex text-fg-subtle hover:text-fg"
-                        >
-                          <app-icon name="x" [size]="13" />
-                        </button>
-                      </span>
-                    }
-                  </div>
-                }
-                <input
-                  id="dev-tag"
-                  type="text"
-                  [ngModel]="tagDraft()"
-                  (ngModelChange)="tagDraft.set($event)"
-                  (keydown.enter)="addTag($event)"
-                  name="tagDraft"
-                  [placeholder]="'deviations.create.tagPlaceholder' | transloco"
-                  autocomplete="off"
-                  class="h-10 w-full rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
-                />
-              </div>
-            </div>
+            <app-deviation-classification-fields
+              idPrefix="dev"
+              [(standards)]="standards"
+              [(clauses)]="clauses"
+              [(tags)]="tags"
+            />
           </app-card>
 
           <app-card>
@@ -409,16 +323,21 @@ interface ClauseRow {
                 <label for="dev-rcm" class="text-[13px] font-semibold text-fg-muted">
                   {{ 'deviations.create.fields.rootCauseMethod' | transloco }}
                 </label>
-                <input
-                  id="dev-rcm"
-                  type="text"
-                  [ngModel]="rootCauseMethod()"
-                  (ngModelChange)="rootCauseMethod.set($event)"
-                  name="rootCauseMethod"
-                  [placeholder]="'deviations.create.rootCauseMethodPlaceholder' | transloco"
-                  autocomplete="off"
-                  class="h-10 w-full rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
-                />
+                <div class="cf-select">
+                  <select
+                    id="dev-rcm"
+                    [ngModel]="rootCauseMethod()"
+                    (ngModelChange)="rootCauseMethod.set($event)"
+                    name="rootCauseMethod"
+                  >
+                    <option value="">{{ 'deviations.create.none' | transloco }}</option>
+                    @for (option of rootCauseMethodOptions; track option) {
+                      <option [value]="option">
+                        {{ rootCauseMethodLabelKey(option) | transloco }}
+                      </option>
+                    }
+                  </select>
+                </div>
               </div>
             </div>
           </app-card>
@@ -493,14 +412,15 @@ export class DeviationNew {
   private readonly auth = inject(AuthService);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly notifications = inject(NotificationService);
-  private readonly transloco = inject(TranslocoService);
+  private readonly language = inject(LanguageService);
   private readonly router = inject(Router);
 
   protected readonly orgId = this.selectedOrg.currentOrgId;
 
   protected readonly severityOptions = SEVERITY_OPTIONS;
   protected readonly sourceOptions = SOURCE_OPTIONS;
-  protected readonly standardOptions = STANDARD_OPTIONS;
+  protected readonly rootCauseMethodOptions = ROOT_CAUSE_METHOD_OPTIONS;
+  protected readonly rootCauseMethodLabelKey = rootCauseMethodLabelKey;
   protected readonly severityLabelKey = severityLabelKey;
   protected readonly sourceLabelKey = sourceLabelKey;
   protected readonly standardLabelKey = standardLabelKey;
@@ -521,12 +441,11 @@ export class DeviationNew {
   protected readonly standards = signal<readonly Standard[]>([]);
   protected readonly clauses = signal<readonly ClauseRow[]>([]);
   protected readonly tags = signal<readonly string[]>([]);
-  protected readonly tagDraft = signal('');
   protected readonly ownerId = signal('');
   protected readonly departmentId = signal('');
   protected readonly dueAt = signal('');
   protected readonly rootCause = signal('');
-  protected readonly rootCauseMethod = signal('');
+  protected readonly rootCauseMethod = signal<RootCauseMethod | ''>('');
   protected readonly visibility = signal<DeviationVisibility>('organization');
 
   // Dynamic schema values + per-field server errors
@@ -540,7 +459,7 @@ export class DeviationNew {
     if (!type) {
       return [];
     }
-    const defaultTitle = this.transloco.translate('deviations.create.detailsSection');
+    const defaultTitle = this.language.translate('deviations.create.detailsSection');
     return groupFieldsIntoSections(type.schema, defaultTitle);
   });
 
@@ -584,42 +503,6 @@ export class DeviationNew {
     this.dataErrors.set({});
   }
 
-  protected toggleStandard(standard: Standard): void {
-    const current = this.standards();
-    this.standards.set(
-      current.includes(standard) ? current.filter((s) => s !== standard) : [...current, standard],
-    );
-  }
-
-  protected addClause(): void {
-    this.clauses.set([...this.clauses(), { standard: STANDARD_OPTIONS[0], clause: '' }]);
-  }
-
-  protected removeClause(index: number): void {
-    this.clauses.set(this.clauses().filter((_, i) => i !== index));
-  }
-
-  protected setClauseStandard(index: number, standard: Standard): void {
-    this.clauses.set(this.clauses().map((row, i) => (i === index ? { ...row, standard } : row)));
-  }
-
-  protected setClauseValue(index: number, clause: string): void {
-    this.clauses.set(this.clauses().map((row, i) => (i === index ? { ...row, clause } : row)));
-  }
-
-  protected addTag(event: Event): void {
-    event.preventDefault();
-    const value = this.tagDraft().trim();
-    if (value && !this.tags().includes(value)) {
-      this.tags.set([...this.tags(), value]);
-    }
-    this.tagDraft.set('');
-  }
-
-  protected removeTag(tag: string): void {
-    this.tags.set(this.tags().filter((t) => t !== tag));
-  }
-
   protected setData(key: string, value: unknown): void {
     this.data.set({ ...this.data(), [key]: value });
     const errors = this.dataErrors();
@@ -643,9 +526,7 @@ export class DeviationNew {
     }
     this.titleError.set(false);
 
-    const clauses: ClauseRef[] = this.clauses()
-      .filter((row) => row.clause.trim() !== '')
-      .map((row) => ({ standard: row.standard, clause: row.clause.trim() }));
+    const clauses = toClauseRefs(this.clauses());
 
     const body: CreateDeviationRequest = {
       type_id: type.id,
@@ -660,7 +541,7 @@ export class DeviationNew {
       department_id: this.departmentId() || undefined,
       due_at: this.dueAt() || undefined,
       root_cause: this.rootCause().trim() || undefined,
-      root_cause_method: this.rootCauseMethod().trim() || undefined,
+      root_cause_method: this.rootCauseMethod() || undefined,
       data: this.data(),
       visibility: this.visibility(),
     };
@@ -681,21 +562,13 @@ export class DeviationNew {
   }
 
   private handleError(error: unknown): void {
-    if (!(error instanceof HttpErrorResponse)) {
+    const fieldErrors = invalidDataErrors(error);
+    if (fieldErrors) {
+      this.dataErrors.set(fieldErrorKeys(fieldErrors));
+      this.notifications.error('deviations.create.validationToast');
       return;
     }
-    if (error.status === 422) {
-      const fieldErrors = (error.error as { detail?: { data?: Record<string, string> } } | null)
-        ?.detail?.data;
-      if (fieldErrors && typeof fieldErrors === 'object') {
-        this.dataErrors.set({ ...fieldErrors });
-        this.notifications.error('deviations.create.validationToast');
-        return;
-      }
-    }
-    if (error.status === 400) {
-      this.notifications.error('deviations.create.badReferenceToast');
-    }
+    notifyDeviationSaveError(this.notifications, error);
   }
 
   private loadTypes(orgId: string): void {

@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { LocalDayPipe } from '../../../shared/locale/locale-pipes';
 import { ChangeDetectionStrategy, Component, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -10,6 +10,10 @@ import {
   ActionStatus,
 } from '../../../core/deviations/deviation.models';
 import { DeviationsApi } from '../../../core/deviations/deviations-api';
+import {
+  isDeviationClosedError,
+  notifyDeviationError,
+} from '../../../core/deviations/deviation-errors';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { Badge } from '../../../shared/ui/badge/badge';
@@ -45,7 +49,7 @@ interface OwnerOption {
  */
 @Component({
   selector: 'app-deviation-actions',
-  imports: [DatePipe, FormsModule, TranslocoPipe, Badge, Button, Icon, Attachments],
+  imports: [LocalDayPipe, FormsModule, TranslocoPipe, Badge, Button, Icon, Attachments],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div>
@@ -141,7 +145,14 @@ interface OwnerOption {
       } @else {
         <ul class="flex flex-col gap-2.5">
           @for (action of actions(); track action.id) {
-            <li class="rounded-tile border border-border bg-surface p-3.5">
+            <li
+              class="rounded-tile border bg-surface p-3.5"
+              [class.border-border]="!highlighted().includes(action.id)"
+              [class.border-fail]="highlighted().includes(action.id)"
+              [class.ring-2]="highlighted().includes(action.id)"
+              [class.ring-fail-soft]="highlighted().includes(action.id)"
+              [attr.data-blocking]="highlighted().includes(action.id) ? 'true' : null"
+            >
               <div class="flex items-start gap-2.5">
                 <span class="min-w-0 flex-1">
                   <span class="mb-1 flex flex-wrap items-center gap-1.5">
@@ -176,7 +187,7 @@ interface OwnerOption {
                       >
                         <app-icon name="calendar" [size]="13" />{{
                           'deviations.actions.dueLabel'
-                            | transloco: { date: (action.due_at | date: 'mediumDate') }
+                            | transloco: { date: (action.due_at | localDay) }
                         }}
                       </span>
                     }
@@ -338,11 +349,19 @@ export class DeviationActions {
   readonly actions = input.required<readonly Action[]>();
   readonly owners = input<readonly OwnerOption[]>([]);
   readonly canEdit = input(false);
+  /** Action ids to highlight (e.g. the ones blocking a status change). */
+  readonly highlighted = input<readonly string[]>([]);
 
   /** Emits the new full actions list whenever one is added / changed / removed. */
   readonly actionsChange = output<readonly Action[]>();
   /** Fires after any change so the host can re-fetch the audit trail. */
   readonly changed = output<void>();
+  /**
+   * Fires when the server rejected a change because the deviation is now
+   * closed (someone else closed it meanwhile): the host reloads it so the page
+   * switches to its locked state.
+   */
+  readonly stale = output<void>();
 
   protected readonly orgId = this.selectedOrg.currentOrgId;
 
@@ -404,7 +423,10 @@ export class DeviationActions {
         this.changed.emit();
         this.notifications.success('deviations.actions.addedToast');
       },
-      error: () => this.saving.set(false),
+      error: (error: unknown) => {
+        this.saving.set(false);
+        this.onError(error);
+      },
     });
   }
 
@@ -457,7 +479,10 @@ export class DeviationActions {
         this.changed.emit();
         this.notifications.info('deviations.actions.removedToast');
       },
-      error: () => this.busyId.set(null),
+      error: (error: unknown) => {
+        this.busyId.set(null);
+        this.onError(error);
+      },
     });
   }
 
@@ -475,7 +500,18 @@ export class DeviationActions {
         onSuccess?.();
         this.notifications.success('deviations.actions.savedToast');
       },
-      error: () => this.busyId.set(null),
+      error: (error: unknown) => {
+        this.busyId.set(null);
+        this.onError(error);
+      },
     });
+  }
+
+  /** Explain a failed change; a now-closed deviation also asks the host to reload. */
+  private onError(error: unknown): void {
+    notifyDeviationError(this.notifications, error);
+    if (isDeviationClosedError(error)) {
+      this.stale.emit();
+    }
   }
 }

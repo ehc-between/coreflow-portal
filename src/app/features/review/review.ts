@@ -1,8 +1,16 @@
-import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
+import { LocalDatePipe } from '../../shared/locale/locale-pipes';
 import { RouterLink } from '@angular/router';
+import { catchError, forkJoin, of } from 'rxjs';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { Proposal } from '../../core/documents/document.models';
+import { DocumentSummary, Proposal } from '../../core/documents/document.models';
 import { DocumentsApi } from '../../core/documents/documents-api';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { NotificationService } from '../../core/notifications/notification.service';
@@ -11,15 +19,16 @@ import { Card } from '../../shared/ui/card/card';
 import { Icon } from '../../shared/ui/icon/icon';
 
 /**
- * "Needs your review" work-feed, scoped to the currently selected org. Lists the
- * org's pending proposals (drafts queued by Ask CoreFlow or others). The primary
- * path opens each proposal in the full review editor (`/review/:id`) to view,
- * edit, AI-revise and approve/publish; a quick Reject stays inline. Reloads on
- * org switch.
+ * "Needs your review" work-feed, scoped to the currently selected org. Lists
+ * documents submitted for review (`in_review`) — each opens the document to
+ * approve or request changes — and the org's pending proposals (drafts queued
+ * by Ask CoreFlow or others). Proposals open in the full review editor
+ * (`/review/:id`) to view, edit, AI-revise and approve/publish; a quick Reject
+ * stays inline. Reloads on org switch.
  */
 @Component({
   selector: 'app-review',
-  imports: [DatePipe, RouterLink, TranslocoPipe, Card, Button, Icon],
+  imports: [LocalDatePipe, RouterLink, TranslocoPipe, Card, Button, Icon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mx-auto max-w-[860px] px-8 pt-7 pb-12">
@@ -36,7 +45,7 @@ import { Icon } from '../../shared/ui/icon/icon';
             {{ 'common.loading' | transloco }}
           </div>
         </app-card>
-      } @else if (proposals().length === 0) {
+      } @else if (empty()) {
         <app-card>
           <div class="flex flex-col items-center gap-3 py-12 text-center">
             <span
@@ -48,6 +57,48 @@ import { Icon } from '../../shared/ui/icon/icon';
           </div>
         </app-card>
       } @else {
+        @if (documents().length > 0) {
+          <h2 class="mb-2 text-[11px] font-bold tracking-[0.08em] text-fg-subtle uppercase">
+            {{ 'review.documentsHeading' | transloco: { count: documents().length } }}
+          </h2>
+          <div class="mb-6 flex flex-col gap-3">
+            @for (doc of documents(); track doc.id) {
+              <app-card>
+                <a [routerLink]="['/documents', doc.id]" class="group flex items-start gap-3">
+                  <span
+                    class="mt-0.5 flex h-8 w-8 flex-none items-center justify-center rounded-tile bg-warn-soft text-warn"
+                  >
+                    <app-icon name="documents" [size]="17" />
+                  </span>
+                  <span class="min-w-0 flex-1">
+                    <span class="block font-mono text-[12px] text-fg-subtle">{{
+                      doc.doc_code
+                    }}</span>
+                    <span
+                      class="block font-display text-[16px] font-bold tracking-[-0.02em] text-fg group-hover:text-accent"
+                      >{{ doc.title }}</span
+                    >
+                    <span class="mt-1 block text-[12px] text-fg-subtle">{{
+                      'review.submittedAt'
+                        | transloco: { date: (doc.updated_at | localDate: 'medium') }
+                    }}</span>
+                  </span>
+                  <span class="flex flex-none items-center">
+                    <app-button variant="secondary">
+                      {{ 'review.reviewDocument' | transloco }}
+                    </app-button>
+                  </span>
+                </a>
+              </app-card>
+            }
+          </div>
+        }
+
+        @if (proposals().length > 0 && documents().length > 0) {
+          <h2 class="mb-2 text-[11px] font-bold tracking-[0.08em] text-fg-subtle uppercase">
+            {{ 'review.proposalsHeading' | transloco: { count: proposals().length } }}
+          </h2>
+        }
         <div class="flex flex-col gap-3">
           @for (proposal of proposals(); track proposal.id) {
             <app-card>
@@ -71,7 +122,7 @@ import { Icon } from '../../shared/ui/icon/icon';
                   <p class="mt-1.5 text-[12px] text-fg-subtle">
                     {{
                       'review.queuedAt'
-                        | transloco: { date: (proposal.created_at | date: 'medium') }
+                        | transloco: { date: (proposal.created_at | localDate: 'medium') }
                     }}
                   </p>
                 </a>
@@ -106,13 +157,19 @@ export class Review {
   protected readonly orgId = this.selectedOrg.currentOrgId;
 
   protected readonly proposals = signal<readonly Proposal[]>([]);
+  /** Documents submitted for review (status `in_review`). */
+  protected readonly documents = signal<readonly DocumentSummary[]>([]);
   protected readonly loading = signal(false);
+  protected readonly empty = computed(
+    () => this.proposals().length === 0 && this.documents().length === 0,
+  );
   protected readonly busyId = signal<string | null>(null);
 
   constructor() {
     effect(() => {
       const orgId = this.orgId();
       this.proposals.set([]);
+      this.documents.set([]);
       this.busyId.set(null);
       if (orgId) {
         this.load(orgId);
@@ -142,12 +199,16 @@ export class Review {
 
   private load(orgId: string): void {
     this.loading.set(true);
-    this.api.listProposals(orgId).subscribe({
-      next: (proposals) => {
-        this.proposals.set(proposals);
-        this.loading.set(false);
-      },
-      error: () => this.loading.set(false),
+    // Either feed failing still shows the other.
+    forkJoin({
+      proposals: this.api.listProposals(orgId).pipe(catchError(() => of([] as Proposal[]))),
+      documents: this.api
+        .list(orgId, { status: 'in_review' })
+        .pipe(catchError(() => of([] as DocumentSummary[]))),
+    }).subscribe(({ proposals, documents }) => {
+      this.proposals.set(proposals);
+      this.documents.set(documents);
+      this.loading.set(false);
     });
   }
 }

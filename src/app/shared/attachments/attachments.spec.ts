@@ -147,6 +147,23 @@ describe('Attachments', () => {
     expect(uploads?.textContent).not.toContain('attachments.retry');
   });
 
+  it('explains a closed deviation (409 deviation_closed) without retry', async () => {
+    const { fixture, http, el } = setup(true);
+    await render(fixture);
+    expectList(http).flush([]);
+
+    fixture.componentInstance.addFiles([new File(['abc'], 'a.pdf', { type: 'application/pdf' })]);
+    (await nextRequest(http, (r) => r.url === LIST_URL && r.method === 'POST')).flush(
+      { detail: { code: 'deviation_closed' } },
+      { status: 409, statusText: 'Conflict' },
+    );
+    await render(fixture);
+
+    const uploads = el.querySelector('[data-testid="attachments-uploads"]');
+    expect(uploads?.textContent).toContain('attachments.errors.deviationClosed');
+    expect(uploads?.textContent).not.toContain('attachments.retry');
+  });
+
   it('offers retry after a verification mismatch (422 on complete) and resumes without re-creating', async () => {
     const { fixture, http, el } = setup(true);
     await render(fixture);

@@ -144,6 +144,28 @@
         </section>
 
         <app-org-members />
+
+        <app-org-document-settings />
+
+        <section data-testid="settings-deleted-documents">
+          <app-card>
+            <div class="flex items-center justify-between gap-4">
+              <div class="min-w-0">
+                <h2 class="font-display text-[16px] font-bold tracking-[-0.02em] text-fg">
+                  {{ 'settings.deletedDocuments.title' | transloco }}
+                </h2>
+                <p class="mt-0.5 text-[13px] text-fg-muted">
+                  {{ 'settings.deletedDocuments.subtitle' | transloco }}
+                </p>
+              </div>
+              <a routerLink="/settings/deleted-documents">
+                <app-button variant="secondary">
+                  {{ 'settings.deletedDocuments.open' | transloco }}
+                </app-button>
+              </a>
+            </div>
+          </app-card>
+        </section>
       }
 
       @if (canInvite()) {

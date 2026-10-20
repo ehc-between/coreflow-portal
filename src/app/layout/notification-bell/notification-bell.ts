@@ -224,7 +224,10 @@ export class NotificationBell {
   private generation = 0;
 
   protected readonly rows = computed<readonly Row[]>(() =>
-    this.items().map((notification) => ({ notification, ...notificationText(notification) })),
+    this.items().map((notification) => ({
+      notification,
+      ...notificationText(notification, this.language.active()),
+    })),
   );
   protected readonly hasMore = computed(() => this.items().length < this.total());
 

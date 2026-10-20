@@ -9,3 +9,7 @@ export { KpiTile, type KpiTone } from './kpi-tile/kpi-tile';
 export { AgentBanner } from './agent-banner/agent-banner';
 export { Alert, type AlertTone } from './alert/alert';
 export { ConfirmDialog } from './confirm-dialog/confirm-dialog';
+export { PromptDialog } from './prompt-dialog/prompt-dialog';
+export { Pager } from './pager/pager';
+export { ProgressRing } from './progress-ring/progress-ring';
+export { ProgressBar } from './progress-bar/progress-bar';

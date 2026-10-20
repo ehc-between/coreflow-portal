@@ -86,9 +86,10 @@ export const NAV_SECTIONS: readonly NavSection[] = [
         agentRole: 'Audit Coordinator',
       },
       {
-        path: 'iso',
+        path: 'standards',
         labelKey: 'nav.iso',
         icon: 'iso',
+        permission: 'standards:read',
         agentName: 'Stella',
         agentRole: 'Standards Guide',
       },

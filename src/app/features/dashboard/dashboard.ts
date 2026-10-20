@@ -9,7 +9,8 @@ import {
   untracked,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
+import { LanguageService } from '../../core/i18n/language.service';
 import { Subscription } from 'rxjs';
 import { DeviationStats } from '../../core/deviations/deviation.models';
 import { DeviationsApi } from '../../core/deviations/deviations-api';
@@ -146,7 +147,7 @@ export class Dashboard {
   private readonly documentsApi = inject(DocumentsApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly router = inject(Router);
-  private readonly transloco = inject(TranslocoService);
+  private readonly language = inject(LanguageService);
 
   protected readonly trendMonths = TREND_MONTHS;
   protected readonly orgName = computed(() => this.selectedOrg.currentOrg()?.name ?? null);
@@ -178,7 +179,7 @@ export class Dashboard {
       return [];
     }
     return toBars(
-      recordToBuckets(s.value.by_severity, (k) => this.transloco.translate(severityLabelKey(k))),
+      recordToBuckets(s.value.by_severity, (k) => this.language.translate(severityLabelKey(k))),
     );
   });
 

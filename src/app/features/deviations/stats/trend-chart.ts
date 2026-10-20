@@ -1,5 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
-import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
+import { LanguageService } from '../../../core/i18n/language.service';
+import { bcp47ForLang } from '../../../core/i18n/locale';
+import { LocalNumberPipe } from '../../../shared/locale/locale-pipes';
 import { StatsMonthCount } from '../../../core/deviations/deviation.models';
 import { maxCount } from './stats-bars';
 
@@ -11,7 +14,7 @@ import { maxCount } from './stats-bars';
  */
 @Component({
   selector: 'app-trend-chart',
-  imports: [TranslocoPipe],
+  imports: [TranslocoPipe, LocalNumberPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (points().length === 0) {
@@ -22,7 +25,9 @@ import { maxCount } from './stats-bars';
       <div class="flex items-end gap-2" [style.height.px]="height()">
         @for (point of points(); track point.month) {
           <div class="flex h-full flex-1 flex-col items-center justify-end gap-1.5">
-            <span class="text-[11px] font-semibold text-fg-muted">{{ point.count }}</span>
+            <span class="text-[11px] font-semibold text-fg-muted">{{
+              point.count | localNumber
+            }}</span>
             <div
               class="w-full max-w-[40px] rounded-t-[4px] bg-accent"
               [style.height.%]="columnHeight(point.count)"
@@ -38,7 +43,7 @@ import { maxCount } from './stats-bars';
   `,
 })
 export class TrendChart {
-  private readonly transloco = inject(TranslocoService);
+  private readonly language = inject(LanguageService);
 
   readonly points = input.required<readonly StatsMonthCount[]>();
   /** Chart height in px. */
@@ -55,7 +60,7 @@ export class TrendChart {
     // `month` is `YYYY-MM`; render as a short localised month + 2-digit year.
     const [year, m] = month.split('-');
     const date = new Date(Number(year), Number(m) - 1, 1);
-    return new Intl.DateTimeFormat(this.transloco.getActiveLang(), {
+    return new Intl.DateTimeFormat(bcp47ForLang(this.language.active()), {
       month: 'short',
       year: '2-digit',
     }).format(date);
