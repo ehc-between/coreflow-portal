@@ -726,7 +726,8 @@ type StatusRejection = WorkflowError & {
                 <div class="px-4 pb-4">
                   <app-deviation-access-editor
                     [deviationId]="dev.id"
-                    [canManage]="true"
+                    [canManage]="canManage()"
+                    [locked]="editLockKey() !== null"
                     [owner]="acc.owner_user_id ?? ''"
                     [ownerName]="acc.owner_name ?? ''"
                     [visibility]="acc.visibility"
@@ -929,7 +930,7 @@ export class DeviationDetail {
   protected readonly canWrite = computed(() =>
     (this.selectedOrg.currentOrg()?.permissions ?? []).includes('deviations:write'),
   );
-  private readonly canManage = computed(() =>
+  protected readonly canManage = computed(() =>
     (this.selectedOrg.currentOrg()?.permissions ?? []).includes('deviations:manage'),
   );
 

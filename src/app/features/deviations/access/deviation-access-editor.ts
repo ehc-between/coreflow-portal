@@ -57,7 +57,7 @@ interface OwnerOption {
         <label for="dev-access-owner" class="text-[13px] font-semibold text-fg-muted">
           {{ 'deviations.access.owner' | transloco }}
         </label>
-        @if (canManage()) {
+        @if (canEditOwnership()) {
           <div class="cf-select">
             <select
               id="dev-access-owner"
@@ -81,7 +81,7 @@ interface OwnerOption {
         <span class="text-[13px] font-semibold text-fg-muted">
           {{ 'deviations.access.visibility' | transloco }}
         </span>
-        @if (canManage()) {
+        @if (canEditOwnership()) {
           <div class="grid gap-2 sm:grid-cols-2">
             @for (option of visibilityOptions; track option.value) {
               <button
@@ -267,6 +267,13 @@ export class DeviationAccessEditor {
   readonly deviationId = input.required<string>();
   /** Whether the manage controls are shown. Read-only when false. */
   readonly canManage = input(true);
+  /**
+   * The deviation is locked for editing (closed / cancelled / no edit reach):
+   * owner and visibility become read-only; grants stay manageable.
+   */
+  readonly locked = input(false);
+  /** Owner + visibility controls: manage rights and not locked. */
+  protected readonly canEditOwnership = computed(() => this.canManage() && !this.locked());
 
   readonly owner = input<string>('');
   readonly visibility = input<DeviationVisibility>('organization');
@@ -344,7 +351,7 @@ export class DeviationAccessEditor {
   protected onOwnerChange(userId: string): void {
     const orgId = this.orgId();
     const deviationId = this.deviationId();
-    if (!orgId) {
+    if (!orgId || !this.canEditOwnership()) {
       return;
     }
     this.api.updateDeviation(orgId, deviationId, { owner_user_id: userId }).subscribe({
@@ -357,7 +364,7 @@ export class DeviationAccessEditor {
   }
 
   protected onVisibilityChange(visibility: DeviationVisibility): void {
-    if (visibility === this.visibility()) {
+    if (visibility === this.visibility() || !this.canEditOwnership()) {
       return;
     }
     const orgId = this.orgId();

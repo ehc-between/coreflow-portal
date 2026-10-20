@@ -7,11 +7,15 @@ import { TranslocoTestingModule } from '@jsverse/transloco';
 import { NEVER, Observable, of, throwError } from 'rxjs';
 import { AttachmentsApi } from '../../core/attachments/attachments-api';
 import { AuthService } from '../../core/auth/auth.service';
-import { DeviationDetail as DeviationDetailModel } from '../../core/deviations/deviation.models';
+import {
+  DeviationAccess,
+  DeviationDetail as DeviationDetailModel,
+} from '../../core/deviations/deviation.models';
 import { DeviationsApi } from '../../core/deviations/deviations-api';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { Attachments } from '../../shared/attachments/attachments';
+import { DeviationAccessEditor } from './access/deviation-access-editor';
 import { DeviationDetail } from './deviation-detail';
 
 function deviation(overrides: Partial<DeviationDetailModel> = {}): DeviationDetailModel {
@@ -63,6 +67,7 @@ interface ApiMock {
 async function setup(
   dev = deviation(),
   permissions: readonly string[] = ['deviations:write', 'deviations:manage'],
+  access: DeviationAccess | null = null,
 ): Promise<{
   fixture: ComponentFixture<DeviationDetail>;
   root: HTMLElement;
@@ -72,7 +77,7 @@ async function setup(
   const api: ApiMock = {
     getDeviation: vi.fn(() => of(dev)),
     getType: vi.fn(() => NEVER),
-    getAccess: vi.fn(() => NEVER),
+    getAccess: vi.fn(() => (access ? of(access) : NEVER)),
     listAccessSubjects: vi.fn(() =>
       of({ users: [], departments: [{ id: 'dep1', name: 'Plant' }] }),
     ),
@@ -406,6 +411,42 @@ describe('DeviationDetail QA follow-ups', () => {
     expect(() => buttonByText(root, 'deviations.actions.add')).toThrow();
     const trigger = root.querySelector<HTMLElement>('[data-testid="status-trigger"]')!;
     expect(trigger.getAttribute('title')).toContain('deviations.workflow.noEditAccess');
+  });
+
+  const ACCESS: DeviationAccess = {
+    visibility: 'restricted',
+    owner_user_id: 'u1',
+    owner_name: 'Ada',
+    grants: [],
+  };
+
+  it.each(['closed', 'cancelled'] as const)(
+    'locks owner and visibility (not grants) in the access editor when %s',
+    async (status) => {
+      const { fixture, root } = await setup(
+        deviation({
+          status,
+          allowed_transitions: [{ to: 'investigating', requires_reason: true }],
+        }),
+        ['deviations:write', 'deviations:manage'],
+        ACCESS,
+      );
+      const editor = fixture.debugElement.query(By.directive(DeviationAccessEditor))
+        .componentInstance as DeviationAccessEditor;
+      expect(editor.locked()).toBe(true);
+      expect(editor.canManage()).toBe(true);
+      expect(root.querySelector('#dev-access-owner')).toBeNull();
+      expect(root.textContent).toContain('Ada');
+      // Grants stay manageable.
+      expect(
+        root.querySelector('[aria-label$="deviations.access.peopleAndDepartments"]'),
+      ).not.toBeNull();
+    },
+  );
+
+  it('keeps owner and visibility editable on an open deviation', async () => {
+    const { root } = await setup(deviation(), ['deviations:write', 'deviations:manage'], ACCESS);
+    expect(root.querySelector('#dev-access-owner')).not.toBeNull();
   });
 
   it.each(['closed', 'cancelled'] as const)(
