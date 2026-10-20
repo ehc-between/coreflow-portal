@@ -71,3 +71,9 @@ export interface DepartmentDetail {
   readonly name: string;
   readonly members: readonly DepartmentMember[];
 }
+
+/** Org-wide settings (`GET`/`PUT v1/orgs/{org}/settings`, `org:manage`). */
+export interface OrgSettingsDto {
+  /** Documents must be approved by someone other than their author. */
+  readonly require_document_segregation: boolean;
+}

@@ -20,12 +20,14 @@ import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
 import { FormField } from '../../../shared/ui/form-field/form-field';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { OrgDocumentSettings } from '../document-settings/org-document-settings';
 import { OrgInvitations } from '../invitations/org-invitations';
 import { OrgMembers } from '../members/org-members';
 
 /**
  * Org Settings shell, scoped to the currently selected org. Hosts Departments
- * (list + create + rename + delete) and Members — both `org:manage` — and
+ * (list + create + rename + delete), Members and document settings — all
+ * `org:manage` — and
  * Invitations (`users:invite`); each section renders (and loads) only when the
  * selected org grants its permission, so an invite-only user sees Invitations
  * alone. Reacts to org switches by reloading and dropping stale state.
@@ -42,6 +44,7 @@ import { OrgMembers } from '../members/org-members';
     Icon,
     ConfirmDialog,
     OrgMembers,
+    OrgDocumentSettings,
     OrgInvitations,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,

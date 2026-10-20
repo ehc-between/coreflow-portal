@@ -479,6 +479,14 @@
       "forbidden": "You don't have permission to do that.",
       "selfDeactivate": "You can't deactivate your own account.",
       "userNotFound": "That user no longer exists."
+    },
+    "documents": {
+      "title": "Documents",
+      "segregation": "Require a different approver than the author",
+      "segregationHint": "When on, the author of a document revision cannot approve it themselves.",
+      "loadError": "Couldn't load the document settings.",
+      "saved": "Document settings saved.",
+      "saveFailed": "Couldn't save the document settings."
     }
   },
   "auth": {

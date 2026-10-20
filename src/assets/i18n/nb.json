@@ -479,6 +479,14 @@
       "forbidden": "Du har ikke tilgang til å gjøre dette.",
       "selfDeactivate": "Du kan ikke deaktivere din egen konto.",
       "userNotFound": "Brukeren finnes ikke lenger."
+    },
+    "documents": {
+      "title": "Dokumenter",
+      "segregation": "Krev en annen godkjenner enn forfatteren",
+      "segregationHint": "Når dette er på, kan ikke forfatteren av en dokumentrevisjon godkjenne den selv.",
+      "loadError": "Kunne ikke laste dokumentinnstillingene.",
+      "saved": "Dokumentinnstillingene er lagret.",
+      "saveFailed": "Kunne ikke lagre dokumentinnstillingene."
     }
   },
   "auth": {
