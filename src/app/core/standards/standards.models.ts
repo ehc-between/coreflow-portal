@@ -36,6 +36,20 @@ export interface StandardSummary {
   readonly org_standard_id: string | null;
   readonly has_licensed_text: boolean;
   readonly completeness: StandardCompleteness;
+  /**
+   * The latest whole-standard AI mapping run, or null when the org's existing
+   * records have never been mapped to this standard.
+   */
+  readonly last_mapping?: StandardMapping | null;
+}
+
+/** Summary of the latest whole-standard AI mapping run (`last_mapping`). */
+export interface StandardMapping {
+  readonly job_id: string;
+  readonly status: StandardJobStatus;
+  /** ISO timestamp; null while queued / running. */
+  readonly finished_at: string | null;
+  readonly suggestions_created: number;
 }
 
 /** Coverage roll-up for a clause subtree. */
@@ -161,7 +175,16 @@ export interface StandardJobStarted {
 
 export type StandardJobStatus = 'queued' | 'running' | 'done' | 'failed';
 
-export type StandardJobKind = 'ai_map' | 'extract_text';
+export type StandardJobKind = 'ai_map' | 'extract_text' | 'ai_draft';
+
+/** What an AI mapping job covers. */
+export type StandardJobScope = 'standard' | 'document' | 'requirement';
+
+/** Body of `POST standards/{key}/ai-map`: the whole standard, one document or one requirement. */
+export interface AiMapTarget {
+  readonly document_id?: string;
+  readonly requirement_ref?: string;
+}
 
 /** `GET standard-jobs/{id}`. */
 export interface StandardJob {
@@ -172,4 +195,28 @@ export interface StandardJob {
   readonly progress: number;
   readonly suggestions_created: number;
   readonly error?: string | null;
+  /** AI mapping jobs only. */
+  readonly scope?: StandardJobScope | null;
+  /** Requirement-scoped `ai_map` and `ai_draft` jobs. */
+  readonly requirement_ref?: string | null;
+  /** `ai_draft` jobs: the drafted proposal, once done. */
+  readonly proposal_id?: string | null;
 }
+
+/** A document cited by the requirement guidance stream. */
+export interface GuidanceSource {
+  readonly id: string;
+  readonly title: string;
+  readonly doc_code?: string | null;
+}
+
+/**
+ * A parsed event of `POST standard-requirements/{ref}/ai-help` (SSE), plus the
+ * synthetic `not-configured` event the stream client maps a 503 to.
+ */
+export type GuidanceEvent =
+  | { readonly type: 'delta'; readonly text: string }
+  | { readonly type: 'sources'; readonly sources: readonly GuidanceSource[] }
+  | { readonly type: 'done' }
+  | { readonly type: 'error'; readonly message: string }
+  | { readonly type: 'not-configured' };

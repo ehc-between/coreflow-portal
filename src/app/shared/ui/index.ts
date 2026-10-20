@@ -14,3 +14,4 @@ export { Pager } from './pager/pager';
 export { ProgressRing } from './progress-ring/progress-ring';
 export { ProgressBar } from './progress-bar/progress-bar';
 export { SlideOver } from './slide-over/slide-over';
+export { Switch } from './switch/switch';

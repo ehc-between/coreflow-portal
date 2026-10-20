@@ -6,6 +6,7 @@ import {
   effect,
   inject,
   input,
+  output,
   signal,
   untracked,
 } from '@angular/core';
@@ -224,6 +225,12 @@ export class SupportsRequirements {
    */
   readonly actions = input<readonly LinkedAction[]>([]);
 
+  /**
+   * The record's own links as shown (confirmed + suggested), whenever they
+   * load or change — so a host can mirror them (e.g. the requirement chips).
+   */
+  readonly linksChange = output<readonly RequirementLink[]>();
+
   protected readonly links = signal<readonly RequirementLink[]>([]);
   private readonly actionLinks = signal<readonly RequirementLink[]>([]);
   protected readonly loading = signal(true);
@@ -279,6 +286,10 @@ export class SupportsRequirements {
   private optionsOrgId: string | null = null;
 
   constructor() {
+    effect(() => {
+      const visible = this.visible();
+      untracked(() => this.linksChange.emit(visible));
+    });
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();
       const canRead = this.canRead();

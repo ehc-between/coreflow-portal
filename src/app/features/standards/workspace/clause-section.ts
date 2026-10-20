@@ -208,6 +208,7 @@ export interface SectionLink {
                   [expanded]="expandedRefs().has(req.ref)"
                   [highlighted]="highlightRef() === req.ref"
                   [canManage]="canManage()"
+                  [standardKey]="standardKey()"
                   (toggled)="requirementToggled.emit(req.ref)"
                   (updated)="requirementUpdated.emit($event)"
                   (linksChanged)="linksChanged.emit(req.ref)"

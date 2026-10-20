@@ -15,6 +15,18 @@ export interface DocumentSummary {
   readonly next_review_at?: string | null;
   /** True once `next_review_at` has passed. */
   readonly review_overdue?: boolean;
+  /** Standard requirements this document is linked to (counts + the linked refs). */
+  readonly requirement_links?: DocumentRequirementLinks | null;
+}
+
+/** `requirement_links` of a documents-list row. */
+export interface DocumentRequirementLinks {
+  /** Confirmed evidence links. */
+  readonly confirmed: number;
+  /** AI suggestions awaiting review. */
+  readonly suggested: number;
+  /** Qualified requirement refs ("<standard key>:<ref>") the document is linked to. */
+  readonly refs: readonly string[];
 }
 
 /** A page of the documents list plus the total matching rows. */
@@ -29,6 +41,8 @@ export interface DocumentListQuery {
   readonly type?: string;
   /** Only documents whose periodic review is due soon or overdue. */
   readonly review_due?: boolean;
+  /** Only documents with no confirmed requirement link. */
+  readonly unlinked?: boolean;
   readonly limit?: number;
   readonly offset?: number;
 }

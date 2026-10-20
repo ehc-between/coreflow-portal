@@ -11,17 +11,19 @@ import { Requirement, RequirementDetail } from '../../../core/standards/standard
 import { Badge } from '../../../shared/ui/badge/badge';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { RequirementCard, requirementAnchorId } from '../requirement-card';
+import { RequirementAiHelp } from './requirement-ai-help';
 import { shortRef, toRequirementDetail } from './workspace-data';
 
 /**
  * One requirement inside a workspace section: a compact, clickable summary
- * row (status, ref, text, manual/applicability marker, evidence and suggestion
- * counts) that expands in place into the full requirement card — assessment,
- * evidence add/remove and AI suggestions — so the user never leaves the page.
+ * row (status, ref, text, manual/applicability marker, evidence count and a
+ * prominent "N AI suggestions" badge) that expands in place into the full
+ * requirement card — AI suggestions to review, evidence add/remove, the AI
+ * help section and the assessment — so the user never leaves the page.
  */
 @Component({
   selector: 'app-requirement-row',
-  imports: [TranslocoPipe, Badge, Icon, RequirementCard],
+  imports: [TranslocoPipe, Badge, Icon, RequirementCard, RequirementAiHelp],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @let req = requirement();
@@ -75,15 +77,15 @@ import { shortRef, toRequirementDetail } from './workspace-data';
           </span>
           @if (req.suggested_links.length > 0) {
             <span
-              class="inline-flex items-center gap-0.5 rounded-full bg-accent-soft px-1.5 py-px font-semibold text-accent"
+              class="inline-flex items-center gap-1 rounded-full border border-accent-border bg-accent-soft px-2 py-px text-[11.5px] font-semibold whitespace-nowrap text-accent"
+              data-testid="ai-suggestion-badge"
               [title]="
                 'standards.view.suggestionCount' | transloco: { count: req.suggested_links.length }
               "
             >
-              <app-icon name="spark" [size]="12" />{{ req.suggested_links.length }}
-              <span class="sr-only">{{
-                'standards.view.suggestionCount' | transloco: { count: req.suggested_links.length }
-              }}</span>
+              <app-icon name="spark" [size]="12" />{{
+                'standards.ai.suggestionBadge' | transloco: { count: req.suggested_links.length }
+              }}
             </span>
           }
           <app-icon
@@ -102,7 +104,17 @@ import { shortRef, toRequirementDetail } from './workspace-data';
             [embedded]="true"
             (updated)="updated.emit($event)"
             (linksChanged)="linksChanged.emit()"
-          />
+          >
+            @if (standardKey(); as key) {
+              <div class="mt-4">
+                <app-requirement-ai-help
+                  [requirement]="req"
+                  [standardKey]="key"
+                  (suggestionsChanged)="linksChanged.emit()"
+                />
+              </div>
+            }
+          </app-requirement-card>
         </div>
       }
     </div>
@@ -115,6 +127,8 @@ export class RequirementRow {
   readonly expanded = input(false);
   readonly highlighted = input(false);
   readonly canManage = input(false);
+  /** The standard the requirement belongs to (enables the AI help section). */
+  readonly standardKey = input<string | null>(null);
 
   readonly toggled = output<void>();
   readonly updated = output<RequirementDetail>();

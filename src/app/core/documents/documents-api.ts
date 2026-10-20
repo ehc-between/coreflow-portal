@@ -360,17 +360,28 @@ export class DocumentsApi {
 
 /**
  * One page of the full (unpaged) documents list: filtered to review-due
- * documents when asked, then sliced to `offset`/`limit`, with the filtered
- * length as the total.
+ * documents and / or documents without a confirmed requirement link when
+ * asked, then sliced to `offset`/`limit`, with the filtered length as the total.
  */
 export function toDocumentPage(
   documents: readonly DocumentSummary[],
   query: DocumentListQuery = {},
 ): DocumentPage {
-  const rows = query.review_due ? documents.filter((doc) => reviewState(doc) !== null) : documents;
+  const rows = documents.filter(
+    (doc) =>
+      (!query.review_due || reviewState(doc) !== null) &&
+      (!query.unlinked || !hasConfirmedRequirementLink(doc)),
+  );
   const offset = query.offset ?? 0;
   const limit = query.limit ?? rows.length;
   return { items: rows.slice(offset, offset + limit), total: rows.length };
+}
+
+/** Whether a document is confirmed evidence for at least one standard requirement. */
+export function hasConfirmedRequirementLink(
+  doc: Pick<DocumentSummary, 'requirement_links'>,
+): boolean {
+  return (doc.requirement_links?.confirmed ?? 0) > 0;
 }
 
 /** Raw acknowledgement person: the display name may arrive under a few keys. */
