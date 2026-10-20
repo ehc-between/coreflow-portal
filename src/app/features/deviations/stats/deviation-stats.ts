@@ -8,7 +8,8 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
+import { LanguageService } from '../../../core/i18n/language.service';
 import {
   DeviationFilters,
   DeviationStats,
@@ -288,7 +289,7 @@ export class DeviationStatsPage {
   private readonly api = inject(DeviationsApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly router = inject(Router);
-  private readonly transloco = inject(TranslocoService);
+  private readonly language = inject(LanguageService);
 
   protected readonly orgId = this.selectedOrg.currentOrgId;
 
@@ -343,7 +344,7 @@ export class DeviationStatsPage {
     if (!s) {
       return [];
     }
-    const t = (key: string) => this.transloco.translate(key);
+    const t = (key: string) => this.language.translate(key);
     const deptNames = this.departmentNames();
 
     const statusBuckets = recordToBuckets(s.by_status, (k) => t(statusLabelKey(k)));

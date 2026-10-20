@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { LocalDatePipe } from '../locale/locale-pipes';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
@@ -64,7 +64,7 @@ const RESUME_MARGIN_MS = 60_000;
  */
 @Component({
   selector: 'app-attachments',
-  imports: [DatePipe, TranslocoPipe, Icon],
+  imports: [LocalDatePipe, TranslocoPipe, Icon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (visible()) {
@@ -171,7 +171,7 @@ const RESUME_MARGIN_MS = 60_000;
                       @if (item.uploaded_by_name) {
                         · {{ item.uploaded_by_name }}
                       }
-                      · {{ item.completed_at ?? item.created_at | date: 'medium' }}
+                      · {{ item.completed_at ?? item.created_at | localDate: 'medium' }}
                     </span>
                   </span>
                   @if (canAttach()) {

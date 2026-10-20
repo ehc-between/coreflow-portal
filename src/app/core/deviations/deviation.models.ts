@@ -16,6 +16,9 @@ export type DeviationStatus =
 /** Where a deviation was raised from. */
 export type Source = 'internal' | 'audit' | 'inspection' | 'customer' | 'incident' | 'other';
 
+/** Structured root-cause analysis method. */
+export type RootCauseMethod = 'five_why' | 'fishbone' | '8d' | 'other';
+
 /** Who may see a deviation: the whole org, or a restricted set of subjects. */
 export type DeviationVisibility = 'organization' | 'restricted';
 
@@ -191,9 +194,15 @@ export interface ActionInput {
 export interface DeviationEvent {
   readonly id: string;
   readonly deviation_id: string;
+  /** Machine-readable event kind (`created`, `status_changed`, `action_added`, …). */
   readonly kind: string;
+  /** The backend's English one-liner; the UI localises from `kind` + `detail` instead. */
   readonly summary: string;
-  readonly detail?: string;
+  /**
+   * Structured context, e.g. `{from, to, reason}` for a status change,
+   * `{fields}` for an edit, `{kind}` / `{status}` for actions.
+   */
+  readonly detail?: Readonly<Record<string, unknown>> | null;
   readonly actor_user_id?: string;
   readonly actor_name?: string;
   readonly created_at: string;
@@ -233,7 +242,7 @@ export interface DeviationAccess {
 export interface DeviationDetail extends DeviationListItem {
   readonly description?: string;
   readonly root_cause?: string;
-  readonly root_cause_method?: string;
+  readonly root_cause_method?: RootCauseMethod | null;
   readonly visibility: DeviationVisibility;
   /** Values for the type's dynamic schema fields, keyed by field key. */
   readonly data: Record<string, unknown>;
@@ -291,7 +300,7 @@ export interface CreateDeviationRequest {
   readonly department_id?: string;
   readonly due_at?: string;
   readonly root_cause?: string;
-  readonly root_cause_method?: string;
+  readonly root_cause_method?: RootCauseMethod;
   readonly data: Record<string, unknown>;
   readonly visibility?: DeviationVisibility;
 }
@@ -314,7 +323,7 @@ export interface UpdateDeviationRequest {
   readonly due_at?: string;
   readonly root_cause?: string;
   /** `null` clears the method. */
-  readonly root_cause_method?: string | null;
+  readonly root_cause_method?: RootCauseMethod | null;
   readonly data?: Record<string, unknown>;
   readonly visibility?: DeviationVisibility;
 }

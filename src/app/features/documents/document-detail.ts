@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { LocalDatePipe } from '../../shared/locale/locale-pipes';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -65,7 +65,7 @@ import { DocumentWorkflowActions } from './workflow/document-workflow-actions';
 @Component({
   selector: 'app-document-detail',
   imports: [
-    DatePipe,
+    LocalDatePipe,
     RouterLink,
     TranslocoPipe,
     HasPermissionDirective,
@@ -294,7 +294,7 @@ import { DocumentWorkflowActions } from './workflow/document-workflow-actions';
                             }}</app-badge>
                           </span>
                           <span class="block text-[12px] text-fg-subtle">
-                            {{ rev.created_at | date: 'medium' }}
+                            {{ rev.created_at | localDate: 'medium' }}
                           </span>
                           @if (rev.change_reason) {
                             <span class="mt-0.5 block text-[12px] leading-snug text-fg-muted">{{

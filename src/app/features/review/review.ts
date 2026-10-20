@@ -1,4 +1,3 @@
-import { DatePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -7,6 +6,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { LocalDatePipe } from '../../shared/locale/locale-pipes';
 import { RouterLink } from '@angular/router';
 import { catchError, forkJoin, of } from 'rxjs';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -28,7 +28,7 @@ import { Icon } from '../../shared/ui/icon/icon';
  */
 @Component({
   selector: 'app-review',
-  imports: [DatePipe, RouterLink, TranslocoPipe, Card, Button, Icon],
+  imports: [LocalDatePipe, RouterLink, TranslocoPipe, Card, Button, Icon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mx-auto max-w-[860px] px-8 pt-7 pb-12">
@@ -79,7 +79,8 @@ import { Icon } from '../../shared/ui/icon/icon';
                       >{{ doc.title }}</span
                     >
                     <span class="mt-1 block text-[12px] text-fg-subtle">{{
-                      'review.submittedAt' | transloco: { date: (doc.updated_at | date: 'medium') }
+                      'review.submittedAt'
+                        | transloco: { date: (doc.updated_at | localDate: 'medium') }
                     }}</span>
                   </span>
                   <span class="flex flex-none items-center">
@@ -121,7 +122,7 @@ import { Icon } from '../../shared/ui/icon/icon';
                   <p class="mt-1.5 text-[12px] text-fg-subtle">
                     {{
                       'review.queuedAt'
-                        | transloco: { date: (proposal.created_at | date: 'medium') }
+                        | transloco: { date: (proposal.created_at | localDate: 'medium') }
                     }}
                   </p>
                 </a>

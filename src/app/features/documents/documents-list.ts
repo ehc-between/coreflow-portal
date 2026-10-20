@@ -1,4 +1,3 @@
-import { DatePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -7,6 +6,7 @@ import {
   signal,
   untracked,
 } from '@angular/core';
+import { LocalDatePipe } from '../../shared/locale/locale-pipes';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -55,7 +55,7 @@ interface Row {
 @Component({
   selector: 'app-documents-list',
   imports: [
-    DatePipe,
+    LocalDatePipe,
     FormsModule,
     RouterLink,
     TranslocoPipe,
@@ -166,7 +166,7 @@ interface Row {
                   }
                   @if (row.updated_at) {
                     <span class="w-[96px] flex-none text-right text-[12.5px] text-fg-subtle">
-                      {{ row.updated_at | date: 'mediumDate' }}
+                      {{ row.updated_at | localDate: 'mediumDate' }}
                     </span>
                   }
                 </a>

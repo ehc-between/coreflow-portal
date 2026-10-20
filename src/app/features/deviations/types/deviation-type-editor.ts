@@ -15,7 +15,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import {
   DeviationType,
   DeviationTypeDraftResponse,
@@ -25,6 +25,7 @@ import {
   FieldWidth,
   Standard,
 } from '../../../core/deviations/deviation.models';
+import { codedErrorDetail, notifyDeviationError } from '../../../core/deviations/deviation-errors';
 import { DeviationsApi } from '../../../core/deviations/deviations-api';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
@@ -291,7 +292,10 @@ import {
                         [name]="'sectitle-' + s"
                         autocomplete="off"
                         [placeholder]="
-                          'deviations.types.editor.sectionTitlePlaceholder' | transloco
+                          (s === 0
+                            ? 'deviations.types.editor.defaultSection'
+                            : 'deviations.types.editor.sectionTitlePlaceholder'
+                          ) | transloco
                         "
                         [attr.aria-label]="'deviations.types.editor.sectionTitle' | transloco"
                         class="h-9 flex-1 rounded-[10px] border border-transparent bg-transparent px-2 text-[14px] font-semibold text-fg outline-none hover:border-border focus:border-accent focus:bg-bg focus:shadow-[0_0_0_3px_var(--accent-soft)]"
@@ -618,8 +622,6 @@ export class DeviationTypeEditor {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 
-  private readonly transloco = inject(TranslocoService);
-
   protected readonly orgId = this.selectedOrg.currentOrgId;
   protected readonly standardOptions = STANDARD_OPTIONS;
   protected readonly fieldTypeOptions = FIELD_TYPE_OPTIONS;
@@ -683,8 +685,7 @@ export class DeviationTypeEditor {
   });
 
   constructor() {
-    const defaultTitle = this.transloco.translate('deviations.types.editor.defaultSection');
-    this.sections.set([{ title: defaultTitle, fields: [] }]);
+    this.sections.set([{ title: '', fields: [] }]);
 
     effect(() => {
       const orgId = this.orgId();
@@ -943,26 +944,30 @@ export class DeviationTypeEditor {
   /** Groups a stored/drafted schema into the sectioned builder state. */
   private setSectionsFromSchema(schema: readonly FieldDef[]): void {
     const drafts = schema.map(fromFieldDef);
-    const defaultTitle = this.transloco.translate('deviations.types.editor.defaultSection');
-    this.sections.set(groupIntoSections(drafts, defaultTitle));
+    this.sections.set(groupIntoSections(drafts, ''));
   }
 
   private handleError(error: unknown): void {
-    if (!(error instanceof HttpErrorResponse)) {
-      return;
-    }
-    if (error.status === 409) {
+    const coded = codedErrorDetail(error);
+    if (coded?.code === 'type_key_exists') {
       this.keyError.set('deviations.types.editor.errors.keyTaken');
       return;
     }
-    if (error.status === 422) {
-      const detail = (error.error as { detail?: Record<string, string> } | null)?.detail;
-      if (detail?.['key']) {
+    if (coded?.code === 'invalid_type_key') {
+      this.keyError.set('deviations.errors.invalid_type_key');
+      return;
+    }
+    if (!coded && error instanceof HttpErrorResponse) {
+      // Legacy (uncoded) API: a 409, or a 422 naming `key`, meant the key clashed.
+      const legacy = (error.error as { detail?: unknown } | null)?.detail;
+      const namesKey =
+        !!legacy && typeof legacy === 'object' && !!(legacy as Record<string, unknown>)['key'];
+      if (error.status === 409 || (error.status === 422 && namesKey)) {
         this.keyError.set('deviations.types.editor.errors.keyTaken');
         return;
       }
     }
-    this.notifications.error('deviations.types.editor.saveFailedToast');
+    notifyDeviationError(this.notifications, error, 'deviations.types.editor.saveFailedToast');
   }
 
   private load(orgId: string, id: string): void {

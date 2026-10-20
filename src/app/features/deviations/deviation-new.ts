@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -9,17 +8,23 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { AuthService } from '../../core/auth/auth.service';
+import { LanguageService } from '../../core/i18n/language.service';
 import {
   CreateDeviationRequest,
   DeviationType,
   DeviationVisibility,
+  RootCauseMethod,
   Severity,
   Source,
   Standard,
 } from '../../core/deviations/deviation.models';
 import { DeviationsApi } from '../../core/deviations/deviations-api';
+import {
+  invalidDataErrors,
+  notifyDeviationSaveError,
+} from '../../core/deviations/deviation-errors';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { Badge } from '../../shared/ui/badge/badge';
@@ -27,8 +32,11 @@ import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
 import { Icon } from '../../shared/ui/icon/icon';
 import {
+  ROOT_CAUSE_METHOD_OPTIONS,
   SEVERITY_OPTIONS,
   SOURCE_OPTIONS,
+  fieldErrorKeys,
+  rootCauseMethodLabelKey,
   severityLabelKey,
   sourceLabelKey,
   standardLabelKey,
@@ -315,16 +323,21 @@ import { groupFieldsIntoSections } from './types/type-schema';
                 <label for="dev-rcm" class="text-[13px] font-semibold text-fg-muted">
                   {{ 'deviations.create.fields.rootCauseMethod' | transloco }}
                 </label>
-                <input
-                  id="dev-rcm"
-                  type="text"
-                  [ngModel]="rootCauseMethod()"
-                  (ngModelChange)="rootCauseMethod.set($event)"
-                  name="rootCauseMethod"
-                  [placeholder]="'deviations.create.rootCauseMethodPlaceholder' | transloco"
-                  autocomplete="off"
-                  class="h-10 w-full rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
-                />
+                <div class="cf-select">
+                  <select
+                    id="dev-rcm"
+                    [ngModel]="rootCauseMethod()"
+                    (ngModelChange)="rootCauseMethod.set($event)"
+                    name="rootCauseMethod"
+                  >
+                    <option value="">{{ 'deviations.create.none' | transloco }}</option>
+                    @for (option of rootCauseMethodOptions; track option) {
+                      <option [value]="option">
+                        {{ rootCauseMethodLabelKey(option) | transloco }}
+                      </option>
+                    }
+                  </select>
+                </div>
               </div>
             </div>
           </app-card>
@@ -399,13 +412,15 @@ export class DeviationNew {
   private readonly auth = inject(AuthService);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly notifications = inject(NotificationService);
-  private readonly transloco = inject(TranslocoService);
+  private readonly language = inject(LanguageService);
   private readonly router = inject(Router);
 
   protected readonly orgId = this.selectedOrg.currentOrgId;
 
   protected readonly severityOptions = SEVERITY_OPTIONS;
   protected readonly sourceOptions = SOURCE_OPTIONS;
+  protected readonly rootCauseMethodOptions = ROOT_CAUSE_METHOD_OPTIONS;
+  protected readonly rootCauseMethodLabelKey = rootCauseMethodLabelKey;
   protected readonly severityLabelKey = severityLabelKey;
   protected readonly sourceLabelKey = sourceLabelKey;
   protected readonly standardLabelKey = standardLabelKey;
@@ -430,7 +445,7 @@ export class DeviationNew {
   protected readonly departmentId = signal('');
   protected readonly dueAt = signal('');
   protected readonly rootCause = signal('');
-  protected readonly rootCauseMethod = signal('');
+  protected readonly rootCauseMethod = signal<RootCauseMethod | ''>('');
   protected readonly visibility = signal<DeviationVisibility>('organization');
 
   // Dynamic schema values + per-field server errors
@@ -444,7 +459,7 @@ export class DeviationNew {
     if (!type) {
       return [];
     }
-    const defaultTitle = this.transloco.translate('deviations.create.detailsSection');
+    const defaultTitle = this.language.translate('deviations.create.detailsSection');
     return groupFieldsIntoSections(type.schema, defaultTitle);
   });
 
@@ -526,7 +541,7 @@ export class DeviationNew {
       department_id: this.departmentId() || undefined,
       due_at: this.dueAt() || undefined,
       root_cause: this.rootCause().trim() || undefined,
-      root_cause_method: this.rootCauseMethod().trim() || undefined,
+      root_cause_method: this.rootCauseMethod() || undefined,
       data: this.data(),
       visibility: this.visibility(),
     };
@@ -547,21 +562,13 @@ export class DeviationNew {
   }
 
   private handleError(error: unknown): void {
-    if (!(error instanceof HttpErrorResponse)) {
+    const fieldErrors = invalidDataErrors(error);
+    if (fieldErrors) {
+      this.dataErrors.set(fieldErrorKeys(fieldErrors));
+      this.notifications.error('deviations.create.validationToast');
       return;
     }
-    if (error.status === 422) {
-      const fieldErrors = (error.error as { detail?: { data?: Record<string, string> } } | null)
-        ?.detail?.data;
-      if (fieldErrors && typeof fieldErrors === 'object') {
-        this.dataErrors.set({ ...fieldErrors });
-        this.notifications.error('deviations.create.validationToast');
-        return;
-      }
-    }
-    if (error.status === 400) {
-      this.notifications.error('deviations.create.badReferenceToast');
-    }
+    notifyDeviationSaveError(this.notifications, error);
   }
 
   private loadTypes(orgId: string): void {

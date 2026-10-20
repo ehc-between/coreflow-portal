@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { LocalDatePipe } from '../../../shared/locale/locale-pipes';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
@@ -45,7 +45,7 @@ const ROLE_OPTIONS: readonly RoleKey[] = ROLE_KEYS;
     ReactiveFormsModule,
     RouterLink,
     TranslocoPipe,
-    DatePipe,
+    LocalDatePipe,
     Card,
     FormField,
     Button,

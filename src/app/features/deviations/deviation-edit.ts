@@ -1,6 +1,7 @@
 import {
   ClauseRef,
   DeviationDetail,
+  RootCauseMethod,
   Severity,
   Source,
   Standard,
@@ -22,7 +23,8 @@ export interface DeviationEditForm {
   /** `YYYY-MM-DD`, or empty for no due date. */
   readonly dueAt: string;
   readonly rootCause: string;
-  readonly rootCauseMethod: string;
+  /** A root-cause method, or empty for none. */
+  readonly rootCauseMethod: RootCauseMethod | '';
   readonly standards: readonly Standard[];
   readonly clauses: readonly ClauseRow[];
   readonly tags: readonly string[];
@@ -98,10 +100,8 @@ export function buildDeviationPatch(
   if (rootCause !== (dev.root_cause ?? '')) {
     patch['root_cause'] = rootCause;
   }
-  const rootCauseMethod = form.rootCauseMethod.trim();
-  if (rootCauseMethod !== (dev.root_cause_method ?? '')) {
-    // The backend's method is a closed set: clearing it means null, not ''.
-    patch['root_cause_method'] = rootCauseMethod || null;
+  if (form.rootCauseMethod !== (dev.root_cause_method ?? '')) {
+    patch['root_cause_method'] = form.rootCauseMethod || null;
   }
   if (!sameList(form.standards, dev.standards)) {
     patch['standards'] = [...form.standards];

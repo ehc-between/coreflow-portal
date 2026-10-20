@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { LocalDatePipe } from '../../../shared/locale/locale-pipes';
 import { ChangeDetectionStrategy, Component, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -10,6 +10,10 @@ import {
   ActionStatus,
 } from '../../../core/deviations/deviation.models';
 import { DeviationsApi } from '../../../core/deviations/deviations-api';
+import {
+  isDeviationClosedError,
+  notifyDeviationError,
+} from '../../../core/deviations/deviation-errors';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { Badge } from '../../../shared/ui/badge/badge';
@@ -45,7 +49,7 @@ interface OwnerOption {
  */
 @Component({
   selector: 'app-deviation-actions',
-  imports: [DatePipe, FormsModule, TranslocoPipe, Badge, Button, Icon, Attachments],
+  imports: [LocalDatePipe, FormsModule, TranslocoPipe, Badge, Button, Icon, Attachments],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div>
@@ -183,7 +187,7 @@ interface OwnerOption {
                       >
                         <app-icon name="calendar" [size]="13" />{{
                           'deviations.actions.dueLabel'
-                            | transloco: { date: (action.due_at | date: 'mediumDate') }
+                            | transloco: { date: (action.due_at | localDate: 'mediumDate') }
                         }}
                       </span>
                     }
@@ -352,6 +356,12 @@ export class DeviationActions {
   readonly actionsChange = output<readonly Action[]>();
   /** Fires after any change so the host can re-fetch the audit trail. */
   readonly changed = output<void>();
+  /**
+   * Fires when the server rejected a change because the deviation is now
+   * closed (someone else closed it meanwhile): the host reloads it so the page
+   * switches to its locked state.
+   */
+  readonly stale = output<void>();
 
   protected readonly orgId = this.selectedOrg.currentOrgId;
 
@@ -413,7 +423,10 @@ export class DeviationActions {
         this.changed.emit();
         this.notifications.success('deviations.actions.addedToast');
       },
-      error: () => this.saving.set(false),
+      error: (error: unknown) => {
+        this.saving.set(false);
+        this.onError(error);
+      },
     });
   }
 
@@ -466,7 +479,10 @@ export class DeviationActions {
         this.changed.emit();
         this.notifications.info('deviations.actions.removedToast');
       },
-      error: () => this.busyId.set(null),
+      error: (error: unknown) => {
+        this.busyId.set(null);
+        this.onError(error);
+      },
     });
   }
 
@@ -484,7 +500,18 @@ export class DeviationActions {
         onSuccess?.();
         this.notifications.success('deviations.actions.savedToast');
       },
-      error: () => this.busyId.set(null),
+      error: (error: unknown) => {
+        this.busyId.set(null);
+        this.onError(error);
+      },
     });
+  }
+
+  /** Explain a failed change; a now-closed deviation also asks the host to reload. */
+  private onError(error: unknown): void {
+    notifyDeviationError(this.notifications, error);
+    if (isDeviationClosedError(error)) {
+      this.stale.emit();
+    }
   }
 }

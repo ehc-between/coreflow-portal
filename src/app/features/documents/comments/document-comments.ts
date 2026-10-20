@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { LocalDatePipe } from '../../../shared/locale/locale-pipes';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -71,7 +71,7 @@ interface SuggestState {
  */
 @Component({
   selector: 'app-document-comments',
-  imports: [DatePipe, FormsModule, TranslocoPipe, Card, Badge, Button, Icon],
+  imports: [LocalDatePipe, FormsModule, TranslocoPipe, Card, Badge, Button, Icon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { '(document:selectionchange)': 'onSelectionChange()' },
   template: `
@@ -176,7 +176,7 @@ interface SuggestState {
 
               <p class="mt-1.5 text-[13px] whitespace-pre-wrap text-fg">{{ comment.body }}</p>
               <div class="mt-1 text-[11.5px] text-fg-subtle">
-                {{ comment.created_at | date: 'medium' }}
+                {{ comment.created_at | localDate: 'medium' }}
               </div>
 
               @if (canEdit() && (comment.status === 'open' || comment.status === 'accepted')) {

@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { DatePipe } from '@angular/common';
+import { LocalDatePipe } from '../../../shared/locale/locale-pipes';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -19,7 +19,7 @@ import { Icon } from '../../../shared/ui/icon/icon';
     ReactiveFormsModule,
     RouterLink,
     TranslocoPipe,
-    DatePipe,
+    LocalDatePipe,
     Card,
     FormField,
     Button,

@@ -41,7 +41,9 @@
                 </td>
                 <td class="px-4 py-3 text-fg-muted">{{ org.slug }}</td>
                 <td class="px-4 py-3 text-right text-fg-muted">{{ org.member_count }}</td>
-                <td class="px-4 py-3 text-fg-muted">{{ org.created_at | date: 'mediumDate' }}</td>
+                <td class="px-4 py-3 text-fg-muted">
+                  {{ org.created_at | localDate: 'mediumDate' }}
+                </td>
               </tr>
             }
           </tbody>

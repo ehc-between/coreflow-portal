@@ -1,4 +1,6 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { formatNumber } from '@angular/common';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { LanguageService } from '../../../core/i18n/language.service';
 
 export type KpiTone = 'pass' | 'warn' | 'fail' | 'info' | 'accent' | 'neutral';
 
@@ -16,7 +18,7 @@ export type KpiTone = 'pass' | 'warn' | 'fail' | 'info' | 'accent' | 'neutral';
         <span class="text-[12.5px] font-semibold text-fg-muted">{{ label() }}</span>
       </div>
       <div class="font-display text-[27px] leading-none font-bold tracking-[-0.02em]">
-        {{ value() }}
+        {{ displayValue() }}
       </div>
       @if (delta()) {
         <div class="mt-2 text-[12px] font-semibold" [style.color]="deltaColor()">{{ delta() }}</div>
@@ -40,6 +42,14 @@ export class KpiTile {
     accent: 'var(--accent)',
     neutral: 'var(--fg-subtle)',
   };
+
+  private readonly language = inject(LanguageService);
+
+  /** Numeric values are digit-grouped in the active UI language ("1 234" in nb). */
+  protected readonly displayValue = computed(() => {
+    const value = this.value();
+    return typeof value === 'number' ? formatNumber(value, this.language.locale()) : value;
+  });
 
   protected readonly dotColor = computed(() => this.toneVar[this.tone()]);
   protected readonly deltaColor = computed(() => this.toneVar[this.deltaTone() ?? this.tone()]);

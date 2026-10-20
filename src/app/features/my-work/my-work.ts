@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { LocalDatePipe } from '../../shared/locale/locale-pipes';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -59,7 +59,16 @@ interface OwnedResult {
  */
 @Component({
   selector: 'app-my-work',
-  imports: [DatePipe, RouterLink, TranslocoPipe, ActionListRow, AgentBanner, Badge, Card, Icon],
+  imports: [
+    LocalDatePipe,
+    RouterLink,
+    TranslocoPipe,
+    ActionListRow,
+    AgentBanner,
+    Badge,
+    Card,
+    Icon,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mx-auto max-w-[960px] px-8 pt-7 pb-12">
@@ -149,7 +158,7 @@ interface OwnedResult {
                                 <app-icon name="alert" [size]="13" />
                               }
                               @if (row.item.due_at) {
-                                {{ row.item.due_at | date: 'mediumDate' }}
+                                {{ row.item.due_at | localDate: 'mediumDate' }}
                               } @else {
                                 {{ 'myWork.owned.noDueDate' | transloco }}
                               }
@@ -245,7 +254,7 @@ interface OwnedResult {
                             <span
                               class="w-[110px] flex-none text-right text-[12.5px] text-fg-muted"
                             >
-                              {{ item.since | date: 'mediumDate' }}
+                              {{ item.since | localDate: 'mediumDate' }}
                             </span>
                           </a>
                         </li>

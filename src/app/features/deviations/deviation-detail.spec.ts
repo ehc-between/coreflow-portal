@@ -347,6 +347,38 @@ describe('DeviationDetail QA follow-ups', () => {
     expect(root.querySelector('[data-testid="status-menu"]')).toBeNull();
   });
 
+  it('reloads into the locked state when a save hits deviation_closed', async () => {
+    const { fixture, root, api, notify } = await setup();
+    buttonByText(root, 'deviations.detail.edit').click();
+    await fixture.whenStable();
+    const title = root.querySelector<HTMLInputElement>('#edit-title')!;
+    title.value = 'Leak (updated)';
+    title.dispatchEvent(new Event('input'));
+    await fixture.whenStable();
+
+    // Someone else closed it meanwhile.
+    api.updateDeviation.mockReturnValueOnce(reject('deviation_closed'));
+    api.getDeviation.mockReturnValue(
+      of(
+        deviation({
+          status: 'closed',
+          allowed_transitions: [{ to: 'investigating', requires_reason: true }],
+        }),
+      ),
+    );
+    buttonByText(root, 'deviations.detail.save').click();
+    await fixture.whenStable();
+
+    expect(notify.error).toHaveBeenCalledWith(
+      'deviations.workflow.reasons.deviation_closed',
+      undefined,
+    );
+    expect(root.querySelector('[data-testid="edit-lock-note"]')?.textContent).toContain(
+      'deviations.workflow.closedNote',
+    );
+    expect(() => buttonByText(root, 'deviations.detail.save')).toThrow();
+  });
+
   it('hides edit controls on a closed deviation and says why', async () => {
     const { root } = await setup(
       deviation({
