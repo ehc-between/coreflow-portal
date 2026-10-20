@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { LocalDatePipe } from '../../../shared/locale/locale-pipes';
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { DocumentDetail } from '../../../core/documents/document.models';
@@ -17,7 +17,7 @@ export type VersionView = 'approved' | 'draft';
  */
 @Component({
   selector: 'app-document-version-banner',
-  imports: [DatePipe, TranslocoPipe, Icon],
+  imports: [LocalDatePipe, TranslocoPipe, Icon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (changeRequest(); as request) {
@@ -30,7 +30,7 @@ export type VersionView = 'approved' | 'draft';
             {{ 'documents.workflow.changesRequested' | transloco }}
           }
           @if (request.at) {
-            <span class="font-normal text-fg-subtle">{{ request.at | date: 'medium' }}</span>
+            <span class="font-normal text-fg-subtle">{{ request.at | localDate: 'medium' }}</span>
           }
         </div>
         <p class="mt-1 text-[13.5px] whitespace-pre-line text-fg">{{ request.comment }}</p>

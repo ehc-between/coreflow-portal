@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { LocalDayPipe } from '../../../shared/locale/locale-pipes';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -37,7 +37,7 @@ let nextId = 0;
  */
 @Component({
   selector: 'app-document-review-panel',
-  imports: [DatePipe, TranslocoPipe, Badge, Button, Card],
+  imports: [LocalDayPipe, TranslocoPipe, Badge, Button, Card],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-card [padded]="false">
@@ -120,7 +120,7 @@ let nextId = 0;
           </dd>
           <dt class="text-fg-subtle">{{ 'documents.review.nextReview' | transloco }}</dt>
           <dd [class]="state() === 'overdue' ? 'font-semibold text-fail' : 'text-fg'">
-            {{ document().next_review_at ? (document().next_review_at | date: 'mediumDate') : '—' }}
+            {{ document().next_review_at ? (document().next_review_at | localDay) : '—' }}
           </dd>
           <dt class="text-fg-subtle">{{ 'documents.ack.required' | transloco }}</dt>
           <dd class="text-fg">

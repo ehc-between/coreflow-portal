@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { LocalDatePipe } from '../../../shared/locale/locale-pipes';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -26,7 +26,7 @@ import { Icon } from '../../../shared/ui/icon/icon';
  */
 @Component({
   selector: 'app-document-acknowledge',
-  imports: [DatePipe, TranslocoPipe, Button, ConfirmDialog, Icon],
+  imports: [LocalDatePipe, TranslocoPipe, Button, ConfirmDialog, Icon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (applies()) {
@@ -37,7 +37,7 @@ import { Icon } from '../../../shared/ui/icon/icon';
         >
           <app-icon name="checkcircle" [size]="17" />
           <span>{{
-            'documents.ack.done' | transloco: { rev: rev(), date: (at | date: 'medium') }
+            'documents.ack.done' | transloco: { rev: rev(), date: (at | localDate: 'medium') }
           }}</span>
         </div>
       } @else {

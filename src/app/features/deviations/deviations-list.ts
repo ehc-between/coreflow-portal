@@ -1,4 +1,4 @@
-import { LocalDatePipe, LocalNumberPipe } from '../../shared/locale/locale-pipes';
+import { LocalDayPipe, LocalNumberPipe } from '../../shared/locale/locale-pipes';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -65,7 +65,7 @@ interface SortOption {
 @Component({
   selector: 'app-deviations-list',
   imports: [
-    LocalDatePipe,
+    LocalDayPipe,
     LocalNumberPipe,
     FormsModule,
     RouterLink,
@@ -324,7 +324,7 @@ interface SortOption {
                         [class.font-semibold]="overdue(row)"
                         [class.text-fg-subtle]="!overdue(row)"
                       >
-                        {{ row.due_at | localDate: 'mediumDate' }}
+                        {{ row.due_at | localDay }}
                       </span>
                     } @else {
                       <span class="text-fg-subtle">—</span>

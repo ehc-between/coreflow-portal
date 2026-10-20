@@ -1,4 +1,4 @@
-import { LocalDatePipe } from '../../shared/locale/locale-pipes';
+import { LocalDatePipe, LocalDayPipe } from '../../shared/locale/locale-pipes';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -61,6 +61,7 @@ interface OwnedResult {
   selector: 'app-my-work',
   imports: [
     LocalDatePipe,
+    LocalDayPipe,
     RouterLink,
     TranslocoPipe,
     ActionListRow,
@@ -158,7 +159,7 @@ interface OwnedResult {
                                 <app-icon name="alert" [size]="13" />
                               }
                               @if (row.item.due_at) {
-                                {{ row.item.due_at | localDate: 'mediumDate' }}
+                                {{ row.item.due_at | localDay }}
                               } @else {
                                 {{ 'myWork.owned.noDueDate' | transloco }}
                               }

@@ -43,6 +43,35 @@ export class LocalDatePipe implements PipeTransform {
   }
 }
 
+/**
+ * Format a date-only field (a due date, a review date, a dynamic `date` field)
+ * as the calendar day it names, with no timezone shift: a value stored as
+ * "2026-10-20" or "2026-10-20T00:00:00Z" renders as 20 October in every
+ * timezone. Only the leading `YYYY-MM-DD` is used; '' for empty or unparsable input.
+ */
+export function formatLocalDay(
+  value: string | null | undefined,
+  format: string,
+  locale: string,
+): string {
+  const day = value?.match(/^\d{4}-\d{2}-\d{2}/)?.[0];
+  // A bare YYYY-MM-DD is read by formatDate as a local calendar date.
+  return day ? formatLocalDate(day, format, locale) : '';
+}
+
+/**
+ * `{{ due_at | localDay }}` — {@link LocalDatePipe}'s date-only mode: the
+ * calendar day of a date-only field, never shifted by the viewer's timezone.
+ */
+@Pipe({ name: 'localDay', pure: false })
+export class LocalDayPipe implements PipeTransform {
+  private readonly language = inject(LanguageService);
+
+  transform(value: string | null | undefined, format = 'mediumDate'): string {
+    return formatLocalDay(value, format, this.language.locale());
+  }
+}
+
 /** `{{ count | localNumber }}` — digit grouping / decimals in the active UI language. */
 @Pipe({ name: 'localNumber', pure: false })
 export class LocalNumberPipe implements PipeTransform {

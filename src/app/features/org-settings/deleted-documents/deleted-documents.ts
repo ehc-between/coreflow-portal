@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { LocalDatePipe } from '../../../shared/locale/locale-pipes';
 import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -16,7 +16,7 @@ import { Icon } from '../../../shared/ui/icon/icon';
  */
 @Component({
   selector: 'app-deleted-documents',
-  imports: [DatePipe, RouterLink, TranslocoPipe, Card, Icon],
+  imports: [LocalDatePipe, RouterLink, TranslocoPipe, Card, Icon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mx-auto max-w-[1080px] px-8 pt-7 pb-12">
@@ -79,7 +79,7 @@ import { Icon } from '../../../shared/ui/icon/icon';
                       <div class="font-semibold text-fg">{{ item.title }}</div>
                     </td>
                     <td class="px-4 py-3 align-top whitespace-nowrap text-fg-muted">
-                      {{ item.deleted_at | date: 'medium' }}
+                      {{ item.deleted_at | localDate: 'medium' }}
                     </td>
                     <td class="px-4 py-3 align-top text-fg">
                       {{

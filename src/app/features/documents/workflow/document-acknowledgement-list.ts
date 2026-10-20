@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { LocalDatePipe } from '../../../shared/locale/locale-pipes';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -21,7 +21,7 @@ import { Card } from '../../../shared/ui/card/card';
  */
 @Component({
   selector: 'app-document-acknowledgement-list',
-  imports: [DatePipe, TranslocoPipe, Card],
+  imports: [LocalDatePipe, TranslocoPipe, Card],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-card [padded]="false">
@@ -71,7 +71,7 @@ import { Card } from '../../../shared/ui/card/card';
                   <span class="min-w-0 truncate text-fg">{{ person.name }}</span>
                   @if (person.acknowledged_at) {
                     <span class="flex-none text-[12px] text-fg-subtle">{{
-                      person.acknowledged_at | date: 'mediumDate'
+                      person.acknowledged_at | localDate: 'mediumDate'
                     }}</span>
                   }
                 </li>

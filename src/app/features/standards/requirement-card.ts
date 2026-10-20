@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { LocalDatePipe } from '../../shared/locale/locale-pipes';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -67,7 +67,7 @@ export function entityRoute(type: LinkEntityType, id: string): readonly string[]
 @Component({
   selector: 'app-requirement-card',
   imports: [
-    DatePipe,
+    LocalDatePipe,
     FormsModule,
     RouterLink,
     TranslocoPipe,
@@ -187,7 +187,7 @@ export function entityRoute(type: LinkEntityType, id: string): readonly string[]
                             | transloco: { name: link.confirmed_by_name }
                         }}
                       }
-                      · {{ link.created_at | date: 'mediumDate' }}
+                      · {{ link.created_at | localDate: 'mediumDate' }}
                     </span>
                   </span>
                   @if (canManage()) {

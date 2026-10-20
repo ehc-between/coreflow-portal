@@ -47,7 +47,7 @@ import { Card } from '../../shared/ui/card/card';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog/confirm-dialog';
 import { Attachments } from '../../shared/attachments/attachments';
 import { SupportsRequirements } from '../../shared/requirement-links/supports-requirements';
-import { LocalDatePipe, formatLocalDate } from '../../shared/locale/locale-pipes';
+import { LocalDatePipe, LocalDayPipe, formatLocalDay } from '../../shared/locale/locale-pipes';
 import { Icon } from '../../shared/ui/icon/icon';
 import { DeviationAccessEditor } from './access/deviation-access-editor';
 import { DeviationActions } from './actions/deviation-actions';
@@ -106,6 +106,7 @@ type StatusRejection = WorkflowError & {
   selector: 'app-deviation-detail',
   imports: [
     LocalDatePipe,
+    LocalDayPipe,
     FormsModule,
     RouterLink,
     TranslocoPipe,
@@ -309,7 +310,7 @@ type StatusRejection = WorkflowError & {
                         [class.font-semibold]="overdue(dev)"
                         [class.text-fg]="!overdue(dev)"
                       >
-                        {{ dev.due_at | localDate: 'mediumDate' }}
+                        {{ dev.due_at | localDay }}
                       </span>
                     } @else {
                       <span class="text-fg-subtle">—</span>
@@ -994,7 +995,7 @@ export class DeviationDetail {
       return this.language.translate(value ? 'deviations.detail.yes' : 'deviations.detail.no');
     }
     if (def.type === 'date' && typeof value === 'string') {
-      return formatLocalDate(value, 'mediumDate', this.language.locale()) || value;
+      return formatLocalDay(value, 'mediumDate', this.language.locale()) || value;
     }
     if (def.type === 'number' && typeof value === 'number') {
       return formatNumber(value, this.language.locale(), '1.0-6');
