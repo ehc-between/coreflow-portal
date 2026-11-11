@@ -1,0 +1,248 @@
+{
+  "entityTypes": {
+    "document": "Document",
+    "deviation": "Deviation",
+    "deviation_action": "Corrective action",
+    "standard": "Standard",
+    "standard_requirement": "Requirement",
+    "task": "Task",
+    "attachment": "Attachment"
+  },
+  "linkTypes": {
+    "relates_to": {
+      "name": "Relates to",
+      "outgoing": "Related to",
+      "incoming": "Related to"
+    },
+    "caused_by": {
+      "name": "Caused by",
+      "outgoing": "Caused by",
+      "incoming": "Causes"
+    },
+    "mitigates": {
+      "name": "Mitigates",
+      "outgoing": "Mitigates",
+      "incoming": "Mitigated by"
+    },
+    "evidence_for": {
+      "name": "Evidence for",
+      "outgoing": "Evidence for",
+      "incoming": "Evidenced by"
+    },
+    "supersedes": {
+      "name": "Supersedes",
+      "outgoing": "Supersedes",
+      "incoming": "Superseded by"
+    },
+    "implements": {
+      "name": "Implements",
+      "outgoing": "Implements",
+      "incoming": "Implemented by"
+    },
+    "derived_from": {
+      "name": "Derived from",
+      "outgoing": "Derived from",
+      "incoming": "Source of"
+    },
+    "other": {
+      "name": "Linked",
+      "outgoing": "Linked to",
+      "incoming": "Linked from"
+    }
+  },
+  "status": {
+    "open": "Open",
+    "in_progress": "In progress",
+    "done": "Done",
+    "closed": "Closed",
+    "cancelled": "Cancelled",
+    "draft": "Draft",
+    "in_review": "In review",
+    "approved": "Approved",
+    "obsolete": "Obsolete",
+    "active": "Active",
+    "planned": "Planned",
+    "completed": "Completed",
+    "archived": "Archived",
+    "overdue": "Overdue"
+  },
+  "chip": {
+    "open": "Open {{ type }} {{ title }}",
+    "noAccessUrl": "This record has no page of its own"
+  },
+  "related": {
+    "title": "Related records",
+    "add": "Link a record",
+    "empty": "No related records yet.",
+    "emptyHint": "Link this record to the documents, deviations, risks or actions it depends on. Auditors follow these links to see how one piece of evidence supports another.",
+    "remove": "Remove link",
+    "removeNamed": "Remove the link to {{ title }}",
+    "removeTitle": "Remove this link?",
+    "removeMessage": "{{ title }} stays as it is; only the link between the two records is removed.",
+    "removeConfirm": "Remove link",
+    "linkedBy": "Linked by {{ name }}",
+    "count": "{{ count }} linked",
+    "suggest": "Suggest related records"
+  },
+  "picker": {
+    "title": "Link a record",
+    "subtitle": "Find the record to link and choose how the two relate.",
+    "close": "Close",
+    "linkType": "Relationship",
+    "linkTypeHelp": "Read it as: this record \"{{ relation }}\" the record you pick.",
+    "entityType": "Record type",
+    "allTypes": "All types",
+    "search": "Search records",
+    "searchPlaceholder": "Type a code or a few words of the title",
+    "minChars": "Type at least two characters to search.",
+    "searching": "Searching…",
+    "noResults": "No records match your search.",
+    "results": "Search results",
+    "link": "Link",
+    "linking": "Linking…",
+    "linked": "Linked",
+    "unavailable": "Record search is not available yet."
+  },
+  "comments": {
+    "title": "Comments",
+    "empty": "No comments yet.",
+    "emptyHint": "Use comments to discuss this record with colleagues. Type @ to mention someone; they get a notification.",
+    "placeholder": "Write a comment… Type @ to mention someone",
+    "label": "New comment",
+    "replyLabel": "Reply",
+    "editLabel": "Edit comment",
+    "post": "Comment",
+    "posting": "Posting…",
+    "reply": "Reply",
+    "replyTo": "Reply to {{ name }}",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "save": "Save",
+    "delete": "Delete",
+    "deleteTitle": "Delete this comment?",
+    "deleteMessage": "The comment is removed from the discussion. The deletion is recorded in the activity log.",
+    "deleteConfirm": "Delete comment",
+    "edited": "edited",
+    "unknownAuthor": "Former member",
+    "characters": "{{ count }} / {{ max }}",
+    "mentionList": "People you can mention",
+    "mentionNone": "No matching people",
+    "mentioned": "Mentions: {{ names }}",
+    "readOnly": "You can read this discussion but not add to it.",
+    "summarise": "Summarise discussion",
+    "count": "{{ count }} comments"
+  },
+  "revisions": {
+    "title": "Revision history",
+    "empty": "No revisions recorded yet.",
+    "emptyHint": "Each saved change to a controlled record creates a revision: who changed what, when and why. ISO standards call this keeping documented information under control.",
+    "revision": "Revision {{ no }}",
+    "by": "by {{ name }}",
+    "byAssistant": "by the assistant",
+    "bySystem": "by the system",
+    "unknownActor": "by a former member",
+    "reason": "Reason: {{ reason }}",
+    "changed": "Changed: {{ fields }}",
+    "created": "Created",
+    "select": "Select revision {{ no }} to compare",
+    "compareHint": "Select two revisions to compare them side by side.",
+    "compare": "Compare",
+    "compareSelected": "Compare selected",
+    "showChanges": "Show changes",
+    "showSnapshot": "Show contents",
+    "hide": "Hide",
+    "comparing": "Comparing revision {{ from }} with revision {{ to }}",
+    "field": "Field",
+    "before": "Revision {{ no }}",
+    "after": "Revision {{ no }}",
+    "noChanges": "The two revisions have the same contents.",
+    "snapshotTitle": "Contents of revision {{ no }}",
+    "value": "Value",
+    "emptyValue": "(empty)",
+    "yes": "Yes",
+    "no": "No",
+    "explain": "Explain these changes"
+  },
+  "timeline": {
+    "title": "Activity",
+    "empty": "No activity yet.",
+    "emptyHint": "Changes, comments, links and status updates appear here as they happen, newest first.",
+    "loadMore": "Show older activity",
+    "includeAudit": "Include audit log",
+    "fallback": "{{ actor }}: {{ kind }}",
+    "someone": "Someone",
+    "assistant": "The assistant",
+    "system": "CoreFlow",
+    "changes": "Changes",
+    "change": "{{ field }}: {{ before }} → {{ after }}",
+    "commentCreated": "{{ actor_name }} commented",
+    "commentMentioned": "{{ actor_name }} mentioned someone in a comment",
+    "commentDeleted": "{{ actor_name }} deleted a comment",
+    "linkCreated": "{{ actor_name }} linked a {{ other_type_label }} ({{ link_type_label }})",
+    "linkDeleted": "{{ actor_name }} removed the link to a {{ other_type_label }} ({{ link_type_label }})"
+  },
+  "notifications": {
+    "commentCreated": "{{ actor_name }} commented on a record you follow",
+    "commentMentioned": "{{ actor_name }} mentioned you in a comment",
+    "commentDeleted": "{{ actor_name }} deleted a comment",
+    "linkCreated": "{{ actor_name }} linked a record",
+    "linkDeleted": "{{ actor_name }} removed a link"
+  },
+  "list": {
+    "search": "Search",
+    "searchPlaceholder": "Search…",
+    "views": "Saved views",
+    "viewsMenu": "Open saved views",
+    "saveView": "Save current view",
+    "saveViewTitle": "Save this view",
+    "saveViewMessage": "Saves the current search and filters so you can return to them in one click. Views are kept in this browser.",
+    "viewName": "Name",
+    "viewNamePlaceholder": "e.g. My open items",
+    "save": "Save view",
+    "noViews": "No saved views yet.",
+    "applyView": "Apply view {{ name }}",
+    "deleteView": "Delete view {{ name }}",
+    "activeView": "View: {{ name }}"
+  },
+  "detail": {
+    "back": "Back",
+    "tabs": "Record sections",
+    "tab": {
+      "details": "Details",
+      "related": "Related",
+      "activity": "Activity",
+      "comments": "Comments",
+      "attachments": "Attachments",
+      "revisions": "Revisions",
+      "tasks": "Tasks"
+    }
+  },
+  "ai": {
+    "summariseComments": "Summarise the discussion in the comments on this {{ type }} (record type {{ entity_type }}, id {{ entity_id }}). List the open questions and any decisions.",
+    "suggestRelated": "Which other records should this {{ type }} (record type {{ entity_type }}, id {{ entity_id }}) be linked to? Look at its current links and suggest relevant documents, deviations or actions, with a reason for each.",
+    "explainRevisions": "Explain in plain language what changed between revision {{ from }} and revision {{ to }} of this {{ type }} (record type {{ entity_type }}, id {{ entity_id }}), and why it might matter for compliance."
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "network": "Could not reach the server. Check your connection and try again.",
+    "forbidden": "You do not have access to do this.",
+    "notFound": "This record could not be found or is not available to you.",
+    "unsupported_entity_type": "This kind of record does not support this.",
+    "module_disabled": "This module is turned off for your organisation.",
+    "invalid_link_type": "That relationship type is not supported.",
+    "self_link": "A record cannot be linked to itself.",
+    "not_linkable": "One of these records cannot be linked.",
+    "link_exists": "These records are already linked this way.",
+    "link_not_found": "This link no longer exists.",
+    "comment_empty": "Write something before posting.",
+    "comment_too_long": "The comment is too long.",
+    "invalid_parent": "The comment you replied to no longer exists.",
+    "invalid_mentions": "One of the people you mentioned is not a member of this organisation.",
+    "mention_no_access": "One of the people you mentioned cannot see this record. Remove the mention or share the record first.",
+    "not_commentable": "This record does not take comments.",
+    "not_comment_author": "Only the author can edit a comment.",
+    "comment_not_found": "This comment no longer exists.",
+    "revision_not_found": "This revision could not be found.",
+    "revision_mismatch": "These revisions belong to different records."
+  }
+}
