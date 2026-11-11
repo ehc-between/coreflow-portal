@@ -1,0 +1,364 @@
+{
+  "pages": {
+    "dashboard": {
+      "intro": {
+        "title": "Oversikten over etterlevelsen din",
+        "body": "Oversikten viser hva som trenger oppmerksomhet i organisasjonen akkurat nå: åpne avvik, dokumenter som venter på gjennomgang og forslag fra assistenten. Hvert tall lenker til listen bak det.",
+        "steps": [
+          "Start med flisene som er merket rødt eller gult: de er forfalt eller trenger en beslutning.",
+          "Åpne en flis for å se registreringene bak tallet.",
+          "Bruk Mitt arbeid for oppgavene som er tildelt deg personlig."
+        ]
+      },
+      "why": {
+        "body": "Styringssystemer bygger på **overvåking og måling**: du må vite hvordan prosessene presterer før du kan forbedre dem. Oversikten er den raskeste måten å se om systemet ditt fungerer.",
+        "clauses": ["hs:9.1", "hs:9.3"]
+      }
+    },
+    "my-work": {
+      "intro": {
+        "title": "Alt som venter på deg",
+        "body": "Mitt arbeid samler oppgavene, tiltakene, gjennomgangene og bekreftelsene som er tildelt deg, sortert etter frist.",
+        "steps": [
+          "Ta de forfalte punktene først.",
+          "Åpne et punkt for å se sammenhengen og fullføre det der.",
+          "Fullførte punkter forsvinner fra listen, men blir værende i historikken til registreringen."
+        ]
+      },
+      "why": {
+        "body": "Standardene forventer at ansvar blir **tildelt og fulgt opp**. En personlig arbeidsliste sørger for at ingenting faller mellom to stoler.",
+        "clauses": ["hs:5.3", "hs:10.2"]
+      },
+      "empty": {
+        "title": "Du er à jour",
+        "body": "Ingenting er tildelt deg akkurat nå. Nye oppgaver, tiltak og forespørsler om gjennomgang vises her."
+      }
+    },
+    "documents": {
+      "intro": {
+        "title": "Styrte dokumenter",
+        "body": "Retningslinjer, prosedyrer og instrukser ligger her. Hvert dokument har en eier, en versjonshistorikk og en flyt for gjennomgang og godkjenning.",
+        "steps": [
+          "Lag et utkast, eller be assistenten skrive et for deg.",
+          "Send det til gjennomgang og godkjenning. Godkjenneren må være en annen enn forfatteren.",
+          "Publiser det, og sett en dato for neste periodiske gjennomgang."
+        ]
+      },
+      "why": {
+        "body": "Standardene kaller dette **dokumentert informasjon**. Den må godkjennes før bruk, holdes oppdatert og beskyttes mot utilsiktede endringer. Revisorer sjekker at folk arbeider etter gjeldende, godkjent versjon.",
+        "clauses": ["hs:7.5", "iso27001:A.5.37"]
+      },
+      "empty": {
+        "title": "Ingen dokumenter ennå",
+        "body": "De fleste organisasjoner starter med en policy og prosedyrene som de viktigste prosessene trenger. Et kort og tydelig dokument som folk faktisk følger, er verdt mer enn et langt.",
+        "cta": "Lag et dokument"
+      },
+      "fields": {
+        "owner": {
+          "help": "Personen som har ansvaret for at dokumentet er riktig og oppdatert.",
+          "example": "Kvalitetslederen eier kvalitetspolicyen."
+        },
+        "review_date": {
+          "help": "Når dokumentet må sjekkes på nytt for å se om det fortsatt er riktig.",
+          "example": "Én gang i året for de fleste prosedyrer."
+        }
+      }
+    },
+    "deviations": {
+      "intro": {
+        "title": "Avvik og forbedringer",
+        "body": "Registrer alt som ikke gikk som planlagt: avvik, klager, hendelser og nestenulykker. Hvert avvik blir undersøkt, fulgt opp med tiltak og lukket.",
+        "steps": [
+          "Beskriv hva som skjedde og når, med enkle ord.",
+          "Finn rotårsaken, ikke bare symptomet.",
+          "Planlegg korrigerende tiltak og sjekk senere at de virket."
+        ]
+      },
+      "why": {
+        "body": "Håndtering av **avvik og korrigerende tiltak** er måten et styringssystem lærer på. Revisorer ser etter årsaker som er analysert og tiltak der effekten er verifisert.",
+        "clauses": ["hs:10.2", "iso27001:A.5.24", "iso27001:A.5.27"]
+      },
+      "empty": {
+        "title": "Ingen avvik er registrert",
+        "body": "Få avvik er ikke alltid gode nyheter: det kan bety at problemer ikke blir meldt. Oppfordre folk til å registrere også små feil og nestenulykker.",
+        "cta": "Registrer et avvik"
+      },
+      "fields": {
+        "severity": {
+          "help": "Hvor alvorlige konsekvensene er, eller kunne ha vært.",
+          "example": "Feil levering til en kunde er vanligvis mer alvorlig enn en skrivefeil i et internt skjema."
+        },
+        "root_cause": {
+          "help": "Den underliggende grunnen til at problemet oppsto. Spør «hvorfor?» til du kommer til noe du kan endre.",
+          "example": "Ikke «operatøren glemte», men «sjekklisten har ikke noe steg for dette»."
+        }
+      }
+    },
+    "standards": {
+      "intro": {
+        "title": "Standarder og krav",
+        "body": "Her ser du standardene organisasjonen arbeider med, hvert krav, om det gjelder for dere og hvilken dokumentasjon som viser at dere oppfyller det.",
+        "steps": [
+          "Merk hvert krav som relevant eller ikke, med en kort begrunnelse.",
+          "Koble dokumenter og registreringer som dokumentasjon.",
+          "Bruk modenhetsvisningen til å finne hull før revisjonen."
+        ]
+      },
+      "why": {
+        "body": "Sertifiseringsrevisjoner sjekker hvert relevante krav. Å koble dokumentasjon mens du arbeider sparer uker med forberedelser og viser at systemet brukes hver dag.",
+        "clauses": ["hs:4.3", "iso27001:6.1.3"]
+      }
+    },
+    "learning": {
+      "intro": {
+        "title": "Lær i ditt eget tempo",
+        "body": "Velg læringsnivå, ta korte leksjoner og slå opp begrepene som brukes i arbeidet med etterlevelse. Fremdriften lagres, så du kan fortsette senere.",
+        "steps": [
+          "Velg læringsnivået som passer deg. Du kan endre det når som helst.",
+          "Start med leksjonen «Kom i gang med CoreFlow».",
+          "Bruk «Lær meg» på en hvilken som helst side når du vil ha en personlig forklaring."
+        ]
+      },
+      "why": {
+        "body": "Standardene krever at folk er **kompetente** og **bevisste** på styringssystemet og sitt eget bidrag til det. EUs KI-forordning krever også tilstrekkelig **KI-kompetanse** hos dem som bruker KI-systemer. Leksjoner du fullfører, registreres som dokumentasjon.",
+        "clauses": ["hs:7.2", "hs:7.3", "iso27001:A.6.3", "eu_ai_act:4"]
+      }
+    },
+    "guidance-settings": {
+      "intro": {
+        "title": "Læringsmodus for organisasjonen",
+        "body": "Angi hvor mye veiledning nye medlemmer ser som standard, og følg hvordan medlemmene går gjennom leksjonene.",
+        "steps": [
+          "Velg et standardnivå. Nybegynner passer for organisasjoner som er nye med styringssystemer.",
+          "Medlemmene kan fortsatt velge sitt eget nivå fra kontomenyen.",
+          "Åpne et medlem for å se hvilke leksjoner vedkommende har fullført."
+        ]
+      },
+      "why": {
+        "body": "Registreringer av opplæring og bevissthet viser revisorer at folk har kompetansen rollen krever.",
+        "clauses": ["hs:7.2", "hs:7.3", "iso27001:A.6.3", "eu_ai_act:4"]
+      },
+      "empty": {
+        "title": "Ingen medlemmer ennå",
+        "body": "Når folk blir med i organisasjonen, vises læringsfremdriften deres her."
+      },
+      "fields": {
+        "default_level": {
+          "help": "Nivået medlemmene ser til de velger et selv.",
+          "example": "Velg Nybegynner mens organisasjonen forbereder seg til sin første sertifisering."
+        }
+      }
+    }
+  },
+  "lessons": {
+    "getting-started": {
+      "title": "Kom i gang med CoreFlow",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Hva CoreFlow er til",
+          "body": "CoreFlow er organisasjonens **styringssystem**: dokumentene, registreringene og rutinene dere bruker for å levere gode resultater, holde informasjon sikker og oppfylle kravene i standarder og lover som ISO 9001, ISO/IEC 27001 og GDPR."
+        },
+        {
+          "heading": "Alt henger sammen",
+          "body": "Hver registrering kan kobles til andre registreringer og til kravene den bidrar til å oppfylle. Én prosedyre kan være dokumentasjon for flere standarder samtidig, så du gjør jobben bare én gang."
+        },
+        {
+          "heading": "Planlegg, utfør, kontroller, forbedre",
+          "body": "Alle ISO-standardene for styringssystemer følger den samme sirkelen:\n\n- **Planlegg** hva dere vil oppnå og hvordan.\n- **Utfør** arbeidet som planlagt.\n- **Kontroller** resultatene gjennom overvåking, revisjoner og gjennomganger.\n- **Forbedre** ut fra det dere lærer, ved å rette feil og bli bedre."
+        },
+        {
+          "heading": "Assistenten hjelper, du bestemmer",
+          "body": "Assistenten kan forklare, finne og skrive utkast for deg på hver side. Den endrer aldri noe på egen hånd: du bekrefter hver endring, og hver handling logges."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Hva betyr steget «Kontroller» i planlegg-utfør-kontroller-forbedre?",
+          "options": [
+            "Å godkjenne hvert dokument før det er skrevet",
+            "Å følge med på resultatene gjennom målinger, revisjoner og gjennomganger",
+            "Å sjekke at alle ansatte har en brukerkonto"
+          ],
+          "answer": 1,
+          "explanation": "Kontroll handler om å finne ut om arbeidet gir de tilsiktede resultatene."
+        },
+        {
+          "question": "Kan assistenten endre en registrering uten at du bekrefter det?",
+          "options": ["Ja, hvis den er sikker nok", "Nei, et menneske bekrefter hver endring"],
+          "answer": 1,
+          "explanation": "Assistenten foreslår; et menneske bestemmer og bekrefter alltid."
+        }
+      ],
+      "pass_mark": 1
+    },
+    "document-control": {
+      "title": "Dokumentstyring i praksis",
+      "minutes": 5,
+      "sections": [
+        {
+          "heading": "Hvorfor dokumenter styres",
+          "body": "Folk må arbeide etter **gjeldende, godkjent** versjon av en prosedyre. Dokumentstyring sørger for at endringer blir gjennomgått, godkjent og kommunisert, og at gamle versjoner ikke brukes ved en feil."
+        },
+        {
+          "heading": "Et dokuments livsløp",
+          "body": "Et dokument starter som et **utkast**, sendes til **gjennomgang**, blir **godkjent** av en annen enn forfatteren og blir så **publisert**. Når det må endres, går en ny versjon gjennom de samme stegene."
+        },
+        {
+          "heading": "Periodisk gjennomgang",
+          "body": "Sett en dato for gjennomgang slik at eieren sjekker dokumentet jevnlig, selv om ingenting er endret. Utdaterte dokumenter er et av de vanligste revisjonsfunnene."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Hvem bør godkjenne et dokument?",
+          "options": [
+            "Forfatteren, etter en siste gjennomlesing",
+            "En annen enn forfatteren, med riktig myndighet",
+            "Hvem som helst i organisasjonen"
+          ],
+          "answer": 1,
+          "explanation": "Når skriving og godkjenning skilles, får dere en uavhengig kontroll."
+        },
+        {
+          "question": "Hvorfor sette en dato for periodisk gjennomgang?",
+          "options": [
+            "Slik at dokumentet sjekkes jevnlig og forblir riktig",
+            "For å slette dokumentet automatisk",
+            "Fordi publiserte dokumenter ikke kan leses uten den"
+          ],
+          "answer": 0
+        }
+      ],
+      "pass_mark": 1
+    },
+    "deviations-and-capa": {
+      "title": "Avvik, rotårsaker og korrigerende tiltak",
+      "minutes": 6,
+      "sections": [
+        {
+          "heading": "Meld tidlig, meld smått",
+          "body": "Et **avvik** er alt som ikke gikk som planlagt eller påkrevd. Små problemer og nestenulykker er verdifulle: de viser hvor en større svikt kan skje."
+        },
+        {
+          "heading": "Korreksjon og korrigerende tiltak",
+          "body": "En **korreksjon** retter det umiddelbare problemet, for eksempel ved å bytte ut et feilaktig produkt. Et **korrigerende tiltak** fjerner årsaken slik at problemet ikke skjer igjen."
+        },
+        {
+          "heading": "Finn rotårsaken",
+          "body": "Spør «hvorfor?» flere ganger (**5 hvorfor**) eller sorter mulige årsaker i mennesker, metoder, maskiner, materialer, måling og miljø (et **fiskebeinsdiagram**). Stopp når du kommer til en årsak du kan endre."
+        },
+        {
+          "heading": "Sjekk at det virket",
+          "body": "Etter en tid bekrefter du at tiltaket var **effektivt**: har problemet kommet tilbake? Registrer hva du fant før du lukker avviket."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Hva er forskjellen på en korreksjon og et korrigerende tiltak?",
+          "options": [
+            "Det er ingen forskjell",
+            "En korreksjon retter det umiddelbare problemet; et korrigerende tiltak fjerner årsaken",
+            "Et korrigerende tiltak trengs bare ved kundeklager"
+          ],
+          "answer": 1
+        },
+        {
+          "question": "Når kan et avvik lukkes?",
+          "options": [
+            "Så snart det er registrert",
+            "Når tiltakene er utført og effekten er sjekket",
+            "Når personen som meldte det, slutter i organisasjonen"
+          ],
+          "answer": 1,
+          "explanation": "Revisorer ser etter bevis på at tiltaket var effektivt."
+        },
+        {
+          "question": "«Operatøren glemte» er vanligvis …",
+          "options": [
+            "En god rotårsak",
+            "Et symptom: fortsett å spørre hvorfor prosessen tillot det"
+          ],
+          "answer": 1
+        }
+      ],
+      "pass_mark": 0.66
+    },
+    "standards-and-evidence": {
+      "title": "Krav, relevans og dokumentasjon",
+      "minutes": 5,
+      "sections": [
+        {
+          "heading": "Krav",
+          "body": "En standard er en liste med **krav**: ting organisasjonen skal gjøre. CoreFlow viser dem punkt for punkt, med et sammendrag i et enkelt språk."
+        },
+        {
+          "heading": "Relevans",
+          "body": "Ikke alle krav gjelder for alle organisasjoner. For ISO/IEC 27001 bestemmer dere hvilke tiltak i vedlegg A som gjelder, og registrerer hvorfor i **anvendelseserklæringen** (SoA)."
+        },
+        {
+          "heading": "Dokumentasjon",
+          "body": "**Dokumentasjon** viser at dere oppfyller et krav: en prosedyre, en registrering, en opplæringslogg eller en gjennomgangsrapport. Koble dokumentasjonen direkte til kravet, så kan du vise den i en revisjon på sekunder."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Hva er en anvendelseserklæring (SoA)?",
+          "options": [
+            "En liste over tiltakene som gjelder, med begrunnelsen for å ta dem med eller utelate dem",
+            "En kontrakt med sertifiseringsorganet",
+            "Organisasjonens personvernerklæring"
+          ],
+          "answer": 0
+        },
+        {
+          "question": "Hvilke av disse kan være dokumentasjon?",
+          "options": [
+            "Bare signerte papirdokumenter",
+            "Prosedyrer, registreringer, logger og rapporter"
+          ],
+          "answer": 1
+        }
+      ],
+      "pass_mark": 1
+    },
+    "learning-mode": {
+      "title": "Slik fungerer læringsmodus",
+      "minutes": 2,
+      "sections": [
+        {
+          "heading": "Tre nivåer",
+          "body": "**Nybegynner** viser forklaringer, steg og eksempler overalt. **Standard** viser korte hint som du kan utvide. **Erfaren** holder grensesnittet kompakt, med hjelpen ett klikk unna."
+        },
+        {
+          "heading": "Hjelp der du trenger den",
+          "body": "Se etter introduksjonen øverst på siden, notatet «Hvorfor dette er viktig» med henvisninger til krav, **?** ved siden av felt og prikkede begreper du kan holde musepekeren over for å se en definisjon. «Lær meg» åpner assistenten som en personlig lærer."
+        }
+      ]
+    }
+  },
+  "tours": {
+    "learning": [
+      {
+        "target": "learning-progress",
+        "title": "Din fremdrift",
+        "body": "Se hvor mange leksjoner du har fullført og hvor mange quizer du har bestått."
+      },
+      {
+        "target": "learning-lessons",
+        "title": "Leksjoner",
+        "body": "Korte leksjoner på noen få minutter. Søk og filtrer, og fortsett der du slapp."
+      },
+      {
+        "target": "learning-level",
+        "title": "Læringsnivået ditt",
+        "body": "Velg hvor mye veiledning du vil se. Du kan også endre det fra kontomenyen."
+      },
+      {
+        "target": "learning-glossary",
+        "title": "Ordliste",
+        "body": "Slå opp begrepene som brukes i standarder og revisjoner, med kravene de kommer fra."
+      }
+    ]
+  }
+}

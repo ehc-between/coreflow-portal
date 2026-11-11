@@ -23,6 +23,7 @@ import { Icon } from '../../../shared/ui/icon/icon';
 import { OrgDocumentSettings } from '../document-settings/org-document-settings';
 import { OrgInvitations } from '../invitations/org-invitations';
 import { OrgMembers } from '../members/org-members';
+import { GuidanceSettingsLink } from '../../learning/settings/guidance-settings-link';
 
 /**
  * Org Settings shell, scoped to the currently selected org. Hosts Departments
@@ -46,6 +47,7 @@ import { OrgMembers } from '../members/org-members';
     OrgMembers,
     OrgDocumentSettings,
     OrgInvitations,
+    GuidanceSettingsLink,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './org-settings.html',

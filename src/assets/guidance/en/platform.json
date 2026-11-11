@@ -1,0 +1,358 @@
+{
+  "pages": {
+    "dashboard": {
+      "intro": {
+        "title": "Your compliance overview",
+        "body": "The dashboard shows what needs attention in your organisation right now: open deviations, documents waiting for review and proposals from the assistant. Each number links to the list behind it.",
+        "steps": [
+          "Start with the tiles marked in red or amber: they are overdue or need a decision.",
+          "Open a tile to see the records behind the number.",
+          "Use My work for the tasks that are assigned to you personally."
+        ]
+      },
+      "why": {
+        "body": "Management systems are built on **monitoring and measurement**: you need to know how your processes perform before you can improve them. The dashboard is the quickest way to see whether your system is working.",
+        "clauses": ["hs:9.1", "hs:9.3"]
+      }
+    },
+    "my-work": {
+      "intro": {
+        "title": "Everything that is waiting for you",
+        "body": "My work collects the tasks, actions, reviews and acknowledgements that are assigned to you, sorted by due date.",
+        "steps": [
+          "Deal with overdue items first.",
+          "Open an item to see its context and complete it there.",
+          "Completed items disappear from this list but stay in the record's history."
+        ]
+      },
+      "why": {
+        "body": "Standards expect responsibilities to be **assigned and followed up**. A personal work list makes sure nothing falls between two chairs.",
+        "clauses": ["hs:5.3", "hs:10.2"]
+      },
+      "empty": {
+        "title": "You are all caught up",
+        "body": "Nothing is assigned to you right now. New tasks, actions and review requests will appear here."
+      }
+    },
+    "documents": {
+      "intro": {
+        "title": "Controlled documents",
+        "body": "Policies, procedures and instructions live here. Every document has an owner, a version history and a review and approval workflow.",
+        "steps": [
+          "Create a draft, or ask the assistant to draft one for you.",
+          "Send it for review and approval. The approver must be someone other than the author.",
+          "Publish it, and set a date for the next periodic review."
+        ]
+      },
+      "why": {
+        "body": "The standards call this **documented information**. It must be approved before use, kept up to date and protected against unintended changes. Auditors check that people work from the current, approved version.",
+        "clauses": ["hs:7.5", "iso27001:A.5.37"]
+      },
+      "empty": {
+        "title": "No documents yet",
+        "body": "Most organisations start with a policy and the procedures their key processes need. A short, clear document that people actually follow is worth more than a long one.",
+        "cta": "Create a document"
+      },
+      "fields": {
+        "owner": {
+          "help": "The person responsible for keeping the document correct and up to date.",
+          "example": "The quality manager owns the quality policy."
+        },
+        "review_date": {
+          "help": "When the document must be checked again to see if it is still correct.",
+          "example": "Once a year for most procedures."
+        }
+      }
+    },
+    "deviations": {
+      "intro": {
+        "title": "Deviations and improvements",
+        "body": "Register anything that did not go as planned: nonconformities, complaints, incidents and near misses. Each deviation is investigated, acted on and closed.",
+        "steps": [
+          "Describe what happened and when, in plain words.",
+          "Find the root cause, not just the symptom.",
+          "Plan corrective actions and check later that they worked."
+        ]
+      },
+      "why": {
+        "body": "Handling **nonconformity and corrective action** is how a management system learns. Auditors look for causes that were analysed and actions whose effect was verified.",
+        "clauses": ["hs:10.2", "iso27001:A.5.24", "iso27001:A.5.27"]
+      },
+      "empty": {
+        "title": "No deviations registered",
+        "body": "A low number of deviations is not always good news: it can mean that problems are not reported. Encourage people to register small issues and near misses too.",
+        "cta": "Register a deviation"
+      },
+      "fields": {
+        "severity": {
+          "help": "How serious the consequences are, or could have been.",
+          "example": "A wrong delivery to a customer is usually higher than a typo in an internal form."
+        },
+        "root_cause": {
+          "help": "The underlying reason the problem occurred. Ask \"why?\" until you reach something you can change.",
+          "example": "Not \"the operator forgot\", but \"the checklist has no step for this\"."
+        }
+      }
+    },
+    "standards": {
+      "intro": {
+        "title": "Standards and requirements",
+        "body": "Here you see the standards your organisation works with, each requirement, whether it applies to you and which evidence shows that you meet it.",
+        "steps": [
+          "Mark each requirement as applicable or not, with a short justification.",
+          "Link documents and records as evidence.",
+          "Use the readiness view to find gaps before the audit."
+        ]
+      },
+      "why": {
+        "body": "Certification audits check every applicable requirement. Linking evidence as you work saves weeks of preparation and shows that your system is used every day.",
+        "clauses": ["hs:4.3", "iso27001:6.1.3"]
+      }
+    },
+    "learning": {
+      "intro": {
+        "title": "Learn at your own pace",
+        "body": "Choose your learning level, take short lessons and look up the terms used in compliance work. Your progress is saved, so you can continue later.",
+        "steps": [
+          "Pick the learning level that suits you. You can change it at any time.",
+          "Start with the lesson \"Getting started with CoreFlow\".",
+          "Use \"Teach me\" on any page when you want a personal explanation."
+        ]
+      },
+      "why": {
+        "body": "The standards require people to be **competent** and **aware** of the management system and their own contribution to it. The EU AI Act also requires sufficient **AI literacy** among people who use AI systems. Lessons you complete are recorded as evidence.",
+        "clauses": ["hs:7.2", "hs:7.3", "iso27001:A.6.3", "eu_ai_act:4"]
+      }
+    },
+    "guidance-settings": {
+      "intro": {
+        "title": "Learning mode for your organisation",
+        "body": "Set the level of guidance new members see by default, and follow how members progress through the lessons.",
+        "steps": [
+          "Choose a default level. Beginner suits organisations that are new to management systems.",
+          "Members can still choose their own level from the account menu.",
+          "Open a member to see which lessons they have completed."
+        ]
+      },
+      "why": {
+        "body": "Records of training and awareness show auditors that people have the competence their role requires.",
+        "clauses": ["hs:7.2", "hs:7.3", "iso27001:A.6.3", "eu_ai_act:4"]
+      },
+      "empty": {
+        "title": "No members yet",
+        "body": "When people join the organisation, their learning progress appears here."
+      },
+      "fields": {
+        "default_level": {
+          "help": "The level members see until they choose one themselves.",
+          "example": "Choose Beginner while your organisation is preparing for its first certification."
+        }
+      }
+    }
+  },
+  "lessons": {
+    "getting-started": {
+      "title": "Getting started with CoreFlow",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "What CoreFlow is for",
+          "body": "CoreFlow is your organisation's **management system**: the documents, records and routines you use to deliver good results, keep information secure and meet the requirements of standards and laws such as ISO 9001, ISO/IEC 27001 and the GDPR."
+        },
+        {
+          "heading": "Everything is connected",
+          "body": "Every record can be linked to other records and to the requirements it helps to meet. One procedure can be evidence for several standards at once, so you only do the work once."
+        },
+        {
+          "heading": "Plan, do, check, act",
+          "body": "All the ISO management system standards follow the same cycle:\n\n- **Plan** what you want to achieve and how.\n- **Do** the work as planned.\n- **Check** the results through monitoring, audits and reviews.\n- **Act** on what you learn by fixing problems and improving."
+        },
+        {
+          "heading": "The assistant helps, you decide",
+          "body": "The assistant can explain, find and draft things for you on every page. It never changes anything on its own: you confirm every change, and every action is logged."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "What does the \"Check\" step in plan-do-check-act mean?",
+          "options": [
+            "Approving every document before it is written",
+            "Monitoring results through measurements, audits and reviews",
+            "Checking that every employee has a user account"
+          ],
+          "answer": 1,
+          "explanation": "Check is about finding out whether the work gives the intended results."
+        },
+        {
+          "question": "Can the assistant change a record without your confirmation?",
+          "options": ["Yes, if it is confident", "No, a person confirms every change"],
+          "answer": 1,
+          "explanation": "The assistant proposes; a person always decides and confirms."
+        }
+      ],
+      "pass_mark": 1
+    },
+    "document-control": {
+      "title": "Document control in practice",
+      "minutes": 5,
+      "sections": [
+        {
+          "heading": "Why documents are controlled",
+          "body": "People must work from the **current, approved** version of a procedure. Document control makes sure that changes are reviewed, approved and communicated, and that old versions are not used by mistake."
+        },
+        {
+          "heading": "The life of a document",
+          "body": "A document starts as a **draft**, is sent for **review**, is **approved** by someone other than the author and is then **published**. When it needs to change, a new version goes through the same steps."
+        },
+        {
+          "heading": "Periodic review",
+          "body": "Set a review date so that the owner checks the document regularly, even if nothing has changed. Outdated documents are one of the most common audit findings."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Who should approve a document?",
+          "options": [
+            "The author, after a final read-through",
+            "Someone other than the author, with the right authority",
+            "Anyone in the organisation"
+          ],
+          "answer": 1,
+          "explanation": "Separating authoring and approval gives an independent check."
+        },
+        {
+          "question": "Why set a periodic review date?",
+          "options": [
+            "So the document is checked regularly and stays correct",
+            "To delete the document automatically",
+            "Because published documents cannot be read without it"
+          ],
+          "answer": 0
+        }
+      ],
+      "pass_mark": 1
+    },
+    "deviations-and-capa": {
+      "title": "Deviations, root causes and corrective action",
+      "minutes": 6,
+      "sections": [
+        {
+          "heading": "Report early, report small",
+          "body": "A **deviation** is anything that did not go as planned or required. Small problems and near misses are valuable: they show where a bigger failure could happen."
+        },
+        {
+          "heading": "Correction and corrective action",
+          "body": "A **correction** fixes the immediate problem, such as replacing a faulty product. A **corrective action** removes the cause so that the problem does not happen again."
+        },
+        {
+          "heading": "Finding the root cause",
+          "body": "Ask \"why?\" several times (the **5 whys**) or sort possible causes into people, methods, machines, materials, measurement and environment (a **fishbone** diagram). Stop when you reach a cause you can change."
+        },
+        {
+          "heading": "Check that it worked",
+          "body": "After some time, verify that the action was **effective**: has the problem come back? Record what you found before you close the deviation."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "What is the difference between a correction and a corrective action?",
+          "options": [
+            "There is no difference",
+            "A correction fixes the immediate problem; a corrective action removes its cause",
+            "A corrective action is only needed for customer complaints"
+          ],
+          "answer": 1
+        },
+        {
+          "question": "When can a deviation be closed?",
+          "options": [
+            "As soon as it is registered",
+            "When the actions are done and their effect has been checked",
+            "When the person who reported it leaves the organisation"
+          ],
+          "answer": 1,
+          "explanation": "Auditors look for evidence that the action was effective."
+        },
+        {
+          "question": "\"The operator forgot\" is usually...",
+          "options": ["A good root cause", "A symptom: keep asking why the process allowed it"],
+          "answer": 1
+        }
+      ],
+      "pass_mark": 0.66
+    },
+    "standards-and-evidence": {
+      "title": "Requirements, applicability and evidence",
+      "minutes": 5,
+      "sections": [
+        {
+          "heading": "Requirements",
+          "body": "A standard is a list of **requirements**: things your organisation shall do. CoreFlow lists them clause by clause, with a summary in plain language."
+        },
+        {
+          "heading": "Applicability",
+          "body": "Not every requirement applies to every organisation. For ISO/IEC 27001 you decide which Annex A controls apply and record why in the **Statement of Applicability**."
+        },
+        {
+          "heading": "Evidence",
+          "body": "**Evidence** shows that you meet a requirement: a procedure, a record, a training log or a review report. Link evidence directly to the requirement so that you can show it in an audit in seconds."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "What is a Statement of Applicability?",
+          "options": [
+            "A list of the controls that apply, with the reasons for including or excluding them",
+            "A contract with the certification body",
+            "The organisation's privacy notice"
+          ],
+          "answer": 0
+        },
+        {
+          "question": "Which of these can be evidence?",
+          "options": ["Only signed paper documents", "Procedures, records, logs and reports"],
+          "answer": 1
+        }
+      ],
+      "pass_mark": 1
+    },
+    "learning-mode": {
+      "title": "How learning mode works",
+      "minutes": 2,
+      "sections": [
+        {
+          "heading": "Three levels",
+          "body": "**Beginner** shows explanations, steps and examples everywhere. **Standard** shows short hints you can expand. **Experienced** keeps the interface compact, with help one click away."
+        },
+        {
+          "heading": "Help where you need it",
+          "body": "Look for the page introduction at the top, the \"Why this matters\" note with clause references, the **?** next to fields and dotted terms you can hover for a definition. \"Teach me\" opens the assistant as a personal tutor."
+        }
+      ]
+    }
+  },
+  "tours": {
+    "learning": [
+      {
+        "target": "learning-progress",
+        "title": "Your progress",
+        "body": "See how many lessons you have completed and how many quizzes you have passed."
+      },
+      {
+        "target": "learning-lessons",
+        "title": "Lessons",
+        "body": "Short lessons of a few minutes. Search and filter them, and continue where you left off."
+      },
+      {
+        "target": "learning-level",
+        "title": "Your learning level",
+        "body": "Choose how much guidance you want to see. You can also change it from the account menu."
+      },
+      {
+        "target": "learning-glossary",
+        "title": "Glossary",
+        "body": "Look up the terms used in standards and audits, with the clauses they come from."
+      }
+    ]
+  }
+}

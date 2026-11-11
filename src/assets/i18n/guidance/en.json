@@ -1,0 +1,192 @@
+{
+  "loading": "Loading…",
+  "clause": "{{ framework }} {{ clause }}",
+  "frameworks": {
+    "hs": "ISO HS",
+    "iso9001": "ISO 9001",
+    "iso27001": "ISO/IEC 27001",
+    "iso14001": "ISO 14001",
+    "iso42001": "ISO/IEC 42001",
+    "iso45001": "ISO 45001",
+    "iso19011": "ISO 19011",
+    "iso22301": "ISO 22301",
+    "gdpr": "GDPR Art.",
+    "eu_ai_act": "AI Act Art.",
+    "nis2": "NIS2 Art."
+  },
+  "levels": {
+    "beginner": {
+      "name": "Beginner",
+      "description": "Explanations, guided steps and examples are shown everywhere."
+    },
+    "standard": {
+      "name": "Standard",
+      "description": "Short hints you can expand when you need them."
+    },
+    "expert": {
+      "name": "Experienced",
+      "description": "A compact interface. Help stays one click away."
+    }
+  },
+  "level": {
+    "legend": "Learning level",
+    "useOrgDefault": "Use the organisation default ({{ level }})",
+    "useOrgDefaultHint": "Follows the level your organisation has chosen.",
+    "saved": "Learning level saved.",
+    "saveFailed": "Could not save your learning level. Please try again."
+  },
+  "menu": {
+    "levelLabel": "Learning mode",
+    "useOrgDefault": "Organisation default ({{ level }})",
+    "learningCentre": "Learning centre"
+  },
+  "intro": {
+    "label": "Page introduction",
+    "show": "Show the introduction: {{ title }}",
+    "hide": "Hide"
+  },
+  "why": {
+    "title": "Why this matters",
+    "more": "Why?",
+    "less": "Show less",
+    "explainClause": "Explain {{ clause }}"
+  },
+  "field": {
+    "help": "Help for this field",
+    "example": "Example: {{ example }}"
+  },
+  "teachMe": {
+    "label": "Teach me"
+  },
+  "tutor": {
+    "topicPrompt": "Teach me about \"{{ subject }}\" in CoreFlow. {{ style }}",
+    "clausePrompt": "Teach me what {{ clause }} requires, why it matters and how CoreFlow helps me meet it. {{ style }}",
+    "style": {
+      "beginner": "I am new to this: use plain language, explain any terms, give a short step-by-step example and end with one question to check my understanding.",
+      "standard": "Keep it practical: the key points, one example and a check question at the end.",
+      "expert": "I am experienced: be brief and precise, focus on the requirements and common audit findings."
+    }
+  },
+  "lesson": {
+    "minutes": "{{ minutes }} min",
+    "step": "Step {{ current }} of {{ total }}",
+    "progress": "Lesson progress",
+    "back": "Back",
+    "next": "Next",
+    "startQuiz": "Start the quiz",
+    "finish": "Mark as completed",
+    "completed": "Completed",
+    "missing": "This lesson is not available.",
+    "recorded": "Your progress has been saved.",
+    "saveFailed": "Could not save your lesson progress."
+  },
+  "quiz": {
+    "question": "{{ n }}.",
+    "submit": "Check my answers",
+    "retry": "Try again",
+    "correct": "Correct.",
+    "wrong": "Not quite.",
+    "passed": "Passed: {{ correct }} of {{ total }} correct ({{ score }}%).",
+    "failed": "{{ correct }} of {{ total }} correct ({{ score }}%). Review the explanations and try again.",
+    "passedBadge": "Quiz passed ({{ score }}%)",
+    "attempts": "Quiz attempts: {{ count }}, last score {{ score }}%"
+  },
+  "status": {
+    "not_started": "Not started",
+    "in_progress": "In progress",
+    "completed": "Completed"
+  },
+  "scopes": {
+    "platform": "CoreFlow basics"
+  },
+  "tour": {
+    "start": "Take the tour",
+    "progress": "Step {{ current }} of {{ total }}",
+    "next": "Next",
+    "back": "Back",
+    "done": "Done",
+    "skip": "End tour"
+  },
+  "glossary": {
+    "title": "Glossary",
+    "search": "Search the glossary",
+    "noMatches": "No terms match your search.",
+    "count": "{{ count }} terms"
+  },
+  "centre": {
+    "title": "Learning centre",
+    "subtitle": "Choose how much guidance you see, take short lessons and look up compliance terms.",
+    "progressTitle": "Your progress",
+    "kpiCompleted": "Lessons completed",
+    "kpiInProgress": "Lessons in progress",
+    "kpiQuizzes": "Quizzes passed",
+    "ofTotal": "{{ done }} of {{ total }}",
+    "lessonsTitle": "Lessons",
+    "searchLessons": "Search lessons",
+    "filterStatus": "Filter by status",
+    "allStatuses": "All statuses",
+    "sort": "Sort by",
+    "sortStatus": "Status",
+    "sortTitle": "Title",
+    "hasQuiz": "with quiz",
+    "noLessons": "No lessons are available yet.",
+    "noMatches": "No lessons match your filters.",
+    "levelTitle": "Learning level",
+    "levelCurrent": "You currently see the {{ level }} level.",
+    "backToCentre": "Back to the learning centre"
+  },
+  "settings": {
+    "title": "Learning mode",
+    "subtitle": "Set the default level of guidance for your organisation and follow the members' learning.",
+    "linkSubtitle": "Default guidance level and the members' learning progress.",
+    "open": "Open",
+    "backToSettings": "Back to settings",
+    "noOrg": "Select an organisation to manage learning mode.",
+    "noAccess": "You do not have access to the learning settings of this organisation.",
+    "defaultTitle": "Default level",
+    "defaultHint": "Members who have not chosen a level themselves see this one.",
+    "readOnly": "Only organisation administrators can change the default level.",
+    "save": "Save",
+    "saved": "Default learning level saved.",
+    "saveFailed": "Could not save the default learning level.",
+    "loadError": "Could not load the learning settings.",
+    "membersTitle": "Members' learning",
+    "searchMembers": "Search members",
+    "filterScope": "Filter by topic",
+    "allScopes": "All topics",
+    "sortName": "Name",
+    "sortCompleted": "Lessons completed",
+    "sortQuizzes": "Quizzes passed",
+    "sortActivity": "Last activity",
+    "colMember": "Member",
+    "colSeen": "Lessons seen",
+    "colCompleted": "Completed",
+    "colQuizzes": "Quizzes passed",
+    "colLastActivity": "Last activity",
+    "never": "No activity yet",
+    "unnamed": "Unnamed member",
+    "noMatches": "No members match your search."
+  },
+  "member": {
+    "back": "Back to learning mode",
+    "title": "Learning progress: {{ name }}",
+    "titleUnnamed": "Learning progress",
+    "empty": "This member has not opened any lessons yet.",
+    "colLesson": "Lesson",
+    "colStatus": "Status",
+    "colCompleted": "Completed",
+    "colQuiz": "Quiz",
+    "notYet": "Not yet",
+    "noQuiz": "No attempts"
+  },
+  "notifications": {
+    "lessonCompleted": "{{ actor_name }} completed the lesson {{ lesson_key }}",
+    "quizPassed": "{{ actor_name }} passed the quiz in {{ lesson_key }} ({{ score }}%)",
+    "defaultLevelChanged": "The default learning level was changed from {{ before }} to {{ after }}"
+  },
+  "timeline": {
+    "lessonCompleted": "Completed the lesson {{ lesson_key }}",
+    "quizPassed": "Passed the quiz in {{ lesson_key }} ({{ score }}%)",
+    "defaultLevelChanged": "Changed the default learning level from {{ before }} to {{ after }}"
+  }
+}
