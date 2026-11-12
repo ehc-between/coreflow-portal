@@ -1,0 +1,273 @@
+{
+  "pages": {
+    "list": {
+      "intro": {
+        "title": "Prosessregisteret ditt",
+        "body": "En **prosess** er et sett aktiviteter som gjør inndata om til utdata for noen: en kunde, en annen prosess eller virksomheten selv. Registeret viser alle prosesser, hvem som eier dem, hva de er til for og hvordan de måles.",
+        "steps": [
+          "Begynn med de få prosessene som skaper verdi for kundene (kjerne), legg så til dem som styrer virksomheten (ledelse) og dem som holder den i gang (støtte).",
+          "Gi hver prosess en eier, et formål og et gjennomgangsintervall.",
+          "Tegn kartet og fyll ut skilpaddediagrammet slik at alle ser hvordan arbeidet gjøres.",
+          "Åpne **Samspillskart** for å se hvordan prosessene leverer arbeid til hverandre."
+        ]
+      },
+      "why": {
+        "body": "ISO-standardene for styringssystemer krever at du fastsetter prosessene du trenger, deres inndata og utdata, rekkefølge og samspill, kriteriene og målingene som styrer dem, ressursene de trenger, hvem som er ansvarlig og hvilke risikoer de har. Å holde denne informasjonen oppdatert viser at **prosesstilnærmingen** er på plass.",
+        "clauses": ["hs:4.4", "iso9001:4.4.1", "iso9001:4.4.2", "hs:8.1"]
+      },
+      "empty": {
+        "title": "Beskriv hvordan virksomheten arbeider",
+        "body": "De fleste virksomheter kan beskrive seg selv med 8 til 15 prosesser, for eksempel *Salg*, *Innkjøp*, *Produksjon eller tjenesteleveranse*, *Rekruttering* og *Ledelsens gjennomgåelse*. Begynn med en du kjenner godt: gi den en eier og et formål, og tegn så kartet.",
+        "cta": "Opprett den første prosessen"
+      }
+    },
+    "detail": {
+      "intro": {
+        "title": "Én prosess, hele bildet",
+        "body": "Her finner du alt om prosessen: fakta fra registeret, **kartet** over trinnene, **skilpaddediagrammet**, det styrte **beskrivelsesdokumentet** og hvordan den samspiller med andre prosesser. Gjennomgangsoppgaven, relaterte poster, historikk og kommentarer ligger i fanene.",
+        "steps": [
+          "Sjekk at formål, eier og gjennomgangsintervall er satt.",
+          "Tegn eller oppdater kartet, og knytt trinn til prosedyrene som beskriver dem.",
+          "Opprett beskrivelsesdokumentet og send det til gjennomgang og godkjenning.",
+          "Registrer en gjennomgang når eieren har bekreftet at prosessen fortsatt fungerer som tenkt."
+        ]
+      },
+      "why": {
+        "body": "Revisorer følger en prosess fra inndata til utdata: de spør eieren hvordan den planlegges, styres, måles og forbedres. En komplett prosesside svarer på disse spørsmålene, og revisjonshistorikken viser at endringer er styrt.",
+        "clauses": ["iso9001:4.4.1", "iso9001:4.4.2", "hs:8.1", "iso27001:A.5.37"]
+      },
+      "fields": {
+        "descriptionDocument": {
+          "help": "Den skriftlige beskrivelsen av prosessen, holdt under dokumentstyring slik at den gjennomgås, godkjennes og versjoneres som andre styrte dokumenter.",
+          "example": "PR-003 Innkjøp: prosessbeskrivelse"
+        },
+        "interactions": {
+          "help": "Hvilke prosesser denne mottar arbeid eller informasjon fra, og hvilke den leverer til. Til sammen utgjør de samspillskartet.",
+          "example": "Salg leverer signerte ordrer til Produksjonsplanlegging."
+        },
+        "turtle": {
+          "help": "Skilpaddediagrammet oppsummerer prosessen på én side: inndata og utdata, med hva (ressurser), med hvem (kompetanse), hvordan (metoder og prosedyrer), hvordan det måles (KPI-er) og risikoene.",
+          "example": "Inndata: kundeordre. Utdata: levert produkt. KPI: levering til avtalt tid 95 %."
+        },
+        "review": {
+          "help": "En aktiv prosess med eier og dato for neste gjennomgang har alltid én åpen gjennomgangsoppgave for eieren. Når en gjennomgang registreres, fullføres oppgaven og neste planlegges.",
+          "example": "Hver 12. måned, eller etter en stor endring eller et alvorlig avvik."
+        }
+      }
+    },
+    "form": {
+      "intro": {
+        "title": "Beskrive en prosess",
+        "body": "Hold det kort og konkret. En god prosessbeskrivelse svarer på: hva er den til for, hvor starter og slutter den, hvem eier den, hva går inn og ut, og hvordan vet vi at den fungerer?",
+        "steps": [
+          "Gi prosessen navn etter det den oppnår, for eksempel *Behandle kundeklager*.",
+          "Velg kategori: ledelse, kjerne eller støtte.",
+          "Fyll ut minst inndata, utdata og én KPI. Assistenten kan foreslå resten."
+        ]
+      },
+      "why": {
+        "body": "Å fastsette inndata, utdata, ressurser, ansvar, målinger og risikoer for hver prosess er et uttrykkelig krav i prosesstilnærmingen. Når de registreres her, blir de synlige, kan gjennomgås og revideres.",
+        "clauses": ["iso9001:4.4.1", "hs:4.4"]
+      },
+      "fields": {
+        "title": {
+          "help": "Hva prosessen oppnår, med få ord.",
+          "example": "Behandle kundeklager"
+        },
+        "code": {
+          "help": "En kort referanse som brukes i dokumenter og kart. La feltet stå tomt for å få neste nummer automatisk.",
+          "example": "PR-004"
+        },
+        "category": {
+          "help": "**Ledelsesprosesser** styrer virksomheten, **kjerneprosesser** skaper verdi for kundene, **støtteprosesser** gir de andre det de trenger.",
+          "example": "Rekruttering er en støtteprosess."
+        },
+        "owner": {
+          "help": "Personen som er ansvarlig for at prosessen fungerer som tenkt. Vedkommende får gjennomgangsoppgaven og varslene.",
+          "example": "Lederen for kundeservice"
+        },
+        "parent": {
+          "help": "Bruk en overordnet prosess når denne er en del av en større, slik at registeret viser et hierarki.",
+          "example": "Leverandørevaluering er en del av Innkjøp."
+        },
+        "purpose": {
+          "help": "Hvorfor prosessen finnes og hvilket resultat den skal levere.",
+          "example": "Løse kundeklager raskt og rettferdig, og lære av dem for å unngå gjentakelser."
+        },
+        "scope": {
+          "help": "Hvor prosessen starter og slutter, og hva som er med eller holdes utenfor.",
+          "example": "Fra klagen mottas til kunden er informert om utfallet."
+        },
+        "inputs": {
+          "help": "Det prosessen trenger for å starte eller bruker opp: informasjon, forespørsler, materialer.",
+          "example": "Kundeklage, ordrehistorikk"
+        },
+        "outputs": {
+          "help": "Det prosessen leverer, og til hvem.",
+          "example": "Svar til kunden, korrigerende tiltak"
+        },
+        "resources": {
+          "help": "Med hva: systemer, utstyr, lokaler og materialer prosessen er avhengig av.",
+          "example": "CRM-system, telefonlinje"
+        },
+        "competence": {
+          "help": "Med hvem: rollene og ferdighetene som trengs for å drive prosessen godt.",
+          "example": "Kundeservicemedarbeider med opplæring i klagebehandling"
+        },
+        "methods": {
+          "help": "Hvordan: prosedyrene, instruksene og reglene som følges.",
+          "example": "Prosedyre for klagebehandling, regler for eskalering"
+        },
+        "risks": {
+          "help": "Hva som kan hindre prosessen i å levere, og muligheter til å gjøre det bedre. Knytt formelle risikovurderinger til i fanen for relaterte poster.",
+          "example": "Klager blir ikke registrert; mulighet: selvbetjeningsportal"
+        },
+        "kpis": {
+          "help": "Hvordan du vet at prosessen fungerer: et navn, et mål, en enhet og hvor ofte det måles.",
+          "example": "Klager lukket innen 10 dager: 90 %, månedlig"
+        },
+        "reviewInterval": {
+          "help": "Hvor ofte eieren gjennomgår prosessen. Neste dato beregnes fra forrige gjennomgang.",
+          "example": "12"
+        },
+        "nextReview": {
+          "help": "Når neste gjennomgang forfaller. La stå tomt for å starte fra i dag pluss intervallet.",
+          "example": "2027-06-01"
+        },
+        "changeReason": {
+          "help": "Hvorfor du endrer prosessen. Begrunnelsen lagres i revisjonshistorikken.",
+          "example": "Nytt eskaleringstrinn etter revisjonsfunnet"
+        }
+      }
+    },
+    "map": {
+      "intro": {
+        "title": "Tegne prosesskartet",
+        "body": "Legg til en **svømmebane** for hver rolle eller avdeling, og deretter **trinnene** i den rekkefølgen de skjer. Bruk en **beslutning** der flyten deler seg, og gi hver gren en etikett (for eksempel *Ja* og *Nei*).",
+        "steps": [
+          "Legg til svømmebanene først, deretter et starttrinn, oppgavene og et sluttrinn.",
+          "Velg et trinn og velg **Koble**, og velg så trinnet det fører til.",
+          "Knytt trinn til prosedyrene som beskriver dem, og delprosesstrinn til prosessen sin.",
+          "Lagre kartet med en kort begrunnelse. Alle lagrede versjoner tas vare på."
+        ]
+      },
+      "why": {
+        "body": "Et kart viser rekkefølgen og samspillet mellom aktivitetene og hvem som er ansvarlig for hver av dem. Det er nettopp det du trenger for å planlegge og styre driften på en ensartet måte, og for å lære opp nye medarbeidere.",
+        "clauses": ["iso9001:4.4.1", "hs:8.1"]
+      },
+      "fields": {
+        "stepType": {
+          "help": "**Start** og **slutt** markerer grensene, **oppgave** er arbeid noen utfører, **beslutning** deler flyten, **delprosess** peker til en annen prosess, **dokument** er en registrering som lages eller brukes, **hendelse** er noe som skjer (en frist, en melding).",
+          "example": "Beslutning: Er klagen berettiget?"
+        },
+        "procedure": {
+          "help": "Knytt et trinn til det styrte dokumentet som forklarer hvordan det gjøres.",
+          "example": "Arbeidsinstruks WI-012"
+        },
+        "lanes": {
+          "help": "Én bane per rolle eller avdeling som deltar. Trinnene ligger i banen til den som utfører dem.",
+          "example": "Kundeservice, Kvalitet, Salg"
+        }
+      }
+    },
+    "interactionMap": {
+      "intro": {
+        "title": "Hvordan prosessene henger sammen",
+        "body": "Samspillskartet viser hver prosess i sitt bånd (ledelse, kjerne, støtte) og pilene mellom dem: hva én prosess leverer til en annen. Hull og løse tråder er lette å se her.",
+        "steps": [
+          "Hold pekeren over eller fokuser en prosess for å fremheve samspillet.",
+          "Legg til manglende samspill fra prosessens side.",
+          "Bruk tabellen under kartet for en tekstversjon."
+        ]
+      },
+      "why": {
+        "body": "Standardene krever at du fastsetter rekkefølgen og samspillet mellom prosessene. Dette kartet er svaret, holdt oppdatert fra registeret.",
+        "clauses": ["iso9001:4.4.1", "hs:4.4"]
+      }
+    }
+  },
+  "lessons": {
+    "process-approach": {
+      "title": "Prosesstilnærmingen og PDCA",
+      "minutes": 5,
+      "sections": [
+        {
+          "heading": "Arbeid som et system av prosesser",
+          "body": "Alle resultater virksomheten leverer, kommer ut av en kjede av aktiviteter. **Prosesstilnærmingen** betyr å styre disse kjedene bevisst: du vet hvilke prosesser du har, hvordan de henger sammen, hvem som eier dem og hvor godt de fungerer. I stedet for å fikse enkeltproblemer forbedrer du prosessen som forårsaket dem."
+        },
+        {
+          "heading": "Hva hver prosess trenger",
+          "body": "For hver prosess fastsetter du **inndata og utdata**, **rekkefølge og samspill** med andre prosesser, **kriteriene og metodene** som holder den under kontroll, **ressursene** og **kompetansen** den trenger, **ansvaret** for den, **risikoer og muligheter**, og hvordan du skal **evaluere og forbedre** den. Skilpaddediagrammet er en énsidesvisning av nettopp disse fakta."
+        },
+        {
+          "heading": "Planlegg, utfør, kontroller, korriger",
+          "body": "**Planlegg** prosessen og målene for den. **Utfør** den som planlagt. **Kontroller** den ved å måle KPI-ene og gjennomgå resultatene. **Korriger** ut fra det du lærer: rett opp, forbedre og oppdater kartet og beskrivelsen. Den periodiske gjennomgangen i CoreFlow er det faste kontroll- og korrigeringstrinnet ditt."
+        },
+        {
+          "heading": "Hold det praktisk",
+          "body": "Beskriv prosessene på det nivået folk faktisk arbeider. Et kart med 8 til 20 trinn er som regel nok; knytt de detaljerte prosedyrene til trinnene i stedet for å tegne hvert klikk. Hold beskrivelsesdokumentet under dokumentstyring slik at endringer godkjennes før de tas i bruk."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Hvilken av disse er en kjerneprosess for de fleste bedrifter?",
+          "options": [
+            "Ledelsens gjennomgåelse",
+            "Levere produktet eller tjenesten til kundene",
+            "Vedlikeholde IT-utstyr"
+          ],
+          "answer": 1,
+          "explanation": "Kjerneprosesser skaper verdi for kundene. Ledelsens gjennomgåelse er en ledelsesprosess, og IT-vedlikehold er en støtteprosess."
+        },
+        {
+          "question": "Hvilket PDCA-trinn er den periodiske prosessgjennomgangen?",
+          "options": ["Planlegg", "Utfør", "Kontroller og korriger"],
+          "answer": 2,
+          "explanation": "Gjennomgangen kontrollerer om prosessen fungerer og bestemmer forbedringer, som er kontroll- og korrigeringstrinnene."
+        },
+        {
+          "question": "Hva viser skilpaddediagrammet?",
+          "options": [
+            "Bare rekkefølgen på trinnene",
+            "Inndata, utdata, ressurser, kompetanse, metoder, målinger og risikoer for én prosess",
+            "Organisasjonskartet"
+          ],
+          "answer": 1,
+          "explanation": "Skilpaddediagrammet oppsummerer alt en prosess trenger og leverer, på én side. Rekkefølgen på trinnene vises i kartet."
+        }
+      ],
+      "pass_mark": 0.67
+    }
+  },
+  "tours": {
+    "list": [
+      {
+        "target": "processes-new",
+        "title": "Legg til en prosess",
+        "body": "Opprett en prosess med eier, formål og gjennomgangsintervall. Du kan tegne kartet etterpå."
+      },
+      {
+        "target": "processes-filters",
+        "title": "Finn det som trenger oppfølging",
+        "body": "Filtrer på status, kategori eller eier, og huk av for **Gjennomgang forfaller** for å se prosesser der den periodiske gjennomgangen er forfalt."
+      },
+      {
+        "target": "processes-interaction-map",
+        "title": "Se helheten",
+        "body": "Samspillskartet viser hvordan alle prosessene leverer arbeid og informasjon til hverandre."
+      }
+    ],
+    "map": [
+      {
+        "target": "processes-map-palette",
+        "title": "Bygg kartet",
+        "body": "Legg til svømmebaner og trinn her. Velg et trinn for å redigere det, koble det til neste eller slette det. Angre og gjør om er alltid tilgjengelig."
+      },
+      {
+        "target": "processes-map-generate",
+        "title": "La assistenten lage et utkast",
+        "body": "Beskriv prosessen med egne ord eller velg en prosedyre, og få et ferdig utlagt utkast til kart som du kan bygge videre på."
+      }
+    ]
+  }
+}
