@@ -1675,6 +1675,7 @@
       "supplier_evaluation": "Leverandørevaluering",
       "project": "Prosjekt",
       "project_milestone": "Prosjektmilepæl",
+      "project_design_review": "Gjennomgang av utforming",
       "ropa_entry": "Behandlingsoppføring",
       "dpia": "DPIA",
       "data_subject_request": "Henvendelse fra registrert",
