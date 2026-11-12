@@ -81,6 +81,7 @@ import {
 } from './deviation-enums';
 import { DynamicField, DynamicFieldOption } from './dynamic-field';
 import { groupFieldsIntoSections } from './types/type-schema';
+import { WatchButton } from '../../shared/activity/watch-button';
 
 /** A rejected status change: the workflow error plus the status that was attempted. */
 type StatusRejection = WorkflowError & {
@@ -105,6 +106,7 @@ type StatusRejection = WorkflowError & {
 @Component({
   selector: 'app-deviation-detail',
   imports: [
+    WatchButton,
     LocalDatePipe,
     LocalDayPipe,
     FormsModule,
@@ -162,6 +164,7 @@ type StatusRejection = WorkflowError & {
           </div>
 
           <div class="flex flex-none items-center gap-2">
+            <app-watch-button entityType="deviation" [entityId]="dev.id" />
             @if (!editing()) {
               <div
                 *appHasPermission="'deviations:write'"

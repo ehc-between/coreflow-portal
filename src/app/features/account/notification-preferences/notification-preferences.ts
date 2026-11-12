@@ -1,21 +1,27 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, provideTranslocoScope } from '@jsverse/transloco';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { NotificationPreference } from '../../../core/notifications/user-notification.models';
 import { UserNotificationsApi } from '../../../core/notifications/user-notifications-api';
+import { AskPanelService } from '../../ask/ask-panel.service';
+import { ActivityGuide } from '../../../shared/activity/activity-guide';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Card } from '../../../shared/ui/card/card';
+import { CategoryPreferences } from './category-preferences';
+import { QuietHours } from './quiet-hours';
 
 /**
- * Per-org email-digest preferences for the signed-in user. Each toggle saves
- * immediately (optimistically) and reverts if the server rejects it.
+ * The signed-in user's notification settings: per-org daily email digest
+ * (each toggle saves immediately and reverts if the server rejects it), the
+ * per-category in-app / email choices for the selected org, and quiet hours.
  */
 @Component({
   selector: 'app-notification-preferences',
-  imports: [TranslocoPipe, Alert, Card],
+  imports: [TranslocoPipe, Alert, Card, ActivityGuide, CategoryPreferences, QuietHours],
+  providers: [provideTranslocoScope('activity')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto w-full max-w-lg px-6 py-8">
+    <div class="mx-auto w-full max-w-2xl px-4 py-8 sm:px-6">
       <h1 class="font-display text-[24px] font-bold tracking-[-0.02em] text-fg">
         {{ 'notifications.preferences.title' | transloco }}
       </h1>
@@ -23,7 +29,19 @@ import { Card } from '../../../shared/ui/card/card';
         {{ 'notifications.preferences.subtitle' | transloco }}
       </p>
 
-      <app-card class="mt-6 block" [padded]="false">
+      <app-activity-guide class="mt-6 block" page="preferences" (explain)="ask.showWith($event)" />
+
+      <app-category-preferences class="mt-6 block" />
+
+      <app-card class="mt-6 block" [padded]="false" data-testid="digest-card">
+        <div class="border-b border-border px-4 py-3.5">
+          <h2 class="text-[14.5px] font-semibold text-fg">
+            {{ 'notifications.preferences.digestTitle' | transloco }}
+          </h2>
+          <p class="mt-0.5 text-[12.5px] text-fg-muted">
+            {{ 'notifications.preferences.digestSubtitle' | transloco }}
+          </p>
+        </div>
         @if (loading()) {
           <p data-testid="preferences-loading" class="px-4 py-6 text-[13px] text-fg-muted">
             {{ 'notifications.panel.loading' | transloco }}
@@ -77,12 +95,15 @@ import { Card } from '../../../shared/ui/card/card';
           </p>
         }
       </app-card>
+
+      <app-quiet-hours class="mt-6 block" />
     </div>
   `,
 })
 export class NotificationPreferences implements OnInit {
   private readonly api = inject(UserNotificationsApi);
   private readonly toasts = inject(NotificationService);
+  protected readonly ask = inject(AskPanelService);
 
   protected readonly items = signal<readonly NotificationPreference[]>([]);
   protected readonly loading = signal(true);

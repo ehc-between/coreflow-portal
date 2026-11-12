@@ -1,4 +1,11 @@
-import { notificationLink, notificationText } from './notification-text';
+import {
+  NOTIFICATION_FALLBACK_KEY,
+  notificationLink,
+  notificationText,
+  parseScopedKey,
+  scopeAlias,
+  scopesFor,
+} from './notification-text';
 import { UserNotification } from './user-notification.models';
 
 function make(title_key: string, params: Record<string, unknown> = {}): UserNotification {
@@ -204,5 +211,111 @@ describe('notification due dates', () => {
 
   it('leaves due_date untouched without a language', () => {
     expect(review()).toBe('2026-11-03');
+  });
+});
+
+describe('platform event notifications', () => {
+  const reminder = (title_key: string, params: Record<string, unknown>): UserNotification => ({
+    ...make(title_key),
+    kind: 'reminder.due_soon',
+    entity_type: 'task',
+    entity_id: 'task-1',
+    category: 'reminders',
+    params: {
+      title: 'Review supplier list',
+      code: 'T-12',
+      days: 3,
+      entity_label_key: 'modules.entities.task',
+      url: null,
+      ...params,
+    },
+  });
+  const dict: Record<string, string> = {
+    'modules.entities.task': 'Task',
+    'notifications.reminderEntityFallback': 'Item',
+    'risk.notifications.treatmentAssigned': 'Assigned {{title}}',
+  };
+  const options = {
+    has: (key: string) => key in dict,
+    translate: (key: string) => dict[key] ?? key,
+  };
+
+  it('words reminders by days and adds the entity label', () => {
+    const soon = notificationText(
+      reminder('notifications.reminderDueSoon', {}),
+      undefined,
+      options,
+    );
+    expect(soon.key).toBe('notifications.reminderDueSoon');
+    expect(soon.params['entity']).toBe('Task');
+    expect(
+      notificationText(reminder('notifications.reminderDueSoon', { days: 0 }), undefined, options)
+        .key,
+    ).toBe('notifications.reminderDueSoonToday');
+    expect(
+      notificationText(reminder('notifications.reminderOverdue', { days: 1 }), undefined, options)
+        .key,
+    ).toBe('notifications.reminderOverdueOne');
+    expect(
+      notificationText(reminder('notifications.reminderEscalated', { days: 6 }), undefined, options)
+        .key,
+    ).toBe('notifications.reminderEscalated');
+  });
+
+  it('uses the no-code variant and the fallback entity label', () => {
+    const text = notificationText(
+      reminder('notifications.reminderEscalated', {
+        code: '',
+        days: 1,
+        entity_label_key: 'modules.entities.unknown',
+      }),
+      undefined,
+      options,
+    );
+    expect(text.key).toBe('notifications.reminderEscalatedOneNoCode');
+    expect(text.params['entity']).toBe('Item');
+  });
+
+  it('resolves scoped title keys once the scope is loaded, else falls back', () => {
+    const scoped = { ...make('risk:notifications.treatmentAssigned'), params: { title: 'R' } };
+    expect(notificationText(scoped, undefined, options).key).toBe(
+      'risk.notifications.treatmentAssigned',
+    );
+    expect(notificationText(scoped).key).toBe(NOTIFICATION_FALLBACK_KEY);
+    expect(
+      notificationText({ ...scoped, title_key: 'risk:notifications.other' }, undefined, options)
+        .key,
+    ).toBe(NOTIFICATION_FALLBACK_KEY);
+  });
+
+  it('links tasks, in-app urls and unknown entity types', () => {
+    expect(notificationLink(reminder('notifications.reminderDueSoon', {}))).toEqual([
+      '/tasks',
+      'task-1',
+    ]);
+    const risk = {
+      ...reminder('notifications.reminderDueSoon', { url: '/risk/risks/r-1' }),
+      entity_type: 'risk',
+    };
+    expect(notificationLink(risk)).toEqual(['/risk/risks/r-1']);
+    const external = { ...risk, params: { url: '//evil.example' } };
+    expect(notificationLink(external)).toBeNull();
+  });
+
+  it('lists the scopes notifications need', () => {
+    const items = [
+      make('risk:notifications.a'),
+      { ...make('notifications.reminderDueSoon'), params: { entity_label_key: 'ai-governance:x' } },
+      make('notifications.deviationAssigned'),
+    ];
+    expect(scopesFor(items)).toEqual(['risk', 'ai-governance']);
+  });
+
+  it('maps scopes to Transloco aliases', () => {
+    expect(scopeAlias('activity')).toBe('activity');
+    expect(scopeAlias('ai-governance')).toBe('aiGovernance');
+    expect(scopeAlias('management-review')).toBe('managementReview');
+    expect(parseScopedKey('notifications.x')).toBeNull();
+    expect(parseScopedKey('risk:a.b')).toEqual({ scope: 'risk', path: 'a.b' });
   });
 });

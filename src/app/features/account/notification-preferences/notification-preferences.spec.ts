@@ -1,10 +1,12 @@
-import { provideZonelessChangeDetection } from '@angular/core';
+import { provideZonelessChangeDetection, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { TranslocoTestingModule } from '@jsverse/transloco';
 import { Subject, of, throwError } from 'rxjs';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { NotificationPreferencesResponse } from '../../../core/notifications/user-notification.models';
 import { UserNotificationsApi } from '../../../core/notifications/user-notifications-api';
+import { SelectedOrgService } from '../../../core/org/selected-org.service';
+import { AskPanelService } from '../../ask/ask-panel.service';
 import { NotificationPreferences } from './notification-preferences';
 
 const PREFS: NotificationPreferencesResponse = {
@@ -18,7 +20,14 @@ function setup(
   initial: () => ReturnType<UserNotificationsApi['getPreferences']> = () => of(PREFS),
 ) {
   const update$ = new Subject<NotificationPreferencesResponse>();
-  const api = { getPreferences: vi.fn(initial), updatePreference: vi.fn(() => update$) };
+  const api = {
+    getPreferences: vi.fn(initial),
+    updatePreference: vi.fn(() => update$),
+    getCategories: vi.fn(() => of([{ category: 'assignments', in_app: true, email: 'digest' }])),
+    updateCategories: vi.fn(),
+    getSchedule: vi.fn(() => of({ quiet_start: null, quiet_end: null, timezone: 'Europe/Oslo' })),
+    updateSchedule: vi.fn(),
+  };
   const toasts = { success: vi.fn(), error: vi.fn() };
   TestBed.configureTestingModule({
     imports: [NotificationPreferences, TranslocoTestingModule.forRoot({ langs: { en: {} } })],
@@ -26,12 +35,24 @@ function setup(
       provideZonelessChangeDetection(),
       { provide: UserNotificationsApi, useValue: api },
       { provide: NotificationService, useValue: toasts },
+      {
+        provide: SelectedOrgService,
+        useValue: {
+          currentOrgId: signal('org-1'),
+          orgs: signal([{ id: 'org-1', name: 'Acme', roles: [], permissions: [] }]),
+        },
+      },
+      { provide: AskPanelService, useValue: { showWith: vi.fn() } },
     ],
   });
   const fixture = TestBed.createComponent(NotificationPreferences);
   fixture.detectChanges();
   const el = fixture.nativeElement as HTMLElement;
-  const switches = () => Array.from(el.querySelectorAll<HTMLButtonElement>('[role="switch"]'));
+  // The org digest switches (the page also hosts category and quiet-hours switches).
+  const switches = () =>
+    Array.from(
+      el.querySelectorAll<HTMLButtonElement>('[data-testid="digest-card"] [role="switch"]'),
+    );
   return { fixture, el, api, toasts, update$, switches, render: () => fixture.detectChanges() };
 }
 
@@ -77,5 +98,15 @@ describe('NotificationPreferences', () => {
 
     const failed = setup(() => throwError(() => new Error('boom')));
     expect(failed.el.textContent).toContain('notifications.preferences.loadError');
+  });
+});
+
+describe('NotificationPreferences sections', () => {
+  it('hosts the guidance, category and quiet-hours sections', () => {
+    const { el, api } = setup();
+    expect(el.querySelector('[data-testid="activity-guide"]')).not.toBeNull();
+    expect(el.querySelectorAll('[data-testid="category-row"]').length).toBe(1);
+    expect(el.querySelector('[data-testid="quiet-hours"]')).not.toBeNull();
+    expect(api.getCategories).toHaveBeenCalledWith('org-1');
   });
 });

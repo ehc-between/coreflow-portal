@@ -15,7 +15,8 @@ import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { LanguageService } from '../../core/i18n/language.service';
 import { InboxService } from '../../core/notifications/inbox.service';
-import { notificationLink, notificationText } from '../../core/notifications/notification-text';
+import { notificationLink } from '../../core/notifications/notification-text';
+import { NotificationTextResolver } from '../../core/notifications/notification-text.service';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { UserNotification } from '../../core/notifications/user-notification.models';
 import { UserNotificationsApi } from '../../core/notifications/user-notifications-api';
@@ -207,6 +208,7 @@ export class NotificationBell {
   private readonly router = inject(Router);
   private readonly host = inject(ElementRef<HTMLElement>);
   private readonly injector = inject(Injector);
+  private readonly text = inject(NotificationTextResolver);
 
   private readonly bell = viewChild.required<ElementRef<HTMLButtonElement>>('bell');
   private readonly panel = viewChild<ElementRef<HTMLElement>>('panel');
@@ -226,12 +228,19 @@ export class NotificationBell {
   protected readonly rows = computed<readonly Row[]>(() =>
     this.items().map((notification) => ({
       notification,
-      ...notificationText(notification, this.language.active()),
+      ...this.text.resolve(notification),
     })),
   );
   protected readonly hasMore = computed(() => this.items().length < this.total());
 
   constructor() {
+    // Load the module translation scopes that scoped title keys need.
+    effect(() => {
+      const items = this.items();
+      this.language.active();
+      untracked(() => this.text.ensureScopes(items));
+    });
+
     // Reload the open panel when the user switches org.
     effect(() => {
       this.selectedOrg.currentOrgId();

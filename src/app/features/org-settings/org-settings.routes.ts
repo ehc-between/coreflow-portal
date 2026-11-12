@@ -15,6 +15,14 @@ const routes: Routes = [
       import('./deleted-documents/deleted-documents').then((m) => m.DeletedDocuments),
   },
   {
+    path: 'notifications',
+    canActivate: [orgManageGuard],
+    loadComponent: () =>
+      import('./notification-settings/notification-settings').then(
+        (m) => m.NotificationSettingsPage,
+      ),
+  },
+  {
     path: 'departments/:deptId',
     canActivate: [orgManageGuard],
     loadComponent: () =>

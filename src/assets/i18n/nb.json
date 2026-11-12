@@ -1194,13 +1194,15 @@
     },
     "preferences": {
       "title": "Varslingsinnstillinger",
-      "subtitle": "Velg hvilke organisasjoner som skal sende deg en daglig e-postoppsummering av varslene dine.",
+      "subtitle": "Velg hva du varsles om, hvordan og når.",
       "emailDigest": "Daglig e-postoppsummering",
       "emailDigestHint": "Oppsummeringen inneholder nye tildelinger og frister fra siste døgn. Du ser fortsatt alle varsler i appen.",
       "empty": "Du er ikke medlem av noen organisasjoner ennå.",
       "loadError": "Kunne ikke laste varslingsinnstillingene. Prøv igjen senere.",
       "saved": "Varslingsinnstillingene er lagret.",
-      "saveFailed": "Kunne ikke lagre varslingsinnstillingene. Prøv igjen."
+      "saveFailed": "Kunne ikke lagre varslingsinnstillingene. Prøv igjen.",
+      "digestTitle": "Daglig e-postoppsummering",
+      "digestSubtitle": "Velg hvilke organisasjoner som skal sende deg en daglig e-postoppsummering av varslene dine."
     },
     "documentReviewDue": "Dokument {{doc_code}} skal gjennomgås om {{days}} dager ({{due_date}}): {{title}}",
     "documentReviewOverdue": "Gjennomgangen av dokument {{doc_code}} har passert fristen med {{days}} dager ({{due_date}}): {{title}}",
@@ -1219,7 +1221,37 @@
     "documentReviewDueTodayNoCode": "Dokumentet {{title}} skal gjennomgås i dag",
     "documentReviewDueTomorrowNoCode": "Dokumentet {{title}} skal gjennomgås i morgen",
     "documentReviewOverdueNoCode": "Gjennomgangen av dokumentet {{title}} har passert fristen med {{days}} dager ({{due_date}})",
-    "documentReviewOverdueOneNoCode": "Gjennomgangen av dokumentet {{title}} har passert fristen med 1 dag ({{due_date}})"
+    "documentReviewOverdueOneNoCode": "Gjennomgangen av dokumentet {{title}} har passert fristen med 1 dag ({{due_date}})",
+    "reminderDueSoon": "Frist om {{days}} dager ({{due_date}}): {{entity}} {{code}}, {{title}}",
+    "reminderDueSoonToday": "Frist i dag: {{entity}} {{code}}, {{title}}",
+    "reminderDueSoonTomorrow": "Frist i morgen: {{entity}} {{code}}, {{title}}",
+    "reminderDueSoonNoCode": "Frist om {{days}} dager ({{due_date}}): {{entity}}, {{title}}",
+    "reminderDueSoonTodayNoCode": "Frist i dag: {{entity}}, {{title}}",
+    "reminderDueSoonTomorrowNoCode": "Frist i morgen: {{entity}}, {{title}}",
+    "reminderOverdue": "Fristen er passert med {{days}} dager: {{entity}} {{code}}, {{title}}",
+    "reminderOverdueOne": "Fristen er passert med 1 dag: {{entity}} {{code}}, {{title}}",
+    "reminderOverdueNoCode": "Fristen er passert med {{days}} dager: {{entity}}, {{title}}",
+    "reminderOverdueOneNoCode": "Fristen er passert med 1 dag: {{entity}}, {{title}}",
+    "reminderEscalated": "Eskalert til deg, fristen er passert med {{days}} dager: {{entity}} {{code}}, {{title}}",
+    "reminderEscalatedOne": "Eskalert til deg, fristen er passert med 1 dag: {{entity}} {{code}}, {{title}}",
+    "reminderEscalatedNoCode": "Eskalert til deg, fristen er passert med {{days}} dager: {{entity}}, {{title}}",
+    "reminderEscalatedOneNoCode": "Eskalert til deg, fristen er passert med 1 dag: {{entity}}, {{title}}",
+    "reminderEntityFallback": "Element",
+    "watch": {
+      "follow": "Følg",
+      "following": "Følger",
+      "followerCount": "{{count}} følger",
+      "followedBy": "Følges av {{names}}",
+      "noFollowers": "Følg for å bli varslet om endringer i denne posten",
+      "followed": "Du følger nå denne posten.",
+      "unfollowed": "Du følger ikke lenger denne posten.",
+      "failed": "Kunne ikke oppdatere følging. Prøv igjen."
+    },
+    "settingsLink": {
+      "title": "Varsler og eskalering",
+      "subtitle": "Hvem som varsles om hva, påminnelser om frister, eskalering og avdelingsledere.",
+      "open": "Åpne varslingsinnstillinger"
+    }
   },
   "roles": {
     "admin": {
