@@ -1,0 +1,299 @@
+{
+  "glossary": {
+    "management-system": {
+      "term": "Management system",
+      "definition": "The set of policies, processes, roles and records an organisation uses to set objectives and achieve them.",
+      "clauses": ["hs:4.4"]
+    },
+    "harmonised-structure": {
+      "term": "Harmonised Structure (HS)",
+      "definition": "The common clause structure (4 to 10) shared by all ISO management system standards, so one system can serve several standards.",
+      "clauses": []
+    },
+    "context-of-the-organisation": {
+      "term": "Context of the organisation",
+      "definition": "The internal and external issues that affect the organisation's ability to achieve the intended results of its management system.",
+      "clauses": ["hs:4.1"]
+    },
+    "interested-party": {
+      "term": "Interested party",
+      "definition": "A person or organisation that can affect, be affected by, or believe itself affected by a decision or activity, such as customers, employees or regulators.",
+      "clauses": ["hs:4.2"]
+    },
+    "scope": {
+      "term": "Scope",
+      "definition": "The boundaries of the management system: which sites, activities, products and services it covers.",
+      "clauses": ["hs:4.3"]
+    },
+    "top-management": {
+      "term": "Top management",
+      "definition": "The person or group who directs and controls the organisation at the highest level and is accountable for the management system.",
+      "clauses": ["hs:5.1"]
+    },
+    "policy": {
+      "term": "Policy",
+      "definition": "The intentions and direction of an organisation, formally expressed by its top management.",
+      "clauses": ["hs:5.2"]
+    },
+    "objective": {
+      "term": "Objective",
+      "definition": "A result to be achieved. Objectives should be measurable, monitored, communicated and updated.",
+      "clauses": ["hs:6.2"]
+    },
+    "risk": {
+      "term": "Risk",
+      "definition": "The effect of uncertainty on objectives, often described by the likelihood of an event and its consequences.",
+      "clauses": ["hs:6.1"]
+    },
+    "opportunity": {
+      "term": "Opportunity",
+      "definition": "A situation that can lead to a positive result, such as a new market, a better technology or a more efficient way of working.",
+      "clauses": ["hs:6.1"]
+    },
+    "risk-assessment": {
+      "term": "Risk assessment",
+      "definition": "The overall process of identifying, analysing and evaluating risks.",
+      "clauses": ["iso27001:6.1.2", "iso27001:8.2"]
+    },
+    "risk-treatment": {
+      "term": "Risk treatment",
+      "definition": "The process of modifying a risk: avoiding it, reducing it with controls, sharing it, or accepting it.",
+      "clauses": ["iso27001:6.1.3", "iso27001:8.3"]
+    },
+    "residual-risk": {
+      "term": "Residual risk",
+      "definition": "The risk that remains after treatment. The risk owner must accept it.",
+      "clauses": ["iso27001:6.1.3"]
+    },
+    "risk-owner": {
+      "term": "Risk owner",
+      "definition": "The person with the accountability and authority to manage a risk.",
+      "clauses": ["iso27001:6.1.2"]
+    },
+    "control": {
+      "term": "Control",
+      "definition": "A measure that maintains or modifies risk, such as a procedure, a technical safeguard or a physical barrier.",
+      "clauses": ["iso27001:6.1.3"]
+    },
+    "statement-of-applicability": {
+      "term": "Statement of Applicability (SoA)",
+      "definition": "The document listing the ISO/IEC 27001 Annex A controls, whether each is applied, and the justification for including or excluding it.",
+      "clauses": ["iso27001:6.1.3"]
+    },
+    "competence": {
+      "term": "Competence",
+      "definition": "The ability to apply knowledge and skills to achieve intended results.",
+      "clauses": ["hs:7.2"]
+    },
+    "awareness": {
+      "term": "Awareness",
+      "definition": "People knowing the policy, their contribution to the management system and the consequences of not following it.",
+      "clauses": ["hs:7.3", "iso27001:A.6.3"]
+    },
+    "ai-literacy": {
+      "term": "AI literacy",
+      "definition": "The skills, knowledge and understanding people need to use AI systems in an informed way and to be aware of their opportunities, risks and possible harm.",
+      "clauses": ["eu_ai_act:4"]
+    },
+    "documented-information": {
+      "term": "Documented information",
+      "definition": "Information an organisation must control and maintain, and the medium it is on: documents that describe how to work and records that show what was done.",
+      "clauses": ["hs:7.5"]
+    },
+    "procedure": {
+      "term": "Procedure",
+      "definition": "A specified way to carry out an activity or a process.",
+      "clauses": ["hs:7.5"]
+    },
+    "record": {
+      "term": "Record",
+      "definition": "Documented information that states results achieved or provides evidence of activities performed. Records are not changed after the fact.",
+      "clauses": ["hs:7.5"]
+    },
+    "process": {
+      "term": "Process",
+      "definition": "A set of related activities that uses inputs to deliver an intended result.",
+      "clauses": ["hs:4.4", "hs:8.1"]
+    },
+    "process-approach": {
+      "term": "Process approach",
+      "definition": "Managing activities as connected processes, with clear inputs, outputs, owners and measures, rather than as separate departments.",
+      "clauses": ["iso9001:4.4"]
+    },
+    "pdca": {
+      "term": "Plan-Do-Check-Act (PDCA)",
+      "definition": "The improvement cycle behind every management system: plan, carry out, check the results, and act on what you learn.",
+      "clauses": []
+    },
+    "monitoring": {
+      "term": "Monitoring",
+      "definition": "Determining the status of a system, process or activity, often by checking or observing it over time.",
+      "clauses": ["hs:9.1"]
+    },
+    "kpi": {
+      "term": "Key performance indicator (KPI)",
+      "definition": "A measurable value that shows how well a process or objective is performing.",
+      "clauses": ["hs:9.1"]
+    },
+    "internal-audit": {
+      "term": "Internal audit",
+      "definition": "A systematic, independent check, carried out by or for the organisation, of whether the management system meets its requirements and works effectively.",
+      "clauses": ["hs:9.2"]
+    },
+    "audit-criteria": {
+      "term": "Audit criteria",
+      "definition": "The requirements an audit compares the evidence against, such as a standard, a policy or a contract.",
+      "clauses": ["hs:9.2", "iso19011:3.7"]
+    },
+    "audit-finding": {
+      "term": "Audit finding",
+      "definition": "The result of comparing audit evidence with the audit criteria: a conformity, a nonconformity or an opportunity for improvement.",
+      "clauses": ["hs:9.2"]
+    },
+    "management-review": {
+      "term": "Management review",
+      "definition": "A planned review by top management of whether the management system is still suitable, adequate and effective.",
+      "clauses": ["hs:9.3"]
+    },
+    "nonconformity": {
+      "term": "Nonconformity",
+      "definition": "The non-fulfilment of a requirement, whether from a standard, the law, a customer or your own procedures.",
+      "clauses": ["hs:10.2"]
+    },
+    "major-nonconformity": {
+      "term": "Major nonconformity",
+      "definition": "A nonconformity that means a requirement is not met at all, or that the system cannot achieve its intended results. It can block certification.",
+      "clauses": ["hs:10.2"]
+    },
+    "correction": {
+      "term": "Correction",
+      "definition": "Action to fix a detected nonconformity, such as reworking a product. It does not remove the cause.",
+      "clauses": ["hs:10.2"]
+    },
+    "corrective-action": {
+      "term": "Corrective action",
+      "definition": "Action to remove the cause of a nonconformity and prevent it from happening again.",
+      "clauses": ["hs:10.2"]
+    },
+    "root-cause": {
+      "term": "Root cause",
+      "definition": "The underlying reason a problem occurred. Removing it prevents the problem from coming back.",
+      "clauses": ["hs:10.2"]
+    },
+    "continual-improvement": {
+      "term": "Continual improvement",
+      "definition": "Recurring activity to enhance performance, for example through corrective actions, audits and reviews.",
+      "clauses": ["hs:10.1"]
+    },
+    "effectiveness": {
+      "term": "Effectiveness",
+      "definition": "The extent to which planned activities are carried out and planned results are achieved.",
+      "clauses": ["hs:10.2"]
+    },
+    "outsourced-process": {
+      "term": "Outsourced process",
+      "definition": "A process an external organisation performs for you. You remain responsible for it and must control it.",
+      "clauses": ["hs:8.1", "iso9001:8.4"]
+    },
+    "information-security": {
+      "term": "Information security",
+      "definition": "Preserving the confidentiality, integrity and availability of information.",
+      "clauses": ["iso27001:4.1"]
+    },
+    "cia-triad": {
+      "term": "Confidentiality, integrity and availability",
+      "definition": "Confidentiality: only authorised people can read the information. Integrity: it is accurate and complete. Availability: it can be used when needed.",
+      "clauses": ["iso27001:6.1.2"]
+    },
+    "information-security-incident": {
+      "term": "Information security incident",
+      "definition": "One or more unwanted security events that are likely to harm the organisation's information or operations.",
+      "clauses": ["iso27001:A.5.24", "iso27001:A.5.26"]
+    },
+    "asset": {
+      "term": "Asset",
+      "definition": "Anything of value to the organisation, such as information, software, equipment, services or people's knowledge.",
+      "clauses": ["iso27001:A.5.9"]
+    },
+    "personal-data": {
+      "term": "Personal data",
+      "definition": "Any information about an identified or identifiable living person, such as a name, an email address or an employee number.",
+      "clauses": ["gdpr:4"]
+    },
+    "controller": {
+      "term": "Controller",
+      "definition": "The organisation that decides why and how personal data is processed.",
+      "clauses": ["gdpr:4", "gdpr:24"]
+    },
+    "processor": {
+      "term": "Processor",
+      "definition": "An organisation that processes personal data on behalf of a controller, under a data processing agreement.",
+      "clauses": ["gdpr:28"]
+    },
+    "lawful-basis": {
+      "term": "Lawful basis",
+      "definition": "One of the six legal grounds that allow personal data to be processed, such as consent, a contract or a legal obligation.",
+      "clauses": ["gdpr:6"]
+    },
+    "ropa": {
+      "term": "Record of processing activities (ROPA)",
+      "definition": "The register of how and why an organisation processes personal data, required by the GDPR.",
+      "clauses": ["gdpr:30"]
+    },
+    "dpia": {
+      "term": "Data protection impact assessment (DPIA)",
+      "definition": "An assessment of the risks to people's rights before starting processing that is likely to result in a high risk.",
+      "clauses": ["gdpr:35"]
+    },
+    "personal-data-breach": {
+      "term": "Personal data breach",
+      "definition": "A security breach that leads to personal data being lost, destroyed, changed or disclosed without authorisation. It must usually be reported to the authority within 72 hours.",
+      "clauses": ["gdpr:33", "gdpr:34"]
+    },
+    "ai-system": {
+      "term": "AI system",
+      "definition": "A machine-based system that infers from its input how to generate outputs such as predictions, content, recommendations or decisions.",
+      "clauses": ["eu_ai_act:3"]
+    },
+    "high-risk-ai-system": {
+      "term": "High-risk AI system",
+      "definition": "An AI system the EU AI Act classifies as high-risk, for example in recruitment or critical infrastructure. It must meet strict requirements before use.",
+      "clauses": ["eu_ai_act:6"]
+    },
+    "deployer": {
+      "term": "Deployer",
+      "definition": "An organisation that uses an AI system under its authority in a professional activity.",
+      "clauses": ["eu_ai_act:3", "eu_ai_act:26"]
+    },
+    "human-oversight": {
+      "term": "Human oversight",
+      "definition": "Measures that let people understand, monitor and, when needed, override or stop an AI system.",
+      "clauses": ["eu_ai_act:14"]
+    },
+    "compliance-obligation": {
+      "term": "Compliance obligation",
+      "definition": "A legal requirement, or another requirement the organisation has chosen to follow, such as a customer contract or an industry code.",
+      "clauses": ["iso14001:6.1.3", "iso45001:6.1.3"]
+    },
+    "environmental-aspect": {
+      "term": "Environmental aspect",
+      "definition": "An element of the organisation's activities, products or services that interacts with the environment, such as energy use or waste.",
+      "clauses": ["iso14001:6.1.2"]
+    },
+    "hazard": {
+      "term": "Hazard",
+      "definition": "A source with the potential to cause injury or ill health.",
+      "clauses": ["iso45001:6.1.2"]
+    },
+    "near-miss": {
+      "term": "Near miss",
+      "definition": "An event where no one was hurt and nothing was damaged, but could have been. Reporting near misses helps prevent real incidents.",
+      "clauses": ["iso45001:10.2"]
+    },
+    "certification-audit": {
+      "term": "Certification audit",
+      "definition": "An audit by an independent certification body that decides whether the organisation's management system can be certified against a standard.",
+      "clauses": []
+    }
+  }
+}

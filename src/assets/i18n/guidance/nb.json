@@ -1,0 +1,192 @@
+{
+  "loading": "Laster …",
+  "clause": "{{ framework }} {{ clause }}",
+  "frameworks": {
+    "hs": "ISO HS",
+    "iso9001": "ISO 9001",
+    "iso27001": "ISO/IEC 27001",
+    "iso14001": "ISO 14001",
+    "iso42001": "ISO/IEC 42001",
+    "iso45001": "ISO 45001",
+    "iso19011": "ISO 19011",
+    "iso22301": "ISO 22301",
+    "gdpr": "GDPR art.",
+    "eu_ai_act": "KI-forordningen art.",
+    "nis2": "NIS2 art."
+  },
+  "levels": {
+    "beginner": {
+      "name": "Nybegynner",
+      "description": "Forklaringer, veiledede steg og eksempler vises overalt."
+    },
+    "standard": {
+      "name": "Standard",
+      "description": "Korte hint som du kan utvide når du trenger dem."
+    },
+    "expert": {
+      "name": "Erfaren",
+      "description": "Et kompakt grensesnitt. Hjelpen er bare ett klikk unna."
+    }
+  },
+  "level": {
+    "legend": "Læringsnivå",
+    "useOrgDefault": "Bruk organisasjonens standard ({{ level }})",
+    "useOrgDefaultHint": "Følger nivået organisasjonen din har valgt.",
+    "saved": "Læringsnivået er lagret.",
+    "saveFailed": "Kunne ikke lagre læringsnivået ditt. Prøv igjen."
+  },
+  "menu": {
+    "levelLabel": "Læringsmodus",
+    "useOrgDefault": "Organisasjonens standard ({{ level }})",
+    "learningCentre": "Læringssenter"
+  },
+  "intro": {
+    "label": "Introduksjon til siden",
+    "show": "Vis introduksjonen: {{ title }}",
+    "hide": "Skjul"
+  },
+  "why": {
+    "title": "Hvorfor dette er viktig",
+    "more": "Hvorfor?",
+    "less": "Vis mindre",
+    "explainClause": "Forklar {{ clause }}"
+  },
+  "field": {
+    "help": "Hjelp til dette feltet",
+    "example": "Eksempel: {{ example }}"
+  },
+  "teachMe": {
+    "label": "Lær meg"
+  },
+  "tutor": {
+    "topicPrompt": "Lær meg om «{{ subject }}» i CoreFlow. {{ style }}",
+    "clausePrompt": "Lær meg hva {{ clause }} krever, hvorfor det er viktig og hvordan CoreFlow hjelper meg å oppfylle det. {{ style }}",
+    "style": {
+      "beginner": "Jeg er ny på dette: bruk et enkelt språk, forklar fagord, gi et kort eksempel steg for steg og avslutt med ett spørsmål som sjekker at jeg har forstått.",
+      "standard": "Hold det praktisk: hovedpunktene, ett eksempel og et kontrollspørsmål til slutt.",
+      "expert": "Jeg er erfaren: vær kort og presis, og fokuser på kravene og vanlige revisjonsfunn."
+    }
+  },
+  "lesson": {
+    "minutes": "{{ minutes }} min",
+    "step": "Steg {{ current }} av {{ total }}",
+    "progress": "Fremdrift i leksjonen",
+    "back": "Tilbake",
+    "next": "Neste",
+    "startQuiz": "Start quizen",
+    "finish": "Merk som fullført",
+    "completed": "Fullført",
+    "missing": "Denne leksjonen er ikke tilgjengelig.",
+    "recorded": "Fremdriften din er lagret.",
+    "saveFailed": "Kunne ikke lagre fremdriften i leksjonen."
+  },
+  "quiz": {
+    "question": "{{ n }}.",
+    "submit": "Sjekk svarene mine",
+    "retry": "Prøv igjen",
+    "correct": "Riktig.",
+    "wrong": "Ikke helt.",
+    "passed": "Bestått: {{ correct }} av {{ total }} riktige ({{ score }} %).",
+    "failed": "{{ correct }} av {{ total }} riktige ({{ score }} %). Les forklaringene og prøv igjen.",
+    "passedBadge": "Quiz bestått ({{ score }} %)",
+    "attempts": "Quizforsøk: {{ count }}, siste resultat {{ score }} %"
+  },
+  "status": {
+    "not_started": "Ikke startet",
+    "in_progress": "Påbegynt",
+    "completed": "Fullført"
+  },
+  "scopes": {
+    "platform": "Grunnleggende om CoreFlow"
+  },
+  "tour": {
+    "start": "Ta omvisningen",
+    "progress": "Steg {{ current }} av {{ total }}",
+    "next": "Neste",
+    "back": "Tilbake",
+    "done": "Ferdig",
+    "skip": "Avslutt omvisningen"
+  },
+  "glossary": {
+    "title": "Ordliste",
+    "search": "Søk i ordlisten",
+    "noMatches": "Ingen begreper passer med søket.",
+    "count": "{{ count }} begreper"
+  },
+  "centre": {
+    "title": "Læringssenter",
+    "subtitle": "Velg hvor mye veiledning du ser, ta korte leksjoner og slå opp begreper innen etterlevelse.",
+    "progressTitle": "Din fremdrift",
+    "kpiCompleted": "Fullførte leksjoner",
+    "kpiInProgress": "Påbegynte leksjoner",
+    "kpiQuizzes": "Beståtte quizer",
+    "ofTotal": "{{ done }} av {{ total }}",
+    "lessonsTitle": "Leksjoner",
+    "searchLessons": "Søk i leksjoner",
+    "filterStatus": "Filtrer på status",
+    "allStatuses": "Alle statuser",
+    "sort": "Sorter etter",
+    "sortStatus": "Status",
+    "sortTitle": "Tittel",
+    "hasQuiz": "med quiz",
+    "noLessons": "Ingen leksjoner er tilgjengelige ennå.",
+    "noMatches": "Ingen leksjoner passer med filtrene.",
+    "levelTitle": "Læringsnivå",
+    "levelCurrent": "Du ser nå nivået {{ level }}.",
+    "backToCentre": "Tilbake til læringssenteret"
+  },
+  "settings": {
+    "title": "Læringsmodus",
+    "subtitle": "Angi standard veiledningsnivå for organisasjonen og følg medlemmenes læring.",
+    "linkSubtitle": "Standard veiledningsnivå og medlemmenes læringsfremdrift.",
+    "open": "Åpne",
+    "backToSettings": "Tilbake til innstillinger",
+    "noOrg": "Velg en organisasjon for å administrere læringsmodus.",
+    "noAccess": "Du har ikke tilgang til læringsinnstillingene for denne organisasjonen.",
+    "defaultTitle": "Standardnivå",
+    "defaultHint": "Medlemmer som ikke har valgt et nivå selv, ser dette.",
+    "readOnly": "Bare organisasjonsadministratorer kan endre standardnivået.",
+    "save": "Lagre",
+    "saved": "Standard læringsnivå er lagret.",
+    "saveFailed": "Kunne ikke lagre standard læringsnivå.",
+    "loadError": "Kunne ikke laste læringsinnstillingene.",
+    "membersTitle": "Medlemmenes læring",
+    "searchMembers": "Søk etter medlemmer",
+    "filterScope": "Filtrer på emne",
+    "allScopes": "Alle emner",
+    "sortName": "Navn",
+    "sortCompleted": "Fullførte leksjoner",
+    "sortQuizzes": "Beståtte quizer",
+    "sortActivity": "Siste aktivitet",
+    "colMember": "Medlem",
+    "colSeen": "Sette leksjoner",
+    "colCompleted": "Fullført",
+    "colQuizzes": "Beståtte quizer",
+    "colLastActivity": "Siste aktivitet",
+    "never": "Ingen aktivitet ennå",
+    "unnamed": "Medlem uten navn",
+    "noMatches": "Ingen medlemmer passer med søket."
+  },
+  "member": {
+    "back": "Tilbake til læringsmodus",
+    "title": "Læringsfremdrift: {{ name }}",
+    "titleUnnamed": "Læringsfremdrift",
+    "empty": "Dette medlemmet har ikke åpnet noen leksjoner ennå.",
+    "colLesson": "Leksjon",
+    "colStatus": "Status",
+    "colCompleted": "Fullført",
+    "colQuiz": "Quiz",
+    "notYet": "Ikke ennå",
+    "noQuiz": "Ingen forsøk"
+  },
+  "notifications": {
+    "lessonCompleted": "{{ actor_name }} fullførte leksjonen {{ lesson_key }}",
+    "quizPassed": "{{ actor_name }} besto quizen i {{ lesson_key }} ({{ score }} %)",
+    "defaultLevelChanged": "Standard læringsnivå ble endret fra {{ before }} til {{ after }}"
+  },
+  "timeline": {
+    "lessonCompleted": "Fullførte leksjonen {{ lesson_key }}",
+    "quizPassed": "Besto quizen i {{ lesson_key }} ({{ score }} %)",
+    "defaultLevelChanged": "Endret standard læringsnivå fra {{ before }} til {{ after }}"
+  }
+}

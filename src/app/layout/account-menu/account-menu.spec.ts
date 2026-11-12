@@ -4,6 +4,8 @@ import { provideRouter } from '@angular/router';
 import { TranslocoTestingModule } from '@jsverse/transloco';
 import { Subject } from 'rxjs';
 import { AuthService } from '../../core/auth/auth.service';
+import { GuidanceLevel } from '../../core/guidance/guidance.models';
+import { GuidanceService } from '../../core/guidance/guidance.service';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { AccountMenu } from './account-menu';
 
@@ -16,13 +18,24 @@ function setup() {
     logoutAll: vi.fn(() => logoutAll$),
   };
   const notifications = { error: vi.fn() };
+  const personalLevel = signal<GuidanceLevel | null>(null);
+  const guidance = {
+    personalLevel,
+    orgDefault: signal<GuidanceLevel>('standard'),
+    saving: signal(false),
+    setLevel: vi.fn((level: GuidanceLevel | null) => personalLevel.set(level)),
+  };
   TestBed.configureTestingModule({
-    imports: [AccountMenu, TranslocoTestingModule.forRoot({ langs: { en: {} } })],
+    imports: [
+      AccountMenu,
+      TranslocoTestingModule.forRoot({ langs: { en: {}, 'guidance/en': {} } }),
+    ],
     providers: [
       provideZonelessChangeDetection(),
       provideRouter([]),
       { provide: AuthService, useValue: auth },
       { provide: NotificationService, useValue: notifications },
+      { provide: GuidanceService, useValue: guidance },
     ],
   });
   const fixture = TestBed.createComponent(AccountMenu);
@@ -42,7 +55,7 @@ function setup() {
     return found;
   }
 
-  return { fixture, el, auth, notifications, logoutAll$, openMenu, item };
+  return { fixture, el, auth, notifications, guidance, logoutAll$, openMenu, item };
 }
 
 describe('AccountMenu', () => {
@@ -71,5 +84,26 @@ describe('AccountMenu', () => {
     expect(auth.logoutAll).toHaveBeenCalled();
     logoutAll$.error(new Error('nope'));
     expect(notifications.error).toHaveBeenCalledWith('auth.menu.logoutAllFailed');
+  });
+
+  it('switches the learning level and links to the learning centre', () => {
+    const { el, fixture, guidance, openMenu, item } = setup();
+    openMenu();
+    const radios = () =>
+      Array.from(el.querySelectorAll<HTMLButtonElement>('[role="menuitemradio"]'));
+    expect(radios().map((r) => r.getAttribute('aria-checked'))).toEqual([
+      'true',
+      'false',
+      'false',
+      'false',
+    ]);
+    radios()[1].click();
+    fixture.detectChanges();
+    expect(guidance.setLevel).toHaveBeenCalledWith('beginner');
+    expect(radios()[1].getAttribute('aria-checked')).toBe('true');
+    expect(el.querySelector('[role="menu"]')).not.toBeNull();
+    radios()[0].click();
+    expect(guidance.setLevel).toHaveBeenLastCalledWith(null);
+    expect(item('guidance.menu.learningCentre').getAttribute('href')).toBe('/account/learning');
   });
 });

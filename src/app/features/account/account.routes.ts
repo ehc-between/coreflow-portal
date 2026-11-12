@@ -14,6 +14,10 @@ const routes: Routes = [
         (m) => m.NotificationPreferences,
       ),
   },
+  {
+    path: 'learning',
+    loadChildren: () => import('../learning/learning.routes'),
+  },
 ];
 
 export default routes;

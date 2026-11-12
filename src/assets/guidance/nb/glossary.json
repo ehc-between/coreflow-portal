@@ -1,0 +1,299 @@
+{
+  "glossary": {
+    "management-system": {
+      "term": "Styringssystem",
+      "definition": "Retningslinjene, prosessene, rollene og registreringene en organisasjon bruker for å sette mål og nå dem.",
+      "clauses": ["hs:4.4"]
+    },
+    "harmonised-structure": {
+      "term": "Harmonisert struktur (HS)",
+      "definition": "Den felles kapittelstrukturen (4 til 10) som alle ISO-standarder for styringssystemer deler, slik at ett system kan dekke flere standarder.",
+      "clauses": []
+    },
+    "context-of-the-organisation": {
+      "term": "Organisasjonens kontekst",
+      "definition": "De interne og eksterne forholdene som påvirker organisasjonens evne til å oppnå de tilsiktede resultatene av styringssystemet.",
+      "clauses": ["hs:4.1"]
+    },
+    "interested-party": {
+      "term": "Interessent",
+      "definition": "En person eller organisasjon som kan påvirke, bli påvirket av eller oppfatte seg som påvirket av en beslutning eller aktivitet, for eksempel kunder, ansatte eller myndigheter.",
+      "clauses": ["hs:4.2"]
+    },
+    "scope": {
+      "term": "Omfang",
+      "definition": "Grensene for styringssystemet: hvilke lokasjoner, aktiviteter, produkter og tjenester det dekker.",
+      "clauses": ["hs:4.3"]
+    },
+    "top-management": {
+      "term": "Toppledelsen",
+      "definition": "Personen eller gruppen som leder og styrer organisasjonen på høyeste nivå og har ansvaret for styringssystemet.",
+      "clauses": ["hs:5.1"]
+    },
+    "policy": {
+      "term": "Policy",
+      "definition": "Organisasjonens intensjoner og retning, formelt uttrykt av toppledelsen.",
+      "clauses": ["hs:5.2"]
+    },
+    "objective": {
+      "term": "Mål",
+      "definition": "Et resultat som skal oppnås. Mål bør være målbare, fulgt opp, kommunisert og oppdatert.",
+      "clauses": ["hs:6.2"]
+    },
+    "risk": {
+      "term": "Risiko",
+      "definition": "Virkningen av usikkerhet på mål, ofte beskrevet ved sannsynligheten for en hendelse og konsekvensene av den.",
+      "clauses": ["hs:6.1"]
+    },
+    "opportunity": {
+      "term": "Mulighet",
+      "definition": "En situasjon som kan gi et positivt resultat, for eksempel et nytt marked, en bedre teknologi eller en mer effektiv arbeidsmåte.",
+      "clauses": ["hs:6.1"]
+    },
+    "risk-assessment": {
+      "term": "Risikovurdering",
+      "definition": "Hele prosessen med å identifisere, analysere og evaluere risikoer.",
+      "clauses": ["iso27001:6.1.2", "iso27001:8.2"]
+    },
+    "risk-treatment": {
+      "term": "Risikohåndtering",
+      "definition": "Prosessen med å endre en risiko: unngå den, redusere den med tiltak, dele den eller akseptere den.",
+      "clauses": ["iso27001:6.1.3", "iso27001:8.3"]
+    },
+    "residual-risk": {
+      "term": "Restrisiko",
+      "definition": "Risikoen som gjenstår etter håndtering. Risikoeieren må akseptere den.",
+      "clauses": ["iso27001:6.1.3"]
+    },
+    "risk-owner": {
+      "term": "Risikoeier",
+      "definition": "Personen med ansvar og myndighet til å håndtere en risiko.",
+      "clauses": ["iso27001:6.1.2"]
+    },
+    "control": {
+      "term": "Tiltak (kontroll)",
+      "definition": "Et tiltak som opprettholder eller endrer risiko, for eksempel en prosedyre, en teknisk sikring eller en fysisk barriere.",
+      "clauses": ["iso27001:6.1.3"]
+    },
+    "statement-of-applicability": {
+      "term": "Anvendelseserklæring (SoA)",
+      "definition": "Dokumentet som lister tiltakene i vedlegg A til ISO/IEC 27001, om hvert av dem er tatt i bruk, og begrunnelsen for å ta det med eller utelate det.",
+      "clauses": ["iso27001:6.1.3"]
+    },
+    "competence": {
+      "term": "Kompetanse",
+      "definition": "Evnen til å bruke kunnskap og ferdigheter for å oppnå tilsiktede resultater.",
+      "clauses": ["hs:7.2"]
+    },
+    "awareness": {
+      "term": "Bevissthet",
+      "definition": "At folk kjenner policyen, sitt eget bidrag til styringssystemet og konsekvensene av å ikke følge det.",
+      "clauses": ["hs:7.3", "iso27001:A.6.3"]
+    },
+    "ai-literacy": {
+      "term": "KI-kompetanse",
+      "definition": "Ferdighetene, kunnskapen og forståelsen folk trenger for å bruke KI-systemer på en informert måte og være klar over muligheter, risikoer og mulig skade.",
+      "clauses": ["eu_ai_act:4"]
+    },
+    "documented-information": {
+      "term": "Dokumentert informasjon",
+      "definition": "Informasjon en organisasjon må styre og vedlikeholde, og mediet den ligger på: dokumenter som beskriver hvordan man arbeider, og registreringer som viser hva som ble gjort.",
+      "clauses": ["hs:7.5"]
+    },
+    "procedure": {
+      "term": "Prosedyre",
+      "definition": "En fastsatt måte å utføre en aktivitet eller en prosess på.",
+      "clauses": ["hs:7.5"]
+    },
+    "record": {
+      "term": "Registrering",
+      "definition": "Dokumentert informasjon som viser oppnådde resultater eller gir bevis for utførte aktiviteter. Registreringer endres ikke i ettertid.",
+      "clauses": ["hs:7.5"]
+    },
+    "process": {
+      "term": "Prosess",
+      "definition": "Et sett av sammenhengende aktiviteter som bruker innsatsfaktorer for å levere et tilsiktet resultat.",
+      "clauses": ["hs:4.4", "hs:8.1"]
+    },
+    "process-approach": {
+      "term": "Prosesstilnærming",
+      "definition": "Å styre aktiviteter som sammenhengende prosesser med tydelige innsatsfaktorer, resultater, eiere og måltall, i stedet for som separate avdelinger.",
+      "clauses": ["iso9001:4.4"]
+    },
+    "pdca": {
+      "term": "Planlegg-utfør-kontroller-forbedre (PDCA)",
+      "definition": "Forbedringssirkelen bak alle styringssystemer: planlegg, utfør, kontroller resultatene og forbedre ut fra det du lærer.",
+      "clauses": []
+    },
+    "monitoring": {
+      "term": "Overvåking",
+      "definition": "Å fastslå statusen til et system, en prosess eller en aktivitet, ofte ved å sjekke eller observere den over tid.",
+      "clauses": ["hs:9.1"]
+    },
+    "kpi": {
+      "term": "Nøkkeltall (KPI)",
+      "definition": "En målbar verdi som viser hvor godt en prosess eller et mål presterer.",
+      "clauses": ["hs:9.1"]
+    },
+    "internal-audit": {
+      "term": "Internrevisjon",
+      "definition": "En systematisk og uavhengig kontroll, utført av eller for organisasjonen, av om styringssystemet oppfyller kravene og fungerer effektivt.",
+      "clauses": ["hs:9.2"]
+    },
+    "audit-criteria": {
+      "term": "Revisjonskriterier",
+      "definition": "Kravene revisjonsbevisene sammenlignes med, for eksempel en standard, en policy eller en kontrakt.",
+      "clauses": ["hs:9.2", "iso19011:3.7"]
+    },
+    "audit-finding": {
+      "term": "Revisjonsfunn",
+      "definition": "Resultatet av å sammenligne revisjonsbevis med revisjonskriteriene: samsvar, avvik eller en forbedringsmulighet.",
+      "clauses": ["hs:9.2"]
+    },
+    "management-review": {
+      "term": "Ledelsens gjennomgåelse",
+      "definition": "En planlagt gjennomgang der toppledelsen vurderer om styringssystemet fortsatt er egnet, tilstrekkelig og effektivt.",
+      "clauses": ["hs:9.3"]
+    },
+    "nonconformity": {
+      "term": "Avvik",
+      "definition": "Manglende oppfyllelse av et krav, enten fra en standard, loven, en kunde eller egne prosedyrer.",
+      "clauses": ["hs:10.2"]
+    },
+    "major-nonconformity": {
+      "term": "Større avvik",
+      "definition": "Et avvik som betyr at et krav ikke er oppfylt i det hele tatt, eller at systemet ikke kan oppnå de tilsiktede resultatene. Det kan hindre sertifisering.",
+      "clauses": ["hs:10.2"]
+    },
+    "correction": {
+      "term": "Korreksjon",
+      "definition": "Handling for å rette et oppdaget avvik, for eksempel å omarbeide et produkt. Den fjerner ikke årsaken.",
+      "clauses": ["hs:10.2"]
+    },
+    "corrective-action": {
+      "term": "Korrigerende tiltak",
+      "definition": "Handling for å fjerne årsaken til et avvik og hindre at det skjer igjen.",
+      "clauses": ["hs:10.2"]
+    },
+    "root-cause": {
+      "term": "Rotårsak",
+      "definition": "Den underliggende grunnen til at et problem oppsto. Når den fjernes, kommer ikke problemet tilbake.",
+      "clauses": ["hs:10.2"]
+    },
+    "continual-improvement": {
+      "term": "Kontinuerlig forbedring",
+      "definition": "Gjentatte aktiviteter for å bedre ytelsen, for eksempel gjennom korrigerende tiltak, revisjoner og gjennomganger.",
+      "clauses": ["hs:10.1"]
+    },
+    "effectiveness": {
+      "term": "Effektivitet (virkning)",
+      "definition": "I hvilken grad planlagte aktiviteter blir utført og planlagte resultater oppnådd.",
+      "clauses": ["hs:10.2"]
+    },
+    "outsourced-process": {
+      "term": "Utkontraktert prosess",
+      "definition": "En prosess som en ekstern organisasjon utfører for dere. Dere har fortsatt ansvaret og må styre den.",
+      "clauses": ["hs:8.1", "iso9001:8.4"]
+    },
+    "information-security": {
+      "term": "Informasjonssikkerhet",
+      "definition": "Å bevare informasjonens konfidensialitet, integritet og tilgjengelighet.",
+      "clauses": ["iso27001:4.1"]
+    },
+    "cia-triad": {
+      "term": "Konfidensialitet, integritet og tilgjengelighet",
+      "definition": "Konfidensialitet: bare autoriserte kan lese informasjonen. Integritet: den er riktig og fullstendig. Tilgjengelighet: den kan brukes når den trengs.",
+      "clauses": ["iso27001:6.1.2"]
+    },
+    "information-security-incident": {
+      "term": "Informasjonssikkerhetshendelse",
+      "definition": "En eller flere uønskede sikkerhetshendelser som sannsynligvis vil skade organisasjonens informasjon eller drift.",
+      "clauses": ["iso27001:A.5.24", "iso27001:A.5.26"]
+    },
+    "asset": {
+      "term": "Verdi (eiendel)",
+      "definition": "Alt som har verdi for organisasjonen, for eksempel informasjon, programvare, utstyr, tjenester eller folks kunnskap.",
+      "clauses": ["iso27001:A.5.9"]
+    },
+    "personal-data": {
+      "term": "Personopplysninger",
+      "definition": "Enhver opplysning om en identifisert eller identifiserbar levende person, for eksempel et navn, en e-postadresse eller et ansattnummer.",
+      "clauses": ["gdpr:4"]
+    },
+    "controller": {
+      "term": "Behandlingsansvarlig",
+      "definition": "Organisasjonen som bestemmer hvorfor og hvordan personopplysninger behandles.",
+      "clauses": ["gdpr:4", "gdpr:24"]
+    },
+    "processor": {
+      "term": "Databehandler",
+      "definition": "En organisasjon som behandler personopplysninger på vegne av en behandlingsansvarlig, etter en databehandleravtale.",
+      "clauses": ["gdpr:28"]
+    },
+    "lawful-basis": {
+      "term": "Behandlingsgrunnlag",
+      "definition": "Ett av de seks rettslige grunnlagene som gjør det lov å behandle personopplysninger, for eksempel samtykke, en avtale eller en rettslig forpliktelse.",
+      "clauses": ["gdpr:6"]
+    },
+    "ropa": {
+      "term": "Protokoll over behandlingsaktiviteter",
+      "definition": "Oversikten over hvordan og hvorfor en organisasjon behandler personopplysninger, som GDPR krever.",
+      "clauses": ["gdpr:30"]
+    },
+    "dpia": {
+      "term": "Personvernkonsekvensvurdering (DPIA)",
+      "definition": "En vurdering av risikoen for folks rettigheter før man starter en behandling som sannsynligvis vil gi høy risiko.",
+      "clauses": ["gdpr:35"]
+    },
+    "personal-data-breach": {
+      "term": "Brudd på personopplysningssikkerheten",
+      "definition": "Et sikkerhetsbrudd som fører til at personopplysninger går tapt, blir ødelagt, endret eller utlevert uten tillatelse. Det må som regel meldes til tilsynsmyndigheten innen 72 timer.",
+      "clauses": ["gdpr:33", "gdpr:34"]
+    },
+    "ai-system": {
+      "term": "KI-system",
+      "definition": "Et maskinbasert system som ut fra det det mottar utleder hvordan det skal lage resultater som prediksjoner, innhold, anbefalinger eller beslutninger.",
+      "clauses": ["eu_ai_act:3"]
+    },
+    "high-risk-ai-system": {
+      "term": "KI-system med høy risiko",
+      "definition": "Et KI-system som KI-forordningen klassifiserer som høyrisiko, for eksempel i rekruttering eller kritisk infrastruktur. Det må oppfylle strenge krav før bruk.",
+      "clauses": ["eu_ai_act:6"]
+    },
+    "deployer": {
+      "term": "Idriftsetter (bruker)",
+      "definition": "En organisasjon som bruker et KI-system under sin myndighet i yrkesmessig virksomhet.",
+      "clauses": ["eu_ai_act:3", "eu_ai_act:26"]
+    },
+    "human-oversight": {
+      "term": "Menneskelig tilsyn",
+      "definition": "Tiltak som lar mennesker forstå, overvåke og ved behov overstyre eller stanse et KI-system.",
+      "clauses": ["eu_ai_act:14"]
+    },
+    "compliance-obligation": {
+      "term": "Samsvarsforpliktelse",
+      "definition": "Et lovkrav, eller et annet krav organisasjonen har valgt å følge, for eksempel en kundekontrakt eller en bransjenorm.",
+      "clauses": ["iso14001:6.1.3", "iso45001:6.1.3"]
+    },
+    "environmental-aspect": {
+      "term": "Miljøaspekt",
+      "definition": "En del av organisasjonens aktiviteter, produkter eller tjenester som påvirker miljøet, for eksempel energibruk eller avfall.",
+      "clauses": ["iso14001:6.1.2"]
+    },
+    "hazard": {
+      "term": "Fare",
+      "definition": "En kilde som kan føre til skade eller sykdom.",
+      "clauses": ["iso45001:6.1.2"]
+    },
+    "near-miss": {
+      "term": "Nestenulykke",
+      "definition": "En hendelse der ingen ble skadet og ingenting ødelagt, men der det kunne ha skjedd. Å melde nestenulykker hjelper å forebygge virkelige hendelser.",
+      "clauses": ["iso45001:10.2"]
+    },
+    "certification-audit": {
+      "term": "Sertifiseringsrevisjon",
+      "definition": "En revisjon utført av et uavhengig sertifiseringsorgan som avgjør om organisasjonens styringssystem kan sertifiseres etter en standard.",
+      "clauses": []
+    }
+  }
+}

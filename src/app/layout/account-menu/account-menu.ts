@@ -1,19 +1,23 @@
 import { ChangeDetectionStrategy, Component, ElementRef, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, provideTranslocoScope } from '@jsverse/transloco';
 import { AuthService } from '../../core/auth/auth.service';
+import { GUIDANCE_LEVELS, GuidanceLevel } from '../../core/guidance/guidance.models';
+import { GuidanceService } from '../../core/guidance/guidance.service';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { Avatar } from '../../shared/ui/avatar/avatar';
 import { Icon } from '../../shared/ui/icon/icon';
 
 /**
  * Top-bar avatar menu: shows the signed-in user (name + email) and offers
- * "Change password", "Notification settings", "Sign out" and "Sign out of all devices". Closes on
- * outside-click and Escape.
+ * "Change password", "Notification settings", the learning-mode level switch (three
+ * levels plus "use organisation default") with a link to the learning centre,
+ * "Sign out" and "Sign out of all devices". Closes on outside-click and Escape.
  */
 @Component({
   selector: 'app-account-menu',
   imports: [RouterLink, TranslocoPipe, Avatar, Icon],
+  providers: [provideTranslocoScope('guidance')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     class: 'relative ml-1 block',
@@ -68,6 +72,67 @@ import { Icon } from '../../shared/ui/icon/icon';
           <span class="flex text-fg-subtle"><app-icon name="bell" [size]="16" /></span>
           {{ 'auth.menu.notificationSettings' | transloco }}
         </a>
+
+        <div class="my-1 border-t border-border"></div>
+        <div
+          role="group"
+          data-testid="guidance-level-menu"
+          aria-labelledby="guidance-level-heading"
+          class="flex flex-col"
+        >
+          <div
+            id="guidance-level-heading"
+            class="px-2 pt-1.5 pb-1 text-[11.5px] font-semibold tracking-wide text-fg-subtle uppercase"
+          >
+            {{ 'guidance.menu.levelLabel' | transloco }}
+          </div>
+          <button
+            type="button"
+            role="menuitemradio"
+            [attr.aria-checked]="guidance.personalLevel() === null"
+            [disabled]="guidance.saving()"
+            (click)="setLevel(null)"
+            class="flex items-center gap-2.5 rounded-[9px] px-2 py-1.5 text-left text-[13px] font-medium text-fg hover:bg-surface-2 disabled:opacity-60"
+          >
+            <span class="flex w-4 text-accent" aria-hidden="true">
+              @if (guidance.personalLevel() === null) {
+                <app-icon name="check" [size]="15" />
+              }
+            </span>
+            {{
+              'guidance.menu.useOrgDefault'
+                | transloco
+                  : { level: 'guidance.levels.' + guidance.orgDefault() + '.name' | transloco }
+            }}
+          </button>
+          @for (level of levels; track level) {
+            <button
+              type="button"
+              role="menuitemradio"
+              [attr.aria-checked]="guidance.personalLevel() === level"
+              [disabled]="guidance.saving()"
+              (click)="setLevel(level)"
+              class="flex items-center gap-2.5 rounded-[9px] px-2 py-1.5 text-left text-[13px] font-medium text-fg hover:bg-surface-2 disabled:opacity-60"
+            >
+              <span class="flex w-4 text-accent" aria-hidden="true">
+                @if (guidance.personalLevel() === level) {
+                  <app-icon name="check" [size]="15" />
+                }
+              </span>
+              {{ 'guidance.levels.' + level + '.name' | transloco }}
+            </button>
+          }
+          <a
+            role="menuitem"
+            routerLink="/account/learning"
+            (click)="close()"
+            class="flex items-center gap-2.5 rounded-[9px] px-2 py-2 text-[13px] font-medium text-fg hover:bg-surface-2"
+          >
+            <span class="flex text-fg-subtle"><app-icon name="training" [size]="16" /></span>
+            {{ 'guidance.menu.learningCentre' | transloco }}
+          </a>
+        </div>
+        <div class="my-1 border-t border-border"></div>
         <button
           type="button"
           role="menuitem"
@@ -93,6 +158,8 @@ import { Icon } from '../../shared/ui/icon/icon';
 })
 export class AccountMenu {
   protected readonly auth = inject(AuthService);
+  protected readonly guidance = inject(GuidanceService);
+  protected readonly levels = GUIDANCE_LEVELS;
   private readonly notifications = inject(NotificationService);
   private readonly host = inject(ElementRef<HTMLElement>);
 
@@ -105,6 +172,11 @@ export class AccountMenu {
 
   protected close(): void {
     this.open.set(false);
+  }
+
+  /** Switch the learning-mode level (`null` follows the org default); the menu stays open. */
+  protected setLevel(level: GuidanceLevel | null): void {
+    this.guidance.setLevel(level);
   }
 
   protected signOut(): void {

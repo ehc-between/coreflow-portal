@@ -16,6 +16,7 @@ import { DeviationStats } from '../../core/deviations/deviation.models';
 import { DeviationsApi } from '../../core/deviations/deviations-api';
 import { DocumentsApi } from '../../core/documents/documents-api';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
+import { GuideIntro } from '../../shared/guidance/guide-intro';
 import { AgentBanner } from '../../shared/ui/agent-banner/agent-banner';
 import { Card } from '../../shared/ui/card/card';
 import { Icon } from '../../shared/ui/icon/icon';
@@ -47,7 +48,17 @@ const TREND_MONTHS = 6;
  */
 @Component({
   selector: 'app-dashboard',
-  imports: [TranslocoPipe, RouterLink, AgentBanner, Card, Icon, KpiTile, StatBarList, TrendChart],
+  imports: [
+    TranslocoPipe,
+    RouterLink,
+    GuideIntro,
+    AgentBanner,
+    Card,
+    Icon,
+    KpiTile,
+    StatBarList,
+    TrendChart,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mx-auto max-w-[1080px] px-8 pt-7 pb-12">
@@ -61,6 +72,8 @@ const TREND_MONTHS = 6;
           </div>
         }
       </div>
+
+      <app-guide-intro class="mb-[18px]" scope="platform" page="dashboard" />
 
       <div class="mb-[22px]">
         <app-agent-banner agentName="Iris" [agentRole]="'dashboard.agentRole' | transloco" />
