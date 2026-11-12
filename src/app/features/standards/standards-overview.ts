@@ -9,9 +9,11 @@ import {
   untracked,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { Subscription, catchError, forkJoin, of } from 'rxjs';
+import { AiAvailability } from '../../core/ai/ai-availability';
 import { HasPermissionDirective } from '../../core/auth/has-permission.directive';
+import { FrameworkView } from '../../core/standards/frameworks-data';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { StandardsApi } from '../../core/standards/standards-api';
 import { ChapterBar, chapterBars, pctColor } from '../../core/standards/standards-data';
@@ -24,11 +26,17 @@ import { ConfirmDialog } from '../../shared/ui/confirm-dialog/confirm-dialog';
 import { Icon } from '../../shared/ui/icon/icon';
 import { ProgressBar } from '../../shared/ui/progress-bar/progress-bar';
 import { ProgressRing } from '../../shared/ui/progress-ring/progress-ring';
+import { AskPanelService } from '../ask/ask-panel.service';
+import { loadFrameworks } from './frameworks/frameworks-load';
+import { StandardsGuide } from './guide/standards-guide';
 
 /**
- * ISO & standards overview for the current org: every enabled standard as a
- * card with its completeness ring, status counts and per-chapter bars (from the
- * clause tree), plus the catalogue of standards that can be switched on.
+ * Standards & regulations overview for the current org: every enabled
+ * framework as a card with its readiness ring (applicability, evidence and
+ * evidence freshness), status counts and per-chapter bars (from the clause
+ * tree), plus every other framework of the catalogue (ISO standards and EU
+ * regulations, marked when in the org profile) that can be switched on.
+ * Learning-mode guidance on top; "Explain our readiness" asks the assistant.
  * Enabling / disabling needs `standards:manage`. Reloads on org switch.
  */
 @Component({
@@ -44,18 +52,38 @@ import { ProgressRing } from '../../shared/ui/progress-ring/progress-ring';
     Icon,
     ProgressBar,
     ProgressRing,
+    StandardsGuide,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[1180px] px-8 pt-7 pb-12">
-      <div class="mb-[18px]">
-        <h1 class="font-display text-[26px] font-bold tracking-[-0.025em] text-fg">
-          {{ 'standards.title' | transloco }}
-        </h1>
-        <div class="mt-1.5 text-[14px] text-fg-muted">
-          {{ 'standards.subtitle' | transloco }}
+    <div class="mx-auto max-w-[1180px] px-4 pt-7 pb-12 sm:px-8">
+      <div class="mb-[18px] flex flex-wrap items-start gap-3">
+        <div class="min-w-0 flex-1">
+          <h1 class="font-display text-[26px] font-bold tracking-[-0.025em] text-fg">
+            {{ 'standards.title' | transloco }}
+          </h1>
+          <div class="mt-1.5 text-[14px] text-fg-muted">
+            {{ 'standards.subtitle' | transloco }}
+          </div>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          @if (!aiUnavailable() && !loading() && !loadError()) {
+            <app-button variant="ghost" size="sm" (click)="explainReadiness()">
+              <app-icon name="spark" [size]="14" />
+              {{ 'standards.frameworks.explain' | transloco }}
+            </app-button>
+          }
+          <a
+            routerLink="/standards/readiness"
+            class="inline-flex h-8 items-center justify-center gap-2 rounded-tile border border-border bg-surface px-3 text-[13px] font-semibold text-fg transition-colors hover:border-border-strong hover:bg-surface-2"
+          >
+            {{ 'standards.frameworks.readinessDetails' | transloco }}
+            <app-icon name="arrow" [size]="14" />
+          </a>
         </div>
       </div>
+
+      <app-standards-guide page="overview" [clauses]="guideClauses" />
 
       @if (loading()) {
         <app-card>
@@ -85,13 +113,15 @@ import { ProgressRing } from '../../shared/ui/progress-ring/progress-ring';
         } @else {
           <div class="grid gap-5 md:grid-cols-2">
             @for (std of enabled(); track std.key) {
+              @let view = viewOf(std.key);
+              @let score = view?.readiness ?? std.completeness.pct;
               <app-card>
                 <div class="flex items-start gap-4">
                   <app-progress-ring
-                    [value]="std.completeness.pct"
+                    [value]="score"
                     [size]="76"
-                    [color]="pctColor(std.completeness.pct)"
-                    [label]="'standards.completeness' | transloco"
+                    [color]="pctColor(score)"
+                    [label]="'standards.frameworks.readiness' | transloco"
                   />
                   <div class="min-w-0 flex-1">
                     <a
@@ -102,6 +132,21 @@ import { ProgressRing } from '../../shared/ui/progress-ring/progress-ring';
                     </a>
                     <div class="text-[12.5px] text-fg-subtle">
                       {{ 'standards.edition' | transloco: { edition: std.edition } }}
+                    </div>
+                    <div class="mt-1.5 flex flex-wrap items-center gap-1.5">
+                      <app-badge [tone]="kindOf(std.key) === 'regulation' ? 'info' : 'neutral'">
+                        {{ 'standards.frameworks.kind.' + kindOf(std.key) | transloco }}
+                      </app-badge>
+                      @if (view?.inProfile) {
+                        <app-badge tone="accent">
+                          <span [title]="'standards.frameworks.inProfileHint' | transloco">{{
+                            'standards.frameworks.inProfile' | transloco
+                          }}</span>
+                        </app-badge>
+                      }
+                      <span class="text-[12px] text-fg-muted">{{
+                        'standards.frameworks.coverage' | transloco: { pct: std.completeness.pct }
+                      }}</span>
                     </div>
                     <div class="mt-2 flex flex-wrap gap-1.5">
                       <app-badge tone="pass">
@@ -189,21 +234,34 @@ import { ProgressRing } from '../../shared/ui/progress-ring/progress-ring';
         }
 
         @if (available().length > 0) {
-          <h2 class="mt-8 mb-3 font-display text-[16px] font-bold tracking-[-0.02em] text-fg">
+          <h2 class="mt-8 mb-1 font-display text-[16px] font-bold tracking-[-0.02em] text-fg">
             {{ 'standards.overview.available' | transloco }}
           </h2>
+          <p class="mb-3 text-[12.5px] text-fg-muted">
+            {{ 'standards.frameworks.availableHint' | transloco }}
+          </p>
           <app-card [padded]="false">
             <ul class="divide-y divide-border">
               @for (std of available(); track std.key) {
-                <li class="flex items-center gap-3 px-4 py-3">
+                <li class="flex flex-wrap items-center gap-3 px-4 py-3">
                   <span class="flex flex-none text-fg-subtle"
                     ><app-icon name="iso" [size]="18"
                   /></span>
                   <span class="min-w-0 flex-1">
                     <span class="block text-[13.5px] font-semibold text-fg">{{ std.name }}</span>
-                    <span class="block text-[12px] text-fg-subtle">{{
-                      'standards.edition' | transloco: { edition: std.edition }
-                    }}</span>
+                    <span class="mt-0.5 flex flex-wrap items-center gap-1.5">
+                      <span class="text-[12px] text-fg-subtle">{{
+                        'standards.edition' | transloco: { edition: std.edition }
+                      }}</span>
+                      <app-badge [tone]="kindOf(std.key) === 'regulation' ? 'info' : 'neutral'">
+                        {{ 'standards.frameworks.kind.' + kindOf(std.key) | transloco }}
+                      </app-badge>
+                      @if (viewOf(std.key)?.inProfile) {
+                        <app-badge tone="accent">{{
+                          'standards.frameworks.inProfile' | transloco
+                        }}</app-badge>
+                      }
+                    </span>
                   </span>
                   <app-button
                     *appHasPermission="'standards:manage'"
@@ -247,8 +305,26 @@ export class StandardsOverview {
   private readonly api = inject(StandardsApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly language = inject(LanguageService);
+  private readonly ask = inject(AskPanelService);
+  private readonly transloco = inject(TranslocoService);
+  protected readonly aiUnavailable = inject(AiAvailability).unavailable;
+
+  /** The shared ISO structure the overview guide teaches. */
+  protected readonly guideClauses = ['ISO HS 4.1', 'ISO HS 6.1', 'ISO HS 9.1'];
 
   protected readonly standards = signal<readonly StandardSummary[]>([]);
+  /** Every framework with its readiness, in framework order. */
+  private readonly views = signal<readonly FrameworkView[]>([]);
+  private readonly viewsByKey = computed(
+    () => new Map(this.views().map((v) => [v.standardKey, v])),
+  );
+  /** Standards in framework order (catalogue entries outside it last). */
+  private readonly ordered = computed(() => {
+    const order = new Map(this.views().map((v, i) => [v.standardKey, i]));
+    return [...this.standards()].sort(
+      (a, b) => (order.get(a.key) ?? Infinity) - (order.get(b.key) ?? Infinity),
+    );
+  });
   private readonly trees = signal<Readonly<Record<string, readonly ClauseNode[]>>>({});
   /** Per-chapter bars, re-titled on language switch. */
   protected readonly bars = computed(() => {
@@ -266,8 +342,8 @@ export class StandardsOverview {
   /** Standard awaiting confirmation before it is disabled. */
   protected readonly pendingDisable = signal<StandardSummary | null>(null);
 
-  protected readonly enabled = computed(() => this.standards().filter((s) => s.enabled));
-  protected readonly available = computed(() => this.standards().filter((s) => !s.enabled));
+  protected readonly enabled = computed(() => this.ordered().filter((s) => s.enabled));
+  protected readonly available = computed(() => this.ordered().filter((s) => !s.enabled));
 
   protected readonly pctColor = pctColor;
 
@@ -283,6 +359,31 @@ export class StandardsOverview {
       this.sub?.unsubscribe();
       this.barsSub?.unsubscribe();
     });
+  }
+
+  protected viewOf(key: string): FrameworkView | null {
+    return this.viewsByKey().get(key) ?? null;
+  }
+
+  protected kindOf(key: string): string {
+    return this.viewOf(key)?.kind ?? 'standard';
+  }
+
+  /** Open the assistant on the org's readiness across its enabled frameworks. */
+  protected explainReadiness(): void {
+    const items = this.enabled().map((s) =>
+      this.transloco.translate('standards.frameworks.summaryItem', {
+        name: s.name,
+        score: this.viewOf(s.key)?.readiness ?? s.completeness.pct,
+      }),
+    );
+    this.ask.showWith(
+      items.length > 0
+        ? this.transloco.translate('standards.frameworks.explainPrompt', {
+            summary: items.join(', '),
+          })
+        : this.transloco.translate('standards.frameworks.explainNone'),
+    );
   }
 
   protected confirmDisable(): void {
@@ -317,6 +418,7 @@ export class StandardsOverview {
     this.sub?.unsubscribe();
     this.barsSub?.unsubscribe();
     this.standards.set([]);
+    this.views.set([]);
     this.trees.set({});
     this.loadError.set(false);
     if (!orgId) {
@@ -324,9 +426,10 @@ export class StandardsOverview {
       return;
     }
     this.loading.set(true);
-    this.sub = this.api.list(orgId).subscribe({
-      next: (list) => {
+    this.sub = loadFrameworks(this.api, orgId).subscribe({
+      next: ({ standards: list, views }) => {
         this.standards.set(list);
+        this.views.set(views);
         this.loading.set(false);
         this.loadBars(
           orgId,

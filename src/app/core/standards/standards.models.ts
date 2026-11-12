@@ -41,7 +41,14 @@ export interface StandardSummary {
    * records have never been mapped to this standard.
    */
   readonly last_mapping?: StandardMapping | null;
+  /** Platform framework key (`iso9001`, `gdpr`, …); null outside the framework list. */
+  readonly framework?: string | null;
+  /** ISO standard or EU regulation. */
+  readonly kind?: StandardKind;
 }
+
+/** Whether a catalogue entry is an ISO standard or an EU regulation. */
+export type StandardKind = 'standard' | 'regulation';
 
 /** Summary of the latest whole-standard AI mapping run (`last_mapping`). */
 export interface StandardMapping {
@@ -65,7 +72,13 @@ export interface ClauseRollup {
 /** Statuses a manual override can set (not-applicable goes through `applicable`). */
 export type CoverageOverride = Exclude<RequirementStatus, 'not_applicable'>;
 
-export type ClauseKind = 'clause' | 'annex_control';
+export type ClauseKind = 'clause' | 'annex_control' | 'article' | 'recital' | 'annex';
+
+/** Extra catalogue facts on a clause (EU AI Act: the roles and risk classes it applies to). */
+export interface ClauseMeta {
+  readonly roles?: readonly string[];
+  readonly risk_classes?: readonly string[];
+}
 
 /** A requirement inside the clause tree. */
 export interface Requirement {
@@ -101,6 +114,9 @@ export interface ClauseNode {
   readonly summary: LocalizedText | null;
   /** Our own implementation guidance, when the catalogue has any. */
   readonly guidance: LocalizedText | null;
+  /** The Harmonised Structure clause this clause implements ("6.1"), shared across ISO standards. */
+  readonly hs?: string | null;
+  readonly meta?: ClauseMeta | null;
   readonly rollup: ClauseRollup;
   readonly children: readonly ClauseNode[];
   readonly requirements: readonly Requirement[];
@@ -127,8 +143,14 @@ export interface RequirementPatch {
   readonly note?: string | null;
 }
 
-/** Record kinds a requirement link can point at. */
-export type LinkEntityType = 'document' | 'deviation' | 'deviation_action' | 'attachment';
+/** The record kinds with built-in evidence handling. */
+export type BuiltinLinkEntityType = 'document' | 'deviation' | 'deviation_action' | 'attachment';
+
+/**
+ * Record kinds a requirement link can point at: the built-in ones plus any
+ * linkable entity type a module registers (`^[a-z][a-z0-9_]{0,31}$`).
+ */
+export type LinkEntityType = string;
 
 export type LinkStatus = 'suggested' | 'confirmed' | 'rejected';
 
@@ -220,3 +242,77 @@ export type GuidanceEvent =
   | { readonly type: 'done' }
   | { readonly type: 'error'; readonly message: string }
   | { readonly type: 'not-configured' };
+
+// --- Frameworks (cross-framework catalogue, mappings, readiness) ------------------
+
+/** A row of `GET frameworks`: one framework of the catalogue and the org's state for it. */
+export interface FrameworkSummary {
+  readonly framework: string;
+  readonly standard_key: string;
+  readonly name: string;
+  readonly kind: StandardKind;
+  readonly enabled: boolean;
+  /** Whether the framework is among the frameworks in the organisation profile. */
+  readonly in_profile: boolean;
+  /** 0–100 for an enabled framework, else null. */
+  readonly readiness: number | null;
+}
+
+/** A row of `GET frameworks/readiness` (one per enabled standard). */
+export interface FrameworkReadiness {
+  readonly framework: string | null;
+  readonly standard_key: string;
+  readonly applicable: number;
+  readonly covered: number;
+  readonly partial: number;
+  /** Covered requirements whose evidence is recent (within 365 days). */
+  readonly fresh: number;
+  /** 0–100. */
+  readonly score: number;
+}
+
+export type MappingRelation = 'equivalent' | 'related' | 'supports';
+
+/** `GET standards/{key}/clauses/{number}/mappings`: a clause elsewhere this clause maps to. */
+export interface ClauseMappingItem {
+  readonly relation: MappingRelation;
+  readonly standard_key: string;
+  readonly framework: string | null;
+  readonly number: string;
+  readonly title: LocalizedText;
+  readonly note: LocalizedText | null;
+  /** `hs` = derived from the shared Harmonised Structure; `curated` = a mapping we maintain. */
+  readonly source: 'hs' | 'curated';
+}
+
+/** A module whose records can evidence a clause. */
+export interface ModuleSupport {
+  readonly key: string;
+  readonly entity_types: readonly string[];
+  readonly enabled: boolean;
+}
+
+/** `GET clause-support?ref=`. */
+export interface ClauseSupport {
+  readonly ref: string;
+  readonly modules: readonly ModuleSupport[];
+}
+
+/** A requirement a record could evidence (`GET evidence-suggestions`). */
+export interface EvidenceSuggestion {
+  /** Qualified requirement ref ("iso9001-2026:7.5.1.r1"). */
+  readonly ref: string;
+  readonly standard_key: string;
+  /** Clause number. */
+  readonly number: string;
+  /** Clause title in English, and our Norwegian title. */
+  readonly title: string;
+  readonly title_nb: string | null;
+  readonly text: Partial<LocalizedText>;
+  /** Status of an existing link between the record and this requirement, if any. */
+  readonly link_status: LinkStatus | null;
+}
+
+export interface EvidenceSuggestions {
+  readonly requirements: readonly EvidenceSuggestion[];
+}

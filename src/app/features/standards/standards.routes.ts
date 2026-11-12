@@ -1,5 +1,6 @@
 import { inject } from '@angular/core';
 import { RedirectFunction, Router, Routes } from '@angular/router';
+import { provideTranslocoScope } from '@jsverse/transloco';
 import { workspaceMatcher } from './workspace/workspace-data';
 
 /**
@@ -18,15 +19,24 @@ export const legacyClauseRedirect: RedirectFunction = ({ params, queryParams }) 
  * current org). The whole module is gated on `standards:read` upstream; manage
  * actions inside the pages are gated on `standards:manage`.
  *
- * - `''` — the overview (entry point).
+ * Everything shares the `standards` Transloco scope (`assets/i18n/standards/<lang>.json`)
+ * for the framework, readiness and learning-mode strings.
+ *
+ * - `''` — the overview of every framework (entry point).
+ * - `readiness` — readiness per enabled framework.
  * - `:key` and `:key/:number` — the document workspace, one route config so
  *   moving between sections reuses the component.
  * - `:key/clauses[/:number]` — legacy, redirects into the workspace.
  */
-const routes: Routes = [
+const pages: Routes = [
   {
     path: '',
     loadComponent: () => import('./standards-overview').then((m) => m.StandardsOverview),
+  },
+  {
+    // Before the workspace matcher, which would read "readiness" as a standard key.
+    path: 'readiness',
+    loadComponent: () => import('./frameworks/readiness-page').then((m) => m.ReadinessPage),
   },
   {
     path: ':key/clauses/:number',
@@ -40,6 +50,14 @@ const routes: Routes = [
   {
     matcher: workspaceMatcher,
     loadComponent: () => import('./workspace/standard-workspace').then((m) => m.StandardWorkspace),
+  },
+];
+
+const routes: Routes = [
+  {
+    path: '',
+    providers: [provideTranslocoScope('standards')],
+    children: pages,
   },
 ];
 

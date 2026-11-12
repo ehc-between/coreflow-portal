@@ -12,9 +12,15 @@ class PageStub {
   readonly req = input<string>();
 }
 
-const testRoutes: Route[] = routes.map((route) =>
-  route.loadComponent ? { ...route, loadComponent: () => PageStub } : route,
-);
+function stub(list: readonly Route[]): Route[] {
+  return list.map((route) => ({
+    ...route,
+    ...(route.loadComponent ? { loadComponent: () => PageStub } : {}),
+    ...(route.children ? { children: stub(route.children) } : {}),
+  }));
+}
+
+const testRoutes: Route[] = stub(routes);
 
 async function setup() {
   TestBed.configureTestingModule({
@@ -47,6 +53,13 @@ describe('standards routes', () => {
     expect(router.url).toBe('/standards/iso9001');
     expect(page.key()).toBe('iso9001');
     expect(page.number()).toBeUndefined();
+  });
+
+  it('opens the readiness page instead of a workspace for a standard named "readiness"', async () => {
+    const { harness, router } = await setup();
+    const page = await harness.navigateByUrl('/standards/readiness', PageStub);
+    expect(router.url).toBe('/standards/readiness');
+    expect(page.key()).toBeUndefined();
   });
 
   it('opens the workspace at the top or at a section with one route', async () => {

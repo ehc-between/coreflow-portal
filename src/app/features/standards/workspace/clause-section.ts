@@ -2,12 +2,14 @@ import { ChangeDetectionStrategy, Component, computed, inject, input, output } f
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { LanguageService } from '../../../core/i18n/language.service';
+import { clauseKindKey, metaChips } from '../../../core/standards/frameworks-data';
 import { localized, pctColor } from '../../../core/standards/standards-data';
 import { LocalizedText, RequirementDetail } from '../../../core/standards/standards.models';
 import { Badge } from '../../../shared/ui/badge/badge';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { ProgressBar } from '../../../shared/ui/progress-bar/progress-bar';
 import { themeKey } from '../standard-themes';
+import { ClauseMappings } from './clause-mappings';
 import { RequirementRow } from './requirement-row';
 import { SectionView, sectionDomId } from './workspace-data';
 import { SpySection } from './workspace-scroll';
@@ -32,7 +34,16 @@ export interface SectionLink {
  */
 @Component({
   selector: 'app-clause-section',
-  imports: [RouterLink, TranslocoPipe, Badge, Icon, ProgressBar, RequirementRow, SpySection],
+  imports: [
+    RouterLink,
+    TranslocoPipe,
+    Badge,
+    ClauseMappings,
+    Icon,
+    ProgressBar,
+    RequirementRow,
+    SpySection,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @let s = section();
@@ -70,9 +81,38 @@ export interface SectionLink {
               }}</span>
               <span class="min-w-0">{{ text(node.title) }}</span>
             </div>
-            @if (node.kind === 'annex_control') {
-              <div class="mt-1.5">
-                <app-badge tone="info">{{ 'standards.clause.control' | transloco }}</app-badge>
+            @let kindKey = clauseKindKey(node.kind);
+            @let chips = meta();
+            @if (kindKey || node.hs || chips.roles.length > 0 || chips.riskClasses.length > 0) {
+              <div class="mt-1.5 flex flex-wrap items-center gap-1.5">
+                @if (kindKey) {
+                  <app-badge tone="info">{{ kindKey | transloco }}</app-badge>
+                }
+                @if (node.hs; as hs) {
+                  <span [title]="'standards.hs.title' | transloco: { clause: hs }">
+                    <app-badge tone="accent">{{
+                      'standards.hs.badge' | transloco: { clause: hs }
+                    }}</app-badge>
+                  </span>
+                }
+                @if (chips.roles.length > 0) {
+                  <span class="ml-1 text-[11.5px] text-fg-subtle"
+                    >{{ 'standards.aiAct.rolesLabel' | transloco }}:</span
+                  >
+                  @for (role of chips.roles; track role.value) {
+                    <app-badge>{{ role.key | transloco }}</app-badge>
+                  }
+                }
+                @if (chips.riskClasses.length > 0) {
+                  <span class="ml-1 text-[11.5px] text-fg-subtle"
+                    >{{ 'standards.aiAct.riskLabel' | transloco }}:</span
+                  >
+                  @for (risk of chips.riskClasses; track risk.value) {
+                    <app-badge [tone]="risk.value === 'prohibited' ? 'fail' : 'warn'">{{
+                      risk.key | transloco
+                    }}</app-badge>
+                  }
+                }
               </div>
             }
           </div>
@@ -192,6 +232,12 @@ export interface SectionLink {
         </div>
       }
 
+      @if (node.hs || node.requirements.length > 0) {
+        <div class="mb-4">
+          <app-clause-mappings [standardKey]="standardKey()" [number]="s.number" />
+        </div>
+      }
+
       @if (node.requirements.length > 0) {
         <div class="mt-4">
           <div
@@ -282,6 +328,9 @@ export class ClauseSection {
 
   protected readonly pctColor = pctColor;
   protected readonly themeKey = themeKey;
+  protected readonly clauseKindKey = clauseKindKey;
+  /** EU AI Act roles / risk classes of the clause (empty elsewhere). */
+  protected readonly meta = computed(() => metaChips(this.section().node.meta));
 
   protected readonly domId = computed(() => sectionDomId(this.section().number));
   /** h1 is the standard's name in the header; chapters are h2. */

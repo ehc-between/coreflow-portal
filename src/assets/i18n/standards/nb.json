@@ -1,0 +1,168 @@
+{
+  "frameworks": {
+    "readiness": "Beredskap",
+    "coverage": "{{pct}} % av kravene dekket",
+    "notEnabled": "Ikke aktivert",
+    "inProfile": "I profilen deres",
+    "inProfileHint": "Organisasjonsprofilen deres oppgir dette rammeverket som omfattet.",
+    "kind": {
+      "standard": "ISO-standard",
+      "regulation": "EU-forordning"
+    },
+    "readinessDetails": "Detaljer om beredskap",
+    "availableHint": "Aktiver et rammeverk for å vurdere kravene og følge med på beredskapen. Rammeverk i organisasjonsprofilen er merket.",
+    "explain": "Forklar beredskapen vår",
+    "explainPrompt": "Forklar med enkle ord hvor klare vi er på tvers av disse rammeverkene, og foreslå de tre nyttigste neste stegene: {{summary}}.",
+    "explainNone": "Forklar hvilke rammeverk for etterlevelse som er relevante for en organisasjon som vår, og hvordan vi kommer i gang.",
+    "summaryItem": "{{name}} {{score}} %"
+  },
+  "readiness": {
+    "title": "Beredskap per rammeverk",
+    "subtitle": "Hvor klart hvert aktiverte rammeverk er, basert på hva som gjelder, koblet dokumentasjon og hvor fersk dokumentasjonen er.",
+    "back": "Tilbake til standarder",
+    "loadError": "Kunne ikke laste beredskapen. Prøv igjen.",
+    "score": "Beredskap",
+    "applicable": "{{count}} gjeldende krav",
+    "breakdown": "Fordeling av beredskap",
+    "open": "Åpne standarden",
+    "legend": {
+      "fresh": "Dekket, fersk dokumentasjon",
+      "stale": "Dekket, dokumentasjon eldre enn ett år",
+      "partial": "Delvis dekket",
+      "missing": "Ikke påbegynt"
+    },
+    "segment": "{{label}}: {{count}}",
+    "weights": "Dekket med fersk dokumentasjon teller fullt, dekket med eldre dokumentasjon teller 60 %, delvis dekket teller 50 %, og ikke påbegynt teller ingenting.",
+    "summarise": "Oppsummer",
+    "summarisePrompt": "Oppsummer beredskapen vår for {{name}}: {{score}} %, {{applicable}} gjeldende krav, {{fresh}} dekket med fersk dokumentasjon, {{stale}} dekket med eldre dokumentasjon, {{partial}} delvis dekket og {{missing}} ikke påbegynt. Hva bør vi gjøre først, og hvorfor?",
+    "empty": {
+      "title": "Ingen rammeverk er aktivert ennå",
+      "body": "Beredskapen beregnes for hvert rammeverk organisasjonen har aktivert. Aktiver ISO 9001, ISO/IEC 27001, GDPR eller et annet rammeverk fra standardoversikten for å se tallet her.",
+      "cta": "Gå til standardoversikten"
+    }
+  },
+  "kinds": {
+    "article": "Artikkel",
+    "recital": "Fortalepunkt",
+    "annex": "Vedlegg"
+  },
+  "hs": {
+    "badge": "HS {{clause}}",
+    "title": "Harmonisert struktur, punkt {{clause}}: det samme kravet finnes i alle ISO-standarder for styringssystemer, så én dokumentasjon kan dekke alle."
+  },
+  "aiAct": {
+    "rolesLabel": "Gjelder for",
+    "riskLabel": "Risikoklasse",
+    "roles": {
+      "provider": "Leverandør",
+      "deployer": "Idriftsetter",
+      "importer": "Importør",
+      "distributor": "Distributør",
+      "authorised_representative": "Autorisert representant"
+    },
+    "riskClasses": {
+      "prohibited": "Forbudt",
+      "high": "Høy risiko",
+      "limited": "Begrenset risiko",
+      "minimal": "Minimal risiko",
+      "gpai": "KI til allmenne formål",
+      "gpai_systemic": "KI til allmenne formål med systemisk risiko"
+    }
+  },
+  "mappings": {
+    "title": "Dekker også",
+    "hint": "Dokumentasjon for dette punktet hjelper ofte også med disse punktene i andre rammeverk. Kontroller hvert av dem før dere stoler på det.",
+    "loading": "Laster relaterte punkter …",
+    "error": "Kunne ikke laste de relaterte punktene.",
+    "none": "Ingen koblinger til andre rammeverk for dette punktet.",
+    "relation": {
+      "equivalent": "Tilsvarende",
+      "related": "Relatert",
+      "supports": "Støtter"
+    },
+    "source": {
+      "hs": "Felles punkt i den harmoniserte strukturen",
+      "curated": "Kobling vedlikeholdt av CoreFlow"
+    },
+    "notEnabled": "Ikke aktivert",
+    "ask": "Spør hvordan disse henger sammen",
+    "askPrompt": "Forklar hvordan punkt {{number}} i {{standard}} henger sammen med disse punktene i andre rammeverk, og hvordan én dokumentasjon kan dekke alle: {{targets}}.",
+    "hsBadge": "HS"
+  },
+  "support": {
+    "title": "Registreringer som kan brukes som dokumentasjon",
+    "none": "Ingen moduler oppgir registreringer for dette punktet ennå. Dere kan likevel koble hvilket som helst dokument eller avvik.",
+    "error": "Kunne ikke laste hvilke registreringer som kan brukes som dokumentasjon.",
+    "moduleOff": "Modulen er ikke aktivert"
+  },
+  "evidenceSuggestions": {
+    "title": "Foreslått for denne registreringen",
+    "hint": "Krav som denne typen registrering vanligvis dokumenterer i de aktiverte standardene.",
+    "none": "Ingen forslag. Søk for å finne et krav.",
+    "searchAll": "Eller søk i alle krav:"
+  },
+  "guide": {
+    "show": "Vis veiledning",
+    "hide": "Skjul veiledning",
+    "stepsTitle": "Slik bruker du siden",
+    "whyTitle": "Hvorfor dette er viktig",
+    "clauseAsk": "Spør om {{clause}}",
+    "clausePrompt": "Lær meg med enkle ord hva {{clause}} krever, med et kort eksempel fra en organisasjon som vår.",
+    "overview": {
+      "title": "Rammeverkene deres samlet",
+      "body": "Hvert kort er en standard eller forordning organisasjonen arbeider mot. Ringen viser beredskapen: hvor mye av rammeverket som er dekket av dokumentasjon dere har koblet, og hvor fersk den er.",
+      "step1": "Aktiver rammeverkene som er omfattet. Begynn med dem kundene eller myndighetene spør om.",
+      "step2": "Åpne et rammeverk for å vurdere hvert krav: merk det som ikke gjelder, og koble dokumenter eller avvik som dokumentasjon.",
+      "step3": "Bruk Detaljer om beredskap for å se hva som mangler, og hold dokumentasjonen oppdatert så tallet holder seg høyt.",
+      "why": "Standarder for styringssystemer krever at dere planlegger, gjennomfører og kan dokumentere. Punkt 4 til 10 har samme struktur i alle ISO-standardene, så én godt vedlikeholdt registrering dekker ofte flere rammeverk samtidig."
+    },
+    "readiness": {
+      "title": "Hva beredskapen forteller dere",
+      "body": "Tallet oppsummerer hvor godt forberedt dere er til en revisjon eller et tilsyn. Det teller bare krav dere har merket som gjeldende.",
+      "step1": "Se på det røde feltet først: krav ingen har begynt på.",
+      "step2": "Forny deretter dokumentasjon som er eldre enn ett år. Revisorer forventer at registreringer er oppdaterte.",
+      "step3": "Åpne standarden for å koble dokumentasjon, eller be om en oppsummering av hva dere bør gjøre videre.",
+      "why": "ISO-standardene krever at dere overvåker og evaluerer styringssystemet og gjennomgår det på ledelsesnivå. Beredskap per rammeverk er et enkelt innspill til den gjennomgangen."
+    }
+  },
+  "lesson": {
+    "badge": "Minikurs",
+    "minutes": "{{count}} min",
+    "start": "Start minikurset",
+    "close": "Lukk minikurset",
+    "check": "Sjekk svaret",
+    "correct": "Riktig.",
+    "incorrect": "Ikke helt.",
+    "questionLabel": "Sjekk forståelsen din",
+    "readiness": {
+      "title": "Slik beregnes beredskapen",
+      "s1Heading": "Bare gjeldende krav teller",
+      "s1Body": "Når et krav ikke gjelder for dere, merker dere det som ikke gjeldende og skriver en kort begrunnelse. Da holdes det utenfor beregningen, så tallet viser det dere faktisk må gjøre.",
+      "s2Heading": "Dokumentasjon gjør et krav dekket",
+      "s2Body": "Et krav er dekket når dere har bekreftet minst én aktiv registrering som dokumentasjon, eller selv har satt statusen til dekket. Et delvis dekket krav teller halvt.",
+      "s3Heading": "Fersk dokumentasjon teller fullt",
+      "s3Body": "Dokumentasjon som er bekreftet eller oppdatert de siste 365 dagene, teller fullt. Eldre dokumentasjon teller 60 %, fordi revisorer forventer at registreringer holdes oppdatert.",
+      "question": "Dere dekker et krav med en prosedyre som sist ble gjennomgått for to år siden. Hvor mye teller den?",
+      "option1": "Ingenting",
+      "option2": "60 %",
+      "option3": "Fullt",
+      "explanation": "Kravet er fortsatt dekket, men dokumentasjonen er eldre enn ett år, så det teller 60 %. Gjennomgå prosedyren for at den skal telle fullt igjen."
+    }
+  },
+  "notifications": {
+    "evidenceLinked": "Dokumentasjon koblet til punkt {{clause_number}} ({{standard_key}})",
+    "evidenceRejected": "Foreslått dokumentasjon avvist for punkt {{clause_number}} ({{standard_key}})",
+    "evidenceUnlinked": "Dokumentasjon fjernet fra punkt {{clause_number}} ({{standard_key}})",
+    "standardEnabled": "Rammeverk aktivert: {{standard_key}}",
+    "standardDisabled": "Rammeverk deaktivert: {{standard_key}}",
+    "requirementUpdated": "Krav {{ref}} oppdatert"
+  },
+  "timeline": {
+    "evidenceLinked": "koblet denne registreringen som dokumentasjon for punkt {{clause_number}} ({{standard_key}})",
+    "evidenceRejected": "avviste forslaget om at denne registreringen dokumenterer punkt {{clause_number}} ({{standard_key}})",
+    "evidenceUnlinked": "fjernet denne registreringen som dokumentasjon for punkt {{clause_number}} ({{standard_key}})",
+    "standardEnabled": "aktiverte rammeverket {{standard_key}}",
+    "standardDisabled": "deaktiverte rammeverket {{standard_key}}",
+    "requirementUpdated": "oppdaterte vurderingen av krav {{ref}}"
+  }
+}
