@@ -99,7 +99,8 @@
   "scopes": {
     "platform": "CoreFlow basics",
     "processes": "Processes",
-    "obligations": "Compliance obligations"
+    "obligations": "Compliance obligations",
+    "inspections": "Inspections"
   },
   "tour": {
     "start": "Take the tour",

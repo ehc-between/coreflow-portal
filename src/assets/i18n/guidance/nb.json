@@ -99,7 +99,8 @@
   "scopes": {
     "platform": "Grunnleggende om CoreFlow",
     "processes": "Prosesser",
-    "obligations": "Samsvarskrav"
+    "obligations": "Samsvarskrav",
+    "inspections": "Inspeksjoner"
   },
   "tour": {
     "start": "Ta omvisningen",
