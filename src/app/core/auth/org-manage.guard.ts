@@ -10,5 +10,10 @@ export const orgManageGuard: CanActivateFn = permissionGuard('org:manage', {
   redirectTo: '/settings',
 });
 
-/** The Settings area: reachable with `org:manage` OR `users:invite` (invitations only). */
-export const settingsGuard: CanActivateFn = permissionGuard(['org:manage', 'users:invite']);
+/** The Settings area: reachable with `org:manage` OR `users:invite` (invitations only)
+ *  OR `records:admin` (the record type and workflow designer). */
+export const settingsGuard: CanActivateFn = permissionGuard([
+  'org:manage',
+  'users:invite',
+  'records:admin',
+]);

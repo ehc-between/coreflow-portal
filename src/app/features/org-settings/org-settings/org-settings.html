@@ -191,6 +191,10 @@
         </section>
       }
 
+      @if (canDesignRecords()) {
+        <app-records-settings-link />
+      }
+
       @if (canInvite()) {
         <app-org-invitations />
       }

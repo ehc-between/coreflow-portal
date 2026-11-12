@@ -1,0 +1,214 @@
+{
+  "pages": {
+    "list": {
+      "intro": {
+        "title": "Tilpass registreringene til hvordan dere jobber",
+        "body": "En **registertype** bestemmer hva folk fyller ut når de registrerer noe (et avvik, en klage, en hendelse). En **arbeidsflyt** bestemmer stegene den går gjennom: hvem som kan flytte den videre, hva som må fylles ut først, hvem som godkjenner og hvor raskt.",
+        "steps": [
+          "Start fra en mal, eller beskriv prosessen og la assistenten lage et utkast.",
+          "Juster feltene, og velg eller utform arbeidsflyten.",
+          "Publiser. Registreringer beholder alltid versjonen de ble opprettet med."
+        ]
+      },
+      "why": {
+        "body": "Standardene krever at dere planlegger og styrer prosessene og tar vare på informasjonen som viser at de ble utført som planlagt. En utformet arbeidsflyt gjør de planlagte stegene, ansvaret og godkjenningene tydelige, og hvert steg etterlater et spor en revisor kan følge.",
+        "clauses": ["hs:8.1", "iso9001:4.4", "hs:7.5"]
+      },
+      "empty": {
+        "title": "Ingen registertyper ennå",
+        "body": "Installer en mal for å få et utprøvd utgangspunkt, for eksempel standardprosessen for avvik, eller lag din egen registertype fra bunnen av.",
+        "cta": "Se malene"
+      }
+    },
+    "workflows": {
+      "empty": {
+        "title": "Ingen arbeidsflyter ennå",
+        "body": "En arbeidsflyt er veien en registrering går: statusene, stegene mellom dem, godkjenninger og frister. Lag en her, eller installer en mal som inneholder en.",
+        "cta": "Lag en arbeidsflyt"
+      }
+    },
+    "designer": {
+      "intro": {
+        "title": "Utforme en registertype",
+        "body": "Legg til feltene folk trenger, grupper dem i seksjoner og prøv skjemaet under **Forhåndsvisning**. Under **Arbeidsflyt** velger du veien registreringer av denne typen følger.",
+        "steps": [
+          "Begrens påkrevde felt til det du virkelig trenger ved registrering; be om resten senere med påkrevde felt på et steg i arbeidsflyten.",
+          "Bruk enkeltvalg og flervalg for alt du vil telle eller filtrere på.",
+          "Skriv en kort endringsnotat når du publiserer, så historikken forklarer seg selv."
+        ]
+      },
+      "why": {
+        "body": "Dokumentert informasjon skal styres: identifiseres, gjennomgås, godkjennes og beskyttes mot utilsiktede endringer. Hver publiserte versjon lagres med hvem som publiserte den, når og hvorfor, og registreringer beholder versjonen de startet med.",
+        "clauses": ["hs:7.5"]
+      },
+      "fields": {
+        "fields": {
+          "help": "Spørsmålene folk svarer på i registreringen. Åpne et felt for å endre etikett, hjelpetekst, valg eller når det vises."
+        },
+        "layout": {
+          "help": "Seksjoner grupperer felt under en overskrift. I seksjoner med to kolonner står felt med halv bredde ved siden av hverandre på større skjermer."
+        },
+        "module": {
+          "help": "Modulen registertypen hører til, for eksempel Avvik. Den kan ikke endres senere."
+        },
+        "key": {
+          "help": "Et kort teknisk navn som brukes i lenker og integrasjoner. Det settes én gang og kan ikke endres.",
+          "example": "kundeklage"
+        },
+        "code_prefix": {
+          "help": "Registreringer av denne typen får koder som starter med dette prefikset.",
+          "example": "KK gir KK-1, KK-2, …"
+        },
+        "workflow": {
+          "help": "Veien registreringer av denne typen følger. Nye registreringer bruker versjonen av arbeidsflyten som er valgt her."
+        },
+        "type_text": { "help": "Én linje tekst, for eksempel et sted eller et referansenummer." },
+        "type_textarea": {
+          "help": "Flere linjer ren tekst, for eksempel en beskrivelse av hva som skjedde."
+        },
+        "type_richtext": {
+          "help": "Tekst med formatering, for lengre tekster som en oppsummering av en undersøkelse."
+        },
+        "type_number": {
+          "help": "Et tall, eventuelt med minimum og maksimum.",
+          "example": "Sannsynlighet fra 1 til 5"
+        },
+        "type_date": { "help": "En dato, for eksempel når noe ble oppdaget." },
+        "type_datetime": {
+          "help": "Dato og klokkeslett, lagret i UTC og vist i hver persons lokale tid."
+        },
+        "type_select": {
+          "help": "Nøyaktig ett valg fra en liste. Passer for kategorier du vil rapportere på."
+        },
+        "type_multiselect": { "help": "Et hvilket som helst antall valg fra en liste." },
+        "type_checkbox": {
+          "help": "Ja eller nei. Gjør den påkrevd når den må krysses av, for eksempel en bekreftelse."
+        },
+        "type_user": { "help": "En person i virksomheten, for eksempel eier eller godkjenner." },
+        "type_department": { "help": "En avdeling i virksomheten." },
+        "type_file": { "help": "En av filene som er lagt ved registreringen." },
+        "type_entity_ref": {
+          "help": "En lenke til en annen registrering, for eksempel risikoen eller leverandøren det gjelder."
+        },
+        "type_calculated": {
+          "help": "Regnes ut fra tallfelt med en formel. Folk kan ikke endre den; den regnes ut på nytt ved hver lagring.",
+          "example": "likelihood * consequence"
+        }
+      }
+    },
+    "workflow": {
+      "intro": {
+        "title": "Utforme en arbeidsflyt",
+        "body": "**Statuser** er der en registrering kan befinne seg; **steg** flytter den fra én status til en annen. Klikk på en status i diagrammet for å redigere den.",
+        "steps": [
+          "Gi hver status en kategori: åpen, pågår, ferdig eller kansellert. Ferdig og kansellert avslutter arbeidsflyten.",
+          "For hvert steg velger du hvem som kan utføre det og hva som må fylles ut først.",
+          "Legg til godkjenning der det trengs et ekstra par øyne, og en frist (i timer) der tid er viktig."
+        ]
+      },
+      "why": {
+        "body": "Å planlegge og styre driften betyr å bestemme hvem som gjør hva, i hvilken rekkefølge og med hvilke kontroller. Godkjenninger med arbeidsdeling sikrer at ingen godkjenner sitt eget arbeid, og frister gir påminnelser før noe blir forsinket.",
+        "clauses": ["hs:8.1", "iso9001:4.4"]
+      },
+      "fields": {
+        "states": {
+          "help": "Hver status har et navn, en kategori og en valgfri frist i timer. Nøyaktig én status er der registreringer starter."
+        },
+        "transitions": {
+          "help": "Steg er knappene folk ser på en registrering. Et steg kan være tilgjengelig fra flere statuser."
+        },
+        "required_fields": {
+          "help": "Feltnøkler som må være fylt ut før steget kan utføres, skilt med komma.",
+          "example": "root_cause, corrective_action"
+        },
+        "guards": {
+          "help": "Innebygde kontroller som må være oppfylt, skilt med komma. Ukjente kontroller blokkerer alltid.",
+          "example": "no_open_tasks"
+        },
+        "approval": {
+          "help": "Steget sendes til godkjenning først og utføres når nok godkjennere sier ja."
+        },
+        "create_tasks": {
+          "help": "Oppgaver som opprettes automatisk når steget utføres, for eksempel en verifisering med frist om sju dager."
+        }
+      }
+    }
+  },
+  "lessons": {
+    "workflows-101": {
+      "title": "Arbeidsflyter på fem minutter",
+      "minutes": 5,
+      "sections": [
+        {
+          "heading": "Statuser og steg",
+          "body": "En arbeidsflyt består av **statuser** (Åpen, Under undersøkelse, Lukket …) og **steg** som flytter en registrering mellom dem. Hvert steg er en knapp på registreringen, og vises bare for dem som har lov til å bruke den."
+        },
+        {
+          "heading": "Regler på et steg",
+          "body": "Et steg kan kreve at felt er fylt ut, be om en kommentar, kjøre kontroller (for eksempel *ingen åpne oppgaver*) og opprette oppgaver automatisk. Sammen sikrer dette at arbeidet er gjort før registreringen går videre."
+        },
+        {
+          "heading": "Godkjenninger og arbeidsdeling",
+          "body": "En godkjenning sender steget til én eller flere godkjennere først. Med arbeidsdeling slått på kan ikke den som ba om godkjenning, godkjenne sin egen forespørsel: noe de fleste revisjoner av styringssystemer forventer."
+        },
+        {
+          "heading": "Versjoner",
+          "body": "Publisering lager en ny versjon. Registreringer som allerede er i gang, beholder versjonen de startet med, så endringer i prosessen skriver aldri om historikken."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Du publiserer en ny versjon av en arbeidsflyt. Hva skjer med registreringer som allerede er i gang?",
+          "options": [
+            "De bytter til den nye versjonen med en gang",
+            "De beholder versjonen de startet med",
+            "De lukkes automatisk"
+          ],
+          "answer": 1,
+          "explanation": "Hver registrering låser versjonen den ble opprettet med, slik at revisjonssporet blir konsistent."
+        },
+        {
+          "question": "Hva hindrer arbeidsdeling på en godkjenning?",
+          "options": [
+            "At noen godkjenner utenom arbeidstid",
+            "At den som ba om godkjenning, godkjenner sin egen forespørsel",
+            "At mer enn én godkjenner deltar"
+          ],
+          "answer": 1
+        }
+      ],
+      "pass_mark": 0.8
+    },
+    "designing-record-types": {
+      "title": "Utforme gode registertyper",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Be om mindre i starten",
+          "body": "Folk melder mer når det går raskt å registrere. Gjør bare det viktigste påkrevd når registreringen opprettes, og krev resten på steget der det trengs, for eksempel rotårsak før lukking."
+        },
+        {
+          "heading": "Valg du kan telle",
+          "body": "Bruk enkeltvalg og flervalg for kategorier, kilder og årsaker. Fritekst er vanskelig å rapportere på; valg gjør trender synlige i gjennomganger."
+        },
+        {
+          "heading": "Beregnede felt",
+          "body": "Et beregnet felt regner ut en verdi fra tallfelt, for eksempel en risikoscore fra sannsynlighet × konsekvens. Systemet regner den alltid ut på nytt, så ingen kan skrive inn feil sum."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Hvor er det best å kreve rotårsak?",
+          "options": [
+            "Når registreringen opprettes",
+            "På steget som lukker registreringen",
+            "Ingen steder: den bør alltid være valgfri"
+          ],
+          "answer": 1,
+          "explanation": "Rotårsaken er som regel først kjent etter undersøkelsen, så krev den på steget som trenger den."
+        }
+      ],
+      "pass_mark": 0.8
+    }
+  }
+}
