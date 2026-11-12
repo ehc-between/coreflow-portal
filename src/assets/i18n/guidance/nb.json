@@ -98,7 +98,8 @@
   },
   "scopes": {
     "platform": "Grunnleggende om CoreFlow",
-    "processes": "Prosesser"
+    "processes": "Prosesser",
+    "obligations": "Samsvarskrav"
   },
   "tour": {
     "start": "Ta omvisningen",
