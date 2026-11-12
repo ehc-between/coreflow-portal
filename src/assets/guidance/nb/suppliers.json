@@ -1,0 +1,359 @@
+{
+  "pages": {
+    "list": {
+      "intro": {
+        "title": "Styr leverandørene dere er avhengige av",
+        "body": "Leverandørregisteret viser alle eksterne leverandører som påvirker produktene, tjenestene, informasjonen eller menneskene deres. Hver leverandør har en **kritikalitet**, en **godkjenningsstatus** og en dato for neste **revurdering**.",
+        "steps": [
+          "Registrer en leverandør og marker hva den gjør for dere: personopplysninger, systemtilgang, sky eller KI.",
+          "Start en **førstegangsevaluering**. Når den er avgjort, er leverandøren godkjent, godkjent med vilkår eller avvist.",
+          "Følg med på revurderinger som er forfalt (rødt), og loggfør ytelse fortløpende."
+        ]
+      },
+      "why": {
+        "body": "Standardene forventer at dere bestemmer hvilke eksterne leverandører dere bruker, evaluerer dem mot kriterier, følger med på hvordan de presterer og revurderer dem. Leverandører som håndterer informasjonen eller personopplysningene deres trenger også krav til sikkerhet og personvern, og KI-leverandører trenger egen vurdering.",
+        "clauses": [
+          "iso9001:8.4",
+          "iso27001:A.5.19",
+          "iso27001:A.5.22",
+          "gdpr:28",
+          "iso42001:A.10.3"
+        ]
+      },
+      "empty": {
+        "title": "Ingen leverandører registrert ennå",
+        "body": "Start med leverandørene dere ikke klarer dere uten: de som leverer kritiske varer eller tjenester, drifter dataene deres eller har tilgang til systemene deres. Resten kan dere legge til senere.",
+        "cta": "Registrer en leverandør"
+      }
+    },
+    "form": {
+      "intro": {
+        "title": "Registrere en leverandør",
+        "body": "Gi leverandøren et navn, en kategori og en kritikalitet, og velg hvem som er ansvarlig for forholdet. Risikoprofilen avgjør hvilke vurderinger dere trenger.",
+        "steps": [
+          "Sett kritikaliteten ved å spørre: hva skjer med oss hvis denne leverandøren svikter?",
+          "Kryss av for risikoflaggene som gjelder. Personopplysninger betyr at dere trolig trenger en databehandleravtale.",
+          "La revurderingsintervallet stå tomt for å bruke standarden for kritikaliteten."
+        ]
+      },
+      "why": {
+        "body": "Når dere registrerer hva hver leverandør gjør for dere, hvor kritisk den er og hvem som er ansvarlig, blir kontrollnivået tilpasset risikoen, slik standardene krever.",
+        "clauses": ["iso9001:8.4.1", "iso27001:A.5.19", "nis2:21.2.d"]
+      },
+      "fields": {
+        "category": {
+          "help": "Hva leverandøren leverer. Kategorien gjør det lettere å finne lignende leverandører og velge et passende spørreskjema.",
+          "example": "Et lønnssystem dere leier er Skytjenester; et firma som vasker kontorene er Eiendom og drift."
+        },
+        "criticality": {
+          "help": "Hvor hardt dere ville blitt rammet om leverandøren ikke leverte eller fikk et sikkerhetsbrudd. Høyere kritikalitet betyr tettere oppfølging og hyppigere revurdering.",
+          "example": "Kritisk: eneste leverandør av en nøkkelkomponent. Lav: kontorrekvisita dere kan kjøpe hvor som helst."
+        },
+        "owner": {
+          "help": "Personen som er ansvarlig for forholdet: evalueringer, oppfølging av vilkår og påminnelser om revurdering går til denne personen."
+        },
+        "processes_personal_data": {
+          "help": "Kryss av hvis leverandøren lagrer eller behandler personopplysninger på vegne av dere. Den er da databehandler, og personvernforordningen artikkel 28 krever en databehandleravtale.",
+          "example": "En e-posttjeneste, en lønnsleverandør eller et kundeserviceverktøy."
+        },
+        "has_system_access": {
+          "help": "Kryss av hvis leverandørens folk eller systemer har tilgang til systemene, nettverkene eller lokalene deres. Tilgangen må begrenses og gjennomgås.",
+          "example": "En IT-partner med fjerntilgang, eller et vedlikeholdsfirma med nøkler."
+        },
+        "provides_cloud_services": {
+          "help": "Kryss av hvis dere bruker leverandørens skytjeneste. Skytjenester trenger tydelige krav til sikkerhet, datalokasjon og avslutning.",
+          "example": "Drift, fillagring eller en programvaretjeneste dere logger inn i."
+        },
+        "provides_ai": {
+          "help": "Kryss av hvis leverandøren leverer et KI-system eller bruker KI for å levere tjenesten til dere. KI-leverandører trenger en KI-vurdering.",
+          "example": "Et rekrutteringsverktøy som rangerer kandidater, eller en chatbot-tjeneste."
+        },
+        "data_locations": {
+          "help": "Hvor leverandøren lagrer eller behandler dataene deres, skilt med komma. Overføring ut av EU/EØS krever et rettslig grunnlag.",
+          "example": "Norge, Irland"
+        },
+        "certifications": {
+          "help": "Sertifiseringer leverandøren har, skilt med komma. Be om sertifikatet og sjekk omfang og utløpsdato.",
+          "example": "ISO 9001, ISO/IEC 27001"
+        },
+        "evaluation_interval_months": {
+          "help": "Hvor ofte leverandøren revurderes. Står feltet tomt, revurderes kritiske og høye leverandører hver 12. måned, middels hver 24. og lave hver 36.",
+          "example": "6 for en leverandør dere har hatt problemer med."
+        }
+      }
+    },
+    "detail": {
+      "intro": {
+        "title": "Følge opp en leverandør",
+        "body": "Denne siden viser om leverandøren er godkjent, når den må revurderes, siste beslutning for hver vurderingstype og hvordan den har prestert.",
+        "steps": [
+          "Start en evaluering når leverandøren er ny eller en revurdering forfaller.",
+          "Loggfør leveranser, kvalitetsproblemer og hendelser i ytelsesloggen fortløpende.",
+          "Koble kontrakten, databehandleravtalen og relaterte risikoer under **Relatert**."
+        ]
+      },
+      "why": {
+        "body": "Revisorer ser etter dokumentasjon på at leverandører ble evaluert før bruk, at ytelsen følges opp og at problemer førte til tiltak. Denne siden, med evalueringer, logg og historikk, er den dokumentasjonen.",
+        "clauses": ["iso9001:8.4.2", "iso27001:A.5.22", "iso27001:A.5.20", "gdpr:28"]
+      }
+    },
+    "evaluations": {
+      "intro": {
+        "title": "Alle leverandørevalueringer",
+        "body": "Alle evalueringer og vurderinger på tvers av leverandørene. Som standard ser du de åpne: utkast som besvares og evalueringer som venter på beslutning.",
+        "steps": [
+          "Velg **Tildelt meg** for å se evalueringene du skal besvare.",
+          "Filtrer på forfalte for å fange opp evalueringer som har passert fristen.",
+          "Start nye evalueringer fra leverandørens egen side."
+        ]
+      },
+      "why": {
+        "body": "Å evaluere og revurdere leverandører etter en plan er et krav, ikke en engangsøvelse. En tydelig liste over det som er åpent holder planen på sporet.",
+        "clauses": ["iso9001:8.4.1", "iso27001:A.5.22"]
+      },
+      "empty": {
+        "title": "Ingen åpne evalueringer",
+        "body": "Evalueringer startes fra en leverandørs side. Åpne en leverandør i registeret og velg **Start evaluering**.",
+        "cta": "Gå til registeret"
+      }
+    },
+    "evaluation": {
+      "intro": {
+        "title": "Besvare og avgjøre en evaluering",
+        "body": "Svar på hvert spørsmål, legg til en kommentar eller dokumentasjon der det hjelper, og send inn. Poengsum og anbefaling beregnes ut fra svarene, men en person med godkjenningsrett tar beslutningen.",
+        "steps": [
+          "Svar på alle påkrevde spørsmål. Bruk **Ikke relevant** bare når spørsmålet virkelig ikke gjelder.",
+          "Et **nei** på et kritisk spørsmål er et kritisk avvik, uansett total poengsum.",
+          "Skriv en kort oppsummering og send til beslutning."
+        ]
+      },
+      "why": {
+        "body": "Kriteriene for evaluering og resultatene av den skal dokumenteres, sammen med tiltakene som følger. Et poengsatt spørreskjema med en registrert beslutning viser hvordan og hvorfor leverandøren ble akseptert.",
+        "clauses": ["iso9001:8.4.1", "iso27001:A.5.21", "iso42001:A.10.3"]
+      },
+      "fields": {
+        "kind": {
+          "help": "Førstegangs-, periodiske og ekstraordinære evalueringer avgjør leverandørens godkjenning. Sikkerhets-, personvern- og KI-vurderinger registreres separat og endrer ikke statusen.",
+          "example": "Gjør en personvernvurdering av en leverandør som behandler personopplysninger, i tillegg til førstegangsevalueringen."
+        },
+        "score": {
+          "help": "Den vektede andelen poeng for poengsatte svar. Fritekstsvar og Ikke relevant poengsettes ikke. Anbefalingen sammenligner poengsummen med bestått-grensen."
+        },
+        "decision": {
+          "help": "Godkjenn når leverandøren oppfyller kravene. Godkjenn med vilkår når mangler kan rettes innen en fastsatt tid. Avvis når leverandøren ikke kan brukes.",
+          "example": "Med vilkår: godkjent hvis leverandøren signerer databehandleravtalen innen 30 dager."
+        },
+        "summary": {
+          "help": "En kort konklusjon for den som beslutter og for neste revurdering: styrker, svakheter og forventninger."
+        }
+      }
+    },
+    "questionnaires": {
+      "intro": {
+        "title": "Spørreskjemaer for evalueringer",
+        "body": "Et spørreskjema er kriteriene dere evaluerer leverandører mot. De innebygde settene dekker alle evalueringstyper; kopier ett for å tilpasse det.",
+        "steps": [
+          "Åpne et spørreskjema for å se spørsmålene.",
+          "Velg **Kopier og tilpass** for å lage deres egen versjon av et innebygd sett.",
+          "Marker spørsmål som kritiske når feil svar skal stoppe en godkjenning."
+        ]
+      },
+      "why": {
+        "body": "Kriteriene for å evaluere, velge og revurdere eksterne leverandører skal være bestemt på forhånd og brukes likt. Spørreskjemaer gjør kriteriene tydelige.",
+        "clauses": ["iso9001:8.4.1", "iso27001:A.5.20"]
+      }
+    },
+    "questionnaire": {
+      "intro": {
+        "title": "Lage et spørreskjema",
+        "body": "Skriv tydelige spørsmål som kan besvares med ja eller nei, en poengsum eller en kort tekst. Gi størst vekt til spørsmålene som betyr mest.",
+        "steps": [
+          "Grupper spørsmål i seksjoner, som Kvalitet, Sikkerhet eller Personvern.",
+          "Gi viktige spørsmål høyere vekt, og marker avgjørende krav som kritiske.",
+          "La assistenten foreslå spørsmål, og gå gjennom og rediger dem før du lagrer."
+        ]
+      },
+      "why": {
+        "body": "Gode kriterier er relevante for risikoen leverandøren gir og er like for alle leverandører av samme type, slik at beslutningene blir rettferdige og etterprøvbare.",
+        "clauses": ["iso9001:8.4.1", "iso27001:A.5.20"]
+      },
+      "fields": {
+        "pass_score": {
+          "help": "Poengsummen i prosent en leverandør trenger for anbefalingen godkjenn. Innenfor 20 poeng under grensen blir anbefalingen godkjenn med vilkår.",
+          "example": "70"
+        }
+      }
+    },
+    "performance": {
+      "intro": {
+        "title": "Ytelsesloggen",
+        "body": "Loggfør det som skjer med leverandøren mellom evalueringene: leveranser, kvalitetsproblemer, brudd på tjenestenivå og hendelser."
+      },
+      "why": {
+        "body": "Å følge med på leverandørens ytelse og handle på problemer er et krav, og loggen blir grunnlaget for neste revurdering.",
+        "clauses": ["iso9001:8.4.2", "iso27001:A.5.22"]
+      },
+      "fields": {
+        "rating": {
+          "help": "En samlet vurdering fra 1 (svært dårlig) til 5 (utmerket) for denne leveransen eller hendelsen.",
+          "example": "2 for en leveranse som kom sent og var ufullstendig."
+        }
+      }
+    }
+  },
+  "lessons": {
+    "supplier-control": {
+      "title": "Hvorfor leverandører må styres",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Dere er ansvarlige for det dere kjøper",
+          "body": "Når en leverandør leverer en del av produktet eller tjenesten deres, blir leverandørens feil deres feil. Standardene ber dere derfor styre eksterne leverandører i forhold til risikoen de gir."
+        },
+        {
+          "heading": "Kritikaliteten avgjør innsatsen",
+          "body": "Ikke alle leverandører trenger samme oppfølging. En **kritisk** leverandør dere ikke kan erstatte raskt fortjener en grundig evaluering og årlig revurdering. En leverandør av kontorrekvisita med **lav** kritikalitet kan sjekkes enklere og sjeldnere."
+        },
+        {
+          "heading": "Informasjon og personopplysninger",
+          "body": "Leverandører som drifter dataene deres, har tilgang til systemene eller behandler personopplysninger for dere, trenger også **krav til sikkerhet og personvern**. For personopplysninger krever personvernforordningen artikkel 28 en databehandleravtale."
+        },
+        {
+          "heading": "Syklusen",
+          "body": "Registrer, evaluer, godkjenn, følg opp ytelse, revurder. CoreFlow planlegger neste revurdering når en evaluering avgjøres, og minner den ansvarlige på det når den forfaller."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Hva bør avgjøre hvor tett dere følger opp en leverandør?",
+          "options": [
+            "Hvor mye dere kjøper for",
+            "Hvor kritisk den er for dere",
+            "Hvor lenge dere har brukt den"
+          ],
+          "answer": 1,
+          "explanation": "Styringen skal stå i forhold til risikoen, og det er det kritikaliteten uttrykker. Kjøpsvolum og historikk kan påvirke kritikaliteten, men erstatter den ikke."
+        },
+        {
+          "question": "En leverandør behandler personopplysninger på vegne av dere. Hva trenger dere?",
+          "options": ["Ingenting ekstra", "En databehandleravtale", "Bare et ISO-sertifikat"],
+          "answer": 1,
+          "explanation": "Personvernforordningen artikkel 28 krever en bindende avtale med hver databehandler."
+        }
+      ],
+      "pass_mark": 0.8
+    },
+    "evaluating-suppliers": {
+      "title": "Evaluere og godkjenne en leverandør",
+      "minutes": 5,
+      "sections": [
+        {
+          "heading": "Spørreskjemaer og poeng",
+          "body": "En evaluering er et spørreskjema. Ja/nei- og poengspørsmål gir poeng, vektet etter hvor viktige de er. Poengsummen er andelen av mulige poeng, og anbefalingen sammenligner den med bestått-grensen."
+        },
+        {
+          "heading": "Kritiske spørsmål",
+          "body": "Noen krav er avgjørende. Et **nei** på et kritisk spørsmål betyr at leverandøren ikke bør godkjennes uten vilkår, uansett hvor gode de andre svarene er."
+        },
+        {
+          "heading": "En person bestemmer",
+          "body": "Anbefalingen er et råd. En person med godkjenningsrett leser svarene og oppsummeringen og bestemmer: godkjenn, godkjenn med vilkår eller avvis. Vilkår gir leverandøransvarlig en oppfølgingsoppgave."
+        },
+        {
+          "heading": "Typer evaluering",
+          "body": "Førstegangs-, periodiske og ekstraordinære evalueringer setter leverandørens godkjenningsstatus. Sikkerhets-, personvern- og KI-vurderinger gir dybde for leverandører med slike risikoer og registreres per type uten å endre statusen."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Poengsummen er over bestått-grensen, men et kritisk spørsmål ble besvart med nei. Hva blir anbefalingen?",
+          "options": ["Godkjenn", "Godkjenn med vilkår", "Det er ikke mulig å si"],
+          "answer": 1,
+          "explanation": "Et kritisk avvik hindrer en ren godkjenning, så anbefalingen blir høyst godkjenning med vilkår."
+        },
+        {
+          "question": "Hvilken evaluering endrer leverandørens godkjenningsstatus?",
+          "options": ["En sikkerhetsvurdering", "En periodisk revurdering", "En KI-vurdering"],
+          "answer": 1,
+          "explanation": "Førstegangs-, periodiske og ekstraordinære evalueringer avgjør godkjenningen; spesialvurderingene registreres ved siden av."
+        }
+      ],
+      "pass_mark": 0.8
+    },
+    "third-party-security": {
+      "title": "Informasjonssikkerhet hos leverandører",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Bli enige om krav",
+          "body": "Før en leverandør får tilgang til informasjonen deres, må dere bli enige om sikkerhetskravene: hvem som får tilgang til hva, hvordan hendelser rapporteres og hva som skjer når avtalen avsluttes."
+        },
+        {
+          "heading": "Leverandørkjeden",
+          "body": "Leverandørens egne underleverandører betyr også noe, særlig for programvare og skytjenester. Spør hvordan de styrer underleverandørene sine og hvor dataene deres lagres."
+        },
+        {
+          "heading": "Følg opp og gjennomgå",
+          "body": "Følg opp tjenestenivå og hendelser, og gjennomgå leverandørens sikkerhet jevnlig. Loggfør problemer i ytelsesloggen og koble alvorlige til et avvik."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Når bør sikkerhetskrav avtales med en leverandør?",
+          "options": [
+            "Etter første hendelse",
+            "Før den får tilgang til informasjonen deres",
+            "Ved den årlige gjennomgangen"
+          ],
+          "answer": 1,
+          "explanation": "Kravene må avtales før tilgang gis, og deretter følges opp."
+        }
+      ],
+      "pass_mark": 0.8
+    }
+  },
+  "tours": {
+    "list": [
+      {
+        "target": "suppliers-sections",
+        "title": "Tre deler",
+        "body": "Leverandørregisteret, alle evalueringer og spørreskjemaene dere evaluerer med."
+      },
+      {
+        "target": "suppliers-summary",
+        "title": "Nøkkeltall",
+        "body": "Hvor mange leverandører som er godkjent, og hvor mange revurderinger som er forfalt eller forfaller snart."
+      },
+      {
+        "target": "suppliers-filters",
+        "title": "Filtre",
+        "body": "Finn leverandører etter status, kritikalitet, kategori, revurderingsdato, risikoprofil eller ansvarlig. Lagre en kombinasjon som en visning."
+      },
+      {
+        "target": "suppliers-new",
+        "title": "Registrer en leverandør",
+        "body": "Legg til en ny leverandør her. Den er potensiell til en evaluering godkjenner den."
+      }
+    ]
+  },
+  "glossary": {
+    "external-provider": {
+      "term": "Ekstern leverandør",
+      "definition": "En organisasjon utenfor deres egen som leverer et produkt eller en tjeneste, for eksempel en leverandør, en underleverandør eller en skytjeneste.",
+      "clauses": ["iso9001:8.4"]
+    },
+    "supplier-criticality": {
+      "term": "Leverandørkritikalitet",
+      "definition": "Hvor hardt organisasjonen ville blitt rammet om leverandøren sviktet. Den avgjør hvor tett leverandøren styres og hvor ofte den revurderes."
+    },
+    "conditional-approval": {
+      "term": "Godkjenning med vilkår",
+      "definition": "Godkjenning av en leverandør på vilkår om at bestemte mangler rettes innen en fastsatt tid, fulgt opp av leverandøransvarlig."
+    },
+    "data-processor": {
+      "term": "Databehandler",
+      "definition": "En part som behandler personopplysninger på vegne av den behandlingsansvarlige. Den må være bundet av en databehandleravtale.",
+      "clauses": ["gdpr:28"]
+    }
+  }
+}

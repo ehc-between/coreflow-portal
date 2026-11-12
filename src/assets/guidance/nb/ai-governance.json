@@ -1,0 +1,583 @@
+{
+  "pages": {
+    "overview": {
+      "intro": {
+        "title": "Styr KI-en dere lager og bruker",
+        "body": "KI-styring betyr å vite **hvilke KI-systemer** dere har, **hvor stor risiko** de har etter KI-forordningen, og å sørge for at **pliktene som følger** blir gjennomført. ISO/IEC 42001 legger styringssystemet rundt: policy, roller, konsekvensvurderinger og overvåking.",
+        "steps": [
+          "Registrer alle KI-systemer i oversikten, også verktøy kjøpt fra leverandører.",
+          "Klassifiser hvert system med veiviseren; hver forpliktelse blir en oppgave.",
+          "Vurder konsekvensene av systemene som betyr noe, overvåk dem og sørg for at de ansatte har KI-kompetanse."
+        ]
+      },
+      "why": {
+        "body": "KI-forordningen gjelder alle som tilbyr eller bruker KI i EU/EØS, og de fleste pliktene avhenger av risikoklassen. ISO/IEC 42001 krever at dere avgrenser styringssystemet for KI og planlegger hvordan KI-risiko og konsekvenser håndteres.",
+        "clauses": ["iso42001:4.3", "iso42001:6.1.2", "eu_ai_act:6", "eu_ai_act:4"]
+      }
+    },
+    "systems": {
+      "intro": {
+        "title": "Oversikten over KI-systemer",
+        "body": "Et KI-system er programvare som ut fra inndataene utleder hvordan den skal lage resultater som prediksjoner, innhold, anbefalinger eller beslutninger. Før opp hvert system med formål, rollen deres, modellene og dataene det bruker, og hvem som eier det.",
+        "steps": [
+          "Bruk **Registrer KI-system** for hvert system, eller start med plattformens egne KI-funksjoner.",
+          "Filtrer på risikoklasse for å se hva som fortsatt må klassifiseres.",
+          "Åpne et system for å klassifisere det, dokumentere det og følge opp forpliktelsene."
+        ]
+      },
+      "why": {
+        "body": "Dere kan ikke styre det dere ikke vet om. En oversikt er grunnlaget for klassifisering etter KI-forordningen og for omfanget av et styringssystem etter ISO/IEC 42001.",
+        "clauses": ["iso42001:4.3", "iso42001:A.4.2", "eu_ai_act:6"]
+      },
+      "empty": {
+        "title": "Ingen KI-systemer ennå",
+        "body": "Start med å føre opp KI-verktøy organisasjonen allerede bruker: chatassistenter, oversettelse, skriving av dokumenter, rekruttering eller poengsetting. Hvert verktøy får en klassifisering og egne forpliktelser.",
+        "cta": "Registrer et KI-system"
+      }
+    },
+    "systemForm": {
+      "intro": {
+        "title": "Beskriv KI-systemet",
+        "body": "Et tydelig **tiltenkt formål** er det viktigste feltet: KI-forordningen klassifiserer systemer etter hva de brukes til, ikke etter teknologien.",
+        "steps": [
+          "Skriv hva systemet brukes til og hvem det påvirker.",
+          "Velg rollen deres: tilbyder hvis dere lager det, idriftsetter hvis dere bruker det.",
+          "Velg en eier som holder registreringen og forpliktelsene oppdatert."
+        ]
+      },
+      "why": {
+        "body": "Dokumenterte ressurser og et avgrenset formål er utgangspunktet for konsekvensvurderingen og for valg av kontroller.",
+        "clauses": ["iso42001:A.4.2", "iso42001:A.6.2.3"]
+      },
+      "fields": {
+        "intended_purpose": {
+          "help": "Hva systemet skal gjøre, i hvilken prosess, og hvilke beslutninger det støtter.",
+          "example": "Sorterer innkommende kundeeposter etter hast for kundeservice, som selv bestemmer rekkefølgen."
+        },
+        "ai_act_role": {
+          "help": "Tilbyder: dere utvikler det og bringer det i omsetning eller tar det i bruk under eget navn. Idriftsetter: dere bruker det under egen myndighet.",
+          "example": "En bedrift som bruker en innkjøpt chatbot på nettsiden, er idriftsetter."
+        },
+        "provider_name": {
+          "help": "Selskapet som leverer systemet eller modellen, hvis det ikke er dere.",
+          "example": "Leverandøren av rekrutteringsverktøyet."
+        },
+        "models": {
+          "help": "KI-modellene eller modellfamiliene systemet bruker, så langt dere kjenner dem.",
+          "example": "En stor språkmodell, en klassifiseringsmodell"
+        },
+        "data_categories": {
+          "help": "Hvilke typer data systemet mottar eller er trent på.",
+          "example": "Kundeeposter, ordrehistorikk, CV-er"
+        },
+        "owner": {
+          "help": "Personen som er ansvarlig for systemet: holder registreringen, klassifiseringen og oppgavene oppdatert."
+        }
+      }
+    },
+    "systemDetail": {
+      "intro": {
+        "title": "Ett KI-system, alt på ett sted",
+        "body": "Her ser du systemets klassifisering og forpliktelser, vurderinger, dokumentasjon, overvåking og hendelser. Oppgavene for hver forpliktelse ligger under **Oppgaver**.",
+        "steps": [
+          "Klassifiser systemet hvis det ikke er gjort ennå.",
+          "Arbeid deg gjennom oppgavene; åpne dokumentasjonen for å skrive det som kreves.",
+          "Registrer overvåkingsresultater og koble til KI-hendelser når de skjer."
+        ]
+      },
+      "why": {
+        "body": "Idriftsettere av høyrisikosystemer må bruke dem etter bruksanvisningen, sørge for menneskelig tilsyn, overvåke driften og ta vare på logger. Tilbydere må overvåke etter omsetning og melde alvorlige hendelser.",
+        "clauses": ["eu_ai_act:26", "eu_ai_act:72", "iso42001:9.1", "iso42001:A.6.2.6"]
+      },
+      "fields": {
+        "monitoring": {
+          "help": "Registrer kontroller av nøyaktighet, robusthet, skjevhet eller drift i ytelse. Et resultat som ikke er bestått varsler eieren.",
+          "example": "Månedlig nøyaktighet på et utvalg på 200 saker: 0,94, terskel 0,90, bestått."
+        },
+        "incidents": {
+          "help": "KI-hendelser registreres som avvik av typen KI-hendelse og kobles hit, slik at de følger den vanlige flyten for granskning og korrigerende tiltak."
+        },
+        "review": {
+          "help": "En gjentakende oppgave for å gå gjennom systemet: ytelse, risiko, dokumentasjon og om klassifiseringen fortsatt passer."
+        }
+      }
+    },
+    "classify": {
+      "intro": {
+        "title": "Klassifiser etter KI-forordningen",
+        "body": "Svar på seks korte trinn. Resultatet til høyre oppdateres underveis og viser forpliktelsene for rollen deres. Ingenting endres på systemet før du **fullfører** klassifiseringen.",
+        "steps": [
+          "De fleste systemer krysser ikke av for noe i trinnene for forbudt og høy risiko; det er vanlig.",
+          "Bruk **Spør assistenten** på et trinn hvis et spørsmål er uklart.",
+          "Fullfør klassifiseringen for å sette risikoklassen og opprette én oppgave per forpliktelse."
+        ]
+      },
+      "why": {
+        "body": "KI-forordningen er risikobasert: forbudte praksiser er ikke tillatt, høyrisikosystemer har de fleste pliktene, noen systemer har åpenhetsplikter, og resten har minimal risiko.",
+        "clauses": ["eu_ai_act:5", "eu_ai_act:6", "eu_ai_act:50", "iso42001:6.1.2"]
+      },
+      "fields": {
+        "role": {
+          "help": "Hvis dere både lager og bruker systemet, velg tilbyder og idriftsetter. Hvis dere bare bruker et innkjøpt system, er dere idriftsetter."
+        },
+        "prohibited": {
+          "help": "Disse praksisene er forbudt fra februar 2025. Hvis en av dem gjelder, stopp og innhent juridisk råd."
+        },
+        "highRisk": {
+          "help": "Vedlegg III viser områder som rekruttering, kredittvurdering og utdanning. Unntaket i art. 6(3) gjelder bare snevre eller forberedende oppgaver, og aldri når systemet profilerer personer.",
+          "example": "Et verktøy som rangerer kandidater ut fra CV-er, har høy risiko (arbeidslivsområdet)."
+        },
+        "transparency": {
+          "help": "Gjelder chatboter, systemer som genererer bilder, lyd, video eller tekst, følelsesgjenkjenning og dypforfalskninger.",
+          "example": "En chatbot på nettsiden må fortelle besøkende at de snakker med en KI."
+        },
+        "gpai": {
+          "help": "En KI-modell for allmenne formål kan utføre mange ulike oppgaver. Tilbyderen har plikter for dokumentasjon og opphavsrett; å bruke en slik modell i eget produkt gjør dere ikke automatisk til tilbyder av modellen."
+        },
+        "deployer": {
+          "help": "FRIA kreves for offentlige organer, private som yter offentlige tjenester, og idriftsettere som bruker et høyrisikosystem til kredittvurdering eller prising av livs- og helseforsikring."
+        }
+      }
+    },
+    "documentation": {
+      "intro": {
+        "title": "Strukturert dokumentasjon",
+        "body": "Skriv styringsdokumentasjonen alle KI-systemer bør ha, og de ni delene av den **tekniske filen etter vedlegg IV** som høyrisikosystemer må ha.",
+        "steps": [
+          "Start med den generelle beskrivelsen og utformingen av menneskelig tilsyn.",
+          "Hold hver del kort og saklig; legg ved dokumentasjon som vedlegg på systemet.",
+          "Bruk **Spør assistenten** for et første utkast til en del, og rediger det etterpå."
+        ]
+      },
+      "why": {
+        "body": "Høyrisiko-KI-systemer krever teknisk dokumentasjon før de bringes i omsetning, logging, menneskelig tilsyn og nøyaktighet og robusthet. ISO/IEC 42001 krever dokumentasjon av data, modeller og systemets livsløp.",
+        "clauses": [
+          "eu_ai_act:11",
+          "eu_ai_act:12",
+          "eu_ai_act:14",
+          "eu_ai_act:15",
+          "iso42001:A.6.2.7",
+          "iso42001:A.7.2"
+        ]
+      }
+    },
+    "assessments": {
+      "intro": {
+        "title": "Vurderinger",
+        "body": "Tre typer: **klassifiseringen** (risikoklasse og forpliktelser), **konsekvensvurderingen** (ISO/IEC 42001) og **konsekvensvurderingen for grunnleggende rettigheter** (KI-forordningen art. 27).",
+        "steps": [
+          "Utkast → fullført → godkjent: en annen enn den som fullførte, godkjenner.",
+          "Utkast som har passert fristen, er uthevet.",
+          "Gjenåpne en vurdering når systemet eller bruken endres."
+        ]
+      },
+      "why": {
+        "body": "Å vurdere konsekvensene av KI for enkeltpersoner og samfunnet, og få vurderingen godkjent, viser at risikoen ble vurdert før bruk.",
+        "clauses": ["iso42001:6.1.4", "iso42001:8.4", "iso42001:A.5.2", "eu_ai_act:27"]
+      },
+      "empty": {
+        "title": "Ingen vurderinger ennå",
+        "body": "Klassifiser KI-systemene først, og vurder deretter konsekvensene av dem som påvirker mennesker. Høyrisikosystemer som brukes av offentlige organer, offentlige tjenester, banker eller forsikringsselskaper, trenger også en FRIA.",
+        "cta": "Start en vurdering"
+      }
+    },
+    "assessmentNew": {
+      "intro": {
+        "title": "Start en vurdering",
+        "body": "Velg KI-systemet og typen vurdering. En klassifisering åpner veiviseren; en konsekvensvurdering eller FRIA starter som et utkast du skriver del for del."
+      },
+      "why": {
+        "body": "En konsekvensvurdering ser på følgene for mennesker og samfunnet; en FRIA er KI-forordningens egen kontroll av grunnleggende rettigheter før et høyrisikosystem tas i bruk.",
+        "clauses": ["iso42001:6.1.4", "eu_ai_act:27"]
+      },
+      "fields": {
+        "kind": {
+          "help": "Usikker? Kjør klassifiseringen først: den forteller om FRIA kreves."
+        }
+      }
+    },
+    "assessmentEdit": {
+      "intro": {
+        "title": "Skriv vurderingen",
+        "body": "Svar på hver del med enkelt språk. Påkrevde deler må fylles ut før vurderingen kan fullføres.",
+        "steps": [
+          "Bruk **Lag utkast til tomme deler** for et første utkast, og kontroller og rett det.",
+          "Vær konkret: hvem som påvirkes, hvordan, og hva dere gjør med det.",
+          "Lagre, og fullfør vurderingen fra siden dens."
+        ]
+      },
+      "why": {
+        "body": "FRIA-en må beskrive prosessene, periode og hyppighet, berørte personer, særlige risikoer, menneskelig tilsyn og tiltak hvis risikoen inntreffer (art. 27(1)(a)–(f)).",
+        "clauses": ["eu_ai_act:27", "iso42001:A.5.4", "iso42001:A.5.5"]
+      }
+    },
+    "assessmentDetail": {
+      "intro": {
+        "title": "Gå gjennom og godkjenn",
+        "body": "En fullført vurdering er låst. En person med godkjenningsrett, som ikke er den som fullførte, godkjenner den. Gjenåpne den når noe endres."
+      },
+      "why": {
+        "body": "Når det registreres hvem som fullførte og hvem som godkjente en vurdering, dokumenteres det at konsekvensene av KI-systemet er vurdert og akseptert på riktig nivå.",
+        "clauses": ["iso42001:8.4", "iso42001:A.5.3"]
+      }
+    },
+    "literacy": {
+      "intro": {
+        "title": "KI-kompetanse",
+        "body": "Alle som betjener eller bruker KI-systemer på vegne av dere, trenger nok kunnskap til å bruke dem godt og forstå risikoen. Følg med på hvem som har den og når den må fornyes.",
+        "steps": [
+          "Registrer opplæring, orientering eller selvstudium for hver person.",
+          "Sjekk dekningen og følg opp personene som mangler eller har utløpt registrering.",
+          "Kjør kurs i Opplæring; registrer gjennomføringen her som KI-kompetanse."
+        ]
+      },
+      "why": {
+        "body": "Fra februar 2025 må tilbydere og idriftsettere sørge for et tilstrekkelig nivå av KI-kompetanse hos de ansatte (art. 4). ISO/IEC 42001 krever kompetanse og bevissthet.",
+        "clauses": ["eu_ai_act:4", "hs:7.2", "hs:7.3"]
+      },
+      "empty": {
+        "title": "Ingen registreringer av KI-kompetanse ennå",
+        "body": "Start med dem som bruker KI-verktøy daglig. En kort intern orientering om hvordan KI-verktøyene virker, begrensningene og KI-policyen deres teller allerede.",
+        "cta": "Registrer KI-kompetanse"
+      },
+      "fields": {
+        "topic": {
+          "help": "Hva opplæringen handlet om.",
+          "example": "KI-policyen vår og trygg bruk av skriveassistenten"
+        }
+      }
+    },
+    "settings": {
+      "intro": {
+        "title": "Innstillinger for KI-styring",
+        "body": "Koble til KI-policyen, velg hvem som er ansvarlig for KI-styring, og angi hvor lenge KI-kompetanse er gyldig og hvor ofte KI-systemer skal gjennomgås."
+      },
+      "why": {
+        "body": "ISO/IEC 42001 krever en dokumentert KI-policy og definerte roller og ansvar for KI.",
+        "clauses": ["iso42001:A.2.2", "iso42001:A.3.2", "hs:5.2"]
+      },
+      "fields": {
+        "policy": {
+          "help": "KI-policyen er et styrt dokument i Dokumenter. Koble den her så revisjoner og oversikten finner den."
+        },
+        "officer": {
+          "help": "Personen som koordinerer KI-styringen. Oppgaver for forpliktelser uten systemeier går til rollen ansvarlig for KI-styring."
+        },
+        "literacy_validity_months": {
+          "help": "Hvor lenge en registrering av KI-kompetanse er gyldig når ingen sluttdato er oppgitt.",
+          "example": "24"
+        },
+        "review_interval_months": {
+          "help": "Standard tid mellom gjennomganger av et KI-system.",
+          "example": "12"
+        }
+      }
+    }
+  },
+  "lessons": {
+    "ai-governance-intro": {
+      "title": "KI-styring på fem minutter",
+      "minutes": 5,
+      "sections": [
+        {
+          "heading": "To rammeverk, ett mål",
+          "body": "**KI-forordningen** er lov: den gir plikter ut fra hvor stor risiko et KI-system har. **ISO/IEC 42001** er en standard for styringssystemer: den beskriver hvordan arbeidet organiseres, med policy, roller, risiko- og konsekvensvurderinger og overvåking. Med begge vet dere hvilke plikter dere har, og har en fast måte å oppfylle dem på."
+        },
+        {
+          "heading": "Grunnsløyfen",
+          "body": "1. **Oversikt**: før opp KI-systemene dere lager eller bruker.\n2. **Klassifiser**: finn risikoklassen og rollen deres.\n3. **Gjennomfør**: utfør forpliktelsene som oppgaver.\n4. **Vurder og overvåk**: konsekvensvurderinger, overvåking, hendelser.\n5. **Gjennomgå**: gjenta når systemer eller bruken endres."
+        },
+        {
+          "heading": "Dere er sannsynligvis idriftsetter",
+          "body": "De fleste organisasjoner bruker KI som andre har laget. Da er de **idriftsettere**. Idriftsettere har færre plikter enn tilbydere, men trenger likevel KI-kompetanse, åpenhet der det gjelder og, for høyrisikosystemer, menneskelig tilsyn, overvåking og logger."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Hva er hovedforskjellen på KI-forordningen og ISO/IEC 42001?",
+          "options": [
+            "KI-forordningen er lov med risikobaserte plikter; ISO/IEC 42001 er en frivillig standard for styringssystemer",
+            "Det er to navn på det samme",
+            "ISO/IEC 42001 gjelder bare tilbydere"
+          ],
+          "answer": 0,
+          "explanation": "KI-forordningen gir rettslige plikter; ISO/IEC 42001 beskriver hvordan KI styres systematisk."
+        },
+        {
+          "question": "En bedrift bruker en innkjøpt chatbot på nettsiden. Hvilken rolle har den?",
+          "options": ["Tilbyder", "Idriftsetter", "Importør"],
+          "answer": 1,
+          "explanation": "Å bruke et KI-system under egen myndighet gjør deg til idriftsetter."
+        }
+      ],
+      "pass_mark": 0.5
+    },
+    "ai-inventory-basics": {
+      "title": "Slik lager du en KI-oversikt",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Hva som regnes som et KI-system",
+          "body": "Programvare som ut fra inndataene **utleder** hvordan den skal lage resultater som prediksjoner, innhold, anbefalinger eller beslutninger. Vanlig regelbasert programvare (hvis dette, så det) regnes vanligvis ikke med. Skriveassistenter, chatboter, oversettelse, poengsetting og gjenkjenning gjør det vanligvis."
+        },
+        {
+          "heading": "Hvor du bør lete",
+          "body": "Spør hver avdeling hvilke verktøy de bruker. Sjekk innkjøpt programvare for KI-funksjoner, nettlesertillegg og skytjenester. Ikke glem KI-funksjoner i verktøy dere allerede har, som assistenten i denne plattformen."
+        },
+        {
+          "heading": "Hva du bør registrere",
+          "body": "Det **tiltenkte formålet** (hva det brukes til), **rollen** deres, **leverandøren**, **modellene** og **dataene**, en **eier** og **status**. Det er nok til å klassifisere systemet."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Hvilket felt er viktigst for klassifiseringen etter KI-forordningen?",
+          "options": ["Modellnavnet", "Det tiltenkte formålet", "Prisen"],
+          "answer": 1,
+          "explanation": "KI-forordningen klassifiserer systemer etter hva de brukes til."
+        }
+      ],
+      "pass_mark": 1
+    },
+    "eu-ai-act-risk-classes": {
+      "title": "De fire risikoklassene i KI-forordningen",
+      "minutes": 6,
+      "sections": [
+        {
+          "heading": "Forbudt (art. 5)",
+          "body": "En kort liste praksiser er forbudt, som sosial poengsetting, manipulasjon som gir skade og følelsesgjenkjenning på jobb eller skole. Svært få organisasjoner berøres, men dere må sjekke."
+        },
+        {
+          "heading": "Høy risiko (art. 6, vedlegg I og III)",
+          "body": "Systemer som er sikkerhetskomponenter i regulerte produkter, eller som brukes på følsomme områder: biometri, kritisk infrastruktur, utdanning, **arbeidsliv**, tilgang til grunnleggende tjenester som **kreditt** og **forsikring**, rettshåndhevelse, migrasjon og rettspleie. Et vedlegg III-system har ikke høy risiko hvis det bare utfører en snever eller forberedende oppgave, **med mindre det profilerer personer**."
+        },
+        {
+          "heading": "Begrenset risiko: åpenhet (art. 50)",
+          "body": "Chatboter må si at de er KI; genererte bilder, lyd, video og tekst må merkes; dypforfalskninger må opplyses om."
+        },
+        {
+          "heading": "Minimal risiko",
+          "body": "Alt annet. Ingen særlige plikter utover KI-kompetanse, men god praksis og frivillige atferdsregler oppmuntres. KI-modeller for allmenne formål har egne plikter for tilbyderne."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Et verktøy rangerer jobbsøkere ut fra CV-ene. Hvilken klasse har det?",
+          "options": ["Minimal risiko", "Begrenset risiko", "Høy risiko"],
+          "answer": 2,
+          "explanation": "Rekruttering og utvelgelse er i vedlegg III punkt 4 (arbeidsliv), og rangering av kandidater profilerer personer, så unntaket gjelder ikke."
+        },
+        {
+          "question": "En chatbot på nettsiden svarer på spørsmål om produkter. Hva gjelder?",
+          "options": ["Ingenting", "Åpenhet: fortell at man samhandler med KI", "Det er forbudt"],
+          "answer": 1,
+          "explanation": "Art. 50(1) krever at personer får vite at de samhandler med et KI-system."
+        }
+      ],
+      "pass_mark": 0.5
+    },
+    "ai-act-obligations": {
+      "title": "Fra klassifisering til forpliktelser",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Forpliktelsene avhenger av rolle og klasse",
+          "body": "En tilbyder av et høyrisikosystem trenger risikostyring, datastyring, teknisk dokumentasjon, logging, bruksanvisning, menneskelig tilsyn, nøyaktighet og robusthet, et kvalitetsstyringssystem, samsvarsvurdering og registrering. En idriftsetter må bruke systemet etter bruksanvisningen, sørge for kompetent menneskelig tilsyn, overvåke det, ta vare på logger, informere ansatte og i noen tilfeller gjennomføre en FRIA."
+        },
+        {
+          "heading": "Hver forpliktelse er en oppgave",
+          "body": "Når du fullfører en klassifisering, blir hver forpliktelse en oppgave for systemets eier. Lukk oppgaven når forpliktelsen er oppfylt, og legg ved dokumentasjonen. Klassifiserer du på nytt, beholdes eksisterende oppgaver, og bare nye forpliktelser får nye oppgaver."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Hva skjer med oppgavene hvis du klassifiserer et system på nytt?",
+          "options": [
+            "Alle oppgaver slettes og lages på nytt",
+            "Eksisterende oppgaver beholdes; bare nye forpliktelser får nye oppgaver",
+            "Ingenting, oppgaver lages bare første gang"
+          ],
+          "answer": 1,
+          "explanation": "Ny klassifisering lager aldri doble oppgaver."
+        }
+      ],
+      "pass_mark": 1
+    },
+    "technical-documentation": {
+      "title": "Den tekniske filen etter vedlegg IV",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Hvem som trenger den",
+          "body": "Tilbydere av høyrisiko-KI-systemer må utarbeide teknisk dokumentasjon **før** systemet bringes i omsetning, og holde den oppdatert (art. 11). Idriftsettere skriver ikke vedlegg IV, men bør ta vare på tilbyderens bruksanvisning og sin egen styringsdokumentasjon."
+        },
+        {
+          "heading": "Hva den inneholder",
+          "body": "Ni deler: generell beskrivelse, utvikling og utforming, overvåking og kontroll, ytelsesmål, risikostyringssystemet, endringer gjennom livsløpet, standarder som er brukt, samsvarserklæringen og evalueringen etter omsetning. Skriv det som stemmer i dag, og oppdater ved hver relevant endring."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Når må den tekniske dokumentasjonen etter vedlegg IV finnes?",
+          "options": [
+            "Før høyrisikosystemet bringes i omsetning eller tas i bruk",
+            "Bare etter en hendelse",
+            "Innen fem år"
+          ],
+          "answer": 0,
+          "explanation": "Art. 11(1): den utarbeides før systemet bringes i omsetning eller tas i bruk."
+        }
+      ],
+      "pass_mark": 1
+    },
+    "impact-assessment-and-fria": {
+      "title": "Konsekvensvurdering og FRIA",
+      "minutes": 5,
+      "sections": [
+        {
+          "heading": "Konsekvensvurderingen (ISO/IEC 42001)",
+          "body": "Se på konsekvensene av KI-systemet for **enkeltpersoner, grupper og samfunnet**: sikkerhet, personvern, rettferdighet, selvbestemmelse, miljø. Beskriv tiltakene som reduserer konsekvensene og hva som gjenstår."
+        },
+        {
+          "heading": "FRIA (KI-forordningen art. 27)",
+          "body": "Før et høyrisikosystem tas i bruk første gang, må idriftsettere som er offentlige organer, yter offentlige tjenester eller driver kredittvurdering eller prising av livs- og helseforsikring vurdere konsekvensene for **grunnleggende rettigheter**: prosessene, periode og hyppighet, berørte personer, særlige risikoer, menneskelig tilsyn og tiltak hvis risikoen inntreffer. Myndigheten skal varsles om resultatet."
+        },
+        {
+          "heading": "Godkjenning",
+          "body": "En fullført vurdering godkjennes av en annen person med godkjenningsrett. Dette firøyneprinsippet viser at vurderingen er gjennomgått."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Hvem må gjennomføre en FRIA?",
+          "options": [
+            "Alle tilbydere av alle KI-systemer",
+            "Enkelte idriftsettere av høyrisikosystemer, som offentlige organer og banker som driver kredittvurdering",
+            "Ingen, det er frivillig"
+          ],
+          "answer": 1,
+          "explanation": "Art. 27 gjelder bestemte idriftsettere av høyrisikosystemer."
+        }
+      ],
+      "pass_mark": 1
+    },
+    "ai-literacy": {
+      "title": "KI-kompetanse for alle",
+      "minutes": 3,
+      "sections": [
+        {
+          "heading": "Hva loven krever",
+          "body": "Tilbydere og idriftsettere må sørge for at de ansatte, og andre som bruker KI på deres vegne, har et **tilstrekkelig nivå av KI-kompetanse**, ut fra kunnskapen deres, sammenhengen og personene som berøres (art. 4)."
+        },
+        {
+          "heading": "Hva som er nok",
+          "body": "Det finnes ingen fast læreplan. Et godt grunnlag: hva KI kan og ikke kan, hvordan verktøyene deres virker, typiske feil som oppdiktede svar, KI-policyen deres og når man bør be om hjelp. De med mer ansvar trenger mer."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Gjelder kravet om KI-kompetanse også systemer med minimal risiko?",
+          "options": ["Ja", "Nei, bare høyrisikosystemer"],
+          "answer": 0,
+          "explanation": "Art. 4 gjelder alle tilbydere og idriftsettere, uansett risikoklasse."
+        }
+      ],
+      "pass_mark": 1
+    }
+  },
+  "tours": {
+    "overview": [
+      {
+        "target": "ai-overview-kpis",
+        "title": "Nøkkeltall",
+        "body": "Hvor mange KI-systemer dere har, hvor mange som har høy risiko, åpne vurderinger og dekning av KI-kompetanse."
+      },
+      {
+        "target": "ai-overview-attention",
+        "title": "Hva som trenger oppfølging",
+        "body": "Systemer som ikke er klassifisert, vurderinger og gjennomganger som har passert fristen, målinger som ikke er bestått og manglende KI-policy. Klikk på et punkt for å gå dit."
+      },
+      {
+        "target": "ai-overview-new",
+        "title": "Registrer et system",
+        "body": "Legg til et KI-system i oversikten."
+      }
+    ],
+    "systems": [
+      {
+        "target": "ai-systems-new",
+        "title": "Registrer KI-systemer",
+        "body": "Legg til hvert KI-system dere lager eller bruker."
+      },
+      {
+        "target": "ai-systems-register-platform",
+        "title": "Et ferdig eksempel",
+        "body": "Registrer plattformens egne KI-funksjoner med ett klikk. De er klassifisert med begrenset risiko og viser hvordan en registrering ser ut."
+      },
+      {
+        "target": "ai-systems-filters",
+        "title": "Filtre og lagrede visninger",
+        "body": "Filtrer på status, risikoklasse eller rolle, og lagre visningen til senere."
+      }
+    ],
+    "classify": [
+      {
+        "target": "ai-classify-questions",
+        "title": "Svar trinn for trinn",
+        "body": "Seks korte trinn. Bruk trinnknappene for å hoppe frem og tilbake."
+      },
+      {
+        "target": "ai-classify-result",
+        "title": "Resultat underveis",
+        "body": "Risikoklassen, begrunnelsene og forpliktelsene oppdateres mens du svarer."
+      },
+      {
+        "target": "ai-classify-suggest",
+        "title": "La assistenten foreslå",
+        "body": "Assistenten kan fylle inn svarene ut fra systembeskrivelsen. Gå alltid gjennom dem."
+      },
+      {
+        "target": "ai-classify-complete",
+        "title": "Fullfør",
+        "body": "Når du fullfører, settes risikoklassen på systemet, og det lages en oppgave per forpliktelse."
+      }
+    ]
+  },
+  "glossary": {
+    "ai-system": {
+      "term": "KI-system",
+      "definition": "Et maskinbasert system som ut fra inndataene utleder hvordan det skal lage resultater som prediksjoner, innhold, anbefalinger eller beslutninger.",
+      "clauses": ["eu_ai_act:3"]
+    },
+    "provider": {
+      "term": "Tilbyder",
+      "definition": "Utvikler et KI-system eller en modell, eller får det utviklet, og bringer det i omsetning eller tar det i bruk under eget navn.",
+      "clauses": ["eu_ai_act:3"]
+    },
+    "deployer": {
+      "term": "Idriftsetter",
+      "definition": "Bruker et KI-system under egen myndighet, unntatt ved personlig, ikke-profesjonell bruk.",
+      "clauses": ["eu_ai_act:3", "eu_ai_act:26"]
+    },
+    "high-risk-ai": {
+      "term": "Høyrisiko-KI-system",
+      "definition": "Et KI-system som er en sikkerhetskomponent i et regulert produkt eller brukes på et område i vedlegg III, med strenge krav.",
+      "clauses": ["eu_ai_act:6"]
+    },
+    "fria": {
+      "term": "FRIA",
+      "definition": "Konsekvensvurdering for grunnleggende rettigheter som enkelte idriftsettere gjennomfører før de tar i bruk et høyrisiko-KI-system.",
+      "clauses": ["eu_ai_act:27"]
+    },
+    "gpai": {
+      "term": "KI-modell for allmenne formål",
+      "definition": "En KI-modell som kan utføre et bredt spekter av ulike oppgaver og kan bygges inn i mange systemer.",
+      "clauses": ["eu_ai_act:53"]
+    },
+    "ai-literacy": {
+      "term": "KI-kompetanse",
+      "definition": "Ferdigheter, kunnskap og forståelse som trengs for å ta i bruk KI-systemer på et informert grunnlag og være klar over muligheter, risiko og mulig skade.",
+      "clauses": ["eu_ai_act:4"]
+    }
+  }
+}

@@ -97,7 +97,9 @@
     "completed": "Completed"
   },
   "scopes": {
-    "platform": "CoreFlow basics"
+    "platform": "CoreFlow basics",
+    "processes": "Processes",
+    "obligations": "Compliance obligations"
   },
   "tour": {
     "start": "Take the tour",

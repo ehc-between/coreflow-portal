@@ -9,7 +9,7 @@ import {
  * scope (the portal path, e.g. `risk`) here when they ship lessons; scopes without a
  * guidance file are skipped.
  */
-export const LESSON_SCOPES: readonly string[] = ['platform'];
+export const LESSON_SCOPES: readonly string[] = ['platform', 'processes', 'obligations'];
 
 export type LessonStatus = 'not_started' | 'in_progress' | 'completed';
 

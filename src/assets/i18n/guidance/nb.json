@@ -97,7 +97,9 @@
     "completed": "Fullført"
   },
   "scopes": {
-    "platform": "Grunnleggende om CoreFlow"
+    "platform": "Grunnleggende om CoreFlow",
+    "processes": "Prosesser",
+    "obligations": "Samsvarskrav"
   },
   "tour": {
     "start": "Ta omvisningen",
