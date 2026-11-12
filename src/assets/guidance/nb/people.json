@@ -1,0 +1,439 @@
+{
+  "pages": {
+    "list": {
+      "intro": {
+        "title": "Alle som jobber her, i ett register",
+        "body": "Ansattregisteret viser hver persons rolle, leder, ansettelsesforhold og sikkerhetsvilkårene de har signert. Det er utgangspunktet for kompetanse: stillingen sier hva personen må kunne, og oppføringen viser hva personen faktisk kan.",
+        "steps": [
+          "Legg til de ansatte, eller koble dem til brukerkontoene sine.",
+          "Gi hver ansatt en stilling, så kompetansekravene gjelder.",
+          "Registrer taushetserklæringen og sikkerhetsvilkårene de har signert."
+        ]
+      },
+      "why": {
+        "body": "Standardene forventer at du bestemmer hvilken kompetanse hver rolle trenger, sørger for at folk har den og tar vare på dokumentasjonen. For informasjonssikkerhet må du også sjekke folk før de begynner, ta sikkerhetsansvar inn i ansettelsesvilkårene og håndtere hva som skjer når de slutter eller bytter rolle.",
+        "clauses": ["hs:7.1", "hs:7.2", "iso27001:A.6.1", "iso27001:A.6.2", "iso27001:A.6.5"]
+      },
+      "empty": {
+        "title": "Ingen ansatte registrert ennå",
+        "body": "Begynn med personene i de viktigste rollene: ledere, personer med tilgang til sensitiv informasjon og personer som påvirker kundene. Resten kan du legge til senere.",
+        "cta": "Legg til den første ansatte"
+      }
+    },
+    "form": {
+      "intro": {
+        "title": "Registrere en ansatt",
+        "body": "Fyll inn hvem personen er, rollen og sikkerhetsvilkårene i ansettelsen. Bare navnet er påkrevd, men det er stillingen som gjør at kompetansekravene gjelder.",
+        "steps": [
+          "Koble den ansatte til brukerkontoen hvis personen bruker CoreFlow.",
+          "Velg stilling og leder.",
+          "Registrer datoene for signert taushetserklæring og aksepterte sikkerhetsvilkår."
+        ]
+      },
+      "why": {
+        "body": "Ansettelsesvilkårene bør si hvilket ansvar hver person har for informasjonssikkerhet, og alle med tilgang til konfidensiell informasjon bør signere en taushetserklæring. Datoene gir revisor direkte dokumentasjon.",
+        "clauses": ["iso27001:A.6.1", "iso27001:A.6.2", "iso27001:A.6.6"]
+      },
+      "fields": {
+        "user_id": {
+          "help": "Koble den ansatte til CoreFlow-brukerkontoen, så oppgaver, opplæring og sjekklister når frem. Personer som ikke bruker CoreFlow, kan stå uten kobling.",
+          "example": "En lagermedarbeider uten innlogging registreres uten brukerkonto."
+        },
+        "position_id": {
+          "help": "Stillingen bestemmer hvilke kompetanser personen trenger. Uten stilling gjelder ingen krav, og ingen gap vises.",
+          "example": "Servicetekniker, som krever elsikkerhet på nivå 3."
+        },
+        "status": {
+          "help": "Under onboarding mens personen begynner, aktiv når personen er på plass, under offboarding mens personen slutter, tidligere ansatt når personen har sluttet. Når en sjekkliste for onboarding eller offboarding fullføres, oppdateres statusen automatisk.",
+          "example": "En nyansatt starter som under onboarding og blir aktiv når sjekklisten er fullført."
+        },
+        "confidentiality_signed_on": {
+          "help": "Datoen personen signerte en taushetserklæring. La feltet stå tomt hvis den ikke er signert ennå; da markeres det i registeret.",
+          "example": "Signert sammen med arbeidsavtalen første dag."
+        },
+        "security_terms_accepted_on": {
+          "help": "Datoen personen aksepterte sikkerhetsvilkårene i ansettelsen, for eksempel reglene for bruk av IT og sitt eget sikkerhetsansvar.",
+          "example": "Aksepterte IT- og sikkerhetsreglene under introduksjonen."
+        },
+        "screening_status": {
+          "help": "Bakgrunnssjekk før ansettelse, tilpasset rollen og informasjonen den har tilgang til, og innenfor det loven tillater.",
+          "example": "Referansesjekk og politiattest for en rolle med tilgang til kundedata."
+        }
+      }
+    },
+    "detail": {
+      "intro": {
+        "title": "Én persons rolle, kompetanse og vilkår",
+        "body": "Siden viser den ansattes rolle, sikkerhetsvilkårene personen har signert, kompetansen sammenlignet med stillingens krav, sjekklister for onboarding og offboarding og bevissthetstiltakene personen har gjennomført.",
+        "steps": [
+          "Se etter gap, manglende eller utløpte kompetanser i listen.",
+          "Registrer en vurdering når noen har vist en kompetanse.",
+          "Start offboarding-sjekklisten så snart du vet at noen slutter."
+        ]
+      },
+      "why": {
+        "body": "Kompetanse må planlegges, oppnås og dokumenteres, og folk må kjenne retningslinjene og sitt eget bidrag. Når noen slutter eller bytter rolle, må tilganger fjernes og utstyr leveres tilbake, og taushetsplikten gjelder fortsatt.",
+        "clauses": [
+          "hs:7.2",
+          "hs:7.3",
+          "iso27001:A.6.3",
+          "iso27001:A.6.4",
+          "iso27001:A.6.5",
+          "iso27001:A.5.11",
+          "iso27001:A.5.18"
+        ]
+      },
+      "fields": {
+        "level": {
+          "help": "0 = ingen, 1 = grunnleggende (klarer det med hjelp), 2 = selvstendig (gjør det alene), 3 = erfaren (håndterer uvanlige tilfeller), 4 = ekspert (kan lære det bort).",
+          "example": "En nyutdannet førstehjelper er på nivå 2; instruktøren er på nivå 4."
+        },
+        "checklist_assignee": {
+          "help": "Personen, rollen eller avdelingen som gjør jobben. De får den som en oppgave i Mitt arbeid. La feltet stå tomt for å gi den til eieren av sjekklisten eller deg selv.",
+          "example": "IT-avdelingen for en offboarding-sjekkliste, så tilgangene fjernes siste dag."
+        },
+        "awareness": {
+          "help": "Bevissthetstiltak viser at personen kjenner retningslinjene, risikoene og sin egen rolle, for eksempel etter å ha lest sikkerhetspolicyen eller deltatt i en phishing-kampanje.",
+          "example": "Sikkerhetsopplæring gjennomført 3. mars."
+        },
+        "disciplinary": {
+          "help": "En formell prosess for personer som bryter sikkerhetsreglene eller andre regler. Registrer bare fakta og hold det kort; bare personer med tilgang til disiplinærsaker kan se dem.",
+          "example": "Delte et passord med en leverandør i strid med reglene; skriftlig advarsel."
+        }
+      }
+    },
+    "positions": {
+      "intro": {
+        "title": "Roller med tydelig ansvar",
+        "body": "En stilling beskriver hva rollen har ansvar for, hva den kan bestemme og hvilke kompetanser den trenger. Ansatte i stillingen arver kompetansekravene.",
+        "steps": [
+          "Opprett de viktigste stillingene først, som ledere og nøkkelroller.",
+          "Beskriv ansvar og myndighet med noen få linjer.",
+          "Legg til kompetansekrav, eller la assistenten foreslå dem."
+        ]
+      },
+      "why": {
+        "body": "Ledelsen må tildele og formidle ansvar og myndighet for relevante roller, og du må bestemme hvilken kompetanse hver rolle trenger. En tydelig stillingsbeskrivelse dokumenterer begge deler.",
+        "clauses": ["hs:5.3", "hs:7.2", "iso27001:A.6.1"]
+      },
+      "empty": {
+        "title": "Ingen stillinger ennå",
+        "body": "Stillinger kobler personer til kompetansekrav. Begynn med fem til ti typiske roller, som leder, tekniker, selger og administrator.",
+        "cta": "Opprett den første stillingen"
+      }
+    },
+    "positionForm": {
+      "intro": {
+        "title": "Beskrive en stilling",
+        "body": "Gi stillingen en tittel og beskriv formål, ansvar og myndighet. Assistenten kan lage et første utkast til ansvar som du redigerer.",
+        "steps": [
+          "Skriv tittelen og en kort beskrivelse.",
+          "List opp ansvaret og hva rollen kan bestemme.",
+          "Sett risikonivået: høyt for roller med tilgang til sensitiv informasjon eller kritiske systemer."
+        ]
+      },
+      "why": {
+        "body": "Roller, ansvar og myndighet må være tildelt og forstått. Når det er skrevet ned, unngår du hull og overlapp, og revisor kan kontrollere at alle vet hva som forventes.",
+        "clauses": ["hs:5.3", "iso27001:A.6.1"]
+      },
+      "fields": {
+        "responsibilities": {
+          "help": "Det personen i stillingen må sørge for at skjer. Korte setninger som begynner med et verb, fungerer best.",
+          "example": "Planlegger og følger opp serviceoppdrag; melder avvik; holder serviceloggen oppdatert."
+        },
+        "authorities": {
+          "help": "Det rollen kan bestemme eller godkjenne uten å spørre noen.",
+          "example": "Kan stanse arbeid som ikke er trygt; kan godkjenne innkjøp opp til 20 000."
+        },
+        "risk_level": {
+          "help": "Høyt for roller med tilgang til sensitiv informasjon, penger eller kritiske systemer. Høyere risiko krever grundigere bakgrunnssjekk og strengere offboarding.",
+          "example": "Systemadministrator: høy. Resepsjonist: lav."
+        }
+      }
+    },
+    "positionDetail": {
+      "intro": {
+        "title": "Hva denne rollen trenger",
+        "body": "Kompetansekravene til en stilling gjelder alle som har den. Kompetansematrisen og gapanalysen sammenligner hver person med disse kravene.",
+        "steps": [
+          "Legg til kompetansene rollen trenger, med kravnivå.",
+          "Marker de obligatoriske, for eksempel lovpålagte sertifikater.",
+          "Se etter gap hos personene i stillingen."
+        ]
+      },
+      "why": {
+        "body": "Å bestemme nødvendig kompetanse for hver rolle er første steg i kompetansekravet. Uten det kan verken opplæring eller rekruttering planlegges, og gap kan ikke finnes.",
+        "clauses": ["hs:5.3", "hs:7.2"]
+      },
+      "fields": {
+        "requirements": {
+          "help": "Hvert krav er en kompetanse fra katalogen og nivået rollen trenger. Obligatoriske krav må være på plass; ønskelige krav er fine å ha.",
+          "example": "Elsikkerhet (FSE), nivå 3, obligatorisk; engelsk, nivå 2, ønskelig."
+        }
+      }
+    },
+    "competences": {
+      "intro": {
+        "title": "Kompetansekatalogen",
+        "body": "Katalogen viser ferdighetene, kunnskapen, kvalifikasjonene og sertifikatene rollene krever. Hver kompetanse kan ha en gyldighetsperiode, så oppfriskning og fornyelse ikke glemmes.",
+        "steps": [
+          "Legg til kompetansene stillingene trenger.",
+          "Sett gyldighetsperiode for sertifikater og oppfriskningskurs.",
+          "Koble dem til stillinger som krav."
+        ]
+      },
+      "why": {
+        "body": "En felles katalog gjør kompetanse sammenlignbar på tvers av roller og personer, og gyldighetsperioden sørger for at utløpte sertifikater vises som gap før en revisor eller en ulykke finner dem.",
+        "clauses": ["hs:7.2"]
+      },
+      "empty": {
+        "title": "Ingen kompetanser i katalogen",
+        "body": "Legg til kompetansene rollene trenger, eller åpne en stilling og la assistenten foreslå krav; nye kompetanser legges da inn i katalogen for deg.",
+        "cta": "Legg til den første kompetansen"
+      }
+    },
+    "competenceForm": {
+      "intro": {
+        "title": "Definere en kompetanse",
+        "body": "Gi kompetansen et navn alle forstår, velg kategori og angi hvor lenge en vurdering er gyldig.",
+        "steps": [
+          "Bruk et tydelig navn, som «Førstehjelp» eller «Internrevisor ISO 27001».",
+          "Velg kategori.",
+          "Sett gyldighet i måneder hvis den må fornyes."
+        ]
+      },
+      "why": {
+        "body": "Kompetanse må holdes oppdatert. En gyldighetsperiode gjør fornyelser til påminnelser i stedet for overraskelser.",
+        "clauses": ["hs:7.2"]
+      },
+      "fields": {
+        "category": {
+          "help": "Ferdighet (kan gjøre), kunnskap (vet), kvalifikasjon (formell utdanning), sertifikat (utstedt av en tredjepart, ofte med utløpsdato), språk, atferd.",
+          "example": "Truckførerbevis er et sertifikat; grunnleggende personvern er kunnskap."
+        },
+        "validity_months": {
+          "help": "Hvor lenge en vurdering er gyldig. Utløpsdatoen for hver persons oppføring settes ut fra dette, og kompetanser som snart utløper, blir påminnet.",
+          "example": "Førstehjelp: 24 måneder. La stå tomt for en universitetsgrad."
+        }
+      }
+    },
+    "competenceDetail": {
+      "intro": {
+        "title": "Hvem trenger den, og hvem har den",
+        "body": "Siden viser kompetansen, hvor lenge den er gyldig og alle som trenger eller har den, med nivå og status.",
+        "steps": [
+          "Se etter personer som er markert med mangler eller utløpt.",
+          "Åpne en person for å registrere en ny vurdering.",
+          "Planlegg opplæring for gapene."
+        ]
+      },
+      "why": {
+        "body": "Når du vet hvem som har en kompetanse, ser du om dere har nok folk til arbeidet, og dokumentasjonen samles på ett sted.",
+        "clauses": ["hs:7.2"]
+      }
+    },
+    "matrix": {
+      "intro": {
+        "title": "Kompetansematrisen",
+        "body": "Hver rad er en person og hver kolonne en kompetanse. Cellene viser nivået hver person har, og om det oppfyller stillingens krav. Bytt til bare gap for en gjøremålsliste.",
+        "steps": [
+          "Filtrer på avdeling eller stilling.",
+          "Se etter røde celler: manglende eller utløpte kompetanser.",
+          "Bruk gaplisten til å planlegge opplæring eller rekruttering."
+        ]
+      },
+      "why": {
+        "body": "Ved å sammenligne hva folk kan med hva rollene krever, finner du kompetansegap og kan sette inn tiltak, enten det er opplæring, veiledning, rekruttering eller omplassering, og deretter kontrollere at det virket.",
+        "clauses": ["hs:7.2", "hs:7.1"]
+      },
+      "empty": {
+        "title": "Ingenting å sammenligne ennå",
+        "body": "Matrisen trenger ansatte med stillinger og stillinger med kompetansekrav. Legg til krav på en stilling, så vises personene i den her."
+      }
+    },
+    "checklists": {
+      "intro": {
+        "title": "Begynne og slutte, likt hver gang",
+        "body": "Sjekklister for onboarding og offboarding sørger for at ingenting glemmes når folk begynner eller slutter: tilganger, utstyr, taushetsplikt, opplæring og dokumentasjon.",
+        "steps": [
+          "Start en sjekkliste fra den ansattes side.",
+          "Huk av punktene etter hvert; alle obligatoriske punkter må være gjort.",
+          "Fullfør den: den ansattes status oppdateres automatisk."
+        ]
+      },
+      "why": {
+        "body": "Når folk slutter eller bytter rolle, må tilgangene fjernes, eiendeler leveres tilbake og gjenværende taushetsplikt formidles. Sjekklisten dokumenterer at det er gjort.",
+        "clauses": ["iso27001:A.6.5", "iso27001:A.5.11", "iso27001:A.5.18"]
+      },
+      "empty": {
+        "title": "Ingen åpne sjekklister",
+        "body": "Åpne en ansatt og velg Start onboarding eller Start offboarding. Hver sjekkliste starter fra en mal og tildeles som en oppgave."
+      }
+    },
+    "checklistDetail": {
+      "intro": {
+        "title": "Gå gjennom sjekklisten",
+        "body": "Huk av hvert punkt når det er gjort, og legg til et notat der det er nyttig. Sjekklisten kan bare fullføres når alle obligatoriske punkter er gjort.",
+        "steps": [
+          "Gjør punktene for tilganger og utstyr siste arbeidsdag.",
+          "Minn personen på taushetsplikten.",
+          "Fullfør sjekklisten når alt obligatorisk er gjort."
+        ]
+      },
+      "why": {
+        "body": "Tilganger som står åpne etter at noen har sluttet, er blant de vanligste sikkerhetssvakhetene. Når det er registrert hvem som fjernet hva og når, viser du at det er håndtert.",
+        "clauses": ["iso27001:A.6.5", "iso27001:A.5.11", "iso27001:A.5.18"]
+      },
+      "fields": {
+        "items": {
+          "help": "Legg til punkter som gjelder akkurat denne personen, for eksempel et system bare personen brukte. Marker punktet som obligatorisk hvis sjekklisten ikke skal kunne fullføres uten det.",
+          "example": "Fjern tilgang til lønnssystemet (obligatorisk)."
+        }
+      }
+    }
+  },
+  "lessons": {
+    "competence-basics": {
+      "title": "Kompetanse i fire steg",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "1. Bestem hva hver rolle trenger",
+          "body": "List opp kompetansene arbeidet krever og nivået som trengs, for hver **stilling**. Marker de **obligatoriske**, for eksempel lovpålagte sertifikater."
+        },
+        {
+          "heading": "2. Finn ut hva folk kan",
+          "body": "Registrer en **vurdering** for hver person: nivået personen har vist, når og dokumentasjonen, som et sertifikat, en kursregistrering eller en observasjon fra lederen."
+        },
+        {
+          "heading": "3. Lukk gapene",
+          "body": "**Kompetansematrisen** viser hvor folk ikke når kravet, mangler en kompetanse eller har latt den utløpe. Lukk gapene med opplæring, veiledning, rekruttering eller ved å flytte oppgaver."
+        },
+        {
+          "heading": "4. Kontroller at det virket, og hold det oppdatert",
+          "body": "Vurder på nytt etter tiltaket, og bruk **gyldighetsperioder** så sertifikater og oppfriskningskurs fornyes i tide. Registreringene er dokumentasjonen din."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Førstehjelpsbeviset til en tekniker utløp forrige måned. Hva viser matrisen?",
+          "options": ["Oppfylt", "Utløpt", "Ikke påkrevd"],
+          "answer": 1,
+          "explanation": "En utløpt kompetanse teller ikke lenger. Den vises som utløpt til en ny vurdering er registrert."
+        },
+        {
+          "question": "Hva er første steg i kompetansestyring?",
+          "options": [
+            "Sende alle på kurs",
+            "Bestemme hvilken kompetanse hver rolle trenger",
+            "Kjøpe et opplæringssystem"
+          ],
+          "answer": 1,
+          "explanation": "Du kan først finne gap og planlegge opplæring når du vet hva hver rolle krever."
+        }
+      ],
+      "pass_mark": 0.5
+    },
+    "joiners-and-leavers": {
+      "title": "Nyansatte, rolleskifte og avganger",
+      "minutes": 3,
+      "sections": [
+        {
+          "heading": "Før og når noen begynner",
+          "body": "Sjekk kandidater i forhold til rollen, la dem signere **taushetserklæringen** og akseptere **sikkerhetsvilkårene**, og gi dem bare tilgangene rollen trenger. Onboarding-sjekklisten dekker dette."
+        },
+        {
+          "heading": "Når noen bytter rolle",
+          "body": "En ny rolle betyr nye krav og andre tilganger. Oppdater stillingen, fjern tilganger den nye rollen ikke trenger, og se etter kompetansegap."
+        },
+        {
+          "heading": "Når noen slutter",
+          "body": "Start **offboarding-sjekklisten** så snart du vet det. Fjern tilgangene siste dag, samle inn utstyr og minn personen på at taushetsplikten gjelder også etter at de har sluttet."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Når bør tilganger fjernes for noen som slutter?",
+          "options": ["En måned etter at de har sluttet", "Siste arbeidsdag", "Når IT har tid"],
+          "answer": 1,
+          "explanation": "Tilganger som står åpne etter at noen har sluttet, er en sikkerhetsrisiko. Fjern dem senest siste arbeidsdag."
+        }
+      ],
+      "pass_mark": 1
+    },
+    "roles-and-responsibilities": {
+      "title": "Ansvar og myndighet",
+      "minutes": 3,
+      "sections": [
+        {
+          "heading": "Hvorfor skrive det ned",
+          "body": "Uklart ansvar ligger bak mange hendelser: alle trodde noen andre skulle handle. En kort beskrivelse av hver stillings **ansvar** og **myndighet** hindrer hull og overlapp."
+        },
+        {
+          "heading": "Hva du skriver",
+          "body": "Ansvar sier hva personen må sørge for at skjer. Myndighet sier hva personen kan bestemme selv, som å stanse utrygt arbeid eller godkjenne et innkjøp. Hold begge korte og konkrete."
+        },
+        {
+          "heading": "Gjøre det kjent",
+          "body": "Ansvar fungerer bare når folk kjenner det. Gå gjennom beskrivelsen med personen når de begynner, og oppdater den når rollen endres."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Hvilket av disse er myndighet og ikke ansvar?",
+          "options": [
+            "Holder serviceloggen oppdatert",
+            "Kan stanse arbeid som ikke er trygt",
+            "Melder avvik"
+          ],
+          "answer": 1,
+          "explanation": "Myndighet er noe rollen kan bestemme. Å stanse utrygt arbeid er en beslutning rollen har lov til å ta."
+        }
+      ],
+      "pass_mark": 1
+    }
+  },
+  "tours": {
+    "list": [
+      {
+        "target": "people-new",
+        "title": "Legg til en ansatt",
+        "body": "Registrer en person, koble personen til brukerkontoen og gi en stilling."
+      },
+      {
+        "target": "people-filters",
+        "title": "Finn de riktige personene",
+        "body": "Filtrer på status, ansettelsesform, stilling og avdeling, og lagre kombinasjonen som en visning."
+      },
+      {
+        "target": "people-summary",
+        "title": "Se hva som trenger oppmerksomhet",
+        "body": "Kompetansegap, åpne sjekklister og manglende taushetserklæringer i hele virksomheten."
+      }
+    ],
+    "matrix": [
+      {
+        "target": "people-matrix-filters",
+        "title": "Snevre inn",
+        "body": "Velg en stilling eller avdeling, eller bytt til listen med bare gap."
+      }
+    ]
+  },
+  "glossary": {
+    "competence": {
+      "term": "Kompetanse",
+      "definition": "Evnen til å bruke kunnskap og ferdigheter for å oppnå tilsiktede resultater. Roller krever den; personer viser den.",
+      "clauses": ["hs:7.2"]
+    },
+    "competence-gap": {
+      "term": "Kompetansegap",
+      "definition": "Forskjellen mellom nivået en rolle krever og nivået en person har, inkludert manglende og utløpte kompetanser.",
+      "clauses": ["hs:7.2"]
+    },
+    "awareness": {
+      "term": "Bevissthet",
+      "definition": "Å kjenne retningslinjene, de relevante risikoene og sitt eget bidrag, og hva som skjer om reglene ikke følges.",
+      "clauses": ["hs:7.3", "iso27001:A.6.3"]
+    }
+  }
+}

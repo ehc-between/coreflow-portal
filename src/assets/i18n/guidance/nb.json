@@ -97,7 +97,8 @@
     "completed": "Fullført"
   },
   "scopes": {
-    "platform": "Grunnleggende om CoreFlow"
+    "platform": "Grunnleggende om CoreFlow",
+    "people": "Personer og kompetanse"
   },
   "tour": {
     "start": "Ta omvisningen",
