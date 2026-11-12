@@ -223,9 +223,14 @@ export const ROOT_CAUSE_METHOD_OPTIONS: readonly RootCauseMethod[] = [
   'other',
 ];
 
-/** i18n key for a root-cause method label. */
+/**
+ * i18n key for a root-cause method label. Also accepts the RCA vocabulary
+ * (`five_whys`), which some stored deviations carry; unknown methods read "Other".
+ */
 export function rootCauseMethodLabelKey(method: string): string {
-  return `deviations.rootCauseMethod.${method}`;
+  const normalized = method === 'five_whys' ? 'five_why' : method;
+  const known = (ROOT_CAUSE_METHOD_OPTIONS as readonly string[]).includes(normalized);
+  return `deviations.rootCauseMethod.${known ? normalized : 'other'}`;
 }
 
 /** Deviation visibilities. */

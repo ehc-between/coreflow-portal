@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
-import { TranslocoPipe, provideTranslocoScope } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { TasksGuidance } from '../../../core/tasks/tasks-guidance';
 import { MarkdownPipe } from '../../markdown/markdown.pipe';
+import { provideSharedScope } from '../../../core/i18n/shared-scope';
 import { Icon } from '../../ui/icon/icon';
 
 const STORAGE_KEY = 'coreflow.tasks.guide.collapsed';
@@ -32,7 +33,7 @@ function writeCollapsed(pages: Set<string>): void {
 @Component({
   selector: 'app-task-guide-intro',
   imports: [TranslocoPipe, MarkdownPipe, Icon],
-  providers: [provideTranslocoScope('tasks')],
+  viewProviders: [provideSharedScope('tasks')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (intro(); as intro) {

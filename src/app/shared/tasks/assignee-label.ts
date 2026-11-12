@@ -1,16 +1,18 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
-import { TranslocoPipe, provideTranslocoScope } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { AssigneeOut } from '../../core/tasks/task.models';
+import { provideSharedScope } from '../../core/i18n/shared-scope';
+import { RoleNamePipe } from '../roles/role-name.pipe';
 import { Icon } from '../ui/icon/icon';
 
 /**
  * A task's assignee with an icon for its kind (person, role, department), or
- * "Unassigned". Role names fall back to the global role label.
+ * "Unassigned". Roles show their translated name (seeded) or stored name (custom).
  */
 @Component({
   selector: 'app-assignee-label',
-  imports: [TranslocoPipe, Icon],
-  providers: [provideTranslocoScope('tasks')],
+  imports: [TranslocoPipe, Icon, RoleNamePipe],
+  viewProviders: [provideSharedScope('tasks')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (assignee(); as a) {
@@ -18,8 +20,8 @@ import { Icon } from '../ui/icon/icon';
         <app-icon [name]="icon()" [size]="13" class="flex-none text-fg-subtle" />
         <span class="sr-only">{{ 'tasks.assignee.types.' + a.type | transloco }}:</span>
         <span class="truncate">
-          @if (a.type === 'role' && !a.name) {
-            {{ 'roles.' + a.value + '.name' | transloco }}
+          @if (a.type === 'role') {
+            {{ a.value | roleName: a.name }}
           } @else {
             {{ a.name || a.value }}
           }

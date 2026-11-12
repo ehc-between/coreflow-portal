@@ -1,9 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
-import { TranslocoPipe, provideTranslocoScope } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { LanguageService } from '../../core/i18n/language.service';
 import { localize } from '../../core/records/localized';
 import { FieldSpec, LayoutSection, RecordData } from '../../core/records/record.models';
 import { DynamicControl } from './dynamic-control';
+import { provideSharedScope } from '../../core/i18n/shared-scope';
 import { PickOption, isVisible, resolveSections, withCalculated } from './form-model';
 
 /**
@@ -22,7 +23,7 @@ import { PickOption, isVisible, resolveSections, withCalculated } from './form-m
 @Component({
   selector: 'app-dynamic-form',
   imports: [TranslocoPipe, DynamicControl],
-  providers: [provideTranslocoScope('records')],
+  viewProviders: [provideSharedScope('records')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="flex flex-col gap-6">

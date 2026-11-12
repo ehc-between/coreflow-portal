@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
-import { TranslocoPipe, provideTranslocoScope } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
+import { provideSharedScope } from '../../core/i18n/shared-scope';
 import { AssigneeOptionsService } from './assignee-options';
 
 /**
@@ -11,7 +12,7 @@ import { AssigneeOptionsService } from './assignee-options';
 @Component({
   selector: 'app-assignee-select',
   imports: [TranslocoPipe],
-  providers: [provideTranslocoScope('tasks')],
+  viewProviders: [provideSharedScope('tasks')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <select

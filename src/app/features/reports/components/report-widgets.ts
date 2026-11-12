@@ -10,7 +10,7 @@ import {
   untracked,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { TranslocoPipe, provideTranslocoScope } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { humanize } from '../../../core/kit/entity-types.service';
 import { LanguageService } from '../../../core/i18n/language.service';
@@ -22,6 +22,7 @@ import { frameworkLabelKey, labelOr, widgetLink } from '../data/report-display';
 import { DashboardResponse, DashboardWidget, FrameworkKey } from '../data/reports.models';
 import { ReportsApi } from '../data/reports-api';
 import { ScopedText } from '../data/scoped-text';
+import { provideSharedScope } from '../../../core/i18n/shared-scope';
 import { MetricView } from './metric-view';
 
 let nextId = 0;
@@ -53,7 +54,7 @@ export function widgetSpan(size: string): string {
 @Component({
   selector: 'app-report-widgets',
   imports: [RouterLink, TranslocoPipe, Card, Icon, MetricView],
-  providers: [provideTranslocoScope('reports')],
+  viewProviders: [provideSharedScope('reports')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `

@@ -1,8 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
-import { TranslocoPipe, provideTranslocoScope } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { LanguageService } from '../../core/i18n/language.service';
 import { localize } from '../../core/records/localized';
 import { StateCategory, WorkflowDefinition } from '../../core/records/record.models';
+import { provideSharedScope } from '../../core/i18n/shared-scope';
 import { NODE_HEIGHT, NODE_WIDTH, layoutWorkflow } from './workflow-layout';
 
 /** Fill / stroke per state category (design tokens). */
@@ -24,7 +25,7 @@ const CATEGORY_STYLE: Record<StateCategory, { fill: string; stroke: string }> = 
 @Component({
   selector: 'app-workflow-diagram',
   imports: [TranslocoPipe],
-  providers: [provideTranslocoScope('records')],
+  viewProviders: [provideSharedScope('records')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @let l = layout();

@@ -10,7 +10,7 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { TranslocoPipe, provideTranslocoScope } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { Attachment } from '../../core/attachments/attachment.models';
 import { NotificationService } from '../../core/notifications/notification.service';
@@ -36,6 +36,7 @@ import {
   Obligation,
 } from './data/obligation.models';
 import { complianceTone, resultKey, todayIso } from './data/obligation-display';
+import { provideSharedScope } from '../../core/i18n/shared-scope';
 import { obligationErrorKey } from './data/obligation-errors';
 
 /** Whether an evaluation result calls for a follow-up action. */
@@ -62,7 +63,7 @@ export function needsFollowUp(result: string): boolean {
     FormField,
     Icon,
   ],
-  providers: [provideTranslocoScope('tasks')],
+  viewProviders: [provideSharedScope('tasks')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section aria-labelledby="cf-ob-eval-h">

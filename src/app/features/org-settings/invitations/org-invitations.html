@@ -43,9 +43,7 @@
                 <tr class="border-b border-border last:border-b-0">
                   <td class="px-4 py-3 text-fg">{{ invitation.email }}</td>
                   <td class="px-4 py-3">
-                    <app-badge tone="neutral">{{
-                      roleNameKey(invitation.role_key) | transloco
-                    }}</app-badge>
+                    <app-badge tone="neutral">{{ roleName(invitation.role_key) }}</app-badge>
                   </td>
                   <td class="px-4 py-3 text-fg-muted" [attr.data-invitation-id]="invitation.id">
                     <span class="flex flex-wrap items-center gap-1.5">
@@ -104,13 +102,13 @@
           >
             <select id="org-invite-role" formControlName="role_key">
               @for (role of grantable(); track role.key) {
-                <option [value]="role.key">{{ roleNameKey(role.key) | transloco }}</option>
+                <option [value]="role.key">{{ roleName(role.key) }}</option>
               }
             </select>
           </app-form-field>
           @if (selectedRole(); as roleKey) {
             <p class="-mt-2 text-[12px] leading-snug text-fg-subtle">
-              {{ roleDescriptionKey(roleKey) | transloco }}
+              {{ roleDescription(roleKey) }}
             </p>
           }
 

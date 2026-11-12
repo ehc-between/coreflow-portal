@@ -24,7 +24,8 @@ import { AuthService } from '../../../core/auth/auth.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { memberErrorKey } from '../../../core/org/member-errors';
 import { OrgMembersApi } from '../../../core/org/org-members-api';
-import { ROLE_KEYS, roleNameKey } from '../../../core/org/roles';
+import { LanguageService } from '../../../core/i18n/language.service';
+import { ROLE_KEYS, roleLabel } from '../../../core/org/roles';
 import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
@@ -58,6 +59,7 @@ const ROLE_OPTIONS: readonly RoleKey[] = ROLE_KEYS;
 })
 export class OrganizationDetail implements OnInit {
   private readonly fb = inject(FormBuilder);
+  private readonly language = inject(LanguageService);
   private readonly admin = inject(AdminApi);
   private readonly notifications = inject(NotificationService);
   private readonly orgMembers = inject(OrgMembersApi);
@@ -144,8 +146,8 @@ export class OrganizationDetail implements OnInit {
     });
   }
 
-  protected roleBadgeKey(roleKey: string): string {
-    return roleNameKey(roleKey);
+  protected roleName(roleKey: string): string {
+    return roleLabel((key) => this.language.translate(key), roleKey);
   }
 
   /** Account active state, or null while unknown. */

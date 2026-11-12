@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { RACI_ROLES, Raci, RaciAssignment } from '../data/context.models';
+import { RoleNamePipe } from '../../../shared/roles/role-name.pipe';
 import { RaciLetter } from './raci-letter';
 
 export interface RaciGroup {
@@ -19,7 +20,7 @@ export function raciGroups(assignments: readonly RaciAssignment[]): RaciGroup[] 
 /** Read-only RACI assignments of one responsibility, grouped by letter. */
 @Component({
   selector: 'app-context-raci-chips',
-  imports: [TranslocoPipe, RaciLetter],
+  imports: [TranslocoPipe, RaciLetter, RoleNamePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <dl class="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -33,7 +34,7 @@ export function raciGroups(assignments: readonly RaciAssignment[]): RaciGroup[] 
             @for (a of group.assignments; track a.type + a.value; let last = $last) {
               <span class="text-fg">
                 @if (a.type === 'role') {
-                  {{ 'roles.' + a.value + '.name' | transloco }}
+                  {{ a.value | roleName: a.name }}
                 } @else {
                   {{ a.name || a.value }}
                 }

@@ -12,7 +12,8 @@ import { NotificationService } from '../../../core/notifications/notification.se
 import { memberErrorKey } from '../../../core/org/member-errors';
 import { OrgMembersApi } from '../../../core/org/org-members-api';
 import { OrgMember, OrgRole } from '../../../core/org/org.models';
-import { roleDescriptionKey, roleNameKey } from '../../../core/org/roles';
+import { LanguageService } from '../../../core/i18n/language.service';
+import { roleDescription, roleLabel } from '../../../core/org/roles';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
@@ -38,6 +39,7 @@ export class OrgMembers {
   private readonly auth = inject(AuthService);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly notifications = inject(NotificationService);
+  private readonly language = inject(LanguageService);
 
   protected readonly orgId = this.selectedOrg.currentOrgId;
   protected readonly currentUserId = computed(() => this.auth.user()?.id ?? null);
@@ -59,8 +61,13 @@ export class OrgMembers {
   protected readonly pendingRemoval = signal<OrgMember | null>(null);
   protected readonly removing = signal(false);
 
-  protected readonly roleNameKey = roleNameKey;
-  protected readonly roleDescriptionKey = roleDescriptionKey;
+  protected roleName(roleKey: string): string {
+    return roleLabel((key) => this.language.translate(key), roleKey, this.roles());
+  }
+
+  protected roleDescription(roleKey: string): string {
+    return roleDescription((key) => this.language.translate(key), roleKey);
+  }
   protected readonly roleSelectValue = roleSelectValue;
 
   constructor() {

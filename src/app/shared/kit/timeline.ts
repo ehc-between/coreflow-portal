@@ -49,7 +49,7 @@ interface RenderedItem {
 @Component({
   selector: 'app-timeline',
   imports: [TranslocoPipe, LocalDatePipe, RelativeTimePipe, Button],
-  providers: [provideKitScope()],
+  viewProviders: [provideKitScope()],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section [attr.aria-labelledby]="headingId">

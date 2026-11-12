@@ -1,9 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
-import { TranslocoPipe, provideTranslocoScope } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { Lesson, TasksGuidance } from '../../../core/tasks/tasks-guidance';
 import { MarkdownPipe } from '../../markdown/markdown.pipe';
 import { Button } from '../../ui/button/button';
 import { Icon } from '../../ui/icon/icon';
+import { provideSharedScope } from '../../../core/i18n/shared-scope';
 import { SlideOver } from '../../ui/slide-over/slide-over';
 
 /** Share of quiz answers that were right (0..1); 1 for a lesson without a quiz. */
@@ -25,7 +26,7 @@ export function quizScore(lesson: Lesson, answers: Readonly<Record<number, numbe
 @Component({
   selector: 'app-task-lesson',
   imports: [TranslocoPipe, MarkdownPipe, Button, Icon, SlideOver],
-  providers: [provideTranslocoScope('tasks')],
+  viewProviders: [provideSharedScope('tasks')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (content(); as entry) {

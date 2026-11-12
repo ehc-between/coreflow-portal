@@ -1,9 +1,9 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideZonelessChangeDetection, signal } from '@angular/core';
+import { inject, provideZonelessChangeDetection, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { TranslocoTestingModule } from '@jsverse/transloco';
+import { TranslocoService, TranslocoTestingModule } from '@jsverse/transloco';
 import { APP_CONFIG } from '../../../core/config/app-config';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { OrgModule, emptyProfile } from '../../../core/modules/module.models';
@@ -90,7 +90,18 @@ describe('SetupWizard', () => {
         { provide: APP_CONFIG, useValue: { apiBaseUrl: BASE } },
         { provide: SelectedOrgService, useValue: { currentOrgId: signal(ORG) } },
         { provide: ModuleService, useValue: { reload } },
-        { provide: LanguageService, useValue: { active: signal('en'), locale: signal('en') } },
+        {
+          provide: LanguageService,
+          useFactory: () => {
+            const transloco = inject(TranslocoService);
+            return {
+              active: signal('en'),
+              locale: signal('en'),
+              translate: (key: string, params?: Record<string, unknown>) =>
+                transloco.translate(key, params),
+            };
+          },
+        },
         { provide: AskPanelService, useValue: { showWith } },
       ],
     });

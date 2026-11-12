@@ -14,6 +14,7 @@ import { Subscription } from 'rxjs';
 import { providePageContext } from '../../../core/ai/page-context';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { AskAbout } from '../../../shared/ask/ask-about';
+import { RoleNamePipe } from '../../../shared/roles/role-name.pipe';
 import { GuideIntro } from '../../../shared/guidance/guide-intro';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { Alert } from '../../../shared/ui/alert/alert';
@@ -61,6 +62,7 @@ export function columnLoad(matrix: RaciMatrix): Record<string, { a: number; r: n
     RouterLink,
     TranslocoPipe,
     AskAbout,
+    RoleNamePipe,
     GuideIntro,
     WhyItMatters,
     Alert,
@@ -167,7 +169,7 @@ export function columnLoad(matrix: RaciMatrix): Record<string, { a: number; r: n
                     >
                       <span class="block">
                         @if (column.type === 'role') {
-                          {{ 'roles.' + column.value + '.name' | transloco }}
+                          {{ column.value | roleName: column.name }}
                         } @else {
                           {{ column.name || column.value }}
                         }

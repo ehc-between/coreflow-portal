@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
-import { TranslocoPipe, provideTranslocoScope } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { NotificationPreference } from '../../../core/notifications/user-notification.models';
 import { UserNotificationsApi } from '../../../core/notifications/user-notifications-api';
@@ -8,6 +8,7 @@ import { ActivityGuide } from '../../../shared/activity/activity-guide';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Card } from '../../../shared/ui/card/card';
 import { CategoryPreferences } from './category-preferences';
+import { provideSharedScope } from '../../../core/i18n/shared-scope';
 import { QuietHours } from './quiet-hours';
 
 /**
@@ -18,7 +19,7 @@ import { QuietHours } from './quiet-hours';
 @Component({
   selector: 'app-notification-preferences',
   imports: [TranslocoPipe, Alert, Card, ActivityGuide, CategoryPreferences, QuietHours],
-  providers: [provideTranslocoScope('activity')],
+  viewProviders: [provideSharedScope('activity')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mx-auto w-full max-w-2xl px-4 py-8 sm:px-6">

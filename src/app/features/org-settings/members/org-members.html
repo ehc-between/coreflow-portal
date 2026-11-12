@@ -66,11 +66,8 @@
                     @if (member.roles.length > 1) {
                       <span class="mb-1.5 flex flex-wrap gap-1.5">
                         @for (role of member.roles; track role) {
-                          <app-badge
-                            tone="accent"
-                            [attr.title]="roleDescriptionKey(role) | transloco"
-                          >
-                            {{ roleNameKey(role) | transloco }}
+                          <app-badge tone="accent" [attr.title]="roleDescription(role) || null">
+                            {{ roleName(role) }}
                           </app-badge>
                         }
                       </span>
@@ -92,20 +89,17 @@
                         <option
                           [value]="role.key"
                           [selected]="role.key === roleSelectValue(member)"
-                          [attr.title]="roleDescriptionKey(role.key) | transloco"
+                          [attr.title]="roleDescription(role.key) || null"
                         >
-                          {{ roleNameKey(role.key) | transloco }}
+                          {{ roleName(role.key) }}
                         </option>
                       }
                     </select>
                   } @else {
                     <span class="flex flex-wrap gap-1.5">
                       @for (role of member.roles; track role) {
-                        <app-badge
-                          tone="accent"
-                          [attr.title]="roleDescriptionKey(role) | transloco"
-                        >
-                          {{ roleNameKey(role) | transloco }}
+                        <app-badge tone="accent" [attr.title]="roleDescription(role) || null">
+                          {{ roleName(role) }}
                         </app-badge>
                       }
                     </span>
@@ -146,8 +140,8 @@
       </summary>
       <dl class="mt-2 grid gap-x-4 gap-y-1.5 sm:grid-cols-[180px_1fr]">
         @for (role of roles(); track role.key) {
-          <dt class="font-semibold text-fg">{{ roleNameKey(role.key) | transloco }}</dt>
-          <dd>{{ roleDescriptionKey(role.key) | transloco }}</dd>
+          <dt class="font-semibold text-fg">{{ roleName(role.key) }}</dt>
+          <dd>{{ roleDescription(role.key) }}</dd>
         }
       </dl>
     </details>

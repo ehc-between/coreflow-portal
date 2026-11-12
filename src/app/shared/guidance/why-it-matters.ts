@@ -6,10 +6,11 @@ import {
   input,
   linkedSignal,
 } from '@angular/core';
-import { TranslocoPipe, provideTranslocoScope } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { GuidanceContentService } from '../../core/guidance/guidance-content.service';
 import { GuidanceService } from '../../core/guidance/guidance.service';
 import { MarkdownPipe } from '../markdown/markdown.pipe';
+import { provideSharedScope } from '../../core/i18n/shared-scope';
 import { ClauseChips } from './clause-chips';
 
 let nextId = 0;
@@ -22,7 +23,7 @@ let nextId = 0;
 @Component({
   selector: 'app-why-it-matters',
   imports: [TranslocoPipe, MarkdownPipe, ClauseChips],
-  providers: [provideTranslocoScope('guidance')],
+  viewProviders: [provideSharedScope('guidance')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `

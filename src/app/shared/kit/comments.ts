@@ -89,7 +89,7 @@ export function buildThreads(comments: readonly CommentItem[]): CommentThread[] 
     Icon,
     CommentComposer,
   ],
-  providers: [provideKitScope()],
+  viewProviders: [provideKitScope()],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section [attr.aria-labelledby]="headingId" data-tour="kit-comments">

@@ -49,7 +49,7 @@ interface ViewRow {
 @Component({
   selector: 'app-revision-history',
   imports: [NgTemplateOutlet, TranslocoPipe, LocalDatePipe, Alert, Button, Icon],
-  providers: [provideKitScope()],
+  viewProviders: [provideKitScope()],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section [attr.aria-labelledby]="headingId">

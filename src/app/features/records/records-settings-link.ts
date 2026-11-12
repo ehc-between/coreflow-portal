@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { TranslocoPipe, provideTranslocoScope } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { Button } from '../../shared/ui/button/button';
+import { provideSharedScope } from '../../core/i18n/shared-scope';
 import { Card } from '../../shared/ui/card/card';
 
 /**
@@ -12,7 +13,7 @@ import { Card } from '../../shared/ui/card/card';
 @Component({
   selector: 'app-records-settings-link',
   imports: [RouterLink, TranslocoPipe, Button, Card],
-  providers: [provideTranslocoScope('records')],
+  viewProviders: [provideSharedScope('records')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section data-testid="settings-record-types">

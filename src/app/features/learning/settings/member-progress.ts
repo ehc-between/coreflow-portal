@@ -94,7 +94,9 @@ import { lessonStatus } from '../lesson-catalog';
                   >
                     <td class="px-4 py-2.5">
                       <div class="font-semibold text-fg">{{ row.title }}</div>
-                      <div class="text-[12px] text-fg-subtle">{{ row.item.lesson_key }}</div>
+                      <div class="font-mono text-[11.5px] text-fg-subtle">
+                        {{ row.item.lesson_key }}
+                      </div>
                     </td>
                     <td class="px-3 py-2.5">
                       <app-badge [tone]="row.status === 'completed' ? 'pass' : 'info'">

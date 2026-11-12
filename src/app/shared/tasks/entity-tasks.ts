@@ -10,7 +10,7 @@ import {
   untracked,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { TranslocoPipe, provideTranslocoScope } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
@@ -24,6 +24,7 @@ import { Icon } from '../ui/icon/icon';
 import { SlideOver } from '../ui/slide-over/slide-over';
 import { AssigneeLabel } from './assignee-label';
 import { TaskForm, TaskFormResult, TaskFormValue } from './task-form';
+import { provideSharedScope } from '../../core/i18n/shared-scope';
 import {
   isClosedStatus,
   taskPriorityKey,
@@ -57,7 +58,7 @@ const LIMIT = 200;
     AssigneeLabel,
     TaskForm,
   ],
-  providers: [provideTranslocoScope('tasks')],
+  viewProviders: [provideSharedScope('tasks')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="flex flex-col gap-3" [attr.aria-label]="'tasks.entity.title' | transloco">

@@ -7,9 +7,10 @@ import {
   output,
   signal,
 } from '@angular/core';
-import { TranslocoPipe, provideTranslocoScope } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { AiAvailability } from '../../core/ai/ai-availability';
 import { LanguageService } from '../../core/i18n/language.service';
+import { provideSharedScope } from '../../core/i18n/shared-scope';
 import { Icon } from '../ui/icon/icon';
 
 /** Learning content shape for one page in the `activity` scope (`activity.guide.<page>.*`). */
@@ -47,7 +48,7 @@ export function clauseSlug(ref: string): string {
 @Component({
   selector: 'app-activity-guide',
   imports: [TranslocoPipe, Icon],
-  providers: [provideTranslocoScope('activity')],
+  viewProviders: [provideSharedScope('activity')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @let p = 'activity.guide.' + page();

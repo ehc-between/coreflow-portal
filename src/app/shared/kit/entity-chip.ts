@@ -25,7 +25,7 @@ export interface EntityChipRef {
 @Component({
   selector: 'app-entity-chip',
   imports: [NgTemplateOutlet, TranslocoPipe],
-  providers: [provideKitScope()],
+  viewProviders: [provideKitScope()],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @let r = ref();

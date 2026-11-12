@@ -24,6 +24,7 @@ import {
   SetupState,
   emptyProfile,
 } from '../../../core/modules/module.models';
+import { LanguageService } from '../../../core/i18n/language.service';
 import { ModuleService } from '../../../core/modules/module.service';
 import { ModulesApi, moduleErrorDetail } from '../../../core/modules/modules-api';
 import { NotificationService } from '../../../core/notifications/notification.service';
@@ -531,6 +532,7 @@ export class SetupWizard {
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly notifications = inject(NotificationService);
   private readonly transloco = inject(TranslocoService);
+  private readonly language = inject(LanguageService);
   private readonly ask = inject(AskPanelService);
   private readonly injector = inject(Injector);
   private readonly heading = viewChild<ElementRef<HTMLElement>>('stepHeading');
@@ -606,7 +608,7 @@ export class SetupWizard {
   }
 
   protected names(keys: readonly string[]): string {
-    return moduleNameList(this.transloco, keys);
+    return moduleNameList((key) => this.language.translate(key), this.language.active(), keys);
   }
 
   protected toggleModule(key: string, on: boolean): void {

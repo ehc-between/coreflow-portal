@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
-import { TranslocoPipe, provideTranslocoScope } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { AiAvailability } from '../../core/ai/ai-availability';
 import { TutorService } from '../../core/guidance/tutor.service';
+import { provideSharedScope } from '../../core/i18n/shared-scope';
 import { Icon } from '../ui/icon/icon';
 
 /**
@@ -12,7 +13,7 @@ import { Icon } from '../ui/icon/icon';
 @Component({
   selector: 'app-teach-me',
   imports: [TranslocoPipe, Icon],
-  providers: [provideTranslocoScope('guidance')],
+  viewProviders: [provideSharedScope('guidance')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'inline-flex' },
   template: `

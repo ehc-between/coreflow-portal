@@ -7,8 +7,9 @@ import {
   input,
   signal,
 } from '@angular/core';
-import { TranslocoPipe, provideTranslocoScope } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { GuidanceContentService } from '../../core/guidance/guidance-content.service';
+import { provideSharedScope } from '../../core/i18n/shared-scope';
 import { GuidanceService } from '../../core/guidance/guidance.service';
 
 let nextId = 0;
@@ -21,7 +22,7 @@ let nextId = 0;
 @Component({
   selector: 'app-field-help',
   imports: [TranslocoPipe],
-  providers: [provideTranslocoScope('guidance')],
+  viewProviders: [provideSharedScope('guidance')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     class: 'relative',

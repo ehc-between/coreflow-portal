@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
-import { provideTranslocoScope } from '@jsverse/transloco';
+
 import { LanguageService } from '../../core/i18n/language.service';
 import { formatLocalDay } from '../locale/locale-pipes';
+import { provideSharedScope } from '../../core/i18n/shared-scope';
 import { describeRrule } from './rrule';
 
 /**
@@ -10,7 +11,7 @@ import { describeRrule } from './rrule';
  */
 @Component({
   selector: 'app-rule-summary',
-  providers: [provideTranslocoScope('tasks')],
+  viewProviders: [provideSharedScope('tasks')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `{{ text() }}`,
 })

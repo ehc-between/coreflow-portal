@@ -11,7 +11,7 @@ import {
   untracked,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { TranslocoPipe, provideTranslocoScope } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { PublicIntakeApi } from '../../../core/deviations/intake-api';
 import {
   PublicIntake,
@@ -24,6 +24,7 @@ import { LocalDatePipe } from '../../../shared/locale/locale-pipes';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
+import { provideSharedScope } from '../../../core/i18n/shared-scope';
 import { Icon } from '../../../shared/ui/icon/icon';
 
 /** The receipt code format the backend issues (`XXXX-XXXX-XXXX-XXXX`). */
@@ -62,7 +63,7 @@ export function publicErrorKey(error: unknown): string {
 @Component({
   selector: 'app-public-report',
   imports: [FormsModule, TranslocoPipe, LanguageSwitcher, LocalDatePipe, Alert, Button, Card, Icon],
-  providers: [provideTranslocoScope('deviations')],
+  viewProviders: [provideSharedScope('deviations')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="min-h-screen bg-bg px-4 pt-6 pb-12 text-fg">

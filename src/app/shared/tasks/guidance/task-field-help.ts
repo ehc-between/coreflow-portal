@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
-import { TranslocoPipe, provideTranslocoScope } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
+import { provideSharedScope } from '../../../core/i18n/shared-scope';
 import { TasksGuidance } from '../../../core/tasks/tasks-guidance';
 
 let nextId = 0;
@@ -12,7 +13,7 @@ let nextId = 0;
 @Component({
   selector: 'app-task-field-help',
   imports: [TranslocoPipe],
-  providers: [provideTranslocoScope('tasks')],
+  viewProviders: [provideSharedScope('tasks')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (help(); as help) {

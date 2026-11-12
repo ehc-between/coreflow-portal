@@ -293,7 +293,7 @@ export class ModulesSettings {
   private readonly notifications = inject(NotificationService);
   private readonly transloco = inject(TranslocoService);
   private readonly ask = inject(AskPanelService);
-  private readonly lang = inject(LanguageService).active;
+  private readonly language = inject(LanguageService);
 
   protected readonly clauses = GUIDE_CLAUSES.modules;
   protected readonly frameworks = FRAMEWORK_KEYS;
@@ -313,13 +313,12 @@ export class ModulesSettings {
   protected readonly framework = signal('');
 
   protected readonly visible = computed(() => {
-    this.lang();
     return filterModules(this.modules(), {
       status: this.status(),
       framework: this.framework(),
       query: this.query(),
       text: (m) =>
-        `${this.transloco.translate(moduleNameKey(m.key))} ${this.transloco.translate(moduleDescriptionKey(m.key))} ${m.key}`,
+        `${this.language.translate(moduleNameKey(m.key))} ${this.language.translate(moduleDescriptionKey(m.key))} ${m.key}`,
     });
   });
   protected readonly enabledCount = computed(() => this.modules().filter((m) => m.enabled).length);
@@ -350,7 +349,7 @@ export class ModulesSettings {
   }
 
   protected names(keys: readonly string[]): string {
-    return moduleNameList(this.transloco, keys);
+    return moduleNameList((key) => this.language.translate(key), this.language.active(), keys);
   }
 
   load(): void {
