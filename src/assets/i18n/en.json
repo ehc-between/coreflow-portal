@@ -1675,6 +1675,7 @@
       "supplier_evaluation": "Supplier evaluation",
       "project": "Project",
       "project_milestone": "Project milestone",
+      "project_design_review": "Design review",
       "ropa_entry": "Processing record",
       "dpia": "DPIA",
       "data_subject_request": "Data subject request",

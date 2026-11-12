@@ -1,0 +1,308 @@
+{
+  "pages": {
+    "list": {
+      "intro": {
+        "title": "Changes and new work, under control",
+        "body": "A project is a piece of work with a clear objective, an owner, a team and an end date: introducing a new system, developing a product or service, moving to new premises or carrying out a larger improvement. Running it as a project means it is planned, followed up and closed in a way you can show later.",
+        "steps": [
+          "Create a project with an objective, a scope and an owner.",
+          "Split the work into phases and milestones, and add tasks for the team.",
+          "Hold design reviews where something must be checked, and close the project with lessons learned."
+        ]
+      },
+      "why": {
+        "body": "When you change your management system, your products or your services, the standards expect the change to be **planned**: why it is made, what could go wrong, who is responsible and which resources are needed. Design and development must go through planned stages with reviews, verification and validation, and information security must be part of every project.",
+        "clauses": ["iso9001:6.3", "iso9001:8.3", "iso27001:A.5.8", "hs:8.1"]
+      },
+      "empty": {
+        "title": "No projects yet",
+        "body": "Start with a change you are already planning: a new system, a new service or a larger improvement. Give it an objective and an owner, and the rest can be added as you go.",
+        "cta": "Start the first project"
+      }
+    },
+    "form": {
+      "intro": {
+        "title": "Describe the project",
+        "body": "A good project description answers three questions: **why** are we doing this (the objective), **what** is included and what is not (the scope), and **who** is responsible (the owner). Dates and priority help others plan around it.",
+        "steps": [
+          "Write the objective as a result you can check at the end.",
+          "Say what is in and out of scope so the project does not grow unnoticed.",
+          "Tick the information security box if the project touches systems, data or suppliers."
+        ]
+      },
+      "why": {
+        "body": "Planned changes must consider their purpose and possible consequences, the integrity of the management system, the resources needed and who is responsible. Writing this down at the start is the simplest way to show it.",
+        "clauses": ["iso9001:6.3", "iso27001:A.5.8"]
+      },
+      "fields": {
+        "kind": {
+          "help": "Choose **Design and development** when the project creates or changes a product or service. Those projects need planned design reviews, verification and validation (ISO 9001 8.3).",
+          "example": "A new customer portal is design and development; moving the office is a general project."
+        },
+        "objective": {
+          "help": "The result the project must deliver, written so you can tell at the end whether it was reached.",
+          "example": "All customer orders are handled in the new system by 1 March, with no more than 1 % order errors."
+        },
+        "scope": {
+          "help": "What the project includes and, just as important, what it does not include.",
+          "example": "In scope: order handling and invoicing. Out of scope: the warehouse system."
+        },
+        "health": {
+          "help": "The owner's honest view of how the project is going: on track, at risk or off track. Update it when the picture changes."
+        },
+        "owner": {
+          "help": "The person accountable for the project. The owner is always a manager in the team and gets reminders about deadlines."
+        },
+        "security_relevant": {
+          "help": "Tick this when the project touches information systems, personal data, suppliers with access to your data or physical security. ISO 27001 A.5.8 asks for information security to be part of project management."
+        },
+        "security_requirements": {
+          "help": "The information security requirements the project must meet, and how they will be checked.",
+          "example": "Single sign-on with two-factor login; data stored in the EU; supplier security review before go-live."
+        }
+      }
+    },
+    "detail": {
+      "intro": {
+        "title": "Running the project",
+        "body": "This page is the project's single source of truth. Keep the plan current, mark milestones as done, record design reviews and add lessons as you learn them. The Tasks tab holds the work, and the Related tab links risks, change requests and documents.",
+        "steps": [
+          "Check the Gantt chart and the task board each week.",
+          "Record each design review, verification or validation with its outcome.",
+          "Close the project when the work is done, with a short summary and lessons learned."
+        ]
+      },
+      "why": {
+        "body": "Design and development must be planned in stages, with reviews to check that the results meet the requirements, verification that outputs match inputs, and validation that the result works for its intended use. Records of these activities, and of changes, are what an auditor asks to see.",
+        "clauses": ["iso9001:8.3", "iso9001:6.3", "iso27001:A.5.8", "hs:8.1"]
+      },
+      "fields": {
+        "team": {
+          "help": "**Managers** can change the project and its team. **Members** and **reviewers** can add milestones, reviews, lessons and tasks. **Stakeholders** can follow the project but not change it."
+        },
+        "milestones": {
+          "help": "A **phase** is a period of work with a start and an end. A **milestone** is a point where something must be finished or decided, and can sit inside a phase."
+        },
+        "design_reviews": {
+          "help": "A **design review** checks progress against the requirements at a planned stage. **Verification** checks that the outputs meet the input requirements. **Validation** checks that the result works for its intended use."
+        },
+        "review_kind": {
+          "help": "Pick the type that matches the question being answered: are we on track (review), did we build it right (verification), did we build the right thing (validation)?"
+        },
+        "review_inputs": {
+          "help": "What was reviewed: drawings, specifications, test results, prototypes or documents.",
+          "example": "Requirements specification v2, usability test report from 12 May."
+        },
+        "review_findings": {
+          "help": "What the review found and which actions were agreed. Add tasks for the actions so they are followed up.",
+          "example": "Login flow is too long; reduce to two steps before the pilot."
+        },
+        "lessons": {
+          "help": "Short notes on what went well and what should be done differently. Write them while the project runs; they are most useful for the next project."
+        }
+      }
+    },
+    "closeout": {
+      "intro": {
+        "title": "Closing a project",
+        "body": "Closing a project confirms that the objective was reached, or records that it was stopped. The summary and the lessons learned are kept with the project for later projects and audits."
+      },
+      "why": {
+        "body": "Retaining information about the results of design and development, and about changes, shows that work was completed as planned and that the organisation learns from it.",
+        "clauses": ["iso9001:8.3", "iso9001:6.3"]
+      },
+      "fields": {
+        "summary": {
+          "help": "Was the objective reached? Summarise the result, any deviations from the plan, and what remains for the line organisation to follow up.",
+          "example": "The new order system has been live since 1 March. Order errors fell to 0.6 %. Training for the night shift is handed over to HR."
+        }
+      }
+    }
+  },
+  "lessons": {
+    "project-basics": {
+      "title": "Planning a change as a project",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Why run it as a project?",
+          "body": "Larger changes affect people, processes and systems at the same time. Running them as projects gives each change an owner, an objective and a plan, so nothing is forgotten and you can show later how the change was controlled."
+        },
+        {
+          "heading": "Objective, scope and owner",
+          "body": "Write the **objective** as a result you can check at the end. Define the **scope**, including what is not part of the project. Name one **owner** who is accountable, and a team with clear roles."
+        },
+        {
+          "heading": "Phases, milestones and tasks",
+          "body": "Split the work into **phases** with a start and an end, set **milestones** where something must be finished or decided, and give the team **tasks** with due dates. The Gantt chart and the task board show how it all fits together."
+        },
+        {
+          "heading": "Follow up and close",
+          "body": "Update the health status when things change, link the project's risks and change requests, and close the project with a summary and lessons learned."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Which objective is easiest to check at the end of the project?",
+          "options": [
+            "Improve order handling",
+            "All orders are handled in the new system by 1 March, with at most 1 % errors",
+            "Work on the order system this spring"
+          ],
+          "answer": 1,
+          "explanation": "A measurable result with a date tells you clearly whether the objective was reached."
+        },
+        {
+          "question": "What is a milestone?",
+          "options": [
+            "A period of work with a start and an end",
+            "A point where something must be finished or decided",
+            "A task assigned to one person"
+          ],
+          "answer": 1,
+          "explanation": "Phases are periods; milestones are points in time where something must be done or decided."
+        }
+      ],
+      "pass_mark": 0.5
+    },
+    "design-control": {
+      "title": "Design reviews, verification and validation",
+      "minutes": 5,
+      "sections": [
+        {
+          "heading": "Planned stages",
+          "body": "ISO 9001 8.3 asks you to plan design and development in **stages**, and to decide which reviews, verification and validation activities belong to each stage."
+        },
+        {
+          "heading": "Three different questions",
+          "body": "A **design review** asks: are we on track to meet the requirements? **Verification** asks: do the outputs meet the input requirements? **Validation** asks: does the result work for its intended use, in practice?"
+        },
+        {
+          "heading": "Record what you did",
+          "body": "For each activity, record who took part, what was reviewed, the findings and the outcome. Turn agreed actions into tasks so they are followed up."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "You test the new portal with five real customers to see whether they can place an order. What is that?",
+          "options": ["Verification", "Validation", "A design review"],
+          "answer": 1,
+          "explanation": "Checking that the result works for its intended use, with real users, is validation."
+        },
+        {
+          "question": "What should be recorded for a design review?",
+          "options": [
+            "Only the date",
+            "Participants, what was reviewed, findings and outcome",
+            "Nothing, as long as it was held"
+          ],
+          "answer": 1,
+          "explanation": "The record shows that the review took place and what it concluded."
+        }
+      ],
+      "pass_mark": 0.5
+    },
+    "security-in-projects": {
+      "title": "Information security in projects",
+      "minutes": 3,
+      "sections": [
+        {
+          "heading": "Every project, from the start",
+          "body": "ISO 27001 A.5.8 asks for information security to be part of project management, whatever the type of project. It is cheaper to plan for security at the start than to add it at the end."
+        },
+        {
+          "heading": "Write the requirements down",
+          "body": "When a project touches systems, data or suppliers, write down its security requirements: access control, where data is stored, supplier checks, backup and logging. Check them before go-live, for example in a verification."
+        },
+        {
+          "heading": "Link the risks",
+          "body": "Register information security risks in the risk register and link them to the project on the Related tab, so treatment is followed up."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "When should information security be considered in a project?",
+          "options": [
+            "Only in IT projects",
+            "From the start of every relevant project",
+            "After go-live"
+          ],
+          "answer": 1,
+          "explanation": "Security is part of project management for all projects that touch information."
+        }
+      ],
+      "pass_mark": 1
+    },
+    "closing-a-project": {
+      "title": "Closing a project and learning from it",
+      "minutes": 3,
+      "sections": [
+        {
+          "heading": "Finish the open work",
+          "body": "A project can be closed as **completed** once its milestones, design reviews and tasks are finished. If it is stopped, close it as **cancelled**; its open tasks are cancelled for you."
+        },
+        {
+          "heading": "Summarise the result",
+          "body": "The close-out summary says whether the objective was reached, what differed from the plan, and what the line organisation must follow up."
+        },
+        {
+          "heading": "Lessons learned",
+          "body": "Write down what went well and what to do differently. Good lessons are concrete and include a recommendation for the next project."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "The project is stopped halfway. How do you close it?",
+          "options": [
+            "Close it as completed",
+            "Close it as cancelled, with a summary of why",
+            "Delete it"
+          ],
+          "answer": 1,
+          "explanation": "Closing as cancelled keeps the record and the lessons; deleting removes them."
+        }
+      ],
+      "pass_mark": 1
+    }
+  },
+  "tours": {
+    "list": [
+      {
+        "target": "projects-new",
+        "title": "Start a project",
+        "body": "Create a project with an objective, a scope and an owner. The assistant can draft it for you."
+      },
+      {
+        "target": "projects-filters",
+        "title": "Find the right projects",
+        "body": "Filter by status, by the projects you own or take part in, by kind and by overdue, and save the combination as a view."
+      },
+      {
+        "target": "projects-views",
+        "title": "List or timeline",
+        "body": "Switch to the timeline to see all projects on one time axis, from start to due date."
+      }
+    ]
+  },
+  "glossary": {
+    "design-review": {
+      "term": "Design review",
+      "definition": "A planned check, at a stage of design and development, of whether the results are on track to meet the requirements.",
+      "clauses": ["iso9001:8.3"]
+    },
+    "verification": {
+      "term": "Verification",
+      "definition": "Confirming that the outputs of design and development meet the input requirements.",
+      "clauses": ["iso9001:8.3"]
+    },
+    "validation": {
+      "term": "Validation",
+      "definition": "Confirming that the result works for its intended use or application.",
+      "clauses": ["iso9001:8.3"]
+    },
+    "lessons-learned": {
+      "term": "Lessons learned",
+      "definition": "Knowledge gained from a project, recorded so that later projects can repeat what worked and avoid what did not."
+    }
+  }
+}
