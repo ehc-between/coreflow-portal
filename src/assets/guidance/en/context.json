@@ -1,0 +1,518 @@
+{
+  "pages": {
+    "overview": {
+      "intro": {
+        "title": "Context is the foundation of every ISO standard",
+        "body": "Before you can manage quality, security, the environment or AI, you need to know **who you are, what affects you and what you are managing**. Every ISO management system standard starts in the same place: clauses 4 and 5 of the Harmonised Structure.",
+        "steps": [
+          "Analyse your internal and external issues with a SWOT or PESTLE analysis.",
+          "Register the interested parties that matter and what they need from you.",
+          "Write a scope statement for each management system: what is in, what is out and why.",
+          "Set the policies leadership stands behind, and make clear who is responsible for what."
+        ]
+      },
+      "why": {
+        "body": "Auditors start here. If the context, the interested parties and the scope are unclear, every risk, objective and control built on top of them is hard to justify. Clause 5 then asks top management to show leadership: approve the policies and assign responsibilities and authorities.",
+        "clauses": ["hs:4.1", "hs:4.2", "hs:4.3", "hs:5.1", "hs:5.2", "hs:5.3"]
+      }
+    },
+    "analyses-list": {
+      "intro": {
+        "title": "Understand your internal and external issues",
+        "body": "A **context analysis** lists the issues that affect your ability to achieve the intended results of your management system. Use **SWOT** for strengths, weaknesses, opportunities and threats, or **PESTLE** for the political, economic, social, technological, legal and environmental landscape.",
+        "steps": [
+          "Start with one SWOT for the whole organisation; add a PESTLE when the outside world changes fast.",
+          "Keep factors short and concrete, and rate their impact.",
+          "Submit the analysis for approval and review it at least once a year."
+        ]
+      },
+      "why": {
+        "body": "Clause 4.1 requires you to determine the external and internal issues that are relevant to your purpose and to monitor and review them. The issues feed your risks and opportunities (6.1) and the management review (9.3).",
+        "clauses": ["hs:4.1", "hs:6.1", "hs:9.3"]
+      },
+      "empty": {
+        "title": "No context analysis yet",
+        "body": "Start with a SWOT analysis. The assistant can draft one from your organisation profile, and you decide what to keep.",
+        "cta": "Start an analysis"
+      }
+    },
+    "analyses-detail": {
+      "intro": {
+        "title": "Reading a context analysis",
+        "body": "Internal factors (strengths and weaknesses) are things you control; external factors (opportunities and threats, or the PESTLE areas) are things you respond to. High-impact factors should show up in your risk register."
+      },
+      "why": {
+        "body": "An approved, periodically reviewed analysis is your evidence that issues are determined, monitored and reviewed as clause 4.1 requires.",
+        "clauses": ["hs:4.1"]
+      }
+    },
+    "analyses-form": {
+      "intro": {
+        "title": "Write the analysis",
+        "body": "Give it a clear title, choose a method and add the factors under each heading. Use **Draft from organisation profile** for a first version, then edit it so it really describes your organisation."
+      },
+      "why": {
+        "body": "The analysis is documented information that auditors may ask for. Its review interval keeps it current.",
+        "clauses": ["hs:4.1", "hs:7.5"]
+      },
+      "fields": {
+        "title": {
+          "help": "A name people recognise in lists and reports.",
+          "example": "Company SWOT 2026"
+        },
+        "method": {
+          "help": "SWOT looks at strengths, weaknesses, opportunities and threats. PESTLE looks at six external areas. It cannot be changed later."
+        },
+        "framework": {
+          "help": "Leave empty when the analysis covers all management systems; choose one when it is specific, for example an information security context."
+        },
+        "summary": {
+          "help": "The two or three conclusions that matter most. They are what management reads first."
+        },
+        "owner": { "help": "The person who keeps the analysis up to date." },
+        "review_interval_months": {
+          "help": "How often the analysis must be reviewed. Twelve months is common.",
+          "example": "12"
+        },
+        "next_review_at": {
+          "help": "Leave empty to calculate it from the interval when the analysis is approved."
+        },
+        "change_reason": {
+          "help": "Explain what changed and why. It is kept in the revision history."
+        }
+      }
+    },
+    "parties-list": {
+      "intro": {
+        "title": "Who has a stake in what you do?",
+        "body": "**Interested parties** are people and organisations that can affect, be affected by, or believe they are affected by your decisions: customers, employees, owners, regulators, suppliers, neighbours. Record what they need and expect, and whether you address it.",
+        "steps": [
+          "List the parties that are relevant to your management systems; skip those that are not.",
+          "Write their needs and expectations, and mark which become compliance obligations.",
+          "Rate influence and interest to decide how closely to manage each party."
+        ]
+      },
+      "why": {
+        "body": "Clause 4.2 asks which interested parties are relevant, what their requirements are, and which of those requirements you will address through the management system.",
+        "clauses": ["hs:4.2", "iso14001:6.1.3"]
+      },
+      "empty": {
+        "title": "No interested parties yet",
+        "body": "Start with the obvious ones: customers, employees, owners and the authorities that regulate you. The assistant can suggest more from your organisation profile.",
+        "cta": "Add an interested party"
+      }
+    },
+    "parties-detail": {
+      "intro": {
+        "title": "One interested party",
+        "body": "The priority follows from influence and interest. Make sure every high-priority party has its needs addressed, and link the documents, risks or objectives that address them under **Related items**."
+      },
+      "why": {
+        "body": "Showing how each relevant requirement is addressed is what turns a list of names into evidence for clause 4.2.",
+        "clauses": ["hs:4.2"]
+      }
+    },
+    "parties-form": {
+      "intro": {
+        "title": "Describe the interested party",
+        "body": "Be specific: \"public sector customers\" is more useful than \"customers\". Write needs and expectations in their words, then say how you meet them."
+      },
+      "why": {
+        "body": "Requirements that you decide to address become part of your management system and are often compliance obligations.",
+        "clauses": ["hs:4.2"]
+      },
+      "fields": {
+        "name": { "help": "Who the party is.", "example": "Norwegian Labour Inspection Authority" },
+        "category": { "help": "The kind of party. Used for filtering and reports." },
+        "party_type": {
+          "help": "Internal parties are inside the organisation (employees, owners); external parties are outside it."
+        },
+        "description": {
+          "help": "A short description of the party and its relationship with you."
+        },
+        "needs": { "help": "What they need from you to be satisfied or to stay with you." },
+        "expectations": { "help": "What they expect, even if it is not written down." },
+        "requirements": {
+          "help": "The requirements that apply: laws, contract terms, standards they ask for."
+        },
+        "addressed_status": {
+          "help": "How far your management system already meets their requirements."
+        },
+        "how_addressed": {
+          "help": "The processes, documents or controls that meet the requirements."
+        },
+        "influence": { "help": "How much the party can affect your results." },
+        "interest": { "help": "How much the party cares about what you do." },
+        "owner": { "help": "The person who keeps track of this party." },
+        "next_review_at": { "help": "When the entry should be checked again." },
+        "change_reason": { "help": "Optional note for the revision history." }
+      }
+    },
+    "scopes-list": {
+      "intro": {
+        "title": "Set the boundaries of each management system",
+        "body": "A **scope statement** says what a management system covers: the products and services, the sites, the organisational units, and any requirement you exclude with a justification. You need one approved scope per framework you work with.",
+        "steps": [
+          "Create one scope statement per framework (ISO 9001, ISO/IEC 27001 and so on).",
+          "Base it on your context analysis and interested parties.",
+          "Approve it. Approving a new version automatically retires the previous one."
+        ]
+      },
+      "why": {
+        "body": "Clause 4.3 requires the scope to be available as documented information. Certification bodies print it on the certificate, so it must be precise.",
+        "clauses": ["hs:4.3", "hs:7.5"]
+      },
+      "empty": {
+        "title": "No scope statements yet",
+        "body": "Write the scope for your first management system. The assistant can draft a statement from your organisation profile.",
+        "cta": "Write a scope statement"
+      }
+    },
+    "scopes-detail": {
+      "intro": {
+        "title": "One scope statement",
+        "body": "Only one scope per framework is approved at a time. Exclusions need a justification an auditor will accept."
+      },
+      "why": {
+        "body": "A clear, approved scope tells everyone, including the certification body, exactly what is being certified.",
+        "clauses": ["hs:4.3"]
+      }
+    },
+    "scopes-form": {
+      "intro": {
+        "title": "Write the scope statement",
+        "body": "Describe what is included in one or two sentences, then add boundaries, sites and exclusions. Use **Draft scope statement** for a first version."
+      },
+      "why": {
+        "body": "The scope must consider the context (4.1) and the requirements of interested parties (4.2).",
+        "clauses": ["hs:4.3", "hs:4.1", "hs:4.2"]
+      },
+      "fields": {
+        "title": { "help": "A short name for the scope.", "example": "ISMS scope 2026" },
+        "framework": {
+          "help": "The management system this scope is for. It cannot be changed later."
+        },
+        "statement": {
+          "help": "The scope as it should appear on the certificate.",
+          "example": "Development, operation and support of the CoreFlow software platform from our office in Oslo."
+        },
+        "boundaries": {
+          "help": "What is outside the scope, and the interfaces with what is outside."
+        },
+        "products_services": { "help": "The products and services the management system covers." },
+        "sites": { "help": "The locations covered, one per line." },
+        "owner": { "help": "The person responsible for keeping the scope correct." },
+        "review_interval_months": {
+          "help": "How often the scope must be reviewed.",
+          "example": "12"
+        },
+        "next_review_at": {
+          "help": "Leave empty to calculate it from the interval when the scope is approved."
+        },
+        "change_reason": {
+          "help": "Explain what changed and why. It is kept in the revision history."
+        }
+      }
+    },
+    "policies-list": {
+      "intro": {
+        "title": "The commitments leadership stands behind",
+        "body": "A **policy** states the intentions and direction of the organisation, signed off by top management: quality, information security, environment, AI, privacy, health and safety. Each standard expects its own policy, or one combined policy that covers them all.",
+        "steps": [
+          "Draft the policy (the assistant can help), then submit it for approval.",
+          "Link the controlled document that carries the approved text.",
+          "Communicate it: ask employees to read and acknowledge it."
+        ]
+      },
+      "why": {
+        "body": "Clause 5.2 requires a policy that fits the purpose, gives a framework for objectives and commits to meeting requirements and to continual improvement. It must be communicated and available.",
+        "clauses": ["hs:5.2", "iso27001:A.5.1", "iso42001:A.2.2", "gdpr:24"]
+      },
+      "empty": {
+        "title": "No policies yet",
+        "body": "Start with the policy for your main management system. The assistant can draft a first version from your organisation profile.",
+        "cta": "Create a policy"
+      }
+    },
+    "policies-detail": {
+      "intro": {
+        "title": "One policy",
+        "body": "Once approved, use **Communicate** to create acknowledgement tasks. Editing an approved policy starts a new version that needs approval again."
+      },
+      "why": {
+        "body": "Auditors check that the policy is approved by top management, communicated and understood, and reviewed for continuing suitability.",
+        "clauses": ["hs:5.2", "hs:7.3", "iso27001:A.5.1"]
+      }
+    },
+    "policies-form": {
+      "intro": {
+        "title": "Write the policy",
+        "body": "Keep it short and specific to your organisation. A good policy says what you commit to, not how you do it; procedures describe the how."
+      },
+      "why": {
+        "body": "The policy text must include the commitments the standard asks for, for example to satisfy applicable requirements and to improve continually.",
+        "clauses": ["hs:5.2"]
+      },
+      "fields": {
+        "title": {
+          "help": "The policy name as people will see it.",
+          "example": "Information security policy"
+        },
+        "kind": { "help": "Which management system the policy belongs to." },
+        "statement": {
+          "help": "The policy text. You can use simple formatting such as lists and bold text."
+        },
+        "owner": {
+          "help": "Usually a member of top management, or the manager who maintains the policy."
+        },
+        "review_interval_months": {
+          "help": "How often the policy must be reviewed.",
+          "example": "12"
+        },
+        "next_review_at": {
+          "help": "Leave empty to calculate it from the interval when the policy is approved."
+        },
+        "change_reason": {
+          "help": "Explain what changed and why. It is kept in the revision history."
+        }
+      }
+    },
+    "responsibilities-list": {
+      "intro": {
+        "title": "Who does what, and who decides",
+        "body": "Record the **roles, responsibilities and authorities** for your management systems and key processes. Each responsibility has a **RACI**: who is **R**esponsible for doing the work, who is **A**ccountable for the outcome, who is **C**onsulted and who is **I**nformed.",
+        "steps": [
+          "Add one responsibility per process or area.",
+          "Assign exactly one A and at least one R.",
+          "Use the RACI matrix to spot gaps and overload."
+        ]
+      },
+      "why": {
+        "body": "Clause 5.3 requires top management to assign responsibilities and authorities for relevant roles and to communicate them, including who reports on the performance of the management system.",
+        "clauses": ["hs:5.3", "iso27001:A.5.2", "iso27001:A.5.3", "iso42001:A.3.2"]
+      },
+      "empty": {
+        "title": "No responsibilities yet",
+        "body": "Start with the management system itself: who is accountable for it, and who runs it day to day.",
+        "cta": "Add a responsibility"
+      }
+    },
+    "responsibilities-detail": {
+      "intro": {
+        "title": "One responsibility",
+        "body": "A missing A means nobody owns the outcome; a missing R means nobody does the work. Fix both before an audit."
+      },
+      "why": {
+        "body": "Clear accountability and segregation of conflicting duties are what auditors look for.",
+        "clauses": ["hs:5.3", "iso27001:A.5.3"]
+      }
+    },
+    "responsibilities-form": {
+      "intro": {
+        "title": "Describe the responsibility",
+        "body": "Name the process or area, add the people, roles or departments with their RACI letter, and write down the authorities: what they may decide or approve."
+      },
+      "why": {
+        "body": "Responsibilities and authorities must be assigned, communicated and understood.",
+        "clauses": ["hs:5.3"]
+      },
+      "fields": {
+        "title": {
+          "help": "What the responsibility is about.",
+          "example": "Handling information security incidents"
+        },
+        "area": { "help": "The process or area it belongs to." },
+        "description": { "help": "What the responsibility covers." },
+        "authorities": {
+          "help": "What the responsible people may decide, approve or stop.",
+          "example": "May shut down systems during an incident."
+        },
+        "owner": { "help": "The person who keeps this responsibility up to date." },
+        "next_review_at": { "help": "When the responsibility should be checked again." },
+        "change_reason": { "help": "Optional note for the revision history." }
+      }
+    },
+    "raci-matrix": {
+      "intro": {
+        "title": "The RACI matrix",
+        "body": "Rows are responsibilities, columns are the roles, departments and people involved. Look for rows without an A or R, and for columns carrying too many A's."
+      },
+      "why": {
+        "body": "The matrix is a quick way to show an auditor that responsibilities and authorities are assigned, and that conflicting duties are separated.",
+        "clauses": ["hs:5.3", "iso27001:A.5.3"]
+      }
+    }
+  },
+  "lessons": {
+    "context-foundation": {
+      "title": "Context: the foundation of every standard",
+      "minutes": 5,
+      "sections": [
+        {
+          "heading": "Why every standard starts with context",
+          "body": "ISO 9001, ISO/IEC 27001, ISO 14001, ISO 45001 and ISO/IEC 42001 share the same high-level structure. Clause 4 always asks the same thing first: **understand the organisation and its context** before deciding what to manage."
+        },
+        {
+          "heading": "Internal and external issues",
+          "body": "Internal issues are things like culture, skills, systems and finances. External issues are markets, laws, technology, competitors and the climate. A SWOT analysis covers both; a PESTLE analysis looks deeper at the external side."
+        },
+        {
+          "heading": "From issues to action",
+          "body": "Issues are not an end in themselves. High-impact issues become **risks and opportunities** (clause 6.1), shape your **objectives** (6.2) and are reviewed in the **management review** (9.3)."
+        },
+        {
+          "heading": "The scope ties it together",
+          "body": "With context and interested parties understood, the **scope statement** (4.3) says exactly what the management system covers, which sites and which products or services, and justifies any excluded requirement."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Which clause asks you to determine internal and external issues?",
+          "options": ["Clause 4.1", "Clause 6.2", "Clause 9.2"],
+          "answer": 0,
+          "explanation": "Clause 4.1, understanding the organisation and its context."
+        },
+        {
+          "question": "Where should high-impact issues from your analysis usually end up?",
+          "options": [
+            "Nowhere, the analysis is enough",
+            "In the risks and opportunities you plan for",
+            "Only in the scope statement"
+          ],
+          "answer": 1,
+          "explanation": "Clause 6.1 asks you to consider the issues from 4.1 when planning for risks and opportunities."
+        },
+        {
+          "question": "What must a scope statement do with excluded requirements?",
+          "options": ["Nothing", "Justify why they do not apply", "Delete them from the standard"],
+          "answer": 1,
+          "explanation": "Exclusions must be justified, and they must not affect your ability to meet requirements."
+        }
+      ],
+      "pass_mark": 0.67
+    },
+    "interested-parties": {
+      "title": "Interested parties in practice",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Relevant, not everyone",
+          "body": "You do not need to list everybody. Clause 4.2 asks for the parties that are **relevant** to your management system and for their **relevant requirements**."
+        },
+        {
+          "heading": "Needs, expectations and obligations",
+          "body": "Needs are what a party requires; expectations are what they assume. Some requirements are mandatory (laws, contracts) and become **compliance obligations**; others you choose to adopt."
+        },
+        {
+          "heading": "Influence and interest",
+          "body": "Rate influence and interest to decide how much attention each party gets: manage closely, keep satisfied, keep informed, or monitor."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "A party has high influence but little interest in your day-to-day work. What is the usual approach?",
+          "options": ["Manage closely", "Keep satisfied", "Ignore them"],
+          "answer": 1,
+          "explanation": "High influence, lower interest: make sure their requirements are met so they stay satisfied."
+        },
+        {
+          "question": "Which of these is typically a compliance obligation?",
+          "options": [
+            "A legal requirement from a regulator",
+            "A wish from one employee",
+            "A competitor's marketing claim"
+          ],
+          "answer": 0,
+          "explanation": "Legal and contractual requirements are obligations you must meet."
+        }
+      ],
+      "pass_mark": 0.5
+    },
+    "policies-and-raci": {
+      "title": "Leadership: policies and responsibilities",
+      "minutes": 5,
+      "sections": [
+        {
+          "heading": "Leadership is a requirement",
+          "body": "Clause 5.1 asks top management to take accountability for the effectiveness of the management system. Two visible signs of that are approved **policies** and clearly assigned **responsibilities**."
+        },
+        {
+          "heading": "A good policy",
+          "body": "A policy fits the organisation's purpose, gives a framework for objectives, and commits to meeting requirements and to continual improvement. It is approved, communicated and kept available."
+        },
+        {
+          "heading": "RACI in one minute",
+          "body": "**R**esponsible does the work. **A**ccountable owns the outcome and signs off; there is exactly one. **C**onsulted gives input before. **I**nformed is told after. Too many A's on one person is a warning sign."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "How many people or roles should be Accountable (A) for one responsibility?",
+          "options": ["Exactly one", "At least two", "As many as possible"],
+          "answer": 0,
+          "explanation": "One accountable party avoids confusion about who owns the outcome."
+        },
+        {
+          "question": "What should happen after a policy is approved?",
+          "options": [
+            "It is filed away",
+            "It is communicated and people acknowledge it",
+            "It is deleted at the next review"
+          ],
+          "answer": 1,
+          "explanation": "Clause 5.2 requires the policy to be communicated, understood and applied."
+        }
+      ],
+      "pass_mark": 0.5
+    }
+  },
+  "tours": {
+    "overview": [
+      {
+        "target": "context-registers",
+        "title": "Five registers",
+        "body": "Context analyses, interested parties, scope statements, policies, and roles and responsibilities. Each tile opens its register."
+      },
+      {
+        "target": "context-gaps",
+        "title": "What needs attention",
+        "body": "Frameworks without an approved scope, policy types that are missing, and reviews that are overdue."
+      }
+    ],
+    "analyses": [
+      {
+        "target": "context-new-analysis",
+        "title": "Start an analysis",
+        "body": "Create a SWOT or PESTLE analysis. The assistant can draft the first version from your organisation profile."
+      }
+    ],
+    "parties": [
+      {
+        "target": "context-new-party",
+        "title": "Add an interested party",
+        "body": "Register who has a stake in your management system, what they need, and how you address it."
+      }
+    ],
+    "scopes": [
+      {
+        "target": "context-new-scope",
+        "title": "One scope per framework",
+        "body": "Write a scope statement for each management system. Approving a new one retires the previous one."
+      }
+    ],
+    "policies": [
+      {
+        "target": "context-new-policy",
+        "title": "Create a policy",
+        "body": "Draft, approve, link the document and communicate it to the people who must follow it."
+      }
+    ],
+    "responsibilities": [
+      {
+        "target": "context-new-responsibility",
+        "title": "Assign responsibilities",
+        "body": "Add a responsibility per process or area and give it a RACI: one A, at least one R."
+      }
+    ]
+  }
+}
