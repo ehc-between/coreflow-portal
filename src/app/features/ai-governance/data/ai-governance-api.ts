@@ -144,8 +144,13 @@ export class AiGovernanceApi {
     return this.api.get<{ items: AiIncident[] }>(`${this.base(orgId)}/systems/${id}/incidents`);
   }
 
-  linkIncident(orgId: string, id: string, deviationId: string): Observable<AiIncident> {
-    return this.api.post<AiIncident>(
+  linkIncident(
+    orgId: string,
+    id: string,
+    deviationId: string,
+  ): Observable<{ items: AiIncident[] }> {
+    // The backend answers with the refreshed list of linked incidents.
+    return this.api.post<{ items: AiIncident[] }>(
       `${this.base(orgId)}/systems/${id}/incidents`,
       { deviation_id: deviationId },
       quiet(),
