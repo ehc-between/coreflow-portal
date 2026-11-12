@@ -15,7 +15,9 @@ import { Subscription } from 'rxjs';
 import { DeviationStats } from '../../core/deviations/deviation.models';
 import { DeviationsApi } from '../../core/deviations/deviations-api';
 import { DocumentsApi } from '../../core/documents/documents-api';
+import { ModuleService } from '../../core/modules/module.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
+import { ReportWidgets } from '../reports/components/report-widgets';
 import { GuideIntro } from '../../shared/guidance/guide-intro';
 import { AgentBanner } from '../../shared/ui/agent-banner/agent-banner';
 import { Card } from '../../shared/ui/card/card';
@@ -60,6 +62,7 @@ const TREND_MONTHS = 6;
     StatBarList,
     TrendChart,
     SetupBanner,
+    ReportWidgets,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -82,6 +85,10 @@ const TREND_MONTHS = 6;
       </div>
 
       <app-setup-banner class="mb-[22px] block" />
+
+      @if (showReportWidgets()) {
+        <app-report-widgets class="mb-[22px] block" />
+      }
 
       @if (tiles().length === 0) {
         <app-card>
@@ -174,6 +181,11 @@ export class Dashboard {
     this.permissions().includes('deviations:read'),
   );
   private readonly canReadDocuments = computed(() => this.permissions().includes('documents:read'));
+  private readonly modules = inject(ModuleService);
+  /** Role dashboard widgets (M23) while the reports module is on and readable. */
+  protected readonly showReportWidgets = computed(
+    () => this.modules.isEnabled('reports') && this.permissions().includes('reports:read'),
+  );
   private readonly canApproveDocuments = computed(() =>
     this.permissions().includes('documents:approve'),
   );

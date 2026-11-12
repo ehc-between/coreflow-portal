@@ -1,0 +1,463 @@
+{
+  "nav": {
+    "label": "Reports sections",
+    "overview": "Compliance overview",
+    "calendar": "Calendar",
+    "registers": "Registers",
+    "definitions": "Saved reports",
+    "auditPacks": "Audit packs",
+    "dashboards": "Role dashboards"
+  },
+  "common": {
+    "loading": "Loading…",
+    "retry": "Try again",
+    "close": "Close"
+  },
+  "lesson": {
+    "open": "Micro-lesson",
+    "close": "Close lesson"
+  },
+  "framework": {
+    "label": "Framework",
+    "all": "All frameworks"
+  },
+  "frameworks": {
+    "iso9001": "ISO 9001 Quality",
+    "iso27001": "ISO/IEC 27001 Information security",
+    "iso14001": "ISO 14001 Environment",
+    "iso42001": "ISO/IEC 42001 AI management",
+    "iso45001": "ISO 45001 Health and safety",
+    "gdpr": "GDPR Privacy",
+    "eu_ai_act": "EU AI Act",
+    "nis2": "NIS2 Cybersecurity"
+  },
+  "formats": {
+    "csv": "CSV",
+    "xlsx": "Excel (XLSX)",
+    "pdf": "PDF"
+  },
+  "langs": {
+    "en": "English",
+    "nb": "Norwegian (bokmål)"
+  },
+  "fields": {
+    "value": "Count",
+    "total": "Total",
+    "open": "Open",
+    "overdue": "Overdue",
+    "due_soon": "Due in the next 14 days",
+    "open_actions": "Open actions",
+    "overdue_actions": "Overdue actions",
+    "average": "Average",
+    "by_module": "By area",
+    "by_severity": "By severity",
+    "percent": "Compliance",
+    "completed": "Completed",
+    "assigned": "Assigned",
+    "expired": "Expired",
+    "expiring": "Expiring soon"
+  },
+  "severity": {
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High",
+    "critical": "Critical"
+  },
+  "statuses": {
+    "open": "Open",
+    "in_progress": "In progress",
+    "blocked": "Blocked",
+    "done": "Done",
+    "cancelled": "Cancelled",
+    "investigating": "Investigating",
+    "action": "Action",
+    "verification": "Verification",
+    "closed": "Closed",
+    "verified": "Verified",
+    "draft": "Draft",
+    "in_review": "In review",
+    "approved": "Approved",
+    "obsolete": "Obsolete",
+    "covered": "Covered",
+    "partial": "Partly covered",
+    "not_started": "Not started",
+    "not_applicable": "Not applicable",
+    "confirmed": "Confirmed",
+    "suggested": "Suggested"
+  },
+  "metric": {
+    "readinessLabel": "Readiness {{ score }} %",
+    "noStandards": "No standards are enabled yet.",
+    "listTotal": "{{ count }} in total",
+    "nothing": "Nothing to show right now.",
+    "heatMapLabel": "Risk heat map with {{ count }} risks",
+    "likelihood": "Likelihood",
+    "consequence": "Consequence"
+  },
+  "overview": {
+    "title": "Compliance overview",
+    "subtitle": "Readiness, overdue work and open findings across your management system.",
+    "generatedAt": "Figures as of {{ date }}",
+    "kpi": {
+      "readiness": "Average readiness",
+      "noStandards": "No standards enabled",
+      "overdue": "Overdue items",
+      "findings": "Open findings",
+      "tasks": "Overdue tasks",
+      "dueSoon": "{{ count }} due in 14 days"
+    },
+    "readiness": {
+      "title": "Readiness per standard",
+      "open": "Open standards",
+      "ask": "Explain how the readiness score of our standards is calculated and what would raise it the most.",
+      "unavailable": "Readiness needs the standards module and permission to read standards."
+    },
+    "overdue": {
+      "title": "Overdue items",
+      "open": "Open calendar",
+      "none": "Nothing is overdue. Well done.",
+      "truncated": "Only the first items are counted; filter the calendar to see the rest."
+    },
+    "findings": {
+      "title": "Open findings",
+      "open": "Open deviations",
+      "none": "No open findings you can see."
+    },
+    "documents": {
+      "title": "Document reviews",
+      "unavailable": "You need access to documents to see their reviews."
+    },
+    "risk": {
+      "title": "Risk heat map",
+      "unavailable": "The heat map appears once the risk module is enabled and you can read risks."
+    },
+    "training": {
+      "title": "Training compliance",
+      "unavailable": "Training compliance appears once the training module is enabled and you can read training records."
+    }
+  },
+  "narrative": {
+    "title": "State of compliance report",
+    "subtitle": "A written summary of the figures above, for management review, an auditor or staff.",
+    "audience": "Audience",
+    "audiences": {
+      "management": "Top management",
+      "auditor": "Auditor",
+      "staff": "Staff"
+    },
+    "period": "Look ahead",
+    "days": "{{ count }} days",
+    "generate": "Write the report",
+    "copy": "Copy text",
+    "copied": "Report copied to the clipboard.",
+    "empty": "Choose an audience and write the report. Nothing is stored until you copy or save it yourself.",
+    "disclaimer": "Drafted by the assistant from the figures you can see. Check it before you share it."
+  },
+  "calendar": {
+    "title": "Organisation calendar",
+    "subtitle": "Every open due date you can see: tasks, reviews, actions and more.",
+    "exportIcs": "Export to calendar (.ics)",
+    "previous": "Previous month",
+    "next": "Next month",
+    "today": "Today",
+    "module": "Area",
+    "allModules": "All areas",
+    "includeOverdue": "Include earlier overdue items",
+    "viewLabel": "Calendar view",
+    "views": {
+      "month": "Month",
+      "list": "List"
+    },
+    "kinds": {
+      "due": "Due",
+      "review": "Review",
+      "action": "Action"
+    },
+    "truncated": "There are more items than can be shown. Narrow the area or framework to see them all.",
+    "earlierOverdue": "Overdue from earlier ({{ count }})",
+    "showDay": "Show {{ date }}",
+    "dayWithItems": "{{ date }}, {{ count }} items",
+    "more": "+{{ count }} more",
+    "nothingThisDay": "Nothing is due on this day.",
+    "nothingThisMonth": "Nothing is due this month."
+  },
+  "registers": {
+    "title": "Registers and exports",
+    "subtitle": "Filter any register, preview it and export it as CSV, Excel or PDF.",
+    "pick": "Choose a register",
+    "language": "Export language",
+    "export": "Export",
+    "exported": "The export has been downloaded.",
+    "saveAsReport": "Save as report",
+    "needsStandard": "Choose a standard to preview this register.",
+    "noRows": "No rows match these filters.",
+    "previewCount": "Showing {{ shown }} of {{ total }} rows",
+    "previewTruncated": "The preview shows the first rows only. The export contains all rows you can see.",
+    "askAbout": "What does the \"{{ register }}\" register tell an auditor, and which filters are most useful?"
+  },
+  "filters": {
+    "q": "Search",
+    "qPlaceholder": "Title, code or text",
+    "standard": "Standard",
+    "chooseStandard": "Choose a standard",
+    "anyStandard": "Any standard",
+    "from": "From",
+    "to": "To",
+    "status": "Status",
+    "statusHint": "No status selected means every status.",
+    "none": "The register \"{{ register }}\" has no filters."
+  },
+  "columns": {
+    "legend": "Columns",
+    "hint": "All columns are exported unless you untick some."
+  },
+  "definitions": {
+    "title": "Saved reports",
+    "search": "Search saved reports",
+    "new": "New report",
+    "back": "Saved reports",
+    "register": "Register",
+    "allRegisters": "All registers",
+    "owner": "Owner",
+    "owners": {
+      "all": "Everyone's reports",
+      "me": "My reports"
+    },
+    "sortLabel": "Sort",
+    "sorts": {
+      "name": "Name",
+      "updated": "Recently changed",
+      "created": "Recently created",
+      "register": "Register"
+    },
+    "ownedBy": "Owner: {{ name }}",
+    "lastExported": "Last run {{ date }}",
+    "neverExported": "Not run yet"
+  },
+  "form": {
+    "back": "Back",
+    "newTitle": "New saved report",
+    "editTitle": "Edit saved report",
+    "name": "Name",
+    "nameRequired": "Give the report a name.",
+    "description": "Description",
+    "register": "Register",
+    "chooseRegister": "Choose a register",
+    "registerRequired": "Choose the register this report exports.",
+    "filtersTitle": "Filters",
+    "askFilters": "Which filters on the \"{{ register }}\" register make a useful recurring report?",
+    "format": "Default format",
+    "lang": "Language",
+    "owner": "Owner",
+    "changeReason": "Reason for the change",
+    "changeReasonPlaceholder": "For example: added the overdue filter for the quarterly review",
+    "create": "Create report",
+    "saveChanges": "Save changes",
+    "created": "Report saved.",
+    "saved": "Changes saved."
+  },
+  "detail": {
+    "run": "Run ({{ format }})",
+    "schedule": "Schedule",
+    "edit": "Edit",
+    "delete": "Delete report",
+    "deleteTitle": "Delete this report?",
+    "deleteMessage": "\"{{ name }}\" and its scheduled runs are removed. Files already exported are not affected.",
+    "deleted": "Report deleted.",
+    "exportAs": "Run as",
+    "lastExported": "Last run",
+    "noFilters": "No filters: every row you can see.",
+    "allColumns": "All columns",
+    "filterQ": "Search: {{ q }}",
+    "filterFrom": "From {{ date }}",
+    "filterTo": "To {{ date }}",
+    "filterStandard": "Standard: {{ standard }}",
+    "created": "Created by {{ name }} on {{ date }}",
+    "unknownUser": "Unknown user",
+    "askSummarise": "Summarise the saved report \"{{ name }}\": what it shows and when it is useful."
+  },
+  "schedule": {
+    "title": "Schedule report",
+    "intro": "A recurring task reminds the assignee to run this report. Deleting the report cancels the task.",
+    "start": "First run",
+    "leadDays": "Show the task this many days before",
+    "assignee": "Assign to",
+    "assigneeHint": "Leave empty to assign it to yourself.",
+    "submit": "Create schedule",
+    "created": "Schedule created. You will find the task in My Work."
+  },
+  "packs": {
+    "title": "Audit packs",
+    "subtitle": "One click gives an auditor the Statement of Applicability, policies, registers and evidence index.",
+    "generate": "Generate audit pack",
+    "generateTitle": "Generate audit pack",
+    "generateIntro": "The pack is built from what you can see right now and stored with a checksum, so you can prove later that it has not changed.",
+    "generateSubmit": "Generate",
+    "building": "Building the pack. This can take a moment for large registers…",
+    "generated": "Audit pack ready.",
+    "noStandards": "No standards are enabled. Enable a standard under Standards before generating a pack.",
+    "standard": "Standard",
+    "standardRequired": "Choose the standard the pack is for.",
+    "packTitle": "Title",
+    "packTitlePlaceholder": "Leave empty for a title with the standard and date",
+    "includePolicies": "Include approved policies",
+    "registers": "Registers to include",
+    "registersHint": "All relevant registers are included when every box is ticked.",
+    "readiness": "Readiness {{ score }} %",
+    "download": "Download",
+    "back": "Audit packs",
+    "delete": "Delete pack",
+    "deleteTitle": "Delete this audit pack?",
+    "deleteMessage": "\"{{ title }}\" is removed from the list. Copies already downloaded are not affected.",
+    "deleted": "Audit pack deleted.",
+    "generatedBy": "Generated by {{ name }} on {{ date }}",
+    "checksum": "SHA-256 checksum",
+    "contents": "Contents",
+    "file": "File",
+    "kind": "Type",
+    "rows": "Rows",
+    "size": "Size",
+    "noContents": "This pack has no files.",
+    "askSummarise": "Summarise the audit pack \"{{ title }}\" and point out gaps an auditor is likely to ask about.",
+    "summary": {
+      "requirements": "Requirements",
+      "applicable": "Applicable",
+      "covered": "Covered",
+      "evidence_links": "Evidence links",
+      "policies": "Policies"
+    },
+    "kinds": {
+      "index": "Index",
+      "soa": "Statement of Applicability",
+      "evidence": "Evidence index",
+      "readiness": "Readiness",
+      "policy": "Policy",
+      "policy_index": "Policy index",
+      "registers": "Registers",
+      "manifest": "Manifest"
+    }
+  },
+  "designer": {
+    "title": "Role dashboards",
+    "subtitle": "Choose the widgets people see on their home dashboard, for the whole organisation or per role.",
+    "openDashboard": "Open my dashboard",
+    "scope": "Layout for",
+    "orgDefault": "Organisation default",
+    "customised": "Customised by {{ name }} on {{ date }}",
+    "usingBuiltin": "Using the built-in layout. Save to make it your organisation default.",
+    "usingFallback": "No layout for this role yet: its members see the organisation default.",
+    "widgets": "Widgets ({{ count }} of {{ max }})",
+    "notAvailable": "Not available to you",
+    "size": "Size",
+    "sizes": {
+      "sm": "Small",
+      "md": "Medium",
+      "lg": "Full width"
+    },
+    "moveUp": "Move \"{{ title }}\" up",
+    "moveDown": "Move \"{{ title }}\" down",
+    "remove": "Remove \"{{ title }}\"",
+    "noWidgets": "No widgets. Add one below.",
+    "add": "Add widget",
+    "choose": "Choose a widget",
+    "save": "Save layout",
+    "saved": "Layout saved.",
+    "reset": "Reset",
+    "resetTitle": "Reset this layout?",
+    "resetMessage": "The layout for {{ scope }} is removed and its people fall back to the next layout.",
+    "wasReset": "Layout reset."
+  },
+  "widgets": {
+    "heading": "Your dashboard",
+    "sourceRole": "Layout for {{ role }}",
+    "sourceOrg": "Organisation layout",
+    "sourceBuiltin": "Standard layout",
+    "loadFailed": "The dashboard widgets could not be loaded.",
+    "unavailable": "You don't have access to this information, or its module is turned off.",
+    "empty": "No widgets have been chosen for your dashboard.",
+    "open": "Open {{ title }}",
+    "readiness": {
+      "title": "Readiness",
+      "description": "Readiness score per enabled standard, from applicability, evidence and its freshness."
+    },
+    "openFindings": {
+      "title": "Open findings",
+      "description": "Open deviations and their corrective actions, by severity."
+    },
+    "overdueActions": {
+      "title": "Overdue actions",
+      "description": "Corrective and preventive actions past their due date."
+    },
+    "overdueTasks": {
+      "title": "Overdue tasks",
+      "description": "Open tasks past their due date, and those due soon."
+    },
+    "documentReviews": {
+      "title": "Document reviews",
+      "description": "Documents whose periodic review is overdue or due soon."
+    },
+    "overdueItems": {
+      "title": "Overdue items",
+      "description": "Everything past its due date, by area."
+    },
+    "upcoming": {
+      "title": "Coming up",
+      "description": "Due dates in the next four weeks."
+    },
+    "auditPacks": {
+      "title": "Latest audit packs",
+      "description": "The most recently generated audit packs."
+    }
+  },
+  "errors": {
+    "module_disabled": "Reports are turned off for this organisation.",
+    "forbidden": "You don't have permission to do that.",
+    "unknown_framework": "That framework is not known.",
+    "report_definition_not_found": "This report no longer exists.",
+    "audit_pack_not_found": "This audit pack no longer exists.",
+    "register_not_found": "That register is not available.",
+    "register_unavailable": "The register behind this report is not available any more.",
+    "unknown_column": "One of the chosen columns is not part of this register.",
+    "unsupported_filter": "This register does not accept one of the filters.",
+    "invalid_filters": "Check the filters and try again.",
+    "invalid_status": "One of the statuses is not valid for this register.",
+    "standard_required": "Choose a standard for this register.",
+    "standard_not_found": "That standard is not known.",
+    "standard_not_enabled": "That standard is not enabled for your organisation.",
+    "invalid_window": "The end date must come after the start date.",
+    "window_too_large": "Choose a shorter period (at most 400 days).",
+    "invalid_owner": "The new owner must be a member of the organisation.",
+    "invalid_assignee": "Choose a valid assignee.",
+    "invalid_rrule": "The repeat rule is not valid.",
+    "role_not_found": "That role does not exist.",
+    "unknown_widget": "One of the widgets is not available any more.",
+    "dashboard_not_found": "There is no saved layout to reset.",
+    "unknown_register": "One of the chosen registers is not known.",
+    "audit_pack_too_large": "The pack would be too large. Leave out some registers or policies.",
+    "audit_pack_empty": "This audit pack has no file to download."
+  },
+  "notifications": {
+    "definitionCreated": "New report: {{ title }}",
+    "definitionUpdated": "Report updated: {{ title }}",
+    "definitionDeleted": "Report deleted: {{ title }}",
+    "definitionExported": "Report run: {{ title }}",
+    "definitionScheduled": "Report scheduled: {{ title }}",
+    "definitionOwnerChanged": "You now own the report: {{ title }}",
+    "auditPackGenerated": "Audit pack ready: {{ title }}",
+    "auditPackDeleted": "Audit pack deleted: {{ title }}",
+    "dashboardUpdated": "Dashboard layout updated",
+    "dashboardReset": "Dashboard layout reset"
+  },
+  "timeline": {
+    "definitionCreated": "Report created",
+    "definitionUpdated": "Report updated",
+    "definitionDeleted": "Report deleted",
+    "definitionExported": "Report run",
+    "definitionScheduled": "Report scheduled",
+    "definitionOwnerChanged": "Owner changed",
+    "auditPackGenerated": "Audit pack generated",
+    "auditPackDeleted": "Audit pack deleted",
+    "dashboardUpdated": "Dashboard layout updated",
+    "dashboardReset": "Dashboard layout reset"
+  }
+}
