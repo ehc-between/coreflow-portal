@@ -23,6 +23,7 @@ import { Icon } from '../../../shared/ui/icon/icon';
 import { OrgDocumentSettings } from '../document-settings/org-document-settings';
 import { OrgInvitations } from '../invitations/org-invitations';
 import { OrgMembers } from '../members/org-members';
+import { RecordsSettingsLink } from '../../records/records-settings-link';
 
 /**
  * Org Settings shell, scoped to the currently selected org. Hosts Departments
@@ -46,6 +47,7 @@ import { OrgMembers } from '../members/org-members';
     OrgMembers,
     OrgDocumentSettings,
     OrgInvitations,
+    RecordsSettingsLink,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './org-settings.html',
@@ -64,6 +66,10 @@ export class OrgSettings {
   protected readonly canManage = computed(() => hasAnyPermission(this.granted(), 'org:manage'));
   /** Invitations. */
   protected readonly canInvite = computed(() => hasAnyPermission(this.granted(), 'users:invite'));
+  /** Record types and workflows (F4). */
+  protected readonly canDesignRecords = computed(() =>
+    hasAnyPermission(this.granted(), 'records:admin'),
+  );
 
   protected readonly departments = signal<readonly DepartmentSummary[]>([]);
   protected readonly loading = signal(false);

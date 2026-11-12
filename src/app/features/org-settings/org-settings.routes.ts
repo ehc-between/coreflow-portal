@@ -15,6 +15,11 @@ const routes: Routes = [
       import('./deleted-documents/deleted-documents').then((m) => m.DeletedDocuments),
   },
   {
+    // F4: record types and workflows (gated inside on records:read / records:admin).
+    path: 'record-types',
+    loadChildren: () => import('../records/records.routes'),
+  },
+  {
     path: 'departments/:deptId',
     canActivate: [orgManageGuard],
     loadComponent: () =>
