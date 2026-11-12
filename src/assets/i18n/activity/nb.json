@@ -1,0 +1,260 @@
+{
+  "page": {
+    "title": "Varsler og eskalering",
+    "subtitle": "Bestem hvem som får vite hva, hvordan påminnelser sendes, og hvor forsinket arbeid eskaleres.",
+    "back": "Tilbake til innstillinger",
+    "noOrg": "Velg en organisasjon for å administrere varslene.",
+    "loading": "Laster …",
+    "loadError": "Kunne ikke laste varslingsinnstillingene.",
+    "retry": "Prøv igjen"
+  },
+  "ai": {
+    "suggest": "Foreslå et oppsett",
+    "explain": "Forklar denne siden",
+    "suggestPrompt": "Foreslå varslingsregler og innstillinger for påminnelser og eskalering for organisasjonen vår. Vi sender nå påminnelser {{reminderDays}} dager før fristen og eskalerer etter {{escalationDays}} dager over fristen. Hendelsene vi kan konfigurere, er: {{kinds}}. For hvert forslag: si hvem som bør varsles, på hvilken kanal (i appen, e-post eller daglig oppsummering) og hvorfor. Hold det praktisk, og unngå å varsle personer som ikke trenger å gjøre noe.",
+    "explainPagePrompt": "Forklar hvordan varslingsregler, følgere, påminnelser om frister, eskalering og avdelingsledere virker sammen i CoreFlow, og hvordan de støtter kravene til kommunikasjon i standarder for styringssystemer. Bruk korte steg.",
+    "explainClausePrompt": "Forklar {{clause}} på enkelt språk, og hvordan varsler, påminnelser og eskalering hjelper en organisasjon med å oppfylle kravet. Gi ett praktisk eksempel."
+  },
+  "guide": {
+    "show": "Vis veiledning",
+    "hide": "Skjul veiledning",
+    "whyTitle": "Hvorfor dette er viktig",
+    "clausesLabel": "Relaterte krav",
+    "explainClause": "Be assistenten forklare dette kravet",
+    "lessonLabel": "Minikurs",
+    "checkLabel": "Test deg selv:",
+    "showAnswer": "Vis svar",
+    "clauses": {
+      "iso9001_7_4": "ISO 9001 · 7.4 Kommunikasjon",
+      "iso27001_7_4": "ISO/IEC 27001 · 7.4 Kommunikasjon",
+      "iso9001_5_3": "ISO 9001 · 5.3 Roller og ansvar"
+    },
+    "rules": {
+      "title": "Få med de riktige personene til riktig tid",
+      "body": "Alle endringer i CoreFlow registreres som hendelser. Regler gjør hendelser om til varsler, påminnelser holder fristene synlige, og eskalering sørger for at forsinket arbeid når noen som kan gjøre noe med det.",
+      "step1": "Gå gjennom reglene nedenfor. Hver hendelse har et fornuftig standardoppsett; endre det bare når organisasjonen trenger noe annet.",
+      "step2": "Angi hvor mange dager i forveien påminnelser sendes, og etter hvor mange dager over fristen arbeid eskaleres.",
+      "step3": "Gi hver avdeling en leder, slik at eskaleringer og regler for «avdelingsleder» når en faktisk person.",
+      "why": "Standarder for styringssystemer forventer at dere bestemmer hva som kommuniseres, til hvem, når og hvordan, og at ansvar er tydelig. Konsekvente varsler og eskalering viser dette i praksis, og revisjonsloggen registrerer alle endringer i disse innstillingene.",
+      "lesson": {
+        "title": "Slik virker påminnelser og eskalering",
+        "s1": {
+          "heading": "Påminnelser",
+          "body": "Hver morgen sjekker CoreFlow åpne elementer med frist. Elementer med frist innenfor påminnelsesvinduet sender en påminnelse om at fristen nærmer seg, til eiere og ansvarlige, og elementer over fristen sender en påminnelse om at fristen er passert. Hver person får høyst én av hver per element per dag."
+        },
+        "s2": {
+          "heading": "Eskalering",
+          "body": "Når et element har vært over fristen i hele eskaleringsperioden, eskaleres det én gang til avdelingslederen og/eller alle med eskaleringsrollen. Etter enda en hel periode eskaleres det igjen på neste nivå."
+        },
+        "s3": {
+          "heading": "Kanaler",
+          "body": "Varsler i appen vises under bjella. E-post kan sendes med en gang eller samles i den daglige oppsummeringen. Hver person kan finjustere kategorier og stilletid i sine egne varslingsinnstillinger."
+        },
+        "check": {
+          "question": "Eskalering er satt til 3 dager. Et element er 7 dager over fristen. Hvor mange ganger har det blitt eskalert?",
+          "answer": "To ganger: én gang ved 3 dager over fristen (nivå 1) og én gang ved 6 dager over fristen (nivå 2)."
+        }
+      }
+    },
+    "preferences": {
+      "title": "Få varslene til å fungere for deg",
+      "body": "Organisasjonen bestemmer hvilke hendelser som når deg. Her velger du hvordan de når deg: i appen, på e-post med en gang, i en daglig oppsummering eller ikke på e-post i det hele tatt.",
+      "step1": "Velg organisasjon i toppfeltet, og juster deretter hver kategori.",
+      "step2": "Bruk daglig oppsummering for ting du bare trenger å skumme, og e-post med en gang for ting du må gjøre noe med.",
+      "step3": "Angi stilletid, slik at hastemeldinger på e-post venter til arbeidsdagen starter.",
+      "why": "Tydelig kommunikasjon i rett tid er et krav, ikke bare høflighet. Når du tilpasser varslene, forblir viktige meldinger synlige i stedet for å drukne i støy.",
+      "lesson": {
+        "title": "Følge poster",
+        "s1": {
+          "heading": "Følg det du bryr deg om",
+          "body": "Bruk Følg-knappen på en post for å bli varslet om endringer, også når du ikke er eier eller ansvarlig. Den som oppretter og eier en post, blir ofte lagt til automatisk."
+        },
+        "s2": {
+          "heading": "Stilletid",
+          "body": "I stilletiden holdes e-post som skulle gått med en gang, tilbake til neste daglige oppsummering. Varsler i appen kommer fortsatt, så ingenting går tapt."
+        },
+        "check": {
+          "question": "Du slår av varsler i appen for kommentarer, men beholder e-post Med en gang. Hva skjer når noen kommenterer?",
+          "answer": "Du får en e-post med en gang (med mindre det er i stilletiden din), men ingen oppføring under bjella."
+        }
+      }
+    }
+  },
+  "rules": {
+    "title": "Varslingsregler",
+    "subtitle": "For hver hendelse: hvem som varsles, og på hvilke kanaler.",
+    "search": "Søk i hendelser",
+    "moduleFilter": "Filtrer på modul",
+    "allModules": "Alle moduler",
+    "customOnly": "Bare tilpassede",
+    "emptyTitle": "Ingen hendelser å konfigurere ennå",
+    "emptyBody": "Hendelser vises her etter hvert som moduler slås på. Hver av dem starter med en standardregel som du kan justere.",
+    "noMatch": "Ingen hendelser passer med disse filtrene.",
+    "clearFilters": "Fjern filtre",
+    "columns": {
+      "event": "Hendelse",
+      "recipients": "Hvem som varsles",
+      "channels": "Kanaler",
+      "status": "Status",
+      "actions": "Handlinger"
+    },
+    "timelineOnly": "Vises bare på tidslinjen",
+    "nobody": "Ingen",
+    "status": {
+      "timeline": "Tidslinje",
+      "off": "Av",
+      "default": "Standard",
+      "custom": "Tilpasset"
+    },
+    "edit": "Rediger",
+    "editLabel": "Rediger regelen for {{name}}",
+    "saved": "Varslingsregelen er lagret.",
+    "restored": "Standardregelen er gjenopprettet.",
+    "editor": {
+      "close": "Lukk",
+      "enabled": "Send varsler for denne hendelsen",
+      "recipients": "Hvem som varsles",
+      "recipientsHint": "Den som utløste hendelsen, varsles ikke om sin egen handling.",
+      "add": "Legg til …",
+      "remove": "Fjern {{name}}",
+      "channels": "Kanaler",
+      "needRecipient": "Velg minst én mottaker, eller slå av regelen.",
+      "needChannel": "Velg minst én kanal, eller slå av regelen.",
+      "reset": "Gjenopprett standard",
+      "resetTitle": "Gjenopprette standardregelen?",
+      "resetMessage": "Organisasjonens endringer i denne regelen fjernes, og standard mottakere og kanaler gjelder igjen.",
+      "cancel": "Avbryt",
+      "save": "Lagre regel"
+    }
+  },
+  "recipients": {
+    "owner": { "label": "Eier", "hint": "Postens eier eller eiere." },
+    "assignee": {
+      "label": "Ansvarlige",
+      "hint": "Personer, roller eller avdelinger posten er tildelt."
+    },
+    "watchers": { "label": "Følgere", "hint": "Alle som følger posten." },
+    "department_lead": {
+      "label": "Avdelingsleder",
+      "hint": "Lederen for postens avdeling."
+    },
+    "role": { "label": "Rolle", "hint": "Alle som har en rolle." },
+    "department": { "label": "Avdeling", "hint": "Alle i en avdeling." },
+    "user": { "label": "Bestemte personer", "hint": "Navngitte medlemmer av organisasjonen." },
+    "withValue": "{{type}}: {{name}}"
+  },
+  "channels": {
+    "in_app": { "label": "I appen", "hint": "Vises under bjella i CoreFlow." },
+    "email": {
+      "label": "E-post",
+      "hint": "Sendes på e-post, med en gang eller i oppsummeringen etter hver persons valg."
+    },
+    "digest": {
+      "label": "Daglig oppsummering",
+      "hint": "Tas med i den daglige oppsummeringen på e-post."
+    }
+  },
+  "kinds": {
+    "reminder": {
+      "due_soon": "Fristen nærmer seg",
+      "overdue": "Fristen er passert",
+      "escalated": "Forsinket arbeid eskalert"
+    },
+    "module": {
+      "enabled": "Modul slått på",
+      "disabled": "Modul slått av"
+    }
+  },
+  "modules": {
+    "events": "Påminnelser og plattform"
+  },
+  "categories": {
+    "assignments": { "label": "Tildelinger", "hint": "Når noe tildeles deg." },
+    "reminders": {
+      "label": "Påminnelser",
+      "hint": "Frister som nærmer seg, er passert eller er eskalert."
+    },
+    "workflow": {
+      "label": "Arbeidsflyt",
+      "hint": "Godkjenninger, gjennomganger og statusendringer."
+    },
+    "mentions": { "label": "Omtaler", "hint": "Når noen nevner deg." },
+    "comments": { "label": "Kommentarer", "hint": "Nye kommentarer på poster du følger." },
+    "system": { "label": "System", "hint": "Endringer i organisasjonen og modulene." }
+  },
+  "categoriesPage": {
+    "title": "Kategorier",
+    "subtitle": "Hvordan du varsles i {{org}}.",
+    "noOrg": "Velg en organisasjon for å velge kategorier.",
+    "loadError": "Kunne ikke laste kategoriinnstillingene dine.",
+    "inApp": "I appen",
+    "email": "E-post",
+    "saved": "Varslingskategoriene er lagret."
+  },
+  "emailModes": {
+    "immediate": "Med en gang",
+    "digest": "Daglig oppsummering",
+    "off": "Av"
+  },
+  "quietHours": {
+    "title": "Stilletid",
+    "subtitle": "I stilletiden venter e-post som skulle gått med en gang, til neste daglige oppsummering. Varsler i appen kommer fortsatt.",
+    "loadError": "Kunne ikke laste stilletiden din.",
+    "enable": "Bruk stilletid",
+    "from": "Fra",
+    "to": "Til",
+    "timezone": "Tidssone",
+    "save": "Lagre stilletid",
+    "saved": "Stilletiden er lagret.",
+    "sameTimes": "Start- og sluttidspunktet må være forskjellige."
+  },
+  "reminders": {
+    "title": "Påminnelser og eskalering",
+    "subtitle": "Gjelder alle moduler med frister.",
+    "reminderDays": "Påminn så mange dager før fristen",
+    "reminderDaysHelp": "0 sender påminnelser bare på fristdagen. Opptil {{max}} dager.",
+    "escalationDays": "Eskaler etter så mange dager over fristen",
+    "escalationDaysHelp": "Eskaleres igjen etter hver nye periode. 1 til {{max}} dager.",
+    "escalationRole": "Eskaler til rolle",
+    "noRole": "Ingen rolle",
+    "escalationRoleHelp": "Alle med denne rollen varsles når arbeid eskaleres.",
+    "escalateToLead": "Eskaler til avdelingslederen",
+    "escalateToLeadHelp": "Bruker elementets avdeling, eller avdelingene til eiere og ansvarlige.",
+    "invalid": "Sjekk verdiene: påminnelser 0 til 90 dager, eskalering 1 til 365 dager.",
+    "save": "Lagre innstillinger",
+    "saved": "Innstillingene for påminnelser og eskalering er lagret."
+  },
+  "leads": {
+    "title": "Avdelingsledere",
+    "subtitle": "Forsinket arbeid i en avdeling eskaleres til lederen.",
+    "none": "Ingen leder",
+    "emptyTitle": "Ingen avdelinger ennå",
+    "emptyBody": "Opprett avdelinger i organisasjonsinnstillingene, og velg deretter en leder for hver av dem.",
+    "emptyCta": "Gå til avdelinger",
+    "saved": "Avdelingslederen er oppdatert."
+  },
+  "errors": {
+    "unknown_event_kind": "Denne hendelsen finnes ikke lenger. Last inn siden på nytt.",
+    "event_kind_not_notifiable": "Denne hendelsen vises bare på tidslinjen og kan ikke sende varsler.",
+    "recipient_value_required": "Velg en rolle, avdeling eller person for hver mottaker.",
+    "invalid_recipient": "En av mottakerne er ikke lenger gyldig. Sjekk roller, avdelinger og personer.",
+    "unknown_role": "Den rollen finnes ikke i denne organisasjonen.",
+    "unknown_category": "En av kategoriene er ikke lenger tilgjengelig. Last inn siden på nytt.",
+    "quiet_hours_incomplete": "Angi både start- og sluttidspunkt for stilletiden.",
+    "not_a_member": "Den personen er ikke medlem av denne organisasjonen.",
+    "unsupported_entity_type": "Denne typen post kan ikke følges.",
+    "module_disabled": "Denne modulen er slått av for organisasjonen din.",
+    "generic": "Noe gikk galt. Prøv igjen.",
+    "network": "Får ikke kontakt med serveren. Sjekk tilkoblingen og prøv igjen.",
+    "server": "Serveren fikk et problem. Prøv igjen om litt.",
+    "forbidden": "Du har ikke tilgang til å endre dette.",
+    "invalid": "Noen verdier er ikke gyldige. Sjekk dem og prøv igjen."
+  },
+  "timeline": {
+    "reminderDueSoon": "Påminnelse sendt: frist om {{days}} dager",
+    "reminderOverdue": "Påminnelse sendt: {{days}} dager over fristen",
+    "reminderEscalated": "Eskalert (nivå {{level}}): {{days}} dager over fristen",
+    "moduleEnabled": "Modul slått på",
+    "moduleDisabled": "Modul slått av"
+  }
+}

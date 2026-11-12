@@ -1,6 +1,7 @@
 /** DTOs for the current user's notification inbox (`v1/me/notifications*`). */
 
-export type UserNotificationKind =
+/** Notification kinds that predate platform events. */
+export type LegacyNotificationKind =
   | 'deviation_assigned'
   | 'action_assigned'
   | 'deviation_due_soon'
@@ -12,12 +13,20 @@ export type UserNotificationKind =
   | 'document_submitted'
   | 'document_changes_requested';
 
-export type UserNotificationEntityType = 'deviation' | 'deviation_action' | 'document';
+/**
+ * Since platform events (F3) any registered event kind (`reminder.due_soon`,
+ * `risk.created`, …) passes through, so the kind is a plain string.
+ */
+export type UserNotificationKind = LegacyNotificationKind | (string & {});
+
+/** Any registered entity type (`deviation`, `document`, `task`, `risk`, …). */
+export type UserNotificationEntityType = string;
 
 /**
  * One inbox entry. The backend sends no rendered text: `title_key` is an i18n
- * key under `notifications.*` and `params` holds its interpolation values
- * (including `deviation_id` for deviation kinds, `document_id` for document kinds).
+ * key — global (`notifications.*`) or scoped (`"<scope>:<path>"`) — and
+ * `params` holds its interpolation values (including `deviation_id` for
+ * deviation kinds, `document_id` for document kinds).
  */
 export interface UserNotification {
   readonly id: string;
@@ -26,6 +35,8 @@ export interface UserNotification {
   readonly entity_type: UserNotificationEntityType;
   readonly entity_id: string;
   readonly title_key: string;
+  /** Preference category (`assignments`, `reminders`, …); null for legacy kinds. */
+  readonly category?: string | null;
   readonly params: Readonly<Record<string, unknown>>;
   readonly created_at: string;
   readonly read_at: string | null;

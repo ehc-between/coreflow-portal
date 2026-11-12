@@ -22,6 +22,14 @@ const routes: Routes = [
     loadChildren: () => import('../learning/settings/guidance-settings.routes'),
   },
   {
+    path: 'notifications',
+    canActivate: [orgManageGuard],
+    loadComponent: () =>
+      import('./notification-settings/notification-settings').then(
+        (m) => m.NotificationSettingsPage,
+      ),
+  },
+  {
     path: 'departments/:deptId',
     canActivate: [orgManageGuard],
     loadComponent: () =>

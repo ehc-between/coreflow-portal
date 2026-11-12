@@ -1211,13 +1211,15 @@
     },
     "preferences": {
       "title": "Notification settings",
-      "subtitle": "Choose which organizations send you a daily email summary of your notifications.",
+      "subtitle": "Choose what you're notified about, how, and when.",
       "emailDigest": "Daily email digest",
       "emailDigestHint": "The digest includes new assignments and deadlines from the past day. You'll still see every notification in the app.",
       "empty": "You're not a member of any organizations yet.",
       "loadError": "Couldn't load your notification settings. Please try again later.",
       "saved": "Notification settings saved.",
-      "saveFailed": "Couldn't save your notification settings. Please try again."
+      "saveFailed": "Couldn't save your notification settings. Please try again.",
+      "digestTitle": "Daily email digest",
+      "digestSubtitle": "Choose which organizations send you a daily email summary of your notifications."
     },
     "documentReviewDue": "Document {{doc_code}} is due for periodic review in {{days}} days ({{due_date}}): {{title}}",
     "documentReviewOverdue": "Periodic review of document {{doc_code}} is {{days}} days overdue (due {{due_date}}): {{title}}",
@@ -1236,7 +1238,37 @@
     "documentReviewDueTodayNoCode": "Document {{title}} is due for periodic review today",
     "documentReviewDueTomorrowNoCode": "Document {{title}} is due for periodic review tomorrow",
     "documentReviewOverdueNoCode": "Periodic review of document {{title}} is {{days}} days overdue (due {{due_date}})",
-    "documentReviewOverdueOneNoCode": "Periodic review of document {{title}} is 1 day overdue (due {{due_date}})"
+    "documentReviewOverdueOneNoCode": "Periodic review of document {{title}} is 1 day overdue (due {{due_date}})",
+    "reminderDueSoon": "Due in {{days}} days ({{due_date}}): {{entity}} {{code}}, {{title}}",
+    "reminderDueSoonToday": "Due today: {{entity}} {{code}}, {{title}}",
+    "reminderDueSoonTomorrow": "Due tomorrow: {{entity}} {{code}}, {{title}}",
+    "reminderDueSoonNoCode": "Due in {{days}} days ({{due_date}}): {{entity}}, {{title}}",
+    "reminderDueSoonTodayNoCode": "Due today: {{entity}}, {{title}}",
+    "reminderDueSoonTomorrowNoCode": "Due tomorrow: {{entity}}, {{title}}",
+    "reminderOverdue": "{{days}} days overdue: {{entity}} {{code}}, {{title}}",
+    "reminderOverdueOne": "1 day overdue: {{entity}} {{code}}, {{title}}",
+    "reminderOverdueNoCode": "{{days}} days overdue: {{entity}}, {{title}}",
+    "reminderOverdueOneNoCode": "1 day overdue: {{entity}}, {{title}}",
+    "reminderEscalated": "Escalated to you, {{days}} days overdue: {{entity}} {{code}}, {{title}}",
+    "reminderEscalatedOne": "Escalated to you, 1 day overdue: {{entity}} {{code}}, {{title}}",
+    "reminderEscalatedNoCode": "Escalated to you, {{days}} days overdue: {{entity}}, {{title}}",
+    "reminderEscalatedOneNoCode": "Escalated to you, 1 day overdue: {{entity}}, {{title}}",
+    "reminderEntityFallback": "Item",
+    "watch": {
+      "follow": "Follow",
+      "following": "Following",
+      "followerCount": "{{count}} following",
+      "followedBy": "Followed by {{names}}",
+      "noFollowers": "Follow to be notified about changes to this record",
+      "followed": "You're now following this record.",
+      "unfollowed": "You've stopped following this record.",
+      "failed": "Couldn't update following. Please try again."
+    },
+    "settingsLink": {
+      "title": "Notifications and escalation",
+      "subtitle": "Who is notified about what, due-date reminders, escalation and department leads.",
+      "open": "Open notification settings"
+    }
   },
   "roles": {
     "admin": {

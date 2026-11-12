@@ -1,0 +1,251 @@
+{
+  "page": {
+    "title": "Notifications and escalation",
+    "subtitle": "Decide who hears about what, how reminders go out, and where overdue work escalates.",
+    "back": "Back to settings",
+    "noOrg": "Select an organization to manage its notifications.",
+    "loading": "Loading…",
+    "loadError": "Couldn't load the notification settings.",
+    "retry": "Try again"
+  },
+  "ai": {
+    "suggest": "Suggest a setup",
+    "explain": "Explain this page",
+    "suggestPrompt": "Suggest notification rules and reminder/escalation settings for our organization. We currently send reminders {{reminderDays}} days before the due date and escalate after {{escalationDays}} days overdue. The events we can configure are: {{kinds}}. For each suggestion, say who should be notified, on which channel (in-app, email or daily digest), and why. Keep it practical and avoid notifying people who don't need to act.",
+    "explainPagePrompt": "Explain how notification rules, followers, due-date reminders, escalation and department leads work together in CoreFlow, and how they support the communication requirements in management system standards. Use short steps.",
+    "explainClausePrompt": "Explain {{clause}} in plain language and how notifications, reminders and escalation help an organization meet it. Give one practical example."
+  },
+  "guide": {
+    "show": "Show guidance",
+    "hide": "Hide guidance",
+    "whyTitle": "Why this matters",
+    "clausesLabel": "Related requirements",
+    "explainClause": "Ask the assistant to explain this requirement",
+    "lessonLabel": "Micro-lesson",
+    "checkLabel": "Check yourself:",
+    "showAnswer": "Show answer",
+    "clauses": {
+      "iso9001_7_4": "ISO 9001 · 7.4 Communication",
+      "iso27001_7_4": "ISO/IEC 27001 · 7.4 Communication",
+      "iso9001_5_3": "ISO 9001 · 5.3 Roles and responsibilities"
+    },
+    "rules": {
+      "title": "Getting the right people involved at the right time",
+      "body": "Every change in CoreFlow is recorded as an event. Rules turn events into notifications, reminders keep deadlines visible, and escalation makes sure overdue work reaches someone who can act.",
+      "step1": "Review the rules below. Each event starts with a sensible default; change it only when your organization needs something different.",
+      "step2": "Set how many days ahead reminders go out and after how many overdue days work escalates.",
+      "step3": "Give each department a lead, so escalations and \"department lead\" rules reach a real person.",
+      "why": "Management system standards expect you to decide what is communicated, to whom, when and how, and to make responsibilities clear. Consistent notifications and escalation show that in practice, and the audit log records every change to these settings.",
+      "lesson": {
+        "title": "How reminders and escalation work",
+        "s1": {
+          "heading": "Reminders",
+          "body": "Every morning CoreFlow checks open items with a due date. Items due within the reminder window send a \"due soon\" reminder to their owners and assignees, and overdue items send an \"overdue\" reminder. Each person gets at most one of each per item per day."
+        },
+        "s2": {
+          "heading": "Escalation",
+          "body": "When an item has been overdue for the escalation period, it escalates once to the department lead and/or everyone holding the escalation role. After another full period it escalates again at the next level."
+        },
+        "s3": {
+          "heading": "Channels",
+          "body": "In-app notifications appear under the bell. Email can be sent immediately or collected in the daily digest. Each person can fine-tune categories and quiet hours in their own notification settings."
+        },
+        "check": {
+          "question": "Escalation is set to 3 days. An item is 7 days overdue. How many times has it escalated?",
+          "answer": "Twice: once at 3 days overdue (level 1) and once at 6 days overdue (level 2)."
+        }
+      }
+    },
+    "preferences": {
+      "title": "Make notifications work for you",
+      "body": "Your organization decides which events reach you. Here you choose how they reach you: in the app, by email right away, in a daily digest, or not by email at all.",
+      "step1": "Choose the organization in the top bar, then adjust each category.",
+      "step2": "Use the daily digest for things you only need to scan, and immediate email for things you must act on.",
+      "step3": "Set quiet hours so urgent emails wait until your working day starts.",
+      "why": "Clear, timely communication is a requirement, not a courtesy. Tuning your notifications keeps important messages visible instead of lost in noise.",
+      "lesson": {
+        "title": "Following records",
+        "s1": {
+          "heading": "Follow what you care about",
+          "body": "Use the Follow button on a record to be notified about its changes, even if you aren't the owner or an assignee. Creators and owners are often added automatically."
+        },
+        "s2": {
+          "heading": "Quiet hours",
+          "body": "During quiet hours, immediate emails are held for the next daily digest. In-app notifications still arrive, so nothing is lost."
+        },
+        "check": {
+          "question": "You turn off in-app notifications for comments but keep email on Immediately. What happens when someone comments?",
+          "answer": "You get an email straight away (unless it's during your quiet hours), but no entry under the bell."
+        }
+      }
+    }
+  },
+  "rules": {
+    "title": "Notification rules",
+    "subtitle": "For each event: who is notified, and on which channels.",
+    "search": "Search events",
+    "moduleFilter": "Filter by module",
+    "allModules": "All modules",
+    "customOnly": "Customized only",
+    "emptyTitle": "No events to configure yet",
+    "emptyBody": "Events appear here as modules are enabled. Each one starts with a default rule that you can adjust.",
+    "noMatch": "No events match these filters.",
+    "clearFilters": "Clear filters",
+    "columns": {
+      "event": "Event",
+      "recipients": "Who is notified",
+      "channels": "Channels",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "timelineOnly": "Shown on the timeline only",
+    "nobody": "Nobody",
+    "status": {
+      "timeline": "Timeline",
+      "off": "Off",
+      "default": "Default",
+      "custom": "Customized"
+    },
+    "edit": "Edit",
+    "editLabel": "Edit the rule for {{name}}",
+    "saved": "Notification rule saved.",
+    "restored": "Default rule restored.",
+    "editor": {
+      "close": "Close",
+      "enabled": "Send notifications for this event",
+      "recipients": "Who is notified",
+      "recipientsHint": "The person who triggered the event is not notified about their own action.",
+      "add": "Add…",
+      "remove": "Remove {{name}}",
+      "channels": "Channels",
+      "needRecipient": "Choose at least one recipient, or turn the rule off.",
+      "needChannel": "Choose at least one channel, or turn the rule off.",
+      "reset": "Restore default",
+      "resetTitle": "Restore the default rule?",
+      "resetMessage": "Your organization's changes to this rule will be removed and the default recipients and channels will apply again.",
+      "cancel": "Cancel",
+      "save": "Save rule"
+    }
+  },
+  "recipients": {
+    "owner": { "label": "Owner", "hint": "The record's owner or owners." },
+    "assignee": {
+      "label": "Assignees",
+      "hint": "People, roles or departments the record is assigned to."
+    },
+    "watchers": { "label": "Followers", "hint": "Everyone following the record." },
+    "department_lead": {
+      "label": "Department lead",
+      "hint": "The lead of the record's department."
+    },
+    "role": { "label": "Role", "hint": "Everyone holding a role." },
+    "department": { "label": "Department", "hint": "Everyone in a department." },
+    "user": { "label": "Specific people", "hint": "Named members of the organization." },
+    "withValue": "{{type}}: {{name}}"
+  },
+  "channels": {
+    "in_app": { "label": "In-app", "hint": "Shown under the bell in CoreFlow." },
+    "email": {
+      "label": "Email",
+      "hint": "Sent by email, immediately or in the digest according to each person's preference."
+    },
+    "digest": { "label": "Daily digest", "hint": "Included in the daily summary email." }
+  },
+  "kinds": {
+    "reminder": {
+      "due_soon": "Due date approaching",
+      "overdue": "Due date passed",
+      "escalated": "Overdue work escalated"
+    },
+    "module": {
+      "enabled": "Module enabled",
+      "disabled": "Module disabled"
+    }
+  },
+  "modules": {
+    "events": "Reminders and platform"
+  },
+  "categories": {
+    "assignments": { "label": "Assignments", "hint": "When something is assigned to you." },
+    "reminders": { "label": "Reminders", "hint": "Due dates approaching, passed or escalated." },
+    "workflow": { "label": "Workflow", "hint": "Approvals, reviews and status changes." },
+    "mentions": { "label": "Mentions", "hint": "When someone mentions you." },
+    "comments": { "label": "Comments", "hint": "New comments on records you follow." },
+    "system": { "label": "System", "hint": "Organization and module changes." }
+  },
+  "categoriesPage": {
+    "title": "Categories",
+    "subtitle": "How you're notified in {{org}}.",
+    "noOrg": "Select an organization to choose your categories.",
+    "loadError": "Couldn't load your category settings.",
+    "inApp": "In-app",
+    "email": "Email",
+    "saved": "Notification categories saved."
+  },
+  "emailModes": {
+    "immediate": "Immediately",
+    "digest": "Daily digest",
+    "off": "Off"
+  },
+  "quietHours": {
+    "title": "Quiet hours",
+    "subtitle": "During quiet hours, immediate emails wait for your next daily digest. In-app notifications still arrive.",
+    "loadError": "Couldn't load your quiet hours.",
+    "enable": "Use quiet hours",
+    "from": "From",
+    "to": "To",
+    "timezone": "Time zone",
+    "save": "Save quiet hours",
+    "saved": "Quiet hours saved.",
+    "sameTimes": "The start and end times must be different."
+  },
+  "reminders": {
+    "title": "Reminders and escalation",
+    "subtitle": "Applies to every module with due dates.",
+    "reminderDays": "Remind this many days before the due date",
+    "reminderDaysHelp": "0 sends reminders on the due date only. Up to {{max}} days.",
+    "escalationDays": "Escalate after this many days overdue",
+    "escalationDaysHelp": "Escalates again after each further period. 1 to {{max}} days.",
+    "escalationRole": "Escalate to role",
+    "noRole": "No role",
+    "escalationRoleHelp": "Everyone holding this role is notified when work escalates.",
+    "escalateToLead": "Escalate to the department lead",
+    "escalateToLeadHelp": "Uses the item's department, or the departments of its owners and assignees.",
+    "invalid": "Check the values: reminders 0 to 90 days, escalation 1 to 365 days.",
+    "save": "Save settings",
+    "saved": "Reminder and escalation settings saved."
+  },
+  "leads": {
+    "title": "Department leads",
+    "subtitle": "Overdue work in a department escalates to its lead.",
+    "none": "No lead",
+    "emptyTitle": "No departments yet",
+    "emptyBody": "Create departments in the organization settings, then choose a lead for each one.",
+    "emptyCta": "Go to departments",
+    "saved": "Department lead updated."
+  },
+  "errors": {
+    "unknown_event_kind": "This event no longer exists. Reload the page.",
+    "event_kind_not_notifiable": "This event is only shown on the timeline and can't send notifications.",
+    "recipient_value_required": "Choose a role, department or person for each recipient.",
+    "invalid_recipient": "One of the recipients is no longer valid. Check the roles, departments and people.",
+    "unknown_role": "That role doesn't exist in this organization.",
+    "unknown_category": "One of the categories is no longer available. Reload the page.",
+    "quiet_hours_incomplete": "Set both a start and an end time for quiet hours.",
+    "not_a_member": "That person is not a member of this organization.",
+    "unsupported_entity_type": "This kind of record can't be followed.",
+    "module_disabled": "This module is turned off for your organization.",
+    "generic": "Something went wrong. Please try again.",
+    "network": "Can't reach the server. Check your connection and try again.",
+    "server": "The server had a problem. Please try again in a moment.",
+    "forbidden": "You don't have permission to change this.",
+    "invalid": "Some values aren't valid. Check them and try again."
+  },
+  "timeline": {
+    "reminderDueSoon": "Reminder sent: due in {{days}} days",
+    "reminderOverdue": "Overdue reminder sent: {{days}} days overdue",
+    "reminderEscalated": "Escalated (level {{level}}): {{days}} days overdue",
+    "moduleEnabled": "Module enabled",
+    "moduleDisabled": "Module disabled"
+  }
+}

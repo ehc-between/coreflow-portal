@@ -49,6 +49,7 @@ import {
   defaultVersionView,
 } from './workflow/document-version-banner';
 import { DocumentWorkflowActions } from './workflow/document-workflow-actions';
+import { WatchButton } from '../../shared/activity/watch-button';
 
 /**
  * Document detail, scoped to the currently selected org. Renders the current
@@ -67,6 +68,7 @@ import { DocumentWorkflowActions } from './workflow/document-workflow-actions';
 @Component({
   selector: 'app-document-detail',
   imports: [
+    WatchButton,
     LocalDatePipe,
     RouterLink,
     TranslocoPipe,
@@ -129,6 +131,7 @@ import { DocumentWorkflowActions } from './workflow/document-workflow-actions';
           </div>
 
           <div class="flex flex-none items-center gap-2">
+            <app-watch-button entityType="document" [entityId]="doc.id" />
             <div class="relative">
               <app-button variant="secondary" (click)="toggleDownload($event)">
                 <app-icon name="upload" [size]="15" />
