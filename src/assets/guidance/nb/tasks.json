@@ -1,0 +1,258 @@
+{
+  "pages": {
+    "myWork": {
+      "intro": {
+        "title": "Din personlige arbeidskø",
+        "body": "Mitt arbeid samler alt som venter på **deg** i denne organisasjonen: oppgaver, korrigerende tiltak, avvik du eier, dokumenter til godkjenning og dokumenter du skal lese og bekrefte.",
+        "steps": [
+          "Begynn med det som er merket som forfalt (rødt), og deretter det som forfaller i dag.",
+          "Bytt til **Tavle** for å se hva som pågår eller er blokkert, eller til **Kalender** for å planlegge måneden.",
+          "Kryss av en oppgave for å merke den som utført; åpne et element for å se detaljene."
+        ]
+      },
+      "why": {
+        "body": "Et styringssystem fungerer bare når planlagte tiltak faktisk blir gjennomført, i tide og av noen som har ansvaret. Én tydelig kø per person viser at tiltak blir tildelt, fulgt opp og lukket.",
+        "clauses": ["hs:5.3", "hs:6.1", "hs:8.1"]
+      },
+      "empty": {
+        "title": "Ingenting venter på deg",
+        "body": "Når noen tildeler deg en oppgave, et korrigerende tiltak eller et dokument til godkjenning, dukker det opp her. Du kan også opprette egne oppgaver for å holde oversikt over oppfølginger.",
+        "cta": "Opprett en oppgave"
+      }
+    },
+    "list": {
+      "intro": {
+        "title": "Alle oppgaver du har tilgang til",
+        "body": "Listen viser oppgaver som er tildelt deg, rollene dine eller avdelingene dine, og oppgaver du har opprettet. Oppgaveansvarlige ser alle oppgaver i organisasjonen.",
+        "steps": [
+          "Bruk **Vis** for å bytte mellom dine egne oppgaver og alt du har tilgang til.",
+          "Filtrer på status, søk på tittel og sorter etter frist eller prioritet.",
+          "Hver oppgave lenker til registreringen den tilhører, for eksempel et avvik eller et dokument."
+        ]
+      },
+      "why": {
+        "body": "Å planlegge hvordan risikoer håndteres og mål nås, betyr å bestemme **hva** som skal gjøres, **hvem** som er ansvarlig og **når** det skal være ferdig. Oppgavene er den planen, gjort synlig.",
+        "clauses": ["hs:6.1", "hs:6.2"]
+      },
+      "empty": {
+        "title": "Ingen oppgaver ennå",
+        "body": "Oppgaver gjør beslutninger om til handling: en oppfølging etter en revisjon, en kontroll etter en endring eller en påminnelse om å gjennomgå et dokument. Opprett en og tildel den til en person, en rolle eller en avdeling.",
+        "cta": "Opprett en oppgave"
+      }
+    },
+    "detail": {
+      "intro": {
+        "title": "Arbeide med en oppgave",
+        "body": "Flytt oppgaven til **Pågår** når du begynner, og til **Blokkert** hvis du venter på noe. Bruk sjekklisten til å dele arbeidet opp i steg, og merk oppgaven som utført når alt er ferdig.",
+        "steps": [
+          "Kryss av stegene i sjekklisten underveis; fremdriften er synlig for alle som følger oppgaven.",
+          "Hvis oppgaven tilhører en registrering, åpner du den fra **Tilhører** for å se hele sammenhengen.",
+          "En utført eller avbrutt oppgave er skrivebeskyttet til noen gjenåpner den."
+        ]
+      },
+      "why": {
+        "body": "Revisorer ser etter bevis på at planlagte tiltak er gjennomført og kontrollert. En utført oppgave med sjekkliste og historikk er det beviset.",
+        "clauses": ["hs:8.1", "hs:6.2"]
+      }
+    },
+    "form": {
+      "intro": {
+        "title": "Slik lager du en god oppgave",
+        "body": "En god oppgave har et tydelig resultat, én ansvarlig og en realistisk frist. Hold tittelen kort og handlingsrettet, og legg detaljene i beskrivelsen.",
+        "steps": [
+          "Begynn tittelen med et verb, for eksempel «Kontroller brannslukkerne».",
+          "Tildel den til en person, eller til en rolle eller avdeling når hvem som helst i gruppen kan ta den.",
+          "Slå på **Gjenta** for periodisk arbeid, som månedlige kontroller eller årlige gjennomganger."
+        ]
+      },
+      "why": {
+        "body": "Tydelig fordeling av ansvar og myndighet er et krav i alle ISO-standarder for styringssystemer. Oppgaver dokumenterer hvem som skal gjøre hva, og innen når.",
+        "clauses": ["hs:5.3", "hs:6.1"]
+      },
+      "fields": {
+        "title": {
+          "help": "Hva som skal gjøres, med få ord.",
+          "example": "Gå gjennom leverandørevalueringen for Acme"
+        },
+        "description": {
+          "help": "Bakgrunn, forventet resultat og eventuelle lenker. Du kan bruke enkel formatering, som lister.",
+          "example": "Kontroller at sertifikatet fortsatt er gyldig, og oppdater registeret."
+        },
+        "assignee": {
+          "help": "Hvem som er ansvarlig. En rolle eller avdeling lar hvem som helst i gruppen ta oppgaven; en person gjør én person ansvarlig.",
+          "example": "Kvalitetsleder (rolle)"
+        },
+        "priority": {
+          "help": "Hvor mye oppgaven haster sammenlignet med annet arbeid. Bruk Haster sparsomt, for ting som ikke kan vente.",
+          "example": "Høy"
+        },
+        "due": {
+          "help": "Dagen oppgaven skal være ferdig. Etter denne dagen vises oppgaven som forfalt, og det sendes påminnelser.",
+          "example": "Siste arbeidsdag i måneden"
+        },
+        "start": {
+          "help": "Valgfritt: den tidligste dagen arbeidet kan starte, til planlegging.",
+          "example": "Dagen det nye utstyret kommer"
+        },
+        "repeat": {
+          "help": "Oppretter automatisk en ny oppgave for hver periode, for eksempel hver måned. Det finnes bare én åpen oppgave per serie om gangen.",
+          "example": "En månedlig vernerunde"
+        },
+        "leadDays": {
+          "help": "Hvor mange dager før fristen hver nye oppgave opprettes, slik at den ansvarlige har tid til å planlegge.",
+          "example": "7"
+        }
+      }
+    },
+    "recurring": {
+      "intro": {
+        "title": "Periodisk arbeid på autopilot",
+        "body": "En gjentakende oppgave er en mal med en tidsplan. Hver gang en ny periode nærmer seg, oppretter CoreFlow neste oppgave noen dager før fristen og tildeler den.",
+        "steps": [
+          "Bruk gjentakende oppgaver til periodiske kontroller, gjennomganger, inspeksjoner og øvelser.",
+          "Sett en serie på pause når arbeidet er stanset; gjenoppta den senere uten å miste historikken.",
+          "Endrer du regelen eller startdatoen, planlegges neste frist på nytt."
+        ]
+      },
+      "why": {
+        "body": "Mange krav skal oppfylles med planlagte intervaller: internrevisjoner, ledelsens gjennomgåelse, overvåking og måling, og gjennomgang av dokumenter. En gjentakende oppgave gjør intervallet synlig og viser når hver kontroll ble gjort.",
+        "clauses": ["hs:9.1", "hs:8.1"]
+      },
+      "empty": {
+        "title": "Ingen gjentakende oppgaver ennå",
+        "body": "Sett opp kontrollene organisasjonen gjentar, for eksempel en månedlig vernerunde, en kvartalsvis tilgangsgjennomgang eller en årlig gjennomgang av retningslinjer. Opprett en oppgave og slå på **Gjenta**.",
+        "cta": "Opprett en gjentakende oppgave"
+      }
+    }
+  },
+  "lessons": {
+    "working-with-tasks": {
+      "title": "Arbeide med oppgaver",
+      "minutes": 3,
+      "sections": [
+        {
+          "heading": "Hva en oppgave er",
+          "body": "En oppgave er et stykke arbeid med en ansvarlig og en frist. Den kan stå alene eller tilhøre en registrering, som et avvik, en risiko eller et dokument, slik at arbeidet og årsaken holdes samlet."
+        },
+        {
+          "heading": "En oppgaves livsløp",
+          "body": "En oppgave starter som **Å gjøre**. Flytt den til **Pågår** når du begynner, og til **Blokkert** når du venter på noen. Når arbeidet er ferdig, merker du den som **utført**. Trengs den ikke lenger, **avbryter** du den i stedet for å slette den, slik at beslutningen forblir synlig."
+        },
+        {
+          "heading": "Forfall og eskalering",
+          "body": "Når fristen er passert, vises oppgaven som forfalt, og den ansvarlige får en påminnelse. Blir den liggende forfalt, kan den eskaleres til en leder. Avtal heller en ny frist tidlig enn å la oppgaver bli liggende."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "En oppgave trengs ikke lenger. Hva bør du gjøre?",
+          "options": ["Slette den", "Avbryte den", "La den stå åpen"],
+          "answer": 1,
+          "explanation": "Når du avbryter, er beslutningen synlig i historikken; sletting fjerner oppgaven fra alle lister."
+        },
+        {
+          "question": "Du venter på en leverandør før du kan fortsette. Hvilken status passer?",
+          "options": ["Blokkert", "Utført", "Å gjøre"],
+          "answer": 0,
+          "explanation": "Blokkert forteller andre at oppgaven er påbegynt, men venter på noe du ikke styrer selv."
+        }
+      ],
+      "pass_mark": 0.5
+    },
+    "assigning-work": {
+      "title": "Tildele arbeid til personer, roller og avdelinger",
+      "minutes": 3,
+      "sections": [
+        {
+          "heading": "Tre typer ansvarlige",
+          "body": "Tildel en oppgave til en **person** når én person skal stå ansvarlig. Tildel den til en **rolle** (for eksempel kvalitetsleder) eller en **avdeling** når hvem som helst i gruppen kan ta den."
+        },
+        {
+          "heading": "Hvorfor tydelig eierskap er viktig",
+          "body": "ISO-standardene krever at organisasjonen fordeler ansvar og myndighet og kommuniserer det. En oppgave med en tydelig ansvarlig er det enkleste beviset på at dette skjer i praksis."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Hvem som helst i kvalitetsteamet kan gjøre en oppgave. Hvem bør den tildeles?",
+          "options": [
+            "Kvalitetslederrollen eller kvalitetsavdelingen",
+            "Ingen",
+            "Den nyeste ansatte"
+          ],
+          "answer": 0,
+          "explanation": "Når du tildeler til en rolle eller avdeling, kan hvem som helst i gruppen ta oppgaven, samtidig som det er tydelig hvem som har ansvaret."
+        }
+      ],
+      "pass_mark": 1
+    },
+    "recurring-controls": {
+      "title": "Sette opp gjentakende kontroller",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Planlagte intervaller",
+          "body": "Mange kontroller skal skje med planlagte intervaller: en månedlig vernerunde, en kvartalsvis tilgangsgjennomgang, en årlig ledelsens gjennomgåelse. En gjentakende oppgave beskriver arbeidet én gang og gjentar det etter en tidsplan."
+        },
+        {
+          "heading": "Slik opprettes forekomstene",
+          "body": "Hver natt sjekker CoreFlow alle aktive serier. Når neste frist er innenfor varslingstiden (sju dager som standard), opprettes oppgaven og tildeles. Det finnes bare én åpen oppgave per serie om gangen, så glemte perioder hoper seg ikke opp."
+        },
+        {
+          "heading": "Velge tidsplan",
+          "body": "Velg en frekvens (daglig, ukentlig, månedlig eller årlig), hvor mange perioder det skal være mellom hver oppgave, og eventuelt ukedager eller dag i måneden. Du kan stoppe etter et antall ganger eller på en sluttdato."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "En serie forfaller hver måned med en varslingstid på 7 dager. Når opprettes neste oppgave?",
+          "options": ["På fristen", "Omtrent 7 dager før fristen", "Ved årets start"],
+          "answer": 1,
+          "explanation": "Varslingstiden bestemmer hvor mange dager før fristen hver oppgave opprettes."
+        },
+        {
+          "question": "Arbeidet er stanset en stund. Hva bør du gjøre med serien?",
+          "options": ["Slette den", "Sette den på pause", "Endre frekvensen til årlig"],
+          "answer": 1,
+          "explanation": "En pause beholder serien og historikken; gjenoppta den når arbeidet starter igjen."
+        }
+      ],
+      "pass_mark": 0.5
+    }
+  },
+  "tours": {
+    "myWork": [
+      {
+        "target": "tasks-view-switch",
+        "title": "Tre visninger",
+        "body": "Bytt mellom en liste, en tavle etter status og en månedskalender."
+      },
+      {
+        "target": "tasks-filters",
+        "title": "Filtre",
+        "body": "Snevre inn listen etter kilde, frist og prioritet."
+      },
+      {
+        "target": "tasks-new",
+        "title": "Opprett en oppgave",
+        "body": "Legg til egne oppgaver og oppfølginger her."
+      }
+    ]
+  },
+  "glossary": {
+    "recurring-task": {
+      "term": "Gjentakende oppgave",
+      "definition": "En oppgavemal med en tidsplan som oppretter en ny oppgave for hver periode.",
+      "clauses": ["hs:9.1"]
+    },
+    "assignee": {
+      "term": "Ansvarlig",
+      "definition": "Personen, rollen eller avdelingen som skal fullføre en oppgave.",
+      "clauses": ["hs:5.3"]
+    },
+    "escalation": {
+      "term": "Eskalering",
+      "definition": "Å løfte en forfalt oppgave til en leder eller en annen rolle slik at den blir løst."
+    }
+  }
+}

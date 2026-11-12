@@ -1,0 +1,377 @@
+{
+  "myWork": {
+    "title": "Mitt arbeid",
+    "subtitle": "Alt som venter på deg: oppgaver, tiltak, godkjenninger og bekreftelser.",
+    "allTasks": "Alle oppgaver",
+    "recurring": "Gjentakende oppgaver",
+    "newTask": "Ny oppgave",
+    "proposals": "Endringsforslag som venter på din vurdering: {{ count }}",
+    "viewLabel": "Visning",
+    "views": {
+      "list": "Liste",
+      "board": "Tavle",
+      "calendar": "Kalender"
+    },
+    "summary": "Elementer: {{ count }}",
+    "overdueCount": "{{ count }} forfalt",
+    "dueTodayCount": "{{ count }} forfaller i dag"
+  },
+  "list": {
+    "title": "Oppgaver",
+    "subtitle": "Oppgaver som er tildelt deg eller opprettet av deg, på tvers av alle registreringer."
+  },
+  "new": {
+    "title": "Ny oppgave",
+    "recurringTitle": "Ny gjentakende oppgave"
+  },
+  "edit": {
+    "title": "Rediger oppgave",
+    "noRights": "Bare den som opprettet oppgaven, den som er tildelt den, eller en oppgaveansvarlig kan redigere den."
+  },
+  "detail": {
+    "notFound": "Oppgaven finnes ikke, eller du har ikke tilgang til den.",
+    "statusLabel": "Status",
+    "description": "Beskrivelse",
+    "noDescription": "Ingen beskrivelse.",
+    "closedHint": "Oppgaven er lukket. Gjenåpne den for å gjøre endringer.",
+    "escalated": "Eskalert (nivå {{ level }})",
+    "partOfSeries": "Del av en gjentakende serie",
+    "recordUnavailable": "Den koblede registreringen er ikke tilgjengelig for deg."
+  },
+  "recurring": {
+    "title": "Gjentakende oppgaver",
+    "subtitle": "Periodiske kontroller, gjennomganger og inspeksjoner som oppretter sine egne oppgaver etter plan.",
+    "new": "Ny gjentakende oppgave",
+    "editTitle": "Rediger gjentakende oppgave",
+    "paused": "Satt på pause",
+    "active": "Aktiv",
+    "nextDue": "Neste frist {{ date }}",
+    "ended": "Ingen flere forekomster",
+    "deleteLabel": "Slett {{ title }}"
+  },
+  "entity": {
+    "title": "Oppgaver",
+    "empty": "Ingen åpne oppgaver på denne registreringen.",
+    "complete": "Merk «{{ title }}» som utført",
+    "quickAddLabel": "Tittel på ny oppgave",
+    "quickAddPlaceholder": "Legg til en oppgave …",
+    "add": "Legg til",
+    "moreOptions": "Flere valg",
+    "showClosed": "Vis lukkede oppgaver ({{ count }})",
+    "hideClosed": "Skjul lukkede oppgaver ({{ count }})"
+  },
+  "form": {
+    "title": "Tittel",
+    "description": "Beskrivelse",
+    "assignee": "Ansvarlig",
+    "priority": "Prioritet",
+    "due": "Frist",
+    "firstDue": "Første frist",
+    "firstDueRequired": "Velg første frist for serien.",
+    "seriesStart": "Serien starter (første frist)",
+    "start": "Startdato",
+    "checklist": "Sjekkliste",
+    "checklistItem": "Sjekklistepunkt {{ n }}",
+    "removeChecklistItem": "Fjern sjekklistepunkt {{ n }}",
+    "addChecklistItem": "Legg til sjekklistepunkt",
+    "repeat": "Gjenta denne oppgaven",
+    "leadDays": "Opprett hver oppgave så mange dager før fristen",
+    "linkedTo": "Koblet til {{ record }}",
+    "create": "Opprett oppgave",
+    "saveChanges": "Lagre endringer"
+  },
+  "fields": {
+    "assignee": "Ansvarlig",
+    "due": "Frist",
+    "start": "Start",
+    "record": "Tilhører",
+    "createdBy": "Opprettet av"
+  },
+  "status": {
+    "open": "Å gjøre",
+    "in_progress": "Pågår",
+    "blocked": "Blokkert",
+    "done": "Utført",
+    "cancelled": "Avbrutt"
+  },
+  "priority": {
+    "low": "Lav",
+    "normal": "Normal",
+    "high": "Høy",
+    "urgent": "Haster"
+  },
+  "assignee": {
+    "none": "Ingen ennå",
+    "unassigned": "Ikke tildelt",
+    "types": {
+      "user": "Person",
+      "role": "Rolle",
+      "department": "Avdeling"
+    },
+    "groups": {
+      "users": "Personer",
+      "roles": "Roller",
+      "departments": "Avdelinger"
+    }
+  },
+  "sources": {
+    "task": "Oppgave",
+    "deviation_action": "Korrigerende tiltak",
+    "deviation": "Avvik du eier",
+    "document_review": "Dokument til godkjenning",
+    "document_ack": "Dokument å bekrefte",
+    "other": "Annet"
+  },
+  "filters": {
+    "source": "Kilde",
+    "allSources": "Alle kilder",
+    "due": "Frist",
+    "dueOptions": {
+      "all": "Når som helst",
+      "overdue": "Forfalt",
+      "today": "I dag",
+      "week": "Neste 7 dager",
+      "none": "Ingen frist"
+    },
+    "priority": "Prioritet",
+    "allPriorities": "Alle prioriteter",
+    "search": "Søk",
+    "searchPlaceholder": "Søk i oppgaver …",
+    "assignee": "Vis",
+    "assignedToMe": "Tildelt meg",
+    "everything": "Alt jeg har tilgang til",
+    "status": "Status",
+    "statusOptions": {
+      "open": "Åpne",
+      "done": "Utført",
+      "cancelled": "Avbrutt",
+      "all": "Alle"
+    },
+    "sort": "Sorter etter",
+    "sorts": {
+      "due_at": "Frist (nærmeste først)",
+      "-due_at": "Frist (seneste først)",
+      "priority": "Prioritet",
+      "-created_at": "Nyeste"
+    },
+    "noMatch": "Ingenting passer med disse filtrene."
+  },
+  "board": {
+    "columns": {
+      "open": "Å gjøre",
+      "in_progress": "Pågår",
+      "blocked": "Blokkert"
+    },
+    "moveLabel": "Flytt «{{ title }}»",
+    "markDone": "Utført",
+    "empty": "Ingenting her."
+  },
+  "calendar": {
+    "prev": "Forrige måned",
+    "next": "Neste måned",
+    "today": "I dag",
+    "more": "+{{ count }} til",
+    "empty": "Ingenting forfaller denne måneden."
+  },
+  "checklist": {
+    "title": "Sjekkliste",
+    "progress": "{{ done }} av {{ total }} utført",
+    "empty": "Ingen sjekklistepunkter.",
+    "addLabel": "Nytt sjekklistepunkt",
+    "addPlaceholder": "Legg til et steg …",
+    "add": "Legg til",
+    "remove": "Fjern «{{ text }}»"
+  },
+  "history": {
+    "title": "Historikk",
+    "created": "Opprettet av {{ name }}",
+    "createdSystem": "Opprettet automatisk",
+    "completed": "Merket som utført",
+    "cancelled": "Avbrutt",
+    "updated": "Sist endret",
+    "system": "Opprettet automatisk"
+  },
+  "actions": {
+    "complete": "Merk som utført",
+    "reopen": "Gjenåpne",
+    "cancel": "Avbryt oppgave",
+    "edit": "Rediger",
+    "delete": "Slett"
+  },
+  "confirm": {
+    "cancelTitle": "Avbryte denne oppgaven?",
+    "cancelBody": "«{{ title }}» lukkes uten å være utført. Du kan gjenåpne den senere.",
+    "deleteTitle": "Slette denne oppgaven?",
+    "deleteBody": "«{{ title }}» fjernes fra alle lister. Endringen blir liggende i revisjonsloggen.",
+    "deleteSeriesTitle": "Slette denne gjentakende oppgaven?",
+    "deleteSeriesBody": "Det opprettes ingen nye oppgaver for «{{ title }}». Oppgaver som allerede er opprettet, beholdes.",
+    "keep": "Behold"
+  },
+  "notices": {
+    "created": "Oppgaven er opprettet.",
+    "saved": "Endringene er lagret.",
+    "completed": "Oppgaven er merket som utført.",
+    "completedRecurring": "Oppgaven er utført. Neste oppgave i serien er planlagt.",
+    "reopened": "Oppgaven er gjenåpnet.",
+    "cancelled": "Oppgaven er avbrutt.",
+    "deleted": "Oppgaven er slettet.",
+    "seriesPaused": "Den gjentakende oppgaven er satt på pause.",
+    "seriesResumed": "Den gjentakende oppgaven er gjenopptatt.",
+    "seriesDeleted": "Den gjentakende oppgaven er slettet."
+  },
+  "errors": {
+    "title_required": "Gi oppgaven en tittel.",
+    "invalid_assignee": "Den ansvarlige er ikke en del av denne organisasjonen.",
+    "invalid_assignee_filter": "Filteret for ansvarlig er ikke gyldig.",
+    "entity_incomplete": "Den koblede registreringen er ufullstendig.",
+    "invalid_rrule": "Dette gjentakelsesmønsteret støttes ikke. Sjekk frekvens og slutt.",
+    "unsupported_entity_type": "Oppgaver kan ikke kobles til denne typen registrering.",
+    "task_closed": "Oppgaven er lukket. Gjenåpne den for å gjøre endringer.",
+    "task_not_open": "Oppgaven er allerede lukket.",
+    "task_not_closed": "Oppgaven er allerede åpen.",
+    "forbidden": "Du har ikke tillatelse til å endre denne oppgaven."
+  },
+  "rrule": {
+    "legend": "Gjentakelse",
+    "freq": "Frekvens",
+    "freqs": {
+      "DAILY": "Daglig",
+      "WEEKLY": "Ukentlig",
+      "MONTHLY": "Månedlig",
+      "YEARLY": "Årlig"
+    },
+    "interval": "Hver (antall perioder)",
+    "weekdaysLabel": "På disse dagene",
+    "month": "Måned",
+    "monthDay": "Dag i måneden",
+    "sameAsStart": "Samme som første frist",
+    "ends": "Slutter",
+    "endNever": "Aldri",
+    "endCount": "Etter",
+    "endCountLabel": "Antall ganger",
+    "endUntil": "Den",
+    "endUntilLabel": "Sluttdato",
+    "preview": "Gjentas:",
+    "summary": {
+      "dailyOne": "Hver dag",
+      "daily": "Hver {{ count }}. dag",
+      "weeklyOne": "Hver uke",
+      "weekly": "Hver {{ count }}. uke",
+      "monthlyOne": "Hver måned",
+      "monthly": "Hver {{ count }}. måned",
+      "yearlyOne": "Hvert år",
+      "yearly": "Hvert {{ count }}. år",
+      "onDays": "på {{ days }}",
+      "inMonth": "i {{ month }}",
+      "onMonthDay": "den {{ day }}.",
+      "count": "{{ count }} ganger totalt",
+      "until": "til og med {{ date }}"
+    },
+    "weekdays": {
+      "MO": "mandag",
+      "TU": "tirsdag",
+      "WE": "onsdag",
+      "TH": "torsdag",
+      "FR": "fredag",
+      "SA": "lørdag",
+      "SU": "søndag"
+    },
+    "weekdaysShort": {
+      "MO": "man",
+      "TU": "tir",
+      "WE": "ons",
+      "TH": "tor",
+      "FR": "fre",
+      "SA": "lør",
+      "SU": "søn"
+    },
+    "months": {
+      "1": "januar",
+      "2": "februar",
+      "3": "mars",
+      "4": "april",
+      "5": "mai",
+      "6": "juni",
+      "7": "juli",
+      "8": "august",
+      "9": "september",
+      "10": "oktober",
+      "11": "november",
+      "12": "desember"
+    }
+  },
+  "guide": {
+    "introLabel": "Om denne siden",
+    "show": "Vis",
+    "hide": "Skjul",
+    "whyTitle": "Hvorfor dette er viktig",
+    "clauses": "Relevante krav",
+    "clause": "{{ framework }} {{ clause }}",
+    "explainClauseHint": "Be assistenten forklare dette kravet",
+    "frameworks": {
+      "hs": "ISO HS",
+      "iso9001": "ISO 9001",
+      "iso27001": "ISO/IEC 27001",
+      "iso14001": "ISO 14001",
+      "iso45001": "ISO 45001",
+      "iso42001": "ISO/IEC 42001"
+    },
+    "fieldHelp": "Hjelp til dette feltet",
+    "example": "Eksempel: {{ example }}",
+    "lessonButton": "Leksjon: {{ title }} ({{ minutes }} min)",
+    "lessonMinutes": "Omtrent {{ minutes }} minutter",
+    "quizTitle": "Sjekk hva du har lært",
+    "quizCheck": "Sjekk svarene",
+    "quizRetry": "Prøv igjen",
+    "quizPassed": "Godt jobbet: {{ score }} % riktig.",
+    "quizFailed": "{{ score }} % riktig. Les forklaringene og prøv igjen."
+  },
+  "ai": {
+    "groupLabel": "Handlinger med assistenten",
+    "planWeek": "Planlegg uken min",
+    "prioritise": "Hjelp meg å prioritere",
+    "summarise": "Oppsummer",
+    "suggestChecklist": "Foreslå sjekklistesteg",
+    "askAbout": "Spør om denne oppgaven",
+    "suggestRecurring": "Foreslå gjentakende kontroller",
+    "prompts": {
+      "planWeek": "Se på de åpne oppgavene mine og annet arbeid i CoreFlow, og hjelp meg å planlegge denne uken: hva er forfalt, hva forfaller snart, og hva bør jeg gjøre først?",
+      "prioritise": "Se på de åpne oppgavene mine og hjelp meg å avgjøre hva jeg bør gjøre først, ut fra frister, prioritet og registreringene de tilhører.",
+      "summarise": "Oppsummer oppgaven «{{ title }}»: status, hva som gjenstår på sjekklisten og hva jeg bør vite.",
+      "summariseOnRecord": "Oppsummer oppgaven «{{ title }}» på {{ record }}: status, hva som gjenstår på sjekklisten og hva jeg bør vite.",
+      "suggestChecklist": "Foreslå konkrete sjekklistesteg for oppgaven «{{ title }}». Hold hvert steg kort og mulig å krysse av.",
+      "suggestChecklistOnRecord": "Foreslå konkrete sjekklistesteg for oppgaven «{{ title }}» på {{ record }}. Hold hvert steg kort og mulig å krysse av.",
+      "askAbout": "Jeg har et spørsmål om oppgaven «{{ title }}».",
+      "askAboutOnRecord": "Jeg har et spørsmål om oppgaven «{{ title }}» på {{ record }}.",
+      "suggestRecurring": "Hvilke gjentakende oppgaver (periodiske kontroller, gjennomganger, inspeksjoner) bør en organisasjon som vår sette opp for styringssystemet sitt? Foreslå et navn og en fornuftig frekvens for hver.",
+      "explainClause": "Forklar {{ clause }} på en enkel måte, og hvordan oppgaver hjelper med å oppfylle kravet."
+    }
+  },
+  "common": {
+    "loading": "Laster …",
+    "loadFailed": "Kunne ikke laste innholdet. Prøv igjen.",
+    "retry": "Prøv igjen",
+    "close": "Lukk",
+    "cancel": "Avbryt",
+    "overdue": "Forfalt",
+    "noDueDate": "Ingen frist",
+    "recurring": "Gjentakende",
+    "backToMyWork": "Tilbake til Mitt arbeid",
+    "backToTasks": "Tilbake til oppgaver",
+    "backToTask": "Tilbake til oppgaven"
+  },
+  "notifications": {
+    "created": "Ny oppgave: {{ title }}",
+    "assigned": "Oppgave tildelt deg: {{ title }}",
+    "completed": "Oppgave utført: {{ title }}",
+    "reopened": "Oppgave gjenåpnet: {{ title }}",
+    "cancelled": "Oppgave avbrutt: {{ title }}"
+  },
+  "timeline": {
+    "created": "Oppgave opprettet",
+    "assigned": "Oppgave tildelt",
+    "completed": "Oppgave merket som utført",
+    "reopened": "Oppgave gjenåpnet",
+    "cancelled": "Oppgave avbrutt"
+  }
+}

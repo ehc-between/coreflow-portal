@@ -1,0 +1,262 @@
+{
+  "pages": {
+    "myWork": {
+      "intro": {
+        "title": "Your personal work queue",
+        "body": "My Work gathers everything that is waiting on **you** in this organisation: tasks, corrective actions, deviations you own, documents to approve and documents to read and acknowledge.",
+        "steps": [
+          "Start with anything marked overdue (red), then what is due today.",
+          "Switch to **Board** to see what is in progress or blocked, or to **Calendar** to plan the month.",
+          "Tick a task to mark it as done; open any item to see its details."
+        ]
+      },
+      "why": {
+        "body": "A management system only works when planned actions are actually carried out, on time, by someone responsible. Keeping one clear queue per person is how you show that actions are assigned, followed up and closed.",
+        "clauses": ["hs:5.3", "hs:6.1", "hs:8.1"]
+      },
+      "empty": {
+        "title": "Nothing is waiting on you",
+        "body": "When someone assigns you a task, a corrective action or a document to approve, it appears here. You can also create your own tasks to keep track of follow-ups.",
+        "cta": "Create a task"
+      }
+    },
+    "list": {
+      "intro": {
+        "title": "All tasks you can see",
+        "body": "This list shows tasks assigned to you, to your roles or departments, and tasks you created. Task managers see every task in the organisation.",
+        "steps": [
+          "Use **Show** to switch between your own tasks and everything you can see.",
+          "Filter by status, search by title, and sort by due date or priority.",
+          "Each task links to the record it belongs to, such as a deviation or a document."
+        ]
+      },
+      "why": {
+        "body": "Planning how to address risks and reach objectives means deciding **what** will be done, **who** is responsible and **when** it will be completed. Tasks are that plan, made visible.",
+        "clauses": ["hs:6.1", "hs:6.2"]
+      },
+      "empty": {
+        "title": "No tasks yet",
+        "body": "Tasks turn decisions into action: a follow-up after an audit, a check after a change, or a reminder to review a document. Create one and assign it to a person, a role or a department.",
+        "cta": "Create a task"
+      }
+    },
+    "detail": {
+      "intro": {
+        "title": "Working on a task",
+        "body": "Move the task to **In progress** when you start and to **Blocked** if you are waiting for something. Use the checklist to break the work into steps, and mark the task as done when everything is finished.",
+        "steps": [
+          "Tick checklist steps as you go; progress is visible to everyone who follows the task.",
+          "If the task belongs to a record, open it from **Belongs to** for the full context.",
+          "A done or cancelled task is read-only until someone reopens it."
+        ]
+      },
+      "why": {
+        "body": "Auditors look for evidence that planned actions were carried out and checked. A completed task with its checklist and history is that evidence.",
+        "clauses": ["hs:8.1", "hs:6.2"]
+      }
+    },
+    "form": {
+      "intro": {
+        "title": "Creating a good task",
+        "body": "A good task has a clear outcome, one responsible owner and a realistic due date. Keep the title short and action-oriented, and put the detail in the description.",
+        "steps": [
+          "Start the title with a verb, for example \"Check the fire extinguishers\".",
+          "Assign it to a person, or to a role or department when anyone in that group may pick it up.",
+          "Switch on **Repeat** for periodic work such as monthly checks or yearly reviews."
+        ]
+      },
+      "why": {
+        "body": "Assigning responsibilities and authorities clearly is a requirement in every ISO management system standard. Tasks record who is expected to do what, and by when.",
+        "clauses": ["hs:5.3", "hs:6.1"]
+      },
+      "fields": {
+        "title": {
+          "help": "What needs to be done, in a few words.",
+          "example": "Review the supplier evaluation for Acme"
+        },
+        "description": {
+          "help": "Background, the expected result and any links. You can use simple formatting such as lists.",
+          "example": "Check that the certificate is still valid and update the register."
+        },
+        "assignee": {
+          "help": "Who is responsible. A role or department lets anyone in that group pick the task up; a person makes one individual accountable.",
+          "example": "Quality manager (role)"
+        },
+        "priority": {
+          "help": "How urgent the task is compared with other work. Use Urgent sparingly, for things that cannot wait.",
+          "example": "High"
+        },
+        "due": {
+          "help": "The day the task should be finished. After this day the task shows as overdue and reminders are sent.",
+          "example": "The last working day of the month"
+        },
+        "start": {
+          "help": "Optional: the earliest day work can begin, for planning.",
+          "example": "The day the new equipment arrives"
+        },
+        "repeat": {
+          "help": "Creates a new task automatically for each period, such as every month. Only one open task per series exists at a time.",
+          "example": "A monthly safety round"
+        },
+        "leadDays": {
+          "help": "How many days before the due date each new task is created, so the responsible person has time to plan.",
+          "example": "7"
+        }
+      }
+    },
+    "recurring": {
+      "intro": {
+        "title": "Periodic work on autopilot",
+        "body": "A recurring task is a template with a schedule. Each time a period comes up, CoreFlow creates the next task a few days before it is due and assigns it.",
+        "steps": [
+          "Use recurring tasks for periodic controls, reviews, inspections and drills.",
+          "Pause a series when the work is suspended; resume it later without losing its history.",
+          "Changing the rule or the start date re-plans the next due date."
+        ]
+      },
+      "why": {
+        "body": "Many requirements must be met at planned intervals: internal audits, management reviews, monitoring and measurement, and reviews of documents. A recurring task makes the interval visible and shows when each check was done.",
+        "clauses": ["hs:9.1", "hs:8.1"]
+      },
+      "empty": {
+        "title": "No recurring tasks yet",
+        "body": "Set up the checks your organisation repeats, for example a monthly safety round, a quarterly access review or a yearly policy review. Create a task and switch on **Repeat**.",
+        "cta": "Create a recurring task"
+      }
+    }
+  },
+  "lessons": {
+    "working-with-tasks": {
+      "title": "Working with tasks",
+      "minutes": 3,
+      "sections": [
+        {
+          "heading": "What a task is",
+          "body": "A task is a piece of work with an owner and a due date. It can stand alone or belong to a record, such as a deviation, a risk or a document, so the work and its reason stay together."
+        },
+        {
+          "heading": "The life of a task",
+          "body": "A task starts as **To do**. Move it to **In progress** when you begin and **Blocked** when you are waiting on someone. When the work is finished, mark it as **done**. If it is no longer needed, **cancel** it instead of deleting it, so the decision stays visible."
+        },
+        {
+          "heading": "Overdue and escalation",
+          "body": "When the due date passes, the task shows as overdue and the assignee is reminded. If it stays overdue, it can be escalated to a manager. Agree a new due date early rather than letting tasks go stale."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "A task is no longer needed. What should you do?",
+          "options": ["Delete it", "Cancel it", "Leave it open"],
+          "answer": 1,
+          "explanation": "Cancelling keeps the decision visible in the history; deleting removes the task from every list."
+        },
+        {
+          "question": "You are waiting for a supplier before you can continue. Which status fits?",
+          "options": ["Blocked", "Done", "To do"],
+          "answer": 0,
+          "explanation": "Blocked tells others the task has started but is waiting on something outside your control."
+        }
+      ],
+      "pass_mark": 0.5
+    },
+    "assigning-work": {
+      "title": "Assigning work to people, roles and departments",
+      "minutes": 3,
+      "sections": [
+        {
+          "heading": "Three kinds of assignee",
+          "body": "Assign a task to a **person** when one individual is accountable. Assign it to a **role** (such as quality manager) or a **department** when anyone in that group may pick it up."
+        },
+        {
+          "heading": "Why clear ownership matters",
+          "body": "ISO standards require organisations to assign responsibilities and authorities and to communicate them. A task with a clear owner is the simplest proof that this happens in practice."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Anyone in the quality team may do a task. Who should it be assigned to?",
+          "options": [
+            "The quality manager role or the quality department",
+            "Nobody",
+            "The newest employee"
+          ],
+          "answer": 0,
+          "explanation": "Assigning to a role or department lets anyone in the group pick it up while still showing who is responsible."
+        }
+      ],
+      "pass_mark": 1
+    },
+    "recurring-controls": {
+      "title": "Setting up recurring controls",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Planned intervals",
+          "body": "Many controls must happen at planned intervals: a monthly safety round, a quarterly access review, a yearly management review. A recurring task describes the work once and repeats it on a schedule."
+        },
+        {
+          "heading": "How occurrences are created",
+          "body": "Each night CoreFlow checks every active series. When the next due date is within the lead time (seven days by default), it creates the task and assigns it. Only one open task per series exists at a time, so missed periods do not pile up."
+        },
+        {
+          "heading": "Choosing a schedule",
+          "body": "Pick a frequency (daily, weekly, monthly or yearly), how many periods between each task, and optionally the days of the week or the day of the month. You can stop after a number of times or on an end date."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "A series is due every month with a lead time of 7 days. When is the next task created?",
+          "options": [
+            "On the due date",
+            "About 7 days before the due date",
+            "At the start of the year"
+          ],
+          "answer": 1,
+          "explanation": "The lead time decides how many days before the due date each task is created."
+        },
+        {
+          "question": "The work is suspended for a while. What should you do with the series?",
+          "options": ["Delete it", "Pause it", "Change the frequency to yearly"],
+          "answer": 1,
+          "explanation": "Pausing keeps the series and its history; resume it when the work starts again."
+        }
+      ],
+      "pass_mark": 0.5
+    }
+  },
+  "tours": {
+    "myWork": [
+      {
+        "target": "tasks-view-switch",
+        "title": "Three views",
+        "body": "Switch between a list, a board by status and a month calendar."
+      },
+      {
+        "target": "tasks-filters",
+        "title": "Filters",
+        "body": "Narrow the list by source, due date and priority."
+      },
+      {
+        "target": "tasks-new",
+        "title": "Create a task",
+        "body": "Add your own tasks and follow-ups here."
+      }
+    ]
+  },
+  "glossary": {
+    "recurring-task": {
+      "term": "Recurring task",
+      "definition": "A task template with a schedule that creates a new task for each period.",
+      "clauses": ["hs:9.1"]
+    },
+    "assignee": {
+      "term": "Assignee",
+      "definition": "The person, role or department responsible for completing a task.",
+      "clauses": ["hs:5.3"]
+    },
+    "escalation": {
+      "term": "Escalation",
+      "definition": "Bringing an overdue task to the attention of a manager or another role so it gets resolved."
+    }
+  }
+}
