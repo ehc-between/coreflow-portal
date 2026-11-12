@@ -1,0 +1,586 @@
+{
+  "pages": {
+    "list": {
+      "intro": {
+        "title": "Vit hva dere har, og hvem som har ansvaret",
+        "body": "Eiendelsregisteret viser alt organisasjonen er avhengig av: **informasjon**, **systemer og programvare**, **utstyr**, **tjenester**, **lokaler** og ting folk har med seg, som bærbare PC-er og adgangskort. Hver eiendel har en **eier**, en **klassifisering** og en plass i **livsløpet**.",
+        "steps": [
+          "Registrer de viktigste eiendelene først: systemene og informasjonen dere ikke kan arbeide uten.",
+          "Gi hver eiendel en eier og en klassifisering. Eieren bestemmer hvem som får tilgang, og hvordan den beskyttes.",
+          "Merk måleutstyr som må kalibreres, og hold livsløpet oppdatert når ting tas ut av bruk eller avhendes."
+        ]
+      },
+      "why": {
+        "body": "Dere kan ikke beskytte det dere ikke vet at dere har. Standardene forventer et register over informasjon og andre tilknyttede eiendeler med eiere, regler for akseptabel bruk, et klassifiseringssystem med tilhørende håndteringsregler, og kontrollert retur og avhending av eiendeler.",
+        "clauses": [
+          "iso27001:A.5.9",
+          "iso27001:A.5.10",
+          "iso27001:A.5.11",
+          "iso27001:A.5.12",
+          "iso27001:A.5.13",
+          "iso27001:A.7.14"
+        ]
+      },
+      "empty": {
+        "title": "Ingen eiendeler registrert ennå",
+        "body": "Start med fem til ti eiendeler: hovedsystemet deres, e-post, kunde- og personalregistrene, bærbare PC-er og eventuelle måleinstrumenter dere bruker til å kontrollere arbeidet. Resten kan dere legge til etter hvert.",
+        "cta": "Registrer den første eiendelen"
+      }
+    },
+    "form": {
+      "intro": {
+        "title": "Beskriv eiendelen og hvordan den skal beskyttes",
+        "body": "Fyll ut hva eiendelen er, hvem som eier den og hvor den er. **Klassifiseringen** og de tre vurderingene (konfidensialitet, integritet og tilgjengelighet) sier hvor stor skaden blir hvis noe går galt, og dermed hvor godt den må beskyttes.",
+        "steps": [
+          "Gi eiendelen et navn og velg type.",
+          "Velg en klassifisering. Er du usikker, kan du be om et forslag.",
+          "Angi en eier og, for ting folk har med seg, forvalteren som har den."
+        ]
+      },
+      "why": {
+        "body": "Klassifiseringen kobler hver eiendel til riktig beskyttelse: hvem som kan se den, hvordan den lagres og sendes, og hvordan den destrueres. Kalibrert måleutstyr trengs når dere bruker målinger til å vise at produkter og tjenester oppfyller kravene.",
+        "clauses": ["iso27001:A.5.9", "iso27001:A.5.12", "iso27001:A.5.13", "iso9001:7.1.5"]
+      },
+      "fields": {
+        "asset_type": {
+          "help": "Hva slags eiendel det er. «Hos en person» er for ting som er utlevert til noen, for eksempel en bærbar PC, telefon eller et adgangskort.",
+          "example": "Et skybasert regnskapssystem er programvare; regnskapsdataene i det er informasjon."
+        },
+        "classification": {
+          "help": "Hvor sensitiv eiendelen er. Åpen kan deles fritt; strengt fortrolig er bare for noen få navngitte personer.",
+          "example": "Lønnsdata er vanligvis strengt fortrolig; prislisten er åpen."
+        },
+        "criticality": {
+          "help": "Hvor viktig eiendelen er for å holde virksomheten i gang.",
+          "example": "Ordresystemet er kritisk hvis dere ikke kan ta imot bestillinger uten det."
+        },
+        "cia": {
+          "help": "Vurder skaden hvis eiendelen blir kjent for uvedkommende (konfidensialitet), endres eller ødelegges (integritet), eller blir utilgjengelig (tilgjengelighet).",
+          "example": "Et åpent nettsted har lav konfidensialitet, men høy tilgjengelighet."
+        },
+        "handling_rules": {
+          "help": "Praktiske regler for bruk, lagring, sending og destruksjon av eiendelen, tilpasset klassifiseringen.",
+          "example": "Krypteres ved lagring, deles bare gjennom dokumentsystemet, papirkopier makuleres."
+        },
+        "owner": {
+          "help": "Personen som har ansvaret for eiendelen: vedkommende bestemmer hvem som får tilgang, og sørger for at den beskyttes.",
+          "example": "Økonomisjefen eier regnskapssystemet."
+        },
+        "custodian": {
+          "help": "Personen som har eller tar vare på eiendelen til daglig, hvis det ikke er eieren.",
+          "example": "En ansatt som har fått utlevert en bærbar PC."
+        },
+        "lifecycle_status": {
+          "help": "Hvor eiendelen er i livsløpet. Tatt ut av bruk betyr at den ikke brukes lenger; avhendet betyr at den er borte.",
+          "example": "Merk gamle bærbare PC-er som avhendet når de er sikkert slettet."
+        },
+        "review_date": {
+          "help": "Når eieren neste gang skal kontrollere at opplysningene og klassifiseringen fortsatt stemmer. Det sendes en påminnelse.",
+          "example": "Én gang i året for de fleste eiendeler."
+        },
+        "disposal_method": {
+          "help": "Hvordan eiendelen ble avhendet, slik at dere kan vise at informasjonen ble fjernet på en sikker måte.",
+          "example": "Disker slettet med sertifisert programvare; sertifikat vedlagt."
+        },
+        "requires_calibration": {
+          "help": "Kryss av for instrumenter dere stoler på målingene fra, slik at de kalibreres etter en plan og dere får påminnelser.",
+          "example": "Termometre på kjølelager, vekter, momentnøkler."
+        }
+      }
+    },
+    "detail": {
+      "intro": {
+        "title": "Alt om denne eiendelen på ett sted",
+        "body": "Kontroller at klassifiseringen og håndteringsreglene fortsatt stemmer, se endringene og tilgangsgjennomgangene som gjelder den, og registrer kalibreringer hvis det er måleutstyr.",
+        "steps": [
+          "Hold eier, forvalter og livsløp oppdatert.",
+          "Meld en endringsforespørsel før du gjør en vesentlig endring på eiendelen.",
+          "Koble til dokumenter, risikoer og leverandører under Relatert."
+        ]
+      },
+      "why": {
+        "body": "Et register er bare nyttig hvis det holdes oppdatert. Eierne bør gå gjennom eiendelene sine jevnlig, og måleutstyr må kalibreres, beskyttes mot justeringer som gjør kalibreringen ugyldig, og vurderes når det viser seg å være utenfor toleransen.",
+        "clauses": ["iso27001:A.5.9", "iso27001:A.5.11", "iso9001:7.1.5"]
+      },
+      "fields": {
+        "calibration_result": {
+          "help": "Godkjent: innenfor toleransen. Justert: utenfor toleransen og deretter justert. Ikke godkjent: utenfor toleransen og ikke brukbart.",
+          "example": "En vekt som viste 2 g for mye og ble justert, er «Justert»."
+        },
+        "impact_assessment": {
+          "help": "Når et instrument viser feil, vurder om tidligere målinger ble påvirket, og hva dere gjorde med det.",
+          "example": "Parti 120–124 ble veid med vekten; kontrollerte prøver var innenfor grensene."
+        }
+      }
+    },
+    "calibration": {
+      "intro": {
+        "title": "Hold måleutstyret kalibrert",
+        "body": "Listen viser instrumenter som har **forfalt** eller har **snart forfall**. Åpne et instrument for å registrere kalibreringen og legge ved sertifikatet.",
+        "steps": [
+          "Planlegg kalibreringer før de forfaller.",
+          "Registrer hver kalibrering med resultatet og sertifikatet.",
+          "Hvis en kalibrering ikke blir godkjent, vurder konsekvensene for tidligere målinger."
+        ]
+      },
+      "why": {
+        "body": "Når dere bruker målinger til å vise at produkter eller tjenester oppfyller kravene, må utstyret kalibreres med faste mellomrom mot sporbare referanser, merkes og beskyttes. Viser det seg å være utenfor toleransen, må dere kontrollere om tidligere resultater fortsatt er gyldige.",
+        "clauses": ["iso9001:7.1.5"]
+      },
+      "empty": {
+        "title": "Ingenting forfaller i denne perioden",
+        "body": "Ikke noe måleutstyr har forfalt eller skal kalibreres i den valgte perioden. Merk en eiendel som måleutstyr i opplysningene for å følge kalibreringen her.",
+        "cta": "Gå til registeret"
+      }
+    },
+    "reviews": {
+      "intro": {
+        "title": "Kontroller at tilgangen fortsatt trengs",
+        "body": "En **tilgangsgjennomgang** går gjennom alle kontoer i et system og avgjør om hver skal **beholdes**, **fjernes** eller **endres**. Kontrolløren signerer en **bekreftelse** når den er ferdig.",
+        "steps": [
+          "Planlegg en gjennomgang for hvert viktig system, med kontrollør og frist.",
+          "Angi et intervall, så planlegges neste gjennomgang automatisk.",
+          "Kontrolløren får en oppgave og går gjennom kontoene."
+        ]
+      },
+      "why": {
+        "body": "Folk bytter roller og slutter, og tilganger har en tendens til å hope seg opp. Jevnlige gjennomganger sikrer at tilgangsrettighetene stemmer med det folk trenger i arbeidet, og at privilegert tilgang holdes på et minimum.",
+        "clauses": ["iso27001:A.5.15", "iso27001:A.5.16", "iso27001:A.5.18", "iso27001:A.8.2"]
+      },
+      "empty": {
+        "title": "Ingen tilgangsgjennomganger planlagt",
+        "body": "Start med systemene som har den mest sensitive informasjonen, og dem med administratortilgang. De fleste organisasjoner gjennomgår dem hver sjette eller tolvte måned.",
+        "cta": "Planlegg en tilgangsgjennomgang"
+      }
+    },
+    "reviewForm": {
+      "intro": {
+        "title": "Planlegg gjennomgangen",
+        "body": "Velg systemet, hvem som gjennomgår det og innen når. Kontrolløren får en oppgave og påminnelser.",
+        "steps": [
+          "Velg en kontrollør som vet hvem som trenger tilgang: vanligvis systemeieren eller en leder.",
+          "Beskriv omfanget, for eksempel hvilke kontotyper som er med.",
+          "Angi et intervall for jevnlige gjennomganger."
+        ]
+      },
+      "why": {
+        "body": "Tilgangsrettigheter bør gjennomgås med planlagte mellomrom av noen som kan vurdere om de fortsatt trengs.",
+        "clauses": ["iso27001:A.5.18"]
+      },
+      "fields": {
+        "system": {
+          "help": "Systemet der tilgangen skal gjennomgås: velg et fra registeret, eller skriv et navn hvis det ikke er registrert.",
+          "example": "CRM-systemet, filserveren, nettbanken."
+        },
+        "scope": {
+          "help": "Hva gjennomgangen omfatter, slik at kontrolløren vet hva som skal være med.",
+          "example": "Alle bruker- og administratorkontoer, også delte kontoer og tjenestekontoer."
+        },
+        "reviewer": {
+          "help": "Personen som avgjør for hver konto. Vedkommende får en oppgave i Mitt arbeid.",
+          "example": "Økonomisjefen for regnskapssystemet."
+        },
+        "frequency_months": {
+          "help": "Hvor ofte gjennomgangen gjentas. Når den fullføres, planlegges neste med kontoene som ble beholdt.",
+          "example": "6 for systemer med sensitive data, 12 for resten."
+        }
+      }
+    },
+    "review": {
+      "intro": {
+        "title": "Avgjør for hver konto",
+        "body": "Gå gjennom hver konto og velg **Behold**, **Fjern** eller **Endre**. Skriv et notat når tilgangen skal endres. Når alle kontoer er avgjort, fullfører du gjennomgangen med en bekreftelse.",
+        "steps": [
+          "Legg til kontoene, eller hent inn medlemmene i organisasjonen.",
+          "Avgjør hver konto. Bruk notatet til å si hva som skal endres.",
+          "Fullfør og bekreft. Det opprettes oppgaver for fjernet og endret tilgang."
+        ]
+      },
+      "why": {
+        "body": "Bekreftelsen er beviset deres på at tilgangen ble kontrollert av en ansvarlig person. Fjernet tilgang må faktisk tas bort, og derfor blir hver av dem en oppgave.",
+        "clauses": ["iso27001:A.5.18", "iso27001:A.5.15"]
+      },
+      "fields": {
+        "decision": {
+          "help": "Behold: tilgangen trengs fortsatt. Fjern: ta den bort. Endre: reduser eller juster den.",
+          "example": "En tidligere prosjektdeltaker som fortsatt har skrivetilgang: Fjern."
+        }
+      }
+    },
+    "changes": {
+      "intro": {
+        "title": "Gjør endringer på en kontrollert måte",
+        "body": "En **endringsforespørsel** følger en endring fra idé til resultat: forespørsel, konsekvens- og risikovurdering, godkjenning, gjennomføring og en **evaluering etter gjennomføringen**.",
+        "steps": [
+          "Meld en endring og beskriv hva og hvorfor.",
+          "Vurder konsekvenser og risiko, og planlegg gjennomføring og tilbakeføring.",
+          "Få godkjenning, gjennomfør, og kontroller deretter at det virket."
+        ]
+      },
+      "why": {
+        "body": "Uplanlagte endringer er en vanlig årsak til driftsavbrudd, sikkerhetshendelser og kvalitetsproblemer. Standardene forventer at endringer planlegges, vurderes, godkjennes og evalueres, og at konsekvensene håndteres.",
+        "clauses": ["iso27001:A.8.32", "iso9001:6.3", "iso9001:8.5.6"]
+      },
+      "empty": {
+        "title": "Ingen endringsforespørsler ennå",
+        "body": "Meld en endringsforespørsel neste gang dere planlegger en endring i et system, en prosess, et produkt eller organisasjonen. Små rutineendringer kan merkes som standardendringer.",
+        "cta": "Meld en endring"
+      }
+    },
+    "changeForm": {
+      "intro": {
+        "title": "Beskriv endringen",
+        "body": "Si hva som skal endres, og hvorfor. Konsekvens- og risikovurderingen kan gjøres nå eller i vurderingssteget. Når endringen er godkjent, låses innholdet.",
+        "steps": [
+          "Gi en tydelig tittel, en beskrivelse og begrunnelsen.",
+          "Før opp de berørte eiendelene.",
+          "Vurder konsekvenser og risiko, og skriv gjennomførings- og tilbakeføringsplanen."
+        ]
+      },
+      "why": {
+        "body": "En god vurdering og en tilbakeføringsplan gjør at den som godkjenner, kan ta en informert beslutning, og at endringen kan reverseres hvis den går galt.",
+        "clauses": ["iso27001:A.8.32", "iso9001:6.3"]
+      },
+      "fields": {
+        "change_type": {
+          "help": "Standard: lav risiko, rutine og forhåndsgodkjent. Normal: vurderes og godkjennes hver gang. Hasteendring: haster, godkjennes raskt og evalueres etterpå.",
+          "example": "Å legge til en bruker er standard; å bytte brannmur er normal."
+        },
+        "description": {
+          "help": "Hva som skal endres, hvor og for hvem.",
+          "example": "Oppgrader regnskapssystemet fra versjon 8 til 9."
+        },
+        "reason": {
+          "help": "Hvorfor endringen trengs, og hva som skjer hvis den ikke gjøres.",
+          "example": "Versjon 8 støttes ikke lenger og får ingen sikkerhetsoppdateringer."
+        },
+        "affected_assets": {
+          "help": "Systemene, utstyret eller informasjonen endringen berører. De kobles til, slik at endringen vises på hver eiendel.",
+          "example": "Regnskapssystemet og databaseserveren."
+        },
+        "risk_level": {
+          "help": "Den samlede risikoen ved endringen: hvor sannsynlig det er at noe går galt, og hvor ille det blir.",
+          "example": "Høy hvis en feil stopper faktureringen i flere dager."
+        },
+        "impact_assessment": {
+          "help": "Hvem og hva som berøres: brukere, kunder, andre systemer, prosesser og dokumenter.",
+          "example": "Økonomi kan ikke logge inn i to timer; bankintegrasjonen må testes på nytt."
+        },
+        "risk_assessment": {
+          "help": "Hva som kan gå galt, og hvordan dere reduserer risikoen.",
+          "example": "Datamigreringen kan feile; ta full sikkerhetskopi først og test i en kopi."
+        },
+        "implementation_plan": {
+          "help": "Stegene, hvem som gjør dem og når.",
+          "example": "Fredag kl. 16 sikkerhetskopi, kl. 17 oppgradering, kl. 18 test, mandag brukerkontroll."
+        },
+        "rollback_plan": {
+          "help": "Hvordan dere går tilbake til tidligere tilstand hvis endringen feiler.",
+          "example": "Gjenopprett sikkerhetskopien og installer versjon 8 på nytt."
+        },
+        "implemented_at": {
+          "help": "Datoen endringen faktisk ble gjennomført.",
+          "example": "Dagen oppgraderingen ble satt i drift."
+        },
+        "review_outcome": {
+          "help": "Resultatet av kontrollen etter endringen: oppnådde den formålet uten uønskede virkninger?",
+          "example": "Delvis vellykket: virker, men én rapport må lages på nytt."
+        }
+      }
+    },
+    "change": {
+      "intro": {
+        "title": "Følg endringen gjennom stegene",
+        "body": "Arbeidsflyten viser hvor endringen står, og hva du kan gjøre videre. Godkjenningen må komme fra en annen enn den som meldte endringen. Etter gjennomføringen får eieren en oppgave om å evaluere resultatet.",
+        "steps": [
+          "Fyll ut det neste steg trenger.",
+          "Ta neste steg i arbeidsflytpanelet.",
+          "Lukk endringen når resultatet av evalueringen er registrert og alle oppgaver er utført."
+        ]
+      },
+      "why": {
+        "body": "Det som gjør en endring kontrollert, er at den som melder og den som godkjenner er forskjellige personer, og at resultatet kontrolleres etterpå. Historikken for hvert steg er beviset deres ved revisjoner.",
+        "clauses": ["iso27001:A.8.32", "iso27001:A.5.3", "iso9001:6.3", "iso9001:8.5.6"]
+      }
+    }
+  },
+  "lessons": {
+    "asset-inventory": {
+      "title": "Slik bygger du et eiendelsregister",
+      "minutes": 5,
+      "sections": [
+        {
+          "heading": "Hva som regnes som en eiendel",
+          "body": "En eiendel er alt som har verdi for organisasjonen og må beskyttes: **informasjon** (kunderegistre, tegninger), **systemene** som har den, **utstyr**, **tjenester** fra leverandører, **lokaler** og ting som er utlevert til folk. Dere trenger ikke føre opp hver mus og kabel: konsentrer dere om det som ville skade hvis det gikk tapt, kom ut eller ble utilgjengelig."
+        },
+        {
+          "heading": "Eierne får det til å virke",
+          "body": "Hver eiendel trenger en **eier**: en person, ikke en avdeling, som har ansvaret for den. Eieren bestemmer hvem som får tilgang, sørger for riktig klassifisering og går gjennom den jevnlig. En **forvalter** kan ta vare på den til daglig."
+        },
+        {
+          "heading": "Klassifiseringen styrer beskyttelsen",
+          "body": "Et enkelt system som åpen, intern, konfidensiell og strengt fortrolig er nok for de fleste. Hvert nivå har **håndteringsregler**: hvem som kan se den, hvordan den lagres og sendes, og hvordan den destrueres. Vurder konfidensialitet, integritet og tilgjengelighet for å se hvilken beskyttelse som betyr mest."
+        },
+        {
+          "heading": "Hold registeret levende",
+          "body": "Oppdater livsløpet når eiendeler tas ut av bruk eller avhendes, og registrer hvordan informasjonen ble fjernet. Sett en dato for gjennomgang, slik at eierne kontrollerer eiendelene sine minst én gang i året."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Hvem bør være eier av en eiendel?",
+          "options": [
+            "IT-avdelingen",
+            "En navngitt person som har ansvaret for den",
+            "Den som bruker den mest"
+          ],
+          "answer": 1,
+          "explanation": "En eier er en navngitt person som har ansvaret for eiendelen og bestemmer over tilgang og beskyttelse."
+        },
+        {
+          "question": "Hva avgjør klassifiseringen?",
+          "options": [
+            "Prisen på eiendelen",
+            "Hvordan eiendelen skal håndteres og beskyttes",
+            "Når eiendelen skal byttes"
+          ],
+          "answer": 1,
+          "explanation": "Hvert klassifiseringsnivå har håndteringsregler for tilgang, lagring, sending og destruksjon."
+        },
+        {
+          "question": "En bærbar PC er sikkert slettet og levert til gjenvinning. Hva gjør du i registeret?",
+          "options": [
+            "Sletter eiendelen",
+            "Merker den som avhendet og registrerer metoden",
+            "Ingenting"
+          ],
+          "answer": 1,
+          "explanation": "Å merke den som avhendet og registrere metoden viser at informasjonen ble fjernet på en sikker måte."
+        }
+      ],
+      "pass_mark": 0.67
+    },
+    "calibration": {
+      "title": "Kalibrering av måleutstyr",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Når det trengs kalibrering",
+          "body": "Bruker dere målingene fra et instrument til å vise at et produkt eller en tjeneste oppfyller kravene, må instrumentet **kalibreres**: sammenlignes med faste mellomrom med en referanse som er sporbar til nasjonale eller internasjonale standarder."
+        },
+        {
+          "heading": "Intervaller og registreringer",
+          "body": "Velg et intervall ut fra produsentens råd, hvor mye instrumentet brukes og hvor stabilt det har vært. Registrer hver kalibrering med dato, resultat og sertifikat. CoreFlow beregner neste frist og minner eieren på den."
+        },
+        {
+          "heading": "Når den ikke blir godkjent",
+          "body": "Viser et instrument seg å være utenfor toleransen, kan tidligere målinger være feil. Vurder hvilke produkter eller resultater som kan være berørt, og bestem hva dere gjør: kontrollerer på nytt, tilbakekaller eller godtar med begrunnelse. Registrer dette som **konsekvensvurderingen**."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Ved kalibrering viser det seg at en vekt viser 5 % for mye. Hva må du gjøre i tillegg?",
+          "options": [
+            "Ingenting, den er justert nå",
+            "Vurdere om tidligere veiinger ble påvirket",
+            "Kjøpe en ny vekt"
+          ],
+          "answer": 1,
+          "explanation": "Et resultat utenfor toleransen betyr at tidligere målinger kan være ugyldige, så konsekvensene må vurderes."
+        },
+        {
+          "question": "Hva gjør en kalibrering sporbar?",
+          "options": [
+            "Den ble utført av produsenten",
+            "Den sammenlignes med referanser som er knyttet til nasjonale eller internasjonale standarder",
+            "Den er skrevet ned"
+          ],
+          "answer": 1,
+          "explanation": "Sporbarhet betyr en ubrutt kjede av sammenligninger tilbake til anerkjente målestandarder."
+        }
+      ],
+      "pass_mark": 0.5
+    },
+    "access-reviews": {
+      "title": "Slik gjennomfører du en tilgangsgjennomgang",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Hvorfor tilganger glir ut",
+          "body": "Folk bytter roller, prosjekter avsluttes og kolleger slutter, men tilgangene blir ofte værende. Over tid samler kontoene rettigheter ingen trenger, og det øker faren for misbruk og feil."
+        },
+        {
+          "heading": "Slik går du fram",
+          "body": "Spør for hver konto: arbeider denne personen fortsatt her, og trenger vedkommende **dette** tilgangsnivået i arbeidet sitt nå? Vær særlig oppmerksom på administrator-, fellesbruker- og tjenestekontoer. Velg **Behold**, **Fjern** eller **Endre** og skriv hvorfor."
+        },
+        {
+          "heading": "Bekreft og følg opp",
+          "body": "Når alle kontoer er avgjort, signerer du **bekreftelsen**. Fjernet og endret tilgang blir en oppgave: gjennomgangen har først effekt når tilgangen faktisk er tatt bort."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "En konto tilhører en som sluttet for tre måneder siden. Hva velger du?",
+          "options": ["Behold", "Fjern", "Endre"],
+          "answer": 1,
+          "explanation": "Kontoer til folk som har sluttet, skal fjernes."
+        },
+        {
+          "question": "Når er en tilgangsgjennomgang virkelig ferdig?",
+          "options": [
+            "Når kontrolløren har avgjort alle kontoer",
+            "Når bekreftelsen er signert og fjernet tilgang er tatt bort",
+            "Når fristen er passert"
+          ],
+          "answer": 1,
+          "explanation": "Avgjørelsene reduserer først risikoen når tilgangsendringene er gjennomført."
+        }
+      ],
+      "pass_mark": 0.5
+    },
+    "change-management": {
+      "title": "Kontrollert endring i fem steg",
+      "minutes": 5,
+      "sections": [
+        {
+          "heading": "1. Forespørsel",
+          "body": "Beskriv hva som skal endres, og hvorfor. En tydelig begrunnelse hjelper alle med å vurdere om endringen er verdt risikoen."
+        },
+        {
+          "heading": "2. Vurder konsekvenser og risiko",
+          "body": "Hvem og hva berøres? Hva kan gå galt, og hvordan reduserer dere det? Skriv en **gjennomføringsplan** og en **tilbakeføringsplan**, slik at dere kan reversere endringen ved behov."
+        },
+        {
+          "heading": "3. Godkjenn",
+          "body": "En annen enn den som meldte endringen, godkjenner den. Denne **arbeidsdelingen** hindrer at én person presser gjennom en risikabel endring uten kontroll. Hasteendringer kan godkjennes raskt, men må likevel evalueres etterpå."
+        },
+        {
+          "heading": "4. Gjennomfør",
+          "body": "Gjennomfør endringen etter planen og registrer når den ble gjort. Informer dem som berøres."
+        },
+        {
+          "heading": "5. Evaluer",
+          "body": "Kontroller at endringen oppnådde formålet uten uønskede virkninger. Registrer resultatet, følg opp det som gjenstår, og lukk endringen."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Hvem bør godkjenne en endringsforespørsel?",
+          "options": [
+            "Den som meldte den",
+            "En annen enn den som meldte den",
+            "Ingen, hvis det haster"
+          ],
+          "answer": 1,
+          "explanation": "Arbeidsdeling betyr at den som melder en endring, ikke kan godkjenne den selv."
+        },
+        {
+          "question": "Hvorfor skrive en tilbakeføringsplan?",
+          "options": [
+            "Den trengs bare for godkjenningen",
+            "For å kunne gå tilbake til tidligere tilstand hvis endringen feiler",
+            "For å beskrive begrunnelsen for endringen"
+          ],
+          "answer": 1,
+          "explanation": "En tilbakeføringsplan begrenser skaden når en endring ikke går som planlagt."
+        },
+        {
+          "question": "Hva skjer etter gjennomføringen?",
+          "options": [
+            "Endringen lukkes med en gang",
+            "En evaluering kontrollerer om den oppnådde formålet",
+            "Endringen slettes"
+          ],
+          "answer": 1,
+          "explanation": "Evalueringen etter gjennomføringen bekrefter resultatet før endringen lukkes."
+        }
+      ],
+      "pass_mark": 0.67
+    }
+  },
+  "tours": {
+    "list": [
+      {
+        "target": "assets-sections",
+        "title": "Fire deler",
+        "body": "Eiendelsregisteret, kalibrering av måleutstyr, tilgangsgjennomganger og endringsforespørsler."
+      },
+      {
+        "target": "assets-summary",
+        "title": "Nøkkeltall",
+        "body": "Hvor mange eiendeler dere har, og hvor mange kalibreringer som har forfalt eller snart forfaller."
+      },
+      {
+        "target": "assets-filters",
+        "title": "Filtre",
+        "body": "Finn eiendeler etter type, klassifisering, livsløp, eier eller om de inneholder personopplysninger. Lagre en kombinasjon som en visning."
+      },
+      {
+        "target": "assets-new",
+        "title": "Registrer en eiendel",
+        "body": "Legg til en eiendel med eier og klassifisering. Du kan be om et forslag til klassifisering."
+      }
+    ],
+    "reviews": [
+      {
+        "target": "assets-sections",
+        "title": "Fire deler",
+        "body": "Bytt mellom registeret, kalibrering, tilgangsgjennomganger og endringer."
+      },
+      {
+        "target": "assets-review-filters",
+        "title": "Filtre",
+        "body": "Vis åpne gjennomganger, gjennomganger tildelt deg eller gjennomganger med snarlig frist."
+      },
+      {
+        "target": "assets-review-new",
+        "title": "Planlegg en gjennomgang",
+        "body": "Velg et system, en kontrollør og en frist. Et intervall planlegger neste gjennomgang automatisk."
+      }
+    ],
+    "changes": [
+      {
+        "target": "assets-sections",
+        "title": "Fire deler",
+        "body": "Bytt mellom registeret, kalibrering, tilgangsgjennomganger og endringer."
+      },
+      {
+        "target": "assets-change-filters",
+        "title": "Filtre",
+        "body": "Finn endringer etter steg, type, kategori, risikonivå eller eier."
+      },
+      {
+        "target": "assets-change-new",
+        "title": "Meld en endring",
+        "body": "Beskriv endringen og hvorfor. Den går deretter gjennom vurdering, godkjenning, gjennomføring og evaluering."
+      }
+    ]
+  },
+  "glossary": {
+    "asset-owner": {
+      "term": "Eiendelseier",
+      "definition": "Den navngitte personen som har ansvaret for en eiendel: vedkommende bestemmer hvem som får tilgang, og sørger for at den beskyttes og gjennomgås.",
+      "clauses": ["iso27001:A.5.9"]
+    },
+    "classification": {
+      "term": "Klassifisering",
+      "definition": "Et nivå (for eksempel åpen, intern, konfidensiell, strengt fortrolig) som sier hvor sensitiv informasjonen er, og hvordan den skal håndteres.",
+      "clauses": ["iso27001:A.5.12"]
+    },
+    "calibration": {
+      "term": "Kalibrering",
+      "definition": "Å sammenligne et måleinstrument med en sporbar referanse med faste mellomrom for å bekrefte at det måler riktig.",
+      "clauses": ["iso9001:7.1.5"]
+    },
+    "access-review": {
+      "term": "Tilgangsgjennomgang",
+      "definition": "En jevnlig kontroll, signert av en kontrollør, av at hver konto i et system fortsatt trenger tilgangen sin.",
+      "clauses": ["iso27001:A.5.18"]
+    },
+    "change-request": {
+      "term": "Endringsforespørsel",
+      "definition": "En registrering av en planlagt endring som vurderes, godkjennes, gjennomføres og evalueres på en kontrollert måte.",
+      "clauses": ["iso27001:A.8.32", "iso9001:6.3"]
+    }
+  }
+}
