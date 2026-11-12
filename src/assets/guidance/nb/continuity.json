@@ -1,0 +1,682 @@
+{
+  "pages": {
+    "overview": {
+      "intro": {
+        "title": "Hold virksomheten i gang når noe går galt",
+        "body": "Kontinuitetsstyring handler om å vite hvilke aktiviteter som betyr mest, hvor lenge dere klarer dere uten dem, og å ha testede planer for å få dem tilbake. Denne siden viser hvor godt forberedt dere er.",
+        "steps": [
+          "Begynn med en **konsekvensanalyse** (BIA) for hver kritisk aktivitet: hva skjer hvis den stopper, og hvor raskt må den være tilbake.",
+          "Skriv en **kontinuitetsplan** som dekker aktivitetene og oppfyller gjenopprettingsmålene deres.",
+          "**Øv** planene jevnlig, registrer erfaringene og følg dem opp.",
+          "Kontroller at hver **IKT-tjeneste** kan gjenopprettes så raskt som aktivitetene trenger, og hold **krisekontaktlisten** oppdatert."
+        ]
+      },
+      "why": {
+        "body": "Standardene forventer at dere planlegger hvordan informasjonssikkerhet og kritiske tjenester opprettholdes under et avbrudd, at IKT er forberedt på det, og at planene testes. Beredskap er også et krav innen helse, miljø og sikkerhet, og NIS2 har kontinuitet og krisehåndtering blant minimumstiltakene.",
+        "clauses": [
+          "iso27001:A.5.29",
+          "iso27001:A.5.30",
+          "iso45001:8.2",
+          "iso14001:8.2",
+          "nis2:21.2.c"
+        ]
+      }
+    },
+    "bias": {
+      "intro": {
+        "title": "Konsekvensanalyser",
+        "body": "En **konsekvensanalyse** (BIA) ser på én aktivitet og spør: hvis den stopper, hvor ille blir det over tid, og hvor raskt må den gjenopprettes? Svarene blir gjenopprettingsmålene planene må oppfylle.",
+        "steps": [
+          "Lag en BIA per kritisk aktivitet, for eksempel *Lønn*, *Kundestøtte* eller *Produksjonslinje 2*.",
+          "Vurder konsekvensene og sett **MTPD**, **RTO** og **RPO**.",
+          "Send den til godkjenning, og dekk den med en kontinuitetsplan. Rader merket *Ingen plan* trenger fortsatt en."
+        ]
+      },
+      "why": {
+        "body": "Uten en BIA er gjenopprettingsmålene gjetninger. BIA-en er beviset på at kontinuitet og IKT-beredskap bygger på det virksomheten faktisk trenger.",
+        "clauses": ["iso27001:A.5.30", "iso27001:A.5.29", "nis2:21.2.c"]
+      },
+      "empty": {
+        "title": "Ingen konsekvensanalyser ennå",
+        "body": "Velg de tre til fem aktivitetene dere minst klarer dere uten, og analyser dem først. Resten kan dere legge til senere.",
+        "cta": "Start en konsekvensanalyse"
+      }
+    },
+    "biaForm": {
+      "intro": {
+        "title": "Analysere en aktivitet",
+        "body": "Beskriv aktiviteten, vurder hvordan et avbrudd påvirker den, og bestem gjenopprettingsmålene. Assistenten kan foreslå vurderinger og mål som utgangspunkt.",
+        "steps": [
+          "Vurder hver konsekvenskategori for et avbrudd som varer opp til MTPD.",
+          "Sett MTPD først, deretter en RTO som er kortere, og en RPO for hvor mye data dere kan miste.",
+          "List opp hva aktiviteten er avhengig av: personer, lokaler, IKT-tjenester, leverandører, utstyr og informasjon."
+        ]
+      },
+      "why": {
+        "body": "Styrte, godkjente gjenopprettingsmål gjør det mulig å vise at planer og IKT-beredskap står i forhold til behovet.",
+        "clauses": ["iso27001:A.5.30", "nis2:21.2.c"]
+      },
+      "fields": {
+        "criticality": {
+          "help": "En samlet merkelapp for hvor kritisk aktiviteten er. Bruk den til å prioritere hvilke planer som skrives og øves først.",
+          "example": "Kritisk: fakturering i et selskap med daglig likviditetsbehov."
+        },
+        "impacts": {
+          "help": "Vurder hver type konsekvens fra 0 (ingen) til 5 (katastrofal) hvis aktiviteten var nede i den maksimale akseptable perioden. Den høyeste vurderingen styrer prioriteten.",
+          "example": "En nettbutikk nede i to døgn: økonomi 4, kunder 4, omdømme 3, helse og sikkerhet 0."
+        },
+        "mtpd_minutes": {
+          "help": "Maksimal akseptabel avbruddstid: hvor lenge aktiviteten kan være nede før skaden blir uakseptabel.",
+          "example": "3 døgn for lønn hvis lønnen utbetales den 25."
+        },
+        "rto_minutes": {
+          "help": "Mål for gjenopprettingstid: hvor raskt dere vil ha aktiviteten i gang igjen. Den må være kortere enn MTPD for å gi en sikkerhetsmargin.",
+          "example": "MTPD 3 døgn, RTO 1 døgn."
+        },
+        "rpo_minutes": {
+          "help": "Mål for gjenopprettingspunkt: hvor mye data dere har råd til å miste, målt som tid tilbake fra avbruddet. Det bestemmer hvor ofte dere tar sikkerhetskopi eller replikerer.",
+          "example": "RPO 4 timer betyr sikkerhetskopi minst hver 4. time."
+        },
+        "mbco": {
+          "help": "Minimumsnivå for drift: det reduserte tjenestenivået som er akseptabelt mens dere gjenoppretter.",
+          "example": "Besvar bare hastesaker fra kunder; utsett alt annet."
+        },
+        "dependencies": {
+          "help": "Det aktiviteten trenger for å fungere. En IKT-avhengighet kan peke på en IKT-tjeneste, slik at IKT-beredskapen kan sammenligne hva tjenesten klarer med hva aktiviteten krever.",
+          "example": "Personer: to opplærte lønnsmedarbeidere. IKT: lønnssystemet. Leverandør: banken."
+        }
+      }
+    },
+    "biaDetail": {
+      "intro": {
+        "title": "En konsekvensanalyse",
+        "body": "Dette er en styrt post: endringer registreres med årsak, og den godkjennes og gjennomgås etter en plan. Bruk godkjenningskortet for å flytte den videre.",
+        "steps": [
+          "Kontroller vurderinger og mål sammen med eieren av aktiviteten.",
+          "Send den til godkjenning. Når den er godkjent, planlegges neste gjennomgang.",
+          "Sørg for at minst én kontinuitetsplan dekker den."
+        ]
+      },
+      "why": {
+        "body": "En godkjent og gjennomgått BIA er grunnlaget revisorer forventer for beslutninger om kontinuitet og IKT-beredskap.",
+        "clauses": ["iso27001:A.5.30", "iso27001:A.5.29"]
+      }
+    },
+    "plans": {
+      "intro": {
+        "title": "Kontinuitetsplaner",
+        "body": "En **kontinuitetsplan** beskriver hvordan dere håndterer et avbrudd og gjenoppretter aktivitetene den dekker. Den arver de strengeste gjenopprettingsmålene fra konsekvensanalysene den dekker.",
+        "steps": [
+          "Lag en plan og velg konsekvensanalysene den dekker.",
+          "Skriv delene og stegene for hver fase: aktivering, respons, gjenoppretting, normalisering og avslutning.",
+          "Få den godkjent, legg til krisekontakter og sett opp en gjentakende øvelsesplan."
+        ]
+      },
+      "why": {
+        "body": "Standardene forventer dokumenterte, godkjente planer som holdes oppdatert og testes. Planer som aldri er øvd, merkes her.",
+        "clauses": ["iso27001:A.5.29", "iso45001:8.2", "iso14001:8.2", "nis2:21.2.c"]
+      },
+      "empty": {
+        "title": "Ingen kontinuitetsplaner ennå",
+        "body": "Begynn med én plan for de mest kritiske aktivitetene. Assistenten kan lage et utkast til innholdet fra konsekvensanalysene.",
+        "cta": "Lag en plan"
+      }
+    },
+    "planForm": {
+      "intro": {
+        "title": "Skrive en kontinuitetsplan",
+        "body": "Hold planen kort nok til å brukes under press. Koble til aktivitetene den beskytter, og beskriv hvem som gjør hva, i hvilken rekkefølge og hvor raskt.",
+        "steps": [
+          "Velg plantype og konsekvensanalysene den dekker.",
+          "La assistenten lage et utkast, og tilpass det til virksomheten.",
+          "Legg til steg per fase med ansvarlig rolle og en måltid som passer innenfor RTO."
+        ]
+      },
+      "why": {
+        "body": "En plan som er knyttet til godkjente gjenopprettingsmål, viser at håndteringen er utformet for å møte virksomhetens behov.",
+        "clauses": ["iso27001:A.5.29", "iso45001:8.2", "iso14001:8.2"]
+      },
+      "fields": {
+        "plan_type": {
+          "help": "Hva slags avbrudd planen håndterer. Mange har én kontinuitetsplan pluss egne planer for IKT-gjenoppretting og nødsituasjoner.",
+          "example": "Katastrofegjenoppretting for datasenteret; beredskapsplan for brann og evakuering."
+        },
+        "bia_ids": {
+          "help": "Konsekvensanalysene planen beskytter. Planens gjenopprettingsmål er de strengeste av deres."
+        },
+        "scope": {
+          "help": "Hvilke aktiviteter, lokasjoner og avbrudd planen dekker, og hva den ikke dekker."
+        },
+        "objectives": {
+          "help": "Hva planen skal oppnå, for eksempel å nå RTO-ene og beskytte mennesker først."
+        },
+        "activation_criteria": {
+          "help": "Når og av hvem planen aktiveres. Gjør kriteriene konkrete, så ingen nøler.",
+          "example": "ERP-systemet er nede i mer enn 2 timer, eller lokalene kan ikke brukes."
+        },
+        "roles_responsibilities": {
+          "help": "Kriserollene (for eksempel kriseleder, stedfortreder, kommunikasjon) og hva hver av dem har ansvar for."
+        },
+        "recovery_strategy": {
+          "help": "Hvordan aktivitetene gjenopprettes: alternative lokaler, manuelle løsninger, reservesystemer eller leverandører."
+        },
+        "communication_plan": {
+          "help": "Hvem som informerer hvem, hvordan og når: ansatte, kunder, myndigheter, leverandører og media."
+        },
+        "resources": {
+          "help": "Hva som trengs for å gjennomføre planen: personer, utstyr, tilganger, dokumenter og budsjett."
+        },
+        "steps": {
+          "help": "Tiltakene i rekkefølge, gruppert etter fase. Gi hvert steg en ansvarlig rolle og en måltid.",
+          "example": "Aktivering: kriseleder beslutter aktivering (15 min). Gjenoppretting: gjenopprett ERP fra sikkerhetskopi (4 t)."
+        }
+      }
+    },
+    "planDetail": {
+      "intro": {
+        "title": "En kontinuitetsplan",
+        "body": "Kontroller at stegene kan oppfylle gjenopprettingsmålene, hold planens krisekontakter oppdatert, og øv den jevnlig.",
+        "steps": [
+          "Send planen til godkjenning når innholdet er klart.",
+          "Legg til personene som skal ringes i planens kontaktliste.",
+          "Sett opp en øvelsesplan, eller planlegg en øvelse nå."
+        ]
+      },
+      "why": {
+        "body": "En godkjent plan som øves etter en plan og forbedres ut fra erfaringene, er det revisorer ser etter.",
+        "clauses": ["iso27001:A.5.29", "iso45001:8.2", "nis2:21.2.c"]
+      },
+      "fields": {
+        "exercise_schedule": {
+          "help": "En gjentakende oppgave som minner eieren på å øve planen. Når en øvelse av planen gjennomføres, lukkes den tidligste åpne påminnelsen.",
+          "example": "Årlig i oktober, påminnelse 14 dager før."
+        }
+      }
+    },
+    "exercises": {
+      "intro": {
+        "title": "Øvelser og tester",
+        "body": "Øvelser viser at planene virker og at folk kjenner rollene sine. Tester viser at IKT-tjenester kan gjenopprettes i tide. Hver øvelse avsluttes med erfaringer og oppfølgingstiltak.",
+        "steps": [
+          "Planlegg en øvelse for en plan eller en IKT-tjeneste, med dato og scenario.",
+          "Gjennomfør den, og registrer utfallet, oppnådd gjenopprettingstid og erfaringene.",
+          "Gjør erfaringene om til oppfølgingstiltak med ansvarlig og frist."
+        ]
+      },
+      "why": {
+        "body": "Planer må testes for å være til å stole på. Standardene forventer jevnlige øvelser og tester, og forbedring ut fra resultatene.",
+        "clauses": ["iso27001:A.5.29", "iso27001:A.5.30", "iso45001:8.2", "iso14001:8.2"]
+      },
+      "empty": {
+        "title": "Ingen øvelser ennå",
+        "body": "En skrivebordsøvelse på én time er en god start: gå gjennom et realistisk scenario med dem som står i planen, og noter det som var uklart.",
+        "cta": "Planlegg en øvelse"
+      }
+    },
+    "exerciseForm": {
+      "intro": {
+        "title": "Planlegge en øvelse",
+        "body": "Velg hva som øves, typen og datoen. Et godt scenario er realistisk og har hendelser underveis som tester planens svake punkter.",
+        "steps": [
+          "Velg planen og, for en gjenopprettingstest, IKT-tjenesten.",
+          "La assistenten lage et utkast til scenario med hendelser og suksesskriterier.",
+          "List opp deltakerne og målene."
+        ]
+      },
+      "why": {
+        "body": "Planlagte øvelser med tydelige mål gir bevis for at planene er effektive.",
+        "clauses": ["iso27001:A.5.29", "iso45001:8.2"]
+      },
+      "fields": {
+        "exercise_type": {
+          "help": "Hvor realistisk øvelsen er. Begynn enkelt (gjennomgang, skrivebordsøvelse) og bygg opp til simuleringer og fullskalaøvelser.",
+          "example": "Skrivebordsøvelse: snakk gjennom et løsepengevirusangrep. IKT-gjenopprettingstest: gjenopprett ERP til en testserver."
+        },
+        "ict_system_id": {
+          "help": "For en gjenopprettingstest: IKT-tjenesten som testes. Når testen er gjennomført, oppdateres tjenestens teststatus og beredskap."
+        },
+        "scenario": {
+          "help": "Situasjonen deltakerne skal håndtere, og hendelsene (ny informasjon) som gis underveis.",
+          "example": "Mandag kl. 08.00: kontoret er oversvømt. Kl. 08.30: telefonsystemet er nede."
+        }
+      }
+    },
+    "exerciseDetail": {
+      "intro": {
+        "title": "En øvelse eller test",
+        "body": "Når øvelsen er gjennomført, registrerer du resultatet. Utfall og gjenopprettingstid sammenlignes med målet, og planens dato for sist øvd oppdateres.",
+        "steps": [
+          "Registrer resultatet: dato, utfall, oppnådd gjenopprettingstid og erfaringer.",
+          "Legg til et oppfølgingstiltak for hver erfaring som krever arbeid.",
+          "Kontroller at tiltakene er fullført før neste øvelse."
+        ]
+      },
+      "why": {
+        "body": "Erfaringer som følges opp, viser kontinuerlig forbedring av beredskapen.",
+        "clauses": ["iso27001:A.5.29", "iso27001:A.5.30"]
+      },
+      "fields": {
+        "achieved_recovery_minutes": {
+          "help": "Hvor lang tid gjenopprettingen faktisk tok i øvelsen. Den sammenlignes med planens RTO eller kravet til IKT-tjenesten."
+        },
+        "lessons_learned": {
+          "help": "Hva som gikk bra, hva som ikke gjorde det, og hva som bør endres i planen, opplæringen eller systemene."
+        },
+        "follow_ups": {
+          "help": "Tiltak laget ut fra erfaringene. De vises i Mitt arbeid for den ansvarlige, med frist."
+        }
+      }
+    },
+    "ict": {
+      "intro": {
+        "title": "IKT-beredskap",
+        "body": "Hver IKT-tjeneste sammenlignes med det virksomheten trenger: **oppnåelig** RTO og RPO mot det som er **påkrevd** av konsekvensanalysene som er avhengige av den, og om den er testet nylig.",
+        "steps": [
+          "Registrer IKT-tjenestene de kritiske aktivitetene er avhengige av.",
+          "Registrer hvor raskt hver kan gjenopprettes og hvor mye data som kan gå tapt.",
+          "Koble dem som avhengigheter i konsekvensanalysene, og test gjenoppretting etter en syklus."
+        ]
+      },
+      "why": {
+        "body": "ISO 27001 krever at IKT-beredskap planlegges, gjennomføres, vedlikeholdes og testes ut fra kontinuitetsmålene. Sikkerhetskopiering og redundans støtter dette.",
+        "clauses": ["iso27001:A.5.30", "iso27001:A.8.13", "iso27001:A.8.14", "nis2:21.2.c"]
+      },
+      "empty": {
+        "title": "Ingen IKT-tjenester registrert",
+        "body": "Begynn med systemene de mest kritiske aktivitetene ikke klarer seg uten, som ERP, e-post og nettverket.",
+        "cta": "Registrer en IKT-tjeneste"
+      }
+    },
+    "ictForm": {
+      "intro": {
+        "title": "Registrere en IKT-tjeneste",
+        "body": "Beskriv tjenesten og hva den klarer når den svikter. Vær ærlig: en ukjent evne er bedre enn en optimistisk gjetning.",
+        "steps": [
+          "Oppgi oppnåelig RTO og RPO, helst fra en reell test.",
+          "Beskriv strategiene for gjenoppretting og sikkerhetskopi.",
+          "Angi hvor ofte gjenoppretting testes."
+        ]
+      },
+      "why": {
+        "body": "Dokumentert gjenopprettingsevne og sikkerhetskopiordninger er beviset på at IKT-beredskapen svarer til behovet.",
+        "clauses": ["iso27001:A.5.30", "iso27001:A.8.13", "iso27001:A.8.14"]
+      },
+      "fields": {
+        "achievable_rto_minutes": {
+          "help": "Hvor raskt tjenesten realistisk kan gjenopprettes etter en feil, med dagens oppsett.",
+          "example": "4 timer for å gjenopprette fra sikkerhetskopi til en reserveserver."
+        },
+        "achievable_rpo_minutes": {
+          "help": "Hvor mye data som kan gå tapt, gitt hvor ofte det tas sikkerhetskopi eller replikeres.",
+          "example": "Nattlig sikkerhetskopi betyr at opptil 24 timer med data kan gå tapt."
+        },
+        "backup_strategy": {
+          "help": "Hvordan data sikkerhetskopieres: hvor ofte, hvor kopiene lagres, hvordan de beskyttes og hvordan gjenoppretting testes."
+        },
+        "test_interval_months": {
+          "help": "Hvor ofte gjenoppretting må testes. Når siste test er eldre enn dette, trenger tjenesten oppfølging."
+        }
+      }
+    },
+    "ictDetail": {
+      "intro": {
+        "title": "En IKT-tjeneste",
+        "body": "Beredskapskortet viser om tjenesten kan oppfylle det virksomheten krever, og lister opp det som må rettes.",
+        "steps": [
+          "Lukk avvikene som er listet under beredskap.",
+          "Planlegg en gjenopprettingstest når testen forfaller.",
+          "Koble tjenesten til eiendelen eller leverandøren under Relatert."
+        ]
+      },
+      "why": {
+        "body": "Å vise at hver kritisk IKT-tjeneste oppfyller gjenopprettingskravene og testes, er sentralt i IKT-beredskap.",
+        "clauses": ["iso27001:A.5.30", "iso27001:A.8.14"]
+      }
+    },
+    "contacts": {
+      "intro": {
+        "title": "Krisekontakter",
+        "body": "I en krise må dere raskt nå de riktige personene. Ha én liste for hele virksomheten, og la hver plan legge til sine egne kontakter.",
+        "steps": [
+          "Legg til kriseledelsen, stedfortredere, nødetater, myndigheter og viktige leverandører.",
+          "Gi hver kontakt et telefonnummer, en e-postadresse eller et koblet medlem.",
+          "Bekreft listen minst én gang i året. Kontakter som ikke er bekreftet på et år, merkes."
+        ]
+      },
+      "why": {
+        "body": "Beredskap krever at dere vet hvem som skal kontaktes, også nødetater og myndigheter. En utdatert liste svikter akkurat når den trengs.",
+        "clauses": ["iso45001:8.2", "iso14001:8.2", "iso27001:A.5.29"]
+      },
+      "fields": {
+        "crisis_role": {
+          "help": "Personens rolle i en krise, som kan være en annen enn stillingstittelen.",
+          "example": "Kriseleder, stedfortredende kriseleder, kommunikasjon, IT-gjenoppretting."
+        },
+        "verified_on": {
+          "help": "Når dere sist bekreftet at opplysningene stemmer, for eksempel ved å ringe nummeret."
+        }
+      }
+    }
+  },
+  "lessons": {
+    "continuity-basics": {
+      "title": "Kontinuitetsstyring på fem minutter",
+      "minutes": 5,
+      "sections": [
+        {
+          "heading": "Hva kontinuitet er",
+          "body": "Kontinuitet er evnen til å fortsette å levere de viktigste produktene og tjenestene under et avbrudd, og å gjenopprette resten innen avtalte tider. Det dekker alt fra strømbrudd og dataangrep til flom og pandemi."
+        },
+        {
+          "heading": "Syklusen",
+          "body": "1. **Analyser** konsekvensen av et avbrudd for hver kritisk aktivitet (BIA).\n2. **Planlegg** hvordan dere håndterer og gjenoppretter innen målene.\n3. **Øv** planene og lær av det.\n4. **Gjennomgå** og forbedre, minst årlig."
+        },
+        {
+          "heading": "Hvor IKT kommer inn",
+          "body": "De fleste aktiviteter er avhengige av IKT. IKT-beredskap kontrollerer at hver tjeneste kan gjenopprettes så raskt som aktivitetene som er avhengige av den, krever."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Hva bør komme først?",
+          "options": [
+            "Å skrive kontinuitetsplanen",
+            "Konsekvensanalysen",
+            "Å kjøpe et reservedatasenter"
+          ],
+          "answer": 1,
+          "explanation": "BIA-en forteller hvilke aktiviteter som betyr noe og hvor raskt de må gjenopprettes, så planer og investeringer blir forholdsmessige."
+        },
+        {
+          "question": "Hvorfor øve en plan?",
+          "options": [
+            "Fordi det viser at planen virker og at folk kjenner rollene sine",
+            "Bare for å tilfredsstille revisor",
+            "Det trengs ikke når planen er godkjent"
+          ],
+          "answer": 0,
+          "explanation": "Øvelser avdekker mangler før et reelt avbrudd gjør det."
+        }
+      ],
+      "pass_mark": 0.5
+    },
+    "running-a-bia": {
+      "title": "Gjennomføre en konsekvensanalyse",
+      "minutes": 6,
+      "sections": [
+        {
+          "heading": "Velg aktiviteten",
+          "body": "Analyser én aktivitet om gangen, på et nivå der én eier kan svare på spørsmålene: *Fakturering*, ikke *Økonomi*."
+        },
+        {
+          "heading": "Vurder konsekvensen over tid",
+          "body": "Spør eieren hvordan konsekvensen vokser: etter en time, et døgn, en uke. Vurder konsekvenskategoriene på det tidspunktet den blir uakseptabel. Det tidspunktet er **MTPD**."
+        },
+        {
+          "heading": "Sett mål og avhengigheter",
+          "body": "Velg en **RTO** som er kortere enn MTPD, og en **RPO** for datatap. List så opp hva aktiviteten trenger: personer, lokaler, IKT, leverandører, utstyr og informasjon. Det er disse avhengighetene planene må gjenopprette."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "MTPD for en aktivitet er 2 døgn. Hvilken RTO gir mening?",
+          "options": ["3 døgn", "1 døgn", "1 uke"],
+          "answer": 1,
+          "explanation": "RTO må være kortere enn MTPD for å gi en margin."
+        },
+        {
+          "question": "Hva betyr en RPO på 4 timer?",
+          "options": [
+            "Aktiviteten må være tilbake innen 4 timer",
+            "Dere kan miste høyst 4 timer med data",
+            "Planen gjennomgås hver 4. time"
+          ],
+          "answer": 1,
+          "explanation": "RPO handler om datatap, og bestemmer hvor ofte dere tar sikkerhetskopi eller replikerer."
+        }
+      ],
+      "pass_mark": 0.5
+    },
+    "recovery-targets": {
+      "title": "MTPD, RTO, RPO og MBCO",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Fire tall",
+          "body": "- **MTPD**: hvor lenge før skaden blir uakseptabel.\n- **RTO**: hvor raskt dere vil gjenopprette (kortere enn MTPD).\n- **RPO**: hvor mye data dere kan miste.\n- **MBCO**: det reduserte tjenestenivået som er akseptabelt under gjenopprettingen."
+        },
+        {
+          "heading": "Hvordan de brukes",
+          "body": "En kontinuitetsplan arver de strengeste målene fra aktivitetene den dekker. IKT-beredskap sammenligner hver tjenestes oppnåelige RTO og RPO med de strengeste kravene fra aktivitetene som er avhengige av den."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "En plan dekker to aktiviteter med RTO 8 timer og RTO 2 timer. Hva er planens RTO?",
+          "options": ["8 timer", "5 timer", "2 timer"],
+          "answer": 2,
+          "explanation": "Planen må oppfylle det strengeste målet blant det den dekker."
+        }
+      ],
+      "pass_mark": 1
+    },
+    "writing-a-plan": {
+      "title": "Skrive en plan folk kan bruke",
+      "minutes": 5,
+      "sections": [
+        {
+          "heading": "Kort og handlingsrettet",
+          "body": "En kontinuitetsplan leses under stress. Bruk korte steg, tydelige roller og konkrete aktiveringskriterier. Legg bakgrunnen et annet sted."
+        },
+        {
+          "heading": "Faser",
+          "body": "Grupper stegene etter fase: **aktivering** (beslutt og mobiliser), **respons** (beskytt mennesker og begrens), **gjenoppretting** (få aktivitetene tilbake), **normalisering** (tilbake til vanlig drift) og **avslutning** (lukk og lær)."
+        },
+        {
+          "heading": "Hold den levende",
+          "body": "Godkjenn planen, legg til krisekontakter, øv den etter en plan og gjennomgå den etter hver øvelse og hver reell hendelse."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Hva er et godt aktiveringskriterium?",
+          "options": [
+            "Når det blir ille",
+            "Når ERP-systemet har vært nede i mer enn 2 timer",
+            "Når ledelsen har lyst"
+          ],
+          "answer": 1,
+          "explanation": "Konkrete kriterier fjerner tvil om når planen skal aktiveres."
+        }
+      ],
+      "pass_mark": 1
+    },
+    "exercising-plans": {
+      "title": "Øvelser og testing",
+      "minutes": 5,
+      "sections": [
+        {
+          "heading": "Bygg opp steg for steg",
+          "body": "Begynn med en gjennomgang av planen, deretter skrivebordsøvelser med scenario, så simuleringer og funksjonelle tester, og fullskalaøvelser for de mest kritiske planene."
+        },
+        {
+          "heading": "Mål mot målene",
+          "body": "Registrer hvor lang tid gjenopprettingen tok. Hvis den var lengre enn RTO, må planen eller systemene forbedres, eller målet vurderes på nytt sammen med virksomheten."
+        },
+        {
+          "heading": "Følg opp",
+          "body": "Hver erfaring som krever arbeid, blir et oppfølgingstiltak med ansvarlig og frist. Kontroller dem før neste øvelse."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "En IKT-gjenopprettingstest tok 6 timer mot en RTO på 4 timer. Hva bør dere gjøre?",
+          "options": [
+            "Ingenting, testen ble gjennomført",
+            "Registrere resultatet og lage oppfølgingstiltak for å lukke avviket",
+            "Endre registrert tid til 4 timer"
+          ],
+          "answer": 1,
+          "explanation": "Avviket er et funn. Følg det opp og test igjen."
+        }
+      ],
+      "pass_mark": 1
+    },
+    "ict-readiness": {
+      "title": "IKT-beredskap for kontinuitet",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Påkrevd mot oppnåelig",
+          "body": "Virksomheten bestemmer hva den **krever** (i BIA-ene). IKT-tjenesten har det den kan **oppnå** (oppsettet for gjenoppretting og sikkerhetskopi). Beredskap handler om å lukke avstanden mellom de to."
+        },
+        {
+          "heading": "Beredskapsstatus",
+          "body": "- **Klar**: den oppfyller kravet og er testet nylig.\n- **Trenger oppfølging**: ukjent evne, aldri testet eller test forfalt.\n- **Avvik**: den kan ikke oppfylle påkrevd RTO eller RPO, eller siste test feilet."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "En tjeneste kan gjenopprettes på 8 timer, men en avhengig aktivitet krever 4 timer. Hva er beredskapen?",
+          "options": ["Klar", "Avvik", "Faset ut"],
+          "answer": 1,
+          "explanation": "Oppnåelig RTO er lengre enn påkrevd, så det er et avvik."
+        }
+      ],
+      "pass_mark": 1
+    },
+    "crisis-contacts": {
+      "title": "En krisekontaktliste som virker",
+      "minutes": 3,
+      "sections": [
+        {
+          "heading": "Hvem som skal stå på den",
+          "body": "Kriseledelsen og stedfortrederne, nødetater, relevante myndigheter, viktige leverandører og forsikringsselskap. Planene legger til kontaktene som er spesifikke for dem."
+        },
+        {
+          "heading": "Sørg for at de kan nås",
+          "body": "Hver kontakt trenger minst én måte å nås på, helst et telefonnummer som virker utenom arbeidstid. Merk hvem som kan nås døgnet rundt."
+        },
+        {
+          "heading": "Bekreft den",
+          "body": "Ring numrene minst én gang i året, for eksempel i en test av varslingslisten, og merk kontaktene som bekreftet."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Hvor ofte bør listen minst bekreftes?",
+          "options": ["Hvert femte år", "Én gang i året", "Bare når noen slutter"],
+          "answer": 1,
+          "explanation": "Kontakter som ikke er bekreftet på et år, merkes, fordi opplysninger endrer seg."
+        }
+      ],
+      "pass_mark": 1
+    }
+  },
+  "tours": {
+    "overview": [
+      {
+        "target": "continuity-sections",
+        "title": "Delene av kontinuitet",
+        "body": "Konsekvensanalyser, planer, øvelser, IKT-beredskap og krisekontakter har hver sin side."
+      },
+      {
+        "target": "continuity-figures",
+        "title": "Nøkkeltall",
+        "body": "Hvor mange poster dere har og hvor mange som trenger oppfølging. Velg et tall for å åpne listen."
+      },
+      {
+        "target": "continuity-attention",
+        "title": "Hva som bør gjøres nå",
+        "body": "Aktiviteter uten plan, forfalte gjennomganger og øvelser, og IKT-tjenester med avvik."
+      }
+    ],
+    "bias": [
+      {
+        "target": "continuity-bia-filters",
+        "title": "Filtre",
+        "body": "Finn konsekvensanalyser etter status, kritikalitet, eier, manglende plan eller forfalt gjennomgang. Lagre en kombinasjon som en visning."
+      },
+      {
+        "target": "continuity-bia-new",
+        "title": "Ny konsekvensanalyse",
+        "body": "Start en analyse for én kritisk aktivitet."
+      }
+    ],
+    "plans": [
+      {
+        "target": "continuity-plan-filters",
+        "title": "Filtre",
+        "body": "Finn planer etter status, type, eier eller forfalt gjennomgang."
+      },
+      {
+        "target": "continuity-plan-new",
+        "title": "Ny plan",
+        "body": "Lag en plan og koble til konsekvensanalysene den dekker."
+      }
+    ],
+    "exercises": [
+      {
+        "target": "continuity-exercise-filters",
+        "title": "Filtre",
+        "body": "Finn øvelser etter status, type, eier eller forfalt."
+      },
+      {
+        "target": "continuity-exercise-new",
+        "title": "Planlegg en øvelse",
+        "body": "Planlegg en øvelse av en plan eller en gjenopprettingstest av en IKT-tjeneste."
+      }
+    ],
+    "ict": [
+      {
+        "target": "continuity-ict-filters",
+        "title": "Beredskapsfilter",
+        "body": "Vis tjenestene med avvik eller som trenger oppfølging."
+      },
+      {
+        "target": "continuity-ict-new",
+        "title": "Registrer en tjeneste",
+        "body": "Legg til en IKT-tjeneste og gjenopprettingsevnen dens."
+      }
+    ],
+    "contacts": [
+      {
+        "target": "continuity-sections",
+        "title": "Krisekontakter",
+        "body": "Dette er listen for hele virksomheten. Hver plan har også egne kontakter på plansiden."
+      }
+    ]
+  },
+  "glossary": {
+    "business-impact-analysis": {
+      "term": "Konsekvensanalyse (BIA)",
+      "definition": "En analyse av hvordan et avbrudd i en aktivitet påvirker virksomheten over tid, brukt til å sette prioriteringer og mål for gjenoppretting.",
+      "clauses": ["iso27001:A.5.30"]
+    },
+    "mtpd": {
+      "term": "Maksimal akseptabel avbruddstid (MTPD)",
+      "definition": "Tiden før konsekvensen av å ikke gjenoppta en aktivitet blir uakseptabel.",
+      "clauses": ["iso27001:A.5.30"]
+    },
+    "rto": {
+      "term": "Mål for gjenopprettingstid (RTO)",
+      "definition": "Måltiden for å gjenoppta en aktivitet eller gjenopprette en tjeneste etter et avbrudd. Den er kortere enn MTPD.",
+      "clauses": ["iso27001:A.5.30"]
+    },
+    "rpo": {
+      "term": "Mål for gjenopprettingspunkt (RPO)",
+      "definition": "Punktet informasjonen må gjenopprettes til, som setter det maksimale akseptable datatapet.",
+      "clauses": ["iso27001:A.5.30", "iso27001:A.8.13"]
+    },
+    "mbco": {
+      "term": "Minimumsnivå for drift (MBCO)",
+      "definition": "Det laveste tjenestenivået som er akseptabelt under et avbrudd.",
+      "clauses": ["iso27001:A.5.29"]
+    },
+    "ict-readiness": {
+      "term": "IKT-beredskap for kontinuitet",
+      "definition": "IKT-tjenestenes evne til å gjenopprettes i tråd med kontinuitetsmålene, planlagt, vedlikeholdt og testet.",
+      "clauses": ["iso27001:A.5.30"]
+    }
+  }
+}
