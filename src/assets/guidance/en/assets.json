@@ -1,0 +1,582 @@
+{
+  "pages": {
+    "list": {
+      "intro": {
+        "title": "Know what you have and who looks after it",
+        "body": "The asset inventory lists everything the organisation depends on: **information**, **systems and software**, **equipment**, **services**, **premises** and things people carry, like laptops and access cards. Every asset has an **owner**, a **classification** and a place in its **lifecycle**.",
+        "steps": [
+          "Register your most important assets first: the systems and information you could not work without.",
+          "Give each asset an owner and a classification. The owner decides who gets access and how it is protected.",
+          "Mark measuring equipment that needs calibration, and keep the lifecycle up to date when things are retired or disposed of."
+        ]
+      },
+      "why": {
+        "body": "You cannot protect what you do not know you have. The standards expect an inventory of information and other associated assets with owners, rules for acceptable use, a classification scheme with matching handling rules, and a controlled return and disposal of assets.",
+        "clauses": [
+          "iso27001:A.5.9",
+          "iso27001:A.5.10",
+          "iso27001:A.5.11",
+          "iso27001:A.5.12",
+          "iso27001:A.5.13",
+          "iso27001:A.7.14"
+        ]
+      },
+      "empty": {
+        "title": "No assets registered yet",
+        "body": "Start with five to ten assets: your main business system, email, the customer and personnel records, laptops and any measuring instruments you use to check your work. You can add the rest gradually.",
+        "cta": "Register the first asset"
+      }
+    },
+    "form": {
+      "intro": {
+        "title": "Describe the asset and how it must be protected",
+        "body": "Fill in what the asset is, who owns it and where it is. The **classification** and the three ratings (confidentiality, integrity and availability) say how much harm there would be if something went wrong, and so how strongly it must be protected.",
+        "steps": [
+          "Name the asset and choose its type.",
+          "Choose a classification. If you are unsure, ask for a suggestion.",
+          "Set an owner and, for things people carry, the custodian who holds it."
+        ]
+      },
+      "why": {
+        "body": "Classification links each asset to the right protection: who may see it, how it is stored and sent, and how it is destroyed. Calibrated measuring equipment is needed when you rely on measurements to show that products and services meet requirements.",
+        "clauses": ["iso27001:A.5.9", "iso27001:A.5.12", "iso27001:A.5.13", "iso9001:7.1.5"]
+      },
+      "fields": {
+        "asset_type": {
+          "help": "What kind of asset it is. 'Held by a person' is for things issued to someone, such as a laptop, phone or access card.",
+          "example": "A cloud accounting system is software; the accounting data in it is information."
+        },
+        "classification": {
+          "help": "How sensitive the asset is. Public can be shared freely; restricted is only for a few named people.",
+          "example": "Payroll data is usually restricted; the price list is public."
+        },
+        "criticality": {
+          "help": "How important the asset is for keeping the business running.",
+          "example": "The order system is critical if you cannot take orders without it."
+        },
+        "cia": {
+          "help": "Rate the harm if the asset is disclosed (confidentiality), changed or corrupted (integrity), or unavailable (availability).",
+          "example": "A public website has low confidentiality but high availability."
+        },
+        "handling_rules": {
+          "help": "Practical rules for using, storing, sending and destroying the asset, matching its classification.",
+          "example": "Encrypt when stored, share only through the document system, shred paper copies."
+        },
+        "owner": {
+          "help": "The person accountable for the asset: they decide who gets access and make sure it is protected.",
+          "example": "The finance manager owns the accounting system."
+        },
+        "custodian": {
+          "help": "The person who holds or looks after the asset day to day, if not the owner.",
+          "example": "An employee who has been issued a company laptop."
+        },
+        "lifecycle_status": {
+          "help": "Where the asset is in its life. Retired assets are no longer used; disposed assets are gone.",
+          "example": "Mark old laptops as disposed once they have been securely wiped."
+        },
+        "review_date": {
+          "help": "When the owner should next check that the details and classification are still right. A reminder is sent.",
+          "example": "Once a year for most assets."
+        },
+        "disposal_method": {
+          "help": "How the asset was disposed of, so you can show that information was removed securely.",
+          "example": "Disks wiped with certified software; certificate attached."
+        },
+        "requires_calibration": {
+          "help": "Tick this for instruments whose readings you rely on, so they are calibrated on a schedule and you get reminders.",
+          "example": "Thermometers in a cold store, scales, torque wrenches."
+        }
+      }
+    },
+    "detail": {
+      "intro": {
+        "title": "Everything about this asset in one place",
+        "body": "Check that the classification and handling rules are still right, see the changes and access reviews that concern it, and record calibrations if it is measuring equipment.",
+        "steps": [
+          "Keep the owner, custodian and lifecycle up to date.",
+          "Raise a change request before you make a significant change to the asset.",
+          "Link documents, risks and suppliers under Related."
+        ]
+      },
+      "why": {
+        "body": "An inventory is only useful if it is kept current. Owners should review their assets regularly, and measuring equipment must be calibrated, protected from adjustments that would invalidate it, and assessed when it is found to be out of tolerance.",
+        "clauses": ["iso27001:A.5.9", "iso27001:A.5.11", "iso9001:7.1.5"]
+      },
+      "fields": {
+        "calibration_result": {
+          "help": "Passed: within tolerance. Adjusted: outside tolerance, then adjusted. Failed: outside tolerance and not usable.",
+          "example": "A scale that read 2 g too high and was adjusted is 'Adjusted'."
+        },
+        "impact_assessment": {
+          "help": "When an instrument is found to be wrong, assess whether earlier measurements were affected and what you did about it.",
+          "example": "Batches 120–124 were weighed with the scale; re-checked samples were within limits."
+        }
+      }
+    },
+    "calibration": {
+      "intro": {
+        "title": "Keep measuring equipment calibrated",
+        "body": "This list shows instruments that are **overdue** or **due soon**. Open an instrument to record the calibration and attach the certificate.",
+        "steps": [
+          "Plan calibrations before they fall due.",
+          "Record each calibration with the result and the certificate.",
+          "If a calibration fails, assess the impact on earlier measurements."
+        ]
+      },
+      "why": {
+        "body": "When you use measurements to show that products or services meet requirements, the equipment must be calibrated at set intervals against traceable standards, identified, and protected. If it is found to be out of tolerance, you must check whether earlier results are still valid.",
+        "clauses": ["iso9001:7.1.5"]
+      },
+      "empty": {
+        "title": "Nothing due in this period",
+        "body": "No measuring equipment is overdue or due for calibration in the chosen period. Mark an asset as measuring equipment in its details to track its calibration here.",
+        "cta": "Go to the inventory"
+      }
+    },
+    "reviews": {
+      "intro": {
+        "title": "Check that access is still needed",
+        "body": "An **access review** goes through every account in a system and decides whether to **keep**, **revoke** or **change** it. The reviewer signs an **attestation** when it is done.",
+        "steps": [
+          "Plan a review for each important system, with a reviewer and a due date.",
+          "Set a repeat interval so the next review is planned automatically.",
+          "The reviewer gets a task and works through the accounts."
+        ]
+      },
+      "why": {
+        "body": "People change roles and leave, and access tends to pile up. Regular reviews make sure access rights match what people need for their work, and that privileged access is kept to a minimum.",
+        "clauses": ["iso27001:A.5.15", "iso27001:A.5.16", "iso27001:A.5.18", "iso27001:A.8.2"]
+      },
+      "empty": {
+        "title": "No access reviews planned",
+        "body": "Start with the systems that hold your most sensitive information, and the ones with administrator access. Most organisations review them every six or twelve months.",
+        "cta": "Plan an access review"
+      }
+    },
+    "reviewForm": {
+      "intro": {
+        "title": "Plan the review",
+        "body": "Choose the system, who reviews it and by when. The reviewer is given a task and reminders.",
+        "steps": [
+          "Choose a reviewer who knows who needs access: usually the system owner or a manager.",
+          "Describe the scope, such as which account types are included.",
+          "Set a repeat interval for regular reviews."
+        ]
+      },
+      "why": {
+        "body": "Access rights should be reviewed at planned intervals by someone who can judge whether they are still needed.",
+        "clauses": ["iso27001:A.5.18"]
+      },
+      "fields": {
+        "system": {
+          "help": "The system whose access you review: choose one from the inventory, or type a name if it is not registered.",
+          "example": "The CRM system, the file server, the bank portal."
+        },
+        "scope": {
+          "help": "What the review covers, so the reviewer knows what to include.",
+          "example": "All user and administrator accounts, including shared and service accounts."
+        },
+        "reviewer": {
+          "help": "The person who decides for each account. They get a task in My Work.",
+          "example": "The head of finance for the accounting system."
+        },
+        "frequency_months": {
+          "help": "How often the review repeats. When it is completed, the next one is planned with the kept accounts.",
+          "example": "6 for systems with sensitive data, 12 for the rest."
+        }
+      }
+    },
+    "review": {
+      "intro": {
+        "title": "Decide for every account",
+        "body": "Go through each account and choose **Keep**, **Revoke** or **Change**. Add a note when access should change. When all accounts are decided, complete the review with an attestation.",
+        "steps": [
+          "Add the accounts, or import the organisation members.",
+          "Decide each account. Use the note to say what should change.",
+          "Complete and attest. Remediation tasks are created for revoked and changed access."
+        ]
+      },
+      "why": {
+        "body": "The attestation is your evidence that access was checked by a responsible person. Revoked access must actually be removed, which is why each one becomes a task.",
+        "clauses": ["iso27001:A.5.18", "iso27001:A.5.15"]
+      },
+      "fields": {
+        "decision": {
+          "help": "Keep: the access is still needed. Revoke: remove it. Change: reduce or adjust it.",
+          "example": "A former project member who still has write access: Revoke."
+        }
+      }
+    },
+    "changes": {
+      "intro": {
+        "title": "Make changes in a controlled way",
+        "body": "A **change request** follows a change from idea to result: request, impact and risk assessment, approval, implementation and a **post-implementation review**.",
+        "steps": [
+          "Raise a change and describe what and why.",
+          "Assess the impact and risk, and plan how to implement it and roll it back.",
+          "Get approval, carry it out, then check that it worked."
+        ]
+      },
+      "why": {
+        "body": "Unplanned changes are a common cause of outages, security incidents and quality problems. The standards expect changes to be planned, assessed, approved and reviewed, and their consequences managed.",
+        "clauses": ["iso27001:A.8.32", "iso9001:6.3", "iso9001:8.5.6"]
+      },
+      "empty": {
+        "title": "No change requests yet",
+        "body": "Raise a change request the next time you plan a change to a system, a process, a product or the organisation. Small routine changes can be marked as standard changes.",
+        "cta": "Raise a change"
+      }
+    },
+    "changeForm": {
+      "intro": {
+        "title": "Describe the change",
+        "body": "Say what will change and why. The impact and risk assessment can be done now or in the assessment step. Once the change is approved, its content is frozen.",
+        "steps": [
+          "Give a clear title, a description and the reason.",
+          "List the affected assets.",
+          "Assess impact and risk, and write the implementation and rollback plans."
+        ]
+      },
+      "why": {
+        "body": "A good assessment and a rollback plan let the approver make an informed decision, and make it possible to undo the change if it goes wrong.",
+        "clauses": ["iso27001:A.8.32", "iso9001:6.3"]
+      },
+      "fields": {
+        "change_type": {
+          "help": "Standard: low-risk, routine and pre-approved. Normal: assessed and approved each time. Emergency: urgent, approved quickly and reviewed afterwards.",
+          "example": "Adding a user is standard; replacing the firewall is normal."
+        },
+        "description": {
+          "help": "What will change, where, and for whom.",
+          "example": "Upgrade the accounting system from version 8 to 9."
+        },
+        "reason": {
+          "help": "Why the change is needed, and what happens if it is not made.",
+          "example": "Version 8 is no longer supported and gets no security updates."
+        },
+        "affected_assets": {
+          "help": "The systems, equipment or information the change touches. They are linked so the change shows on each asset.",
+          "example": "The accounting system and its database server."
+        },
+        "risk_level": {
+          "help": "The overall risk of the change: how likely it is to go wrong and how bad it would be.",
+          "example": "High if a failure would stop invoicing for days."
+        },
+        "impact_assessment": {
+          "help": "Who and what is affected: users, customers, other systems, processes and documents.",
+          "example": "Finance cannot log in for two hours; the bank integration must be retested."
+        },
+        "risk_assessment": {
+          "help": "What could go wrong and how you reduce the risk.",
+          "example": "Data migration could fail; take a full backup first and test in a copy."
+        },
+        "implementation_plan": {
+          "help": "The steps, who does them and when.",
+          "example": "Friday 16:00 backup, 17:00 upgrade, 18:00 test, Monday user check."
+        },
+        "rollback_plan": {
+          "help": "How you return to the previous state if the change fails.",
+          "example": "Restore the backup and reinstall version 8."
+        },
+        "implemented_at": {
+          "help": "The date the change was actually carried out.",
+          "example": "The day the upgrade went live."
+        },
+        "review_outcome": {
+          "help": "The result of the check after the change: did it achieve its purpose without unwanted effects?",
+          "example": "Partly successful: works, but one report must be rebuilt."
+        }
+      }
+    },
+    "change": {
+      "intro": {
+        "title": "Follow the change through its steps",
+        "body": "The workflow shows where the change is and what you can do next. Approval must come from someone other than the requester. After implementation, the owner gets a task to review the result.",
+        "steps": [
+          "Fill in what the next step needs.",
+          "Take the next step in the workflow panel.",
+          "Close the change once the review outcome is recorded and all tasks are done."
+        ]
+      },
+      "why": {
+        "body": "Separating the requester from the approver, and checking the result afterwards, are what make a change controlled. The history of each step is your evidence for audits.",
+        "clauses": ["iso27001:A.8.32", "iso27001:A.5.3", "iso9001:6.3", "iso9001:8.5.6"]
+      }
+    }
+  },
+  "lessons": {
+    "asset-inventory": {
+      "title": "Building an asset inventory",
+      "minutes": 5,
+      "sections": [
+        {
+          "heading": "What counts as an asset",
+          "body": "An asset is anything of value to the organisation that needs protecting: **information** (customer records, designs), the **systems** that hold it, **equipment**, **services** from suppliers, **premises**, and things issued to people. You do not need to list every mouse and cable: focus on what would hurt if it were lost, leaked or unavailable."
+        },
+        {
+          "heading": "Owners make it work",
+          "body": "Every asset needs an **owner**: a person, not a department, who is accountable for it. The owner decides who gets access, makes sure it is classified correctly and reviews it regularly. A **custodian** may look after it day to day."
+        },
+        {
+          "heading": "Classification drives protection",
+          "body": "A simple scheme such as public, internal, confidential and restricted is enough for most organisations. Each level comes with **handling rules**: who may see it, how it is stored and sent, and how it is destroyed. Rate confidentiality, integrity and availability to see which kind of protection matters most."
+        },
+        {
+          "heading": "Keep it alive",
+          "body": "Update the lifecycle when assets are retired or disposed of, and record how information was removed. Set a review date so owners check their assets at least once a year."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Who should be the owner of an asset?",
+          "options": [
+            "The IT department",
+            "A named person accountable for it",
+            "Whoever uses it most"
+          ],
+          "answer": 1,
+          "explanation": "An owner is a named person who is accountable for the asset and decides about access and protection."
+        },
+        {
+          "question": "What does the classification decide?",
+          "options": [
+            "The asset's price",
+            "How the asset must be handled and protected",
+            "When the asset is replaced"
+          ],
+          "answer": 1,
+          "explanation": "Each classification level comes with handling rules for access, storage, sending and destruction."
+        },
+        {
+          "question": "A laptop has been securely wiped and recycled. What should you do in the inventory?",
+          "options": ["Delete the asset", "Mark it as disposed and record the method", "Nothing"],
+          "answer": 1,
+          "explanation": "Marking it as disposed and recording the method shows that information was removed securely."
+        }
+      ],
+      "pass_mark": 0.67
+    },
+    "calibration": {
+      "title": "Calibrating measuring equipment",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "When calibration is needed",
+          "body": "If you use an instrument's readings to show that a product or service meets requirements, the instrument must be **calibrated**: compared at set intervals with a reference that is traceable to national or international standards."
+        },
+        {
+          "heading": "Intervals and records",
+          "body": "Choose an interval based on the manufacturer's advice, how much the instrument is used and how stable it has been. Record each calibration with its date, result and certificate. CoreFlow works out the next due date and reminds the owner."
+        },
+        {
+          "heading": "When it fails",
+          "body": "If an instrument is found to be out of tolerance, earlier measurements may be wrong. Assess which products or results could be affected, and decide what to do: re-check, recall or accept with justification. Record this as the **impact assessment**."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "A scale is found to read 5 % too high at calibration. What else must you do?",
+          "options": [
+            "Nothing, it has been adjusted now",
+            "Assess whether earlier weighings were affected",
+            "Buy a new scale"
+          ],
+          "answer": 1,
+          "explanation": "An out-of-tolerance result means earlier measurements may be invalid, so their impact must be assessed."
+        },
+        {
+          "question": "What makes a calibration traceable?",
+          "options": [
+            "It was done by the manufacturer",
+            "It is compared with references linked to national or international standards",
+            "It is written down"
+          ],
+          "answer": 1,
+          "explanation": "Traceability means an unbroken chain of comparisons back to recognised measurement standards."
+        }
+      ],
+      "pass_mark": 0.5
+    },
+    "access-reviews": {
+      "title": "Running an access review",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Why access drifts",
+          "body": "People change roles, projects end and colleagues leave, but their access often stays. Over time accounts collect rights nobody needs, which makes misuse and mistakes more likely."
+        },
+        {
+          "heading": "How to review",
+          "body": "For each account, ask: does this person still work here, and do they need **this** level of access for their current work? Pay special attention to administrator, shared and service accounts. Choose **Keep**, **Revoke** or **Change** and note why."
+        },
+        {
+          "heading": "Attest and follow up",
+          "body": "When every account is decided, sign the **attestation**. Revoked and changed access becomes a remediation task: the review is only effective once the access has actually been removed."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "An account belongs to someone who left three months ago. What do you choose?",
+          "options": ["Keep", "Revoke", "Change"],
+          "answer": 1,
+          "explanation": "Accounts of people who have left should be revoked."
+        },
+        {
+          "question": "When is an access review really finished?",
+          "options": [
+            "When the reviewer has decided every account",
+            "When the attestation is signed and revoked access has been removed",
+            "When the due date has passed"
+          ],
+          "answer": 1,
+          "explanation": "The decisions only reduce risk once the access changes have been carried out."
+        }
+      ],
+      "pass_mark": 0.5
+    },
+    "change-management": {
+      "title": "Controlled change in five steps",
+      "minutes": 5,
+      "sections": [
+        {
+          "heading": "1. Request",
+          "body": "Describe what will change and why. A clear reason helps everyone judge whether the change is worth its risk."
+        },
+        {
+          "heading": "2. Assess impact and risk",
+          "body": "Who and what is affected? What could go wrong, and how do you reduce that? Write an **implementation plan** and a **rollback plan** so you can undo the change if needed."
+        },
+        {
+          "heading": "3. Approve",
+          "body": "Someone other than the requester approves the change. This **segregation of duties** stops a single person from pushing through a risky change unchecked. Emergency changes can be approved quickly but must still be reviewed afterwards."
+        },
+        {
+          "heading": "4. Implement",
+          "body": "Carry out the change as planned and record when it was done. Tell those affected."
+        },
+        {
+          "heading": "5. Review",
+          "body": "Check that the change achieved its purpose without unwanted effects. Record the outcome, follow up anything left over, and close the change."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Who should approve a change request?",
+          "options": [
+            "The person who requested it",
+            "Someone other than the requester",
+            "Nobody, if it is urgent"
+          ],
+          "answer": 1,
+          "explanation": "Segregation of duties means the requester cannot approve their own change."
+        },
+        {
+          "question": "Why write a rollback plan?",
+          "options": [
+            "It is needed for the approval only",
+            "So you can return to the previous state if the change fails",
+            "To describe the reason for the change"
+          ],
+          "answer": 1,
+          "explanation": "A rollback plan limits the damage when a change does not go as planned."
+        },
+        {
+          "question": "What happens after implementation?",
+          "options": [
+            "The change is closed at once",
+            "A review checks whether it achieved its purpose",
+            "The change is deleted"
+          ],
+          "answer": 1,
+          "explanation": "The post-implementation review confirms the result before the change is closed."
+        }
+      ],
+      "pass_mark": 0.67
+    }
+  },
+  "tours": {
+    "list": [
+      {
+        "target": "assets-sections",
+        "title": "Four parts",
+        "body": "The asset inventory, calibration of measuring equipment, access reviews and change requests."
+      },
+      {
+        "target": "assets-summary",
+        "title": "Key figures",
+        "body": "How many assets you have, and how many calibrations are overdue or due soon."
+      },
+      {
+        "target": "assets-filters",
+        "title": "Filters",
+        "body": "Find assets by type, classification, lifecycle, owner or whether they hold personal data. Save a combination as a view."
+      },
+      {
+        "target": "assets-new",
+        "title": "Register an asset",
+        "body": "Add an asset with its owner and classification. You can ask for a classification suggestion."
+      }
+    ],
+    "reviews": [
+      {
+        "target": "assets-sections",
+        "title": "Four parts",
+        "body": "Switch between the inventory, calibration, access reviews and changes."
+      },
+      {
+        "target": "assets-review-filters",
+        "title": "Filters",
+        "body": "Show open reviews, reviews assigned to you or reviews due soon."
+      },
+      {
+        "target": "assets-review-new",
+        "title": "Plan a review",
+        "body": "Choose a system, a reviewer and a due date. A repeat interval plans the next review automatically."
+      }
+    ],
+    "changes": [
+      {
+        "target": "assets-sections",
+        "title": "Four parts",
+        "body": "Switch between the inventory, calibration, access reviews and changes."
+      },
+      {
+        "target": "assets-change-filters",
+        "title": "Filters",
+        "body": "Find changes by step, type, category, risk level or owner."
+      },
+      {
+        "target": "assets-change-new",
+        "title": "Raise a change",
+        "body": "Describe the change and why. It then goes through assessment, approval, implementation and review."
+      }
+    ]
+  },
+  "glossary": {
+    "asset-owner": {
+      "term": "Asset owner",
+      "definition": "The named person accountable for an asset: they decide who gets access and make sure it is protected and reviewed.",
+      "clauses": ["iso27001:A.5.9"]
+    },
+    "classification": {
+      "term": "Classification",
+      "definition": "A level (for example public, internal, confidential, restricted) that says how sensitive information is and how it must be handled.",
+      "clauses": ["iso27001:A.5.12"]
+    },
+    "calibration": {
+      "term": "Calibration",
+      "definition": "Comparing a measuring instrument with a traceable reference at set intervals to confirm it measures correctly.",
+      "clauses": ["iso9001:7.1.5"]
+    },
+    "access-review": {
+      "term": "Access review",
+      "definition": "A periodic check, signed by a reviewer, that every account in a system still needs its access.",
+      "clauses": ["iso27001:A.5.18"]
+    },
+    "change-request": {
+      "term": "Change request",
+      "definition": "A record of a planned change that is assessed, approved, implemented and reviewed in a controlled way.",
+      "clauses": ["iso27001:A.8.32", "iso9001:6.3"]
+    }
+  }
+}
