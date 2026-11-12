@@ -14,6 +14,7 @@
     </app-card>
   } @else {
     <div class="flex flex-col gap-10">
+      <app-settings-links />
       @if (canManage()) {
         <section data-testid="settings-departments">
           <h2 class="mb-3 font-display text-[18px] font-bold tracking-[-0.02em] text-fg">

@@ -5,8 +5,11 @@
   "nav": {
     "sections": {
       "workspace": "Arbeidsområde",
-      "quality": "Kvalitet · QMS",
-      "modules": "Moduler",
+      "governance": "Styring",
+      "operations": "Drift",
+      "improvement": "Forbedring",
+      "people": "Mennesker",
+      "compliance": "Etterlevelse",
       "administration": "Administrasjon"
     },
     "dashboard": "Oversikt",
@@ -17,17 +20,31 @@
     "deviations": "Avvik",
     "risk": "Risiko",
     "audits": "Revisjon",
-    "iso": "ISO & standarder",
     "documents": "Dokumenter",
     "people": "Personer og roller",
     "projects": "Prosjekter",
-    "procedures": "Prosedyrer",
     "training": "Opplæring",
     "reports": "Rapporter",
     "settings": "Innstillinger",
     "customize": "Tilpass arbeidsområde",
     "customizeHint": "Slå moduler på eller av for dette arbeidsområdet.",
-    "addModule": "Legg til modul"
+    "addModule": "Legg til modul",
+    "standards": "ISO & standarder",
+    "context": "Kontekst og lederskap",
+    "processes": "Prosesser",
+    "managementReview": "Ledelsens gjennomgang",
+    "objectives": "Mål og KPI-er",
+    "recruitment": "Rekruttering",
+    "contracts": "Kontrakter",
+    "suppliers": "Leverandører",
+    "privacy": "Personvern (GDPR)",
+    "aiGovernance": "KI-styring",
+    "environment": "Miljø",
+    "obligations": "Juridiske krav",
+    "assets": "Eiendeler og endringer",
+    "continuity": "Kontinuitet",
+    "hse": "HMS",
+    "feedback": "Kundetilbakemeldinger"
   },
   "topbar": {
     "searchPlaceholder": "Spør CoreFlow, eller hopp til hva som helst …",
@@ -1245,6 +1262,18 @@
     "member": {
       "name": "Medlem",
       "description": "Daglig tilgang: lese dokumenter, og melde og følge opp avvik."
+    },
+    "hse_manager": {
+      "name": "HMS-leder",
+      "description": "Driver arbeidet med helse, miljø og sikkerhet: avvik, hendelser og oppfølging."
+    },
+    "hr_manager": {
+      "name": "HR-leder",
+      "description": "Har ansvar for personer, kompetanse og onboarding; kan invitere brukere."
+    },
+    "ai_officer": {
+      "name": "KI-ansvarlig",
+      "description": "Eier KI-styringen: KI-systemer, risikoer, hendelser og standardene bak dem."
     }
   },
   "attachments": {
@@ -1483,6 +1512,224 @@
       "retry": "Prøv igjen",
       "lastMappedOne": "Sist kartlagt {{date}} · 1 forslag",
       "showSuggestionsOne": "Vis 1 krav med forslag"
+    }
+  },
+  "modules": {
+    "names": {
+      "tasks": "Oppgaver",
+      "context": "Kontekst og lederskap",
+      "processes": "Prosesser",
+      "deviations": "Avvik",
+      "risk": "Risiko og muligheter",
+      "inspections": "Inspeksjoner",
+      "audits": "Revisjoner",
+      "management_review": "Ledelsens gjennomgang",
+      "objectives": "Mål og KPI-er",
+      "people": "Personer og kompetanse",
+      "recruitment": "Rekruttering",
+      "training": "Opplæring",
+      "contracts": "Kontrakter",
+      "suppliers": "Leverandører",
+      "projects": "Prosjekter",
+      "privacy": "Personvern (GDPR)",
+      "ai_governance": "KI-styring",
+      "environment": "Miljø",
+      "obligations": "Juridiske krav",
+      "assets": "Eiendeler og endringer",
+      "continuity": "Kontinuitet",
+      "hse": "HMS",
+      "feedback": "Kundetilbakemeldinger",
+      "reports": "Rapporter og revisjonspakker",
+      "documents": "Dokumenter",
+      "standards": "Standarder"
+    },
+    "descriptions": {
+      "tasks": "Tildel, følg opp og gjenta arbeid på tvers av alle moduler.",
+      "context": "SWOT, interessenter, omfang, policyer og ansvar.",
+      "processes": "Prosessregister og visuelle prosesskart.",
+      "deviations": "Avvik, hendelser, korrigerende tiltak og forbedringer.",
+      "risk": "Risikoregistre, matriser, tiltaksplaner og erklæring om anvendelse.",
+      "inspections": "Sjekklistemaler, planlagte inspeksjoner og funn.",
+      "audits": "Revisjonsprogram, planer, funn og sertifiseringssykluser.",
+      "management_review": "Gjennomgangsmøter med samlet grunnlag, referat og beslutninger.",
+      "objectives": "Mål med målverdier, eiere, planer og målte KPI-er.",
+      "people": "Ansattregister, kompetansematrise og onboarding.",
+      "recruitment": "Stillingsbehov, kandidatløp og bakgrunnssjekker.",
+      "training": "Kurs, tildelinger, gjennomføringer og fornyet opplæring.",
+      "contracts": "Kontraktsregister, viktige datoer, forpliktelser og fornyelser.",
+      "suppliers": "Leverandørregister, evalueringer og oppfølging.",
+      "projects": "Prosjekter med milepæler, oppgaver, risikoer og endringsønsker.",
+      "privacy": "Behandlingsprotokoll, DPIA, innsynsforespørsler og brudd.",
+      "ai_governance": "Oversikt over KI-systemer, klassifisering etter KI-forordningen og konsekvensvurderinger.",
+      "environment": "Miljøaspekter, beredskap og miljødata.",
+      "obligations": "Register over lover, tillatelser og andre krav, med periodisk evaluering.",
+      "assets": "Eiendelsregister, tilgangsgjennomganger, kalibrering og endringsstyring.",
+      "continuity": "Konsekvensanalyse, kontinuitetsplaner og øvelser.",
+      "hse": "Sikker jobbanalyse, verneutstyr og medvirkning.",
+      "feedback": "Kundetilbakemeldinger, tilfredshetsundersøkelser og klager.",
+      "reports": "Etterlevelsesoversikter, organisasjonskalender og eksport.",
+      "documents": "Styrte dokumenter med gjennomgang, godkjenning og bekreftelse.",
+      "standards": "Standardkatalog, anvendelse og bevis per krav."
+    },
+    "reasons": {
+      "tasks": "Oppgaver sørger for at hver kontroll, gjennomgang og oppfølging er tildelt og blir gjort i tide.",
+      "context": "Alle ISO-styringssystemer starter med kapittel 4 og 5: kontekst, interessenter, omfang og lederskap.",
+      "processes": "Prosesstilnærmingen (ISO 9001 4.4) krever at dere definerer og styrer nøkkelprosessene.",
+      "deviations": "Håndtering av avvik og hendelser (kapittel 10.2) kreves av alle rammeverkene dere valgte.",
+      "risk": "Risikobasert tenkning (kapittel 6.1) og, for ISO 27001, risikovurdering og SoA er obligatorisk.",
+      "inspections": "Inspeksjoner gir dere overvåkingsbevisene som kapittel 9.1 ber om.",
+      "audits": "Internrevisjoner (kapittel 9.2) kreves før enhver sertifiseringsrevisjon.",
+      "management_review": "Toppledelsen skal gjennomgå styringssystemet med planlagte mellomrom (kapittel 9.3).",
+      "objectives": "Målbare mål (kapittel 6.2) viser at systemet forbedres.",
+      "people": "Kompetanse og bevissthet (kapittel 7.2 og 7.3) må planlegges og dokumenteres.",
+      "recruitment": "Bakgrunnssjekk før ansettelse er et ISO 27001-tiltak (A.6.1), og kandidatdata omfattes av GDPR.",
+      "training": "Opplæringsregistreringer dokumenterer kompetanse, og KI-forordningen krever KI-kompetanse (art. 4).",
+      "contracts": "Leverandøravtaler og databehandleravtaler kreves av ISO 27001 A.5.20 og GDPR art. 28.",
+      "suppliers": "Eksterne leverandører må evalueres og følges opp (ISO 9001 8.4, ISO 27001 A.5.19).",
+      "projects": "Planlagte endringer og utvikling (ISO 9001 6.3 og 8.3) er enklere å styre som prosjekter.",
+      "privacy": "GDPR krever behandlingsprotokoll, DPIA og en prosess for brudd innen 72 timer.",
+      "ai_governance": "ISO/IEC 42001 og KI-forordningen krever oversikt, klassifisering og konsekvensvurdering av KI-systemer.",
+      "environment": "ISO 14001 krever at dere vurderer miljøaspekter og overvåker miljøprestasjonen.",
+      "obligations": "Alle rammeverk krever at dere kjenner og evaluerer de juridiske og andre kravene som gjelder.",
+      "assets": "Et eiendelsregister og tilgangsstyring er sentrale ISO 27001-tiltak (A.5.9 til A.5.18).",
+      "continuity": "ISO 27001 (A.5.29 og A.5.30) og NIS2 krever kontinuitetsplanlegging og testing.",
+      "hse": "ISO 45001 krever fareidentifikasjon og medvirkning fra arbeidstakere.",
+      "feedback": "ISO 9001 9.1.2 krever at dere overvåker kundetilfredshet.",
+      "reports": "Rapporter og revisjonspakker gjør det raskt å vise bevis til revisorer.",
+      "documents": "Dokumentert informasjon må styres (kapittel 7.5) i alle ISO-standarder.",
+      "standards": "Standardarbeidsflaten viser hvordan hvert krav i rammeverkene deres er oppfylt."
+    },
+    "entities": {
+      "document": "Dokument",
+      "deviation": "Avvik",
+      "deviation_action": "Avvikstiltak",
+      "standard": "Standard",
+      "attachment": "Vedlegg",
+      "organization": "Organisasjon",
+      "org_module": "Modul",
+      "task": "Oppgave",
+      "context_analysis": "Kontekstanalyse",
+      "interested_party": "Interessent",
+      "scope_statement": "Omfangsbeskrivelse",
+      "policy": "Policy",
+      "responsibility": "Ansvar",
+      "process": "Prosess",
+      "risk": "Risiko",
+      "risk_treatment": "Risikotiltak",
+      "opportunity": "Mulighet",
+      "risk_matrix": "Risikomatrise",
+      "soa_entry": "SoA-oppføring",
+      "checklist_template": "Sjekklistemal",
+      "inspection": "Inspeksjon",
+      "inspection_finding": "Inspeksjonsfunn",
+      "audit_programme": "Revisjonsprogram",
+      "audit_plan": "Revisjonsplan",
+      "audit_finding": "Revisjonsfunn",
+      "management_review": "Ledelsens gjennomgang",
+      "meeting": "Møte",
+      "objective": "Mål",
+      "kpi": "KPI",
+      "employee": "Ansatt",
+      "position": "Stilling",
+      "competence": "Kompetanse",
+      "job_requisition": "Stillingsbehov",
+      "candidate": "Kandidat",
+      "job_application": "Søknad",
+      "course": "Kurs",
+      "training_assignment": "Opplæringstildeling",
+      "training_record": "Opplæringsregistrering",
+      "contract": "Kontrakt",
+      "supplier": "Leverandør",
+      "supplier_evaluation": "Leverandørevaluering",
+      "project": "Prosjekt",
+      "project_milestone": "Prosjektmilepæl",
+      "ropa_entry": "Behandlingsoppføring",
+      "dpia": "DPIA",
+      "data_subject_request": "Henvendelse fra registrert",
+      "data_breach": "Personvernbrudd",
+      "processor": "Databehandler",
+      "transfer_assessment": "Overføringsvurdering",
+      "ai_system": "KI-system",
+      "ai_assessment": "KI-vurdering",
+      "env_aspect": "Miljøaspekt",
+      "emergency_plan": "Beredskapsplan",
+      "env_measurement": "Miljømåling",
+      "compliance_obligation": "Juridisk krav",
+      "asset": "Eiendel",
+      "access_review": "Tilgangsgjennomgang",
+      "change_request": "Endringsønske",
+      "calibration": "Kalibrering",
+      "bia": "Konsekvensanalyse",
+      "continuity_plan": "Kontinuitetsplan",
+      "continuity_exercise": "Kontinuitetsøvelse",
+      "sja": "Sikker jobbanalyse",
+      "ppe_item": "Verneutstyr",
+      "worker_consultation": "Medvirkning",
+      "customer_feedback": "Kundetilbakemelding",
+      "survey": "Undersøkelse",
+      "report_definition": "Rapport",
+      "audit_pack": "Revisjonspakke",
+      "document_type": "Dokumenttype",
+      "external_document": "Eksternt dokument",
+      "distribution_campaign": "Distribusjonskampanje"
+    },
+    "links": {
+      "title": "Organisasjon",
+      "profile": "Organisasjonsprofil",
+      "profileHint": "Bransje, størrelse, lokasjoner, rammeverk og sertifiseringsmål.",
+      "modules": "Moduler",
+      "modulesHint": "Slå moduler på eller av for organisasjonen.",
+      "terminology": "Terminologi",
+      "terminologyHint": "Bruk deres egne ord, for eksempel «uoverensstemmelse» i stedet for «avvik».",
+      "setup": "Oppsettsveiviser",
+      "setupHint": "Gå gjennom profil, rammeverk, moduler, roller og første oppgaver på nytt."
+    },
+    "disabledNotice": "Den modulen er slått av for denne organisasjonen. En administrator kan slå den på under Innstillinger, Moduler."
+  },
+  "terms": {
+    "deviation": {
+      "one": "avvik",
+      "other": "avvik"
+    },
+    "document": {
+      "one": "dokument",
+      "other": "dokumenter"
+    },
+    "risk": {
+      "one": "risiko",
+      "other": "risikoer"
+    },
+    "audit": {
+      "one": "revisjon",
+      "other": "revisjoner"
+    },
+    "finding": {
+      "one": "funn",
+      "other": "funn"
+    },
+    "process": {
+      "one": "prosess",
+      "other": "prosesser"
+    },
+    "task": {
+      "one": "oppgave",
+      "other": "oppgaver"
+    },
+    "objective": {
+      "one": "mål",
+      "other": "mål"
+    },
+    "incident": {
+      "one": "hendelse",
+      "other": "hendelser"
+    },
+    "supplier": {
+      "one": "leverandør",
+      "other": "leverandører"
+    },
+    "employee": {
+      "one": "ansatt",
+      "other": "ansatte"
     }
   }
 }

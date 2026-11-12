@@ -3,30 +3,24 @@ import { authGuard } from './core/auth/auth.guard';
 import { settingsGuard } from './core/auth/org-manage.guard';
 import { permissionGuard } from './core/auth/permission.guard';
 import { superAdminGuard } from './core/auth/super-admin.guard';
+import { moduleGuard } from './core/modules/module.service';
 import { MainLayout } from './layout/main-layout/main-layout';
-import { NAV_ITEMS } from './layout/nav';
 
-// Nav items backed by a real feature surface — excluded from the placeholder
-// generation below (they get explicit routes).
-const REAL_MODULE_PATHS = new Set([
-  'dashboard',
-  'my-work',
-  'documents',
-  'review',
-  'deviations',
-  'standards',
-]);
-
-// Every other nav item resolves to the shared module placeholder, carrying its
-// title + agent context via route data.
-const placeholderRoutes: Route[] = NAV_ITEMS.filter(
-  (item) => !REAL_MODULE_PATHS.has(item.path),
-).map((item) => ({
-  path: item.path,
-  loadComponent: () =>
-    import('./features/module-placeholder/module-placeholder').then((m) => m.ModulePlaceholder),
-  data: { titleKey: item.labelKey, agentName: item.agentName, agentRole: item.agentRole },
-}));
+/**
+ * A module area: gated on the module being enabled for the current org, then on
+ * its read permission. Sub-pages add stricter guards in the feature routes.
+ */
+function moduleRoute(
+  path: string,
+  key: string,
+  loadChildren: NonNullable<Route['loadChildren']>,
+): Route {
+  return {
+    path,
+    canActivate: [moduleGuard(key), permissionGuard(`${key}:read`)],
+    loadChildren,
+  };
+}
 
 export const routes: Routes = [
   // Public login page — kept outside the protected shell.
@@ -74,38 +68,103 @@ export const routes: Routes = [
         loadChildren: () => import('./features/my-work/my-work.routes'),
       },
       {
+        // Platform tasks (F2) live inside the My Work feature (`/tasks/:id`).
+        path: 'tasks',
+        loadChildren: () => import('./features/my-work/my-work.routes'),
+      },
+      {
         path: 'settings',
         canActivate: [authGuard, settingsGuard],
         loadChildren: () => import('./features/org-settings/org-settings.routes'),
+      },
+      {
+        // The organisation setup wizard (re-runnable from Settings).
+        path: 'setup',
+        canActivate: [permissionGuard('org:manage')],
+        loadChildren: () => import('./features/org-modules/setup.routes'),
       },
       {
         path: 'account',
         loadChildren: () => import('./features/account/account.routes'),
       },
       {
-        path: 'documents',
-        // Module-level read gate; sub-pages add stricter guards in the feature routes.
-        canActivate: [permissionGuard('documents:read')],
-        loadChildren: () => import('./features/documents/documents.routes'),
-      },
-      {
         path: 'review',
         loadChildren: () => import('./features/review/review.routes'),
       },
-      {
-        path: 'deviations',
-        // Module-level read gate; sub-pages add stricter guards in the feature routes.
-        canActivate: [permissionGuard('deviations:read')],
-        loadChildren: () => import('./features/deviations/deviations.routes'),
-      },
-      {
-        path: 'standards',
-        // Module-level read gate; manage actions are gated inside the pages.
-        canActivate: [permissionGuard('standards:read')],
-        loadChildren: () => import('./features/standards/standards.routes'),
-      },
+
+      // Module areas (contracts §1.1). Each is gated on the module and on
+      // `<key>:read`; a module without a feature yet loads its placeholder stub.
+      // Governance
+      moduleRoute('context', 'context', () => import('./features/context/context.routes')),
+      moduleRoute(
+        'objectives',
+        'objectives',
+        () => import('./features/objectives/objectives.routes'),
+      ),
+      moduleRoute(
+        'management-review',
+        'management_review',
+        () => import('./features/management-review/management-review.routes'),
+      ),
+      moduleRoute(
+        'obligations',
+        'obligations',
+        () => import('./features/obligations/obligations.routes'),
+      ),
+      moduleRoute('reports', 'reports', () => import('./features/reports/reports.routes')),
+      // Operations
+      moduleRoute('processes', 'processes', () => import('./features/processes/processes.routes')),
+      moduleRoute('documents', 'documents', () => import('./features/documents/documents.routes')),
+      moduleRoute('projects', 'projects', () => import('./features/projects/projects.routes')),
+      moduleRoute('suppliers', 'suppliers', () => import('./features/suppliers/suppliers.routes')),
+      moduleRoute('contracts', 'contracts', () => import('./features/contracts/contracts.routes')),
+      moduleRoute('assets', 'assets', () => import('./features/assets/assets.routes')),
+      moduleRoute(
+        'continuity',
+        'continuity',
+        () => import('./features/continuity/continuity.routes'),
+      ),
+      // Improvement
+      moduleRoute(
+        'deviations',
+        'deviations',
+        () => import('./features/deviations/deviations.routes'),
+      ),
+      moduleRoute(
+        'inspections',
+        'inspections',
+        () => import('./features/inspections/inspections.routes'),
+      ),
+      moduleRoute('audits', 'audits', () => import('./features/audits/audits.routes')),
+      moduleRoute('risk', 'risk', () => import('./features/risk/risk.routes')),
+      moduleRoute('feedback', 'feedback', () => import('./features/feedback/feedback.routes')),
+      // People
+      moduleRoute('people', 'people', () => import('./features/people/people.routes')),
+      moduleRoute(
+        'recruitment',
+        'recruitment',
+        () => import('./features/recruitment/recruitment.routes'),
+      ),
+      moduleRoute('training', 'training', () => import('./features/training/training.routes')),
+      // Compliance
+      moduleRoute('standards', 'standards', () => import('./features/standards/standards.routes')),
+      moduleRoute('privacy', 'privacy', () => import('./features/privacy/privacy.routes')),
+      moduleRoute(
+        'ai-governance',
+        'ai_governance',
+        () => import('./features/ai-governance/ai-governance.routes'),
+      ),
+      moduleRoute(
+        'environment',
+        'environment',
+        () => import('./features/environment/environment.routes'),
+      ),
+      moduleRoute('hse', 'hse', () => import('./features/hse/hse.routes')),
+
       // The module used to live at /iso (placeholder) — keep old links working.
       { path: 'iso', pathMatch: 'full', redirectTo: 'standards' },
+      // Procedures became the process register.
+      { path: 'procedures', pathMatch: 'full', redirectTo: 'processes' },
       {
         path: 'admin/organizations',
         canActivate: [authGuard, superAdminGuard],
@@ -120,7 +179,6 @@ export const routes: Routes = [
             (m) => m.OrganizationDetail,
           ),
       },
-      ...placeholderRoutes,
     ],
   },
 

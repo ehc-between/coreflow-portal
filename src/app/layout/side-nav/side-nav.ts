@@ -8,14 +8,18 @@ import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { Avatar } from '../../shared/ui/avatar/avatar';
 import { Icon } from '../../shared/ui/icon/icon';
 import { SectionLabel } from '../../shared/ui/section-label/section-label';
-import { ADMIN_SECTION, NAV_SECTIONS, NavItem, SETTINGS_NAV_ITEM } from '../nav';
+import { hasAnyPermission } from '../../core/auth/permission';
+import { ModuleService } from '../../core/modules/module.service';
+import { ADMIN_SECTION, NAV_SECTIONS, NavItem, NavSection, SETTINGS_NAV_ITEM } from '../nav';
 import { OrgSwitcher } from '../org-switcher/org-switcher';
 
 /**
  * Sidebar navigation (248px): org switcher, grouped nav sections with active
  * states, a "customize workspace" mode that reveals per-item visibility toggles
  * (local signal), and a bottom user card. Items with a `permission` are hidden
- * unless the current org grants it (in addition to the customize visibility).
+ * unless the current org grants it, and items with a `module` while that
+ * module is disabled for the org (in addition to the customize visibility);
+ * a section with nothing left to show drops its label too.
  */
 @Component({
   selector: 'app-side-nav',
@@ -48,17 +52,13 @@ import { OrgSwitcher } from '../org-switcher/org-switcher';
         </div>
       }
 
-      @for (section of sections; track section.labelKey) {
-        <app-section-label>{{ section.labelKey | transloco }}</app-section-label>
-        @for (item of section.items; track item.path) {
-          @if (item.permission) {
-            <ng-container *appHasPermission="item.permission">
-              @if (isVisible(item) || customizing()) {
-                <ng-container *ngTemplateOutlet="navLink; context: { $implicit: item }" />
-              }
-            </ng-container>
-          } @else if (isVisible(item) || customizing()) {
-            <ng-container *ngTemplateOutlet="navLink; context: { $implicit: item }" />
+      @for (section of sections(); track section.labelKey) {
+        @if (hasShownItem(section)) {
+          <app-section-label>{{ section.labelKey | transloco }}</app-section-label>
+          @for (item of section.items; track item.path) {
+            @if (isVisible(item) || customizing()) {
+              <ng-container *ngTemplateOutlet="navLink; context: { $implicit: item }" />
+            }
           }
         }
       }
@@ -139,7 +139,19 @@ import { OrgSwitcher } from '../org-switcher/org-switcher';
 export class SideNav {
   protected readonly auth = inject(AuthService);
   private readonly selectedOrg = inject(SelectedOrgService);
-  protected readonly sections = NAV_SECTIONS;
+  private readonly modules = inject(ModuleService);
+
+  /** Sections with only the items the current org allows (module on + permission held). */
+  protected readonly sections = computed<readonly NavSection[]>(() => {
+    const granted = this.selectedOrg.currentOrg()?.permissions;
+    const allowed = (item: NavItem): boolean =>
+      (!item.module || this.modules.isEnabled(item.module)) &&
+      (!item.permission || hasAnyPermission(granted, item.permission));
+    return NAV_SECTIONS.map((section) => ({
+      ...section,
+      items: section.items.filter(allowed),
+    })).filter((section) => section.items.length > 0);
+  });
   protected readonly adminSection = ADMIN_SECTION;
   protected readonly settingsItem = SETTINGS_NAV_ITEM;
 
@@ -152,6 +164,11 @@ export class SideNav {
 
   protected toggleCustomize(): void {
     this.customizing.update((c) => !c);
+  }
+
+  /** Whether a section still shows anything (outside customize mode, hidden items count as gone). */
+  protected hasShownItem(section: NavSection): boolean {
+    return this.customizing() || section.items.some((item) => this.isVisible(item));
   }
 
   protected isVisible(item: NavItem): boolean {

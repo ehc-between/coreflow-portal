@@ -22,6 +22,7 @@ import { Card } from '../../shared/ui/card/card';
 import { Icon } from '../../shared/ui/icon/icon';
 import { KpiTile } from '../../shared/ui/kpi-tile/kpi-tile';
 import { severityLabelKey } from '../deviations/deviation-enums';
+import { SetupBanner } from '../org-modules/setup-banner/setup-banner';
 import { StatBarList } from '../deviations/stats/stat-bar-list';
 import { recordToBuckets, toBars } from '../deviations/stats/stats-bars';
 import { TrendChart } from '../deviations/stats/trend-chart';
@@ -58,6 +59,7 @@ const TREND_MONTHS = 6;
     KpiTile,
     StatBarList,
     TrendChart,
+    SetupBanner,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -78,6 +80,8 @@ const TREND_MONTHS = 6;
       <div class="mb-[22px]">
         <app-agent-banner agentName="Iris" [agentRole]="'dashboard.agentRole' | transloco" />
       </div>
+
+      <app-setup-banner class="mb-[22px] block" />
 
       @if (tiles().length === 0) {
         <app-card>

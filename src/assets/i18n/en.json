@@ -5,8 +5,11 @@
   "nav": {
     "sections": {
       "workspace": "Workspace",
-      "quality": "Quality · QMS",
-      "modules": "Modules",
+      "governance": "Governance",
+      "operations": "Operations",
+      "improvement": "Improvement",
+      "people": "People",
+      "compliance": "Compliance",
       "administration": "Administration"
     },
     "dashboard": "Dashboard",
@@ -17,17 +20,31 @@
     "deviations": "Deviations",
     "risk": "Risk",
     "audits": "Audits",
-    "iso": "ISO & Standards",
     "documents": "Documents",
     "people": "People & Roles",
     "projects": "Projects",
-    "procedures": "Procedures",
     "training": "Training",
     "reports": "Reports",
     "settings": "Settings",
     "customize": "Customize workspace",
     "customizeHint": "Toggle modules on or off for this workspace.",
-    "addModule": "Add module"
+    "addModule": "Add module",
+    "standards": "ISO & Standards",
+    "context": "Context and leadership",
+    "processes": "Processes",
+    "managementReview": "Management review",
+    "objectives": "Objectives and KPIs",
+    "recruitment": "Recruitment",
+    "contracts": "Contracts",
+    "suppliers": "Suppliers",
+    "privacy": "Privacy (GDPR)",
+    "aiGovernance": "AI governance",
+    "environment": "Environment",
+    "obligations": "Compliance obligations",
+    "assets": "Assets and changes",
+    "continuity": "Business continuity",
+    "hse": "Health and safety",
+    "feedback": "Customer feedback"
   },
   "topbar": {
     "searchPlaceholder": "Ask CoreFlow, or jump to anything…",
@@ -1245,6 +1262,18 @@
     "member": {
       "name": "Member",
       "description": "Everyday access: read documents, and report and follow up deviations."
+    },
+    "hse_manager": {
+      "name": "HSE manager",
+      "description": "Runs health, safety and environment work: deviations, incidents and their follow-up."
+    },
+    "hr_manager": {
+      "name": "HR manager",
+      "description": "Looks after people, competence and onboarding; can invite users."
+    },
+    "ai_officer": {
+      "name": "AI governance officer",
+      "description": "Owns AI governance: AI systems, their risks, incidents and the standards behind them."
     }
   },
   "attachments": {
@@ -1483,6 +1512,224 @@
       "retry": "Try again",
       "lastMappedOne": "Last mapped {{date}} · 1 suggestion",
       "showSuggestionsOne": "Show 1 requirement with suggestions"
+    }
+  },
+  "modules": {
+    "names": {
+      "tasks": "Tasks",
+      "context": "Context and leadership",
+      "processes": "Processes",
+      "deviations": "Deviations",
+      "risk": "Risk and opportunities",
+      "inspections": "Inspections",
+      "audits": "Audits",
+      "management_review": "Management review",
+      "objectives": "Objectives and KPIs",
+      "people": "People and competence",
+      "recruitment": "Recruitment",
+      "training": "Training",
+      "contracts": "Contracts",
+      "suppliers": "Suppliers",
+      "projects": "Projects",
+      "privacy": "Privacy (GDPR)",
+      "ai_governance": "AI governance",
+      "environment": "Environment",
+      "obligations": "Compliance obligations",
+      "assets": "Assets and changes",
+      "continuity": "Business continuity",
+      "hse": "Health and safety",
+      "feedback": "Customer feedback",
+      "reports": "Reports and audit packs",
+      "documents": "Documents",
+      "standards": "Standards"
+    },
+    "descriptions": {
+      "tasks": "Assign, track and repeat work across every module.",
+      "context": "SWOT, interested parties, scope, policies and responsibilities.",
+      "processes": "Process register and visual process maps.",
+      "deviations": "Nonconformities, incidents, corrective actions and improvements.",
+      "risk": "Risk registers, matrices, treatment plans and the Statement of Applicability.",
+      "inspections": "Checklist templates, scheduled inspections and findings.",
+      "audits": "Audit programme, plans, findings and certification cycles.",
+      "management_review": "Review meetings with compiled inputs, minutes and decisions.",
+      "objectives": "Objectives with targets, owners, plans and measured KPIs.",
+      "people": "Employee register, competence matrix and onboarding.",
+      "recruitment": "Job requisitions, candidate pipeline and screening records.",
+      "training": "Courses, assignments, completion records and re-training.",
+      "contracts": "Contract register, key dates, obligations and renewals.",
+      "suppliers": "Supplier register, evaluations and performance.",
+      "projects": "Projects with milestones, tasks, risks and change requests.",
+      "privacy": "Records of processing, DPIAs, data subject requests and breaches.",
+      "ai_governance": "AI system inventory, AI Act classification and impact assessments.",
+      "environment": "Environmental aspects, emergency preparedness and monitoring data.",
+      "obligations": "Register of laws, permits and other requirements, with periodic evaluation.",
+      "assets": "Asset inventory, access reviews, calibration and change management.",
+      "continuity": "Business impact analysis, continuity plans and exercises.",
+      "hse": "Safe job analysis, PPE and worker consultation.",
+      "feedback": "Customer feedback, satisfaction surveys and complaints.",
+      "reports": "Compliance dashboards, an organisation calendar and exports.",
+      "documents": "Controlled documents with review, approval and acknowledgement.",
+      "standards": "Standards catalogue, applicability and evidence per requirement."
+    },
+    "reasons": {
+      "tasks": "Tasks keep every control, review and follow-up assigned and on time.",
+      "context": "Every ISO management system starts with clauses 4 and 5: context, interested parties, scope and leadership.",
+      "processes": "The process approach (ISO 9001 4.4) asks you to define and control your key processes.",
+      "deviations": "Handling nonconformities and incidents (clause 10.2) is required by every framework you chose.",
+      "risk": "Risk-based thinking (clause 6.1) and, for ISO 27001, the risk assessment and SoA are mandatory.",
+      "inspections": "Inspections give you the monitoring evidence that clause 9.1 asks for.",
+      "audits": "Internal audits (clause 9.2) are required before any certification audit.",
+      "management_review": "Top management must review the management system at planned intervals (clause 9.3).",
+      "objectives": "Measurable objectives (clause 6.2) show that the system is improving.",
+      "people": "Competence and awareness (clauses 7.2 and 7.3) must be planned and recorded.",
+      "recruitment": "Screening before employment is an ISO 27001 control (A.6.1), and candidate data falls under GDPR.",
+      "training": "Training records prove competence, and the AI Act requires AI literacy (Art. 4).",
+      "contracts": "Supplier agreements and data processing agreements are required by ISO 27001 A.5.20 and GDPR Art. 28.",
+      "suppliers": "External providers must be evaluated and monitored (ISO 9001 8.4, ISO 27001 A.5.19).",
+      "projects": "Planned changes and design work (ISO 9001 6.3 and 8.3) are easier to control as projects.",
+      "privacy": "GDPR requires records of processing, DPIAs and a 72-hour breach process.",
+      "ai_governance": "ISO/IEC 42001 and the EU AI Act require an inventory, classification and impact assessments of AI systems.",
+      "environment": "ISO 14001 asks you to evaluate environmental aspects and monitor your performance.",
+      "obligations": "Every framework asks you to know and evaluate the legal and other requirements that apply.",
+      "assets": "An asset inventory and access control are core ISO 27001 controls (A.5.9 to A.5.18).",
+      "continuity": "ISO 27001 (A.5.29 and A.5.30) and NIS2 require continuity planning and testing.",
+      "hse": "ISO 45001 requires hazard identification and worker consultation.",
+      "feedback": "ISO 9001 9.1.2 asks you to monitor customer satisfaction.",
+      "reports": "Reports and audit packs make it quick to show evidence to auditors.",
+      "documents": "Documented information must be controlled (clause 7.5) in every ISO standard.",
+      "standards": "The standards workspace shows how each requirement of your frameworks is met."
+    },
+    "entities": {
+      "document": "Document",
+      "deviation": "Deviation",
+      "deviation_action": "Deviation action",
+      "standard": "Standard",
+      "attachment": "Attachment",
+      "organization": "Organisation",
+      "org_module": "Module",
+      "task": "Task",
+      "context_analysis": "Context analysis",
+      "interested_party": "Interested party",
+      "scope_statement": "Scope statement",
+      "policy": "Policy",
+      "responsibility": "Responsibility",
+      "process": "Process",
+      "risk": "Risk",
+      "risk_treatment": "Risk treatment",
+      "opportunity": "Opportunity",
+      "risk_matrix": "Risk matrix",
+      "soa_entry": "SoA entry",
+      "checklist_template": "Checklist template",
+      "inspection": "Inspection",
+      "inspection_finding": "Inspection finding",
+      "audit_programme": "Audit programme",
+      "audit_plan": "Audit plan",
+      "audit_finding": "Audit finding",
+      "management_review": "Management review",
+      "meeting": "Meeting",
+      "objective": "Objective",
+      "kpi": "KPI",
+      "employee": "Employee",
+      "position": "Position",
+      "competence": "Competence",
+      "job_requisition": "Job requisition",
+      "candidate": "Candidate",
+      "job_application": "Job application",
+      "course": "Course",
+      "training_assignment": "Training assignment",
+      "training_record": "Training record",
+      "contract": "Contract",
+      "supplier": "Supplier",
+      "supplier_evaluation": "Supplier evaluation",
+      "project": "Project",
+      "project_milestone": "Project milestone",
+      "ropa_entry": "Processing record",
+      "dpia": "DPIA",
+      "data_subject_request": "Data subject request",
+      "data_breach": "Data breach",
+      "processor": "Processor",
+      "transfer_assessment": "Transfer assessment",
+      "ai_system": "AI system",
+      "ai_assessment": "AI assessment",
+      "env_aspect": "Environmental aspect",
+      "emergency_plan": "Emergency plan",
+      "env_measurement": "Environmental measurement",
+      "compliance_obligation": "Compliance obligation",
+      "asset": "Asset",
+      "access_review": "Access review",
+      "change_request": "Change request",
+      "calibration": "Calibration",
+      "bia": "Business impact analysis",
+      "continuity_plan": "Continuity plan",
+      "continuity_exercise": "Continuity exercise",
+      "sja": "Safe job analysis",
+      "ppe_item": "PPE item",
+      "worker_consultation": "Worker consultation",
+      "customer_feedback": "Customer feedback",
+      "survey": "Survey",
+      "report_definition": "Report",
+      "audit_pack": "Audit pack",
+      "document_type": "Document type",
+      "external_document": "External document",
+      "distribution_campaign": "Distribution campaign"
+    },
+    "links": {
+      "title": "Organisation",
+      "profile": "Organisation profile",
+      "profileHint": "Industry, size, sites, frameworks and certification targets.",
+      "modules": "Modules",
+      "modulesHint": "Turn modules on or off for your organisation.",
+      "terminology": "Terminology",
+      "terminologyHint": "Use your own words, for example \"nonconformity\" instead of \"deviation\".",
+      "setup": "Setup wizard",
+      "setupHint": "Walk through profile, frameworks, modules, roles and first tasks again."
+    },
+    "disabledNotice": "That module is turned off for this organisation. An administrator can turn it on under Settings, Modules."
+  },
+  "terms": {
+    "deviation": {
+      "one": "deviation",
+      "other": "deviations"
+    },
+    "document": {
+      "one": "document",
+      "other": "documents"
+    },
+    "risk": {
+      "one": "risk",
+      "other": "risks"
+    },
+    "audit": {
+      "one": "audit",
+      "other": "audits"
+    },
+    "finding": {
+      "one": "finding",
+      "other": "findings"
+    },
+    "process": {
+      "one": "process",
+      "other": "processes"
+    },
+    "task": {
+      "one": "task",
+      "other": "tasks"
+    },
+    "objective": {
+      "one": "objective",
+      "other": "objectives"
+    },
+    "incident": {
+      "one": "incident",
+      "other": "incidents"
+    },
+    "supplier": {
+      "one": "supplier",
+      "other": "suppliers"
+    },
+    "employee": {
+      "one": "employee",
+      "other": "employees"
     }
   }
 }
