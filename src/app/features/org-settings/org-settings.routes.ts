@@ -15,6 +15,10 @@ const routes: Routes = [
       import('./deleted-documents/deleted-documents').then((m) => m.DeletedDocuments),
   },
   {
+    path: 'guidance',
+    loadChildren: () => import('../learning/settings/guidance-settings.routes'),
+  },
+  {
     path: 'departments/:deptId',
     canActivate: [orgManageGuard],
     loadComponent: () =>
