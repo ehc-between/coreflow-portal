@@ -1,0 +1,267 @@
+{
+  "pages": {
+    "list": {
+      "intro": {
+        "title": "One register for every agreement",
+        "body": "The contract register shows every agreement the organisation has made: customers, suppliers, NDAs, data processing agreements, employment contracts and SLAs. Each contract has an owner, its parties, its value and the dates that matter, so nobody is surprised by an automatic renewal or a missed notice deadline.",
+        "steps": [
+          "Register a contract, or paste its text and let the assistant fill in the details.",
+          "Add the key dates and the obligations it commits you to.",
+          "Submit it for approval, then mark it as active once it is signed."
+        ]
+      },
+      "why": {
+        "body": "Before you commit to deliver, the standards expect you to review what you have agreed and to keep a record of it. Supplier and outsourcing agreements must set out your quality, security and privacy requirements, and anyone who processes personal data for you needs a data processing agreement.",
+        "clauses": ["iso9001:8.2", "iso9001:8.4", "iso27001:A.5.20", "gdpr:28"]
+      },
+      "empty": {
+        "title": "No contracts registered yet",
+        "body": "Start with the agreements that matter most: your largest customers, critical suppliers and anyone who handles personal data for you. You can paste a contract's text and let the assistant fill in the form.",
+        "cta": "Register the first contract"
+      }
+    },
+    "form": {
+      "intro": {
+        "title": "Registering a contract",
+        "body": "Fill in what the contract says, not what you remember. If you have the contract text, paste it under **Fill in from the contract text** and check the suggestions before saving.",
+        "steps": [
+          "Choose the type and the owner, the person who keeps an eye on the contract.",
+          "Enter the dates and the notice period, so the notice deadline can be worked out.",
+          "List the parties, including your own organisation."
+        ]
+      },
+      "why": {
+        "body": "A contract is controlled information: who agreed what, when and on which terms. Recording the terms in a structured way lets the system remind the owner in time, and gives an auditor clear evidence that agreements are reviewed and approved before they are signed.",
+        "clauses": ["iso9001:8.2", "hs:7.5", "iso27001:A.5.20"]
+      },
+      "fields": {
+        "contract_type": {
+          "help": "The type decides which checks apply. A data processing agreement covers personal data processed on your behalf; an employment contract is confidential by default.",
+          "example": "A cloud hosting agreement is a supplier agreement, with a separate data processing agreement linked to it."
+        },
+        "processes_personal_data": {
+          "help": "Tick this when the counterparty handles personal data for you (for example payroll, hosting or customer support). The contract then needs a data processing agreement.",
+          "example": "An email marketing provider that stores your customer list processes personal data."
+        },
+        "confidential": {
+          "help": "Confidential contracts are only visible to the owner, the person who registered it and those who manage or approve contracts.",
+          "example": "Employment contracts, settlement agreements, sensitive pricing."
+        },
+        "review_date": {
+          "help": "When the contract should next be reviewed, even if it does not end. A yearly review catches price changes, new requirements and supplier problems.",
+          "example": "One month before the yearly price adjustment."
+        },
+        "notice_period_days": {
+          "help": "How many days before the end date notice must be given. The notice deadline is worked out from the end date and this period.",
+          "example": "A contract ending 31 December with 90 days' notice must be terminated by 2 October."
+        },
+        "auto_renew": {
+          "help": "Tick this if the contract continues for a new term unless someone gives notice. Then the notice deadline is the date to watch.",
+          "example": "Software subscriptions often renew for 12 months at a time."
+        },
+        "parties": {
+          "help": "Everyone who signs the contract. Mark your own organisation as \"This is our own organisation\" so the others show as counterparties.",
+          "example": "Your company (internal) and the supplier, with its organisation number."
+        }
+      }
+    },
+    "detail": {
+      "intro": {
+        "title": "Keeping a contract under control",
+        "body": "This page holds everything about the contract: its terms, its parties and dates, its versions and signed copies, and the obligations it creates. Use the **Tasks** tab for obligations and **Related** to link the supplier, the risks it carries or its data processing agreement.",
+        "steps": [
+          "Move it through approval with the buttons at the top.",
+          "Add key dates and obligations so the right people are reminded.",
+          "Record each new version and pin the signed copy to it."
+        ]
+      },
+      "why": {
+        "body": "A signed contract is only useful if its commitments are met. Tracking obligations as tasks, keeping every version with its signed copy and reviewing the contract on time shows that you monitor suppliers and meet what you promised customers.",
+        "clauses": [
+          "iso9001:8.4",
+          "iso27001:A.5.19",
+          "iso27001:A.5.20",
+          "iso27001:A.5.31",
+          "iso27001:A.6.6",
+          "gdpr:28"
+        ]
+      },
+      "fields": {
+        "key_dates": {
+          "help": "Dates you must act on that are not the start or end date. Open key dates are part of the daily reminders.",
+          "example": "Price adjustment on 1 March, a milestone delivery, a payment."
+        },
+        "versions": {
+          "help": "Each amendment or renewal that changes the text is a new version. Upload the signed PDF under Attachments and pin it to the version.",
+          "example": "v2: annex B replaced after the price renegotiation, signed 4 May."
+        },
+        "obligations": {
+          "help": "What the contract commits either party to do, as tasks with a responsible person and a due date. Repeating obligations create a task for each occurrence.",
+          "example": "Quarterly service report from the supplier; yearly security audit."
+        }
+      }
+    },
+    "deadlines": {
+      "intro": {
+        "title": "Act before the deadline, not after",
+        "body": "This list shows every upcoming notice deadline, end date, review and key date across the register, overdue ones first. A missed notice deadline usually means another full term of a contract you wanted to leave.",
+        "steps": [
+          "Look at the notice deadlines first: they are the ones you cannot undo.",
+          "Open a contract to renew, terminate or reschedule its review.",
+          "Ask the assistant which deadlines need attention first."
+        ]
+      },
+      "why": {
+        "body": "Monitoring and reviewing supplier agreements on time is a requirement in its own right, and it is how you catch changes to services, prices and security commitments before they bind you for another term.",
+        "clauses": ["iso9001:8.4", "iso27001:A.5.19", "iso27001:A.5.20"]
+      },
+      "empty": {
+        "title": "No deadlines in this period",
+        "body": "Nothing needs attention in the chosen window. Widen the window, or check that your contracts have end dates, notice periods and review dates filled in.",
+        "cta": "Back to contracts"
+      }
+    }
+  },
+  "lessons": {
+    "contract-lifecycle": {
+      "title": "The life of a contract",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "From draft to signature",
+          "body": "A contract starts as a **draft**. When the terms are ready, the owner **submits** it, and someone who approves contracts checks it against your requirements: price, deliverables, liability, security and privacy. They **approve** it or **send it back** with a note. Once it is signed, the owner marks it as **active**."
+        },
+        {
+          "heading": "While it is in force",
+          "body": "An active contract creates work: obligations to meet, reports to receive, reviews to hold. Record them as obligations so they appear in My Work. When the contract is amended, add a **new version** and pin the signed copy to it, so you can always show which text applied when."
+        },
+        {
+          "heading": "How it ends",
+          "body": "A contract either **expires** at its end date, is **renewed** for a new term or is **terminated**. Each choice is recorded with its date and a note. Ended contracts are kept for the record and can no longer be changed, and their open obligations are cancelled."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "You change the price in a contract that has been approved but not yet signed. What happens?",
+          "options": [
+            "Nothing, the approval still stands",
+            "It goes back to draft and must be approved again",
+            "It becomes active"
+          ],
+          "answer": 1,
+          "explanation": "Changing the terms of an approved contract sends it back to draft, so the changed terms are approved too."
+        },
+        {
+          "question": "Where should a recurring reporting duty from a supplier contract be recorded?",
+          "options": [
+            "In the contract description",
+            "As a repeating obligation on the contract",
+            "In a personal calendar"
+          ],
+          "answer": 1,
+          "explanation": "A repeating obligation creates a task for each occurrence with a responsible person, so it is reminded, tracked and visible to auditors."
+        }
+      ],
+      "pass_mark": 0.5
+    },
+    "notice-and-renewal": {
+      "title": "Notice periods and automatic renewal",
+      "minutes": 3,
+      "sections": [
+        {
+          "heading": "The date that matters",
+          "body": "Many contracts renew automatically unless someone gives notice. The date to watch is then not the end date but the **notice deadline**: the end date minus the notice period. Miss it, and the contract runs for another full term."
+        },
+        {
+          "heading": "Recording it correctly",
+          "body": "Enter the end date, the notice period in days and whether the contract renews automatically. The notice deadline is then worked out for you and shown on the contract, in the deadlines list and in the owner's reminders."
+        },
+        {
+          "heading": "Deciding in time",
+          "body": "Set a review date a few weeks before the notice deadline. That gives the owner time to compare the service with what was promised, check prices and decide whether to renew, renegotiate or leave."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "A contract ends on 31 December, renews automatically and has 90 days' notice. When must you act at the latest?",
+          "options": ["31 December", "About 2 October", "1 January"],
+          "answer": 1,
+          "explanation": "Notice must be given 90 days before the end date, so around 2 October. After that the contract renews."
+        }
+      ],
+      "pass_mark": 1
+    },
+    "processor-agreements": {
+      "title": "Data processing agreements in plain language",
+      "minutes": 5,
+      "sections": [
+        {
+          "heading": "When you need one",
+          "body": "When another organisation handles personal data **on your behalf**, such as a payroll provider, a hosting company or a support desk, the GDPR requires a written agreement with it: a data processing agreement (Art. 28). It applies even if the main contract is about something else."
+        },
+        {
+          "heading": "What it must say",
+          "body": "The agreement must describe the processing (what, why, how long, whose data) and oblige the processor to act only on your documented instructions, keep the data confidential and secure, use sub-processors only with your approval, help you with data subject requests and breaches, delete or return the data at the end, and let you audit it."
+        },
+        {
+          "heading": "How CoreFlow helps",
+          "body": "Tick **processes personal data** on the main contract. If no data processing agreement is linked, the contract shows it as **missing**. Register the agreement as a contract of type data processing agreement and link the two, and let the assistant check its clauses against the GDPR checklist."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Your accounting firm runs payroll for you. Do you need a data processing agreement with it?",
+          "options": [
+            "No, they are an accounting firm",
+            "Yes, they process employees' personal data on your behalf",
+            "Only if they are outside the EU"
+          ],
+          "answer": 1,
+          "explanation": "Processing payroll means handling employees' personal data on your behalf, which requires a data processing agreement wherever the firm is based."
+        },
+        {
+          "question": "Which of these must a data processing agreement contain?",
+          "options": [
+            "The processor's marketing plan",
+            "Rules for using sub-processors",
+            "The price of the service"
+          ],
+          "answer": 1,
+          "explanation": "Article 28 requires conditions for sub-processors, among other clauses. Price belongs in the main contract."
+        }
+      ],
+      "pass_mark": 0.5
+    }
+  },
+  "tours": {
+    "list": [
+      {
+        "target": "contracts-new",
+        "title": "Register a contract",
+        "body": "Start here. You can paste the contract text and let the assistant fill in the form for you to check."
+      },
+      {
+        "target": "contracts-filters",
+        "title": "Find the right contracts",
+        "body": "Filter by status, type, owner and end date, and save the combination as a view you can return to."
+      },
+      {
+        "target": "contracts-deadlines",
+        "title": "Watch the deadlines",
+        "body": "All notice deadlines, end dates and reviews in one list, so nothing renews by accident."
+      }
+    ]
+  },
+  "glossary": {
+    "notice-deadline": {
+      "term": "Notice deadline",
+      "definition": "The last day you can give notice to end a contract: its end date minus the notice period. After it, an automatically renewing contract runs for another term.",
+      "clauses": ["iso9001:8.4"]
+    },
+    "data-processing-agreement": {
+      "term": "Data processing agreement",
+      "definition": "A written agreement with an organisation that processes personal data on your behalf, with the clauses required by GDPR Art. 28(3).",
+      "clauses": ["gdpr:28"]
+    }
+  }
+}
