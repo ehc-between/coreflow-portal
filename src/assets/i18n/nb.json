@@ -1704,7 +1704,9 @@
       "audit_pack": "Revisjonspakke",
       "document_type": "Dokumenttype",
       "external_document": "Eksternt dokument",
-      "distribution_campaign": "Distribusjonskampanje"
+      "distribution_campaign": "Distribusjonskampanje",
+      "document_template": "Dokumentmal",
+      "retention_rule": "Oppbevaringsregel"
     },
     "links": {
       "title": "Organisasjon",

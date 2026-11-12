@@ -1704,7 +1704,9 @@
       "audit_pack": "Audit pack",
       "document_type": "Document type",
       "external_document": "External document",
-      "distribution_campaign": "Distribution campaign"
+      "distribution_campaign": "Distribution campaign",
+      "document_template": "Document template",
+      "retention_rule": "Retention rule"
     },
     "links": {
       "title": "Organisation",
