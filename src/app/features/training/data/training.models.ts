@@ -181,11 +181,15 @@ export type CourseUpdate = Partial<Omit<CourseCreate, 'source' | 'lessons'>> & {
 
 // --- player / attempts ------------------------------------------------------------
 
+/** A quiz question as the learner gets it (no `answer` / `explanation`). */
+export type PlayerQuizQuestion = Pick<QuizQuestionDto, 'question' | 'options'>;
+
 export interface PlayerLesson {
   readonly title: string;
   readonly minutes: number | null;
   readonly sections: readonly { readonly heading: string; readonly body: string }[];
-  readonly quiz: readonly QuizQuestionDto[];
+  /** The answer key is never sent to the player: attempts are scored on the server. */
+  readonly quiz: readonly PlayerQuizQuestion[];
   readonly pass_mark: number;
 }
 

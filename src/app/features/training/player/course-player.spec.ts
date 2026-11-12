@@ -74,7 +74,7 @@ function player(over: Partial<PlayerOut> = {}): PlayerOut {
           title: 'What is an incident',
           minutes: 3,
           sections: [{ heading: 'Definition', body: 'Text' }],
-          quiz: [{ question: 'Report within?', options: ['1 hour', '1 week'], answer: 0 }],
+          quiz: [{ question: 'Report within?', options: ['1 hour', '1 week'] }],
           pass_mark: 0.8,
         },
         progress: null,

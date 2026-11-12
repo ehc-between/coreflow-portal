@@ -30,7 +30,6 @@ function item(id: string, questions: number, progress: PlayerItem['progress'] = 
       quiz: Array.from({ length: questions }, (_, i) => ({
         question: `Q${i}`,
         options: ['a', 'b'],
-        answer: 0,
       })),
       pass_mark: 0.8,
     },
