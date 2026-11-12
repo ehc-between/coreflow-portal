@@ -1,0 +1,308 @@
+{
+  "pages": {
+    "list": {
+      "intro": {
+        "title": "Endringer og nytt arbeid under kontroll",
+        "body": "Et prosjekt er et arbeid med et tydelig mål, en eier, et team og en sluttdato: innføring av et nytt system, utvikling av et produkt eller en tjeneste, flytting til nye lokaler eller en større forbedring. Når det drives som et prosjekt, blir det planlagt, fulgt opp og avsluttet på en måte du kan vise senere.",
+        "steps": [
+          "Opprett et prosjekt med mål, omfang og eier.",
+          "Del arbeidet inn i faser og milepæler, og legg til oppgaver for teamet.",
+          "Hold gjennomganger der noe må kontrolleres, og avslutt prosjektet med erfaringer."
+        ]
+      },
+      "why": {
+        "body": "Når dere endrer styringssystemet, produktene eller tjenestene, forventer standardene at endringen er **planlagt**: hvorfor den gjøres, hva som kan gå galt, hvem som er ansvarlig og hvilke ressurser som trengs. Utforming og utvikling skal gå gjennom planlagte trinn med gjennomgang, verifisering og validering, og informasjonssikkerhet skal være en del av alle prosjekter.",
+        "clauses": ["iso9001:6.3", "iso9001:8.3", "iso27001:A.5.8", "hs:8.1"]
+      },
+      "empty": {
+        "title": "Ingen prosjekter ennå",
+        "body": "Start med en endring dere allerede planlegger: et nytt system, en ny tjeneste eller en større forbedring. Gi det et mål og en eier, så kan resten legges til underveis.",
+        "cta": "Start det første prosjektet"
+      }
+    },
+    "form": {
+      "intro": {
+        "title": "Beskriv prosjektet",
+        "body": "En god prosjektbeskrivelse svarer på tre spørsmål: **hvorfor** gjør vi dette (målet), **hva** er med og hva er ikke med (omfanget), og **hvem** er ansvarlig (eieren). Datoer og prioritet hjelper andre å planlegge rundt det.",
+        "steps": [
+          "Skriv målet som et resultat du kan kontrollere til slutt.",
+          "Si hva som er innenfor og utenfor omfanget, så prosjektet ikke vokser ubemerket.",
+          "Kryss av for informasjonssikkerhet hvis prosjektet berører systemer, data eller leverandører."
+        ]
+      },
+      "why": {
+        "body": "Planlagte endringer skal ta hensyn til formålet og mulige konsekvenser, styringssystemets helhet, ressursene som trengs og hvem som er ansvarlig. Å skrive dette ned ved oppstart er den enkleste måten å vise det på.",
+        "clauses": ["iso9001:6.3", "iso27001:A.5.8"]
+      },
+      "fields": {
+        "kind": {
+          "help": "Velg **Utforming og utvikling** når prosjektet lager eller endrer et produkt eller en tjeneste. Slike prosjekter trenger planlagt gjennomgang, verifisering og validering (ISO 9001 8.3).",
+          "example": "En ny kundeportal er utforming og utvikling; flytting av kontoret er et generelt prosjekt."
+        },
+        "objective": {
+          "help": "Resultatet prosjektet skal levere, skrevet slik at du til slutt kan se om det ble nådd.",
+          "example": "Alle kundeordrer behandles i det nye systemet innen 1. mars, med høyst 1 % ordrefeil."
+        },
+        "scope": {
+          "help": "Hva prosjektet omfatter, og like viktig, hva det ikke omfatter.",
+          "example": "Med: ordrebehandling og fakturering. Ikke med: lagersystemet."
+        },
+        "health": {
+          "help": "Eierens ærlige vurdering av hvordan prosjektet går: på sporet, i faresonen eller ute av kurs. Oppdater den når bildet endrer seg."
+        },
+        "owner": {
+          "help": "Personen som er ansvarlig for prosjektet. Eieren er alltid leder i teamet og får påminnelser om frister."
+        },
+        "security_relevant": {
+          "help": "Kryss av når prosjektet berører informasjonssystemer, personopplysninger, leverandører med tilgang til dataene deres eller fysisk sikkerhet. ISO 27001 A.5.8 krever at informasjonssikkerhet er en del av prosjektstyringen."
+        },
+        "security_requirements": {
+          "help": "Kravene til informasjonssikkerhet prosjektet må oppfylle, og hvordan de skal kontrolleres.",
+          "example": "Felles pålogging med totrinnsbekreftelse; data lagret i EU; sikkerhetsgjennomgang av leverandøren før produksjon."
+        }
+      }
+    },
+    "detail": {
+      "intro": {
+        "title": "Drive prosjektet",
+        "body": "Denne siden er prosjektets felles sannhet. Hold planen oppdatert, merk milepæler som ferdige, registrer gjennomganger og legg til erfaringer etter hvert. Oppgaver-fanen inneholder arbeidet, og Relatert-fanen kobler til risikoer, endringsforespørsler og dokumenter.",
+        "steps": [
+          "Se på Gantt-diagrammet og oppgavetavlen hver uke.",
+          "Registrer hver gjennomgang, verifisering eller validering med resultat.",
+          "Avslutt prosjektet når arbeidet er ferdig, med en kort rapport og erfaringer."
+        ]
+      },
+      "why": {
+        "body": "Utforming og utvikling skal planlegges i trinn, med gjennomganger som kontrollerer at resultatene oppfyller kravene, verifisering av at resultatene stemmer med grunnlaget, og validering av at resultatet fungerer til tiltenkt bruk. Registreringer av dette, og av endringer, er det en revisor ber om å se.",
+        "clauses": ["iso9001:8.3", "iso9001:6.3", "iso27001:A.5.8", "hs:8.1"]
+      },
+      "fields": {
+        "team": {
+          "help": "**Ledere** kan endre prosjektet og teamet. **Medlemmer** og **kontrollører** kan legge til milepæler, gjennomganger, erfaringer og oppgaver. **Interessenter** kan følge prosjektet, men ikke endre det."
+        },
+        "milestones": {
+          "help": "En **fase** er en arbeidsperiode med start og slutt. En **milepæl** er et punkt der noe må være ferdig eller besluttet, og kan ligge inne i en fase."
+        },
+        "design_reviews": {
+          "help": "En **gjennomgang** kontrollerer fremdriften mot kravene i et planlagt trinn. **Verifisering** kontrollerer at resultatene oppfyller kravene i grunnlaget. **Validering** kontrollerer at resultatet fungerer til tiltenkt bruk."
+        },
+        "review_kind": {
+          "help": "Velg typen som passer spørsmålet som skal besvares: er vi på sporet (gjennomgang), laget vi det riktig (verifisering), laget vi riktig ting (validering)?"
+        },
+        "review_inputs": {
+          "help": "Hva som ble gjennomgått: tegninger, spesifikasjoner, testresultater, prototyper eller dokumenter.",
+          "example": "Kravspesifikasjon v2, rapport fra brukertest 12. mai."
+        },
+        "review_findings": {
+          "help": "Hva gjennomgangen fant og hvilke tiltak som ble avtalt. Legg til oppgaver for tiltakene så de følges opp.",
+          "example": "Påloggingen er for lang; reduser til to trinn før piloten."
+        },
+        "lessons": {
+          "help": "Korte notater om hva som gikk bra og hva som bør gjøres annerledes. Skriv dem mens prosjektet pågår; de er mest nyttige for neste prosjekt."
+        }
+      }
+    },
+    "closeout": {
+      "intro": {
+        "title": "Avslutte et prosjekt",
+        "body": "Når et prosjekt avsluttes, bekreftes det at målet ble nådd, eller det registreres at prosjektet ble stoppet. Rapporten og erfaringene lagres med prosjektet til senere prosjekter og revisjoner."
+      },
+      "why": {
+        "body": "Å ta vare på informasjon om resultatene av utforming og utvikling, og om endringer, viser at arbeidet ble fullført som planlagt og at organisasjonen lærer av det.",
+        "clauses": ["iso9001:8.3", "iso9001:6.3"]
+      },
+      "fields": {
+        "summary": {
+          "help": "Ble målet nådd? Oppsummer resultatet, avvik fra planen og hva linjeorganisasjonen må følge opp.",
+          "example": "Det nye ordresystemet har vært i drift siden 1. mars. Ordrefeil falt til 0,6 %. Opplæring av nattskiftet er overlevert til HR."
+        }
+      }
+    }
+  },
+  "lessons": {
+    "project-basics": {
+      "title": "Planlegge en endring som et prosjekt",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Hvorfor drive det som et prosjekt?",
+          "body": "Større endringer berører mennesker, prosesser og systemer samtidig. Når de drives som prosjekter, får hver endring en eier, et mål og en plan, så ingenting blir glemt og dere kan vise senere hvordan endringen ble styrt."
+        },
+        {
+          "heading": "Mål, omfang og eier",
+          "body": "Skriv **målet** som et resultat du kan kontrollere til slutt. Definer **omfanget**, også hva som ikke er med. Utpek én **eier** som er ansvarlig, og et team med tydelige roller."
+        },
+        {
+          "heading": "Faser, milepæler og oppgaver",
+          "body": "Del arbeidet inn i **faser** med start og slutt, sett **milepæler** der noe må være ferdig eller besluttet, og gi teamet **oppgaver** med frister. Gantt-diagrammet og oppgavetavlen viser hvordan alt henger sammen."
+        },
+        {
+          "heading": "Følg opp og avslutt",
+          "body": "Oppdater tilstanden når noe endrer seg, koble til prosjektets risikoer og endringsforespørsler, og avslutt prosjektet med en rapport og erfaringer."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Hvilket mål er enklest å kontrollere når prosjektet er ferdig?",
+          "options": [
+            "Forbedre ordrebehandlingen",
+            "Alle ordrer behandles i det nye systemet innen 1. mars, med høyst 1 % feil",
+            "Jobbe med ordresystemet i vår"
+          ],
+          "answer": 1,
+          "explanation": "Et målbart resultat med dato viser tydelig om målet ble nådd."
+        },
+        {
+          "question": "Hva er en milepæl?",
+          "options": [
+            "En arbeidsperiode med start og slutt",
+            "Et punkt der noe må være ferdig eller besluttet",
+            "En oppgave tildelt én person"
+          ],
+          "answer": 1,
+          "explanation": "Faser er perioder; milepæler er tidspunkter der noe må være gjort eller besluttet."
+        }
+      ],
+      "pass_mark": 0.5
+    },
+    "design-control": {
+      "title": "Gjennomgang, verifisering og validering",
+      "minutes": 5,
+      "sections": [
+        {
+          "heading": "Planlagte trinn",
+          "body": "ISO 9001 8.3 krever at utforming og utvikling planlegges i **trinn**, og at dere bestemmer hvilke gjennomganger, verifiseringer og valideringer som hører til hvert trinn."
+        },
+        {
+          "heading": "Tre ulike spørsmål",
+          "body": "En **gjennomgang** spør: er vi på vei til å oppfylle kravene? **Verifisering** spør: oppfyller resultatene kravene i grunnlaget? **Validering** spør: fungerer resultatet til tiltenkt bruk, i praksis?"
+        },
+        {
+          "heading": "Registrer det dere gjorde",
+          "body": "For hver aktivitet registrerer dere hvem som deltok, hva som ble gjennomgått, funnene og resultatet. Gjør avtalte tiltak om til oppgaver så de følges opp."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Dere tester den nye portalen med fem ekte kunder for å se om de klarer å bestille. Hva er det?",
+          "options": ["Verifisering", "Validering", "En gjennomgang"],
+          "answer": 1,
+          "explanation": "Å kontrollere at resultatet fungerer til tiltenkt bruk, med ekte brukere, er validering."
+        },
+        {
+          "question": "Hva bør registreres for en gjennomgang?",
+          "options": [
+            "Bare datoen",
+            "Deltakere, hva som ble gjennomgått, funn og resultat",
+            "Ingenting, så lenge den ble holdt"
+          ],
+          "answer": 1,
+          "explanation": "Registreringen viser at gjennomgangen fant sted og hva den konkluderte med."
+        }
+      ],
+      "pass_mark": 0.5
+    },
+    "security-in-projects": {
+      "title": "Informasjonssikkerhet i prosjekter",
+      "minutes": 3,
+      "sections": [
+        {
+          "heading": "Alle prosjekter, fra starten",
+          "body": "ISO 27001 A.5.8 krever at informasjonssikkerhet er en del av prosjektstyringen, uansett type prosjekt. Det er billigere å planlegge sikkerhet fra starten enn å legge den til på slutten."
+        },
+        {
+          "heading": "Skriv kravene ned",
+          "body": "Når et prosjekt berører systemer, data eller leverandører, skriver dere ned sikkerhetskravene: tilgangsstyring, hvor data lagres, leverandørkontroll, sikkerhetskopi og logging. Kontroller dem før produksjon, for eksempel i en verifisering."
+        },
+        {
+          "heading": "Koble til risikoene",
+          "body": "Registrer risikoer for informasjonssikkerhet i risikoregisteret og koble dem til prosjektet i Relatert-fanen, så behandlingen følges opp."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Når skal informasjonssikkerhet vurderes i et prosjekt?",
+          "options": [
+            "Bare i IT-prosjekter",
+            "Fra starten av alle relevante prosjekter",
+            "Etter produksjonssetting"
+          ],
+          "answer": 1,
+          "explanation": "Sikkerhet er en del av prosjektstyringen i alle prosjekter som berører informasjon."
+        }
+      ],
+      "pass_mark": 1
+    },
+    "closing-a-project": {
+      "title": "Avslutte et prosjekt og lære av det",
+      "minutes": 3,
+      "sections": [
+        {
+          "heading": "Gjør ferdig det åpne arbeidet",
+          "body": "Et prosjekt kan avsluttes som **fullført** når milepæler, gjennomganger og oppgaver er ferdige. Hvis det stoppes, avslutter dere det som **avbrutt**; åpne oppgaver avbrytes da automatisk."
+        },
+        {
+          "heading": "Oppsummer resultatet",
+          "body": "Avslutningsrapporten sier om målet ble nådd, hva som avvek fra planen og hva linjeorganisasjonen må følge opp."
+        },
+        {
+          "heading": "Erfaringer",
+          "body": "Skriv ned hva som gikk bra og hva som bør gjøres annerledes. Gode erfaringer er konkrete og har en anbefaling til neste prosjekt."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Prosjektet stoppes halvveis. Hvordan avslutter du det?",
+          "options": [
+            "Avslutt det som fullført",
+            "Avslutt det som avbrutt, med en oppsummering av hvorfor",
+            "Slett det"
+          ],
+          "answer": 1,
+          "explanation": "Å avslutte som avbrutt tar vare på registreringen og erfaringene; sletting fjerner dem."
+        }
+      ],
+      "pass_mark": 1
+    }
+  },
+  "tours": {
+    "list": [
+      {
+        "target": "projects-new",
+        "title": "Start et prosjekt",
+        "body": "Opprett et prosjekt med mål, omfang og eier. Assistenten kan lage et utkast for deg."
+      },
+      {
+        "target": "projects-filters",
+        "title": "Finn riktige prosjekter",
+        "body": "Filtrer på status, prosjekter du eier eller er med i, type og forfalte, og lagre kombinasjonen som en visning."
+      },
+      {
+        "target": "projects-views",
+        "title": "Liste eller tidslinje",
+        "body": "Bytt til tidslinjen for å se alle prosjektene på én tidsakse, fra start til frist."
+      }
+    ]
+  },
+  "glossary": {
+    "design-review": {
+      "term": "Gjennomgang av utforming",
+      "definition": "En planlagt kontroll, i et trinn av utforming og utvikling, av om resultatene er på vei til å oppfylle kravene.",
+      "clauses": ["iso9001:8.3"]
+    },
+    "verification": {
+      "term": "Verifisering",
+      "definition": "Bekreftelse på at resultatene av utforming og utvikling oppfyller kravene i grunnlaget.",
+      "clauses": ["iso9001:8.3"]
+    },
+    "validation": {
+      "term": "Validering",
+      "definition": "Bekreftelse på at resultatet fungerer til tiltenkt bruk eller anvendelse.",
+      "clauses": ["iso9001:8.3"]
+    },
+    "lessons-learned": {
+      "term": "Erfaringer",
+      "definition": "Kunnskap fra et prosjekt, skrevet ned slik at senere prosjekter kan gjenta det som virket og unngå det som ikke virket."
+    }
+  }
+}
