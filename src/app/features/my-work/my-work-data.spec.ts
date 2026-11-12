@@ -1,181 +1,116 @@
-import { ActionListItem, DeviationListItem } from '../../core/deviations/deviation.models';
-import { DocumentSummary, Proposal } from '../../core/documents/document.models';
-import { assembleApprovals, assembleMyActions, assembleOwnedDeviations } from './my-work-data';
+import { WorkItem } from '../../core/tasks/task.models';
+import {
+  NO_FILTERS,
+  boardColumn,
+  filterWorkItems,
+  gridRange,
+  groupByColumn,
+  itemsByDay,
+  monthGrid,
+  parseView,
+  shiftMonth,
+  sourceLabelKey,
+  summarise,
+} from './my-work-data';
 
-function deviation(overrides: Partial<DeviationListItem>): DeviationListItem {
+function item(overrides: Partial<WorkItem>): WorkItem {
   return {
-    id: 'id',
-    code: 'DEV-1',
-    title: 'Deviation',
-    type_id: 'type',
-    standards: [],
-    clauses: [],
-    tags: [],
-    severity: 'medium',
+    source: 'task',
+    id: 'i-1',
+    title: 'Item',
+    code: null,
     status: 'open',
-    source: 'internal',
-    raised_at: '2026-01-01T00:00:00Z',
-    created_at: '2026-01-01T00:00:00Z',
+    priority: 'normal',
+    due_at: null,
+    url: '/tasks/i-1',
+    entity_type: 'task',
+    entity_id: 'i-1',
+    module: 'tasks',
+    overdue: false,
     ...overrides,
   };
 }
 
-describe('assembleOwnedDeviations', () => {
-  beforeEach(() => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2026-10-19T12:00:00Z'));
+const TODAY = '2026-11-12';
+
+describe('My Work data', () => {
+  const items = [
+    item({ id: 'a', due_at: '2026-11-10T23:59:59', overdue: true, priority: 'high' }),
+    item({ id: 'b', due_at: '2026-11-12T23:59:59' }),
+    item({
+      id: 'c',
+      due_at: '2026-11-18T10:00:00',
+      source: 'deviation_action',
+      status: 'in_progress',
+    }),
+    item({ id: 'd', due_at: '2026-11-19T10:00:00', status: 'blocked' }),
+    item({ id: 'e', source: 'document_ack', status: null, priority: null }),
+  ];
+
+  it('parses the view param', () => {
+    expect(parseView('board')).toBe('board');
+    expect(parseView('calendar')).toBe('calendar');
+    expect(parseView('gantt')).toBe('list');
+    expect(parseView(null)).toBe('list');
   });
 
-  afterEach(() => {
-    vi.useRealTimers();
+  it('filters by source, priority and due bucket', () => {
+    const ids = (f: Partial<typeof NO_FILTERS>) =>
+      filterWorkItems(items, { ...NO_FILTERS, ...f }, TODAY).map((i) => i.id);
+    expect(ids({})).toEqual(['a', 'b', 'c', 'd', 'e']);
+    expect(ids({ source: 'deviation_action' })).toEqual(['c']);
+    expect(ids({ priority: 'high' })).toEqual(['a']);
+    expect(ids({ due: 'overdue' })).toEqual(['a']);
+    expect(ids({ due: 'today' })).toEqual(['b']);
+    // Today plus six days: the 18th is in, the 19th is out.
+    expect(ids({ due: 'week' })).toEqual(['b', 'c']);
+    expect(ids({ due: 'none' })).toEqual(['e']);
   });
 
-  it('keeps every row the server returned (active filtering is server-side)', () => {
-    const rows = assembleOwnedDeviations([
-      deviation({ id: 'a', status: 'open' }),
-      deviation({ id: 'd', status: 'verification' }),
-    ]);
-    expect(rows.map((r) => r.item.id)).toEqual(['a', 'd']);
+  it('summarises overdue and due-today counts', () => {
+    expect(summarise(items, TODAY)).toEqual({ total: 5, overdue: 1, dueToday: 1 });
   });
 
-  it('sorts by due date soonest first, undated last, ties by code', () => {
-    const rows = assembleOwnedDeviations([
-      deviation({ id: 'none', code: 'DEV-9' }),
-      deviation({ id: 'late', code: 'DEV-3', due_at: '2026-12-01T00:00:00Z' }),
-      deviation({ id: 'early', code: 'DEV-2', due_at: '2026-10-01T00:00:00Z' }),
-      deviation({ id: 'none2', code: 'DEV-1' }),
-    ]);
-    expect(rows.map((r) => r.item.id)).toEqual(['early', 'late', 'none2', 'none']);
+  it('groups items into board columns', () => {
+    expect(boardColumn(item({ status: 'pending' }))).toBe('open');
+    const board = groupByColumn(items);
+    expect(board.open.map((i) => i.id)).toEqual(['a', 'b', 'e']);
+    expect(board.in_progress.map((i) => i.id)).toEqual(['c']);
+    expect(board.blocked.map((i) => i.id)).toEqual(['d']);
   });
 
-  it('flags deviations past their due date as overdue', () => {
-    const rows = assembleOwnedDeviations([
-      deviation({ id: 'past', due_at: '2026-10-18T00:00:00Z' }),
-      deviation({ id: 'future', due_at: '2026-10-20T00:00:00Z' }),
-      deviation({ id: 'undated' }),
-    ]);
-    expect(rows.map((r) => [r.item.id, r.overdue])).toEqual([
-      ['past', true],
-      ['future', false],
-      ['undated', false],
-    ]);
-  });
-});
-
-describe('assembleMyActions', () => {
-  const action = (overrides: Partial<ActionListItem>): ActionListItem => ({
-    id: 'a',
-    deviation_id: 'dev',
-    kind: 'corrective',
-    description: 'Fix it',
-    status: 'open',
-    created_at: '2026-01-01T00:00:00Z',
-    deviation_code: 'DEV-1',
-    deviation_title: 'Deviation',
-    deviation_status: 'open',
-    deviation_severity: 'medium',
-    ...overrides,
-  });
-
-  beforeEach(() => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2026-10-19T12:00:00Z'));
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
-  it('keeps the server order and reports the total', () => {
-    const items = [action({ id: 'x', due_at: '2026-10-01T00:00:00Z' }), action({ id: 'y' })];
-    const result = assembleMyActions({ items, total: 2 });
-    expect(result.items.map((a) => a.id)).toEqual(['x', 'y']);
-    expect(result.total).toBe(2);
-    expect(result.truncated).toBe(false);
-  });
-
-  it('uses the server overdue count when given, even beyond the page', () => {
-    const result = assembleMyActions(
-      { items: [action({ id: 'x', due_at: '2026-10-01T00:00:00Z' })], total: 80 },
-      12,
-    );
-    expect(result.overdueCount).toBe(12);
-    expect(result.truncated).toBe(true);
-  });
-
-  it('falls back to counting open / in-progress rows past their due date', () => {
-    const result = assembleMyActions({
-      items: [
-        action({ id: 'late', due_at: '2026-10-18T00:00:00Z' }),
-        action({ id: 'lateWip', status: 'in_progress', due_at: '2026-10-01T00:00:00Z' }),
-        action({ id: 'lateDone', status: 'done', due_at: '2026-10-01T00:00:00Z' }),
-        action({ id: 'future', due_at: '2026-10-20T00:00:00Z' }),
-        action({ id: 'undated' }),
-      ],
-      total: 5,
-    });
-    expect(result.overdueCount).toBe(2);
-  });
-
-  it('is empty when the user has no open actions', () => {
-    expect(assembleMyActions({ items: [], total: 0 })).toEqual({
-      items: [],
-      overdueCount: 0,
-      total: 0,
-      truncated: false,
+  it('builds a Monday-first month grid covering the month', () => {
+    const grid = monthGrid(2026, 11, TODAY);
+    // November 2026 starts on a Sunday: the grid starts Monday 26 October.
+    expect(grid[0][0].day).toBe('2026-10-26');
+    expect(grid[0][6]).toMatchObject({ day: '2026-11-01', inMonth: true, dayOfMonth: 1 });
+    expect(grid.every((week) => week.length === 7)).toBe(true);
+    expect(
+      grid
+        .flat()
+        .filter((d) => d.isToday)
+        .map((d) => d.day),
+    ).toEqual([TODAY]);
+    expect(grid.flat().filter((d) => d.inMonth)).toHaveLength(30);
+    expect(gridRange(grid)).toEqual({
+      from: '2026-10-26T00:00:00',
+      to: `${grid[grid.length - 1][6].day}T23:59:59`,
     });
   });
-});
 
-describe('assembleApprovals', () => {
-  const proposal = (id: string, createdAt: string, summary = ''): Proposal => ({
-    id,
-    kind: 'document',
-    title: `Proposal ${id}`,
-    summary,
-    status: 'pending',
-    created_by_user_id: 'u',
-    created_at: createdAt,
-  });
-  const doc = (id: string, updatedAt: string, status: DocumentSummary['status']) =>
-    ({
-      id,
-      type: 'procedure',
-      title: `Doc ${id}`,
-      doc_code: `DOC-${id}`,
-      status,
-      owner_user_id: 'u',
-      current_rev: 1,
-      updated_at: updatedAt,
-    }) satisfies DocumentSummary;
-
-  it('merges proposals and in-review documents, oldest first, with links', () => {
-    const items = assembleApprovals(
-      [proposal('p1', '2026-10-10T00:00:00Z', 'Tighten wording')],
-      [
-        doc('d1', '2026-10-05T00:00:00Z', 'in_review'),
-        doc('d2', '2026-10-12T00:00:00Z', 'in_review'),
-      ],
-    );
-    expect(items.map((i) => [i.kind, i.id])).toEqual([
-      ['document', 'd1'],
-      ['proposal', 'p1'],
-      ['document', 'd2'],
-    ]);
-    expect(items[0]).toMatchObject({ link: ['/documents', 'd1'], detail: 'DOC-d1' });
-    expect(items[1]).toMatchObject({ link: ['/review', 'p1'], detail: 'Tighten wording' });
+  it('keys dated items by day', () => {
+    const byDay = itemsByDay(items);
+    expect(byDay.get('2026-11-12')?.map((i) => i.id)).toEqual(['b']);
+    expect([...byDay.keys()]).not.toContain('');
   });
 
-  it('ignores documents not in review and blank proposal summaries', () => {
-    const items = assembleApprovals(
-      [proposal('p1', '2026-10-10T00:00:00Z')],
-      [doc('d1', '2026-10-05T00:00:00Z', 'approved')],
-    );
-    expect(items).toHaveLength(1);
-    expect(items[0].detail).toBeNull();
+  it('shifts months across years', () => {
+    expect(shiftMonth({ year: 2026, month: 12 }, 1)).toEqual({ year: 2027, month: 1 });
+    expect(shiftMonth({ year: 2026, month: 1 }, -1)).toEqual({ year: 2025, month: 12 });
   });
 
-  it('is empty when nothing is pending', () => {
-    expect(assembleApprovals([], [])).toEqual([]);
+  it('labels module sources as other', () => {
+    expect(sourceLabelKey('deviation')).toBe('tasks.sources.deviation');
+    expect(sourceLabelKey('training_assignment')).toBe('tasks.sources.other');
   });
 });
