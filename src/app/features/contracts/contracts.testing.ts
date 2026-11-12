@@ -1,0 +1,80 @@
+import { Contract, ContractListItem } from './data/contract.models';
+
+/** Test-only fixtures for the contract specs (not used by app code). */
+export function makeContractItem(overrides: Partial<ContractListItem> = {}): ContractListItem {
+  return {
+    id: 'c-1',
+    code: 'CT-0001',
+    title: 'Hosting agreement',
+    contract_type: 'supplier',
+    status: 'active',
+    owner: { id: 'u-1', name: 'Ada' },
+    counterparties: ['Cloudy AS'],
+    value_amount: '12000.00',
+    currency: 'NOK',
+    value_period: 'monthly',
+    start_date: '2026-01-01',
+    end_date: '2026-12-31',
+    notice_deadline: '2026-10-02',
+    next_deadline: { kind: 'notice_deadline', label: null, due_date: '2026-10-02', overdue: false },
+    auto_renew: true,
+    confidential: false,
+    processes_personal_data: true,
+    current_version: 1,
+    created_at: '2026-01-01T10:00:00',
+    updated_at: '2026-01-02T10:00:00',
+    ...overrides,
+  };
+}
+
+export function makeContract(overrides: Partial<Contract> = {}): Contract {
+  return {
+    ...makeContractItem(),
+    description: 'Managed hosting of the portal.',
+    department_id: null,
+    signed_date: '2025-12-15',
+    review_date: null,
+    notice_period_days: 90,
+    renewal_term_months: 12,
+    renewal_notes: null,
+    governing_law: 'Norway',
+    termination_date: null,
+    submitted_at: null,
+    submitted_by: null,
+    approved_at: null,
+    approved_by: null,
+    created_by: { id: 'u-1', name: 'Ada' },
+    parties: [
+      {
+        id: 'p-1',
+        name: 'Acme',
+        role: 'customer',
+        is_internal: true,
+        org_number: null,
+        contact_name: null,
+        contact_email: null,
+        position: 0,
+      },
+      {
+        id: 'p-2',
+        name: 'Cloudy AS',
+        role: 'processor',
+        is_internal: false,
+        org_number: '999888777',
+        contact_name: null,
+        contact_email: null,
+        position: 1,
+      },
+    ],
+    key_dates: [],
+    versions: [],
+    open_obligations: 0,
+    dpa: { required: true, status: 'missing', linked_dpa_ids: [] },
+    allowed_actions: ['renew', 'terminate', 'expire'],
+    can_edit: true,
+    can_delete: true,
+    can_approve: false,
+    url: '/contracts/c-1',
+    ...overrides,
+  };
+}

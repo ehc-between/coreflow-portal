@@ -1,0 +1,267 @@
+{
+  "pages": {
+    "list": {
+      "intro": {
+        "title": "Ett register for alle avtaler",
+        "body": "Kontraktregisteret viser alle avtaler virksomheten har inngått: kunder, leverandører, taushetserklæringer, databehandleravtaler, arbeidsavtaler og tjenestenivåavtaler. Hver kontrakt har en eier, sine parter, sin verdi og datoene som betyr noe, slik at ingen blir overrasket av en automatisk fornyelse eller en glemt oppsigelsesfrist.",
+        "steps": [
+          "Registrer en kontrakt, eller lim inn teksten og la assistenten fylle ut opplysningene.",
+          "Legg til viktige datoer og forpliktelsene kontrakten gir dere.",
+          "Send den til godkjenning, og marker den som aktiv når den er signert."
+        ]
+      },
+      "why": {
+        "body": "Før dere forplikter dere til å levere, forventer standardene at dere gjennomgår det som er avtalt og tar vare på dokumentasjonen. Leverandør- og utkontrakteringsavtaler skal beskrive kravene deres til kvalitet, sikkerhet og personvern, og alle som behandler personopplysninger for dere, trenger en databehandleravtale.",
+        "clauses": ["iso9001:8.2", "iso9001:8.4", "iso27001:A.5.20", "gdpr:28"]
+      },
+      "empty": {
+        "title": "Ingen kontrakter registrert ennå",
+        "body": "Begynn med avtalene som betyr mest: de største kundene, kritiske leverandører og alle som håndterer personopplysninger for dere. Du kan lime inn teksten i en kontrakt og la assistenten fylle ut skjemaet.",
+        "cta": "Registrer den første kontrakten"
+      }
+    },
+    "form": {
+      "intro": {
+        "title": "Registrere en kontrakt",
+        "body": "Fyll ut det kontrakten sier, ikke det du husker. Har du kontraktteksten, limer du den inn under **Fyll ut fra kontraktteksten** og kontrollerer forslagene før du lagrer.",
+        "steps": [
+          "Velg type og eier, personen som følger med på kontrakten.",
+          "Skriv inn datoene og oppsigelsestiden, slik at oppsigelsesfristen kan beregnes.",
+          "List opp partene, også deres egen virksomhet."
+        ]
+      },
+      "why": {
+        "body": "En kontrakt er styrt informasjon: hvem som avtalte hva, når og på hvilke vilkår. Når vilkårene registreres strukturert, kan systemet varsle eieren i tide, og en revisor får tydelig dokumentasjon på at avtaler gjennomgås og godkjennes før de signeres.",
+        "clauses": ["iso9001:8.2", "hs:7.5", "iso27001:A.5.20"]
+      },
+      "fields": {
+        "contract_type": {
+          "help": "Typen avgjør hvilke kontroller som gjelder. En databehandleravtale dekker personopplysninger som behandles på deres vegne; en arbeidsavtale er konfidensiell som standard.",
+          "example": "En avtale om skytjenester er en leverandøravtale, med en egen databehandleravtale koblet til."
+        },
+        "processes_personal_data": {
+          "help": "Kryss av når motparten håndterer personopplysninger for dere (for eksempel lønn, drift eller kundestøtte). Kontrakten trenger da en databehandleravtale.",
+          "example": "En leverandør av e-postmarkedsføring som lagrer kundelisten deres, behandler personopplysninger."
+        },
+        "confidential": {
+          "help": "Konfidensielle kontrakter er bare synlige for eieren, den som registrerte den, og de som forvalter eller godkjenner kontrakter.",
+          "example": "Arbeidsavtaler, sluttavtaler, sensitive priser."
+        },
+        "review_date": {
+          "help": "Når kontrakten skal gjennomgås neste gang, selv om den ikke utløper. En årlig gjennomgang fanger opp prisendringer, nye krav og problemer med leverandøren.",
+          "example": "En måned før den årlige prisreguleringen."
+        },
+        "notice_period_days": {
+          "help": "Hvor mange dager før sluttdatoen oppsigelse må gis. Oppsigelsesfristen beregnes fra sluttdatoen og denne perioden.",
+          "example": "En kontrakt som utløper 31. desember med 90 dagers oppsigelse, må sies opp innen 2. oktober."
+        },
+        "auto_renew": {
+          "help": "Kryss av hvis kontrakten fortsetter en ny periode med mindre noen sier den opp. Da er det oppsigelsesfristen dere må følge med på.",
+          "example": "Programvareabonnementer fornyes ofte 12 måneder om gangen."
+        },
+        "parties": {
+          "help": "Alle som signerer kontrakten. Marker deres egen virksomhet med «Dette er vår egen virksomhet», så vises de andre som motparter.",
+          "example": "Deres selskap (internt) og leverandøren, med organisasjonsnummer."
+        }
+      }
+    },
+    "detail": {
+      "intro": {
+        "title": "Ha kontroll på en kontrakt",
+        "body": "Denne siden samler alt om kontrakten: vilkår, parter og datoer, versjoner og signerte kopier, og forpliktelsene den gir. Bruk fanen **Oppgaver** til forpliktelser og **Relatert** til å koble leverandøren, risikoene den medfører eller databehandleravtalen.",
+        "steps": [
+          "Før den gjennom godkjenning med knappene øverst.",
+          "Legg til viktige datoer og forpliktelser, slik at de rette personene blir varslet.",
+          "Registrer hver nye versjon og knytt den signerte kopien til den."
+        ]
+      },
+      "why": {
+        "body": "En signert kontrakt er bare nyttig hvis forpliktelsene blir oppfylt. Når forpliktelser følges opp som oppgaver, hver versjon beholdes med signert kopi og kontrakten gjennomgås i tide, viser dere at leverandører overvåkes og at dere holder det dere har lovet kunder.",
+        "clauses": [
+          "iso9001:8.4",
+          "iso27001:A.5.19",
+          "iso27001:A.5.20",
+          "iso27001:A.5.31",
+          "iso27001:A.6.6",
+          "gdpr:28"
+        ]
+      },
+      "fields": {
+        "key_dates": {
+          "help": "Datoer dere må handle på som ikke er start- eller sluttdato. Åpne viktige datoer inngår i de daglige påminnelsene.",
+          "example": "Prisregulering 1. mars, en milepælsleveranse, en betaling."
+        },
+        "versions": {
+          "help": "Hver endring eller fornyelse som endrer teksten, er en ny versjon. Last opp den signerte PDF-en under Vedlegg og knytt den til versjonen.",
+          "example": "v2: vedlegg B erstattet etter reforhandling av pris, signert 4. mai."
+        },
+        "obligations": {
+          "help": "Det kontrakten forplikter partene til, som oppgaver med ansvarlig person og frist. Gjentakende forpliktelser oppretter en oppgave for hver forekomst.",
+          "example": "Kvartalsvis tjenesterapport fra leverandøren; årlig sikkerhetsrevisjon."
+        }
+      }
+    },
+    "deadlines": {
+      "intro": {
+        "title": "Handle før fristen, ikke etter",
+        "body": "Denne listen viser alle kommende oppsigelsesfrister, sluttdatoer, gjennomganger og viktige datoer i registeret, med de forfalte først. En glemt oppsigelsesfrist betyr som regel en ny periode med en kontrakt dere ville ut av.",
+        "steps": [
+          "Se på oppsigelsesfristene først: dem kan dere ikke angre.",
+          "Åpne en kontrakt for å fornye, si opp eller flytte gjennomgangen.",
+          "Spør assistenten hvilke frister som bør tas først."
+        ]
+      },
+      "why": {
+        "body": "Å overvåke og gjennomgå leverandøravtaler i tide er et krav i seg selv, og det er slik dere fanger opp endringer i tjenester, priser og sikkerhetsforpliktelser før de binder dere for en ny periode.",
+        "clauses": ["iso9001:8.4", "iso27001:A.5.19", "iso27001:A.5.20"]
+      },
+      "empty": {
+        "title": "Ingen frister i denne perioden",
+        "body": "Ingenting krever oppmerksomhet i valgt periode. Utvid perioden, eller kontroller at kontraktene har sluttdato, oppsigelsestid og gjennomgangsdato.",
+        "cta": "Tilbake til kontrakter"
+      }
+    }
+  },
+  "lessons": {
+    "contract-lifecycle": {
+      "title": "En kontrakts livsløp",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Fra utkast til signatur",
+          "body": "En kontrakt starter som **utkast**. Når vilkårene er klare, **sender** eieren den til godkjenning, og noen som godkjenner kontrakter kontrollerer den mot kravene deres: pris, leveranser, ansvar, sikkerhet og personvern. De **godkjenner** den eller **sender den tilbake** med et notat. Når den er signert, markerer eieren den som **aktiv**."
+        },
+        {
+          "heading": "Mens den gjelder",
+          "body": "En aktiv kontrakt gir arbeid: forpliktelser som skal oppfylles, rapporter som skal mottas, gjennomganger som skal holdes. Registrer dem som forpliktelser, så vises de i Mitt arbeid. Når kontrakten endres, legger du til en **ny versjon** og knytter den signerte kopien til den, slik at dere alltid kan vise hvilken tekst som gjaldt når."
+        },
+        {
+          "heading": "Hvordan den avsluttes",
+          "body": "En kontrakt **utløper** på sluttdatoen, **fornyes** for en ny periode eller **sies opp**. Hvert valg registreres med dato og notat. Avsluttede kontrakter beholdes som dokumentasjon og kan ikke lenger endres, og åpne forpliktelser kanselleres."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Du endrer prisen i en kontrakt som er godkjent, men ikke signert. Hva skjer?",
+          "options": [
+            "Ingenting, godkjenningen gjelder fortsatt",
+            "Den går tilbake til utkast og må godkjennes på nytt",
+            "Den blir aktiv"
+          ],
+          "answer": 1,
+          "explanation": "Endrer du vilkårene i en godkjent kontrakt, går den tilbake til utkast, slik at også de endrede vilkårene blir godkjent."
+        },
+        {
+          "question": "Hvor bør en gjentakende rapporteringsplikt fra en leverandørkontrakt registreres?",
+          "options": [
+            "I beskrivelsen av kontrakten",
+            "Som en gjentakende forpliktelse på kontrakten",
+            "I en personlig kalender"
+          ],
+          "answer": 1,
+          "explanation": "En gjentakende forpliktelse oppretter en oppgave for hver forekomst med en ansvarlig person, slik at den varsles, følges opp og er synlig for revisorer."
+        }
+      ],
+      "pass_mark": 0.5
+    },
+    "notice-and-renewal": {
+      "title": "Oppsigelsestid og automatisk fornyelse",
+      "minutes": 3,
+      "sections": [
+        {
+          "heading": "Datoen som betyr noe",
+          "body": "Mange kontrakter fornyes automatisk med mindre noen sier dem opp. Datoen dere må følge med på, er da ikke sluttdatoen, men **oppsigelsesfristen**: sluttdatoen minus oppsigelsestiden. Går dere glipp av den, løper kontrakten en hel periode til."
+        },
+        {
+          "heading": "Registrere den riktig",
+          "body": "Skriv inn sluttdatoen, oppsigelsestiden i dager og om kontrakten fornyes automatisk. Oppsigelsesfristen beregnes da for dere og vises på kontrakten, i fristlisten og i eierens påminnelser."
+        },
+        {
+          "heading": "Bestemme seg i tide",
+          "body": "Sett en gjennomgangsdato noen uker før oppsigelsesfristen. Da har eieren tid til å sammenligne tjenesten med det som ble lovet, sjekke priser og bestemme om kontrakten skal fornyes, reforhandles eller sies opp."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "En kontrakt utløper 31. desember, fornyes automatisk og har 90 dagers oppsigelse. Når må dere senest handle?",
+          "options": ["31. desember", "Omkring 2. oktober", "1. januar"],
+          "answer": 1,
+          "explanation": "Oppsigelse må gis 90 dager før sluttdatoen, altså omkring 2. oktober. Etter det fornyes kontrakten."
+        }
+      ],
+      "pass_mark": 1
+    },
+    "processor-agreements": {
+      "title": "Databehandleravtaler på godt norsk",
+      "minutes": 5,
+      "sections": [
+        {
+          "heading": "Når dere trenger en",
+          "body": "Når en annen virksomhet håndterer personopplysninger **på deres vegne**, for eksempel en lønnsleverandør, et driftsselskap eller en kundestøtte, krever GDPR en skriftlig avtale med den: en databehandleravtale (art. 28). Det gjelder selv om hovedavtalen handler om noe annet."
+        },
+        {
+          "heading": "Hva den må inneholde",
+          "body": "Avtalen må beskrive behandlingen (hva, hvorfor, hvor lenge, hvem opplysningene gjelder) og forplikte databehandleren til bare å handle etter deres dokumenterte instrukser, holde opplysningene konfidensielle og sikre, bare bruke underdatabehandlere med deres godkjenning, hjelpe dere med henvendelser fra registrerte og ved avvik, slette eller levere tilbake opplysningene ved avslutning og la dere revidere."
+        },
+        {
+          "heading": "Slik hjelper CoreFlow",
+          "body": "Kryss av for **behandler personopplysninger** på hovedkontrakten. Er ingen databehandleravtale koblet til, viser kontrakten den som **mangler**. Registrer avtalen som en kontrakt av typen databehandleravtale, koble de to, og la assistenten kontrollere klausulene mot sjekklisten i GDPR."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Regnskapsbyrået kjører lønn for dere. Trenger dere en databehandleravtale med det?",
+          "options": [
+            "Nei, det er et regnskapsbyrå",
+            "Ja, det behandler de ansattes personopplysninger på deres vegne",
+            "Bare hvis det er utenfor EU"
+          ],
+          "answer": 1,
+          "explanation": "Lønnskjøring betyr å håndtere ansattes personopplysninger på deres vegne, og det krever en databehandleravtale uansett hvor byrået holder til."
+        },
+        {
+          "question": "Hva av dette må en databehandleravtale inneholde?",
+          "options": [
+            "Databehandlerens markedsplan",
+            "Regler for bruk av underdatabehandlere",
+            "Prisen på tjenesten"
+          ],
+          "answer": 1,
+          "explanation": "Artikkel 28 krever blant annet vilkår for underdatabehandlere. Prisen hører hjemme i hovedavtalen."
+        }
+      ],
+      "pass_mark": 0.5
+    }
+  },
+  "tours": {
+    "list": [
+      {
+        "target": "contracts-new",
+        "title": "Registrer en kontrakt",
+        "body": "Start her. Du kan lime inn kontraktteksten og la assistenten fylle ut skjemaet, som du så kontrollerer."
+      },
+      {
+        "target": "contracts-filters",
+        "title": "Finn de riktige kontraktene",
+        "body": "Filtrer på status, type, eier og sluttdato, og lagre kombinasjonen som en visning du kan gå tilbake til."
+      },
+      {
+        "target": "contracts-deadlines",
+        "title": "Følg med på fristene",
+        "body": "Alle oppsigelsesfrister, sluttdatoer og gjennomganger i én liste, slik at ingenting fornyes ved et uhell."
+      }
+    ]
+  },
+  "glossary": {
+    "notice-deadline": {
+      "term": "Oppsigelsesfrist",
+      "definition": "Siste dag dere kan si opp en kontrakt: sluttdatoen minus oppsigelsestiden. Etter den løper en kontrakt med automatisk fornyelse en ny periode.",
+      "clauses": ["iso9001:8.4"]
+    },
+    "data-processing-agreement": {
+      "term": "Databehandleravtale",
+      "definition": "En skriftlig avtale med en virksomhet som behandler personopplysninger på deres vegne, med klausulene som kreves i GDPR art. 28 nr. 3.",
+      "clauses": ["gdpr:28"]
+    }
+  }
+}
