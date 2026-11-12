@@ -1,0 +1,411 @@
+{
+  "status": {
+    "draft": "Utkast",
+    "active": "Aktiv",
+    "retired": "Utgått"
+  },
+  "category": {
+    "management": "Ledelse",
+    "core": "Kjerne",
+    "support": "Støtte",
+    "managementPlural": "Ledelsesprosesser",
+    "corePlural": "Kjerneprosesser",
+    "supportPlural": "Støtteprosesser"
+  },
+  "list": {
+    "title": "Prosesser",
+    "subtitle": "Prosessregisteret: hvordan virksomheten gjør innsatsfaktorer om til resultater, hvem som eier hver prosess og hvordan den måles.",
+    "searchPlaceholder": "Søk på kode, tittel, formål eller omfang",
+    "interactionMap": "Samspillskart",
+    "new": "Ny prosess",
+    "noMatches": "Ingen prosesser passer til søket eller filtrene.",
+    "partOf": "Del av {{ code }}",
+    "steps": "{{ count }} trinn i kartet",
+    "stepsOne": "1 trinn i kartet",
+    "noOwner": "Ingen eier"
+  },
+  "filters": {
+    "status": "Status",
+    "allStatuses": "Alle statuser",
+    "category": "Kategori",
+    "allCategories": "Alle kategorier",
+    "owner": "Eier",
+    "anyOwner": "Alle eiere",
+    "mine": "Eid av meg",
+    "reviewDue": "Gjennomgang forfaller",
+    "sort": "Sortering"
+  },
+  "sort": {
+    "code": "Kode (A-Å)",
+    "codeDesc": "Kode (Å-A)",
+    "title": "Tittel",
+    "updatedDesc": "Sist oppdatert",
+    "nextReview": "Neste gjennomgang"
+  },
+  "items": {
+    "itemLabel": "{{ label }}, punkt {{ n }}",
+    "remove": "Fjern {{ item }}",
+    "add": "Legg til",
+    "addPlaceholder": "Skriv og trykk Enter",
+    "addLabel": "Legg til i {{ label }}"
+  },
+  "lesson": {
+    "open": "Lær prosesstilnærmingen",
+    "title": "Prosesstilnærmingen og PDCA"
+  },
+  "actions": {
+    "close": "Lukk",
+    "edit": "Rediger",
+    "delete": "Slett"
+  },
+  "fields": {
+    "title": "Tittel",
+    "code": "Kode",
+    "category": "Kategori",
+    "status": "Status",
+    "owner": "Prosesseier",
+    "department": "Avdeling",
+    "parent": "Overordnet prosess",
+    "purpose": "Formål",
+    "scope": "Omfang",
+    "inputs": "Inndata",
+    "outputs": "Utdata",
+    "resources": "Ressurser (med hva)",
+    "competence": "Kompetanse (med hvem)",
+    "methods": "Metoder (hvordan)",
+    "risks": "Risikoer og muligheter",
+    "kpis": "KPI-er (hvordan det måles)",
+    "map": "Prosesskart",
+    "descriptionDocument": "Beskrivelsesdokument",
+    "reviewInterval": "Gjennomgangsintervall (måneder)",
+    "nextReview": "Neste gjennomgang",
+    "lastReviewed": "Sist gjennomgått",
+    "changeReason": "Begrunnelse for endringen"
+  },
+  "form": {
+    "newTitle": "Ny prosess",
+    "editTitle": "Rediger prosess",
+    "backToList": "Tilbake til prosesser",
+    "backToProcess": "Tilbake til prosessen",
+    "codePlaceholder": "Automatisk (PR-001)",
+    "noOwner": "Ingen eier",
+    "noDepartment": "Ingen avdeling",
+    "noParent": "Ingen (prosess på øverste nivå)",
+    "askPurpose": "Hjelp meg å skrive en tydelig formålsbeskrivelse for denne prosessen.",
+    "turtleHint": "Skilpaddediagrammet beskriver hva som går inn og ut av prosessen, hva den trenger, hvordan den utføres og hvordan den måles.",
+    "save": "Lagre endringer",
+    "create": "Opprett prosess",
+    "sections": {
+      "register": "Prosessregister",
+      "turtle": "Skilpaddediagram",
+      "review": "Gjennomgangssyklus"
+    },
+    "errors": {
+      "titleRequired": "Gi prosessen en tittel.",
+      "interval": "Gjennomgangsintervallet må være et helt antall måneder mellom 1 og 60.",
+      "kpiName": "Hver KPI må ha et navn (eller fjern den tomme raden)."
+    }
+  },
+  "kpi": {
+    "name": "KPI-navn",
+    "target": "Mål",
+    "unit": "Enhet",
+    "frequency": "Hyppighet",
+    "add": "Legg til KPI",
+    "remove": "Fjern KPI {{ name }}",
+    "targetShort": "mål {{ target }} {{ unit }}"
+  },
+  "ai": {
+    "draftTurtle": "Foreslå skilpaddefakta",
+    "draftApplied": "Forslagene er lagt til. Se over dem før du lagrer.",
+    "summarise": "Oppsummer",
+    "summarisePrompt": "Oppsummer denne prosessen: formål, eier, inndata og utdata, hvordan den måles, og alt som trenger oppfølging (gjennomgangsdato, manglende beskrivelsesdokument, trinn i kartet som ikke er koblet)."
+  },
+  "notices": {
+    "created": "Prosess {{ code }} er opprettet.",
+    "saved": "Prosessen er lagret.",
+    "mapSaved": "Prosesskartet er lagret (versjon {{ version }}).",
+    "reviewed": "Gjennomgangen er registrert. Neste gjennomgang er planlagt.",
+    "statusChanged": "Status endret til {{ status }}.",
+    "deleted": "Prosess {{ code }} er slettet.",
+    "documentCreated": "Et utkast til beskrivelsesdokument er opprettet. Åpne det for å skrive, gjennomgå og godkjenne det.",
+    "documentAttached": "Beskrivelsesdokumentet er knyttet til.",
+    "documentDetached": "Beskrivelsesdokumentet er koblet fra.",
+    "interactionAdded": "Samspillet er lagt til.",
+    "interactionRemoved": "Samspillet er fjernet."
+  },
+  "errors": {
+    "code_taken": "En annen prosess bruker allerede denne koden.",
+    "code_required": "Prosessen må ha en kode.",
+    "title_required": "Gi prosessen en tittel.",
+    "invalid_owner": "Eieren må være medlem av denne organisasjonen.",
+    "invalid_department": "Velg en avdeling i denne organisasjonen.",
+    "invalid_parent": "Den overordnede prosessen kan ikke brukes (en prosess kan ikke være sin egen overordnede eller etterkommer).",
+    "invalid_category": "Velg ledelse, kjerne eller støtte.",
+    "invalid_status": "Den statusen er ikke gyldig.",
+    "invalid_map_reference": "Kartet lenker til et dokument, en prosess eller en avdeling som ikke finnes i denne organisasjonen.",
+    "invalid_fields": "Noen felt kunne ikke lagres.",
+    "process_not_found": "Denne prosessen finnes ikke eller er slettet.",
+    "process_retired": "En utgått prosess kan ikke gjennomgås. Aktiver den først.",
+    "status_unchanged": "Prosessen har allerede den statusen.",
+    "interaction_exists": "Det samspillet finnes allerede.",
+    "interaction_not_found": "Det samspillet finnes ikke lenger.",
+    "self_interaction": "En prosess kan ikke samspille med seg selv.",
+    "documents_draft_required": "Du trenger tilgang til å lage dokumentutkast for å opprette et beskrivelsesdokument.",
+    "input_required": "Beskriv prosessen eller velg en prosedyre først.",
+    "forbidden": "Du har ikke tilgang til å gjøre dette.",
+    "invalid": "Noen av verdiene er ikke gyldige. Sjekk skjemaet og prøv igjen.",
+    "generic": "Noe gikk galt. Prøv igjen."
+  },
+  "detail": {
+    "back": "Tilbake til prosesser",
+    "overview": "Oversikt",
+    "askExplain": "Forklar denne prosessen med enkle ord og pek på det som er uklart eller mangler.",
+    "notSet": "Ikke satt",
+    "topLevel": "Ingen (prosess på øverste nivå)",
+    "children": "Delprosesser",
+    "noChildren": "Ingen delprosesser",
+    "map": "Prosesskart",
+    "mapSummary": "{{ steps }} trinn, {{ lanes }} svømmebaner, versjon {{ version }}",
+    "editMap": "Rediger kart",
+    "drawMap": "Tegn kartet",
+    "viewMap": "Åpne kart",
+    "noMap": "Ingen kart ennå. Et kart viser trinnene i prosessen, hvem som utfører dem og hvor beslutninger tas."
+  },
+  "turtle": {
+    "title": "Skilpaddediagram",
+    "label": "Skilpaddediagram for prosessen",
+    "failed": "Skilpaddediagrammet kunne ikke lastes.",
+    "none": "Ingenting registrert ennå",
+    "owner": "Eier: {{ name }}",
+    "upstream": "Mottar fra",
+    "downstream": "Leverer til",
+    "resources": "Med hva (ressurser)",
+    "competence": "Med hvem (kompetanse)",
+    "inputs": "Inndata",
+    "outputs": "Utdata",
+    "methods": "Hvordan (metoder og prosedyrer)",
+    "kpis": "Hvordan det måles (KPI-er)",
+    "risks": "Risikoer og muligheter"
+  },
+  "document": {
+    "title": "Beskrivelsesdokument",
+    "restricted": "Et dokument du ikke har tilgang til",
+    "notApproved": "Beskrivelsen er ikke godkjent ennå. Den går gjennom dokumentstyring: gjennomgang, godkjenning og revisjoner.",
+    "none": "Ingen beskrivelsesdokument ennå.",
+    "create": "Opprett et utkast til beskrivelse",
+    "createHint": "Oppretter et styrt dokument forhåndsutfylt fra denne prosessen.",
+    "attachLabel": "Eller knytt til et eksisterende dokument",
+    "choose": "Velg et dokument",
+    "attach": "Knytt til",
+    "detach": "Koble fra",
+    "detachTitle": "Koble fra beskrivelsesdokumentet?",
+    "detachMessage": "Selve dokumentet beholdes i dokumentstyringen. Bare koblingen til denne prosessen som beskrivelse fjernes.",
+    "status": {
+      "draft": "Utkast",
+      "in_review": "Til gjennomgang",
+      "approved": "Godkjent",
+      "obsolete": "Utgått"
+    }
+  },
+  "interactions": {
+    "title": "Samspill",
+    "openMap": "Åpne samspillskartet",
+    "direction": {
+      "outgoing": "Leverer til",
+      "incoming": "Mottar fra"
+    },
+    "remove": "Fjern samspillet med {{ code }}",
+    "empty": "Ingen samspill registrert. Legg til prosessene denne mottar fra eller leverer til.",
+    "target": "Prosess",
+    "chooseTarget": "Velg en prosess",
+    "directionLabel": "Retning",
+    "label": "Hva som flyter",
+    "labelPlaceholder": "For eksempel: godkjente innkjøpsordrer",
+    "add": "Legg til samspill"
+  },
+  "review": {
+    "title": "Periodisk gjennomgang",
+    "overdue": "Gjennomgang forfalt",
+    "months": "Hver {{ count }}. måned",
+    "monthsOne": "Hver måned",
+    "record": "Registrer gjennomgang",
+    "recordTitle": "Registrer en prosessgjennomgang",
+    "recordSubtitle": "Bekrefter at prosessen fortsatt er egnet, effektiv og oppdatert, og planlegger neste gjennomgang.",
+    "notes": "Notater fra gjennomgangen",
+    "notesPlaceholder": "Hva sjekket du, og hva ble endret?",
+    "nextDate": "Dato for neste gjennomgang",
+    "nextDateHint": "La stå tomt for å bruke gjennomgangsintervallet.",
+    "submit": "Registrer gjennomgang",
+    "noOwnerHint": "Gi prosessen en eier slik at en gjennomgangsoppgave kan tildeles."
+  },
+  "statusActions": {
+    "active": "Aktiver",
+    "draft": "Tilbake til utkast",
+    "retired": "Sett som utgått",
+    "confirm": "Endre status",
+    "confirmTitle": "Endre status til {{ status }}?",
+    "message": {
+      "active": "En aktiv prosess er i bruk. Eieren får en gjennomgangsoppgave når neste gjennomgang forfaller.",
+      "draft": "En prosess i utkast er under utforming og er ikke tatt i bruk ennå.",
+      "retired": "En utgått prosess brukes ikke lenger. Den åpne gjennomgangsoppgaven kanselleres, og prosessen skjules i samspillskartet."
+    }
+  },
+  "delete": {
+    "title": "Slette prosessen?",
+    "message": "{{ code }} fjernes fra registeret. Delprosessene blir prosesser på øverste nivå, og samspillene fjernes."
+  },
+  "interactionMap": {
+    "back": "Tilbake til prosesser",
+    "title": "Samspillskart for prosesser",
+    "includeRetired": "Vis utgåtte prosesser",
+    "empty": "Ingen prosesser ennå. Legg til prosesser og samspillet mellom dem for å se kartet.",
+    "svgLabel": "Kart over alle prosesser og hvordan de samspiller",
+    "legend": "Stiplede bokser er prosesser i utkast. Pilene viser hva én prosess leverer til en annen. Velg en prosess for å åpne den.",
+    "table": "Samspill som tabell",
+    "noEdges": "Ingen samspill registrert ennå.",
+    "from": "Fra",
+    "flow": "Hva som flyter",
+    "to": "Til"
+  },
+  "map": {
+    "back": "Tilbake til prosessen",
+    "title": "Prosesskart: {{ title }}",
+    "version": "Kartversjon {{ version }}",
+    "unsaved": "Ulagrede endringer",
+    "save": "Lagre kart",
+    "readOnly": "Du kan se dette kartet, men ikke endre det.",
+    "toolbar": "Kartverktøy",
+    "addLane": "Svømmebane",
+    "connect": "Koble",
+    "connecting": "Velg neste trinn",
+    "connectHint": "Velg trinnet dette fører til. Trykk Escape for å avbryte.",
+    "undo": "Angre",
+    "redo": "Gjør om",
+    "zoomOut": "Zoom ut",
+    "zoomIn": "Zoom inn",
+    "selectHint": "Velg et trinn eller en kobling for å redigere. Trinn kan dras, eller flyttes med piltastene.",
+    "textAlternative": "Trinnene i rekkefølge (tekstversjon)",
+    "changeReasonPlaceholder": "Valgfritt, lagres i revisjonshistorikken",
+    "leaveConfirm": "Kartet har ulagrede endringer. Vil du gå uten å lagre?",
+    "canvasLabel": "Prosesskart med {{ steps }} trinn i {{ lanes }} svømmebaner",
+    "nodeAria": "{{ type }}: {{ label }}, {{ next }} utgående koblinger",
+    "nodeAriaInLane": "{{ type }}: {{ label }}, i {{ lane }}, {{ next }} utgående koblinger",
+    "edgeAria": "Kobling fra {{ from }} til {{ to }} {{ label }}",
+    "nodeTypes": {
+      "start": "Start",
+      "end": "Slutt",
+      "task": "Oppgave",
+      "decision": "Beslutning",
+      "subprocess": "Delprosess",
+      "document": "Dokument",
+      "event": "Hendelse"
+    },
+    "empty": {
+      "title": "Start kartet",
+      "body": "Begynn med en enkel flyt og bygg den ut, eller beskriv prosessen med egne ord og la assistenten lage et utkast til kartet.",
+      "start": "Start med en enkel flyt"
+    },
+    "template": {
+      "lane": "Prosesseier",
+      "task": "Utfør arbeidet"
+    },
+    "issues": {
+      "title": "Modelleringstips",
+      "noStart": "Kartet har ikke noe starttrinn.",
+      "noEnd": "Kartet har ikke noe sluttrinn.",
+      "unconnected": "Trinn som ikke er koblet til flyten: {{ count }}",
+      "decisionBranches": "Beslutninger med færre enn to utgående grener: {{ count }}",
+      "unlabelled": "Trinn uten navn: {{ count }}"
+    },
+    "step": {
+      "title": "Trinn",
+      "askPrompt": "Forklar trinnet «{{ label }}» i dette prosesskartet og foreslå hvordan det kan beskrives bedre.",
+      "label": "Navn",
+      "type": "Type",
+      "lane": "Svømmebane",
+      "description": "Beskrivelse",
+      "procedure": "Prosedyre",
+      "noProcedure": "Ingen tilknyttet prosedyre",
+      "openProcedure": "Åpne prosedyren",
+      "subprocess": "Delprosess",
+      "noSubprocess": "Ingen tilknyttet prosess",
+      "openSubprocess": "Åpne delprosessen",
+      "delete": "Slett trinn"
+    },
+    "connection": {
+      "title": "Kobling",
+      "between": "Fra {{ from }} til {{ to }}",
+      "label": "Etikett",
+      "labelPlaceholder": "For eksempel: Ja, Nei, Godkjent",
+      "delete": "Slett kobling"
+    },
+    "lanes": {
+      "title": "Svømmebaner",
+      "name": "Navn på svømmebane {{ n }}",
+      "up": "Flytt {{ name }} opp",
+      "down": "Flytt {{ name }} ned",
+      "remove": "Fjern {{ name }}",
+      "role": "Rolle",
+      "noRole": "Ingen rolle",
+      "department": "Avdeling",
+      "noDepartment": "Ingen avdeling",
+      "empty": "Ingen svømmebaner. Legg til én per rolle eller avdeling som deltar i prosessen.",
+      "defaultName": "Svømmebane {{ n }}"
+    },
+    "announce": {
+      "added": "{{ type }} lagt til.",
+      "laneAdded": "{{ name }} lagt til.",
+      "removed": "Trinnet er fjernet.",
+      "connected": "{{ from }} fører nå til {{ to }}."
+    },
+    "connectErrors": {
+      "self": "Et trinn kan ikke kobles til seg selv.",
+      "duplicate": "Disse trinnene er allerede koblet.",
+      "missing": "Det trinnet finnes ikke lenger.",
+      "limit": "Kartet har maksimalt antall koblinger."
+    },
+    "generate": {
+      "open": "Generer med KI",
+      "title": "Generer et prosesskart",
+      "subtitle": "Beskriv prosessen eller velg en prosedyre. Assistenten lager et utkast med svømmebaner, trinn og beslutninger som du går gjennom.",
+      "description": "Beskriv prosessen",
+      "descriptionPlaceholder": "Hvem gjør hva, i hvilken rekkefølge, hvor beslutninger tas og hva som skjer i hvert tilfelle.",
+      "document": "Eller bygg på en prosedyre",
+      "noDocument": "Ingen prosedyre",
+      "note": "Ingenting lagres før du har gått gjennom kartet og valgt Lagre kart.",
+      "run": "Generer kart",
+      "replaceTitle": "Erstatte det nåværende kartet?",
+      "replaceMessage": "Det genererte kartet erstatter trinnene på lerretet. Du kan angre dette før du lagrer.",
+      "replace": "Erstatt",
+      "emptyResult": "Assistenten returnerte ingen trinn. Legg til flere detaljer og prøv igjen.",
+      "applied": "Utkastet til kart er lagt til. Gå gjennom det og lagre når du er fornøyd."
+    }
+  },
+  "notifications": {
+    "created": "Prosess opprettet: {{ code }} {{ title }}",
+    "updated": "Prosess oppdatert: {{ code }} {{ title }}",
+    "ownerChanged": "Du er nå eier av prosess {{ code }} {{ title }}",
+    "statusChanged": "Prosessstatus endret: {{ code }} {{ title }}",
+    "mapUpdated": "Prosesskart oppdatert: {{ code }} {{ title }}",
+    "reviewed": "Prosess gjennomgått: {{ code }} {{ title }}",
+    "documentAttached": "Beskrivelsesdokument knyttet til: {{ code }} {{ title }}",
+    "documentDetached": "Beskrivelsesdokument koblet fra: {{ code }} {{ title }}",
+    "interactionAdded": "Samspill lagt til: {{ code }} {{ title }}",
+    "interactionRemoved": "Samspill fjernet: {{ code }} {{ title }}",
+    "deleted": "Prosess slettet: {{ code }} {{ title }}"
+  },
+  "timeline": {
+    "created": "Prosess opprettet",
+    "updated": "Prosess oppdatert",
+    "ownerChanged": "Eier endret",
+    "statusChanged": "Status endret",
+    "mapUpdated": "Prosesskart oppdatert",
+    "reviewed": "Periodisk gjennomgang registrert",
+    "documentAttached": "Beskrivelsesdokument knyttet til",
+    "documentDetached": "Beskrivelsesdokument koblet fra",
+    "interactionAdded": "Samspill lagt til",
+    "interactionRemoved": "Samspill fjernet",
+    "deleted": "Prosess slettet"
+  }
+}

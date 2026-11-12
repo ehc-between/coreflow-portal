@@ -1,0 +1,411 @@
+{
+  "status": {
+    "draft": "Draft",
+    "active": "Active",
+    "retired": "Retired"
+  },
+  "category": {
+    "management": "Management",
+    "core": "Core",
+    "support": "Support",
+    "managementPlural": "Management processes",
+    "corePlural": "Core processes",
+    "supportPlural": "Support processes"
+  },
+  "list": {
+    "title": "Processes",
+    "subtitle": "The process register: how the organisation turns inputs into results, who owns each process and how it is measured.",
+    "searchPlaceholder": "Search by code, title, purpose or scope",
+    "interactionMap": "Interaction map",
+    "new": "New process",
+    "noMatches": "No processes match the search or filters.",
+    "partOf": "Part of {{ code }}",
+    "steps": "{{ count }} steps in the map",
+    "stepsOne": "1 step in the map",
+    "noOwner": "No owner"
+  },
+  "filters": {
+    "status": "Status",
+    "allStatuses": "All statuses",
+    "category": "Category",
+    "allCategories": "All categories",
+    "owner": "Owner",
+    "anyOwner": "Any owner",
+    "mine": "Owned by me",
+    "reviewDue": "Review due",
+    "sort": "Sort"
+  },
+  "sort": {
+    "code": "Code (A-Z)",
+    "codeDesc": "Code (Z-A)",
+    "title": "Title",
+    "updatedDesc": "Recently updated",
+    "nextReview": "Next review"
+  },
+  "items": {
+    "itemLabel": "{{ label }}, item {{ n }}",
+    "remove": "Remove {{ item }}",
+    "add": "Add",
+    "addPlaceholder": "Type and press Enter",
+    "addLabel": "Add to {{ label }}"
+  },
+  "lesson": {
+    "open": "Learn the process approach",
+    "title": "The process approach and PDCA"
+  },
+  "actions": {
+    "close": "Close",
+    "edit": "Edit",
+    "delete": "Delete"
+  },
+  "fields": {
+    "title": "Title",
+    "code": "Code",
+    "category": "Category",
+    "status": "Status",
+    "owner": "Process owner",
+    "department": "Department",
+    "parent": "Parent process",
+    "purpose": "Purpose",
+    "scope": "Scope",
+    "inputs": "Inputs",
+    "outputs": "Outputs",
+    "resources": "Resources (with what)",
+    "competence": "Competence (with whom)",
+    "methods": "Methods (how)",
+    "risks": "Risks and opportunities",
+    "kpis": "KPIs (how measured)",
+    "map": "Process map",
+    "descriptionDocument": "Description document",
+    "reviewInterval": "Review interval (months)",
+    "nextReview": "Next review",
+    "lastReviewed": "Last reviewed",
+    "changeReason": "Reason for the change"
+  },
+  "form": {
+    "newTitle": "New process",
+    "editTitle": "Edit process",
+    "backToList": "Back to processes",
+    "backToProcess": "Back to the process",
+    "codePlaceholder": "Automatic (PR-001)",
+    "noOwner": "No owner",
+    "noDepartment": "No department",
+    "noParent": "None (top-level process)",
+    "askPurpose": "Help me write a clear purpose statement for this process.",
+    "turtleHint": "The turtle diagram describes what goes in and out of the process, what it needs, how it is done and how it is measured.",
+    "save": "Save changes",
+    "create": "Create process",
+    "sections": {
+      "register": "Process register",
+      "turtle": "Turtle diagram",
+      "review": "Review cycle"
+    },
+    "errors": {
+      "titleRequired": "Give the process a title.",
+      "interval": "The review interval must be a whole number of months between 1 and 60.",
+      "kpiName": "Every KPI needs a name (or remove the empty row)."
+    }
+  },
+  "kpi": {
+    "name": "KPI name",
+    "target": "Target",
+    "unit": "Unit",
+    "frequency": "Frequency",
+    "add": "Add KPI",
+    "remove": "Remove KPI {{ name }}",
+    "targetShort": "target {{ target }} {{ unit }}"
+  },
+  "ai": {
+    "draftTurtle": "Suggest turtle facts",
+    "draftApplied": "Suggestions added. Review them before saving.",
+    "summarise": "Summarise",
+    "summarisePrompt": "Summarise this process: its purpose, owner, inputs and outputs, how it is measured, and anything that needs attention (review date, missing description document, unconnected map steps)."
+  },
+  "notices": {
+    "created": "Process {{ code }} created.",
+    "saved": "Process saved.",
+    "mapSaved": "Process map saved (version {{ version }}).",
+    "reviewed": "Review recorded. The next review is scheduled.",
+    "statusChanged": "Status changed to {{ status }}.",
+    "deleted": "Process {{ code }} deleted.",
+    "documentCreated": "A draft description document was created. Open it to write, review and approve it.",
+    "documentAttached": "Description document attached.",
+    "documentDetached": "Description document detached.",
+    "interactionAdded": "Interaction added.",
+    "interactionRemoved": "Interaction removed."
+  },
+  "errors": {
+    "code_taken": "Another process already uses this code.",
+    "code_required": "The process needs a code.",
+    "title_required": "Give the process a title.",
+    "invalid_owner": "The owner must be a member of this organisation.",
+    "invalid_department": "Choose a department of this organisation.",
+    "invalid_parent": "That parent process cannot be used (a process cannot be its own parent or descendant).",
+    "invalid_category": "Choose management, core or support.",
+    "invalid_status": "That status is not valid.",
+    "invalid_map_reference": "The map links to a document, process or department that does not exist in this organisation.",
+    "invalid_fields": "Some fields could not be saved.",
+    "process_not_found": "This process does not exist or has been deleted.",
+    "process_retired": "A retired process cannot be reviewed. Activate it first.",
+    "status_unchanged": "The process already has that status.",
+    "interaction_exists": "That interaction already exists.",
+    "interaction_not_found": "That interaction no longer exists.",
+    "self_interaction": "A process cannot interact with itself.",
+    "documents_draft_required": "You need permission to draft documents to create a description document.",
+    "input_required": "Describe the process or choose a procedure first.",
+    "forbidden": "You do not have permission to do this.",
+    "invalid": "Some of the values are not valid. Check the form and try again.",
+    "generic": "Something went wrong. Try again."
+  },
+  "detail": {
+    "back": "Back to processes",
+    "overview": "Overview",
+    "askExplain": "Explain this process in plain language and point out anything that is unclear or missing.",
+    "notSet": "Not set",
+    "topLevel": "None (top-level process)",
+    "children": "Sub-processes",
+    "noChildren": "No sub-processes",
+    "map": "Process map",
+    "mapSummary": "{{ steps }} steps, {{ lanes }} swimlanes, version {{ version }}",
+    "editMap": "Edit map",
+    "drawMap": "Draw the map",
+    "viewMap": "Open map",
+    "noMap": "No map yet. A map shows the steps of the process, who does them and where decisions are made."
+  },
+  "turtle": {
+    "title": "Turtle diagram",
+    "label": "Turtle diagram of the process",
+    "failed": "The turtle diagram could not be loaded.",
+    "none": "Nothing recorded yet",
+    "owner": "Owner: {{ name }}",
+    "upstream": "Receives from",
+    "downstream": "Provides to",
+    "resources": "With what (resources)",
+    "competence": "With whom (competence)",
+    "inputs": "Inputs",
+    "outputs": "Outputs",
+    "methods": "How (methods and procedures)",
+    "kpis": "How measured (KPIs)",
+    "risks": "Risks and opportunities"
+  },
+  "document": {
+    "title": "Description document",
+    "restricted": "A document you do not have access to",
+    "notApproved": "The description is not approved yet. It goes through document control: review, approval and revisions.",
+    "none": "No description document yet.",
+    "create": "Create a draft description",
+    "createHint": "Creates a controlled document pre-filled from this process.",
+    "attachLabel": "Or attach an existing document",
+    "choose": "Choose a document",
+    "attach": "Attach",
+    "detach": "Detach",
+    "detachTitle": "Detach the description document?",
+    "detachMessage": "The document itself is kept in document control. Only its link to this process as the description is removed.",
+    "status": {
+      "draft": "Draft",
+      "in_review": "In review",
+      "approved": "Approved",
+      "obsolete": "Obsolete"
+    }
+  },
+  "interactions": {
+    "title": "Interactions",
+    "openMap": "Open the interaction map",
+    "direction": {
+      "outgoing": "Provides to",
+      "incoming": "Receives from"
+    },
+    "remove": "Remove the interaction with {{ code }}",
+    "empty": "No interactions recorded. Add the processes this one receives from or provides to.",
+    "target": "Process",
+    "chooseTarget": "Choose a process",
+    "directionLabel": "Direction",
+    "label": "What flows",
+    "labelPlaceholder": "For example: approved purchase orders",
+    "add": "Add interaction"
+  },
+  "review": {
+    "title": "Periodic review",
+    "overdue": "Review overdue",
+    "months": "Every {{ count }} months",
+    "monthsOne": "Every month",
+    "record": "Record review",
+    "recordTitle": "Record a process review",
+    "recordSubtitle": "Confirms the process is still suitable, effective and up to date, and schedules the next review.",
+    "notes": "Review notes",
+    "notesPlaceholder": "What did you check, and what changed?",
+    "nextDate": "Next review date",
+    "nextDateHint": "Leave empty to use the review interval.",
+    "submit": "Record review",
+    "noOwnerHint": "Give the process an owner so a review task can be assigned."
+  },
+  "statusActions": {
+    "active": "Activate",
+    "draft": "Back to draft",
+    "retired": "Retire",
+    "confirm": "Change status",
+    "confirmTitle": "Change the status to {{ status }}?",
+    "message": {
+      "active": "An active process is in use. Its owner gets a review task when the next review is due.",
+      "draft": "A draft process is being designed and is not yet in use.",
+      "retired": "A retired process is no longer used. Its open review task is cancelled and it is hidden from the interaction map."
+    }
+  },
+  "delete": {
+    "title": "Delete the process?",
+    "message": "{{ code }} is removed from the register. Its sub-processes become top-level processes and its interactions are removed."
+  },
+  "interactionMap": {
+    "back": "Back to processes",
+    "title": "Process interaction map",
+    "includeRetired": "Show retired processes",
+    "empty": "No processes yet. Add processes and their interactions to see the map.",
+    "svgLabel": "Map of all processes and how they interact",
+    "legend": "Dashed boxes are draft processes. Arrows show what one process provides to another. Select a process to open it.",
+    "table": "Interactions as a table",
+    "noEdges": "No interactions recorded yet.",
+    "from": "From",
+    "flow": "What flows",
+    "to": "To"
+  },
+  "map": {
+    "back": "Back to the process",
+    "title": "Process map: {{ title }}",
+    "version": "Map version {{ version }}",
+    "unsaved": "Unsaved changes",
+    "save": "Save map",
+    "readOnly": "You can view this map but not change it.",
+    "toolbar": "Map tools",
+    "addLane": "Swimlane",
+    "connect": "Connect",
+    "connecting": "Choose the next step",
+    "connectHint": "Select the step this one leads to. Press Escape to cancel.",
+    "undo": "Undo",
+    "redo": "Redo",
+    "zoomOut": "Zoom out",
+    "zoomIn": "Zoom in",
+    "selectHint": "Select a step or a connection to edit it. Steps can be dragged, or moved with the arrow keys.",
+    "textAlternative": "Steps in order (text version)",
+    "changeReasonPlaceholder": "Optional, stored in the revision history",
+    "leaveConfirm": "The map has unsaved changes. Leave without saving?",
+    "canvasLabel": "Process map with {{ steps }} steps in {{ lanes }} swimlanes",
+    "nodeAria": "{{ type }}: {{ label }}, {{ next }} outgoing connections",
+    "nodeAriaInLane": "{{ type }}: {{ label }}, in {{ lane }}, {{ next }} outgoing connections",
+    "edgeAria": "Connection from {{ from }} to {{ to }} {{ label }}",
+    "nodeTypes": {
+      "start": "Start",
+      "end": "End",
+      "task": "Task",
+      "decision": "Decision",
+      "subprocess": "Sub-process",
+      "document": "Document",
+      "event": "Event"
+    },
+    "empty": {
+      "title": "Start the map",
+      "body": "Begin with a simple flow and refine it, or describe the process in your own words and let the assistant draft the map for you.",
+      "start": "Start with a simple flow"
+    },
+    "template": {
+      "lane": "Process owner",
+      "task": "Do the work"
+    },
+    "issues": {
+      "title": "Modelling hints",
+      "noStart": "The map has no start step.",
+      "noEnd": "The map has no end step.",
+      "unconnected": "Steps not connected to the flow: {{ count }}",
+      "decisionBranches": "Decisions with fewer than two outgoing branches: {{ count }}",
+      "unlabelled": "Steps without a name: {{ count }}"
+    },
+    "step": {
+      "title": "Step",
+      "askPrompt": "Explain the step \"{{ label }}\" in this process map and suggest how to describe it better.",
+      "label": "Name",
+      "type": "Type",
+      "lane": "Swimlane",
+      "description": "Description",
+      "procedure": "Procedure",
+      "noProcedure": "No linked procedure",
+      "openProcedure": "Open the procedure",
+      "subprocess": "Sub-process",
+      "noSubprocess": "No linked process",
+      "openSubprocess": "Open the sub-process",
+      "delete": "Delete step"
+    },
+    "connection": {
+      "title": "Connection",
+      "between": "From {{ from }} to {{ to }}",
+      "label": "Label",
+      "labelPlaceholder": "For example: Yes, No, Approved",
+      "delete": "Delete connection"
+    },
+    "lanes": {
+      "title": "Swimlanes",
+      "name": "Swimlane {{ n }} name",
+      "up": "Move {{ name }} up",
+      "down": "Move {{ name }} down",
+      "remove": "Remove {{ name }}",
+      "role": "Role",
+      "noRole": "No role",
+      "department": "Department",
+      "noDepartment": "No department",
+      "empty": "No swimlanes. Add one per role or department that takes part in the process.",
+      "defaultName": "Swimlane {{ n }}"
+    },
+    "announce": {
+      "added": "{{ type }} added.",
+      "laneAdded": "{{ name }} added.",
+      "removed": "Step removed.",
+      "connected": "{{ from }} now leads to {{ to }}."
+    },
+    "connectErrors": {
+      "self": "A step cannot connect to itself.",
+      "duplicate": "These steps are already connected.",
+      "missing": "That step no longer exists.",
+      "limit": "The map has the maximum number of connections."
+    },
+    "generate": {
+      "open": "Generate with AI",
+      "title": "Generate a process map",
+      "subtitle": "Describe the process or choose a procedure. The assistant drafts swimlanes, steps and decisions for you to review.",
+      "description": "Describe the process",
+      "descriptionPlaceholder": "Who does what, in which order, where decisions are made and what happens in each case.",
+      "document": "Or base it on a procedure",
+      "noDocument": "No procedure",
+      "note": "Nothing is saved until you review the map and select Save map.",
+      "run": "Generate map",
+      "replaceTitle": "Replace the current map?",
+      "replaceMessage": "The generated map replaces the steps on the canvas. You can undo this before saving.",
+      "replace": "Replace",
+      "emptyResult": "The assistant did not return any steps. Add more detail and try again.",
+      "applied": "Draft map added. Review it and save when you are happy."
+    }
+  },
+  "notifications": {
+    "created": "Process created: {{ code }} {{ title }}",
+    "updated": "Process updated: {{ code }} {{ title }}",
+    "ownerChanged": "You are now the owner of process {{ code }} {{ title }}",
+    "statusChanged": "Process status changed: {{ code }} {{ title }}",
+    "mapUpdated": "Process map updated: {{ code }} {{ title }}",
+    "reviewed": "Process reviewed: {{ code }} {{ title }}",
+    "documentAttached": "Description document attached: {{ code }} {{ title }}",
+    "documentDetached": "Description document detached: {{ code }} {{ title }}",
+    "interactionAdded": "Interaction added: {{ code }} {{ title }}",
+    "interactionRemoved": "Interaction removed: {{ code }} {{ title }}",
+    "deleted": "Process deleted: {{ code }} {{ title }}"
+  },
+  "timeline": {
+    "created": "Process created",
+    "updated": "Process updated",
+    "ownerChanged": "Owner changed",
+    "statusChanged": "Status changed",
+    "mapUpdated": "Process map updated",
+    "reviewed": "Periodic review recorded",
+    "documentAttached": "Description document attached",
+    "documentDetached": "Description document detached",
+    "interactionAdded": "Interaction added",
+    "interactionRemoved": "Interaction removed",
+    "deleted": "Process deleted"
+  }
+}
