@@ -1,0 +1,298 @@
+{
+  "standards": {
+    "iso42001": "ISO/IEC 42001",
+    "eu_ai_act": "EU AI Act",
+    "nis2": "NIS2"
+  },
+  "category": {
+    "filter": "Stage",
+    "all": "All stages",
+    "open": "Open",
+    "in_progress": "In progress",
+    "done": "Done",
+    "cancelled": "Cancelled"
+  },
+  "wf": {
+    "needsFields": "Fields to fill in first: {{ count }}",
+    "closed": "This deviation is closed. Reopen it with a workflow step if one is offered.",
+    "version": "Version {{ version }}",
+    "fieldsTitle": "Details for this type",
+    "visibility": "Visibility",
+    "workflowBadge": "Workflow",
+    "statesGroup": "Workflow states",
+    "linkedFrom": "The new deviation will be linked to the record it was opened from ({{ count }}).",
+    "binding": {
+      "label": "Fields and workflow",
+      "none": "Use the fields below and the standard status flow",
+      "current": "The current record type",
+      "boundNote": "New deviations of this type use the record type's fields and workflow. The fields below are only used by deviations filed before the binding.",
+      "hint": "Bind a record type to give this deviation type its own fields, states, approvals and deadlines."
+    }
+  },
+  "apiErrors": {
+    "workflow_managed": "The status of this deviation is managed by its workflow. Use a workflow step instead.",
+    "not_workflow_managed": "This deviation has no workflow. Change its status from the status menu.",
+    "invalid_record_type": "That record type doesn't exist or isn't a deviation record type.",
+    "record_type_bound": "That record type is already used by another deviation type.",
+    "record_type_inactive": "The record type behind this deviation type is inactive. Ask an administrator to activate it.",
+    "record_type_unpublished": "The record type behind this deviation type has no published version yet.",
+    "invalid_status": "That status doesn't exist in this organisation.",
+    "template_not_found": "That template doesn't exist.",
+    "template_installed": "This template is already installed.",
+    "conclusion_required": "Write a conclusion before applying the analysis.",
+    "intake_not_configured": "Save the report link settings first.",
+    "intake_not_found": "This report link isn't available. It may have been switched off or replaced.",
+    "receipt_not_found": "No report was found for that receipt code.",
+    "type_required": "Choose a deviation type, or set a default type for the report link.",
+    "report_closed": "This report has already been handled.",
+    "text_required": "Describe what happened first.",
+    "deviation_required": "Open a deviation first."
+  },
+  "rootCauses": {
+    "title": "Root cause analysis",
+    "newFiveWhys": "5 Whys",
+    "newFishbone": "Fishbone",
+    "aiDraftNote": "Drafted with AI help. Check every step before you save.",
+    "problem": "Problem",
+    "whys": "Why steps",
+    "question": "Question {{ n }}",
+    "answer": "Answer {{ n }}",
+    "answerPlaceholder": "Because…",
+    "removeWhy": "Remove step {{ n }}",
+    "addWhy": "Add a why",
+    "useLastAnswer": "Use the last answer as the conclusion",
+    "fishboneHint": "List possible causes under each heading, one per line. Leave headings that don't apply empty.",
+    "conclusion": "Conclusion (root cause)",
+    "applyOnSave": "Also use the conclusion as the deviation's root cause",
+    "save": "Save analysis",
+    "empty": "No analysis yet. Start a 5 Whys or a fishbone to find the root cause.",
+    "applied": "Used as root cause",
+    "byline": "{{ name }}, {{ date }}",
+    "edit": "Edit",
+    "apply": "Use as root cause",
+    "remove": "Remove",
+    "removeTitle": "Remove this analysis?",
+    "removeConfirm": "The worksheet is removed. The deviation's root cause stays as it is.",
+    "whyPrompt": "Why did this happen?",
+    "savedToast": "Analysis saved.",
+    "appliedToast": "The root cause is updated.",
+    "removedToast": "Analysis removed.",
+    "methods": {
+      "five_whys": "5 Whys",
+      "fishbone": "Fishbone (Ishikawa)",
+      "other": "Other analysis"
+    },
+    "categories": {
+      "people": "People",
+      "method": "Method",
+      "machine": "Machine and equipment",
+      "material": "Material",
+      "measurement": "Measurement",
+      "environment": "Environment",
+      "management": "Management"
+    }
+  },
+  "similar": {
+    "title": "Similar past cases",
+    "empty": "No similar deviations found.",
+    "rootCause": "Root cause: {{ cause }}"
+  },
+  "assist": {
+    "summarise": "Summarise",
+    "summaryTitle": "Summary",
+    "dismiss": "Close summary",
+    "suggestRootCause": "Suggest root cause",
+    "compareCases": "Compare with these cases",
+    "suggestActions": "Suggest actions",
+    "dueInDays": "Suggested deadline: {{ count }} days",
+    "addAction": "Add as action",
+    "discard": "Discard",
+    "reviewNote": "Suggestions from AI can be wrong. Check them before you use them.",
+    "draftFromReport": "Draft from the report",
+    "draftApplied": "The form is filled in from the draft. Check it before you save.",
+    "describeLabel": "Describe what happened in your own words (optional)",
+    "describePlaceholder": "For example: The customer received 40 units instead of 400 on Tuesday. The picking list was printed from an old order.",
+    "registerFromText": "Fill in the form for me",
+    "describeHint": "AI picks the type and fills in the fields. You review everything before saving.",
+    "missing": "Still missing: {{ fields }}"
+  },
+  "capa": {
+    "reviewDue": "Effectiveness review",
+    "reviewDueLabel": "Review effectiveness {{ date }}"
+  },
+  "guide": {
+    "lessonButton": "Lesson: {{ title }}",
+    "close": "Close"
+  },
+  "templates": {
+    "link": "Templates",
+    "back": "Back to deviation types",
+    "title": "Deviation templates",
+    "subtitle": "Ready-made types with their own fields, workflow, deadlines and approvals. Install one and adjust it to how you work.",
+    "counts": "{{ fields }} fields · {{ states }} states · {{ transitions }} steps",
+    "installed": "Installed",
+    "openType": "Open type",
+    "openDesigner": "Edit fields and workflow",
+    "install": "Install",
+    "empty": "No templates are available.",
+    "installedToast": "{{ name }} is installed."
+  },
+  "intake": {
+    "backToInbox": "Back to received reports",
+    "modes": {
+      "anonymous": "Anonymous reporting",
+      "whistleblowing": "Whistleblowing"
+    },
+    "modeHelp": {
+      "anonymous": "Anyone with the link can report a problem, near miss or idea without signing in.",
+      "whistleblowing": "For reporting serious concerns such as misconduct. Reports become restricted deviations that only the person handling them can see."
+    },
+    "status": {
+      "new": "New",
+      "triaged": "Being handled",
+      "converted": "Registered as deviation",
+      "dismissed": "Closed"
+    },
+    "settings": {
+      "link": "Report link settings",
+      "title": "Anonymous report link",
+      "subtitle": "A public link where people can report without an account. Share it on posters, the intranet or with suppliers.",
+      "enabled": "The link is open for reports",
+      "mode": "Kind of reporting",
+      "defaultType": "Deviation type for reports",
+      "noDefaultType": "Choose when converting",
+      "instructions": "Instructions shown on the form",
+      "instructionsPlaceholder": "For example: what to report here, and when to call the emergency number instead.",
+      "allowContact": "Let reporters leave contact details if they want to",
+      "save": "Save settings",
+      "linkTitle": "Public link",
+      "linkOff": "The link is switched off. People who open it see that it isn't available.",
+      "copy": "Copy link",
+      "rotate": "Replace link",
+      "privacyNote": "Reports store no IP address, browser details or account. The reporter gets a receipt code to follow up.",
+      "rotateTitle": "Replace the link?",
+      "rotateConfirm": "The current link stops working at once. Receipt codes still work with the new link.",
+      "savedToast": "Settings saved.",
+      "rotatedToast": "The link is replaced.",
+      "copiedToast": "Link copied."
+    },
+    "inbox": {
+      "link": "Received reports",
+      "title": "Received reports",
+      "subtitle": "Reports sent through the anonymous link. Handle them, close them or register them as deviations.",
+      "status": "Status",
+      "allStatuses": "All statuses",
+      "noneWithStatus": "No reports with this status."
+    },
+    "fields": {
+      "description": "What happened",
+      "occurredOn": "When",
+      "location": "Where",
+      "contact": "Contact details",
+      "publicNote": "Note to the reporter"
+    },
+    "report": {
+      "received": "Received {{ date }}",
+      "whistleblowingNote": "Protect the reporter. Don't try to find out who sent this, and share details only with people who need them.",
+      "noContact": "The reporter left no contact details.",
+      "notePlaceholder": "Optional. The reporter sees this note when they check their receipt code.",
+      "convertedTo": "Registered as",
+      "triagedBy": "Handled by {{ name }}, {{ date }}",
+      "triage": "Start handling",
+      "dismiss": "Close without deviation",
+      "notFound": "This report doesn't exist or you can't open it.",
+      "triageToast": "The report is marked as being handled.",
+      "dismissToast": "The report is closed."
+    },
+    "convert": {
+      "title": "Register as deviation",
+      "type": "Deviation type",
+      "defaultType": "The link's default type",
+      "ownerMe": "Me",
+      "submit": "Register deviation",
+      "convertedToast": "Deviation {{ code }} is registered."
+    }
+  },
+  "publicReport": {
+    "title": {
+      "anonymous": "Report to {{ org }}",
+      "whistleblowing": "Report a concern to {{ org }}"
+    },
+    "intro": {
+      "anonymous": "Tell us about a problem, a near miss or an idea for improvement. You don't need an account, and you don't have to say who you are.",
+      "whistleblowing": "Use this form to report a serious concern. You don't have to say who you are. The report is only seen by the people who handle it."
+    },
+    "receipt": {
+      "title": "Thank you. Your report is received.",
+      "body": "Keep this receipt code. It is the only way to check the status of your report later, and it can't be shown again.",
+      "copy": "Copy code",
+      "another": "Send another report"
+    },
+    "fields": {
+      "title": "Short summary",
+      "description": "What happened?",
+      "occurredOn": "When did it happen? (optional)",
+      "location": "Where did it happen? (optional)",
+      "contact": "How can we contact you? (optional)"
+    },
+    "hints": {
+      "title": "At least 3 characters.",
+      "description": "Describe what you saw, when and who was affected. At least 10 characters. Avoid names unless they are needed.",
+      "contact": "Leave this empty to stay anonymous."
+    },
+    "honeypot": "Leave this field empty",
+    "errors": {
+      "rateLimited": "Too many reports were sent from here. Wait a while and try again.",
+      "invalid": "Fill in a summary (at least 3 characters) and a description (at least 10 characters).",
+      "generic": "The report could not be sent. Try again later."
+    },
+    "privacy": {
+      "anonymous": "We don't store your IP address or browser details with the report.",
+      "whistleblowing": "We don't store your IP address or browser details with the report. Only the people who handle concerns can read it."
+    },
+    "submit": "Send report",
+    "status": {
+      "title": "Check the status of a report",
+      "code": "Receipt code",
+      "check": "Check status",
+      "states": {
+        "new": "Received, not yet looked at",
+        "triaged": "Being handled",
+        "converted": "Being handled",
+        "dismissed": "Closed"
+      },
+      "dates": "Received {{ received }} · last updated {{ updated }}",
+      "note": "Note from the organisation:"
+    },
+    "unavailable": {
+      "title": "This report link isn't available",
+      "body": "The link may have been switched off or replaced. Ask the organisation for its current link."
+    }
+  },
+  "notifications": {
+    "created": "Deviation {{ code }} registered",
+    "updated": "Deviation {{ code }} updated",
+    "statusChanged": "Deviation {{ code }} changed status",
+    "ownerChanged": "You now own deviation {{ code }}",
+    "rootCauseRecorded": "Root cause analysis recorded on {{ code }}",
+    "deleted": "Deviation {{ code }} deleted",
+    "actionCreated": "Action added to {{ code }}",
+    "actionStatusChanged": "An action on {{ code }} changed status",
+    "intakeReceived": "A new anonymous report was received",
+    "intakeConverted": "An anonymous report was registered as {{ code }}",
+    "intakeDismissed": "An anonymous report was closed"
+  },
+  "timeline": {
+    "created": "Deviation registered",
+    "updated": "Deviation updated",
+    "statusChanged": "Status changed",
+    "ownerChanged": "Owner changed",
+    "rootCauseRecorded": "Root cause analysis recorded",
+    "deleted": "Deviation deleted",
+    "actionCreated": "Action added",
+    "actionStatusChanged": "Action status changed",
+    "intakeReceived": "Anonymous report received",
+    "intakeConverted": "Registered from an anonymous report",
+    "intakeDismissed": "Anonymous report closed"
+  }
+}

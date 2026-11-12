@@ -1,0 +1,314 @@
+{
+  "pages": {
+    "home": {
+      "intro": {
+        "title": "Your training at a glance",
+        "body": "This page lists the courses you are **required** to take, what is due and which certificates you hold. Requirements come from the organisation's assignment rules (by role, department or as a new hire) and from training assigned to you directly.",
+        "steps": [
+          "Start with anything marked **Overdue** or **Expired**.",
+          "Open a course and work through its lessons, then take the final quiz.",
+          "Your completion record and certificate are created automatically when you pass."
+        ]
+      },
+      "why": {
+        "body": "Every ISO management system standard requires the organisation to make sure people are **competent** for their work and **aware** of the policy, their contribution and the consequences of not following the system. The EU AI Act also requires AI literacy for staff who use AI systems.",
+        "clauses": ["hs:7.2", "hs:7.3", "eu_ai_act:4"]
+      },
+      "empty": {
+        "title": "No training required right now",
+        "body": "When a course is assigned to you, or a rule makes it required for your role or department, it appears here with its due date. You can also browse the course catalogue and take any published course on your own.",
+        "cta": "Browse courses"
+      }
+    },
+    "courses": {
+      "intro": {
+        "title": "The course catalogue",
+        "body": "Courses teach what people need to know and record that they learned it. A course can be an **online course** with lessons and quizzes, a **read and understood** confirmation of a controlled document, or **external training** that a training manager records.",
+        "steps": [
+          "Filter by category, type or status, and save the filters as a view.",
+          "Open a course to see its lessons, assignment rules and who has completed it.",
+          "Course builders create drafts, which become available to learners when published."
+        ]
+      },
+      "why": {
+        "body": "A catalogue of approved courses makes awareness training repeatable and measurable instead of a one-off presentation. Information security and privacy awareness are explicit requirements.",
+        "clauses": ["hs:7.3", "iso27001:A.6.3", "gdpr:39", "nis2:21"]
+      },
+      "empty": {
+        "title": "No courses yet",
+        "body": "Start with the training everyone needs: an onboarding course, information security awareness or the quality policy. You can draft a course from an existing procedure in a few minutes.",
+        "cta": "Create a course"
+      }
+    },
+    "detail": {
+      "intro": {
+        "title": "Working with a course",
+        "body": "A course moves from **draft** to **published** to **archived**. Every change to a published course's content, pass mark, type or document creates a new **version**, and the revision history shows who changed what and why.",
+        "steps": [
+          "Add assignment rules so the right people get the course automatically.",
+          "Use **Assign** for one-off assignments, for example after an incident.",
+          "Link the course to the requirements it helps you meet, so auditors find the evidence."
+        ]
+      },
+      "why": {
+        "body": "Auditors check that competence needs are defined, that training was given, and that its effectiveness was evaluated. A course with rules, records and evaluations covers all three.",
+        "clauses": ["hs:7.2", "hs:7.3"]
+      },
+      "fields": {
+        "rules": {
+          "help": "A rule says who must take the course and how many days they have. The planner also creates re-training 30 days before a certificate expires.",
+          "example": "Role: Quality manager, 30 days. New hires, 14 days."
+        }
+      }
+    },
+    "form": {
+      "intro": {
+        "title": "Building a good course",
+        "body": "Keep lessons short and practical: one topic per lesson, a few minutes each, with examples from your own work. Use quizzes to check understanding of what really matters, not to trick people.",
+        "steps": [
+          "Choose the type: online course, read and understood, or external training.",
+          "Write the lessons in markdown. Each \"## \" heading becomes a step in the lesson player.",
+          "Add two to four quiz questions per lesson and set a pass mark.",
+          "Set a validity period if the training must be repeated."
+        ]
+      },
+      "why": {
+        "body": "Training only builds competence when it is relevant and checked. A defined pass mark and validity period make the result objective and repeatable.",
+        "clauses": ["hs:7.2"]
+      },
+      "fields": {
+        "description": {
+          "help": "What the course covers and who it is for. Learners see this before they start.",
+          "example": "How to report and handle information security incidents. For all employees."
+        },
+        "kind": {
+          "help": "An online course has lessons and quizzes. Read and understood asks the learner to confirm a controlled document. External training is held elsewhere and recorded by a training manager."
+        },
+        "document": {
+          "help": "The controlled document the course is about. Required for read and understood: the confirmation is stored against the document's current approved revision."
+        },
+        "passMark": {
+          "help": "The share of quiz answers that must be correct to pass. 80 % is a common choice; use 100 % for safety-critical rules.",
+          "example": "80"
+        },
+        "validity": {
+          "help": "How long a completion stays valid. Leave empty if the training never expires. Re-training is assigned automatically before expiry.",
+          "example": "12 for yearly security awareness"
+        },
+        "lessonBody": {
+          "help": "Markdown text. Start each step with a \"## \" heading; short paragraphs and bullet lists work best.",
+          "example": "## What is an incident?\nAny event that may harm the confidentiality, integrity or availability of information."
+        }
+      }
+    },
+    "player": {
+      "intro": {
+        "title": "How this course works",
+        "body": "Work through the lessons in order. Your progress is saved as you go, so you can stop and continue later. Finish with the final step to get your completion record.",
+        "steps": [
+          "Read each lesson step and open any linked video or document.",
+          "Answer the final quiz. You can try again if you do not reach the pass mark.",
+          "Give feedback so the course can be improved."
+        ]
+      }
+    },
+    "assessment": {
+      "intro": {
+        "title": "The final step",
+        "body": "Answer every question, then submit. Your answers are scored by the system and a completion record with a certificate number is created when you pass."
+      }
+    },
+    "assignments": {
+      "intro": {
+        "title": "Who has to take which course",
+        "body": "An assignment asks one person to complete one course by a due date. Assignments come from rules, from onboarding, from re-training before expiry, or from someone assigning the course directly.",
+        "steps": [
+          "Filter on **Overdue** to follow up on missed deadlines.",
+          "Use **Assign training** to assign a course to several people at once.",
+          "Learners get a notification and see the assignment in My Work."
+        ]
+      },
+      "why": {
+        "body": "Planning who needs which training, and following up, is how you show that competence is ensured and not left to chance.",
+        "clauses": ["hs:7.2"]
+      },
+      "empty": {
+        "title": "No assignments",
+        "body": "Assignments appear when a course is assigned to you or when an assignment rule includes you. Browse the catalogue to find training you can take now.",
+        "cta": "Browse courses"
+      }
+    },
+    "assignment": {
+      "intro": {
+        "title": "One assignment",
+        "body": "The assignment closes automatically when the person passes the course. Training managers can change the due date or cancel it if it no longer applies."
+      },
+      "why": {
+        "body": "Assignments with due dates and their history show that training needs were planned and followed up.",
+        "clauses": ["hs:7.2"]
+      }
+    },
+    "assign": {
+      "fields": {
+        "dueDate": {
+          "help": "When the training must be completed. Reminders are sent before the date and the assignment shows as overdue afterwards.",
+          "example": "30 days from today"
+        }
+      }
+    },
+    "records": {
+      "intro": {
+        "title": "Evidence of competence",
+        "body": "A training record shows that a person completed a course: when, which version, the score and how long it is valid. Records from online courses are created automatically; external and classroom training is recorded by a training manager.",
+        "steps": [
+          "Filter on **Expiring in 30 days** to plan re-training.",
+          "Open a record to see the certificate and the effectiveness evaluation.",
+          "Attach certificates from external providers to the record."
+        ]
+      },
+      "why": {
+        "body": "The standards require the organisation to **retain documented information as evidence of competence**. These records are that evidence.",
+        "clauses": ["hs:7.2", "iso27001:A.6.3", "gdpr:39"]
+      },
+      "empty": {
+        "title": "No training records yet",
+        "body": "Records are created when someone passes a course or when a training manager records external training. Complete your first course to get your first certificate.",
+        "cta": "Go to my training"
+      },
+      "fields": {
+        "expires": {
+          "help": "When this training stops being valid. Leave empty to use the course's validity period, or if it never expires."
+        }
+      }
+    },
+    "record": {
+      "intro": {
+        "title": "A completion record",
+        "body": "This record is the evidence that the training took place. The certificate can be printed, and the learner's feedback and the effectiveness evaluation show whether the training worked."
+      },
+      "why": {
+        "body": "Where applicable, the organisation must take actions to acquire competence and **evaluate the effectiveness** of the actions taken.",
+        "clauses": ["hs:7.2"]
+      },
+      "fields": {
+        "effectiveness": {
+          "help": "Did the training achieve its purpose? Base it on observed behaviour, results or follow-up checks, not only on the quiz score.",
+          "example": "Effective: incident reports since the course are complete and on time."
+        }
+      }
+    },
+    "matrix": {
+      "intro": {
+        "title": "The training matrix",
+        "body": "The matrix shows each person against each course with the status of what is required: compliant, expiring soon, expired, assigned, overdue or not required. The percentage at the top is the share of required training in place.",
+        "steps": [
+          "Filter by category or department to focus on one area.",
+          "Click a cell to open the assignment or the record behind it.",
+          "Use the matrix in management review as the competence overview."
+        ]
+      },
+      "why": {
+        "body": "A competence or training matrix is the most common way to show auditors that needs are known and met across the organisation.",
+        "clauses": ["hs:7.2", "hs:9.3"]
+      }
+    }
+  },
+  "lessons": {
+    "competence-and-awareness": {
+      "title": "Competence, awareness and training records",
+      "minutes": 5,
+      "sections": [
+        {
+          "heading": "Competence and awareness",
+          "body": "**Competence** is the ability to apply knowledge and skills to get the intended result. **Awareness** means people know the policy, how they contribute and what happens if they do not follow the system. Both are required by every ISO management system standard (clauses 7.2 and 7.3)."
+        },
+        {
+          "heading": "From need to evidence",
+          "body": "1. Decide what competence each role needs.\n2. Close gaps with training, mentoring or hiring.\n3. **Keep records** that show the competence is in place.\n4. Check that the action actually worked."
+        },
+        {
+          "heading": "How CoreFlow helps",
+          "body": "Assignment rules give the right courses to the right people, the planner schedules re-training before certificates expire, and every completion becomes a record with a certificate number and the course version."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "What do the standards require you to keep as evidence of competence?",
+          "options": [
+            "Nothing, a verbal confirmation is enough",
+            "Documented information, such as training records",
+            "Only the course slides"
+          ],
+          "answer": 1,
+          "explanation": "Clause 7.2 requires documented information as evidence of competence."
+        },
+        {
+          "question": "What should you do after training has been given?",
+          "options": ["Evaluate whether it was effective", "Delete the course", "Nothing more"],
+          "answer": 0,
+          "explanation": "The organisation must evaluate the effectiveness of the actions taken."
+        }
+      ],
+      "pass_mark": 1
+    },
+    "evaluating-effectiveness": {
+      "title": "Evaluating training effectiveness",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Why evaluate",
+          "body": "A passed quiz shows that someone understood the content on the day. Effectiveness asks a different question: **did the training change how the work is done?**"
+        },
+        {
+          "heading": "How to evaluate",
+          "body": "- Look at results: fewer errors, complete reports, passed inspections.\n- Observe the work or ask the manager after a few weeks.\n- Use learner feedback to improve the course itself."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Which is the best evidence that training was effective?",
+          "options": [
+            "Everyone attended",
+            "Work results improved as intended",
+            "The course was short"
+          ],
+          "answer": 1
+        }
+      ],
+      "pass_mark": 1
+    }
+  },
+  "tours": {
+    "home": [
+      {
+        "target": "training-courses",
+        "title": "The course catalogue",
+        "body": "Browse every published course, including ones you are not required to take."
+      },
+      {
+        "target": "training-stats",
+        "title": "Programme statistics",
+        "body": "If you oversee training you see open and overdue assignments, completion rate and certificates about to expire."
+      }
+    ],
+    "courses": [
+      {
+        "target": "training-new-course",
+        "title": "Create a course",
+        "body": "Start from scratch or let the assistant draft lessons and quizzes from a procedure or a topic. Courses start as drafts."
+      }
+    ],
+    "matrix": [
+      {
+        "target": "training-matrix-filters",
+        "title": "Focus the matrix",
+        "body": "Filter by category or department to see one area at a time."
+      },
+      {
+        "target": "training-matrix-summary",
+        "title": "Overall compliance",
+        "body": "The share of required training that is in place. Use it in management review."
+      }
+    ]
+  }
+}

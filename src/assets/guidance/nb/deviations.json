@@ -1,0 +1,401 @@
+{
+  "pages": {
+    "list": {
+      "intro": {
+        "title": "Avvik, hendelser og forbedringer",
+        "body": "Ett register for alt som ikke gikk som planlagt, og for ideer til å gjøre det bedre: avvik, kundeklager, sikkerhets-, miljø- og HMS-hendelser, KI-hendelser og forbedringsforslag.",
+        "steps": [
+          "Registrer det som skjedde så snart du oppdager det, selv om det virker lite.",
+          "Finn rotårsaken med en 5 hvorfor- eller fiskebeinanalyse.",
+          "Planlegg korrigerende tiltak og sett en dato for å sjekke at de virket."
+        ]
+      },
+      "why": {
+        "body": "Alle ledelsessystemstandarder krever at dere **reagerer på avvik, finner årsakene og retter dem** (punkt 10.2), og at dere lærer av hendelser. Revisorer ser etter et register som brukes, årsaker som er analysert og tiltak der effekten er sjekket.",
+        "clauses": [
+          "hs:10.2",
+          "hs:10.1",
+          "iso27001:A.5.24",
+          "iso27001:A.5.27",
+          "iso45001:10.2",
+          "iso14001:8.2"
+        ]
+      },
+      "empty": {
+        "title": "Ingen avvik ennå",
+        "body": "Få avvik er ikke alltid gode nyheter: det kan bety at problemer ikke meldes. Gjør det enkelt å registrere små feil og nestenulykker, og bruk den anonyme rapportlenken for dem som ikke vil oppgi navn.",
+        "cta": "Registrer et avvik"
+      },
+      "fields": {
+        "status": {
+          "help": "Hvor avviket er i arbeidsflyten. Typer med egen arbeidsflyt har egne tilstander.",
+          "example": "Mottatt, Under utredning, Tiltak, Effektkontroll, Lukket."
+        }
+      }
+    },
+    "new": {
+      "intro": {
+        "title": "Registrer et avvik",
+        "body": "Beskriv hva som skjedde med enkle ord. Du kan skrive fritt og la KI fylle ut skjemaet, og så sjekke hvert felt før du lagrer.",
+        "steps": [
+          "Velg typen som passer best: et avvik, en klage, en hendelse eller en idé.",
+          "Si hva som skjedde, hvor og når. Hold deg til fakta, ikke skyld.",
+          "Sett alvorlighetsgrad ut fra konsekvensene, eller hva som kunne ha skjedd."
+        ]
+      },
+      "why": {
+        "body": "En god første registrering sparer tid senere: de som utreder trenger fakta, ikke gjetninger. Hendelser som kan være brudd på personopplysningssikkerheten har en meldefrist på **72 timer**, så registrer dem med en gang.",
+        "clauses": ["hs:10.2", "iso27001:A.5.25", "iso27001:A.6.8", "gdpr:33"]
+      },
+      "empty": {
+        "title": "Sett opp en avvikstype først",
+        "body": "Avvikstyper bestemmer hvilke felt og hvilken arbeidsflyt et avvik får. Raskeste start er å installere en av de ferdige malene.",
+        "cta": "Åpne malene"
+      },
+      "fields": {
+        "severity": {
+          "help": "Hvor alvorlige konsekvensene er, eller kunne ha vært.",
+          "example": "En feil levering til en kunde er vanligvis mer alvorlig enn en skrivefeil i et internt skjema."
+        },
+        "root_cause": {
+          "help": "Den underliggende grunnen til at problemet oppstod. Du kan la feltet stå tomt nå og finne den senere med årsaksverktøyene.",
+          "example": "Ikke «operatøren glemte», men «sjekklisten har ikke et trinn for dette»."
+        }
+      }
+    },
+    "detail": {
+      "intro": {
+        "title": "Behandle avviket",
+        "body": "Flytt avviket gjennom arbeidsflyten: utred, finn rotårsaken, sett inn tiltak og sjekk effekten. Alle endringer lagres i historikken.",
+        "steps": [
+          "Bruk et 5 hvorfor- eller fiskebeinark for å komme fra symptomet til rotårsaken.",
+          "Legg til strakstiltak, korrigerende og forebyggende tiltak med ansvarlige og frister.",
+          "Sett en dato for effektivitetsvurdering på korrigerende tiltak, så kontrollen ikke glemmes."
+        ]
+      },
+      "why": {
+        "body": "Målet er ikke å lukke avviket, men å **fjerne årsaken**. Punkt 10.2 krever at dere vurderer effekten av korrigerende tiltak, og at dere dokumenterer avvikets art, tiltakene og resultatene.",
+        "clauses": [
+          "hs:10.2",
+          "iso27001:A.5.26",
+          "iso27001:A.5.27",
+          "iso27001:A.5.28",
+          "iso45001:10.2"
+        ]
+      },
+      "fields": {
+        "root_cause_tools": {
+          "help": "5 hvorfor: spør «hvorfor?» til du kommer til noe du kan endre. Fiskebein: list opp mulige årsaker under mennesker, metode, maskiner, materiale, måling, omgivelser og ledelse.",
+          "example": "Ordren var feil → plukklisten var gammel → listen skrives ut før endringer lagres → systemet varsler ikke."
+        },
+        "effectiveness_review": {
+          "help": "Datoen dere skal sjekke at tiltaket virkelig hindret at problemet kom tilbake. Det opprettes en oppgave til avvikets eier.",
+          "example": "Tre måneder etter at en ny sjekkliste er tatt i bruk, sjekk om den samme feilen har skjedd igjen."
+        }
+      }
+    },
+    "types": {
+      "intro": {
+        "title": "Avvikstyper",
+        "body": "Hver type bestemmer hva som spørres om når noen registrerer et avvik, og hvordan det behandles. En type koblet til en posttype får egne felt, tilstander, godkjenninger og frister.",
+        "steps": [
+          "Start fra en mal, og tilpass feltene og arbeidsflyten til måten dere jobber på.",
+          "Hold antall obligatoriske felt lavt, så det forblir enkelt å melde."
+        ]
+      },
+      "why": {
+        "body": "Ulike hendelser krever ulik behandling: en informasjonssikkerhetshendelse trenger rask begrensning og bevis, en kundeklage trenger et svar, et forbedringsforslag trenger en beslutning.",
+        "clauses": ["hs:10.2", "iso27001:A.5.24", "iso45001:10.2"]
+      },
+      "fields": {
+        "record_type": {
+          "help": "Koble typen til en posttype som er laget under innstillinger for å bruke dens felt og arbeidsflyt. Avvik som allerede er registrert, beholder versjonen de ble opprettet med.",
+          "example": "«Kundeklage» med tilstandene Mottatt, Under utredning, Besvart og Lukket."
+        }
+      }
+    },
+    "templates": {
+      "intro": {
+        "title": "Start fra en mal",
+        "body": "Hver mal setter opp en avvikstype med felt, arbeidsflyt, frister, automatiske oppgaver og varsler basert på vanlig praksis for den typen hendelse.",
+        "steps": [
+          "Installer malene dere trenger. De skrives på ditt språk.",
+          "Åpne posttypedesigneren for å gi felt nye navn, legge til tilstander eller endre hvem som godkjenner."
+        ]
+      },
+      "why": {
+        "body": "Malene dekker hendelses- og forbedringsprosessene standardene forventer: avvik (10.2), informasjonssikkerhetshendelser (A.5.24 til A.5.28), miljø- og HMS-hendelser, alvorlige KI-hendelser og forbedringsforslag (10.3).",
+        "clauses": [
+          "hs:10.2",
+          "iso27001:A.5.24",
+          "iso14001:8.2",
+          "iso45001:10.2",
+          "eu_ai_act:73",
+          "nis2:21"
+        ]
+      }
+    },
+    "intakeSettings": {
+      "intro": {
+        "title": "En anonym måte å si fra på",
+        "body": "Noen melder bare fra om et problem hvis de kan gjøre det uten å oppgi navn. Rapportlenken lar hvem som helst sende en rapport uten konto.",
+        "steps": [
+          "Velg anonym rapportering for hverdagslige forhold, eller varsling for alvorlige forhold.",
+          "Skriv korte instruksjoner: hva som skal meldes her, og hva man gjør i en nødsituasjon.",
+          "Del lenken på plakater, intranettet eller med leverandører."
+        ]
+      },
+      "why": {
+        "body": "Å oppmuntre folk til å melde hendelser og svakheter, og å beskytte dem som gjør det, er en del av en fungerende hendelsesprosess. En varslingskanal kan også være et lovkrav for virksomheten.",
+        "clauses": ["iso27001:A.6.8", "iso45001:10.2", "hs:10.2"]
+      },
+      "fields": {
+        "mode": {
+          "help": "Varslingsrapporter blir avvik med begrenset tilgang som bare saksbehandleren ser. Bruk det for kritikkverdige forhold og andre alvorlige saker.",
+          "example": "Anonym: et ødelagt rekkverk. Varsling: mistanke om bedrageri fra en leder."
+        }
+      }
+    },
+    "intakeInbox": {
+      "intro": {
+        "title": "Mottatte rapporter",
+        "body": "Rapporter fra den anonyme lenken havner her. Se på hver av dem, og registrer dem som avvik, eller lukk dem med en kort melding den som rapporterte kan lese.",
+        "steps": [
+          "Start behandlingen av en ny rapport så andre ser at den blir tatt hånd om.",
+          "Registrer den som avvik når den trenger oppfølging.",
+          "Legg igjen en melding: den som rapporterte, ser den når de sjekker kvitteringskoden."
+        ]
+      },
+      "why": {
+        "body": "Folk fortsetter bare å melde hvis de ser at meldinger blir tatt på alvor. Et kort svar via kvitteringskoden lukker sløyfen uten å avsløre hvem som meldte.",
+        "clauses": ["iso27001:A.6.8", "hs:10.2"]
+      },
+      "empty": {
+        "title": "Ingen rapporter mottatt",
+        "body": "Rapporter sendt via den anonyme lenken vises her. Del lenken så folk vet hvor de kan melde."
+      }
+    },
+    "intakeReport": {
+      "intro": {
+        "title": "Behandle en rapport",
+        "body": "Les rapporten, vurder om den trenger oppfølging, og registrer den som avvik eller lukk den. KI kan lage utkast til avviksfeltene fra teksten, som du sjekker.",
+        "steps": [
+          "Ikke prøv å finne ut hvem som sendte en anonym rapport.",
+          "Registrer den som et avvik av typen som passer, eller lukk den med en melding."
+        ]
+      },
+      "why": {
+        "body": "Å beskytte identiteten til dem som melder er avgjørende for tilliten, og ved varsling ofte en lovpålagt plikt.",
+        "clauses": ["iso27001:A.6.8"]
+      }
+    }
+  },
+  "lessons": {
+    "deviations-basics": {
+      "title": "Avvik på fem minutter",
+      "minutes": 5,
+      "sections": [
+        {
+          "heading": "Hva er et avvik?",
+          "body": "Et avvik er alt som ikke gikk som planlagt: et produkt som ikke oppfylte et krav, en klage, en hendelse, en nestenulykke eller en rutine som ikke ble fulgt. Et **forbedringsforslag** registreres på samme måte, selv om ingenting gikk galt."
+        },
+        {
+          "heading": "Retting og korrigerende tiltak",
+          "body": "En **retting** løser problemet foran deg (bytt den feile leveransen). Et **korrigerende tiltak** fjerner årsaken så det ikke skjer igjen (forbedre plukkrutinen). Standardene krever begge deler."
+        },
+        {
+          "heading": "Lukk sløyfen",
+          "body": "Et avvik er først virkelig lukket når dere har sjekket at det korrigerende tiltaket **virket**. Sett en dato for effektivitetsvurdering når du legger til et korrigerende tiltak."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "En kunde fikk feil produkt. Hva av dette er et korrigerende tiltak?",
+          "options": [
+            "Sende riktig produkt i dag",
+            "Legge inn en skannekontroll i plukkrutinen",
+            "Be kunden om unnskyldning"
+          ],
+          "answer": 1,
+          "explanation": "Å sende riktig produkt er en retting. Skannekontrollen fjerner årsaken, så den er det korrigerende tiltaket."
+        },
+        {
+          "question": "Når er et avvik virkelig ferdig?",
+          "options": [
+            "Når tiltakene er planlagt",
+            "Når tiltakene er gjennomført",
+            "Når dere har sjekket at tiltakene virket"
+          ],
+          "answer": 2,
+          "explanation": "Punkt 10.2 krever at dere vurderer effekten av de korrigerende tiltakene."
+        }
+      ],
+      "pass_mark": 0.5
+    },
+    "root-cause-analysis": {
+      "title": "Finn rotårsaken",
+      "minutes": 6,
+      "sections": [
+        {
+          "heading": "Hvorfor rotårsaken er viktig",
+          "body": "Hvis du bare retter symptomet, kommer problemet tilbake. **Rotårsaken** er den dypeste årsaken du fortsatt kan gjøre noe med."
+        },
+        {
+          "heading": "5 hvorfor",
+          "body": "Start med problemet og spør «hvorfor skjedde dette?». Spør igjen om svaret, omtrent fem ganger, til du kommer til en årsak i en prosess, et verktøy eller et krav. Ikke stopp ved «noen gjorde en feil»: spør hvorfor feilen var mulig."
+        },
+        {
+          "heading": "Fiskebein",
+          "body": "Når det kan være flere årsaker, tegn et fiskebein: list opp mulige årsaker under **mennesker, metode, maskiner, materiale, måling, omgivelser og ledelse**. Sjekk deretter hvilke som faktisk bidro."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Hvilket svar er den mest nyttige rotårsaken?",
+          "options": [
+            "Operatøren glemte å sjekke etiketten",
+            "Arbeidsinstruksen har ikke et trinn for etikettkontroll",
+            "Det var en travel dag"
+          ],
+          "answer": 1,
+          "explanation": "Et manglende trinn i instruksen er noe dere kan endre, og det forklarer hvorfor det var mulig å glemme."
+        },
+        {
+          "question": "Når er fiskebein mer nyttig enn 5 hvorfor?",
+          "options": [
+            "Når flere ulike årsaker kan ha bidratt",
+            "Når årsaken allerede er kjent",
+            "Aldri, de er like"
+          ],
+          "answer": 0
+        }
+      ],
+      "pass_mark": 0.5
+    },
+    "good-deviation-report": {
+      "title": "Skriv en god avviksmelding",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Fakta først",
+          "body": "Skriv hva som skjedde, hvor, når og hva konsekvensene var. Utelat gjetninger og skyld; det hører hjemme i utredningen."
+        },
+        {
+          "heading": "Personopplysninger og hastesaker",
+          "body": "Hvis personopplysninger kan ha kommet på avveie, registrer avviket med en gang og si fra til den som har ansvar for personvern: et brudd kan måtte meldes til Datatilsynet innen **72 timer**."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Hvilken beskrivelse er best?",
+          "options": [
+            "Kim rotet til leveransen igjen",
+            "12. mai ble ordre 4411 levert med 40 enheter i stedet for 400",
+            "Leveringsproblemer"
+          ],
+          "answer": 1
+        }
+      ],
+      "pass_mark": 1
+    },
+    "designing-your-process": {
+      "title": "Lag en avviksprosess",
+      "minutes": 5,
+      "sections": [
+        {
+          "heading": "Tilstander og trinn",
+          "body": "En arbeidsflyt har **tilstander** (Mottatt, Under utredning, Lukket) og **trinn** mellom dem. Et trinn kan kreve felt (for eksempel en rotårsak før lukking), en kommentar eller en godkjenning."
+        },
+        {
+          "heading": "Hold det enkelt",
+          "body": "Hvert obligatoriske felt og hver godkjenning gjør det tregere å melde. Start med en mal, og legg bare til det dere faktisk bruker når dere gjennomgår prosessen."
+        },
+        {
+          "heading": "Versjoner",
+          "body": "Når du publiserer en ny versjon, beholder avvik som allerede er registrert versjonen de ble opprettet med. Nye avvik bruker den nye."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Hva skjer med eksisterende avvik når du publiserer en ny versjon av typen?",
+          "options": [
+            "De flyttes til den nye versjonen",
+            "De beholder versjonen de ble opprettet med",
+            "De lukkes"
+          ],
+          "answer": 1
+        }
+      ],
+      "pass_mark": 1
+    },
+    "speaking-up": {
+      "title": "Anonym rapportering og varsling",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Hvorfor tilby en anonym kanal",
+          "body": "Folk melder mer når de føler seg trygge. En anonym lenke fanger opp problemer som ellers forblir skjult, som snarveier i sikkerhetsarbeidet eller svakheter i informasjonssikkerheten."
+        },
+        {
+          "heading": "Beskytt den som melder",
+          "body": "Prøv aldri å finne ut hvem som sendte en rapport. CoreFlow lagrer ingen IP-adresse eller nettleserdetaljer sammen med rapporten, og en varslingsrapport er bare synlig for saksbehandleren."
+        },
+        {
+          "heading": "Lukk sløyfen",
+          "body": "Den som melder får en kvitteringskode. Legg igjen en kort melding når du behandler eller lukker rapporten, så de vet at den ble tatt på alvor."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Hvordan følger en anonym melder opp rapporten sin?",
+          "options": ["Via e-post", "Med kvitteringskoden de fikk da de meldte", "Det kan de ikke"],
+          "answer": 1
+        }
+      ],
+      "pass_mark": 1
+    }
+  },
+  "tours": {
+    "list": [
+      {
+        "target": "deviations-new",
+        "title": "Registrer et avvik",
+        "body": "Start her når noe ikke gikk som planlagt, eller når du har en idé til en forbedring."
+      },
+      {
+        "target": "deviations-search",
+        "title": "Finn avvik",
+        "body": "Søk på kode eller ord, og filtrer på fase, status, type, alvorlighetsgrad eller eier."
+      }
+    ],
+    "new": [
+      {
+        "target": "deviations-describe",
+        "title": "Beskriv det med egne ord",
+        "body": "Skriv hva som skjedde og la KI velge type og fylle ut skjemaet. Du sjekker alt før du lagrer."
+      }
+    ],
+    "detail": [
+      {
+        "target": "deviations-meta",
+        "title": "Nøkkelfakta",
+        "body": "Når det ble meldt, fristen, når det ble lukket og hvor det kom fra."
+      },
+      {
+        "target": "deviations-workflow",
+        "title": "Arbeidsflyt",
+        "body": "Gjeldende tilstand, fristen og trinnene du kan ta. Noen trinn krever felt, en kommentar eller en godkjenning."
+      },
+      {
+        "target": "deviations-root-cause",
+        "title": "Årsaksverktøy",
+        "body": "Bruk et 5 hvorfor- eller fiskebeinark, og bruk konklusjonen som rotårsak."
+      },
+      {
+        "target": "deviations-capa",
+        "title": "Tiltak",
+        "body": "Legg til strakstiltak, korrigerende og forebyggende tiltak, og sett når effekten skal vurderes."
+      }
+    ]
+  }
+}

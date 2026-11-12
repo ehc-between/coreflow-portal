@@ -1,0 +1,509 @@
+{
+  "pages": {
+    "overview": {
+      "intro": {
+        "title": "Environmental management at a glance",
+        "body": "ISO 14001 asks you to know how your work affects the environment, to be ready for emergencies, and to measure your performance. This page brings the three together: the **aspects and impacts** register, the **emergency plans** and their drills, and the **monitoring data** behind your emissions.",
+        "steps": [
+          "Register the environmental aspects of your main activities and score their significance.",
+          "Write an emergency plan for each serious scenario and schedule drills.",
+          "Set up metrics for energy, water, waste and emissions, and record values regularly."
+        ]
+      },
+      "why": {
+        "body": "An environmental management system is built on knowing your significant aspects, controlling them, being prepared for emergencies and checking with data that things improve. Auditors start here: they look for a register that is complete and current, tested emergency plans and monitoring that shows the trend.",
+        "clauses": ["iso14001:6.1.2", "iso14001:8.1", "iso14001:8.2", "iso14001:9.1.1"]
+      }
+    },
+    "aspects": {
+      "intro": {
+        "title": "The aspects and impacts register",
+        "body": "An **environmental aspect** is the part of an activity, product or service that interacts with the environment, such as fuel use or wastewater. The **impact** is the change it causes, such as climate emissions or water pollution. Each aspect is scored so you can see which ones are **significant** and need control.",
+        "steps": [
+          "Pick an activity and list its aspects under normal, abnormal and emergency conditions.",
+          "Think in a lifecycle perspective: from raw materials to disposal.",
+          "Score each aspect and describe the operational controls for the significant ones."
+        ]
+      },
+      "why": {
+        "body": "Clause 6.1.2 requires you to determine the aspects you can control and those you can influence, with their impacts and a lifecycle perspective, and to decide which are significant using criteria you have set. Significant aspects drive your objectives and operational controls, so the register must be kept up to date when activities change.",
+        "clauses": ["iso14001:6.1.2", "iso14001:6.1.4", "iso14001:8.1"]
+      },
+      "empty": {
+        "title": "No environmental aspects yet",
+        "body": "Start with the activities that use the most energy, water or materials, or produce the most waste. Type the activity and let the assistant suggest typical aspects you can check and adjust.",
+        "cta": "Register the first aspect"
+      }
+    },
+    "aspectForm": {
+      "intro": {
+        "title": "Registering an aspect",
+        "body": "Describe the **activity**, the **aspect** (what interacts with the environment) and the **impact** (what changes). Then score it with your organisation's criteria. The score and significance are worked out for you as you go.",
+        "steps": [
+          "Describe the activity and the aspect in plain words.",
+          "Choose the condition and the lifecycle stages where it occurs.",
+          "Score every criterion, then describe how the aspect is controlled."
+        ]
+      },
+      "why": {
+        "body": "A consistent method lets you compare aspects fairly and explain to an auditor why one is significant and another is not. Recording the operational controls next to the aspect shows that significant aspects are actually managed.",
+        "clauses": ["iso14001:6.1.2", "iso14001:8.1"]
+      },
+      "fields": {
+        "activity": {
+          "help": "The activity, product or service the aspect belongs to. Be specific enough that others recognise it.",
+          "example": "Washing company vehicles at the depot."
+        },
+        "aspect": {
+          "help": "The element of the activity that interacts with the environment: something that goes in or comes out.",
+          "example": "Discharge of wash water containing detergents and oil."
+        },
+        "impact": {
+          "help": "The change to the environment the aspect causes or could cause, good or bad.",
+          "example": "Pollution of the local stream and harm to aquatic life."
+        },
+        "condition": {
+          "help": "Normal is day-to-day operation, abnormal is start-up, shutdown or maintenance, and emergency is an accident or incident such as a spill or fire.",
+          "example": "A tank overflow during refilling is an emergency condition."
+        },
+        "control_level": {
+          "help": "Whether you control the aspect directly, or can only influence it, for example through suppliers, customers or product design.",
+          "example": "Emissions from your own boilers are direct; emissions from customers using your product are indirect."
+        },
+        "lifecycle_stages": {
+          "help": "The stages of the product or service life where the aspect occurs. You do not need a full lifecycle assessment, just consider the stages you can control or influence.",
+          "example": "Packaging waste occurs at the use and disposal stages."
+        },
+        "scores": {
+          "help": "Score each criterion on your organisation's scale. When every criterion has a score, the total is compared with the threshold to decide significance.",
+          "example": "Severity 4, probability 3, extent 2 and concern 4 give a weighted sum of 13."
+        },
+        "legal_requirement": {
+          "help": "Tick this when a law, permit or other requirement you have committed to applies to the aspect. Under the default method this always makes it significant.",
+          "example": "A discharge permit limits oil in wastewater."
+        },
+        "override": {
+          "help": "Use this only when the method gives a result you disagree with for a good reason. Explain why, so the decision can be reviewed.",
+          "example": "Scored low, but the community has raised complaints about it."
+        },
+        "operational_controls": {
+          "help": "How the aspect is kept under control: procedures, equipment, checks, training and who is responsible.",
+          "example": "Oil separator emptied quarterly; washing only on the sealed pad; monthly visual check."
+        },
+        "review_due_at": {
+          "help": "When the aspect should be looked at again. If you leave it empty, it is set to one year from now.",
+          "example": "Review before the new production line starts."
+        }
+      }
+    },
+    "aspectDetail": {
+      "intro": {
+        "title": "Keeping an aspect under control",
+        "body": "This page shows the aspect, its evaluation and why it is significant or not. Use **Tasks** for actions such as installing equipment, **Related** to link compliance obligations, objectives or risks, and **Mark as reviewed** when you have checked that it is still correct.",
+        "steps": [
+          "Check the evaluation and the reasons for significance.",
+          "Make sure significant aspects have operational controls.",
+          "Link the objectives and obligations that relate to the aspect."
+        ]
+      },
+      "why": {
+        "body": "Significant aspects must be taken into account when you set objectives and plan actions, and they must be controlled in operation. Keeping a history of every change and review shows that the register is a living tool, not a one-off exercise.",
+        "clauses": ["iso14001:6.1.2", "iso14001:6.1.4", "iso14001:8.1"]
+      }
+    },
+    "plans": {
+      "intro": {
+        "title": "Be ready before it happens",
+        "body": "An emergency plan describes a **scenario** that could harm people or the environment, such as a chemical spill, fire or flood, and the **response**: who does what, with which equipment, and who to call. Drills test that the plan works.",
+        "steps": [
+          "Write a plan for each emergency scenario found in the aspects register or risk assessment.",
+          "Describe the response steps, resources and emergency contacts.",
+          "Schedule drills and record what you learned from each one."
+        ]
+      },
+      "why": {
+        "body": "ISO 14001 and ISO 45001 both require you to prepare for and respond to emergency situations, to test the planned response periodically and to review it after drills and real events. Records of drills are the evidence auditors ask for.",
+        "clauses": ["iso14001:8.2", "iso45001:8.2"]
+      },
+      "empty": {
+        "title": "No emergency plans yet",
+        "body": "Look at the aspects with an emergency condition and start with the scenario that would do the most harm. The assistant can draft a response procedure for you to adapt.",
+        "cta": "Create the first plan"
+      }
+    },
+    "planForm": {
+      "intro": {
+        "title": "Writing an emergency plan",
+        "body": "Keep it short and practical: someone under stress must be able to follow it. Describe the scenario, the immediate actions and how to limit the impact, the equipment you need and who to contact.",
+        "steps": [
+          "Describe the scenario and its potential impact.",
+          "Write the response as numbered steps, or let the assistant draft them.",
+          "Add emergency contacts and schedule drills."
+        ]
+      },
+      "why": {
+        "body": "Planning the response in advance prevents or reduces harm when something goes wrong. A schedule of drills makes sure the plan is tested and people know their roles.",
+        "clauses": ["iso14001:8.2", "iso45001:8.2"]
+      },
+      "fields": {
+        "scenario": {
+          "help": "What could happen, where, and how it would start. One plan per scenario keeps the response clear.",
+          "example": "Diesel leak from the fuel tank at the depot during refilling."
+        },
+        "response_procedure": {
+          "help": "The steps to take, in order: raise the alarm, stop the source, contain, clean up, report and recover. Name roles rather than people.",
+          "example": "1. Stop the pump. 2. Place absorbent booms around the drain. 3. Call the site manager."
+        },
+        "resources": {
+          "help": "Equipment, materials and people needed for the response, and where they are kept.",
+          "example": "Spill kit in the workshop, absorbent booms by the fuel tank."
+        },
+        "contacts": {
+          "help": "Who to call: internal roles, emergency services, authorities and specialist contractors.",
+          "example": "Site manager, fire service, the municipality's environmental officer."
+        },
+        "drill_rrule": {
+          "help": "How often the plan should be tested. Each occurrence becomes a task for the owner, and recording a drill completes it.",
+          "example": "Once a year, plus a tabletop exercise after every revision."
+        }
+      }
+    },
+    "planDetail": {
+      "intro": {
+        "title": "An emergency plan and its drills",
+        "body": "This page holds the plan, its contacts and the record of drills held. Use **Record a drill** after every drill, tabletop exercise or real event, and revise the plan when the drill shows it does not work as intended.",
+        "steps": [
+          "Hold drills on schedule; the next one is shown on the right.",
+          "Record the outcome, findings and lessons learned.",
+          "Revise the plan when a drill shows a weakness."
+        ]
+      },
+      "why": {
+        "body": "Testing the response and learning from it is what turns a plan on paper into real preparedness. Reviewing the plan after drills and events, and keeping the records, is a direct requirement in both standards.",
+        "clauses": ["iso14001:8.2", "iso45001:8.2"]
+      },
+      "fields": {
+        "outcome": {
+          "help": "How well the response worked compared with the plan. Partly effective or not effective usually means the plan or the training needs to change.",
+          "example": "The alarm worked, but the spill kit was not where the plan said: partly effective."
+        }
+      }
+    },
+    "metrics": {
+      "intro": {
+        "title": "Measure what matters",
+        "body": "A **metric** is something you measure regularly, such as electricity use in kWh or waste in tonnes. Recording values over time shows the trend, and an **emission factor** converts the values into greenhouse gas emissions.",
+        "steps": [
+          "Create a metric for each important energy, water, waste or emissions source.",
+          "Set the unit, the greenhouse gas scope and the emission factor.",
+          "Record values regularly, for example monthly from invoices or meter readings."
+        ]
+      },
+      "why": {
+        "body": "Clause 9.1.1 requires you to decide what to monitor and measure, how and when, and to evaluate your environmental performance. Reliable data shows whether your objectives are being met and where to act.",
+        "clauses": ["iso14001:9.1.1"]
+      },
+      "empty": {
+        "title": "No metrics yet",
+        "body": "Start with the numbers you already have: electricity and heating from your energy bills, fuel for vehicles, water use and waste from your waste contractor.",
+        "cta": "Create the first metric"
+      }
+    },
+    "metricForm": {
+      "intro": {
+        "title": "Setting up a metric",
+        "body": "Choose what you measure, the unit and, for energy and fuel, the greenhouse gas scope and emission factor. A collection schedule reminds the owner to record values.",
+        "steps": [
+          "Name the metric so everyone knows exactly what is measured.",
+          "Choose the unit you will record in.",
+          "Add the emission factor if the metric causes greenhouse gas emissions."
+        ]
+      },
+      "why": {
+        "body": "Defining the method once, with a unit, a factor and a schedule, keeps the data consistent over time, so trends can be trusted and compared year on year.",
+        "clauses": ["iso14001:9.1.1"]
+      },
+      "fields": {
+        "unit": {
+          "help": "The unit values are recorded in. Keep it the same for the life of the metric.",
+          "example": "kWh for electricity, litres for diesel, tonnes for waste."
+        },
+        "ghg_scope": {
+          "help": "Scope 1 is direct emissions from your own sources, scope 2 is purchased energy, and scope 3 is other indirect emissions in your value chain.",
+          "example": "Diesel for company vans is scope 1; purchased electricity is scope 2."
+        },
+        "emission_factor": {
+          "help": "How many kilograms of CO₂ equivalents one unit causes. Each measurement keeps the factor in force when it was recorded, so changing it later does not rewrite history.",
+          "example": "Diesel is about 2.7 kg CO₂e per litre; check your national source for the current value."
+        },
+        "collection_rrule": {
+          "help": "How often a value should be recorded. Each occurrence becomes a reminder task for the owner.",
+          "example": "Monthly, on the 5th, after the energy bill arrives."
+        }
+      }
+    },
+    "metricDetail": {
+      "intro": {
+        "title": "A metric over time",
+        "body": "The chart shows the trend by month, quarter or year, and the table lists every recorded value. Record a new value for each period; you can correct values you recorded yourself.",
+        "steps": [
+          "Record a value for each period, from invoices or meter readings.",
+          "Look at the trend and ask the assistant what could explain it.",
+          "Link the metric to the environmental objective it supports."
+        ]
+      },
+      "why": {
+        "body": "Monitoring results must be analysed and evaluated, not just collected. Seeing the trend next to the raw values helps you judge whether actions work and whether objectives are on track.",
+        "clauses": ["iso14001:9.1.1"]
+      },
+      "fields": {
+        "period": {
+          "help": "The period the value covers, from one day up to one year. Leave the end empty for a single day.",
+          "example": "1 to 31 October for a monthly electricity bill."
+        }
+      }
+    },
+    "emissions": {
+      "intro": {
+        "title": "Your carbon footprint",
+        "body": "Emissions are worked out from your measurements and the emission factor of each metric, grouped by **scope 1, 2 and 3**. Use the year picker to compare years.",
+        "steps": [
+          "Check that every energy and fuel metric has a scope and an emission factor.",
+          "Look at which scope and which metric contribute most.",
+          "Set objectives to reduce the largest sources."
+        ]
+      },
+      "why": {
+        "body": "Climate change is a relevant environmental condition for most organisations. Knowing your emissions by scope is the basis for reduction objectives and for reporting to customers, owners and authorities.",
+        "clauses": ["iso14001:9.1.1"]
+      },
+      "empty": {
+        "title": "No emissions recorded for this year",
+        "body": "Emissions appear when metrics with an emission factor have measurements in the year. Add a factor to your energy and fuel metrics and record their values."
+      }
+    },
+    "scoring": {
+      "intro": {
+        "title": "Your significance criteria",
+        "body": "The scoring method decides when an aspect is **significant**. Choose the criteria, the scale, how scores are combined and the threshold. When you save, every aspect is scored again.",
+        "steps": [
+          "Choose criteria that matter for your organisation, such as severity, probability and interested party concern.",
+          "Choose a sum (with weights) or a product, and a scale.",
+          "Set the threshold, then check which aspects become significant."
+        ]
+      },
+      "why": {
+        "body": "The standard leaves the criteria to you, but they must be established and applied consistently. Documenting the method, and keeping a record when it changes, lets anyone understand why an aspect was judged significant.",
+        "clauses": ["iso14001:6.1.2"]
+      },
+      "fields": {
+        "method": {
+          "help": "A weighted sum adds the scores, multiplied by each criterion's weight. A product multiplies the scores, which makes high scores on several criteria stand out more.",
+          "example": "Sum: 4 + 3 + 2 + 4 = 13. Product: 4 × 3 × 2 × 4 = 96."
+        },
+        "threshold": {
+          "help": "An aspect whose score is at or above this value is significant. Look at the highest possible score when you choose it.",
+          "example": "With four criteria scored 1 to 5 and summed, the maximum is 20 and 12 is a common threshold."
+        },
+        "criteria": {
+          "help": "Each criterion is scored separately. Changing a criterion's key starts it again with no scores, so rename the label instead when you only want new wording.",
+          "example": "Severity, probability or frequency, extent and duration, interested party concern."
+        }
+      }
+    }
+  },
+  "lessons": {
+    "aspects-and-impacts": {
+      "title": "Aspects and impacts in plain language",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Cause and effect",
+          "body": "An **aspect** is the cause: the part of your activity that interacts with the environment, such as burning fuel, using water or producing waste. The **impact** is the effect on the environment: climate change, water scarcity, pollution. One aspect can have several impacts."
+        },
+        {
+          "heading": "Normal, abnormal and emergency",
+          "body": "Look at each activity under **normal** operation, under **abnormal** conditions such as start-up, shutdown and maintenance, and in an **emergency** such as a spill or fire. Emergencies often have the largest impacts and lead to emergency plans."
+        },
+        {
+          "heading": "A lifecycle perspective",
+          "body": "Think beyond your own gate: raw materials, design, production, transport, use and disposal. You do not need a full lifecycle assessment, but you should consider the stages you can **control** and those you can **influence**, for example through suppliers or product design."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Which of these is an environmental aspect rather than an impact?",
+          "options": ["Air pollution", "Exhaust from the delivery vans", "Climate change"],
+          "answer": 1,
+          "explanation": "The exhaust is the part of the activity that interacts with the environment. Air pollution and climate change are the impacts it causes."
+        },
+        {
+          "question": "A chemical tank could overflow while it is being refilled. Which condition is this?",
+          "options": ["Normal", "Abnormal", "Emergency"],
+          "answer": 2,
+          "explanation": "An overflow is an accident, so it is an emergency condition and should be covered by an emergency plan."
+        }
+      ],
+      "pass_mark": 0.5
+    },
+    "significance": {
+      "title": "Deciding what is significant",
+      "minutes": 3,
+      "sections": [
+        {
+          "heading": "Why significance matters",
+          "body": "You cannot control everything equally. **Significant** aspects are the ones you must take into account when setting objectives, planning actions and designing operational controls."
+        },
+        {
+          "heading": "Scoring with criteria",
+          "body": "Each aspect is scored on the organisation's criteria, such as severity, probability, extent and interested party concern. The scores are combined, as a weighted sum or a product, and compared with a **threshold**. A legal requirement can make an aspect significant on its own."
+        },
+        {
+          "heading": "When you disagree with the result",
+          "body": "Sometimes the method gives a result that does not fit, for example when neighbours have complained about noise that scores low. You can set significance by hand, but you must give a reason, and the original result stays visible."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "The method says an aspect is not significant, but the authorities have asked you to reduce it. What should you do?",
+          "options": [
+            "Leave it as not significant",
+            "Mark it as significant by hand and explain why",
+            "Delete the aspect"
+          ],
+          "answer": 1,
+          "explanation": "A manual override with a reason lets you correct the result while keeping a clear record of why."
+        }
+      ],
+      "pass_mark": 1
+    },
+    "emergency-preparedness": {
+      "title": "Emergency preparedness and drills",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Plan the response",
+          "body": "For each potential emergency, describe what to do first, how to limit the harm to people and the environment, which equipment is needed and who to contact. Keep it short enough to use under stress."
+        },
+        {
+          "heading": "Test it",
+          "body": "A plan that has never been tested is a guess. Hold **drills** or **tabletop exercises** on a schedule, and treat real events as tests too. Each drill is recorded with its outcome, findings and lessons learned."
+        },
+        {
+          "heading": "Learn and revise",
+          "body": "When a drill shows that something does not work, such as a missing spill kit or an unclear role, revise the plan and train the people involved. Reviewing the plan after drills and events is required by both ISO 14001 and ISO 45001."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "A drill showed that nobody knew where the spill kit was. What is the best next step?",
+          "options": [
+            "Record the drill as effective",
+            "Record it as partly effective and revise the plan and training",
+            "Cancel future drills"
+          ],
+          "answer": 1,
+          "explanation": "The drill revealed a weakness. Recording it honestly and revising the plan is exactly what drills are for."
+        }
+      ],
+      "pass_mark": 1
+    },
+    "monitoring-and-emissions": {
+      "title": "Monitoring data and emissions",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Choose what to measure",
+          "body": "Measure what relates to your significant aspects and objectives: energy, fuel, water, waste and materials. Decide the unit, the source of the data and how often values are recorded."
+        },
+        {
+          "heading": "From values to CO₂e",
+          "body": "An **emission factor** converts a value into kilograms of CO₂ equivalents, for example litres of diesel into kg CO₂e. Each measurement keeps the factor that applied when it was recorded, so updating the factor does not change past years."
+        },
+        {
+          "heading": "Scopes 1, 2 and 3",
+          "body": "**Scope 1** is direct emissions from your own sources, **scope 2** is purchased electricity and heat, and **scope 3** is everything else in the value chain, such as travel and transport. Start with scopes 1 and 2, where the data is easiest to get."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Which scope do emissions from purchased electricity belong to?",
+          "options": ["Scope 1", "Scope 2", "Scope 3"],
+          "answer": 1,
+          "explanation": "Purchased electricity, heating and cooling are scope 2: indirect emissions from energy you buy."
+        },
+        {
+          "question": "You update the emission factor for electricity. What happens to last year's emissions?",
+          "options": [
+            "They are recalculated with the new factor",
+            "They stay as they were, using the factor in force at the time",
+            "They are deleted"
+          ],
+          "answer": 1,
+          "explanation": "Each measurement keeps the factor it was recorded with, so historical figures stay stable."
+        }
+      ],
+      "pass_mark": 0.5
+    }
+  },
+  "tours": {
+    "aspects": [
+      {
+        "target": "env-aspect-new",
+        "title": "Register an aspect",
+        "body": "Start here. Describe an activity and let the assistant suggest the aspects it usually has."
+      },
+      {
+        "target": "env-aspect-filters",
+        "title": "Focus on what matters",
+        "body": "Filter by status, significance, impact type, condition or lifecycle stage, and save the combination as a view."
+      }
+    ],
+    "plans": [
+      {
+        "target": "env-plan-new",
+        "title": "Plan for emergencies",
+        "body": "Create a plan for each serious scenario. The assistant can draft the response steps."
+      },
+      {
+        "target": "env-plan-filters",
+        "title": "Find the right plans",
+        "body": "Filter by status and owner. Plans without a drill in the last year are marked as overdue."
+      }
+    ],
+    "metrics": [
+      {
+        "target": "env-metric-new",
+        "title": "Create a metric",
+        "body": "Set up what you measure, its unit and its emission factor."
+      },
+      {
+        "target": "env-metric-filters",
+        "title": "Filter by category",
+        "body": "Show only energy, water, waste, emissions or materials metrics."
+      },
+      {
+        "target": "env-emissions-link",
+        "title": "See your emissions",
+        "body": "The emissions page adds up scope 1, 2 and 3 emissions for the year."
+      }
+    ]
+  },
+  "glossary": {
+    "environmental-aspect": {
+      "term": "Environmental aspect",
+      "definition": "An element of an organisation's activities, products or services that interacts or can interact with the environment.",
+      "clauses": ["iso14001:6.1.2"]
+    },
+    "significant-aspect": {
+      "term": "Significant environmental aspect",
+      "definition": "An aspect that has or can have a significant environmental impact, determined with the organisation's own criteria.",
+      "clauses": ["iso14001:6.1.2"]
+    },
+    "emission-factor": {
+      "term": "Emission factor",
+      "definition": "The greenhouse gas emissions caused by one unit of an activity, in kilograms of CO₂ equivalents per unit.",
+      "clauses": ["iso14001:9.1.1"]
+    }
+  }
+}

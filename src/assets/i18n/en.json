@@ -1675,6 +1675,7 @@
       "supplier_evaluation": "Supplier evaluation",
       "project": "Project",
       "project_milestone": "Project milestone",
+      "project_design_review": "Design review",
       "ropa_entry": "Processing record",
       "dpia": "DPIA",
       "data_subject_request": "Data subject request",
@@ -1703,7 +1704,9 @@
       "audit_pack": "Audit pack",
       "document_type": "Document type",
       "external_document": "External document",
-      "distribution_campaign": "Distribution campaign"
+      "distribution_campaign": "Distribution campaign",
+      "document_template": "Document template",
+      "retention_rule": "Retention rule"
     },
     "links": {
       "title": "Organisation",

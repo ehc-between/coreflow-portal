@@ -1,3 +1,5 @@
+import { providePageContext } from '../../../core/ai/page-context';
+import { DeviationStatusLabels } from '../deviation-status';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -290,6 +292,7 @@ export class DeviationStatsPage {
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly router = inject(Router);
   private readonly language = inject(LanguageService);
+  private readonly statusLabels = inject(DeviationStatusLabels);
 
   protected readonly orgId = this.selectedOrg.currentOrgId;
 
@@ -347,7 +350,10 @@ export class DeviationStatsPage {
     const t = (key: string) => this.language.translate(key);
     const deptNames = this.departmentNames();
 
-    const statusBuckets = recordToBuckets(s.by_status, (k) => t(statusLabelKey(k)));
+    // Legacy statuses are translated; workflow states use their workflow label.
+    const statusBuckets = recordToBuckets(s.by_status, (k) =>
+      this.statusLabels.label({ status: k, record_type_version_id: null }),
+    );
     const severityBuckets = recordToBuckets(s.by_severity, (k) => t(severityLabelKey(k)));
     const standardBuckets = recordToBuckets(s.by_standard, (k) => t(standardLabelKey(k)));
     const typeBuckets: RawBucket[] = s.by_type.map((row) => ({
@@ -402,6 +408,7 @@ export class DeviationStatsPage {
   protected readonly trend = computed(() => this.stats()?.opened_over_time ?? []);
 
   constructor() {
+    providePageContext(() => ({ module: 'deviations', view: 'dashboard' }));
     effect(() => {
       const orgId = this.orgId();
       this.resetFilters();

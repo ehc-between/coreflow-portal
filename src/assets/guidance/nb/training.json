@@ -1,0 +1,314 @@
+{
+  "pages": {
+    "home": {
+      "intro": {
+        "title": "Din opplæring i et overblikk",
+        "body": "Denne siden viser kursene du **må** ta, hva som har frist og hvilke sertifikater du har. Kravene kommer fra organisasjonens tildelingsregler (etter rolle, avdeling eller som nyansatt) og fra opplæring som er tildelt deg direkte.",
+        "steps": [
+          "Begynn med det som er merket **Forfalt** eller **Utløpt**.",
+          "Åpne et kurs og gå gjennom leksjonene, og ta så den avsluttende quizen.",
+          "Opplæringsregistreringen og kursbeviset opprettes automatisk når du består."
+        ]
+      },
+      "why": {
+        "body": "Alle ISO-standarder for styringssystemer krever at organisasjonen sørger for at folk er **kompetente** for arbeidet og **bevisste** på policyen, sitt eget bidrag og konsekvensene av å ikke følge systemet. KI-forordningen krever også KI-kompetanse hos ansatte som bruker KI-systemer.",
+        "clauses": ["hs:7.2", "hs:7.3", "eu_ai_act:4"]
+      },
+      "empty": {
+        "title": "Ingen påkrevd opplæring akkurat nå",
+        "body": "Når et kurs tildeles deg, eller en regel gjør det påkrevd for rollen eller avdelingen din, vises det her med frist. Du kan også bla i kurskatalogen og ta publiserte kurs på eget initiativ.",
+        "cta": "Se kurs"
+      }
+    },
+    "courses": {
+      "intro": {
+        "title": "Kurskatalogen",
+        "body": "Kurs lærer folk det de trenger å vite, og dokumenterer at de har lært det. Et kurs kan være et **nettkurs** med leksjoner og quizer, en **lest og forstått**-bekreftelse av et styrt dokument, eller **ekstern opplæring** som en opplæringsansvarlig registrerer.",
+        "steps": [
+          "Filtrer på kategori, type eller status, og lagre filtrene som en visning.",
+          "Åpne et kurs for å se leksjonene, tildelingsreglene og hvem som har fullført det.",
+          "Kursbyggere lager utkast, som blir tilgjengelige for deltakerne når de publiseres."
+        ]
+      },
+      "why": {
+        "body": "En katalog med godkjente kurs gjør bevissthetsopplæring repeterbar og målbar i stedet for en engangspresentasjon. Bevissthet om informasjonssikkerhet og personvern er uttrykkelige krav.",
+        "clauses": ["hs:7.3", "iso27001:A.6.3", "gdpr:39", "nis2:21"]
+      },
+      "empty": {
+        "title": "Ingen kurs ennå",
+        "body": "Begynn med opplæringen alle trenger: et kurs for nyansatte, bevissthet om informasjonssikkerhet eller kvalitetspolicyen. Du kan lage et kursutkast fra en eksisterende prosedyre på noen få minutter.",
+        "cta": "Opprett et kurs"
+      }
+    },
+    "detail": {
+      "intro": {
+        "title": "Arbeide med et kurs",
+        "body": "Et kurs går fra **utkast** til **publisert** til **arkivert**. Hver endring i innholdet, bestått-grensen, typen eller dokumentet i et publisert kurs gir en ny **versjon**, og revisjonshistorikken viser hvem som endret hva og hvorfor.",
+        "steps": [
+          "Legg til tildelingsregler slik at riktige personer får kurset automatisk.",
+          "Bruk **Tildel** for enkeltstående tildelinger, for eksempel etter en hendelse.",
+          "Koble kurset til kravene det hjelper deg å oppfylle, slik at revisorer finner dokumentasjonen."
+        ]
+      },
+      "why": {
+        "body": "Revisorer sjekker at kompetansebehovet er definert, at opplæring er gitt, og at effekten er vurdert. Et kurs med regler, registreringer og vurderinger dekker alle tre.",
+        "clauses": ["hs:7.2", "hs:7.3"]
+      },
+      "fields": {
+        "rules": {
+          "help": "En regel sier hvem som må ta kurset og hvor mange dager de har. Planleggeren oppretter også repetisjon 30 dager før et sertifikat utløper.",
+          "example": "Rolle: Kvalitetsleder, 30 dager. Nyansatte, 14 dager."
+        }
+      }
+    },
+    "form": {
+      "intro": {
+        "title": "Bygge et godt kurs",
+        "body": "Hold leksjonene korte og praktiske: ett tema per leksjon, noen få minutter hver, med eksempler fra eget arbeid. Bruk quizer til å sjekke forståelse av det som virkelig betyr noe, ikke til å lure folk.",
+        "steps": [
+          "Velg type: nettkurs, lest og forstått eller ekstern opplæring.",
+          "Skriv leksjonene i markdown. Hver «## »-overskrift blir et trinn i leksjonsspilleren.",
+          "Legg til to til fire quizspørsmål per leksjon og sett en bestått-grense.",
+          "Sett en gyldighetsperiode hvis opplæringen må gjentas."
+        ]
+      },
+      "why": {
+        "body": "Opplæring bygger bare kompetanse når den er relevant og kontrollert. En fastsatt bestått-grense og gyldighetsperiode gjør resultatet objektivt og repeterbart.",
+        "clauses": ["hs:7.2"]
+      },
+      "fields": {
+        "description": {
+          "help": "Hva kurset dekker og hvem det er for. Deltakerne ser dette før de starter.",
+          "example": "Hvordan melde og håndtere informasjonssikkerhetshendelser. For alle ansatte."
+        },
+        "kind": {
+          "help": "Et nettkurs har leksjoner og quizer. Lest og forstått ber deltakeren bekrefte et styrt dokument. Ekstern opplæring holdes et annet sted og registreres av en opplæringsansvarlig."
+        },
+        "document": {
+          "help": "Det styrte dokumentet kurset handler om. Påkrevd for lest og forstått: bekreftelsen lagres mot dokumentets gjeldende godkjente revisjon."
+        },
+        "passMark": {
+          "help": "Andelen quizsvar som må være riktige for å bestå. 80 % er vanlig; bruk 100 % for sikkerhetskritiske regler.",
+          "example": "80"
+        },
+        "validity": {
+          "help": "Hvor lenge en fullføring er gyldig. La feltet stå tomt hvis opplæringen aldri utløper. Repetisjon tildeles automatisk før utløp.",
+          "example": "12 for årlig sikkerhetsbevissthet"
+        },
+        "lessonBody": {
+          "help": "Markdown-tekst. Start hvert trinn med en «## »-overskrift; korte avsnitt og punktlister fungerer best.",
+          "example": "## Hva er en hendelse?\nEnhver hendelse som kan skade konfidensialitet, integritet eller tilgjengelighet for informasjon."
+        }
+      }
+    },
+    "player": {
+      "intro": {
+        "title": "Slik fungerer kurset",
+        "body": "Gå gjennom leksjonene i rekkefølge. Fremdriften lagres underveis, så du kan stoppe og fortsette senere. Avslutt med siste trinn for å få opplæringsregistreringen.",
+        "steps": [
+          "Les hvert trinn i leksjonen og åpne eventuelle lenkede videoer eller dokumenter.",
+          "Svar på den avsluttende quizen. Du kan prøve igjen hvis du ikke når bestått-grensen.",
+          "Gi tilbakemelding slik at kurset kan forbedres."
+        ]
+      }
+    },
+    "assessment": {
+      "intro": {
+        "title": "Siste trinn",
+        "body": "Svar på alle spørsmålene og send inn. Svarene vurderes av systemet, og en opplæringsregistrering med sertifikatnummer opprettes når du består."
+      }
+    },
+    "assignments": {
+      "intro": {
+        "title": "Hvem skal ta hvilket kurs",
+        "body": "En tildeling ber én person fullføre ett kurs innen en frist. Tildelinger kommer fra regler, fra opplæring av nyansatte, fra repetisjon før utløp eller fra at noen tildeler kurset direkte.",
+        "steps": [
+          "Filtrer på **Forfalte** for å følge opp oversittede frister.",
+          "Bruk **Tildel opplæring** for å tildele et kurs til flere personer samtidig.",
+          "Deltakerne får et varsel og ser tildelingen i Mitt arbeid."
+        ]
+      },
+      "why": {
+        "body": "Å planlegge hvem som trenger hvilken opplæring, og følge det opp, er hvordan du viser at kompetanse er sikret og ikke overlatt til tilfeldighetene.",
+        "clauses": ["hs:7.2"]
+      },
+      "empty": {
+        "title": "Ingen tildelinger",
+        "body": "Tildelinger vises når et kurs tildeles deg eller når en tildelingsregel omfatter deg. Bla i katalogen for å finne opplæring du kan ta nå.",
+        "cta": "Se kurs"
+      }
+    },
+    "assignment": {
+      "intro": {
+        "title": "Én tildeling",
+        "body": "Tildelingen lukkes automatisk når personen består kurset. Opplæringsansvarlige kan endre fristen eller avbryte tildelingen hvis den ikke lenger gjelder."
+      },
+      "why": {
+        "body": "Tildelinger med frister og historikk viser at opplæringsbehovet er planlagt og fulgt opp.",
+        "clauses": ["hs:7.2"]
+      }
+    },
+    "assign": {
+      "fields": {
+        "dueDate": {
+          "help": "Når opplæringen må være fullført. Påminnelser sendes før datoen, og tildelingen vises som forfalt etterpå.",
+          "example": "30 dager fra i dag"
+        }
+      }
+    },
+    "records": {
+      "intro": {
+        "title": "Dokumentasjon av kompetanse",
+        "body": "En opplæringsregistrering viser at en person har fullført et kurs: når, hvilken versjon, resultatet og hvor lenge det er gyldig. Registreringer fra nettkurs opprettes automatisk; ekstern opplæring og klasseromsopplæring registreres av en opplæringsansvarlig.",
+        "steps": [
+          "Filtrer på **Utløper innen 30 dager** for å planlegge repetisjon.",
+          "Åpne en registrering for å se kursbeviset og vurderingen av effekt.",
+          "Legg ved kursbevis fra eksterne leverandører på registreringen."
+        ]
+      },
+      "why": {
+        "body": "Standardene krever at organisasjonen **oppbevarer dokumentert informasjon som bevis på kompetanse**. Disse registreringene er det beviset.",
+        "clauses": ["hs:7.2", "iso27001:A.6.3", "gdpr:39"]
+      },
+      "empty": {
+        "title": "Ingen opplæringsregistreringer ennå",
+        "body": "Registreringer opprettes når noen består et kurs eller når en opplæringsansvarlig registrerer ekstern opplæring. Fullfør ditt første kurs for å få ditt første kursbevis.",
+        "cta": "Gå til min opplæring"
+      },
+      "fields": {
+        "expires": {
+          "help": "Når opplæringen slutter å være gyldig. La feltet stå tomt for å bruke kursets gyldighetsperiode, eller hvis den aldri utløper."
+        }
+      }
+    },
+    "record": {
+      "intro": {
+        "title": "En opplæringsregistrering",
+        "body": "Registreringen er beviset på at opplæringen fant sted. Kursbeviset kan skrives ut, og deltakerens tilbakemelding og vurderingen av effekt viser om opplæringen virket."
+      },
+      "why": {
+        "body": "Der det er relevant, skal organisasjonen iverksette tiltak for å skaffe kompetanse og **vurdere effekten** av tiltakene.",
+        "clauses": ["hs:7.2"]
+      },
+      "fields": {
+        "effectiveness": {
+          "help": "Nådde opplæringen målet sitt? Baser vurderingen på observert atferd, resultater eller oppfølging, ikke bare på quizresultatet.",
+          "example": "Effektiv: hendelsesmeldinger etter kurset er komplette og kommer i tide."
+        }
+      }
+    },
+    "matrix": {
+      "intro": {
+        "title": "Opplæringsmatrisen",
+        "body": "Matrisen viser hver person mot hvert kurs med status for det som er påkrevd: i orden, utløper snart, utløpt, tildelt, forfalt eller ikke påkrevd. Prosenten øverst er andelen påkrevd opplæring som er på plass.",
+        "steps": [
+          "Filtrer på kategori eller avdeling for å konsentrere deg om ett område.",
+          "Klikk på en celle for å åpne tildelingen eller registreringen bak den.",
+          "Bruk matrisen i ledelsens gjennomgåelse som kompetanseoversikt."
+        ]
+      },
+      "why": {
+        "body": "En kompetanse- eller opplæringsmatrise er den vanligste måten å vise revisorer at behovene er kjent og dekket i hele organisasjonen.",
+        "clauses": ["hs:7.2", "hs:9.3"]
+      }
+    }
+  },
+  "lessons": {
+    "competence-and-awareness": {
+      "title": "Kompetanse, bevissthet og opplæringsregistreringer",
+      "minutes": 5,
+      "sections": [
+        {
+          "heading": "Kompetanse og bevissthet",
+          "body": "**Kompetanse** er evnen til å bruke kunnskap og ferdigheter for å oppnå tiltenkt resultat. **Bevissthet** betyr at folk kjenner policyen, vet hvordan de bidrar og hva som skjer hvis de ikke følger systemet. Begge kreves av alle ISO-standarder for styringssystemer (punkt 7.2 og 7.3)."
+        },
+        {
+          "heading": "Fra behov til dokumentasjon",
+          "body": "1. Bestem hvilken kompetanse hver rolle trenger.\n2. Lukk gap med opplæring, veiledning eller rekruttering.\n3. **Oppbevar registreringer** som viser at kompetansen er på plass.\n4. Sjekk at tiltaket faktisk virket."
+        },
+        {
+          "heading": "Slik hjelper CoreFlow",
+          "body": "Tildelingsregler gir riktige kurs til riktige personer, planleggeren setter opp repetisjon før sertifikater utløper, og hver fullføring blir en registrering med sertifikatnummer og kursversjon."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Hva krever standardene at du oppbevarer som bevis på kompetanse?",
+          "options": [
+            "Ingenting, en muntlig bekreftelse holder",
+            "Dokumentert informasjon, for eksempel opplæringsregistreringer",
+            "Bare kurslysbildene"
+          ],
+          "answer": 1,
+          "explanation": "Punkt 7.2 krever dokumentert informasjon som bevis på kompetanse."
+        },
+        {
+          "question": "Hva bør du gjøre etter at opplæring er gitt?",
+          "options": ["Vurdere om den var effektiv", "Slette kurset", "Ingenting mer"],
+          "answer": 0,
+          "explanation": "Organisasjonen skal vurdere effekten av tiltakene som er iverksatt."
+        }
+      ],
+      "pass_mark": 1
+    },
+    "evaluating-effectiveness": {
+      "title": "Vurdere effekten av opplæring",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Hvorfor vurdere",
+          "body": "En bestått quiz viser at noen forsto innholdet den dagen. Effekt spør om noe annet: **endret opplæringen måten arbeidet gjøres på?**"
+        },
+        {
+          "heading": "Hvordan vurdere",
+          "body": "- Se på resultater: færre feil, komplette meldinger, beståtte inspeksjoner.\n- Observer arbeidet eller spør lederen etter noen uker.\n- Bruk tilbakemeldinger fra deltakerne til å forbedre selve kurset."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Hva er det beste beviset på at opplæringen var effektiv?",
+          "options": [
+            "Alle deltok",
+            "Arbeidsresultatene ble bedre som tiltenkt",
+            "Kurset var kort"
+          ],
+          "answer": 1
+        }
+      ],
+      "pass_mark": 1
+    }
+  },
+  "tours": {
+    "home": [
+      {
+        "target": "training-courses",
+        "title": "Kurskatalogen",
+        "body": "Bla gjennom alle publiserte kurs, også de du ikke må ta."
+      },
+      {
+        "target": "training-stats",
+        "title": "Statistikk for programmet",
+        "body": "Hvis du følger opp opplæringen, ser du åpne og forfalte tildelinger, gjennomføringsgrad og sertifikater som snart utløper."
+      }
+    ],
+    "courses": [
+      {
+        "target": "training-new-course",
+        "title": "Opprett et kurs",
+        "body": "Start fra bunnen av eller la assistenten lage utkast til leksjoner og quizer fra en prosedyre eller et tema. Kurs starter som utkast."
+      }
+    ],
+    "matrix": [
+      {
+        "target": "training-matrix-filters",
+        "title": "Avgrens matrisen",
+        "body": "Filtrer på kategori eller avdeling for å se ett område om gangen."
+      },
+      {
+        "target": "training-matrix-summary",
+        "title": "Samlet etterlevelse",
+        "body": "Andelen påkrevd opplæring som er på plass. Bruk den i ledelsens gjennomgåelse."
+      }
+    ]
+  }
+}

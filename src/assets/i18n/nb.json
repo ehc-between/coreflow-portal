@@ -1675,6 +1675,7 @@
       "supplier_evaluation": "Leverandørevaluering",
       "project": "Prosjekt",
       "project_milestone": "Prosjektmilepæl",
+      "project_design_review": "Gjennomgang av utforming",
       "ropa_entry": "Behandlingsoppføring",
       "dpia": "DPIA",
       "data_subject_request": "Henvendelse fra registrert",
@@ -1703,7 +1704,9 @@
       "audit_pack": "Revisjonspakke",
       "document_type": "Dokumenttype",
       "external_document": "Eksternt dokument",
-      "distribution_campaign": "Distribusjonskampanje"
+      "distribution_campaign": "Distribusjonskampanje",
+      "document_template": "Dokumentmal",
+      "retention_rule": "Oppbevaringsregel"
     },
     "links": {
       "title": "Organisasjon",

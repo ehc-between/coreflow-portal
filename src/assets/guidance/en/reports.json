@@ -1,0 +1,333 @@
+{
+  "pages": {
+    "overview": {
+      "intro": {
+        "title": "How your management system is doing, at a glance",
+        "body": "The compliance overview gathers the numbers top management and auditors ask for first: **readiness per standard**, what is **overdue**, the **open findings**, and — once those modules are on — the **risk heat map** and **training compliance**. Everything respects your access: you only see figures for records you can read.",
+        "steps": [
+          "Pick a framework to focus on one standard, or keep \"All frameworks\".",
+          "Start with overdue items: they are the clearest sign that the system is not being followed.",
+          "Use \"Write the report\" to get a narrative summary for management review, then check and share it."
+        ]
+      },
+      "why": {
+        "body": "Every ISO management system standard asks you to **monitor, measure, analyse and evaluate** your performance (clause 9.1) and to bring the results to **management review** (9.3). A shared, always-current overview means those inputs are ready when you need them instead of being collected by hand before each review.",
+        "clauses": ["hs:9.1", "hs:9.3", "iso27001:9.1"]
+      },
+      "fields": {
+        "readiness": {
+          "help": "Readiness combines how many applicable requirements are covered by evidence, how many are partly covered, and whether the evidence is recent (within a year).",
+          "example": "80 % or more is usually a sign you are ready for a certification audit."
+        }
+      }
+    },
+    "calendar": {
+      "intro": {
+        "title": "Every deadline in one place",
+        "body": "The organisation calendar shows every open due date you can see: tasks, document reviews, deviations and their actions, and dates from other modules such as audits, contract renewals and training expiry.",
+        "steps": [
+          "Move between months with the arrows, or switch to the list view on a small screen.",
+          "Filter by area or framework to plan one part of the system.",
+          "Export to your own calendar with the .ics button."
+        ]
+      },
+      "why": {
+        "body": "Planned activities only work if someone does them on time. Seeing all deadlines together helps you spread the workload, avoid clashes with audits and reviews, and show an auditor that planned actions are followed up.",
+        "clauses": ["hs:6.2", "hs:8.1", "hs:9.1"]
+      },
+      "empty": {
+        "title": "Nothing is due in this period",
+        "body": "When tasks, reviews or actions get due dates, they appear here. Try another month, another area, or tick \"Include earlier overdue items\"."
+      }
+    },
+    "registers": {
+      "intro": {
+        "title": "Export the registers auditors ask for",
+        "body": "A register is a list of records of one kind: tasks, deviations, corrective actions, the master document list, the Statement of Applicability, the evidence index or readiness. Filter it, choose columns, preview it and export it as CSV, Excel or PDF.",
+        "steps": [
+          "Choose a register on the left.",
+          "Narrow it down with filters and columns; the preview updates as you go.",
+          "Export it, or save the choices as a report you can re-run."
+        ]
+      },
+      "why": {
+        "body": "Standards require **documented information** to be available and suitable for use (clause 7.5). Registers you can export on demand let you answer an auditor's request in minutes, with a file that shows exactly what was recorded.",
+        "clauses": ["hs:7.5", "hs:9.2", "iso27001:6.1.3"]
+      },
+      "empty": {
+        "title": "No registers available to you",
+        "body": "Registers come from the modules you can read. Ask an administrator to enable the modules you need or to grant you access to them."
+      },
+      "fields": {
+        "standard": {
+          "help": "Registers about requirements, such as the Statement of Applicability or the evidence index, are produced per standard.",
+          "example": "ISO/IEC 27001 for the Annex A Statement of Applicability."
+        }
+      }
+    },
+    "definitions": {
+      "intro": {
+        "title": "Reports you can run again in one click",
+        "body": "A saved report remembers a register with its filters, columns, format and language. Run it whenever you need a fresh copy, or schedule it so a recurring task reminds someone to run it.",
+        "steps": [
+          "Create a report here, or use \"Save as report\" from the registers page.",
+          "Open a report to run it in any format or schedule it.",
+          "Changes are kept in the report's revision history."
+        ]
+      },
+      "why": {
+        "body": "Measuring the same thing the same way over time is what makes results comparable. Saved reports keep the method fixed, so the figures you bring to management review mean the same every time.",
+        "clauses": ["hs:9.1", "hs:9.3"]
+      },
+      "empty": {
+        "title": "No saved reports yet",
+        "body": "Save the registers you export regularly — for example open deviations for the monthly quality meeting, or overdue tasks for the management review.",
+        "cta": "Create your first report"
+      }
+    },
+    "definitionForm": {
+      "intro": {
+        "title": "Describe what the report should contain",
+        "body": "Pick the register, then the filters and columns. Only the filters the register supports are shown. Leave columns untouched to export all of them."
+      },
+      "why": {
+        "body": "A clearly named report with a description tells colleagues what it measures and why, so it stays useful when people change roles.",
+        "clauses": ["hs:9.1", "hs:7.5"]
+      },
+      "fields": {
+        "register": {
+          "help": "The list of records the report exports. It cannot be changed afterwards; create a new report for a different register."
+        },
+        "format": {
+          "help": "The format used when you press \"Run\". You can still run it in any other format.",
+          "example": "PDF for sharing with management, Excel for further analysis."
+        },
+        "changeReason": {
+          "help": "A short note on why you changed the report. It is shown in the revision history."
+        }
+      }
+    },
+    "definitionDetail": {
+      "intro": {
+        "title": "Run, schedule and follow up a saved report",
+        "body": "Run the report in any format; each run is recorded in the activity log. Schedule it to create a recurring task, link it to related records, and see every change under Revisions."
+      },
+      "why": {
+        "body": "Recording when a report was run and by whom is part of the evidence that monitoring actually takes place as planned.",
+        "clauses": ["hs:9.1", "hs:9.3"]
+      },
+      "fields": {
+        "leadDays": {
+          "help": "How many days before each run date the task appears in the assignee's work queue.",
+          "example": "3 days gives time to prepare before the monthly meeting."
+        }
+      }
+    },
+    "auditPacks": {
+      "intro": {
+        "title": "Everything an auditor asks for, in one file",
+        "body": "An audit pack is a zip file for one standard: an index, the Statement of Applicability, the evidence index, readiness, approved policies and the relevant registers. A manifest with a SHA-256 checksum per file proves later that the pack is unchanged.",
+        "steps": [
+          "Choose \"Generate audit pack\" and the standard.",
+          "Decide whether to include policies and which registers.",
+          "Download the zip and send it to the auditor, or keep it as a snapshot."
+        ]
+      },
+      "why": {
+        "body": "Internal and external audits (clause 9.2) go faster when evidence is complete and organised. A dated, checksummed pack is also a record of what the management system looked like at a point in time.",
+        "clauses": ["hs:9.2", "hs:7.5", "iso27001:6.1.3"]
+      },
+      "empty": {
+        "title": "No audit packs yet",
+        "body": "Generate a pack before an internal audit, a certification audit or a customer assessment. It only takes a moment.",
+        "cta": "Generate the first pack"
+      },
+      "fields": {
+        "standard": {
+          "help": "Only standards enabled for your organisation can be packed. The pack contains what you can see right now."
+        }
+      }
+    },
+    "auditPackDetail": {
+      "intro": {
+        "title": "What this pack contains",
+        "body": "The table lists every file in the zip with its number of rows and size. The checksum identifies this exact pack; recalculate it on the downloaded file to show nothing has changed."
+      },
+      "why": {
+        "body": "Controlled documented information must be protected against unintended changes (clause 7.5.3). The checksum and the stored copy let you prove what was handed to the auditor.",
+        "clauses": ["hs:7.5", "hs:9.2"]
+      }
+    },
+    "dashboards": {
+      "intro": {
+        "title": "Give each role the dashboard it needs",
+        "body": "Choose the widgets shown on the home dashboard. A role's layout wins; people without one see the organisation default, and without that the built-in layout.",
+        "steps": [
+          "Pick \"Organisation default\" or a role.",
+          "Add, order and size the widgets. A framework on a widget focuses it on one standard.",
+          "Save. Reset removes the layout so the next one applies again."
+        ]
+      },
+      "why": {
+        "body": "Top management must make sure the management system achieves its intended results (clause 5.1). Showing each role the measures it is responsible for keeps attention on what matters.",
+        "clauses": ["hs:5.1", "hs:9.1"]
+      },
+      "fields": {
+        "scope": {
+          "help": "Layouts marked with a dot have been customised. Widgets someone may not see are shown to them as unavailable."
+        }
+      }
+    }
+  },
+  "lessons": {
+    "measuring-compliance": {
+      "title": "Measuring how your management system performs",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "What clause 9.1 asks for",
+          "body": "You decide **what** to monitor and measure, **how** and **when**, and **when the results are analysed**. The point is not to collect numbers but to know whether your processes work and your objectives are met."
+        },
+        {
+          "heading": "Leading and lagging indicators",
+          "body": "Open findings and incidents tell you what already went wrong (lagging). Overdue actions, reviews not done and training not completed warn you before it goes wrong (leading). A good dashboard has both."
+        },
+        {
+          "heading": "From figures to decisions",
+          "body": "Bring the results to management review (9.3) with a short explanation: what changed, why, and what you propose. The narrative report is a starting point — always check it against the figures."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Which of these is a leading indicator?",
+          "options": [
+            "Number of customer complaints last quarter",
+            "Number of overdue corrective actions",
+            "Number of audit nonconformities"
+          ],
+          "answer": 1,
+          "explanation": "Overdue actions warn you that problems may not be fixed in time, before they show up as complaints or nonconformities."
+        },
+        {
+          "question": "Where do monitoring results go, according to the ISO structure?",
+          "options": [
+            "Only into the risk register",
+            "Into management review",
+            "Nowhere; collecting them is enough"
+          ],
+          "answer": 1,
+          "explanation": "Clause 9.3 lists the results of monitoring and measurement as an input to management review."
+        }
+      ],
+      "pass_mark": 0.5
+    },
+    "exporting-registers": {
+      "title": "Registers as documented information",
+      "minutes": 3,
+      "sections": [
+        {
+          "heading": "Records versus documents",
+          "body": "Documents say what you intend to do (a procedure). **Records** prove what you did (a closed deviation, a completed task). Registers are lists of records, and auditors sample from them."
+        },
+        {
+          "heading": "Export what you can defend",
+          "body": "An export contains only what you are allowed to see. Use filters to answer the actual question — \"all deviations closed this year\" — rather than sending everything."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "What is a record?",
+          "options": [
+            "A plan for future work",
+            "Evidence of an activity that was carried out",
+            "A policy statement"
+          ],
+          "answer": 1,
+          "explanation": "Records are retained documented information that shows results achieved or activities performed."
+        }
+      ],
+      "pass_mark": 1
+    },
+    "audit-ready": {
+      "title": "Getting audit-ready with an audit pack",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "What auditors look at first",
+          "body": "The **scope**, the **Statement of Applicability** (for ISO/IEC 27001), the **policies**, and evidence that requirements are met. An audit pack bundles these so the auditor can plan their sampling."
+        },
+        {
+          "heading": "Check readiness before you send",
+          "body": "Look at the readiness score and the number of requirements without evidence. Gaps you know about and are working on are fine — say so. Gaps you did not know about are what auditors find."
+        },
+        {
+          "heading": "Keep the pack as a snapshot",
+          "body": "Each pack is stored with a checksum. Months later you can show exactly what you handed over, which helps when findings are discussed."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Why does each pack have a SHA-256 checksum?",
+          "options": [
+            "To compress the file",
+            "To prove the pack has not changed since it was generated",
+            "To encrypt the contents"
+          ],
+          "answer": 1,
+          "explanation": "A checksum changes if a single byte changes, so matching checksums show the file is identical."
+        }
+      ],
+      "pass_mark": 1
+    }
+  },
+  "tours": {
+    "overview": [
+      {
+        "target": "reports-framework",
+        "title": "Focus on one framework",
+        "body": "Choose a standard or regulation to see only its readiness, overdue items and findings."
+      },
+      {
+        "target": "reports-kpis",
+        "title": "The headline figures",
+        "body": "Average readiness, overdue items, open findings and overdue tasks. Select overdue items to open them in the calendar."
+      },
+      {
+        "target": "reports-narrative",
+        "title": "A written summary",
+        "body": "The assistant can turn these figures into a short report for management, an auditor or staff. Check it before sharing."
+      }
+    ],
+    "definitions": [
+      {
+        "target": "reports-new-definition",
+        "title": "Save a report",
+        "body": "Choose a register, filters and columns once, and run the report again whenever you need it."
+      }
+    ],
+    "auditPacks": [
+      {
+        "target": "reports-generate-pack",
+        "title": "One-click audit pack",
+        "body": "Pick a standard and download a zip with the Statement of Applicability, policies, registers and evidence index."
+      }
+    ]
+  },
+  "glossary": {
+    "audit-pack": {
+      "term": "Audit pack",
+      "definition": "A dated, checksummed bundle of the documented information an auditor needs for one standard.",
+      "clauses": ["hs:9.2", "hs:7.5"]
+    },
+    "readiness-score": {
+      "term": "Readiness score",
+      "definition": "A 0–100 measure of how many applicable requirements of a standard are covered by recent evidence.",
+      "clauses": ["hs:9.1"]
+    },
+    "register": {
+      "term": "Register",
+      "definition": "A list of records of one kind, such as deviations or documents, that can be filtered and exported.",
+      "clauses": ["hs:7.5"]
+    }
+  }
+}

@@ -1,0 +1,358 @@
+{
+  "pages": {
+    "list": {
+      "intro": {
+        "title": "Planned checks that prove things work",
+        "body": "An **inspection** is a planned check of a workplace, a machine, a routine or a site, performed with a **checklist**. The answers give a score and a result, and anything that is not right becomes a **finding** that someone follows up.",
+        "steps": [
+          "Start with overdue inspections (red), then what is due soon.",
+          "Open an inspection and press **Start** or **Continue** to perform it on your phone or tablet.",
+          "Use **Findings** to follow up what was found, and **Schedules** to make routine checks recur automatically."
+        ]
+      },
+      "why": {
+        "body": "The standards ask you to **monitor and measure** what matters, to keep evidence of the results and to act on what you find. Regular inspections with recorded answers, scores and findings are that evidence, and the findings feed your deviation and improvement process.",
+        "clauses": ["hs:9.1", "iso45001:9.1.1", "iso14001:9.1.1", "iso9001:8.5.1"]
+      },
+      "empty": {
+        "title": "No inspections yet",
+        "body": "Inspections turn a checklist into a recorded check: who looked, when, what they found and what happens next. Start by importing a checklist from the template library, publish it, then plan your first inspection.",
+        "cta": "Plan an inspection"
+      }
+    },
+    "findings": {
+      "intro": {
+        "title": "Everything inspections found",
+        "body": "A **finding** is raised automatically for every failed answer, and inspectors can add findings by hand. Each one has a severity, an owner and a due date, and can become a **deviation** for root-cause analysis and corrective action.",
+        "steps": [
+          "Filter on **Open** and **Owned by me** to see what is waiting on you.",
+          "Open a finding to add follow-up actions, escalate it to a deviation or close it.",
+          "High and critical findings deserve a deviation, so the cause is found and fixed."
+        ]
+      },
+      "why": {
+        "body": "Finding a problem is only half the job. The standards expect you to react to nonconformities, deal with their consequences and take action so they do not happen again, and to keep evidence that you did.",
+        "clauses": ["hs:10.2", "iso9001:8.7"]
+      },
+      "empty": {
+        "title": "No open findings",
+        "body": "When an inspection has a failed answer, a finding appears here with the question, the severity and an owner. Findings can also be added by hand during an inspection.",
+        "cta": "Go to inspections"
+      }
+    },
+    "templates": {
+      "intro": {
+        "title": "Checklists you can reuse",
+        "body": "A **checklist template** holds the questions an inspection asks: yes/no, scores, readings with acceptable ranges, free text, photos and signatures. Publish a template to use it; editing a published template creates a new version.",
+        "steps": [
+          "Start from the **Template library** or build your own template.",
+          "Let the assistant draft questions from a description or a standard clause, then review them.",
+          "Publish the template, then plan inspections or a schedule from it."
+        ]
+      },
+      "why": {
+        "body": "Doing the same check the same way every time makes results comparable and shows that the work is controlled. A versioned checklist is documented information that tells inspectors exactly what to look for.",
+        "clauses": ["hs:9.1", "iso9001:8.5.1"]
+      },
+      "empty": {
+        "title": "No checklist templates yet",
+        "body": "Templates are the foundation of every inspection. The quickest start is the library: import a safety walk, a fire safety check, an environmental site check, a 5S audit or an information security walkthrough and adapt it.",
+        "cta": "Open the template library"
+      }
+    },
+    "library": {
+      "intro": {
+        "title": "Ready-made checklists",
+        "body": "These checklists cover common inspections. Importing one creates a **draft** in your organisation that you can change freely before you publish it.",
+        "steps": [
+          "Preview a checklist to see its questions and scoring.",
+          "Import it, then adjust the questions to your own sites and routines.",
+          "Publish it when it fits how you work."
+        ]
+      },
+      "why": {
+        "body": "Good checklists cover the requirements that matter for the area being inspected. Starting from a proven list saves time and reduces the chance of forgetting something important.",
+        "clauses": ["hs:9.1"]
+      }
+    },
+    "templateDetail": {
+      "intro": {
+        "title": "A checklist template",
+        "body": "Here you see every question by section, how answers are scored and what happens when one fails. Use **Plan inspection** to perform it once, or **Schedule** to repeat it.",
+        "steps": [
+          "Check that each question can be answered by looking, measuring or asking.",
+          "Set a pass mark if the overall score should decide the result.",
+          "Link the template to the clauses it gives evidence for."
+        ]
+      },
+      "why": {
+        "body": "The template is the documented method of your inspection. Its revision history shows who changed which questions, when and why, which auditors may ask to see.",
+        "clauses": ["hs:9.1", "iso9001:8.5.1"]
+      },
+      "fields": {
+        "version": {
+          "help": "The version goes up when the questions or the pass mark of an active template change. Each inspection keeps a copy of the questions it was created with, so old results never change.",
+          "example": "Version 3: a question about emergency lighting was added."
+        }
+      }
+    },
+    "builder": {
+      "intro": {
+        "title": "Building a checklist",
+        "body": "Write each question as something an inspector can check on the spot, choose the answer type and decide what counts as a failure. Group questions in **sections** in the order the inspector walks through the site.",
+        "steps": [
+          "Give the template a clear title and category.",
+          "Add questions by type, or let the assistant draft them and review the result.",
+          "Decide the pass mark and whether findings should become deviations automatically, then save or publish."
+        ]
+      },
+      "why": {
+        "body": "Clear, checkable questions give reliable results. Linking questions to clauses shows which requirements the inspection gives evidence for.",
+        "clauses": ["hs:9.1", "iso45001:9.1.1"]
+      },
+      "fields": {
+        "title": {
+          "help": "Name the check and, if useful, how often it is done.",
+          "example": "Monthly safety walk – warehouse"
+        },
+        "passThreshold": {
+          "help": "The lowest overall score (in %) for the inspection to pass. Leave it empty to fail the inspection whenever any answer fails.",
+          "example": "80"
+        },
+        "autoDeviation": {
+          "help": "When on, every finding raised from a failed answer also becomes a deviation, so it enters your corrective action process without extra work.",
+          "example": "On for safety and fire checks; off for light housekeeping checks."
+        },
+        "questionType": {
+          "help": "**Yes / no** for things that are either right or wrong, **Score** for quality ratings, **Number** for readings with an acceptable range, **Text** for observations, **Photo** for evidence and **Signature** for sign-off.",
+          "example": "\"Are emergency exits free of obstructions?\" – Yes / no, fails on \"No\"."
+        },
+        "weight": {
+          "help": "How much this question counts in the score compared with others. Use a higher weight for questions that matter more.",
+          "example": "2 for \"Is the fire alarm tested?\", 1 for \"Is the notice board up to date?\""
+        }
+      }
+    },
+    "form": {
+      "intro": {
+        "title": "Planning an inspection",
+        "body": "Choose an active checklist template, where the inspection takes place, who performs it and when it is due. The inspector is reminded as the due date approaches.",
+        "steps": [
+          "Pick the template; the questions are copied into the inspection.",
+          "Name the inspector and, if different, the owner who follows up the results.",
+          "Set a due date so the inspection shows up in My Work and in reminders."
+        ]
+      },
+      "why": {
+        "body": "Planned inspections show that monitoring happens at defined times by competent people, rather than only when something goes wrong.",
+        "clauses": ["hs:9.1", "iso45001:9.1.1"]
+      },
+      "fields": {
+        "template": {
+          "help": "Only active templates can be used. The inspection keeps its own copy of the questions.",
+          "example": "CL-003 Fire safety check"
+        },
+        "location": {
+          "help": "Where the inspection takes place, so the inspector knows where to go and results can be compared per site.",
+          "example": "Warehouse B, loading bay"
+        },
+        "inspector": {
+          "help": "The person who performs the inspection. Leave empty to let anyone with access perform it.",
+          "example": "The site safety representative"
+        },
+        "owner": {
+          "help": "The person responsible for the result and its follow-up. They are told when the inspection is completed.",
+          "example": "The warehouse manager"
+        }
+      }
+    },
+    "detail": {
+      "intro": {
+        "title": "An inspection and its results",
+        "body": "See the plan, the progress or the result, every answer by section and the findings that were raised. The inspector performs the inspection on the run page; the result and score are calculated when it is completed.",
+        "steps": [
+          "Press **Start** or **Continue** to answer the checklist.",
+          "After completion, review the failed answers and their findings.",
+          "Assign owners and actions to findings, or escalate them to deviations."
+        ]
+      },
+      "why": {
+        "body": "A completed inspection with answers, photos, a signature and followed-up findings is the documented evidence of monitoring that auditors look for.",
+        "clauses": ["hs:9.1", "iso9001:8.6", "iso14001:9.1.1", "iso45001:9.1.1"]
+      },
+      "fields": {
+        "score": {
+          "help": "Each scored answer adds points: yes/no and range questions give full points when they pass, scores give points in proportion. N/A answers do not count.",
+          "example": "17 of 20 points = 85 %"
+        },
+        "findings": {
+          "help": "A finding is raised automatically for each failed answer whose question is set to raise one. You can also add findings by hand once the inspection has started.",
+          "example": "FND-0012 Blocked emergency exit (high)"
+        },
+        "finding": {
+          "help": "Give each finding an owner and a due date. Add follow-up actions as tasks, or create a deviation when the cause needs to be investigated.",
+          "example": "Owner: warehouse manager, due in 7 days"
+        },
+        "severity": {
+          "help": "How serious the finding is: **critical** needs immediate action, **high** quick action, **medium** planned action and **low** an improvement.",
+          "example": "A missing fire extinguisher is high; a faded sign is low."
+        }
+      }
+    },
+    "run": {
+      "intro": {
+        "title": "Performing an inspection",
+        "body": "Answer each question as you go. Answers are **saved automatically**, so you can stop and continue later. Add a note or a photo when something is not right; it helps whoever follows up.",
+        "steps": [
+          "Use the section buttons to jump around the checklist.",
+          "Mark a question **Not applicable** only when it truly does not apply here.",
+          "Press **Complete** at the end, write a short summary and sign."
+        ]
+      },
+      "why": {
+        "body": "Recorded answers, photos and a signature make the inspection traceable: who checked what, when and with which result.",
+        "clauses": ["hs:9.1", "iso45001:9.1.1"]
+      },
+      "fields": {
+        "signature": {
+          "help": "Type your full name to sign; drawing the signature is optional. The signature records who performed and approved the inspection.",
+          "example": "Kari Nordmann"
+        }
+      }
+    },
+    "schedules": {
+      "intro": {
+        "title": "Routine checks that plan themselves",
+        "body": "A **schedule** repeats an inspection from a template, for example every month. The next inspection is planned automatically some days before it is due, and only one is open at a time.",
+        "steps": [
+          "Choose the template, the recurrence and the first due date.",
+          "Set how many days ahead the inspection should be planned.",
+          "Pause a schedule instead of deleting it if the routine stops for a while."
+        ]
+      },
+      "why": {
+        "body": "The standards ask you to decide **when** monitoring is performed. A schedule makes that decision visible and makes sure it happens.",
+        "clauses": ["hs:9.1", "iso45001:9.1.1"]
+      },
+      "empty": {
+        "title": "No schedules yet",
+        "body": "Make routine inspections recur automatically: monthly safety walks, quarterly fire checks or a yearly environmental site check. The inspector gets the inspection in My Work before it is due.",
+        "cta": "Create a schedule"
+      },
+      "fields": {
+        "leadDays": {
+          "help": "How many days before the due date the inspection is created and assigned.",
+          "example": "7 for a monthly check"
+        }
+      }
+    }
+  },
+  "lessons": {
+    "inspection-basics": {
+      "title": "Inspections and checklists",
+      "minutes": 5,
+      "sections": [
+        {
+          "heading": "Why inspect?",
+          "body": "Inspections are planned checks that show whether things are as they should be: exits are clear, equipment is safe, waste is handled correctly, desks are clear of confidential papers. ISO 45001, ISO 14001 and ISO 9001 all ask you to **monitor and measure** and to keep evidence of the results."
+        },
+        {
+          "heading": "A good checklist",
+          "body": "Each question should be **checkable on the spot**: by looking, measuring or asking. Phrase yes/no questions so that **yes** is the good answer, group them in sections in walking order, and add short guidance where inspectors may hesitate. Use a **number** question with an acceptable range for readings, and a **photo** question where evidence matters."
+        },
+        {
+          "heading": "Scores and results",
+          "body": "Scored answers add up to a percentage. With a **pass mark**, the inspection passes when the score reaches it. Without one, any failed answer fails the inspection. **Not applicable** answers are left out of the score, so use them only when a question truly does not apply."
+        },
+        {
+          "heading": "From finding to improvement",
+          "body": "A failed answer raises a **finding** with a severity and an owner. Small findings are fixed with a follow-up action; serious or repeated ones become a **deviation**, where you look for the root cause and take corrective action. Close the finding when it is dealt with."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Which question is best for a checklist?",
+          "options": [
+            "Is safety good in the warehouse?",
+            "Are all emergency exits free of obstructions?",
+            "What do you think about the warehouse?"
+          ],
+          "answer": 1,
+          "explanation": "It can be checked on the spot, and the answer is clearly right or wrong."
+        },
+        {
+          "question": "A template has no pass mark. One answer fails. What is the result?",
+          "options": ["Passed", "Failed", "It depends on the score"],
+          "answer": 1,
+          "explanation": "Without a pass mark, any failed answer fails the inspection."
+        },
+        {
+          "question": "When should a finding become a deviation?",
+          "options": [
+            "Never; findings are enough",
+            "When it is serious or the cause needs to be found and fixed",
+            "Only when an auditor asks"
+          ],
+          "answer": 1,
+          "explanation": "Deviations are for problems whose cause must be investigated and corrected, so they do not happen again."
+        }
+      ],
+      "pass_mark": 0.67
+    }
+  },
+  "tours": {
+    "list": [
+      {
+        "target": "inspections-filters",
+        "title": "Find what matters",
+        "body": "Filter by status, result or inspector, and show only overdue inspections."
+      },
+      {
+        "target": "inspections-new",
+        "title": "Plan an inspection",
+        "body": "Choose a checklist template, an inspector and a due date."
+      }
+    ],
+    "templates": [
+      {
+        "target": "inspections-template-new",
+        "title": "Build a checklist",
+        "body": "Create your own template, or start from the library and adapt it."
+      }
+    ],
+    "builder": [
+      {
+        "target": "inspections-builder-ai",
+        "title": "Let the assistant draft",
+        "body": "Describe the check or name a clause, and review the questions it suggests."
+      },
+      {
+        "target": "inspections-builder-threshold",
+        "title": "Pass mark",
+        "body": "Set the score an inspection needs to pass, or leave it empty to fail on any failed answer."
+      },
+      {
+        "target": "inspections-builder-add",
+        "title": "Add questions",
+        "body": "Pick the answer type for each question: yes/no, score, number, text, photo or signature."
+      }
+    ]
+  },
+  "glossary": {
+    "inspection": {
+      "term": "Inspection",
+      "definition": "A planned check of a workplace, equipment, routine or site, performed with a checklist and recorded with answers, a score and findings.",
+      "clauses": ["hs:9.1"]
+    },
+    "checklist-template": {
+      "term": "Checklist template",
+      "definition": "A reusable, versioned list of questions that inspections are created from.",
+      "clauses": ["hs:9.1"]
+    },
+    "inspection-finding": {
+      "term": "Finding",
+      "definition": "Something found during an inspection that is not as it should be, with a severity, an owner and follow-up.",
+      "clauses": ["hs:10.2"]
+    }
+  }
+}

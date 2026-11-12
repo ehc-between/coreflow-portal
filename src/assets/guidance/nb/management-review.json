@@ -1,0 +1,357 @@
+{
+  "pages": {
+    "list": {
+      "intro": {
+        "title": "Ledelsens gjennomgang holder ledelsen i førersetet",
+        "body": "**Ledelsens gjennomgang** er et planlagt møte der toppledelsen ser på hvordan styringssystemet fungerer og bestemmer hva som skal endres. CoreFlow samler grunnlaget for deg, dokumenterer møtet og gjør beslutninger om til oppgaver.",
+        "steps": [
+          "Opprett en gjennomgang for perioden, for eksempel én gang i året, og velg standardene den dekker.",
+          "Gå gjennom hvert grunnlag, skriv notater og merk det som gjennomgått. Hold møtet og skriv referatet.",
+          "Skriv konklusjonene og den samlede vurderingen, send til signering og signer. Da låses rapporten."
+        ]
+      },
+      "why": {
+        "body": "Alle ISO-standarder for styringssystemer krever at toppledelsen gjennomgår systemet med **planlagte mellomrom** for å sikre at det fortsatt er egnet, tilstrekkelig og effektivt. Gjennomgangen skal vurdere bestemte innspill og gi beslutninger om forbedring, endringer og ressurser, oppbevart som dokumentert informasjon.",
+        "clauses": ["hs:9.3", "hs:5.1", "iso9001:9.3", "iso27001:9.3"]
+      },
+      "empty": {
+        "title": "Ingen ledelsens gjennomganger ennå",
+        "body": "Planlegg den første gjennomgangen nå, selv om den er måneder unna. CoreFlow oppretter møtet, standardagendaen og ett grunnlag per tema standardene krever, og fyller inn tallene som allerede finnes.",
+        "cta": "Planlegg den første gjennomgangen"
+      }
+    },
+    "meetings": {
+      "intro": {
+        "title": "Møter med referat og beslutninger",
+        "body": "Bruk møter for alle faste fora der beslutninger tas: ledermøter, arbeidsmiljøutvalg, prosjektmøter eller revisjonsmøter. Hvert møte har agenda, deltakere, referat og beslutninger som kan bli oppgaver.",
+        "steps": [
+          "Opprett møtet med tid, sted, møteleder og hvem som er invitert.",
+          "Under eller etter møtet registrerer du oppmøte, skriver referat og registrerer beslutninger.",
+          "Merk møtet som gjennomført og la møteleder godkjenne referatet."
+        ]
+      },
+      "why": {
+        "body": "Referater med beslutninger, eiere og frister viser revisor at den interne kommunikasjonen fungerer og at avtalte tiltak følges opp. Godkjente referater er dokumentasjon som kan knyttes til krav.",
+        "clauses": ["hs:7.4", "hs:7.5", "hs:10.1"]
+      },
+      "empty": {
+        "title": "Ingen møter ennå",
+        "body": "Registrer neste ledermøte eller HMS-møte her, slik at agenda, referat og beslutninger holdes samlet og tiltak følges opp som oppgaver.",
+        "cta": "Opprett det første møtet"
+      }
+    },
+    "detail": {
+      "intro": {
+        "title": "Slik jobber du med en ledelsens gjennomgang",
+        "body": "Start gjennomgangen, gå gjennom hvert grunnlag og legg inn vurderingen din, og hold deretter møtet. Skriv konklusjonene og velg samlet vurdering. Når møtet er gjennomført, kan du sende gjennomgangen til signering.",
+        "steps": [
+          "Oppdater grunnlaget hvis nye avvik, tiltak eller dokumenter er registrert siden det ble samlet.",
+          "Bruk **Lag utkast til oppsummering** for å få en første versjon av oppsummeringen, og rediger den.",
+          "Registrer beslutninger i møtet og kryss av for **Opprett en oppfølgingsoppgave** slik at hvert tiltak har eier og frist."
+        ]
+      },
+      "why": {
+        "body": "Standardene lister opp hva gjennomgangen skal vurdere (tidligere tiltak, endringer, ytelse, tilbakemeldinger, revisjonsresultater, ressurser, risiko og forbedring) og krever resultater med beslutninger om forbedringsmuligheter, endringer i styringssystemet og ressursbehov.",
+        "clauses": ["hs:9.3.2", "hs:9.3.3", "hs:10.1"]
+      },
+      "fields": {
+        "inputs": {
+          "help": "Én rad per tema standardene krever. Samlede rader viser tall fra CoreFlow for perioden; manuelle rader trenger din egen vurdering i notatene. Bare tall kopieres, aldri tekst fra postene.",
+          "example": "Avvik: 12 meldt, 9 lukket, 2 forfalt"
+        },
+        "inputsSummary": {
+          "help": "En kort oversikt over hva grunnlaget viser: trender, styrker og bekymringer. Det er dette toppledelsen leser først.",
+          "example": "Færre kundeklager enn i fjor, men to korrigerende tiltak er forfalt."
+        },
+        "conclusions": {
+          "help": "Hva toppledelsen konkluderer om styringssystemet. Må fylles ut før du kan sende til signering.",
+          "example": "Systemet fungerer i produksjonen, men oppfølgingen av leverandører trenger mer oppmerksomhet."
+        },
+        "improvementOpportunities": {
+          "help": "Beslutninger om muligheter for forbedring. Registrer hver av dem som en beslutning med eier når de trenger oppfølging."
+        },
+        "changeNeeds": {
+          "help": "Endringer som trengs i styringssystemet, for eksempel nye prosesser, policyer eller omfang."
+        },
+        "resourceNeeds": {
+          "help": "Folk, kompetanse, verktøy eller budsjett som trengs for å holde systemet effektivt."
+        },
+        "systemAssessment": {
+          "help": "Den samlede vurderingen: er styringssystemet egnet, tilstrekkelig og effektivt? Må velges før du kan sende til signering."
+        }
+      }
+    },
+    "meetingDetail": {
+      "intro": {
+        "title": "Slik gjennomfører du møtet",
+        "body": "Start møtet når det begynner, registrer hvem som deltok og skriv referatet. Registrer hver beslutning med kategori, eier og frist. Merk møtet som gjennomført når det er ferdig; møteleder godkjenner så referatet.",
+        "steps": [
+          "Bruk **Rediger agenda** for å endre punktene og rekkefølgen.",
+          "Skriv stikkord i referatfeltet og bruk **Lag utkast til referat** for å gjøre dem om til et ryddig referat.",
+          "Godkjente referater låses; en leder kan gjenåpne dem med en begrunnelse."
+        ]
+      },
+      "why": {
+        "body": "Dokumenterte beslutninger med eiere og frister er måten en organisasjon viser at kommunikasjonen er planlagt og at tiltak følges opp til de er utført.",
+        "clauses": ["hs:7.4", "hs:7.5.3"]
+      },
+      "fields": {
+        "attendance": {
+          "help": "Sett hver person til til stede, fraværende eller meldt forfall. Oppmøte er en del av dokumentasjonen revisor ser på."
+        },
+        "minutes": {
+          "help": "Hva som ble diskutert og avtalt, punkt for punkt. Markdown støttes: bruk overskrifter og punktlister.",
+          "example": "## 1. Tidligere tiltak\n- Leverandørrevisjon utført, lukket."
+        },
+        "decisions": {
+          "help": "Hver beslutning eller hvert tiltak, med kategori, eier og frist. Kryss av for oppfølgingsoppgave for å legge den i eierens Mitt arbeid."
+        }
+      }
+    },
+    "form": {
+      "intro": {
+        "title": "Slik planlegger du en ledelsens gjennomgang",
+        "body": "Gi gjennomgangen en tittel og velg standardene den dekker. Perioden bestemmer hvilke poster grunnlaget samles fra. Møtet opprettes sammen med gjennomgangen.",
+        "steps": [
+          "Velg én eller flere standarder; hver av dem legger til grunnlaget den krever.",
+          "Sett perioden, vanligvis de tolv månedene siden forrige gjennomgang.",
+          "Inviter toppledelsen og dem som skal legge fram grunnlaget."
+        ]
+      },
+      "why": {
+        "body": "Gjennomgangen skal planlegges og gjennomføres med planlagte mellomrom, og det er toppledelsen som skal gjennomgå systemet.",
+        "clauses": ["hs:9.3.1", "hs:5.1"]
+      },
+      "fields": {
+        "title": {
+          "help": "Et navn som gjør gjennomgangen lett å finne, vanligvis med årstallet.",
+          "example": "Ledelsens gjennomgang 2026"
+        },
+        "frameworks": {
+          "help": "Standardene denne gjennomgangen dekker. La alle stå tomme for å bruke standardene i organisasjonsprofilen."
+        },
+        "period": {
+          "help": "Perioden gjennomgangen ser tilbake på. Grunnlaget samles fra poster i perioden; uten datoer brukes de siste tolv månedene."
+        },
+        "owner": {
+          "help": "Personen som forbereder og følger opp gjennomgangen, ofte kvalitetslederen."
+        },
+        "chair": {
+          "help": "Personen som leder møtet og godkjenner referatet, vanligvis daglig leder."
+        },
+        "attendees": {
+          "help": "De inviterte får et varsel. Du kan legge til eksterne gjester og endre roller på møtesiden."
+        }
+      }
+    },
+    "meetingForm": {
+      "intro": {
+        "title": "Slik setter du opp et møte",
+        "body": "Beskriv hva møtet skal brukes til, når og hvor det holdes, og hvem som leder det. Inviter folk og skriv agendaen; du kan endre begge senere.",
+        "steps": [
+          "Velg møtetype slik at det blir lett å filtrere senere.",
+          "Velg en møteleder, som godkjenner referatet, og en referent, som skriver det.",
+          "Skriv ett agendapunkt per linje."
+        ]
+      },
+      "why": {
+        "body": "Planlagt kommunikasjon sier hva som skal kommuniseres, når, med hvem og hvordan. Et møte med formål, agenda og referat dekker alle fire.",
+        "clauses": ["hs:7.4"]
+      },
+      "fields": {
+        "kind": {
+          "help": "Typen forum, for eksempel et utvalg, et prosjektmøte eller et sikkerhetsmøte."
+        },
+        "chair": {
+          "help": "Leder møtet og godkjenner referatet."
+        },
+        "secretary": {
+          "help": "Skriver referatet under eller etter møtet."
+        },
+        "purpose": {
+          "help": "Hvorfor møtet holdes og hva det skal avgjøre.",
+          "example": "Kvartalsvis oppfølging av HMS-tiltak og nye risikoer"
+        },
+        "agenda": {
+          "help": "Temaene i den rekkefølgen de tas opp. Én linje per punkt."
+        }
+      }
+    },
+    "report": {
+      "intro": {
+        "title": "Rapporten fra ledelsens gjennomgang",
+        "body": "Rapporten samler grunnlaget, møtereferatet, resultatene og signaturen. Når gjennomgangen er signert, låses den og beskyttes med en kontrollsum."
+      },
+      "why": {
+        "body": "Resultatene av ledelsens gjennomgang skal oppbevares som dokumentert informasjon, som dokumentasjon for revisor.",
+        "clauses": ["hs:9.3.3"]
+      }
+    }
+  },
+  "lessons": {
+    "effective-review": {
+      "title": "En god ledelsens gjennomgang",
+      "minutes": 5,
+      "sections": [
+        {
+          "heading": "Hvorfor ledelsens gjennomgang finnes",
+          "body": "Ledelsens gjennomgang er der **toppledelsen** tar eierskap til styringssystemet. Med jevne mellomrom løfter lederne blikket fra den daglige driften og spør: er systemet fortsatt **egnet**, **tilstrekkelig** og **effektivt**, og hva må endres?"
+        },
+        {
+          "heading": "Grunnlag: se på fakta",
+          "body": "Standardene lister opp hva som skal vurderes: status for tidligere tiltak, endringer i og utenfor organisasjonen, ytelse (mål, avvik, revisjoner, overvåking, kundetilbakemeldinger), ressurser, risikoer og muligheter. CoreFlow samler tall for mange av disse; du legger til vurderingen."
+        },
+        {
+          "heading": "Resultater: bestem og følg opp",
+          "body": "En gjennomgang er bare nyttig hvis den ender i **beslutninger**: forbedringer, endringer i systemet og ressursbehov. Gi hvert tiltak en eier og en frist. Neste gjennomgang starter med å sjekke om tiltakene ble gjennomført."
+        },
+        {
+          "heading": "Ta vare på dokumentasjonen",
+          "body": "Revisor ber om å se resultatene av gjennomgangen. En signert og låst rapport med grunnlag, referat og beslutninger er den dokumentasjonen."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Hvem skal gjennomføre ledelsens gjennomgang?",
+          "options": ["Kvalitetslederen alene", "Toppledelsen", "Den eksterne revisoren"],
+          "answer": 1,
+          "explanation": "Standardene krever at toppledelsen gjennomgår styringssystemet. Andre kan forberede og legge fram grunnlaget."
+        },
+        {
+          "question": "Hvilket av disse er et resultat av ledelsens gjennomgang?",
+          "options": [
+            "Antall avvik i perioden",
+            "En beslutning om å sette av mer ressurser til leverandøroppfølging",
+            "Deltakerlisten"
+          ],
+          "answer": 1,
+          "explanation": "Resultater er beslutninger og tiltak om forbedring, endringer og ressurser. Antall avvik er grunnlag."
+        },
+        {
+          "question": "Hva bør neste gjennomgang sjekke først?",
+          "options": [
+            "Om tiltakene fra forrige gjennomgang er gjennomført",
+            "Om møterommet er booket",
+            "Om alle dokumenter er godkjent"
+          ],
+          "answer": 0,
+          "explanation": "Status for tiltak fra tidligere gjennomganger er det første grunnlaget som kreves."
+        }
+      ],
+      "pass_mark": 0.6
+    },
+    "good-minutes": {
+      "title": "Referater og beslutninger som virker",
+      "minutes": 3,
+      "sections": [
+        {
+          "heading": "Skriv for den som ikke var der",
+          "body": "Et godt referat lar en som ikke var på møtet forstå hva som ble bestemt og hvorfor. Følg agendaen, hold hvert punkt kort og skriv **beslutningen**, ikke hele diskusjonen."
+        },
+        {
+          "heading": "Hvert tiltak har en eier og en dato",
+          "body": "«Vi bør se på leverandørene» blir ikke gjort. «Anna oppdaterer skjemaet for leverandørevaluering innen 15. mars» blir det. Registrer det som en beslutning og opprett en oppfølgingsoppgave, så dukker den opp i Mitt arbeid for Anna."
+        },
+        {
+          "heading": "Godkjenn og lås",
+          "body": "Når møtet er gjennomført, godkjenner møteleder referatet. Godkjente referater låses slik at de forblir pålitelig dokumentasjon; en leder kan gjenåpne dem med en begrunnelse hvis noe må rettes."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Hva gjør en beslutning lett å følge opp?",
+          "options": [
+            "En lang beskrivelse av diskusjonen",
+            "En eier og en frist",
+            "Å skrive den med store bokstaver"
+          ],
+          "answer": 1,
+          "explanation": "En eier og en frist gjør tiltaket sporbart; en oppfølgingsoppgave gjør det synlig."
+        },
+        {
+          "question": "Hva skjer når et referat godkjennes?",
+          "options": [
+            "Det slettes etter 30 dager",
+            "Det låses til en leder gjenåpner det",
+            "Alle kan fortsatt redigere det"
+          ],
+          "answer": 1,
+          "explanation": "Godkjente referater låses slik at dokumentasjonen forblir pålitelig."
+        }
+      ],
+      "pass_mark": 0.5
+    }
+  },
+  "tours": {
+    "list": [
+      {
+        "target": "mr-new",
+        "title": "Planlegg en gjennomgang",
+        "body": "Opprett en gjennomgang for perioden. Møtet, standardagendaen og grunnlaget opprettes for deg."
+      },
+      {
+        "target": "mr-filters",
+        "title": "Finn gjennomganger",
+        "body": "Vis åpne, signerte eller avlyste gjennomganger, per standard eller bare dine egne. Lagre et filter som en visning."
+      }
+    ],
+    "meetings": [
+      {
+        "target": "mtg-new",
+        "title": "Opprett et møte",
+        "body": "Alle møter der beslutninger tas kan registreres her, med agenda, deltakere og referat."
+      },
+      {
+        "target": "mtg-filters",
+        "title": "Filtrer møter",
+        "body": "Filtrer på status eller type, vis bare kommende møter, eller skjul møtene i ledelsens gjennomganger."
+      }
+    ],
+    "detail": [
+      {
+        "target": "mr-progress",
+        "title": "Hvor gjennomgangen står",
+        "body": "Planlagt, pågår, venter på signering og signert. Sjekklisten viser hva som mangler før du kan sende til signering."
+      },
+      {
+        "target": "mr-compile",
+        "title": "Oppdater grunnlaget",
+        "body": "Hent de siste tallene fra avvik, tiltak, dokumenter og standardmodenhet for perioden."
+      },
+      {
+        "target": "mr-outputs",
+        "title": "Skriv resultatene",
+        "body": "Konklusjoner, forbedringer, endringer, ressursbehov og samlet vurdering. Be om forslag basert på grunnlaget."
+      }
+    ],
+    "meetingDetail": [
+      {
+        "target": "mtg-workspace",
+        "title": "Gjennomfør møtet her",
+        "body": "Endre status, rediger agendaen, registrer oppmøte, skriv og godkjenn referatet, og registrer beslutninger med oppfølgingsoppgaver."
+      }
+    ]
+  },
+  "glossary": {
+    "management-review": {
+      "term": "Ledelsens gjennomgang",
+      "definition": "En planlagt gjennomgang der toppledelsen vurderer om styringssystemet fortsatt er egnet, tilstrekkelig og effektivt, og som ender i beslutninger om forbedring, endringer og ressurser.",
+      "clauses": ["hs:9.3"]
+    },
+    "review-input": {
+      "term": "Grunnlag for gjennomgangen",
+      "definition": "Informasjon ledelsens gjennomgang skal vurdere, for eksempel tidligere tiltak, endringer, ytelse, tilbakemeldinger, revisjonsresultater og risikoer.",
+      "clauses": ["hs:9.3.2"]
+    },
+    "review-output": {
+      "term": "Resultat av gjennomgangen",
+      "definition": "Beslutningene og tiltakene fra ledelsens gjennomgang: forbedringsmuligheter, endringer i styringssystemet og ressursbehov.",
+      "clauses": ["hs:9.3.3"]
+    },
+    "minutes": {
+      "term": "Referat",
+      "definition": "Den skriftlige dokumentasjonen av et møte: hvem som deltok, hva som ble diskutert og hva som ble bestemt.",
+      "clauses": ["hs:7.5"]
+    }
+  }
+}

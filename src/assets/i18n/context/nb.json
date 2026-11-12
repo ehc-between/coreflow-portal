@@ -1,0 +1,530 @@
+{
+  "nav": {
+    "label": "Deler av kontekst og lederskap",
+    "overview": "Oversikt",
+    "analyses": "Kontekstanalyser",
+    "parties": "Interessenter",
+    "scopes": "Omfang",
+    "policies": "Policyer",
+    "responsibilities": "Roller og ansvar"
+  },
+  "common": {
+    "loading": "Laster …",
+    "back": "Tilbake",
+    "cancel": "Avbryt",
+    "close": "Lukk",
+    "notSet": "Ikke angitt",
+    "version": "Versjon {{ version }}"
+  },
+  "kinds": {
+    "analysis": {
+      "one": "Kontekstanalyse",
+      "plural": "Kontekstanalyser",
+      "new": "Ny analyse",
+      "edit": "Rediger analyse",
+      "back": "Tilbake til kontekstanalyser"
+    },
+    "party": {
+      "one": "Interessent",
+      "plural": "Interessenter",
+      "new": "Ny interessent",
+      "edit": "Rediger interessent",
+      "back": "Tilbake til interessenter"
+    },
+    "scope": {
+      "one": "Omfangserklæring",
+      "plural": "Omfangserklæringer",
+      "new": "Ny omfangserklæring",
+      "edit": "Rediger omfangserklæring",
+      "back": "Tilbake til omfangserklæringer"
+    },
+    "policy": {
+      "one": "Policy",
+      "plural": "Policyer",
+      "new": "Ny policy",
+      "edit": "Rediger policy",
+      "back": "Tilbake til policyer"
+    },
+    "responsibility": {
+      "one": "Ansvar",
+      "plural": "Roller og ansvar",
+      "new": "Nytt ansvar",
+      "edit": "Rediger ansvar",
+      "back": "Tilbake til roller og ansvar"
+    }
+  },
+  "overview": {
+    "title": "Kontekst og lederskap",
+    "subtitle": "Forstå virksomheten og dem som påvirker den, fastsett omfanget av hvert styringssystem, og vis hvordan ledelsen styrer gjennom policyer og tydelig ansvar.",
+    "askPrompt": "Se på kontekstregistrene våre og fortell meg hva som mangler for et solid fundament under styringssystemene våre.",
+    "registers": "Registre",
+    "controlledCounts": "{{ approved }} godkjent · {{ review }} til godkjenning · {{ draft }} utkast",
+    "activeCount": "{{ count }} aktive",
+    "gapsTitle": "Dette trenger oppmerksomhet",
+    "missingScopes": "Styringssystemer uten godkjent omfang",
+    "addScopeFor": "Legg til en omfangserklæring for {{ framework }}",
+    "allScoped": "Alle rammeverk i omfang har en godkjent omfangserklæring.",
+    "missingPolicies": "Policytyper som ikke er godkjent ennå",
+    "allPolicies": "Alle forventede policytyper har en godkjent policy.",
+    "reviewsOverdue": "Forfalte gjennomganger: {{ count }}",
+    "inReview": "Venter på godkjenning: {{ count }}",
+    "learnTitle": "Lær det grunnleggende",
+    "teachSubject": "virksomhetens kontekst (ISO-punkt 4.1)",
+    "openMatrix": "Åpne RACI-matrisen",
+    "loadError": "Oversikten kunne ikke lastes. Prøv igjen om litt."
+  },
+  "list": {
+    "searchPlaceholder": "Søk på tittel, tekst eller kode (f.eks. POL-3)",
+    "noMatches": "Ingenting passer med disse filtrene.",
+    "loadError": "Listen kunne ikke lastes. Prøv igjen om litt."
+  },
+  "filters": {
+    "status": "Status",
+    "allStatuses": "Alle statuser",
+    "method": "Metode",
+    "allMethods": "Alle metoder",
+    "category": "Kategori",
+    "allCategories": "Alle kategorier",
+    "partyType": "Intern eller ekstern",
+    "allPartyTypes": "Interne og eksterne",
+    "addressed": "Håndtert",
+    "allAddressed": "All håndtering",
+    "policyKind": "Policytype",
+    "allPolicyKinds": "Alle policytyper",
+    "framework": "Rammeverk",
+    "allFrameworks": "Alle rammeverk",
+    "owner": "Eier",
+    "anyOwner": "Alle eiere",
+    "ownerMe": "Eid av meg",
+    "review": "Gjennomgang",
+    "anyReview": "Alle gjennomgangsdatoer",
+    "reviewDue": "Gjennomgang forfalt",
+    "sort": "Sortering"
+  },
+  "sort": {
+    "desc_updated_at": "Sist oppdatert",
+    "updated_at": "Lengst siden oppdatert",
+    "title": "Tittel A–Å",
+    "desc_title": "Tittel Å–A",
+    "code": "Kode (eldste først)",
+    "desc_code": "Kode (nyeste først)",
+    "next_review_at": "Neste gjennomgang"
+  },
+  "fields": {
+    "code": "Kode",
+    "title": "Tittel",
+    "name": "Navn",
+    "method": "Metode",
+    "framework": "Rammeverk",
+    "frameworks": "Rammeverk",
+    "allFrameworks": "Alle styringssystemer",
+    "chooseFramework": "Velg et rammeverk",
+    "summary": "Sammendrag",
+    "items": "Faktorer",
+    "impact": "Betydning",
+    "category": "Kategori",
+    "partyType": "Intern eller ekstern",
+    "description": "Beskrivelse",
+    "needs": "Behov",
+    "expectations": "Forventninger",
+    "requirements": "Relevante krav",
+    "isComplianceObligation": "Noen av disse kravene er etterlevelsesforpliktelser",
+    "addressedStatus": "Håndtert",
+    "howAddressed": "Slik håndterer vi dem",
+    "influence": "Innflytelse",
+    "interest": "Interesse",
+    "priority": "Prioritet",
+    "statement": "Erklæring",
+    "boundaries": "Avgrensninger",
+    "productsServices": "Produkter og tjenester",
+    "sites": "Lokasjoner",
+    "exclusions": "Unntak",
+    "kind": "Policytype",
+    "documents": "Policydokument",
+    "area": "Prosess eller område",
+    "authorities": "Myndighet",
+    "assignments": "RACI-tildelinger",
+    "owner": "Eier",
+    "noOwner": "Ingen eier",
+    "reviewInterval": "Gjennomgås hver (måneder)",
+    "nextReview": "Neste gjennomgang",
+    "lastReviewed": "Sist gjennomgått",
+    "status": "Status",
+    "version": "Versjon",
+    "updated": "Siste endring",
+    "changeReason": "Begrunnelse for endringen"
+  },
+  "status": {
+    "draft": "Utkast",
+    "in_review": "Til godkjenning",
+    "approved": "Godkjent",
+    "retired": "Utgått",
+    "active": "Aktiv",
+    "archived": "Arkivert"
+  },
+  "methods": {
+    "swot": "SWOT",
+    "pestle": "PESTEL"
+  },
+  "categories": {
+    "strength": "Styrker",
+    "weakness": "Svakheter",
+    "opportunity": "Muligheter",
+    "threat": "Trusler",
+    "political": "Politisk",
+    "economic": "Økonomisk",
+    "social": "Sosialt",
+    "technological": "Teknologisk",
+    "legal": "Juridisk",
+    "environmental": "Miljø"
+  },
+  "categoryHints": {
+    "strength": "Internt: det dere gjør godt og kan bygge videre på.",
+    "weakness": "Internt: der dere kommer til kort eller er sårbare.",
+    "opportunity": "Eksternt: endringer dere kan dra nytte av.",
+    "threat": "Eksternt: endringer som kan skade dere.",
+    "political": "Myndighetenes politikk, stabilitet, offentlig finansiering.",
+    "economic": "Markeder, priser, renter, tilgang på arbeidskraft.",
+    "social": "Demografi, kundeatferd, arbeidskultur.",
+    "technological": "Nye verktøy, automatisering, digitale trusler.",
+    "legal": "Lover, forskrifter og avtaler som gjelder.",
+    "environmental": "Klima, ressurser, forurensning og natur."
+  },
+  "levels": {
+    "low": "Lav",
+    "medium": "Middels",
+    "high": "Høy"
+  },
+  "partyCategories": {
+    "customer": "Kunder",
+    "employee": "Ansatte",
+    "owner": "Eiere og investorer",
+    "regulator": "Myndigheter og tilsyn",
+    "supplier": "Leverandører",
+    "partner": "Samarbeidspartnere",
+    "community": "Lokalsamfunn og naboer",
+    "competitor": "Konkurrenter",
+    "other": "Andre"
+  },
+  "partyTypes": {
+    "internal": "Intern",
+    "external": "Ekstern"
+  },
+  "addressed": {
+    "not_addressed": "Ikke håndtert",
+    "partially": "Delvis håndtert",
+    "addressed": "Håndtert",
+    "not_relevant": "Ikke relevant"
+  },
+  "priorities": {
+    "manage_closely": "Følg tett opp",
+    "keep_satisfied": "Hold fornøyd",
+    "keep_informed": "Hold informert",
+    "monitor": "Overvåk"
+  },
+  "priorityHints": {
+    "manage_closely": "Høy innflytelse og høy interesse: involver dem aktivt og hold dem tett på.",
+    "keep_satisfied": "Høy innflytelse, lavere interesse: sørg for at kravene deres blir oppfylt.",
+    "keep_informed": "Høy interesse, lavere innflytelse: hold dem oppdatert.",
+    "monitor": "Lavere innflytelse og interesse: følg med på endringer."
+  },
+  "policyKinds": {
+    "quality": "Kvalitetspolicy",
+    "information_security": "Informasjonssikkerhetspolicy",
+    "environment": "Miljøpolicy",
+    "ai": "KI-policy",
+    "privacy": "Personvernpolicy",
+    "health_safety": "HMS-policy",
+    "other": "Annen policy"
+  },
+  "frameworks": {
+    "iso9001": "ISO 9001",
+    "iso27001": "ISO/IEC 27001",
+    "iso14001": "ISO 14001",
+    "iso42001": "ISO/IEC 42001",
+    "iso45001": "ISO 45001",
+    "gdpr": "GDPR",
+    "eu_ai_act": "EUs KI-forordning",
+    "nis2": "NIS2"
+  },
+  "assigneeTypes": {
+    "user": "Person",
+    "role": "Rolle",
+    "department": "Avdeling"
+  },
+  "analysis": {
+    "noItems": "Ingen faktorer ennå.",
+    "addFactor": "Legg til faktor",
+    "removeFactor": "Fjern faktor",
+    "factorLabel": "Faktor under {{ category }}"
+  },
+  "party": {
+    "obligation": "Etterlevelsesforpliktelse"
+  },
+  "scope": {
+    "noExclusions": "Ingen krav er unntatt.",
+    "clause": "Punkt",
+    "clausePlaceholder": "f.eks. 8.3",
+    "justification": "Hvorfor det ikke gjelder",
+    "addExclusion": "Legg til unntak",
+    "removeExclusion": "Fjern unntak",
+    "sitesPlaceholder": "Én lokasjon per linje"
+  },
+  "policy": {
+    "noDocuments": "Ingen dokumenter koblet ennå. Koble ett under Relaterte elementer.",
+    "document": "Policydokument (valgfritt)",
+    "documentPlaceholder": "Søk i dokumenter på tittel eller kode",
+    "documentHint": "Koble det styrte dokumentet som inneholder den godkjente policyteksten. Du kan koble flere dokumenter senere.",
+    "clearDocument": "Fjern valgt dokument",
+    "noDocumentMatches": "Ingen dokumenter passer."
+  },
+  "raci": {
+    "matrixLink": "RACI-matrise",
+    "matrixTitle": "RACI-matrise",
+    "matrixCaption": "Ansvar (rader) per rolle, avdeling eller person (kolonner)",
+    "matrixEmpty": "Ingen ansvar passer. Legg til ansvar for å bygge matrisen.",
+    "includeArchived": "Ta med arkiverte",
+    "load": "Ansvarlig for resultat / utfører",
+    "loadCell": "A {{ a }} · R {{ r }}",
+    "assignmentCount": "{{ count }} tildelt",
+    "legend": "R utfører arbeidet, A eier resultatet (nøyaktig én), C rådføres på forhånd, I informeres i etterkant.",
+    "who": "Person, rolle eller avdeling",
+    "letter": "RACI-bokstav",
+    "remove": "Fjern tildeling",
+    "add": "Legg til en person, rolle eller avdeling",
+    "addHint": "Velg noen for å legge dem til dette ansvaret.",
+    "areaPlaceholder": "f.eks. Innkjøp, Hendelseshåndtering",
+    "nobody": "Ingen",
+    "roles": {
+      "R": "Utfører (R)",
+      "A": "Ansvarlig (A)",
+      "C": "Rådført (C)",
+      "I": "Informert (I)"
+    },
+    "warnings": {
+      "no_accountable": "Mangler A",
+      "no_responsible": "Mangler R"
+    },
+    "warningText": {
+      "no_accountable": "Ingen er ansvarlig for resultatet (A). Velg nøyaktig én eier.",
+      "no_responsible": "Ingen er utfører (R). Velg hvem som gjør arbeidet."
+    }
+  },
+  "actions": {
+    "edit": "Rediger",
+    "submit": "Send til godkjenning",
+    "approve": "Godkjenn",
+    "return": "Send tilbake til utkast",
+    "review": "Merk som gjennomgått",
+    "retire": "Sett som utgått",
+    "delete": "Slett",
+    "communicate": "Kommuniser"
+  },
+  "lifecycle": {
+    "approve": {
+      "title": "Godkjenn",
+      "message": "Godkjenn «{{ title }}». Den blir gjeldende godkjente versjon.",
+      "label": "Kommentar (valgfritt)"
+    },
+    "return": {
+      "title": "Send tilbake til utkast",
+      "message": "Send «{{ title }}» tilbake til utkast. Skriv hva som må endres.",
+      "label": "Begrunnelse"
+    },
+    "review": {
+      "title": "Merk som gjennomgått",
+      "message": "Bekreft at «{{ title }}» er gjennomgått og fortsatt gjelder. Neste gjennomgang flyttes med gjennomgangsintervallet.",
+      "label": "Notater fra gjennomgangen (valgfritt)"
+    },
+    "retire": {
+      "title": "Sett som utgått",
+      "message": "Sett «{{ title }}» som utgått. Et utgått element beholdes i historikken, men kan ikke lenger redigeres.",
+      "label": "Begrunnelse (valgfritt)"
+    }
+  },
+  "delete": {
+    "title": "Slett element",
+    "message": "Slette «{{ title }}»? Åpne oppgaver kanselleres. Elementet beholdes i revisjonssporet."
+  },
+  "detail": {
+    "notFound": "Elementet finnes ikke, eller du har ikke tilgang til det.",
+    "actions": "Handlinger",
+    "reviewOverdue": "Gjennomgang forfalt",
+    "approvedHint": "Denne versjonen er godkjent. Endrer du innholdet, startes en ny utkastversjon, og du må oppgi en begrunnelse.",
+    "retiredHint": "Dette elementet er utgått og kan bare leses.",
+    "approved": "Godkjent",
+    "submitted": "Sendt til godkjenning",
+    "byOn": "{{ name }}, {{ date }}",
+    "everyMonths": "Hver {{ count }}. måned"
+  },
+  "form": {
+    "ownershipTitle": "Eierskap og gjennomgang",
+    "archived": "Arkivert (beholdes som dokumentasjon, skjules fra aktive lister)",
+    "approvedNotice": "Du redigerer en godkjent versjon. Endrer du innholdet, startes en ny utkastversjon som må godkjennes på nytt. Endrer du bare eier eller gjennomgangsinnstillinger, skjer ikke det.",
+    "reasonRequired": "Påkrevd: hvorfor endres det godkjente innholdet?",
+    "reasonOptional": "Valgfritt: hvorfor endrer du dette?",
+    "save": "Lagre endringer",
+    "create": "Opprett",
+    "problems": {
+      "title": "Skriv inn en tittel.",
+      "name": "Skriv inn et navn.",
+      "framework": "Velg hvilket rammeverk omfanget gjelder.",
+      "interval": "Gjennomgangsintervallet må være et helt antall måneder fra 1 til 60.",
+      "exclusion": "Hvert unntak må ha både et punkt og en begrunnelse."
+    }
+  },
+  "communicate": {
+    "title": "Kommuniser policy",
+    "intro": "Be folk lese og bekrefte denne policyen. De får en oppgave i Mitt arbeid.",
+    "assignee": "Hvem skal bekrefte",
+    "due": "Frist (valgfritt)",
+    "message": "Melding (valgfritt)",
+    "messagePlaceholder": "f.eks. Les den oppdaterte policyen før teammøtet.",
+    "send": "Send",
+    "sent": "Bekreftelsesoppgaven er opprettet."
+  },
+  "ai": {
+    "groupLabel": "Assistenthandlinger",
+    "summarise": "Oppsummer",
+    "improve": {
+      "analysis": "Finn hull",
+      "party": "Sjekk behov og forventninger",
+      "scope": "Sjekk omfanget",
+      "policy": "Gå gjennom policyen",
+      "responsibility": "Sjekk RACI"
+    },
+    "draftAnalysis": "Lag utkast fra virksomhetsprofilen",
+    "suggestParties": "Foreslå interessenter",
+    "draftPolicy": "Lag utkast til policytekst",
+    "draftScope": "Lag utkast til omfangserklæring",
+    "draftHint": "Bruker virksomhetsprofilen. Gå gjennom utkastet før du lagrer.",
+    "suggestHint": "Forslagene bruker virksomhetsprofilen. Velg ett for å fylle ut skjemaet.",
+    "suggestionsTitle": "Foreslåtte interessenter",
+    "useSuggestion": "Bruk",
+    "prompts": {
+      "summarise": "Oppsummer {{ type }} {{ code }} «{{ title }}» med noen få setninger til en ledelsens gjennomgang.",
+      "explain": "Forklar hva en {{ type }} er, hvilke ISO-punkter som krever den, og hva en revisor ser etter.",
+      "matrix": "Gå gjennom RACI-matrisen vår: hvor mangler ansvar, hvor er det uklart, og hvor ligger det på for få personer?",
+      "scopeExclusions": "Hvilke krav kan en omfangserklæring unnta, og hvordan bør begrunnelsen skrives?",
+      "improve": {
+        "analysis": "Gå gjennom kontekstanalyse {{ code }} «{{ title }}». Hvilke viktige interne eller eksterne forhold mangler, og hvilke faktorer er uklare?",
+        "party": "Gå gjennom interessent {{ code }} «{{ title }}». Er behov og forventninger komplette, og hvilke av dem er etterlevelsesforpliktelser?",
+        "scope": "Gå gjennom omfangserklæring {{ code }} «{{ title }}». Er avgrensninger, lokasjoner og unntak tydelige og begrunnet?",
+        "policy": "Gå gjennom policy {{ code }} «{{ title }}» mot ISO-punkt 5.2. Inneholder den de påkrevde forpliktelsene, og passer den formålet vårt?",
+        "responsibility": "Gå gjennom ansvar {{ code }} «{{ title }}». Er det nøyaktig én ansvarlig for resultatet, og er myndigheten tydelig?"
+      }
+    }
+  },
+  "lessons": {
+    "button": "{{ title }} ({{ minutes }} min)",
+    "minutes": "Leksjon på {{ minutes }} minutter"
+  },
+  "notices": {
+    "created": "{{ code }} er opprettet.",
+    "saved": "Endringene er lagret.",
+    "deleted": "{{ code }} er slettet.",
+    "submit": "{{ code }} er sendt til godkjenning.",
+    "approve": "{{ code }} er godkjent.",
+    "return": "{{ code }} er sendt tilbake til utkast.",
+    "review": "{{ code }} er merket som gjennomgått.",
+    "retire": "{{ code }} er satt som utgått."
+  },
+  "errors": {
+    "module_disabled": "Kontekst og lederskap er slått av for denne virksomheten.",
+    "record_retired": "Et utgått element kan ikke lenger redigeres.",
+    "change_reason_required": "Skriv hvorfor det godkjente innholdet endres.",
+    "invalid_status": "Dette steget er ikke mulig i elementets nåværende status. Last inn på nytt og prøv igjen.",
+    "invalid_category": "En av faktorene har en kategori som ikke hører til denne metoden.",
+    "invalid_owner": "Eieren må være medlem av virksomheten.",
+    "invalid_owner_filter": "Eierfilteret er ikke gyldig.",
+    "field_required": "Et påkrevd felt er tomt.",
+    "multiple_accountable": "Bare én kan være ansvarlig for resultatet (A).",
+    "duplicate_assignment": "Hver person, rolle eller avdeling kan bare stå én gang.",
+    "invalid_assignee": "Personen, rollen eller avdelingen er ikke gyldig i denne virksomheten.",
+    "not_controlled": "Denne elementtypen har ingen godkjenningssteg.",
+    "invalid_arguments": "Noen verdier er ikke gyldige.",
+    "forbidden": "Du har ikke tilgang til å gjøre dette.",
+    "not_found": "Elementet (eller et koblet dokument) ble ikke funnet.",
+    "validation": "Noen verdier er ikke gyldige. Sjekk skjemaet og prøv igjen."
+  },
+  "notifications": {
+    "analysisCreated": "Ny kontekstanalyse {{ code }}: {{ title }}",
+    "analysisUpdated": "Kontekstanalyse {{ code }} er oppdatert: {{ title }}",
+    "analysisDeleted": "Kontekstanalyse {{ code }} er slettet: {{ title }}",
+    "analysisOwnerChanged": "Du eier nå kontekstanalyse {{ code }}: {{ title }}",
+    "analysisSubmitted": "Kontekstanalyse {{ code }} venter på godkjenning: {{ title }}",
+    "analysisApproved": "Kontekstanalyse {{ code }} er godkjent: {{ title }}",
+    "analysisReturned": "Kontekstanalyse {{ code }} er sendt tilbake til utkast: {{ title }}",
+    "analysisReviewed": "Kontekstanalyse {{ code }} er gjennomgått: {{ title }}",
+    "analysisRetired": "Kontekstanalyse {{ code }} er satt som utgått: {{ title }}",
+    "partyCreated": "Ny interessent {{ code }}: {{ title }}",
+    "partyUpdated": "Interessent {{ code }} er oppdatert: {{ title }}",
+    "partyDeleted": "Interessent {{ code }} er slettet: {{ title }}",
+    "partyOwnerChanged": "Du eier nå interessent {{ code }}: {{ title }}",
+    "scopeCreated": "Ny omfangserklæring {{ code }}: {{ title }}",
+    "scopeUpdated": "Omfangserklæring {{ code }} er oppdatert: {{ title }}",
+    "scopeDeleted": "Omfangserklæring {{ code }} er slettet: {{ title }}",
+    "scopeOwnerChanged": "Du eier nå omfangserklæring {{ code }}: {{ title }}",
+    "scopeSubmitted": "Omfangserklæring {{ code }} venter på godkjenning: {{ title }}",
+    "scopeApproved": "Omfangserklæring {{ code }} er godkjent: {{ title }}",
+    "scopeReturned": "Omfangserklæring {{ code }} er sendt tilbake til utkast: {{ title }}",
+    "scopeReviewed": "Omfangserklæring {{ code }} er gjennomgått: {{ title }}",
+    "scopeRetired": "Omfangserklæring {{ code }} er satt som utgått: {{ title }}",
+    "scopeSuperseded": "Omfangserklæring {{ code }} er erstattet av et nyere godkjent omfang: {{ title }}",
+    "policyCreated": "Ny policy {{ code }}: {{ title }}",
+    "policyUpdated": "Policy {{ code }} er oppdatert: {{ title }}",
+    "policyDeleted": "Policy {{ code }} er slettet: {{ title }}",
+    "policyOwnerChanged": "Du eier nå policy {{ code }}: {{ title }}",
+    "policySubmitted": "Policy {{ code }} venter på godkjenning: {{ title }}",
+    "policyApproved": "Policy {{ code }} er godkjent: {{ title }}",
+    "policyReturned": "Policy {{ code }} er sendt tilbake til utkast: {{ title }}",
+    "policyReviewed": "Policy {{ code }} er gjennomgått: {{ title }}",
+    "policyRetired": "Policy {{ code }} er satt som utgått: {{ title }}",
+    "policyCommunicated": "Les og bekreft policy {{ code }}: {{ title }}",
+    "responsibilityCreated": "Nytt ansvar {{ code }}: {{ title }}",
+    "responsibilityUpdated": "Ansvar {{ code }} er oppdatert: {{ title }}",
+    "responsibilityDeleted": "Ansvar {{ code }} er slettet: {{ title }}",
+    "responsibilityOwnerChanged": "Du eier nå ansvar {{ code }}: {{ title }}",
+    "responsibilityAssigned": "Du har en rolle i ansvar {{ code }}: {{ title }}"
+  },
+  "timeline": {
+    "analysisCreated": "{{ actor_name }} opprettet analysen",
+    "analysisUpdated": "{{ actor_name }} oppdaterte analysen",
+    "analysisDeleted": "{{ actor_name }} slettet analysen",
+    "analysisOwnerChanged": "{{ actor_name }} endret eier",
+    "analysisSubmitted": "{{ actor_name }} sendte den til godkjenning",
+    "analysisApproved": "{{ actor_name }} godkjente den",
+    "analysisReturned": "{{ actor_name }} sendte den tilbake til utkast",
+    "analysisReviewed": "{{ actor_name }} merket den som gjennomgått",
+    "analysisRetired": "{{ actor_name }} satte den som utgått",
+    "partyCreated": "{{ actor_name }} registrerte interessenten",
+    "partyUpdated": "{{ actor_name }} oppdaterte interessenten",
+    "partyDeleted": "{{ actor_name }} slettet interessenten",
+    "partyOwnerChanged": "{{ actor_name }} endret eier",
+    "scopeCreated": "{{ actor_name }} opprettet omfangserklæringen",
+    "scopeUpdated": "{{ actor_name }} oppdaterte omfangserklæringen",
+    "scopeDeleted": "{{ actor_name }} slettet omfangserklæringen",
+    "scopeOwnerChanged": "{{ actor_name }} endret eier",
+    "scopeSubmitted": "{{ actor_name }} sendte den til godkjenning",
+    "scopeApproved": "{{ actor_name }} godkjente den",
+    "scopeReturned": "{{ actor_name }} sendte den tilbake til utkast",
+    "scopeReviewed": "{{ actor_name }} merket den som gjennomgått",
+    "scopeRetired": "{{ actor_name }} satte den som utgått",
+    "scopeSuperseded": "Erstattet av en nyere godkjent omfangserklæring",
+    "policyCreated": "{{ actor_name }} opprettet policyen",
+    "policyUpdated": "{{ actor_name }} oppdaterte policyen",
+    "policyDeleted": "{{ actor_name }} slettet policyen",
+    "policyOwnerChanged": "{{ actor_name }} endret eier",
+    "policySubmitted": "{{ actor_name }} sendte den til godkjenning",
+    "policyApproved": "{{ actor_name }} godkjente den",
+    "policyReturned": "{{ actor_name }} sendte den tilbake til utkast",
+    "policyReviewed": "{{ actor_name }} merket den som gjennomgått",
+    "policyRetired": "{{ actor_name }} satte den som utgått",
+    "policyCommunicated": "{{ actor_name }} ba folk bekrefte den",
+    "responsibilityCreated": "{{ actor_name }} opprettet ansvaret",
+    "responsibilityUpdated": "{{ actor_name }} oppdaterte ansvaret",
+    "responsibilityDeleted": "{{ actor_name }} slettet ansvaret",
+    "responsibilityOwnerChanged": "{{ actor_name }} endret eier",
+    "responsibilityAssigned": "{{ actor_name }} tildelte nye personer, roller eller avdelinger"
+  }
+}

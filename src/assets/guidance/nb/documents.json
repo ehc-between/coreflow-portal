@@ -1,0 +1,596 @@
+{
+  "pages": {
+    "register": {
+      "intro": {
+        "title": "Dokumentoversikten",
+        "body": "Én oversikt over alle styrte dokumenter: kode, type, gjeldende revisjon, når det ble godkjent, hvem som eier det og når det skal gjennomgås neste gang. Ta med **eksterne dokumenter** for å se alt folk jobber etter, på ett sted.",
+        "steps": [
+          "Filtrer på type eller status, eller huk av for **Gjennomgang forfalt** for å finne dokumenter som trenger oppfølging.",
+          "Huk av for **Mine** for å se dokumentene du eier.",
+          "Bruk **Eksporter CSV** for å gi en revisor den gjeldende oversikten."
+        ]
+      },
+      "why": {
+        "body": "Revisorer starter ofte med dokumentoversikten: er hvert dokument identifisert, godkjent, oppdatert og har en eier? En oversikt som alltid er oppdatert, viser at dokumentert informasjon er under kontroll.",
+        "clauses": ["hs:7.5", "hs:7.5.3", "iso27001:A.5.37"]
+      },
+      "empty": {
+        "title": "Ingen dokumenter ennå",
+        "body": "Oversikten fyller seg selv når du lager dokumenter. Start med dokumentene organisasjonen allerede bruker: policyer, prosedyrer og arbeidsinstrukser.",
+        "cta": "Lag et dokument"
+      }
+    },
+    "campaigns": {
+      "intro": {
+        "title": "Sørg for at folk har lest det",
+        "body": "En kampanje sender gjeldende godkjente revisjon av et dokument til en gruppe personer. Med **lest og forstått** får alle en oppgave og bekrefter at de har lest og forstått det, slik at du kan vise hvem som kjenner til en endring.",
+        "steps": [
+          "Velg et godkjent dokument og hvem som trenger det: personer, roller, avdelinger eller alle.",
+          "Sett en frist og start kampanjen. Hver person får en oppgave.",
+          "Følg fremdriften her, påminn dem som ikke har bekreftet, og avslutt kampanjen når du er ferdig."
+        ]
+      },
+      "why": {
+        "body": "Standardene krever at folk kjenner til dokumentene som påvirker arbeidet deres, og at endringer blir kommunisert. En kampanje med bekreftelser er enkel dokumentasjon på det.",
+        "clauses": ["hs:7.3", "hs:7.4", "hs:7.5.3"]
+      },
+      "empty": {
+        "title": "Ingen kampanjer ennå",
+        "body": "Når et nytt eller endret dokument er viktig for mange, distribuer det med en kampanje i stedet for en e-post. Da ser du nøyaktig hvem som har lest det.",
+        "cta": "Start en kampanje"
+      }
+    },
+    "campaignForm": {
+      "intro": {
+        "title": "Planlegg kampanjen",
+        "body": "Velg dokumentet, målgruppen og en realistisk frist. Lagre som utkast for å sjekke det med en kollega, eller start med en gang.",
+        "steps": [
+          "Bare godkjente dokumenter kan distribueres.",
+          "Personer som ikke kan lese dokumentet, hoppes over automatisk.",
+          "Slå av **lest og forstått** hvis du bare vil informere."
+        ]
+      },
+      "why": {
+        "body": "Å kommunisere endringer til de rette personene, og vite at de har forstått dem, er en del av å holde dokumentert informasjon virksom.",
+        "clauses": ["hs:7.3", "hs:7.4"]
+      },
+      "fields": {
+        "document": {
+          "help": "Kampanjen sender revisjonen som er godkjent når du starter den. Senere revisjoner trenger en ny kampanje.",
+          "example": "PR-004 Behandling av kundeklager"
+        },
+        "due": {
+          "help": "Når alle bør ha lest dokumentet. Mottakere som passerer datoen, vises som over fristen.",
+          "example": "To uker etter start"
+        },
+        "audience": {
+          "help": "Legg til personer, roller eller avdelinger. Velg **Alle** for dokumenter som gjelder hele organisasjonen, som en policy.",
+          "example": "Rolle: Kvalitetsleder, Avdeling: Produksjon"
+        }
+      }
+    },
+    "campaignDetail": {
+      "intro": {
+        "title": "Følg opp kampanjen",
+        "body": "Se hvem som har bekreftet og hvem som venter eller er over fristen. Påminn dem som venter, legg til personer som har kommet til, og avslutt kampanjen når den har gjort jobben sin."
+      },
+      "why": {
+        "body": "Listen over bekreftelser er dokumentasjonen en revisor ber om når et dokument er endret: hvem ble informert, og når bekreftet de.",
+        "clauses": ["hs:7.3", "hs:7.5.3"]
+      }
+    },
+    "external": {
+      "intro": {
+        "title": "Dokumenter utenfra",
+        "body": "Standarder, lover, kundespesifikasjoner og leverandørmanualer er også dokumenter dere jobber etter, men som dere ikke skriver selv. Registrer dem her med utgiver og versjon, og sjekk av og til at dere fortsatt bruker utgaven som gjelder.",
+        "steps": [
+          "Registrer hvert eksterne dokument én gang, med versjon eller utgave.",
+          "Sett et gjennomgangsintervall, så blir du påminnet om å se etter nye utgaver.",
+          "Når en ny utgave kommer, oppdater versjonen og registrer en gjennomgang."
+        ]
+      },
+      "why": {
+        "body": "Standardene krever at nødvendige dokumenter av ekstern opprinnelse identifiseres og styres. Å jobbe etter en utdatert standard eller spesifikasjon er et vanlig revisjonsfunn.",
+        "clauses": ["hs:7.5.3", "iso27001:A.5.37"]
+      },
+      "empty": {
+        "title": "Ingen eksterne dokumenter registrert",
+        "body": "Tenk på standardene dere er sertifisert etter, lover og forskrifter som gjelder, og spesifikasjoner fra viktige kunder. Registrer dem som faktisk brukes.",
+        "cta": "Registrer det første"
+      }
+    },
+    "externalForm": {
+      "intro": {
+        "title": "Registrer et eksternt dokument",
+        "body": "Beskriv hvor dokumentet kommer fra og hvilken utgave dere bruker. En lenke til kilden hjelper andre å finne det."
+      },
+      "why": {
+        "body": "Når utgiver og utgave er kjent, kan dere sjekke om dere jobber etter gjeldende versjon.",
+        "clauses": ["hs:7.5.3"]
+      },
+      "fields": {
+        "publisher": {
+          "help": "Hvem som gir ut dokumentet: et standardiseringsorgan, en myndighet, en kunde eller en leverandør.",
+          "example": "Standard Norge"
+        },
+        "version": {
+          "help": "Utgaven, versjonen eller datoen som viser nøyaktig hvilket dokument dere bruker.",
+          "example": "2015 + A1:2024"
+        },
+        "reviewInterval": {
+          "help": "Hvor ofte dere sjekker at dette fortsatt er utgaven som gjelder. Du får en påminnelse når det er tid.",
+          "example": "12"
+        }
+      }
+    },
+    "externalDetail": {
+      "intro": {
+        "title": "Ett eksternt dokument",
+        "body": "Sjekk utgaven og lenken, og bruk **Marker som gjennomgått** når du har bekreftet at den fortsatt gjelder."
+      },
+      "why": {
+        "body": "Registrerte gjennomganger viser at eksterne dokumenter holdes under kontroll, ikke bare listes opp én gang.",
+        "clauses": ["hs:7.5.3"]
+      }
+    },
+    "types": {
+      "intro": {
+        "title": "Typer dokumenter",
+        "body": "En dokumenttype (prosedyre, arbeidsinstruks, policy, skjema) gir nye dokumenter en automatisk kode og fornuftige standardverdier: hvor ofte de gjennomgås, om leserne må bekrefte dem, og hvor lenge de oppbevares.",
+        "steps": [
+          "Lag en type for hver type dokument dere har.",
+          "Gi den et prefiks som **PR**, så blir kodene PR-001, PR-002 og så videre.",
+          "Sett gjennomgangsintervallet og oppbevaringsregelen som vanligvis gjelder."
+        ]
+      },
+      "why": {
+        "body": "Entydig identifikasjon og jevnlig gjennomgang er grunnleggende kontroller for dokumentert informasjon. Typer gjør dem automatiske.",
+        "clauses": ["hs:7.5.2", "hs:7.5"]
+      },
+      "empty": {
+        "title": "Ingen dokumenttyper ennå",
+        "body": "Uten typer skrives dokumentkodene inn for hånd. Lag noen typer (for eksempel Policy, Prosedyre og Arbeidsinstruks) for å få automatisk nummerering.",
+        "cta": "Lag en dokumenttype"
+      }
+    },
+    "typeForm": {
+      "intro": {
+        "title": "Sett opp en dokumenttype",
+        "body": "Velg en kort nøkkel og et navn, og deretter nummereringen. Forhåndsvisningen viser koden neste dokument får."
+      },
+      "why": {
+        "body": "Konsekvente koder gjør dokumenter lette å henvise til, og standard gjennomgangsintervall hindrer at dokumenter blir utdaterte.",
+        "clauses": ["hs:7.5.2"]
+      },
+      "fields": {
+        "key": {
+          "help": "En kort identifikator som lagres på alle dokumenter av typen. Den kan ikke endres senere.",
+          "example": "prosedyre"
+        },
+        "pattern": {
+          "help": "Hvordan kodene bygges. **{prefix}** er prefikset, **{year}** inneværende år og **{seq:03}** løpenummeret fylt ut til tre sifre. La stå tomt for standard.",
+          "example": "{prefix}-{year}-{seq:03}"
+        },
+        "reviewInterval": {
+          "help": "Nye dokumenter av typen skal gjennomgås så mange måneder etter godkjenning.",
+          "example": "24"
+        }
+      }
+    },
+    "templates": {
+      "intro": {
+        "title": "Start fra en god struktur",
+        "body": "En mal inneholder overskriftene og standardteksten en type dokument bør ha. Nye dokumenter laget fra en mal starter med den strukturen og er koblet tilbake til malen.",
+        "steps": [
+          "Lag en mal for hver dokumenttype dere skriver ofte.",
+          "Bruk **Lag utkast med KI** for å få en første struktur fra et krav i en standard.",
+          "Åpne en mal og velg **Bruk malen** for å lage et dokument fra den."
+        ]
+      },
+      "why": {
+        "body": "Maler gir dokumentene et enhetlig format, som standardene krever, og gjør det lettere for forfattere å dekke det som kreves.",
+        "clauses": ["hs:7.5.2", "iso27001:A.5.37"]
+      },
+      "empty": {
+        "title": "Ingen maler ennå",
+        "body": "Start med dokumentet dere skriver oftest, for eksempel en prosedyre. Legg inn overskriftene alle prosedyrer bør ha: formål, omfang, ansvar, fremgangsmåte og registreringer.",
+        "cta": "Lag en mal"
+      }
+    },
+    "templateForm": {
+      "intro": {
+        "title": "Skriv malen",
+        "body": "Skriv strukturen én gang. Plassholdertekst i malen hjelper forfatterne å vite hva de skal fylle inn."
+      },
+      "why": {
+        "body": "Et enhetlig format er en av kontrollene standardene setter for å lage og oppdatere dokumentert informasjon.",
+        "clauses": ["hs:7.5.2"]
+      },
+      "fields": {
+        "type": {
+          "help": "Dokumenttypen malen er laget for. Nye dokumenter fra malen får denne typen og den automatiske koden.",
+          "example": "Prosedyre"
+        }
+      }
+    },
+    "retention": {
+      "intro": {
+        "title": "Hvor lenge registreringer oppbevares",
+        "body": "En oppbevaringsregel sier hvor lenge en type registrering oppbevares, regnet fra når den ble opprettet, godkjent eller utgått, og hva som skjer til slutt: slette, arkivere eller vurdere.",
+        "steps": [
+          "Lag en regel for hvert oppbevaringskrav dere har, med rettslig grunnlag.",
+          "Knytt reglene til dokumenttyper og eksterne dokumenter.",
+          "Sjekk **Klar for avhending** jevnlig, og avhend registreringer gjennom de vanlige stegene."
+        ]
+      },
+      "why": {
+        "body": "Å oppbevare registreringer lenge nok er et krav i lover og standarder, og å oppbevare personopplysninger lenger enn nødvendig bryter personvernregelverket. Oppbevaringsregler gjør begge deler synlig.",
+        "clauses": ["hs:7.5.3", "iso27001:A.5.33", "gdpr:5"]
+      },
+      "empty": {
+        "title": "Ingen oppbevaringsregler ennå",
+        "body": "Start med det loven krever, som regnskapsmateriale eller personalmapper, og det egne prosedyrer sier om kvalitetsregistreringer.",
+        "cta": "Lag en oppbevaringsregel"
+      }
+    },
+    "retentionForm": {
+      "intro": {
+        "title": "Definer en oppbevaringsregel",
+        "body": "Si hva regelen gjelder, hvor lenge registreringene oppbevares, fra hvilket tidspunkt, og hva som skjer til slutt. Noter det rettslige grunnlaget så andre vet hvorfor."
+      },
+      "why": {
+        "body": "Registreringer skal beskyttes og oppbevares så lenge det trengs, og ikke lenger når de inneholder personopplysninger.",
+        "clauses": ["iso27001:A.5.33", "gdpr:5"]
+      },
+      "fields": {
+        "months": {
+          "help": "Hvor mange måneder registreringen skal oppbevares. 0 betyr at den kan avhendes så snart utløseren inntreffer.",
+          "example": "60 (fem år)"
+        },
+        "trigger": {
+          "help": "Når oppbevaringstiden starter: da registreringen ble opprettet, godkjent eller ble utgått.",
+          "example": "Fra det ble utgått"
+        },
+        "disposition": {
+          "help": "Hva som skal skje når perioden er ute. **Vurder** betyr at noen bestemmer om den skal beholdes eller slettes.",
+          "example": "Slett"
+        }
+      }
+    },
+    "compare": {
+      "intro": {
+        "title": "Hva er endret, og hvorfor",
+        "body": "Velg to revisjoner for å se endringene avsnitt for avsnitt. Ny tekst er grønn, fjernet tekst er rød, og endrede avsnitt viser ordene som er endret.",
+        "steps": [
+          "Som standard sammenlignes nyeste revisjon med den forrige.",
+          "Velg **Sammenlign fra** og **Sammenlign med** på hvilke som helst to revisjoner.",
+          "Bruk **Lag utkast til endringsbegrunnelse** for å få et sammendrag du kan bruke når du sender en revisjon."
+        ]
+      },
+      "why": {
+        "body": "Endringer i dokumentert informasjon skal identifiseres og gjennomgås. En tydelig endringshistorikk lar godkjennere og revisorer se nøyaktig hva som er endret.",
+        "clauses": ["hs:7.5.2", "hs:7.5.3"]
+      }
+    },
+    "newDocument": {
+      "intro": {
+        "title": "Lag et dokument",
+        "body": "Velg en type for å få en automatisk kode, start fra en mal eller et KI-utkast, og skriv så innholdet."
+      },
+      "why": {
+        "body": "Hvert styrte dokument trenger en entydig identifikasjon og må gjennomgås og godkjennes før bruk.",
+        "clauses": ["hs:7.5.2"]
+      },
+      "fields": {
+        "type": {
+          "help": "Hva slags dokument det er. Typer som er satt opp under **Typer**, gir dokumentet en automatisk kode og et standard gjennomgangsintervall.",
+          "example": "Prosedyre"
+        },
+        "template": {
+          "help": "Start fra en mal for å få strukturen. Dokumentet lages først og åpnes i redigeringsverktøyet.",
+          "example": "Standard prosedyre"
+        }
+      }
+    },
+    "draft": {
+      "intro": {
+        "title": "Lag utkast med KI",
+        "body": "Oppgi en kravreferanse eller beskriv prosessen, og få et første utkast å jobbe videre med."
+      },
+      "why": {
+        "body": "Et utkast er et utgangspunkt. Organisasjonen bestemmer fortsatt hva dokumentet skal si, og godkjenner det.",
+        "clauses": ["hs:7.5.2"]
+      },
+      "fields": {
+        "requirement": {
+          "help": "Et krav i en standard, skrevet som standard og punkt. Utkastet dekker da det kravet ber om.",
+          "example": "iso9001:7.5"
+        }
+      }
+    }
+  },
+  "lessons": {
+    "master-list": {
+      "title": "Hold dokumentene under kontroll",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Hva dokumentstyring betyr",
+          "body": "Dokumentert informasjon skal være **identifisert** (kode og tittel), **godkjent** før bruk, **tilgjengelig** der den trengs, og **beskyttet** mot utilsiktede endringer. Gamle versjoner må ikke brukes ved en feil."
+        },
+        {
+          "heading": "Dokumentoversikten",
+          "body": "Dokumentoversikten viser alle styrte dokumenter med kode, gjeldende revisjon, eier og neste gjennomgang. Det er den raskeste måten å svare på spørsmålet: jobber vi etter de riktige dokumentene?"
+        },
+        {
+          "heading": "Hold den oppdatert",
+          "body": "Gi hvert dokument en eier og et gjennomgangsintervall. Når en gjennomgang forfaller, sjekker eieren at dokumentet fortsatt stemmer, oppdaterer eller bekrefter det, og neste dato flyttes frem."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Hvilket av disse er en del av å styre dokumentert informasjon?",
+          "options": [
+            "Godkjenne dokumenter før de tas i bruk",
+            "Skrive ut alle dokumenter",
+            "La alle redigere den godkjente versjonen"
+          ],
+          "answer": 0,
+          "explanation": "Godkjenning før bruk er en av de grunnleggende kontrollene. Godkjente versjoner beskyttes, de redigeres ikke fritt."
+        },
+        {
+          "question": "Hva forteller fristen for gjennomgang på et dokument deg?",
+          "options": [
+            "Når dokumentet slettes",
+            "Når eieren bør sjekke at det fortsatt stemmer",
+            "Når det først ble skrevet"
+          ],
+          "answer": 1,
+          "explanation": "Jevnlig gjennomgang holder dokumentene oppdatert. Eieren sjekker innholdet og bekrefter eller oppdaterer det."
+        }
+      ],
+      "pass_mark": 0.5
+    },
+    "read-and-acknowledge": {
+      "title": "Lest og forstått",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Hvorfor bekreftelse er viktig",
+          "body": "En ny eller endret prosedyre hjelper bare hvis de som skal følge den, kjenner til den. **Lest og forstått** gjør det til dokumentasjon: hver person bekrefter at de har lest og forstått dokumentet."
+        },
+        {
+          "heading": "Kjør en kampanje",
+          "body": "Velg det godkjente dokumentet, målgruppen og en frist, og start. Alle får en oppgave. Etter hvert som folk bekrefter, fylles fremdriftslinjen. Påminn dem som venter."
+        },
+        {
+          "heading": "Når dokumentet endres igjen",
+          "body": "En kampanje gjelder én godkjent revisjon. Når en senere revisjon godkjennes, start en ny kampanje hvis endringen er viktig for folk."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Hvilken revisjon sender en kampanje?",
+          "options": [
+            "Arbeidsutkastet",
+            "Revisjonen som er godkjent når kampanjen startes",
+            "Alle revisjoner"
+          ],
+          "answer": 1,
+          "explanation": "Bare godkjente revisjoner distribueres, så ingen bekrefter et utkast som ikke er godkjent."
+        },
+        {
+          "question": "En person begynte i teamet etter start. Hva gjør du?",
+          "options": [
+            "Starter kampanjen på nytt",
+            "Legger personen til som mottaker i den aktive kampanjen",
+            "Ingenting"
+          ],
+          "answer": 1,
+          "explanation": "Du kan legge til mottakere i en aktiv kampanje. De får en oppgave som alle andre."
+        }
+      ],
+      "pass_mark": 0.5
+    },
+    "external-documents": {
+      "title": "Eksterne dokumenter",
+      "minutes": 3,
+      "sections": [
+        {
+          "heading": "Hva som regnes som eksternt",
+          "body": "Dokumenter dere ikke har skrevet, men må følge: standarder, lover og forskrifter, kundespesifikasjoner, leverandørmanualer og sikkerhetsdatablader."
+        },
+        {
+          "heading": "Slik styrer du dem",
+          "body": "Registrer hvert dokument med utgiver og versjon, så alle bruker samme utgave. Sett et gjennomgangsintervall, og sjekk av og til om en ny utgave er kommet."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Hvorfor registrere versjonen av et eksternt dokument?",
+          "options": [
+            "For å vite om dere jobber etter utgaven som gjelder",
+            "Fordi utgiveren krever det",
+            "Det er ikke nyttig"
+          ],
+          "answer": 0,
+          "explanation": "Versjonen forteller nøyaktig hvilken utgave dere bygger på, så dere merker når en nyere erstatter den."
+        }
+      ],
+      "pass_mark": 1
+    },
+    "numbering-and-types": {
+      "title": "Dokumenttyper, nummerering og maler",
+      "minutes": 3,
+      "sections": [
+        {
+          "heading": "Hvorfor koder er viktige",
+          "body": "En entydig kode som **PR-007** gjør et dokument lett å henvise til i andre dokumenter, opplæring og revisjoner, selv om tittelen endres."
+        },
+        {
+          "heading": "Automatisk nummerering",
+          "body": "Gi en type et prefiks og eventuelt et mønster. Hvert nye dokument av typen får neste nummer automatisk. Koder som allerede er i bruk, hoppes over."
+        },
+        {
+          "heading": "Maler",
+          "body": "En mal gir alle dokumenter av en type samme struktur. Dokumenter som lages fra en mal, kobles til den, så du ser hvor de kommer fra."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Med prefiks PR og mønster {prefix}-{seq:03}, hva blir koden til det 7. dokumentet?",
+          "options": ["PR-7", "PR-007", "007-PR"],
+          "answer": 1,
+          "explanation": "{seq:03} fyller løpenummeret ut til tre sifre, så 7 blir 007."
+        }
+      ],
+      "pass_mark": 1
+    },
+    "retention-basics": {
+      "title": "Oppbevaring av registreringer",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Oppbevar lenge nok",
+          "body": "Lover og standarder sier hvor lenge enkelte registreringer skal oppbevares, for eksempel regnskapsmateriale eller opplæringsregistreringer. En oppbevaringsregel gjør kravet tydelig."
+        },
+        {
+          "heading": "Men ikke for lenge",
+          "body": "Registreringer med personopplysninger skal ikke oppbevares lenger enn nødvendig. Personvernregelverket kaller dette **lagringsbegrensning**."
+        },
+        {
+          "heading": "Når perioden er ute",
+          "body": "Regelen sier hva som skjer: slette, arkivere eller vurdere. Listen **Klar for avhending** viser hva som har nådd dit. Avhending skjer gjennom de vanlige stegene for sletting eller arkivering, så det blir registrert."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Hvorfor skal ikke registreringer med personopplysninger oppbevares for alltid?",
+          "options": [
+            "Lagring er dyrt",
+            "Personvernregelverket krever lagringsbegrensning",
+            "Revisorer liker ikke gamle registreringer"
+          ],
+          "answer": 1,
+          "explanation": "Personopplysninger kan bare oppbevares så lenge det trengs for formålet."
+        }
+      ],
+      "pass_mark": 1
+    },
+    "comparing-revisions": {
+      "title": "Gå gjennom en endring",
+      "minutes": 3,
+      "sections": [
+        {
+          "heading": "Sammenlign før du godkjenner",
+          "body": "Når du godkjenner en ny revisjon, se på hva som er endret i stedet for å lese hele dokumentet på nytt. Sammenligningen viser nye, fjernede og endrede avsnitt."
+        },
+        {
+          "heading": "Skriv en god endringsbegrunnelse",
+          "body": "En endringsbegrunnelse sier **hva** som er endret og **hvorfor**, i en setning eller to. Den havner i revisjonshistorikken og hjelper leserne av senere kampanjer."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Hva gjør en endringsbegrunnelse nyttig?",
+          "options": [
+            "«Oppdatert»",
+            "Hva som er endret og hvorfor, i en setning eller to",
+            "Hele den nye teksten"
+          ],
+          "answer": 1,
+          "explanation": "Et kort hva og hvorfor er nok til at godkjennere og revisorer forstår endringen."
+        }
+      ],
+      "pass_mark": 1
+    }
+  },
+  "tours": {
+    "register": [
+      {
+        "target": "documents-nav-register",
+        "title": "Dokumentoversikt",
+        "body": "Alle styrte dokumenter på ett sted, med revisjon, eier og datoer for gjennomgang."
+      },
+      {
+        "target": "documents-register-filters",
+        "title": "Filtre",
+        "body": "Snevre inn listen på type, status, eier eller gjennomgangsdato."
+      },
+      {
+        "target": "documents-register-export",
+        "title": "Eksport",
+        "body": "Last ned listen som CSV, for eksempel til en revisor."
+      }
+    ],
+    "campaigns": [
+      {
+        "target": "documents-campaign-new",
+        "title": "Ny kampanje",
+        "body": "Send et godkjent dokument til folk og be dem bekrefte det."
+      },
+      {
+        "target": "documents-nav-campaigns",
+        "title": "Kampanjer",
+        "body": "Følg opp kampanjer som pågår, her."
+      }
+    ],
+    "external": [
+      {
+        "target": "documents-external-new",
+        "title": "Registrer",
+        "body": "Legg til en standard, lov eller spesifikasjon dere jobber etter."
+      },
+      {
+        "target": "documents-nav-external",
+        "title": "Eksterne dokumenter",
+        "body": "Alle dokumenter av ekstern opprinnelse, med versjon og gjennomgangsdato."
+      }
+    ],
+    "types": [
+      {
+        "target": "documents-type-new",
+        "title": "Ny type",
+        "body": "Lag en dokumenttype med automatisk nummerering og standardverdier."
+      },
+      {
+        "target": "documents-nav-templates",
+        "title": "Maler",
+        "body": "Gi hver type en mal med riktig struktur."
+      }
+    ],
+    "typeForm": [
+      {
+        "target": "documents-type-numbering",
+        "title": "Nummerering",
+        "body": "Sett prefiks og mønster. Forhåndsvisningen viser neste kode."
+      }
+    ],
+    "templates": [
+      {
+        "target": "documents-template-new",
+        "title": "Ny mal",
+        "body": "Skriv en gjenbrukbar struktur for en type dokument."
+      }
+    ],
+    "retention": [
+      {
+        "target": "documents-retention-new",
+        "title": "Ny regel",
+        "body": "Si hvor lenge en type registrering oppbevares og hva som skjer til slutt."
+      },
+      {
+        "target": "documents-retention-due",
+        "title": "Klar for avhending",
+        "body": "Registreringer der oppbevaringstiden er ute eller snart er ute."
+      }
+    ],
+    "compare": [
+      {
+        "target": "documents-compare-history",
+        "title": "Revisjoner",
+        "body": "Velg de to revisjonene du vil sammenligne."
+      }
+    ]
+  }
+}

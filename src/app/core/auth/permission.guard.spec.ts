@@ -176,6 +176,8 @@ describe('permissionGuard', () => {
 
   describe('route wiring', () => {
     const shell = appRoutes.find((r) => r.path === '' && r.children)!;
+    // The deviations routes sit under one scope-providing parent (M03).
+    const deviationChildren = deviationRoutes[0].children!;
 
     function find(routes: readonly Route[], path: string): Route {
       const route = routes.find((r) => r.path === path);
@@ -206,18 +208,43 @@ describe('permissionGuard', () => {
       ['/deviations', find(shell.children!, 'deviations'), 'deviations:read', '/dashboard'],
       ['/documents/new', find(documentRoutes, 'new'), 'documents:draft', '/documents'],
       ['/documents/:id/edit', find(documentRoutes, ':id/edit'), 'documents:draft', '/documents'],
-      ['/deviations/new', find(deviationRoutes, 'new'), 'deviations:write', '/deviations'],
-      ['/deviations/types', find(deviationRoutes, 'types'), 'deviations:admin', '/deviations'],
+      ['/deviations/new', find(deviationChildren, 'new'), 'deviations:write', '/deviations'],
+      ['/deviations/types', find(deviationChildren, 'types'), 'deviations:admin', '/deviations'],
       [
         '/deviations/types/new',
-        find(deviationRoutes, 'types/new'),
+        find(deviationChildren, 'types/new'),
         'deviations:admin',
         '/deviations',
       ],
       [
         '/deviations/types/:id',
-        find(deviationRoutes, 'types/:id'),
+        find(deviationChildren, 'types/:id'),
         'deviations:admin',
+        '/deviations',
+      ],
+      [
+        '/deviations/templates',
+        find(deviationChildren, 'templates'),
+        'deviations:admin',
+        '/deviations',
+      ],
+      ['/deviations/intake', find(deviationChildren, 'intake'), 'deviations:intake', '/deviations'],
+      [
+        '/deviations/intake/settings',
+        find(deviationChildren, 'intake/settings'),
+        'deviations:admin',
+        '/deviations',
+      ],
+      [
+        '/deviations/intake/:id',
+        find(deviationChildren, 'intake/:id'),
+        'deviations:intake',
+        '/deviations',
+      ],
+      [
+        '/deviations/:id/edit',
+        find(deviationChildren, ':id/edit'),
+        'deviations:write',
         '/deviations',
       ],
     ];

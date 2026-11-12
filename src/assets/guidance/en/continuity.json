@@ -1,0 +1,682 @@
+{
+  "pages": {
+    "overview": {
+      "intro": {
+        "title": "Stay in business when something goes wrong",
+        "body": "Business continuity is about knowing which activities matter most, how long you can live without them, and having tested plans to get them back. This page shows how ready you are.",
+        "steps": [
+          "Start with a **business impact analysis** (BIA) for each critical activity: what happens if it stops, and how quickly it must be back.",
+          "Write a **continuity plan** that covers those activities and meets their recovery targets.",
+          "**Exercise** the plans regularly, record the lessons learned and follow them up.",
+          "Check that each **ICT service** can be recovered as fast as the activities need, and keep the **crisis contact list** up to date."
+        ]
+      },
+      "why": {
+        "body": "The standards expect you to plan how information security and critical services are maintained during a disruption, to make ICT ready for it, and to test the plans. Emergency preparedness is also a requirement for health and safety and for the environment, and NIS2 lists business continuity and crisis management among the minimum measures.",
+        "clauses": [
+          "iso27001:A.5.29",
+          "iso27001:A.5.30",
+          "iso45001:8.2",
+          "iso14001:8.2",
+          "nis2:21.2.c"
+        ]
+      }
+    },
+    "bias": {
+      "intro": {
+        "title": "Business impact analyses",
+        "body": "A **business impact analysis** (BIA) looks at one activity and asks: if it stops, how bad does it get over time, and how quickly must it be recovered? The answers become the recovery targets your plans must meet.",
+        "steps": [
+          "Create a BIA per critical activity, for example *Payroll*, *Customer support* or *Production line 2*.",
+          "Rate the impacts and set the **MTPD**, **RTO** and **RPO**.",
+          "Submit it for approval, then cover it with a continuity plan. Rows marked *No plan* still need one."
+        ]
+      },
+      "why": {
+        "body": "Without a BIA, recovery targets are guesses. The BIA is the evidence that your continuity and ICT readiness are based on what the business actually needs.",
+        "clauses": ["iso27001:A.5.30", "iso27001:A.5.29", "nis2:21.2.c"]
+      },
+      "empty": {
+        "title": "No impact analyses yet",
+        "body": "Pick the three to five activities you could least do without, and analyse those first. You can add the rest later.",
+        "cta": "Start an impact analysis"
+      }
+    },
+    "biaForm": {
+      "intro": {
+        "title": "Analysing an activity",
+        "body": "Describe the activity, rate how a disruption affects it, and decide the recovery targets. The assistant can suggest ratings and targets as a starting point.",
+        "steps": [
+          "Rate each impact category for a disruption lasting up to the MTPD.",
+          "Set the MTPD first, then an RTO that is shorter, and an RPO for how much data you can lose.",
+          "List what the activity depends on: people, sites, ICT services, suppliers, equipment and information."
+        ]
+      },
+      "why": {
+        "body": "Controlled, approved recovery targets let you prove that plans and ICT readiness are proportionate to the business need.",
+        "clauses": ["iso27001:A.5.30", "nis2:21.2.c"]
+      },
+      "fields": {
+        "criticality": {
+          "help": "An overall label for how critical the activity is. Use it to prioritise which plans to write and exercise first.",
+          "example": "Critical: invoicing for a company with daily cash needs."
+        },
+        "impacts": {
+          "help": "Rate each kind of impact from 0 (none) to 5 (catastrophic) if the activity were down for the maximum tolerable period. The highest rating drives the priority.",
+          "example": "A web shop down for two days: financial 4, customers 4, reputation 3, health and safety 0."
+        },
+        "mtpd_minutes": {
+          "help": "The maximum tolerable period of disruption: how long the activity can be down before the damage becomes unacceptable.",
+          "example": "3 days for payroll if salaries are paid on the 25th."
+        },
+        "rto_minutes": {
+          "help": "The recovery time objective: how quickly you aim to have the activity running again. It must be shorter than the MTPD to leave a safety margin.",
+          "example": "MTPD 3 days, RTO 1 day."
+        },
+        "rpo_minutes": {
+          "help": "The recovery point objective: how much data you can afford to lose, measured as time back from the disruption. It decides how often you back up or replicate.",
+          "example": "RPO 4 hours means a backup at least every 4 hours."
+        },
+        "mbco": {
+          "help": "The minimum business continuity objective: the reduced level of service that is acceptable while you recover.",
+          "example": "Answer urgent customer calls only; postpone everything else."
+        },
+        "dependencies": {
+          "help": "What the activity needs to run. An ICT dependency can point at an ICT service, so ICT readiness can compare what the service can do with what this activity requires.",
+          "example": "People: two trained payroll staff. ICT: the payroll system. Supplier: the bank."
+        }
+      }
+    },
+    "biaDetail": {
+      "intro": {
+        "title": "A business impact analysis",
+        "body": "This is a controlled record: changes are recorded with a reason, and it is approved and reviewed on a schedule. Use the approval card to move it forward.",
+        "steps": [
+          "Check the ratings and targets with the activity owner.",
+          "Submit it for approval. Once approved, the next review is scheduled.",
+          "Make sure at least one continuity plan covers it."
+        ]
+      },
+      "why": {
+        "body": "An approved, reviewed BIA is the basis auditors expect for your continuity and ICT readiness decisions.",
+        "clauses": ["iso27001:A.5.30", "iso27001:A.5.29"]
+      }
+    },
+    "plans": {
+      "intro": {
+        "title": "Continuity plans",
+        "body": "A **continuity plan** describes how you respond to a disruption and recover the activities it covers. It inherits the strictest recovery targets of the impact analyses it covers.",
+        "steps": [
+          "Create a plan and choose the impact analyses it covers.",
+          "Write the sections and the steps for each phase: activation, response, recovery, restoration and stand-down.",
+          "Get it approved, add its crisis contacts and set up a recurring exercise schedule."
+        ]
+      },
+      "why": {
+        "body": "The standards expect documented, approved plans that are kept up to date and tested. Plans that are never exercised are flagged here.",
+        "clauses": ["iso27001:A.5.29", "iso45001:8.2", "iso14001:8.2", "nis2:21.2.c"]
+      },
+      "empty": {
+        "title": "No continuity plans yet",
+        "body": "Start with one plan for your most critical activities. The assistant can draft the content from your impact analyses.",
+        "cta": "Create a plan"
+      }
+    },
+    "planForm": {
+      "intro": {
+        "title": "Writing a continuity plan",
+        "body": "Keep the plan short enough to use under pressure. Link the activities it protects, then describe who does what, in which order, and how quickly.",
+        "steps": [
+          "Choose the plan type and the impact analyses it covers.",
+          "Let the assistant draft the content, then adapt it to your organisation.",
+          "Add steps per phase with an owner role and a target time that fits within the RTO."
+        ]
+      },
+      "why": {
+        "body": "A plan tied to approved recovery targets shows that your response is designed to meet what the business needs.",
+        "clauses": ["iso27001:A.5.29", "iso45001:8.2", "iso14001:8.2"]
+      },
+      "fields": {
+        "plan_type": {
+          "help": "What kind of disruption the plan handles. Many organisations have one business continuity plan plus specific plans for ICT recovery and emergencies.",
+          "example": "Disaster recovery for the data centre; emergency response for fire and evacuation."
+        },
+        "bia_ids": {
+          "help": "The impact analyses this plan protects. The plan's recovery targets are the strictest of theirs."
+        },
+        "scope": {
+          "help": "Which activities, sites and disruptions the plan covers, and what it does not cover."
+        },
+        "objectives": {
+          "help": "What the plan must achieve, for example meeting the RTOs and protecting people first."
+        },
+        "activation_criteria": {
+          "help": "When and by whom the plan is activated. Make the criteria concrete so nobody hesitates.",
+          "example": "The ERP system is down for more than 2 hours, or the site cannot be used."
+        },
+        "roles_responsibilities": {
+          "help": "The crisis roles (for example crisis lead, deputy, communications) and what each is responsible for."
+        },
+        "recovery_strategy": {
+          "help": "How the activities are recovered: alternative sites, manual workarounds, backup systems or suppliers."
+        },
+        "communication_plan": {
+          "help": "Who informs whom, how and when: staff, customers, authorities, suppliers and the media."
+        },
+        "resources": {
+          "help": "What is needed to carry out the plan: people, equipment, access, documents and budget."
+        },
+        "steps": {
+          "help": "The actions in order, grouped by phase. Give each step an owner role and a target time.",
+          "example": "Activation: crisis lead decides to activate (15 min). Recovery: restore the ERP from backup (4 h)."
+        }
+      }
+    },
+    "planDetail": {
+      "intro": {
+        "title": "A continuity plan",
+        "body": "Check that the steps can meet the recovery targets, keep the plan's crisis contacts current, and exercise it regularly.",
+        "steps": [
+          "Submit the plan for approval when the content is ready.",
+          "Add the people to call in the plan's contact list.",
+          "Set up an exercise schedule, or plan an exercise now."
+        ]
+      },
+      "why": {
+        "body": "An approved plan that is exercised on a schedule and improved from the lessons learned is what auditors look for.",
+        "clauses": ["iso27001:A.5.29", "iso45001:8.2", "nis2:21.2.c"]
+      },
+      "fields": {
+        "exercise_schedule": {
+          "help": "A recurring task that reminds the owner to exercise the plan. Completing an exercise of the plan closes the earliest open reminder.",
+          "example": "Yearly in October, reminder 14 days before."
+        }
+      }
+    },
+    "exercises": {
+      "intro": {
+        "title": "Exercises and tests",
+        "body": "Exercises prove that plans work and people know their roles. Tests prove that ICT services can be recovered in time. Every exercise ends with lessons learned and follow-up actions.",
+        "steps": [
+          "Plan an exercise for a plan or an ICT service, with a date and a scenario.",
+          "Hold it, then record the outcome, the recovery time achieved and the lessons learned.",
+          "Turn the lessons into follow-up actions with an owner and a due date."
+        ]
+      },
+      "why": {
+        "body": "Plans must be tested to be trusted. The standards expect periodic exercises and tests, and improvement based on their results.",
+        "clauses": ["iso27001:A.5.29", "iso27001:A.5.30", "iso45001:8.2", "iso14001:8.2"]
+      },
+      "empty": {
+        "title": "No exercises yet",
+        "body": "A one-hour tabletop exercise is a good start: walk through a realistic scenario with the people in the plan and note what was unclear.",
+        "cta": "Plan an exercise"
+      }
+    },
+    "exerciseForm": {
+      "intro": {
+        "title": "Planning an exercise",
+        "body": "Choose what you exercise, the type and the date. A good scenario is realistic and has injects that test the plan's weak points.",
+        "steps": [
+          "Choose the plan and, for a recovery test, the ICT service.",
+          "Let the assistant draft a scenario with injects and success criteria.",
+          "List the participants and the objectives."
+        ]
+      },
+      "why": {
+        "body": "Planned exercises with clear objectives give evidence that the plans are effective.",
+        "clauses": ["iso27001:A.5.29", "iso45001:8.2"]
+      },
+      "fields": {
+        "exercise_type": {
+          "help": "How realistic the exercise is. Start simple (walk-through, tabletop) and build up to simulations and full-scale exercises.",
+          "example": "Tabletop: talk through a ransomware attack. ICT recovery test: restore the ERP to a test server."
+        },
+        "ict_system_id": {
+          "help": "For a recovery test, the ICT service being tested. Completing the test updates the service's test status and readiness."
+        },
+        "scenario": {
+          "help": "The situation the participants respond to, and the injects (new information) given along the way.",
+          "example": "Monday 08:00: the office is flooded. 08:30: the phone system is down."
+        }
+      }
+    },
+    "exerciseDetail": {
+      "intro": {
+        "title": "An exercise or test",
+        "body": "When the exercise is held, record the result. The outcome and recovery time are compared with the target, and the plan's last-exercised date is updated.",
+        "steps": [
+          "Record the result: date, outcome, recovery time achieved and lessons learned.",
+          "Add a follow-up action for each lesson that needs work.",
+          "Check the follow-up actions are completed before the next exercise."
+        ]
+      },
+      "why": {
+        "body": "Lessons learned that are followed up show continual improvement of your preparedness.",
+        "clauses": ["iso27001:A.5.29", "iso27001:A.5.30"]
+      },
+      "fields": {
+        "achieved_recovery_minutes": {
+          "help": "How long recovery actually took in the exercise. It is compared with the target RTO of the plan or the requirement of the ICT service."
+        },
+        "lessons_learned": {
+          "help": "What went well, what did not, and what should change in the plan, the training or the systems."
+        },
+        "follow_ups": {
+          "help": "Actions created from the lessons learned. They appear in the assignee's My Work with a due date."
+        }
+      }
+    },
+    "ict": {
+      "intro": {
+        "title": "ICT readiness",
+        "body": "Each ICT service is compared with what the business needs: its **achievable** RTO and RPO against the **required** ones from the impact analyses that depend on it, and whether it has been tested recently.",
+        "steps": [
+          "Register the ICT services your critical activities depend on.",
+          "Record how fast each can be recovered and how much data could be lost.",
+          "Link them as dependencies in the impact analyses, then test recovery on a cycle."
+        ]
+      },
+      "why": {
+        "body": "ISO 27001 requires ICT readiness to be planned, implemented, maintained and tested based on the business continuity objectives. Backups and redundancy support this.",
+        "clauses": ["iso27001:A.5.30", "iso27001:A.8.13", "iso27001:A.8.14", "nis2:21.2.c"]
+      },
+      "empty": {
+        "title": "No ICT services registered",
+        "body": "Start with the systems your most critical activities cannot run without, such as the ERP, e-mail and the network.",
+        "cta": "Register an ICT service"
+      }
+    },
+    "ictForm": {
+      "intro": {
+        "title": "Registering an ICT service",
+        "body": "Describe the service and what it can achieve when it fails. Be honest: an unknown capability is better than an optimistic guess.",
+        "steps": [
+          "Enter the achievable RTO and RPO, ideally from a real test.",
+          "Describe the recovery and backup strategies.",
+          "Set how often recovery is tested."
+        ]
+      },
+      "why": {
+        "body": "Documented recovery capability and backup arrangements are the evidence that ICT readiness matches the business need.",
+        "clauses": ["iso27001:A.5.30", "iso27001:A.8.13", "iso27001:A.8.14"]
+      },
+      "fields": {
+        "achievable_rto_minutes": {
+          "help": "How quickly the service can realistically be recovered after a failure, with today's setup.",
+          "example": "4 hours to restore from backup to a standby server."
+        },
+        "achievable_rpo_minutes": {
+          "help": "How much data could be lost, given how often it is backed up or replicated.",
+          "example": "Nightly backups mean up to 24 hours of data could be lost."
+        },
+        "backup_strategy": {
+          "help": "How data is backed up: how often, where it is kept, how it is protected and how restores are tested."
+        },
+        "test_interval_months": {
+          "help": "How often recovery must be tested. When the last test is older than this, the service needs attention."
+        }
+      }
+    },
+    "ictDetail": {
+      "intro": {
+        "title": "An ICT service",
+        "body": "The readiness card shows whether the service can meet what the business requires and lists the issues to fix.",
+        "steps": [
+          "Close the gaps listed under readiness.",
+          "Plan a recovery test when the test is due.",
+          "Link the service to its asset or supplier under Related."
+        ]
+      },
+      "why": {
+        "body": "Showing that each critical ICT service meets its recovery requirements, and is tested, is central to ICT readiness.",
+        "clauses": ["iso27001:A.5.30", "iso27001:A.8.14"]
+      }
+    },
+    "contacts": {
+      "intro": {
+        "title": "Crisis contacts",
+        "body": "In a crisis you need to reach the right people fast. Keep one organisation-wide list, and let each plan add its own contacts.",
+        "steps": [
+          "Add the crisis team, the deputies, the emergency services, authorities and key suppliers.",
+          "Give each contact a phone number, an e-mail address or a linked member.",
+          "Verify the list at least once a year. Contacts not verified for a year are flagged."
+        ]
+      },
+      "why": {
+        "body": "Emergency preparedness requires knowing who to contact, including emergency services and authorities. An outdated list fails exactly when it is needed.",
+        "clauses": ["iso45001:8.2", "iso14001:8.2", "iso27001:A.5.29"]
+      },
+      "fields": {
+        "crisis_role": {
+          "help": "The person's role in a crisis, which may differ from their job title.",
+          "example": "Crisis lead, deputy crisis lead, communications, IT recovery."
+        },
+        "verified_on": {
+          "help": "When you last confirmed the details are correct, for example by calling the number."
+        }
+      }
+    }
+  },
+  "lessons": {
+    "continuity-basics": {
+      "title": "Business continuity in five minutes",
+      "minutes": 5,
+      "sections": [
+        {
+          "heading": "What business continuity is",
+          "body": "Business continuity is the ability to keep delivering your most important products and services during a disruption, and to recover the rest within agreed times. It covers anything from a power cut or a cyber attack to a flood or a pandemic."
+        },
+        {
+          "heading": "The cycle",
+          "body": "1. **Analyse** the impact of a disruption on each critical activity (BIA).\n2. **Plan** how to respond and recover within the targets.\n3. **Exercise** the plans and learn from it.\n4. **Review** and improve, at least yearly."
+        },
+        {
+          "heading": "Where ICT fits",
+          "body": "Most activities depend on ICT. ICT readiness checks that each service can be recovered as fast as the activities that depend on it require."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "What should come first?",
+          "options": [
+            "Writing the continuity plan",
+            "The business impact analysis",
+            "Buying a backup data centre"
+          ],
+          "answer": 1,
+          "explanation": "The BIA tells you which activities matter and how fast they must be recovered, so plans and investments are proportionate."
+        },
+        {
+          "question": "Why exercise a plan?",
+          "options": [
+            "Because it proves the plan works and people know their roles",
+            "Only to satisfy the auditor",
+            "It is not needed once the plan is approved"
+          ],
+          "answer": 0,
+          "explanation": "Exercises reveal gaps before a real disruption does."
+        }
+      ],
+      "pass_mark": 0.5
+    },
+    "running-a-bia": {
+      "title": "Running a business impact analysis",
+      "minutes": 6,
+      "sections": [
+        {
+          "heading": "Pick the activity",
+          "body": "Analyse one activity at a time, at a level where one owner can answer the questions: *Invoicing*, not *Finance*."
+        },
+        {
+          "heading": "Rate the impact over time",
+          "body": "Ask the owner how the impact grows: after an hour, a day, a week. Rate the impact categories at the point where it becomes unacceptable. That point is the **MTPD**."
+        },
+        {
+          "heading": "Set the targets and dependencies",
+          "body": "Choose an **RTO** shorter than the MTPD, and an **RPO** for data loss. Then list what the activity needs: people, sites, ICT, suppliers, equipment and information. These dependencies are what your plans must recover."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "The MTPD of an activity is 2 days. Which RTO makes sense?",
+          "options": ["3 days", "1 day", "1 week"],
+          "answer": 1,
+          "explanation": "The RTO must be shorter than the MTPD to leave a margin."
+        },
+        {
+          "question": "What does an RPO of 4 hours mean?",
+          "options": [
+            "The activity must be back within 4 hours",
+            "You can lose at most 4 hours of data",
+            "The plan is reviewed every 4 hours"
+          ],
+          "answer": 1,
+          "explanation": "The RPO is about data loss, and decides how often you back up or replicate."
+        }
+      ],
+      "pass_mark": 0.5
+    },
+    "recovery-targets": {
+      "title": "MTPD, RTO, RPO and MBCO",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Four numbers",
+          "body": "- **MTPD**: how long until the damage is unacceptable.\n- **RTO**: how fast you aim to recover (shorter than the MTPD).\n- **RPO**: how much data you can lose.\n- **MBCO**: the reduced service level that is acceptable while recovering."
+        },
+        {
+          "heading": "How they are used",
+          "body": "A continuity plan inherits the strictest targets of the activities it covers. ICT readiness compares each service's achievable RTO and RPO with the strictest required by the activities that depend on it."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "A plan covers two activities with RTO 8 hours and RTO 2 hours. What is the plan's RTO?",
+          "options": ["8 hours", "5 hours", "2 hours"],
+          "answer": 2,
+          "explanation": "The plan must meet the strictest target of what it covers."
+        }
+      ],
+      "pass_mark": 1
+    },
+    "writing-a-plan": {
+      "title": "Writing a plan people can use",
+      "minutes": 5,
+      "sections": [
+        {
+          "heading": "Short and actionable",
+          "body": "A continuity plan is read under stress. Use short steps, clear roles and concrete activation criteria. Put the background elsewhere."
+        },
+        {
+          "heading": "Phases",
+          "body": "Group the steps by phase: **activation** (decide and mobilise), **response** (protect people and contain), **recovery** (bring activities back), **restoration** (return to normal) and **stand-down** (close and learn)."
+        },
+        {
+          "heading": "Keep it alive",
+          "body": "Approve the plan, add its crisis contacts, exercise it on a schedule and review it after every exercise and every real incident."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Which is a good activation criterion?",
+          "options": [
+            "When things get bad",
+            "When the ERP system has been down for more than 2 hours",
+            "When management feels like it"
+          ],
+          "answer": 1,
+          "explanation": "Concrete criteria remove hesitation about when to activate the plan."
+        }
+      ],
+      "pass_mark": 1
+    },
+    "exercising-plans": {
+      "title": "Exercising and testing",
+      "minutes": 5,
+      "sections": [
+        {
+          "heading": "Build up step by step",
+          "body": "Start with a walk-through of the plan, then tabletop exercises with a scenario, then simulations and functional tests, and full-scale exercises for the most critical plans."
+        },
+        {
+          "heading": "Measure against the targets",
+          "body": "Record how long recovery took. If it exceeded the RTO, the plan or the systems must improve, or the target must be reconsidered with the business."
+        },
+        {
+          "heading": "Follow up",
+          "body": "Every lesson learned that needs work becomes a follow-up action with an owner and a due date. Check them before the next exercise."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "An ICT recovery test took 6 hours against an RTO of 4 hours. What should you do?",
+          "options": [
+            "Nothing, the test was completed",
+            "Record the result and create follow-up actions to close the gap",
+            "Change the recorded time to 4 hours"
+          ],
+          "answer": 1,
+          "explanation": "The gap is a finding. Follow it up and test again."
+        }
+      ],
+      "pass_mark": 1
+    },
+    "ict-readiness": {
+      "title": "ICT readiness for business continuity",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Required versus achievable",
+          "body": "The business decides what it **requires** (in the BIAs). The ICT service has what it can **achieve** (its recovery and backup setup). Readiness is about closing the gap between the two."
+        },
+        {
+          "heading": "Readiness states",
+          "body": "- **Ready**: it meets the requirement and has been tested recently.\n- **Needs attention**: capability unknown, never tested or test overdue.\n- **Gap**: it cannot meet the required RTO or RPO, or the last test failed."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "A service can be recovered in 8 hours, but a dependent activity requires 4 hours. What is the readiness?",
+          "options": ["Ready", "Gap", "Retired"],
+          "answer": 1,
+          "explanation": "The achievable RTO is longer than required, so there is a gap."
+        }
+      ],
+      "pass_mark": 1
+    },
+    "crisis-contacts": {
+      "title": "A crisis contact list that works",
+      "minutes": 3,
+      "sections": [
+        {
+          "heading": "Who belongs on it",
+          "body": "The crisis team and their deputies, emergency services, relevant authorities, key suppliers and insurers. Plans add the contacts specific to them."
+        },
+        {
+          "heading": "Keep it reachable",
+          "body": "Every contact needs at least one way to reach them, preferably a phone number that works outside office hours. Mark who is reachable around the clock."
+        },
+        {
+          "heading": "Verify it",
+          "body": "Call the numbers at least once a year, for example in a call-tree test, and mark the contacts as verified."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "How often should the list be verified at a minimum?",
+          "options": ["Every five years", "Once a year", "Only when someone leaves"],
+          "answer": 1,
+          "explanation": "Contacts not verified for a year are flagged, because details change."
+        }
+      ],
+      "pass_mark": 1
+    }
+  },
+  "tours": {
+    "overview": [
+      {
+        "target": "continuity-sections",
+        "title": "The parts of continuity",
+        "body": "Impact analyses, plans, exercises, ICT readiness and crisis contacts each have their own page."
+      },
+      {
+        "target": "continuity-figures",
+        "title": "Key figures",
+        "body": "How many records you have and how many need attention. Select a figure to open the list."
+      },
+      {
+        "target": "continuity-attention",
+        "title": "What to do next",
+        "body": "Activities without a plan, overdue reviews and exercises, and ICT services with a gap."
+      }
+    ],
+    "bias": [
+      {
+        "target": "continuity-bia-filters",
+        "title": "Filters",
+        "body": "Find impact analyses by status, criticality, owner, missing plan or review due. Save a combination as a view."
+      },
+      {
+        "target": "continuity-bia-new",
+        "title": "New impact analysis",
+        "body": "Start an analysis for one critical activity."
+      }
+    ],
+    "plans": [
+      {
+        "target": "continuity-plan-filters",
+        "title": "Filters",
+        "body": "Find plans by status, type, owner or review due."
+      },
+      {
+        "target": "continuity-plan-new",
+        "title": "New plan",
+        "body": "Create a plan and link the impact analyses it covers."
+      }
+    ],
+    "exercises": [
+      {
+        "target": "continuity-exercise-filters",
+        "title": "Filters",
+        "body": "Find exercises by status, type, owner or overdue."
+      },
+      {
+        "target": "continuity-exercise-new",
+        "title": "Plan an exercise",
+        "body": "Plan an exercise of a plan or a recovery test of an ICT service."
+      }
+    ],
+    "ict": [
+      {
+        "target": "continuity-ict-filters",
+        "title": "Readiness filter",
+        "body": "Show the services with a gap or that need attention."
+      },
+      {
+        "target": "continuity-ict-new",
+        "title": "Register a service",
+        "body": "Add an ICT service and its recovery capability."
+      }
+    ],
+    "contacts": [
+      {
+        "target": "continuity-sections",
+        "title": "Crisis contacts",
+        "body": "This is the organisation-wide list. Each plan also has its own contacts on the plan page."
+      }
+    ]
+  },
+  "glossary": {
+    "business-impact-analysis": {
+      "term": "Business impact analysis (BIA)",
+      "definition": "An analysis of how a disruption to an activity affects the organisation over time, used to set recovery priorities and targets.",
+      "clauses": ["iso27001:A.5.30"]
+    },
+    "mtpd": {
+      "term": "Maximum tolerable period of disruption (MTPD)",
+      "definition": "The time after which the impact of not resuming an activity becomes unacceptable.",
+      "clauses": ["iso27001:A.5.30"]
+    },
+    "rto": {
+      "term": "Recovery time objective (RTO)",
+      "definition": "The target time for resuming an activity or recovering a service after a disruption. It is shorter than the MTPD.",
+      "clauses": ["iso27001:A.5.30"]
+    },
+    "rpo": {
+      "term": "Recovery point objective (RPO)",
+      "definition": "The point to which information must be restored, which sets the maximum acceptable data loss.",
+      "clauses": ["iso27001:A.5.30", "iso27001:A.8.13"]
+    },
+    "mbco": {
+      "term": "Minimum business continuity objective (MBCO)",
+      "definition": "The minimum level of service that is acceptable during a disruption.",
+      "clauses": ["iso27001:A.5.29"]
+    },
+    "ict-readiness": {
+      "term": "ICT readiness for business continuity",
+      "definition": "The ability of ICT services to be recovered in line with the business continuity objectives, planned, maintained and tested.",
+      "clauses": ["iso27001:A.5.30"]
+    }
+  }
+}

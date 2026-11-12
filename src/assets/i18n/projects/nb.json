@@ -1,0 +1,454 @@
+{
+  "common": {
+    "loading": "Laster …",
+    "loadFailed": "Prosjektene kunne ikke lastes. Prøv igjen om litt.",
+    "backToList": "Tilbake til prosjekter",
+    "backToProject": "Tilbake til prosjektet",
+    "edit": "Rediger",
+    "delete": "Slett",
+    "close": "Lukk",
+    "none": "Ikke satt",
+    "nobody": "Ingen",
+    "overdue": "Forfalt"
+  },
+  "list": {
+    "title": "Prosjekter",
+    "subtitle": "Planlagte endringer, forbedringer og utviklingsarbeid, med milepæler, team, gjennomganger og erfaringer.",
+    "searchPlaceholder": "Søk i prosjekter etter kode eller tittel",
+    "new": "Nytt prosjekt",
+    "noMatch": "Ingen prosjekter passer med disse filtrene.",
+    "owner": "Eier: {{ name }}",
+    "members": "Teammedlemmer: {{ count }}",
+    "due": "Frist {{ date }}",
+    "noDue": "Ingen frist",
+    "viewLabel": "Vis prosjektene som",
+    "views": {
+      "list": "Liste",
+      "timeline": "Tidslinje"
+    },
+    "timelineLabel": "Prosjekt",
+    "timelineEmpty": "Ingen av disse prosjektene har startdato eller frist ennå, så det er ingenting å tegne."
+  },
+  "filters": {
+    "status": "Status",
+    "statusOptions": {
+      "open": "Åpne prosjekter",
+      "all": "Alle statuser"
+    },
+    "people": "Personer",
+    "peopleOptions": {
+      "anyone": "Alles prosjekter",
+      "owner": "Prosjekter jeg eier",
+      "member": "Prosjekter jeg er med i"
+    },
+    "kind": "Type",
+    "allKinds": "Alle typer",
+    "sort": "Sortering",
+    "overdue": "Bare forfalte"
+  },
+  "sorts": {
+    "updated_atDesc": "Sist oppdatert",
+    "updated_at": "Lengst siden oppdatert",
+    "code": "Kode (stigende)",
+    "codeDesc": "Kode (synkende)",
+    "title": "Tittel (A–Å)",
+    "titleDesc": "Tittel (Å–A)",
+    "due_date": "Frist (nærmeste først)",
+    "due_dateDesc": "Frist (seneste først)"
+  },
+  "status": {
+    "proposed": "Foreslått",
+    "planned": "Planlagt",
+    "active": "Aktivt",
+    "on_hold": "På vent",
+    "completed": "Fullført",
+    "cancelled": "Avbrutt"
+  },
+  "kinds": {
+    "general": "Generelt prosjekt",
+    "design_development": "Utforming og utvikling",
+    "improvement": "Forbedring",
+    "implementation": "Innføring",
+    "other": "Annet"
+  },
+  "priorities": {
+    "low": "Lav prioritet",
+    "normal": "Normal prioritet",
+    "high": "Høy prioritet",
+    "urgent": "Haster"
+  },
+  "healths": {
+    "green": "På sporet",
+    "amber": "I faresonen",
+    "red": "Ute av kurs"
+  },
+  "roles": {
+    "manager": "Leder",
+    "member": "Medlem",
+    "reviewer": "Kontrollør",
+    "stakeholder": "Interessent"
+  },
+  "milestoneStatus": {
+    "planned": "Planlagt",
+    "in_progress": "Pågår",
+    "done": "Ferdig",
+    "cancelled": "Avbrutt"
+  },
+  "reviewKinds": {
+    "review": "Gjennomgang av utforming",
+    "verification": "Verifisering",
+    "validation": "Validering"
+  },
+  "outcomes": {
+    "pending": "Venter",
+    "passed": "Godkjent",
+    "passed_with_actions": "Godkjent med tiltak",
+    "failed": "Ikke godkjent"
+  },
+  "lessonCategories": {
+    "went_well": "Gikk bra",
+    "improve": "Kan forbedres",
+    "risk": "Risiko å huske",
+    "other": "Annet"
+  },
+  "riskLevels": {
+    "low": "lav",
+    "medium": "middels",
+    "high": "høy"
+  },
+  "fields": {
+    "code": "Kode",
+    "title": "Tittel",
+    "description": "Beskrivelse",
+    "objective": "Mål",
+    "scope": "Omfang",
+    "kind": "Type",
+    "status": "Status",
+    "priority": "Prioritet",
+    "health": "Tilstand",
+    "owner": "Eier",
+    "department": "Avdeling",
+    "startDate": "Startdato",
+    "dueDate": "Frist",
+    "team": "Team",
+    "securityRelevant": "Relevant for informasjonssikkerhet",
+    "securityRequirements": "Krav til informasjonssikkerhet",
+    "closeoutSummary": "Avslutningsrapport",
+    "closedAt": "Avsluttet"
+  },
+  "form": {
+    "newTitle": "Nytt prosjekt",
+    "editTitle": "Rediger {{ code }}",
+    "create": "Opprett prosjekt",
+    "sections": {
+      "purpose": "Formål",
+      "plan": "Plan",
+      "people": "Personer",
+      "security": "Informasjonssikkerhet"
+    },
+    "ownerMe": "Meg",
+    "currentOwner": "Nåværende eier",
+    "noDepartment": "Ingen avdeling",
+    "noHealth": "Ikke vurdert ennå",
+    "team": "Team",
+    "teamHint": "Legg til personene som skal jobbe i prosjektet. Som eier blir du automatisk leder, og du kan endre teamet senere.",
+    "changeReason": "Grunn til endringen (valgfritt)",
+    "changeReasonHint": "Lagres i endringshistorikken så andre ser hvorfor prosjektet ble endret.",
+    "readOnly": "Du kan se prosjektet, men ikke redigere det. Eieren, en leder i teamet eller en prosjektadministrator kan.",
+    "closedReadOnly": "Prosjektet er avsluttet. Gjenåpne det for å gjøre endringer.",
+    "assistTitle": "La assistenten lage et utkast",
+    "assistBody": "Beskriv prosjektet med en setning eller to, så foreslår assistenten tittel, mål, omfang og datoer. Ingenting lagres før du bekrefter.",
+    "errors": {
+      "titleRequired": "Gi prosjektet en tittel.",
+      "invalidDate": "Bruk en gyldig dato.",
+      "dueBeforeStart": "Fristen kan ikke være før startdatoen."
+    }
+  },
+  "detail": {
+    "purpose": "Formål og omfang",
+    "noSecurityReqs": "Ingen krav til informasjonssikkerhet er skrevet ned ennå.",
+    "closedNotice": "Prosjektet er {{ status }} (avsluttet {{ date }} av {{ name }}). Det er skrivebeskyttet, men erfaringer kan fortsatt legges til.",
+    "daysLeft": "{{ count }} dager igjen",
+    "dueToday": "Frist i dag",
+    "daysOverdue": "{{ count }} dager på overtid",
+    "deleteTitle": "Slette prosjektet?",
+    "deleteMessage": "{{ code }} fjernes sammen med milepæler, gjennomganger og erfaringer, og åpne oppgaver avbrytes. Revisjonssporet beholdes."
+  },
+  "progress": {
+    "title": "Fremdrift",
+    "percent": "{{ percent }} %",
+    "milestones": "Milepæler",
+    "tasks": "Oppgaver",
+    "reviews": "Gjennomganger som venter",
+    "doneOf": "{{ done }} av {{ total }} ferdig",
+    "pendingOf": "{{ pending }} av {{ total }}",
+    "overdueCount": "{{ count }} forfalt",
+    "nextMilestone": "Neste milepæl: {{ title }}, frist {{ date }}"
+  },
+  "plan": {
+    "title": "Plan",
+    "viewLabel": "Vis planen som",
+    "views": {
+      "gantt": "Gantt-diagram",
+      "board": "Oppgavetavle"
+    },
+    "item": "Fase, milepæl eller oppgave",
+    "empty": "Ingenting er planlagt ennå. Legg til faser og milepæler med datoer, eller oppgaver med frister, for å se planen.",
+    "unscheduled": "Ikke planlagt",
+    "dueOn": "Frist {{ date }}",
+    "span": "Fra {{ start }} til {{ end }}",
+    "kinds": {
+      "project": "Prosjekt",
+      "phase": "Fase",
+      "milestone": "Milepæl",
+      "task": "Oppgave"
+    },
+    "legend": {
+      "span": "Fase eller oppgave",
+      "milestone": "Milepæl",
+      "overdue": "Forfalt",
+      "today": "I dag"
+    }
+  },
+  "board": {
+    "empty": "Ingen oppgaver ennå. Legg til oppgaver i Oppgaver-fanen eller på en milepæl.",
+    "columns": {
+      "open": "Å gjøre",
+      "in_progress": "Pågår",
+      "blocked": "Blokkert",
+      "done": "Ferdig",
+      "cancelled": "Avbrutt"
+    },
+    "due": "Frist {{ date }}",
+    "moveLabel": "Status for {{ title }}",
+    "moveFailed": "Oppgaven kunne ikke flyttes. Sjekk at du har lov til å endre den, og prøv igjen."
+  },
+  "milestones": {
+    "title": "Faser og milepæler",
+    "addPhase": "Legg til fase",
+    "addMilestone": "Legg til milepæl",
+    "empty": "Ingen faser eller milepæler ennå. Del arbeidet inn i faser, og merk punktene der noe må være ferdig eller besluttet som milepæler.",
+    "due": "Frist {{ date }}",
+    "markDone": "Merk som ferdig",
+    "phase": "Fase",
+    "noPhase": "Ikke i en fase",
+    "new": {
+      "phase": "Ny fase",
+      "milestone": "Ny milepæl"
+    },
+    "edit": {
+      "phase": "Fase",
+      "milestone": "Milepæl"
+    },
+    "deleteTitle": "Slette dette elementet?",
+    "deleteMessage": "«{{ title }}» fjernes fra planen. Åpne oppgaver avbrytes."
+  },
+  "reviews": {
+    "title": "Gjennomgang, verifisering og validering",
+    "add": "Legg til gjennomgang",
+    "empty": "Ingen gjennomganger registrert ennå. Planlegg en gjennomgang i hver viktig fase, og registrer verifisering (oppfyller resultatet kravene?) og validering (fungerer det til tiltenkt bruk?).",
+    "newTitle": "Ny gjennomgang",
+    "editTitle": "Gjennomgang",
+    "kind": "Type",
+    "stage": "Fase eller trinn",
+    "milestone": "Milepæl",
+    "noMilestone": "Ikke knyttet til en milepæl",
+    "plannedDate": "Planlagt dato",
+    "heldOnLabel": "Holdt dato",
+    "heldOn": "Holdt {{ date }}",
+    "plannedFor": "Planlagt {{ date }}",
+    "participants": "Deltakere",
+    "noParticipants": "Ingen deltakere lagt til ennå.",
+    "addParticipant": "Legg til en deltaker",
+    "participantCount": "Deltakere: {{ count }}",
+    "inputs": "Hva ble gjennomgått (grunnlag)",
+    "findings": "Funn og tiltak",
+    "outcome": "Resultat",
+    "needsDate": "Oppgi datoen gjennomgangen ble holdt før du registrerer et resultat.",
+    "decidedBy": "Besluttet av {{ name }} {{ date }}",
+    "deleteTitle": "Slette gjennomgangen?",
+    "deleteMessage": "«{{ title }}» fjernes. Revisjonssporet beholdes."
+  },
+  "lessons": {
+    "title": "Erfaringer",
+    "add": "Legg til erfaring",
+    "empty": "Ingen erfaringer registrert ennå. Skriv ned hva som gikk bra og hva som bør gjøres annerledes neste gang, mens det er friskt i minnet.",
+    "category": "Kategori",
+    "what": "Erfaring",
+    "description": "Hva skjedde",
+    "recommendation": "Anbefaling",
+    "by": "{{ name }} · {{ date }}",
+    "deleteNamed": "Slett erfaringen {{ title }}",
+    "deleteTitle": "Slette erfaringen?",
+    "deleteMessage": "«{{ title }}» fjernes."
+  },
+  "team": {
+    "title": "Team",
+    "owner": "Eier",
+    "empty": "Ingen teammedlemmer ennå.",
+    "role": "Rolle",
+    "roleFor": "Rollen til {{ name }}",
+    "addPerson": "Legg til en person",
+    "choosePerson": "Velg en person",
+    "add": "Legg til",
+    "remove": "Fjern",
+    "removeNamed": "Fjern {{ name }}",
+    "removeTitle": "Fjerne fra teamet?",
+    "removeMessage": "{{ name }} fjernes fra prosjektteamet. Oppgavene deres er fortsatt tildelt dem."
+  },
+  "closeout": {
+    "open": "Avslutt prosjekt",
+    "title": "Avslutt {{ code }}",
+    "subtitle": "Registrer hvordan prosjektet endte og hva dere lærte.",
+    "outcome": "Hvordan endte prosjektet?",
+    "outcomes": {
+      "completed": "Fullført",
+      "cancelled": "Avbrutt"
+    },
+    "outcomeHints": {
+      "completed": "Målet ble nådd. Alle milepæler, gjennomganger og oppgaver må være ferdige først.",
+      "cancelled": "Prosjektet stoppes. Åpne oppgaver avbrytes."
+    },
+    "checklist": {
+      "milestones": "Åpne faser og milepæler: {{ count }}",
+      "reviews": "Gjennomganger som venter: {{ count }}",
+      "tasks": "Åpne oppgaver: {{ count }}"
+    },
+    "openItems": "Prosjektet har fortsatt åpent arbeid: {{ milestones }} milepæler, {{ reviews }} gjennomganger som venter og {{ tasks }} åpne oppgaver. Gjør dem ferdige eller avbryt dem, eller avslutt prosjektet som avbrutt.",
+    "summary": "Avslutningsrapport",
+    "summaryRequired": "Avslutningsrapport (påkrevd)",
+    "lessons": "Erfaringer",
+    "lessonsHint": "Erfaringer uten tittel hoppes over. Du kan legge til flere etter avslutning.",
+    "addLesson": "Legg til en erfaring til",
+    "removeLesson": "Fjern denne erfaringen",
+    "submit": {
+      "completed": "Avslutt som fullført",
+      "cancelled": "Avslutt som avbrutt"
+    }
+  },
+  "reopen": {
+    "action": "Gjenåpne",
+    "title": "Gjenåpne {{ code }}?",
+    "message": "Prosjektet blir aktivt igjen og kan redigeres. Skriv hvorfor det gjenåpnes; grunnen lagres i historikken.",
+    "reason": "Grunn"
+  },
+  "ai": {
+    "title": "KI-hjelp",
+    "intro": "Få en statusoppsummering til en styringsgruppe, eller forslag til risikoer prosjektet kan møte. Kontroller resultatet før du bruker det.",
+    "statusSummary": "Oppsummer status",
+    "riskPrompts": "Foreslå risikoer",
+    "summaryHeading": "Statusoppsummering",
+    "checkNote": "Laget ut fra prosjektets registreringer. Kontroller den før du deler den.",
+    "risksHeading": "Risikoer å vurdere",
+    "noRisks": "Ingen risikoer ble foreslått.",
+    "likelihood": "Sannsynlighet: {{ level }}",
+    "impact": "Konsekvens: {{ level }}",
+    "mitigation": "Tiltak",
+    "addTask": "Legg til en oppfølgingsoppgave",
+    "taskAdded": "Oppgave lagt til",
+    "taskTitle": "Vurder risiko: {{ title }}",
+    "taskFailed": "Oppgaven kunne ikke legges til.",
+    "risksNote": "Bare forslag. Registrer de faktiske risikoene i risikoregisteret og koble dem til prosjektet i Relatert-fanen."
+  },
+  "ask": {
+    "summarise": "Oppsummer dette prosjektet: hvor det står, hva som er forsinket og hva som trenger en beslutning.",
+    "objective": "Hjelp meg å skrive et tydelig og målbart mål for dette prosjektet.",
+    "objectiveLabel": "Få hjelp med målet",
+    "objectiveReview": "Er prosjektmålet tydelig og målbart? Foreslå forbedringer.",
+    "securityRequirements": "Hvilke krav til informasjonssikkerhet bør dette prosjektet ta hensyn til (ISO 27001 A.5.8)?",
+    "findings": "Hjelp meg å skrive tydelige funn og tiltak for denne gjennomgangen.",
+    "draft": "Hjelp meg å sette opp et nytt prosjekt. Spør meg hva det handler om, og lag så et utkast jeg kan bekrefte.",
+    "draftLabel": "Lag et prosjektutkast med assistenten"
+  },
+  "lessonsLink": "Leksjon: {{ title }} ({{ minutes }} min)",
+  "notices": {
+    "created": "Prosjektet {{ code }} er opprettet.",
+    "saved": "Prosjektet er lagret.",
+    "noChanges": "Ingenting ble endret.",
+    "deleted": "Prosjektet {{ code }} er slettet.",
+    "reopened": "Prosjektet {{ code }} er gjenåpnet.",
+    "closed": {
+      "completed": "Prosjektet {{ code }} er avsluttet som fullført.",
+      "cancelled": "Prosjektet {{ code }} er avsluttet som avbrutt."
+    },
+    "memberAdded": "Lagt til i teamet.",
+    "memberUpdated": "Rollen er oppdatert.",
+    "memberRemoved": "{{ name }} er fjernet fra teamet.",
+    "milestoneSaved": "«{{ title }}» er lagret.",
+    "milestoneDone": "«{{ title }}» er merket som ferdig.",
+    "milestoneDeleted": "«{{ title }}» er slettet.",
+    "reviewSaved": "Gjennomgangen «{{ title }}» er lagret.",
+    "reviewDeleted": "Gjennomgangen «{{ title }}» er slettet.",
+    "lessonSaved": "Erfaringen er lagret.",
+    "lessonDeleted": "Erfaringen er slettet.",
+    "taskAdded": "Oppgaven er lagt til i prosjektet."
+  },
+  "errors": {
+    "forbidden": "Du har ikke tilgang til å gjøre dette i prosjektet.",
+    "notFound": "Fant ikke prosjektet. Det kan ha blitt slettet.",
+    "closeout_summary_required": "Skriv en avslutningsrapport før prosjektet avsluttes som fullført.",
+    "invalid_category": "Velg en kategori for erfaringen.",
+    "invalid_dates": "Sluttdatoen kan ikke være før startdatoen.",
+    "invalid_department": "Avdelingen finnes ikke i denne organisasjonen.",
+    "invalid_fields": "Noen felt kunne ikke lagres.",
+    "invalid_filter": "Filteret er ikke gyldig.",
+    "invalid_kind": "Velg en gyldig type.",
+    "invalid_member_role": "Velg en gyldig rolle i teamet.",
+    "invalid_outcome": "Velg et gyldig resultat.",
+    "invalid_phase": "Velg en fase i dette prosjektet (faser kan ikke inneholde faser).",
+    "invalid_sort": "Sorteringen er ikke gyldig.",
+    "invalid_status": "Den statusen er ikke tillatt her.",
+    "module_disabled": "Prosjekter er slått av for denne organisasjonen.",
+    "owner_is_manager": "Prosjekteieren er alltid leder. Bytt eier først.",
+    "owner_required": "Et prosjekt må ha en eier.",
+    "project_closed": "Prosjektet er avsluttet. Gjenåpne det for å gjøre endringer.",
+    "project_has_open_items": "Prosjektet har fortsatt åpne milepæler, gjennomganger eller oppgaver.",
+    "project_not_closed": "Prosjektet er ikke avsluttet.",
+    "title_required": "Tittel er påkrevd.",
+    "user_not_member": "Personen er ikke medlem av denne organisasjonen."
+  },
+  "notifications": {
+    "created": "Nytt prosjekt til deg: {{ code }} {{ title }}",
+    "statusChanged": "Prosjektstatus endret: {{ code }} {{ title }}",
+    "ownerChanged": "Du eier nå prosjektet {{ code }}: {{ title }}",
+    "memberAdded": "Du er lagt til i prosjektet {{ code }}: {{ title }}",
+    "memberRemoved": "Du er fjernet fra prosjektet {{ code }}: {{ title }}",
+    "closed": "Prosjekt avsluttet: {{ code }} {{ title }}",
+    "reopened": "Prosjekt gjenåpnet: {{ code }} {{ title }}",
+    "milestoneCreated": "Ny milepæl i {{ code }}: {{ milestone_title }}",
+    "milestoneCompleted": "Milepæl ferdig i {{ code }}: {{ milestone_title }}",
+    "milestoneReopened": "Milepæl gjenåpnet i {{ code }}: {{ milestone_title }}",
+    "designReviewCreated": "Gjennomgang planlagt i {{ code }}: {{ review_title }}",
+    "designReviewDecided": "Gjennomgang besluttet i {{ code }}: {{ review_title }}",
+    "updated": "Prosjekt oppdatert: {{ code }} {{ title }}",
+    "milestoneAdded": "Milepæl lagt til i {{ code }}",
+    "lessonAdded": "Erfaring lagt til i {{ code }}",
+    "deleted": "Prosjekt slettet: {{ code }} {{ title }}",
+    "milestoneUpdated": "Milepæl oppdatert i {{ code }}: {{ milestone_title }}",
+    "milestoneDeleted": "Milepæl slettet fra {{ code }}: {{ milestone_title }}",
+    "designReviewUpdated": "Gjennomgang oppdatert i {{ code }}: {{ review_title }}",
+    "designReviewDeleted": "Gjennomgang slettet fra {{ code }}: {{ review_title }}"
+  },
+  "timeline": {
+    "created": "Prosjekt opprettet",
+    "updated": "Prosjekt oppdatert",
+    "statusChanged": "Status endret",
+    "ownerChanged": "Eier endret",
+    "memberAdded": "Teammedlem lagt til",
+    "memberRemoved": "Teammedlem fjernet",
+    "milestoneAdded": "Milepæl lagt til: {{ milestone_title }}",
+    "lessonAdded": "Erfaring lagt til",
+    "closed": "Prosjekt avsluttet",
+    "reopened": "Prosjekt gjenåpnet",
+    "deleted": "Prosjekt slettet",
+    "milestoneCreated": "Milepæl opprettet",
+    "milestoneUpdated": "Milepæl oppdatert",
+    "milestoneCompleted": "Milepæl ferdig",
+    "milestoneReopened": "Milepæl gjenåpnet",
+    "milestoneDeleted": "Milepæl slettet",
+    "designReviewCreated": "Gjennomgang opprettet",
+    "designReviewUpdated": "Gjennomgang oppdatert",
+    "designReviewDecided": "Gjennomgang besluttet",
+    "designReviewDeleted": "Gjennomgang slettet"
+  }
+}

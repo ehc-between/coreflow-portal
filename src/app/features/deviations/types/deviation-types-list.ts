@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
+import { providePageContext } from '../../../core/ai/page-context';
 import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { DeviationType } from '../../../core/deviations/deviation.models';
@@ -11,6 +12,7 @@ import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { standardLabelKey } from '../deviation-enums';
+import { DeviationPageGuide } from '../guide/deviation-page-guide';
 
 /**
  * Admin list of the org's deviation types. Shows each type's name, key,
@@ -21,10 +23,10 @@ import { standardLabelKey } from '../deviation-enums';
  */
 @Component({
   selector: 'app-deviation-types-list',
-  imports: [RouterLink, TranslocoPipe, Card, Badge, Button, Icon],
+  imports: [RouterLink, TranslocoPipe, Card, Badge, Button, Icon, DeviationPageGuide],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[1080px] px-8 pt-7 pb-12">
+    <div class="mx-auto max-w-[1080px] px-4 pt-7 pb-12 sm:px-8">
       <a
         routerLink="/deviations"
         class="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
@@ -33,7 +35,7 @@ import { standardLabelKey } from '../deviation-enums';
         {{ 'deviations.backToList' | transloco }}
       </a>
 
-      <div class="mb-[18px] flex items-end justify-between gap-4">
+      <div class="mb-[18px] flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 class="font-display text-[26px] font-bold tracking-[-0.025em] text-fg">
             {{ 'deviations.types.title' | transloco }}
@@ -42,13 +44,23 @@ import { standardLabelKey } from '../deviation-enums';
             {{ 'deviations.types.subtitle' | transloco }}
           </div>
         </div>
-        <a routerLink="/deviations/types/new">
-          <app-button>
-            <app-icon name="plus" [size]="15" />
-            {{ 'deviations.types.new' | transloco }}
-          </app-button>
-        </a>
+        <div class="flex flex-wrap items-center gap-2">
+          <a routerLink="/deviations/templates">
+            <app-button variant="secondary">
+              <app-icon name="spark" [size]="15" />
+              {{ 'deviations.templates.link' | transloco }}
+            </app-button>
+          </a>
+          <a routerLink="/deviations/types/new">
+            <app-button>
+              <app-icon name="plus" [size]="15" />
+              {{ 'deviations.types.new' | transloco }}
+            </app-button>
+          </a>
+        </div>
       </div>
+
+      <app-deviation-page-guide class="mb-5" page="types" lesson="designing-your-process" />
 
       <app-card [padded]="false">
         @if (loading()) {
@@ -83,14 +95,22 @@ import { standardLabelKey } from '../deviation-enums';
                       <app-badge tone="neutral">{{ standardLabelKey(std) | transloco }}</app-badge>
                     }
                   </span>
-                  <span class="w-[84px] flex-none text-right text-[12.5px] text-fg-muted">
-                    {{
-                      (type.schema.length === 1
-                        ? 'deviations.types.fieldCountOne'
-                        : 'deviations.types.fieldCount'
-                      ) | transloco: { count: type.schema.length }
-                    }}
-                  </span>
+                  @if (type.record_type_id) {
+                    <span class="flex w-[84px] flex-none justify-end">
+                      <app-badge tone="accent">{{
+                        'deviations.wf.workflowBadge' | transloco
+                      }}</app-badge>
+                    </span>
+                  } @else {
+                    <span class="w-[84px] flex-none text-right text-[12.5px] text-fg-muted">
+                      {{
+                        (type.schema.length === 1
+                          ? 'deviations.types.fieldCountOne'
+                          : 'deviations.types.fieldCount'
+                        ) | transloco: { count: type.schema.length }
+                      }}
+                    </span>
+                  }
                   <button
                     type="button"
                     (click)="toggleActive(type)"
@@ -137,6 +157,7 @@ export class DeviationTypesList {
   protected readonly busyId = signal<string | null>(null);
 
   constructor() {
+    providePageContext(() => ({ module: 'deviations', view: 'settings' }));
     effect(() => {
       const orgId = this.orgId();
       this.types.set([]);

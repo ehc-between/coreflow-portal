@@ -1,0 +1,454 @@
+{
+  "common": {
+    "loading": "Loading…",
+    "loadFailed": "The projects could not be loaded. Try again in a moment.",
+    "backToList": "Back to projects",
+    "backToProject": "Back to the project",
+    "edit": "Edit",
+    "delete": "Delete",
+    "close": "Close",
+    "none": "Not set",
+    "nobody": "Nobody",
+    "overdue": "Overdue"
+  },
+  "list": {
+    "title": "Projects",
+    "subtitle": "Planned changes, improvements and design work, with their milestones, team, reviews and lessons learned.",
+    "searchPlaceholder": "Search projects by code or title",
+    "new": "New project",
+    "noMatch": "No projects match these filters.",
+    "owner": "Owner: {{ name }}",
+    "members": "Team members: {{ count }}",
+    "due": "Due {{ date }}",
+    "noDue": "No due date",
+    "viewLabel": "Show projects as",
+    "views": {
+      "list": "List",
+      "timeline": "Timeline"
+    },
+    "timelineLabel": "Project",
+    "timelineEmpty": "None of these projects has a start or due date yet, so there is nothing to draw."
+  },
+  "filters": {
+    "status": "Status",
+    "statusOptions": {
+      "open": "Open projects",
+      "all": "All statuses"
+    },
+    "people": "People",
+    "peopleOptions": {
+      "anyone": "Everyone's projects",
+      "owner": "Projects I own",
+      "member": "Projects I am in"
+    },
+    "kind": "Kind",
+    "allKinds": "All kinds",
+    "sort": "Sort",
+    "overdue": "Overdue only"
+  },
+  "sorts": {
+    "updated_atDesc": "Recently updated",
+    "updated_at": "Least recently updated",
+    "code": "Code (ascending)",
+    "codeDesc": "Code (descending)",
+    "title": "Title (A–Z)",
+    "titleDesc": "Title (Z–A)",
+    "due_date": "Due date (soonest first)",
+    "due_dateDesc": "Due date (latest first)"
+  },
+  "status": {
+    "proposed": "Proposed",
+    "planned": "Planned",
+    "active": "Active",
+    "on_hold": "On hold",
+    "completed": "Completed",
+    "cancelled": "Cancelled"
+  },
+  "kinds": {
+    "general": "General project",
+    "design_development": "Design and development",
+    "improvement": "Improvement",
+    "implementation": "Implementation",
+    "other": "Other"
+  },
+  "priorities": {
+    "low": "Low priority",
+    "normal": "Normal priority",
+    "high": "High priority",
+    "urgent": "Urgent"
+  },
+  "healths": {
+    "green": "On track",
+    "amber": "At risk",
+    "red": "Off track"
+  },
+  "roles": {
+    "manager": "Manager",
+    "member": "Member",
+    "reviewer": "Reviewer",
+    "stakeholder": "Stakeholder"
+  },
+  "milestoneStatus": {
+    "planned": "Planned",
+    "in_progress": "In progress",
+    "done": "Done",
+    "cancelled": "Cancelled"
+  },
+  "reviewKinds": {
+    "review": "Design review",
+    "verification": "Verification",
+    "validation": "Validation"
+  },
+  "outcomes": {
+    "pending": "Pending",
+    "passed": "Passed",
+    "passed_with_actions": "Passed with actions",
+    "failed": "Failed"
+  },
+  "lessonCategories": {
+    "went_well": "Went well",
+    "improve": "To improve",
+    "risk": "Risk to remember",
+    "other": "Other"
+  },
+  "riskLevels": {
+    "low": "low",
+    "medium": "medium",
+    "high": "high"
+  },
+  "fields": {
+    "code": "Code",
+    "title": "Title",
+    "description": "Description",
+    "objective": "Objective",
+    "scope": "Scope",
+    "kind": "Kind",
+    "status": "Status",
+    "priority": "Priority",
+    "health": "Health",
+    "owner": "Owner",
+    "department": "Department",
+    "startDate": "Start date",
+    "dueDate": "Due date",
+    "team": "Team",
+    "securityRelevant": "Information security relevant",
+    "securityRequirements": "Information security requirements",
+    "closeoutSummary": "Close-out summary",
+    "closedAt": "Closed on"
+  },
+  "form": {
+    "newTitle": "New project",
+    "editTitle": "Edit {{ code }}",
+    "create": "Create project",
+    "sections": {
+      "purpose": "Purpose",
+      "plan": "Plan",
+      "people": "People",
+      "security": "Information security"
+    },
+    "ownerMe": "Me",
+    "currentOwner": "Current owner",
+    "noDepartment": "No department",
+    "noHealth": "Not assessed yet",
+    "team": "Team",
+    "teamHint": "Add the people who will work on the project. You become a manager automatically as the owner, and you can change the team later.",
+    "changeReason": "Reason for the change (optional)",
+    "changeReasonHint": "Saved in the revision history so others can see why the project changed.",
+    "readOnly": "You can view this project but not edit it. The owner, a team manager or a project administrator can.",
+    "closedReadOnly": "This project is closed. Reopen it to make changes.",
+    "assistTitle": "Let the assistant draft it",
+    "assistBody": "Describe the project in a sentence or two and the assistant proposes the title, objective, scope and dates. Nothing is saved until you confirm.",
+    "errors": {
+      "titleRequired": "Give the project a title.",
+      "invalidDate": "Use a valid date.",
+      "dueBeforeStart": "The due date cannot be before the start date."
+    }
+  },
+  "detail": {
+    "purpose": "Purpose and scope",
+    "noSecurityReqs": "No information security requirements written down yet.",
+    "closedNotice": "This project is {{ status }} (closed on {{ date }} by {{ name }}). It is read-only; lessons learned can still be added.",
+    "daysLeft": "{{ count }} days left",
+    "dueToday": "Due today",
+    "daysOverdue": "{{ count }} days overdue",
+    "deleteTitle": "Delete this project?",
+    "deleteMessage": "{{ code }} is removed together with its milestones, design reviews and lessons, and its open tasks are cancelled. The audit trail is kept."
+  },
+  "progress": {
+    "title": "Progress",
+    "percent": "{{ percent }} %",
+    "milestones": "Milestones",
+    "tasks": "Tasks",
+    "reviews": "Design reviews pending",
+    "doneOf": "{{ done }} of {{ total }} done",
+    "pendingOf": "{{ pending }} of {{ total }}",
+    "overdueCount": "{{ count }} overdue",
+    "nextMilestone": "Next milestone: {{ title }}, due {{ date }}"
+  },
+  "plan": {
+    "title": "Plan",
+    "viewLabel": "Show the plan as",
+    "views": {
+      "gantt": "Gantt chart",
+      "board": "Task board"
+    },
+    "item": "Phase, milestone or task",
+    "empty": "Nothing is scheduled yet. Add phases and milestones with dates, or tasks with due dates, to see the plan.",
+    "unscheduled": "Not scheduled",
+    "dueOn": "Due {{ date }}",
+    "span": "From {{ start }} to {{ end }}",
+    "kinds": {
+      "project": "Project",
+      "phase": "Phase",
+      "milestone": "Milestone",
+      "task": "Task"
+    },
+    "legend": {
+      "span": "Phase or task",
+      "milestone": "Milestone",
+      "overdue": "Overdue",
+      "today": "Today"
+    }
+  },
+  "board": {
+    "empty": "No tasks yet. Add tasks on the Tasks tab or on a milestone.",
+    "columns": {
+      "open": "To do",
+      "in_progress": "In progress",
+      "blocked": "Blocked",
+      "done": "Done",
+      "cancelled": "Cancelled"
+    },
+    "due": "Due {{ date }}",
+    "moveLabel": "Status of {{ title }}",
+    "moveFailed": "The task could not be moved. Check that you may edit it and try again."
+  },
+  "milestones": {
+    "title": "Phases and milestones",
+    "addPhase": "Add phase",
+    "addMilestone": "Add milestone",
+    "empty": "No phases or milestones yet. Split the work into phases, and mark the points where something must be finished or decided as milestones.",
+    "due": "Due {{ date }}",
+    "markDone": "Mark done",
+    "phase": "Phase",
+    "noPhase": "Not in a phase",
+    "new": {
+      "phase": "New phase",
+      "milestone": "New milestone"
+    },
+    "edit": {
+      "phase": "Phase",
+      "milestone": "Milestone"
+    },
+    "deleteTitle": "Delete this item?",
+    "deleteMessage": "\"{{ title }}\" is removed from the plan. Its open tasks are cancelled."
+  },
+  "reviews": {
+    "title": "Design reviews, verification and validation",
+    "add": "Add review",
+    "empty": "No reviews recorded yet. Plan a review at each important stage, and record verification (does the output meet the input requirements?) and validation (does it work for the intended use?).",
+    "newTitle": "New review",
+    "editTitle": "Review",
+    "kind": "Type",
+    "stage": "Stage",
+    "milestone": "Milestone",
+    "noMilestone": "Not tied to a milestone",
+    "plannedDate": "Planned date",
+    "heldOnLabel": "Held on",
+    "heldOn": "Held {{ date }}",
+    "plannedFor": "Planned for {{ date }}",
+    "participants": "Participants",
+    "noParticipants": "No participants added yet.",
+    "addParticipant": "Add a participant",
+    "participantCount": "Participants: {{ count }}",
+    "inputs": "What was reviewed (inputs)",
+    "findings": "Findings and actions",
+    "outcome": "Outcome",
+    "needsDate": "Give the date the review was held before recording an outcome.",
+    "decidedBy": "Decided by {{ name }} on {{ date }}",
+    "deleteTitle": "Delete this review?",
+    "deleteMessage": "\"{{ title }}\" is removed. The audit trail is kept."
+  },
+  "lessons": {
+    "title": "Lessons learned",
+    "add": "Add lesson",
+    "empty": "No lessons recorded yet. Note what went well and what should be done differently next time, while it is fresh.",
+    "category": "Category",
+    "what": "Lesson",
+    "description": "What happened",
+    "recommendation": "Recommendation",
+    "by": "{{ name }} · {{ date }}",
+    "deleteNamed": "Delete the lesson {{ title }}",
+    "deleteTitle": "Delete this lesson?",
+    "deleteMessage": "\"{{ title }}\" is removed."
+  },
+  "team": {
+    "title": "Team",
+    "owner": "Owner",
+    "empty": "No team members yet.",
+    "role": "Role",
+    "roleFor": "Role of {{ name }}",
+    "addPerson": "Add a person",
+    "choosePerson": "Choose a person",
+    "add": "Add",
+    "remove": "Remove",
+    "removeNamed": "Remove {{ name }}",
+    "removeTitle": "Remove from the team?",
+    "removeMessage": "{{ name }} is removed from the project team. Their tasks stay assigned to them."
+  },
+  "closeout": {
+    "open": "Close project",
+    "title": "Close {{ code }}",
+    "subtitle": "Record how the project ended and what you learned.",
+    "outcome": "How did the project end?",
+    "outcomes": {
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "outcomeHints": {
+      "completed": "The objective was reached. Every milestone, design review and task must be finished first.",
+      "cancelled": "The project is stopped. Open tasks are cancelled."
+    },
+    "checklist": {
+      "milestones": "Open phases and milestones: {{ count }}",
+      "reviews": "Pending design reviews: {{ count }}",
+      "tasks": "Open tasks: {{ count }}"
+    },
+    "openItems": "The project still has open work: {{ milestones }} milestones, {{ reviews }} pending design reviews and {{ tasks }} open tasks. Finish or cancel them, or close the project as cancelled.",
+    "summary": "Close-out summary",
+    "summaryRequired": "Close-out summary (required)",
+    "lessons": "Lessons learned",
+    "lessonsHint": "Lessons without a title are skipped. You can add more after closing.",
+    "addLesson": "Add another lesson",
+    "removeLesson": "Remove this lesson",
+    "submit": {
+      "completed": "Close as completed",
+      "cancelled": "Close as cancelled"
+    }
+  },
+  "reopen": {
+    "action": "Reopen",
+    "title": "Reopen {{ code }}?",
+    "message": "The project becomes active again and can be edited. Say why it is reopened; the reason is kept in the history.",
+    "reason": "Reason"
+  },
+  "ai": {
+    "title": "AI help",
+    "intro": "Get a status summary for a steering group, or prompts for risks the project may face. Check the output before you use it.",
+    "statusSummary": "Summarise status",
+    "riskPrompts": "Suggest risks",
+    "summaryHeading": "Status summary",
+    "checkNote": "Generated from the project's records. Check it before you share it.",
+    "risksHeading": "Risks to consider",
+    "noRisks": "No risks were suggested.",
+    "likelihood": "Likelihood: {{ level }}",
+    "impact": "Impact: {{ level }}",
+    "mitigation": "Mitigation",
+    "addTask": "Add a follow-up task",
+    "taskAdded": "Task added",
+    "taskTitle": "Assess risk: {{ title }}",
+    "taskFailed": "The task could not be added.",
+    "risksNote": "Suggestions only. Register the real risks in the risk register and link them to the project on the Related tab."
+  },
+  "ask": {
+    "summarise": "Summarise this project: where it stands, what is late and what needs a decision.",
+    "objective": "Help me write a clear, measurable objective for this project.",
+    "objectiveLabel": "Get help with the objective",
+    "objectiveReview": "Is this project objective clear and measurable? Suggest improvements.",
+    "securityRequirements": "Which information security requirements should this project consider (ISO 27001 A.5.8)?",
+    "findings": "Help me write clear findings and actions for this design review.",
+    "draft": "Help me set up a new project. Ask me what it is about, then draft it for me to confirm.",
+    "draftLabel": "Draft a project with the assistant"
+  },
+  "lessonsLink": "Lesson: {{ title }} ({{ minutes }} min)",
+  "notices": {
+    "created": "Project {{ code }} created.",
+    "saved": "Project saved.",
+    "noChanges": "Nothing changed.",
+    "deleted": "Project {{ code }} deleted.",
+    "reopened": "Project {{ code }} reopened.",
+    "closed": {
+      "completed": "Project {{ code }} closed as completed.",
+      "cancelled": "Project {{ code }} closed as cancelled."
+    },
+    "memberAdded": "Added to the team.",
+    "memberUpdated": "Role updated.",
+    "memberRemoved": "{{ name }} removed from the team.",
+    "milestoneSaved": "\"{{ title }}\" saved.",
+    "milestoneDone": "\"{{ title }}\" marked done.",
+    "milestoneDeleted": "\"{{ title }}\" deleted.",
+    "reviewSaved": "Review \"{{ title }}\" saved.",
+    "reviewDeleted": "Review \"{{ title }}\" deleted.",
+    "lessonSaved": "Lesson saved.",
+    "lessonDeleted": "Lesson deleted.",
+    "taskAdded": "Task added to the project."
+  },
+  "errors": {
+    "forbidden": "You do not have permission to do that on this project.",
+    "notFound": "The project was not found. It may have been deleted.",
+    "closeout_summary_required": "Write a close-out summary before closing the project as completed.",
+    "invalid_category": "Choose a lesson category.",
+    "invalid_dates": "The end date cannot be before the start date.",
+    "invalid_department": "That department does not exist in this organisation.",
+    "invalid_fields": "Some fields could not be saved.",
+    "invalid_filter": "That filter is not valid.",
+    "invalid_kind": "Choose a valid type.",
+    "invalid_member_role": "Choose a valid team role.",
+    "invalid_outcome": "Choose a valid outcome.",
+    "invalid_phase": "Choose a phase of this project (phases cannot contain phases).",
+    "invalid_sort": "That sort order is not valid.",
+    "invalid_status": "That status is not allowed here.",
+    "module_disabled": "Projects are turned off for this organisation.",
+    "owner_is_manager": "The project owner is always a manager. Change the owner first.",
+    "owner_required": "A project needs an owner.",
+    "project_closed": "The project is closed. Reopen it to make changes.",
+    "project_has_open_items": "The project still has open milestones, design reviews or tasks.",
+    "project_not_closed": "The project is not closed.",
+    "title_required": "A title is required.",
+    "user_not_member": "That person is not a member of this organisation."
+  },
+  "notifications": {
+    "created": "New project for you: {{ code }} {{ title }}",
+    "statusChanged": "Project status changed: {{ code }} {{ title }}",
+    "ownerChanged": "You now own the project {{ code }}: {{ title }}",
+    "memberAdded": "You were added to the project {{ code }}: {{ title }}",
+    "memberRemoved": "You were removed from the project {{ code }}: {{ title }}",
+    "closed": "Project closed: {{ code }} {{ title }}",
+    "reopened": "Project reopened: {{ code }} {{ title }}",
+    "milestoneCreated": "New milestone in {{ code }}: {{ milestone_title }}",
+    "milestoneCompleted": "Milestone done in {{ code }}: {{ milestone_title }}",
+    "milestoneReopened": "Milestone reopened in {{ code }}: {{ milestone_title }}",
+    "designReviewCreated": "Design review planned in {{ code }}: {{ review_title }}",
+    "designReviewDecided": "Design review decided in {{ code }}: {{ review_title }}",
+    "updated": "Project updated: {{ code }} {{ title }}",
+    "milestoneAdded": "Milestone added to {{ code }}",
+    "lessonAdded": "Lesson learned added to {{ code }}",
+    "deleted": "Project deleted: {{ code }} {{ title }}",
+    "milestoneUpdated": "Milestone updated in {{ code }}: {{ milestone_title }}",
+    "milestoneDeleted": "Milestone deleted from {{ code }}: {{ milestone_title }}",
+    "designReviewUpdated": "Design review updated in {{ code }}: {{ review_title }}",
+    "designReviewDeleted": "Design review deleted from {{ code }}: {{ review_title }}"
+  },
+  "timeline": {
+    "created": "Project created",
+    "updated": "Project updated",
+    "statusChanged": "Status changed",
+    "ownerChanged": "Owner changed",
+    "memberAdded": "Team member added",
+    "memberRemoved": "Team member removed",
+    "milestoneAdded": "Milestone added: {{ milestone_title }}",
+    "lessonAdded": "Lesson learned added",
+    "closed": "Project closed",
+    "reopened": "Project reopened",
+    "deleted": "Project deleted",
+    "milestoneCreated": "Milestone created",
+    "milestoneUpdated": "Milestone updated",
+    "milestoneCompleted": "Milestone done",
+    "milestoneReopened": "Milestone reopened",
+    "milestoneDeleted": "Milestone deleted",
+    "designReviewCreated": "Design review created",
+    "designReviewUpdated": "Design review updated",
+    "designReviewDecided": "Design review decided",
+    "designReviewDeleted": "Design review deleted"
+  }
+}
