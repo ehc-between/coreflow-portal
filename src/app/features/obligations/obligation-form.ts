@@ -8,7 +8,7 @@ import {
   output,
   signal,
 } from '@angular/core';
-import { TranslocoPipe, provideTranslocoScope } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { AskAbout } from '../../shared/ask/ask-about';
 import { FieldHelp } from '../../shared/guidance/field-help';
 import { AssigneeOptionsService } from '../../shared/tasks/assignee-options';
@@ -26,6 +26,7 @@ import {
   ObligationStatus,
 } from './data/obligation.models';
 import { frameworkKey } from './data/obligation-display';
+import { provideSharedScope } from '../../core/i18n/shared-scope';
 import {
   ObligationFormValue,
   isObligationType,
@@ -47,7 +48,7 @@ export interface ObligationFormSubmit {
 @Component({
   selector: 'app-obligation-form',
   imports: [TranslocoPipe, AskAbout, FieldHelp, RecurrencePicker, Button, Card, FormField, Icon],
-  providers: [provideTranslocoScope('tasks')],
+  viewProviders: [provideSharedScope('tasks')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); submit()" novalidate>

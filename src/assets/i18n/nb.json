@@ -1573,7 +1573,9 @@
       "feedback": "Kundetilbakemeldinger",
       "reports": "Rapporter og revisjonspakker",
       "documents": "Dokumenter",
-      "standards": "Standarder"
+      "standards": "Standarder",
+      "guidance": "Veiledning og opplæring",
+      "records": "Registertyper og arbeidsflyter"
     },
     "descriptions": {
       "tasks": "Tildel, følg opp og gjenta arbeid på tvers av alle moduler.",
@@ -1601,7 +1603,9 @@
       "feedback": "Kundetilbakemeldinger, tilfredshetsundersøkelser og klager.",
       "reports": "Etterlevelsesoversikter, organisasjonskalender og eksport.",
       "documents": "Styrte dokumenter med gjennomgang, godkjenning og bekreftelse.",
-      "standards": "Standardkatalog, anvendelse og bevis per krav."
+      "standards": "Standardkatalog, anvendelse og bevis per krav.",
+      "guidance": "Leksjoner, omvisninger og quizer som lærer bort hver modul og dokumenterer kompetanse.",
+      "records": "Lag egne registertyper, skjemaer og godkjenningsflyter."
     },
     "reasons": {
       "tasks": "Oppgaver sørger for at hver kontroll, gjennomgang og oppfølging er tildelt og blir gjort i tide.",

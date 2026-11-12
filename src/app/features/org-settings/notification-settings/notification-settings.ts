@@ -8,7 +8,7 @@ import {
   untracked,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { TranslocoPipe, provideTranslocoScope } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { catchError, forkJoin, of } from 'rxjs';
 import { AiAvailability } from '../../../core/ai/ai-availability';
 import { LanguageService } from '../../../core/i18n/language.service';
@@ -34,6 +34,7 @@ import { AskPanelService } from '../../ask/ask-panel.service';
 import { DepartmentLeads } from './department-leads';
 import { ReminderSettingsForm } from './reminder-settings-form';
 import { RuleEditor } from './rule-editor';
+import { provideSharedScope } from '../../../core/i18n/shared-scope';
 import {
   Lookup,
   RuleFilter,
@@ -66,7 +67,7 @@ import {
     ReminderSettingsForm,
     DepartmentLeads,
   ],
-  providers: [provideTranslocoScope('activity')],
+  viewProviders: [provideSharedScope('activity')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mx-auto max-w-[1080px] px-4 pt-7 pb-12 sm:px-8">

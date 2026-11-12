@@ -64,7 +64,7 @@ let nextId = 0;
     RevisionHistory,
     Timeline,
   ],
-  providers: [provideKitScope()],
+  viewProviders: [provideKitScope()],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">

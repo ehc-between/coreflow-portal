@@ -14,7 +14,8 @@ import { NotificationService } from '../../../core/notifications/notification.se
 import { memberErrorKey } from '../../../core/org/member-errors';
 import { OrgMembersApi } from '../../../core/org/org-members-api';
 import { CreatedOrgInvitation, OrgInvitation, OrgRole } from '../../../core/org/org.models';
-import { roleDescriptionKey, roleNameKey } from '../../../core/org/roles';
+import { LanguageService } from '../../../core/i18n/language.service';
+import { roleDescription, roleLabel } from '../../../core/org/roles';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
@@ -62,6 +63,7 @@ const DEFAULT_ROLE = 'member';
 })
 export class OrgInvitations {
   private readonly fb = inject(FormBuilder);
+  private readonly language = inject(LanguageService);
   private readonly api = inject(OrgMembersApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly notifications = inject(NotificationService);
@@ -83,8 +85,13 @@ export class OrgInvitations {
   /** Roles offered in the invite form. */
   protected readonly grantable = computed(() => grantableRoles(this.roles()));
 
-  protected readonly roleNameKey = roleNameKey;
-  protected readonly roleDescriptionKey = roleDescriptionKey;
+  protected roleName(roleKey: string): string {
+    return roleLabel((key) => this.language.translate(key), roleKey, this.roles());
+  }
+
+  protected roleDescription(roleKey: string): string {
+    return roleDescription((key) => this.language.translate(key), roleKey);
+  }
 
   protected readonly form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],

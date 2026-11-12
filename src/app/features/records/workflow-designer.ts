@@ -352,7 +352,8 @@ export class WorkflowDesigner {
   private readonly route = inject(ActivatedRoute);
   private readonly ask = inject(AskPanelService);
   private readonly transloco = inject(TranslocoService);
-  private readonly lang = inject(LanguageService).active;
+  private readonly language = inject(LanguageService);
+  private readonly lang = this.language.active;
 
   protected readonly modules = MODULE_KEYS;
 
@@ -439,7 +440,7 @@ export class WorkflowDesigner {
       published_at: v.published_at,
       published_by_name: v.published_by_name,
       change_note: v.change_note,
-      summary: this.transloco.translate('records.versions.workflowCount', {
+      summary: this.language.translate('records.versions.workflowCount', {
         states: v.state_count,
         transitions: v.transition_count,
       }),

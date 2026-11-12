@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
-import { TranslocoPipe, provideTranslocoScope } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
+import { provideSharedScope } from '../../core/i18n/shared-scope';
 import { GUIDANCE_LEVELS, GuidanceLevel } from '../../core/guidance/guidance.models';
 
 let nextId = 0;
@@ -11,7 +12,7 @@ let nextId = 0;
 @Component({
   selector: 'app-level-picker',
   imports: [TranslocoPipe],
-  providers: [provideTranslocoScope('guidance')],
+  viewProviders: [provideSharedScope('guidance')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `

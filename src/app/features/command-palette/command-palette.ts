@@ -10,7 +10,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { TranslocoPipe, TranslocoService, provideTranslocoScope } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import {
   Observable,
@@ -32,6 +32,7 @@ import { Icon } from '../../shared/ui/icon/icon';
 import { NAV_ITEMS, NavItem } from '../../layout/nav';
 import { AskPanelService } from '../ask/ask-panel.service';
 import { AGENT_ACTIONS, AgentAction } from './command-palette.actions';
+import { provideSharedScope } from '../../core/i18n/shared-scope';
 import { CommandPaletteService } from './command-palette.service';
 
 /** A keyboard-navigable row, tagged by kind so Enter knows what to do. */
@@ -78,7 +79,7 @@ export const SEARCH_DEBOUNCE_MS = 200;
 @Component({
   selector: 'app-command-palette',
   imports: [FormsModule, TranslocoPipe, Icon],
-  providers: [provideTranslocoScope('search')],
+  viewProviders: [provideSharedScope('search')],
   host: { '(document:keydown.escape)': 'onEscape()' },
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `

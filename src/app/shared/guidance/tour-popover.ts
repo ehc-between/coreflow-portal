@@ -5,16 +5,17 @@ import {
   afterRenderEffect,
   inject,
 } from '@angular/core';
-import { TranslocoPipe, provideTranslocoScope } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { MarkdownPipe } from '../markdown/markdown.pipe';
 import { Button } from '../ui/button/button';
+import { provideSharedScope } from '../../core/i18n/shared-scope';
 import { TOUR_CONTROLLER } from './tour-controller';
 
 /** The popover card of a running tour (rendered in a CDK overlay by `TourService`). */
 @Component({
   selector: 'app-tour-popover',
   imports: [TranslocoPipe, MarkdownPipe, Button],
-  providers: [provideTranslocoScope('guidance')],
+  viewProviders: [provideSharedScope('guidance')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `

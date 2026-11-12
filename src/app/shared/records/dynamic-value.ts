@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
-import { TranslocoPipe, provideTranslocoScope } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { FieldSpec } from '../../core/records/record.models';
 import { LocalDatePipe, LocalDayPipe, LocalNumberPipe } from '../locale/locale-pipes';
+import { provideSharedScope } from '../../core/i18n/shared-scope';
 import { PickOption, isEmptyValue, optionList } from './form-model';
 
 /**
@@ -13,7 +14,7 @@ import { PickOption, isEmptyValue, optionList } from './form-model';
 @Component({
   selector: 'app-dynamic-value',
   imports: [TranslocoPipe, LocalDatePipe, LocalDayPipe, LocalNumberPipe],
-  providers: [provideTranslocoScope('records')],
+  viewProviders: [provideSharedScope('records')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @let v = value();

@@ -48,7 +48,7 @@ interface SearchState {
 @Component({
   selector: 'app-link-picker',
   imports: [TranslocoPipe, SlideOver, Button, Alert, EntityChip],
-  providers: [provideKitScope()],
+  viewProviders: [provideKitScope()],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-slide-over

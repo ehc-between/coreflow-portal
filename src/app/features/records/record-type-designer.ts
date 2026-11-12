@@ -584,7 +584,8 @@ export class RecordTypeDesigner {
   private readonly drafts = inject(RecordDraftStore);
   private readonly ask = inject(AskPanelService);
   private readonly transloco = inject(TranslocoService);
-  private readonly lang = inject(LanguageService).active;
+  private readonly language = inject(LanguageService);
+  private readonly lang = this.language.active;
 
   protected readonly modules = MODULE_KEYS;
   protected readonly tabs: readonly DesignerTab[] = ['fields', 'workflow', 'preview', 'history'];
@@ -729,7 +730,7 @@ export class RecordTypeDesigner {
       published_at: v.published_at,
       published_by_name: v.published_by_name,
       change_note: v.change_note,
-      summary: this.transloco.translate('records.versions.fieldCount', { count: v.field_count }),
+      summary: this.language.translate('records.versions.fieldCount', { count: v.field_count }),
     })),
   );
 

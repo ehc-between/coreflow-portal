@@ -8,12 +8,13 @@ import {
   output,
   untracked,
 } from '@angular/core';
-import { TranslocoPipe, provideTranslocoScope } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { GuidanceContentService } from '../../core/guidance/guidance-content.service';
 import { LessonResult, progressLessonKey } from '../../core/guidance/guidance.models';
 import { LearningProgressService } from '../../core/guidance/learning-progress.service';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { Badge } from '../ui/badge/badge';
+import { provideSharedScope } from '../../core/i18n/shared-scope';
 import { LessonPlayer } from './lesson-player';
 
 /**
@@ -24,7 +25,7 @@ import { LessonPlayer } from './lesson-player';
 @Component({
   selector: 'app-lesson',
   imports: [TranslocoPipe, Badge, LessonPlayer],
-  providers: [provideTranslocoScope('guidance')],
+  viewProviders: [provideSharedScope('guidance')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `

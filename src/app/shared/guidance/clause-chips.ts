@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
-import { TranslocoPipe, provideTranslocoScope } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { formatClause } from '../../core/guidance/clause-ref';
 import { TutorService } from '../../core/guidance/tutor.service';
+import { provideSharedScope } from '../../core/i18n/shared-scope';
 import { LanguageService } from '../../core/i18n/language.service';
 
 /**
@@ -11,7 +12,7 @@ import { LanguageService } from '../../core/i18n/language.service';
 @Component({
   selector: 'app-clause-chips',
   imports: [TranslocoPipe],
-  providers: [provideTranslocoScope('guidance')],
+  viewProviders: [provideSharedScope('guidance')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex flex-wrap gap-1.5' },
   template: `

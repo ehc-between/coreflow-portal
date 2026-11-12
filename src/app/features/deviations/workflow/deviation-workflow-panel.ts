@@ -8,7 +8,7 @@ import {
   signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { TranslocoPipe, provideTranslocoScope } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { Observable, of, switchMap } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
 import { hasAnyPermission } from '../../../core/auth/permission';
@@ -39,6 +39,7 @@ import { Badge, BadgeTone } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
 import { FormField } from '../../../shared/ui/form-field/form-field';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { provideSharedScope } from '../../../core/i18n/shared-scope';
 import {
   coreFieldSpecs,
   missingFieldSpecs,
@@ -72,7 +73,7 @@ import {
     LocalDatePipe,
     RelativeTimePipe,
   ],
-  providers: [provideTranslocoScope('records')],
+  viewProviders: [provideSharedScope('records')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (workflow(); as wf) {

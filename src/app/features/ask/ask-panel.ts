@@ -12,7 +12,7 @@ import {
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { TranslocoPipe, provideTranslocoScope } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { marked } from 'marked';
 import { entityTypeIcon, entityTypeLabel } from '../../core/search/entity-label';
 import { InternalLink, internalLink } from '../../core/search/internal-link';
@@ -20,6 +20,7 @@ import { LanguageService } from '../../core/i18n/language.service';
 import { AskSource } from '../../core/ai/ai.models';
 import { Icon } from '../../shared/ui/icon/icon';
 import { AskActionCardView } from './ask-action-card';
+import { provideSharedScope } from '../../core/i18n/shared-scope';
 import { AskPanelService } from './ask-panel.service';
 
 marked.setOptions({ gfm: true, breaks: true });
@@ -46,7 +47,7 @@ marked.setOptions({ gfm: true, breaks: true });
 @Component({
   selector: 'app-ask-panel',
   imports: [FormsModule, RouterLink, TranslocoPipe, Icon, AskActionCardView],
-  providers: [provideTranslocoScope('search')],
+  viewProviders: [provideSharedScope('search')],
   host: { '(document:keydown.escape)': 'onEscape()' },
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `

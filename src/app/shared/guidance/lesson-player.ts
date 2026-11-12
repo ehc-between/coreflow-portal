@@ -6,10 +6,11 @@ import {
   linkedSignal,
   output,
 } from '@angular/core';
-import { TranslocoPipe, provideTranslocoScope } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { DEFAULT_PASS_MARK, Lesson, LessonResult } from '../../core/guidance/guidance.models';
 import { MarkdownPipe } from '../markdown/markdown.pipe';
 import { Button } from '../ui/button/button';
+import { provideSharedScope } from '../../core/i18n/shared-scope';
 import { ProgressBar } from '../ui/progress-bar/progress-bar';
 
 let nextId = 0;
@@ -40,7 +41,7 @@ export function scoreQuiz(
 @Component({
   selector: 'app-lesson-player',
   imports: [TranslocoPipe, MarkdownPipe, Button, ProgressBar],
-  providers: [provideTranslocoScope('guidance')],
+  viewProviders: [provideSharedScope('guidance')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `

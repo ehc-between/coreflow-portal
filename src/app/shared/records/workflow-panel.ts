@@ -10,7 +10,7 @@ import {
   untracked,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { TranslocoPipe, provideTranslocoScope } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { AuthService } from '../../core/auth/auth.service';
 import { hasAnyPermission } from '../../core/auth/permission';
 import { LanguageService } from '../../core/i18n/language.service';
@@ -39,6 +39,7 @@ import { Button } from '../ui/button/button';
 import { FormField } from '../ui/form-field/form-field';
 import { Icon } from '../ui/icon/icon';
 import { DynamicForm } from './dynamic-form';
+import { provideSharedScope } from '../../core/i18n/shared-scope';
 import { PickOption } from './form-model';
 
 /** Badge tone per state category. */
@@ -82,7 +83,7 @@ export function needsPrompt(option: TransitionOption): boolean {
     LocalDatePipe,
     RelativeTimePipe,
   ],
-  providers: [provideTranslocoScope('records')],
+  viewProviders: [provideSharedScope('records')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section

@@ -1,14 +1,15 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { TranslocoPipe, provideTranslocoScope } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { Button } from '../../../shared/ui/button/button';
+import { provideSharedScope } from '../../../core/i18n/shared-scope';
 import { Card } from '../../../shared/ui/card/card';
 
 /** The org-settings entry card linking to `/settings/guidance` (learning mode). */
 @Component({
   selector: 'app-guidance-settings-link',
   imports: [RouterLink, TranslocoPipe, Button, Card],
-  providers: [provideTranslocoScope('guidance')],
+  viewProviders: [provideSharedScope('guidance')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `

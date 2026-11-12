@@ -9,7 +9,7 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { TranslocoPipe, provideTranslocoScope } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { Observable, map } from 'rxjs';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { taskErrorKey } from '../../core/tasks/task-errors';
@@ -32,6 +32,7 @@ import { AssigneeSelect } from './assignee-select';
 import { TaskFieldHelp } from './guidance/task-field-help';
 import { RecurrencePicker } from './recurrence-picker';
 import { parseRrule } from './rrule';
+import { provideSharedScope } from '../../core/i18n/shared-scope';
 import {
   dayOf,
   decodeAssignee,
@@ -91,7 +92,7 @@ let nextId = 0;
     RecurrencePicker,
     TaskFieldHelp,
   ],
-  providers: [provideTranslocoScope('tasks')],
+  viewProviders: [provideSharedScope('tasks')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <form class="flex flex-col gap-4" novalidate (submit)="$event.preventDefault(); save()">

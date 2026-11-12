@@ -11,7 +11,7 @@ import {
   untracked,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { TranslocoPipe, provideTranslocoScope } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
@@ -36,6 +36,7 @@ import { FormField } from '../../shared/ui/form-field/form-field';
 import { Icon } from '../../shared/ui/icon/icon';
 import { ContractsApi } from './data/contracts-api';
 import { ObligationCreate } from './data/contract.models';
+import { provideSharedScope } from '../../core/i18n/shared-scope';
 import { contractErrorKey } from './data/contract-errors';
 
 /**
@@ -59,7 +60,7 @@ import { contractErrorKey } from './data/contract-errors';
     FormField,
     Icon,
   ],
-  providers: [provideTranslocoScope('tasks')],
+  viewProviders: [provideSharedScope('tasks')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section aria-labelledby="cf-obligations-h">

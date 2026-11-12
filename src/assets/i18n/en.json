@@ -1573,7 +1573,9 @@
       "feedback": "Customer feedback",
       "reports": "Reports and audit packs",
       "documents": "Documents",
-      "standards": "Standards"
+      "standards": "Standards",
+      "guidance": "Guidance and learning",
+      "records": "Record types and workflows"
     },
     "descriptions": {
       "tasks": "Assign, track and repeat work across every module.",
@@ -1601,7 +1603,9 @@
       "feedback": "Customer feedback, satisfaction surveys and complaints.",
       "reports": "Compliance dashboards, an organisation calendar and exports.",
       "documents": "Controlled documents with review, approval and acknowledgement.",
-      "standards": "Standards catalogue, applicability and evidence per requirement."
+      "standards": "Standards catalogue, applicability and evidence per requirement.",
+      "guidance": "Lessons, tours and quizzes that teach each module and record competence.",
+      "records": "Design your own record types, forms and approval workflows."
     },
     "reasons": {
       "tasks": "Tasks keep every control, review and follow-up assigned and on time.",

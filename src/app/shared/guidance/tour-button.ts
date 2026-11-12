@@ -1,13 +1,14 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
-import { TranslocoPipe, provideTranslocoScope } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { GuidanceContentService } from '../../core/guidance/guidance-content.service';
+import { provideSharedScope } from '../../core/i18n/shared-scope';
 import { TourService } from './tour.service';
 
 /** "Take the tour" button; hidden when the guidance file has no such tour. */
 @Component({
   selector: 'app-tour-button',
   imports: [TranslocoPipe],
-  providers: [provideTranslocoScope('guidance')],
+  viewProviders: [provideSharedScope('guidance')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'inline-flex' },
   template: `

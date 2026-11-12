@@ -12,7 +12,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { TranslocoPipe, provideTranslocoScope } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { Observable, Subscription, catchError, forkJoin, map, of } from 'rxjs';
 import { LanguageService } from '../../core/i18n/language.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
@@ -33,6 +33,7 @@ import {
   LinkEntityType,
   RequirementLink,
 } from '../../core/standards/standards.models';
+import { provideSharedScope } from '../../core/i18n/shared-scope';
 import { Icon } from '../ui/icon/icon';
 
 /** A CAPA action whose links are shown under the deviation (structurally an `Action`). */
@@ -63,7 +64,7 @@ interface LinkGroup {
   imports: [FormsModule, RouterLink, TranslocoPipe, Icon],
   // The suggestion strings live in the `standards` scope; hosts (documents,
   // deviations, modules) don't load it themselves.
-  providers: [provideTranslocoScope('standards')],
+  viewProviders: [provideSharedScope('standards')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (canRead()) {

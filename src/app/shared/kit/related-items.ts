@@ -44,7 +44,7 @@ interface LinkGroup {
 @Component({
   selector: 'app-related-items',
   imports: [TranslocoPipe, Alert, Button, ConfirmDialog, Icon, EntityChip, LinkPicker],
-  providers: [provideKitScope()],
+  viewProviders: [provideKitScope()],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section [attr.aria-labelledby]="headingId" data-tour="kit-related">

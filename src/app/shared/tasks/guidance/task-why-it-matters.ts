@@ -1,9 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
-import { TranslocoPipe, provideTranslocoScope } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { TasksGuidance } from '../../../core/tasks/tasks-guidance';
 import { AskPanelService } from '../../../features/ask/ask-panel.service';
 import { MarkdownPipe } from '../../markdown/markdown.pipe';
+import { provideSharedScope } from '../../../core/i18n/shared-scope';
 import { Icon } from '../../ui/icon/icon';
 
 /** Framework prefixes with a translated short name (`tasks.guide.frameworks.<prefix>`). */
@@ -31,7 +32,7 @@ export function parseClauseRef(ref: string): ClauseChip {
 @Component({
   selector: 'app-task-why-it-matters',
   imports: [TranslocoPipe, MarkdownPipe, Icon],
-  providers: [provideTranslocoScope('tasks')],
+  viewProviders: [provideSharedScope('tasks')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (why(); as why) {

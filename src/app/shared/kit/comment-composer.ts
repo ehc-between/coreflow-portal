@@ -41,7 +41,7 @@ export interface CommentDraft {
 @Component({
   selector: 'app-comment-composer',
   imports: [TranslocoPipe, Button],
-  providers: [provideKitScope()],
+  viewProviders: [provideKitScope()],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="relative flex flex-col gap-2">

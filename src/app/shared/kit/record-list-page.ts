@@ -43,7 +43,7 @@ let nextId = 0;
 @Component({
   selector: 'app-record-list-page',
   imports: [TranslocoPipe, Icon, PromptDialog],
-  providers: [provideKitScope()],
+  viewProviders: [provideKitScope()],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     '(document:keydown.escape)': 'closeMenu()',

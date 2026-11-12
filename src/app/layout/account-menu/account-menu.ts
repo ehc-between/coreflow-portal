@@ -1,11 +1,12 @@
 import { ChangeDetectionStrategy, Component, ElementRef, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { TranslocoPipe, provideTranslocoScope } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { AuthService } from '../../core/auth/auth.service';
 import { GUIDANCE_LEVELS, GuidanceLevel } from '../../core/guidance/guidance.models';
 import { GuidanceService } from '../../core/guidance/guidance.service';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { Avatar } from '../../shared/ui/avatar/avatar';
+import { provideSharedScope } from '../../core/i18n/shared-scope';
 import { Icon } from '../../shared/ui/icon/icon';
 
 /**
@@ -17,7 +18,7 @@ import { Icon } from '../../shared/ui/icon/icon';
 @Component({
   selector: 'app-account-menu',
   imports: [RouterLink, TranslocoPipe, Avatar, Icon],
-  providers: [provideTranslocoScope('guidance')],
+  viewProviders: [provideSharedScope('guidance')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     class: 'relative ml-1 block',

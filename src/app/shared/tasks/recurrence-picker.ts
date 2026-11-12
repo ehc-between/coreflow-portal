@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input, model } from '@angular/core';
-import { TranslocoPipe, provideTranslocoScope } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { FormField } from '../ui/form-field/form-field';
 import {
   DEFAULT_RULE,
@@ -13,6 +13,7 @@ import {
   parseRrule,
 } from './rrule';
 import { RuleSummary } from './rule-summary';
+import { provideSharedScope } from '../../core/i18n/shared-scope';
 import { addDays, todayDay } from './task-display';
 
 const MONTHS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const;
@@ -26,7 +27,7 @@ const MONTHS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const;
 @Component({
   selector: 'app-recurrence-picker',
   imports: [TranslocoPipe, FormField, RuleSummary],
-  providers: [provideTranslocoScope('tasks')],
+  viewProviders: [provideSharedScope('tasks')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <fieldset class="flex flex-col gap-3 rounded-card border border-border bg-surface-2 p-3.5">

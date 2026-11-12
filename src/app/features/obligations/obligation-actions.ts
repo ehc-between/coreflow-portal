@@ -11,7 +11,7 @@ import {
   untracked,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { TranslocoPipe, provideTranslocoScope } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
@@ -34,6 +34,7 @@ import { FormField } from '../../shared/ui/form-field/form-field';
 import { Icon } from '../../shared/ui/icon/icon';
 import { ObligationsApi } from './data/obligations-api';
 import { FollowUpIn } from './data/obligation.models';
+import { provideSharedScope } from '../../core/i18n/shared-scope';
 import { obligationErrorKey } from './data/obligation-errors';
 
 /** Task kinds of the module: the scheduled evaluation and follow-up actions. */
@@ -67,7 +68,7 @@ export function sortTasks(tasks: readonly Task[]): Task[] {
     FormField,
     Icon,
   ],
-  providers: [provideTranslocoScope('tasks')],
+  viewProviders: [provideSharedScope('tasks')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section aria-labelledby="cf-ob-actions-h">

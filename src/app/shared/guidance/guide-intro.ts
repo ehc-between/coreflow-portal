@@ -6,11 +6,12 @@ import {
   input,
   linkedSignal,
 } from '@angular/core';
-import { TranslocoPipe, provideTranslocoScope } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { GuidanceContentService } from '../../core/guidance/guidance-content.service';
 import { GuidanceService } from '../../core/guidance/guidance.service';
 import { MarkdownPipe } from '../markdown/markdown.pipe';
 import { Icon } from '../ui/icon/icon';
+import { provideSharedScope } from '../../core/i18n/shared-scope';
 import { TeachMe } from './teach-me';
 
 let nextId = 0;
@@ -23,7 +24,7 @@ let nextId = 0;
 @Component({
   selector: 'app-guide-intro',
   imports: [TranslocoPipe, MarkdownPipe, Icon, TeachMe],
-  providers: [provideTranslocoScope('guidance')],
+  viewProviders: [provideSharedScope('guidance')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `

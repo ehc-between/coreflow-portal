@@ -8,10 +8,11 @@ import {
   untracked,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { TranslocoPipe, provideTranslocoScope } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { hasAnyPermission } from '../../../core/auth/permission';
 import { ModulesApi } from '../../../core/modules/modules-api';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
+import { provideSharedScope } from '../../../core/i18n/shared-scope';
 import { Icon } from '../../../shared/ui/icon/icon';
 
 const DISMISS_PREFIX = 'coreflow.setupBanner.dismissed.';
@@ -23,7 +24,7 @@ const DISMISS_PREFIX = 'coreflow.setupBanner.dismissed.';
 @Component({
   selector: 'app-setup-banner',
   imports: [RouterLink, TranslocoPipe, Icon],
-  providers: [provideTranslocoScope('modules')],
+  viewProviders: [provideSharedScope('modules')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (show()) {

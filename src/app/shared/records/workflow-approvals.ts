@@ -8,7 +8,7 @@ import {
   untracked,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { TranslocoPipe, provideTranslocoScope } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { LanguageService } from '../../core/i18n/language.service';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
@@ -17,6 +17,7 @@ import { LocalizedText, PendingApproval } from '../../core/records/record.models
 import { recordsErrorMessage } from '../../core/records/records-errors';
 import { RecordsApi } from '../../core/records/records-api';
 import { RelativeTimePipe } from '../relative-time/relative-time';
+import { provideSharedScope } from '../../core/i18n/shared-scope';
 import { Button } from '../ui/button/button';
 
 /**
@@ -27,7 +28,7 @@ import { Button } from '../ui/button/button';
 @Component({
   selector: 'app-workflow-approvals',
   imports: [RouterLink, TranslocoPipe, Button, RelativeTimePipe],
-  providers: [provideTranslocoScope('records')],
+  viewProviders: [provideSharedScope('records')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (items().length) {
