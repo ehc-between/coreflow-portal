@@ -1,0 +1,104 @@
+{
+  "types": {
+    "document": "Dokumenter",
+    "deviation": "Avvik",
+    "deviation_action": "Korrigerende og forebyggende tiltak",
+    "standard_requirement": "Krav i standarder",
+    "task": "Oppgaver",
+    "other": "Poster"
+  },
+  "palette": {
+    "searching": "Søker …",
+    "error": "Søket er ikke tilgjengelig akkurat nå. Du kan fortsatt gå til en side nedenfor.",
+    "noResults": "Ingen poster passer med «{{query}}».",
+    "count": "{{count}}",
+    "hint": "Skriv for å søke i dokumenter, avvik, tiltak og krav, eller velg en handling nedenfor."
+  },
+  "launcher": {
+    "label": "Åpne Spør CoreFlow",
+    "title": "Spør CoreFlow ({{shortcut}})"
+  },
+  "intro": {
+    "tryTitle": "Prøv å spørre",
+    "examples": {
+      "find": "Finn prosedyrene våre om dokumentstyring",
+      "explain": "Hva krever ISO 9001 punkt 6.1?",
+      "thisPage": "Oppsummer det jeg ser på",
+      "create": "Registrer et avvik for en forsinket leveranse"
+    },
+    "confirmNote": "CoreFlow endrer aldri noe på egen hånd. Når den foreslår en endring, ser du nøyaktig hva den vil gjøre, og bekrefter først.",
+    "shortcut": "Trykk Ctrl+J (⌘J på Mac) for å åpne eller lukke assistenten fra hvilken som helst side."
+  },
+  "context": {
+    "using": "Om denne siden: {{title}}",
+    "detach": "Ikke bruk",
+    "detached": "Bruker ikke denne siden",
+    "attach": "Bruk denne siden"
+  },
+  "tutor": {
+    "banner": "Veiledermodus: lær steg for steg",
+    "bannerTopic": "Veiledermodus: {{topic}}",
+    "exit": "Avslutt veiledermodus",
+    "start": "Lær meg om denne siden, steg for steg.",
+    "startTopic": "Lær meg om {{topic}}, steg for steg.",
+    "teachMePage": "Lær meg om denne siden"
+  },
+  "links": {
+    "heading": "Poster"
+  },
+  "action": {
+    "cardLabel": "Foreslått endring",
+    "heading": "Foreslått endring",
+    "hint": "Ingenting er endret ennå. Bekreft for å gjøre endringen, eller forkast den.",
+    "confirm": "Bekreft",
+    "discard": "Forkast",
+    "done": "Ferdig.",
+    "openResult": "Åpne",
+    "discarded": "Forkastet. Ingenting ble endret.",
+    "expired": "Forslaget har utløpt. Spør på nytt hvis du fortsatt vil ha endringen.",
+    "failed": "Endringen kunne ikke gjøres. Ingenting ble endret.",
+    "forbidden": "Du har ikke lenger tilgang til å gjøre denne endringen.",
+    "gone": "Forslaget er ikke lenger tilgjengelig.",
+    "error": "Noe gikk galt. Prøv igjen.",
+    "state": {
+      "pending": "Venter på bekreftelse",
+      "confirming": "Utfører …",
+      "rejecting": "Forkaster …",
+      "confirmed": "Bekreftet",
+      "rejected": "Forkastet",
+      "expired": "Utløpt",
+      "failed": "Mislyktes",
+      "forbidden": "Ikke tillatt",
+      "gone": "Ikke tilgjengelig",
+      "error": "Ikke utført"
+    }
+  },
+  "askAbout": {
+    "label": "Spør om dette",
+    "prompt": "Forklar det jeg ser på, og hva jeg bør være oppmerksom på.",
+    "fieldPrompt": "Forklar feltet «{{field}}» på denne siden og hvordan det fylles ut."
+  },
+  "assist": {
+    "defaultLabel": "Foreslå",
+    "running": "Jobber … (klikk for å stoppe)",
+    "failed": "Det fungerte ikke. Prøv igjen."
+  },
+  "timeline": {
+    "aiAction": {
+      "proposed": "{{actor_name}} fikk en foreslått endring fra assistenten",
+      "confirmed": "{{actor_name}} bekreftet en endring foreslått av assistenten",
+      "rejected": "{{actor_name}} forkastet en endring foreslått av assistenten",
+      "expired": "En endring foreslått av assistenten utløp uten at noen tok stilling til den",
+      "failed": "En endring foreslått av assistenten kunne ikke gjøres"
+    }
+  },
+  "notifications": {
+    "aiAction": {
+      "proposed": "Assistenten foreslo en endring som du må bekrefte",
+      "confirmed": "Den bekreftede endringen din ble gjort",
+      "rejected": "Du forkastet en foreslått endring",
+      "expired": "En foreslått endring har utløpt",
+      "failed": "En foreslått endring kunne ikke gjøres"
+    }
+  }
+}

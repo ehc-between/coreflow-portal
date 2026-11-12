@@ -34,6 +34,48 @@ describe('AiApi', () => {
     expect(stream).toBe(handle);
   });
 
+  it('adds page context, tutor mode, topic and guidance level when given', () => {
+    const { api, sse } = setup('en');
+    const pageContext = {
+      module: 'risk',
+      entity_type: 'risk',
+      entity_id: null,
+      view: 'list' as const,
+      route: '/risk',
+      title: null,
+      selection: null,
+    };
+    api.ask([], 'org1', () => undefined, {
+      pageContext,
+      mode: 'tutor',
+      topic: ' iso9001:6.1 ',
+      guidanceLevel: 'beginner',
+    });
+    expect(sse.post).toHaveBeenCalledWith(
+      'v1/ai/ask',
+      {
+        org_id: 'org1',
+        messages: [],
+        lang: 'en',
+        page_context: pageContext,
+        mode: 'tutor',
+        topic: 'iso9001:6.1',
+        guidance_level: 'beginner',
+      },
+      expect.any(Function),
+    );
+  });
+
+  it('omits the topic outside tutor mode', () => {
+    const { api, sse } = setup('en');
+    api.ask([], 'org1', () => undefined, { mode: 'ask', topic: 'risk.list' });
+    expect(sse.post).toHaveBeenCalledWith(
+      'v1/ai/ask',
+      { org_id: 'org1', messages: [], lang: 'en' },
+      expect.any(Function),
+    );
+  });
+
   it('sends English when the UI is in English', () => {
     const { api, sse } = setup('en');
     api.ask([], 'org1', () => undefined);

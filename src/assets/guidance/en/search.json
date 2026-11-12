@@ -1,0 +1,178 @@
+{
+  "pages": {
+    "assistant": {
+      "intro": {
+        "title": "Your compliance assistant",
+        "body": "Ask CoreFlow knows which page you are on, so you can say \"this deviation\" or \"this document\". It searches everything you are allowed to see and links to the records it uses.",
+        "steps": [
+          "Open the assistant with the spark button, the floating button, or Ctrl+J (⌘J on Mac).",
+          "Ask in plain language, for example \"What does clause 7.5 require?\".",
+          "Follow the links in the answer to open the records it used.",
+          "When it suggests a change, check the card and choose Confirm or Discard."
+        ]
+      },
+      "why": {
+        "body": "Answers are only useful when they are traceable. The assistant cites the documents and requirements it relies on, and every change it suggests needs your confirmation and is recorded in the audit trail, so you stay in control of your management system.",
+        "clauses": ["iso9001:7.5", "iso27001:7.5"]
+      },
+      "empty": {
+        "title": "Ask anything about your work",
+        "body": "Try \"Find our procedures about document control\" or \"Summarise this deviation\". The assistant answers in the language you use CoreFlow in.",
+        "cta": "Ask a question"
+      },
+      "fields": {
+        "pageContext": {
+          "help": "The page you are on goes along with your question so the assistant knows which record you mean. Choose \"Don't use\" to ask without it.",
+          "example": "On a deviation page, \"What should the root cause analysis cover here?\""
+        },
+        "proposal": {
+          "help": "A proposed change shows exactly what will be created or changed. Nothing happens until you confirm it, and proposals expire after 24 hours.",
+          "example": "\"Register a deviation for the late delivery from supplier X\" shows a card with the title, type and severity before anything is saved."
+        }
+      }
+    },
+    "palette": {
+      "intro": {
+        "title": "Find anything quickly",
+        "body": "Press Ctrl+K (⌘K on Mac) and start typing. CoreFlow searches documents, deviations, actions and the requirements of your standards, and only shows records you are allowed to see.",
+        "steps": [
+          "Type at least two letters of a title, code or word from the text.",
+          "Use the arrow keys to move and Enter to open a result.",
+          "Choose \"Ask CoreFlow\" at the top to ask the assistant instead."
+        ]
+      },
+      "why": {
+        "body": "Finding the current, approved version of a document quickly is part of controlling documented information. Search only shows approved documents you have access to.",
+        "clauses": ["iso9001:7.5.3", "iso27001:7.5.3"]
+      },
+      "empty": {
+        "title": "No matches yet",
+        "body": "Try a shorter word, a document code such as \"QP-01\", or a clause number.",
+        "cta": "Ask CoreFlow instead"
+      },
+      "fields": {
+        "query": {
+          "help": "Search matches whole words and the beginning of words while you type, plus titles and codes.",
+          "example": "\"calib\" finds \"Calibration procedure\"."
+        }
+      }
+    },
+    "tutor": {
+      "intro": {
+        "title": "Learn as you go",
+        "body": "Tutor mode explains a page, a topic or a clause step by step, in plain language, and checks your understanding with a short question.",
+        "steps": [
+          "Choose \"Teach me about this page\" in the assistant, or a clause chip on a page.",
+          "Read one step at a time and answer the check question.",
+          "Leave tutor mode whenever you want to ask normally."
+        ]
+      },
+      "why": {
+        "body": "Everyone who works in the management system needs to understand their part of it. Short, practical explanations help build that awareness.",
+        "clauses": ["iso9001:7.2", "iso9001:7.3"]
+      },
+      "empty": {
+        "title": "Start a lesson",
+        "body": "Pick a topic, or ask the tutor to explain the page you are on.",
+        "cta": "Teach me about this page"
+      },
+      "fields": {}
+    }
+  },
+  "lessons": {
+    "working-with-the-assistant": {
+      "title": "Working with the assistant",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "It knows where you are",
+          "body": "When you open the assistant on a record, it is told which record you are looking at. You can ask \"what is missing here?\" without naming it. You can switch this off for a conversation with **Don't use**."
+        },
+        {
+          "heading": "It shows its sources",
+          "body": "Answers list the documents and records the assistant used. Open them to check the answer, especially before you rely on it in an audit."
+        },
+        {
+          "heading": "You confirm every change",
+          "body": "The assistant can prepare changes such as a new deviation or a document owner change. It shows a card with exactly what will happen. **Nothing changes until you confirm**, and you can always discard the proposal. Confirmed changes are recorded as made by you with the assistant's help."
+        },
+        {
+          "heading": "It respects your access",
+          "body": "The assistant only sees and changes what you are allowed to. If you lose a permission, a pending proposal can no longer be confirmed."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "The assistant has proposed a new deviation. What has happened so far?",
+          "options": [
+            "The deviation has been registered",
+            "Nothing yet: it is registered only when you confirm",
+            "It has been sent to your manager for approval"
+          ],
+          "answer": 1,
+          "explanation": "Proposals are only carried out when you confirm them. Until then nothing changes, and the proposal expires after 24 hours."
+        },
+        {
+          "question": "How do you check where an answer comes from?",
+          "options": [
+            "Open the sources and records listed under the answer",
+            "Ask the assistant to promise it is correct",
+            "You can't"
+          ],
+          "answer": 0,
+          "explanation": "The assistant lists the records it used. Opening them is the way to verify the answer."
+        }
+      ],
+      "pass_mark": 0.8
+    },
+    "finding-records-fast": {
+      "title": "Finding records fast",
+      "minutes": 2,
+      "sections": [
+        {
+          "heading": "One search for everything",
+          "body": "Press **Ctrl+K** (⌘K on Mac) anywhere. Type part of a title, a code or a word from the text. Results are grouped by type: documents, deviations, actions and requirements."
+        },
+        {
+          "heading": "Only what you may see",
+          "body": "Search follows your access. Draft or restricted documents you can't open are not shown, and disabled modules are left out."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Which keys open global search?",
+          "options": ["Ctrl+K (⌘K on Mac)", "Ctrl+J (⌘J on Mac)", "Ctrl+S"],
+          "answer": 0,
+          "explanation": "Ctrl+K opens search and the command palette. Ctrl+J opens the assistant."
+        }
+      ],
+      "pass_mark": 1
+    }
+  },
+  "tours": {
+    "assistant": [
+      {
+        "target": "ask-launcher",
+        "title": "Ask from any page",
+        "body": "This button opens the assistant. You can also press Ctrl+J (⌘J on Mac)."
+      },
+      {
+        "target": "search-open",
+        "title": "Search everything",
+        "body": "Search documents, deviations, actions and requirements from here, or press Ctrl+K."
+      }
+    ]
+  },
+  "glossary": {
+    "page-context": {
+      "term": "Page context",
+      "definition": "The page and record you are looking at, which goes along with your question so the assistant knows what \"this\" refers to.",
+      "clauses": []
+    },
+    "proposed-change": {
+      "term": "Proposed change",
+      "definition": "A change the assistant has prepared but not made. It is carried out only when you confirm it, and it expires after 24 hours.",
+      "clauses": []
+    }
+  }
+}

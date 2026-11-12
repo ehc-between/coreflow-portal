@@ -49,6 +49,8 @@ import {
   defaultVersionView,
 } from './workflow/document-version-banner';
 import { DocumentWorkflowActions } from './workflow/document-workflow-actions';
+import { providePageContext } from '../../core/ai/page-context';
+import { AskAbout } from '../../shared/ask/ask-about';
 
 /**
  * Document detail, scoped to the currently selected org. Renders the current
@@ -67,6 +69,7 @@ import { DocumentWorkflowActions } from './workflow/document-workflow-actions';
 @Component({
   selector: 'app-document-detail',
   imports: [
+    AskAbout,
     LocalDatePipe,
     RouterLink,
     TranslocoPipe,
@@ -118,9 +121,12 @@ import { DocumentWorkflowActions } from './workflow/document-workflow-actions';
                 <app-badge [tone]="reviewTone(r)">{{ reviewLabelKey(r) | transloco }}</app-badge>
               }
             </div>
-            <h1 class="font-display text-[26px] font-bold tracking-[-0.025em] text-fg">
-              {{ doc.title }}
-            </h1>
+            <div class="flex items-start gap-1.5">
+              <h1 class="font-display text-[26px] font-bold tracking-[-0.025em] text-fg">
+                {{ doc.title }}
+              </h1>
+              <app-ask-about class="mt-1.5 flex-none" />
+            </div>
             <app-requirement-chips
               class="mt-2 block"
               [links]="requirementLinks()"
@@ -507,6 +513,15 @@ export class DocumentDetail {
   private currentOrgId: string | null = null;
 
   constructor() {
+    // Tell the assistant which document this page shows (F5 page context).
+    providePageContext(() => ({
+      module: 'documents',
+      entityType: 'document',
+      entityId: this.id(),
+      view: 'detail',
+      title: this.document()?.title ?? null,
+    }));
+
     effect(() => {
       const orgId = this.orgId();
       const id = this.id();

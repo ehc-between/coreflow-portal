@@ -81,6 +81,8 @@ import {
 } from './deviation-enums';
 import { DynamicField, DynamicFieldOption } from './dynamic-field';
 import { groupFieldsIntoSections } from './types/type-schema';
+import { providePageContext } from '../../core/ai/page-context';
+import { AskAbout } from '../../shared/ask/ask-about';
 
 /** A rejected status change: the workflow error plus the status that was attempted. */
 type StatusRejection = WorkflowError & {
@@ -105,6 +107,7 @@ type StatusRejection = WorkflowError & {
 @Component({
   selector: 'app-deviation-detail',
   imports: [
+    AskAbout,
     LocalDatePipe,
     LocalDayPipe,
     FormsModule,
@@ -156,9 +159,12 @@ type StatusRejection = WorkflowError & {
                 severityLabelKey(dev.severity) | transloco
               }}</app-badge>
             </div>
-            <h1 class="font-display text-[26px] font-bold tracking-[-0.025em] text-fg">
-              {{ dev.title }}
-            </h1>
+            <div class="flex items-start gap-1.5">
+              <h1 class="font-display text-[26px] font-bold tracking-[-0.025em] text-fg">
+                {{ dev.title }}
+              </h1>
+              <app-ask-about class="mt-1.5 flex-none" />
+            </div>
           </div>
 
           <div class="flex flex-none items-center gap-2">
@@ -953,6 +959,15 @@ export class DeviationDetail {
   private currentOrgId: string | null = null;
 
   constructor() {
+    // Tell the assistant which deviation this page shows (F5 page context).
+    providePageContext(() => ({
+      module: 'deviations',
+      entityType: 'deviation',
+      entityId: this.id(),
+      view: this.editing() ? 'edit' : 'detail',
+      title: this.deviation()?.title ?? null,
+    }));
+
     effect(() => {
       const orgId = this.orgId();
       const id = this.id();

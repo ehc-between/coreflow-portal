@@ -8,6 +8,25 @@
     </main>
   </div>
 
+  @if (!ask.open()) {
+    <button
+      type="button"
+      (click)="ask.show()"
+      [attr.aria-label]="launcherLabel()"
+      [title]="launcherTitle()"
+      aria-keyshortcuts="Control+J Meta+J"
+      class="fixed right-5 bottom-5 z-[30] flex h-12 w-12 items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--accent),var(--accent-2))] text-white shadow-pop hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+    >
+      <app-icon name="spark" [size]="22" />
+      @if (ask.streaming() || ask.hasConversation()) {
+        <span
+          class="absolute top-1 right-1 h-2.5 w-2.5 rounded-full border-2 border-surface bg-pass"
+          [class.animate-ping]="ask.streaming()"
+        ></span>
+      }
+    </button>
+  }
+
   <app-notifications />
   <app-ask-panel />
   <app-command-palette />

@@ -1,0 +1,178 @@
+{
+  "pages": {
+    "assistant": {
+      "intro": {
+        "title": "Din assistent for etterlevelse",
+        "body": "Spør CoreFlow vet hvilken side du er på, så du kan si «dette avviket» eller «dette dokumentet». Den søker i alt du har tilgang til, og lenker til postene den bruker.",
+        "steps": [
+          "Åpne assistenten med gnistknappen, den flytende knappen eller Ctrl+J (⌘J på Mac).",
+          "Spør med vanlige ord, for eksempel «Hva krever punkt 7.5?».",
+          "Følg lenkene i svaret for å åpne postene den brukte.",
+          "Når den foreslår en endring, sjekker du kortet og velger Bekreft eller Forkast."
+        ]
+      },
+      "why": {
+        "body": "Svar er bare nyttige når de kan spores. Assistenten viser hvilke dokumenter og krav den bygger på, og hver endring den foreslår må bekreftes av deg og registreres i revisjonssporet. Slik har du kontroll på styringssystemet ditt.",
+        "clauses": ["iso9001:7.5", "iso27001:7.5"]
+      },
+      "empty": {
+        "title": "Spør om hva som helst i arbeidet ditt",
+        "body": "Prøv «Finn prosedyrene våre om dokumentstyring» eller «Oppsummer dette avviket». Assistenten svarer på språket du bruker CoreFlow på.",
+        "cta": "Still et spørsmål"
+      },
+      "fields": {
+        "pageContext": {
+          "help": "Siden du er på sendes med spørsmålet, slik at assistenten vet hvilken post du mener. Velg «Ikke bruk» for å spørre uten.",
+          "example": "På en avviksside: «Hva bør årsaksanalysen dekke her?»"
+        },
+        "proposal": {
+          "help": "En foreslått endring viser nøyaktig hva som opprettes eller endres. Ingenting skjer før du bekrefter, og forslag utløper etter 24 timer.",
+          "example": "«Registrer et avvik for den forsinkede leveransen fra leverandør X» viser et kort med tittel, type og alvorlighet før noe lagres."
+        }
+      }
+    },
+    "palette": {
+      "intro": {
+        "title": "Finn hva som helst raskt",
+        "body": "Trykk Ctrl+K (⌘K på Mac) og begynn å skrive. CoreFlow søker i dokumenter, avvik, tiltak og kravene i standardene dine, og viser bare poster du har tilgang til.",
+        "steps": [
+          "Skriv minst to bokstaver av en tittel, en kode eller et ord fra teksten.",
+          "Bruk piltastene for å flytte deg og Enter for å åpne et treff.",
+          "Velg «Spør CoreFlow» øverst for å spørre assistenten i stedet."
+        ]
+      },
+      "why": {
+        "body": "Å raskt finne gjeldende, godkjent versjon av et dokument er en del av å styre dokumentert informasjon. Søket viser bare godkjente dokumenter du har tilgang til.",
+        "clauses": ["iso9001:7.5.3", "iso27001:7.5.3"]
+      },
+      "empty": {
+        "title": "Ingen treff ennå",
+        "body": "Prøv et kortere ord, en dokumentkode som «QP-01» eller et punktnummer.",
+        "cta": "Spør CoreFlow i stedet"
+      },
+      "fields": {
+        "query": {
+          "help": "Søket finner hele ord og begynnelsen av ord mens du skriver, i tillegg til titler og koder.",
+          "example": "«kalib» finner «Kalibreringsprosedyre»."
+        }
+      }
+    },
+    "tutor": {
+      "intro": {
+        "title": "Lær underveis",
+        "body": "Veiledermodus forklarer en side, et tema eller et punkt i en standard steg for steg, med enkle ord, og sjekker forståelsen med et kort spørsmål.",
+        "steps": [
+          "Velg «Lær meg om denne siden» i assistenten, eller et punkt-merke på en side.",
+          "Les ett steg om gangen og svar på kontrollspørsmålet.",
+          "Avslutt veiledermodus når du vil spørre som vanlig."
+        ]
+      },
+      "why": {
+        "body": "Alle som jobber i styringssystemet må forstå sin del av det. Korte, praktiske forklaringer bygger den bevisstheten.",
+        "clauses": ["iso9001:7.2", "iso9001:7.3"]
+      },
+      "empty": {
+        "title": "Start en leksjon",
+        "body": "Velg et tema, eller be veilederen forklare siden du er på.",
+        "cta": "Lær meg om denne siden"
+      },
+      "fields": {}
+    }
+  },
+  "lessons": {
+    "working-with-the-assistant": {
+      "title": "Slik jobber du med assistenten",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Den vet hvor du er",
+          "body": "Når du åpner assistenten på en post, får den vite hvilken post du ser på. Du kan spørre «hva mangler her?» uten å nevne den. Du kan slå dette av for en samtale med **Ikke bruk**."
+        },
+        {
+          "heading": "Den viser kildene sine",
+          "body": "Svarene viser dokumentene og postene assistenten brukte. Åpne dem for å kontrollere svaret, særlig før du bruker det i en revisjon."
+        },
+        {
+          "heading": "Du bekrefter hver endring",
+          "body": "Assistenten kan forberede endringer, for eksempel et nytt avvik eller ny dokumenteier. Den viser et kort med nøyaktig hva som vil skje. **Ingenting endres før du bekrefter**, og du kan alltid forkaste forslaget. Bekreftede endringer registreres som gjort av deg med hjelp fra assistenten."
+        },
+        {
+          "heading": "Den følger tilgangen din",
+          "body": "Assistenten ser og endrer bare det du har lov til. Mister du en tilgang, kan et ventende forslag ikke lenger bekreftes."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Assistenten har foreslått et nytt avvik. Hva har skjedd så langt?",
+          "options": [
+            "Avviket er registrert",
+            "Ingenting ennå: det registreres først når du bekrefter",
+            "Det er sendt til lederen din for godkjenning"
+          ],
+          "answer": 1,
+          "explanation": "Forslag gjennomføres bare når du bekrefter dem. Til da endres ingenting, og forslaget utløper etter 24 timer."
+        },
+        {
+          "question": "Hvordan sjekker du hvor et svar kommer fra?",
+          "options": [
+            "Åpne kildene og postene som er listet under svaret",
+            "Be assistenten love at det stemmer",
+            "Det går ikke"
+          ],
+          "answer": 0,
+          "explanation": "Assistenten viser postene den brukte. Å åpne dem er måten å kontrollere svaret på."
+        }
+      ],
+      "pass_mark": 0.8
+    },
+    "finding-records-fast": {
+      "title": "Finn poster raskt",
+      "minutes": 2,
+      "sections": [
+        {
+          "heading": "Ett søk for alt",
+          "body": "Trykk **Ctrl+K** (⌘K på Mac) hvor som helst. Skriv en del av en tittel, en kode eller et ord fra teksten. Treffene grupperes etter type: dokumenter, avvik, tiltak og krav."
+        },
+        {
+          "heading": "Bare det du har tilgang til",
+          "body": "Søket følger tilgangen din. Utkast og begrensede dokumenter du ikke kan åpne vises ikke, og moduler som er slått av tas ikke med."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Hvilke taster åpner søket?",
+          "options": ["Ctrl+K (⌘K på Mac)", "Ctrl+J (⌘J på Mac)", "Ctrl+S"],
+          "answer": 0,
+          "explanation": "Ctrl+K åpner søket og kommandopaletten. Ctrl+J åpner assistenten."
+        }
+      ],
+      "pass_mark": 1
+    }
+  },
+  "tours": {
+    "assistant": [
+      {
+        "target": "ask-launcher",
+        "title": "Spør fra hvilken som helst side",
+        "body": "Denne knappen åpner assistenten. Du kan også trykke Ctrl+J (⌘J på Mac)."
+      },
+      {
+        "target": "search-open",
+        "title": "Søk i alt",
+        "body": "Søk i dokumenter, avvik, tiltak og krav herfra, eller trykk Ctrl+K."
+      }
+    ]
+  },
+  "glossary": {
+    "page-context": {
+      "term": "Sidekontekst",
+      "definition": "Siden og posten du ser på, som sendes med spørsmålet slik at assistenten vet hva «dette» viser til.",
+      "clauses": []
+    },
+    "proposed-change": {
+      "term": "Foreslått endring",
+      "definition": "En endring assistenten har forberedt, men ikke gjort. Den gjennomføres først når du bekrefter, og utløper etter 24 timer.",
+      "clauses": []
+    }
+  }
+}
