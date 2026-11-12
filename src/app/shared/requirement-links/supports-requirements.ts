@@ -12,18 +12,27 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, provideTranslocoScope } from '@jsverse/transloco';
 import { Observable, Subscription, catchError, forkJoin, map, of } from 'rxjs';
 import { LanguageService } from '../../core/i18n/language.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { StandardsApi } from '../../core/standards/standards-api';
+import {
+  openSuggestions,
+  suggestionText,
+  suggestionTitle,
+} from '../../core/standards/frameworks-data';
 import {
   RequirementOption,
   flattenRequirements,
   localized,
   searchRequirements,
 } from '../../core/standards/standards-data';
-import { LinkEntityType, RequirementLink } from '../../core/standards/standards.models';
+import {
+  EvidenceSuggestion,
+  LinkEntityType,
+  RequirementLink,
+} from '../../core/standards/standards.models';
 import { Icon } from '../ui/icon/icon';
 
 /** A CAPA action whose links are shown under the deviation (structurally an `Action`). */
@@ -40,15 +49,21 @@ interface LinkGroup {
 }
 
 /**
- * "Supports requirements" panel for a record (document / deviation): the
+ * "Supports requirements" panel for a record (document, deviation or any
+ * linkable module record): the
  * standard requirements this record is evidence for, with AI suggestions to
  * confirm or reject. With `standards:manage` the user can link the record to a
  * requirement (search across the org's enabled standards) or remove a link.
+ * Opening "Link" first offers the requirements this kind of record usually
+ * evidences (`GET evidence-suggestions`), before any search.
  * Renders nothing without `standards:read`.
  */
 @Component({
   selector: 'app-supports-requirements',
   imports: [FormsModule, RouterLink, TranslocoPipe, Icon],
+  // The suggestion strings live in the `standards` scope; hosts (documents,
+  // deviations, modules) don't load it themselves.
+  providers: [provideTranslocoScope('standards')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (canRead()) {
@@ -120,6 +135,34 @@ interface LinkGroup {
                   </li>
                 }
               </ul>
+            } @else if (suggested().length > 0) {
+              <div class="mt-2" data-testid="evidence-suggestions">
+                <div class="text-[11.5px] font-semibold text-fg-subtle">
+                  {{ 'standards.evidenceSuggestions.title' | transloco }}
+                </div>
+                <p class="text-[11.5px] text-fg-subtle">
+                  {{ 'standards.evidenceSuggestions.hint' | transloco }}
+                </p>
+                <ul class="mt-1 flex max-h-64 flex-col overflow-y-auto">
+                  @for (suggestion of suggested(); track suggestion.ref) {
+                    <li>
+                      <button
+                        type="button"
+                        class="w-full rounded-[6px] px-2 py-1.5 text-left hover:bg-surface"
+                        (click)="addRef(suggestion.ref)"
+                      >
+                        <span class="block text-[11.5px] text-fg-subtle"
+                          >{{ standardName(suggestion.standard_key) }} · {{ suggestion.number }}
+                          {{ suggestionTitle(suggestion) }}</span
+                        >
+                        <span class="line-clamp-2 block text-[12.5px] text-fg">{{
+                          suggestionText(suggestion)
+                        }}</span>
+                      </button>
+                    </li>
+                  }
+                </ul>
+              </div>
             }
           </div>
         }
@@ -242,6 +285,13 @@ export class SupportsRequirements {
   protected readonly options = signal<readonly RequirementOption[]>([]);
   protected readonly optionsLoading = signal(false);
   private readonly names = signal<Readonly<Record<string, string>>>({});
+  /** Requirements suggested for this record (loaded when linking starts). */
+  private readonly suggestions = signal<readonly EvidenceSuggestion[]>([]);
+
+  /** Suggestions not linked yet, offered before the user searches. */
+  protected readonly suggested = computed(() =>
+    openSuggestions(this.suggestions(), new Set(this.visible().map((l) => l.requirement_ref))),
+  );
 
   private readonly permissions = computed(() => this.selectedOrg.currentOrg()?.permissions ?? []);
   protected readonly canRead = computed(() => this.permissions().includes('standards:read'));
@@ -283,6 +333,7 @@ export class SupportsRequirements {
   private sub: Subscription | null = null;
   private actionSub: Subscription | null = null;
   private optionsSub: Subscription | null = null;
+  private suggestionsSub: Subscription | null = null;
   private optionsOrgId: string | null = null;
 
   constructor() {
@@ -306,6 +357,7 @@ export class SupportsRequirements {
       this.sub?.unsubscribe();
       this.actionSub?.unsubscribe();
       this.optionsSub?.unsubscribe();
+      this.suggestionsSub?.unsubscribe();
     });
   }
 
@@ -317,6 +369,14 @@ export class SupportsRequirements {
     return localized(option.clauseTitle, this.language.active());
   }
 
+  protected suggestionTitle(s: EvidenceSuggestion): string {
+    return suggestionTitle(s, this.language.active());
+  }
+
+  protected suggestionText(s: EvidenceSuggestion): string {
+    return suggestionText(s, this.language.active());
+  }
+
   protected standardName(key: string): string {
     return this.names()[key] ?? key;
   }
@@ -325,9 +385,14 @@ export class SupportsRequirements {
     this.adding.set(true);
     this.query.set('');
     this.loadOptions();
+    this.loadSuggestions();
   }
 
   protected add(option: RequirementOption): void {
+    this.addRef(option.ref);
+  }
+
+  protected addRef(ref: string): void {
     const orgId = this.selectedOrg.currentOrgId();
     if (!orgId) {
       return;
@@ -335,7 +400,7 @@ export class SupportsRequirements {
     this.error.set(false);
     this.api
       .createLink(orgId, {
-        requirement_ref: option.ref,
+        requirement_ref: ref,
         entity_type: this.entityType(),
         entity_id: this.entityId(),
       })
@@ -426,6 +491,20 @@ export class SupportsRequirements {
           .pipe(catchError(() => of([] as RequirementLink[]))),
       ),
     ).subscribe((lists) => this.actionLinks.set(lists.flat()));
+  }
+
+  /** Requirements suggested for this record; a failure just means no suggestions. */
+  private loadSuggestions(): void {
+    const orgId = this.selectedOrg.currentOrgId();
+    this.suggestionsSub?.unsubscribe();
+    this.suggestions.set([]);
+    if (!orgId) {
+      return;
+    }
+    this.suggestionsSub = this.api
+      .evidenceSuggestions(orgId, this.entityType(), this.entityId())
+      .pipe(catchError(() => of({ requirements: [] as EvidenceSuggestion[] })))
+      .subscribe((result) => this.suggestions.set(result.requirements));
   }
 
   /** Lazily load every requirement of the org's enabled standards (once per org). */

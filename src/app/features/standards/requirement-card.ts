@@ -15,6 +15,7 @@ import { RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { LanguageService } from '../../core/i18n/language.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
+import { entityTypeLabelKey } from '../../core/standards/frameworks-data';
 import { StandardsApi } from '../../core/standards/standards-api';
 import {
   checklistItems,
@@ -170,7 +171,7 @@ export function entityRoute(type: LinkEntityType, id: string): readonly string[]
                       <span class="text-[13px] font-semibold text-fg">{{ labelOf(link) }}</span>
                     }
                     <span class="ml-1 text-[11.5px] text-fg-subtle">
-                      {{ 'standards.entity.' + link.entity_type | transloco }}
+                      {{ entityLabelKey(link.entity_type) | transloco }}
                       @if (link.confidence !== null && link.confidence !== undefined) {
                         ·
                         {{
@@ -257,7 +258,7 @@ export function entityRoute(type: LinkEntityType, id: string): readonly string[]
                     }}</span>
                   }
                   <span class="block text-[11.5px] text-fg-subtle">
-                    {{ 'standards.entity.' + link.entity_type | transloco }}
+                    {{ entityLabelKey(link.entity_type) | transloco }}
                     @if (link.source === 'ai') {
                       · {{ 'standards.evidence.fromAi' | transloco }}
                     }
@@ -452,6 +453,9 @@ export class RequirementCard {
   protected labelOf(link: RequirementLink): string {
     return link.entity_label || this.transloco.translate('standards.evidence.unavailable');
   }
+
+  /** Label of a record kind (built-in kinds, then the platform's module entity labels). */
+  protected readonly entityLabelKey = entityTypeLabelKey;
 
   protected route(link: RequirementLink): readonly string[] | null {
     return entityRoute(link.entity_type, link.entity_id);

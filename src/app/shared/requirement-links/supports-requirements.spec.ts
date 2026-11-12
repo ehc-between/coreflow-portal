@@ -75,7 +75,10 @@ async function setup(
   actions: { id: string; description: string }[] = [],
 ) {
   TestBed.configureTestingModule({
-    imports: [SupportsRequirements, TranslocoTestingModule.forRoot({ langs: { en: {} } })],
+    imports: [
+      SupportsRequirements,
+      TranslocoTestingModule.forRoot({ langs: { en: {}, 'standards/en': {} } }),
+    ],
     providers: [
       provideZonelessChangeDetection(),
       provideHttpClient(),
@@ -190,6 +193,10 @@ describe('SupportsRequirements', () => {
       { key: 'iso14001', name: 'ISO 14001', enabled: false },
     ]);
     http.expectOne(`${ROOT}/standards/iso9001/tree`).flush(TREE);
+    const suggestions = http.expectOne((r) => r.url === `${ROOT}/evidence-suggestions`);
+    expect(suggestions.request.params.get('entity_type')).toBe('document');
+    expect(suggestions.request.params.get('entity_id')).toBe('doc-1');
+    suggestions.flush({ requirements: [] });
     await render();
 
     const input = el.querySelector('input[type="search"]') as HTMLInputElement;
@@ -213,6 +220,74 @@ describe('SupportsRequirements', () => {
     create.flush(link({ id: 'l-9', requirement_ref: 'r-7.5-b', clause_number: '7.5' }));
     await render();
     expect(el.querySelectorAll('ul > li').length).toBe(2);
+  });
+
+  it('offers the evidence suggestions for the record before searching', async () => {
+    const { http, el, render } = await setup(['standards:read', 'standards:manage']);
+    expectLinks(http).flush([link()]);
+    http.expectOne(`${ROOT}/standards`).flush([]);
+    await render();
+
+    (el.querySelector('h2 + button') as HTMLButtonElement).click();
+    await render();
+    http
+      .expectOne(`${ROOT}/standards`)
+      .flush([{ key: 'iso9001', name: 'ISO 9001', enabled: true }]);
+    http.expectOne(`${ROOT}/standards/iso9001/tree`).flush(TREE);
+    const suggestion = (ref: string, linkStatus: string | null, text: string) => ({
+      ref,
+      standard_key: 'iso9001',
+      number: '7.5',
+      title: 'Documented information',
+      title_nb: 'Dokumentert informasjon',
+      text: { en: text, nb: text },
+      link_status: linkStatus,
+    });
+    http
+      .expectOne((r) => r.url === `${ROOT}/evidence-suggestions`)
+      .flush({
+        requirements: [
+          // Already linked (shown above) and previously rejected: never offered again.
+          suggestion('r-7.5', 'confirmed', 'Documents are controlled'),
+          suggestion('r-7.5-c', 'rejected', 'Rejected before'),
+          suggestion('r-7.5-b', null, 'Records are retained'),
+        ],
+      });
+    await render();
+
+    const panel = el.querySelector('[data-testid="evidence-suggestions"]') as HTMLElement;
+    expect(panel).toBeTruthy();
+    const buttons = Array.from(panel.querySelectorAll('button'));
+    expect(buttons).toHaveLength(1);
+    expect(buttons[0].textContent).toContain('ISO 9001 · 7.5');
+    expect(buttons[0].textContent).toContain('Records are retained');
+
+    buttons[0].click();
+    const create = http.expectOne(
+      (r) => r.url === `${ROOT}/requirement-links` && r.method === 'POST',
+    );
+    expect(create.request.body).toEqual({
+      requirement_ref: 'r-7.5-b',
+      entity_type: 'document',
+      entity_id: 'doc-1',
+    });
+    create.flush(link({ id: 'l-9', requirement_ref: 'r-7.5-b' }));
+    await render();
+    expect(el.querySelector('[data-testid="evidence-suggestions"]')).toBeNull();
+  });
+
+  it('links any registered entity type (module records)', async () => {
+    const { fixture, http, render } = await setup(['standards:read']);
+    expectLinks(http).flush([]);
+    http.expectOne(`${ROOT}/standards`).flush([]);
+    fixture.componentRef.setInput('entityType', 'risk');
+    fixture.componentRef.setInput('entityId', 'risk-1');
+    await render();
+    const req = expectLinks(http);
+    expect(req.request.params.get('entity_type')).toBe('risk');
+    expect(req.request.params.get('entity_id')).toBe('risk-1');
+    req.flush([]);
+    http.expectOne(`${ROOT}/standards`).flush([]);
   });
 
   it('groups links on the deviation actions under each action', async () => {

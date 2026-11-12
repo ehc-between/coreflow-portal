@@ -1,0 +1,168 @@
+{
+  "frameworks": {
+    "readiness": "Readiness",
+    "coverage": "{{pct}}% of requirements covered",
+    "notEnabled": "Not enabled",
+    "inProfile": "In your profile",
+    "inProfileHint": "Your organisation profile lists this framework as in scope.",
+    "kind": {
+      "standard": "ISO standard",
+      "regulation": "EU regulation"
+    },
+    "readinessDetails": "Readiness details",
+    "availableHint": "Enable a framework to assess its requirements and track readiness. Frameworks in your organisation profile are marked.",
+    "explain": "Explain our readiness",
+    "explainPrompt": "Explain our compliance readiness across these frameworks in plain language and suggest the three most useful next steps: {{summary}}.",
+    "explainNone": "Explain which compliance frameworks are relevant for an organisation like ours and how to get started.",
+    "summaryItem": "{{name}} {{score}}%"
+  },
+  "readiness": {
+    "title": "Readiness by framework",
+    "subtitle": "How ready each enabled framework is, based on applicability, linked evidence and how recent that evidence is.",
+    "back": "Back to standards",
+    "loadError": "Couldn't load the readiness scores. Try again.",
+    "score": "Readiness score",
+    "applicable": "{{count}} applicable requirements",
+    "breakdown": "Readiness breakdown",
+    "open": "Open the standard",
+    "legend": {
+      "fresh": "Covered, recent evidence",
+      "stale": "Covered, evidence older than a year",
+      "partial": "Partly covered",
+      "missing": "Not started"
+    },
+    "segment": "{{label}}: {{count}}",
+    "weights": "Covered with recent evidence counts in full, covered with older evidence counts 60%, partly covered counts 50%, and not started counts nothing.",
+    "summarise": "Summarise",
+    "summarisePrompt": "Summarise our readiness for {{name}}: score {{score}}%, {{applicable}} applicable requirements, {{fresh}} covered with recent evidence, {{stale}} covered with older evidence, {{partial}} partly covered and {{missing}} not started. What should we do first, and why?",
+    "empty": {
+      "title": "No frameworks enabled yet",
+      "body": "Readiness is calculated for each framework your organisation has enabled. Enable ISO 9001, ISO/IEC 27001, GDPR or another framework from the standards overview to see your score here.",
+      "cta": "Go to the standards overview"
+    }
+  },
+  "kinds": {
+    "article": "Article",
+    "recital": "Recital",
+    "annex": "Annex"
+  },
+  "hs": {
+    "badge": "HS {{clause}}",
+    "title": "Harmonised Structure clause {{clause}}: the same requirement appears in every ISO management system standard, so one piece of evidence can serve them all."
+  },
+  "aiAct": {
+    "rolesLabel": "Applies to",
+    "riskLabel": "Risk class",
+    "roles": {
+      "provider": "Provider",
+      "deployer": "Deployer",
+      "importer": "Importer",
+      "distributor": "Distributor",
+      "authorised_representative": "Authorised representative"
+    },
+    "riskClasses": {
+      "prohibited": "Prohibited",
+      "high": "High risk",
+      "limited": "Limited risk",
+      "minimal": "Minimal risk",
+      "gpai": "General-purpose AI",
+      "gpai_systemic": "General-purpose AI with systemic risk"
+    }
+  },
+  "mappings": {
+    "title": "Also satisfies",
+    "hint": "Evidence for this clause often helps with these clauses in other frameworks too. Check each one before you rely on it.",
+    "loading": "Loading related clauses …",
+    "error": "Couldn't load the related clauses.",
+    "none": "No mappings to other frameworks for this clause.",
+    "relation": {
+      "equivalent": "Equivalent",
+      "related": "Related",
+      "supports": "Supports"
+    },
+    "source": {
+      "hs": "Shared Harmonised Structure clause",
+      "curated": "Mapping maintained by CoreFlow"
+    },
+    "notEnabled": "Not enabled",
+    "ask": "Ask how these relate",
+    "askPrompt": "Explain how clause {{number}} of {{standard}} relates to these clauses in other frameworks, and how one piece of evidence can serve them all: {{targets}}.",
+    "hsBadge": "HS"
+  },
+  "support": {
+    "title": "Records that can be evidence",
+    "none": "No module declares records for this clause yet. You can still link any document or deviation.",
+    "error": "Couldn't load which records can be evidence.",
+    "moduleOff": "Module not enabled"
+  },
+  "evidenceSuggestions": {
+    "title": "Suggested for this record",
+    "hint": "Requirements this kind of record usually evidences in your enabled standards.",
+    "none": "No suggestions. Search to find a requirement.",
+    "searchAll": "Or search every requirement:"
+  },
+  "guide": {
+    "show": "Show guidance",
+    "hide": "Hide guidance",
+    "stepsTitle": "How to use this page",
+    "whyTitle": "Why this matters",
+    "clauseAsk": "Ask about {{clause}}",
+    "clausePrompt": "Teach me what {{clause}} requires, in plain language, with a short example from an organisation like ours.",
+    "overview": {
+      "title": "Your frameworks in one place",
+      "body": "Each card is a standard or regulation your organisation works towards. The ring shows readiness: how much of the framework is covered by evidence you have linked, and how recent that evidence is.",
+      "step1": "Enable the frameworks that are in scope. Start with the ones your customers or regulators ask about.",
+      "step2": "Open a framework to assess each requirement: mark what does not apply and link documents or deviations as evidence.",
+      "step3": "Use Readiness details to see what is missing, and keep evidence up to date so the score stays high.",
+      "why": "Management system standards ask you to plan, implement and show evidence. Clauses 4 to 10 share one structure across ISO standards, so one well-kept record often serves several frameworks at once."
+    },
+    "readiness": {
+      "title": "What the readiness score tells you",
+      "body": "The score summarises how prepared you are for an audit or a regulator's review. It only counts requirements you have marked as applicable.",
+      "step1": "Look at the red segment first: requirements nobody has started on.",
+      "step2": "Then refresh evidence older than a year. Auditors expect records to be current.",
+      "step3": "Open the standard to link evidence, or ask for a summary of what to do next.",
+      "why": "ISO standards require you to monitor and evaluate your management system and review it at management level. A readiness score per framework is a simple input to that review."
+    }
+  },
+  "lesson": {
+    "badge": "Micro-lesson",
+    "minutes": "{{count}} min",
+    "start": "Start the lesson",
+    "close": "Close the lesson",
+    "check": "Check answer",
+    "correct": "Correct.",
+    "incorrect": "Not quite.",
+    "questionLabel": "Check your understanding",
+    "readiness": {
+      "title": "How readiness is calculated",
+      "s1Heading": "Only applicable requirements count",
+      "s1Body": "When a requirement does not apply to you, mark it as not applicable and write a short justification. It then leaves the calculation, so the score reflects what you actually have to do.",
+      "s2Heading": "Evidence makes a requirement covered",
+      "s2Body": "A requirement is covered when you have confirmed at least one live record as evidence, or set the status to covered yourself. A partly covered requirement counts half.",
+      "s3Heading": "Recent evidence counts in full",
+      "s3Body": "Evidence confirmed or updated within the last 365 days counts in full. Older evidence counts 60%, because auditors expect records to be kept up to date.",
+      "question": "You cover a requirement with a procedure last reviewed two years ago. How much does it count?",
+      "option1": "Nothing",
+      "option2": "60%",
+      "option3": "In full",
+      "explanation": "It is still covered, but the evidence is older than a year, so it counts 60%. Review the procedure to make it count in full again."
+    }
+  },
+  "notifications": {
+    "evidenceLinked": "Evidence linked to clause {{clause_number}} ({{standard_key}})",
+    "evidenceRejected": "Suggested evidence rejected for clause {{clause_number}} ({{standard_key}})",
+    "evidenceUnlinked": "Evidence removed from clause {{clause_number}} ({{standard_key}})",
+    "standardEnabled": "Framework enabled: {{standard_key}}",
+    "standardDisabled": "Framework disabled: {{standard_key}}",
+    "requirementUpdated": "Requirement {{ref}} updated"
+  },
+  "timeline": {
+    "evidenceLinked": "linked this record as evidence for clause {{clause_number}} ({{standard_key}})",
+    "evidenceRejected": "rejected the suggestion that this record is evidence for clause {{clause_number}} ({{standard_key}})",
+    "evidenceUnlinked": "removed this record as evidence for clause {{clause_number}} ({{standard_key}})",
+    "standardEnabled": "enabled the framework {{standard_key}}",
+    "standardDisabled": "disabled the framework {{standard_key}}",
+    "requirementUpdated": "updated the assessment of requirement {{ref}}"
+  }
+}
