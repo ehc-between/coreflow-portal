@@ -1,0 +1,343 @@
+{
+  "pages": {
+    "list": {
+      "intro": {
+        "title": "Objectives show where you are heading",
+        "body": "An **objective** is a result your organisation commits to achieving within a management system, such as fewer customer complaints, faster incident response or lower energy use. Each objective has an owner, a measurable target, a plan and a deadline.",
+        "steps": [
+          "Create an objective per management system and give it an owner and a due date.",
+          "Write the target so that anyone can tell later whether it was reached.",
+          "Add one or more KPIs so progress is based on measured data, not opinion."
+        ]
+      },
+      "why": {
+        "body": "The standards require objectives at relevant functions and levels that are **measurable**, monitored, communicated and updated, with a plan saying what will be done, by whom, with which resources, by when and how results will be evaluated.",
+        "clauses": ["hs:6.2", "iso9001:6.2", "iso27001:6.2", "iso14001:6.2"]
+      },
+      "empty": {
+        "title": "No objectives yet",
+        "body": "Start with two or three objectives that matter most this year, for example one for quality and one for information security. You can ask for SMART suggestions when you create one.",
+        "cta": "Create the first objective"
+      }
+    },
+    "kpis": {
+      "intro": {
+        "title": "KPIs measure whether you are on track",
+        "body": "A **KPI** (key performance indicator) is a number you record regularly, such as the complaint rate per month or the share of staff who completed training. Each KPI has a unit, a direction (is higher or lower better?), a target and an optional warning threshold.",
+        "steps": [
+          "Link each KPI to the objective it measures.",
+          "Set a target, and a warning threshold to get an early signal before you miss it.",
+          "Choose how often it is measured: the owner then gets a recurring measurement task."
+        ]
+      },
+      "why": {
+        "body": "You must decide **what** is monitored and measured, **how**, **when** and **who** evaluates the results, and keep the results as documented information. KPIs with recorded measurements are that evidence.",
+        "clauses": ["hs:9.1", "iso9001:9.1.1", "iso27001:9.1", "iso14001:9.1.1"]
+      },
+      "empty": {
+        "title": "No KPIs yet",
+        "body": "Pick one number per objective that would clearly show progress. Start simple: a monthly value with a target is enough to begin a trend.",
+        "cta": "Create the first KPI"
+      }
+    },
+    "detail": {
+      "intro": {
+        "title": "Following up an objective",
+        "body": "Keep the plan current, update progress and check the KPIs. When the due date is reached, close the objective as **achieved** or **not achieved** and write a short closing note on what you learned.",
+        "steps": [
+          "Use **Tasks** to assign the actions in the plan.",
+          "Link related risks, processes or documents under **Related**.",
+          "Every edit keeps a revision, with the reason you give."
+        ]
+      },
+      "why": {
+        "body": "Auditors look for objectives that are monitored and updated as needed, and for evidence that the planned actions were carried out and evaluated.",
+        "clauses": ["hs:6.2", "hs:9.1"]
+      }
+    },
+    "kpiDetail": {
+      "intro": {
+        "title": "Reading a KPI",
+        "body": "The chart shows each recorded period against the target (dashed line) and the warning threshold (dotted line). Each point is marked **on track**, **at risk** or **off track** as it was when recorded.",
+        "steps": [
+          "Record a measurement when the period ends; the open measurement task is then completed.",
+          "If the KPI is off target, ask for an explanation and decide on actions.",
+          "Correct a value if it was wrong; the correction is kept in the history."
+        ]
+      },
+      "why": {
+        "body": "Monitoring results must be analysed and evaluated. A trend over several periods, compared with a target, is the basis for management review and for deciding on corrective action.",
+        "clauses": ["hs:9.1", "hs:9.3", "hs:10.2"]
+      }
+    },
+    "form": {
+      "intro": {
+        "title": "Writing a good objective",
+        "body": "Make the objective **SMART**: specific, measurable, achievable, relevant and time-bound. Describe the plan so another person could carry it out.",
+        "steps": [
+          "Choose the management system the objective belongs to.",
+          "Write a target with a number and a date.",
+          "Describe the plan, the resources and how you will evaluate the result."
+        ]
+      },
+      "why": {
+        "body": "When planning how to achieve objectives, the standards ask you to decide what will be done, what resources are needed, who is responsible, when it will be completed and how results will be evaluated.",
+        "clauses": ["hs:6.2"]
+      },
+      "fields": {
+        "title": {
+          "help": "A short name for the result you want.",
+          "example": "Reduce customer complaints"
+        },
+        "managementSystem": {
+          "help": "The standard this objective supports. It decides where the objective appears in audits and reports."
+        },
+        "status": {
+          "help": "Draft while you are planning; Active once it is agreed. Close it as Achieved, Not achieved or Cancelled."
+        },
+        "owner": {
+          "help": "The person accountable for the objective. They are notified about changes and deadlines."
+        },
+        "target": {
+          "help": "What will be achieved, with a number and a deadline, so that anyone can check later whether it was met.",
+          "example": "Fewer than 5 complaints per 1,000 orders by 31 December"
+        },
+        "plan": {
+          "help": "The actions you will take to reach the target. Assign them as tasks on the objective."
+        },
+        "resources": {
+          "help": "People, time, budget or tools the plan needs.",
+          "example": "Two days of training, 20 hours from the support team"
+        },
+        "evaluationMethod": {
+          "help": "How and when you will check the result, for example with a KPI reviewed monthly.",
+          "example": "Monthly complaint rate KPI, reviewed in the management review"
+        },
+        "dueDate": {
+          "help": "When the target must be reached. Open objectives past this date show as overdue."
+        },
+        "progress": {
+          "help": "Your estimate of how far the plan has come, from 0 to 100."
+        },
+        "closingNote": {
+          "help": "What was achieved and what you learned. Useful input to the next planning round."
+        },
+        "changeReason": {
+          "help": "Why you are changing the objective. It is stored in the revision history.",
+          "example": "Target adjusted after the management review"
+        }
+      }
+    },
+    "kpiForm": {
+      "intro": {
+        "title": "Defining a KPI",
+        "body": "Decide what number tells you whether the objective is on track, how it is calculated, and how often it is recorded.",
+        "steps": [
+          "Give it a clear name and unit.",
+          "Say whether higher or lower is better, then set the target and a warning threshold.",
+          "Choose the frequency and an owner; the owner gets a recurring measurement task."
+        ]
+      },
+      "why": {
+        "body": "Defining the method, timing and responsibility for each measurement makes results comparable over time and valid as evidence.",
+        "clauses": ["hs:9.1"]
+      },
+      "fields": {
+        "name": {
+          "help": "What is measured, in plain words.",
+          "example": "Complaint rate"
+        },
+        "description": {
+          "help": "How the value is calculated, so everyone records it the same way.",
+          "example": "Complaints received divided by orders shipped, per 1,000 orders"
+        },
+        "objective": {
+          "help": "The objective this KPI shows progress for. Its management system is used when you don't choose one."
+        },
+        "owner": {
+          "help": "The person who records the measurement."
+        },
+        "unit": {
+          "help": "The unit of the value, up to 32 characters.",
+          "example": "%, hours, per 1,000 orders"
+        },
+        "direction": {
+          "help": "Whether a higher or a lower value is better. It decides how the thresholds are read."
+        },
+        "baseline": {
+          "help": "The value when you started, to show how far you have come."
+        },
+        "target": {
+          "help": "The value that counts as on track."
+        },
+        "warning": {
+          "help": "An early-warning value on the worse side of the target. Between the two, the KPI is at risk; beyond it, off track.",
+          "example": "Target 95 %, warning 90 %"
+        },
+        "frequency": {
+          "help": "How often a value is recorded. Each period gets one measurement."
+        },
+        "status": {
+          "help": "Pause a KPI to stop reminders for a while; retire it when it is no longer used."
+        },
+        "dataSource": {
+          "help": "Where the number comes from.",
+          "example": "Monthly report from the support system"
+        },
+        "reminders": {
+          "help": "When on, the owner gets a recurring task to record each period's value."
+        },
+        "changeReason": {
+          "help": "Why you are changing the KPI. It is stored in the revision history."
+        }
+      }
+    },
+    "measurement": {
+      "intro": {
+        "title": "Recording a measurement",
+        "body": "Record one value per period. The status is calculated against the thresholds in force when you record it."
+      },
+      "why": {
+        "body": "Recorded measurements are the documented evidence of monitoring results.",
+        "clauses": ["hs:9.1"]
+      },
+      "fields": {
+        "periodEnd": {
+          "help": "The last day of the period the value covers. It can't be in the future."
+        },
+        "periodStart": {
+          "help": "Leave empty to use one full period ending on the period end."
+        },
+        "value": {
+          "help": "The measured value, in the KPI's unit.",
+          "example": "4.2"
+        },
+        "note": {
+          "help": "Anything that explains the value, such as a one-off event."
+        }
+      }
+    }
+  },
+  "lessons": {
+    "smart-objectives": {
+      "title": "Writing SMART objectives",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "What makes an objective useful",
+          "body": "An objective is only useful if you can tell, at the deadline, whether you reached it. **SMART** is a checklist for that: **S**pecific, **M**easurable, **A**chievable, **R**elevant and **T**ime-bound."
+        },
+        {
+          "heading": "From vague to SMART",
+          "body": "\"Improve customer satisfaction\" is vague. \"Raise the average satisfaction score from 3.8 to 4.2 by 31 December\" is SMART: it names the measure, the starting point, the target and the date."
+        },
+        {
+          "heading": "Plan and evaluate",
+          "body": "The standards also ask for a plan: what will be done, the resources, who is responsible, when it will be completed and how the result will be evaluated. Link a KPI so the evaluation is based on data."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Which objective is SMART?",
+          "options": [
+            "Be better at information security",
+            "Patch all critical vulnerabilities within 14 days, measured monthly, by 30 June",
+            "Improve quality wherever possible"
+          ],
+          "answer": 1,
+          "explanation": "It is specific, measurable (14 days), and time-bound (30 June), and it says how it is followed up."
+        },
+        {
+          "question": "What should the plan for an objective include?",
+          "options": [
+            "Only the target value",
+            "What will be done, resources, who is responsible, when, and how results are evaluated",
+            "The names of everyone in the organisation"
+          ],
+          "answer": 1,
+          "explanation": "These five elements are what clause 6.2 asks you to determine."
+        }
+      ],
+      "pass_mark": 0.5
+    },
+    "good-kpis": {
+      "title": "KPIs that tell you something",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "One clear number",
+          "body": "A good KPI is a single number with a unit that is calculated the same way every time. Write the calculation in the description so anyone can record it."
+        },
+        {
+          "heading": "Target and warning",
+          "body": "The **target** is the value that counts as on track. The **warning threshold** sits on the worse side of the target. Between the two the KPI is **at risk**, beyond the warning it is **off track**. If higher is better, the warning is below the target; if lower is better, it is above."
+        },
+        {
+          "heading": "Trends beat single values",
+          "body": "One bad month may be noise. Look at the trend over several periods before you decide on corrective action, and note unusual events on the measurement."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Lower is better for a KPI with target 5. Where should the warning threshold be?",
+          "options": ["Below 5, for example 3", "Above 5, for example 7", "Exactly 5"],
+          "answer": 1,
+          "explanation": "When lower is better, the worse side of the target is above it."
+        },
+        {
+          "question": "A KPI was off track for one month after a long run on track. What is a sensible first step?",
+          "options": [
+            "Retire the KPI",
+            "Look at the trend and the note for that period before deciding on action",
+            "Change the target so it is on track again"
+          ],
+          "answer": 1,
+          "explanation": "A single value may be noise; the trend and context show whether action is needed."
+        }
+      ],
+      "pass_mark": 0.5
+    }
+  },
+  "tours": {
+    "list": [
+      {
+        "target": "objectives-new",
+        "title": "Create an objective",
+        "body": "Start here. You can ask for SMART suggestions on the next page."
+      },
+      {
+        "target": "objectives-filters",
+        "title": "Filter the register",
+        "body": "Show open, achieved or overdue objectives, per management system or only your own. Save a filter as a view."
+      }
+    ],
+    "kpis": [
+      {
+        "target": "kpis-new",
+        "title": "Create a KPI",
+        "body": "Define what you measure, the unit, the target and how often it is recorded."
+      },
+      {
+        "target": "kpis-health",
+        "title": "Find KPIs that need attention",
+        "body": "Filter on health to see which KPIs are at risk or off track."
+      }
+    ]
+  },
+  "glossary": {
+    "objective": {
+      "term": "Objective",
+      "definition": "A result to be achieved, set consistently with the policy, measurable where practicable, monitored and updated.",
+      "clauses": ["hs:6.2"]
+    },
+    "kpi": {
+      "term": "KPI",
+      "definition": "Key performance indicator: a value measured regularly to show whether an objective or process is performing as intended.",
+      "clauses": ["hs:9.1"]
+    },
+    "warning-threshold": {
+      "term": "Warning threshold",
+      "definition": "A value on the worse side of a KPI's target that marks the move from at risk to off track."
+    }
+  }
+}

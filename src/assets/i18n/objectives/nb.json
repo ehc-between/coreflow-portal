@@ -1,0 +1,332 @@
+{
+  "tabs": {
+    "label": "Mål og KPI-er",
+    "objectives": "Mål",
+    "kpis": "KPI-er"
+  },
+  "common": {
+    "loading": "Laster …",
+    "loadFailed": "Kunne ikke laste inn. Prøv igjen.",
+    "notFound": "Denne posten finnes ikke, eller du har ikke lenger tilgang til den.",
+    "back": "Tilbake",
+    "backToList": "Tilbake til mål",
+    "backToKpis": "Tilbake til KPI-er",
+    "backToObjective": "Tilbake til målet",
+    "noOwner": "Ingen eier",
+    "noDueDate": "Ingen frist",
+    "noValue": "Ikke målt ennå",
+    "overdue": "Forfalt"
+  },
+  "list": {
+    "title": "Mål",
+    "subtitle": "Målbare mål per styringssystem, med eiere, planer og frister.",
+    "searchPlaceholder": "Søk i mål etter kode eller tittel …",
+    "new": "Nytt mål",
+    "progress": "{{ value }} % fullført",
+    "kpiSummary": "{{ total }} KPI-er · {{ onTrack }} på mål · {{ off }} utenfor mål"
+  },
+  "kpiList": {
+    "title": "KPI-er",
+    "subtitle": "Nøkkelindikatorer: hva dere måler, hvor ofte, og om det er på mål.",
+    "searchPlaceholder": "Søk i KPI-er etter kode eller navn …",
+    "new": "Ny KPI",
+    "target": "Mål {{ value }} {{ unit }}",
+    "nextDue": "Neste:"
+  },
+  "overview": {
+    "label": "Oversikt",
+    "active": "Aktive mål",
+    "achieved": "Nådd",
+    "overdue": "Forfalte mål",
+    "onTrack": "KPI-er på mål",
+    "offTarget": "KPI-er utenfor mål",
+    "measurementOverdue": "Forfalte målinger"
+  },
+  "filters": {
+    "status": "Status",
+    "health": "Tilstand",
+    "system": "Styringssystem",
+    "sort": "Sortering",
+    "allSystems": "Alle styringssystemer",
+    "anyHealth": "Alle tilstander",
+    "mine": "Mine",
+    "overdue": "Bare forfalte",
+    "noMatch": "Ingenting samsvarer med disse filtrene.",
+    "statusOptions": {
+      "open": "Åpne (utkast og aktive)",
+      "draft": "Utkast",
+      "active": "Aktiv",
+      "achieved": "Nådd",
+      "not_achieved": "Ikke nådd",
+      "cancelled": "Avbrutt",
+      "all": "Alle statuser"
+    },
+    "kpiStatusOptions": {
+      "in_use": "I bruk (aktive og pauset)",
+      "active": "Aktiv",
+      "paused": "Pauset",
+      "retired": "Avviklet",
+      "all": "Alle statuser"
+    },
+    "objectiveSorts": {
+      "due_date": "Frist, tidligste først",
+      "-due_date": "Frist, seneste først",
+      "code": "Kode, stigende",
+      "-code": "Kode, synkende",
+      "title": "Tittel",
+      "-updated_at": "Nylig oppdatert"
+    },
+    "kpiSorts": {
+      "code": "Kode, stigende",
+      "-code": "Kode, synkende",
+      "name": "Navn",
+      "status": "Status",
+      "-last_period_end": "Nylig målt",
+      "-updated_at": "Nylig oppdatert"
+    }
+  },
+  "objectiveStatus": {
+    "draft": "Utkast",
+    "active": "Aktiv",
+    "achieved": "Nådd",
+    "not_achieved": "Ikke nådd",
+    "cancelled": "Avbrutt"
+  },
+  "kpiStatus": {
+    "active": "Aktiv",
+    "paused": "Pauset",
+    "retired": "Avviklet"
+  },
+  "health": {
+    "on_track": "På mål",
+    "at_risk": "I faresonen",
+    "off_track": "Utenfor mål",
+    "no_target": "Ingen målverdi",
+    "no_data": "Ingen data"
+  },
+  "trend": {
+    "improving": "Bedres",
+    "worsening": "Forverres",
+    "stable": "Stabil",
+    "insufficient_data": "For lite data"
+  },
+  "direction": {
+    "higher": "Høyere er bedre",
+    "lower": "Lavere er bedre"
+  },
+  "frequency": {
+    "weekly": "Ukentlig",
+    "monthly": "Månedlig",
+    "quarterly": "Kvartalsvis",
+    "half_yearly": "Halvårlig",
+    "yearly": "Årlig"
+  },
+  "managementSystems": {
+    "iso9001": "ISO 9001 Kvalitet",
+    "iso27001": "ISO 27001 Informasjonssikkerhet",
+    "iso14001": "ISO 14001 Miljø",
+    "iso42001": "ISO 42001 KI-styring",
+    "iso45001": "ISO 45001 Helse og sikkerhet",
+    "gdpr": "GDPR Personvern",
+    "eu_ai_act": "EUs KI-forordning",
+    "nis2": "NIS2 Cybersikkerhet"
+  },
+  "fields": {
+    "title": "Tittel",
+    "description": "Beskrivelse",
+    "managementSystem": "Styringssystem",
+    "status": "Status",
+    "owner": "Eier",
+    "department": "Avdeling",
+    "target": "Målsetting (hva som skal oppnås, målbart)",
+    "plan": "Plan (hva som skal gjøres)",
+    "resources": "Ressurser som trengs",
+    "evaluationMethod": "Hvordan resultatene evalueres",
+    "startDate": "Startdato",
+    "dueDate": "Frist",
+    "progress": "Fremdrift (%)",
+    "closingNote": "Avslutningsnotat",
+    "changeReason": "Årsak til endringen"
+  },
+  "kpiFields": {
+    "name": "Navn",
+    "description": "Beskrivelse",
+    "objective": "Mål",
+    "unit": "Enhet",
+    "direction": "Retning",
+    "baseline": "Utgangsverdi",
+    "target": "Målverdi",
+    "warning": "Varselgrense",
+    "frequency": "Måles",
+    "dataSource": "Datakilde",
+    "startDate": "Måles fra",
+    "reminders": "Lag en gjentakende måleoppgave for eieren"
+  },
+  "form": {
+    "newTitle": "Nytt mål",
+    "editTitle": "Rediger mål",
+    "create": "Opprett mål",
+    "save": "Lagre endringer",
+    "noSystem": "Ikke knyttet til et bestemt styringssystem",
+    "noOwner": "Ingen eier",
+    "noDepartment": "Ingen avdeling",
+    "progressRange": "Skriv et heltall fra 0 til 100."
+  },
+  "kpiForm": {
+    "newTitle": "Ny KPI",
+    "editTitle": "Rediger KPI",
+    "create": "Opprett KPI",
+    "noObjective": "Ikke knyttet til et mål",
+    "inheritSystem": "Samme som målet (eller ingen)",
+    "thresholds": "Enhet og grenseverdier"
+  },
+  "detail": {
+    "edit": "Rediger",
+    "delete": "Slett",
+    "deleteTitle": "Slette dette målet?",
+    "deleteMessage": "{{ code }} fjernes fra registeret. KPI-ene beholdes, uten mål.",
+    "noTarget": "Ingen målbar målsetting ennå. Rediger målet for å legge til en.",
+    "notSet": "Ikke angitt",
+    "planHeading": "Plan",
+    "closedAt": "Avsluttet {{ date }}",
+    "kpisHeading": "KPI-er ({{ count }})",
+    "addKpi": "Legg til KPI",
+    "noKpis": "Ingen KPI-er måler dette målet ennå. Legg til en, slik at fremdriften bygger på data."
+  },
+  "kpi": {
+    "record": "Registrer måling",
+    "measurementOverdue": "Måling forfalt",
+    "statsLabel": "Nøkkeltall",
+    "latest": "Siste verdi",
+    "targetIs": "Mål {{ value }}",
+    "change": "Endring siden forrige",
+    "trend": "Trend",
+    "onTrackShare": "Perioder på mål",
+    "chartHeading": "Utvikling over tid",
+    "definition": "Definisjon",
+    "nextDue": "Neste måling forfaller",
+    "measurements": "Målinger",
+    "noMeasurements": "Ingen målinger ennå. Registrer den første verdien for å starte trenden.",
+    "deleteTitle": "Slette denne KPI-en?",
+    "deleteMessage": "{{ code }} fjernes, og åpne måleoppgaver avbrytes. Registrerte målinger beholdes."
+  },
+  "measurement": {
+    "newTitle": "Registrer måling",
+    "editTitle": "Korriger måling",
+    "period": "Periode",
+    "periodEnd": "Periodeslutt",
+    "periodStart": "Periodestart (valgfritt)",
+    "value": "Verdi",
+    "valueWithUnit": "Verdi ({{ unit }})",
+    "note": "Notat",
+    "status": "Status",
+    "recordedBy": "Registrert av",
+    "actions": "Handlinger",
+    "edit": "Korriger",
+    "editLabel": "Korriger målingen for {{ period }}",
+    "deleteLabel": "Slett målingen for {{ period }}",
+    "deleteTitle": "Slette denne målingen?",
+    "deleteMessage": "Verdien fjernes fra historikken til {{ code }}. Dette registreres i revisjonsloggen."
+  },
+  "chart": {
+    "label": "Diagram over {{ count }} målinger over tid",
+    "point": "{{ period }}: {{ value }}, {{ status }}",
+    "target": "Mål",
+    "warning": "Varsel",
+    "empty": "Ingen målinger å vise ennå."
+  },
+  "lessons": {
+    "smartObjectives": "Minileksjon: slik skriver du SMARTe mål",
+    "goodKpis": "Minileksjon: KPI-er som forteller deg noe"
+  },
+  "ai": {
+    "summarise": "Oppsummer",
+    "summariseAll": "Statusoppsummering",
+    "explainOffTarget": "Forklar hva som er utenfor mål",
+    "smartTitle": "Start fra et forslag",
+    "smartHint": "Få forslag til SMARTe mål for valgt styringssystem og fokus. Ingenting lagres før du oppretter målet.",
+    "suggestSmart": "Foreslå SMARTe mål",
+    "useSuggestion": "Bruk dette forslaget",
+    "suggestedKpis": "Foreslåtte KPI-er:",
+    "suggestionNote": "Forslagene er utkast. Gå gjennom og juster dem; legg til de foreslåtte KPI-ene fra målsiden når målet er opprettet.",
+    "explainDeviation": "Forklar avviket",
+    "explanationLabel": "Foreslått forklaring (kontroller den før du handler på den)",
+    "askTarget": "Spør om denne målsettingen er målbar",
+    "prompts": {
+      "summariseAll": "Oppsummer statusen for målene og KPI-ene våre: hva er på mål, hva er i faresonen eller forfalt, og hva bør vi ta tak i først.",
+      "explainOffTarget": "Hvilke KPI-er er i faresonen eller utenfor mål, og hva er sannsynlige årsaker og neste steg?",
+      "summariseObjective": "Oppsummer mål {{ code }} «{{ title }}»: målsetting, plan, fremdrift og hvordan KPI-ene går.",
+      "summariseKpi": "Oppsummer KPI {{ code }} «{{ title }}»: siste verdi mot målverdi, trenden og hva som trenger oppmerksomhet.",
+      "askTarget": "Er denne målsettingen spesifikk, målbar, oppnåelig, relevant og tidsbestemt? Mål: «{{ title }}». Målsetting: «{{ target }}». Foreslå en bedre formulering ved behov."
+    }
+  },
+  "notices": {
+    "created": "Målet er opprettet.",
+    "saved": "Målet er lagret.",
+    "deleted": "Målet er slettet.",
+    "kpiCreated": "KPI-en er opprettet.",
+    "kpiSaved": "KPI-en er lagret.",
+    "kpiDeleted": "KPI-en er slettet.",
+    "measured": "Målingen er registrert.",
+    "measurementSaved": "Målingen er korrigert.",
+    "measurementDeleted": "Målingen er slettet.",
+    "suggestionApplied": "Forslaget er kopiert inn i skjemaet. Gå gjennom det før du lagrer."
+  },
+  "errors": {
+    "forbidden": "Du har ikke tillatelse til å gjøre dette.",
+    "title_required": "Skriv inn en tittel.",
+    "name_required": "Skriv inn et navn.",
+    "invalid_owner": "Eieren må være medlem av denne organisasjonen.",
+    "invalid_department": "Velg en avdeling i denne organisasjonen.",
+    "invalid_dates": "Fristen kan ikke være før startdatoen.",
+    "invalid_date": "Skriv inn en gyldig dato.",
+    "invalid_status": "Den statusen er ikke tillatt her.",
+    "invalid_objective": "Velg et mål i denne organisasjonen.",
+    "invalid_direction": "Velg om høyere eller lavere er bedre.",
+    "invalid_frequency": "Velg hvor ofte KPI-en måles.",
+    "invalid_management_system": "Velg et gyldig styringssystem.",
+    "invalid_number": "Skriv inn et tall, for eksempel 12,5.",
+    "warning_without_target": "En varselgrense krever en målverdi.",
+    "invalid_thresholds": "Varselgrensen må ligge på den dårlige siden av målverdien (under når høyere er bedre, over når lavere er bedre).",
+    "measurement_exists": "Denne perioden har allerede en måling. Korriger den i stedet.",
+    "kpi_retired": "Denne KPI-en er avviklet, så nye målinger kan ikke registreres.",
+    "period_in_future": "Perioden kan ikke slutte i fremtiden.",
+    "invalid_period": "Periodestart må være samme dag som eller før periodeslutt.",
+    "objective_not_found": "Dette målet finnes ikke lenger.",
+    "kpi_not_found": "Denne KPI-en finnes ikke lenger.",
+    "measurement_not_found": "Denne målingen finnes ikke lenger.",
+    "module_disabled": "Mål og KPI-er er slått av for denne organisasjonen."
+  },
+  "notifications": {
+    "objectiveCreated": "Mål opprettet: {{ code }} {{ title }}",
+    "objectiveUpdated": "Mål oppdatert: {{ code }} {{ title }}",
+    "objectiveOwnerChanged": "Du eier nå målet {{ code }} {{ title }}",
+    "objectiveStatusChanged": "Status endret for mål: {{ code }} {{ title }}",
+    "objectiveDeleted": "Mål slettet: {{ code }} {{ title }}",
+    "kpiCreated": "KPI opprettet: {{ code }} {{ title }}",
+    "kpiUpdated": "KPI oppdatert: {{ code }} {{ title }}",
+    "kpiOwnerChanged": "Du eier nå KPI-en {{ code }} {{ title }}",
+    "kpiMeasured": "Ny måling for {{ code }} {{ title }}",
+    "kpiMeasurementCorrected": "Måling korrigert for {{ code }} {{ title }}",
+    "kpiMeasurementDeleted": "Måling slettet for {{ code }} {{ title }}",
+    "kpiThresholdBreached": "KPI utenfor mål: {{ code }} {{ title }}",
+    "kpiBackOnTrack": "KPI tilbake på mål: {{ code }} {{ title }}",
+    "kpiDeleted": "KPI slettet: {{ code }} {{ title }}"
+  },
+  "timeline": {
+    "objectiveCreated": "{{ actor_name }} opprettet målet",
+    "objectiveUpdated": "{{ actor_name }} oppdaterte målet",
+    "objectiveOwnerChanged": "{{ actor_name }} endret eier",
+    "objectiveStatusChanged": "{{ actor_name }} endret status",
+    "objectiveDeleted": "{{ actor_name }} slettet målet",
+    "kpiCreated": "{{ actor_name }} opprettet KPI-en",
+    "kpiUpdated": "{{ actor_name }} oppdaterte KPI-en",
+    "kpiOwnerChanged": "{{ actor_name }} endret eier",
+    "kpiMeasured": "{{ actor_name }} registrerte en måling",
+    "kpiMeasurementCorrected": "{{ actor_name }} korrigerte en måling",
+    "kpiMeasurementDeleted": "{{ actor_name }} slettet en måling",
+    "kpiThresholdBreached": "KPI-en havnet utenfor mål",
+    "kpiBackOnTrack": "KPI-en er tilbake på mål",
+    "kpiDeleted": "{{ actor_name }} slettet KPI-en"
+  }
+}
