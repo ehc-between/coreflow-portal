@@ -1,0 +1,439 @@
+{
+  "pages": {
+    "list": {
+      "intro": {
+        "title": "Everyone who works here, in one register",
+        "body": "The employee register holds each person's role, manager, employment details and the security terms they have signed. It is the starting point for competence: each person's position says what they need to know, and their record shows what they can actually do.",
+        "steps": [
+          "Add your employees, or link them to their user accounts.",
+          "Give each one a position, so their competence requirements apply.",
+          "Record the confidentiality agreement and security terms they have signed."
+        ]
+      },
+      "why": {
+        "body": "The standards expect you to decide what competence each role needs, make sure people have it, and keep evidence. For information security you must also screen people before they join, include security responsibilities in their terms of employment and manage what happens when they leave or change role.",
+        "clauses": ["hs:7.1", "hs:7.2", "iso27001:A.6.1", "iso27001:A.6.2", "iso27001:A.6.5"]
+      },
+      "empty": {
+        "title": "No employees registered yet",
+        "body": "Start with the people in your most important roles: managers, people with access to sensitive information and people whose work affects your customers. You can add the rest later.",
+        "cta": "Add the first employee"
+      }
+    },
+    "form": {
+      "intro": {
+        "title": "Registering an employee",
+        "body": "Fill in who the person is, their role and the security terms of their employment. Only the name is required, but the position is what makes competence requirements apply.",
+        "steps": [
+          "Link the employee to their user account if they use CoreFlow.",
+          "Choose the position and the manager.",
+          "Record the dates they signed the confidentiality agreement and accepted the security terms."
+        ]
+      },
+      "why": {
+        "body": "Terms of employment should state each person's responsibilities for information security, and everyone with access to confidential information should sign a confidentiality agreement. Recording the dates gives an auditor direct evidence.",
+        "clauses": ["iso27001:A.6.1", "iso27001:A.6.2", "iso27001:A.6.6"]
+      },
+      "fields": {
+        "user_id": {
+          "help": "Link the employee to their CoreFlow user account so tasks, training and checklists reach them. People who don't use CoreFlow can stay unlinked.",
+          "example": "A warehouse worker without a login is registered without a user account."
+        },
+        "position_id": {
+          "help": "The position decides which competences the person needs. Without a position, no requirements apply and no gaps are shown.",
+          "example": "Service technician, which requires electrical safety at level 3."
+        },
+        "status": {
+          "help": "Onboarding while the person is starting, active once they are in place, offboarding while they are leaving, former when they have left. Completing an onboarding or offboarding checklist updates the status for you.",
+          "example": "A new hire starts as onboarding and becomes active when the onboarding checklist is complete."
+        },
+        "confidentiality_signed_on": {
+          "help": "The date the person signed a confidentiality or non-disclosure agreement. Leave it empty if they have not signed one yet; the register then flags it.",
+          "example": "Signed together with the employment contract on the first day."
+        },
+        "security_terms_accepted_on": {
+          "help": "The date the person accepted the information security terms of their employment, for example the acceptable use policy and their security responsibilities.",
+          "example": "Accepted the IT and security rules during induction."
+        },
+        "screening_status": {
+          "help": "Background checks before employment, in proportion to the role and the information it can reach, and within what the law allows.",
+          "example": "Reference checks and a police certificate for a role with access to customer data."
+        }
+      }
+    },
+    "detail": {
+      "intro": {
+        "title": "One person's role, competence and terms",
+        "body": "This page shows the employee's role, the security terms they have signed, their competence compared with what their position requires, their onboarding and offboarding checklists and the awareness activities they have completed.",
+        "steps": [
+          "Check the competence list for gaps, missing or expired competences.",
+          "Record an assessment when someone has shown a competence.",
+          "Start the offboarding checklist as soon as you know someone is leaving."
+        ]
+      },
+      "why": {
+        "body": "Competence must be planned, achieved and documented, and people must be aware of the policies and their own contribution. When someone leaves or changes role, their access must be removed and equipment returned, and their confidentiality duties continue.",
+        "clauses": [
+          "hs:7.2",
+          "hs:7.3",
+          "iso27001:A.6.3",
+          "iso27001:A.6.4",
+          "iso27001:A.6.5",
+          "iso27001:A.5.11",
+          "iso27001:A.5.18"
+        ]
+      },
+      "fields": {
+        "level": {
+          "help": "0 = none, 1 = basic (can do it with help), 2 = working (does it alone), 3 = proficient (handles unusual cases), 4 = expert (can teach others).",
+          "example": "A newly trained first aider is level 2; the instructor is level 4."
+        },
+        "checklist_assignee": {
+          "help": "The person, role or department who does the work. They get it as a task in My Work. Leave it empty to give it to the checklist owner or yourself.",
+          "example": "The IT department for an offboarding checklist, so access is revoked on the last day."
+        },
+        "awareness": {
+          "help": "Awareness records show that the person knows the policies, the risks and their own role, for example after reading the security policy or attending a phishing campaign.",
+          "example": "Security awareness training completed on 3 March."
+        },
+        "disciplinary": {
+          "help": "A formal process for people who break the security policy or other rules. Record only facts and keep it short; only people with disciplinary access can see these cases.",
+          "example": "Shared a password with a supplier against the policy; written warning."
+        }
+      }
+    },
+    "positions": {
+      "intro": {
+        "title": "Roles with clear responsibilities",
+        "body": "A position describes what a role is responsible for, what it may decide and which competences it needs. Employees in the position inherit its competence requirements.",
+        "steps": [
+          "Create the positions that matter most, starting with managers and key roles.",
+          "Describe responsibilities and authorities in a few lines.",
+          "Add competence requirements, or let the assistant suggest them."
+        ]
+      },
+      "why": {
+        "body": "Top management must assign and communicate responsibilities and authorities for relevant roles, and you must decide what competence each role needs. A clear position description is the evidence for both.",
+        "clauses": ["hs:5.3", "hs:7.2", "iso27001:A.6.1"]
+      },
+      "empty": {
+        "title": "No positions yet",
+        "body": "Positions tie people to competence requirements. Start with five to ten typical roles, such as manager, technician, salesperson and administrator.",
+        "cta": "Create the first position"
+      }
+    },
+    "positionForm": {
+      "intro": {
+        "title": "Describing a position",
+        "body": "Give the position a title and describe its purpose, responsibilities and authorities. The assistant can write a first draft of the responsibilities for you to edit.",
+        "steps": [
+          "Write the title and a short description.",
+          "List the responsibilities and what the role may decide.",
+          "Set the risk level: high for roles with access to sensitive information or critical systems."
+        ]
+      },
+      "why": {
+        "body": "Roles, responsibilities and authorities must be assigned and understood. Writing them down avoids gaps and overlaps, and lets an auditor check that everyone knows what is expected of them.",
+        "clauses": ["hs:5.3", "iso27001:A.6.1"]
+      },
+      "fields": {
+        "responsibilities": {
+          "help": "What the person in the position must make sure happens. Short sentences starting with a verb work best.",
+          "example": "Plans and follows up service jobs; reports deviations; keeps the service log up to date."
+        },
+        "authorities": {
+          "help": "What the role may decide or approve without asking anyone.",
+          "example": "May stop work that is unsafe; may approve purchases up to 20,000."
+        },
+        "risk_level": {
+          "help": "High for roles with access to sensitive information, money or critical systems. A higher risk level calls for more careful screening and stricter offboarding.",
+          "example": "System administrator: high. Receptionist: low."
+        }
+      }
+    },
+    "positionDetail": {
+      "intro": {
+        "title": "What this role needs",
+        "body": "The competence requirements of a position apply to everyone who holds it. The competence matrix and gap analysis compare each person against these requirements.",
+        "steps": [
+          "Add the competences the role needs, with the required level.",
+          "Mark the ones that are mandatory, such as legal certificates.",
+          "Check the people in the position for gaps."
+        ]
+      },
+      "why": {
+        "body": "Determining the necessary competence for each role is the first step in the competence requirement. Without it, training and recruitment cannot be planned and gaps cannot be found.",
+        "clauses": ["hs:5.3", "hs:7.2"]
+      },
+      "fields": {
+        "requirements": {
+          "help": "Each requirement is a competence from the catalogue and the level the role needs. Mandatory requirements are must-haves; desirable ones are nice to have.",
+          "example": "Electrical safety (FSE), level 3, mandatory; English, level 2, desirable."
+        }
+      }
+    },
+    "competences": {
+      "intro": {
+        "title": "Your competence catalogue",
+        "body": "The catalogue lists the skills, knowledge, qualifications and certificates your roles require. Each one can have a validity period, so refresher training and renewals are not forgotten.",
+        "steps": [
+          "Add the competences your positions need.",
+          "Set a validity period for certificates and refresher training.",
+          "Link them to positions as requirements."
+        ]
+      },
+      "why": {
+        "body": "A shared catalogue makes competence comparable across roles and people, and the validity period makes sure lapsed certificates show up as gaps before an auditor or an accident finds them.",
+        "clauses": ["hs:7.2"]
+      },
+      "empty": {
+        "title": "No competences in the catalogue",
+        "body": "Add the competences your roles need, or open a position and let the assistant suggest requirements; new competences are added to the catalogue for you.",
+        "cta": "Add the first competence"
+      }
+    },
+    "competenceForm": {
+      "intro": {
+        "title": "Defining a competence",
+        "body": "Name the competence so everyone understands it, choose its category and say how long an assessment stays valid.",
+        "steps": [
+          "Use a clear name, such as \"First aid\" or \"ISO 27001 internal auditor\".",
+          "Pick the category.",
+          "Set the validity in months if it must be renewed."
+        ]
+      },
+      "why": {
+        "body": "Competence must be kept up to date. A validity period turns renewals into reminders instead of surprises.",
+        "clauses": ["hs:7.2"]
+      },
+      "fields": {
+        "category": {
+          "help": "Skill (can do), knowledge (knows), qualification (formal education), certificate (issued by a third party, often with an expiry), language, behaviour.",
+          "example": "Forklift licence is a certificate; GDPR basics is knowledge."
+        },
+        "validity_months": {
+          "help": "How long an assessment stays valid. The expiry date of each person's record is set from this, and expiring competences are reminded.",
+          "example": "First aid: 24 months. Leave empty for a university degree."
+        }
+      }
+    },
+    "competenceDetail": {
+      "intro": {
+        "title": "Who needs it and who has it",
+        "body": "This page shows the competence, how long it stays valid and every person who needs or holds it, with their level and status.",
+        "steps": [
+          "Look for people marked missing or expired.",
+          "Open a person to record a new assessment.",
+          "Plan training for the gaps."
+        ]
+      },
+      "why": {
+        "body": "Knowing who holds a competence shows whether you have enough people for the work, and keeps evidence of competence in one place.",
+        "clauses": ["hs:7.2"]
+      }
+    },
+    "matrix": {
+      "intro": {
+        "title": "The competence matrix",
+        "body": "Each row is a person and each column a competence. The cells show the level each person holds and whether it meets what their position requires. Switch to gaps only for a to-do list.",
+        "steps": [
+          "Filter by department or position.",
+          "Look for red cells: missing or expired competences.",
+          "Use the gap list to plan training or recruitment."
+        ]
+      },
+      "why": {
+        "body": "Comparing what people can do with what their roles require is how you find competence gaps and take action, whether training, mentoring, recruitment or reassignment, and then check that it worked.",
+        "clauses": ["hs:7.2", "hs:7.1"]
+      },
+      "empty": {
+        "title": "Nothing to compare yet",
+        "body": "The matrix needs employees with positions and positions with competence requirements. Add requirements to a position, and the people in it appear here."
+      }
+    },
+    "checklists": {
+      "intro": {
+        "title": "Joining and leaving, done the same way every time",
+        "body": "Onboarding and offboarding checklists make sure nothing is forgotten when people start or leave: access, equipment, confidentiality, training and documentation.",
+        "steps": [
+          "Start a checklist from the employee's page.",
+          "Tick off items as they are done; required items must all be done.",
+          "Complete it: the employee's status is updated for you."
+        ]
+      },
+      "why": {
+        "body": "When people leave or change role, their access rights must be removed, assets returned and their remaining confidentiality duties communicated. A checklist is the evidence that it happened.",
+        "clauses": ["iso27001:A.6.5", "iso27001:A.5.11", "iso27001:A.5.18"]
+      },
+      "empty": {
+        "title": "No open checklists",
+        "body": "Open an employee and choose Start onboarding or Start offboarding. Each checklist starts from a template and is assigned as a task."
+      }
+    },
+    "checklistDetail": {
+      "intro": {
+        "title": "Work through the checklist",
+        "body": "Tick each item when it is done and add a note where useful. The checklist can only be completed when every required item is done.",
+        "steps": [
+          "Do the access and equipment items on the last working day.",
+          "Remind the person of their confidentiality duties.",
+          "Complete the checklist when everything required is done."
+        ]
+      },
+      "why": {
+        "body": "Access left open after someone has left is one of the most common security weaknesses. Recording who revoked what and when shows that it is handled.",
+        "clauses": ["iso27001:A.6.5", "iso27001:A.5.11", "iso27001:A.5.18"]
+      },
+      "fields": {
+        "items": {
+          "help": "Add items specific to this person, for example a system only they used. Mark an item as required if the checklist must not be completed without it.",
+          "example": "Remove access to the payroll system (required)."
+        }
+      }
+    }
+  },
+  "lessons": {
+    "competence-basics": {
+      "title": "Competence in four steps",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "1. Decide what each role needs",
+          "body": "For each **position**, list the competences the work needs and the level required. Mark the ones that are **mandatory**, such as legally required certificates."
+        },
+        {
+          "heading": "2. Find out what people can do",
+          "body": "Record an **assessment** for each person: the level they have shown, when, and the evidence, such as a certificate, a training record or an observation by their manager."
+        },
+        {
+          "heading": "3. Close the gaps",
+          "body": "The **competence matrix** shows where people fall short, lack a competence or let it expire. Close gaps with training, mentoring, recruitment or by moving tasks."
+        },
+        {
+          "heading": "4. Check it worked and keep it current",
+          "body": "Assess again after the action, and use **validity periods** so certificates and refresher training are renewed in time. The records are your evidence."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "A technician's first aid certificate expired last month. What does the matrix show?",
+          "options": ["Met", "Expired", "Not required"],
+          "answer": 1,
+          "explanation": "An expired competence no longer counts. It shows as expired until a new assessment is recorded."
+        },
+        {
+          "question": "What is the first step in managing competence?",
+          "options": [
+            "Sending everyone on a course",
+            "Deciding what competence each role needs",
+            "Buying a training system"
+          ],
+          "answer": 1,
+          "explanation": "You can only find gaps and plan training once you know what each role requires."
+        }
+      ],
+      "pass_mark": 0.5
+    },
+    "joiners-and-leavers": {
+      "title": "Joiners, movers and leavers",
+      "minutes": 3,
+      "sections": [
+        {
+          "heading": "Before and when someone joins",
+          "body": "Screen candidates in proportion to the role, have them sign the **confidentiality agreement** and accept the **security terms**, and give them only the access the role needs. The onboarding checklist covers this."
+        },
+        {
+          "heading": "When someone changes role",
+          "body": "A new role means new requirements and different access. Update the position, remove access the new role does not need and check the competence gaps."
+        },
+        {
+          "heading": "When someone leaves",
+          "body": "Start the **offboarding checklist** as soon as you know. Revoke access on the last day, collect equipment, and remind the person that their confidentiality duties continue after they leave."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "When should access be removed for someone who is leaving?",
+          "options": ["A month after they leave", "On their last working day", "When IT has time"],
+          "answer": 1,
+          "explanation": "Access left open after someone has left is a security risk. Remove it on the last working day at the latest."
+        }
+      ],
+      "pass_mark": 1
+    },
+    "roles-and-responsibilities": {
+      "title": "Responsibilities and authorities",
+      "minutes": 3,
+      "sections": [
+        {
+          "heading": "Why write it down",
+          "body": "Unclear responsibility is behind many incidents: everyone thought someone else would act. A short description of each position's **responsibilities** and **authorities** avoids gaps and overlaps."
+        },
+        {
+          "heading": "What to write",
+          "body": "Responsibilities say what the person must make sure happens. Authorities say what they may decide on their own, such as stopping unsafe work or approving a purchase. Keep both short and concrete."
+        },
+        {
+          "heading": "Making it known",
+          "body": "Responsibilities only work if people know them. Go through the description with the person when they start, and update it when the role changes."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Which of these is an authority rather than a responsibility?",
+          "options": [
+            "Keeps the service log up to date",
+            "May stop work that is unsafe",
+            "Reports deviations"
+          ],
+          "answer": 1,
+          "explanation": "An authority is something the role may decide. Stopping unsafe work is a decision the role is allowed to make."
+        }
+      ],
+      "pass_mark": 1
+    }
+  },
+  "tours": {
+    "list": [
+      {
+        "target": "people-new",
+        "title": "Add an employee",
+        "body": "Register a person, link them to their user account and give them a position."
+      },
+      {
+        "target": "people-filters",
+        "title": "Find the right people",
+        "body": "Filter by status, employment type, position and department, and save the combination as a view."
+      },
+      {
+        "target": "people-summary",
+        "title": "See what needs attention",
+        "body": "Competence gaps, open checklists and missing confidentiality agreements across the organisation."
+      }
+    ],
+    "matrix": [
+      {
+        "target": "people-matrix-filters",
+        "title": "Narrow it down",
+        "body": "Pick a position or department, or switch to the list of gaps only."
+      }
+    ]
+  },
+  "glossary": {
+    "competence": {
+      "term": "Competence",
+      "definition": "The ability to apply knowledge and skills to achieve intended results. Roles require it; people show it.",
+      "clauses": ["hs:7.2"]
+    },
+    "competence-gap": {
+      "term": "Competence gap",
+      "definition": "The difference between the level a role requires and the level a person holds, including missing and expired competences.",
+      "clauses": ["hs:7.2"]
+    },
+    "awareness": {
+      "term": "Awareness",
+      "definition": "Knowing the policies, the relevant risks and your own contribution, and what happens if you do not follow the rules.",
+      "clauses": ["hs:7.3", "iso27001:A.6.3"]
+    }
+  }
+}
