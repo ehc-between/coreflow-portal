@@ -1,0 +1,634 @@
+{
+  "tabs": {
+    "label": "Deler av ledelsens gjennomgang",
+    "reviews": "Gjennomganger",
+    "meetings": "Møter"
+  },
+  "common": {
+    "loading": "Laster …",
+    "loadFailed": "Kunne ikke laste dataene. Prøv igjen om litt.",
+    "notFound": "Fant ikke denne posten, eller du har ikke tilgang til den.",
+    "backToList": "Tilbake til ledelsens gjennomganger",
+    "backToReview": "Tilbake til gjennomgangen",
+    "backToMeetings": "Tilbake til møter",
+    "backToMeeting": "Tilbake til møtet",
+    "noOwner": "Ingen eier",
+    "nobody": "Ingen",
+    "notScheduled": "Ikke planlagt",
+    "notSet": "Ikke fylt ut ennå",
+    "minutes": "{{ n }} min",
+    "reason": "Begrunnelse (valgfritt)"
+  },
+  "list": {
+    "title": "Ledelsens gjennomganger",
+    "subtitle": "Toppledelsen gjennomgår styringssystemet med planlagte mellomrom: grunnlaget samles for deg, beslutninger blir oppgaver og rapporten signeres.",
+    "searchPlaceholder": "Søk på kode eller tittel",
+    "new": "Ny gjennomgang",
+    "period": "Periode {{ from }} – {{ to }}",
+    "meeting": "Møte: {{ status }}"
+  },
+  "meetings": {
+    "title": "Møter",
+    "subtitle": "Møter med agenda, deltakere, referat og beslutninger: utvalg, prosjekt- og sikkerhetsmøter, og møtene i ledelsens gjennomganger.",
+    "searchPlaceholder": "Søk på kode, tittel eller sted",
+    "new": "Nytt møte",
+    "chairedBy": "Møteleder: {{ name }}",
+    "counts": "{{ attendees }} deltakere · {{ decisions }} beslutninger"
+  },
+  "filters": {
+    "status": "Status",
+    "framework": "Standard",
+    "kind": "Type",
+    "sort": "Sortering",
+    "allFrameworks": "Alle standarder",
+    "allKinds": "Alle typer",
+    "allStatuses": "Alle statuser",
+    "mine": "Mine",
+    "upcoming": "Bare kommende",
+    "includeReviews": "Ta med gjennomgangsmøter",
+    "noMatch": "Ingenting passer med disse filtrene.",
+    "statusOptions": {
+      "open": "Åpne gjennomganger",
+      "planned": "Planlagt",
+      "in_progress": "Pågår",
+      "awaiting_signoff": "Venter på signering",
+      "signed": "Signert",
+      "cancelled": "Avlyst",
+      "all": "Alle gjennomganger"
+    },
+    "reviewSorts": {
+      "-created_at": "Nyeste først",
+      "-scheduled_at": "Seneste møte først",
+      "scheduled_at": "Tidligste møte først",
+      "code": "Kode",
+      "title": "Tittel"
+    },
+    "meetingSorts": {
+      "-scheduled_at": "Seneste først",
+      "scheduled_at": "Tidligste først",
+      "-created_at": "Nylig opprettet",
+      "title": "Tittel"
+    }
+  },
+  "reviewStatus": {
+    "planned": "Planlagt",
+    "in_progress": "Pågår",
+    "awaiting_signoff": "Venter på signering",
+    "signed": "Signert",
+    "cancelled": "Avlyst"
+  },
+  "meetingStatus": {
+    "planned": "Planlagt",
+    "in_progress": "Pågår",
+    "completed": "Gjennomført",
+    "cancelled": "Avlyst"
+  },
+  "minutesStatus": {
+    "draft": "Referatutkast",
+    "approved": "Referat godkjent"
+  },
+  "meetingKind": {
+    "general": "Generelt møte",
+    "management_review": "Ledelsens gjennomgang",
+    "committee": "Utvalg",
+    "project": "Prosjektmøte",
+    "audit": "Revisjonsmøte",
+    "safety": "Sikkerhetsmøte",
+    "training": "Opplæring",
+    "other": "Annet"
+  },
+  "frameworks": {
+    "iso9001": "ISO 9001",
+    "iso27001": "ISO/IEC 27001",
+    "iso14001": "ISO 14001",
+    "iso42001": "ISO/IEC 42001",
+    "iso45001": "ISO 45001"
+  },
+  "assessment": {
+    "effective": "Effektivt",
+    "partially_effective": "Delvis effektivt",
+    "not_effective": "Ikke effektivt"
+  },
+  "attendeeRole": {
+    "chair": "Møteleder",
+    "secretary": "Referent",
+    "participant": "Deltaker",
+    "guest": "Gjest"
+  },
+  "attendance": {
+    "invited": "Invitert",
+    "present": "Til stede",
+    "absent": "Fraværende",
+    "excused": "Meldt forfall"
+  },
+  "decisionCategory": {
+    "decision": "Beslutning",
+    "action": "Tiltak",
+    "improvement": "Forbedring",
+    "change": "Endring",
+    "resource": "Ressurs",
+    "other": "Annet"
+  },
+  "reviewActions": {
+    "start": "Start gjennomgang",
+    "compile": "Oppdater grunnlag",
+    "submit": "Send til signering",
+    "sign": "Signer",
+    "return": "Send tilbake for endring",
+    "cancel": "Avlys gjennomgang",
+    "delete": "Slett"
+  },
+  "missing": {
+    "conclusions": "Skriv konklusjonene.",
+    "system_assessment": "Velg samlet vurdering av styringssystemet.",
+    "meeting_completed": "Merk gjennomgangsmøtet som gjennomført."
+  },
+  "fields": {
+    "title": "Tittel",
+    "status": "Status",
+    "frameworks": "Standarder som dekkes",
+    "period": "Periode for gjennomgangen",
+    "periodStart": "Periode fra",
+    "periodEnd": "Periode til",
+    "owner": "Eier",
+    "scheduledAt": "Dato og tid",
+    "duration": "Varighet (minutter)",
+    "location": "Sted",
+    "chair": "Møteleder",
+    "secretary": "Referent",
+    "attendees": "Deltakere",
+    "meeting": "Møte",
+    "kind": "Type",
+    "purpose": "Formål",
+    "minutesStatus": "Referatstatus",
+    "changeReason": "Begrunnelse for endringen (valgfritt)",
+    "inputsSummary": "Oppsummering av grunnlaget",
+    "conclusions": "Konklusjoner",
+    "improvementOpportunities": "Muligheter for forbedring",
+    "changeNeeds": "Behov for endringer i styringssystemet",
+    "resourceNeeds": "Ressursbehov",
+    "systemAssessment": "Samlet vurdering av styringssystemet"
+  },
+  "form": {
+    "newTitle": "Ny ledelsens gjennomgang",
+    "editTitle": "Rediger ledelsens gjennomgang",
+    "defaultTitle": "Ledelsens gjennomgang {{ year }}",
+    "meetingHeading": "Gjennomgangsmøtet",
+    "standardAgenda": "Start med standardagendaen",
+    "standardAgendaHint": "Legger inn agendapunktene standardene forventer: tidligere tiltak, endringer, ytelse, ressurser, risiko, forbedring og beslutninger.",
+    "compileInputs": "Samle grunnlaget nå",
+    "compileInputsHint": "Tall fra avvik, korrigerende tiltak, dokumenter og standardmodenhet hentes for perioden. Du kan oppdatere dem senere.",
+    "create": "Opprett gjennomgang",
+    "save": "Lagre endringer"
+  },
+  "standardAgenda": {
+    "previousActions": "Status for tiltak fra tidligere gjennomganger",
+    "changes": "Endringer i eksterne og interne forhold og i interessenter",
+    "performance": "Ytelse og effektivitet i styringssystemet",
+    "resources": "Tilstrekkelige ressurser",
+    "risks": "Effekten av tiltak for å håndtere risikoer og muligheter",
+    "improvement": "Muligheter for forbedring",
+    "outputs": "Konklusjoner, beslutninger og tiltak"
+  },
+  "meetingForm": {
+    "newTitle": "Nytt møte",
+    "editTitle": "Rediger møte",
+    "create": "Opprett møte",
+    "agenda": "Agenda",
+    "agendaPlaceholder": "Ett agendapunkt per linje"
+  },
+  "detail": {
+    "edit": "Rediger",
+    "report": "Rapport",
+    "progress": "Fremdrift i gjennomgangen",
+    "readOnly": "Denne gjennomgangen kan ikke lenger redigeres.",
+    "cancelledNotice": "Denne gjennomgangen ble avlyst {{ date }}.",
+    "awaitingNotice": "Sendt til signering av {{ name }} {{ date }}. Gjennomgangen er låst; referatet kan fortsatt godkjennes.",
+    "signedNotice": "Signert av {{ name }} {{ date }}. Rapporten er låst.",
+    "beforeSubmit": "Før du kan sende til signering:",
+    "actionsHeading": "Oppfølgingstiltak",
+    "actionStats": "{{ total }} tiltak: {{ open }} åpne, {{ done }} utført, {{ overdue }} forfalt",
+    "meetingHeading": "Møte {{ code }}",
+    "openMeeting": "Åpne møtesiden",
+    "outputsHeading": "Resultater av gjennomgangen",
+    "saveOutputs": "Lagre resultater",
+    "unsaved": "Ulagrede endringer",
+    "deleteTitle": "Slette denne gjennomgangen?",
+    "deleteMessage": "{{ code }} og møtet blir fjernet. Dette kan ikke angres."
+  },
+  "inputs": {
+    "heading": "Grunnlag ({{ reviewed }} av {{ total }} gjennomgått)",
+    "compiledAt": "Samlet {{ date }}",
+    "notCompiled": "Ikke samlet ennå",
+    "empty": "Ikke noe grunnlag ennå.",
+    "notes": "Notater og vurdering",
+    "markReviewed": "Gjennomgått",
+    "reviewed": "Gjennomgått",
+    "notReviewed": "Ikke gjennomgått ennå",
+    "saveNotes": "Lagre notater",
+    "remove": "Fjern",
+    "customTitle": "Legg til eget grunnlag, for eksempel et tema fra styret",
+    "addCustom": "Legg til",
+    "source": {
+      "auto": "Samlet",
+      "manual": "Manuelt"
+    }
+  },
+  "inputCategories": {
+    "previous_actions": {
+      "title": "Status for tiltak fra tidligere gjennomganger",
+      "hint": "Ble beslutningene og tiltakene fra forrige gjennomgang gjennomført, og virket de?"
+    },
+    "context_changes": {
+      "title": "Endringer i eksterne og interne forhold",
+      "hint": "Endringer i marked, regelverk, teknologi, organisasjon eller eierskap som påvirker styringssystemet."
+    },
+    "interested_parties": {
+      "title": "Behov og forventninger hos interessenter",
+      "hint": "Nye eller endrede krav fra kunder, myndigheter, eiere, ansatte eller andre."
+    },
+    "customer_feedback": {
+      "title": "Kundetilfredshet og tilbakemeldinger",
+      "hint": "Klager, ros, undersøkelser og andre tilbakemeldinger fra kunder."
+    },
+    "objectives": {
+      "title": "I hvilken grad målene er nådd",
+      "hint": "Fremdrift på kvalitets-, sikkerhets- og andre mål og deres KPI-er."
+    },
+    "process_performance": {
+      "title": "Prosessytelse og samsvar for produkter og tjenester",
+      "hint": "Hvordan de viktigste prosessene presterte og om produkter og tjenester oppfylte kravene."
+    },
+    "nonconformities": {
+      "title": "Avvik og korrigerende tiltak",
+      "hint": "Avvik meldt og lukket i perioden, og hvor effektive de korrigerende tiltakene var."
+    },
+    "monitoring_results": {
+      "title": "Resultater fra overvåking og måling",
+      "hint": "Resultater fra inspeksjoner, målinger og annen overvåking."
+    },
+    "audit_results": {
+      "title": "Revisjonsresultater",
+      "hint": "Funn fra interne og eksterne revisjoner i perioden."
+    },
+    "conformity_status": {
+      "title": "Samsvar med standardene",
+      "hint": "Modenhet per standard: hvor mange krav som er dekket av dokumentasjon."
+    },
+    "incidents": {
+      "title": "Hendelser",
+      "hint": "Sikkerhets-, HMS- eller KI-hendelser meldt i perioden."
+    },
+    "supplier_performance": {
+      "title": "Ytelse hos eksterne leverandører",
+      "hint": "Hvordan leverandører og andre eksterne tilbydere har levert."
+    },
+    "compliance_obligations": {
+      "title": "Oppfyllelse av samsvarsforpliktelser",
+      "hint": "Status for lovkrav og andre krav organisasjonen må oppfylle."
+    },
+    "environmental_aspects": {
+      "title": "Vesentlige miljøaspekter",
+      "hint": "Endringer i vesentlige miljøaspekter og miljøprestasjon."
+    },
+    "worker_consultation": {
+      "title": "Medvirkning og deltakelse fra arbeidstakere",
+      "hint": "Resultater fra medvirkning med arbeidstakere og deres representanter."
+    },
+    "information_security": {
+      "title": "Ytelse innen informasjonssikkerhet",
+      "hint": "Sikkerhetshendelser, risikobehandling og tilbakemeldinger om informasjonssikkerhet."
+    },
+    "ai_systems": {
+      "title": "KI-systemer og deres konsekvenser",
+      "hint": "Endringer i KI-systemer, konsekvensvurderinger og bekymringer knyttet til KI."
+    },
+    "documented_information": {
+      "title": "Dokumentert informasjon",
+      "hint": "Status for styrte dokumenter, inkludert dokumenter som har passert revisjonsdato."
+    },
+    "resources": {
+      "title": "Tilstrekkelige ressurser",
+      "hint": "Er folk, kompetanse, verktøy, infrastruktur og budsjett tilstrekkelig?"
+    },
+    "risks_opportunities": {
+      "title": "Effekten av tiltak for risikoer og muligheter",
+      "hint": "Ga de planlagte risikotiltakene og mulighetene forventet effekt?"
+    },
+    "improvement_opportunities": {
+      "title": "Muligheter for forbedring",
+      "hint": "Ideer og forslag til forbedring av styringssystemet."
+    },
+    "custom": {
+      "title": "Annet grunnlag",
+      "hint": "Et grunnlag du har lagt til selv."
+    }
+  },
+  "inputSources": {
+    "deviations": "Avvik",
+    "deviations_customer": "Kundeavvik",
+    "deviations_audit": "Revisjonsavvik",
+    "deviations_incident": "Hendelser",
+    "corrective_actions": "Korrigerende tiltak",
+    "previous_review": "Forrige gjennomgang",
+    "readiness": "Modenhet mot standarder",
+    "documents": "Dokumenter",
+    "module": "Annen modul"
+  },
+  "metrics": {
+    "raised": "Meldt",
+    "closed": "Lukket",
+    "open": "Åpne",
+    "overdue": "Forfalt",
+    "completed": "Fullført",
+    "verified": "Verifisert",
+    "previous_reviews": "Tidligere gjennomganger",
+    "decisions": "Beslutninger",
+    "actions": "Tiltak",
+    "actions_done": "Tiltak utført",
+    "actions_open": "Tiltak åpne",
+    "actions_overdue": "Tiltak forfalt",
+    "actions_cancelled": "Tiltak avbrutt",
+    "standards": "Standarder",
+    "total": "Totalt",
+    "review_overdue": "Revisjon forfalt"
+  },
+  "values": {
+    "low": "Lav",
+    "medium": "Middels",
+    "high": "Høy",
+    "critical": "Kritisk",
+    "open": "Åpen",
+    "investigating": "Under utredning",
+    "action": "Tiltak",
+    "verification": "Verifisering",
+    "closed": "Lukket",
+    "cancelled": "Avbrutt",
+    "in_progress": "Pågår",
+    "done": "Utført",
+    "verified": "Verifisert",
+    "draft": "Utkast",
+    "in_review": "Til gjennomgang",
+    "approved": "Godkjent",
+    "obsolete": "Utgått",
+    "effective": "Effektivt",
+    "not_effective": "Ikke effektivt",
+    "pending": "Venter"
+  },
+  "inputData": {
+    "notCompiled": "Ingen data samlet ennå. Oppdater grunnlaget for å hente de siste tallene.",
+    "manual": "Ingen datakilde ennå: skriv vurderingen din i notatene.",
+    "by_severity": "Etter alvorlighet",
+    "open_by_status": "Åpne etter status",
+    "by_status": "Etter status",
+    "effectiveness": "Effekt av verifiserte tiltak",
+    "score": "{{ score }} % klar",
+    "covered": "{{ covered }} av {{ applicable }} krav dekket",
+    "previous": "Forrige gjennomgang:"
+  },
+  "meeting": {
+    "statusHeading": "Møtestatus",
+    "heldAt": "Holdt {{ date }}",
+    "lockedNotice": "Møtet er låst. Et godkjent referat kan bare åpnes igjen av en leder.",
+    "readOnly": "Dette møtet kan ikke lenger redigeres.",
+    "partOfReview": "Dette møtet hører til ledelsens gjennomgang",
+    "delete": "Slett møte",
+    "deleteTitle": "Slette dette møtet?",
+    "deleteMessage": "{{ code }} med agenda, deltakere, referat og beslutninger blir fjernet.",
+    "transitions": {
+      "start": "Start møtet",
+      "completed": "Merk som gjennomført",
+      "cancelled": "Avlys møtet",
+      "reopen": "Gjenåpne møtet",
+      "replan": "Planlegg på nytt"
+    }
+  },
+  "agenda": {
+    "heading": "Agenda ({{ count }})",
+    "edit": "Rediger agenda",
+    "empty": "Ingen agenda ennå.",
+    "item": "Punkt {{ n }}",
+    "title": "Agendapunkt",
+    "duration": "Minutter",
+    "presenter": "Innleder",
+    "notes": "Notater",
+    "moveUp": "Flytt opp",
+    "moveDown": "Flytt ned",
+    "remove": "Fjern",
+    "add": "Legg til punkt",
+    "save": "Lagre agenda"
+  },
+  "attendees": {
+    "heading": "Deltakere ({{ count }})",
+    "empty": "Ingen er invitert ennå.",
+    "external": "Ekstern",
+    "member": "Medlem",
+    "externalGuest": "Ekstern gjest",
+    "name": "Navn",
+    "person": "Person",
+    "choosePerson": "Velg en person",
+    "role": "Rolle",
+    "add": "Legg til",
+    "roleFor": "Rollen til {{ name }}",
+    "attendanceFor": "Oppmøte for {{ name }}",
+    "remove": "Fjern {{ name }}",
+    "addPerson": "Legg til en person",
+    "noneYet": "Ingen lagt til ennå."
+  },
+  "minutes": {
+    "heading": "Referat",
+    "label": "Referat",
+    "save": "Lagre referat",
+    "approve": "Godkjenn referat",
+    "reopen": "Gjenåpne referat",
+    "empty": "Det er ikke skrevet noe referat.",
+    "approvedBy": "Godkjent av {{ name }} {{ date }}",
+    "approveAfterCompleted": "Referatet kan godkjennes når møtet er merket som gjennomført.",
+    "reopenTitle": "Gjenåpne referatet?",
+    "reopenMessage": "Det godkjente referatet blir et utkast igjen og kan redigeres. Begrunnelsen lagres i historikken."
+  },
+  "decisions": {
+    "heading": "Beslutninger og tiltak ({{ count }})",
+    "add": "Registrer beslutning",
+    "empty": "Ingen beslutninger registrert ennå.",
+    "edit": "Rediger",
+    "remove": "Fjern beslutning",
+    "noOwner": "Ingen eier",
+    "dueOn": "Frist {{ date }}",
+    "task": "Oppgave: {{ title }}",
+    "text": "Beslutning eller tiltak",
+    "category": "Kategori",
+    "owner": "Eier",
+    "due": "Frist",
+    "createAction": "Opprett en oppfølgingsoppgave til eieren",
+    "actionTitle": "Oppgavetittel",
+    "actionTitlePlaceholder": "La stå tom for å bruke teksten i beslutningen",
+    "save": "Lagre beslutning"
+  },
+  "sign": {
+    "title": "Signer ledelsens gjennomgang",
+    "heading": "Signatur",
+    "message": "Når {{ code }} signeres, låses rapporten med en kontrollsum. Den kan ikke lenger endres.",
+    "name": "Navn på den som signerer",
+    "statement": "Erklæring",
+    "defaultStatement": "Toppledelsen har gjennomgått styringssystemet og godkjenner konklusjonene, beslutningene og tiltakene i denne rapporten.",
+    "signedBy": "Signert av",
+    "signedAt": "Signert",
+    "checksum": "Kontrollsum for rapporten (SHA-256)"
+  },
+  "return": {
+    "title": "Sende tilbake for endring?",
+    "message": "Gjennomgangen går tilbake til «pågår» slik at den kan rettes."
+  },
+  "cancel": {
+    "title": "Avlyse denne gjennomgangen?",
+    "message": "En avlyst gjennomgang beholdes, men kan ikke lenger redigeres."
+  },
+  "report": {
+    "title": "Rapport fra ledelsens gjennomgang: {{ title }}",
+    "print": "Skriv ut eller lagre som PDF",
+    "frozen": "Signert og låst. Kontrollsum: {{ sha }}",
+    "live": "Utkast: rapporten viser nåværende tilstand og endres til gjennomgangen er signert.",
+    "inputs": "Grunnlag",
+    "meeting": "Møte {{ code }}",
+    "signedLine": "Signert av {{ name }} {{ date }}",
+    "notSigned": "Ikke signert ennå.",
+    "generatedAt": "Laget {{ date }}"
+  },
+  "ai": {
+    "summarise": "Oppsummer",
+    "summariseAll": "Oppsummer gjennomganger",
+    "summariseMeeting": "Oppsummer",
+    "summariseMeetings": "Oppsummer møter",
+    "draftSummary": "Lag utkast til oppsummering",
+    "draftMinutes": "Lag utkast til referat",
+    "draftMinutesHint": "Skriv stikkord i feltet først; utkastet bygger på dem og agendaen.",
+    "suggestOutputs": "Foreslå resultater",
+    "addToOutputs": "Legg til i resultater",
+    "recordDecision": "Registrer som beslutning",
+    "dismiss": "Avvis",
+    "suggestionNote": "Forslagene er utkast. Kontroller dem før du lagrer.",
+    "askAssessment": "Spør hvordan du vurderer",
+    "prompts": {
+      "summariseAll": "Oppsummer status for ledelsens gjennomganger: hvilke er åpne, hva venter på signering og hvilke tiltak er forfalt.",
+      "summariseMeetings": "Oppsummer nylige og kommende møter, med beslutninger og åpne tiltak.",
+      "summariseReview": "Oppsummer ledelsens gjennomgang {{ code }} «{{ title }}»: viktigste grunnlag, konklusjoner, beslutninger og åpne tiltak.",
+      "summariseMeeting": "Oppsummer møtet {{ code }} «{{ title }}»: deltakere, referat, beslutninger og oppfølgingstiltak.",
+      "askAssessment": "Hjelp meg å vurdere om styringssystemet vårt er effektivt, delvis effektivt eller ikke effektivt, basert på grunnlaget i gjennomgang {{ code }} «{{ title }}»."
+    }
+  },
+  "lessons": {
+    "effectiveReview": "Leksjon: en god ledelsens gjennomgang",
+    "goodMinutes": "Leksjon: referater og beslutninger som virker"
+  },
+  "notices": {
+    "reviewCreated": "Ledelsens gjennomgang er opprettet.",
+    "reviewSaved": "Gjennomgangen er lagret.",
+    "reviewDeleted": "Gjennomgangen er slettet.",
+    "started": "Gjennomgangen er startet.",
+    "compiled": "Grunnlaget er oppdatert.",
+    "submitted": "Sendt til signering.",
+    "signed": "Gjennomgangen er signert. Rapporten er låst.",
+    "returned": "Gjennomgangen er sendt tilbake for endring.",
+    "cancelled": "Gjennomgangen er avlyst.",
+    "outputsSaved": "Resultatene er lagret.",
+    "notesSaved": "Notatene er lagret.",
+    "inputAdded": "Grunnlag lagt til.",
+    "inputRemoved": "Grunnlag fjernet.",
+    "meetingCreated": "Møtet er opprettet.",
+    "meetingSaved": "Møtet er lagret.",
+    "meetingDeleted": "Møtet er slettet.",
+    "statusChanged": "Møtestatus endret.",
+    "agendaSaved": "Agendaen er lagret.",
+    "attendeeAdded": "Deltaker lagt til.",
+    "attendeeRemoved": "Deltaker fjernet.",
+    "minutesSaved": "Referatet er lagret.",
+    "minutesApproved": "Referatet er godkjent.",
+    "minutesReopened": "Referatet er gjenåpnet.",
+    "decisionSaved": "Beslutningen er lagret.",
+    "decisionRemoved": "Beslutningen er fjernet."
+  },
+  "errors": {
+    "action_exists": "Denne beslutningen har allerede en oppfølgingsoppgave.",
+    "attendee_exists": "Denne personen står allerede på deltakerlisten.",
+    "input_required": "Grunnlag som standardene krever, kan ikke fjernes.",
+    "invalid_transition": "Det steget er ikke mulig fra nåværende status.",
+    "meeting_in_review": "Dette møtet hører til en ledelsens gjennomgang og fjernes sammen med den.",
+    "meeting_not_completed": "Merk møtet som gjennomført før du godkjenner referatet.",
+    "minutes_approved": "Referatet er allerede godkjent.",
+    "minutes_missing": "Skriv referatet før du godkjenner det.",
+    "minutes_not_approved": "Referatet er ikke godkjent.",
+    "review_awaiting_signoff": "Gjennomgangen venter på signering og er låst.",
+    "review_incomplete": "Gjennomgangen er ikke klar for signering ennå.",
+    "review_locked": "Gjennomgangen er signert eller avlyst og kan ikke lenger endres.",
+    "review_signed": "En signert gjennomgang beholdes som dokumentasjon og kan ikke slettes.",
+    "frameworks_required": "Velg minst én standard.",
+    "invalid_assessment": "Velg en gyldig vurdering.",
+    "invalid_attendance": "Velg et gyldig oppmøte.",
+    "invalid_attendee": "Velg en person eller skriv navnet på en ekstern gjest.",
+    "invalid_category": "Velg en gyldig kategori.",
+    "invalid_duration": "Skriv en varighet mellom 1 og 1440 minutter.",
+    "invalid_fields": "Noen felt er ikke gyldige.",
+    "invalid_framework": "En av standardene støttes ikke.",
+    "invalid_kind": "Velg en gyldig møtetype.",
+    "invalid_period": "Slutten av perioden må være etter starten.",
+    "invalid_role": "Velg en gyldig rolle.",
+    "invalid_status": "Velg en gyldig status.",
+    "invalid_user": "Den valgte personen er ikke medlem av denne organisasjonen.",
+    "invalid_argument": "Noen av verdiene er ikke gyldige.",
+    "record_required": "Posten mangler.",
+    "text_required": "Skriv inn teksten.",
+    "text_too_long": "Teksten er for lang.",
+    "title_custom_only": "Bare eget grunnlag kan gis nytt navn.",
+    "title_required": "Skriv inn en tittel.",
+    "title_too_long": "Tittelen er for lang.",
+    "too_many_items": "Det er for mange punkter.",
+    "module_disabled": "Ledelsens gjennomgang er ikke slått på for denne organisasjonen.",
+    "forbidden": "Du har ikke tillatelse til å gjøre dette.",
+    "unsavedOutputs": "Lagre resultatene før du sender til signering."
+  },
+  "notifications": {
+    "reviewCreated": "Ledelsens gjennomgang opprettet: {{ code }} {{ title }}",
+    "reviewUpdated": "Ledelsens gjennomgang oppdatert: {{ code }} {{ title }}",
+    "inputsCompiled": "Grunnlag samlet for {{ code }} {{ title }}",
+    "reviewStarted": "Ledelsens gjennomgang startet: {{ code }} {{ title }}",
+    "reviewSubmitted": "Klar til signering: {{ code }} {{ title }}",
+    "reviewReturned": "Sendt tilbake for endring: {{ code }} {{ title }}",
+    "reviewSigned": "Ledelsens gjennomgang signert: {{ code }} {{ title }}",
+    "reviewCancelled": "Ledelsens gjennomgang avlyst: {{ code }} {{ title }}",
+    "reviewDeleted": "Ledelsens gjennomgang slettet: {{ code }} {{ title }}",
+    "meetingCreated": "Møte opprettet: {{ code }} {{ title }}",
+    "meetingUpdated": "Møte oppdatert: {{ code }} {{ title }}",
+    "meetingInvited": "Du er invitert til {{ code }} {{ title }}",
+    "meetingRescheduled": "Møte flyttet: {{ code }} {{ title }}",
+    "meetingStatusChanged": "Møtestatus endret: {{ code }} {{ title }}",
+    "meetingCompleted": "Møte gjennomført: {{ code }} {{ title }}",
+    "meetingCancelled": "Møte avlyst: {{ code }} {{ title }}",
+    "minutesApproved": "Referat godkjent: {{ code }} {{ title }}",
+    "minutesReopened": "Referat gjenåpnet: {{ code }} {{ title }}",
+    "decisionRecorded": "Beslutning registrert i {{ code }} {{ title }}",
+    "meetingDeleted": "Møte slettet: {{ code }} {{ title }}"
+  },
+  "timeline": {
+    "reviewCreated": "{{ actor_name }} opprettet gjennomgangen",
+    "reviewUpdated": "{{ actor_name }} oppdaterte gjennomgangen",
+    "inputsCompiled": "{{ actor_name }} samlet grunnlaget",
+    "reviewStarted": "{{ actor_name }} startet gjennomgangen",
+    "reviewSubmitted": "{{ actor_name }} sendte gjennomgangen til signering",
+    "reviewReturned": "{{ actor_name }} sendte gjennomgangen tilbake for endring",
+    "reviewSigned": "{{ actor_name }} signerte gjennomgangen",
+    "reviewCancelled": "{{ actor_name }} avlyste gjennomgangen",
+    "reviewDeleted": "{{ actor_name }} slettet gjennomgangen",
+    "meetingCreated": "{{ actor_name }} opprettet møtet",
+    "meetingUpdated": "{{ actor_name }} oppdaterte møtet",
+    "meetingInvited": "{{ actor_name }} sendte invitasjoner",
+    "meetingRescheduled": "{{ actor_name }} flyttet møtet",
+    "meetingStatusChanged": "{{ actor_name }} endret møtestatus",
+    "meetingCompleted": "{{ actor_name }} merket møtet som gjennomført",
+    "meetingCancelled": "{{ actor_name }} avlyste møtet",
+    "minutesApproved": "{{ actor_name }} godkjente referatet",
+    "minutesReopened": "{{ actor_name }} gjenåpnet referatet",
+    "decisionRecorded": "{{ actor_name }} registrerte en beslutning",
+    "meetingDeleted": "{{ actor_name }} slettet møtet"
+  }
+}

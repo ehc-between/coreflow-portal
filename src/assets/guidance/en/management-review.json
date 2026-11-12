@@ -1,0 +1,357 @@
+{
+  "pages": {
+    "list": {
+      "intro": {
+        "title": "Management review keeps leadership in charge",
+        "body": "A **management review** is a planned meeting where top management looks at how the management system is doing and decides what to change. CoreFlow compiles the inputs for you, records the meeting and turns decisions into tasks.",
+        "steps": [
+          "Create a review for the period, for example once a year, and choose the standards it covers.",
+          "Go through each input, add notes and mark it reviewed. Hold the meeting and write the minutes.",
+          "Write the conclusions and the overall assessment, submit for sign-off and sign. The report is then frozen."
+        ]
+      },
+      "why": {
+        "body": "Every ISO management system standard requires top management to review the system at **planned intervals** to make sure it is still suitable, adequate and effective. The review must consider set inputs and produce decisions on improvement, changes and resources, kept as documented information.",
+        "clauses": ["hs:9.3", "hs:5.1", "iso9001:9.3", "iso27001:9.3"]
+      },
+      "empty": {
+        "title": "No management reviews yet",
+        "body": "Plan your first review now, even if it is months away. CoreFlow creates the meeting, the standard agenda and one input per topic your standards require, and fills in the figures it already has.",
+        "cta": "Plan the first review"
+      }
+    },
+    "meetings": {
+      "intro": {
+        "title": "Meetings with minutes and decisions",
+        "body": "Use meetings for any recurring forum where decisions are made: management meetings, safety committees, project meetings or audit meetings. Each meeting has an agenda, attendees, minutes and decisions that can become tasks.",
+        "steps": [
+          "Create the meeting with time, place, chair and the people invited.",
+          "During or after the meeting, record attendance, write the minutes and record decisions.",
+          "Mark the meeting completed and let the chair approve the minutes."
+        ]
+      },
+      "why": {
+        "body": "Minutes with decisions, owners and deadlines show auditors that internal communication works and that agreed actions are followed up. Approved minutes are evidence that can be linked to requirements.",
+        "clauses": ["hs:7.4", "hs:7.5", "hs:10.1"]
+      },
+      "empty": {
+        "title": "No meetings yet",
+        "body": "Record your next management or safety meeting here so the agenda, minutes and decisions are kept together, and actions are followed up as tasks.",
+        "cta": "Create the first meeting"
+      }
+    },
+    "detail": {
+      "intro": {
+        "title": "Working through a management review",
+        "body": "Start the review, check every input and add your evaluation, then hold the meeting. Write the conclusions and choose the overall assessment. When the meeting is completed you can submit the review for sign-off.",
+        "steps": [
+          "Refresh the inputs if new deviations, actions or documents have been recorded since they were compiled.",
+          "Use **Draft summary** to get a first version of the input summary, then edit it.",
+          "Record decisions in the meeting and tick **Create a follow-up task** so every action has an owner and a due date."
+        ]
+      },
+      "why": {
+        "body": "The standards list the inputs the review must consider (previous actions, changes, performance, feedback, audit results, resources, risks and improvement) and require outputs with decisions on improvement opportunities, changes to the management system and resource needs.",
+        "clauses": ["hs:9.3.2", "hs:9.3.3", "hs:10.1"]
+      },
+      "fields": {
+        "inputs": {
+          "help": "One row per topic your standards require. Compiled rows show counts from CoreFlow for the review period; manual rows need your own evaluation in the notes. Only counts are copied, never record text.",
+          "example": "Nonconformities: 12 raised, 9 closed, 2 overdue"
+        },
+        "inputsSummary": {
+          "help": "A short overview of what the inputs show: trends, strong points and concerns. This is what top management reads first.",
+          "example": "Fewer customer complaints than last year, but two corrective actions are overdue."
+        },
+        "conclusions": {
+          "help": "What top management concludes about the management system. Required before you can submit.",
+          "example": "The system works for production, but supplier follow-up needs more attention."
+        },
+        "improvementOpportunities": {
+          "help": "Decisions on opportunities for improvement. Record each one as a decision with an owner when it needs follow-up."
+        },
+        "changeNeeds": {
+          "help": "Any changes needed to the management system, such as new processes, policies or scope."
+        },
+        "resourceNeeds": {
+          "help": "People, skills, tools or budget needed to keep the system effective."
+        },
+        "systemAssessment": {
+          "help": "The overall judgement: is the management system suitable, adequate and effective? Required before you can submit."
+        }
+      }
+    },
+    "meetingDetail": {
+      "intro": {
+        "title": "Running the meeting",
+        "body": "Start the meeting when it begins, record who attended and write the minutes. Record each decision with its category, owner and due date. Mark the meeting completed when it ends; the chair then approves the minutes.",
+        "steps": [
+          "Use **Edit agenda** to adjust the items and their order.",
+          "Write rough notes in the minutes box and use **Draft minutes** to turn them into tidy minutes.",
+          "Approved minutes are locked; a manager can reopen them with a reason."
+        ]
+      },
+      "why": {
+        "body": "Documented decisions with owners and deadlines are how an organisation shows that communication is planned and that actions are followed up until they are done.",
+        "clauses": ["hs:7.4", "hs:7.5.3"]
+      },
+      "fields": {
+        "attendance": {
+          "help": "Set each person to present, absent or excused. Attendance is part of the record auditors look at."
+        },
+        "minutes": {
+          "help": "What was discussed and agreed, item by item. Markdown is supported: use headings and bullet points.",
+          "example": "## 1. Previous actions\n- Supplier audit done, closed."
+        },
+        "decisions": {
+          "help": "Each decision or action, with a category, an owner and a due date. Tick the follow-up task box to put it in the owner's My Work."
+        }
+      }
+    },
+    "form": {
+      "intro": {
+        "title": "Planning a management review",
+        "body": "Give the review a title and choose the standards it covers. The review period decides which records the inputs are compiled from. The meeting is created with the review.",
+        "steps": [
+          "Choose one or more standards; each adds the inputs it requires.",
+          "Set the period, normally the twelve months since the last review.",
+          "Invite top management and the people who present the inputs."
+        ]
+      },
+      "why": {
+        "body": "The review must be planned and carried out at planned intervals, and it must be top management who reviews the system.",
+        "clauses": ["hs:9.3.1", "hs:5.1"]
+      },
+      "fields": {
+        "title": {
+          "help": "A name that makes the review easy to find, usually with the year.",
+          "example": "Management review 2026"
+        },
+        "frameworks": {
+          "help": "The standards this review covers. Leave all unticked to use the standards in your organisation profile."
+        },
+        "period": {
+          "help": "The period the review looks back on. Inputs are compiled from records in this period; without dates the last twelve months are used."
+        },
+        "owner": {
+          "help": "The person who prepares the review and follows it up, often the quality manager."
+        },
+        "chair": {
+          "help": "The person who leads the meeting and approves the minutes, normally the managing director."
+        },
+        "attendees": {
+          "help": "Invited people get a notification. You can add external guests and change roles on the meeting page."
+        }
+      }
+    },
+    "meetingForm": {
+      "intro": {
+        "title": "Setting up a meeting",
+        "body": "Describe what the meeting is for, when and where it takes place, and who leads it. Invite people and list the agenda; you can change both later.",
+        "steps": [
+          "Choose the kind of meeting so it is easy to filter later.",
+          "Name a chair, who approves the minutes, and a secretary, who writes them.",
+          "Write one agenda item per line."
+        ]
+      },
+      "why": {
+        "body": "Planned communication says what is communicated, when, with whom and how. A meeting with a purpose, an agenda and minutes covers all four.",
+        "clauses": ["hs:7.4"]
+      },
+      "fields": {
+        "kind": {
+          "help": "The type of forum, such as a committee, a project meeting or a safety meeting."
+        },
+        "chair": {
+          "help": "Leads the meeting and approves the minutes."
+        },
+        "secretary": {
+          "help": "Writes the minutes during or after the meeting."
+        },
+        "purpose": {
+          "help": "Why the meeting is held and what it should decide.",
+          "example": "Quarterly follow-up of HSE actions and new risks"
+        },
+        "agenda": {
+          "help": "The topics in the order they are discussed. One line per item."
+        }
+      }
+    },
+    "report": {
+      "intro": {
+        "title": "The management review report",
+        "body": "The report brings together the inputs, the meeting record, the outputs and the signature. Once the review is signed it is frozen and protected by a checksum."
+      },
+      "why": {
+        "body": "Results of management reviews must be retained as documented information, as evidence for auditors.",
+        "clauses": ["hs:9.3.3"]
+      }
+    }
+  },
+  "lessons": {
+    "effective-review": {
+      "title": "Running an effective management review",
+      "minutes": 5,
+      "sections": [
+        {
+          "heading": "Why management reviews exist",
+          "body": "The management review is where **top management** takes ownership of the management system. Once in a while, leaders step back from daily work and ask: is the system still **suitable**, **adequate** and **effective**, and what must change?"
+        },
+        {
+          "heading": "Inputs: look at the facts",
+          "body": "The standards list what must be considered: the status of previous actions, changes inside and outside the organisation, performance (objectives, nonconformities, audits, monitoring, customer feedback), resources, risks and opportunities. CoreFlow compiles counts for many of these; you add the evaluation."
+        },
+        {
+          "heading": "Outputs: decide and follow up",
+          "body": "A review is only useful if it ends in **decisions**: improvements, changes to the system and resource needs. Give every action an owner and a due date. The next review starts by checking whether those actions were done."
+        },
+        {
+          "heading": "Keep the evidence",
+          "body": "Auditors ask to see the results of the review. A signed, frozen report with the inputs, minutes and decisions is that evidence."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Who must carry out the management review?",
+          "options": ["The quality manager alone", "Top management", "The external auditor"],
+          "answer": 1,
+          "explanation": "The standards require top management to review the management system. Others may prepare it and present inputs."
+        },
+        {
+          "question": "Which of these is an output of a management review?",
+          "options": [
+            "The number of deviations in the period",
+            "A decision to add resources to supplier follow-up",
+            "The list of attendees"
+          ],
+          "answer": 1,
+          "explanation": "Outputs are decisions and actions on improvement, changes and resources. Deviation counts are inputs."
+        },
+        {
+          "question": "What should the next review check first?",
+          "options": [
+            "Whether actions from the previous review were done",
+            "Whether the meeting room was booked",
+            "Whether every document is approved"
+          ],
+          "answer": 0,
+          "explanation": "The status of actions from previous reviews is the first required input."
+        }
+      ],
+      "pass_mark": 0.6
+    },
+    "good-minutes": {
+      "title": "Minutes and decisions that work",
+      "minutes": 3,
+      "sections": [
+        {
+          "heading": "Write for someone who was not there",
+          "body": "Good minutes let a person who missed the meeting understand what was decided and why. Follow the agenda, keep each item short and write the **decision**, not the whole discussion."
+        },
+        {
+          "heading": "Every action has an owner and a date",
+          "body": "\"We should look at suppliers\" will not happen. \"Anna updates the supplier evaluation form by 15 March\" will. Record it as a decision and create a follow-up task so it shows up in Anna's My Work."
+        },
+        {
+          "heading": "Approve and lock",
+          "body": "When the meeting is completed, the chair approves the minutes. Approved minutes are locked so they remain reliable evidence; a manager can reopen them with a reason if something must be corrected."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "What makes a decision easy to follow up?",
+          "options": [
+            "A long description of the discussion",
+            "An owner and a due date",
+            "Writing it in capital letters"
+          ],
+          "answer": 1,
+          "explanation": "An owner and a due date make the action trackable; a follow-up task makes it visible."
+        },
+        {
+          "question": "What happens when minutes are approved?",
+          "options": [
+            "They are deleted after 30 days",
+            "They are locked until a manager reopens them",
+            "Anyone can still edit them"
+          ],
+          "answer": 1,
+          "explanation": "Approved minutes are locked so the record stays reliable."
+        }
+      ],
+      "pass_mark": 0.5
+    }
+  },
+  "tours": {
+    "list": [
+      {
+        "target": "mr-new",
+        "title": "Plan a review",
+        "body": "Create a review for the period. The meeting, the standard agenda and the inputs are created for you."
+      },
+      {
+        "target": "mr-filters",
+        "title": "Find reviews",
+        "body": "Show open, signed or cancelled reviews, per standard or only your own. Save a filter as a view."
+      }
+    ],
+    "meetings": [
+      {
+        "target": "mtg-new",
+        "title": "Create a meeting",
+        "body": "Any meeting where decisions are made can be recorded here, with agenda, attendees and minutes."
+      },
+      {
+        "target": "mtg-filters",
+        "title": "Filter meetings",
+        "body": "Filter by status or kind, show only upcoming meetings, or hide the meetings of management reviews."
+      }
+    ],
+    "detail": [
+      {
+        "target": "mr-progress",
+        "title": "Where the review stands",
+        "body": "Planned, in progress, awaiting sign-off and signed. The checklist shows what is missing before you can submit."
+      },
+      {
+        "target": "mr-compile",
+        "title": "Refresh the inputs",
+        "body": "Gather the latest counts from deviations, actions, documents and standards readiness for the review period."
+      },
+      {
+        "target": "mr-outputs",
+        "title": "Write the outputs",
+        "body": "Conclusions, improvements, changes, resource needs and the overall assessment. Ask for suggestions based on the inputs."
+      }
+    ],
+    "meetingDetail": [
+      {
+        "target": "mtg-workspace",
+        "title": "Run the meeting here",
+        "body": "Change the status, edit the agenda, record attendance, write and approve the minutes, and record decisions with follow-up tasks."
+      }
+    ]
+  },
+  "glossary": {
+    "management-review": {
+      "term": "Management review",
+      "definition": "A planned review by top management of whether the management system is still suitable, adequate and effective, ending in decisions on improvement, changes and resources.",
+      "clauses": ["hs:9.3"]
+    },
+    "review-input": {
+      "term": "Review input",
+      "definition": "Information the management review must consider, such as previous actions, changes, performance, feedback, audit results and risks.",
+      "clauses": ["hs:9.3.2"]
+    },
+    "review-output": {
+      "term": "Review output",
+      "definition": "The decisions and actions from a management review: improvement opportunities, changes to the management system and resource needs.",
+      "clauses": ["hs:9.3.3"]
+    },
+    "minutes": {
+      "term": "Minutes",
+      "definition": "The written record of a meeting: who attended, what was discussed and what was decided.",
+      "clauses": ["hs:7.5"]
+    }
+  }
+}

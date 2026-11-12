@@ -1,0 +1,634 @@
+{
+  "tabs": {
+    "label": "Management review sections",
+    "reviews": "Reviews",
+    "meetings": "Meetings"
+  },
+  "common": {
+    "loading": "Loading…",
+    "loadFailed": "Could not load the data. Try again in a moment.",
+    "notFound": "This record was not found, or you do not have access to it.",
+    "backToList": "Back to management reviews",
+    "backToReview": "Back to the review",
+    "backToMeetings": "Back to meetings",
+    "backToMeeting": "Back to the meeting",
+    "noOwner": "No owner",
+    "nobody": "Nobody",
+    "notScheduled": "Not scheduled",
+    "notSet": "Not filled in yet",
+    "minutes": "{{ n }} min",
+    "reason": "Reason (optional)"
+  },
+  "list": {
+    "title": "Management reviews",
+    "subtitle": "Top management reviews the management system at planned intervals: inputs are compiled for you, decisions become tasks and the report is signed.",
+    "searchPlaceholder": "Search by code or title",
+    "new": "New review",
+    "period": "Period {{ from }} – {{ to }}",
+    "meeting": "Meeting: {{ status }}"
+  },
+  "meetings": {
+    "title": "Meetings",
+    "subtitle": "Meetings with agenda, attendees, minutes and decisions: committees, project and safety meetings, and the meetings of management reviews.",
+    "searchPlaceholder": "Search by code, title or place",
+    "new": "New meeting",
+    "chairedBy": "Chair: {{ name }}",
+    "counts": "{{ attendees }} attendees · {{ decisions }} decisions"
+  },
+  "filters": {
+    "status": "Status",
+    "framework": "Standard",
+    "kind": "Kind",
+    "sort": "Sort",
+    "allFrameworks": "All standards",
+    "allKinds": "All kinds",
+    "allStatuses": "All statuses",
+    "mine": "Mine",
+    "upcoming": "Upcoming only",
+    "includeReviews": "Include review meetings",
+    "noMatch": "Nothing matches these filters.",
+    "statusOptions": {
+      "open": "Open reviews",
+      "planned": "Planned",
+      "in_progress": "In progress",
+      "awaiting_signoff": "Awaiting sign-off",
+      "signed": "Signed",
+      "cancelled": "Cancelled",
+      "all": "All reviews"
+    },
+    "reviewSorts": {
+      "-created_at": "Newest first",
+      "-scheduled_at": "Latest meeting first",
+      "scheduled_at": "Earliest meeting first",
+      "code": "Code",
+      "title": "Title"
+    },
+    "meetingSorts": {
+      "-scheduled_at": "Latest first",
+      "scheduled_at": "Earliest first",
+      "-created_at": "Recently created",
+      "title": "Title"
+    }
+  },
+  "reviewStatus": {
+    "planned": "Planned",
+    "in_progress": "In progress",
+    "awaiting_signoff": "Awaiting sign-off",
+    "signed": "Signed",
+    "cancelled": "Cancelled"
+  },
+  "meetingStatus": {
+    "planned": "Planned",
+    "in_progress": "In progress",
+    "completed": "Completed",
+    "cancelled": "Cancelled"
+  },
+  "minutesStatus": {
+    "draft": "Minutes in draft",
+    "approved": "Minutes approved"
+  },
+  "meetingKind": {
+    "general": "General meeting",
+    "management_review": "Management review",
+    "committee": "Committee",
+    "project": "Project meeting",
+    "audit": "Audit meeting",
+    "safety": "Safety meeting",
+    "training": "Training session",
+    "other": "Other"
+  },
+  "frameworks": {
+    "iso9001": "ISO 9001",
+    "iso27001": "ISO/IEC 27001",
+    "iso14001": "ISO 14001",
+    "iso42001": "ISO/IEC 42001",
+    "iso45001": "ISO 45001"
+  },
+  "assessment": {
+    "effective": "Effective",
+    "partially_effective": "Partially effective",
+    "not_effective": "Not effective"
+  },
+  "attendeeRole": {
+    "chair": "Chair",
+    "secretary": "Secretary",
+    "participant": "Participant",
+    "guest": "Guest"
+  },
+  "attendance": {
+    "invited": "Invited",
+    "present": "Present",
+    "absent": "Absent",
+    "excused": "Excused"
+  },
+  "decisionCategory": {
+    "decision": "Decision",
+    "action": "Action",
+    "improvement": "Improvement",
+    "change": "Change",
+    "resource": "Resource",
+    "other": "Other"
+  },
+  "reviewActions": {
+    "start": "Start review",
+    "compile": "Refresh inputs",
+    "submit": "Submit for sign-off",
+    "sign": "Sign",
+    "return": "Return for changes",
+    "cancel": "Cancel review",
+    "delete": "Delete"
+  },
+  "missing": {
+    "conclusions": "Write the conclusions.",
+    "system_assessment": "Choose the overall assessment of the management system.",
+    "meeting_completed": "Mark the review meeting as completed."
+  },
+  "fields": {
+    "title": "Title",
+    "status": "Status",
+    "frameworks": "Standards covered",
+    "period": "Review period",
+    "periodStart": "Period from",
+    "periodEnd": "Period to",
+    "owner": "Owner",
+    "scheduledAt": "Date and time",
+    "duration": "Duration (minutes)",
+    "location": "Location",
+    "chair": "Chair",
+    "secretary": "Secretary",
+    "attendees": "Attendees",
+    "meeting": "Meeting",
+    "kind": "Kind",
+    "purpose": "Purpose",
+    "minutesStatus": "Minutes status",
+    "changeReason": "Reason for the change (optional)",
+    "inputsSummary": "Summary of the inputs",
+    "conclusions": "Conclusions",
+    "improvementOpportunities": "Opportunities for improvement",
+    "changeNeeds": "Changes needed to the management system",
+    "resourceNeeds": "Resource needs",
+    "systemAssessment": "Overall assessment of the management system"
+  },
+  "form": {
+    "newTitle": "New management review",
+    "editTitle": "Edit management review",
+    "defaultTitle": "Management review {{ year }}",
+    "meetingHeading": "The review meeting",
+    "standardAgenda": "Start with the standard agenda",
+    "standardAgendaHint": "Adds the agenda items the standards expect: previous actions, changes, performance, resources, risks, improvement and decisions.",
+    "compileInputs": "Compile the inputs now",
+    "compileInputsHint": "Counts from deviations, corrective actions, documents and standards readiness are gathered for the review period. You can refresh them later.",
+    "create": "Create review",
+    "save": "Save changes"
+  },
+  "standardAgenda": {
+    "previousActions": "Status of actions from previous management reviews",
+    "changes": "Changes in external and internal issues and in interested parties",
+    "performance": "Performance and effectiveness of the management system",
+    "resources": "Adequacy of resources",
+    "risks": "Effectiveness of actions taken to address risks and opportunities",
+    "improvement": "Opportunities for improvement",
+    "outputs": "Conclusions, decisions and actions"
+  },
+  "meetingForm": {
+    "newTitle": "New meeting",
+    "editTitle": "Edit meeting",
+    "create": "Create meeting",
+    "agenda": "Agenda",
+    "agendaPlaceholder": "One agenda item per line"
+  },
+  "detail": {
+    "edit": "Edit",
+    "report": "Report",
+    "progress": "Review progress",
+    "readOnly": "This review can no longer be edited.",
+    "cancelledNotice": "This review was cancelled on {{ date }}.",
+    "awaitingNotice": "Submitted for sign-off by {{ name }} on {{ date }}. The review is locked; minutes can still be approved.",
+    "signedNotice": "Signed by {{ name }} on {{ date }}. The report is frozen.",
+    "beforeSubmit": "Before you can submit for sign-off:",
+    "actionsHeading": "Follow-up actions",
+    "actionStats": "{{ total }} actions: {{ open }} open, {{ done }} done, {{ overdue }} overdue",
+    "meetingHeading": "Meeting {{ code }}",
+    "openMeeting": "Open the meeting page",
+    "outputsHeading": "Outputs of the review",
+    "saveOutputs": "Save outputs",
+    "unsaved": "Unsaved changes",
+    "deleteTitle": "Delete this review?",
+    "deleteMessage": "{{ code }} and its meeting will be removed. This cannot be undone."
+  },
+  "inputs": {
+    "heading": "Inputs ({{ reviewed }} of {{ total }} reviewed)",
+    "compiledAt": "Compiled {{ date }}",
+    "notCompiled": "Not compiled yet",
+    "empty": "No inputs yet.",
+    "notes": "Notes and evaluation",
+    "markReviewed": "Reviewed",
+    "reviewed": "Reviewed",
+    "notReviewed": "Not reviewed yet",
+    "saveNotes": "Save notes",
+    "remove": "Remove",
+    "customTitle": "Add your own input, for example a topic from the board",
+    "addCustom": "Add input",
+    "source": {
+      "auto": "Compiled",
+      "manual": "Manual"
+    }
+  },
+  "inputCategories": {
+    "previous_actions": {
+      "title": "Status of actions from previous reviews",
+      "hint": "Were the decisions and actions from the last review carried out, and did they work?"
+    },
+    "context_changes": {
+      "title": "Changes in external and internal issues",
+      "hint": "Market, regulation, technology, organisation or ownership changes that affect the management system."
+    },
+    "interested_parties": {
+      "title": "Needs and expectations of interested parties",
+      "hint": "New or changed requirements from customers, authorities, owners, staff or others."
+    },
+    "customer_feedback": {
+      "title": "Customer satisfaction and feedback",
+      "hint": "Complaints, praise, surveys and other feedback from customers."
+    },
+    "objectives": {
+      "title": "Extent to which objectives have been met",
+      "hint": "Progress on quality, security or other objectives and their KPIs."
+    },
+    "process_performance": {
+      "title": "Process performance and conformity of products and services",
+      "hint": "How the key processes performed and whether products and services met requirements."
+    },
+    "nonconformities": {
+      "title": "Nonconformities and corrective actions",
+      "hint": "Deviations raised and closed in the period, and how effective the corrective actions were."
+    },
+    "monitoring_results": {
+      "title": "Monitoring and measurement results",
+      "hint": "Results of inspections, measurements and other monitoring."
+    },
+    "audit_results": {
+      "title": "Audit results",
+      "hint": "Findings from internal and external audits in the period."
+    },
+    "conformity_status": {
+      "title": "Conformity with the standards",
+      "hint": "Readiness per standard: how many requirements are covered by evidence."
+    },
+    "incidents": {
+      "title": "Incidents",
+      "hint": "Security, safety or AI incidents reported in the period."
+    },
+    "supplier_performance": {
+      "title": "Performance of external providers",
+      "hint": "How suppliers and other external providers performed."
+    },
+    "compliance_obligations": {
+      "title": "Fulfilment of compliance obligations",
+      "hint": "Status of legal and other requirements the organisation must meet."
+    },
+    "environmental_aspects": {
+      "title": "Significant environmental aspects",
+      "hint": "Changes in significant environmental aspects and environmental performance."
+    },
+    "worker_consultation": {
+      "title": "Consultation and participation of workers",
+      "hint": "Results of consultation with workers and their representatives."
+    },
+    "information_security": {
+      "title": "Information security performance",
+      "hint": "Security incidents, risk treatment and feedback on information security."
+    },
+    "ai_systems": {
+      "title": "AI systems and their impacts",
+      "hint": "Changes to AI systems, impact assessments and AI-related concerns."
+    },
+    "documented_information": {
+      "title": "Documented information",
+      "hint": "Status of controlled documents, including documents overdue for review."
+    },
+    "resources": {
+      "title": "Adequacy of resources",
+      "hint": "Are people, skills, tools, infrastructure and budget sufficient?"
+    },
+    "risks_opportunities": {
+      "title": "Effectiveness of actions on risks and opportunities",
+      "hint": "Did the planned risk treatments and opportunities deliver the expected effect?"
+    },
+    "improvement_opportunities": {
+      "title": "Opportunities for improvement",
+      "hint": "Ideas and suggestions for improving the management system."
+    },
+    "custom": {
+      "title": "Other input",
+      "hint": "An input you added yourself."
+    }
+  },
+  "inputSources": {
+    "deviations": "Deviations",
+    "deviations_customer": "Customer deviations",
+    "deviations_audit": "Audit deviations",
+    "deviations_incident": "Incidents",
+    "corrective_actions": "Corrective actions",
+    "previous_review": "Previous review",
+    "readiness": "Standards readiness",
+    "documents": "Documents",
+    "module": "Other module"
+  },
+  "metrics": {
+    "raised": "Raised",
+    "closed": "Closed",
+    "open": "Open",
+    "overdue": "Overdue",
+    "completed": "Completed",
+    "verified": "Verified",
+    "previous_reviews": "Previous reviews",
+    "decisions": "Decisions",
+    "actions": "Actions",
+    "actions_done": "Actions done",
+    "actions_open": "Actions open",
+    "actions_overdue": "Actions overdue",
+    "actions_cancelled": "Actions cancelled",
+    "standards": "Standards",
+    "total": "Total",
+    "review_overdue": "Review overdue"
+  },
+  "values": {
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High",
+    "critical": "Critical",
+    "open": "Open",
+    "investigating": "Investigating",
+    "action": "Action",
+    "verification": "Verification",
+    "closed": "Closed",
+    "cancelled": "Cancelled",
+    "in_progress": "In progress",
+    "done": "Done",
+    "verified": "Verified",
+    "draft": "Draft",
+    "in_review": "In review",
+    "approved": "Approved",
+    "obsolete": "Obsolete",
+    "effective": "Effective",
+    "not_effective": "Not effective",
+    "pending": "Pending"
+  },
+  "inputData": {
+    "notCompiled": "No data compiled yet. Refresh the inputs to gather the latest figures.",
+    "manual": "No data source yet: write your evaluation in the notes.",
+    "by_severity": "By severity",
+    "open_by_status": "Open by status",
+    "by_status": "By status",
+    "effectiveness": "Effectiveness of verified actions",
+    "score": "{{ score }} % ready",
+    "covered": "{{ covered }} of {{ applicable }} requirements covered",
+    "previous": "Previous review:"
+  },
+  "meeting": {
+    "statusHeading": "Meeting status",
+    "heldAt": "Held {{ date }}",
+    "lockedNotice": "The meeting is locked. Approved minutes can only be reopened by a manager.",
+    "readOnly": "This meeting can no longer be edited.",
+    "partOfReview": "This meeting belongs to management review",
+    "delete": "Delete meeting",
+    "deleteTitle": "Delete this meeting?",
+    "deleteMessage": "{{ code }} with its agenda, attendees, minutes and decisions will be removed.",
+    "transitions": {
+      "start": "Start meeting",
+      "completed": "Mark completed",
+      "cancelled": "Cancel meeting",
+      "reopen": "Reopen meeting",
+      "replan": "Plan again"
+    }
+  },
+  "agenda": {
+    "heading": "Agenda ({{ count }})",
+    "edit": "Edit agenda",
+    "empty": "No agenda yet.",
+    "item": "Item {{ n }}",
+    "title": "Agenda item",
+    "duration": "Minutes",
+    "presenter": "Presenter",
+    "notes": "Notes",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "remove": "Remove",
+    "add": "Add item",
+    "save": "Save agenda"
+  },
+  "attendees": {
+    "heading": "Attendees ({{ count }})",
+    "empty": "Nobody has been invited yet.",
+    "external": "External",
+    "member": "Member",
+    "externalGuest": "External guest",
+    "name": "Name",
+    "person": "Person",
+    "choosePerson": "Choose a person",
+    "role": "Role",
+    "add": "Add",
+    "roleFor": "Role of {{ name }}",
+    "attendanceFor": "Attendance of {{ name }}",
+    "remove": "Remove {{ name }}",
+    "addPerson": "Add a person",
+    "noneYet": "Nobody added yet."
+  },
+  "minutes": {
+    "heading": "Minutes",
+    "label": "Minutes",
+    "save": "Save minutes",
+    "approve": "Approve minutes",
+    "reopen": "Reopen minutes",
+    "empty": "No minutes have been written.",
+    "approvedBy": "Approved by {{ name }} on {{ date }}",
+    "approveAfterCompleted": "Minutes can be approved once the meeting is marked completed.",
+    "reopenTitle": "Reopen the minutes?",
+    "reopenMessage": "The approved minutes become a draft again and can be edited. The reason is kept in the history."
+  },
+  "decisions": {
+    "heading": "Decisions and actions ({{ count }})",
+    "add": "Record a decision",
+    "empty": "No decisions recorded yet.",
+    "edit": "Edit",
+    "remove": "Remove decision",
+    "noOwner": "No owner",
+    "dueOn": "Due {{ date }}",
+    "task": "Task: {{ title }}",
+    "text": "Decision or action",
+    "category": "Category",
+    "owner": "Owner",
+    "due": "Due date",
+    "createAction": "Create a follow-up task for the owner",
+    "actionTitle": "Task title",
+    "actionTitlePlaceholder": "Leave empty to use the decision text",
+    "save": "Save decision"
+  },
+  "sign": {
+    "title": "Sign the management review",
+    "heading": "Signature",
+    "message": "Signing {{ code }} freezes the report with a checksum. It can no longer be changed.",
+    "name": "Name of the signatory",
+    "statement": "Statement",
+    "defaultStatement": "Top management has reviewed the management system and approves the conclusions, decisions and actions in this report.",
+    "signedBy": "Signed by",
+    "signedAt": "Signed",
+    "checksum": "Report checksum (SHA-256)"
+  },
+  "return": {
+    "title": "Return for changes?",
+    "message": "The review goes back to in progress so it can be corrected."
+  },
+  "cancel": {
+    "title": "Cancel this review?",
+    "message": "A cancelled review is kept but can no longer be edited."
+  },
+  "report": {
+    "title": "Management review report: {{ title }}",
+    "print": "Print or save as PDF",
+    "frozen": "Signed and frozen. Checksum: {{ sha }}",
+    "live": "Draft: this report shows the current state and changes until the review is signed.",
+    "inputs": "Inputs",
+    "meeting": "Meeting {{ code }}",
+    "signedLine": "Signed by {{ name }} on {{ date }}",
+    "notSigned": "Not signed yet.",
+    "generatedAt": "Generated {{ date }}"
+  },
+  "ai": {
+    "summarise": "Summarise",
+    "summariseAll": "Summarise reviews",
+    "summariseMeeting": "Summarise",
+    "summariseMeetings": "Summarise meetings",
+    "draftSummary": "Draft summary",
+    "draftMinutes": "Draft minutes",
+    "draftMinutesHint": "Write rough notes in the box first; the draft is built from them and the agenda.",
+    "suggestOutputs": "Suggest outputs",
+    "addToOutputs": "Add to outputs",
+    "recordDecision": "Record as decision",
+    "dismiss": "Dismiss",
+    "suggestionNote": "Suggestions are drafts. Check them before you save.",
+    "askAssessment": "Ask how to assess",
+    "prompts": {
+      "summariseAll": "Summarise the status of our management reviews: which are open, what is awaiting sign-off and which actions are overdue.",
+      "summariseMeetings": "Summarise our recent and upcoming meetings, including decisions and open actions.",
+      "summariseReview": "Summarise management review {{ code }} \"{{ title }}\": the key inputs, conclusions, decisions and open actions.",
+      "summariseMeeting": "Summarise meeting {{ code }} \"{{ title }}\": attendees, minutes, decisions and follow-up actions.",
+      "askAssessment": "Help me judge whether our management system is effective, partially effective or not effective, based on the inputs of review {{ code }} \"{{ title }}\"."
+    }
+  },
+  "lessons": {
+    "effectiveReview": "Lesson: running an effective management review",
+    "goodMinutes": "Lesson: minutes and decisions that work"
+  },
+  "notices": {
+    "reviewCreated": "Management review created.",
+    "reviewSaved": "Review saved.",
+    "reviewDeleted": "Review deleted.",
+    "started": "Review started.",
+    "compiled": "Inputs refreshed.",
+    "submitted": "Submitted for sign-off.",
+    "signed": "Review signed. The report is frozen.",
+    "returned": "Review returned for changes.",
+    "cancelled": "Review cancelled.",
+    "outputsSaved": "Outputs saved.",
+    "notesSaved": "Notes saved.",
+    "inputAdded": "Input added.",
+    "inputRemoved": "Input removed.",
+    "meetingCreated": "Meeting created.",
+    "meetingSaved": "Meeting saved.",
+    "meetingDeleted": "Meeting deleted.",
+    "statusChanged": "Meeting status changed.",
+    "agendaSaved": "Agenda saved.",
+    "attendeeAdded": "Attendee added.",
+    "attendeeRemoved": "Attendee removed.",
+    "minutesSaved": "Minutes saved.",
+    "minutesApproved": "Minutes approved.",
+    "minutesReopened": "Minutes reopened.",
+    "decisionSaved": "Decision saved.",
+    "decisionRemoved": "Decision removed."
+  },
+  "errors": {
+    "action_exists": "This decision already has a follow-up task.",
+    "attendee_exists": "This person is already on the attendee list.",
+    "input_required": "Inputs required by the standards cannot be removed.",
+    "invalid_transition": "That step is not possible from the current status.",
+    "meeting_in_review": "This meeting belongs to a management review and is removed with it.",
+    "meeting_not_completed": "Mark the meeting as completed before approving the minutes.",
+    "minutes_approved": "The minutes are already approved.",
+    "minutes_missing": "Write the minutes before approving them.",
+    "minutes_not_approved": "The minutes are not approved.",
+    "review_awaiting_signoff": "The review is awaiting sign-off and is locked.",
+    "review_incomplete": "The review is not ready for sign-off yet.",
+    "review_locked": "The review is signed or cancelled and can no longer be changed.",
+    "review_signed": "A signed review is kept as evidence and cannot be deleted.",
+    "frameworks_required": "Choose at least one standard.",
+    "invalid_assessment": "Choose a valid assessment.",
+    "invalid_attendance": "Choose a valid attendance.",
+    "invalid_attendee": "Choose a person or enter the name of an external guest.",
+    "invalid_category": "Choose a valid category.",
+    "invalid_duration": "Enter a duration between 1 and 1440 minutes.",
+    "invalid_fields": "Some fields are not valid.",
+    "invalid_framework": "One of the standards is not supported.",
+    "invalid_kind": "Choose a valid meeting kind.",
+    "invalid_period": "The end of the period must be after its start.",
+    "invalid_role": "Choose a valid role.",
+    "invalid_status": "Choose a valid status.",
+    "invalid_user": "The selected person is not a member of this organisation.",
+    "invalid_argument": "Some of the values are not valid.",
+    "record_required": "The record is missing.",
+    "text_required": "Enter the text.",
+    "text_too_long": "The text is too long.",
+    "title_custom_only": "Only your own inputs can be renamed.",
+    "title_required": "Enter a title.",
+    "title_too_long": "The title is too long.",
+    "too_many_items": "There are too many items.",
+    "module_disabled": "Management review is not enabled for this organisation.",
+    "forbidden": "You do not have permission to do this.",
+    "unsavedOutputs": "Save the outputs before submitting."
+  },
+  "notifications": {
+    "reviewCreated": "Management review created: {{ code }} {{ title }}",
+    "reviewUpdated": "Management review updated: {{ code }} {{ title }}",
+    "inputsCompiled": "Inputs compiled for {{ code }} {{ title }}",
+    "reviewStarted": "Management review started: {{ code }} {{ title }}",
+    "reviewSubmitted": "Ready for sign-off: {{ code }} {{ title }}",
+    "reviewReturned": "Returned for changes: {{ code }} {{ title }}",
+    "reviewSigned": "Management review signed: {{ code }} {{ title }}",
+    "reviewCancelled": "Management review cancelled: {{ code }} {{ title }}",
+    "reviewDeleted": "Management review deleted: {{ code }} {{ title }}",
+    "meetingCreated": "Meeting created: {{ code }} {{ title }}",
+    "meetingUpdated": "Meeting updated: {{ code }} {{ title }}",
+    "meetingInvited": "You are invited to {{ code }} {{ title }}",
+    "meetingRescheduled": "Meeting rescheduled: {{ code }} {{ title }}",
+    "meetingStatusChanged": "Meeting status changed: {{ code }} {{ title }}",
+    "meetingCompleted": "Meeting completed: {{ code }} {{ title }}",
+    "meetingCancelled": "Meeting cancelled: {{ code }} {{ title }}",
+    "minutesApproved": "Minutes approved: {{ code }} {{ title }}",
+    "minutesReopened": "Minutes reopened: {{ code }} {{ title }}",
+    "decisionRecorded": "Decision recorded in {{ code }} {{ title }}",
+    "meetingDeleted": "Meeting deleted: {{ code }} {{ title }}"
+  },
+  "timeline": {
+    "reviewCreated": "{{ actor_name }} created the review",
+    "reviewUpdated": "{{ actor_name }} updated the review",
+    "inputsCompiled": "{{ actor_name }} compiled the inputs",
+    "reviewStarted": "{{ actor_name }} started the review",
+    "reviewSubmitted": "{{ actor_name }} submitted the review for sign-off",
+    "reviewReturned": "{{ actor_name }} returned the review for changes",
+    "reviewSigned": "{{ actor_name }} signed the review",
+    "reviewCancelled": "{{ actor_name }} cancelled the review",
+    "reviewDeleted": "{{ actor_name }} deleted the review",
+    "meetingCreated": "{{ actor_name }} created the meeting",
+    "meetingUpdated": "{{ actor_name }} updated the meeting",
+    "meetingInvited": "{{ actor_name }} sent invitations",
+    "meetingRescheduled": "{{ actor_name }} rescheduled the meeting",
+    "meetingStatusChanged": "{{ actor_name }} changed the meeting status",
+    "meetingCompleted": "{{ actor_name }} marked the meeting completed",
+    "meetingCancelled": "{{ actor_name }} cancelled the meeting",
+    "minutesApproved": "{{ actor_name }} approved the minutes",
+    "minutesReopened": "{{ actor_name }} reopened the minutes",
+    "decisionRecorded": "{{ actor_name }} recorded a decision",
+    "meetingDeleted": "{{ actor_name }} deleted the meeting"
+  }
+}
