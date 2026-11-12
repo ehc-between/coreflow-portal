@@ -1,0 +1,513 @@
+{
+  "pages": {
+    "overview": {
+      "intro": {
+        "title": "Audits keep your management system honest",
+        "body": "An audit checks, with evidence, whether what you **say** you do is what you **actually** do, and whether it works. This module covers the whole cycle: a yearly **programme**, individual **audits** with a team and a checklist, **findings** that are followed up, and **certifications** from external bodies.",
+        "steps": [
+          "Start with an audit programme for the year, based on risk and earlier results.",
+          "Plan each audit: scope, criteria, dates and a competent, independent team.",
+          "Use the checklist during fieldwork, raise findings, then write and approve the report.",
+          "Follow up findings until the response is verified."
+        ]
+      },
+      "why": {
+        "body": "Every ISO management system standard requires internal audits at planned intervals, by objective and impartial auditors, with results reported to management and followed up. ISO 19011 gives the guidance on how to manage an audit programme and carry out audits.",
+        "clauses": ["hs:9.2", "hs:10.2", "iso19011:5", "iso27001:A.5.35"]
+      }
+    },
+    "plans": {
+      "intro": {
+        "title": "Every audit, internal and external",
+        "body": "Each row is one audit with its scope, dates, lead auditor, checklist progress and findings. External audits by certification bodies, customers, suppliers or regulators are recorded here too, so all findings are followed up in one place.",
+        "steps": [
+          "Filter on **Open audits** to see what is planned or under way.",
+          "Open an audit to manage the team, the checklist, findings and the report.",
+          "Save the filters you use often as a view."
+        ]
+      },
+      "why": {
+        "body": "Planned and documented audits are the evidence that the internal audit requirement is met. Auditors and certification bodies will ask to see the plan, the results and how findings were handled.",
+        "clauses": ["hs:9.2"]
+      },
+      "empty": {
+        "title": "No audits yet",
+        "body": "Plan your first internal audit: choose a process or area, the clauses to check and the dates. CoreFlow helps you build the checklist from the standard and keeps track of findings until they are closed.",
+        "cta": "Plan an audit"
+      }
+    },
+    "programmes": {
+      "intro": {
+        "title": "Plan the year's audits",
+        "body": "An audit programme is the plan for all audits in a period, usually a year. It says which processes and areas are audited, how often, against which standards and why.",
+        "steps": [
+          "Create one programme per year and describe the objectives.",
+          "Use the **risk basis** to explain why some areas are audited more often.",
+          "Add the audits to the programme and have it approved."
+        ]
+      },
+      "why": {
+        "body": "The standard asks you to plan, establish, implement and maintain an audit programme that takes into account the importance of the processes, changes affecting the organisation and the results of previous audits.",
+        "clauses": ["hs:9.2", "iso19011:5"]
+      },
+      "empty": {
+        "title": "No audit programme yet",
+        "body": "Start with this year's programme. List the processes and areas to cover, and audit the most important or risky ones more often. You can add the individual audits afterwards.",
+        "cta": "Create a programme"
+      }
+    },
+    "findings": {
+      "intro": {
+        "title": "Findings from every audit",
+        "body": "A finding is what an audit concludes about a requirement: a **major** or **minor nonconformity**, an **observation** or an **opportunity for improvement**. Nonconformities need a response with a root cause and correction, which an auditor then verifies.",
+        "steps": [
+          "Use **Assigned to me** to see the findings you have to respond to.",
+          "Tick **Overdue only** to chase responses that are late.",
+          "Open a finding to write the response, add corrective actions or link a deviation."
+        ]
+      },
+      "why": {
+        "body": "Nonconformities must be reacted to, their causes found and actions taken so they do not happen again, and the effectiveness of the actions reviewed. Closed, verified findings are the proof of that.",
+        "clauses": ["hs:10.2", "hs:9.2"]
+      },
+      "empty": {
+        "title": "No open findings",
+        "body": "Findings are raised from an audit, usually from a checklist answer. When an audit finds something, it appears here with its owner and response date."
+      }
+    },
+    "certifications": {
+      "intro": {
+        "title": "Certificates and their cycles",
+        "body": "Record each certificate you hold or are working towards, with the certification body, the scope and the dates of the cycle: issue, surveillance audits and expiry.",
+        "steps": [
+          "Add the certificate with its scope and dates.",
+          "Plan each external audit from the certificate so the results are linked.",
+          "You are reminded before surveillance and before the certificate expires."
+        ]
+      },
+      "why": {
+        "body": "A certificate is valid only for its scope and period. Keeping the cycle visible avoids missed surveillance audits and lets you prepare in time with internal audits and a management review.",
+        "clauses": ["hs:9.2", "hs:9.3"]
+      },
+      "empty": {
+        "title": "No certifications recorded",
+        "body": "If you hold a certificate, or plan to get one, add it here with the certification body and the dates. External audits for it can then be planned and followed up.",
+        "cta": "Add a certification"
+      }
+    },
+    "auditors": {
+      "intro": {
+        "title": "Who may audit what",
+        "body": "The auditor register lists the people who may carry out internal audits, which standards they are qualified for, whether they can lead an audit, and how long their qualification is valid.",
+        "steps": [
+          "Add each internal auditor with the standards they know.",
+          "Tick **Qualified to lead audits** for those who can lead a team.",
+          "Set **Valid until** so expired qualifications are flagged when you build a team."
+        ]
+      },
+      "why": {
+        "body": "Auditors must be competent, and the selection of auditors must ensure objectivity and impartiality. The register is what CoreFlow checks when you assign someone to an audit.",
+        "clauses": ["hs:9.2", "hs:7.2", "iso19011:7"]
+      },
+      "empty": {
+        "title": "The auditor register is empty",
+        "body": "Add the people who audit for you. When you assign someone to an internal audit, CoreFlow checks their competence here and warns you if they audit their own work.",
+        "cta": "Add an auditor"
+      },
+      "fields": {
+        "lead": {
+          "help": "A lead auditor plans the audit, leads the team and is responsible for the report. They usually have more training and experience.",
+          "example": "Completed a lead auditor course for ISO 9001"
+        },
+        "qualifications": {
+          "help": "Training, courses and experience that show the person is competent to audit.",
+          "example": "Internal auditor course (2 days), 4 audits as auditor"
+        }
+      }
+    },
+    "planForm": {
+      "intro": {
+        "title": "Planning an audit",
+        "body": "A good audit plan answers **what** is audited (scope), **against what** (criteria and clauses), **when**, and **by whom**. You add the team and the checklist after saving.",
+        "steps": [
+          "Keep the scope focused: one process, site or department is often enough.",
+          "List the clauses you will check, for example iso9001:8.4 or hs:9.2.",
+          "Choose **External** for audits by a certification body, customer, supplier or regulator."
+        ]
+      },
+      "why": {
+        "body": "For each audit the audit criteria and scope must be defined. A clear plan keeps the audit fair and makes the report easy to understand.",
+        "clauses": ["hs:9.2", "iso19011:6.3"]
+      },
+      "fields": {
+        "title": {
+          "help": "A short name that says what is audited.",
+          "example": "Purchasing and supplier control, spring"
+        },
+        "kind": {
+          "help": "Internal audits are run by your own auditors. External audits are run by someone else, such as a certification body.",
+          "example": "Internal audit"
+        },
+        "risk": {
+          "help": "How important or risky the audited area is. Higher risk areas should be audited more thoroughly and more often.",
+          "example": "High for a process with many complaints"
+        },
+        "certification": {
+          "help": "For a certification audit, link the certificate it belongs to. The audit then shows on the certificate's page.",
+          "example": "ISO 9001 · the certification body"
+        },
+        "programme": {
+          "help": "The yearly audit programme this audit belongs to.",
+          "example": "Audit programme 2026"
+        },
+        "scope": {
+          "help": "The extent and boundaries of the audit: processes, locations, departments and the period covered.",
+          "example": "Purchasing at the main office, orders from the last six months"
+        },
+        "criteria": {
+          "help": "What the evidence is compared against: standard requirements, your own procedures, contracts or laws.",
+          "example": "ISO 9001 clause 8.4 and the purchasing procedure"
+        },
+        "clauseRefs": {
+          "help": "The clauses to check, separated by commas. Used to generate the checklist from the standard.",
+          "example": "iso9001:8.4, iso9001:7.5"
+        }
+      }
+    },
+    "planDetail": {
+      "intro": {
+        "title": "Running the audit",
+        "body": "Work from top to bottom: put the team together, prepare the checklist, then **start fieldwork**. Record answers and notes as you go, raise findings, and write the report. Someone other than the lead auditor approves it.",
+        "steps": [
+          "Assign a lead auditor. CoreFlow checks competence and independence.",
+          "Generate questions from the clauses, or let the assistant suggest some, and review them.",
+          "After fieldwork, write the summary and submit the report for approval."
+        ]
+      },
+      "why": {
+        "body": "Audit results must be reported to relevant management and kept as documented information. An approved report with its checklist and findings is that evidence.",
+        "clauses": ["hs:9.2", "iso19011:6.5", "iso27001:A.5.35"]
+      },
+      "fields": {
+        "auditorRole": {
+          "help": "The lead auditor leads the team and signs the report. Observers and technical experts support but do not audit on their own.",
+          "example": "Auditor"
+        },
+        "checklist": {
+          "help": "Questions you will ask and the evidence you will look for, one per requirement. Generate them from the clauses or add your own.",
+          "example": "How do you evaluate new suppliers? Ask for: the last three evaluations"
+        },
+        "reportSummary": {
+          "help": "What was audited, the main conclusions and the number and kind of findings. Keep it factual.",
+          "example": "The purchasing process is largely effective. Two minor nonconformities were found."
+        }
+      }
+    },
+    "programmeForm": {
+      "intro": {
+        "title": "Building the programme",
+        "body": "Describe what the programme should achieve and how you decided where to focus. Then add the audits and have the programme approved.",
+        "steps": [
+          "Set the year and the objectives.",
+          "Explain the risk basis: important processes, changes and earlier findings.",
+          "Choose the standards the programme covers."
+        ]
+      },
+      "why": {
+        "body": "The audit programme must take into account the importance of the processes, changes and previous audit results. Writing down the reasoning shows the programme is risk-based.",
+        "clauses": ["hs:9.2", "iso19011:5.2"]
+      },
+      "fields": {
+        "title": {
+          "help": "A name for the programme.",
+          "example": "Internal audit programme 2026"
+        },
+        "objectives": {
+          "help": "What the audits in the programme should achieve.",
+          "example": "Confirm readiness for the certification audit in October"
+        },
+        "riskBasis": {
+          "help": "Why some areas are audited more often or more deeply: risk, complaints, changes, earlier findings.",
+          "example": "Production had three nonconformities last year and is audited twice."
+        }
+      }
+    },
+    "findingForm": {
+      "intro": {
+        "title": "Writing a clear finding",
+        "body": "A good finding states the **requirement**, what you **observed** and the **evidence**, so that anyone can understand it without having been there.",
+        "steps": [
+          "Choose the type: major or minor nonconformity, observation or opportunity for improvement.",
+          "Describe the gap, then the objective evidence you saw.",
+          "Assign the auditee who will respond and set a response date."
+        ]
+      },
+      "why": {
+        "body": "Audit findings are compared against the audit criteria and must be supported by objective evidence. They drive the corrective action that the standard requires.",
+        "clauses": ["hs:10.2", "iso19011:6.4.8"]
+      },
+      "fields": {
+        "title": {
+          "help": "A short statement of the gap.",
+          "example": "Supplier evaluations are not repeated yearly"
+        },
+        "description": {
+          "help": "The requirement, and what was found that does not meet it.",
+          "example": "The procedure requires a yearly evaluation; two key suppliers were last evaluated in 2023."
+        },
+        "evidence": {
+          "help": "What you saw, read or heard that supports the finding: records, documents, interviews.",
+          "example": "Supplier register, entries for two suppliers"
+        },
+        "responseDue": {
+          "help": "When the auditee should have submitted the root cause and correction.",
+          "example": "Four weeks after the audit"
+        },
+        "owner": {
+          "help": "The person in the audited area who answers the finding. They can respond even without audit rights.",
+          "example": "The purchasing manager"
+        }
+      }
+    },
+    "findingDetail": {
+      "intro": {
+        "title": "From finding to closure",
+        "body": "The auditee describes the **root cause**, the immediate **correction** and the **corrective action** that stops it happening again, then submits. An auditor, not the auditee, verifies the response and closes the finding.",
+        "steps": [
+          "Ask why until you reach a cause you can act on.",
+          "Add corrective actions as tasks with an owner and a due date.",
+          "Link a deviation if the issue is also handled in the deviation system."
+        ]
+      },
+      "why": {
+        "body": "When a nonconformity occurs you must react, find the cause, take action, review its effectiveness and keep evidence of it all.",
+        "clauses": ["hs:10.2", "iso27001:A.5.35"]
+      },
+      "fields": {
+        "rootCause": {
+          "help": "The underlying reason the requirement was not met, not just the symptom.",
+          "example": "No one was responsible for planning the yearly evaluations."
+        },
+        "correction": {
+          "help": "What was done right away to fix the problem itself.",
+          "example": "The two suppliers were evaluated in May."
+        },
+        "correctiveAction": {
+          "help": "What will stop the problem from happening again, dealing with the root cause.",
+          "example": "Yearly evaluations added as recurring tasks for the purchasing manager."
+        },
+        "verificationNotes": {
+          "help": "What the auditor checked to confirm the response is in place and effective.",
+          "example": "Recurring tasks seen; evaluations for both suppliers on file."
+        }
+      }
+    },
+    "programmeDetail": {
+      "intro": {
+        "title": "Following the programme",
+        "body": "See all audits in the programme and how far each has come. Approve the programme once it is complete, and close it at the end of the period.",
+        "steps": [
+          "Add audits until every area in the programme is covered.",
+          "Approve the programme (someone with approval rights).",
+          "Close it when the period ends; reopening needs a reason."
+        ]
+      },
+      "why": {
+        "body": "Keeping the programme and its results is documented evidence of the implementation of the audit programme.",
+        "clauses": ["hs:9.2"]
+      }
+    },
+    "certificationForm": {
+      "intro": {
+        "title": "Recording a certificate",
+        "body": "Enter the certification body, the certificate number and scope, and the dates of the cycle. Reminders are based on these dates.",
+        "steps": [
+          "Copy the scope exactly as it is written on the certificate.",
+          "Set the next surveillance date and the expiry date."
+        ]
+      },
+      "why": {
+        "body": "Knowing the certificate scope and cycle lets you plan internal audits and management reviews ahead of each external audit.",
+        "clauses": ["hs:9.2", "hs:9.3"]
+      },
+      "fields": {
+        "status": {
+          "help": "Where the certificate stands: planned, in progress, certified, suspended, withdrawn or expired.",
+          "example": "Certified"
+        },
+        "body": {
+          "help": "The accredited organisation that issues the certificate.",
+          "example": "The name of your certification body"
+        },
+        "scope": {
+          "help": "The activities and sites the certificate covers, as written on the certificate.",
+          "example": "Design and sale of software, head office"
+        },
+        "surveillance": {
+          "help": "The date of the next yearly surveillance audit.",
+          "example": "One year after the certification audit"
+        }
+      }
+    },
+    "certificationDetail": {
+      "intro": {
+        "title": "The certification cycle",
+        "body": "A certificate usually runs for three years, with surveillance audits in between and a recertification audit before it expires. Plan each external audit from here so its findings are linked.",
+        "steps": [
+          "Plan the next external audit with **Plan an external audit**.",
+          "Update the dates and status after each audit."
+        ]
+      },
+      "why": {
+        "body": "Findings from external audits must be handled like any other nonconformity. Linking them to the certificate keeps the history of the cycle in one place.",
+        "clauses": ["hs:10.2", "hs:9.2"]
+      }
+    }
+  },
+  "lessons": {
+    "internal-audits": {
+      "title": "Internal audits in five minutes",
+      "minutes": 5,
+      "sections": [
+        {
+          "heading": "What an internal audit is",
+          "body": "An internal audit is a planned, independent check of whether your management system meets the requirements (of the standard and your own) and works in practice. It looks for **evidence**, not opinions."
+        },
+        {
+          "heading": "The programme and the plan",
+          "body": "The **programme** covers all audits in a period and is based on risk and earlier results. Each **audit plan** sets the scope, the criteria, the dates and the team."
+        },
+        {
+          "heading": "Fieldwork and the checklist",
+          "body": "During fieldwork the auditor interviews people, looks at records and observes work. The checklist lists the questions and the evidence to ask for, per clause. Notes record what was actually seen."
+        },
+        {
+          "heading": "Report and follow-up",
+          "body": "The report summarises the conclusions and findings. It is approved by someone other than the lead auditor, and the findings are followed up until they are verified and closed."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "What does an auditor base a finding on?",
+          "options": ["Their opinion", "Objective evidence", "What the manager says should happen"],
+          "answer": 1,
+          "explanation": "Findings compare objective evidence (records, observations, interviews) with the audit criteria."
+        },
+        {
+          "question": "Which areas should be audited more often?",
+          "options": [
+            "The ones that are easiest to audit",
+            "Important or risky areas and those with earlier findings",
+            "Every area exactly once a year"
+          ],
+          "answer": 1,
+          "explanation": "The audit programme is risk-based: importance, changes and earlier results decide the frequency."
+        }
+      ],
+      "pass_mark": 0.5
+    },
+    "findings-and-capa": {
+      "title": "From finding to corrective action",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Types of finding",
+          "body": "A **major nonconformity** means a requirement is not met at all or the system's results are at risk. A **minor nonconformity** is a single lapse. An **observation** could become a nonconformity, and an **opportunity for improvement** is a suggestion."
+        },
+        {
+          "heading": "Correction is not enough",
+          "body": "A **correction** fixes the problem in front of you. A **corrective action** removes the **root cause**, so it does not happen again. Both are needed for a nonconformity."
+        },
+        {
+          "heading": "Verification",
+          "body": "An auditor checks that the actions are in place and effective before the finding is closed. The person who answered the finding cannot verify their own response."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "A missing calibration was found and the instrument was calibrated the same day. What is still missing?",
+          "options": [
+            "Nothing",
+            "A corrective action that deals with why it was missed",
+            "A new instrument"
+          ],
+          "answer": 1,
+          "explanation": "Calibrating the instrument is the correction. The corrective action stops it being missed again."
+        },
+        {
+          "question": "Who can verify the response to a nonconformity?",
+          "options": ["The finding owner", "An auditor other than the owner", "Anyone"],
+          "answer": 1,
+          "explanation": "Verification must be independent of the person who wrote the response."
+        }
+      ],
+      "pass_mark": 0.5
+    },
+    "audit-team": {
+      "title": "Choosing a competent and impartial team",
+      "minutes": 3,
+      "sections": [
+        {
+          "heading": "Competence",
+          "body": "Auditors need to know the standard, auditing methods and enough about the area to understand what they see. The auditor register records who is qualified for which standards and who can lead."
+        },
+        {
+          "heading": "Independence",
+          "body": "Auditors must not audit their own work. CoreFlow warns you when someone works in or leads an audited department. If you still need to use them, record why."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "The quality manager leads production. Can they audit production?",
+          "options": [
+            "Yes, they know it best",
+            "Only with a recorded reason, and preferably not",
+            "Yes, always"
+          ],
+          "answer": 1,
+          "explanation": "Auditing your own area undermines impartiality. Choose someone else, or record why it cannot be avoided."
+        }
+      ],
+      "pass_mark": 1
+    }
+  },
+  "tours": {
+    "overview": [
+      {
+        "target": "audits-nav",
+        "title": "The parts of the module",
+        "body": "Switch between the overview, audits, programmes, findings, certifications and the auditor register."
+      },
+      {
+        "target": "audits-kpis",
+        "title": "Where you stand",
+        "body": "How many audits are planned and under way, and how many findings are open or overdue."
+      },
+      {
+        "target": "audits-new",
+        "title": "Plan an audit",
+        "body": "Start a new internal or external audit here."
+      }
+    ]
+  },
+  "glossary": {
+    "audit-programme": {
+      "term": "Audit programme",
+      "definition": "The plan for all audits in a period, based on the importance of processes, changes and earlier results.",
+      "clauses": ["hs:9.2"]
+    },
+    "audit-criteria": {
+      "term": "Audit criteria",
+      "definition": "The requirements that audit evidence is compared against, such as standard clauses, procedures or contracts.",
+      "clauses": ["iso19011:3.7"]
+    },
+    "objective-evidence": {
+      "term": "Objective evidence",
+      "definition": "Facts that support a conclusion: records, documents, observations or statements that can be verified."
+    },
+    "lead-auditor": {
+      "term": "Lead auditor",
+      "definition": "The auditor who plans and leads an audit and is responsible for the report."
+    }
+  }
+}

@@ -1,0 +1,517 @@
+{
+  "pages": {
+    "overview": {
+      "intro": {
+        "title": "Revisjoner holder styringssystemet ærlig",
+        "body": "En revisjon kontrollerer, med bevis, om det dere **sier** at dere gjør, er det dere **faktisk** gjør, og om det virker. Modulen dekker hele syklusen: et årlig **program**, enkeltvise **revisjoner** med team og sjekkliste, **funn** som følges opp, og **sertifiseringer** fra eksterne organer.",
+        "steps": [
+          "Start med et revisjonsprogram for året, basert på risiko og tidligere resultater.",
+          "Planlegg hver revisjon: omfang, kriterier, datoer og et kompetent og uavhengig team.",
+          "Bruk sjekklisten under gjennomføringen, registrer funn, og skriv og godkjenn rapporten.",
+          "Følg opp funnene til svaret er verifisert."
+        ]
+      },
+      "why": {
+        "body": "Alle ISO-standarder for styringssystemer krever internrevisjoner med planlagte mellomrom, utført av objektive og upartiske revisorer, med resultater som rapporteres til ledelsen og følges opp. ISO 19011 gir veiledning i hvordan et revisjonsprogram styres og revisjoner gjennomføres.",
+        "clauses": ["hs:9.2", "hs:10.2", "iso19011:5", "iso27001:A.5.35"]
+      }
+    },
+    "plans": {
+      "intro": {
+        "title": "Alle revisjoner, interne og eksterne",
+        "body": "Hver rad er én revisjon med omfang, datoer, ledende revisor, fremdrift i sjekklisten og funn. Eksterne revisjoner fra sertifiseringsorganer, kunder, leverandører eller myndigheter registreres også her, slik at alle funn følges opp på ett sted.",
+        "steps": [
+          "Filtrer på **Åpne revisjoner** for å se hva som er planlagt eller pågår.",
+          "Åpne en revisjon for å styre teamet, sjekklisten, funnene og rapporten.",
+          "Lagre filtrene du bruker ofte, som en visning."
+        ]
+      },
+      "why": {
+        "body": "Planlagte og dokumenterte revisjoner er beviset på at kravet om internrevisjon er oppfylt. Revisorer og sertifiseringsorganer vil be om å se planen, resultatene og hvordan funnene ble håndtert.",
+        "clauses": ["hs:9.2"]
+      },
+      "empty": {
+        "title": "Ingen revisjoner ennå",
+        "body": "Planlegg den første internrevisjonen: velg en prosess eller et område, kravene som skal kontrolleres og datoene. CoreFlow hjelper deg å lage sjekklisten fra standarden og holder oversikt over funnene til de er lukket.",
+        "cta": "Planlegg en revisjon"
+      }
+    },
+    "programmes": {
+      "intro": {
+        "title": "Planlegg årets revisjoner",
+        "body": "Et revisjonsprogram er planen for alle revisjoner i en periode, vanligvis et år. Det viser hvilke prosesser og områder som revideres, hvor ofte, mot hvilke standarder og hvorfor.",
+        "steps": [
+          "Opprett ett program per år og beskriv målene.",
+          "Bruk **risikogrunnlaget** til å forklare hvorfor noen områder revideres oftere.",
+          "Legg revisjonene til i programmet og få det godkjent."
+        ]
+      },
+      "why": {
+        "body": "Standarden krever at dere planlegger, etablerer, gjennomfører og vedlikeholder et revisjonsprogram som tar hensyn til hvor viktige prosessene er, endringer som påvirker organisasjonen og resultatene fra tidligere revisjoner.",
+        "clauses": ["hs:9.2", "iso19011:5"]
+      },
+      "empty": {
+        "title": "Ingen revisjonsprogram ennå",
+        "body": "Start med årets program. List opp prosessene og områdene som skal dekkes, og revider de viktigste eller mest risikofylte oftere. Enkeltrevisjonene kan legges til etterpå.",
+        "cta": "Opprett et program"
+      }
+    },
+    "findings": {
+      "intro": {
+        "title": "Funn fra alle revisjoner",
+        "body": "Et funn er det en revisjon konkluderer om et krav: et **større** eller **mindre avvik**, en **observasjon** eller en **forbedringsmulighet**. Avvik krever et svar med rotårsak og korreksjon, som en revisor deretter verifiserer.",
+        "steps": [
+          "Bruk **Tildelt meg** for å se funnene du skal svare på.",
+          "Kryss av for **Bare forfalte** for å følge opp svar som er forsinket.",
+          "Åpne et funn for å skrive svaret, legge til korrigerende tiltak eller koble et avvik."
+        ]
+      },
+      "why": {
+        "body": "Avvik skal håndteres, årsakene finnes og tiltak iverksettes slik at de ikke gjentar seg, og effekten av tiltakene skal vurderes. Lukkede og verifiserte funn er beviset på dette.",
+        "clauses": ["hs:10.2", "hs:9.2"]
+      },
+      "empty": {
+        "title": "Ingen åpne funn",
+        "body": "Funn registreres fra en revisjon, vanligvis fra et svar i sjekklisten. Når en revisjon finner noe, vises det her med ansvarlig og svarfrist."
+      }
+    },
+    "certifications": {
+      "intro": {
+        "title": "Sertifikater og syklusene deres",
+        "body": "Registrer hvert sertifikat dere har eller arbeider mot, med sertifiseringsorgan, omfang og datoene i syklusen: utstedelse, oppfølgingsrevisjoner og utløp.",
+        "steps": [
+          "Legg til sertifikatet med omfang og datoer.",
+          "Planlegg hver eksterne revisjon fra sertifikatet slik at resultatene kobles.",
+          "Du får påminnelser før oppfølgingsrevisjoner og før sertifikatet utløper."
+        ]
+      },
+      "why": {
+        "body": "Et sertifikat gjelder bare for sitt omfang og sin periode. Når syklusen er synlig, unngår dere glemte oppfølgingsrevisjoner og kan forberede dere i tide med internrevisjoner og ledelsens gjennomgåelse.",
+        "clauses": ["hs:9.2", "hs:9.3"]
+      },
+      "empty": {
+        "title": "Ingen sertifiseringer registrert",
+        "body": "Har dere et sertifikat, eller planlegger dere å få et, legg det inn her med sertifiseringsorgan og datoer. Eksterne revisjoner for det kan da planlegges og følges opp.",
+        "cta": "Legg til en sertifisering"
+      }
+    },
+    "auditors": {
+      "intro": {
+        "title": "Hvem kan revidere hva",
+        "body": "Revisorregisteret viser hvem som kan gjennomføre internrevisjoner, hvilke standarder de er kvalifisert for, om de kan lede en revisjon og hvor lenge kvalifikasjonen gjelder.",
+        "steps": [
+          "Legg til hver internrevisor med standardene de kan.",
+          "Kryss av for **Kvalifisert til å lede revisjoner** for dem som kan lede et team.",
+          "Sett **Gyldig til** slik at utløpte kvalifikasjoner flagges når du setter sammen et team."
+        ]
+      },
+      "why": {
+        "body": "Revisorer skal være kompetente, og valget av revisorer skal sikre objektivitet og upartiskhet. Registeret er det CoreFlow kontrollerer når du tildeler noen til en revisjon.",
+        "clauses": ["hs:9.2", "hs:7.2", "iso19011:7"]
+      },
+      "empty": {
+        "title": "Revisorregisteret er tomt",
+        "body": "Legg til personene som reviderer for dere. Når du tildeler noen til en internrevisjon, kontrollerer CoreFlow kompetansen deres her og varsler deg hvis de reviderer sitt eget arbeid.",
+        "cta": "Legg til en revisor"
+      },
+      "fields": {
+        "lead": {
+          "help": "En ledende revisor planlegger revisjonen, leder teamet og har ansvaret for rapporten. Vanligvis med mer opplæring og erfaring.",
+          "example": "Har fullført kurs for ledende revisor i ISO 9001"
+        },
+        "qualifications": {
+          "help": "Opplæring, kurs og erfaring som viser at personen er kompetent til å revidere.",
+          "example": "Internrevisorkurs (2 dager), 4 revisjoner som revisor"
+        }
+      }
+    },
+    "planForm": {
+      "intro": {
+        "title": "Planlegge en revisjon",
+        "body": "En god revisjonsplan svarer på **hva** som revideres (omfang), **mot hva** (kriterier og krav), **når** og **av hvem**. Team og sjekkliste legges til etter at du har lagret.",
+        "steps": [
+          "Hold omfanget avgrenset: én prosess, ett sted eller én avdeling er ofte nok.",
+          "List opp kravene du skal kontrollere, for eksempel iso9001:8.4 eller hs:9.2.",
+          "Velg **Ekstern** for revisjoner fra sertifiseringsorgan, kunde, leverandør eller myndighet."
+        ]
+      },
+      "why": {
+        "body": "For hver revisjon skal revisjonskriterier og omfang være definert. En tydelig plan gjør revisjonen rettferdig og rapporten lett å forstå.",
+        "clauses": ["hs:9.2", "iso19011:6.3"]
+      },
+      "fields": {
+        "title": {
+          "help": "Et kort navn som sier hva som revideres.",
+          "example": "Innkjøp og leverandørstyring, vår"
+        },
+        "kind": {
+          "help": "Internrevisjoner gjennomføres av egne revisorer. Eksterne revisjoner gjennomføres av andre, for eksempel et sertifiseringsorgan.",
+          "example": "Internrevisjon"
+        },
+        "risk": {
+          "help": "Hvor viktig eller risikofylt det reviderte området er. Områder med høyere risiko bør revideres grundigere og oftere.",
+          "example": "Høy for en prosess med mange klager"
+        },
+        "certification": {
+          "help": "Ved en sertifiseringsrevisjon kobler du sertifikatet den hører til. Revisjonen vises da på sertifikatets side.",
+          "example": "ISO 9001 · sertifiseringsorganet"
+        },
+        "programme": {
+          "help": "Det årlige revisjonsprogrammet revisjonen hører til.",
+          "example": "Revisjonsprogram 2026"
+        },
+        "scope": {
+          "help": "Omfanget og grensene for revisjonen: prosesser, steder, avdelinger og perioden som dekkes.",
+          "example": "Innkjøp ved hovedkontoret, bestillinger fra de siste seks månedene"
+        },
+        "criteria": {
+          "help": "Det bevisene sammenlignes med: krav i standarder, egne prosedyrer, kontrakter eller lover.",
+          "example": "ISO 9001 krav 8.4 og innkjøpsprosedyren"
+        },
+        "clauseRefs": {
+          "help": "Kravene som skal kontrolleres, adskilt med komma. Brukes til å lage sjekklisten fra standarden.",
+          "example": "iso9001:8.4, iso9001:7.5"
+        }
+      }
+    },
+    "planDetail": {
+      "intro": {
+        "title": "Gjennomføre revisjonen",
+        "body": "Arbeid ovenfra og ned: sett sammen teamet, forbered sjekklisten og **start gjennomføringen**. Registrer svar og notater underveis, registrer funn og skriv rapporten. En annen enn den ledende revisoren godkjenner den.",
+        "steps": [
+          "Tildel en ledende revisor. CoreFlow kontrollerer kompetanse og uavhengighet.",
+          "Lag spørsmål fra kravene, eller la assistenten foreslå noen, og gå gjennom dem.",
+          "Etter gjennomføringen skriver du sammendraget og sender rapporten til godkjenning."
+        ]
+      },
+      "why": {
+        "body": "Revisjonsresultatene skal rapporteres til relevant ledelse og oppbevares som dokumentert informasjon. En godkjent rapport med sjekkliste og funn er dette beviset.",
+        "clauses": ["hs:9.2", "iso19011:6.5", "iso27001:A.5.35"]
+      },
+      "fields": {
+        "auditorRole": {
+          "help": "Den ledende revisoren leder teamet og signerer rapporten. Observatører og tekniske eksperter støtter, men reviderer ikke alene.",
+          "example": "Revisor"
+        },
+        "checklist": {
+          "help": "Spørsmålene du skal stille og bevisene du skal se etter, ett per krav. Lag dem fra kravene eller legg til egne.",
+          "example": "Hvordan vurderer dere nye leverandører? Be om: de tre siste vurderingene"
+        },
+        "reportSummary": {
+          "help": "Hva som ble revidert, de viktigste konklusjonene og antall og type funn. Hold det saklig.",
+          "example": "Innkjøpsprosessen fungerer i hovedsak. Det ble funnet to mindre avvik."
+        }
+      }
+    },
+    "programmeForm": {
+      "intro": {
+        "title": "Bygge programmet",
+        "body": "Beskriv hva programmet skal oppnå og hvordan dere har valgt hvor dere skal legge vekten. Legg deretter til revisjonene og få programmet godkjent.",
+        "steps": [
+          "Sett år og mål.",
+          "Forklar risikogrunnlaget: viktige prosesser, endringer og tidligere funn.",
+          "Velg standardene programmet dekker."
+        ]
+      },
+      "why": {
+        "body": "Revisjonsprogrammet skal ta hensyn til hvor viktige prosessene er, endringer og tidligere revisjonsresultater. Når begrunnelsen skrives ned, viser det at programmet er risikobasert.",
+        "clauses": ["hs:9.2", "iso19011:5.2"]
+      },
+      "fields": {
+        "title": {
+          "help": "Et navn på programmet.",
+          "example": "Internrevisjonsprogram 2026"
+        },
+        "objectives": {
+          "help": "Hva revisjonene i programmet skal oppnå.",
+          "example": "Bekrefte at vi er klare for sertifiseringsrevisjonen i oktober"
+        },
+        "riskBasis": {
+          "help": "Hvorfor noen områder revideres oftere eller grundigere: risiko, klager, endringer, tidligere funn.",
+          "example": "Produksjonen hadde tre avvik i fjor og revideres to ganger."
+        }
+      }
+    },
+    "findingForm": {
+      "intro": {
+        "title": "Skrive et tydelig funn",
+        "body": "Et godt funn angir **kravet**, hva du **observerte** og **bevisene**, slik at hvem som helst forstår det uten å ha vært der.",
+        "steps": [
+          "Velg type: større eller mindre avvik, observasjon eller forbedringsmulighet.",
+          "Beskriv avviket fra kravet, og deretter de objektive bevisene du så.",
+          "Tildel den reviderte som skal svare, og sett en svarfrist."
+        ]
+      },
+      "why": {
+        "body": "Revisjonsfunn sammenlignes med revisjonskriteriene og skal støttes av objektive bevis. De utløser de korrigerende tiltakene standarden krever.",
+        "clauses": ["hs:10.2", "iso19011:6.4.8"]
+      },
+      "fields": {
+        "title": {
+          "help": "En kort beskrivelse av avviket.",
+          "example": "Leverandørvurderinger gjentas ikke årlig"
+        },
+        "description": {
+          "help": "Kravet, og hva som ble funnet som ikke oppfyller det.",
+          "example": "Prosedyren krever årlig vurdering; to viktige leverandører ble sist vurdert i 2023."
+        },
+        "evidence": {
+          "help": "Det du så, leste eller hørte som støtter funnet: registreringer, dokumenter, intervjuer.",
+          "example": "Leverandørregisteret, oppføringene for to leverandører"
+        },
+        "responseDue": {
+          "help": "Når den reviderte skal ha levert rotårsak og korreksjon.",
+          "example": "Fire uker etter revisjonen"
+        },
+        "owner": {
+          "help": "Personen i det reviderte området som svarer på funnet. Vedkommende kan svare selv uten revisjonsrettigheter.",
+          "example": "Innkjøpssjefen"
+        }
+      }
+    },
+    "findingDetail": {
+      "intro": {
+        "title": "Fra funn til lukking",
+        "body": "Den reviderte beskriver **rotårsaken**, den umiddelbare **korreksjonen** og det **korrigerende tiltaket** som hindrer gjentakelse, og sender inn. En revisor, ikke den reviderte, verifiserer svaret og lukker funnet.",
+        "steps": [
+          "Spør hvorfor til du kommer til en årsak du kan gjøre noe med.",
+          "Legg til korrigerende tiltak som oppgaver med ansvarlig og frist.",
+          "Koble et avvik hvis saken også håndteres i avvikssystemet."
+        ]
+      },
+      "why": {
+        "body": "Når et avvik oppstår, skal dere reagere, finne årsaken, iverksette tiltak, vurdere effekten og ta vare på bevis for alt dette.",
+        "clauses": ["hs:10.2", "iso27001:A.5.35"]
+      },
+      "fields": {
+        "rootCause": {
+          "help": "Den underliggende grunnen til at kravet ikke ble oppfylt, ikke bare symptomet.",
+          "example": "Ingen hadde ansvaret for å planlegge de årlige vurderingene."
+        },
+        "correction": {
+          "help": "Det som ble gjort med en gang for å rette selve problemet.",
+          "example": "De to leverandørene ble vurdert i mai."
+        },
+        "correctiveAction": {
+          "help": "Det som hindrer at problemet oppstår igjen, ved å fjerne rotårsaken.",
+          "example": "Årlige vurderinger lagt inn som gjentakende oppgaver for innkjøpssjefen."
+        },
+        "verificationNotes": {
+          "help": "Det revisoren kontrollerte for å bekrefte at svaret er gjennomført og virker.",
+          "example": "Gjentakende oppgaver sett; vurderinger av begge leverandørene er arkivert."
+        }
+      }
+    },
+    "programmeDetail": {
+      "intro": {
+        "title": "Følge programmet",
+        "body": "Se alle revisjonene i programmet og hvor langt hver av dem har kommet. Godkjenn programmet når det er komplett, og avslutt det når perioden er over.",
+        "steps": [
+          "Legg til revisjoner til alle områdene i programmet er dekket.",
+          "Godkjenn programmet (noen med godkjenningsrett).",
+          "Avslutt det når perioden er over; gjenåpning krever en begrunnelse."
+        ]
+      },
+      "why": {
+        "body": "Programmet og resultatene er dokumentert bevis på at revisjonsprogrammet er gjennomført.",
+        "clauses": ["hs:9.2"]
+      }
+    },
+    "certificationForm": {
+      "intro": {
+        "title": "Registrere et sertifikat",
+        "body": "Legg inn sertifiseringsorgan, sertifikatnummer og omfang, og datoene i syklusen. Påminnelser bygger på disse datoene.",
+        "steps": [
+          "Kopier omfanget nøyaktig slik det står på sertifikatet.",
+          "Sett dato for neste oppfølgingsrevisjon og utløpsdato."
+        ]
+      },
+      "why": {
+        "body": "Når dere kjenner omfanget og syklusen til sertifikatet, kan dere planlegge internrevisjoner og ledelsens gjennomgåelse før hver eksterne revisjon.",
+        "clauses": ["hs:9.2", "hs:9.3"]
+      },
+      "fields": {
+        "status": {
+          "help": "Hvor sertifikatet står: planlagt, pågår, sertifisert, suspendert, trukket tilbake eller utløpt.",
+          "example": "Sertifisert"
+        },
+        "body": {
+          "help": "Den akkrediterte organisasjonen som utsteder sertifikatet.",
+          "example": "Navnet på sertifiseringsorganet deres"
+        },
+        "scope": {
+          "help": "Aktivitetene og stedene sertifikatet dekker, slik det står på sertifikatet.",
+          "example": "Utvikling og salg av programvare, hovedkontoret"
+        },
+        "surveillance": {
+          "help": "Datoen for neste årlige oppfølgingsrevisjon.",
+          "example": "Ett år etter sertifiseringsrevisjonen"
+        }
+      }
+    },
+    "certificationDetail": {
+      "intro": {
+        "title": "Sertifiseringssyklusen",
+        "body": "Et sertifikat gjelder vanligvis i tre år, med oppfølgingsrevisjoner underveis og en resertifiseringsrevisjon før det utløper. Planlegg hver eksterne revisjon herfra slik at funnene kobles.",
+        "steps": [
+          "Planlegg neste eksterne revisjon med **Planlegg en ekstern revisjon**.",
+          "Oppdater datoer og status etter hver revisjon."
+        ]
+      },
+      "why": {
+        "body": "Funn fra eksterne revisjoner skal håndteres som alle andre avvik. Når de kobles til sertifikatet, samles historikken for syklusen på ett sted.",
+        "clauses": ["hs:10.2", "hs:9.2"]
+      }
+    }
+  },
+  "lessons": {
+    "internal-audits": {
+      "title": "Internrevisjon på fem minutter",
+      "minutes": 5,
+      "sections": [
+        {
+          "heading": "Hva en internrevisjon er",
+          "body": "En internrevisjon er en planlagt, uavhengig kontroll av om styringssystemet oppfyller kravene (i standarden og deres egne) og virker i praksis. Den ser etter **bevis**, ikke meninger."
+        },
+        {
+          "heading": "Programmet og planen",
+          "body": "**Programmet** dekker alle revisjoner i en periode og bygger på risiko og tidligere resultater. Hver **revisjonsplan** fastsetter omfang, kriterier, datoer og team."
+        },
+        {
+          "heading": "Gjennomføring og sjekkliste",
+          "body": "Under gjennomføringen intervjuer revisoren folk, ser på registreringer og observerer arbeidet. Sjekklisten viser spørsmålene og bevisene det skal bes om, per krav. Notatene viser hva som faktisk ble sett."
+        },
+        {
+          "heading": "Rapport og oppfølging",
+          "body": "Rapporten oppsummerer konklusjonene og funnene. Den godkjennes av en annen enn den ledende revisoren, og funnene følges opp til de er verifisert og lukket."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Hva bygger en revisor et funn på?",
+          "options": ["Sin egen mening", "Objektive bevis", "Det lederen sier skal skje"],
+          "answer": 1,
+          "explanation": "Funn sammenligner objektive bevis (registreringer, observasjoner, intervjuer) med revisjonskriteriene."
+        },
+        {
+          "question": "Hvilke områder bør revideres oftere?",
+          "options": [
+            "De som er enklest å revidere",
+            "Viktige eller risikofylte områder og områder med tidligere funn",
+            "Alle områder nøyaktig én gang i året"
+          ],
+          "answer": 1,
+          "explanation": "Revisjonsprogrammet er risikobasert: betydning, endringer og tidligere resultater avgjør hvor ofte."
+        }
+      ],
+      "pass_mark": 0.5
+    },
+    "findings-and-capa": {
+      "title": "Fra funn til korrigerende tiltak",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Typer funn",
+          "body": "Et **større avvik** betyr at et krav ikke er oppfylt i det hele tatt, eller at systemets resultater er i fare. Et **mindre avvik** er en enkeltstående svikt. En **observasjon** kan bli et avvik, og en **forbedringsmulighet** er et forslag."
+        },
+        {
+          "heading": "Korreksjon er ikke nok",
+          "body": "En **korreksjon** retter problemet her og nå. Et **korrigerende tiltak** fjerner **rotårsaken**, slik at det ikke skjer igjen. Et avvik trenger begge deler."
+        },
+        {
+          "heading": "Verifisering",
+          "body": "En revisor kontrollerer at tiltakene er gjennomført og virker før funnet lukkes. Den som svarte på funnet, kan ikke verifisere sitt eget svar."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "En manglende kalibrering ble funnet, og instrumentet ble kalibrert samme dag. Hva mangler fortsatt?",
+          "options": [
+            "Ingenting",
+            "Et korrigerende tiltak for hvorfor det ble glemt",
+            "Et nytt instrument"
+          ],
+          "answer": 1,
+          "explanation": "Kalibreringen er korreksjonen. Det korrigerende tiltaket hindrer at det glemmes igjen."
+        },
+        {
+          "question": "Hvem kan verifisere svaret på et avvik?",
+          "options": [
+            "Den ansvarlige for funnet",
+            "En revisor som ikke er den ansvarlige",
+            "Hvem som helst"
+          ],
+          "answer": 1,
+          "explanation": "Verifiseringen må være uavhengig av den som skrev svaret."
+        }
+      ],
+      "pass_mark": 0.5
+    },
+    "audit-team": {
+      "title": "Velge et kompetent og upartisk team",
+      "minutes": 3,
+      "sections": [
+        {
+          "heading": "Kompetanse",
+          "body": "Revisorer må kjenne standarden, revisjonsmetodikk og nok om området til å forstå det de ser. Revisorregisteret viser hvem som er kvalifisert for hvilke standarder, og hvem som kan lede."
+        },
+        {
+          "heading": "Uavhengighet",
+          "body": "Revisorer skal ikke revidere sitt eget arbeid. CoreFlow varsler deg når noen jobber i eller leder en revidert avdeling. Må du likevel bruke vedkommende, skriv ned hvorfor."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Kvalitetssjefen leder produksjonen. Kan hun revidere produksjonen?",
+          "options": [
+            "Ja, hun kjenner den best",
+            "Bare med en registrert begrunnelse, og helst ikke",
+            "Ja, alltid"
+          ],
+          "answer": 1,
+          "explanation": "Å revidere sitt eget område svekker upartiskheten. Velg en annen, eller skriv ned hvorfor det ikke kan unngås."
+        }
+      ],
+      "pass_mark": 1
+    }
+  },
+  "tours": {
+    "overview": [
+      {
+        "target": "audits-nav",
+        "title": "Delene av modulen",
+        "body": "Bytt mellom oversikt, revisjoner, programmer, funn, sertifiseringer og revisorregisteret."
+      },
+      {
+        "target": "audits-kpis",
+        "title": "Hvor dere står",
+        "body": "Hvor mange revisjoner som er planlagt og pågår, og hvor mange funn som er åpne eller forfalt."
+      },
+      {
+        "target": "audits-new",
+        "title": "Planlegg en revisjon",
+        "body": "Start en ny intern eller ekstern revisjon her."
+      }
+    ]
+  },
+  "glossary": {
+    "audit-programme": {
+      "term": "Revisjonsprogram",
+      "definition": "Planen for alle revisjoner i en periode, basert på hvor viktige prosessene er, endringer og tidligere resultater.",
+      "clauses": ["hs:9.2"]
+    },
+    "audit-criteria": {
+      "term": "Revisjonskriterier",
+      "definition": "Kravene revisjonsbevisene sammenlignes med, for eksempel krav i standarder, prosedyrer eller kontrakter.",
+      "clauses": ["iso19011:3.7"]
+    },
+    "objective-evidence": {
+      "term": "Objektive bevis",
+      "definition": "Fakta som støtter en konklusjon: registreringer, dokumenter, observasjoner eller utsagn som kan etterprøves."
+    },
+    "lead-auditor": {
+      "term": "Ledende revisor",
+      "definition": "Revisoren som planlegger og leder en revisjon og har ansvaret for rapporten."
+    }
+  }
+}
