@@ -1,0 +1,468 @@
+{
+  "nav": {
+    "label": "Seksjoner i HMS",
+    "overview": "Oversikt",
+    "sja": "Sikker jobbanalyse",
+    "ppe": "Verneutstyr",
+    "consultations": "Medvirkning",
+    "safetyRounds": "Vernerunder"
+  },
+  "common": {
+    "loading": "Laster …",
+    "loadFailed": "Dette kunne ikke lastes. Prøv igjen om litt.",
+    "notFound": "Denne posten finnes ikke, eller du har ikke lenger tilgang til den.",
+    "noMatches": "Ingenting passer med disse filtrene.",
+    "allStatuses": "Alle statuser",
+    "status": "Status",
+    "sort": "Sorter",
+    "mine": "Mine",
+    "me": "Meg",
+    "none": "Ingen",
+    "yes": "Ja",
+    "no": "Nei",
+    "department": "Avdeling",
+    "noLocation": "Uten sted",
+    "edit": "Rediger",
+    "delete": "Slett",
+    "save": "Lagre endringer",
+    "cancel": "Avbryt",
+    "keep": "Behold",
+    "close": "Lukk",
+    "reason": "Begrunnelse",
+    "changeReason": "Begrunnelse for endringen",
+    "createdBy": "Opprettet av",
+    "backToRecord": "Tilbake til posten",
+    "saved": "{{ code }} ble lagret.",
+    "deleted": "{{ code }} ble slettet.",
+    "willLink": "Den nye posten blir koblet til posten du kom fra.",
+    "summarise": "Oppsummer",
+    "lesson": "Minikurs"
+  },
+  "overview": {
+    "title": "Helse, miljø og sikkerhet",
+    "subtitle": "Sikre jobbanalyser, verneutstyr, medvirkning og vernerunder på ett sted.",
+    "lesson": "ISO 45001 på fem minutter",
+    "loadFailed": "Oversikten kunne ikke lastes. Prøv igjen om litt.",
+    "viewAll": "Se alle",
+    "sections": {
+      "sja": "Sikker jobbanalyse",
+      "ppe": "Verneutstyr",
+      "consultations": "Medvirkning",
+      "safetyRounds": "Vernerunder"
+    },
+    "ppeOverdue": "Kontroll eller utløp forfalt",
+    "ppeDueSoon": "Forfaller innen 30 dager",
+    "heldLastYear": "Gjennomført siste 12 måneder",
+    "roundsOpen": "Åpne runder",
+    "roundsOverdue": "Forfalte runder"
+  },
+  "risk": {
+    "none": "Ikke vurdert",
+    "low": "Lav",
+    "medium": "Middels",
+    "high": "Høy",
+    "critical": "Kritisk"
+  },
+  "ppeCategory": {
+    "head": "Hodevern",
+    "eye_face": "Øye- og ansiktsvern",
+    "hearing": "Hørselvern",
+    "respiratory": "Åndedrettsvern",
+    "hand_arm": "Hånd- og armvern",
+    "foot_leg": "Fot- og beinvern",
+    "body": "Verneklær",
+    "fall_protection": "Fallsikring",
+    "high_visibility": "Synlighetstøy",
+    "other": "Annet"
+  },
+  "sja": {
+    "new": "Ny sikker jobbanalyse",
+    "lesson": "Slik gjør du en SJA",
+    "created": "{{ code }} ble opprettet.",
+    "residualBadge": "Restrisiko: {{ level }}",
+    "deleteTitle": "Slette denne sikre jobbanalysen?",
+    "deleteMessage": "{{ code }} og de åpne oppfølgingstiltakene blir fjernet. Revisjonssporet beholder en oppføring.",
+    "status": {
+      "draft": "Utkast",
+      "in_review": "Til godkjenning",
+      "approved": "Godkjent",
+      "completed": "Fullført",
+      "cancelled": "Avbrutt"
+    },
+    "sort": {
+      "desc_created_at": "Nyeste først",
+      "desc_updated_at": "Sist oppdatert",
+      "work_start_at": "Arbeidsstart (tidligst)",
+      "desc_work_start_at": "Arbeidsstart (senest)",
+      "code": "Kode",
+      "title": "Tittel"
+    },
+    "list": {
+      "title": "Sikker jobbanalyse",
+      "subtitle": "Planlegg risikofylte jobber steg for steg: hva kan gå galt, og hva holder folk trygge.",
+      "search": "Søk etter tittel, kode, sted eller jobb …",
+      "back": "Tilbake til sikre jobbanalyser",
+      "counts": "{{ hazards }} farer · {{ controls }} tiltak"
+    },
+    "fields": {
+      "title": "Jobbtittel",
+      "job_description": "Hva er jobben?",
+      "location": "Sted",
+      "owner": "Ansvarlig",
+      "work_start_at": "Arbeidet starter",
+      "work_end_at": "Arbeidet slutter",
+      "participants": "Deltakere (én per linje)",
+      "step_description": "Steg",
+      "hazards": "Farer (én per linje)",
+      "controls": "Tiltak (én per linje)",
+      "responsible": "Ansvarlig",
+      "step_risk": "Risiko i dette steget",
+      "risk_level": "Risiko før tiltak",
+      "residual_risk_level": "Restrisiko etter tiltak",
+      "required_ppe": "Påkrevd verneutstyr",
+      "emergency_measures": "Beredskapstiltak"
+    },
+    "edit": {
+      "newTitle": "Ny sikker jobbanalyse",
+      "title": "Rediger sikker jobbanalyse",
+      "create": "Opprett SJA",
+      "jobSection": "Jobben",
+      "stepsSection": "Arbeidssteg, farer og tiltak",
+      "riskSection": "Risiko, verneutstyr og beredskap",
+      "stepLabel": "Steg {{ n }}",
+      "addStep": "Legg til et steg",
+      "removeStep": "Fjern steg {{ n }}",
+      "moveUp": "Flytt steg {{ n }} opp",
+      "moveDown": "Flytt steg {{ n }} ned"
+    },
+    "detail": {
+      "period": "Arbeidsperiode",
+      "approval": "Godkjenning",
+      "submittedAt": "Sendt til godkjenning",
+      "approvedBy": "Godkjent av",
+      "completedAt": "Fullført",
+      "responsible": "Ansvarlig: {{ name }}",
+      "noneYet": "Ingen ennå",
+      "noStepsYet": "Ingen arbeidssteg ennå. Rediger SJA-en for å dele jobben inn i steg.",
+      "noSteps": "Legg til minst ett arbeidssteg med en fare og et tiltak før du sender til godkjenning.",
+      "incomplete": "Hvert steg trenger minst én fare og ett tiltak før du sender til godkjenning (sjekk steg {{ steps }})."
+    },
+    "actions": {
+      "submit": "Send til godkjenning",
+      "approve": "Godkjenn",
+      "return": "Send tilbake",
+      "revise": "Revider",
+      "complete": "Merk som fullført",
+      "cancel": "Avbryt SJA"
+    },
+    "reasonMessage": {
+      "submit": "Legg til en merknad til godkjenneren.",
+      "approve": "Legg til en merknad til den ansvarlige.",
+      "return": "Fortell den ansvarlige hva som må endres før den kan godkjennes.",
+      "revise": "Hvorfor må denne godkjente SJA-en endres? Den går tilbake til utkast og må godkjennes på nytt.",
+      "complete": "Legg til en merknad om hvordan jobben gikk.",
+      "cancel": "Hvorfor avbrytes denne SJA-en?"
+    },
+    "done": {
+      "submit": "{{ code }} ble sendt til godkjenning.",
+      "approve": "{{ code }} ble godkjent.",
+      "return": "{{ code }} ble sendt tilbake til utkast.",
+      "revise": "{{ code }} er tilbake i utkast for revisjon.",
+      "complete": "{{ code }} ble merket som fullført.",
+      "cancel": "{{ code }} ble avbrutt."
+    },
+    "ai": {
+      "suggest": "Foreslå farer og tiltak",
+      "applied": "{{ count }} foreslåtte steg ble lagt til. Gå gjennom dem før du lagrer.",
+      "review": "Be assistenten gå gjennom denne SJA-en",
+      "reviewPrompt": "Gå gjennom dette utkastet til sikker jobbanalyse: mangler det farer eller tiltak, og følger tiltakene tiltakshierarkiet?",
+      "summarisePrompt": "Oppsummer sikker jobbanalyse {{ code }}: jobben, de viktigste farene, tiltakene og restrisikoen."
+    }
+  },
+  "ppe": {
+    "new": "Nytt verneutstyr",
+    "lesson": "Verneutstyr: siste forsvarslinje",
+    "created": "{{ code }} ble lagt til i registeret.",
+    "deleteTitle": "Slette dette verneutstyret?",
+    "deleteMessage": "{{ code }} blir fjernet fra registeret. Revisjonssporet beholder en oppføring.",
+    "status": {
+      "in_stock": "På lager",
+      "issued": "Utlevert",
+      "out_of_service": "Ute av drift",
+      "retired": "Kassert"
+    },
+    "sort": {
+      "desc_created_at": "Nyeste først",
+      "name": "Navn",
+      "code": "Kode",
+      "next_inspection_at": "Neste kontroll",
+      "expires_at": "Utløpsdato"
+    },
+    "list": {
+      "title": "Verneutstyr",
+      "subtitle": "Personlig verneutstyr: hvem som har det, og når det må kontrolleres eller byttes.",
+      "search": "Søk etter navn, kode, serienummer eller innehaver …",
+      "back": "Tilbake til verneutstyr",
+      "allCategories": "Alle kategorier",
+      "due": "Forfall",
+      "dueFilter": {
+        "any": "Alle forfallsdatoer",
+        "0": "Forfalt",
+        "30": "Forfaller innen 30 dager"
+      },
+      "heldByMe": "Utlevert til meg",
+      "heldBy": "Utlevert til {{ name }}",
+      "dueOn": "Forfaller {{ date }}",
+      "overdueOn": "Forfalt siden {{ date }}"
+    },
+    "fields": {
+      "name": "Navn",
+      "category": "Kategori",
+      "description": "Beskrivelse",
+      "standard_ref": "Standard (f.eks. EN 397)",
+      "manufacturer": "Produsent",
+      "serial_number": "Serie- eller batchnummer",
+      "quantity": "Antall",
+      "location": "Oppbevaringssted",
+      "responsible": "Ansvarlig person",
+      "inspection_interval_days": "Kontrollintervall (dager)",
+      "next_inspection_at": "Neste kontroll",
+      "expires_at": "Utløpsdato",
+      "notes": "Merknader"
+    },
+    "edit": {
+      "newTitle": "Nytt verneutstyr",
+      "title": "Rediger verneutstyr",
+      "create": "Legg til i registeret",
+      "inspectionSection": "Kontroll og levetid",
+      "nameRequired": "Gi utstyret et navn."
+    },
+    "detail": {
+      "overdue": "Forfalt",
+      "holder": "Utlevert til",
+      "issuedOn": "utlevert {{ date }}",
+      "inspections": "Kontrollhistorikk",
+      "noInspections": "Ingen kontroller registrert ennå.",
+      "everyDays": "Hver {{ days }}. dag"
+    },
+    "actions": {
+      "issue": "Lever ut",
+      "return": "Returner til lager",
+      "inspect": "Registrer kontroll"
+    },
+    "issue": {
+      "title": "Lever ut verneutstyr",
+      "holderUser": "Lever ut til et medlem",
+      "holderName": "… eller skriv inn navnet på innehaveren",
+      "issuedAt": "Utlevert"
+    },
+    "inspection": {
+      "title": "Registrer en kontroll",
+      "resultLabel": "Resultat",
+      "result": {
+        "pass": "Godkjent",
+        "fail": "Ikke godkjent"
+      },
+      "failNote": "En kontroll som ikke er godkjent, tar utstyret ut av drift og varsler HMS-lederne.",
+      "inspectedAt": "Kontrollert",
+      "notes": "Funn og merknader",
+      "save": "Lagre kontroll"
+    },
+    "done": {
+      "issued": "{{ code }} ble utlevert.",
+      "returned": "{{ code }} ble returnert til lager.",
+      "inspected": "Kontrollen av {{ code }} ble registrert.",
+      "inspectionFailed": "Den underkjente kontrollen ble registrert, og {{ code }} er nå ute av drift."
+    },
+    "ai": {
+      "summarisePrompt": "Oppsummer verneutstyr {{ code }}: status, innehaver, kontrollhistorikk og hva som forfaller neste gang."
+    }
+  },
+  "consultation": {
+    "new": "Ny medvirkning",
+    "lesson": "Arbeidstakermedvirkning",
+    "created": "{{ code }} ble opprettet.",
+    "cancelTitle": "Avlyse denne medvirkningen?",
+    "cancelMessage": "{{ code }} blir merket som avlyst. Den kan ikke gjennomføres etterpå.",
+    "deleteTitle": "Slette denne medvirkningsposten?",
+    "deleteMessage": "{{ code }} blir fjernet. Revisjonssporet beholder en oppføring.",
+    "status": {
+      "planned": "Planlagt",
+      "held": "Gjennomført",
+      "cancelled": "Avlyst"
+    },
+    "kind": {
+      "meeting": "Møte",
+      "safety_committee": "Arbeidsmiljøutvalg",
+      "survey": "Undersøkelse",
+      "toolbox_talk": "Sikkerhetsprat",
+      "suggestion": "Forslag",
+      "other": "Annet"
+    },
+    "sort": {
+      "desc_created_at": "Nyeste først",
+      "scheduled_at": "Planlagt (tidligst)",
+      "desc_scheduled_at": "Planlagt (senest)",
+      "desc_held_at": "Sist gjennomført",
+      "code": "Kode"
+    },
+    "list": {
+      "title": "Medvirkning",
+      "subtitle": "Hvordan arbeidstakere og verneombud tar del i beslutninger om helse og sikkerhet.",
+      "search": "Søk etter tittel, kode eller tema …",
+      "back": "Tilbake til medvirkning",
+      "allKinds": "Alle typer",
+      "repPresent": "Verneombud til stede"
+    },
+    "fields": {
+      "title": "Tittel",
+      "kind": "Type",
+      "scheduled_at": "Planlagt til",
+      "held_at": "Gjennomført",
+      "location": "Sted",
+      "owner": "Arrangør",
+      "topics": "Tema",
+      "summary": "Oppsummering",
+      "decisions": "Beslutninger og avtalte tiltak",
+      "participants": "Deltakere (én per linje)",
+      "worker_representatives": "Verneombud og tillitsvalgte (én per linje)",
+      "worker_representative_present": "Et verneombud deltok"
+    },
+    "edit": {
+      "newTitle": "Ny medvirkning",
+      "title": "Rediger medvirkning",
+      "create": "Opprett",
+      "outcomeSection": "Resultat"
+    },
+    "detail": {
+      "noRepWarning": "Ingen verneombud deltok. ISO 45001 forventer at arbeidstakernes representanter konsulteres der de finnes."
+    },
+    "actions": {
+      "hold": "Merk som gjennomført",
+      "cancel": "Avlys"
+    },
+    "hold": {
+      "title": "Registrer medvirkningen"
+    },
+    "done": {
+      "held": "{{ code }} ble registrert som gjennomført.",
+      "cancelled": "{{ code }} ble avlyst."
+    },
+    "ai": {
+      "summarisePrompt": "Oppsummer medvirkning {{ code }}: temaene, hva som ble besluttet og oppfølgingstiltakene."
+    }
+  },
+  "rounds": {
+    "title": "Vernerunder",
+    "subtitle": "Faste runder for å oppdage farer før noen blir skadet.",
+    "plan": "Planlegg en vernerunde",
+    "planTitle": "Planlegg en vernerunde",
+    "planSubtitle": "Runden blir en oppgave med sjekkliste; faste runder oppretter neste runde automatisk.",
+    "defaultTitle": "Vernerunde",
+    "planned": "Vernerunden ble planlagt.",
+    "unassigned": "Ikke tildelt",
+    "recurring": "Gjentakende",
+    "overdue": "Forfalt",
+    "checklistProgress": "{{ done }}/{{ total }} sjekket",
+    "filter": {
+      "open": "Åpne",
+      "all": "Alle"
+    },
+    "status": {
+      "open": "Åpen",
+      "in_progress": "Pågår",
+      "blocked": "Blokkert",
+      "done": "Ferdig",
+      "cancelled": "Avbrutt"
+    },
+    "priority": {
+      "low": "Lav",
+      "normal": "Normal",
+      "high": "Høy",
+      "urgent": "Haster"
+    },
+    "schedule": {
+      "once": "Én gang",
+      "recurring": "Gjentakende"
+    },
+    "fields": {
+      "title": "Tittel",
+      "location": "Område eller sted",
+      "assignee": "Gjennomføres av",
+      "priority": "Prioritet",
+      "schedule": "Plan",
+      "due": "Frist",
+      "start": "Første runde",
+      "leadDays": "Opprett hver runde så mange dager før fristen",
+      "checklist": "Sjekkliste (ett punkt per linje)",
+      "description": "Instruksjoner"
+    }
+  },
+  "errors": {
+    "title_required": "Gi den en tittel.",
+    "invalid_user": "Den personen er ikke medlem av denne organisasjonen.",
+    "invalid_department": "Den avdelingen finnes ikke i denne organisasjonen.",
+    "invalid_period": "Arbeidet kan ikke slutte før det starter.",
+    "invalid_category": "Velg en kategori for verneutstyret.",
+    "sja_locked": "En godkjent eller lukket SJA kan ikke redigeres. Revider den først.",
+    "sja_incomplete": "Hvert arbeidssteg trenger minst én fare og ett tiltak før SJA-en kan sendes til godkjenning.",
+    "invalid_transition": "Det er ikke mulig i nåværende status. Last inn siden på nytt og prøv igjen.",
+    "reason_required": "Oppgi en begrunnelse.",
+    "ppe_not_available": "Bare utstyr på lager kan leveres ut. Returner det først.",
+    "ppe_not_issued": "Dette utstyret er ikke utlevert til noen.",
+    "ppe_retired": "Kassert utstyr kan ikke kontrolleres.",
+    "holder_required": "Velg et medlem eller skriv inn navnet på innehaveren.",
+    "consultation_cancelled": "En avlyst medvirkning kan ikke endres.",
+    "invalid_rrule": "Den gjentakelsesregelen støttes ikke.",
+    "task_required": "Beskriv arbeidsoppgaven først.",
+    "module_disabled": "HMS er slått av for denne organisasjonen.",
+    "forbidden": "Du har ikke tillatelse til å gjøre det.",
+    "validation": "Noen av verdiene er ikke gyldige. Sjekk skjemaet og prøv igjen."
+  },
+  "notifications": {
+    "sjaCreated": "Sikker jobbanalyse opprettet: {{ code }} {{ title }}",
+    "sjaUpdated": "Sikker jobbanalyse oppdatert: {{ code }} {{ title }}",
+    "sjaSubmitted": "Sikker jobbanalyse venter på godkjenning: {{ code }} {{ title }}",
+    "sjaApproved": "Sikker jobbanalyse godkjent: {{ code }} {{ title }}",
+    "sjaReturned": "Sikker jobbanalyse sendt tilbake: {{ code }} {{ title }}",
+    "sjaRevised": "Sikker jobbanalyse under revisjon: {{ code }} {{ title }}",
+    "sjaCompleted": "Sikker jobbanalyse fullført: {{ code }} {{ title }}",
+    "sjaCancelled": "Sikker jobbanalyse avbrutt: {{ code }} {{ title }}",
+    "sjaDeleted": "Sikker jobbanalyse slettet: {{ code }} {{ title }}",
+    "ppeCreated": "Verneutstyr lagt til: {{ code }} {{ title }}",
+    "ppeUpdated": "Verneutstyr oppdatert: {{ code }} {{ title }}",
+    "ppeIssued": "Verneutstyr utlevert til deg: {{ code }} {{ title }}",
+    "ppeReturned": "Verneutstyr returnert: {{ code }} {{ title }}",
+    "ppeInspected": "Verneutstyr kontrollert: {{ code }} {{ title }}",
+    "ppeInspectionFailed": "Verneutstyr underkjent og tatt ut av drift: {{ code }} {{ title }}",
+    "ppeDeleted": "Verneutstyr slettet: {{ code }} {{ title }}",
+    "consultationCreated": "Medvirkning planlagt: {{ code }} {{ title }}",
+    "consultationUpdated": "Medvirkning oppdatert: {{ code }} {{ title }}",
+    "consultationHeld": "Medvirkning gjennomført: {{ code }} {{ title }}",
+    "consultationCancelled": "Medvirkning avlyst: {{ code }} {{ title }}",
+    "consultationDeleted": "Medvirkning slettet: {{ code }} {{ title }}"
+  },
+  "timeline": {
+    "sjaCreated": "Opprettet den sikre jobbanalysen",
+    "sjaUpdated": "Oppdaterte den sikre jobbanalysen",
+    "sjaSubmitted": "Sendte den til godkjenning",
+    "sjaApproved": "Godkjente den sikre jobbanalysen",
+    "sjaReturned": "Sendte den tilbake for endringer",
+    "sjaRevised": "Åpnet den for revisjon",
+    "sjaCompleted": "Merket jobben som fullført",
+    "sjaCancelled": "Avbrøt den sikre jobbanalysen",
+    "sjaDeleted": "Slettet den sikre jobbanalysen",
+    "ppeCreated": "La utstyret til i registeret",
+    "ppeUpdated": "Oppdaterte utstyret",
+    "ppeIssued": "Leverte ut utstyret",
+    "ppeReturned": "Returnerte utstyret til lager",
+    "ppeInspected": "Registrerte en kontroll",
+    "ppeInspectionFailed": "Registrerte en underkjent kontroll; utstyret er ute av drift",
+    "ppeDeleted": "Slettet utstyret",
+    "consultationCreated": "Planla medvirkningen",
+    "consultationUpdated": "Oppdaterte medvirkningen",
+    "consultationHeld": "Registrerte medvirkningen som gjennomført",
+    "consultationCancelled": "Avlyste medvirkningen",
+    "consultationDeleted": "Slettet medvirkningen"
+  }
+}

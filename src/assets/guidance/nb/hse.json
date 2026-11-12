@@ -1,0 +1,456 @@
+{
+  "pages": {
+    "overview": {
+      "intro": {
+        "title": "Ditt arbeidsområde for HMS",
+        "body": "Her planlegger du risikofylt arbeid på en trygg måte, holder oversikt over verneutstyr, dokumenterer medvirkning og følger opp vernerunder. Uønskede hendelser og nestenulykker meldes under **Avvik**, og HMS-risikovurderinger ligger under **Risiko**.",
+        "steps": [
+          "Før en risikofylt jobb lager du en **sikker jobbanalyse** (SJA) og får den godkjent.",
+          "Registrer **verneutstyr**, hvem det er utlevert til og når det skal kontrolleres.",
+          "Dokumenter **medvirkning**: møter, arbeidsmiljøutvalget, sikkerhetsprat og forslag.",
+          "Planlegg faste **vernerunder** med sjekkliste."
+        ]
+      },
+      "why": {
+        "body": "ISO 45001 krever at du fortløpende identifiserer farer, styrer risikoen etter tiltakshierarkiet og involverer arbeidstakerne i beslutninger som påvirker sikkerheten deres. Disse postene er beviset på at det skjer i praksis.",
+        "clauses": ["iso45001:5.4", "iso45001:6.1.2", "iso45001:8.1.2", "iso45001:9.1"]
+      }
+    },
+    "sja": {
+      "intro": {
+        "title": "Sikker jobbanalyse (SJA)",
+        "body": "En SJA gjøres **før** en jobb som er risikofylt, uvanlig eller ny: arbeid i høyden, varmt arbeid, løft, trange rom eller arbeid på spenningsførende utstyr. De som skal gjøre jobben deler den inn i steg, beskriver hva som kan gå galt og blir enige om hvordan det skal hindres.",
+        "steps": [
+          "Opprett SJA-en og beskriv jobben, stedet og perioden.",
+          "Del jobben inn i steg, med farer og tiltak for hvert steg.",
+          "Send den til godkjenning; en HMS-leder godkjenner den eller sender den tilbake med kommentarer.",
+          "Merk den som fullført når jobben er gjort, og legg inn oppfølgingstiltak for det dere lærte."
+        ]
+      },
+      "why": {
+        "body": "Fareidentifikasjonen skal dekke både rutinemessige og ikke-rutinemessige aktiviteter og de som utfører dem. En godkjent SJA viser at risikoen ble vurdert og styrt før arbeidet startet.",
+        "clauses": ["iso45001:6.1.2", "iso45001:8.1.2", "hs:8.1"]
+      },
+      "empty": {
+        "title": "Ingen sikre jobbanalyser ennå",
+        "body": "Start med den neste risikofylte jobben teamet skal gjøre. Beskriv jobben og la assistenten foreslå steg, farer og tiltak, og gå gjennom dem sammen med dem som skal gjøre arbeidet.",
+        "cta": "Opprett den første SJA-en"
+      }
+    },
+    "sja-detail": {
+      "intro": {
+        "title": "Lese og godkjenne en SJA",
+        "body": "Sjekk at hvert steg har realistiske farer og tiltak, at restrisikoen er akseptabel, og at påkrevd verneutstyr og beredskapstiltak er tydelige. Godkjenning låser SJA-en; skal den endres senere, må du **revidere** den, og da går den gjennom godkjenning på nytt.",
+        "steps": [
+          "Den ansvarlige sender SJA-en til godkjenning når hvert steg har en fare og et tiltak.",
+          "Godkjenneren godkjenner den eller sender den tilbake med en begrunnelse.",
+          "Bruk **Oppgaver** til oppfølgingstiltak og **Relatert** for å koble til risikovurderingen eller et avvik."
+        ]
+      },
+      "why": {
+        "body": "Tiltak skal følge hierarkiet: fjern faren, erstatt, tekniske tiltak, organisatoriske tiltak, og først deretter verneutstyr. En dokumentert godkjenning viser at en kompetent person har akseptert restrisikoen.",
+        "clauses": ["iso45001:8.1.2", "iso45001:6.1.2"]
+      }
+    },
+    "sja-edit": {
+      "intro": {
+        "title": "Slik skriver du en god SJA",
+        "body": "Skriv den sammen med dem som skal gjøre jobben. Hold hvert steg kort og konkret, og gjør hvert tiltak til noe som kan sjekkes på stedet.",
+        "steps": [
+          "Beskriv jobben og hvor den skal gjøres.",
+          "Legg inn stegene i den rekkefølgen de gjøres, eller be assistenten om et første utkast.",
+          "Vurder risikoen før og etter tiltak, velg verneutstyr og skriv hva som skal gjøres hvis noe går galt."
+        ]
+      },
+      "why": {
+        "body": "Kvaliteten på en SJA avhenger av at arbeidstakerne som kjenner jobben, er med. Deres medvirkning i fareidentifikasjonen er et krav, ikke en høflighet.",
+        "clauses": ["iso45001:5.4", "iso45001:6.1.2"]
+      },
+      "fields": {
+        "title": {
+          "help": "Et kort navn på jobben, så andre kjenner den igjen.",
+          "example": "Bytte takvifte på bygg B"
+        },
+        "job_description": {
+          "help": "Hva som skal gjøres, med hvilket utstyr, og hva som er uvanlig denne gangen.",
+          "example": "Løfte ned den gamle viften med kran, montere den nye og koble til strøm."
+        },
+        "participants": {
+          "help": "Alle som deltar i jobben, også innleide. Ett navn per linje."
+        },
+        "steps": {
+          "help": "Del jobben inn i hovedsteg i den rekkefølgen de gjøres. Hvert steg trenger minst én fare og ett tiltak før du kan sende til godkjenning."
+        },
+        "hazards": {
+          "help": "Hva som kan skade noen i dette steget. Én fare per linje.",
+          "example": "Fall fra takkanten"
+        },
+        "controls": {
+          "help": "Hva dere gjør for å hindre det, med det mest effektive tiltaket først. Ett tiltak per linje.",
+          "example": "Midlertidig rekkverk langs takkanten"
+        },
+        "risk_level": {
+          "help": "Hvor alvorlig risikoen er hvis ingenting gjøres."
+        },
+        "residual_risk_level": {
+          "help": "Risikoen som er igjen med alle tiltak på plass. Er den fortsatt høy, finn bedre tiltak før dere starter."
+        },
+        "required_ppe": {
+          "help": "Verneutstyret alle må bruke. Verneutstyr er siste forsvarslinje, ikke den første."
+        },
+        "emergency_measures": {
+          "help": "Hva som skal gjøres hvis noe går galt: hvem som varsles, førstehjelp, redning fra høyden, evakuering.",
+          "example": "Redningsutstyr ved takluken; ring 113 og anleggsleder."
+        },
+        "change_reason": {
+          "help": "Hvorfor du endret SJA-en. Begrunnelsen lagres i revisjonshistorikken."
+        }
+      }
+    },
+    "ppe": {
+      "intro": {
+        "title": "Registeret for verneutstyr",
+        "body": "Registrer verneutstyr som må følges opp: seler, hjelmer, åndedrettsvern, hørselvern. Registeret viser hvem som har hvert utstyr, og når det skal kontrolleres eller byttes.",
+        "steps": [
+          "Legg til utstyret med kategori, standard og kontrollintervall.",
+          "Lever det ut til en person, og returner det når det kommer tilbake.",
+          "Registrer hver kontroll; en underkjent kontroll tar utstyret ut av drift."
+        ]
+      },
+      "why": {
+        "body": "Verneutstyr beskytter bare hvis det er riktig type, passer, er vedlikeholdt og blir kontrollert. Kontrollregistreringer er dokumentasjon på overvåking, og påminnelser sørger for at kontroller ikke glemmes.",
+        "clauses": ["iso45001:8.1.2", "iso45001:9.1"]
+      },
+      "empty": {
+        "title": "Registeret er tomt",
+        "body": "Start med utstyr som har et lovpålagt kontrollintervall eller et intervall fra produsenten, for eksempel fallsikringsseler eller åndedrettsvern. Påminnelser varsler den ansvarlige når en kontroll forfaller.",
+        "cta": "Legg til verneutstyr"
+      }
+    },
+    "ppe-detail": {
+      "intro": {
+        "title": "Følge opp verneutstyr",
+        "body": "Her leverer du ut og returnerer utstyret, ser kontrollhistorikken og registrerer nye kontroller. Forfallsdatoen er den tidligste av neste kontroll og utløpsdatoen.",
+        "steps": [
+          "Lever ut utstyret til et medlem, eller skriv inn navnet på noen uten konto.",
+          "Registrer en kontroll etter hver sjekk; neste dato følger av intervallet.",
+          "Kasser utstyret når det har nådd slutten av levetiden."
+        ]
+      },
+      "why": {
+        "body": "Å overvåke at tiltak virker, omfatter å sjekke at verneutstyret er i god stand. En underkjent kontroll som følges opp, er bevis på at systemet virker.",
+        "clauses": ["iso45001:9.1", "iso45001:8.1.2"]
+      },
+      "fields": {
+        "holder": {
+          "help": "Personen som har utstyret nå. Vedkommende varsles når det leveres ut."
+        },
+        "next_inspection_at": {
+          "help": "La feltet stå tomt for å bruke kontrollintervallet fra dagens kontroll."
+        }
+      }
+    },
+    "ppe-edit": {
+      "intro": {
+        "title": "Registrere verneutstyr",
+        "body": "Gi utstyret et tydelig navn og en kategori, og noter standarden det oppfyller. Kontrollintervallet og utløpsdatoen styrer påminnelsene.",
+        "steps": [
+          "Velg kategori og standard, for eksempel EN 361 for en sele.",
+          "Legg inn serienummeret så utstyret kan spores.",
+          "Angi kontrollintervall og utløpsdato."
+        ]
+      },
+      "why": {
+        "body": "Sporbart utstyr med kjente kontrolldatoer viser at verneutstyr som tiltak faktisk blir vedlikeholdt.",
+        "clauses": ["iso45001:8.1.2"]
+      },
+      "fields": {
+        "category": {
+          "help": "Hva slags beskyttelse utstyret gir."
+        },
+        "standard_ref": {
+          "help": "Standarden utstyret er sertifisert etter.",
+          "example": "EN 397 (industrihjelmer)"
+        },
+        "inspection_interval_days": {
+          "help": "Hvor ofte utstyret skal kontrolleres, i dager. Neste kontrolldato regnes ut fra hver kontroll.",
+          "example": "365 for årlig kontroll av sele"
+        },
+        "expires_at": {
+          "help": "Når utstyret må byttes uansett kontroller (fra produsenten)."
+        },
+        "status": {
+          "help": "Sett det ute av drift når det ikke skal brukes, eller kassert når det er kastet. Utlevering gjøres fra utstyrssiden."
+        }
+      }
+    },
+    "consultations": {
+      "intro": {
+        "title": "Medvirkning og konsultasjon",
+        "body": "Dokumenter hvordan arbeidstakere og verneombud tar del i helse og sikkerhet: møter i arbeidsmiljøutvalget, sikkerhetsprat, undersøkelser og forslag.",
+        "steps": [
+          "Planlegg medvirkningen med tema og verneombud.",
+          "Etterpå merker du den som gjennomført og skriver oppsummering og beslutninger.",
+          "Gjør beslutninger om til oppfølgingstiltak med ansvarlig og frist."
+        ]
+      },
+      "why": {
+        "body": "ISO 45001 krever konsultasjon og medvirkning fra arbeidstakere på alle nivåer, blant annet i fareidentifikasjon, tiltak og granskning av hendelser, og at resultatet blir kommunisert.",
+        "clauses": ["iso45001:5.4", "iso45001:7.4"]
+      },
+      "empty": {
+        "title": "Ingen medvirkning registrert ennå",
+        "body": "Registrer neste møte i arbeidsmiljøutvalget eller neste sikkerhetsprat. Noter hvem som deltok og hva som ble besluttet, så du kan vise at arbeidstakerne er involvert.",
+        "cta": "Registrer medvirkning"
+      }
+    },
+    "consultation-detail": {
+      "intro": {
+        "title": "Registrere resultatet",
+        "body": "Merk medvirkningen som gjennomført når den har funnet sted, og skriv ned hva som ble diskutert og besluttet. Legg inn oppfølgingstiltak for hver beslutning.",
+        "steps": [
+          "Bekreft hvem som deltok, og om et verneombud var til stede.",
+          "Oppsummer diskusjonen og beslutningene.",
+          "Legg inn oppfølgingstiltak under **Oppgaver**."
+        ]
+      },
+      "why": {
+        "body": "Medvirkning teller bare når den påvirker beslutninger. Registrerte beslutninger og tiltak viser at innspillene ble fulgt opp og kommunisert tilbake.",
+        "clauses": ["iso45001:5.4", "iso45001:7.4"]
+      },
+      "fields": {
+        "summary": {
+          "help": "Hovedpunktene som kom fram, med enkle ord."
+        },
+        "decisions": {
+          "help": "Hva som ble avtalt, og hvem som gjør hva. Legg også inn hvert tiltak som en oppgave."
+        }
+      }
+    },
+    "consultation-edit": {
+      "intro": {
+        "title": "Planlegge medvirkning",
+        "body": "Angi hva slags medvirkning det er, når den skjer og hvilke tema som skal tas opp. List opp verneombudene som skal delta.",
+        "steps": [
+          "Velg type og tidspunkt.",
+          "List opp temaene, for eksempel nye farer, hendelser eller planlagte endringer.",
+          "Legg til deltakere og verneombud."
+        ]
+      },
+      "why": {
+        "body": "Arbeidstakerne skal konsulteres før beslutninger om farer, tiltak, opplæring og endringer. Planlagt medvirkning gjør det til en rutine i stedet for en ettertanke.",
+        "clauses": ["iso45001:5.4"]
+      },
+      "fields": {
+        "kind": {
+          "help": "Møte, arbeidsmiljøutvalg, undersøkelse, sikkerhetsprat, forslag eller noe annet."
+        },
+        "topics": {
+          "help": "Hva som skal diskuteres.",
+          "example": "Ny rutine for stillas; nestenulykker forrige måned"
+        },
+        "participants": {
+          "help": "Alle som deltar. Ett navn per linje."
+        },
+        "worker_representatives": {
+          "help": "Verneombud eller andre valgte representanter for arbeidstakerne. Ett navn per linje."
+        }
+      }
+    },
+    "safety-rounds": {
+      "intro": {
+        "title": "Vernerunder",
+        "body": "En vernerunde er en planlagt gjennomgang av et arbeidsområde med sjekkliste. Hver runde blir en oppgave; funn blir oppfølgingstiltak eller avvik.",
+        "steps": [
+          "Planlegg en runde, én gang eller fast, og velg hvem som gjennomfører den.",
+          "Tilpass standardsjekklisten til området.",
+          "Åpne runden fra listen for å krysse av sjekklisten og fullføre den."
+        ]
+      },
+      "why": {
+        "body": "Jevnlige inspeksjoner av arbeidsplassen er en del av å overvåke HMS-resultatene og å finne farer før de gjør skade.",
+        "clauses": ["iso45001:9.1", "iso45001:6.1.2"]
+      },
+      "empty": {
+        "title": "Ingen vernerunder planlagt",
+        "body": "Planlegg en fast runde, for eksempel månedlig i hvert arbeidsområde, med verneombudet til stede. Standardsjekklisten er et godt utgangspunkt.",
+        "cta": "Planlegg en vernerunde"
+      },
+      "fields": {
+        "assignee": {
+          "help": "Personen, rollen eller avdelingen som gjennomfører runden."
+        },
+        "lead_days": {
+          "help": "Hver runde opprettes så mange dager før fristen, så den dukker opp i Mitt arbeid i tide."
+        },
+        "checklist": {
+          "help": "Ett punkt per linje. Standardsjekklisten for HMS er fylt inn; tilpass den til området."
+        }
+      }
+    }
+  },
+  "lessons": {
+    "iso45001-basics": {
+      "title": "ISO 45001 på fem minutter",
+      "minutes": 5,
+      "sections": [
+        {
+          "heading": "Hva standarden er til for",
+          "body": "ISO 45001 er den internasjonale standarden for styring av arbeidsmiljø, helse og sikkerhet. Formålet er å hindre arbeidsrelaterte skader og sykdom og å sørge for trygge og sunne arbeidsplasser."
+        },
+        {
+          "heading": "Farer, risiko og tiltak",
+          "body": "Du identifiserer farer i rutinemessig og ikke-rutinemessig arbeid, vurderer risikoen og styrer den etter **tiltakshierarkiet**: fjerne, erstatte, tekniske tiltak, organisatoriske tiltak og til sist personlig verneutstyr."
+        },
+        {
+          "heading": "Arbeidstakerne er med",
+          "body": "Arbeidstakere og deres representanter skal **konsulteres** og **medvirke** i fareidentifikasjon, tiltak, granskning av hendelser og beslutninger som påvirker helse og sikkerhet."
+        },
+        {
+          "heading": "Sjekk at det virker",
+          "body": "Vernerunder, kontroll av verneutstyr og oppfølging av hendelser viser om tiltakene virker, så du kan forbedre dem."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Hvilket tiltak bør du vurdere først?",
+          "options": ["Personlig verneutstyr", "Å fjerne faren", "Et varselskilt"],
+          "answer": 1,
+          "explanation": "Tiltakshierarkiet starter med å fjerne faren helt. Verneutstyr er siste forsvarslinje."
+        },
+        {
+          "question": "Hvem skal delta i å identifisere farer?",
+          "options": [
+            "Bare HMS-lederen",
+            "Arbeidstakerne og deres representanter",
+            "Bare eksterne konsulenter"
+          ],
+          "answer": 1,
+          "explanation": "ISO 45001 krever konsultasjon og medvirkning fra arbeidstakerne i fareidentifikasjonen."
+        }
+      ],
+      "pass_mark": 0.5
+    },
+    "sja-basics": {
+      "title": "Slik gjør du en sikker jobbanalyse",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Når du trenger en",
+          "body": "Gjør en SJA før arbeid som er risikofylt, uvanlig eller nytt, eller når en rutinejobb gjøres under nye forhold. Er du i tvil, gjør en: det tar minutter og kan hindre en alvorlig ulykke."
+        },
+        {
+          "heading": "Del jobben inn i steg",
+          "body": "List opp hovedstegene i den rekkefølgen de gjøres. For hvert steg spør du: **hva kan gå galt, og hvem kan bli skadet?** Skriv hver fare på en egen linje."
+        },
+        {
+          "heading": "Bli enige om tiltakene",
+          "body": "For hver fare blir dere enige om et tiltak, med det mest effektive først. Gjør hvert tiltak konkret nok til å kunne sjekkes på stedet. Bestem hvem som har ansvaret."
+        },
+        {
+          "heading": "Godkjenn, gjennomfør og lær",
+          "body": "En HMS-leder godkjenner SJA-en før arbeidet starter. Når jobben er gjort, merker du SJA-en som fullført og legger inn det dere lærte som oppfølgingstiltak."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Hva må hvert steg ha før en SJA kan sendes til godkjenning?",
+          "options": ["Et bilde", "Minst én fare og ett tiltak", "Signatur fra alle deltakerne"],
+          "answer": 1,
+          "explanation": "En SJA kan bare sendes til godkjenning når hvert steg har minst én fare og ett tiltak."
+        },
+        {
+          "question": "En godkjent SJA må endres. Hva gjør du?",
+          "options": [
+            "Redigerer den direkte",
+            "Reviderer den, slik at den går til godkjenning på nytt",
+            "Lager en kopi og sletter originalen"
+          ],
+          "answer": 1,
+          "explanation": "Godkjente SJA-er er låst. Revisjon sender dem tilbake til utkast med en begrunnelse, og de må godkjennes på nytt."
+        }
+      ],
+      "pass_mark": 0.5
+    },
+    "ppe-last-line": {
+      "title": "Verneutstyr: siste forsvarslinje",
+      "minutes": 3,
+      "sections": [
+        {
+          "heading": "Hvorfor verneutstyr kommer sist",
+          "body": "Verneutstyr fjerner ikke faren; det beskytter bare den som bruker det, og bare når det er riktig type, passer og brukes riktig. Se alltid etter bedre tiltak først."
+        },
+        {
+          "heading": "Holde verneutstyret brukbart",
+          "body": "Utstyr som fallsikringsseler skal kontrolleres med faste intervaller og byttes når de utløper. Registrer hver kontroll; en underkjent kontroll tar utstyret ut av drift med en gang."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "En sele blir underkjent ved kontroll. Hva skjer?",
+          "options": [
+            "Den kan brukes til neste runde",
+            "Den tas ut av drift, og HMS-lederne varsles",
+            "Ingenting før den utløper"
+          ],
+          "answer": 1,
+          "explanation": "En underkjent kontroll setter utstyret ute av drift og varsler de ansvarlige."
+        }
+      ],
+      "pass_mark": 1
+    },
+    "worker-participation": {
+      "title": "Arbeidstakermedvirkning",
+      "minutes": 3,
+      "sections": [
+        {
+          "heading": "Konsultasjon og medvirkning",
+          "body": "**Konsultasjon** betyr å be om arbeidstakernes syn før en beslutning. **Medvirkning** betyr å involvere dem i selve beslutningen, for eksempel i fareidentifikasjon eller granskning av hendelser."
+        },
+        {
+          "heading": "Vise at det skjer",
+          "body": "Registrer møter i arbeidsmiljøutvalget, sikkerhetsprat, undersøkelser og forslag med hvem som deltok og hva som ble besluttet. Gjør hver beslutning om til et tiltak med en ansvarlig."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Hva gjør en medvirkningspost til god dokumentasjon?",
+          "options": [
+            "En lang liste med tema",
+            "Hvem som deltok, hva som ble besluttet og oppfølgingstiltakene",
+            "Navnet på møterommet"
+          ],
+          "answer": 1,
+          "explanation": "Dokumentasjonen viser at arbeidstakerne var involvert, og at innspillene førte til beslutninger og tiltak."
+        }
+      ],
+      "pass_mark": 1
+    }
+  },
+  "tours": {
+    "overview": [
+      {
+        "target": "hse-overview-cards",
+        "title": "HMS-status",
+        "body": "Hvert kort viser tilstanden i ett område. Klikk på et tall for å åpne den filtrerte listen."
+      },
+      {
+        "target": "hse-quick-actions",
+        "title": "Start her",
+        "body": "Opprett en sikker jobbanalyse, registrer verneutstyr eller dokumenter medvirkning."
+      }
+    ],
+    "sja": [
+      {
+        "target": "hse-sja-filters",
+        "title": "Finn riktig SJA",
+        "body": "Filtrer på status, sorter etter arbeidsstart, eller vis bare SJA-ene du er ansvarlig for."
+      },
+      {
+        "target": "hse-sja-new",
+        "title": "Planlegg neste jobb",
+        "body": "Opprett en SJA før arbeidet starter. Assistenten kan foreslå steg, farer og tiltak."
+      }
+    ]
+  }
+}
