@@ -1,5 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { formatNumber } from '@angular/common';
+import { TourStepDirective } from '../../shared/guidance/tour-step.directive';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -12,7 +13,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { HasPermissionDirective } from '../../core/auth/has-permission.directive';
 import {
@@ -45,7 +46,6 @@ import { Badge } from '../../shared/ui/badge/badge';
 import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog/confirm-dialog';
-import { Attachments } from '../../shared/attachments/attachments';
 import { SupportsRequirements } from '../../shared/requirement-links/supports-requirements';
 import { LocalDatePipe, LocalDayPipe, formatLocalDay } from '../../shared/locale/locale-pipes';
 import { Icon } from '../../shared/ui/icon/icon';
@@ -84,6 +84,52 @@ import { groupFieldsIntoSections } from './types/type-schema';
 import { WatchButton } from '../../shared/activity/watch-button';
 import { providePageContext } from '../../core/ai/page-context';
 import { AskAbout } from '../../shared/ask/ask-about';
+import { AiAssistButton } from '../../shared/ask/ai-assist-button';
+import { RecordDetailLayout, RecordTab } from '../../shared/kit/record-detail-layout';
+import { MarkdownPipe } from '../../shared/markdown/markdown.pipe';
+import { DynamicForm } from '../../shared/records/dynamic-form';
+import { EntityTasks } from '../../shared/tasks/entity-tasks';
+import { RecordsApi } from '../../core/records/records-api';
+import { RecordTypeVersion } from '../../core/records/record.models';
+import { recordDataErrors } from '../../core/deviations/deviation-errors';
+import { DeviationStatusLabels } from './deviation-status';
+import { DeviationPageGuide } from './guide/deviation-page-guide';
+import { SimilarCases } from './insights/similar-cases';
+import { SuggestedActions } from './insights/suggested-actions';
+import { RootCausePanel } from './root-cause/root-cause-panel';
+import { DeviationWorkflowPanel } from './workflow/deviation-workflow-panel';
+import { isWorkflowManaged } from './deviation-workflow';
+
+/** The detail tabs (details, related records, activity, comments, files, revisions, tasks). */
+const DETAIL_TABS: readonly RecordTab[] = [
+  'details',
+  'related',
+  'activity',
+  'comments',
+  'attachments',
+  'revisions',
+  'tasks',
+];
+
+/** Revision snapshot field -> label key, for the revisions tab. */
+export const DEVIATION_FIELD_LABELS: Readonly<Record<string, string>> = {
+  title: 'deviations.create.fields.title',
+  description: 'deviations.create.fields.description',
+  severity: 'deviations.create.fields.severity',
+  source: 'deviations.create.fields.source',
+  status: 'deviations.filters.status',
+  owner_user_id: 'deviations.detail.owner',
+  department_id: 'deviations.create.fields.department',
+  due_at: 'deviations.create.fields.due',
+  root_cause: 'deviations.create.fields.rootCause',
+  root_cause_method: 'deviations.create.fields.rootCauseMethod',
+  standards: 'deviations.create.fields.standards',
+  clauses: 'deviations.create.fields.clauses',
+  tags: 'deviations.create.fields.tags',
+  visibility: 'deviations.wf.visibility',
+  closed_at: 'deviations.detail.meta.closed',
+  data: 'deviations.wf.fieldsTitle',
+};
 
 /** A rejected status change: the workflow error plus the status that was attempted. */
 type StatusRejection = WorkflowError & {
@@ -108,12 +154,22 @@ type StatusRejection = WorkflowError & {
 @Component({
   selector: 'app-deviation-detail',
   imports: [
+    TourStepDirective,
     WatchButton,
     AskAbout,
+    AiAssistButton,
+    RecordDetailLayout,
+    MarkdownPipe,
+    DynamicForm,
+    EntityTasks,
+    DeviationPageGuide,
+    SimilarCases,
+    SuggestedActions,
+    RootCausePanel,
+    DeviationWorkflowPanel,
     LocalDatePipe,
     LocalDayPipe,
     FormsModule,
-    RouterLink,
     TranslocoPipe,
     HasPermissionDirective,
     Card,
@@ -124,692 +180,778 @@ type StatusRejection = WorkflowError & {
     DeviationActions,
     DeviationAccessEditor,
     DeviationClassificationFields,
-    Attachments,
     Alert,
     ConfirmDialog,
     SupportsRequirements,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[1080px] px-8 pt-7 pb-12">
-      <a
-        routerLink="/deviations"
-        class="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
-      >
-        <app-icon name="back" [size]="16" />
-        {{ 'deviations.backToList' | transloco }}
-      </a>
-
-      @if (loading()) {
+    @if (loading()) {
+      <div class="mx-auto max-w-[1080px] px-4 pt-7 pb-12 sm:px-8">
         <app-card>
           <div class="px-2 py-10 text-center text-[14px] text-fg-muted">
             {{ 'common.loading' | transloco }}
           </div>
         </app-card>
-      } @else if (deviation(); as dev) {
-        <div class="mb-[18px] flex items-start justify-between gap-4">
-          <div class="min-w-0">
-            <div class="mb-1 flex flex-wrap items-center gap-2">
-              <span class="font-mono text-[12.5px] text-fg-subtle">{{ dev.code }}</span>
-              @if (dev.type_name) {
-                <app-badge tone="neutral">{{ dev.type_name }}</app-badge>
-              }
-              <app-badge [tone]="statusTone(dev.status)">{{
-                statusLabelKey(dev.status) | transloco
+      </div>
+    } @else if (deviation(); as dev) {
+      <app-record-detail-layout
+        entityType="deviation"
+        [entityId]="dev.id"
+        [tabs]="tabs"
+        [canEdit]="canEditThis()"
+        [canComment]="canWrite()"
+        [fieldLabels]="fieldLabels"
+        backLink="/deviations"
+        backLabelKey="deviations.backToList"
+      >
+        <div header class="min-w-0">
+          <div class="mb-1 flex flex-wrap items-center gap-2">
+            <span class="font-mono text-[12.5px] text-fg-subtle">{{ dev.code }}</span>
+            @if (dev.type_name) {
+              <app-badge tone="neutral">{{ dev.type_name }}</app-badge>
+            }
+            <app-badge [tone]="statusLabels.tone(dev)" data-testid="status-badge">{{
+              statusLabels.label(dev)
+            }}</app-badge>
+            @if (dev.record_type_version) {
+              <app-badge tone="neutral">{{
+                'deviations.wf.version' | transloco: { version: dev.record_type_version }
               }}</app-badge>
-              <app-badge [tone]="severityTone(dev.severity)">{{
-                severityLabelKey(dev.severity) | transloco
-              }}</app-badge>
-            </div>
-            <div class="flex items-start gap-1.5">
-              <h1 class="font-display text-[26px] font-bold tracking-[-0.025em] text-fg">
-                {{ dev.title }}
-              </h1>
-              <app-ask-about class="mt-1.5 flex-none" />
-            </div>
+            }
+            <app-badge [tone]="severityTone(dev.severity)">{{
+              severityLabelKey(dev.severity) | transloco
+            }}</app-badge>
           </div>
+          <div class="flex items-start gap-1.5">
+            <h1 class="font-display text-[26px] font-bold tracking-[-0.025em] text-fg">
+              {{ dev.title }}
+            </h1>
+            <app-ask-about class="mt-1.5 flex-none" />
+          </div>
+        </div>
 
-          <div class="flex flex-none items-center gap-2">
-            <app-watch-button entityType="deviation" [entityId]="dev.id" />
-            @if (!editing()) {
-              <div
-                *appHasPermission="'deviations:write'"
-                #statusTrigger
-                class="relative"
-                [attr.title]="statusLockedKey() ? (statusLockedKey()! | transloco) : null"
-                data-testid="status-trigger"
+        <div actions class="flex flex-wrap items-center gap-2">
+          <app-watch-button entityType="deviation" [entityId]="dev.id" />
+          @if (!editing()) {
+            <app-ai-assist-button
+              assist="deviations.summarise"
+              labelKey="deviations.assist.summarise"
+              entityType="deviation"
+              [entityId]="dev.id"
+              (text)="summary.set($event)"
+            />
+            <div
+              *appHasPermission="'deviations:write'"
+              #statusTrigger
+              class="relative"
+              [class.hidden]="isWorkflow()"
+              [attr.title]="statusLockedKey() ? (statusLockedKey()! | transloco) : null"
+              data-testid="status-trigger"
+            >
+              <app-button
+                variant="secondary"
+                [disabled]="statusLockedKey() !== null"
+                (click)="toggleStatusMenu($event)"
               >
-                <app-button
-                  variant="secondary"
-                  [disabled]="statusLockedKey() !== null"
-                  (click)="toggleStatusMenu($event)"
+                <app-icon name="flag" [size]="15" />
+                {{ 'deviations.detail.changeStatus' | transloco }}
+                <app-icon name="chevron" [size]="14" />
+              </app-button>
+              @if (statusMenuOpen()) {
+                <div
+                  class="animate-cf-pop absolute right-0 z-30 mt-1.5 w-72 rounded-tile border border-border bg-surface p-1 shadow-pop"
+                  data-testid="status-menu"
                 >
-                  <app-icon name="flag" [size]="15" />
-                  {{ 'deviations.detail.changeStatus' | transloco }}
-                  <app-icon name="chevron" [size]="14" />
-                </app-button>
-                @if (statusMenuOpen()) {
                   <div
-                    class="animate-cf-pop absolute right-0 z-30 mt-1.5 w-72 rounded-tile border border-border bg-surface p-1 shadow-pop"
-                    data-testid="status-menu"
+                    class="flex w-full items-center gap-2 px-2.5 py-2 text-[13.5px] font-semibold text-fg"
                   >
-                    <div
-                      class="flex w-full items-center gap-2 px-2.5 py-2 text-[13.5px] font-semibold text-fg"
+                    <app-icon name="check" [size]="15" class="text-accent" />
+                    {{ statusLabelKey(dev.status) | transloco }}
+                  </div>
+                  @for (entry of statusEntries(); track entry.status) {
+                    <button
+                      type="button"
+                      [disabled]="savingStatus() || entry.blockedBy !== null"
+                      [attr.data-status]="entry.status"
+                      (click)="pickStatus(entry)"
+                      class="flex w-full items-start gap-2 rounded-[8px] px-2.5 py-2 text-left text-[13.5px] text-fg hover:bg-surface-2 disabled:cursor-not-allowed disabled:hover:bg-transparent"
                     >
-                      <app-icon name="check" [size]="15" class="text-accent" />
-                      {{ statusLabelKey(dev.status) | transloco }}
-                    </div>
-                    @for (entry of statusEntries(); track entry.status) {
-                      <button
-                        type="button"
-                        [disabled]="savingStatus() || entry.blockedBy !== null"
-                        [attr.data-status]="entry.status"
-                        (click)="pickStatus(entry)"
-                        class="flex w-full items-start gap-2 rounded-[8px] px-2.5 py-2 text-left text-[13.5px] text-fg hover:bg-surface-2 disabled:cursor-not-allowed disabled:hover:bg-transparent"
-                      >
-                        <span class="mt-0.5 w-[15px] flex-none"></span>
-                        <span class="min-w-0 flex-1">
-                          <span class="block" [class.opacity-50]="entry.blockedBy !== null">{{
-                            statusLabelKey(entry.status) | transloco
+                      <span class="mt-0.5 w-[15px] flex-none"></span>
+                      <span class="min-w-0 flex-1">
+                        <span class="block" [class.opacity-50]="entry.blockedBy !== null">{{
+                          statusLabelKey(entry.status) | transloco
+                        }}</span>
+                        @if (entry.blockedBy) {
+                          <span class="mt-0.5 block text-[12px] text-fg-muted">{{
+                            reasonKeyFor(entry.blockedBy, entry.status) | transloco
                           }}</span>
-                          @if (entry.blockedBy) {
-                            <span class="mt-0.5 block text-[12px] text-fg-muted">{{
-                              reasonKeyFor(entry.blockedBy, entry.status) | transloco
-                            }}</span>
-                          } @else if (entry.requiresReason) {
-                            <span class="mt-0.5 block text-[12px] text-fg-subtle">{{
-                              'deviations.workflow.reasonHint' | transloco
-                            }}</span>
-                          }
-                        </span>
-                      </button>
+                        } @else if (entry.requiresReason) {
+                          <span class="mt-0.5 block text-[12px] text-fg-subtle">{{
+                            'deviations.workflow.reasonHint' | transloco
+                          }}</span>
+                        }
+                      </span>
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+
+            @if (canEditThis()) {
+              <app-button variant="secondary" (click)="startEdit(dev)">
+                <app-icon name="procedures" [size]="15" />
+                {{ 'deviations.detail.edit' | transloco }}
+              </app-button>
+            }
+
+            <app-button
+              *appHasPermission="'deviations:manage'"
+              variant="secondary"
+              [loading]="deleting()"
+              (click)="confirmDelete.set(true)"
+            >
+              <app-icon name="x" [size]="15" />
+              {{ 'deviations.detail.delete' | transloco }}
+            </app-button>
+          } @else {
+            <app-button variant="ghost" (click)="cancelEdit()">
+              {{ 'deviations.detail.cancel' | transloco }}
+            </app-button>
+            <app-button [loading]="savingEdit()" (click)="saveEdit()">
+              <app-icon name="check" [size]="15" />
+              {{ 'deviations.detail.save' | transloco }}
+            </app-button>
+          }
+        </div>
+
+        <div class="flex flex-col gap-5">
+          <app-deviation-page-guide page="detail" lesson="root-cause-analysis" tour="detail" />
+
+          @if (summary()) {
+            <app-card>
+              <div class="flex items-start justify-between gap-3" aria-live="polite">
+                <div class="min-w-0">
+                  <h2 class="mb-1 text-[12px] font-bold tracking-[0.06em] text-fg-subtle uppercase">
+                    {{ 'deviations.assist.summaryTitle' | transloco }}
+                  </h2>
+                  <div class="text-[13.5px] text-fg" [innerHTML]="summary() | appMarkdown"></div>
+                  <p class="mt-1.5 text-[11.5px] text-fg-subtle">
+                    {{ 'deviations.assist.reviewNote' | transloco }}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  (click)="summary.set('')"
+                  [attr.aria-label]="'deviations.assist.dismiss' | transloco"
+                  class="flex flex-none rounded-[8px] p-1.5 text-fg-subtle hover:bg-surface-2 hover:text-fg"
+                >
+                  <app-icon name="x" [size]="15" />
+                </button>
+              </div>
+            </app-card>
+          }
+
+          @if (canWrite() && editLockKey(); as lockKey) {
+            <div data-testid="edit-lock-note">
+              <app-alert tone="info">{{ lockKey | transloco }}</app-alert>
+            </div>
+          }
+
+          @if (workflowError(); as wfError) {
+            <div class="flex flex-col gap-2" data-testid="workflow-error">
+              <app-alert tone="error">
+                {{
+                  'deviations.workflow.rejected'
+                    | transloco
+                      : {
+                          status: (statusLabelKey(wfError.status) | transloco),
+                          reason: (wfError.reasonKey | transloco),
+                        }
+                }}
+              </app-alert>
+              @if (wfError.blocking.length) {
+                <div class="rounded-tile border border-fail/30 bg-surface px-3 py-2">
+                  <p class="text-[12.5px] font-semibold text-fg-muted">
+                    {{ 'deviations.workflow.blockingActions' | transloco }}
+                  </p>
+                  <ul class="mt-1 list-disc pl-5 text-[13px] text-fg">
+                    @for (b of wfError.blocking; track b.action_id) {
+                      <li>{{ b.description }}</li>
+                    }
+                  </ul>
+                </div>
+              }
+              <button
+                type="button"
+                (click)="workflowError.set(null)"
+                class="w-fit text-[12.5px] font-semibold text-fg-muted hover:text-fg hover:underline"
+              >
+                {{ 'deviations.workflow.dismiss' | transloco }}
+              </button>
+            </div>
+          }
+
+          <app-card>
+            <div
+              class="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-4"
+              appTourStep="deviations-meta"
+            >
+              <div>
+                <div class="text-[11px] font-bold tracking-[0.08em] text-fg-subtle uppercase">
+                  {{ 'deviations.detail.meta.raised' | transloco }}
+                </div>
+                <div class="mt-0.5 text-[13px] text-fg">
+                  {{ dev.raised_at | localDate: 'mediumDate' }}
+                </div>
+              </div>
+              <div>
+                <div class="text-[11px] font-bold tracking-[0.08em] text-fg-subtle uppercase">
+                  {{ 'deviations.detail.meta.due' | transloco }}
+                </div>
+                <div class="mt-0.5 text-[13px]">
+                  @if (dev.due_at) {
+                    <span
+                      [class.text-fail]="overdue(dev)"
+                      [class.font-semibold]="overdue(dev)"
+                      [class.text-fg]="!overdue(dev)"
+                    >
+                      {{ dev.due_at | localDay }}
+                    </span>
+                  } @else {
+                    <span class="text-fg-subtle">—</span>
+                  }
+                </div>
+              </div>
+              <div>
+                <div class="text-[11px] font-bold tracking-[0.08em] text-fg-subtle uppercase">
+                  {{ 'deviations.detail.meta.closed' | transloco }}
+                </div>
+                <div class="mt-0.5 text-[13px] text-fg">
+                  {{ dev.closed_at ? (dev.closed_at | localDate: 'mediumDate') : '—' }}
+                </div>
+              </div>
+              <div>
+                <div class="text-[11px] font-bold tracking-[0.08em] text-fg-subtle uppercase">
+                  {{ 'deviations.detail.meta.source' | transloco }}
+                </div>
+                <div class="mt-0.5 text-[13px] text-fg">
+                  {{ sourceLabelKey(dev.source) | transloco }}
+                </div>
+              </div>
+            </div>
+
+            @if (
+              dev.standards.length || dev.clauses.length || dev.tags.length || dev.department_id
+            ) {
+              <div class="mt-4 flex flex-col gap-2.5 border-t border-border pt-4">
+                @if (dev.department_id) {
+                  <div class="flex flex-wrap items-center gap-1.5">
+                    <span class="text-[12px] font-semibold text-fg-subtle">{{
+                      'deviations.create.fields.department' | transloco
+                    }}</span>
+                    <span class="text-[13px] text-fg">{{ departmentName(dev.department_id) }}</span>
+                  </div>
+                }
+                @if (dev.standards.length) {
+                  <div class="flex flex-wrap items-center gap-1.5">
+                    <span class="text-[12px] font-semibold text-fg-subtle">{{
+                      'deviations.create.fields.standards' | transloco
+                    }}</span>
+                    @for (std of dev.standards; track std) {
+                      <app-badge tone="neutral">{{ standardLabelKey(std) | transloco }}</app-badge>
+                    }
+                  </div>
+                }
+                @if (dev.clauses.length) {
+                  <div class="flex flex-wrap items-center gap-1.5">
+                    <span class="text-[12px] font-semibold text-fg-subtle">{{
+                      'deviations.create.fields.clauses' | transloco
+                    }}</span>
+                    @for (c of dev.clauses; track c.standard + c.clause) {
+                      <app-badge tone="neutral"
+                        >{{ standardLabelKey(c.standard) | transloco }} {{ c.clause }}</app-badge
+                      >
+                    }
+                  </div>
+                }
+                @if (dev.tags.length) {
+                  <div class="flex flex-wrap items-center gap-1.5">
+                    <span class="text-[12px] font-semibold text-fg-subtle">{{
+                      'deviations.create.fields.tags' | transloco
+                    }}</span>
+                    @for (t of dev.tags; track t) {
+                      <span
+                        class="inline-flex items-center rounded-full border border-border bg-surface-2 px-2.5 py-0.5 text-[12px] font-medium text-fg"
+                        >{{ t }}</span
+                      >
                     }
                   </div>
                 }
               </div>
-
-              @if (canEditThis()) {
-                <app-button variant="secondary" (click)="startEdit(dev)">
-                  <app-icon name="procedures" [size]="15" />
-                  {{ 'deviations.detail.edit' | transloco }}
-                </app-button>
-              }
-
-              <app-button
-                *appHasPermission="'deviations:manage'"
-                variant="secondary"
-                [loading]="deleting()"
-                (click)="confirmDelete.set(true)"
-              >
-                <app-icon name="x" [size]="15" />
-                {{ 'deviations.detail.delete' | transloco }}
-              </app-button>
-            } @else {
-              <app-button variant="ghost" (click)="cancelEdit()">
-                {{ 'deviations.detail.cancel' | transloco }}
-              </app-button>
-              <app-button [loading]="savingEdit()" (click)="saveEdit()">
-                <app-icon name="check" [size]="15" />
-                {{ 'deviations.detail.save' | transloco }}
-              </app-button>
             }
-          </div>
-        </div>
+          </app-card>
 
-        @if (canWrite() && editLockKey(); as lockKey) {
-          <div class="mb-[18px]" data-testid="edit-lock-note">
-            <app-alert tone="info">{{ lockKey | transloco }}</app-alert>
-          </div>
-        }
-
-        @if (workflowError(); as wfError) {
-          <div class="mb-[18px] flex flex-col gap-2" data-testid="workflow-error">
-            <app-alert tone="error">
-              {{
-                'deviations.workflow.rejected'
-                  | transloco
-                    : {
-                        status: (statusLabelKey(wfError.status) | transloco),
-                        reason: (wfError.reasonKey | transloco),
-                      }
-              }}
-            </app-alert>
-            @if (wfError.blocking.length) {
-              <div class="rounded-tile border border-fail/30 bg-surface px-3 py-2">
-                <p class="text-[12.5px] font-semibold text-fg-muted">
-                  {{ 'deviations.workflow.blockingActions' | transloco }}
-                </p>
-                <ul class="mt-1 list-disc pl-5 text-[13px] text-fg">
-                  @for (b of wfError.blocking; track b.action_id) {
-                    <li>{{ b.description }}</li>
-                  }
-                </ul>
-              </div>
-            }
-            <button
-              type="button"
-              (click)="workflowError.set(null)"
-              class="w-fit text-[12.5px] font-semibold text-fg-muted hover:text-fg hover:underline"
-            >
-              {{ 'deviations.workflow.dismiss' | transloco }}
-            </button>
-          </div>
-        }
-
-        <div class="grid gap-5 lg:grid-cols-[1fr_320px]">
-          <div class="flex flex-col gap-5">
-            <app-card>
-              <div class="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-4">
+          <!-- Core fields + dynamic data -->
+          <app-card>
+            @if (!editing()) {
+              <dl class="flex flex-col gap-4">
                 <div>
-                  <div class="text-[11px] font-bold tracking-[0.08em] text-fg-subtle uppercase">
-                    {{ 'deviations.detail.meta.raised' | transloco }}
-                  </div>
-                  <div class="mt-0.5 text-[13px] text-fg">
-                    {{ dev.raised_at | localDate: 'mediumDate' }}
-                  </div>
+                  <dt class="text-[11px] font-bold tracking-[0.08em] text-fg-subtle uppercase">
+                    {{ 'deviations.create.fields.description' | transloco }}
+                  </dt>
+                  <dd class="mt-1 text-[13.5px] whitespace-pre-line text-fg">
+                    {{ dev.description || ('deviations.detail.notProvided' | transloco) }}
+                  </dd>
                 </div>
-                <div>
-                  <div class="text-[11px] font-bold tracking-[0.08em] text-fg-subtle uppercase">
-                    {{ 'deviations.detail.meta.due' | transloco }}
-                  </div>
-                  <div class="mt-0.5 text-[13px]">
-                    @if (dev.due_at) {
-                      <span
-                        [class.text-fail]="overdue(dev)"
-                        [class.font-semibold]="overdue(dev)"
-                        [class.text-fg]="!overdue(dev)"
-                      >
-                        {{ dev.due_at | localDay }}
-                      </span>
-                    } @else {
-                      <span class="text-fg-subtle">—</span>
-                    }
-                  </div>
-                </div>
-                <div>
-                  <div class="text-[11px] font-bold tracking-[0.08em] text-fg-subtle uppercase">
-                    {{ 'deviations.detail.meta.closed' | transloco }}
-                  </div>
-                  <div class="mt-0.5 text-[13px] text-fg">
-                    {{ dev.closed_at ? (dev.closed_at | localDate: 'mediumDate') : '—' }}
-                  </div>
-                </div>
-                <div>
-                  <div class="text-[11px] font-bold tracking-[0.08em] text-fg-subtle uppercase">
-                    {{ 'deviations.detail.meta.source' | transloco }}
-                  </div>
-                  <div class="mt-0.5 text-[13px] text-fg">
-                    {{ sourceLabelKey(dev.source) | transloco }}
-                  </div>
-                </div>
-              </div>
-
-              @if (
-                dev.standards.length || dev.clauses.length || dev.tags.length || dev.department_id
-              ) {
-                <div class="mt-4 flex flex-col gap-2.5 border-t border-border pt-4">
-                  @if (dev.department_id) {
-                    <div class="flex flex-wrap items-center gap-1.5">
-                      <span class="text-[12px] font-semibold text-fg-subtle">{{
-                        'deviations.create.fields.department' | transloco
-                      }}</span>
-                      <span class="text-[13px] text-fg">{{
-                        departmentName(dev.department_id)
-                      }}</span>
-                    </div>
-                  }
-                  @if (dev.standards.length) {
-                    <div class="flex flex-wrap items-center gap-1.5">
-                      <span class="text-[12px] font-semibold text-fg-subtle">{{
-                        'deviations.create.fields.standards' | transloco
-                      }}</span>
-                      @for (std of dev.standards; track std) {
-                        <app-badge tone="neutral">{{
-                          standardLabelKey(std) | transloco
-                        }}</app-badge>
-                      }
-                    </div>
-                  }
-                  @if (dev.clauses.length) {
-                    <div class="flex flex-wrap items-center gap-1.5">
-                      <span class="text-[12px] font-semibold text-fg-subtle">{{
-                        'deviations.create.fields.clauses' | transloco
-                      }}</span>
-                      @for (c of dev.clauses; track c.standard + c.clause) {
-                        <app-badge tone="neutral"
-                          >{{ standardLabelKey(c.standard) | transloco }} {{ c.clause }}</app-badge
-                        >
-                      }
-                    </div>
-                  }
-                  @if (dev.tags.length) {
-                    <div class="flex flex-wrap items-center gap-1.5">
-                      <span class="text-[12px] font-semibold text-fg-subtle">{{
-                        'deviations.create.fields.tags' | transloco
-                      }}</span>
-                      @for (t of dev.tags; track t) {
-                        <span
-                          class="inline-flex items-center rounded-full border border-border bg-surface-2 px-2.5 py-0.5 text-[12px] font-medium text-fg"
-                          >{{ t }}</span
-                        >
-                      }
-                    </div>
-                  }
-                </div>
-              }
-            </app-card>
-
-            <!-- Core fields + dynamic data -->
-            <app-card>
-              @if (!editing()) {
-                <dl class="flex flex-col gap-4">
+                <div class="grid gap-4 sm:grid-cols-2">
                   <div>
                     <dt class="text-[11px] font-bold tracking-[0.08em] text-fg-subtle uppercase">
-                      {{ 'deviations.create.fields.description' | transloco }}
+                      {{ 'deviations.create.fields.rootCause' | transloco }}
                     </dt>
                     <dd class="mt-1 text-[13.5px] whitespace-pre-line text-fg">
-                      {{ dev.description || ('deviations.detail.notProvided' | transloco) }}
+                      {{ dev.root_cause || ('deviations.detail.notProvided' | transloco) }}
                     </dd>
                   </div>
-                  <div class="grid gap-4 sm:grid-cols-2">
-                    <div>
-                      <dt class="text-[11px] font-bold tracking-[0.08em] text-fg-subtle uppercase">
-                        {{ 'deviations.create.fields.rootCause' | transloco }}
-                      </dt>
-                      <dd class="mt-1 text-[13.5px] whitespace-pre-line text-fg">
-                        {{ dev.root_cause || ('deviations.detail.notProvided' | transloco) }}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt class="text-[11px] font-bold tracking-[0.08em] text-fg-subtle uppercase">
-                        {{ 'deviations.create.fields.rootCauseMethod' | transloco }}
-                      </dt>
-                      <dd class="mt-1 text-[13.5px] text-fg">
-                        {{
-                          (dev.root_cause_method
-                            ? rootCauseMethodLabelKey(dev.root_cause_method)
-                            : 'deviations.detail.notProvided'
-                          ) | transloco
-                        }}
-                      </dd>
-                    </div>
+                  <div>
+                    <dt class="text-[11px] font-bold tracking-[0.08em] text-fg-subtle uppercase">
+                      {{ 'deviations.create.fields.rootCauseMethod' | transloco }}
+                    </dt>
+                    <dd class="mt-1 text-[13.5px] text-fg">
+                      {{
+                        (dev.root_cause_method
+                          ? rootCauseMethodLabelKey(dev.root_cause_method)
+                          : 'deviations.detail.notProvided'
+                        ) | transloco
+                      }}
+                    </dd>
                   </div>
+                </div>
 
-                  @for (section of schemaSections(); track section.title) {
-                    <div class="flex flex-col gap-3">
-                      @if (!section.isDefault) {
-                        <p class="text-[11px] font-bold tracking-[0.08em] text-fg-subtle uppercase">
-                          {{ section.title }}
-                        </p>
-                      }
-                      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        @for (def of section.fields; track def.key) {
-                          <div [class.sm:col-span-2]="def.width === 'full'">
-                            <dt
-                              class="text-[11px] font-bold tracking-[0.08em] text-fg-subtle uppercase"
-                            >
-                              {{ def.label }}
-                            </dt>
-                            <dd class="mt-1 text-[13.5px] whitespace-pre-line text-fg">
-                              {{ displayValue(def) }}
-                            </dd>
-                          </div>
-                        }
-                      </div>
-                    </div>
-                  }
-                </dl>
-              } @else {
-                <div class="flex flex-col gap-4">
-                  <div class="flex flex-col gap-1.5">
-                    <label for="edit-title" class="text-[13px] font-semibold text-fg-muted">
-                      {{ 'deviations.create.fields.title' | transloco }}
-                      <span class="text-fail" aria-hidden="true">*</span>
-                    </label>
-                    <input
-                      id="edit-title"
-                      type="text"
-                      [ngModel]="title()"
-                      (ngModelChange)="title.set($event)"
-                      autocomplete="off"
-                      class="h-10 w-full rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
-                    />
-                    @if (titleError()) {
-                      <p class="text-[12px] font-medium text-fail">
-                        {{ 'deviations.create.titleRequired' | transloco }}
+                @for (section of schemaSections(); track section.title) {
+                  <div class="flex flex-col gap-3">
+                    @if (!section.isDefault) {
+                      <p class="text-[11px] font-bold tracking-[0.08em] text-fg-subtle uppercase">
+                        {{ section.title }}
                       </p>
                     }
-                  </div>
-
-                  <div class="flex flex-col gap-1.5">
-                    <label for="edit-desc" class="text-[13px] font-semibold text-fg-muted">
-                      {{ 'deviations.create.fields.description' | transloco }}
-                    </label>
-                    <textarea
-                      id="edit-desc"
-                      [ngModel]="description()"
-                      (ngModelChange)="description.set($event)"
-                      rows="3"
-                      class="w-full rounded-[10px] border border-border bg-bg px-3 py-2.5 text-[13.5px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
-                    ></textarea>
-                  </div>
-
-                  <div class="grid gap-4 sm:grid-cols-2">
-                    <div class="flex flex-col gap-1.5">
-                      <label for="edit-severity" class="text-[13px] font-semibold text-fg-muted">
-                        {{ 'deviations.create.fields.severity' | transloco }}
-                      </label>
-                      <div class="cf-select">
-                        <select
-                          id="edit-severity"
-                          [ngModel]="severity()"
-                          (ngModelChange)="severity.set($event)"
-                        >
-                          @for (option of severityOptions; track option) {
-                            <option [value]="option">
-                              {{ severityLabelKey(option) | transloco }}
-                            </option>
-                          }
-                        </select>
-                      </div>
-                    </div>
-                    <div class="flex flex-col gap-1.5">
-                      <label for="edit-source" class="text-[13px] font-semibold text-fg-muted">
-                        {{ 'deviations.create.fields.source' | transloco }}
-                      </label>
-                      <div class="cf-select">
-                        <select
-                          id="edit-source"
-                          [ngModel]="source()"
-                          (ngModelChange)="source.set($event)"
-                        >
-                          @for (option of sourceOptions; track option) {
-                            <option [value]="option">
-                              {{ sourceLabelKey(option) | transloco }}
-                            </option>
-                          }
-                        </select>
-                      </div>
-                    </div>
-                    <div class="flex flex-col gap-1.5">
-                      <label for="edit-due" class="text-[13px] font-semibold text-fg-muted">
-                        {{ 'deviations.create.fields.due' | transloco }}
-                      </label>
-                      <input
-                        id="edit-due"
-                        type="date"
-                        [ngModel]="dueAt()"
-                        (ngModelChange)="dueAt.set($event)"
-                        class="h-10 w-full rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
-                      />
-                    </div>
-                  </div>
-
-                  <div class="grid gap-4 sm:grid-cols-2">
-                    <div class="flex flex-col gap-1.5">
-                      <label for="edit-rc" class="text-[13px] font-semibold text-fg-muted">
-                        {{ 'deviations.create.fields.rootCause' | transloco }}
-                      </label>
-                      <textarea
-                        id="edit-rc"
-                        [ngModel]="rootCause()"
-                        (ngModelChange)="rootCause.set($event)"
-                        rows="2"
-                        class="w-full rounded-[10px] border border-border bg-bg px-3 py-2.5 text-[13.5px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
-                      ></textarea>
-                    </div>
-                    <div class="flex flex-col gap-1.5">
-                      <label for="edit-rcm" class="text-[13px] font-semibold text-fg-muted">
-                        {{ 'deviations.create.fields.rootCauseMethod' | transloco }}
-                      </label>
-                      <div class="cf-select">
-                        <select
-                          id="edit-rcm"
-                          [ngModel]="rootCauseMethod()"
-                          (ngModelChange)="rootCauseMethod.set($event)"
-                        >
-                          <option value="">{{ 'deviations.create.none' | transloco }}</option>
-                          @for (option of rootCauseMethodOptions; track option) {
-                            <option [value]="option">
-                              {{ rootCauseMethodLabelKey(option) | transloco }}
-                            </option>
-                          }
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Classification: department, standards, clauses, tags -->
-                  <div class="flex flex-col gap-4 border-t border-border pt-4">
-                    <div class="flex flex-col gap-1.5 sm:max-w-[50%]">
-                      <label for="edit-dept" class="text-[13px] font-semibold text-fg-muted">
-                        {{ 'deviations.create.fields.department' | transloco }}
-                      </label>
-                      <div class="cf-select">
-                        <select
-                          id="edit-dept"
-                          [ngModel]="departmentId()"
-                          (ngModelChange)="departmentId.set($event)"
-                        >
-                          <option value="">{{ 'deviations.create.none' | transloco }}</option>
-                          @for (dept of departments(); track dept.id) {
-                            <option [value]="dept.id">{{ dept.name }}</option>
-                          }
-                        </select>
-                      </div>
-                    </div>
-                    <app-deviation-classification-fields
-                      idPrefix="edit"
-                      [(standards)]="standards"
-                      [(clauses)]="clauses"
-                      [(tags)]="tags"
-                    />
-                  </div>
-
-                  @if (schemaSections().length) {
-                    <div class="flex flex-col gap-6 border-t border-border pt-4">
-                      @for (section of schemaSections(); track section.title) {
-                        <div class="flex flex-col gap-4">
-                          @if (!section.isDefault) {
-                            <p class="text-[13px] font-semibold text-fg-muted">
-                              {{ section.title }}
-                            </p>
-                          }
-                          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                            @for (def of section.fields; track def.key) {
-                              <div [class.sm:col-span-2]="def.width === 'full'">
-                                <app-dynamic-field
-                                  [field]="def"
-                                  [value]="data()[def.key]"
-                                  [options]="optionsFor(def.type)"
-                                  [error]="dataErrors()[def.key] ?? null"
-                                  (valueChange)="setData(def.key, $event)"
-                                />
-                              </div>
-                            }
-                          </div>
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      @for (def of section.fields; track def.key) {
+                        <div [class.sm:col-span-2]="def.width === 'full'">
+                          <dt
+                            class="text-[11px] font-bold tracking-[0.08em] text-fg-subtle uppercase"
+                          >
+                            {{ def.label }}
+                          </dt>
+                          <dd class="mt-1 text-[13.5px] whitespace-pre-line text-fg">
+                            {{ displayValue(def) }}
+                          </dd>
                         </div>
                       }
                     </div>
+                  </div>
+                }
+              </dl>
+            } @else {
+              <div class="flex flex-col gap-4">
+                <div class="flex flex-col gap-1.5">
+                  <label for="edit-title" class="text-[13px] font-semibold text-fg-muted">
+                    {{ 'deviations.create.fields.title' | transloco }}
+                    <span class="text-fail" aria-hidden="true">*</span>
+                  </label>
+                  <input
+                    id="edit-title"
+                    type="text"
+                    [ngModel]="title()"
+                    (ngModelChange)="title.set($event)"
+                    autocomplete="off"
+                    class="h-10 w-full rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
+                  />
+                  @if (titleError()) {
+                    <p class="text-[12px] font-medium text-fail">
+                      {{ 'deviations.create.titleRequired' | transloco }}
+                    </p>
                   }
                 </div>
-              }
-            </app-card>
 
-            <app-card>
-              <app-deviation-actions
-                [deviationId]="dev.id"
-                [actions]="actions()"
-                [owners]="owners()"
-                [canEdit]="canEditThis()"
-                [highlighted]="blockingActionIds()"
-                (actionsChange)="actions.set($event)"
-                (changed)="reloadEvents()"
-                (stale)="refreshDeviation()"
-              />
-            </app-card>
+                <div class="flex flex-col gap-1.5">
+                  <label for="edit-desc" class="text-[13px] font-semibold text-fg-muted">
+                    {{ 'deviations.create.fields.description' | transloco }}
+                  </label>
+                  <textarea
+                    id="edit-desc"
+                    [ngModel]="description()"
+                    (ngModelChange)="description.set($event)"
+                    rows="3"
+                    class="w-full rounded-[10px] border border-border bg-bg px-3 py-2.5 text-[13.5px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
+                  ></textarea>
+                </div>
 
-            <app-card>
-              <app-attachments
-                entityType="deviation"
-                [entityId]="dev.id"
-                [canEdit]="canEditThis()"
-              />
-            </app-card>
-          </div>
-
-          <div class="flex flex-col gap-5">
-            <app-card [padded]="false">
-              <h2
-                class="px-4 pt-3.5 pb-1 font-display text-[15px] font-bold tracking-[-0.02em] text-fg"
-              >
-                {{ 'deviations.detail.owner' | transloco }}
-              </h2>
-              <p class="px-4 pb-3.5 text-[13.5px] text-fg">
-                {{ dev.owner_name || ('deviations.access.unassigned' | transloco) }}
-              </p>
-            </app-card>
-
-            <app-card *appHasPermission="'standards:read'">
-              <app-supports-requirements
-                entityType="deviation"
-                [entityId]="dev.id"
-                [actions]="actions()"
-              />
-            </app-card>
-
-            <app-card [padded]="false">
-              <h2
-                class="px-4 pt-3.5 pb-2 font-display text-[15px] font-bold tracking-[-0.02em] text-fg"
-              >
-                {{ 'deviations.detail.auditTrail' | transloco }}
-              </h2>
-              @if (events().length === 0) {
-                <p class="px-4 pb-4 text-[13.5px] text-fg-muted">
-                  {{ 'deviations.detail.noEvents' | transloco }}
-                </p>
-              } @else {
-                <ul class="px-4 pb-4">
-                  @for (row of timeline(); track row.event.id) {
-                    <li class="flex gap-2.5 pb-3 last:pb-0">
-                      <span class="mt-0.5 flex flex-none text-fg-subtle">
-                        <app-icon [name]="eventIcon(row.event.kind)" [size]="15" />
-                      </span>
-                      <span class="min-w-0 flex-1">
-                        <span class="block text-[13px] font-medium text-fg">{{
-                          row.text.summary
-                        }}</span>
-                        @if (row.text.detail) {
-                          <span class="block text-[12.5px] whitespace-pre-line text-fg-muted">{{
-                            row.text.detail
-                          }}</span>
+                <div class="grid gap-4 sm:grid-cols-2">
+                  <div class="flex flex-col gap-1.5">
+                    <label for="edit-severity" class="text-[13px] font-semibold text-fg-muted">
+                      {{ 'deviations.create.fields.severity' | transloco }}
+                    </label>
+                    <div class="cf-select">
+                      <select
+                        id="edit-severity"
+                        [ngModel]="severity()"
+                        (ngModelChange)="severity.set($event)"
+                      >
+                        @for (option of severityOptions; track option) {
+                          <option [value]="option">
+                            {{ severityLabelKey(option) | transloco }}
+                          </option>
                         }
-                        <span class="block text-[12px] text-fg-subtle">
-                          @if (row.event.actor_name) {
-                            {{
-                              'deviations.events.byline'
-                                | transloco
-                                  : {
-                                      actor: row.event.actor_name,
-                                      date: (row.event.created_at | localDate: 'medium'),
-                                    }
-                            }}
-                          } @else {
-                            {{ row.event.created_at | localDate: 'medium' }}
-                          }
-                        </span>
-                      </span>
-                    </li>
-                  }
-                </ul>
-              }
-            </app-card>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="flex flex-col gap-1.5">
+                    <label for="edit-source" class="text-[13px] font-semibold text-fg-muted">
+                      {{ 'deviations.create.fields.source' | transloco }}
+                    </label>
+                    <div class="cf-select">
+                      <select
+                        id="edit-source"
+                        [ngModel]="source()"
+                        (ngModelChange)="source.set($event)"
+                      >
+                        @for (option of sourceOptions; track option) {
+                          <option [value]="option">
+                            {{ sourceLabelKey(option) | transloco }}
+                          </option>
+                        }
+                      </select>
+                    </div>
+                  </div>
+                  <div class="flex flex-col gap-1.5">
+                    <label for="edit-due" class="text-[13px] font-semibold text-fg-muted">
+                      {{ 'deviations.create.fields.due' | transloco }}
+                    </label>
+                    <input
+                      id="edit-due"
+                      type="date"
+                      [ngModel]="dueAt()"
+                      (ngModelChange)="dueAt.set($event)"
+                      class="h-10 w-full rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
+                    />
+                  </div>
+                </div>
 
-            @if (access(); as acc) {
-              <app-card *appHasPermission="'deviations:manage'" [padded]="false">
-                <h2
-                  class="px-4 pt-3.5 pb-3 font-display text-[15px] font-bold tracking-[-0.02em] text-fg"
-                >
-                  {{ 'deviations.access.sharingTitle' | transloco }}
-                </h2>
-                <div class="px-4 pb-4">
-                  <app-deviation-access-editor
-                    [deviationId]="dev.id"
-                    [canManage]="canManage()"
-                    [locked]="editLockKey() !== null"
-                    [owner]="acc.owner_user_id ?? ''"
-                    [ownerName]="acc.owner_name ?? ''"
-                    [visibility]="acc.visibility"
-                    [grants]="grants()"
-                    (ownerChange)="onOwnerChange($event)"
-                    (visibilityChange)="onVisibilityChange($event)"
-                    (grantsChange)="grants.set($event)"
-                    (stale)="refreshDeviation()"
+                <div class="grid gap-4 sm:grid-cols-2">
+                  <div class="flex flex-col gap-1.5">
+                    <label for="edit-rc" class="text-[13px] font-semibold text-fg-muted">
+                      {{ 'deviations.create.fields.rootCause' | transloco }}
+                    </label>
+                    <textarea
+                      id="edit-rc"
+                      [ngModel]="rootCause()"
+                      (ngModelChange)="rootCause.set($event)"
+                      rows="2"
+                      class="w-full rounded-[10px] border border-border bg-bg px-3 py-2.5 text-[13.5px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
+                    ></textarea>
+                  </div>
+                  <div class="flex flex-col gap-1.5">
+                    <label for="edit-rcm" class="text-[13px] font-semibold text-fg-muted">
+                      {{ 'deviations.create.fields.rootCauseMethod' | transloco }}
+                    </label>
+                    <div class="cf-select">
+                      <select
+                        id="edit-rcm"
+                        [ngModel]="rootCauseMethod()"
+                        (ngModelChange)="rootCauseMethod.set($event)"
+                      >
+                        <option value="">{{ 'deviations.create.none' | transloco }}</option>
+                        @for (option of rootCauseMethodOptions; track option) {
+                          <option [value]="option">
+                            {{ rootCauseMethodLabelKey(option) | transloco }}
+                          </option>
+                        }
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Classification: department, standards, clauses, tags -->
+                <div class="flex flex-col gap-4 border-t border-border pt-4">
+                  <div class="flex flex-col gap-1.5 sm:max-w-[50%]">
+                    <label for="edit-dept" class="text-[13px] font-semibold text-fg-muted">
+                      {{ 'deviations.create.fields.department' | transloco }}
+                    </label>
+                    <div class="cf-select">
+                      <select
+                        id="edit-dept"
+                        [ngModel]="departmentId()"
+                        (ngModelChange)="departmentId.set($event)"
+                      >
+                        <option value="">{{ 'deviations.create.none' | transloco }}</option>
+                        @for (dept of departments(); track dept.id) {
+                          <option [value]="dept.id">{{ dept.name }}</option>
+                        }
+                      </select>
+                    </div>
+                  </div>
+                  <app-deviation-classification-fields
+                    idPrefix="edit"
+                    [(standards)]="standards"
+                    [(clauses)]="clauses"
+                    [(tags)]="tags"
                   />
                 </div>
-              </app-card>
+
+                @if (schemaSections().length) {
+                  <div class="flex flex-col gap-6 border-t border-border pt-4">
+                    @for (section of schemaSections(); track section.title) {
+                      <div class="flex flex-col gap-4">
+                        @if (!section.isDefault) {
+                          <p class="text-[13px] font-semibold text-fg-muted">
+                            {{ section.title }}
+                          </p>
+                        }
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                          @for (def of section.fields; track def.key) {
+                            <div [class.sm:col-span-2]="def.width === 'full'">
+                              <app-dynamic-field
+                                [field]="def"
+                                [value]="data()[def.key]"
+                                [options]="optionsFor(def.type)"
+                                [error]="dataErrors()[def.key] ?? null"
+                                (valueChange)="setData(def.key, $event)"
+                              />
+                            </div>
+                          }
+                        </div>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
             }
-          </div>
+          </app-card>
+
+          @if (recordVersion(); as version) {
+            <app-card>
+              <h2 class="mb-3 font-display text-[16px] font-bold tracking-[-0.02em] text-fg">
+                {{ 'deviations.wf.fieldsTitle' | transloco }}
+              </h2>
+              <app-dynamic-form
+                [fields]="version.fields"
+                [layout]="version.layout"
+                [value]="editing() ? data() : dev.data"
+                [readonly]="!editing()"
+                [errors]="recordErrors()"
+                [people]="owners()"
+                [departments]="departments()"
+                (valueChange)="setRecordData($event)"
+              />
+            </app-card>
+          }
+
+          <app-card>
+            <app-root-cause-panel
+              [deviationId]="dev.id"
+              [canEdit]="canEditThis()"
+              [problem]="dev.description ?? ''"
+              (applied)="refreshDeviation()"
+            />
+          </app-card>
+
+          <app-card appTourStep="deviations-capa">
+            <app-deviation-actions
+              [deviationId]="dev.id"
+              [actions]="actions()"
+              [owners]="owners()"
+              [canEdit]="canEditThis()"
+              [highlighted]="blockingActionIds()"
+              (actionsChange)="actions.set($event)"
+              (changed)="reloadEvents()"
+              (stale)="refreshDeviation()"
+            />
+            @if (canEditThis()) {
+              <div class="mt-3 border-t border-border pt-3">
+                <app-suggested-actions [deviationId]="dev.id" (added)="onActionAdded($event)" />
+              </div>
+            }
+          </app-card>
+
+          <app-card>
+            <app-similar-cases [deviationId]="dev.id" />
+          </app-card>
         </div>
 
-        <app-confirm-dialog
-          [open]="confirmDelete()"
-          [busy]="deleting()"
-          [title]="'deviations.detail.deleteTitle' | transloco"
-          [message]="'deviations.detail.deleteConfirm' | transloco: { code: dev.code }"
-          [confirmLabel]="'deviations.detail.delete' | transloco"
-          [cancelLabel]="'deviations.detail.cancel' | transloco"
-          (confirmed)="remove()"
-          (cancelled)="confirmDelete.set(false)"
-        />
-
-        <app-confirm-dialog
-          [open]="reasonFor() !== null"
-          [busy]="savingStatus()"
-          confirmVariant="primary"
-          [confirmDisabled]="!statusReason().trim()"
-          initialFocus="#status-reason"
-          [returnFocus]="statusTriggerButton()"
-          [title]="
-            'deviations.workflow.reasonTitle'
-              | transloco: { status: (statusLabelKey(reasonFor() ?? dev.status) | transloco) }
-          "
-          [message]="'deviations.workflow.reasonPrompt' | transloco"
-          [confirmLabel]="'deviations.workflow.reasonConfirm' | transloco"
-          [cancelLabel]="'deviations.detail.cancel' | transloco"
-          (confirmed)="submitReason()"
-          (cancelled)="closeReason()"
-        >
-          <div class="mt-3 flex flex-col gap-1.5">
-            <label for="status-reason" class="text-[13px] font-semibold text-fg-muted">
-              {{ 'deviations.workflow.reasonLabel' | transloco }}
-              <span class="text-fail" aria-hidden="true">*</span>
-            </label>
-            <textarea
-              id="status-reason"
-              rows="3"
-              [value]="statusReason()"
-              [maxLength]="reasonMax"
-              aria-describedby="status-reason-count"
-              (input)="statusReason.set($any($event.target).value)"
-              class="w-full rounded-[10px] border border-border bg-bg px-3 py-2.5 text-[13.5px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
-            ></textarea>
-            <p id="status-reason-count" class="text-right text-[12px] text-fg-subtle">
-              {{
-                'deviations.workflow.reasonCount'
-                  | transloco: { count: statusReason().length, max: reasonMax }
-              }}
+        <div aside class="flex flex-col gap-4">
+          @if (dev.workflow) {
+            <app-deviation-workflow-panel
+              appTourStep="deviations-workflow"
+              [deviation]="dev"
+              [fields]="recordVersion()?.fields ?? []"
+              [people]="owners()"
+              [departments]="departments()"
+              [canWrite]="canWrite()"
+              (changed)="onWorkflowChanged($event)"
+            />
+          }
+          <app-card [padded]="false">
+            <h2
+              class="px-4 pt-3.5 pb-1 font-display text-[15px] font-bold tracking-[-0.02em] text-fg"
+            >
+              {{ 'deviations.detail.owner' | transloco }}
+            </h2>
+            <p class="px-4 pb-3.5 text-[13.5px] text-fg">
+              {{ dev.owner_name || ('deviations.access.unassigned' | transloco) }}
             </p>
-          </div>
-        </app-confirm-dialog>
-      } @else {
+          </app-card>
+
+          <app-card *appHasPermission="'standards:read'">
+            <app-supports-requirements
+              entityType="deviation"
+              [entityId]="dev.id"
+              [actions]="actions()"
+            />
+          </app-card>
+
+          <app-card [padded]="false">
+            <h2
+              class="px-4 pt-3.5 pb-2 font-display text-[15px] font-bold tracking-[-0.02em] text-fg"
+            >
+              {{ 'deviations.detail.auditTrail' | transloco }}
+            </h2>
+            @if (events().length === 0) {
+              <p class="px-4 pb-4 text-[13.5px] text-fg-muted">
+                {{ 'deviations.detail.noEvents' | transloco }}
+              </p>
+            } @else {
+              <ul class="px-4 pb-4">
+                @for (row of timeline(); track row.event.id) {
+                  <li class="flex gap-2.5 pb-3 last:pb-0">
+                    <span class="mt-0.5 flex flex-none text-fg-subtle">
+                      <app-icon [name]="eventIcon(row.event.kind)" [size]="15" />
+                    </span>
+                    <span class="min-w-0 flex-1">
+                      <span class="block text-[13px] font-medium text-fg">{{
+                        row.text.summary
+                      }}</span>
+                      @if (row.text.detail) {
+                        <span class="block text-[12.5px] whitespace-pre-line text-fg-muted">{{
+                          row.text.detail
+                        }}</span>
+                      }
+                      <span class="block text-[12px] text-fg-subtle">
+                        @if (row.event.actor_name) {
+                          {{
+                            'deviations.events.byline'
+                              | transloco
+                                : {
+                                    actor: row.event.actor_name,
+                                    date: (row.event.created_at | localDate: 'medium'),
+                                  }
+                          }}
+                        } @else {
+                          {{ row.event.created_at | localDate: 'medium' }}
+                        }
+                      </span>
+                    </span>
+                  </li>
+                }
+              </ul>
+            }
+          </app-card>
+
+          @if (access(); as acc) {
+            <app-card *appHasPermission="'deviations:manage'" [padded]="false">
+              <h2
+                class="px-4 pt-3.5 pb-3 font-display text-[15px] font-bold tracking-[-0.02em] text-fg"
+              >
+                {{ 'deviations.access.sharingTitle' | transloco }}
+              </h2>
+              <div class="px-4 pb-4">
+                <app-deviation-access-editor
+                  [deviationId]="dev.id"
+                  [canManage]="canManage()"
+                  [locked]="editLockKey() !== null"
+                  [owner]="acc.owner_user_id ?? ''"
+                  [ownerName]="acc.owner_name ?? ''"
+                  [visibility]="acc.visibility"
+                  [grants]="grants()"
+                  (ownerChange)="onOwnerChange($event)"
+                  (visibilityChange)="onVisibilityChange($event)"
+                  (grantsChange)="grants.set($event)"
+                  (stale)="refreshDeviation()"
+                />
+              </div>
+            </app-card>
+          }
+        </div>
+
+        <div tasks>
+          <app-entity-tasks
+            entityType="deviation"
+            [entityId]="dev.id"
+            [canCreate]="canEditThis()"
+            [entityLabel]="dev.code"
+          />
+        </div>
+      </app-record-detail-layout>
+
+      <app-confirm-dialog
+        [open]="confirmDelete()"
+        [busy]="deleting()"
+        [title]="'deviations.detail.deleteTitle' | transloco"
+        [message]="'deviations.detail.deleteConfirm' | transloco: { code: dev.code }"
+        [confirmLabel]="'deviations.detail.delete' | transloco"
+        [cancelLabel]="'deviations.detail.cancel' | transloco"
+        (confirmed)="remove()"
+        (cancelled)="confirmDelete.set(false)"
+      />
+
+      <app-confirm-dialog
+        [open]="reasonFor() !== null"
+        [busy]="savingStatus()"
+        confirmVariant="primary"
+        [confirmDisabled]="!statusReason().trim()"
+        initialFocus="#status-reason"
+        [returnFocus]="statusTriggerButton()"
+        [title]="
+          'deviations.workflow.reasonTitle'
+            | transloco: { status: (statusLabelKey(reasonFor() ?? dev.status) | transloco) }
+        "
+        [message]="'deviations.workflow.reasonPrompt' | transloco"
+        [confirmLabel]="'deviations.workflow.reasonConfirm' | transloco"
+        [cancelLabel]="'deviations.detail.cancel' | transloco"
+        (confirmed)="submitReason()"
+        (cancelled)="closeReason()"
+      >
+        <div class="mt-3 flex flex-col gap-1.5">
+          <label for="status-reason" class="text-[13px] font-semibold text-fg-muted">
+            {{ 'deviations.workflow.reasonLabel' | transloco }}
+            <span class="text-fail" aria-hidden="true">*</span>
+          </label>
+          <textarea
+            id="status-reason"
+            rows="3"
+            [value]="statusReason()"
+            [maxLength]="reasonMax"
+            aria-describedby="status-reason-count"
+            (input)="statusReason.set($any($event.target).value)"
+            class="w-full rounded-[10px] border border-border bg-bg px-3 py-2.5 text-[13.5px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
+          ></textarea>
+          <p id="status-reason-count" class="text-right text-[12px] text-fg-subtle">
+            {{
+              'deviations.workflow.reasonCount'
+                | transloco: { count: statusReason().length, max: reasonMax }
+            }}
+          </p>
+        </div>
+      </app-confirm-dialog>
+    } @else {
+      <div class="mx-auto max-w-[1080px] px-4 pt-7 pb-12 sm:px-8">
         <app-card>
           <div class="px-2 py-10 text-center text-[14px] text-fg-muted">
             {{ 'deviations.detail.notFound' | transloco }}
           </div>
         </app-card>
-      }
-    </div>
+      </div>
+    }
   `,
   styles: [
     `
@@ -842,9 +984,28 @@ export class DeviationDetail {
   private readonly notifications = inject(NotificationService);
   private readonly language = inject(LanguageService);
   private readonly router = inject(Router);
+  private readonly recordsApi = inject(RecordsApi);
+  protected readonly statusLabels = inject(DeviationStatusLabels);
 
   /** Route param `id`, bound via withComponentInputBinding(). */
   readonly id = input.required<string>();
+  /** Route data `edit` (`/deviations/:id/edit`): open in edit mode once loaded. */
+  readonly edit = input(false);
+
+  protected readonly tabs = DETAIL_TABS;
+  protected readonly fieldLabels = DEVIATION_FIELD_LABELS;
+
+  /** An AI summary of the deviation (text assist), shown until dismissed. */
+  protected readonly summary = signal('');
+  /** The pinned record type version of a record-typed deviation (fields + layout). */
+  protected readonly recordVersion = signal<RecordTypeVersion | null>(null);
+  /** Per-field validation codes for the record fields (422 `invalid_data`). */
+  protected readonly recordErrors = signal<Readonly<Record<string, string>>>({});
+  /** The deviation's lifecycle is an F4 workflow (record-typed). */
+  protected readonly isWorkflow = computed(() => {
+    const dev = this.deviation();
+    return !!dev && isWorkflowManaged(dev);
+  });
 
   protected readonly orgId = this.selectedOrg.currentOrgId;
 
@@ -909,7 +1070,10 @@ export class DeviationDetail {
   protected readonly titleError = signal(false);
 
   /** The type's dynamic field schema, for read-only and edit rendering. */
-  protected readonly schema = computed<readonly FieldDef[]>(() => this.type()?.schema ?? []);
+  protected readonly schema = computed<readonly FieldDef[]>(() =>
+    // A record-typed deviation renders its record type version's fields instead.
+    this.deviation()?.record_type_version_id ? [] : (this.type()?.schema ?? []),
+  );
 
   /** The schema grouped into render sections for the 2-col grid (read + edit). */
   protected readonly schemaSections = computed(() =>
@@ -1052,8 +1216,8 @@ export class DeviationDetail {
   /** Explanation key for a workflow code on a move to `to` (permission-phrased for reopening). */
   protected reasonKeyFor(
     code: string | null | undefined,
-    to: DeviationStatus,
-    from: DeviationStatus = this.deviation()?.status ?? to,
+    to: string,
+    from: string = this.deviation()?.status ?? to,
   ): string {
     return workflowReasonKey(code, { from, to, canManage: this.canManage() });
   }
@@ -1195,6 +1359,7 @@ export class DeviationDetail {
     this.departmentId.set(form.departmentId);
     this.data.set(form.data);
     this.dataErrors.set({});
+    this.recordErrors.set({});
     this.titleError.set(false);
     this.editing.set(true);
   }
@@ -1202,6 +1367,31 @@ export class DeviationDetail {
   protected cancelEdit(): void {
     this.editing.set(false);
     this.dataErrors.set({});
+  }
+
+  /** Edits of the record type fields (the whole data object from the dynamic form). */
+  protected setRecordData(value: Record<string, unknown>): void {
+    const errors = this.recordErrors();
+    const changed = Object.keys(errors).filter((key) => value[key] !== this.data()[key]);
+    if (changed.length) {
+      const next = { ...errors };
+      for (const key of changed) {
+        delete next[key];
+      }
+      this.recordErrors.set(next);
+    }
+    this.data.set(value);
+  }
+
+  /** A workflow transition, decision or withdrawal refreshed the deviation. */
+  protected onWorkflowChanged(updated: DeviationDetailModel): void {
+    this.applyUpdated(updated);
+  }
+
+  /** An AI-suggested action was added as a CAPA action. */
+  protected onActionAdded(action: Action): void {
+    this.actions.set([...this.actions(), action]);
+    this.reloadEvents();
   }
 
   protected setData(key: string, value: unknown): void {
@@ -1264,6 +1454,13 @@ export class DeviationDetail {
   }
 
   private handleEditError(error: unknown): void {
+    const recordFieldErrors = recordDataErrors(error);
+    if (recordFieldErrors) {
+      // Record-typed deviation: F4 validation codes, rendered by the dynamic form.
+      this.recordErrors.set(recordFieldErrors);
+      this.notifications.error('deviations.create.validationToast');
+      return;
+    }
     const fieldErrors = invalidDataErrors(error);
     if (fieldErrors) {
       this.dataErrors.set(fieldErrorKeys(fieldErrors));
@@ -1372,13 +1569,29 @@ export class DeviationDetail {
         this.events.set(dev.events);
         this.loading.set(false);
         this.loadType(orgId, dev.type_id);
+        this.loadRecordVersion(orgId, dev);
         this.loadAccess(orgId, id);
+        if (this.edit() && this.canEditThis()) {
+          this.startEdit(dev);
+        }
       },
       error: () => {
         this.deviation.set(null);
         this.loading.set(false);
       },
     });
+  }
+
+  /** The fields + layout of the record type version a record-typed deviation is pinned to. */
+  private loadRecordVersion(orgId: string, dev: DeviationDetailModel): void {
+    this.recordVersion.set(null);
+    this.recordErrors.set({});
+    if (!dev.record_type_id || !dev.record_type_version) {
+      return;
+    }
+    this.recordsApi
+      .getRecordTypeVersion(orgId, dev.record_type_id, dev.record_type_version)
+      .subscribe({ next: (version) => this.recordVersion.set(version) });
   }
 
   private loadType(orgId: string, typeId: string): void {

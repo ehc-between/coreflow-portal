@@ -18,12 +18,19 @@ import {
   DeviationListItem,
   DeviationListResponse,
   DeviationStats,
-  DeviationStatus,
+  DeviationTemplateList,
+  DeviationTransitionRequest,
   DeviationType,
   DeviationTypeDraftResponse,
   DeviationTypeInput,
+  CreateRootCauseRequest,
+  InstallDeviationTemplateRequest,
+  RootCauseAnalysis,
+  RootCauseAnalysisList,
+  SimilarDeviationList,
   Standard,
   UpdateDeviationRequest,
+  UpdateRootCauseRequest,
 } from './deviation.models';
 
 /**
@@ -107,6 +114,8 @@ export class DeviationsApi {
     return this.api.get<DeviationListResponse>(`v1/orgs/${orgId}/deviations`, {
       params: {
         status: filters.status,
+        category: filters.category,
+        record_type_id: filters.record_type_id,
         type_id: filters.type_id,
         standard: filters.standard,
         severity: filters.severity,
@@ -156,7 +165,7 @@ export class DeviationsApi {
   changeStatus(
     orgId: string,
     deviationId: string,
-    status: DeviationStatus,
+    status: string,
     statusReason?: string,
   ): Observable<DeviationDetail> {
     const body: UpdateDeviationRequest = statusReason
@@ -169,6 +178,107 @@ export class DeviationsApi {
 
   deleteDeviation(orgId: string, deviationId: string): Observable<void> {
     return this.api.delete<void>(`v1/orgs/${orgId}/deviations/${deviationId}`);
+  }
+
+  /**
+   * Run an F4 workflow transition on a record-typed deviation (or request its
+   * approval); returns the refreshed detail. Coded 409 / 422 errors
+   * (`transition_not_allowed`, `required_fields`, `comment_required`, …) are
+   * explained in place by the caller. Unlike the generic workflow endpoint this
+   * one can also reopen a closed deviation.
+   */
+  transition(
+    orgId: string,
+    deviationId: string,
+    key: string,
+    body: DeviationTransitionRequest = {},
+  ): Observable<DeviationDetail> {
+    return this.api.post<DeviationDetail>(
+      `v1/orgs/${orgId}/deviations/${deviationId}/transitions/${encodeURIComponent(key)}`,
+      body,
+      IN_PLACE,
+    );
+  }
+
+  /** Similar past deviations (permission-filtered full-text search, no AI). */
+  similar(orgId: string, deviationId: string, limit = 5): Observable<SimilarDeviationList> {
+    return this.api.get<SimilarDeviationList>(
+      `v1/orgs/${orgId}/deviations/${deviationId}/similar`,
+      { params: { limit } },
+    );
+  }
+
+  // --- Templates (M03) -------------------------------------------------------
+
+  /** The built-in deviation record templates and whether each is installed. */
+  listTemplates(orgId: string): Observable<DeviationTemplateList> {
+    return this.api.get<DeviationTemplateList>(`v1/orgs/${orgId}/deviation-templates`);
+  }
+
+  /** Install a template as a record type + workflow + bound deviation type (`deviations:admin`). */
+  installTemplate(
+    orgId: string,
+    key: string,
+    body: InstallDeviationTemplateRequest = {},
+  ): Observable<DeviationType> {
+    return this.api.post<DeviationType>(
+      `v1/orgs/${orgId}/deviation-templates/${encodeURIComponent(key)}/install`,
+      body,
+      IN_PLACE,
+    );
+  }
+
+  // --- Root-cause analyses (M03) ---------------------------------------------
+
+  listRootCauses(orgId: string, deviationId: string): Observable<RootCauseAnalysisList> {
+    return this.api.get<RootCauseAnalysisList>(
+      `v1/orgs/${orgId}/deviations/${deviationId}/root-causes`,
+    );
+  }
+
+  createRootCause(
+    orgId: string,
+    deviationId: string,
+    body: CreateRootCauseRequest,
+  ): Observable<RootCauseAnalysis> {
+    return this.api.post<RootCauseAnalysis>(
+      `v1/orgs/${orgId}/deviations/${deviationId}/root-causes`,
+      body,
+      IN_PLACE,
+    );
+  }
+
+  updateRootCause(
+    orgId: string,
+    deviationId: string,
+    analysisId: string,
+    body: UpdateRootCauseRequest,
+  ): Observable<RootCauseAnalysis> {
+    return this.api.patch<RootCauseAnalysis>(
+      `v1/orgs/${orgId}/deviations/${deviationId}/root-causes/${analysisId}`,
+      body,
+      IN_PLACE,
+    );
+  }
+
+  /** Copy the worksheet's conclusion into the deviation's root cause (422 `conclusion_required`). */
+  applyRootCause(
+    orgId: string,
+    deviationId: string,
+    analysisId: string,
+  ): Observable<RootCauseAnalysis> {
+    return this.api.post<RootCauseAnalysis>(
+      `v1/orgs/${orgId}/deviations/${deviationId}/root-causes/${analysisId}/apply`,
+      {},
+      IN_PLACE,
+    );
+  }
+
+  deleteRootCause(orgId: string, deviationId: string, analysisId: string): Observable<void> {
+    return this.api.delete<void>(
+      `v1/orgs/${orgId}/deviations/${deviationId}/root-causes/${analysisId}`,
+      IN_PLACE,
+    );
   }
 
   // --- Actions ---------------------------------------------------------------

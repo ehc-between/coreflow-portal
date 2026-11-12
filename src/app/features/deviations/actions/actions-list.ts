@@ -1,3 +1,4 @@
+import { providePageContext } from '../../../core/ai/page-context';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -199,6 +200,11 @@ export class ActionsList {
   private request = new Subscription();
 
   constructor() {
+    providePageContext(() => ({
+      module: 'deviations',
+      entityType: 'deviation_action',
+      view: 'list',
+    }));
     inject(DestroyRef).onDestroy(() => this.request.unsubscribe());
 
     effect(() => {

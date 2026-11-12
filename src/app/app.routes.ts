@@ -54,6 +54,14 @@ export const routes: Routes = [
     loadChildren: () => import('./features/feedback/feedback-public.routes'),
   },
 
+  // Public anonymous / whistleblowing report form (M03), reached through an org's
+  // intake link; no account needed. Kept outside the protected shell.
+  {
+    path: 'report/:token',
+    loadComponent: () =>
+      import('./features/deviations/intake/public-report').then((m) => m.PublicReportPage),
+  },
+
   // Authenticated application shell. Feature areas are lazy-loaded children.
   {
     path: '',

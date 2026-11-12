@@ -1,6 +1,7 @@
 import { LocalDayPipe } from '../../../shared/locale/locale-pipes';
 import { ChangeDetectionStrategy, Component, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import {
   Action,
@@ -20,6 +21,7 @@ import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
 import { Attachments } from '../../../shared/attachments/attachments';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { FieldHelp } from '../../../shared/guidance/field-help';
 import {
   ACTION_KIND_OPTIONS,
   ACTION_STATUS_OPTIONS,
@@ -49,7 +51,17 @@ interface OwnerOption {
  */
 @Component({
   selector: 'app-deviation-actions',
-  imports: [LocalDayPipe, FormsModule, TranslocoPipe, Badge, Button, Icon, Attachments],
+  imports: [
+    LocalDayPipe,
+    FormsModule,
+    RouterLink,
+    TranslocoPipe,
+    Badge,
+    Button,
+    Icon,
+    Attachments,
+    FieldHelp,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div>
@@ -115,17 +127,34 @@ interface OwnerOption {
               class="w-full rounded-[10px] border border-border bg-bg px-3 py-2.5 text-[13.5px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
             ></textarea>
           </div>
-          <div class="flex flex-col gap-1.5 sm:max-w-[220px]">
-            <label for="new-action-due" class="text-[13px] font-semibold text-fg-muted">
-              {{ 'deviations.actions.fields.due' | transloco }}
-            </label>
-            <input
-              id="new-action-due"
-              type="date"
-              [ngModel]="newDue()"
-              (ngModelChange)="newDue.set($event)"
-              class="h-10 w-full rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
-            />
+          <div class="grid gap-3 sm:grid-cols-2">
+            <div class="flex flex-col gap-1.5">
+              <label for="new-action-due" class="text-[13px] font-semibold text-fg-muted">
+                {{ 'deviations.actions.fields.due' | transloco }}
+              </label>
+              <input
+                id="new-action-due"
+                type="date"
+                [ngModel]="newDue()"
+                (ngModelChange)="newDue.set($event)"
+                class="h-10 w-full rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
+              />
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <span class="flex items-center gap-1.5">
+                <label for="new-action-review" class="text-[13px] font-semibold text-fg-muted">
+                  {{ 'deviations.capa.reviewDue' | transloco }}
+                </label>
+                <app-field-help scope="deviations" page="detail" field="effectiveness_review" />
+              </span>
+              <input
+                id="new-action-review"
+                type="date"
+                [ngModel]="newReviewDue()"
+                (ngModelChange)="newReviewDue.set($event)"
+                class="h-10 w-full rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
+              />
+            </div>
           </div>
           <div class="flex items-center gap-2">
             <app-button size="sm" [loading]="saving()" (click)="submitAdd()">
@@ -189,6 +218,27 @@ interface OwnerOption {
                           'deviations.actions.dueLabel'
                             | transloco: { date: (action.due_at | localDay) }
                         }}
+                      </span>
+                    }
+                    @if (action.effectiveness_review_due_at) {
+                      <span class="inline-flex items-center gap-1" data-testid="review-due">
+                        <app-icon name="checkcircle" [size]="13" />
+                        @if (action.effectiveness_review_task_id) {
+                          <a
+                            [routerLink]="['/tasks', action.effectiveness_review_task_id]"
+                            class="hover:text-fg hover:underline"
+                            >{{
+                              'deviations.capa.reviewDueLabel'
+                                | transloco
+                                  : { date: (action.effectiveness_review_due_at | localDay) }
+                            }}</a
+                          >
+                        } @else {
+                          {{
+                            'deviations.capa.reviewDueLabel'
+                              | transloco: { date: (action.effectiveness_review_due_at | localDay) }
+                          }}
+                        }
                       </span>
                     }
                   </span>
@@ -263,6 +313,22 @@ interface OwnerOption {
                         }
                       </select>
                     </div>
+                  </div>
+
+                  <div class="flex flex-col gap-1">
+                    <label
+                      [for]="'review-' + action.id"
+                      class="text-[11px] font-semibold text-fg-subtle"
+                      >{{ 'deviations.capa.reviewDue' | transloco }}</label
+                    >
+                    <input
+                      [id]="'review-' + action.id"
+                      type="date"
+                      [ngModel]="dayOf(action.effectiveness_review_due_at)"
+                      (ngModelChange)="changeReviewDue(action, $event)"
+                      [disabled]="busyId() === action.id"
+                      class="h-9 rounded-[10px] border border-border bg-bg px-3 text-[13px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
+                    />
                   </div>
 
                   @if (action.status !== 'verified') {
@@ -382,6 +448,7 @@ export class DeviationActions {
   protected readonly newDescription = signal('');
   protected readonly newOwner = signal('');
   protected readonly newDue = signal('');
+  protected readonly newReviewDue = signal('');
 
   protected readonly notesOpenId = signal<string | null>(null);
   protected readonly notesDraft = signal('');
@@ -395,6 +462,7 @@ export class DeviationActions {
     this.newDescription.set('');
     this.newOwner.set('');
     this.newDue.set('');
+    this.newReviewDue.set('');
     this.adding.set(true);
   }
 
@@ -413,6 +481,7 @@ export class DeviationActions {
       description,
       owner_user_id: this.newOwner() || undefined,
       due_at: this.newDue() || undefined,
+      effectiveness_review_due_at: this.newReviewDue() || undefined,
     };
     this.saving.set(true);
     this.api.addAction(orgId, this.deviationId(), body).subscribe({
@@ -443,6 +512,19 @@ export class DeviationActions {
       return;
     }
     this.patch(action, { effectiveness });
+  }
+
+  /** The `YYYY-MM-DD` part of a stored datetime, for a date input. */
+  protected dayOf(value: string | null | undefined): string {
+    return value ? value.slice(0, 10) : '';
+  }
+
+  /** Schedule, move or (when cleared) cancel the action's effectiveness review task. */
+  protected changeReviewDue(action: Action, value: string): void {
+    if ((value || '') === this.dayOf(action.effectiveness_review_due_at)) {
+      return;
+    }
+    this.patch(action, { effectiveness_review_due_at: value || null });
   }
 
   protected markVerified(action: Action): void {

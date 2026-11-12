@@ -1,0 +1,298 @@
+{
+  "standards": {
+    "iso42001": "ISO/IEC 42001",
+    "eu_ai_act": "EUs KI-forordning",
+    "nis2": "NIS2"
+  },
+  "category": {
+    "filter": "Fase",
+    "all": "Alle faser",
+    "open": "Åpen",
+    "in_progress": "Under arbeid",
+    "done": "Ferdig",
+    "cancelled": "Avbrutt"
+  },
+  "wf": {
+    "needsFields": "Felt som må fylles ut først: {{ count }}",
+    "closed": "Avviket er lukket. Åpne det igjen med et arbeidsflyttrinn hvis det tilbys.",
+    "version": "Versjon {{ version }}",
+    "fieldsTitle": "Detaljer for denne typen",
+    "visibility": "Synlighet",
+    "workflowBadge": "Arbeidsflyt",
+    "statesGroup": "Arbeidsflyttilstander",
+    "linkedFrom": "Det nye avviket kobles til posten det ble åpnet fra ({{ count }}).",
+    "binding": {
+      "label": "Felt og arbeidsflyt",
+      "none": "Bruk feltene nedenfor og standard statusflyt",
+      "current": "Gjeldende posttype",
+      "boundNote": "Nye avvik av denne typen bruker posttypens felt og arbeidsflyt. Feltene nedenfor brukes bare av avvik registrert før koblingen.",
+      "hint": "Koble en posttype for å gi avvikstypen egne felt, tilstander, godkjenninger og frister."
+    }
+  },
+  "apiErrors": {
+    "workflow_managed": "Statusen til dette avviket styres av arbeidsflyten. Bruk et arbeidsflyttrinn i stedet.",
+    "not_workflow_managed": "Dette avviket har ingen arbeidsflyt. Endre status fra statusmenyen.",
+    "invalid_record_type": "Posttypen finnes ikke eller er ikke en posttype for avvik.",
+    "record_type_bound": "Posttypen brukes allerede av en annen avvikstype.",
+    "record_type_inactive": "Posttypen bak denne avvikstypen er inaktiv. Be en administrator om å aktivere den.",
+    "record_type_unpublished": "Posttypen bak denne avvikstypen har ingen publisert versjon ennå.",
+    "invalid_status": "Statusen finnes ikke i denne organisasjonen.",
+    "template_not_found": "Malen finnes ikke.",
+    "template_installed": "Malen er allerede installert.",
+    "conclusion_required": "Skriv en konklusjon før du tar analysen i bruk.",
+    "intake_not_configured": "Lagre innstillingene for rapportlenken først.",
+    "intake_not_found": "Rapportlenken er ikke tilgjengelig. Den kan være slått av eller erstattet.",
+    "receipt_not_found": "Fant ingen rapport med den kvitteringskoden.",
+    "type_required": "Velg en avvikstype, eller sett en standardtype for rapportlenken.",
+    "report_closed": "Rapporten er allerede behandlet.",
+    "text_required": "Beskriv først hva som skjedde.",
+    "deviation_required": "Åpne et avvik først."
+  },
+  "rootCauses": {
+    "title": "Årsaksanalyse",
+    "newFiveWhys": "5 hvorfor",
+    "newFishbone": "Fiskebein",
+    "aiDraftNote": "Utkast laget med KI-hjelp. Sjekk hvert trinn før du lagrer.",
+    "problem": "Problem",
+    "whys": "Hvorfor-trinn",
+    "question": "Spørsmål {{ n }}",
+    "answer": "Svar {{ n }}",
+    "answerPlaceholder": "Fordi …",
+    "removeWhy": "Fjern trinn {{ n }}",
+    "addWhy": "Legg til et hvorfor",
+    "useLastAnswer": "Bruk siste svar som konklusjon",
+    "fishboneHint": "List opp mulige årsaker under hver overskrift, én per linje. La overskrifter som ikke passer stå tomme.",
+    "conclusion": "Konklusjon (rotårsak)",
+    "applyOnSave": "Bruk også konklusjonen som avvikets rotårsak",
+    "save": "Lagre analyse",
+    "empty": "Ingen analyse ennå. Start en 5 hvorfor- eller fiskebeinanalyse for å finne rotårsaken.",
+    "applied": "Brukt som rotårsak",
+    "byline": "{{ name }}, {{ date }}",
+    "edit": "Rediger",
+    "apply": "Bruk som rotårsak",
+    "remove": "Fjern",
+    "removeTitle": "Fjerne denne analysen?",
+    "removeConfirm": "Arbeidsarket fjernes. Avvikets rotårsak blir stående som den er.",
+    "whyPrompt": "Hvorfor skjedde dette?",
+    "savedToast": "Analysen er lagret.",
+    "appliedToast": "Rotårsaken er oppdatert.",
+    "removedToast": "Analysen er fjernet.",
+    "methods": {
+      "five_whys": "5 hvorfor",
+      "fishbone": "Fiskebein (Ishikawa)",
+      "other": "Annen analyse"
+    },
+    "categories": {
+      "people": "Mennesker",
+      "method": "Metode",
+      "machine": "Maskiner og utstyr",
+      "material": "Materiale",
+      "measurement": "Måling",
+      "environment": "Omgivelser",
+      "management": "Ledelse"
+    }
+  },
+  "similar": {
+    "title": "Lignende tidligere saker",
+    "empty": "Fant ingen lignende avvik.",
+    "rootCause": "Rotårsak: {{ cause }}"
+  },
+  "assist": {
+    "summarise": "Oppsummer",
+    "summaryTitle": "Sammendrag",
+    "dismiss": "Lukk sammendrag",
+    "suggestRootCause": "Foreslå rotårsak",
+    "compareCases": "Sammenlign med disse sakene",
+    "suggestActions": "Foreslå tiltak",
+    "dueInDays": "Foreslått frist: {{ count }} dager",
+    "addAction": "Legg til som tiltak",
+    "discard": "Forkast",
+    "reviewNote": "Forslag fra KI kan være feil. Sjekk dem før du bruker dem.",
+    "draftFromReport": "Lag utkast fra rapporten",
+    "draftApplied": "Skjemaet er fylt ut fra utkastet. Sjekk det før du lagrer.",
+    "describeLabel": "Beskriv hva som skjedde med dine egne ord (valgfritt)",
+    "describePlaceholder": "For eksempel: Kunden fikk 40 enheter i stedet for 400 på tirsdag. Plukklisten ble skrevet ut fra en gammel ordre.",
+    "registerFromText": "Fyll ut skjemaet for meg",
+    "describeHint": "KI velger type og fyller ut feltene. Du går gjennom alt før du lagrer.",
+    "missing": "Mangler fortsatt: {{ fields }}"
+  },
+  "capa": {
+    "reviewDue": "Effektivitetsvurdering",
+    "reviewDueLabel": "Vurder effekt {{ date }}"
+  },
+  "guide": {
+    "lessonButton": "Leksjon: {{ title }}",
+    "close": "Lukk"
+  },
+  "templates": {
+    "link": "Maler",
+    "back": "Tilbake til avvikstyper",
+    "title": "Avviksmaler",
+    "subtitle": "Ferdige typer med egne felt, arbeidsflyt, frister og godkjenninger. Installer en og tilpass den til måten dere jobber på.",
+    "counts": "{{ fields }} felt · {{ states }} tilstander · {{ transitions }} trinn",
+    "installed": "Installert",
+    "openType": "Åpne type",
+    "openDesigner": "Rediger felt og arbeidsflyt",
+    "install": "Installer",
+    "empty": "Ingen maler er tilgjengelige.",
+    "installedToast": "{{ name }} er installert."
+  },
+  "intake": {
+    "backToInbox": "Tilbake til mottatte rapporter",
+    "modes": {
+      "anonymous": "Anonym rapportering",
+      "whistleblowing": "Varsling"
+    },
+    "modeHelp": {
+      "anonymous": "Alle med lenken kan melde et problem, en nestenulykke eller en idé uten å logge inn.",
+      "whistleblowing": "For å varsle om alvorlige kritikkverdige forhold. Rapportene blir avvik med begrenset tilgang som bare saksbehandleren ser."
+    },
+    "status": {
+      "new": "Ny",
+      "triaged": "Under behandling",
+      "converted": "Registrert som avvik",
+      "dismissed": "Lukket"
+    },
+    "settings": {
+      "link": "Innstillinger for rapportlenke",
+      "title": "Anonym rapportlenke",
+      "subtitle": "En offentlig lenke der folk kan rapportere uten konto. Del den på plakater, intranettet eller med leverandører.",
+      "enabled": "Lenken er åpen for rapporter",
+      "mode": "Type rapportering",
+      "defaultType": "Avvikstype for rapporter",
+      "noDefaultType": "Velg ved registrering",
+      "instructions": "Instruksjoner som vises på skjemaet",
+      "instructionsPlaceholder": "For eksempel: hva som skal meldes her, og når man heller skal ringe nødnummeret.",
+      "allowContact": "La den som rapporterer legge igjen kontaktinformasjon hvis de vil",
+      "save": "Lagre innstillinger",
+      "linkTitle": "Offentlig lenke",
+      "linkOff": "Lenken er slått av. De som åpner den, får beskjed om at den ikke er tilgjengelig.",
+      "copy": "Kopier lenke",
+      "rotate": "Erstatt lenke",
+      "privacyNote": "Rapporter lagrer ingen IP-adresse, nettleserdetaljer eller konto. Den som rapporterer, får en kvitteringskode for å følge opp.",
+      "rotateTitle": "Erstatte lenken?",
+      "rotateConfirm": "Den nåværende lenken slutter å virke med en gang. Kvitteringskoder virker fortsatt med den nye lenken.",
+      "savedToast": "Innstillingene er lagret.",
+      "rotatedToast": "Lenken er erstattet.",
+      "copiedToast": "Lenken er kopiert."
+    },
+    "inbox": {
+      "link": "Mottatte rapporter",
+      "title": "Mottatte rapporter",
+      "subtitle": "Rapporter sendt via den anonyme lenken. Behandle dem, lukk dem eller registrer dem som avvik.",
+      "status": "Status",
+      "allStatuses": "Alle statuser",
+      "noneWithStatus": "Ingen rapporter med denne statusen."
+    },
+    "fields": {
+      "description": "Hva skjedde",
+      "occurredOn": "Når",
+      "location": "Hvor",
+      "contact": "Kontaktinformasjon",
+      "publicNote": "Melding til den som rapporterte"
+    },
+    "report": {
+      "received": "Mottatt {{ date }}",
+      "whistleblowingNote": "Beskytt varsleren. Ikke prøv å finne ut hvem som sendte dette, og del detaljer bare med dem som trenger dem.",
+      "noContact": "Den som rapporterte, la ikke igjen kontaktinformasjon.",
+      "notePlaceholder": "Valgfritt. Den som rapporterte, ser denne meldingen når de sjekker kvitteringskoden.",
+      "convertedTo": "Registrert som",
+      "triagedBy": "Behandlet av {{ name }}, {{ date }}",
+      "triage": "Start behandling",
+      "dismiss": "Lukk uten avvik",
+      "notFound": "Rapporten finnes ikke, eller du har ikke tilgang til den.",
+      "triageToast": "Rapporten er merket som under behandling.",
+      "dismissToast": "Rapporten er lukket."
+    },
+    "convert": {
+      "title": "Registrer som avvik",
+      "type": "Avvikstype",
+      "defaultType": "Lenkens standardtype",
+      "ownerMe": "Meg",
+      "submit": "Registrer avvik",
+      "convertedToast": "Avvik {{ code }} er registrert."
+    }
+  },
+  "publicReport": {
+    "title": {
+      "anonymous": "Rapporter til {{ org }}",
+      "whistleblowing": "Varsle {{ org }} om et forhold"
+    },
+    "intro": {
+      "anonymous": "Fortell oss om et problem, en nestenulykke eller en idé til forbedring. Du trenger ingen konto, og du må ikke si hvem du er.",
+      "whistleblowing": "Bruk dette skjemaet til å varsle om et alvorlig forhold. Du må ikke si hvem du er. Rapporten ses bare av dem som behandler den."
+    },
+    "receipt": {
+      "title": "Takk. Rapporten din er mottatt.",
+      "body": "Ta vare på denne kvitteringskoden. Den er eneste måte å sjekke status på rapporten senere, og den kan ikke vises igjen.",
+      "copy": "Kopier kode",
+      "another": "Send en ny rapport"
+    },
+    "fields": {
+      "title": "Kort sammendrag",
+      "description": "Hva skjedde?",
+      "occurredOn": "Når skjedde det? (valgfritt)",
+      "location": "Hvor skjedde det? (valgfritt)",
+      "contact": "Hvordan kan vi kontakte deg? (valgfritt)"
+    },
+    "hints": {
+      "title": "Minst 3 tegn.",
+      "description": "Beskriv hva du så, når og hvem som ble berørt. Minst 10 tegn. Unngå navn hvis de ikke trengs.",
+      "contact": "La feltet stå tomt for å være anonym."
+    },
+    "honeypot": "La dette feltet stå tomt",
+    "errors": {
+      "rateLimited": "Det er sendt for mange rapporter herfra. Vent litt og prøv igjen.",
+      "invalid": "Fyll ut et sammendrag (minst 3 tegn) og en beskrivelse (minst 10 tegn).",
+      "generic": "Rapporten kunne ikke sendes. Prøv igjen senere."
+    },
+    "privacy": {
+      "anonymous": "Vi lagrer ikke IP-adressen eller nettleserdetaljene dine sammen med rapporten.",
+      "whistleblowing": "Vi lagrer ikke IP-adressen eller nettleserdetaljene dine sammen med rapporten. Bare de som behandler varsler, kan lese den."
+    },
+    "submit": "Send rapport",
+    "status": {
+      "title": "Sjekk status på en rapport",
+      "code": "Kvitteringskode",
+      "check": "Sjekk status",
+      "states": {
+        "new": "Mottatt, ikke behandlet ennå",
+        "triaged": "Under behandling",
+        "converted": "Under behandling",
+        "dismissed": "Lukket"
+      },
+      "dates": "Mottatt {{ received }} · sist oppdatert {{ updated }}",
+      "note": "Melding fra organisasjonen:"
+    },
+    "unavailable": {
+      "title": "Denne rapportlenken er ikke tilgjengelig",
+      "body": "Lenken kan være slått av eller erstattet. Spør organisasjonen om den gjeldende lenken."
+    }
+  },
+  "notifications": {
+    "created": "Avvik {{ code }} registrert",
+    "updated": "Avvik {{ code }} oppdatert",
+    "statusChanged": "Avvik {{ code }} har endret status",
+    "ownerChanged": "Du er nå eier av avvik {{ code }}",
+    "rootCauseRecorded": "Årsaksanalyse registrert på {{ code }}",
+    "deleted": "Avvik {{ code }} slettet",
+    "actionCreated": "Tiltak lagt til på {{ code }}",
+    "actionStatusChanged": "Et tiltak på {{ code }} har endret status",
+    "intakeReceived": "En ny anonym rapport er mottatt",
+    "intakeConverted": "En anonym rapport er registrert som {{ code }}",
+    "intakeDismissed": "En anonym rapport er lukket"
+  },
+  "timeline": {
+    "created": "Avvik registrert",
+    "updated": "Avvik oppdatert",
+    "statusChanged": "Status endret",
+    "ownerChanged": "Eier endret",
+    "rootCauseRecorded": "Årsaksanalyse registrert",
+    "deleted": "Avvik slettet",
+    "actionCreated": "Tiltak lagt til",
+    "actionStatusChanged": "Tiltaksstatus endret",
+    "intakeReceived": "Anonym rapport mottatt",
+    "intakeConverted": "Registrert fra en anonym rapport",
+    "intakeDismissed": "Anonym rapport lukket"
+  }
+}
