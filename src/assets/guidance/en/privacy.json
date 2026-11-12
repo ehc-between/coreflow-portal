@@ -1,0 +1,618 @@
+{
+  "pages": {
+    "overview": {
+      "intro": {
+        "title": "Privacy in one place",
+        "body": "The GDPR asks you to know what personal data you hold, why you hold it, and to be able to prove that you handle it lawfully. These registers are that proof.",
+        "steps": [
+          "Start with the records of processing: list each activity that uses personal data.",
+          "Screen new or risky processing for a DPIA.",
+          "Register requests and breaches the moment they arrive: both have legal deadlines.",
+          "Keep processors, transfers, retention rules and consents up to date."
+        ]
+      },
+      "why": {
+        "body": "Accountability (Art. 5(2)) means you must be able to demonstrate compliance, not just comply. Supervisory authorities ask for the record of processing first, and missed breach or request deadlines are among the most common findings.",
+        "clauses": ["gdpr:5", "gdpr:24", "gdpr:30", "iso27001:A.5.34"]
+      }
+    },
+    "form": {
+      "intro": {
+        "title": "Filling in the record",
+        "body": "Write plainly and briefly: the record is read by colleagues, auditors and sometimes the authority. Fields marked * are required; the rest can be completed later.",
+        "steps": [
+          "Give the record a title people will recognise.",
+          "Fill in what you know now and set an owner.",
+          "Add a reason when you change an existing record, so the history explains itself."
+        ]
+      }
+    },
+    "detail": {
+      "intro": {
+        "title": "Working with the record",
+        "body": "Deadlines and decisions are at the top. Use the tabs for tasks, linked records, the activity log, comments, attachments and the revision history."
+      }
+    },
+    "ropa": {
+      "intro": {
+        "title": "Records of processing (Art. 30)",
+        "body": "One entry per processing activity, such as payroll, recruitment, customer support or the newsletter. Each entry says what data you use, about whom, why, on what legal basis, who receives it and how long you keep it.",
+        "steps": [
+          "Describe the activity in a sentence or two, or let the assistant draft the entry.",
+          "Choose the legal basis and list the categories of data and people.",
+          "Add recipients, systems, retention and security measures.",
+          "Set the entry to active when the Article 30 information is complete."
+        ]
+      },
+      "why": {
+        "body": "Article 30 requires a written record of processing activities, both as a controller and as a processor. It is the map every other privacy task builds on: DPIAs, requests, breaches and retention all refer back to it.",
+        "clauses": ["gdpr:30", "gdpr:5", "gdpr:6", "iso27001:A.5.34"]
+      },
+      "empty": {
+        "title": "No processing activities yet",
+        "body": "Begin with the processing you know best, for example employee administration or customer orders. You can describe it in plain language and let the assistant draft the entry.",
+        "cta": "Add the first activity"
+      },
+      "fields": {
+        "role": {
+          "help": "Controller: you decide why and how the data is processed. Processor: you process it on behalf of another organisation.",
+          "example": "Your own payroll: controller. A service you run for a customer: processor."
+        },
+        "purposes": {
+          "help": "Why you process the data. Be specific; \"business purposes\" is too vague.",
+          "example": "Pay salaries and report tax and pension contributions."
+        },
+        "legal_basis": {
+          "help": "Every processing needs one of the six legal bases in Article 6. Choose the one that really applies; you cannot swap it later to suit you.",
+          "example": "Payroll: legal obligation and contract."
+        },
+        "special_categories": {
+          "help": "Health, ethnicity, religion, political opinions, union membership, sexual orientation, genetic and biometric data. These need an extra condition under Article 9.",
+          "example": "Sick leave records (health)."
+        },
+        "retention_period": {
+          "help": "How long the data is kept, or the rule that decides it.",
+          "example": "Five years after the end of the financial year."
+        },
+        "security_measures": {
+          "help": "A general description of the technical and organisational measures (Art. 32).",
+          "example": "Access by role, encryption at rest, logging, annual access review."
+        },
+        "international_transfers": {
+          "help": "Tick if the data leaves the EEA, including through a supplier or its sub-processors. Then document the transfer in the transfer register."
+        }
+      }
+    },
+    "dpia": {
+      "intro": {
+        "title": "Data protection impact assessments (Art. 35)",
+        "body": "A DPIA is needed before processing that is likely to result in a high risk to people. Screening against the nine EDPB criteria tells you whether one is required.",
+        "steps": [
+          "Tick the screening criteria that apply. Two or more usually mean a DPIA is required.",
+          "Assess necessity and proportionality.",
+          "List the risks to the people affected and the measures that reduce them.",
+          "Ask the DPO for advice and send the DPIA for a decision."
+        ]
+      },
+      "why": {
+        "body": "Starting high-risk processing without a DPIA is itself a breach of the GDPR. When the residual risk stays high, Article 36 requires you to consult the supervisory authority before you start.",
+        "clauses": ["gdpr:35", "gdpr:36", "gdpr:32", "gdpr:24"]
+      },
+      "empty": {
+        "title": "No DPIAs yet",
+        "body": "Screen any new system, new use of data or large change before it goes live. A short screening that shows no DPIA is needed is still worth keeping as evidence.",
+        "cta": "Start a screening"
+      },
+      "fields": {
+        "screening": {
+          "help": "Two or more criteria met: a DPIA is required. One: it is recommended. When in doubt, carry it out.",
+          "example": "Employee monitoring with a new tool: systematic monitoring + vulnerable people (employees) = required."
+        },
+        "necessity_assessment": {
+          "help": "Why the processing is needed for the purpose, and why less intrusive ways are not enough."
+        },
+        "risks": {
+          "help": "Risks to the people whose data it is, not to the organisation: loss of control, discrimination, identity theft, financial loss, reputational harm.",
+          "example": "Unauthorised access to health data in the case system."
+        },
+        "residual_risk": {
+          "help": "The risk that remains after the measures. High residual risk means prior consultation with the authority."
+        },
+        "dpo_advice": {
+          "help": "Article 35(2) requires you to seek the advice of the data protection officer, where one is appointed."
+        }
+      }
+    },
+    "dsr": {
+      "intro": {
+        "title": "Data subject requests",
+        "body": "People have the right to access, correct, erase, restrict and move their data, and to object. Each request must be answered without undue delay and at the latest within one month.",
+        "steps": [
+          "Register the request the day it arrives; the deadline is counted from receipt.",
+          "Verify the person's identity when in doubt, without asking for more than needed.",
+          "Do the work in the task created for the owner.",
+          "Record the outcome and close the request."
+        ]
+      },
+      "why": {
+        "body": "Article 12 sets the one-month deadline, extendable once by two months for complex or numerous requests. Late or missing answers are a frequent cause of complaints to the authority.",
+        "clauses": ["gdpr:12", "gdpr:15", "gdpr:17"]
+      },
+      "empty": {
+        "title": "No requests registered",
+        "body": "When someone asks what you hold about them, or asks you to delete it, register the request here. The deadline and the task are created for you.",
+        "cta": "Register a request"
+      },
+      "fields": {
+        "request_type": {
+          "help": "The right the person is exercising. A request does not need to use legal words to count.",
+          "example": "\"Please send me everything you have about me\" is an access request."
+        },
+        "received_at": {
+          "help": "When the request reached anyone in the organisation, by any channel. The one-month deadline runs from here."
+        },
+        "subject_reference": {
+          "help": "A reference that lets you find the person's data, such as a customer or employee number. Avoid copying more personal data than needed."
+        },
+        "identity_verified_at": {
+          "help": "When you confirmed who the requester is. Only ask for proof when you have reasonable doubts."
+        },
+        "outcome": {
+          "help": "What you did, or why you refused. A refusal must mention the right to complain to the authority and to seek a judicial remedy."
+        }
+      }
+    },
+    "breach": {
+      "intro": {
+        "title": "Personal data breaches (Art. 33 and 34)",
+        "body": "A breach is any security incident that leads to personal data being lost, destroyed, altered, disclosed or accessed without authorisation. The 72-hour clock starts when you become aware of it.",
+        "steps": [
+          "Register the breach immediately, even with incomplete facts.",
+          "Contain it and assess the risk to the people affected.",
+          "Decide whether to notify the authority within 72 hours, and document the reasons either way.",
+          "Decide whether to tell the people affected, then close the breach."
+        ]
+      },
+      "why": {
+        "body": "Article 33 requires notifying the supervisory authority within 72 hours unless the breach is unlikely to result in a risk. Every breach must be documented, including those you do not notify (Art. 33(5)).",
+        "clauses": ["gdpr:33", "gdpr:34", "iso27001:A.5.34"]
+      },
+      "empty": {
+        "title": "No breaches registered",
+        "body": "A lost laptop, an email sent to the wrong person or a hacked account can all be personal data breaches. Register them here so the clock and the decisions are tracked.",
+        "cta": "Register a breach"
+      },
+      "fields": {
+        "aware_at": {
+          "help": "When you had a reasonable degree of certainty that personal data was affected. This starts the 72-hour clock."
+        },
+        "breach_types": {
+          "help": "Confidentiality: seen by someone who should not. Integrity: changed. Availability: lost or temporarily unavailable."
+        },
+        "risk_level": {
+          "help": "Assess the likely consequences for the people, not for the organisation. High risk also means the people must be told.",
+          "example": "Passwords leaked in clear text: high risk."
+        },
+        "authority_notification_required": {
+          "help": "Notify unless the breach is unlikely to result in a risk to people's rights and freedoms. When you decide not to, write down why."
+        },
+        "authority_delay_reason": {
+          "help": "If you notify after 72 hours, the notification must give the reasons for the delay."
+        },
+        "subjects_exemption": {
+          "help": "You may skip telling the people only if the data was unintelligible to others, the high risk is no longer likely, or it would take disproportionate effort (then make a public announcement)."
+        }
+      }
+    },
+    "processor": {
+      "intro": {
+        "title": "Processors (Art. 28)",
+        "body": "A processor handles personal data on your instructions: cloud services, payroll bureaus, IT support. Each needs a data processing agreement with the Article 28(3) terms.",
+        "steps": [
+          "Register each supplier that processes personal data for you.",
+          "Record the status of the data processing agreement.",
+          "Note sub-processors and the countries involved.",
+          "Review processors on a regular schedule."
+        ]
+      },
+      "why": {
+        "body": "You may only use processors that give sufficient guarantees, and the relationship must be governed by a contract. ISO/IEC 27001 control A.5.20 asks for the same in supplier agreements.",
+        "clauses": ["gdpr:28", "iso27001:A.5.20"]
+      },
+      "empty": {
+        "title": "No processors registered",
+        "body": "Think of your email, cloud storage, payroll and CRM providers. Most of them are processors.",
+        "cta": "Add a processor"
+      },
+      "fields": {
+        "dpa_status": {
+          "help": "A processor can only be marked active with a signed agreement, or when you have documented that no agreement is required."
+        },
+        "is_sub_processor": {
+          "help": "A sub-processor is engaged by your processor. Your agreement must require your approval for new sub-processors."
+        },
+        "risk_rating": {
+          "help": "Your assessment of the risk the processor brings, based on the data, the volume and the security they offer."
+        }
+      }
+    },
+    "transfer": {
+      "intro": {
+        "title": "International transfers (Chapter V)",
+        "body": "Personal data may only leave the EEA with a valid transfer tool: an adequacy decision, standard contractual clauses, binding corporate rules or, exceptionally, an Article 49 derogation.",
+        "steps": [
+          "Register each transfer and link it to the processing record and the processor.",
+          "Choose the transfer tool.",
+          "For SCCs, BCRs and other tools, carry out a transfer impact assessment (TIA).",
+          "Add supplementary measures when the TIA calls for them."
+        ]
+      },
+      "why": {
+        "body": "Since the Schrems II ruling, a transfer under SCCs or BCRs also requires you to assess whether the law in the destination country undermines the protection. That assessment is the TIA.",
+        "clauses": ["gdpr:44", "gdpr:46", "gdpr:49"]
+      },
+      "empty": {
+        "title": "No transfers registered",
+        "body": "Check where your suppliers and their sub-processors store and access data. Support staff abroad with remote access also count as a transfer.",
+        "cta": "Add a transfer"
+      },
+      "fields": {
+        "mechanism": {
+          "help": "Adequacy needs no TIA. SCCs, BCRs and other tools need a completed TIA before the transfer is active. Derogations are for occasional transfers only."
+        },
+        "tia_conclusion": {
+          "help": "Whether the protection in the destination country is essentially equivalent, possibly with supplementary measures."
+        },
+        "supplementary_measures": {
+          "help": "Technical, contractual or organisational measures that close the gaps the TIA found.",
+          "example": "Encryption with keys held only in the EEA."
+        }
+      }
+    },
+    "retention": {
+      "intro": {
+        "title": "Retention schedules",
+        "body": "Personal data must not be kept longer than needed for the purpose (storage limitation). A retention rule says how long each kind of data is kept, from when, and what happens at the end.",
+        "steps": [
+          "Add a rule per data category, linked to its processing record.",
+          "Give the period and the event it is counted from.",
+          "Name the legal reference when the law sets the period.",
+          "Choose delete, anonymise, archive or review at the end."
+        ]
+      },
+      "why": {
+        "body": "Storage limitation is one of the principles in Article 5, and erasure requests (Art. 17) often turn on whether the retention period has passed. ISO/IEC 27001 control A.5.33 asks for records to be protected and disposed of as required.",
+        "clauses": ["gdpr:5", "gdpr:17", "iso27001:A.5.33"]
+      },
+      "empty": {
+        "title": "No retention rules yet",
+        "body": "Start with the data you keep the longest, for example accounting records, personnel files or CCTV footage.",
+        "cta": "Add a retention rule"
+      },
+      "fields": {
+        "retention_period": {
+          "help": "The period in words, as you would write it in a policy.",
+          "example": "Five years after the end of the financial year."
+        },
+        "trigger_event": {
+          "help": "The event the period is counted from.",
+          "example": "End of employment."
+        },
+        "disposal_method": {
+          "help": "What happens when the period ends. Anonymised data is no longer personal data."
+        }
+      }
+    },
+    "consent": {
+      "intro": {
+        "title": "Consent records (Art. 7)",
+        "body": "When you rely on consent you must be able to show that the person consented: to what, when, how and with which privacy notice. Withdrawing must be as easy as giving it.",
+        "steps": [
+          "Record the purpose and a reference to the person.",
+          "Note the method and the version of the privacy notice shown.",
+          "Keep a reference to the evidence, such as a form or log entry.",
+          "Record a withdrawal as soon as it arrives."
+        ]
+      },
+      "why": {
+        "body": "Article 7(1) puts the burden of proof on you. Without a record, the consent may not count, and the processing that relies on it has no legal basis.",
+        "clauses": ["gdpr:7", "gdpr:6"]
+      },
+      "empty": {
+        "title": "No consents recorded",
+        "body": "Record consents here when you cannot point to them in another system, for example paper forms or consents given by email.",
+        "cta": "Record a consent"
+      },
+      "fields": {
+        "subject_reference": {
+          "help": "A reference that identifies the person in your systems. Avoid copying more personal data than needed."
+        },
+        "notice_version": {
+          "help": "The version of the privacy notice the person saw when they consented."
+        }
+      }
+    },
+    "lba": {
+      "intro": {
+        "title": "Legal basis assessments",
+        "body": "Document why a processing is lawful. For legitimate interests, the assessment is a three-part test: purpose, necessity and balancing.",
+        "steps": [
+          "Link the assessment to the processing record.",
+          "Choose the legal basis and write the justification.",
+          "For legitimate interests, complete the purpose, necessity and balancing tests.",
+          "Describe the safeguards and send it for a decision."
+        ]
+      },
+      "why": {
+        "body": "Article 6 lists the only six lawful bases. When you rely on legitimate interests, you must be able to show that your interests are not overridden by the interests and rights of the people concerned.",
+        "clauses": ["gdpr:6", "gdpr:9"]
+      },
+      "empty": {
+        "title": "No assessments yet",
+        "body": "Start with processing that relies on legitimate interests, such as direct marketing to existing customers or network security logging.",
+        "cta": "Start an assessment"
+      },
+      "fields": {
+        "legal_basis": {
+          "help": "Legitimate interests is flexible but needs the three-part test. Consent must be freely given, which is hard in an employment relationship."
+        },
+        "purpose_test": {
+          "help": "What is the interest, and is it legitimate?",
+          "example": "Preventing fraud in online payments."
+        },
+        "necessity_test": {
+          "help": "Is the processing necessary for that interest, or is there a less intrusive way?"
+        },
+        "balancing_test": {
+          "help": "Weigh your interest against the impact on the people: their reasonable expectations, the nature of the data and any vulnerability.",
+          "example": "Customers expect fraud checks; the data is limited to the transaction."
+        }
+      }
+    }
+  },
+  "lessons": {
+    "gdpr-principles": {
+      "title": "The GDPR principles in plain language",
+      "minutes": 5,
+      "sections": [
+        {
+          "heading": "Seven principles",
+          "body": "Article 5 sets out the rules every processing must follow: **lawfulness, fairness and transparency**; **purpose limitation**; **data minimisation**; **accuracy**; **storage limitation**; **integrity and confidentiality**; and **accountability**."
+        },
+        {
+          "heading": "What they mean day to day",
+          "body": "Tell people what you do with their data. Use it only for the purposes you collected it for. Collect only what you need. Keep it correct. Delete it when you no longer need it. Protect it. And be able to show all of this."
+        },
+        {
+          "heading": "Where the registers fit",
+          "body": "The record of processing shows purposes, data and legal basis. Retention schedules show storage limitation. DPIAs, processors and transfers show how you protect data. Together they are your evidence of accountability."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "You collected email addresses to send order confirmations. Can you use them for a newsletter without anything more?",
+          "options": [
+            "Yes, you already have them",
+            "No, a new purpose needs its own legal basis and must be compatible",
+            "Yes, if the newsletter is free"
+          ],
+          "answer": 1,
+          "explanation": "Purpose limitation: data collected for one purpose may not be used for an incompatible one without a new legal basis, such as consent."
+        },
+        {
+          "question": "Which principle means you must be able to prove you comply?",
+          "options": ["Transparency", "Accuracy", "Accountability"],
+          "answer": 2,
+          "explanation": "Accountability (Art. 5(2)) puts the burden of proof on the organisation."
+        }
+      ],
+      "pass_mark": 0.5
+    },
+    "data-subject-rights": {
+      "title": "Handling a data subject request",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Recognise the request",
+          "body": "A request can come by email, phone, letter or in a meeting, to anyone in the organisation. It does not have to mention the GDPR. \"What do you have about me?\" is an access request."
+        },
+        {
+          "heading": "The deadline",
+          "body": "Answer without undue delay and within **one month** of receipt. For complex or numerous requests you may extend once by **two more months**, but you must tell the person why within the first month."
+        },
+        {
+          "heading": "Identity and outcome",
+          "body": "Check identity only when you have reasonable doubts. When you refuse, explain why and tell the person they can complain to the supervisory authority."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "A request arrived on 10 March. When is the answer due at the latest without an extension?",
+          "options": ["10 March plus 30 working days", "10 April", "10 May"],
+          "answer": 1,
+          "explanation": "One calendar month from receipt."
+        },
+        {
+          "question": "When must you tell the person that you are extending the deadline?",
+          "options": [
+            "Within the first month",
+            "When you send the answer",
+            "You do not need to tell them"
+          ],
+          "answer": 0,
+          "explanation": "Article 12(3): within one month of receipt, with the reasons for the delay."
+        }
+      ],
+      "pass_mark": 0.5
+    },
+    "breach-72-hours": {
+      "title": "The 72-hour breach clock",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "When the clock starts",
+          "body": "The 72 hours start when you become **aware** that personal data was affected, not when the incident happened and not when the investigation is finished."
+        },
+        {
+          "heading": "Notify or not",
+          "body": "Notify the supervisory authority unless the breach is **unlikely to result in a risk** to people. You can notify in phases if the facts are still coming in. Document the breach and your reasoning in every case."
+        },
+        {
+          "heading": "Telling the people affected",
+          "body": "When the risk is **high**, the people must be told without undue delay, in clear language, with advice on how to protect themselves. Exemptions in Art. 34(3) apply only in narrow cases."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "An employee emailed a spreadsheet with customer data to the wrong external address. What should you do first?",
+          "options": [
+            "Wait until you know exactly what happened",
+            "Register the breach and start the assessment",
+            "Delete the email and forget it"
+          ],
+          "answer": 1,
+          "explanation": "Register it immediately so the 72-hour clock and the decisions are tracked."
+        },
+        {
+          "question": "You decide that a breach does not need to be notified. What do you still have to do?",
+          "options": [
+            "Nothing",
+            "Document the breach and why it was not notified",
+            "Tell all customers"
+          ],
+          "answer": 1,
+          "explanation": "Article 33(5): every breach is documented, including the reasoning for not notifying."
+        }
+      ],
+      "pass_mark": 0.5
+    },
+    "when-dpia": {
+      "title": "When do you need a DPIA?",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "High risk to people",
+          "body": "A DPIA is required before processing that is likely to result in a **high risk** to people's rights and freedoms, especially with new technologies."
+        },
+        {
+          "heading": "The nine criteria",
+          "body": "The EDPB lists nine criteria, such as evaluation or scoring, systematic monitoring, sensitive data, large scale and vulnerable people. If **two or more** apply, a DPIA is usually required."
+        },
+        {
+          "heading": "After the DPIA",
+          "body": "If measures cannot bring the risk down and it remains **high**, consult the supervisory authority before you start (Art. 36)."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "A new tool tracks employees' location during working hours. Which criteria apply?",
+          "options": [
+            "None",
+            "Systematic monitoring and vulnerable people",
+            "Only innovative technology"
+          ],
+          "answer": 1,
+          "explanation": "Employees are considered vulnerable in relation to their employer, and tracking is systematic monitoring: a DPIA is required."
+        }
+      ],
+      "pass_mark": 1
+    },
+    "processors-and-transfers": {
+      "title": "Processors and international transfers",
+      "minutes": 5,
+      "sections": [
+        {
+          "heading": "Processor or controller?",
+          "body": "A processor acts only on your documented instructions. If the supplier decides its own purposes for the data, it is a controller, not a processor."
+        },
+        {
+          "heading": "The agreement",
+          "body": "Article 28(3) lists what the agreement must contain: instructions, confidentiality, security, sub-processors, assistance with requests and breaches, deletion or return, and audits."
+        },
+        {
+          "heading": "Leaving the EEA",
+          "body": "If the processor or a sub-processor stores or accesses data outside the EEA, you need a transfer tool. With SCCs, also carry out a transfer impact assessment."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Your cloud provider uses support staff in a third country who can access your data. Is that a transfer?",
+          "options": [
+            "No, the data is stored in the EEA",
+            "Yes, remote access counts as a transfer"
+          ],
+          "answer": 1,
+          "explanation": "Access from outside the EEA is a transfer and needs a transfer tool."
+        }
+      ],
+      "pass_mark": 1
+    },
+    "lawful-basis": {
+      "title": "Choosing the legal basis",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Six bases",
+          "body": "Consent, contract, legal obligation, vital interests, public task and legitimate interests. Choose before you start, based on the purpose, and tell people in your privacy notice."
+        },
+        {
+          "heading": "Consent",
+          "body": "Consent must be freely given, specific, informed and unambiguous, and as easy to withdraw as to give. Keep a record of it."
+        },
+        {
+          "heading": "Legitimate interests",
+          "body": "Do the three-part test: is the interest legitimate, is the processing necessary, and do the people's interests override yours? Document it in a legal basis assessment."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Why is consent rarely a good basis for processing employee data?",
+          "options": [
+            "Employees cannot consent to anything",
+            "The imbalance of power means consent is seldom freely given",
+            "Consent expires after a year"
+          ],
+          "answer": 1,
+          "explanation": "Consent must be freely given; in employment that is usually doubtful."
+        }
+      ],
+      "pass_mark": 1
+    }
+  },
+  "tours": {
+    "overview": [
+      {
+        "target": "privacy-kpis",
+        "title": "Key figures",
+        "body": "Open breaches, overdue requests, processors without an agreement and more. Click a figure to open the list behind it."
+      },
+      {
+        "target": "privacy-breaches",
+        "title": "What needs attention now",
+        "body": "Breaches on the 72-hour clock and requests sorted by deadline."
+      },
+      {
+        "target": "privacy-registers",
+        "title": "The registers",
+        "body": "Each register covers one part of the GDPR. Start with the records of processing."
+      }
+    ]
+  },
+  "glossary": {
+    "data-subject": {
+      "term": "Data subject",
+      "definition": "The living person the personal data is about.",
+      "clauses": ["gdpr:15"]
+    },
+    "ropa": {
+      "term": "Record of processing activities",
+      "definition": "The written record of what personal data an organisation processes, why and how.",
+      "clauses": ["gdpr:30"]
+    },
+    "tia": {
+      "term": "Transfer impact assessment",
+      "definition": "An assessment of whether the law and practice in a third country undermine the protection given by a transfer tool such as SCCs.",
+      "clauses": ["gdpr:46"]
+    }
+  }
+}

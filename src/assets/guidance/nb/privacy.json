@@ -1,0 +1,615 @@
+{
+  "pages": {
+    "overview": {
+      "intro": {
+        "title": "Personvern på ett sted",
+        "body": "Personvernforordningen krever at dere vet hvilke personopplysninger dere har, hvorfor dere har dem, og at dere kan vise at dere behandler dem lovlig. Disse registrene er dokumentasjonen.",
+        "steps": [
+          "Start med behandlingsprotokollen: før opp hver aktivitet som bruker personopplysninger.",
+          "Forhåndsvurder ny eller risikofylt behandling for DPIA.",
+          "Registrer henvendelser og brudd straks de kommer inn: begge har lovpålagte frister.",
+          "Hold databehandlere, overføringer, lagringsregler og samtykker oppdatert."
+        ]
+      },
+      "why": {
+        "body": "Ansvarlighet (art. 5 nr. 2) betyr at dere må kunne vise at dere etterlever reglene, ikke bare etterleve dem. Tilsynsmyndigheten ber først om behandlingsprotokollen, og oversittede frister for brudd og henvendelser er blant de vanligste funnene.",
+        "clauses": ["gdpr:5", "gdpr:24", "gdpr:30", "iso27001:A.5.34"]
+      }
+    },
+    "form": {
+      "intro": {
+        "title": "Slik fyller du ut",
+        "body": "Skriv enkelt og kort: posten leses av kolleger, revisorer og noen ganger tilsynet. Felt merket * må fylles ut; resten kan fullføres senere.",
+        "steps": [
+          "Gi posten en tittel folk kjenner igjen.",
+          "Fyll ut det du vet nå, og velg en eier.",
+          "Skriv en grunn når du endrer en eksisterende post, så historikken forklarer seg selv."
+        ]
+      }
+    },
+    "detail": {
+      "intro": {
+        "title": "Arbeid med posten",
+        "body": "Frister og beslutninger står øverst. Bruk fanene for oppgaver, koblede poster, aktivitetslogg, kommentarer, vedlegg og revisjonshistorikk."
+      }
+    },
+    "ropa": {
+      "intro": {
+        "title": "Behandlingsprotokoll (art. 30)",
+        "body": "Én post per behandlingsaktivitet, for eksempel lønn, rekruttering, kundestøtte eller nyhetsbrev. Hver post sier hvilke opplysninger dere bruker, om hvem, hvorfor, på hvilket grunnlag, hvem som mottar dem og hvor lenge de lagres.",
+        "steps": [
+          "Beskriv aktiviteten med en setning eller to, eller la assistenten lage et utkast.",
+          "Velg behandlingsgrunnlag og før opp kategoriene av opplysninger og personer.",
+          "Legg til mottakere, systemer, lagringstid og sikkerhetstiltak.",
+          "Sett posten til aktiv når opplysningene etter artikkel 30 er komplette."
+        ]
+      },
+      "why": {
+        "body": "Artikkel 30 krever en skriftlig protokoll over behandlingsaktiviteter, både som behandlingsansvarlig og som databehandler. Den er kartet alt annet personvernarbeid bygger på: DPIA-er, henvendelser, brudd og lagring viser alle tilbake til den.",
+        "clauses": ["gdpr:30", "gdpr:5", "gdpr:6", "iso27001:A.5.34"]
+      },
+      "empty": {
+        "title": "Ingen behandlinger ennå",
+        "body": "Begynn med behandlingen du kjenner best, for eksempel personaladministrasjon eller kundeordre. Du kan beskrive den med egne ord og la assistenten lage et utkast.",
+        "cta": "Legg til den første behandlingen"
+      },
+      "fields": {
+        "role": {
+          "help": "Behandlingsansvarlig: dere bestemmer hvorfor og hvordan opplysningene behandles. Databehandler: dere behandler dem på vegne av en annen virksomhet.",
+          "example": "Egen lønnskjøring: behandlingsansvarlig. En tjeneste dere drifter for en kunde: databehandler."
+        },
+        "purposes": {
+          "help": "Hvorfor dere behandler opplysningene. Vær konkret; «forretningsformål» er for vagt.",
+          "example": "Utbetale lønn og rapportere skatt og pensjon."
+        },
+        "legal_basis": {
+          "help": "Hver behandling trenger ett av de seks grunnlagene i artikkel 6. Velg det som faktisk gjelder; dere kan ikke bytte senere fordi det passer bedre.",
+          "example": "Lønn: rettslig forpliktelse og avtale."
+        },
+        "special_categories": {
+          "help": "Helse, etnisitet, religion, politisk syn, fagforeningsmedlemskap, seksuell orientering, genetiske og biometriske opplysninger. Disse krever i tillegg et unntak etter artikkel 9.",
+          "example": "Sykefravær (helse)."
+        },
+        "retention_period": {
+          "help": "Hvor lenge opplysningene lagres, eller regelen som avgjør det.",
+          "example": "Fem år etter regnskapsårets slutt."
+        },
+        "security_measures": {
+          "help": "En generell beskrivelse av de tekniske og organisatoriske tiltakene (art. 32).",
+          "example": "Rollebasert tilgang, kryptering, logging, årlig tilgangsgjennomgang."
+        },
+        "international_transfers": {
+          "help": "Kryss av hvis opplysningene går ut av EØS, også via en leverandør eller dens underleverandører. Dokumenter da overføringen i overføringsregisteret."
+        }
+      }
+    },
+    "dpia": {
+      "intro": {
+        "title": "Konsekvensvurderinger (art. 35)",
+        "body": "En DPIA trengs før behandling som sannsynligvis medfører høy risiko for personene. En forhåndsvurdering mot de ni kriteriene fra EDPB viser om den er påkrevd.",
+        "steps": [
+          "Kryss av for kriteriene som gjelder. To eller flere betyr som regel at DPIA er påkrevd.",
+          "Vurder nødvendighet og forholdsmessighet.",
+          "Før opp risikoene for de registrerte og tiltakene som reduserer dem.",
+          "Be om råd fra personvernombudet og send DPIA-en til beslutning."
+        ]
+      },
+      "why": {
+        "body": "Å starte en høyrisikobehandling uten DPIA er i seg selv et brudd på forordningen. Når restrisikoen fortsatt er høy, krever artikkel 36 at dere drøfter behandlingen med Datatilsynet før dere starter.",
+        "clauses": ["gdpr:35", "gdpr:36", "gdpr:32", "gdpr:24"]
+      },
+      "empty": {
+        "title": "Ingen DPIA-er ennå",
+        "body": "Forhåndsvurder alle nye systemer, ny bruk av opplysninger og større endringer før de tas i bruk. En kort vurdering som viser at DPIA ikke trengs, er også verdt å ta vare på som dokumentasjon.",
+        "cta": "Start en forhåndsvurdering"
+      },
+      "fields": {
+        "screening": {
+          "help": "To eller flere kriterier oppfylt: DPIA er påkrevd. Ett: den anbefales. Er du i tvil, gjennomfør den.",
+          "example": "Overvåking av ansatte med et nytt verktøy: systematisk overvåking + sårbare registrerte (ansatte) = påkrevd."
+        },
+        "necessity_assessment": {
+          "help": "Hvorfor behandlingen er nødvendig for formålet, og hvorfor mindre inngripende løsninger ikke er nok."
+        },
+        "risks": {
+          "help": "Risiko for personene opplysningene gjelder, ikke for virksomheten: tap av kontroll, diskriminering, identitetstyveri, økonomisk tap, omdømmeskade.",
+          "example": "Uautorisert tilgang til helseopplysninger i saksbehandlingssystemet."
+        },
+        "residual_risk": {
+          "help": "Risikoen som gjenstår etter tiltakene. Høy restrisiko betyr forhåndsdrøfting med Datatilsynet."
+        },
+        "dpo_advice": {
+          "help": "Artikkel 35 nr. 2 krever at dere ber om råd fra personvernombudet, der et slikt er utnevnt."
+        }
+      }
+    },
+    "dsr": {
+      "intro": {
+        "title": "Henvendelser fra registrerte",
+        "body": "Personer har rett til innsyn, retting, sletting, begrensning og dataportabilitet, og til å protestere. Hver henvendelse skal besvares uten ugrunnet opphold og senest innen én måned.",
+        "steps": [
+          "Registrer henvendelsen samme dag den kommer inn; fristen regnes fra mottak.",
+          "Bekreft identiteten ved tvil, uten å be om mer enn nødvendig.",
+          "Gjør arbeidet i oppgaven som opprettes for eieren.",
+          "Registrer utfallet og lukk henvendelsen."
+        ]
+      },
+      "why": {
+        "body": "Artikkel 12 setter fristen til én måned, som kan forlenges én gang med to måneder ved kompliserte eller mange henvendelser. Sene eller manglende svar er en hyppig årsak til klager til Datatilsynet.",
+        "clauses": ["gdpr:12", "gdpr:15", "gdpr:17"]
+      },
+      "empty": {
+        "title": "Ingen henvendelser registrert",
+        "body": "Når noen spør hva dere har om dem, eller ber dere slette det, registrerer du henvendelsen her. Fristen og oppgaven opprettes for deg.",
+        "cta": "Registrer en henvendelse"
+      },
+      "fields": {
+        "request_type": {
+          "help": "Rettigheten personen bruker. En henvendelse trenger ikke bruke juridiske ord for å gjelde.",
+          "example": "«Send meg alt dere har om meg» er en innsynsbegjæring."
+        },
+        "received_at": {
+          "help": "Når henvendelsen nådde noen i virksomheten, uansett kanal. Fristen på én måned løper herfra."
+        },
+        "subject_reference": {
+          "help": "En referanse som gjør at dere finner personens opplysninger, for eksempel kunde- eller ansattnummer. Unngå å kopiere flere personopplysninger enn nødvendig."
+        },
+        "identity_verified_at": {
+          "help": "Når dere bekreftet hvem den som spør, er. Be bare om dokumentasjon når dere har rimelig tvil."
+        },
+        "outcome": {
+          "help": "Hva dere gjorde, eller hvorfor dere avslo. Et avslag skal opplyse om retten til å klage til Datatilsynet og til å gå til domstolene."
+        }
+      }
+    },
+    "breach": {
+      "intro": {
+        "title": "Personvernbrudd (art. 33 og 34)",
+        "body": "Et brudd er enhver sikkerhetshendelse som fører til at personopplysninger går tapt, ødelegges, endres, utleveres eller leses uten tillatelse. 72-timersklokken starter når dere blir kjent med det.",
+        "steps": [
+          "Registrer bruddet straks, også med ufullstendige fakta.",
+          "Begrens skaden og vurder risikoen for de berørte.",
+          "Avgjør om Datatilsynet skal varsles innen 72 timer, og dokumenter begrunnelsen uansett.",
+          "Avgjør om de berørte skal varsles, og lukk bruddet."
+        ]
+      },
+      "why": {
+        "body": "Artikkel 33 krever varsel til tilsynsmyndigheten innen 72 timer med mindre det er lite sannsynlig at bruddet medfører risiko. Alle brudd skal dokumenteres, også de dere ikke varsler (art. 33 nr. 5).",
+        "clauses": ["gdpr:33", "gdpr:34", "iso27001:A.5.34"]
+      },
+      "empty": {
+        "title": "Ingen brudd registrert",
+        "body": "En mistet bærbar PC, en e-post til feil mottaker eller en hacket konto kan alle være personvernbrudd. Registrer dem her, så følges klokken og beslutningene opp.",
+        "cta": "Registrer et brudd"
+      },
+      "fields": {
+        "aware_at": {
+          "help": "Når dere hadde rimelig grad av sikkerhet for at personopplysninger var berørt. Dette starter 72-timersklokken."
+        },
+        "breach_types": {
+          "help": "Konfidensialitet: sett av noen som ikke skulle. Integritet: endret. Tilgjengelighet: tapt eller midlertidig utilgjengelig."
+        },
+        "risk_level": {
+          "help": "Vurder de sannsynlige konsekvensene for personene, ikke for virksomheten. Høy risiko betyr også at personene skal varsles.",
+          "example": "Passord lekket i klartekst: høy risiko."
+        },
+        "authority_notification_required": {
+          "help": "Varsle med mindre det er lite sannsynlig at bruddet medfører risiko for personers rettigheter og friheter. Når dere velger å ikke varsle, skriv ned hvorfor."
+        },
+        "authority_delay_reason": {
+          "help": "Varsler dere etter 72 timer, skal varselet begrunne forsinkelsen."
+        },
+        "subjects_exemption": {
+          "help": "Dere kan la være å varsle personene bare hvis opplysningene var uleselige for andre, den høye risikoen ikke lenger er sannsynlig, eller det ville kreve uforholdsmessig innsats (da kreves offentlig kunngjøring)."
+        }
+      }
+    },
+    "processor": {
+      "intro": {
+        "title": "Databehandlere (art. 28)",
+        "body": "En databehandler behandler personopplysninger etter deres instrukser: skytjenester, lønnsbyrå, IT-drift. Hver trenger en databehandleravtale med vilkårene i artikkel 28 nr. 3.",
+        "steps": [
+          "Registrer hver leverandør som behandler personopplysninger for dere.",
+          "Registrer status for databehandleravtalen.",
+          "Noter underdatabehandlere og landene som er involvert.",
+          "Gå gjennom databehandlerne jevnlig."
+        ]
+      },
+      "why": {
+        "body": "Dere kan bare bruke databehandlere som gir tilstrekkelige garantier, og forholdet skal reguleres av en avtale. Kontroll A.5.20 i ISO/IEC 27001 krever det samme i leverandøravtaler.",
+        "clauses": ["gdpr:28", "iso27001:A.5.20"]
+      },
+      "empty": {
+        "title": "Ingen databehandlere registrert",
+        "body": "Tenk på leverandørene av e-post, skylagring, lønn og kundesystem. De fleste er databehandlere.",
+        "cta": "Legg til en databehandler"
+      },
+      "fields": {
+        "dpa_status": {
+          "help": "En databehandler kan bare markeres som aktiv med en signert avtale, eller når dere har dokumentert at avtale ikke trengs."
+        },
+        "is_sub_processor": {
+          "help": "En underdatabehandler er engasjert av databehandleren deres. Avtalen skal kreve deres godkjenning av nye underdatabehandlere."
+        },
+        "risk_rating": {
+          "help": "Deres vurdering av risikoen databehandleren medfører, ut fra opplysningene, omfanget og sikkerheten de tilbyr."
+        }
+      }
+    },
+    "transfer": {
+      "intro": {
+        "title": "Overføringer til tredjeland (kapittel V)",
+        "body": "Personopplysninger kan bare forlate EØS med et gyldig overføringsgrunnlag: en beslutning om tilstrekkelig beskyttelse, standard personvernbestemmelser (SCC), bindende virksomhetsregler (BCR) eller, unntaksvis, et unntak etter artikkel 49.",
+        "steps": [
+          "Registrer hver overføring og koble den til behandlingen og databehandleren.",
+          "Velg overføringsgrunnlag.",
+          "For SCC, BCR og andre grunnlag: gjennomfør en vurdering av overføringen (TIA).",
+          "Legg til supplerende tiltak når vurderingen krever det."
+        ]
+      },
+      "why": {
+        "body": "Etter Schrems II-dommen krever en overføring basert på SCC eller BCR også at dere vurderer om lovgivningen i mottakerlandet undergraver beskyttelsen. Den vurderingen er TIA-en.",
+        "clauses": ["gdpr:44", "gdpr:46", "gdpr:49"]
+      },
+      "empty": {
+        "title": "Ingen overføringer registrert",
+        "body": "Sjekk hvor leverandørene og deres underleverandører lagrer og får tilgang til data. Supportpersonell i utlandet med fjerntilgang regnes også som overføring.",
+        "cta": "Legg til en overføring"
+      },
+      "fields": {
+        "mechanism": {
+          "help": "Tilstrekkelig beskyttelse krever ingen TIA. SCC, BCR og andre grunnlag krever en fullført TIA før overføringen blir aktiv. Unntak gjelder bare for enkeltstående overføringer."
+        },
+        "tia_conclusion": {
+          "help": "Om beskyttelsen i mottakerlandet i det vesentlige er likeverdig, eventuelt med supplerende tiltak."
+        },
+        "supplementary_measures": {
+          "help": "Tekniske, avtalemessige eller organisatoriske tiltak som tetter hullene vurderingen fant.",
+          "example": "Kryptering med nøkler som bare oppbevares i EØS."
+        }
+      }
+    },
+    "retention": {
+      "intro": {
+        "title": "Lagringsregler",
+        "body": "Personopplysninger skal ikke lagres lenger enn nødvendig for formålet (lagringsbegrensning). En lagringsregel sier hvor lenge hver type opplysninger lagres, fra når, og hva som skjer til slutt.",
+        "steps": [
+          "Legg til en regel per kategori opplysninger, koblet til behandlingen.",
+          "Oppgi perioden og hendelsen den regnes fra.",
+          "Oppgi rettslig grunnlag når loven setter perioden.",
+          "Velg slett, anonymiser, arkiver eller vurder på nytt ved slutten."
+        ]
+      },
+      "why": {
+        "body": "Lagringsbegrensning er ett av prinsippene i artikkel 5, og krav om sletting (art. 17) avhenger ofte av om lagringstiden er passert. Kontroll A.5.33 i ISO/IEC 27001 krever at dokumentasjon beskyttes og avhendes som påkrevd.",
+        "clauses": ["gdpr:5", "gdpr:17", "iso27001:A.5.33"]
+      },
+      "empty": {
+        "title": "Ingen lagringsregler ennå",
+        "body": "Start med opplysningene dere lagrer lengst, for eksempel regnskap, personalmapper eller kameraopptak.",
+        "cta": "Legg til en lagringsregel"
+      },
+      "fields": {
+        "retention_period": {
+          "help": "Perioden i ord, slik du ville skrevet den i en retningslinje.",
+          "example": "Fem år etter regnskapsårets slutt."
+        },
+        "trigger_event": {
+          "help": "Hendelsen perioden regnes fra.",
+          "example": "Avsluttet arbeidsforhold."
+        },
+        "disposal_method": {
+          "help": "Hva som skjer når perioden er over. Anonymiserte opplysninger er ikke lenger personopplysninger."
+        }
+      }
+    },
+    "consent": {
+      "intro": {
+        "title": "Samtykker (art. 7)",
+        "body": "Når dere bygger på samtykke, må dere kunne vise at personen samtykket: til hva, når, hvordan og med hvilken personvernerklæring. Det skal være like enkelt å trekke samtykket som å gi det.",
+        "steps": [
+          "Registrer formålet og en referanse til personen.",
+          "Noter metoden og versjonen av personvernerklæringen som ble vist.",
+          "Ta vare på en referanse til dokumentasjonen, for eksempel et skjema eller en logglinje.",
+          "Registrer en tilbaketrekking så snart den kommer."
+        ]
+      },
+      "why": {
+        "body": "Artikkel 7 nr. 1 legger bevisbyrden på dere. Uten dokumentasjon kan samtykket være ugyldig, og behandlingen som bygger på det, mangler grunnlag.",
+        "clauses": ["gdpr:7", "gdpr:6"]
+      },
+      "empty": {
+        "title": "Ingen samtykker registrert",
+        "body": "Registrer samtykker her når dere ikke kan vise til dem i et annet system, for eksempel papirskjema eller samtykker gitt på e-post.",
+        "cta": "Registrer et samtykke"
+      },
+      "fields": {
+        "subject_reference": {
+          "help": "En referanse som identifiserer personen i systemene deres. Unngå å kopiere flere personopplysninger enn nødvendig."
+        },
+        "notice_version": {
+          "help": "Versjonen av personvernerklæringen personen så da samtykket ble gitt."
+        }
+      }
+    },
+    "lba": {
+      "intro": {
+        "title": "Vurderinger av behandlingsgrunnlag",
+        "body": "Dokumenter hvorfor en behandling er lovlig. For berettiget interesse er vurderingen en tretrinnstest: formål, nødvendighet og interesseavveining.",
+        "steps": [
+          "Koble vurderingen til behandlingen.",
+          "Velg behandlingsgrunnlag og skriv begrunnelsen.",
+          "For berettiget interesse: fullfør formålstesten, nødvendighetstesten og interesseavveiningen.",
+          "Beskriv garantiene og send vurderingen til beslutning."
+        ]
+      },
+      "why": {
+        "body": "Artikkel 6 lister de eneste seks lovlige grunnlagene. Når dere bygger på berettiget interesse, må dere kunne vise at interessene deres ikke veies tyngre av interessene og rettighetene til personene det gjelder.",
+        "clauses": ["gdpr:6", "gdpr:9"]
+      },
+      "empty": {
+        "title": "Ingen vurderinger ennå",
+        "body": "Start med behandling som bygger på berettiget interesse, for eksempel markedsføring til eksisterende kunder eller logging for nettverkssikkerhet.",
+        "cta": "Start en vurdering"
+      },
+      "fields": {
+        "legal_basis": {
+          "help": "Berettiget interesse er fleksibelt, men krever tretrinnstesten. Samtykke må være frivillig, noe som er vanskelig i et arbeidsforhold."
+        },
+        "purpose_test": {
+          "help": "Hva er interessen, og er den berettiget?",
+          "example": "Forhindre svindel ved betaling på nett."
+        },
+        "necessity_test": {
+          "help": "Er behandlingen nødvendig for den interessen, eller finnes det en mindre inngripende måte?"
+        },
+        "balancing_test": {
+          "help": "Vei interessen deres mot konsekvensene for personene: deres rimelige forventninger, hva slags opplysninger det er, og om de er sårbare.",
+          "example": "Kunder forventer svindelkontroll; opplysningene er begrenset til transaksjonen."
+        }
+      }
+    }
+  },
+  "lessons": {
+    "gdpr-principles": {
+      "title": "Personvernprinsippene på godt norsk",
+      "minutes": 5,
+      "sections": [
+        {
+          "heading": "Sju prinsipper",
+          "body": "Artikkel 5 setter reglene enhver behandling må følge: **lovlighet, rettferdighet og åpenhet**; **formålsbegrensning**; **dataminimering**; **riktighet**; **lagringsbegrensning**; **integritet og konfidensialitet**; og **ansvarlighet**."
+        },
+        {
+          "heading": "Hva de betyr i hverdagen",
+          "body": "Fortell folk hva dere gjør med opplysningene deres. Bruk dem bare til formålene de ble samlet inn for. Samle bare inn det dere trenger. Hold dem riktige. Slett dem når dere ikke trenger dem lenger. Beskytt dem. Og kunne vise alt dette."
+        },
+        {
+          "heading": "Hvor registrene passer inn",
+          "body": "Behandlingsprotokollen viser formål, opplysninger og grunnlag. Lagringsreglene viser lagringsbegrensning. DPIA-er, databehandlere og overføringer viser hvordan dere beskytter opplysningene. Til sammen er de dokumentasjonen av ansvarlighet."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Dere samlet inn e-postadresser for å sende ordrebekreftelser. Kan dere bruke dem til et nyhetsbrev uten videre?",
+          "options": [
+            "Ja, dere har dem allerede",
+            "Nei, et nytt formål trenger eget grunnlag og må være forenlig",
+            "Ja, hvis nyhetsbrevet er gratis"
+          ],
+          "answer": 1,
+          "explanation": "Formålsbegrensning: opplysninger samlet inn for ett formål kan ikke brukes til et uforenlig formål uten nytt grunnlag, for eksempel samtykke."
+        },
+        {
+          "question": "Hvilket prinsipp betyr at dere må kunne bevise at dere etterlever reglene?",
+          "options": ["Åpenhet", "Riktighet", "Ansvarlighet"],
+          "answer": 2,
+          "explanation": "Ansvarlighet (art. 5 nr. 2) legger bevisbyrden på virksomheten."
+        }
+      ],
+      "pass_mark": 0.5
+    },
+    "data-subject-rights": {
+      "title": "Slik behandler du en henvendelse fra en registrert",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Kjenn igjen henvendelsen",
+          "body": "En henvendelse kan komme på e-post, telefon, brev eller i et møte, til hvem som helst i virksomheten. Den trenger ikke nevne personvernforordningen. «Hva har dere om meg?» er en innsynsbegjæring."
+        },
+        {
+          "heading": "Fristen",
+          "body": "Svar uten ugrunnet opphold og innen **én måned** fra mottak. Ved kompliserte eller mange henvendelser kan dere forlenge én gang med **to måneder til**, men dere må fortelle personen hvorfor innen den første måneden."
+        },
+        {
+          "heading": "Identitet og utfall",
+          "body": "Kontroller identiteten bare når dere har rimelig tvil. Når dere avslår, forklar hvorfor og fortell at personen kan klage til Datatilsynet."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "En henvendelse kom inn 10. mars. Når er svarfristen uten forlengelse?",
+          "options": ["10. mars pluss 30 virkedager", "10. april", "10. mai"],
+          "answer": 1,
+          "explanation": "Én kalendermåned fra mottak."
+        },
+        {
+          "question": "Når må dere fortelle personen at fristen forlenges?",
+          "options": [
+            "Innen den første måneden",
+            "Når dere sender svaret",
+            "Dere trenger ikke fortelle det"
+          ],
+          "answer": 0,
+          "explanation": "Artikkel 12 nr. 3: innen én måned fra mottak, med begrunnelse for forsinkelsen."
+        }
+      ],
+      "pass_mark": 0.5
+    },
+    "breach-72-hours": {
+      "title": "72-timersklokken ved personvernbrudd",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Når klokken starter",
+          "body": "De 72 timene starter når dere blir **kjent med** at personopplysninger er berørt, ikke når hendelsen skjedde og ikke når undersøkelsen er ferdig."
+        },
+        {
+          "heading": "Varsle eller ikke",
+          "body": "Varsle Datatilsynet med mindre det er **lite sannsynlig at bruddet medfører risiko** for personer. Dere kan varsle i flere omganger hvis faktaene kommer gradvis. Dokumenter bruddet og vurderingen i alle tilfeller."
+        },
+        {
+          "heading": "Varsle de berørte",
+          "body": "Når risikoen er **høy**, skal personene varsles uten ugrunnet opphold, på et klart språk, med råd om hvordan de kan beskytte seg. Unntakene i art. 34 nr. 3 gjelder bare i snevre tilfeller."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "En ansatt sendte et regneark med kundeopplysninger til feil ekstern adresse. Hva gjør dere først?",
+          "options": [
+            "Venter til dere vet nøyaktig hva som skjedde",
+            "Registrerer bruddet og starter vurderingen",
+            "Sletter e-posten og glemmer det"
+          ],
+          "answer": 1,
+          "explanation": "Registrer det straks, så følges 72-timersklokken og beslutningene opp."
+        },
+        {
+          "question": "Dere avgjør at et brudd ikke trenger å varsles. Hva må dere likevel gjøre?",
+          "options": [
+            "Ingenting",
+            "Dokumentere bruddet og hvorfor det ikke ble varslet",
+            "Varsle alle kunder"
+          ],
+          "answer": 1,
+          "explanation": "Artikkel 33 nr. 5: alle brudd dokumenteres, også begrunnelsen for å ikke varsle."
+        }
+      ],
+      "pass_mark": 0.5
+    },
+    "when-dpia": {
+      "title": "Når trenger dere en DPIA?",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Høy risiko for personene",
+          "body": "En DPIA er påkrevd før behandling som sannsynligvis medfører **høy risiko** for personers rettigheter og friheter, særlig ved ny teknologi."
+        },
+        {
+          "heading": "De ni kriteriene",
+          "body": "EDPB lister ni kriterier, blant annet evaluering eller poengsetting, systematisk overvåking, sensitive opplysninger, stort omfang og sårbare registrerte. Gjelder **to eller flere**, er DPIA som regel påkrevd."
+        },
+        {
+          "heading": "Etter DPIA-en",
+          "body": "Hvis tiltakene ikke får risikoen ned, og den fortsatt er **høy**, må dere drøfte behandlingen med Datatilsynet før dere starter (art. 36)."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Et nytt verktøy sporer posisjonen til ansatte i arbeidstiden. Hvilke kriterier gjelder?",
+          "options": [
+            "Ingen",
+            "Systematisk overvåking og sårbare registrerte",
+            "Bare innovativ teknologi"
+          ],
+          "answer": 1,
+          "explanation": "Ansatte regnes som sårbare overfor arbeidsgiveren, og sporing er systematisk overvåking: DPIA er påkrevd."
+        }
+      ],
+      "pass_mark": 1
+    },
+    "processors-and-transfers": {
+      "title": "Databehandlere og overføringer til tredjeland",
+      "minutes": 5,
+      "sections": [
+        {
+          "heading": "Databehandler eller behandlingsansvarlig?",
+          "body": "En databehandler handler bare etter deres dokumenterte instrukser. Bestemmer leverandøren egne formål med opplysningene, er den behandlingsansvarlig, ikke databehandler."
+        },
+        {
+          "heading": "Avtalen",
+          "body": "Artikkel 28 nr. 3 lister hva avtalen skal inneholde: instrukser, taushetsplikt, sikkerhet, underdatabehandlere, bistand ved henvendelser og brudd, sletting eller tilbakelevering, og revisjon."
+        },
+        {
+          "heading": "Ut av EØS",
+          "body": "Hvis databehandleren eller en underdatabehandler lagrer eller får tilgang til opplysninger utenfor EØS, trenger dere et overføringsgrunnlag. Med SCC må dere også vurdere overføringen (TIA)."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Skyleverandøren bruker supportpersonell i et tredjeland som har tilgang til dataene deres. Er det en overføring?",
+          "options": ["Nei, dataene lagres i EØS", "Ja, fjerntilgang regnes som overføring"],
+          "answer": 1,
+          "explanation": "Tilgang fra utenfor EØS er en overføring og krever et overføringsgrunnlag."
+        }
+      ],
+      "pass_mark": 1
+    },
+    "lawful-basis": {
+      "title": "Valg av behandlingsgrunnlag",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Seks grunnlag",
+          "body": "Samtykke, avtale, rettslig forpliktelse, vitale interesser, offentlig oppgave og berettiget interesse. Velg før dere starter, ut fra formålet, og opplys om det i personvernerklæringen."
+        },
+        {
+          "heading": "Samtykke",
+          "body": "Samtykket må være frivillig, spesifikt, informert og utvetydig, og like enkelt å trekke som å gi. Ta vare på dokumentasjonen."
+        },
+        {
+          "heading": "Berettiget interesse",
+          "body": "Gjennomfør tretrinnstesten: er interessen berettiget, er behandlingen nødvendig, og veier personenes interesser tyngre enn deres? Dokumenter det i en vurdering av behandlingsgrunnlag."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Hvorfor er samtykke sjelden et godt grunnlag for å behandle opplysninger om ansatte?",
+          "options": [
+            "Ansatte kan ikke samtykke til noe",
+            "Maktforholdet gjør at samtykket sjelden er frivillig",
+            "Samtykket utløper etter ett år"
+          ],
+          "answer": 1,
+          "explanation": "Samtykke må være frivillig; i et arbeidsforhold er det som regel tvilsomt."
+        }
+      ],
+      "pass_mark": 1
+    }
+  },
+  "tours": {
+    "overview": [
+      {
+        "target": "privacy-kpis",
+        "title": "Nøkkeltall",
+        "body": "Åpne brudd, henvendelser over frist, databehandlere uten avtale og mer. Klikk på et tall for å åpne listen bak det."
+      },
+      {
+        "target": "privacy-breaches",
+        "title": "Det som haster nå",
+        "body": "Brudd med 72-timersklokken i gang og henvendelser sortert etter frist."
+      },
+      {
+        "target": "privacy-registers",
+        "title": "Registrene",
+        "body": "Hvert register dekker én del av personvernforordningen. Start med behandlingsprotokollen."
+      }
+    ]
+  },
+  "glossary": {
+    "data-subject": {
+      "term": "Den registrerte",
+      "definition": "Den levende personen personopplysningene gjelder.",
+      "clauses": ["gdpr:15"]
+    },
+    "ropa": {
+      "term": "Protokoll over behandlingsaktiviteter",
+      "definition": "Den skriftlige oversikten over hvilke personopplysninger en virksomhet behandler, hvorfor og hvordan.",
+      "clauses": ["gdpr:30"]
+    },
+    "tia": {
+      "term": "Vurdering av overføring (TIA)",
+      "definition": "En vurdering av om lovgivning og praksis i et tredjeland undergraver beskyttelsen et overføringsgrunnlag som SCC gir.",
+      "clauses": ["gdpr:46"]
+    }
+  }
+}
