@@ -48,6 +48,12 @@ export const routes: Routes = [
       import('./features/auth/reset-password/reset-password').then((m) => m.ResetPassword),
   },
 
+  // Public customer survey (M22, `/survey/<token>`) — kept outside the protected shell.
+  {
+    path: 'survey',
+    loadChildren: () => import('./features/feedback/feedback-public.routes'),
+  },
+
   // Authenticated application shell. Feature areas are lazy-loaded children.
   {
     path: '',

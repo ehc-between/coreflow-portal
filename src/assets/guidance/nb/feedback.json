@@ -1,0 +1,286 @@
+{
+  "pages": {
+    "list": {
+      "intro": {
+        "title": "Alle kundenes stemmer på ett sted",
+        "body": "Registeret samler det kundene forteller dere: klager, ros, forslag og spørsmål, uansett hvordan de kommer inn. Hver registrering har en eier og en svarfrist, slik at ingenting blir glemt, og klager følger en enkel vei fra mottatt til løst og lukket.",
+        "steps": [
+          "Registrer tilbakemeldingen så snart den kommer, med kundens egne ord.",
+          "Bekreft at den er mottatt, behandle den og beskriv hvordan den ble løst.",
+          "Koble klager som avdekker et reelt problem til et avvik, slik at årsaken blir rettet."
+        ]
+      },
+      "why": {
+        "body": "ISO 9001 krever at dere kommuniserer med kundene om tilbakemeldinger og klager, og at dere overvåker hvor fornøyde de er. Et komplett register er dokumentasjonen: det viser at klager tas på alvor, besvares i tide og brukes til forbedring.",
+        "clauses": ["iso9001:8.2.1", "iso9001:9.1.2"]
+      },
+      "empty": {
+        "title": "Ingen kundetilbakemeldinger er registrert ennå",
+        "body": "Start med den siste klagen eller rosen dere fikk, på e-post, telefon eller ansikt til ansikt. Positive tilbakemeldinger er også viktige å registrere: de viser hva kundene setter pris på.",
+        "cta": "Registrer den første tilbakemeldingen"
+      }
+    },
+    "form": {
+      "intro": {
+        "title": "Registrere en tilbakemelding",
+        "body": "Skriv ned hva kunden sa, og hvordan kunden tok kontakt. Velg type med omhu: klager må ha en løsning før de kan lukkes.",
+        "steps": [
+          "Velg type og kanal.",
+          "Beskriv tilbakemeldingen og, hvis dere vet det, hvor fornøyd kunden er.",
+          "Sett en svarfrist og en eier som sørger for at kunden får svar."
+        ]
+      },
+      "why": {
+        "body": "Når tilbakemeldinger registreres strukturert, kan dere svare i tide, se mønstre og vise en revisor hvordan kundekommunikasjonen håndteres. Begrens personopplysningene til det dere trenger for å svare.",
+        "clauses": ["iso9001:8.2.1"]
+      },
+      "fields": {
+        "kind": {
+          "help": "En klage uttrykker misnøye der kunden forventer svar eller en løsning. Ros er skryt, et forslag er en idé, og et spørsmål ber om informasjon.",
+          "example": "«Leveransen kom to dager for sent, og ingen sa fra» er en klage."
+        },
+        "severity": {
+          "help": "Hvor mye saken påvirker kunden eller virksomheten. Bruk høy eller kritisk når det gjelder sikkerhet, lov eller kontrakt, eller når dere risikerer å miste kunden.",
+          "example": "En feil faktura er middels; en feil som skadet noen er kritisk."
+        },
+        "customer": {
+          "help": "Hvem som ga tilbakemeldingen. La feltet stå tomt hvis kunden vil være anonym. E-post og telefon skjules i revisjonsloggen og deles aldri med assistenten.",
+          "example": "Kari Nordmann, Nordic Retail AS."
+        },
+        "satisfaction_score": {
+          "help": "Hvis kunden sa hvor fornøyd hun eller han er, registrer det fra 1 (svært misfornøyd) til 5 (svært fornøyd). Det inngår i statistikken over tilfredshet.",
+          "example": "«Stort sett fornøyd, men dette var irriterende» kan være en 3-er."
+        },
+        "response_due_on": {
+          "help": "Når kunden skal ha hørt fra dere. Eieren får en påminnelse, og registreringen vises som forfalt etter denne datoen.",
+          "example": "Mange lover et første svar på klager innen tre virkedager."
+        }
+      }
+    },
+    "detail": {
+      "intro": {
+        "title": "Behandle en tilbakemelding",
+        "body": "Flytt registreringen gjennom stegene mens dere jobber med den. For en klage: beskriv løsningen, gi kunden beskjed, og koble til et avvik hvis noe i deres egne prosesser gikk galt.",
+        "steps": [
+          "Bekreft at tilbakemeldingen er mottatt, så kunden vet det.",
+          "Legg til oppfølgingsoppgaver for arbeidet som må gjøres.",
+          "Beskriv løsningen, gi kunden beskjed og lukk saken."
+        ]
+      },
+      "why": {
+        "body": "Revisorer ser etter bevis på at klager ble besvart, at kunden fikk beskjed, og at reelle problemer førte til korrigerende tiltak. Tidslinjen, løsningen og de koblede avvikene gir den dokumentasjonen.",
+        "clauses": ["iso9001:8.2.1", "iso9001:9.1.2"]
+      }
+    },
+    "surveys": {
+      "intro": {
+        "title": "Spør kundene hvordan dere gjør det",
+        "body": "En tilfredshetsundersøkelse er noen få spørsmål som dere deler som en lenke. Kundene svarer uten å logge inn, og resultatene viser gjennomsnittlig score, netto anbefalingsscore (NPS) og hva folk skriver.",
+        "steps": [
+          "Opprett en undersøkelse og legg til noen spørsmål (start med forslagene).",
+          "Publiser den og del den offentlige lenken.",
+          "Les resultatene og følg opp lave score."
+        ]
+      },
+      "why": {
+        "body": "ISO 9001 krever at dere overvåker kundenes oppfatning av hvor godt dere oppfyller behovene deres. Jevnlige undersøkelser gir målbar dokumentasjon og en utvikling over tid.",
+        "clauses": ["iso9001:9.1.2"]
+      },
+      "empty": {
+        "title": "Ingen undersøkelser ennå",
+        "body": "En undersøkelse med tre spørsmål (samlet tilfredshet, ville du anbefalt oss, hva kunne vi gjort bedre) er nok til å begynne. Du kan forhåndsvise den før du publiserer.",
+        "cta": "Opprett den første undersøkelsen"
+      }
+    },
+    "surveyForm": {
+      "intro": {
+        "title": "Utforme en undersøkelse",
+        "body": "Hold den kort: hvert ekstra spørsmål koster svar. Bruk et vurderings- eller anbefalingsspørsmål for scoren, og ett åpent spørsmål for begrunnelsene.",
+        "steps": [
+          "Gi undersøkelsen en tittel og en kort innledning.",
+          "Legg til og sorter spørsmålene, og forhåndsvis dem.",
+          "Bestem om svarene er anonyme, og når en lav score skal gi en oppfølgingssak."
+        ]
+      },
+      "why": {
+        "body": "Faste spørsmål gjør at dere kan sammenligne resultater over tid. Når en undersøkelse er publisert, låses spørsmålene, slik at alle svar er gitt på de samme spørsmålene.",
+        "clauses": ["iso9001:9.1.2"]
+      },
+      "fields": {
+        "anonymous": {
+          "help": "Anonyme undersøkelser spør aldri om og lagrer aldri navn eller e-post. Slå det av bare hvis dere vil kunne svare dem som svarer.",
+          "example": "En årlig tilfredshetsundersøkelse er gjerne anonym; en oppfølging etter en supportsak er det kanskje ikke."
+        },
+        "low_score_threshold": {
+          "help": "Når et svar får en score på eller under denne verdien (0–100), opprettes en tilbakemelding som eieren av undersøkelsen skal følge opp. La feltet stå tomt for å slå det av.",
+          "example": "Med grense 40 gir en kunde som svarer 2 av 5 en oppfølgingssak."
+        },
+        "questions": {
+          "help": "Vurderingsspørsmål gir en score; anbefalingsspørsmålet (0–10) gir en NPS; valg og ja/nei viser fordelinger; fritekst samler kommentarer.",
+          "example": "«Hvor fornøyd er du med leveringstidene våre?» på en skala fra 1 til 5."
+        }
+      }
+    },
+    "surveyDetail": {
+      "intro": {
+        "title": "Gjennomføre en undersøkelse",
+        "body": "Publiser undersøkelsen for å åpne den offentlige lenken, del den med kundene og følg med på resultatene. Lukk den når dere har nok svar, og se på temaene i det folk skrev.",
+        "steps": [
+          "Kopier lenken og del den.",
+          "Sjekk resultatene og de enkelte svarene.",
+          "Følg opp lave score og gjør noe med temaene."
+        ]
+      },
+      "why": {
+        "body": "Resultatene fra undersøkelser dokumenterer at dere overvåker kundetilfredsheten. Det er når dere handler på dem, og viser hva dere endret, at måling blir til forbedring.",
+        "clauses": ["iso9001:9.1.2"]
+      }
+    },
+    "insights": {
+      "intro": {
+        "title": "Kundetilfredshet i korte trekk",
+        "body": "Tallene kombinerer tilbakemeldingsregisteret og undersøkelsene for den valgte perioden. Bruk dem i ledelsens gjennomgåelse for å vise hvor fornøyde kundene er og hvor godt klager håndteres.",
+        "steps": [
+          "Velg periode.",
+          "Se på åpne klager og svar over fristen først.",
+          "Be assistenten finne temaer, og bestem hva som skal forbedres."
+        ]
+      },
+      "why": {
+        "body": "ISO 9001 krever at dere analyserer kundetilfredsheten og bruker resultatene i ledelsens gjennomgåelse. En utvikling over flere måneder sier mer enn ett enkelt tall.",
+        "clauses": ["iso9001:9.1.2"]
+      }
+    }
+  },
+  "lessons": {
+    "handling-complaints": {
+      "title": "God håndtering av kundeklager",
+      "minutes": 5,
+      "sections": [
+        {
+          "heading": "Hvorfor klager er verdifulle",
+          "body": "De fleste misfornøyde kunder klager aldri; de bare forsvinner. De som klager, gir dere en sjanse til å rette opp og beholde dem. Se på hver klage som gratis informasjon om hvordan produktene og tjenestene deres egentlig fungerer."
+        },
+        {
+          "heading": "Bekreft raskt",
+          "body": "Bekreft at klagen er mottatt, og si når kunden kan vente svar. En rask bekreftelse betyr ofte mer enn en rask løsning. Sett en **svarfrist**, så får eieren en påminnelse."
+        },
+        {
+          "heading": "Løs og dokumenter",
+          "body": "Finn ut hva som skjedde, rett det opp for kunden, og skriv ned **løsningen**. Gi kunden beskjed om utfallet og kryss av for *kunden har fått beskjed*. En klage kan bare lukkes når den er løst."
+        },
+        {
+          "heading": "Rett årsaken, ikke bare saken",
+          "body": "Hvis klagen viser at en av deres egne prosesser sviktet, koble den til et **avvik**. Det er i avviket rotårsaken undersøkes og korrigerende tiltak settes i verk, slik at det samme ikke skjer med neste kunde."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Hva må en klage ha før den kan merkes som løst?",
+          "options": ["En eier", "En beskrevet løsning", "En tilfredshetsscore"],
+          "answer": 1,
+          "explanation": "En klage må ha en beskrivelse av hvordan den ble løst; det er den dokumentasjonen en revisor ser etter."
+        },
+        {
+          "question": "En klage viser at leveringsprosessen hoppet over en kvalitetskontroll. Hva bør du gjøre?",
+          "options": [
+            "Lukke klagen når kunden er fornøyd",
+            "Koble den til et avvik, slik at årsaken blir rettet",
+            "Slette den for å holde statistikken ren"
+          ],
+          "answer": 1,
+          "explanation": "En prosessvikt er et avvik. Når klagen kobles til et avvik, sikrer dere at årsaken undersøkes og rettes."
+        }
+      ],
+      "pass_mark": 0.8
+    },
+    "measuring-satisfaction": {
+      "title": "Måle kundetilfredshet",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Oppfatning, ikke bare klager",
+          "body": "Få klager betyr ikke at kundene er fornøyde. Standarden krever at dere overvåker hvordan kundene *oppfatter* dere, så dere må spørre dem, for eksempel med en kort undersøkelse."
+        },
+        {
+          "heading": "Tallene du ser",
+          "body": "**Gjennomsnittlig score** (0–100) kommer fra vurderingsspørsmålene. **Netto anbefalingsscore** (NPS) kommer fra anbefalingsspørsmålet på 0–10: andelen ambassadører (9–10) minus andelen kritikere (0–6), fra −100 til 100."
+        },
+        {
+          "heading": "Bruk utviklingen",
+          "body": "Se på utviklingen per måned og sammenlign perioder. Ta med tallene og de viktigste temaene til ledelsens gjennomgåelse, bestem hva som skal forbedres, og mål på nytt."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Tjue kunder svarer på anbefalingsspørsmålet: 10 gir 9–10, 6 gir 7–8 og 4 gir 0–6. Hva er NPS?",
+          "options": ["30", "50", "70"],
+          "answer": 0,
+          "explanation": "Ambassadørene er 50 % og kritikerne 20 %, så scoren er 50 − 20 = 30."
+        },
+        {
+          "question": "Hvorfor er få klager ikke nok bevis på at kundene er fornøyde?",
+          "options": [
+            "Fordi de fleste misfornøyde kunder aldri klager",
+            "Fordi klager alltid er anonyme",
+            "Fordi standarden forbyr å telle klager"
+          ],
+          "answer": 0,
+          "explanation": "Tause kunder er vanlige, så dere må spørre dem aktivt."
+        }
+      ],
+      "pass_mark": 0.8
+    },
+    "good-survey-questions": {
+      "title": "Skrive gode spørsmål til undersøkelser",
+      "minutes": 3,
+      "sections": [
+        {
+          "heading": "Hold det kort",
+          "body": "Tre til sju spørsmål er nok. Hvert ekstra spørsmål gjør at færre fullfører."
+        },
+        {
+          "heading": "Én ting per spørsmål",
+          "body": "Spør om én ting om gangen. «Hvor fornøyd er du med pris og kvalitet?» kan ikke besvares hvis kunden liker det ene og ikke det andre."
+        },
+        {
+          "heading": "Nøytral formulering",
+          "body": "Unngå ledende spørsmål som «Hvor flott var servicen vår?». Avslutt med et åpent spørsmål, slik at kundene kan fortelle det dere ikke tenkte på å spørre om."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Hvilket spørsmål er best?",
+          "options": [
+            "Hvor fornøyd er du med leveringstidene våre?",
+            "Hvor glad er du for de raske og pålitelige leveransene og det vennlige personalet vårt?"
+          ],
+          "answer": 0,
+          "explanation": "Det spør om én ting og antyder ikke svaret."
+        }
+      ],
+      "pass_mark": 0.8
+    }
+  },
+  "tours": {
+    "list": [
+      {
+        "target": "feedback-new",
+        "title": "Registrer en tilbakemelding",
+        "body": "Registrer en klage, ros, et forslag eller et spørsmål så snart det kommer inn."
+      },
+      {
+        "target": "feedback-filters",
+        "title": "Finn det som trenger oppmerksomhet",
+        "body": "Filtrer på status, type og kanal, eller vis bare tilbakemeldinger der svarfristen er passert. Lagre en visning for å komme tilbake til den."
+      }
+    ],
+    "surveys": [
+      {
+        "target": "feedback-survey-new",
+        "title": "Opprett en undersøkelse",
+        "body": "Lag en kort undersøkelse, forhåndsvis den og publiser den for å få en offentlig lenke du kan dele med kundene."
+      }
+    ]
+  }
+}

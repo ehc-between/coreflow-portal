@@ -1,0 +1,286 @@
+{
+  "pages": {
+    "list": {
+      "intro": {
+        "title": "Every customer voice in one place",
+        "body": "The feedback register collects what customers tell you: complaints, compliments, suggestions and questions, whichever way they arrive. Each record has an owner and a reply date, so nothing is forgotten, and complaints follow a simple path from received to resolved and closed.",
+        "steps": [
+          "Register feedback as soon as it arrives, in the customer's own words.",
+          "Acknowledge it, handle it and record how it was resolved.",
+          "Link complaints that reveal a real problem to a deviation, so the cause is fixed."
+        ]
+      },
+      "why": {
+        "body": "ISO 9001 asks you to communicate with customers about their feedback and complaints, and to monitor how satisfied they are. A complete register is your evidence: it shows that complaints are taken seriously, answered in time and used to improve.",
+        "clauses": ["iso9001:8.2.1", "iso9001:9.1.2"]
+      },
+      "empty": {
+        "title": "No customer feedback registered yet",
+        "body": "Start with the last complaint or compliment you received, by email, phone or in person. Registering positive feedback matters too: it shows what customers value.",
+        "cta": "Register the first feedback"
+      }
+    },
+    "form": {
+      "intro": {
+        "title": "Registering feedback",
+        "body": "Write down what the customer said and how they reached you. Choose the kind carefully: complaints need a resolution before they can be closed.",
+        "steps": [
+          "Pick the kind and the channel.",
+          "Describe the feedback and, if you have it, the customer's satisfaction.",
+          "Set a reply date and an owner who will make sure the customer gets an answer."
+        ]
+      },
+      "why": {
+        "body": "Recording feedback in a structured way lets you answer on time, spot patterns and show an auditor how customer communication is handled. Keep personal details to what you need to reply.",
+        "clauses": ["iso9001:8.2.1"]
+      },
+      "fields": {
+        "kind": {
+          "help": "A complaint is an expression of dissatisfaction where the customer expects an answer or a fix. A compliment is praise, a suggestion is an idea, and a question asks for information.",
+          "example": "\"The delivery arrived two days late and nobody told us\" is a complaint."
+        },
+        "severity": {
+          "help": "How much the issue affects the customer or your business. Use high or critical when there is a safety, legal or contractual impact, or a risk of losing the customer.",
+          "example": "A wrong invoice is medium; a defect that injured someone is critical."
+        },
+        "customer": {
+          "help": "Who gave the feedback. Leave it empty if the customer wants to stay anonymous. Email and phone are hidden in the audit log and never shared with the assistant.",
+          "example": "Kari Nordmann, Nordic Retail AS."
+        },
+        "satisfaction_score": {
+          "help": "If the customer told you how satisfied they are, record it from 1 (very dissatisfied) to 5 (very satisfied). It feeds the satisfaction statistics.",
+          "example": "\"Overall we're happy, but this was annoying\" might be a 3."
+        },
+        "response_due_on": {
+          "help": "When the customer should hear back from you. The owner gets a reminder, and the record is shown as overdue after this date.",
+          "example": "Many organisations promise a first answer to complaints within 3 working days."
+        }
+      }
+    },
+    "detail": {
+      "intro": {
+        "title": "Handling a feedback record",
+        "body": "Move the record through its steps as you work on it. For a complaint, describe the resolution, tell the customer, and link a deviation if something in your own processes went wrong.",
+        "steps": [
+          "Acknowledge the feedback so the customer knows it was received.",
+          "Add follow-up tasks for the work that needs doing.",
+          "Record the resolution, tell the customer and close the record."
+        ]
+      },
+      "why": {
+        "body": "Auditors look for evidence that complaints were answered, that the customer was informed, and that real problems led to corrective action. The timeline, resolution and linked deviations give that evidence.",
+        "clauses": ["iso9001:8.2.1", "iso9001:9.1.2"]
+      }
+    },
+    "surveys": {
+      "intro": {
+        "title": "Ask customers how you are doing",
+        "body": "A satisfaction survey is a short set of questions you share as a link. Customers answer without signing in, and the results show your average score, your net promoter score and what people write.",
+        "steps": [
+          "Create a survey and add a few questions (start with the suggested ones).",
+          "Publish it and share the public link.",
+          "Read the results and follow up on low scores."
+        ]
+      },
+      "why": {
+        "body": "ISO 9001 asks you to monitor customers' perception of how well you meet their needs. Regular surveys give you measurable evidence, and a trend over time.",
+        "clauses": ["iso9001:9.1.2"]
+      },
+      "empty": {
+        "title": "No surveys yet",
+        "body": "A three-question survey (overall satisfaction, would you recommend us, what could we do better) is enough to start. You can preview it before publishing.",
+        "cta": "Create the first survey"
+      }
+    },
+    "surveyForm": {
+      "intro": {
+        "title": "Designing a survey",
+        "body": "Keep it short: every extra question costs answers. Use a rating or recommendation question for the score, and one open question for the reasons.",
+        "steps": [
+          "Give the survey a title and a short introduction.",
+          "Add and order the questions, then preview them.",
+          "Decide whether answers are anonymous and when a low score should create a follow-up."
+        ]
+      },
+      "why": {
+        "body": "Consistent questions let you compare results over time. Once a survey is published its questions are locked, so every answer was given to the same questions.",
+        "clauses": ["iso9001:9.1.2"]
+      },
+      "fields": {
+        "anonymous": {
+          "help": "Anonymous surveys never ask for or store a name or email. Turn it off only if you want to be able to reply to people.",
+          "example": "A yearly satisfaction survey is usually anonymous; a follow-up after a support case may not be."
+        },
+        "low_score_threshold": {
+          "help": "When a response scores at or below this value (0–100), a feedback record is created for the survey owner to follow up. Leave it empty to turn this off.",
+          "example": "With a threshold of 40, a customer who answers 2 out of 5 triggers a follow-up."
+        },
+        "questions": {
+          "help": "Rating questions give a score; the recommendation question (0–10) gives a net promoter score; choice and yes/no questions show distributions; free text collects comments.",
+          "example": "\"How satisfied are you with our delivery times?\" on a 1–5 scale."
+        }
+      }
+    },
+    "surveyDetail": {
+      "intro": {
+        "title": "Running a survey",
+        "body": "Publish the survey to open the public link, share it with customers and watch the results come in. Close it when you have enough answers, and look at the themes in what people wrote.",
+        "steps": [
+          "Copy the link and share it.",
+          "Check the results and the individual responses.",
+          "Follow up on low scores and act on the themes."
+        ]
+      },
+      "why": {
+        "body": "Survey results are evidence that you monitor customer satisfaction. Acting on them, and showing what you changed, is what turns measurement into improvement.",
+        "clauses": ["iso9001:9.1.2"]
+      }
+    },
+    "insights": {
+      "intro": {
+        "title": "Customer satisfaction at a glance",
+        "body": "These figures combine the feedback register and your surveys for the chosen period. Use them in management review to show how satisfied customers are and how well complaints are handled.",
+        "steps": [
+          "Choose the period.",
+          "Look at open and overdue complaints first.",
+          "Ask the assistant for themes, then decide what to improve."
+        ]
+      },
+      "why": {
+        "body": "ISO 9001 asks you to analyse customer satisfaction and use the results in management review. A trend over months says more than a single number.",
+        "clauses": ["iso9001:9.1.2"]
+      }
+    }
+  },
+  "lessons": {
+    "handling-complaints": {
+      "title": "Handling customer complaints well",
+      "minutes": 5,
+      "sections": [
+        {
+          "heading": "Why complaints are valuable",
+          "body": "Most dissatisfied customers never complain; they just leave. The ones who do complain give you a chance to fix the problem and keep them. Treat every complaint as free information about how your products and services really work."
+        },
+        {
+          "heading": "Acknowledge quickly",
+          "body": "Confirm that you have received the complaint and say when the customer can expect an answer. A fast acknowledgement often matters more than a fast solution. Set a **reply date** so the owner is reminded."
+        },
+        {
+          "heading": "Resolve and record",
+          "body": "Find out what happened, put it right for the customer, and write down the **resolution**. Tell the customer the outcome and tick *customer informed*. A complaint can only be closed once it is resolved."
+        },
+        {
+          "heading": "Fix the cause, not just the case",
+          "body": "If the complaint shows that one of your own processes failed, link it to a **deviation**. The deviation is where the root cause is investigated and corrective action is taken, so the same thing does not happen to the next customer."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "What must a complaint have before it can be marked as resolved?",
+          "options": ["An owner", "A written resolution", "A satisfaction score"],
+          "answer": 1,
+          "explanation": "A complaint needs a description of how it was resolved; that is the evidence an auditor looks for."
+        },
+        {
+          "question": "A complaint reveals that your delivery process skipped a quality check. What should you do?",
+          "options": [
+            "Close the complaint once the customer is happy",
+            "Link it to a deviation so the cause is corrected",
+            "Delete it to keep the statistics clean"
+          ],
+          "answer": 1,
+          "explanation": "A process failure is a nonconformity. Linking a deviation makes sure the cause is investigated and fixed."
+        }
+      ],
+      "pass_mark": 0.8
+    },
+    "measuring-satisfaction": {
+      "title": "Measuring customer satisfaction",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Perception, not just complaints",
+          "body": "Few complaints does not mean satisfied customers. The standard asks you to monitor how customers *perceive* you, so you need to ask them, for example with a short survey."
+        },
+        {
+          "heading": "Scores you will see",
+          "body": "The **average score** (0–100) comes from the rating questions. The **net promoter score** comes from the 0–10 recommendation question: the share of promoters (9–10) minus the share of detractors (0–6), from −100 to 100."
+        },
+        {
+          "heading": "Use the trend",
+          "body": "Look at the monthly trend and compare periods. Bring the figures and the main themes to management review, decide what to improve, and measure again."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Twenty customers answer the recommendation question: 10 give 9–10, 6 give 7–8 and 4 give 0–6. What is the net promoter score?",
+          "options": ["30", "50", "70"],
+          "answer": 0,
+          "explanation": "Promoters are 50 % and detractors 20 %, so the score is 50 − 20 = 30."
+        },
+        {
+          "question": "Why is a low number of complaints not enough evidence of satisfaction?",
+          "options": [
+            "Because most dissatisfied customers never complain",
+            "Because complaints are always anonymous",
+            "Because the standard forbids counting complaints"
+          ],
+          "answer": 0,
+          "explanation": "Silent customers are common, so you need to ask them actively."
+        }
+      ],
+      "pass_mark": 0.8
+    },
+    "good-survey-questions": {
+      "title": "Writing good survey questions",
+      "minutes": 3,
+      "sections": [
+        {
+          "heading": "Keep it short",
+          "body": "Three to seven questions is plenty. Every extra question lowers the number of people who finish."
+        },
+        {
+          "heading": "One thing per question",
+          "body": "Ask about one thing at a time. \"How satisfied are you with our price and quality?\" cannot be answered if the customer likes one and not the other."
+        },
+        {
+          "heading": "Neutral wording",
+          "body": "Avoid leading questions such as \"How great was our service?\". End with an open question so customers can tell you what you did not think to ask."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Which question is better?",
+          "options": [
+            "How satisfied are you with our delivery times?",
+            "How happy are you with our fast and reliable deliveries and friendly staff?"
+          ],
+          "answer": 0,
+          "explanation": "It asks about one thing and does not suggest the answer."
+        }
+      ],
+      "pass_mark": 0.8
+    }
+  },
+  "tours": {
+    "list": [
+      {
+        "target": "feedback-new",
+        "title": "Register feedback",
+        "body": "Record a complaint, compliment, suggestion or question as soon as it arrives."
+      },
+      {
+        "target": "feedback-filters",
+        "title": "Find what needs attention",
+        "body": "Filter on status, kind and channel, or show only feedback whose reply is overdue. Save a view to come back to it."
+      }
+    ],
+    "surveys": [
+      {
+        "target": "feedback-survey-new",
+        "title": "Create a survey",
+        "body": "Design a short survey, preview it and publish it to get a public link you can share with customers."
+      }
+    ]
+  }
+}

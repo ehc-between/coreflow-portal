@@ -1,0 +1,558 @@
+{
+  "common": {
+    "loading": "Loading…",
+    "loadFailed": "This could not be loaded. Try again in a moment.",
+    "backToList": "Back to customer feedback",
+    "backToRecord": "Back to the feedback",
+    "backToSurveys": "Back to surveys",
+    "backToSurvey": "Back to the survey",
+    "edit": "Edit",
+    "delete": "Delete",
+    "none": "Not set",
+    "overdue": "Overdue"
+  },
+  "tabs": {
+    "label": "Customer feedback sections",
+    "register": "Feedback",
+    "surveys": "Surveys",
+    "insights": "Insights"
+  },
+  "list": {
+    "title": "Customer feedback",
+    "subtitle": "Complaints, compliments, suggestions and questions from customers, and how each one was handled.",
+    "searchPlaceholder": "Search by title, code, customer or text",
+    "new": "Register feedback",
+    "noMatch": "No feedback matches these filters.",
+    "received": "Received {{ date }}",
+    "score": "Satisfaction {{ score }}/5",
+    "owner": "Owner: {{ name }}",
+    "due": "Reply by {{ date }}",
+    "noDue": "No reply date",
+    "surveyFilter": "Showing the feedback raised from one survey.",
+    "clearSurveyFilter": "Show all feedback"
+  },
+  "filters": {
+    "status": "Status",
+    "statusOptions": {
+      "all": "All statuses",
+      "open": "Still open"
+    },
+    "kind": "Kind",
+    "allKinds": "All kinds",
+    "channel": "Channel",
+    "allChannels": "All channels",
+    "owner": "Owner",
+    "anyOwner": "Any owner",
+    "mine": "Owned by me",
+    "sort": "Sort",
+    "overdue": "Reply overdue"
+  },
+  "sorts": {
+    "updated_atDesc": "Recently updated",
+    "created_atDesc": "Recently registered",
+    "received_onDesc": "Newest received first",
+    "received_on": "Oldest received first",
+    "response_due_on": "Reply due soonest",
+    "response_due_onDesc": "Reply due latest",
+    "code": "Code (ascending)",
+    "codeDesc": "Code (descending)",
+    "title": "Title (A–Z)",
+    "titleDesc": "Title (Z–A)"
+  },
+  "kinds": {
+    "complaint": "Complaint",
+    "compliment": "Compliment",
+    "suggestion": "Suggestion",
+    "inquiry": "Question",
+    "other": "Other"
+  },
+  "channels": {
+    "email": "Email",
+    "phone": "Phone",
+    "web": "Website",
+    "in_person": "In person",
+    "survey": "Survey",
+    "social": "Social media",
+    "other": "Other"
+  },
+  "status": {
+    "new": "New",
+    "acknowledged": "Acknowledged",
+    "in_progress": "In progress",
+    "resolved": "Resolved",
+    "closed": "Closed"
+  },
+  "severities": {
+    "low": "Low impact",
+    "medium": "Medium impact",
+    "high": "High impact",
+    "critical": "Critical impact"
+  },
+  "sentiments": {
+    "positive": "Positive",
+    "neutral": "Neutral",
+    "negative": "Negative"
+  },
+  "actions": {
+    "acknowledge": "Acknowledge",
+    "start": "Start handling",
+    "resolve": "Mark as resolved",
+    "close": "Close",
+    "reopen": "Reopen"
+  },
+  "actionDialog": {
+    "note": "Note (optional)",
+    "titles": {
+      "acknowledge": "Acknowledge this feedback?",
+      "start": "Start handling this feedback?",
+      "resolve": "Mark as resolved",
+      "close": "Close this feedback?",
+      "reopen": "Reopen this feedback?"
+    },
+    "messages": {
+      "acknowledge": "The customer's feedback is marked as received.",
+      "start": "The feedback is marked as being worked on.",
+      "resolve": "Describe what was done. For a complaint, the resolution is required.",
+      "close": "A closed record is read-only until it is reopened.",
+      "reopen": "The record goes back to in progress so it can be handled again."
+    }
+  },
+  "workflow": {
+    "complaintRule": "A complaint needs a resolution before it can be resolved, and must be resolved before it is closed.",
+    "hint": {
+      "new": "Let the customer know you have received this, then start handling it.",
+      "acknowledged": "Received. Start handling it when someone picks it up.",
+      "in_progress": "Being handled. Record the resolution and mark it as resolved when done.",
+      "resolved": "Resolved. Close it once the customer has been told, or reopen it if needed.",
+      "closed": "Closed. Reopen it if the customer comes back on the same matter."
+    }
+  },
+  "fields": {
+    "kind": "Kind",
+    "title": "Title",
+    "description": "What the customer said",
+    "channel": "Channel",
+    "status": "Status",
+    "severity": "Impact",
+    "sentiment": "Sentiment",
+    "category": "Category",
+    "tags": "Tags",
+    "customerName": "Customer name",
+    "customerOrganisation": "Customer organisation",
+    "customerEmail": "Customer email",
+    "customerPhone": "Customer phone",
+    "productOrService": "Product or service",
+    "satisfactionScore": "Satisfaction",
+    "receivedOn": "Received on",
+    "responseDueOn": "Reply due by",
+    "owner": "Owner",
+    "department": "Department",
+    "resolution": "Resolution",
+    "customerInformed": "The customer has been told the outcome",
+    "createdBy": "Registered by",
+    "acknowledgedAt": "Acknowledged",
+    "resolvedAt": "Resolved",
+    "closedAt": "Closed"
+  },
+  "form": {
+    "newTitle": "Register customer feedback",
+    "editTitle": "Edit {{ code }}",
+    "readOnly": "This feedback can't be edited: it is closed or you don't have permission.",
+    "create": "Register feedback",
+    "save": "Save changes",
+    "changeReason": "Reason for the change (optional)",
+    "changeReasonHint": "Kept in the revision history, so others can see why the record changed.",
+    "descriptionHint": "Write down what the customer said, in their words where you can.",
+    "tagsHint": "Separate tags with commas.",
+    "customerHint": "Only what you need to reply. Contact details are hidden from the audit log and never sent to the assistant.",
+    "ownerMe": "Me",
+    "ownerKeep": "Keep the current owner",
+    "currentOwner": "Current owner",
+    "sections": {
+      "what": "What was said",
+      "customer": "Customer",
+      "handling": "Handling"
+    },
+    "scoreOption": {
+      "1": "1 – Very dissatisfied",
+      "2": "2 – Dissatisfied",
+      "3": "3 – Neutral",
+      "4": "4 – Satisfied",
+      "5": "5 – Very satisfied"
+    },
+    "errors": {
+      "titleRequired": "Give the feedback a short title.",
+      "kindRequired": "Choose the kind of feedback.",
+      "email": "Enter a valid email address.",
+      "tooManyTags": "Use at most 20 tags.",
+      "dueBeforeReceived": "The reply date can't be before the date it was received."
+    }
+  },
+  "detail": {
+    "message": "The customer's message",
+    "noDescription": "No details were recorded.",
+    "customer": "Customer",
+    "fromSurvey": "Raised from a survey",
+    "openSurvey": "Open the survey",
+    "resolution": "Resolution",
+    "noResolution": "No resolution has been recorded yet.",
+    "informed": "The customer has been told the outcome.",
+    "notInformed": "The customer has not been told the outcome yet.",
+    "handling": "Handling",
+    "openTasks": "Open follow-up tasks: {{ count }}",
+    "closedNotice": "This feedback is closed and read-only. Reopen it to make changes.",
+    "deleteTitle": "Delete this feedback?",
+    "deleteMessage": "{{ code }} and its open follow-up tasks will be removed. The audit trail is kept."
+  },
+  "deviations": {
+    "title": "Linked deviations",
+    "hint": "Link a deviation when the feedback shows that something went wrong.",
+    "hintComplaint": "A justified complaint is a nonconformity: link it to a deviation so the cause is investigated and corrected.",
+    "link": "Link a deviation",
+    "register": "Register a deviation",
+    "searchLabel": "Find a deviation",
+    "searchPlaceholder": "Search by code or title",
+    "noHits": "No deviations match.",
+    "alreadyLinked": "Linked",
+    "none": "No deviations are linked.",
+    "unlink": "Remove the link to {{ title }}"
+  },
+  "reply": {
+    "title": "Reply to the customer",
+    "intro": "Let the assistant draft a reply from this record. Check it before you send it.",
+    "run": "Draft a reply",
+    "notesLabel": "Notes for the draft",
+    "notesPlaceholder": "Optional: what the reply should say or the tone to use",
+    "generated": "Draft by the assistant – check before sending",
+    "copy": "Copy",
+    "discard": "Discard",
+    "copied": "Copied to the clipboard.",
+    "copyFailed": "Could not copy to the clipboard."
+  },
+  "themes": {
+    "title": "Themes and trends",
+    "intro": "Let the assistant read the feedback and point out recurring themes, trends and what to improve.",
+    "run": "Find themes",
+    "generated": "Analysis by the assistant – check it against the records",
+    "count": "{{ count }} records",
+    "trends": "Trends",
+    "recommendations": "Suggested improvements"
+  },
+  "surveys": {
+    "title": "Satisfaction surveys",
+    "subtitle": "Ask customers how satisfied they are, share a link, and follow up on low scores.",
+    "searchPlaceholder": "Search surveys",
+    "new": "New survey",
+    "noMatch": "No surveys match these filters.",
+    "questionCount": "{{ count }} questions",
+    "anonymous": "Anonymous",
+    "named": "Asks for name and email",
+    "closesOn": "Closes {{ date }}",
+    "responses": "{{ count }} responses",
+    "averageScore": "Score {{ score }}/100",
+    "noScore": "No score yet"
+  },
+  "surveyStatus": {
+    "draft": "Draft",
+    "open": "Open",
+    "closed": "Closed"
+  },
+  "surveyActions": {
+    "publish": "Publish",
+    "close": "Close survey",
+    "reopen": "Reopen survey"
+  },
+  "surveyActionDialog": {
+    "titles": {
+      "publish": "Publish this survey?",
+      "close": "Close this survey?",
+      "reopen": "Reopen this survey?"
+    },
+    "messages": {
+      "publish": "The public link starts accepting answers. The questions can't be changed after this.",
+      "close": "The link stops accepting answers. The results are kept.",
+      "reopen": "The link accepts answers again."
+    }
+  },
+  "surveyWorkflow": {
+    "hint": {
+      "draft": "Draft: add the questions and preview them, then publish to get the public link.",
+      "open": "Open: share the link with customers. Close the survey when you have enough answers.",
+      "closed": "Closed: no new answers are accepted. Reopen it to collect more."
+    }
+  },
+  "questionTypes": {
+    "rating": "Rating scale",
+    "nps": "Recommendation (0–10)",
+    "single_choice": "One choice",
+    "multi_choice": "Several choices",
+    "yes_no": "Yes or no",
+    "text": "Free text"
+  },
+  "surveyFields": {
+    "title": "Title",
+    "description": "Introduction for respondents",
+    "opensOn": "Opens on",
+    "closesOn": "Closes on",
+    "anonymous": "Anonymous (don't ask for name or email)",
+    "lowScoreThreshold": "Follow-up threshold (0–100)",
+    "thankYouMessage": "Thank-you message",
+    "questionLabel": "Question",
+    "questionType": "Question type",
+    "questionHelp": "Help text (optional)",
+    "options": "Options",
+    "required": "Required",
+    "scale": "Scale",
+    "publishedAt": "Published"
+  },
+  "surveyForm": {
+    "newTitle": "New satisfaction survey",
+    "editTitle": "Edit {{ code }}",
+    "readOnly": "You don't have permission to edit this survey.",
+    "create": "Create survey",
+    "descriptionHint": "Shown at the top of the survey. Say why you ask and how long it takes.",
+    "locked": "The survey has been published, so the questions are locked. You can still change the other settings.",
+    "preview": "Preview",
+    "editQuestions": "Back to editing",
+    "noQuestions": "No questions yet. Start with a short starter set, or add your own.",
+    "addStarter": "Add starter questions",
+    "addLabel": "Add a",
+    "addQuestion": "Add question",
+    "questionN": "Question {{ n }}",
+    "optionN": "Option {{ n }}",
+    "moveUp": "Move question {{ n }} up",
+    "moveDown": "Move question {{ n }} down",
+    "remove": "Remove question {{ n }}",
+    "removeOption": "Remove option {{ n }}",
+    "addOption": "Add option",
+    "fixProblems": "Fix the highlighted problems before saving.",
+    "sections": {
+      "basics": "Survey",
+      "questions": "Questions"
+    },
+    "starter": {
+      "rating": "Overall, how satisfied are you with us?",
+      "nps": "How likely are you to recommend us to a friend or colleague?",
+      "text": "What could we do better?"
+    },
+    "errors": {
+      "titleRequired": "Give the survey a title.",
+      "closesBeforeOpens": "The closing date can't be before the opening date.",
+      "threshold": "Use a whole number from 0 to 100.",
+      "tooManyQuestions": "A survey can have at most 50 questions.",
+      "labelRequired": "Write the question.",
+      "options": "Give between 2 and 20 different options.",
+      "scale": "The scale must be from 3 to 10."
+    }
+  },
+  "surveyDetail": {
+    "accepting": "Accepting answers",
+    "notAccepting": "Outside the answer window",
+    "questions": "Questions",
+    "noQuestions": "No questions yet. Edit the survey to add some.",
+    "noThreshold": "No automatic follow-up",
+    "summary": "Survey",
+    "relatedFeedback": "Feedback raised from this survey",
+    "deleteTitle": "Delete this survey?",
+    "deleteMessage": "{{ code }} and its public link will be removed. Feedback already raised from it is kept."
+  },
+  "share": {
+    "title": "Public link",
+    "intro": "Anyone with this link can answer, without signing in. Share it by email, on a receipt or as a QR code.",
+    "linkLabel": "Public survey link",
+    "copy": "Copy link",
+    "copied": "Link copied.",
+    "open": "Open",
+    "regenerate": "New link",
+    "regenerateTitle": "Create a new link?",
+    "regenerateMessage": "The current link stops working at once. Anyone who has it will see that the survey is not available.",
+    "regenerated": "A new link has been created."
+  },
+  "results": {
+    "title": "Results",
+    "responses": "Responses",
+    "averageScore": "Average score (0–100)",
+    "nps": "Net promoter score",
+    "promoters": "Promoters",
+    "splitDelta": "{{ promoters }} promoters · {{ passives }} passives · {{ detractors }} detractors",
+    "lastResponse": "Last answer {{ date }}",
+    "none": "No answers yet.",
+    "answered": "{{ count }} answered",
+    "average": "average {{ value }}",
+    "npsValue": "NPS {{ value }}",
+    "noComments": "No comments yet."
+  },
+  "responses": {
+    "title": "Responses",
+    "none": "No responses yet.",
+    "score": "Score {{ score }}",
+    "followUp": "Follow-up feedback",
+    "delete": "Delete this response",
+    "deleteTitle": "Delete this response?",
+    "deleteMessage": "The answers are removed from the results. This can't be undone."
+  },
+  "answer": {
+    "required": "(required)",
+    "missing": "This question needs an answer.",
+    "yes": "Yes",
+    "no": "No",
+    "ratingLow": "Very dissatisfied",
+    "ratingHigh": "Very satisfied",
+    "npsLow": "Not at all likely",
+    "npsHigh": "Extremely likely"
+  },
+  "public": {
+    "loading": "Loading the survey…",
+    "loadFailed": "The survey could not be loaded. Check your connection and try again.",
+    "unavailableTitle": "This survey is not available",
+    "unavailableBody": "It may have closed, or the link may have changed. Thank you for your interest.",
+    "anonymous": "Your answers are anonymous.",
+    "named": "You may leave your name and email if you would like a reply.",
+    "closesOn": "Open until {{ date }}",
+    "aboutYou": "About you (optional)",
+    "aboutYouHint": "Only used to reply to you about your answers.",
+    "name": "Name",
+    "email": "Email",
+    "missing": "{{ count }} required questions still need an answer.",
+    "submit": "Send answers",
+    "thanksTitle": "Thank you!",
+    "thanksBody": "Your answers have been received.",
+    "privacy": "Your answers go to the organisation that sent you this survey and are used to improve its products and services."
+  },
+  "insights": {
+    "title": "Customer satisfaction insights",
+    "subtitle": "How satisfied customers are, what they complain about and how quickly you respond.",
+    "period": "Period",
+    "months": "Last {{ count }} months",
+    "range": "{{ from }} – {{ to }}",
+    "total": "Feedback received",
+    "openComplaints": "Open complaints",
+    "overdue": "Replies overdue",
+    "satisfaction": "Average satisfaction (1–5)",
+    "satisfactionCount": "{{ count }} scored",
+    "daysToResolve": "Average days to resolve",
+    "surveyResponses": "Survey responses",
+    "surveyScore": "Survey score (0–100)",
+    "nps": "Net promoter score",
+    "byKind": "By kind",
+    "byStatus": "By status",
+    "byChannel": "By channel",
+    "bySentiment": "By sentiment",
+    "trend": "Monthly trend",
+    "month": "Month",
+    "noData": "No feedback in this period."
+  },
+  "lessons": {
+    "link": "Lesson: {{ title }} ({{ minutes }} min)"
+  },
+  "ask": {
+    "summarise": "Summarise this customer feedback: what happened, how it has been handled and what is still open.",
+    "resolution": "What makes a good resolution of a customer complaint, and what should I record about it?",
+    "surveyResults": "Summarise this survey's results and suggest what we should improve first."
+  },
+  "notices": {
+    "created": "{{ code }} registered.",
+    "saved": "Changes saved.",
+    "noChanges": "Nothing was changed.",
+    "deleted": "{{ code }} deleted.",
+    "deviationLinked": "Deviation linked.",
+    "deviationUnlinked": "Link removed.",
+    "surveyCreated": "Survey {{ code }} created as a draft.",
+    "surveyDeleted": "Survey {{ code }} deleted.",
+    "responseDeleted": "Response deleted.",
+    "actions": {
+      "acknowledge": "{{ code }} acknowledged.",
+      "start": "{{ code }} is being handled.",
+      "resolve": "{{ code }} resolved.",
+      "close": "{{ code }} closed.",
+      "reopen": "{{ code }} reopened."
+    },
+    "surveyActions": {
+      "publish": "{{ code }} published. Share the link to collect answers.",
+      "close": "{{ code }} closed.",
+      "reopen": "{{ code }} reopened."
+    }
+  },
+  "errors": {
+    "forbidden": "You don't have permission to do this.",
+    "notFound": "This record was not found. It may have been deleted.",
+    "feedback_closed": "This feedback is closed. Reopen it before changing it.",
+    "field_required": "A required field is missing.",
+    "invalid_owner": "The owner must be a member of the organisation.",
+    "invalid_department": "That department doesn't exist.",
+    "invalid_kind": "Choose a valid kind of feedback.",
+    "invalid_channel": "Choose a valid channel.",
+    "invalid_severity": "Choose a valid impact.",
+    "invalid_sentiment": "Choose a valid sentiment.",
+    "invalid_tags": "The tags are not valid.",
+    "too_many_tags": "Use at most 20 tags.",
+    "invalid_satisfaction_score": "Use a satisfaction score from 1 to 5.",
+    "invalid_dates": "Check the dates: one of them is before the other.",
+    "invalid_transition": "That step isn't possible from the current status. Reload the page.",
+    "complaint_not_resolved": "Resolve the complaint before closing it.",
+    "resolution_required": "Describe how the complaint was resolved.",
+    "link_exists": "That deviation is already linked.",
+    "link_not_found": "That link no longer exists.",
+    "unknown_action": "That step is not available.",
+    "invalid_questions": "Some questions are not valid. Check each question and its options.",
+    "invalid_answers": "Some answers are not valid. Check the highlighted questions and try again.",
+    "survey_locked": "The survey has been published, so the questions can't be changed.",
+    "survey_has_no_questions": "Add at least one question before publishing.",
+    "survey_not_available": "This survey is not available.",
+    "response_not_found": "That response no longer exists.",
+    "too_many_attempts": "Too many answers have been sent from here. Try again later.",
+    "no_feedback": "There is no feedback to analyse in this period.",
+    "entity_required": "Open a feedback record first.",
+    "module_disabled": "Customer feedback is not enabled for this organisation."
+  },
+  "notifications": {
+    "feedbackCreated": "Feedback registered: {{ code }} {{ title }}",
+    "complaintReceived": "New complaint for you: {{ code }} {{ title }}",
+    "feedbackUpdated": "Feedback updated: {{ code }} {{ title }}",
+    "feedbackOwnerChanged": "You now own the feedback {{ code }}: {{ title }}",
+    "feedbackAcknowledged": "Feedback acknowledged: {{ code }} {{ title }}",
+    "feedbackStarted": "Feedback being handled: {{ code }} {{ title }}",
+    "feedbackResolved": "Feedback resolved: {{ code }} {{ title }}",
+    "feedbackClosed": "Feedback closed: {{ code }} {{ title }}",
+    "feedbackReopened": "Feedback reopened: {{ code }} {{ title }}",
+    "feedbackDeleted": "Feedback deleted: {{ code }} {{ title }}",
+    "deviationLinked": "Deviation linked to {{ code }} {{ title }}",
+    "deviationUnlinked": "Deviation unlinked from {{ code }} {{ title }}",
+    "feedbackTaskAdded": "Follow-up task added to {{ code }} {{ title }}",
+    "surveyCreated": "Survey created: {{ code }} {{ title }}",
+    "surveyUpdated": "Survey updated: {{ code }} {{ title }}",
+    "surveyPublished": "Survey published: {{ code }} {{ title }}",
+    "surveyClosed": "Survey closed: {{ code }} {{ title }}",
+    "surveyReopened": "Survey reopened: {{ code }} {{ title }}",
+    "surveyLinkRegenerated": "New survey link: {{ code }} {{ title }}",
+    "surveyDeleted": "Survey deleted: {{ code }} {{ title }}",
+    "surveyResponseReceived": "New survey response: {{ code }} {{ title }}",
+    "surveyResponseDeleted": "Survey response deleted: {{ code }} {{ title }}",
+    "surveyLowScore": "Low survey score needs follow-up: {{ code }} {{ title }}"
+  },
+  "timeline": {
+    "feedbackCreated": "Feedback registered",
+    "complaintReceived": "Complaint received",
+    "feedbackUpdated": "Feedback updated",
+    "feedbackOwnerChanged": "Owner changed",
+    "feedbackAcknowledged": "Acknowledged",
+    "feedbackStarted": "Handling started",
+    "feedbackResolved": "Resolved",
+    "feedbackClosed": "Closed",
+    "feedbackReopened": "Reopened",
+    "feedbackDeleted": "Deleted",
+    "deviationLinked": "Deviation linked",
+    "deviationUnlinked": "Deviation unlinked",
+    "feedbackTaskAdded": "Follow-up task added",
+    "surveyCreated": "Survey created",
+    "surveyUpdated": "Survey updated",
+    "surveyPublished": "Published",
+    "surveyClosed": "Closed",
+    "surveyReopened": "Reopened",
+    "surveyLinkRegenerated": "New public link",
+    "surveyDeleted": "Deleted",
+    "surveyResponseReceived": "Response received",
+    "surveyResponseDeleted": "Response deleted",
+    "surveyLowScore": "Low score received"
+  }
+}
