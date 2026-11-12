@@ -1,0 +1,104 @@
+{
+  "types": {
+    "document": "Documents",
+    "deviation": "Deviations",
+    "deviation_action": "Corrective and preventive actions",
+    "standard_requirement": "Standard requirements",
+    "task": "Tasks",
+    "other": "Records"
+  },
+  "palette": {
+    "searching": "Searching…",
+    "error": "Search isn't available right now. You can still jump to a page below.",
+    "noResults": "No records match \"{{query}}\".",
+    "count": "{{count}}",
+    "hint": "Type to search documents, deviations, actions and requirements, or pick an action below."
+  },
+  "launcher": {
+    "label": "Open Ask CoreFlow",
+    "title": "Ask CoreFlow ({{shortcut}})"
+  },
+  "intro": {
+    "tryTitle": "Try asking",
+    "examples": {
+      "find": "Find our procedures about document control",
+      "explain": "What does ISO 9001 clause 6.1 require?",
+      "thisPage": "Summarise what I'm looking at",
+      "create": "Register a deviation for a late delivery"
+    },
+    "confirmNote": "CoreFlow never changes anything on its own. When it suggests a change, you see exactly what it will do and confirm it first.",
+    "shortcut": "Press Ctrl+J (⌘J on Mac) to open or close the assistant from any page."
+  },
+  "context": {
+    "using": "About this page: {{title}}",
+    "detach": "Don't use",
+    "detached": "Not using this page",
+    "attach": "Use this page"
+  },
+  "tutor": {
+    "banner": "Tutor mode: learning step by step",
+    "bannerTopic": "Tutor mode: {{topic}}",
+    "exit": "Leave tutor mode",
+    "start": "Teach me about this page, step by step.",
+    "startTopic": "Teach me about {{topic}}, step by step.",
+    "teachMePage": "Teach me about this page"
+  },
+  "links": {
+    "heading": "Records"
+  },
+  "action": {
+    "cardLabel": "Proposed change",
+    "heading": "Proposed change",
+    "hint": "Nothing has changed yet. Confirm to make this change, or discard it.",
+    "confirm": "Confirm",
+    "discard": "Discard",
+    "done": "Done.",
+    "openResult": "Open",
+    "discarded": "Discarded. Nothing was changed.",
+    "expired": "This proposal has expired. Ask again if you still want the change.",
+    "failed": "The change couldn't be made. Nothing was changed.",
+    "forbidden": "You no longer have permission to make this change.",
+    "gone": "This proposal is no longer available.",
+    "error": "Something went wrong. Please try again.",
+    "state": {
+      "pending": "Awaiting your confirmation",
+      "confirming": "Applying…",
+      "rejecting": "Discarding…",
+      "confirmed": "Confirmed",
+      "rejected": "Discarded",
+      "expired": "Expired",
+      "failed": "Failed",
+      "forbidden": "Not allowed",
+      "gone": "Unavailable",
+      "error": "Not applied"
+    }
+  },
+  "askAbout": {
+    "label": "Ask about this",
+    "prompt": "Explain what I'm looking at and what I should pay attention to.",
+    "fieldPrompt": "Explain the \"{{field}}\" field on this page and how to fill it in."
+  },
+  "assist": {
+    "defaultLabel": "Suggest",
+    "running": "Working… (click to stop)",
+    "failed": "That didn't work. Please try again."
+  },
+  "timeline": {
+    "aiAction": {
+      "proposed": "{{actor_name}} received a proposed change from the assistant",
+      "confirmed": "{{actor_name}} confirmed a change proposed by the assistant",
+      "rejected": "{{actor_name}} discarded a change proposed by the assistant",
+      "expired": "A change proposed by the assistant expired without a decision",
+      "failed": "A change proposed by the assistant could not be made"
+    }
+  },
+  "notifications": {
+    "aiAction": {
+      "proposed": "The assistant proposed a change for you to confirm",
+      "confirmed": "Your confirmed change was made",
+      "rejected": "You discarded a proposed change",
+      "expired": "A proposed change expired",
+      "failed": "A proposed change could not be made"
+    }
+  }
+}

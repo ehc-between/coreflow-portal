@@ -7,8 +7,13 @@ import { SKIP_ERROR_TOAST } from '../http/error.interceptor';
 import {
   AiMapTarget,
   ClauseDetail,
+  ClauseMappingItem,
   ClauseNode,
+  ClauseSupport,
   CreateRequirementLinkRequest,
+  EvidenceSuggestions,
+  FrameworkReadiness,
+  FrameworkSummary,
   GuidanceEvent,
   RequirementDetail,
   RequirementLink,
@@ -120,6 +125,50 @@ export class StandardsApi {
 
   deleteLink(orgId: string, linkId: string): Observable<void> {
     return this.api.delete<void>(`${this.base(orgId)}/requirement-links/${linkId}`);
+  }
+
+  // --- Frameworks, cross-mapping, readiness ----------------------------------
+  // Optional surfaces: the pages fall back quietly when these fail, so no toast.
+
+  /** Every framework of the catalogue (enabled or not) with its readiness score. */
+  listFrameworks(orgId: string): Observable<FrameworkSummary[]> {
+    return this.api.get<FrameworkSummary[]>(`${this.base(orgId)}/frameworks`, INLINE_ERRORS);
+  }
+
+  /** Readiness breakdown of every enabled standard. */
+  readiness(orgId: string): Observable<FrameworkReadiness[]> {
+    return this.api.get<FrameworkReadiness[]>(
+      `${this.base(orgId)}/frameworks/readiness`,
+      INLINE_ERRORS,
+    );
+  }
+
+  /** Clauses of other frameworks this clause maps to ("Also satisfies"). */
+  clauseMappings(orgId: string, key: string, number: string): Observable<ClauseMappingItem[]> {
+    return this.api.get<ClauseMappingItem[]>(
+      `${this.base(orgId)}/standards/${encodeURIComponent(key)}/clauses/${encodeURIComponent(number)}/mappings`,
+      INLINE_ERRORS,
+    );
+  }
+
+  /** Which modules' records can evidence a clause (`hs:6.1`, `iso27001:A.5.9`, `<standard key>:<number>`). */
+  clauseSupport(orgId: string, ref: string): Observable<ClauseSupport> {
+    return this.api.get<ClauseSupport>(`${this.base(orgId)}/clause-support`, {
+      ...INLINE_ERRORS,
+      params: { ref },
+    });
+  }
+
+  /** Requirements of the org's enabled standards that a record could evidence. */
+  evidenceSuggestions(
+    orgId: string,
+    entityType: string,
+    entityId: string,
+  ): Observable<EvidenceSuggestions> {
+    return this.api.get<EvidenceSuggestions>(`${this.base(orgId)}/evidence-suggestions`, {
+      ...INLINE_ERRORS,
+      params: { entity_type: entityType, entity_id: entityId },
+    });
   }
 
   // --- Background jobs -------------------------------------------------------

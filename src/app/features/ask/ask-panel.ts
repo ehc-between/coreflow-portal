@@ -12,9 +12,14 @@ import {
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, provideTranslocoScope } from '@jsverse/transloco';
 import { marked } from 'marked';
+import { entityTypeIcon, entityTypeLabel } from '../../core/search/entity-label';
+import { InternalLink, internalLink } from '../../core/search/internal-link';
+import { LanguageService } from '../../core/i18n/language.service';
+import { AskSource } from '../../core/ai/ai.models';
 import { Icon } from '../../shared/ui/icon/icon';
+import { AskActionCardView } from './ask-action-card';
 import { AskPanelService } from './ask-panel.service';
 
 marked.setOptions({ gfm: true, breaks: true });
@@ -26,6 +31,13 @@ marked.setOptions({ gfm: true, breaks: true });
  * clickable option chips) and forwards user actions (submit, pick, stop, new chat)
  * to the service. A 503 renders a friendly "not set up yet" state.
  *
+ * F5: a chip names the page the assistant is told about (detachable per
+ * conversation), a banner shows tutor mode, records the assistant opened render
+ * as links, and proposed changes render as Confirm / Discard cards
+ * ({@link AskActionCardView}). The empty state teaches what to ask and that
+ * nothing changes without confirmation. Strings beyond the global ask keys live
+ * in the search scope.
+ *
  * Closing the panel (×, Esc, backdrop) only MINIMIZES it — `hide()` keeps the
  * stream running in the service, so a long draft survives navigating away. The
  * stream is aborted only via explicit Stop or New chat. Zoneless: stream events
@@ -33,7 +45,8 @@ marked.setOptions({ gfm: true, breaks: true });
  */
 @Component({
   selector: 'app-ask-panel',
-  imports: [FormsModule, RouterLink, TranslocoPipe, Icon],
+  imports: [FormsModule, RouterLink, TranslocoPipe, Icon, AskActionCardView],
+  providers: [provideTranslocoScope('search')],
   host: { '(document:keydown.escape)': 'onEscape()' },
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -79,6 +92,63 @@ marked.setOptions({ gfm: true, breaks: true });
             </button>
           </header>
 
+          @if (state() !== 'not-configured') {
+            @if (panel.mode() === 'tutor') {
+              <div
+                class="flex flex-none items-center gap-2 border-b border-border bg-accent-soft px-4 py-2 text-[12.5px] text-accent"
+                role="status"
+              >
+                <app-icon name="training" [size]="15" />
+                <span class="min-w-0 flex-1 truncate font-semibold">
+                  @if (panel.topic(); as topic) {
+                    {{ 'search.tutor.bannerTopic' | transloco: { topic } }}
+                  } @else {
+                    {{ 'search.tutor.banner' | transloco }}
+                  }
+                </span>
+                <button
+                  type="button"
+                  (click)="panel.exitTutor()"
+                  class="flex-none rounded-[7px] px-2 py-1 font-semibold hover:bg-surface"
+                >
+                  {{ 'search.tutor.exit' | transloco }}
+                </button>
+              </div>
+            }
+            @if (contextTitle(); as title) {
+              <div
+                class="flex flex-none items-center gap-2 border-b border-border px-4 py-2 text-[12.5px]"
+              >
+                <span class="flex flex-none text-fg-subtle"
+                  ><app-icon name="link" [size]="14"
+                /></span>
+                @if (panel.usePageContext()) {
+                  <span class="min-w-0 flex-1 truncate text-fg-muted">
+                    {{ 'search.context.using' | transloco: { title } }}
+                  </span>
+                  <button
+                    type="button"
+                    (click)="panel.setUsePageContext(false)"
+                    class="flex-none rounded-[7px] px-2 py-1 font-semibold text-fg-muted hover:bg-surface-2 hover:text-fg"
+                  >
+                    {{ 'search.context.detach' | transloco }}
+                  </button>
+                } @else {
+                  <span class="min-w-0 flex-1 truncate text-fg-subtle">
+                    {{ 'search.context.detached' | transloco }}
+                  </span>
+                  <button
+                    type="button"
+                    (click)="panel.setUsePageContext(true)"
+                    class="flex-none rounded-[7px] px-2 py-1 font-semibold text-accent hover:bg-accent-soft"
+                  >
+                    {{ 'search.context.attach' | transloco }}
+                  </button>
+                }
+              </div>
+            }
+          }
+
           <div #scroll class="flex-1 overflow-y-auto px-4 py-4">
             @if (state() === 'not-configured') {
               <div class="flex flex-col items-center gap-3 py-10 text-center">
@@ -96,6 +166,42 @@ marked.setOptions({ gfm: true, breaks: true });
               </div>
             } @else if (thread().length === 0) {
               <p class="text-[13.5px] text-fg-muted">{{ 'ask.intro' | transloco }}</p>
+              <div class="mt-4 rounded-tile border border-border bg-bg px-3.5 py-3">
+                <p class="text-[12.5px] font-semibold text-fg">
+                  {{ 'search.intro.tryTitle' | transloco }}
+                </p>
+                <ul class="mt-2 flex flex-col gap-1.5">
+                  @for (key of exampleKeys; track key) {
+                    <li>
+                      <button
+                        type="button"
+                        (click)="pickExample(key)"
+                        class="w-full rounded-[8px] px-2 py-1.5 text-left text-[13px] text-fg-muted hover:bg-surface-2 hover:text-fg"
+                      >
+                        {{ key | transloco }}
+                      </button>
+                    </li>
+                  }
+                </ul>
+              </div>
+              <p class="mt-3 flex gap-2 text-[12.5px] text-fg-subtle">
+                <span class="flex flex-none pt-px"><app-icon name="lock" [size]="14" /></span>
+                <span>{{ 'search.intro.confirmNote' | transloco }}</span>
+              </p>
+              <p class="mt-1.5 flex gap-2 text-[12.5px] text-fg-subtle">
+                <span class="flex flex-none pt-px"><app-icon name="spark" [size]="14" /></span>
+                <span>{{ 'search.intro.shortcut' | transloco }}</span>
+              </p>
+              @if (panel.mode() !== 'tutor') {
+                <button
+                  type="button"
+                  (click)="teachMe()"
+                  class="mt-3 inline-flex items-center gap-1.5 rounded-tile border border-border px-3 py-1.5 text-[13px] font-semibold text-fg hover:border-accent hover:text-accent"
+                >
+                  <app-icon name="training" [size]="15" />
+                  {{ 'search.tutor.teachMePage' | transloco }}
+                </button>
+              }
             } @else {
               <div class="flex flex-col gap-4">
                 @for (turn of thread(); track turn.id) {
@@ -151,14 +257,18 @@ marked.setOptions({ gfm: true, breaks: true });
                           </div>
                           <ul class="flex flex-col gap-1.5">
                             @for (source of turn.sources; track source.id) {
+                              @let sourceLink = linkForSource(source);
                               <li>
                                 <a
-                                  [routerLink]="['/documents', source.id]"
+                                  [routerLink]="sourceLink.path"
+                                  [queryParams]="sourceLink.queryParams"
                                   (click)="close()"
                                   class="flex items-center gap-2 rounded-tile border border-border bg-bg px-3 py-2 text-[13px] hover:border-border-strong"
                                 >
                                   <span class="flex flex-none text-fg-subtle"
-                                    ><app-icon name="documents" [size]="15"
+                                    ><app-icon
+                                      [name]="iconFor(source.entity_type ?? 'document')"
+                                      [size]="15"
                                   /></span>
                                   <span class="min-w-0 flex-1">
                                     <span class="truncate font-semibold text-fg">{{
@@ -175,6 +285,58 @@ marked.setOptions({ gfm: true, breaks: true });
                             }
                           </ul>
                         </div>
+                      }
+
+                      @if (turn.links?.length) {
+                        <div class="mt-1">
+                          <div
+                            class="mb-2 text-[11px] font-bold tracking-[0.08em] text-fg-subtle uppercase"
+                          >
+                            {{ 'search.links.heading' | transloco }}
+                          </div>
+                          <ul class="flex flex-col gap-1.5">
+                            @for (link of turn.links; track link.entity_type + link.entity_id) {
+                              @if (routeFor(link.url); as target) {
+                                <li>
+                                  <a
+                                    [routerLink]="target.path"
+                                    [queryParams]="target.queryParams"
+                                    (click)="close()"
+                                    class="flex items-center gap-2 rounded-tile border border-border bg-bg px-3 py-2 text-[13px] hover:border-accent"
+                                  >
+                                    <span class="flex flex-none text-accent"
+                                      ><app-icon [name]="iconFor(link.entity_type)" [size]="15"
+                                    /></span>
+                                    <span class="min-w-0 flex-1">
+                                      <span class="block truncate font-semibold text-fg">{{
+                                        link.title
+                                      }}</span>
+                                      <span class="block truncate text-[12px] text-fg-subtle">
+                                        {{ typeLabel(link.entity_type) }}
+                                        @if (link.code) {
+                                          · {{ link.code }}
+                                        }
+                                      </span>
+                                    </span>
+                                    <span class="flex flex-none text-fg-subtle"
+                                      ><app-icon name="arrow" [size]="14"
+                                    /></span>
+                                  </a>
+                                </li>
+                              }
+                            }
+                          </ul>
+                        </div>
+                      }
+
+                      @for (card of turn.actions ?? []; track card.action_id) {
+                        <app-ask-action-card
+                          class="mt-1 block"
+                          [card]="card"
+                          (confirmed)="panel.confirmAction($event)"
+                          (discarded)="panel.rejectAction($event)"
+                          (navigated)="close()"
+                        />
                       }
 
                       @if (turn.proposal; as draft) {
@@ -268,6 +430,57 @@ export class AskPanel {
   protected readonly canSubmit = computed(
     () => this.question().trim().length > 0 && !this.streaming(),
   );
+
+  private readonly language = inject(LanguageService);
+
+  /** Example questions shown on the empty conversation (teaching empty state). */
+  protected readonly exampleKeys = [
+    'search.intro.examples.find',
+    'search.intro.examples.explain',
+    'search.intro.examples.thisPage',
+    'search.intro.examples.create',
+  ] as const;
+
+  /** What the page context chip names: the record title, else the record type. */
+  protected readonly contextTitle = computed<string | null>(() => {
+    const ctx = this.panel.pageContext();
+    if (!ctx) {
+      return null;
+    }
+    if (ctx.title?.trim()) {
+      return ctx.title.trim();
+    }
+    return ctx.entityType ? this.typeLabel(ctx.entityType) : null;
+  });
+
+  protected typeLabel(entityType: string): string {
+    return entityTypeLabel(
+      (key) => this.language.translate(key),
+      `modules.entities.${entityType}`,
+      entityType,
+    );
+  }
+
+  protected iconFor(entityType: string): string {
+    return entityTypeIcon(entityType);
+  }
+
+  protected routeFor(url: string | null | undefined): InternalLink | null {
+    return internalLink(url);
+  }
+
+  /** A source links to its `url` when given, else (documents) to `/documents/<id>`. */
+  protected linkForSource(source: AskSource): InternalLink {
+    return internalLink(source.url) ?? { path: `/documents/${source.id}`, queryParams: null };
+  }
+
+  protected pickExample(key: string): void {
+    this.panel.send(this.language.translate(key));
+  }
+
+  protected teachMe(): void {
+    this.panel.openTutor();
+  }
 
   constructor() {
     effect(() => {

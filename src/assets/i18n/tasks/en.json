@@ -1,0 +1,377 @@
+{
+  "myWork": {
+    "title": "My Work",
+    "subtitle": "Everything waiting on you: tasks, actions, reviews and acknowledgements.",
+    "allTasks": "All tasks",
+    "recurring": "Recurring tasks",
+    "newTask": "New task",
+    "proposals": "Change proposals waiting for your review: {{ count }}",
+    "viewLabel": "View",
+    "views": {
+      "list": "List",
+      "board": "Board",
+      "calendar": "Calendar"
+    },
+    "summary": "Items: {{ count }}",
+    "overdueCount": "{{ count }} overdue",
+    "dueTodayCount": "{{ count }} due today"
+  },
+  "list": {
+    "title": "Tasks",
+    "subtitle": "Tasks assigned to you or created by you, across every record."
+  },
+  "new": {
+    "title": "New task",
+    "recurringTitle": "New recurring task"
+  },
+  "edit": {
+    "title": "Edit task",
+    "noRights": "Only the creator, the assignee or a task manager can edit this task."
+  },
+  "detail": {
+    "notFound": "This task doesn't exist or you don't have access to it.",
+    "statusLabel": "Status",
+    "description": "Description",
+    "noDescription": "No description.",
+    "closedHint": "This task is closed. Reopen it to make changes.",
+    "escalated": "Escalated (level {{ level }})",
+    "partOfSeries": "Part of a recurring series",
+    "recordUnavailable": "The linked record is not available to you."
+  },
+  "recurring": {
+    "title": "Recurring tasks",
+    "subtitle": "Periodic controls, reviews and inspections that create their own tasks on schedule.",
+    "new": "New recurring task",
+    "editTitle": "Edit recurring task",
+    "paused": "Paused",
+    "active": "Active",
+    "nextDue": "Next due {{ date }}",
+    "ended": "No more occurrences",
+    "deleteLabel": "Delete {{ title }}"
+  },
+  "entity": {
+    "title": "Tasks",
+    "empty": "No open tasks on this record.",
+    "complete": "Mark \"{{ title }}\" as done",
+    "quickAddLabel": "New task title",
+    "quickAddPlaceholder": "Add a task…",
+    "add": "Add",
+    "moreOptions": "More options",
+    "showClosed": "Show closed tasks ({{ count }})",
+    "hideClosed": "Hide closed tasks ({{ count }})"
+  },
+  "form": {
+    "title": "Title",
+    "description": "Description",
+    "assignee": "Assignee",
+    "priority": "Priority",
+    "due": "Due date",
+    "firstDue": "First due date",
+    "firstDueRequired": "Pick the first due date of the series.",
+    "seriesStart": "Series starts (first due date)",
+    "start": "Start date",
+    "checklist": "Checklist",
+    "checklistItem": "Checklist item {{ n }}",
+    "removeChecklistItem": "Remove checklist item {{ n }}",
+    "addChecklistItem": "Add checklist item",
+    "repeat": "Repeat this task",
+    "leadDays": "Create each task this many days before it is due",
+    "linkedTo": "Linked to {{ record }}",
+    "create": "Create task",
+    "saveChanges": "Save changes"
+  },
+  "fields": {
+    "assignee": "Assignee",
+    "due": "Due",
+    "start": "Start",
+    "record": "Belongs to",
+    "createdBy": "Created by"
+  },
+  "status": {
+    "open": "To do",
+    "in_progress": "In progress",
+    "blocked": "Blocked",
+    "done": "Done",
+    "cancelled": "Cancelled"
+  },
+  "priority": {
+    "low": "Low",
+    "normal": "Normal",
+    "high": "High",
+    "urgent": "Urgent"
+  },
+  "assignee": {
+    "none": "Nobody yet",
+    "unassigned": "Unassigned",
+    "types": {
+      "user": "Person",
+      "role": "Role",
+      "department": "Department"
+    },
+    "groups": {
+      "users": "People",
+      "roles": "Roles",
+      "departments": "Departments"
+    }
+  },
+  "sources": {
+    "task": "Task",
+    "deviation_action": "CAPA action",
+    "deviation": "Deviation you own",
+    "document_review": "Document to approve",
+    "document_ack": "Document to acknowledge",
+    "other": "Other"
+  },
+  "filters": {
+    "source": "Source",
+    "allSources": "All sources",
+    "due": "Due",
+    "dueOptions": {
+      "all": "Any time",
+      "overdue": "Overdue",
+      "today": "Today",
+      "week": "Next 7 days",
+      "none": "No due date"
+    },
+    "priority": "Priority",
+    "allPriorities": "All priorities",
+    "search": "Search",
+    "searchPlaceholder": "Search tasks…",
+    "assignee": "Show",
+    "assignedToMe": "Assigned to me",
+    "everything": "Everything I can see",
+    "status": "Status",
+    "statusOptions": {
+      "open": "Open",
+      "done": "Done",
+      "cancelled": "Cancelled",
+      "all": "All"
+    },
+    "sort": "Sort by",
+    "sorts": {
+      "due_at": "Due date (soonest)",
+      "-due_at": "Due date (latest)",
+      "priority": "Priority",
+      "-created_at": "Newest"
+    },
+    "noMatch": "Nothing matches these filters."
+  },
+  "board": {
+    "columns": {
+      "open": "To do",
+      "in_progress": "In progress",
+      "blocked": "Blocked"
+    },
+    "moveLabel": "Move \"{{ title }}\"",
+    "markDone": "Done",
+    "empty": "Nothing here."
+  },
+  "calendar": {
+    "prev": "Previous month",
+    "next": "Next month",
+    "today": "Today",
+    "more": "+{{ count }} more",
+    "empty": "Nothing is due this month."
+  },
+  "checklist": {
+    "title": "Checklist",
+    "progress": "{{ done }} of {{ total }} done",
+    "empty": "No checklist items.",
+    "addLabel": "New checklist item",
+    "addPlaceholder": "Add a step…",
+    "add": "Add",
+    "remove": "Remove \"{{ text }}\""
+  },
+  "history": {
+    "title": "History",
+    "created": "Created by {{ name }}",
+    "createdSystem": "Created automatically",
+    "completed": "Marked as done",
+    "cancelled": "Cancelled",
+    "updated": "Last changed",
+    "system": "Created automatically"
+  },
+  "actions": {
+    "complete": "Mark as done",
+    "reopen": "Reopen",
+    "cancel": "Cancel task",
+    "edit": "Edit",
+    "delete": "Delete"
+  },
+  "confirm": {
+    "cancelTitle": "Cancel this task?",
+    "cancelBody": "\"{{ title }}\" will be closed without being done. You can reopen it later.",
+    "deleteTitle": "Delete this task?",
+    "deleteBody": "\"{{ title }}\" will be removed from every list. The change is kept in the audit log.",
+    "deleteSeriesTitle": "Delete this recurring task?",
+    "deleteSeriesBody": "No new tasks will be created for \"{{ title }}\". Tasks already created stay as they are.",
+    "keep": "Keep it"
+  },
+  "notices": {
+    "created": "Task created.",
+    "saved": "Changes saved.",
+    "completed": "Task marked as done.",
+    "completedRecurring": "Task done. The next one in the series is planned.",
+    "reopened": "Task reopened.",
+    "cancelled": "Task cancelled.",
+    "deleted": "Task deleted.",
+    "seriesPaused": "Recurring task paused.",
+    "seriesResumed": "Recurring task resumed.",
+    "seriesDeleted": "Recurring task deleted."
+  },
+  "errors": {
+    "title_required": "Give the task a title.",
+    "invalid_assignee": "That assignee isn't part of this organisation.",
+    "invalid_assignee_filter": "That assignee filter isn't valid.",
+    "entity_incomplete": "The linked record is incomplete.",
+    "invalid_rrule": "That repeat pattern isn't supported. Check the frequency and end.",
+    "unsupported_entity_type": "Tasks can't be linked to this kind of record.",
+    "task_closed": "This task is closed. Reopen it to make changes.",
+    "task_not_open": "This task is already closed.",
+    "task_not_closed": "This task is already open.",
+    "forbidden": "You don't have permission to change this task."
+  },
+  "rrule": {
+    "legend": "Repeat",
+    "freq": "Frequency",
+    "freqs": {
+      "DAILY": "Daily",
+      "WEEKLY": "Weekly",
+      "MONTHLY": "Monthly",
+      "YEARLY": "Yearly"
+    },
+    "interval": "Every (number of periods)",
+    "weekdaysLabel": "On these days",
+    "month": "Month",
+    "monthDay": "Day of the month",
+    "sameAsStart": "Same as the first due date",
+    "ends": "Ends",
+    "endNever": "Never",
+    "endCount": "After",
+    "endCountLabel": "Number of times",
+    "endUntil": "On",
+    "endUntilLabel": "End date",
+    "preview": "Repeats:",
+    "summary": {
+      "dailyOne": "Every day",
+      "daily": "Every {{ count }} days",
+      "weeklyOne": "Every week",
+      "weekly": "Every {{ count }} weeks",
+      "monthlyOne": "Every month",
+      "monthly": "Every {{ count }} months",
+      "yearlyOne": "Every year",
+      "yearly": "Every {{ count }} years",
+      "onDays": "on {{ days }}",
+      "inMonth": "in {{ month }}",
+      "onMonthDay": "on day {{ day }}",
+      "count": "{{ count }} times in total",
+      "until": "until {{ date }}"
+    },
+    "weekdays": {
+      "MO": "Monday",
+      "TU": "Tuesday",
+      "WE": "Wednesday",
+      "TH": "Thursday",
+      "FR": "Friday",
+      "SA": "Saturday",
+      "SU": "Sunday"
+    },
+    "weekdaysShort": {
+      "MO": "Mon",
+      "TU": "Tue",
+      "WE": "Wed",
+      "TH": "Thu",
+      "FR": "Fri",
+      "SA": "Sat",
+      "SU": "Sun"
+    },
+    "months": {
+      "1": "January",
+      "2": "February",
+      "3": "March",
+      "4": "April",
+      "5": "May",
+      "6": "June",
+      "7": "July",
+      "8": "August",
+      "9": "September",
+      "10": "October",
+      "11": "November",
+      "12": "December"
+    }
+  },
+  "guide": {
+    "introLabel": "About this page",
+    "show": "Show",
+    "hide": "Hide",
+    "whyTitle": "Why this matters",
+    "clauses": "Related clauses",
+    "clause": "{{ framework }} {{ clause }}",
+    "explainClauseHint": "Ask the assistant to explain this clause",
+    "frameworks": {
+      "hs": "ISO HS",
+      "iso9001": "ISO 9001",
+      "iso27001": "ISO/IEC 27001",
+      "iso14001": "ISO 14001",
+      "iso45001": "ISO 45001",
+      "iso42001": "ISO/IEC 42001"
+    },
+    "fieldHelp": "Help for this field",
+    "example": "Example: {{ example }}",
+    "lessonButton": "Lesson: {{ title }} ({{ minutes }} min)",
+    "lessonMinutes": "About {{ minutes }} minutes",
+    "quizTitle": "Check your understanding",
+    "quizCheck": "Check answers",
+    "quizRetry": "Try again",
+    "quizPassed": "Well done: {{ score }}% correct.",
+    "quizFailed": "{{ score }}% correct. Read the explanations and try again."
+  },
+  "ai": {
+    "groupLabel": "Assistant actions",
+    "planWeek": "Plan my week",
+    "prioritise": "Help me prioritise",
+    "summarise": "Summarise",
+    "suggestChecklist": "Suggest checklist steps",
+    "askAbout": "Ask about this task",
+    "suggestRecurring": "Suggest recurring controls",
+    "prompts": {
+      "planWeek": "Look at my open tasks and other work in CoreFlow and help me plan this week: what is overdue, what is due soon, and what should I do first?",
+      "prioritise": "Look at my open tasks and help me decide what to do first, considering due dates, priority and the records they belong to.",
+      "summarise": "Summarise the task \"{{ title }}\": its status, what is left on the checklist and anything I should know.",
+      "summariseOnRecord": "Summarise the task \"{{ title }}\" on {{ record }}: its status, what is left on the checklist and anything I should know.",
+      "suggestChecklist": "Suggest concrete checklist steps for the task \"{{ title }}\". Keep each step short and checkable.",
+      "suggestChecklistOnRecord": "Suggest concrete checklist steps for the task \"{{ title }}\" on {{ record }}. Keep each step short and checkable.",
+      "askAbout": "I have a question about the task \"{{ title }}\".",
+      "askAboutOnRecord": "I have a question about the task \"{{ title }}\" on {{ record }}.",
+      "suggestRecurring": "Which recurring tasks (periodic controls, reviews, inspections) should an organisation like ours set up for its management system? Suggest a name and a sensible frequency for each.",
+      "explainClause": "Explain {{ clause }} in plain language and how tasks help to meet it."
+    }
+  },
+  "common": {
+    "loading": "Loading…",
+    "loadFailed": "Couldn't load this. Please try again.",
+    "retry": "Try again",
+    "close": "Close",
+    "cancel": "Cancel",
+    "overdue": "Overdue",
+    "noDueDate": "No due date",
+    "recurring": "Recurring",
+    "backToMyWork": "Back to My Work",
+    "backToTasks": "Back to tasks",
+    "backToTask": "Back to the task"
+  },
+  "notifications": {
+    "created": "New task: {{ title }}",
+    "assigned": "Task assigned to you: {{ title }}",
+    "completed": "Task done: {{ title }}",
+    "reopened": "Task reopened: {{ title }}",
+    "cancelled": "Task cancelled: {{ title }}"
+  },
+  "timeline": {
+    "created": "Task created",
+    "assigned": "Task assigned",
+    "completed": "Task marked as done",
+    "reopened": "Task reopened",
+    "cancelled": "Task cancelled"
+  }
+}

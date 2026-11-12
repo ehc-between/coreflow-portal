@@ -3,6 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from '../http/api.service';
 import { SKIP_ERROR_TOAST } from '../http/error.interceptor';
+import { CategoryPref, NotificationSchedule } from './activity.models';
 import {
   MarkAllReadResponse,
   NotificationPreferencesResponse,
@@ -75,6 +76,34 @@ export class UserNotificationsApi {
     body: UpdateNotificationPreferenceRequest,
   ): Observable<NotificationPreferencesResponse> {
     return this.api.put<NotificationPreferencesResponse>('v1/me/notification-preferences', body, {
+      context: skipToast(),
+    });
+  }
+
+  /** The user's per-category preferences in one org (404 when not a member). */
+  getCategories(orgId: string): Observable<CategoryPref[]> {
+    return this.api.get<CategoryPref[]>('v1/me/notification-categories', {
+      params: { org_id: orgId },
+      context: skipToast(),
+    });
+  }
+
+  /** Replace the user's category preferences in one org; returns the full list. */
+  updateCategories(orgId: string, prefs: readonly CategoryPref[]): Observable<CategoryPref[]> {
+    return this.api.put<CategoryPref[]>('v1/me/notification-categories', prefs, {
+      params: { org_id: orgId },
+      context: skipToast(),
+    });
+  }
+
+  getSchedule(): Observable<NotificationSchedule> {
+    return this.api.get<NotificationSchedule>('v1/me/notification-schedule', {
+      context: skipToast(),
+    });
+  }
+
+  updateSchedule(body: NotificationSchedule): Observable<NotificationSchedule> {
+    return this.api.put<NotificationSchedule>('v1/me/notification-schedule', body, {
       context: skipToast(),
     });
   }

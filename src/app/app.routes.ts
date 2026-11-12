@@ -68,9 +68,10 @@ export const routes: Routes = [
         loadChildren: () => import('./features/my-work/my-work.routes'),
       },
       {
-        // Platform tasks (F2) live inside the My Work feature (`/tasks/:id`).
+        // Platform tasks (F2): all tasks, recurring series and task detail (`/tasks/<id>`).
         path: 'tasks',
-        loadChildren: () => import('./features/my-work/my-work.routes'),
+        canActivate: [permissionGuard('tasks:read', { redirectTo: '/my-work' })],
+        loadChildren: () => import('./features/my-work/tasks.routes'),
       },
       {
         path: 'settings',

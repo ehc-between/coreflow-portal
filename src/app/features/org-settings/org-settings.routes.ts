@@ -22,6 +22,19 @@ const routes: Routes = [
     loadChildren: () => import('../learning/settings/guidance-settings.routes'),
   },
   {
+    path: 'notifications',
+    canActivate: [orgManageGuard],
+    loadComponent: () =>
+      import('./notification-settings/notification-settings').then(
+        (m) => m.NotificationSettingsPage,
+      ),
+  },
+  {
+    // F4: record types and workflows (gated inside on records:read / records:admin).
+    path: 'record-types',
+    loadChildren: () => import('../records/records.routes'),
+  },
+  {
     path: 'departments/:deptId',
     canActivate: [orgManageGuard],
     loadComponent: () =>

@@ -10,8 +10,24 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { TranslocoPipe, TranslocoService, provideTranslocoScope } from '@jsverse/transloco';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import {
+  Observable,
+  catchError,
+  concat,
+  debounceTime,
+  distinctUntilChanged,
+  map,
+  of,
+  switchMap,
+} from 'rxjs';
+import { LanguageService } from '../../core/i18n/language.service';
+import { SelectedOrgService } from '../../core/org/selected-org.service';
+import { entityTypeIcon, entityTypeLabel } from '../../core/search/entity-label';
+import { InternalLink, internalLink } from '../../core/search/internal-link';
+import { SearchApi } from '../../core/search/search-api';
+import { SearchItem, SearchResponse } from '../../core/search/search.models';
 import { Icon } from '../../shared/ui/icon/icon';
 import { NAV_ITEMS, NavItem } from '../../layout/nav';
 import { AskPanelService } from '../ask/ask-panel.service';
@@ -22,7 +38,29 @@ import { CommandPaletteService } from './command-palette.service';
 type Row =
   | { readonly kind: 'ask'; readonly query: string }
   | { readonly kind: 'action'; readonly action: AgentAction }
-  | { readonly kind: 'nav'; readonly item: NavItem };
+  | { readonly kind: 'nav'; readonly item: NavItem }
+  | { readonly kind: 'record'; readonly item: SearchItem; readonly link: InternalLink };
+
+/** A group of record hits of one type, in rank order of its best hit. */
+interface RecordGroup {
+  readonly entityType: string;
+  readonly label: string;
+  readonly icon: string;
+  readonly total: number;
+  readonly rows: readonly Extract<Row, { kind: 'record' }>[];
+}
+
+/** Where the record search stands for the current query. */
+type SearchState =
+  | { readonly status: 'idle' }
+  | { readonly status: 'loading'; readonly query: string }
+  | { readonly status: 'done'; readonly query: string; readonly response: SearchResponse }
+  | { readonly status: 'error'; readonly query: string };
+
+/** Record search starts at this many characters. */
+export const MIN_SEARCH_LENGTH = 2;
+/** Debounce between keystrokes and the search request. */
+export const SEARCH_DEBOUNCE_MS = 200;
 
 /**
  * ⌘K command palette: a centered launcher that showcases what CoreFlow can do.
@@ -31,10 +69,16 @@ type Row =
  * both filterable as you type. A free-text query also surfaces an "Ask CoreFlow"
  * row. ArrowUp/Down move a highlight across every visible row; Enter activates it;
  * Esc and backdrop click close. Opened from the top bar's search button and ⌘K.
+ *
+ * F5 global search: from two characters the query also searches every record
+ * type the user may read (debounced, via SearchApi), shown first and grouped by
+ * type with the per-type hit count; Enter opens the record. Search failures stay
+ * quiet (an inline note), so navigation and actions keep working.
  */
 @Component({
   selector: 'app-command-palette',
   imports: [FormsModule, TranslocoPipe, Icon],
+  providers: [provideTranslocoScope('search')],
   host: { '(document:keydown.escape)': 'onEscape()' },
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -83,6 +127,73 @@ type Row =
                   'commandPalette.askFor' | transloco: { query: query() }
                 }}</span>
               </button>
+            }
+
+            @switch (searchStatus()) {
+              @case ('loading') {
+                <p class="px-4 pt-2 pb-1 text-[12.5px] text-fg-subtle" role="status">
+                  {{ 'search.palette.searching' | transloco }}
+                </p>
+              }
+              @case ('error') {
+                <p class="px-4 pt-2 pb-1 text-[12.5px] text-fail" role="status">
+                  {{ 'search.palette.error' | transloco }}
+                </p>
+              }
+              @case ('done') {
+                @if (!recordGroups().length) {
+                  <p class="px-4 pt-2 pb-1 text-[12.5px] text-fg-subtle" role="status">
+                    {{ 'search.palette.noResults' | transloco: { query: trimmed() } }}
+                  </p>
+                }
+              }
+            }
+
+            @for (group of recordGroups(); track group.entityType) {
+              <div
+                class="flex items-center gap-2 px-4 pt-3 pb-1 text-[11px] font-bold tracking-[0.08em] text-fg-subtle uppercase"
+              >
+                <span class="flex-1">{{ group.label }}</span>
+                <span class="font-semibold tracking-normal normal-case">{{
+                  'search.palette.count' | transloco: { count: group.total }
+                }}</span>
+              </div>
+              @for (row of group.rows; track row.item.entity_id) {
+                <button
+                  type="button"
+                  (click)="run(row)"
+                  (mouseenter)="highlight.set(indexOf(row))"
+                  class="flex w-full items-start gap-3 px-4 py-2 text-left"
+                  [class.bg-accent-soft]="highlighted() === row"
+                >
+                  <span class="flex flex-none pt-0.5 text-fg-muted"
+                    ><app-icon [name]="group.icon" [size]="18"
+                  /></span>
+                  <span class="min-w-0 flex-1">
+                    <span class="flex items-baseline gap-2">
+                      <span class="truncate text-[13.5px] font-medium text-fg">{{
+                        row.item.title
+                      }}</span>
+                      @if (row.item.code) {
+                        <span class="flex-none font-mono text-[11.5px] text-fg-subtle">{{
+                          row.item.code
+                        }}</span>
+                      }
+                    </span>
+                    @if (row.item.snippet) {
+                      <span class="block truncate text-[12px] text-fg-subtle">{{
+                        row.item.snippet
+                      }}</span>
+                    }
+                  </span>
+                </button>
+              }
+            }
+
+            @if (!trimmed()) {
+              <p class="px-4 pt-1 pb-2 text-[12.5px] text-fg-subtle">
+                {{ 'search.palette.hint' | transloco }}
+              </p>
             }
 
             @if (actionRows().length) {
@@ -155,7 +266,69 @@ export class CommandPalette {
     initialValue: this.transloco.getActiveLang(),
   });
 
-  private readonly trimmed = computed(() => this.query().trim());
+  protected readonly trimmed = computed(() => this.query().trim());
+
+  private readonly searchApi = inject(SearchApi);
+  private readonly selectedOrg = inject(SelectedOrgService);
+  private readonly language = inject(LanguageService);
+
+  /** Record search for the typed query, debounced; stale responses are dropped. */
+  protected readonly search = toSignal(
+    toObservable(
+      computed(() => ({ query: this.trimmed(), orgId: this.selectedOrg.currentOrgId() })),
+    ).pipe(
+      debounceTime(SEARCH_DEBOUNCE_MS),
+      distinctUntilChanged((a, b) => a.query === b.query && a.orgId === b.orgId),
+      switchMap(({ query, orgId }) => this.runSearch(query, orgId)),
+    ),
+    { initialValue: { status: 'idle' } as SearchState },
+  );
+
+  /** What the record-search status line shows for the query as typed now. */
+  protected readonly searchStatus = computed<SearchState['status']>(() => {
+    const state = this.search();
+    const query = this.trimmed();
+    if (query.length < MIN_SEARCH_LENGTH || !this.selectedOrg.currentOrgId()) {
+      return 'idle';
+    }
+    // Debouncing or in flight for a newer query: show it as searching.
+    if (state.status === 'idle' || state.query !== query) {
+      return 'loading';
+    }
+    return state.status;
+  });
+
+  /** Hits grouped by record type (group order = best hit first, as ranked by the server). */
+  protected readonly recordGroups = computed<readonly RecordGroup[]>(() => {
+    const state = this.search();
+    // Only show results that belong to what is typed right now.
+    if (state.status !== 'done' || state.query !== this.trimmed()) {
+      return [];
+    }
+    const groups = new Map<string, Extract<Row, { kind: 'record' }>[]>();
+    for (const item of state.response.items) {
+      const link = internalLink(item.url);
+      if (!link) {
+        continue;
+      }
+      const rows = groups.get(item.entity_type) ?? [];
+      rows.push({ kind: 'record', item, link });
+      groups.set(item.entity_type, rows);
+    }
+    return [...groups.entries()].map(([entityType, rows]) => ({
+      entityType,
+      label: entityTypeLabel(
+        (key) => this.language.translate(key),
+        rows[0].item.label_key,
+        entityType,
+      ),
+      icon: entityTypeIcon(entityType),
+      total: state.response.counts[entityType] ?? rows.length,
+      rows,
+    }));
+  });
+
+  private readonly recordRows = computed(() => this.recordGroups().flatMap((group) => group.rows));
 
   protected readonly askRow = computed<Row | null>(() =>
     this.trimmed() ? { kind: 'ask', query: this.trimmed() } : null,
@@ -180,7 +353,7 @@ export class CommandPalette {
   /** Every visible row in display order — the keyboard navigation space. */
   protected readonly rows = computed<Row[]>(() => {
     const ask = this.askRow();
-    return [...(ask ? [ask] : []), ...this.actionRows(), ...this.navRows()];
+    return [...(ask ? [ask] : []), ...this.recordRows(), ...this.actionRows(), ...this.navRows()];
   });
 
   protected readonly highlighted = computed<Row | null>(
@@ -238,7 +411,25 @@ export class CommandPalette {
       case 'nav':
         void this.router.navigate(['/', row.item.path]);
         break;
+      case 'record':
+        void this.router.navigate([row.link.path], {
+          queryParams: row.link.queryParams ?? undefined,
+        });
+        break;
     }
+  }
+
+  private runSearch(query: string, orgId: string | null): Observable<SearchState> {
+    if (!orgId || query.length < MIN_SEARCH_LENGTH) {
+      return of({ status: 'idle' });
+    }
+    return concat(
+      of<SearchState>({ status: 'loading', query }),
+      this.searchApi.search(orgId, query, { limit: 20 }).pipe(
+        map((response): SearchState => ({ status: 'done', query, response })),
+        catchError(() => of<SearchState>({ status: 'error', query })),
+      ),
+    );
   }
 
   protected onEscape(): void {

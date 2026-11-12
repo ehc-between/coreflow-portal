@@ -150,6 +150,26 @@
 
         <app-guidance-settings-link />
 
+        <section data-testid="settings-notifications">
+          <app-card>
+            <div class="flex items-center justify-between gap-4">
+              <div class="min-w-0">
+                <h2 class="font-display text-[16px] font-bold tracking-[-0.02em] text-fg">
+                  {{ 'notifications.settingsLink.title' | transloco }}
+                </h2>
+                <p class="mt-0.5 text-[13px] text-fg-muted">
+                  {{ 'notifications.settingsLink.subtitle' | transloco }}
+                </p>
+              </div>
+              <a routerLink="/settings/notifications">
+                <app-button variant="secondary">
+                  {{ 'notifications.settingsLink.open' | transloco }}
+                </app-button>
+              </a>
+            </div>
+          </app-card>
+        </section>
+
         <section data-testid="settings-deleted-documents">
           <app-card>
             <div class="flex items-center justify-between gap-4">
@@ -169,6 +189,10 @@
             </div>
           </app-card>
         </section>
+      }
+
+      @if (canDesignRecords()) {
+        <app-records-settings-link />
       }
 
       @if (canInvite()) {

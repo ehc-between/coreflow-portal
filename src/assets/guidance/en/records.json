@@ -1,0 +1,214 @@
+{
+  "pages": {
+    "list": {
+      "intro": {
+        "title": "Shape your records around how you work",
+        "body": "A **record type** decides what people fill in when they register something (a nonconformity, a complaint, an incident). A **workflow** decides the steps it goes through: who may move it on, what must be filled in first, who approves and how quickly.",
+        "steps": [
+          "Start from a template, or describe your process and let the assistant draft one.",
+          "Adjust the fields, then choose or design the workflow.",
+          "Publish. Records always keep the version they were created with."
+        ]
+      },
+      "why": {
+        "body": "The standards ask you to plan and control your processes and to keep the information that shows they ran as planned. A designed workflow makes the planned steps, responsibilities and approvals explicit, and every step leaves a trace an auditor can follow.",
+        "clauses": ["hs:8.1", "iso9001:4.4", "hs:7.5"]
+      },
+      "empty": {
+        "title": "No record types yet",
+        "body": "Install a template to get a proven starting point, such as the standard deviation process, or create your own record type from scratch.",
+        "cta": "Browse templates"
+      }
+    },
+    "workflows": {
+      "empty": {
+        "title": "No workflows yet",
+        "body": "A workflow is the route a record takes: its states, the steps between them, approvals and deadlines. Create one here, or install a template that includes one.",
+        "cta": "Create a workflow"
+      }
+    },
+    "designer": {
+      "intro": {
+        "title": "Designing a record type",
+        "body": "Add the fields people need, group them in sections and try the form in **Preview**. On the **Workflow** tab, choose the route records of this type follow.",
+        "steps": [
+          "Keep required fields to what you truly need at registration; ask for the rest later with required fields on a workflow step.",
+          "Use single and multiple choice fields for anything you want to count or filter on.",
+          "Write a short change note when you publish, so the history explains itself."
+        ]
+      },
+      "why": {
+        "body": "Documented information must be controlled: identified, reviewed, approved and protected from unintended change. Every published version is kept with who published it, when and why, and records keep the version they started on.",
+        "clauses": ["hs:7.5"]
+      },
+      "fields": {
+        "fields": {
+          "help": "The questions people answer on the record. Open a field to change its label, help text, options or when it is shown."
+        },
+        "layout": {
+          "help": "Sections group fields under a heading. Two-column sections place half-width fields side by side on larger screens."
+        },
+        "module": {
+          "help": "The module this record type belongs to, for example Deviations. It can't be changed later."
+        },
+        "key": {
+          "help": "A short technical name used in links and integrations. It is set once and can't be changed.",
+          "example": "customer_complaint"
+        },
+        "code_prefix": {
+          "help": "Records of this type get codes that start with this prefix.",
+          "example": "CC gives CC-1, CC-2, …"
+        },
+        "workflow": {
+          "help": "The route records of this type follow. New records use the workflow version chosen here."
+        },
+        "type_text": { "help": "One line of text, such as a location or a reference number." },
+        "type_textarea": {
+          "help": "Several lines of plain text, such as a description of what happened."
+        },
+        "type_richtext": {
+          "help": "Text with formatting, for longer write-ups such as an investigation summary."
+        },
+        "type_number": {
+          "help": "A number, optionally with a minimum and maximum.",
+          "example": "Likelihood from 1 to 5"
+        },
+        "type_date": { "help": "A calendar date, such as when something was detected." },
+        "type_datetime": {
+          "help": "A date and time, stored in UTC and shown in each person's local time."
+        },
+        "type_select": {
+          "help": "Exactly one option from a list. Good for categories you want to report on."
+        },
+        "type_multiselect": { "help": "Any number of options from a list." },
+        "type_checkbox": {
+          "help": "Yes or no. Make it required when it must be ticked, such as a confirmation."
+        },
+        "type_user": { "help": "A person in your organisation, such as the owner or an approver." },
+        "type_department": { "help": "A department in your organisation." },
+        "type_file": { "help": "One of the files attached to the record." },
+        "type_entity_ref": {
+          "help": "A link to another record, such as the risk or supplier this concerns."
+        },
+        "type_calculated": {
+          "help": "Worked out from number fields with a formula. People can't edit it; it is recalculated on every save.",
+          "example": "likelihood * consequence"
+        }
+      }
+    },
+    "workflow": {
+      "intro": {
+        "title": "Designing a workflow",
+        "body": "**States** are where a record can be; **steps** move it from one state to another. Click a state in the diagram to edit it.",
+        "steps": [
+          "Give every state a category: open, in progress, done or cancelled. Done and cancelled states end the workflow.",
+          "For each step, choose who may run it and what must be filled in first.",
+          "Add an approval where a second pair of eyes is required, and a deadline (in hours) where timing matters."
+        ]
+      },
+      "why": {
+        "body": "Planning and controlling operations means defining who does what, in which order, and with which checks. Approvals with segregation of duties make sure nobody signs off their own work, and deadlines trigger reminders before something is late.",
+        "clauses": ["hs:8.1", "iso9001:4.4"]
+      },
+      "fields": {
+        "states": {
+          "help": "Each state has a name, a category and an optional deadline in hours. Exactly one state is where records start."
+        },
+        "transitions": {
+          "help": "Steps are the buttons people see on a record. A step can be available from several states."
+        },
+        "required_fields": {
+          "help": "Field keys that must be filled in before this step can run, separated by commas.",
+          "example": "root_cause, corrective_action"
+        },
+        "guards": {
+          "help": "Built-in checks that must pass, separated by commas. Unknown checks always block.",
+          "example": "no_open_tasks"
+        },
+        "approval": {
+          "help": "The step is sent for approval first and runs once enough approvers agree."
+        },
+        "create_tasks": {
+          "help": "Tasks created automatically when the step runs, for example a verification due in seven days."
+        }
+      }
+    }
+  },
+  "lessons": {
+    "workflows-101": {
+      "title": "Workflows in five minutes",
+      "minutes": 5,
+      "sections": [
+        {
+          "heading": "States and steps",
+          "body": "A workflow is a set of **states** (Open, Investigating, Closed …) and **steps** that move a record between them. Each step is a button on the record, shown only to the people allowed to use it."
+        },
+        {
+          "heading": "Rules on a step",
+          "body": "A step can require fields to be filled in, ask for a comment, run checks (for example *no open tasks*) and create tasks automatically. Together these make sure the work is done before the record moves on."
+        },
+        {
+          "heading": "Approvals and segregation of duties",
+          "body": "An approval sends the step to one or more approvers first. With segregation of duties switched on, the person who asked can't approve their own request: an expectation in most management system audits."
+        },
+        {
+          "heading": "Versions",
+          "body": "Publishing creates a new version. Records already in progress keep the version they started on, so changing the process never rewrites history."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "You publish a new version of a workflow. What happens to records already in progress?",
+          "options": [
+            "They switch to the new version immediately",
+            "They keep the version they started on",
+            "They are closed automatically"
+          ],
+          "answer": 1,
+          "explanation": "Each record pins the version it was created with, which keeps the audit trail consistent."
+        },
+        {
+          "question": "What does segregation of duties on an approval prevent?",
+          "options": [
+            "Anyone approving outside working hours",
+            "The requester approving their own request",
+            "More than one approver taking part"
+          ],
+          "answer": 1
+        }
+      ],
+      "pass_mark": 0.8
+    },
+    "designing-record-types": {
+      "title": "Designing good record types",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Ask for less at the start",
+          "body": "People report more when registering is quick. Keep only the essentials required when a record is created, and require the rest on the workflow step where it is needed, such as the root cause before closing."
+        },
+        {
+          "heading": "Choices you can count",
+          "body": "Use single and multiple choice fields for categories, sources and causes. Free text is hard to report on; choices make trends visible in reviews."
+        },
+        {
+          "heading": "Calculated fields",
+          "body": "A calculated field works out a value from number fields, such as a risk score from likelihood × consequence. It is always recalculated by the system, so nobody can enter a wrong total."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Where is the best place to require a root cause?",
+          "options": [
+            "When the record is first registered",
+            "On the step that closes the record",
+            "Nowhere: it should always be optional"
+          ],
+          "answer": 1,
+          "explanation": "The root cause is usually only known after the investigation, so require it on the step that needs it."
+        }
+      ],
+      "pass_mark": 0.8
+    }
+  }
+}

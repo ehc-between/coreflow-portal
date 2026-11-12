@@ -40,6 +40,7 @@ import {
   statusLabelKey,
   statusTone,
 } from './deviation-enums';
+import { providePageContext } from '../../core/ai/page-context';
 
 const PAGE_SIZE = 25;
 
@@ -472,6 +473,9 @@ export class DeviationsList {
   private readonly reload$ = new Subject<void>();
 
   constructor() {
+    // The assistant knows the user is on the deviations list (F5 page context).
+    providePageContext(() => ({ module: 'deviations', view: 'list' }));
+
     this.reload$.pipe(debounceTime(250), distinctUntilChanged()).subscribe(() => this.load());
 
     effect(() => {

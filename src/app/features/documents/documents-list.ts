@@ -30,6 +30,7 @@ import { Pager } from '../../shared/ui/pager/pager';
 import { STATUS_FILTERS, statusLabelKey, statusTone } from './document-status';
 import { ReviewState, reviewLabelKey, reviewState, reviewTone } from './workflow/document-review';
 import { pluralKey } from '../../shared/i18n/plural';
+import { providePageContext } from '../../core/ai/page-context';
 
 /** Rows per page of the documents list. */
 export const DOCUMENTS_PAGE_SIZE = 25;
@@ -290,6 +291,9 @@ export class DocumentsList {
   private listRequest: Subscription | null = null;
 
   constructor() {
+    // The assistant knows the user is on the documents list (F5 page context).
+    providePageContext(() => ({ module: 'documents', view: 'list' }));
+
     this.search$
       .pipe(
         debounceTime(250),
