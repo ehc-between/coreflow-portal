@@ -1,0 +1,587 @@
+{
+  "pages": {
+    "overview": {
+      "intro": {
+        "title": "Govern the AI you build and use",
+        "body": "AI governance means knowing **which AI systems** you have, **how risky** they are under the EU AI Act, and making sure the **duties that follow** are carried out. ISO/IEC 42001 adds the management system around it: policy, roles, impact assessments and monitoring.",
+        "steps": [
+          "Register every AI system in the inventory, including tools bought from vendors.",
+          "Classify each one with the wizard; each obligation becomes a task.",
+          "Assess the impact of the systems that matter, monitor them and keep staff AI-literate."
+        ]
+      },
+      "why": {
+        "body": "The EU AI Act applies to anyone who provides or uses AI in the EU, and most duties depend on the risk class. ISO/IEC 42001 asks you to define the scope of your AI management system and to plan how you address AI risks and impacts.",
+        "clauses": ["iso42001:4.3", "iso42001:6.1.2", "eu_ai_act:6", "eu_ai_act:4"]
+      }
+    },
+    "systems": {
+      "intro": {
+        "title": "Your AI system inventory",
+        "body": "An AI system is software that infers from its input how to produce outputs such as predictions, content, recommendations or decisions. List each one with its purpose, your role, the models and data it uses, and who owns it.",
+        "steps": [
+          "Use **Register AI system** for each system, or start with this platform's own AI features.",
+          "Filter by risk class to see what still needs to be classified.",
+          "Open a system to classify it, document it and follow up its obligations."
+        ]
+      },
+      "why": {
+        "body": "You cannot manage what you do not know about. An inventory is the basis for classification under the AI Act and for the scope of an ISO/IEC 42001 management system.",
+        "clauses": ["iso42001:4.3", "iso42001:A.4.2", "eu_ai_act:6"]
+      },
+      "empty": {
+        "title": "No AI systems yet",
+        "body": "Start by listing AI tools your organisation already uses: chat assistants, translation, document drafting, recruitment or scoring tools. Each one gets a classification and its own obligations.",
+        "cta": "Register an AI system"
+      }
+    },
+    "systemForm": {
+      "intro": {
+        "title": "Describe the AI system",
+        "body": "A clear **intended purpose** is the most important field: the AI Act classifies systems by what they are used for, not by the technology.",
+        "steps": [
+          "Write what the system is used for and who it affects.",
+          "Choose your role: provider if you build it, deployer if you use it.",
+          "Name an owner who keeps the record and its obligations up to date."
+        ]
+      },
+      "why": {
+        "body": "Documented resources and a defined purpose are the starting point for the impact assessment and for choosing controls.",
+        "clauses": ["iso42001:A.4.2", "iso42001:A.6.2.3"]
+      },
+      "fields": {
+        "intended_purpose": {
+          "help": "What the system is meant to do, in which process, and which decisions it supports.",
+          "example": "Ranks incoming customer emails by urgency for the support team, who decide the order of handling."
+        },
+        "ai_act_role": {
+          "help": "Provider: you develop it and put it on the market or into service under your name. Deployer: you use it under your authority.",
+          "example": "A company using a bought chatbot on its website is a deployer."
+        },
+        "provider_name": {
+          "help": "The company that supplies the system or the model, if it is not you.",
+          "example": "The vendor of your recruitment tool."
+        },
+        "models": {
+          "help": "The AI models or model families the system uses, as far as you know them.",
+          "example": "A large language model, a gradient-boosted classifier"
+        },
+        "data_categories": {
+          "help": "The kinds of data the system receives or was trained on.",
+          "example": "Customer emails, order history, CVs"
+        },
+        "owner": {
+          "help": "The person accountable for this system: keeps the record, classification and tasks up to date."
+        }
+      }
+    },
+    "systemDetail": {
+      "intro": {
+        "title": "One AI system, everything in one place",
+        "body": "Here you see the system's classification and obligations, its assessments, documentation, monitoring and incidents. Tasks for each obligation are listed under **Tasks**.",
+        "steps": [
+          "Classify the system if it is not classified yet.",
+          "Work through the obligation tasks; open the documentation to write what is required.",
+          "Record monitoring results and link AI incidents when they happen."
+        ]
+      },
+      "why": {
+        "body": "Deployers of high-risk systems must use them according to the instructions, assign human oversight, monitor operation and keep logs. Providers must run post-market monitoring and report serious incidents.",
+        "clauses": ["eu_ai_act:26", "eu_ai_act:72", "iso42001:9.1", "iso42001:A.6.2.6"]
+      },
+      "fields": {
+        "monitoring": {
+          "help": "Record checks of accuracy, robustness, bias or drift. A failed result alerts the owner.",
+          "example": "Monthly accuracy on a sample of 200 cases: 0.94, threshold 0.90, pass."
+        },
+        "incidents": {
+          "help": "AI incidents are recorded as deviations of the type AI incident and linked here, so they follow the normal investigation and corrective action flow."
+        },
+        "review": {
+          "help": "A recurring task to review the system: performance, risks, documentation and whether the classification still fits."
+        }
+      }
+    },
+    "classify": {
+      "intro": {
+        "title": "Classify under the EU AI Act",
+        "body": "Answer six short steps. The outcome on the right updates as you go and lists the obligations for your role. Nothing changes on the system until you **complete** the classification.",
+        "steps": [
+          "Most systems tick nothing in the prohibited and high-risk steps; that is normal.",
+          "Use **Ask the assistant** on any step if a question is unclear.",
+          "Complete the classification to set the risk class and create one task per obligation."
+        ]
+      },
+      "why": {
+        "body": "The AI Act is risk-based: prohibited practices are banned, high-risk systems carry most duties, some systems have transparency duties, and the rest are minimal risk.",
+        "clauses": ["eu_ai_act:5", "eu_ai_act:6", "eu_ai_act:50", "iso42001:6.1.2"]
+      },
+      "fields": {
+        "role": {
+          "help": "If you both build and use the system, choose provider and deployer. If you only use a bought system, you are a deployer."
+        },
+        "prohibited": {
+          "help": "These practices are banned since February 2025. If one applies, stop and get legal advice."
+        },
+        "highRisk": {
+          "help": "Annex III lists areas such as recruitment, credit scoring and education. The Art. 6(3) exception applies only to narrow or preparatory tasks and never when the system profiles people.",
+          "example": "A CV-screening tool that ranks candidates is high-risk (employment area)."
+        },
+        "transparency": {
+          "help": "Applies to chatbots, systems that generate images, audio, video or text, emotion recognition and deep fakes.",
+          "example": "A website chatbot must tell visitors they are talking to an AI."
+        },
+        "gpai": {
+          "help": "A general-purpose AI model can perform a wide range of tasks. Its provider has documentation and copyright duties; using such a model in your own product does not by itself make you its provider."
+        },
+        "deployer": {
+          "help": "A FRIA is required for public bodies, private bodies providing public services, and deployers doing credit scoring or life and health insurance pricing with a high-risk system."
+        }
+      }
+    },
+    "documentation": {
+      "intro": {
+        "title": "Structured documentation",
+        "body": "Write the governance documentation every AI system should have, and the nine sections of the **Annex IV technical file** that high-risk systems must have.",
+        "steps": [
+          "Start with the general description and the human oversight design.",
+          "Keep each section short and factual; link evidence as attachments on the system.",
+          "Use **Ask the assistant** to get a first draft of a section, then edit it."
+        ]
+      },
+      "why": {
+        "body": "High-risk AI systems need technical documentation before they are placed on the market, logging, human oversight and accuracy and robustness. ISO/IEC 42001 asks for documentation of data, models and the system lifecycle.",
+        "clauses": [
+          "eu_ai_act:11",
+          "eu_ai_act:12",
+          "eu_ai_act:14",
+          "eu_ai_act:15",
+          "iso42001:A.6.2.7",
+          "iso42001:A.7.2"
+        ]
+      }
+    },
+    "assessments": {
+      "intro": {
+        "title": "Assessments",
+        "body": "Three kinds: the **classification** (risk class and obligations), the **impact assessment** (ISO/IEC 42001) and the **fundamental rights impact assessment** (AI Act Art. 27).",
+        "steps": [
+          "Draft → completed → approved: someone other than the person who completed it approves.",
+          "Overdue drafts are highlighted.",
+          "Reopen an assessment when the system or its use changes."
+        ]
+      },
+      "why": {
+        "body": "Assessing the consequences of AI for individuals and society, and having the assessment approved, shows that risks were considered before use.",
+        "clauses": ["iso42001:6.1.4", "iso42001:8.4", "iso42001:A.5.2", "eu_ai_act:27"]
+      },
+      "empty": {
+        "title": "No assessments yet",
+        "body": "Classify your AI systems first, then assess the impact of the ones that affect people. High-risk systems used by public bodies, public services, banks or insurers also need a FRIA.",
+        "cta": "Start an assessment"
+      }
+    },
+    "assessmentNew": {
+      "intro": {
+        "title": "Start an assessment",
+        "body": "Choose the AI system and the kind of assessment. A classification opens the wizard; an impact assessment or FRIA starts as a draft you write section by section."
+      },
+      "why": {
+        "body": "An impact assessment looks at the consequences for people and society; a FRIA is the AI Act's specific check of fundamental rights before a high-risk system is used.",
+        "clauses": ["iso42001:6.1.4", "eu_ai_act:27"]
+      },
+      "fields": {
+        "kind": {
+          "help": "Not sure? Run the classification first: it tells you whether a FRIA is required."
+        }
+      }
+    },
+    "assessmentEdit": {
+      "intro": {
+        "title": "Write the assessment",
+        "body": "Answer each section in plain language. Required sections must be filled in before the assessment can be completed.",
+        "steps": [
+          "Use **Draft empty sections** for a first draft, then check and correct it.",
+          "Be specific: who is affected, how, and what you do about it.",
+          "Save, then complete the assessment from its page."
+        ]
+      },
+      "why": {
+        "body": "The FRIA must describe the processes, period and frequency of use, affected persons, specific risks, human oversight and the measures if risks materialise (Art. 27(1)(a)-(f)).",
+        "clauses": ["eu_ai_act:27", "iso42001:A.5.4", "iso42001:A.5.5"]
+      }
+    },
+    "assessmentDetail": {
+      "intro": {
+        "title": "Review and approve",
+        "body": "A completed assessment is locked. A person with approval rights, other than the one who completed it, approves it. Reopen it when something changes."
+      },
+      "why": {
+        "body": "Recording who completed and who approved an assessment gives evidence that the impact of the AI system was assessed and accepted at the right level.",
+        "clauses": ["iso42001:8.4", "iso42001:A.5.3"]
+      }
+    },
+    "literacy": {
+      "intro": {
+        "title": "AI literacy",
+        "body": "Everyone who operates or uses AI systems on your behalf needs enough knowledge to use them well and to understand the risks. Track who has it and when it needs refreshing.",
+        "steps": [
+          "Record a training, briefing or self-study for each person.",
+          "Check the coverage and follow up the people listed as missing or expired.",
+          "Run courses in Training; record completion here as AI literacy."
+        ]
+      },
+      "why": {
+        "body": "Since February 2025 providers and deployers must take measures to ensure a sufficient level of AI literacy of their staff (Art. 4). ISO/IEC 42001 requires competence and awareness.",
+        "clauses": ["eu_ai_act:4", "hs:7.2", "hs:7.3"]
+      },
+      "empty": {
+        "title": "No AI literacy records yet",
+        "body": "Start with the people who use AI tools daily. A short internal briefing on how your AI tools work, their limits and your AI policy already counts.",
+        "cta": "Record AI literacy"
+      },
+      "fields": {
+        "topic": {
+          "help": "What the training covered.",
+          "example": "Our AI policy and safe use of the writing assistant"
+        }
+      }
+    },
+    "settings": {
+      "intro": {
+        "title": "AI governance settings",
+        "body": "Link your AI policy, name the AI governance officer, and set how long AI literacy stays valid and how often AI systems are reviewed."
+      },
+      "why": {
+        "body": "ISO/IEC 42001 requires a documented AI policy and defined roles and responsibilities for AI.",
+        "clauses": ["iso42001:A.2.2", "iso42001:A.3.2", "hs:5.2"]
+      },
+      "fields": {
+        "policy": {
+          "help": "The AI policy is a controlled document in Documents. Link it here so audits and the overview can find it."
+        },
+        "officer": {
+          "help": "The person who coordinates AI governance. Obligation tasks without a system owner go to the AI governance officer role."
+        },
+        "literacy_validity_months": {
+          "help": "How long an AI literacy record stays valid when no end date is given.",
+          "example": "24"
+        },
+        "review_interval_months": {
+          "help": "The default time between reviews of an AI system.",
+          "example": "12"
+        }
+      }
+    }
+  },
+  "lessons": {
+    "ai-governance-intro": {
+      "title": "AI governance in five minutes",
+      "minutes": 5,
+      "sections": [
+        {
+          "heading": "Two frameworks, one goal",
+          "body": "The **EU AI Act** is a law: it sets duties based on how risky an AI system is. **ISO/IEC 42001** is a management system standard: it describes how to organise the work, with a policy, roles, risk and impact assessments, and monitoring. Using both means you know your duties and have a repeatable way to meet them."
+        },
+        {
+          "heading": "The basic loop",
+          "body": "1. **Inventory**: list the AI systems you build or use.\n2. **Classify**: find the risk class and your role.\n3. **Act**: carry out the obligations as tasks.\n4. **Assess and monitor**: impact assessments, monitoring, incidents.\n5. **Review**: repeat when systems or their use change."
+        },
+        {
+          "heading": "You are probably a deployer",
+          "body": "Most organisations use AI built by others. That makes them **deployers**. Deployers have fewer duties than providers, but still need AI literacy, transparency where it applies and, for high-risk systems, human oversight, monitoring and logs."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "What is the main difference between the EU AI Act and ISO/IEC 42001?",
+          "options": [
+            "The AI Act is a law with risk-based duties; ISO/IEC 42001 is a voluntary management system standard",
+            "They are two names for the same thing",
+            "ISO/IEC 42001 only applies to providers"
+          ],
+          "answer": 0,
+          "explanation": "The AI Act sets legal duties; ISO/IEC 42001 describes how to manage AI systematically."
+        },
+        {
+          "question": "A company uses a chatbot bought from a vendor on its website. What is its role?",
+          "options": ["Provider", "Deployer", "Importer"],
+          "answer": 1,
+          "explanation": "Using an AI system under your own authority makes you a deployer."
+        }
+      ],
+      "pass_mark": 0.5
+    },
+    "ai-inventory-basics": {
+      "title": "Building an AI inventory",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "What counts as an AI system",
+          "body": "Software that, from the input it gets, **infers** how to produce outputs such as predictions, content, recommendations or decisions. Ordinary rule-based software (if this, then that) usually does not count. Writing assistants, chatbots, translation, scoring and recognition tools usually do."
+        },
+        {
+          "heading": "Where to look",
+          "body": "Ask each department which tools they use. Check purchased software for AI features, browser extensions and cloud services. Do not forget AI features built into tools you already have, such as this platform's assistant."
+        },
+        {
+          "heading": "What to record",
+          "body": "The **intended purpose** (what it is used for), your **role**, the **provider**, the **models** and **data**, an **owner** and the **status**. That is enough to classify the system."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Which field matters most for the AI Act classification?",
+          "options": ["The model name", "The intended purpose", "The price"],
+          "answer": 1,
+          "explanation": "The AI Act classifies systems by what they are used for."
+        }
+      ],
+      "pass_mark": 1
+    },
+    "eu-ai-act-risk-classes": {
+      "title": "The four risk classes of the AI Act",
+      "minutes": 6,
+      "sections": [
+        {
+          "heading": "Prohibited (Art. 5)",
+          "body": "A short list of practices is banned, such as social scoring, manipulation that causes harm, and emotion recognition at work or school. Very few organisations are affected, but you must check."
+        },
+        {
+          "heading": "High risk (Art. 6, Annex I and III)",
+          "body": "Systems that are safety components of regulated products, or that are used in sensitive areas: biometrics, critical infrastructure, education, **employment**, access to essential services such as **credit** and **insurance**, law enforcement, migration and justice. An Annex III system is not high-risk if it only performs a narrow or preparatory task, **unless it profiles people**."
+        },
+        {
+          "heading": "Limited risk: transparency (Art. 50)",
+          "body": "Chatbots must say they are AI; generated images, audio, video and text must be marked; deep fakes must be disclosed."
+        },
+        {
+          "heading": "Minimal risk",
+          "body": "Everything else. No specific duties beyond AI literacy, but good practice and voluntary codes are encouraged. General-purpose AI models have separate duties for their providers."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "A tool ranks job applicants by their CVs. Which class is it?",
+          "options": ["Minimal risk", "Limited risk", "High risk"],
+          "answer": 2,
+          "explanation": "Recruitment and selection is in Annex III point 4 (employment), and ranking candidates profiles people, so the exception does not apply."
+        },
+        {
+          "question": "A website chatbot answers product questions. What applies?",
+          "options": [
+            "Nothing at all",
+            "Transparency: tell people they are interacting with AI",
+            "It is prohibited"
+          ],
+          "answer": 1,
+          "explanation": "Art. 50(1) requires that people are informed they are interacting with an AI system."
+        }
+      ],
+      "pass_mark": 0.5
+    },
+    "ai-act-obligations": {
+      "title": "From classification to obligations",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Obligations depend on role and class",
+          "body": "A provider of a high-risk system needs risk management, data governance, technical documentation, logging, instructions, human oversight, accuracy and robustness, a quality management system, conformity assessment and registration. A deployer must use it as instructed, assign competent human oversight, monitor it, keep logs, inform workers and, in some cases, carry out a FRIA."
+        },
+        {
+          "heading": "Each obligation is a task",
+          "body": "When you complete a classification, each obligation becomes a task for the system owner. Close the task when the obligation is met and attach the evidence. If you classify again, existing tasks are kept and only new obligations get new tasks."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "What happens to the tasks if you classify a system again?",
+          "options": [
+            "All tasks are deleted and recreated",
+            "Existing tasks are kept; only new obligations get new tasks",
+            "Nothing, tasks are only created the first time"
+          ],
+          "answer": 1,
+          "explanation": "Re-classifying never duplicates tasks."
+        }
+      ],
+      "pass_mark": 1
+    },
+    "technical-documentation": {
+      "title": "The Annex IV technical file",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Who needs it",
+          "body": "Providers of high-risk AI systems must draw up technical documentation **before** placing the system on the market and keep it up to date (Art. 11). Deployers do not write Annex IV, but should keep the provider's instructions and their own governance documentation."
+        },
+        {
+          "heading": "What goes in",
+          "body": "Nine sections: general description, development and design, monitoring and control, performance metrics, the risk management system, lifecycle changes, standards applied, the declaration of conformity and the post-market evaluation. Write what is true today; update it with every relevant change."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "When must the Annex IV technical documentation exist?",
+          "options": [
+            "Before the high-risk system is placed on the market or put into service",
+            "Only after an incident",
+            "Within five years"
+          ],
+          "answer": 0,
+          "explanation": "Art. 11(1): it is drawn up before placing on the market or putting into service."
+        }
+      ],
+      "pass_mark": 1
+    },
+    "impact-assessment-and-fria": {
+      "title": "Impact assessment and FRIA",
+      "minutes": 5,
+      "sections": [
+        {
+          "heading": "The impact assessment (ISO/IEC 42001)",
+          "body": "Look at the consequences of the AI system for **individuals, groups and society**: safety, privacy, fairness, autonomy, the environment. Describe the measures that reduce the impacts and what remains."
+        },
+        {
+          "heading": "The FRIA (AI Act Art. 27)",
+          "body": "Before first use of a high-risk system, deployers that are public bodies, provide public services, or do credit scoring or life and health insurance pricing must assess the impact on **fundamental rights**: the processes, period and frequency, affected persons, specific risks, human oversight and measures if risks materialise. The authority must be notified of the result."
+        },
+        {
+          "heading": "Approval",
+          "body": "A completed assessment is approved by someone else with approval rights. This four-eyes principle shows the assessment was reviewed."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Who must carry out a FRIA?",
+          "options": [
+            "Every provider of any AI system",
+            "Certain deployers of high-risk systems, such as public bodies and banks doing credit scoring",
+            "Nobody, it is voluntary"
+          ],
+          "answer": 1,
+          "explanation": "Art. 27 applies to specific deployers of high-risk systems."
+        }
+      ],
+      "pass_mark": 1
+    },
+    "ai-literacy": {
+      "title": "AI literacy for everyone",
+      "minutes": 3,
+      "sections": [
+        {
+          "heading": "What the law asks",
+          "body": "Providers and deployers must take measures so that their staff, and others using AI on their behalf, have a **sufficient level of AI literacy**, taking into account their knowledge, the context and the people affected (Art. 4)."
+        },
+        {
+          "heading": "What is enough",
+          "body": "There is no fixed curriculum. A good baseline: what AI can and cannot do, how your tools work, typical errors such as made-up answers, your AI policy, and when to ask for help. People with more responsibility need more."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Does AI literacy apply to minimal-risk systems too?",
+          "options": ["Yes", "No, only to high-risk systems"],
+          "answer": 0,
+          "explanation": "Art. 4 applies to all providers and deployers, whatever the risk class."
+        }
+      ],
+      "pass_mark": 1
+    }
+  },
+  "tours": {
+    "overview": [
+      {
+        "target": "ai-overview-kpis",
+        "title": "Key figures",
+        "body": "How many AI systems you have, how many are high-risk, open assessments and AI literacy coverage."
+      },
+      {
+        "target": "ai-overview-attention",
+        "title": "What needs attention",
+        "body": "Unclassified systems, overdue assessments and reviews, failed monitoring and a missing AI policy. Click an item to go there."
+      },
+      {
+        "target": "ai-overview-new",
+        "title": "Register a system",
+        "body": "Add an AI system to the inventory."
+      }
+    ],
+    "systems": [
+      {
+        "target": "ai-systems-new",
+        "title": "Register AI systems",
+        "body": "Add each AI system you build or use."
+      },
+      {
+        "target": "ai-systems-register-platform",
+        "title": "A ready-made example",
+        "body": "Register this platform's own AI features with one click. They are classified as limited risk and show how a record looks."
+      },
+      {
+        "target": "ai-systems-filters",
+        "title": "Filters and saved views",
+        "body": "Filter by status, risk class or role and save the view for later."
+      }
+    ],
+    "classify": [
+      {
+        "target": "ai-classify-questions",
+        "title": "Answer step by step",
+        "body": "Six short steps. Use the step buttons to jump back and forth."
+      },
+      {
+        "target": "ai-classify-result",
+        "title": "Live outcome",
+        "body": "The risk class, the reasons and the obligations update as you answer."
+      },
+      {
+        "target": "ai-classify-suggest",
+        "title": "Let the assistant suggest",
+        "body": "The assistant can pre-fill the answers from the system description. Always review them."
+      },
+      {
+        "target": "ai-classify-complete",
+        "title": "Complete",
+        "body": "Completing sets the risk class on the system and creates a task per obligation."
+      }
+    ]
+  },
+  "glossary": {
+    "ai-system": {
+      "term": "AI system",
+      "definition": "A machine-based system that infers from its input how to generate outputs such as predictions, content, recommendations or decisions.",
+      "clauses": ["eu_ai_act:3"]
+    },
+    "provider": {
+      "term": "Provider",
+      "definition": "Develops an AI system or model, or has it developed, and places it on the market or puts it into service under its own name.",
+      "clauses": ["eu_ai_act:3"]
+    },
+    "deployer": {
+      "term": "Deployer",
+      "definition": "Uses an AI system under its authority, except for personal non-professional use.",
+      "clauses": ["eu_ai_act:3", "eu_ai_act:26"]
+    },
+    "high-risk-ai": {
+      "term": "High-risk AI system",
+      "definition": "An AI system that is a safety component of a regulated product or is used in an Annex III area, with strict requirements.",
+      "clauses": ["eu_ai_act:6"]
+    },
+    "fria": {
+      "term": "FRIA",
+      "definition": "Fundamental rights impact assessment that certain deployers carry out before using a high-risk AI system.",
+      "clauses": ["eu_ai_act:27"]
+    },
+    "gpai": {
+      "term": "General-purpose AI model",
+      "definition": "An AI model that can competently perform a wide range of distinct tasks and can be integrated into many systems.",
+      "clauses": ["eu_ai_act:53"]
+    },
+    "ai-literacy": {
+      "term": "AI literacy",
+      "definition": "The skills, knowledge and understanding to deploy AI systems in an informed way and to be aware of their opportunities, risks and possible harm.",
+      "clauses": ["eu_ai_act:4"]
+    }
+  }
+}
