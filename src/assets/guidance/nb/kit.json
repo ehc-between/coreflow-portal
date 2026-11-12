@@ -1,0 +1,248 @@
+{
+  "pages": {
+    "detail": {
+      "intro": {
+        "title": "Ett sted for alt om denne posten",
+        "body": "Alle poster i CoreFlow har de samme delene: detaljene, postene den er koblet til, aktiviteten, diskusjonen, filene og, for styrte poster, revisjonshistorikken.",
+        "steps": [
+          "Fyll ut detaljene først, og lagre.",
+          "Åpne **Relatert** for å koble til dokumentene, avvikene, risikoene eller tiltakene posten henger sammen med.",
+          "Bruk **Kommentarer** til å diskutere posten; skriv @ for å ta med en kollega.",
+          "Se **Aktivitet** for å se hvem som gjorde hva, og når."
+        ]
+      },
+      "why": {
+        "body": "Revisorer vil følge sporet fra et krav til beviset for at det er oppfylt. Når du kobler poster, holder diskusjonen på posten og tar vare på historikken, viser du at styringssystemet er under kontroll og at tiltak følger av funn.",
+        "clauses": ["hs:7.5", "hs:10.2", "iso27001:7.5.3"]
+      },
+      "empty": {
+        "title": "Ingenting her ennå",
+        "body": "Når du lagrer posten, samles koblinger, kommentarer, filer og historikk her.",
+        "cta": "Lagre posten"
+      },
+      "fields": {
+        "tabs": {
+          "help": "Bytt del med fanene, eller med piltastene når en fane har fokus.",
+          "example": "Åpne Aktivitet-fanen for å se når statusen sist ble endret."
+        }
+      }
+    },
+    "related": {
+      "intro": {
+        "title": "Relaterte poster",
+        "body": "Koblinger viser hvordan poster henger sammen. Hver kobling har en type, så den leses som en setning: dette avviket **er forårsaket av** den leverandøren, dette tiltaket **reduserer** den risikoen.",
+        "steps": [
+          "Velg **Koble til en post**.",
+          "Velg relasjonen, og søk etter posten med kode eller tittel.",
+          "Velg **Koble** ved riktig treff."
+        ]
+      },
+      "why": {
+        "body": "Koblinger gjør enkeltposter om til bevis. Ett dokument kan være bevis for punkter i flere standarder, og et korrigerende tiltak som er koblet til avviket sitt, viser at årsaken ble håndtert.",
+        "clauses": ["hs:10.2", "hs:9.1"]
+      },
+      "empty": {
+        "title": "Ingen relaterte poster ennå",
+        "body": "Koble denne posten til dokumentene, avvikene, risikoene eller tiltakene den henger sammen med.",
+        "cta": "Koble til en post"
+      },
+      "fields": {
+        "link_type": {
+          "help": "Relasjonen, lest fra denne posten til posten du velger.",
+          "example": "Et avvik «forårsaket av» en leveranse; en prosedyre «bevis for» et krav."
+        },
+        "entity_type": {
+          "help": "Begrens søket til én type post, eller søk i alle.",
+          "example": "Velg Dokument for å finne en prosedyre på koden."
+        }
+      }
+    },
+    "comments": {
+      "intro": {
+        "title": "Diskuter posten der den hører hjemme",
+        "body": "Kommentarer holder spørsmål og beslutninger sammen med posten i stedet for i e-post. Kolleger du nevner, får et varsel med en lenke rett til posten.",
+        "steps": [
+          "Skriv kommentaren.",
+          "Skriv @ og noen bokstaver av et navn for å nevne noen.",
+          "Trykk Ctrl + Enter (Cmd + Enter på Mac) eller velg **Kommenter** for å publisere."
+        ]
+      },
+      "why": {
+        "body": "Beslutninger og begrunnelsen for dem er en del av dokumentasjonen på hvordan dere driver styringssystemet. Når de ligger på posten, er de lette å finne ved en revisjon.",
+        "clauses": ["hs:7.4", "hs:7.5"]
+      },
+      "empty": {
+        "title": "Ingen kommentarer ennå",
+        "body": "Start diskusjonen, eller be en kollega om innspill med en @omtale.",
+        "cta": "Skriv en kommentar"
+      },
+      "fields": {
+        "body": {
+          "help": "Ren tekst. Opptil 10 000 tegn.",
+          "example": "@Kari, kan du bekrefte at leverandøren har fått den nye spesifikasjonen?"
+        }
+      }
+    },
+    "revisions": {
+      "intro": {
+        "title": "Revisjonshistorikk",
+        "body": "Hver lagrede endring av en styrt post gir en revisjon som viser hvem som endret hvilke felt, når og hvorfor. Du kan sammenligne to revisjoner side om side.",
+        "steps": [
+          "Velg **Vis endringer** på en revisjon for å sammenligne den med den forrige.",
+          "Eller kryss av for to revisjoner og velg **Sammenlign valgte**."
+        ]
+      },
+      "why": {
+        "body": "Standardene krever at dokumentert informasjon er styrt: endringer skal kunne identifiseres, gjennomgås og spores. Revisjonshistorikken er det sporet.",
+        "clauses": ["hs:7.5.3", "iso27001:7.5.3"]
+      },
+      "empty": {
+        "title": "Ingen revisjoner ennå",
+        "body": "Revisjoner vises når posten er lagret.",
+        "cta": "Rediger posten"
+      },
+      "fields": {
+        "change_reason": {
+          "help": "En kort merknad om hvorfor endringen ble gjort. Revisorer leser den.",
+          "example": "Oppdatert etter funnet fra internrevisjonen om godkjenning av leverandører."
+        }
+      }
+    },
+    "activity": {
+      "intro": {
+        "title": "Aktivitet",
+        "body": "En løpende logg over det som har skjedd med posten: endringer, kommentarer, koblinger og statusoppdateringer, nyeste først.",
+        "steps": [
+          "Rull ned og velg **Vis eldre aktivitet** for å gå lenger tilbake.",
+          "Hvis du kan lese revisjonsloggen, kryss av for **Ta med revisjonsloggen** for å se alle registrerte endringer."
+        ]
+      },
+      "why": {
+        "body": "Å kunne vise hvem som gjorde hva og når, er grunnlaget for et revisjonsspor og for ansvarlighet i styringssystemet.",
+        "clauses": ["hs:9.1", "iso27001:8.15"]
+      },
+      "empty": {
+        "title": "Ingen aktivitet ennå",
+        "body": "Aktivitet vises så snart noen endrer, kommenterer eller kobler denne posten.",
+        "cta": "Legg til en kommentar"
+      },
+      "fields": {}
+    },
+    "list": {
+      "intro": {
+        "title": "Finn og filtrer poster",
+        "body": "Søk på kode eller tittel, snevre inn listen med filtrene, og lagre kombinasjonene du bruker ofte som visninger.",
+        "steps": [
+          "Skriv i søkefeltet; listen oppdateres mens du skriver.",
+          "Sett filtrene du trenger.",
+          "Åpne **Lagrede visninger** og velg **Lagre gjeldende visning** for å ta vare på dem."
+        ]
+      },
+      "why": {
+        "body": "Overvåking betyr å se på de samme tingene jevnlig. En lagret visning gjør det til en vane med ett klikk.",
+        "clauses": ["hs:9.1"]
+      },
+      "empty": {
+        "title": "Ingen poster passer",
+        "body": "Tøm søket eller endre filtrene for å se flere.",
+        "cta": "Tøm søket"
+      },
+      "fields": {
+        "views": {
+          "help": "Lagrede visninger lagres bare i denne nettleseren.",
+          "example": "«Mine åpne saker» med eierfilteret satt til deg."
+        }
+      }
+    }
+  },
+  "lessons": {
+    "connected-records": {
+      "title": "Sammenkoblede poster: koblinger, kommentarer og historikk",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Hvorfor koble poster?",
+          "body": "Et styringssystem er et nett av informasjon som henger sammen: risikoer fører til kontroller, avvik fører til tiltak, dokumenter beviser at krav er oppfylt. Når du kobler poster, blir nettet synlig, så du og revisorene kan følge det."
+        },
+        {
+          "heading": "Velg riktig koblingstype",
+          "body": "Velg relasjonen som leses riktig fra posten du står på:\n\n- **Forårsaket av**: dette avviket ble forårsaket av den posten.\n- **Reduserer**: dette tiltaket eller denne kontrollen reduserer den risikoen.\n- **Bevis for**: dette dokumentet beviser at kravet er oppfylt.\n- **Erstatter**: denne posten erstatter en eldre.\n- **Implementerer** / **Avledet fra**: denne posten setter den andre ut i livet, eller kommer fra den.\n- **Relatert til**: alt annet."
+        },
+        {
+          "heading": "Diskusjon og sporing av endringer",
+          "body": "Bruk kommentarer til spørsmål og beslutninger, og @nevn dem som må gjøre noe. For styrte poster blir hver lagrede endring en revisjon med begrunnelse, som du kan sammenligne senere."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Et korrigerende tiltak reduserer risikoen for at et avvik skjer igjen. Hvilken koblingstype passer best fra tiltaket?",
+          "options": ["Relatert til", "Reduserer", "Erstatter"],
+          "answer": 1,
+          "explanation": "Tiltaket reduserer risikoen, så «reduserer» leses riktig fra tiltaket."
+        },
+        {
+          "question": "Hvor bør en kollegas beslutning om et avvik registreres?",
+          "options": [
+            "I en e-post til teamet",
+            "Som en kommentar på avviket",
+            "Ingen steder, statusen er nok"
+          ],
+          "answer": 1,
+          "explanation": "En kommentar holder beslutningen sammen med posten, der den kan finnes ved en revisjon."
+        },
+        {
+          "question": "Hva registrerer en revisjon?",
+          "options": [
+            "Bare de nye verdiene",
+            "Hvem som endret hvilke felt, når og hvorfor",
+            "Bare datoen for endringen"
+          ],
+          "answer": 1,
+          "explanation": "En revisjon tar vare på øyeblikksbildet, de endrede feltene, personen og begrunnelsen."
+        }
+      ],
+      "pass_mark": 0.8
+    }
+  },
+  "tours": {
+    "detail": [
+      {
+        "target": "kit-tabs",
+        "title": "Deler av posten",
+        "body": "Hver fane viser én side av posten. Bruk piltastene for å bytte mellom dem."
+      },
+      {
+        "target": "kit-related",
+        "title": "Relaterte poster",
+        "body": "Koble til postene denne henger sammen med, så sporet er lett å følge."
+      },
+      {
+        "target": "kit-comments",
+        "title": "Kommentarer",
+        "body": "Diskuter posten her, og @nevn kolleger som må gjøre noe."
+      }
+    ]
+  },
+  "glossary": {
+    "entity-link": {
+      "term": "Postkobling",
+      "definition": "En relasjon med type mellom to poster, for eksempel «forårsaket av» eller «bevis for».",
+      "clauses": ["hs:10.2"]
+    },
+    "revision": {
+      "term": "Revisjon",
+      "definition": "En lagret versjon av en styrt post, med hvem som endret den, hva som ble endret, når og hvorfor.",
+      "clauses": ["hs:7.5.3"]
+    },
+    "mention": {
+      "term": "Omtale",
+      "definition": "Å nevne en kollega med @ i en kommentar. Kollegaen får et varsel med en lenke til posten.",
+      "clauses": []
+    },
+    "audit-trail": {
+      "term": "Revisjonsspor",
+      "definition": "Den kronologiske oversikten over hvem som gjorde hva med en post, og når.",
+      "clauses": ["iso27001:8.15"]
+    }
+  }
+}

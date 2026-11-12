@@ -24,6 +24,7 @@ import { OrgDocumentSettings } from '../document-settings/org-document-settings'
 import { OrgInvitations } from '../invitations/org-invitations';
 import { OrgMembers } from '../members/org-members';
 import { GuidanceSettingsLink } from '../../learning/settings/guidance-settings-link';
+import { SettingsLinks } from '../settings-links/settings-links';
 
 /**
  * Org Settings shell, scoped to the currently selected org. Hosts Departments
@@ -48,6 +49,7 @@ import { GuidanceSettingsLink } from '../../learning/settings/guidance-settings-
     OrgDocumentSettings,
     OrgInvitations,
     GuidanceSettingsLink,
+    SettingsLinks,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './org-settings.html',

@@ -1,0 +1,248 @@
+{
+  "entityTypes": {
+    "document": "Dokument",
+    "deviation": "Avvik",
+    "deviation_action": "Korrigerende tiltak",
+    "standard": "Standard",
+    "standard_requirement": "Krav",
+    "task": "Oppgave",
+    "attachment": "Vedlegg"
+  },
+  "linkTypes": {
+    "relates_to": {
+      "name": "Relatert til",
+      "outgoing": "Relatert til",
+      "incoming": "Relatert til"
+    },
+    "caused_by": {
+      "name": "Forårsaket av",
+      "outgoing": "Forårsaket av",
+      "incoming": "Forårsaker"
+    },
+    "mitigates": {
+      "name": "Reduserer",
+      "outgoing": "Reduserer",
+      "incoming": "Reduseres av"
+    },
+    "evidence_for": {
+      "name": "Bevis for",
+      "outgoing": "Bevis for",
+      "incoming": "Dokumentert av"
+    },
+    "supersedes": {
+      "name": "Erstatter",
+      "outgoing": "Erstatter",
+      "incoming": "Erstattet av"
+    },
+    "implements": {
+      "name": "Implementerer",
+      "outgoing": "Implementerer",
+      "incoming": "Implementert av"
+    },
+    "derived_from": {
+      "name": "Avledet fra",
+      "outgoing": "Avledet fra",
+      "incoming": "Kilde for"
+    },
+    "other": {
+      "name": "Koblet",
+      "outgoing": "Koblet til",
+      "incoming": "Koblet fra"
+    }
+  },
+  "status": {
+    "open": "Åpen",
+    "in_progress": "Pågår",
+    "done": "Ferdig",
+    "closed": "Lukket",
+    "cancelled": "Kansellert",
+    "draft": "Utkast",
+    "in_review": "Til gjennomgang",
+    "approved": "Godkjent",
+    "obsolete": "Utgått",
+    "active": "Aktiv",
+    "planned": "Planlagt",
+    "completed": "Fullført",
+    "archived": "Arkivert",
+    "overdue": "Forfalt"
+  },
+  "chip": {
+    "open": "Åpne {{ type }} {{ title }}",
+    "noAccessUrl": "Denne posten har ingen egen side"
+  },
+  "related": {
+    "title": "Relaterte poster",
+    "add": "Koble til en post",
+    "empty": "Ingen relaterte poster ennå.",
+    "emptyHint": "Koble denne posten til dokumentene, avvikene, risikoene eller tiltakene den henger sammen med. Revisorer følger disse koblingene for å se hvordan ett bevis støtter et annet.",
+    "remove": "Fjern kobling",
+    "removeNamed": "Fjern koblingen til {{ title }}",
+    "removeTitle": "Fjerne denne koblingen?",
+    "removeMessage": "{{ title }} forblir som den er; bare koblingen mellom de to postene fjernes.",
+    "removeConfirm": "Fjern kobling",
+    "linkedBy": "Koblet av {{ name }}",
+    "count": "{{ count }} koblet",
+    "suggest": "Foreslå relaterte poster"
+  },
+  "picker": {
+    "title": "Koble til en post",
+    "subtitle": "Finn posten du vil koble til, og velg hvordan de to henger sammen.",
+    "close": "Lukk",
+    "linkType": "Relasjon",
+    "linkTypeHelp": "Les det slik: denne posten «{{ relation }}» posten du velger.",
+    "entityType": "Posttype",
+    "allTypes": "Alle typer",
+    "search": "Søk etter poster",
+    "searchPlaceholder": "Skriv en kode eller noen ord fra tittelen",
+    "minChars": "Skriv minst to tegn for å søke.",
+    "searching": "Søker …",
+    "noResults": "Ingen poster passer søket.",
+    "results": "Søkeresultater",
+    "link": "Koble",
+    "linking": "Kobler …",
+    "linked": "Koblet",
+    "unavailable": "Postsøk er ikke tilgjengelig ennå."
+  },
+  "comments": {
+    "title": "Kommentarer",
+    "empty": "Ingen kommentarer ennå.",
+    "emptyHint": "Bruk kommentarer til å diskutere posten med kolleger. Skriv @ for å nevne noen; de får et varsel.",
+    "placeholder": "Skriv en kommentar … Skriv @ for å nevne noen",
+    "label": "Ny kommentar",
+    "replyLabel": "Svar",
+    "editLabel": "Rediger kommentar",
+    "post": "Kommenter",
+    "posting": "Publiserer …",
+    "reply": "Svar",
+    "replyTo": "Svar til {{ name }}",
+    "cancel": "Avbryt",
+    "edit": "Rediger",
+    "save": "Lagre",
+    "delete": "Slett",
+    "deleteTitle": "Slette denne kommentaren?",
+    "deleteMessage": "Kommentaren fjernes fra diskusjonen. Slettingen registreres i aktivitetsloggen.",
+    "deleteConfirm": "Slett kommentar",
+    "edited": "redigert",
+    "unknownAuthor": "Tidligere medlem",
+    "characters": "{{ count }} / {{ max }}",
+    "mentionList": "Personer du kan nevne",
+    "mentionNone": "Ingen personer passer",
+    "mentioned": "Nevnt: {{ names }}",
+    "readOnly": "Du kan lese diskusjonen, men ikke delta i den.",
+    "summarise": "Oppsummer diskusjonen",
+    "count": "{{ count }} kommentarer"
+  },
+  "revisions": {
+    "title": "Revisjonshistorikk",
+    "empty": "Ingen revisjoner registrert ennå.",
+    "emptyHint": "Hver lagrede endring av en styrt post gir en revisjon: hvem som endret hva, når og hvorfor. ISO-standardene kaller dette å holde dokumentert informasjon under kontroll.",
+    "revision": "Revisjon {{ no }}",
+    "by": "av {{ name }}",
+    "byAssistant": "av assistenten",
+    "bySystem": "av systemet",
+    "unknownActor": "av et tidligere medlem",
+    "reason": "Begrunnelse: {{ reason }}",
+    "changed": "Endret: {{ fields }}",
+    "created": "Opprettet",
+    "select": "Velg revisjon {{ no }} for sammenligning",
+    "compareHint": "Velg to revisjoner for å sammenligne dem side om side.",
+    "compare": "Sammenlign",
+    "compareSelected": "Sammenlign valgte",
+    "showChanges": "Vis endringer",
+    "showSnapshot": "Vis innhold",
+    "hide": "Skjul",
+    "comparing": "Sammenligner revisjon {{ from }} med revisjon {{ to }}",
+    "field": "Felt",
+    "before": "Revisjon {{ no }}",
+    "after": "Revisjon {{ no }}",
+    "noChanges": "De to revisjonene har samme innhold.",
+    "snapshotTitle": "Innholdet i revisjon {{ no }}",
+    "value": "Verdi",
+    "emptyValue": "(tom)",
+    "yes": "Ja",
+    "no": "Nei",
+    "explain": "Forklar endringene"
+  },
+  "timeline": {
+    "title": "Aktivitet",
+    "empty": "Ingen aktivitet ennå.",
+    "emptyHint": "Endringer, kommentarer, koblinger og statusoppdateringer vises her etter hvert som de skjer, nyeste først.",
+    "loadMore": "Vis eldre aktivitet",
+    "includeAudit": "Ta med revisjonsloggen",
+    "fallback": "{{ actor }}: {{ kind }}",
+    "someone": "Noen",
+    "assistant": "Assistenten",
+    "system": "CoreFlow",
+    "changes": "Endringer",
+    "change": "{{ field }}: {{ before }} → {{ after }}",
+    "commentCreated": "{{ actor_name }} kommenterte",
+    "commentMentioned": "{{ actor_name }} nevnte noen i en kommentar",
+    "commentDeleted": "{{ actor_name }} slettet en kommentar",
+    "linkCreated": "{{ actor_name }} koblet til: {{ other_type_label }} ({{ link_type_label }})",
+    "linkDeleted": "{{ actor_name }} fjernet koblingen til: {{ other_type_label }} ({{ link_type_label }})"
+  },
+  "notifications": {
+    "commentCreated": "{{ actor_name }} kommenterte en post du følger",
+    "commentMentioned": "{{ actor_name }} nevnte deg i en kommentar",
+    "commentDeleted": "{{ actor_name }} slettet en kommentar",
+    "linkCreated": "{{ actor_name }} koblet til en post",
+    "linkDeleted": "{{ actor_name }} fjernet en kobling"
+  },
+  "list": {
+    "search": "Søk",
+    "searchPlaceholder": "Søk …",
+    "views": "Lagrede visninger",
+    "viewsMenu": "Åpne lagrede visninger",
+    "saveView": "Lagre gjeldende visning",
+    "saveViewTitle": "Lagre denne visningen",
+    "saveViewMessage": "Lagrer gjeldende søk og filtre slik at du kommer tilbake til dem med ett klikk. Visningene lagres i denne nettleseren.",
+    "viewName": "Navn",
+    "viewNamePlaceholder": "f.eks. Mine åpne saker",
+    "save": "Lagre visning",
+    "noViews": "Ingen lagrede visninger ennå.",
+    "applyView": "Bruk visningen {{ name }}",
+    "deleteView": "Slett visningen {{ name }}",
+    "activeView": "Visning: {{ name }}"
+  },
+  "detail": {
+    "back": "Tilbake",
+    "tabs": "Deler av posten",
+    "tab": {
+      "details": "Detaljer",
+      "related": "Relatert",
+      "activity": "Aktivitet",
+      "comments": "Kommentarer",
+      "attachments": "Vedlegg",
+      "revisions": "Revisjoner",
+      "tasks": "Oppgaver"
+    }
+  },
+  "ai": {
+    "summariseComments": "Oppsummer diskusjonen i kommentarene på denne posten ({{ type }}, posttype {{ entity_type }}, id {{ entity_id }}). List opp åpne spørsmål og eventuelle beslutninger.",
+    "suggestRelated": "Hvilke andre poster bør denne posten ({{ type }}, posttype {{ entity_type }}, id {{ entity_id }}) kobles til? Se på de eksisterende koblingene og foreslå relevante dokumenter, avvik eller tiltak, med en begrunnelse for hvert forslag.",
+    "explainRevisions": "Forklar med enkle ord hva som ble endret mellom revisjon {{ from }} og revisjon {{ to }} av denne posten ({{ type }}, posttype {{ entity_type }}, id {{ entity_id }}), og hvorfor det kan ha betydning for etterlevelsen."
+  },
+  "errors": {
+    "generic": "Noe gikk galt. Prøv igjen.",
+    "network": "Fikk ikke kontakt med serveren. Sjekk tilkoblingen og prøv igjen.",
+    "forbidden": "Du har ikke tilgang til å gjøre dette.",
+    "notFound": "Posten ble ikke funnet eller er ikke tilgjengelig for deg.",
+    "unsupported_entity_type": "Denne typen post støtter ikke dette.",
+    "module_disabled": "Denne modulen er slått av for organisasjonen din.",
+    "invalid_link_type": "Den relasjonstypen støttes ikke.",
+    "self_link": "En post kan ikke kobles til seg selv.",
+    "not_linkable": "En av disse postene kan ikke kobles.",
+    "link_exists": "Disse postene er allerede koblet på denne måten.",
+    "link_not_found": "Denne koblingen finnes ikke lenger.",
+    "comment_empty": "Skriv noe før du publiserer.",
+    "comment_too_long": "Kommentaren er for lang.",
+    "invalid_parent": "Kommentaren du svarte på, finnes ikke lenger.",
+    "invalid_mentions": "En av personene du nevnte, er ikke medlem av organisasjonen.",
+    "mention_no_access": "En av personene du nevnte, kan ikke se denne posten. Fjern omtalen eller del posten først.",
+    "not_commentable": "Denne posten tar ikke imot kommentarer.",
+    "not_comment_author": "Bare forfatteren kan redigere en kommentar.",
+    "comment_not_found": "Denne kommentaren finnes ikke lenger.",
+    "revision_not_found": "Revisjonen ble ikke funnet.",
+    "revision_mismatch": "Disse revisjonene tilhører forskjellige poster."
+  }
+}

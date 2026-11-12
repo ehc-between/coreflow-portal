@@ -1,0 +1,439 @@
+{
+  "notifications": {
+    "profileUpdated": "Organisasjonsprofilen ble oppdatert",
+    "terminologyUpdated": "Organisasjonens terminologi ble oppdatert",
+    "setupCompleted": "Oppsettet av organisasjonen er fullført"
+  },
+  "timeline": {
+    "profileUpdated": "Oppdaterte organisasjonsprofilen",
+    "terminologyUpdated": "Oppdaterte terminologien",
+    "setupCompleted": "Fullførte oppsettet av organisasjonen"
+  },
+  "common": {
+    "breadcrumb": "Brødsmulesti",
+    "noOrg": "Velg en organisasjon for å se innstillingene.",
+    "loadFailed": "Dette kunne ikke lastes. Prøv igjen.",
+    "retry": "Prøv igjen",
+    "saveFailed": "Endringen kunne ikke lagres. Prøv igjen.",
+    "notSet": "Ikke angitt",
+    "remove": "Fjern"
+  },
+  "frameworks": {
+    "hs": {
+      "name": "ISO harmonisert struktur",
+      "short": "ISO HS",
+      "description": "Kapittelstrukturen (4 til 10) som alle ISO-standarder for styringssystemer deler."
+    },
+    "iso9001": {
+      "name": "ISO 9001 Kvalitetsstyring",
+      "short": "ISO 9001",
+      "description": "Jevn kvalitet på produkter og tjenester og fornøyde kunder."
+    },
+    "iso27001": {
+      "name": "ISO/IEC 27001 Informasjonssikkerhet",
+      "short": "ISO 27001",
+      "description": "Beskytt konfidensialitet, integritet og tilgjengelighet for informasjon."
+    },
+    "iso14001": {
+      "name": "ISO 14001 Miljøstyring",
+      "short": "ISO 14001",
+      "description": "Styr miljøaspektene og forbedre miljøprestasjonen."
+    },
+    "iso42001": {
+      "name": "ISO/IEC 42001 Styring av KI",
+      "short": "ISO 42001",
+      "description": "Utvikle, lever eller bruk KI-systemer på en ansvarlig måte."
+    },
+    "iso45001": {
+      "name": "ISO 45001 Arbeidsmiljø og sikkerhet",
+      "short": "ISO 45001",
+      "description": "Forebygg arbeidsrelaterte skader og helseplager."
+    },
+    "gdpr": {
+      "name": "GDPR (personvernforordningen)",
+      "short": "GDPR",
+      "description": "Behandle personopplysninger lovlig, rettferdig og sikkert."
+    },
+    "eu_ai_act": {
+      "name": "EUs KI-forordning",
+      "short": "KI-forordningen",
+      "description": "Krav til KI-systemer som gjøres tilgjengelige eller brukes i EU/EØS."
+    },
+    "nis2": {
+      "name": "NIS2",
+      "short": "NIS2",
+      "description": "Styring av cybersikkerhetsrisiko for vesentlige og viktige virksomheter."
+    }
+  },
+  "sizeBands": {
+    "1-10": "1 til 10 personer",
+    "11-50": "11 til 50 personer",
+    "51-250": "51 til 250 personer",
+    "251-1000": "251 til 1 000 personer",
+    "1000+": "Mer enn 1 000 personer"
+  },
+  "aiActRoles": {
+    "provider": {
+      "name": "Tilbyder",
+      "description": "Dere utvikler KI-systemer, eller får dem utviklet, og gjør dem tilgjengelige under eget navn."
+    },
+    "deployer": {
+      "name": "Brukervirksomhet",
+      "description": "Dere bruker KI-systemer i eget arbeid, for eksempel en chatbot eller et utvelgelsesverktøy."
+    },
+    "both": {
+      "name": "Tilbyder og brukervirksomhet",
+      "description": "Dere lager KI-systemer og bruker også KI-systemer i egen drift."
+    },
+    "none": {
+      "name": "Ikke omfattet",
+      "description": "Dere verken tilbyr eller bruker KI-systemer som KI-forordningen omfatter."
+    },
+    "unknown": {
+      "name": "Usikker foreløpig",
+      "description": "Velg dette inntil videre; modulen for KI-styring hjelper dere å finne ut av det."
+    }
+  },
+  "certificationStatus": {
+    "planned": "Planlagt",
+    "in_progress": "Pågår",
+    "certified": "Sertifisert"
+  },
+  "settings": {
+    "title": "Moduler",
+    "subtitle": "Slå på de delene av CoreFlow organisasjonen trenger. Når en modul slås av, beholdes dataene.",
+    "askFit": "Hvilke moduler passer for oss?",
+    "askFitPrompt": "Se på organisasjonsprofilen vår og modulene vi bruker i dag ({{ modules }}). Hvilke andre moduler bør vi slå på, og hvorfor? Svar i korte punkter.",
+    "runWizard": "Kjør oppsettsveiviseren",
+    "search": "Søk i moduler",
+    "searchPlaceholder": "Navn eller beskrivelse",
+    "statusFilter": "Status",
+    "status": {
+      "all": "Alle moduler",
+      "enabled": "Slått på",
+      "disabled": "Slått av"
+    },
+    "frameworkFilter": "Rammeverk",
+    "allFrameworks": "Alle rammeverk",
+    "empty": {
+      "title": "Ingen moduler ennå",
+      "body": "Moduler dukker opp her etter hvert som de blir tilgjengelige. Hver modul støtter ett eller flere rammeverk, for eksempel ISO 9001 eller GDPR."
+    },
+    "count": "Viser {{ shown }} av {{ total }} moduler, {{ enabled }} slått på.",
+    "noMatches": "Ingen moduler passer med disse filtrene.",
+    "alwaysOn": "Alltid på",
+    "on": "På",
+    "off": "Av",
+    "dependsOn": "Krever: {{ modules }}",
+    "requiredBy": "Brukes av: {{ modules }}",
+    "open": "Åpne modulen",
+    "disableTitle": "Slå av {{ module }}?",
+    "disableBody": "{{ module }} forsvinner fra menyen for alle i organisasjonen. Registreringene beholdes og kommer tilbake når dere slår modulen på igjen.",
+    "disableConfirm": "Slå av",
+    "enabledToast": "Modulen er slått på.",
+    "disabledToast": "Modulen er slått av.",
+    "errors": {
+      "dependencyDisabled": "{{ module }} krever {{ modules }}. Slå på den først.",
+      "requiredBy": "{{ module }} brukes av {{ modules }}. Slå av dem først.",
+      "alwaysOn": "{{ module }} er alltid på og kan ikke slås av.",
+      "unknown": "Den modulen finnes ikke lenger. Last inn siden på nytt."
+    }
+  },
+  "profile": {
+    "title": "Organisasjonsprofil",
+    "subtitle": "Hvem dere er og hva dere jobber mot. CoreFlow bruker dette til å anbefale moduler og gi bedre svar.",
+    "lastUpdated": "Sist oppdatert {{ date }}",
+    "askAiRole": "Forklar rollen vår etter KI-forordningen",
+    "askAiRolePrompt": "Vi er en organisasjon i bransjen «{{ industry }}» og har valgt rollen «{{ role }}» etter KI-forordningen. Forklar på enkelt språk hva rollen betyr, hvilke plikter som vanligvis følger, og hvordan vi kan sjekke at rollen er riktig.",
+    "sections": {
+      "basics": "Om organisasjonen",
+      "frameworks": "Rammeverk i omfang",
+      "targets": "Sertifiseringsmål",
+      "sites": "Lokasjoner"
+    },
+    "industry": "Bransje",
+    "sizeBand": "Størrelse",
+    "countries": "Land",
+    "countriesPlaceholder": "For eksempel NO, SE, DK",
+    "description": "Kort beskrivelse",
+    "aiActRole": "Rolle etter EUs KI-forordning",
+    "addTarget": "Legg til mål",
+    "noTargets": "Ingen sertifiseringsmål ennå. Legg til et mål hvis dere planlegger sertifisering.",
+    "targetFramework": "Rammeverk",
+    "targetDate": "Måldato",
+    "certificationBody": "Sertifiseringsorgan",
+    "targetStatus": "Status",
+    "addSite": "Legg til lokasjon",
+    "noSites": "Ingen lokasjoner ennå. Legg til kontorene, anleggene eller andre steder styringssystemet omfatter.",
+    "siteName": "Navn",
+    "siteCountry": "Land (2 bokstaver)",
+    "siteCity": "Sted",
+    "siteKind": "Type",
+    "siteKindPlaceholder": "Kontor, anlegg, lager",
+    "errors": {
+      "countries": "Bruk landkoder på to bokstaver skilt med komma, for eksempel NO, SE.",
+      "site": "En lokasjon trenger et navn og en landkode på to bokstaver.",
+      "save": "Profilen kunne ikke lagres. Sjekk feltene og prøv igjen."
+    },
+    "savedToast": "Organisasjonsprofilen er lagret."
+  },
+  "terminology": {
+    "title": "Terminologi",
+    "subtitle": "Bruk ordene organisasjonen allerede bruker. La et felt stå tomt for å beholde standarden.",
+    "askSuggest": "Foreslå ordbruk",
+    "askSuggestPrompt": "Foreslå terminologi for organisasjonen vår ut fra profilen: hvilke ord bør vi bruke i stedet for avvik, dokument, risiko, revisjon, funn, prosess, oppgave, mål, hendelse, leverandør og ansatt? Gi entall og flertall på engelsk og norsk, og behold standardordene der de allerede passer.",
+    "previewLabel": "Forhåndsvisning",
+    "preview": "Oversikten viser åpne {{ term.deviations }}, {{ term.documents }} som venter på gjennomgang og forfalte {{ term.tasks }}.",
+    "term": "Begrep",
+    "singular": "Entall ({{ lang }})",
+    "plural": "Flertall ({{ lang }})",
+    "errors": {
+      "incomplete": "Fyll inn både entall og flertall for et språk, eller la begge stå tomme.",
+      "unknownTerm": "Et av begrepene støttes ikke lenger. Last inn siden på nytt og prøv igjen."
+    },
+    "resetAll": "Tilbakestill til standard",
+    "resetTitle": "Tilbakestille all terminologi?",
+    "resetBody": "Alle begreper går tilbake til standardordene, på alle språk.",
+    "resetConfirm": "Tilbakestill",
+    "savedToast": "Terminologien er lagret og tatt i bruk.",
+    "resetToast": "Terminologien er tilbake til standard."
+  },
+  "setup": {
+    "title": "Sett opp organisasjonen",
+    "subtitle": "Noen korte steg for å tilpasse CoreFlow til hvordan dere jobber. Alt kan endres senere.",
+    "rerunNotice": "Oppsettet ble fullført {{ date }}. Når du kjører det igjen, slås moduler bare på; ingenting slås av.",
+    "progressLabel": "Fremdrift i oppsettet",
+    "steps": {
+      "profile": "Profil",
+      "frameworks": "Rammeverk",
+      "modules": "Moduler",
+      "roles": "Roller",
+      "tasks": "Første oppgaver",
+      "done": "Ferdig"
+    },
+    "profile": {
+      "title": "Fortell oss om organisasjonen",
+      "body": "Bransje, størrelse og land hjelper CoreFlow å foreslå det som er relevant for dere."
+    },
+    "frameworks": {
+      "title": "Hvilke rammeverk er i omfang?",
+      "body": "Velg standardene og regelverkene dere jobber mot, nå eller snart.",
+      "hint": "Usikker? Start med det dere trenger først. Dere kan legge til flere når som helst under Innstillinger, Organisasjonsprofil."
+    },
+    "modules": {
+      "title": "Anbefalte moduler",
+      "body": "Ut fra rammeverkene dekker disse modulene det standardene krever. Fjern haken for det dere ikke trenger ennå.",
+      "selectedCount": "Valgte moduler: {{ count }}",
+      "askWhy": "Spør hvorfor",
+      "askWhyPrompt": "Vi har valgt disse rammeverkene: {{ frameworks }}. Bransje: {{ industry }}. Størrelse: {{ size }}. CoreFlow anbefaler disse modulene: {{ modules }}. Forklar kort hvorfor hver modul er viktig for rammeverkene våre, og hvilke vi kan vente med.",
+      "empty": "Ingen moduler å anbefale ennå. Velg et rammeverk først, eller fortsett: moduler kan slås på senere.",
+      "recommended": "Anbefalt",
+      "alreadyOn": "Allerede på"
+    },
+    "roles": {
+      "title": "Hvem gjør hva?",
+      "body": "CoreFlow gir hver rolle fornuftig tilgang. Inviter kollegene og gi dem rollene som passer ansvaret deres.",
+      "suggested": "Foreslått",
+      "invite": "Inviter personer og tildel roller"
+    },
+    "tasks": {
+      "title": "De første oppgavene",
+      "body": "Start med en kort liste oppgaver så arbeidet kommer i gang. De vises i Mitt arbeid.",
+      "unavailable": "Oppgaver er ikke tilgjengelige ennå i denne installasjonen, så dette steget hoppes over. Du kan fortsette.",
+      "created": "Opprettede oppgaver: {{ count }}. Du finner dem i Mitt arbeid.",
+      "failed": "Oppgavene kunne ikke opprettes. Du kan prøve igjen eller hoppe over steget.",
+      "dueIn": "Frist om {{ days }} dager.",
+      "create": "Opprett valgte oppgaver ({{ count }})",
+      "items": {
+        "reviewProfile": {
+          "title": "Kontroller organisasjonsprofilen",
+          "description": "Sjekk at bransje, lokasjoner, rammeverk og sertifiseringsmål stemmer."
+        },
+        "inviteTeam": {
+          "title": "Inviter teamet",
+          "description": "Inviter dem som skal jobbe i CoreFlow, og gi dem roller."
+        },
+        "policy": {
+          "title": "Publiser policyen for styringssystemet",
+          "description": "Last opp eller skriv policyen og send den til godkjenning."
+        },
+        "applicability": {
+          "title": "Avgjør hvilke krav som gjelder",
+          "description": "Gå gjennom standardarbeidsflaten og marker hva som gjelder for dere."
+        },
+        "deviations": {
+          "title": "Vis teamet hvordan avvik meldes",
+          "description": "Bli enige om avvikstypene og registrer det første avviket sammen."
+        },
+        "risk": {
+          "title": "Gjennomfør den første risikovurderingen",
+          "description": "List opp de viktigste risikoene og mulighetene og bli enige om tiltak."
+        },
+        "audit": {
+          "title": "Planlegg den første internrevisjonen",
+          "description": "Velg omfang, revisorer og dato."
+        }
+      }
+    },
+    "done": {
+      "title": "Klar til bruk",
+      "body": "Fullfør for å slå på de valgte modulene. Du kan endre dem senere under Innstillinger, Moduler.",
+      "summary": "Disse modulene slås på: {{ modules }}.",
+      "summaryNone": "Ingen nye moduler slås på.",
+      "finished": "Oppsettet er fullført.",
+      "enabledList": "Slått på nå: {{ modules }}.",
+      "toDashboard": "Gå til oversikten",
+      "toModules": "Se gjennom modulene",
+      "finishedToast": "Oppsettet er fullført."
+    },
+    "back": "Tilbake",
+    "next": "Fortsett",
+    "skip": "Hopp over",
+    "finish": "Fullfør oppsettet",
+    "errors": {
+      "unknownModules": "En av de valgte modulene finnes ikke lenger. Gå tilbake og sjekk listen.",
+      "recommendations": "Anbefalingene kunne ikke lastes. Prøv igjen."
+    }
+  },
+  "banner": {
+    "title": "Fullfør oppsettet av organisasjonen",
+    "body": "En kort veiviser hjelper deg å velge rammeverk, slå på riktige moduler og komme i gang med de første oppgavene.",
+    "start": "Start oppsettet",
+    "later": "Senere"
+  },
+  "guide": {
+    "whyTitle": "Hvorfor dette er viktig",
+    "show": "Vis veiledning",
+    "hide": "Skjul",
+    "start": "Start",
+    "explainClause": "Forklar",
+    "tutorPrompt": "Lær meg {{ clause }} på enkelt språk, slik det gjelder for siden «{{ page }}»: hva kravet går ut på, et kort eksempel og ett spørsmål som sjekker at jeg har forstått.",
+    "lessonLabel": "Minikurs, {{ minutes }} minutter",
+    "quizTitle": "Sjekk forståelsen",
+    "check": "Sjekk svarene",
+    "correct": "Riktig.",
+    "incorrect": "Ikke helt.",
+    "score": "{{ score }} av {{ total }} riktige",
+    "retry": "Prøv igjen",
+    "pages": {
+      "modules": {
+        "intro": {
+          "title": "Moduler tilpasser CoreFlow til styringssystemet",
+          "body": "Hver modul dekker ett område standardene krever, for eksempel risiko, revisjoner eller opplæring. Slå bare på det dere trenger; dere kan legge til mer etter hvert som systemet vokser.",
+          "steps": {
+            "s1": "Start med modulene oppsettsveiviseren anbefaler for rammeverkene deres.",
+            "s2": "Se på «Krever»: noen moduler bygger på andre.",
+            "s3": "Når en modul slås av, skjules den, men registreringene beholdes."
+          }
+        },
+        "why": {
+          "body": "Standardene forventer et definert sett med prosesser (prosesstilnærmingen) og risikobasert planlegging. Et bevisst valg av moduler dokumenterer hvilke prosesser systemet omfatter."
+        }
+      },
+      "profile": {
+        "intro": {
+          "title": "Profilen beskriver konteksten deres",
+          "body": "ISO-styringssystemer starter med å forstå organisasjonen, interessentene og omfanget. Profilen er kortversjonen av den konteksten.",
+          "steps": {
+            "s1": "Fyll inn bransje, størrelse og landene dere driver i.",
+            "s2": "Kryss av rammeverkene i omfang og legg til sertifiseringsmål med datoer.",
+            "s3": "Velg rollen etter EUs KI-forordning. «Usikker foreløpig» er greit inntil videre."
+          }
+        },
+        "why": {
+          "body": "Kapittel 4.1 til 4.3 krever at dere forstår konteksten, interessentenes behov og omfanget av systemet. Revisorer starter ofte her."
+        },
+        "fields": {
+          "industry": {
+            "help": "Med egne ord, for eksempel «matproduksjon» eller «IT-rådgivning»."
+          },
+          "countries": {
+            "help": "Koder på to bokstaver, skilt med komma. Lover og tilsyn avhenger av dem."
+          },
+          "description": {
+            "help": "Hva dere gjør, for hvem og hvor. Noen setninger er nok."
+          },
+          "frameworks": {
+            "help": "Rammeverkene avgjør hvilke krav og moduler CoreFlow foreslår."
+          },
+          "aiActRole": {
+            "help": "Tilbydere lager KI-systemer; brukervirksomheter bruker dem. Mange er brukervirksomheter uten å vite det."
+          },
+          "targets": {
+            "help": "En måldato gjør planen konkret og hjelper dere å planlegge revisjoner og gjennomganger."
+          },
+          "sites": {
+            "help": "List opp stedene styringssystemet omfatter. Det former omfangsbeskrivelsen."
+          }
+        }
+      },
+      "terminology": {
+        "intro": {
+          "title": "Snakk organisasjonens språk",
+          "body": "Folk følger et system lettere når det bruker deres ord. Endre ordbruken her, så bruker CoreFlow den overalt.",
+          "steps": {
+            "s1": "Velg begrepene dere kaller noe annet, for eksempel «uoverensstemmelse» for avvik.",
+            "s2": "Fyll inn entall og flertall for hvert språk dere bruker.",
+            "s3": "Lagre, og se på forhåndsvisningen over listen."
+          }
+        },
+        "why": {
+          "body": "Bevissthet og kommunikasjon (kapittel 7.4) fungerer bedre med kjent språk, og styrte dokumenter (kapittel 7.5) bør bruke begreper konsekvent."
+        }
+      },
+      "setup": {
+        "intro": {
+          "title": "Kom i gang på noen minutter",
+          "body": "Veiviseren tar deg gjennom det grunnleggende i et styringssystem: kontekst, omfang, riktige moduler, roller og de første oppgavene.",
+          "steps": {
+            "s1": "Beskriv organisasjonen og velg rammeverkene i omfang.",
+            "s2": "Se gjennom de anbefalte modulene. Bruk «Spør hvorfor» hvis noe er uklart.",
+            "s3": "Inviter folk og start med noen få oppgaver."
+          }
+        },
+        "why": {
+          "body": "Omfanget (kapittel 4.3), roller og ansvar (kapittel 5.3) og planlegging for risiko (kapittel 6.1) er grunnmuren alle senere revisjoner sjekker."
+        }
+      }
+    },
+    "lessons": {
+      "modulesBasics": {
+        "title": "Rammeverk, moduler og styringssystemet",
+        "sections": {
+          "s1": {
+            "heading": "Én struktur, mange standarder",
+            "body": "ISO 9001, 27001, 14001, 42001 og 45001 deler samme kapittelstruktur, fra kontekst (4) til forbedring (10). Arbeid dere gjør én gang, for eksempel ledelsens gjennomgang, kan telle for flere standarder."
+          },
+          "s2": {
+            "heading": "Rammeverkene bestemmer kravene",
+            "body": "Et rammeverk er standarden eller regelverket dere følger. Det avgjør hva dere må kunne vise en revisor, for eksempel en risikovurdering eller opplæringsregistreringer."
+          },
+          "s3": {
+            "heading": "Modulene er der arbeidet skjer",
+            "body": "En modul er delen av CoreFlow der dere gjør arbeidet og tar vare på bevisene. Slå på modulene rammeverkene krever, og la resten være av til dere trenger dem."
+          }
+        },
+        "quiz": {
+          "q1": {
+            "question": "Hva avgjør hvilke krav dere må oppfylle?",
+            "options": {
+              "a": "Modulene dere slår på",
+              "b": "Rammeverkene i omfang",
+              "c": "Størrelsen på organisasjonen"
+            },
+            "explanation": "Rammeverkene avgjør kravene; modulene er der dere oppfyller dem."
+          },
+          "q2": {
+            "question": "Hva skjer med registreringene når en modul slås av?",
+            "options": {
+              "a": "De slettes",
+              "b": "De flyttes til en annen modul",
+              "c": "De beholdes og kommer tilbake når modulen slås på"
+            },
+            "explanation": "Å slå av en modul skjuler den bare; registreringene blir liggende."
+          }
+        }
+      }
+    }
+  }
+}

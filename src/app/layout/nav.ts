@@ -12,6 +12,12 @@ export interface NavItem {
    * the route's guard (app.routes).
    */
   readonly permission?: string | readonly string[];
+  /**
+   * Module key (backend `ModuleSpec.key`) the item belongs to. The side nav
+   * hides the item while the module is disabled for the current org, and the
+   * route is wrapped in `moduleGuard(module)`.
+   */
+  readonly module?: string;
   /** Placeholder agent context, rendered on the module placeholder page. */
   readonly agentName?: string;
   readonly agentRole?: string;
@@ -23,10 +29,31 @@ export interface NavSection {
   readonly items: readonly NavItem[];
 }
 
+/** A module's nav item: path, module key, `nav.<camelCaseKey>` label, icon, `<key>:read`. */
+function moduleItem(
+  path: string,
+  key: string,
+  icon: string,
+  extra: Partial<NavItem> = {},
+): NavItem {
+  return {
+    path,
+    module: key,
+    labelKey: `nav.${camelCase(key)}`,
+    icon,
+    permission: `${key}:read`,
+    ...extra,
+  };
+}
+
+function camelCase(key: string): string {
+  return key.replace(/_([a-z])/g, (_, c: string) => c.toUpperCase());
+}
+
 /**
- * The full sidebar structure. Drives both the side-nav rendering and the child
- * routes registered under the shell. Dashboard is the only real surface; every
- * other item resolves to the shared module placeholder.
+ * The full sidebar structure: every module of the platform (contracts §1.1),
+ * each gated on its module being enabled and on its read permission. A module
+ * without a feature yet renders the shared placeholder (its stub routes file).
  */
 export const NAV_SECTIONS: readonly NavSection[] = [
   {
@@ -54,93 +81,83 @@ export const NAV_SECTIONS: readonly NavSection[] = [
     ],
   },
   {
-    labelKey: 'nav.sections.quality',
+    labelKey: 'nav.sections.governance',
     items: [
-      {
-        path: 'inspections',
-        labelKey: 'nav.inspections',
-        icon: 'checkcircle',
-        agentName: 'Vera',
-        agentRole: 'Inspection Lead',
-      },
-      {
-        path: 'deviations',
-        labelKey: 'nav.deviations',
-        icon: 'alert',
-        permission: 'deviations:read',
-        agentName: 'Nils',
-        agentRole: 'Deviation Analyst',
-      },
-      {
-        path: 'risk',
-        labelKey: 'nav.risk',
-        icon: 'risk',
-        agentName: 'Sol',
-        agentRole: 'Risk Officer',
-      },
-      {
-        path: 'audits',
-        labelKey: 'nav.audits',
-        icon: 'audit',
-        agentName: 'Audun',
-        agentRole: 'Audit Coordinator',
-      },
-      {
-        path: 'standards',
-        labelKey: 'nav.iso',
-        icon: 'iso',
-        permission: 'standards:read',
-        agentName: 'Stella',
-        agentRole: 'Standards Guide',
-      },
+      moduleItem('context', 'context', 'flag'),
+      moduleItem('objectives', 'objectives', 'qa'),
+      moduleItem('management-review', 'management_review', 'calendar'),
+      moduleItem('obligations', 'obligations', 'lock'),
+      moduleItem('reports', 'reports', 'reports', {
+        agentName: 'Rune',
+        agentRole: 'Reporting Analyst',
+      }),
     ],
   },
   {
-    labelKey: 'nav.sections.modules',
+    labelKey: 'nav.sections.operations',
     items: [
-      {
-        path: 'documents',
-        labelKey: 'nav.documents',
-        icon: 'documents',
-        permission: 'documents:read',
-        agentName: 'Dora',
-        agentRole: 'Document Steward',
-      },
-      {
-        path: 'people',
-        labelKey: 'nav.people',
-        icon: 'people',
-        agentName: 'Petra',
-        agentRole: 'People Coordinator',
-      },
-      {
-        path: 'projects',
-        labelKey: 'nav.projects',
-        icon: 'projects',
-        agentName: 'Pax',
-        agentRole: 'Project Planner',
-      },
-      {
-        path: 'procedures',
-        labelKey: 'nav.procedures',
-        icon: 'procedures',
+      moduleItem('processes', 'processes', 'procedures', {
         agentName: 'Pernille',
         agentRole: 'Procedure Author',
-      },
-      {
-        path: 'training',
-        labelKey: 'nav.training',
-        icon: 'training',
+      }),
+      moduleItem('documents', 'documents', 'documents', {
+        agentName: 'Dora',
+        agentRole: 'Document Steward',
+      }),
+      moduleItem('projects', 'projects', 'projects', {
+        agentName: 'Pax',
+        agentRole: 'Project Planner',
+      }),
+      moduleItem('suppliers', 'suppliers', 'link'),
+      moduleItem('contracts', 'contracts', 'documents'),
+      moduleItem('assets', 'assets', 'devices'),
+      moduleItem('continuity', 'continuity', 'history'),
+    ],
+  },
+  {
+    labelKey: 'nav.sections.improvement',
+    items: [
+      moduleItem('deviations', 'deviations', 'alert', {
+        agentName: 'Nils',
+        agentRole: 'Deviation Analyst',
+      }),
+      moduleItem('inspections', 'inspections', 'checkcircle', {
+        agentName: 'Vera',
+        agentRole: 'Inspection Lead',
+      }),
+      moduleItem('audits', 'audits', 'audit', {
+        agentName: 'Audun',
+        agentRole: 'Audit Coordinator',
+      }),
+      moduleItem('risk', 'risk', 'risk', { agentName: 'Sol', agentRole: 'Risk Officer' }),
+      moduleItem('feedback', 'feedback', 'comment'),
+    ],
+  },
+  {
+    labelKey: 'nav.sections.people',
+    items: [
+      moduleItem('people', 'people', 'people', {
+        agentName: 'Petra',
+        agentRole: 'People Coordinator',
+      }),
+      moduleItem('recruitment', 'recruitment', 'userplus'),
+      moduleItem('training', 'training', 'training', {
         agentName: 'Tor',
         agentRole: 'Training Lead',
-      },
-      {
-        path: 'reports',
-        labelKey: 'nav.reports',
-        icon: 'reports',
-        agentName: 'Rune',
-        agentRole: 'Reporting Analyst',
-      },
+      }),
+    ],
+  },
+  {
+    labelKey: 'nav.sections.compliance',
+    items: [
+      moduleItem('standards', 'standards', 'iso', {
+        agentName: 'Stella',
+        agentRole: 'Standards Guide',
+      }),
+      moduleItem('privacy', 'privacy', 'lock'),
+      moduleItem('ai-governance', 'ai_governance', 'spark'),
+      moduleItem('environment', 'environment', 'sun'),
+      moduleItem('hse', 'hse', 'checkcircle'),
     ],
   },
 ];
@@ -148,11 +165,14 @@ export const NAV_SECTIONS: readonly NavSection[] = [
 /** Flattened list of every nav item, in section order. */
 export const NAV_ITEMS: readonly NavItem[] = NAV_SECTIONS.flatMap((s) => s.items);
 
+/** Nav items that belong to a module (everything except the workspace pages). */
+export const MODULE_NAV_ITEMS: readonly (NavItem & { readonly module: string })[] =
+  NAV_ITEMS.filter((item): item is NavItem & { readonly module: string } => !!item.module);
+
 /**
  * Org Settings nav item. Kept out of NAV_SECTIONS / NAV_ITEMS because its route
- * is registered explicitly (with the settingsGuard) rather than via the shared
- * module placeholder, and the side-nav shows it when the user holds `org:manage`
- * OR `users:invite` in the current org (via *appHasPermission).
+ * is registered explicitly (with the settingsGuard), and the side-nav shows it
+ * when the user holds `org:manage` OR `users:invite` in the current org.
  */
 export const SETTINGS_NAV_ITEM: NavItem = {
   path: 'settings',
@@ -163,8 +183,8 @@ export const SETTINGS_NAV_ITEM: NavItem = {
 
 /**
  * Super-admin-only section. Kept out of NAV_SECTIONS / NAV_ITEMS because its
- * routes are registered explicitly (with the superAdminGuard) rather than via
- * the shared module placeholder, and the side-nav gates it on `isSuperuser()`.
+ * routes are registered explicitly (with the superAdminGuard), and the side-nav
+ * gates it on `isSuperuser()`.
  */
 export const ADMIN_SECTION: NavSection = {
   labelKey: 'nav.sections.administration',
