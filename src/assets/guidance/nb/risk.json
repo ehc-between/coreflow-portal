@@ -1,0 +1,568 @@
+{
+  "pages": {
+    "overview": {
+      "intro": {
+        "title": "Risikostyring samlet på ett sted",
+        "body": "Risikostyring handler om å bestemme, bevisst, hvilke usikkerheter som betyr noe for virksomheten, og hva dere skal gjøre med dem. Her ser du alle risikoene i **varmekartet**, **tiltakene** som pågår, **mulighetene** dere vil forfølge og hvor langt **anvendelseserklæringen** har kommet.",
+        "steps": [
+          "Start med de røde og oransje cellene i varmekartet: det er risikoene over risikoappetitten.",
+          "Åpne en celle for å se risikoene, og sjekk at hver av dem har en eier og en tiltaksplan.",
+          "Bruk **Forfalte gjennomganger** for å holde den periodiske gjennomgangen i rute."
+        ]
+      },
+      "why": {
+        "body": "Alle ISO-standarder for styringssystemer krever at dere fastsetter risikoer og muligheter som kan påvirke de tiltenkte resultatene, og planlegger tiltak for å håndtere dem. En tydelig oversikt er hvordan ledelsen viser at risikoene er kjent, har en eier og blir fulgt opp.",
+        "clauses": ["hs:6.1", "iso27001:6.1.2", "iso27001:8.2", "iso45001:6.1.2", "iso14001:6.1.1"]
+      }
+    },
+    "setup": {
+      "empty": {
+        "title": "Sett opp risikostyring",
+        "body": "For å vurdere risikoer trenger du en **risikomatrise** (skalaene for sannsynlighet og konsekvens) og et **register** å samle dem i. Ett klikk oppretter en 5x5-matrise med fire nivåer og et virksomhetsrisikoregister. Du kan justere begge etterpå.",
+        "cta": "Sett opp med en 5x5-matrise"
+      }
+    },
+    "risks": {
+      "intro": {
+        "title": "Risikoregisteret",
+        "body": "Hver rad er én risiko: noe som kan skje og påvirke det virksomheten prøver å oppnå. Du ser hvor alvorlig den var **før tiltak** (iboende) og hvor alvorlig den forventes å være **etter tiltak** (restrisiko).",
+        "steps": [
+          "Filtrer på status, register eller nivå, eller kryss av for **Mine** for å se risikoene du eier.",
+          "Sorter etter poeng for å jobbe med de mest alvorlige risikoene først.",
+          "Lagre et filter du bruker ofte som en visning."
+        ]
+      },
+      "why": {
+        "body": "Revisorer forventer et risikoregister som er komplett, oppdatert og konsistent: samme metode for alle risikoer, en navngitt eier, og bevis på at risikoene blir gjennomgått og behandlet.",
+        "clauses": ["hs:6.1", "iso27001:6.1.2", "iso27001:8.2", "iso42001:6.1.2"]
+      },
+      "empty": {
+        "title": "Ingen risikoer er registrert ennå",
+        "body": "Begynn med det som kan hindre dere i å levere produktene eller tjenestene, eller skade informasjon, mennesker eller miljø. Skriv én risiko per scenario, og vurder den på matrisen. Leksjonen **Din første risikovurdering** tar deg gjennom det.",
+        "cta": "Registrer den første risikoen"
+      }
+    },
+    "form": {
+      "intro": {
+        "title": "Vurdere en risiko steg for steg",
+        "body": "En god risikobeskrivelse svarer på tre spørsmål: **hva er utsatt**, **hva kan skje** med det, og **hva blir konsekvensen**. Deretter vurderer du den, bestemmer hvordan den skal behandles, og vurderer den på nytt for situasjonen etter tiltak.",
+        "steps": [
+          "Gi risikoen et navn og velg registeret den hører til.",
+          "Beskriv trusselen, sårbarheten den utnytter og konsekvensen. Bruk **Foreslå trusler** hvis du står fast.",
+          "Vurder den iboende risikoen på matrisen, velg en behandlingsstrategi, og vurder restrisikoen.",
+          "Gi den en eier og en dato for gjennomgang."
+        ]
+      },
+      "why": {
+        "body": "En gjentakbar metode som gir konsistente og sammenlignbare resultater er et krav i seg selv. Når alle risikoer vurderes på samme matrise med de samme skalaene, blir resultatene sammenlignbare.",
+        "clauses": ["iso27001:6.1.2", "iso27001:6.1.3", "iso42001:6.1.2", "iso45001:6.1.2"]
+      },
+      "fields": {
+        "title": {
+          "help": "Et kort navn på scenariet, slik at alle kjenner det igjen i en liste.",
+          "example": "Tap av kundedata gjennom en stjålet bærbar PC"
+        },
+        "register": {
+          "help": "Registeret bestemmer hvilken matrise risikoen vurderes på, og hvor ofte den gjennomgås som standard."
+        },
+        "source": {
+          "help": "Hva risikoen gjelder: en eiendel, en prosess, en leverandør, en lokasjon og så videre. Eiendelsbasert vurdering er vanlig for informasjonssikkerhet.",
+          "example": "Eiendel: bærbare PC-er i salgsteamet"
+        },
+        "threat": {
+          "help": "Hva som kan skje, eller hvem som kan gjøre skade.",
+          "example": "En bærbar PC blir stjålet fra en bil"
+        },
+        "vulnerability": {
+          "help": "Svakheten trusselen utnytter.",
+          "example": "Diskene er ikke kryptert"
+        },
+        "consequence": {
+          "help": "Hva det ville bety for virksomheten om det skjedde.",
+          "example": "Kundedata blir eksponert; bruddet må meldes innen 72 timer"
+        },
+        "cia": {
+          "help": "For informasjonssikkerhetsrisikoer: hvilke egenskaper ved informasjonen som berøres. Konfidensialitet = bare de rette kan se den; integritet = den er riktig; tilgjengelighet = den er der når den trengs."
+        },
+        "inherent": {
+          "help": "Hvor sannsynlig scenariet er og hvor ille det ville vært **i dag**, med kontrollene dere allerede har, før nye tiltak. Velg cellen som passer best; du kan alltid endre den.",
+          "example": "Sannsynlighet 3 (mulig), konsekvens 4 (alvorlig) = 12"
+        },
+        "strategy": {
+          "help": "Redusere = senke sannsynligheten eller konsekvensen; akseptere = bevisst beholde den; unngå = avslutte aktiviteten; overføre = dele den, for eksempel gjennom forsikring eller kontrakt."
+        },
+        "controls": {
+          "help": "Katalogkontroller tiltaket bygger på, som standard:nummer. De vises i anvendelseserklæringen under «risikovurdering».",
+          "example": "iso27001-2022:A.8.24"
+        },
+        "residual": {
+          "help": "Vurderingen du forventer når de planlagte tiltakene er på plass. Er den fortsatt over risikoappetitten, planlegg flere tiltak eller få den formelt akseptert."
+        },
+        "owner": {
+          "help": "Personen som er ansvarlig for risikoen: sørger for at den blir behandlet og gjennomgått. Vanligvis lederen for området det gjelder."
+        },
+        "review": {
+          "help": "Hvor ofte risikoen gjennomgås. La feltet stå tomt for å bruke registerets intervall. En gjennomgang er også nødvendig når noe endrer seg."
+        }
+      }
+    },
+    "detail": {
+      "intro": {
+        "title": "Følge en risiko gjennom livsløpet",
+        "body": "Risikoen går fra **identifisert** til **vurdert**, gjennom **behandling** og **overvåking**. Er restrisikoen akseptabel, kan noen med myndighet **akseptere** den. Registrer en **gjennomgang** ved hver periodiske kontroll.",
+        "steps": [
+          "Legg til tiltak: hvert tiltak blir en oppgave for eieren i Mitt arbeid.",
+          "Når tiltakene er gjennomført, oppdater restrisikoen.",
+          "Aksepter risikoen hvis den fortsatt er over appetitten og virksomheten velger å beholde den, med et notat som forklarer hvorfor."
+        ]
+      },
+      "why": {
+        "body": "Å planlegge tiltak, gjennomføre dem og sjekke at de virket, er kjernen i risikobehandling. Tiltaksplanen, akseptsignaturen og historikken over gjennomganger er til sammen beviset deres.",
+        "clauses": ["iso27001:6.1.3", "iso27001:8.3", "hs:6.1", "iso45001:6.1.4"]
+      }
+    },
+    "treatment": {
+      "fields": {
+        "owner": {
+          "help": "Personen som gjennomfører tiltaket. Vedkommende får en oppgave i Mitt arbeid. Standard er risikoeieren."
+        },
+        "controls": {
+          "help": "Kontrollene dette tiltaket implementerer, som standard:nummer.",
+          "example": "iso27001-2022:A.8.13"
+        }
+      }
+    },
+    "opportunities": {
+      "intro": {
+        "title": "Muligheter, ikke bare trusler",
+        "body": "Usikkerhet kan også slå ut i deres favør. En mulighet er noe som kan forbedre resultatene om dere handler på den: et nytt marked, en mer effektiv prosess, ny teknologi. Gi den poeng for **nytte** og **gjennomførbarhet** og planlegg tiltaket.",
+        "steps": [
+          "Registrer muligheten og hvem som eier den.",
+          "Gi nytte og gjennomførbarhet poeng fra 1 til 5; produktet hjelper dere å prioritere.",
+          "Skriv en handlingsplan og en frist, og følg den opp til realisert eller avvist."
+        ]
+      },
+      "why": {
+        "body": "Standardene ber dere håndtere risikoer **og** muligheter. Å vise at dere ser etter muligheter, ikke bare trusler, er en del av et modent styringssystem.",
+        "clauses": ["hs:6.1", "iso14001:6.1.1"]
+      },
+      "empty": {
+        "title": "Ingen muligheter er registrert ennå",
+        "body": "Tenk på hva som kan gjøre virksomheten bedre: lærdom fra hendelser, tilbakemeldinger fra kunder, nye verktøy. Registrer de mest lovende her.",
+        "cta": "Registrer en mulighet"
+      }
+    },
+    "opportunityForm": {
+      "intro": {
+        "title": "Beskrive en mulighet",
+        "body": "Beskriv hva muligheten er, hva den vil gi, og hvordan dere vil forfølge den."
+      },
+      "why": {
+        "body": "Tiltak for muligheter skal planlegges og integreres i prosessene, akkurat som tiltak for risikoer.",
+        "clauses": ["hs:6.1"]
+      },
+      "fields": {
+        "benefit": {
+          "help": "Hvor mye virksomheten vil få igjen: 1 = svært lite, 5 = svært mye."
+        },
+        "feasibility": {
+          "help": "Hvor realistisk det er å få til med ressursene dere har: 1 = svært vanskelig, 5 = enkelt."
+        },
+        "actionPlan": {
+          "help": "De konkrete stegene, hvem som tar dem og innen når.",
+          "example": "Test det nye planleggingsverktøyet i ett team i første kvartal, og bestem så om det skal rulles ut"
+        }
+      }
+    },
+    "opportunityDetail": {
+      "intro": {
+        "title": "Følge opp en mulighet",
+        "body": "Flytt muligheten gjennom vurderes, planlagt og pågår til den er realisert, eller avvis den med en begrunnelse."
+      },
+      "why": {
+        "body": "Å evaluere effekten av tiltakene dere gjennomførte, er en del av planleggingen. Merk en mulighet som realisert først når nytten faktisk er oppnådd.",
+        "clauses": ["hs:6.1", "hs:9.1"]
+      }
+    },
+    "soa": {
+      "intro": {
+        "title": "Hva en anvendelseserklæring er",
+        "body": "Anvendelseserklæringen (SoA) lister alle kontrollene i vedlegg A til ISO/IEC 27001 (eller ISO/IEC 42001) og registrerer for hver av dem om dere bruker den, **hvorfor**, og om den er implementert. Den knytter risikobehandlingen til kontrollene dere bygger på.",
+        "steps": [
+          "Generer erklæringen for standarden dere jobber mot.",
+          "Åpne den og ta stilling til hver kontroll: er den aktuell?",
+          "Eksporter den som CSV når en revisor ber om den."
+        ]
+      },
+      "why": {
+        "body": "ISO/IEC 27001 krever en anvendelseserklæring med de nødvendige kontrollene, begrunnelsen for å ta dem med, om de er implementert, og begrunnelsen for å utelate kontroller fra vedlegg A.",
+        "clauses": ["iso27001:6.1.3", "iso42001:6.1.3"]
+      }
+    },
+    "soaView": {
+      "intro": {
+        "title": "Ta stilling til hver kontroll",
+        "body": "Kontroller som risikoene allerede refererer til, er merket som valgt av **risikovurderingen**. For resten må dere vurdere om lovkrav, kontraktskrav eller forretningskrav gjør dem aktuelle. Å utelate en kontroll krever alltid en begrunnelse.",
+        "steps": [
+          "Filtrer på **Mangler begrunnelse** for å se hva som fortsatt trenger en beslutning.",
+          "Åpne en kontroll, sett om den er aktuell og grunnene, og skriv begrunnelsen.",
+          "Følg implementeringen fra ikke startet til implementert."
+        ]
+      },
+      "why": {
+        "body": "Revisorer leser anvendelseserklæringen nøye: hver utelatelse må være begrunnet, og hver kontroll som er tatt med, bør kunne spores til en risiko eller et krav.",
+        "clauses": ["iso27001:6.1.3", "iso27001:A.5.1", "iso42001:6.1.3"]
+      },
+      "fields": {
+        "applicable": {
+          "help": "Fjern krysset bare hvis kontrollen ikke gjelder for virksomheten, for eksempel fordi dere ikke utvikler programvare selv."
+        },
+        "reasons": {
+          "help": "Hvorfor kontrollen er tatt med: valgt av risikovurderingen, krevd av lov eller kontrakt, et forretningsbehov, eller rett og slett god praksis."
+        },
+        "justification": {
+          "help": "En til tre setninger en revisor kan følge. For en utelatelse: forklar hvorfor kontrollen ikke er relevant.",
+          "example": "Utelatt: virksomheten utvikler ikke programvare; alle systemer kjøpes som tjenester."
+        }
+      }
+    },
+    "registers": {
+      "intro": {
+        "title": "Organisere risikoer i registre",
+        "body": "Et register samler risikoer av én type: virksomhet, informasjonssikkerhet, personvern, KI, helse og sikkerhet, miljø, prosjekt eller kvalitet. Hvert register bruker én matrise og har sitt eget standardintervall for gjennomgang."
+      },
+      "why": {
+        "body": "Ulike styringssystemer trenger ofte sitt eget syn på risiko, men metoden må være konsistent. Registre lar hvert område holde risikoene sine samlet og samtidig bruke samme tilnærming.",
+        "clauses": ["hs:6.1", "iso27001:6.1.2", "iso45001:6.1.2", "iso14001:6.1.4"]
+      },
+      "empty": {
+        "title": "Ingen registre ennå",
+        "body": "Ett klikk oppretter en standard 5x5-matrise og et virksomhetsrisikoregister. Legg til registre for andre områder senere.",
+        "cta": "Sett opp det første registeret"
+      },
+      "fields": {
+        "category": {
+          "help": "Hvilken type risikoer registeret inneholder. Det hjelper assistenten å foreslå riktige kontroller."
+        },
+        "matrix": {
+          "help": "Skalaene risikoene i registeret vurderes på. Bruk en egen matrise hvis et område trenger andre skalaer, for eksempel helse og sikkerhet."
+        },
+        "interval": {
+          "help": "Hvor ofte, i måneder, hver risiko i registeret bør gjennomgås, med mindre risikoen har sitt eget intervall."
+        }
+      }
+    },
+    "matrices": {
+      "intro": {
+        "title": "Risikomatrisen",
+        "body": "Matrisen definerer skalaene for **sannsynlighet** og **konsekvens**, hvordan poeng grupperes i **nivåer** (lav, middels, høy, kritisk) og **risikoappetitten**: det høyeste poenget virksomheten aksepterer uten flere tiltak."
+      },
+      "why": {
+        "body": "Risikokriteriene, også kriteriene for å akseptere risiko, må være fastsatt før dere vurderer risikoer, slik at gjentatte vurderinger gir konsistente, gyldige og sammenlignbare resultater.",
+        "clauses": ["iso27001:6.1.2", "iso42001:6.1.2"]
+      },
+      "empty": {
+        "title": "Ingen matriser ennå",
+        "body": "Start fra en mal på 5x5, 4x4 eller 3x3 og tilpass navnene til virksomheten.",
+        "cta": "Opprett en matrise"
+      }
+    },
+    "matrixEditor": {
+      "intro": {
+        "title": "Tilpasse matrisen",
+        "body": "Beskriv hvert nivå slik at to personer ville vurdert den samme risikoen likt. «Alvorlig» kan for eksempel bety et tap over et visst beløp eller et avbrudd på mer enn ett døgn.",
+        "steps": [
+          "Gi nivåene nye navn og en kort beskrivelse av hva de betyr.",
+          "Juster båndene og fargene, og sett risikoappetitten.",
+          "Overstyr enkeltceller bare når poenget alene gir feil nivå."
+        ]
+      },
+      "why": {
+        "body": "Tydelige, dokumenterte risikokriterier er grunnlaget for hele risikovurderingen. Det går an å endre dem senere, og historikken for hver endring blir tatt vare på.",
+        "clauses": ["iso27001:6.1.2", "iso42001:6.1.2", "iso45001:6.1.2"]
+      },
+      "fields": {
+        "template": {
+          "help": "5x5 gir de fineste skillene og er mest vanlig. 3x3 er enklere for små virksomheter."
+        },
+        "appetite": {
+          "help": "Risikoer med poeng på eller under denne verdien er akseptable uten flere tiltak. Risikoer over trenger tiltak eller en dokumentert aksept.",
+          "example": "4 på en 5x5-matrise"
+        },
+        "likelihoodLevels": {
+          "help": "Hvor sannsynlig scenariet er, fra lavest til høyest. Beskriv hvert nivå med en hyppighet, som «sjeldnere enn hvert tiende år»."
+        },
+        "consequenceLevels": {
+          "help": "Hvor ille konsekvensen ville vært, fra lavest til høyest. Beskriv hvert nivå med konkrete eksempler: penger, nedetid, skade, omdømme."
+        },
+        "bands": {
+          "help": "Hvert bånd dekker poengene fra sin startverdi opp til neste bånd. Fargen vises i varmekartet."
+        }
+      }
+    }
+  },
+  "lessons": {
+    "first-risk-assessment": {
+      "title": "Din første risikovurdering",
+      "minutes": 6,
+      "sections": [
+        {
+          "heading": "1. Bestem hva du vurderer",
+          "body": "Velg noe konkret: en eiendel (kundedatabasen), en prosess (fakturering), en aktivitet (arbeid i høyden) eller et prosjekt. Risikoer er lettere å beskrive når de er knyttet til noe virkelig."
+        },
+        {
+          "heading": "2. Beskriv scenariet",
+          "body": "Skriv hva som kan skje (**trussel**), svakheten som gjør det mulig (**sårbarhet**) og hva det ville bety (**konsekvens**). Ett scenario per risiko gjør vurderingen ærlig."
+        },
+        {
+          "heading": "3. Vurder den iboende risikoen",
+          "body": "Velg på matrisen hvor **sannsynlig** scenariet er og hvor **alvorlig** konsekvensen ville vært, med kontrollene dere har i dag. Sannsynlighet x konsekvens gir poenget, og poenget havner i et nivå som *høy*."
+        },
+        {
+          "heading": "4. Bestem behandling",
+          "body": "Er nivået over risikoappetitten, velg en strategi: **redusere** (flere kontroller), **unngå** (avslutte aktiviteten), **overføre** (forsikring, kontrakt) eller **akseptere**. Legg til tiltak med en eier og en frist."
+        },
+        {
+          "heading": "5. Vurder restrisikoen og gjennomgå den",
+          "body": "Vurder risikoen på nytt slik den blir etter tiltak. Gi risikoen en eier og en dato for gjennomgang. Når datoen kommer, sjekk at vurderingen og tiltakene fortsatt holder, og registrer gjennomgangen."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Hva er iboende risiko?",
+          "options": [
+            "Risikoen etter at alle planlagte tiltak er gjennomført",
+            "Risikoen slik den er i dag, før nye tiltak",
+            "Risikoen virksomheten har akseptert"
+          ],
+          "answer": 1,
+          "explanation": "Iboende risiko vurderes før de planlagte tiltakene. Restrisiko er det som gjenstår etterpå."
+        },
+        {
+          "question": "En risiko har poeng over risikoappetitten etter tiltak. Hva bør skje?",
+          "options": [
+            "Ingenting, tiltakene er gjennomført",
+            "Slette risikoen",
+            "Planlegge flere tiltak, eller få den formelt akseptert med en begrunnelse"
+          ],
+          "answer": 2,
+          "explanation": "En risiko over appetitten trenger flere tiltak eller en dokumentert beslutning om å beholde den."
+        },
+        {
+          "question": "Hva er en sårbarhet?",
+          "options": ["Brann i serverrommet", "Det tas ikke sikkerhetskopier", "Tap av inntekter"],
+          "answer": 1,
+          "explanation": "Brann er en trussel og tap av inntekter en konsekvens. Manglende sikkerhetskopier er svakheten trusselen utnytter."
+        }
+      ],
+      "pass_mark": 0.67
+    },
+    "treating-risks": {
+      "title": "Behandle og akseptere risikoer",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Fire måter å behandle en risiko på",
+          "body": "**Redusere** senker sannsynligheten eller konsekvensen. **Unngå** fjerner aktiviteten som gir risikoen. **Overføre** deler den med andre, for eksempel et forsikringsselskap. **Akseptere** betyr å beholde den bevisst."
+        },
+        {
+          "heading": "Tiltak er oppgaver",
+          "body": "Hvert tiltak tildeles en eier med en frist og vises i vedkommendes Mitt arbeid. Når det er gjennomført, oppdater restrisikoen for å vise effekten."
+        },
+        {
+          "heading": "Aksept er en beslutning",
+          "body": "Å akseptere en risiko er en signatur fra noen med myndighet. Over appetitten kreves et notat som forklarer hvorfor. Endres en vurdering senere, trekkes aksepten tilbake, slik at beslutningen alltid tas på oppdatert grunnlag."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Å kjøpe forsikring mot en risiko er hvilken strategi?",
+          "options": ["Unngå", "Overføre", "Redusere"],
+          "answer": 1
+        },
+        {
+          "question": "Hva skjer med en aksept når risikoen vurderes på nytt?",
+          "options": [
+            "Den er fortsatt gyldig",
+            "Den trekkes tilbake automatisk",
+            "Den forlenges med ett år"
+          ],
+          "answer": 1
+        }
+      ],
+      "pass_mark": 1
+    },
+    "opportunities": {
+      "title": "Arbeide med muligheter",
+      "minutes": 3,
+      "sections": [
+        {
+          "heading": "Hvorfor registrere muligheter",
+          "body": "Risikobasert tenkning ser på begge sider av usikkerheten. Når mulighetene registreres, blir gode ideer vurdert og fulgt opp i stedet for å bli glemt."
+        },
+        {
+          "heading": "Poeng",
+          "body": "Gi **nytte** (hva dere vil få igjen) og **gjennomførbarhet** (hvor realistisk det er) poeng fra 1 til 5. Et høyt produkt betyr en sterk kandidat: høy verdi og mulig å få til."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Nytte 5 og gjennomførbarhet 1 gir hvilket poeng?",
+          "options": ["6", "5", "1"],
+          "answer": 1,
+          "explanation": "Poenget er nytte x gjennomførbarhet: 5 x 1 = 5."
+        }
+      ],
+      "pass_mark": 1
+    },
+    "statement-of-applicability": {
+      "title": "Anvendelseserklæringen",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Hva den inneholder",
+          "body": "For hver kontroll i vedlegg A: om den er aktuell, grunnene for å ta den med, begrunnelsen for eventuell utelatelse og implementeringsstatus."
+        },
+        {
+          "heading": "Hvor beslutningene kommer fra",
+          "body": "De fleste kontroller velges fordi **risikovurderingen** trenger dem. Andre gjelder på grunn av lov, kontrakt eller et forretningsbehov. Noen kan utelates, alltid med en begrunnelse."
+        },
+        {
+          "heading": "Holde den oppdatert",
+          "body": "Når du legger til et tiltak som refererer til en kontroll, viser anvendelseserklæringen koblingen. Gjennomgå erklæringen når risikoene endrer seg, og merk oppføringene som gjennomgått."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Hva må hver utelatt kontroll ha?",
+          "options": ["En eier", "En begrunnelse", "En relatert risiko"],
+          "answer": 1
+        },
+        {
+          "question": "En kontroll som et risikotiltak refererer til, er vanligvis tatt med på grunn av …",
+          "options": ["Beste praksis", "Risikovurderingen", "En kontrakt"],
+          "answer": 1
+        }
+      ],
+      "pass_mark": 1
+    },
+    "risk-matrix": {
+      "title": "Utforme en risikomatrise",
+      "minutes": 3,
+      "sections": [
+        {
+          "heading": "Skalaer folk er enige om",
+          "body": "En matrise fungerer bare hvis to personer ville vurdert den samme risikoen likt. Gi hvert nivå en kort, konkret beskrivelse: en hyppighet for sannsynlighet, en kostnad eller virkning for konsekvens."
+        },
+        {
+          "heading": "Nivåer og appetitt",
+          "body": "Poengene grupperes i nivåer (bånd) som vises i farger i varmekartet. **Risikoappetitten** er det høyeste poenget dere aksepterer uten flere tiltak."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Hva gjør at en matrise gir sammenlignbare resultater?",
+          "options": [
+            "Mange farger",
+            "Tydelige beskrivelser av hvert nivå",
+            "En høy risikoappetitt"
+          ],
+          "answer": 1
+        }
+      ],
+      "pass_mark": 1
+    }
+  },
+  "tours": {
+    "overview": [
+      {
+        "target": "risk-kpis",
+        "title": "Nøkkeltall",
+        "body": "Åpne risikoer, risikoer over appetitten, forfalte gjennomganger og tiltak med ett blikk. Klikk på et tall for å se risikoene bak."
+      },
+      {
+        "target": "risk-heatmap-basis",
+        "title": "Grunnlag for varmekartet",
+        "body": "Bytt mellom gjeldende, iboende og restrisiko for å se effekten av tiltakene."
+      },
+      {
+        "target": "risk-new",
+        "title": "Registrer en risiko",
+        "body": "Start en ny risikovurdering her."
+      },
+      {
+        "target": "risk-nav-soa",
+        "title": "Anvendelseserklæring",
+        "body": "Ta stilling til og begrunn hver kontroll i vedlegg A her."
+      }
+    ],
+    "risks": [
+      {
+        "target": "risk-filters",
+        "title": "Filtre",
+        "body": "Snevre inn registeret etter status, register, nivå, eier eller gjennomgangsdato."
+      },
+      {
+        "target": "risk-new",
+        "title": "Ny risiko",
+        "body": "Registrer en ny risiko og vurder den på matrisen."
+      },
+      {
+        "target": "risk-nav-registers",
+        "title": "Registre",
+        "body": "Organiser risikoene etter område, hvert med sin egen matrise."
+      }
+    ],
+    "detail": [
+      {
+        "target": "risk-ratings",
+        "title": "Iboende, behandling, rest",
+        "body": "Vurderingen før tiltak, beslutningen og vurderingen etter tiltak."
+      },
+      {
+        "target": "risk-treatments",
+        "title": "Tiltaksplan",
+        "body": "Hvert tiltak blir en oppgave for eieren. Bruk utkastknappen for forslag."
+      }
+    ],
+    "soa": [
+      {
+        "target": "risk-soa-stats",
+        "title": "Fremdrift",
+        "body": "Hvor mange kontroller som er aktuelle, implementert og fortsatt mangler begrunnelse."
+      },
+      {
+        "target": "risk-soa-filters",
+        "title": "Finn det som trenger en beslutning",
+        "body": "Filtrer på manglende begrunnelse eller implementeringsstatus."
+      }
+    ]
+  },
+  "glossary": {
+    "inherent-risk": {
+      "term": "Iboende risiko",
+      "definition": "Nivået på en risiko før nye tiltak, med eksisterende kontroller tatt med i betraktningen.",
+      "clauses": ["iso27001:6.1.2"]
+    },
+    "residual-risk": {
+      "term": "Restrisiko",
+      "definition": "Risikoen som gjenstår etter behandling.",
+      "clauses": ["iso27001:6.1.3", "iso27001:8.3"]
+    },
+    "risk-appetite": {
+      "term": "Risikoappetitt",
+      "definition": "Hvor mye risiko virksomheten er villig til å akseptere uten flere tiltak, her uttrykt som det høyeste akseptable poenget.",
+      "clauses": ["iso27001:6.1.2"]
+    },
+    "statement-of-applicability": {
+      "term": "Anvendelseserklæring",
+      "definition": "Dokumentet som lister kontrollene i vedlegg A, om hver av dem brukes, hvorfor, og om den er implementert.",
+      "clauses": ["iso27001:6.1.3"]
+    },
+    "risk-owner": {
+      "term": "Risikoeier",
+      "definition": "Personen som er ansvarlig for å håndtere en risiko og godkjenne behandlingen og restrisikoen.",
+      "clauses": ["iso27001:6.1.2", "iso27001:6.1.3"]
+    }
+  }
+}

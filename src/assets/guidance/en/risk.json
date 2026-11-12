@@ -1,0 +1,560 @@
+{
+  "pages": {
+    "overview": {
+      "intro": {
+        "title": "Risk management in one place",
+        "body": "Risk management means deciding, on purpose, which uncertainties matter to the organisation and what to do about them. Here you see every risk on the **heat map**, the **treatments** that are under way, the **opportunities** you want to pursue and the progress of your **Statement of Applicability**.",
+        "steps": [
+          "Start with the red and orange cells of the heat map: those are the risks above your risk appetite.",
+          "Open a cell to see its risks, and check that each has an owner and a treatment plan.",
+          "Use **Reviews overdue** to keep the periodic review cycle on track."
+        ]
+      },
+      "why": {
+        "body": "Every ISO management system standard asks you to determine the risks and opportunities that could affect your intended results, and to plan actions to address them. A clear overview is how leadership shows that risks are known, owned and acted on.",
+        "clauses": ["hs:6.1", "iso27001:6.1.2", "iso27001:8.2", "iso45001:6.1.2", "iso14001:6.1.1"]
+      }
+    },
+    "setup": {
+      "empty": {
+        "title": "Set up risk management",
+        "body": "To rate risks you need a **risk matrix** (the likelihood and consequence scales) and a **register** to keep them in. One click creates a 5x5 matrix with four levels and an enterprise risk register. You can adjust both afterwards.",
+        "cta": "Set up with a 5x5 matrix"
+      }
+    },
+    "risks": {
+      "intro": {
+        "title": "Your risk register",
+        "body": "Each row is one risk: something that could happen and would affect what the organisation is trying to achieve. You can see how serious it was **before treatment** (inherent) and how serious it is expected to be **after treatment** (residual).",
+        "steps": [
+          "Filter by status, register or level, or tick **Mine** to see the risks you own.",
+          "Sort by score to work on the most serious risks first.",
+          "Save a filter you use often as a view."
+        ]
+      },
+      "why": {
+        "body": "Auditors expect a risk register that is complete, current and consistent: the same method for every risk, a named owner, and evidence that risks are reviewed and treated.",
+        "clauses": ["hs:6.1", "iso27001:6.1.2", "iso27001:8.2", "iso42001:6.1.2"]
+      },
+      "empty": {
+        "title": "No risks recorded yet",
+        "body": "Begin with what could stop you delivering your products or services, or harm your information, people or the environment. Write one risk per scenario, then rate it on the matrix. The lesson **Your first risk assessment** walks you through it.",
+        "cta": "Record the first risk"
+      }
+    },
+    "form": {
+      "intro": {
+        "title": "Assessing a risk step by step",
+        "body": "A good risk description answers three questions: **what is at risk**, **what could happen** to it, and **what would the consequence be**. Then you rate it, decide how to treat it, and rate it again for the situation after treatment.",
+        "steps": [
+          "Name the risk and pick the register it belongs to.",
+          "Describe the threat, the vulnerability it exploits and the consequence. Use **Suggest threats** if you are stuck.",
+          "Rate the inherent risk on the matrix, choose a treatment strategy, then rate the residual risk.",
+          "Give it an owner and a review date."
+        ]
+      },
+      "why": {
+        "body": "A repeatable method that produces consistent, comparable results is a requirement in itself. Rating every risk on the same matrix, with the same scales, is what makes the results comparable.",
+        "clauses": ["iso27001:6.1.2", "iso27001:6.1.3", "iso42001:6.1.2", "iso45001:6.1.2"]
+      },
+      "fields": {
+        "title": {
+          "help": "A short name for the scenario, so everyone recognises it in a list.",
+          "example": "Loss of customer data through a stolen laptop"
+        },
+        "register": {
+          "help": "The register decides which matrix the risk is rated on and how often it is reviewed by default."
+        },
+        "source": {
+          "help": "What the risk is about: an asset, a process, a supplier, a location and so on. Asset-based assessment is common for information security.",
+          "example": "Asset: sales team laptops"
+        },
+        "threat": {
+          "help": "What could happen, or who could cause harm.",
+          "example": "A laptop is stolen from a car"
+        },
+        "vulnerability": {
+          "help": "The weakness the threat exploits.",
+          "example": "Disks are not encrypted"
+        },
+        "consequence": {
+          "help": "What it would mean for the organisation if it happened.",
+          "example": "Customer data is exposed; breach must be reported within 72 hours"
+        },
+        "cia": {
+          "help": "For information security risks: which properties of the information are affected. Confidentiality = only the right people can see it; integrity = it is correct; availability = it is there when needed."
+        },
+        "inherent": {
+          "help": "How likely the scenario is and how bad it would be **today**, with the controls you already have, before any new treatment. Pick the cell that fits best; you can always revise it.",
+          "example": "Likelihood 3 (possible), consequence 4 (major) = 12"
+        },
+        "strategy": {
+          "help": "Mitigate = reduce the likelihood or consequence; accept = knowingly retain it; avoid = stop the activity; transfer = share it, for example through insurance or a contract."
+        },
+        "controls": {
+          "help": "Catalogue controls the treatment relies on, as standard:number. They appear in the Statement of Applicability under 'risk assessment'.",
+          "example": "iso27001-2022:A.8.24"
+        },
+        "residual": {
+          "help": "The rating you expect once the planned treatments are in place. If it is still above the risk appetite, plan more treatment or have it formally accepted."
+        },
+        "owner": {
+          "help": "The person accountable for the risk: they make sure it is treated and reviewed. Usually the manager of the area concerned."
+        },
+        "review": {
+          "help": "How often the risk is reviewed. Leave empty to use the register's interval. A review is also due when something changes."
+        }
+      }
+    },
+    "detail": {
+      "intro": {
+        "title": "Following a risk through its life",
+        "body": "The risk moves from **identified** to **assessed**, through **treatment** and **monitoring**. If the residual risk is acceptable, someone with authority can **accept** it. Record a **review** at each periodic check.",
+        "steps": [
+          "Add treatments: each becomes a task for its owner in My Work.",
+          "When the treatments are done, update the residual rating.",
+          "Accept the risk if it stays above the appetite and the organisation chooses to retain it, with a note explaining why."
+        ]
+      },
+      "why": {
+        "body": "Planning actions, carrying them out and checking that they worked is the core of risk treatment. The treatment plan, the acceptance sign-off and the review history together are your evidence.",
+        "clauses": ["iso27001:6.1.3", "iso27001:8.3", "hs:6.1", "iso45001:6.1.4"]
+      }
+    },
+    "treatment": {
+      "fields": {
+        "owner": {
+          "help": "The person who carries out the treatment. They get a task in My Work. Defaults to the risk owner."
+        },
+        "controls": {
+          "help": "The controls this action implements, as standard:number.",
+          "example": "iso27001-2022:A.8.13"
+        }
+      }
+    },
+    "opportunities": {
+      "intro": {
+        "title": "Opportunities, not only threats",
+        "body": "Uncertainty can also work in your favour. An opportunity is something that could improve your results if you act on it: a new market, a more efficient process, a new technology. Score it by **benefit** and **feasibility** and plan the action.",
+        "steps": [
+          "Record the opportunity and who owns it.",
+          "Score benefit and feasibility from 1 to 5; the product helps you prioritise.",
+          "Write an action plan and a due date, then follow it up to realised or rejected."
+        ]
+      },
+      "why": {
+        "body": "The standards ask you to address risks **and** opportunities. Showing that you look for opportunities, not just threats, is part of a mature management system.",
+        "clauses": ["hs:6.1", "iso14001:6.1.1"]
+      },
+      "empty": {
+        "title": "No opportunities recorded yet",
+        "body": "Think about what could make the organisation better: lessons from incidents, customer feedback, new tools. Record the most promising ones here.",
+        "cta": "Record an opportunity"
+      }
+    },
+    "opportunityForm": {
+      "intro": {
+        "title": "Describing an opportunity",
+        "body": "Describe what the opportunity is, what it would bring and how you would pursue it."
+      },
+      "why": {
+        "body": "Actions to address opportunities should be planned and integrated into your processes, just like actions for risks.",
+        "clauses": ["hs:6.1"]
+      },
+      "fields": {
+        "benefit": {
+          "help": "How much the organisation would gain: 1 = very little, 5 = a great deal."
+        },
+        "feasibility": {
+          "help": "How realistic it is to achieve with the resources you have: 1 = very hard, 5 = easy."
+        },
+        "actionPlan": {
+          "help": "The concrete steps, who takes them and by when.",
+          "example": "Pilot the new scheduling tool in one team in Q1, then decide on rollout"
+        }
+      }
+    },
+    "opportunityDetail": {
+      "intro": {
+        "title": "Following up an opportunity",
+        "body": "Move the opportunity through evaluating, planned and in progress until it is realised, or reject it with a reason."
+      },
+      "why": {
+        "body": "Evaluating the effectiveness of the actions you took is part of planning. Mark an opportunity as realised only when the benefit has actually been achieved.",
+        "clauses": ["hs:6.1", "hs:9.1"]
+      }
+    },
+    "soa": {
+      "intro": {
+        "title": "What a Statement of Applicability is",
+        "body": "The Statement of Applicability (SoA) lists every control in Annex A of ISO/IEC 27001 (or ISO/IEC 42001) and records, for each one, whether you apply it, **why**, and whether it is implemented. It ties your risk treatment to the controls you rely on.",
+        "steps": [
+          "Generate the statement for the standard you are working towards.",
+          "Open it and decide, control by control, whether it is applicable.",
+          "Export it as CSV when an auditor asks for it."
+        ]
+      },
+      "why": {
+        "body": "ISO/IEC 27001 requires a Statement of Applicability containing the necessary controls, the justification for including them, whether they are implemented, and the justification for excluding any Annex A control.",
+        "clauses": ["iso27001:6.1.3", "iso42001:6.1.3"]
+      }
+    },
+    "soaView": {
+      "intro": {
+        "title": "Deciding on each control",
+        "body": "Controls that your risks already reference are marked as chosen by the **risk assessment**. For the rest, decide whether a legal, contractual or business requirement makes them applicable. Excluding a control always needs a justification.",
+        "steps": [
+          "Filter on **Missing justification** to see what still needs a decision.",
+          "Open a control, set applicability and the reasons, and write the justification.",
+          "Track implementation from not started to implemented."
+        ]
+      },
+      "why": {
+        "body": "Auditors read the SoA closely: every exclusion must be justified, and every included control should be traceable to a risk or a requirement.",
+        "clauses": ["iso27001:6.1.3", "iso27001:A.5.1", "iso42001:6.1.3"]
+      },
+      "fields": {
+        "applicable": {
+          "help": "Untick only if the control does not apply to your organisation, for example because you have no software development of your own."
+        },
+        "reasons": {
+          "help": "Why the control is included: chosen by the risk assessment, required by law or a contract, a business need, or simply good practice."
+        },
+        "justification": {
+          "help": "One to three sentences an auditor can follow. For an exclusion, explain why the control is not relevant.",
+          "example": "Excluded: the organisation does not develop software; all systems are bought as services."
+        }
+      }
+    },
+    "registers": {
+      "intro": {
+        "title": "Organising risks in registers",
+        "body": "A register groups risks of one kind: enterprise, information security, privacy, AI, health and safety, environmental, project or quality. Each register uses one matrix and has its own default review interval."
+      },
+      "why": {
+        "body": "Different management systems often need their own view of risk, but the method must stay consistent. Registers let each area keep its risks together while sharing the same approach.",
+        "clauses": ["hs:6.1", "iso27001:6.1.2", "iso45001:6.1.2", "iso14001:6.1.4"]
+      },
+      "empty": {
+        "title": "No registers yet",
+        "body": "One click creates a default 5x5 matrix and an enterprise risk register. Add registers for other areas later.",
+        "cta": "Set up the first register"
+      },
+      "fields": {
+        "category": {
+          "help": "The kind of risks the register holds. It helps the assistant suggest the right controls."
+        },
+        "matrix": {
+          "help": "The scales risks in this register are rated on. Use a separate matrix if an area needs different scales, for example health and safety."
+        },
+        "interval": {
+          "help": "How often, in months, each risk in the register should be reviewed unless the risk sets its own interval."
+        }
+      }
+    },
+    "matrices": {
+      "intro": {
+        "title": "Your risk matrix",
+        "body": "The matrix defines the **likelihood** and **consequence** scales, how scores are grouped into **levels** (low, medium, high, critical) and your **risk appetite**: the highest score the organisation accepts without further treatment."
+      },
+      "why": {
+        "body": "Risk criteria, including the criteria for accepting risk, must be established before you assess risks, so that repeated assessments produce consistent, valid and comparable results.",
+        "clauses": ["iso27001:6.1.2", "iso42001:6.1.2"]
+      },
+      "empty": {
+        "title": "No matrices yet",
+        "body": "Start from a 5x5, 4x4 or 3x3 template and adapt the labels to your organisation.",
+        "cta": "Create a matrix"
+      }
+    },
+    "matrixEditor": {
+      "intro": {
+        "title": "Adapting the matrix",
+        "body": "Describe each level so that two people would rate the same risk the same way. For example, 'major' might mean a loss above a set amount or an outage longer than a day.",
+        "steps": [
+          "Rename levels and add a short description of what each means.",
+          "Adjust the bands and colours, and set the risk appetite.",
+          "Override single cells only when a score alone gives the wrong level."
+        ]
+      },
+      "why": {
+        "body": "Clear, documented risk criteria are the foundation of the whole risk assessment. Changing them later is possible, and the history of each change is kept.",
+        "clauses": ["iso27001:6.1.2", "iso42001:6.1.2", "iso45001:6.1.2"]
+      },
+      "fields": {
+        "template": {
+          "help": "5x5 gives the finest distinctions and is the most common. 3x3 is simpler for small organisations."
+        },
+        "appetite": {
+          "help": "Risks scoring at or below this value are acceptable without more treatment. Risks above it need treatment or a documented acceptance.",
+          "example": "4 on a 5x5 matrix"
+        },
+        "likelihoodLevels": {
+          "help": "How probable the scenario is, from lowest to highest. Describe each level with a frequency, such as 'less than once in ten years'."
+        },
+        "consequenceLevels": {
+          "help": "How bad the impact would be, from lowest to highest. Describe each with concrete examples: money, downtime, injury, reputation."
+        },
+        "bands": {
+          "help": "Each band covers the scores from its starting value up to the next band. The colour shows on the heat map."
+        }
+      }
+    }
+  },
+  "lessons": {
+    "first-risk-assessment": {
+      "title": "Your first risk assessment",
+      "minutes": 6,
+      "sections": [
+        {
+          "heading": "1. Decide what you are assessing",
+          "body": "Pick something concrete: an asset (the customer database), a process (invoicing), an activity (working at height) or a project. Risks are easier to describe when they are tied to something real."
+        },
+        {
+          "heading": "2. Describe the scenario",
+          "body": "Write what could happen (**threat**), the weakness that makes it possible (**vulnerability**) and what it would mean (**consequence**). One scenario per risk keeps the rating honest."
+        },
+        {
+          "heading": "3. Rate the inherent risk",
+          "body": "On the matrix, choose how **likely** the scenario is and how **severe** the consequence would be, with the controls you have today. Likelihood x consequence gives the score, and the score falls into a level such as *high*."
+        },
+        {
+          "heading": "4. Decide on treatment",
+          "body": "If the level is above your risk appetite, choose a strategy: **mitigate** (add controls), **avoid** (stop the activity), **transfer** (insurance, contract) or **accept**. Add treatments as actions with an owner and a due date."
+        },
+        {
+          "heading": "5. Rate the residual risk and review it",
+          "body": "Rate the risk again as it will be after treatment. Give the risk an owner and a review date. When the date comes, check that the rating and treatments still hold and record the review."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "What is the inherent risk?",
+          "options": [
+            "The risk after all planned treatments are done",
+            "The risk as it is today, before new treatment",
+            "The risk the organisation has accepted"
+          ],
+          "answer": 1,
+          "explanation": "Inherent risk is rated before the planned treatment. Residual risk is what remains afterwards."
+        },
+        {
+          "question": "A risk scores above the risk appetite after treatment. What should happen?",
+          "options": [
+            "Nothing, the treatment is done",
+            "Delete the risk",
+            "Plan more treatment, or have it formally accepted with a justification"
+          ],
+          "answer": 2,
+          "explanation": "A risk above the appetite needs further treatment or a documented decision to retain it."
+        },
+        {
+          "question": "Which is a vulnerability?",
+          "options": ["A fire in the server room", "No backups are taken", "Loss of revenue"],
+          "answer": 1,
+          "explanation": "A fire is a threat and loss of revenue a consequence. Missing backups is the weakness the threat exploits."
+        }
+      ],
+      "pass_mark": 0.67
+    },
+    "treating-risks": {
+      "title": "Treating and accepting risks",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Four ways to treat a risk",
+          "body": "**Mitigate** lowers the likelihood or the consequence. **Avoid** removes the activity that causes the risk. **Transfer** shares it with someone else, such as an insurer. **Accept** retains it knowingly."
+        },
+        {
+          "heading": "Treatments are tasks",
+          "body": "Each treatment is assigned to an owner with a due date and appears in their My Work. When it is done, update the residual rating to show the effect."
+        },
+        {
+          "heading": "Acceptance is a decision",
+          "body": "Accepting a risk is a sign-off by someone with authority. Above the appetite it needs a note explaining why. Changing a rating later revokes the acceptance, so the decision is always made on current facts."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Buying insurance against a risk is which strategy?",
+          "options": ["Avoid", "Transfer", "Mitigate"],
+          "answer": 1
+        },
+        {
+          "question": "What happens to an acceptance when the risk is re-rated?",
+          "options": ["It stays valid", "It is revoked automatically", "It is extended by a year"],
+          "answer": 1
+        }
+      ],
+      "pass_mark": 1
+    },
+    "opportunities": {
+      "title": "Working with opportunities",
+      "minutes": 3,
+      "sections": [
+        {
+          "heading": "Why record opportunities",
+          "body": "Risk-based thinking looks at both sides of uncertainty. Recording opportunities makes sure good ideas are evaluated and followed up, not forgotten."
+        },
+        {
+          "heading": "Scoring",
+          "body": "Score **benefit** (what you would gain) and **feasibility** (how realistic it is) from 1 to 5. A high product means a strong candidate: high value and achievable."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Benefit 5 and feasibility 1 gives which score?",
+          "options": ["6", "5", "1"],
+          "answer": 1,
+          "explanation": "The score is benefit x feasibility: 5 x 1 = 5."
+        }
+      ],
+      "pass_mark": 1
+    },
+    "statement-of-applicability": {
+      "title": "The Statement of Applicability",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "What it contains",
+          "body": "For every Annex A control: whether it is applicable, the reasons for including it, the justification for any exclusion, and its implementation status."
+        },
+        {
+          "heading": "Where the decisions come from",
+          "body": "Most controls are chosen because your **risk assessment** needs them. Others apply because of a law, a contract or a business need. A few may be excluded, always with a justification."
+        },
+        {
+          "heading": "Keeping it current",
+          "body": "When you add a treatment that references a control, the SoA shows the link. Review the SoA when your risks change, and mark entries as reviewed."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "What must every excluded control have?",
+          "options": ["An owner", "A justification", "A related risk"],
+          "answer": 1
+        },
+        {
+          "question": "A control referenced by a risk treatment is usually included because of…",
+          "options": ["Best practice", "The risk assessment", "A contract"],
+          "answer": 1
+        }
+      ],
+      "pass_mark": 1
+    },
+    "risk-matrix": {
+      "title": "Designing a risk matrix",
+      "minutes": 3,
+      "sections": [
+        {
+          "heading": "Scales people agree on",
+          "body": "A matrix only works if two people would rate the same risk the same way. Give each level a short, concrete description: a frequency for likelihood, a cost or impact for consequence."
+        },
+        {
+          "heading": "Levels and appetite",
+          "body": "Scores are grouped into levels (bands) shown in colour on the heat map. The **risk appetite** is the highest score you accept without more treatment."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "What makes a matrix produce comparable results?",
+          "options": ["Many colours", "Clear descriptions of each level", "A high risk appetite"],
+          "answer": 1
+        }
+      ],
+      "pass_mark": 1
+    }
+  },
+  "tours": {
+    "overview": [
+      {
+        "target": "risk-kpis",
+        "title": "Key figures",
+        "body": "Open risks, risks above your appetite, overdue reviews and treatments at a glance. Click a figure to see the risks behind it."
+      },
+      {
+        "target": "risk-heatmap-basis",
+        "title": "Heat map basis",
+        "body": "Switch between the current, inherent and residual rating to see the effect of your treatments."
+      },
+      {
+        "target": "risk-new",
+        "title": "Record a risk",
+        "body": "Start a new risk assessment here."
+      },
+      {
+        "target": "risk-nav-soa",
+        "title": "Statement of Applicability",
+        "body": "Decide and justify each Annex A control here."
+      }
+    ],
+    "risks": [
+      {
+        "target": "risk-filters",
+        "title": "Filters",
+        "body": "Narrow the register by status, register, level, owner or review date."
+      },
+      {
+        "target": "risk-new",
+        "title": "New risk",
+        "body": "Record a new risk and rate it on the matrix."
+      },
+      {
+        "target": "risk-nav-registers",
+        "title": "Registers",
+        "body": "Organise risks by area, each with its own matrix."
+      }
+    ],
+    "detail": [
+      {
+        "target": "risk-ratings",
+        "title": "Inherent, treatment, residual",
+        "body": "The rating before treatment, the decision, and the rating after treatment."
+      },
+      {
+        "target": "risk-treatments",
+        "title": "Treatment plan",
+        "body": "Each treatment becomes a task for its owner. Use the draft button for suggestions."
+      }
+    ],
+    "soa": [
+      {
+        "target": "risk-soa-stats",
+        "title": "Progress",
+        "body": "How many controls are applicable, implemented and still missing a justification."
+      },
+      {
+        "target": "risk-soa-filters",
+        "title": "Find what needs a decision",
+        "body": "Filter on missing justification or implementation status."
+      }
+    ]
+  },
+  "glossary": {
+    "inherent-risk": {
+      "term": "Inherent risk",
+      "definition": "The level of a risk before new treatment, taking existing controls into account.",
+      "clauses": ["iso27001:6.1.2"]
+    },
+    "residual-risk": {
+      "term": "Residual risk",
+      "definition": "The risk that remains after treatment.",
+      "clauses": ["iso27001:6.1.3", "iso27001:8.3"]
+    },
+    "risk-appetite": {
+      "term": "Risk appetite",
+      "definition": "The amount of risk the organisation is willing to accept without further treatment, expressed here as the highest acceptable score.",
+      "clauses": ["iso27001:6.1.2"]
+    },
+    "statement-of-applicability": {
+      "term": "Statement of Applicability",
+      "definition": "The document listing the Annex A controls, whether each is applied, why, and whether it is implemented.",
+      "clauses": ["iso27001:6.1.3"]
+    },
+    "risk-owner": {
+      "term": "Risk owner",
+      "definition": "The person accountable for managing a risk and approving its treatment and residual risk.",
+      "clauses": ["iso27001:6.1.2", "iso27001:6.1.3"]
+    }
+  }
+}
