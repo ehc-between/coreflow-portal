@@ -97,7 +97,8 @@
     "completed": "Completed"
   },
   "scopes": {
-    "platform": "CoreFlow basics"
+    "platform": "CoreFlow basics",
+    "inspections": "Inspections"
   },
   "tour": {
     "start": "Take the tour",
