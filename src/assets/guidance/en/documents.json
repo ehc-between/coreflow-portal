@@ -1,0 +1,596 @@
+{
+  "pages": {
+    "register": {
+      "intro": {
+        "title": "Your master document list",
+        "body": "One overview of every controlled document: its code, type, current revision, when it was approved, who owns it and when it is next reviewed. Include the **external documents** to see everything people work from in one place.",
+        "steps": [
+          "Filter by type or status, or tick **Review due** to find documents that need attention.",
+          "Tick **Mine** to see the documents you own.",
+          "Use **Export CSV** to hand an auditor the current list."
+        ]
+      },
+      "why": {
+        "body": "Auditors often start with the master list: is every document identified, approved, current and owned? A list that is always up to date shows that documented information is under control.",
+        "clauses": ["hs:7.5", "hs:7.5.3", "iso27001:A.5.37"]
+      },
+      "empty": {
+        "title": "No documents yet",
+        "body": "The master list fills itself as you create documents. Start with the documents the organisation already relies on: policies, procedures and work instructions.",
+        "cta": "Create a document"
+      }
+    },
+    "campaigns": {
+      "intro": {
+        "title": "Make sure people have read it",
+        "body": "A campaign sends the current approved revision of a document to a group of people. With **read and acknowledge**, everyone gets a task and confirms they have read and understood it, so you can show who knows about a change.",
+        "steps": [
+          "Choose an approved document and who needs it: people, roles, departments or everyone.",
+          "Set a due date and launch. Each person gets a task.",
+          "Follow progress here, remind those who have not acknowledged, and close the campaign when you are done."
+        ]
+      },
+      "why": {
+        "body": "The standards ask that people are aware of the documents that affect their work and that changes are communicated. A campaign with acknowledgements is simple evidence of that.",
+        "clauses": ["hs:7.3", "hs:7.4", "hs:7.5.3"]
+      },
+      "empty": {
+        "title": "No campaigns yet",
+        "body": "When a new or changed document matters to many people, distribute it with a campaign instead of an email. You will see exactly who has read it.",
+        "cta": "Start a campaign"
+      }
+    },
+    "campaignForm": {
+      "intro": {
+        "title": "Plan the campaign",
+        "body": "Pick the document, the audience and a realistic due date. Save it as a draft to check it with a colleague, or launch it straight away.",
+        "steps": [
+          "Only approved documents can be distributed.",
+          "People who cannot read the document are skipped automatically.",
+          "Turn off **read and acknowledge** if you only want to inform people."
+        ]
+      },
+      "why": {
+        "body": "Communicating changes to the right people, and knowing they understood, is part of keeping documented information effective.",
+        "clauses": ["hs:7.3", "hs:7.4"]
+      },
+      "fields": {
+        "document": {
+          "help": "The campaign sends the revision that is approved when you launch it. Later revisions need a new campaign.",
+          "example": "PR-004 Handling customer complaints"
+        },
+        "due": {
+          "help": "When everyone should have read the document. Recipients past this date show as overdue.",
+          "example": "Two weeks after launch"
+        },
+        "audience": {
+          "help": "Add people, roles or departments. Choose **Everyone** for organisation-wide documents such as a policy.",
+          "example": "Role: Quality manager, Department: Production"
+        }
+      }
+    },
+    "campaignDetail": {
+      "intro": {
+        "title": "Follow up the campaign",
+        "body": "See who has acknowledged and who is still pending or overdue. Remind those who are pending, add people who joined later, and close the campaign when it has done its job."
+      },
+      "why": {
+        "body": "The acknowledgement list is the evidence an auditor will ask for when a document changed: who was told, and when they confirmed.",
+        "clauses": ["hs:7.3", "hs:7.5.3"]
+      }
+    },
+    "external": {
+      "intro": {
+        "title": "Documents from outside",
+        "body": "Standards, laws, customer specifications and supplier manuals are also documents you work from, but you do not write them. Register them here with their publisher and version, and check now and then that you still use the edition in force.",
+        "steps": [
+          "Register each external document once, with its version or edition.",
+          "Set a review interval so you are reminded to check for new editions.",
+          "When a new edition comes out, update the version and record a review."
+        ]
+      },
+      "why": {
+        "body": "The standards ask that documents of external origin that you need are identified and controlled. Working from an outdated standard or specification is a common audit finding.",
+        "clauses": ["hs:7.5.3", "iso27001:A.5.37"]
+      },
+      "empty": {
+        "title": "No external documents registered",
+        "body": "Think of the standards you are certified against, laws and regulations that apply, and specifications from key customers. Register the ones people actually use.",
+        "cta": "Register the first one"
+      }
+    },
+    "externalForm": {
+      "intro": {
+        "title": "Register an external document",
+        "body": "Describe where the document comes from and which edition you use. A link to the source helps others find it."
+      },
+      "why": {
+        "body": "Knowing the publisher and edition makes it possible to check whether you work from the current version.",
+        "clauses": ["hs:7.5.3"]
+      },
+      "fields": {
+        "publisher": {
+          "help": "Who issues the document: a standards body, an authority, a customer or a supplier.",
+          "example": "Standards Norway"
+        },
+        "version": {
+          "help": "The edition, version or date that identifies exactly which document you use.",
+          "example": "2015 + A1:2024"
+        },
+        "reviewInterval": {
+          "help": "How often to check that this is still the edition in force. You get a reminder when it is due.",
+          "example": "12"
+        }
+      }
+    },
+    "externalDetail": {
+      "intro": {
+        "title": "One external document",
+        "body": "Check the edition and the link, and use **Mark reviewed** when you have confirmed it is still current."
+      },
+      "why": {
+        "body": "Recorded reviews show that external documents are kept under control, not just listed once.",
+        "clauses": ["hs:7.5.3"]
+      }
+    },
+    "types": {
+      "intro": {
+        "title": "Kinds of documents",
+        "body": "A document type (procedure, work instruction, policy, form) gives new documents an automatic code and sensible defaults: how often they are reviewed, whether readers must acknowledge them, and how long they are kept.",
+        "steps": [
+          "Create a type for each kind of document you keep.",
+          "Give it a prefix such as **PR** so codes become PR-001, PR-002 and so on.",
+          "Set the review interval and retention rule that usually apply."
+        ]
+      },
+      "why": {
+        "body": "Unique identification and consistent review are basic controls on documented information. Types make them automatic.",
+        "clauses": ["hs:7.5.2", "hs:7.5"]
+      },
+      "empty": {
+        "title": "No document types yet",
+        "body": "Without types, document codes are typed by hand. Create a few types (for example Policy, Procedure and Work instruction) to get automatic numbering.",
+        "cta": "Create a document type"
+      }
+    },
+    "typeForm": {
+      "intro": {
+        "title": "Set up a document type",
+        "body": "Choose a short key and a name, then the numbering scheme. The preview shows the code the next document will get."
+      },
+      "why": {
+        "body": "Consistent codes make documents easy to reference, and default review intervals stop documents from going stale.",
+        "clauses": ["hs:7.5.2"]
+      },
+      "fields": {
+        "key": {
+          "help": "A short identifier stored on every document of this type. It cannot be changed later.",
+          "example": "procedure"
+        },
+        "pattern": {
+          "help": "How codes are built. **{prefix}** is the prefix, **{year}** the current year and **{seq:03}** the running number padded to three digits. Leave empty for the default.",
+          "example": "{prefix}-{year}-{seq:03}"
+        },
+        "reviewInterval": {
+          "help": "New documents of this type are due for review this many months after approval.",
+          "example": "24"
+        }
+      }
+    },
+    "templates": {
+      "intro": {
+        "title": "Start from a good structure",
+        "body": "A template holds the headings and standard text a kind of document should have. New documents made from a template start with that structure and are linked back to it.",
+        "steps": [
+          "Create a template for each document type you write often.",
+          "Use **Draft with AI** to get a first structure from a standard requirement.",
+          "Open a template and choose **Use template** to create a document from it."
+        ]
+      },
+      "why": {
+        "body": "Templates give documents a consistent format, which the standards ask for, and make it easier for authors to cover what is required.",
+        "clauses": ["hs:7.5.2", "iso27001:A.5.37"]
+      },
+      "empty": {
+        "title": "No templates yet",
+        "body": "Begin with the document you write most often, such as a procedure. Put in the headings every procedure should have: purpose, scope, responsibilities, steps and records.",
+        "cta": "Create a template"
+      }
+    },
+    "templateForm": {
+      "intro": {
+        "title": "Write the template",
+        "body": "Write the structure once. Placeholder text in the template helps authors know what to fill in."
+      },
+      "why": {
+        "body": "A consistent format is one of the controls the standards set for creating and updating documented information.",
+        "clauses": ["hs:7.5.2"]
+      },
+      "fields": {
+        "type": {
+          "help": "The document type this template is for. New documents made from it get that type, and its automatic code.",
+          "example": "Procedure"
+        }
+      }
+    },
+    "retention": {
+      "intro": {
+        "title": "How long records are kept",
+        "body": "A retention rule says how long a kind of record is kept, counted from when it was created, approved or became obsolete, and what happens at the end: destroy, archive or review.",
+        "steps": [
+          "Create a rule for each retention requirement you have, with its legal basis.",
+          "Attach rules to document types and external documents.",
+          "Check **Due for disposition** regularly and dispose of records through the normal steps."
+        ]
+      },
+      "why": {
+        "body": "Keeping records long enough is a legal and standards requirement, and keeping personal data longer than needed breaks data protection law. Retention rules make both visible.",
+        "clauses": ["hs:7.5.3", "iso27001:A.5.33", "gdpr:5"]
+      },
+      "empty": {
+        "title": "No retention rules yet",
+        "body": "Start with what the law requires, such as accounting records or personnel files, and what your own procedures say about quality records.",
+        "cta": "Create a retention rule"
+      }
+    },
+    "retentionForm": {
+      "intro": {
+        "title": "Define a retention rule",
+        "body": "Say what the rule applies to, how long records are kept, from which moment, and what happens at the end. Note the legal basis so others know why."
+      },
+      "why": {
+        "body": "Records must be protected and kept as long as needed, and no longer when they hold personal data.",
+        "clauses": ["iso27001:A.5.33", "gdpr:5"]
+      },
+      "fields": {
+        "months": {
+          "help": "How many months to keep the record. 0 means it can be disposed of as soon as the trigger happens.",
+          "example": "60 (five years)"
+        },
+        "trigger": {
+          "help": "When the retention period starts: when the record was created, when it was approved, or when it became obsolete.",
+          "example": "From becoming obsolete"
+        },
+        "disposition": {
+          "help": "What to do when the period ends. **Review** means someone decides whether to keep or delete it.",
+          "example": "Destroy"
+        }
+      }
+    },
+    "compare": {
+      "intro": {
+        "title": "What changed, and why",
+        "body": "Pick two revisions to see the changes paragraph by paragraph. Added text is green, removed text is red, and changed paragraphs show the words that changed.",
+        "steps": [
+          "By default the newest revision is compared with the one before it.",
+          "Choose **Compare from** and **Compare to** on any two revisions.",
+          "Use **Draft change reason** to get a summary you can use when submitting a revision."
+        ]
+      },
+      "why": {
+        "body": "Changes to documented information must be identified and reviewed. A clear change history lets approvers and auditors see exactly what was changed.",
+        "clauses": ["hs:7.5.2", "hs:7.5.3"]
+      }
+    },
+    "newDocument": {
+      "intro": {
+        "title": "Create a document",
+        "body": "Choose a type to get an automatic code, start from a template or an AI draft, and then write the content."
+      },
+      "why": {
+        "body": "Every controlled document needs a unique identification and must be reviewed and approved before use.",
+        "clauses": ["hs:7.5.2"]
+      },
+      "fields": {
+        "type": {
+          "help": "The kind of document. Types set up under **Types** give the document an automatic code and default review interval.",
+          "example": "Procedure"
+        },
+        "template": {
+          "help": "Start from a template to get its structure. The document is created first and opened in the editor.",
+          "example": "Standard procedure"
+        }
+      }
+    },
+    "draft": {
+      "intro": {
+        "title": "Draft with AI",
+        "body": "Give a requirement reference or describe the process and get a first draft to edit."
+      },
+      "why": {
+        "body": "A draft is a starting point. The organisation still decides what the document says and approves it.",
+        "clauses": ["hs:7.5.2"]
+      },
+      "fields": {
+        "requirement": {
+          "help": "A requirement in a standard, written as standard and clause. The draft then covers what that requirement asks for.",
+          "example": "iso9001:7.5"
+        }
+      }
+    }
+  },
+  "lessons": {
+    "master-list": {
+      "title": "Keeping documents under control",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "What document control means",
+          "body": "Documented information must be **identified** (a code and title), **approved** before use, **available** where it is needed, and **protected** against unintended changes. Old versions must not be used by mistake."
+        },
+        {
+          "heading": "The master list",
+          "body": "The master list shows every controlled document with its code, current revision, owner and next review. It is the quickest way to answer the question: are we working from the right documents?"
+        },
+        {
+          "heading": "Keeping it current",
+          "body": "Give every document an owner and a review interval. When a review is due, the owner checks the document is still right, updates it or confirms it, and the next review date moves on."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Which of these is part of controlling documented information?",
+          "options": [
+            "Approving documents before they are used",
+            "Printing every document",
+            "Letting anyone edit the approved version"
+          ],
+          "answer": 0,
+          "explanation": "Approval before use is one of the core controls. Approved versions are protected, not freely edited."
+        },
+        {
+          "question": "What does a review due date on a document tell you?",
+          "options": [
+            "When the document will be deleted",
+            "When the owner should check it is still correct",
+            "When it was first written"
+          ],
+          "answer": 1,
+          "explanation": "Periodic review keeps documents current. The owner checks the content and confirms or updates it."
+        }
+      ],
+      "pass_mark": 0.5
+    },
+    "read-and-acknowledge": {
+      "title": "Read and acknowledge",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Why acknowledgement matters",
+          "body": "A new or changed procedure only helps if the people who follow it know about it. **Read and acknowledge** turns that into evidence: each person confirms they have read and understood the document."
+        },
+        {
+          "heading": "Running a campaign",
+          "body": "Choose the approved document, the audience and a due date, then launch. Everyone gets a task. As people acknowledge, the progress bar fills up. Remind the ones who are pending."
+        },
+        {
+          "heading": "When the document changes again",
+          "body": "A campaign is for one approved revision. When a later revision is approved, start a new campaign if the change matters to people."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Which revision does a campaign send?",
+          "options": [
+            "The working draft",
+            "The revision that is approved when the campaign is launched",
+            "All revisions"
+          ],
+          "answer": 1,
+          "explanation": "Only approved revisions are distributed, so people never acknowledge an unapproved draft."
+        },
+        {
+          "question": "Someone joined the team after launch. What do you do?",
+          "options": [
+            "Start the campaign again",
+            "Add them as recipients to the active campaign",
+            "Nothing"
+          ],
+          "answer": 1,
+          "explanation": "You can add recipients to an active campaign; they get a task like everyone else."
+        }
+      ],
+      "pass_mark": 0.5
+    },
+    "external-documents": {
+      "title": "External documents",
+      "minutes": 3,
+      "sections": [
+        {
+          "heading": "What counts as external",
+          "body": "Documents you did not write but must follow: standards, laws and regulations, customer specifications, supplier manuals and safety data sheets."
+        },
+        {
+          "heading": "Controlling them",
+          "body": "Register each one with its publisher and version so everyone uses the same edition. Set a review interval and check now and then whether a new edition has been published."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Why record the version of an external document?",
+          "options": [
+            "To know whether you work from the edition in force",
+            "Because the publisher requires it",
+            "It is not useful"
+          ],
+          "answer": 0,
+          "explanation": "The version tells you exactly which edition you rely on, so you notice when a newer one replaces it."
+        }
+      ],
+      "pass_mark": 1
+    },
+    "numbering-and-types": {
+      "title": "Document types, numbering and templates",
+      "minutes": 3,
+      "sections": [
+        {
+          "heading": "Why codes matter",
+          "body": "A unique code such as **PR-007** makes a document easy to reference in other documents, training and audits, even if its title changes."
+        },
+        {
+          "heading": "Automatic numbering",
+          "body": "Give a type a prefix and, if you like, a pattern. Each new document of that type gets the next number automatically. Codes that are already in use are skipped."
+        },
+        {
+          "heading": "Templates",
+          "body": "A template gives every document of a kind the same structure. Documents created from a template are linked to it, so you can see where they came from."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "With prefix PR and pattern {prefix}-{seq:03}, what is the code of the 7th document?",
+          "options": ["PR-7", "PR-007", "007-PR"],
+          "answer": 1,
+          "explanation": "{seq:03} pads the running number to three digits, so 7 becomes 007."
+        }
+      ],
+      "pass_mark": 1
+    },
+    "retention-basics": {
+      "title": "Records retention",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Keep long enough",
+          "body": "Laws and standards say how long some records must be kept, for example accounting records or training records. A retention rule makes that requirement explicit."
+        },
+        {
+          "heading": "But not too long",
+          "body": "Records that hold personal data must not be kept longer than needed. Data protection law calls this **storage limitation**."
+        },
+        {
+          "heading": "At the end of the period",
+          "body": "The rule says what happens: destroy, archive, or review. The **Due for disposition** list shows what has reached that point. Disposal goes through the normal delete or archive steps, so it is recorded."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Why should records with personal data not be kept forever?",
+          "options": [
+            "Storage is expensive",
+            "Data protection law requires storage limitation",
+            "Auditors do not like old records"
+          ],
+          "answer": 1,
+          "explanation": "Personal data may only be kept as long as needed for its purpose."
+        }
+      ],
+      "pass_mark": 1
+    },
+    "comparing-revisions": {
+      "title": "Reviewing a change",
+      "minutes": 3,
+      "sections": [
+        {
+          "heading": "Compare before you approve",
+          "body": "When you approve a new revision, look at what changed rather than reading the whole document again. The compare view shows added, removed and changed paragraphs."
+        },
+        {
+          "heading": "Write a good change reason",
+          "body": "A change reason says **what** changed and **why**, in a sentence or two. It ends up in the revision history and helps readers of later campaigns."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "What makes a useful change reason?",
+          "options": [
+            "\"Updated\"",
+            "What changed and why, in a sentence or two",
+            "The full new text"
+          ],
+          "answer": 1,
+          "explanation": "A short what-and-why is enough for approvers and auditors to understand the change."
+        }
+      ],
+      "pass_mark": 1
+    }
+  },
+  "tours": {
+    "register": [
+      {
+        "target": "documents-nav-register",
+        "title": "Master list",
+        "body": "Every controlled document in one place, with revision, owner and review dates."
+      },
+      {
+        "target": "documents-register-filters",
+        "title": "Filters",
+        "body": "Narrow the list by type, status, owner or review date."
+      },
+      {
+        "target": "documents-register-export",
+        "title": "Export",
+        "body": "Download the list as CSV, for example for an auditor."
+      }
+    ],
+    "campaigns": [
+      {
+        "target": "documents-campaign-new",
+        "title": "New campaign",
+        "body": "Send an approved document to people and ask them to acknowledge it."
+      },
+      {
+        "target": "documents-nav-campaigns",
+        "title": "Campaigns",
+        "body": "Follow up running campaigns here."
+      }
+    ],
+    "external": [
+      {
+        "target": "documents-external-new",
+        "title": "Register",
+        "body": "Add a standard, law or specification you work from."
+      },
+      {
+        "target": "documents-nav-external",
+        "title": "External documents",
+        "body": "All documents of external origin, with their version and review date."
+      }
+    ],
+    "types": [
+      {
+        "target": "documents-type-new",
+        "title": "New type",
+        "body": "Create a document type with automatic numbering and defaults."
+      },
+      {
+        "target": "documents-nav-templates",
+        "title": "Templates",
+        "body": "Give each type a template with the right structure."
+      }
+    ],
+    "typeForm": [
+      {
+        "target": "documents-type-numbering",
+        "title": "Numbering",
+        "body": "Set the prefix and pattern. The preview shows the next code."
+      }
+    ],
+    "templates": [
+      {
+        "target": "documents-template-new",
+        "title": "New template",
+        "body": "Write a reusable structure for a kind of document."
+      }
+    ],
+    "retention": [
+      {
+        "target": "documents-retention-new",
+        "title": "New rule",
+        "body": "Say how long a kind of record is kept and what happens at the end."
+      },
+      {
+        "target": "documents-retention-due",
+        "title": "Due for disposition",
+        "body": "Records whose retention period has ended or ends soon."
+      }
+    ],
+    "compare": [
+      {
+        "target": "documents-compare-history",
+        "title": "Revisions",
+        "body": "Pick the two revisions to compare."
+      }
+    ]
+  }
+}

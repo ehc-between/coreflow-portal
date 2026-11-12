@@ -183,6 +183,20 @@ import { AskAbout } from '../../shared/ask/ask-about';
                 </a>
               }
 
+              @if (doc.status === 'approved') {
+                <a
+                  *appHasPermission="'documents:distribute'"
+                  [routerLink]="['/documents/campaigns/new']"
+                  [queryParams]="{ document: doc.id }"
+                  data-testid="distribute-link"
+                >
+                  <app-button variant="secondary">
+                    <app-icon name="send" [size]="15" />
+                    {{ 'documents.control.campaigns.distribute' | transloco }}
+                  </app-button>
+                </a>
+              }
+
               <app-document-workflow-actions
                 [document]="doc"
                 (changed)="onDocumentChange($event)"
@@ -290,11 +304,20 @@ import { AskAbout } from '../../shared/ask/ask-about';
             </app-card>
 
             <app-card [padded]="false">
-              <h2
-                class="px-4 pt-3.5 pb-1 font-display text-[15px] font-bold tracking-[-0.02em] text-fg"
-              >
-                {{ 'documents.history' | transloco }}
-              </h2>
+              <div class="flex items-center justify-between gap-2 px-4 pt-3.5 pb-1">
+                <h2 class="font-display text-[15px] font-bold tracking-[-0.02em] text-fg">
+                  {{ 'documents.history' | transloco }}
+                </h2>
+                @if (doc.revisions.length > 1) {
+                  <a
+                    [routerLink]="['/documents', doc.id, 'history']"
+                    class="text-[12.5px] font-semibold text-accent hover:underline"
+                    data-testid="compare-link"
+                  >
+                    {{ 'documents.control.compare.link' | transloco }}
+                  </a>
+                }
+              </div>
               @if (doc.revisions.length === 0) {
                 <p class="px-4 py-6 text-center text-[13.5px] text-fg-muted">
                   {{ 'documents.noRevisions' | transloco }}
