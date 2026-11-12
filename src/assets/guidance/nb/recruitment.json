@@ -1,0 +1,390 @@
+{
+  "pages": {
+    "requisitions": {
+      "intro": {
+        "title": "Planlegg hver ansettelse før du rekrutterer",
+        "body": "Et **stillingsbehov** er den godkjente forespørselen om å besette en stilling. Det viser hvorfor stillingen trengs, hvor risikofylt den er sikkerhetsmessig, hvem som er i rekrutteringsteamet og hvilke **utvalgskriterier** alle kandidater vurderes mot.",
+        "steps": [
+          "Opprett et stillingsbehov, beskriv stillingen og sett risikonivået.",
+          "Legg til rekrutteringsteamet og objektive utvalgskriterier, og send det til godkjenning.",
+          "Når en HR-leder har godkjent det, åpner du det for søknader og følger kandidatene i kandidatløpet."
+        ]
+      },
+      "why": {
+        "body": "ISO/IEC 27001 krever bakgrunnskontroll av kandidater **før** de begynner, i forhold til virksomhetens krav og risikoen i stillingen, og at ansettelsesvilkårene beskriver ansvaret for informasjonssikkerhet. Etter GDPR skal kandidatdata begrenses til det som trengs og ikke lagres lenger enn nødvendig. Et godkjent stillingsbehov med risikonivå er der begge deler starter.",
+        "clauses": ["iso27001:A.6.1", "iso27001:A.6.2", "hs:7.2", "gdpr:5"]
+      },
+      "empty": {
+        "title": "Ingen stillingsbehov ennå",
+        "body": "Start med stillingen, ikke kandidatene: skriv ned hvorfor den trengs, sett risikonivået og bli enige om kriteriene. Godkjenning før rekruttering gjør bemanningsbeslutninger sporbare.",
+        "cta": "Opprett et stillingsbehov"
+      }
+    },
+    "requisitionForm": {
+      "intro": {
+        "title": "Beskriv stillingen",
+        "body": "Hold stillingsbehovet saklig og jobbrelatert. Det du skriver her styrer godkjenningen, bakgrunnssjekkene og screeningen av hver søknad.",
+        "steps": [
+          "Gi stillingen en tydelig tittel og forklar hvorfor den trengs.",
+          "Velg risikonivå: jo høyere det er, jo flere bakgrunnssjekker kreves.",
+          "List opp 4 til 8 utvalgskriterier som stillingen virkelig krever. De brukes for alle kandidater."
+        ]
+      },
+      "why": {
+        "body": "Screening er rettferdig og etterprøvbar bare når alle kandidater vurderes mot de samme jobbrelaterte kriteriene, avtalt før søknadene kom inn. At antall og risiko låses etter innsending, gjør godkjenningen meningsfull.",
+        "clauses": ["iso27001:A.6.1", "hs:7.2"]
+      },
+      "fields": {
+        "title": {
+          "help": "Stillingstittelen kandidatene kjenner igjen.",
+          "example": "Informasjonssikkerhetsanalytiker"
+        },
+        "justification": {
+          "help": "Hvorfor organisasjonen trenger stillingen nå: vekst, erstatning, en ny forpliktelse. Den som godkjenner leser dette.",
+          "example": "Erstatter en analytiker som går av med pensjon; nødvendig for å beholde ISO 27001-sertifikatet."
+        },
+        "role_risk": {
+          "help": "Hvor stor skade en person i stillingen kan gjøre med tilgangene de får. Lav: identitet, arbeidstillatelse og en referanse. Middels legger til arbeidshistorikk og utdanning. Høy legger til politiattest der loven tillater det.",
+          "example": "Høy: administratorer med tilgang til kundedata eller betalingssystemer."
+        },
+        "screening_criteria": {
+          "help": "Objektive krav som alle søknader vurderes mot. Unngå alt som ikke trengs for jobben, som alder, familiesituasjon eller en bestemt nasjonalitet.",
+          "example": "Tre års erfaring med drift av Linux-servere i produksjon."
+        },
+        "posting_text": {
+          "help": "Annonsen kandidatene ser. Bruk inkluderende, kjønnsnøytralt språk og be bare om det kriteriene krever.",
+          "example": "Vi ser etter en som liker å finne og tette sikkerhetshull …"
+        },
+        "change_reason": {
+          "help": "Lagres i revisjonshistorikken sammen med hva som ble endret, slik at en revisor ser hvorfor.",
+          "example": "Søknadsfristen er forlenget med to uker etter få søknader."
+        }
+      }
+    },
+    "requisition": {
+      "intro": {
+        "title": "Fra godkjenning til besatt stilling",
+        "body": "Arbeid deg gjennom stillingsbehovet ovenfra og ned: godkjenn det, åpne det, følg kandidatene i kandidatløpet og lukk det når stillingen er besatt.",
+        "steps": [
+          "Den som sendte inn et stillingsbehov kan ikke godkjenne det; en HR-leder bestemmer.",
+          "Hold rekrutteringsteamet oppdatert: bare de kan se kandidatene.",
+          "Bruk **Kandidatløp** for å flytte kandidater mellom trinn."
+        ]
+      },
+      "why": {
+        "body": "Arbeidsdeling i godkjenningen, en registrert grunn for hver endring og et definert rekrutteringsteam viser at rekrutteringsbeslutninger er styrt og at kandidatdata bare deles med dem som trenger dem.",
+        "clauses": ["iso27001:A.6.1", "iso27001:A.5.15", "gdpr:5"]
+      }
+    },
+    "pipeline": {
+      "intro": {
+        "title": "Kandidatløpet",
+        "body": "Hver kolonne er et trinn. Åpne et kort for å screene søknaden, planlegge intervjuer og registrere sjekker, eller bruk **Flytt til** for å endre trinn.",
+        "steps": [
+          "Registrer at kandidaten har fått personvernerklæringen før du flytter kandidaten videre etter screening.",
+          "Når søknaden kommer til **Referansesjekk**, planlegges bakgrunnssjekkene risikonivået krever.",
+          "Avvisning krever alltid en jobbrelatert grunn."
+        ]
+      },
+      "why": {
+        "body": "En synlig og lik prosess gjør det enkelt å vise at alle kandidater gikk gjennom de samme trinnene, og at screeningen var fullført før tilbudet.",
+        "clauses": ["iso27001:A.6.1", "gdpr:13"]
+      }
+    },
+    "candidates": {
+      "intro": {
+        "title": "Kandidater og deres personopplysninger",
+        "body": "Kandidatposter inneholder personopplysninger. Du ser bare kandidatene til stillingsbehovene du jobber med, eller dem du har registrert selv.",
+        "steps": [
+          "Registrer bare det rekrutteringen trenger: navn, kontaktinformasjon og hvor kandidaten kom fra.",
+          "Registrer når kandidaten fikk personvernerklæringen.",
+          "Følg med på slettedatoen: kandidater slettes automatisk når den passeres."
+        ]
+      },
+      "why": {
+        "body": "GDPR krever at du forteller kandidatene hvordan opplysningene brukes, at du ikke samler inn mer enn nødvendig, og at du sletter dem når de ikke lenger trengs. En kandidatbank krever kandidatens samtykke.",
+        "clauses": ["gdpr:5", "gdpr:13", "gdpr:14", "gdpr:17"]
+      },
+      "empty": {
+        "title": "Ingen kandidater du kan se",
+        "body": "Kandidater vises her når de legges til et stillingsbehov der du er i rekrutteringsteamet, eller når du registrerer en selv.",
+        "cta": "Registrer en kandidat"
+      }
+    },
+    "candidateForm": {
+      "intro": {
+        "title": "Registrere en kandidat",
+        "body": "Samle inn minst mulig: det du trenger for å kontakte og vurdere personen for denne stillingen. Ikke registrer sensitive opplysninger som helse, religion eller familiesituasjon.",
+        "steps": [
+          "Fyll inn navnet og minst én måte å nå kandidaten på.",
+          "Kryss av for at personvernerklæringen er gitt når du har sendt eller vist den.",
+          "Be om samtykke til kandidatbanken bare hvis du vil beholde kandidaten for fremtidige stillinger."
+        ]
+      },
+      "why": {
+        "body": "Dataminimering og åpenhet er grunnleggende prinsipper i GDPR. Å registrere når erklæringen ble gitt, beviser at kandidaten ble informert.",
+        "clauses": ["gdpr:5", "gdpr:13", "gdpr:14"]
+      },
+      "fields": {
+        "notes": {
+          "help": "Bare jobbrelaterte observasjoner. Kandidaten kan be om å få se alt du skriver her.",
+          "example": "Anbefalt av nettverksteamet; tilgjengelig fra mars."
+        },
+        "privacy_notice_given": {
+          "help": "Kryss av når kandidaten har fått personvernerklæringen for rekruttering. Uten den kan søknaden ikke gå videre etter screening.",
+          "example": "Erklæringen var vedlagt bekreftelsen på e-post."
+        },
+        "talent_pool_consent": {
+          "help": "Valgfritt. Med samtykke lagres kandidaten lenger for å bli vurdert til fremtidige stillinger; uten slettes kandidaten etter vanlig lagringstid.",
+          "example": "Kandidaten krysset av for «husk meg til fremtidige stillinger»."
+        }
+      }
+    },
+    "candidate": {
+      "intro": {
+        "title": "Én kandidat",
+        "body": "Se kandidatens søknader, registreringen av personvernerklæring og samtykke, og når opplysningene slettes.",
+        "steps": [
+          "Registrer personvernerklæringen hvis den mangler.",
+          "Trekk samtykket til kandidatbanken med en gang hvis kandidaten ber om det.",
+          "En rekrutteringsansvarlig kan slette opplysningene på forespørsel."
+        ]
+      },
+      "why": {
+        "body": "Kandidater har rett til informasjon, til å trekke samtykke og til å få opplysningene sine slettet. Denne siden er der du ivaretar disse rettighetene og kan dokumentere det.",
+        "clauses": ["gdpr:13", "gdpr:17", "gdpr:5"]
+      }
+    },
+    "applications": {
+      "intro": {
+        "title": "Søknader du jobber med",
+        "body": "Hver søknad knytter én kandidat til ett stillingsbehov. Filtrer på trinn for å se hva som trenger oppfølging.",
+        "steps": [
+          "Åpne en søknad for å screene den mot kriteriene.",
+          "Bruk kandidatløpet til et stillingsbehov for en tavlevisning."
+        ]
+      },
+      "why": {
+        "body": "At screening, intervjuer og sjekker for hver søknad holdes samlet, er dokumentasjonen på at screeningen ble gjort likt og før ansettelse.",
+        "clauses": ["iso27001:A.6.1"]
+      },
+      "empty": {
+        "title": "Ingen søknader ennå",
+        "body": "Søknader opprettes fra et åpent stillingsbehov: åpne det og velg **Legg til kandidat**.",
+        "cta": "Gå til stillingsbehov"
+      }
+    },
+    "applicationNew": {
+      "intro": {
+        "title": "Legge til en kandidat",
+        "body": "Velg det åpne stillingsbehovet og enten en eksisterende eller en ny kandidat. En kandidat kan søke på flere stillingsbehov, men bare én gang på hvert.",
+        "steps": [
+          "Velg stillingsbehovet.",
+          "Søk etter kandidaten, eller registrer kandidaten her.",
+          "Lim inn et kort sammendrag av søknadsbrevet hvis det hjelper teamet."
+        ]
+      },
+      "why": {
+        "body": "Når søknader registreres på ett sted, kan du vise hvem som søkte, hvordan de ble behandlet og når opplysningene deres slettes.",
+        "clauses": ["gdpr:5"]
+      },
+      "fields": {
+        "cover_note": {
+          "help": "Søknadsbrevet eller et kort sammendrag. Unngå å kopiere sensitive personopplysninger.",
+          "example": "Fem år i IT-drift, kurs i internrevisjon etter ISO 27001."
+        }
+      }
+    },
+    "application": {
+      "intro": {
+        "title": "Vurdere en søknad",
+        "body": "Screen søknaden mot kriteriene i stillingsbehovet, intervju, fyll ut vurderingsskjemaet, fullfør bakgrunnssjekkene og gi tilbudet, i den rekkefølgen.",
+        "steps": [
+          "Registrer et resultat og dokumentasjon for hvert kriterium.",
+          "Planlegg intervjuer; hver intervjuer får en oppgave om vurderingsskjema.",
+          "Fullfør alle påkrevde sjekker før tilbudet."
+        ]
+      },
+      "why": {
+        "body": "Bakgrunnskontroll i forhold til stillingen (ISO/IEC 27001 A.6.1) og strukturert, jobbrelatert vurdering beskytter både organisasjonen og kandidaten. KI-en oppsummerer bare materialet når du ber om det; mennesker tar alle beslutninger.",
+        "clauses": ["iso27001:A.6.1", "iso27001:A.6.2", "eu_ai_act:26", "gdpr:5"]
+      },
+      "fields": {
+        "screening": {
+          "help": "Vurder hvert kriterium for seg, og skriv ned hva i søknaden som viser det. De samme kriteriene gjelder for alle kandidater.",
+          "example": "Oppfylt: ledet migreringen av 40 servere, beskrevet i søknadsbrevet."
+        },
+        "interviewers": {
+          "help": "Alle du velger, blir med i rekrutteringsteamet og får en oppgave om å sende inn et vurderingsskjema.",
+          "example": "Ansettende leder og én fagkollega."
+        },
+        "scorecards": {
+          "help": "Vurder hvert kriterium fra 1 til 5 med begrunnelse, og gi deretter en samlet anbefaling. Du ser kollegenes skjemaer først når du har sendt inn ditt, slik at hver vurdering er uavhengig.",
+          "example": "4 · Sterk: forklarte hendelseshåndtering steg for steg med et reelt eksempel."
+        },
+        "checks": {
+          "help": "Sjekkene avhenger av risikonivået for stillingen. En sjekk krever kandidatens samtykke før den starter; en frafalt sjekk krever en begrunnelse.",
+          "example": "Referanse: ringte forrige leder 12. mars."
+        }
+      }
+    },
+    "settings": {
+      "intro": {
+        "title": "Personvernerklæring og lagring",
+        "body": "Bestem hvor lenge kandidatdata lagres, og skriv personvernerklæringen kandidatene får. Den nattlige jobben sletter kandidater med utløpt lagringstid.",
+        "steps": [
+          "Skriv erklæringen i et enkelt språk og gi den et versjonsnummer.",
+          "Velg lagringstiden etter at et stillingsbehov lukkes, og den lengre tiden for kandidatbanken.",
+          "Endre versjonen hver gang teksten i erklæringen endres."
+        ]
+      },
+      "why": {
+        "body": "Lagringsbegrensning og åpenhet er prinsipper i GDPR: kandidatene skal vite hvor lenge opplysningene lagres, og de skal slettes etterpå.",
+        "clauses": ["gdpr:5", "gdpr:13", "gdpr:17"]
+      },
+      "fields": {
+        "retention_days": {
+          "help": "Antall dager etter at stillingsbehovet er lukket før en kandidat som ikke fikk jobben, slettes. Seks måneder er vanlig, slik at du kan svare på klager.",
+          "example": "180"
+        },
+        "talent_pool_days": {
+          "help": "Antall dager en kandidat med samtykke blir i kandidatbanken etter siste søknad.",
+          "example": "730"
+        },
+        "privacy_notice": {
+          "help": "Hvem dere er, hvorfor dere behandler opplysningene, behandlingsgrunnlaget, hvor lenge de lagres, hvem som ser dem og hvordan kandidatene bruker rettighetene sine.",
+          "example": "Vi behandler søknaden din for å vurdere deg til stillingen …"
+        }
+      }
+    }
+  },
+  "lessons": {
+    "fair-screening": {
+      "title": "Rettferdig og strukturert screening",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Bestem kriteriene først",
+          "body": "Bli enige om 4 til 8 jobbrelaterte kriterier **før** dere leser noen søknad. Hvert kriterium sier hva som viser at det er oppfylt. Når de skrives ned først, bøyes de ikke mot en favorittkandidat."
+        },
+        {
+          "heading": "Vurder alle kandidater likt",
+          "body": "Screen hver søknad mot hvert kriterium og skriv ned dokumentasjonen. Still alle kandidater de samme hovedspørsmålene i intervjuet, og vurder deretter hvert kriterium for seg i vurderingsskjemaet."
+        },
+        {
+          "heading": "Uavhengig vurdering",
+          "body": "Intervjuerne sender inn sitt eget vurderingsskjema før de ser kollegenes. Det hindrer at den første meningen i rommet bestemmer for alle."
+        },
+        {
+          "heading": "Hvor KI-en passer inn",
+          "body": "KI-en kan lage utkast til annonse, intervjuspørsmål eller kriterier, og oppsummere én søknad mot kriteriene deres når du ber om det. Den gir aldri poeng, rangerer eller avviser kandidater: etter EUs KI-forordning ville det gjort den til et høyrisikosystem. Mennesker bestemmer."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Når bør utvalgskriteriene avtales?",
+          "options": [
+            "Etter å ha lest de første søknadene",
+            "Før søknadene vurderes",
+            "Etter intervjuene"
+          ],
+          "answer": 1,
+          "explanation": "Kriterier avtalt på forhånd brukes likt for alle."
+        },
+        {
+          "question": "Kan KI-en rangere kandidatene for deg?",
+          "options": ["Ja, hvis en person sjekker resultatet", "Nei, den bare hjelper mennesker"],
+          "answer": 1,
+          "explanation": "Rangering eller filtrering av kandidater er høyrisikobruk av KI; her lager KI-en bare utkast og oppsummeringer."
+        }
+      ],
+      "pass_mark": 0.5
+    },
+    "screening-proportionate": {
+      "title": "Bakgrunnssjekker i forhold til risiko",
+      "minutes": 3,
+      "sections": [
+        {
+          "heading": "Hva standarden krever",
+          "body": "ISO/IEC 27001 A.6.1 krever bakgrunnskontroll av kandidater før de begynner, i tråd med lover og etikk og i forhold til virksomhetens krav, informasjonen de får tilgang til og risikoen."
+        },
+        {
+          "heading": "Risikonivåer",
+          "body": "**Lav**: identitet, arbeidstillatelse, en referanse. **Middels** legger til arbeidshistorikk og utdanning. **Høy** legger til politiattest, bare der loven tillater det for stillingen."
+        },
+        {
+          "heading": "Samtykke og dokumentasjon",
+          "body": "Fortell kandidaten hvilke sjekker dere gjør, og registrer samtykket før en sjekk starter. Registrer resultatet; en frafalt sjekk krever en skriftlig begrunnelse."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Hva må du ha før en bakgrunnssjekk starter?",
+          "options": [
+            "Kandidatens samtykke",
+            "En signert kontrakt",
+            "Godkjenning fra daglig leder"
+          ],
+          "answer": 0,
+          "explanation": "Sjekker startes først når kandidaten har samtykket."
+        }
+      ],
+      "pass_mark": 1
+    },
+    "candidate-privacy": {
+      "title": "Personvern for kandidater i praksis",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Informer kandidatene med en gang",
+          "body": "Gi alle kandidater personvernerklæringen for rekruttering når du først samler inn opplysninger om dem (GDPR art. 13, eller art. 14 når opplysningene kommer fra andre, for eksempel et byrå)."
+        },
+        {
+          "heading": "Samle inn minst mulig",
+          "body": "Navn, kontaktinformasjon, søknaden og jobbrelaterte notater. Aldri helse, religion, etnisitet eller familiesituasjon med mindre loven krever det."
+        },
+        {
+          "heading": "Slett i tide",
+          "body": "Kandidater som ikke fikk jobben, slettes etter lagringstiden. Å beholde noen lenger i kandidatbanken krever samtykke, som de når som helst kan trekke."
+        },
+        {
+          "heading": "Rett til sletting",
+          "body": "Når en kandidat ber om å bli slettet, sletter en rekrutteringsansvarlig opplysningene. Revisjonssporet beholder bare koder, aldri navnet."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Hva trenger du for å beholde en avvist kandidat til fremtidige stillinger?",
+          "options": ["Ingenting", "Kandidatens samtykke", "Godkjenning fra ansettende leder"],
+          "answer": 1,
+          "explanation": "En kandidatbank bygger på kandidatens samtykke."
+        },
+        {
+          "question": "Når skal personvernerklæringen gis?",
+          "options": [
+            "Når opplysningene først samles inn",
+            "Når kandidaten ansettes",
+            "Bare hvis kandidaten spør"
+          ],
+          "answer": 0,
+          "explanation": "Kandidatene skal informeres når opplysningene samles inn."
+        }
+      ],
+      "pass_mark": 0.5
+    }
+  },
+  "tours": {
+    "requisitions": [
+      {
+        "target": "recruitment-new",
+        "title": "Start med et stillingsbehov",
+        "body": "Hver ansettelse starter med et godkjent stillingsbehov som beskriver stillingen, risikonivået og utvalgskriteriene."
+      },
+      {
+        "target": "recruitment-status-filter",
+        "title": "Følg statusen",
+        "body": "Filtrer på status for å se hva som venter på godkjenning, hva som er åpent og hva som er lukket."
+      }
+    ]
+  }
+}
