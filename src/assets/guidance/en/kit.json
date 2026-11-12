@@ -1,0 +1,248 @@
+{
+  "pages": {
+    "detail": {
+      "intro": {
+        "title": "One place for everything about this record",
+        "body": "Every record in CoreFlow has the same sections: the details, the records it is linked to, its activity, the discussion, its files and, for controlled records, its revision history.",
+        "steps": [
+          "Fill in the details first, then save.",
+          "Open **Related** to link the documents, deviations, risks or actions this record depends on.",
+          "Use **Comments** to discuss it; type @ to bring a colleague in.",
+          "Check **Activity** to see who did what and when."
+        ]
+      },
+      "why": {
+        "body": "Auditors want to follow the trail from a requirement to the evidence that it is met. Linking records, keeping the discussion with the record and keeping its history shows that your management system is controlled and that actions follow from findings.",
+        "clauses": ["hs:7.5", "hs:10.2", "iso27001:7.5.3"]
+      },
+      "empty": {
+        "title": "Nothing here yet",
+        "body": "Once you save the record, its links, comments, files and history collect here.",
+        "cta": "Save the record"
+      },
+      "fields": {
+        "tabs": {
+          "help": "Switch sections with the tabs, or with the arrow keys once a tab has focus.",
+          "example": "Open the Activity tab to see when the status last changed."
+        }
+      }
+    },
+    "related": {
+      "intro": {
+        "title": "Related records",
+        "body": "Links show how records depend on each other. Each link has a type, so it reads like a sentence: this deviation **is caused by** that supplier, this action **mitigates** that risk.",
+        "steps": [
+          "Select **Link a record**.",
+          "Choose the relationship, then search for the record by code or title.",
+          "Select **Link** next to the right result."
+        ]
+      },
+      "why": {
+        "body": "Links turn separate records into evidence. One document can be evidence for clauses in several standards, and a corrective action that is linked to its deviation shows that the cause was dealt with.",
+        "clauses": ["hs:10.2", "hs:9.1"]
+      },
+      "empty": {
+        "title": "No related records yet",
+        "body": "Link this record to the documents, deviations, risks or actions it depends on.",
+        "cta": "Link a record"
+      },
+      "fields": {
+        "link_type": {
+          "help": "The relationship, read from this record to the one you pick.",
+          "example": "A deviation \"caused by\" a supplier delivery; a procedure \"evidence for\" a requirement."
+        },
+        "entity_type": {
+          "help": "Narrow the search to one kind of record, or search all of them.",
+          "example": "Choose Document to find a procedure by its code."
+        }
+      }
+    },
+    "comments": {
+      "intro": {
+        "title": "Discuss the record where it lives",
+        "body": "Comments keep questions and decisions next to the record instead of in email. Mentioned colleagues get a notification and a link straight to the record.",
+        "steps": [
+          "Write your comment.",
+          "Type @ and a few letters of a name to mention someone.",
+          "Press Ctrl + Enter (Cmd + Enter on a Mac) or select **Comment** to post."
+        ]
+      },
+      "why": {
+        "body": "Decisions and their reasons are part of the record of how you run your management system. Keeping them with the record makes them easy to find in an audit.",
+        "clauses": ["hs:7.4", "hs:7.5"]
+      },
+      "empty": {
+        "title": "No comments yet",
+        "body": "Start the discussion or ask a colleague for input with an @mention.",
+        "cta": "Write a comment"
+      },
+      "fields": {
+        "body": {
+          "help": "Plain text. Up to 10,000 characters.",
+          "example": "@Kari, can you confirm the supplier has received the new specification?"
+        }
+      }
+    },
+    "revisions": {
+      "intro": {
+        "title": "Revision history",
+        "body": "Every saved change to a controlled record creates a revision that records who changed which fields, when, and why. You can compare any two revisions side by side.",
+        "steps": [
+          "Select **Show changes** on a revision to compare it with the one before.",
+          "Or tick two revisions and select **Compare selected**."
+        ]
+      },
+      "why": {
+        "body": "The standards require documented information to be controlled: changes must be identified, reviewed and traceable. The revision history is that trail.",
+        "clauses": ["hs:7.5.3", "iso27001:7.5.3"]
+      },
+      "empty": {
+        "title": "No revisions yet",
+        "body": "Revisions appear once the record has been saved.",
+        "cta": "Edit the record"
+      },
+      "fields": {
+        "change_reason": {
+          "help": "A short note on why the change was made. Auditors read it.",
+          "example": "Updated after the internal audit finding on supplier approval."
+        }
+      }
+    },
+    "activity": {
+      "intro": {
+        "title": "Activity",
+        "body": "A running log of what happened to this record: changes, comments, links and status updates, newest first.",
+        "steps": [
+          "Scroll down and select **Show older activity** to go further back.",
+          "If you can read the audit log, tick **Include audit log** for every recorded change."
+        ]
+      },
+      "why": {
+        "body": "Being able to show who did what and when is the basis of an audit trail and of accountability in the management system.",
+        "clauses": ["hs:9.1", "iso27001:8.15"]
+      },
+      "empty": {
+        "title": "No activity yet",
+        "body": "Activity appears as soon as someone changes, comments on or links this record.",
+        "cta": "Add a comment"
+      },
+      "fields": {}
+    },
+    "list": {
+      "intro": {
+        "title": "Find and filter records",
+        "body": "Search by code or title, narrow the list with the filters, and save the combinations you use often as views.",
+        "steps": [
+          "Type in the search box; the list updates as you type.",
+          "Set the filters you need.",
+          "Open **Saved views** and select **Save current view** to keep them."
+        ]
+      },
+      "why": {
+        "body": "Monitoring means looking at the same things regularly. A saved view makes that a one-click habit.",
+        "clauses": ["hs:9.1"]
+      },
+      "empty": {
+        "title": "No records match",
+        "body": "Clear the search or change the filters to see more.",
+        "cta": "Clear the search"
+      },
+      "fields": {
+        "views": {
+          "help": "Saved views are kept in this browser only.",
+          "example": "\"My open items\" with the owner filter set to you."
+        }
+      }
+    }
+  },
+  "lessons": {
+    "connected-records": {
+      "title": "Connected records: links, comments and history",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Why connect records?",
+          "body": "A management system is a web of related information: risks lead to controls, deviations lead to actions, documents prove that requirements are met. Linking records makes that web visible, so you and your auditors can follow it."
+        },
+        {
+          "heading": "Choosing the right link type",
+          "body": "Pick the relationship that reads correctly from the record you are on:\n\n- **Caused by**: this deviation was caused by that record.\n- **Mitigates**: this action or control reduces that risk.\n- **Evidence for**: this document proves that requirement is met.\n- **Supersedes**: this record replaces an older one.\n- **Implements** / **Derived from**: this record puts that one into practice, or comes from it.\n- **Relates to**: anything else."
+        },
+        {
+          "heading": "Discussing and tracking changes",
+          "body": "Use comments for questions and decisions, and @mention the people who need to act. For controlled records, every saved change becomes a revision with a reason, which you can compare later."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "A corrective action reduces the risk of a deviation happening again. Which link type fits best from the action?",
+          "options": ["Relates to", "Mitigates", "Supersedes"],
+          "answer": 1,
+          "explanation": "The action reduces (mitigates) the risk, so \"mitigates\" reads correctly from the action."
+        },
+        {
+          "question": "Where should a colleague's decision about a deviation be recorded?",
+          "options": [
+            "In an email to the team",
+            "As a comment on the deviation",
+            "Nowhere, the status is enough"
+          ],
+          "answer": 1,
+          "explanation": "A comment keeps the decision with the record, where it can be found in an audit."
+        },
+        {
+          "question": "What does a revision record?",
+          "options": [
+            "Only the new values",
+            "Who changed which fields, when and why",
+            "Only the date of the change"
+          ],
+          "answer": 1,
+          "explanation": "A revision keeps the snapshot, the changed fields, the person and the reason."
+        }
+      ],
+      "pass_mark": 0.8
+    }
+  },
+  "tours": {
+    "detail": [
+      {
+        "target": "kit-tabs",
+        "title": "Record sections",
+        "body": "Each tab shows one aspect of the record. Use the arrow keys to move between them."
+      },
+      {
+        "target": "kit-related",
+        "title": "Related records",
+        "body": "Link the records this one depends on, so the trail is easy to follow."
+      },
+      {
+        "target": "kit-comments",
+        "title": "Comments",
+        "body": "Discuss the record here and @mention colleagues who need to act."
+      }
+    ]
+  },
+  "glossary": {
+    "entity-link": {
+      "term": "Record link",
+      "definition": "A typed relationship between two records, such as \"caused by\" or \"evidence for\".",
+      "clauses": ["hs:10.2"]
+    },
+    "revision": {
+      "term": "Revision",
+      "definition": "A saved version of a controlled record, with who changed it, what changed, when and why.",
+      "clauses": ["hs:7.5.3"]
+    },
+    "mention": {
+      "term": "Mention",
+      "definition": "Naming a colleague with @ in a comment. They get a notification with a link to the record.",
+      "clauses": []
+    },
+    "audit-trail": {
+      "term": "Audit trail",
+      "definition": "The chronological record of who did what to a record, and when.",
+      "clauses": ["iso27001:8.15"]
+    }
+  }
+}

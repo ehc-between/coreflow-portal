@@ -3,8 +3,12 @@
  * All endpoints live under `v1/orgs/{org_id}/attachments`.
  */
 
-/** Parent record kinds an attachment can hang off. */
-export type AttachmentEntityType = 'document' | 'deviation' | 'deviation_action' | 'standard';
+/**
+ * Parent record kind an attachment hangs off: the built-in `document`,
+ * `deviation`, `deviation_action` and `standard`, or any registered entity type
+ * marked attachable (max 32 chars; the backend answers 422 for others).
+ */
+export type AttachmentEntityType = string;
 
 export type AttachmentStatus = 'pending' | 'available' | 'deleted';
 
