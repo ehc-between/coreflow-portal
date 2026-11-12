@@ -43,6 +43,31 @@ export const WORKFLOW_ERROR_CODES = [
   'verification_required',
 ] as const;
 
+/**
+ * Codes of the M03 endpoints (record-typed deviations, templates, root-cause
+ * worksheets, the intake). Each has a translated message under
+ * `deviations.apiErrors.<code>` in the `deviations` scope.
+ */
+export const M03_ERROR_CODES = [
+  'workflow_managed',
+  'not_workflow_managed',
+  'invalid_record_type',
+  'record_type_bound',
+  'record_type_inactive',
+  'record_type_unpublished',
+  'invalid_status',
+  'template_not_found',
+  'template_installed',
+  'conclusion_required',
+  'intake_not_configured',
+  'intake_not_found',
+  'receipt_not_found',
+  'type_required',
+  'report_closed',
+  'text_required',
+  'deviation_required',
+] as const;
+
 /** Translated generic text for a coded error the UI doesn't know yet. */
 export const UNKNOWN_ERROR_KEY = 'errors.generic';
 
@@ -110,6 +135,9 @@ export function codedErrorMessage(error: unknown): ErrorMessage | null {
   if ((WORKFLOW_ERROR_CODES as readonly string[]).includes(detail.code)) {
     return { message: `deviations.workflow.reasons.${detail.code}` };
   }
+  if ((M03_ERROR_CODES as readonly string[]).includes(detail.code)) {
+    return { message: `deviations.apiErrors.${detail.code}` };
+  }
   return { message: UNKNOWN_ERROR_KEY };
 }
 
@@ -172,6 +200,29 @@ export function invalidDataErrors(error: unknown): Readonly<Record<string, unkno
   return data && typeof data === 'object' && !Array.isArray(data)
     ? (data as Record<string, unknown>)
     : null;
+}
+
+/**
+ * Per-field F4 validation codes from a 422 `{code: "invalid_data", errors: {key: code}}`
+ * on a record-typed deviation (create, edit, intake conversion). Null otherwise.
+ */
+export function recordDataErrors(error: unknown): Readonly<Record<string, string>> | null {
+  if (!(error instanceof HttpErrorResponse) || error.status !== 422) {
+    return null;
+  }
+  const detail = (error.error as { detail?: { code?: unknown; errors?: unknown } } | null)?.detail;
+  const errors = detail?.errors;
+  if (
+    detail?.code !== 'invalid_data' ||
+    !errors ||
+    typeof errors !== 'object' ||
+    Array.isArray(errors)
+  ) {
+    return null;
+  }
+  return Object.fromEntries(
+    Object.entries(errors as Record<string, unknown>).map(([key, code]) => [key, String(code)]),
+  );
 }
 
 /**

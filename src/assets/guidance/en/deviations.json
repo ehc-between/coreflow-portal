@@ -1,0 +1,405 @@
+{
+  "pages": {
+    "list": {
+      "intro": {
+        "title": "Deviations, incidents and improvements",
+        "body": "One register for everything that did not go as planned, and for ideas to do better: nonconformities, customer complaints, security, environmental and safety incidents, AI incidents and improvement suggestions.",
+        "steps": [
+          "Register what happened as soon as you notice it, even if it seems small.",
+          "Find the root cause with a 5 Whys or fishbone analysis.",
+          "Plan corrective actions and set a date to check that they worked."
+        ]
+      },
+      "why": {
+        "body": "Every management standard asks you to **react to nonconformities, find their causes and correct them** (clause 10.2), and to learn from incidents. Auditors look for a register that is used, causes that were analysed and actions whose effect was checked.",
+        "clauses": [
+          "hs:10.2",
+          "hs:10.1",
+          "iso27001:A.5.24",
+          "iso27001:A.5.27",
+          "iso45001:10.2",
+          "iso14001:8.2"
+        ]
+      },
+      "empty": {
+        "title": "No deviations yet",
+        "body": "Few deviations is not always good news: it can mean problems are not reported. Make it easy to register small issues and near misses, and use the anonymous report link for people who prefer not to give their name.",
+        "cta": "Register a deviation"
+      },
+      "fields": {
+        "status": {
+          "help": "Where the deviation is in its workflow. Types with their own workflow have their own states.",
+          "example": "Received, Investigating, Actions, Effectiveness check, Closed."
+        }
+      }
+    },
+    "new": {
+      "intro": {
+        "title": "Register a deviation",
+        "body": "Describe what happened in plain words. You can type it freely and let AI fill in the form, then check every field before you save.",
+        "steps": [
+          "Choose the type that fits best: a nonconformity, a complaint, an incident or an idea.",
+          "Say what happened, where and when. Stick to facts, not blame.",
+          "Set the severity by the consequences, or what could have happened."
+        ]
+      },
+      "why": {
+        "body": "A good first registration saves time later: the people who investigate need facts, not guesses. Incidents that may be personal data breaches have a **72-hour** reporting deadline, so register them at once.",
+        "clauses": ["hs:10.2", "iso27001:A.5.25", "iso27001:A.6.8", "gdpr:33"]
+      },
+      "empty": {
+        "title": "Set up a deviation type first",
+        "body": "Deviation types decide which fields and which workflow a deviation gets. The quickest start is to install one of the ready-made templates.",
+        "cta": "Open the templates"
+      },
+      "fields": {
+        "severity": {
+          "help": "How serious the consequences are, or could have been.",
+          "example": "A wrong delivery to a customer is usually higher than a typo in an internal form."
+        },
+        "root_cause": {
+          "help": "The underlying reason the problem occurred. You can leave it empty now and find it later with the root-cause tools.",
+          "example": "Not \"the operator forgot\", but \"the checklist has no step for this\"."
+        }
+      }
+    },
+    "detail": {
+      "intro": {
+        "title": "Handle the deviation",
+        "body": "Move the deviation through its workflow: investigate, find the root cause, act and check the effect. Every change is recorded in the history.",
+        "steps": [
+          "Use a 5 Whys or fishbone worksheet to get from the symptom to the root cause.",
+          "Add containment, corrective and preventive actions with owners and deadlines.",
+          "Set an effectiveness review date on corrective actions so the check is not forgotten."
+        ]
+      },
+      "why": {
+        "body": "Closing a deviation is not the goal: **removing its cause** is. Clause 10.2 asks you to review the effectiveness of corrective actions, and to keep records of the nature of the nonconformity, the actions taken and the results.",
+        "clauses": [
+          "hs:10.2",
+          "iso27001:A.5.26",
+          "iso27001:A.5.27",
+          "iso27001:A.5.28",
+          "iso45001:10.2"
+        ]
+      },
+      "fields": {
+        "root_cause_tools": {
+          "help": "5 Whys: ask \"why?\" until you reach something you can change. Fishbone: list possible causes under people, method, machine, material, measurement, environment and management.",
+          "example": "The order was wrong → the picking list was old → the list is printed before changes are saved → the system has no warning."
+        },
+        "effectiveness_review": {
+          "help": "The date you will check that the action really stopped the problem from coming back. A task is created for the deviation's owner.",
+          "example": "Three months after a new checklist is introduced, check whether the same error happened again."
+        }
+      }
+    },
+    "types": {
+      "intro": {
+        "title": "Deviation types",
+        "body": "Each type decides what is asked for when someone registers a deviation, and how it is handled. A type bound to a record type gets its own fields, states, approvals and deadlines.",
+        "steps": [
+          "Start from a template, then adjust the fields and workflow to how you work.",
+          "Keep the number of required fields low, so reporting stays easy."
+        ]
+      },
+      "why": {
+        "body": "Different events need different handling: an information security incident needs fast containment and evidence, a customer complaint needs a reply, an improvement suggestion needs a decision.",
+        "clauses": ["hs:10.2", "iso27001:A.5.24", "iso45001:10.2"]
+      },
+      "fields": {
+        "record_type": {
+          "help": "Bind the type to a record type designed under settings to use its fields and workflow. Deviations already registered keep the version they were created with.",
+          "example": "\"Customer complaint\" with the states Received, Investigating, Answered and Closed."
+        }
+      }
+    },
+    "templates": {
+      "intro": {
+        "title": "Start from a template",
+        "body": "Each template sets up a deviation type with fields, a workflow, deadlines, automatic tasks and notifications based on common practice for that kind of event.",
+        "steps": [
+          "Install the templates you need. They are written in your language.",
+          "Open the record type designer to rename fields, add states or change who approves."
+        ]
+      },
+      "why": {
+        "body": "The templates cover the incident and improvement processes the standards expect: nonconformities (10.2), information security incidents (A.5.24 to A.5.28), environmental and safety incidents, serious AI incidents and improvement suggestions (10.3).",
+        "clauses": [
+          "hs:10.2",
+          "iso27001:A.5.24",
+          "iso14001:8.2",
+          "iso45001:10.2",
+          "eu_ai_act:73",
+          "nis2:21"
+        ]
+      }
+    },
+    "intakeSettings": {
+      "intro": {
+        "title": "An anonymous way to speak up",
+        "body": "Some people only report a problem if they can do it without giving their name. The report link lets anyone send a report without an account.",
+        "steps": [
+          "Choose anonymous reporting for everyday issues, or whistleblowing for serious concerns.",
+          "Write short instructions: what to report here, and what to do in an emergency.",
+          "Share the link on posters, the intranet or with suppliers."
+        ]
+      },
+      "why": {
+        "body": "Encouraging people to report events and weaknesses, and protecting those who do, is part of a working incident process. A whistleblowing channel may also be a legal requirement for your organisation.",
+        "clauses": ["iso27001:A.6.8", "iso45001:10.2", "hs:10.2"]
+      },
+      "fields": {
+        "mode": {
+          "help": "Whistleblowing reports become restricted deviations that only the person handling them can see. Use it for misconduct and other serious concerns.",
+          "example": "Anonymous: a broken handrail. Whistleblowing: suspected fraud by a manager."
+        }
+      }
+    },
+    "intakeInbox": {
+      "intro": {
+        "title": "Received reports",
+        "body": "Reports from the anonymous link land here. Look at each one, then register it as a deviation, or close it with a short note the reporter can read.",
+        "steps": [
+          "Start handling a new report so others see it is being taken care of.",
+          "Register it as a deviation when it needs follow-up.",
+          "Leave a note: the reporter sees it when they check their receipt code."
+        ]
+      },
+      "why": {
+        "body": "People keep reporting only if they see that reports are taken seriously. A short reply through the receipt code closes the loop without revealing who reported.",
+        "clauses": ["iso27001:A.6.8", "hs:10.2"]
+      },
+      "empty": {
+        "title": "No reports received",
+        "body": "Reports sent through the anonymous link appear here. Share the link so people know where to report."
+      }
+    },
+    "intakeReport": {
+      "intro": {
+        "title": "Handle a report",
+        "body": "Read the report, decide whether it needs follow-up, and either register it as a deviation or close it. AI can draft the deviation fields from the text for you to check.",
+        "steps": [
+          "Do not try to find out who sent an anonymous report.",
+          "Register it as a deviation of the type that fits, or close it with a note."
+        ]
+      },
+      "why": {
+        "body": "Protecting the identity of reporters is essential for trust, and in whistleblowing cases often a legal duty.",
+        "clauses": ["iso27001:A.6.8"]
+      }
+    }
+  },
+  "lessons": {
+    "deviations-basics": {
+      "title": "Deviations in five minutes",
+      "minutes": 5,
+      "sections": [
+        {
+          "heading": "What counts as a deviation?",
+          "body": "A deviation is anything that did not go as planned: a product that did not meet a requirement, a complaint, an incident, a near miss or a broken routine. An **improvement suggestion** is registered the same way, even though nothing went wrong."
+        },
+        {
+          "heading": "Correction and corrective action",
+          "body": "A **correction** fixes the problem in front of you (replace the wrong delivery). A **corrective action** removes the cause so it does not happen again (fix the picking routine). The standards ask for both."
+        },
+        {
+          "heading": "Closing the loop",
+          "body": "A deviation is only really closed when you have checked that the corrective action **worked**. Set an effectiveness review date when you add a corrective action."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "A customer received the wrong product. Which of these is a corrective action?",
+          "options": [
+            "Sending the right product today",
+            "Adding a scan check to the picking routine",
+            "Apologising to the customer"
+          ],
+          "answer": 1,
+          "explanation": "Sending the right product is a correction. The scan check removes the cause, so it is the corrective action."
+        },
+        {
+          "question": "When is a deviation really done?",
+          "options": [
+            "When the actions are planned",
+            "When the actions are completed",
+            "When you have checked that the actions worked"
+          ],
+          "answer": 2,
+          "explanation": "Clause 10.2 asks you to review the effectiveness of the corrective actions taken."
+        }
+      ],
+      "pass_mark": 0.5
+    },
+    "root-cause-analysis": {
+      "title": "Find the root cause",
+      "minutes": 6,
+      "sections": [
+        {
+          "heading": "Why the root cause matters",
+          "body": "If you only fix the symptom, the problem comes back. The **root cause** is the deepest cause you can still do something about."
+        },
+        {
+          "heading": "5 Whys",
+          "body": "Start with the problem and ask \"why did this happen?\". Ask again about the answer, about five times, until you reach a cause in a process, a tool or a requirement. Avoid stopping at \"someone made a mistake\": ask why the mistake was possible."
+        },
+        {
+          "heading": "Fishbone",
+          "body": "When there may be several causes, draw a fishbone: list possible causes under **people, method, machine, material, measurement, environment and management**. Then check which ones really contributed."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Which answer is the most useful root cause?",
+          "options": [
+            "The operator forgot to check the label",
+            "The work instruction has no label check step",
+            "It was a busy day"
+          ],
+          "answer": 1,
+          "explanation": "A missing step in the instruction is something you can change, and it explains why forgetting was possible."
+        },
+        {
+          "question": "When is a fishbone more helpful than 5 Whys?",
+          "options": [
+            "When several different causes may have contributed",
+            "When the cause is already known",
+            "Never, they are the same"
+          ],
+          "answer": 0
+        }
+      ],
+      "pass_mark": 0.5
+    },
+    "good-deviation-report": {
+      "title": "Write a good deviation report",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Facts first",
+          "body": "Write what happened, where, when and what the consequences were. Leave out guesses and blame; those belong in the investigation."
+        },
+        {
+          "heading": "Personal data and urgent incidents",
+          "body": "If personal data may have been exposed, register the deviation at once and tell the person responsible for privacy: a breach may have to be reported to the authority within **72 hours**."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Which description is best?",
+          "options": [
+            "Kim messed up the delivery again",
+            "On 12 May, order 4411 was delivered with 40 units instead of 400",
+            "Delivery problems"
+          ],
+          "answer": 1
+        }
+      ],
+      "pass_mark": 1
+    },
+    "designing-your-process": {
+      "title": "Design a deviation process",
+      "minutes": 5,
+      "sections": [
+        {
+          "heading": "States and steps",
+          "body": "A workflow has **states** (Received, Investigating, Closed) and **steps** between them. A step can require fields (for example a root cause before closing), a comment or an approval."
+        },
+        {
+          "heading": "Keep it light",
+          "body": "Every required field and approval makes reporting slower. Start with a template, and only add what you really use when you review the process."
+        },
+        {
+          "heading": "Versions",
+          "body": "When you publish a new version, deviations already registered keep the version they were created with. New deviations use the new one."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "What happens to existing deviations when you publish a new version of the type?",
+          "options": [
+            "They move to the new version",
+            "They keep the version they were created with",
+            "They are closed"
+          ],
+          "answer": 1
+        }
+      ],
+      "pass_mark": 1
+    },
+    "speaking-up": {
+      "title": "Anonymous reporting and whistleblowing",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Why offer an anonymous channel",
+          "body": "People report more when they feel safe. An anonymous link catches problems that would otherwise stay hidden, such as safety shortcuts or security weaknesses."
+        },
+        {
+          "heading": "Protect the reporter",
+          "body": "Never try to find out who sent a report. CoreFlow stores no IP address or browser details with the report, and a whistleblowing report is only visible to the person handling it."
+        },
+        {
+          "heading": "Close the loop",
+          "body": "The reporter gets a receipt code. Leave a short note when you handle or close the report, so they know it was taken seriously."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "How does an anonymous reporter follow up on their report?",
+          "options": [
+            "By email",
+            "With the receipt code they got when they reported",
+            "They cannot"
+          ],
+          "answer": 1
+        }
+      ],
+      "pass_mark": 1
+    }
+  },
+  "tours": {
+    "list": [
+      {
+        "target": "deviations-new",
+        "title": "Register a deviation",
+        "body": "Start here when something did not go as planned, or when you have an idea for an improvement."
+      },
+      {
+        "target": "deviations-search",
+        "title": "Find deviations",
+        "body": "Search by code or words, and filter by stage, status, type, severity or owner."
+      }
+    ],
+    "new": [
+      {
+        "target": "deviations-describe",
+        "title": "Describe it in your own words",
+        "body": "Type what happened and let AI pick the type and fill in the form. You check everything before saving."
+      }
+    ],
+    "detail": [
+      {
+        "target": "deviations-meta",
+        "title": "Key facts",
+        "body": "When it was raised, its deadline, when it was closed and where it came from."
+      },
+      {
+        "target": "deviations-workflow",
+        "title": "Workflow",
+        "body": "The current state, its deadline and the steps you can take. Some steps need fields, a comment or an approval."
+      },
+      {
+        "target": "deviations-root-cause",
+        "title": "Root cause tools",
+        "body": "Use a 5 Whys or fishbone worksheet, then use its conclusion as the root cause."
+      },
+      {
+        "target": "deviations-capa",
+        "title": "Actions",
+        "body": "Add containment, corrective and preventive actions, and set when to review their effect."
+      }
+    ]
+  }
+}

@@ -1,16 +1,19 @@
-import { HttpErrorResponse } from '@angular/common/http';
+import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideZonelessChangeDetection, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { TranslocoTestingModule } from '@jsverse/transloco';
 import { NEVER, of, throwError } from 'rxjs';
-import nb from '../../../assets/i18n/nb.json';
 import { AuthService } from '../../core/auth/auth.service';
 import { DeviationType } from '../../core/deviations/deviation.models';
 import { DeviationsApi } from '../../core/deviations/deviations-api';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { DeviationNew } from './deviation-new';
+import { deviationsLang } from './deviations.testing';
+
+const nb = deviationsLang('nb');
 
 /**
  * Renders /deviations/new in Norwegian with a realistic, Norwegian-authored type
@@ -212,11 +215,19 @@ async function setup(createError?: unknown): Promise<{
     ],
     providers: [
       provideZonelessChangeDetection(),
+      provideHttpClient(),
+      provideHttpClientTesting(),
       provideRouter([{ path: 'deviations', children: [] }]),
       { provide: DeviationsApi, useValue: api },
       { provide: NotificationService, useValue: notify },
-      { provide: AuthService, useValue: { user: signal({ id: 'u1' }) } },
-      { provide: SelectedOrgService, useValue: { currentOrgId: signal('org1') } },
+      {
+        provide: AuthService,
+        useValue: { user: signal({ id: 'u1' }), isAuthenticated: signal(false) },
+      },
+      {
+        provide: SelectedOrgService,
+        useValue: { currentOrgId: signal('org1'), currentOrg: signal(null) },
+      },
     ],
   });
   const fixture = TestBed.createComponent(DeviationNew);

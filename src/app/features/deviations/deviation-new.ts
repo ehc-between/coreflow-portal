@@ -7,7 +7,8 @@ import {
   signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { TourStepDirective } from '../../shared/guidance/tour-step.directive';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { AuthService } from '../../core/auth/auth.service';
 import { LanguageService } from '../../core/i18n/language.service';
@@ -45,6 +46,44 @@ import { DeviationClassificationFields } from './classification-fields';
 import { ClauseRow, toClauseRefs } from './deviation-edit';
 import { DynamicField, DynamicFieldOption } from './dynamic-field';
 import { groupFieldsIntoSections } from './types/type-schema';
+import { providePageContext } from '../../core/ai/page-context';
+import { hasAnyPermission } from '../../core/auth/permission';
+import {
+  DEVIATION_LINK_TYPES,
+  DeviationLinkInput,
+  DeviationLinkType,
+  RegisterFromTextResult,
+} from '../../core/deviations/deviation.models';
+import { recordDataErrors } from '../../core/deviations/deviation-errors';
+import { RecordTypeVersion } from '../../core/records/record.models';
+import { RecordsApi } from '../../core/records/records-api';
+import { AiAssistButton } from '../../shared/ask/ai-assist-button';
+import { FieldHelp } from '../../shared/guidance/field-help';
+import { TeachingEmpty } from '../../shared/guidance/teaching-empty';
+import { DynamicForm } from '../../shared/records/dynamic-form';
+import { defaultData } from '../../shared/records/form-model';
+import { Alert } from '../../shared/ui/alert/alert';
+import { DeviationPageGuide } from './guide/deviation-page-guide';
+
+/**
+ * F8 links for a new deviation from the query string
+ * (`?link_entity_type=inspection_finding&link_entity_id=<id>&link_type=caused_by`), so
+ * other modules can open "Register a deviation" pre-linked to their record.
+ */
+export function linksFromParams(params: {
+  get(name: string): string | null;
+}): DeviationLinkInput[] {
+  const entityType = params.get('link_entity_type');
+  const entityId = params.get('link_entity_id');
+  if (!entityType || !entityId || !/^[a-z][a-z0-9_]{0,31}$/.test(entityType)) {
+    return [];
+  }
+  const raw = params.get('link_type') ?? 'relates_to';
+  const linkType = (DEVIATION_LINK_TYPES as readonly string[]).includes(raw)
+    ? (raw as DeviationLinkType)
+    : 'relates_to';
+  return [{ entity_type: entityType, entity_id: entityId, link_type: linkType }];
+}
 
 /**
  * New deviation flow, scoped to the currently selected org. Step 1 picks a
@@ -58,6 +97,7 @@ import { groupFieldsIntoSections } from './types/type-schema';
 @Component({
   selector: 'app-deviation-new',
   imports: [
+    TourStepDirective,
     FormsModule,
     RouterLink,
     TranslocoPipe,
@@ -67,6 +107,12 @@ import { groupFieldsIntoSections } from './types/type-schema';
     Badge,
     DynamicField,
     DeviationClassificationFields,
+    DynamicForm,
+    AiAssistButton,
+    FieldHelp,
+    TeachingEmpty,
+    Alert,
+    DeviationPageGuide,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -83,6 +129,44 @@ import { groupFieldsIntoSections } from './types/type-schema';
         {{ 'deviations.new' | transloco }}
       </h1>
 
+      <app-deviation-page-guide class="mb-5" page="new" lesson="good-deviation-report" tour="new" />
+
+      @if (!loadingTypes() && types().length > 0) {
+        <app-card class="mb-5">
+          <div class="flex flex-col gap-2" appTourStep="deviations-describe">
+            <label for="dev-freetext" class="text-[13px] font-semibold text-fg-muted">
+              {{ 'deviations.assist.describeLabel' | transloco }}
+            </label>
+            <textarea
+              id="dev-freetext"
+              rows="3"
+              maxlength="8000"
+              [ngModel]="freeText()"
+              (ngModelChange)="freeText.set($event)"
+              [placeholder]="'deviations.assist.describePlaceholder' | transloco"
+              class="w-full rounded-[10px] border border-border bg-bg px-3 py-2.5 text-[13.5px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
+            ></textarea>
+            <div class="flex flex-wrap items-center gap-2">
+              <app-ai-assist-button
+                assist="deviations.register_from_text"
+                labelKey="deviations.assist.registerFromText"
+                [input]="registerInput()"
+                [disabled]="freeText().trim().length < 10"
+                (result)="applyDraft($event)"
+              />
+              <span class="text-[12px] text-fg-subtle">{{
+                'deviations.assist.describeHint' | transloco
+              }}</span>
+            </div>
+            @if (draftMissing().length) {
+              <p class="text-[12.5px] text-fg-muted" data-testid="draft-missing">
+                {{ 'deviations.assist.missing' | transloco: { fields: draftMissing().join(', ') } }}
+              </p>
+            }
+          </div>
+        </app-card>
+      }
+
       @if (loadingTypes()) {
         <app-card>
           <p class="py-6 text-center text-[14px] text-fg-muted">
@@ -91,15 +175,22 @@ import { groupFieldsIntoSections } from './types/type-schema';
         </app-card>
       } @else if (types().length === 0) {
         <app-card>
-          <div class="flex flex-col items-center gap-2 py-8 text-center">
-            <app-icon name="alert" [size]="22" class="text-fg-subtle" />
-            <p class="text-[14px] font-semibold text-fg">
-              {{ 'deviations.create.noTypesTitle' | transloco }}
-            </p>
-            <p class="max-w-[420px] text-[13px] text-fg-muted">
-              {{ 'deviations.create.noTypesHint' | transloco }}
-            </p>
-          </div>
+          <app-teaching-empty
+            scope="deviations"
+            page="new"
+            [showAction]="isAdmin()"
+            (action)="goToTemplates()"
+          >
+            <div class="flex flex-col items-center gap-2 py-8 text-center">
+              <app-icon name="alert" [size]="22" class="text-fg-subtle" />
+              <p class="text-[14px] font-semibold text-fg">
+                {{ 'deviations.create.noTypesTitle' | transloco }}
+              </p>
+              <p class="max-w-[420px] text-[13px] text-fg-muted">
+                {{ 'deviations.create.noTypesHint' | transloco }}
+              </p>
+            </div>
+          </app-teaching-empty>
         </app-card>
       } @else if (!selectedType()) {
         <p class="mb-3 text-[13px] font-semibold text-fg-muted">
@@ -115,6 +206,11 @@ import { groupFieldsIntoSections } from './types/type-schema';
               <span class="flex items-center gap-2">
                 <span class="font-mono text-[12px] text-fg-subtle">{{ type.code_prefix }}</span>
                 <span class="text-[14px] font-semibold text-fg">{{ type.name }}</span>
+                @if (type.record_type_id) {
+                  <app-badge tone="accent">{{
+                    'deviations.wf.workflowBadge' | transloco
+                  }}</app-badge>
+                }
               </span>
               @if (type.description) {
                 <span class="text-[12.5px] text-fg-muted">{{ type.description }}</span>
@@ -184,9 +280,12 @@ import { groupFieldsIntoSections } from './types/type-schema';
 
               <div class="grid gap-4 sm:grid-cols-2">
                 <div class="flex flex-col gap-1.5">
-                  <label for="dev-severity" class="text-[13px] font-semibold text-fg-muted">
-                    {{ 'deviations.create.fields.severity' | transloco }}
-                  </label>
+                  <span class="flex items-center gap-1.5">
+                    <label for="dev-severity" class="text-[13px] font-semibold text-fg-muted">
+                      {{ 'deviations.create.fields.severity' | transloco }}
+                    </label>
+                    <app-field-help scope="deviations" page="new" field="severity" />
+                  </span>
                   <div class="cf-select">
                     <select
                       id="dev-severity"
@@ -342,6 +441,35 @@ import { groupFieldsIntoSections } from './types/type-schema';
             </div>
           </app-card>
 
+          @if (recordVersion(); as version) {
+            <app-card>
+              <h2 class="mb-3 font-display text-[16px] font-bold tracking-[-0.02em] text-fg">
+                {{ 'deviations.wf.fieldsTitle' | transloco }}
+              </h2>
+              <app-dynamic-form
+                [fields]="version.fields"
+                [layout]="version.layout"
+                [value]="data()"
+                [errors]="recordErrors()"
+                [people]="users()"
+                [departments]="departments()"
+                (valueChange)="setRecordData($event)"
+              />
+            </app-card>
+          } @else if (loadingRecordType()) {
+            <app-card>
+              <p class="py-4 text-center text-[13px] text-fg-muted">
+                {{ 'common.loading' | transloco }}
+              </p>
+            </app-card>
+          }
+
+          @if (links().length) {
+            <app-alert tone="info">{{
+              'deviations.wf.linkedFrom' | transloco: { count: links().length }
+            }}</app-alert>
+          }
+
           @if (schemaSections().length) {
             <app-card>
               <div class="flex flex-col gap-6">
@@ -414,8 +542,28 @@ export class DeviationNew {
   private readonly notifications = inject(NotificationService);
   private readonly language = inject(LanguageService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  private readonly recordsApi = inject(RecordsApi);
 
   protected readonly orgId = this.selectedOrg.currentOrgId;
+
+  /** Free text for the "describe what happened" AI draft. */
+  protected readonly freeText = signal('');
+  /** Fields the AI draft could not fill (shown as a hint). */
+  protected readonly draftMissing = signal<readonly string[]>([]);
+  protected readonly registerInput = computed(() => ({
+    text: this.freeText().trim(),
+    ...(this.selectedType() ? { type_id: this.selectedType()!.id } : {}),
+  }));
+  /** The current version of the selected type's record type (record-typed types). */
+  protected readonly recordVersion = signal<RecordTypeVersion | null>(null);
+  protected readonly loadingRecordType = signal(false);
+  protected readonly recordErrors = signal<Readonly<Record<string, string>>>({});
+  /** Links to create with the deviation (from the query string). */
+  protected readonly links = signal<readonly DeviationLinkInput[]>([]);
+  protected readonly isAdmin = computed(() =>
+    hasAnyPermission(this.selectedOrg.currentOrg()?.permissions, 'deviations:admin'),
+  );
 
   protected readonly severityOptions = SEVERITY_OPTIONS;
   protected readonly sourceOptions = SOURCE_OPTIONS;
@@ -456,7 +604,7 @@ export class DeviationNew {
   /** The chosen type's schema grouped into render sections for the 2-col grid. */
   protected readonly schemaSections = computed(() => {
     const type = this.selectedType();
-    if (!type) {
+    if (!type || type.record_type_id) {
       return [];
     }
     const defaultTitle = this.language.translate('deviations.create.detailsSection');
@@ -466,6 +614,14 @@ export class DeviationNew {
   private currentOrgId: string | null = null;
 
   constructor() {
+    providePageContext(() => ({
+      module: 'deviations',
+      entityType: 'deviation',
+      view: 'new',
+      title: this.title().trim() || null,
+    }));
+    this.links.set(linksFromParams(this.route.snapshot.queryParamMap));
+
     effect(() => {
       const orgId = this.orgId();
       if (this.currentOrgId !== null && orgId !== this.currentOrgId) {
@@ -490,17 +646,84 @@ export class DeviationNew {
     return [];
   }
 
-  protected selectType(type: DeviationType): void {
+  protected selectType(type: DeviationType, data: Record<string, unknown> = {}): void {
     this.selectedType.set(type);
     // Default the editable standards to the type's standards.
     this.standards.set([...type.standards]);
-    this.data.set({});
+    this.data.set(data);
     this.dataErrors.set({});
+    this.recordErrors.set({});
+    this.recordVersion.set(null);
+    const orgId = this.orgId();
+    if (orgId && type.record_type_id) {
+      this.loadingRecordType.set(true);
+      this.recordsApi.getRecordType(orgId, type.record_type_id).subscribe({
+        next: (recordType) => {
+          this.loadingRecordType.set(false);
+          const version = recordType.current_version;
+          this.recordVersion.set(version);
+          if (version) {
+            this.data.set({ ...defaultData(version.fields), ...this.data() });
+          }
+        },
+        error: () => this.loadingRecordType.set(false),
+      });
+    }
   }
 
   protected changeType(): void {
     this.selectedType.set(null);
     this.dataErrors.set({});
+    this.recordErrors.set({});
+    this.recordVersion.set(null);
+  }
+
+  protected goToTemplates(): void {
+    void this.router.navigateByUrl('/deviations/templates');
+  }
+
+  /** Record type fields edited (the dynamic form emits the whole data object). */
+  protected setRecordData(value: Record<string, unknown>): void {
+    const errors = this.recordErrors();
+    const stale = Object.keys(errors).filter((key) => value[key] !== this.data()[key]);
+    if (stale.length) {
+      const next = { ...errors };
+      for (const key of stale) {
+        delete next[key];
+      }
+      this.recordErrors.set(next);
+    }
+    this.data.set(value);
+  }
+
+  /** Fill the form from the AI draft of the free text (the user reviews before saving). */
+  protected applyDraft(result: unknown): void {
+    const draft = result as RegisterFromTextResult | null;
+    if (!draft || typeof draft !== 'object') {
+      return;
+    }
+    const type = this.types().find((t) => t.id === draft.type_id) ?? this.selectedType();
+    const data = draft.data && typeof draft.data === 'object' ? draft.data : {};
+    if (type && type.id !== this.selectedType()?.id) {
+      this.selectType(type, { ...data });
+    } else if (type) {
+      this.data.set({ ...this.data(), ...data });
+    }
+    if (draft.title) {
+      this.title.set(draft.title.slice(0, 255));
+      this.titleError.set(false);
+    }
+    if (draft.description) {
+      this.description.set(draft.description);
+    }
+    if (draft.severity) {
+      this.severity.set(draft.severity);
+    }
+    if (draft.source) {
+      this.source.set(draft.source);
+    }
+    this.draftMissing.set(Array.isArray(draft.missing) ? draft.missing : []);
+    this.notifications.info('deviations.assist.draftApplied');
   }
 
   protected setData(key: string, value: unknown): void {
@@ -544,6 +767,7 @@ export class DeviationNew {
       root_cause_method: this.rootCauseMethod() || undefined,
       data: this.data(),
       visibility: this.visibility(),
+      links: this.links().length ? this.links() : undefined,
     };
 
     this.saving.set(true);
@@ -562,6 +786,12 @@ export class DeviationNew {
   }
 
   private handleError(error: unknown): void {
+    const recordFieldErrors = recordDataErrors(error);
+    if (recordFieldErrors) {
+      this.recordErrors.set(recordFieldErrors);
+      this.notifications.error('deviations.create.validationToast');
+      return;
+    }
     const fieldErrors = invalidDataErrors(error);
     if (fieldErrors) {
       this.dataErrors.set(fieldErrorKeys(fieldErrors));

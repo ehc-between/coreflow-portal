@@ -34,11 +34,20 @@ const WORKFLOW_CODES: readonly WorkflowErrorCode[] = [
 /** Max length of a status-change reason (backend `status_reason` limit). */
 export const STATUS_REASON_MAX = 2000;
 
-const TERMINAL: readonly DeviationStatus[] = ['closed', 'cancelled'];
+const TERMINAL: readonly string[] = ['closed', 'cancelled'] satisfies DeviationStatus[];
 
 /** Closed / cancelled: the deviation must be reopened before it can be changed. */
-export function isTerminalStatus(status: DeviationStatus): boolean {
+export function isTerminalStatus(status: string): boolean {
   return TERMINAL.includes(status);
+}
+
+/**
+ * Whether the deviation's lifecycle is an F4 workflow (a record-typed
+ * deviation): status changes then go through workflow transitions, not the
+ * legacy status menu.
+ */
+export function isWorkflowManaged(dev: DeviationDetail): boolean {
+  return !!dev.workflow;
 }
 
 function isWorkflowCode(code: unknown): code is WorkflowErrorCode {
@@ -74,8 +83,8 @@ export function statusMenuEntries(dev: DeviationDetail): readonly StatusMenuEntr
 export function workflowReasonKey(
   code: string | null | undefined,
   context?: {
-    readonly from: DeviationStatus;
-    readonly to: DeviationStatus;
+    readonly from: string;
+    readonly to: string;
     readonly canManage: boolean;
   },
 ): string {
@@ -111,6 +120,10 @@ export function lacksEditReach(dev: DeviationDetail): boolean {
 
 /** Why editing is locked (closed/cancelled, or no edit reach), or null when editable. */
 export function editLockKey(dev: DeviationDetail): string | null {
+  if (isWorkflowManaged(dev)) {
+    // A workflow state in the done / cancelled category freezes the record.
+    return dev.closed_at ? 'deviations.workflow.closedNote' : null;
+  }
   if (isTerminalStatus(dev.status)) {
     return 'deviations.workflow.closedNote';
   }
@@ -119,6 +132,9 @@ export function editLockKey(dev: DeviationDetail): string | null {
 
 /** Why the status menu is disabled (no transitions offered), or null when usable. */
 export function statusLockedKey(dev: DeviationDetail): string | null {
+  if (isWorkflowManaged(dev)) {
+    return null;
+  }
   if (dev.allowed_transitions === undefined || dev.allowed_transitions.length > 0) {
     return null;
   }

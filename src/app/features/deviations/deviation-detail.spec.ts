@@ -1,4 +1,5 @@
-import { HttpErrorResponse } from '@angular/common/http';
+import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideZonelessChangeDetection, signal } from '@angular/core';
 import { By } from '@angular/platform-browser';
@@ -62,6 +63,8 @@ interface ApiMock {
   changeStatus: ReturnType<typeof vi.fn>;
   updateDeviation: ReturnType<typeof vi.fn>;
   deleteDeviation: ReturnType<typeof vi.fn>;
+  listRootCauses: ReturnType<typeof vi.fn>;
+  similar: ReturnType<typeof vi.fn>;
 }
 
 async function setup(
@@ -84,6 +87,8 @@ async function setup(
     changeStatus: vi.fn((): Observable<DeviationDetailModel> => NEVER),
     updateDeviation: vi.fn((): Observable<DeviationDetailModel> => NEVER),
     deleteDeviation: vi.fn((): Observable<void> => NEVER),
+    listRootCauses: vi.fn(() => NEVER),
+    similar: vi.fn(() => NEVER),
   };
   const notify = { success: vi.fn(), error: vi.fn(), info: vi.fn(), warning: vi.fn() };
   const org = {
@@ -96,11 +101,16 @@ async function setup(
     imports: [DeviationDetail, TranslocoTestingModule.forRoot({ langs: { en: {} } })],
     providers: [
       provideZonelessChangeDetection(),
+      provideHttpClient(),
+      provideHttpClientTesting(),
       provideRouter([{ path: 'deviations', children: [] }]),
       { provide: DeviationsApi, useValue: api },
       { provide: AttachmentsApi, useValue: { list: () => NEVER } },
       { provide: NotificationService, useValue: notify },
-      { provide: AuthService, useValue: { orgs: signal({}) } },
+      {
+        provide: AuthService,
+        useValue: { orgs: signal({}), user: signal(null), isAuthenticated: signal(false) },
+      },
       {
         provide: SelectedOrgService,
         useValue: { currentOrgId: signal('org1'), currentOrg: signal(org) },

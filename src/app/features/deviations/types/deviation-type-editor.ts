@@ -1,3 +1,4 @@
+import { providePageContext } from '../../../core/ai/page-context';
 import {
   CdkDragDrop,
   DragDropModule,
@@ -33,6 +34,10 @@ import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { hasAnyPermission } from '../../../core/auth/permission';
+import { RecordType } from '../../../core/records/record.models';
+import { RecordsApi } from '../../../core/records/records-api';
+import { FieldHelp } from '../../../shared/guidance/field-help';
 import {
   FIELD_TYPE_OPTIONS,
   STANDARD_OPTIONS,
@@ -70,6 +75,7 @@ import {
 @Component({
   selector: 'app-deviation-type-editor',
   imports: [
+    FieldHelp,
     FormsModule,
     RouterLink,
     TranslocoPipe,
@@ -256,6 +262,41 @@ import {
                       </label>
                     }
                   </div>
+                </div>
+
+                <div class="flex flex-col gap-1.5 border-t border-border pt-4">
+                  <span class="flex items-center gap-1.5">
+                    <label for="type-record-type" class="text-[13px] font-semibold text-fg-muted">
+                      {{ 'deviations.wf.binding.label' | transloco }}
+                    </label>
+                    <app-field-help scope="deviations" page="types" field="record_type" />
+                  </span>
+                  <select
+                    id="type-record-type"
+                    name="recordType"
+                    [ngModel]="recordTypeId()"
+                    (ngModelChange)="recordTypeId.set($event)"
+                    class="h-10 rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg outline-none focus:border-accent sm:max-w-[60%]"
+                  >
+                    <option value="">{{ 'deviations.wf.binding.none' | transloco }}</option>
+                    @for (rt of recordTypes(); track rt.id) {
+                      <option [value]="rt.id">{{ rt.name }}</option>
+                    }
+                    @if (recordTypeId() && !knownRecordType()) {
+                      <option [value]="recordTypeId()">
+                        {{ 'deviations.wf.binding.current' | transloco }}
+                      </option>
+                    }
+                  </select>
+                  @if (recordTypeId()) {
+                    <p class="text-[12.5px] text-fg-muted" data-testid="binding-note">
+                      {{ 'deviations.wf.binding.boundNote' | transloco }}
+                    </p>
+                  } @else {
+                    <p class="text-[12.5px] text-fg-subtle">
+                      {{ 'deviations.wf.binding.hint' | transloco }}
+                    </p>
+                  }
                 </div>
               </div>
             </app-card>
@@ -647,6 +688,14 @@ export class DeviationTypeEditor {
   protected readonly description = signal('');
   protected readonly codePrefix = signal('');
   protected readonly isActive = signal(true);
+  /** The F4 record type (module `deviations`) this type is bound to; '' = none. */
+  protected readonly recordTypeId = signal('');
+  protected originalRecordTypeId = '';
+  protected readonly recordTypes = signal<readonly RecordType[]>([]);
+  protected readonly knownRecordType = computed(() =>
+    this.recordTypes().some((rt) => rt.id === this.recordTypeId()),
+  );
+  private readonly recordsApi = inject(RecordsApi);
   protected readonly standards = signal<readonly Standard[]>([]);
   /** The layout builder's source of truth: ordered sections of ordered fields. */
   protected readonly sections = signal<DraftSection[]>([{ title: '', fields: [] }]);
@@ -687,6 +736,7 @@ export class DeviationTypeEditor {
   });
 
   constructor() {
+    providePageContext(() => ({ module: 'deviations', view: 'settings' }));
     this.sections.set([{ title: '', fields: [] }]);
 
     effect(() => {
@@ -695,6 +745,8 @@ export class DeviationTypeEditor {
       this.typeId.set(id);
       if (orgId && id) {
         this.load(orgId, id);
+      } else if (orgId) {
+        this.loadRecordTypes(orgId);
       }
     });
   }
@@ -901,6 +953,10 @@ export class DeviationTypeEditor {
       code_prefix: this.codePrefix().trim(),
       schema: flattenSections(this.sections()).map(toFieldDef),
       is_active: this.isActive(),
+      // Only sent when changed: an explicit null unbinds the record type.
+      ...(this.recordTypeId() !== this.originalRecordTypeId
+        ? { record_type_id: this.recordTypeId() || null }
+        : {}),
     };
 
     this.saving.set(true);
@@ -972,7 +1028,19 @@ export class DeviationTypeEditor {
     notifyDeviationError(this.notifications, error, 'deviations.types.editor.saveFailedToast');
   }
 
+  private loadRecordTypes(orgId: string): void {
+    if (!hasAnyPermission(this.selectedOrg.currentOrg()?.permissions, 'records:read')) {
+      return;
+    }
+    this.recordsApi
+      .listRecordTypes(orgId, { module: 'deviations', includeInactive: false })
+      .subscribe({
+        next: (types) => this.recordTypes.set(types),
+      });
+  }
+
   private load(orgId: string, id: string): void {
+    this.loadRecordTypes(orgId);
     this.loading.set(true);
     this.api.getType(orgId, id).subscribe({
       next: (type) => {
@@ -990,6 +1058,8 @@ export class DeviationTypeEditor {
     this.description.set(type.description ?? '');
     this.codePrefix.set(type.code_prefix);
     this.isActive.set(type.is_active);
+    this.originalRecordTypeId = type.record_type_id ?? '';
+    this.recordTypeId.set(this.originalRecordTypeId);
     this.standards.set([...type.standards]);
     this.setSectionsFromSchema(type.schema);
   }

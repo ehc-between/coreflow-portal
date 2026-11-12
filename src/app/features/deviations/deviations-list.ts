@@ -8,15 +8,15 @@ import {
   signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 import { HasPermissionDirective } from '../../core/auth/has-permission.directive';
 import {
   DeviationFilters,
   DeviationListItem,
-  DeviationStatus,
   DeviationType,
+  StatusCategory,
   Severity,
   Source,
   Standard,
@@ -41,6 +41,11 @@ import {
   statusTone,
 } from './deviation-enums';
 import { providePageContext } from '../../core/ai/page-context';
+import { hasAnyPermission } from '../../core/auth/permission';
+import { TeachingEmpty } from '../../shared/guidance/teaching-empty';
+import { TourStepDirective } from '../../shared/guidance/tour-step.directive';
+import { DeviationStatusLabels, STATUS_CATEGORIES } from './deviation-status';
+import { DeviationPageGuide } from './guide/deviation-page-guide';
 
 const PAGE_SIZE = 25;
 
@@ -76,11 +81,14 @@ interface SortOption {
     Badge,
     Button,
     Icon,
+    TeachingEmpty,
+    TourStepDirective,
+    DeviationPageGuide,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[1180px] px-8 pt-7 pb-12">
-      <div class="mb-[18px] flex items-end justify-between gap-4">
+    <div class="mx-auto max-w-[1180px] px-4 pt-7 pb-12 sm:px-8">
+      <div class="mb-[18px] flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 class="font-display text-[26px] font-bold tracking-[-0.025em] text-fg">
             {{ 'deviations.title' | transloco }}
@@ -89,7 +97,13 @@ interface SortOption {
             {{ 'deviations.subtitle' | transloco }}
           </div>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2">
+          <a *appHasPermission="'deviations:intake'" routerLink="/deviations/intake">
+            <app-button variant="secondary">
+              <app-icon name="inbox" [size]="15" />
+              {{ 'deviations.intake.inbox.link' | transloco }}
+            </app-button>
+          </a>
           <a routerLink="/deviations/actions">
             <app-button variant="secondary">
               <app-icon name="check" [size]="15" />
@@ -108,7 +122,11 @@ interface SortOption {
               {{ 'deviations.types.link' | transloco }}
             </app-button>
           </a>
-          <a *appHasPermission="'deviations:write'" routerLink="/deviations/new">
+          <a
+            *appHasPermission="'deviations:write'"
+            routerLink="/deviations/new"
+            appTourStep="deviations-new"
+          >
             <app-button>
               <app-icon name="plus" [size]="15" />
               {{ 'deviations.new' | transloco }}
@@ -117,7 +135,9 @@ interface SortOption {
         </div>
       </div>
 
-      <div class="mb-3 flex flex-wrap items-center gap-2.5">
+      <app-deviation-page-guide class="mb-5" page="list" lesson="deviations-basics" tour="list" />
+
+      <div class="mb-3 flex flex-wrap items-center gap-2.5" appTourStep="deviations-search">
         <div
           class="flex h-10 min-w-[220px] flex-1 items-center gap-2.5 rounded-[10px] border border-border bg-bg px-3"
         >
@@ -144,7 +164,21 @@ interface SortOption {
         </div>
       </div>
 
-      <div class="mb-4 grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4">
+      <div
+        class="mb-4 grid grid-cols-1 gap-2.5 min-[420px]:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4"
+      >
+        <div class="cf-select">
+          <select
+            [ngModel]="category()"
+            (ngModelChange)="onFilterChange('category', $event)"
+            [attr.aria-label]="'deviations.category.filter' | transloco"
+          >
+            <option value="">{{ 'deviations.category.all' | transloco }}</option>
+            @for (option of categoryOptions; track option) {
+              <option [value]="option">{{ 'deviations.category.' + option | transloco }}</option>
+            }
+          </select>
+        </div>
         <div class="cf-select">
           <select
             [ngModel]="status()"
@@ -154,6 +188,13 @@ interface SortOption {
             <option value="">{{ 'deviations.filters.allStatuses' | transloco }}</option>
             @for (option of statusOptions; track option) {
               <option [value]="option">{{ statusLabelKey(option) | transloco }}</option>
+            }
+            @if (workflowStates().length) {
+              <optgroup [label]="'deviations.wf.statesGroup' | transloco">
+                @for (state of workflowStates(); track state.key) {
+                  <option [value]="state.key">{{ state.text }}</option>
+                }
+              </optgroup>
             }
           </select>
         </div>
@@ -283,14 +324,30 @@ interface SortOption {
             {{ 'common.loading' | transloco }}
           </div>
         } @else if (items().length === 0) {
-          <div class="px-4 py-12 text-center">
-            <p class="text-[14px] text-fg-muted">{{ 'deviations.empty' | transloco }}</p>
-          </div>
+          @if (hasActiveFilters()) {
+            <div class="px-4 py-12 text-center">
+              <p class="text-[14px] text-fg-muted">{{ 'deviations.empty' | transloco }}</p>
+            </div>
+          } @else {
+            <app-teaching-empty
+              scope="deviations"
+              page="list"
+              [showAction]="canWrite()"
+              (action)="openNew()"
+            >
+              <div class="px-4 py-12 text-center">
+                <p class="text-[14px] text-fg-muted">{{ 'deviations.empty' | transloco }}</p>
+              </div>
+            </app-teaching-empty>
+          }
         } @else {
           <ul>
             @for (row of items(); track row.id) {
               <li class="border-b border-border last:border-b-0 hover:bg-surface-2">
-                <a [routerLink]="['/deviations', row.id]" class="flex items-center gap-3 px-4 py-3">
+                <a
+                  [routerLink]="['/deviations', row.id]"
+                  class="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3 outline-none focus-visible:ring-2 focus-visible:ring-accent sm:flex-nowrap"
+                >
                   <span class="w-[96px] flex-none font-mono text-[12px] text-fg-subtle">{{
                     row.code
                   }}</span>
@@ -310,8 +367,8 @@ interface SortOption {
                   <app-badge [tone]="severityTone(row.severity)">{{
                     severityLabelKey(row.severity) | transloco
                   }}</app-badge>
-                  <app-badge [tone]="statusTone(row.status)">{{
-                    statusLabelKey(row.status) | transloco
+                  <app-badge [tone]="statusLabels.tone(row)">{{
+                    statusLabels.label(row)
                   }}</app-badge>
                   <span
                     class="hidden w-[120px] flex-none truncate text-right text-[12.5px] text-fg-subtle sm:block"
@@ -401,6 +458,14 @@ export class DeviationsList {
   private readonly api = inject(DeviationsApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  protected readonly statusLabels = inject(DeviationStatusLabels);
+  protected readonly categoryOptions = STATUS_CATEGORIES;
+  protected readonly workflowStates = this.statusLabels.workflowStates;
+  protected readonly category = signal<StatusCategory | ''>('');
+  protected readonly canWrite = computed(() =>
+    hasAnyPermission(this.selectedOrg.currentOrg()?.permissions, 'deviations:write'),
+  );
 
   protected readonly orgId = this.selectedOrg.currentOrgId;
   protected readonly pageSize = PAGE_SIZE;
@@ -425,7 +490,7 @@ export class DeviationsList {
   ];
 
   protected readonly query = signal('');
-  protected readonly status = signal<DeviationStatus | ''>('');
+  protected readonly status = signal('');
   protected readonly scope = signal<DeviationScope>('');
   protected readonly typeId = signal('');
   protected readonly standard = signal<Standard | ''>('');
@@ -456,6 +521,7 @@ export class DeviationsList {
   protected readonly hasActiveFilters = computed(
     () =>
       this.query() !== '' ||
+      this.category() !== '' ||
       this.status() !== '' ||
       this.scope() !== '' ||
       this.typeId() !== '' ||
@@ -498,6 +564,10 @@ export class DeviationsList {
   private applyQueryParams(): void {
     const params = this.route.snapshot.queryParamMap;
     const status = params.get('status');
+    const category = params.get('category');
+    if (category && (STATUS_CATEGORIES as readonly string[]).includes(category)) {
+      this.category.set(category as StatusCategory);
+    }
     const typeId = params.get('type_id');
     const standard = params.get('standard');
     const severity = params.get('severity');
@@ -513,7 +583,7 @@ export class DeviationsList {
       this.scope.set('active');
     }
     if (status) {
-      this.status.set(status as DeviationStatus);
+      this.status.set(status);
     }
     if (typeId) {
       this.typeId.set(typeId);
@@ -568,6 +638,7 @@ export class DeviationsList {
 
   protected onFilterChange(
     key:
+      | 'category'
       | 'status'
       | 'scope'
       | 'typeId'
@@ -581,8 +652,11 @@ export class DeviationsList {
     value: string,
   ): void {
     switch (key) {
+      case 'category':
+        this.category.set(value as StatusCategory | '');
+        break;
       case 'status':
-        this.status.set(value as DeviationStatus | '');
+        this.status.set(value);
         break;
       case 'scope':
         this.scope.set(value as DeviationScope);
@@ -631,8 +705,13 @@ export class DeviationsList {
     this.load();
   }
 
+  protected openNew(): void {
+    void this.router.navigateByUrl('/deviations/new');
+  }
+
   private resetFilters(): void {
     this.query.set('');
+    this.category.set('');
     this.status.set('');
     this.scope.set('');
     this.typeId.set('');
@@ -669,6 +748,7 @@ export class DeviationsList {
     return {
       q: this.query().trim() || undefined,
       status: this.status() || undefined,
+      category: this.category() || undefined,
       active: this.scope() === 'active' || undefined,
       overdue: this.scope() === 'overdue' || undefined,
       type_id: this.typeId() || undefined,
