@@ -1,0 +1,359 @@
+{
+  "pages": {
+    "list": {
+      "intro": {
+        "title": "Control the suppliers you depend on",
+        "body": "The supplier register lists every external provider that affects your products, services, information or people. Each supplier has a **criticality**, an **approval status** and a date for the next **re-evaluation**.",
+        "steps": [
+          "Register a supplier and mark what it does for you: personal data, system access, cloud or AI.",
+          "Start an **initial evaluation**. When it is decided, the supplier is approved, approved with conditions or rejected.",
+          "Keep an eye on re-evaluations that are overdue (red) and log performance as it happens."
+        ]
+      },
+      "why": {
+        "body": "The standards expect you to decide which external providers you use, evaluate them against criteria, monitor how they perform and re-evaluate them. Suppliers that handle your information or personal data also need security and privacy requirements, and AI suppliers need their own assessment.",
+        "clauses": [
+          "iso9001:8.4",
+          "iso27001:A.5.19",
+          "iso27001:A.5.22",
+          "gdpr:28",
+          "iso42001:A.10.3"
+        ]
+      },
+      "empty": {
+        "title": "No suppliers registered yet",
+        "body": "Start with the suppliers you could not do without: those that deliver critical goods or services, host your data or have access to your systems. You can add the rest later.",
+        "cta": "Register a supplier"
+      }
+    },
+    "form": {
+      "intro": {
+        "title": "Registering a supplier",
+        "body": "Give the supplier a name, a category and a criticality, and choose who owns the relationship. The risk profile decides which assessments you need.",
+        "steps": [
+          "Set the criticality by asking: what happens to us if this supplier fails?",
+          "Tick the risk flags that apply. Personal data means you probably need a data processing agreement.",
+          "Leave the re-evaluation interval empty to use the default for the criticality."
+        ]
+      },
+      "why": {
+        "body": "Recording what each supplier does for you, how critical it is and who is responsible makes the level of control proportionate to the risk, which is exactly what the standards ask for.",
+        "clauses": ["iso9001:8.4.1", "iso27001:A.5.19", "nis2:21.2.d"]
+      },
+      "fields": {
+        "category": {
+          "help": "What the supplier delivers. The category helps you find similar suppliers and choose a suitable questionnaire.",
+          "example": "A payroll system you rent is Cloud services; a company that cleans your offices is Facilities."
+        },
+        "criticality": {
+          "help": "How badly you would be affected if the supplier failed to deliver or had a security breach. Higher criticality means closer follow-up and more frequent re-evaluation.",
+          "example": "Critical: the only supplier of a key component. Low: office supplies you can buy anywhere."
+        },
+        "owner": {
+          "help": "The person responsible for the relationship: evaluations, follow-up of conditions and re-evaluation reminders go to them."
+        },
+        "processes_personal_data": {
+          "help": "Tick this if the supplier stores or handles personal data on your behalf. It is then a data processor, and GDPR Article 28 requires a data processing agreement.",
+          "example": "An email service, a payroll provider or a support desk tool."
+        },
+        "has_system_access": {
+          "help": "Tick this if the supplier's people or systems can access your systems, networks or premises. Access must be limited and reviewed.",
+          "example": "An IT partner with remote access, or a maintenance company with keys."
+        },
+        "provides_cloud_services": {
+          "help": "Tick this if you use the supplier's cloud service. Cloud services need clear requirements for security, data location and exit.",
+          "example": "Hosting, file storage or a software service you log in to."
+        },
+        "provides_ai": {
+          "help": "Tick this if the supplier provides an AI system or uses AI to deliver its service to you. AI suppliers need an AI assessment.",
+          "example": "A recruitment tool that ranks candidates, or a chatbot service."
+        },
+        "data_locations": {
+          "help": "Where the supplier stores or processes your data, separated by commas. Transfers outside the EU/EEA need a legal basis.",
+          "example": "Norway, Ireland"
+        },
+        "certifications": {
+          "help": "Certifications the supplier holds, separated by commas. Ask for the certificate and check its scope and expiry date.",
+          "example": "ISO 9001, ISO/IEC 27001"
+        },
+        "evaluation_interval_months": {
+          "help": "How often the supplier is re-evaluated. If empty, critical and high suppliers are re-evaluated every 12 months, medium every 24 and low every 36.",
+          "example": "6 for a supplier you have had problems with."
+        }
+      }
+    },
+    "detail": {
+      "intro": {
+        "title": "Following up a supplier",
+        "body": "This page shows whether the supplier is approved, when it must be re-evaluated, the latest decision for each type of assessment and how it has performed.",
+        "steps": [
+          "Start an evaluation when the supplier is new or a re-evaluation is due.",
+          "Log deliveries, quality issues and incidents in the performance log as they happen.",
+          "Link the contract, the data processing agreement and related risks under **Related**."
+        ]
+      },
+      "why": {
+        "body": "Auditors look for evidence that suppliers were evaluated before use, that their performance is monitored and that problems led to action. This page, with its evaluations, log and history, is that evidence.",
+        "clauses": ["iso9001:8.4.2", "iso27001:A.5.22", "iso27001:A.5.20", "gdpr:28"]
+      }
+    },
+    "evaluations": {
+      "intro": {
+        "title": "All supplier evaluations",
+        "body": "Every evaluation and assessment across your suppliers. By default you see the open ones: drafts being answered and evaluations waiting for a decision.",
+        "steps": [
+          "Choose **Assigned to me** to see the evaluations you need to answer.",
+          "Filter on overdue to catch evaluations past their due date.",
+          "Start new evaluations from the supplier's own page."
+        ]
+      },
+      "why": {
+        "body": "Evaluating and re-evaluating suppliers on a schedule is a requirement, not a one-off exercise. A clear list of what is open keeps the schedule on track.",
+        "clauses": ["iso9001:8.4.1", "iso27001:A.5.22"]
+      },
+      "empty": {
+        "title": "No open evaluations",
+        "body": "Evaluations are started from a supplier's page. Open a supplier in the register and choose **Start evaluation**.",
+        "cta": "Go to the register"
+      }
+    },
+    "evaluation": {
+      "intro": {
+        "title": "Answering and deciding an evaluation",
+        "body": "Answer each question, add a comment or evidence where it helps, and submit. The score and recommendation are calculated from the answers, but a person with approval rights makes the decision.",
+        "steps": [
+          "Answer every required question. Use **Not applicable** only when the question really does not apply.",
+          "A **no** on a critical question is a critical failure, whatever the total score.",
+          "Write a short summary, then submit for decision."
+        ]
+      },
+      "why": {
+        "body": "Criteria for evaluation and the results of it must be documented, together with any actions that follow. A scored questionnaire with a recorded decision shows how and why the supplier was accepted.",
+        "clauses": ["iso9001:8.4.1", "iso27001:A.5.21", "iso42001:A.10.3"]
+      },
+      "fields": {
+        "kind": {
+          "help": "Initial, periodic and ad hoc evaluations decide the supplier's approval. Security, privacy and AI assessments are recorded separately and do not change its status.",
+          "example": "Run a privacy assessment for a supplier that processes personal data, in addition to the initial evaluation."
+        },
+        "score": {
+          "help": "The weighted share of points for scored answers. Text answers and Not applicable are not scored. The recommendation compares the score with the pass mark."
+        },
+        "decision": {
+          "help": "Approve when the supplier meets your requirements. Approve with conditions when gaps can be fixed within a set time. Reject when it cannot be used.",
+          "example": "Conditional: approved if the supplier signs the data processing agreement within 30 days."
+        },
+        "summary": {
+          "help": "A short conclusion for the person deciding and for the next re-evaluation: strengths, weaknesses and what you expect."
+        }
+      }
+    },
+    "questionnaires": {
+      "intro": {
+        "title": "Questionnaires for evaluations",
+        "body": "A questionnaire is the set of criteria you evaluate suppliers against. The built-in sets cover every type of evaluation; copy one to adapt it to your needs.",
+        "steps": [
+          "Open a questionnaire to see its questions.",
+          "Choose **Copy and adapt** to make your own version of a built-in set.",
+          "Mark questions as critical when a wrong answer should stop an approval."
+        ]
+      },
+      "why": {
+        "body": "The criteria for evaluating, selecting and re-evaluating external providers must be determined in advance and applied consistently. Questionnaires make the criteria explicit.",
+        "clauses": ["iso9001:8.4.1", "iso27001:A.5.20"]
+      }
+    },
+    "questionnaire": {
+      "intro": {
+        "title": "Building a questionnaire",
+        "body": "Write clear questions that can be answered with yes or no, a score, or a short text. Weight the questions that matter most.",
+        "steps": [
+          "Group questions into sections, such as Quality, Security or Privacy.",
+          "Give important questions a higher weight and mark deal-breakers as critical.",
+          "Let the assistant suggest questions, then review and edit them before saving."
+        ]
+      },
+      "why": {
+        "body": "Good criteria are relevant to the risk the supplier brings and are the same for every supplier of the same kind, so decisions are fair and repeatable.",
+        "clauses": ["iso9001:8.4.1", "iso27001:A.5.20"]
+      },
+      "fields": {
+        "pass_score": {
+          "help": "The score, in per cent, a supplier needs for an approve recommendation. Within 20 points below it, the recommendation is approve with conditions.",
+          "example": "70"
+        }
+      }
+    },
+    "performance": {
+      "intro": {
+        "title": "The performance log",
+        "body": "Log what happens with the supplier between evaluations: deliveries, quality problems, missed service levels and incidents."
+      },
+      "why": {
+        "body": "Monitoring supplier performance and acting on problems is required, and the log becomes the evidence for the next re-evaluation.",
+        "clauses": ["iso9001:8.4.2", "iso27001:A.5.22"]
+      },
+      "fields": {
+        "rating": {
+          "help": "An overall rating from 1 (very poor) to 5 (excellent) for this delivery or event.",
+          "example": "2 for a delivery that arrived late and incomplete."
+        }
+      }
+    }
+  },
+  "lessons": {
+    "supplier-control": {
+      "title": "Why suppliers need control",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "You are responsible for what you buy",
+          "body": "When a supplier delivers part of your product or service, its mistakes become your mistakes. The standards therefore ask you to control external providers in proportion to the risk they bring."
+        },
+        {
+          "heading": "Criticality decides the effort",
+          "body": "Not every supplier needs the same follow-up. A **critical** supplier you cannot replace quickly deserves a thorough evaluation and yearly re-evaluation. A **low** criticality supplier of office supplies can be checked lightly and less often."
+        },
+        {
+          "heading": "Information and personal data",
+          "body": "Suppliers that host your data, access your systems or process personal data for you also need **security and privacy requirements**. For personal data, GDPR Article 28 requires a data processing agreement."
+        },
+        {
+          "heading": "The cycle",
+          "body": "Register, evaluate, approve, monitor performance, re-evaluate. CoreFlow schedules the next re-evaluation when an evaluation is decided and reminds the owner when it is due."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "What should decide how closely you follow up a supplier?",
+          "options": [
+            "How much you spend with it",
+            "How critical it is to you",
+            "How long you have used it"
+          ],
+          "answer": 1,
+          "explanation": "Control should be proportionate to the risk, which criticality expresses. Spend and history can inform criticality but do not replace it."
+        },
+        {
+          "question": "A supplier processes personal data on your behalf. What do you need?",
+          "options": ["Nothing extra", "A data processing agreement", "Only an ISO certificate"],
+          "answer": 1,
+          "explanation": "GDPR Article 28 requires a binding agreement with every processor."
+        }
+      ],
+      "pass_mark": 0.8
+    },
+    "evaluating-suppliers": {
+      "title": "Evaluating and approving a supplier",
+      "minutes": 5,
+      "sections": [
+        {
+          "heading": "Questionnaires and scores",
+          "body": "An evaluation is a questionnaire. Yes/no and score questions give points, weighted by importance. The score is the share of possible points, and the recommendation compares it with the pass mark."
+        },
+        {
+          "heading": "Critical questions",
+          "body": "Some requirements are deal-breakers. A **no** on a critical question means the supplier should not be approved without conditions, however good the rest of the answers are."
+        },
+        {
+          "heading": "A person decides",
+          "body": "The recommendation is advice. Someone with approval rights reads the answers and the summary and decides: approve, approve with conditions, or reject. Conditions get a follow-up task for the supplier owner."
+        },
+        {
+          "heading": "Kinds of evaluation",
+          "body": "Initial, periodic and ad hoc evaluations set the supplier's approval status. Security, privacy and AI assessments add depth for suppliers with those risks and are recorded per kind without changing the status."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "The score is above the pass mark, but a critical question was answered no. What is the recommendation?",
+          "options": ["Approve", "Approve with conditions", "It is not possible to say"],
+          "answer": 1,
+          "explanation": "A critical failure prevents a plain approval, so the recommendation is at most approval with conditions."
+        },
+        {
+          "question": "Which evaluation changes the supplier's approval status?",
+          "options": ["A security assessment", "A periodic re-evaluation", "An AI assessment"],
+          "answer": 1,
+          "explanation": "Initial, periodic and ad hoc evaluations decide approval; the specialist assessments are recorded alongside."
+        }
+      ],
+      "pass_mark": 0.8
+    },
+    "third-party-security": {
+      "title": "Information security with suppliers",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Agree on requirements",
+          "body": "Before a supplier gets access to your information, agree on the security requirements: who can access what, how incidents are reported and what happens when the contract ends."
+        },
+        {
+          "heading": "The supply chain",
+          "body": "Your supplier's own suppliers matter too, especially for software and cloud services. Ask how they control their sub-suppliers and where your data is stored."
+        },
+        {
+          "heading": "Monitor and review",
+          "body": "Follow up on service levels and incidents, and review the supplier's security regularly. Log problems in the performance log and link serious ones to a deviation."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "When should security requirements be agreed with a supplier?",
+          "options": [
+            "After the first incident",
+            "Before it gets access to your information",
+            "At the yearly review"
+          ],
+          "answer": 1,
+          "explanation": "Requirements must be agreed before access is granted, and then monitored."
+        }
+      ],
+      "pass_mark": 0.8
+    }
+  },
+  "tours": {
+    "list": [
+      {
+        "target": "suppliers-sections",
+        "title": "Three parts",
+        "body": "The register of suppliers, all evaluations, and the questionnaires you evaluate with."
+      },
+      {
+        "target": "suppliers-summary",
+        "title": "Key figures",
+        "body": "How many suppliers are approved, and how many re-evaluations are overdue or due soon."
+      },
+      {
+        "target": "suppliers-filters",
+        "title": "Filters",
+        "body": "Find suppliers by status, criticality, category, re-evaluation date, risk profile or owner. Save a combination as a view."
+      },
+      {
+        "target": "suppliers-new",
+        "title": "Register a supplier",
+        "body": "Add a new supplier here. It starts as prospective until an evaluation approves it."
+      }
+    ]
+  },
+  "glossary": {
+    "external-provider": {
+      "term": "External provider",
+      "definition": "An organisation outside yours that provides a product or service, such as a supplier, a subcontractor or a cloud service.",
+      "clauses": ["iso9001:8.4"]
+    },
+    "supplier-criticality": {
+      "term": "Supplier criticality",
+      "definition": "How badly your organisation would be affected if the supplier failed. It decides how closely the supplier is controlled and how often it is re-evaluated."
+    },
+    "conditional-approval": {
+      "term": "Conditional approval",
+      "definition": "Approval of a supplier on condition that specific gaps are fixed within a set time, followed up by the supplier owner."
+    },
+    "data-processor": {
+      "term": "Data processor",
+      "definition": "A party that processes personal data on behalf of the controller. It must be bound by a data processing agreement.",
+      "clauses": ["gdpr:28"]
+    }
+  }
+}
