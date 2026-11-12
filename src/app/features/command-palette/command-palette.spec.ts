@@ -164,7 +164,8 @@ describe('CommandPalette', () => {
     expect(searchApi.search).toHaveBeenCalledWith('org-1', 'calib', { limit: 20 });
     const groups = cmp.recordGroups();
     expect(groups.map((g) => g.entityType)).toEqual(['document', 'standard_requirement']);
-    expect(groups[0].label).toBe('Documents');
+    // The module registry's singular entity label (modules.entities.document) wins.
+    expect(groups[0].label).toBe('Document');
     expect(groups[0].total).toBe(4);
     // Ask row first, then the records, then actions / nav.
     expect(cmp.rows()[0].kind).toBe('ask');
