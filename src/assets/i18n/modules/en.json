@@ -1,0 +1,439 @@
+{
+  "notifications": {
+    "profileUpdated": "The organisation profile was updated",
+    "terminologyUpdated": "The organisation's terminology was updated",
+    "setupCompleted": "Organisation setup was completed"
+  },
+  "timeline": {
+    "profileUpdated": "Updated the organisation profile",
+    "terminologyUpdated": "Updated the terminology",
+    "setupCompleted": "Completed the organisation setup"
+  },
+  "common": {
+    "breadcrumb": "Breadcrumb",
+    "noOrg": "Select an organisation to see its settings.",
+    "loadFailed": "This could not be loaded. Please try again.",
+    "retry": "Try again",
+    "saveFailed": "The change could not be saved. Please try again.",
+    "notSet": "Not set",
+    "remove": "Remove"
+  },
+  "frameworks": {
+    "hs": {
+      "name": "ISO Harmonised Structure",
+      "short": "ISO HS",
+      "description": "The clause structure (4 to 10) shared by every ISO management system standard."
+    },
+    "iso9001": {
+      "name": "ISO 9001 Quality management",
+      "short": "ISO 9001",
+      "description": "Consistent products and services and satisfied customers."
+    },
+    "iso27001": {
+      "name": "ISO/IEC 27001 Information security",
+      "short": "ISO 27001",
+      "description": "Protect the confidentiality, integrity and availability of information."
+    },
+    "iso14001": {
+      "name": "ISO 14001 Environmental management",
+      "short": "ISO 14001",
+      "description": "Control your environmental aspects and improve your environmental performance."
+    },
+    "iso42001": {
+      "name": "ISO/IEC 42001 AI management",
+      "short": "ISO 42001",
+      "description": "Develop, provide or use AI systems responsibly."
+    },
+    "iso45001": {
+      "name": "ISO 45001 Occupational health and safety",
+      "short": "ISO 45001",
+      "description": "Prevent work-related injury and ill health."
+    },
+    "gdpr": {
+      "name": "GDPR",
+      "short": "GDPR",
+      "description": "Process personal data lawfully, fairly and securely."
+    },
+    "eu_ai_act": {
+      "name": "EU AI Act",
+      "short": "AI Act",
+      "description": "Obligations for AI systems placed on the market or used in the EU."
+    },
+    "nis2": {
+      "name": "NIS2",
+      "short": "NIS2",
+      "description": "Cybersecurity risk management for essential and important entities."
+    }
+  },
+  "sizeBands": {
+    "1-10": "1 to 10 people",
+    "11-50": "11 to 50 people",
+    "51-250": "51 to 250 people",
+    "251-1000": "251 to 1,000 people",
+    "1000+": "More than 1,000 people"
+  },
+  "aiActRoles": {
+    "provider": {
+      "name": "Provider",
+      "description": "You develop AI systems, or have them developed, and place them on the market under your name."
+    },
+    "deployer": {
+      "name": "Deployer",
+      "description": "You use AI systems in your own work, for example a chatbot or a screening tool."
+    },
+    "both": {
+      "name": "Provider and deployer",
+      "description": "You build AI systems and also use AI systems in your own operations."
+    },
+    "none": {
+      "name": "Not in scope",
+      "description": "You neither provide nor use AI systems that the AI Act covers."
+    },
+    "unknown": {
+      "name": "Not sure yet",
+      "description": "Pick this for now; the AI governance module helps you find out."
+    }
+  },
+  "certificationStatus": {
+    "planned": "Planned",
+    "in_progress": "In progress",
+    "certified": "Certified"
+  },
+  "settings": {
+    "title": "Modules",
+    "subtitle": "Turn on the parts of CoreFlow your organisation needs. Turning a module off keeps its data.",
+    "askFit": "Which modules fit us?",
+    "askFitPrompt": "Look at our organisation profile and the modules we use today ({{ modules }}). Which other modules should we turn on, and why? Answer in short points.",
+    "runWizard": "Run the setup wizard",
+    "search": "Search modules",
+    "searchPlaceholder": "Name or description",
+    "statusFilter": "Status",
+    "status": {
+      "all": "All modules",
+      "enabled": "Turned on",
+      "disabled": "Turned off"
+    },
+    "frameworkFilter": "Framework",
+    "allFrameworks": "All frameworks",
+    "empty": {
+      "title": "No modules yet",
+      "body": "Modules appear here as they become available. Each one supports one or more frameworks, such as ISO 9001 or GDPR."
+    },
+    "count": "Showing {{ shown }} of {{ total }} modules, {{ enabled }} turned on.",
+    "noMatches": "No modules match these filters.",
+    "alwaysOn": "Always on",
+    "on": "On",
+    "off": "Off",
+    "dependsOn": "Needs: {{ modules }}",
+    "requiredBy": "Used by: {{ modules }}",
+    "open": "Open module",
+    "disableTitle": "Turn off {{ module }}?",
+    "disableBody": "{{ module }} disappears from the menu for everyone in this organisation. Its records are kept and come back when you turn it on again.",
+    "disableConfirm": "Turn off",
+    "enabledToast": "The module is turned on.",
+    "disabledToast": "The module is turned off.",
+    "errors": {
+      "dependencyDisabled": "{{ module }} needs {{ modules }}. Turn that on first.",
+      "requiredBy": "{{ module }} is used by {{ modules }}. Turn those off first.",
+      "alwaysOn": "{{ module }} is always on and can't be turned off.",
+      "unknown": "That module doesn't exist any more. Reload the page."
+    }
+  },
+  "profile": {
+    "title": "Organisation profile",
+    "subtitle": "Who you are and what you work towards. CoreFlow uses this to recommend modules and to give better answers.",
+    "lastUpdated": "Last updated {{ date }}",
+    "askAiRole": "Explain our AI Act role",
+    "askAiRolePrompt": "We are an organisation in the industry \"{{ industry }}\" and have chosen the AI Act role \"{{ role }}\". Explain in plain language what this role means, which obligations typically follow, and how we can check that the role is right.",
+    "sections": {
+      "basics": "About the organisation",
+      "frameworks": "Frameworks in scope",
+      "targets": "Certification targets",
+      "sites": "Sites and locations"
+    },
+    "industry": "Industry",
+    "sizeBand": "Size",
+    "countries": "Countries",
+    "countriesPlaceholder": "For example NO, SE, DK",
+    "description": "Short description",
+    "aiActRole": "Role under the EU AI Act",
+    "addTarget": "Add target",
+    "noTargets": "No certification targets yet. Add one if you plan to get certified.",
+    "targetFramework": "Framework",
+    "targetDate": "Target date",
+    "certificationBody": "Certification body",
+    "targetStatus": "Status",
+    "addSite": "Add site",
+    "noSites": "No sites yet. Add the offices, plants or other locations your management system covers.",
+    "siteName": "Name",
+    "siteCountry": "Country (2 letters)",
+    "siteCity": "City",
+    "siteKind": "Type",
+    "siteKindPlaceholder": "Office, plant, warehouse",
+    "errors": {
+      "countries": "Use two-letter country codes separated by commas, for example NO, SE.",
+      "site": "A site needs a name and a two-letter country code.",
+      "save": "The profile could not be saved. Check the fields and try again."
+    },
+    "savedToast": "The organisation profile is saved."
+  },
+  "terminology": {
+    "title": "Terminology",
+    "subtitle": "Use the words your organisation already uses. Leave a field empty to keep the default.",
+    "askSuggest": "Suggest wording",
+    "askSuggestPrompt": "Suggest terminology for our organisation based on our profile: which words should we use instead of deviation, document, risk, audit, finding, process, task, objective, incident, supplier and employee? Give singular and plural forms in English and Norwegian, and keep the defaults where they already fit.",
+    "previewLabel": "Preview",
+    "preview": "Your dashboard shows open {{ term.deviations }}, {{ term.documents }} awaiting review and overdue {{ term.tasks }}.",
+    "term": "Term",
+    "singular": "Singular ({{ lang }})",
+    "plural": "Plural ({{ lang }})",
+    "errors": {
+      "incomplete": "Fill in both the singular and the plural for a language, or leave both empty.",
+      "unknownTerm": "One of the terms isn't supported any more. Reload the page and try again."
+    },
+    "resetAll": "Reset to defaults",
+    "resetTitle": "Reset all terminology?",
+    "resetBody": "Every term goes back to the default wording, in every language.",
+    "resetConfirm": "Reset",
+    "savedToast": "The terminology is saved and applied.",
+    "resetToast": "The terminology is back to the defaults."
+  },
+  "setup": {
+    "title": "Set up your organisation",
+    "subtitle": "A few short steps to tailor CoreFlow to how you work. You can come back and change everything later.",
+    "rerunNotice": "Setup was completed on {{ date }}. Running it again only turns modules on; nothing is turned off.",
+    "progressLabel": "Setup progress",
+    "steps": {
+      "profile": "Profile",
+      "frameworks": "Frameworks",
+      "modules": "Modules",
+      "roles": "Roles",
+      "tasks": "First tasks",
+      "done": "Done"
+    },
+    "profile": {
+      "title": "Tell us about your organisation",
+      "body": "Industry, size and countries help CoreFlow suggest what is relevant to you."
+    },
+    "frameworks": {
+      "title": "Which frameworks are in scope?",
+      "body": "Pick the standards and regulations you work towards, now or soon.",
+      "hint": "Not sure? Start with the one you need first. You can add more at any time under Settings, Organisation profile."
+    },
+    "modules": {
+      "title": "Recommended modules",
+      "body": "Based on your frameworks, these modules cover what the standards ask for. Untick anything you don't need yet.",
+      "selectedCount": "Modules selected: {{ count }}",
+      "askWhy": "Ask why",
+      "askWhyPrompt": "We chose these frameworks: {{ frameworks }}. Industry: {{ industry }}. Size: {{ size }}. CoreFlow recommends these modules: {{ modules }}. Explain briefly why each module matters for our frameworks, and which ones we could leave for later.",
+      "empty": "No modules to recommend yet. Pick a framework first, or carry on: you can turn modules on later.",
+      "recommended": "Recommended",
+      "alreadyOn": "Already on"
+    },
+    "roles": {
+      "title": "Who does what?",
+      "body": "CoreFlow gives each role sensible access. Invite your colleagues and give them the roles that match their responsibilities.",
+      "suggested": "Suggested",
+      "invite": "Invite people and assign roles"
+    },
+    "tasks": {
+      "title": "Your first tasks",
+      "body": "Start with a short list of tasks so the work gets going. They show up in My Work.",
+      "unavailable": "Tasks aren't available yet in this installation, so this step is skipped. You can carry on.",
+      "created": "Tasks created: {{ count }}. You find them in My Work.",
+      "failed": "The tasks could not be created. You can try again or skip this step.",
+      "dueIn": "Due in {{ days }} days.",
+      "create": "Create selected tasks ({{ count }})",
+      "items": {
+        "reviewProfile": {
+          "title": "Check the organisation profile",
+          "description": "Make sure industry, sites, frameworks and certification targets are right."
+        },
+        "inviteTeam": {
+          "title": "Invite your team",
+          "description": "Invite the people who will work in CoreFlow and give them roles."
+        },
+        "policy": {
+          "title": "Publish the management system policy",
+          "description": "Upload or write the policy and send it for approval."
+        },
+        "applicability": {
+          "title": "Decide which requirements apply",
+          "description": "Go through the standards workspace and mark what applies to you."
+        },
+        "deviations": {
+          "title": "Show the team how to report a deviation",
+          "description": "Agree on the deviation types and register the first one together."
+        },
+        "risk": {
+          "title": "Run the first risk assessment",
+          "description": "List the main risks and opportunities and agree on treatment."
+        },
+        "audit": {
+          "title": "Plan the first internal audit",
+          "description": "Choose the scope, the auditors and a date."
+        }
+      }
+    },
+    "done": {
+      "title": "Ready to go",
+      "body": "Finish to turn on the chosen modules. You can change them later under Settings, Modules.",
+      "summary": "These modules will be turned on: {{ modules }}.",
+      "summaryNone": "No new modules will be turned on.",
+      "finished": "Setup is complete.",
+      "enabledList": "Turned on now: {{ modules }}.",
+      "toDashboard": "Go to the dashboard",
+      "toModules": "Review modules",
+      "finishedToast": "Setup is complete."
+    },
+    "back": "Back",
+    "next": "Continue",
+    "skip": "Skip",
+    "finish": "Finish setup",
+    "errors": {
+      "unknownModules": "One of the chosen modules no longer exists. Go back and check the list.",
+      "recommendations": "The recommendations could not be loaded. Please try again."
+    }
+  },
+  "banner": {
+    "title": "Finish setting up your organisation",
+    "body": "A short wizard helps you choose frameworks, turn on the right modules and get the first tasks going.",
+    "start": "Start setup",
+    "later": "Later"
+  },
+  "guide": {
+    "whyTitle": "Why this matters",
+    "show": "Show guide",
+    "hide": "Hide",
+    "start": "Start",
+    "explainClause": "Explain",
+    "tutorPrompt": "Teach me {{ clause }} in plain language, as it applies to the page \"{{ page }}\": what it requires, a short example, and one question to check that I understood.",
+    "lessonLabel": "Micro-lesson, {{ minutes }} minutes",
+    "quizTitle": "Check your understanding",
+    "check": "Check answers",
+    "correct": "Correct.",
+    "incorrect": "Not quite.",
+    "score": "{{ score }} of {{ total }} correct",
+    "retry": "Try again",
+    "pages": {
+      "modules": {
+        "intro": {
+          "title": "Modules match CoreFlow to your management system",
+          "body": "Each module covers one area the standards ask for, such as risk, audits or training. Turn on only what you need; you can add more as your system grows.",
+          "steps": {
+            "s1": "Start with the modules the setup wizard recommends for your frameworks.",
+            "s2": "Check the \"Needs\" hint: some modules build on others.",
+            "s3": "Turning a module off hides it but keeps its records."
+          }
+        },
+        "why": {
+          "body": "Standards expect a defined set of processes (the process approach) and risk-based planning. Choosing modules deliberately documents which processes your system includes."
+        }
+      },
+      "profile": {
+        "intro": {
+          "title": "The profile describes your context",
+          "body": "ISO management systems start with understanding the organisation, the interested parties and the scope. The profile is the short version of that context.",
+          "steps": {
+            "s1": "Fill in industry, size and the countries you operate in.",
+            "s2": "Tick the frameworks in scope and add certification targets with dates.",
+            "s3": "Choose your role under the EU AI Act. \"Not sure yet\" is fine for now."
+          }
+        },
+        "why": {
+          "body": "Clauses 4.1 to 4.3 require you to understand your context, the needs of interested parties and the scope of the system. Auditors often start here."
+        },
+        "fields": {
+          "industry": {
+            "help": "In your own words, for example \"food production\" or \"IT consulting\"."
+          },
+          "countries": {
+            "help": "Two-letter codes, separated by commas. Laws and regulators depend on them."
+          },
+          "description": {
+            "help": "What you do, for whom and where. A few sentences are enough."
+          },
+          "frameworks": {
+            "help": "The frameworks decide which requirements and modules CoreFlow suggests."
+          },
+          "aiActRole": {
+            "help": "Providers build AI systems; deployers use them. Many organisations are deployers without knowing it."
+          },
+          "targets": {
+            "help": "A target date makes the plan concrete and helps you schedule audits and reviews."
+          },
+          "sites": {
+            "help": "List the locations your management system covers. It shapes the scope statement."
+          }
+        }
+      },
+      "terminology": {
+        "intro": {
+          "title": "Speak your organisation's language",
+          "body": "People follow a system more easily when it uses their words. Change the wording here and CoreFlow uses it everywhere.",
+          "steps": {
+            "s1": "Pick the terms you call something else, for example \"nonconformity\" for deviation.",
+            "s2": "Fill in the singular and the plural for each language you use.",
+            "s3": "Save, and check the preview above the list."
+          }
+        },
+        "why": {
+          "body": "Awareness and communication (clause 7.4) work better in familiar language, and controlled documents (clause 7.5) should use terms consistently."
+        }
+      },
+      "setup": {
+        "intro": {
+          "title": "Set up in a few minutes",
+          "body": "The wizard walks you through the basics of a management system: context, scope, the right modules, roles and the first tasks.",
+          "steps": {
+            "s1": "Describe the organisation and choose the frameworks in scope.",
+            "s2": "Review the recommended modules. Use \"Ask why\" if something is unclear.",
+            "s3": "Invite people and start with a few first tasks."
+          }
+        },
+        "why": {
+          "body": "The scope (clause 4.3), roles and responsibilities (clause 5.3) and planning for risks (clause 6.1) are the foundation every later audit checks."
+        }
+      }
+    },
+    "lessons": {
+      "modulesBasics": {
+        "title": "Frameworks, modules and your management system",
+        "sections": {
+          "s1": {
+            "heading": "One structure, many standards",
+            "body": "ISO 9001, 27001, 14001, 42001 and 45001 share the same clause structure, from context (4) to improvement (10). Work you do once, such as a management review, can count for several standards."
+          },
+          "s2": {
+            "heading": "Frameworks decide the requirements",
+            "body": "A framework is the standard or regulation you follow. It decides what you must be able to show an auditor, for example a risk assessment or training records."
+          },
+          "s3": {
+            "heading": "Modules are where the work happens",
+            "body": "A module is the part of CoreFlow where you do that work and keep the evidence. Turn on the modules your frameworks need and leave the rest off until you need them."
+          }
+        },
+        "quiz": {
+          "q1": {
+            "question": "What decides which requirements you must meet?",
+            "options": {
+              "a": "The modules you turn on",
+              "b": "The frameworks in scope",
+              "c": "The size of the organisation"
+            },
+            "explanation": "The frameworks decide the requirements; modules are where you meet them."
+          },
+          "q2": {
+            "question": "What happens to the records when you turn a module off?",
+            "options": {
+              "a": "They are deleted",
+              "b": "They move to another module",
+              "c": "They are kept and come back when you turn it on"
+            },
+            "explanation": "Turning a module off only hides it; the records stay."
+          }
+        }
+      }
+    }
+  }
+}

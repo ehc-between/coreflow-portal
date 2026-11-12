@@ -1,5 +1,15 @@
 /** Seeded role keys (global roles, assigned per org via memberships). */
-export const ROLE_KEYS = ['admin', 'quality_manager', 'auditor', 'dpo', 'ciso', 'member'] as const;
+export const ROLE_KEYS = [
+  'admin',
+  'quality_manager',
+  'auditor',
+  'dpo',
+  'ciso',
+  'hse_manager',
+  'hr_manager',
+  'ai_officer',
+  'member',
+] as const;
 
 export type KnownRoleKey = (typeof ROLE_KEYS)[number];
 

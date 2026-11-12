@@ -9,11 +9,12 @@ import {
   RouterStateSnapshot,
   UrlTree,
 } from '@angular/router';
-import { firstValueFrom, isObservable, Observable, Subject } from 'rxjs';
+import { firstValueFrom, isObservable, Observable, of, Subject } from 'rxjs';
 import { routes as appRoutes } from '../../app.routes';
 import deviationRoutes from '../../features/deviations/deviations.routes';
 import documentRoutes from '../../features/documents/documents.routes';
 import { NAV_ITEMS } from '../../layout/nav';
+import { ModuleService } from '../modules/module.service';
 import { NotificationService } from '../notifications/notification.service';
 import { SelectedOrgService } from '../org/selected-org.service';
 import { AuthUser } from './auth.models';
@@ -62,7 +63,15 @@ describe('permissionGuard', () => {
     globalThis.localStorage?.clear();
     auth = new FakeAuth();
     TestBed.configureTestingModule({
-      providers: [provideRouter([]), { provide: AuthService, useValue: auth }],
+      providers: [
+        provideRouter([]),
+        { provide: AuthService, useValue: auth },
+        // Module areas are also wrapped in moduleGuard; every module is on here.
+        {
+          provide: ModuleService,
+          useValue: { loaded: () => true, isEnabled: () => true, ensureLoaded: () => of(true) },
+        },
+      ],
     });
     notifications = TestBed.inject(NotificationService);
     router = TestBed.inject(Router);
