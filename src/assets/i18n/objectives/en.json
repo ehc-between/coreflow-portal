@@ -1,0 +1,332 @@
+{
+  "tabs": {
+    "label": "Objectives and KPIs",
+    "objectives": "Objectives",
+    "kpis": "KPIs"
+  },
+  "common": {
+    "loading": "Loading…",
+    "loadFailed": "Couldn't load this. Please try again.",
+    "notFound": "This record doesn't exist or you no longer have access to it.",
+    "back": "Back",
+    "backToList": "Back to objectives",
+    "backToKpis": "Back to KPIs",
+    "backToObjective": "Back to the objective",
+    "noOwner": "No owner",
+    "noDueDate": "No due date",
+    "noValue": "Not measured yet",
+    "overdue": "Overdue"
+  },
+  "list": {
+    "title": "Objectives",
+    "subtitle": "Measurable objectives per management system, with owners, plans and deadlines.",
+    "searchPlaceholder": "Search objectives by code or title…",
+    "new": "New objective",
+    "progress": "{{ value }} % complete",
+    "kpiSummary": "{{ total }} KPIs · {{ onTrack }} on track · {{ off }} off target"
+  },
+  "kpiList": {
+    "title": "KPIs",
+    "subtitle": "Key performance indicators: what you measure, how often, and whether it is on target.",
+    "searchPlaceholder": "Search KPIs by code or name…",
+    "new": "New KPI",
+    "target": "Target {{ value }} {{ unit }}",
+    "nextDue": "Next:"
+  },
+  "overview": {
+    "label": "Overview",
+    "active": "Active objectives",
+    "achieved": "Achieved",
+    "overdue": "Overdue objectives",
+    "onTrack": "KPIs on track",
+    "offTarget": "KPIs off target",
+    "measurementOverdue": "Measurements overdue"
+  },
+  "filters": {
+    "status": "Status",
+    "health": "Health",
+    "system": "Management system",
+    "sort": "Sort",
+    "allSystems": "All management systems",
+    "anyHealth": "Any health",
+    "mine": "Mine",
+    "overdue": "Overdue only",
+    "noMatch": "Nothing matches these filters.",
+    "statusOptions": {
+      "open": "Open (draft and active)",
+      "draft": "Draft",
+      "active": "Active",
+      "achieved": "Achieved",
+      "not_achieved": "Not achieved",
+      "cancelled": "Cancelled",
+      "all": "All statuses"
+    },
+    "kpiStatusOptions": {
+      "in_use": "In use (active and paused)",
+      "active": "Active",
+      "paused": "Paused",
+      "retired": "Retired",
+      "all": "All statuses"
+    },
+    "objectiveSorts": {
+      "due_date": "Due date, soonest first",
+      "-due_date": "Due date, latest first",
+      "code": "Code, ascending",
+      "-code": "Code, descending",
+      "title": "Title",
+      "-updated_at": "Recently updated"
+    },
+    "kpiSorts": {
+      "code": "Code, ascending",
+      "-code": "Code, descending",
+      "name": "Name",
+      "status": "Status",
+      "-last_period_end": "Recently measured",
+      "-updated_at": "Recently updated"
+    }
+  },
+  "objectiveStatus": {
+    "draft": "Draft",
+    "active": "Active",
+    "achieved": "Achieved",
+    "not_achieved": "Not achieved",
+    "cancelled": "Cancelled"
+  },
+  "kpiStatus": {
+    "active": "Active",
+    "paused": "Paused",
+    "retired": "Retired"
+  },
+  "health": {
+    "on_track": "On track",
+    "at_risk": "At risk",
+    "off_track": "Off track",
+    "no_target": "No target",
+    "no_data": "No data"
+  },
+  "trend": {
+    "improving": "Improving",
+    "worsening": "Worsening",
+    "stable": "Stable",
+    "insufficient_data": "Not enough data"
+  },
+  "direction": {
+    "higher": "Higher is better",
+    "lower": "Lower is better"
+  },
+  "frequency": {
+    "weekly": "Weekly",
+    "monthly": "Monthly",
+    "quarterly": "Quarterly",
+    "half_yearly": "Every six months",
+    "yearly": "Yearly"
+  },
+  "managementSystems": {
+    "iso9001": "ISO 9001 Quality",
+    "iso27001": "ISO 27001 Information security",
+    "iso14001": "ISO 14001 Environment",
+    "iso42001": "ISO 42001 AI management",
+    "iso45001": "ISO 45001 Health and safety",
+    "gdpr": "GDPR Privacy",
+    "eu_ai_act": "EU AI Act",
+    "nis2": "NIS2 Cybersecurity"
+  },
+  "fields": {
+    "title": "Title",
+    "description": "Description",
+    "managementSystem": "Management system",
+    "status": "Status",
+    "owner": "Owner",
+    "department": "Department",
+    "target": "Target (what will be achieved, measurably)",
+    "plan": "Plan (what will be done)",
+    "resources": "Resources needed",
+    "evaluationMethod": "How results are evaluated",
+    "startDate": "Start date",
+    "dueDate": "Due date",
+    "progress": "Progress (%)",
+    "closingNote": "Closing note",
+    "changeReason": "Reason for the change"
+  },
+  "kpiFields": {
+    "name": "Name",
+    "description": "Description",
+    "objective": "Objective",
+    "unit": "Unit",
+    "direction": "Direction",
+    "baseline": "Baseline",
+    "target": "Target",
+    "warning": "Warning threshold",
+    "frequency": "Measured",
+    "dataSource": "Data source",
+    "startDate": "Measuring from",
+    "reminders": "Create a recurring measurement task for the owner"
+  },
+  "form": {
+    "newTitle": "New objective",
+    "editTitle": "Edit objective",
+    "create": "Create objective",
+    "save": "Save changes",
+    "noSystem": "No specific management system",
+    "noOwner": "No owner",
+    "noDepartment": "No department",
+    "progressRange": "Enter a whole number from 0 to 100."
+  },
+  "kpiForm": {
+    "newTitle": "New KPI",
+    "editTitle": "Edit KPI",
+    "create": "Create KPI",
+    "noObjective": "Not linked to an objective",
+    "inheritSystem": "Same as the objective (or none)",
+    "thresholds": "Unit and thresholds"
+  },
+  "detail": {
+    "edit": "Edit",
+    "delete": "Delete",
+    "deleteTitle": "Delete this objective?",
+    "deleteMessage": "{{ code }} will be removed from the register. Its KPIs stay, without an objective.",
+    "noTarget": "No measurable target yet. Edit the objective to add one.",
+    "notSet": "Not set",
+    "planHeading": "Plan",
+    "closedAt": "Closed {{ date }}",
+    "kpisHeading": "KPIs ({{ count }})",
+    "addKpi": "Add KPI",
+    "noKpis": "No KPIs measure this objective yet. Add one so progress is based on data."
+  },
+  "kpi": {
+    "record": "Record measurement",
+    "measurementOverdue": "Measurement overdue",
+    "statsLabel": "Key figures",
+    "latest": "Latest value",
+    "targetIs": "Target {{ value }}",
+    "change": "Change since previous",
+    "trend": "Trend",
+    "onTrackShare": "Periods on track",
+    "chartHeading": "Development over time",
+    "definition": "Definition",
+    "nextDue": "Next measurement due",
+    "measurements": "Measurements",
+    "noMeasurements": "No measurements yet. Record the first value to start the trend.",
+    "deleteTitle": "Delete this KPI?",
+    "deleteMessage": "{{ code }} will be removed and its open measurement tasks cancelled. Recorded measurements are kept."
+  },
+  "measurement": {
+    "newTitle": "Record measurement",
+    "editTitle": "Correct measurement",
+    "period": "Period",
+    "periodEnd": "Period end",
+    "periodStart": "Period start (optional)",
+    "value": "Value",
+    "valueWithUnit": "Value ({{ unit }})",
+    "note": "Note",
+    "status": "Status",
+    "recordedBy": "Recorded by",
+    "actions": "Actions",
+    "edit": "Correct",
+    "editLabel": "Correct the measurement for {{ period }}",
+    "deleteLabel": "Delete the measurement for {{ period }}",
+    "deleteTitle": "Delete this measurement?",
+    "deleteMessage": "The value is removed from the history of {{ code }}. This is recorded in the audit log."
+  },
+  "chart": {
+    "label": "Chart of {{ count }} measurements over time",
+    "point": "{{ period }}: {{ value }}, {{ status }}",
+    "target": "Target",
+    "warning": "Warning",
+    "empty": "No measurements to chart yet."
+  },
+  "lessons": {
+    "smartObjectives": "Micro-lesson: writing SMART objectives",
+    "goodKpis": "Micro-lesson: KPIs that tell you something"
+  },
+  "ai": {
+    "summarise": "Summarise",
+    "summariseAll": "Status summary",
+    "explainOffTarget": "Explain what is off target",
+    "smartTitle": "Start from a suggestion",
+    "smartHint": "Get SMART objective suggestions for the chosen management system and focus. Nothing is saved until you create the objective.",
+    "suggestSmart": "Suggest SMART objectives",
+    "useSuggestion": "Use this suggestion",
+    "suggestedKpis": "Suggested KPIs:",
+    "suggestionNote": "Suggestions are drafts. Review and adjust them; add the suggested KPIs from the objective page once it is created.",
+    "explainDeviation": "Explain the deviation",
+    "explanationLabel": "Suggested explanation (check it before acting on it)",
+    "askTarget": "Ask whether this target is measurable",
+    "prompts": {
+      "summariseAll": "Summarise the status of our objectives and KPIs: what is on track, what is at risk or overdue, and what needs attention first.",
+      "explainOffTarget": "Which KPIs are at risk or off track, and what are the likely reasons and next steps?",
+      "summariseObjective": "Summarise objective {{ code }} \"{{ title }}\": target, plan, progress and how its KPIs are doing.",
+      "summariseKpi": "Summarise KPI {{ code }} \"{{ title }}\": latest value against target, the trend and anything that needs attention.",
+      "askTarget": "Is this objective target specific, measurable, achievable, relevant and time-bound? Objective: \"{{ title }}\". Target: \"{{ target }}\". Suggest a better wording if needed."
+    }
+  },
+  "notices": {
+    "created": "Objective created.",
+    "saved": "Objective saved.",
+    "deleted": "Objective deleted.",
+    "kpiCreated": "KPI created.",
+    "kpiSaved": "KPI saved.",
+    "kpiDeleted": "KPI deleted.",
+    "measured": "Measurement recorded.",
+    "measurementSaved": "Measurement corrected.",
+    "measurementDeleted": "Measurement deleted.",
+    "suggestionApplied": "Suggestion copied into the form. Review it before saving."
+  },
+  "errors": {
+    "forbidden": "You don't have permission to do that.",
+    "title_required": "Enter a title.",
+    "name_required": "Enter a name.",
+    "invalid_owner": "The owner must be a member of this organisation.",
+    "invalid_department": "Choose a department of this organisation.",
+    "invalid_dates": "The due date can't be before the start date.",
+    "invalid_date": "Enter a valid date.",
+    "invalid_status": "That status isn't allowed here.",
+    "invalid_objective": "Choose an objective of this organisation.",
+    "invalid_direction": "Choose whether higher or lower is better.",
+    "invalid_frequency": "Choose how often the KPI is measured.",
+    "invalid_management_system": "Choose a valid management system.",
+    "invalid_number": "Enter a number, for example 12.5.",
+    "warning_without_target": "A warning threshold needs a target.",
+    "invalid_thresholds": "The warning threshold must be on the worse side of the target (below it when higher is better, above it when lower is better).",
+    "measurement_exists": "This period already has a measurement. Correct that one instead.",
+    "kpi_retired": "This KPI is retired, so no new measurements can be recorded.",
+    "period_in_future": "The period can't end in the future.",
+    "invalid_period": "The period start must be on or before the period end.",
+    "objective_not_found": "This objective no longer exists.",
+    "kpi_not_found": "This KPI no longer exists.",
+    "measurement_not_found": "This measurement no longer exists.",
+    "module_disabled": "Objectives and KPIs are switched off for this organisation."
+  },
+  "notifications": {
+    "objectiveCreated": "Objective created: {{ code }} {{ title }}",
+    "objectiveUpdated": "Objective updated: {{ code }} {{ title }}",
+    "objectiveOwnerChanged": "You now own objective {{ code }} {{ title }}",
+    "objectiveStatusChanged": "Objective status changed: {{ code }} {{ title }}",
+    "objectiveDeleted": "Objective deleted: {{ code }} {{ title }}",
+    "kpiCreated": "KPI created: {{ code }} {{ title }}",
+    "kpiUpdated": "KPI updated: {{ code }} {{ title }}",
+    "kpiOwnerChanged": "You now own KPI {{ code }} {{ title }}",
+    "kpiMeasured": "New measurement for {{ code }} {{ title }}",
+    "kpiMeasurementCorrected": "Measurement corrected for {{ code }} {{ title }}",
+    "kpiMeasurementDeleted": "Measurement deleted for {{ code }} {{ title }}",
+    "kpiThresholdBreached": "KPI off target: {{ code }} {{ title }}",
+    "kpiBackOnTrack": "KPI back on track: {{ code }} {{ title }}",
+    "kpiDeleted": "KPI deleted: {{ code }} {{ title }}"
+  },
+  "timeline": {
+    "objectiveCreated": "{{ actor_name }} created the objective",
+    "objectiveUpdated": "{{ actor_name }} updated the objective",
+    "objectiveOwnerChanged": "{{ actor_name }} changed the owner",
+    "objectiveStatusChanged": "{{ actor_name }} changed the status",
+    "objectiveDeleted": "{{ actor_name }} deleted the objective",
+    "kpiCreated": "{{ actor_name }} created the KPI",
+    "kpiUpdated": "{{ actor_name }} updated the KPI",
+    "kpiOwnerChanged": "{{ actor_name }} changed the owner",
+    "kpiMeasured": "{{ actor_name }} recorded a measurement",
+    "kpiMeasurementCorrected": "{{ actor_name }} corrected a measurement",
+    "kpiMeasurementDeleted": "{{ actor_name }} deleted a measurement",
+    "kpiThresholdBreached": "The KPI moved off target",
+    "kpiBackOnTrack": "The KPI is back on track",
+    "kpiDeleted": "{{ actor_name }} deleted the KPI"
+  }
+}
