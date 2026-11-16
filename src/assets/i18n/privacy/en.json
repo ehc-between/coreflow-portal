@@ -424,7 +424,11 @@
     "create": "Create",
     "save": "Save changes",
     "editTitle": "Edit {{ code }}",
-    "personalNotice": "This register holds personal data. Record only what you need to handle the matter, and only people with access to requests can see it."
+    "personalNotice": "This register holds personal data. Record only what you need to handle the matter, and only people with access to requests can see it.",
+    "awareCorrectionHint": "Correcting this moves the 72-hour deadline. The original time stays in the revision history; give the reason below.",
+    "changeReasonRequired": "Reason for the change *",
+    "changeReasonNeeded": "Give a reason for correcting the awareness time.",
+    "notInFuture": "This time cannot be in the future."
   },
   "common": {
     "loading": "Loading…",
@@ -622,7 +626,10 @@
     "supplementary_measures_required": "Describe the supplementary measures.",
     "lia_incomplete": "Complete the legitimate interests test first: {{ fields }}.",
     "justification_required": "Write the justification first.",
-    "input_required": "Describe the processing first."
+    "input_required": "Describe the processing first.",
+    "aware_at_forbidden": "Only the data protection officer or someone who manages privacy can correct the awareness time.",
+    "aware_at_in_future": "The awareness time cannot be in the future.",
+    "change_reason_required": "Give a reason for the change."
   },
   "notifications": {
     "ropaEntryCreated": "Processing record registered: {{ code }} {{ title }}",
@@ -675,7 +682,9 @@
     "dataBreachSubjectsNotified": "People affected told about {{ code }} {{ title }}",
     "consentRecordWithdrawn": "Consent withdrawn: {{ code }}",
     "dpiaDecided": "DPIA decided: {{ code }} {{ title }}",
-    "legalBasisAssessmentDecided": "Legal basis assessment decided: {{ code }} {{ title }}"
+    "legalBasisAssessmentDecided": "Legal basis assessment decided: {{ code }} {{ title }}",
+    "dataBreachAwareCorrected": "Awareness time corrected for {{ code }} {{ title }}: the 72-hour deadline has moved",
+    "dataBreachClockReminder": "{{ hours_remaining }} hours left to notify the authority of {{ code }} {{ title }}"
   },
   "timeline": {
     "ropaEntryCreated": "Processing record registered",
@@ -728,6 +737,17 @@
     "dataBreachSubjectsNotified": "People affected were told",
     "consentRecordWithdrawn": "Consent withdrawn",
     "dpiaDecided": "Decision recorded",
-    "legalBasisAssessmentDecided": "Decision recorded"
+    "legalBasisAssessmentDecided": "Decision recorded",
+    "dataBreachAwareCorrected": "Awareness time corrected",
+    "dataBreachClockReminder": "72-hour clock reminder sent"
+  },
+  "tasks": {
+    "breachContain": "Contain breach {{ code }}",
+    "breachAssess": "Assess the risk of breach {{ code }} and decide on notifying the authority",
+    "breachNotifyAuthority": "Notify the supervisory authority of breach {{ code }}",
+    "breachDecideSubjects": "Decide whether the people affected by breach {{ code }} must be told",
+    "breachNotifySubjects": "Tell the people affected by breach {{ code }}",
+    "breachClose": "Close breach {{ code }} with lessons learned",
+    "dsrRespond": "Respond to data subject request {{ code }}"
   }
 }

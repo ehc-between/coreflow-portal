@@ -106,6 +106,20 @@ describe('TaskForm', () => {
     expect(api.update).toHaveBeenCalledWith('org-1', 't-1', { title: 'New' });
   });
 
+  it('keeps a generated title (and its translation key) when other fields change', () => {
+    const task = makeTask({
+      title: 'Contain breach BR-0001',
+      title_key: 'privacy:tasks.breachContain',
+      title_params: { code: 'BR-0001' },
+      priority: 'normal',
+    });
+    const { api, input, type, submit } = setup({ task });
+    expect(input('input[type="text"]').value).toBe('Contain breach BR-0001');
+    type('select[id$="priority"]', 'urgent', 'change');
+    submit();
+    expect(api.update).toHaveBeenCalledWith('org-1', 't-1', { priority: 'urgent' });
+  });
+
   it('emits without a request when nothing changed', () => {
     const task = makeTask();
     const { api, submit, saved } = setup({ task });

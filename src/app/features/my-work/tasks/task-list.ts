@@ -22,6 +22,7 @@ import {
 } from '../../../core/tasks/task.models';
 import { TasksApi } from '../../../core/tasks/tasks-api';
 import { AskPanelService } from '../../ask/ask-panel.service';
+import { LocalizedTitlePipe } from '../../../shared/i18n/localized-title.pipe';
 import { LocalDayPipe } from '../../../shared/locale/locale-pipes';
 import { AssigneeLabel } from '../../../shared/tasks/assignee-label';
 import { TaskGuideIntro } from '../../../shared/tasks/guidance/task-guide-intro';
@@ -74,6 +75,7 @@ export function statusesFor(filter: StatusFilter): readonly TaskStatus[] {
     RouterLink,
     TranslocoPipe,
     LocalDayPipe,
+    LocalizedTitlePipe,
     AssigneeLabel,
     Badge,
     Button,
@@ -226,7 +228,7 @@ export function statusesFor(filter: StatusFilter): readonly TaskStatus[] {
                         class="block truncate text-[13.5px] font-semibold text-fg hover:underline"
                         [class.line-through]="task.status === 'cancelled'"
                       >
-                        {{ task.title }}
+                        {{ task | localizedTitle }}
                       </a>
                       <span
                         class="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[12px] text-fg-subtle"
