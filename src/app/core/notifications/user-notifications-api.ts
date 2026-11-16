@@ -8,6 +8,7 @@ import {
   MarkAllReadResponse,
   NotificationPreferencesResponse,
   UnreadCountResponse,
+  UnreadCountsByOrgResponse,
   UpdateNotificationPreferenceRequest,
   UserNotification,
   UserNotificationList,
@@ -44,6 +45,13 @@ export class UserNotificationsApi {
   unreadCount(orgId?: string | null): Observable<UnreadCountResponse> {
     return this.api.get<UnreadCountResponse>('v1/me/notifications/unread-count', {
       params: { org_id: orgId },
+      context: skipToast(),
+    });
+  }
+
+  /** Unread counts for every org the user belongs to (the org switcher's badges). */
+  unreadCountsByOrg(): Observable<UnreadCountsByOrgResponse> {
+    return this.api.get<UnreadCountsByOrgResponse>('v1/me/notifications/unread-counts', {
       context: skipToast(),
     });
   }

@@ -87,7 +87,15 @@
   "org": {
     "switch": "Bytt organisasjon",
     "none": "Ingen organisasjon",
-    "current": "Gjeldende organisasjon"
+    "current": "Gjeldende organisasjon",
+    "switchUnreadElsewhere": "Bytt organisasjon, {{count}} uleste i andre organisasjoner",
+    "unread": "{{count}} uleste"
+  },
+  "orgAccess": {
+    "title": "Ingen tilgang",
+    "heading": "Du har ikke tilgang til denne organisasjonen",
+    "body": "Lenken du åpnet hører til en organisasjon du ikke er medlem av, eller tilgangen din er fjernet. Be en administrator i den organisasjonen om å invitere deg, eller fortsett i organisasjonen du er i nå.",
+    "cta": "Gå til oversikten min"
   },
   "module": {
     "comingSoon": "Denne modulen er på vei. Agenten din gjør den klar."

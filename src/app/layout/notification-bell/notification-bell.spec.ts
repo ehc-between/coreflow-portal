@@ -104,7 +104,7 @@ function setup() {
   fixture.detectChanges();
   const el = fixture.nativeElement as HTMLElement;
   const router = TestBed.inject(Router);
-  const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+  const navigate = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
 
   const bell = () => el.querySelector<HTMLButtonElement>('button[aria-haspopup="dialog"]')!;
   const panel = () => el.querySelector<HTMLElement>('[role="dialog"]');
@@ -206,7 +206,7 @@ describe('NotificationBell', () => {
     items()[0].click();
     render();
     expect(inbox.markRead).toHaveBeenCalledWith(expect.objectContaining({ id: '1' }));
-    expect(navigate).toHaveBeenCalledWith(['/deviations', 'dev-1']);
+    expect(navigate).toHaveBeenCalledWith('/deviations/dev-1?org=org-1');
     expect(panel()).toBeNull();
   });
 
@@ -217,7 +217,16 @@ describe('NotificationBell', () => {
     render();
     items()[0].click();
     expect(inbox.markRead).not.toHaveBeenCalled();
-    expect(navigate).toHaveBeenCalledWith(['/deviations', 'dev-1']);
+    expect(navigate).toHaveBeenCalledWith('/deviations/dev-1?org=org-1');
+  });
+
+  it('opens a notification in its own org via the org deep link', async () => {
+    const { list$, open, items, render, navigate } = setup();
+    await open();
+    list$.current.next(page([make('1', { org_id: 'org-2' })]));
+    render();
+    items()[0].click();
+    expect(navigate).toHaveBeenCalledWith('/deviations/dev-1?org=org-2');
   });
 
   it('marks all as read', async () => {

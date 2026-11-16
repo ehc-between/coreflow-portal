@@ -64,6 +64,21 @@ export interface UnreadCountResponse {
   readonly count: number;
 }
 
+/** One org's entry in {@link UnreadCountsByOrgResponse}. */
+export interface OrgUnreadCount {
+  readonly org_id: string;
+  readonly count: number;
+}
+
+/**
+ * `GET v1/me/notifications/unread-counts`: one entry per org in the caller's
+ * access token (0 when nothing is unread), plus the sum across them.
+ */
+export interface UnreadCountsByOrgResponse {
+  readonly items: readonly OrgUnreadCount[];
+  readonly total: number;
+}
+
 /** `POST v1/me/notifications/read-all`. */
 export interface MarkAllReadResponse {
   readonly updated: number;
