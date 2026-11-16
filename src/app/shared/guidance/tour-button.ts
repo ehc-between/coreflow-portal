@@ -16,11 +16,11 @@ import { TourService } from './tour.service';
       <button
         type="button"
         data-testid="tour-button"
-        class="inline-flex h-8 items-center gap-1.5 rounded-tile border border-border bg-surface px-3 text-[13px] font-semibold text-fg hover:border-border-strong hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+        class="inline-flex h-8 items-center gap-1.5 rounded-tile border border-border bg-surface px-3 text-ui font-semibold text-fg hover:border-border-strong hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
         (click)="start()"
       >
         <span
-          class="flex h-4 w-4 items-center justify-center rounded-full bg-accent text-[10px] text-white"
+          class="flex h-4 w-4 items-center justify-center rounded-full bg-accent text-micro text-white"
           aria-hidden="true"
           >&#9654;</span
         >

@@ -29,13 +29,13 @@ let nextId = 0;
             (change)="valueChange.emit(null)"
           />
           <span class="min-w-0 flex-1">
-            <span class="block text-[13.5px] font-semibold text-fg">
+            <span class="block text-ui font-semibold text-fg">
               {{
                 'guidance.level.useOrgDefault'
                   | transloco: { level: 'guidance.levels.' + defaultLevel() + '.name' | transloco }
               }}
             </span>
-            <span class="block text-[12.5px] text-fg-muted">
+            <span class="block text-meta text-fg-muted">
               {{ 'guidance.level.useOrgDefaultHint' | transloco }}
             </span>
           </span>
@@ -52,10 +52,10 @@ let nextId = 0;
             (change)="valueChange.emit(level)"
           />
           <span class="min-w-0 flex-1">
-            <span class="block text-[13.5px] font-semibold text-fg">
+            <span class="block text-ui font-semibold text-fg">
               {{ 'guidance.levels.' + level + '.name' | transloco }}
             </span>
-            <span class="block text-[12.5px] text-fg-muted">
+            <span class="block text-meta text-fg-muted">
               {{ 'guidance.levels.' + level + '.description' | transloco }}
             </span>
           </span>

@@ -28,18 +28,18 @@ import { TOUR_CONTROLLER } from './tour-controller';
         data-testid="tour-popover"
         class="w-[320px] max-w-full rounded-card border border-border bg-surface p-4 shadow-pop outline-none"
       >
-        <div class="text-[11.5px] font-semibold tracking-wide text-fg-subtle uppercase">
+        <div class="text-meta font-semibold tracking-wide text-fg-subtle uppercase">
           {{
             'guidance.tour.progress'
               | transloco: { current: tour.index() + 1, total: tour.steps().length }
           }}
         </div>
-        <h2 id="tour-step-title" class="mt-1 text-[15px] font-bold text-fg">{{ step.title }}</h2>
+        <h2 id="tour-step-title" class="mt-1 text-card font-bold text-fg">{{ step.title }}</h2>
         <div class="cf-prose mt-1.5 text-fg-muted" [innerHTML]="step.body | appMarkdown"></div>
         <div class="mt-4 flex items-center gap-2">
           <button
             type="button"
-            class="mr-auto text-[12.5px] font-medium text-fg-muted hover:text-fg hover:underline"
+            class="mr-auto text-meta font-medium text-fg-muted hover:text-fg hover:underline"
             (click)="tour.end()"
           >
             {{ 'guidance.tour.skip' | transloco }}

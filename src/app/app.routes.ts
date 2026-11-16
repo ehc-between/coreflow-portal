@@ -9,6 +9,8 @@ import { MainLayout } from './layout/main-layout/main-layout';
 /**
  * A module area: gated on the module being enabled for the current org, then on
  * its read permission. Sub-pages add stricter guards in the feature routes.
+ * The route title is the module name (`modules.names.<key>`, the nav label), so
+ * the browser tab is right even before the page header sets the exact h1.
  */
 function moduleRoute(
   path: string,
@@ -17,6 +19,7 @@ function moduleRoute(
 ): Route {
   return {
     path,
+    title: `modules.names.${key}`,
     canActivate: [moduleGuard(key), permissionGuard(`${key}:read`)],
     loadChildren,
   };
@@ -26,6 +29,7 @@ export const routes: Routes = [
   // Public login page — kept outside the protected shell.
   {
     path: 'login',
+    title: 'auth.login',
     loadComponent: () => import('./features/auth/login/login').then((m) => m.Login),
   },
 
@@ -71,6 +75,7 @@ export const routes: Routes = [
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
       {
         path: 'dashboard',
+        title: 'nav.dashboard',
         // The default landing page. A user without dashboard:view falls back
         // silently to My Work (always available) — no warning, since they may
         // simply have signed in. Must not redirect to /dashboard (loop).
@@ -79,16 +84,19 @@ export const routes: Routes = [
       },
       {
         path: 'my-work',
+        title: 'nav.myWork',
         loadChildren: () => import('./features/my-work/my-work.routes'),
       },
       {
         // Platform tasks (F2): all tasks, recurring series and task detail (`/tasks/<id>`).
         path: 'tasks',
+        title: 'modules.names.tasks',
         canActivate: [permissionGuard('tasks:read', { redirectTo: '/my-work' })],
         loadChildren: () => import('./features/my-work/tasks.routes'),
       },
       {
         path: 'settings',
+        title: 'nav.settings',
         canActivate: [authGuard, settingsGuard],
         loadChildren: () => import('./features/org-settings/org-settings.routes'),
       },
@@ -103,7 +111,9 @@ export const routes: Routes = [
         loadChildren: () => import('./features/account/account.routes'),
       },
       {
+        // "Needs your review" moves into My work (P5); the route stays so links keep working.
         path: 'review',
+        title: 'nav.review',
         loadChildren: () => import('./features/review/review.routes'),
       },
 
@@ -180,6 +190,8 @@ export const routes: Routes = [
       { path: 'iso', pathMatch: 'full', redirectTo: 'standards' },
       // Procedures became the process register.
       { path: 'procedures', pathMatch: 'full', redirectTo: 'processes' },
+      // The learning centre has a nav entry now; give it a short, guessable URL.
+      { path: 'learning', pathMatch: 'full', redirectTo: 'account/learning' },
       {
         path: 'admin/organizations',
         canActivate: [authGuard, superAdminGuard],

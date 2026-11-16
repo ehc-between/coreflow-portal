@@ -62,10 +62,10 @@ const FOCUSABLE = 'button:not([disabled]):not([tabindex="-1"]), [href], input, s
           class="relative w-full max-w-[420px] rounded-card border border-border bg-surface p-5 shadow-card"
           (keydown)="trapTab($event)"
         >
-          <h2 [id]="titleId" class="font-display text-[17px] font-bold tracking-[-0.02em] text-fg">
+          <h2 [id]="titleId" class="font-display text-section font-bold tracking-[-0.02em] text-fg">
             {{ title() }}
           </h2>
-          <p [id]="messageId" class="mt-2 text-[13.5px] leading-relaxed text-fg-muted">
+          <p [id]="messageId" class="mt-2 text-ui leading-relaxed text-fg-muted">
             {{ message() }}
           </p>
           <ng-content />

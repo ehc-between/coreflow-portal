@@ -19,7 +19,10 @@
   --border-strong: #d2d7e0;
   --fg: #13161c;
   --fg-muted: #586071;
-  --fg-subtle: #8b94a4;
+  /* #6b7383 is >= 4.5:1 on --surface and --bg (WCAG AA for small text). The old
+     lighter grey survives only as --fg-placeholder (placeholders, disabled). */
+  --fg-subtle: #6b7383;
+  --fg-placeholder: #8b94a4;
   --accent: #5a4be6;
   --accent-2: #7c6ef2;
   --accent-soft: #eeecfd;
@@ -32,6 +35,11 @@
   --fail-soft: #fbe6e6;
   --info: #2f6fdb;
   --info-soft: #e7effb;
+  --pass-ink: #0b6e41;
+  --warn-ink: #8a5a00;
+  --fail-ink: #b02a2a;
+  --info-ink: #2559b8;
+  --fs-page: 24px;
   --shadow: 0 1px 2px rgba(16, 18, 24, 0.04), 0 4px 16px rgba(16, 18, 24, 0.06);
   --shadow-lg: 0 18px 50px rgba(16, 18, 24, 0.18);
 }
@@ -47,7 +55,8 @@
   --border-strong: #343b49;
   --fg: #eceef3;
   --fg-muted: #99a2b3;
-  --fg-subtle: #697283;
+  --fg-subtle: #8a93a4;
+  --fg-placeholder: #697283;
   --accent: #8579f6;
   --accent-2: #9a8ff8;
   --accent-soft: #1f1d3b;
@@ -60,8 +69,43 @@
   --fail-soft: #2c1616;
   --info: #5b97ef;
   --info-soft: #11203a;
+  --pass-ink: #34c780;
+  --warn-ink: #e0a23c;
+  --fail-ink: #f2706b;
+  --info-ink: #5b97ef;
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 6px 20px rgba(0, 0, 0, 0.42);
   --shadow-lg: 0 22px 60px rgba(0, 0, 0, 0.6);
+}
+
+@media (min-width: 640px) {
+  :root {
+    --fs-page: 26px;
+  }
+}
+
+::placeholder {
+  color: var(--fg-placeholder);
+}
+
+/* Skip link and other content that is only visible on keyboard focus. */
+.cf-skip-link {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 100;
+  transform: translateY(-160%);
+  border-radius: var(--radius-tile);
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 8px 14px;
+  transition: transform 0.12s;
+}
+.cf-skip-link:focus {
+  transform: none;
+  outline: 2px solid var(--fg);
+  outline-offset: 2px;
 }
 
 html,

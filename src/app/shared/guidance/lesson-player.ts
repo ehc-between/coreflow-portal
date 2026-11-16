@@ -49,10 +49,10 @@ export function scoreQuiz(
     @let s = stage();
     <article class="flex flex-col gap-4" [attr.aria-labelledby]="titleId">
       <header>
-        <h2 [id]="titleId" class="font-display text-[20px] font-bold tracking-[-0.02em] text-fg">
+        <h2 [id]="titleId" class="font-display text-section font-bold tracking-[-0.02em] text-fg">
           {{ l.title }}
         </h2>
-        <div class="mt-1 flex flex-wrap items-center gap-3 text-[12.5px] text-fg-muted">
+        <div class="mt-1 flex flex-wrap items-center gap-3 text-meta text-fg-muted">
           @if (l.minutes) {
             <span>{{ 'guidance.lesson.minutes' | transloco: { minutes: l.minutes } }}</span>
           }
@@ -71,7 +71,7 @@ export function scoreQuiz(
       @if (s.kind === 'section') {
         @let section = l.sections[s.index];
         <section data-testid="lesson-section">
-          <h3 class="text-[15px] font-semibold text-fg">{{ section.heading }}</h3>
+          <h3 class="text-card font-semibold text-fg">{{ section.heading }}</h3>
           <div class="cf-prose mt-1.5" [innerHTML]="section.body | appMarkdown"></div>
         </section>
         <div class="flex flex-wrap items-center gap-2">
@@ -104,13 +104,13 @@ export function scoreQuiz(
               class="rounded-card border border-border bg-surface p-4"
               [disabled]="submitted()"
             >
-              <legend class="px-1 text-[14px] font-semibold text-fg">
+              <legend class="px-1 text-body font-semibold text-fg">
                 {{ 'guidance.quiz.question' | transloco: { n: qi + 1 } }} {{ q.question }}
               </legend>
               <div class="mt-2 flex flex-col gap-1.5">
                 @for (option of q.options; track $index; let oi = $index) {
                   <label
-                    class="flex cursor-pointer items-start gap-2.5 rounded-tile px-2 py-1.5 text-[13.5px] text-fg hover:bg-surface-2"
+                    class="flex cursor-pointer items-start gap-2.5 rounded-tile px-2 py-1.5 text-ui text-fg hover:bg-surface-2"
                     [class.bg-pass-soft]="submitted() && oi === q.answer"
                     [class.bg-fail-soft]="submitted() && answers()[qi] === oi && oi !== q.answer"
                   >
@@ -127,7 +127,7 @@ export function scoreQuiz(
               </div>
               @if (submitted()) {
                 <p
-                  class="mt-2 text-[12.5px] font-medium"
+                  class="mt-2 text-meta font-medium"
                   [class.text-pass]="answers()[qi] === q.answer"
                   [class.text-fail]="answers()[qi] !== q.answer"
                 >
@@ -147,7 +147,7 @@ export function scoreQuiz(
             <div
               data-testid="quiz-result"
               role="status"
-              class="rounded-card px-4 py-3 text-[13.5px] font-semibold"
+              class="rounded-card px-4 py-3 text-ui font-semibold"
               [class.bg-pass-soft]="r.passed"
               [class.text-pass]="r.passed"
               [class.bg-warn-soft]="!r.passed"

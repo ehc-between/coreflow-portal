@@ -27,16 +27,16 @@ import { Icon } from '../../shared/ui/icon/icon';
       [attr.aria-label]="'org.switch' | transloco"
       [disabled]="!current"
       (click)="toggle()"
-      class="flex w-full items-center gap-2.5 rounded-[10px] border border-border bg-bg px-2.5 py-2.5 hover:border-border-strong disabled:cursor-default disabled:hover:border-border"
+      class="flex w-full items-center gap-2.5 rounded-tile border border-border bg-bg px-2.5 py-2.5 hover:border-border-strong disabled:cursor-default disabled:hover:border-border"
     >
       @if (current) {
         <app-avatar [name]="current.name" [gradient]="true" size="sm" />
-        <span class="flex-1 truncate text-left text-[13px] font-semibold text-fg">{{
+        <span class="flex-1 truncate text-left text-ui font-semibold text-fg">{{
           current.name
         }}</span>
       } @else {
         <app-avatar initials="—" [gradient]="false" size="sm" />
-        <span class="flex-1 truncate text-left text-[13px] font-semibold text-fg-muted">{{
+        <span class="flex-1 truncate text-left text-ui font-semibold text-fg-muted">{{
           'org.none' | transloco
         }}</span>
       }
@@ -55,12 +55,12 @@ import { Icon } from '../../shared/ui/icon/icon';
             type="button"
             role="menuitem"
             (click)="select(org.id)"
-            class="flex items-center gap-2.5 rounded-[9px] px-2 py-2 text-left hover:bg-surface-2"
+            class="flex items-center gap-2.5 rounded-tile px-2 py-2 text-left hover:bg-surface-2"
             [class.bg-accent-soft]="active"
           >
             <app-avatar [name]="org.name" [gradient]="true" size="sm" />
             <span
-              class="flex-1 truncate text-[13px] font-semibold"
+              class="flex-1 truncate text-ui font-semibold"
               [class]="active ? 'text-accent' : 'text-fg'"
               >{{ org.name }}</span
             >
