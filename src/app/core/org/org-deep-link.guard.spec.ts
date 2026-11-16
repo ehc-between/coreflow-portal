@@ -63,6 +63,8 @@ describe('orgDeepLinkGuard', () => {
             canActivate: [orgDeepLinkGuard],
             runGuardsAndResolvers: 'paramsOrQueryParamsChange',
             children: [
+              // Mirrors the shell's `'' -> dashboard` redirect.
+              { path: '', pathMatch: 'full', redirectTo: 'records/home' },
               { path: 'no-access', component: NoAccessPage },
               { path: 'records/:id', component: RecordPage },
             ],
@@ -100,6 +102,13 @@ describe('orgDeepLinkGuard', () => {
     await harness.navigateByUrl(`/records/r-1?org=${ORG_B}`);
     expect(selectedOrg.currentOrgId()).toBe(ORG_B);
     expect(router.url).toBe('/records/r-1');
+  });
+
+  it('switches for the org home link from emails (`/?org=`) after the root redirect', async () => {
+    const { harness, router, selectedOrg } = await setup();
+    await harness.navigateByUrl(`/?org=${ORG_B}`);
+    expect(selectedOrg.currentOrgId()).toBe(ORG_B);
+    expect(router.url).toBe('/records/home');
   });
 
   it('sends a non-member to the no-access page and keeps the selected org', async () => {
