@@ -49,6 +49,7 @@ import {
   DraftQuestionnaireResult,
   EvaluationDetail,
   QuestionIn,
+  UpdateEvaluationRequest,
 } from '../data/supplier.models';
 import { SuppliersApi } from '../data/suppliers-api';
 import { SupplierUserSelect } from '../shared/people-select';
@@ -88,7 +89,7 @@ export const EVALUATION_FIELD_LABELS: Readonly<Record<string, string>> = {
   due_at: 'suppliers.evaluations.dueAt',
 };
 
-type Pending = 'reopen' | 'cancel' | 'delete' | null;
+type Pending = 'reopen' | 'cancel' | 'delete' | 'submitNoSummary' | null;
 
 /** The answer draft of an evaluation (comments as plain strings). */
 export function answersDraft(e: EvaluationDetail): Record<string, DraftAnswer> {
@@ -215,7 +216,7 @@ export function answersBody(
                 <app-button
                   variant="secondary"
                   size="sm"
-                  [disabled]="!dirty()"
+                  [disabled]="!dirty() && !summaryDirty()"
                   [loading]="saving()"
                   (click)="saveAnswers()"
                 >
@@ -671,6 +672,18 @@ export function answersBody(
           />
 
           <app-confirm-dialog
+            [open]="pending() === 'submitNoSummary'"
+            [title]="'suppliers.evaluation.submitNoSummaryTitle' | transloco"
+            [message]="'suppliers.evaluation.submitNoSummaryMessage' | transloco"
+            [confirmLabel]="'suppliers.evaluation.submitAnyway' | transloco"
+            [cancelLabel]="'common.cancel' | transloco"
+            confirmVariant="primary"
+            [busy]="busy()"
+            (confirmed)="submit(true)"
+            (cancelled)="pending.set(null)"
+          />
+
+          <app-confirm-dialog
             [open]="pending() === 'delete'"
             [title]="'suppliers.evaluation.deleteTitle' | transloco"
             [message]="'suppliers.evaluation.deleteMessage' | transloco: { title: e.title }"
@@ -741,6 +754,10 @@ export class EvaluationDetailPage {
     const e = this.evaluation();
     return !!e && e.can_edit && e.status !== 'cancelled';
   });
+  /** The summary box holds text that is not on the server yet (e.g. an adopted suggestion). */
+  protected readonly summaryDirty = computed(
+    () => this.canEditSummary() && this.summaryDraft() !== (this.evaluation()?.summary ?? ''),
+  );
 
   /** The live score while answering a draft (the server value otherwise). */
   protected readonly preview = computed(() => {
@@ -794,13 +811,20 @@ export class EvaluationDetailPage {
     if (!orgId || !e || this.saving()) {
       return;
     }
+    const body = this.pendingChanges();
+    if (!body) {
+      return;
+    }
+    const toast = this.dirty()
+      ? 'suppliers.evaluation.answersSaved'
+      : 'suppliers.evaluation.summarySaved';
     this.saving.set(true);
     this.actionError.set(null);
-    this.api.updateEvaluation(orgId, e.id, { answers: answersBody(this.answers()) }).subscribe({
+    this.api.updateEvaluation(orgId, e.id, body).subscribe({
       next: (updated) => {
         this.saving.set(false);
         this.apply(updated);
-        this.notifications.success('suppliers.evaluation.answersSaved');
+        this.notifications.success(toast);
       },
       error: (err: unknown) => {
         this.saving.set(false);
@@ -809,7 +833,12 @@ export class EvaluationDetailPage {
     });
   }
 
-  protected submit(): void {
+  /**
+   * Submit for decision. Unsaved answers and an unsaved summary are saved first, so
+   * nothing typed or adopted is lost; an empty summary asks for confirmation unless
+   * `confirmedNoSummary` (the warning dialog's "Submit anyway").
+   */
+  protected submit(confirmedNoSummary = false): void {
     const orgId = this.selectedOrg.currentOrgId();
     const e = this.evaluation();
     if (!orgId || !e || this.busy()) {
@@ -817,22 +846,30 @@ export class EvaluationDetailPage {
     }
     const missing = this.preview().unanswered;
     if (missing.length) {
+      this.pending.set(null);
       this.unanswered.set(missing);
+      return;
+    }
+    if (!confirmedNoSummary && !this.summaryDraft().trim()) {
+      this.pending.set('submitNoSummary');
       return;
     }
     this.busy.set(true);
     this.actionError.set(null);
-    const save$: Observable<unknown> = this.dirty()
-      ? this.api.updateEvaluation(orgId, e.id, { answers: answersBody(this.answers()) })
+    const body = this.pendingChanges();
+    const save$: Observable<unknown> = body
+      ? this.api.updateEvaluation(orgId, e.id, body)
       : of(null);
     save$.pipe(switchMap(() => this.api.submitEvaluation(orgId, e.id))).subscribe({
       next: (updated) => {
         this.busy.set(false);
+        this.pending.set(null);
         this.apply(updated);
         this.notifications.success('suppliers.evaluation.submittedToast');
       },
       error: (err: unknown) => {
         this.busy.set(false);
+        this.pending.set(null);
         const ids = unansweredIds(err);
         if (ids.length) {
           this.unanswered.set(ids);
@@ -1034,11 +1071,26 @@ export class EvaluationDetailPage {
       });
   }
 
-  /** Take a fresh server copy; keeps nothing stale from the drafts. */
+  /** The unsaved answers and/or summary as one update body, or null when nothing changed. */
+  private pendingChanges(): UpdateEvaluationRequest | null {
+    const answers = this.dirty() ? { answers: answersBody(this.answers()) } : {};
+    const summary = this.summaryDirty() ? { summary: blankToNull(this.summaryDraft()) } : {};
+    const body: UpdateEvaluationRequest = { ...answers, ...summary };
+    return Object.keys(body).length ? body : null;
+  }
+
+  /**
+   * Take a fresh server copy. Answers reset to the server's; an unsaved summary on the
+   * same evaluation is kept (another save must not wipe text the user has not saved).
+   */
   private apply(e: EvaluationDetail): void {
+    const prev = this.evaluation();
+    const keepSummary = !!prev && prev.id === e.id && this.summaryDirty();
     this.evaluation.set(e);
     this.answers.set(answersDraft(e));
-    this.summaryDraft.set(e.summary ?? '');
+    if (!keepSummary) {
+      this.summaryDraft.set(e.summary ?? '');
+    }
     this.dirty.set(false);
     this.unanswered.set([]);
   }
