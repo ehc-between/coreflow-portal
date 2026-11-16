@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  computed,
   effect,
   inject,
   input,
@@ -28,11 +29,29 @@ import { checklistStatusTone, textOrNull } from './data/people-display';
 import { peopleErrorKey } from './data/people-errors';
 import { CHECKLIST_KINDS, Checklist, ChecklistCreate, ChecklistKind } from './data/people.models';
 
-interface StartDraft {
+export interface StartDraft {
   readonly kind: ChecklistKind;
   readonly title: string;
   readonly due_date: string;
+  /** The last working day; offboarding only (access is revoked on this day). */
+  readonly end_date: string;
   readonly assignee: string;
+}
+
+/** Whether the start dialog can be confirmed: offboarding needs a last working day. */
+export function startDraftValid(draft: StartDraft): boolean {
+  return draft.kind !== 'offboarding' || draft.end_date !== '';
+}
+
+/** The `POST .../checklists` body for a start dialog draft. */
+export function toChecklistCreate(draft: StartDraft): ChecklistCreate {
+  return {
+    kind: draft.kind,
+    title: textOrNull(draft.title) ?? undefined,
+    due_date: draft.due_date || undefined,
+    end_date: draft.kind === 'offboarding' && draft.end_date ? draft.end_date : undefined,
+    assignee: assigneeFromValue(draft.assignee),
+  };
 }
 
 /** `user:<id>` / `role:<key>` / `department:<id>` -> the checklist `assignee` body. */
@@ -158,12 +177,32 @@ export function assigneeFromValue(value: string): ChecklistCreate['assignee'] {
       [cancelLabel]="'common.cancel' | transloco"
       confirmVariant="primary"
       [busy]="busy()"
-      initialFocus="#cf-cl-due"
+      [confirmDisabled]="!draftValid()"
+      [initialFocus]="draft()?.kind === 'offboarding' ? '#cf-cl-end' : '#cf-cl-due'"
       (confirmed)="start()"
       (cancelled)="draft.set(null)"
     >
       @if (draft(); as d) {
         <div class="mt-4 flex flex-col gap-3">
+          @if (d.kind === 'offboarding') {
+            <app-form-field
+              [label]="'people.checklists.lastWorkingDay' | transloco"
+              inputId="cf-cl-end"
+            >
+              <input
+                id="cf-cl-end"
+                type="date"
+                required
+                aria-describedby="cf-cl-end-hint"
+                [value]="d.end_date"
+                (change)="patch({ end_date: $any($event.target).value })"
+                data-testid="start-end-date"
+              />
+            </app-form-field>
+            <p id="cf-cl-end-hint" class="-mt-1 text-[12px] text-fg-subtle">
+              {{ 'people.checklists.lastWorkingDayHint' | transloco }}
+            </p>
+          }
           <app-form-field
             [label]="'people.fields.checklistTitle' | transloco"
             inputId="cf-cl-title"
@@ -206,6 +245,8 @@ export class EmployeeChecklistsSection {
 
   readonly employeeId = input.required<string>();
   readonly canEdit = input(false);
+  /** The employee's current end date, prefilled as the last working day of an offboarding. */
+  readonly endDate = input<string | null>(null);
   readonly refresh = input(0);
   readonly changed = output<void>();
 
@@ -215,6 +256,10 @@ export class EmployeeChecklistsSection {
   protected readonly items = signal<readonly Checklist[]>([]);
   protected readonly draft = signal<StartDraft | null>(null);
   protected readonly busy = signal(false);
+  protected readonly draftValid = computed(() => {
+    const d = this.draft();
+    return d !== null && startDraftValid(d);
+  });
 
   private request = new Subscription();
 
@@ -229,7 +274,13 @@ export class EmployeeChecklistsSection {
   }
 
   protected openStart(kind: ChecklistKind): void {
-    this.draft.set({ kind, title: '', due_date: '', assignee: '' });
+    this.draft.set({
+      kind,
+      title: '',
+      due_date: '',
+      end_date: kind === 'offboarding' ? (this.endDate() ?? '') : '',
+      assignee: '',
+    });
   }
 
   protected patch(patch: Partial<StartDraft>): void {
@@ -239,15 +290,10 @@ export class EmployeeChecklistsSection {
   protected start(): void {
     const orgId = this.selectedOrg.currentOrgId();
     const d = this.draft();
-    if (!orgId || !d || this.busy()) {
+    if (!orgId || !d || this.busy() || !startDraftValid(d)) {
       return;
     }
-    const body: ChecklistCreate = {
-      kind: d.kind,
-      title: textOrNull(d.title) ?? undefined,
-      due_date: d.due_date || undefined,
-      assignee: assigneeFromValue(d.assignee),
-    };
+    const body = toChecklistCreate(d);
     this.busy.set(true);
     this.api.startChecklist(orgId, this.employeeId(), body).subscribe({
       next: (checklist) => {

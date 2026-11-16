@@ -62,6 +62,7 @@ const EVENT_KEYS = [
   'checklistCancelled',
   'disciplinaryOpened',
   'disciplinaryClosed',
+  'accessRevoked',
 ];
 
 /** Entity types whose label keys point at this scope (`people:entities.<type>`). */

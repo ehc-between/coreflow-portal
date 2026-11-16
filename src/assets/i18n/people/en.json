@@ -245,7 +245,13 @@
     "atAGlance": "At a glance",
     "openMatrix": "Open the competence matrix",
     "deleteTitle": "Delete this employee?",
-    "deleteMessage": "{{ code }} and their competence, awareness and checklist records are removed. Open checklists and their tasks are cancelled."
+    "deleteMessage": "{{ code }} and their competence, awareness and checklist records are removed. Open checklists and their tasks are cancelled.",
+    "accessRevokedOn": "Access to this system was removed on {{ date }}.",
+    "accessRevokesOn": "Access to this system is removed automatically at the end of the last working day, {{ date }}.",
+    "revokeAccess": "Remove access now",
+    "revokeTitle": "Remove access now?",
+    "revokeMessage": "{{ name }} loses access to this organisation straight away: memberships are removed, every sign-in is ended and the status changes to Former. Use this for a summary dismissal.",
+    "revokeConfirm": "Remove access"
   },
   "competences": {
     "title": "Competences",
@@ -381,7 +387,11 @@
     "task": "Task",
     "openTask": "Open the task",
     "deleteTitle": "Delete this checklist?",
-    "deleteMessage": "{{ title }} and its items are removed."
+    "deleteMessage": "{{ title }} and its items are removed.",
+    "lastWorkingDay": "Last working day",
+    "lastWorkingDayHint": "Access to this system is removed automatically at the end of this day: memberships and sign-ins are revoked and the status changes to Former.",
+    "automaticPending": "Ticked automatically when access is removed on the last working day.",
+    "automaticDone": "Ticked automatically when access was removed on {{ date }}."
   },
   "awareness": {
     "title": "Awareness",
@@ -425,11 +435,14 @@
     "positionDeleted": "Position {{ title }} deleted.",
     "requirementsSaved": "Competence requirements saved.",
     "competenceCreated": "Competence added.",
-    "competenceDeleted": "Competence {{ name }} deleted."
+    "competenceDeleted": "Competence {{ name }} deleted.",
+    "accessRevoked": "Access removed for {{ name }}."
   },
   "errors": {
     "forbidden": "You do not have access to this.",
     "notFound": "This record was not found. It may have been deleted.",
+    "access_already_revoked": "Access has already been removed for this person.",
+    "cannot_revoke_self": "You cannot remove your own access.",
     "checklist_closed": "This checklist is closed and can no longer be changed.",
     "checklist_exists": "This employee already has an open checklist of that kind.",
     "checklist_incomplete": "Finish the required items first ({{ count }} open).",
@@ -437,6 +450,8 @@
     "duplicate_competence": "Each competence can only be listed once.",
     "employee_former": "This person has left the organisation, so onboarding cannot start.",
     "employee_user_exists": "That user account is already linked to another employee.",
+    "end_date_in_future": "The status can only be Former once the last working day has passed. Start an offboarding instead.",
+    "end_date_required": "Enter the last working day.",
     "full_name_required": "Enter the employee's full name.",
     "invalid_case_type": "Choose a valid type of case.",
     "invalid_category": "Choose a valid category.",
@@ -452,9 +467,11 @@
     "invalid_risk_level": "Choose a valid risk level.",
     "invalid_status": "Choose a valid status.",
     "invalid_user": "That user is not a member of this organisation.",
+    "item_automatic": "This item is ticked automatically when access is removed. Only the note can be changed.",
     "module_disabled": "People and competence is turned off for this organisation.",
     "name_required": "Enter a name.",
     "position_in_use": "People still hold this position. Move them first, or retire the position.",
+    "revoke_not_allowed": "You cannot offboard this person: they have permissions in this organisation that you do not have.",
     "text_required": "Enter the text of the item.",
     "title_required": "Enter a title.",
     "too_many_items": "The checklist has too many items.",
@@ -496,7 +513,8 @@
     "checklistCompleted": "Checklist \"{{ title }}\" completed",
     "checklistCancelled": "Checklist \"{{ title }}\" cancelled",
     "disciplinaryOpened": "A disciplinary case was opened",
-    "disciplinaryClosed": "A disciplinary case was closed"
+    "disciplinaryClosed": "A disciplinary case was closed",
+    "accessRevoked": "Access removed for {{ code }}"
   },
   "timeline": {
     "employeeCreated": "{{ actor_name }} added the employee {{ code }}",
@@ -518,6 +536,7 @@
     "checklistCompleted": "{{ actor_name }} completed the checklist \"{{ title }}\"",
     "checklistCancelled": "{{ actor_name }} cancelled the checklist \"{{ title }}\"",
     "disciplinaryOpened": "{{ actor_name }} opened a disciplinary case",
-    "disciplinaryClosed": "{{ actor_name }} closed a disciplinary case"
+    "disciplinaryClosed": "{{ actor_name }} closed a disciplinary case",
+    "accessRevoked": "Access to this system was removed for {{ code }}"
   }
 }

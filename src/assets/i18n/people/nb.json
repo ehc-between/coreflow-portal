@@ -245,7 +245,13 @@
     "atAGlance": "Kort oppsummert",
     "openMatrix": "Åpne kompetansematrisen",
     "deleteTitle": "Slette denne ansatte?",
-    "deleteMessage": "{{ code }} og tilhørende kompetanse, bevissthetstiltak og sjekklister fjernes. Åpne sjekklister og oppgavene deres avbrytes."
+    "deleteMessage": "{{ code }} og tilhørende kompetanse, bevissthetstiltak og sjekklister fjernes. Åpne sjekklister og oppgavene deres avbrytes.",
+    "accessRevokedOn": "Tilgangen til dette systemet ble fjernet {{ date }}.",
+    "accessRevokesOn": "Tilgangen til dette systemet fjernes automatisk ved slutten av siste arbeidsdag, {{ date }}.",
+    "revokeAccess": "Fjern tilgang nå",
+    "revokeTitle": "Fjerne tilgangen nå?",
+    "revokeMessage": "{{ name }} mister tilgangen til virksomheten med en gang: medlemskap fjernes, alle innlogginger avsluttes og statusen endres til «Tidligere ansatt». Bruk dette ved avskjed på dagen.",
+    "revokeConfirm": "Fjern tilgang"
   },
   "competences": {
     "title": "Kompetanser",
@@ -381,7 +387,11 @@
     "task": "Oppgave",
     "openTask": "Åpne oppgaven",
     "deleteTitle": "Slette denne sjekklisten?",
-    "deleteMessage": "{{ title }} og punktene fjernes."
+    "deleteMessage": "{{ title }} og punktene fjernes.",
+    "lastWorkingDay": "Siste arbeidsdag",
+    "lastWorkingDayHint": "Tilgangen til dette systemet fjernes automatisk ved slutten av denne dagen: medlemskap og innlogginger trekkes tilbake, og statusen endres til «Tidligere ansatt».",
+    "automaticPending": "Krysses av automatisk når tilgangen fjernes på siste arbeidsdag.",
+    "automaticDone": "Krysset av automatisk da tilgangen ble fjernet {{ date }}."
   },
   "awareness": {
     "title": "Bevissthet",
@@ -425,11 +435,14 @@
     "positionDeleted": "Stillingen {{ title }} er slettet.",
     "requirementsSaved": "Kompetansekravene er lagret.",
     "competenceCreated": "Kompetansen er lagt til.",
-    "competenceDeleted": "Kompetansen {{ name }} er slettet."
+    "competenceDeleted": "Kompetansen {{ name }} er slettet.",
+    "accessRevoked": "Tilgangen er fjernet for {{ name }}."
   },
   "errors": {
     "forbidden": "Du har ikke tilgang til dette.",
     "notFound": "Fant ikke denne oppføringen. Den kan være slettet.",
+    "access_already_revoked": "Tilgangen er allerede fjernet for denne personen.",
+    "cannot_revoke_self": "Du kan ikke fjerne din egen tilgang.",
     "checklist_closed": "Denne sjekklisten er lukket og kan ikke lenger endres.",
     "checklist_exists": "Den ansatte har allerede en åpen sjekkliste av den typen.",
     "checklist_incomplete": "Gjør de obligatoriske punktene først ({{ count }} åpne).",
@@ -437,6 +450,8 @@
     "duplicate_competence": "Hver kompetanse kan bare stå én gang.",
     "employee_former": "Denne personen har sluttet, så onboarding kan ikke startes.",
     "employee_user_exists": "Den brukerkontoen er allerede koblet til en annen ansatt.",
+    "end_date_in_future": "Statusen kan først settes til «Tidligere ansatt» når siste arbeidsdag er passert. Start en offboarding i stedet.",
+    "end_date_required": "Skriv inn siste arbeidsdag.",
     "full_name_required": "Skriv inn den ansattes fulle navn.",
     "invalid_case_type": "Velg en gyldig type sak.",
     "invalid_category": "Velg en gyldig kategori.",
@@ -452,9 +467,11 @@
     "invalid_risk_level": "Velg et gyldig risikonivå.",
     "invalid_status": "Velg en gyldig status.",
     "invalid_user": "Den brukeren er ikke medlem av virksomheten.",
+    "item_automatic": "Dette punktet krysses av automatisk når tilgangen fjernes. Bare notatet kan endres.",
     "module_disabled": "Personer og kompetanse er slått av for denne virksomheten.",
     "name_required": "Skriv inn et navn.",
     "position_in_use": "Noen har fortsatt denne stillingen. Flytt dem først, eller sett stillingen som utgått.",
+    "revoke_not_allowed": "Du kan ikke offboarde denne personen: personen har rettigheter i virksomheten som du ikke har.",
     "text_required": "Skriv inn teksten til punktet.",
     "title_required": "Skriv inn en tittel.",
     "too_many_items": "Sjekklisten har for mange punkter.",
@@ -496,7 +513,8 @@
     "checklistCompleted": "Sjekklisten «{{ title }}» er fullført",
     "checklistCancelled": "Sjekklisten «{{ title }}» er avbrutt",
     "disciplinaryOpened": "En disiplinærsak er opprettet",
-    "disciplinaryClosed": "En disiplinærsak er lukket"
+    "disciplinaryClosed": "En disiplinærsak er lukket",
+    "accessRevoked": "Tilgang fjernet for {{ code }}"
   },
   "timeline": {
     "employeeCreated": "{{ actor_name }} la til den ansatte {{ code }}",
@@ -518,6 +536,7 @@
     "checklistCompleted": "{{ actor_name }} fullførte sjekklisten «{{ title }}»",
     "checklistCancelled": "{{ actor_name }} avbrøt sjekklisten «{{ title }}»",
     "disciplinaryOpened": "{{ actor_name }} opprettet en disiplinærsak",
-    "disciplinaryClosed": "{{ actor_name }} lukket en disiplinærsak"
+    "disciplinaryClosed": "{{ actor_name }} lukket en disiplinærsak",
+    "accessRevoked": "Tilgangen til dette systemet ble fjernet for {{ code }}"
   }
 }

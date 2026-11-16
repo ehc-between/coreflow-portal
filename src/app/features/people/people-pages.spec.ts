@@ -1,5 +1,7 @@
 import { HttpTestingController } from '@angular/common/http/testing';
+import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { AuthService } from '../../core/auth/auth.service';
 import { provideFakeGuidance } from '../../core/guidance/guidance.testing';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { configureKit, kitUrl, tick } from '../../shared/kit/kit.testing';
@@ -106,13 +108,16 @@ describe('EmployeesList', () => {
 });
 
 describe('EmployeeDetail', () => {
-  function setup(permissions: readonly string[]) {
+  function setup(permissions: readonly string[], meId: string | null = null) {
     const notify = toasts();
     const { http } = configureKit(EmployeeDetail, {
       permissions,
       providers: [
         ...provideFakeGuidance().providers,
         { provide: NotificationService, useValue: notify },
+        ...(meId
+          ? [{ provide: AuthService, useValue: { user: signal({ id: meId }).asReadonly() } }]
+          : []),
       ],
     });
     const fixture = TestBed.createComponent(EmployeeDetail);
@@ -120,10 +125,14 @@ describe('EmployeeDetail', () => {
     return { http, fixture, notify, el: fixture.nativeElement as HTMLElement };
   }
 
-  async function loaded(permissions: readonly string[]) {
-    const ctx = setup(permissions);
+  async function loaded(
+    permissions: readonly string[],
+    employee = makeEmployee(),
+    meId: string | null = null,
+  ) {
+    const ctx = setup(permissions, meId);
     await render(ctx.fixture);
-    ctx.http.expectOne(people('employees/e-1')).flush(makeEmployee());
+    ctx.http.expectOne(people('employees/e-1')).flush(employee);
     await render(ctx.fixture);
     flushLookups(ctx.http);
     ctx.http.expectOne(people('employees/e-1/competences')).flush(makeHeld());
@@ -183,6 +192,119 @@ describe('EmployeeDetail', () => {
     expect(notify.success).toHaveBeenCalledWith('people.notices.assessed');
   });
 
+  it('offers "remove access now" only to people:manage holders', async () => {
+    const write = await loaded(['people:read', 'people:write']);
+    expect(write.el.querySelector('[data-testid="employee-revoke-access"]')).toBeNull();
+    TestBed.resetTestingModule();
+    const manage = await loaded(['people:read', 'people:write', 'people:manage']);
+    expect(manage.el.querySelector('[data-testid="employee-revoke-access"]')).toBeTruthy();
+  });
+
+  it('hides "remove access now" once access is revoked and on your own record', async () => {
+    const perms = ['people:read', 'people:write', 'people:manage'];
+    const revoked = await loaded(
+      perms,
+      makeEmployee({ status: 'former', access_revoked_at: '2026-03-01T16:00:00' }),
+    );
+    expect(revoked.el.querySelector('[data-testid="employee-revoke-access"]')).toBeNull();
+    expect(revoked.el.querySelector('[data-testid="access-state"]')?.textContent).toContain(
+      'people.detail.accessRevokedOn',
+    );
+    TestBed.resetTestingModule();
+    const self = await loaded(perms, makeEmployee(), 'u-1');
+    expect(self.el.querySelector('[data-testid="employee-revoke-access"]')).toBeNull();
+  });
+
+  it('says when access will be removed during an offboarding', async () => {
+    const { el } = await loaded(
+      ['people:read', 'people:write'],
+      makeEmployee({ status: 'offboarding', end_date: '2026-03-31' }),
+    );
+    expect(el.querySelector('[data-testid="access-state"]')?.textContent).toContain(
+      'people.detail.accessRevokesOn',
+    );
+  });
+
+  it('removes access now after confirming and refreshes the checklists', async () => {
+    const { el, http, fixture, notify } = await loaded([
+      'people:read',
+      'people:write',
+      'people:manage',
+    ]);
+    el.querySelector<HTMLElement>('[data-testid="employee-revoke-access"] button')!.click();
+    await render(fixture);
+    const dialog = document.querySelector('[role="alertdialog"]')!;
+    const buttons = Array.from(dialog.querySelectorAll('button'));
+    buttons[buttons.length - 1].click();
+    await render(fixture);
+    const req = http.expectOne(people('employees/e-1/revoke-access'));
+    expect(req.request.method).toBe('POST');
+    req.flush(
+      makeEmployee({ status: 'former', end_date: '2026-03-01', access_revoked_at: '2026-03-01' }),
+    );
+    await render(fixture);
+    expect(notify.success).toHaveBeenCalledWith('people.notices.accessRevoked', {
+      name: 'Ada Lovelace',
+    });
+    expect(el.querySelector('[data-testid="employee-status"]')?.textContent).toContain(
+      'people.status.former',
+    );
+    expect(el.querySelector('[data-testid="employee-revoke-access"]')).toBeNull();
+    http.expectOne((r) => r.url === people('checklists')).flush({ items: [], total: 0 });
+  });
+
+  it('shows the coded error when access may not be revoked', async () => {
+    const { el, http, fixture, notify } = await loaded([
+      'people:read',
+      'people:write',
+      'people:manage',
+    ]);
+    el.querySelector<HTMLElement>('[data-testid="employee-revoke-access"] button')!.click();
+    await render(fixture);
+    const dialog = document.querySelector('[role="alertdialog"]')!;
+    const buttons = Array.from(dialog.querySelectorAll('button'));
+    buttons[buttons.length - 1].click();
+    await render(fixture);
+    http
+      .expectOne(people('employees/e-1/revoke-access'))
+      .flush({ detail: { code: 'revoke_not_allowed' } }, { status: 403, statusText: 'Forbidden' });
+    await render(fixture);
+    expect(notify.error).toHaveBeenCalledWith('people.errors.revoke_not_allowed');
+    http.expectOne(people('employees/e-1')).flush(makeEmployee());
+  });
+
+  it('asks for the last working day when starting an offboarding', async () => {
+    const { el, http, fixture } = await loaded(['people:read', 'people:write']);
+    el.querySelector<HTMLElement>('[data-testid="start-offboarding"] button')!.click();
+    await render(fixture);
+    const dialog = document.querySelector('[role="alertdialog"]')!;
+    const confirm = () => {
+      const buttons = Array.from(dialog.querySelectorAll('button'));
+      return buttons[buttons.length - 1];
+    };
+    expect(confirm().disabled).toBe(true);
+    const end = dialog.querySelector<HTMLInputElement>('[data-testid="start-end-date"]')!;
+    end.value = '2026-03-31';
+    end.dispatchEvent(new Event('change'));
+    await render(fixture);
+    expect(confirm().disabled).toBe(false);
+    confirm().click();
+    await render(fixture);
+    const req = http.expectOne(people('employees/e-1/checklists'));
+    expect(req.request.body).toMatchObject({ kind: 'offboarding', end_date: '2026-03-31' });
+  });
+
+  it('prefills the last working day from the employee end date', async () => {
+    const { el, fixture } = await loaded(
+      ['people:read', 'people:write'],
+      makeEmployee({ end_date: '2026-04-30' }),
+    );
+    el.querySelector<HTMLElement>('[data-testid="start-offboarding"] button')!.click();
+    await render(fixture);
+    const end = document.querySelector<HTMLInputElement>('[data-testid="start-end-date"]')!;
+    expect(end.value).toBe('2026-04-30');
+  });
+
   it('shows a coded error when the employee cannot be loaded', async () => {
     const { http, fixture, el } = setup(['people:read']);
     await render(fixture);
@@ -240,6 +362,53 @@ describe('ChecklistDetailPage', () => {
       );
     await render(fixture);
     expect(el.textContent).toContain('people.errors.checklist_incomplete');
+  });
+
+  it('never lets the automatic access item be ticked or removed by hand', async () => {
+    const { el, http, fixture } = await loaded();
+    const box = el.querySelector<HTMLInputElement>('[data-testid="item-i-0"]')!;
+    expect(box.disabled).toBe(true);
+    expect(el.querySelector('[data-testid="item-auto-i-0"]')?.textContent).toContain(
+      'people.checklists.automaticPending',
+    );
+    expect(el.querySelector('[data-testid="remove-i-0"]')).toBeNull();
+    // The manual items stay editable.
+    expect(el.querySelector<HTMLInputElement>('[data-testid="item-i-1"]')?.disabled).toBe(false);
+    expect(el.querySelector('[data-testid="remove-i-1"]')).toBeTruthy();
+    // Even a forced change event sends nothing.
+    box.checked = true;
+    box.dispatchEvent(new Event('change'));
+    await render(fixture);
+    http.expectNone(people('checklists/cl-1/items/i-0'));
+  });
+
+  it('shows when the system ticked the access item', async () => {
+    const base = makeChecklist();
+    const { el } = await loaded(
+      makeChecklist({
+        items: base.items.map((i) =>
+          i.system_key ? { ...i, done: true, done_at: '2026-03-31T16:00:00' } : i,
+        ),
+      }),
+    );
+    expect(el.querySelector('[data-testid="item-auto-i-0"]')?.textContent).toContain(
+      'people.checklists.automaticDone',
+    );
+  });
+
+  it('reloads when the backend refuses a change to the automatic item', async () => {
+    const { el, http, fixture, notify } = await loaded();
+    el.querySelector<HTMLElement>('[data-testid="item-i-1"]')!.click();
+    await render(fixture);
+    http
+      .expectOne(people('checklists/cl-1/items/i-1'))
+      .flush(
+        { detail: { code: 'item_automatic', fields: ['done'] } },
+        { status: 409, statusText: 'Conflict' },
+      );
+    await render(fixture);
+    expect(notify.error).toHaveBeenCalledWith('people.errors.item_automatic');
+    http.expectOne(people('checklists/cl-1')).flush(makeChecklist());
   });
 
   it('is read-only once completed', async () => {

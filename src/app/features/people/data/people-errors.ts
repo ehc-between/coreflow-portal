@@ -4,6 +4,8 @@ import { httpErrorMessageKey } from '../../../core/http/error.interceptor';
 
 /** Codes the people endpoints return in a 4xx `detail: {code}`; each has `people.errors.<code>`. */
 export const PEOPLE_ERROR_CODES = [
+  'access_already_revoked',
+  'cannot_revoke_self',
   'checklist_closed',
   'checklist_exists',
   'checklist_incomplete',
@@ -11,6 +13,8 @@ export const PEOPLE_ERROR_CODES = [
   'duplicate_competence',
   'employee_former',
   'employee_user_exists',
+  'end_date_in_future',
+  'end_date_required',
   'full_name_required',
   'invalid_case_type',
   'invalid_category',
@@ -26,9 +30,11 @@ export const PEOPLE_ERROR_CODES = [
   'invalid_risk_level',
   'invalid_status',
   'invalid_user',
+  'item_automatic',
   'module_disabled',
   'name_required',
   'position_in_use',
+  'revoke_not_allowed',
   'text_required',
   'title_required',
   'too_many_items',
