@@ -20,8 +20,34 @@ export type FrameworkKey = (typeof FRAMEWORK_KEYS)[number];
 export const SIZE_BANDS = ['1-10', '11-50', '51-250', '251-1000', '1000+'] as const;
 export type SizeBand = (typeof SIZE_BANDS)[number];
 
-export const AI_ACT_ROLES = ['provider', 'deployer', 'both', 'none', 'unknown'] as const;
+/**
+ * EU AI Act operator roles of the org profile: the same vocabulary as AI systems
+ * (`app/platform/ai_act.py`), plus `unknown` (not decided yet).
+ */
+export const AI_ACT_ROLES = [
+  'provider',
+  'deployer',
+  'provider_and_deployer',
+  'importer',
+  'distributor',
+  'authorised_representative',
+  'product_manufacturer',
+  'not_applicable',
+  'unknown',
+] as const;
 export type AiActRole = (typeof AI_ACT_ROLES)[number];
+
+/** Legacy profile values the backend still accepts on input, and what they mean now. */
+const LEGACY_AI_ACT_ROLES: Readonly<Record<string, AiActRole>> = {
+  both: 'provider_and_deployer',
+  none: 'not_applicable',
+};
+
+/** A stored profile role in the current vocabulary (`unknown` for anything unrecognised). */
+export function normaliseAiActRole(value: string | null | undefined): AiActRole {
+  const role = value ? (LEGACY_AI_ACT_ROLES[value] ?? value) : 'unknown';
+  return (AI_ACT_ROLES as readonly string[]).includes(role) ? (role as AiActRole) : 'unknown';
+}
 
 export const CERTIFICATION_STATUSES = ['planned', 'in_progress', 'certified'] as const;
 export type CertificationStatus = (typeof CERTIFICATION_STATUSES)[number];

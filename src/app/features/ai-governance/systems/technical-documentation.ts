@@ -31,6 +31,7 @@ import {
   docSectionKey,
   riskKey,
   riskTone,
+  technicalDocCopy,
 } from '../data/ai-governance-display';
 import { AiGovPage } from '../ui/ai-gov-page';
 import { AiLessonCard } from '../ui/ai-lesson-card';
@@ -76,16 +77,22 @@ import { AiLessonCard } from '../ui/ai-lesson-card';
               <app-badge [tone]="riskTone(d.system.risk_class)">{{
                 riskKey(d.system.risk_class) | transloco
               }}</app-badge>
-              @if (d.required) {
-                <app-badge tone="warn">{{ 'aiGovernance.docs.required' | transloco }}</app-badge>
+              @if (copy().badge; as badge) {
+                <app-badge
+                  [tone]="d.required ? 'warn' : 'info'"
+                  data-testid="docs-audience-badge"
+                  >{{ badge | transloco }}</app-badge
+                >
               }
             </div>
-            <p class="text-[13.5px] text-fg">
-              {{
-                (d.required ? 'aiGovernance.docs.requiredBody' : 'aiGovernance.docs.optionalBody')
-                  | transloco
-              }}
+            <p class="text-[13.5px] text-fg" data-testid="docs-audience-body">
+              {{ copy().body | transloco }}
             </p>
+            @if (guidanceRefs(); as refs) {
+              <p class="mt-1.5 text-[12.5px] text-fg-muted">
+                {{ 'aiGovernance.docs.guidanceRefs' | transloco: { refs } }}
+              </p>
+            }
           </app-card>
           <app-card>
             <p class="mb-2 text-[13px] font-semibold text-fg">
@@ -213,6 +220,17 @@ export class AiTechnicalDocumentation {
   protected readonly text = signal('');
   protected readonly saving = signal(false);
   private readonly reload = signal(0);
+
+  /** Badge + explanation for who the Annex IV file is for (provider / deployer / other). */
+  protected readonly copy = computed(() => {
+    const d = this.doc();
+    return d ? technicalDocCopy(d) : { badge: null, body: 'aiGovernance.docs.optionalBody' };
+  });
+  /** The articles the guidance points to ("Art. 26, Art. 13"), or null. */
+  protected readonly guidanceRefs = computed(() => {
+    const refs = this.doc()?.guidance_refs ?? [];
+    return refs.length > 0 ? refs.join(', ') : null;
+  });
 
   protected readonly groups = computed(() => {
     const sections = this.doc()?.sections ?? [];

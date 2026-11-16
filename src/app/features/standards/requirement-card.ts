@@ -18,8 +18,10 @@ import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { entityTypeLabelKey } from '../../core/standards/frameworks-data';
 import { StandardsApi } from '../../core/standards/standards-api';
 import {
+  applicabilitySource,
   checklistItems,
   effectiveStatus,
+  isDerivedNotApplicable,
   localized,
   standardsErrorKey,
   statusLabelKey,
@@ -29,6 +31,7 @@ import {
   LinkEntityType,
   RequirementDetail,
   RequirementLink,
+  RequirementPatch,
   CoverageOverride,
 } from '../../core/standards/standards.models';
 import { Badge } from '../../shared/ui/badge/badge';
@@ -106,6 +109,9 @@ export function entityRoute(type: LinkEntityType, id: string): readonly string[]
           @if (req.status_override) {
             <app-badge tone="neutral">{{ 'standards.requirement.manual' | transloco }}</app-badge>
           }
+          @if (derivedNotApplicable()) {
+            <app-badge tone="neutral">{{ 'standards.requirement.derived' | transloco }}</app-badge>
+          }
         </div>
         <p class="text-[14px] leading-relaxed text-fg">{{ text(req.text) }}</p>
       }
@@ -126,6 +132,71 @@ export function entityRoute(type: LinkEntityType, id: string): readonly string[]
             }
           </ul>
         </div>
+      }
+
+      @if (derivedNotApplicable()) {
+        <div
+          class="mt-3 rounded-tile border border-border bg-surface-2 px-3 py-2 text-[12.5px] text-fg-muted"
+          data-testid="derived-not-applicable"
+        >
+          <p>
+            <span class="font-semibold text-fg">{{
+              'standards.requirement.derivedTitle' | transloco
+            }}</span>
+            @if (derivedReason(); as reason) {
+              · {{ reason }}
+            }
+          </p>
+          <p class="mt-1">{{ 'standards.requirement.derivedHint' | transloco }}</p>
+          @if (canManage()) {
+            <div class="mt-2">
+              <app-button
+                size="sm"
+                variant="secondary"
+                [loading]="applicabilitySaving()"
+                data-testid="mark-applicable"
+                (click)="setApplicability(true)"
+              >
+                {{ 'standards.requirement.markApplicable' | transloco }}
+              </app-button>
+            </div>
+          }
+        </div>
+      } @else if (overridesDerivation()) {
+        <div
+          class="mt-3 rounded-tile border border-border bg-surface-2 px-3 py-2 text-[12.5px] text-fg-muted"
+          data-testid="applicability-overridden"
+        >
+          <p>
+            {{
+              (req.derived_applicable
+                ? 'standards.requirement.overriddenApplies'
+                : 'standards.requirement.overriddenNotApplies'
+              ) | transloco
+            }}
+            @if (derivedReason(); as reason) {
+              {{ reason }}
+            }
+          </p>
+          @if (canManage()) {
+            <div class="mt-2">
+              <app-button
+                size="sm"
+                variant="ghost"
+                [loading]="applicabilitySaving()"
+                data-testid="reset-applicability"
+                (click)="setApplicability(null)"
+              >
+                {{ 'standards.requirement.resetDerived' | transloco }}
+              </app-button>
+            </div>
+          }
+        </div>
+      }
+      @if (applicabilityError()) {
+        <p class="mt-2 text-[12.5px] text-fail" role="alert">
+          {{ 'standards.requirement.applicabilityError' | transloco }}
+        </p>
       }
 
       @if (!req.applicable && req.justification) {
@@ -322,7 +393,11 @@ export function entityRoute(type: LinkEntityType, id: string): readonly string[]
                 />
                 {{ 'standards.requirement.applicable' | transloco }}
               </label>
-              @if (!formApplicable()) {
+              @if (!formApplicable() && keepsDerivedNotApplicable()) {
+                <p class="-mt-1 text-[12px] text-fg-muted">
+                  {{ 'standards.requirement.derivedEditHint' | transloco }}
+                </p>
+              } @else if (!formApplicable()) {
                 <app-form-field
                   [label]="'standards.requirement.justification' | transloco"
                   [inputId]="anchorId() + '-just'"
@@ -423,6 +498,29 @@ export class RequirementCard {
   protected readonly formOverride = signal<'' | CoverageOverride>('');
   protected readonly formNote = signal('');
   protected readonly justificationMissing = signal(false);
+  /** The quick "mark applicable" / "use the derived value" actions. */
+  protected readonly applicabilitySaving = signal(false);
+  protected readonly applicabilityError = signal(false);
+
+  /** EU AI Act: not applicable because of the derivation, not an org decision. */
+  protected readonly derivedNotApplicable = computed(() =>
+    isDerivedNotApplicable(this.requirement()),
+  );
+  /** EU AI Act: the org decided itself where a derived value exists (can be reset). */
+  protected readonly overridesDerivation = computed(() => {
+    const req = this.requirement();
+    return applicabilitySource(req) === 'manual' && typeof req.derived_applicable === 'boolean';
+  });
+  protected readonly derivedReason = computed(() =>
+    localized(this.requirement().derived_reason, this.language.active()),
+  );
+  /**
+   * In the editor: the box is still unticked on a derived not-applicable point,
+   * so saving leaves applicability to the derivation (no justification needed).
+   */
+  protected readonly keepsDerivedNotApplicable = computed(
+    () => this.derivedNotApplicable() && !this.formApplicable(),
+  );
 
   protected readonly overrideOptions = OVERRIDE_OPTIONS;
   protected readonly statusLabelKey = statusLabelKey;
@@ -535,33 +633,61 @@ export class RequirementCard {
     if (!orgId || this.saving()) {
       return;
     }
+    const req = this.requirement();
     const applicable = this.formApplicable();
     const justification = this.formJustification().trim();
-    if (!applicable && !justification) {
+    // Only send an applicability decision when the user made one: an unchanged
+    // box would otherwise turn a default / derived value into a manual decision.
+    const decides =
+      applicable !== req.applicable || (!applicable && applicabilitySource(req) === 'manual');
+    if (decides && !applicable && !justification) {
       this.justificationMissing.set(true);
       return;
     }
     this.justificationMissing.set(false);
     this.saving.set(true);
     this.saveError.set(null);
-    this.api
-      .updateRequirement(orgId, this.requirement().ref, {
-        applicable,
-        justification: applicable ? null : justification,
-        status_override: applicable ? this.formOverride() || null : null,
-        note: this.formNote().trim() || null,
-      })
-      .subscribe({
-        next: (req) => {
-          this.saving.set(false);
-          this.editing.set(false);
-          this.updated.emit(req);
-        },
-        error: (err: unknown) => {
-          this.saving.set(false);
-          this.saveError.set(standardsErrorKey(err, 'save'));
-        },
-      });
+    const patch: RequirementPatch = {
+      ...(decides ? { applicable, justification: applicable ? null : justification } : {}),
+      status_override: applicable ? this.formOverride() || null : null,
+      note: this.formNote().trim() || null,
+    };
+    this.api.updateRequirement(orgId, req.ref, patch).subscribe({
+      next: (req) => {
+        this.saving.set(false);
+        this.editing.set(false);
+        this.updated.emit(req);
+      },
+      error: (err: unknown) => {
+        this.saving.set(false);
+        this.saveError.set(standardsErrorKey(err, 'save'));
+      },
+    });
+  }
+
+  /**
+   * EU AI Act quick actions: `true` marks a derived not-applicable point as
+   * applicable (the org's own, audited decision); `null` clears the org's
+   * decision so the derived value applies again.
+   */
+  protected setApplicability(applicable: true | null): void {
+    const orgId = this.selectedOrg.currentOrgId();
+    if (!orgId || this.applicabilitySaving()) {
+      return;
+    }
+    this.applicabilitySaving.set(true);
+    this.applicabilityError.set(false);
+    this.api.updateRequirement(orgId, this.requirement().ref, { applicable }).subscribe({
+      next: (req) => {
+        this.applicabilitySaving.set(false);
+        this.editing.set(false);
+        this.updated.emit(req);
+      },
+      error: () => {
+        this.applicabilitySaving.set(false);
+        this.applicabilityError.set(true);
+      },
+    });
   }
 
   private mutateLink(

@@ -391,7 +391,8 @@ describe('StandardWorkspace', () => {
 
     const patch = http.expectOne((r) => r.method === 'PATCH');
     expect(patch.request.url).toBe(`${ROOT}/standard-requirements/iso%3A4.2.r1`);
-    expect(patch.request.body).toMatchObject({ applicable: true, status_override: 'covered' });
+    // An unchanged "applies" box is not an applicability decision, so it is not sent.
+    expect(patch.request.body).toEqual({ status_override: 'covered', note: null });
     const saved: RequirementDetail = {
       ...req('iso:4.2.r1', 'covered'),
       status_override: 'covered',
