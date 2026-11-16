@@ -470,6 +470,7 @@
     "item_automatic": "Dette punktet krysses av automatisk når tilgangen fjernes. Bare notatet kan endres.",
     "module_disabled": "Personer og kompetanse er slått av for denne virksomheten.",
     "name_required": "Skriv inn et navn.",
+    "own_offboarding": "Du kan ikke endre, avbryte eller slette din egen offboarding. Be noen andre i HR om det.",
     "position_in_use": "Noen har fortsatt denne stillingen. Flytt dem først, eller sett stillingen som utgått.",
     "revoke_not_allowed": "Du kan ikke offboarde denne personen: personen har rettigheter i virksomheten som du ikke har.",
     "text_required": "Skriv inn teksten til punktet.",

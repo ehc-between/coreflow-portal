@@ -33,6 +33,7 @@ export const PEOPLE_ERROR_CODES = [
   'item_automatic',
   'module_disabled',
   'name_required',
+  'own_offboarding',
   'position_in_use',
   'revoke_not_allowed',
   'text_required',

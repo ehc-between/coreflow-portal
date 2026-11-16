@@ -470,6 +470,7 @@
     "item_automatic": "This item is ticked automatically when access is removed. Only the note can be changed.",
     "module_disabled": "People and competence is turned off for this organisation.",
     "name_required": "Enter a name.",
+    "own_offboarding": "You cannot change, cancel or delete your own offboarding. Ask someone else in HR.",
     "position_in_use": "People still hold this position. Move them first, or retire the position.",
     "revoke_not_allowed": "You cannot offboard this person: they have permissions in this organisation that you do not have.",
     "text_required": "Enter the text of the item.",
