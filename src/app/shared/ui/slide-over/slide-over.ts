@@ -58,17 +58,17 @@ let nextId = 0;
             <div class="min-w-0">
               <h2
                 [id]="titleId"
-                class="font-display text-[17px] font-bold tracking-[-0.02em] text-fg"
+                class="font-display text-section font-bold tracking-[-0.02em] text-fg"
               >
                 {{ title() }}
               </h2>
               @if (subtitle()) {
-                <p class="mt-1 text-[12.5px] text-fg-muted">{{ subtitle() }}</p>
+                <p class="mt-1 text-meta text-fg-muted">{{ subtitle() }}</p>
               }
             </div>
             <button
               type="button"
-              class="flex flex-none rounded-[8px] p-1.5 text-fg-subtle hover:bg-surface-2 hover:text-fg"
+              class="flex flex-none rounded-lg p-1.5 text-fg-subtle hover:bg-surface-2 hover:text-fg"
               [attr.aria-label]="closeLabel()"
               (click)="closed.emit()"
             >

@@ -64,14 +64,14 @@ interface Row {
           : ('topbar.notifications' | transloco)
       "
       (click)="toggle()"
-      class="relative flex h-9 w-9 items-center justify-center rounded-[9px] border border-transparent bg-transparent text-fg-muted hover:bg-surface-2 hover:text-fg focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+      class="relative flex h-9 w-9 items-center justify-center rounded-tile border border-transparent bg-transparent text-fg-muted hover:bg-surface-2 hover:text-fg focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
     >
       <app-icon name="bell" [size]="18" />
       @if (count > 0) {
         <span
           data-testid="unread-badge"
           aria-hidden="true"
-          class="absolute -top-0.5 -right-0.5 flex h-[17px] min-w-[17px] items-center justify-center rounded-full border-[1.5px] border-surface bg-fail px-1 text-[10px] leading-none font-bold text-white"
+          class="absolute -top-0.5 -right-0.5 flex h-[17px] min-w-[17px] items-center justify-center rounded-full border-[1.5px] border-surface bg-fail px-1 text-micro leading-none font-bold text-white"
           >{{ count > 99 ? '99+' : count }}</span
         >
       }
@@ -88,7 +88,7 @@ interface Row {
         class="absolute top-full right-0 z-20 mt-2 flex max-h-[min(560px,calc(100vh-80px))] w-[380px] max-w-[calc(100vw-24px)] flex-col overflow-hidden rounded-card border border-border bg-surface shadow-pop focus:outline-none"
       >
         <div class="flex items-center gap-2 border-b border-border px-4 py-3">
-          <h2 id="notification-panel-title" class="flex-1 text-[14px] font-semibold text-fg">
+          <h2 id="notification-panel-title" class="flex-1 text-body font-semibold text-fg">
             {{ 'notifications.panel.title' | transloco }}
           </h2>
           <button
@@ -96,7 +96,7 @@ interface Row {
             data-testid="mark-all-read"
             [disabled]="count === 0 || markingAll()"
             (click)="markAllRead()"
-            class="rounded-[7px] px-2 py-1 text-[12.5px] font-medium text-accent hover:bg-accent-soft focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none disabled:cursor-not-allowed disabled:text-fg-subtle disabled:hover:bg-transparent"
+            class="rounded-lg px-2 py-1 text-meta font-medium text-accent hover:bg-accent-soft focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none disabled:cursor-not-allowed disabled:text-fg-subtle disabled:hover:bg-transparent"
           >
             {{ 'notifications.panel.markAllRead' | transloco }}
           </button>
@@ -106,7 +106,7 @@ interface Row {
           @if (loading()) {
             <p
               data-testid="notifications-loading"
-              class="px-4 py-8 text-center text-[13px] text-fg-muted"
+              class="px-4 py-8 text-center text-ui text-fg-muted"
             >
               {{ 'notifications.panel.loading' | transloco }}
             </p>
@@ -115,11 +115,11 @@ interface Row {
               data-testid="notifications-error"
               class="flex flex-col items-center gap-2 px-4 py-8 text-center"
             >
-              <p class="text-[13px] text-fg-muted">{{ 'notifications.panel.error' | transloco }}</p>
+              <p class="text-ui text-fg-muted">{{ 'notifications.panel.error' | transloco }}</p>
               <button
                 type="button"
                 (click)="reload()"
-                class="rounded-[7px] px-2 py-1 text-[12.5px] font-medium text-accent hover:bg-accent-soft focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                class="rounded-lg px-2 py-1 text-meta font-medium text-accent hover:bg-accent-soft focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
               >
                 {{ 'notifications.panel.retry' | transloco }}
               </button>
@@ -130,7 +130,7 @@ interface Row {
               class="flex flex-col items-center gap-2 px-4 py-10 text-center text-fg-muted"
             >
               <app-icon name="inbox" [size]="22" />
-              <p class="text-[13px]">{{ 'notifications.panel.empty' | transloco }}</p>
+              <p class="text-ui">{{ 'notifications.panel.empty' | transloco }}</p>
             </div>
           } @else {
             <ul class="flex flex-col py-1">
@@ -153,11 +153,11 @@ interface Row {
                     </span>
                     <span class="min-w-0 flex-1">
                       <span
-                        class="line-clamp-3 block text-[13px] leading-snug text-fg"
+                        class="line-clamp-3 block text-ui leading-snug text-fg"
                         [class.font-semibold]="!n.is_read"
                         >{{ row.key | transloco: row.params }}</span
                       >
-                      <span class="mt-0.5 block text-[11.5px] text-fg-subtle">
+                      <span class="mt-0.5 block text-meta text-fg-subtle">
                         <time [attr.datetime]="n.created_at">{{
                           n.created_at | relativeTime: language.active() : now()
                         }}</time>
@@ -174,7 +174,7 @@ interface Row {
                   data-testid="load-more"
                   [disabled]="loadingMore()"
                   (click)="loadMore()"
-                  class="w-full rounded-[8px] border border-border py-1.5 text-[12.5px] font-medium text-fg-muted hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none disabled:opacity-60"
+                  class="w-full rounded-lg border border-border py-1.5 text-meta font-medium text-fg-muted hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none disabled:opacity-60"
                 >
                   {{
                     (loadingMore() ? 'notifications.panel.loading' : 'notifications.panel.loadMore')
@@ -190,7 +190,7 @@ interface Row {
           <a
             routerLink="/account/notifications"
             (click)="close(false)"
-            class="text-[12.5px] font-medium text-fg-muted hover:text-fg focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+            class="text-meta font-medium text-fg-muted hover:text-fg focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
           >
             {{ 'notifications.panel.settings' | transloco }}
           </a>

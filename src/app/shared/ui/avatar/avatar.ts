@@ -26,9 +26,9 @@ export class Avatar {
   readonly gradient = input(true);
 
   private readonly sizeClasses: Record<AvatarSize, string> = {
-    sm: 'h-7 w-7 text-[11px]',
-    md: 'h-[34px] w-[34px] text-[13px]',
-    lg: 'h-10 w-10 text-[15px]',
+    sm: 'h-7 w-7 text-micro',
+    md: 'h-[34px] w-[34px] text-ui',
+    lg: 'h-10 w-10 text-card',
   };
 
   protected readonly resolvedInitials = computed(() => {

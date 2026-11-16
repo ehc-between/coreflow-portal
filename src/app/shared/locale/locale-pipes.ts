@@ -3,6 +3,15 @@ import { Pipe, PipeTransform, inject } from '@angular/core';
 import { LanguageService } from '../../core/i18n/language.service';
 import { withUtcDefault } from '../../core/i18n/locale';
 
+/**
+ * Date-time without seconds: the locale's medium date + short time
+ * (nb "20. okt. 2026, 11:00", en "Oct 20, 2026, 11:00 AM"). `'medium'` is mapped
+ * to this too, because a compliance record never needs the seconds.
+ */
+export const DATE_TIME_FORMAT = 'dateTime';
+
+const BARE_DATE = /^\d{4}-\d{2}-\d{2}$/;
+
 /** Format an ISO date / date-time in an Angular locale; '' for empty or unparsable input. */
 export function formatLocalDate(
   value: string | number | Date | null | undefined,
@@ -13,14 +22,23 @@ export function formatLocalDate(
     return '';
   }
   try {
-    return formatDate(typeof value === 'string' ? withUtcDefault(value) : value, format, locale);
+    const input = typeof value === 'string' ? withUtcDefault(value) : value;
+    if (format === DATE_TIME_FORMAT || format === 'medium') {
+      // A bare date has no time of day; never invent "00:00".
+      if (typeof value === 'string' && BARE_DATE.test(value)) {
+        return formatDate(input, 'mediumDate', locale);
+      }
+      return `${formatDate(input, 'mediumDate', locale)}, ${formatDate(input, 'shortTime', locale)}`;
+    }
+    return formatDate(input, format, locale);
   } catch {
     return '';
   }
 }
 
 /**
- * `{{ value | localDate: 'mediumDate' }}` — like Angular's DatePipe, but in the
+ * `{{ value | localDate }}` (date-time, no seconds) or `{{ value | localDate: 'mediumDate' }}`
+ * — like Angular's DatePipe, but in the
  * *active UI language* (nb → "20. okt. 2026") instead of the static LOCALE_ID,
  * and treating the backend's naive UTC date-times as UTC. Impure so it follows
  * a runtime language switch; reading the language signal ties the host view
@@ -31,7 +49,7 @@ export class LocalDatePipe implements PipeTransform {
   private readonly language = inject(LanguageService);
   private last: { value: unknown; format: string; locale: string; result: string } | null = null;
 
-  transform(value: string | number | Date | null | undefined, format = 'mediumDate'): string {
+  transform(value: string | number | Date | null | undefined, format = DATE_TIME_FORMAT): string {
     const locale = this.language.locale();
     const last = this.last;
     if (last && last.value === value && last.format === format && last.locale === locale) {

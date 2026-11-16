@@ -56,7 +56,7 @@
     "example": "Example: {{ example }}"
   },
   "teachMe": {
-    "label": "Teach me"
+    "label": "Explain this"
   },
   "tutor": {
     "topicPrompt": "Teach me about \"{{ subject }}\" in CoreFlow. {{ style }}",
@@ -104,7 +104,7 @@
     "people": "People and competence"
   },
   "tour": {
-    "start": "Take the tour",
+    "start": "Tour",
     "progress": "Step {{ current }} of {{ total }}",
     "next": "Next",
     "back": "Back",

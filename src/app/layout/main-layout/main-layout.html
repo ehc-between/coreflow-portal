@@ -1,9 +1,41 @@
-<div class="relative flex h-screen w-full flex-col overflow-hidden bg-bg text-fg">
+<div class="relative flex h-dvh w-full flex-col overflow-hidden bg-bg text-fg">
+  <a href="#main-content" class="cf-skip-link" (click)="skipToContent($event)">{{
+    'ui.shell.skipToContent' | transloco
+  }}</a>
+
   <app-top-bar />
 
   <div class="flex min-h-0 flex-1">
-    <app-side-nav />
-    <main class="min-w-0 flex-1 overflow-y-auto">
+    <!-- Below lg the side nav is an off-canvas drawer (hamburger in the top bar). -->
+    @if (drawer.open()) {
+      <button
+        type="button"
+        tabindex="-1"
+        data-testid="nav-backdrop"
+        class="fixed inset-0 z-40 cursor-default bg-black/40 lg:hidden"
+        [attr.aria-label]="'ui.shell.closeMenu' | transloco"
+        (click)="drawer.close()"
+      ></button>
+    }
+    <div
+      #navPanel
+      data-testid="nav-panel"
+      tabindex="-1"
+      class="flex min-h-0 max-lg:fixed max-lg:inset-y-0 max-lg:left-0 max-lg:z-50 max-lg:w-[min(300px,86vw)] max-lg:shadow-pop max-lg:transition-transform max-lg:duration-200 motion-reduce:transition-none"
+      [class.max-lg:-translate-x-full]="!drawer.open()"
+      [class.max-lg:invisible]="!drawer.open()"
+      [attr.role]="drawer.open() ? 'dialog' : null"
+      [attr.aria-modal]="drawer.open() ? 'true' : null"
+      [attr.aria-label]="drawer.open() ? ('ui.shell.mainNav' | transloco) : null"
+      (keydown)="onNavKeydown($event)"
+    >
+      <app-side-nav class="w-full" />
+    </div>
+    <main
+      id="main-content"
+      tabindex="-1"
+      class="min-w-0 flex-1 overflow-x-hidden overflow-y-auto outline-none"
+    >
       <router-outlet />
     </main>
   </div>
@@ -15,7 +47,8 @@
       [attr.aria-label]="launcherLabel()"
       [title]="launcherTitle()"
       aria-keyshortcuts="Control+J Meta+J"
-      class="fixed right-5 bottom-5 z-[30] flex h-12 w-12 items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--accent),var(--accent-2))] text-white shadow-pop hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+      data-testid="ask-launcher"
+      class="fixed right-4 bottom-4 z-[30] flex h-12 w-12 items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--accent),var(--accent-2))] text-white shadow-pop hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:right-5 sm:bottom-5"
     >
       <app-icon name="spark" [size]="22" />
       @if (ask.streaming() || ask.hasConversation()) {

@@ -8,11 +8,11 @@ import {
   linkedSignal,
   viewChildren,
 } from '@angular/core';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { LanguageService } from '../../core/i18n/language.service';
 import { Attachments } from '../attachments/attachments';
-import { Icon } from '../ui/icon/icon';
+import { SupportsRequirements } from '../requirement-links/supports-requirements';
+import { Breadcrumb, PageHeader } from '../ui/page-header/page-header';
 import { Comments } from './comments';
 import { provideKitScope } from './kit-scope';
 import { RelatedItems } from './related-items';
@@ -42,8 +42,19 @@ const KNOWN_TABS = new Set<string>([...DEFAULT_RECORD_TABS, 'revisions', 'tasks'
 let nextId = 0;
 
 /**
- * Standard detail page of a record: a header (`[header]`, else the
- * `titleKey` heading), actions (`[actions]`), and tabbed sections. "Details" is
+ * Standard detail page of a record (docs/ux-guide.md, "Detail"):
+ *
+ *   app-page-header — breadcrumbs, h1 (`title` / `titleKey`), `[meta]` line
+ *   (code · type · status), `[primary]` / `[secondary]` / `[overflow]` actions
+ *   and the module's `settingsLink` gear;
+ *   tabs with count badges (`counts`);
+ *   an aside with ordered slots: `[aside-requirements]` (Krav dette dokumenterer;
+ *   with `requirementsPanel` the default `app-supports-requirements` renders),
+ *   `[aside-connections]`, `[aside]` (module summary) and `[aside-learn]`.
+ *
+ * Older pages keep working: `[header]` is shown above the heading area (pages that
+ * render their own h1 there pass no title), and `[actions]` sit with the
+ * secondary actions. "Details" is
  * the default slot and "Tasks" the `[tasks]` slot (project F2's
  * `<app-entity-tasks>`); related items, activity, comments, attachments and
  * revisions are the shared kit components, rendered when their tab is opened.
@@ -55,9 +66,9 @@ let nextId = 0;
 @Component({
   selector: 'app-record-detail-layout',
   imports: [
-    RouterLink,
     TranslocoPipe,
-    Icon,
+    PageHeader,
+    SupportsRequirements,
     Attachments,
     Comments,
     RelatedItems,
@@ -68,31 +79,26 @@ let nextId = 0;
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
-      @if (backLink(); as link) {
-        <a
-          [routerLink]="link"
-          class="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
-        >
-          <app-icon name="back" [size]="16" />
-          {{ backLabel() }}
-        </a>
-      }
-
-      <header class="mb-5 flex flex-wrap items-start justify-between gap-3">
-        <div class="min-w-0 flex-1">
-          <ng-content select="[header]" />
-          @if (title(); as heading) {
-            <h1
-              class="font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]"
-            >
-              {{ heading }}
-            </h1>
-          }
-        </div>
-        <div class="flex flex-wrap items-center gap-2">
-          <ng-content select="[actions]" />
-        </div>
-      </header>
+      <app-page-header
+        [title]="title()"
+        [titleKey]="titleKey()"
+        [titleParams]="titleParams()"
+        [descriptionKey]="descriptionKey()"
+        [breadcrumbs]="breadcrumbs()"
+        [settingsLink]="settingsLink()"
+        [backLink]="backLink() ?? null"
+        [backLabelKey]="backLabelKey() ?? 'kit.detail.back'"
+      >
+        <ng-container ngProjectAs="[lead]"><ng-content select="[header]" /></ng-container>
+        <ng-container ngProjectAs="[meta]"><ng-content select="[meta]" /></ng-container>
+        <ng-container ngProjectAs="[secondary]"
+          ><ng-content select="[actions]" /><ng-content select="[secondary]"
+        /></ng-container>
+        <ng-container ngProjectAs="[primary]"><ng-content select="[primary]" /></ng-container>
+        <ng-container ngProjectAs="[overflow]"><ng-content select="[overflow]" /></ng-container>
+      </app-page-header>
+      <ng-content select="[nav]" />
+      <ng-content select="[help]" />
 
       <div class="flex flex-col gap-6 lg:flex-row lg:items-start">
         <div class="min-w-0 flex-1">
@@ -111,7 +117,7 @@ let nextId = 0;
                 [attr.aria-selected]="tab === active()"
                 [attr.aria-controls]="panelId"
                 [tabindex]="tab === active() ? 0 : -1"
-                class="-mb-px border-b-2 px-3 py-2 text-[13px] font-semibold whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                class="-mb-px border-b-2 px-3 py-2 text-ui font-semibold whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-accent"
                 [class]="
                   tab === active()
                     ? 'border-accent text-fg'
@@ -122,6 +128,13 @@ let nextId = 0;
                 [attr.data-testid]="'tab-' + tab"
               >
                 {{ 'kit.detail.tab.' + tab | transloco }}
+                @if (countFor(tab); as count) {
+                  <span
+                    class="ml-1 rounded-full bg-surface-2 px-1.5 py-px text-micro font-semibold text-fg-muted"
+                    [attr.data-testid]="'tab-count-' + tab"
+                    >{{ count }}</span
+                  >
+                }
               </button>
             }
           </div>
@@ -180,8 +193,18 @@ let nextId = 0;
           </div>
         </div>
 
-        <aside class="flex w-full flex-col gap-4 empty:hidden lg:w-[300px] lg:flex-none">
+        <aside
+          class="flex w-full min-w-0 flex-col gap-4 empty:hidden lg:w-[300px] lg:flex-none"
+          [attr.aria-label]="'ui.detail.aside' | transloco"
+        >
+          <ng-content select="[aside-requirements]">
+            @if (requirementsPanel()) {
+              <app-supports-requirements [entityType]="entityType()" [entityId]="entityId()" />
+            }
+          </ng-content>
+          <ng-content select="[aside-connections]" />
           <ng-content select="[aside]" />
+          <ng-content select="[aside-learn]" />
         </aside>
       </div>
     </div>
@@ -190,12 +213,23 @@ let nextId = 0;
 export class RecordDetailLayout {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
-  private readonly language = inject(LanguageService);
 
   readonly entityType = input.required<string>();
   readonly entityId = input.required<string>();
-  /** Heading when no `[header]` is projected (an i18n key). */
+  /** h1 as an i18n key. Pages that render their own h1 in `[header]` leave it unset. */
   readonly titleKey = input<string | undefined>(undefined);
+  readonly titleParams = input<Record<string, unknown> | undefined>(undefined);
+  /** h1 as literal text (the record's title); wins over `titleKey`. */
+  readonly title = input<string | null | undefined>(null);
+  readonly descriptionKey = input<string | null | undefined>(null);
+  /** Module › sub-area › record. */
+  readonly breadcrumbs = input<readonly Breadcrumb[]>([]);
+  /** Gear link to the module's settings. */
+  readonly settingsLink = input<string | readonly unknown[] | null | undefined>(null);
+  /** Count badges on the tabs, e.g. `{ related: 3, attachments: 2 }` (0 and unset show none). */
+  readonly counts = input<Partial<Record<RecordTab, number>> | undefined>(undefined);
+  /** Render the default "Krav dette dokumenterer" panel in `[aside-requirements]`. */
+  readonly requirementsPanel = input(false);
   readonly tabs = input<readonly RecordTab[]>(DEFAULT_RECORD_TABS);
   /** Whether the user can edit the record (links, attachments). */
   readonly canEdit = input(false);
@@ -225,14 +259,10 @@ export class RecordDetailLayout {
     return tabs.find((t) => t === requested) ?? tabs[0];
   });
 
-  protected readonly title = computed(() => {
-    const key = this.titleKey();
-    return key ? this.language.translate(key) : null;
-  });
-
-  protected readonly backLabel = computed(() =>
-    this.language.translate(this.backLabelKey() ?? 'kit.detail.back'),
-  );
+  protected countFor(tab: RecordTab): number | null {
+    const count = this.counts()?.[tab];
+    return count && count > 0 ? count : null;
+  }
 
   protected tabId(tab: RecordTab): string {
     return `${this.panelId}-${tab}`;

@@ -7,12 +7,14 @@ import { CommandPaletteService } from '../../features/command-palette/command-pa
 import { LanguageSwitcher } from '../../shared/language-switcher/language-switcher';
 import { Icon } from '../../shared/ui/icon/icon';
 import { AccountMenu } from '../account-menu/account-menu';
+import { NavDrawerService } from '../nav-drawer.service';
 import { NotificationBell } from '../notification-bell/notification-bell';
 
 /**
- * Application top bar (58px): brand, ⌘K search button that opens the command
- * palette, theme toggle, language switcher, notifications bell, a spark button
- * that opens the Ask CoreFlow chat, and the current user's account menu.
+ * Application top bar (58 px): menu button (below `lg`), brand, the search button
+ * that opens the command palette (an icon below `md`), theme and language (from
+ * `md`; on phones they live in the account menu), notifications and the account
+ * menu. The assistant is opened from the floating Ask button or Ctrl/Cmd + J.
  */
 @Component({
   selector: 'app-top-bar',
@@ -20,31 +22,55 @@ import { NotificationBell } from '../notification-bell/notification-bell';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <header
-      class="z-[6] flex h-[58px] flex-none items-center gap-3.5 border-b border-border bg-surface px-4"
+      class="z-[6] flex h-[58px] flex-none items-center gap-2 border-b border-border bg-surface px-2 sm:gap-3.5 sm:px-4"
     >
-      <div class="flex flex-1 items-center">
-        <a routerLink="/" class="flex items-center gap-2.5">
+      <div class="flex min-w-0 items-center gap-1.5 md:flex-1">
+        <button
+          type="button"
+          data-testid="nav-toggle"
+          class="flex h-10 w-10 flex-none items-center justify-center rounded-tile text-fg-muted hover:bg-surface-2 hover:text-fg focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none lg:hidden"
+          [attr.aria-label]="
+            (drawer.open() ? 'ui.shell.closeMenu' : 'ui.shell.openMenu') | transloco
+          "
+          [attr.aria-expanded]="drawer.open()"
+          (click)="drawer.toggle()"
+        >
+          <app-icon [name]="drawer.open() ? 'x' : 'menu'" [size]="20" />
+        </button>
+        <a
+          routerLink="/"
+          class="flex items-center gap-2.5 rounded-tile focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+          [attr.aria-label]="'ui.shell.home' | transloco"
+        >
           <span
-            class="flex h-[30px] w-[30px] items-center justify-center rounded-[9px] bg-[linear-gradient(135deg,var(--accent),var(--accent-2))] text-white shadow-[0_3px_10px_rgba(90,75,230,0.4)]"
+            class="flex h-[30px] w-[30px] flex-none items-center justify-center rounded-tile bg-[linear-gradient(135deg,var(--accent),var(--accent-2))] text-white shadow-[0_3px_10px_rgba(90,75,230,0.4)]"
           >
             <app-icon name="spark" [size]="18" />
           </span>
-          <span class="font-display text-[17px] font-bold tracking-[-0.02em] text-fg"
+          <span
+            class="hidden font-display text-section font-bold tracking-[-0.02em] text-fg sm:inline"
             >CoreFlow</span
           >
         </a>
       </div>
 
+      <!-- Full search box from md; a search icon below. -->
       <button
         type="button"
         (click)="palette.show()"
-        [attr.aria-label]="ask.streaming() ? ('ask.working' | transloco) : null"
-        class="flex h-[38px] w-[540px] max-w-full flex-none cursor-text items-center gap-2.5 rounded-[10px] border border-border bg-bg pr-2.5 pl-3 text-[13.5px] text-fg-subtle hover:border-border-strong"
+        data-testid="search-box"
+        [attr.aria-label]="
+          ask.streaming()
+            ? ('ask.working' | transloco)
+            : ('ui.shell.searchShortcut' | transloco: { shortcut: shortcutLabel })
+        "
+        aria-keyshortcuts="Control+K Meta+K"
+        class="hidden h-[38px] w-full max-w-[540px] min-w-0 flex-[0_1_540px] cursor-text items-center gap-2.5 rounded-tile border border-border bg-bg pr-2.5 pl-3 text-ui text-fg-subtle hover:border-border-strong focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none md:flex"
         [class.border-accent-border]="ask.streaming()"
       >
         <span class="flex text-fg-subtle"><app-icon name="search" [size]="17" /></span>
         @if (ask.streaming()) {
-          <span class="flex flex-1 items-center gap-2 text-left text-accent">
+          <span class="flex min-w-0 flex-1 items-center gap-2 text-left text-accent">
             <span class="relative flex h-[7px] w-[7px] flex-none">
               <span
                 class="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-70"
@@ -54,43 +80,43 @@ import { NotificationBell } from '../notification-bell/notification-bell';
             <span class="truncate font-medium">{{ 'ask.working' | transloco }}</span>
           </span>
         } @else {
-          <span class="flex-1 text-left">{{ 'topbar.searchPlaceholder' | transloco }}</span>
+          <span class="min-w-0 flex-1 truncate text-left">{{
+            'topbar.searchPlaceholder' | transloco
+          }}</span>
         }
-        <span class="flex items-center gap-[3px]">
-          <kbd
-            class="rounded-[5px] border border-border bg-surface-2 px-1.5 py-0.5 font-mono text-[11px] text-fg-muted"
-            >⌘</kbd
-          >
-          <kbd
-            class="rounded-[5px] border border-border bg-surface-2 px-1.5 py-0.5 font-mono text-[11px] text-fg-muted"
-            >K</kbd
-          >
+        <span class="flex flex-none items-center gap-[3px]" aria-hidden="true">
+          @for (key of shortcutKeys; track key) {
+            <kbd
+              class="rounded-md border border-border bg-surface-2 px-1.5 py-0.5 font-mono text-micro text-fg-muted"
+              >{{ key }}</kbd
+            >
+          }
         </span>
       </button>
 
-      <div class="flex flex-1 items-center justify-end gap-1.5">
+      <div class="flex flex-1 items-center justify-end gap-0.5 sm:gap-1.5">
+        <button
+          type="button"
+          (click)="palette.show()"
+          data-testid="search-icon"
+          [attr.aria-label]="'ui.shell.search' | transloco"
+          class="flex h-10 w-10 items-center justify-center rounded-tile text-fg-muted hover:bg-surface-2 hover:text-fg focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none md:hidden"
+        >
+          <app-icon name="search" [size]="19" />
+        </button>
+
         <button
           type="button"
           (click)="theme.toggle()"
           [attr.aria-label]="'theme.toggle' | transloco"
-          class="flex h-9 w-9 items-center justify-center rounded-[9px] border border-transparent bg-transparent text-fg-muted hover:bg-surface-2 hover:text-fg"
+          class="hidden h-9 w-9 items-center justify-center rounded-tile border border-transparent bg-transparent text-fg-muted hover:bg-surface-2 hover:text-fg focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none md:flex"
         >
           <app-icon [name]="theme.theme() === 'dark' ? 'sun' : 'moon'" [size]="18" />
         </button>
 
-        <app-language-switcher />
+        <app-language-switcher class="hidden md:block" />
 
         <app-notification-bell />
-
-        <button
-          type="button"
-          (click)="ask.show()"
-          [attr.aria-label]="'ask.title' | transloco"
-          [title]="'ask.title' | transloco"
-          class="flex h-9 w-9 items-center justify-center rounded-[9px] border border-accent-border bg-accent-soft text-accent hover:bg-accent-soft/70"
-        >
-          <app-icon name="spark" [size]="18" />
-        </button>
 
         <app-account-menu />
       </div>
@@ -101,6 +127,12 @@ export class TopBar {
   protected readonly theme = inject(ThemeService);
   protected readonly ask = inject(AskPanelService);
   protected readonly palette = inject(CommandPaletteService);
+  protected readonly drawer = inject(NavDrawerService);
+
+  private readonly apple = isApplePlatform();
+  /** "⌘ K" on Apple platforms, "Ctrl K" elsewhere. */
+  protected readonly shortcutKeys = this.apple ? ['⌘', 'K'] : ['Ctrl', 'K'];
+  protected readonly shortcutLabel = this.apple ? '⌘K' : 'Ctrl+K';
 
   @HostListener('document:keydown', ['$event'])
   protected onKeydown(event: KeyboardEvent): void {
@@ -109,4 +141,12 @@ export class TopBar {
       this.palette.toggle();
     }
   }
+}
+
+function isApplePlatform(): boolean {
+  const nav = globalThis.navigator as
+    | (Navigator & { userAgentData?: { platform?: string } })
+    | undefined;
+  const platform = nav?.userAgentData?.platform ?? nav?.platform ?? '';
+  return /mac|iphone|ipad/i.test(platform);
 }

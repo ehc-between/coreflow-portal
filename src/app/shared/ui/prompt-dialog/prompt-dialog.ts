@@ -50,7 +50,7 @@ let nextId = 0;
       (cancelled)="cancelled.emit()"
     >
       <div class="mt-4 flex flex-col gap-1.5">
-        <label [attr.for]="fieldId" class="text-[13px] font-semibold text-fg-muted">
+        <label [attr.for]="fieldId" class="text-ui font-semibold text-fg-muted">
           {{ label() }}
         </label>
         <textarea
@@ -62,7 +62,7 @@ let nextId = 0;
           [attr.maxlength]="maxLength()"
           [disabled]="busy()"
           (input)="onInput($event)"
-          class="w-full resize-y rounded-[10px] border border-border bg-bg px-3 py-2.5 text-[13.5px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
+          class="w-full resize-y rounded-tile border border-border bg-bg px-3 py-2.5 text-ui text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
         ></textarea>
       </div>
     </app-confirm-dialog>

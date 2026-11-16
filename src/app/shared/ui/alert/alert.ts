@@ -12,7 +12,7 @@ export type AlertTone = 'error' | 'success' | 'info';
   template: `
     <p
       [attr.role]="tone() === 'error' ? 'alert' : 'status'"
-      class="rounded-tile border px-3 py-2 text-[13px] font-medium"
+      class="rounded-tile border px-3 py-2 text-ui font-medium"
       [class]="classes()"
     >
       <ng-content />

@@ -5,7 +5,7 @@ import {
   provideBrowserGlobalErrorListeners,
 } from '@angular/core';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { provideRouter, withComponentInputBinding } from '@angular/router';
+import { TitleStrategy, provideRouter, withComponentInputBinding } from '@angular/router';
 
 import { routes } from './app.routes';
 import { authInterceptor } from './core/auth/auth.interceptor';
@@ -15,11 +15,14 @@ import { provideI18n } from './core/i18n/i18n.providers';
 import { LanguageService } from './core/i18n/language.service';
 import { provideSentry } from './core/monitoring/sentry';
 import { ThemeService } from './core/theme/theme.service';
+import { CoreflowTitleStrategy } from './shared/ui/title/title.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes, withComponentInputBinding()),
+    // Route titles are i18n keys; the tab reads "<page> · CoreFlow" in the active language.
+    { provide: TitleStrategy, useClass: CoreflowTitleStrategy },
     // authInterceptor attaches the in-memory bearer token and transparently
     // refreshes on 401; errorInterceptor centralises reporting + user messages.
     provideHttpClient(withInterceptors([authInterceptor, errorInterceptor])),

@@ -33,7 +33,7 @@ let nextId = 0;
         <button
           type="button"
           data-testid="guide-intro-toggle"
-          class="inline-flex h-7 w-7 items-center justify-center rounded-full border border-border text-[13px] font-bold text-fg-muted hover:border-accent-border hover:text-accent focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+          class="inline-flex h-7 w-7 items-center justify-center rounded-full border border-border text-ui font-bold text-fg-muted hover:border-accent-border hover:text-accent focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
           [attr.aria-label]="'guidance.intro.show' | transloco: { title: intro.title }"
           [attr.aria-expanded]="false"
           [attr.aria-controls]="panelId"
@@ -56,11 +56,11 @@ let nextId = 0;
             (click)="expanded.set(!expanded())"
           >
             <span
-              class="flex h-6 w-6 flex-none items-center justify-center rounded-full bg-info text-[12px] font-bold text-white"
+              class="flex h-6 w-6 flex-none items-center justify-center rounded-full bg-info text-meta font-bold text-white"
               aria-hidden="true"
               >i</span
             >
-            <span class="flex-1 text-[13.5px] font-semibold text-fg">{{ intro.title }}</span>
+            <span class="flex-1 text-ui font-semibold text-fg">{{ intro.title }}</span>
             <span
               class="flex text-fg-subtle transition-transform motion-reduce:transition-none"
               [class.rotate-90]="expanded()"
@@ -71,13 +71,13 @@ let nextId = 0;
           @if (expanded()) {
             <div [id]="panelId" class="px-4 pb-4 pl-[52px]">
               <div
-                class="cf-prose text-[13.5px] leading-relaxed text-fg-muted"
+                class="cf-prose text-ui leading-relaxed text-fg-muted"
                 [innerHTML]="intro.body | appMarkdown"
               ></div>
               @if (intro.steps?.length) {
-                <ol class="mt-3 flex list-decimal flex-col gap-1.5 pl-5 text-[13.5px] text-fg">
+                <ol class="mt-3 flex list-decimal flex-col gap-1.5 pl-5 text-ui text-fg">
                   @for (step of intro.steps; track $index) {
-                    <li>{{ step }}</li>
+                    <li class="cf-prose" [innerHTML]="step | appMarkdown"></li>
                   }
                 </ol>
               }
@@ -86,7 +86,7 @@ let nextId = 0;
                 @if (!beginner()) {
                   <button
                     type="button"
-                    class="h-8 rounded-tile px-3 text-[13px] font-medium text-fg-muted hover:bg-surface-2 hover:text-fg"
+                    class="h-8 rounded-tile px-3 text-ui font-medium text-fg-muted hover:bg-surface-2 hover:text-fg"
                     (click)="expanded.set(false)"
                   >
                     {{ 'guidance.intro.hide' | transloco }}

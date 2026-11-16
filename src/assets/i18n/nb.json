@@ -1,16 +1,17 @@
 {
   "app": {
-    "title": "CoreFlow Portal"
+    "title": "CoreFlow"
   },
   "nav": {
     "sections": {
-      "workspace": "Arbeidsområde",
-      "governance": "Styring",
-      "operations": "Drift",
-      "improvement": "Forbedring",
+      "governance": "Krav og styring",
+      "operations": "Daglig drift",
       "people": "Mennesker",
-      "compliance": "Etterlevelse",
-      "administration": "Administrasjon"
+      "administration": "Administrasjon",
+      "home": "Hjem",
+      "followUp": "Oppfølging",
+      "topics": "Fagområder",
+      "toggle": "Vis eller skjul {{ section }}"
     },
     "dashboard": "Oversikt",
     "organizations": "Organisasjoner",
@@ -18,36 +19,39 @@
     "review": "Trenger din gjennomgang",
     "inspections": "Inspeksjoner",
     "deviations": "Avvik",
-    "risk": "Risiko",
-    "audits": "Revisjon",
+    "risk": "Risiko og muligheter",
+    "audits": "Revisjoner",
     "documents": "Dokumenter",
-    "people": "Personer og roller",
+    "people": "Personer",
     "projects": "Prosjekter",
     "training": "Opplæring",
     "reports": "Rapporter",
     "settings": "Innstillinger",
-    "customize": "Tilpass arbeidsområde",
-    "customizeHint": "Slå moduler på eller av for dette arbeidsområdet.",
+    "customize": "Tilpass menyen",
+    "customizeHint": "Velg hvilke punkter du vil ha i menyen. Skjulte punkter finner du fortsatt med søk.",
     "addModule": "Legg til modul",
-    "standards": "ISO & standarder",
-    "context": "Kontekst og lederskap",
+    "standards": "Standarder og krav",
+    "context": "Kontekst og ledelse",
     "processes": "Prosesser",
     "managementReview": "Ledelsens gjennomgang",
     "objectives": "Mål og KPI-er",
     "recruitment": "Rekruttering",
     "contracts": "Kontrakter",
     "suppliers": "Leverandører",
-    "privacy": "Personvern (GDPR)",
+    "privacy": "Personvern",
     "aiGovernance": "KI-styring",
     "environment": "Miljø",
-    "obligations": "Juridiske krav",
+    "obligations": "Lover og forskrifter",
     "assets": "Eiendeler og endringer",
-    "continuity": "Kontinuitet",
+    "continuity": "Kontinuitet og beredskap",
     "hse": "HMS",
-    "feedback": "Kundetilbakemeldinger"
+    "feedback": "Kundetilbakemeldinger",
+    "learning": "Læringssenter",
+    "customizeDone": "Ferdig",
+    "showItem": "Vis {{ name }} i menyen"
   },
   "topbar": {
-    "searchPlaceholder": "Spør CoreFlow, eller hopp til hva som helst …",
+    "searchPlaceholder": "Søk, eller spør CoreFlow …",
     "notifications": "Varsler",
     "copilot": "Copilot",
     "comingSoon": "Dette kommer snart.",
@@ -445,7 +449,7 @@
     },
     "members": {
       "title": "Medlemmer",
-      "subtitle": "Personer med tilgang til organisasjonen, rollen deres og kontostatus.",
+      "subtitle": "Personer med tilgang til organisasjonen, rollen de har, og kontostatus.",
       "name": "Navn",
       "email": "E-post",
       "role": "Rolle",
@@ -512,6 +516,42 @@
       "loadError": "Kunne ikke laste dokumentinnstillingene.",
       "saved": "Dokumentinnstillingene er lagret.",
       "saveFailed": "Kunne ikke lagre dokumentinnstillingene."
+    },
+    "hub": {
+      "title": "Innstillinger",
+      "description": "Sett opp organisasjonen, medlemmene og modulene. Dine egne innstillinger finner du i kontomenyen.",
+      "general": "Organisasjon",
+      "moduleSettings": "Innstillinger per modul",
+      "moduleSettingsHint": "Typer, maler og andre innstillinger for hver modul organisasjonen bruker.",
+      "cards": {
+        "organisation": "Organisasjonsprofil",
+        "organisationHint": "Bransje, størrelse, lokasjoner, standarder og sertifiseringsmål.",
+        "members": "Medlemmer og roller",
+        "membersHint": "Hvem som har tilgang, roller, avdelinger og invitasjoner.",
+        "modules": "Moduler",
+        "modulesHint": "Velg hvilke moduler organisasjonen bruker.",
+        "notifications": "Varsler",
+        "notificationsHint": "Hvilke aktiviteter som gir varsel, og til hvem.",
+        "terminology": "Terminologi",
+        "terminologyHint": "Bruk organisasjonens egne ord, for eksempel «uoverensstemmelse» i stedet for «avvik».",
+        "guidance": "Veiledning",
+        "guidanceHint": "Hvor mye hjelp folk får, og obligatoriske leksjoner.",
+        "recordTypes": "Registertyper og arbeidsflyter",
+        "recordTypesHint": "Egne registre, skjemaer og godkjenningstrinn.",
+        "deleted": "Slettede elementer",
+        "deletedHint": "Gjenopprett dokumenter som ble slettet ved en feil.",
+        "setup": "Oppsettsveiviser",
+        "setupHint": "Gå gjennom profil, standarder, moduler, roller og de første oppgavene på nytt."
+      },
+      "moduleLinks": {
+        "types": "Typer",
+        "templates": "Maler",
+        "checklists": "Sjekklistemaler",
+        "intake": "Meldekanal",
+        "matrices": "Risikomatriser",
+        "settings": "Innstillinger"
+      },
+      "membersSection": "Medlemmer, avdelinger og invitasjoner"
     }
   },
   "auth": {
@@ -589,14 +629,14 @@
   },
   "language": {
     "label": "Språk",
-    "en": "Engelsk",
-    "nb": "Norsk"
+    "en": "English",
+    "nb": "Norsk (bokmål)"
   },
   "dashboard": {
-    "title": "Dashbord",
+    "title": "Oversikt",
     "subtitle": "Kvalitetsoversikt for {{org}}",
     "agentRole": "Arbeidsplanlegger",
-    "noAccess": "Det er ingenting på dashbordet for din rolle i denne organisasjonen ennå.",
+    "noAccess": "Det er ingenting på oversikten for din rolle i denne organisasjonen ennå.",
     "noDeviations": "Ingen avvik er registrert ennå.",
     "loadFailed": "Kunne ikke laste",
     "tiles": {
@@ -726,6 +766,97 @@
       "rangeOpen": "{{ from }}–{{ to }}",
       "prev": "Forrige",
       "next": "Neste"
+    },
+    "empty": {
+      "notSet": "Ikke satt",
+      "none": "Ingen",
+      "dash": "—"
+    },
+    "close": "Lukk",
+    "edit": "Rediger",
+    "delete": "Slett",
+    "retry": "Prøv igjen",
+    "status": {
+      "draft": "Utkast",
+      "new": "Ny",
+      "planned": "Planlagt",
+      "scheduled": "Planlagt",
+      "open": "Åpen",
+      "submitted": "Sendt inn",
+      "reported": "Meldt",
+      "received": "Mottatt",
+      "in_progress": "Pågår",
+      "ongoing": "Pågår",
+      "active": "Aktiv",
+      "under_review": "Til gjennomgang",
+      "in_review": "Til gjennomgang",
+      "pending": "Venter",
+      "pending_approval": "Venter på godkjenning",
+      "awaiting_approval": "Venter på godkjenning",
+      "overdue": "Forfalt",
+      "blocked": "Blokkert",
+      "on_hold": "På vent",
+      "due": "Snart frist",
+      "expiring": "Utløper snart",
+      "done": "Ferdig",
+      "completed": "Fullført",
+      "complete": "Fullført",
+      "approved": "Godkjent",
+      "closed": "Lukket",
+      "effective": "Gjeldende",
+      "published": "Publisert",
+      "resolved": "Løst",
+      "implemented": "Innført",
+      "verified": "Verifisert",
+      "passed": "Bestått",
+      "cancelled": "Avlyst",
+      "canceled": "Avlyst",
+      "archived": "Arkivert",
+      "obsolete": "Utgått",
+      "withdrawn": "Trukket tilbake",
+      "superseded": "Erstattet",
+      "retired": "Faset ut",
+      "expired": "Utløpt",
+      "rejected": "Avvist",
+      "failed": "Ikke bestått",
+      "compliant": "Oppfylt",
+      "met": "Oppfylt",
+      "covered": "Dekket",
+      "partial": "Delvis oppfylt",
+      "partially": "Delvis oppfylt",
+      "partially_compliant": "Delvis oppfylt",
+      "partially_implemented": "Delvis innført",
+      "non_compliant": "Ikke oppfylt",
+      "not_compliant": "Ikke oppfylt",
+      "not_met": "Ikke oppfylt",
+      "not_implemented": "Ikke innført",
+      "gap": "Mangler",
+      "not_assessed": "Ikke vurdert",
+      "not_applicable": "Ikke relevant",
+      "na": "Ikke relevant",
+      "n_a": "Ikke relevant",
+      "unknown": "Ukjent"
+    },
+    "severity": {
+      "critical": "Kritisk",
+      "prohibited": "Forbudt",
+      "unacceptable": "Uakseptabel",
+      "very_high": "Svært høy",
+      "severe": "Alvorlig",
+      "major": "Større",
+      "high": "Høy",
+      "medium": "Middels",
+      "moderate": "Middels",
+      "limited": "Begrenset",
+      "minor": "Mindre",
+      "elevated": "Forhøyet",
+      "low": "Lav",
+      "minimal": "Minimal",
+      "very_low": "Svært lav",
+      "negligible": "Ubetydelig",
+      "none": "Ingen",
+      "observation": "Observasjon",
+      "opportunity": "Forbedringsmulighet"
     }
   },
   "errors": {
@@ -864,7 +995,7 @@
       "savedToast": "Avvik oppdatert.",
       "statusChangedToast": "Status oppdatert.",
       "notFound": "Dette avviket finnes ikke, eller du har ikke tilgang til det.",
-      "notProvided": "Ikke oppgitt",
+      "notProvided": "Ikke satt",
       "owner": "Eier",
       "auditTrail": "Revisjonsspor",
       "noEvents": "Ingen aktivitet registrert ennå.",
@@ -1029,12 +1160,12 @@
         "save": "Lagre type",
         "cancel": "Avbryt",
         "ai": {
-          "title": "Lag utkast med AI",
+          "title": "Lag utkast med KI",
           "placeholder": "Beskriv typen, f.eks. «GDPR-brudd på personopplysninger for ISO 27001».",
-          "draft": "Lag utkast med AI",
+          "draft": "Lag utkast med KI",
           "drafting": "Lager utkast …",
           "draftedToast": "Utkast klart. Gå gjennom og juster før du lagrer.",
-          "notConfigured": "AI er ikke satt opp ennå.",
+          "notConfigured": "KI er ikke satt opp ennå.",
           "failed": "Kunne ikke lage utkast – prøv å omformulere."
         },
         "createdToast": "Avvikstype opprettet.",
@@ -1061,7 +1192,7 @@
         "widthFull": "Hel",
         "widthHalf": "Halv",
         "widthHint": "Halvbreddefelter settes sammen i to kolonner innenfor en seksjon.",
-        "emptySection": "Tom seksjon. Legg til et felt eller slipp ett her."
+        "emptySection": "Ingen felt ennå. Legg til et felt eller slipp ett her."
       }
     },
     "stats": {
@@ -1347,12 +1478,12 @@
     }
   },
   "standards": {
-    "title": "ISO & standarder",
-    "subtitle": "Følg hvordan styringssystemet dekker hver standard, klausul for klausul.",
+    "title": "Standarder og krav",
+    "subtitle": "Se hvor godt styringssystemet dekker hver standard, krav for krav.",
     "loadError": "Kunne ikke laste standardene. Prøv igjen.",
     "notFound": "Fant ikke denne standarden.",
     "backToOverview": "Alle standarder",
-    "completeness": "Dekningsgrad",
+    "completeness": "Kravdekning",
     "edition": "Utgave {{edition}}",
     "counts": {
       "covered": "{{count}} dekket",
@@ -1371,10 +1502,10 @@
       "gaps": "Mangler"
     },
     "themes": {
-      "organizational": "Organisatoriske tiltak",
-      "people": "Personrelaterte tiltak",
-      "physical": "Fysiske tiltak",
-      "technological": "Teknologiske tiltak"
+      "organizational": "Organisatoriske kontroller",
+      "people": "Personrelaterte kontroller",
+      "physical": "Fysiske kontroller",
+      "technological": "Teknologiske kontroller"
     },
     "entity": {
       "document": "Dokument",
@@ -1386,22 +1517,22 @@
       "noneEnabled": "Ingen standarder er aktivert ennå",
       "noneEnabledHint": "Aktiver en standard nedenfor for å begynne å koble dokumenter og avvik til kravene.",
       "available": "Tilgjengelige standarder",
-      "chapters": "Dekningsgrad per kapittel",
+      "chapters": "Kravdekning per kapittel",
       "open": "Åpne",
       "enable": "Aktiver",
       "disable": "Deaktiver",
       "toggleError": "Kunne ikke oppdatere standarden. Prøv igjen.",
       "disableTitle": "Deaktivere denne standarden?",
-      "disableMessage": "{{name}} følges ikke lenger opp. Vurderinger og koblede bevis beholdes og kommer tilbake hvis du aktiverer den igjen."
+      "disableMessage": "{{name}} følges ikke lenger opp. Vurderinger og koblet dokumentasjon beholdes og kommer tilbake hvis du aktiverer standarden igjen."
     },
     "view": {
       "coveredOf": "{{covered}} av {{total}} krav dekket",
-      "mapWithAi": "Koble med AI",
+      "mapWithAi": "Koble med KI",
       "notEnabled": "Denne standarden er ikke aktivert for organisasjonen, så fremdriften følges ikke.",
       "collapseAll": "Skjul alle",
       "expand": "Utvid {{number}}",
       "collapse": "Skjul {{number}}",
-      "evidenceCount": "{{count}} koblede bevis",
+      "evidenceCount": "{{count}} koblet dokumentasjon",
       "suggestionCount": "{{count}} forslag til gjennomgang"
     },
     "gaps": {
@@ -1409,9 +1540,9 @@
     },
     "job": {
       "mapping": "Kobler registreringene til kravene …",
-      "extracting": "Henter klausultekst fra eksemplaret deres …",
+      "extracting": "Henter teksten fra organisasjonens eksemplar …",
       "mapDone": "Koblingen er ferdig: {{count}} nye forslag til gjennomgang.",
-      "extractDone": "Klausulteksten er hentet fra eksemplaret deres.",
+      "extractDone": "Teksten er hentet fra organisasjonens eksemplar.",
       "failed": "Jobben feilet. Prøv igjen senere.",
       "pollFailed": "Kunne ikke sjekke fremdriften.",
       "startFailed": "Kunne ikke starte jobben. Prøv igjen.",
@@ -1419,46 +1550,46 @@
       "stalled": "Jobben venter på en ledig prosess. Den kjøres når en blir ledig — sjekk igjen senere."
     },
     "licensed": {
-      "title": "Deres lisensierte eksemplar",
-      "hint": "Last opp organisasjonens egen lisensierte PDF av standarden for å vise klausulteksten ved siden av våre forklaringer. Den er bare synlig i organisasjonen.",
-      "extracted": "Klausultekst tilgjengelig",
-      "extract": "Hent klausultekst"
+      "title": "Organisasjonens lisensierte eksemplar",
+      "hint": "Last opp organisasjonens egen lisensierte PDF av standarden for å vise teksten ved siden av forklaringene våre. Den er bare synlig i organisasjonen.",
+      "extracted": "Teksten fra standarden er tilgjengelig",
+      "extract": "Hent teksten fra standarden"
     },
     "clause": {
-      "control": "Vedleggstiltak",
+      "control": "Kontroll i vedlegg A",
       "explanationHint": "CoreFlows egen forklaring — ikke teksten i standarden.",
       "licensedText": "Standardens tekst",
-      "licensedBadge": "Fra deres lisensierte eksemplar",
+      "licensedBadge": "Fra organisasjonens lisensierte eksemplar",
       "licensedHint": "Hentet fra eksemplaret av standarden som organisasjonen har lastet opp.",
       "requirements": "Krav ({{count}})",
       "guidance": "Veiledning",
-      "guidanceHint": "CoreFlows egne råd om hvordan klausulen kan oppfylles."
+      "guidanceHint": "CoreFlows egne råd om hvordan punktet kan oppfylles."
     },
     "requirement": {
       "manual": "Satt manuelt",
-      "evidenceExamples": "Typiske bevis",
+      "evidenceExamples": "Typisk dokumentasjon",
       "justification": "Begrunnelse",
       "justificationRequired": "Forklar hvorfor kravet ikke er relevant.",
       "note": "Notat",
       "assess": "Vurder relevans og status",
       "applicable": "Gjelder for organisasjonen",
       "manualStatus": "Status",
-      "automatic": "Automatisk (fra bevis)",
+      "automatic": "Automatisk (fra dokumentasjonen)",
       "save": "Lagre",
       "cancel": "Avbryt",
       "saveError": "Kunne ikke lagre. Prøv igjen."
     },
     "evidence": {
-      "title": "Bevis",
-      "add": "Koble bevis",
-      "none": "Ingen bevis er koblet ennå.",
-      "fromAi": "foreslått av AI",
+      "title": "Dokumentasjon",
+      "add": "Koble dokumentasjon",
+      "none": "Ingen dokumentasjon er koblet ennå.",
+      "fromAi": "foreslått av KI",
       "confirmedBy": "bekreftet av {{name}}",
       "remove": "Fjern {{name}}",
       "cancel": "Avbryt",
       "searchPlaceholder": "Søk på tittel eller kode …",
       "noResults": "Ingen treff.",
-      "error": "Kunne ikke oppdatere bevisene. Prøv igjen.",
+      "error": "Kunne ikke oppdatere dokumentasjonen. Prøv igjen.",
       "unavailable": "Utilgjengelig post",
       "noAccess": "Du har ikke tilgang til poster som kan kobles her.",
       "searchError": "Søket feilet. Prøv igjen."
@@ -1472,11 +1603,11 @@
       "hint": "Foreslått av KI – bekreft det som stemmer, og avvis resten."
     },
     "supports": {
-      "title": "Støtter krav",
+      "title": "Krav dette dokumenterer",
       "add": "Koble",
-      "none": "Ikke koblet til noen krav i standardene.",
+      "none": "Ikke koblet til noen krav ennå.",
       "noStandards": "Ingen standarder er aktivert for organisasjonen.",
-      "searchPlaceholder": "Søk etter krav på klausul eller tekst …",
+      "searchPlaceholder": "Søk etter krav på punkt eller tekst …",
       "suggested": "Forslag — gjennomgå for å bekrefte",
       "remove": "Fjern koblingen til {{ref}}",
       "onAction": "På tiltak: {{action}}",
@@ -1484,9 +1615,9 @@
       "moreLabelOne": "Vis 1 koblet krav til"
     },
     "errors": {
-      "notEnabled": "Aktiver standarden før du kobler med AI.",
+      "notEnabled": "Aktiver standarden før du kobler med KI.",
       "noLicensedPdf": "Last opp organisasjonens eksemplar av standarden først.",
-      "aiUnavailable": "Kobling med AI er ikke tilgjengelig akkurat nå."
+      "aiUnavailable": "Kobling med KI er ikke tilgjengelig akkurat nå."
     },
     "workspace": {
       "contents": "Innhold",
@@ -1503,7 +1634,7 @@
       "breadcrumb": "Plassering i standarden",
       "licensedCopy": "Lisensiert eksemplar",
       "close": "Lukk",
-      "noLicensedText": "Eksemplaret deres har ingen tekst for denne klausulen.",
+      "noLicensedText": "Organisasjonens eksemplar har ingen tekst for dette punktet.",
       "licensedError": "Kunne ikke hente teksten fra eksemplaret. Prøv igjen.",
       "empty": "Denne standarden har ingen avsnitt.",
       "hasAiSuggestions": "Har KI-forslag",
@@ -1513,14 +1644,14 @@
       "title": "KI-hjelp",
       "disclaimer": "Forslag fra KI – kontroller dem alltid før bruk.",
       "notConfigured": "KI-hjelp er ikke satt opp for organisasjonen ennå.",
-      "suggestEvidence": "Foreslå bevis",
+      "suggestEvidence": "Foreslå dokumentasjon",
       "helpMe": "Hjelp meg å oppfylle",
       "draftDocument": "Lag utkast til dokument",
-      "suggesting": "Leter etter bevis i registreringene deres …",
+      "suggesting": "Leter etter dokumentasjon i registreringene …",
       "drafting": "Lager utkast til dokument …",
       "draftReady": "Utkast klart for gjennomgang.",
       "openDraft": "Åpne utkastet i Gjennomgang",
-      "guidanceTitle": "Slik oppfyller dere kravet",
+      "guidanceTitle": "Slik oppfyller du kravet",
       "suggestionLabel": "(KI-forslag)",
       "regenerate": "Lag på nytt",
       "collapse": "Skjul veiledningen",
@@ -1535,7 +1666,7 @@
     },
     "mapping": {
       "never": "Eksisterende dokumenter er ikke kartlagt ennå.",
-      "neverHint": "La KI foreslå hvilke av dokumentene deres som er bevis for hvert krav. Dere bekrefter hvert forslag.",
+      "neverHint": "La KI foreslå hvilke dokumenter som er dokumentasjon for hvert krav. Du bekrefter hvert forslag.",
       "mapExisting": "Kartlegg eksisterende dokumenter",
       "running": "Kartlegger dokumentene …",
       "lastMapped": "Sist kartlagt {{date}} · {{count}} forslag",
@@ -1549,7 +1680,7 @@
   "modules": {
     "names": {
       "tasks": "Oppgaver",
-      "context": "Kontekst og lederskap",
+      "context": "Kontekst og ledelse",
       "processes": "Prosesser",
       "deviations": "Avvik",
       "risk": "Risiko og muligheter",
@@ -1557,23 +1688,23 @@
       "audits": "Revisjoner",
       "management_review": "Ledelsens gjennomgang",
       "objectives": "Mål og KPI-er",
-      "people": "Personer og kompetanse",
+      "people": "Personer",
       "recruitment": "Rekruttering",
       "training": "Opplæring",
       "contracts": "Kontrakter",
       "suppliers": "Leverandører",
       "projects": "Prosjekter",
-      "privacy": "Personvern (GDPR)",
+      "privacy": "Personvern",
       "ai_governance": "KI-styring",
       "environment": "Miljø",
-      "obligations": "Juridiske krav",
+      "obligations": "Lover og forskrifter",
       "assets": "Eiendeler og endringer",
-      "continuity": "Kontinuitet",
+      "continuity": "Kontinuitet og beredskap",
       "hse": "HMS",
       "feedback": "Kundetilbakemeldinger",
-      "reports": "Rapporter og revisjonspakker",
+      "reports": "Rapporter",
       "documents": "Dokumenter",
-      "standards": "Standarder",
+      "standards": "Standarder og krav",
       "guidance": "Veiledning og opplæring",
       "records": "Registertyper og arbeidsflyter"
     },
@@ -1593,7 +1724,7 @@
       "contracts": "Kontraktsregister, viktige datoer, forpliktelser og fornyelser.",
       "suppliers": "Leverandørregister, evalueringer og oppfølging.",
       "projects": "Prosjekter med milepæler, oppgaver, risikoer og endringsønsker.",
-      "privacy": "Behandlingsprotokoll, DPIA, innsynsforespørsler og brudd.",
+      "privacy": "Behandlingsprotokoll, DPIA, henvendelser fra registrerte og personvernbrudd.",
       "ai_governance": "Oversikt over KI-systemer, klassifisering etter KI-forordningen og konsekvensvurderinger.",
       "environment": "Miljøaspekter, beredskap og miljødata.",
       "obligations": "Register over lover, tillatelser og andre krav, med periodisk evaluering.",
@@ -1603,37 +1734,37 @@
       "feedback": "Kundetilbakemeldinger, tilfredshetsundersøkelser og klager.",
       "reports": "Etterlevelsesoversikter, organisasjonskalender og eksport.",
       "documents": "Styrte dokumenter med gjennomgang, godkjenning og bekreftelse.",
-      "standards": "Standardkatalog, anvendelse og bevis per krav.",
+      "standards": "Standardkatalog, hva som gjelder, og dokumentasjon per krav.",
       "guidance": "Leksjoner, omvisninger og quizer som lærer bort hver modul og dokumenterer kompetanse.",
       "records": "Lag egne registertyper, skjemaer og godkjenningsflyter."
     },
     "reasons": {
       "tasks": "Oppgaver sørger for at hver kontroll, gjennomgang og oppfølging er tildelt og blir gjort i tide.",
       "context": "Alle ISO-styringssystemer starter med kapittel 4 og 5: kontekst, interessenter, omfang og lederskap.",
-      "processes": "Prosesstilnærmingen (ISO 9001 4.4) krever at dere definerer og styrer nøkkelprosessene.",
-      "deviations": "Håndtering av avvik og hendelser (kapittel 10.2) kreves av alle rammeverkene dere valgte.",
+      "processes": "Prosesstilnærmingen (ISO 9001 4.4) krever at organisasjonen definerer og styrer nøkkelprosessene.",
+      "deviations": "Alle standardene organisasjonen har valgt, krever at avvik og hendelser håndteres (punkt 10.2).",
       "risk": "Risikobasert tenkning (kapittel 6.1) og, for ISO 27001, risikovurdering og SoA er obligatorisk.",
-      "inspections": "Inspeksjoner gir dere overvåkingsbevisene som kapittel 9.1 ber om.",
+      "inspections": "Inspeksjoner gir organisasjonen dokumentasjonen på overvåking som punkt 9.1 ber om.",
       "audits": "Internrevisjoner (kapittel 9.2) kreves før enhver sertifiseringsrevisjon.",
       "management_review": "Toppledelsen skal gjennomgå styringssystemet med planlagte mellomrom (kapittel 9.3).",
       "objectives": "Målbare mål (kapittel 6.2) viser at systemet forbedres.",
-      "people": "Kompetanse og bevissthet (kapittel 7.2 og 7.3) må planlegges og dokumenteres.",
+      "people": "Kompetanse og bevissthet (punkt 7.2 og 7.3) må planlegges og dokumenteres.",
       "recruitment": "Bakgrunnssjekk før ansettelse er et ISO 27001-tiltak (A.6.1), og kandidatdata omfattes av GDPR.",
       "training": "Opplæringsregistreringer dokumenterer kompetanse, og KI-forordningen krever KI-kompetanse (art. 4).",
       "contracts": "Leverandøravtaler og databehandleravtaler kreves av ISO 27001 A.5.20 og GDPR art. 28.",
       "suppliers": "Eksterne leverandører må evalueres og følges opp (ISO 9001 8.4, ISO 27001 A.5.19).",
       "projects": "Planlagte endringer og utvikling (ISO 9001 6.3 og 8.3) er enklere å styre som prosjekter.",
-      "privacy": "GDPR krever behandlingsprotokoll, DPIA og en prosess for brudd innen 72 timer.",
+      "privacy": "GDPR krever behandlingsprotokoll, DPIA og en rutine for personvernbrudd innen 72 timer.",
       "ai_governance": "ISO/IEC 42001 og KI-forordningen krever oversikt, klassifisering og konsekvensvurdering av KI-systemer.",
-      "environment": "ISO 14001 krever at dere vurderer miljøaspekter og overvåker miljøprestasjonen.",
-      "obligations": "Alle rammeverk krever at dere kjenner og evaluerer de juridiske og andre kravene som gjelder.",
+      "environment": "ISO 14001 krever at organisasjonen vurderer miljøaspekter og overvåker miljøprestasjonen.",
+      "obligations": "Alle standardene krever at organisasjonen kjenner og evaluerer lovkrav og andre krav som gjelder.",
       "assets": "Et eiendelsregister og tilgangsstyring er sentrale ISO 27001-tiltak (A.5.9 til A.5.18).",
       "continuity": "ISO 27001 (A.5.29 og A.5.30) og NIS2 krever kontinuitetsplanlegging og testing.",
       "hse": "ISO 45001 krever fareidentifikasjon og medvirkning fra arbeidstakere.",
-      "feedback": "ISO 9001 9.1.2 krever at dere overvåker kundetilfredshet.",
-      "reports": "Rapporter og revisjonspakker gjør det raskt å vise bevis til revisorer.",
+      "feedback": "ISO 9001 9.1.2 krever at organisasjonen overvåker kundetilfredsheten.",
+      "reports": "Rapporter og revisjonspakker gjør det raskt å vise dokumentasjon til revisorer.",
       "documents": "Dokumentert informasjon må styres (kapittel 7.5) i alle ISO-standarder.",
-      "standards": "Standardarbeidsflaten viser hvordan hvert krav i rammeverkene deres er oppfylt."
+      "standards": "Standarder og krav viser hvordan hvert krav i standardene organisasjonen følger, er oppfylt."
     },
     "entities": {
       "document": "Dokument",
@@ -1680,7 +1811,7 @@
       "project": "Prosjekt",
       "project_milestone": "Prosjektmilepæl",
       "project_design_review": "Gjennomgang av utforming",
-      "ropa_entry": "Behandlingsoppføring",
+      "ropa_entry": "Behandlingsaktivitet",
       "dpia": "DPIA",
       "data_subject_request": "Henvendelse fra registrert",
       "data_breach": "Personvernbrudd",
@@ -1715,13 +1846,13 @@
     "links": {
       "title": "Organisasjon",
       "profile": "Organisasjonsprofil",
-      "profileHint": "Bransje, størrelse, lokasjoner, rammeverk og sertifiseringsmål.",
+      "profileHint": "Bransje, størrelse, lokasjoner, standarder og sertifiseringsmål.",
       "modules": "Moduler",
       "modulesHint": "Slå moduler på eller av for organisasjonen.",
       "terminology": "Terminologi",
-      "terminologyHint": "Bruk deres egne ord, for eksempel «uoverensstemmelse» i stedet for «avvik».",
+      "terminologyHint": "Bruk organisasjonens egne ord, for eksempel «uoverensstemmelse» i stedet for «avvik».",
       "setup": "Oppsettsveiviser",
-      "setupHint": "Gå gjennom profil, rammeverk, moduler, roller og første oppgaver på nytt."
+      "setupHint": "Gå gjennom profil, standarder, moduler, roller og de første oppgavene på nytt."
     },
     "disabledNotice": "Den modulen er slått av for denne organisasjonen. En administrator kan slå den på under Innstillinger, Moduler."
   },
@@ -1769,6 +1900,73 @@
     "employee": {
       "one": "ansatt",
       "other": "ansatte"
+    }
+  },
+  "ui": {
+    "overflow": {
+      "more": "Mer"
+    },
+    "pageHeader": {
+      "breadcrumbs": "Brødsmulesti",
+      "settings": "Innstillinger for modulen",
+      "back": "Tilbake"
+    },
+    "moduleNav": {
+      "label": "Deler av modulen"
+    },
+    "help": {
+      "label": "Hjelp på denne siden",
+      "title": "Om denne siden",
+      "tour": "Omvisning",
+      "lesson": "Leksjon",
+      "lessonMinutes": "Leksjon · {{ minutes }} min",
+      "explain": "Forklar denne siden"
+    },
+    "recordRow": {
+      "code": "Kode",
+      "title": "Tittel",
+      "coverage": "Krav",
+      "status": "Status",
+      "owner": "Ansvarlig",
+      "date": {
+        "due": "Frist",
+        "updated": "Oppdatert",
+        "created": "Opprettet",
+        "date": "Dato",
+        "next": "Neste"
+      }
+    },
+    "empty": {
+      "title": "Ingenting her ennå",
+      "noResults": "Ingen treff",
+      "noResultsBody": "Prøv andre ord, eller fjern filtrene.",
+      "clearFilters": "Fjern filtrene"
+    },
+    "error": {
+      "title": "Kunne ikke laste innholdet",
+      "body": "Sjekk tilkoblingen og prøv igjen. Kontakt administratoren hvis det skjer igjen.",
+      "retry": "Prøv igjen"
+    },
+    "list": {
+      "moreFilters": "Flere filtre",
+      "moreFiltersCount": "Flere filtre ({{ count }})",
+      "kpis": "Nøkkeltall",
+      "toolbar": "Søk og filtre"
+    },
+    "detail": {
+      "aside": "Om denne posten"
+    },
+    "shell": {
+      "skipToContent": "Hopp til innholdet",
+      "mainNav": "Hovedmeny",
+      "openMenu": "Åpne menyen",
+      "closeMenu": "Lukk menyen",
+      "search": "Søk",
+      "searchShortcut": "Søk ({{ shortcut }})",
+      "appearance": "Utseende",
+      "lightTheme": "Bytt til lyst utseende",
+      "darkTheme": "Bytt til mørkt utseende",
+      "home": "CoreFlow, til forsiden"
     }
   }
 }
