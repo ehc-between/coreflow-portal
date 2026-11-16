@@ -1085,7 +1085,13 @@ export class EvaluationDetailPage {
    */
   private apply(e: EvaluationDetail): void {
     const prev = this.evaluation();
-    const keepSummary = !!prev && prev.id === e.id && this.summaryDirty();
+    // Kept only while it still differs from what the server now holds (the server trims,
+    // so a saved draft with trailing whitespace must not stay "unsaved").
+    const keepSummary =
+      !!prev &&
+      prev.id === e.id &&
+      this.summaryDirty() &&
+      blankToNull(this.summaryDraft()) !== (e.summary ?? null);
     this.evaluation.set(e);
     this.answers.set(answersDraft(e));
     if (!keepSummary) {

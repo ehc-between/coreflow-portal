@@ -75,7 +75,8 @@ async function setup(evaluation: EvaluationDetail = EVALUATION) {
       server = {
         ...server,
         ...(body.questions ? { pass_score: body.pass_score ?? server.pass_score } : {}),
-        ...('summary' in body ? { summary: body.summary ?? null } : {}),
+        // Like the server: the summary is stored trimmed (blank -> null).
+        ...('summary' in body ? { summary: body.summary?.trim() || null } : {}),
         ...(body.answers
           ? {
               answers: Object.fromEntries(
@@ -173,6 +174,19 @@ describe('EvaluationDetailPage summary (S10)', () => {
       summary: 'Adopted text',
     });
     expect(toasts.success).toHaveBeenCalledWith('suppliers.evaluation.summarySaved');
+  });
+
+  it('treats a saved summary as saved even when the server trims it', async () => {
+    const { page, api, render, button } = await setup();
+    page.useAiSummary('Adopted text\n\n');
+    await render();
+    const save = button('suppliers.evaluation.saveAnswers')!;
+    save.click();
+    await render();
+
+    expect(api.updateEvaluation).toHaveBeenCalledTimes(1);
+    expect(page.summaryDraft()).toBe('Adopted text');
+    expect(save.disabled).toBe(true);
   });
 
   it('does not wipe an unsaved summary when another part of the evaluation is saved', async () => {
