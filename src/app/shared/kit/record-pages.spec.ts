@@ -43,6 +43,41 @@ class DetailHost {
   ]);
 }
 
+function connections(n: number) {
+  return {
+    counts: { records: n, requirements: 2, tasks: 0, suggestions: 0 },
+    groups: [
+      {
+        module: 'risk',
+        entity_type: 'risk',
+        label_key: null,
+        kind: 'record',
+        count: n,
+        items: Array.from({ length: n }, (_, i) => ({
+          link_id: `l${i}`,
+          origin: 'user',
+          link_type: 'relates_to',
+          direction: 'outgoing',
+          flow_key: null,
+          created_at: null,
+          other: {
+            entity_type: 'risk',
+            entity_id: `r${i}`,
+            title: `Risk ${i}`,
+            code: `RSK-${i}`,
+            url: `/risk/risks/r${i}`,
+            status: 'open',
+            module: 'risk',
+            label_key: null,
+          },
+        })),
+      },
+    ],
+    suggestions: [],
+    requirements: { confirmed: 2, suggested: 0 },
+  };
+}
+
 describe('RecordDetailLayout', () => {
   afterEach(() => {
     const http = TestBed.inject(HttpTestingController);
@@ -68,12 +103,21 @@ describe('RecordDetailLayout', () => {
     expect(el.querySelector('h1')?.textContent?.trim()).toBe('Details');
     expect(el.querySelector('[data-testid="details-slot"]')?.closest('[hidden]')).toBeNull();
     expect(el.querySelector('[data-testid="tasks-slot"]')?.closest('[hidden]')).not.toBeNull();
-    // No kit component is loaded until its tab is opened.
-    http.expectNone((r) => r.url === kitUrl('links'));
+    // The connections (aside panel + Related count) load once; other kit tabs on demand.
+    http.expectOne((r) => r.url === kitUrl('connections')).flush(connections(3));
+    http.expectOne((r) => r.url === kitUrl('create-flows')).flush({ items: [] });
+    http.expectNone((r) => r.url === kitUrl('timeline'));
+    await render(fixture);
+    expect(el.querySelector('[data-testid="tab-count-related"]')?.textContent?.trim()).toBe('3');
+    expect(el.querySelector('[data-testid="connections-panel"]')?.textContent).toContain(
+      '3 records',
+    );
 
     el.querySelector<HTMLElement>('[data-testid="tab-related"]')!.click();
     await render(fixture);
-    http.expectOne((r) => r.url === kitUrl('links')).flush({ items: [] });
+    // The Related tab reads the same store: no second request.
+    http.expectNone((r) => r.url === kitUrl('connections'));
+    expect(el.querySelectorAll('[data-testid="link"]')).toHaveLength(3);
     expect(tabs[1].getAttribute('aria-selected')).toBe('true');
     expect(TestBed.inject(Router).url).toBe('/?tab=related');
 
@@ -101,6 +145,41 @@ describe('RecordDetailLayout', () => {
     const att = http.expectOne((r) => r.url === kitUrl('attachments'));
     expect(att.request.params.get('entity_type')).toBe('deviation');
     att.flush([]);
+  });
+
+  it('offers create-from-here flows and opens the Related tab from the panel', async () => {
+    const { http } = configureKit(DetailHost);
+    const fixture = TestBed.createComponent(DetailHost);
+    await render(fixture);
+    const el = fixture.nativeElement as HTMLElement;
+    http.expectOne((r) => r.url === kitUrl('connections')).flush(connections(1));
+    const flows = http.expectOne((r) => r.url === kitUrl('create-flows'));
+    expect(flows.request.params.get('entity_id')).toBe('d1');
+    flows.flush({
+      items: [
+        {
+          key: 'deviation.to_risk',
+          label_key: 'flows.deviation.to_risk',
+          target_type: 'risk',
+          target_module: 'risk',
+          target_label_key: null,
+          target_route: '/risk/risks/new',
+          link_type: 'relates_to',
+          enabled: true,
+        },
+      ],
+    });
+    await render(fixture);
+    const menu = el.querySelector('[data-testid="create-from-here"]')!;
+    expect(menu.textContent).toContain('Create from this');
+    expect(menu.querySelector('[data-flow="deviation.to_risk"]')?.textContent?.trim()).toBe(
+      'Risk from this deviation',
+    );
+
+    el.querySelector<HTMLElement>('[data-testid="connections-show-all"]')!.click();
+    await render(fixture);
+    expect(TestBed.inject(Router).url).toBe('/?tab=related');
+    expect(el.querySelectorAll('[data-testid="link"]')).toHaveLength(1);
   });
 });
 
