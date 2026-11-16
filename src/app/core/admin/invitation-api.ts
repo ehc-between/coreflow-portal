@@ -1,4 +1,4 @@
-import { HttpClient, HttpContext } from '@angular/common/http';
+import { HttpClient, HttpContext, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { AuthSession } from '../auth/auth.models';
@@ -21,13 +21,19 @@ export interface AcceptInviteRequest {
   readonly full_name?: string;
 }
 
-/** Accept response when the invited account already existed. */
+/**
+ * Accept response when the invited account already existed. The backend only
+ * joins an existing account when the request carries that account's session:
+ * - signed out: `{ ok: false, requires_login: true }` (nothing changed);
+ * - signed in as the invited account: `{ ok: true, requires_login: false }`.
+ * Signed in as anyone else is refused with 403 `invitation_email_mismatch`.
+ */
 export interface AcceptExistingResult {
-  readonly ok: true;
-  readonly requires_login: true;
+  readonly ok: boolean;
+  readonly requires_login: boolean;
 }
 
-/** Accept response: a new-user session, or an instruction to sign in. */
+/** Accept response: a new-user session, or the existing-account outcome. */
 export type AcceptInviteResult = AuthSession | AcceptExistingResult;
 
 /** Narrows an accept response to the new-user session variant. */
@@ -35,9 +41,22 @@ export function isNewUserSession(result: AcceptInviteResult): result is AuthSess
   return 'access_token' in result;
 }
 
+/** Error code when the signed-in account is not the invited one (HTTP 403). */
+export const INVITATION_EMAIL_MISMATCH = 'invitation_email_mismatch';
+
+/** True when an accept failure is the "signed in as a different account" refusal. */
+export function isInvitationEmailMismatch(error: unknown): boolean {
+  if (!(error instanceof HttpErrorResponse) || error.status !== 403) {
+    return false;
+  }
+  const detail = (error.error as { detail?: { code?: string } } | null)?.detail;
+  return detail?.code === INVITATION_EMAIL_MISMATCH;
+}
+
 /**
- * PUBLIC invitation endpoints. Used pre-login, so no bearer is present (the auth
- * interceptor adds none). The accept call must run with `withCredentials` so the
+ * PUBLIC invitation endpoints. Usually called pre-login (no bearer); when the
+ * user is signed in, the auth interceptor attaches their bearer (these URLs sit
+ * under `apiBaseUrl`), which is what lets an existing account accept. The accept call must run with `withCredentials` so the
  * server-set httpOnly refresh cookie is stored for the new user. Failures here
  * (404/410 for an expired/used link) are an expected outcome shown in-place, so
  * the generic error toast is suppressed via SKIP_ERROR_TOAST.

@@ -73,6 +73,16 @@ describe('AuthService', () => {
     expect(router.navigate).toHaveBeenCalledWith(['/login'], {});
   });
 
+  it('logout can pass a returnUrl to the login page (switch account)', () => {
+    signIn();
+    auth.logout('/invite/accept');
+    http.expectOne(`${AUTH}/logout`).flush({ ok: true });
+    expect(auth.isAuthenticated()).toBe(false);
+    expect(router.navigate).toHaveBeenCalledWith(['/login'], {
+      queryParams: { returnUrl: '/invite/accept' },
+    });
+  });
+
   it('logoutAll clears state and routes to /login with a notice on success', () => {
     signIn();
     let done = false;

@@ -480,7 +480,7 @@
       "expires": "Expires",
       "invite": "Invite user",
       "send": "Send invitation",
-      "emailNote": "An email is sent automatically when email delivery is configured.",
+      "emailNote": "The invitation link is emailed to this address. Only the recipient can use it to join.",
       "linkTitle": "Invitation link",
       "linkHint": "Share this link with {{email}} so they can accept the invitation.",
       "linkOnceNote": "Invitation links can only be copied right after they are created. To get a new link, revoke the invitation and send it again.",
@@ -715,7 +715,7 @@
       "pending": "Pending invitations",
       "pendingEmpty": "No pending invitations.",
       "conflict": "There's already a member or pending invitation for this email.",
-      "emailNote": "An email is sent automatically when email delivery is configured.",
+      "emailNote": "The invitation link is emailed to this address. Only the recipient can use it to join.",
       "linkTitle": "Invitation link",
       "linkHint": "Share this link so the user can accept the invitation.",
       "createdToast": "Invitation created.",
@@ -742,7 +742,8 @@
       "body": "This invitation is invalid, expired, or has already been used."
     },
     "existing": {
-      "body": "You already have an account — sign in to join {{org}}."
+      "body": "You already have an account. Sign in as {{email}} to join {{org}}.",
+      "signedIn": "You're signed in as {{email}}. Accept to join {{org}}."
     },
     "new": {
       "body": "You've been invited to join {{org}}. Set a password to get started."
@@ -751,7 +752,13 @@
     "fullName": "Full name",
     "password": "Password",
     "error": "We couldn't accept this invitation. Please try again.",
-    "toLogin": "Go to sign in"
+    "toLogin": "Go to sign in",
+    "mismatch": {
+      "title": "Signed in with a different account",
+      "body": "This invitation was sent to {{email}}, but you're signed in as {{current}}. Sign in with the invited account to accept it."
+    },
+    "switchAccount": "Sign in with the invited account",
+    "joinedToast": "You've joined {{org}}."
   },
   "common": {
     "loading": "Loading…",
