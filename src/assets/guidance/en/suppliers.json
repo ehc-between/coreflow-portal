@@ -69,7 +69,7 @@
           "example": "A recruitment tool that ranks candidates, or a chatbot service."
         },
         "data_locations": {
-          "help": "Where the supplier stores or processes your data, separated by commas. Transfers outside the EU/EEA need a legal basis.",
+          "help": "Where the supplier stores or processes your data. Pick each country from the list, or EU/EEA. A location outside the EU/EEA without an adequacy decision needs a transfer assessment.",
           "example": "Norway, Ireland"
         },
         "certifications": {

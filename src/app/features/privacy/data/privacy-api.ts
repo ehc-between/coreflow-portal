@@ -1,10 +1,12 @@
 import { HttpContext } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { ApiService, QueryParams } from '../../../core/http/api.service';
 import { SKIP_ERROR_TOAST } from '../../../core/http/error.interceptor';
 import {
+  ContractOption,
   DataSubjectRequest,
+  DpaCoverageOut,
   DecisionBody,
   PrivacyBody,
   PrivacyList,
@@ -108,6 +110,24 @@ export class PrivacyApi {
     body: DecisionBody,
   ): Observable<T> {
     return this.api.post<T>(`${this.path(orgId, register, id)}/decision`, body, IN_PLACE);
+  }
+
+  /** `GET /processors/{id}/dpa-coverage`: Art. 28(3) coverage from the linked contracts. */
+  dpaCoverage(orgId: string, processorId: string): Observable<DpaCoverageOut> {
+    return this.api.get<DpaCoverageOut>(
+      `${this.base(orgId)}/processors/${processorId}/dpa-coverage`,
+      IN_PLACE,
+    );
+  }
+
+  /** Contracts a transfer can name as its safeguard (first 200 by code; needs contracts:read). */
+  contractOptions(orgId: string): Observable<readonly ContractOption[]> {
+    return this.api
+      .get<{ items: readonly ContractOption[] }>(`v1/orgs/${orgId}/contracts`, {
+        ...IN_PLACE,
+        params: { sort: 'code', limit: 200 },
+      })
+      .pipe(map((r) => r.items));
   }
 
   overview(orgId: string): Observable<PrivacyOverview> {

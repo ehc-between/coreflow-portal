@@ -55,6 +55,7 @@ import {
   revisionFieldLabels,
 } from './data/privacy-registers';
 import { BreachPanel, DecisionPanel, DsrPanel } from './detail-panels';
+import { ProcessorDpaCoverage } from './processor-dpa-coverage';
 import { REGISTER_LESSONS } from './register-list';
 import { PrivacyLessonLink, privacyPermissions } from './privacy-nav';
 
@@ -102,6 +103,7 @@ const OUTCOME_STATUSES = ['completed', 'rejected'];
     BreachPanel,
     DecisionPanel,
     DsrPanel,
+    ProcessorDpaCoverage,
     PrivacyLessonLink,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -211,6 +213,9 @@ const OUTCOME_STATUSES = ['completed', 'rejected'];
                     [canApprove]="canApprove()"
                     (changed)="record.set($event)"
                   />
+                }
+                @case ('processor') {
+                  <app-privacy-processor-dpa-coverage [processorId]="r.id" />
                 }
               }
 
@@ -575,6 +580,15 @@ export class PrivacyRegisterDetail {
 
   private showField(f: FieldDef, value: unknown): ShownValue {
     const label = this.t(fieldLabelKey(f));
+    if (f.kind === 'contract' && typeof value === 'string' && value) {
+      return {
+        key: f.key,
+        label,
+        text: this.refs.contractLabel(value) ?? this.t('privacy.detail.linkedRecord'),
+        wide: !!f.wide,
+        link: ['/contracts', value],
+      };
+    }
     if (f.kind === 'ref' && f.ref && typeof value === 'string' && value) {
       return {
         key: f.key,

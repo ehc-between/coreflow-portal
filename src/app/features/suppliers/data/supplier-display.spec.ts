@@ -114,7 +114,7 @@ describe('supplier form helpers', () => {
       ...draftFrom(null),
       name: '  Acme  ',
       country: 'no',
-      data_locations: 'Norway, Ireland, Norway',
+      data_locations: ['NO', 'ie', 'NO'],
       certifications: '',
       evaluation_interval_months: '12',
       next_evaluation_at: '2027-01-31',
@@ -123,7 +123,7 @@ describe('supplier form helpers', () => {
     expect(fields).toMatchObject({
       name: 'Acme',
       country: 'NO',
-      data_locations: ['Norway', 'Ireland'],
+      data_locations: ['NO', 'IE'],
       certifications: [],
       evaluation_interval_months: 12,
       next_evaluation_at: '2027-01-31T00:00:00',

@@ -69,7 +69,7 @@
           "example": "Et rekrutteringsverktøy som rangerer kandidater, eller en chatbot-tjeneste."
         },
         "data_locations": {
-          "help": "Hvor leverandøren lagrer eller behandler dataene deres, skilt med komma. Overføring ut av EU/EØS krever et rettslig grunnlag.",
+          "help": "Hvor leverandøren lagrer eller behandler dataene deres. Velg hvert land fra listen, eller EU/EØS. En lokasjon utenfor EU/EØS uten beslutning om tilstrekkelig beskyttelse krever en overføringsvurdering.",
           "example": "Norge, Irland"
         },
         "certifications": {

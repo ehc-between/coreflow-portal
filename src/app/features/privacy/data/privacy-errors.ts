@@ -28,6 +28,8 @@ export const PRIVACY_ERROR_CODES = [
   'dpa_required',
   'dpa_signed_at_required',
   'transfer_incomplete',
+  'scc_contract_required',
+  'scc_contract_unsigned',
   'tia_incomplete',
   'transfer_not_adequate',
   'tia_conclusion_required',

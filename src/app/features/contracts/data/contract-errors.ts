@@ -5,6 +5,11 @@ import { httpErrorMessageKey } from '../../../core/http/error.interceptor';
 /** Codes the contract endpoints return in a 4xx `detail: {code}`; each has `contracts.errors.<code>`. */
 export const CONTRACT_ERROR_CODES = [
   'contract_closed',
+  'invalid_clause',
+  'invalid_clause_state',
+  'invalid_clause_source',
+  'waiver_reason_required',
+  'waiver_requires_person',
   'field_required',
   'invalid_action',
   'invalid_attachment',

@@ -17,7 +17,8 @@
       "dpiasRequiredUndecided": "Påkrevde DPIA-er uten beslutning",
       "processorsWithoutDpa": "Databehandlere uten avtale",
       "transfersMissingTia": "Overføringer uten TIA",
-      "reviewsOverdue": "Gjennomganger over frist"
+      "reviewsOverdue": "Gjennomganger over frist",
+      "transfersUnsignedSafeguards": "Aktive SCC-overføringer uten signert avtale"
     },
     "breachesNow": "Brudd med klokken i gang",
     "noBreaches": "Ingen åpne personvernbrudd. Registrer et brudd i det øyeblikket dere blir kjent med det.",
@@ -228,7 +229,8 @@
     "necessity_test": "Nødvendighetstest",
     "balancing_test": "Interesseavveining",
     "safeguards": "Garantier",
-    "is_lia": "Vurdering av berettiget interesse"
+    "is_lia": "Vurdering av berettiget interesse",
+    "contract_id": "Signert avtale (kontrakt)"
   },
   "options": {
     "ropaRole": {
@@ -548,7 +550,7 @@
       "dsr": "For å fullføre eller avslå en henvendelse må utfallet registreres.",
       "breach": "Et brudd kan bare lukkes når begge varslingsbeslutningene er registrert.",
       "processor": "En databehandler kan bare være aktiv med en signert avtale, eller en dokumentert vurdering av at avtale ikke trengs.",
-      "transfer": "En overføring som bygger på SCC, BCR eller et annet grunnlag kan bare bli aktiv etter en positiv vurdering av overføringen.",
+      "transfer": "En overføring som bygger på SCC, BCR eller et annet grunnlag kan bare bli aktiv etter en positiv vurdering av overføringen. En overføring etter SCC krever også en koblet, signert avtale.",
       "retention": "Aktiver regelen når den er vedtatt.",
       "consent": "Samtykket er aktivt til det trekkes tilbake.",
       "lba": "Sett til «Venter på beslutning» når vurderingen er ferdig."
@@ -622,7 +624,9 @@
     "supplementary_measures_required": "Beskriv de supplerende tiltakene.",
     "lia_incomplete": "Fullfør testen for berettiget interesse først: {{ fields }}.",
     "justification_required": "Skriv begrunnelsen først.",
-    "input_required": "Beskriv behandlingen først."
+    "input_required": "Beskriv behandlingen først.",
+    "scc_contract_required": "Koble til den signerte avtalen med standard personvernbestemmelser før overføringen kan bli aktiv.",
+    "scc_contract_unsigned": "Den koblede avtalen er ikke signert og aktiv ennå. En overføring som bygger på standard personvernbestemmelser kan bare bli aktiv når de er signert."
   },
   "notifications": {
     "ropaEntryCreated": "Behandlingsprotokoll registrert: {{ code }} {{ title }}",
@@ -729,5 +733,43 @@
     "consentRecordWithdrawn": "Samtykket er trukket tilbake",
     "dpiaDecided": "Beslutning registrert",
     "legalBasisAssessmentDecided": "Beslutning registrert"
+  },
+  "dpaCoverage": {
+    "title": "Dekning av databehandleravtale",
+    "status": {
+      "not_required": "Ikke påkrevd",
+      "covered": "Dekket",
+      "incomplete": "Ufullstendig",
+      "missing": "Mangler"
+    },
+    "explain": {
+      "not_required": "Det kreves ingen databehandleravtale.",
+      "covered": "En signert avtale, der alle påkrevde klausuler er bekreftet, dekker denne databehandleren.",
+      "incomplete": "Det finnes en avtale, men den er ikke signert, eller ikke alle påkrevde klausuler er bekreftet.",
+      "missing": "Ingen databehandleravtale er koblet til denne databehandleren."
+    },
+    "reasons": {
+      "unsigned": "Ikke signert og aktiv ennå.",
+      "clauses_missing": "Påkrevde klausuler mangler: {{ missing }}.",
+      "clauses_unconfirmed": "Klausuler som ikke er bekreftet av en person ennå: {{ unconfirmed }}.",
+      "no_dpa": "Ingen databehandleravtale."
+    },
+    "missingClauses": "Manglende klausuler",
+    "linkCta": "Registrer databehandleravtalen som en kontrakt, og koble den til denne databehandleren under Relatert.",
+    "loadFailed": "Dekningen av avtalen kunne ikke lastes inn."
+  },
+  "dpaClauses": {
+    "subject_matter_and_duration": "Gjenstand, varighet, art og formål med behandlingen",
+    "documented_instructions": "Behandling bare etter dokumenterte instrukser",
+    "confidentiality": "Taushetsplikt for de som behandler opplysningene",
+    "security_measures": "Egnede sikkerhetstiltak",
+    "sub_processors": "Vilkår for bruk av underdatabehandlere",
+    "data_subject_rights": "Bistand med henvendelser fra registrerte",
+    "compliance_assistance": "Bistand med sikkerhet, avvik og konsekvensvurderinger",
+    "breach_notification": "Varsling av brudd på personopplysningssikkerheten",
+    "deletion_or_return": "Sletting eller tilbakelevering ved avslutning",
+    "audits_and_information": "Informasjon og revisjoner",
+    "international_transfers": "Overføring ut av EU/EØS",
+    "unknown": "Annen klausul"
   }
 }

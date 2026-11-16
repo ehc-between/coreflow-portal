@@ -33,6 +33,7 @@ import { Card } from '../../shared/ui/card/card';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog/confirm-dialog';
 import { Icon } from '../../shared/ui/icon/icon';
 import { ContractAiPanel } from './contract-ai-panel';
+import { ContractDpaChecklist } from './contract-dpa-checklist';
 import { ContractKeyDates } from './contract-key-dates';
 import { ContractObligations } from './contract-obligations';
 import { ContractParties } from './contract-parties';
@@ -114,6 +115,7 @@ export const CONTRACT_FIELD_LABELS: Readonly<Record<string, string>> = {
     ConfirmDialog,
     Icon,
     ContractAiPanel,
+    ContractDpaChecklist,
     ContractKeyDates,
     ContractObligations,
     ContractParties,
@@ -391,6 +393,14 @@ export const CONTRACT_FIELD_LABELS: Readonly<Record<string, string>> = {
                 }
               </app-card>
 
+              @if (c.contract_type === 'dpa' || c.dpa.required) {
+                <app-contract-dpa-checklist
+                  [contract]="c"
+                  (changed)="contract.set($event)"
+                  (obligationAdded)="onObligationAdded()"
+                />
+              }
+
               <app-card>
                 <app-contract-parties
                   [contractId]="c.id"
@@ -482,6 +492,25 @@ export const CONTRACT_FIELD_LABELS: Readonly<Record<string, string>> = {
                 <p class="text-[13px] text-fg-muted">
                   {{ 'contracts.dpa.explain.' + c.dpa.status | transloco }}
                 </p>
+                @if (c.dpa.status === 'incomplete' && c.dpa.reasons?.length) {
+                  <ul
+                    class="mt-2 list-disc space-y-0.5 pl-5 text-[12.5px] text-fg"
+                    data-testid="dpa-reasons"
+                  >
+                    @for (reason of c.dpa.reasons; track reason) {
+                      <li>
+                        {{
+                          'contracts.dpa.reasons.' + reason
+                            | transloco
+                              : {
+                                  missing: c.dpa.missing_clauses?.length ?? 0,
+                                  unconfirmed: c.dpa.unconfirmed_clauses?.length ?? 0,
+                                }
+                        }}
+                      </li>
+                    }
+                  </ul>
+                }
                 @if (c.dpa.linked_dpa_ids.length) {
                   <ul class="mt-2 flex flex-col gap-1">
                     @for (id of c.dpa.linked_dpa_ids; track id; let i = $index) {

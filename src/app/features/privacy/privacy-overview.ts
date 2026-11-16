@@ -293,6 +293,12 @@ export class PrivacyOverview {
         link: ['/privacy', 'transfers'],
       },
       {
+        key: 'transfersUnsignedSafeguards',
+        value: o.transfers_unsigned_safeguards ?? 0,
+        tone: fail(o.transfers_unsigned_safeguards ?? 0),
+        link: ['/privacy', 'transfers'],
+      },
+      {
         key: 'reviewsOverdue',
         value: o.reviews_overdue,
         tone: fail(o.reviews_overdue),
