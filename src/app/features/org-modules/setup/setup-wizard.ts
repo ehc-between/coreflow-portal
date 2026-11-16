@@ -12,7 +12,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { Observable, catchError, forkJoin, from, mergeMap, of, toArray } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -38,6 +38,8 @@ import { Card } from '../../../shared/ui/card/card';
 import { FormField } from '../../../shared/ui/form-field/form-field';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { AskPanelService } from '../../ask/ask-panel.service';
+import { HomeApi } from '../../dashboard/data/home-api';
+import { apiErrorCode, hasJourney, journeyUrl } from '../../dashboard/data/home-format';
 import {
   GUIDE_CLAUSES,
   frameworkDescriptionKey,
@@ -461,6 +463,35 @@ type TaskOutcome = 'created' | 'unavailable' | 'failed' | null;
                     {{ w + '.done.enabledList' | transloco: { modules: names(result) } }}
                   </p>
                 }
+                @if (journeyFrameworks().length && canStartJourney()) {
+                  <div
+                    class="mt-4 rounded-tile border border-accent-border bg-accent-soft p-4"
+                    data-testid="setup-journeys"
+                  >
+                    <p class="text-ui font-semibold text-fg">
+                      {{ w + '.done.journeyTitle' | transloco }}
+                    </p>
+                    <p class="mt-1 text-ui text-fg-muted">
+                      {{ w + '.done.journeyBody' | transloco }}
+                    </p>
+                    <div class="mt-3 flex flex-wrap gap-2">
+                      @for (fw of journeyFrameworks(); track fw; let first = $first) {
+                        <app-button
+                          size="sm"
+                          [variant]="first ? 'primary' : 'secondary'"
+                          [loading]="startingJourney() === fw"
+                          [disabled]="startingJourney() !== null"
+                          (click)="startJourney(fw)"
+                        >
+                          {{
+                            w + '.done.startJourney'
+                              | transloco: { standard: (frameworkShortKey(fw) | transloco) }
+                          }}
+                        </app-button>
+                      }
+                    </div>
+                  </div>
+                }
                 <div class="mt-4 flex flex-wrap gap-2">
                   <a
                     routerLink="/dashboard"
@@ -535,6 +566,8 @@ export class SetupWizard {
   private readonly language = inject(LanguageService);
   private readonly ask = inject(AskPanelService);
   private readonly injector = inject(Injector);
+  private readonly homeApi = inject(HomeApi);
+  private readonly router = inject(Router);
   private readonly heading = viewChild<ElementRef<HTMLElement>>('stepHeading');
 
   protected readonly clauses = GUIDE_CLAUSES.setup;
@@ -572,6 +605,15 @@ export class SetupWizard {
   /** Module keys enabled when the wizard finished (null until then). */
   protected readonly finished = signal<readonly string[] | null>(null);
 
+  /** Chosen standards with a guided journey, offered as "Start the journey" at the end. */
+  protected readonly journeyFrameworks = computed(() =>
+    this.chosenFrameworks().filter((fw) => hasJourney(fw)),
+  );
+  protected readonly canStartJourney = computed(
+    () => this.selectedOrg.currentOrg()?.permissions.includes('standards:manage') ?? false,
+  );
+  protected readonly startingJourney = signal<string | null>(null);
+
   protected readonly form = createProfileForm(this.fb);
 
   protected readonly stepIndex = computed(() => SETUP_STEPS.indexOf(this.step()));
@@ -605,6 +647,34 @@ export class SetupWizard {
         }
       });
     });
+  }
+
+  /**
+   * Start the guided journey of a chosen standard and open it. An existing journey
+   * (409) is simply opened.
+   */
+  protected startJourney(framework: string): void {
+    const orgId = this.orgId();
+    if (!orgId) {
+      return;
+    }
+    this.startingJourney.set(framework);
+    this.homeApi.start(orgId, framework, this.language.active()).subscribe({
+      next: () => this.openJourney(framework),
+      error: (error: unknown) => {
+        if (apiErrorCode(error) === 'journey_exists') {
+          this.openJourney(framework);
+          return;
+        }
+        this.startingJourney.set(null);
+        this.notifications.error('modules.setup.done.journeyFailed');
+      },
+    });
+  }
+
+  private openJourney(framework: string): void {
+    this.startingJourney.set(null);
+    void this.router.navigateByUrl(journeyUrl(framework));
   }
 
   protected names(keys: readonly string[]): string {

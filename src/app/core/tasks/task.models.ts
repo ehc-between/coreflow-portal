@@ -225,14 +225,38 @@ export interface WorkItem {
   readonly entity_id: string | null;
   readonly module: string | null;
   readonly overdue: boolean;
+  /** P5: the My Work tab the item sits in. */
+  readonly group?: WorkGroup;
+  /** P5: scoped key naming what it is (`tasks:work.kinds.<source>`). */
+  readonly kind_label_key?: string;
+  /** P5: scoped key of the one-line reason it is on the list (`tasks:work.why.<reason>`). */
+  readonly why_key?: string;
+  readonly why_params?: Readonly<Record<string, unknown>>;
+}
+
+/** The My Work tabs (P5); `awaiting_review` replaces the old review page. */
+export type WorkGroup = 'overdue' | 'this_week' | 'later' | 'awaiting_review';
+
+/** Item counts per tab (module filter applied, tab filter not). */
+export interface MyWorkCounts {
+  readonly overdue: number;
+  readonly this_week: number;
+  readonly later: number;
+  readonly awaiting_review: number;
+  readonly total: number;
 }
 
 export interface MyWorkResponse {
   readonly items: readonly WorkItem[];
+  readonly counts?: MyWorkCounts;
 }
 
 export interface MyWorkQuery {
   readonly from?: string;
   readonly to?: string;
   readonly include?: readonly string[];
+  /** P5: only items of this module. */
+  readonly module?: string;
+  /** P5: only items of this tab. */
+  readonly group?: WorkGroup;
 }

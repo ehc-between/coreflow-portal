@@ -284,7 +284,11 @@
       "enabledList": "Slått på nå: {{ modules }}.",
       "toDashboard": "Gå til oversikten",
       "toModules": "Se gjennom modulene",
-      "finishedToast": "Oppsettet er fullført."
+      "finishedToast": "Oppsettet er fullført.",
+      "journeyTitle": "Neste: følg en veiledet reise",
+      "journeyBody": "En reise tar deg steg for steg fra den første avgrensningen til organisasjonen er klar for revisjon. Hvert steg forteller hva du skal gjøre, og hvilke krav det dekker.",
+      "startJourney": "Start reisen for {{ standard }}",
+      "journeyFailed": "Kunne ikke starte reisen. Prøv igjen fra siden for standarden."
     },
     "back": "Tilbake",
     "next": "Fortsett",

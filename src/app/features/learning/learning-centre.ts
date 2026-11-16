@@ -19,6 +19,7 @@ import { WhyItMatters } from '../../shared/guidance/why-it-matters';
 import { Badge, BadgeTone } from '../../shared/ui/badge/badge';
 import { Card } from '../../shared/ui/card/card';
 import { KpiTile } from '../../shared/ui/kpi-tile/kpi-tile';
+import { RecommendedLessons } from './recommended-lessons';
 import {
   LESSON_SCOPES,
   LESSON_STATUSES,
@@ -56,6 +57,7 @@ const STATUS_ORDER: Record<LessonStatus, number> = { in_progress: 0, not_started
     TourButton,
     TourStepDirective,
     WhyItMatters,
+    RecommendedLessons,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -82,6 +84,8 @@ const STATUS_ORDER: Record<LessonStatus, number> = { in_progress: 0, not_started
 
       <div class="grid gap-5 lg:grid-cols-[1fr_340px]">
         <div class="flex min-w-0 flex-col gap-5">
+          <app-recommended-lessons />
+
           <section
             appTourStep="learning-progress"
             data-testid="learning-progress"
@@ -133,6 +137,18 @@ const STATUS_ORDER: Record<LessonStatus, number> = { in_progress: 0, not_started
                 [value]="lessonQuery()"
                 (input)="lessonQuery.set($any($event.target).value)"
               />
+              <select
+                data-testid="lesson-area-filter"
+                class="h-9 rounded-[10px] border border-border bg-bg px-2 text-[13.5px] text-fg outline-none focus:border-accent"
+                [attr.aria-label]="'guidance.centre.filterArea' | transloco"
+                [value]="areaFilter()"
+                (change)="areaFilter.set($any($event.target).value)"
+              >
+                <option value="all">{{ 'guidance.centre.allAreas' | transloco }}</option>
+                @for (area of areas(); track area) {
+                  <option [value]="area">{{ 'guidance.scopes.' + area | transloco }}</option>
+                }
+              </select>
               <select
                 data-testid="lesson-status-filter"
                 class="h-9 rounded-[10px] border border-border bg-bg px-2 text-[13.5px] text-fg outline-none focus:border-accent"
@@ -308,6 +324,8 @@ export class LearningCentre {
   protected readonly statuses = LESSON_STATUSES;
   protected readonly lessonQuery = signal('');
   protected readonly statusFilter = signal<LessonStatus | 'all'>('all');
+  /** `all` or a guidance scope (a module, or the CoreFlow basics). */
+  protected readonly areaFilter = signal('all');
   protected readonly sort = signal<LessonSort>('status');
   protected readonly termQuery = signal('');
 
@@ -323,6 +341,8 @@ export class LearningCentre {
       this.progress.byKey(),
     ),
   );
+  /** Areas (guidance scopes) that have at least one lesson, in catalogue order. */
+  protected readonly areas = computed(() => [...new Set(this.catalog().map((l) => l.scope))]);
   protected readonly completed = computed(
     () => this.catalog().filter((l) => l.status === 'completed').length,
   );
@@ -333,9 +353,15 @@ export class LearningCentre {
   protected readonly visibleLessons = computed(() => {
     const query = this.lessonQuery();
     const status = this.statusFilter();
+    const area = this.areaFilter();
     const sort = this.sort();
     return this.catalog()
-      .filter((l) => (status === 'all' || l.status === status) && matchesQuery(l.title, query))
+      .filter(
+        (l) =>
+          (status === 'all' || l.status === status) &&
+          (area === 'all' || l.scope === area) &&
+          matchesQuery(l.title, query),
+      )
       .sort((a, b) =>
         sort === 'status'
           ? STATUS_ORDER[a.status] - STATUS_ORDER[b.status] || a.title.localeCompare(b.title)

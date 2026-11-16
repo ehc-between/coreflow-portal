@@ -16,7 +16,9 @@ import { LearningProgressService } from '../../core/guidance/learning-progress.s
 import { TutorService } from '../../core/guidance/tutor.service';
 import { LanguageService } from '../../core/i18n/language.service';
 import { NotificationService } from '../../core/notifications/notification.service';
+import { ModuleService } from '../../core/modules/module.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
+import { HomeApi } from '../dashboard/data/home-api';
 import { LessonView } from '../../shared/guidance/lesson';
 import { LearningCentre } from './learning-centre';
 import { buildCatalog, lessonStatus, matchesQuery } from './lesson-catalog';
@@ -61,7 +63,15 @@ function baseProviders(permissions: string[] = []) {
     ...fake.providers,
     { provide: TutorService, useValue: { teach: vi.fn(), explainClause: vi.fn() } },
     { provide: AiAvailability, useValue: { unavailable: signal(false) } },
-    { provide: LanguageService, useValue: { translate: (key: string) => key, locale: () => 'en' } },
+    {
+      provide: LanguageService,
+      useValue: { translate: (key: string) => key, locale: () => 'en', active: () => 'en' },
+    },
+    { provide: ModuleService, useValue: { isEnabled: () => true } },
+    {
+      provide: HomeApi,
+      useValue: { journeys: () => of({ items: [], available: [] }), journey: vi.fn() },
+    },
     {
       provide: SelectedOrgService,
       useValue: {

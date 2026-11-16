@@ -88,7 +88,18 @@ describe('SetupWizard', () => {
         provideHttpClient(),
         provideHttpClientTesting(),
         { provide: APP_CONFIG, useValue: { apiBaseUrl: BASE } },
-        { provide: SelectedOrgService, useValue: { currentOrgId: signal(ORG) } },
+        {
+          provide: SelectedOrgService,
+          useValue: {
+            currentOrgId: signal(ORG),
+            currentOrg: signal({
+              id: ORG,
+              name: 'Acme',
+              roles: [],
+              permissions: ['standards:manage'],
+            }),
+          },
+        },
         { provide: ModuleService, useValue: { reload } },
         {
           provide: LanguageService,

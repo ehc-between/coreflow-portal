@@ -98,10 +98,34 @@
   },
   "scopes": {
     "platform": "CoreFlow basics",
+    "context": "Context and leadership",
     "processes": "Processes",
-    "obligations": "Compliance obligations",
+    "risk": "Risks and opportunities",
+    "objectives": "Objectives and KPIs",
+    "obligations": "Laws and regulations",
+    "documents": "Documents",
+    "deviations": "Deviations",
     "inspections": "Inspections",
-    "people": "People and competence"
+    "audits": "Audits",
+    "management-review": "Management review",
+    "suppliers": "Suppliers",
+    "contracts": "Contracts",
+    "projects": "Projects",
+    "assets": "Assets and changes",
+    "continuity": "Continuity and preparedness",
+    "privacy": "Privacy",
+    "ai-governance": "AI governance",
+    "environment": "Environment",
+    "hse": "Health and safety",
+    "feedback": "Customer feedback",
+    "people": "People",
+    "recruitment": "Recruitment",
+    "training": "Training",
+    "reports": "Reports",
+    "records": "Record types and workflows",
+    "tasks": "Tasks",
+    "kit": "Working with records",
+    "search": "Search and the assistant"
   },
   "tour": {
     "start": "Tour",
@@ -137,7 +161,9 @@
     "noMatches": "No lessons match your filters.",
     "levelTitle": "Learning level",
     "levelCurrent": "You currently see the {{ level }} level.",
-    "backToCentre": "Back to the learning centre"
+    "backToCentre": "Back to the learning centre",
+    "filterArea": "Area",
+    "allAreas": "All areas"
   },
   "settings": {
     "title": "Learning mode",

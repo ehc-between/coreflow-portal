@@ -284,7 +284,11 @@
       "enabledList": "Turned on now: {{ modules }}.",
       "toDashboard": "Go to the dashboard",
       "toModules": "Review modules",
-      "finishedToast": "Setup is complete."
+      "finishedToast": "Setup is complete.",
+      "journeyTitle": "Next: follow a guided journey",
+      "journeyBody": "A journey takes you step by step from the first scope statement to being ready for an audit. Each step says what to do and which requirements it covers.",
+      "startJourney": "Start the journey for {{ standard }}",
+      "journeyFailed": "Could not start the journey. Try again from the standard's page."
     },
     "back": "Back",
     "next": "Continue",

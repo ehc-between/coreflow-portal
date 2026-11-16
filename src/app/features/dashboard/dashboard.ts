@@ -8,158 +8,299 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { LanguageService } from '../../core/i18n/language.service';
 import { Subscription } from 'rxjs';
-import { DeviationStats } from '../../core/deviations/deviation.models';
-import { DeviationsApi } from '../../core/deviations/deviations-api';
-import { DocumentsApi } from '../../core/documents/documents-api';
+import { providePageContext } from '../../core/ai/page-context';
+import { AuthService } from '../../core/auth/auth.service';
+import { LanguageService } from '../../core/i18n/language.service';
 import { ModuleService } from '../../core/modules/module.service';
+import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
-import { ReportWidgets } from '../reports/components/report-widgets';
-import { GuideIntro } from '../../shared/guidance/guide-intro';
-import { AgentBanner } from '../../shared/ui/agent-banner/agent-banner';
-import { Card } from '../../shared/ui/card/card';
+import { EmptyState } from '../../shared/ui/empty-state/empty-state';
+import { ErrorState } from '../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../shared/ui/icon/icon';
-import { KpiTile } from '../../shared/ui/kpi-tile/kpi-tile';
-import { severityLabelKey } from '../deviations/deviation-enums';
+import { LoadingState } from '../../shared/ui/loading-state/loading-state';
+import { PageHeader } from '../../shared/ui/page-header/page-header';
+import { ProgressBar } from '../../shared/ui/progress-bar/progress-bar';
 import { SetupBanner } from '../org-modules/setup-banner/setup-banner';
-import { StatBarList } from '../deviations/stats/stat-bar-list';
-import { recordToBuckets, toBars } from '../deviations/stats/stats-bars';
-import { TrendChart } from '../deviations/stats/trend-chart';
-import {
-  FAILED,
-  HIDDEN,
-  LOADING,
-  Loadable,
-  buildDashboardTiles,
-  ready,
-  recentMonths,
-} from './dashboard-data';
+import { DismissRequest, NextActions } from './components/next-actions';
+import { StandardStatus } from './components/standard-status';
+import { HomeApi } from './data/home-api';
+import { firstName, greetingKey, hasJourney, journeyUrl } from './data/home-format';
+import { HomeResponse, JourneySummary } from './data/home.models';
 
-/** Months shown in the dashboard's "opened per month" trend. */
-const TREND_MONTHS = 6;
+type LoadState = 'loading' | 'error' | 'ready';
+
+/** My Work tiles on the home page: count field, tab and label. */
+const WORK_TILES = [
+  { field: 'overdue', tab: 'overdue', labelKey: 'home.work.overdue' },
+  { field: 'due_this_week', tab: 'this_week', labelKey: 'home.work.thisWeek' },
+  { field: 'awaiting_review', tab: 'review', labelKey: 'home.work.review' },
+  { field: 'later', tab: 'later', labelKey: 'home.work.later' },
+] as const;
+
+/** Setup items the home page can point at (the wizard has its own banner). */
+const SETUP_LINKS: Record<string, string> = {
+  standards: '/standards',
+  members: '/settings',
+};
 
 /**
- * Org dashboard. KPI tiles come from live data — deviation stats
- * (`deviations:read`), pending AI proposals (`documents:approve`) and documents
- * in review (`documents:read`) — each requested only when the user holds the
- * permission, and each linking to the list behind its number. Below the tiles,
- * a severity breakdown and a monthly trend reuse the deviation stats charts.
- * Everything reloads when the selected org (or its permissions) changes.
+ * Oversikt (home): on login every member sees where the organisation stands per
+ * standard and what *they* should do next, from `GET /home`:
+ *
+ * 1. "Do this now": up to seven next actions, each with why and one button.
+ * 2. My Work counts per tab, and the active guided journeys ("Continue the journey").
+ * 3. "How the organisation is doing": one card per enabled standard with its
+ *    requirement coverage, trend and three most important gaps.
+ *
+ * The detailed readiness lives on Standards; exports and audit packs on Reports.
+ * Reloads on org or language change (text fields come back in the UI language).
  */
 @Component({
   selector: 'app-dashboard',
   imports: [
-    TranslocoPipe,
     RouterLink,
-    GuideIntro,
-    AgentBanner,
-    Card,
+    TranslocoPipe,
+    EmptyState,
+    ErrorState,
+    HelpStrip,
     Icon,
-    KpiTile,
-    StatBarList,
-    TrendChart,
+    LoadingState,
+    PageHeader,
+    ProgressBar,
     SetupBanner,
-    ReportWidgets,
+    NextActions,
+    StandardStatus,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[1080px] px-8 pt-7 pb-12">
-      <div class="mb-[18px]">
-        <h1 class="font-display text-[26px] font-bold tracking-[-0.025em] text-fg">
-          {{ 'dashboard.title' | transloco }}
-        </h1>
-        @if (orgName(); as name) {
-          <div class="mt-1.5 text-[14px] text-fg-muted">
-            {{ 'dashboard.subtitle' | transloco: { org: name } }}
-          </div>
+    <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+      <app-page-header titleKey="nav.dashboard" [breadcrumbs]="[{ labelKey: 'nav.dashboard' }]">
+        <p intro class="mt-1.5 max-w-[72ch] text-body text-fg-muted" data-testid="home-greeting">
+          {{ greeting() }}
+        </p>
+      </app-page-header>
+
+      <app-help-strip class="mb-6" scope="platform" page="dashboard" lesson="getting-started" />
+
+      <app-setup-banner class="mb-6 block" />
+
+      @switch (state()) {
+        @case ('loading') {
+          <app-loading-state [rows]="5" />
         }
-      </div>
+        @case ('error') {
+          <app-error-state (retry)="reload()" />
+        }
+        @case ('ready') {
+          @if (home(); as h) {
+            <div class="flex flex-col gap-8">
+              <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+                <!-- Do this now -->
+                <section aria-labelledby="home-next-title" class="min-w-0">
+                  <h2 id="home-next-title" class="mb-1 font-display text-section font-bold text-fg">
+                    {{ 'home.next.title' | transloco }}
+                  </h2>
+                  <p class="mb-3 text-ui text-fg-muted">{{ 'home.next.subtitle' | transloco }}</p>
+                  @if (actions().length) {
+                    <app-next-actions [actions]="actions()" (dismissed)="dismiss($event)" />
+                  } @else {
+                    <app-empty-state
+                      icon="checkcircle"
+                      titleKey="home.next.emptyTitle"
+                      bodyKey="home.next.emptyBody"
+                      [compact]="true"
+                    />
+                  }
+                  @if (missingSetup().length) {
+                    <ul class="mt-3 flex flex-col gap-1.5" data-testid="home-setup-missing">
+                      @for (item of missingSetup(); track item) {
+                        <li>
+                          <a
+                            [routerLink]="setupLinks[item]"
+                            class="inline-flex items-center gap-2 text-ui font-semibold text-accent hover:underline"
+                          >
+                            <app-icon name="plus" [size]="14" />
+                            {{ 'home.setup.' + item | transloco }}
+                          </a>
+                        </li>
+                      }
+                    </ul>
+                  }
+                </section>
 
-      <app-guide-intro class="mb-[18px]" scope="platform" page="dashboard" />
-
-      <div class="mb-[22px]">
-        <app-agent-banner agentName="Iris" [agentRole]="'dashboard.agentRole' | transloco" />
-      </div>
-
-      <app-setup-banner class="mb-[22px] block" />
-
-      @if (showReportWidgets()) {
-        <app-report-widgets class="mb-[22px] block" />
-      }
-
-      @if (tiles().length === 0) {
-        <app-card>
-          <p class="py-12 text-center text-[14px] text-fg-muted">
-            {{ 'dashboard.noAccess' | transloco }}
-          </p>
-        </app-card>
-      } @else {
-        <div class="grid grid-cols-2 gap-3 md:grid-cols-3">
-          @for (t of tiles(); track t.id) {
-            <a
-              [routerLink]="t.link"
-              [queryParams]="t.queryParams"
-              class="block rounded-card transition-transform hover:-translate-y-px focus-visible:outline-2 focus-visible:outline-accent"
-            >
-              <app-kpi-tile
-                [label]="t.labelKey | transloco"
-                [value]="t.value ?? '—'"
-                [tone]="t.tone"
-                [delta]="
-                  t.state === 'loading'
-                    ? ('common.loading' | transloco)
-                    : t.state === 'error'
-                      ? ('dashboard.loadFailed' | transloco)
-                      : ''
-                "
-                [deltaTone]="t.state === 'error' ? 'fail' : 'neutral'"
-              />
-            </a>
-          }
-        </div>
-
-        @if (stats(); as s) {
-          @if (s.state === 'ready') {
-            @if (s.value.total === 0) {
-              <app-card class="mt-4 block">
-                <div class="flex flex-col items-center gap-3 py-10 text-center">
-                  <span
-                    class="flex h-12 w-12 items-center justify-center rounded-card border border-pass/30 bg-pass-soft text-pass"
+                <div class="flex min-w-0 flex-col gap-6">
+                  <!-- My Work -->
+                  <section
+                    aria-labelledby="home-work-title"
+                    class="rounded-card border border-border bg-surface p-5 shadow-card"
+                    data-testid="home-my-work"
                   >
-                    <app-icon name="checkcircle" [size]="22" />
-                  </span>
-                  <p class="text-[14px] text-fg-muted">
-                    {{ 'dashboard.noDeviations' | transloco }}
-                  </p>
-                </div>
-              </app-card>
-            } @else {
-              <div class="mt-4 grid gap-4 lg:grid-cols-2">
-                <app-card>
-                  <div class="mb-3 flex items-baseline justify-between gap-3">
-                    <p class="text-[13px] font-semibold text-fg-muted">
-                      {{ 'dashboard.charts.bySeverity' | transloco }}
-                    </p>
-                    <a
-                      routerLink="/deviations/stats"
-                      class="text-[12.5px] font-semibold text-accent hover:underline"
+                    <div class="mb-3 flex items-baseline justify-between gap-3">
+                      <h2 id="home-work-title" class="font-display text-card font-bold text-fg">
+                        {{ 'nav.myWork' | transloco }}
+                      </h2>
+                      <a
+                        routerLink="/my-work"
+                        class="text-meta font-semibold text-accent hover:underline"
+                      >
+                        {{ 'home.work.open' | transloco }} →
+                      </a>
+                    </div>
+                    @if (h.my_work.total === 0) {
+                      <p class="text-ui text-fg-muted">{{ 'home.work.empty' | transloco }}</p>
+                    } @else {
+                      <ul class="grid grid-cols-2 gap-2">
+                        @for (tile of workTiles; track tile.field) {
+                          <li>
+                            <a
+                              routerLink="/my-work"
+                              [queryParams]="{ tab: tile.tab }"
+                              class="flex flex-col rounded-tile border border-border px-3 py-2 hover:border-border-strong hover:bg-surface-2"
+                              [class.border-warn]="
+                                tile.field === 'overdue' && h.my_work.overdue > 0
+                              "
+                            >
+                              <span
+                                class="font-display text-section font-bold"
+                                [class.text-warn-ink]="
+                                  tile.field === 'overdue' && h.my_work.overdue > 0
+                                "
+                                [class.text-fg]="
+                                  !(tile.field === 'overdue' && h.my_work.overdue > 0)
+                                "
+                                >{{ h.my_work[tile.field] }}</span
+                              >
+                              <span class="text-meta text-fg-muted">{{
+                                tile.labelKey | transloco
+                              }}</span>
+                            </a>
+                          </li>
+                        }
+                      </ul>
+                    }
+                  </section>
+
+                  <!-- Journeys -->
+                  @if (showJourneys()) {
+                    <section
+                      aria-labelledby="home-journeys-title"
+                      class="rounded-card border border-border bg-surface p-5 shadow-card"
+                      data-testid="home-journeys"
                     >
-                      {{ 'dashboard.charts.allStats' | transloco }}
+                      <h2
+                        id="home-journeys-title"
+                        class="mb-3 font-display text-card font-bold text-fg"
+                      >
+                        {{ 'home.journeys.title' | transloco }}
+                      </h2>
+                      @for (j of h.journeys; track j.id) {
+                        <a
+                          [routerLink]="j.url"
+                          class="mb-2 block rounded-tile border border-border p-3 last:mb-0 hover:border-border-strong hover:bg-surface-2"
+                          data-testid="home-journey"
+                        >
+                          <span class="flex items-baseline justify-between gap-2">
+                            <span class="text-ui font-semibold text-fg">{{ j.title }}</span>
+                            <span class="flex-none text-meta text-fg-muted">{{ j.percent }} %</span>
+                          </span>
+                          <app-progress-bar
+                            class="mt-2 block"
+                            [value]="j.percent"
+                            [label]="
+                              'home.journeys.progress' | transloco: { done: j.done, total: j.total }
+                            "
+                          />
+                          <span class="mt-2 block text-meta text-fg-muted">
+                            {{
+                              'home.journeys.progress' | transloco: { done: j.done, total: j.total }
+                            }}
+                          </span>
+                          @if (j.next_step; as next) {
+                            <span class="mt-1 block text-meta text-fg">
+                              {{ 'home.journeys.next' | transloco: { step: next.title } }}
+                            </span>
+                          }
+                          <span class="mt-2 block text-meta font-semibold text-accent">
+                            {{
+                              (j.status === 'completed'
+                                ? 'home.journeys.view'
+                                : 'home.journeys.continue'
+                              ) | transloco
+                            }}
+                            →
+                          </span>
+                        </a>
+                      } @empty {
+                        <p class="text-ui text-fg-muted">
+                          {{ 'home.journeys.emptyBody' | transloco }}
+                        </p>
+                        <a
+                          [routerLink]="startJourneyUrl()"
+                          class="mt-3 inline-flex text-ui font-semibold text-accent hover:underline"
+                        >
+                          {{ 'home.journeys.start' | transloco }} →
+                        </a>
+                      }
+                    </section>
+                  }
+                </div>
+              </div>
+
+              <!-- How the organisation is doing -->
+              @if (h.frameworks.length) {
+                <section aria-labelledby="home-status-title">
+                  <div class="mb-3 flex flex-wrap items-baseline justify-between gap-2">
+                    <div>
+                      <h2
+                        id="home-status-title"
+                        class="font-display text-section font-bold text-fg"
+                      >
+                        {{ 'home.status.title' | transloco }}
+                      </h2>
+                      <p class="mt-0.5 text-ui text-fg-muted">
+                        {{ 'home.status.subtitle' | transloco }}
+                      </p>
+                    </div>
+                    <a
+                      routerLink="/standards"
+                      class="text-ui font-semibold text-accent hover:underline"
+                    >
+                      {{ 'home.status.allStandards' | transloco }} →
                     </a>
                   </div>
-                  <app-stat-bar-list [bars]="severityBars()" (selectBar)="openSeverity($event)" />
-                </app-card>
-                <app-card>
-                  <p class="mb-4 text-[13px] font-semibold text-fg-muted">
-                    {{ 'dashboard.charts.trend' | transloco: { months: trendMonths } }}
-                  </p>
-                  <app-trend-chart [points]="trend()" [height]="140" />
-                </app-card>
-              </div>
-            }
+                  <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                    @for (fw of h.frameworks; track fw.framework) {
+                      <app-standard-status
+                        [status]="fw"
+                        [journey]="journeyFor(fw.framework)"
+                        [canStartJourney]="canManageStandards()"
+                      />
+                    }
+                  </div>
+                </section>
+              } @else if (canReadStandards()) {
+                <app-empty-state
+                  icon="iso"
+                  titleKey="home.status.emptyTitle"
+                  bodyKey="home.status.emptyBody"
+                  ctaKey="home.status.emptyCta"
+                  ctaLink="/standards"
+                />
+              }
+
+              @if (showReports()) {
+                <p class="text-ui text-fg-muted">
+                  {{ 'home.reports.hint' | transloco }}
+                  <a routerLink="/reports" class="font-semibold text-accent hover:underline">
+                    {{ 'home.reports.link' | transloco }} →
+                  </a>
+                </p>
+              }
+            </div>
           }
         }
       }
@@ -167,114 +308,124 @@ const TREND_MONTHS = 6;
   `,
 })
 export class Dashboard {
-  private readonly deviationsApi = inject(DeviationsApi);
-  private readonly documentsApi = inject(DocumentsApi);
+  private readonly api = inject(HomeApi);
+  private readonly auth = inject(AuthService);
   private readonly selectedOrg = inject(SelectedOrgService);
-  private readonly router = inject(Router);
   private readonly language = inject(LanguageService);
+  private readonly modules = inject(ModuleService);
+  private readonly notifications = inject(NotificationService);
 
-  protected readonly trendMonths = TREND_MONTHS;
-  protected readonly orgName = computed(() => this.selectedOrg.currentOrg()?.name ?? null);
+  protected readonly workTiles = WORK_TILES;
+  protected readonly setupLinks = SETUP_LINKS;
+
+  protected readonly state = signal<LoadState>('loading');
+  protected readonly home = signal<HomeResponse | null>(null);
+  /** Actions hidden in this visit (the API stores the dismissal; this hides it at once). */
+  private readonly hidden = signal<ReadonlySet<string>>(new Set());
 
   private readonly permissions = computed(() => this.selectedOrg.currentOrg()?.permissions ?? []);
-  private readonly canReadDeviations = computed(() =>
-    this.permissions().includes('deviations:read'),
+  protected readonly canReadStandards = computed(
+    () => this.permissions().includes('standards:read') && this.modules.isEnabled('standards'),
   );
-  private readonly canReadDocuments = computed(() => this.permissions().includes('documents:read'));
-  private readonly modules = inject(ModuleService);
-  /** Role dashboard widgets (M23) while the reports module is on and readable. */
-  protected readonly showReportWidgets = computed(
+  protected readonly canManageStandards = computed(() =>
+    this.permissions().includes('standards:manage'),
+  );
+  protected readonly showReports = computed(
     () => this.modules.isEnabled('reports') && this.permissions().includes('reports:read'),
   );
-  private readonly canApproveDocuments = computed(() =>
-    this.permissions().includes('documents:approve'),
+  protected readonly showJourneys = computed(
+    () =>
+      this.canReadStandards() &&
+      ((this.home()?.journeys.length ?? 0) > 0 || this.canManageStandards()),
   );
 
-  protected readonly stats = signal<Loadable<DeviationStats>>(HIDDEN);
-  private readonly pendingProposals = signal<Loadable<number>>(HIDDEN);
-  private readonly documentsInReview = signal<Loadable<number>>(HIDDEN);
+  protected readonly actions = computed(() => {
+    const hidden = this.hidden();
+    return (this.home()?.next_actions ?? []).filter((a) => !hidden.has(a.key));
+  });
 
-  protected readonly tiles = computed(() =>
-    buildDashboardTiles({
-      stats: this.stats(),
-      pendingProposals: this.pendingProposals(),
-      documentsInReview: this.documentsInReview(),
-    }),
+  /** "Start a journey": the first enabled standard that has one (ISO 27001 by default). */
+  protected readonly startJourneyUrl = computed(() => {
+    const fw = this.home()?.frameworks.find((f) => hasJourney(f.framework));
+    return journeyUrl(fw?.framework ?? 'iso27001');
+  });
+
+  protected readonly missingSetup = computed(() =>
+    (this.home()?.setup.missing ?? []).filter((item) => item in SETUP_LINKS),
   );
 
-  protected readonly severityBars = computed(() => {
-    const s = this.stats();
-    if (s.state !== 'ready') {
-      return [];
-    }
-    return toBars(
-      recordToBuckets(s.value.by_severity, (k) => this.language.translate(severityLabelKey(k))),
-    );
+  protected readonly greeting = computed(() => {
+    const name = firstName(this.auth.user()?.full_name);
+    const org = this.selectedOrg.currentOrg()?.name ?? '';
+    const hello = this.language.translate(greetingKey(new Date().getHours()), { name });
+    return this.language.translate('home.greeting.line', { hello, org });
   });
 
-  protected readonly trend = computed(() => {
-    const s = this.stats();
-    return s.state === 'ready' ? recentMonths(s.value.opened_over_time, TREND_MONTHS) : [];
-  });
-
-  private requests = new Subscription();
+  private request = new Subscription();
+  private loadedOrg: string | null = null;
 
   constructor() {
-    inject(DestroyRef).onDestroy(() => this.requests.unsubscribe());
+    inject(DestroyRef).onDestroy(() => this.request.unsubscribe());
+
+    providePageContext(() => ({
+      module: null,
+      view: 'dashboard',
+      title: this.language.translate('nav.dashboard'),
+    }));
 
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();
-      const canReadDeviations = this.canReadDeviations();
-      const canReadDocuments = this.canReadDocuments();
-      const canApprove = this.canApproveDocuments();
-      untracked(() => this.load(orgId, canReadDeviations, canReadDocuments, canApprove));
+      const lang = this.language.active();
+      untracked(() => this.load(orgId, lang));
     });
   }
 
-  protected openSeverity(severity: string): void {
-    void this.router.navigate(['/deviations'], { queryParams: { severity } });
+  protected journeyFor(framework: string): JourneySummary | null {
+    return this.home()?.journeys.find((j) => j.framework === framework) ?? null;
   }
 
-  private load(
-    orgId: string | null,
-    canReadDeviations: boolean,
-    canReadDocuments: boolean,
-    canApprove: boolean,
-  ): void {
-    // Drop any in-flight responses for the previous org before reloading.
-    this.requests.unsubscribe();
-    this.requests = new Subscription();
+  protected reload(): void {
+    this.load(this.selectedOrg.currentOrgId(), this.language.active());
+  }
 
-    this.stats.set(orgId && canReadDeviations ? LOADING : HIDDEN);
-    this.pendingProposals.set(orgId && canApprove ? LOADING : HIDDEN);
-    this.documentsInReview.set(orgId && canReadDocuments ? LOADING : HIDDEN);
+  protected dismiss(request: DismissRequest): void {
+    const orgId = this.selectedOrg.currentOrgId();
     if (!orgId) {
       return;
     }
+    this.hidden.update((keys) => new Set([...keys, request.key]));
+    this.api.dismiss(orgId, request.key, request.days).subscribe({
+      next: () =>
+        this.notifications.info(request.days ? 'home.next.snoozed' : 'home.next.hidden', {
+          days: request.days,
+        }),
+      error: () => {
+        this.hidden.update((keys) => new Set([...keys].filter((k) => k !== request.key)));
+        this.notifications.error('home.next.dismissFailed');
+      },
+    });
+  }
 
-    if (canReadDeviations) {
-      this.requests.add(
-        this.deviationsApi.getStats(orgId).subscribe({
-          next: (stats) => this.stats.set(ready(stats)),
-          error: () => this.stats.set(FAILED),
-        }),
-      );
+  private load(orgId: string | null, lang: string): void {
+    this.request.unsubscribe();
+    this.hidden.set(new Set());
+    if (!orgId) {
+      this.home.set(null);
+      this.state.set('ready');
+      return;
     }
-    if (canApprove) {
-      this.requests.add(
-        this.documentsApi.listProposals(orgId).subscribe({
-          next: (proposals) => this.pendingProposals.set(ready(proposals.length)),
-          error: () => this.pendingProposals.set(FAILED),
-        }),
-      );
+    // Keep the content on a language switch; show the skeleton for a new org.
+    if (orgId !== this.loadedOrg) {
+      this.home.set(null);
+      this.state.set('loading');
     }
-    if (canReadDocuments) {
-      this.requests.add(
-        this.documentsApi.list(orgId, { status: 'in_review' }).subscribe({
-          next: (documents) => this.documentsInReview.set(ready(documents.length)),
-          error: () => this.documentsInReview.set(FAILED),
-        }),
-      );
-    }
+    this.loadedOrg = orgId;
+    this.request = this.api.home(orgId, lang).subscribe({
+      next: (home) => {
+        this.home.set(home);
+        this.state.set('ready');
+      },
+      error: () => this.state.set('error'),
+    });
   }
 }

@@ -5,7 +5,7 @@ import nb from '../../../assets/i18n/tasks/nb.json';
 import { TASK_ERROR_CODES } from '../../core/tasks/task-errors';
 import { KNOWN_WORK_SOURCES, TASK_PRIORITIES, TASK_STATUSES } from '../../core/tasks/task.models';
 import { RRULE_FREQS, WEEKDAYS } from '../../shared/tasks/rrule';
-import { BOARD_COLUMNS, DUE_FILTERS, MY_WORK_VIEWS } from './my-work-data';
+import { BOARD_COLUMNS, LABELLED_SOURCES, MY_WORK_VIEWS, WORK_TABS } from './my-work-data';
 import { STATUS_FILTERS } from './tasks/task-list';
 
 type Tree = Record<string, unknown>;
@@ -59,13 +59,37 @@ describe('tasks i18n and guidance', () => {
     ['rrule.weekdays', WEEKDAYS],
     ['rrule.weekdaysShort', WEEKDAYS],
     ['board.columns', BOARD_COLUMNS],
-    ['filters.dueOptions', DUE_FILTERS],
+    ['myWork.tabs', WORK_TABS],
+    ['work.kinds', [...LABELLED_SOURCES, 'other']],
+    [
+      'work.why',
+      [
+        'overdue',
+        'overdueOne',
+        'due_today',
+        'due_soon',
+        'due_soonOne',
+        'approve',
+        'acknowledge',
+        'owner',
+        'assigned',
+      ],
+    ],
     ['filters.statusOptions', STATUS_FILTERS],
     ['myWork.views', MY_WORK_VIEWS],
   ])('translates every %s value', (prefix, values) => {
     for (const lang of [en, nb] as Tree[]) {
       for (const value of values) {
         expect(typeof lookup(lang, `${prefix}.${value}`), `${prefix}.${value}`).toBe('string');
+      }
+    }
+  });
+
+  it('has a title and body for the empty state of every My Work tab', () => {
+    for (const lang of [en, nb] as Tree[]) {
+      for (const tab of WORK_TABS) {
+        expect(typeof lookup(lang, `myWork.empty.${tab}.title`)).toBe('string');
+        expect(typeof lookup(lang, `myWork.empty.${tab}.body`)).toBe('string');
       }
     }
   });
