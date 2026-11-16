@@ -3,7 +3,13 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { InvitationApi, InvitePreview, isNewUserSession } from '../../../core/admin/invitation-api';
-import { PASSWORD_MIN_LENGTH, isWeakPasswordError } from '../../../core/auth/auth-errors';
+import {
+  PASSWORD_MIN_LENGTH,
+  TranslatedMessage,
+  isWeakPasswordError,
+  rateLimitMessage,
+  throttleMessage,
+} from '../../../core/auth/auth-errors';
 import { AuthService } from '../../../core/auth/auth.service';
 import { takeQueryToken } from '../../../core/auth/take-query-token';
 import { Alert } from '../../../shared/ui/alert/alert';
@@ -44,8 +50,8 @@ export class AcceptInvite implements OnInit {
   protected readonly state = signal<ViewState>('loading');
   protected readonly preview = signal<InvitePreview | null>(null);
   protected readonly submitting = signal(false);
-  /** i18n key of the submit error shown in place, or null. */
-  protected readonly error = signal<string | null>(null);
+  /** Submit error shown in place (key + params), or null. */
+  protected readonly error = signal<TranslatedMessage | null>(null);
 
   private token = '';
 
@@ -101,8 +107,20 @@ export class AcceptInvite implements OnInit {
         },
         error: (err: unknown) => {
           this.submitting.set(false);
-          this.error.set(isWeakPasswordError(err) ? 'auth.password.weak' : 'invite.error');
+          this.error.set(acceptInviteErrorMessage(err));
         },
       });
   }
+}
+
+/**
+ * Map an accept failure: limiter outage → "temporarily unavailable", any 429 →
+ * generic "slow down", weak password → policy message, else the invite error.
+ */
+export function acceptInviteErrorMessage(error: unknown): TranslatedMessage {
+  return (
+    throttleMessage(error) ??
+    rateLimitMessage(error, 'errors.rateLimited') ??
+    (isWeakPasswordError(error) ? { key: 'auth.password.weak' } : { key: 'invite.error' })
+  );
 }

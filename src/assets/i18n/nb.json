@@ -864,7 +864,13 @@
     "server": "Noe gikk galt hos oss. Prøv igjen om litt.",
     "notFound": "Vi fant ikke det du lette etter.",
     "generic": "Noe gikk galt. Prøv igjen.",
-    "forbidden": "Du har ikke tilgang til den siden."
+    "forbidden": "Du har ikke tilgang til den siden.",
+    "temporarilyUnavailable": "Dette er midlertidig utilgjengelig. Prøv igjen om litt.",
+    "temporarilyUnavailableSeconds": "Dette er midlertidig utilgjengelig. Prøv igjen om {{seconds}} sek.",
+    "temporarilyUnavailableMinutes": "Dette er midlertidig utilgjengelig. Prøv igjen om {{minutes}} min.",
+    "rateLimited": "Det går litt for fort. Vent et øyeblikk og prøv igjen.",
+    "rateLimitedSeconds": "Det går litt for fort. Prøv igjen om {{seconds}} sek.",
+    "rateLimitedMinutes": "Det går litt for fort. Prøv igjen om {{minutes}} min."
   },
   "deviations": {
     "title": "Avvik",

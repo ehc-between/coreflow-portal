@@ -864,7 +864,13 @@
     "server": "Something went wrong on our end. Please try again shortly.",
     "notFound": "We couldn't find what you were looking for.",
     "generic": "Something went wrong. Please try again.",
-    "forbidden": "You don't have access to that page."
+    "forbidden": "You don't have access to that page.",
+    "temporarilyUnavailable": "This is temporarily unavailable. Please try again shortly.",
+    "temporarilyUnavailableSeconds": "This is temporarily unavailable. Try again in {{seconds}} sec.",
+    "temporarilyUnavailableMinutes": "This is temporarily unavailable. Try again in {{minutes}} min.",
+    "rateLimited": "You're going a little fast. Please slow down and try again in a moment.",
+    "rateLimitedSeconds": "You're going a little fast. Try again in {{seconds}} sec.",
+    "rateLimitedMinutes": "You're going a little fast. Try again in {{minutes}} min."
   },
   "deviations": {
     "title": "Deviations",

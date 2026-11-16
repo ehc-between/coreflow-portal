@@ -1,6 +1,7 @@
 import { HttpContextToken, HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { catchError, throwError } from 'rxjs';
+import { rateLimitMessage, throttleMessage } from '../auth/auth-errors';
 import { reportError } from '../monitoring/error-reporter';
 import { NotificationService } from '../notifications/notification.service';
 
@@ -36,7 +37,14 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         }
 
         if (!isAuth && !req.context.get(SKIP_ERROR_TOAST)) {
-          notifications.error(httpErrorMessageKey(error.status));
+          // Throttled (429) or the auth limiter is down (503 coded): a "slow
+          // down" / "temporarily unavailable" message with the wait time.
+          const throttled = throttleMessage(error) ?? rateLimitMessage(error, 'errors.rateLimited');
+          if (throttled) {
+            notifications.error(throttled.key, throttled.params);
+          } else {
+            notifications.error(httpErrorMessageKey(error.status));
+          }
         }
       }
       return throwError(() => error);
@@ -54,6 +62,9 @@ export function httpErrorMessageKey(status: number): string {
   }
   if (status === 404) {
     return 'errors.notFound';
+  }
+  if (status === 429) {
+    return 'errors.rateLimited';
   }
   if (status >= 500) {
     return 'errors.server';

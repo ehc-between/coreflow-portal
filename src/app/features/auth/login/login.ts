@@ -2,7 +2,11 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { TranslatedMessage, rateLimitMessage } from '../../../core/auth/auth-errors';
+import {
+  TranslatedMessage,
+  rateLimitMessage,
+  throttleMessage,
+} from '../../../core/auth/auth-errors';
 import { AuthService, LoginNotice } from '../../../core/auth/auth.service';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
@@ -67,8 +71,15 @@ export class Login {
   }
 }
 
-/** Map a login failure to a translated message (rate limit vs. bad credentials). */
+/**
+ * Map a login failure to a translated message: limiter outage / generic throttle
+ * first, then the sign-in lockout (`too_many_attempts`), then bad credentials.
+ */
 export function loginErrorMessage(error: unknown): TranslatedMessage {
+  const throttled = throttleMessage(error);
+  if (throttled) {
+    return throttled;
+  }
   const rateLimited = rateLimitMessage(error, 'auth.error.tooManyAttempts');
   if (rateLimited) {
     return rateLimited;
