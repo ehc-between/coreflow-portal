@@ -1,0 +1,236 @@
+{
+  "panel": {
+    "intro": "Ask about anything in CoreFlow: your records, documents and requirements, or how to do something. Answers link to the records they are based on.",
+    "suggestTitle": "Suggestions for this page",
+    "suggestTitleGeneral": "Try asking",
+    "turnLabel": "Answer"
+  },
+  "status": {
+    "categories": {
+      "searching": "Searching your records…",
+      "listing": "Going through the register…",
+      "counting": "Counting…",
+      "reading": "Reading the record…",
+      "summarising": "Summarising…",
+      "standards": "Checking the requirements and their evidence…",
+      "my_work": "Checking your work list…",
+      "overview": "Reading the overview…",
+      "howto": "Finding the steps…",
+      "proposing": "Preparing a change for you to confirm…",
+      "drafting": "Writing a draft…",
+      "designing": "Setting it up…",
+      "access": "Checking who has access…",
+      "working": "Working…"
+    },
+    "typed": {
+      "searching": "Searching the “{{type}}” register…",
+      "listing": "Going through the “{{type}}” register…",
+      "counting": "Counting in the “{{type}}” register…",
+      "reading": "Reading a “{{type}}” record…",
+      "summarising": "Summarising a “{{type}}” record…"
+    }
+  },
+  "records": {
+    "heading": "Records and sources",
+    "showAll": "Show all {{count}}",
+    "showFewer": "Show fewer",
+    "open": "Open {{title}}"
+  },
+  "turn": {
+    "copy": "Copy answer",
+    "copied": "Copied"
+  },
+  "feedback": {
+    "question": "Was this answer helpful?",
+    "up": "Helpful",
+    "down": "Not helpful",
+    "thanks": "Thanks for the feedback.",
+    "saving": "Saving…",
+    "error": "Your feedback couldn't be saved. Try again.",
+    "whyTitle": "What was wrong?",
+    "reasons": {
+      "wrong": "Wrong answer",
+      "incomplete": "Incomplete",
+      "not_found": "Didn't find my data",
+      "missing_links": "Missing links to records",
+      "language": "Wrong language or unclear",
+      "slow": "Too slow"
+    },
+    "commentLabel": "Tell us more (optional)",
+    "commentPlaceholder": "What did you expect?",
+    "send": "Send feedback",
+    "cancel": "Skip"
+  },
+  "suggest": {
+    "whatNow": "What should I do now?",
+    "coverage": "How is our requirement coverage across our standards?",
+    "overdue": "What is overdue in the organisation?",
+    "gaps": "Which requirements are missing evidence?",
+    "howFind": "How do I find a record in CoreFlow?",
+    "myToday": "What do I have to do today?",
+    "myOverdue": "Which of my tasks are overdue?",
+    "myPrioritise": "Help me prioritise my work this week",
+    "reqMissing": "What is missing for this requirement?",
+    "reqEvidence": "What evidence do we have for this requirement?",
+    "reqHowTo": "How can we document this requirement?",
+    "reqExplain": "Explain this requirement in plain words",
+    "stdStatus": "How far have we come with this standard?",
+    "stdGaps": "Which requirements in this standard are missing evidence?",
+    "stdFirst": "What should we do first to get ready?",
+    "stdExplain": "Explain what this standard is about",
+    "recSummary": "Summarise this record",
+    "recRequirements": "Which requirements does this record document?",
+    "recConnections": "What is this record connected to?",
+    "recNext": "What should I do next with this record?",
+    "formHelp": "Help me fill in this form",
+    "formRequirements": "Which requirements can this kind of record document?",
+    "formExample": "Give me an example of a good entry",
+    "listOpen": "Which records here are still open?",
+    "listOverdue": "What here is overdue or due soon?",
+    "listCounts": "Give me an overview with the number per status",
+    "listHowTo": "How do I register a new one?",
+    "setModules": "Which modules should we turn on?",
+    "setInvite": "How do I invite a colleague?",
+    "setLearn": "How do I learn to use CoreFlow?"
+  },
+  "palette": {
+    "hint": "Search every register, document and requirement, or ask a question.",
+    "askHint": "Ask CoreFlow",
+    "actionsHeading": "Ask CoreFlow to",
+    "howtoHeading": "How to",
+    "howtoTag": "Steps",
+    "actions": {
+      "whatNow": {
+        "label": "Show what I should do now",
+        "prompt": "What should I do now? Show my most important tasks and deadlines."
+      },
+      "coverage": {
+        "label": "Check our requirement coverage",
+        "prompt": "How is our requirement coverage in the standards we have turned on?"
+      },
+      "gaps": {
+        "label": "Find requirements without evidence",
+        "prompt": "Which requirements are missing evidence in the standards we have turned on?"
+      },
+      "openDeviations": {
+        "label": "Show open deviations",
+        "prompt": "Which deviations are still open, and which of them are high or critical?"
+      },
+      "registerDeviation": {
+        "label": "Register a deviation",
+        "prompt": "I want to register a deviation."
+      },
+      "topRisks": {
+        "label": "Show the highest risks",
+        "prompt": "Which risks have the highest risk level right now, and who owns them?"
+      },
+      "draftProcedure": {
+        "label": "Write a draft procedure",
+        "prompt": "Write a draft procedure for me."
+      },
+      "summariseDocument": {
+        "label": "Find and summarise a document",
+        "prompt": "Help me find and summarise a document."
+      },
+      "planAudit": {
+        "label": "Plan an internal audit",
+        "prompt": "Help me plan an internal audit."
+      },
+      "trainingDue": {
+        "label": "See who must renew training",
+        "prompt": "Who has training that is overdue or due soon?"
+      },
+      "assignTask": {
+        "label": "Create a task for a colleague",
+        "prompt": "I want to create a task for a colleague."
+      }
+    }
+  },
+  "howto": {
+    "registerDeviation": {
+      "title": "Register a deviation",
+      "question": "How do I register a deviation?",
+      "keywords": "nonconformity incident report error complaint near miss"
+    },
+    "registerBreach": {
+      "title": "Register a security or personal data breach",
+      "question": "How do I register a security breach or a personal data breach?",
+      "keywords": "breach incident security gdpr privacy leak data"
+    },
+    "handleDeviation": {
+      "title": "Handle and close a deviation",
+      "question": "How do I handle and close a deviation?",
+      "keywords": "deviation corrective action root cause close investigate"
+    },
+    "createDocument": {
+      "title": "Create a new document",
+      "question": "How do I create a new document?",
+      "keywords": "document procedure policy instruction write template"
+    },
+    "approveDocument": {
+      "title": "Get a document approved",
+      "question": "How do I get a document approved?",
+      "keywords": "document approval approve review publish"
+    },
+    "readAcknowledge": {
+      "title": "Make sure people have read a document",
+      "question": "How do I make sure people have read a document?",
+      "keywords": "read acknowledge confirm employees distribute campaign"
+    },
+    "linkRequirement": {
+      "title": "Link a record to a requirement",
+      "question": "How do I link a record or document to a requirement?",
+      "keywords": "requirement clause standard link evidence connect iso"
+    },
+    "startStandard": {
+      "title": "Get started with a standard",
+      "question": "How do I get started with a standard such as ISO 27001?",
+      "keywords": "standard iso 9001 27001 14001 45001 42001 gdpr nis2 start certification"
+    },
+    "whatNext": {
+      "title": "See what to do next to get certified",
+      "question": "What should we do next to get certified?",
+      "keywords": "certification certified next gaps readiness coverage audit"
+    },
+    "confirmSuggestions": {
+      "title": "Confirm suggested requirements",
+      "question": "How do I confirm suggested requirements?",
+      "keywords": "suggested suggestion confirm requirement evidence"
+    },
+    "notApplicable": {
+      "title": "Mark a requirement as not applicable",
+      "question": "How do I mark a requirement as not applicable?",
+      "keywords": "not applicable exclude requirement soa justification"
+    },
+    "createTask": {
+      "title": "Create a task",
+      "question": "How do I create a task?",
+      "keywords": "task assign deadline todo colleague"
+    },
+    "inviteUser": {
+      "title": "Invite a colleague",
+      "question": "How do I invite a colleague?",
+      "keywords": "invite user member colleague access role"
+    },
+    "enableModule": {
+      "title": "Turn on a module",
+      "question": "How do I turn on a module?",
+      "keywords": "module enable turn on activate settings"
+    },
+    "findRecord": {
+      "title": "Find a record",
+      "question": "How do I find a record in CoreFlow?",
+      "keywords": "find search record look"
+    },
+    "prepareAudit": {
+      "title": "Prepare for an audit",
+      "question": "How do I prepare for an audit?",
+      "keywords": "audit certification prepare export evidence auditor"
+    },
+    "learn": {
+      "title": "Learn compliance step by step",
+      "question": "How do I learn how compliance and CoreFlow work?",
+      "keywords": "learn lesson course beginner tour training guide"
+    }
+  }
+}

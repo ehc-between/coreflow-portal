@@ -44,6 +44,8 @@ describe('AiApi', () => {
       route: '/risk',
       title: null,
       selection: null,
+      requirements: ['iso27001:6.1.2'],
+      standard_key: null,
     };
     api.ask([], 'org1', () => undefined, {
       pageContext,

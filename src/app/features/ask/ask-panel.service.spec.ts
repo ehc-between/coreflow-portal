@@ -7,15 +7,19 @@ import en from '../../../assets/i18n/en.json';
 import searchEn from '../../../assets/i18n/search/en.json';
 import { AiActionsApi } from '../../core/ai/ai-actions-api';
 import { AiApi, AskOptions, AskStream } from '../../core/ai/ai-api';
-import { AskEvent } from '../../core/ai/ai.models';
+import { AiFeedbackApi } from '../../core/ai/ai-feedback-api';
+import { AnswerFeedbackBody, AskEvent } from '../../core/ai/ai.models';
 import { PageContextService } from '../../core/ai/page-context';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
-import { AskPanelService } from './ask-panel.service';
+import { AskPanelService, joinText } from './ask-panel.service';
 
 const ACTION_ID = '0b4ad2f0-6f43-4d38-9b51-1f0a5e0c9d11';
 const DEV_ID = '6a4a1d8e-6a51-4c0e-a4f5-2b0f61b9a8a2';
 
+const RUN_ID = '9c1f2a3b-4d5e-4f60-8a7b-6c5d4e3f2a1b';
+
 type ApiFn = (orgId: string, id: string) => Observable<unknown>;
+type RateFn = (orgId: string, runId: string, body: AnswerFeedbackBody) => Observable<void>;
 
 describe('AskPanelService', () => {
   let emit: (event: AskEvent) => void;
@@ -26,6 +30,7 @@ describe('AskPanelService', () => {
     reject: ReturnType<typeof vi.fn<ApiFn>>;
     get: ReturnType<typeof vi.fn<ApiFn>>;
   };
+  let feedback: { rate: ReturnType<typeof vi.fn<RateFn>> };
 
   function setup(url = '/deviations') {
     cancel = vi.fn<() => void>();
@@ -43,6 +48,7 @@ describe('AskPanelService', () => {
       },
     };
     actions = { confirm: vi.fn<ApiFn>(), reject: vi.fn<ApiFn>(), get: vi.fn<ApiFn>() };
+    feedback = { rate: vi.fn<RateFn>() };
     const org = { currentOrgId: () => 'org-1' };
     TestBed.configureTestingModule({
       imports: [
@@ -57,6 +63,7 @@ describe('AskPanelService', () => {
         AskPanelService,
         { provide: AiApi, useValue: ai },
         { provide: AiActionsApi, useValue: actions },
+        { provide: AiFeedbackApi, useValue: feedback },
         { provide: SelectedOrgService, useValue: org },
         { provide: Router, useValue: { url } },
       ],
@@ -92,22 +99,91 @@ describe('AskPanelService', () => {
     expect(svc.thread().at(-1)?.text).toBe('Working');
   });
 
-  it('a status event sets the working label; a delta clears it; done clears it', () => {
+  it('a status event sets the working status; a delta clears it; done clears it', () => {
     const svc = setup();
     svc.send('draft a policy');
     expect(svc.working()).toBeNull();
 
     emit({ type: 'status', text: 'Looking through your documents…' });
-    expect(svc.working()).toBe('Looking through your documents…');
+    expect(svc.working()?.text).toBe('Looking through your documents…');
+    expect(svc.working()?.category).toBeNull();
 
     emit({ type: 'delta', text: 'Here' });
     expect(svc.working()).toBeNull();
 
-    emit({ type: 'status', text: 'Creating a deviation type…' });
-    expect(svc.working()).toBe('Creating a deviation type…');
+    emit({
+      type: 'status',
+      text: 'Looking through your records…',
+      key: 'ai.status.list_records',
+      category: 'listing',
+      params: { entity_type: 'supplier' },
+    });
+    expect(svc.working()).toEqual({
+      text: 'Looking through your records…',
+      key: 'ai.status.list_records',
+      category: 'listing',
+      params: { entity_type: 'supplier' },
+    });
 
     emit({ type: 'done' });
     expect(svc.working()).toBeNull();
+  });
+
+  it('separates text from separate model turns, without doubling server breaks', () => {
+    const svc = setup();
+    svc.send('which suppliers?');
+    emit({ type: 'delta', text: 'Let me check.' });
+    emit({ type: 'status', text: 'Working…', category: 'listing' });
+    emit({ type: 'delta', text: 'There are 4.' });
+    expect(svc.thread().at(-1)?.text).toBe('Let me check.\n\nThere are 4.');
+
+    emit({ type: 'status', text: 'Working…', category: 'reading' });
+    emit({ type: 'delta', text: '\n\nThe first one' });
+    emit({ type: 'delta', text: ' is SUP-0002.' });
+    expect(svc.thread().at(-1)?.text).toBe(
+      'Let me check.\n\nThere are 4.\n\nThe first one is SUP-0002.',
+    );
+  });
+
+  it('joinText only separates after tools, and never at an existing seam', () => {
+    expect(joinText('a.', 'B', false)).toBe('a.B');
+    expect(joinText('a.', 'B', true)).toBe('a.\n\nB');
+    expect(joinText('a.\n', 'B', true)).toBe('a.\nB');
+    expect(joinText('a.', ' B', true)).toBe('a. B');
+    expect(joinText('', 'B', true)).toBe('B');
+  });
+
+  it('keeps the run id from done, and rates the answer through the feedback API', () => {
+    const svc = setup();
+    svc.send('how many open deviations?');
+    emit({ type: 'delta', text: 'Seven.' });
+    emit({ type: 'done', run_id: RUN_ID });
+    const turn = svc.thread().at(-1)!;
+    expect(turn.runId).toBe(RUN_ID);
+
+    feedback.rate.mockReturnValue(of(undefined));
+    svc.rateAnswer(turn.id, 'down', { reason: 'incomplete', comment: 'Missing two' });
+    expect(feedback.rate).toHaveBeenCalledWith('org-1', RUN_ID, {
+      rating: 'down',
+      reason: 'incomplete',
+      comment: 'Missing two',
+    });
+    expect(svc.thread().at(-1)?.feedback).toMatchObject({ rating: 'down', state: 'saved' });
+
+    feedback.rate.mockReturnValue(throwError(() => ({ status: 0 })));
+    svc.rateAnswer(turn.id, 'up');
+    expect(svc.thread().at(-1)?.feedback).toMatchObject({ rating: 'up', state: 'error' });
+  });
+
+  it('does not rate an answer without a run id (older servers) or still streaming', () => {
+    const svc = setup();
+    svc.send('hi');
+    const id = svc.thread().at(-1)!.id;
+    svc.rateAnswer(id, 'up');
+    emit({ type: 'done' });
+    svc.rateAnswer(id, 'up');
+    expect(feedback.rate).not.toHaveBeenCalled();
+    expect(svc.thread().at(-1)?.runId).toBeNull();
   });
 
   it('hide() minimizes without aborting the stream or clearing the thread', () => {
@@ -189,6 +265,8 @@ describe('AskPanelService', () => {
       route: '/deviations/' + DEV_ID,
       title: 'Late delivery',
       selection: null,
+      requirements: [],
+      standard_key: null,
     });
   });
 
@@ -215,6 +293,43 @@ describe('AskPanelService', () => {
     expect(svc.open()).toBe(true);
     expect(svc.thread()[0].text).toBe('Explain this field');
     expect(lastOptions?.pageContext?.selection).toEqual({ text: null, field: 'owner', ids: [] });
+  });
+
+  it('askAbout() merges the field requirement refs before the page ones', () => {
+    const svc = setup('/risk/risks/' + DEV_ID);
+    TestBed.inject(PageContextService).set(
+      {},
+      {
+        module: 'risk',
+        entityType: 'risk',
+        entityId: DEV_ID,
+        view: 'detail',
+        requirements: ['iso27001:6.1.2', 'iso27001:A.8.13'],
+      },
+    );
+
+    svc.askAbout(
+      'Which requirement does this prove?',
+      { field: 'Controls' },
+      {
+        requirements: ['iso27001:A.8.13', 'iso27001:A.5.30'],
+      },
+    );
+
+    expect(lastOptions?.pageContext?.requirements).toEqual([
+      'iso27001:A.8.13',
+      'iso27001:A.5.30',
+      'iso27001:6.1.2',
+    ]);
+  });
+
+  it('askAbout() passes the refs even when no page registered a context', () => {
+    const svc = setup('/risk');
+    svc.askAbout('Explain', undefined, { requirements: ['gdpr:30'] });
+    expect(lastOptions?.pageContext).toMatchObject({
+      module: 'risk',
+      requirements: ['gdpr:30'],
+    });
   });
 
   it('openTutor() starts a tutor conversation about the topic', async () => {

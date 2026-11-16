@@ -5,11 +5,12 @@ import { TranslocoTestingModule } from '@jsverse/transloco';
 import { Observable, Subject, of } from 'rxjs';
 import en from '../../../assets/i18n/en.json';
 import searchEn from '../../../assets/i18n/search/en.json';
+import askEn from '../../../assets/i18n/ask/en.json';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { SearchApi } from '../../core/search/search-api';
 import { SearchResponse } from '../../core/search/search.models';
 import { AskPanelService } from '../ask/ask-panel.service';
-import { CommandPalette, SEARCH_DEBOUNCE_MS } from './command-palette';
+import { CommandPalette, SEARCH_DEBOUNCE_MS, looksLikeQuestion } from './command-palette';
 import { CommandPaletteService } from './command-palette.service';
 
 const DOC_ID = '6a4a1d8e-6a51-4c0e-a4f5-2b0f61b9a8a2';
@@ -64,7 +65,7 @@ function setup(search: (orgId: string, q: string) => Observable<SearchResponse>)
     imports: [
       CommandPalette,
       TranslocoTestingModule.forRoot({
-        langs: { en, 'search/en': searchEn },
+        langs: { en, 'search/en': searchEn, 'ask/en': askEn },
         translocoConfig: { availableLangs: ['en'], defaultLang: 'en' },
         preloadLangs: true,
       }),
@@ -89,6 +90,9 @@ interface Internal {
   query: { set: (v: string) => void };
   rows: () => { kind: string }[];
   actionRows: () => unknown[];
+  howtoRows: () => { kind: string; entry: { key: string } }[];
+  highlighted: () => { kind: string } | null;
+  onKeydown: (event: KeyboardEvent) => void;
   navRows: () => unknown[];
   recordGroups: () => {
     entityType: string;
@@ -123,23 +127,69 @@ describe('CommandPalette', () => {
     expect(cmp.rows().some((r) => r.kind === 'ask')).toBe(false);
   });
 
-  it('filters both sections by label and surfaces an ask row for free text', () => {
+  it('filters both sections by label and ends with an ask row for free text', () => {
     const { fixture } = setup(() => of({ items: [], counts: {} }));
     const cmp = fixture.componentInstance as unknown as Internal;
     cmp.query.set('risk');
     expect(cmp.actionRows().length).toBe(1);
     expect(cmp.navRows().length).toBe(1);
-    expect(cmp.rows()[0].kind).toBe('ask');
+    expect(cmp.rows().at(-1)?.kind).toBe('ask');
+    // A search term highlights the first row, not the ask row.
+    TestBed.tick();
+    expect(cmp.highlighted()?.kind).toBe('action');
   });
 
-  it('selecting an agent action seeds the chat and closes the palette', () => {
+  it('a question highlights "Ask CoreFlow", so Enter asks', () => {
+    const { fixture, palette, ask } = setup(() => of({ items: [], counts: {} }));
+    palette.show();
+    TestBed.tick();
+    const cmp = fixture.componentInstance as unknown as Internal;
+    cmp.query.set('Which suppliers process personal data?');
+    TestBed.tick();
+    expect(cmp.highlighted()?.kind).toBe('ask');
+    cmp.onKeydown(new KeyboardEvent('keydown', { key: 'Enter' }));
+    expect(ask.showWith).toHaveBeenCalledWith('Which suppliers process personal data?');
+  });
+
+  it('Ctrl+Enter always asks, whatever is highlighted', () => {
+    const { fixture, palette, ask } = setup(() => of({ items: [], counts: {} }));
+    palette.show();
+    TestBed.tick();
+    const cmp = fixture.componentInstance as unknown as Internal;
+    cmp.query.set('risk');
+    TestBed.tick();
+    cmp.onKeydown(new KeyboardEvent('keydown', { key: 'Enter', ctrlKey: true }));
+    expect(ask.showWith).toHaveBeenCalledWith('risk');
+  });
+
+  it('selecting an agent action sends its translated prompt and closes the palette', () => {
     const { fixture, palette, ask } = setup(() => of(RESPONSE));
     palette.show();
     const cmp = fixture.componentInstance as unknown as Internal;
     const row = cmp.actionRows()[0] as { kind: string };
     cmp.run(row);
-    expect(ask.showWith).toHaveBeenCalledOnce();
+    expect(ask.showWith).toHaveBeenCalledWith(askEn.palette.actions.whatNow.prompt);
     expect(palette.open()).toBe(false);
+  });
+
+  it('matches how-to topics and asks the assistant for the steps', () => {
+    const { fixture, palette, ask } = setup(() => of({ items: [], counts: {} }));
+    palette.show();
+    TestBed.tick();
+    const cmp = fixture.componentInstance as unknown as Internal;
+    cmp.query.set('how do I approve a document');
+    expect(cmp.howtoRows()[0]?.entry.key).toBe('approveDocument');
+    cmp.run(cmp.howtoRows()[0]);
+    expect(ask.showWith).toHaveBeenCalledWith(askEn.howto.approveDocument.question);
+  });
+
+  it('tells questions from search terms', () => {
+    expect(looksLikeQuestion('kalib')).toBe(false);
+    expect(looksLikeQuestion('RSK-0001')).toBe(false);
+    expect(looksLikeQuestion('backup procedure')).toBe(false);
+    expect(looksLikeQuestion('hvilke leverandører har vi')).toBe(true);
+    expect(looksLikeQuestion('suppliers?')).toBe(true);
+    expect(looksLikeQuestion('list open deviations')).toBe(true);
   });
 
   it('selecting a go-to row navigates and closes the palette', () => {
@@ -167,9 +217,9 @@ describe('CommandPalette', () => {
     // The module registry's singular entity label (modules.entities.document) wins.
     expect(groups[0].label).toBe('Document');
     expect(groups[0].total).toBe(4);
-    // Ask row first, then the records, then actions / nav.
-    expect(cmp.rows()[0].kind).toBe('ask');
-    expect(cmp.rows()[1].kind).toBe('record');
+    // Records first, the ask row last.
+    expect(cmp.rows()[0].kind).toBe('record');
+    expect(cmp.rows().at(-1)?.kind).toBe('ask');
     expect(fixture.nativeElement.textContent).toContain('Calibration procedure');
   });
 
