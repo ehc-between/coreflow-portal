@@ -76,4 +76,9 @@ export interface DepartmentDetail {
 export interface OrgSettingsDto {
   /** Documents must be approved by someone other than their author. */
   readonly require_document_segregation: boolean;
+  /** Accept macro-enabled Office attachments (.docm, .xlsm, ...). Default false. */
+  readonly allow_macro_attachments: boolean;
 }
+
+/** Body of `PUT v1/orgs/{org}/settings`: omitted (or null) fields stay unchanged. */
+export type UpdateOrgSettingsRequest = Partial<OrgSettingsDto>;

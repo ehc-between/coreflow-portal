@@ -139,7 +139,35 @@ export type UploadPhase = 'hash' | 'create' | 'upload' | 'complete';
 /** Backend error codes with a dedicated attachments message. */
 const CODE_KEYS: Readonly<Record<string, string>> = {
   deviation_closed: 'attachments.errors.deviationClosed',
+  // Content checks (S04): create refuses macro-enabled Office files unless the
+  // org allows them; complete sniffs the stored bytes and purges what fails.
+  macro_blocked: 'attachments.errors.macroBlocked',
+  macro_content: 'attachments.errors.macroBlocked',
+  executable_content: 'attachments.errors.executableContent',
+  content_type_mismatch: 'attachments.errors.contentMismatch',
+  // Download of a file that isn't clean (yet).
+  attachment_scanning: 'attachments.errors.stillScanning',
+  attachment_quarantined: 'attachments.errors.quarantined',
+  // Legal hold on a file whose bytes are already gone.
+  already_purged: 'attachments.errors.alreadyPurged',
 };
+
+/** Whether an attachment can be downloaded (only clean, `available` files can). */
+export function isDownloadable(attachment: { readonly status: string }): boolean {
+  return attachment.status === 'available';
+}
+
+/** The i18n key of a non-downloadable attachment's scan state, else null. */
+export function scanStateKey(attachment: { readonly status: string }): string | null {
+  switch (attachment.status) {
+    case 'scanning':
+      return 'attachments.scan.scanning';
+    case 'quarantined':
+      return 'attachments.scan.quarantined';
+    default:
+      return null;
+  }
+}
 
 /** The message key for a known backend error code on an attachment call, or null. */
 export function attachmentCodeKey(code: string | null | undefined): string | null {

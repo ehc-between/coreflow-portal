@@ -90,6 +90,21 @@ describe('notificationLink', () => {
       'dev-1',
     ]);
   });
+
+  it('links a quarantined attachment to the record it hangs off', () => {
+    const quarantined = (parent_type: string): UserNotification => ({
+      ...make('notifications.attachmentQuarantined'),
+      kind: 'attachment_quarantined',
+      entity_type: 'attachment',
+      entity_id: 'att-1',
+      params: { attachment_id: 'att-1', filename: 'x.docx', parent_type, parent_id: 'doc-1' },
+    });
+    expect(notificationText(quarantined('document')).key).toBe(
+      'notifications.attachmentQuarantined',
+    );
+    expect(notificationLink(quarantined('document'))).toEqual(['/documents', 'doc-1']);
+    expect(notificationLink(quarantined('unknown_kind'))).toBeNull();
+  });
 });
 
 describe('document notifications', () => {

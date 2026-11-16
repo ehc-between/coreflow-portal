@@ -24,12 +24,16 @@ import {
 import {
   attachmentCodeKey,
   formatBytes,
+  isDownloadable,
   preCheckFile,
+  scanStateKey,
   uploadErrorKey,
 } from '../../core/attachments/attachment-utils';
+import { hasAnyPermission } from '../../core/auth/permission';
 import { errorCodeOf } from '../../core/documents/document-errors';
 import { AttachmentUploadError, AttachmentsApi } from '../../core/attachments/attachments-api';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
+import { Badge } from '../ui/badge/badge';
 import { Icon } from '../ui/icon/icon';
 
 type UploadState = 'hashing' | 'uploading' | 'completing' | 'error';
@@ -51,6 +55,11 @@ interface UploadEntry {
 /** A created-but-unfinished upload is only resumed while its URL has this much life left. */
 const RESUME_MARGIN_MS = 60_000;
 
+/** How often the list is re-read while a file is still being scanned for malware. */
+export const SCAN_POLL_MS = 5_000;
+/** Stop polling after this many re-reads (about 5 minutes); a page reload picks it up later. */
+export const SCAN_POLL_LIMIT = 60;
+
 /**
  * Attachments / audit evidence for any record (document, deviation, CAPA
  * action). Lists available files (click to download via a short-lived link)
@@ -61,10 +70,16 @@ const RESUME_MARGIN_MS = 60_000;
  * (503) the uploader is quietly hidden. `compact` is a slimmer inline variant
  * for nested records such as CAPA actions; it renders nothing when there is
  * nothing to show or do.
+ *
+ * Malware scanning (S04): only `available` (clean) files download. Files still
+ * `scanning` or `quarantined` show a status badge and a disabled name; while
+ * any file is scanning the list is re-read every {@link SCAN_POLL_MS}. Users
+ * with `org:manage` can set / release a legal hold (a held file is never
+ * purged by retention).
  */
 @Component({
   selector: 'app-attachments',
-  imports: [LocalDatePipe, TranslocoPipe, Icon],
+  imports: [LocalDatePipe, TranslocoPipe, Badge, Icon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (visible()) {
@@ -96,13 +111,20 @@ const RESUME_MARGIN_MS = 60_000;
               >
                 <button
                   type="button"
-                  class="truncate py-0.5 font-medium text-fg hover:text-accent hover:underline disabled:opacity-60"
-                  [disabled]="downloadingId() === item.id"
+                  class="truncate py-0.5 font-medium text-fg hover:text-accent hover:underline disabled:cursor-default disabled:no-underline disabled:opacity-60 disabled:hover:text-fg"
+                  [disabled]="downloadingId() === item.id || !downloadable(item)"
                   [title]="item.filename"
                   (click)="download(item)"
                 >
                   {{ item.filename }}
                 </button>
+                @if (scanKey(item); as key) {
+                  <app-badge
+                    [tone]="item.status === 'quarantined' ? 'fail' : 'info'"
+                    data-testid="attachment-scan-state"
+                    >{{ key | transloco }}</app-badge
+                  >
+                }
                 @if (canAttach()) {
                   <button
                     type="button"
@@ -159,9 +181,14 @@ const RESUME_MARGIN_MS = 60_000;
                   <span class="min-w-0 flex-1">
                     <button
                       type="button"
-                      class="block max-w-full truncate text-left text-[13.5px] font-medium text-fg hover:text-accent hover:underline disabled:opacity-60"
-                      [disabled]="downloadingId() === item.id"
-                      [title]="'attachments.download' | transloco"
+                      class="block max-w-full truncate text-left text-[13.5px] font-medium text-fg hover:text-accent hover:underline disabled:cursor-default disabled:no-underline disabled:opacity-60 disabled:hover:text-fg"
+                      [disabled]="downloadingId() === item.id || !downloadable(item)"
+                      [title]="
+                        (downloadable(item)
+                          ? 'attachments.download'
+                          : 'attachments.notDownloadable'
+                        ) | transloco
+                      "
                       (click)="download(item)"
                     >
                       {{ item.filename }}
@@ -174,6 +201,39 @@ const RESUME_MARGIN_MS = 60_000;
                       · {{ item.completed_at ?? item.created_at | localDate: 'medium' }}
                     </span>
                   </span>
+                  @if (scanKey(item); as key) {
+                    <app-badge
+                      class="flex-none"
+                      [tone]="item.status === 'quarantined' ? 'fail' : 'info'"
+                      data-testid="attachment-scan-state"
+                      >{{ key | transloco }}</app-badge
+                    >
+                  }
+                  @if (item.legal_hold) {
+                    <app-badge class="flex-none" tone="warn" data-testid="attachment-hold">{{
+                      'attachments.hold.badge' | transloco
+                    }}</app-badge>
+                  }
+                  @if (canManageHold()) {
+                    <button
+                      type="button"
+                      class="flex-none text-[12px] font-semibold text-fg-muted hover:text-fg hover:underline disabled:opacity-60"
+                      [attr.aria-label]="
+                        (item.legal_hold
+                          ? 'attachments.hold.releaseNamed'
+                          : 'attachments.hold.setNamed'
+                        ) | transloco: { name: item.filename }
+                      "
+                      [disabled]="holdingId() === item.id"
+                      (click)="toggleHold(item)"
+                      data-testid="attachment-hold-toggle"
+                    >
+                      {{
+                        (item.legal_hold ? 'attachments.hold.release' : 'attachments.hold.set')
+                          | transloco
+                      }}
+                    </button>
+                  }
                   @if (canAttach()) {
                     <button
                       type="button"
@@ -343,8 +403,15 @@ export class Attachments {
   protected readonly downloadingId = signal<string | null>(null);
   protected readonly deletingId = signal<string | null>(null);
   protected readonly confirmDelete = signal<Attachment | null>(null);
+  protected readonly holdingId = signal<string | null>(null);
 
   protected readonly canAttach = computed(() => this.canEdit() && !this.unavailable());
+
+  /** Legal hold is an org-admin control (full list only, not the compact chips). */
+  protected readonly canManageHold = computed(
+    () =>
+      !this.compact() && hasAnyPermission(this.selectedOrg.currentOrg()?.permissions, 'org:manage'),
+  );
 
   /** Compact mode collapses entirely when there's nothing to show or do. */
   protected readonly visible = computed(
@@ -359,6 +426,8 @@ export class Attachments {
   private readonly running = new Map<number, Subscription>();
   private nextKey = 1;
   private listSub: Subscription | null = null;
+  private pollTimer: ReturnType<typeof setTimeout> | null = null;
+  private pollCount = 0;
 
   constructor() {
     effect(() => {
@@ -368,6 +437,7 @@ export class Attachments {
       untracked(() => this.load(orgId, entityType, entityId));
     });
     inject(DestroyRef).onDestroy(() => {
+      this.stopPolling();
       this.listSub?.unsubscribe();
       for (const sub of this.running.values()) {
         sub.unsubscribe();
@@ -378,6 +448,14 @@ export class Attachments {
 
   protected size(bytes: number): string {
     return formatBytes(bytes);
+  }
+
+  protected downloadable(item: Attachment): boolean {
+    return isDownloadable(item);
+  }
+
+  protected scanKey(item: Attachment): string | null {
+    return scanStateKey(item);
   }
 
   protected stateKey(state: UploadState): string {
@@ -473,7 +551,7 @@ export class Attachments {
 
   protected download(item: Attachment): void {
     const orgId = this.selectedOrg.currentOrgId();
-    if (!orgId || this.downloadingId()) {
+    if (!orgId || this.downloadingId() || !isDownloadable(item)) {
       return;
     }
     this.actionErrorKey.set(null);
@@ -488,8 +566,38 @@ export class Attachments {
       error: (err: unknown) => {
         this.downloadingId.set(null);
         const status = err instanceof HttpErrorResponse ? err.status : 0;
+        // 409 attachment_scanning / attachment_quarantined: the state changed
+        // since the list was read, so re-read it to show the current badge.
+        const coded = attachmentCodeKey(errorCodeOf(err));
         this.actionErrorKey.set(
-          status === 503 ? 'attachments.unavailable' : 'attachments.errors.downloadFailed',
+          coded ??
+            (status === 503 ? 'attachments.unavailable' : 'attachments.errors.downloadFailed'),
+        );
+        if (coded && status === 409) {
+          this.refresh();
+        }
+      },
+    });
+  }
+
+  protected toggleHold(item: Attachment): void {
+    const orgId = this.selectedOrg.currentOrgId();
+    if (!orgId || this.holdingId() || !this.canManageHold()) {
+      return;
+    }
+    this.actionErrorKey.set(null);
+    this.holdingId.set(item.id);
+    this.api.setLegalHold(orgId, item.id, !item.legal_hold).subscribe({
+      next: (saved) => {
+        this.holdingId.set(null);
+        this.items.update((list) => list.map((a) => (a.id === saved.id ? saved : a)));
+      },
+      error: (err: unknown) => {
+        this.holdingId.set(null);
+        const status = err instanceof HttpErrorResponse ? err.status : 0;
+        this.actionErrorKey.set(
+          attachmentCodeKey(errorCodeOf(err)) ??
+            (status === 403 ? 'attachments.errors.forbidden' : 'attachments.hold.failed'),
         );
       },
     });
@@ -530,6 +638,8 @@ export class Attachments {
 
   private load(orgId: string | null, entityType: AttachmentEntityType, entityId: string): void {
     this.listSub?.unsubscribe();
+    this.stopPolling();
+    this.pollCount = 0;
     this.items.set([]);
     this.loadErrorKey.set(null);
     if (!orgId || !entityId) {
@@ -541,6 +651,7 @@ export class Attachments {
       next: (list) => {
         this.items.set(list);
         this.loading.set(false);
+        this.schedulePoll();
       },
       error: (err: unknown) => {
         this.loading.set(false);
@@ -552,6 +663,43 @@ export class Attachments {
         }
       },
     });
+  }
+
+  /** Quietly re-read the list (no spinner; keeps what is shown on failure). */
+  private refresh(): void {
+    const orgId = this.selectedOrg.currentOrgId();
+    const entityId = this.entityId();
+    if (!orgId || !entityId) {
+      return;
+    }
+    this.listSub?.unsubscribe();
+    this.listSub = this.api.list(orgId, this.entityType(), entityId).subscribe({
+      next: (list) => {
+        this.items.set(list);
+        this.schedulePoll();
+      },
+      error: () => undefined,
+    });
+  }
+
+  /** While a file is being scanned, re-read the list until it settles (bounded). */
+  private schedulePoll(): void {
+    this.stopPolling();
+    if (this.pollCount >= SCAN_POLL_LIMIT || !this.items().some((a) => a.status === 'scanning')) {
+      return;
+    }
+    this.pollTimer = setTimeout(() => {
+      this.pollTimer = null;
+      this.pollCount++;
+      this.refresh();
+    }, SCAN_POLL_MS);
+  }
+
+  private stopPolling(): void {
+    if (this.pollTimer !== null) {
+      clearTimeout(this.pollTimer);
+      this.pollTimer = null;
+    }
   }
 
   private start(key: number): void {
@@ -590,6 +738,13 @@ export class Attachments {
                 ...list.filter((a) => a.id !== event.attachment.id),
                 event.attachment,
               ]);
+              if (event.attachment.status === 'quarantined') {
+                // The scanner found malware: the file stays listed (badged) but
+                // can't be downloaded; admins are notified server-side.
+                this.actionErrorKey.set('attachments.errors.uploadQuarantined');
+              }
+              this.pollCount = 0;
+              this.schedulePoll();
               break;
           }
         },

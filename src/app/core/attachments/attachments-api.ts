@@ -6,10 +6,12 @@ import { SKIP_ERROR_TOAST } from '../http/error.interceptor';
 import { ApiService } from '../http/api.service';
 import {
   Attachment,
+  AttachmentDeletionList,
   AttachmentDownload,
   AttachmentEntityType,
   CreateAttachmentRequest,
   CreateAttachmentResponse,
+  LegalHoldRequest,
 } from './attachment.models';
 import { UploadPhase, contentTypeFor, sha256Hex } from './attachment-utils';
 import { StorageUploadClient, StorageUploadError } from './storage-upload';
@@ -103,9 +105,33 @@ export class AttachmentsApi {
     );
   }
 
-  /** Soft-delete an attachment (204). */
+  /**
+   * Soft-delete an attachment (204). The stored bytes are permanently deleted
+   * after the server's retention grace period unless the file is on legal hold.
+   */
   delete(orgId: string, attachmentId: string): Observable<void> {
     return this.api.delete<void>(`v1/orgs/${orgId}/attachments/${attachmentId}`, IN_PLACE);
+  }
+
+  /**
+   * Set or release a legal hold (`org:manage`). A held file is never purged.
+   * 409 `already_purged` once the bytes are gone.
+   */
+  setLegalHold(orgId: string, attachmentId: string, legalHold: boolean): Observable<Attachment> {
+    const body: LegalHoldRequest = { legal_hold: legalHold };
+    return this.api.put<Attachment>(
+      `v1/orgs/${orgId}/attachments/${attachmentId}/legal-hold`,
+      body,
+      IN_PLACE,
+    );
+  }
+
+  /** The org's attachment deletion log, newest first (`audit:read`). */
+  listDeletions(orgId: string, limit = 50, offset = 0): Observable<AttachmentDeletionList> {
+    return this.api.get<AttachmentDeletionList>(`v1/orgs/${orgId}/attachment-deletions`, {
+      ...IN_PLACE,
+      params: { limit, offset },
+    });
   }
 
   /**

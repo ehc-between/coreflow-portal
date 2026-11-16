@@ -15,6 +15,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription, map } from 'rxjs';
 import { providePageContext } from '../../core/ai/page-context';
 import { AttachmentsApi } from '../../core/attachments/attachments-api';
+import { isDownloadable } from '../../core/attachments/attachment-utils';
 import { Attachment } from '../../core/attachments/attachment.models';
 import { LanguageService } from '../../core/i18n/language.service';
 import { NotificationService } from '../../core/notifications/notification.service';
@@ -679,7 +680,8 @@ export class ContractDetail {
       return;
     }
     this.filesRequest = this.attachmentsApi.list(orgId, 'contract', id).subscribe({
-      next: (items) => this.attachments.set(items),
+      // Only clean files can be read or extracted; scanning / quarantined ones can't.
+      next: (items) => this.attachments.set(items.filter(isDownloadable)),
       error: () => this.attachments.set([]),
     });
   }

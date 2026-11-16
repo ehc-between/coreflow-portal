@@ -541,7 +541,9 @@
         "deleted": "Slettede elementer",
         "deletedHint": "Gjenopprett dokumenter som ble slettet ved en feil.",
         "setup": "Oppsettsveiviser",
-        "setupHint": "Gå gjennom profil, standarder, moduler, roller og de første oppgavene på nytt."
+        "setupHint": "Gå gjennom profil, standarder, moduler, roller og de første oppgavene på nytt.",
+        "attachmentDeletions": "Logg over slettede filer",
+        "attachmentDeletionsHint": "Se hvilke vedleggsfiler som er slettet permanent, og hvorfor."
       },
       "moduleLinks": {
         "types": "Typer",
@@ -552,6 +554,34 @@
         "settings": "Innstillinger"
       },
       "membersSection": "Medlemmer, avdelinger og invitasjoner"
+    },
+    "attachments": {
+      "title": "Vedlegg",
+      "allowMacros": "Tillat Office-filer med makroer",
+      "allowMacrosHint": "Når dette er på, kan filer som .docm og .xlsm legges ved. Makroer kan inneholde skadevare, så la dette være av med mindre dere trenger det.",
+      "loadError": "Kunne ikke laste vedleggsinnstillingene.",
+      "saved": "Vedleggsinnstillingene er lagret.",
+      "saveFailed": "Kunne ikke lagre vedleggsinnstillingene."
+    },
+    "attachmentDeletions": {
+      "title": "Logg over slettede filer",
+      "subtitle": "Vedleggsfiler som er slettet permanent fra lagringen, nyeste først. Filnavn lagres ikke.",
+      "back": "Tilbake til innstillinger",
+      "empty": "Ingen filer er slettet permanent.",
+      "loadError": "Kunne ikke laste loggen over slettede filer.",
+      "deletedAt": "Slettet",
+      "reason": "Årsak",
+      "record": "Post",
+      "versions": "Versjoner",
+      "keyHash": "Hash av lagringsnøkkel",
+      "actor": "Av",
+      "system": "System",
+      "reasons": {
+        "erasure": "Sletting av personopplysninger",
+        "retention": "Lagringstid",
+        "quarantine": "Karantene",
+        "rejected": "Avvist opplasting"
+      }
     }
   },
   "auth": {
@@ -1399,7 +1429,8 @@
       "title": "Varsler og eskalering",
       "subtitle": "Hvem som varsles om hva, påminnelser om frister, eskalering og avdelingsledere.",
       "open": "Åpne varslingsinnstillinger"
-    }
+    },
+    "attachmentQuarantined": "Skadevare funnet: {{filename}} er satt i karantene"
   },
   "roles": {
     "admin": {
@@ -1474,7 +1505,27 @@
       "downloadFailed": "Kunne ikke laste ned filen. Prøv igjen.",
       "deleteFailed": "Kunne ikke slette vedlegget. Prøv igjen.",
       "generic": "Noe gikk galt med vedlegget. Prøv igjen.",
-      "deviationClosed": "Avviket er lukket. Gjenåpne det for å endre vedleggene."
+      "deviationClosed": "Avviket er lukket. Gjenåpne det for å endre vedleggene.",
+      "macroBlocked": "Office-filer med makroer er ikke tillatt i denne organisasjonen. Lagre filen uten makroer og prøv igjen.",
+      "executableContent": "Filen inneholder et program, og det er ikke tillatt.",
+      "contentMismatch": "Innholdet i filen stemmer ikke med filtypen. Sjekk filen og prøv igjen.",
+      "stillScanning": "Filen skannes fortsatt for skadevare. Prøv igjen om litt.",
+      "quarantined": "Det ble funnet skadevare i filen, så den kan ikke lastes ned.",
+      "alreadyPurged": "Filen er allerede slettet permanent.",
+      "uploadQuarantined": "Det ble funnet skadevare i den opplastede filen. Den er satt i karantene, og administratorene er varslet."
+    },
+    "notDownloadable": "Filen kan ikke lastes ned før den har bestått skanningen for skadevare.",
+    "scan": {
+      "scanning": "Skannes",
+      "quarantined": "I karantene"
+    },
+    "hold": {
+      "badge": "Rettslig hold",
+      "set": "Sett på hold",
+      "release": "Opphev hold",
+      "setNamed": "Sett {{name}} på rettslig hold",
+      "releaseNamed": "Opphev det rettslige holdet på {{name}}",
+      "failed": "Kunne ikke endre det rettslige holdet. Prøv igjen."
     }
   },
   "standards": {

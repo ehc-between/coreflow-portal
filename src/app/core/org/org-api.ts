@@ -3,7 +3,13 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from '../http/api.service';
 import { SKIP_ERROR_TOAST } from '../http/error.interceptor';
-import { DepartmentDetail, DepartmentSummary, OrgMember, OrgSettingsDto } from './org.models';
+import {
+  DepartmentDetail,
+  DepartmentSummary,
+  OrgMember,
+  OrgSettingsDto,
+  UpdateOrgSettingsRequest,
+} from './org.models';
 
 /** Suppresses the generic error toast so the caller can message in place. */
 const skipToast = () => ({ context: new HttpContext().set(SKIP_ERROR_TOAST, true) });
@@ -69,8 +75,8 @@ export class OrgApi {
     return this.api.get<OrgSettingsDto>(`v1/orgs/${orgId}/settings`);
   }
 
-  /** Replace the org-wide settings; the caller messages failures in place. */
-  updateSettings(orgId: string, settings: OrgSettingsDto): Observable<OrgSettingsDto> {
+  /** Update org-wide settings (omitted fields unchanged); the caller messages failures in place. */
+  updateSettings(orgId: string, settings: UpdateOrgSettingsRequest): Observable<OrgSettingsDto> {
     return this.api.put<OrgSettingsDto>(`v1/orgs/${orgId}/settings`, settings, skipToast());
   }
 }

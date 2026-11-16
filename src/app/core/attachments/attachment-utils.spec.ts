@@ -3,7 +3,9 @@ import {
   bytesToHex,
   contentTypeFor,
   formatBytes,
+  isDownloadable,
   preCheckFile,
+  scanStateKey,
   sha256Hex,
   uploadErrorKey,
 } from './attachment-utils';
@@ -87,6 +89,34 @@ describe('attachment utils', () => {
       'attachments.errors.deviationClosed',
     );
     expect(uploadErrorKey('create', 409, 'something_else')).toBe('attachments.errors.notUploaded');
+  });
+
+  it('uploadErrorKey explains content and malware refusals (S04)', () => {
+    expect(uploadErrorKey('create', 415, 'macro_blocked')).toBe('attachments.errors.macroBlocked');
+    expect(uploadErrorKey('complete', 415, 'macro_content')).toBe(
+      'attachments.errors.macroBlocked',
+    );
+    expect(uploadErrorKey('complete', 415, 'executable_content')).toBe(
+      'attachments.errors.executableContent',
+    );
+    expect(uploadErrorKey('complete', 415, 'content_type_mismatch')).toBe(
+      'attachments.errors.contentMismatch',
+    );
+    // A plain-string 415 (MIME / extension allow-list) keeps the generic type message.
+    expect(uploadErrorKey('create', 415, null)).toBe('attachments.errors.typeNotAllowed');
+  });
+
+  it('only clean (available) files are downloadable', () => {
+    expect(isDownloadable({ status: 'available' })).toBe(true);
+    for (const status of ['pending', 'scanning', 'quarantined', 'deleted']) {
+      expect(isDownloadable({ status })).toBe(false);
+    }
+  });
+
+  it('scanStateKey badges scanning and quarantined files only', () => {
+    expect(scanStateKey({ status: 'scanning' })).toBe('attachments.scan.scanning');
+    expect(scanStateKey({ status: 'quarantined' })).toBe('attachments.scan.quarantined');
+    expect(scanStateKey({ status: 'available' })).toBeNull();
   });
 
   it('formatBytes renders human-readable sizes', () => {

@@ -119,6 +119,13 @@ export const SETTINGS_HUB_CARDS: readonly SettingsLink[] = [
     permission: 'org:manage',
   },
   {
+    path: '/settings/attachment-deletions',
+    labelKey: 'settings.hub.cards.attachmentDeletions',
+    hintKey: 'settings.hub.cards.attachmentDeletionsHint',
+    icon: 'trash',
+    permission: 'audit:read',
+  },
+  {
     path: '/setup',
     labelKey: 'settings.hub.cards.setup',
     hintKey: 'settings.hub.cards.setupHint',
