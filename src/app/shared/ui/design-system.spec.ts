@@ -422,15 +422,25 @@ describe('Notifications', () => {
     configure([Notifications]);
     const fixture = TestBed.createComponent(Notifications);
     const service = TestBed.inject(NotificationService);
-    service.error('errors.generic');
-    await fixture.whenStable();
-    const start = Date.now();
-    service.success('common.save');
-    await fixture.whenStable();
-    // The first toast is "old" relative to a navigation later on.
-    fixture.componentInstance.clearStale(start + 10);
-    expect(service.notifications().length).toBe(2);
-    fixture.componentInstance.clearStale(start + TOAST_NAVIGATION_GRACE_MS + 10);
-    expect(service.notifications().length).toBe(0);
+    // A fixed clock, so the result does not depend on how fast the effects run.
+    const start = 1_000_000;
+    const clock = vi.spyOn(Date, 'now').mockReturnValue(start);
+    try {
+      service.error('errors.generic');
+      await fixture.whenStable();
+      clock.mockReturnValue(start + 1000);
+      service.success('common.save');
+      await fixture.whenStable();
+      // Navigating soon after keeps both: neither has been showing for the grace period.
+      fixture.componentInstance.clearStale(start + 1010);
+      expect(service.notifications().length).toBe(2);
+      // Later only the older toast has outlived the grace period.
+      fixture.componentInstance.clearStale(start + TOAST_NAVIGATION_GRACE_MS + 10);
+      expect(service.notifications().map((n) => n.level)).toEqual(['success']);
+      fixture.componentInstance.clearStale(start + 1000 + TOAST_NAVIGATION_GRACE_MS);
+      expect(service.notifications().length).toBe(0);
+    } finally {
+      clock.mockRestore();
+    }
   });
 });

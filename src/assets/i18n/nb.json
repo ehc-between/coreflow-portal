@@ -1532,7 +1532,7 @@
       "collapseAll": "Skjul alle",
       "expand": "Utvid {{number}}",
       "collapse": "Skjul {{number}}",
-      "evidenceCount": "{{count}} koblet dokumentasjon",
+      "evidenceCount": "Koblet dokumentasjon: {{count}}",
       "suggestionCount": "{{count}} forslag til gjennomgang"
     },
     "gaps": {
