@@ -90,7 +90,11 @@ describe('AccountMenu', () => {
     const { el, fixture, guidance, openMenu, item } = setup();
     openMenu();
     const radios = () =>
-      Array.from(el.querySelectorAll<HTMLButtonElement>('[role="menuitemradio"]'));
+      Array.from(
+        el.querySelectorAll<HTMLButtonElement>(
+          '[data-testid="guidance-level-menu"] [role="menuitemradio"]',
+        ),
+      );
     expect(radios().map((r) => r.getAttribute('aria-checked'))).toEqual([
       'true',
       'false',

@@ -16,9 +16,9 @@ import { Avatar } from '../avatar/avatar';
     >
       <app-avatar [name]="agentName()" [initials]="initials()" />
       <div class="min-w-0 flex-1">
-        <div class="text-[13px] font-bold text-fg">{{ agentName() }} · {{ agentRole() }}</div>
+        <div class="text-ui font-bold text-fg">{{ agentName() }} · {{ agentRole() }}</div>
         @if (line()) {
-          <div class="mt-px text-[13px] text-fg-muted">{{ line() }}</div>
+          <div class="mt-px text-ui text-fg-muted">{{ line() }}</div>
         }
       </div>
       <ng-content />

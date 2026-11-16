@@ -12,7 +12,7 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
     <button
       type="button"
       role="switch"
-      class="flex w-full items-center gap-2.5 rounded-[8px] px-1 py-1 text-left text-[13px] text-fg"
+      class="flex w-full items-center gap-2.5 rounded-lg px-1 py-1 text-left text-ui text-fg"
       [attr.aria-checked]="checked()"
       (click)="checkedChange.emit(!checked())"
     >
@@ -28,7 +28,7 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
       </span>
       <span class="flex-1 font-medium"><ng-content /></span>
       @if (count() !== null) {
-        <span class="text-[12px] font-semibold text-fg-subtle tabular-nums">{{ count() }}</span>
+        <span class="text-meta font-semibold text-fg-subtle tabular-nums">{{ count() }}</span>
       }
     </button>
   `,

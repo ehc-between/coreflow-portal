@@ -34,7 +34,7 @@ const TERM_CLASSES =
         [id]="tipId"
         role="tooltip"
         data-testid="term-tooltip"
-        class="absolute bottom-full left-0 z-30 mb-1.5 w-64 max-w-[80vw] rounded-tile border border-border bg-surface p-3 text-left text-[12.5px] leading-snug font-normal text-fg not-italic shadow-pop"
+        class="absolute bottom-full left-0 z-30 mb-1.5 w-64 max-w-[80vw] rounded-tile border border-border bg-surface p-3 text-left text-meta leading-snug font-normal text-fg not-italic shadow-pop"
         [class.hidden]="!open()"
       >
         <span class="block font-semibold">{{ def.term }}</span>

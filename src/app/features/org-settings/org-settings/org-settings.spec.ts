@@ -13,6 +13,7 @@ import { TranslocoTestingModule } from '@jsverse/transloco';
 import { AuthService } from '../../../core/auth/auth.service';
 import { orgManageGuard, settingsGuard } from '../../../core/auth/org-manage.guard';
 import { APP_CONFIG } from '../../../core/config/app-config';
+import { ModuleService } from '../../../core/modules/module.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { OrgSettings } from './org-settings';
 
@@ -35,6 +36,8 @@ function configure(permissions: string[]): void {
           user: signal({ id: 'me' }).asReadonly(),
         },
       },
+      // The settings hub lists module cards for enabled modules.
+      { provide: ModuleService, useValue: { isEnabled: () => true } },
       {
         provide: SelectedOrgService,
         useValue: {

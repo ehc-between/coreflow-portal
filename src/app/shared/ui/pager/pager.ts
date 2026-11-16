@@ -21,7 +21,7 @@ import { Button } from '../button/button';
         class="mt-4 flex items-center justify-between gap-4"
         [attr.aria-label]="'common.pagination.label' | transloco"
       >
-        <span class="text-[13px] text-fg-subtle">
+        <span class="text-ui text-fg-subtle">
           @if (total() !== null) {
             {{ 'common.pagination.range' | transloco: { from: from(), to: to(), total: total() } }}
           } @else {

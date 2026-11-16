@@ -2,6 +2,8 @@ import { ChangeDetectionStrategy, Component, ElementRef, inject, signal } from '
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { AuthService } from '../../core/auth/auth.service';
+import { LanguageService } from '../../core/i18n/language.service';
+import { ThemeService } from '../../core/theme/theme.service';
 import { GUIDANCE_LEVELS, GuidanceLevel } from '../../core/guidance/guidance.models';
 import { GuidanceService } from '../../core/guidance/guidance.service';
 import { NotificationService } from '../../core/notifications/notification.service';
@@ -42,15 +44,15 @@ import { Icon } from '../../shared/ui/icon/icon';
       <div
         role="menu"
         [attr.aria-label]="'auth.menu.label' | transloco"
-        class="absolute top-full right-0 z-20 mt-2 flex w-64 flex-col rounded-card border border-border bg-surface p-1.5 shadow-pop"
+        class="absolute top-full right-0 z-20 mt-2 flex max-h-[calc(100dvh-80px)] w-64 max-w-[calc(100vw-16px)] flex-col overflow-y-auto rounded-card border border-border bg-surface p-1.5 shadow-pop"
       >
         <div class="flex items-center gap-2.5 px-2 pt-1.5 pb-2.5">
           <app-avatar [name]="auth.displayName()" size="sm" />
           <div class="min-w-0 flex-1">
             @if (user?.full_name) {
-              <div class="truncate text-[13px] font-semibold text-fg">{{ user?.full_name }}</div>
+              <div class="truncate text-ui font-semibold text-fg">{{ user?.full_name }}</div>
             }
-            <div class="truncate text-[12.5px] text-fg-muted">{{ user?.email }}</div>
+            <div class="truncate text-meta text-fg-muted">{{ user?.email }}</div>
           </div>
         </div>
         <div class="mb-1 border-t border-border"></div>
@@ -59,7 +61,7 @@ import { Icon } from '../../shared/ui/icon/icon';
           role="menuitem"
           routerLink="/account/password"
           (click)="close()"
-          class="flex items-center gap-2.5 rounded-[9px] px-2 py-2 text-[13px] font-medium text-fg hover:bg-surface-2"
+          class="flex items-center gap-2.5 rounded-tile px-2 py-2 text-ui font-medium text-fg hover:bg-surface-2"
         >
           <span class="flex text-fg-subtle"><app-icon name="lock" [size]="16" /></span>
           {{ 'auth.menu.changePassword' | transloco }}
@@ -68,11 +70,65 @@ import { Icon } from '../../shared/ui/icon/icon';
           role="menuitem"
           routerLink="/account/notifications"
           (click)="close()"
-          class="flex items-center gap-2.5 rounded-[9px] px-2 py-2 text-[13px] font-medium text-fg hover:bg-surface-2"
+          class="flex items-center gap-2.5 rounded-tile px-2 py-2 text-ui font-medium text-fg hover:bg-surface-2"
         >
           <span class="flex text-fg-subtle"><app-icon name="bell" [size]="16" /></span>
           {{ 'auth.menu.notificationSettings' | transloco }}
         </a>
+
+        <!-- On phones the theme and language controls live here (the top bar hides them). -->
+        <div class="md:hidden" data-testid="account-menu-display">
+          <div class="my-1 border-t border-border"></div>
+          <div role="group" aria-labelledby="account-appearance-heading" class="flex flex-col">
+            <div
+              id="account-appearance-heading"
+              class="px-2 pt-1.5 pb-1 text-micro font-semibold tracking-wide text-fg-subtle uppercase"
+            >
+              {{ 'ui.shell.appearance' | transloco }}
+            </div>
+            <button
+              type="button"
+              role="menuitem"
+              data-testid="account-menu-theme"
+              (click)="theme.toggle()"
+              class="flex items-center gap-2.5 rounded-tile px-2 py-2 text-left text-ui font-medium text-fg hover:bg-surface-2"
+            >
+              <span class="flex text-fg-subtle"
+                ><app-icon [name]="theme.theme() === 'dark' ? 'sun' : 'moon'" [size]="16"
+              /></span>
+              {{
+                (theme.theme() === 'dark' ? 'ui.shell.lightTheme' : 'ui.shell.darkTheme')
+                  | transloco
+              }}
+            </button>
+          </div>
+          <div role="group" aria-labelledby="account-language-heading" class="flex flex-col">
+            <div
+              id="account-language-heading"
+              class="px-2 pt-1.5 pb-1 text-micro font-semibold tracking-wide text-fg-subtle uppercase"
+            >
+              {{ 'language.label' | transloco }}
+            </div>
+            @for (lang of language.available; track lang) {
+              <button
+                type="button"
+                role="menuitemradio"
+                [attr.aria-checked]="language.active() === lang"
+                [attr.lang]="lang"
+                [attr.data-testid]="'account-menu-lang-' + lang"
+                (click)="language.use(lang)"
+                class="flex items-center gap-2.5 rounded-tile px-2 py-1.5 text-left text-ui font-medium text-fg hover:bg-surface-2"
+              >
+                <span class="flex w-4 text-accent" aria-hidden="true">
+                  @if (language.active() === lang) {
+                    <app-icon name="check" [size]="15" />
+                  }
+                </span>
+                {{ 'language.' + lang | transloco }}
+              </button>
+            }
+          </div>
+        </div>
 
         <div class="my-1 border-t border-border"></div>
         <div
@@ -83,7 +139,7 @@ import { Icon } from '../../shared/ui/icon/icon';
         >
           <div
             id="guidance-level-heading"
-            class="px-2 pt-1.5 pb-1 text-[11.5px] font-semibold tracking-wide text-fg-subtle uppercase"
+            class="px-2 pt-1.5 pb-1 text-meta font-semibold tracking-wide text-fg-subtle uppercase"
           >
             {{ 'guidance.menu.levelLabel' | transloco }}
           </div>
@@ -93,7 +149,7 @@ import { Icon } from '../../shared/ui/icon/icon';
             [attr.aria-checked]="guidance.personalLevel() === null"
             [disabled]="guidance.saving()"
             (click)="setLevel(null)"
-            class="flex items-center gap-2.5 rounded-[9px] px-2 py-1.5 text-left text-[13px] font-medium text-fg hover:bg-surface-2 disabled:opacity-60"
+            class="flex items-center gap-2.5 rounded-tile px-2 py-1.5 text-left text-ui font-medium text-fg hover:bg-surface-2 disabled:opacity-60"
           >
             <span class="flex w-4 text-accent" aria-hidden="true">
               @if (guidance.personalLevel() === null) {
@@ -113,7 +169,7 @@ import { Icon } from '../../shared/ui/icon/icon';
               [attr.aria-checked]="guidance.personalLevel() === level"
               [disabled]="guidance.saving()"
               (click)="setLevel(level)"
-              class="flex items-center gap-2.5 rounded-[9px] px-2 py-1.5 text-left text-[13px] font-medium text-fg hover:bg-surface-2 disabled:opacity-60"
+              class="flex items-center gap-2.5 rounded-tile px-2 py-1.5 text-left text-ui font-medium text-fg hover:bg-surface-2 disabled:opacity-60"
             >
               <span class="flex w-4 text-accent" aria-hidden="true">
                 @if (guidance.personalLevel() === level) {
@@ -127,7 +183,7 @@ import { Icon } from '../../shared/ui/icon/icon';
             role="menuitem"
             routerLink="/account/learning"
             (click)="close()"
-            class="flex items-center gap-2.5 rounded-[9px] px-2 py-2 text-[13px] font-medium text-fg hover:bg-surface-2"
+            class="flex items-center gap-2.5 rounded-tile px-2 py-2 text-ui font-medium text-fg hover:bg-surface-2"
           >
             <span class="flex text-fg-subtle"><app-icon name="training" [size]="16" /></span>
             {{ 'guidance.menu.learningCentre' | transloco }}
@@ -138,7 +194,7 @@ import { Icon } from '../../shared/ui/icon/icon';
           type="button"
           role="menuitem"
           (click)="signOut()"
-          class="flex items-center gap-2.5 rounded-[9px] px-2 py-2 text-left text-[13px] font-medium text-fg hover:bg-surface-2"
+          class="flex items-center gap-2.5 rounded-tile px-2 py-2 text-left text-ui font-medium text-fg hover:bg-surface-2"
         >
           <span class="flex text-fg-subtle"><app-icon name="logout" [size]="16" /></span>
           {{ 'auth.logout' | transloco }}
@@ -148,7 +204,7 @@ import { Icon } from '../../shared/ui/icon/icon';
           role="menuitem"
           [disabled]="signingOutAll()"
           (click)="signOutAll()"
-          class="flex items-center gap-2.5 rounded-[9px] px-2 py-2 text-left text-[13px] font-medium text-fail hover:bg-fail-soft disabled:opacity-60"
+          class="flex items-center gap-2.5 rounded-tile px-2 py-2 text-left text-ui font-medium text-fail hover:bg-fail-soft disabled:opacity-60"
         >
           <span class="flex"><app-icon name="devices" [size]="16" /></span>
           {{ 'auth.menu.logoutAll' | transloco }}
@@ -159,6 +215,8 @@ import { Icon } from '../../shared/ui/icon/icon';
 })
 export class AccountMenu {
   protected readonly auth = inject(AuthService);
+  protected readonly theme = inject(ThemeService);
+  protected readonly language = inject(LanguageService);
   protected readonly guidance = inject(GuidanceService);
   protected readonly levels = GUIDANCE_LEVELS;
   private readonly notifications = inject(NotificationService);

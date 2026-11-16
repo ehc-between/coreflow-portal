@@ -29,7 +29,11 @@ export interface NavSection {
   readonly items: readonly NavItem[];
 }
 
-/** A module's nav item: path, module key, `nav.<camelCaseKey>` label, icon, `<key>:read`. */
+/**
+ * A module's nav item: path, module key, `<key>:read` and the label
+ * `modules.names.<key>`, which is also the module's page h1 and breadcrumb root
+ * (one key, so the three can never drift apart).
+ */
 function moduleItem(
   path: string,
   key: string,
@@ -39,30 +43,32 @@ function moduleItem(
   return {
     path,
     module: key,
-    labelKey: `nav.${camelCase(key)}`,
+    labelKey: `modules.names.${key}`,
     icon,
     permission: `${key}:read`,
     ...extra,
   };
 }
 
-function camelCase(key: string): string {
-  return key.replace(/_([a-z])/g, (_, c: string) => c.toUpperCase());
+/** The legacy `nav.<camelCaseKey>` label key of a module (kept for old callers). */
+export function legacyNavKey(key: string): string {
+  return `nav.${key.replace(/_([a-z])/g, (_, c: string) => c.toUpperCase())}`;
 }
 
 /**
- * The full sidebar structure: every module of the platform (contracts §1.1),
- * each gated on its module being enabled and on its read permission. A module
- * without a feature yet renders the shared placeholder (its stub routes file).
+ * The sidebar (docs/ux-guide.md, "Navigation"): sections named after jobs, not ISO
+ * chapters, with the standards hub first under "Krav og styring". Every module is
+ * gated on being enabled and on its read permission. "Trenger din gjennomgang"
+ * lives in My work; `/review` still works for old links.
  */
 export const NAV_SECTIONS: readonly NavSection[] = [
   {
-    labelKey: 'nav.sections.workspace',
+    labelKey: 'nav.sections.home',
     items: [
       {
         path: 'dashboard',
         labelKey: 'nav.dashboard',
-        icon: 'qa',
+        icon: 'home',
         permission: 'dashboard:view',
       },
       {
@@ -72,25 +78,20 @@ export const NAV_SECTIONS: readonly NavSection[] = [
         agentName: 'Iris',
         agentRole: 'Work Planner',
       },
-      {
-        path: 'review',
-        labelKey: 'nav.review',
-        icon: 'inbox',
-        permission: 'documents:approve',
-      },
     ],
   },
   {
     labelKey: 'nav.sections.governance',
     items: [
-      moduleItem('context', 'context', 'flag'),
-      moduleItem('objectives', 'objectives', 'qa'),
-      moduleItem('management-review', 'management_review', 'calendar'),
-      moduleItem('obligations', 'obligations', 'lock'),
-      moduleItem('reports', 'reports', 'reports', {
-        agentName: 'Rune',
-        agentRole: 'Reporting Analyst',
+      moduleItem('standards', 'standards', 'iso', {
+        agentName: 'Stella',
+        agentRole: 'Standards Guide',
       }),
+      moduleItem('obligations', 'obligations', 'scale'),
+      moduleItem('context', 'context', 'flag'),
+      moduleItem('objectives', 'objectives', 'target'),
+      moduleItem('risk', 'risk', 'risk', { agentName: 'Sol', agentRole: 'Risk Officer' }),
+      moduleItem('management-review', 'management_review', 'calendar'),
     ],
   },
   {
@@ -109,13 +110,13 @@ export const NAV_SECTIONS: readonly NavSection[] = [
         agentRole: 'Project Planner',
       }),
       moduleItem('suppliers', 'suppliers', 'link'),
-      moduleItem('contracts', 'contracts', 'documents'),
+      moduleItem('contracts', 'contracts', 'contract'),
       moduleItem('assets', 'assets', 'devices'),
       moduleItem('continuity', 'continuity', 'history'),
     ],
   },
   {
-    labelKey: 'nav.sections.improvement',
+    labelKey: 'nav.sections.followUp',
     items: [
       moduleItem('deviations', 'deviations', 'alert', {
         agentName: 'Nils',
@@ -129,8 +130,20 @@ export const NAV_SECTIONS: readonly NavSection[] = [
         agentName: 'Audun',
         agentRole: 'Audit Coordinator',
       }),
-      moduleItem('risk', 'risk', 'risk', { agentName: 'Sol', agentRole: 'Risk Officer' }),
-      moduleItem('feedback', 'feedback', 'comment'),
+      moduleItem('feedback', 'feedback', 'smile'),
+      moduleItem('reports', 'reports', 'reports', {
+        agentName: 'Rune',
+        agentRole: 'Reporting Analyst',
+      }),
+    ],
+  },
+  {
+    labelKey: 'nav.sections.topics',
+    items: [
+      moduleItem('privacy', 'privacy', 'shield'),
+      moduleItem('ai-governance', 'ai_governance', 'spark'),
+      moduleItem('environment', 'environment', 'leaf'),
+      moduleItem('hse', 'hse', 'hardhat'),
     ],
   },
   {
@@ -147,19 +160,6 @@ export const NAV_SECTIONS: readonly NavSection[] = [
       }),
     ],
   },
-  {
-    labelKey: 'nav.sections.compliance',
-    items: [
-      moduleItem('standards', 'standards', 'iso', {
-        agentName: 'Stella',
-        agentRole: 'Standards Guide',
-      }),
-      moduleItem('privacy', 'privacy', 'lock'),
-      moduleItem('ai-governance', 'ai_governance', 'spark'),
-      moduleItem('environment', 'environment', 'sun'),
-      moduleItem('hse', 'hse', 'checkcircle'),
-    ],
-  },
 ];
 
 /** Flattened list of every nav item, in section order. */
@@ -168,6 +168,13 @@ export const NAV_ITEMS: readonly NavItem[] = NAV_SECTIONS.flatMap((s) => s.items
 /** Nav items that belong to a module (everything except the workspace pages). */
 export const MODULE_NAV_ITEMS: readonly (NavItem & { readonly module: string })[] =
   NAV_ITEMS.filter((item): item is NavItem & { readonly module: string } => !!item.module);
+
+/** The learning centre (lessons, tours, progress), pinned at the bottom of the nav. */
+export const LEARNING_NAV_ITEM: NavItem = {
+  path: 'account/learning',
+  labelKey: 'nav.learning',
+  icon: 'book',
+};
 
 /**
  * Org Settings nav item. Kept out of NAV_SECTIONS / NAV_ITEMS because its route

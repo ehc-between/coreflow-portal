@@ -23,9 +23,8 @@ import { Icon } from '../../../shared/ui/icon/icon';
 import { OrgDocumentSettings } from '../document-settings/org-document-settings';
 import { OrgInvitations } from '../invitations/org-invitations';
 import { OrgMembers } from '../members/org-members';
-import { GuidanceSettingsLink } from '../../learning/settings/guidance-settings-link';
-import { SettingsLinks } from '../settings-links/settings-links';
-import { RecordsSettingsLink } from '../../records/records-settings-link';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
+import { SETTINGS_MEMBERS_ANCHOR, SettingsLinks } from '../settings-links/settings-links';
 
 /**
  * Org Settings shell, scoped to the currently selected org. Hosts Departments
@@ -49,9 +48,8 @@ import { RecordsSettingsLink } from '../../records/records-settings-link';
     OrgMembers,
     OrgDocumentSettings,
     OrgInvitations,
-    GuidanceSettingsLink,
     SettingsLinks,
-    RecordsSettingsLink,
+    PageHeader,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './org-settings.html',
@@ -64,16 +62,13 @@ export class OrgSettings {
 
   /** The active org id; the page is scoped to and reloads on changes to it. */
   protected readonly orgId = this.selectedOrg.currentOrgId;
+  protected readonly membersAnchor = SETTINGS_MEMBERS_ANCHOR;
 
   private readonly granted = computed(() => this.selectedOrg.currentOrg()?.permissions ?? []);
   /** Departments + Members. */
   protected readonly canManage = computed(() => hasAnyPermission(this.granted(), 'org:manage'));
   /** Invitations. */
   protected readonly canInvite = computed(() => hasAnyPermission(this.granted(), 'users:invite'));
-  /** Record types and workflows (F4). */
-  protected readonly canDesignRecords = computed(() =>
-    hasAnyPermission(this.granted(), 'records:admin'),
-  );
 
   protected readonly departments = signal<readonly DepartmentSummary[]>([]);
   protected readonly loading = signal(false);

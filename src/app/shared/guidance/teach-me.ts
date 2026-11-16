@@ -21,7 +21,7 @@ import { Icon } from '../ui/icon/icon';
       <button
         type="button"
         data-testid="teach-me"
-        class="inline-flex h-8 items-center gap-1.5 rounded-tile border border-accent-border bg-accent-soft px-3 text-[13px] font-semibold text-accent hover:bg-accent hover:text-white focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+        class="inline-flex h-8 items-center gap-1.5 rounded-tile border border-accent-border bg-accent-soft px-3 text-ui font-semibold text-accent hover:bg-accent hover:text-white focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
         (click)="tutor.teach(topic(), subject())"
       >
         <app-icon name="spark" [size]="14" />

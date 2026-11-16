@@ -38,9 +38,9 @@ export class Button {
   readonly full = input(false);
 
   private readonly sizeClasses: Record<ButtonSize, string> = {
-    sm: 'h-8 px-3 text-[13px]',
-    md: 'h-9 px-4 text-[13.5px]',
-    lg: 'h-11 px-5 text-[15px]',
+    sm: 'h-8 px-3 text-ui',
+    md: 'h-9 px-4 text-ui',
+    lg: 'h-11 px-5 text-card',
   };
 
   private readonly variantClasses: Record<ButtonVariant, string> = {

@@ -1,35 +1,36 @@
 {
   "app": {
-    "title": "CoreFlow Portal"
+    "title": "CoreFlow"
   },
   "nav": {
     "sections": {
-      "workspace": "Workspace",
-      "governance": "Governance",
-      "operations": "Operations",
-      "improvement": "Improvement",
+      "governance": "Requirements and governance",
+      "operations": "Daily operations",
       "people": "People",
-      "compliance": "Compliance",
-      "administration": "Administration"
+      "administration": "Administration",
+      "home": "Home",
+      "followUp": "Follow-up",
+      "topics": "Topic areas",
+      "toggle": "Show or hide {{ section }}"
     },
-    "dashboard": "Dashboard",
+    "dashboard": "Overview",
     "organizations": "Organizations",
     "myWork": "My Work",
     "review": "Needs your review",
     "inspections": "Inspections",
     "deviations": "Deviations",
-    "risk": "Risk",
+    "risk": "Risks and opportunities",
     "audits": "Audits",
     "documents": "Documents",
-    "people": "People & Roles",
+    "people": "People",
     "projects": "Projects",
     "training": "Training",
     "reports": "Reports",
     "settings": "Settings",
-    "customize": "Customize workspace",
-    "customizeHint": "Toggle modules on or off for this workspace.",
+    "customize": "Customize menu",
+    "customizeHint": "Choose which items you want in your menu. Hidden items are still available through search.",
     "addModule": "Add module",
-    "standards": "ISO & Standards",
+    "standards": "Standards and requirements",
     "context": "Context and leadership",
     "processes": "Processes",
     "managementReview": "Management review",
@@ -37,17 +38,20 @@
     "recruitment": "Recruitment",
     "contracts": "Contracts",
     "suppliers": "Suppliers",
-    "privacy": "Privacy (GDPR)",
+    "privacy": "Privacy",
     "aiGovernance": "AI governance",
     "environment": "Environment",
-    "obligations": "Compliance obligations",
+    "obligations": "Laws and regulations",
     "assets": "Assets and changes",
-    "continuity": "Business continuity",
+    "continuity": "Continuity and preparedness",
     "hse": "Health and safety",
-    "feedback": "Customer feedback"
+    "feedback": "Customer feedback",
+    "learning": "Learning centre",
+    "customizeDone": "Done",
+    "showItem": "Show {{ name }} in the menu"
   },
   "topbar": {
-    "searchPlaceholder": "Ask CoreFlow, or jump to anything…",
+    "searchPlaceholder": "Search, or ask CoreFlow…",
     "notifications": "Notifications",
     "copilot": "Copilot",
     "comingSoon": "This is coming soon.",
@@ -512,6 +516,42 @@
       "loadError": "Couldn't load the document settings.",
       "saved": "Document settings saved.",
       "saveFailed": "Couldn't save the document settings."
+    },
+    "hub": {
+      "title": "Settings",
+      "description": "Set up the organisation, members and modules. Your own settings are in the account menu.",
+      "general": "Organisation",
+      "moduleSettings": "Module settings",
+      "moduleSettingsHint": "Types, templates and other settings for each module you use.",
+      "cards": {
+        "organisation": "Organisation profile",
+        "organisationHint": "Industry, size, sites, standards and certification goals.",
+        "members": "Members and roles",
+        "membersHint": "Who has access, their roles, departments and invitations.",
+        "modules": "Modules",
+        "modulesHint": "Choose which modules the organisation uses.",
+        "notifications": "Notifications",
+        "notificationsHint": "Which activities send notifications, and to whom.",
+        "terminology": "Terminology",
+        "terminologyHint": "Use the organisation's own words, for example \"nonconformity\" instead of \"deviation\".",
+        "guidance": "Guidance",
+        "guidanceHint": "How much help people get, and required lessons.",
+        "recordTypes": "Record types and workflows",
+        "recordTypesHint": "Your own registers, forms and approval steps.",
+        "deleted": "Deleted items",
+        "deletedHint": "Restore documents that were deleted by mistake.",
+        "setup": "Setup wizard",
+        "setupHint": "Go through profile, standards, modules, roles and first tasks again."
+      },
+      "moduleLinks": {
+        "types": "Types",
+        "templates": "Templates",
+        "checklists": "Checklist templates",
+        "intake": "Reporting channel",
+        "matrices": "Risk matrices",
+        "settings": "Settings"
+      },
+      "membersSection": "Members, departments and invitations"
     }
   },
   "auth": {
@@ -590,13 +630,13 @@
   "language": {
     "label": "Language",
     "en": "English",
-    "nb": "Norwegian"
+    "nb": "Norsk (bokmål)"
   },
   "dashboard": {
-    "title": "Dashboard",
+    "title": "Overview",
     "subtitle": "Quality overview for {{org}}",
     "agentRole": "Work Planner",
-    "noAccess": "There is nothing on the dashboard for your role in this organization yet.",
+    "noAccess": "There is nothing on the overview for your role in this organisation yet.",
     "noDeviations": "No deviations have been recorded yet.",
     "loadFailed": "Could not load",
     "tiles": {
@@ -726,6 +766,97 @@
       "rangeOpen": "{{ from }}–{{ to }}",
       "prev": "Previous",
       "next": "Next"
+    },
+    "empty": {
+      "notSet": "Not set",
+      "none": "None",
+      "dash": "—"
+    },
+    "close": "Close",
+    "edit": "Edit",
+    "delete": "Delete",
+    "retry": "Try again",
+    "status": {
+      "draft": "Draft",
+      "new": "New",
+      "planned": "Planned",
+      "scheduled": "Scheduled",
+      "open": "Open",
+      "submitted": "Submitted",
+      "reported": "Reported",
+      "received": "Received",
+      "in_progress": "In progress",
+      "ongoing": "Ongoing",
+      "active": "Active",
+      "under_review": "Under review",
+      "in_review": "In review",
+      "pending": "Pending",
+      "pending_approval": "Awaiting approval",
+      "awaiting_approval": "Awaiting approval",
+      "overdue": "Overdue",
+      "blocked": "Blocked",
+      "on_hold": "On hold",
+      "due": "Due soon",
+      "expiring": "Expiring soon",
+      "done": "Done",
+      "completed": "Completed",
+      "complete": "Complete",
+      "approved": "Approved",
+      "closed": "Closed",
+      "effective": "In effect",
+      "published": "Published",
+      "resolved": "Resolved",
+      "implemented": "Implemented",
+      "verified": "Verified",
+      "passed": "Passed",
+      "cancelled": "Cancelled",
+      "canceled": "Cancelled",
+      "archived": "Archived",
+      "obsolete": "Obsolete",
+      "withdrawn": "Withdrawn",
+      "superseded": "Superseded",
+      "retired": "Retired",
+      "expired": "Expired",
+      "rejected": "Rejected",
+      "failed": "Failed",
+      "compliant": "Met",
+      "met": "Met",
+      "covered": "Covered",
+      "partial": "Partly met",
+      "partially": "Partly met",
+      "partially_compliant": "Partly met",
+      "partially_implemented": "Partly implemented",
+      "non_compliant": "Not met",
+      "not_compliant": "Not met",
+      "not_met": "Not met",
+      "not_implemented": "Not implemented",
+      "gap": "Missing",
+      "not_assessed": "Not assessed",
+      "not_applicable": "Not applicable",
+      "na": "Not applicable",
+      "n_a": "Not applicable",
+      "unknown": "Unknown"
+    },
+    "severity": {
+      "critical": "Critical",
+      "prohibited": "Prohibited",
+      "unacceptable": "Unacceptable",
+      "very_high": "Very high",
+      "severe": "Severe",
+      "major": "Major",
+      "high": "High",
+      "medium": "Medium",
+      "moderate": "Medium",
+      "limited": "Limited",
+      "minor": "Minor",
+      "elevated": "Elevated",
+      "low": "Low",
+      "minimal": "Minimal",
+      "very_low": "Very low",
+      "negligible": "Negligible",
+      "none": "None",
+      "observation": "Observation",
+      "opportunity": "Opportunity for improvement"
     }
   },
   "errors": {
@@ -864,7 +995,7 @@
       "savedToast": "Deviation updated.",
       "statusChangedToast": "Status updated.",
       "notFound": "This deviation could not be found, or you do not have access to it.",
-      "notProvided": "Not provided",
+      "notProvided": "Not set",
       "owner": "Owner",
       "auditTrail": "Audit trail",
       "noEvents": "No activity recorded yet.",
@@ -1061,7 +1192,7 @@
         "widthFull": "Full",
         "widthHalf": "Half",
         "widthHint": "Half-width fields pair into two columns within a section.",
-        "emptySection": "Empty section. Add a field or drop one here."
+        "emptySection": "No fields yet. Add a field or drop one here."
       }
     },
     "stats": {
@@ -1347,12 +1478,12 @@
     }
   },
   "standards": {
-    "title": "ISO & Standards",
-    "subtitle": "Track how your management system covers each standard, clause by clause.",
+    "title": "Standards and requirements",
+    "subtitle": "See how well the management system covers each standard, requirement by requirement.",
     "loadError": "Couldn't load your standards. Try again.",
     "notFound": "This standard wasn't found.",
     "backToOverview": "All standards",
-    "completeness": "Completeness",
+    "completeness": "Requirement coverage",
     "edition": "Edition {{edition}}",
     "counts": {
       "covered": "{{count}} covered",
@@ -1425,7 +1556,7 @@
       "extract": "Extract clause text"
     },
     "clause": {
-      "control": "Annex control",
+      "control": "Annex A control",
       "explanationHint": "CoreFlow's own explanation — not the text of the standard.",
       "licensedText": "Standard text",
       "licensedBadge": "From your licensed copy",
@@ -1472,9 +1603,9 @@
       "hint": "Suggested by AI — confirm what is right and reject the rest."
     },
     "supports": {
-      "title": "Supports requirements",
+      "title": "Requirements this evidences",
       "add": "Link",
-      "none": "Not linked to any standard requirement.",
+      "none": "Not linked to any requirement yet.",
       "noStandards": "No standards are enabled for your organisation.",
       "searchPlaceholder": "Search requirements by clause or text …",
       "suggested": "Suggested — review to confirm",
@@ -1552,28 +1683,28 @@
       "context": "Context and leadership",
       "processes": "Processes",
       "deviations": "Deviations",
-      "risk": "Risk and opportunities",
+      "risk": "Risks and opportunities",
       "inspections": "Inspections",
       "audits": "Audits",
       "management_review": "Management review",
       "objectives": "Objectives and KPIs",
-      "people": "People and competence",
+      "people": "People",
       "recruitment": "Recruitment",
       "training": "Training",
       "contracts": "Contracts",
       "suppliers": "Suppliers",
       "projects": "Projects",
-      "privacy": "Privacy (GDPR)",
+      "privacy": "Privacy",
       "ai_governance": "AI governance",
       "environment": "Environment",
-      "obligations": "Compliance obligations",
+      "obligations": "Laws and regulations",
       "assets": "Assets and changes",
-      "continuity": "Business continuity",
+      "continuity": "Continuity and preparedness",
       "hse": "Health and safety",
       "feedback": "Customer feedback",
-      "reports": "Reports and audit packs",
+      "reports": "Reports",
       "documents": "Documents",
-      "standards": "Standards",
+      "standards": "Standards and requirements",
       "guidance": "Guidance and learning",
       "records": "Record types and workflows"
     },
@@ -1611,7 +1742,7 @@
       "tasks": "Tasks keep every control, review and follow-up assigned and on time.",
       "context": "Every ISO management system starts with clauses 4 and 5: context, interested parties, scope and leadership.",
       "processes": "The process approach (ISO 9001 4.4) asks you to define and control your key processes.",
-      "deviations": "Handling nonconformities and incidents (clause 10.2) is required by every framework you chose.",
+      "deviations": "Handling nonconformities and incidents (clause 10.2) is required by every standard you chose.",
       "risk": "Risk-based thinking (clause 6.1) and, for ISO 27001, the risk assessment and SoA are mandatory.",
       "inspections": "Inspections give you the monitoring evidence that clause 9.1 asks for.",
       "audits": "Internal audits (clause 9.2) are required before any certification audit.",
@@ -1626,14 +1757,14 @@
       "privacy": "GDPR requires records of processing, DPIAs and a 72-hour breach process.",
       "ai_governance": "ISO/IEC 42001 and the EU AI Act require an inventory, classification and impact assessments of AI systems.",
       "environment": "ISO 14001 asks you to evaluate environmental aspects and monitor your performance.",
-      "obligations": "Every framework asks you to know and evaluate the legal and other requirements that apply.",
+      "obligations": "Every standard asks you to know and evaluate the legal and other requirements that apply.",
       "assets": "An asset inventory and access control are core ISO 27001 controls (A.5.9 to A.5.18).",
       "continuity": "ISO 27001 (A.5.29 and A.5.30) and NIS2 require continuity planning and testing.",
       "hse": "ISO 45001 requires hazard identification and worker consultation.",
       "feedback": "ISO 9001 9.1.2 asks you to monitor customer satisfaction.",
       "reports": "Reports and audit packs make it quick to show evidence to auditors.",
       "documents": "Documented information must be controlled (clause 7.5) in every ISO standard.",
-      "standards": "The standards workspace shows how each requirement of your frameworks is met."
+      "standards": "The standards workspace shows how each requirement of your standards is met."
     },
     "entities": {
       "document": "Document",
@@ -1715,13 +1846,13 @@
     "links": {
       "title": "Organisation",
       "profile": "Organisation profile",
-      "profileHint": "Industry, size, sites, frameworks and certification targets.",
+      "profileHint": "Industry, size, sites, standards and certification targets.",
       "modules": "Modules",
       "modulesHint": "Turn modules on or off for your organisation.",
       "terminology": "Terminology",
       "terminologyHint": "Use your own words, for example \"nonconformity\" instead of \"deviation\".",
       "setup": "Setup wizard",
-      "setupHint": "Walk through profile, frameworks, modules, roles and first tasks again."
+      "setupHint": "Walk through profile, standards, modules, roles and first tasks again."
     },
     "disabledNotice": "That module is turned off for this organisation. An administrator can turn it on under Settings, Modules."
   },
@@ -1769,6 +1900,73 @@
     "employee": {
       "one": "employee",
       "other": "employees"
+    }
+  },
+  "ui": {
+    "overflow": {
+      "more": "More"
+    },
+    "pageHeader": {
+      "breadcrumbs": "Breadcrumbs",
+      "settings": "Settings for this module",
+      "back": "Back"
+    },
+    "moduleNav": {
+      "label": "Sections"
+    },
+    "help": {
+      "label": "Help on this page",
+      "title": "About this page",
+      "tour": "Tour",
+      "lesson": "Lesson",
+      "lessonMinutes": "Lesson · {{ minutes }} min",
+      "explain": "Explain this page"
+    },
+    "recordRow": {
+      "code": "Code",
+      "title": "Title",
+      "coverage": "Requirements",
+      "status": "Status",
+      "owner": "Owner",
+      "date": {
+        "due": "Due",
+        "updated": "Updated",
+        "created": "Created",
+        "date": "Date",
+        "next": "Next"
+      }
+    },
+    "empty": {
+      "title": "Nothing here yet",
+      "noResults": "No matches",
+      "noResultsBody": "Try other words, or clear the filters.",
+      "clearFilters": "Clear filters"
+    },
+    "error": {
+      "title": "Couldn't load this",
+      "body": "Check your connection and try again. If it keeps happening, contact your administrator.",
+      "retry": "Try again"
+    },
+    "list": {
+      "moreFilters": "More filters",
+      "moreFiltersCount": "More filters ({{ count }})",
+      "kpis": "Key figures",
+      "toolbar": "Search and filters"
+    },
+    "detail": {
+      "aside": "About this record"
+    },
+    "shell": {
+      "skipToContent": "Skip to content",
+      "mainNav": "Main menu",
+      "openMenu": "Open menu",
+      "closeMenu": "Close menu",
+      "search": "Search",
+      "searchShortcut": "Search ({{ shortcut }})",
+      "appearance": "Appearance",
+      "lightTheme": "Switch to light",
+      "darkTheme": "Switch to dark",
+      "home": "CoreFlow home"
     }
   }
 }

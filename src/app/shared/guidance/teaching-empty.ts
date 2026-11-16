@@ -22,12 +22,12 @@ import { TeachMe } from './teach-me';
         class="mx-auto flex max-w-md flex-col items-center px-4 py-10 text-center"
       >
         <div
-          class="mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-accent-soft text-[18px] font-bold text-accent"
+          class="mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-accent-soft text-section font-bold text-accent"
           aria-hidden="true"
         >
           +
         </div>
-        <h2 class="font-display text-[17px] font-bold text-fg">{{ empty.title }}</h2>
+        <h2 class="font-display text-section font-bold text-fg">{{ empty.title }}</h2>
         <div class="cf-prose mt-1.5 text-fg-muted" [innerHTML]="empty.body | appMarkdown"></div>
         <div class="mt-4 flex flex-wrap items-center justify-center gap-2">
           @if (empty.cta && showAction()) {

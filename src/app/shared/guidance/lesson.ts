@@ -48,11 +48,11 @@ import { LessonPlayer } from './lesson-player';
       }
       <app-lesson-player [lesson]="lesson" (completed)="onCompleted($event)" />
     } @else if (loaded()) {
-      <p data-testid="lesson-missing" class="text-[13.5px] text-fg-muted">
+      <p data-testid="lesson-missing" class="text-ui text-fg-muted">
         {{ 'guidance.lesson.missing' | transloco }}
       </p>
     } @else {
-      <p class="text-[13.5px] text-fg-muted">{{ 'guidance.loading' | transloco }}</p>
+      <p class="text-ui text-fg-muted">{{ 'guidance.loading' | transloco }}</p>
     }
   `,
 })

@@ -42,7 +42,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
   template: `
     <div class="cf-field flex flex-col gap-1.5">
       @if (label()) {
-        <label [attr.for]="inputId() || null" class="text-[13px] font-semibold text-fg-muted">
+        <label [attr.for]="inputId() || null" class="text-ui font-semibold text-fg-muted">
           {{ label() }}
         </label>
       }
