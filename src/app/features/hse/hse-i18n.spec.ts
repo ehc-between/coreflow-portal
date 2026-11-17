@@ -6,6 +6,7 @@ import kitNb from '../../../assets/i18n/kit/nb.json';
 import nb from '../../../assets/i18n/hse/nb.json';
 import { TASK_PRIORITIES, TASK_STATUSES } from '../../core/tasks/task.models';
 import { expectKeyParity } from '../../../testing/i18n-parity';
+import { actionView } from '../dashboard/data/home-format';
 import { HSE_ERROR_CODES } from './data/hse-errors';
 import {
   CONTROL_TYPES,
@@ -152,11 +153,46 @@ describe('hse i18n', () => {
   });
 
   it('has the next-action keys the backend sends (hse:next.<name>.title / .why)', () => {
-    for (const name of ['sjaAwaiting', 'sjaAwaitingOne', 'ppeOverdue', 'consultationUnrecorded']) {
+    for (const name of ['sjaAwaiting', 'ppeOverdue', 'consultationUnrecorded']) {
       for (const part of ['title', 'why']) {
         expect(typeof get(en, `next.${name}.${part}`), `${name}.${part}`).toBe('string');
         expect(typeof get(nb, `next.${name}.${part}`), `${name}.${part}`).toBe('string');
       }
+    }
+  });
+
+  it('resolves every next action through the home page key rules', () => {
+    // Home reads `<key>One` for a single "review" item (home-format actionKeys).
+    const cases = [
+      ['sjaAwaiting', 'review', 1],
+      ['sjaAwaiting', 'review', 2],
+      ['ppeOverdue', 'overdue', 1],
+      ['consultationUnrecorded', 'overdue', 1],
+    ] as const;
+    for (const [name, kind, count] of cases) {
+      const keys: string[] = [];
+      actionView(
+        {
+          key: `hse.${name}`,
+          kind,
+          title_key: `hse:next.${name}.title`,
+          why_key: `hse:next.${name}.why`,
+          params: { count, code: 'SJA-0001', title: 'Job' },
+          url: '/hse',
+          priority: 1,
+          module: 'hse',
+        },
+        (key) => {
+          keys.push(key);
+          return key;
+        },
+      );
+      for (const key of keys.filter((k) => k.startsWith('hse.next.'))) {
+        const path = key.slice('hse.'.length);
+        expect(typeof get(en, path), key).toBe('string');
+        expect(typeof get(nb, path), key).toBe('string');
+      }
+      expect(keys.filter((k) => k.startsWith('hse.next.'))).toHaveLength(2);
     }
   });
 

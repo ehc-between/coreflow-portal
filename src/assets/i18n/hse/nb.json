@@ -659,11 +659,9 @@
   "next": {
     "sjaAwaiting": {
       "title": "Godkjenn {{ count }} sikre jobbanalyser",
-      "why": "Arbeidet bør ikke starte før analysen er godkjent."
-    },
-    "sjaAwaitingOne": {
-      "title": "Godkjenn {{ code }} «{{ title }}»",
-      "why": "Arbeidet bør ikke starte før analysen er godkjent."
+      "why": "Arbeidet bør ikke starte før analysen er godkjent.",
+      "titleOne": "Godkjenn {{ code }} «{{ title }}»",
+      "whyOne": "Arbeidet bør ikke starte før analysen er godkjent."
     },
     "ppeOverdue": {
       "title": "Kontroller forfalt verneutstyr ({{ count }})",

@@ -659,11 +659,9 @@
   "next": {
     "sjaAwaiting": {
       "title": "Approve {{ count }} safe job analyses",
-      "why": "The work should not start before the analysis is approved."
-    },
-    "sjaAwaitingOne": {
-      "title": "Approve {{ code }} “{{ title }}”",
-      "why": "The work should not start before the analysis is approved."
+      "why": "The work should not start before the analysis is approved.",
+      "titleOne": "Approve {{ code }} “{{ title }}”",
+      "whyOne": "The work should not start before the analysis is approved."
     },
     "ppeOverdue": {
       "title": "Inspect overdue PPE ({{ count }})",
