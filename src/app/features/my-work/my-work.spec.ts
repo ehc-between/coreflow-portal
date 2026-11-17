@@ -4,7 +4,6 @@ import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/route
 import { TranslocoTestingModule } from '@jsverse/transloco';
 import { BehaviorSubject, of } from 'rxjs';
 import { AuthService } from '../../core/auth/auth.service';
-import { DocumentsApi } from '../../core/documents/documents-api';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { WorkItem } from '../../core/tasks/task.models';
 import { TasksApi } from '../../core/tasks/tasks-api';
@@ -42,8 +41,8 @@ const ITEMS: WorkItem[] = [
   work({ id: 't-2', title: 'Blocked task', status: 'blocked', url: '/tasks/t-2' }),
 ];
 
-function setup(view: string | null = null) {
-  const query = new BehaviorSubject(convertToParamMap(view ? { view } : {}));
+function setup(params: Record<string, string> = {}) {
+  const query = new BehaviorSubject(convertToParamMap(params));
   const api = {
     myWork: vi.fn(() => of({ items: ITEMS })),
     complete: vi.fn(() => of(makeTask({ status: 'done' }))),
@@ -57,8 +56,10 @@ function setup(view: string | null = null) {
       ...taskTestingProviders().providers,
       { provide: ActivatedRoute, useValue: { queryParamMap: query } },
       { provide: TasksApi, useValue: api },
-      { provide: DocumentsApi, useValue: { listProposals: () => of([]) } },
-      { provide: AuthService, useValue: { user: () => ({ id: 'u-1' }) } },
+      {
+        provide: AuthService,
+        useValue: { user: () => ({ id: 'u-1' }), isAuthenticated: () => true },
+      },
       { provide: NotificationService, useValue: { success: vi.fn(), error: vi.fn() } },
     ],
   });
@@ -69,41 +70,54 @@ function setup(view: string | null = null) {
 }
 
 describe('MyWork', () => {
-  it('lists the feed with overdue items highlighted', () => {
+  it('opens the first tab with items and says what and why for each row', () => {
     const { el, api } = setup();
     expect(api.myWork).toHaveBeenCalledWith('org-1', {});
-    const rows = Array.from(el.querySelectorAll('li'));
-    expect(rows.map((r) => r.querySelector('a')?.textContent?.trim())).toEqual([
-      'Overdue task',
-      'Fix the valve',
-      'Blocked task',
-    ]);
-    expect(rows[0].classList).toContain('bg-fail-soft');
+    const tab = el.querySelector('[data-testid="work-tab-overdue"]')!;
+    expect(tab.getAttribute('aria-selected')).toBe('true');
+    expect(tab.textContent).toContain('1');
+    const rows = Array.from(el.querySelectorAll('[data-testid="work-row"]'));
+    expect(rows.map((r) => r.querySelector('a')?.textContent?.trim())).toEqual(['Overdue task']);
+    expect(rows[0].textContent).toContain('tasks.work.kinds.task');
+    expect(rows[0].querySelector('[data-testid="work-why"]')?.textContent).toContain(
+      'tasks.work.why.overdue',
+    );
   });
 
-  it('filters by source', () => {
-    const { el, fixture } = setup();
-    const source = el.querySelector<HTMLSelectElement>('select')!;
-    source.value = 'deviation_action';
-    source.dispatchEvent(new Event('change'));
+  it('shows the tab from the URL and filters by type', () => {
+    const { el, fixture } = setup({ tab: 'later' });
+    const titles = () =>
+      Array.from(el.querySelectorAll('[data-testid="work-row"] a')).map((a) =>
+        a.textContent?.trim(),
+      );
+    expect(titles()).toEqual(['Fix the valve', 'Blocked task']);
+    const type = el.querySelector<HTMLSelectElement>('[data-testid="work-filter-type"]')!;
+    type.value = 'deviation_action';
+    type.dispatchEvent(new Event('change'));
     fixture.detectChanges();
-    expect(Array.from(el.querySelectorAll('li a')).map((a) => a.textContent?.trim())).toEqual([
-      'Fix the valve',
-    ]);
+    expect(titles()).toEqual(['Fix the valve']);
+  });
+
+  it('shows a plain empty state for an empty tab', () => {
+    const { el } = setup({ tab: 'review' });
+    expect(el.querySelector('[data-testid="work-row"]')).toBeNull();
+    expect(el.querySelector('[data-testid="empty-state"]')?.textContent).toContain(
+      'tasks.myWork.empty.review.title',
+    );
   });
 
   it('completes a task from its tick box and reloads', () => {
     const { el, api, fixture } = setup();
-    el.querySelector<HTMLInputElement>('li input[type="checkbox"]')!.dispatchEvent(
-      new Event('change'),
-    );
+    el.querySelector<HTMLInputElement>(
+      '[data-testid="work-row"] input[type="checkbox"]',
+    )!.dispatchEvent(new Event('change'));
     fixture.detectChanges();
     expect(api.complete).toHaveBeenCalledWith('org-1', 't-1');
     expect(api.myWork).toHaveBeenCalledTimes(2);
   });
 
   it('groups the board by status and moves a task', () => {
-    const { el, api, fixture } = setup('board');
+    const { el, api, fixture } = setup({ view: 'board', tab: 'later' });
     const columns = Array.from(el.querySelectorAll('section[aria-label]')).filter((s) =>
       s.getAttribute('aria-label')?.includes('tasks.status.'),
     );
@@ -119,7 +133,7 @@ describe('MyWork', () => {
   });
 
   it('loads the calendar month window', () => {
-    const { api } = setup('calendar');
+    const { api } = setup({ view: 'calendar' });
     const [, query] = api.myWork.mock.calls.at(-1) as unknown as [
       string,
       { from: string; to: string },

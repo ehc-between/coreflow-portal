@@ -157,6 +157,8 @@ export class TasksApi {
         from: query.from,
         to: query.to,
         include: query.include?.length ? query.include.join(',') : undefined,
+        module: query.module,
+        group: query.group,
       },
     });
   }

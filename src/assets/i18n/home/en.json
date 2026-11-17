@@ -1,0 +1,294 @@
+{
+  "greeting": {
+    "morning": "Good morning, {{ name }}",
+    "day": "Hello, {{ name }}",
+    "evening": "Good evening, {{ name }}",
+    "line": "{{ hello }}. Here is where {{ org }} stands today and what you can do next."
+  },
+  "when": {
+    "today": "today",
+    "yesterday": "yesterday",
+    "tomorrow": "tomorrow",
+    "daysAgo": "{{ days }} days ago",
+    "inDays": "in {{ days }} days"
+  },
+  "next": {
+    "title": "Do this now",
+    "subtitle": "The most useful things you can do right now, with the most urgent first.",
+    "emptyTitle": "You are all caught up",
+    "emptyBody": "Nothing needs your attention right now. New deadlines, reviews and next steps will show up here.",
+    "snoozed": "Hidden for {{ days }} days.",
+    "hidden": "Hidden. It comes back if something changes.",
+    "dismissFailed": "Could not hide the suggestion. Try again.",
+    "menu": {
+      "label": "More options for this suggestion",
+      "snooze": "Hide for {{ days }} days",
+      "hide": "Do not show again"
+    },
+    "cta": {
+      "open": "Open",
+      "seeAll": "See all",
+      "review": "Review",
+      "continueSetup": "Continue setup",
+      "chooseStandards": "Choose standards",
+      "confirm": "Confirm",
+      "doStep": "Do the step",
+      "link": "Link to requirement",
+      "openJourney": "Open the journey",
+      "startJourney": "Start the journey",
+      "document": "Document it"
+    },
+    "overdue": {
+      "title": "Overdue: {{ label }}",
+      "why": "{{ kind }} · the deadline passed {{ when }}. Deal with it first so it does not slip further."
+    },
+    "overdue_many": {
+      "title": "Overdue items: {{ count }}",
+      "why": "Go through them in My Work and start with the oldest."
+    },
+    "review": {
+      "title": "Items waiting for your review: {{ count }}",
+      "why": "You are the approver, and others are waiting for your answer.",
+      "titleOne": "Waiting for your review: {{ label }}",
+      "whyOne": "{{ kind }} · you are the approver, and others are waiting for your answer."
+    },
+    "due_soon": {
+      "title": "Due {{ when }}: {{ label }}",
+      "why": "{{ kind }} · doing it now keeps it from becoming overdue."
+    },
+    "setup": {
+      "title": "Finish setting up your organisation",
+      "why": "You stopped at “{{ step }}”. Setup picks the standards and modules your organisation needs."
+    },
+    "enable_standard": {
+      "title": "Choose the standards your organisation follows",
+      "why": "Requirement coverage and next steps are based on the standards you turn on."
+    },
+    "confirm_suggestions": {
+      "title": "Confirm suggested requirements on {{ label }} ({{ count }})",
+      "why": "CoreFlow found requirements this record probably documents. Confirmed requirements count towards requirement coverage."
+    },
+    "confirm_connections": {
+      "title": "Confirm suggested connections on {{ label }} ({{ count }})",
+      "why": "Connections show how your records fit together, for you and for the auditor."
+    },
+    "journey_step": {
+      "title": "Next step: {{ step }}",
+      "why": "{{ journey }} · {{ done }} of {{ total }} steps done ({{ percent }} %)."
+    },
+    "journey_link": {
+      "title": "Link to the requirement: {{ step }}",
+      "why": "The record already exists, but it is not linked to the {{ standard }} requirement yet. Link it and the step is done."
+    },
+    "journey_enable_module": {
+      "title": "Turn on {{ moduleName }} to continue",
+      "why": "The next step of {{ journey }}, “{{ step }}”, is done in {{ moduleName }}."
+    },
+    "start_journey": {
+      "title": "Start the journey: {{ journey }}",
+      "why": "A step-by-step path that shows what to do, where to do it and which requirements each step covers."
+    },
+    "gap": {
+      "title": "{{ standard }} · {{ number }} has no evidence yet",
+      "why": "“{{ title }}”. Requirements still missing evidence: {{ missing }}. Link a record that shows the requirement is met."
+    }
+  },
+  "setupSteps": {
+    "profile": "Organisation profile",
+    "frameworks": "Standards",
+    "modules": "Modules",
+    "roles": "Roles",
+    "tasks": "First tasks",
+    "done": "Summary"
+  },
+  "setup": {
+    "standards": "Choose the standards your organisation follows",
+    "members": "Invite your colleagues"
+  },
+  "work": {
+    "open": "Open My Work",
+    "empty": "Nothing is assigned to you right now.",
+    "overdue": "Overdue",
+    "thisWeek": "Due this week",
+    "review": "Awaiting your review",
+    "later": "Later"
+  },
+  "journeys": {
+    "title": "Guided journeys",
+    "progress": "{{ done }} of {{ total }} steps done",
+    "next": "Next: {{ step }}",
+    "continue": "Continue the journey",
+    "view": "See the journey",
+    "emptyBody": "A journey takes you step by step towards a standard, from the first scope statement to the certification audit.",
+    "start": "Start a journey"
+  },
+  "status": {
+    "title": "How the organisation is doing",
+    "subtitle": "Requirement coverage per standard: the share of requirements with confirmed evidence.",
+    "allStandards": "All standards",
+    "coverage": "coverage",
+    "coverageLabel": "Requirement coverage for {{ standard }}: {{ score }} %",
+    "covered": "{{ covered }} of {{ applicable }} requirements documented",
+    "trendUp": "+{{ points }} points in 30 days",
+    "trendDown": "−{{ points }} points in 30 days",
+    "topGaps": "The three most important gaps",
+    "missing": "{{ missing }} of {{ total }} missing",
+    "noGaps": "Every requirement has evidence.",
+    "seeAll": "See all requirements",
+    "continueJourney": "Continue the journey ({{ percent }} %)",
+    "startJourney": "Start the journey",
+    "emptyTitle": "No standards are turned on yet",
+    "emptyBody": "Choose the standards your organisation follows. Then you see the requirement coverage here and what to do next.",
+    "emptyCta": "Choose standards"
+  },
+  "reports": {
+    "hint": "Looking for key figures, exports or audit packs?",
+    "link": "Go to Reports"
+  },
+  "standards": {
+    "hs": {
+      "short": "Common ISO requirement",
+      "name": "Shared by every ISO management system standard"
+    },
+    "iso9001": {
+      "short": "ISO 9001",
+      "name": "Quality management"
+    },
+    "iso27001": {
+      "short": "ISO 27001",
+      "name": "Information security"
+    },
+    "iso14001": {
+      "short": "ISO 14001",
+      "name": "Environmental management"
+    },
+    "iso45001": {
+      "short": "ISO 45001",
+      "name": "Occupational health and safety"
+    },
+    "iso42001": {
+      "short": "ISO 42001",
+      "name": "AI management"
+    },
+    "gdpr": {
+      "short": "GDPR",
+      "name": "Data protection"
+    },
+    "nis2": {
+      "short": "NIS2",
+      "name": "Cybersecurity"
+    },
+    "eu_ai_act": {
+      "short": "EU AI Act",
+      "name": "EU rules for artificial intelligence"
+    }
+  },
+  "journey": {
+    "titleFallback": "Get ready for {{ standard }}",
+    "progressTitle": "Your progress",
+    "progress": "{{ done }} of {{ total }} steps done",
+    "phaseCount": "{{ done }}/{{ total }}",
+    "skipped": "skipped: {{ count }}",
+    "nextStep": "Next step: {{ step }}.",
+    "goToStep": "Go to the step",
+    "completed": "Every step is done. Keep the records up to date and review them regularly.",
+    "archived": "This journey is archived. Reactivate it to continue.",
+    "archive": "Archive the journey",
+    "reactivate": "Reactivate the journey",
+    "archivedToast": "The journey is archived.",
+    "reactivatedToast": "The journey is active again.",
+    "completedToast": "Well done. Every step of the journey is complete.",
+    "started": "{{ journey }} has started.",
+    "taskCreated": "Task created: {{ title }}",
+    "errors": {
+      "start": "Could not start the journey. Try again.",
+      "save": "Could not save the step. Try again.",
+      "task": "Could not create the task. Check that you can create tasks, and try again."
+    },
+    "start": {
+      "steps": "{{ count }} steps in a sensible order, from the basics to being ready for an audit.",
+      "live": "Steps tick themselves off as soon as the data in CoreFlow shows they are done.",
+      "connected": "Each step says which requirements it covers, so the evidence counts towards coverage.",
+      "enables": "Starting the journey also turns on {{ standard }} for your organisation.",
+      "button": "Start the journey",
+      "noRights": "Ask an administrator or the person responsible for standards to start this journey.",
+      "later": "Not now"
+    },
+    "off": {
+      "title": "Standards is turned off",
+      "body": "Journeys are part of Standards and requirements. Turn the module on to follow a journey.",
+      "cta": "Go to modules"
+    },
+    "unknown": {
+      "title": "There is no journey for this standard",
+      "body": "Choose one of the standards on the Standards page to see its journey.",
+      "cta": "Go to Standards"
+    },
+    "step": {
+      "next": "Next",
+      "menu": "More options for this step",
+      "covers": "Covers: {{ refs }}",
+      "where": "Done in: {{ module }}",
+      "lesson": "Lesson",
+      "openTask": "Open the task",
+      "needsLink": "The records exist, but none is linked to {{ refs }} yet. Link one, and the step is done.",
+      "moduleOff": "This step is done in {{ module }}, which is turned off.",
+      "state": {
+        "done": "Done",
+        "skipped": "Skipped",
+        "needs_link": "Needs a link to the requirement",
+        "module_off": "Module turned off",
+        "todo": "To do"
+      },
+      "doneBy": {
+        "auto": "Done: the data shows it",
+        "manual": "Marked as done",
+        "task": "Done through its task"
+      },
+      "progress": {
+        "records": "Registered: {{ current }} of {{ target }}",
+        "linked": "Registered: {{ current }} of {{ target }} · linked to the requirement: {{ linked }}",
+        "coverage": "Coverage {{ current }} % of the {{ target }} % goal"
+      },
+      "actions": {
+        "create": "Create",
+        "open": "Open",
+        "lesson": "Open the lesson",
+        "task": "Open",
+        "link": "Link to the requirement",
+        "openRecords": "See the records",
+        "enableModule": "Turn on {{ module }}",
+        "makeTask": "Make it a task",
+        "markDone": "Mark as done",
+        "skip": "Skip this step",
+        "undo": "Undo",
+        "include": "Include again"
+      }
+    }
+  },
+  "recommended": {
+    "title": "Recommended for you",
+    "subtitle": "Lessons for the next steps of your journeys.",
+    "from": "From: {{ journey }}"
+  },
+  "notifications": {
+    "journey": {
+      "started": "Journey started",
+      "step_updated": "Journey step updated",
+      "step_task_created": "Task made from a journey step",
+      "completed": "Journey completed",
+      "archived": "Journey archived",
+      "reactivated": "Journey reactivated"
+    }
+  },
+  "timeline": {
+    "journey": {
+      "started": "{{ actor_name }} started the journey",
+      "step_updated": "{{ actor_name }} updated a step of the journey",
+      "step_task_created": "{{ actor_name }} made a task from a journey step",
+      "completed": "The journey is complete",
+      "archived": "{{ actor_name }} archived the journey",
+      "reactivated": "{{ actor_name }} reactivated the journey"
+    }
+  }
+}

@@ -17,6 +17,8 @@ import { NotificationService } from '../../core/notifications/notification.servi
 import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
 import { Icon } from '../../shared/ui/icon/icon';
+import { PageHeader } from '../../shared/ui/page-header/page-header';
+import { provideSharedScope } from '../../core/i18n/shared-scope';
 
 /**
  * "Needs your review" work-feed, scoped to the currently selected org. Lists
@@ -28,16 +30,27 @@ import { Icon } from '../../shared/ui/icon/icon';
  */
 @Component({
   selector: 'app-review',
-  imports: [LocalDatePipe, RouterLink, TranslocoPipe, Card, Button, Icon],
+  imports: [LocalDatePipe, RouterLink, TranslocoPipe, Card, Button, Icon, PageHeader],
+  viewProviders: [provideSharedScope('tasks')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[860px] px-8 pt-7 pb-12">
-      <div class="mb-[18px]">
-        <h1 class="font-display text-[26px] font-bold tracking-[-0.025em] text-fg">
-          {{ 'review.title' | transloco }}
-        </h1>
-        <div class="mt-1.5 text-[14px] text-fg-muted">{{ 'review.subtitle' | transloco }}</div>
-      </div>
+    <div class="mx-auto max-w-[860px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+      <app-page-header
+        titleKey="review.title"
+        descriptionKey="review.subtitle"
+        [breadcrumbs]="[{ labelKey: 'nav.myWork', link: '/my-work' }, { labelKey: 'review.title' }]"
+      >
+        <a
+          intro
+          routerLink="/my-work"
+          [queryParams]="{ tab: 'review' }"
+          class="mt-2 inline-flex items-center gap-1.5 text-ui font-semibold text-accent hover:underline"
+          data-testid="review-in-my-work"
+        >
+          <app-icon name="inbox" [size]="14" />
+          {{ 'tasks.myWork.reviewHint' | transloco }}
+        </a>
+      </app-page-header>
 
       @if (loading()) {
         <app-card>

@@ -2,16 +2,16 @@
   "pages": {
     "dashboard": {
       "intro": {
-        "title": "Your compliance overview",
-        "body": "The dashboard shows what needs attention in your organisation right now: open deviations, documents waiting for review and proposals from the assistant. Each number links to the list behind it.",
+        "title": "Where you stand and what to do next",
+        "body": "The overview answers two questions: how far the organisation has come with each standard, and what you should do now. The suggestions are personal and change as the work gets done.",
         "steps": [
-          "Start with the tiles marked in red or amber: they are overdue or need a decision.",
-          "Open a tile to see the records behind the number.",
-          "Use My work for the tasks that are assigned to you personally."
+          "Start with **Do this now**: each suggestion says why it matters and has one button.",
+          "Under **How the organisation is doing** you see the requirement coverage per standard and the three most important gaps.",
+          "Follow a **guided journey** if you are working towards a certification or want a clear order to do things in."
         ]
       },
       "why": {
-        "body": "Management systems are built on **monitoring and measurement**: you need to know how your processes perform before you can improve them. The dashboard is the quickest way to see whether your system is working.",
+        "body": "Management systems are built on **monitoring and measurement**: you need to know where you stand before you can improve. Requirement coverage shows how many requirements already have confirmed evidence.",
         "clauses": ["hs:9.1", "hs:9.3"]
       }
     },
@@ -147,6 +147,21 @@
           "help": "The level members see until they choose one themselves.",
           "example": "Choose Beginner while your organisation is preparing for its first certification."
         }
+      }
+    },
+    "journey": {
+      "intro": {
+        "title": "A step-by-step path to the standard",
+        "body": "The journey breaks the standard into phases and steps in a sensible order. Each step says what to do, where in CoreFlow you do it and which requirements it covers.",
+        "steps": [
+          "Work through the steps from the top. The next step is highlighted.",
+          "A step ticks itself off when the data shows it is done. If the records exist but are not linked to the requirement yet, the step asks you to link them.",
+          "Use **Make it a task** to hand a step to a colleague, or **Skip** for steps that do not apply to you."
+        ]
+      },
+      "why": {
+        "body": "Certification audits check that every requirement is met **and documented**. Following the journey builds the evidence as you go, so it counts towards requirement coverage.",
+        "clauses": ["hs:4.4", "hs:6.1", "hs:9.2"]
       }
     }
   },

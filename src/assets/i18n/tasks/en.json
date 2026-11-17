@@ -1,20 +1,42 @@
 {
   "myWork": {
     "title": "My Work",
-    "subtitle": "Everything waiting on you: tasks, actions, reviews and acknowledgements.",
+    "subtitle": "Everything waiting for you, sorted by when it is due: tasks, actions, reviews and acknowledgements.",
     "allTasks": "All tasks",
     "recurring": "Recurring tasks",
     "newTask": "New task",
-    "proposals": "Change proposals waiting for your review: {{ count }}",
     "viewLabel": "View",
     "views": {
       "list": "List",
       "board": "Board",
       "calendar": "Calendar"
     },
-    "summary": "Items: {{ count }}",
-    "overdueCount": "{{ count }} overdue",
-    "dueTodayCount": "{{ count }} due today"
+    "tabsLabel": "Show",
+    "tabs": {
+      "overdue": "Overdue",
+      "this_week": "This week",
+      "later": "Later",
+      "review": "Awaiting review"
+    },
+    "empty": {
+      "overdue": {
+        "title": "Nothing is overdue",
+        "body": "Well done. Everything assigned to you is within its deadline."
+      },
+      "this_week": {
+        "title": "Nothing is due this week",
+        "body": "Items due in the next seven days show up here."
+      },
+      "later": {
+        "title": "Nothing planned for later",
+        "body": "Items without a deadline, or due more than a week from now, show up here."
+      },
+      "review": {
+        "title": "Nothing is waiting for your review",
+        "body": "Documents to approve, change proposals, audit reports and management review sign-offs show up here."
+      }
+    },
+    "reviewHint": "Everything waiting for your review is also in My Work →"
   },
   "list": {
     "title": "Tasks",
@@ -123,18 +145,6 @@
     "other": "Other"
   },
   "filters": {
-    "source": "Source",
-    "allSources": "All sources",
-    "due": "Due",
-    "dueOptions": {
-      "all": "Any time",
-      "overdue": "Overdue",
-      "today": "Today",
-      "week": "Next 7 days",
-      "none": "No due date"
-    },
-    "priority": "Priority",
-    "allPriorities": "All priorities",
     "search": "Search",
     "searchPlaceholder": "Search tasks…",
     "assignee": "Show",
@@ -154,7 +164,11 @@
       "priority": "Priority",
       "-created_at": "Newest"
     },
-    "noMatch": "Nothing matches these filters."
+    "noMatch": "Nothing matches these filters.",
+    "module": "Module",
+    "allModules": "All modules",
+    "type": "Type",
+    "allTypes": "All types"
   },
   "board": {
     "columns": {
@@ -373,5 +387,36 @@
     "completed": "Task marked as done",
     "reopened": "Task reopened",
     "cancelled": "Task cancelled"
+  },
+  "work": {
+    "kinds": {
+      "task": "Task",
+      "deviation_action": "Corrective action",
+      "deviation": "Deviation you own",
+      "document_review": "Document to approve",
+      "document_ack": "Document to read and confirm",
+      "proposal": "Change proposal",
+      "audit_finding": "Audit finding",
+      "audit_plan": "Audit",
+      "audit_report_review": "Audit report to approve",
+      "inspection": "Inspection",
+      "inspection_finding": "Inspection finding",
+      "management_review": "Management review",
+      "management_review_signoff": "Management review to sign off",
+      "project_milestone": "Project milestone",
+      "training_due": "Training",
+      "other": "Other"
+    },
+    "why": {
+      "overdue": "The deadline passed {{ days }} days ago",
+      "overdueOne": "The deadline passed yesterday",
+      "due_today": "Due today",
+      "due_soon": "Due in {{ days }} days",
+      "due_soonOne": "Due tomorrow",
+      "approve": "You are the approver",
+      "acknowledge": "Read it and confirm that you have",
+      "owner": "You are responsible",
+      "assigned": "Assigned to you"
+    }
   }
 }

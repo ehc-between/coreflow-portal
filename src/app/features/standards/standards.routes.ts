@@ -24,6 +24,7 @@ export const legacyClauseRedirect: RedirectFunction = ({ params, queryParams }) 
  *
  * - `''` — the overview of every framework (entry point).
  * - `readiness` — readiness per enabled framework.
+ * - `journey/:framework` — the guided journey of a framework (P5).
  * - `:key` and `:key/:number` — the document workspace, one route config so
  *   moving between sections reuses the component.
  * - `:key/clauses[/:number]` — legacy, redirects into the workspace.
@@ -37,6 +38,12 @@ const pages: Routes = [
     // Before the workspace matcher, which would read "readiness" as a standard key.
     path: 'readiness',
     loadComponent: () => import('./frameworks/readiness-page').then((m) => m.ReadinessPage),
+  },
+  {
+    // P5 guided journey ("Bli klar for ISO 27001"): the one agreed cross-item route
+    // (polish plan §2.6). The page lives in features/dashboard and loads the `home` scope.
+    path: 'journey/:framework',
+    loadComponent: () => import('../dashboard/journey/journey-page').then((m) => m.JourneyPage),
   },
   {
     path: ':key/clauses/:number',

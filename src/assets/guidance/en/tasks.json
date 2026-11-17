@@ -5,9 +5,9 @@
         "title": "Your personal work queue",
         "body": "My Work gathers everything that is waiting on **you** in this organisation: tasks, corrective actions, deviations you own, documents to approve and documents to read and acknowledge.",
         "steps": [
-          "Start with anything marked overdue (red), then what is due today.",
-          "Switch to **Board** to see what is in progress or blocked, or to **Calendar** to plan the month.",
-          "Tick a task to mark it as done; open any item to see its details."
+          "Start with the **Overdue** tab, then **This week**.",
+          "**Awaiting review** holds documents, change proposals and reports that need your approval.",
+          "Each row says what the item is and why it is yours. Tick a task to mark it as done, or open the item to see the details."
         ]
       },
       "why": {

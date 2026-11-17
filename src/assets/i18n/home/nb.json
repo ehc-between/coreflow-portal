@@ -1,0 +1,294 @@
+{
+  "greeting": {
+    "morning": "God morgen, {{ name }}",
+    "day": "Hei, {{ name }}",
+    "evening": "God kveld, {{ name }}",
+    "line": "{{ hello }}. Her ser du hvor {{ org }} står i dag, og hva du kan gjøre nå."
+  },
+  "when": {
+    "today": "i dag",
+    "yesterday": "i går",
+    "tomorrow": "i morgen",
+    "daysAgo": "for {{ days }} dager siden",
+    "inDays": "om {{ days }} dager"
+  },
+  "next": {
+    "title": "Gjør dette nå",
+    "subtitle": "Det mest nyttige du kan gjøre akkurat nå, med det mest hastende først.",
+    "emptyTitle": "Du har ingenting som venter",
+    "emptyBody": "Ingenting trenger oppmerksomheten din akkurat nå. Nye frister, godkjenninger og neste steg dukker opp her.",
+    "snoozed": "Skjult i {{ days }} dager.",
+    "hidden": "Skjult. Forslaget kommer tilbake hvis noe endrer seg.",
+    "dismissFailed": "Kunne ikke skjule forslaget. Prøv igjen.",
+    "menu": {
+      "label": "Flere valg for dette forslaget",
+      "snooze": "Skjul i {{ days }} dager",
+      "hide": "Ikke vis igjen"
+    },
+    "cta": {
+      "open": "Åpne",
+      "seeAll": "Se alle",
+      "review": "Gå gjennom",
+      "continueSetup": "Fortsett oppsettet",
+      "chooseStandards": "Velg standarder",
+      "confirm": "Bekreft",
+      "doStep": "Gjør steget",
+      "link": "Koble til kravet",
+      "openJourney": "Åpne reisen",
+      "startJourney": "Start reisen",
+      "document": "Dokumenter det"
+    },
+    "overdue": {
+      "title": "Forfalt: {{ label }}",
+      "why": "{{ kind }} · fristen gikk ut {{ when }}. Ta denne først, så den ikke blir liggende."
+    },
+    "overdue_many": {
+      "title": "Forfalte saker: {{ count }}",
+      "why": "Gå gjennom dem i Mitt arbeid, og start med den eldste."
+    },
+    "review": {
+      "title": "Saker som venter på din gjennomgang: {{ count }}",
+      "why": "Du er godkjenner, og andre venter på svaret ditt.",
+      "titleOne": "Venter på din gjennomgang: {{ label }}",
+      "whyOne": "{{ kind }} · du er godkjenner, og andre venter på svaret ditt."
+    },
+    "due_soon": {
+      "title": "Frist {{ when }}: {{ label }}",
+      "why": "{{ kind }} · gjør du det nå, blir det ikke forfalt."
+    },
+    "setup": {
+      "title": "Fullfør oppsettet av organisasjonen",
+      "why": "Du stoppet ved steget «{{ step }}». Oppsettet velger standardene og modulene organisasjonen trenger."
+    },
+    "enable_standard": {
+      "title": "Velg standardene organisasjonen skal følge",
+      "why": "Kravdekningen og neste steg bygger på standardene du slår på."
+    },
+    "confirm_suggestions": {
+      "title": "Bekreft foreslåtte krav på {{ label }} ({{ count }})",
+      "why": "CoreFlow har funnet krav som denne registreringen trolig dokumenterer. Bekreftede krav teller i kravdekningen."
+    },
+    "confirm_connections": {
+      "title": "Bekreft foreslåtte koblinger på {{ label }} ({{ count }})",
+      "why": "Koblinger viser hvordan registreringene henger sammen, både for deg og for revisor."
+    },
+    "journey_step": {
+      "title": "Neste steg: {{ step }}",
+      "why": "{{ journey }} · {{ done }} av {{ total }} steg er fullført ({{ percent }} %)."
+    },
+    "journey_link": {
+      "title": "Koble til kravet: {{ step }}",
+      "why": "Registreringen finnes allerede, men den er ikke koblet til kravet i {{ standard }} ennå. Koble den til, så er steget fullført."
+    },
+    "journey_enable_module": {
+      "title": "Slå på {{ moduleName }} for å fortsette",
+      "why": "Neste steg i {{ journey }}, «{{ step }}», gjøres i {{ moduleName }}."
+    },
+    "start_journey": {
+      "title": "Start reisen: {{ journey }}",
+      "why": "En trinnvis vei som viser hva du skal gjøre, hvor du gjør det og hvilke krav hvert steg dekker."
+    },
+    "gap": {
+      "title": "{{ standard }} · {{ number }} mangler dokumentasjon",
+      "why": "«{{ title }}». Krav uten dokumentasjon: {{ missing }}. Koble en registrering som viser at kravet er oppfylt."
+    }
+  },
+  "setupSteps": {
+    "profile": "Organisasjonsprofil",
+    "frameworks": "Standarder",
+    "modules": "Moduler",
+    "roles": "Roller",
+    "tasks": "De første oppgavene",
+    "done": "Oppsummering"
+  },
+  "setup": {
+    "standards": "Velg standardene organisasjonen skal følge",
+    "members": "Inviter kollegene dine"
+  },
+  "work": {
+    "open": "Åpne Mitt arbeid",
+    "empty": "Du har ingenting tildelt akkurat nå.",
+    "overdue": "Forfalt",
+    "thisWeek": "Frist denne uka",
+    "review": "Til din gjennomgang",
+    "later": "Senere"
+  },
+  "journeys": {
+    "title": "Veiledede reiser",
+    "progress": "{{ done }} av {{ total }} steg fullført",
+    "next": "Neste: {{ step }}",
+    "continue": "Fortsett reisen",
+    "view": "Se reisen",
+    "emptyBody": "En reise tar deg steg for steg mot en standard, fra den første avgrensningen til sertifiseringsrevisjonen.",
+    "start": "Start en reise"
+  },
+  "status": {
+    "title": "Slik står organisasjonen",
+    "subtitle": "Kravdekning per standard: andelen krav som har bekreftet dokumentasjon.",
+    "allStandards": "Alle standarder",
+    "coverage": "kravdekning",
+    "coverageLabel": "Kravdekning for {{ standard }}: {{ score }} %",
+    "covered": "{{ covered }} av {{ applicable }} krav dokumentert",
+    "trendUp": "+{{ points }} poeng siste 30 dager",
+    "trendDown": "−{{ points }} poeng siste 30 dager",
+    "topGaps": "De tre viktigste hullene",
+    "missing": "{{ missing }} av {{ total }} mangler",
+    "noGaps": "Alle kravene har dokumentasjon.",
+    "seeAll": "Se alle krav",
+    "continueJourney": "Fortsett reisen ({{ percent }} %)",
+    "startJourney": "Start reisen",
+    "emptyTitle": "Ingen standarder er slått på ennå",
+    "emptyBody": "Velg standardene organisasjonen følger. Da ser du kravdekningen her, og hva du bør gjøre videre.",
+    "emptyCta": "Velg standarder"
+  },
+  "reports": {
+    "hint": "Ser du etter nøkkeltall, eksport eller revisjonspakker?",
+    "link": "Gå til Rapporter"
+  },
+  "standards": {
+    "hs": {
+      "short": "Felles ISO-krav",
+      "name": "Gjelder alle ISO-standardene for styringssystemer"
+    },
+    "iso9001": {
+      "short": "ISO 9001",
+      "name": "Kvalitetsledelse"
+    },
+    "iso27001": {
+      "short": "ISO 27001",
+      "name": "Informasjonssikkerhet"
+    },
+    "iso14001": {
+      "short": "ISO 14001",
+      "name": "Miljøledelse"
+    },
+    "iso45001": {
+      "short": "ISO 45001",
+      "name": "Arbeidsmiljø og sikkerhet"
+    },
+    "iso42001": {
+      "short": "ISO 42001",
+      "name": "Styring av KI"
+    },
+    "gdpr": {
+      "short": "GDPR",
+      "name": "Personvern"
+    },
+    "nis2": {
+      "short": "NIS2",
+      "name": "Digital sikkerhet"
+    },
+    "eu_ai_act": {
+      "short": "KI-forordningen",
+      "name": "EUs regler for kunstig intelligens"
+    }
+  },
+  "journey": {
+    "titleFallback": "Bli klar for {{ standard }}",
+    "progressTitle": "Fremdriften din",
+    "progress": "{{ done }} av {{ total }} steg fullført",
+    "phaseCount": "{{ done }}/{{ total }}",
+    "skipped": "hoppet over: {{ count }}",
+    "nextStep": "Neste steg: {{ step }}.",
+    "goToStep": "Gå til steget",
+    "completed": "Alle stegene er fullført. Hold registreringene oppdatert, og gå gjennom dem jevnlig.",
+    "archived": "Denne reisen er arkivert. Aktiver den igjen for å fortsette.",
+    "archive": "Arkiver reisen",
+    "reactivate": "Aktiver reisen igjen",
+    "archivedToast": "Reisen er arkivert.",
+    "reactivatedToast": "Reisen er aktiv igjen.",
+    "completedToast": "Bra jobbet. Alle stegene i reisen er fullført.",
+    "started": "{{ journey }} er startet.",
+    "taskCreated": "Oppgaven er opprettet: {{ title }}",
+    "errors": {
+      "start": "Kunne ikke starte reisen. Prøv igjen.",
+      "save": "Kunne ikke lagre steget. Prøv igjen.",
+      "task": "Kunne ikke opprette oppgaven. Sjekk at du har lov til å opprette oppgaver, og prøv igjen."
+    },
+    "start": {
+      "steps": "{{ count }} steg i en fornuftig rekkefølge, fra det grunnleggende til organisasjonen er klar for revisjon.",
+      "live": "Stegene hukes av av seg selv så snart dataene i CoreFlow viser at de er gjort.",
+      "connected": "Hvert steg viser hvilke krav det dekker, så dokumentasjonen teller i kravdekningen.",
+      "enables": "Når du starter reisen, blir {{ standard }} også slått på for organisasjonen.",
+      "button": "Start reisen",
+      "noRights": "Be en administrator eller den som har ansvaret for standarder om å starte denne reisen.",
+      "later": "Ikke nå"
+    },
+    "off": {
+      "title": "Standarder er slått av",
+      "body": "Reisene er en del av Standarder og krav. Slå på modulen for å følge en reise.",
+      "cta": "Gå til moduler"
+    },
+    "unknown": {
+      "title": "Det finnes ingen reise for denne standarden",
+      "body": "Velg en av standardene på siden Standarder og krav for å se reisen.",
+      "cta": "Gå til Standarder og krav"
+    },
+    "step": {
+      "next": "Neste",
+      "menu": "Flere valg for dette steget",
+      "covers": "Dekker: {{ refs }}",
+      "where": "Gjøres i: {{ module }}",
+      "lesson": "Leksjon",
+      "openTask": "Åpne oppgaven",
+      "needsLink": "Registreringene finnes, men ingen av dem er koblet til {{ refs }} ennå. Koble én til, så er steget fullført.",
+      "moduleOff": "Dette steget gjøres i {{ module }}, som er slått av.",
+      "state": {
+        "done": "Fullført",
+        "skipped": "Hoppet over",
+        "needs_link": "Må kobles til kravet",
+        "module_off": "Modulen er slått av",
+        "todo": "Gjenstår"
+      },
+      "doneBy": {
+        "auto": "Fullført: dataene viser det",
+        "manual": "Markert som fullført",
+        "task": "Fullført gjennom oppgaven"
+      },
+      "progress": {
+        "records": "Registrert: {{ current }} av {{ target }}",
+        "linked": "Registrert: {{ current }} av {{ target }} · koblet til kravet: {{ linked }}",
+        "coverage": "Kravdekning {{ current }} % av målet på {{ target }} %"
+      },
+      "actions": {
+        "create": "Opprett",
+        "open": "Åpne",
+        "lesson": "Åpne leksjonen",
+        "task": "Åpne",
+        "link": "Koble til kravet",
+        "openRecords": "Se registreringene",
+        "enableModule": "Slå på {{ module }}",
+        "makeTask": "Gjør til oppgave",
+        "markDone": "Marker som fullført",
+        "skip": "Hopp over steget",
+        "undo": "Angre",
+        "include": "Ta med igjen"
+      }
+    }
+  },
+  "recommended": {
+    "title": "Anbefalt for deg",
+    "subtitle": "Leksjoner til de neste stegene i reisene dine.",
+    "from": "Fra: {{ journey }}"
+  },
+  "notifications": {
+    "journey": {
+      "started": "Reise startet",
+      "step_updated": "Steg i reisen oppdatert",
+      "step_task_created": "Oppgave laget fra et steg i reisen",
+      "completed": "Reise fullført",
+      "archived": "Reise arkivert",
+      "reactivated": "Reise aktivert igjen"
+    }
+  },
+  "timeline": {
+    "journey": {
+      "started": "{{ actor_name }} startet reisen",
+      "step_updated": "{{ actor_name }} oppdaterte et steg i reisen",
+      "step_task_created": "{{ actor_name }} laget en oppgave fra et steg i reisen",
+      "completed": "Reisen er fullført",
+      "archived": "{{ actor_name }} arkiverte reisen",
+      "reactivated": "{{ actor_name }} aktiverte reisen igjen"
+    }
+  }
+}
