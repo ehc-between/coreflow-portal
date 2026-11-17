@@ -26,10 +26,10 @@ export function itemsOutside(method: AnalysisMethod, items: readonly DraftItem[]
     >
       @for (category of categories(); track category) {
         <fieldset class="rounded-card border border-border bg-surface p-3">
-          <legend class="px-1 font-display text-[14px] font-bold text-fg">
+          <legend class="px-1 font-display text-body font-bold text-fg">
             {{ 'context.categories.' + category | transloco }}
           </legend>
-          <p class="mb-2 text-[12px] text-fg-subtle">
+          <p class="mb-2 text-meta text-fg-subtle">
             {{ 'context.categoryHints.' + category | transloco }}
           </p>
           <ul class="flex flex-col gap-2">
@@ -45,15 +45,15 @@ export function itemsOutside(method: AnalysisMethod, items: readonly DraftItem[]
                   [id]="'item-' + item.id"
                   rows="2"
                   maxlength="2000"
-                  class="w-full rounded-[8px] border border-border bg-bg px-2.5 py-1.5 text-[13px] text-fg outline-none focus:border-accent"
+                  class="w-full rounded-md border border-border bg-bg px-2.5 py-1.5 text-ui text-fg outline-none focus:border-accent"
                   [value]="item.text"
                   (input)="patch(item.id, { text: $any($event.target).value })"
                 ></textarea>
                 <div class="flex items-center justify-between gap-2">
-                  <label class="flex items-center gap-1.5 text-[12px] text-fg-muted">
+                  <label class="flex items-center gap-1.5 text-meta text-fg-muted">
                     {{ 'context.fields.impact' | transloco }}
                     <select
-                      class="h-7 rounded-[8px] border border-border bg-bg px-1.5 text-[12px] text-fg"
+                      class="h-7 rounded-md border border-border bg-bg px-1.5 text-meta text-fg"
                       (change)="patch(item.id, { impact: $any($event.target).value })"
                     >
                       @for (level of levels; track level) {
@@ -65,7 +65,7 @@ export function itemsOutside(method: AnalysisMethod, items: readonly DraftItem[]
                   </label>
                   <button
                     type="button"
-                    class="rounded-[6px] p-1 text-fg-subtle hover:text-fail focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                    class="rounded-md p-1 text-fg-subtle hover:text-fail focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
                     [attr.aria-label]="'context.analysis.removeFactor' | transloco"
                     (click)="remove(item.id)"
                   >
@@ -77,7 +77,7 @@ export function itemsOutside(method: AnalysisMethod, items: readonly DraftItem[]
           </ul>
           <button
             type="button"
-            class="mt-2 inline-flex items-center gap-1 text-[12.5px] font-semibold text-accent hover:underline focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+            class="mt-2 inline-flex items-center gap-1 text-meta font-semibold text-accent hover:underline focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
             (click)="add(category)"
           >
             <app-icon name="plus" [size]="13" />

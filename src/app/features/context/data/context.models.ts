@@ -2,6 +2,9 @@
  * M01 "Context of the organisation and leadership" DTOs. They mirror
  * coreflow-core `app/modules/context/schemas.py` (base path
  * `/api/v1/orgs/{org_id}/context`). Datetimes are naive-UTC ISO strings.
+ *
+ * Fields added by the A04 polish are optional, so the pages keep working
+ * against a backend that does not send them yet.
  */
 
 export const FRAMEWORK_KEYS = [
@@ -15,6 +18,15 @@ export const FRAMEWORK_KEYS = [
   'nis2',
 ] as const;
 export type FrameworkKey = (typeof FRAMEWORK_KEYS)[number];
+
+/** The ISO management-system standards (they share the clause structure 4-10). */
+export const ISO_FRAMEWORKS: readonly string[] = [
+  'iso9001',
+  'iso27001',
+  'iso14001',
+  'iso42001',
+  'iso45001',
+];
 
 export const CONTROLLED_STATUSES = ['draft', 'in_review', 'approved', 'retired'] as const;
 export type ControlledStatus = (typeof CONTROLLED_STATUSES)[number];
@@ -90,7 +102,21 @@ export type Raci = (typeof RACI_ROLES)[number];
 export const ASSIGNEE_TYPES = ['user', 'role', 'department'] as const;
 export type AssigneeType = (typeof ASSIGNEE_TYPES)[number];
 
-export const RACI_WARNINGS = ['no_accountable', 'no_responsible'] as const;
+export const RACI_WARNINGS = ['no_accountable', 'no_responsible', 'segregation_of_duties'] as const;
+export type RaciWarning = (typeof RACI_WARNINGS)[number];
+
+/** Warnings on a RACI matrix column. */
+export const COLUMN_WARNINGS = ['no_members'] as const;
+
+/** Warnings on a scope: an ISO 27001 scope while there is no SoA yet. */
+export const SCOPE_WARNINGS = ['soa_missing'] as const;
+
+/** Review intervals offered on the forms (months). */
+export const REVIEW_INTERVALS = [6, 12, 24, 36] as const;
+
+/** Records a SWOT / PESTEL factor can lead to (`POST …/follow-ups`). */
+export const FOLLOW_UP_TYPES = ['risk', 'opportunity', 'objective', 'task', 'deviation'] as const;
+export type FollowUpType = (typeof FOLLOW_UP_TYPES)[number];
 
 // --- shared --------------------------------------------------------------------------
 
@@ -133,6 +159,8 @@ export interface ControlledFields {
   readonly submitted_by: UserRef | null;
   readonly submitted_at: string | null;
   readonly approved_by: UserRef | null;
+  /** Role names the approver holds in this organisation (HS 5.1). */
+  readonly approver_roles?: readonly string[];
   readonly approved_at: string | null;
   readonly review_interval_months: number | null;
   readonly next_review_at: string | null;
@@ -177,6 +205,13 @@ export interface AnalysisItem {
   readonly category: string;
   readonly text: string;
   readonly impact: Level;
+  /** Read-only: the records created from (or answering) this factor. */
+  readonly follow_ups?: readonly EntityRef[];
+}
+
+export interface FollowUpRequest {
+  readonly entity_type: FollowUpType;
+  readonly entity_id: string;
 }
 
 export interface ContextAnalysis extends ContextRecordBase, ControlledFields {
@@ -186,6 +221,8 @@ export interface ContextAnalysis extends ContextRecordBase, ControlledFields {
   readonly summary: string | null;
   readonly items: readonly AnalysisItem[];
   readonly counts: Readonly<Record<string, number>>;
+  /** Weaknesses / threats (or high-impact PESTEL factors) without a follow-up. */
+  readonly open_factors?: number;
 }
 
 export interface AnalysisCreate {
@@ -218,6 +255,10 @@ export interface InterestedParty extends ContextRecordBase {
   readonly frameworks: readonly string[];
   readonly status: SimpleStatus;
   readonly next_review_at: string | null;
+  readonly review_interval_months?: number | null;
+  /** How the organisation monitors this party's requirements (HS 4.2). */
+  readonly monitoring?: string | null;
+  readonly review_overdue?: boolean;
 }
 
 export interface PartyListResponse extends ListResponse<InterestedParty> {
@@ -240,12 +281,16 @@ export interface PartyCreate {
   readonly frameworks?: readonly string[];
   readonly owner_user_id?: string | null;
   readonly next_review_at?: string | null;
+  readonly review_interval_months?: number | null;
+  readonly monitoring?: string | null;
 }
 
 // --- scope statements ----------------------------------------------------------------
 
+/** An excluded requirement. `clause` is canonical (`iso9001:8.3`); `number` is for display. */
 export interface ScopeExclusion {
   readonly clause: string;
+  readonly number?: string | null;
   readonly justification: string;
 }
 
@@ -257,6 +302,9 @@ export interface ScopeStatement extends ContextRecordBase, ControlledFields {
   readonly products_services: string | null;
   readonly sites: readonly string[];
   readonly exclusions: readonly ScopeExclusion[];
+  /** Processes inside the scope (HS 4.4). */
+  readonly processes?: readonly EntityRef[];
+  readonly warnings?: readonly string[];
 }
 
 export interface ScopeCreate {
@@ -267,6 +315,7 @@ export interface ScopeCreate {
   readonly products_services?: string | null;
   readonly sites?: readonly string[];
   readonly exclusions?: readonly ScopeExclusion[];
+  readonly process_ids?: readonly string[];
   readonly owner_user_id?: string | null;
   readonly review_interval_months?: number | null;
   readonly next_review_at?: string | null;
@@ -274,12 +323,25 @@ export interface ScopeCreate {
 
 // --- policies ------------------------------------------------------------------------
 
+/** Who has read and confirmed the current approved version (HS 5.2 / 7.3). */
+export interface AcknowledgementSummary {
+  readonly total: number;
+  readonly acknowledged: number;
+  readonly pending: number;
+  readonly overdue: number;
+  readonly percent: number;
+}
+
 export interface Policy extends ContextRecordBase, ControlledFields {
   readonly kind: PolicyKind;
   readonly title: string;
   readonly statement: string | null;
   readonly frameworks: readonly string[];
   readonly documents: readonly EntityRef[];
+  readonly available_to_interested_parties?: boolean;
+  /** Objectives set from this policy (HS 5.2 b -> 6.2). */
+  readonly objectives?: readonly EntityRef[];
+  readonly acknowledgements?: AcknowledgementSummary;
 }
 
 export interface PolicyCreate {
@@ -287,11 +349,36 @@ export interface PolicyCreate {
   readonly title: string;
   readonly statement?: string | null;
   readonly frameworks?: readonly string[];
+  readonly available_to_interested_parties?: boolean;
   readonly owner_user_id?: string | null;
   readonly review_interval_months?: number | null;
   readonly next_review_at?: string | null;
-  /** Create only: links the controlled document carrying the policy. */
+  /** Links the controlled document carrying the policy (create and edit). */
   readonly document_id?: string | null;
+}
+
+export interface AcknowledgementItem {
+  readonly task_id: string;
+  readonly user: UserRef | null;
+  /** Task status: open | in_progress | done. */
+  readonly status: string;
+  readonly acknowledged: boolean;
+  readonly due_at: string | null;
+  readonly completed_at: string | null;
+  readonly created_at: string;
+  readonly overdue: boolean;
+}
+
+export interface Acknowledgements extends AcknowledgementSummary {
+  readonly policy_id: string;
+  readonly version_no: number;
+  /** Approval of the current version; only tasks created since then count. */
+  readonly since: string | null;
+  readonly items: readonly AcknowledgementItem[];
+}
+
+export interface RemindResponse {
+  readonly reminded: number;
 }
 
 export interface AssigneeIn {
@@ -306,8 +393,14 @@ export interface CommunicateRequest {
 }
 
 export interface CommunicateResponse {
-  readonly task_id: string;
+  /** The first task created (null when everybody already had one). */
+  readonly task_id: string | null;
+  readonly task_ids?: readonly string[];
   readonly policy_id: string;
+  /** One task per person (roles and departments are expanded). */
+  readonly created?: number;
+  /** People who already had a task for this version. */
+  readonly skipped?: number;
 }
 
 // --- responsibilities (RACI) ---------------------------------------------------------
@@ -331,12 +424,19 @@ export interface Responsibility extends ContextRecordBase {
   readonly assignments: readonly RaciAssignment[];
   readonly status: SimpleStatus;
   readonly next_review_at: string | null;
+  readonly review_interval_months?: number | null;
+  readonly review_overdue?: boolean;
+  /** The process the duty belongs to (process register). */
+  readonly process?: EntityRef | null;
+  /** no_accountable | no_responsible | segregation_of_duties */
   readonly warnings: readonly string[];
 }
 
 export interface ResponsibilityCreate {
   readonly title: string;
   readonly area?: string | null;
+  readonly process_id?: string | null;
+  readonly review_interval_months?: number | null;
   readonly description?: string | null;
   readonly authorities?: string | null;
   readonly frameworks?: readonly string[];
@@ -349,6 +449,12 @@ export interface MatrixColumn {
   readonly type: AssigneeType;
   readonly value: string;
   readonly name: string | null;
+  /** The people holding the role / in the department today (the person itself for a user). */
+  readonly members?: readonly UserRef[];
+  /** R / A / C / I -> rows. */
+  readonly counts?: Readonly<Partial<Record<Raci, number>>>;
+  /** `no_members`: a role or department nobody holds. */
+  readonly warnings?: readonly string[];
 }
 
 export interface MatrixRow {
@@ -359,11 +465,14 @@ export interface MatrixRow {
   /** `"<type>:<value>"` -> R | A | C | I. */
   readonly cells: Readonly<Record<string, Raci>>;
   readonly warnings: readonly string[];
+  readonly url?: string | null;
 }
 
 export interface RaciMatrix {
   readonly columns: readonly MatrixColumn[];
   readonly rows: readonly MatrixRow[];
+  /** Rows per warning (no_accountable, no_responsible, segregation_of_duties). */
+  readonly warning_counts?: Readonly<Record<string, number>>;
 }
 
 // --- lifecycle -----------------------------------------------------------------------
@@ -390,6 +499,21 @@ export type LifecycleAction = 'submit' | 'approve' | 'return' | 'review' | 'reti
 
 // --- overview ------------------------------------------------------------------------
 
+export const SETUP_STEP_KEYS = [
+  'context_analysis',
+  'interested_party',
+  'scope_statement',
+  'policy',
+  'responsibility',
+] as const;
+export type SetupStepKey = (typeof SETUP_STEP_KEYS)[number];
+
+export interface SetupStep {
+  readonly key: string;
+  readonly done: boolean;
+  readonly count: number;
+}
+
 export interface ContextOverview {
   readonly analyses: Readonly<Record<string, number>>;
   readonly interested_parties: Readonly<Record<string, number>>;
@@ -400,6 +524,15 @@ export interface ContextOverview {
   readonly policy_kinds_missing: readonly string[];
   readonly reviews_overdue: number;
   readonly in_review: number;
+  readonly parties_not_addressed?: number;
+  readonly responsibilities_without_responsible?: number;
+  readonly responsibilities_without_accountable?: number;
+  readonly responsibilities_segregation?: number;
+  readonly analyses_without_follow_up?: number;
+  readonly policies_without_objectives?: number;
+  readonly policies_not_communicated?: number;
+  /** The beginner's "get started" order (analysis, parties, scope, policy, responsibilities). */
+  readonly setup_steps?: readonly SetupStep[];
 }
 
 // --- AI assists ----------------------------------------------------------------------

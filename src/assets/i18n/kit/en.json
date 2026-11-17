@@ -431,7 +431,33 @@
     "management_review": {
       "to_task": "Action (task)"
     },
-    "formMissing": "This form is not available yet. Create the record from its own page and link it from the Related tab."
+    "formMissing": "This form is not available yet. Create the record from its own page and link it from the Related tab.",
+    "context_analysis": {
+      "to_risk": "Risk from the analysis",
+      "to_opportunity": "Opportunity from the analysis",
+      "to_objective": "Objective from the analysis",
+      "to_task": "Follow-up task"
+    },
+    "interested_party": {
+      "to_obligation": "Obligation from the party's requirements",
+      "to_risk": "Risk concerning the party",
+      "to_task": "Follow-up task"
+    },
+    "scope_statement": {
+      "to_risk": "Risk concerning the scope",
+      "to_task": "Follow-up task",
+      "to_deviation": "Deviation from the scope"
+    },
+    "policy": {
+      "to_objective": "Objective from the policy",
+      "to_document": "Policy document",
+      "to_task": "Follow-up task",
+      "to_deviation": "Deviation from the policy"
+    },
+    "responsibility": {
+      "to_task": "Follow-up task",
+      "to_deviation": "Deviation in the responsibilities"
+    }
   },
   "frameworks": {
     "iso9001": "ISO 9001",

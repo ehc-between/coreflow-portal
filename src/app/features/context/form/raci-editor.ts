@@ -28,10 +28,10 @@ export function draftRaciWarnings(assignments: readonly RaciAssignment[]): strin
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <fieldset>
-      <legend class="mb-1.5 text-[13px] font-semibold text-fg-muted">
+      <legend class="mb-1.5 text-ui font-semibold text-fg-muted">
         {{ 'context.fields.assignments' | transloco }}
       </legend>
-      <p class="mb-2 text-[12.5px] text-fg-muted">{{ 'context.raci.legend' | transloco }}</p>
+      <p class="mb-2 text-meta text-fg-muted">{{ 'context.raci.legend' | transloco }}</p>
       <ul class="flex flex-col gap-2">
         @for (a of assignments(); track $index; let i = $index) {
           <li class="flex flex-wrap items-center gap-2 rounded-tile border border-border p-2">
@@ -60,7 +60,7 @@ export function draftRaciWarnings(assignments: readonly RaciAssignment[]): strin
             </app-form-field>
             <button
               type="button"
-              class="rounded-[6px] p-1.5 text-fg-subtle hover:text-fail focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+              class="rounded-md p-1.5 text-fg-subtle hover:text-fail focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
               [attr.aria-label]="'context.raci.remove' | transloco"
               (click)="remove(i)"
             >
@@ -76,10 +76,10 @@ export function draftRaciWarnings(assignments: readonly RaciAssignment[]): strin
             <app-assignee-select inputId="raci-add" value="" (valueChange)="add($event)" />
           </app-form-field>
         }
-        <span class="text-[12px] text-fg-subtle">{{ 'context.raci.addHint' | transloco }}</span>
+        <span class="text-meta text-fg-subtle">{{ 'context.raci.addHint' | transloco }}</span>
       </div>
-      @for (warning of warnings(); track warning) {
-        <p class="mt-2 text-[12.5px] text-warn" role="status">
+      @for (warning of shownWarnings(); track warning) {
+        <p class="mt-2 text-meta text-warn-ink" role="status">
           {{ 'context.raci.warningText.' + warning | transloco }}
         </p>
       }
@@ -88,12 +88,18 @@ export function draftRaciWarnings(assignments: readonly RaciAssignment[]): strin
 })
 export class RaciEditor {
   readonly assignments = input.required<readonly RaciAssignment[]>();
+  /** Show the R / A warnings even with no assignment yet (after a save attempt). */
+  readonly showWarnings = input(false);
   readonly assignmentsChange = output<readonly RaciAssignment[]>();
 
   protected readonly roles = RACI_ROLES;
   /** Bumped after each add so the "add" select resets to empty. */
   protected readonly addKey = signal(0);
   protected readonly warnings = computed(() => draftRaciWarnings(this.assignments()));
+  /** Warnings wait until the first assignment (or a save attempt), not on an empty form. */
+  protected readonly shownWarnings = computed(() =>
+    this.assignments().length > 0 || this.showWarnings() ? this.warnings() : [],
+  );
 
   protected setWho(index: number, encoded: string): void {
     const who = decodeAssignee(encoded);

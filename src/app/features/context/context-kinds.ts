@@ -1,16 +1,18 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { codedErrorDetail } from '../../core/deviations/deviation-errors';
 import { httpErrorMessageKey } from '../../core/http/error.interceptor';
-import { BadgeTone } from '../../shared/ui/badge/badge';
+import { ToneMeaning } from '../../shared/ui/tones';
 import {
+  AddressedStatus,
   AnalysisMethod,
   ContextKind,
   ControlledStatus,
+  FRAMEWORK_KEYS,
   Level,
   PESTLE_CATEGORIES,
   PartyPriority,
+  REVIEW_INTERVALS,
   SWOT_CATEGORIES,
-  AddressedStatus,
 } from './data/context.models';
 
 /** Static description of one M01 record kind (route segment, entity type, features). */
@@ -26,8 +28,10 @@ export interface KindConfig {
   readonly guidance: string;
   /** Field holding the record's display name. */
   readonly titleField: 'title' | 'name';
-  /** Has the review-interval field (controlled records). */
-  readonly hasInterval: boolean;
+  /** Record code prefix (`POL-3`), used in the search placeholder. */
+  readonly codePrefix: string;
+  /** The lesson offered in the help strip of this register's pages. */
+  readonly lesson: string;
 }
 
 export const KINDS: Readonly<Record<ContextKind, KindConfig>> = {
@@ -38,7 +42,8 @@ export const KINDS: Readonly<Record<ContextKind, KindConfig>> = {
     controlled: true,
     guidance: 'analyses',
     titleField: 'title',
-    hasInterval: true,
+    codePrefix: 'CTX',
+    lesson: 'context-foundation',
   },
   party: {
     kind: 'party',
@@ -47,7 +52,8 @@ export const KINDS: Readonly<Record<ContextKind, KindConfig>> = {
     controlled: false,
     guidance: 'parties',
     titleField: 'name',
-    hasInterval: false,
+    codePrefix: 'IP',
+    lesson: 'interested-parties',
   },
   scope: {
     kind: 'scope',
@@ -56,7 +62,8 @@ export const KINDS: Readonly<Record<ContextKind, KindConfig>> = {
     controlled: true,
     guidance: 'scopes',
     titleField: 'title',
-    hasInterval: true,
+    codePrefix: 'SCOPE',
+    lesson: 'context-foundation',
   },
   policy: {
     kind: 'policy',
@@ -65,7 +72,8 @@ export const KINDS: Readonly<Record<ContextKind, KindConfig>> = {
     controlled: true,
     guidance: 'policies',
     titleField: 'title',
-    hasInterval: true,
+    codePrefix: 'POL',
+    lesson: 'policies-and-raci',
   },
   responsibility: {
     kind: 'responsibility',
@@ -74,7 +82,8 @@ export const KINDS: Readonly<Record<ContextKind, KindConfig>> = {
     controlled: false,
     guidance: 'responsibilities',
     titleField: 'title',
-    hasInterval: false,
+    codePrefix: 'RACI',
+    lesson: 'policies-and-raci',
   },
 };
 
@@ -85,6 +94,11 @@ export const KIND_ORDER: readonly ContextKind[] = [
   'policy',
   'responsibility',
 ];
+
+/** The kind of an entity type (`policy` -> `policy`, `interested_party` -> `party`). */
+export function kindOfEntityType(entityType: string): ContextKind | null {
+  return KIND_ORDER.find((kind) => KINDS[kind].entityType === entityType) ?? null;
+}
 
 export function kindConfig(kind: ContextKind): KindConfig {
   return KINDS[kind];
@@ -100,57 +114,73 @@ export function recordPath(kind: ContextKind, id: string): string {
   return `/context/${KINDS[kind].segment}/${id}`;
 }
 
-// --- labels and tones ------------------------------------------------------------------
+// --- badges (shared tone map, docs/ux-guide.md §5) -----------------------------------
 
-export function statusTone(status: string | null | undefined): BadgeTone {
-  switch (status) {
-    case 'approved':
-    case 'active':
-      return 'pass';
-    case 'in_review':
-      return 'info';
-    case 'draft':
-      return 'warn';
-    default:
-      return 'neutral';
-  }
+/** A status badge: what the value means (its colour) and the module's own label. */
+export interface BadgeSpec {
+  readonly meaning: ToneMeaning;
+  /** The value the shared tone map colours. */
+  readonly value: string;
+  readonly labelKey: string;
 }
 
-export function levelTone(level: Level | string | null | undefined): BadgeTone {
-  switch (level) {
-    case 'high':
-      return 'fail';
-    case 'medium':
-      return 'warn';
-    default:
-      return 'neutral';
-  }
+/** Record status (approval lifecycle, or active / archived). */
+export function statusBadge(status: string): BadgeSpec {
+  return { meaning: 'lifecycle', value: status, labelKey: `context.status.${status}` };
 }
 
-export function addressedTone(status: AddressedStatus | string | null | undefined): BadgeTone {
-  switch (status) {
-    case 'addressed':
-      return 'pass';
-    case 'partially':
-      return 'warn';
-    case 'not_addressed':
-      return 'fail';
-    default:
-      return 'neutral';
-  }
+/**
+ * How well a party's needs are handled. A progress meaning, so "not handled" is
+ * a to-do (amber), never an error (red).
+ */
+const ADDRESSED_VALUE: Readonly<Record<AddressedStatus, string>> = {
+  addressed: 'done',
+  partially: 'in_progress',
+  not_addressed: 'blocked',
+  not_relevant: 'not_applicable',
+};
+
+export function addressedBadge(status: AddressedStatus | string): BadgeSpec {
+  return {
+    meaning: 'progress',
+    value: ADDRESSED_VALUE[status as AddressedStatus] ?? 'draft',
+    labelKey: `context.addressed.${status}`,
+  };
 }
 
-export function priorityTone(priority: PartyPriority | string | null | undefined): BadgeTone {
-  switch (priority) {
-    case 'manage_closely':
-      return 'fail';
-    case 'keep_satisfied':
-      return 'warn';
-    case 'keep_informed':
-      return 'info';
-    default:
-      return 'neutral';
-  }
+/** Stakeholder priority (power / interest grid): attention, not alarm. */
+const PRIORITY_VALUE: Readonly<Record<PartyPriority, string>> = {
+  manage_closely: 'in_progress',
+  keep_satisfied: 'open',
+  keep_informed: 'open',
+  monitor: 'draft',
+};
+
+export function priorityBadge(priority: PartyPriority | string): BadgeSpec {
+  return {
+    meaning: 'progress',
+    value: PRIORITY_VALUE[priority as PartyPriority] ?? 'draft',
+    labelKey: `context.priorities.${priority}`,
+  };
+}
+
+/** SWOT categories whose factors are bad news (impact is coloured as severity there). */
+const ADVERSE_CATEGORIES = new Set(['weakness', 'threat']);
+
+/**
+ * The impact of a SWOT / PESTEL factor. Weaknesses and threats use the severity
+ * colours; strengths, opportunities and PESTEL factors show a neutral
+ * "Betydning: Høy", so good news never looks like an alarm.
+ */
+export function impactBadge(category: string, impact: Level | string): BadgeSpec {
+  return ADVERSE_CATEGORIES.has(category)
+    ? { meaning: 'severity', value: impact, labelKey: `context.analysis.impact.${impact}` }
+    : { meaning: 'lifecycle', value: 'draft', labelKey: `context.analysis.impact.${impact}` };
+}
+
+/** Whether a factor is something to act against (weakness / threat). */
+export function isAdverse(category: string): boolean {
+  return ADVERSE_CATEGORIES.has(category);
 }
 
 /** The categories an analysis method uses, in display order. */
@@ -184,6 +214,18 @@ export function partyPriority(influence: Level, interest: Level): PartyPriority 
   return 'monitor';
 }
 
+// --- frameworks --------------------------------------------------------------------------
+
+/**
+ * Framework keys with the organisation's adopted ones first (in platform order),
+ * then the rest. Unknown keys are dropped.
+ */
+export function orderFrameworks(adopted: readonly string[]): string[] {
+  const known = FRAMEWORK_KEYS as readonly string[];
+  const first = known.filter((key) => adopted.includes(key));
+  return [...first, ...known.filter((key) => !first.includes(key))];
+}
+
 // --- lifecycle -------------------------------------------------------------------------
 
 /** Which lifecycle buttons apply to a controlled record's status. */
@@ -200,6 +242,34 @@ export function lifecycleActions(
     default:
       return [];
   }
+}
+
+// --- review interval ---------------------------------------------------------------------
+
+/** The interval options of the form (a stored value outside the list is kept as an option). */
+export function intervalOptions(current: string): number[] {
+  const n = Number(current);
+  const options: number[] = [...REVIEW_INTERVALS];
+  if (current && Number.isInteger(n) && n >= 1 && n <= 60 && !options.includes(n)) {
+    options.push(n);
+    options.sort((a, b) => a - b);
+  }
+  return options;
+}
+
+/** `YYYY-MM-DD` of `from` plus `months` (end of month clamped), or '' for no interval. */
+export function addMonths(from: Date, months: number): string {
+  if (!Number.isInteger(months) || months <= 0) {
+    return '';
+  }
+  const year = from.getFullYear();
+  const month = from.getMonth() + months;
+  const lastDay = new Date(year, month + 1, 0).getDate();
+  const day = Math.min(from.getDate(), lastDay);
+  const date = new Date(year, month, day);
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  return `${date.getFullYear()}-${mm}-${dd}`;
 }
 
 // --- errors ------------------------------------------------------------------------------
@@ -219,6 +289,8 @@ export const CONTEXT_ERROR_CODES = [
   'invalid_assignee',
   'not_controlled',
   'invalid_arguments',
+  'invalid_clause',
+  'no_recipients',
 ] as const;
 
 /** The translation key for a failed M01 request (the backend's English text is never shown). */
@@ -269,4 +341,32 @@ export function linesOf(text: string): string[] {
         .filter(Boolean),
     ),
   ];
+}
+
+/**
+ * Policy / scope text without a leading markdown heading that only repeats the
+ * record title ("# Quality policy" above "Quality policy").
+ */
+export function withoutTitleHeading(text: string | null | undefined, title: string): string {
+  const value = (text ?? '').replace(/^\s+/, '');
+  const match = /^#{1,6}\s+(.+?)\s*#*\s*(?:\r?\n|$)/.exec(value);
+  if (match && normaliseTitle(match[1]) === normaliseTitle(title)) {
+    return value.slice(match[0].length).replace(/^\s+/, '');
+  }
+  return text ?? '';
+}
+
+function normaliseTitle(text: string): string {
+  return text.trim().toLocaleLowerCase().replace(/\s+/g, ' ');
+}
+
+/** Whether a record date (`YYYY-MM-DD…`) is before today (local calendar day). */
+export function isPastDay(value: string | null | undefined, today = new Date()): boolean {
+  const day = dayOf(value);
+  if (!day) {
+    return false;
+  }
+  const mm = String(today.getMonth() + 1).padStart(2, '0');
+  const dd = String(today.getDate()).padStart(2, '0');
+  return day < `${today.getFullYear()}-${mm}-${dd}`;
 }

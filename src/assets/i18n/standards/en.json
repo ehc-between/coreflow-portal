@@ -208,6 +208,7 @@
       "soa": "Statement of Applicability",
       "standards": "Standards",
       "frameworks": "Standards",
+      "framework": "Standard",
       "article_refs": "Articles",
       "requirements": "Requirements",
       "generic": "a field on the record"

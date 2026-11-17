@@ -12,7 +12,7 @@ import {
 import { statusesFor } from '../context-kinds';
 import { FilterOption } from '../ui/filter-select';
 
-/** One list filter (`key` is the filter-state key and, unless `wire` says otherwise, the query param). */
+/** One list filter (`key` is the filter-state key and the query param). */
 export interface ListFilterDef {
   readonly key: string;
   readonly labelKey: string;
@@ -35,6 +35,12 @@ const EXTRA_FILTERS: Readonly<Record<ContextKind, readonly ListFilterDef[]>> = {
   ],
   party: [
     {
+      key: 'addressed_status',
+      labelKey: 'context.filters.addressed',
+      allKey: 'context.filters.allAddressed',
+      options: opts('context.addressed', ADDRESSED_STATUSES),
+    },
+    {
       key: 'category',
       labelKey: 'context.filters.category',
       allKey: 'context.filters.allCategories',
@@ -45,12 +51,6 @@ const EXTRA_FILTERS: Readonly<Record<ContextKind, readonly ListFilterDef[]>> = {
       labelKey: 'context.filters.partyType',
       allKey: 'context.filters.allPartyTypes',
       options: opts('context.partyTypes', PARTY_TYPES),
-    },
-    {
-      key: 'addressed_status',
-      labelKey: 'context.filters.addressed',
-      allKey: 'context.filters.allAddressed',
-      options: opts('context.addressed', ADDRESSED_STATUSES),
     },
   ],
   scope: [],
@@ -65,8 +65,19 @@ const EXTRA_FILTERS: Readonly<Record<ContextKind, readonly ListFilterDef[]>> = {
   responsibility: [],
 };
 
+/** How many filters sit in the toolbar; the rest go behind "Flere filtre". */
+export const VISIBLE_FILTERS = 3;
+
+/** Framework options with the organisation's adopted standards first. */
+export function frameworkOptions(ordered: readonly string[] = FRAMEWORK_KEYS): FilterOption[] {
+  return opts('context.frameworks', ordered);
+}
+
 /** Every filter the list of `kind` offers, in display order. */
-export function listFilters(kind: ContextKind): ListFilterDef[] {
+export function listFilters(
+  kind: ContextKind,
+  frameworks: readonly string[] = FRAMEWORK_KEYS,
+): ListFilterDef[] {
   return [
     {
       key: 'status',
@@ -79,7 +90,7 @@ export function listFilters(kind: ContextKind): ListFilterDef[] {
       key: 'framework',
       labelKey: 'context.filters.framework',
       allKey: 'context.filters.allFrameworks',
-      options: opts('context.frameworks', FRAMEWORK_KEYS),
+      options: frameworkOptions(frameworks),
     },
     {
       key: 'owner',
@@ -96,6 +107,14 @@ export function listFilters(kind: ContextKind): ListFilterDef[] {
   ];
 }
 
+/** The toolbar filters and the ones behind "Flere filtre". */
+export function splitFilters(defs: readonly ListFilterDef[]): {
+  visible: ListFilterDef[];
+  more: ListFilterDef[];
+} {
+  return { visible: defs.slice(0, VISIBLE_FILTERS), more: defs.slice(VISIBLE_FILTERS) };
+}
+
 /** Every filter-state key a list of `kind` understands (for restoring URL params / views). */
 export function filterKeys(kind: ContextKind): string[] {
   return [...listFilters(kind).map((f) => f.key), 'sort'];
@@ -108,6 +127,15 @@ export const SORT_OPTIONS: readonly FilterOption[] = LIST_SORTS.map((value) => (
 
 /** The default sort (most recently updated first). */
 export const DEFAULT_SORT = '-updated_at';
+
+/** How many of the "Flere filtre" values (and a non-default sort) are set. */
+export function moreFiltersActive(
+  more: readonly ListFilterDef[],
+  filters: Readonly<Record<string, string>>,
+): number {
+  const set = more.filter((def) => !!filters[def.key]).length;
+  return set + (filters['sort'] && filters['sort'] !== DEFAULT_SORT ? 1 : 0);
+}
 
 /** Filter state -> the API list query. */
 export function toListQuery(

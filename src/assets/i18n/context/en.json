@@ -1,6 +1,5 @@
 {
   "nav": {
-    "label": "Context and leadership sections",
     "overview": "Overview",
     "analyses": "Context analyses",
     "parties": "Interested parties",
@@ -9,74 +8,142 @@
     "responsibilities": "Roles and responsibilities"
   },
   "common": {
-    "loading": "Loading…",
-    "back": "Back",
     "cancel": "Cancel",
     "close": "Close",
-    "notSet": "Not set",
-    "version": "Version {{ version }}"
+    "version": "Version {{ version }}",
+    "yes": "Yes",
+    "no": "No",
+    "unknown": "Unknown"
   },
   "kinds": {
     "analysis": {
       "one": "Context analysis",
       "plural": "Context analyses",
-      "new": "New analysis",
-      "edit": "Edit analysis",
-      "back": "Back to context analyses"
+      "new": "New context analysis",
+      "create": "Create the context analysis",
+      "edit": "Edit context analysis"
     },
     "party": {
       "one": "Interested party",
       "plural": "Interested parties",
       "new": "New interested party",
-      "edit": "Edit interested party",
-      "back": "Back to interested parties"
+      "create": "Create the interested party",
+      "edit": "Edit interested party"
     },
     "scope": {
       "one": "Scope statement",
-      "plural": "Scope statements",
+      "plural": "Scope",
       "new": "New scope statement",
-      "edit": "Edit scope statement",
-      "back": "Back to scope statements"
+      "create": "Create the scope statement",
+      "edit": "Edit scope statement"
     },
     "policy": {
       "one": "Policy",
       "plural": "Policies",
       "new": "New policy",
-      "edit": "Edit policy",
-      "back": "Back to policies"
+      "create": "Create the policy",
+      "edit": "Edit policy"
     },
     "responsibility": {
       "one": "Responsibility",
       "plural": "Roles and responsibilities",
       "new": "New responsibility",
-      "edit": "Edit responsibility",
-      "back": "Back to roles and responsibilities"
+      "create": "Create the responsibility",
+      "edit": "Edit responsibility"
     }
   },
   "overview": {
-    "title": "Context and leadership",
-    "subtitle": "Understand your organisation and the people who affect it, set the scope of each management system, and show how leadership directs it through policies and clear responsibilities.",
-    "askPrompt": "Look at our context records and tell me what is missing for a solid foundation under our management systems.",
+    "subtitle": "The foundation of every management system: what affects the organisation, who has requirements of it, what the management system covers, and how leadership steers through policies and clear responsibilities.",
     "registers": "Registers",
-    "controlledCounts": "{{ approved }} approved · {{ review }} in review · {{ draft }} draft",
-    "activeCount": "{{ count }} active",
-    "gapsTitle": "What needs attention",
-    "missingScopes": "Management systems without an approved scope",
+    "aside": "Tools",
+    "parts": {
+      "approved": "{{ count }} approved",
+      "approvedOne": "1 approved",
+      "inReview": "{{ count }} awaiting approval",
+      "draft": "{{ count }} draft",
+      "active": "{{ count }} active",
+      "activeOne": "1 active",
+      "none": "None yet"
+    },
+    "setup": {
+      "title": "Get started",
+      "intro": "Take these steps in order. Each one builds on the one before, and the list disappears once everything is in place.",
+      "doneSr": "Done:",
+      "count": "{{ count }} recorded",
+      "steps": {
+        "context_analysis": "1. Context analysis",
+        "interested_party": "2. Interested parties",
+        "scope_statement": "3. Scope",
+        "policy": "4. Policy",
+        "responsibility": "5. Roles and responsibilities"
+      },
+      "todo": {
+        "context_analysis": "What affects the organisation from inside and outside?",
+        "interested_party": "Who has requirements and expectations of you?",
+        "scope_statement": "What does the management system cover, and what is outside it?",
+        "policy": "What does leadership commit to?",
+        "responsibility": "Who does what, and who is accountable?"
+      }
+    },
+    "gapsTitle": "Needs attention",
+    "missingScopes": "Standards without an approved scope",
     "addScopeFor": "Add a scope statement for {{ framework }}",
-    "allScoped": "Every framework in scope has an approved scope statement.",
-    "missingPolicies": "Policy types not yet approved",
+    "allScoped": "Every standard the organisation follows has an approved scope.",
+    "missingPolicies": "Policy types not approved yet",
     "allPolicies": "Every expected policy type has an approved policy.",
-    "reviewsOverdue": "Reviews overdue: {{ count }}",
-    "inReview": "Waiting for approval: {{ count }}",
-    "learnTitle": "Learn the basics",
-    "teachSubject": "the context of the organisation (ISO clause 4.1)",
-    "openMatrix": "Open the RACI matrix",
-    "loadError": "The overview could not be loaded. Try again in a moment."
+    "attention": {
+      "partiesNotAddressed": "Interested parties whose needs are not addressed",
+      "withoutAccountable": "Responsibilities without anyone accountable (A)",
+      "withoutResponsible": "Responsibilities without anyone responsible (R)",
+      "segregation": "Responsibilities where the same person does and approves the work",
+      "analysesWithoutFollowUp": "Context analyses with weaknesses or threats not followed up",
+      "policiesNotCommunicated": "Approved policies nobody has been asked to read",
+      "policiesWithoutObjectives": "Policies without objectives",
+      "reviewsOverdue": "Overdue reviews",
+      "inReview": "Awaiting approval",
+      "none": "Nothing else is waiting. Well done!"
+    },
+    "matrix": {
+      "title": "RACI matrix",
+      "body": "See every responsibility on one page: who does the work, who is accountable, and who actually holds each role today.",
+      "open": "Open the RACI matrix"
+    },
+    "pack": {
+      "title": "Evidence for the audit",
+      "body": "Download the scope, policies, RACI, interested parties and context analyses with their approval trail, ready for the certification body.",
+      "pdf": "Download PDF",
+      "xlsx": "Download Excel",
+      "fileName": "context-and-leadership-evidence",
+      "failed": "Could not create the evidence pack. Try again in a moment."
+    }
   },
   "list": {
-    "searchPlaceholder": "Search by title, text or code (e.g. POL-3)",
-    "noMatches": "Nothing matches these filters.",
-    "loadError": "The list could not be loaded. Try again in a moment."
+    "descriptions": {
+      "analysis": "SWOT and PESTEL analyses of the issues that affect the organisation.",
+      "party": "Who has requirements and expectations of the organisation, and how you follow them up.",
+      "scope": "What each management system covers, and which requirements do not apply.",
+      "policy": "Leadership's commitments, approved and communicated to staff.",
+      "responsibility": "Who is responsible for, accountable for, consulted on and informed about each duty."
+    },
+    "search": {
+      "analysis": "Search by title or code (CTX-1)",
+      "party": "Search by name or code (IP-1)",
+      "scope": "Search by title or code (SCOPE-1)",
+      "policy": "Search by title or code (POL-1)",
+      "responsibility": "Search by title or code (RACI-1)"
+    },
+    "factorCount": "{{ count }} factors",
+    "factorCountOne": "1 factor",
+    "badges": {
+      "openFactors": "{{ count }} not followed up",
+      "openFactorsOne": "1 not followed up",
+      "acknowledged": "Confirmed {{ acknowledged }} of {{ total }}",
+      "notCommunicated": "Not communicated"
+    }
+  },
+  "search": {
+    "placeholder": "Search by title or code",
+    "noMatches": "No matches."
   },
   "filters": {
     "status": "Status",
@@ -87,18 +154,18 @@
     "allCategories": "All categories",
     "partyType": "Internal or external",
     "allPartyTypes": "Internal and external",
-    "addressed": "Addressed",
-    "allAddressed": "Any handling",
+    "addressed": "Handling",
+    "allAddressed": "All handling statuses",
     "policyKind": "Policy type",
     "allPolicyKinds": "All policy types",
-    "framework": "Framework",
-    "allFrameworks": "All frameworks",
+    "framework": "Standard",
+    "allFrameworks": "All standards",
     "owner": "Owner",
-    "anyOwner": "Any owner",
+    "anyOwner": "All owners",
     "ownerMe": "Owned by me",
     "review": "Review",
-    "anyReview": "Any review date",
-    "reviewDue": "Review due",
+    "anyReview": "All review dates",
+    "reviewDue": "Review overdue",
     "sort": "Sort"
   },
   "sort": {
@@ -108,55 +175,60 @@
     "desc_title": "Title Z–A",
     "code": "Code (oldest first)",
     "desc_code": "Code (newest first)",
-    "next_review_at": "Next review date"
+    "next_review_at": "Next review"
   },
   "fields": {
     "code": "Code",
     "title": "Title",
     "name": "Name",
     "method": "Method",
-    "framework": "Framework",
-    "frameworks": "Frameworks",
+    "framework": "Standard",
+    "frameworks": "Applies to management system",
     "allFrameworks": "All management systems",
-    "chooseFramework": "Choose a framework",
+    "chooseFramework": "Choose a standard",
     "summary": "Summary",
     "items": "Factors",
-    "impact": "Impact",
+    "openFactors": "Not followed up",
+    "impact": "Significance",
     "category": "Category",
     "partyType": "Internal or external",
     "description": "Description",
     "needs": "Needs",
     "expectations": "Expectations",
     "requirements": "Relevant requirements",
-    "isComplianceObligation": "Some of these requirements are compliance obligations",
-    "addressedStatus": "Addressed",
+    "isComplianceObligation": "Some of these requirements are legal or other obligations the organisation must meet",
+    "addressedStatus": "Handling",
     "howAddressed": "How we address them",
+    "monitoring": "How we monitor them",
     "influence": "Influence",
     "interest": "Interest",
     "priority": "Priority",
     "statement": "Statement",
     "boundaries": "Boundaries",
     "productsServices": "Products and services",
-    "sites": "Sites and locations",
-    "exclusions": "Exclusions",
+    "sites": "Sites",
+    "processes": "Processes in scope",
+    "exclusions": "Requirements that do not apply",
     "kind": "Policy type",
-    "documents": "Policy document",
-    "area": "Process or area",
-    "authorities": "Authorities",
-    "assignments": "RACI assignments",
+    "availableToParties": "Available to interested parties",
+    "process": "Process",
+    "area": "Area",
+    "authorities": "Authority",
+    "assignments": "Who does what (RACI)",
     "owner": "Owner",
     "noOwner": "No owner",
-    "reviewInterval": "Review every (months)",
+    "maintainedBy": "Maintained by",
+    "reviewInterval": "Reviewed",
     "nextReview": "Next review",
     "lastReviewed": "Last reviewed",
     "status": "Status",
     "version": "Version",
-    "updated": "Last change",
-    "changeReason": "Reason for the change"
+    "updated": "Last changed",
+    "changeReason": "Why is this changing?"
   },
   "status": {
     "draft": "Draft",
-    "in_review": "In review",
+    "in_review": "Awaiting approval",
     "approved": "Approved",
     "retired": "Retired",
     "active": "Active",
@@ -179,15 +251,15 @@
     "environmental": "Environmental"
   },
   "categoryHints": {
-    "strength": "Internal: what you do well and can build on.",
-    "weakness": "Internal: where you fall short or depend on too little.",
-    "opportunity": "External: changes you could benefit from.",
-    "threat": "External: changes that could hurt you.",
+    "strength": "Internal: what the organisation does well and can build on.",
+    "weakness": "Internal: where the organisation falls short or is vulnerable.",
+    "opportunity": "External: changes the organisation can benefit from.",
+    "threat": "External: changes that could harm the organisation.",
     "political": "Government policy, stability, public funding.",
     "economic": "Markets, prices, interest rates, labour supply.",
-    "social": "Demographics, customer behaviour, workplace culture.",
+    "social": "Demographics, customer behaviour, work culture.",
     "technological": "New tools, automation, digital threats.",
-    "legal": "Laws, regulations and contracts that apply.",
+    "legal": "Laws, regulations and agreements that apply.",
     "environmental": "Climate, resources, pollution and nature."
   },
   "levels": {
@@ -199,12 +271,12 @@
     "customer": "Customers",
     "employee": "Employees",
     "owner": "Owners and investors",
-    "regulator": "Regulators and authorities",
+    "regulator": "Authorities and regulators",
     "supplier": "Suppliers",
     "partner": "Partners",
     "community": "Community and neighbours",
     "competitor": "Competitors",
-    "other": "Other"
+    "other": "Others"
   },
   "partyTypes": {
     "internal": "Internal",
@@ -212,7 +284,7 @@
   },
   "addressed": {
     "not_addressed": "Not addressed",
-    "partially": "Partially addressed",
+    "partially": "Partly addressed",
     "addressed": "Addressed",
     "not_relevant": "Not relevant"
   },
@@ -256,66 +328,160 @@
     "noItems": "No factors yet.",
     "addFactor": "Add factor",
     "removeFactor": "Remove factor",
-    "factorLabel": "Factor under {{ category }}"
+    "factorLabel": "Factor under {{ category }}",
+    "boardHint": "Turn weaknesses and threats into risks, and strengths and opportunities into objectives. That ties the context analysis to your risk work and your objectives.",
+    "impact": {
+      "low": "Significance: low",
+      "medium": "Significance: medium",
+      "high": "Significance: high"
+    },
+    "followUps": "Followed up by",
+    "noFollowUp": "Not followed up yet",
+    "followUpMenu": "Follow up",
+    "followUp": {
+      "risk": "Create risk",
+      "opportunity": "Create opportunity",
+      "objective": "Create objective",
+      "task": "Create task",
+      "deviation": "Create deviation"
+    },
+    "removeFollowUp": "Remove {{ name }} from the factor",
+    "followUpFailed": "The record was saved and linked to the analysis, but not to the factor itself. Link it from the analysis."
   },
   "party": {
-    "obligation": "Compliance obligation"
+    "obligationHint": "Legal and contractual requirements from this party should be recorded as obligations of their own, so they are followed up and evidenced (ISO 14001 and ISO 45001 clause 6.1.3).",
+    "createObligation": "Record as an obligation",
+    "registers": {
+      "title": "Linked to the registers",
+      "none": "Not linked to any records yet.",
+      "link": "Link to a record",
+      "linked": "The link is saved.",
+      "hint": {
+        "customer": "Link the contracts and customer feedback from these customers.",
+        "employee": "Link employees and positions in the people register.",
+        "owner": "Link the agreements with the owners.",
+        "regulator": "Link the legal requirements and obligations this authority stands behind.",
+        "supplier": "Link the suppliers and contracts this concerns.",
+        "partner": "Link the agreements with the partners.",
+        "community": "Link the records that show how the organisation follows up its neighbours and community.",
+        "competitor": "Link the risks and opportunities that concern competitors.",
+        "other": "Link the records that show how the organisation follows up this party."
+      },
+      "open": {
+        "customer": "Open customer feedback",
+        "employee": "Open the people register",
+        "owner": "Open contracts",
+        "regulator": "Open laws and regulations",
+        "supplier": "Open the supplier register",
+        "partner": "Open contracts",
+        "community": "Open the register",
+        "competitor": "Open the register",
+        "other": "Open the register"
+      }
+    }
   },
   "scope": {
-    "noExclusions": "No requirements are excluded.",
+    "noExclusions": "No requirements are excluded. Every requirement of the standard applies.",
+    "exclusionsHint": "While the scope is approved, these requirements count as not applicable in the requirement coverage.",
+    "exclusionsFormHint": "Choose the clause of the standard, and explain why it does not apply to the organisation.",
     "clause": "Clause",
-    "clausePlaceholder": "e.g. 8.3",
+    "clausePlaceholder": "Search for a clause, e.g. 8.3",
     "justification": "Why it does not apply",
-    "addExclusion": "Add exclusion",
-    "removeExclusion": "Remove exclusion",
-    "sitesPlaceholder": "One site per line"
+    "addExclusion": "Add a requirement that does not apply",
+    "removeExclusion": "Remove exclusion {{ number }}",
+    "sitesPlaceholder": "One site per line",
+    "soaMissing": "The ISO/IEC 27001 scope refers to the Statement of Applicability, but the organisation does not have one yet.",
+    "openSoa": "Open the Statement of Applicability"
   },
   "policy": {
-    "noDocuments": "No document linked yet. Link one under Related items.",
-    "document": "Policy document (optional)",
+    "documentTitle": "Policy document",
+    "noDocuments": "No policy document is linked yet.",
+    "document": "Policy document",
+    "linkDocument": "Link policy document",
+    "linkAnother": "Link another document",
+    "documentLinked": "{{ name }} is linked to the policy.",
     "documentPlaceholder": "Search documents by title or code",
-    "documentHint": "Link the controlled document that carries the approved policy text. You can link more documents later.",
+    "documentHint": "The controlled document with the approved policy text. This is what staff read.",
     "clearDocument": "Remove the selected document",
-    "noDocumentMatches": "No documents match."
+    "noDocumentMatches": "No documents match.",
+    "objectivesTitle": "Objectives set from the policy",
+    "objectivesHint": "The policy should provide the framework for the objectives the organisation sets.",
+    "noObjectives": "No objectives have been set from this policy yet.",
+    "newObjective": "New objective from this policy",
+    "available": "Yes, can be shared with interested parties",
+    "internalOnly": "No, internal only",
+    "ack": {
+      "title": "Communicated and confirmed",
+      "count": "{{ acknowledged }} of {{ total }} have confirmed",
+      "breakdown": "{{ pending }} waiting, {{ overdue }} past the due date.",
+      "show": "Show who",
+      "hide": "Hide the list",
+      "remind": "Send reminder ({{ count }})",
+      "reminded": "Reminder sent to {{ count }}.",
+      "due": "Due {{ date }}",
+      "empty": "Nobody has been asked to confirm this version yet.",
+      "none": "Nobody has been asked to read and confirm this version yet.",
+      "unknownPerson": "Unknown person",
+      "states": {
+        "done": "Confirmed",
+        "open": "Waiting",
+        "overdue": "Overdue"
+      }
+    }
   },
   "raci": {
     "matrixLink": "RACI matrix",
     "matrixTitle": "RACI matrix",
-    "matrixCaption": "Responsibilities (rows) by role, department or person (columns)",
-    "matrixEmpty": "No responsibilities match. Add responsibilities to build the matrix.",
+    "matrixDescription": "Every responsibility on one page, with who holds each role today.",
+    "matrixCaption": "Responsibilities (rows) per role, department or person (columns)",
+    "matrixEmptyTitle": "No responsibilities yet",
+    "matrixEmpty": "Add responsibilities to build the matrix.",
+    "searchLabel": "Search the responsibilities",
+    "searchPlaceholder": "Search by title or code (RACI-1)",
     "includeArchived": "Include archived",
-    "load": "Accountable / responsible",
-    "loadCell": "A {{ a }} · R {{ r }}",
+    "noMembers": "Nobody holds this role",
+    "columnCountsLabel": "Responsible in {{ r }}, accountable in {{ a }}, consulted in {{ c }}, informed in {{ i }}",
+    "warningsLabel": "Gaps in the matrix",
+    "warningSummary": {
+      "no_accountable": "Without anyone accountable (A): {{ count }}",
+      "no_responsible": "Without anyone responsible (R): {{ count }}",
+      "segregation_of_duties": "Same person does and approves: {{ count }}",
+      "no_members": "Roles or departments without people: {{ count }}"
+    },
     "assignmentCount": "{{ count }} assigned",
-    "legend": "R does the work, A owns the outcome (exactly one), C is consulted before, I is informed after.",
+    "termLabel": "RACI",
+    "legend": "R does the work, A is accountable for the result (exactly one), C is consulted beforehand, I is informed afterwards.",
     "who": "Person, role or department",
     "letter": "RACI letter",
     "remove": "Remove assignment",
     "add": "Add a person, role or department",
     "addHint": "Pick someone to add them to this responsibility.",
-    "areaPlaceholder": "e.g. Purchasing, Incident handling",
+    "areaPlaceholder": "e.g. Purchasing, incident handling",
     "nobody": "Nobody",
     "roles": {
-      "R": "Responsible",
-      "A": "Accountable",
-      "C": "Consulted",
-      "I": "Informed"
+      "R": "Responsible (R)",
+      "A": "Accountable (A)",
+      "C": "Consulted (C)",
+      "I": "Informed (I)"
     },
     "warnings": {
       "no_accountable": "No A",
-      "no_responsible": "No R"
+      "no_responsible": "No R",
+      "segregation_of_duties": "Same person does and approves"
     },
     "warningText": {
-      "no_accountable": "Nobody is accountable (A). Choose exactly one owner of the outcome.",
-      "no_responsible": "Nobody is responsible (R). Choose who does the work."
+      "no_accountable": "Nobody is accountable for the result (A). Choose exactly one.",
+      "no_responsible": "Nobody is responsible (R). Choose who does the work.",
+      "segregation_of_duties": "The same person both does the work and approves it. Split the duties between two people, or describe how it is checked."
     }
   },
   "actions": {
     "edit": "Edit",
-    "submit": "Submit for approval",
+    "submit": "Send for approval",
     "approve": "Approve",
     "return": "Return to draft",
     "review": "Mark as reviewed",
+    "reviewSimple": "Mark as reviewed",
     "retire": "Retire",
     "delete": "Delete",
     "communicate": "Communicate"
@@ -328,64 +494,91 @@
     },
     "return": {
       "title": "Return to draft",
-      "message": "Send “{{ title }}” back to draft. Say what needs to change.",
+      "message": "Return “{{ title }}” to draft. Say what needs to change.",
       "label": "Reason"
     },
     "review": {
       "title": "Mark as reviewed",
-      "message": "Confirm that “{{ title }}” has been reviewed and is still valid. The next review date moves on by the review interval.",
+      "message": "Confirm that “{{ title }}” has been reviewed and still applies. The next review moves by the review interval.",
       "label": "Review notes (optional)"
     },
     "retire": {
       "title": "Retire",
-      "message": "Retire “{{ title }}”. A retired record stays in the history but can no longer be edited.",
+      "message": "Retire “{{ title }}”. It stays in the history but can no longer be edited.",
       "label": "Reason (optional)"
     }
   },
   "delete": {
-    "title": "Delete record",
-    "message": "Delete “{{ title }}”? Its open tasks are cancelled. The record is kept in the audit trail."
+    "title": "Delete {{ type }}?",
+    "message": "Delete “{{ title }}”? Open tasks are cancelled. The activity trail is kept."
   },
   "detail": {
-    "notFound": "This record could not be found, or you do not have access to it.",
-    "actions": "Record actions",
+    "notFoundTitle": "Page not found",
+    "notFound": "The item does not exist, or you do not have access to it.",
+    "summaryTitle": "At a glance",
     "reviewOverdue": "Review overdue",
-    "approvedHint": "This version is approved. Editing its content starts a new draft version and asks for a reason.",
-    "retiredHint": "This record is retired and read-only.",
+    "approvedNote": "Changing the content starts a new version that must be approved.",
+    "retiredHint": "Retired and read-only.",
     "approved": "Approved",
-    "submitted": "Submitted",
+    "approverRoles": "Role: {{ roles }}",
+    "submitted": "Sent for approval",
     "byOn": "{{ name }}, {{ date }}",
     "everyMonths": "Every {{ count }} months"
   },
   "form": {
     "ownershipTitle": "Ownership and review",
-    "archived": "Archived (kept for the record, hidden from active lists)",
-    "approvedNotice": "You are editing an approved version. Changing the content starts a new draft version that needs approval again; changing only the owner or review settings does not.",
-    "reasonRequired": "Required: why does the approved content change?",
+    "ownershipHint": "The owner keeps the content up to date and is reminded when a review is due.",
+    "requiredLegend": "Fields with a star must be filled in.",
+    "requiredSr": "required",
+    "noInterval": "No regular review",
+    "nextHint": "Choose how often, and the next review is set for you. You can also pick a date yourself.",
+    "nextComputed": "The next review is set to {{ date }} from the interval. You can change the date.",
+    "frameworksHint": "Choose the management systems this applies to. It then documents the matching requirement in each of those standards automatically.",
+    "showAllFrameworks": "Show all ({{ count }} more)",
+    "processPlaceholder": "Search processes by name or code",
+    "noProcessMatches": "No processes match.",
+    "removeProcess": "Remove {{ name }}",
+    "hints": {
+      "requirements": "Describe the requirements in your own words. Record laws and agreements as obligations.",
+      "obligation": "Tick this when the party sets requirements the organisation must meet, such as laws, permits or agreements.",
+      "monitoring": "For example a yearly customer survey, meetings with union representatives, or legal update alerts.",
+      "processes": "Choose the processes in scope. They also show on the processes' own pages.",
+      "policyStatement": "Write what leadership commits to. The policy must suit the purpose, frame the objectives and commit to meeting requirements and improving.",
+      "available": "Tick this when the policy may be given to customers, authorities and other interested parties.",
+      "process": "Choose the process from the process register. If it is not there, enter an area below.",
+      "area": "Use this when the responsibility does not belong to one process."
+    },
+    "archived": "Archived (kept as evidence, hidden from active lists)",
+    "approvedNotice": "You are editing an approved version. Changing the content starts a new draft version that must be approved again. Changing only the owner, the review or the policy document does not.",
+    "reasonRequired": "Required: why is the approved content changing?",
     "reasonOptional": "Optional: why are you changing this?",
-    "save": "Save changes",
-    "create": "Create",
+    "cannotSave": "Could not save. Fix this first:",
+    "save": "Save the changes",
     "problems": {
-      "title": "Enter a title.",
-      "name": "Enter a name.",
-      "framework": "Choose the framework this scope is for.",
-      "interval": "The review interval must be a whole number of months from 1 to 60.",
-      "exclusion": "Every exclusion needs both a clause and a justification."
+      "title": "Fill in the title.",
+      "name": "Fill in the name.",
+      "framework": "Choose which standard the scope is for.",
+      "interval": "Choose a review interval from the list.",
+      "exclusion": "Each requirement that does not apply needs both a clause and a reason."
     }
   },
   "communicate": {
-    "title": "Communicate policy",
-    "intro": "Ask people to read and acknowledge this policy. They get a task in My Work.",
-    "assignee": "Who should acknowledge it",
+    "title": "Communicate the policy",
+    "intro": "Ask people to read and confirm the policy. Each person gets their own task in My work, and the policy shows who has confirmed.",
+    "assignee": "Who should confirm",
     "due": "Due date (optional)",
     "message": "Message (optional)",
     "messagePlaceholder": "e.g. Please read the updated policy before the team meeting.",
     "send": "Send",
-    "sent": "The acknowledgement task has been created."
+    "sent": "{{ count }} people were asked to read and confirm.",
+    "sentOne": "1 person was asked to read and confirm.",
+    "sentWithSkipped": "{{ count }} were asked to read and confirm. {{ skipped }} had already been asked.",
+    "alreadyAsked": "All {{ count }} had already been asked to confirm this version."
   },
   "ai": {
     "groupLabel": "Assistant actions",
     "summarise": "Summarise",
+    "explain": "Explain this to me",
     "improve": {
       "analysis": "Find gaps",
       "party": "Check needs and expectations",
@@ -393,58 +586,68 @@
       "policy": "Review the policy",
       "responsibility": "Check the RACI"
     },
-    "draftAnalysis": "Draft from organisation profile",
+    "draftAnalysis": "Draft from the organisation profile",
     "suggestParties": "Suggest interested parties",
-    "draftPolicy": "Draft policy text",
-    "draftScope": "Draft scope statement",
-    "draftHint": "Uses your organisation profile. Review the draft before saving.",
-    "suggestHint": "Suggestions use your organisation profile. Pick one to fill the form.",
+    "draftPolicy": "Draft the policy text",
+    "draftScope": "Draft the scope statement",
+    "draftHint": "Uses the organisation profile. Read the draft before you save.",
+    "suggestHint": "The suggestions are based on the organisation profile. Pick one to fill in the form.",
     "suggestionsTitle": "Suggested interested parties",
     "useSuggestion": "Use",
     "prompts": {
-      "summarise": "Summarise {{ type }} {{ code }} “{{ title }}” in a few sentences for a management review.",
-      "explain": "Explain what a {{ type }} is, which ISO clauses ask for it and what an auditor looks for.",
-      "matrix": "Review our RACI matrix: where is accountability missing, unclear or concentrated on too few people?",
-      "scopeExclusions": "Which requirements may a scope statement exclude, and how should the justification be written?",
+      "summarise": "Summarise {{ type }} {{ code }} “{{ title }}” in a few sentences for the management review.",
+      "explain": "Explain in plain words what {{ type }} {{ code }} “{{ title }}” is, which requirements of the standards it documents, and what an auditor looks for.",
+      "scopeExclusions": "Which requirements can a scope statement exclude, and how should the justification be written?",
+      "obligation": "When is a requirement from an interested party a legal or other obligation the organisation must record?",
+      "policyContent": "What must a policy contain to meet clause 5.2, and how do I write it simply and clearly?",
+      "raci": "How do I assign R, A, C and I on a responsibility, and what are common mistakes?",
       "improve": {
-        "analysis": "Review context analysis {{ code }} “{{ title }}”. Which important internal or external issues are missing, and which factors are vague?",
-        "party": "Review interested party {{ code }} “{{ title }}”. Are the needs and expectations complete, and which of them are compliance obligations?",
+        "analysis": "Review context analysis {{ code }} “{{ title }}”. Which important internal or external issues are missing, and which factors are unclear?",
+        "party": "Review interested party {{ code }} “{{ title }}”. Are the needs and expectations complete, and which of them are legal or other obligations?",
         "scope": "Review scope statement {{ code }} “{{ title }}”. Are the boundaries, sites and exclusions clear and justified?",
-        "policy": "Review policy {{ code }} “{{ title }}” against ISO clause 5.2. Does it include the required commitments and fit our purpose?",
-        "responsibility": "Review responsibility {{ code }} “{{ title }}”. Is there exactly one accountable party, and are the authorities clear?"
+        "policy": "Review policy {{ code }} “{{ title }}” against clause 5.2. Does it contain the required commitments, and does it suit our purpose?",
+        "responsibility": "Review responsibility {{ code }} “{{ title }}”. Is exactly one person accountable, and is the authority clear?"
       }
     }
   },
-  "lessons": {
-    "button": "{{ title }} ({{ minutes }} min)",
-    "minutes": "{{ minutes }} minute lesson"
+  "next": {
+    "reviewOverdue": {
+      "title": "Review {{ code }} “{{ title }}”",
+      "why": "The review is overdue. Auditors check that context, policies and responsibilities are kept up to date."
+    },
+    "policyNotCommunicated": {
+      "title": "Communicate policy {{ code }} “{{ title }}”",
+      "why": "The policy is approved, but nobody has been asked to read and confirm it yet."
+    }
   },
   "notices": {
-    "created": "{{ code }} created.",
-    "saved": "Changes saved.",
-    "deleted": "{{ code }} deleted.",
-    "submit": "{{ code }} submitted for approval.",
-    "approve": "{{ code }} approved.",
-    "return": "{{ code }} returned to draft.",
-    "review": "{{ code }} marked as reviewed.",
-    "retire": "{{ code }} retired."
+    "created": "{{ code }} has been created.",
+    "saved": "The changes are saved.",
+    "deleted": "{{ code }} has been deleted.",
+    "submit": "{{ code }} has been sent for approval.",
+    "approve": "{{ code }} has been approved.",
+    "return": "{{ code }} has been returned to draft.",
+    "review": "{{ code }} has been marked as reviewed.",
+    "retire": "{{ code }} has been retired."
   },
   "errors": {
-    "module_disabled": "Context and leadership is switched off for this organisation.",
-    "record_retired": "A retired record can no longer be edited.",
-    "change_reason_required": "Say why the approved content changes.",
-    "invalid_status": "This step is not possible in the record's current status. Reload and try again.",
+    "module_disabled": "Context and leadership is switched off for the organisation.",
+    "record_retired": "A retired item can no longer be edited.",
+    "change_reason_required": "Say why the approved content is changing.",
+    "invalid_status": "This step is not possible in the item's current status. Reload the page and try again.",
     "invalid_category": "One of the factors has a category that does not belong to this method.",
     "invalid_owner": "The owner must be a member of the organisation.",
-    "invalid_owner_filter": "That owner filter is not valid.",
+    "invalid_owner_filter": "The owner filter is not valid.",
     "field_required": "A required field is empty.",
-    "multiple_accountable": "Only one party can be accountable (A).",
-    "duplicate_assignment": "Each person, role or department can appear only once.",
-    "invalid_assignee": "That person, role or department is not valid in this organisation.",
-    "not_controlled": "This record type has no approval steps.",
+    "multiple_accountable": "Only one can be accountable for the result (A).",
+    "duplicate_assignment": "Each person, role or department can only appear once.",
+    "invalid_assignee": "The person, role or department does not exist in the organisation.",
+    "not_controlled": "This type has no approval steps.",
     "invalid_arguments": "Some values are not valid.",
-    "forbidden": "You do not have permission to do that.",
-    "not_found": "The record (or a linked document) could not be found.",
+    "invalid_clause": "One of the clauses does not exist in the standard. Choose it from the list.",
+    "no_recipients": "Nobody holds this role or is in the department. Choose people, or add people to the role first.",
+    "forbidden": "You do not have access to do this.",
+    "not_found": "The item (or a linked document) was not found.",
     "validation": "Some values are not valid. Check the form and try again."
   },
   "notifications": {
@@ -452,7 +655,7 @@
     "analysisUpdated": "Context analysis {{ code }} updated: {{ title }}",
     "analysisDeleted": "Context analysis {{ code }} deleted: {{ title }}",
     "analysisOwnerChanged": "You now own context analysis {{ code }}: {{ title }}",
-    "analysisSubmitted": "Context analysis {{ code }} is waiting for approval: {{ title }}",
+    "analysisSubmitted": "Context analysis {{ code }} awaits approval: {{ title }}",
     "analysisApproved": "Context analysis {{ code }} approved: {{ title }}",
     "analysisReturned": "Context analysis {{ code }} returned to draft: {{ title }}",
     "analysisReviewed": "Context analysis {{ code }} reviewed: {{ title }}",
@@ -461,11 +664,12 @@
     "partyUpdated": "Interested party {{ code }} updated: {{ title }}",
     "partyDeleted": "Interested party {{ code }} deleted: {{ title }}",
     "partyOwnerChanged": "You now own interested party {{ code }}: {{ title }}",
+    "partyReviewed": "Interested party {{ code }} reviewed: {{ title }}",
     "scopeCreated": "New scope statement {{ code }}: {{ title }}",
     "scopeUpdated": "Scope statement {{ code }} updated: {{ title }}",
     "scopeDeleted": "Scope statement {{ code }} deleted: {{ title }}",
     "scopeOwnerChanged": "You now own scope statement {{ code }}: {{ title }}",
-    "scopeSubmitted": "Scope statement {{ code }} is waiting for approval: {{ title }}",
+    "scopeSubmitted": "Scope statement {{ code }} awaits approval: {{ title }}",
     "scopeApproved": "Scope statement {{ code }} approved: {{ title }}",
     "scopeReturned": "Scope statement {{ code }} returned to draft: {{ title }}",
     "scopeReviewed": "Scope statement {{ code }} reviewed: {{ title }}",
@@ -475,37 +679,40 @@
     "policyUpdated": "Policy {{ code }} updated: {{ title }}",
     "policyDeleted": "Policy {{ code }} deleted: {{ title }}",
     "policyOwnerChanged": "You now own policy {{ code }}: {{ title }}",
-    "policySubmitted": "Policy {{ code }} is waiting for approval: {{ title }}",
+    "policySubmitted": "Policy {{ code }} awaits approval: {{ title }}",
     "policyApproved": "Policy {{ code }} approved: {{ title }}",
     "policyReturned": "Policy {{ code }} returned to draft: {{ title }}",
     "policyReviewed": "Policy {{ code }} reviewed: {{ title }}",
     "policyRetired": "Policy {{ code }} retired: {{ title }}",
-    "policyCommunicated": "Please read and acknowledge policy {{ code }}: {{ title }}",
+    "policyCommunicated": "Read and confirm policy {{ code }}: {{ title }}",
+    "policyReminded": "Reminder: read and confirm policy {{ code }}: {{ title }}",
     "responsibilityCreated": "New responsibility {{ code }}: {{ title }}",
     "responsibilityUpdated": "Responsibility {{ code }} updated: {{ title }}",
     "responsibilityDeleted": "Responsibility {{ code }} deleted: {{ title }}",
-    "responsibilityOwnerChanged": "You now own responsibility {{ code }}: {{ title }}",
-    "responsibilityAssigned": "You have a role in responsibility {{ code }}: {{ title }}"
+    "responsibilityOwnerChanged": "You now maintain responsibility {{ code }}: {{ title }}",
+    "responsibilityAssigned": "You have a role in responsibility {{ code }}: {{ title }}",
+    "responsibilityReviewed": "Responsibility {{ code }} reviewed: {{ title }}"
   },
   "timeline": {
     "analysisCreated": "{{ actor_name }} created the analysis",
     "analysisUpdated": "{{ actor_name }} updated the analysis",
     "analysisDeleted": "{{ actor_name }} deleted the analysis",
     "analysisOwnerChanged": "{{ actor_name }} changed the owner",
-    "analysisSubmitted": "{{ actor_name }} submitted it for approval",
+    "analysisSubmitted": "{{ actor_name }} sent it for approval",
     "analysisApproved": "{{ actor_name }} approved it",
     "analysisReturned": "{{ actor_name }} returned it to draft",
     "analysisReviewed": "{{ actor_name }} marked it as reviewed",
     "analysisRetired": "{{ actor_name }} retired it",
-    "partyCreated": "{{ actor_name }} registered the interested party",
+    "partyCreated": "{{ actor_name }} recorded the interested party",
     "partyUpdated": "{{ actor_name }} updated the interested party",
     "partyDeleted": "{{ actor_name }} deleted the interested party",
     "partyOwnerChanged": "{{ actor_name }} changed the owner",
+    "partyReviewed": "{{ actor_name }} marked the interested party as reviewed",
     "scopeCreated": "{{ actor_name }} created the scope statement",
     "scopeUpdated": "{{ actor_name }} updated the scope statement",
     "scopeDeleted": "{{ actor_name }} deleted the scope statement",
     "scopeOwnerChanged": "{{ actor_name }} changed the owner",
-    "scopeSubmitted": "{{ actor_name }} submitted it for approval",
+    "scopeSubmitted": "{{ actor_name }} sent it for approval",
     "scopeApproved": "{{ actor_name }} approved it",
     "scopeReturned": "{{ actor_name }} returned it to draft",
     "scopeReviewed": "{{ actor_name }} marked it as reviewed",
@@ -515,16 +722,18 @@
     "policyUpdated": "{{ actor_name }} updated the policy",
     "policyDeleted": "{{ actor_name }} deleted the policy",
     "policyOwnerChanged": "{{ actor_name }} changed the owner",
-    "policySubmitted": "{{ actor_name }} submitted it for approval",
+    "policySubmitted": "{{ actor_name }} sent it for approval",
     "policyApproved": "{{ actor_name }} approved it",
     "policyReturned": "{{ actor_name }} returned it to draft",
     "policyReviewed": "{{ actor_name }} marked it as reviewed",
     "policyRetired": "{{ actor_name }} retired it",
-    "policyCommunicated": "{{ actor_name }} asked people to acknowledge it",
+    "policyCommunicated": "{{ actor_name }} asked people to read and confirm it",
+    "policyReminded": "{{ actor_name }} reminded those who have not confirmed",
     "responsibilityCreated": "{{ actor_name }} created the responsibility",
     "responsibilityUpdated": "{{ actor_name }} updated the responsibility",
     "responsibilityDeleted": "{{ actor_name }} deleted the responsibility",
-    "responsibilityOwnerChanged": "{{ actor_name }} changed the owner",
-    "responsibilityAssigned": "{{ actor_name }} assigned new people, roles or departments"
+    "responsibilityOwnerChanged": "{{ actor_name }} changed who maintains the responsibility",
+    "responsibilityAssigned": "{{ actor_name }} assigned new people, roles or departments",
+    "responsibilityReviewed": "{{ actor_name }} marked the responsibility as reviewed"
   }
 }

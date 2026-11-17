@@ -114,6 +114,43 @@ describe('ContextApi', () => {
     expect(matrix.request.params.has('q')).toBe(false);
     matrix.flush({ columns: [], rows: [] });
   });
+
+  it('attaches and detaches factor follow-ups', () => {
+    api.addFollowUp(ORG, 'a1', 'i 1', { entity_type: 'risk', entity_id: 'r1' }).subscribe();
+    const add = http.expectOne(`${ROOT}/analyses/a1/items/i%201/follow-ups`);
+    expect(add.request.method).toBe('POST');
+    expect(add.request.body).toEqual({ entity_type: 'risk', entity_id: 'r1' });
+    add.flush({});
+
+    api.removeFollowUp(ORG, 'a1', 'i1', 'risk', 'r1').subscribe();
+    const del = http.expectOne(`${ROOT}/analyses/a1/items/i1/follow-ups/risk/r1`);
+    expect(del.request.method).toBe('DELETE');
+    del.flush({});
+  });
+
+  it('reads acknowledgements, sends reminders and reviews a party', () => {
+    api.acknowledgements(ORG, 'p1').subscribe();
+    http.expectOne(`${ROOT}/policies/p1/acknowledgements`).flush({ items: [] });
+
+    api.remindAcknowledgements(ORG, 'p1').subscribe();
+    const remind = http.expectOne(`${ROOT}/policies/p1/acknowledgements/remind`);
+    expect(remind.request.body).toEqual({});
+    remind.flush({ reminded: 2 });
+
+    api.transition(ORG, 'party', 'ip1', 'review', { notes: 'Checked' }).subscribe();
+    const review = http.expectOne(`${ROOT}/interested-parties/ip1/review`);
+    expect(review.request.body).toEqual({ notes: 'Checked' });
+    review.flush({});
+  });
+
+  it('downloads the evidence pack in the UI language', () => {
+    api.evidencePack(ORG, 'xlsx', 'en').subscribe();
+    const pack = http.expectOne((r) => r.url === `${ROOT}/evidence-pack/export`);
+    expect(pack.request.params.get('format')).toBe('xlsx');
+    expect(pack.request.params.get('lang')).toBe('en');
+    expect(pack.request.responseType).toBe('blob');
+    pack.flush(new Blob(['x']));
+  });
 });
 
 describe('toParams', () => {

@@ -12,107 +12,146 @@ import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../../core/ai/page-context';
+import { LanguageService } from '../../../core/i18n/language.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
-import { AskAbout } from '../../../shared/ask/ask-about';
-import { RoleNamePipe } from '../../../shared/roles/role-name.pipe';
-import { GuideIntro } from '../../../shared/guidance/guide-intro';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
-import { Alert } from '../../../shared/ui/alert/alert';
-import { Badge } from '../../../shared/ui/badge/badge';
+import { RoleNamePipe } from '../../../shared/roles/role-name.pipe';
+import { Button } from '../../../shared/ui/button/button';
+import { EmptyState } from '../../../shared/ui/empty-state/empty-state';
+import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { ModuleNav } from '../../../shared/ui/module-nav/module-nav';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
+import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { ContextApi } from '../data/context-api';
-import { FRAMEWORK_KEYS, MatrixColumn, RaciMatrix } from '../data/context.models';
-import { ContextNav } from '../ui/context-nav';
-import { ContextFilter, FilterOption } from '../ui/filter-select';
+import { ContextFrameworks } from '../data/context-frameworks';
+import { MatrixColumn, RACI_ROLES, RACI_WARNINGS, Raci, RaciMatrix } from '../data/context.models';
+import { CONTEXT_NAV, CONTEXT_ROOT_CRUMB } from '../context-nav';
+import { injectContextPermissions } from '../context-permissions';
+import { ContextFilter } from '../ui/filter-select';
 import { RaciLetter } from '../ui/raci-letter';
+import { frameworkOptions } from '../list/list-config';
 
 /** The cell key of a matrix column (`"<type>:<value>"`). */
 export function columnKey(column: MatrixColumn): string {
   return `${column.type}:${column.value}`;
 }
 
-/** Per column: how many rows it is accountable (A) / responsible (R) for. */
-export function columnLoad(matrix: RaciMatrix): Record<string, { a: number; r: number }> {
-  const load: Record<string, { a: number; r: number }> = {};
+/** Per column: rows per letter (from the API, else counted from the cells). */
+export function columnCounts(matrix: RaciMatrix): Record<string, Record<Raci, number>> {
+  const out: Record<string, Record<Raci, number>> = {};
   for (const column of matrix.columns) {
-    load[columnKey(column)] = { a: 0, r: 0 };
+    out[columnKey(column)] = { R: 0, A: 0, C: 0, I: 0 };
   }
   for (const row of matrix.rows) {
     for (const [key, raci] of Object.entries(row.cells)) {
-      const entry = (load[key] ??= { a: 0, r: 0 });
-      if (raci === 'A') {
-        entry.a += 1;
-      } else if (raci === 'R') {
-        entry.r += 1;
-      }
+      const entry = (out[key] ??= { R: 0, A: 0, C: 0, I: 0 });
+      entry[raci] += 1;
     }
   }
-  return load;
+  for (const column of matrix.columns) {
+    const given = column.counts;
+    if (given) {
+      out[columnKey(column)] = {
+        R: given.R ?? 0,
+        A: given.A ?? 0,
+        C: given.C ?? 0,
+        I: given.I ?? 0,
+      };
+    }
+  }
+  return out;
+}
+
+/** Rows per warning (from the API, else counted from the rows). */
+export function warningCounts(matrix: RaciMatrix): Record<string, number> {
+  if (matrix.warning_counts) {
+    return { ...matrix.warning_counts };
+  }
+  const out: Record<string, number> = {};
+  for (const row of matrix.rows) {
+    for (const warning of row.warnings) {
+      out[warning] = (out[warning] ?? 0) + 1;
+    }
+  }
+  return out;
 }
 
 /**
  * `/context/responsibilities/matrix`: the RACI matrix across all
  * responsibilities (rows) and the roles, departments and people assigned
- * (columns), with gaps (no A / no R) flagged per row. Scrolls sideways on small
- * screens with the first column sticky.
+ * (columns). Each column shows who holds it today and how many rows it carries;
+ * gaps (no A, no R, nobody holds the role, the same person does and approves)
+ * are flagged per row and per column. Scrolls sideways on small screens with
+ * the first column sticky.
  */
 @Component({
   selector: 'app-context-raci-matrix',
   imports: [
     RouterLink,
     TranslocoPipe,
-    AskAbout,
-    RoleNamePipe,
-    GuideIntro,
     WhyItMatters,
-    Alert,
-    Badge,
+    RoleNamePipe,
+    Button,
+    EmptyState,
+    ErrorState,
+    HelpStrip,
     Icon,
-    ContextNav,
+    LoadingState,
+    ModuleNav,
+    PageHeader,
+    StatusBadge,
     ContextFilter,
     RaciLetter,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[1280px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
-      <a
-        routerLink="/context/responsibilities"
-        class="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
+    <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+      <app-page-header
+        titleKey="context.raci.matrixTitle"
+        descriptionKey="context.raci.matrixDescription"
+        [breadcrumbs]="breadcrumbs"
       >
-        <app-icon name="back" [size]="16" />
-        {{ 'context.kinds.responsibility.back' | transloco }}
-      </a>
-      <header class="mb-2 flex flex-wrap items-start justify-between gap-3">
-        <h1 class="font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]">
-          {{ 'context.raci.matrixTitle' | transloco }}
-        </h1>
-        <app-ask-about [prompt]="'context.ai.prompts.matrix' | transloco" />
-      </header>
-      <app-context-nav />
+        @if (perms.canWrite()) {
+          <a primary routerLink="/context/responsibilities/new" tabindex="-1">
+            <app-button>
+              <app-icon name="plus" [size]="15" />
+              {{ 'context.kinds.responsibility.new' | transloco }}
+            </app-button>
+          </a>
+        }
+      </app-page-header>
+      <app-module-nav [items]="nav" labelKey="modules.names.context" />
+      <app-help-strip scope="context" page="raci-matrix" lesson="policies-and-raci" />
 
-      <div class="mt-4 flex flex-col gap-4">
-        <app-guide-intro scope="context" page="raci-matrix" />
-        <div class="flex flex-wrap items-center gap-2">
-          <label class="sr-only" for="raci-q">{{
-            'context.list.searchPlaceholder' | transloco
-          }}</label>
-          <input
-            id="raci-q"
-            type="search"
-            class="h-10 min-w-[200px] flex-1 rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg outline-none focus:border-accent"
-            [placeholder]="'context.list.searchPlaceholder' | transloco"
-            [value]="query()"
-            (change)="query.set($any($event.target).value)"
-            (keydown.enter)="query.set($any($event.target).value)"
-          />
+      <div class="flex flex-col gap-4">
+        <div
+          class="flex flex-wrap items-end gap-2"
+          role="search"
+          [attr.aria-label]="'ui.list.toolbar' | transloco"
+        >
+          <div class="flex min-w-[200px] flex-1 flex-col gap-1">
+            <label class="sr-only" for="raci-q">{{ 'context.raci.searchLabel' | transloco }}</label>
+            <input
+              id="raci-q"
+              type="search"
+              class="h-10 rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent"
+              [placeholder]="'context.raci.searchPlaceholder' | transloco"
+              [value]="query()"
+              (change)="query.set($any($event.target).value)"
+              (keydown.enter)="query.set($any($event.target).value)"
+            />
+          </div>
           <app-context-filter
             labelKey="context.filters.framework"
             allKey="context.filters.allFrameworks"
-            [options]="frameworkOptions"
+            [options]="frameworkOptions()"
             [value]="framework()"
             (valueChange)="framework.set($event)"
           />
-          <label class="flex items-center gap-2 text-[13px] text-fg-muted">
+          <label class="flex min-h-10 items-center gap-2 text-ui text-fg-muted">
             <input
               type="checkbox"
               class="h-4 w-4"
@@ -123,7 +162,7 @@ export function columnLoad(matrix: RaciMatrix): Record<string, { a: number; r: n
           </label>
         </div>
 
-        <p class="flex flex-wrap items-center gap-3 text-[12.5px] text-fg-muted">
+        <p class="flex flex-wrap items-center gap-x-4 gap-y-2 text-meta text-fg-muted">
           @for (r of letters; track r) {
             <span class="inline-flex items-center gap-1.5">
               <app-context-raci-letter [raci]="r" />
@@ -133,39 +172,57 @@ export function columnLoad(matrix: RaciMatrix): Record<string, { a: number; r: n
         </p>
 
         @if (error()) {
-          <app-alert tone="error">{{ 'context.list.loadError' | transloco }}</app-alert>
+          <app-error-state (retry)="reload()" />
         } @else if (!matrix()) {
-          <p class="text-[13.5px] text-fg-muted">{{ 'context.common.loading' | transloco }}</p>
+          <app-loading-state [rows]="5" />
         } @else if (matrix()!.rows.length === 0) {
-          <p
-            class="rounded-card border border-border bg-surface p-6 text-center text-[13.5px] text-fg-muted"
-          >
-            {{ 'context.raci.matrixEmpty' | transloco }}
-          </p>
+          <app-empty-state
+            icon="people"
+            titleKey="context.raci.matrixEmptyTitle"
+            bodyKey="context.raci.matrixEmpty"
+            [ctaKey]="perms.canWrite() ? 'context.kinds.responsibility.new' : null"
+            ctaLink="/context/responsibilities/new"
+          />
         } @else {
+          @if (warningList().length) {
+            <ul
+              class="flex flex-wrap gap-2"
+              [attr.aria-label]="'context.raci.warningsLabel' | transloco"
+            >
+              @for (w of warningList(); track w.key) {
+                <li
+                  class="inline-flex items-center gap-1.5 rounded-full border border-warn/40 bg-warn-soft px-3 py-1 text-meta font-semibold text-warn-ink"
+                >
+                  {{ 'context.raci.warningSummary.' + w.key | transloco: { count: w.count } }}
+                </li>
+              }
+            </ul>
+          }
           <div
             class="overflow-x-auto rounded-card border border-border bg-surface"
             tabindex="0"
             [attr.aria-label]="'context.raci.matrixTitle' | transloco"
           >
-            <table class="text-[13px]">
+            <table class="w-full text-ui">
               <caption class="sr-only">
                 {{
                   'context.raci.matrixCaption' | transloco
                 }}
               </caption>
               <thead>
-                <tr class="border-b border-border">
+                <tr class="border-b border-border align-bottom">
                   <th
                     scope="col"
-                    class="sticky left-0 z-10 min-w-[220px] bg-surface px-3 py-2 text-left text-[12px] font-semibold text-fg-subtle"
+                    class="sticky left-0 z-10 min-w-[200px] bg-surface px-3 py-2 text-left text-meta font-semibold text-fg-muted"
                   >
                     {{ 'context.kinds.responsibility.one' | transloco }}
                   </th>
                   @for (column of matrix()!.columns; track columnKey(column)) {
+                    @let counts = load()[columnKey(column)];
                     <th
                       scope="col"
-                      class="min-w-[96px] px-2 py-2 text-center align-bottom text-[12px] font-semibold text-fg"
+                      class="min-w-[124px] px-2 py-2 text-center align-bottom font-semibold text-fg"
+                      [attr.data-testid]="'col-' + columnKey(column)"
                     >
                       <span class="block">
                         @if (column.type === 'role') {
@@ -174,9 +231,31 @@ export function columnLoad(matrix: RaciMatrix): Record<string, { a: number; r: n
                           {{ column.name || column.value }}
                         }
                       </span>
-                      <span class="block text-[11px] font-normal text-fg-subtle">
+                      <span class="block text-meta font-normal text-fg-subtle">
                         {{ 'context.assigneeTypes.' + column.type | transloco }}
                       </span>
+                      @if (column.type !== 'user') {
+                        <span class="mt-1 block text-meta font-normal text-fg-muted">
+                          @if (column.members?.length) {
+                            {{ memberNames(column) }}
+                          } @else if (column.members) {
+                            <span class="text-warn-ink">{{
+                              'context.raci.noMembers' | transloco
+                            }}</span>
+                          }
+                        </span>
+                      }
+                      @if (counts) {
+                        <span
+                          class="mt-1 block text-micro font-normal text-fg-subtle"
+                          [attr.aria-label]="
+                            'context.raci.columnCountsLabel'
+                              | transloco: { r: counts.R, a: counts.A, c: counts.C, i: counts.I }
+                          "
+                        >
+                          R {{ counts.R }} · A {{ counts.A }} · C {{ counts.C }} · I {{ counts.I }}
+                        </span>
+                      }
                     </th>
                   }
                 </tr>
@@ -186,26 +265,32 @@ export function columnLoad(matrix: RaciMatrix): Record<string, { a: number; r: n
                   <tr class="border-b border-border last:border-b-0 hover:bg-surface-2">
                     <th
                       scope="row"
-                      class="sticky left-0 z-10 bg-surface px-3 py-2 text-left font-normal"
+                      class="sticky left-0 z-10 bg-surface px-3 py-2 text-left align-top font-normal"
                     >
                       <a
-                        [routerLink]="['/context/responsibilities', row.id]"
+                        [routerLink]="row.url || ['/context/responsibilities', row.id]"
                         class="font-semibold text-fg hover:text-accent hover:underline"
                       >
-                        <span class="font-mono text-[11.5px] text-fg-muted">{{ row.code }}</span>
+                        <span class="font-mono text-meta text-fg-muted">{{ row.code }}</span>
                         {{ row.title }}
                       </a>
                       @if (row.area) {
-                        <span class="block text-[11.5px] text-fg-subtle">{{ row.area }}</span>
+                        <span class="block text-meta text-fg-subtle">{{ row.area }}</span>
                       }
-                      @for (warning of row.warnings; track warning) {
-                        <app-badge tone="warn" class="mt-1 mr-1 inline-block">{{
-                          'context.raci.warnings.' + warning | transloco
-                        }}</app-badge>
+                      @if (row.warnings.length) {
+                        <span class="mt-1 flex flex-wrap gap-1">
+                          @for (warning of row.warnings; track warning) {
+                            <app-status-badge
+                              meaning="lifecycle"
+                              value="blocked"
+                              [labelKey]="'context.raci.warnings.' + warning"
+                            />
+                          }
+                        </span>
                       }
                     </th>
                     @for (column of matrix()!.columns; track columnKey(column)) {
-                      <td class="px-2 py-2 text-center">
+                      <td class="px-2 py-2 text-center align-top">
                         @if (row.cells[columnKey(column)]; as raci) {
                           <app-context-raci-letter [raci]="raci" />
                           <span class="sr-only">{{
@@ -217,28 +302,6 @@ export function columnLoad(matrix: RaciMatrix): Record<string, { a: number; r: n
                   </tr>
                 }
               </tbody>
-              <tfoot>
-                <tr class="border-t border-border bg-surface-2 text-[11.5px] text-fg-muted">
-                  <th
-                    scope="row"
-                    class="sticky left-0 z-10 bg-surface-2 px-3 py-2 text-left font-semibold"
-                  >
-                    {{ 'context.raci.load' | transloco }}
-                  </th>
-                  @for (column of matrix()!.columns; track columnKey(column)) {
-                    <td class="px-2 py-2 text-center">
-                      {{
-                        'context.raci.loadCell'
-                          | transloco
-                            : {
-                                a: load()[columnKey(column)]?.a ?? 0,
-                                r: load()[columnKey(column)]?.r ?? 0,
-                              }
-                      }}
-                    </td>
-                  }
-                </tr>
-              </tfoot>
             </table>
           </div>
         }
@@ -250,12 +313,18 @@ export function columnLoad(matrix: RaciMatrix): Record<string, { a: number; r: n
 export class RaciMatrixPage {
   private readonly api = inject(ContextApi);
   private readonly selectedOrg = inject(SelectedOrgService);
+  private readonly language = inject(LanguageService);
+  private readonly frameworks = inject(ContextFrameworks);
 
-  protected readonly letters = ['R', 'A', 'C', 'I'] as const;
-  protected readonly frameworkOptions: readonly FilterOption[] = FRAMEWORK_KEYS.map((key) => ({
-    value: key,
-    label: `context.frameworks.${key}`,
-  }));
+  protected readonly nav = CONTEXT_NAV;
+  protected readonly perms = injectContextPermissions();
+  protected readonly breadcrumbs = [
+    CONTEXT_ROOT_CRUMB,
+    { labelKey: 'context.kinds.responsibility.plural', link: '/context/responsibilities' },
+    { labelKey: 'context.raci.matrixTitle' },
+  ];
+  protected readonly letters = RACI_ROLES;
+  protected readonly frameworkOptions = computed(() => frameworkOptions(this.frameworks.ordered()));
   protected readonly columnKey = columnKey;
 
   protected readonly query = signal('');
@@ -265,14 +334,35 @@ export class RaciMatrixPage {
   protected readonly error = signal(false);
   protected readonly load = computed(() => {
     const matrix = this.matrix();
-    return matrix ? columnLoad(matrix) : {};
+    return matrix ? columnCounts(matrix) : {};
+  });
+  protected readonly warningList = computed(() => {
+    const matrix = this.matrix();
+    if (!matrix) {
+      return [];
+    }
+    const counts = warningCounts(matrix);
+    const empty = matrix.columns.filter((c) => c.warnings?.includes('no_members')).length;
+    const list = (RACI_WARNINGS as readonly string[])
+      .map((key) => ({ key, count: counts[key] ?? 0 }))
+      .filter((w) => w.count > 0);
+    if (empty > 0) {
+      list.push({ key: 'no_members', count: empty });
+    }
+    return list;
   });
 
   private request = new Subscription();
 
   constructor() {
     inject(DestroyRef).onDestroy(() => this.request.unsubscribe());
-    providePageContext(() => ({ module: 'context', entityType: 'responsibility', view: 'other' }));
+    this.frameworks.ensureLoaded();
+    providePageContext(() => ({
+      module: 'context',
+      entityType: 'responsibility',
+      view: 'other',
+      title: this.language.translate('context.raci.matrixTitle'),
+    }));
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();
       const q = this.query();
@@ -280,6 +370,21 @@ export class RaciMatrixPage {
       const archived = this.includeArchived();
       untracked(() => this.fetch(orgId, q, framework, archived));
     });
+  }
+
+  protected memberNames(column: MatrixColumn): string {
+    return (column.members ?? [])
+      .map((m) => m.name || this.language.translate('context.common.unknown'))
+      .join(', ');
+  }
+
+  protected reload(): void {
+    this.fetch(
+      this.selectedOrg.currentOrgId(),
+      this.query(),
+      this.framework(),
+      this.includeArchived(),
+    );
   }
 
   private fetch(orgId: string | null, q: string, framework: string, archived: boolean): void {
