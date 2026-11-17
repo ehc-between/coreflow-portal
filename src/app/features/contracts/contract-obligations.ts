@@ -16,6 +16,7 @@ import { Subscription } from 'rxjs';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { TASK_PRIORITIES, Task, TaskPriority } from '../../core/tasks/task.models';
+import { GuidanceService } from '../../core/guidance/guidance.service';
 import { FieldHelp } from '../../shared/guidance/field-help';
 import { LocalDayPipe } from '../../shared/locale/locale-pipes';
 import { AssigneeLabel } from '../../shared/tasks/assignee-label';
@@ -27,13 +28,12 @@ import {
   isClosedStatus,
   taskPriorityKey,
   taskStatusKey,
-  taskStatusTone,
   todayDay,
 } from '../../shared/tasks/task-display';
-import { Badge } from '../../shared/ui/badge/badge';
 import { Button } from '../../shared/ui/button/button';
 import { FormField } from '../../shared/ui/form-field/form-field';
 import { Icon } from '../../shared/ui/icon/icon';
+import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
 import { ContractsApi } from './data/contracts-api';
 import { ObligationCreate } from './data/contract.models';
 import { provideSharedScope } from '../../core/i18n/shared-scope';
@@ -55,18 +55,25 @@ import { contractErrorKey } from './data/contract-errors';
     AssigneeLabel,
     AssigneeSelect,
     RecurrencePicker,
-    Badge,
+
     Button,
     FormField,
     Icon,
+    StatusBadge,
   ],
   viewProviders: [provideSharedScope('tasks')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section aria-labelledby="cf-obligations-h">
       <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <h2 id="cf-obligations-h" class="font-display text-[15px] font-bold text-fg">
+        <h2
+          id="cf-obligations-h"
+          class="flex items-center gap-1.5 font-display text-card font-bold text-fg"
+        >
           {{ 'contracts.obligations.title' | transloco }}
+          @if (!beginner()) {
+            <app-field-help scope="contracts" page="detail" field="obligations" />
+          }
         </h2>
         @if (canEdit() && !adding()) {
           <app-button
@@ -80,7 +87,9 @@ import { contractErrorKey } from './data/contract-errors';
           </app-button>
         }
       </div>
-      <app-field-help scope="contracts" page="detail" field="obligations" />
+      @if (beginner()) {
+        <app-field-help scope="contracts" page="detail" field="obligations" />
+      }
 
       @if (adding()) {
         <form
@@ -152,7 +161,7 @@ import { contractErrorKey } from './data/contract-errors';
               (change)="dueDay.set($any($event.target).value)"
             />
           </app-form-field>
-          <label class="flex items-center gap-2 self-end pb-2 text-[13.5px] text-fg">
+          <label class="flex items-center gap-2 self-end pb-2 text-ui text-fg">
             <input
               type="checkbox"
               class="h-4 w-4 accent-[var(--accent)]"
@@ -198,18 +207,18 @@ import { contractErrorKey } from './data/contract-errors';
 
       @switch (state()) {
         @case ('loading') {
-          <p class="text-[13px] text-fg-muted" role="status">
+          <p class="text-ui text-fg-muted" role="status">
             {{ 'contracts.common.loading' | transloco }}
           </p>
         }
         @case ('error') {
-          <p class="text-[13px] text-fail" role="alert">
+          <p class="text-ui text-fail" role="alert">
             {{ 'contracts.common.loadFailed' | transloco }}
           </p>
         }
         @default {
           @if (tasks().length === 0) {
-            <p class="text-[13px] text-fg-muted">{{ 'contracts.obligations.none' | transloco }}</p>
+            <p class="text-ui text-fg-muted">{{ 'contracts.obligations.none' | transloco }}</p>
           } @else {
             <ul class="divide-y divide-border rounded-tile border border-border">
               @for (t of sorted(); track t.id) {
@@ -220,11 +229,11 @@ import { contractErrorKey } from './data/contract-errors';
                   <span class="min-w-0 flex-1">
                     <a
                       [routerLink]="['/tasks', t.id]"
-                      class="block truncate text-[13.5px] font-semibold text-fg hover:underline"
+                      class="block truncate text-ui font-semibold text-fg hover:underline"
                     >
                       {{ t.title }}
                     </a>
-                    <span class="flex flex-wrap items-center gap-x-3 text-[12px] text-fg-subtle">
+                    <span class="flex flex-wrap items-center gap-x-3 text-meta text-fg-subtle">
                       @if (t.recurrence_id) {
                         <span class="inline-flex items-center gap-1">
                           <app-icon name="history" [size]="12" />
@@ -234,10 +243,12 @@ import { contractErrorKey } from './data/contract-errors';
                       <app-assignee-label [assignee]="t.assignee" />
                     </span>
                   </span>
-                  <span class="flex items-center gap-2 text-[12.5px]">
-                    <app-badge [tone]="statusTone(t.status)">{{
-                      statusKey(t.status) | transloco
-                    }}</app-badge>
+                  <span class="flex items-center gap-2 text-meta">
+                    <app-status-badge
+                      meaning="lifecycle"
+                      [value]="t.overdue ? 'overdue' : t.status"
+                      [labelKey]="statusKey(t.status)"
+                    />
                     <span
                       class="w-[100px] text-right"
                       [class.text-fail]="t.overdue"
@@ -260,6 +271,7 @@ import { contractErrorKey } from './data/contract-errors';
   `,
 })
 export class ContractObligations {
+  protected readonly beginner = inject(GuidanceService).isBeginner;
   private readonly api = inject(ContractsApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly notifications = inject(NotificationService);
@@ -273,7 +285,6 @@ export class ContractObligations {
   protected readonly priorities = TASK_PRIORITIES;
   protected readonly priorityKey = taskPriorityKey;
   protected readonly statusKey = taskStatusKey;
-  protected readonly statusTone = taskStatusTone;
   protected readonly closed = isClosedStatus;
 
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');

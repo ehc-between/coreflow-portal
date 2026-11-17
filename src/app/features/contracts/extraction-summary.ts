@@ -1,37 +1,32 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { Badge, BadgeTone } from '../../shared/ui/badge/badge';
 import { Button } from '../../shared/ui/button/button';
 import { Icon } from '../../shared/ui/icon/icon';
-import { ContractExtraction, DPA_CLAUSE_KEYS, ExtractedObligation } from './data/contract.models';
-
-function severityTone(severity: string | null | undefined): BadgeTone {
-  switch ((severity ?? '').toLowerCase()) {
-    case 'high':
-    case 'critical':
-      return 'fail';
-    case 'medium':
-      return 'warn';
-    default:
-      return 'neutral';
-  }
-}
+import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
+import {
+  ContractExtraction,
+  DPA_CLAUSE_KEYS,
+  ExtractedObligation,
+  ExtractedRisk,
+} from './data/contract.models';
 
 /**
  * What the contract analysis found besides the register fields: suggested
  * obligations (optionally with an "Add" button), risks to review, and missing
  * processor-agreement clauses. Everything is a suggestion for a person to check.
+ * On a saved contract (`canCreate`) a risk can go straight into the risk register
+ * and a missing clause becomes a follow-up task, both linked to the contract.
  */
 @Component({
   selector: 'app-contract-extraction-summary',
-  imports: [TranslocoPipe, Badge, Button, Icon],
+  imports: [TranslocoPipe, Button, Icon, StatusBadge],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="flex flex-col gap-4 text-[13px]" data-testid="extraction-summary">
-      <p class="text-[12.5px] text-fg-muted">{{ 'contracts.extract.reviewNotice' | transloco }}</p>
+    <div class="flex flex-col gap-4 text-ui" data-testid="extraction-summary">
+      <p class="text-meta text-fg-muted">{{ 'contracts.extract.reviewNotice' | transloco }}</p>
 
       <section>
-        <h3 class="mb-1.5 text-[13px] font-semibold text-fg">
+        <h3 class="mb-1.5 text-ui font-semibold text-fg">
           {{ 'contracts.extract.obligations' | transloco }}
         </h3>
         @if (obligations().length) {
@@ -41,7 +36,7 @@ function severityTone(severity: string | null | undefined): BadgeTone {
                 <span class="min-w-0 flex-1">
                   <span class="font-semibold text-fg">{{ o.title }}</span>
                   @if (o.party || o.due_date || o.recurring) {
-                    <span class="block text-[12px] text-fg-muted">
+                    <span class="block text-meta text-fg-muted">
                       @if (o.party) {
                         {{ 'contracts.extract.party' | transloco: { party: o.party } }}
                       }
@@ -69,21 +64,34 @@ function severityTone(severity: string | null | undefined): BadgeTone {
       </section>
 
       <section>
-        <h3 class="mb-1.5 text-[13px] font-semibold text-fg">
+        <h3 class="mb-1.5 text-ui font-semibold text-fg">
           {{ 'contracts.extract.risks' | transloco }}
         </h3>
         @if (risks().length) {
           <ul class="flex flex-col gap-1.5">
             @for (r of risks(); track $index) {
-              <li class="rounded-tile bg-surface-2 px-3 py-2">
-                <span class="flex flex-wrap items-center gap-2">
-                  <span class="font-semibold text-fg">{{ r.title }}</span>
-                  @if (r.severity) {
-                    <app-badge [tone]="tone(r.severity)">{{ r.severity }}</app-badge>
+              <li class="flex flex-wrap items-start gap-2 rounded-tile bg-surface-2 px-3 py-2">
+                <span class="min-w-0 flex-1">
+                  <span class="flex flex-wrap items-center gap-2">
+                    <span class="font-semibold text-fg">{{ r.title }}</span>
+                    @if (r.severity) {
+                      <app-status-badge meaning="severity" [value]="r.severity.toLowerCase()" />
+                    }
+                  </span>
+                  @if (r.explanation) {
+                    <span class="mt-0.5 block text-meta text-fg-muted">{{ r.explanation }}</span>
                   }
                 </span>
-                @if (r.explanation) {
-                  <span class="mt-0.5 block text-[12.5px] text-fg-muted">{{ r.explanation }}</span>
+                @if (canCreate()) {
+                  <app-button
+                    variant="ghost"
+                    size="sm"
+                    (click)="createRisk.emit(r)"
+                    data-testid="extraction-to-risk"
+                  >
+                    <app-icon name="risk" [size]="13" />
+                    {{ 'contracts.extract.toRisk' | transloco }}
+                  </app-button>
                 }
               </li>
             }
@@ -95,12 +103,25 @@ function severityTone(severity: string | null | undefined): BadgeTone {
 
       @if (missingClauses().length) {
         <section>
-          <h3 class="mb-1.5 text-[13px] font-semibold text-fail">
+          <h3 class="mb-1.5 text-ui font-semibold text-fail">
             {{ 'contracts.extract.missingDpaClauses' | transloco }}
           </h3>
-          <ul class="list-disc space-y-0.5 pl-5 text-fg">
+          <ul class="flex flex-col gap-1.5 text-fg">
             @for (key of missingClauses(); track key) {
-              <li>{{ clauseKey(key) | transloco }}</li>
+              <li class="flex flex-wrap items-center gap-2 rounded-tile bg-surface-2 px-3 py-1.5">
+                <span class="min-w-0 flex-1">{{ clauseKey(key) | transloco }}</span>
+                @if (canCreate()) {
+                  <app-button
+                    variant="ghost"
+                    size="sm"
+                    (click)="createTask.emit(key)"
+                    data-testid="extraction-to-task"
+                  >
+                    <app-icon name="plus" [size]="13" />
+                    {{ 'contracts.extract.toTask' | transloco }}
+                  </app-button>
+                }
+              </li>
             }
           </ul>
         </section>
@@ -112,13 +133,17 @@ export class ExtractionSummary {
   readonly result = input.required<ContractExtraction>();
   readonly canAddObligations = input(false);
   readonly addObligation = output<ExtractedObligation>();
+  /** Offer "Add to the risk register" / "Create task" (the contract exists). */
+  readonly canCreate = input(false);
+  readonly createRisk = output<ExtractedRisk>();
+  /** A missing Art. 28(3) clause key to follow up. */
+  readonly createTask = output<string>();
 
   protected readonly obligations = computed(() =>
     (this.result().obligations ?? []).filter((o) => o?.title),
   );
   protected readonly risks = computed(() => (this.result().risks ?? []).filter((r) => r?.title));
   protected readonly missingClauses = computed(() => this.result().missing_dpa_clauses ?? []);
-  protected readonly tone = severityTone;
 
   protected clauseKey(key: string): string {
     return dpaClauseKey(key);

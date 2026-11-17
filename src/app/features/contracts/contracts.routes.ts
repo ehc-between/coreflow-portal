@@ -7,7 +7,8 @@ const toList = { redirectTo: '/contracts' };
 /**
  * Contract management (M12, scope `contracts`). `app.routes.ts` already gates the
  * area on the `contracts` module and `contracts:read`; creating and editing need
- * `contracts:write`. The backend links contracts as `/contracts/<id>`.
+ * `contracts:write`. The settings page is readable by members (editing needs
+ * `contracts:manage`). The backend links contracts as `/contracts/<id>`.
  */
 export default [
   {
@@ -21,6 +22,10 @@ export default [
       {
         path: 'deadlines',
         loadComponent: () => import('./contract-deadlines').then((m) => m.ContractDeadlines),
+      },
+      {
+        path: 'settings',
+        loadComponent: () => import('./contract-settings').then((m) => m.ContractSettingsPage),
       },
       {
         path: 'new',

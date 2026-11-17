@@ -6,8 +6,12 @@ import {
   ContractType,
   ContractUpdate,
   PARTY_ROLES,
+  PERSONAL_DATA_ROLES,
   PartyIn,
   PartyRole,
+  PersonalDataRole,
+  TRANSFER_BASES,
+  TransferBasis,
   VALUE_PERIODS,
   ValuePeriod,
 } from './contract.models';
@@ -15,7 +19,11 @@ import {
 /** A party row in the form (strings for the inputs). */
 export interface PartyDraft {
   readonly name: string;
-  readonly role: PartyRole;
+  /** '' = let the server pick the role from the contract type. */
+  readonly role: PartyRole | '';
+  /** The supplier-register record the party is linked to. */
+  readonly supplier_id: string | null;
+  readonly supplier_label: string | null;
   readonly is_internal: boolean;
   readonly org_number: string;
   readonly contact_name: string;
@@ -33,7 +41,11 @@ export interface ContractFormValue {
   readonly owner_user_id: string;
   readonly department_id: string;
   readonly confidential: boolean;
-  readonly processes_personal_data: boolean;
+  readonly personal_data_role: PersonalDataRole;
+  readonly transfer_basis: TransferBasis | '';
+  readonly transfer_countries: string;
+  readonly ict_critical: boolean;
+  readonly involves_ai_system: boolean;
   readonly value_amount: string;
   readonly currency: string;
   readonly value_period: ValuePeriod | '';
@@ -47,6 +59,8 @@ export interface ContractFormValue {
   readonly renewal_notes: string;
   readonly governing_law: string;
   readonly parties: readonly PartyDraft[];
+  /** Create-from-supplier flow: link the counterparty to this supplier. */
+  readonly supplier_id: string;
 }
 
 export const MAX_PARTIES = 20;
@@ -54,7 +68,9 @@ export const MAX_PARTIES = 20;
 export function emptyParty(overrides: Partial<PartyDraft> = {}): PartyDraft {
   return {
     name: '',
-    role: 'other',
+    role: '',
+    supplier_id: null,
+    supplier_label: null,
     is_internal: false,
     org_number: '',
     contact_name: '',
@@ -71,7 +87,11 @@ export function emptyContractForm(ownerUserId = ''): ContractFormValue {
     owner_user_id: ownerUserId,
     department_id: '',
     confidential: false,
-    processes_personal_data: false,
+    personal_data_role: 'none',
+    transfer_basis: '',
+    transfer_countries: '',
+    ict_critical: false,
+    involves_ai_system: false,
     value_amount: '',
     currency: '',
     value_period: '',
@@ -85,7 +105,16 @@ export function emptyContractForm(ownerUserId = ''): ContractFormValue {
     renewal_notes: '',
     governing_law: '',
     parties: [],
+    supplier_id: '',
   };
+}
+
+/** The GDPR role of a contract, reading the legacy flag when the server sent no role. */
+export function roleOf(c: {
+  readonly personal_data_role?: PersonalDataRole | null;
+  readonly processes_personal_data: boolean;
+}): PersonalDataRole {
+  return c.personal_data_role ?? (c.processes_personal_data ? 'they_process' : 'none');
 }
 
 export function formFromContract(c: Contract): ContractFormValue {
@@ -96,7 +125,11 @@ export function formFromContract(c: Contract): ContractFormValue {
     owner_user_id: c.owner?.id ?? '',
     department_id: c.department_id ?? '',
     confidential: c.confidential,
-    processes_personal_data: c.processes_personal_data,
+    personal_data_role: roleOf(c),
+    transfer_basis: c.transfer_basis ?? '',
+    transfer_countries: c.transfer_countries ?? '',
+    ict_critical: !!c.ict_critical,
+    involves_ai_system: !!c.involves_ai_system,
     value_amount: c.value_amount ?? '',
     currency: c.currency ?? '',
     value_period: c.value_period ?? '',
@@ -110,6 +143,7 @@ export function formFromContract(c: Contract): ContractFormValue {
     renewal_notes: c.renewal_notes ?? '',
     governing_law: c.governing_law ?? '',
     parties: [],
+    supplier_id: '',
   };
 }
 
@@ -124,10 +158,47 @@ function int(value: string): number | null {
   return Number.isInteger(n) ? n : null;
 }
 
-/** A decimal amount as the API expects it (`"1234.5"`), or null. Accepts a comma. */
+/**
+ * A decimal amount as the API expects it (`"1234.5"`), or null. Tolerant of how
+ * people type money: spaces, no-break spaces and apostrophes as thousand separators,
+ * a comma or a point as the decimal mark ("850 000,50", "850,000.50", "850.000,50").
+ */
 export function normaliseAmount(value: string): string | null {
-  const cleaned = value.replace(/\s/g, '').replace(',', '.');
+  let cleaned = value.replace(/[\s\u00a0\u202f']/g, '');
+  const lastComma = cleaned.lastIndexOf(',');
+  const lastDot = cleaned.lastIndexOf('.');
+  if (lastComma >= 0 && lastDot >= 0) {
+    // The later mark is the decimal mark; the other one groups thousands.
+    const decimal = lastComma > lastDot ? ',' : '.';
+    const group = decimal === ',' ? '.' : ',';
+    cleaned = cleaned.split(group).join('').replace(decimal, '.');
+  } else if (lastComma >= 0) {
+    // "850,000" (thousands) vs "850,5" (decimals): three digits after one comma = grouping.
+    const parts = cleaned.split(',');
+    cleaned =
+      parts.length > 2 || (parts.length === 2 && parts[1].length === 3)
+        ? parts.join('')
+        : cleaned.replace(',', '.');
+  } else if (lastDot >= 0) {
+    const parts = cleaned.split('.');
+    if (parts.length > 2) {
+      cleaned = parts.join('');
+    }
+  }
   return /^\d+(\.\d{1,2})?$/.test(cleaned) ? cleaned : null;
+}
+
+/** The amount as people read it in the UI language ("850 000" in nb, "850,000" in en). */
+export function displayAmount(value: string, locale: string): string {
+  const normal = normaliseAmount(value);
+  if (normal === null) {
+    return value;
+  }
+  const n = Number(normal);
+  return new Intl.NumberFormat(locale, {
+    minimumFractionDigits: normal.includes('.') && !normal.endsWith('.00') ? 2 : 0,
+    maximumFractionDigits: 2,
+  }).format(n);
 }
 
 function fields(v: ContractFormValue) {
@@ -136,7 +207,16 @@ function fields(v: ContractFormValue) {
     owner_user_id: v.owner_user_id || null,
     department_id: v.department_id || null,
     confidential: v.confidential,
-    processes_personal_data: v.processes_personal_data,
+    personal_data_role: v.personal_data_role,
+    processes_personal_data: v.personal_data_role !== 'none',
+    transfer_basis:
+      v.personal_data_role === 'none' && v.contract_type !== 'dpa'
+        ? null
+        : v.transfer_basis || null,
+    transfer_countries:
+      v.transfer_basis && v.transfer_basis !== 'none' ? text(v.transfer_countries) : null,
+    ict_critical: v.ict_critical,
+    involves_ai_system: v.involves_ai_system,
     value_amount: normaliseAmount(v.value_amount),
     currency: text(v.currency)?.toUpperCase() ?? null,
     value_period: v.value_period || null,
@@ -146,16 +226,18 @@ function fields(v: ContractFormValue) {
     review_date: v.review_date || null,
     notice_period_days: int(v.notice_period_days),
     auto_renew: v.auto_renew,
-    renewal_term_months: int(v.renewal_term_months),
+    // The renewal term only means something for contracts that renew by themselves.
+    renewal_term_months: v.auto_renew ? int(v.renewal_term_months) : null,
     renewal_notes: text(v.renewal_notes),
     governing_law: text(v.governing_law),
   };
 }
 
-function partyIn(p: PartyDraft): PartyIn {
+export function partyIn(p: PartyDraft): PartyIn {
   return {
     name: p.name.trim(),
-    role: p.role,
+    ...(p.role ? { role: p.role } : {}),
+    ...(p.supplier_id && !p.is_internal ? { supplier_id: p.supplier_id } : {}),
     is_internal: p.is_internal,
     org_number: text(p.org_number),
     contact_name: text(p.contact_name),
@@ -169,6 +251,7 @@ export function toCreateRequest(v: ContractFormValue): ContractCreate {
     contract_type: v.contract_type,
     ...fields(v),
     parties: v.parties.filter((p) => p.name.trim()).map(partyIn),
+    ...(v.supplier_id ? { supplier_id: v.supplier_id } : {}),
   };
   // Without an owner the backend defaults to the caller.
   return body.owner_user_id ? body : { ...body, owner_user_id: undefined };
@@ -219,7 +302,7 @@ export function validateContractForm(v: ContractFormValue): Readonly<Record<stri
   if (notice && (int(notice) === null || (int(notice) ?? 0) < 0)) {
     errors['notice_period_days'] = 'contracts.form.invalid.wholeNumber';
   }
-  const term = v.renewal_term_months.trim();
+  const term = v.auto_renew ? v.renewal_term_months.trim() : '';
   if (term && (int(term) === null || (int(term) ?? 0) < 1)) {
     errors['renewal_term_months'] = 'contracts.form.invalid.wholeNumber';
   }
@@ -239,8 +322,63 @@ function asType(value: string | null | undefined): ContractType | null {
     : null;
 }
 
-function asRole(value: string | null | undefined): PartyRole {
-  return (PARTY_ROLES as readonly string[]).includes(value ?? '') ? (value as PartyRole) : 'other';
+function asRole(value: string | null | undefined): PartyRole | '' {
+  return (PARTY_ROLES as readonly string[]).includes(value ?? '') ? (value as PartyRole) : '';
+}
+
+function asPersonalDataRole(value: unknown): PersonalDataRole | null {
+  return (PERSONAL_DATA_ROLES as readonly string[]).includes(String(value))
+    ? (value as PersonalDataRole)
+    : null;
+}
+
+function asTransferBasis(value: unknown): TransferBasis | '' {
+  return (TRANSFER_BASES as readonly string[]).includes(String(value))
+    ? (value as TransferBasis)
+    : '';
+}
+
+const str = (value: unknown): string => (typeof value === 'string' ? value : '');
+
+/**
+ * Seed the new-contract form from a create-from-here prefill (supplier → contract,
+ * contract → data processing agreement). Unknown keys are ignored.
+ */
+export function formFromPrefill(
+  base: ContractFormValue,
+  prefill: Readonly<Record<string, unknown>>,
+): ContractFormValue {
+  const type = asType(str(prefill['contract_type']));
+  const role =
+    asPersonalDataRole(prefill['personal_data_role']) ??
+    (prefill['processes_personal_data'] === true ? 'they_process' : null);
+  const rawParties: unknown[] = Array.isArray(prefill['parties']) ? prefill['parties'] : [];
+  const parties: PartyDraft[] = rawParties
+    .filter((p): p is Record<string, unknown> => !!p && typeof p === 'object')
+    .filter((p) => str(p['name']).trim())
+    .slice(0, MAX_PARTIES)
+    .map((p) =>
+      emptyParty({
+        name: str(p['name']),
+        role: asRole(str(p['role'])),
+        is_internal: p['is_internal'] === true,
+        org_number: str(p['org_number']),
+        supplier_id: str(p['supplier_id']) || null,
+        supplier_label: str(p['supplier_id']) ? str(p['name']) : null,
+      }),
+    );
+  return {
+    ...base,
+    title: str(prefill['title']) || base.title,
+    contract_type: type ?? base.contract_type,
+    description: str(prefill['description']) || base.description,
+    personal_data_role: role ?? base.personal_data_role,
+    transfer_basis: asTransferBasis(prefill['transfer_basis']) || base.transfer_basis,
+    transfer_countries: str(prefill['transfer_countries']) || base.transfer_countries,
+    start_date: day(str(prefill['start_date'])) ?? base.start_date,
+    parties: parties.length ? parties : base.parties,
+    supplier_id: str(prefill['supplier_id']) || base.supplier_id,
+  };
 }
 
 /**
@@ -293,7 +431,10 @@ export function applyExtraction(
     currency: pick(v.currency, currency),
     governing_law: pick(v.governing_law, x.governing_law?.trim()),
     auto_renew: x.auto_renew ?? v.auto_renew,
-    processes_personal_data: x.processes_personal_data ?? v.processes_personal_data,
+    personal_data_role:
+      x.processes_personal_data === true && v.personal_data_role === 'none'
+        ? 'they_process'
+        : v.personal_data_role,
     parties,
   };
 }

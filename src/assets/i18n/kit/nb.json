@@ -431,7 +431,13 @@
     "management_review": {
       "to_task": "Tiltak (oppgave)"
     },
-    "formMissing": "Dette skjemaet finnes ikke ennå. Opprett posten fra sin egen side og koble den fra fanen Relatert."
+    "formMissing": "Dette skjemaet finnes ikke ennå. Opprett posten fra sin egen side og koble den fra fanen Relatert.",
+    "contract": {
+      "to_risk": "Risiko fra kontrakten",
+      "to_deviation": "Avvik knyttet til kontrakten",
+      "to_task": "Oppgave på kontrakten",
+      "to_dpa": "Databehandleravtale for kontrakten"
+    }
   },
   "frameworks": {
     "iso9001": "ISO 9001",

@@ -15,6 +15,7 @@ export function makeContractItem(overrides: Partial<ContractListItem> = {}): Con
     value_period: 'monthly',
     start_date: '2026-01-01',
     end_date: '2026-12-31',
+    review_date: null,
     notice_deadline: '2026-10-02',
     next_deadline: { kind: 'notice_deadline', label: null, due_date: '2026-10-02', overdue: false },
     auto_renew: true,

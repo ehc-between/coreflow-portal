@@ -13,7 +13,8 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { LanguageService } from '../../core/i18n/language.service';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
-import { Badge, BadgeTone } from '../../shared/ui/badge/badge';
+import { Badge } from '../../shared/ui/badge/badge';
+import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
 import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
 import { ContractsApi } from './data/contracts-api';
@@ -26,7 +27,7 @@ import {
   DpaClauseKey,
   DpaClauseState,
 } from './data/contract.models';
-import { isClosedContract } from './data/contract-display';
+import { dpaComplianceValue, isClosedContract } from './data/contract-display';
 import { contractErrorKey } from './data/contract-errors';
 import { dpaClauseKey } from './extraction-summary';
 
@@ -121,16 +122,17 @@ export function waiversWithoutReason(drafts: ClauseDrafts): readonly string[] {
     .map(([key]) => key);
 }
 
-export function clauseStateTone(state: string): BadgeTone {
+/** A clause state as a `compliance` tone value (present → compliant, missing → gap). */
+export function clauseStateValue(state: string): string {
   switch (state) {
     case 'present':
-      return 'pass';
+      return 'compliant';
     case 'missing':
-      return 'fail';
+      return 'gap';
     case 'waived':
-      return 'info';
+      return 'not_applicable';
     default:
-      return 'neutral';
+      return 'not_assessed';
   }
 }
 
@@ -142,24 +144,27 @@ export function clauseStateTone(state: string): BadgeTone {
  */
 @Component({
   selector: 'app-contract-dpa-checklist',
-  imports: [RouterLink, TranslocoPipe, Badge, Button, Card],
+  imports: [RouterLink, TranslocoPipe, Badge, Button, Card, StatusBadge],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-card>
       <div class="mb-1 flex flex-wrap items-center justify-between gap-2">
-        <h2 class="font-display text-[15px] font-bold text-fg">
+        <h2 class="font-display text-card font-bold text-fg">
           {{ 'contracts.dpa.checklist.title' | transloco }}
         </h2>
-        <app-badge [tone]="statusTone()" data-testid="dpa-checklist-status">
-          {{ 'contracts.dpa.status.' + contract().dpa.status | transloco }}
-        </app-badge>
+        <app-status-badge
+          meaning="compliance"
+          [value]="statusValue()"
+          [labelKey]="'contracts.dpa.status.' + contract().dpa.status"
+          data-testid="dpa-checklist-status"
+        />
       </div>
-      <p class="mb-3 text-[13px] text-fg-muted">
+      <p class="mb-3 text-ui text-fg-muted">
         {{ 'contracts.dpa.checklist.intro' | transloco }}
       </p>
 
       @if (evaluatedElsewhere(); as otherId) {
-        <p class="mb-3 text-[13px] text-fg-muted" data-testid="dpa-evaluated-elsewhere">
+        <p class="mb-3 text-ui text-fg-muted" data-testid="dpa-evaluated-elsewhere">
           {{ 'contracts.dpa.checklist.evaluatedElsewhere' | transloco }}
           <a
             [routerLink]="['/contracts', otherId]"
@@ -175,7 +180,7 @@ export function clauseStateTone(state: string): BadgeTone {
           class="mb-3 flex flex-wrap items-center gap-2 rounded-tile bg-accent-soft px-3 py-2"
           data-testid="dpa-suggestions"
         >
-          <span class="flex-1 text-[13px] text-fg">
+          <span class="flex-1 text-ui text-fg">
             {{ 'contracts.dpa.checklist.suggestions' | transloco: { count: suggestions().length } }}
           </span>
           <app-button size="sm" variant="secondary" (click)="confirmAll()">
@@ -188,7 +193,7 @@ export function clauseStateTone(state: string): BadgeTone {
         @for (item of items(); track item.key) {
           <li class="rounded-tile border border-border px-3 py-2" [attr.data-clause]="item.key">
             <div class="flex flex-wrap items-center gap-2">
-              <span class="flex-1 text-[13px] font-semibold text-fg">
+              <span class="flex-1 text-ui font-semibold text-fg">
                 {{ clauseKey(item.key) | transloco }}
               </span>
               @if (item.source === 'ai' && !confirmed().has(item.key)) {
@@ -196,9 +201,11 @@ export function clauseStateTone(state: string): BadgeTone {
                   'contracts.dpa.checklist.suggested' | transloco
                 }}</app-badge>
               }
-              <app-badge [tone]="stateTone(item.state)">
-                {{ 'contracts.dpa.clauseStates.' + item.state | transloco }}
-              </app-badge>
+              <app-status-badge
+                meaning="compliance"
+                [value]="stateValue(item.state)"
+                [labelKey]="'contracts.dpa.clauseStates.' + item.state"
+              />
             </div>
             @if (editable()) {
               <div class="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-[180px_1fr]">
@@ -207,7 +214,7 @@ export function clauseStateTone(state: string): BadgeTone {
                 </label>
                 <select
                   [id]="'dpa-state-' + item.key"
-                  class="h-9 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
+                  class="h-9 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
                   (change)="setState(item.key, $any($event.target).value)"
                   [attr.data-testid]="'dpa-state-' + item.key"
                 >
@@ -227,7 +234,7 @@ export function clauseStateTone(state: string): BadgeTone {
                   [id]="'dpa-note-' + item.key"
                   type="text"
                   maxlength="2000"
-                  class="h-9 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
+                  class="h-9 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
                   [placeholder]="
                     (draft(item.key).state === 'waived'
                       ? 'contracts.dpa.checklist.waiverReason'
@@ -241,14 +248,14 @@ export function clauseStateTone(state: string): BadgeTone {
                 />
               </div>
               @if (attempted() && missingReason().includes(item.key)) {
-                <p class="mt-1 text-[12px] text-fail" role="alert">
+                <p class="mt-1 text-meta text-fail" role="alert">
                   {{ 'contracts.errors.waiver_reason_required' | transloco }}
                 </p>
               }
               @if (item.source === 'ai' && !confirmed().has(item.key) && item.state !== 'unknown') {
                 <button
                   type="button"
-                  class="mt-1 text-[12.5px] font-semibold text-accent hover:underline"
+                  class="mt-1 text-meta font-semibold text-accent hover:underline"
                   (click)="confirm(item.key)"
                   [attr.data-testid]="'dpa-confirm-' + item.key"
                 >
@@ -256,7 +263,7 @@ export function clauseStateTone(state: string): BadgeTone {
                 </button>
               }
             } @else if (item.note) {
-              <p class="mt-1 text-[12.5px] text-fg-muted">{{ item.note }}</p>
+              <p class="mt-1 text-meta text-fg-muted">{{ item.note }}</p>
             }
           </li>
         }
@@ -302,7 +309,7 @@ export class ContractDpaChecklist {
   readonly obligationAdded = output<void>();
 
   protected readonly states = DPA_CLAUSE_STATES;
-  protected readonly stateTone = clauseStateTone;
+  protected readonly stateValue = clauseStateValue;
   protected readonly busy = signal(false);
   protected readonly attempted = signal(false);
 
@@ -316,18 +323,7 @@ export class ContractDpaChecklist {
   protected readonly editable = computed(
     () => this.contract().can_edit && !isClosedContract(this.contract().status),
   );
-  protected readonly statusTone = computed((): BadgeTone => {
-    switch (this.contract().dpa.status) {
-      case 'covered':
-        return 'pass';
-      case 'incomplete':
-        return 'warn';
-      case 'missing':
-        return 'fail';
-      default:
-        return 'neutral';
-    }
-  });
+  protected readonly statusValue = computed(() => dpaComplianceValue(this.contract().dpa.status));
   protected readonly evaluatedElsewhere = computed(() => {
     const id = this.contract().dpa.evaluated_id;
     return id && id !== this.contract().id ? id : null;

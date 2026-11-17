@@ -11,9 +11,11 @@ import {
   ContractCreate,
   ContractList,
   ContractListQuery,
+  ContractSettings,
   ContractUpdate,
   ContractVersion,
   Deadline,
+  DpaCandidate,
   DpaClauseIn,
   KeyDate,
   KeyDateIn,
@@ -38,6 +40,12 @@ export function contractListParams(query: ContractListQuery): QueryParams {
     owner: query.owner || undefined,
     expiring_within_days: query.expiring_within_days,
     processes_personal_data: query.processes_personal_data,
+    personal_data_role: query.personal_data_role?.length
+      ? query.personal_data_role.join(',')
+      : undefined,
+    supplier_id: query.supplier_id || undefined,
+    warning: query.warning?.length ? query.warning.join(',') : undefined,
+    dpa_missing: query.dpa_missing || undefined,
     sort: query.sort,
     limit: query.limit,
     offset: query.offset,
@@ -60,17 +68,64 @@ export class ContractsApi {
     });
   }
 
+  /** The register as CSV (same filters as the list; headers and labels in `lang`). */
+  exportCsv(orgId: string, query: ContractListQuery, lang: string): Observable<Blob> {
+    const params = contractListParams({ ...query, limit: undefined, offset: undefined });
+    return this.api.getBlob(`${this.base(orgId)}/export`, {
+      ...IN_PLACE,
+      params: { ...params, lang },
+    });
+  }
+
+  /** `owner`: `me` (the "Mine" filter) or a user id. */
   deadlines(
     orgId: string,
     withinDays = 90,
     includeOverdue = true,
+    owner?: string,
   ): Observable<readonly Deadline[]> {
     return this.api
       .get<{ items: readonly Deadline[] }>(`${this.base(orgId)}/deadlines`, {
         ...IN_PLACE,
-        params: { within_days: withinDays, include_overdue: includeOverdue },
+        params: {
+          within_days: withinDays,
+          include_overdue: includeOverdue,
+          owner: owner || undefined,
+        },
       })
       .pipe(map((r) => r.items));
+  }
+
+  /** The deadlines as an iCalendar file (all-day events) for Outlook or Google Calendar. */
+  deadlinesIcs(orgId: string, withinDays: number, lang: string, owner?: string): Observable<Blob> {
+    return this.api.getBlob(`${this.base(orgId)}/deadlines/export.ics`, {
+      ...IN_PLACE,
+      params: { within_days: withinDays, lang, owner: owner || undefined },
+    });
+  }
+
+  settings(orgId: string): Observable<ContractSettings> {
+    return this.api.get<ContractSettings>(`${this.base(orgId)}/settings`, IN_PLACE);
+  }
+
+  updateSettings(orgId: string, body: Partial<ContractSettings>): Observable<ContractSettings> {
+    return this.api.put<ContractSettings>(`${this.base(orgId)}/settings`, body, IN_PLACE);
+  }
+
+  /** DPA contracts that could cover this contract, best counterparty match first. */
+  dpaCandidates(orgId: string, id: string): Observable<readonly DpaCandidate[]> {
+    return this.api
+      .get<{ items: readonly DpaCandidate[] }>(`${this.base(orgId)}/${id}/dpa-candidates`, IN_PLACE)
+      .pipe(map((r) => r.items));
+  }
+
+  /** Link a DPA contract to this contract (422 `not_a_dpa`, 409 `link_exists`). */
+  linkDpa(orgId: string, id: string, dpaId: string): Observable<Contract> {
+    return this.api.post<Contract>(
+      `${this.base(orgId)}/${id}/dpa-links`,
+      { dpa_id: dpaId },
+      IN_PLACE,
+    );
   }
 
   get(orgId: string, id: string): Observable<Contract> {

@@ -77,16 +77,69 @@ export const CONTRACT_ACTIONS = [
   'reject',
   'activate',
   'renew',
+  'review',
   'terminate',
   'expire',
 ] as const;
 export type ContractAction = (typeof CONTRACT_ACTIONS)[number];
 
 /** Actions whose body must carry a note (422 `note_required`). */
-export const NOTE_REQUIRED_ACTIONS: readonly ContractAction[] = ['reject', 'terminate'];
+export const NOTE_REQUIRED_ACTIONS: readonly ContractAction[] = ['approve', 'reject', 'terminate'];
 
-/** Deadline kinds: the contract's own dates plus the key-date kinds. */
-export const DEADLINE_KINDS = ['notice_deadline', 'end_date', 'review_date', ...KEY_DATE_KINDS];
+/**
+ * Deadline kinds: the contract's own dates plus the key-date kinds. The review date
+ * and review key dates are both `review` (older servers sent `review_date`).
+ */
+export const DEADLINE_KINDS: readonly string[] = ['notice_deadline', 'end_date', ...KEY_DATE_KINDS];
+
+/**
+ * The GDPR role of the counterparty: none · they process personal data for us (they
+ * are our processor) · we process personal data for them (we are their processor) ·
+ * joint controllers (Art. 26). Replaces the bare `processes_personal_data` flag.
+ */
+export const PERSONAL_DATA_ROLES = [
+  'none',
+  'they_process',
+  'we_process',
+  'joint_controllers',
+] as const;
+export type PersonalDataRole = (typeof PERSONAL_DATA_ROLES)[number];
+
+/** Legal basis of transfers outside the EU/EEA (GDPR chapter V). */
+export const TRANSFER_BASES = ['none', 'adequacy', 'scc', 'bcr', 'derogation', 'other'] as const;
+export type TransferBasis = (typeof TRANSFER_BASES)[number];
+
+/** What needs attention on a contract, most important first (list rows and detail). */
+export const CONTRACT_WARNINGS = [
+  'dpa_missing',
+  'dpa_incomplete',
+  'signed_copy_missing',
+  'review_overdue',
+  'review_date_missing',
+  'notice_soon',
+  'end_date_missing',
+  'notice_period_missing',
+] as const;
+export type ContractWarning = (typeof CONTRACT_WARNINGS)[number];
+
+/** The approver's answer to one review question (`no` means: send it back instead). */
+export const REVIEW_ANSWERS = ['yes', 'no', 'na'] as const;
+export type ReviewAnswer = (typeof REVIEW_ANSWERS)[number];
+
+/** The review questions the server may ask (`review_items`); each has an i18n label. */
+export const REVIEW_ITEM_KEYS: readonly string[] = [
+  'requirements_defined',
+  'differences_resolved',
+  'able_to_deliver',
+  'terms_acceptable',
+  'supplier_approved',
+  'security_clauses',
+  'confidentiality_scope',
+  'dpa_in_place',
+  'dpa_clauses_checked',
+  'sub_processors_known',
+  'transfers_assessed',
+];
 
 /** GDPR Art. 28(3) clause keys the DPA check and the extraction report on. */
 export const DPA_CLAUSE_KEYS = [
@@ -143,16 +196,29 @@ export interface ContractListItem {
   readonly status: ContractStatus;
   readonly owner: UserRef | null;
   readonly counterparties: readonly string[];
+  /** Supplier-register records among the parties. */
+  readonly supplier_ids?: readonly string[];
   readonly value_amount: string | null;
   readonly currency: string | null;
   readonly value_period: ValuePeriod | null;
   readonly start_date: string | null;
   readonly end_date: string | null;
+  readonly review_date: string | null;
   readonly notice_deadline: string | null;
+  /** Days left to give notice, while the notice deadline is ahead. */
+  readonly notice_due_in_days?: number | null;
   readonly next_deadline: NextDeadline | null;
   readonly auto_renew: boolean;
   readonly confidential: boolean;
   readonly processes_personal_data: boolean;
+  readonly personal_data_role?: PersonalDataRole;
+  readonly transfer_basis?: TransferBasis | null;
+  readonly ict_critical?: boolean;
+  readonly involves_ai_system?: boolean;
+  /** Same rule as `Contract.dpa.status`. */
+  readonly dpa_status?: DpaState;
+  /** What needs attention, most important first. */
+  readonly warnings?: readonly ContractWarning[];
   readonly current_version: number;
   readonly created_at: string;
   readonly updated_at: string;
@@ -165,9 +231,12 @@ export interface ContractList {
 
 export interface PartyIn {
   readonly name: string;
-  readonly role: PartyRole;
+  /** Omitted: the server picks the role from the contract type. */
+  readonly role?: PartyRole | null;
   readonly is_internal: boolean;
   readonly org_number?: string | null;
+  /** Link to a supplier-register record (null unlinks on PATCH). */
+  readonly supplier_id?: string | null;
   readonly contact_name?: string | null;
   readonly contact_email?: string | null;
 }
@@ -176,12 +245,24 @@ export interface PartyUpdate extends Partial<PartyIn> {
   readonly position?: number;
 }
 
+/** The supplier a party is linked to; only `id` without `suppliers:read`. */
+export interface SupplierRef {
+  readonly id: string;
+  readonly code?: string | null;
+  readonly name?: string | null;
+  readonly criticality?: string | null;
+  readonly status?: string | null;
+  readonly url?: string | null;
+}
+
 export interface Party {
   readonly id: string;
   readonly name: string;
   readonly role: PartyRole;
   readonly is_internal: boolean;
   readonly org_number: string | null;
+  readonly supplier_id?: string | null;
+  readonly supplier?: SupplierRef | null;
   readonly contact_name: string | null;
   readonly contact_email: string | null;
   readonly position: number;
@@ -228,6 +309,8 @@ export interface ContractVersion {
   readonly effective_date: string | null;
   readonly signed: boolean;
   readonly attachment_id: string | null;
+  /** Marked signed, but no signed copy is attached. */
+  readonly copy_missing?: boolean;
   readonly created_by: UserRef | null;
   readonly created_at: string;
 }
@@ -250,12 +333,23 @@ export interface DpaClauseIn {
   readonly source?: DpaClauseSource;
 }
 
+export interface ContractBrief {
+  readonly id: string;
+  readonly code: string;
+  readonly title: string;
+  readonly status: ContractStatus;
+}
+
 export interface DpaCoverage {
   readonly required: boolean;
   readonly status: DpaState;
+  /** The GDPR role the status is based on. */
+  readonly role?: PersonalDataRole;
   readonly linked_dpa_ids: readonly string[];
   /** Signed agreements with a complete checklist that cover this contract. */
   readonly covering_ids?: readonly string[];
+  /** On a DPA: the contracts it covers ("Covers: CT-0001"). */
+  readonly covers?: readonly ContractBrief[];
   /** The agreement the reasons and clause lists describe (this contract or a linked DPA). */
   readonly evaluated_id?: string | null;
   readonly signed?: boolean;
@@ -266,11 +360,24 @@ export interface DpaCoverage {
   readonly checklist?: readonly DpaChecklistItem[];
 }
 
+export interface ReviewAnswerOut {
+  readonly key: string;
+  readonly answer: ReviewAnswer;
+}
+
+/** The requirements review recorded with the approval (ISO 9001 8.2.3, ISO 27001 A.5.20). */
+export interface ApprovalReview {
+  readonly items: readonly ReviewAnswerOut[];
+  readonly note: string | null;
+  readonly reviewed_by: UserRef | null;
+  readonly reviewed_at: string | null;
+}
+
 export interface Contract extends ContractListItem {
   readonly description: string | null;
   readonly department_id: string | null;
   readonly signed_date: string | null;
-  readonly review_date: string | null;
+  readonly transfer_countries?: string | null;
   readonly notice_period_days: number | null;
   readonly renewal_term_months: number | null;
   readonly renewal_notes: string | null;
@@ -280,6 +387,13 @@ export interface Contract extends ContractListItem {
   readonly submitted_by: UserRef | null;
   readonly approved_at: string | null;
   readonly approved_by: UserRef | null;
+  readonly approval_review?: ApprovalReview | null;
+  /** The questions the approver answers for this contract. */
+  readonly review_items?: readonly string[];
+  /** `self_approval`: the caller submitted or owns it and an independent approver is required. */
+  readonly approval_blocked_reason?: 'self_approval' | null;
+  readonly last_reviewed_at?: string | null;
+  readonly last_reviewed_by?: UserRef | null;
   readonly created_by: UserRef | null;
   readonly parties: readonly Party[];
   readonly key_dates: readonly KeyDate[];
@@ -287,6 +401,8 @@ export interface Contract extends ContractListItem {
   readonly versions: readonly ContractVersion[];
   readonly open_obligations: number;
   readonly dpa: DpaCoverage;
+  /** Canonical clause refs this kind of contract documents (type + flags). */
+  readonly requirement_refs?: readonly string[];
   readonly allowed_actions: readonly ContractAction[];
   readonly can_edit: boolean;
   readonly can_delete: boolean;
@@ -300,6 +416,12 @@ export interface ContractFields {
   readonly owner_user_id?: string | null;
   readonly department_id?: string | null;
   readonly processes_personal_data?: boolean | null;
+  /** Wins over `processes_personal_data`. */
+  readonly personal_data_role?: PersonalDataRole | null;
+  readonly transfer_basis?: TransferBasis | null;
+  readonly transfer_countries?: string | null;
+  readonly ict_critical?: boolean | null;
+  readonly involves_ai_system?: boolean | null;
   readonly value_amount?: string | null;
   readonly currency?: string | null;
   readonly value_period?: ValuePeriod | null;
@@ -321,6 +443,8 @@ export interface ContractCreate extends ContractFields {
   readonly parties?: readonly PartyIn[];
   /** Checklist findings to store with the new contract (e.g. missing clauses from the extraction). */
   readonly dpa_clauses?: readonly DpaClauseIn[];
+  /** Link the counterparty to this supplier (create-from-supplier flow). */
+  readonly supplier_id?: string | null;
 }
 
 export interface ContractUpdate extends ContractFields {
@@ -329,10 +453,19 @@ export interface ContractUpdate extends ContractFields {
   readonly change_reason?: string | null;
 }
 
+export interface ReviewAnswerIn {
+  readonly key: string;
+  readonly answer: ReviewAnswer;
+}
+
 export interface ContractActionBody {
   readonly note?: string | null;
   readonly effective_date?: string | null;
   readonly new_end_date?: string | null;
+  /** `approve`: an answer to every `review_items` key. */
+  readonly checklist?: readonly ReviewAnswerIn[];
+  /** `review`: the next review date (default today + the org's review interval). */
+  readonly next_review_date?: string | null;
 }
 
 export interface ContractListQuery {
@@ -343,6 +476,11 @@ export interface ContractListQuery {
   readonly owner?: string;
   readonly expiring_within_days?: number;
   readonly processes_personal_data?: boolean;
+  readonly personal_data_role?: readonly PersonalDataRole[];
+  readonly supplier_id?: string;
+  /** Any of these warnings. */
+  readonly warning?: readonly ContractWarning[];
+  readonly dpa_missing?: boolean;
   readonly sort?: ContractSort;
   readonly limit?: number;
   readonly offset?: number;
@@ -354,12 +492,36 @@ export interface Deadline {
   readonly title: string;
   readonly contract_type: ContractType;
   readonly status: ContractStatus;
+  readonly owner?: UserRef | null;
+  readonly counterparties?: readonly string[];
   readonly kind: string;
   readonly label: string | null;
   readonly due_date: string;
+  readonly days_left?: number;
   readonly overdue: boolean;
   readonly key_date_id: string | null;
   readonly url: string;
+}
+
+/** A DPA contract that could cover this contract (best counterparty match first). */
+export interface DpaCandidate {
+  readonly id: string;
+  readonly code: string;
+  readonly title: string;
+  readonly status: ContractStatus;
+  readonly dpa_status: DpaState;
+  readonly counterparties: readonly string[];
+  readonly match: 'supplier' | 'org_number' | 'name' | null;
+  readonly linked: boolean;
+  readonly url: string;
+}
+
+/** Org-wide contract settings (`GET` / `PUT contracts/settings`). */
+export interface ContractSettings {
+  /** Segregation of duties: the submitter and the owner cannot approve. */
+  readonly require_independent_approver: boolean;
+  /** Months between periodic reviews (1-60). */
+  readonly default_review_months: number;
 }
 
 export interface ObligationCreate {

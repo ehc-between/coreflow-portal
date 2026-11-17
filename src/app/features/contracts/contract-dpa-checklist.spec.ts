@@ -10,7 +10,7 @@ import {
 } from './contract-dpa-checklist';
 import { makeContract } from './contracts.testing';
 import { Contract, DPA_CLAUSE_KEYS, DpaChecklistItem } from './data/contract.models';
-import { dpaTone } from './data/contract-display';
+import { dpaComplianceValue } from './data/contract-display';
 
 function item(key: string, overrides: Partial<DpaChecklistItem> = {}): DpaChecklistItem {
   return {
@@ -100,9 +100,9 @@ describe('DPA checklist helpers', () => {
   });
 
   it('shows incomplete as a warning, never as covered', () => {
-    expect(dpaTone('incomplete')).toBe('warn');
-    expect(dpaTone('covered')).toBe('pass');
-    expect(dpaTone('missing')).toBe('fail');
+    expect(dpaComplianceValue('incomplete')).toBe('partial');
+    expect(dpaComplianceValue('covered')).toBe('covered');
+    expect(dpaComplianceValue('missing')).toBe('gap');
   });
 });
 
@@ -130,9 +130,11 @@ describe('ContractDpaChecklist', () => {
   it('marks assistant findings as suggestions and confirms them as the person', async () => {
     const { http, fixture, el } = setup(dpaContract());
     await render(fixture);
-    expect(el.querySelector('[data-testid="dpa-checklist-status"]')?.textContent).toContain(
-      'incomplete',
-    );
+    expect(
+      el
+        .querySelector('[data-testid="dpa-checklist-status"] [data-tone]')
+        ?.getAttribute('data-tone'),
+    ).toBe('warn');
     expect(el.querySelector('[data-testid="dpa-suggestions"]')).toBeTruthy();
     expect(
       (el.querySelector('[data-testid="dpa-save"] button') as HTMLButtonElement).disabled,
