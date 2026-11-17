@@ -86,6 +86,9 @@ export class OrganizationDetail implements OnInit {
     readonly action: 'deactivate' | 'reactivate';
   } | null>(null);
   protected readonly toggling = signal(false);
+  /** Member awaiting "reset two-step verification" confirmation. */
+  protected readonly pendingMfaReset = signal<OrgMember | null>(null);
+  protected readonly resettingMfa = signal(false);
   protected readonly currentUserId = computed(() => this.auth.user()?.id ?? null);
 
   protected readonly form = this.fb.nonNullable.group({
@@ -196,6 +199,29 @@ export class OrganizationDetail implements OnInit {
         this.toggling.set(false);
         this.pendingToggle.set(null);
         this.notifications.error(memberErrorKey(error, action));
+      },
+    });
+  }
+
+  /** Clear the member's second factors (lost device and codes); they are signed out. */
+  protected confirmMfaReset(): void {
+    const member = this.pendingMfaReset();
+    if (!member || this.resettingMfa()) {
+      return;
+    }
+    this.resettingMfa.set(true);
+    this.admin.resetUserMfa(member.user_id).subscribe({
+      next: () => {
+        this.resettingMfa.set(false);
+        this.pendingMfaReset.set(null);
+        this.notifications.success('admin.users.resetMfaToast', {
+          name: member.full_name || member.email,
+        });
+      },
+      error: () => {
+        this.resettingMfa.set(false);
+        this.pendingMfaReset.set(null);
+        this.notifications.error('admin.users.resetMfaFailed');
       },
     });
   }

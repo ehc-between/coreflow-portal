@@ -13,7 +13,7 @@ import { Icon } from '../../shared/ui/icon/icon';
 
 /**
  * Top-bar avatar menu: shows the signed-in user (name + email) and offers
- * "Change password", "Notification settings", the learning-mode level switch (three
+ * "Change password", "Two-step verification", "Signed-in devices", "Notification settings", the learning-mode level switch (three
  * levels plus "use organisation default") with a link to the learning centre,
  * "Sign out" and "Sign out of all devices". Closes on outside-click and Escape.
  */
@@ -65,6 +65,24 @@ import { Icon } from '../../shared/ui/icon/icon';
         >
           <span class="flex text-fg-subtle"><app-icon name="lock" [size]="16" /></span>
           {{ 'auth.menu.changePassword' | transloco }}
+        </a>
+        <a
+          role="menuitem"
+          routerLink="/account/security"
+          (click)="close()"
+          class="flex items-center gap-2.5 rounded-tile px-2 py-2 text-ui font-medium text-fg hover:bg-surface-2"
+        >
+          <span class="flex text-fg-subtle"><app-icon name="shield" [size]="16" /></span>
+          {{ 'auth.menu.security' | transloco }}
+        </a>
+        <a
+          role="menuitem"
+          routerLink="/account/sessions"
+          (click)="close()"
+          class="flex items-center gap-2.5 rounded-tile px-2 py-2 text-ui font-medium text-fg hover:bg-surface-2"
+        >
+          <span class="flex text-fg-subtle"><app-icon name="devices" [size]="16" /></span>
+          {{ 'auth.menu.sessions' | transloco }}
         </a>
         <a
           role="menuitem"
