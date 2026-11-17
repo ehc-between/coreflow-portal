@@ -1,7 +1,9 @@
+import guideEn from '../../../assets/guidance/en/standards.json';
+import guideNb from '../../../assets/guidance/nb/standards.json';
 import en from '../../../assets/i18n/standards/en.json';
 import nb from '../../../assets/i18n/standards/nb.json';
 import globalEn from '../../../assets/i18n/en.json';
-import { STANDARDS_LESSONS } from './guide/standards-lesson';
+import { expectKeyParity } from '../../../testing/i18n-parity';
 
 interface Tree {
   readonly [key: string]: Tree | string;
@@ -22,9 +24,13 @@ function get(tree: Tree, path: string): Tree | string | undefined {
     >((node, key) => (node && typeof node === 'object' ? node[key] : undefined), tree);
 }
 
-/** `{{param}}` names used in a string, sorted. */
+/**
+ * `{{param}}` names used in a string, sorted. Event payloads carry a Norwegian
+ * twin of display params (`standard_name_nb`, `requirement_label_nb`), so the
+ * `_nb` suffix counts as the same param.
+ */
 function params(text: string): string[] {
-  return [...text.matchAll(/\{\{\s*([\w.]+)\s*\}\}/g)].map((m) => m[1]).sort();
+  return [...text.matchAll(/\{\{\s*([\w.]+)\s*\}\}/g)].map((m) => m[1].replace(/_nb$/, '')).sort();
 }
 
 describe('standards scope translations', () => {
@@ -69,33 +75,39 @@ describe('standards scope translations', () => {
     }
   });
 
-  it('has every text of every micro-lesson', () => {
-    for (const lesson of Object.values(STANDARDS_LESSONS)) {
-      const base = `lesson.${lesson.key}`;
-      const keys = [
-        'title',
-        'question',
-        'explanation',
-        ...lesson.sections.flatMap((s) => [`${s}Heading`, `${s}Body`]),
-        ...lesson.options,
-      ];
-      for (const key of keys) {
-        expect(typeof get(en as Tree, `${base}.${key}`), `${base}.${key}`).toBe('string');
+  it('shows display names in notifications, never raw standard keys', () => {
+    for (const kind of ['standardEnabled', 'standardDisabled', 'requirementUpdated']) {
+      expect(get(en as Tree, `notifications.${kind}`)).toContain('{{standard_name}}');
+      expect(get(nb as Tree, `notifications.${kind}`)).toContain('{{standard_name_nb}}');
+    }
+    expect(JSON.stringify([en, nb])).not.toContain('{{standard_key}}');
+  });
+
+  it('keeps the guidance file at full en/nb parity', () => expectKeyParity(guideEn, guideNb));
+
+  it('has an intro for every page with a help strip, a lesson and a tour', () => {
+    for (const page of ['overview', 'readiness', 'workspace', 'gaps']) {
+      expect(guideEn.pages[page as keyof typeof guideEn.pages].intro.title, page).toBeTruthy();
+    }
+    expect(Object.keys(guideEn.lessons)).toEqual(
+      expect.arrayContaining(['requirements-and-evidence', 'readiness']),
+    );
+    expect(guideEn.tours.overview.length).toBeGreaterThan(0);
+    for (const lesson of Object.values(guideEn.lessons)) {
+      for (const q of lesson.quiz) {
+        expect(q.answer).toBeLessThan(q.options.length);
       }
-      expect(lesson.answer).toBeLessThan(lesson.options.length);
     }
   });
 
-  it('has the guide steps of every guided page', () => {
-    for (const page of ['overview', 'readiness']) {
-      for (const key of ['title', 'body', 'step1', 'step2', 'step3', 'why']) {
-        expect(typeof get(en as Tree, `guide.${page}.${key}`), `${page}.${key}`).toBe('string');
-      }
-    }
+  it('uses the nb glossary words (no "bevis", "påbegynt", "rammeverk" or "AI")', () => {
+    const text = JSON.stringify([nb, guideNb]);
+    expect(text).not.toMatch(/\bbevis\b|påbegynt|rammeverk|beredskap/i);
+    expect(text).not.toMatch(/\bAI\b/);
   });
 
   it('contains no vendor or model names', () => {
-    const all = JSON.stringify([en, nb]);
+    const all = JSON.stringify([en, nb, guideEn, guideNb]);
     expect(all).not.toMatch(/claude|anthropic|openai|\bgpt\b|gemini/i);
   });
 });

@@ -120,7 +120,7 @@ describe('StandardWorkspace', () => {
     await fixture.whenStable();
   }
 
-  async function setup(number?: string, reqRef?: string): Promise<void> {
+  async function setup(number?: string, reqRef?: string, filter?: string): Promise<void> {
     TestBed.configureTestingModule({
       imports: [StandardWorkspace, TranslocoTestingModule.forRoot({ langs: { en: {} } })],
       providers: [
@@ -134,7 +134,10 @@ describe('StandardWorkspace', () => {
           provide: APP_CONFIG,
           useValue: { apiBaseUrl: BASE, i18n: { availableLanguages: ['en', 'nb'] } },
         },
-        { provide: AuthService, useValue: { orgs: signal({}).asReadonly() } },
+        {
+          provide: AuthService,
+          useValue: { orgs: signal({}).asReadonly(), isAuthenticated: () => true },
+        },
         {
           provide: SelectedOrgService,
           useValue: {
@@ -149,13 +152,16 @@ describe('StandardWorkspace', () => {
         },
       ],
     });
-    await mount(number, reqRef);
+    await mount(number, reqRef, filter);
   }
 
   /** Create the workspace (again) and answer its two loads. */
-  async function mount(number?: string, reqRef?: string): Promise<void> {
+  async function mount(number?: string, reqRef?: string, filter?: string): Promise<void> {
     fixture = TestBed.createComponent(StandardWorkspace);
     fixture.componentRef.setInput('key', KEY);
+    if (filter) {
+      fixture.componentRef.setInput('filter', filter);
+    }
     if (number) {
       fixture.componentRef.setInput('number', number);
     }
@@ -172,12 +178,29 @@ describe('StandardWorkspace', () => {
   }
 
   afterEach(() => {
-    // Optional side loads of an expanded requirement card (entity types, evidence).
+    // Optional side loads: an expanded requirement card (entity types, evidence),
+    // the help strip's guidance file and glossary, assignee options.
     http
-      .match((r) => r.url.endsWith('/entity-types') || r.url.endsWith('/evidence'))
+      .match(
+        (r) =>
+          r.url.endsWith('/entity-types') ||
+          r.url.endsWith('/evidence') ||
+          r.url.includes('/assets/guidance/') ||
+          r.url.includes('/me/preferences') ||
+          r.url.endsWith('/members') ||
+          r.url.endsWith('/departments'),
+      )
       .filter((r) => !r.cancelled)
       .forEach((r) =>
-        r.flush(r.request.url.endsWith('/entity-types') ? { items: [], link_types: [] } : null),
+        r.flush(
+          r.request.url.endsWith('/entity-types')
+            ? { items: [], link_types: [] }
+            : r.request.url.includes('/assets/guidance/')
+              ? {}
+              : r.request.url.endsWith('/evidence')
+                ? null
+                : [],
+        ),
       );
     flushLocationRequests(http); // requirement-locations (L4)
     http.verify();
@@ -393,6 +416,11 @@ describe('StandardWorkspace', () => {
     select.value = 'covered';
     select.dispatchEvent(new Event('change'));
     await render();
+    // A manual "covered" needs a note saying why.
+    const note = el.querySelector<HTMLTextAreaElement>('#sec-4_2 textarea[id$="-note"]')!;
+    note.value = 'Scope statement approved';
+    note.dispatchEvent(new Event('input'));
+    await render();
     const save = Array.from(
       el.querySelectorAll<HTMLButtonElement>('#sec-4_2 app-button button'),
     ).find((b) => b.textContent?.includes('standards.requirement.save'))!;
@@ -401,7 +429,10 @@ describe('StandardWorkspace', () => {
     const patch = http.expectOne((r) => r.method === 'PATCH');
     expect(patch.request.url).toBe(`${ROOT}/standard-requirements/iso%3A4.2.r1`);
     // An unchanged "applies" box is not an applicability decision, so it is not sent.
-    expect(patch.request.body).toEqual({ status_override: 'covered', note: null });
+    expect(patch.request.body).toEqual({
+      status_override: 'covered',
+      note: 'Scope statement approved',
+    });
     const saved: RequirementDetail = {
       ...req('iso:4.2.r1', 'covered'),
       status_override: 'covered',
@@ -415,6 +446,109 @@ describe('StandardWorkspace', () => {
     expect(el.querySelector('#sec-4_2 app-requirement-row')?.textContent).toContain(
       'standards.status.covered',
     );
+  });
+
+  // --- A03: slugs, labels, filters, SoA and audits -----------------------------
+
+  it('opens a section from its URL slug and shows the localised label', async () => {
+    fixtureTree = [
+      node('Chapter II', {
+        slug: 'chapter-ii',
+        label: { en: 'Chapter II', nb: 'Kapittel II' },
+        requirements: [req('iso:Chapter II.r1', 'not_started')],
+      }),
+      ...TREE,
+    ];
+    await setup('chapter-ii');
+    expect(current()).toBe(tocDomId('Chapter II'));
+    // TOC links use the slug, never an encoded number.
+    expect(tocEntry('Chapter II')?.getAttribute('href')).toBe(`/standards/${KEY}/chapter-ii`);
+  });
+
+  it('preselects the "old or weak evidence" filter from ?filter=stale', async () => {
+    fixtureTree = [
+      node('4', {
+        children: [
+          node('4.1', {
+            requirements: [{ ...req('iso:4.1.r1', 'covered'), evidence_state: 'stale' }],
+          }),
+          node('4.2', { requirements: [req('iso:4.2.r1', 'covered')] }),
+        ],
+      }),
+    ];
+    await setup(undefined, undefined, 'stale');
+    expect(sectionIds()).toEqual(['sec-4', 'sec-4_1']);
+    expect(el.querySelector('[data-testid="filter-stale"]')).not.toBeNull();
+    expect(el.querySelector('[data-testid="evidence-state"]')?.textContent).toContain(
+      'standards.evidenceState.stale',
+    );
+  });
+
+  it('shows the SoA decision and the audit facts on an Annex A control', async () => {
+    fixtureTree = [
+      node('A', {
+        children: [
+          node('A.5.15', {
+            kind: 'annex_control',
+            soa: {
+              id: 'soa-1',
+              applicable: true,
+              implementation_status: 'implemented',
+              justification: 'Access is role based',
+              inclusion_reasons: ['risk_assessment'],
+              owner: { id: 'u-1', name: 'Lars Olsen' },
+              reviewed_at: '2026-09-01T10:00:00',
+              risks: [
+                {
+                  id: 'r-1',
+                  code: 'RSK-0003',
+                  title: 'Unauthorised access',
+                  url: '/risk/risks/r-1',
+                },
+              ],
+              treatment_count: 2,
+              url: '/risk/soa?control=A.5.15',
+            },
+            audit: {
+              last_audited_at: '2026-05-10T09:00:00',
+              next_audit_at: '2027-05-10T09:00:00',
+              plans: [],
+              open_findings: [
+                {
+                  id: 'f-1',
+                  code: 'F-12',
+                  title: 'Access reviews late',
+                  finding_type: 'minor_nc',
+                  status: 'open',
+                  url: '/audits/findings/f-1',
+                },
+              ],
+              open_findings_count: 1,
+              open_nc_count: 1,
+            },
+            requirements: [req('iso:A.5.15.r1', 'not_started')],
+          }),
+        ],
+      }),
+    ];
+    await setup('A.5.15');
+    const soa = el.querySelector('#sec-A_5_15 [data-testid="soa-panel"]');
+    expect(soa?.textContent).toContain('Access is role based');
+    expect(soa?.textContent).toContain('RSK-0003');
+    expect(soa?.querySelector('[data-testid="soa-open"]')?.getAttribute('href')).toBe(
+      '/risk/soa?control=A.5.15',
+    );
+    const audit = el.querySelector('#sec-A_5_15 [data-testid="clause-audit"]');
+    expect(audit?.textContent).toContain('standards.audit.lastAudited');
+    expect(audit?.textContent).toContain('F-12');
+  });
+
+  it('shows the previous / next footer only at the end of a chapter', async () => {
+    await setup();
+    const footer = (id: string) => el.querySelector(`#${id} nav[aria-label]`);
+    // 4.1 is followed by 4.2 (same chapter): no footer. 4.2 ends chapter 4: footer.
+    expect(footer('sec-4_1')).toBeNull();
+    expect(footer('sec-4_2')).not.toBeNull();
   });
 
   // --- AI suggestions & mapping status ----------------------------------------
@@ -561,9 +695,11 @@ describe('StandardWorkspace', () => {
     await render();
     expect(el.querySelector('app-standard-job-progress')).toBeNull();
     const done = el.querySelector('[data-testid="mapping-done"]')!;
-    expect(done.textContent).toContain('standards.mapping.lastMapped');
-    // "Show requirements with suggestions" turns the filter on.
-    done.querySelector<HTMLButtonElement>('[data-testid="mapping-show-suggestions"]')!.click();
+    expect(done.textContent).toContain('standards.mapping.lastMappedOn');
+    // The suggestions waiting for review are the recommended next step.
+    const step = el.querySelector('[data-testid="next-step"]')!;
+    expect(step.textContent).toContain('standards.nextStep.suggestions');
+    step.querySelector<HTMLButtonElement>('app-button button')!.click();
     await render();
     expect(sectionIds()).toEqual(['sec-4', 'sec-4_1']);
   });

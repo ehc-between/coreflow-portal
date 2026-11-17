@@ -38,6 +38,7 @@ import { Badge } from '../../../shared/ui/badge/badge';
 import { Card } from '../../../shared/ui/card/card';
 import { EmptyState } from '../../../shared/ui/empty-state/empty-state';
 import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
 import { PageHeader } from '../../../shared/ui/page-header/page-header';
@@ -69,6 +70,7 @@ export function fixActions(gap: RequirementGap): readonly EvidencingType[] {
     Card,
     EmptyState,
     ErrorState,
+    HelpStrip,
     Icon,
     LoadingState,
     PageHeader,
@@ -94,6 +96,8 @@ export function fixActions(gap: RequirementGap): readonly EvidencingType[] {
           {{ 'standards.reqs.gaps.openStandard' | transloco }}
         </a>
       </app-page-header>
+
+      <app-help-strip scope="standards" page="gaps" />
 
       @if (notEnabled()) {
         <app-empty-state

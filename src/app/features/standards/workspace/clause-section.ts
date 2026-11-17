@@ -4,11 +4,15 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { clauseKindKey, metaChips } from '../../../core/standards/frameworks-data';
 import { localized, pctColor } from '../../../core/standards/standards-data';
+import { clauseLabel } from '../../../core/standards/standards-display';
+import { Term } from '../../../shared/guidance/term';
 import { LocalizedText, RequirementDetail } from '../../../core/standards/standards.models';
 import { Badge } from '../../../shared/ui/badge/badge';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { ProgressBar } from '../../../shared/ui/progress-bar/progress-bar';
 import { themeKey } from '../standard-themes';
+import { ClauseAudit, SoaPanel } from './clause-facts';
+import { ClauseLink } from './clause-link';
 import { ClauseMappings } from './clause-mappings';
 import { RequirementRow } from './requirement-row';
 import { SectionView, sectionDomId } from './workspace-data';
@@ -24,6 +28,10 @@ export type LicensedState =
 export interface SectionLink {
   readonly number: string;
   readonly title: LocalizedText;
+  /** The number as shown in the UI language. */
+  readonly label?: string;
+  /** URL segment (slug, else the number). */
+  readonly segment?: string;
 }
 
 /**
@@ -38,8 +46,12 @@ export interface SectionLink {
     RouterLink,
     TranslocoPipe,
     Badge,
+    ClauseAudit,
+    ClauseLink,
     ClauseMappings,
     Icon,
+    SoaPanel,
+    Term,
     ProgressBar,
     RequirementRow,
     SpySection,
@@ -50,7 +62,7 @@ export interface SectionLink {
     @let node = s.node;
     @if (s.themeHeading; as theme) {
       <div
-        class="mt-10 mb-2 border-b border-border pb-2 text-[11.5px] font-bold tracking-[0.1em] text-fg-subtle uppercase"
+        class="mt-10 mb-2 border-b border-border pb-2 text-micro font-bold tracking-wider text-fg-subtle uppercase"
       >
         @if (themeKey(theme); as k) {
           {{ k | transloco }}
@@ -73,11 +85,11 @@ export interface SectionLink {
               [id]="domId() + '-h'"
               role="heading"
               [attr.aria-level]="headingLevel()"
-              class="flex items-baseline gap-3 font-display tracking-[-0.02em] text-fg"
+              class="flex items-baseline gap-3 font-display tracking-tight text-fg"
               [class]="headingClass()"
             >
               <span class="flex-none font-mono font-semibold text-fg-subtle tabular-nums">{{
-                s.number
+                label()
               }}</span>
               <span class="min-w-0">{{ text(node.title) }}</span>
             </div>
@@ -86,7 +98,11 @@ export interface SectionLink {
             @if (kindKey || node.hs || chips.roles.length > 0 || chips.riskClasses.length > 0) {
               <div class="mt-1.5 flex flex-wrap items-center gap-1.5">
                 @if (kindKey) {
-                  <app-badge tone="info">{{ kindKey | transloco }}</app-badge>
+                  <app-badge tone="info"
+                    ><app-term [key]="kindTerm(node.kind)" scope="standards">{{
+                      kindKey | transloco
+                    }}</app-term></app-badge
+                  >
                 }
                 @if (node.hs; as hs) {
                   <span [title]="'standards.hs.title' | transloco: { clause: hs }">
@@ -95,8 +111,13 @@ export interface SectionLink {
                     }}</app-badge>
                   </span>
                 }
+                @if (node.exclusion === 'not_allowed' && s.depth === 0) {
+                  <span [title]="'standards.exclusion.notAllowed' | transloco">
+                    <app-badge>{{ 'standards.exclusion.badge' | transloco }}</app-badge>
+                  </span>
+                }
                 @if (chips.roles.length > 0) {
-                  <span class="ml-1 text-[11.5px] text-fg-subtle"
+                  <span class="ml-1 text-micro text-fg-subtle"
                     >{{ 'standards.aiAct.rolesLabel' | transloco }}:</span
                   >
                   @for (role of chips.roles; track role.value) {
@@ -104,7 +125,7 @@ export interface SectionLink {
                   }
                 }
                 @if (chips.riskClasses.length > 0) {
-                  <span class="ml-1 text-[11.5px] text-fg-subtle"
+                  <span class="ml-1 text-micro text-fg-subtle"
                     >{{ 'standards.aiAct.riskLabel' | transloco }}:</span
                   >
                   @for (risk of chips.riskClasses; track risk.value) {
@@ -125,7 +146,7 @@ export interface SectionLink {
                   [label]="'standards.completeness' | transloco"
                 />
               </span>
-              <span class="w-9 text-right text-[12px] font-semibold text-fg-muted tabular-nums"
+              <span class="w-9 text-right text-meta font-semibold text-fg-muted tabular-nums"
                 >{{ node.rollup.pct }}%</span
               >
             </div>
@@ -133,10 +154,22 @@ export interface SectionLink {
         </div>
       </header>
 
+      @if (node.audit; as audit) {
+        <div class="mb-3">
+          <app-clause-audit [audit]="audit" />
+        </div>
+      }
+
+      @if (node.soa; as soa) {
+        <div class="mb-4">
+          <app-soa-panel [soa]="soa" />
+        </div>
+      }
+
       @if (summary(); as summaryText) {
         <div class="mb-3">
-          <p class="text-[15px] leading-[1.7] whitespace-pre-line text-fg">{{ summaryText }}</p>
-          <p class="mt-1.5 text-[11.5px] text-fg-subtle">
+          <p class="text-card leading-[1.7] whitespace-pre-line text-fg">{{ summaryText }}</p>
+          <p class="mt-1.5 text-micro text-fg-subtle">
             {{ 'standards.clause.explanationHint' | transloco }}
           </p>
         </div>
@@ -148,7 +181,7 @@ export interface SectionLink {
             <div class="rounded-tile border border-border bg-surface-2/60">
               <button
                 type="button"
-                class="flex w-full items-center gap-2 px-3.5 py-2.5 text-left text-[13px] font-semibold text-fg"
+                class="flex w-full items-center gap-2 px-3.5 py-2.5 text-left text-ui font-semibold text-fg"
                 [attr.aria-expanded]="guidanceOpen()"
                 [attr.aria-controls]="domId() + '-guidance'"
                 (click)="guidanceToggled.emit()"
@@ -164,10 +197,10 @@ export interface SectionLink {
               </button>
               @if (guidanceOpen()) {
                 <div [id]="domId() + '-guidance'" class="px-3.5 pb-3.5">
-                  <p class="text-[14px] leading-[1.65] whitespace-pre-line text-fg">
+                  <p class="text-body leading-[1.65] whitespace-pre-line text-fg">
                     {{ guidanceText }}
                   </p>
-                  <p class="mt-1.5 text-[11.5px] text-fg-subtle">
+                  <p class="mt-1.5 text-micro text-fg-subtle">
                     {{ 'standards.clause.guidanceHint' | transloco }}
                   </p>
                 </div>
@@ -179,7 +212,7 @@ export interface SectionLink {
             <div class="rounded-tile border border-accent-border bg-accent-soft/30">
               <button
                 type="button"
-                class="flex w-full flex-wrap items-center gap-2 px-3.5 py-2.5 text-left text-[13px] font-semibold text-fg"
+                class="flex w-full flex-wrap items-center gap-2 px-3.5 py-2.5 text-left text-ui font-semibold text-fg"
                 [attr.aria-expanded]="licensedOpen()"
                 [attr.aria-controls]="domId() + '-licensed'"
                 (click)="licensedToggled.emit()"
@@ -203,26 +236,26 @@ export interface SectionLink {
                     @case ('loaded') {
                       @if (licensedText(); as licensedBody) {
                         <blockquote
-                          class="border-l-2 border-accent-border pl-3 text-[14px] leading-[1.65] whitespace-pre-line text-fg"
+                          class="border-l-2 border-accent-border pl-3 text-body leading-[1.65] whitespace-pre-line text-fg"
                         >
                           {{ licensedBody }}
                         </blockquote>
-                        <p class="mt-1.5 text-[11.5px] text-fg-subtle">
+                        <p class="mt-1.5 text-micro text-fg-subtle">
                           {{ 'standards.clause.licensedHint' | transloco }}
                         </p>
                       } @else {
-                        <p class="text-[13px] text-fg-muted">
+                        <p class="text-ui text-fg-muted">
                           {{ 'standards.workspace.noLicensedText' | transloco }}
                         </p>
                       }
                     }
                     @case ('error') {
-                      <p class="text-[13px] text-fail" role="alert">
+                      <p class="text-ui text-fail" role="alert">
                         {{ 'standards.workspace.licensedError' | transloco }}
                       </p>
                     }
                     @default {
-                      <p class="text-[13px] text-fg-muted">{{ 'common.loading' | transloco }}</p>
+                      <p class="text-ui text-fg-muted">{{ 'common.loading' | transloco }}</p>
                     }
                   }
                 </div>
@@ -234,18 +267,36 @@ export interface SectionLink {
 
       @if (node.hs || node.requirements.length > 0) {
         <div class="mb-4">
-          <app-clause-mappings [standardKey]="standardKey()" [number]="s.number" />
+          <app-clause-mappings
+            [standardKey]="standardKey()"
+            [number]="s.number"
+            [canManage]="canManage()"
+            [standardEnabled]="standardEnabled()"
+            (reused)="emitClauseChanged()"
+          />
         </div>
       }
 
       @if (node.requirements.length > 0) {
         <div class="mt-4">
-          <div
-            class="mb-2 text-[11.5px] font-bold tracking-[0.08em] text-fg-subtle uppercase"
-            [id]="domId() + '-reqs'"
-          >
-            {{ 'standards.clause.requirements' | transloco: { count: node.requirements.length } }}
+          <div class="mb-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+            <div
+              class="text-micro font-bold tracking-wide text-fg-subtle uppercase"
+              [id]="domId() + '-reqs'"
+            >
+              {{ 'standards.clause.requirements' | transloco: { count: node.requirements.length } }}
+            </div>
           </div>
+          @if (canManage() && standardEnabled() && node.requirements.length > 1) {
+            <div class="mb-2">
+              <app-clause-link
+                [standardKey]="standardKey()"
+                [number]="s.number"
+                [requirements]="node.requirements"
+                (linked)="linksChanged.emit($event)"
+              />
+            </div>
+          }
           <ul class="flex flex-col gap-2" [attr.aria-labelledby]="domId() + '-reqs'">
             @for (req of node.requirements; track req.ref; let i = $index) {
               <li>
@@ -267,20 +318,20 @@ export interface SectionLink {
         </div>
       }
 
-      @if (prev() || next()) {
+      @if (showSectionNav() && (prev() || next())) {
         <nav
-          class="mt-5 flex items-center justify-between gap-3 border-t border-dashed border-border pt-3 text-[12.5px]"
+          class="mt-5 flex items-center justify-between gap-3 border-t border-dashed border-border pt-3 text-meta"
           [attr.aria-label]="'standards.workspace.sectionNav' | transloco: { number: s.number }"
         >
           @if (prev(); as p) {
             <a
-              [routerLink]="['/standards', standardKey(), p.number]"
+              [routerLink]="['/standards', standardKey(), p.segment ?? p.number]"
               class="inline-flex min-w-0 items-center gap-1.5 text-fg-muted hover:text-accent"
               (click)="onNavigate($event, p.number)"
             >
               <app-icon name="back" [size]="14" />
               <span class="sr-only">{{ 'standards.workspace.previous' | transloco }}:</span>
-              <span class="font-mono">{{ p.number }}</span>
+              <span class="font-mono">{{ p.label ?? p.number }}</span>
               <span class="hidden truncate sm:inline">{{ text(p.title) }}</span>
             </a>
           } @else {
@@ -288,12 +339,12 @@ export interface SectionLink {
           }
           @if (next(); as n) {
             <a
-              [routerLink]="['/standards', standardKey(), n.number]"
+              [routerLink]="['/standards', standardKey(), n.segment ?? n.number]"
               class="inline-flex min-w-0 items-center gap-1.5 text-right text-fg-muted hover:text-accent"
               (click)="onNavigate($event, n.number)"
             >
               <span class="sr-only">{{ 'standards.workspace.next' | transloco }}:</span>
-              <span class="font-mono">{{ n.number }}</span>
+              <span class="font-mono">{{ n.label ?? n.number }}</span>
               <span class="hidden truncate sm:inline">{{ text(n.title) }}</span>
               <app-icon name="arrow" [size]="14" />
             </a>
@@ -318,6 +369,10 @@ export class ClauseSection {
   readonly highlightRef = input<string | null>(null);
   readonly prev = input<SectionLink | null>(null);
   readonly next = input<SectionLink | null>(null);
+  /** The standard is enabled (bulk evidence actions are offered). */
+  readonly standardEnabled = input(false);
+  /** Show the previous / next footer (end of a chapter, or no table of contents). */
+  readonly showSectionNav = input(true);
 
   readonly guidanceToggled = output<void>();
   readonly licensedToggled = output<void>();
@@ -335,16 +390,20 @@ export class ClauseSection {
   protected readonly meta = computed(() => metaChips(this.section().node.meta));
 
   protected readonly domId = computed(() => sectionDomId(this.section().number));
+  /** The number as shown in the UI language ("Kapittel II", "Art. 5"). */
+  protected readonly label = computed(() =>
+    clauseLabel(this.section().node, this.language.active()),
+  );
   /** h1 is the standard's name in the header; chapters are h2. */
   protected readonly headingLevel = computed(() => Math.min(this.section().depth + 2, 6));
   protected readonly headingClass = computed(() => {
     switch (this.section().depth) {
       case 0:
-        return 'text-[24px] font-bold leading-tight';
+        return 'text-page font-bold leading-tight';
       case 1:
-        return 'text-[19px] font-bold leading-snug';
+        return 'text-section font-bold leading-snug';
       default:
-        return 'text-[16.5px] font-semibold leading-snug';
+        return 'text-card font-semibold leading-snug';
     }
   });
   protected readonly summary = computed(() =>
@@ -368,6 +427,19 @@ export class ClauseSection {
     const r = this.section().node.rollup;
     return `${r.covered}/${r.applicable}`;
   });
+
+  /** Glossary key of a clause-kind badge (annex control, recital, …). */
+  protected kindTerm(kind: string): string {
+    return `clause-kind-${kind.replace(/_/g, '-')}`;
+  }
+
+  /** Something changed for the whole clause: refetch it through its first requirement. */
+  protected emitClauseChanged(): void {
+    const first = this.section().node.requirements[0]?.ref;
+    if (first) {
+      this.linksChanged.emit(first);
+    }
+  }
 
   protected text(value: LocalizedText | null | undefined): string {
     return localized(value, this.language.active());

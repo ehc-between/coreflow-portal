@@ -67,7 +67,7 @@ export const QUEUED_STALL_MS = 3 * 60_000;
         </app-alert>
       } @else {
         <div class="rounded-tile border border-border bg-surface-2 px-3 py-2.5" role="status">
-          <div class="mb-1.5 flex items-center gap-2 text-[13px] font-semibold text-fg">
+          <div class="mb-1.5 flex items-center gap-2 text-ui font-semibold text-fg">
             <span class="animate-cf-pulse inline-flex text-accent"
               ><app-icon name="spark" [size]="15"
             /></span>
@@ -80,9 +80,7 @@ export const QUEUED_STALL_MS = 3 * 60_000;
         </div>
       }
     } @else {
-      <div
-        class="rounded-tile border border-border bg-surface-2 px-3 py-2.5 text-[13px] text-fg-muted"
-      >
+      <div class="rounded-tile border border-border bg-surface-2 px-3 py-2.5 text-ui text-fg-muted">
         {{ labelKey() | transloco }}
       </div>
     }

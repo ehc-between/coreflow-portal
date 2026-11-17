@@ -312,6 +312,10 @@ export function groupByTheme(nodes: readonly ClauseNode[]): ThemeGroup[] {
 /** One bar per top-level chapter that has applicable requirements. */
 export interface ChapterBar {
   readonly number: string;
+  /** The number as shown in the UI language ("Kapittel II"); the number otherwise. */
+  readonly label: string;
+  /** URL segment of the chapter (slug, else the number). */
+  readonly segment: string;
   readonly title: string;
   readonly pct: number;
   readonly applicable: number;
@@ -323,6 +327,8 @@ export function chapterBars(nodes: readonly ClauseNode[], lang = 'en'): ChapterB
     .filter((n) => n.rollup.applicable > 0)
     .map((n) => ({
       number: n.number,
+      label: (n.label ? localized(n.label, lang) : '') || n.number,
+      segment: n.slug || n.number,
       title: localized(n.title, lang),
       pct: n.rollup.pct,
       applicable: n.rollup.applicable,
@@ -451,6 +457,16 @@ export function standardsErrorKey(error: unknown, op: StandardsOperation): strin
   }
   if (code === 'justification_required') {
     return 'standards.requirement.justificationRequired';
+  }
+  const inline: Record<string, string> = {
+    exclusion_not_allowed: 'standards.actionErrors.exclusionNotAllowed',
+    note_required: 'standards.actionErrors.noteRequired',
+    invalid_user: 'standards.actionErrors.invalidUser',
+    not_mapped: 'standards.actionErrors.notMapped',
+    not_declared: 'standards.actionErrors.notDeclared',
+  };
+  if (code && inline[code]) {
+    return inline[code];
   }
   if (op === 'map' && status === 503) {
     return 'standards.errors.aiUnavailable';

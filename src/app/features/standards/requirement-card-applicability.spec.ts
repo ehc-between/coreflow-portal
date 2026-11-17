@@ -70,7 +70,10 @@ describe('RequirementCard applicability', () => {
           provide: APP_CONFIG,
           useValue: { apiBaseUrl: 'http://test/api', i18n: { availableLanguages: ['en', 'nb'] } },
         },
-        { provide: AuthService, useValue: { accessToken: signal(null).asReadonly() } },
+        {
+          provide: AuthService,
+          useValue: { accessToken: signal(null).asReadonly(), user: signal(null).asReadonly() },
+        },
         {
           provide: SelectedOrgService,
           useValue: {
@@ -157,11 +160,78 @@ describe('RequirementCard applicability', () => {
       startEdit(): void;
       save(): void;
       formOverride: { set(v: string): void };
+      formNote: { set(v: string): void };
+      noteMissing(): boolean;
     };
     card.startEdit();
     card.formOverride.set('covered');
+    // A manual "covered" needs a note saying why (auditors ask).
     card.save();
-    expect(update).toHaveBeenCalledWith(ORG, plain.ref, { status_override: 'covered', note: null });
+    expect(update).not.toHaveBeenCalled();
+    expect(card.noteMissing()).toBe(true);
+    card.formNote.set('Policy approved by the board');
+    card.save();
+    expect(update).toHaveBeenCalledWith(ORG, plain.ref, {
+      status_override: 'covered',
+      note: 'Policy approved by the board',
+    });
+  });
+
+  it('never lets an ISO clause 4–10 requirement be excluded, and says why', async () => {
+    const locked: RequirementDetail = {
+      ...DERIVED_NA,
+      ref: 'iso27001-2022:5.1.r1',
+      status: 'not_started',
+      applicable: true,
+      applicability_source: 'default',
+      derived_applicable: null,
+      derived_reason: null,
+      meta: null,
+      exclusion: 'not_allowed',
+    };
+    await setup(locked, true, locked);
+    const card = fixture.componentInstance as unknown as { startEdit(): void };
+    card.startEdit();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const box = el.querySelector<HTMLInputElement>('[data-testid="assess-applicable"]')!;
+    expect(box.disabled).toBe(true);
+    expect(el.querySelector('[data-testid="exclusion-hint"]')?.textContent).toContain(
+      'standards.exclusion.notAllowed',
+    );
+  });
+
+  it('sends the owner, target date and review stamp only when they change', async () => {
+    const owned: RequirementDetail = {
+      ...DERIVED_NA,
+      ref: 'iso9001-2026:5.2.r1',
+      status: 'not_started',
+      applicable: true,
+      applicability_source: 'default',
+      derived_applicable: null,
+      derived_reason: null,
+      meta: null,
+      exclusion: 'allowed',
+      owner: { id: 'u-1', name: 'Kari Nordmann' },
+      due_date: '2026-12-01',
+    };
+    await setup(owned, true, owned);
+    const card = fixture.componentInstance as unknown as {
+      startEdit(): void;
+      save(): void;
+      formDue: { set(v: string): void };
+      formReviewed: { set(v: boolean): void };
+    };
+    card.startEdit();
+    card.formDue.set('2027-01-15');
+    card.formReviewed.set(true);
+    card.save();
+    expect(update).toHaveBeenCalledWith(ORG, owned.ref, {
+      status_override: null,
+      note: null,
+      due_date: '2027-01-15',
+      reviewed: true,
+    });
   });
 
   it('still requires a justification when the org marks a point not applicable', async () => {

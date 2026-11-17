@@ -1,0 +1,173 @@
+{
+  "pages": {
+    "overview": {
+      "intro": {
+        "title": "The standards and regulations you work to",
+        "body": "Here you see each standard and regulation your organisation follows, and how much of it is documented. The number in the ring is the **requirement coverage**: the share of requirements shown by evidence from the work you already do.",
+        "steps": [
+          "Turn on the standards that apply to you. Start with the ones customers or authorities ask about.",
+          "Open a standard and go through its requirements. Link risks, documents, suppliers and other records as **evidence**.",
+          "Use “Gaps” to see what is left, and “Recommended next step” inside the standard to know what to do now."
+        ]
+      },
+      "why": {
+        "body": "Auditors and authorities check every requirement that applies to you. When evidence is linked while you work, you are audit-ready all year, and one record often covers several standards at once.",
+        "clauses": ["hs:4.3", "hs:9.1", "hs:9.2"]
+      }
+    },
+    "readiness": {
+      "intro": {
+        "title": "What requirement coverage tells you",
+        "body": "Requirement coverage sums up how well prepared you are for an audit or an inspection. It only counts requirements that apply to you, and recent evidence counts more than old evidence.",
+        "steps": [
+          "Look first at requirements nobody has started. Click the number to open them.",
+          "Then renew evidence that is older than a year or still only a draft.",
+          "Export the requirement matrix when the auditor asks for it, or build an audit pack under Reports."
+        ]
+      },
+      "why": {
+        "body": "The ISO standards require you to monitor and evaluate the management system and review it at management level. Coverage per standard is a simple, verifiable input to that review.",
+        "clauses": ["hs:9.1", "hs:9.3"]
+      }
+    },
+    "workspace": {
+      "intro": {
+        "title": "How to work with a standard",
+        "body": "The standard is split into **clauses**, and each clause has one or more **requirements**. For each requirement you show with **evidence** that you meet it: a procedure, a risk assessment, a training record or another record you already have in CoreFlow.",
+        "steps": [
+          "Follow “Recommended next step” at the top, or open a requirement from the contents.",
+          "Link records you have, or create a new one right from the requirement. One record can cover every requirement of a clause.",
+          "Give the requirement an owner and a target date, and mark it reviewed once you have checked it. A requirement can only be marked not applicable where the standard allows it, and always with a justification."
+        ]
+      },
+      "why": {
+        "body": "What the auditor wants to see is the chain: the requirement, who owns it, and the evidence that shows it is followed. When everything is linked here, you can answer every question in one click.",
+        "clauses": ["hs:7.5", "hs:9.2"]
+      }
+    },
+    "gaps": {
+      "intro": {
+        "title": "What is missing",
+        "body": "These are the requirements that apply to you but have no confirmed evidence yet. Each one shows which records would close the gap.",
+        "steps": [
+          "Pick a chapter to work on one part of the standard at a time.",
+          "Create the record that closes the gap. It is linked to the requirement automatically.",
+          "Open the requirement if you already have a record that documents it."
+        ]
+      }
+    }
+  },
+  "lessons": {
+    "requirements-and-evidence": {
+      "title": "Requirements, evidence and applicability",
+      "minutes": 5,
+      "sections": [
+        {
+          "heading": "A requirement is something you must do",
+          "body": "A standard is a list of **requirements**: things the organisation must do or have in place. CoreFlow shows them clause by clause, with a plain-language explanation alongside."
+        },
+        {
+          "heading": "Evidence shows that you do it",
+          "body": "**Evidence** is records you already have: a procedure, a risk assessment, a supplier evaluation, a training record. Once a record is linked and confirmed, the requirement is **covered**. Drafts and documents past their review date only count as partly covered."
+        },
+        {
+          "heading": "Not every requirement applies to everyone",
+          "body": "Some requirements can be marked **not applicable** with a short justification, for example an Annex A control that does not fit your business. Clauses 4–10 of the ISO standards, however, cannot be excluded. In ISO 9001, requirements in clause 8 can only be excluded when the scope (4.3) justifies it."
+        },
+        {
+          "heading": "Owners and target dates",
+          "body": "Give each requirement an **owner** and a **target date**. Then everyone knows who follows it up, and the auditor sees that someone owns it. Mark the requirement **reviewed** once you have checked that the evidence still holds."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "You linked a draft procedure as evidence. What is the requirement's status?",
+          "options": ["Covered", "Partly covered", "Not started"],
+          "answer": 1,
+          "explanation": "A draft is weak evidence: it shows the work has started, not that it is approved and in use. The requirement is partly covered until the procedure is approved."
+        }
+      ]
+    },
+    "readiness": {
+      "title": "How requirement coverage is calculated",
+      "minutes": 3,
+      "sections": [
+        {
+          "heading": "Only requirements that apply to you count",
+          "body": "Requirements you marked not applicable, with a justification, are left out. The number shows what you actually have to do."
+        },
+        {
+          "heading": "Evidence makes a requirement covered",
+          "body": "A requirement is covered when at least one confirmed record documents it, or when you set it as covered yourself with a note saying why. A partly covered requirement counts half."
+        },
+        {
+          "heading": "Recent evidence counts in full",
+          "body": "Evidence confirmed or updated within the last year counts in full. Older evidence counts 60 %, because auditors expect records to be kept up to date."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "A requirement is covered by a procedure last reviewed two years ago. How much does it count?",
+          "options": ["Nothing", "60 %", "In full"],
+          "answer": 1,
+          "explanation": "The requirement is still covered, but the evidence is older than a year, so it counts 60 %. Review the procedure to make it count in full again."
+        }
+      ]
+    }
+  },
+  "tours": {
+    "overview": [
+      {
+        "target": "standards-cards",
+        "title": "One standard per card",
+        "body": "The ring shows the requirement coverage. Below it you see how many requirements are covered, and each chapter on its own."
+      },
+      {
+        "target": "standards-readiness",
+        "title": "Coverage details",
+        "body": "See what the number is made of, open the requirements behind each part, and export the requirement matrix."
+      },
+      {
+        "target": "standards-available",
+        "title": "More standards",
+        "body": "Turn on more standards here. Evidence you have already linked often helps in the new standard too."
+      }
+    ]
+  },
+  "glossary": {
+    "clause-kind-annex-control": {
+      "term": "Annex A control",
+      "definition": "A safeguard from the list in Annex A of ISO/IEC 27001 or ISO/IEC 42001. You decide in the Statement of Applicability which controls apply.",
+      "clauses": ["iso27001:6.1.3"]
+    },
+    "clause-kind-article": {
+      "term": "Article",
+      "definition": "A provision of an EU regulation or directive, for example GDPR Article 30."
+    },
+    "clause-kind-recital": {
+      "term": "Recital",
+      "definition": "The introductory reasoning of an EU act. Recitals set no requirements themselves, but explain how the articles are to be read."
+    },
+    "clause-kind-annex": {
+      "term": "Annex",
+      "definition": "A part at the end of the act or standard with lists and details that the articles or clauses refer to."
+    },
+    "evidence": {
+      "term": "Evidence",
+      "definition": "A record in CoreFlow that shows a requirement is met, for example an approved procedure, a risk assessment or a training record."
+    },
+    "soa": {
+      "term": "Statement of Applicability (SoA)",
+      "definition": "The overview of which Annex A controls apply to you, why, and how far they are implemented. It is made in the risk module and decides applicability here.",
+      "clauses": ["iso27001:6.1.3"]
+    },
+    "licensed-copy": {
+      "term": "The standard's text (your copy)",
+      "definition": "Standard texts are protected by copyright. CoreFlow shows its own explanations. If you have bought the standard, you can upload your own PDF to see the official text alongside."
+    },
+    "shared-iso-clause": {
+      "term": "Shared ISO clause",
+      "definition": "Clauses 4–10 are the same in every ISO management-system standard. Evidence for a shared clause therefore helps in every standard you have turned on."
+    }
+  }
+}

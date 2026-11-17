@@ -26,10 +26,116 @@ export interface StandardCompleteness {
   readonly pct: number;
 }
 
+/** How an act is named in the UI: ISO standard, EU regulation or EU directive (NIS2). */
+export type LegalForm = 'standard' | 'regulation' | 'directive';
+
+/**
+ * May requirements of a clause be marked not applicable? ISO clauses 4–10 never
+ * (`not_allowed`); ISO 9001 clause 8 only when the scope (4.3) justifies it
+ * (`conditional`); Annex A controls, EU acts and custom catalogues always.
+ */
+export type ExclusionRule = 'allowed' | 'not_allowed' | 'conditional';
+
+/** Confirmed evidence is recent (< 1 year), older, or only weak documents. */
+export type EvidenceState = 'fresh' | 'stale' | 'weak';
+
+/**
+ * A linked document as evidence: approved and current, a draft, past its review
+ * date, or obsolete. The last three are weak evidence (they count as partial).
+ */
+export type EvidenceQuality = 'current' | 'draft' | 'review_overdue' | 'obsolete';
+
+/** A member referenced by id with their display name. */
+export interface UserRef {
+  readonly id: string;
+  readonly name?: string | null;
+}
+
+/** The framework's certification from the audits module (audits readers only). */
+export interface CertificationInfo {
+  readonly id: string;
+  readonly status: string;
+  readonly certification_body: string;
+  readonly certificate_number?: string | null;
+  readonly issued_at?: string | null;
+  readonly expires_at?: string | null;
+  readonly next_surveillance_at?: string | null;
+  readonly url: string;
+}
+
+/** A risk treated by an Annex A control (from its SoA entry). */
+export interface SoaRisk {
+  readonly id: string;
+  readonly code: string;
+  readonly title: string;
+  readonly url: string;
+}
+
+/**
+ * The control's Statement of Applicability entry (risk module): the single source
+ * of applicability and justification for ISO 27001 / 42001 Annex A controls.
+ * Present only when the SoA exists and the user may read the risk module.
+ */
+export interface SoaInfo {
+  readonly id: string;
+  readonly applicable: boolean;
+  readonly implementation_status: string;
+  readonly justification?: string | null;
+  readonly inclusion_reasons?: readonly string[];
+  readonly implementation_notes?: string | null;
+  readonly owner?: UserRef | null;
+  readonly reviewed_at?: string | null;
+  readonly risks?: readonly SoaRisk[];
+  readonly treatment_count?: number;
+  /** Portal path of the entry in the SoA. */
+  readonly url: string;
+}
+
+export interface AuditPlanRef {
+  readonly id: string;
+  readonly code: string;
+  readonly title: string;
+  readonly status: string;
+  readonly date?: string | null;
+  readonly url: string;
+}
+
+export interface AuditFindingRef {
+  readonly id: string;
+  readonly code: string;
+  readonly title: string;
+  readonly finding_type: string;
+  readonly status: string;
+  readonly plan_code?: string | null;
+  readonly url: string;
+}
+
+/** What the audits module says about a clause (audits readers only). */
+export interface ClauseAuditFacts {
+  readonly last_audited_at?: string | null;
+  readonly next_audit_at?: string | null;
+  readonly plans?: readonly AuditPlanRef[];
+  readonly open_findings?: readonly AuditFindingRef[];
+  readonly open_findings_count?: number;
+  readonly open_nc_count?: number;
+}
+
 /** A row of `GET standards`: a catalogue standard and the org's state for it. */
 export interface StandardSummary {
   readonly key: string;
   readonly name: string;
+  /** Our own Norwegian name ("Personvernforordningen (GDPR)"); older backends omit it. */
+  readonly name_nb?: string | null;
+  /** Short name per language ("ISO 27001", "KI-forordningen"). */
+  readonly short_name?: LocalizedText | null;
+  /** NIS2 is a directive; older backends omit it (see `kind`). */
+  readonly legal_form?: LegalForm;
+  /**
+   * THE headline number of the standard (weighted; equals the readiness score).
+   * Null when the standard is not enabled; older backends omit it.
+   */
+  readonly score?: number | null;
+  readonly certification?: CertificationInfo | null;
   readonly edition: string;
   readonly enabled: boolean;
   /** The org's enablement record (null until first enabled) — owns the licensed PDF. */
@@ -104,6 +210,28 @@ export interface Requirement {
   readonly status: RequirementStatus;
   /** Effective applicability: the org's decision, else the derived value, else true. */
   readonly applicable: boolean;
+  /** Who answers for the requirement (A03; older backends omit the auditor fields). */
+  readonly owner?: UserRef | null;
+  /** Target date, YYYY-MM-DD. */
+  readonly due_date?: string | null;
+  readonly reviewed_at?: string | null;
+  readonly reviewed_by?: UserRef | null;
+  /** Who set the manual status override, and when. */
+  readonly override_by?: UserRef | null;
+  readonly override_at?: string | null;
+  /** The record that set the applicability (e.g. the SoA entry); null when set by hand. */
+  readonly applicability_set_by?: {
+    readonly entity_type: string;
+    readonly entity_id: string;
+  } | null;
+  /** May the requirement be marked not applicable? */
+  readonly exclusion?: ExclusionRule;
+  /** Freshness of the confirmed evidence; null when nothing is linked. */
+  readonly evidence_state?: EvidenceState | null;
+  /** Every confirmed link is a weak document (the status is then `partial`). */
+  readonly weak_evidence?: boolean;
+  /** Annex A controls: the control's SoA entry (the same for every requirement of it). */
+  readonly soa?: SoaInfo | null;
   /** Missing on older payloads (see `applicabilitySource()`). */
   readonly applicability_source?: ApplicabilitySource;
   /** EU AI Act: the applicability derived from the org's AI systems, even when overridden. */
@@ -137,6 +265,15 @@ export interface ClauseNode {
   /** The Harmonised Structure clause this clause implements ("6.1"), shared across ISO standards. */
   readonly hs?: string | null;
   readonly meta?: ClauseMeta | null;
+  /** The number as shown per language ("Kapittel II", "Art. 21 nr. 2 bokstav d"). */
+  readonly label?: LocalizedText | null;
+  /** URL slug of the number ("chapter-ii"); the clause endpoint and the route accept it. */
+  readonly slug?: string | null;
+  readonly exclusion?: ExclusionRule;
+  /** Annex A controls: the control's SoA entry. */
+  readonly soa?: SoaInfo | null;
+  /** Audit plans citing the clause and its open findings (audits readers only). */
+  readonly audit?: ClauseAuditFacts | null;
   readonly rollup: ClauseRollup;
   readonly children: readonly ClauseNode[];
   readonly requirements: readonly Requirement[];
@@ -165,6 +302,12 @@ export interface RequirementPatch {
   /** null clears the override (back to the computed status). */
   readonly status_override?: CoverageOverride | null;
   readonly note?: string | null;
+  /** The member who answers for the requirement; null clears. */
+  readonly owner_user_id?: string | null;
+  /** Target date (YYYY-MM-DD); null clears. */
+  readonly due_date?: string | null;
+  /** `true` stamps "reviewed by me, now". */
+  readonly reviewed?: boolean;
 }
 
 /** The record kinds with built-in evidence handling. */
@@ -236,6 +379,17 @@ export interface RequirementLink {
   readonly rationale?: string | null;
   readonly created_at: string;
   readonly confirmed_by_name?: string | null;
+  readonly confirmed_at?: string | null;
+  /** A03: the record behind the link: its page, status, code and module. */
+  readonly entity_url?: string | null;
+  readonly entity_status?: string | null;
+  readonly entity_code?: string | null;
+  readonly module?: string | null;
+  /** Documents only: how good the evidence is, and the version in force. */
+  readonly evidence_quality?: EvidenceQuality | null;
+  readonly document_version?: string | null;
+  readonly document_approved_at?: string | null;
+  readonly document_next_review_at?: string | null;
 }
 
 /** Query for `GET requirement-links` — by requirement, or by record. */
@@ -461,6 +615,10 @@ export interface EvidenceLink {
   readonly confidence: number | null;
   readonly rationale: string | null;
   readonly entity: EvidenceEntity;
+  /** Documents only: how good the evidence is, and the version in force. */
+  readonly evidence_quality?: EvidenceQuality | null;
+  readonly document_version?: string | null;
+  readonly document_approved_at?: string | null;
 }
 
 export interface ModuleCount {
@@ -479,6 +637,10 @@ export interface EvidencingType {
   readonly enabled: boolean;
   /** Enabled, has a create page, and the caller may create records of this type. */
   readonly can_create?: boolean;
+  /** Live records of the type the caller can see (null when unknown). */
+  readonly record_count?: number | null;
+  /** The type's register page. */
+  readonly list_url?: string | null;
 }
 
 export interface EvidenceRequirementInfo {
@@ -492,6 +654,13 @@ export interface EvidenceRequirementInfo {
   readonly framework: string | null;
   readonly applicable: boolean;
   readonly justification: string | null;
+  readonly owner?: UserRef | null;
+  readonly due_date?: string | null;
+  readonly reviewed_at?: string | null;
+  readonly reviewed_by?: UserRef | null;
+  readonly exclusion?: ExclusionRule;
+  readonly evidence_state?: EvidenceState | null;
+  readonly soa?: SoaInfo | null;
 }
 
 /** `GET standard-requirements/{ref}/evidence`: evidence from every module. */
@@ -504,7 +673,37 @@ export interface RequirementEvidence {
   readonly by_module: readonly ModuleCount[];
   readonly can_be_evidenced_by: readonly EvidencingType[];
   readonly mappings: readonly ClauseMappingItem[];
+  /** Audit plans citing the clause and its open findings (audits readers only). */
+  readonly audit?: ClauseAuditFacts | null;
 }
+
+// --- A03: bulk evidence actions and export ----------------------------------------
+
+/** Body of `POST standards/{key}/clauses/{number}/links`. */
+export interface ClauseLinkRequest {
+  readonly entity_type: LinkEntityType;
+  readonly entity_id: string;
+  /** Requirements of the clause the record does not evidence (opt-out). */
+  readonly exclude_refs?: readonly string[];
+}
+
+export interface ClauseLinkResponse {
+  readonly linked: number;
+  readonly refs: readonly string[];
+}
+
+export interface ReuseEvidenceResponse {
+  readonly suggested: number;
+  readonly records: number;
+}
+
+export interface SuggestFromRecordsResponse {
+  readonly created: number;
+  readonly records_checked: number;
+  readonly by_type: Readonly<Record<string, number>>;
+}
+
+export type ExportFormat = 'csv' | 'xlsx' | 'pdf';
 
 /** One uncovered requirement of `GET frameworks/gaps`. */
 export interface RequirementGap {

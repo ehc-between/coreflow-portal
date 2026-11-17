@@ -1,0 +1,173 @@
+{
+  "pages": {
+    "overview": {
+      "intro": {
+        "title": "Standardene og regelverket dere arbeider etter",
+        "body": "Her ser dere hver standard og forordning organisasjonen følger, og hvor mye av den som er dokumentert. Tallet i ringen er **kravdekningen**: hvor stor del av kravene som er vist med dokumentasjon fra arbeidet dere allerede gjør.",
+        "steps": [
+          "Aktiver standardene som gjelder dere. Begynn med dem kundene eller myndighetene spør om.",
+          "Åpne en standard og gå gjennom kravene. Koble risikoer, dokumenter, leverandører og andre poster som **dokumentasjon**.",
+          "Bruk «Mangler» for å se hva som gjenstår, og «Neste anbefalte steg» inne i standarden for å vite hva dere bør gjøre nå."
+        ]
+      },
+      "why": {
+        "body": "Revisorer og tilsyn sjekker hvert krav som gjelder dere. Når dokumentasjonen kobles mens dere arbeider, er dere klare for revisjon hele året, og én post dekker ofte flere standarder samtidig.",
+        "clauses": ["hs:4.3", "hs:9.1", "hs:9.2"]
+      }
+    },
+    "readiness": {
+      "intro": {
+        "title": "Hva kravdekningen forteller dere",
+        "body": "Kravdekningen oppsummerer hvor godt forberedt dere er til en revisjon eller et tilsyn. Den teller bare krav som gjelder dere, og fersk dokumentasjon teller mer enn gammel.",
+        "steps": [
+          "Se først på krav som ikke er startet. Klikk på tallet for å åpne dem.",
+          "Forny deretter dokumentasjon som er eldre enn ett år, eller som bare er utkast.",
+          "Eksporter kravmatrisen når revisoren ber om den, eller lag en revisjonspakke under Rapporter."
+        ]
+      },
+      "why": {
+        "body": "ISO-standardene krever at dere overvåker og evaluerer styringssystemet og gjennomgår det på ledelsesnivå. Kravdekning per standard er et enkelt og etterprøvbart innspill til den gjennomgangen.",
+        "clauses": ["hs:9.1", "hs:9.3"]
+      }
+    },
+    "workspace": {
+      "intro": {
+        "title": "Slik arbeider dere med en standard",
+        "body": "Standarden er delt i **punkter**, og hvert punkt har ett eller flere **krav**. For hvert krav viser dere med **dokumentasjon** at dere oppfyller det: en prosedyre, en risikovurdering, en opplæring eller en annen post dere allerede har i CoreFlow.",
+        "steps": [
+          "Følg «Neste anbefalte steg» øverst, eller åpne et krav i innholdsfortegnelsen.",
+          "Koble poster dere har, eller opprett en ny rett fra kravet. Én post kan dekke alle kravene i et punkt.",
+          "Gi kravet en ansvarlig og en frist, og merk det som gjennomgått når dere har sjekket det. Et krav kan bare merkes som ikke relevant når standarden tillater det, og alltid med en begrunnelse."
+        ]
+      },
+      "why": {
+        "body": "Det revisoren vil se, er sammenhengen: kravet, hvem som eier det, og dokumentasjonen som viser at det følges. Når alt er koblet her, kan dere svare på hvert spørsmål med ett klikk.",
+        "clauses": ["hs:7.5", "hs:9.2"]
+      }
+    },
+    "gaps": {
+      "intro": {
+        "title": "Det som mangler",
+        "body": "Her er kravene som gjelder dere, men som ikke har bekreftet dokumentasjon ennå. Hvert krav viser hvilke poster som kan lukke mangelen.",
+        "steps": [
+          "Velg et kapittel for å arbeide med en del av standarden om gangen.",
+          "Opprett posten som lukker mangelen. Den kobles til kravet automatisk.",
+          "Åpne kravet hvis dere allerede har en post som dokumenterer det."
+        ]
+      }
+    }
+  },
+  "lessons": {
+    "requirements-and-evidence": {
+      "title": "Krav, dokumentasjon og relevans",
+      "minutes": 5,
+      "sections": [
+        {
+          "heading": "Et krav er noe dere skal gjøre",
+          "body": "En standard er en liste med **krav**: ting organisasjonen skal gjøre eller ha på plass. CoreFlow viser dem punkt for punkt, med en forklaring i et enkelt språk ved siden av."
+        },
+        {
+          "heading": "Dokumentasjon viser at dere gjør det",
+          "body": "**Dokumentasjon** er poster dere allerede har: en prosedyre, en risikovurdering, en leverandørvurdering, et opplæringsbevis. Når en post er koblet og bekreftet, er kravet **dekket**. Utkast og dokumenter som har passert gjennomgangsdatoen teller bare som delvis dekket."
+        },
+        {
+          "heading": "Ikke alle krav gjelder alle",
+          "body": "Noen krav kan merkes som **ikke relevante** med en kort begrunnelse, for eksempel et tiltak i vedlegg A som ikke passer virksomheten. Punktene 4–10 i ISO-standardene kan derimot ikke utelates. I ISO 9001 kan krav i punkt 8 bare utelates når omfanget (4.3) begrunner det."
+        },
+        {
+          "heading": "Ansvar og frister",
+          "body": "Gi hvert krav en **ansvarlig** og en **frist**. Da vet alle hvem som følger det opp, og revisoren ser at kravet er eid av noen. Merk kravet som **gjennomgått** når dere har sjekket at dokumentasjonen fortsatt stemmer."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Dere har koblet et utkast til prosedyre som dokumentasjon. Hva blir statusen på kravet?",
+          "options": ["Dekket", "Delvis dekket", "Ikke startet"],
+          "answer": 1,
+          "explanation": "Et utkast er svak dokumentasjon: det viser at arbeidet er i gang, men ikke at det er godkjent og tatt i bruk. Kravet blir delvis dekket til prosedyren er godkjent."
+        }
+      ]
+    },
+    "readiness": {
+      "title": "Slik beregnes kravdekningen",
+      "minutes": 3,
+      "sections": [
+        {
+          "heading": "Bare krav som gjelder dere teller",
+          "body": "Krav dere har merket som ikke relevante, med en begrunnelse, holdes utenfor. Tallet viser det dere faktisk må gjøre."
+        },
+        {
+          "heading": "Dokumentasjon gjør et krav dekket",
+          "body": "Et krav er dekket når minst én bekreftet post dokumenterer det, eller når dere selv har satt det som dekket med et notat om hvorfor. Et delvis dekket krav teller halvt."
+        },
+        {
+          "heading": "Fersk dokumentasjon teller fullt",
+          "body": "Dokumentasjon som er bekreftet eller oppdatert det siste året, teller fullt. Eldre dokumentasjon teller 60 %, fordi revisorer forventer at registreringer holdes oppdatert."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Et krav er dekket av en prosedyre som sist ble gjennomgått for to år siden. Hvor mye teller den?",
+          "options": ["Ingenting", "60 %", "Fullt"],
+          "answer": 1,
+          "explanation": "Kravet er fortsatt dekket, men dokumentasjonen er eldre enn ett år, så det teller 60 %. Gjennomgå prosedyren for at den skal telle fullt igjen."
+        }
+      ]
+    }
+  },
+  "tours": {
+    "overview": [
+      {
+        "target": "standards-cards",
+        "title": "Én standard per kort",
+        "body": "Ringen viser kravdekningen. Under ser dere hvor mange krav som er dekket, og hvert kapittel for seg."
+      },
+      {
+        "target": "standards-readiness",
+        "title": "Detaljer om kravdekning",
+        "body": "Se hva tallet består av, åpne kravene bak hver del, og eksporter kravmatrisen."
+      },
+      {
+        "target": "standards-available",
+        "title": "Flere standarder",
+        "body": "Aktiver flere standarder her. Dokumentasjon dere allerede har koblet, hjelper ofte også i den nye standarden."
+      }
+    ]
+  },
+  "glossary": {
+    "clause-kind-annex-control": {
+      "term": "Kontroll i vedlegg A",
+      "definition": "Et sikringstiltak fra listen i vedlegg A til ISO/IEC 27001 eller ISO/IEC 42001. Dere bestemmer i anvendelseserklæringen hvilke kontroller som gjelder.",
+      "clauses": ["iso27001:6.1.3"]
+    },
+    "clause-kind-article": {
+      "term": "Artikkel",
+      "definition": "En bestemmelse i en EU-forordning eller et EU-direktiv, for eksempel personvernforordningen artikkel 30."
+    },
+    "clause-kind-recital": {
+      "term": "Fortalepunkt",
+      "definition": "Innledende begrunnelse i en EU-rettsakt. Fortalepunktene stiller ikke krav selv, men forklarer hvordan artiklene skal forstås."
+    },
+    "clause-kind-annex": {
+      "term": "Vedlegg",
+      "definition": "En del bakerst i rettsakten eller standarden med lister og detaljer som artiklene eller punktene viser til."
+    },
+    "evidence": {
+      "term": "Dokumentasjon",
+      "definition": "En post i CoreFlow som viser at et krav er oppfylt, for eksempel en godkjent prosedyre, en risikovurdering eller et opplæringsbevis."
+    },
+    "soa": {
+      "term": "Anvendelseserklæring (SoA)",
+      "definition": "Oversikten over hvilke kontroller i vedlegg A som gjelder for dere, hvorfor, og hvor langt de er innført. Den lages i risikomodulen og styrer relevansen her.",
+      "clauses": ["iso27001:6.1.3"]
+    },
+    "licensed-copy": {
+      "term": "Standardteksten (deres kopi)",
+      "definition": "Standardtekstene er opphavsrettslig beskyttet. CoreFlow viser egne forklaringer. Har dere kjøpt standarden, kan dere laste opp deres egen PDF og se den offisielle teksten ved siden av."
+    },
+    "shared-iso-clause": {
+      "term": "Felles ISO-punkt",
+      "definition": "Punkt 4–10 er like i alle ISO-standardene for styringssystemer. Dokumentasjon for et felles punkt hjelper derfor i alle standardene dere har aktivert."
+    }
+  }
+}
