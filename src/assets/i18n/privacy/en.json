@@ -17,7 +17,8 @@
       "dpiasRequiredUndecided": "Required DPIAs not decided",
       "processorsWithoutDpa": "Processors without a DPA",
       "transfersMissingTia": "Transfers missing a TIA",
-      "reviewsOverdue": "Reviews overdue"
+      "reviewsOverdue": "Reviews overdue",
+      "transfersUnsignedSafeguards": "Active SCC transfers without a signed agreement"
     },
     "breachesNow": "Breaches on the clock",
     "noBreaches": "No open breaches. Register one the moment you become aware of it.",
@@ -228,7 +229,8 @@
     "necessity_test": "Necessity test",
     "balancing_test": "Balancing test",
     "safeguards": "Safeguards",
-    "is_lia": "Legitimate interests assessment"
+    "is_lia": "Legitimate interests assessment",
+    "contract_id": "Signed agreement (contract)"
   },
   "options": {
     "ropaRole": {
@@ -552,7 +554,7 @@
       "dsr": "Completing or refusing a request needs an outcome.",
       "breach": "A breach is closed only when both notification decisions are on record.",
       "processor": "A processor can only be active with a signed agreement, or one documented as not required.",
-      "transfer": "A transfer that relies on SCCs, BCRs or another tool can only be active after a positive transfer impact assessment.",
+      "transfer": "A transfer that relies on SCCs, BCRs or another tool can only be active after a positive transfer impact assessment. A transfer under SCCs also needs a linked, signed agreement.",
       "retention": "Activate the rule once it has been agreed.",
       "consent": "Consent is active until it is withdrawn.",
       "lba": "Move to \"Awaiting decision\" when the assessment is complete."
@@ -629,7 +631,9 @@
     "input_required": "Describe the processing first.",
     "aware_at_forbidden": "Only the data protection officer or someone who manages privacy can correct the awareness time.",
     "aware_at_in_future": "The awareness time cannot be in the future.",
-    "change_reason_required": "Give a reason for the change."
+    "change_reason_required": "Give a reason for the change.",
+    "scc_contract_required": "Link the signed agreement with the standard contractual clauses before the transfer can be active.",
+    "scc_contract_unsigned": "The linked agreement is not signed and active yet. A transfer under standard contractual clauses can only be active once they are signed."
   },
   "notifications": {
     "ropaEntryCreated": "Processing record registered: {{ code }} {{ title }}",
@@ -749,5 +753,43 @@
     "breachNotifySubjects": "Tell the people affected by breach {{ code }}",
     "breachClose": "Close breach {{ code }} with lessons learned",
     "dsrRespond": "Respond to data subject request {{ code }}"
+  },
+  "dpaCoverage": {
+    "title": "Data processing agreement coverage",
+    "status": {
+      "not_required": "Not required",
+      "covered": "Covered",
+      "incomplete": "Incomplete",
+      "missing": "Missing"
+    },
+    "explain": {
+      "not_required": "No data processing agreement is required.",
+      "covered": "A signed agreement, with every required clause confirmed, covers this processor.",
+      "incomplete": "There is an agreement, but it is not signed or not every required clause is confirmed.",
+      "missing": "No data processing agreement is linked to this processor."
+    },
+    "reasons": {
+      "unsigned": "Not signed and active yet.",
+      "clauses_missing": "Required clauses missing: {{ missing }}.",
+      "clauses_unconfirmed": "Clauses not yet confirmed by a person: {{ unconfirmed }}.",
+      "no_dpa": "No data processing agreement."
+    },
+    "missingClauses": "Missing clauses",
+    "linkCta": "Register the data processing agreement as a contract, then link it to this processor under Related.",
+    "loadFailed": "The agreement coverage could not be loaded."
+  },
+  "dpaClauses": {
+    "subject_matter_and_duration": "Subject matter, duration, nature and purpose of the processing",
+    "documented_instructions": "Processing only on documented instructions",
+    "confidentiality": "Confidentiality of the people processing the data",
+    "security_measures": "Appropriate security measures",
+    "sub_processors": "Conditions for using sub-processors",
+    "data_subject_rights": "Help with data subject requests",
+    "compliance_assistance": "Help with security, breaches and impact assessments",
+    "breach_notification": "Notification of personal data breaches",
+    "deletion_or_return": "Deletion or return of the data at the end",
+    "audits_and_information": "Information and audits",
+    "international_transfers": "Transfers outside the EU/EEA",
+    "unknown": "Other clause"
   }
 }

@@ -5,6 +5,8 @@ import {
   isWeakPasswordError,
   passwordsMatchValidator,
   retryAfterSeconds,
+  slowDownMessage,
+  throttleMessage,
 } from './auth-errors';
 
 function httpError(status: number, error: unknown, headers?: HttpHeaders): HttpErrorResponse {
@@ -42,6 +44,57 @@ describe('auth-errors', () => {
     );
     expect(retryAfterSeconds(httpError(429, null))).toBeNull();
     expect(retryAfterSeconds(httpError(401, { detail: { code: 'x', retry_after: 5 } }))).toBeNull();
+  });
+
+  it('maps a 503 rate_limiter_unavailable to "temporarily unavailable" with the wait', () => {
+    const err = httpError(
+      503,
+      { detail: { code: 'rate_limiter_unavailable', retry_after: 30 } },
+      new HttpHeaders({ 'Retry-After': '30' }),
+    );
+    expect(throttleMessage(err)).toEqual({
+      key: 'errors.temporarilyUnavailableSeconds',
+      params: { seconds: 30 },
+    });
+    expect(
+      throttleMessage(httpError(503, { detail: { code: 'rate_limiter_unavailable' } })),
+    ).toEqual({ key: 'errors.temporarilyUnavailable' });
+  });
+
+  it('maps a 429 rate_limited to the generic "slow down" message', () => {
+    expect(
+      throttleMessage(httpError(429, { detail: { code: 'rate_limited', retry_after: 540 } })),
+    ).toEqual({ key: 'errors.rateLimitedMinutes', params: { minutes: 9 } });
+    expect(
+      throttleMessage(
+        httpError(
+          429,
+          { detail: { code: 'rate_limited' } },
+          new HttpHeaders({ 'Retry-After': '5' }),
+        ),
+      ),
+    ).toEqual({ key: 'errors.rateLimitedSeconds', params: { seconds: 5 } });
+  });
+
+  it('leaves lockouts and other errors to the caller', () => {
+    expect(throttleMessage(httpError(429, { detail: { code: 'too_many_attempts' } }))).toBeNull();
+    expect(throttleMessage(httpError(503, { detail: 'AI is not configured' }))).toBeNull();
+    expect(throttleMessage(httpError(503, null))).toBeNull();
+    expect(throttleMessage(httpError(401, { detail: { code: 'rate_limited' } }))).toBeNull();
+    expect(throttleMessage(null)).toBeNull();
+  });
+
+  it('builds the slow-down message from a raw wait', () => {
+    expect(slowDownMessage(null)).toEqual({ key: 'errors.rateLimited' });
+    expect(slowDownMessage(Number.NaN)).toEqual({ key: 'errors.rateLimited' });
+    expect(slowDownMessage(0.2)).toEqual({
+      key: 'errors.rateLimitedSeconds',
+      params: { seconds: 1 },
+    });
+    expect(slowDownMessage(600)).toEqual({
+      key: 'errors.rateLimitedMinutes',
+      params: { minutes: 10 },
+    });
   });
 
   it('flags mismatched new/confirm passwords', () => {

@@ -46,7 +46,7 @@
           </p>
           @if (error(); as error) {
             <div class="mt-4">
-              <app-alert>{{ error | transloco }}</app-alert>
+              <app-alert>{{ error.key | transloco: error.params }}</app-alert>
             </div>
           }
           <app-button
@@ -107,7 +107,7 @@
         </p>
 
         @if (error(); as error) {
-          <app-alert>{{ error | transloco }}</app-alert>
+          <app-alert>{{ error.key | transloco: error.params }}</app-alert>
         }
 
         <app-button type="submit" size="lg" [full]="true" [loading]="submitting()" class="mt-1">

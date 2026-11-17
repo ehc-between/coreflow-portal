@@ -549,7 +549,9 @@
         "deleted": "Slettede elementer",
         "deletedHint": "Gjenopprett dokumenter som ble slettet ved en feil.",
         "setup": "Oppsettsveiviser",
-        "setupHint": "Gå gjennom profil, standarder, moduler, roller og de første oppgavene på nytt."
+        "setupHint": "Gå gjennom profil, standarder, moduler, roller og de første oppgavene på nytt.",
+        "attachmentDeletions": "Logg over slettede filer",
+        "attachmentDeletionsHint": "Se hvilke vedleggsfiler som er slettet permanent, og hvorfor."
       },
       "moduleLinks": {
         "types": "Typer",
@@ -583,6 +585,34 @@
         "rolesRequired": "Velg minst én rolle.",
         "unknownRoles": "En av de valgte rollene finnes ikke lenger. Last inn siden på nytt og prøv igjen.",
         "saveFailed": "Kunne ikke lagre innstillingene for totrinnsbekreftelse."
+      }
+    },
+    "attachments": {
+      "title": "Vedlegg",
+      "allowMacros": "Tillat Office-filer med makroer",
+      "allowMacrosHint": "Når dette er på, kan filer som .docm og .xlsm legges ved. Makroer kan inneholde skadevare, så la dette være av med mindre dere trenger det.",
+      "loadError": "Kunne ikke laste vedleggsinnstillingene.",
+      "saved": "Vedleggsinnstillingene er lagret.",
+      "saveFailed": "Kunne ikke lagre vedleggsinnstillingene."
+    },
+    "attachmentDeletions": {
+      "title": "Logg over slettede filer",
+      "subtitle": "Vedleggsfiler som er slettet permanent fra lagringen, nyeste først. Filnavn lagres ikke.",
+      "back": "Tilbake til innstillinger",
+      "empty": "Ingen filer er slettet permanent.",
+      "loadError": "Kunne ikke laste loggen over slettede filer.",
+      "deletedAt": "Slettet",
+      "reason": "Årsak",
+      "record": "Post",
+      "versions": "Versjoner",
+      "keyHash": "Hash av lagringsnøkkel",
+      "actor": "Av",
+      "system": "System",
+      "reasons": {
+        "erasure": "Sletting av personopplysninger",
+        "retention": "Lagringstid",
+        "quarantine": "Karantene",
+        "rejected": "Avvist opplasting"
       }
     }
   },
@@ -1043,7 +1073,13 @@
     "server": "Noe gikk galt hos oss. Prøv igjen om litt.",
     "notFound": "Vi fant ikke det du lette etter.",
     "generic": "Noe gikk galt. Prøv igjen.",
-    "forbidden": "Du har ikke tilgang til den siden."
+    "forbidden": "Du har ikke tilgang til den siden.",
+    "temporarilyUnavailable": "Dette er midlertidig utilgjengelig. Prøv igjen om litt.",
+    "temporarilyUnavailableSeconds": "Dette er midlertidig utilgjengelig. Prøv igjen om {{seconds}} sek.",
+    "temporarilyUnavailableMinutes": "Dette er midlertidig utilgjengelig. Prøv igjen om {{minutes}} min.",
+    "rateLimited": "Det går litt for fort. Vent et øyeblikk og prøv igjen.",
+    "rateLimitedSeconds": "Det går litt for fort. Prøv igjen om {{seconds}} sek.",
+    "rateLimitedMinutes": "Det går litt for fort. Prøv igjen om {{minutes}} min."
   },
   "deviations": {
     "title": "Avvik",
@@ -1578,7 +1614,8 @@
       "title": "Varsler og eskalering",
       "subtitle": "Hvem som varsles om hva, påminnelser om frister, eskalering og avdelingsledere.",
       "open": "Åpne varslingsinnstillinger"
-    }
+    },
+    "attachmentQuarantined": "Skadevare funnet: {{filename}} er satt i karantene"
   },
   "roles": {
     "admin": {
@@ -1653,7 +1690,27 @@
       "downloadFailed": "Kunne ikke laste ned filen. Prøv igjen.",
       "deleteFailed": "Kunne ikke slette vedlegget. Prøv igjen.",
       "generic": "Noe gikk galt med vedlegget. Prøv igjen.",
-      "deviationClosed": "Avviket er lukket. Gjenåpne det for å endre vedleggene."
+      "deviationClosed": "Avviket er lukket. Gjenåpne det for å endre vedleggene.",
+      "macroBlocked": "Office-filer med makroer er ikke tillatt i denne organisasjonen. Lagre filen uten makroer og prøv igjen.",
+      "executableContent": "Filen inneholder et program, og det er ikke tillatt.",
+      "contentMismatch": "Innholdet i filen stemmer ikke med filtypen. Sjekk filen og prøv igjen.",
+      "stillScanning": "Filen skannes fortsatt for skadevare. Prøv igjen om litt.",
+      "quarantined": "Det ble funnet skadevare i filen, så den kan ikke lastes ned.",
+      "alreadyPurged": "Filen er allerede slettet permanent.",
+      "uploadQuarantined": "Det ble funnet skadevare i den opplastede filen. Den er satt i karantene, og administratorene er varslet."
+    },
+    "notDownloadable": "Filen kan ikke lastes ned før den har bestått skanningen for skadevare.",
+    "scan": {
+      "scanning": "Skannes",
+      "quarantined": "I karantene"
+    },
+    "hold": {
+      "badge": "Rettslig hold",
+      "set": "Sett på hold",
+      "release": "Opphev hold",
+      "setNamed": "Sett {{name}} på rettslig hold",
+      "releaseNamed": "Opphev det rettslige holdet på {{name}}",
+      "failed": "Kunne ikke endre det rettslige holdet. Prøv igjen."
     }
   },
   "standards": {
@@ -2155,6 +2212,18 @@
       "lightTheme": "Bytt til lyst utseende",
       "darkTheme": "Bytt til mørkt utseende",
       "home": "CoreFlow, til forsiden"
+    },
+    "countries": {
+      "EU": "Den europeiske union (EU)",
+      "EEA": "EU/EØS"
+    },
+    "countryPicker": {
+      "placeholder": "Skriv et land, for eksempel Irland",
+      "hint": "Velg fra forslagene, eller skriv et landnavn eller en landkode og trykk Enter.",
+      "notFound": "«{{ text }}» er ikke et land på listen. Velg et fra forslagene.",
+      "remove": "Fjern {{ name }}",
+      "flagged": "Kontroller denne verdien",
+      "none": "Ikke satt"
     }
   }
 }

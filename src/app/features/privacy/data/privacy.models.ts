@@ -262,6 +262,8 @@ export interface Processor extends PrivacyRecord {
 export interface TransferAssessment extends PrivacyRecord {
   readonly ropa_entry_id: string | null;
   readonly processor_id: string | null;
+  /** The signed agreement carrying the safeguard: required to activate an SCC transfer. */
+  readonly contract_id: string | null;
   readonly destination_country: string;
   readonly mechanism: string;
   readonly scc_module: string | null;
@@ -358,7 +360,44 @@ export interface PrivacyOverview {
   readonly breaches_overdue: number;
   readonly processors_without_dpa: number;
   readonly transfers_missing_tia: number;
+  /** Active SCC transfers whose linked agreement is missing or not signed. */
+  readonly transfers_unsigned_safeguards?: number;
   readonly reviews_overdue: number;
+}
+
+/** A contract linked to a processor, as `GET /processors/{id}/dpa-coverage` lists it. */
+export interface DpaCoverageContract {
+  readonly id: string;
+  readonly code: string;
+  readonly title: string;
+  readonly contract_type: string;
+  readonly status: string;
+  readonly signed: boolean;
+  readonly dpa_status: string;
+  readonly missing_clauses: readonly string[];
+  readonly unconfirmed_clauses: readonly string[];
+  readonly reasons: readonly string[];
+  readonly url: string;
+}
+
+/**
+ * GDPR Art. 28(3) coverage of a processor from the contracts linked to it (Related).
+ * `covered` only by a signed agreement with every clause confirmed. Contracts the
+ * caller may not see count towards the status but are not listed.
+ */
+export interface DpaCoverageOut {
+  readonly status: 'covered' | 'incomplete' | 'missing';
+  readonly contracts: readonly DpaCoverageContract[];
+  readonly missing_clauses: readonly string[];
+}
+
+/** A contract offered by the transfer's agreement picker (`GET /contracts` item). */
+export interface ContractOption {
+  readonly id: string;
+  readonly code: string;
+  readonly title: string;
+  readonly contract_type: string;
+  readonly status: string;
 }
 
 export interface ScreeningOutcome {

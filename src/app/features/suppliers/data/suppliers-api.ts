@@ -1,6 +1,6 @@
 import { HttpContext } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { ApiService } from '../../../core/http/api.service';
 import { SKIP_ERROR_TOAST } from '../../../core/http/error.interceptor';
 import {
@@ -11,6 +11,7 @@ import {
   EvaluationListItem,
   EvaluationListQuery,
   EvaluationKind,
+  LocationOption,
   Page,
   PerformanceEntry,
   PerformanceList,
@@ -76,6 +77,15 @@ export class SuppliersApi {
 
   summary(orgId: string): Observable<SupplierSummary> {
     return this.api.get<SupplierSummary>(`${this.base(orgId)}/summary`);
+  }
+
+  /** The codes the data-location picker offers, with their Chapter V zone. */
+  locationOptions(orgId: string): Observable<readonly LocationOption[]> {
+    return this.api
+      .get<{
+        items: readonly LocationOption[];
+      }>(`${this.base(orgId)}/location-options`, skipToast())
+      .pipe(map((r) => r.items));
   }
 
   get(orgId: string, id: string): Observable<SupplierDetail> {

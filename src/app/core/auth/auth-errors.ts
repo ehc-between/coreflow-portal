@@ -10,6 +10,10 @@ export const AUTH_ERROR = {
   weakPassword: 'weak_password',
   invalidOrExpiredToken: 'invalid_or_expired_token',
   tooManyAttempts: 'too_many_attempts',
+  /** 503 from a fail-closed auth route while the rate limiter backend is down. */
+  rateLimiterUnavailable: 'rate_limiter_unavailable',
+  /** 429 from the general per-user API throttle (search/export/AI buckets too). */
+  rateLimited: 'rate_limited',
 } as const;
 
 /** The structured `detail` of an auth error response, when the body carries one. */
@@ -54,6 +58,11 @@ export function retryAfterSeconds(error: unknown): number | null {
   if (!(error instanceof HttpErrorResponse) || error.status !== 429) {
     return null;
   }
+  return readRetryAfter(error);
+}
+
+/** `retry_after` from the body, else the `Retry-After` header, in whole seconds. */
+function readRetryAfter(error: HttpErrorResponse): number | null {
   const fromBody = authErrorDetail(error)?.retry_after;
   if (typeof fromBody === 'number' && Number.isFinite(fromBody) && fromBody >= 0) {
     return Math.ceil(fromBody);
@@ -77,7 +86,11 @@ export function rateLimitMessage(error: unknown, keyBase: string): TranslatedMes
   if ((error as { status?: number } | null)?.status !== 429) {
     return null;
   }
-  const seconds = retryAfterSeconds(error);
+  return waitMessage(retryAfterSeconds(error), keyBase);
+}
+
+/** Wait-time message: `<keyBase>Seconds` / `<keyBase>Minutes` / plain `<keyBase>`. */
+function waitMessage(seconds: number | null, keyBase: string): TranslatedMessage {
   if (seconds === null) {
     return { key: keyBase };
   }
@@ -85,6 +98,59 @@ export function rateLimitMessage(error: unknown, keyBase: string): TranslatedMes
     return { key: `${keyBase}Seconds`, params: { seconds: Math.max(seconds, 1) } };
   }
   return { key: `${keyBase}Minutes`, params: { minutes: Math.ceil(seconds / 60) } };
+}
+
+/**
+ * Whether a fail-closed auth route (sign-in, password-reset request, invitation
+ * accept) refused the request because the rate limiter backend is down: a 503
+ * carrying `rate_limiter_unavailable`. Transient — the user should retry shortly.
+ */
+export function isRateLimiterUnavailable(error: unknown): error is HttpErrorResponse {
+  return (
+    error instanceof HttpErrorResponse &&
+    error.status === 503 &&
+    authErrorCode(error) === AUTH_ERROR.rateLimiterUnavailable
+  );
+}
+
+/** Whether a 429 came from the general per-user API throttle (`rate_limited`). */
+export function isApiRateLimited(error: unknown): error is HttpErrorResponse {
+  return (
+    error instanceof HttpErrorResponse &&
+    error.status === 429 &&
+    authErrorCode(error) === AUTH_ERROR.rateLimited
+  );
+}
+
+/**
+ * Message for the server-wide throttling outcomes, kept separate from the
+ * per-form lockout copy (`too_many_attempts`):
+ *  - 503 `rate_limiter_unavailable` → "temporarily unavailable, retry shortly"
+ *    (`errors.temporarilyUnavailable*`);
+ *  - 429 `rate_limited` → a generic "slow down" (`errors.rateLimited*`).
+ * Null for anything else, so callers fall through to their own mapping.
+ */
+export function throttleMessage(error: unknown): TranslatedMessage | null {
+  if (isRateLimiterUnavailable(error)) {
+    return waitMessage(readRetryAfter(error), 'errors.temporarilyUnavailable');
+  }
+  if (isApiRateLimited(error)) {
+    return slowDownMessage(readRetryAfter(error));
+  }
+  return null;
+}
+
+/**
+ * The generic "slow down" message (`errors.rateLimited*`) for a wait of
+ * `retryAfter` seconds (null = unknown). For callers that see a 429 outside
+ * HttpClient, e.g. the fetch-based AI stream client.
+ */
+export function slowDownMessage(retryAfter: number | null): TranslatedMessage {
+  const seconds =
+    retryAfter !== null && Number.isFinite(retryAfter) && retryAfter >= 0
+      ? Math.ceil(retryAfter)
+      : null;
+  return waitMessage(seconds, 'errors.rateLimited');
 }
 
 /** Group validator: `newPassword` and `confirmPassword` controls must match. */

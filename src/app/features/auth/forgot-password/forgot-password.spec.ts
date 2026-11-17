@@ -29,6 +29,16 @@ describe('forgotPasswordErrorMessage', () => {
     });
   });
 
+  it('shows "temporarily unavailable" when the limiter backend is down (503)', () => {
+    const err = httpError(503, { detail: { code: 'rate_limiter_unavailable', retry_after: 30 } });
+    expect(forgotPasswordErrorMessage(err)).toEqual({
+      key: 'errors.temporarilyUnavailableSeconds',
+      params: { seconds: 30 },
+    });
+    const throttled = httpError(429, { detail: { code: 'rate_limited' } });
+    expect(forgotPasswordErrorMessage(throttled)).toEqual({ key: 'errors.rateLimited' });
+  });
+
   it('falls back to a plain rate-limit message, and to generic for other errors', () => {
     expect(forgotPasswordErrorMessage(httpError(429))).toEqual({
       key: 'auth.forgot.tooManyRequests',

@@ -14,6 +14,7 @@ import {
   ContractUpdate,
   ContractVersion,
   Deadline,
+  DpaClauseIn,
   KeyDate,
   KeyDateIn,
   KeyDateUpdate,
@@ -95,6 +96,15 @@ export class ContractsApi {
     body: ContractActionBody = {},
   ): Observable<Contract> {
     return this.api.post<Contract>(`${this.base(orgId)}/${id}/${action}`, body, IN_PLACE);
+  }
+
+  /** Upsert GDPR Art. 28(3) checklist entries (merged by key); returns the contract. */
+  updateDpaClauses(
+    orgId: string,
+    id: string,
+    clauses: readonly DpaClauseIn[],
+  ): Observable<Contract> {
+    return this.api.put<Contract>(`${this.base(orgId)}/${id}/dpa-clauses`, { clauses }, IN_PLACE);
   }
 
   // --- parties ----------------------------------------------------------------------

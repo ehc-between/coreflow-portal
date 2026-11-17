@@ -266,6 +266,9 @@
         "supplementary_measures": {
           "help": "Tekniske, avtalemessige eller organisatoriske tiltak som tetter hullene vurderingen fant.",
           "example": "Kryptering med nøkler som bare oppbevares i EØS."
+        },
+        "contract_id": {
+          "help": "Kontrakten som inneholder de signerte standard personvernbestemmelsene (eller et annet garantigrunnlag). En overføring etter SCC kan bare bli aktiv når avtalen er signert og aktiv i kontraktsregisteret."
         }
       }
     },

@@ -2,7 +2,11 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { TranslatedMessage, rateLimitMessage } from '../../../core/auth/auth-errors';
+import {
+  TranslatedMessage,
+  rateLimitMessage,
+  throttleMessage,
+} from '../../../core/auth/auth-errors';
 import { AuthService } from '../../../core/auth/auth.service';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
@@ -104,7 +108,13 @@ export class ForgotPassword {
   }
 }
 
-/** Map a reset-request failure: rate limit (with wait time) vs. generic. */
+/**
+ * Map a reset-request failure: limiter outage / generic throttle, then the
+ * reset lockout (with wait time), else generic.
+ */
 export function forgotPasswordErrorMessage(error: unknown): TranslatedMessage {
-  return rateLimitMessage(error, 'auth.forgot.tooManyRequests') ?? { key: 'errors.generic' };
+  return (
+    throttleMessage(error) ??
+    rateLimitMessage(error, 'auth.forgot.tooManyRequests') ?? { key: 'errors.generic' }
+  );
 }

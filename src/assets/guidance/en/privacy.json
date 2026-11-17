@@ -266,6 +266,9 @@
         "supplementary_measures": {
           "help": "Technical, contractual or organisational measures that close the gaps the TIA found.",
           "example": "Encryption with keys held only in the EEA."
+        },
+        "contract_id": {
+          "help": "The contract that holds the signed standard contractual clauses (or other safeguard). A transfer under SCCs can only be active when this agreement is signed and active in the contract register."
         }
       }
     },

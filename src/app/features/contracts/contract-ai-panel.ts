@@ -19,16 +19,19 @@ import { Badge } from '../../shared/ui/badge/badge';
 import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
 import { Icon } from '../../shared/ui/icon/icon';
+import { aiClauseFindings } from './contract-dpa-checklist';
 import { ContractsApi } from './data/contracts-api';
 import {
   Contract,
   ContractExtraction,
   ContractUpdate,
   DpaCheckResult,
+  DpaClauseIn,
   ExtractedObligation,
   PERM_WRITE,
   PartyIn,
 } from './data/contract.models';
+import { isClosedContract } from './data/contract-display';
 import { contractErrorKey } from './data/contract-errors';
 import { applyExtraction, formFromContract, toUpdateRequest } from './data/contract-form-model';
 import { obligationFromExtraction } from './data/obligations';
@@ -169,6 +172,19 @@ export function extractionChanges(
             [canAddObligations]="contract().can_edit"
             (addObligation)="addObligation($event)"
           />
+          @if (canRecord() && extractionFindings().length) {
+            <app-button
+              class="mt-2"
+              size="sm"
+              variant="secondary"
+              [loading]="busy()"
+              [disabled]="busy()"
+              (click)="recordFindings(extractionFindings())"
+              data-testid="record-missing-clauses"
+            >
+              {{ 'contracts.ai.recordClauses' | transloco }}
+            </app-button>
+          }
         </div>
       }
 
@@ -202,6 +218,23 @@ export function extractionChanges(
               </li>
             }
           </ul>
+          @if (canRecord() && dpaFindings().length) {
+            <div class="mt-3 flex flex-wrap items-center gap-2">
+              <app-button
+                size="sm"
+                variant="secondary"
+                [loading]="busy()"
+                [disabled]="busy()"
+                (click)="recordFindings(dpaFindings())"
+                data-testid="record-dpa-check"
+              >
+                {{ 'contracts.ai.recordClauses' | transloco }}
+              </app-button>
+              <span class="text-[12.5px] text-fg-muted">
+                {{ 'contracts.ai.recordHint' | transloco }}
+              </span>
+            </div>
+          }
         </div>
       }
     </app-card>
@@ -229,6 +262,14 @@ export class ContractAiPanel {
     () => this.contract().processes_personal_data || this.contract().contract_type === 'dpa',
   );
 
+  /** Checklist findings can be stored on this contract (open, editable, DPA-relevant). */
+  protected readonly canRecord = computed(() => {
+    const c = this.contract();
+    return (
+      c.can_edit && !isClosedContract(c.status) && (c.contract_type === 'dpa' || c.dpa.required)
+    );
+  });
+
   protected readonly extraction = signal<ContractExtraction | null>(null);
   protected readonly dpaResult = signal<DpaCheckResult | null>(null);
   protected readonly busy = signal(false);
@@ -240,6 +281,25 @@ export class ContractAiPanel {
   protected readonly changeCount = computed(() => {
     const c = this.changes();
     return c ? Object.keys(c.update).length + c.parties.length : 0;
+  });
+
+  /** The extraction's missing clauses as unconfirmed checklist entries. */
+  protected readonly extractionFindings = computed(() =>
+    aiClauseFindings(
+      this.contract().dpa.checklist ?? [],
+      (this.extraction()?.missing_dpa_clauses ?? []).map((key) => ({ key, present: false })),
+    ),
+  );
+  /** The clause check's findings as unconfirmed checklist entries. */
+  protected readonly dpaFindings = computed(() => {
+    const r = this.dpaResult();
+    if (!r || r.applies === false) {
+      return [];
+    }
+    return aiClauseFindings(this.contract().dpa.checklist ?? [], [
+      ...(r.clauses ?? []).map((c) => ({ key: c.key, present: c.present, note: c.evidence })),
+      ...(r.missing ?? []).map((key) => ({ key, present: false })),
+    ]);
   });
 
   protected clauseKey(key: string): string {
@@ -292,6 +352,26 @@ export class ContractAiPanel {
           this.changed.emit();
         },
       });
+  }
+
+  /** Store assistant findings in the checklist (as suggestions a person confirms). */
+  protected recordFindings(clauses: readonly DpaClauseIn[]): void {
+    const orgId = this.selectedOrg.currentOrgId();
+    if (!orgId || !clauses.length || this.busy()) {
+      return;
+    }
+    this.busy.set(true);
+    this.api.updateDpaClauses(orgId, this.contract().id, clauses).subscribe({
+      next: () => {
+        this.busy.set(false);
+        this.notifications.success('contracts.notices.dpaFindingsRecorded');
+        this.changed.emit();
+      },
+      error: (error: unknown) => {
+        this.busy.set(false);
+        this.notifications.error(contractErrorKey(error));
+      },
+    });
   }
 
   protected addObligation(o: ExtractedObligation): void {

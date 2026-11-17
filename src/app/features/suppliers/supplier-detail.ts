@@ -25,6 +25,7 @@ import { LessonView } from '../../shared/guidance/lesson';
 import { TeachMe } from '../../shared/guidance/teach-me';
 import { WhyItMatters } from '../../shared/guidance/why-it-matters';
 import { RecordDetailLayout, RecordTab } from '../../shared/kit/record-detail-layout';
+import { CountryNamePipe } from '../../shared/locale/countries';
 import { LocalDayPipe, LocalNumberPipe } from '../../shared/locale/locale-pipes';
 import { MarkdownPipe } from '../../shared/markdown/markdown.pipe';
 import { SupportsRequirements } from '../../shared/requirement-links/supports-requirements';
@@ -35,7 +36,7 @@ import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog/confirm-dialog';
 import { Icon } from '../../shared/ui/icon/icon';
-import { criticalityTone, decisionTone, statusTone } from './data/supplier-display';
+import { criticalityTone, decisionTone, statusTone, zoneTone } from './data/supplier-display';
 import { supplierErrorKey } from './data/supplier-errors';
 import {
   EVALUATION_KINDS,
@@ -100,6 +101,7 @@ export const SUPPLIER_FIELD_LABELS: Readonly<Record<string, string>> = {
   imports: [
     RouterLink,
     TranslocoPipe,
+    CountryNamePipe,
     LocalDayPipe,
     LocalNumberPipe,
     MarkdownPipe,
@@ -385,7 +387,7 @@ export const SUPPLIER_FIELD_LABELS: Readonly<Record<string, string>> = {
                     <dt class="text-[12px] text-fg-muted">
                       {{ 'suppliers.fields.country' | transloco }}
                     </dt>
-                    <dd class="text-fg">{{ s.country || '–' }}</dd>
+                    <dd class="text-fg">{{ s.country ? (s.country | countryName) : '–' }}</dd>
                   </div>
                   <div>
                     <dt class="text-[12px] text-fg-muted">
@@ -450,7 +452,30 @@ export const SUPPLIER_FIELD_LABELS: Readonly<Record<string, string>> = {
                       {{ 'suppliers.fields.dataLocations' | transloco }}
                     </dt>
                     <dd class="text-fg">
-                      {{ s.data_locations.length ? s.data_locations.join(', ') : '–' }}
+                      @if (locations().length) {
+                        <ul class="flex flex-col gap-1" data-testid="data-locations">
+                          @for (l of locations(); track l.code) {
+                            <li
+                              class="flex flex-wrap items-center gap-1.5"
+                              [attr.data-code]="l.code"
+                            >
+                              <span>{{ l.code | countryName }}</span>
+                              @if (l.zone) {
+                                <app-badge [tone]="zoneTone(l.zone)">{{
+                                  'suppliers.zones.' + l.zone | transloco
+                                }}</app-badge>
+                              }
+                              @if (l.needs_review) {
+                                <app-badge tone="warn">{{
+                                  'suppliers.detail.locationReview' | transloco: { code: l.code }
+                                }}</app-badge>
+                              }
+                            </li>
+                          }
+                        </ul>
+                      } @else {
+                        –
+                      }
                     </dd>
                   </div>
                   <div>
@@ -462,6 +487,27 @@ export const SUPPLIER_FIELD_LABELS: Readonly<Record<string, string>> = {
                     </dd>
                   </div>
                 </dl>
+                @if (s.transfer_assessment_needed) {
+                  <div
+                    class="mt-4 rounded-tile border border-warn bg-warn-soft px-3 py-2 text-[13px] text-fg"
+                    role="note"
+                    data-testid="transfer-assessment-needed"
+                  >
+                    <p>
+                      <span class="font-semibold">{{
+                        'suppliers.detail.transferNeeded' | transloco
+                      }}</span>
+                      {{ 'suppliers.detail.transferNeededBody' | transloco }}
+                      <a
+                        *appHasPermission="'privacy:write'"
+                        routerLink="/privacy/transfers/new"
+                        class="font-semibold text-accent hover:underline"
+                      >
+                        {{ 'suppliers.detail.transferCta' | transloco }}
+                      </a>
+                    </p>
+                  </div>
+                }
                 @if (s.processes_personal_data) {
                   <p class="mt-4 rounded-tile bg-surface-2 px-3 py-2 text-[12.5px] text-fg-muted">
                     {{ 'suppliers.detail.processorHint' | transloco }}
@@ -557,6 +603,20 @@ export class SupplierDetailPage {
   protected readonly canAudit = computed(() =>
     (this.selectedOrg.currentOrg()?.permissions ?? []).includes('audit:read'),
   );
+  /** Stored data locations with their zone and review flag (codes only on older responses). */
+  protected readonly locations = computed(() => {
+    const s = this.supplier();
+    if (!s) {
+      return [];
+    }
+    const details = new Map((s.data_location_details ?? []).map((d) => [d.code, d]));
+    return s.data_locations.map((code) => ({
+      code,
+      zone: details.get(code)?.zone ?? null,
+      needs_review: details.get(code)?.needs_review ?? false,
+    }));
+  });
+  protected readonly zoneTone = zoneTone;
   protected readonly activeFlags = computed(() => {
     const s = this.supplier();
     return s ? SUPPLIER_FLAGS.filter((f) => s[f]) : [];

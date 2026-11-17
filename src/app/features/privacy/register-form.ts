@@ -312,6 +312,28 @@ const ASK_FIELDS = new Set([
                             }
                           </select>
                         }
+                        @case ('contract') {
+                          <select
+                            [id]="fid(f)"
+                            (change)="set(f.key, $any($event.target).value)"
+                            [attr.aria-invalid]="!!shownErrors()[f.key]"
+                            [attr.data-testid]="'field-' + f.key"
+                          >
+                            <option value="" [selected]="!form()[f.key]">
+                              {{ 'privacy.common.notSet' | transloco }}
+                            </option>
+                            @if (orphan(f.key, contractOptions())) {
+                              <option [value]="form()[f.key]" selected>
+                                {{ 'privacy.form.currentValue' | transloco }}
+                              </option>
+                            }
+                            @for (o of contractOptions(); track o.id) {
+                              <option [value]="o.id" [selected]="form()[f.key] === o.id">
+                                {{ o.label }}
+                              </option>
+                            }
+                          </select>
+                        }
                         @default {
                           <input
                             [id]="fid(f)"
@@ -561,6 +583,10 @@ export class PrivacyRegisterForm {
   protected listValue(key: string): readonly string[] {
     const v = this.form()[key];
     return Array.isArray(v) ? (v as string[]) : [];
+  }
+
+  protected contractOptions() {
+    return this.refs.contracts();
   }
 
   protected refOptions(f: FieldDef) {

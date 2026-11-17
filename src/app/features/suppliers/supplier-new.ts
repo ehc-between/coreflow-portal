@@ -9,7 +9,7 @@ import { GuideIntro } from '../../shared/guidance/guide-intro';
 import { WhyItMatters } from '../../shared/guidance/why-it-matters';
 import { Alert } from '../../shared/ui/alert/alert';
 import { Icon } from '../../shared/ui/icon/icon';
-import { supplierErrorKey } from './data/supplier-errors';
+import { invalidCountry, supplierErrorKey } from './data/supplier-errors';
 import { SuppliersApi } from './data/suppliers-api';
 import { SupplierForm, SupplierFormValue } from './supplier-form';
 
@@ -37,7 +37,12 @@ import { SupplierForm, SupplierFormValue } from './supplier-form';
           <app-alert>{{ key | transloco }}</app-alert>
         </div>
       }
-      <app-supplier-form [busy]="busy()" (submitted)="save($event)" (cancelled)="back()" />
+      <app-supplier-form
+        [busy]="busy()"
+        [invalidCountry]="countryError()"
+        (submitted)="save($event)"
+        (cancelled)="back()"
+      />
       <div class="mt-6"><app-why-it-matters scope="suppliers" page="form" /></div>
     </div>
   `,
@@ -51,6 +56,7 @@ export class SupplierNew {
 
   protected readonly busy = signal(false);
   protected readonly error = signal<string | null>(null);
+  protected readonly countryError = signal<ReturnType<typeof invalidCountry>>(null);
 
   constructor() {
     providePageContext(() => ({
@@ -68,6 +74,7 @@ export class SupplierNew {
     }
     this.busy.set(true);
     this.error.set(null);
+    this.countryError.set(null);
     this.api.create(orgId, value.fields).subscribe({
       next: (supplier) => {
         this.busy.set(false);
@@ -77,6 +84,7 @@ export class SupplierNew {
       error: (err: unknown) => {
         this.busy.set(false);
         this.error.set(supplierErrorKey(err));
+        this.countryError.set(invalidCountry(err));
       },
     });
   }

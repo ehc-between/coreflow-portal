@@ -23,6 +23,7 @@ import { TourStepDirective } from '../../shared/guidance/tour-step.directive';
 import { WhyItMatters } from '../../shared/guidance/why-it-matters';
 import { RecordListPage } from '../../shared/kit/record-list-page';
 import { SavedView } from '../../shared/kit/saved-views.service';
+import { CountryNamePipe } from '../../shared/locale/countries';
 import { LocalDayPipe, LocalNumberPipe } from '../../shared/locale/locale-pipes';
 import { Badge } from '../../shared/ui/badge/badge';
 import { Button } from '../../shared/ui/button/button';
@@ -117,6 +118,7 @@ export function toQuery(q: string, f: SupplierFilters, offset: number): Supplier
   imports: [
     RouterLink,
     TranslocoPipe,
+    CountryNamePipe,
     LocalDayPipe,
     LocalNumberPipe,
     Badge,
@@ -353,7 +355,7 @@ export function toQuery(q: string, f: SupplierFilters, offset: number): Supplier
                       >
                         <span>{{ 'suppliers.category.' + row.category | transloco }}</span>
                         @if (row.country) {
-                          <span>{{ row.country }}</span>
+                          <span>{{ row.country | countryName }}</span>
                         }
                         @if (row.owner?.name; as owner) {
                           <span>{{ 'suppliers.list.ownedBy' | transloco: { name: owner } }}</span>

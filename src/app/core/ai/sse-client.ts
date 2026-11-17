@@ -1,6 +1,8 @@
 import { Injectable, inject } from '@angular/core';
+import { slowDownMessage } from '../auth/auth-errors';
 import { AuthService } from '../auth/auth.service';
 import { APP_CONFIG } from '../config/app-config';
+import { NotificationService } from '../notifications/notification.service';
 
 /** A live Server-Sent Events stream: cancel it to abort the underlying request. */
 export interface SseStream {
@@ -30,6 +32,7 @@ export type SseControlEvent =
 @Injectable({ providedIn: 'root' })
 export class SseClient {
   private readonly auth = inject(AuthService);
+  private readonly notifications = inject(NotificationService);
   private readonly baseUrl = inject(APP_CONFIG).apiBaseUrl.replace(/\/+$/, '');
 
   /** POST `body` as JSON to `path` (relative to `apiBaseUrl`) and stream the events. */
@@ -72,6 +75,15 @@ export class SseClient {
 
     if (response.status === 503 && isNotConfiguredDetail(await readDetail(response))) {
       onEvent({ type: 'not-configured' });
+      return;
+    }
+
+    if (response.status === 429) {
+      // Per-user AI throttle: fetch bypasses the HTTP error interceptor, so
+      // surface the same "slow down" toast here, then end as a calm error.
+      const message = slowDownMessage(await readRetryAfter(response));
+      this.notifications.error(message.key, message.params);
+      onEvent({ type: 'error', message: '' });
       return;
     }
 
@@ -143,6 +155,18 @@ async function readDetail(response: Response): Promise<unknown> {
   } catch {
     return null;
   }
+}
+
+/** Seconds to wait from a 429's body `retry_after`, else `Retry-After`, else null. */
+async function readRetryAfter(response: Response): Promise<number | null> {
+  const detail = await readDetail(response);
+  const fromBody =
+    detail && typeof detail === 'object' && 'retry_after' in detail ? detail.retry_after : null;
+  if (typeof fromBody === 'number') {
+    return fromBody;
+  }
+  const header = Number.parseInt(response.headers.get('Retry-After') ?? '', 10);
+  return Number.isFinite(header) ? header : null;
 }
 
 /**

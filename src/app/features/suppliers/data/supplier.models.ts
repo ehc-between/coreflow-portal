@@ -161,6 +161,10 @@ export interface SupplierDetail extends SupplierListItem {
   readonly contact_email: string | null;
   readonly contact_phone: string | null;
   readonly data_locations: readonly string[];
+  /** Each stored location with its Chapter V zone (absent on older responses). */
+  readonly data_location_details?: readonly DataLocationDetail[];
+  /** Processes personal data and stores it in a third country (Chapter V). */
+  readonly transfer_assessment_needed?: boolean;
   readonly certifications: readonly string[];
   readonly evaluation_interval_months: number | null;
   readonly effective_interval_months: number;
@@ -173,6 +177,24 @@ export interface SupplierDetail extends SupplierListItem {
   readonly can_edit: boolean;
   readonly can_approve: boolean;
   readonly can_delete: boolean;
+}
+
+/** `eea`: EU/EEA; `adequacy`: an Art. 45 decision; `third_country`: needs a transfer tool. */
+export type LocationZone = 'eea' | 'adequacy' | 'third_country';
+
+export interface DataLocationDetail {
+  readonly code: string;
+  readonly zone: LocationZone;
+  /** A legacy value that may be a truncated country name (e.g. IR from "Ireland"). */
+  readonly needs_review: boolean;
+  readonly transfer_assessment_needed: boolean;
+}
+
+/** `GET /suppliers/location-options` item: ISO 3166-1 alpha-2 codes plus EU / EEA. */
+export interface LocationOption {
+  readonly code: string;
+  readonly zone: LocationZone;
+  readonly region: boolean;
 }
 
 export interface SupplierSummary {

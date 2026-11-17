@@ -55,6 +55,7 @@ export type RegisterKey = (typeof REGISTER_KEYS)[number];
  * - `boolean`: checkbox; `tristate`: undecided / yes / no (nullable boolean);
  * - `date`: a calendar day; `datetime`: a moment (local time in the form, naive UTC on the wire);
  * - `ref`: a record of another register (`ref`); `owner`: an org member; `department`;
+ * - `contract`: a contract of the contract register (the transfer's signed safeguard);
  * - `screening`: the DPIA screening checklist; `risks`: the DPIA risk table.
  */
 export type FieldKind =
@@ -69,6 +70,7 @@ export type FieldKind =
   | 'date'
   | 'datetime'
   | 'ref'
+  | 'contract'
   | 'owner'
   | 'department'
   | 'screening'
@@ -159,6 +161,10 @@ const notFalse = (key: string) => (v: FormValues) => v[key] !== false;
 const hasItems = (key: string) => (v: FormValues) =>
   Array.isArray(v[key]) && (v[key] as unknown[]).length > 0;
 const equals = (key: string, value: string) => (v: FormValues) => v[key] === value;
+const oneOf =
+  (key: string, values: readonly string[]) =>
+  (v: FormValues): boolean =>
+    values.includes(String(v[key] ?? ''));
 const hasValue = (key: string) => (v: FormValues) => !!v[key];
 
 const COMMON_HEAD: readonly FieldDef[] = [
@@ -613,6 +619,12 @@ export const REGISTERS: Readonly<Record<RegisterKey, RegisterDef>> = {
         optionSet: 'sccModule',
         section: 'mechanism',
         showIf: equals('mechanism', 'sccs'),
+      },
+      {
+        key: 'contract_id',
+        kind: 'contract',
+        section: 'mechanism',
+        showIf: oneOf('mechanism', ['sccs', 'bcrs', 'other']),
       },
       {
         key: 'derogation',

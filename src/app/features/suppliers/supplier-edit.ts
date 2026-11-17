@@ -18,10 +18,26 @@ import { GuideIntro } from '../../shared/guidance/guide-intro';
 import { Alert } from '../../shared/ui/alert/alert';
 import { Icon } from '../../shared/ui/icon/icon';
 import { changedFields } from './data/supplier-display';
-import { supplierErrorKey } from './data/supplier-errors';
-import { SupplierDetail } from './data/supplier.models';
+import { invalidCountry, supplierErrorKey } from './data/supplier-errors';
+import { SupplierDetail, UpdateSupplierRequest } from './data/supplier.models';
 import { SuppliersApi } from './data/suppliers-api';
 import { SupplierForm, SupplierFormValue, draftFrom, fieldsFrom } from './supplier-form';
+
+/**
+ * The changed fields, plus the data locations when the stored ones were flagged for
+ * review (e.g. "IR" truncated from "Ireland"): saving the form with the warning in view
+ * confirms them, which clears the flag.
+ */
+export function locationsReviewed(
+  current: SupplierDetail,
+  changes: UpdateSupplierRequest,
+  locations: readonly string[],
+): UpdateSupplierRequest {
+  const flagged = (current.data_location_details ?? []).some((l) => l.needs_review);
+  return flagged && !('data_locations' in changes)
+    ? { ...changes, data_locations: [...locations] }
+    : changes;
+}
 
 /** Edit a supplier (`/suppliers/:id/edit`); only changed fields are sent, with a reason. */
 @Component({
@@ -61,6 +77,7 @@ import { SupplierForm, SupplierFormValue, draftFrom, fieldsFrom } from './suppli
               <app-supplier-form
                 [value]="s"
                 [busy]="busy()"
+                [invalidCountry]="countryError()"
                 (submitted)="save(s, $event)"
                 (cancelled)="back()"
               />
@@ -83,6 +100,7 @@ export class SupplierEdit {
   protected readonly supplier = signal<SupplierDetail | null>(null);
   protected readonly busy = signal(false);
   protected readonly error = signal<string | null>(null);
+  protected readonly countryError = signal<ReturnType<typeof invalidCountry>>(null);
   private request = new Subscription();
 
   constructor() {
@@ -119,13 +137,18 @@ export class SupplierEdit {
     if (!orgId || this.busy()) {
       return;
     }
-    const changes = changedFields(fieldsFrom(draftFrom(current)), value.fields);
+    const changes = locationsReviewed(
+      current,
+      changedFields(fieldsFrom(draftFrom(current)), value.fields),
+      value.fields.data_locations,
+    );
     if (Object.keys(changes).length === 0) {
       this.back();
       return;
     }
     this.busy.set(true);
     this.error.set(null);
+    this.countryError.set(null);
     this.api
       .update(orgId, current.id, { ...changes, change_reason: value.changeReason })
       .subscribe({
@@ -137,6 +160,7 @@ export class SupplierEdit {
         error: (err: unknown) => {
           this.busy.set(false);
           this.error.set(supplierErrorKey(err));
+          this.countryError.set(invalidCountry(err));
         },
       });
   }

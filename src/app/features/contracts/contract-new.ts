@@ -22,6 +22,7 @@ import {
   toCreateRequest,
 } from './data/contract-form-model';
 import { obligationFromExtraction } from './data/obligations';
+import { aiClauseFindings } from './contract-dpa-checklist';
 import { ExtractionSummary } from './extraction-summary';
 import { ContractLessonLink } from './lesson-link';
 
@@ -193,9 +194,19 @@ export class ContractNew {
             .filter((o) => o?.title)
             .map((o) => obligationFromExtraction(o))
         : [];
+    const value = event.value;
+    // Missing clauses the extraction found are stored as unconfirmed checklist findings.
+    const dpaClauses =
+      value.contract_type === 'dpa' || value.processes_personal_data === true
+        ? aiClauseFindings(
+            [],
+            (this.extraction()?.missing_dpa_clauses ?? []).map((key) => ({ key, present: false })),
+          )
+        : [];
+    const body = toCreateRequest(value);
     this.saving.set(true);
     this.api
-      .create(orgId, toCreateRequest(event.value))
+      .create(orgId, dpaClauses.length ? { ...body, dpa_clauses: dpaClauses } : body)
       .pipe(
         switchMap((contract) =>
           obligations.length

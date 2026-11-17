@@ -71,6 +71,26 @@ describe('AttachmentsApi', () => {
     req.flush([]);
   });
 
+  it('sets a legal hold in place (no toast) and returns the attachment', () => {
+    let held: boolean | undefined;
+    api.setLegalHold(ORG, 'att-1', true).subscribe((a) => (held = a.legal_hold));
+    const req = http.expectOne(`${BASE}/v1/orgs/${ORG}/attachments/att-1/legal-hold`);
+    expect(req.request.method).toBe('PUT');
+    expect(req.request.body).toEqual({ legal_hold: true });
+    expect(req.request.context.get(SKIP_ERROR_TOAST)).toBe(true);
+    req.flush(attachment({ legal_hold: true }));
+    expect(held).toBe(true);
+  });
+
+  it('pages the attachment deletion log', () => {
+    api.listDeletions(ORG, 50, 100).subscribe();
+    const req = http.expectOne((r) => r.url === `${BASE}/v1/orgs/${ORG}/attachment-deletions`);
+    expect(req.request.method).toBe('GET');
+    expect(req.request.params.get('limit')).toBe('50');
+    expect(req.request.params.get('offset')).toBe('100');
+    req.flush({ items: [], total: 0 });
+  });
+
   it('requests a download link and deletes', () => {
     api.download(ORG, 'att-1').subscribe();
     http.expectOne(`${BASE}/v1/orgs/${ORG}/attachments/att-1/download`).flush({

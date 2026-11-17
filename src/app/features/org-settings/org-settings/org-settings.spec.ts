@@ -98,11 +98,16 @@ describe('Settings access for a users:invite-only user', () => {
     // The members table and the MFA policy section each load the role catalogue.
     http.match(`${BASE}/v1/orgs/${ORG}/roles`).forEach((req) => req.flush([]));
     http.expectOne(`${BASE}/v1/orgs/${ORG}/members`).flush([]);
-    // Document settings and the MFA policy section each read the org settings.
+    // Document, MFA policy and attachment settings each read the org settings.
     const settings = http.match(`${BASE}/v1/orgs/${ORG}/settings`);
-    expect(settings.length).toBe(2);
+    expect(settings.length).toBe(3);
     settings.forEach((req) =>
-      req.flush({ require_document_segregation: false, mfa_policy: 'off', mfa_required_roles: [] }),
+      req.flush({
+        require_document_segregation: false,
+        mfa_policy: 'off',
+        mfa_required_roles: [],
+        allow_macro_attachments: false,
+      }),
     );
     http.expectNone(`${BASE}/v1/orgs/${ORG}/invitations`);
     await fixture.whenStable();
@@ -111,6 +116,7 @@ describe('Settings access for a users:invite-only user', () => {
     expect(root.querySelector('[data-testid="settings-departments"]')).not.toBeNull();
     expect(root.querySelector('[data-testid="settings-documents"]')).not.toBeNull();
     expect(root.querySelector('[data-testid="settings-mfa"]')).not.toBeNull();
+    expect(root.querySelector('[data-testid="settings-attachments"]')).not.toBeNull();
     expect(root.querySelector('app-org-members')).not.toBeNull();
     expect(root.querySelector('app-org-invitations')).toBeNull();
   });

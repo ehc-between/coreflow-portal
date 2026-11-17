@@ -38,6 +38,22 @@ describe('loginErrorMessage', () => {
     expect(loginErrorMessage(httpError(429))).toEqual({ key: 'auth.error.tooManyAttempts' });
   });
 
+  it('shows "temporarily unavailable" when the limiter backend is down (503)', () => {
+    const err = httpError(503, { detail: { code: 'rate_limiter_unavailable', retry_after: 30 } });
+    expect(loginErrorMessage(err)).toEqual({
+      key: 'errors.temporarilyUnavailableSeconds',
+      params: { seconds: 30 },
+    });
+  });
+
+  it('keeps the generic API throttle separate from the sign-in lockout', () => {
+    const err = httpError(429, { detail: { code: 'rate_limited', retry_after: 20 } });
+    expect(loginErrorMessage(err)).toEqual({
+      key: 'errors.rateLimitedSeconds',
+      params: { seconds: 20 },
+    });
+  });
+
   it('uses the generic error for server failures', () => {
     expect(loginErrorMessage(httpError(500))).toEqual({ key: 'errors.generic' });
   });

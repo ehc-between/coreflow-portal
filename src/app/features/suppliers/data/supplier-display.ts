@@ -31,6 +31,20 @@ export function statusTone(status: SupplierStatus): BadgeTone {
 }
 
 /** Badge tone of a criticality. */
+/** EU/EEA green, adequacy neutral-blue, third country amber (it needs a transfer tool). */
+export function zoneTone(zone: string): BadgeTone {
+  switch (zone) {
+    case 'eea':
+      return 'pass';
+    case 'adequacy':
+      return 'info';
+    case 'third_country':
+      return 'warn';
+    default:
+      return 'neutral';
+  }
+}
+
 export function criticalityTone(criticality: Criticality): BadgeTone {
   switch (criticality) {
     case 'critical':

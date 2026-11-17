@@ -529,6 +529,11 @@ export class InspectionRun {
         }
         done();
         const attachment = event.attachment;
+        if (attachment.status === 'quarantined') {
+          // The malware scanner refused it: never link it as answer evidence.
+          this.notifications.error('attachments.errors.uploadQuarantined');
+          return;
+        }
         this.fileNames.update((n) => ({ ...n, [attachment.id]: attachment.filename }));
         const draft = this.drafts()[question.id] ?? EMPTY_DRAFT;
         this.setDraft(question.id, {

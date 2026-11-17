@@ -2,6 +2,7 @@ import { provideZonelessChangeDetection, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { AuthService } from '../auth/auth.service';
 import { APP_CONFIG } from '../config/app-config';
+import { NotificationService } from '../notifications/notification.service';
 import { SseClient } from './sse-client';
 
 const BASE = 'http://test/api/';
@@ -95,6 +96,30 @@ describe('SseClient', () => {
     client.post('v1/x', {}, (e) => more.push(e));
     await until(more, 'error');
     expect(more).toEqual([{ type: 'error', message: '' }]);
+  });
+
+  it('toasts a "slow down" message and ends as an error on a per-user 429', async () => {
+    const notify = vi.spyOn(TestBed.inject(NotificationService), 'error');
+    fetchMock.mockResolvedValue(
+      new Response(JSON.stringify({ detail: { code: 'rate_limited', retry_after: 540 } }), {
+        status: 429,
+        headers: { 'Retry-After': '540' },
+      }),
+    );
+    const events: { type: string }[] = [];
+    client.post('v1/x', {}, (e) => events.push(e));
+    await until(events, 'error');
+    expect(events).toEqual([{ type: 'error', message: '' }]);
+    expect(notify).toHaveBeenCalledWith('errors.rateLimitedMinutes', { minutes: 9 });
+
+    notify.mockClear();
+    fetchMock.mockResolvedValue(
+      new Response('busy', { status: 429, headers: { 'Retry-After': '7' } }),
+    );
+    const more: { type: string }[] = [];
+    client.post('v1/x', {}, (e) => more.push(e));
+    await until(more, 'error');
+    expect(notify).toHaveBeenCalledWith('errors.rateLimitedSeconds', { seconds: 7 });
   });
 
   it('ends with an error when the stream hits EOF without done / error', async () => {
