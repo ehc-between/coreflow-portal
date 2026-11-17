@@ -33,6 +33,7 @@ import { RowFact, rowFacts, statusKey, statusTone } from './data/privacy-display
 import { PrivacyRefsService } from './data/privacy-refs.service';
 import { REGISTERS, RegisterKey } from './data/privacy-registers';
 import { PrivacyLessonLink, PrivacyNav, privacyPermissions } from './privacy-nav';
+import { FulfilsRequirements } from '../../shared/requirement-locations/fulfils-requirements';
 
 const PAGE_SIZE = 25;
 
@@ -66,6 +67,7 @@ export function statusesFor(register: RegisterKey, filter: string): readonly str
 @Component({
   selector: 'app-privacy-register-list',
   imports: [
+    FulfilsRequirements,
     RouterLink,
     TranslocoPipe,
     GuideIntro,
@@ -94,6 +96,7 @@ export function statusesFor(register: RegisterKey, filter: string): readonly str
       (search)="setQuery($event)"
       (viewApplied)="applyView($event)"
     >
+      <app-fulfils-requirements help />
       <div intro class="mt-1 flex flex-col gap-2">
         <app-privacy-nav [active]="def().key" />
         <p class="text-[14px] text-fg-muted">

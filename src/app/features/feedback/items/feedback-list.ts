@@ -53,6 +53,7 @@ import {
 } from '../data/feedback.models';
 import { FeedbackTabs } from '../feedback-tabs';
 import { FeedbackLessonLink } from '../lesson-link';
+import { FulfilsRequirements } from '../../../shared/requirement-locations/fulfils-requirements';
 
 const PAGE_SIZE = 25;
 
@@ -78,6 +79,7 @@ export function statusQuery(filter: string): Pick<FeedbackListQuery, 'status' | 
 @Component({
   selector: 'app-feedback-list',
   imports: [
+    FulfilsRequirements,
     RouterLink,
     TranslocoPipe,
     LocalDayPipe,
@@ -107,6 +109,7 @@ export function statusQuery(filter: string): Pick<FeedbackListQuery, 'status' | 
       (search)="setQuery($event)"
       (viewApplied)="applyView($event)"
     >
+      <app-fulfils-requirements help locationKey="feedback.items" />
       <div intro class="mt-1 flex flex-col gap-2">
         <p class="text-[14px] text-fg-muted">{{ 'feedback.list.subtitle' | transloco }}</p>
         <app-feedback-tabs />

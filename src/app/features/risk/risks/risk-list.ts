@@ -39,6 +39,7 @@ import {
 import { RatingBadge } from '../shared/rating-badge';
 import { RiskPageGuide } from '../shared/risk-page-guide';
 import { RiskPermissions } from '../shared/risk-permissions';
+import { FulfilsRequirements } from '../../../shared/requirement-locations/fulfils-requirements';
 
 const PAGE_SIZE = 50;
 
@@ -108,6 +109,7 @@ export function riskQuery(filters: RiskFilters, q: string, offset: number): Risk
 @Component({
   selector: 'app-risk-list',
   imports: [
+    FulfilsRequirements,
     RouterLink,
     TranslocoPipe,
     LocalDayPipe,
@@ -135,6 +137,7 @@ export function riskQuery(filters: RiskFilters, q: string, offset: number): Risk
       (search)="setQuery($event)"
       (viewApplied)="applyView($event)"
     >
+      <app-fulfils-requirements help locationKey="risk.risks" />
       <div intro class="mt-3">
         <app-risk-page-guide page="risks" lesson="first-risk-assessment" tour="risks" />
       </div>

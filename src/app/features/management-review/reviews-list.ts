@@ -52,6 +52,7 @@ import {
   reviewStatusKey,
   reviewStatusTone,
 } from './management-review-display';
+import { FulfilsRequirements } from '../../shared/requirement-locations/fulfils-requirements';
 
 const PAGE_SIZE = 25;
 
@@ -77,6 +78,7 @@ export function reviewStatusesFor(filter: ReviewStatusFilter): readonly ReviewSt
 @Component({
   selector: 'app-mr-reviews-list',
   imports: [
+    FulfilsRequirements,
     RouterLink,
     TranslocoPipe,
     LocalDatePipe,
@@ -107,6 +109,7 @@ export function reviewStatusesFor(filter: ReviewStatusFilter): readonly ReviewSt
       (search)="setQuery($event)"
       (viewApplied)="applyView($event)"
     >
+      <app-fulfils-requirements help locationKey="management_review.reviews" />
       <div intro class="mt-1.5">
         <p class="text-[14px] text-fg-muted">{{ 'managementReview.list.subtitle' | transloco }}</p>
       </div>

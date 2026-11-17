@@ -50,6 +50,7 @@ import {
   InspectionStatus,
 } from '../data/inspection.models';
 import { InspectionsApi } from '../data/inspections-api';
+import { FulfilsRequirements } from '../../../shared/requirement-locations/fulfils-requirements';
 
 const PAGE_SIZE = 25;
 
@@ -122,6 +123,7 @@ export function toInspectionQuery(
 @Component({
   selector: 'app-inspections-list',
   imports: [
+    FulfilsRequirements,
     RouterLink,
     TranslocoPipe,
     HasPermissionDirective,
@@ -155,6 +157,7 @@ export function toInspectionQuery(
       (search)="onSearch($event)"
       (viewApplied)="applyView($event)"
     >
+      <app-fulfils-requirements help locationKey="inspections.register" />
       <div intro class="mt-1.5 max-w-[680px]">
         <p class="text-[14px] text-fg-muted">{{ 'inspections.list.subtitle' | transloco }}</p>
         <app-inspections-tabs active="inspections" />

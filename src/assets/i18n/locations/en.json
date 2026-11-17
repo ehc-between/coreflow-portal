@@ -1,0 +1,105 @@
+{
+  "block": {
+    "title": "Where you fill this in",
+    "supporting": "Also relevant",
+    "adjusted": "{{count}} adjustments",
+    "adjustedOne": "1 adjustment",
+    "adjustedBy": "Adjusted by {{name}}, {{date}}",
+    "orphaned": "This place is no longer in the standard setup, so the adjustment no longer counts",
+    "restore": "Use the standard setup again"
+  },
+  "adjust": {
+    "menu": "Adjust",
+    "repoint": "Use another place",
+    "rules": "Change the rule",
+    "disable": "Turn off for us",
+    "add": "Add a place",
+    "addFirst": "Add the place where you fill this in"
+  },
+  "card": {
+    "moduleOff": "The module is not turned on",
+    "enableModule": "Turn it on in settings",
+    "askAdmin": "Ask an administrator to turn it on",
+    "lastChanged": "last changed {{date}}",
+    "notUpdated": "not updated in the last 12 months",
+    "samples": "Needs follow-up:",
+    "updating": "The status is being updated…",
+    "adjusted": "Adjusted for your organisation: {{reason}}",
+    "goTo": "Go to {{label}}",
+    "create": "Add new"
+  },
+  "outcome": {
+    "met": "Met",
+    "partial": "Partly met",
+    "not_met": "Not met yet",
+    "not_evaluable": "Cannot be checked right now"
+  },
+  "override": {
+    "title": {
+      "repoint": "Use another place",
+      "add": "Add a place",
+      "rules": "Change the rule",
+      "disable": "Turn off for us"
+    },
+    "intro": {
+      "repoint": "Choose the place where you actually fill in this requirement. The current place is turned off for your organisation.",
+      "add": "Choose another place where this requirement is filled in, and what it takes to count as met.",
+      "rules": "Choose what it takes for this place to count as met for this requirement.",
+      "disable": "This place will no longer count for this requirement in your organisation. The status then comes from linked evidence. Write briefly why."
+    },
+    "close": "Close",
+    "place": "Place",
+    "search": "Search for a place",
+    "noPlaces": "No places match your search",
+    "role": "Role",
+    "rolePrimary": "Where you fill this in (counts for the status)",
+    "roleSupporting": "Also relevant (does not count on its own)",
+    "rules": "When does it count as met?",
+    "preset": {
+      "minBefore": "At least",
+      "minLabel": "Number of entries",
+      "minAfter": "entries",
+      "state": "All are",
+      "stateLabel": "Status",
+      "daysBefore": "Reviewed in the last",
+      "daysLabel": "Number of days",
+      "daysAfter": "days",
+      "noneOverdue": "None are overdue"
+    },
+    "noRules": "This place has no rules to choose from. It can only be added as “Also relevant”.",
+    "justification": "Justification",
+    "justificationHint": "For example: We record our interested parties in a separate document.",
+    "previewTitle": "This is how it will look",
+    "previewError": "Could not show a preview. Please try again.",
+    "saveError": "Could not save the adjustment. Please try again.",
+    "preview": "Preview",
+    "cancel": "Cancel",
+    "save": {
+      "repoint": "Use this place",
+      "add": "Add",
+      "rules": "Save rule",
+      "disable": "Turn off"
+    }
+  },
+  "fulfils": {
+    "title": "This fulfils:",
+    "cameFrom": "You came here from {{short}} · {{number}}: {{title}}",
+    "cameFromNoTitle": "You came here from {{short}} · {{number}}",
+    "cameFromRequirement": "You came here from a requirement",
+    "back": "Back to the requirement",
+    "more": "+ {{count}} more",
+    "show": "Show what is missing",
+    "hide": "Hide",
+    "supporting": "also relevant"
+  },
+  "hint": {
+    "location": "Status from the place where this is filled in: {{text}}",
+    "manual": "Set manually. The place says: {{text}}"
+  },
+  "gaps": {
+    "fillIn": "Fill in at"
+  },
+  "readiness": {
+    "byBasis": "{{location}} requirements covered from registers, {{links}} from linked evidence, {{manual}} assessed manually"
+  }
+}

@@ -51,6 +51,7 @@ import {
 } from './data/supplier.models';
 import { SuppliersApi } from './data/suppliers-api';
 import { SuppliersNav } from './shared/suppliers-nav';
+import { FulfilsRequirements } from '../../shared/requirement-locations/fulfils-requirements';
 
 const PAGE_SIZE = 25;
 
@@ -116,6 +117,7 @@ export function toQuery(q: string, f: SupplierFilters, offset: number): Supplier
 @Component({
   selector: 'app-suppliers-list',
   imports: [
+    FulfilsRequirements,
     RouterLink,
     TranslocoPipe,
     CountryNamePipe,
@@ -148,6 +150,7 @@ export function toQuery(q: string, f: SupplierFilters, offset: number): Supplier
       (search)="search($event)"
       (viewApplied)="applyView($event)"
     >
+      <app-fulfils-requirements help locationKey="suppliers.register" />
       <div intro>
         <p class="mt-1 text-[14px] text-fg-muted">{{ 'suppliers.list.subtitle' | transloco }}</p>
         <app-suppliers-nav />
