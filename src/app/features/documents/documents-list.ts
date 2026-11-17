@@ -31,6 +31,7 @@ import { STATUS_FILTERS, statusLabelKey, statusTone } from './document-status';
 import { ReviewState, reviewLabelKey, reviewState, reviewTone } from './workflow/document-review';
 import { pluralKey } from '../../shared/i18n/plural';
 import { providePageContext } from '../../core/ai/page-context';
+import { FulfilsRequirements } from '../../shared/requirement-locations/fulfils-requirements';
 
 /** Rows per page of the documents list. */
 export const DOCUMENTS_PAGE_SIZE = 25;
@@ -65,6 +66,7 @@ interface Row {
 @Component({
   selector: 'app-documents-list',
   imports: [
+    FulfilsRequirements,
     LocalDatePipe,
     FormsModule,
     RouterLink,
@@ -93,6 +95,8 @@ interface Row {
           </app-button>
         </a>
       </div>
+
+      <app-fulfils-requirements locationKey="documents.register" />
 
       <div class="mb-4 flex flex-wrap items-center gap-2.5">
         <div

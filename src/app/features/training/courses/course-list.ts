@@ -40,6 +40,7 @@ import {
 } from '../data/training.models';
 import { FilterOption, FilterSelect } from '../shared/filter-select';
 import { TrainingNav } from '../training-nav';
+import { FulfilsRequirements } from '../../../shared/requirement-locations/fulfils-requirements';
 
 const PAGE_SIZE = 25;
 const SORTS: readonly CourseSort[] = ['title', 'code', '-updated_at', '-created_at'];
@@ -48,6 +49,7 @@ const SORTS: readonly CourseSort[] = ['title', 'code', '-updated_at', '-created_
 @Component({
   selector: 'app-course-list',
   imports: [
+    FulfilsRequirements,
     RouterLink,
     TranslocoPipe,
     LocalDatePipe,
@@ -78,6 +80,7 @@ const SORTS: readonly CourseSort[] = ['title', 'code', '-updated_at', '-created_
       (search)="setQuery($event)"
       (viewApplied)="applyView($event)"
     >
+      <app-fulfils-requirements help locationKey="training.courses" />
       <div intro class="mt-3 grid gap-3 lg:grid-cols-[1fr_300px]">
         <app-guide-intro scope="training" page="courses" />
         <app-why-it-matters scope="training" page="courses" />
