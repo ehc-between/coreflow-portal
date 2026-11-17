@@ -431,7 +431,14 @@
     "management_review": {
       "to_task": "Action (task)"
     },
-    "formMissing": "This form is not available yet. Create the record from its own page and link it from the Related tab."
+    "formMissing": "This form is not available yet. Create the record from its own page and link it from the Related tab.",
+    "process": {
+      "to_deviation": "Deviation in the process",
+      "to_risk": "Risk for the process",
+      "to_task": "Task for the process",
+      "to_audit_plan": "Internal audit of the process",
+      "to_kpi": "KPI for the process"
+    }
   },
   "frameworks": {
     "iso9001": "ISO 9001",

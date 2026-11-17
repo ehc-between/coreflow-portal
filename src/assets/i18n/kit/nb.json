@@ -431,7 +431,14 @@
     "management_review": {
       "to_task": "Tiltak (oppgave)"
     },
-    "formMissing": "Dette skjemaet finnes ikke ennå. Opprett posten fra sin egen side og koble den fra fanen Relatert."
+    "formMissing": "Dette skjemaet finnes ikke ennå. Opprett posten fra sin egen side og koble den fra fanen Relatert.",
+    "process": {
+      "to_deviation": "Avvik i prosessen",
+      "to_risk": "Risiko for prosessen",
+      "to_task": "Oppgave for prosessen",
+      "to_audit_plan": "Internrevisjon av prosessen",
+      "to_kpi": "Nøkkeltall for prosessen"
+    }
   },
   "frameworks": {
     "iso9001": "ISO 9001",

@@ -12,7 +12,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { FieldHelp } from '../../../shared/guidance/field-help';
-import { Badge } from '../../../shared/ui/badge/badge';
+import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
@@ -21,6 +21,7 @@ import { processErrorKey } from '../data/process-errors';
 import { ProcessReferences } from '../data/process-references';
 import { ProcessDetail } from '../data/process.models';
 import { ProcessesApi } from '../data/processes-api';
+import { DocumentSelect } from '../shared/document-select';
 
 /**
  * The process description document: a controlled document (document control's
@@ -31,15 +32,25 @@ import { ProcessesApi } from '../data/processes-api';
  */
 @Component({
   selector: 'app-description-document-panel',
-  imports: [RouterLink, TranslocoPipe, FieldHelp, Badge, Button, Card, ConfirmDialog, Icon],
+  imports: [
+    RouterLink,
+    TranslocoPipe,
+    FieldHelp,
+    StatusBadge,
+    Button,
+    Card,
+    ConfirmDialog,
+    Icon,
+    DocumentSelect,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @let p = process();
     <app-card>
-      <h2 class="mb-1 text-[15px] font-bold text-fg">
-        {{ 'processes.document.title' | transloco }}
-      </h2>
-      <app-field-help scope="processes" page="detail" field="descriptionDocument" />
+      <div class="flex items-center gap-1.5">
+        <h2 class="text-card font-bold text-fg">{{ 'processes.document.title' | transloco }}</h2>
+        <app-field-help scope="processes" page="detail" field="descriptionDocument" />
+      </div>
       @if (p.description_document; as doc) {
         <div
           class="mt-3 flex flex-wrap items-center justify-between gap-2"
@@ -48,24 +59,26 @@ import { ProcessesApi } from '../data/processes-api';
           @if (doc.accessible) {
             <a
               [routerLink]="doc.url ?? ['/documents', doc.id]"
-              class="min-w-0 flex-1 text-[13.5px] font-semibold text-accent hover:underline"
+              class="min-w-0 flex-1 text-ui font-semibold text-accent hover:underline"
             >
-              <span class="font-mono text-[12px] text-fg-subtle">{{ doc.doc_code }}</span>
+              <span class="font-mono text-meta text-fg-subtle">{{ doc.doc_code }}</span>
               {{ doc.title }}
             </a>
             @if (doc.status) {
-              <app-badge [tone]="doc.status === 'approved' ? 'pass' : 'info'">{{
-                'processes.document.status.' + doc.status | transloco
-              }}</app-badge>
+              <app-status-badge
+                meaning="lifecycle"
+                [value]="doc.status"
+                [labelKey]="'processes.document.status.' + doc.status"
+              />
             }
           } @else {
-            <span class="text-[13px] text-fg-muted">
+            <span class="text-ui text-fg-muted">
               {{ 'processes.document.restricted' | transloco }}
             </span>
           }
         </div>
         @if (doc.accessible && doc.status !== 'approved') {
-          <p class="mt-2 text-[12.5px] text-fg-muted">
+          <p class="mt-2 text-meta text-fg-muted">
             {{ 'processes.document.notApproved' | transloco }}
           </p>
         }
@@ -78,7 +91,7 @@ import { ProcessesApi } from '../data/processes-api';
           </div>
         }
       } @else {
-        <p class="mt-2 text-[13px] text-fg-muted">{{ 'processes.document.none' | transloco }}</p>
+        <p class="mt-2 text-ui text-fg-muted">{{ 'processes.document.none' | transloco }}</p>
         @if (p.can_edit) {
           <div class="mt-3 flex flex-col gap-3">
             @if (canDraft()) {
@@ -93,38 +106,31 @@ import { ProcessesApi } from '../data/processes-api';
                   <app-icon name="documents" [size]="14" />
                   {{ 'processes.document.create' | transloco }}
                 </app-button>
-                <p class="mt-1 text-[12px] text-fg-subtle">
+                <p class="mt-1 text-meta text-fg-subtle">
                   {{ 'processes.document.createHint' | transloco }}
                 </p>
               </div>
             }
             @if (references.canReadDocuments()) {
-              <div class="flex flex-wrap items-end gap-2">
-                <label
-                  class="flex min-w-[200px] flex-1 flex-col gap-1 text-[12.5px] font-semibold text-fg-muted"
-                >
-                  {{ 'processes.document.attachLabel' | transloco }}
-                  <select
-                    class="h-9 rounded-[9px] border border-border bg-bg px-2 text-[13px] font-normal text-fg"
-                    [value]="selected()"
-                    (change)="selected.set($any($event.target).value)"
-                    data-testid="doc-select"
+              <div class="flex flex-col gap-2">
+                <app-process-document-select
+                  labelKey="processes.document.attachLabel"
+                  [documents]="references.documents()"
+                  [value]="selected() || null"
+                  (valueChange)="selected.set($event ?? '')"
+                  data-testid="doc-select"
+                />
+                <div>
+                  <app-button
+                    variant="secondary"
+                    size="sm"
+                    [disabled]="!selected() || busy()"
+                    (click)="attach()"
+                    data-testid="doc-attach"
                   >
-                    <option value="">{{ 'processes.document.choose' | transloco }}</option>
-                    @for (d of references.documents(); track d.id) {
-                      <option [value]="d.id">{{ d.doc_code }} · {{ d.title }}</option>
-                    }
-                  </select>
-                </label>
-                <app-button
-                  variant="secondary"
-                  size="sm"
-                  [disabled]="!selected() || busy()"
-                  (click)="attach()"
-                  data-testid="doc-attach"
-                >
-                  {{ 'processes.document.attach' | transloco }}
-                </app-button>
+                    {{ 'processes.document.attach' | transloco }}
+                  </app-button>
+                </div>
               </div>
             }
           </div>

@@ -65,15 +65,17 @@ let nextCanvasId = 0;
   host: { class: 'block' },
   template: `
     <div
-      class="overflow-auto rounded-[12px] border border-border bg-surface"
+      class="overflow-auto rounded-tile border border-border bg-surface"
       [style.max-height]="maxHeight()"
     >
       <svg
         #svg
         role="group"
         [attr.aria-label]="ariaLabel()"
-        [attr.width]="pixelWidth()"
-        [attr.height]="pixelHeight()"
+        [attr.width]="fit() ? '100%' : pixelWidth()"
+        [attr.height]="fit() ? null : pixelHeight()"
+        [style.min-width.px]="fit() ? fitMinWidth() : null"
+        preserveAspectRatio="xMinYMin meet"
         [attr.viewBox]="viewBox()"
         class="block select-none"
         [class.touch-none]="editable()"
@@ -311,6 +313,11 @@ export class ProcessMapCanvas {
   readonly highlightIds = input<readonly string[]>([]);
   readonly zoom = input(1);
   readonly maxHeight = input<string | null>(null);
+  /**
+   * Scale the drawing to the width of its container (read-only views), so the
+   * whole map is visible at once. Below a readable minimum width it scrolls.
+   */
+  readonly fit = input(false);
 
   readonly nodeSelected = output<string>();
   readonly edgeSelected = output<string>();
@@ -342,6 +349,10 @@ export class ProcessMapCanvas {
     Math.round((this.size().width + LANE_HEADER_WIDTH) * this.zoom()),
   );
   protected readonly pixelHeight = computed(() => Math.round(this.size().height * this.zoom()));
+  /** Do not shrink below ~55 % of the natural size (labels stay readable). */
+  protected readonly fitMinWidth = computed(() =>
+    Math.min(Math.round((this.size().width + LANE_HEADER_WIDTH) * 0.55), 720),
+  );
   protected readonly viewBox = computed(
     () => `${-LANE_HEADER_WIDTH} 0 ${this.size().width + LANE_HEADER_WIDTH} ${this.size().height}`,
   );

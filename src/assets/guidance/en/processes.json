@@ -2,13 +2,13 @@
   "pages": {
     "list": {
       "intro": {
-        "title": "Your process register",
-        "body": "A **process** is a set of activities that turns inputs into outputs for someone: a customer, another process or the organisation itself. The register lists every process, who owns it, what it is for and how it is measured.",
+        "title": "Your processes",
+        "body": "A **process** is repeated work that produces a result, for example *Sales* or *Purchasing*. Here you see every process, who owns it, how complete it is and when it is due for review.",
         "steps": [
-          "Start with the few processes that create value for your customers (core), then add the ones that steer the organisation (management) and the ones that keep it running (support).",
-          "Give every process an owner, a purpose and a review interval.",
-          "Draw the map and fill in the turtle diagram so everyone can see how the work is done.",
-          "Open the **Interaction map** to check how the processes hand work to each other."
+          "Start with the few processes that create value for customers (core), then add those that steer the organisation (management) and those that keep it running (support).",
+          "Give each process an owner, a purpose and a review interval.",
+          "Draw the map and fill in \"Process on a page\", and link risks, KPIs and procedures.",
+          "Open the **Interaction map** to see how the processes deliver to each other and to customers."
         ]
       },
       "why": {
@@ -16,20 +16,20 @@
         "clauses": ["hs:4.4", "iso9001:4.4.1", "iso9001:4.4.2", "hs:8.1"]
       },
       "empty": {
-        "title": "Describe how your organisation works",
-        "body": "Most organisations can describe themselves with 8 to 15 processes, for example *Sales*, *Purchasing*, *Production or service delivery*, *Recruitment* and *Management review*. Start with one you know well: give it an owner and a purpose, then draw its map.",
-        "cta": "Create the first process"
+        "title": "Describe how the organisation works",
+        "body": "Most organisations can describe themselves with 8 to 15 processes, for example *Sales*, *Purchasing*, *Production or service delivery*, *Recruitment* and *Management review*. Start with one you know well: give it an owner and a purpose, then draw the map.",
+        "cta": "New process"
       }
     },
     "detail": {
       "intro": {
         "title": "One process, the whole picture",
-        "body": "Here you find everything about the process: the register facts, the **map** of its steps, the **turtle diagram**, its controlled **description document** and how it interacts with other processes. The review task, related records, history and comments are in the tabs.",
+        "body": "Everything about the process: how complete it is, the **map** of its steps, the **process on a page** with linked risks, KPIs and procedures, and the controlled **description document**. Tasks, connections, history and comments are in the tabs.",
         "steps": [
-          "Check that the purpose, owner and review interval are set.",
-          "Draw or update the map, and link steps to the procedures that describe them.",
-          "Create the description document and send it through review and approval.",
-          "Record a review when the owner has confirmed the process still works as intended."
+          "Look at \"Is the process complete?\" and fix what is missing.",
+          "Link real records to the process: risks, KPIs, procedures, equipment and courses.",
+          "Add the interactions with other processes and with interested parties such as customers.",
+          "Record a review once the owner has checked that the process still works."
         ]
       },
       "why": {
@@ -39,19 +39,23 @@
       "fields": {
         "descriptionDocument": {
           "help": "The written description of the process, kept under document control so it is reviewed, approved and versioned like any other controlled document.",
-          "example": "PR-003 Purchasing: process description"
+          "example": "PR-003 Purchasing: process description",
+          "requirements": ["hs:7.5", "iso9001:4.4.2"]
         },
         "interactions": {
-          "help": "Which processes this one receives work or information from, and which it provides to. Together they form the interaction map.",
-          "example": "Sales provides signed orders to Production planning."
+          "help": "Which processes and interested parties this one receives work or information from, and which it delivers to. Together they make up the interaction map.",
+          "example": "Customers send requests to Sales; Sales delivers confirmed orders to Delivery.",
+          "requirements": ["iso9001:4.4.1", "hs:4.2"]
         },
         "turtle": {
-          "help": "The turtle diagram summarises the process on one page: inputs and outputs, with what (resources), with whom (competence), how (methods and procedures), how measured (KPIs) and its risks.",
-          "example": "Inputs: customer order. Outputs: delivered product. KPI: on-time delivery 95%."
+          "help": "Process on a page (turtle diagram): inputs and outputs, with what (resources), with whom (competence), how (methods and procedures), how it is measured (KPIs) and the risks. Link real records with \"Link\" on each part.",
+          "example": "Input: customer order. Output: delivered product. KPI: on-time delivery 95 %.",
+          "requirements": ["iso9001:4.4.1", "hs:4.4"]
         },
         "review": {
-          "help": "An active process with an owner and a next review date always has one open review task for the owner. Recording a review completes it and schedules the next one.",
-          "example": "Every 12 months, or after a major change or a serious deviation."
+          "help": "An active process with an owner and a next date always has one open review task for the owner. The review is stored with its conclusion, checklist and actions.",
+          "example": "Every year, or after a major change or a serious deviation.",
+          "requirements": ["iso9001:4.4.1", "hs:9.1"]
         }
       }
     },
@@ -61,8 +65,8 @@
         "body": "Keep it short and concrete. A good process description answers: what is it for, where does it start and end, who owns it, what goes in and out, and how do we know it works?",
         "steps": [
           "Name the process after what it achieves, for example *Handle customer complaints*.",
-          "Choose the category: management, core or support.",
-          "Fill in at least the inputs, outputs and one KPI. The assistant can suggest the rest."
+          "Choose the category and owner, and which standards the process supports.",
+          "Fill in at least inputs, outputs and one KPI. \"Suggest content\" can help with the rest."
         ]
       },
       "why": {
@@ -84,7 +88,8 @@
         },
         "owner": {
           "help": "The person accountable for the process performing as intended. They receive the review task and notifications.",
-          "example": "The customer service manager"
+          "example": "The customer service manager",
+          "requirements": ["iso9001:4.4.1", "hs:5.3"]
         },
         "parent": {
           "help": "Use a parent when this process is a part of a larger one, so the register shows a hierarchy.",
@@ -92,7 +97,8 @@
         },
         "purpose": {
           "help": "Why the process exists and what result it must deliver.",
-          "example": "Resolve customer complaints quickly and fairly, and learn from them to prevent repeats."
+          "example": "Resolve customer complaints quickly and fairly, and learn from them to prevent repeats.",
+          "requirements": ["hs:4.4", "iso9001:4.4.1"]
         },
         "scope": {
           "help": "Where the process starts and ends, and what is included or excluded.",
@@ -100,11 +106,13 @@
         },
         "inputs": {
           "help": "What the process needs to start or uses up: information, requests, materials.",
-          "example": "Customer complaint, order history"
+          "example": "Customer complaint, order history",
+          "requirements": ["iso9001:4.4.1"]
         },
         "outputs": {
           "help": "What the process delivers, and to whom.",
-          "example": "Answer to the customer, corrective action"
+          "example": "Answer to the customer, corrective action",
+          "requirements": ["iso9001:4.4.1"]
         },
         "resources": {
           "help": "With what: systems, equipment, facilities and materials the process relies on.",
@@ -119,16 +127,19 @@
           "example": "Complaint handling procedure, escalation rules"
         },
         "risks": {
-          "help": "What could stop the process delivering, and opportunities to do better. Link formal risk assessments in the related tab.",
-          "example": "Complaints not registered; opportunity: self-service portal"
+          "help": "What could stop the process from delivering, and opportunities to do better. Link formal risks from the risk register on the process page.",
+          "example": "Complaints not registered; opportunity: self-service portal",
+          "requirements": ["hs:6.1", "iso9001:4.4.1"]
         },
         "kpis": {
-          "help": "How you know the process works: a name, a target, a unit and how often it is measured.",
-          "example": "Complaints closed within 10 days: 90%, monthly"
+          "help": "How you know the process works: a name, a target, a unit and how often it is measured. Link the row to a KPI in \"Objectives and KPIs\" to get measured values.",
+          "example": "Complaints closed within 10 days: 90%, monthly",
+          "requirements": ["hs:9.1", "iso9001:9.1.1"]
         },
         "reviewInterval": {
           "help": "How often the owner reviews the process. The next date is calculated from the last review.",
-          "example": "12"
+          "example": "12",
+          "requirements": ["iso9001:4.4.1"]
         },
         "nextReview": {
           "help": "When the next review is due. Leave it empty to start from today plus the interval.",
@@ -137,6 +148,10 @@
         "changeReason": {
           "help": "Why you are changing the process. It is stored in the revision history.",
           "example": "New escalation step after the audit finding"
+        },
+        "frameworks": {
+          "help": "The standards the process helps the organisation meet. They decide which requirements CoreFlow suggests the process documents.",
+          "example": "Purchasing: ISO 9001 and ISO 27001"
         }
       }
     },
@@ -161,8 +176,9 @@
           "example": "Decision: Is the complaint justified?"
         },
         "procedure": {
-          "help": "Link a step to the controlled document that explains how to do it.",
-          "example": "Work instruction WI-012"
+          "help": "Link a step to the controlled document that explains how it is done. Procedures are listed first.",
+          "example": "Work instruction WI-012",
+          "requirements": ["hs:7.5", "hs:8.1"]
         },
         "lanes": {
           "help": "One lane per role or department that takes part. Steps sit in the lane of whoever performs them.",
@@ -172,12 +188,12 @@
     },
     "interactionMap": {
       "intro": {
-        "title": "How your processes fit together",
-        "body": "The interaction map shows every process in its band (management, core, support) and the arrows between them: what one process provides to another. Gaps and loose ends are easy to spot here.",
+        "title": "How the processes connect",
+        "body": "The interaction map shows each process in its band (management, core, support), interested parties on top and the arrows between them: what is delivered to whom. Gaps and loose ends are easy to spot here.",
         "steps": [
-          "Hover or focus a process to highlight its interactions.",
-          "Add missing interactions from a process's page.",
-          "Use the table below the map for a text version."
+          "Hover over or focus a box to highlight its interactions.",
+          "Add missing interactions from the process page with \"Edit interactions\".",
+          "Switch to **Table** for a text version."
         ]
       },
       "why": {
@@ -269,5 +285,23 @@
         "body": "Describe the process in your own words or pick a procedure, and get a laid-out draft map to refine."
       }
     ]
+  },
+  "glossary": {
+    "process": {
+      "term": "Process",
+      "definition": "A set of activities that turns inputs into a result for someone: a customer, another process or the organisation itself."
+    },
+    "turtle": {
+      "term": "Turtle diagram",
+      "definition": "A one-page view of a process: inputs and outputs, with what, with whom, how, how it is measured and its risks. The name comes from the shape: the body in the middle and four \"legs\"."
+    },
+    "processApproach": {
+      "term": "Process approach",
+      "definition": "Managing work as connected processes, each with an owner, objectives and measurement, rather than as separate tasks."
+    },
+    "swimlane": {
+      "term": "Swimlane",
+      "definition": "A band in the process map for one role or department. Steps sit in the lane of whoever does them."
+    }
   }
 }

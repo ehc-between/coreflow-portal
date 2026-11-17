@@ -35,17 +35,17 @@ export function coverageState(counts: RequirementCoverageCounts): CoverageState 
       @switch (state()) {
         @case ('documents') {
           <span
-            class="inline-flex items-center gap-1 rounded-full border border-border bg-surface px-2 py-0.5 text-meta font-medium whitespace-nowrap text-fg-muted"
+            class="inline-flex max-w-full flex-wrap items-center gap-x-1 rounded-tile border border-border bg-surface px-2 py-0.5 text-meta font-medium text-fg-muted"
             data-testid="coverage-chip"
             data-state="documents"
           >
             <app-icon name="checkcircle" [size]="12" class="text-pass" />
-            {{
+            <span class="whitespace-nowrap">{{
               plural('standards.reqs.coverage.documents', c.confirmed)
                 | transloco: { count: c.confirmed }
-            }}
+            }}</span>
             @if (c.suggested > 0) {
-              <span class="text-accent"
+              <span class="whitespace-nowrap text-accent"
                 >·
                 {{
                   plural('standards.reqs.coverage.suggested', c.suggested)

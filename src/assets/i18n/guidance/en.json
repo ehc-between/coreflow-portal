@@ -53,6 +53,7 @@
   },
   "field": {
     "help": "Help for this field",
+    "helpFor": "Help: {{ label }}",
     "example": "Example: {{ example }}"
   },
   "teachMe": {

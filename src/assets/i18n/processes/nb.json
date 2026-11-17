@@ -14,15 +14,18 @@
   },
   "list": {
     "title": "Prosesser",
-    "subtitle": "Prosessregisteret: hvordan virksomheten gjør innsatsfaktorer om til resultater, hvem som eier hver prosess og hvordan den måles.",
-    "searchPlaceholder": "Søk på kode, tittel, formål eller omfang",
+    "subtitle": "Oversikt over hvordan organisasjonen jobber: hvilke prosesser dere har, hvem som eier dem og hvordan dere vet at de fungerer.",
+    "searchPlaceholder": "Søk i prosesser",
     "interactionMap": "Samspillskart",
     "new": "Ny prosess",
     "noMatches": "Ingen prosesser passer til søket eller filtrene.",
     "partOf": "Del av {{ code }}",
     "steps": "{{ count }} trinn i kartet",
     "stepsOne": "1 trinn i kartet",
-    "noOwner": "Ingen eier"
+    "noOwner": "Ingen eier",
+    "noMap": "Ingen kart ennå",
+    "noMatchesTitle": "Ingen treff",
+    "clearFilters": "Fjern filtrene"
   },
   "filters": {
     "status": "Status",
@@ -33,7 +36,8 @@
     "anyOwner": "Alle eiere",
     "mine": "Eid av meg",
     "reviewDue": "Gjennomgang forfaller",
-    "sort": "Sortering"
+    "sort": "Sortering",
+    "noOwner": "Uten eier"
   },
   "sort": {
     "code": "Kode (A-Å)",
@@ -48,10 +52,6 @@
     "add": "Legg til",
     "addPlaceholder": "Skriv og trykk Enter",
     "addLabel": "Legg til i {{ label }}"
-  },
-  "lesson": {
-    "open": "Lær prosesstilnærmingen",
-    "title": "Prosesstilnærmingen og PDCA"
   },
   "actions": {
     "close": "Lukk",
@@ -80,7 +80,8 @@
     "reviewInterval": "Gjennomgangsintervall (måneder)",
     "nextReview": "Neste gjennomgang",
     "lastReviewed": "Sist gjennomgått",
-    "changeReason": "Begrunnelse for endringen"
+    "changeReason": "Begrunnelse for endringen",
+    "frameworks": "Standarder prosessen støtter"
   },
   "form": {
     "newTitle": "Ny prosess",
@@ -92,18 +93,41 @@
     "noDepartment": "Ingen avdeling",
     "noParent": "Ingen (prosess på øverste nivå)",
     "askPurpose": "Hjelp meg å skrive en tydelig formålsbeskrivelse for denne prosessen.",
-    "turtleHint": "Skilpaddediagrammet beskriver hva som går inn og ut av prosessen, hva den trenger, hvordan den utføres og hvordan den måles.",
+    "turtleHint": "Hva som går inn og ut av prosessen, hva den trenger, hvordan den utføres og hvordan den måles.",
     "save": "Lagre endringer",
     "create": "Opprett prosess",
     "sections": {
-      "register": "Prosessregister",
-      "turtle": "Skilpaddediagram",
-      "review": "Gjennomgangssyklus"
+      "register": "Grunnleggende om prosessen",
+      "turtle": "Prosessen på én side (skilpaddediagram)",
+      "review": "Gjennomgang",
+      "basics": "Grunnleggende om prosessen"
     },
     "errors": {
       "titleRequired": "Gi prosessen en tittel.",
       "interval": "Gjennomgangsintervallet må være et helt antall måneder mellom 1 og 60.",
-      "kpiName": "Hver KPI må ha et navn (eller fjern den tomme raden)."
+      "kpiName": "Hver KPI må ha et navn (eller fjern den tomme raden).",
+      "intro": "Kunne ikke lagre. Rett opp dette:"
+    },
+    "optional": "(valgfritt)",
+    "draftHint": "Nye prosesser starter som utkast. Aktiver prosessen fra prosessiden når den er klar til bruk.",
+    "askScope": "Hjelp meg å beskrive hvor denne prosessen starter og slutter, og hva som er med.",
+    "askKpis": "Foreslå to eller tre gode KPI-er for denne prosessen, med mål og hvor ofte de bør måles.",
+    "linkOnPage": "Risikoer, prosedyrer, utstyr, kurs og leverandører kobler du som ekte poster fra prosessiden, under «Prosessen på én side».",
+    "hints": {
+      "title": "Bruk det prosessen oppnår, for eksempel «Behandle kundeklager».",
+      "category": "Ledelse styrer, kjerne skaper verdi for kunden, støtte holder resten i gang.",
+      "owner": "Eieren får gjennomgangsoppgaven og varsler om prosessen.",
+      "purpose": "Hvorfor prosessen finnes og hvilket resultat den skal gi.",
+      "scope": "Hvor prosessen starter og slutter.",
+      "frameworks": "Velg standardene prosessen hjelper dere å oppfylle. Da blir kravforslagene mer treffsikre.",
+      "inputs": "Det prosessen trenger for å starte.",
+      "outputs": "Det prosessen leverer, og til hvem.",
+      "resources": "Systemer, utstyr og lokaler.",
+      "competence": "Roller og ferdigheter som trengs.",
+      "methods": "Prosedyrer og regler som følges.",
+      "risks": "Hva som kan gå galt, og muligheter.",
+      "kpis": "Hvordan du ser at prosessen virker. Koble til et nøkkeltall for å få målte verdier.",
+      "review": "Fyll ut intervallet. Neste dato beregnes automatisk; sett datoen bare hvis du vil overstyre den."
     }
   },
   "kpi": {
@@ -113,10 +137,27 @@
     "frequency": "Hyppighet",
     "add": "Legg til KPI",
     "remove": "Fjern KPI {{ name }}",
-    "targetShort": "mål {{ target }} {{ unit }}"
+    "targetShort": "mål {{ target }} {{ unit }}",
+    "link": "Koble til nøkkeltall",
+    "unlink": "Fjern koblingen",
+    "linkedTo": "Måles i {{ title }}",
+    "notLinked": "Ikke koblet til et nøkkeltall",
+    "searchLabel": "Finn nøkkeltallet i «Mål og KPI-er»",
+    "searchPlaceholder": "Søk på kode eller navn",
+    "aKpi": "et nøkkeltall",
+    "latestVsTarget": "Siste: {{ value }} {{ unit }} · mål {{ target }}",
+    "noValues": "Ingen målinger registrert ennå",
+    "trend": "Utvikling over de siste målingene",
+    "result": {
+      "on_track": "I rute",
+      "at_risk": "Følg med",
+      "off_track": "Ikke i rute",
+      "no_target": "Uten mål",
+      "none": "Ingen data"
+    }
   },
   "ai": {
-    "draftTurtle": "Foreslå skilpaddefakta",
+    "draftTurtle": "Foreslå innhold",
     "draftApplied": "Forslagene er lagt til. Se over dem før du lagrer.",
     "summarise": "Oppsummer",
     "summarisePrompt": "Oppsummer denne prosessen: formål, eier, inndata og utdata, hvordan den måles, og alt som trenger oppfølging (gjennomgangsdato, manglende beskrivelsesdokument, trinn i kartet som ikke er koblet)."
@@ -132,7 +173,10 @@
     "documentAttached": "Beskrivelsesdokumentet er knyttet til.",
     "documentDetached": "Beskrivelsesdokumentet er koblet fra.",
     "interactionAdded": "Samspillet er lagt til.",
-    "interactionRemoved": "Samspillet er fjernet."
+    "interactionRemoved": "Samspillet er fjernet.",
+    "linked": "{{ title }} er koblet til prosessen.",
+    "unlinked": "Koblingen til {{ title }} er fjernet.",
+    "reviewedWithActions": "Gjennomgangen er registrert, og {{ count }} tiltak er lagt i «Mitt arbeid»."
   },
   "errors": {
     "code_taken": "En annen prosess bruker allerede denne koden.",
@@ -155,7 +199,10 @@
     "input_required": "Beskriv prosessen eller velg en prosedyre først.",
     "forbidden": "Du har ikke tilgang til å gjøre dette.",
     "invalid": "Noen av verdiene er ikke gyldige. Sjekk skjemaet og prøv igjen.",
-    "generic": "Noe gikk galt. Prøv igjen."
+    "generic": "Noe gikk galt. Prøv igjen.",
+    "invalid_kpi": "Nøkkeltallet finnes ikke lenger. Koble KPI-raden på nytt.",
+    "invalid_review_check": "Sjekklisten inneholder et ukjent punkt. Last siden på nytt.",
+    "unsupported_entity_type": "Interessenter er ikke tilgjengelige. Slå på modulen Kontekst og ledelse."
   },
   "detail": {
     "back": "Tilbake til prosesser",
@@ -170,12 +217,16 @@
     "editMap": "Rediger kart",
     "drawMap": "Tegn kartet",
     "viewMap": "Åpne kart",
-    "noMap": "Ingen kart ennå. Et kart viser trinnene i prosessen, hvem som utfører dem og hvor beslutninger tas."
+    "noMap": "Ingen kart ennå. Et kart viser trinnene i prosessen, hvem som utfører dem og hvor beslutninger tas.",
+    "noMapShort": "Ingen kart ennå",
+    "mapHint": "Velg et trinn for å se detaljer. Åpne kartet for å endre det.",
+    "notFoundTitle": "Fant ikke prosessen",
+    "notFoundBody": "Prosessen finnes ikke, er slettet eller du har ikke tilgang til den."
   },
   "turtle": {
-    "title": "Skilpaddediagram",
-    "label": "Skilpaddediagram for prosessen",
-    "failed": "Skilpaddediagrammet kunne ikke lastes.",
+    "title": "Prosessen på én side (skilpaddediagram)",
+    "label": "Prosessen på én side",
+    "failed": "Prosessen på én side kunne ikke lastes.",
     "none": "Ingenting registrert ennå",
     "owner": "Eier: {{ name }}",
     "upstream": "Mottar fra",
@@ -186,7 +237,18 @@
     "outputs": "Utdata",
     "methods": "Hvordan (metoder og prosedyrer)",
     "kpis": "Hvordan det måles (KPI-er)",
-    "risks": "Risikoer og muligheter"
+    "risks": "Risikoer og muligheter",
+    "titleLead": "Prosessen på én side",
+    "titleTerm": "skilpaddediagram",
+    "intro": "Alt prosessen trenger og leverer på ett sted. Koble ekte poster, så henger prosessen sammen med resten av styringssystemet.",
+    "link": "Koble",
+    "linkTo": "Koble en post til {{ leg }}",
+    "unlink": "Fjern koblingen til {{ title }}",
+    "linkRisk": "Koble risiko",
+    "createRisk": "Opprett risiko for denne prosessen",
+    "createKpi": "Opprett nøkkeltall",
+    "noRisks": "Ingen risikoer koblet ennå. Koble en fra risikoregisteret eller opprett en ny.",
+    "riskOwner": "Eier: {{ name }}"
   },
   "document": {
     "title": "Beskrivelsesdokument",
@@ -206,7 +268,8 @@
       "in_review": "Til gjennomgang",
       "approved": "Godkjent",
       "obsolete": "Utgått"
-    }
+    },
+    "linkedNotApproved": "Dokumentet er ikke godkjent ennå."
   },
   "interactions": {
     "title": "Samspill",
@@ -216,13 +279,28 @@
       "incoming": "Mottar fra"
     },
     "remove": "Fjern samspillet med {{ code }}",
-    "empty": "Ingen samspill registrert. Legg til prosessene denne mottar fra eller leverer til.",
+    "empty": "Ingen samspill registrert. Legg til prosessene og interessentene denne mottar fra eller leverer til.",
     "target": "Prosess",
     "chooseTarget": "Velg en prosess",
     "directionLabel": "Retning",
     "label": "Hva som flyter",
     "labelPlaceholder": "For eksempel: godkjente innkjøpsordrer",
-    "add": "Legg til samspill"
+    "add": "Legg til samspill",
+    "intro": "Hvem prosessen mottar fra og leverer til: andre prosesser og interessenter som kunder og myndigheter.",
+    "edit": "Endre samspill ({{ count }})",
+    "view": "Se samspill ({{ count }})",
+    "partyTag": "Interessent",
+    "removeParty": "Fjern samspillet med {{ name }}",
+    "kindLabel": "Samspill med",
+    "kind": {
+      "process": "En annen prosess",
+      "party": "En interessent"
+    },
+    "party": "Interessent",
+    "partyPlaceholder": "Søk etter en interessent, for eksempel «kunder»",
+    "partyHint": "Interessentene hentes fra",
+    "partyRegister": "Kontekst og ledelse: interessenter",
+    "save": "Lagre samspillet"
   },
   "review": {
     "title": "Periodisk gjennomgang",
@@ -231,13 +309,70 @@
     "monthsOne": "Hver måned",
     "record": "Registrer gjennomgang",
     "recordTitle": "Registrer en prosessgjennomgang",
-    "recordSubtitle": "Bekrefter at prosessen fortsatt er egnet, effektiv og oppdatert, og planlegger neste gjennomgang.",
+    "recordSubtitle": "Sjekk at prosessen fortsatt er egnet og effektiv. Punktene er forhåndsutfylt fra det CoreFlow vet.",
     "notes": "Notater fra gjennomgangen",
     "notesPlaceholder": "Hva sjekket du, og hva ble endret?",
     "nextDate": "Dato for neste gjennomgang",
     "nextDateHint": "La stå tomt for å bruke gjennomgangsintervallet.",
     "submit": "Registrer gjennomgang",
-    "noOwnerHint": "Gi prosessen en eier slik at en gjennomgangsoppgave kan tildeles."
+    "noOwnerHint": "Gi prosessen en eier slik at en gjennomgangsoppgave kan tildeles.",
+    "interval": "Gjennomgås",
+    "everyMonth": "Hver måned",
+    "everyYear": "Hvert år",
+    "everyNYears": "Hvert {{ count }}. år",
+    "everyNMonths": "Hver {{ count }}. måned",
+    "never": "Aldri gjennomgått",
+    "lastOutcome": "Siste resultat",
+    "outcomeLabel": "Hva er konklusjonen?",
+    "outcome": {
+      "suitable": "Egnet og effektiv",
+      "needs_change": "Trenger endring",
+      "not_effective": "Ikke effektiv"
+    },
+    "outcomeHint": {
+      "suitable": "Prosessen fungerer som tenkt. Ingen større endringer trengs.",
+      "needs_change": "Prosessen fungerer, men noe bør forbedres. Legg inn tiltak under.",
+      "not_effective": "Prosessen gir ikke ønsket resultat. Legg inn tiltak og vurder et avvik."
+    },
+    "checklist": "Sjekkliste",
+    "checklistHint": "Bekreft hvert punkt. Svarene er foreslått ut fra dataene, men du bestemmer.",
+    "askChecklist": "Hjelp meg å gjennomgå denne prosessen: hva bør jeg se etter i hvert punkt i sjekklisten?",
+    "checks": {
+      "purpose": "Formål og omfang er fortsatt riktig",
+      "kpis": "Nøkkeltallene når målene sine",
+      "risks": "Risikoer og muligheter er vurdert",
+      "map": "Prosesskartet stemmer med praksis",
+      "description": "Beskrivelsesdokumentet er oppdatert og godkjent",
+      "deviations": "Avvik i prosessen er fulgt opp",
+      "interactions": "Samspillet med andre prosesser og interessenter stemmer"
+    },
+    "data": {
+      "purpose": "Les formålet og omfanget på nytt.",
+      "kpis": "{{ measured }} av {{ total }} nøkkeltall har målinger, {{ off_track }} er ikke i rute.",
+      "risks": "{{ total }} koblede risikoer, {{ high }} med høyt nivå.",
+      "map": "Kartet har {{ steps }} trinn.",
+      "description": "Sjekk dokumentets status og innhold.",
+      "deviations": "{{ open }} åpne avvik koblet til prosessen.",
+      "interactions": "{{ processes }} prosesser og {{ parties }} interessenter."
+    },
+    "answer": {
+      "yes": "Ja",
+      "no": "Nei",
+      "unset": "Ikke sjekket"
+    },
+    "checkNote": "Hva må gjøres?",
+    "kpis": "Nøkkeltall nå",
+    "actions": "Tiltak",
+    "actionsHint": "Hvert tiltak blir en oppgave på prosessen og havner i «Mitt arbeid».",
+    "actionTitle": "Hva skal gjøres",
+    "actionAssignee": "Ansvarlig",
+    "actionOwner": "Prosesseieren",
+    "actionDue": "Frist",
+    "addAction": "Legg til tiltak",
+    "removeAction": "Fjern tiltaket",
+    "nextDateSuggested": "Foreslått ut fra intervallet: {{ date }}.",
+    "openDeviations": "{{ count }} åpne avvik er koblet til prosessen.",
+    "seeRelated": "Se koblinger"
   },
   "statusActions": {
     "active": "Aktiver",
@@ -257,16 +392,24 @@
   },
   "interactionMap": {
     "back": "Tilbake til prosesser",
-    "title": "Samspillskart for prosesser",
+    "title": "Samspillskart",
     "includeRetired": "Vis utgåtte prosesser",
     "empty": "Ingen prosesser ennå. Legg til prosesser og samspillet mellom dem for å se kartet.",
     "svgLabel": "Kart over alle prosesser og hvordan de samspiller",
-    "legend": "Stiplede bokser er prosesser i utkast. Pilene viser hva én prosess leverer til en annen. Velg en prosess for å åpne den.",
+    "legend": "Stiplede bokser er prosesser i utkast. Avrundede blå bokser er interessenter. Pilene viser hva som leveres. Velg en boks for å åpne den.",
     "table": "Samspill som tabell",
     "noEdges": "Ingen samspill registrert ennå.",
     "from": "Fra",
     "flow": "Hva som flyter",
-    "to": "Til"
+    "to": "Til",
+    "description": "Hvordan prosessene leverer til hverandre, og til kunder og andre interessenter.",
+    "view": {
+      "map": "Kart",
+      "table": "Tabell"
+    },
+    "emptyTitle": "Ingen prosesser ennå",
+    "partiesBand": "KUNDER OG INTERESSENTER",
+    "noParties": "Tips: legg til interessenter som kunder og myndigheter som start- og sluttpunkt fra prosessens side («Endre samspill»)."
   },
   "map": {
     "back": "Tilbake til prosessen",
@@ -351,7 +494,8 @@
       "department": "Avdeling",
       "noDepartment": "Ingen avdeling",
       "empty": "Ingen svømmebaner. Legg til én per rolle eller avdeling som deltar i prosessen.",
-      "defaultName": "Svømmebane {{ n }}"
+      "defaultName": "Svømmebane {{ n }}",
+      "rolesHint": "Én bane per rolle eller avdeling. Rollene er de samme som under Innstillinger › Medlemmer og roller, og avdelingene kommer fra organisasjonsoppsettet."
     },
     "announce": {
       "added": "{{ type }} lagt til.",
@@ -380,7 +524,8 @@
       "replace": "Erstatt",
       "emptyResult": "Assistenten returnerte ingen trinn. Legg til flere detaljer og prøv igjen.",
       "applied": "Utkastet til kart er lagt til. Gå gjennom det og lagre når du er fornøyd."
-    }
+    },
+    "fit": "Tilpass til skjerm"
   },
   "notifications": {
     "created": "Prosess opprettet: {{ code }} {{ title }}",
@@ -407,5 +552,99 @@
     "interactionAdded": "Samspill lagt til",
     "interactionRemoved": "Samspill fjernet",
     "deleted": "Prosess slettet"
+  },
+  "nav": {
+    "register": "Prosessregister",
+    "interactionMap": "Samspillskart"
+  },
+  "frameworks": {
+    "iso9001": "ISO 9001",
+    "iso27001": "ISO 27001",
+    "iso14001": "ISO 14001",
+    "iso45001": "ISO 45001",
+    "iso42001": "ISO 42001",
+    "gdpr": "GDPR",
+    "eu_ai_act": "KI-forordningen",
+    "nis2": "NIS2"
+  },
+  "riskLevel": {
+    "very_low": "Svært lav",
+    "low": "Lav",
+    "medium": "Middels",
+    "high": "Høy",
+    "very_high": "Svært høy",
+    "critical": "Kritisk"
+  },
+  "health": {
+    "title": "Er prosessen komplett?",
+    "intro": "Ni byggeklosser gjør en prosess klar for revisjon. Det som mangler, kan du fikse herfra.",
+    "summary": "{{ done }} av {{ total }} på plass",
+    "short": "{{ done }} av {{ total }}",
+    "inPlace": "På plass",
+    "missing": "Mangler",
+    "items": {
+      "owner": "Har en eier",
+      "purpose": "Formålet er beskrevet",
+      "scope": "Omfanget er beskrevet",
+      "map": "Prosesskartet er tegnet",
+      "description": "Godkjent beskrivelsesdokument",
+      "kpis": "Et nøkkeltall med målinger",
+      "risks": "Koblet til en risiko",
+      "requirements": "Dokumenterer minst ett krav",
+      "review": "Gjennomgått i tide"
+    },
+    "fix": {
+      "owner": "Velg eier",
+      "purpose": "Skriv formål",
+      "scope": "Beskriv omfang",
+      "map": "Tegn kartet",
+      "description": "Legg til beskrivelse",
+      "kpis": "Koble nøkkeltall",
+      "risks": "Koble risiko",
+      "requirements": "Koble krav",
+      "review": "Registrer gjennomgang"
+    }
+  },
+  "reviewHistory": {
+    "title": "Gjennomganger",
+    "subtitle": "Hver gjennomgang med konklusjon, sjekkliste og tiltak. Nyeste først.",
+    "open": "Se tidligere gjennomganger",
+    "openCount": "Se gjennomganger ({{ count }})",
+    "by": "Gjennomgått av {{ name }}",
+    "checks": "{{ ok }} av {{ total }} punkter bekreftet",
+    "actions": "Tiltak",
+    "emptyTitle": "Ingen gjennomganger ennå",
+    "emptyBody": "Når prosessen gjennomgås, lagres konklusjonen og sjekklisten her."
+  },
+  "picker": {
+    "search": "Søk",
+    "placeholder": "Skriv minst to tegn",
+    "typeMore": "Skriv minst to tegn for å søke.",
+    "noHits": "Ingen treff.",
+    "linked": "Allerede koblet",
+    "clear": "Fjern {{ title }}",
+    "documentPlaceholder": "Søk på dokumentkode eller tittel"
+  },
+  "linkLeg": {
+    "title": "Koble til {{ leg }}",
+    "search": "Finn posten",
+    "subtitle": {
+      "inputs": "Leverandører og kontrakter som gir prosessen det den trenger.",
+      "outputs": "Kundetilbakemeldinger og undersøkelser om det prosessen leverer.",
+      "resources": "Eiendeler og IKT-systemer prosessen bruker.",
+      "competence": "Stillinger, kompetanser og kurs prosessen krever.",
+      "methods": "Prosedyrer, policyer og eksterne dokumenter som styrer arbeidet.",
+      "kpis": "Nøkkeltall og mål fra «Mål og KPI-er».",
+      "risks": "Risikoer og muligheter fra risikoregisteret."
+    }
+  },
+  "tasks": {
+    "reviewTitle": "Gjennomgå prosessen {{ code }}: {{ title }}"
+  },
+  "nextActions": {
+    "firstReview": "Gjennomfør første gjennomgang av {{ code }} {{ title }}",
+    "firstReviewWhy": "Prosessen er aktiv, men har aldri vært gjennomgått. En gjennomgang viser at den virker.",
+    "noOwner": "Gi {{ count }} prosesser en eier",
+    "noOwnerWhy": "En prosess uten eier blir ikke fulgt opp og får ingen gjennomgangsoppgave."
   }
 }
