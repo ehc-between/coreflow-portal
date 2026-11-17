@@ -87,7 +87,15 @@
   "org": {
     "switch": "Switch organization",
     "none": "No organization",
-    "current": "Current organization"
+    "current": "Current organization",
+    "switchUnreadElsewhere": "Switch organization, {{count}} unread in other organizations",
+    "unread": "{{count}} unread"
+  },
+  "orgAccess": {
+    "title": "No access",
+    "heading": "You don't have access to this organization",
+    "body": "The link you opened belongs to an organization you're not a member of, or your access has been removed. Ask an administrator of that organization to invite you, or carry on in your current organization.",
+    "cta": "Go to my dashboard"
   },
   "module": {
     "comingSoon": "This module is on the way. Your agent is getting it ready."
