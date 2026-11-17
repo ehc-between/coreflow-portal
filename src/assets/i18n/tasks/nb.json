@@ -254,7 +254,7 @@
       "MONTHLY": "Månedlig",
       "YEARLY": "Årlig"
     },
-    "interval": "Hver (antall perioder)",
+    "interval": "Gjenta hver",
     "weekdaysLabel": "På disse dagene",
     "month": "Måned",
     "monthDay": "Dag i måneden",
@@ -263,7 +263,7 @@
     "endNever": "Aldri",
     "endCount": "Etter",
     "endCountLabel": "Antall ganger",
-    "endUntil": "Den",
+    "endUntil": "På dato",
     "endUntilLabel": "Sluttdato",
     "preview": "Gjentas:",
     "summary": {

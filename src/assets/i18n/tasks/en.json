@@ -254,7 +254,7 @@
       "MONTHLY": "Monthly",
       "YEARLY": "Yearly"
     },
-    "interval": "Every (number of periods)",
+    "interval": "Repeat every",
     "weekdaysLabel": "On these days",
     "month": "Month",
     "monthDay": "Day of the month",
@@ -263,7 +263,7 @@
     "endNever": "Never",
     "endCount": "After",
     "endCountLabel": "Number of times",
-    "endUntil": "On",
+    "endUntil": "On date",
     "endUntilLabel": "End date",
     "preview": "Repeats:",
     "summary": {

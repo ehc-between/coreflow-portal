@@ -431,7 +431,10 @@
     "management_review": {
       "to_task": "Tiltak (oppgave)"
     },
-    "formMissing": "Dette skjemaet finnes ikke ennå. Opprett posten fra sin egen side og koble den fra fanen Relatert."
+    "formMissing": "Dette skjemaet finnes ikke ennå. Opprett posten fra sin egen side og koble den fra fanen Relatert.",
+    "audit_plan": {
+      "to_audit_pack": "Revisjonspakke for revisjonen"
+    }
   },
   "frameworks": {
     "iso9001": "ISO 9001",

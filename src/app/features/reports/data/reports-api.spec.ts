@@ -217,6 +217,77 @@ describe('ReportsApi', () => {
     http.expectOne(`${ROOT}/audit-packs/p-1`).flush(null);
   });
 
+  it('loads trends, the calendar for one owner and the built-in layouts', () => {
+    api.trends(ORG, { months: 12, keys: ['tasks.overdue', 'deviations.open'] }).subscribe();
+    const trends = http.expectOne((r) => r.url === `${ROOT}/trends`);
+    expect(trends.request.params.get('months')).toBe('12');
+    expect(trends.request.params.get('keys')).toBe('tasks.overdue,deviations.open');
+    expect(trends.request.context.get(SKIP_ERROR_TOAST)).toBe(true);
+    trends.flush({ months: 12, items: [] });
+
+    api.calendar(ORG, { owner: 'me' }).subscribe();
+    const mine = http.expectOne((r) => r.url === `${ROOT}/calendar`);
+    expect(mine.request.params.get('owner')).toBe('me');
+    mine.flush({ start: '', end: '', items: [], truncated: false, areas: [] });
+
+    api.builtinDashboards(ORG).subscribe();
+    http.expectOne(`${ROOT}/dashboards/builtin`).flush({ default: [], roles: {} });
+  });
+
+  it('lists runs, downloads a run and reads the schedule of a saved report', () => {
+    api.listRuns(ORG, 'd-1', { limit: 10, offset: 10 }).subscribe();
+    const runs = http.expectOne((r) => r.url === `${ROOT}/definitions/d-1/runs`);
+    expect(runs.request.params.get('limit')).toBe('10');
+    expect(runs.request.params.get('offset')).toBe('10');
+    runs.flush({ items: [], total: 0 });
+
+    api.downloadRun(ORG, 'd-1', 'r-1').subscribe();
+    const file = http.expectOne(`${ROOT}/definitions/d-1/runs/r-1/download`);
+    expect(file.request.responseType).toBe('blob');
+    file.flush(new Blob(['csv']));
+
+    api.getSchedule(ORG, 'd-1').subscribe();
+    http.expectOne(`${ROOT}/definitions/d-1/schedule`).flush(null);
+  });
+
+  it('sends several standards, an audit and a period for a pack, and reads its options', () => {
+    api
+      .createAuditPack(ORG, {
+        standard_key: 'iso27001-2022',
+        standard_keys: ['iso27001-2022', 'gdpr-2016'],
+        audit_plan_id: 'plan-1',
+        period_start: '2026-01-01',
+        period_end: '2026-12-31',
+        lang: 'nb',
+        include_policies: false,
+        registers: ['risk_register', 'audit_findings'],
+      })
+      .subscribe();
+    const create = http.expectOne(`${ROOT}/audit-packs`);
+    expect(create.request.body.standard_keys).toEqual(['iso27001-2022', 'gdpr-2016']);
+    expect(create.request.body.audit_plan_id).toBe('plan-1');
+    expect(create.request.body.period_end).toBe('2026-12-31');
+    create.flush({});
+
+    api
+      .auditPackOptions(ORG, { standard_keys: ['iso27001-2022', 'gdpr-2016'], audit_plan_id: null })
+      .subscribe();
+    const options = http.expectOne((r) => r.url === `${ROOT}/audit-packs/options`);
+    expect(options.request.params.get('standard_keys')).toBe('iso27001-2022,gdpr-2016');
+    expect(options.request.params.has('audit_plan_id')).toBe(false);
+    options.flush({
+      standard_keys: [],
+      recommended_registers: [],
+      registers: [],
+      audit_plan: null,
+    });
+
+    api.listAuditPacks(ORG, { audit_plan_id: 'plan-1' }).subscribe();
+    const forPlan = http.expectOne((r) => r.url === `${ROOT}/audit-packs`);
+    expect(forPlan.request.params.get('audit_plan_id')).toBe('plan-1');
+    forPlan.flush({ items: [], total: 0 });
+  });
+
   it('drops empty filters', () => {
     expect(filterParams({ q: '  ', status: [], from: '', to: null, standard_key: null })).toEqual({
       q: undefined,

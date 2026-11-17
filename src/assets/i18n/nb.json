@@ -559,7 +559,8 @@
         "checklists": "Sjekklistemaler",
         "intake": "Meldekanal",
         "matrices": "Risikomatriser",
-        "settings": "Innstillinger"
+        "settings": "Innstillinger",
+        "roleOverviews": "Rolleoversikter"
       },
       "membersSection": "Medlemmer, avdelinger og invitasjoner"
     },

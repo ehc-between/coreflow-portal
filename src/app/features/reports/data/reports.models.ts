@@ -3,6 +3,10 @@
  * All endpoints live under `v1/orgs/{org}/reports` and answer 404
  * `{detail: {code: 'module_disabled'}}` while the module is off. Datetimes are
  * naive-UTC ISO strings.
+ *
+ * Fields added by the A25 polish (runs, schedules, trends, clause mapping, display
+ * text, multi-standard packs) are optional, so the pages keep working against an
+ * older backend.
  */
 
 export type ExportFormat = 'csv' | 'xlsx' | 'pdf';
@@ -55,9 +59,35 @@ export interface UserRef {
   readonly name: string | null;
 }
 
+/** A clause a register (or saved report) is evidence for: `hs:7.5` → "Felles ISO-krav · 7.5". */
+export interface ClauseLabel {
+  readonly ref: string;
+  readonly framework: string;
+  readonly number: string;
+  readonly label: LocalizedLabel;
+}
+
+/** A record another module owns (`{id, code, title, url}`), e.g. the audit of a pack. */
+export interface LinkedRecord {
+  readonly id: string;
+  readonly code: string | null;
+  readonly title: string | null;
+  readonly url: string | null;
+}
+
 // --- calendar ------------------------------------------------------------------
 
 export type CalendarItemKind = 'due' | 'review' | 'action';
+
+/** What a calendar item needs: late, due within 14 days, a review, an action or a plain date. */
+export type CalendarItemState = 'overdue' | 'due_soon' | 'review' | 'action' | 'due';
+export const CALENDAR_STATES: readonly CalendarItemState[] = [
+  'overdue',
+  'due_soon',
+  'review',
+  'action',
+  'due',
+];
 
 export interface CalendarItem {
   readonly module: string;
@@ -71,6 +101,10 @@ export interface CalendarItem {
   readonly status: string | null;
   readonly overdue: boolean;
   readonly label_key: string | null;
+  /** Older backends omit it; `calendarState()` derives it then. */
+  readonly state?: CalendarItemState | string;
+  /** The person responsible (owner or user assignee), when known. */
+  readonly owner?: UserRef | null;
 }
 
 export interface CalendarResponse {
@@ -78,6 +112,8 @@ export interface CalendarResponse {
   readonly end: string;
   readonly items: readonly CalendarItem[];
   readonly truncated: boolean;
+  /** Every enabled area the caller can read (the area filter lists them all). */
+  readonly areas?: readonly string[];
 }
 
 export interface CalendarQuery {
@@ -86,9 +122,11 @@ export interface CalendarQuery {
   readonly modules?: readonly string[];
   readonly framework?: FrameworkKey | null;
   readonly include_overdue?: boolean;
+  /** `me` or a user id. */
+  readonly owner?: string | null;
 }
 
-// --- compliance dashboard --------------------------------------------------------
+// --- compliance overview ---------------------------------------------------------
 
 export interface ComplianceFramework {
   readonly framework: string;
@@ -108,11 +146,21 @@ export interface ReadinessItem {
   readonly partial: number;
   readonly fresh: number;
   readonly score: number;
+  /** Short standard name per language. */
+  readonly names?: LocalizedLabel;
+  /** Applicable requirements with no evidence at all. */
+  readonly missing?: number;
+  /** The standard's requirement page, and its gap list. */
+  readonly url?: string | null;
+  readonly gaps_url?: string | null;
 }
 
 export interface ReadinessSummary {
   readonly items: readonly ReadinessItem[];
   readonly average: number | null;
+  /** Totals across the standards ("9 of 364 requirements documented"). */
+  readonly applicable?: number;
+  readonly covered?: number;
 }
 
 export interface ModuleCount {
@@ -127,8 +175,16 @@ export interface OverdueSummary {
   readonly items: readonly CalendarItem[];
 }
 
+/** The backend's own words for a metric (used when the portal has no key for it). */
+export interface MetricTexts {
+  readonly title?: LocalizedLabel | null;
+  readonly description?: LocalizedLabel | null;
+  /** `{field: {en, nb}}` for the numbers in the metric's data. */
+  readonly field_labels?: Readonly<Record<string, LocalizedLabel>> | null;
+}
+
 /** A metric computed by a module (built in, or registered through `report_metrics`). */
-export interface MetricBlock {
+export interface MetricBlock extends MetricTexts {
   readonly key: string;
   readonly module: string;
   readonly title_key: string;
@@ -163,9 +219,46 @@ export interface ComplianceResponse {
   readonly tasks: { readonly value: number; readonly due_soon: number } | null;
 }
 
+// --- trends --------------------------------------------------------------------------
+
+export type TrendUnit = 'count' | 'percent';
+export type TrendBetter = 'up' | 'down';
+
+export interface TrendPoint {
+  /** First day of the month (`YYYY-MM-DD`). */
+  readonly period: string;
+  readonly value: number;
+}
+
+export interface TrendSeries {
+  readonly key: string;
+  /** A standard key for per-standard series (coverage), else null. */
+  readonly scope: string | null;
+  readonly scope_label: LocalizedLabel | null;
+  readonly label: LocalizedLabel;
+  readonly module: string;
+  readonly unit: TrendUnit | string;
+  readonly better: TrendBetter | string;
+  readonly points: readonly TrendPoint[];
+  readonly latest: number | null;
+  readonly previous: number | null;
+  readonly delta: number | null;
+}
+
+export interface TrendsResponse {
+  readonly months: number;
+  readonly items: readonly TrendSeries[];
+}
+
+export interface TrendsQuery {
+  readonly months?: number;
+  readonly keys?: readonly string[];
+  readonly framework?: FrameworkKey | null;
+}
+
 // --- dashboards --------------------------------------------------------------------
 
-export interface WidgetCatalogItem {
+export interface WidgetCatalogItem extends MetricTexts {
   readonly key: string;
   readonly module: string;
   readonly kind: string;
@@ -181,7 +274,7 @@ export interface WidgetCatalog {
   readonly items: readonly WidgetCatalogItem[];
 }
 
-export interface DashboardWidget {
+export interface DashboardWidget extends MetricTexts {
   readonly key: string;
   readonly framework: string | null;
   readonly size: WidgetSize | string;
@@ -222,6 +315,12 @@ export interface DashboardConfigList {
   readonly items: readonly DashboardConfig[];
 }
 
+/** The layouts used while nothing is saved: `default`, and one per role that has one. */
+export interface BuiltinLayouts {
+  readonly default: readonly WidgetConfig[];
+  readonly roles: Readonly<Record<string, readonly WidgetConfig[]>>;
+}
+
 export const MAX_DASHBOARD_WIDGETS = 24;
 
 // --- registers ------------------------------------------------------------------------
@@ -231,6 +330,9 @@ export type RegisterParam = 'q' | 'status' | 'from' | 'to' | 'standard_key';
 export interface RegisterColumn {
   readonly key: string;
   readonly label: LocalizedLabel;
+  /** Enum columns hold codes; `values` gives their words (`{code: {en, nb}}`). */
+  readonly enum?: boolean;
+  readonly values?: Readonly<Record<string, LocalizedLabel>> | null;
 }
 
 export interface Register {
@@ -240,9 +342,17 @@ export interface Register {
   readonly columns: readonly RegisterColumn[];
   readonly params: readonly string[];
   readonly statuses: readonly string[];
+  /** Words of the status filter values (`{status: {en, nb}}`). */
+  readonly status_labels?: Readonly<Record<string, LocalizedLabel>>;
   readonly requires_standard: boolean;
   readonly frameworks: readonly string[];
   readonly formats: readonly string[];
+  /** The clauses the register is evidence for. */
+  readonly clauses?: readonly ClauseLabel[];
+  /** What `from` / `to` filter on: due, raised, review, completed, linked, … */
+  readonly date_field?: string;
+  /** Whether an audit pack can include the register as a sheet. */
+  readonly in_audit_pack?: boolean;
 }
 
 export interface RegisterList {
@@ -252,9 +362,14 @@ export interface RegisterList {
 export interface RegisterPreview {
   readonly register_key: string;
   readonly columns: readonly RegisterColumn[];
+  /** Raw values plus `url` (and `id` for module registers). */
   readonly rows: readonly Readonly<Record<string, unknown>>[];
+  /** The same rows as text in the requested language, exactly what the export shows. */
+  readonly display?: readonly Readonly<Record<string, string>>[];
+  /** Every matching row, not only the previewed ones. */
   readonly total: number;
   readonly truncated: boolean;
+  readonly limit?: number;
 }
 
 /** Register filters, as stored on a definition and sent as query params. */
@@ -279,6 +394,51 @@ export interface RegisterExportQuery extends ReportFilters {
 
 // --- saved reports (definitions) ---------------------------------------------------------
 
+/** One run (export) of a saved report. */
+export interface ReportRun {
+  readonly id: string;
+  readonly definition_id: string;
+  readonly run_by: UserRef | null;
+  readonly run_at: string;
+  readonly format: ExportFormat | string;
+  readonly lang: ReportLang | string;
+  readonly rows: number;
+  readonly size_bytes: number;
+  readonly sha256: string;
+  readonly file_name: string;
+  readonly task_id: string | null;
+  /** Whether the file itself was kept (up to 5 MB) and can be downloaded again. */
+  readonly has_file: boolean;
+  readonly download_url: string | null;
+}
+
+export interface ReportRunList {
+  readonly items: readonly ReportRun[];
+  readonly total: number;
+}
+
+/** Who the scheduled reminder task goes to. */
+export interface ScheduleAssignee {
+  readonly type: string;
+  readonly value: string;
+  readonly name?: string | null;
+}
+
+/** The active schedule of a saved report (its recurring reminder task). */
+export interface ReportSchedule {
+  readonly task_id: string;
+  readonly title: string;
+  readonly status: string;
+  readonly due_at: string | null;
+  readonly assignee: ScheduleAssignee | null;
+  readonly recurrence_id: string | null;
+  readonly rrule: string | null;
+  readonly dtstart: string | null;
+  readonly lead_days: number | null;
+  readonly next_due_at: string | null;
+  readonly url: string;
+}
+
 export interface ReportDefinition {
   readonly id: string;
   readonly org_id: string;
@@ -297,6 +457,11 @@ export interface ReportDefinition {
   readonly last_exported_at: string | null;
   readonly url: string;
   readonly can_edit: boolean;
+  /** The clauses the report's register is evidence for (badges on the list rows). */
+  readonly register_clauses?: readonly ClauseLabel[];
+  readonly last_run?: ReportRun | null;
+  readonly run_count?: number;
+  readonly schedule?: ReportSchedule | null;
 }
 
 export interface DefinitionList {
@@ -358,14 +523,28 @@ export interface AuditPackFile {
   readonly size_bytes: number;
 }
 
+/** Coverage of one standard in a pack. */
+export interface AuditPackStandard {
+  readonly standard_key: string;
+  readonly framework: string | null;
+  readonly name?: string | null;
+  readonly requirements: number;
+  readonly applicable: number;
+  readonly covered: number;
+  readonly evidence_links: number;
+  readonly score: number;
+}
+
 export interface AuditPackSummary {
-  readonly readiness?: number | null;
+  /** 0–100, the average of the pack's standards (packs before A25 held an object here). */
+  readonly readiness?: number | Readonly<Record<string, unknown>> | null;
   readonly requirements?: number;
   readonly applicable?: number;
   readonly covered?: number;
   readonly evidence_links?: number;
   readonly policies?: number;
   readonly registers?: number | readonly string[];
+  readonly standards?: readonly AuditPackStandard[];
   readonly [key: string]: unknown;
 }
 
@@ -386,6 +565,11 @@ export interface AuditPack {
   readonly generated_at: string;
   readonly url: string;
   readonly download_url: string;
+  readonly standard_keys?: readonly string[];
+  readonly standard_names?: Readonly<Record<string, LocalizedLabel>>;
+  readonly audit_plan?: LinkedRecord | null;
+  readonly period_start?: string | null;
+  readonly period_end?: string | null;
 }
 
 export interface AuditPackList {
@@ -396,17 +580,32 @@ export interface AuditPackList {
 export interface AuditPackListQuery {
   readonly standard_key?: string | null;
   readonly framework?: FrameworkKey | null;
+  readonly audit_plan_id?: string | null;
   readonly limit?: number;
   readonly offset?: number;
 }
 
 export interface CreateAuditPackRequest {
-  readonly standard_key: string;
+  readonly standard_key?: string | null;
+  readonly standard_keys?: readonly string[];
+  readonly audit_plan_id?: string | null;
+  readonly period_start?: string | null;
+  readonly period_end?: string | null;
   readonly title?: string | null;
   readonly lang: ReportLang;
   readonly include_policies: boolean;
   readonly registers?: readonly string[] | null;
 }
+
+/** What the generate drawer offers for the chosen standards / audit. */
+export interface AuditPackOptions {
+  readonly standard_keys: readonly string[];
+  readonly recommended_registers: readonly string[];
+  readonly registers: readonly Register[];
+  readonly audit_plan: LinkedRecord | null;
+}
+
+export const MAX_PACK_STANDARDS = 8;
 
 // --- AI -------------------------------------------------------------------------------
 

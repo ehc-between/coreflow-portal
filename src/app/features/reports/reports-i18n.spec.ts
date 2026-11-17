@@ -3,9 +3,11 @@ import guideNb from '../../../assets/guidance/nb/reports.json';
 import en from '../../../assets/i18n/reports/en.json';
 import nb from '../../../assets/i18n/reports/nb.json';
 import { expectKeyParity } from '../../../testing/i18n-parity';
-import { CALENDAR_VIEWS } from './calendar/org-calendar';
+import { CALENDAR_VIEWS, OWNER_CHOICES } from './calendar/org-calendar';
+import { DATE_FIELDS } from './components/register-filters';
 import { REPORT_ERROR_CODES } from './data/report-errors';
 import {
+  CALENDAR_STATES,
   COMPLIANCE_AUDIENCES,
   EXPORT_FORMATS,
   FRAMEWORK_KEYS,
@@ -13,7 +15,6 @@ import {
   WIDGET_SIZES,
 } from './data/reports.models';
 import { OWNER_FILTERS } from './definitions/definitions-list';
-import { SUMMARY_FIELDS } from './audit-packs/audit-pack-detail';
 
 type Tree = Record<string, unknown>;
 
@@ -45,7 +46,7 @@ const EVENT_KEYS = [
   'dashboardReset',
 ];
 
-/** Built-in widget title keys (`reports:widgets.<name>.title|description`). */
+/** Widget title keys (`reports:widgets.<name>.title|description`): built in, then module metrics. */
 const WIDGET_NAMES = [
   'readiness',
   'openFindings',
@@ -55,6 +56,20 @@ const WIDGET_NAMES = [
   'overdueItems',
   'upcoming',
   'auditPacks',
+  'heatMap',
+  'risksAboveAppetite',
+  'trainingCompliance',
+  'competenceGaps',
+  'obligationEvaluations',
+  'kpisOffTrack',
+  'supplierEvaluations',
+  'privacyDeadlines',
+  'aiAssessments',
+  'auditFindings',
+  'inspectionFindings',
+  'hseFollowUp',
+  'environmentalAspects',
+  'continuityReadiness',
 ];
 
 /** Register status values the built-in registers accept. */
@@ -81,6 +96,38 @@ const REGISTER_STATUSES = [
   'suggested',
 ];
 
+/** Audit pack file kinds (`AuditPackFile.kind`). */
+const PACK_KINDS = [
+  'index',
+  'soa',
+  'evidence',
+  'readiness',
+  'policy',
+  'policy_index',
+  'registers',
+  'manifest',
+];
+
+/** Keys read through `pluralKey()`: each needs its `One` variant. */
+const PLURAL_KEYS = [
+  'runs.rows',
+  'definitions.runCount',
+  'overview.coverage.gaps',
+  'overview.kpi.dueSoon',
+  'overview.overdue.areaLink',
+  'packs.notApplicable',
+  'packs.evidenceLinks',
+  'calendar.dayWithItems',
+  'trends.upCount',
+  'trends.downCount',
+  'trends.upPoints',
+  'trends.downPoints',
+];
+
+/** Words the nb glossary rules out (docs/ux-guide.md section 7). */
+const NB_BANNED =
+  /(^|[^a-zæøå])(modenhet|rammeverk|dashbord|widget|minikurs|støtter krav|iso hs|bevis)/i;
+
 const GUIDED_PAGES = [
   'overview',
   'calendar',
@@ -91,6 +138,16 @@ const GUIDED_PAGES = [
   'auditPacks',
   'auditPackDetail',
   'dashboards',
+];
+
+/** Form fields whose help says which requirements they document (at least three per form). */
+const FIELDS_WITH_REQUIREMENTS = [
+  'definitionForm.fields.register',
+  'definitionForm.fields.format',
+  'definitionForm.fields.changeReason',
+  'auditPacks.fields.standard',
+  'auditPacks.fields.audit',
+  'auditPacks.fields.period',
 ];
 
 describe('reports i18n and guidance', () => {
@@ -116,10 +173,12 @@ describe('reports i18n and guidance', () => {
     ['designer.sizes', WIDGET_SIZES],
     ['narrative.audiences', COMPLIANCE_AUDIENCES],
     ['calendar.views', CALENDAR_VIEWS],
-    ['calendar.kinds', ['due', 'review', 'action']],
+    ['calendar.states', CALENDAR_STATES],
+    ['calendar.owners', OWNER_CHOICES],
     ['definitions.owners', OWNER_FILTERS],
     ['definitions.sorts', ['name', 'updated', 'created', 'register']],
-    ['packs.summary', SUMMARY_FIELDS],
+    ['packs.summary', ['requirements', 'applicable', 'covered', 'evidence_links', 'policies']],
+    ['packs.kinds', PACK_KINDS],
     ['statuses', REGISTER_STATUSES],
     ['notifications', EVENT_KEYS],
     ['timeline', EVENT_KEYS],
@@ -131,7 +190,36 @@ describe('reports i18n and guidance', () => {
     }
   });
 
-  it('defines every built-in widget title and description', () => {
+  it('labels both ends of every date filter', () => {
+    for (const lang of [en, nb]) {
+      for (const field of DATE_FIELDS) {
+        expect(typeof lookup(lang, `filters.dates.${field}.from`), field).toBe('string');
+        expect(typeof lookup(lang, `filters.dates.${field}.to`), field).toBe('string');
+      }
+    }
+  });
+
+  it('has a singular variant for every counted text', () => {
+    for (const lang of [en, nb]) {
+      for (const key of PLURAL_KEYS) {
+        expect(typeof lookup(lang, key), key).toBe('string');
+        expect(typeof lookup(lang, `${key}One`), `${key}One`).toBe('string');
+      }
+    }
+  });
+
+  it('names the scheduled task in both languages', () => {
+    expect(lookup(nb, 'tasks.runReport')).toContain('{{ name }}');
+    expect(lookup(en, 'tasks.runReport')).toContain('{{ name }}');
+  });
+
+  it('follows the nb glossary (kravdekning, standard, oversikt, kort)', () => {
+    for (const file of [nb, guideNb]) {
+      expect(strings(file).filter((s) => NB_BANNED.test(s))).toEqual([]);
+    }
+  });
+
+  it('defines every widget title and description', () => {
     for (const lang of [en, nb]) {
       for (const name of WIDGET_NAMES) {
         expect(typeof lookup(lang, `widgets.${name}.title`), name).toBe('string');
@@ -155,6 +243,15 @@ describe('reports i18n and guidance', () => {
         }
       }
       expect(Object.keys(guide.tours).length).toBeGreaterThanOrEqual(1);
+    }
+  });
+
+  it('says which requirements the key form fields document', () => {
+    for (const guide of [guideEn, guideNb]) {
+      for (const field of FIELDS_WITH_REQUIREMENTS) {
+        const refs = lookup(guide, `pages.${field}.requirements`) as string[] | undefined;
+        expect(refs?.length, field).toBeGreaterThan(0);
+      }
     }
   });
 

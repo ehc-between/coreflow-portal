@@ -8,9 +8,8 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { Subscription, forkJoin } from 'rxjs';
+import { Subscription, catchError, forkJoin, of } from 'rxjs';
 import { providePageContext } from '../../../core/ai/page-context';
 import { humanize } from '../../../core/kit/entity-types.service';
 import { LanguageService } from '../../../core/i18n/language.service';
@@ -18,7 +17,6 @@ import { NotificationService } from '../../../core/notifications/notification.se
 import { ROLE_KEYS, roleNameKey } from '../../../core/org/roles';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { FieldHelp } from '../../../shared/guidance/field-help';
-import { GuideIntro } from '../../../shared/guidance/guide-intro';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { LocalDatePipe } from '../../../shared/locale/locale-pipes';
 import { Alert } from '../../../shared/ui/alert/alert';
@@ -26,11 +24,17 @@ import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
+import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { FrameworkSelect } from '../components/framework-select';
-import { labelOr } from '../data/report-display';
+import { ReportsNav } from '../components/reports-nav';
+import { labelOr, localized, moduleLabelKey } from '../data/report-display';
 import { reportErrorKey } from '../data/report-errors';
 import {
+  BuiltinLayouts,
   DashboardConfig,
   FrameworkKey,
   MAX_DASHBOARD_WIDGETS,
@@ -74,204 +78,244 @@ export function normaliseLayout(widgets: readonly WidgetConfig[]): WidgetConfig[
 }
 
 /**
- * `/reports/dashboards` (`reports:manage`): design the home-dashboard widgets
- * for the whole organisation (the default) or for one role. People see the
- * layout of the first of their roles that has one, else the organisation
- * default, else the built-in layout.
+ * The layout a scope starts from while nothing is saved for it: the built-in layout
+ * of the role (the backend has one for the quality manager, CISO, DPO, HSE manager,
+ * AI officer, auditor and HR), else the built-in default, else the catalogue defaults.
+ */
+export function startingLayout(
+  scope: string,
+  builtin: BuiltinLayouts | null,
+  catalog: readonly WidgetCatalogItem[],
+): WidgetConfig[] {
+  const own = scope !== DEFAULT_SCOPE ? builtin?.roles?.[scope] : null;
+  if (own?.length) {
+    return normaliseLayout(own);
+  }
+  if (builtin?.default?.length) {
+    return normaliseLayout(builtin.default);
+  }
+  return builtinLayout(catalog);
+}
+
+/**
+ * `/reports/dashboards` (`reports:manage`): choose the cards of the role overview on
+ * the Reports page — for the whole organisation (the default) or per role. People
+ * see the layout saved for their role, else the organisation default, else the
+ * built-in layout of their role.
  */
 @Component({
   selector: 'app-dashboard-designer',
   imports: [
-    RouterLink,
     TranslocoPipe,
     LocalDatePipe,
     FieldHelp,
-    GuideIntro,
     WhyItMatters,
     Alert,
     Badge,
     Button,
     Card,
     ConfirmDialog,
+    ErrorState,
+    HelpStrip,
     Icon,
+    LoadingState,
+    PageHeader,
     FrameworkSelect,
+    ReportsNav,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[980px] px-4 pt-6 pb-12 sm:px-8">
-      <header class="mb-4 flex flex-wrap items-start justify-between gap-3">
-        <div class="min-w-0">
-          <h1 class="font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]">
-            {{ 'reports.designer.title' | transloco }}
-          </h1>
-          <p class="mt-1 text-[13.5px] text-fg-muted">
-            {{ 'reports.designer.subtitle' | transloco }}
-          </p>
-        </div>
-        <a routerLink="/dashboard" class="text-[13px] font-semibold text-accent hover:underline">
-          {{ 'reports.designer.openDashboard' | transloco }}
-        </a>
-      </header>
-
-      <app-guide-intro class="mb-4 block" scope="reports" page="dashboards" />
+    <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+      <app-page-header
+        titleKey="reports.designer.title"
+        descriptionKey="reports.designer.subtitle"
+        [breadcrumbs]="[
+          { labelKey: 'modules.names.reports', link: '/reports' },
+          { labelKey: 'reports.nav.dashboards' },
+        ]"
+      />
+      <app-reports-nav />
+      <app-help-strip scope="reports" page="dashboards" />
 
       @if (loadError(); as key) {
-        <app-alert>{{ key | transloco }}</app-alert>
+        <app-error-state [bodyKey]="key" (retry)="reload()" />
       } @else if (!loaded()) {
-        <p class="py-10 text-center text-[13.5px] text-fg-muted" role="status">
-          {{ 'reports.common.loading' | transloco }}
-        </p>
+        <app-loading-state [rows]="5" />
       } @else {
-        <app-card class="mb-4 block">
-          <div class="flex flex-wrap items-end gap-3">
-            <div class="flex flex-col gap-1">
-              <label for="dash-scope" class="text-[12.5px] font-semibold text-fg-muted">{{
-                'reports.designer.scope' | transloco
-              }}</label>
-              <select
-                id="dash-scope"
-                class="h-10 rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg"
-                (change)="selectScope($any($event.target).value)"
-              >
-                @for (s of scopes; track s) {
-                  <option [value]="s" [selected]="s === scope()">
-                    {{ scopeLabel(s) }}{{ hasConfig(s) ? ' ●' : '' }}
-                  </option>
-                }
-              </select>
-            </div>
-            <div class="min-w-0 flex-1 text-[12.5px] text-fg-muted">
-              @if (config(); as c) {
-                {{
-                  'reports.designer.customised'
-                    | transloco
-                      : {
-                          name: c.updated_by?.name || '—',
-                          date: (c.updated_at | localDate: 'medium'),
-                        }
-                }}
-              } @else {
-                {{
-                  (scope() === defaultScope
-                    ? 'reports.designer.usingBuiltin'
-                    : 'reports.designer.usingFallback'
-                  ) | transloco
-                }}
-              }
-            </div>
-          </div>
-          <app-field-help class="mt-2 block" scope="reports" page="dashboards" field="scope" />
-        </app-card>
-
-        <app-card class="mb-4 block">
-          <h2 class="mb-3 text-[14px] font-semibold text-fg">
-            {{ 'reports.designer.widgets' | transloco: { count: layout().length, max: max } }}
-          </h2>
-          <ol class="flex flex-col gap-2" data-testid="designer-widgets">
-            @for (
-              w of layout();
-              track $index;
-              let i = $index;
-              let first = $first;
-              let last = $last
-            ) {
-              <li
-                class="flex flex-col gap-2 rounded-tile border border-border p-3 sm:flex-row sm:items-center"
-              >
-                <div class="min-w-0 flex-1">
-                  <p class="text-[13px] font-semibold text-fg">{{ widgetTitle(w.key) }}</p>
-                  @if (!isAvailable(w.key)) {
-                    <app-badge tone="warn">{{
-                      'reports.designer.notAvailable' | transloco
-                    }}</app-badge>
+        <div class="max-w-[860px]">
+          <app-card class="mb-4 block">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-end">
+              <div class="flex flex-col gap-1 sm:w-[280px] sm:flex-none">
+                <label for="dash-scope" class="text-ui font-semibold text-fg-muted">{{
+                  'reports.designer.scope' | transloco
+                }}</label>
+                <select
+                  id="dash-scope"
+                  class="h-10 w-full rounded-tile border border-border bg-bg px-3 text-ui text-fg"
+                  (change)="selectScope($any($event.target).value)"
+                >
+                  @for (s of scopes; track s) {
+                    <option [value]="s" [selected]="s === scope()">
+                      {{ scopeOption(s) }}
+                    </option>
                   }
-                </div>
-                <div class="flex flex-wrap items-center gap-2">
-                  <label class="sr-only" [attr.for]="'w-size-' + i">{{
-                    'reports.designer.size' | transloco
-                  }}</label>
-                  <select
-                    [id]="'w-size-' + i"
-                    class="h-9 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
-                    (change)="update(i, { size: $any($event.target).value })"
-                  >
-                    @for (size of sizes; track size) {
-                      <option [value]="size" [selected]="size === w.size">
-                        {{ 'reports.designer.sizes.' + size | transloco }}
-                      </option>
-                    }
-                  </select>
-                  <app-framework-select
-                    [value]="w.framework ?? null"
-                    (valueChange)="update(i, { framework: $event })"
-                  />
-                  <app-button variant="ghost" size="sm" [disabled]="first" (click)="move(i, -1)">
-                    <span aria-hidden="true">↑</span>
-                    <span class="sr-only">{{
-                      'reports.designer.moveUp' | transloco: { title: widgetTitle(w.key) }
-                    }}</span>
-                  </app-button>
-                  <app-button variant="ghost" size="sm" [disabled]="last" (click)="move(i, 1)">
-                    <span aria-hidden="true">↓</span>
-                    <span class="sr-only">{{
-                      'reports.designer.moveDown' | transloco: { title: widgetTitle(w.key) }
-                    }}</span>
-                  </app-button>
-                  <app-button variant="ghost" size="sm" (click)="remove(i)">
-                    <app-icon name="x" [size]="14" />
-                    <span class="sr-only">{{
-                      'reports.designer.remove' | transloco: { title: widgetTitle(w.key) }
-                    }}</span>
-                  </app-button>
-                </div>
-              </li>
-            } @empty {
-              <li class="py-4 text-center text-[13px] text-fg-muted">
-                {{ 'reports.designer.noWidgets' | transloco }}
-              </li>
-            }
-          </ol>
+                </select>
+              </div>
+              <p class="min-w-0 flex-1 text-meta text-fg-muted" data-testid="designer-status">
+                @if (config(); as c) {
+                  {{
+                    'reports.designer.customised'
+                      | transloco
+                        : {
+                            name: c.updated_by?.name || ('reports.detail.unknownUser' | transloco),
+                            date: (c.updated_at | localDate),
+                          }
+                  }}
+                } @else {
+                  {{ fallbackKey() | transloco: { role: scopeLabel(scope()) } }}
+                }
+              </p>
+            </div>
+            <app-field-help class="mt-2 block" scope="reports" page="dashboards" field="scope" />
+          </app-card>
 
-          <div class="mt-4 flex flex-wrap items-end gap-2 border-t border-border pt-3">
-            <div class="flex flex-col gap-1">
-              <label for="dash-add" class="text-[12.5px] font-semibold text-fg-muted">{{
+          <app-card class="mb-4 block">
+            <h2 class="text-card font-semibold text-fg">
+              {{ 'reports.designer.widgets' | transloco }}
+            </h2>
+            <p class="mb-3 text-meta text-fg-muted">
+              {{ 'reports.designer.count' | transloco: { count: layout().length, max: max } }}
+            </p>
+            <ol class="flex flex-col gap-2" data-testid="designer-widgets">
+              @for (
+                w of layout();
+                track $index;
+                let i = $index;
+                let first = $first;
+                let last = $last
+              ) {
+                <li
+                  class="flex flex-col gap-3 rounded-tile border border-border p-3 md:flex-row md:items-center"
+                >
+                  <div class="min-w-0 flex-1">
+                    <p class="text-ui font-semibold text-fg">{{ widgetTitle(w.key) }}</p>
+                    <p class="text-meta text-fg-muted">
+                      {{ widgetModule(w.key) }}
+                      @if (widgetDescription(w.key); as text) {
+                        · {{ text }}
+                      }
+                    </p>
+                    @if (!isAvailable(w.key)) {
+                      <app-badge class="mt-1 inline-block" tone="warn">{{
+                        'reports.designer.notAvailable' | transloco
+                      }}</app-badge>
+                    }
+                  </div>
+                  <div class="flex flex-wrap items-center gap-2">
+                    <label class="sr-only" [attr.for]="'w-size-' + i">{{
+                      'reports.designer.size' | transloco
+                    }}</label>
+                    <select
+                      [id]="'w-size-' + i"
+                      class="h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
+                      (change)="update(i, { size: $any($event.target).value })"
+                    >
+                      @for (size of sizes; track size) {
+                        <option [value]="size" [selected]="size === w.size">
+                          {{ 'reports.designer.sizes.' + size | transloco }}
+                        </option>
+                      }
+                    </select>
+                    <app-framework-select
+                      [value]="w.framework ?? null"
+                      (valueChange)="update(i, { framework: $event })"
+                    />
+                    <span class="flex items-center gap-1">
+                      <button
+                        type="button"
+                        class="inline-flex h-10 w-10 items-center justify-center rounded-tile border border-border text-fg hover:bg-surface-2 disabled:opacity-40"
+                        [disabled]="first"
+                        [attr.aria-label]="
+                          'reports.designer.moveUp' | transloco: { title: widgetTitle(w.key) }
+                        "
+                        (click)="move(i, -1)"
+                      >
+                        <span aria-hidden="true">↑</span>
+                      </button>
+                      <button
+                        type="button"
+                        class="inline-flex h-10 w-10 items-center justify-center rounded-tile border border-border text-fg hover:bg-surface-2 disabled:opacity-40"
+                        [disabled]="last"
+                        [attr.aria-label]="
+                          'reports.designer.moveDown' | transloco: { title: widgetTitle(w.key) }
+                        "
+                        (click)="move(i, 1)"
+                      >
+                        <span aria-hidden="true">↓</span>
+                      </button>
+                      <button
+                        type="button"
+                        class="inline-flex h-10 w-10 items-center justify-center rounded-tile border border-border text-fg-muted hover:bg-surface-2 hover:text-fail-ink"
+                        [attr.aria-label]="
+                          'reports.designer.remove' | transloco: { title: widgetTitle(w.key) }
+                        "
+                        (click)="remove(i)"
+                      >
+                        <app-icon name="x" [size]="15" />
+                      </button>
+                    </span>
+                  </div>
+                </li>
+              } @empty {
+                <li class="py-4 text-center text-ui text-fg-muted">
+                  {{ 'reports.designer.noWidgets' | transloco }}
+                </li>
+              }
+            </ol>
+
+            <div class="mt-4 border-t border-border pt-3">
+              <label for="dash-add" class="mb-1 block text-ui font-semibold text-fg-muted">{{
                 'reports.designer.add' | transloco
               }}</label>
               <select
                 id="dash-add"
-                class="h-10 min-w-[240px] rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg"
+                class="h-10 w-full rounded-tile border border-border bg-bg px-3 text-ui text-fg sm:w-auto sm:min-w-[320px]"
                 [disabled]="layout().length >= max"
                 (change)="add($any($event.target))"
               >
                 <option value="">{{ 'reports.designer.choose' | transloco }}</option>
-                @for (item of catalog(); track item.key) {
-                  <option [value]="item.key">{{ widgetTitle(item.key) }}</option>
+                @for (group of catalogGroups(); track group.module) {
+                  <optgroup [label]="group.name">
+                    @for (item of group.items; track item.key) {
+                      <option [value]="item.key">{{ widgetTitle(item.key) }}</option>
+                    }
+                  </optgroup>
                 }
               </select>
+              @if (addDescription(); as description) {
+                <p class="mt-1 text-meta text-fg-muted">{{ description }}</p>
+              }
             </div>
-            @if (addDescription(); as description) {
-              <p class="text-[12px] text-fg-muted">{{ description }}</p>
-            }
-          </div>
-        </app-card>
+          </app-card>
 
-        @if (saveError(); as key) {
-          <app-alert class="mb-3 block">{{ key | transloco }}</app-alert>
-        }
-
-        <div class="flex flex-wrap justify-end gap-2">
-          @if (config()) {
-            <app-button variant="ghost" (click)="resetOpen.set(true)">{{
-              'reports.designer.reset' | transloco
-            }}</app-button>
+          @if (saveError(); as key) {
+            <app-alert class="mb-3 block">{{ key | transloco }}</app-alert>
           }
-          <app-button [loading]="saving()" (click)="save()">{{
-            'reports.designer.save' | transloco
-          }}</app-button>
+
+          <div class="flex flex-wrap justify-end gap-2">
+            @if (config()) {
+              <app-button variant="ghost" (click)="resetOpen.set(true)">{{
+                'reports.designer.reset' | transloco
+              }}</app-button>
+            }
+            <app-button [loading]="saving()" (click)="save()">{{
+              'reports.designer.save' | transloco
+            }}</app-button>
+          </div>
         </div>
       }
 
-      <app-why-it-matters class="mt-6 block" scope="reports" page="dashboards" />
+      <app-why-it-matters class="mt-8 block" scope="reports" page="dashboards" />
     </div>
 
     <app-confirm-dialog
@@ -300,6 +344,7 @@ export class DashboardDesigner {
 
   protected readonly catalog = signal<readonly WidgetCatalogItem[]>([]);
   protected readonly configs = signal<readonly DashboardConfig[]>([]);
+  protected readonly builtin = signal<BuiltinLayouts | null>(null);
   protected readonly loaded = signal(false);
   protected readonly loadError = signal<string | null>(null);
   protected readonly saveError = signal<string | null>(null);
@@ -313,10 +358,38 @@ export class DashboardDesigner {
     () => this.configs().find((c) => c.scope === this.scope()) ?? null,
   );
 
+  /** What applies while nothing is saved for the chosen scope. */
+  protected readonly fallbackKey = computed(() => {
+    const scope = this.scope();
+    if (scope === DEFAULT_SCOPE) {
+      return 'reports.designer.usingBuiltin';
+    }
+    if (this.builtin()?.roles?.[scope]?.length) {
+      return 'reports.designer.usingRoleBuiltin';
+    }
+    return this.configs().some((c) => c.scope === DEFAULT_SCOPE)
+      ? 'reports.designer.usingFallback'
+      : 'reports.designer.usingBuiltinFallback';
+  });
+
+  protected readonly catalogGroups = computed(() => {
+    const groups = new Map<string, WidgetCatalogItem[]>();
+    for (const item of this.catalog()) {
+      const list = groups.get(item.module);
+      if (list) {
+        list.push(item);
+      } else {
+        groups.set(item.module, [item]);
+      }
+    }
+    return [...groups.entries()]
+      .map(([module, items]) => ({ module, name: this.moduleName(module), items }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  });
+
   protected readonly addDescription = computed(() => {
     const key = this.lastAdded();
-    const item = this.catalog().find((c) => c.key === key);
-    return item?.description_key ? this.scoped.text(item.description_key) || null : null;
+    return key ? this.widgetDescription(key) || null : null;
   });
 
   private sub = new Subscription();
@@ -334,6 +407,10 @@ export class DashboardDesigner {
     });
   }
 
+  protected reload(): void {
+    this.load(this.selectedOrg.currentOrgId());
+  }
+
   protected scopeLabel(scope: string): string {
     if (scope === DEFAULT_SCOPE) {
       return this.language.translate('reports.designer.orgDefault');
@@ -341,13 +418,29 @@ export class DashboardDesigner {
     return labelOr((k) => this.language.translate(k), roleNameKey(scope), scope);
   }
 
-  protected hasConfig(scope: string): boolean {
-    return this.configs().some((c) => c.scope === scope);
+  /** The option text: the scope, plus "(tilpasset)" when a layout is saved for it. */
+  protected scopeOption(scope: string): string {
+    const label = this.scopeLabel(scope);
+    return this.configs().some((c) => c.scope === scope)
+      ? this.language.translate('reports.designer.customisedOption', { scope: label })
+      : label;
   }
 
   protected widgetTitle(key: string): string {
     const item = this.catalog().find((c) => c.key === key);
-    return this.scoped.text(item?.title_key, humanize(key));
+    const own = localized(item?.title, this.language.active(), '');
+    return this.scoped.text(item?.title_key, own || humanize(key));
+  }
+
+  protected widgetDescription(key: string): string {
+    const item = this.catalog().find((c) => c.key === key);
+    const own = localized(item?.description, this.language.active(), '');
+    return this.scoped.text(item?.description_key, own);
+  }
+
+  protected widgetModule(key: string): string {
+    const item = this.catalog().find((c) => c.key === key);
+    return item ? this.moduleName(item.module) : '';
   }
 
   protected isAvailable(key: string): boolean {
@@ -428,9 +521,17 @@ export class DashboardDesigner {
     });
   }
 
+  private moduleName(module: string): string {
+    return labelOr((k) => this.language.translate(k), moduleLabelKey(module), module);
+  }
+
   private resetLayout(): void {
     const config = this.config();
-    this.layout.set(config ? normaliseLayout(config.widgets) : builtinLayout(this.catalog()));
+    this.layout.set(
+      config
+        ? normaliseLayout(config.widgets)
+        : startingLayout(this.scope(), this.builtin(), this.catalog()),
+    );
   }
 
   private load(orgId: string | null): void {
@@ -442,10 +543,16 @@ export class DashboardDesigner {
     this.loaded.set(false);
     this.loadError.set(null);
     this.sub.add(
-      forkJoin([this.api.widgets(orgId), this.api.dashboards(orgId)]).subscribe({
-        next: ([catalog, configs]) => {
+      forkJoin([
+        this.api.widgets(orgId),
+        this.api.dashboards(orgId),
+        // Older backends have no built-in layouts endpoint.
+        this.api.builtinDashboards(orgId).pipe(catchError(() => of(null))),
+      ]).subscribe({
+        next: ([catalog, configs, builtin]) => {
           this.catalog.set(catalog.items);
           this.configs.set(configs.items);
+          this.builtin.set(builtin);
           this.resetLayout();
           this.loaded.set(true);
         },
