@@ -22,8 +22,12 @@ import { applyRiskPrefill, emptyRiskForm, toRiskCreate, toRiskUpdate } from './r
 import { moreFiltersCount, parseRiskFilters, riskQuery } from './risks/risk-list';
 import { bulkHasChange, soaBulkBody, soaEntryPatch } from './soa/soa-view';
 import { opportunityBand } from './shared/opportunity-score';
-import { toOpportunityBody } from './opportunities/opportunity-form';
-import { Risk, SoaEntry } from './data/risk.models';
+import {
+  OpportunityFormValue,
+  toOpportunityBody,
+  toOpportunityUpdate,
+} from './opportunities/opportunity-form';
+import { Opportunity, Risk, SoaEntry } from './data/risk.models';
 
 const t = (key: string) => `T(${key})`;
 
@@ -359,5 +363,42 @@ describe('A06 connected-risk helpers', () => {
     expect(body.title).toBe('Idea');
     expect(body.source_entity_type).toBe('process');
     expect(body.benefit).toBe(4);
+  });
+
+  it('keeps an exposed record the editor cannot see when editing an opportunity', () => {
+    const value: OpportunityFormValue = {
+      register_id: '',
+      title: 'Idea',
+      description: '',
+      source_type: 'supplier',
+      source_ref: 'Acme',
+      subject: null,
+      benefit: '',
+      feasibility: '',
+      action_plan: '',
+      owner_user_id: 'u-1',
+      department_id: '',
+      due_at: '',
+    };
+    // Hidden (unreadable) record: the API returns source_entity null; nothing changed.
+    const hidden = { source_entity: null } as unknown as Opportunity;
+    const unchanged = toOpportunityUpdate(hidden, value);
+    expect('source_entity_type' in unchanged).toBe(false);
+    expect('source_entity_id' in unchanged).toBe(false);
+    expect(unchanged.title).toBe('Idea');
+    // A visible record the user removes is cleared as a pair.
+    const visible = {
+      source_entity: { entity_type: 'supplier', entity_id: 's-1', title: 'Acme' },
+    } as unknown as Opportunity;
+    const cleared = toOpportunityUpdate(visible, value);
+    expect(cleared.source_entity_type).toBeNull();
+    expect(cleared.source_entity_id).toBeNull();
+    // A new record is sent as a pair.
+    const picked = toOpportunityUpdate(hidden, {
+      ...value,
+      subject: { entity_type: 'supplier', entity_id: 's-2', title: 'Beta' },
+    });
+    expect(picked.source_entity_type).toBe('supplier');
+    expect(picked.source_entity_id).toBe('s-2');
   });
 });

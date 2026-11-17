@@ -33,6 +33,7 @@ import {
   EntityRef,
   Opportunity,
   OpportunityCreate,
+  OpportunityUpdate,
   Register,
   SOURCE_TYPES,
   SUBJECT_TYPES,
@@ -116,6 +117,25 @@ export function toOpportunityBody(v: OpportunityFormValue): OpportunityCreate {
     department_id: v.department_id || null,
     due_at: fromDateInput(v.due_at),
   };
+}
+
+/**
+ * The update body of an edited opportunity. The exposed record (type + id) is only
+ * sent when the user changed it: a record the editor may not read comes back as
+ * `source_entity: null`, and sending that null would silently remove the link.
+ */
+export function toOpportunityUpdate(
+  original: Opportunity,
+  v: OpportunityFormValue,
+): OpportunityUpdate {
+  const body: Record<string, unknown> = { ...toOpportunityBody(v) };
+  const before = original.source_entity?.entity_id ?? null;
+  const after = (body['source_entity_id'] as string | null | undefined) ?? null;
+  if (before === after) {
+    delete body['source_entity_type'];
+    delete body['source_entity_id'];
+  }
+  return body as OpportunityUpdate;
 }
 
 const SCALE = [1, 2, 3, 4, 5] as const;
@@ -518,10 +538,14 @@ export class OpportunityFormPage {
     const id = this.id();
     this.saving.set(true);
     this.errorKey.set(null);
-    const body = toOpportunityBody(value);
+    const original = this.original();
     const request = id
-      ? this.api.updateOpportunity(orgId, id, body)
-      : this.api.createOpportunity(orgId, body);
+      ? this.api.updateOpportunity(
+          orgId,
+          id,
+          original ? toOpportunityUpdate(original, value) : toOpportunityBody(value),
+        )
+      : this.api.createOpportunity(orgId, toOpportunityBody(value));
     request.subscribe({
       next: (o) => {
         this.saving.set(false);
