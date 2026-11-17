@@ -3,20 +3,21 @@
     "list": {
       "intro": {
         "title": "Control the suppliers you depend on",
-        "body": "The supplier register lists every external provider that affects your products, services, information or people. Each supplier has a **criticality**, an **approval status** and a date for the next **re-evaluation**.",
+        "body": "The supplier register lists every external provider that affects your products, services, information or people. Each supplier has a **criticality**, an **approval status**, a date for the next **re-evaluation** and the agreements you have with it.",
         "steps": [
-          "Register a supplier and mark what it does for you: personal data, system access, cloud or AI.",
+          "Register a supplier and tick what it does for you: personal data, system access, cloud or AI. That decides which assessments it needs.",
           "Start an **initial evaluation**. When it is decided, the supplier is approved, approved with conditions or rejected.",
-          "Keep an eye on re-evaluations that are overdue (red) and log performance as it happens."
+          "Click **Needs follow-up** to see what is missing: approvals, re-evaluation dates, data processing agreements or certificates."
         ]
       },
       "why": {
         "body": "The standards expect you to decide which external providers you use, evaluate them against criteria, monitor how they perform and re-evaluate them. Suppliers that handle your information or personal data also need security and privacy requirements, and AI suppliers need their own assessment.",
         "clauses": [
-          "iso9001:8.4",
+          "iso9001:8.4.1",
           "iso27001:A.5.19",
           "iso27001:A.5.22",
           "gdpr:28",
+          "nis2:21.2.d",
           "iso42001:A.10.3"
         ]
       },
@@ -47,54 +48,62 @@
         },
         "criticality": {
           "help": "How badly you would be affected if the supplier failed to deliver or had a security breach. Higher criticality means closer follow-up and more frequent re-evaluation.",
-          "example": "Critical: the only supplier of a key component. Low: office supplies you can buy anywhere."
+          "example": "Critical: the only supplier of a key component. Low: office supplies you can buy anywhere.",
+          "requirements": ["iso9001:8.4.1", "iso27001:A.5.19"]
         },
         "owner": {
           "help": "The person responsible for the relationship: evaluations, follow-up of conditions and re-evaluation reminders go to them."
         },
         "processes_personal_data": {
           "help": "Tick this if the supplier stores or handles personal data on your behalf. It is then a data processor, and GDPR Article 28 requires a data processing agreement.",
-          "example": "An email service, a payroll provider or a support desk tool."
+          "example": "An email service, a payroll provider or a support desk tool.",
+          "requirements": ["gdpr:28"]
         },
         "has_system_access": {
           "help": "Tick this if the supplier's people or systems can access your systems, networks or premises. Access must be limited and reviewed.",
-          "example": "An IT partner with remote access, or a maintenance company with keys."
+          "example": "An IT partner with remote access, or a maintenance company with keys.",
+          "requirements": ["iso27001:A.5.20"]
         },
         "provides_cloud_services": {
           "help": "Tick this if you use the supplier's cloud service. Cloud services need clear requirements for security, data location and exit.",
-          "example": "Hosting, file storage or a software service you log in to."
+          "example": "Hosting, file storage or a software service you log in to.",
+          "requirements": ["iso27001:A.5.23"]
         },
         "provides_ai": {
           "help": "Tick this if the supplier provides an AI system or uses AI to deliver its service to you. AI suppliers need an AI assessment.",
-          "example": "A recruitment tool that ranks candidates, or a chatbot service."
+          "example": "A recruitment tool that ranks candidates, or a chatbot service.",
+          "requirements": ["iso42001:A.10.3"]
         },
         "data_locations": {
-          "help": "Where the supplier stores or processes your data. Pick each country from the list, or EU/EEA. A location outside the EU/EEA without an adequacy decision needs a transfer assessment.",
-          "example": "Norway, Ireland"
+          "help": "The countries where the supplier stores or processes your data. Outside the EU/EEA without an adequacy decision you need a transfer assessment.",
+          "example": "Norway, Ireland",
+          "requirements": ["gdpr:44"]
         },
         "certifications": {
-          "help": "Certifications the supplier holds, separated by commas. Ask for the certificate and check its scope and expiry date.",
-          "example": "ISO 9001, ISO/IEC 27001"
+          "help": "The certificates the supplier holds, such as ISO 9001 or ISO/IEC 27001. Pick the standard, add the number, issuer and expiry date, and attach the certificate file once it is uploaded under Attachments. You get a reminder before a certificate expires.",
+          "example": "ISO 9001, ISO/IEC 27001",
+          "requirements": ["iso27001:A.5.19", "iso27001:A.5.22"]
         },
         "evaluation_interval_months": {
           "help": "How often the supplier is re-evaluated. If empty, critical and high suppliers are re-evaluated every 12 months, medium every 24 and low every 36.",
-          "example": "6 for a supplier you have had problems with."
+          "example": "6 for a supplier you have had problems with.",
+          "requirements": ["iso9001:8.4.1", "iso27001:A.5.22"]
         }
       }
     },
     "detail": {
       "intro": {
         "title": "Following up a supplier",
-        "body": "This page shows whether the supplier is approved, when it must be re-evaluated, the latest decision for each type of assessment and how it has performed.",
+        "body": "This page shows whether the supplier is approved, what needs follow-up, which assessments its risk profile requires, the agreements you have with it and how it has performed.",
         "steps": [
-          "Start an evaluation when the supplier is new or a re-evaluation is due.",
-          "Log deliveries, quality issues and incidents in the performance log as they happen.",
-          "Link the contract, the data processing agreement and related risks under **Related**."
+          "Work through **Needs follow-up** at the top: each item has the action that closes it.",
+          "Complete the **required assessments**. A decided evaluation documents the requirements its questions check.",
+          "Keep **Agreements and data processing** complete: the contract, the data processing agreement and the systems the supplier runs."
         ]
       },
       "why": {
         "body": "Auditors look for evidence that suppliers were evaluated before use, that their performance is monitored and that problems led to action. This page, with its evaluations, log and history, is that evidence.",
-        "clauses": ["iso9001:8.4.2", "iso27001:A.5.22", "iso27001:A.5.20", "gdpr:28"]
+        "clauses": ["iso9001:8.4.2", "iso27001:A.5.20", "iso27001:A.5.22", "gdpr:28"]
       }
     },
     "evaluations": {
@@ -102,8 +111,8 @@
         "title": "All supplier evaluations",
         "body": "Every evaluation and assessment across your suppliers. By default you see the open ones: drafts being answered and evaluations waiting for a decision.",
         "steps": [
-          "Choose **Assigned to me** to see the evaluations you need to answer.",
-          "Filter on overdue to catch evaluations past their due date.",
+          "The chips at the top count each status. **Open** shows what is waiting for answers or a decision.",
+          "Choose **Assigned to me** to see the evaluations you are to answer.",
           "Start new evaluations from the supplier's own page."
         ]
       },
@@ -113,7 +122,7 @@
       },
       "empty": {
         "title": "No open evaluations",
-        "body": "Evaluations are started from a supplier's page. Open a supplier in the register and choose **Start evaluation**.",
+        "body": "Evaluations start from a supplier's page. Open a supplier in the register and choose **Start evaluation**.",
         "cta": "Go to the register"
       }
     },
@@ -134,14 +143,17 @@
       "fields": {
         "kind": {
           "help": "Initial, periodic and ad hoc evaluations decide the supplier's approval. Security, privacy and AI assessments are recorded separately and do not change its status.",
-          "example": "Run a privacy assessment for a supplier that processes personal data, in addition to the initial evaluation."
+          "example": "Run a privacy assessment for a supplier that processes personal data, in addition to the initial evaluation.",
+          "requirements": ["iso9001:8.4.1"]
         },
         "score": {
-          "help": "The weighted share of points for scored answers. Text answers and Not applicable are not scored. The recommendation compares the score with the pass mark."
+          "help": "The weighted share of points for scored answers. Text answers and Not applicable are not scored. The recommendation compares the score with the pass mark.",
+          "requirements": ["iso9001:8.4.1", "iso27001:A.5.22"]
         },
         "decision": {
           "help": "Approve when the supplier meets your requirements. Approve with conditions when gaps can be fixed within a set time. Reject when it cannot be used.",
-          "example": "Conditional: approved if the supplier signs the data processing agreement within 30 days."
+          "example": "Conditional: approved if the supplier signs the data processing agreement within 30 days.",
+          "requirements": ["iso9001:8.4.1"]
         },
         "summary": {
           "help": "A short conclusion for the person deciding and for the next re-evaluation: strengths, weaknesses and what you expect."
@@ -321,18 +333,18 @@
       },
       {
         "target": "suppliers-summary",
-        "title": "Key figures",
-        "body": "How many suppliers are approved, and how many re-evaluations are overdue or due soon."
+        "title": "What needs follow-up",
+        "body": "The figures are filters: click one to see those suppliers. Start with Needs follow-up."
       },
       {
         "target": "suppliers-filters",
         "title": "Filters",
-        "body": "Find suppliers by status, criticality, category, re-evaluation date, risk profile or owner. Save a combination as a view."
+        "body": "Filter on status, follow-up and criticality. The rest is under More filters. Save a combination as a view."
       },
       {
         "target": "suppliers-new",
         "title": "Register a supplier",
-        "body": "Add a new supplier here. It starts as prospective until an evaluation approves it."
+        "body": "Add a new supplier here. It has the status Prospective until an evaluation has approved it."
       }
     ]
   },

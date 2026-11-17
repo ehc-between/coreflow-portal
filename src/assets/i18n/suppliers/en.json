@@ -1,13 +1,10 @@
 {
   "nav": {
-    "label": "Supplier sections",
     "register": "Register",
     "evaluations": "Evaluations",
     "questionnaires": "Questionnaires"
   },
   "common": {
-    "loading": "Loading…",
-    "loadFailed": "Could not load this. Try again in a moment.",
     "backToRegister": "Back to suppliers",
     "backToSupplier": "Back to the supplier",
     "edit": "Edit",
@@ -18,36 +15,35 @@
     "otherDepartment": "Current department"
   },
   "list": {
-    "title": "Suppliers",
-    "subtitle": "The external providers you depend on, how critical they are and whether they are approved.",
+    "subtitle": "The external providers you depend on: how critical they are, whether they are approved and what needs follow-up.",
     "searchPlaceholder": "Search by name, code or legal name",
     "new": "New supplier",
-    "ownedBy": "Owner: {{ name }}",
-    "score": "Score {{ score }}",
-    "nextEvaluation": "Re-evaluate {{ date }}",
-    "noEvaluationDate": "No re-evaluation date"
+    "score": "Score {{ score }} / 100",
+    "noEvaluationDate": "No re-evaluation date",
+    "lastScore": "Last score {{ score }} / 100",
+    "attentionMore": "{{ first }} +{{ count }}"
   },
   "summary": {
-    "total": "Suppliers",
     "approved": "Approved",
-    "overdue": "Re-evaluations overdue",
-    "dueSoon": "Due within 30 days",
+    "overdue": "Re-evaluation overdue",
+    "dueSoon": "Re-evaluate soon",
     "openEvaluations": "Open evaluations",
-    "processors": "Process personal data",
-    "aiSuppliers": "{{ count }} provide AI"
+    "processors": "Personal data",
+    "needsAttention": "Needs follow-up",
+    "conditional": "With conditions",
+    "withoutDpa": "{{ count }} without a DPA"
   },
   "filters": {
     "anyStatus": "Any status",
-    "anyCriticality": "Any criticality",
+    "anyCriticality": "All levels",
     "anyCategory": "Any category",
     "anyDue": "Any re-evaluation date",
-    "anyFlag": "Any risk profile",
+    "anyFlag": "Anything",
     "anyOwner": "Any owner",
     "ownedByMe": "Owned by me",
     "evaluationDue": "Re-evaluation",
-    "flag": "Risk profile",
+    "flag": "What they do for us",
     "sort": "Sort",
-    "noMatch": "No suppliers match these filters.",
     "due": {
       "overdue": "Re-evaluation overdue",
       "due_soon": "Re-evaluation due soon"
@@ -61,7 +57,10 @@
       "next_evaluation_at": "Next re-evaluation",
       "-updated_at": "Recently updated",
       "-created_at": "Recently added"
-    }
+    },
+    "attention": "Follow-up",
+    "anyAttention": "Follow-up: all",
+    "needsAttention": "Needs follow-up"
   },
   "fields": {
     "code": "Code",
@@ -79,8 +78,8 @@
     "contactName": "Contact person",
     "contactEmail": "Contact email",
     "contactPhone": "Contact phone",
-    "dataLocations": "Data locations",
-    "certifications": "Certifications",
+    "dataLocations": "Where the data is stored",
+    "certifications": "Certificates",
     "intervalMonths": "Re-evaluation interval (months)",
     "nextEvaluation": "Next re-evaluation",
     "lastEvaluated": "Last evaluated",
@@ -116,7 +115,7 @@
     "inactive": "Inactive"
   },
   "statusHelp": {
-    "prospective": "Prospective: registered but not yet evaluated. Do not rely on this supplier yet.",
+    "prospective": "Prospective: registered but not evaluated yet. Do not rely on this supplier yet.",
     "under_evaluation": "Under evaluation: an evaluation is in progress.",
     "approved": "Approved: the supplier met your requirements at the last evaluation.",
     "conditional": "Conditionally approved: approved with conditions that must be followed up, for at most six months.",
@@ -138,8 +137,8 @@
   },
   "form": {
     "newTitle": "New supplier",
-    "newSubtitle": "Register a supplier. It starts as prospective until an evaluation approves it.",
-    "editTitle": "Edit {{ code }} {{ name }}",
+    "newSubtitle": "Register a supplier. It has the status \"Prospective\" until an evaluation has approved it.",
+    "editTitle": "Edit {{ name }}",
     "readOnly": "You can view this supplier but not change it.",
     "sections": {
       "identity": "Supplier",
@@ -149,9 +148,8 @@
     },
     "nameRequired": "Give the supplier a name.",
     "countryHint": "The country where the supplier is registered.",
-    "profileHint": "Tick what applies. These answers decide which assessments you need, such as security, privacy or AI.",
-    "certificationsPlaceholder": "For example ISO 9001, ISO/IEC 27001",
-    "intervalHint": "Leave empty to use the default for the criticality ({{ months }} months).",
+    "profileHint": "Tick what applies. The answers decide which assessments the supplier needs.",
+    "intervalHint": "Leave empty to use the default for {{ level }} criticality ({{ months }} months).",
     "nextEvaluationHint": "Set automatically when an evaluation is decided. Set it here only to override.",
     "changeReason": "Reason for the change",
     "changeReasonHint": "Saved in the revision history so others can see why the record changed.",
@@ -161,7 +159,15 @@
     "saved": "Changes saved.",
     "invalidCountry": "Not recognised as countries: {{ values }}. Remove them and pick countries from the list.",
     "locationsReview": "Check these locations: {{ codes }}. They were saved before countries were picked from a list and may have been shortened from a country name (for example IR is Iran, not Ireland). Saving the form confirms them.",
-    "transferNeeded": "Personal data stored in {{ countries }} leaves the EU/EEA without an adequacy decision. Register a transfer assessment."
+    "transferNeeded": "Personal data stored in {{ countries }} leaves the EU/EEA without an adequacy decision. Register a transfer assessment.",
+    "criticalityQuestion": "How critical is the supplier?",
+    "criticalityMeaning": {
+      "low": "Low: easy to replace, little harm if it fails. Re-evaluated every {{ months }} months by default.",
+      "medium": "Medium: a failure is a nuisance but you can work around it. Re-evaluated every {{ months }} months by default.",
+      "high": "High: a failure hits your products, services or information hard. Re-evaluated every {{ months }} months by default.",
+      "critical": "Critical: you cannot deliver without it, or it holds your most sensitive data. Re-evaluated every {{ months }} months by default."
+    },
+    "profileNeeds": "Besides the approval, this supplier needs: {{ kinds }}."
   },
   "detail": {
     "notFound": "This supplier does not exist or you do not have access to it.",
@@ -173,22 +179,27 @@
     "neverEvaluated": "Never evaluated",
     "intervalOwn": "Every {{ months }} months (set for this supplier)",
     "intervalDefault": "Every {{ months }} months (default for {{ criticality }} criticality)",
-    "latestAssessments": "Latest decision per evaluation type",
-    "noAssessment": "None yet",
     "profile": "Profile",
     "contact": "Contact",
-    "riskFlags": "Risk profile",
-    "noFlags": "None of the risk flags apply",
-    "processorHint": "This supplier processes personal data for you, so it is probably a data processor. Make sure a data processing agreement is in place and link it under Related.",
-    "learn": "Learn",
+    "riskFlags": "What the supplier does for us",
+    "noFlags": "None of these apply",
     "statusChanged": "Status changed.",
     "deleteTitle": "Delete supplier?",
     "deleteMessage": "{{ code }} {{ name }} will be removed with its evaluations and performance log. The audit trail keeps a record.",
     "deleted": "Supplier {{ code }} deleted.",
     "locationReview": "Check: {{ code }}",
-    "transferNeeded": "Transfer assessment needed.",
-    "transferNeededBody": "This supplier processes personal data in a country outside the EU/EEA without an adequacy decision. Register the transfer with its transfer tool (for example signed standard contractual clauses) and a transfer impact assessment.",
-    "transferCta": "Register a transfer"
+    "transferNeeded": "Transfer assessment needed",
+    "transferNeededBody": "This supplier processes personal data in a country outside the EU/EEA without an adequacy decision. Register the transfer with its legal basis (for example signed standard contractual clauses) and a transfer impact assessment.",
+    "notFoundTitle": "Supplier not found",
+    "onDate": "{{ date }}",
+    "overdueSince": "Overdue since {{ date }}",
+    "attentionTitle": "Needs follow-up ({{ count }})",
+    "startKind": "Start {{ kind }}",
+    "conditionsTitle": "Conditions to follow up",
+    "conditionsDue": "Re-evaluate by {{ date }}",
+    "conditionsOverdue": "Overdue since {{ date }}",
+    "conditionsTask": "Follow-up task: {{ status }}",
+    "openDecision": "Open the decision"
   },
   "statusDialog": {
     "title": "Change supplier status",
@@ -205,18 +216,22 @@
     "title": "Evaluations",
     "start": "Start evaluation",
     "startTitle": "Start an evaluation",
-    "none": "No evaluations yet. Start one to approve this supplier.",
+    "none": "An evaluation answers a questionnaire and ends in a decision. Start one to approve the supplier.",
     "kind": "Type",
-    "kindSetsStatus": "The decision on this type sets the supplier's approval status and schedules the next re-evaluation.",
+    "kindSetsStatus": "The decision sets the supplier's approval status and schedules the next re-evaluation.",
     "kindRecordsOnly": "This assessment is recorded for its type and does not change the supplier's status.",
     "questionnaire": "Questionnaire",
     "questionCount": "{{ count }} questions",
     "titleField": "Title",
-    "titlePlaceholder": "Leave empty for a standard title",
+    "titlePlaceholder": "Leave empty to use \"{{ kind }}\"",
     "evaluator": "Evaluator",
     "dueAt": "Due date",
     "due": "Due {{ date }}",
-    "create": "Start"
+    "create": "Start",
+    "noneTitle": "No evaluations yet",
+    "kindRecommended": "{{ kind }} (recommended)",
+    "showAllKinds": "Show all types",
+    "overdueSince": "Overdue since {{ date }}"
   },
   "evaluationKind": {
     "initial": "Initial evaluation",
@@ -244,12 +259,17 @@
   },
   "evaluationsPage": {
     "title": "Supplier evaluations",
-    "subtitle": "Every evaluation and assessment, with what is waiting to be answered or decided.",
-    "openOnly": "Open (draft or awaiting decision)",
+    "subtitle": "Every evaluation and assessment: what is waiting for answers or a decision, and what has been decided.",
+    "openOnly": "Open",
     "anyKind": "All types",
     "anyone": "Anyone",
     "mine": "Assigned to me",
-    "overdueOnly": "Overdue only"
+    "overdueOnly": "Overdue only",
+    "all": "All",
+    "supplierColumn": "Supplier",
+    "noneTitle": "No evaluations here",
+    "noneOpen": "Nothing is waiting for answers or a decision. Decided evaluations are under \"All\".",
+    "showAll": "Show all evaluations"
   },
   "evaluation": {
     "notFound": "This evaluation does not exist or you do not have access to it.",
@@ -258,7 +278,7 @@
     "submit": "Submit for decision",
     "submittedToast": "Evaluation submitted for decision.",
     "submitNoSummaryTitle": "Submit without a summary?",
-    "submitNoSummaryMessage": "The evaluation has no summary. The person deciding will only see the score and the answers. Add a summary first, or submit anyway.",
+    "submitNoSummaryMessage": "The evaluation has no summary. The person who decides only sees the score and the answers. Add a summary first, or submit anyway.",
     "submitAnyway": "Submit anyway",
     "decide": "Decide",
     "decidedToast": "Decision recorded.",
@@ -267,9 +287,9 @@
     "reopenMessage": "The evaluation goes back to draft so the answers can be changed.",
     "cancel": "Cancel evaluation",
     "cancelTitle": "Cancel the evaluation?",
-    "cancelMessage": "A cancelled evaluation is kept for the record but can no longer be answered or decided.",
+    "cancelMessage": "A cancelled evaluation is kept for the record, but can no longer be answered or decided.",
     "reason": "Reason (optional)",
-    "deleteTitle": "Delete evaluation?",
+    "deleteTitle": "Delete the evaluation?",
     "deleteMessage": "\"{{ title }}\" will be removed. The audit trail keeps a record.",
     "deleted": "Evaluation deleted.",
     "unanswered": "{{ count }} required questions are not answered yet. They are marked below.",
@@ -294,10 +314,15 @@
     "noSummary": "No summary yet.",
     "details": "Details",
     "submitted": "Submitted",
-    "createdBy": "Created by"
+    "createdBy": "Created by",
+    "notFoundTitle": "Evaluation not found",
+    "scoreMeaning": "The score is the weighted share of points (0–100). At {{ pass }} or more, with no critical question failed, the recommendation is to approve.",
+    "raiseDeviation": "Register deviation",
+    "raiseDeviationHint": "A failed critical question or a rejection is a nonconformity. Register it as a deviation so it is followed up.",
+    "evidenceFor": "This decided evaluation documents:"
   },
   "decide": {
-    "title": "Decide on the evaluation",
+    "title": "Decide the evaluation",
     "recommendation": "Recommended by the score:",
     "advisory": "You decide. The recommendation only reflects the answers.",
     "decision": "Decision",
@@ -326,7 +351,13 @@
     "moveDown": "Move question {{ n }} down",
     "remove": "Remove question {{ n }}",
     "add": "Add question",
-    "empty": "No questions yet."
+    "empty": "No questions yet.",
+    "weightHint": "How much the question counts in the score (1–10).",
+    "criticalHint": "A \"No\" (or 0 points) means rejection, whatever the score.",
+    "categoryName": "Name of the section",
+    "refs": "Requirements the question checks",
+    "refsHint": "When the evaluation is decided, it documents these requirements. Up to {{ max }}.",
+    "checks": "Checks:"
   },
   "questionType": {
     "yes_no": "Yes / no",
@@ -345,7 +376,7 @@
   },
   "questionnaires": {
     "title": "Questionnaires",
-    "subtitle": "The question sets used to evaluate suppliers. Built-in sets cover every evaluation type; you can add your own.",
+    "subtitle": "The sets of questions used to evaluate suppliers. Built-in sets cover every type, each question mapped to the requirements it checks. You can add your own.",
     "new": "New questionnaire",
     "newTitle": "New questionnaire",
     "editTitle": "Edit questionnaire",
@@ -359,7 +390,7 @@
     "name": "Name",
     "description": "Description",
     "focus": "Focus for suggested questions",
-    "focusPlaceholder": "For example data transfers outside the EU",
+    "focusPlaceholder": "For example data outside the EU",
     "saved": "Questionnaire saved.",
     "deleteTitle": "Delete questionnaire?",
     "deleteMessage": "\"{{ name }}\" will be removed. Evaluations already started keep their questions."
@@ -369,7 +400,7 @@
     "log": "Log entry",
     "logTitle": "Log supplier performance",
     "editTitle": "Edit performance entry",
-    "none": "Nothing logged yet. Record deliveries, quality issues and incidents to build the evidence for the next re-evaluation.",
+    "none": "Nothing logged yet. Log deliveries, quality problems and incidents to build the basis for the next re-evaluation.",
     "logged": "Entry logged.",
     "saved": "Entry saved.",
     "linkedDeviation": "Linked deviation",
@@ -396,7 +427,7 @@
       "title": "What happened",
       "description": "Details",
       "rating": "Rating",
-      "noRating": "No rating",
+      "noRating": "Not rated",
       "onTime": "On time?",
       "qualityOk": "Quality as agreed?",
       "reference": "Reference",
@@ -409,7 +440,17 @@
         "unknown": "Not assessed",
         "yes": "Yes",
         "no": "No"
-      }
+      },
+      "deviationHint": "Went wrong? After saving, use \"Register deviation\" on the entry so it is followed up."
+    },
+    "raiseDeviation": "Register deviation",
+    "raiseDeviationFor": "Register a deviation for {{ title }}",
+    "warning": {
+      "title": "Results are weak",
+      "on_time": "Less than {{ threshold }} % of deliveries were on time.",
+      "quality": "Less than {{ threshold }} % of deliveries had the agreed quality.",
+      "deviation": "A deviation is linked to the supplier.",
+      "evaluate": "Start ad hoc evaluation"
     }
   },
   "performanceKind": {
@@ -423,7 +464,7 @@
   },
   "ai": {
     "overview": "Ask about the register",
-    "summarise": "Summarise",
+    "summarise": "Summarise with the assistant",
     "evaluationPriorities": "What needs attention?",
     "draftQuestions": "Suggest questions",
     "summariseResponses": "Summarise the responses",
@@ -431,13 +472,17 @@
     "useSummary": "Use as summary",
     "discard": "Discard",
     "prompts": {
-      "overview": "Give me an overview of our supplier register: which critical suppliers are not approved, which re-evaluations are overdue, and what I should do first.",
-      "summarise": "Summarise this supplier: its status, the latest evaluations, open conditions, recent performance and any risks I should know about.",
-      "nextStep": "Given this supplier's status and evaluations, what should happen next and why?",
+      "overview": "Give me an overview of our supplier register: which suppliers need follow-up, which critical ones are not approved, which process personal data without a DPA, and what should I do first?",
+      "summarise": "Summarise this supplier: status, latest evaluations, open conditions, agreements and data processing, recent performance and what needs follow-up.",
+      "nextStep": "Based on the supplier's status, evaluations and agreements, what should happen next, and why?",
       "criticality": "How should I decide how critical a supplier is? Explain low, medium, high and critical with examples.",
       "explainScore": "Explain how this evaluation is scored, what the recommendation means and which answers pulled the score down.",
-      "evaluationPriorities": "Which supplier evaluations are overdue or waiting for a decision, and which should I handle first?"
-    }
+      "evaluationPriorities": "Which supplier evaluations are overdue or waiting for a decision, and which should I take first?",
+      "dataLocations": "Which of these data locations are outside the EU/EEA, and what do I need for a lawful transfer?",
+      "certificates": "Which certificates should I ask this kind of supplier for, and what should I check on them?"
+    },
+    "askNextStep": "Ask about the next step",
+    "explainScore": "Explain the score"
   },
   "errors": {
     "generic": "Something went wrong. Try again.",
@@ -447,17 +492,17 @@
     "conditions_required": "Describe the conditions for a conditional approval.",
     "duplicate_question_id": "Two questions have the same id.",
     "evaluation_not_draft": "Only a draft evaluation can be submitted.",
-    "evaluation_not_editable": "This evaluation can no longer be changed in this way.",
+    "evaluation_not_editable": "This evaluation can no longer be changed this way.",
     "evaluation_not_open": "This evaluation is already closed.",
     "evaluation_not_submitted": "The evaluation must be submitted first.",
     "field_required": "A required field is missing.",
     "invalid_answer": "One of the answers is not valid for its question.",
     "invalid_category": "Choose a valid category.",
-    "invalid_criticality": "Choose a valid criticality.",
+    "invalid_criticality": "Choose how critical the supplier is.",
     "invalid_decision": "Choose a valid decision.",
     "invalid_department": "The department does not exist in this organisation.",
-    "invalid_kind": "Choose a valid evaluation type.",
-    "invalid_question": "One of the questions is not valid. Check its text and settings.",
+    "invalid_kind": "Choose a valid type of evaluation.",
+    "invalid_question": "One of the questions is not valid. Check the text, the settings and the requirements it checks.",
     "invalid_rating": "The rating must be between 1 and 5.",
     "invalid_status": "Choose a valid status.",
     "invalid_user": "The person chosen is not a member of this organisation.",
@@ -470,7 +515,10 @@
     "too_many_questions": "There are too many questions.",
     "unanswered_questions": "Answer every required question first.",
     "unknown_question": "An answer refers to a question that does not exist.",
-    "invalid_country": "Some countries were not recognised. Pick countries from the list."
+    "invalid_country": "Some countries were not recognised. Pick countries from the list.",
+    "invalid_certificate": "One of the certificates is not valid. Check the standard and the date.",
+    "invalid_certificate_attachment": "The certificate file must be attached to this supplier first.",
+    "too_many_certificates": "There are too many certificates."
   },
   "notifications": {
     "created": "Supplier registered: {{ code }} {{ title }}",
@@ -481,7 +529,7 @@
     "performanceLogged": "Performance logged for {{ code }} {{ title }}",
     "evaluationCreated": "Evaluation started for {{ code }}: {{ title }}",
     "evaluationAssigned": "Supplier evaluation assigned to you: {{ title }} ({{ code }})",
-    "evaluationSubmitted": "Supplier evaluation ready for decision: {{ title }} ({{ code }})",
+    "evaluationSubmitted": "Supplier evaluation ready for a decision: {{ title }} ({{ code }})",
     "evaluationReopened": "Supplier evaluation reopened: {{ title }} ({{ code }})",
     "evaluationDecided": "Supplier evaluation decided: {{ title }} ({{ code }})",
     "evaluationCancelled": "Supplier evaluation cancelled: {{ title }} ({{ code }})"
@@ -504,5 +552,180 @@
     "eea": "EU/EEA",
     "adequacy": "Adequacy decision",
     "third_country": "Third country"
+  },
+  "criticalityLabel": "Criticality: {{ level }}",
+  "taskStatus": {
+    "open": "open",
+    "in_progress": "in progress",
+    "blocked": "blocked",
+    "done": "done",
+    "cancelled": "cancelled"
+  },
+  "attention": {
+    "not_approved": "Not approved",
+    "no_next_evaluation": "No re-evaluation date",
+    "evaluation_overdue": "Re-evaluation overdue",
+    "dpa_missing": "No data processing agreement",
+    "dpa_pending": "DPA not signed yet",
+    "transfer_assessment_missing": "Transfer assessment missing",
+    "certificate_expired": "Certificate expired",
+    "certificate_expiring": "Certificate expires soon",
+    "weak_performance": "Weak performance"
+  },
+  "attentionWhy": {
+    "not_approved": "The supplier is high or critical but not approved. Evaluate it before you rely on it.",
+    "no_next_evaluation": "A high or critical supplier needs a date for its next re-evaluation.",
+    "evaluation_overdue": "The re-evaluation date has passed. Check that the supplier still meets your requirements.",
+    "dpa_missing": "The supplier processes personal data for you, but no data processing agreement is linked (GDPR Art. 28).",
+    "dpa_pending": "A data processing agreement is requested or in draft. Follow it up until it is signed.",
+    "transfer_assessment_missing": "Personal data is stored outside the EU/EEA, and no transfer assessment is registered.",
+    "certificate_expired": "A certificate the supplier relies on has expired. Ask for a renewed certificate.",
+    "certificate_expiring": "A certificate expires within 60 days. Ask for the renewed certificate in good time.",
+    "weak_performance": "Deliveries or quality have been weak lately. Consider an ad hoc evaluation."
+  },
+  "attentionAction": {
+    "no_next_evaluation": "Set a date",
+    "dpa_missing": "Create DPA",
+    "transfer_assessment_missing": "Register transfer assessment",
+    "certificate_expired": "Update certificate",
+    "certificate_expiring": "Update certificate"
+  },
+  "required": {
+    "title": "Required assessments: {{ done }} of {{ total }} done",
+    "done": "done",
+    "notDone": "not done",
+    "inProgress": "In progress",
+    "notStarted": "Not started",
+    "start": "Start",
+    "why": {
+      "always": "Every supplier is approved through an evaluation.",
+      "personal_data": "Needed because the supplier processes personal data for you.",
+      "system_access": "Needed because the supplier has access to your systems or premises.",
+      "cloud": "Needed because the supplier provides cloud services.",
+      "ai": "Needed because the supplier provides or uses AI for you."
+    }
+  },
+  "agreements": {
+    "title": "Agreements and data processing",
+    "empty": "Nothing is linked to this supplier yet: no contracts, data processing agreements, systems or risks.",
+    "dpaStatus": {
+      "not_needed": "No DPA needed",
+      "covered": "DPA in place",
+      "pending": "DPA not signed",
+      "missing": "No DPA"
+    },
+    "dpaGap": {
+      "missing": {
+        "title": "Personal data without a data processing agreement",
+        "body": "The supplier processes personal data for you. GDPR Art. 28 requires a data processing agreement. Create it here, or link an existing contract under Related."
+      },
+      "pending": {
+        "title": "The data processing agreement is not signed yet",
+        "body": "It is requested or in draft. Follow it up with the supplier until it is signed."
+      }
+    },
+    "groups": {
+      "contracts": "Contracts",
+      "processors": "Processor register",
+      "transfers": "Transfer assessments",
+      "ai_systems": "AI systems",
+      "assets": "Assets",
+      "risks": "Risks ({{ open }} open)",
+      "deviations": "Deviations ({{ open }} open)"
+    },
+    "dpaTag": "DPA",
+    "expired": "Expired",
+    "expiresIn": "Expires in {{ days }} days",
+    "endsOn": "Ends {{ date }}",
+    "noEndDate": "No end date",
+    "processorDpa": {
+      "none": "No DPA",
+      "requested": "DPA requested",
+      "signed": "DPA signed",
+      "expired": "DPA expired",
+      "not_required": "No DPA needed"
+    },
+    "suggestionsTitle": "Do these belong to this supplier?",
+    "suggestionsHint": "They mention \"{{ name }}\" but are not linked yet.",
+    "link": "Link",
+    "dismiss": "Not this one",
+    "linked": "Linked to the supplier.",
+    "actions": {
+      "toDpa": "Create data processing agreement",
+      "toProcessor": "Register as processor",
+      "toTransfer": "Register transfer assessment",
+      "toContract": "New contract",
+      "toRisk": "Register risk",
+      "toDeviation": "Register deviation"
+    }
+  },
+  "certificates": {
+    "hint": "Certificates the supplier holds, with expiry. You get a reminder before one expires.",
+    "row": "Certificate {{ n }}",
+    "remove": "Remove certificate {{ n }}",
+    "add": "Add certificate",
+    "standard": "Standard",
+    "other": "Other (type the name)",
+    "label": "Name of the certification",
+    "labelPlaceholder": "For example Miljøfyrtårn",
+    "number": "Certificate number",
+    "numberShort": "No. {{ number }}",
+    "issuer": "Issued by",
+    "issuerPlaceholder": "For example DNV",
+    "validUntilField": "Valid until",
+    "validUntil": "valid until {{ date }}",
+    "file": "Certificate file",
+    "noFile": "No file",
+    "fileAfterCreate": "Upload the certificate under Attachments after the supplier is registered, then pick it here.",
+    "noFilesYet": "No files attached yet. Upload certificates under Attachments on the supplier page.",
+    "attached": "file attached",
+    "status": {
+      "valid": "Valid",
+      "expiring": "Expires soon",
+      "expired": "Expired",
+      "no_expiry": "No expiry date"
+    },
+    "standards": {
+      "iso9001": "ISO 9001 (quality)",
+      "iso14001": "ISO 14001 (environment)",
+      "iso27001": "ISO/IEC 27001 (information security)",
+      "iso27017": "ISO/IEC 27017 (cloud security)",
+      "iso27018": "ISO/IEC 27018 (personal data in the cloud)",
+      "iso27701": "ISO/IEC 27701 (privacy management)",
+      "iso42001": "ISO/IEC 42001 (AI management)",
+      "iso45001": "ISO 45001 (health and safety)",
+      "iso22301": "ISO 22301 (business continuity)",
+      "iso50001": "ISO 50001 (energy)",
+      "soc2": "SOC 2 report"
+    }
+  },
+  "score": {
+    "of100": "{{ score }} / 100",
+    "withPass": "{{ score }} / 100 (pass mark {{ pass }})"
+  },
+  "questionCategory": {
+    "general": "General",
+    "quality": "Quality",
+    "delivery": "Delivery",
+    "commercial": "Commercial",
+    "sustainability": "Sustainability",
+    "security": "Information security",
+    "privacy": "Privacy",
+    "ai": "AI",
+    "other": "Other"
+  },
+  "tasks": {
+    "evaluate": "Evaluate {{ supplier }} ({{ code }})",
+    "followConditions": "Follow up the approval conditions for {{ supplier }} ({{ code }})"
+  },
+  "next": {
+    "dpaMissing": {
+      "title": "Data processing agreement missing: {{ name }} ({{ count }})",
+      "why": "Suppliers that process personal data for you need a data processing agreement (GDPR Art. 28)."
+    },
+    "attention": {
+      "title": "Suppliers need follow-up: {{ name }} ({{ count }})",
+      "why": "Approval, re-evaluation dates, certificates or performance need attention."
+    }
   }
 }

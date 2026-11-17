@@ -1,6 +1,15 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  input,
+  output,
+  untracked,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { MenuItem, OverflowMenu } from '../../../shared/ui/overflow-menu/overflow-menu';
@@ -111,4 +120,22 @@ export class NextActions {
       link: splitUrl(action.url),
     }));
   });
+
+  constructor() {
+    // Module actions carry scoped keys (e.g. 'suppliers:next.dpaMissing.title'): load
+    // the module's translation file so the title is not shown as a raw key.
+    const transloco = inject(TranslocoService);
+    const requested = new Set<string>();
+    effect(() => {
+      const lang = this.language.active();
+      for (const action of this.actions()) {
+        const at = action.title_key.indexOf(':');
+        const path = at > 0 ? action.title_key.slice(0, at) + '/' + lang : null;
+        if (path && !requested.has(path)) {
+          requested.add(path);
+          untracked(() => transloco.load(path).subscribe({ error: () => undefined }));
+        }
+      }
+    });
+  }
 }

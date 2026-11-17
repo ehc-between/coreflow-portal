@@ -1,10 +1,16 @@
-import { BadgeTone } from '../../../shared/ui/badge/badge';
+import { formatNumber } from '@angular/common';
+import { ToneMeaning } from '../../../shared/ui/tones';
 import {
   APPROVAL_STATUSES,
   Answer,
   AnswerValue,
+  AttentionCode,
+  CertificateIn,
+  CertificateStatus,
   Criticality,
   Decision,
+  DpaStatus,
+  EvaluationKind,
   EvaluationStatus,
   Question,
   Recommendation,
@@ -12,78 +18,138 @@ import {
   SupplierStatus,
 } from './supplier.models';
 
-/** Badge tone of a supplier status. */
-export function statusTone(status: SupplierStatus): BadgeTone {
-  switch (status) {
-    case 'approved':
-      return 'pass';
-    case 'conditional':
-    case 'under_evaluation':
-      return 'warn';
-    case 'suspended':
-    case 'rejected':
-      return 'fail';
-    case 'prospective':
-      return 'info';
-    default:
-      return 'neutral';
-  }
+/** A badge on the shared tone map: `<app-status-badge [meaning] [value] [labelKey]>`. */
+export interface BadgeSpec {
+  readonly meaning: ToneMeaning;
+  readonly value: string;
 }
 
-/** Badge tone of a criticality. */
-/** EU/EEA green, adequacy neutral-blue, third country amber (it needs a transfer tool). */
-export function zoneTone(zone: string): BadgeTone {
-  switch (zone) {
-    case 'eea':
-      return 'pass';
-    case 'adequacy':
-      return 'info';
-    case 'third_country':
-      return 'warn';
-    default:
-      return 'neutral';
-  }
+const lifecycle = (value: string): BadgeSpec => ({ meaning: 'lifecycle', value });
+const compliance = (value: string): BadgeSpec => ({ meaning: 'compliance', value });
+
+const SUPPLIER_STATUS_BADGES: Readonly<Record<SupplierStatus, BadgeSpec>> = {
+  prospective: lifecycle('planned'),
+  under_evaluation: lifecycle('in_progress'),
+  approved: lifecycle('approved'),
+  conditional: compliance('partial'),
+  suspended: lifecycle('failed'),
+  rejected: lifecycle('rejected'),
+  inactive: lifecycle('archived'),
+};
+
+/** A supplier status: approved green, conditional amber, suspended / rejected red. */
+export function supplierStatusBadge(status: SupplierStatus): BadgeSpec {
+  return SUPPLIER_STATUS_BADGES[status] ?? lifecycle(status);
 }
 
-export function criticalityTone(criticality: Criticality): BadgeTone {
-  switch (criticality) {
-    case 'critical':
-      return 'fail';
-    case 'high':
-      return 'warn';
-    case 'medium':
-      return 'info';
-    default:
-      return 'neutral';
-  }
+/** Criticality uses the severity scale (critical / high red, medium amber, low grey). */
+export function criticalityBadge(criticality: Criticality): BadgeSpec {
+  return { meaning: 'severity', value: criticality };
 }
 
-export function evaluationStatusTone(status: EvaluationStatus): BadgeTone {
-  switch (status) {
-    case 'draft':
-      return 'info';
-    case 'submitted':
-      return 'warn';
-    case 'completed':
-      return 'pass';
-    default:
-      return 'neutral';
-  }
+/** An evaluation status: draft grey, waiting for a decision blue, decided green. */
+export function evaluationStatusBadge(status: EvaluationStatus): BadgeSpec {
+  return lifecycle(status);
 }
 
-export function decisionTone(decision: Decision | Recommendation | null): BadgeTone {
+/** A decision or the score's recommendation: approve green, conditional amber, reject red. */
+export function decisionBadge(decision: Decision | Recommendation): BadgeSpec {
   switch (decision) {
     case 'approved':
     case 'approve':
-      return 'pass';
+      return lifecycle('approved');
     case 'conditional':
-      return 'warn';
-    case 'rejected':
-    case 'reject':
-      return 'fail';
+      return compliance('partial');
     default:
-      return 'neutral';
+      return lifecycle('rejected');
   }
+}
+
+/** EU/EEA green, adequacy blue, third country amber (it needs a transfer tool). */
+export function zoneBadge(zone: string): BadgeSpec {
+  switch (zone) {
+    case 'eea':
+      return compliance('compliant');
+    case 'adequacy':
+      return lifecycle('open');
+    default:
+      return lifecycle('due');
+  }
+}
+
+/** A certificate: valid green, expiring amber, expired red, no expiry date grey. */
+export function certificateBadge(status: CertificateStatus): BadgeSpec {
+  switch (status) {
+    case 'valid':
+      return lifecycle('effective');
+    case 'expiring':
+      return lifecycle('expiring');
+    case 'expired':
+      return lifecycle('failed');
+    default:
+      return compliance('not_assessed');
+  }
+}
+
+/** Data processing agreement coverage: covered green, pending amber, missing red. */
+export function dpaBadge(status: DpaStatus): BadgeSpec {
+  switch (status) {
+    case 'covered':
+      return compliance('compliant');
+    case 'pending':
+      return compliance('partial');
+    case 'missing':
+      return compliance('non_compliant');
+    default:
+      return compliance('not_applicable');
+  }
+}
+
+/** A "Trenger oppfølging" flag: always amber, never only colour (it has a label). */
+export const ATTENTION_BADGE: BadgeSpec = lifecycle('due');
+
+/**
+ * What to do about a flag: the action the page offers next to its explanation.
+ * `flow` keys start a create-from-here flow; the others are page actions.
+ */
+export type AttentionAction =
+  | { readonly kind: 'evaluate'; readonly evaluation: EvaluationKind }
+  | { readonly kind: 'edit' }
+  | { readonly kind: 'flow'; readonly flow: string; readonly permission: string }
+  | { readonly kind: 'agreements' };
+
+export function attentionAction(code: AttentionCode, approved: boolean): AttentionAction {
+  switch (code) {
+    case 'not_approved':
+      return { kind: 'evaluate', evaluation: approved ? 'periodic' : 'initial' };
+    case 'evaluation_overdue':
+      return { kind: 'evaluate', evaluation: 'periodic' };
+    case 'weak_performance':
+      return { kind: 'evaluate', evaluation: 'ad_hoc' };
+    case 'dpa_missing':
+      return { kind: 'flow', flow: 'supplier.to_dpa', permission: 'contracts:write' };
+    case 'dpa_pending':
+      return { kind: 'agreements' };
+    case 'transfer_assessment_missing':
+      return { kind: 'flow', flow: 'supplier.to_transfer', permission: 'privacy:write' };
+    default:
+      return { kind: 'edit' };
+  }
+}
+
+/** "64 / 100" or "64 / 100 (grense 70)" params for a score; null without a score. */
+export function scoreParams(
+  score: number | null | undefined,
+  pass: number | null | undefined,
+  locale: string,
+): { readonly score: string; readonly pass: number | null } | null {
+  if (score === null || score === undefined) {
+    return null;
+  }
+  return {
+    score: formatNumber(score, locale, '1.0-1'),
+    pass: pass === null || pass === undefined ? null : pass,
+  };
 }
 
 /** Whether moving between these statuses needs `suppliers:approve`. */
@@ -213,6 +279,21 @@ export function splitList(text: string): string[] {
         .filter(Boolean),
     ),
   ];
+}
+
+/** The wire form of certificate rows (blank rows dropped; blank strings become null). */
+export function certificatesBody(rows: readonly CertificateIn[]): CertificateIn[] {
+  return rows
+    .map((r) => ({
+      ...(r.id ? { id: r.id } : {}),
+      standard: r.standard || null,
+      label: blankToNull(r.label),
+      number: blankToNull(r.number),
+      issuer: blankToNull(r.issuer),
+      valid_until: r.valid_until || null,
+      attachment_id: r.attachment_id || null,
+    }))
+    .filter((r) => r.standard || r.label);
 }
 
 /** `''` -> null, otherwise the trimmed text. */

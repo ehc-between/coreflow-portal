@@ -8,15 +8,16 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../core/ai/page-context';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
-import { GuideIntro } from '../../shared/guidance/guide-intro';
 import { Alert } from '../../shared/ui/alert/alert';
-import { Icon } from '../../shared/ui/icon/icon';
+import { ErrorState } from '../../shared/ui/error-state/error-state';
+import { LoadingState } from '../../shared/ui/loading-state/loading-state';
+import { PageHeader } from '../../shared/ui/page-header/page-header';
 import { changedFields } from './data/supplier-display';
 import { invalidCountry, supplierErrorKey } from './data/supplier-errors';
 import { SupplierDetail, UpdateSupplierRequest } from './data/supplier.models';
@@ -42,33 +43,37 @@ export function locationsReviewed(
 /** Edit a supplier (`/suppliers/:id/edit`); only changed fields are sent, with a reason. */
 @Component({
   selector: 'app-supplier-edit',
-  imports: [RouterLink, TranslocoPipe, Alert, GuideIntro, Icon, SupplierForm],
+  imports: [TranslocoPipe, Alert, ErrorState, LoadingState, PageHeader, SupplierForm],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[880px] px-4 pt-7 pb-12 sm:px-8">
-      <a
-        [routerLink]="['/suppliers', id()]"
-        class="mb-3 inline-flex items-center gap-1 text-[13px] font-semibold text-fg-muted hover:text-fg"
-      >
-        <app-icon name="back" [size]="14" />
-        {{ 'suppliers.common.backToSupplier' | transloco }}
-      </a>
+    <div class="mx-auto max-w-[760px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       @switch (state()) {
         @case ('loading') {
-          <p class="text-[14px] text-fg-muted">{{ 'suppliers.common.loading' | transloco }}</p>
+          <app-loading-state [rows]="6" />
         }
         @case ('error') {
-          <app-alert>{{ 'suppliers.detail.notFound' | transloco }}</app-alert>
+          <app-error-state
+            titleKey="suppliers.detail.notFoundTitle"
+            bodyKey="suppliers.detail.notFound"
+            (retry)="back()"
+          />
         }
         @default {
           @if (supplier(); as s) {
-            <h1 class="mb-1 font-display text-[26px] font-bold tracking-[-0.025em] text-fg">
-              {{ 'suppliers.form.editTitle' | transloco: { code: s.code, name: s.name } }}
-            </h1>
+            <app-page-header
+              titleKey="suppliers.form.editTitle"
+              [titleParams]="{ name: s.name }"
+              [breadcrumbs]="[
+                { labelKey: 'modules.names.suppliers', link: '/suppliers' },
+                { label: s.name, link: ['/suppliers', s.id] },
+                { labelKey: 'suppliers.common.edit' },
+              ]"
+              [backLink]="['/suppliers', s.id]"
+              backLabelKey="suppliers.common.backToSupplier"
+            />
             @if (!s.can_edit) {
               <app-alert tone="info">{{ 'suppliers.form.readOnly' | transloco }}</app-alert>
             } @else {
-              <div class="mt-3 mb-4"><app-guide-intro scope="suppliers" page="form" /></div>
               @if (error(); as key) {
                 <div class="mb-4">
                   <app-alert>{{ key | transloco }}</app-alert>

@@ -329,7 +329,8 @@
       "review_input": "Innspill til ledelsens gjennomgang",
       "text_match": "Lignende formulering",
       "ai": "Foreslått av assistenten",
-      "other": "Trolig relatert"
+      "other": "Trolig relatert",
+      "supplier_named": "Nevner denne leverandøren"
     },
     "origin": {
       "auto": "Automatisk",
@@ -412,7 +413,11 @@
     "supplier": {
       "to_contract": "Kontrakt med leverandøren",
       "to_evaluation": "Leverandørvurdering",
-      "to_risk": "Leverandørrisiko"
+      "to_risk": "Leverandørrisiko",
+      "to_deviation": "Avvik hos denne leverandøren",
+      "to_processor": "Registrer som databehandler",
+      "to_dpa": "Databehandleravtale",
+      "to_transfer": "Overføringsvurdering (data utenfor EU/EØS)"
     },
     "dpia": {
       "to_risk": "Risiko fra DPIA-en"
@@ -431,7 +436,10 @@
     "management_review": {
       "to_task": "Tiltak (oppgave)"
     },
-    "formMissing": "Dette skjemaet finnes ikke ennå. Opprett posten fra sin egen side og koble den fra fanen Relatert."
+    "formMissing": "Dette skjemaet finnes ikke ennå. Opprett posten fra sin egen side og koble den fra fanen Relatert.",
+    "supplier_evaluation": {
+      "to_deviation": "Avvik fra denne vurderingen"
+    }
   },
   "frameworks": {
     "iso9001": "ISO 9001",

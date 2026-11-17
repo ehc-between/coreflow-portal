@@ -9,43 +9,57 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { Subscription } from 'rxjs';
+import { Subscription, catchError, of } from 'rxjs';
+import { AiAvailability } from '../../core/ai/ai-availability';
 import { providePageContext } from '../../core/ai/page-context';
-import { HasPermissionDirective } from '../../core/auth/has-permission.directive';
 import { LanguageService } from '../../core/i18n/language.service';
+import { CreateFlowService, FlowContext } from '../../core/kit/create-flow.service';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
+import { StandardsApi } from '../../core/standards/standards-api';
 import { AskPanelService } from '../ask/ask-panel.service';
 import { WatchButton } from '../../shared/activity/watch-button';
-import { AskAbout } from '../../shared/ask/ask-about';
-import { GuideIntro } from '../../shared/guidance/guide-intro';
-import { LessonView } from '../../shared/guidance/lesson';
-import { TeachMe } from '../../shared/guidance/teach-me';
 import { WhyItMatters } from '../../shared/guidance/why-it-matters';
 import { RecordDetailLayout, RecordTab } from '../../shared/kit/record-detail-layout';
 import { CountryNamePipe } from '../../shared/locale/countries';
-import { LocalDayPipe, LocalNumberPipe } from '../../shared/locale/locale-pipes';
+import { LocalDayPipe } from '../../shared/locale/locale-pipes';
 import { MarkdownPipe } from '../../shared/markdown/markdown.pipe';
-import { SupportsRequirements } from '../../shared/requirement-links/supports-requirements';
 import { EntityTasks } from '../../shared/tasks/entity-tasks';
-import { Alert } from '../../shared/ui/alert/alert';
-import { Badge } from '../../shared/ui/badge/badge';
 import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog/confirm-dialog';
+import { ErrorState } from '../../shared/ui/error-state/error-state';
+import { FieldItem, FieldList } from '../../shared/ui/field-list/field-list';
+import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../shared/ui/icon/icon';
-import { criticalityTone, decisionTone, statusTone, zoneTone } from './data/supplier-display';
+import { LoadingState } from '../../shared/ui/loading-state/loading-state';
+import { MenuItem } from '../../shared/ui/overflow-menu/overflow-menu';
+import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
+import {
+  ATTENTION_BADGE,
+  AttentionAction,
+  attentionAction,
+  certificateBadge,
+  criticalityBadge,
+  decisionBadge,
+  scoreParams,
+  supplierStatusBadge,
+  zoneBadge,
+} from './data/supplier-display';
 import { supplierErrorKey } from './data/supplier-errors';
 import {
-  EVALUATION_KINDS,
+  AttentionCode,
+  EvaluationDetail,
   EvaluationKind,
   SUPPLIER_FLAGS,
   SupplierDetail,
 } from './data/supplier.models';
 import { SuppliersApi } from './data/suppliers-api';
+import { StartEvaluationDialog } from './detail/start-evaluation-dialog';
 import { StatusChange, SupplierStatusDialog } from './detail/status-dialog';
+import { SupplierAgreementsCard } from './detail/supplier-agreements';
 import { SupplierEvaluationsPanel } from './detail/supplier-evaluations-panel';
 import { SupplierPerformancePanel } from './detail/supplier-performance-panel';
 
@@ -82,19 +96,34 @@ export const SUPPLIER_FIELD_LABELS: Readonly<Record<string, string>> = {
   provides_ai: 'suppliers.flags.provides_ai',
   data_locations: 'suppliers.fields.dataLocations',
   certifications: 'suppliers.fields.certifications',
+  certificates: 'suppliers.fields.certifications',
   evaluation_interval_months: 'suppliers.fields.intervalMonths',
   next_evaluation_at: 'suppliers.fields.nextEvaluation',
   approved_at: 'suppliers.fields.approvedAt',
   approved_by: 'suppliers.fields.approvedBy',
 };
 
+/** Lower-case the first letter unless the word is an abbreviation ("KI-vurdering", "AI"). */
+export function lowerFirst(text: string): string {
+  return text.length > 1 && text[1] === text[1].toLowerCase()
+    ? text.charAt(0).toLowerCase() + text.slice(1)
+    : text;
+}
+
+/** One "Trenger oppfølging" row: the flag, what it means and what closes it. */
+interface AttentionRow {
+  readonly code: AttentionCode;
+  readonly action: AttentionAction;
+}
+
 /**
- * A supplier's page (`/suppliers/:id`): status, criticality and the re-evaluation
- * schedule up front; the profile (contact, risk flags, data locations,
- * certifications); evaluations with the latest decision per kind; the performance
- * log; and the shared record tabs (tasks, related items such as contracts and
- * processors, activity, comments, attachments, revisions). Actions: edit, change
- * status (with a reason), start an evaluation, delete, and ask the assistant.
+ * A supplier's page (`/suppliers/:id`). Up front: what needs follow-up (each flag with
+ * the action that closes it), approval and re-evaluation with open conditions and the
+ * assessments the risk profile calls for ("Påkrevde vurderinger 1 av 3"); then the
+ * agreements hub (contracts, DPA, processors, transfers, AI systems, assets, risks,
+ * deviations), evaluations, the performance log and the profile with structured
+ * certificates. The aside shows the requirements the supplier documents and its
+ * connections. `?newEvaluation=1` (create from here) opens "Start vurdering".
  */
 @Component({
   selector: 'app-supplier-detail',
@@ -103,25 +132,25 @@ export const SUPPLIER_FIELD_LABELS: Readonly<Record<string, string>> = {
     TranslocoPipe,
     CountryNamePipe,
     LocalDayPipe,
-    LocalNumberPipe,
     MarkdownPipe,
-    Alert,
-    AskAbout,
-    Badge,
     Button,
     Card,
     ConfirmDialog,
     EntityTasks,
-    GuideIntro,
-    HasPermissionDirective,
+    ErrorState,
+    FieldItem,
+    FieldList,
+    HelpStrip,
     Icon,
-    LessonView,
+    LoadingState,
+    MenuItem,
     RecordDetailLayout,
+    StartEvaluationDialog,
+    StatusBadge,
+    SupplierAgreementsCard,
     SupplierEvaluationsPanel,
     SupplierPerformancePanel,
     SupplierStatusDialog,
-    SupportsRequirements,
-    TeachMe,
     WatchButton,
     WhyItMatters,
   ],
@@ -129,20 +158,22 @@ export const SUPPLIER_FIELD_LABELS: Readonly<Record<string, string>> = {
   template: `
     @switch (state()) {
       @case ('loading') {
-        <p class="mx-auto max-w-[1180px] px-4 pt-7 text-[14px] text-fg-muted sm:px-8">
-          {{ 'suppliers.common.loading' | transloco }}
-        </p>
+        <div class="mx-auto max-w-[1180px] px-4 pt-7 sm:px-8"><app-loading-state [rows]="6" /></div>
       }
       @case ('error') {
         <div class="mx-auto max-w-[1180px] px-4 pt-7 sm:px-8">
           <a
             routerLink="/suppliers"
-            class="mb-3 inline-flex items-center gap-1 text-[13px] font-semibold text-fg-muted hover:text-fg"
+            class="mb-3 inline-flex items-center gap-1 text-ui font-semibold text-fg-muted hover:text-fg"
           >
             <app-icon name="back" [size]="14" />
             {{ 'suppliers.common.backToRegister' | transloco }}
           </a>
-          <app-alert>{{ 'suppliers.detail.notFound' | transloco }}</app-alert>
+          <app-error-state
+            titleKey="suppliers.detail.notFoundTitle"
+            bodyKey="suppliers.detail.notFound"
+            (retry)="reload()"
+          />
         </div>
       }
       @default {
@@ -150,395 +181,531 @@ export const SUPPLIER_FIELD_LABELS: Readonly<Record<string, string>> = {
           <app-record-detail-layout
             entityType="supplier"
             [entityId]="s.id"
+            [title]="s.name"
+            [breadcrumbs]="[
+              { labelKey: 'modules.names.suppliers', link: '/suppliers' },
+              { label: s.name },
+            ]"
             [tabs]="tabs"
             [canEdit]="s.can_edit"
+            [requirementsPanel]="true"
             [includeAudit]="canAudit()"
             [fieldLabels]="fieldLabels"
             backLink="/suppliers"
             backLabelKey="suppliers.common.backToRegister"
           >
-            <div header>
-              <div class="mb-1.5 flex flex-wrap items-center gap-2">
-                <span class="font-mono text-[12.5px] text-fg-muted">{{ s.code }}</span>
-                <app-badge [tone]="supplierTone(s.status)">
-                  {{ 'suppliers.status.' + s.status | transloco }}
-                </app-badge>
-                <app-badge [tone]="critTone(s.criticality)">
-                  {{ 'suppliers.criticality.' + s.criticality | transloco }}
-                </app-badge>
-                @if (s.evaluation_overdue) {
-                  <app-badge tone="fail">
-                    {{ 'suppliers.detail.evaluationOverdue' | transloco }}
-                  </app-badge>
-                }
-              </div>
-              <h1
-                class="font-display text-[24px] font-bold tracking-[-0.03em] break-words text-fg sm:text-[26px]"
-              >
-                {{ s.name }}
-              </h1>
-            </div>
-
-            <ng-container actions>
-              <app-watch-button entityType="supplier" [entityId]="s.id" />
-              <app-button variant="ghost" size="sm" (click)="askSummary()">
-                <app-icon name="spark" [size]="14" />
-                {{ 'suppliers.ai.summarise' | transloco }}
-              </app-button>
-              @if (s.can_edit) {
-                <a
-                  [routerLink]="['/suppliers', s.id, 'edit']"
-                  class="inline-flex h-8 items-center rounded-tile border border-border px-3 text-[13px] font-semibold text-fg hover:bg-surface-2"
-                >
-                  {{ 'suppliers.common.edit' | transloco }}
-                </a>
-                <app-button variant="secondary" size="sm" (click)="openStatus()">
-                  {{ 'suppliers.detail.changeStatus' | transloco }}
-                </app-button>
-                <app-button size="sm" (click)="startEvaluation()">
-                  {{ 'suppliers.evaluations.start' | transloco }}
-                </app-button>
-              }
-              @if (s.can_delete) {
-                <app-button variant="ghost" size="sm" (click)="confirmDelete.set(true)">
-                  <app-icon name="trash" [size]="14" />
-                  {{ 'suppliers.common.delete' | transloco }}
-                </app-button>
-              }
+            <ng-container ngProjectAs="[meta]">
+              <span class="font-mono">{{ s.code }}</span>
+              <span aria-hidden="true">·</span>
+              <span>{{ 'suppliers.category.' + s.category | transloco }}</span>
+              @let st = statusBadge(s.status);
+              <app-status-badge
+                [meaning]="st.meaning"
+                [value]="st.value"
+                [labelKey]="'suppliers.status.' + s.status"
+              />
+              @let cr = critBadge(s.criticality);
+              <app-status-badge
+                [meaning]="cr.meaning"
+                [value]="cr.value"
+                [labelKey]="'suppliers.criticalityLabel'"
+                [labelParams]="{ level: ('suppliers.criticality.' + s.criticality | transloco) }"
+              />
             </ng-container>
 
+            @if (s.can_edit) {
+              <app-button primary data-testid="header-start-evaluation" (click)="openStart(null)">
+                {{ 'suppliers.evaluations.start' | transloco }}
+              </app-button>
+            }
+            @if (s.can_edit) {
+              <a
+                secondary
+                [routerLink]="['/suppliers', s.id, 'edit']"
+                class="inline-flex h-9 items-center rounded-tile border border-border px-3 text-ui font-semibold text-fg hover:bg-surface-2"
+              >
+                {{ 'suppliers.common.edit' | transloco }}
+              </a>
+            }
+            <app-watch-button secondary entityType="supplier" [entityId]="s.id" />
+            @if (s.can_edit) {
+              <button appMenuItem overflow type="button" (click)="openStatus()">
+                {{ 'suppliers.detail.changeStatus' | transloco }}
+              </button>
+            }
+            @if (!ai.unavailable()) {
+              <button appMenuItem overflow type="button" (click)="askSummary()">
+                {{ 'suppliers.ai.summarise' | transloco }}
+              </button>
+            }
+            @if (s.can_delete) {
+              <button
+                appMenuItem
+                overflow
+                type="button"
+                [danger]="true"
+                (click)="confirmDelete.set(true)"
+              >
+                {{ 'suppliers.common.delete' | transloco }}
+              </button>
+            }
+
+            <app-help-strip help scope="suppliers" page="detail" lesson="evaluating-suppliers" />
+
             <div class="flex flex-col gap-5">
-              <app-guide-intro scope="suppliers" page="detail" />
+              @if (attentionRows().length) {
+                <app-card>
+                  <div data-testid="attention-card">
+                    <h2
+                      class="mb-2 flex items-center gap-2 font-display text-card font-bold text-fg"
+                    >
+                      <app-icon name="alert" [size]="16" class="text-warn-ink" />
+                      {{
+                        'suppliers.detail.attentionTitle'
+                          | transloco: { count: attentionRows().length }
+                      }}
+                    </h2>
+                    <ul class="flex flex-col divide-y divide-border">
+                      @for (row of attentionRows(); track row.code) {
+                        <li
+                          class="flex flex-col gap-2 py-2.5 sm:flex-row sm:items-center sm:gap-3"
+                          [attr.data-code]="row.code"
+                        >
+                          <div class="min-w-0 flex-1">
+                            <app-status-badge
+                              [meaning]="attentionBadge.meaning"
+                              [value]="attentionBadge.value"
+                              [labelKey]="'suppliers.attention.' + row.code"
+                            />
+                            <p class="mt-1 text-ui text-fg-muted">
+                              {{ 'suppliers.attentionWhy.' + row.code | transloco }}
+                            </p>
+                          </div>
+                          @if (s.can_edit) {
+                            @switch (row.action.kind) {
+                              @case ('evaluate') {
+                                <app-button
+                                  size="sm"
+                                  variant="secondary"
+                                  (click)="openStart(evaluationOf(row.action))"
+                                >
+                                  {{
+                                    'suppliers.detail.startKind'
+                                      | transloco
+                                        : { kind: kindInSentence(evaluationOf(row.action)) }
+                                  }}
+                                </app-button>
+                              }
+                              @case ('flow') {
+                                @if (can(permissionOf(row.action))) {
+                                  <app-button
+                                    size="sm"
+                                    variant="secondary"
+                                    (click)="startFlow(flowOf(row.action))"
+                                  >
+                                    {{ 'suppliers.attentionAction.' + row.code | transloco }}
+                                  </app-button>
+                                }
+                              }
+                              @case ('edit') {
+                                <a
+                                  [routerLink]="['/suppliers', s.id, 'edit']"
+                                  class="inline-flex h-8 items-center rounded-tile border border-border px-3 text-ui font-semibold text-fg hover:bg-surface-2"
+                                >
+                                  {{ 'suppliers.attentionAction.' + row.code | transloco }}
+                                </a>
+                              }
+                            }
+                          }
+                        </li>
+                      }
+                    </ul>
+                  </div>
+                </app-card>
+              }
 
               <app-card>
-                <div class="mb-3 flex items-center justify-between gap-2">
-                  <h2 class="font-display text-[15px] font-bold text-fg">
+                <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+                  <h2 class="font-display text-card font-bold text-fg">
                     {{ 'suppliers.detail.approval' | transloco }}
                   </h2>
-                  <app-ask-about
-                    [prompt]="'suppliers.ai.prompts.nextStep' | transloco"
-                    field="status"
-                  />
+                  @if (!ai.unavailable()) {
+                    <app-button variant="ghost" size="sm" (click)="askNextStep()">
+                      <app-icon name="spark" [size]="14" />
+                      {{ 'suppliers.ai.askNextStep' | transloco }}
+                    </app-button>
+                  }
                 </div>
-                <dl class="grid grid-cols-1 gap-x-6 gap-y-3 text-[13.5px] sm:grid-cols-2">
-                  <div>
-                    <dt class="text-[12px] text-fg-muted">
-                      {{ 'suppliers.fields.status' | transloco }}
-                    </dt>
-                    <dd class="text-fg">{{ 'suppliers.statusHelp.' + s.status | transloco }}</dd>
-                  </div>
-                  <div>
-                    <dt class="text-[12px] text-fg-muted">
-                      {{ 'suppliers.fields.approvedAt' | transloco }}
-                    </dt>
-                    <dd class="text-fg">
-                      @if (s.approved_at) {
-                        {{
-                          'suppliers.detail.approvedOn'
-                            | transloco
-                              : {
-                                  date: (s.approved_at | localDay),
-                                  name: s.approved_by?.name ?? '–',
-                                }
-                        }}
-                      } @else {
-                        {{ 'suppliers.detail.notApproved' | transloco }}
+                <p class="mb-4 text-body text-fg">
+                  {{ 'suppliers.statusHelp.' + s.status | transloco }}
+                </p>
+                <app-field-list [columns]="2">
+                  <app-field-item labelKey="suppliers.fields.approvedAt">
+                    @if (s.approved_at) {
+                      {{
+                        'suppliers.detail.approvedOn'
+                          | transloco
+                            : {
+                                date: (s.approved_at | localDay),
+                                name:
+                                  s.approved_by?.name ?? ('suppliers.common.nobody' | transloco),
+                              }
+                      }}
+                    } @else {
+                      {{ 'suppliers.detail.notApproved' | transloco }}
+                    }
+                  </app-field-item>
+                  <app-field-item labelKey="suppliers.fields.lastEvaluated">
+                    @if (s.last_evaluated_at) {
+                      {{ s.last_evaluated_at | localDay }}
+                      @if (lastScore(); as sc) {
+                        · {{ 'suppliers.score.of100' | transloco: sc }}
                       }
-                    </dd>
-                  </div>
-                  <div>
-                    <dt class="text-[12px] text-fg-muted">
-                      {{ 'suppliers.fields.lastEvaluated' | transloco }}
-                    </dt>
-                    <dd class="text-fg">
-                      @if (s.last_evaluated_at) {
-                        {{ s.last_evaluated_at | localDay }}
-                        @if (s.last_score !== null) {
-                          ·
-                          {{
-                            'suppliers.list.score'
-                              | transloco: { score: (s.last_score | localNumber: '1.0-1') }
-                          }}
-                        }
-                      } @else {
-                        {{ 'suppliers.detail.neverEvaluated' | transloco }}
-                      }
-                    </dd>
-                  </div>
-                  <div>
-                    <dt class="text-[12px] text-fg-muted">
-                      {{ 'suppliers.fields.nextEvaluation' | transloco }}
-                    </dt>
-                    <dd
-                      [class.text-fail]="s.evaluation_overdue"
+                    } @else {
+                      {{ 'suppliers.detail.neverEvaluated' | transloco }}
+                    }
+                  </app-field-item>
+                  <app-field-item labelKey="suppliers.fields.nextEvaluation">
+                    <span
+                      [class.text-warn-ink]="s.evaluation_overdue"
                       [class.font-semibold]="s.evaluation_overdue"
+                      data-testid="next-evaluation"
                     >
                       @if (s.next_evaluation_at) {
-                        {{ s.next_evaluation_at | localDay }}
+                        {{
+                          (s.evaluation_overdue
+                            ? 'suppliers.detail.overdueSince'
+                            : 'suppliers.detail.onDate'
+                          ) | transloco: { date: (s.next_evaluation_at | localDay) }
+                        }}
                       } @else {
                         {{ 'suppliers.list.noEvaluationDate' | transloco }}
                       }
-                    </dd>
-                  </div>
-                  <div class="sm:col-span-2">
-                    <dt class="text-[12px] text-fg-muted">
-                      {{ 'suppliers.fields.intervalMonths' | transloco }}
-                    </dt>
-                    <dd class="text-fg">
-                      {{
-                        (s.evaluation_interval_months
-                          ? 'suppliers.detail.intervalOwn'
-                          : 'suppliers.detail.intervalDefault'
-                        )
-                          | transloco
-                            : {
-                                months: s.effective_interval_months,
-                                criticality: ('suppliers.criticality.' + s.criticality | transloco),
-                              }
-                      }}
-                    </dd>
-                  </div>
-                </dl>
+                    </span>
+                  </app-field-item>
+                  <app-field-item labelKey="suppliers.fields.intervalMonths">
+                    {{
+                      (s.evaluation_interval_months
+                        ? 'suppliers.detail.intervalOwn'
+                        : 'suppliers.detail.intervalDefault'
+                      )
+                        | transloco
+                          : {
+                              months: s.effective_interval_months,
+                              criticality: ('suppliers.criticality.' + s.criticality | transloco),
+                            }
+                    }}
+                  </app-field-item>
+                </app-field-list>
 
-                <h3 class="mt-4 mb-2 text-[13px] font-semibold text-fg-muted">
-                  {{ 'suppliers.detail.latestAssessments' | transloco }}
-                </h3>
-                <ul class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                  @for (kind of kinds; track kind) {
-                    <li class="rounded-tile border border-border px-3 py-2">
-                      <p class="text-[12px] text-fg-muted">
-                        {{ 'suppliers.evaluationKind.' + kind | transloco }}
-                      </p>
-                      @if (assessment(s, kind); as a) {
-                        <a
-                          [routerLink]="['/suppliers', s.id, 'evaluations', a.id]"
-                          class="flex flex-wrap items-center gap-2 text-[13px] text-fg hover:underline"
-                        >
-                          @if (a.decision) {
-                            <app-badge [tone]="decisionTone(a.decision)">
-                              {{ 'suppliers.decision.' + a.decision | transloco }}
-                            </app-badge>
-                          }
-                          @if (a.score !== null) {
-                            <span>{{
-                              'suppliers.list.score'
-                                | transloco: { score: (a.score | localNumber: '1.0-1') }
-                            }}</span>
-                          }
-                          @if (a.decided_at) {
-                            <span class="text-fg-subtle">{{ a.decided_at | localDay }}</span>
-                          }
-                        </a>
-                      } @else {
-                        <p class="text-[13px] text-fg-subtle">
-                          {{ 'suppliers.detail.noAssessment' | transloco }}
-                        </p>
-                      }
-                    </li>
-                  }
-                </ul>
-              </app-card>
-
-              <app-supplier-evaluations-panel
-                [supplier]="s"
-                [canWrite]="s.can_edit"
-                [startRequest]="startRequest()"
-                (created)="reload()"
-              />
-
-              <app-card>
-                <h2 class="mb-3 font-display text-[15px] font-bold text-fg">
-                  {{ 'suppliers.detail.profile' | transloco }}
-                </h2>
-                @if (s.description) {
+                @if (s.open_conditions; as c) {
                   <div
-                    class="cf-prose mb-4 text-[13.5px] leading-relaxed text-fg"
-                    [innerHTML]="s.description | appMarkdown"
-                  ></div>
-                }
-                <dl class="grid grid-cols-1 gap-x-6 gap-y-3 text-[13.5px] sm:grid-cols-2">
-                  <div>
-                    <dt class="text-[12px] text-fg-muted">
-                      {{ 'suppliers.fields.category' | transloco }}
-                    </dt>
-                    <dd class="text-fg">{{ 'suppliers.category.' + s.category | transloco }}</dd>
-                  </div>
-                  <div>
-                    <dt class="text-[12px] text-fg-muted">
-                      {{ 'suppliers.fields.owner' | transloco }}
-                    </dt>
-                    <dd class="text-fg">
-                      {{ s.owner?.name ?? ('suppliers.common.nobody' | transloco) }}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt class="text-[12px] text-fg-muted">
-                      {{ 'suppliers.fields.legalName' | transloco }}
-                    </dt>
-                    <dd class="text-fg">{{ s.legal_name || '–' }}</dd>
-                  </div>
-                  <div>
-                    <dt class="text-[12px] text-fg-muted">
-                      {{ 'suppliers.fields.registrationNumber' | transloco }}
-                    </dt>
-                    <dd class="text-fg">{{ s.registration_number || '–' }}</dd>
-                  </div>
-                  <div>
-                    <dt class="text-[12px] text-fg-muted">
-                      {{ 'suppliers.fields.country' | transloco }}
-                    </dt>
-                    <dd class="text-fg">{{ s.country ? (s.country | countryName) : '–' }}</dd>
-                  </div>
-                  <div>
-                    <dt class="text-[12px] text-fg-muted">
-                      {{ 'suppliers.fields.website' | transloco }}
-                    </dt>
-                    <dd class="truncate text-fg">
-                      @if (safeWebsite(s.website); as url) {
-                        <a
-                          [href]="url"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          class="text-accent hover:underline"
-                        >
-                          {{ s.website }}
-                        </a>
-                      } @else {
-                        {{ s.website || '–' }}
-                      }
-                    </dd>
-                  </div>
-                  <div>
-                    <dt class="text-[12px] text-fg-muted">
-                      {{ 'suppliers.detail.contact' | transloco }}
-                    </dt>
-                    <dd class="text-fg">
-                      @if (s.contact_name || s.contact_email || s.contact_phone) {
-                        <span class="block">{{ s.contact_name }}</span>
-                        @if (s.contact_email) {
-                          <a
-                            [href]="'mailto:' + s.contact_email"
-                            class="block text-accent hover:underline"
-                          >
-                            {{ s.contact_email }}
-                          </a>
-                        }
-                        @if (s.contact_phone) {
-                          <span class="block">{{ s.contact_phone }}</span>
-                        }
-                      } @else {
-                        –
-                      }
-                    </dd>
-                  </div>
-                  <div>
-                    <dt class="text-[12px] text-fg-muted">
-                      {{ 'suppliers.detail.riskFlags' | transloco }}
-                    </dt>
-                    <dd class="flex flex-wrap gap-1.5">
-                      @for (flag of activeFlags(); track flag) {
-                        <app-badge tone="accent">{{
-                          'suppliers.flags.' + flag | transloco
-                        }}</app-badge>
-                      } @empty {
-                        <span class="text-fg-subtle">{{
-                          'suppliers.detail.noFlags' | transloco
-                        }}</span>
-                      }
-                    </dd>
-                  </div>
-                  <div>
-                    <dt class="text-[12px] text-fg-muted">
-                      {{ 'suppliers.fields.dataLocations' | transloco }}
-                    </dt>
-                    <dd class="text-fg">
-                      @if (locations().length) {
-                        <ul class="flex flex-col gap-1" data-testid="data-locations">
-                          @for (l of locations(); track l.code) {
-                            <li
-                              class="flex flex-wrap items-center gap-1.5"
-                              [attr.data-code]="l.code"
-                            >
-                              <span>{{ l.code | countryName }}</span>
-                              @if (l.zone) {
-                                <app-badge [tone]="zoneTone(l.zone)">{{
-                                  'suppliers.zones.' + l.zone | transloco
-                                }}</app-badge>
-                              }
-                              @if (l.needs_review) {
-                                <app-badge tone="warn">{{
-                                  'suppliers.detail.locationReview' | transloco: { code: l.code }
-                                }}</app-badge>
-                              }
-                            </li>
-                          }
-                        </ul>
-                      } @else {
-                        –
-                      }
-                    </dd>
-                  </div>
-                  <div>
-                    <dt class="text-[12px] text-fg-muted">
-                      {{ 'suppliers.fields.certifications' | transloco }}
-                    </dt>
-                    <dd class="text-fg">
-                      {{ s.certifications.length ? s.certifications.join(', ') : '–' }}
-                    </dd>
-                  </div>
-                </dl>
-                @if (s.transfer_assessment_needed) {
-                  <div
-                    class="mt-4 rounded-tile border border-warn bg-warn-soft px-3 py-2 text-[13px] text-fg"
-                    role="note"
-                    data-testid="transfer-assessment-needed"
+                    class="mt-4 rounded-tile border px-3 py-2.5 text-ui"
+                    [class]="c.overdue ? 'border-warn bg-warn-soft' : 'border-border bg-surface-2'"
+                    data-testid="open-conditions"
                   >
-                    <p>
-                      <span class="font-semibold">{{
-                        'suppliers.detail.transferNeeded' | transloco
-                      }}</span>
-                      {{ 'suppliers.detail.transferNeededBody' | transloco }}
+                    <p class="font-semibold text-fg">
+                      {{ 'suppliers.detail.conditionsTitle' | transloco }}
+                    </p>
+                    <p class="mt-1 whitespace-pre-line text-fg">{{ c.text }}</p>
+                    <p class="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-meta text-fg-muted">
+                      @if (c.due_at) {
+                        <span [class.font-semibold]="c.overdue" [class.text-warn-ink]="c.overdue">
+                          {{
+                            (c.overdue
+                              ? 'suppliers.detail.conditionsOverdue'
+                              : 'suppliers.detail.conditionsDue'
+                            ) | transloco: { date: (c.due_at | localDay) }
+                          }}
+                        </span>
+                      }
+                      @if (c.task_status) {
+                        <span>
+                          {{
+                            'suppliers.detail.conditionsTask'
+                              | transloco
+                                : { status: ('suppliers.taskStatus.' + c.task_status | transloco) }
+                          }}
+                        </span>
+                      }
                       <a
-                        *appHasPermission="'privacy:write'"
-                        routerLink="/privacy/transfers/new"
+                        [routerLink]="c.evaluation_url"
                         class="font-semibold text-accent hover:underline"
                       >
-                        {{ 'suppliers.detail.transferCta' | transloco }}
+                        {{ 'suppliers.detail.openDecision' | transloco }}
                       </a>
                     </p>
                   </div>
                 }
-                @if (s.processes_personal_data) {
-                  <p class="mt-4 rounded-tile bg-surface-2 px-3 py-2 text-[12.5px] text-fg-muted">
-                    {{ 'suppliers.detail.processorHint' | transloco }}
-                  </p>
+
+                @if (required().length) {
+                  <div class="mt-4" data-testid="required-assessments">
+                    <h3 class="mb-2 text-ui font-semibold text-fg">
+                      {{
+                        'suppliers.required.title'
+                          | transloco: { done: s.required_done ?? 0, total: s.required_total ?? 0 }
+                      }}
+                    </h3>
+                    <ul
+                      class="flex flex-col divide-y divide-border rounded-tile border border-border"
+                    >
+                      @for (r of required(); track r.kind) {
+                        <li
+                          class="flex flex-col gap-1.5 px-3 py-2 sm:flex-row sm:items-center sm:gap-3"
+                          [attr.data-kind]="r.kind"
+                        >
+                          <span
+                            class="flex h-5 w-5 flex-none items-center justify-center rounded-full"
+                            [class]="
+                              r.done ? 'bg-pass-soft text-pass-ink' : 'bg-surface-2 text-fg-subtle'
+                            "
+                            aria-hidden="true"
+                          >
+                            <app-icon [name]="r.done ? 'check' : 'clock'" [size]="12" />
+                          </span>
+                          <div class="min-w-0 flex-1">
+                            <p class="text-ui font-semibold text-fg">
+                              {{ 'suppliers.evaluationKind.' + r.kind | transloco }}
+                              <span class="sr-only">
+                                ·
+                                {{
+                                  (r.done
+                                    ? 'suppliers.required.done'
+                                    : 'suppliers.required.notDone'
+                                  ) | transloco
+                                }}
+                              </span>
+                            </p>
+                            <p class="text-meta text-fg-muted">
+                              {{ 'suppliers.required.why.' + r.reason | transloco }}
+                            </p>
+                          </div>
+                          <span class="flex flex-wrap items-center gap-2 text-meta">
+                            @if (r.latest; as l) {
+                              <a
+                                [routerLink]="['/suppliers', s.id, 'evaluations', l.id]"
+                                class="inline-flex items-center gap-2 hover:underline"
+                              >
+                                @if (l.decision) {
+                                  @let d = decision(l.decision);
+                                  <app-status-badge
+                                    [meaning]="d.meaning"
+                                    [value]="d.value"
+                                    [labelKey]="'suppliers.decision.' + l.decision"
+                                  />
+                                }
+                                @if (scoreOf(l.score); as sc) {
+                                  <span class="text-fg-muted">{{
+                                    'suppliers.score.of100' | transloco: sc
+                                  }}</span>
+                                }
+                                @if (l.decided_at) {
+                                  <span class="text-fg-subtle">{{ l.decided_at | localDay }}</span>
+                                }
+                              </a>
+                            }
+                            @if (r.open_evaluation_id) {
+                              <a
+                                [routerLink]="[
+                                  '/suppliers',
+                                  s.id,
+                                  'evaluations',
+                                  r.open_evaluation_id,
+                                ]"
+                                class="font-semibold text-accent hover:underline"
+                              >
+                                {{ 'suppliers.required.inProgress' | transloco }}
+                              </a>
+                            } @else if (!r.done && s.can_edit) {
+                              <app-button size="sm" variant="secondary" (click)="openStart(r.kind)">
+                                {{ 'suppliers.required.start' | transloco }}
+                              </app-button>
+                            } @else if (!r.done) {
+                              <span class="text-fg-subtle">{{
+                                'suppliers.required.notStarted' | transloco
+                              }}</span>
+                            }
+                          </span>
+                        </li>
+                      }
+                    </ul>
+                  </div>
                 }
               </app-card>
+
+              <app-supplier-agreements [supplier]="s" [canEdit]="s.can_edit" (changed)="reload()" />
+
+              <app-supplier-evaluations-panel
+                [supplier]="s"
+                [canWrite]="s.can_edit"
+                (startRequested)="openStart(null)"
+              />
 
               <app-supplier-performance-panel
                 [supplierId]="s.id"
                 [canWrite]="s.can_edit"
+                [warning]="s.performance_warning"
                 (changed)="reload()"
+                (evaluateRequested)="openStart('ad_hoc')"
               />
+
+              <app-card>
+                <h2 class="mb-3 font-display text-card font-bold text-fg">
+                  {{ 'suppliers.detail.profile' | transloco }}
+                </h2>
+                @if (s.description) {
+                  <div
+                    class="cf-prose mb-4 text-body leading-relaxed text-fg"
+                    [innerHTML]="s.description | appMarkdown"
+                  ></div>
+                }
+                <app-field-list [columns]="2">
+                  <app-field-item
+                    labelKey="suppliers.fields.owner"
+                    [value]="s.owner?.name"
+                    empty="none"
+                  />
+                  <app-field-item labelKey="suppliers.fields.legalName" [value]="s.legal_name" />
+                  <app-field-item
+                    labelKey="suppliers.fields.registrationNumber"
+                    [value]="s.registration_number"
+                  />
+                  <app-field-item
+                    labelKey="suppliers.fields.country"
+                    [value]="s.country ? (s.country | countryName) : null"
+                  />
+                  <app-field-item labelKey="suppliers.fields.website">
+                    @if (safeWebsite(s.website); as url) {
+                      <a
+                        [href]="url"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="break-all text-accent hover:underline"
+                      >
+                        {{ s.website }}
+                      </a>
+                    } @else if (s.website) {
+                      {{ s.website }}
+                    }
+                  </app-field-item>
+                  <app-field-item labelKey="suppliers.detail.contact">
+                    @if (s.contact_name || s.contact_email || s.contact_phone) {
+                      <span class="block">{{ s.contact_name }}</span>
+                      @if (s.contact_email) {
+                        <a
+                          [href]="'mailto:' + s.contact_email"
+                          class="block break-all text-accent hover:underline"
+                        >
+                          {{ s.contact_email }}
+                        </a>
+                      }
+                      @if (s.contact_phone) {
+                        <span class="block">{{ s.contact_phone }}</span>
+                      }
+                    }
+                  </app-field-item>
+                  <app-field-item labelKey="suppliers.detail.riskFlags" [wide]="true">
+                    @if (activeFlags().length) {
+                      <span class="flex flex-wrap gap-1.5">
+                        @for (flag of activeFlags(); track flag) {
+                          <span
+                            class="rounded-full bg-accent-soft px-2 py-0.5 text-meta font-semibold text-accent"
+                            >{{ 'suppliers.flags.' + flag | transloco }}</span
+                          >
+                        }
+                      </span>
+                    } @else {
+                      <span class="text-fg-subtle">{{
+                        'suppliers.detail.noFlags' | transloco
+                      }}</span>
+                    }
+                  </app-field-item>
+                  <app-field-item
+                    labelKey="suppliers.fields.dataLocations"
+                    [wide]="true"
+                    empty="none"
+                  >
+                    @if (locations().length) {
+                      <ul class="flex flex-col gap-1" data-testid="data-locations">
+                        @for (l of locations(); track l.code) {
+                          <li class="flex flex-wrap items-center gap-1.5" [attr.data-code]="l.code">
+                            <span>{{ l.code | countryName }}</span>
+                            @if (l.zone) {
+                              @let z = zone(l.zone);
+                              <app-status-badge
+                                [meaning]="z.meaning"
+                                [value]="z.value"
+                                [labelKey]="'suppliers.zones.' + l.zone"
+                              />
+                            }
+                            @if (l.needs_review) {
+                              <app-status-badge
+                                meaning="lifecycle"
+                                value="due"
+                                labelKey="suppliers.detail.locationReview"
+                                [labelParams]="{ code: l.code }"
+                              />
+                            }
+                          </li>
+                        }
+                      </ul>
+                    }
+                  </app-field-item>
+                  <app-field-item
+                    labelKey="suppliers.fields.certifications"
+                    [wide]="true"
+                    empty="none"
+                  >
+                    @if (certificates().length) {
+                      <ul class="flex flex-col gap-2" data-testid="certificates">
+                        @for (c of certificates(); track c.id) {
+                          <li class="flex flex-wrap items-center gap-x-2 gap-y-1">
+                            <span class="font-semibold">{{ c.standard_name || c.label }}</span>
+                            @let cb = certBadge(c.status);
+                            <app-status-badge
+                              [meaning]="cb.meaning"
+                              [value]="cb.value"
+                              [labelKey]="'suppliers.certificates.status.' + c.status"
+                            />
+                            <span class="w-full text-meta text-fg-muted sm:w-auto">
+                              @if (c.number) {
+                                {{
+                                  'suppliers.certificates.numberShort'
+                                    | transloco: { number: c.number }
+                                }}
+                              }
+                              @if (c.issuer) {
+                                · {{ c.issuer }}
+                              }
+                              @if (c.valid_until) {
+                                ·
+                                {{
+                                  'suppliers.certificates.validUntil'
+                                    | transloco: { date: (c.valid_until | localDay) }
+                                }}
+                              }
+                              @if (c.attachment_id) {
+                                ·
+                                <a
+                                  [routerLink]="[]"
+                                  [queryParams]="{ tab: 'attachments' }"
+                                  class="font-semibold text-accent hover:underline"
+                                  >{{ 'suppliers.certificates.attached' | transloco }}</a
+                                >
+                              }
+                            </span>
+                          </li>
+                        }
+                      </ul>
+                    } @else if (s.certifications.length) {
+                      {{ s.certifications.join(', ') }}
+                    }
+                  </app-field-item>
+                </app-field-list>
+              </app-card>
 
               <app-why-it-matters scope="suppliers" page="detail" />
             </div>
-
-            <ng-container aside>
-              <app-card>
-                <h2 class="mb-2 font-display text-[14px] font-bold text-fg">
-                  {{ 'suppliers.detail.learn' | transloco }}
-                </h2>
-                <div class="flex flex-col items-start gap-2">
-                  <app-lesson scope="suppliers" lesson="evaluating-suppliers" />
-                  <app-lesson scope="suppliers" lesson="third-party-security" />
-                  <app-teach-me topic="suppliers.detail" [subject]="s.name" />
-                </div>
-              </app-card>
-              <app-card *appHasPermission="'standards:read'">
-                <app-supports-requirements entityType="supplier" [entityId]="s.id" />
-              </app-card>
-            </ng-container>
 
             <div tasks>
               <app-entity-tasks
@@ -549,6 +716,14 @@ export const SUPPLIER_FIELD_LABELS: Readonly<Record<string, string>> = {
               />
             </div>
           </app-record-detail-layout>
+
+          <app-start-evaluation-dialog
+            [supplier]="s"
+            [open]="startOpen()"
+            [preferredKind]="startKind()"
+            (closed)="startOpen.set(false)"
+            (created)="onCreated(s, $event)"
+          />
 
           <app-supplier-status-dialog
             [open]="statusOpen()"
@@ -577,20 +752,26 @@ export const SUPPLIER_FIELD_LABELS: Readonly<Record<string, string>> = {
 })
 export class SupplierDetailPage {
   private readonly api = inject(SuppliersApi);
+  private readonly standards = inject(StandardsApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly notifications = inject(NotificationService);
   private readonly language = inject(LanguageService);
   private readonly ask = inject(AskPanelService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  private readonly flows = inject(CreateFlowService);
+  protected readonly ai = inject(AiAvailability);
 
   readonly id = input.required<string>();
 
   protected readonly tabs = TABS;
   protected readonly fieldLabels = SUPPLIER_FIELD_LABELS;
-  protected readonly kinds = EVALUATION_KINDS;
-  protected readonly supplierTone = statusTone;
-  protected readonly critTone = criticalityTone;
-  protected readonly decisionTone = decisionTone;
+  protected readonly statusBadge = supplierStatusBadge;
+  protected readonly critBadge = criticalityBadge;
+  protected readonly decision = decisionBadge;
+  protected readonly zone = zoneBadge;
+  protected readonly certBadge = certificateBadge;
+  protected readonly attentionBadge = ATTENTION_BADGE;
 
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
   protected readonly supplier = signal<SupplierDetail | null>(null);
@@ -598,11 +779,15 @@ export class SupplierDetailPage {
   protected readonly statusOpen = signal(false);
   protected readonly statusError = signal<string | null>(null);
   protected readonly confirmDelete = signal(false);
-  protected readonly startRequest = signal(0);
+  protected readonly startOpen = signal(false);
+  protected readonly startKind = signal<EvaluationKind | null>(null);
+  /** Confirmed requirement refs, for the assistant's page context. */
+  private readonly requirementRefs = signal<readonly string[]>([]);
+  /** The create-from-here flow that opened "Start vurdering" (`?newEvaluation=1`). */
+  private flow: FlowContext | null = null;
 
-  protected readonly canAudit = computed(() =>
-    (this.selectedOrg.currentOrg()?.permissions ?? []).includes('audit:read'),
-  );
+  private readonly permissions = computed(() => this.selectedOrg.currentOrg()?.permissions ?? []);
+  protected readonly canAudit = computed(() => this.permissions().includes('audit:read'));
   /** Stored data locations with their zone and review flag (codes only on older responses). */
   protected readonly locations = computed(() => {
     const s = this.supplier();
@@ -616,16 +801,32 @@ export class SupplierDetailPage {
       needs_review: details.get(code)?.needs_review ?? false,
     }));
   });
-  protected readonly zoneTone = zoneTone;
   protected readonly activeFlags = computed(() => {
     const s = this.supplier();
     return s ? SUPPLIER_FLAGS.filter((f) => s[f]) : [];
   });
+  protected readonly certificates = computed(() => this.supplier()?.certificates ?? []);
+  protected readonly required = computed(() => this.supplier()?.required_assessments ?? []);
+  protected readonly lastScore = computed(() =>
+    scoreParams(this.supplier()?.last_score, null, this.language.locale()),
+  );
+  protected readonly attentionRows = computed<readonly AttentionRow[]>(() => {
+    const s = this.supplier();
+    if (!s) {
+      return [];
+    }
+    const approved = !!s.approved_at || s.status === 'approved' || s.status === 'conditional';
+    return (s.attention ?? []).map((code) => ({ code, action: attentionAction(code, approved) }));
+  });
 
   private request = new Subscription();
+  private refsRequest = new Subscription();
 
   constructor() {
-    inject(DestroyRef).onDestroy(() => this.request.unsubscribe());
+    inject(DestroyRef).onDestroy(() => {
+      this.request.unsubscribe();
+      this.refsRequest.unsubscribe();
+    });
     providePageContext(() => {
       const s = this.supplier();
       return {
@@ -634,6 +835,7 @@ export class SupplierDetailPage {
         entityId: this.id(),
         view: 'detail',
         title: s ? `${s.code} ${s.name}` : null,
+        requirements: this.requirementRefs(),
       };
     });
     effect(() => {
@@ -641,10 +843,39 @@ export class SupplierDetailPage {
       const id = this.id();
       untracked(() => this.load(orgId, id, true));
     });
+    // "Create from here: supplier evaluation" lands on `?newEvaluation=1`.
+    if (this.route.snapshot.queryParamMap.get('newEvaluation')) {
+      const flow = this.flows.consume(this.route, { targetType: 'supplier_evaluation' });
+      effect(() => {
+        this.flow = flow();
+      });
+      this.startOpen.set(true);
+    }
   }
 
-  protected assessment(s: SupplierDetail, kind: EvaluationKind) {
-    return s.latest_assessments[kind] ?? null;
+  protected can(permission: string): boolean {
+    return this.permissions().includes(permission);
+  }
+
+  protected evaluationOf(action: AttentionAction): EvaluationKind {
+    return action.kind === 'evaluate' ? action.evaluation : 'periodic';
+  }
+
+  protected flowOf(action: AttentionAction): string {
+    return action.kind === 'flow' ? action.flow : '';
+  }
+
+  protected permissionOf(action: AttentionAction): string {
+    return action.kind === 'flow' ? action.permission : '';
+  }
+
+  /** A kind's name inside a sentence ("Start førstegangsvurdering", but "KI-vurdering"). */
+  protected kindInSentence(kind: EvaluationKind): string {
+    return lowerFirst(this.language.translate(`suppliers.evaluationKind.${kind}`));
+  }
+
+  protected scoreOf(score: number | null) {
+    return scoreParams(score, null, this.language.locale());
   }
 
   /** Only http(s) links are rendered as links. */
@@ -665,12 +896,37 @@ export class SupplierDetailPage {
     this.statusOpen.set(true);
   }
 
-  protected startEvaluation(): void {
-    this.startRequest.update((n) => n + 1);
+  /** Open "Start vurdering" (from any tab), optionally with a kind chosen. */
+  protected openStart(kind: EvaluationKind | null): void {
+    this.startKind.set(kind);
+    this.startOpen.set(true);
+  }
+
+  protected startFlow(key: string): void {
+    const s = this.supplier();
+    if (key && s) {
+      void this.flows.start(key, 'supplier', s.id);
+    }
+  }
+
+  protected onCreated(s: SupplierDetail, evaluation: EvaluationDetail): void {
+    this.startOpen.set(false);
+    if (this.flow) {
+      this.flows
+        .complete(evaluation.id, 'supplier_evaluation')
+        .pipe(catchError(() => of(null)))
+        .subscribe();
+      this.flow = null;
+    }
+    void this.router.navigate(['/suppliers', s.id, 'evaluations', evaluation.id]);
   }
 
   protected askSummary(): void {
     this.ask.showWith(this.language.translate('suppliers.ai.prompts.summarise'));
+  }
+
+  protected askNextStep(): void {
+    this.ask.showWith(this.language.translate('suppliers.ai.prompts.nextStep'));
   }
 
   protected changeStatus(s: SupplierDetail, change: StatusChange): void {
@@ -730,5 +986,22 @@ export class SupplierDetailPage {
       },
       error: () => this.state.set('error'),
     });
+    this.loadRefs(orgId, id);
+  }
+
+  /** The confirmed requirement refs (quietly empty without `standards:read`). */
+  private loadRefs(orgId: string, id: string): void {
+    this.refsRequest.unsubscribe();
+    if (!this.permissions().includes('standards:read')) {
+      return;
+    }
+    this.refsRequest = this.standards
+      .listLinks(orgId, { entity_type: 'supplier', entity_id: id })
+      .pipe(catchError(() => of([])))
+      .subscribe((links) =>
+        this.requirementRefs.set(
+          links.filter((l) => l.status === 'confirmed').map((l) => l.requirement_ref),
+        ),
+      );
   }
 }

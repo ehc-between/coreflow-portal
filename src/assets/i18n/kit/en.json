@@ -329,7 +329,8 @@
       "review_input": "Input to this management review",
       "text_match": "Similar wording",
       "ai": "Suggested by the assistant",
-      "other": "Probably related"
+      "other": "Probably related",
+      "supplier_named": "Names this supplier"
     },
     "origin": {
       "auto": "Automatic",
@@ -412,7 +413,11 @@
     "supplier": {
       "to_contract": "Contract with this supplier",
       "to_evaluation": "Supplier evaluation",
-      "to_risk": "Supplier risk"
+      "to_risk": "Supplier risk",
+      "to_deviation": "Deviation for this supplier",
+      "to_processor": "Register as data processor",
+      "to_dpa": "Data processing agreement",
+      "to_transfer": "Transfer assessment (data outside the EU/EEA)"
     },
     "dpia": {
       "to_risk": "Risk from this DPIA"
@@ -431,7 +436,10 @@
     "management_review": {
       "to_task": "Action (task)"
     },
-    "formMissing": "This form is not available yet. Create the record from its own page and link it from the Related tab."
+    "formMissing": "This form is not available yet. Create the record from its own page and link it from the Related tab.",
+    "supplier_evaluation": {
+      "to_deviation": "Deviation from this evaluation"
+    }
   },
   "frameworks": {
     "iso9001": "ISO 9001",

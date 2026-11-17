@@ -15,23 +15,29 @@ import { providePageContext } from '../../../core/ai/page-context';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
-import { GuideIntro } from '../../../shared/guidance/guide-intro';
+import { ClauseChips } from '../../../shared/guidance/clause-chips';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
+import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { ModuleNav } from '../../../shared/ui/module-nav/module-nav';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { supplierErrorKey } from '../data/supplier-errors';
 import { EVALUATION_KINDS, EvaluationKind, Questionnaire } from '../data/supplier.models';
 import { SuppliersApi } from '../data/suppliers-api';
-import { questionnaireLang } from '../detail/supplier-evaluations-panel';
-import { SuppliersNav } from '../shared/suppliers-nav';
+import { questionnaireLang } from '../detail/start-evaluation-dialog';
+import { suppliersNav } from '../shared/suppliers-nav';
 
 /**
  * Questionnaire templates (`/suppliers/questionnaires`): the built-in set for every
- * evaluation kind (in the UI language) and the org's own templates. With
- * `suppliers:manage` you can create, copy a built-in one, edit and delete your own.
+ * evaluation kind (in the UI language) and the org's own templates, each question
+ * with the clauses it checks. With `suppliers:manage` you can create, copy a built-in
+ * one, edit and delete your own.
  */
 @Component({
   selector: 'app-questionnaires-list',
@@ -41,34 +47,36 @@ import { SuppliersNav } from '../shared/suppliers-nav';
     Badge,
     Button,
     Card,
+    ClauseChips,
     ConfirmDialog,
-    GuideIntro,
+    ErrorState,
+    HelpStrip,
     Icon,
-    SuppliersNav,
+    LoadingState,
+    ModuleNav,
+    PageHeader,
     WhyItMatters,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
-      <header class="mb-4 flex flex-wrap items-start justify-between gap-3">
-        <div class="min-w-0">
-          <h1 class="font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]">
-            {{ 'suppliers.questionnaires.title' | transloco }}
-          </h1>
-          <p class="mt-1 text-[14px] text-fg-muted">
-            {{ 'suppliers.questionnaires.subtitle' | transloco }}
-          </p>
-          <app-suppliers-nav />
-        </div>
+      <app-page-header
+        titleKey="suppliers.questionnaires.title"
+        descriptionKey="suppliers.questionnaires.subtitle"
+        [breadcrumbs]="[
+          { labelKey: 'modules.names.suppliers', link: '/suppliers' },
+          { labelKey: 'suppliers.questionnaires.title' },
+        ]"
+      >
         @if (canManage()) {
-          <app-button size="sm" (click)="create()">
+          <app-button primary (click)="create()">
             <app-icon name="plus" [size]="14" />
             {{ 'suppliers.questionnaires.new' | transloco }}
           </app-button>
         }
-      </header>
-
-      <div class="mb-4"><app-guide-intro scope="suppliers" page="questionnaires" /></div>
+      </app-page-header>
+      <app-module-nav labelKey="modules.names.suppliers" [items]="nav" />
+      <app-help-strip scope="suppliers" page="questionnaires" />
 
       <div
         class="mb-4 flex flex-wrap gap-1"
@@ -77,7 +85,7 @@ import { SuppliersNav } from '../shared/suppliers-nav';
       >
         <button
           type="button"
-          class="rounded-full px-3 py-1 text-[12.5px] font-semibold"
+          class="rounded-full px-3 py-1 text-meta font-semibold"
           [class]="!kind() ? 'bg-accent text-white' : 'bg-surface-2 text-fg-muted hover:text-fg'"
           [attr.aria-pressed]="!kind()"
           (click)="kind.set('')"
@@ -87,7 +95,7 @@ import { SuppliersNav } from '../shared/suppliers-nav';
         @for (k of kinds; track k) {
           <button
             type="button"
-            class="rounded-full px-3 py-1 text-[12.5px] font-semibold"
+            class="rounded-full px-3 py-1 text-meta font-semibold"
             [class]="
               kind() === k ? 'bg-accent text-white' : 'bg-surface-2 text-fg-muted hover:text-fg'
             "
@@ -101,12 +109,10 @@ import { SuppliersNav } from '../shared/suppliers-nav';
 
       @switch (state()) {
         @case ('loading') {
-          <p class="text-[14px] text-fg-muted">{{ 'suppliers.common.loading' | transloco }}</p>
+          <app-loading-state [rows]="4" />
         }
         @case ('error') {
-          <p class="text-[14px] text-fail" role="alert">
-            {{ 'suppliers.common.loadFailed' | transloco }}
-          </p>
+          <app-error-state (retry)="reload()" />
         }
         @default {
           <ul class="grid grid-cols-1 gap-3 md:grid-cols-2">
@@ -121,31 +127,39 @@ import { SuppliersNav } from '../shared/suppliers-nav';
                       <app-badge>{{ 'suppliers.questionnaires.builtin' | transloco }}</app-badge>
                     }
                   </div>
-                  <h2 class="font-display text-[15px] font-bold text-fg">{{ t.name }}</h2>
+                  <h2 class="font-display text-card font-bold text-fg">{{ t.name }}</h2>
                   @if (t.description) {
-                    <p class="mt-1 text-[13px] text-fg-muted">{{ t.description }}</p>
+                    <p class="mt-1 text-ui text-fg-muted">{{ t.description }}</p>
                   }
-                  <p class="mt-1 text-[12.5px] text-fg-subtle">
+                  <p class="mt-1 text-meta text-fg-subtle">
                     {{
                       'suppliers.questionnaires.meta'
                         | transloco: { count: t.questions.length, pass: t.pass_score }
                     }}
                   </p>
                   <details class="mt-2">
-                    <summary class="cursor-pointer text-[12.5px] font-semibold text-accent">
+                    <summary class="cursor-pointer text-meta font-semibold text-accent">
                       {{ 'suppliers.questionnaires.showQuestions' | transloco }}
                     </summary>
-                    <ol class="mt-2 list-decimal pl-5 text-[13px] text-fg">
+                    <ol class="mt-2 list-decimal pl-5 text-ui text-fg">
                       @for (q of t.questions; track q.id) {
-                        <li class="mb-1">
+                        <li class="mb-1.5">
                           {{ q.text }}
-                          <span class="text-[11.5px] text-fg-subtle">
+                          <span class="text-meta text-fg-subtle">
                             ({{ 'suppliers.questionType.' + q.type | transloco }}
                             @if (q.critical) {
                               , {{ 'suppliers.questions.critical' | transloco }}
                             }
                             )
                           </span>
+                          @if (q.requirement_refs?.length) {
+                            <span class="mt-0.5 flex flex-wrap items-baseline gap-x-1 text-meta">
+                              <span class="text-fg-subtle">{{
+                                'suppliers.questions.checks' | transloco
+                              }}</span>
+                              <app-clause-chips [clauses]="q.requirement_refs ?? []" />
+                            </span>
+                          }
                         </li>
                       }
                     </ol>
@@ -159,7 +173,7 @@ import { SuppliersNav } from '../shared/suppliers-nav';
                       } @else {
                         <a
                           [routerLink]="['/suppliers/questionnaires', t.id, 'edit']"
-                          class="inline-flex h-8 items-center rounded-tile border border-border px-3 text-[13px] font-semibold text-fg hover:bg-surface-2"
+                          class="inline-flex h-8 items-center rounded-tile border border-border px-3 text-ui font-semibold text-fg hover:bg-surface-2"
                         >
                           {{ 'suppliers.common.edit' | transloco }}
                         </a>
@@ -177,7 +191,7 @@ import { SuppliersNav } from '../shared/suppliers-nav';
         }
       }
 
-      <div class="mt-6"><app-why-it-matters scope="suppliers" page="questionnaires" /></div>
+      <div class="mt-8"><app-why-it-matters scope="suppliers" page="questionnaires" /></div>
     </div>
 
     <app-confirm-dialog
@@ -202,6 +216,7 @@ export class QuestionnairesList {
   private readonly router = inject(Router);
 
   protected readonly kinds = EVALUATION_KINDS;
+  protected readonly nav = suppliersNav();
   protected readonly kind = signal<EvaluationKind | ''>('');
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
   protected readonly items = signal<readonly Questionnaire[]>([]);
@@ -259,6 +274,10 @@ export class QuestionnairesList {
         this.notifications.error(supplierErrorKey(err));
       },
     });
+  }
+
+  protected reload(): void {
+    this.load(this.selectedOrg.currentOrgId(), questionnaireLang(this.language.active()));
   }
 
   private load(orgId: string | null, lang: 'en' | 'nb'): void {

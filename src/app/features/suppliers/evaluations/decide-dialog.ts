@@ -11,11 +11,11 @@ import {
 import { TranslocoPipe } from '@jsverse/transloco';
 import { FieldHelp } from '../../../shared/guidance/field-help';
 import { Alert } from '../../../shared/ui/alert/alert';
-import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
 import { FormField } from '../../../shared/ui/form-field/form-field';
 import { SlideOver } from '../../../shared/ui/slide-over/slide-over';
-import { blankToNull, dayToWire, decisionTone } from '../data/supplier-display';
+import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
+import { blankToNull, dayToWire, decisionBadge } from '../data/supplier-display';
 import {
   APPROVAL_KINDS,
   DECISIONS,
@@ -43,7 +43,7 @@ export function decisionValid(decision: Decision | '', conditions: string): bool
  */
 @Component({
   selector: 'app-evaluation-decide-dialog',
-  imports: [TranslocoPipe, Alert, Badge, Button, FieldHelp, FormField, SlideOver],
+  imports: [TranslocoPipe, Alert, Button, FieldHelp, FormField, SlideOver, StatusBadge],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-slide-over
@@ -54,21 +54,24 @@ export function decisionValid(decision: Decision | '', conditions: string): bool
     >
       <form class="flex flex-col gap-4" (submit)="$event.preventDefault(); confirm()">
         @if (recommendation(); as rec) {
-          <p class="flex flex-wrap items-center gap-2 text-[13px] text-fg-muted">
+          <p class="flex flex-wrap items-center gap-2 text-ui text-fg-muted">
             {{ 'suppliers.decide.recommendation' | transloco }}
-            <app-badge [tone]="tone(rec)">{{
-              'suppliers.recommendation.' + rec | transloco
-            }}</app-badge>
+            @let rb = badge(rec);
+            <app-status-badge
+              [meaning]="rb.meaning"
+              [value]="rb.value"
+              [labelKey]="'suppliers.recommendation.' + rec"
+            />
           </p>
         }
-        <p class="text-[12.5px] text-fg-subtle">{{ 'suppliers.decide.advisory' | transloco }}</p>
+        <p class="text-meta text-fg-subtle">{{ 'suppliers.decide.advisory' | transloco }}</p>
         <fieldset class="flex flex-col gap-2">
-          <legend class="mb-1 flex items-center gap-1 text-[13px] font-semibold text-fg-muted">
+          <legend class="mb-1 flex items-center gap-1 text-ui font-semibold text-fg-muted">
             {{ 'suppliers.decide.decision' | transloco }}
             <app-field-help scope="suppliers" page="evaluation" field="decision" />
           </legend>
           @for (d of decisions; track d) {
-            <label class="inline-flex items-center gap-2 text-[13.5px] text-fg">
+            <label class="inline-flex items-center gap-2 text-body text-fg">
               <input
                 type="radio"
                 name="ev-decision"
@@ -100,7 +103,7 @@ export function decisionValid(decision: Decision | '', conditions: string): bool
                 (input)="conditions.set($any($event.target).value)"
               ></textarea>
             </app-form-field>
-            <p id="ev-cond-hint" class="mt-1 text-[12px] text-fg-subtle">
+            <p id="ev-cond-hint" class="mt-1 text-meta text-fg-subtle">
               {{ 'suppliers.decide.conditionsHint' | transloco }}
             </p>
           </div>
@@ -128,7 +131,7 @@ export function decisionValid(decision: Decision | '', conditions: string): bool
                 (input)="nextDay.set($any($event.target).value)"
               />
             </app-form-field>
-            <p id="ev-next-hint" class="mt-1 text-[12px] text-fg-subtle">
+            <p id="ev-next-hint" class="mt-1 text-meta text-fg-subtle">
               {{ 'suppliers.decide.nextEvaluationHint' | transloco }}
             </p>
           </div>
@@ -158,7 +161,7 @@ export class EvaluationDecideDialog {
   readonly cancelled = output<void>();
 
   protected readonly decisions = DECISIONS;
-  protected readonly tone = decisionTone;
+  protected readonly badge = decisionBadge;
   protected readonly decision = signal<Decision | ''>('');
   protected readonly notes = signal('');
   protected readonly conditions = signal('');

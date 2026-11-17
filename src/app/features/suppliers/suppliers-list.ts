@@ -8,31 +8,41 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../core/ai/page-context';
 import { LanguageService } from '../../core/i18n/language.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { AskPanelService } from '../ask/ask-panel.service';
-import { GuideIntro } from '../../shared/guidance/guide-intro';
-import { LessonView } from '../../shared/guidance/lesson';
 import { TeachingEmpty } from '../../shared/guidance/teaching-empty';
-import { TourButton } from '../../shared/guidance/tour-button';
 import { TourStepDirective } from '../../shared/guidance/tour-step.directive';
 import { WhyItMatters } from '../../shared/guidance/why-it-matters';
 import { RecordListPage } from '../../shared/kit/record-list-page';
 import { SavedView } from '../../shared/kit/saved-views.service';
-import { CountryNamePipe } from '../../shared/locale/countries';
-import { LocalDayPipe, LocalNumberPipe } from '../../shared/locale/locale-pipes';
-import { Badge } from '../../shared/ui/badge/badge';
+import { locationName } from '../../shared/locale/countries';
+import { CoverageChip } from '../../shared/requirement-links/coverage-chip';
 import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
+import { EmptyState } from '../../shared/ui/empty-state/empty-state';
+import { ErrorState } from '../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../shared/ui/icon/icon';
-import { KpiTile } from '../../shared/ui/kpi-tile/kpi-tile';
+import { KpiTile, KpiTone } from '../../shared/ui/kpi-tile/kpi-tile';
+import { LoadingState } from '../../shared/ui/loading-state/loading-state';
+import { ModuleNav } from '../../shared/ui/module-nav/module-nav';
 import { Pager } from '../../shared/ui/pager/pager';
-import { criticalityTone, statusTone } from './data/supplier-display';
+import { RecordRow, RecordRowHeader } from '../../shared/ui/record-row/record-row';
+import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
 import {
+  ATTENTION_BADGE,
+  criticalityBadge,
+  scoreParams,
+  supplierStatusBadge,
+} from './data/supplier-display';
+import {
+  ATTENTION_CODES,
+  AttentionCode,
   CRITICALITIES,
   Criticality,
   EVALUATION_DUE_FILTERS,
@@ -50,13 +60,17 @@ import {
   SupplierSummary,
 } from './data/supplier.models';
 import { SuppliersApi } from './data/suppliers-api';
-import { SuppliersNav } from './shared/suppliers-nav';
+import { suppliersNav } from './shared/suppliers-nav';
 
 const PAGE_SIZE = 25;
 
-/** The list filters kept in a saved view (all strings; '' = any). */
+/** "Trenger oppfølging": '' = any supplier, 'any' = at least one flag, else one flag. */
+export type AttentionFilter = AttentionCode | 'any' | '';
+
+/** The list filters kept in a saved view and the URL (all strings; '' = any). */
 export interface SupplierFilters {
   readonly status: SupplierStatus | '';
+  readonly attention: AttentionFilter;
   readonly criticality: Criticality | '';
   readonly category: SupplierCategory | '';
   readonly due: EvaluationDueFilter | '';
@@ -67,6 +81,7 @@ export interface SupplierFilters {
 
 export const DEFAULT_FILTERS: SupplierFilters = {
   status: '',
+  attention: '',
   criticality: '',
   category: '',
   due: '',
@@ -75,13 +90,21 @@ export const DEFAULT_FILTERS: SupplierFilters = {
   sort: 'name',
 };
 
-/** Restore filters from a saved view, ignoring unknown values. */
+/** The filters under "Flere filtre" (search, status, follow-up and criticality stay visible). */
+const MORE_FILTERS: readonly (keyof SupplierFilters)[] = ['category', 'due', 'flag', 'owner'];
+
+/** Restore filters from a saved view or the URL, ignoring unknown values. */
 export function filtersFromView(values: Readonly<Record<string, string>>): SupplierFilters {
   const pick = <T extends string>(value: string | undefined, allowed: readonly T[]): T | '' =>
     value && (allowed as readonly string[]).includes(value) ? (value as T) : '';
   const sort = pick(values['sort'], SUPPLIER_SORTS);
+  const attention: AttentionFilter =
+    values['attention'] === 'any' || values['attention'] === '1' || values['attention'] === 'true'
+      ? 'any'
+      : pick(values['attention'] || values['attention_code'], ATTENTION_CODES);
   return {
     status: pick(values['status'], SUPPLIER_STATUSES),
+    attention,
     criticality: pick(values['criticality'], CRITICALITIES),
     category: pick(values['category'], SUPPLIER_CATEGORIES),
     due: pick(values['due'], EVALUATION_DUE_FILTERS),
@@ -89,6 +112,11 @@ export function filtersFromView(values: Readonly<Record<string, string>>): Suppl
     owner: values['owner'] === 'me' ? 'me' : '',
     sort: sort || 'name',
   };
+}
+
+/** How many of the "Flere filtre" filters are set (shown on the button). */
+export function moreFiltersCount(f: SupplierFilters): number {
+  return MORE_FILTERS.filter((key) => !!f[key]).length;
 }
 
 /** The API query for a search text, filters and page offset. */
@@ -101,114 +129,174 @@ export function toQuery(q: string, f: SupplierFilters, offset: number): Supplier
     evaluation_due: f.due || undefined,
     owner: f.owner || undefined,
     ...(f.flag ? { [f.flag]: true } : {}),
+    ...(f.attention === 'any' ? { attention: true } : {}),
+    ...(f.attention && f.attention !== 'any' ? { attention_code: [f.attention] } : {}),
     sort: f.sort,
     limit: PAGE_SIZE,
     offset,
   };
 }
 
+/** A headline figure that is also a filter: clicking it shows those suppliers. */
+interface Kpi {
+  readonly key: string;
+  readonly labelKey: string;
+  readonly value: number;
+  readonly tone: KpiTone;
+  readonly delta: string;
+  readonly filter: Partial<SupplierFilters>;
+}
+
 /**
- * The supplier register (`/suppliers`): headline figures, search, filters on
- * status, criticality, category, re-evaluation due date, risk flags and owner, saved
- * views, sorting and paging. Each row shows the approval status, criticality and the
- * next re-evaluation date (red when overdue).
+ * The supplier register (`/suppliers`). Headline figures that double as filters
+ * ("Trenger oppfølging", approved, approved with conditions, re-evaluation overdue /
+ * due soon, personal data); search, status, follow-up and criticality filters with the
+ * rest under "Flere filtre"; saved views; one row per supplier with its status,
+ * criticality, follow-up flags, requirement coverage, owner and next re-evaluation.
+ * `?attention=1`, `?attention_code=<code>`, `?status=…` (links from the home page and
+ * the assistant) set the filters.
  */
 @Component({
   selector: 'app-suppliers-list',
   imports: [
-    RouterLink,
     TranslocoPipe,
-    CountryNamePipe,
-    LocalDayPipe,
-    LocalNumberPipe,
-    Badge,
     Button,
     Card,
-    GuideIntro,
+    CoverageChip,
+    EmptyState,
+    ErrorState,
+    HelpStrip,
     Icon,
     KpiTile,
-    LessonView,
+    LoadingState,
+    ModuleNav,
     Pager,
     RecordListPage,
-    SuppliersNav,
+    RecordRow,
+    RecordRowHeader,
+    StatusBadge,
     TeachingEmpty,
-    TourButton,
     TourStepDirective,
     WhyItMatters,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-record-list-page
-      titleKey="suppliers.list.title"
+      titleKey="modules.names.suppliers"
+      descriptionKey="suppliers.list.subtitle"
       scope="suppliers"
+      settingsLink="/suppliers/questionnaires"
       searchPlaceholderKey="suppliers.list.searchPlaceholder"
       [query]="q()"
       [filters]="viewFilters()"
+      [moreFiltersActive]="moreActive()"
       [empty]="showEmpty()"
       (search)="search($event)"
       (viewApplied)="applyView($event)"
     >
-      <div intro>
-        <p class="mt-1 text-[14px] text-fg-muted">{{ 'suppliers.list.subtitle' | transloco }}</p>
-        <app-suppliers-nav />
-      </div>
-
-      <ng-container toolbar>
-        <app-tour-button scope="suppliers" tour="list" />
-        <app-button variant="ghost" size="sm" (click)="askOverview()">
-          <app-icon name="spark" [size]="14" />
-          {{ 'suppliers.ai.overview' | transloco }}
+      @if (canWrite()) {
+        <app-button primary appTourStep="suppliers-new" (click)="create()">
+          <app-icon name="plus" [size]="14" />
+          {{ 'suppliers.list.new' | transloco }}
         </app-button>
-        @if (canWrite()) {
-          <app-button size="sm" appTourStep="suppliers-new" (click)="create()">
-            <app-icon name="plus" [size]="14" />
-            {{ 'suppliers.list.new' | transloco }}
-          </app-button>
+      }
+      <app-button secondary variant="ghost" (click)="askOverview()">
+        <app-icon name="spark" [size]="14" />
+        {{ 'suppliers.ai.overview' | transloco }}
+      </app-button>
+
+      <div nav appTourStep="suppliers-sections">
+        <app-module-nav labelKey="modules.names.suppliers" [items]="nav()" />
+      </div>
+      <app-help-strip help scope="suppliers" page="list" tour="list" lesson="supplier-control" />
+
+      <ng-container ngProjectAs="[kpis]">
+        @for (k of kpis(); track k.key) {
+          <button
+            type="button"
+            class="block h-full w-full rounded-card text-left focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none [&_app-kpi-tile]:block [&_app-kpi-tile]:h-full [&_app-kpi-tile>div]:h-full"
+            [class.max-sm:hidden]="k.key === 'conditional' || k.key === 'dueSoon'"
+            [class.ring-2]="kpiActive(k)"
+            [class.ring-accent]="kpiActive(k)"
+            [attr.aria-pressed]="kpiActive(k)"
+            [attr.data-testid]="'kpi-' + k.key"
+            [appTourStep]="k.key === 'attention' ? 'suppliers-summary' : 'suppliers-kpi-' + k.key"
+            (click)="applyKpi(k)"
+          >
+            <app-kpi-tile
+              [label]="k.labelKey | transloco"
+              [value]="k.value"
+              [tone]="k.tone"
+              [delta]="k.delta"
+            />
+          </button>
         }
       </ng-container>
 
       <ng-container filters>
-        <div class="flex flex-wrap items-center gap-2" appTourStep="suppliers-filters">
-          <label class="sr-only" for="sup-f-status">{{
-            'suppliers.fields.status' | transloco
-          }}</label>
-          <select
-            id="sup-f-status"
-            class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
-            (change)="setFilter('status', $any($event.target).value)"
-          >
-            <option value="" [selected]="!filters().status">
-              {{ 'suppliers.filters.anyStatus' | transloco }}
+        <label class="sr-only" for="sup-f-status">{{
+          'suppliers.fields.status' | transloco
+        }}</label>
+        <select
+          id="sup-f-status"
+          class="h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
+          appTourStep="suppliers-filters"
+          (change)="setFilter('status', $any($event.target).value)"
+        >
+          <option value="" [selected]="!filters().status">
+            {{ 'suppliers.filters.anyStatus' | transloco }}
+          </option>
+          @for (s of statuses; track s) {
+            <option [value]="s" [selected]="filters().status === s">
+              {{ 'suppliers.status.' + s | transloco }}
             </option>
-            @for (s of statuses; track s) {
-              <option [value]="s" [selected]="filters().status === s">
-                {{ 'suppliers.status.' + s | transloco }}
-              </option>
-            }
-          </select>
-          <label class="sr-only" for="sup-f-crit">
-            {{ 'suppliers.fields.criticality' | transloco }}
-          </label>
-          <select
-            id="sup-f-crit"
-            class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
-            (change)="setFilter('criticality', $any($event.target).value)"
-          >
-            <option value="" [selected]="!filters().criticality">
-              {{ 'suppliers.filters.anyCriticality' | transloco }}
+          }
+        </select>
+        <label class="sr-only" for="sup-f-attention">
+          {{ 'suppliers.filters.attention' | transloco }}
+        </label>
+        <select
+          id="sup-f-attention"
+          class="h-10 max-w-[220px] rounded-tile border border-border bg-bg px-2 text-ui text-fg"
+          (change)="setFilter('attention', $any($event.target).value)"
+          data-testid="filter-attention"
+        >
+          <option value="" [selected]="!filters().attention">
+            {{ 'suppliers.filters.anyAttention' | transloco }}
+          </option>
+          <option value="any" [selected]="filters().attention === 'any'">
+            {{ 'suppliers.filters.needsAttention' | transloco }}
+          </option>
+          @for (c of attentionCodes; track c) {
+            <option [value]="c" [selected]="filters().attention === c">
+              {{ 'suppliers.attention.' + c | transloco }}
             </option>
-            @for (c of criticalities; track c) {
-              <option [value]="c" [selected]="filters().criticality === c">
-                {{ 'suppliers.criticality.' + c | transloco }}
-              </option>
-            }
-          </select>
-          <label class="sr-only" for="sup-f-cat">{{
-            'suppliers.fields.category' | transloco
-          }}</label>
+          }
+        </select>
+        <label class="sr-only" for="sup-f-crit">
+          {{ 'suppliers.fields.criticality' | transloco }}
+        </label>
+        <select
+          id="sup-f-crit"
+          class="h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
+          (change)="setFilter('criticality', $any($event.target).value)"
+        >
+          <option value="" [selected]="!filters().criticality">
+            {{ 'suppliers.filters.anyCriticality' | transloco }}
+          </option>
+          @for (c of criticalities; track c) {
+            <option [value]="c" [selected]="filters().criticality === c">
+              {{ 'suppliers.criticality.' + c | transloco }}
+            </option>
+          }
+        </select>
+      </ng-container>
+
+      <div more-filters class="flex flex-col gap-3">
+        <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted">
+          {{ 'suppliers.fields.category' | transloco }}
           <select
-            id="sup-f-cat"
-            class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
+            class="h-10 rounded-tile border border-border bg-bg px-2 text-ui font-normal text-fg"
             (change)="setFilter('category', $any($event.target).value)"
           >
             <option value="" [selected]="!filters().category">
@@ -220,12 +308,11 @@ export function toQuery(q: string, f: SupplierFilters, offset: number): Supplier
               </option>
             }
           </select>
-          <label class="sr-only" for="sup-f-due">
-            {{ 'suppliers.filters.evaluationDue' | transloco }}
-          </label>
+        </label>
+        <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted">
+          {{ 'suppliers.filters.evaluationDue' | transloco }}
           <select
-            id="sup-f-due"
-            class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
+            class="h-10 rounded-tile border border-border bg-bg px-2 text-ui font-normal text-fg"
             (change)="setFilter('due', $any($event.target).value)"
           >
             <option value="" [selected]="!filters().due">
@@ -237,10 +324,11 @@ export function toQuery(q: string, f: SupplierFilters, offset: number): Supplier
               </option>
             }
           </select>
-          <label class="sr-only" for="sup-f-flag">{{ 'suppliers.filters.flag' | transloco }}</label>
+        </label>
+        <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted">
+          {{ 'suppliers.filters.flag' | transloco }}
           <select
-            id="sup-f-flag"
-            class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
+            class="h-10 rounded-tile border border-border bg-bg px-2 text-ui font-normal text-fg"
             (change)="setFilter('flag', $any($event.target).value)"
           >
             <option value="" [selected]="!filters().flag">
@@ -252,12 +340,11 @@ export function toQuery(q: string, f: SupplierFilters, offset: number): Supplier
               </option>
             }
           </select>
-          <label class="sr-only" for="sup-f-owner">{{
-            'suppliers.fields.owner' | transloco
-          }}</label>
+        </label>
+        <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted">
+          {{ 'suppliers.fields.owner' | transloco }}
           <select
-            id="sup-f-owner"
-            class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
+            class="h-10 rounded-tile border border-border bg-bg px-2 text-ui font-normal text-fg"
             (change)="setFilter('owner', $any($event.target).value)"
           >
             <option value="" [selected]="!filters().owner">
@@ -267,10 +354,11 @@ export function toQuery(q: string, f: SupplierFilters, offset: number): Supplier
               {{ 'suppliers.filters.ownedByMe' | transloco }}
             </option>
           </select>
-          <label class="sr-only" for="sup-f-sort">{{ 'suppliers.filters.sort' | transloco }}</label>
+        </label>
+        <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted">
+          {{ 'suppliers.filters.sort' | transloco }}
           <select
-            id="sup-f-sort"
-            class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
+            class="h-10 rounded-tile border border-border bg-bg px-2 text-ui font-normal text-fg"
             (change)="setFilter('sort', $any($event.target).value)"
           >
             @for (s of sorts; track s) {
@@ -279,153 +367,100 @@ export function toQuery(q: string, f: SupplierFilters, offset: number): Supplier
               </option>
             }
           </select>
-        </div>
-      </ng-container>
-
-      <div class="mb-4 flex flex-col gap-3">
-        <app-guide-intro scope="suppliers" page="list" />
-        <div><app-lesson scope="suppliers" lesson="supplier-control" /></div>
+        </label>
       </div>
-
-      @if (summary(); as s) {
-        <div
-          class="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6"
-          appTourStep="suppliers-summary"
-        >
-          <app-kpi-tile [label]="'suppliers.summary.total' | transloco" [value]="s.total" />
-          <app-kpi-tile
-            [label]="'suppliers.summary.approved' | transloco"
-            [value]="(s.by_status['approved'] ?? 0) + (s.by_status['conditional'] ?? 0)"
-            tone="pass"
-          />
-          <app-kpi-tile
-            [label]="'suppliers.summary.overdue' | transloco"
-            [value]="s.evaluations_overdue"
-            [tone]="s.evaluations_overdue ? 'fail' : 'neutral'"
-          />
-          <app-kpi-tile
-            [label]="'suppliers.summary.dueSoon' | transloco"
-            [value]="s.evaluations_due_soon"
-            [tone]="s.evaluations_due_soon ? 'warn' : 'neutral'"
-          />
-          <app-kpi-tile
-            [label]="'suppliers.summary.openEvaluations' | transloco"
-            [value]="s.open_evaluations"
-            tone="info"
-          />
-          <app-kpi-tile
-            [label]="'suppliers.summary.processors' | transloco"
-            [value]="s.processors"
-            [delta]="'suppliers.summary.aiSuppliers' | transloco: { count: s.ai_suppliers }"
-          />
-        </div>
-      }
 
       <app-card [padded]="false">
         @switch (state()) {
           @case ('loading') {
-            <p class="py-10 text-center text-[14px] text-fg-muted">
-              {{ 'suppliers.common.loading' | transloco }}
-            </p>
+            <app-loading-state [rows]="5" />
           }
           @case ('error') {
-            <p class="py-10 text-center text-[14px] text-fail" role="alert">
-              {{ 'suppliers.common.loadFailed' | transloco }}
-            </p>
+            <app-error-state (retry)="reload()" />
           }
           @default {
             @if (rows().length === 0) {
-              <p class="py-10 text-center text-[14px] text-fg-muted">
-                {{ 'suppliers.filters.noMatch' | transloco }}
-              </p>
+              <app-empty-state
+                icon="search"
+                titleKey="ui.empty.noResults"
+                bodyKey="ui.empty.noResultsBody"
+                ctaKey="ui.empty.clearFilters"
+                ctaVariant="secondary"
+                (cta)="clearFilters()"
+              />
             } @else {
-              <ul class="divide-y divide-border" data-testid="supplier-rows">
+              <div role="list" data-testid="supplier-rows">
+                <app-record-row-header dateKind="next" />
                 @for (row of rows(); track row.id) {
-                  <li class="flex flex-col gap-1.5 px-4 py-3 md:flex-row md:items-center md:gap-3">
-                    <div class="min-w-0 flex-1">
-                      <a
-                        [routerLink]="['/suppliers', row.id]"
-                        class="flex items-baseline gap-2 text-[13.5px] font-semibold text-fg hover:underline"
-                      >
-                        <span class="font-mono text-[12px] text-fg-muted">{{ row.code }}</span>
-                        <span class="truncate">{{ row.name }}</span>
-                      </a>
+                  <app-record-row
+                    [code]="row.code"
+                    [title]="row.name"
+                    [subtitle]="subtitle(row)"
+                    [link]="['/suppliers', row.id]"
+                    [owner]="row.owner?.name"
+                    [date]="row.next_evaluation_at"
+                    dateKind="next"
+                    [overdue]="row.evaluation_overdue"
+                  >
+                    @let st = statusBadge(row.status);
+                    <app-status-badge
+                      badges
+                      [meaning]="st.meaning"
+                      [value]="st.value"
+                      [labelKey]="'suppliers.status.' + row.status"
+                    />
+                    @let cr = critBadge(row.criticality);
+                    <app-status-badge
+                      badges
+                      [meaning]="cr.meaning"
+                      [value]="cr.value"
+                      [labelKey]="'suppliers.criticality.' + row.criticality"
+                    />
+                    @if (row.attention?.length) {
                       <span
-                        class="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[12px] text-fg-subtle"
+                        badges
+                        class="inline-flex"
+                        [title]="attentionTitle(row)"
+                        data-testid="row-attention"
                       >
-                        <span>{{ 'suppliers.category.' + row.category | transloco }}</span>
-                        @if (row.country) {
-                          <span>{{ row.country | countryName }}</span>
-                        }
-                        @if (row.owner?.name; as owner) {
-                          <span>{{ 'suppliers.list.ownedBy' | transloco: { name: owner } }}</span>
-                        }
-                        @for (flag of flagsOf(row); track flag) {
-                          <span
-                            class="rounded-full bg-surface-2 px-2 py-0.5 text-[11px] text-fg-muted"
-                          >
-                            {{ 'suppliers.flagsShort.' + flag | transloco }}
-                          </span>
-                        }
+                        <app-status-badge
+                          [meaning]="attentionBadge.meaning"
+                          [value]="attentionBadge.value"
+                          [labelKey]="
+                            row.attention!.length > 1
+                              ? 'suppliers.list.attentionMore'
+                              : 'suppliers.attention.' + row.attention![0]
+                          "
+                          [labelParams]="{
+                            first: attentionLabel(row.attention![0]),
+                            count: row.attention!.length - 1,
+                          }"
+                        />
                       </span>
-                    </div>
-                    <span class="flex flex-wrap items-center gap-2 text-[12.5px] text-fg-muted">
-                      <app-badge [tone]="critTone(row.criticality)">
-                        {{ 'suppliers.criticality.' + row.criticality | transloco }}
-                      </app-badge>
-                      <app-badge [tone]="supplierTone(row.status)">
-                        {{ 'suppliers.status.' + row.status | transloco }}
-                      </app-badge>
-                      @if (row.last_score !== null) {
-                        <span class="w-[64px] text-right">
-                          {{
-                            'suppliers.list.score'
-                              | transloco: { score: (row.last_score | localNumber: '1.0-1') }
-                          }}
-                        </span>
-                      }
-                      <span
-                        class="inline-flex w-[130px] items-center justify-end gap-1"
-                        [class.text-fail]="row.evaluation_overdue"
-                        [class.font-semibold]="row.evaluation_overdue"
-                      >
-                        @if (row.evaluation_overdue) {
-                          <app-icon name="alert" [size]="13" />
-                          <span class="sr-only">{{ 'suppliers.common.overdue' | transloco }}</span>
-                        }
-                        @if (row.next_evaluation_at) {
-                          {{
-                            'suppliers.list.nextEvaluation'
-                              | transloco: { date: (row.next_evaluation_at | localDay) }
-                          }}
-                        } @else {
-                          {{ 'suppliers.list.noEvaluationDate' | transloco }}
-                        }
-                      </span>
-                    </span>
-                  </li>
+                    }
+                    <app-coverage-chip coverage entityType="supplier" [entityId]="row.id" />
+                  </app-record-row>
                 }
-              </ul>
-              <div class="border-t border-border px-4 py-2.5">
-                <app-pager
-                  [offset]="offset()"
-                  [pageSize]="pageSize"
-                  [count]="rows().length"
-                  [total]="total()"
-                  (pageChange)="offset.set($event)"
-                />
               </div>
+              @if (total() > pageSize) {
+                <div class="border-t border-border px-4 py-2.5">
+                  <app-pager
+                    [offset]="offset()"
+                    [pageSize]="pageSize"
+                    [count]="rows().length"
+                    [total]="total()"
+                    (pageChange)="offset.set($event)"
+                  />
+                </div>
+              }
             }
           }
         }
       </app-card>
 
-      <div class="mt-6">
-        <app-why-it-matters scope="suppliers" page="list" />
-      </div>
+      <app-why-it-matters below scope="suppliers" page="list" />
 
       <div empty class="flex flex-col gap-4">
-        <app-guide-intro scope="suppliers" page="list" />
         <app-teaching-empty
           scope="suppliers"
           page="list"
@@ -443,6 +478,7 @@ export class SuppliersList {
   private readonly language = inject(LanguageService);
   private readonly ask = inject(AskPanelService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   protected readonly statuses = SUPPLIER_STATUSES;
   protected readonly criticalities = CRITICALITIES;
@@ -450,15 +486,19 @@ export class SuppliersList {
   protected readonly dueFilters = EVALUATION_DUE_FILTERS;
   protected readonly flags = SUPPLIER_FLAGS;
   protected readonly sorts = SUPPLIER_SORTS;
+  protected readonly attentionCodes = ATTENTION_CODES;
   protected readonly pageSize = PAGE_SIZE;
-  protected readonly critTone = criticalityTone;
-  protected readonly supplierTone = statusTone;
+  protected readonly statusBadge = supplierStatusBadge;
+  protected readonly critBadge = criticalityBadge;
+  protected readonly attentionBadge = ATTENTION_BADGE;
 
   private readonly permissions = computed(() => this.selectedOrg.currentOrg()?.permissions ?? []);
   protected readonly canWrite = computed(() => this.permissions().includes('suppliers:write'));
 
-  protected readonly q = signal('');
-  protected readonly filters = signal<SupplierFilters>(DEFAULT_FILTERS);
+  protected readonly q = signal(this.route.snapshot.queryParamMap.get('q') ?? '');
+  protected readonly filters = signal<SupplierFilters>(
+    filtersFromView(this.route.snapshot.queryParams as Record<string, string>),
+  );
   protected readonly offset = signal(0);
 
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
@@ -466,6 +506,8 @@ export class SuppliersList {
   protected readonly total = signal(0);
   protected readonly summary = signal<SupplierSummary | null>(null);
 
+  protected readonly nav = computed(() => suppliersNav(this.summary()?.open_evaluations));
+  protected readonly moreActive = computed(() => moreFiltersCount(this.filters()));
   protected readonly viewFilters = computed(
     () => ({ ...this.filters() }) as Record<string, string>,
   );
@@ -477,6 +519,67 @@ export class SuppliersList {
   protected readonly showEmpty = computed(
     () => this.state() === 'ready' && this.total() === 0 && !this.isFiltered(),
   );
+
+  protected readonly kpis = computed<readonly Kpi[]>(() => {
+    const s = this.summary();
+    if (!s) {
+      return [];
+    }
+    const attention = s.needs_attention ?? 0;
+    const noDpa = s.attention_by_code?.dpa_missing ?? 0;
+    const t = (key: string, params?: Record<string, unknown>) =>
+      this.language.translate(key, params);
+    return [
+      {
+        key: 'attention',
+        labelKey: 'suppliers.summary.needsAttention',
+        value: attention,
+        tone: attention ? 'warn' : 'pass',
+        delta: '',
+        filter: { attention: 'any' },
+      },
+      {
+        key: 'approved',
+        labelKey: 'suppliers.summary.approved',
+        value: s.approved ?? s.by_status['approved'] ?? 0,
+        tone: 'pass',
+        delta: '',
+        filter: { status: 'approved' },
+      },
+      {
+        key: 'conditional',
+        labelKey: 'suppliers.summary.conditional',
+        value: s.conditional ?? s.by_status['conditional'] ?? 0,
+        tone: 'warn',
+        delta: '',
+        filter: { status: 'conditional' },
+      },
+      {
+        key: 'overdue',
+        labelKey: 'suppliers.summary.overdue',
+        value: s.evaluations_overdue,
+        tone: s.evaluations_overdue ? 'warn' : 'neutral',
+        delta: '',
+        filter: { due: 'overdue' },
+      },
+      {
+        key: 'dueSoon',
+        labelKey: 'suppliers.summary.dueSoon',
+        value: s.evaluations_due_soon,
+        tone: s.evaluations_due_soon ? 'info' : 'neutral',
+        delta: '',
+        filter: { due: 'due_soon' },
+      },
+      {
+        key: 'personalData',
+        labelKey: 'suppliers.summary.processors',
+        value: s.processors,
+        tone: noDpa ? 'fail' : 'neutral',
+        delta: noDpa ? t('suppliers.summary.withoutDpa', { count: noDpa }) : '',
+        filter: { flag: 'processes_personal_data' },
+      },
+    ];
+  });
 
   private request = new Subscription();
   private summaryRequest = new Subscription();
@@ -490,7 +593,7 @@ export class SuppliersList {
       module: 'suppliers',
       entityType: 'supplier',
       view: 'list',
-      title: this.language.translate('suppliers.list.title'),
+      title: this.language.translate('modules.names.suppliers'),
     }));
 
     effect(() => {
@@ -519,8 +622,53 @@ export class SuppliersList {
     this.filters.set(filtersFromView(view.filters));
   }
 
-  protected flagsOf(row: SupplierListItem): readonly SupplierFlag[] {
-    return SUPPLIER_FLAGS.filter((f) => row[f]);
+  protected clearFilters(): void {
+    this.offset.set(0);
+    this.filters.set({ ...DEFAULT_FILTERS, sort: this.filters().sort });
+  }
+
+  /** A tile's filter is active when every value it sets is the current one. */
+  protected kpiActive(k: Kpi): boolean {
+    const f = this.filters();
+    return Object.entries(k.filter).every(
+      ([key, value]) => f[key as keyof SupplierFilters] === value,
+    );
+  }
+
+  /** Clicking a tile shows those suppliers (on top of the search); clicking it again clears it. */
+  protected applyKpi(k: Kpi): void {
+    this.offset.set(0);
+    const active = this.kpiActive(k);
+    const base: SupplierFilters = { ...DEFAULT_FILTERS, sort: this.filters().sort };
+    this.filters.set(active ? base : { ...base, ...k.filter });
+  }
+
+  /** Category · country · what the supplier does for us · last score ("90,8 / 100"). */
+  protected subtitle(row: SupplierListItem): string {
+    const t = (key: string, params?: Record<string, unknown>) =>
+      this.language.translate(key, params);
+    const parts = [t(`suppliers.category.${row.category}`)];
+    if (row.country) {
+      parts.push(locationName(row.country, this.language));
+    }
+    const score = scoreParams(row.last_score, null, this.language.locale());
+    if (score) {
+      parts.push(t('suppliers.list.lastScore', { score: score.score }));
+    }
+    for (const flag of SUPPLIER_FLAGS) {
+      if (row[flag]) {
+        parts.push(t(`suppliers.flagsShort.${flag}`));
+      }
+    }
+    return parts.join(' · ');
+  }
+
+  protected attentionLabel(code: AttentionCode): string {
+    return this.language.translate(`suppliers.attention.${code}`);
+  }
+
+  protected attentionTitle(row: SupplierListItem): string {
+    return (row.attention ?? []).map((c) => this.attentionLabel(c)).join(', ');
   }
 
   protected create(): void {
@@ -529,6 +677,11 @@ export class SuppliersList {
 
   protected askOverview(): void {
     this.ask.showWith(this.language.translate('suppliers.ai.prompts.overview'));
+  }
+
+  protected reload(): void {
+    this.load(this.selectedOrg.currentOrgId(), toQuery(this.q(), this.filters(), this.offset()));
+    this.loadSummary(this.selectedOrg.currentOrgId());
   }
 
   private load(orgId: string | null, query: SupplierListQuery): void {

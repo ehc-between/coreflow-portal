@@ -104,8 +104,8 @@ describe('SuppliersList', () => {
 
   it('lists suppliers with status, criticality, flags and an overdue re-evaluation', async () => {
     const { fixture, http, root } = setup();
-    await flushList(fixture, http, [row()]);
-    const rows = root.querySelectorAll('[data-testid="supplier-rows"] li');
+    await flushList(fixture, http, [row({ attention: ['dpa_missing', 'evaluation_overdue'] })]);
+    const rows = root.querySelectorAll('[data-testid="supplier-rows"] app-record-row');
     expect(rows.length).toBe(1);
     const text = rows[0].textContent ?? '';
     expect(text).toContain('SUP-0001');
@@ -113,8 +113,42 @@ describe('SuppliersList', () => {
     expect(text).toContain('Approved');
     expect(text).toContain('Critical');
     expect(text).toContain('Personal data');
+    expect(text).toContain('Last score 82.5 / 100');
     expect(text).toContain('Overdue');
-    expect(root.textContent).toContain('Re-evaluations overdue');
+    expect(rows[0].querySelector('[data-testid="row-attention"]')?.textContent).toContain(
+      'No data processing agreement +1',
+    );
+    expect(root.textContent).toContain('Re-evaluation overdue');
+    // One page only: no pager row.
+    expect(root.querySelector('app-pager')).toBeNull();
+  });
+
+  it('filters on a headline figure when it is clicked, and clears it on a second click', async () => {
+    const { fixture, http, root } = setup();
+    await flushList(fixture, http, [row()]);
+    const tile = root.querySelector<HTMLButtonElement>('[data-testid="kpi-attention"]')!;
+    tile.click();
+    await fixture.whenStable();
+    const req = http.expectOne((r) => r.url === listUrl);
+    expect(req.request.params.get('attention')).toBe('true');
+    req.flush({ items: [], total: 0 });
+    await fixture.whenStable();
+    expect(tile.getAttribute('aria-pressed')).toBe('true');
+    tile.click();
+    await fixture.whenStable();
+    const again = http.expectOne((r) => r.url === listUrl);
+    expect(again.request.params.has('attention')).toBe(false);
+    again.flush({ items: [], total: 0 });
+  });
+
+  it('keeps search, status, follow-up and criticality visible and the rest under more filters', async () => {
+    const { fixture, http, root } = setup();
+    await flushList(fixture, http, [row()]);
+    expect(root.querySelector('#sup-f-status')).not.toBeNull();
+    expect(root.querySelector('[data-testid="filter-attention"]')).not.toBeNull();
+    expect(root.querySelector('#sup-f-crit')).not.toBeNull();
+    const panel = root.querySelector('[data-testid="more-filters-panel"]')!;
+    expect(panel.querySelectorAll('select').length).toBe(5);
   });
 
   it('shows the teaching empty state for an empty register and hides "new" without write access', async () => {

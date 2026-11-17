@@ -3,25 +3,38 @@ import { Question } from './supplier.models';
 import {
   allowedTargets,
   answerValue,
+  attentionAction,
+  certificatesBody,
   changedFields,
+  criticalityBadge,
+  decisionBadge,
   dayToWire,
   needsApproval,
   previewScore,
   ratePercent,
   recommend,
+  scoreParams,
   splitList,
+  supplierStatusBadge,
   wireToDay,
 } from './supplier-display';
 import { supplierErrorKey, unansweredIds } from './supplier-errors';
 import { SUPPLIER_STATUSES } from './supplier.models';
 import { draftFrom, fieldsFrom } from '../supplier-form';
-import { filtersFromView, toQuery } from '../suppliers-list';
-import { entryBody, entryDraft } from '../detail/supplier-performance-panel';
-import { defaultKind, questionnaireLang } from '../detail/supplier-evaluations-panel';
+import { filtersFromView, moreFiltersCount, toQuery } from '../suppliers-list';
+import { entryBody, entryDraft, needsDeviation } from '../detail/supplier-performance-panel';
+import {
+  defaultKind,
+  offeredKinds,
+  questionnaireLang,
+  recommendedKind,
+} from '../detail/start-evaluation-dialog';
+import { statusChipCount } from '../evaluations/evaluations-list';
+import { certificateRows } from '../shared/certificates-editor';
 import { answersBody } from '../evaluations/evaluation-detail';
 import { decisionValid } from '../evaluations/decide-dialog';
-import { groupQuestions } from '../evaluations/questionnaire-answers';
-import { toEditable, toQuestionIn } from '../shared/question-editor';
+import { categoryKey, groupQuestions } from '../evaluations/questionnaire-answers';
+import { categoryChoice, toEditable, toQuestionIn } from '../shared/question-editor';
 
 const q = (id: string, over: Partial<Question> = {}): Question => ({
   id,
@@ -115,7 +128,10 @@ describe('supplier form helpers', () => {
       name: '  Acme  ',
       country: 'no',
       data_locations: ['NO', 'ie', 'NO'],
-      certifications: '',
+      certificates: [
+        { standard: 'iso27001', label: '', number: ' C-1 ', issuer: '', valid_until: '2027-01-01' },
+        { standard: null, label: '  ', number: '', issuer: '', valid_until: '' },
+      ],
       evaluation_interval_months: '12',
       next_evaluation_at: '2027-01-31',
       processes_personal_data: true,
@@ -124,7 +140,16 @@ describe('supplier form helpers', () => {
       name: 'Acme',
       country: 'NO',
       data_locations: ['NO', 'IE'],
-      certifications: [],
+      certificates: [
+        {
+          standard: 'iso27001',
+          label: null,
+          number: 'C-1',
+          issuer: null,
+          valid_until: '2027-01-01',
+          attachment_id: null,
+        },
+      ],
       evaluation_interval_months: 12,
       next_evaluation_at: '2027-01-31T00:00:00',
       processes_personal_data: true,
@@ -138,6 +163,35 @@ describe('supplier form helpers', () => {
     const next = { ...base, name: 'B', data_locations: ['NO'] };
     expect(changedFields(base, next)).toEqual({ name: 'B', data_locations: ['NO'] });
     expect(changedFields(base, { ...base })).toEqual({});
+    const certs = { ...base, certificates: [{ standard: 'iso9001' as const }] };
+    expect(changedFields(base, certs)).toEqual({ certificates: [{ standard: 'iso9001' }] });
+  });
+
+  it('turns stored or legacy certificates into edit rows', () => {
+    expect(certificateRows(undefined, ['ISO 9001'])).toEqual([
+      {
+        standard: null,
+        label: 'ISO 9001',
+        number: '',
+        issuer: '',
+        valid_until: '',
+        attachment_id: null,
+      },
+    ]);
+    const rows = certificateRows(
+      [
+        {
+          id: 'c1',
+          standard: 'iso27001',
+          label: 'ISO/IEC 27001',
+          number: 'N',
+          valid_until: '2027-01-01',
+        },
+      ],
+      ['ISO/IEC 27001'],
+    );
+    expect(rows[0]).toMatchObject({ id: 'c1', standard: 'iso27001', label: '', number: 'N' });
+    expect(certificatesBody([{ standard: null, label: ' ' }])).toEqual([]);
   });
 
   it('splits lists and converts days', () => {
@@ -160,6 +214,7 @@ describe('supplier list query', () => {
     });
     expect(f).toEqual({
       status: 'approved',
+      attention: '',
       criticality: '',
       category: '',
       due: '',
@@ -183,6 +238,48 @@ describe('supplier list query', () => {
       offset: 25,
     });
     expect(query.status).toBeUndefined();
+  });
+
+  it('reads the follow-up filter from links and maps it to the API', () => {
+    expect(filtersFromView({ attention: '1' }).attention).toBe('any');
+    expect(filtersFromView({ attention_code: 'dpa_missing' }).attention).toBe('dpa_missing');
+    expect(filtersFromView({ attention: 'bogus' }).attention).toBe('');
+    expect(toQuery('', { ...filtersFromView({}), attention: 'any' }, 0).attention).toBe(true);
+    expect(
+      toQuery('', { ...filtersFromView({}), attention: 'dpa_missing' }, 0).attention_code,
+    ).toEqual(['dpa_missing']);
+    expect(moreFiltersCount({ ...filtersFromView({}), category: 'cloud', owner: 'me' })).toBe(2);
+  });
+});
+
+describe('supplier badges and follow-up actions', () => {
+  it('maps statuses onto the shared tone map', () => {
+    expect(supplierStatusBadge('approved')).toEqual({ meaning: 'lifecycle', value: 'approved' });
+    expect(supplierStatusBadge('conditional')).toEqual({ meaning: 'compliance', value: 'partial' });
+    expect(criticalityBadge('critical')).toEqual({ meaning: 'severity', value: 'critical' });
+    expect(decisionBadge('reject')).toEqual({ meaning: 'lifecycle', value: 'rejected' });
+  });
+
+  it('offers the action that closes a follow-up flag', () => {
+    expect(attentionAction('not_approved', false)).toEqual({
+      kind: 'evaluate',
+      evaluation: 'initial',
+    });
+    expect(attentionAction('weak_performance', true)).toEqual({
+      kind: 'evaluate',
+      evaluation: 'ad_hoc',
+    });
+    expect(attentionAction('dpa_missing', true)).toMatchObject({
+      kind: 'flow',
+      flow: 'supplier.to_dpa',
+    });
+    expect(attentionAction('certificate_expired', true)).toEqual({ kind: 'edit' });
+  });
+
+  it('formats a score against its pass mark', () => {
+    expect(scoreParams(64, 70, 'en')).toEqual({ score: '64', pass: 70 });
+    expect(scoreParams(90.83, null, 'en')).toEqual({ score: '90.8', pass: null });
+    expect(scoreParams(null, 70, 'en')).toBeNull();
   });
 });
 
@@ -233,6 +330,45 @@ describe('performance, evaluation and questionnaire helpers', () => {
     expect(questionnaireLang('de')).toBe('en');
   });
 
+  it('recommends and offers kinds from the risk profile', () => {
+    const base = { latest: null, open_evaluation_id: null };
+    const required = [
+      { ...base, kind: 'initial' as const, reason: 'always' as const, done: true },
+      { ...base, kind: 'privacy' as const, reason: 'personal_data' as const, done: false },
+    ];
+    expect(
+      recommendedKind({ approved_at: null, status: 'approved', required_assessments: required }),
+    ).toBe('privacy');
+    expect(
+      recommendedKind({ approved_at: null, status: 'prospective', required_assessments: [] }),
+    ).toBe('initial');
+    expect(offeredKinds(required, false)).toEqual(['initial', 'periodic', 'ad_hoc', 'privacy']);
+    expect(offeredKinds(required, true)).toHaveLength(6);
+  });
+
+  it('flags performance entries that need a deviation', () => {
+    const entry = { deviation_id: null, on_time: false, quality_ok: null, kind: 'delivery' };
+    expect(needsDeviation(entry as never)).toBe(true);
+    expect(needsDeviation({ ...entry, deviation_id: 'd' } as never)).toBe(false);
+    expect(needsDeviation({ ...entry, on_time: true } as never)).toBe(false);
+  });
+
+  it('counts the evaluation status chips', () => {
+    const counts = { draft: 1, submitted: 2, completed: 5, cancelled: 0 };
+    expect(statusChipCount(counts, 'open')).toBe(3);
+    expect(statusChipCount(counts, '')).toBe(8);
+    expect(statusChipCount(counts, 'completed')).toBe(5);
+    expect(statusChipCount(undefined, 'open')).toBeNull();
+  });
+
+  it('translates known question sections and keeps custom ones', () => {
+    expect(categoryKey('Security')).toBe('suppliers.questionCategory.security');
+    expect(categoryKey('other')).toBe('suppliers.questionCategory.other');
+    expect(categoryKey('Logistics partners')).toBeNull();
+    expect(categoryChoice('privacy')).toBe('privacy');
+    expect(categoryChoice('Logistics partners')).toBe('other');
+  });
+
   it('groups questions by section and keeps their numbers', () => {
     const groups = groupQuestions([
       q('a', { category: 'x' }),
@@ -256,8 +392,11 @@ describe('performance, evaluation and questionnaire helpers', () => {
         max_score: 5,
         critical: false,
         required: true,
+        requirement_refs: [],
       },
     ]);
+    const many = Array.from({ length: 10 }, (_, i) => 'iso27001:A.5.' + i);
+    expect(toEditable({ text: 'Q', requirement_refs: many }).requirement_refs).toHaveLength(8);
   });
 });
 

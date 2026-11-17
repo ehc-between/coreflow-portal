@@ -1,37 +1,17 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
-import { TranslocoPipe } from '@jsverse/transloco';
-import { TourStepDirective } from '../../../shared/guidance/tour-step.directive';
+import { ModuleNavItem } from '../../../shared/ui/module-nav/module-nav';
 
-/** Section links of the suppliers module: register, evaluations, questionnaires. */
-@Component({
-  selector: 'app-suppliers-nav',
-  imports: [RouterLink, RouterLinkActive, TranslocoPipe, TourStepDirective],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <nav
-      class="mt-3 flex flex-wrap gap-1"
-      [attr.aria-label]="'suppliers.nav.label' | transloco"
-      appTourStep="suppliers-sections"
-    >
-      @for (link of links; track link.path) {
-        <a
-          [routerLink]="link.path"
-          routerLinkActive="bg-accent-soft text-accent"
-          [routerLinkActiveOptions]="{ exact: true }"
-          ariaCurrentWhenActive="page"
-          class="rounded-tile px-3 py-1.5 text-[13px] font-semibold text-fg-muted hover:bg-surface-2 hover:text-fg"
-        >
-          {{ link.labelKey | transloco }}
-        </a>
-      }
-    </nav>
-  `,
-})
-export class SuppliersNav {
-  protected readonly links = [
-    { path: '/suppliers', labelKey: 'suppliers.nav.register' },
-    { path: '/suppliers/evaluations', labelKey: 'suppliers.nav.evaluations' },
-    { path: '/suppliers/questionnaires', labelKey: 'suppliers.nav.questionnaires' },
-  ] as const;
+/**
+ * The suppliers module's sub-pages for `app-module-nav` (register, evaluations,
+ * questionnaires). `openEvaluations` adds the count of open evaluations to that tab.
+ */
+export function suppliersNav(openEvaluations?: number | null): readonly ModuleNavItem[] {
+  return [
+    { labelKey: 'suppliers.nav.register', link: '/suppliers', exact: true },
+    {
+      labelKey: 'suppliers.nav.evaluations',
+      link: '/suppliers/evaluations',
+      ...(openEvaluations ? { count: openEvaluations } : {}),
+    },
+    { labelKey: 'suppliers.nav.questionnaires', link: '/suppliers/questionnaires' },
+  ];
 }

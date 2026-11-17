@@ -1,7 +1,10 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
 /**
- * Labelled field wrapper. Projects a native control (input/select) into a slot
+ * Labelled field wrapper.
+ * `[label-suffix]` content (e.g. `<app-field-help label-suffix …>`) sits inline after
+ * the label, so labels in neighbouring columns stay aligned. `required` adds a "*"
+ * (set `required` / `aria-required` on the control too). Projects a native control (input/select) into a slot
  * styled to the design system — surface background, border, and an accent focus
  * ring applied to the projected control via `:focus-within`.
  */
@@ -42,9 +45,15 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
   template: `
     <div class="cf-field flex flex-col gap-1.5">
       @if (label()) {
-        <label [attr.for]="inputId() || null" class="text-ui font-semibold text-fg-muted">
-          {{ label() }}
-        </label>
+        <div class="flex flex-wrap items-center gap-x-1.5 gap-y-1">
+          <label [attr.for]="inputId() || null" class="text-ui font-semibold text-fg-muted">
+            {{ label() }}
+            @if (required()) {
+              <span class="text-fail-ink" aria-hidden="true">*</span>
+            }
+          </label>
+          <ng-content select="[label-suffix]" />
+        </div>
       }
       <ng-content />
     </div>
@@ -54,4 +63,6 @@ export class FormField {
   readonly label = input('');
   /** id of the projected control — set the same id on the input to associate the label. */
   readonly inputId = input('');
+  /** Mark the label as required ("*"). */
+  readonly required = input(false);
 }

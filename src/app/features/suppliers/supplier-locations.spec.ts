@@ -36,6 +36,7 @@ function supplier(overrides: Partial<SupplierDetail> = {}): SupplierDetail {
       { code: 'IR', zone: 'third_country', needs_review: true, transfer_assessment_needed: true },
     ],
     certifications: [],
+    certificates: [],
     ...overrides,
   } as unknown as SupplierDetail;
 }
