@@ -15,6 +15,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../core/ai/page-context';
+import { AuthService } from '../../core/auth/auth.service';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { WatchButton } from '../../shared/activity/watch-button';
@@ -22,7 +23,7 @@ import { AskAbout } from '../../shared/ask/ask-about';
 import { GuideIntro } from '../../shared/guidance/guide-intro';
 import { WhyItMatters } from '../../shared/guidance/why-it-matters';
 import { RecordDetailLayout, RecordTab } from '../../shared/kit/record-detail-layout';
-import { LocalDayPipe } from '../../shared/locale/locale-pipes';
+import { LocalDatePipe, LocalDayPipe } from '../../shared/locale/locale-pipes';
 import { SupportsRequirements } from '../../shared/requirement-links/supports-requirements';
 import { Alert } from '../../shared/ui/alert/alert';
 import { Badge } from '../../shared/ui/badge/badge';
@@ -80,6 +81,7 @@ export const EMPLOYEE_FIELD_LABELS: Readonly<Record<string, string>> = {
   imports: [
     RouterLink,
     TranslocoPipe,
+    LocalDatePipe,
     LocalDayPipe,
     WatchButton,
     AskAbout,
@@ -165,6 +167,16 @@ export const EMPLOYEE_FIELD_LABELS: Readonly<Record<string, string>> = {
                   {{ 'people.common.edit' | transloco }}
                 </a>
               }
+              @if (canRevoke()) {
+                <app-button
+                  variant="secondary"
+                  size="sm"
+                  (click)="revoking.set(true)"
+                  data-testid="employee-revoke-access"
+                >
+                  {{ 'people.detail.revokeAccess' | transloco }}
+                </app-button>
+              }
               @if (canManage()) {
                 <app-button variant="ghost" size="sm" (click)="deleting.set(true)">
                   <app-icon name="trash" [size]="14" />
@@ -178,6 +190,16 @@ export const EMPLOYEE_FIELD_LABELS: Readonly<Record<string, string>> = {
 
               @if (e.status === 'former') {
                 <app-alert tone="info">{{ 'people.detail.formerNotice' | transloco }}</app-alert>
+              }
+              @if (e.access_revoked_at) {
+                <app-alert tone="info" data-testid="access-state">{{
+                  'people.detail.accessRevokedOn'
+                    | transloco: { date: (e.access_revoked_at | localDate) }
+                }}</app-alert>
+              } @else if (e.status === 'offboarding' && e.end_date) {
+                <app-alert tone="info" data-testid="access-state">{{
+                  'people.detail.accessRevokesOn' | transloco: { date: (e.end_date | localDay) }
+                }}</app-alert>
               }
 
               <app-card>
@@ -341,6 +363,8 @@ export const EMPLOYEE_FIELD_LABELS: Readonly<Record<string, string>> = {
                 <app-people-employee-checklists
                   [employeeId]="e.id"
                   [canEdit]="e.can_edit"
+                  [endDate]="e.end_date"
+                  [refresh]="checklistRefresh()"
                   (changed)="reload()"
                 />
               </app-card>
@@ -397,6 +421,17 @@ export const EMPLOYEE_FIELD_LABELS: Readonly<Record<string, string>> = {
             (confirmed)="remove()"
             (cancelled)="deleting.set(false)"
           />
+
+          <app-confirm-dialog
+            [open]="revoking()"
+            [title]="'people.detail.revokeTitle' | transloco"
+            [message]="'people.detail.revokeMessage' | transloco: { name: e.full_name }"
+            [confirmLabel]="'people.detail.revokeConfirm' | transloco"
+            [cancelLabel]="'common.cancel' | transloco"
+            [busy]="busy()"
+            (confirmed)="revokeAccess()"
+            (cancelled)="revoking.set(false)"
+          />
         }
       }
     }
@@ -409,6 +444,7 @@ export class EmployeeDetail {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly injector = inject(Injector);
+  private readonly auth = inject(AuthService);
 
   readonly id = input.required<string>();
 
@@ -421,10 +457,25 @@ export class EmployeeDetail {
   protected readonly errorKey = signal('people.common.loadFailed');
   protected readonly employee = signal<Employee | null>(null);
   protected readonly deleting = signal(false);
+  protected readonly revoking = signal(false);
   protected readonly busy = signal(false);
+  /** Bumped after access is revoked so the checklists re-load (the system item ticks). */
+  protected readonly checklistRefresh = signal(0);
 
   private readonly permissions = computed(() => this.selectedOrg.currentOrg()?.permissions);
   protected readonly canManage = computed(() => hasPerm(this.permissions(), PERM_MANAGE));
+  /**
+   * "Remove access now" (summary dismissal): `people:manage`, access not yet revoked,
+   * and never on your own record (the backend refuses that with `cannot_revoke_self`).
+   */
+  protected readonly canRevoke = computed(() => {
+    const e = this.employee();
+    if (!e || e.access_revoked_at || !this.canManage()) {
+      return false;
+    }
+    const me = this.auth.user()?.id;
+    return !(me && e.user?.id === me);
+  });
   protected readonly canDisciplinary = computed(() =>
     hasPerm(this.permissions(), PERM_DISCIPLINARY),
   );
@@ -453,6 +504,30 @@ export class EmployeeDetail {
 
   protected reload(): void {
     this.load(this.selectedOrg.currentOrgId(), this.id(), false);
+  }
+
+  protected revokeAccess(): void {
+    const orgId = this.selectedOrg.currentOrgId();
+    const e = this.employee();
+    if (!orgId || !e || this.busy()) {
+      return;
+    }
+    this.busy.set(true);
+    this.api.revokeAccess(orgId, e.id).subscribe({
+      next: (employee) => {
+        this.busy.set(false);
+        this.revoking.set(false);
+        this.employee.set(employee);
+        this.checklistRefresh.update((n) => n + 1);
+        this.notifications.success('people.notices.accessRevoked', { name: employee.full_name });
+      },
+      error: (error: unknown) => {
+        this.busy.set(false);
+        this.revoking.set(false);
+        this.notifications.error(peopleErrorKey(error));
+        this.reload();
+      },
+    });
   }
 
   protected remove(): void {

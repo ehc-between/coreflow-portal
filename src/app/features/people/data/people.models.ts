@@ -50,6 +50,10 @@ export type CompetenceCategory = (typeof COMPETENCE_CATEGORIES)[number];
 export const CHECKLIST_KINDS = ['onboarding', 'offboarding'] as const;
 export type ChecklistKind = (typeof CHECKLIST_KINDS)[number];
 
+/** System checklist items the backend ticks itself; nobody can tick, edit or delete them. */
+export const SYSTEM_ITEM_KEYS = ['access_revoked'] as const;
+export type SystemItemKey = (typeof SYSTEM_ITEM_KEYS)[number];
+
 export const CHECKLIST_STATUSES = ['open', 'completed', 'cancelled'] as const;
 export type ChecklistStatus = (typeof CHECKLIST_STATUSES)[number];
 
@@ -153,6 +157,12 @@ export interface Employee {
   readonly notes: string | null;
   readonly gap_count: number;
   readonly open_checklists: number;
+  /**
+   * When access to this system was removed (memberships and sessions revoked), naive
+   * UTC; null while the person still has access. Set by the daily job on the last
+   * working day (`end_date`) or by `POST .../revoke-access`.
+   */
+  readonly access_revoked_at: string | null;
   readonly url: string;
   readonly can_edit: boolean;
   readonly created_at: string;
@@ -354,6 +364,8 @@ export interface ChecklistItem {
   readonly done_by: Ref | null;
   readonly done_at: string | null;
   readonly note: string | null;
+  /** Set on items the system ticks itself; only `note` may be changed by hand. */
+  readonly system_key: SystemItemKey | null;
 }
 
 export interface Checklist {
@@ -408,6 +420,11 @@ export interface ChecklistCreate {
   readonly kind: ChecklistKind;
   readonly title?: string;
   readonly due_date?: string;
+  /**
+   * The last working day (YYYY-MM-DD). Required for offboarding unless the employee
+   * already has an `end_date`; access is revoked automatically on that day.
+   */
+  readonly end_date?: string;
   readonly owner_user_id?: string;
   readonly assignee?: { readonly type: 'user' | 'role' | 'department'; readonly value: string };
   readonly items?: readonly ChecklistItemIn[];
@@ -417,6 +434,7 @@ export interface TemplateItem {
   readonly text: string;
   readonly category: ItemCategory;
   readonly required: boolean;
+  readonly system_key: SystemItemKey | null;
 }
 
 export interface ChecklistTemplates {

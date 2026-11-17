@@ -218,7 +218,10 @@ const TABS: readonly RecordTab[] = ['details', 'related', 'activity', 'comments'
                             class="mt-0.5 h-4 w-4 flex-none accent-[var(--accent)]"
                             [id]="'cf-item-' + item.id"
                             [checked]="item.done"
-                            [disabled]="!editable() || busy()"
+                            [disabled]="!editable() || busy() || !!item.system_key"
+                            [attr.aria-describedby]="
+                              item.system_key ? 'cf-item-auto-' + item.id : null
+                            "
                             (change)="toggle(item, $any($event.target).checked)"
                             [attr.data-testid]="'item-' + item.id"
                           />
@@ -236,7 +239,22 @@ const TABS: readonly RecordTab[] = ['details', 'related', 'activity', 'comments'
                                 'people.checklists.required' | transloco
                               }}</span>
                             }
-                            @if (item.done && item.done_by) {
+                            @if (item.system_key) {
+                              <p
+                                [id]="'cf-item-auto-' + item.id"
+                                class="text-[11.5px] text-fg-subtle"
+                                [attr.data-testid]="'item-auto-' + item.id"
+                              >
+                                {{
+                                  (item.done
+                                    ? 'people.checklists.automaticDone'
+                                    : 'people.checklists.automaticPending'
+                                  )
+                                    | transloco
+                                      : { date: item.done_at ? (item.done_at | localDate) : '' }
+                                }}
+                              </p>
+                            } @else if (item.done && item.done_by) {
                               <p class="text-[11.5px] text-fg-subtle">
                                 {{
                                   'people.checklists.doneBy'
@@ -256,12 +274,19 @@ const TABS: readonly RecordTab[] = ['details', 'related', 'activity', 'comments'
                             <app-button size="sm" variant="ghost" (click)="openNote(item)">
                               {{ 'people.checklists.note' | transloco }}
                             </app-button>
-                            <app-button size="sm" variant="ghost" (click)="removeItem(item)">
-                              <app-icon name="trash" [size]="14" />
-                              <span class="sr-only">{{
-                                'people.checklists.removeItem' | transloco
-                              }}</span>
-                            </app-button>
+                            @if (!item.system_key) {
+                              <app-button
+                                size="sm"
+                                variant="ghost"
+                                (click)="removeItem(item)"
+                                [attr.data-testid]="'remove-' + item.id"
+                              >
+                                <app-icon name="trash" [size]="14" />
+                                <span class="sr-only">{{
+                                  'people.checklists.removeItem' | transloco
+                                }}</span>
+                              </app-button>
+                            }
                           }
                         </li>
                       }
@@ -470,6 +495,9 @@ export class ChecklistDetailPage {
   }
 
   protected toggle(item: ChecklistItem, done: boolean): void {
+    if (item.system_key) {
+      return;
+    }
     this.mutate((orgId, id) => this.api.updateChecklistItem(orgId, id, item.id, { done }));
   }
 
@@ -491,6 +519,9 @@ export class ChecklistDetailPage {
   }
 
   protected removeItem(item: ChecklistItem): void {
+    if (item.system_key) {
+      return;
+    }
     this.mutate((orgId, id) => this.api.removeChecklistItem(orgId, id, item.id));
   }
 
@@ -572,7 +603,8 @@ export class ChecklistDetailPage {
           return;
         }
         this.notifications.error(peopleErrorKey(error));
-        if (peopleErrorCode(error) === 'checklist_closed') {
+        const code = peopleErrorCode(error);
+        if (code === 'checklist_closed' || code === 'item_automatic') {
           this.load(orgId, this.id());
         }
       },
