@@ -30,7 +30,7 @@ let nextId = 0;
           />
           <button
             type="button"
-            class="flex h-9 w-9 flex-none items-center justify-center rounded-[8px] text-fg-subtle hover:bg-surface-2 hover:text-fail"
+            class="flex h-9 w-9 flex-none items-center justify-center rounded-tile text-fg-subtle hover:bg-surface-2 hover:text-fail"
             [attr.aria-label]="'processes.items.remove' | transloco: { item }"
             (click)="remove(i)"
           >
@@ -54,7 +54,7 @@ let nextId = 0;
         />
         <button
           type="button"
-          class="inline-flex h-9 flex-none items-center gap-1 rounded-[8px] border border-border px-2.5 text-[12.5px] font-semibold text-fg-muted hover:text-fg disabled:opacity-40"
+          class="inline-flex h-9 flex-none items-center gap-1 rounded-tile border border-border px-2.5 text-ui font-semibold text-fg-muted hover:text-fg disabled:opacity-40"
           [disabled]="!draft().trim()"
           (click)="add()"
         >
