@@ -333,7 +333,8 @@
     "noteRequired": "Skriv et notat om hvorfor kravet er dekket eller delvis dekket.",
     "invalidUser": "Den ansvarlige må være medlem av organisasjonen.",
     "notMapped": "Disse punktene er ikke koblet til hverandre, så dokumentasjonen kan ikke gjenbrukes.",
-    "notDeclared": "Poster av denne typen kan ikke dokumentere denne standarden."
+    "notDeclared": "Poster av denne typen kan ikke dokumentere denne standarden.",
+    "soaManageRequired": "Bare den som vedlikeholder anvendelseserklæringen, kan endre om denne kontrollen gjelder."
   },
   "soa": {
     "title": "Anvendelseserklæring",
@@ -349,6 +350,7 @@
     "hint": "Om kontrollen gjelder, og begrunnelsen, bestemmes i anvendelseserklæringen og gjelder alle kravene i kontrollen.",
     "setBySoa": "Satt i anvendelseserklæringen",
     "formHint": "Når du lagrer «Gjelder» og begrunnelsen, oppdateres anvendelseserklæringen for alle kravene i denne kontrollen.",
+    "lockedHint": "Om denne kontrollen gjelder, bestemmes i anvendelseserklæringen. Be den som vedlikeholder den, om å endre det.",
     "reason": {
       "risk_assessment": "Risikovurdering",
       "legal": "Lovkrav",

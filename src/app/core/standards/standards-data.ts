@@ -464,6 +464,7 @@ export function standardsErrorKey(error: unknown, op: StandardsOperation): strin
     invalid_user: 'standards.actionErrors.invalidUser',
     not_mapped: 'standards.actionErrors.notMapped',
     not_declared: 'standards.actionErrors.notDeclared',
+    soa_manage_required: 'standards.actionErrors.soaManageRequired',
   };
   if (code && inline[code]) {
     return inline[code];

@@ -333,7 +333,8 @@
     "noteRequired": "Write a note on why the requirement is covered or partly covered.",
     "invalidUser": "The owner must be a member of the organisation.",
     "notMapped": "These clauses are not mapped to each other, so evidence cannot be reused.",
-    "notDeclared": "Records of this type cannot document this standard."
+    "notDeclared": "Records of this type cannot document this standard.",
+    "soaManageRequired": "Only someone who maintains the Statement of Applicability can change whether this control applies."
   },
   "soa": {
     "title": "Statement of Applicability",
@@ -349,6 +350,7 @@
     "hint": "Applicability and justification for this control are decided in the Statement of Applicability, and apply to all its requirements.",
     "setBySoa": "Set by the Statement of Applicability",
     "formHint": "Saving “Applies” and the justification updates the Statement of Applicability, for every requirement of this control.",
+    "lockedHint": "Whether this control applies is decided in the Statement of Applicability. Ask someone who maintains it to change it.",
     "reason": {
       "risk_assessment": "Risk assessment",
       "legal": "Legal requirement",

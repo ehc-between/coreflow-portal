@@ -612,15 +612,21 @@ export function evidenceByModule(evidence: RequirementEvidence | null): ModuleEv
           } @else {
             <div class="flex flex-col gap-3" data-testid="assessment-form">
               @if (req.soa) {
-                <p class="rounded-tile bg-surface-2 px-3 py-2 text-meta text-fg-muted">
-                  {{ 'standards.soa.formHint' | transloco }}
+                <p
+                  class="rounded-tile bg-surface-2 px-3 py-2 text-meta text-fg-muted"
+                  data-testid="soa-form-hint"
+                >
+                  {{
+                    (soaLocked() ? 'standards.soa.lockedHint' : 'standards.soa.formHint')
+                      | transloco
+                  }}
                 </p>
               }
               <label class="flex items-center gap-2 text-ui text-fg">
                 <input
                   type="checkbox"
                   data-testid="assess-applicable"
-                  [disabled]="exclusionLocked()"
+                  [disabled]="exclusionLocked() || soaLocked()"
                   [ngModel]="formApplicable()"
                   (ngModelChange)="formApplicable.set($event)"
                 />
@@ -643,6 +649,7 @@ export function evidenceByModule(evidence: RequirementEvidence | null): ModuleEv
                   <textarea
                     [id]="anchorId() + '-just'"
                     rows="2"
+                    [readonly]="soaLocked()"
                     [ngModel]="formJustification()"
                     (ngModelChange)="formJustification.set($event)"
                   ></textarea>
@@ -810,6 +817,15 @@ export class RequirementCard {
   /** ISO clauses 4–10 can't be excluded: the box stays ticked (it can always be re-ticked). */
   protected readonly exclusionLocked = computed(
     () => this.requirement().exclusion === 'not_allowed' && this.requirement().applicable,
+  );
+  /**
+   * Annex A controls with an SoA entry: applicability is written through to the SoA,
+   * which needs `risk:manage` (the backend answers 403 `soa_manage_required`).
+   */
+  protected readonly soaLocked = computed(
+    () =>
+      !!this.requirement().soa &&
+      !(this.selectedOrg.currentOrg()?.permissions ?? []).includes('risk:manage'),
   );
   protected readonly exclusionHint = computed(() => exclusionHintKey(this.requirement().exclusion));
   /** A manual "covered" / "partial" needs a note saying why (auditors ask). */
@@ -991,7 +1007,8 @@ export class RequirementCard {
     // Only send an applicability decision when the user made one: an unchanged
     // box would otherwise turn a default / derived value into a manual decision.
     const decides =
-      applicable !== req.applicable || (!applicable && applicabilitySource(req) === 'manual');
+      !this.soaLocked() &&
+      (applicable !== req.applicable || (!applicable && applicabilitySource(req) === 'manual'));
     if (decides && !applicable && !justification) {
       this.justificationMissing.set(true);
       return;

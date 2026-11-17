@@ -58,7 +58,12 @@ describe('RequirementCard applicability', () => {
     await fixture.whenStable();
   }
 
-  async function setup(req: RequirementDetail, canManage: boolean, reply = OVERRIDDEN) {
+  async function setup(
+    req: RequirementDetail,
+    canManage: boolean,
+    reply = OVERRIDDEN,
+    permissions: string[] = [],
+  ) {
     TestBed.configureTestingModule({
       imports: [RequirementCard, TranslocoTestingModule.forRoot({ langs: { en: {} } })],
       providers: [
@@ -78,7 +83,7 @@ describe('RequirementCard applicability', () => {
           provide: SelectedOrgService,
           useValue: {
             currentOrgId: signal(ORG).asReadonly(),
-            currentOrg: signal({ id: ORG, name: 'Org', roles: [], permissions: [] }).asReadonly(),
+            currentOrg: signal({ id: ORG, name: 'Org', roles: [], permissions }).asReadonly(),
           },
         },
       ],
@@ -257,5 +262,88 @@ describe('RequirementCard applicability', () => {
       status_override: null,
       note: null,
     });
+  });
+
+  it('locks an Annex A control decided in the SoA for users who cannot maintain the SoA', async () => {
+    const control: RequirementDetail = {
+      ...DERIVED_NA,
+      ref: 'iso27001-2022:A.7.4.r1',
+      status: 'not_started',
+      applicable: true,
+      applicability_source: 'default',
+      derived_applicable: null,
+      derived_reason: null,
+      meta: null,
+      soa: {
+        id: 'soa-1',
+        applicable: true,
+        implementation_status: 'implemented',
+        justification: null,
+        inclusion_reasons: [],
+        implementation_notes: null,
+        owner: null,
+        reviewed_at: null,
+        risks: [],
+        treatment_count: 0,
+        url: '/risk/soa',
+      },
+    };
+    const card = () =>
+      fixture.componentInstance as unknown as {
+        startEdit(): void;
+        save(): void;
+        formApplicable: { set(v: boolean): void };
+        formJustification: { set(v: string): void };
+      };
+    await setup(control, true, control, ['standards:manage', 'risk:read']);
+    card().startEdit();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(el.querySelector<HTMLInputElement>('[data-testid="assess-applicable"]')!.disabled).toBe(
+      true,
+    );
+    expect(el.querySelector('[data-testid="soa-form-hint"]')?.textContent).toContain(
+      'standards.soa.lockedHint',
+    );
+    card().formApplicable.set(false);
+    card().formJustification.set('No premises');
+    card().save();
+    expect(update).toHaveBeenCalledWith(ORG, control.ref, { status_override: null, note: null });
+  });
+
+  it('lets an SoA maintainer change an Annex A control from the workspace', async () => {
+    const control: RequirementDetail = {
+      ...DERIVED_NA,
+      ref: 'iso27001-2022:A.7.4.r1',
+      status: 'not_started',
+      applicable: true,
+      applicability_source: 'default',
+      derived_applicable: null,
+      derived_reason: null,
+      meta: null,
+      soa: {
+        id: 'soa-1',
+        applicable: true,
+        implementation_status: 'implemented',
+        justification: null,
+        inclusion_reasons: [],
+        implementation_notes: null,
+        owner: null,
+        reviewed_at: null,
+        risks: [],
+        treatment_count: 0,
+        url: '/risk/soa',
+      },
+    };
+    await setup(control, true, control, ['standards:manage', 'risk:manage']);
+    (fixture.componentInstance as unknown as { startEdit(): void }).startEdit();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(el.querySelector<HTMLInputElement>('[data-testid="assess-applicable"]')!.disabled).toBe(
+      false,
+    );
+    expect(el.querySelector('[data-testid="soa-form-hint"]')?.textContent).toContain(
+      'standards.soa.formHint',
+    );
   });
 });
