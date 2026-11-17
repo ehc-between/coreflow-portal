@@ -19,6 +19,7 @@ const OFF: OrgSettingsDto = {
   require_document_segregation: false,
   mfa_policy: 'off',
   mfa_required_roles: [],
+  allow_macro_attachments: false,
 };
 
 async function setup(initial: OrgSettingsDto = OFF) {
