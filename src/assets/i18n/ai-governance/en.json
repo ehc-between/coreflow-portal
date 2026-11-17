@@ -76,6 +76,14 @@
     "limited": "Limited risk: the transparency duties of Art. 50 apply, such as telling people they are dealing with AI or marking generated content.",
     "minimal": "Minimal risk: no specific AI Act duties beyond AI literacy (Art. 4). Voluntary codes of conduct are encouraged (Art. 95)."
   },
+  "riskExplainByRole": {
+    "deployer": {
+      "high": "A high-risk AI system (Art. 6) that you deploy. The technical documentation, conformity assessment and registration are the provider's duties. As deployer you use the system according to the provider's instructions for use, assign competent human oversight, monitor it, keep the logs and inform the people affected (Art. 26)."
+    },
+    "other": {
+      "high": "A high-risk AI system (Art. 6) that you pass on rather than provide. Before making it available, check that the provider has carried out the conformity assessment, drawn up the technical documentation and affixed the CE marking (Art. 22-24)."
+    }
+  },
   "status": {
     "planned": "Planned",
     "in_development": "In development",
@@ -89,6 +97,8 @@
     "provider_and_deployer": "Provider and deployer",
     "importer": "Importer",
     "distributor": "Distributor",
+    "authorised_representative": "Authorised representative",
+    "product_manufacturer": "Product manufacturer",
     "not_applicable": "Not applicable"
   },
   "roleHelp": {
@@ -97,6 +107,8 @@
     "provider_and_deployer": "You build the system and also use it yourselves.",
     "importer": "You bring an AI system from a provider outside the EU onto the EU market.",
     "distributor": "You make an AI system available on the EU market without being its provider or importer.",
+    "authorised_representative": "A provider outside the EU has appointed you in writing to act on its behalf for its AI Act duties.",
+    "product_manufacturer": "You place a product on the market under your own name with a high-risk AI system as a safety component; you then carry the provider's duties.",
     "not_applicable": "The AI Act does not apply, for example purely personal or research use."
   },
   "kind": {
@@ -513,6 +525,10 @@
     "title": "Documentation: {{ name }}",
     "required": "Annex IV required",
     "requiredBody": "This is a high-risk system: the technical documentation in Annex IV must be drawn up before it is placed on the market or put into service, and kept up to date (Art. 11).",
+    "providerDuty": "Annex IV: the provider's duty",
+    "deployerBody": "You deploy this high-risk system, so drawing up the Annex IV technical file is the provider's duty. Ask the provider for its instructions for use and follow them, assign human oversight and keep the logs. The sections below help you record how you use the system.",
+    "otherBody": "You import, distribute or represent this high-risk system, so you do not draw up the Annex IV technical file yourselves. Check that the provider has drawn it up and keeps it available before the system is made available.",
+    "guidanceRefs": "See {{ refs }}.",
     "optionalBody": "Annex IV is only mandatory for high-risk systems, but writing these sections is good practice under ISO/IEC 42001 and helps if the classification changes.",
     "completeness": "Annex IV: {{ done }} of {{ total }} sections written",
     "completenessLabel": "Annex IV completeness",

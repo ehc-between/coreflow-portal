@@ -26,6 +26,7 @@ import {
 } from '../../core/tasks/task.models';
 import { TasksApi } from '../../core/tasks/tasks-api';
 import { AskPanelService } from '../ask/ask-panel.service';
+import { LocalizedTitlePipe } from '../../shared/i18n/localized-title.pipe';
 import { LocalDayPipe } from '../../shared/locale/locale-pipes';
 import { TaskGuideIntro } from '../../shared/tasks/guidance/task-guide-intro';
 import { TaskLesson } from '../../shared/tasks/guidance/task-lesson';
@@ -87,6 +88,7 @@ const WEEKDAY_KEYS = ['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU'] as const;
     RouterLink,
     TranslocoPipe,
     LocalDayPipe,
+    LocalizedTitlePipe,
     Badge,
     Button,
     Card,
@@ -291,7 +293,8 @@ const WEEKDAY_KEYS = ['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU'] as const;
                             [checked]="busyId() === item.id"
                             [disabled]="busyId() === item.id"
                             [attr.aria-label]="
-                              'tasks.entity.complete' | transloco: { title: item.title }
+                              'tasks.entity.complete'
+                                | transloco: { title: (item | localizedTitle) }
                             "
                             (change)="complete(item)"
                           />
@@ -309,11 +312,11 @@ const WEEKDAY_KEYS = ['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU'] as const;
                               [routerLink]="item.url"
                               class="block truncate text-[13.5px] font-semibold text-fg hover:underline"
                             >
-                              {{ item.title }}
+                              {{ item | localizedTitle }}
                             </a>
                           } @else {
                             <span class="block truncate text-[13.5px] font-semibold text-fg">
-                              {{ item.title }}
+                              {{ item | localizedTitle }}
                             </span>
                           }
                           <span class="flex items-center gap-2 text-[12px] text-fg-subtle">
@@ -389,11 +392,11 @@ const WEEKDAY_KEYS = ['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU'] as const;
                               [routerLink]="item.url"
                               class="block text-[13.5px] font-semibold text-fg hover:underline"
                             >
-                              {{ item.title }}
+                              {{ item | localizedTitle }}
                             </a>
                           } @else {
                             <span class="block text-[13.5px] font-semibold text-fg">{{
-                              item.title
+                              item | localizedTitle
                             }}</span>
                           }
                           <div class="mt-2 flex flex-wrap items-center gap-2">
@@ -417,7 +420,10 @@ const WEEKDAY_KEYS = ['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU'] as const;
                             @if (item.source === 'task') {
                               <label class="ml-auto">
                                 <span class="sr-only">
-                                  {{ 'tasks.board.moveLabel' | transloco: { title: item.title } }}
+                                  {{
+                                    'tasks.board.moveLabel'
+                                      | transloco: { title: (item | localizedTitle) }
+                                  }}
                                 </span>
                                 <select
                                   class="h-7 rounded-[7px] border border-border bg-bg px-1.5 text-[12px]"
@@ -512,15 +518,15 @@ const WEEKDAY_KEYS = ['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU'] as const;
                                 [class.text-fail]="item.overdue"
                                 [class.bg-accent-soft]="!item.overdue"
                                 [class.text-accent]="!item.overdue"
-                                [title]="item.title"
+                                [title]="item | localizedTitle"
                               >
-                                {{ item.title }}
+                                {{ item | localizedTitle }}
                               </a>
                             } @else {
                               <span
                                 class="mb-0.5 block truncate rounded-[6px] bg-surface-2 px-1.5 py-0.5 text-[11.5px]"
                               >
-                                {{ item.title }}
+                                {{ item | localizedTitle }}
                               </span>
                             }
                           }
@@ -558,10 +564,12 @@ const WEEKDAY_KEYS = ['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU'] as const;
                             [class.text-fail]="item.overdue"
                             [class.text-fg]="!item.overdue"
                           >
-                            {{ item.title }}
+                            {{ item | localizedTitle }}
                           </a>
                         } @else {
-                          <span class="block py-0.5 text-[13.5px] text-fg">{{ item.title }}</span>
+                          <span class="block py-0.5 text-[13.5px] text-fg">{{
+                            item | localizedTitle
+                          }}</span>
                         }
                       }
                     </li>
@@ -593,10 +601,12 @@ const WEEKDAY_KEYS = ['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU'] as const;
                           [routerLink]="item.url"
                           class="block py-0.5 text-[13px] text-fg hover:underline"
                         >
-                          {{ item.title }}
+                          {{ item | localizedTitle }}
                         </a>
                       } @else {
-                        <span class="block py-0.5 text-[13px] text-fg">{{ item.title }}</span>
+                        <span class="block py-0.5 text-[13px] text-fg">{{
+                          item | localizedTitle
+                        }}</span>
                       }
                     }
                   </div>

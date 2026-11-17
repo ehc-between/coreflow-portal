@@ -1,5 +1,6 @@
 import type { BadgeTone } from '../../shared/ui/badge/badge';
 import {
+  ApplicabilitySource,
   ClauseNode,
   ClauseRollup,
   LocalizedList,
@@ -58,6 +59,24 @@ export function effectiveStatus(
   req: Pick<Requirement, 'status' | 'applicable'>,
 ): RequirementStatus {
   return req.applicable ? req.status : 'not_applicable';
+}
+
+/**
+ * Where a requirement's applicability comes from. Older payloads without
+ * `applicability_source` only knew the org's own decision, so a not-applicable
+ * requirement there is `manual`.
+ */
+export function applicabilitySource(
+  req: Pick<Requirement, 'applicable' | 'applicability_source'>,
+): ApplicabilitySource {
+  return req.applicability_source ?? (req.applicable ? 'default' : 'manual');
+}
+
+/** Not applicable because the EU AI Act derivation says so (no decision by the org). */
+export function isDerivedNotApplicable(
+  req: Pick<Requirement, 'applicable' | 'applicability_source'>,
+): boolean {
+  return !req.applicable && applicabilitySource(req) === 'derived';
 }
 
 /** Whether a requirement counts toward completeness (is applicable). */

@@ -4,10 +4,48 @@ import { FieldDef, FormValues, RegisterDef } from './privacy-registers';
 
 export type FormMode = 'create' | 'edit';
 
-/** The fields of a register shown in a mode (create-only / edit-only respected). */
-export function fieldsFor(register: RegisterDef, mode: FormMode): readonly FieldDef[] {
-  return register.fields.filter((f) => (mode === 'create' ? !f.editOnly : !f.createOnly));
+/** Whether the caller holds a permission (defaults to "yes" for the PATCH diff). */
+export type PermissionCheck = (permission: string) => boolean;
+
+/**
+ * The fields of a register shown in a mode (create-only / edit-only respected).
+ * On edit, a field with `editPermission` is left out unless `can` grants it.
+ */
+export function fieldsFor(
+  register: RegisterDef,
+  mode: FormMode,
+  can: PermissionCheck = () => true,
+): readonly FieldDef[] {
+  return register.fields.filter((f) =>
+    mode === 'create' ? !f.editOnly : !f.createOnly && (!f.editPermission || can(f.editPermission)),
+  );
 }
+
+/** Clock skew allowed before a `notFuture` date-time counts as in the future (the backend's). */
+const FUTURE_SKEW_MS = 5 * 60 * 1000;
+
+/** The fields with `reasonOnChange` whose value differs from the stored one. */
+export function changedReasonFields(
+  register: RegisterDef,
+  original: FormValues,
+  values: FormValues,
+): readonly FieldDef[] {
+  return register.fields.filter(
+    (f) =>
+      f.reasonOnChange && !sameValue(wireValue(f, original[f.key]), wireValue(f, values[f.key])),
+  );
+}
+
+/** Extra input to `validate` on edit: the stored values and the change reason. */
+export interface ValidateContext {
+  readonly original?: FormValues;
+  readonly changeReason?: string;
+  readonly can?: PermissionCheck;
+  readonly now?: Date;
+}
+
+/** Form error key of a missing change reason (`validate` reports it under `reason`). */
+export const REASON_ERROR_FIELD = 'reason';
 
 /** Whether a field is visible for the current values. */
 export function isVisible(field: FieldDef, values: FormValues): boolean {
@@ -192,16 +230,28 @@ export function validate(
   register: RegisterDef,
   values: FormValues,
   mode: FormMode,
+  context: ValidateContext = {},
 ): Readonly<Record<string, string>> {
   const errors: Record<string, string> = {};
-  for (const f of fieldsFor(register, mode)) {
-    if (!f.required || !isVisible(f, values)) {
+  const now = (context.now ?? new Date()).getTime();
+  for (const f of fieldsFor(register, mode, context.can)) {
+    if (!isVisible(f, values)) {
       continue;
     }
     const v = wireValue(f, values[f.key]);
-    if (v === null || (Array.isArray(v) && v.length === 0)) {
+    if (f.required && (v === null || (Array.isArray(v) && v.length === 0))) {
       errors[f.key] = 'privacy.form.required';
+    } else if (f.notFuture && typeof v === 'string' && Date.parse(`${v}Z`) > now + FUTURE_SKEW_MS) {
+      errors[f.key] = 'privacy.form.notInFuture';
     }
+  }
+  if (
+    mode === 'edit' &&
+    context.original &&
+    !context.changeReason?.trim() &&
+    changedReasonFields(register, context.original, values).length
+  ) {
+    errors[REASON_ERROR_FIELD] = 'privacy.form.changeReasonNeeded';
   }
   return errors;
 }

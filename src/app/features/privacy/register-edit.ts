@@ -27,6 +27,7 @@ import { PrivacyErrorMessage, privacyError } from './data/privacy-errors';
 import { createBody, emptyValues, updateBody, valuesFromRecord } from './data/privacy-form-model';
 import { PrivacyRefsService } from './data/privacy-refs.service';
 import { FormValues, REGISTERS, RegisterKey } from './data/privacy-registers';
+import { privacyPermissions } from './privacy-nav';
 import { PrivacyFormSubmit, PrivacyRegisterForm } from './register-form';
 
 /** Date-time fields pre-filled with "now" on create (the backend default). */
@@ -85,6 +86,7 @@ const NOW_FIELDS = ['received_at', 'aware_at', 'given_at'];
               [entityId]="id() ?? null"
               [busy]="saving()"
               [error]="saveError()"
+              [permissions]="perms()"
               (submitted)="save($event)"
               (cancelled)="cancel()"
             />
@@ -105,6 +107,7 @@ export class PrivacyRegisterEdit {
   private readonly language = inject(LanguageService);
   private readonly notify = inject(NotificationService);
   private readonly router = inject(Router);
+  protected readonly perms = privacyPermissions();
 
   readonly register = input.required<RegisterKey>();
   /** Route param; absent on `new`. */

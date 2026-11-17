@@ -139,6 +139,40 @@ describe('ReadinessPage', () => {
     expect(prompt).toContain('3 covered with recent evidence');
   });
 
+  it('says how many AI Act points the AI systems leave out', async () => {
+    const { http, el, render } = await setup();
+    http
+      .expectOne(`${ROOT}/standards`)
+      .flush([standard({ key: 'eu-ai-act-2024', name: 'EU AI Act' })]);
+    http.expectOne(`${ROOT}/frameworks`).flush([
+      {
+        framework: 'eu_ai_act',
+        standard_key: 'eu-ai-act-2024',
+        name: 'EU AI Act',
+        kind: 'regulation',
+        enabled: true,
+        in_profile: true,
+        readiness: 20,
+      },
+    ]);
+    http.expectOne(`${ROOT}/frameworks/readiness`).flush([
+      {
+        framework: 'eu_ai_act',
+        standard_key: 'eu-ai-act-2024',
+        applicable: 9,
+        covered: 2,
+        partial: 0,
+        fresh: 2,
+        score: 20,
+        derived_not_applicable: 28,
+      },
+    ]);
+    await render();
+
+    expect(el.textContent).toContain('9 applicable requirements');
+    expect(el.querySelector('[data-testid="derived-not-applicable"]')?.textContent).toContain('28');
+  });
+
   it('teaches with an empty state when no framework is enabled', async () => {
     const { http, el, render } = await setup();
     http.expectOne(`${ROOT}/standards`).flush([standard({ enabled: false })]);

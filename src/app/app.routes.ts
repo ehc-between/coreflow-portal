@@ -4,6 +4,7 @@ import { settingsGuard } from './core/auth/org-manage.guard';
 import { permissionGuard } from './core/auth/permission.guard';
 import { superAdminGuard } from './core/auth/super-admin.guard';
 import { moduleGuard } from './core/modules/module.service';
+import { orgDeepLinkGuard } from './core/org/org-deep-link.guard';
 import { MainLayout } from './layout/main-layout/main-layout';
 
 /**
@@ -70,9 +71,21 @@ export const routes: Routes = [
   {
     path: '',
     component: MainLayout,
-    canActivate: [authGuard],
+    // orgDeepLinkGuard handles `?org=<id>` deep links (emails, digests, calendar
+    // feeds): it switches to that org, or sends a non-member to /no-access. It
+    // must also run when only the query changes (an in-app `?org=` link to the
+    // page already open), hence paramsOrQueryParamsChange.
+    canActivate: [authGuard, orgDeepLinkGuard],
+    runGuardsAndResolvers: 'paramsOrQueryParamsChange',
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
+      {
+        // A deep link to an org the user doesn't belong to.
+        path: 'no-access',
+        title: 'orgAccess.title',
+        loadComponent: () =>
+          import('./features/org-access/no-org-access').then((m) => m.NoOrgAccess),
+      },
       {
         path: 'dashboard',
         title: 'nav.dashboard',

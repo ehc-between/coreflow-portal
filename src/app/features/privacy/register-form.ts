@@ -23,6 +23,8 @@ import { DpiaRisk, RopaDraft, ScreeningSuggestion } from './data/privacy.models'
 import { PrivacyErrorMessage } from './data/privacy-errors';
 import {
   FormMode,
+  REASON_ERROR_FIELD,
+  changedReasonFields,
   fieldsFor,
   isVisible,
   mergeRopaDraft,
@@ -335,6 +337,14 @@ const ASK_FIELDS = new Set([
                         />
                       }
                     </div>
+                    @if (mode() === 'edit' && f.editHintKey) {
+                      <p
+                        class="mt-1 text-[12px] text-fg-subtle"
+                        [attr.data-testid]="'edit-hint-' + f.key"
+                      >
+                        {{ f.editHintKey | transloco }}
+                      </p>
+                    }
                     @if (shownErrors()[f.key]; as key) {
                       <p [id]="fid(f) + '-err'" class="mt-1 text-[12px] text-fail">
                         {{ key | transloco }}
@@ -376,19 +386,33 @@ const ASK_FIELDS = new Set([
 
       @if (mode() === 'edit' && register().revisions) {
         <app-card>
-          <app-form-field [label]="'privacy.form.changeReason' | transloco" inputId="cf-pf-reason">
+          <app-form-field
+            [label]="
+              (reasonRequired() ? 'privacy.form.changeReasonRequired' : 'privacy.form.changeReason')
+                | transloco
+            "
+            inputId="cf-pf-reason"
+          >
             <input
               id="cf-pf-reason"
               type="text"
               maxlength="500"
               [value]="changeReason()"
               (input)="changeReason.set($any($event.target).value)"
+              [attr.required]="reasonRequired() ? '' : null"
+              [attr.aria-invalid]="!!shownErrors()[reasonField]"
+              [attr.aria-describedby]="shownErrors()[reasonField] ? 'cf-pf-reason-err' : null"
               data-testid="change-reason"
             />
           </app-form-field>
           <p class="mt-1 text-[12px] text-fg-subtle">
             {{ 'privacy.form.changeReasonHint' | transloco }}
           </p>
+          @if (shownErrors()[reasonField]; as key) {
+            <p id="cf-pf-reason-err" class="mt-1 text-[12px] text-fail">
+              {{ key | transloco }}
+            </p>
+          }
         </app-card>
       }
 
@@ -420,6 +444,8 @@ export class PrivacyRegisterForm {
   readonly entityId = input<string | null>(null);
   readonly busy = input(false);
   readonly error = input<PrivacyErrorMessage | null>(null);
+  /** The caller's permissions (fields with `editPermission` are shown only to holders). */
+  readonly permissions = input<ReadonlySet<string>>(new Set());
 
   readonly submitted = output<PrivacyFormSubmit>();
   readonly cancelled = output<void>();
@@ -442,7 +468,7 @@ export class PrivacyRegisterForm {
     const values = this.form();
     const order: string[] = [];
     const grouped = new Map<string, FieldDef[]>();
-    for (const f of fieldsFor(this.register(), this.mode())) {
+    for (const f of fieldsFor(this.register(), this.mode(), this.can())) {
       if (!isVisible(f, values)) {
         continue;
       }
@@ -455,7 +481,24 @@ export class PrivacyRegisterForm {
     return order.map((key) => ({ key, fields: grouped.get(key)! }));
   });
 
-  protected readonly errors = computed(() => validate(this.register(), this.form(), this.mode()));
+  protected readonly reasonField = REASON_ERROR_FIELD;
+  private readonly can = computed(() => {
+    const perms = this.permissions();
+    return (permission: string) => perms.has(permission);
+  });
+  /** A changed field needs a reason (e.g. a corrected breach awareness time). */
+  protected readonly reasonRequired = computed(
+    () =>
+      this.mode() === 'edit' &&
+      changedReasonFields(this.register(), this.value(), this.form()).length > 0,
+  );
+  protected readonly errors = computed(() =>
+    validate(this.register(), this.form(), this.mode(), {
+      original: this.mode() === 'edit' ? this.value() : undefined,
+      changeReason: this.changeReason(),
+      can: this.can(),
+    }),
+  );
   protected readonly shownErrors = computed(() => (this.attempted() ? this.errors() : {}));
 
   protected readonly screeningValue = computed(

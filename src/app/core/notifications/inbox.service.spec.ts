@@ -4,7 +4,11 @@ import { Subject, of, throwError } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { SelectedOrgService } from '../org/selected-org.service';
 import { INBOX_POLL_INTERVAL_MS, InboxService } from './inbox.service';
-import { UnreadCountResponse, UserNotification } from './user-notification.models';
+import {
+  UnreadCountResponse,
+  UnreadCountsByOrgResponse,
+  UserNotification,
+} from './user-notification.models';
 import { UserNotificationsApi } from './user-notifications-api';
 
 function notification(overrides: Partial<UserNotification> = {}): UserNotification {
@@ -44,6 +48,15 @@ describe('InboxService', () => {
     let nextCount = 3;
     const api = {
       unreadCount: vi.fn(() => of<UnreadCountResponse>({ count: nextCount })),
+      unreadCountsByOrg: vi.fn(() =>
+        of<UnreadCountsByOrgResponse>({
+          items: [
+            { org_id: 'org-1', count: nextCount },
+            { org_id: 'org-2', count: 4 },
+          ],
+          total: nextCount + 4,
+        }),
+      ),
       markRead: vi.fn((id: string) => of(notification({ id, is_read: true }))),
       markAllRead: vi.fn(() => of({ updated: 3 })),
     };
@@ -154,5 +167,54 @@ describe('InboxService', () => {
     inbox.markAllRead().subscribe();
     expect(api.markAllRead).toHaveBeenCalledWith('org-1');
     expect(inbox.unreadCount()).toBe(0);
+  });
+
+  describe('per-org unread counts', () => {
+    it('loads the count of every org with each poll', () => {
+      const { inbox, api } = setup();
+      expect(api.unreadCountsByOrg).toHaveBeenCalledTimes(1);
+      expect(inbox.unreadByOrg().get('org-1')).toBe(3);
+      expect(inbox.unreadByOrg().get('org-2')).toBe(4);
+      expect(inbox.unreadElsewhere()).toBe(4);
+      vi.advanceTimersByTime(INBOX_POLL_INTERVAL_MS);
+      expect(api.unreadCountsByOrg).toHaveBeenCalledTimes(2);
+    });
+
+    it('counts the other orgs as "elsewhere" after a switch', () => {
+      const { inbox, orgId } = setup();
+      orgId.set('org-2');
+      TestBed.tick();
+      expect(inbox.unreadElsewhere()).toBe(3);
+    });
+
+    it("decrements the notification's own org when it is marked read", () => {
+      const { inbox } = setup();
+      inbox.markRead(notification({ id: 'n-7', org_id: 'org-2' })).subscribe();
+      expect(inbox.unreadByOrg().get('org-2')).toBe(3);
+      // Not the selected org: its badge is untouched.
+      expect(inbox.unreadCount()).toBe(3);
+    });
+
+    it('zeroes the selected org on mark-all-read', () => {
+      const { inbox } = setup();
+      inbox.markAllRead().subscribe();
+      expect(inbox.unreadByOrg().get('org-1')).toBe(0);
+      expect(inbox.unreadByOrg().get('org-2')).toBe(4);
+    });
+
+    it('clears the counts on sign-out', () => {
+      const { inbox, authenticated } = setup();
+      authenticated.set(false);
+      TestBed.tick();
+      expect(inbox.unreadByOrg().size).toBe(0);
+      expect(inbox.unreadElsewhere()).toBe(0);
+    });
+
+    it('keeps the last counts when the request fails', () => {
+      const { inbox, api } = setup();
+      api.unreadCountsByOrg.mockImplementationOnce(() => throwError(() => new Error('boom')));
+      vi.advanceTimersByTime(INBOX_POLL_INTERVAL_MS);
+      expect(inbox.unreadByOrg().get('org-2')).toBe(4);
+    });
   });
 });

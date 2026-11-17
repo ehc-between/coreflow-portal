@@ -132,24 +132,24 @@
         </form>
       }
 
-      @if (lastInvite(); as invite) {
+      @if (lastInvite()?.accept_url; as acceptUrl) {
         <div class="mt-5 rounded-tile border border-accent-border bg-accent-soft p-3">
           <p class="text-[13px] font-semibold text-accent">
             {{ 'settings.invitations.linkTitle' | transloco }}
           </p>
           <p class="mt-0.5 text-[12px] text-fg-muted">
-            {{ 'settings.invitations.linkHint' | transloco: { email: invite.email } }}
+            {{ 'settings.invitations.linkHint' | transloco: { email: lastInvite()?.email ?? '' } }}
           </p>
           <div class="mt-2 flex items-center gap-2">
             <input
               type="text"
               readonly
-              [value]="invite.accept_url"
+              [value]="acceptUrl"
               [attr.aria-label]="'settings.invitations.linkTitle' | transloco"
               (focus)="$any($event.target).select()"
               class="h-9 w-full rounded-[10px] border border-border bg-bg px-3 text-[12.5px] text-fg outline-none"
             />
-            <app-button variant="secondary" size="sm" (click)="copy(invite.accept_url)">
+            <app-button variant="secondary" size="sm" (click)="copy(acceptUrl)">
               <app-icon name="link" [size]="15" />
               {{ 'settings.invitations.copy' | transloco }}
             </app-button>

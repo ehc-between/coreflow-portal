@@ -116,16 +116,20 @@ export class AuthService {
     return this.refresh();
   }
 
-  /** Sign out: clear the server cookie, drop in-memory state, return to /login. */
-  logout(): void {
+  /**
+   * Sign out: clear the server cookie, drop in-memory state, return to /login.
+   * An optional in-app `returnUrl` is passed to the login page so the user
+   * lands back there after signing in again (e.g. with another account).
+   */
+  logout(returnUrl?: string): void {
     this.http
       .post(`${this.authBaseUrl}/logout`, null, {
         withCredentials: true,
         context: this.handledInPlace(),
       })
       .subscribe({
-        next: () => this.signedOut(),
-        error: () => this.signedOut(),
+        next: () => this.signedOut(undefined, returnUrl),
+        error: () => this.signedOut(undefined, returnUrl),
       });
   }
 
@@ -204,9 +208,16 @@ export class AuthService {
   }
 
   /** Drop local state and land on the login page (optionally with a notice). */
-  private signedOut(notice?: LoginNotice): void {
+  private signedOut(notice?: LoginNotice, returnUrl?: string): void {
     this.clearState();
-    void this.router.navigate(['/login'], notice ? { queryParams: { notice } } : {});
+    const queryParams: Record<string, string> = {};
+    if (notice) {
+      queryParams['notice'] = notice;
+    }
+    if (returnUrl) {
+      queryParams['returnUrl'] = returnUrl;
+    }
+    void this.router.navigate(['/login'], Object.keys(queryParams).length ? { queryParams } : {});
   }
 
   /** Errors from these calls are shown in place, not as a generic toast. */

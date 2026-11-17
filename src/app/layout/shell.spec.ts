@@ -10,6 +10,7 @@ import { AuthService } from '../core/auth/auth.service';
 import { APP_CONFIG } from '../core/config/app-config';
 import { LanguageService } from '../core/i18n/language.service';
 import { ModuleService } from '../core/modules/module.service';
+import { InboxService } from '../core/notifications/inbox.service';
 import { SelectedOrgService } from '../core/org/selected-org.service';
 import { formatLocalDate } from '../shared/locale/locale-pipes';
 import { LanguageSwitcher } from '../shared/language-switcher/language-switcher';
@@ -54,6 +55,14 @@ function configure(imports: unknown[], orgId = 'org-1', permissions: string[] = 
         },
       },
       { provide: ModuleService, useValue: { isEnabled: () => true } },
+      {
+        provide: InboxService,
+        useValue: {
+          unreadByOrg: signal(new Map<string, number>()).asReadonly(),
+          unreadElsewhere: signal(0).asReadonly(),
+          refreshByOrg: () => undefined,
+        },
+      },
       {
         provide: AuthService,
         useValue: { isSuperuser: signal(false), displayName: signal('Kari Nordmann') },

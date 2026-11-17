@@ -24,6 +24,8 @@ import {
 } from '../../../core/tasks/task.models';
 import { TasksApi } from '../../../core/tasks/tasks-api';
 import { AskPanelService } from '../../ask/ask-panel.service';
+import { LocalizedTitleResolver } from '../../../core/i18n/localized-title';
+import { LocalizedTitlePipe } from '../../../shared/i18n/localized-title.pipe';
 import { LocalDatePipe, LocalDayPipe } from '../../../shared/locale/locale-pipes';
 import { MarkdownPipe } from '../../../shared/markdown/markdown.pipe';
 import { AssigneeLabel } from '../../../shared/tasks/assignee-label';
@@ -63,6 +65,7 @@ type PendingConfirm = 'cancel' | 'delete' | null;
     TranslocoPipe,
     LocalDatePipe,
     LocalDayPipe,
+    LocalizedTitlePipe,
     MarkdownPipe,
     Alert,
     AssigneeLabel,
@@ -125,7 +128,7 @@ type PendingConfirm = 'cancel' | 'delete' | null;
               <h1
                 class="font-display text-[26px] font-bold tracking-[-0.025em] break-words text-fg"
               >
-                {{ task.title }}
+                {{ task | localizedTitle }}
               </h1>
 
               <div class="flex flex-wrap items-center gap-2">
@@ -426,7 +429,7 @@ type PendingConfirm = 'cancel' | 'delete' | null;
               "
               [message]="
                 (pending() === 'delete' ? 'tasks.confirm.deleteBody' : 'tasks.confirm.cancelBody')
-                  | transloco: { title: task.title }
+                  | transloco: { title: (task | localizedTitle) }
               "
               [confirmLabel]="
                 (pending() === 'delete' ? 'tasks.actions.delete' : 'tasks.actions.cancel')
@@ -449,6 +452,7 @@ export class TaskDetailPage {
   private readonly router = inject(Router);
   private readonly notifications = inject(NotificationService);
   private readonly language = inject(LanguageService);
+  private readonly titles = inject(LocalizedTitleResolver);
   private readonly ask = inject(AskPanelService);
 
   /** Route param (component input binding). */
@@ -491,7 +495,7 @@ export class TaskDetailPage {
       entityType: 'task',
       entityId: this.id(),
       view: 'detail',
-      title: this.task()?.title ?? null,
+      title: this.task() ? this.titles.resolve(this.task()) : null,
     }));
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();
@@ -619,7 +623,7 @@ export class TaskDetailPage {
       : null;
     this.ask.showWith(
       this.language.translate(`tasks.ai.prompts.${kind}${record ? 'OnRecord' : ''}`, {
-        title: task.title,
+        title: this.titles.resolve(task),
         record,
       }),
     );

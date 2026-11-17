@@ -81,11 +81,27 @@
       "name": "Brukervirksomhet",
       "description": "Dere bruker KI-systemer i eget arbeid, for eksempel en chatbot eller et utvelgelsesverktøy."
     },
-    "both": {
+    "provider_and_deployer": {
       "name": "Tilbyder og brukervirksomhet",
       "description": "Dere lager KI-systemer og bruker også KI-systemer i egen drift."
     },
-    "none": {
+    "importer": {
+      "name": "Importør",
+      "description": "Dere bringer KI-systemer fra tilbydere utenfor EU/EØS inn på markedet."
+    },
+    "distributor": {
+      "name": "Distributør",
+      "description": "Dere gjør KI-systemer tilgjengelige på markedet uten å være tilbyder eller importør."
+    },
+    "authorised_representative": {
+      "name": "Autorisert representant",
+      "description": "En tilbyder utenfor EU/EØS har skriftlig utpekt dere til å ivareta pliktene etter KI-forordningen på sine vegne."
+    },
+    "product_manufacturer": {
+      "name": "Produktprodusent",
+      "description": "Dere selger produkter under eget navn med et høyrisiko KI-system som sikkerhetskomponent, og får dermed tilbyderens plikter."
+    },
+    "not_applicable": {
       "name": "Ikke omfattet",
       "description": "Dere verken tilbyr eller bruker KI-systemer som KI-forordningen omfatter."
     },

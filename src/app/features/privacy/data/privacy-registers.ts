@@ -14,6 +14,7 @@ import {
   LBA_STATUSES,
   LEGAL_BASES,
   LEVELS,
+  PERM_MANAGE,
   PERM_READ,
   PERM_REQUESTS,
   PERM_WRITE,
@@ -88,6 +89,14 @@ export interface FieldDef {
   readonly createOnly?: boolean;
   /** Only on edit (PATCH-only fields such as decisions and outcomes). */
   readonly editOnly?: boolean;
+  /** On edit, shown only to holders of this permission (the backend enforces it too). */
+  readonly editPermission?: string;
+  /** On edit, a change needs a change reason (kept on the revision). */
+  readonly reasonOnChange?: boolean;
+  /** Hint shown under the field on edit (i18n key). */
+  readonly editHintKey?: string;
+  /** A date-time that may not lie in the future (5 minutes of clock skew allowed). */
+  readonly notFuture?: boolean;
   /** Label override (default `privacy.fields.<key>`). */
   readonly labelKey?: string;
   /** Full width in the form grid. */
@@ -392,7 +401,17 @@ export const REGISTERS: Readonly<Record<RegisterKey, RegisterDef>> = {
     fields: [
       ...COMMON_HEAD,
       description,
-      { key: 'aware_at', kind: 'datetime', section: 'timing', createOnly: true },
+      {
+        key: 'aware_at',
+        kind: 'datetime',
+        section: 'timing',
+        required: true,
+        notFuture: true,
+        // Correcting the legal anchor of the 72-hour clock: DPO / privacy:manage, with a reason.
+        editPermission: PERM_MANAGE,
+        reasonOnChange: true,
+        editHintKey: 'privacy.form.awareCorrectionHint',
+      },
       { key: 'occurred_at', kind: 'datetime', section: 'timing' },
       { key: 'contained_at', kind: 'datetime', section: 'timing' },
       {

@@ -38,9 +38,22 @@ const EVENT_KEYS = [
   'dataSubjectRequestExtended',
   'dataBreachAuthorityNotified',
   'dataBreachSubjectsNotified',
+  'dataBreachAwareCorrected',
+  'dataBreachClockReminder',
   'consentRecordWithdrawn',
   'dpiaDecided',
   'legalBasisAssessmentDecided',
+];
+
+/** Generated task titles (`privacy:tasks.<key>`, params `{code}`). */
+const TASK_TITLE_KEYS = [
+  'breachContain',
+  'breachAssess',
+  'breachNotifyAuthority',
+  'breachDecideSubjects',
+  'breachNotifySubjects',
+  'breachClose',
+  'dsrRespond',
 ];
 
 /** Clauses the backend module declares (manifest), plus none other. */
@@ -114,6 +127,7 @@ describe('privacy i18n and guidance', () => {
         expectKey(`notifications.${k}`);
         expectKey(`timeline.${k}`);
       });
+      TASK_TITLE_KEYS.forEach((k) => expectKey(`tasks.${k}`));
       PRIVACY_SORTS.forEach((s) =>
         expectKey(`sorts.${s.startsWith('-') ? `${s.slice(1)}Desc` : s}`),
       );

@@ -1,6 +1,7 @@
 import { themeKey } from '../../features/standards/standard-themes';
 import {
   allNodeNumbers,
+  applicabilitySource,
   chapterBars,
   checklistItems,
   collectGaps,
@@ -12,6 +13,7 @@ import {
   flattenRequirements,
   groupByTheme,
   hasAnnexChildren,
+  isDerivedNotApplicable,
   localized,
   matchesFilter,
   replaceRequirement,
@@ -449,5 +451,27 @@ describe('standards-data', () => {
         'Management review minutes',
       ]);
     });
+  });
+});
+
+describe('AI Act applicability source', () => {
+  it('reads the backend source and falls back for older payloads', () => {
+    expect(applicabilitySource({ applicable: false, applicability_source: 'derived' })).toBe(
+      'derived',
+    );
+    expect(applicabilitySource({ applicable: false })).toBe('manual');
+    expect(applicabilitySource({ applicable: true })).toBe('default');
+  });
+
+  it('flags only derived not-applicable points', () => {
+    expect(isDerivedNotApplicable({ applicable: false, applicability_source: 'derived' })).toBe(
+      true,
+    );
+    expect(isDerivedNotApplicable({ applicable: false, applicability_source: 'manual' })).toBe(
+      false,
+    );
+    expect(isDerivedNotApplicable({ applicable: true, applicability_source: 'derived' })).toBe(
+      false,
+    );
   });
 });

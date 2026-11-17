@@ -15,7 +15,7 @@ import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { LanguageService } from '../../core/i18n/language.service';
 import { InboxService } from '../../core/notifications/inbox.service';
-import { notificationLink } from '../../core/notifications/notification-text';
+import { notificationUrl } from '../../core/notifications/notification-text';
 import { NotificationTextResolver } from '../../core/notifications/notification-text.service';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { UserNotification } from '../../core/notifications/user-notification.models';
@@ -335,10 +335,12 @@ export class NotificationBell {
         error: () => undefined,
       });
     }
-    const link = notificationLink(notification);
+    // Org-aware (`?org=`): the shell's deep-link guard switches to the
+    // notification's org if it isn't the selected one.
+    const url = notificationUrl(notification);
     this.close(false);
-    if (link) {
-      void this.router.navigate(link);
+    if (url) {
+      void this.router.navigateByUrl(url);
     }
   }
 

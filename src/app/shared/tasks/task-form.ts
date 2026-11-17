@@ -11,6 +11,7 @@ import {
 } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Observable, map } from 'rxjs';
+import { LocalizedTitleResolver } from '../../core/i18n/localized-title';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { taskErrorKey } from '../../core/tasks/task-errors';
 import {
@@ -296,6 +297,7 @@ let nextId = 0;
 export class TaskForm {
   private readonly api = inject(TasksApi);
   private readonly selectedOrg = inject(SelectedOrgService);
+  private readonly titles = inject(LocalizedTitleResolver);
 
   readonly value = input<TaskFormValue | null>(null);
   readonly saved = output<TaskFormResult>();
@@ -305,6 +307,8 @@ export class TaskForm {
   private readonly uid = `task-form-${nextId++}`;
 
   protected readonly title = signal('');
+  /** The task title as shown when the form opened (translated for generated tasks). */
+  private shownTitle = '';
   protected readonly description = signal('');
   protected readonly assignee = signal('');
   protected readonly priority = signal<TaskPriority>('normal');
@@ -435,7 +439,8 @@ export class TaskForm {
     if (v?.task) {
       const task = v.task;
       const body: Record<string, unknown> = {};
-      if (title !== task.title) body['title'] = title;
+      // A generated title is shown translated; only a real edit replaces it.
+      if (title !== this.shownTitle) body['title'] = title;
       if (description !== (task.description ?? null)) body['description'] = description;
       if (this.assignee() !== encodeAssignee(task.assignee)) body['assignee'] = assignee;
       if (this.priority() !== task.priority) body['priority'] = this.priority();
@@ -478,7 +483,8 @@ export class TaskForm {
     const task = value?.task;
     const rec = value?.recurrence;
     const source = task ?? rec;
-    this.title.set(source?.title ?? value?.title ?? '');
+    this.shownTitle = task ? this.titles.resolve(task) : (source?.title ?? '');
+    this.title.set(task ? this.shownTitle : (source?.title ?? value?.title ?? ''));
     this.description.set(source?.description ?? '');
     this.assignee.set(encodeAssignee(source ? source.assignee : (value?.assignee ?? null)));
     this.priority.set(source?.priority ?? 'normal');

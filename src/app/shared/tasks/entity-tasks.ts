@@ -17,6 +17,7 @@ import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { taskErrorKey } from '../../core/tasks/task-errors';
 import { AssigneeIn, Task } from '../../core/tasks/task.models';
 import { TasksApi } from '../../core/tasks/tasks-api';
+import { LocalizedTitlePipe } from '../i18n/localized-title.pipe';
 import { LocalDayPipe } from '../locale/locale-pipes';
 import { Badge } from '../ui/badge/badge';
 import { Button } from '../ui/button/button';
@@ -51,6 +52,7 @@ const LIMIT = 200;
     RouterLink,
     TranslocoPipe,
     LocalDayPipe,
+    LocalizedTitlePipe,
     Badge,
     Button,
     Icon,
@@ -87,14 +89,16 @@ const LIMIT = 200;
                   class="h-4 w-4 flex-none"
                   [checked]="busyId() === task.id"
                   [disabled]="busyId() === task.id"
-                  [attr.aria-label]="'tasks.entity.complete' | transloco: { title: task.title }"
+                  [attr.aria-label]="
+                    'tasks.entity.complete' | transloco: { title: (task | localizedTitle) }
+                  "
                   (change)="complete(task)"
                 />
                 <a
                   [routerLink]="['/tasks', task.id]"
                   class="min-w-0 flex-1 truncate text-[13.5px] font-semibold text-fg hover:underline"
                 >
-                  {{ task.title }}
+                  {{ task | localizedTitle }}
                 </a>
                 <span class="hidden text-[12.5px] text-fg-muted sm:inline-flex">
                   <app-assignee-label [assignee]="task.assignee" />
@@ -176,7 +180,7 @@ const LIMIT = 200;
                     [routerLink]="['/tasks', task.id]"
                     class="min-w-0 flex-1 truncate text-[13px] text-fg-muted line-through hover:underline"
                   >
-                    {{ task.title }}
+                    {{ task | localizedTitle }}
                   </a>
                   <app-badge [tone]="statusTone(task.status)">
                     {{ statusKey(task.status) | transloco }}
