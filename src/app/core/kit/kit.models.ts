@@ -30,6 +30,10 @@ export interface LinkItem {
   readonly other: EntityRefDto;
   readonly created_at: string;
   readonly created_by: UserRef | null;
+  /** Why the link exists (P4): `user`, `auto` (a rule), `flow` (create from here) or `ai`. */
+  readonly origin?: string;
+  /** The create-from-here flow that wrote it (`origin = flow`). */
+  readonly flow_key?: string | null;
 }
 
 export interface LinkList {

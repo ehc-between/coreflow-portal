@@ -2,6 +2,7 @@ import {
   NOTIFICATION_FALLBACK_KEY,
   notificationLink,
   notificationText,
+  notificationUrl,
   parseScopedKey,
   scopeAlias,
   scopesFor,
@@ -89,6 +90,39 @@ describe('notificationLink', () => {
       '/deviations',
       'dev-1',
     ]);
+  });
+});
+
+describe('notificationUrl', () => {
+  it("adds the notification's org to the record link", () => {
+    expect(notificationUrl(make('notifications.actionAssigned'))).toBe(
+      '/deviations/dev-1?org=org-1',
+    );
+  });
+
+  it('keeps the query and fragment of an in-app url and appends the org', () => {
+    const n = {
+      ...make('risk:events.created', { url: '/risk/r-1?tab=controls#top' }),
+      params: { url: '/risk/r-1?tab=controls#top' },
+      org_id: 'org-2',
+    };
+    expect(notificationUrl(n)).toBe('/risk/r-1?tab=controls&org=org-2#top');
+  });
+
+  it("replaces an org already in a stored url with the row's own org", () => {
+    const n = {
+      ...make('risk:events.created'),
+      params: { url: '/risk/r-1?org=attacker-org' },
+      org_id: 'org-1',
+    };
+    expect(notificationUrl(n)).toBe('/risk/r-1?org=org-1');
+  });
+
+  it('never builds an off-site link from a stored url', () => {
+    for (const url of ['//evil.example/x', 'https://evil.example/x', '/\\evil.example']) {
+      const n = { ...make('risk:events.created'), params: { url }, entity_type: 'unknown' };
+      expect(notificationUrl(n)).toBeNull();
+    }
   });
 });
 

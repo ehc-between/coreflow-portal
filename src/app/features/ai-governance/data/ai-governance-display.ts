@@ -98,6 +98,46 @@ export function obligationTaskTone(status: string | null | undefined): BadgeTone
 export const riskKey = (risk: string): string => `aiGovernance.risk.${risk}`;
 export const statusKey = (status: string): string => `aiGovernance.status.${status}`;
 export const roleKey = (role: string): string => `aiGovernance.role.${role}`;
+
+/** Roles that do not provide the system but pass it on (Art. 22-24). */
+const INTERMEDIARY_ROLES: readonly string[] = [
+  'importer',
+  'distributor',
+  'authorised_representative',
+];
+
+/**
+ * The risk explanation for a system: the high-risk text lists the provider's
+ * duties, so a deployer or an intermediary (importer, distributor, authorised
+ * representative) gets the duties of its own role instead.
+ */
+export function riskExplainKey(risk: string, role: string | null | undefined): string {
+  if (risk === 'high' && role === 'deployer') {
+    return 'aiGovernance.riskExplainByRole.deployer.high';
+  }
+  if (risk === 'high' && role && INTERMEDIARY_ROLES.includes(role)) {
+    return 'aiGovernance.riskExplainByRole.other.high';
+  }
+  return `aiGovernance.riskExplain.${risk}`;
+}
+
+/** Copy keys of the technical-file banner for an audience (older payloads: from `required`). */
+export function technicalDocCopy(doc: { readonly required: boolean; readonly audience?: string }): {
+  readonly badge: string | null;
+  readonly body: string;
+} {
+  const audience = doc.audience ?? (doc.required ? 'provider' : 'none');
+  switch (audience) {
+    case 'provider':
+      return { badge: 'aiGovernance.docs.required', body: 'aiGovernance.docs.requiredBody' };
+    case 'deployer':
+      return { badge: 'aiGovernance.docs.providerDuty', body: 'aiGovernance.docs.deployerBody' };
+    case 'other':
+      return { badge: 'aiGovernance.docs.providerDuty', body: 'aiGovernance.docs.otherBody' };
+    default:
+      return { badge: null, body: 'aiGovernance.docs.optionalBody' };
+  }
+}
 export const kindKey = (kind: string): string => `aiGovernance.kind.${kind}`;
 export const assessmentStatusKey = (status: string): string =>
   `aiGovernance.assessmentStatus.${status}`;

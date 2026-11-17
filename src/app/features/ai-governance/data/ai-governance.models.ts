@@ -10,9 +10,14 @@ export const AI_ACT_ROLES = [
   'provider_and_deployer',
   'importer',
   'distributor',
+  'authorised_representative',
+  'product_manufacturer',
   'not_applicable',
 ] as const;
 export type AiActRole = (typeof AI_ACT_ROLES)[number];
+
+/** Who the Annex IV technical file is for, from the system's role and risk class. */
+export type TechnicalDocAudience = 'provider' | 'deployer' | 'other' | 'none';
 
 export const SYSTEM_STATUSES = [
   'planned',
@@ -244,7 +249,12 @@ export interface DocSection {
 
 export interface TechnicalDocumentation {
   readonly system: AiSystemSummary;
+  /** Annex IV is mandatory only for a high-risk system the org provides (Art. 11, 16). */
   readonly required: boolean;
+  /** Missing on older payloads: read as `provider` when required, else `none`. */
+  readonly audience?: TechnicalDocAudience;
+  /** Articles the guidance for this audience points to (e.g. "Art. 26", "Art. 13"). */
+  readonly guidance_refs?: readonly string[];
   readonly sections: readonly DocSection[];
   readonly annex_iv_complete: number;
   readonly annex_iv_total: number;

@@ -21,6 +21,7 @@ import {
   neighbours,
   pickActiveSection,
   renderUnits,
+  requirementPatchFromDetail,
   sectionDomId,
   sectionPath,
   sectionStatus,
@@ -468,5 +469,41 @@ describe('workspace routing helpers', () => {
     expect(sectionDomId('A.5.1')).toBe('sec-A_5_1');
     expect(shortRef('iso27001-2022:A.8.13.r1')).toBe('A.8.13.r1');
     expect(shortRef('plain')).toBe('plain');
+  });
+});
+
+describe('requirementPatchFromDetail (AI Act applicability)', () => {
+  const detail = {
+    ref: 'eu-ai-act-2024:16.r1',
+    text: { en: 'x', nb: 'x' },
+    evidence_examples: null,
+    status: 'not_started',
+    applicable: true,
+    applicability_source: 'manual',
+    derived_applicable: false,
+    derived_reason: { en: 'Providers only', nb: 'Bare tilbydere' },
+    justification: null,
+    confirmed_links: [],
+    suggested_links: [],
+    status_override: null,
+    note: null,
+    links: [],
+  } as RequirementDetail;
+
+  it('carries the applicability source and derived facts into the tree', () => {
+    expect(requirementPatchFromDetail(detail)).toMatchObject({
+      applicable: true,
+      applicability_source: 'manual',
+      derived_applicable: false,
+      derived_reason: { en: 'Providers only', nb: 'Bare tilbydere' },
+    });
+  });
+
+  it('leaves them out for payloads without an applicability source', () => {
+    const { applicability_source: _s, ...older } = detail;
+    void _s;
+    expect(requirementPatchFromDetail(older as RequirementDetail)).not.toHaveProperty(
+      'applicability_source',
+    );
   });
 });

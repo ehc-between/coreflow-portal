@@ -12,6 +12,7 @@ import { privacyError } from './privacy-errors';
 import {
   createBody,
   emptyValues,
+  fieldsFor,
   mergeRopaDraft,
   updateBody,
   validate,
@@ -206,7 +207,17 @@ describe('privacy form model', () => {
       { ...original, aware_at: '2026-01-01T10:00', authority_notification_required: false },
       'Assessed',
     );
-    expect(body).toEqual({ authority_notification_required: false, change_reason: 'Assessed' });
+    // aware_at is editable now (by privacy managers, see below); the change goes out.
+    expect(body).toEqual({
+      aware_at: fromDateTimeInput('2026-01-01T10:00'),
+      authority_notification_required: false,
+      change_reason: 'Assessed',
+    });
+
+    const dsr = valuesFromRecord(REGISTERS.dsr, makeDsr());
+    expect(
+      updateBody(REGISTERS.dsr, dsr, { ...dsr, received_at: '2026-01-01T10:00' }, 'x'),
+    ).toEqual({});
   });
 
   it('sends only changed fields on update, clearing emptied ones', () => {
@@ -233,6 +244,61 @@ describe('privacy form model', () => {
         'create',
       ),
     ).toEqual({ title: 'privacy.form.required', destination_country: 'privacy.form.required' });
+  });
+
+  it('offers the breach awareness time on edit only to privacy managers', () => {
+    const keys = (can: (p: string) => boolean) =>
+      fieldsFor(REGISTERS.breach, 'edit', can).map((f) => f.key);
+    expect(keys((p) => p === 'privacy:manage')).toContain('aware_at');
+    expect(keys((p) => p === 'privacy:write')).not.toContain('aware_at');
+    expect(fieldsFor(REGISTERS.breach, 'create', () => false).map((f) => f.key)).toContain(
+      'aware_at',
+    );
+  });
+
+  it('requires a reason when the awareness time is corrected, and no future time', () => {
+    const original = valuesFromRecord(REGISTERS.breach, makeBreach());
+    const can = () => true;
+    const corrected = { ...original, aware_at: toDateTimeInput('2026-11-11T06:40:00') };
+    expect(
+      validate(REGISTERS.breach, corrected, 'edit', { original, changeReason: '', can }),
+    ).toEqual({ reason: 'privacy.form.changeReasonNeeded' });
+    expect(
+      validate(REGISTERS.breach, corrected, 'edit', { original, changeReason: 'Typo', can }),
+    ).toEqual({});
+    // Other edits need no reason.
+    expect(
+      validate(REGISTERS.breach, { ...original, title: 'Stolen laptop' }, 'edit', {
+        original,
+        changeReason: '',
+        can,
+      }),
+    ).toEqual({});
+    const now = new Date('2026-11-12T10:00:00Z');
+    const future = { ...original, aware_at: toDateTimeInput('2026-11-12T10:10:00') };
+    const skew = { ...original, aware_at: toDateTimeInput('2026-11-12T10:03:00') };
+    expect(
+      validate(REGISTERS.breach, future, 'edit', { original, changeReason: 'x', can, now }),
+    ).toEqual({ aware_at: 'privacy.form.notInFuture' });
+    expect(
+      validate(REGISTERS.breach, skew, 'edit', { original, changeReason: 'x', can, now }),
+    ).toEqual({});
+    expect(
+      validate(REGISTERS.breach, { ...original, aware_at: '' }, 'edit', {
+        original,
+        changeReason: 'x',
+        can,
+      }),
+    ).toEqual({ aware_at: 'privacy.form.required' });
+  });
+
+  it('sends a corrected awareness time with its reason', () => {
+    const original = valuesFromRecord(REGISTERS.breach, makeBreach());
+    const corrected = { ...original, aware_at: toDateTimeInput('2026-11-11T06:40:00') };
+    expect(updateBody(REGISTERS.breach, original, corrected, ' Lost at 07:40 ')).toEqual({
+      aware_at: '2026-11-11T06:40:00',
+      change_reason: 'Lost at 07:40',
+    });
   });
 
   it('merges an assistant ROPA draft without overwriting a typed title', () => {

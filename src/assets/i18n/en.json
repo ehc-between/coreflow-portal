@@ -87,7 +87,15 @@
   "org": {
     "switch": "Switch organization",
     "none": "No organization",
-    "current": "Current organization"
+    "current": "Current organization",
+    "switchUnreadElsewhere": "Switch organization, {{count}} unread in other organizations",
+    "unread": "{{count}} unread"
+  },
+  "orgAccess": {
+    "title": "No access",
+    "heading": "You don't have access to this organization",
+    "body": "The link you opened belongs to an organization you're not a member of, or your access has been removed. Ask an administrator of that organization to invite you, or carry on in your current organization.",
+    "cta": "Go to my dashboard"
   },
   "module": {
     "comingSoon": "This module is on the way. Your agent is getting it ready."
@@ -480,7 +488,7 @@
       "expires": "Expires",
       "invite": "Invite user",
       "send": "Send invitation",
-      "emailNote": "An email is sent automatically when email delivery is configured.",
+      "emailNote": "The invitation link is emailed to this address. Only the recipient can use it to join.",
       "linkTitle": "Invitation link",
       "linkHint": "Share this link with {{email}} so they can accept the invitation.",
       "linkOnceNote": "Invitation links can only be copied right after they are created. To get a new link, revoke the invitation and send it again.",
@@ -715,7 +723,7 @@
       "pending": "Pending invitations",
       "pendingEmpty": "No pending invitations.",
       "conflict": "There's already a member or pending invitation for this email.",
-      "emailNote": "An email is sent automatically when email delivery is configured.",
+      "emailNote": "The invitation link is emailed to this address. Only the recipient can use it to join.",
       "linkTitle": "Invitation link",
       "linkHint": "Share this link so the user can accept the invitation.",
       "createdToast": "Invitation created.",
@@ -742,7 +750,8 @@
       "body": "This invitation is invalid, expired, or has already been used."
     },
     "existing": {
-      "body": "You already have an account — sign in to join {{org}}."
+      "body": "You already have an account. Sign in as {{email}} to join {{org}}.",
+      "signedIn": "You're signed in as {{email}}. Accept to join {{org}}."
     },
     "new": {
       "body": "You've been invited to join {{org}}. Set a password to get started."
@@ -751,7 +760,13 @@
     "fullName": "Full name",
     "password": "Password",
     "error": "We couldn't accept this invitation. Please try again.",
-    "toLogin": "Go to sign in"
+    "toLogin": "Go to sign in",
+    "mismatch": {
+      "title": "Signed in with a different account",
+      "body": "This invitation was sent to {{email}}, but you're signed in as {{current}}. Sign in with the invited account to accept it."
+    },
+    "switchAccount": "Sign in with the invited account",
+    "joinedToast": "You've joined {{org}}."
   },
   "common": {
     "loading": "Loading…",
@@ -1583,7 +1598,16 @@
       "automatic": "Automatic (from evidence)",
       "save": "Save",
       "cancel": "Cancel",
-      "saveError": "Couldn't save. Try again."
+      "saveError": "Couldn't save. Try again.",
+      "derived": "Derived",
+      "derivedTitle": "Not applicable (derived)",
+      "derivedHint": "Worked out from the roles and risk classes of your AI systems. If it applies to you anyway, mark it as applicable.",
+      "derivedEditHint": "This requirement is not applicable (derived) from your AI systems. Tick the box to mark it as applicable anyway.",
+      "markApplicable": "Mark as applicable",
+      "overriddenApplies": "Set by your organisation. Based on your AI systems, this requirement would apply.",
+      "overriddenNotApplies": "Set by your organisation. Based on your AI systems, this requirement would not apply.",
+      "resetDerived": "Use the derived value",
+      "applicabilityError": "Couldn't change the applicability. Try again."
     },
     "evidence": {
       "title": "Evidence",

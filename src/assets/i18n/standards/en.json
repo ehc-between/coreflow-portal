@@ -23,6 +23,7 @@
     "loadError": "Couldn't load the readiness scores. Try again.",
     "score": "Readiness score",
     "applicable": "{{count}} applicable requirements",
+    "derivedNotApplicable": "{{count}} left out as not applicable (derived) from the roles and risk classes of your AI systems",
     "breakdown": "Readiness breakdown",
     "open": "Open the standard",
     "legend": {

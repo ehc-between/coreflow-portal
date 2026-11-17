@@ -3,6 +3,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { LanguageService } from '../../../core/i18n/language.service';
 import {
   effectiveStatus,
+  isDerivedNotApplicable,
   localized,
   statusLabelKey,
   statusTone,
@@ -62,6 +63,14 @@ import { pluralKey } from '../../../shared/i18n/plural';
             <span
               class="hidden rounded-full border border-border px-2 py-px text-[11px] font-semibold sm:inline"
               >{{ 'standards.requirement.manual' | transloco }}</span
+            >
+          }
+          @if (derivedNotApplicable()) {
+            <span
+              class="hidden rounded-full border border-border px-2 py-px text-[11px] font-semibold sm:inline"
+              data-testid="derived-chip"
+              [title]="'standards.requirement.derivedTitle' | transloco"
+              >{{ 'standards.requirement.derived' | transloco }}</span
             >
           }
           <span
@@ -146,6 +155,9 @@ export class RequirementRow {
   protected readonly status = computed(() => effectiveStatus(this.requirement()));
   protected readonly statusKey = computed(() => statusLabelKey(this.status()));
   protected readonly tone = computed(() => statusTone(this.status()));
+  protected readonly derivedNotApplicable = computed(() =>
+    isDerivedNotApplicable(this.requirement()),
+  );
   /** The card's input shape; recomputed whenever the tree patches this requirement. */
   protected readonly detail = computed(() => toRequirementDetail(this.requirement()));
 }

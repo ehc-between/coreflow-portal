@@ -35,6 +35,8 @@ interface ReadinessRow {
   readonly view: FrameworkView;
   readonly score: number;
   readonly applicable: number;
+  /** EU AI Act: points left out as not applicable (derived). */
+  readonly derivedNotApplicable: number;
   readonly parts: ReadinessParts | null;
 }
 
@@ -137,6 +139,17 @@ interface ReadinessRow {
                     <p class="mt-0.5 text-[12.5px] text-fg-subtle">
                       {{ 'standards.readiness.applicable' | transloco: { count: row.applicable } }}
                     </p>
+                    @if (row.derivedNotApplicable > 0) {
+                      <p
+                        class="mt-0.5 text-[12.5px] text-fg-subtle"
+                        data-testid="derived-not-applicable"
+                      >
+                        {{
+                          'standards.readiness.derivedNotApplicable'
+                            | transloco: { count: row.derivedNotApplicable }
+                        }}
+                      </p>
+                    }
                     @if (row.parts; as parts) {
                       <div class="mt-3">
                         <app-readiness-bar
@@ -198,6 +211,7 @@ export class ReadinessPage {
         view,
         score: view.readiness ?? view.standard?.completeness.pct ?? 0,
         applicable: view.breakdown?.applicable ?? view.standard?.completeness.applicable ?? 0,
+        derivedNotApplicable: view.breakdown?.derived_not_applicable ?? 0,
         parts: view.breakdown ? readinessParts(view.breakdown) : null,
       })),
   );

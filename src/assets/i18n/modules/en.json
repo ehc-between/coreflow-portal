@@ -81,11 +81,27 @@
       "name": "Deployer",
       "description": "You use AI systems in your own work, for example a chatbot or a screening tool."
     },
-    "both": {
+    "provider_and_deployer": {
       "name": "Provider and deployer",
       "description": "You build AI systems and also use AI systems in your own operations."
     },
-    "none": {
+    "importer": {
+      "name": "Importer",
+      "description": "You bring AI systems from providers outside the EU onto the EU market."
+    },
+    "distributor": {
+      "name": "Distributor",
+      "description": "You make AI systems available on the EU market without being their provider or importer."
+    },
+    "authorised_representative": {
+      "name": "Authorised representative",
+      "description": "A provider outside the EU has appointed you in writing to handle its AI Act duties on its behalf."
+    },
+    "product_manufacturer": {
+      "name": "Product manufacturer",
+      "description": "You sell products under your own name that contain a high-risk AI system as a safety component, so you carry the provider's duties."
+    },
+    "not_applicable": {
       "name": "Not in scope",
       "description": "You neither provide nor use AI systems that the AI Act covers."
     },

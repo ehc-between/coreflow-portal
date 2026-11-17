@@ -46,6 +46,7 @@ import {
   riskKey,
   riskTone,
   roleKey,
+  riskExplainKey,
   statusKey,
   systemStatusTone,
   transparencyKey,
@@ -367,7 +368,7 @@ const FIELD_LABELS: Readonly<Record<string, string>> = {
               </p>
             } @else {
               <p class="mb-2 text-[13.5px] text-fg">
-                {{ 'aiGovernance.riskExplain.' + s.risk_class | transloco }}
+                {{ riskExplainKey(s.risk_class, s.ai_act_role) | transloco }}
               </p>
               @if (s.transparency.length) {
                 <p class="mb-2 text-[12.5px] text-fg-muted">
@@ -518,6 +519,7 @@ export class AiSystemDetail {
   protected readonly statusKey = statusKey;
   protected readonly statusTone = systemStatusTone;
   protected readonly roleKey = roleKey;
+  protected readonly riskExplainKey = riskExplainKey;
   protected readonly kindKey = kindKey;
   protected readonly assessmentStatusKey = assessmentStatusKey;
   protected readonly assessmentTone = assessmentStatusTone;

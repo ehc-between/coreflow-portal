@@ -38,8 +38,13 @@ export interface CreatedOrgInvitation {
   readonly id: string;
   readonly email: string;
   readonly role_key: string;
+  readonly status: string;
   readonly expires_at: string;
-  readonly accept_url: string;
+  /**
+   * Development-only convenience link. Null everywhere else: the token is only
+   * ever delivered by email, never to the inviter.
+   */
+  readonly accept_url: string | null;
 }
 
 /** A member after a role change. */

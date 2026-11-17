@@ -98,13 +98,17 @@ export class EntityTypesService {
 
   /**
    * Display name of a record status: the owning module's `<module>.status.<s>`
-   * label when loaded, else the kit's common status names, else humanized.
+   * label when loaded, else the global `common.status.<s>` names, else the kit's,
+   * else humanized.
    */
   statusLabel(status: string, module?: string | null): string {
     const keys = module
       ? [`${module}.status.${status}`, `${camelCase(module)}.status.${status}`]
       : [];
-    return this.firstTranslated([...keys, `kit.status.${status}`]) ?? humanize(status);
+    return (
+      this.firstTranslated([...keys, `common.status.${status}`, `kit.status.${status}`]) ??
+      humanize(status)
+    );
   }
 
   /** The first key translated in the active language (looked up directly, so a

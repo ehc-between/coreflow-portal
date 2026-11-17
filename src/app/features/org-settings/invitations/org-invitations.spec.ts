@@ -114,6 +114,31 @@ describe('OrgInvitations', () => {
     expect(cmp.acceptUrl(PENDING)).toBeNull();
   });
 
+  it('shows no link to the inviter when the server withholds it (outside development)', () => {
+    const { fixture, http, cmp } = setup();
+    cmp.form.setValue({ email: 'victim@x.no', role_key: 'member' });
+    cmp.invite();
+    http
+      .expectOne((r) => r.method === 'POST')
+      .flush({
+        id: 'i-3',
+        email: 'victim@x.no',
+        role_key: 'member',
+        status: 'pending',
+        expires_at: '2026-10-26T00:00:00Z',
+        accept_url: null,
+      });
+    const created = { ...PENDING, id: 'i-3', email: 'victim@x.no' };
+    http.expectOne(`${BASE}/v1/orgs/${ORG}/invitations`).flush([PENDING, created]);
+    fixture.detectChanges();
+
+    const el = fixture.nativeElement as HTMLElement;
+    expect(cmp.acceptUrl(created)).toBeNull();
+    expect(el.textContent).not.toContain('settings.invitations.linkTitle');
+    expect(el.textContent).not.toContain('settings.invitations.copyLink');
+    expect(el.querySelector('input[readonly]')).toBeNull();
+  });
+
   it('maps a 409 pending-invite conflict to a translated message', () => {
     const { http, cmp } = setup();
     cmp.form.setValue({ email: 'old@x.no', role_key: 'member' });

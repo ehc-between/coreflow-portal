@@ -27,16 +27,48 @@
         {{ 'invite.accept' | transloco }}
       </h1>
       @if (preview(); as preview) {
-        <p class="mt-1 text-[13.5px] text-fg-muted">
-          {{ 'invite.existing.body' | transloco: { org: preview.org_name } }}
-        </p>
+        @if (isMismatch()) {
+          <div class="mt-4" data-testid="invite-mismatch">
+            <app-alert>
+              <span class="font-semibold">{{ 'invite.mismatch.title' | transloco }}</span>
+              {{
+                'invite.mismatch.body'
+                  | transloco: { email: preview.email, current: signedInEmail() ?? '' }
+              }}
+            </app-alert>
+          </div>
+          <app-button size="lg" [full]="true" class="mt-5" (click)="switchAccount()">
+            {{ 'invite.switchAccount' | transloco }}
+          </app-button>
+        } @else if (signedInEmail(); as current) {
+          <p class="mt-1 text-[13.5px] text-fg-muted">
+            {{ 'invite.existing.signedIn' | transloco: { email: current, org: preview.org_name } }}
+          </p>
+          @if (error(); as error) {
+            <div class="mt-4">
+              <app-alert>{{ error.key | transloco: error.params }}</app-alert>
+            </div>
+          }
+          <app-button
+            size="lg"
+            [full]="true"
+            [loading]="submitting()"
+            class="mt-5"
+            (click)="acceptExisting()"
+          >
+            {{ 'invite.accept' | transloco }}
+          </app-button>
+        } @else {
+          <p class="mt-1 text-[13.5px] text-fg-muted">
+            {{
+              'invite.existing.body' | transloco: { email: preview.email, org: preview.org_name }
+            }}
+          </p>
+          <app-button size="lg" [full]="true" class="mt-5" (click)="signIn()">
+            {{ 'auth.action.signIn' | transloco }}
+          </app-button>
+        }
       }
-      <a
-        routerLink="/login"
-        class="mt-5 inline-block w-full rounded-tile bg-accent px-5 py-2.5 text-center text-[15px] font-semibold text-white hover:bg-accent-2"
-      >
-        {{ 'auth.action.signIn' | transloco }}
-      </a>
     }
 
     @case ('new-user') {

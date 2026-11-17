@@ -3,7 +3,13 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { Badge } from '../../../shared/ui/badge/badge';
 import { ClassificationResult } from '../data/ai-governance.models';
-import { reasonText, riskKey, riskTone, roleKey } from '../data/ai-governance-display';
+import {
+  reasonText,
+  riskExplainKey,
+  riskKey,
+  riskTone,
+  roleKey,
+} from '../data/ai-governance-display';
 import { AiObligationList } from './obligation-list';
 
 /** The outcome of the classification rules: risk class, why, and the obligations that follow. */
@@ -38,7 +44,7 @@ import { AiObligationList } from './obligation-list';
           }
         </div>
         <p class="text-[13.5px] text-fg">
-          {{ 'aiGovernance.riskExplain.' + r.risk_class | transloco }}
+          {{ riskExplainKey(r.risk_class, r.role) | transloco }}
         </p>
         @if (r.risk_class === 'prohibited') {
           <p
@@ -88,6 +94,7 @@ export class AiClassificationResult {
 
   protected readonly tone = riskTone;
   protected readonly riskKey = riskKey;
+  protected readonly riskExplainKey = riskExplainKey;
   protected readonly roleKey = roleKey;
 
   protected readonly reasons = computed(() =>

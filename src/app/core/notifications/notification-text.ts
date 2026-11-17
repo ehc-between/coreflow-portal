@@ -1,3 +1,4 @@
+import { withOrg } from '../org/org-link';
 import { UserNotification } from './user-notification.models';
 
 /** The i18n key + params to render a notification's title. */
@@ -225,6 +226,23 @@ export function notificationLink(notification: UserNotification): string[] | nul
   }
   const base = ENTITY_ROUTES[notification.entity_type];
   return base ? [base, notification.entity_id] : null;
+}
+
+/**
+ * Org-aware portal URL for a notification: {@link notificationLink} plus
+ * `?org=<the notification's org>` (the deep-link convention shared with the
+ * backend's emails), so opening it always lands in the org the record belongs
+ * to. A `url` param keeps its own query and fragment. Null when there is no
+ * portal route for it.
+ */
+export function notificationUrl(notification: UserNotification): string | null {
+  const link = notificationLink(notification);
+  if (!link) {
+    return null;
+  }
+  const [head, ...ids] = link;
+  const path = ids.length ? [head, ...ids.map((id) => encodeURIComponent(id))].join('/') : head;
+  return withOrg(path, notification.org_id);
 }
 
 /** Scopes a list of notifications needs loaded to render their titles. */

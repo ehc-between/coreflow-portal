@@ -424,7 +424,11 @@
     "create": "Opprett",
     "save": "Lagre endringer",
     "editTitle": "Rediger {{ code }}",
-    "personalNotice": "Dette registeret inneholder personopplysninger. Registrer bare det dere trenger for å behandle saken. Bare personer med tilgang til henvendelser kan se det."
+    "personalNotice": "Dette registeret inneholder personopplysninger. Registrer bare det dere trenger for å behandle saken. Bare personer med tilgang til henvendelser kan se det.",
+    "awareCorrectionHint": "En rettelse flytter 72-timersfristen. Det opprinnelige tidspunktet beholdes i revisjonshistorikken; oppgi grunnen nedenfor.",
+    "changeReasonRequired": "Grunn til endringen *",
+    "changeReasonNeeded": "Oppgi en grunn til at tidspunktet rettes.",
+    "notInFuture": "Tidspunktet kan ikke være fram i tid."
   },
   "common": {
     "loading": "Laster …",
@@ -622,7 +626,10 @@
     "supplementary_measures_required": "Beskriv de supplerende tiltakene.",
     "lia_incomplete": "Fullfør testen for berettiget interesse først: {{ fields }}.",
     "justification_required": "Skriv begrunnelsen først.",
-    "input_required": "Beskriv behandlingen først."
+    "input_required": "Beskriv behandlingen først.",
+    "aware_at_forbidden": "Bare personvernombudet eller noen som forvalter personvern kan rette tidspunktet dere ble kjent med bruddet.",
+    "aware_at_in_future": "Tidspunktet dere ble kjent med bruddet kan ikke være fram i tid.",
+    "change_reason_required": "Oppgi en grunn til endringen."
   },
   "notifications": {
     "ropaEntryCreated": "Behandlingsprotokoll registrert: {{ code }} {{ title }}",
@@ -675,7 +682,9 @@
     "dataBreachSubjectsNotified": "De berørte er varslet om {{ code }} {{ title }}",
     "consentRecordWithdrawn": "Samtykke trukket tilbake: {{ code }}",
     "dpiaDecided": "DPIA avgjort: {{ code }} {{ title }}",
-    "legalBasisAssessmentDecided": "Vurdering av behandlingsgrunnlag avgjort: {{ code }} {{ title }}"
+    "legalBasisAssessmentDecided": "Vurdering av behandlingsgrunnlag avgjort: {{ code }} {{ title }}",
+    "dataBreachAwareCorrected": "Tidspunktet da dere ble kjent med {{ code }} {{ title }} er rettet: 72-timersfristen er flyttet",
+    "dataBreachClockReminder": "{{ hours_remaining }} timer igjen til å varsle Datatilsynet om {{ code }} {{ title }}"
   },
   "timeline": {
     "ropaEntryCreated": "Behandlingsprotokoll registrert",
@@ -728,6 +737,17 @@
     "dataBreachSubjectsNotified": "De berørte er varslet",
     "consentRecordWithdrawn": "Samtykket er trukket tilbake",
     "dpiaDecided": "Beslutning registrert",
-    "legalBasisAssessmentDecided": "Beslutning registrert"
+    "legalBasisAssessmentDecided": "Beslutning registrert",
+    "dataBreachAwareCorrected": "Tidspunkt for kjennskap rettet",
+    "dataBreachClockReminder": "Påminnelse om 72-timersfristen sendt"
+  },
+  "tasks": {
+    "breachContain": "Begrens bruddet {{ code }}",
+    "breachAssess": "Vurder risikoen ved bruddet {{ code }} og avgjør om Datatilsynet skal varsles",
+    "breachNotifyAuthority": "Varsle Datatilsynet om bruddet {{ code }}",
+    "breachDecideSubjects": "Avgjør om de berørte av bruddet {{ code }} skal varsles",
+    "breachNotifySubjects": "Varsle de berørte av bruddet {{ code }}",
+    "breachClose": "Lukk bruddet {{ code }} med læringspunkter",
+    "dsrRespond": "Svar på henvendelsen fra den registrerte {{ code }}"
   }
 }
