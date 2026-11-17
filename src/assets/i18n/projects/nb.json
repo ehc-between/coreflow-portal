@@ -586,13 +586,13 @@
       "risk_assessment": "Koble eller opprett en risiko for prosjektet.",
       "dpia": "Trengs når prosjektet behandler personopplysninger med høy risiko.",
       "supplier_security": "Koble leverandørene prosjektet bruker, med en leverandørvurdering.",
-      "security_test": "Legg inn en milepæl eller oppgave for sikkerhetstest."
+      "security_test": "Planlegg en verifikasjon eller validering under Gjennomganger, og registrer at den ble godkjent."
     },
     "actions": {
       "risk_assessment": "Ny risiko",
       "dpia": "Ny DPIA",
       "supplier_security": "Koble leverandør",
-      "security_test": "Ny oppgave"
+      "security_test": "Planlegg en test"
     }
   },
   "outputs": {

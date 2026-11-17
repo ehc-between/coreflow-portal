@@ -586,13 +586,13 @@
       "risk_assessment": "Link or create a risk for the project.",
       "dpia": "Needed when the project processes personal data with high risk.",
       "supplier_security": "Link the suppliers the project uses, with a supplier evaluation.",
-      "security_test": "Add a milestone or task for a security test."
+      "security_test": "Plan a verification or validation under Reviews and record that it passed."
     },
     "actions": {
       "risk_assessment": "New risk",
       "dpia": "New DPIA",
       "supplier_security": "Link supplier",
-      "security_test": "New task"
+      "security_test": "Plan a test"
     }
   },
   "outputs": {

@@ -694,6 +694,16 @@ export function purposeLinks(links: readonly LinkItem[]): {
                                     >
                                       {{ 'projects.security.actions.' + c.key | transloco }}
                                     </app-button>
+                                  } @else if (c.key === 'security_test') {
+                                    <!-- Done only by a verification / validation that passed. -->
+                                    <app-button
+                                      variant="secondary"
+                                      size="sm"
+                                      (click)="setSection('reviews')"
+                                      [attr.data-testid]="'security-do-' + c.key"
+                                    >
+                                      {{ 'projects.security.actions.' + c.key | transloco }}
+                                    </app-button>
                                   }
                                 }
                               </li>
@@ -1164,8 +1174,6 @@ export class ProjectDetailPage {
         return 'project.to_risk';
       case 'dpia':
         return 'project.to_dpia';
-      case 'security_test':
-        return 'project.to_task';
       default:
         return null;
     }
