@@ -171,6 +171,13 @@ describe('StandardWorkspace', () => {
   }
 
   afterEach(() => {
+    // Optional side loads of an expanded requirement card (entity types, evidence).
+    http
+      .match((r) => r.url.endsWith('/entity-types') || r.url.endsWith('/evidence'))
+      .filter((r) => !r.cancelled)
+      .forEach((r) =>
+        r.flush(r.request.url.endsWith('/entity-types') ? { items: [], link_types: [] } : null),
+      );
     http.verify();
     vi.restoreAllMocks();
   });
@@ -442,6 +449,37 @@ describe('StandardWorkspace', () => {
       'standards.ai.suggestionBadge',
     );
     row.querySelector<HTMLButtonElement>('button')!.click();
+    await render();
+    // The expanded card loads the requirement's evidence from every module.
+    http
+      .expectOne((r) => r.url.endsWith('/evidence'))
+      .flush({
+        requirement: {},
+        status: 'not_started',
+        links: [
+          {
+            id: suggestion.id,
+            status: 'suggested',
+            origin: 'ai',
+            origin_field: null,
+            confidence: 0.8,
+            rationale: 'Mentions the policy',
+            entity: {
+              entity_type: 'document',
+              entity_id: 'doc-1',
+              title: 'Quality policy',
+              code: 'POL-1',
+              url: '/documents/doc-1',
+              status: null,
+              module: 'documents',
+              label_key: null,
+            },
+          },
+        ],
+        by_module: [],
+        can_be_evidenced_by: [],
+        mappings: [],
+      });
     await render();
     const block = row.querySelector('[data-testid="ai-suggestions"]')!;
     expect(block.textContent).toContain('Quality policy');

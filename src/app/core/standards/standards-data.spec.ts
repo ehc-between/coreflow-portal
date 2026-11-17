@@ -124,7 +124,7 @@ describe('standards-data', () => {
     it('maps statuses to badge tones', () => {
       expect(statusTone('covered')).toBe('pass');
       expect(statusTone('partial')).toBe('warn');
-      expect(statusTone('not_started')).toBe('fail');
+      expect(statusTone('not_started')).toBe('neutral');
       expect(statusTone('not_applicable')).toBe('neutral');
     });
   });

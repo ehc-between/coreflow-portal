@@ -1,29 +1,29 @@
 {
   "frameworks": {
-    "readiness": "Beredskap",
+    "readiness": "Kravdekning",
     "coverage": "{{pct}} % av kravene dekket",
     "notEnabled": "Ikke aktivert",
     "inProfile": "I profilen deres",
-    "inProfileHint": "Organisasjonsprofilen deres oppgir dette rammeverket som omfattet.",
+    "inProfileHint": "Organisasjonsprofilen deres oppgir at denne standarden gjelder dere.",
     "kind": {
       "standard": "ISO-standard",
       "regulation": "EU-forordning"
     },
-    "readinessDetails": "Detaljer om beredskap",
-    "availableHint": "Aktiver et rammeverk for å vurdere kravene og følge med på beredskapen. Rammeverk i organisasjonsprofilen er merket.",
-    "explain": "Forklar beredskapen vår",
-    "explainPrompt": "Forklar med enkle ord hvor klare vi er på tvers av disse rammeverkene, og foreslå de tre nyttigste neste stegene: {{summary}}.",
-    "explainNone": "Forklar hvilke rammeverk for etterlevelse som er relevante for en organisasjon som vår, og hvordan vi kommer i gang.",
+    "readinessDetails": "Detaljer om kravdekning",
+    "availableHint": "Aktiver en standard for å vurdere kravene og følge med på kravdekningen. Standarder i organisasjonsprofilen er merket.",
+    "explain": "Forklar kravdekningen vår",
+    "explainPrompt": "Forklar med enkle ord kravdekningen vår på tvers av disse standardene, og foreslå de tre nyttigste neste stegene: {{summary}}.",
+    "explainNone": "Forklar hvilke standarder og regelverk for etterlevelse som er relevante for en organisasjon som vår, og hvordan vi kommer i gang.",
     "summaryItem": "{{name}} {{score}} %"
   },
   "readiness": {
-    "title": "Beredskap per rammeverk",
-    "subtitle": "Hvor klart hvert aktiverte rammeverk er, basert på hva som gjelder, koblet dokumentasjon og hvor fersk dokumentasjonen er.",
+    "title": "Kravdekning per standard",
+    "subtitle": "Hvor mye av hver aktiverte standard som er dokumentert, basert på hva som gjelder, dokumentasjon koblet fra alle moduler og hvor fersk den er.",
     "back": "Tilbake til standarder",
-    "loadError": "Kunne ikke laste beredskapen. Prøv igjen.",
-    "score": "Beredskap",
+    "loadError": "Kunne ikke laste kravdekningen. Prøv igjen.",
+    "score": "Kravdekning",
     "applicable": "{{count}} gjeldende krav",
-    "breakdown": "Fordeling av beredskap",
+    "breakdown": "Fordeling av kravdekningen",
     "open": "Åpne standarden",
     "legend": {
       "fresh": "Dekket, fersk dokumentasjon",
@@ -34,10 +34,10 @@
     "segment": "{{label}}: {{count}}",
     "weights": "Dekket med fersk dokumentasjon teller fullt, dekket med eldre dokumentasjon teller 60 %, delvis dekket teller 50 %, og ikke påbegynt teller ingenting.",
     "summarise": "Oppsummer",
-    "summarisePrompt": "Oppsummer beredskapen vår for {{name}}: {{score}} %, {{applicable}} gjeldende krav, {{fresh}} dekket med fersk dokumentasjon, {{stale}} dekket med eldre dokumentasjon, {{partial}} delvis dekket og {{missing}} ikke påbegynt. Hva bør vi gjøre først, og hvorfor?",
+    "summarisePrompt": "Oppsummer kravdekningen vår for {{name}}: {{score}} %, {{applicable}} gjeldende krav, {{fresh}} dekket med fersk dokumentasjon, {{stale}} dekket med eldre dokumentasjon, {{partial}} delvis dekket og {{missing}} ikke påbegynt. Hva bør vi gjøre først, og hvorfor?",
     "empty": {
-      "title": "Ingen rammeverk er aktivert ennå",
-      "body": "Beredskapen beregnes for hvert rammeverk organisasjonen har aktivert. Aktiver ISO 9001, ISO/IEC 27001, GDPR eller et annet rammeverk fra standardoversikten for å se tallet her.",
+      "title": "Ingen standarder er aktivert ennå",
+      "body": "Kravdekningen beregnes for hver standard organisasjonen har aktivert. Aktiver ISO 9001, ISO/IEC 27001, GDPR eller en annen standard fra standardoversikten for å se den her.",
       "cta": "Gå til standardoversikten"
     }
   },
@@ -47,14 +47,14 @@
     "annex": "Vedlegg"
   },
   "hs": {
-    "badge": "HS {{clause}}",
-    "title": "Harmonisert struktur, punkt {{clause}}: det samme kravet finnes i alle ISO-standarder for styringssystemer, så én dokumentasjon kan dekke alle."
+    "badge": "Felles ISO {{clause}}",
+    "title": "Felles ISO-krav, punkt {{clause}}: det samme kravet finnes i alle ISO-standarder for styringssystemer, så én dokumentasjon kan dekke alle."
   },
   "aiAct": {
     "rolesLabel": "Gjelder for",
     "riskLabel": "Risikoklasse",
     "roles": {
-      "provider": "Leverandør",
+      "provider": "Tilbyder",
       "deployer": "Idriftsetter",
       "importer": "Importør",
       "distributor": "Distributør",
@@ -71,14 +71,14 @@
   },
   "mappings": {
     "title": "Dekker også",
-    "hint": "Dokumentasjon for dette punktet hjelper ofte også med disse punktene i andre rammeverk. Kontroller hvert av dem før dere stoler på det.",
+    "hint": "Dokumentasjon for dette punktet hjelper ofte også med disse punktene i andre standarder. Kontroller hvert av dem før dere stoler på det.",
     "loading": "Laster relaterte punkter …",
     "error": "Kunne ikke laste de relaterte punktene.",
-    "none": "Ingen koblinger til andre rammeverk for dette punktet.",
+    "none": "Ingen koblinger til andre standarder for dette punktet.",
     "relation": {
       "equivalent": "Tilsvarende",
       "related": "Relatert",
-      "supports": "Støtter"
+      "supports": "Bidrar til"
     },
     "source": {
       "hs": "Felles punkt i den harmoniserte strukturen",
@@ -86,18 +86,18 @@
     },
     "notEnabled": "Ikke aktivert",
     "ask": "Spør hvordan disse henger sammen",
-    "askPrompt": "Forklar hvordan punkt {{number}} i {{standard}} henger sammen med disse punktene i andre rammeverk, og hvordan én dokumentasjon kan dekke alle: {{targets}}.",
-    "hsBadge": "HS"
+    "askPrompt": "Forklar hvordan punkt {{number}} i {{standard}} henger sammen med disse punktene i andre standarder, og hvordan én dokumentasjon kan dekke alle: {{targets}}.",
+    "hsBadge": "Felles ISO"
   },
   "support": {
-    "title": "Registreringer som kan brukes som dokumentasjon",
-    "none": "Ingen moduler oppgir registreringer for dette punktet ennå. Dere kan likevel koble hvilket som helst dokument eller avvik.",
+    "title": "Poster som kan dokumentere dette",
+    "none": "Ingen moduler oppgir poster for dette punktet ennå. Dere kan likevel koble en hvilken som helst post som dokumentasjon.",
     "error": "Kunne ikke laste hvilke registreringer som kan brukes som dokumentasjon.",
     "moduleOff": "Modulen er ikke aktivert"
   },
   "evidenceSuggestions": {
-    "title": "Foreslått for denne registreringen",
-    "hint": "Krav som denne typen registrering vanligvis dokumenterer i de aktiverte standardene.",
+    "title": "Foreslått for denne posten",
+    "hint": "Krav som denne typen post vanligvis dokumenterer i de aktiverte standardene.",
     "none": "Ingen forslag. Søk for å finne et krav.",
     "searchAll": "Eller søk i alle krav:"
   },
@@ -109,33 +109,33 @@
     "clauseAsk": "Spør om {{clause}}",
     "clausePrompt": "Lær meg med enkle ord hva {{clause}} krever, med et kort eksempel fra en organisasjon som vår.",
     "overview": {
-      "title": "Rammeverkene deres samlet",
-      "body": "Hvert kort er en standard eller forordning organisasjonen arbeider mot. Ringen viser beredskapen: hvor mye av rammeverket som er dekket av dokumentasjon dere har koblet, og hvor fersk den er.",
-      "step1": "Aktiver rammeverkene som er omfattet. Begynn med dem kundene eller myndighetene spør om.",
-      "step2": "Åpne et rammeverk for å vurdere hvert krav: merk det som ikke gjelder, og koble dokumenter eller avvik som dokumentasjon.",
-      "step3": "Bruk Detaljer om beredskap for å se hva som mangler, og hold dokumentasjonen oppdatert så tallet holder seg høyt.",
-      "why": "Standarder for styringssystemer krever at dere planlegger, gjennomfører og kan dokumentere. Punkt 4 til 10 har samme struktur i alle ISO-standardene, så én godt vedlikeholdt registrering dekker ofte flere rammeverk samtidig."
+      "title": "Standardene deres samlet",
+      "body": "Hvert kort er en standard eller forordning organisasjonen arbeider mot. Ringen viser kravdekningen: hvor mye av standarden som er dokumentert av poster dere har koblet, og hvor ferske de er.",
+      "step1": "Aktiver standardene som gjelder dere. Begynn med dem kundene eller myndighetene spør om.",
+      "step2": "Åpne en standard for å vurdere hvert krav: merk det som ikke gjelder, og koble risikoer, dokumenter, leverandører eller andre poster som dokumentasjon.",
+      "step3": "Åpne listen over mangler for å se hva som mangler og hvordan dere lukker det, og hold dokumentasjonen oppdatert så kravdekningen holder seg høy.",
+      "why": "Standarder for styringssystemer krever at dere planlegger, gjennomfører og kan dokumentere. Punkt 4 til 10 har samme struktur i alle ISO-standardene, så én godt vedlikeholdt post dekker ofte flere standarder samtidig."
     },
     "readiness": {
-      "title": "Hva beredskapen forteller dere",
+      "title": "Hva kravdekningen forteller dere",
       "body": "Tallet oppsummerer hvor godt forberedt dere er til en revisjon eller et tilsyn. Det teller bare krav dere har merket som gjeldende.",
-      "step1": "Se på det røde feltet først: krav ingen har begynt på.",
+      "step1": "Se på det grå feltet først: krav ingen har begynt på ennå.",
       "step2": "Forny deretter dokumentasjon som er eldre enn ett år. Revisorer forventer at registreringer er oppdaterte.",
       "step3": "Åpne standarden for å koble dokumentasjon, eller be om en oppsummering av hva dere bør gjøre videre.",
-      "why": "ISO-standardene krever at dere overvåker og evaluerer styringssystemet og gjennomgår det på ledelsesnivå. Beredskap per rammeverk er et enkelt innspill til den gjennomgangen."
+      "why": "ISO-standardene krever at dere overvåker og evaluerer styringssystemet og gjennomgår det på ledelsesnivå. Kravdekning per standard er et enkelt innspill til den gjennomgangen."
     }
   },
   "lesson": {
-    "badge": "Minikurs",
+    "badge": "Leksjon",
     "minutes": "{{count}} min",
-    "start": "Start minikurset",
-    "close": "Lukk minikurset",
+    "start": "Start leksjonen",
+    "close": "Lukk leksjonen",
     "check": "Sjekk svaret",
     "correct": "Riktig.",
     "incorrect": "Ikke helt.",
     "questionLabel": "Sjekk forståelsen din",
     "readiness": {
-      "title": "Slik beregnes beredskapen",
+      "title": "Slik beregnes kravdekningen",
       "s1Heading": "Bare gjeldende krav teller",
       "s1Body": "Når et krav ikke gjelder for dere, merker dere det som ikke gjeldende og skriver en kort begrunnelse. Da holdes det utenfor beregningen, så tallet viser det dere faktisk må gjøre.",
       "s2Heading": "Dokumentasjon gjør et krav dekket",
@@ -153,16 +153,148 @@
     "evidenceLinked": "Dokumentasjon koblet til punkt {{clause_number}} ({{standard_key}})",
     "evidenceRejected": "Foreslått dokumentasjon avvist for punkt {{clause_number}} ({{standard_key}})",
     "evidenceUnlinked": "Dokumentasjon fjernet fra punkt {{clause_number}} ({{standard_key}})",
-    "standardEnabled": "Rammeverk aktivert: {{standard_key}}",
-    "standardDisabled": "Rammeverk deaktivert: {{standard_key}}",
-    "requirementUpdated": "Krav {{ref}} oppdatert"
+    "standardEnabled": "Standard aktivert: {{standard_key}}",
+    "standardDisabled": "Standard deaktivert: {{standard_key}}",
+    "requirementUpdated": "Krav {{ref}} oppdatert",
+    "requirementLinksSynced": "Kravkoblinger oppdatert fra et felt på posten"
   },
   "timeline": {
     "evidenceLinked": "koblet denne registreringen som dokumentasjon for punkt {{clause_number}} ({{standard_key}})",
     "evidenceRejected": "avviste forslaget om at denne registreringen dokumenterer punkt {{clause_number}} ({{standard_key}})",
     "evidenceUnlinked": "fjernet denne registreringen som dokumentasjon for punkt {{clause_number}} ({{standard_key}})",
-    "standardEnabled": "aktiverte rammeverket {{standard_key}}",
-    "standardDisabled": "deaktiverte rammeverket {{standard_key}}",
-    "requirementUpdated": "oppdaterte vurderingen av krav {{ref}}"
+    "standardEnabled": "aktiverte standarden {{standard_key}}",
+    "standardDisabled": "deaktiverte standarden {{standard_key}}",
+    "requirementUpdated": "oppdaterte vurderingen av krav {{ref}}",
+    "requirementLinksSynced": "oppdaterte kravkoblingene fra et felt på posten ({{added}} lagt til, {{removed}} fjernet)"
+  },
+  "reqs": {
+    "title": "Krav dette dokumenterer",
+    "add": "Legg til krav",
+    "none": "Ikke koblet til noen krav ennå.",
+    "noneHint": "Koble posten til kravene den dokumenterer, så teller den med i kravdekningen.",
+    "suggestedTitle": "Foreslåtte krav",
+    "suggestedHint": "Krav som denne typen post vanligvis dokumenterer. Bekreft dem som stemmer.",
+    "suggestedHintAi": "Foreslått ut fra innholdet i posten. Bekreft dem som stemmer.",
+    "suggesting": "Ser etter krav som passer …",
+    "findMore": "Foreslå flere krav",
+    "confirm": "Bekreft",
+    "reject": "Avvis",
+    "confirmAll": "Bekreft alle ({{count}})",
+    "confirmLabel": "Bekreft {{label}}",
+    "rejectLabel": "Avvis {{label}}",
+    "remove": "Fjern koblingen til {{label}}",
+    "removeShort": "Fjern koblingen",
+    "suggestion": "Forslag",
+    "position": "(krav {{index}} av {{count}})",
+    "positionAll": "(alle {{count}} krav)",
+    "positionMany": "(krav {{first}} og {{last}} av {{count}})",
+    "positionLong": "Krav {{index}} av {{count}}",
+    "showAll": "Vis alle {{count}}",
+    "onAction": "På tiltak: {{action}}",
+    "moreLabel": "Vis {{count}} flere koblede krav",
+    "moreLabelOne": "Vis 1 koblet krav til",
+    "fromField": "Fra feltet «{{field}}»",
+    "fromFieldHint": "Endre feltet på posten for å fjerne denne koblingen.",
+    "managedByField": "Koblingen kommer fra et felt på posten. Endre feltet for å fjerne den.",
+    "error": "Kunne ikke oppdatere kravkoblingene. Prøv igjen.",
+    "loadError": "Kunne ikke laste kravene. Prøv igjen.",
+    "fieldDocuments": "Dokumenterer: {{requirements}}",
+    "fields": {
+      "clauses": "Krav og punkter",
+      "clause_ref": "Punkt",
+      "clause_refs": "Punkter som revideres",
+      "control_refs": "Kontroller",
+      "soa": "Anvendelseserklæring",
+      "standards": "Standarder",
+      "frameworks": "Standarder",
+      "article_refs": "Artikler",
+      "requirements": "Krav",
+      "generic": "et felt på posten"
+    },
+    "origin": {
+      "manual": "Lagt til manuelt",
+      "ai": "Foreslått av KI",
+      "field": "Fra feltet «{{field}}»",
+      "declaration": "Typisk for denne typen post",
+      "flow": "Opprettet herfra",
+      "system": "Lagt til automatisk"
+    },
+    "short": {
+      "hs": "Felles ISO-krav",
+      "eu_ai_act": "KI-forordningen"
+    },
+    "teach": {
+      "readAbout": "Les om:",
+      "tooltip": "Forklar dette punktet med enkle ord",
+      "sharedTooltip": "Det samme kravet i alle ISO-standardene for styringssystemer (ISO 9001, 14001, 27001, 42001 og 45001)"
+    },
+    "coverage": {
+      "documents": "Dokumenterer {{count}} krav",
+      "documentsOne": "Dokumenterer 1 krav",
+      "suggested": "{{count}} forslag",
+      "suggestedOne": "1 forslag",
+      "none": "Ikke koblet til krav"
+    },
+    "picker": {
+      "placeholder": "Søk på punkt eller tittel, f.eks. «A.8.13» eller «sikkerhetskopi»",
+      "hint": "Søk i kravene i de aktiverte standardene på punktnummer eller tittel.",
+      "noResults": "Ingen punkter passer.",
+      "noResultsEnabled": "Ingen punkter passer i de aktiverte standardene.",
+      "notEnabled": "Ikke aktivert",
+      "error": "Søket feilet. Prøv igjen.",
+      "remove": "Fjern {{ref}}",
+      "cancel": "Avbryt",
+      "back": "Tilbake til søket",
+      "chooseRequirement": "Velg kravet denne posten dokumenterer:",
+      "all": "Alle {{count}} krav i punktet",
+      "linked": "allerede koblet"
+    },
+    "evidence": {
+      "searchPlaceholder": "Søk etter en hvilken som helst post på tittel eller kode …",
+      "hint": "Søk i risikoer, dokumenter, leverandører, opplæring og alle andre poster du har tilgang til.",
+      "typeFilter": "Posttype",
+      "allTypes": "Alle typer"
+    },
+    "card": {
+      "evidenceTitle": "Dokumentasjon",
+      "suggestions": "Foreslått dokumentasjon ({{count}})",
+      "loadError": "Kunne ikke laste dokumentasjonen. Prøv igjen.",
+      "canBeEvidencedBy": "Kan dokumenteres med",
+      "canBeEvidencedByHint": "Disse typene poster dokumenterer vanligvis kravet. Opprett en ny, eller koble en dere allerede har.",
+      "create": "Opprett",
+      "linkExisting": "Koble eksisterende"
+    },
+    "mapping": {
+      "never": "Postene deres er ikke gjennomsøkt etter dokumentasjon for denne standarden ennå.",
+      "neverHint": "La KI foreslå hvilke poster, i alle moduler, som dokumenterer hvert krav. Du bekrefter hvert forslag.",
+      "findAll": "Finn dokumentasjon i alle moduler",
+      "running": "Ser etter dokumentasjon i alle moduler …"
+    },
+    "readiness": {
+      "documentedBy": "Dokumentert av:",
+      "fromFields": "{{count}} krav er dokumentert gjennom felt på postene.",
+      "fromFieldsOne": "1 krav er dokumentert gjennom et felt på en post.",
+      "gaps": "{{count}} krav mangler dokumentasjon",
+      "gapsOne": "1 krav mangler dokumentasjon"
+    },
+    "gaps": {
+      "title": "Mangler i {{name}}",
+      "crumb": "Mangler",
+      "subtitle": "Gjeldende krav som ennå ikke har bekreftet dokumentasjon. Hvert krav viser hvilke poster som lukker mangelen.",
+      "openStandard": "Åpne standarden",
+      "openRequirement": "Åpne kravet",
+      "linkTitle": "Se alle krav som mangler dokumentasjon, og hvordan dere lukker dem",
+      "chapter": "Kapittel",
+      "allChapters": "Alle kapitler",
+      "count": "{{count}} krav mangler dokumentasjon",
+      "countOne": "1 krav mangler dokumentasjon",
+      "fixWith": "Lukk mangelen med:",
+      "none": "Ingen mangler her",
+      "noneBody": "Alle gjeldende krav i dette utvalget har bekreftet dokumentasjon.",
+      "notEnabled": "Standarden er ikke aktivert",
+      "notEnabledBody": "Aktiver den i standardoversikten for å se hva som mangler.",
+      "toOverview": "Gå til standardoversikten",
+      "loadError": "Kunne ikke laste manglene. Prøv igjen."
+    }
   }
 }

@@ -126,7 +126,7 @@ describe('ClauseMappings', () => {
     // GDPR is not enabled for the org.
     expect(el.textContent).toContain('Not enabled');
     // Records that can be evidence: enabled modules plus a hint for disabled ones.
-    expect(el.textContent).toContain('Records that can be evidence');
+    expect(el.textContent).toContain('Records that can document this');
     expect(el.textContent).toContain('Document');
     expect(el.textContent).toContain('Module not enabled');
 

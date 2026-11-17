@@ -23,7 +23,8 @@ export const legacyClauseRedirect: RedirectFunction = ({ params, queryParams }) 
  * for the framework, readiness and learning-mode strings.
  *
  * - `''` — the overview of every framework (entry point).
- * - `readiness` — readiness per enabled framework.
+ * - `readiness` — requirement coverage per enabled standard.
+ * - `gaps/:key` — the uncovered requirements of one standard and how to close them.
  * - `:key` and `:key/:number` — the document workspace, one route config so
  *   moving between sections reuses the component.
  * - `:key/clauses[/:number]` — legacy, redirects into the workspace.
@@ -37,6 +38,11 @@ const pages: Routes = [
     // Before the workspace matcher, which would read "readiness" as a standard key.
     path: 'readiness',
     loadComponent: () => import('./frameworks/readiness-page').then((m) => m.ReadinessPage),
+  },
+  {
+    // Gaps of one enabled standard, with what would close each one. Before the matcher.
+    path: 'gaps/:key',
+    loadComponent: () => import('./gaps/gaps-page').then((m) => m.GapsPage),
   },
   {
     path: ':key/clauses/:number',

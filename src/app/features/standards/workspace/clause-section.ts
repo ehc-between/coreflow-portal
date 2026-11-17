@@ -247,10 +247,12 @@ export interface SectionLink {
             {{ 'standards.clause.requirements' | transloco: { count: node.requirements.length } }}
           </div>
           <ul class="flex flex-col gap-2" [attr.aria-labelledby]="domId() + '-reqs'">
-            @for (req of node.requirements; track req.ref) {
+            @for (req of node.requirements; track req.ref; let i = $index) {
               <li>
                 <app-requirement-row
                   [requirement]="req"
+                  [position]="i + 1"
+                  [count]="node.requirements.length"
                   [expanded]="expandedRefs().has(req.ref)"
                   [highlighted]="highlightRef() === req.ref"
                   [canManage]="canManage()"

@@ -79,7 +79,14 @@ async function setup() {
 }
 
 describe('ReadinessPage', () => {
-  afterEach(() => TestBed.inject(HttpTestingController).verify());
+  afterEach(() => {
+    const http = TestBed.inject(HttpTestingController);
+    // Record type names for "Dokumentert av" (optional side load).
+    http
+      .match((req) => req.url.endsWith('/entity-types'))
+      .forEach((req) => req.flush({ items: [], link_types: [] }));
+    http.verify();
+  });
 
   it('shows each enabled framework with its score, breakdown and a summarise action', async () => {
     const { http, el, render, ask } = await setup();
@@ -145,7 +152,7 @@ describe('ReadinessPage', () => {
     http.expectOne(`${ROOT}/frameworks`).flush([]);
     http.expectOne(`${ROOT}/frameworks/readiness`).flush([]);
     await render();
-    expect(el.textContent).toContain('No frameworks enabled yet');
+    expect(el.textContent).toContain('No standards enabled yet');
     expect(el.querySelector('a[href="/standards"]')).toBeTruthy();
   });
 
@@ -167,7 +174,7 @@ describe('ReadinessPage', () => {
     http.expectOne(`${ROOT}/frameworks`).flush([]);
     http.expectOne(`${ROOT}/frameworks/readiness`).flush([]);
     await render();
-    expect(el.textContent).toContain('What the readiness score tells you');
+    expect(el.textContent).toContain('What requirement coverage tells you');
 
     const start = Array.from(el.querySelectorAll('button')).find((b) =>
       b.textContent?.includes('Start the lesson'),

@@ -35,28 +35,28 @@ import { pluralKey } from '../../../shared/i18n/plural';
         >
           <span class="flex text-accent"><app-icon name="spark" [size]="15" /></span>
           <span class="min-w-0 flex-1 text-[13px] text-fg">
-            <span class="font-semibold">{{ 'standards.mapping.never' | transloco }}</span>
+            <span class="font-semibold">{{ 'standards.reqs.mapping.never' | transloco }}</span>
             @if (aiOff()) {
               <span class="block text-[12px] text-fg-muted">{{
                 'standards.ai.notConfigured' | transloco
               }}</span>
             } @else {
               <span class="block text-[12px] text-fg-muted">{{
-                'standards.mapping.neverHint' | transloco
+                'standards.reqs.mapping.neverHint' | transloco
               }}</span>
             }
           </span>
           @if (canMap() && !aiOff()) {
             <app-button size="sm" [loading]="starting()" (click)="map.emit()">
               <app-icon name="spark" [size]="14" />
-              {{ 'standards.mapping.mapExisting' | transloco }}
+              {{ 'standards.reqs.mapping.findAll' | transloco }}
             </app-button>
           }
         </div>
       }
       @case ('running') {
         <p class="text-[12.5px] text-fg-muted" role="status" data-testid="mapping-running">
-          {{ 'standards.mapping.running' | transloco }}
+          {{ 'standards.reqs.mapping.running' | transloco }}
         </p>
       }
       @case ('done') {

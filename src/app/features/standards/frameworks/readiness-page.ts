@@ -30,12 +30,38 @@ import { StandardsGuide } from '../guide/standards-guide';
 import { StandardsLesson } from '../guide/standards-lesson';
 import { loadFrameworks } from './frameworks-load';
 import { ReadinessBar } from './readiness-bar';
+import { EntityTypesService } from '../../../core/kit/entity-types.service';
+import { providePageContext } from '../../../core/ai/page-context';
+import { pluralKey } from '../../../shared/i18n/plural';
 
 interface ReadinessRow {
   readonly view: FrameworkView;
   readonly score: number;
   readonly applicable: number;
   readonly parts: ReadinessParts | null;
+  /** Record types that document covered requirements, most first (top 6). */
+  readonly sources: readonly EvidenceSource[];
+  /** Covered requirements documented through a record field (origin "field"). */
+  readonly fromFields: number;
+  /** Applicable requirements not covered yet. */
+  readonly gaps: number;
+}
+
+export interface EvidenceSource {
+  readonly entityType: string;
+  readonly count: number;
+}
+
+/** The record types documenting a standard's requirements, most first. */
+export function evidenceSources(
+  byType: Readonly<Record<string, number>> | undefined,
+  max = 6,
+): EvidenceSource[] {
+  return Object.entries(byType ?? {})
+    .filter(([, count]) => count > 0)
+    .map(([entityType, count]) => ({ entityType, count }))
+    .sort((a, b) => b.count - a.count || a.entityType.localeCompare(b.entityType))
+    .slice(0, max);
 }
 
 /**
@@ -147,6 +173,24 @@ interface ReadinessRow {
                         />
                       </div>
                     }
+                    @if (row.sources.length > 0) {
+                      <p class="mt-3 text-meta text-fg-muted" data-testid="readiness-sources">
+                        <span class="font-semibold text-fg">{{
+                          'standards.reqs.readiness.documentedBy' | transloco
+                        }}</span>
+                        @for (s of row.sources; track s.entityType; let last = $last) {
+                          {{ typeLabel(s.entityType) }} ({{ s.count }}){{ last ? '' : ' · ' }}
+                        }
+                      </p>
+                    }
+                    @if (row.fromFields > 0) {
+                      <p class="mt-1 text-meta text-fg-subtle" data-testid="readiness-fields">
+                        {{
+                          plural('standards.reqs.readiness.fromFields', row.fromFields)
+                            | transloco: { count: row.fromFields }
+                        }}
+                      </p>
+                    }
                   </div>
                   <div class="flex flex-none flex-wrap gap-2 sm:flex-col sm:items-end">
                     <a
@@ -156,6 +200,18 @@ interface ReadinessRow {
                       {{ 'standards.readiness.open' | transloco }}
                       <app-icon name="arrow" [size]="14" />
                     </a>
+                    @if (row.gaps > 0) {
+                      <a
+                        [routerLink]="['/standards/gaps', row.view.standardKey]"
+                        class="inline-flex h-8 items-center justify-center gap-2 rounded-tile px-3 text-ui font-semibold text-accent hover:bg-accent-soft"
+                        data-testid="readiness-gaps"
+                      >
+                        {{
+                          plural('standards.reqs.readiness.gaps', row.gaps)
+                            | transloco: { count: row.gaps }
+                        }}
+                      </a>
+                    }
                     @if (!aiUnavailable()) {
                       <app-button variant="ghost" size="sm" (click)="summarise(row)">
                         <app-icon name="spark" [size]="14" />
@@ -184,8 +240,14 @@ export class ReadinessPage {
   protected readonly aiUnavailable = inject(AiAvailability).unavailable;
 
   /** HS clauses on monitoring and management review: where readiness feeds in. */
-  protected readonly guideClauses = ['ISO HS 9.1', 'ISO HS 9.3'];
+  protected readonly guideClauses = ['hs:9.1', 'hs:9.3'];
   protected readonly pctColor = pctColor;
+  protected readonly plural = pluralKey;
+  private readonly entityTypes = inject(EntityTypesService);
+
+  protected typeLabel(entityType: string): string {
+    return this.entityTypes.label(entityType);
+  }
 
   private readonly views = signal<readonly FrameworkView[]>([]);
   protected readonly loading = signal(true);
@@ -199,12 +261,27 @@ export class ReadinessPage {
         score: view.readiness ?? view.standard?.completeness.pct ?? 0,
         applicable: view.breakdown?.applicable ?? view.standard?.completeness.applicable ?? 0,
         parts: view.breakdown ? readinessParts(view.breakdown) : null,
+        sources: evidenceSources(view.breakdown?.by_entity_type),
+        fromFields: view.breakdown?.by_origin?.field ?? 0,
+        gaps: view.breakdown
+          ? Math.max(0, view.breakdown.applicable - view.breakdown.covered)
+          : Math.max(
+              0,
+              (view.standard?.completeness.applicable ?? 0) -
+                (view.standard?.completeness.covered ?? 0),
+            ),
       })),
   );
 
   private sub: Subscription | null = null;
 
   constructor() {
+    this.entityTypes.ensureLoaded();
+    providePageContext(() => ({
+      module: 'standards',
+      view: 'dashboard',
+      selection: { field: 'readiness' },
+    }));
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();
       untracked(() => this.load(orgId));

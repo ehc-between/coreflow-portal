@@ -16,9 +16,10 @@ import { ClauseChips } from './clause-chips';
 let nextId = 0;
 
 /**
- * "Why this matters" note (`pages.<page>.why`): a short explanation plus the clause
- * references it serves, as chips that open the tutor for that clause. Experts see the
- * chips only, with the explanation one click away.
+ * "Why this matters" note (`pages.<page>.why`): a short explanation, then the clauses it
+ * serves as plain teaching links ("Les om: ISO 27001 · A.5.24") that open the tutor for
+ * that clause. Teaching links are never pills, so they are not mistaken for evidence.
+ * Experts see the links only, with the explanation one click away.
  */
 @Component({
   selector: 'app-why-it-matters',
@@ -34,16 +35,13 @@ let nextId = 0;
         [attr.aria-labelledby]="headingId"
       >
         <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
-          <h2 [id]="headingId" class="text-[12px] font-bold tracking-wide text-fg-subtle uppercase">
+          <h2 [id]="headingId" class="text-meta font-bold tracking-wide text-fg-subtle uppercase">
             {{ 'guidance.why.title' | transloco }}
           </h2>
-          @if (why.clauses?.length) {
-            <app-clause-chips [clauses]="why.clauses ?? []" />
-          }
           @if (expert()) {
             <button
               type="button"
-              class="ml-auto text-[12.5px] font-semibold text-accent hover:underline"
+              class="ml-auto text-meta font-semibold text-accent hover:underline"
               [attr.aria-expanded]="showBody()"
               [attr.aria-controls]="bodyId"
               (click)="showBody.set(!showBody())"
@@ -58,6 +56,9 @@ let nextId = 0;
             class="cf-prose mt-2 text-fg-muted"
             [innerHTML]="why.body | appMarkdown"
           ></div>
+        }
+        @if (why.clauses?.length) {
+          <app-clause-chips class="mt-2" [clauses]="why.clauses ?? []" [lead]="true" />
         }
       </aside>
     }

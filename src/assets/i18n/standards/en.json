@@ -1,29 +1,29 @@
 {
   "frameworks": {
-    "readiness": "Readiness",
+    "readiness": "Requirement coverage",
     "coverage": "{{pct}}% of requirements covered",
     "notEnabled": "Not enabled",
     "inProfile": "In your profile",
-    "inProfileHint": "Your organisation profile lists this framework as in scope.",
+    "inProfileHint": "Your organisation profile lists this standard as in scope.",
     "kind": {
       "standard": "ISO standard",
       "regulation": "EU regulation"
     },
-    "readinessDetails": "Readiness details",
-    "availableHint": "Enable a framework to assess its requirements and track readiness. Frameworks in your organisation profile are marked.",
-    "explain": "Explain our readiness",
-    "explainPrompt": "Explain our compliance readiness across these frameworks in plain language and suggest the three most useful next steps: {{summary}}.",
-    "explainNone": "Explain which compliance frameworks are relevant for an organisation like ours and how to get started.",
+    "readinessDetails": "Requirement coverage details",
+    "availableHint": "Enable a standard to assess its requirements and follow its requirement coverage. Standards in your organisation profile are marked.",
+    "explain": "Explain our requirement coverage",
+    "explainPrompt": "Explain our requirement coverage across these standards in plain language and suggest the three most useful next steps: {{summary}}.",
+    "explainNone": "Explain which compliance standards and regulations are relevant for an organisation like ours and how to get started.",
     "summaryItem": "{{name}} {{score}}%"
   },
   "readiness": {
-    "title": "Readiness by framework",
-    "subtitle": "How ready each enabled framework is, based on applicability, linked evidence and how recent that evidence is.",
+    "title": "Requirement coverage by standard",
+    "subtitle": "How much of each enabled standard is documented, based on what applies, the evidence linked from every module and how recent it is.",
     "back": "Back to standards",
-    "loadError": "Couldn't load the readiness scores. Try again.",
-    "score": "Readiness score",
+    "loadError": "Couldn't load the requirement coverage. Try again.",
+    "score": "Requirement coverage",
     "applicable": "{{count}} applicable requirements",
-    "breakdown": "Readiness breakdown",
+    "breakdown": "Requirement coverage breakdown",
     "open": "Open the standard",
     "legend": {
       "fresh": "Covered, recent evidence",
@@ -34,10 +34,10 @@
     "segment": "{{label}}: {{count}}",
     "weights": "Covered with recent evidence counts in full, covered with older evidence counts 60%, partly covered counts 50%, and not started counts nothing.",
     "summarise": "Summarise",
-    "summarisePrompt": "Summarise our readiness for {{name}}: score {{score}}%, {{applicable}} applicable requirements, {{fresh}} covered with recent evidence, {{stale}} covered with older evidence, {{partial}} partly covered and {{missing}} not started. What should we do first, and why?",
+    "summarisePrompt": "Summarise our requirement coverage for {{name}}: {{score}}%, {{applicable}} applicable requirements, {{fresh}} covered with recent evidence, {{stale}} covered with older evidence, {{partial}} partly covered and {{missing}} not started. What should we do first, and why?",
     "empty": {
-      "title": "No frameworks enabled yet",
-      "body": "Readiness is calculated for each framework your organisation has enabled. Enable ISO 9001, ISO/IEC 27001, GDPR or another framework from the standards overview to see your score here.",
+      "title": "No standards enabled yet",
+      "body": "Requirement coverage is calculated for each standard your organisation has enabled. Enable ISO 9001, ISO/IEC 27001, GDPR or another standard from the standards overview to see it here.",
       "cta": "Go to the standards overview"
     }
   },
@@ -47,8 +47,8 @@
     "annex": "Annex"
   },
   "hs": {
-    "badge": "HS {{clause}}",
-    "title": "Harmonised Structure clause {{clause}}: the same requirement appears in every ISO management system standard, so one piece of evidence can serve them all."
+    "badge": "Shared ISO {{clause}}",
+    "title": "Shared ISO requirement, clause {{clause}}: the same requirement appears in every ISO management system standard, so one piece of evidence can serve them all."
   },
   "aiAct": {
     "rolesLabel": "Applies to",
@@ -71,10 +71,10 @@
   },
   "mappings": {
     "title": "Also satisfies",
-    "hint": "Evidence for this clause often helps with these clauses in other frameworks too. Check each one before you rely on it.",
+    "hint": "Evidence for this clause often helps with these clauses in other standards too. Check each one before you rely on it.",
     "loading": "Loading related clauses …",
     "error": "Couldn't load the related clauses.",
-    "none": "No mappings to other frameworks for this clause.",
+    "none": "No mappings to other standards for this clause.",
     "relation": {
       "equivalent": "Equivalent",
       "related": "Related",
@@ -86,18 +86,18 @@
     },
     "notEnabled": "Not enabled",
     "ask": "Ask how these relate",
-    "askPrompt": "Explain how clause {{number}} of {{standard}} relates to these clauses in other frameworks, and how one piece of evidence can serve them all: {{targets}}.",
-    "hsBadge": "HS"
+    "askPrompt": "Explain how clause {{number}} of {{standard}} relates to these clauses in other standards, and how one piece of evidence can serve them all: {{targets}}.",
+    "hsBadge": "Shared ISO"
   },
   "support": {
-    "title": "Records that can be evidence",
-    "none": "No module declares records for this clause yet. You can still link any document or deviation.",
+    "title": "Records that can document this",
+    "none": "No module declares records for this clause yet. You can still link any record as evidence.",
     "error": "Couldn't load which records can be evidence.",
     "moduleOff": "Module not enabled"
   },
   "evidenceSuggestions": {
     "title": "Suggested for this record",
-    "hint": "Requirements this kind of record usually evidences in your enabled standards.",
+    "hint": "Requirements this kind of record usually documents in your enabled standards.",
     "none": "No suggestions. Search to find a requirement.",
     "searchAll": "Or search every requirement:"
   },
@@ -109,24 +109,24 @@
     "clauseAsk": "Ask about {{clause}}",
     "clausePrompt": "Teach me what {{clause}} requires, in plain language, with a short example from an organisation like ours.",
     "overview": {
-      "title": "Your frameworks in one place",
-      "body": "Each card is a standard or regulation your organisation works towards. The ring shows readiness: how much of the framework is covered by evidence you have linked, and how recent that evidence is.",
-      "step1": "Enable the frameworks that are in scope. Start with the ones your customers or regulators ask about.",
-      "step2": "Open a framework to assess each requirement: mark what does not apply and link documents or deviations as evidence.",
-      "step3": "Use Readiness details to see what is missing, and keep evidence up to date so the score stays high.",
-      "why": "Management system standards ask you to plan, implement and show evidence. Clauses 4 to 10 share one structure across ISO standards, so one well-kept record often serves several frameworks at once."
+      "title": "Your standards in one place",
+      "body": "Each card is a standard or regulation your organisation works towards. The ring shows requirement coverage: how much of the standard is documented by records you have linked, and how recent they are.",
+      "step1": "Enable the standards that are in scope. Start with the ones your customers or regulators ask about.",
+      "step2": "Open a standard to assess each requirement: mark what does not apply, and link risks, documents, suppliers or any other record as evidence.",
+      "step3": "Open the gaps list to see what is missing and how to close it, and keep evidence up to date so the coverage stays high.",
+      "why": "Management system standards ask you to plan, implement and show evidence. Clauses 4 to 10 share one structure across ISO standards, so one well-kept record often serves several standards at once."
     },
     "readiness": {
-      "title": "What the readiness score tells you",
+      "title": "What requirement coverage tells you",
       "body": "The score summarises how prepared you are for an audit or a regulator's review. It only counts requirements you have marked as applicable.",
-      "step1": "Look at the red segment first: requirements nobody has started on.",
+      "step1": "Look at the grey segment first: requirements nobody has started on yet.",
       "step2": "Then refresh evidence older than a year. Auditors expect records to be current.",
       "step3": "Open the standard to link evidence, or ask for a summary of what to do next.",
-      "why": "ISO standards require you to monitor and evaluate your management system and review it at management level. A readiness score per framework is a simple input to that review."
+      "why": "ISO standards require you to monitor and evaluate your management system and review it at management level. Requirement coverage per standard is a simple input to that review."
     }
   },
   "lesson": {
-    "badge": "Micro-lesson",
+    "badge": "Lesson",
     "minutes": "{{count}} min",
     "start": "Start the lesson",
     "close": "Close the lesson",
@@ -135,7 +135,7 @@
     "incorrect": "Not quite.",
     "questionLabel": "Check your understanding",
     "readiness": {
-      "title": "How readiness is calculated",
+      "title": "How requirement coverage is calculated",
       "s1Heading": "Only applicable requirements count",
       "s1Body": "When a requirement does not apply to you, mark it as not applicable and write a short justification. It then leaves the calculation, so the score reflects what you actually have to do.",
       "s2Heading": "Evidence makes a requirement covered",
@@ -153,16 +153,148 @@
     "evidenceLinked": "Evidence linked to clause {{clause_number}} ({{standard_key}})",
     "evidenceRejected": "Suggested evidence rejected for clause {{clause_number}} ({{standard_key}})",
     "evidenceUnlinked": "Evidence removed from clause {{clause_number}} ({{standard_key}})",
-    "standardEnabled": "Framework enabled: {{standard_key}}",
-    "standardDisabled": "Framework disabled: {{standard_key}}",
-    "requirementUpdated": "Requirement {{ref}} updated"
+    "standardEnabled": "Standard enabled: {{standard_key}}",
+    "standardDisabled": "Standard disabled: {{standard_key}}",
+    "requirementUpdated": "Requirement {{ref}} updated",
+    "requirementLinksSynced": "Requirement links updated from a field on the record"
   },
   "timeline": {
     "evidenceLinked": "linked this record as evidence for clause {{clause_number}} ({{standard_key}})",
     "evidenceRejected": "rejected the suggestion that this record is evidence for clause {{clause_number}} ({{standard_key}})",
     "evidenceUnlinked": "removed this record as evidence for clause {{clause_number}} ({{standard_key}})",
-    "standardEnabled": "enabled the framework {{standard_key}}",
-    "standardDisabled": "disabled the framework {{standard_key}}",
-    "requirementUpdated": "updated the assessment of requirement {{ref}}"
+    "standardEnabled": "enabled the standard {{standard_key}}",
+    "standardDisabled": "disabled the standard {{standard_key}}",
+    "requirementUpdated": "updated the assessment of requirement {{ref}}",
+    "requirementLinksSynced": "updated the requirement links from a field on the record ({{added}} added, {{removed}} removed)"
+  },
+  "reqs": {
+    "title": "Requirements this documents",
+    "add": "Add requirement",
+    "none": "Not linked to any requirements yet.",
+    "noneHint": "Link this record to the requirements it documents so it counts towards requirement coverage.",
+    "suggestedTitle": "Suggested requirements",
+    "suggestedHint": "Requirements this kind of record usually documents. Confirm the ones that fit.",
+    "suggestedHintAi": "Suggested from what this record says. Confirm the ones that fit.",
+    "suggesting": "Looking for requirements that fit …",
+    "findMore": "Suggest more requirements",
+    "confirm": "Confirm",
+    "reject": "Reject",
+    "confirmAll": "Confirm all ({{count}})",
+    "confirmLabel": "Confirm {{label}}",
+    "rejectLabel": "Reject {{label}}",
+    "remove": "Remove the link to {{label}}",
+    "removeShort": "Remove link",
+    "suggestion": "Suggestion",
+    "position": "(requirement {{index}} of {{count}})",
+    "positionAll": "(all {{count}} requirements)",
+    "positionMany": "(requirements {{first}} and {{last}} of {{count}})",
+    "positionLong": "Requirement {{index}} of {{count}}",
+    "showAll": "Show all {{count}}",
+    "onAction": "On action: {{action}}",
+    "moreLabel": "Show {{count}} more linked requirements",
+    "moreLabelOne": "Show 1 more linked requirement",
+    "fromField": "From the field “{{field}}”",
+    "fromFieldHint": "Change the field on the record to remove this link.",
+    "managedByField": "This link comes from a field on the record. Change the field to remove it.",
+    "error": "Couldn't update the requirement links. Try again.",
+    "loadError": "Couldn't load the requirements. Try again.",
+    "fieldDocuments": "Documents: {{requirements}}",
+    "fields": {
+      "clauses": "Requirements and clauses",
+      "clause_ref": "Clause",
+      "clause_refs": "Clauses audited",
+      "control_refs": "Controls",
+      "soa": "Statement of Applicability",
+      "standards": "Standards",
+      "frameworks": "Standards",
+      "article_refs": "Articles",
+      "requirements": "Requirements",
+      "generic": "a field on the record"
+    },
+    "origin": {
+      "manual": "Added by hand",
+      "ai": "Suggested by AI",
+      "field": "From the field “{{field}}”",
+      "declaration": "Typical for this kind of record",
+      "flow": "Created from here",
+      "system": "Added automatically"
+    },
+    "short": {
+      "hs": "Shared ISO requirement",
+      "eu_ai_act": "EU AI Act"
+    },
+    "teach": {
+      "readAbout": "Read about:",
+      "tooltip": "Explain this clause in plain words",
+      "sharedTooltip": "The same requirement in every ISO management system standard (ISO 9001, 14001, 27001, 42001 and 45001)"
+    },
+    "coverage": {
+      "documents": "Documents {{count}} requirements",
+      "documentsOne": "Documents 1 requirement",
+      "suggested": "{{count}} suggestions",
+      "suggestedOne": "1 suggestion",
+      "none": "Not linked to requirements"
+    },
+    "picker": {
+      "placeholder": "Search by clause or title, e.g. “A.8.13” or “backup”",
+      "hint": "Search the requirements of your enabled standards by clause number or title.",
+      "noResults": "No clauses match.",
+      "noResultsEnabled": "No clauses match in your enabled standards.",
+      "notEnabled": "Not enabled",
+      "error": "The search failed. Try again.",
+      "remove": "Remove {{ref}}",
+      "cancel": "Cancel",
+      "back": "Back to the search",
+      "chooseRequirement": "Choose the requirement this record documents:",
+      "all": "All {{count}} requirements in this clause",
+      "linked": "already linked"
+    },
+    "evidence": {
+      "searchPlaceholder": "Search any record by title or code …",
+      "hint": "Search risks, documents, suppliers, trainings and every other record you can see.",
+      "typeFilter": "Record type",
+      "allTypes": "All types"
+    },
+    "card": {
+      "evidenceTitle": "Evidence",
+      "suggestions": "Suggested evidence ({{count}})",
+      "loadError": "Couldn't load the evidence. Try again.",
+      "canBeEvidencedBy": "Can be documented with",
+      "canBeEvidencedByHint": "These kinds of records usually document this requirement. Create one, or link one you already have.",
+      "create": "Create",
+      "linkExisting": "Link existing"
+    },
+    "mapping": {
+      "never": "Your records have not been searched for evidence for this standard yet.",
+      "neverHint": "Let AI suggest which records, in every module, document each requirement. You confirm every suggestion.",
+      "findAll": "Find evidence in all modules",
+      "running": "Looking for evidence in all modules …"
+    },
+    "readiness": {
+      "documentedBy": "Documented by:",
+      "fromFields": "{{count}} requirements are documented through fields on records.",
+      "fromFieldsOne": "1 requirement is documented through a field on a record.",
+      "gaps": "{{count}} requirements lack evidence",
+      "gapsOne": "1 requirement lacks evidence"
+    },
+    "gaps": {
+      "title": "Gaps in {{name}}",
+      "crumb": "Gaps",
+      "subtitle": "Applicable requirements without confirmed evidence yet. Each one shows the records that would close it.",
+      "openStandard": "Open the standard",
+      "openRequirement": "Open the requirement",
+      "linkTitle": "See every requirement that lacks evidence, and how to close it",
+      "chapter": "Chapter",
+      "allChapters": "All chapters",
+      "count": "{{count}} requirements lack evidence",
+      "countOne": "1 requirement lacks evidence",
+      "fixWith": "Close it with:",
+      "none": "No gaps here",
+      "noneBody": "Every applicable requirement in this selection has confirmed evidence.",
+      "notEnabled": "This standard is not enabled",
+      "notEnabledBody": "Enable it on the standards overview to see what is missing.",
+      "toOverview": "Go to the standards overview",
+      "loadError": "Couldn't load the gaps. Try again."
+    }
   }
 }

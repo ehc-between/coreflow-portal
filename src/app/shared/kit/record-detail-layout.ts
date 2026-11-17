@@ -199,7 +199,11 @@ let nextId = 0;
         >
           <ng-content select="[aside-requirements]">
             @if (requirementsPanel()) {
-              <app-supports-requirements [entityType]="entityType()" [entityId]="entityId()" />
+              <app-supports-requirements
+                [entityType]="entityType()"
+                [entityId]="entityId()"
+                [canEdit]="canEdit()"
+              />
             }
           </ng-content>
           <ng-content select="[aside-connections]" />
