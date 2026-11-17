@@ -1412,7 +1412,7 @@
     },
     "stats": {
       "title": "Statistikk",
-      "subtitle": "Aggregerte mål på tvers av avvikene dine. Filtrer for å fokusere, klikk en søyle for å borre inn.",
+      "subtitle": "Tall på tvers av avvikene dine. Filtrer for å avgrense, og klikk på en stolpe for å se sakene bak.",
       "link": "Statistikk",
       "empty": "Ingen avvik samsvarer med disse filtrene ennå.",
       "noData": "Ingen data.",

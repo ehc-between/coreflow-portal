@@ -1,3 +1,4 @@
+import { formatNumber } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -442,7 +443,7 @@ export class DeviationStatsPage {
     return value === null || value === undefined
       ? this.language.translate('common.empty.dash')
       : this.language.translate('deviations.stats.kpis.daysValue', {
-          days: Math.round(value * 10) / 10,
+          days: formatNumber(value, this.language.locale(), '1.0-1'),
         });
   }
 
@@ -450,7 +451,7 @@ export class DeviationStatsPage {
     return value === null || value === undefined
       ? ''
       : this.language.translate('deviations.stats.kpis.avgDays', {
-          days: Math.round(value * 10) / 10,
+          days: formatNumber(value, this.language.locale(), '1.0-1'),
         });
   }
 

@@ -89,7 +89,7 @@ export class WhyItMatters {
     const clauses = why.clauses.filter((ref) => {
       const framework = ref
         .split(':')[0]
-        .replace(/-d{4}$/, '')
+        .replace(/-\d{4}$/, '')
         .replace(/-/g, '_');
       return framework === 'hs' || allowed.has(framework);
     });
