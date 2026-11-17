@@ -1,21 +1,24 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { LocalDatePipe } from '../../shared/locale/locale-pipes';
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   computed,
   effect,
   inject,
   input,
   output,
   signal,
+  untracked,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
-import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { Router } from '@angular/router';
+import { TranslocoPipe } from '@jsverse/transloco';
+import { Observable, Subscription, map } from 'rxjs';
 import { LanguageService } from '../../core/i18n/language.service';
+import { EntityTypesService } from '../../core/kit/entity-types.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
-import { entityTypeLabelKey } from '../../core/standards/frameworks-data';
+import { internalLink } from '../../core/search/internal-link';
 import { StandardsApi } from '../../core/standards/standards-api';
 import {
   applicabilitySource,
@@ -28,18 +31,21 @@ import {
   statusTone,
 } from '../../core/standards/standards-data';
 import {
-  LinkEntityType,
-  RequirementDetail,
-  RequirementLink,
   RequirementPatch,
   CoverageOverride,
+  EvidenceLink,
+  EvidencingType,
+  RequirementDetail,
+  RequirementEvidence,
 } from '../../core/standards/standards.models';
+import { EntityChip } from '../../shared/kit/entity-chip';
+import { fieldLabelKey } from '../../shared/requirement-links/supports-requirements';
 import { Badge } from '../../shared/ui/badge/badge';
 import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
 import { FormField } from '../../shared/ui/form-field/form-field';
 import { Icon } from '../../shared/ui/icon/icon';
-import { EvidencePick, EvidencePicker } from './evidence-picker';
+import { EvidencePick, EvidencePicker, PickerType, moduleName } from './evidence-picker';
 
 /** Status choices for the manual override ('' = automatic, from the evidence). */
 const OVERRIDE_OPTIONS: readonly ('' | CoverageOverride)[] = [
@@ -49,38 +55,56 @@ const OVERRIDE_OPTIONS: readonly ('' | CoverageOverride)[] = [
   'not_started',
 ];
 
-/** Router link for a linked record, or null when it has no page of its own. */
-export function entityRoute(type: LinkEntityType, id: string): readonly string[] | null {
-  switch (type) {
-    case 'document':
-      return ['/documents', id];
-    case 'deviation':
-      return ['/deviations', id];
-    default:
-      return null;
+/** Confirmed evidence of one module. */
+export interface ModuleEvidence {
+  readonly module: string;
+  readonly links: readonly EvidenceLink[];
+}
+
+/** Confirmed links grouped by module, in the order of `by_module` (most evidence first). */
+export function evidenceByModule(evidence: RequirementEvidence | null): ModuleEvidence[] {
+  if (!evidence) {
+    return [];
   }
+  const confirmed = evidence.links.filter((l) => l.status === 'confirmed');
+  const order = new Map(evidence.by_module.map((m, i) => [m.module, i] as const));
+  const groups = new Map<string, EvidenceLink[]>();
+  for (const link of confirmed) {
+    const module = link.entity.module ?? 'other';
+    const list = groups.get(module);
+    if (list) {
+      list.push(link);
+    } else {
+      groups.set(module, [link]);
+    }
+  }
+  return [...groups]
+    .map(([module, links]) => ({ module, links }))
+    .sort((a, b) => (order.get(a.module) ?? 999) - (order.get(b.module) ?? 999));
 }
 
 /**
  * One requirement of a standard (expanded inside a workspace requirement row,
- * `embedded`): our requirement text and evidence
- * checklist, the confirmed evidence links, AI suggestions to confirm / reject,
- * and — with `standards:manage` — adding / removing evidence plus the
- * assessment (applicability + justification, manual status + note).
- * Emits `updated` with the patched requirement and `linksChanged` after any
- * evidence change (the server recomputes the coverage status).
+ * `embedded`): our requirement text and evidence checklist, then its
+ * evidence from every module (`GET standard-requirements/{ref}/evidence`),
+ * grouped by module, with AI suggestions to confirm / reject. "Kan
+ * dokumenteres med" lists the record types that usually evidence it, each
+ * with "Opprett" (the new-record form, prefilled from this requirement) and
+ * "Koble eksisterende". With `standards:manage` the user can also link any
+ * record and assess the requirement (applicability + justification, manual
+ * status + note). Emits `updated` with the patched requirement and
+ * `linksChanged` after any evidence change (the server recomputes the status).
  */
 @Component({
   selector: 'app-requirement-card',
   imports: [
     NgTemplateOutlet,
-    LocalDatePipe,
     FormsModule,
-    RouterLink,
     TranslocoPipe,
     Badge,
     Button,
     Card,
+    EntityChip,
     FormField,
     Icon,
     EvidencePicker,
@@ -104,7 +128,6 @@ export function entityRoute(type: LinkEntityType, id: string): readonly string[]
     <ng-template #body>
       @if (!embedded()) {
         <div class="mb-2 flex flex-wrap items-center gap-2">
-          <span class="font-mono text-[12px] text-fg-subtle">{{ req.ref }}</span>
           <app-badge [tone]="tone()">{{ statusKey() | transloco }}</app-badge>
           @if (req.status_override) {
             <app-badge tone="neutral">{{ 'standards.requirement.manual' | transloco }}</app-badge>
@@ -113,17 +136,17 @@ export function entityRoute(type: LinkEntityType, id: string): readonly string[]
             <app-badge tone="neutral">{{ 'standards.requirement.derived' | transloco }}</app-badge>
           }
         </div>
-        <p class="text-[14px] leading-relaxed text-fg">{{ text(req.text) }}</p>
+        <p class="text-body text-fg">{{ text(req.text) }}</p>
       }
 
       @if (checklist().length > 0) {
         <div [class.mt-3]="!embedded()">
-          <div class="mb-1 text-[11px] font-bold tracking-[0.08em] text-fg-subtle uppercase">
+          <div class="mb-1 text-micro font-bold tracking-[0.08em] text-fg-subtle uppercase">
             {{ 'standards.requirement.evidenceExamples' | transloco }}
           </div>
           <ul class="flex flex-col gap-1">
             @for (item of checklist(); track $index) {
-              <li class="flex gap-2 text-[13px] text-fg-muted">
+              <li class="flex gap-2 text-ui text-fg-muted">
                 <span class="mt-0.5 flex flex-none text-fg-subtle"
                   ><app-icon name="checkcircle" [size]="14"
                 /></span>
@@ -200,7 +223,7 @@ export function entityRoute(type: LinkEntityType, id: string): readonly string[]
       }
 
       @if (!req.applicable && req.justification) {
-        <p class="mt-3 rounded-tile bg-surface-2 px-3 py-2 text-[12.5px] text-fg-muted">
+        <p class="mt-3 rounded-tile bg-surface-2 px-3 py-2 text-meta text-fg-muted">
           <span class="font-semibold text-fg">{{
             'standards.requirement.justification' | transloco
           }}</span>
@@ -208,42 +231,37 @@ export function entityRoute(type: LinkEntityType, id: string): readonly string[]
         </p>
       }
       @if (req.note) {
-        <p class="mt-2 rounded-tile bg-surface-2 px-3 py-2 text-[12.5px] text-fg-muted">
+        <p class="mt-2 rounded-tile bg-surface-2 px-3 py-2 text-meta text-fg-muted">
           <span class="font-semibold text-fg">{{ 'standards.requirement.note' | transloco }}</span>
           {{ req.note }}
         </p>
       }
 
-      <!-- AI suggestions (pending review): highlighted, above the evidence -->
+      <!-- Suggestions (pending review): above the evidence -->
       @if (suggestions().length > 0) {
         <div
-          class="mt-4 rounded-tile border border-accent-border bg-accent-soft/40 px-3 py-2.5"
+          class="mt-4 rounded-tile border border-dashed border-accent-border bg-accent-soft/30 px-3 py-2.5"
           data-testid="ai-suggestions"
         >
-          <h3 class="flex items-center gap-1.5 text-[13px] font-bold text-fg">
+          <h3 class="flex items-center gap-1.5 text-ui font-bold text-fg">
             <span class="flex text-accent"><app-icon name="spark" [size]="14" /></span>
-            {{ 'standards.suggestions.aiTitle' | transloco: { count: suggestions().length } }}
+            {{ 'standards.reqs.card.suggestions' | transloco: { count: suggestions().length } }}
           </h3>
-          <p class="mt-0.5 mb-2 text-[11.5px] text-fg-muted">
+          <p class="mt-0.5 mb-2 text-meta text-fg-muted">
             {{ 'standards.suggestions.hint' | transloco }}
           </p>
           <ul class="flex flex-col gap-2">
             @for (link of suggestions(); track link.id) {
               <li class="rounded-tile border border-accent-border bg-surface px-3 py-2">
-                <div class="flex items-start gap-2">
+                <div class="flex flex-wrap items-start gap-2">
                   <span class="min-w-0 flex-1">
-                    @if (route(link); as r) {
-                      <a
-                        [routerLink]="r"
-                        class="text-[13px] font-semibold text-fg hover:text-accent hover:underline"
-                        >{{ labelOf(link) }}</a
-                      >
-                    } @else {
-                      <span class="text-[13px] font-semibold text-fg">{{ labelOf(link) }}</span>
-                    }
-                    <span class="ml-1 text-[11.5px] text-fg-subtle">
-                      {{ entityLabelKey(link.entity_type) | transloco }}
-                      @if (link.confidence !== null && link.confidence !== undefined) {
+                    <app-entity-chip [ref]="link.entity" />
+                    <span class="mt-0.5 block text-micro text-fg-subtle">
+                      {{
+                        originKey(link)
+                          | transloco: { field: (fieldKey(link.origin_field) | transloco) }
+                      }}
+                      @if (link.confidence !== null) {
                         ·
                         {{
                           'standards.suggestions.confidence'
@@ -252,9 +270,7 @@ export function entityRoute(type: LinkEntityType, id: string): readonly string[]
                       }
                     </span>
                     @if (link.rationale) {
-                      <span class="mt-0.5 block text-[12.5px] text-fg-muted">{{
-                        link.rationale
-                      }}</span>
+                      <span class="mt-0.5 block text-meta text-fg-muted">{{ link.rationale }}</span>
                     }
                   </span>
                   @if (canManage()) {
@@ -262,7 +278,7 @@ export function entityRoute(type: LinkEntityType, id: string): readonly string[]
                       <app-button
                         size="sm"
                         variant="secondary"
-                        [disabled]="busyLinkId() === link.id"
+                        [disabled]="busy()"
                         (click)="confirmLink(link)"
                       >
                         <app-icon name="check" [size]="13" />
@@ -271,7 +287,7 @@ export function entityRoute(type: LinkEntityType, id: string): readonly string[]
                       <app-button
                         size="sm"
                         variant="ghost"
-                        [disabled]="busyLinkId() === link.id"
+                        [disabled]="busy()"
                         (click)="rejectLink(link)"
                       >
                         {{ 'standards.suggestions.reject' | transloco }}
@@ -285,17 +301,21 @@ export function entityRoute(type: LinkEntityType, id: string): readonly string[]
         </div>
       }
 
-      <!-- Evidence -->
-      <div class="mt-4">
+      <!-- Evidence from every module -->
+      <div class="mt-4" data-testid="requirement-evidence">
         <div class="mb-1.5 flex items-center justify-between gap-2">
-          <h3 class="text-[13px] font-bold text-fg">
-            {{ 'standards.evidence.title' | transloco }}
+          <h3 class="text-ui font-bold text-fg">
+            {{ 'standards.reqs.card.evidenceTitle' | transloco }}
+            @if (confirmedCount() > 0) {
+              <span class="ml-1 font-normal text-fg-subtle">({{ confirmedCount() }})</span>
+            }
           </h3>
           @if (canManage() && !picking()) {
             <button
               type="button"
-              class="inline-flex items-center gap-1 text-[12.5px] font-semibold text-accent hover:underline"
-              (click)="picking.set(true)"
+              class="inline-flex items-center gap-1 text-meta font-semibold text-accent hover:underline"
+              data-testid="add-evidence"
+              (click)="openPicker(null)"
             >
               <app-icon name="plus" [size]="13" />
               {{ 'standards.evidence.add' | transloco }}
@@ -304,66 +324,126 @@ export function entityRoute(type: LinkEntityType, id: string): readonly string[]
         </div>
         @if (picking()) {
           <div class="mb-2">
-            <app-evidence-picker (picked)="addLink($event)" (cancelled)="picking.set(false)" />
+            <app-evidence-picker
+              [types]="pickerTypes()"
+              [initialType]="pickerType()"
+              [exclude]="linkedKeys()"
+              (picked)="addLink($event)"
+              (cancelled)="picking.set(false)"
+            />
           </div>
         }
-        @if (evidence().length === 0) {
-          <p class="text-[12.5px] text-fg-muted">{{ 'standards.evidence.none' | transloco }}</p>
+        @if (evidenceLoading()) {
+          <p class="text-meta text-fg-muted">{{ 'common.loading' | transloco }}</p>
+        } @else if (evidenceError()) {
+          <p class="text-meta text-fail" role="alert">
+            {{ 'standards.reqs.card.loadError' | transloco }}
+          </p>
+        } @else if (groups().length === 0) {
+          <p class="text-meta text-fg-muted">{{ 'standards.evidence.none' | transloco }}</p>
         } @else {
-          <ul class="flex flex-col divide-y divide-border">
-            @for (link of evidence(); track link.id) {
-              <li class="flex items-center gap-2 py-1.5">
-                <span class="flex flex-none text-fg-subtle"
-                  ><app-icon [name]="entityIcon(link.entity_type)" [size]="15"
-                /></span>
-                <span class="min-w-0 flex-1">
-                  @if (route(link); as r) {
-                    <a
-                      [routerLink]="r"
-                      class="block truncate text-[13px] font-medium text-fg hover:text-accent hover:underline"
-                      >{{ labelOf(link) }}</a
-                    >
-                  } @else {
-                    <span class="block truncate text-[13px] font-medium text-fg">{{
-                      labelOf(link)
-                    }}</span>
+          <div class="flex flex-col gap-3">
+            @for (group of groups(); track group.module) {
+              <div data-testid="evidence-module">
+                <div class="mb-1 text-micro font-bold tracking-wide text-fg-subtle uppercase">
+                  {{ moduleLabel(group.module) }} · {{ group.links.length }}
+                </div>
+                <ul class="flex flex-col divide-y divide-border">
+                  @for (link of group.links; track link.id) {
+                    <li class="flex items-center gap-2 py-1.5">
+                      <span class="min-w-0 flex-1">
+                        <app-entity-chip [ref]="link.entity" />
+                        <span class="block text-micro text-fg-subtle">
+                          {{
+                            originKey(link)
+                              | transloco: { field: (fieldKey(link.origin_field) | transloco) }
+                          }}
+                        </span>
+                      </span>
+                      @if (canManage() && link.origin !== 'field') {
+                        <button
+                          type="button"
+                          class="flex flex-none rounded-lg p-1.5 text-fg-subtle hover:bg-surface-2 hover:text-fail disabled:opacity-60"
+                          [attr.aria-label]="
+                            'standards.evidence.remove' | transloco: { name: link.entity.title }
+                          "
+                          [disabled]="busy()"
+                          (click)="removeLink(link)"
+                        >
+                          <app-icon name="x" [size]="14" />
+                        </button>
+                      } @else if (link.origin === 'field') {
+                        <span
+                          class="flex flex-none p-1.5 text-fg-subtle"
+                          [title]="'standards.reqs.fromFieldHint' | transloco"
+                          ><app-icon name="lock" [size]="13"
+                        /></span>
+                      }
+                    </li>
                   }
-                  <span class="block text-[11.5px] text-fg-subtle">
-                    {{ entityLabelKey(link.entity_type) | transloco }}
-                    @if (link.source === 'ai') {
-                      · {{ 'standards.evidence.fromAi' | transloco }}
+                </ul>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- What could evidence it -->
+      @if (evidencingTypes().length > 0) {
+        <div class="mt-4" data-testid="can-be-evidenced-by">
+          <h3 class="mb-1 text-ui font-bold text-fg">
+            {{ 'standards.reqs.card.canBeEvidencedBy' | transloco }}
+          </h3>
+          <p class="mb-1.5 text-meta text-fg-muted">
+            {{ 'standards.reqs.card.canBeEvidencedByHint' | transloco }}
+          </p>
+          <ul class="flex flex-col gap-1">
+            @for (t of evidencingTypes(); track t.entity_type) {
+              <li
+                class="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-tile border border-border bg-surface px-2.5 py-1.5"
+                data-testid="evidencing-type"
+              >
+                <span class="min-w-0 flex-1">
+                  <span class="block text-ui font-medium text-fg">{{ typeLabel(t) }}</span>
+                  <span class="block text-micro text-fg-subtle">
+                    {{ moduleLabel(t.module) }}
+                    @if (!t.enabled) {
+                      · {{ 'standards.support.moduleOff' | transloco }}
                     }
-                    @if (link.confirmed_by_name) {
-                      ·
-                      {{
-                        'standards.evidence.confirmedBy'
-                          | transloco: { name: link.confirmed_by_name }
-                      }}
-                    }
-                    · {{ link.created_at | localDate: 'mediumDate' }}
                   </span>
                 </span>
-                @if (canManage()) {
-                  <button
-                    type="button"
-                    class="flex flex-none rounded-[8px] p-1.5 text-fg-subtle hover:bg-surface-2 hover:text-fail disabled:opacity-60"
-                    [attr.aria-label]="
-                      'standards.evidence.remove' | transloco: { name: labelOf(link) }
-                    "
-                    [disabled]="busyLinkId() === link.id"
-                    (click)="removeLink(link)"
-                  >
-                    <app-icon name="x" [size]="14" />
-                  </button>
+                @if (t.enabled) {
+                  @if (createLink(t); as target) {
+                    <a
+                      [href]="t.create_url"
+                      class="inline-flex h-7 items-center gap-1 rounded-lg border border-border bg-surface px-2.5 text-meta font-semibold text-fg hover:border-border-strong hover:bg-surface-2"
+                      data-testid="create-evidence"
+                      (click)="navigate($event, target)"
+                    >
+                      <app-icon name="plus" [size]="12" />
+                      {{ 'standards.reqs.card.create' | transloco }}
+                    </a>
+                  }
+                  @if (canManage()) {
+                    <button
+                      type="button"
+                      class="inline-flex h-7 items-center gap-1 rounded-lg px-2 text-meta font-semibold text-accent hover:bg-accent-soft"
+                      data-testid="link-existing"
+                      (click)="openPicker(t.entity_type)"
+                    >
+                      <app-icon name="link" [size]="12" />
+                      {{ 'standards.reqs.card.linkExisting' | transloco }}
+                    </button>
+                  }
                 }
               </li>
             }
           </ul>
-        }
-      </div>
+        </div>
+      }
 
       @if (linkError()) {
-        <p class="mt-2 text-[12.5px] text-fail" role="alert">
+        <p class="mt-2 text-meta text-fail" role="alert">
           {{ 'standards.evidence.error' | transloco }}
         </p>
       }
@@ -377,7 +457,7 @@ export function entityRoute(type: LinkEntityType, id: string): readonly string[]
           @if (!editing()) {
             <button
               type="button"
-              class="inline-flex items-center gap-1 text-[12.5px] font-semibold text-accent hover:underline"
+              class="inline-flex items-center gap-1 text-meta font-semibold text-accent hover:underline"
               (click)="startEdit()"
             >
               <app-icon name="sliders" [size]="13" />
@@ -385,7 +465,7 @@ export function entityRoute(type: LinkEntityType, id: string): readonly string[]
             </button>
           } @else {
             <div class="flex flex-col gap-3">
-              <label class="flex items-center gap-2 text-[13px] text-fg">
+              <label class="flex items-center gap-2 text-ui text-fg">
                 <input
                   type="checkbox"
                   [ngModel]="formApplicable()"
@@ -410,7 +490,7 @@ export function entityRoute(type: LinkEntityType, id: string): readonly string[]
                   ></textarea>
                 </app-form-field>
                 @if (justificationMissing()) {
-                  <p class="-mt-2 text-[12px] text-fail" role="alert">
+                  <p class="-mt-2 text-meta text-fail" role="alert">
                     {{ 'standards.requirement.justificationRequired' | transloco }}
                   </p>
                 }
@@ -447,7 +527,7 @@ export function entityRoute(type: LinkEntityType, id: string): readonly string[]
                 ></textarea>
               </app-form-field>
               @if (saveError(); as key) {
-                <p class="text-[12.5px] text-fail" role="alert">
+                <p class="text-meta text-fail" role="alert">
                   {{ key | transloco }}
                 </p>
               }
@@ -470,7 +550,8 @@ export class RequirementCard {
   private readonly api = inject(StandardsApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly language = inject(LanguageService);
-  private readonly transloco = inject(TranslocoService);
+  private readonly entityTypes = inject(EntityTypesService);
+  private readonly router = inject(Router);
 
   readonly requirement = input.required<RequirementDetail>();
   readonly canManage = input(false);
@@ -484,10 +565,13 @@ export class RequirementCard {
   readonly updated = output<RequirementDetail>();
   readonly linksChanged = output<void>();
 
-  protected readonly links = signal<readonly RequirementLink[]>([]);
-  protected readonly busyLinkId = signal<string | null>(null);
+  protected readonly evidence = signal<RequirementEvidence | null>(null);
+  protected readonly evidenceLoading = signal(true);
+  protected readonly evidenceError = signal(false);
+  protected readonly busy = signal(false);
   protected readonly linkError = signal(false);
   protected readonly picking = signal(false);
+  protected readonly pickerType = signal<string | null>(null);
 
   protected readonly editing = signal(false);
   protected readonly saving = signal(false);
@@ -524,7 +608,10 @@ export class RequirementCard {
 
   protected readonly overrideOptions = OVERRIDE_OPTIONS;
   protected readonly statusLabelKey = statusLabelKey;
+  protected readonly fieldKey = fieldLabelKey;
 
+  /** The ref alone, so a patched requirement object (same ref) does not reload the evidence. */
+  private readonly ref = computed(() => this.requirement().ref);
   protected readonly anchorId = computed(() => requirementAnchorId(this.requirement().ref));
   protected readonly status = computed(() => effectiveStatus(this.requirement()));
   protected readonly statusKey = computed(() => statusLabelKey(this.status()));
@@ -532,89 +619,112 @@ export class RequirementCard {
   protected readonly checklist = computed(() =>
     checklistItems(this.requirement().evidence_examples, this.language.active()),
   );
-  protected readonly evidence = computed(() =>
-    this.links().filter((l) => l.status === 'confirmed'),
+  protected readonly groups = computed(() => evidenceByModule(this.evidence()));
+  protected readonly confirmedCount = computed(
+    () => this.evidence()?.links.filter((l) => l.status === 'confirmed').length ?? 0,
   );
-  protected readonly suggestions = computed(() =>
-    this.links().filter((l) => l.status === 'suggested'),
+  protected readonly suggestions = computed(
+    () => this.evidence()?.links.filter((l) => l.status === 'suggested') ?? [],
+  );
+  /** Enabled modules first, so what the org can act on comes first. */
+  protected readonly evidencingTypes = computed(() =>
+    [...(this.evidence()?.can_be_evidenced_by ?? [])].sort(
+      (a, b) => Number(b.enabled) - Number(a.enabled),
+    ),
+  );
+  protected readonly pickerTypes = computed<readonly PickerType[]>(() =>
+    this.evidencingTypes()
+      .filter((t) => t.enabled)
+      .map((t) => ({ entity_type: t.entity_type, label_key: t.label_key })),
+  );
+  protected readonly linkedKeys = computed(
+    () =>
+      new Set(
+        (this.evidence()?.links ?? [])
+          .filter((l) => l.status !== 'rejected')
+          .map((l) => `${l.entity.entity_type}:${l.entity.entity_id}`),
+      ) as ReadonlySet<string>,
   );
 
+  private sub: Subscription | null = null;
+
   constructor() {
-    effect(() => this.links.set(this.requirement().links));
+    this.entityTypes.ensureLoaded();
+    effect(() => {
+      const orgId = this.selectedOrg.currentOrgId();
+      const ref = this.ref();
+      // Reload when the language changes too: labels and titles come localised.
+      this.language.active();
+      untracked(() => this.loadEvidence(orgId, ref, true));
+    });
+    inject(DestroyRef).onDestroy(() => this.sub?.unsubscribe());
   }
 
   protected text(value: RequirementDetail['text']): string {
     return localized(value, this.language.active());
   }
 
-  /** The linked record's label, or a neutral fallback when it no longer resolves. */
-  protected labelOf(link: RequirementLink): string {
-    return link.entity_label || this.transloco.translate('standards.evidence.unavailable');
+  protected moduleLabel(module: string): string {
+    return moduleName(module, (key) => this.language.translate(key));
   }
 
-  /** Label of a record kind (built-in kinds, then the platform's module entity labels). */
-  protected readonly entityLabelKey = entityTypeLabelKey;
-
-  protected route(link: RequirementLink): readonly string[] | null {
-    return entityRoute(link.entity_type, link.entity_id);
+  protected typeLabel(t: EvidencingType): string {
+    return this.entityTypes.label(t.entity_type, t.label_key);
   }
 
-  protected entityIcon(type: LinkEntityType): string {
-    return type === 'deviation' ? 'alert' : type === 'attachment' ? 'link' : 'documents';
+  /** "Fra feltet «Kontroller»", "Foreslått av KI", "Lagt til manuelt", … */
+  protected originKey(link: EvidenceLink): string {
+    return `standards.reqs.origin.${link.origin}`;
   }
 
   protected confidencePct(confidence: number): number {
     return Math.round(confidence * 100);
   }
 
+  /** In-app link of "Opprett", or null when the type has no create page / no permission. */
+  protected createLink(t: EvidencingType): string | null {
+    if (!t.create_url || t.can_create === false) {
+      return null;
+    }
+    return internalLink(t.create_url) ? t.create_url : null;
+  }
+
+  protected navigate(event: MouseEvent, url: string): void {
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+      return;
+    }
+    event.preventDefault();
+    void this.router.navigateByUrl(url);
+  }
+
+  protected openPicker(type: string | null): void {
+    this.pickerType.set(type);
+    this.picking.set(true);
+  }
+
   protected addLink(pick: EvidencePick): void {
-    const orgId = this.selectedOrg.currentOrgId();
-    if (!orgId) {
-      return;
-    }
-    this.linkError.set(false);
-    this.api
-      .createLink(orgId, {
-        requirement_ref: this.requirement().ref,
-        entity_type: pick.entity_type,
-        entity_id: pick.entity_id,
-      })
-      .subscribe({
-        next: (link) => {
-          this.links.update((list) => [...list.filter((l) => l.id !== link.id), link]);
-          this.picking.set(false);
-          this.linksChanged.emit();
-        },
-        error: () => this.linkError.set(true),
-      });
+    this.mutate((orgId) =>
+      this.api
+        .createLink(orgId, {
+          requirement_ref: this.requirement().ref,
+          entity_type: pick.entity_type,
+          entity_id: pick.entity_id,
+        })
+        .pipe(map(() => undefined)),
+    );
+    this.picking.set(false);
   }
 
-  protected confirmLink(link: RequirementLink): void {
-    this.mutateLink(link, (orgId) => this.api.confirmLink(orgId, link.id));
+  protected confirmLink(link: EvidenceLink): void {
+    this.mutate((orgId) => this.api.confirmLink(orgId, link.id).pipe(map(() => undefined)));
   }
 
-  protected rejectLink(link: RequirementLink): void {
-    this.mutateLink(link, (orgId) => this.api.rejectLink(orgId, link.id));
+  protected rejectLink(link: EvidenceLink): void {
+    this.mutate((orgId) => this.api.rejectLink(orgId, link.id).pipe(map(() => undefined)));
   }
 
-  protected removeLink(link: RequirementLink): void {
-    const orgId = this.selectedOrg.currentOrgId();
-    if (!orgId || this.busyLinkId()) {
-      return;
-    }
-    this.busyLinkId.set(link.id);
-    this.linkError.set(false);
-    this.api.deleteLink(orgId, link.id).subscribe({
-      next: () => {
-        this.busyLinkId.set(null);
-        this.links.update((list) => list.filter((l) => l.id !== link.id));
-        this.linksChanged.emit();
-      },
-      error: () => {
-        this.busyLinkId.set(null);
-        this.linkError.set(true);
-      },
-    });
+  protected removeLink(link: EvidenceLink): void {
+    this.mutate((orgId) => this.api.deleteLink(orgId, link.id));
   }
 
   protected startEdit(): void {
@@ -690,25 +800,44 @@ export class RequirementCard {
     });
   }
 
-  private mutateLink(
-    link: RequirementLink,
-    call: (orgId: string) => ReturnType<StandardsApi['confirmLink']>,
-  ): void {
+  private mutate(call: (orgId: string) => Observable<void>): void {
     const orgId = this.selectedOrg.currentOrgId();
-    if (!orgId || this.busyLinkId()) {
+    if (!orgId || this.busy()) {
       return;
     }
-    this.busyLinkId.set(link.id);
+    this.busy.set(true);
     this.linkError.set(false);
     call(orgId).subscribe({
-      next: (updated) => {
-        this.busyLinkId.set(null);
-        this.links.update((list) => list.map((l) => (l.id === updated.id ? updated : l)));
+      next: () => {
+        this.busy.set(false);
         this.linksChanged.emit();
+        this.loadEvidence(orgId, this.requirement().ref, false);
       },
       error: () => {
-        this.busyLinkId.set(null);
+        this.busy.set(false);
         this.linkError.set(true);
+      },
+    });
+  }
+
+  private loadEvidence(orgId: string | null, ref: string, spinner: boolean): void {
+    this.sub?.unsubscribe();
+    this.evidenceError.set(false);
+    if (!orgId) {
+      this.evidenceLoading.set(false);
+      return;
+    }
+    if (spinner) {
+      this.evidenceLoading.set(true);
+    }
+    this.sub = this.api.requirementEvidence(orgId, ref).subscribe({
+      next: (evidence) => {
+        this.evidence.set(evidence);
+        this.evidenceLoading.set(false);
+      },
+      error: () => {
+        this.evidenceLoading.set(false);
+        this.evidenceError.set(true);
       },
     });
   }

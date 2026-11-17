@@ -23,8 +23,9 @@ export const legacyClauseRedirect: RedirectFunction = ({ params, queryParams }) 
  * for the framework, readiness and learning-mode strings.
  *
  * - `''` — the overview of every framework (entry point).
- * - `readiness` — readiness per enabled framework.
+ * - `readiness` — requirement coverage per enabled standard.
  * - `journey/:framework` — the guided journey of a framework (P5).
+ * - `gaps/:key` — the uncovered requirements of one standard and how to close them.
  * - `:key` and `:key/:number` — the document workspace, one route config so
  *   moving between sections reuses the component.
  * - `:key/clauses[/:number]` — legacy, redirects into the workspace.
@@ -44,6 +45,11 @@ const pages: Routes = [
     // (polish plan §2.6). The page lives in features/dashboard and loads the `home` scope.
     path: 'journey/:framework',
     loadComponent: () => import('../dashboard/journey/journey-page').then((m) => m.JourneyPage),
+  },
+  {
+    // Gaps of one enabled standard, with what would close each one. Before the matcher.
+    path: 'gaps/:key',
+    loadComponent: () => import('./gaps/gaps-page').then((m) => m.GapsPage),
   },
   {
     path: ':key/clauses/:number',

@@ -20,7 +20,13 @@ const FILES: Record<string, GuidanceFile> = {
         intro: { title: 'Risk intro', body: 'Intro body', steps: ['Step one', 'Step two'] },
         why: { body: 'Why body', clauses: ['hs:6.1', 'custom-ref'] },
         empty: { title: 'No risks', body: 'Start here', cta: 'Add a risk' },
-        fields: { likelihood: { help: 'How likely', example: 'Once a year' } },
+        fields: {
+          likelihood: {
+            help: 'How likely',
+            example: 'Once a year',
+            requirements: ['iso27001:6.1.2'],
+          },
+        },
       },
     },
   },
@@ -76,6 +82,10 @@ describe('guidance components', () => {
     expect(el.textContent).toContain('Step two');
     expect(q('[data-testid="field-help-inline"]')?.textContent).toContain('How likely');
     expect(q('[data-testid="field-help-toggle"]')).toBeNull();
+    // The field says which requirement it documents.
+    expect(q('[data-testid="field-help-requirements"]')?.textContent).toContain(
+      'standards.reqs.fieldDocuments',
+    );
   });
 
   it('collapses the intro to one line for standard users and toggles it', () => {
@@ -110,10 +120,17 @@ describe('guidance components', () => {
     expect(q('[data-testid="field-help-popover"]')).toBeNull();
   });
 
-  it('renders clause chips that open the tutor', () => {
+  it('renders teaching links (not pills, never "ISO HS") that open the tutor', () => {
     const { el, tutor } = setup('standard');
     const chips = Array.from(el.querySelectorAll<HTMLButtonElement>('[data-testid="clause-chip"]'));
-    expect(chips.map((c) => c.textContent?.trim())).toEqual(['guidance.clause', 'custom-ref']);
+    expect(chips.map((c) => c.textContent?.trim())).toEqual([
+      'standards.reqs.short.hs · 6.1',
+      'custom-ref',
+    ]);
+    expect(chips[0].className).not.toContain('rounded-full');
+    expect(el.querySelector('app-why-it-matters')?.textContent).toContain(
+      'standards.reqs.teach.readAbout',
+    );
     chips[0].click();
     expect(tutor.explainClause).toHaveBeenCalledWith('hs:6.1');
   });

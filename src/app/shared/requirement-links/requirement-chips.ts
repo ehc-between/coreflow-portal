@@ -1,61 +1,53 @@
-import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { TranslocoPipe } from '@jsverse/transloco';
-import { shortRef } from '../../core/standards/standards-data';
-import { RequirementLink } from '../../core/standards/standards.models';
-import { Icon } from '../ui/icon/icon';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { provideSharedScope } from '../../core/i18n/shared-scope';
+import { RequirementLabel, RequirementLink } from '../../core/standards/standards.models';
 import { pluralKey } from '../i18n/plural';
+import { RequirementChip } from './requirement-chip';
+import {
+  compareNumbers,
+  fallbackLabel,
+  fixedShortName,
+  frameworkOf,
+  shortNameKey,
+} from './requirement-label';
 
 /** Chips shown before the "+N" overflow chip. */
 export const REQUIREMENT_CHIPS_MAX = 6;
 
+interface ChipView {
+  readonly id: string;
+  readonly label: RequirementLabel;
+  readonly status: 'confirmed' | 'suggested';
+}
+
 /**
- * A compact row of the requirements a record supports: one chip per
- * requirement ref (confirmed first; AI suggestions marked with a spark and a
- * dashed border), each deep-linking to the requirement in its standard's
- * workspace (`/standards/{key}/{clause}?req={ref}`). Past `max` chips a "+N"
+ * A compact row of the requirements a record documents: one
+ * `app-requirement-chip` per link (confirmed first; suggestions dashed with
+ * "Forslag"), each deep-linking to the requirement. Past `max` chips a "+N"
  * chip emits `more` (the host reveals the full panel). Renders nothing when
  * there are no links.
  */
 @Component({
   selector: 'app-requirement-chips',
-  imports: [RouterLink, TranslocoPipe, Icon],
+  imports: [TranslocoPipe, RequirementChip],
+  viewProviders: [provideSharedScope('standards')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (sorted().length > 0) {
       <div class="flex flex-wrap items-center gap-1.5" data-testid="requirement-chips">
-        <span class="mr-0.5 text-[12px] font-semibold text-fg-subtle">{{
-          'standards.supports.title' | transloco
+        <span class="mr-0.5 text-meta font-semibold text-fg-subtle">{{
+          'standards.reqs.title' | transloco
         }}</span>
-        @for (link of shown(); track link.id) {
-          <a
-            [routerLink]="['/standards', link.standard_key, link.clause_number]"
-            [queryParams]="{ req: link.requirement_ref }"
-            class="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 font-mono text-[11.5px] hover:border-accent hover:text-accent"
-            [class]="
-              link.status === 'suggested'
-                ? 'border-dashed border-accent-border bg-accent-soft/40 text-accent'
-                : 'border-border bg-surface-2 text-fg'
-            "
-            [title]="
-              link.status === 'suggested'
-                ? link.requirement_ref + ' — ' + ('standards.supports.suggested' | transloco)
-                : link.requirement_ref
-            "
-            data-testid="requirement-chip"
-          >
-            @if (link.status === 'suggested') {
-              <app-icon name="spark" [size]="11" />
-            }
-            {{ label(link) }}
-          </a>
+        @for (chip of shown(); track chip.id) {
+          <app-requirement-chip [label]="chip.label" [status]="chip.status" />
         }
         @if (hidden() > 0) {
           <button
             type="button"
-            class="rounded-full border border-border px-2 py-0.5 text-[11.5px] font-semibold text-fg-muted hover:border-accent hover:text-accent"
+            class="rounded-full border border-border px-2 py-0.5 text-meta font-semibold text-fg-muted hover:border-accent hover:text-accent"
             [attr.aria-label]="
-              plural('standards.supports.moreLabel', hidden()) | transloco: { count: hidden() }
+              plural('standards.reqs.moreLabel', hidden()) | transloco: { count: hidden() }
             "
             data-testid="requirement-chips-more"
             (click)="more.emit()"
@@ -68,6 +60,8 @@ export const REQUIREMENT_CHIPS_MAX = 6;
   `,
 })
 export class RequirementChips {
+  private readonly transloco = inject(TranslocoService);
+
   /** The record's links (rejected ones are ignored). */
   readonly links = input<readonly RequirementLink[]>([]);
   readonly max = input(REQUIREMENT_CHIPS_MAX);
@@ -76,21 +70,29 @@ export class RequirementChips {
   readonly more = output<void>();
 
   protected readonly plural = pluralKey;
-  /** Confirmed before suggested, then by ref. */
-  protected readonly sorted = computed(() =>
+  /** Confirmed before suggested, then by standard and clause number. */
+  protected readonly sorted = computed<readonly ChipView[]>(() =>
     this.links()
       .filter((l) => l.status !== 'rejected')
-      .slice()
+      .map<ChipView>((l) => ({
+        id: l.id,
+        label: l.label ?? fallbackLabel(l, this.short(l.standard_key)),
+        status: l.status === 'suggested' ? 'suggested' : 'confirmed',
+      }))
       .sort(
         (a, b) =>
           Number(a.status === 'suggested') - Number(b.status === 'suggested') ||
-          a.requirement_ref.localeCompare(b.requirement_ref, 'en', { numeric: true }),
+          a.label.short.localeCompare(b.label.short) ||
+          compareNumbers(a.label.number, b.label.number) ||
+          a.label.req_index - b.label.req_index,
       ),
   );
   protected readonly shown = computed(() => this.sorted().slice(0, this.max()));
   protected readonly hidden = computed(() => Math.max(0, this.sorted().length - this.max()));
 
-  protected label(link: RequirementLink): string {
-    return shortRef(link.requirement_ref);
+  private short(standardKey: string): string {
+    const framework = frameworkOf(standardKey);
+    const key = shortNameKey(framework);
+    return key ? this.transloco.translate(key) : (fixedShortName(framework) ?? standardKey);
   }
 }

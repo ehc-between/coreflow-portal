@@ -13,7 +13,7 @@ import { Badge } from '../../../shared/ui/badge/badge';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { RequirementCard, requirementAnchorId } from '../requirement-card';
 import { RequirementAiHelp } from './requirement-ai-help';
-import { shortRef, toRequirementDetail } from './workspace-data';
+import { toRequirementDetail } from './workspace-data';
 import { pluralKey } from '../../../shared/i18n/plural';
 
 /**
@@ -51,7 +51,11 @@ import { pluralKey } from '../../../shared/i18n/plural';
           <app-badge [tone]="tone()">{{ statusKey() | transloco }}</app-badge>
         </span>
         <span class="min-w-0 flex-1">
-          <span class="block font-mono text-[11.5px] text-fg-subtle">{{ ref() }}</span>
+          @if (count() > 1) {
+            <span class="block text-micro font-semibold text-fg-subtle" [title]="req.ref">{{
+              'standards.reqs.positionLong' | transloco: { index: position(), count: count() }
+            }}</span>
+          }
           <span
             class="block text-[14px] leading-relaxed text-fg"
             [class.line-clamp-2]="!expanded()"
@@ -138,6 +142,9 @@ export class RequirementRow {
   readonly expanded = input(false);
   readonly highlighted = input(false);
   readonly canManage = input(false);
+  /** 1-based position in its clause and the clause's requirement count ("Krav 2 av 3"). */
+  readonly position = input(1);
+  readonly count = input(1);
   /** The standard the requirement belongs to (enables the AI help section). */
   readonly standardKey = input<string | null>(null);
 
@@ -148,7 +155,6 @@ export class RequirementRow {
   protected readonly plural = pluralKey;
   protected readonly anchorId = computed(() => requirementAnchorId(this.requirement().ref));
   protected readonly panelId = computed(() => `${this.anchorId()}-panel`);
-  protected readonly ref = computed(() => shortRef(this.requirement().ref));
   protected readonly text = computed(() =>
     localized(this.requirement().text, this.language.active()),
   );

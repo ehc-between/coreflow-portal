@@ -19,6 +19,9 @@ import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription, debounceTime, forkJoin } from 'rxjs';
+import { providePageContext } from '../../../core/ai/page-context';
+import { pluralKey } from '../../../shared/i18n/plural';
+import { fixedShortName, frameworkOf } from '../../../shared/requirement-links/requirement-label';
 import { AiAvailability, isAiNotConfigured } from '../../../core/ai/ai-availability';
 import { HasPermissionDirective } from '../../../core/auth/has-permission.directive';
 import { LanguageService } from '../../../core/i18n/language.service';
@@ -314,6 +317,24 @@ function clampWidth(width: number): number {
               >
                 <app-icon name="chevron" [size]="17" />
               </a>
+              @if (std.enabled && gapCount() > 0) {
+                <a
+                  [routerLink]="['/standards/gaps', std.key]"
+                  class="inline-flex h-8 items-center gap-1.5 rounded-tile border border-border bg-surface px-2.5 text-meta font-semibold text-fg hover:border-border-strong hover:bg-surface-2"
+                  data-testid="workspace-gaps-link"
+                  [title]="'standards.reqs.gaps.linkTitle' | transloco"
+                >
+                  <app-icon name="target" [size]="14" />
+                  <span class="hidden lg:inline">{{
+                    plural('standards.reqs.readiness.gaps', gapCount())
+                      | transloco: { count: gapCount() }
+                  }}</span>
+                  <span class="sr-only lg:hidden">{{
+                    plural('standards.reqs.readiness.gaps', gapCount())
+                      | transloco: { count: gapCount() }
+                  }}</span>
+                </a>
+              }
               @if (std.org_standard_id) {
                 <app-button variant="secondary" size="sm" (click)="licensedPanelOpen.set(true)">
                   <app-icon name="lock" [size]="14" />
@@ -566,6 +587,7 @@ export class StandardWorkspace {
   protected readonly extractStartError = signal<string | null>(null);
 
   protected readonly pctColor = pctColor;
+  protected readonly plural = pluralKey;
   protected readonly tocMin = TOC_MIN;
   protected readonly tocMax = TOC_MAX;
 
@@ -749,9 +771,42 @@ export class StandardWorkspace {
   );
   private readonly clauseSubs = new Map<string, Subscription>();
 
+  /** The requirement the user is working on: highlighted, the only expanded one, or `?req=`. */
+  private readonly focusedRef = computed(() => {
+    const expanded = [...this.expandedRefs()];
+    return (
+      this.highlightRef() ?? (expanded.length === 1 ? expanded[0] : null) ?? this.req() ?? null
+    );
+  });
+
   constructor() {
     this.restorePrefs();
     this.watchViewport();
+    // The assistant knows the standard, and the requirement when one is open.
+    providePageContext(() => {
+      const name = this.standard()?.name ?? this.key();
+      const ref = this.focusedRef();
+      if (ref) {
+        const number = ref.slice(ref.indexOf(':') + 1).replace(/\.r\d+$/, '');
+        const short = fixedShortName(frameworkOf(this.key())) ?? name;
+        const node = this.index().nodes.get(number);
+        const title = node ? localized(node.title, this.language.active()) : '';
+        return {
+          module: 'standards',
+          entityType: 'standard_requirement',
+          view: 'detail',
+          title: [`${short} · ${number}`, title].filter((part) => !!part).join(' — '),
+          selection: { field: ref },
+        };
+      }
+      const section = this.active();
+      return {
+        module: 'standards',
+        entityType: 'standard',
+        view: 'detail',
+        title: section ? `${name} · ${section}` : name,
+      };
+    });
 
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();

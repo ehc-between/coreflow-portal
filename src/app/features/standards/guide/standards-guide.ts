@@ -2,6 +2,8 @@ import { ChangeDetectionStrategy, Component, computed, inject, input, signal } f
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { AskPanelService } from '../../ask/ask-panel.service';
+import { LanguageService } from '../../../core/i18n/language.service';
+import { teachingClause } from '../../../shared/guidance/clause-chips';
 
 /** Pages of the standards area with learning-mode guidance (`standards.guide.<page>.*`). */
 export type StandardsGuidePage = 'overview' | 'readiness';
@@ -88,22 +90,29 @@ function writeCollapsed(page: string, collapsed: boolean): void {
               {{ 'standards.guide.whyTitle' | transloco }}
             </div>
             <p class="mt-1.5 text-[13px] leading-[1.6] text-fg">{{ base + '.why' | transloco }}</p>
-            @if (clauses().length > 0) {
-              <ul class="mt-2 flex flex-wrap gap-1.5">
-                @for (clause of clauses(); track clause) {
-                  <li>
+            @if (labels().length > 0) {
+              <p class="mt-2 flex flex-wrap items-baseline gap-x-1 text-meta">
+                <span class="text-fg-subtle">{{
+                  'standards.reqs.teach.readAbout' | transloco
+                }}</span>
+                @for (clause of labels(); track clause.ref; let last = $last) {
+                  <span class="inline-flex items-baseline">
                     <button
                       type="button"
-                      class="inline-flex items-center gap-1 rounded-full border border-accent-border bg-accent-soft px-2.5 py-0.5 text-[11.5px] font-semibold text-accent hover:underline"
-                      [attr.aria-label]="'standards.guide.clauseAsk' | transloco: { clause }"
-                      (click)="teach(clause)"
+                      class="rounded-sm font-medium text-accent underline decoration-dotted underline-offset-2 hover:decoration-solid"
+                      [attr.aria-label]="
+                        'standards.guide.clauseAsk' | transloco: { clause: clause.label }
+                      "
+                      (click)="teach(clause.label)"
                     >
-                      <app-icon name="spark" [size]="11" />
-                      {{ clause }}
+                      {{ clause.label }}
                     </button>
-                  </li>
+                    @if (!last) {
+                      <span class="text-fg-subtle">,</span>
+                    }
+                  </span>
                 }
-              </ul>
+              </p>
             }
           </div>
         </div>
@@ -114,10 +123,19 @@ function writeCollapsed(page: string, collapsed: boolean): void {
 export class StandardsGuide {
   private readonly ask = inject(AskPanelService);
   private readonly transloco = inject(TranslocoService);
+  private readonly language = inject(LanguageService);
 
   readonly page = input.required<StandardsGuidePage>();
-  /** Clause labels for the "why" chips (e.g. "ISO HS 9.1"); each opens the assistant on it. */
+  /**
+   * Clause refs for the "why" teaching links (`hs:9.1`, `iso27001:A.5.9`), shown as
+   * "Felles ISO-krav · 9.1"; each opens the assistant on it.
+   */
   readonly clauses = input<readonly string[]>([]);
+  protected readonly labels = computed(() =>
+    this.clauses().map((ref) =>
+      teachingClause(ref, (key, params) => this.language.translate(key, params)),
+    ),
+  );
 
   protected readonly steps = STEPS;
   protected readonly id = computed(() => `std-guide-${this.page()}`);
