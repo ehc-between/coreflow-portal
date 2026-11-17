@@ -6,7 +6,22 @@
     "standard": "Standard",
     "standard_requirement": "Requirement",
     "task": "Task",
-    "attachment": "Attachment"
+    "attachment": "Attachment",
+    "audit_certification": "Certification",
+    "consent_record": "Consent record",
+    "continuity_contact": "Emergency contact",
+    "continuity_ict_system": "ICT system",
+    "env_drill": "Emergency drill",
+    "env_metric": "Environmental indicator",
+    "learning_progress": "Learning progress",
+    "legal_basis_assessment": "Legal basis assessment",
+    "people_awareness": "Awareness activity",
+    "people_checklist": "Checklist",
+    "people_disciplinary": "Personnel case",
+    "record_type": "Record type",
+    "retention_schedule": "Retention schedule",
+    "risk_register": "Risk register",
+    "workflow_definition": "Workflow"
   },
   "linkTypes": {
     "relates_to": {
@@ -64,7 +79,23 @@
     "planned": "Planned",
     "completed": "Completed",
     "archived": "Archived",
-    "overdue": "Overdue"
+    "overdue": "Overdue",
+    "in_treatment": "In treatment",
+    "identified": "Identified",
+    "assessed": "Assessed",
+    "accepted": "Accepted",
+    "treated": "Treated",
+    "monitoring": "Monitoring",
+    "mitigated": "Mitigated",
+    "qualified": "Qualified",
+    "suspended": "Suspended",
+    "terminated": "Terminated",
+    "confirmed": "Confirmed",
+    "suggested": "Suggested",
+    "resolved": "Resolved",
+    "verified": "Verified",
+    "implemented": "Implemented",
+    "published": "Published"
   },
   "chip": {
     "open": "Open {{ type }} {{ title }}",
@@ -82,7 +113,8 @@
     "removeConfirm": "Remove link",
     "linkedBy": "Linked by {{ name }}",
     "count": "{{ count }} linked",
-    "suggest": "Suggest related records"
+    "suggest": "Suggest related records",
+    "moreInGroup": "Showing {{ shown }} of {{ count }}"
   },
   "picker": {
     "title": "Link a record",
@@ -179,14 +211,16 @@
     "commentMentioned": "{{ actor_name }} mentioned someone in a comment",
     "commentDeleted": "{{ actor_name }} deleted a comment",
     "linkCreated": "{{ actor_name }} linked a {{ other_type_label }} ({{ link_type_label }})",
-    "linkDeleted": "{{ actor_name }} removed the link to a {{ other_type_label }} ({{ link_type_label }})"
+    "linkDeleted": "{{ actor_name }} removed the link to a {{ other_type_label }} ({{ link_type_label }})",
+    "flowCompleted": "{{ actor_name }} created this record from another record ({{ source_type_label }})"
   },
   "notifications": {
     "commentCreated": "{{ actor_name }} commented on a record you follow",
     "commentMentioned": "{{ actor_name }} mentioned you in a comment",
     "commentDeleted": "{{ actor_name }} deleted a comment",
     "linkCreated": "{{ actor_name }} linked a record",
-    "linkDeleted": "{{ actor_name }} removed a link"
+    "linkDeleted": "{{ actor_name }} removed a link",
+    "flowCompleted": "{{ actor_name }} created a linked record"
   },
   "list": {
     "search": "Search",
@@ -243,6 +277,171 @@
     "not_comment_author": "Only the author can edit a comment.",
     "comment_not_found": "This comment no longer exists.",
     "revision_not_found": "This revision could not be found.",
-    "revision_mismatch": "These revisions belong to different records."
+    "revision_mismatch": "These revisions belong to different records.",
+    "suggestion_not_found": "This suggestion no longer exists.",
+    "suggestion_decided": "Someone has already decided on this suggestion.",
+    "flow_not_found": "This option is not available for this record.",
+    "invalid_flow_token": "The link back to the original record could not be checked. Link it from the Related tab.",
+    "flow_token_expired": "More than an hour has passed, so the link back was not made. Link it from the Related tab.",
+    "token_required": "The link back to the original record could not be checked. Link it from the Related tab.",
+    "requirement_not_found": "This requirement could not be found.",
+    "invalid_ids": "The list could not be counted.",
+    "too_many_ids": "The list could not be counted."
+  },
+  "connections": {
+    "title": "Connected to",
+    "linkTo": "Link to…",
+    "retry": "Try again",
+    "counts": {
+      "records": "{{ count }} records",
+      "recordsOne": "1 record",
+      "requirements": "{{ count }} requirements",
+      "requirementsOne": "1 requirement",
+      "tasks": "{{ count }} tasks",
+      "tasksOne": "1 task",
+      "requirementSuggestions": "{{ count }} suggested requirements",
+      "requirementSuggestionsOne": "1 suggested requirement"
+    },
+    "suggestedTitle": "Suggested links ({{ count }})",
+    "suggestedHint": "CoreFlow found records that probably belong with this one. Link the ones that fit. Dismissed suggestions do not come back.",
+    "accept": "Link",
+    "acceptNamed": "Link {{ title }}",
+    "dismiss": "Dismiss",
+    "dismissNamed": "Dismiss the suggestion {{ title }}",
+    "moreSuggestions": "See all {{ count }} suggestions",
+    "empty": "Not connected to other records yet.",
+    "emptyEdit": "Not connected to other records yet. Link the documents, risks or deviations this record depends on.",
+    "showAll": "Show all ({{ count }})",
+    "showMap": "Show map",
+    "askAbout": "Ask about the connections",
+    "askPrompt": "What is this {{ type }} (record type {{ entity_type }}, id {{ entity_id }}) connected to, which requirements does it document, and what is missing? Link every record you mention.",
+    "reasons": {
+      "same_control": "Cites the same control",
+      "asset_named": "Names this asset",
+      "same_process": "Linked to the same process",
+      "same_asset": "Linked to the same asset",
+      "process_in_scope": "The process is in the audit scope",
+      "ai_system_named": "Names this AI system",
+      "ai_system_in_ropa": "The AI system is used in this processing",
+      "same_legal_reference": "Refers to the same law or article",
+      "same_framework": "Covers the same standard",
+      "legal_requirement": "Marked as a legal requirement",
+      "review_input": "Input to this management review",
+      "text_match": "Similar wording",
+      "ai": "Suggested by the assistant",
+      "other": "Probably related"
+    },
+    "origin": {
+      "auto": "Automatic",
+      "autoHint": "CoreFlow linked these because the data shows they belong together.",
+      "structural": "Via field",
+      "structuralHint": "Connected through a field on the record. Change the field to change the connection.",
+      "ai": "AI suggestion",
+      "aiHint": "Suggested by the assistant and accepted by a person.",
+      "flowSource": "Source",
+      "flowSourceHint": "This record was created from it.",
+      "flowCreated": "Created from here",
+      "flowCreatedHint": "Created from this record."
+    },
+    "count": "Connected to {{ count }} records",
+    "countOne": "Connected to 1 record"
+  },
+  "map": {
+    "title": "Connection map",
+    "close": "Close",
+    "loading": "Drawing the map…",
+    "empty": "This record is not connected to anything yet.",
+    "depth2": "Show connections two steps away",
+    "columns": {
+      "requirements": "Requirements it documents",
+      "record": "This record",
+      "related": "Connected to",
+      "further": "Two steps away"
+    },
+    "columnEmpty": {
+      "requirements": "Not linked to any requirement yet",
+      "record": "Nothing here",
+      "related": "No connected records",
+      "further": "Nothing further"
+    },
+    "legend": {
+      "confirmed": "Confirmed connection",
+      "suggested": "Suggestion",
+      "keys": "Arrow keys move between boxes. Enter opens one."
+    },
+    "kinds": {
+      "requirement": "Requirement",
+      "person": "Person"
+    },
+    "requirementPart": "requirement {{ n }}"
+  },
+  "flows": {
+    "menu": "Create from this",
+    "linkedToast": "Linked to {{ name }}",
+    "linkedToastWithSuggestions": "Linked to {{ name }}. {{ count }} of its requirements are suggested for the new record.",
+    "requirementLinkedToast": "Saved and linked to the requirement.",
+    "linkFailed": "Saved, but it could not be linked to {{ name }}. Link it from the Related tab.",
+    "arrivedHint": "Created from {{ name }}: the new record is linked back automatically when you save.",
+    "arrivedRequirementHint": "When you save, the new record documents the requirement you came from.",
+    "banner": "Created from {{ name }}. It is linked back when you save.",
+    "bannerRequirement": "When you save, this documents {{ label }}.",
+    "openSource": "Open {{ name }}",
+    "cancel": "Not from here",
+    "requirement": {
+      "evidence": "{{ type }} that documents this"
+    },
+    "deviation": {
+      "to_risk": "Risk from this deviation",
+      "to_task": "Task to follow it up",
+      "to_training": "Training need (course assignment)",
+      "to_document": "Document change"
+    },
+    "audit_finding": {
+      "to_deviation": "Deviation from this finding",
+      "to_risk": "Risk from this finding"
+    },
+    "inspection_finding": {
+      "to_deviation": "Deviation from this finding"
+    },
+    "risk": {
+      "to_document": "Control document (procedure)",
+      "to_policy": "Policy that addresses the risk",
+      "to_treatment": "Risk treatment",
+      "to_task": "Task"
+    },
+    "supplier": {
+      "to_contract": "Contract with this supplier",
+      "to_evaluation": "Supplier evaluation",
+      "to_risk": "Supplier risk"
+    },
+    "dpia": {
+      "to_risk": "Risk from this DPIA"
+    },
+    "ai_system": {
+      "to_dpia": "DPIA for this AI system",
+      "to_assessment": "AI assessment"
+    },
+    "obligation": {
+      "to_policy": "Policy that meets the obligation",
+      "to_document": "Document that meets the obligation"
+    },
+    "customer_feedback": {
+      "to_deviation": "Deviation from this feedback"
+    },
+    "management_review": {
+      "to_task": "Action (task)"
+    },
+    "formMissing": "This form is not available yet. Create the record from its own page and link it from the Related tab."
+  },
+  "frameworks": {
+    "iso9001": "ISO 9001",
+    "iso27001": "ISO 27001",
+    "iso14001": "ISO 14001",
+    "iso45001": "ISO 45001",
+    "iso42001": "ISO 42001",
+    "nis2": "NIS2",
+    "gdpr": "GDPR",
+    "eu_ai_act": "EU AI Act",
+    "hs": "Common ISO requirement"
   }
 }

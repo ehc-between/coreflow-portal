@@ -20,6 +20,16 @@ const KNOWN_CODES = new Set([
   'comment_not_found',
   'revision_not_found',
   'revision_mismatch',
+  // connections and create-from-here flows (P4)
+  'suggestion_not_found',
+  'suggestion_decided',
+  'flow_not_found',
+  'invalid_flow_token',
+  'flow_token_expired',
+  'token_required',
+  'requirement_not_found',
+  'invalid_ids',
+  'too_many_ids',
 ]);
 
 /**

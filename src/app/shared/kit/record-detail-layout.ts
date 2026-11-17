@@ -3,9 +3,11 @@ import {
   Component,
   ElementRef,
   computed,
+  effect,
   inject,
   input,
   linkedSignal,
+  untracked,
   viewChildren,
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -14,6 +16,9 @@ import { Attachments } from '../attachments/attachments';
 import { SupportsRequirements } from '../requirement-links/supports-requirements';
 import { Breadcrumb, PageHeader } from '../ui/page-header/page-header';
 import { Comments } from './comments';
+import { ConnectionsPanel } from './connections-panel';
+import { ConnectionsStore } from './connections-store';
+import { CreateFromHere } from './create-from-here';
 import { provideKitScope } from './kit-scope';
 import { RelatedItems } from './related-items';
 import { RevisionHistory } from './revision-history';
@@ -52,6 +57,13 @@ let nextId = 0;
  *   with `requirementsPanel` the default `app-supports-requirements` renders),
  *   `[aside-connections]`, `[aside]` (module summary) and `[aside-learn]`.
  *
+ * Connections (P4, the agreed exception to P3's ownership of this file): by
+ * default `[aside-connections]` renders `app-connections-panel` (what the record
+ * is connected to, link suggestions, the connection map), the Related tab gets
+ * its count from the same data (unless `counts.related` is passed), and
+ * "Create from this ⋯" (`app-create-from-here`) joins the secondary actions.
+ * `connectionsPanel` / `createFlows` turn them off.
+ *
  * Older pages keep working: `[header]` is shown above the heading area (pages that
  * render their own h1 there pass no title), and `[actions]` sit with the
  * secondary actions. "Details" is
@@ -71,10 +83,15 @@ let nextId = 0;
     SupportsRequirements,
     Attachments,
     Comments,
+    ConnectionsPanel,
+    CreateFromHere,
     RelatedItems,
     RevisionHistory,
     Timeline,
   ],
+  // One connections store per page: the aside panel, the Related tab and its
+  // count share it (P4).
+  providers: [ConnectionsStore],
   viewProviders: [provideKitScope()],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -92,8 +109,11 @@ let nextId = 0;
         <ng-container ngProjectAs="[lead]"><ng-content select="[header]" /></ng-container>
         <ng-container ngProjectAs="[meta]"><ng-content select="[meta]" /></ng-container>
         <ng-container ngProjectAs="[secondary]"
-          ><ng-content select="[actions]" /><ng-content select="[secondary]"
-        /></ng-container>
+          ><ng-content select="[actions]" /><ng-content select="[secondary]" />
+          @if (createFlows()) {
+            <app-create-from-here [entityType]="entityType()" [entityId]="entityId()" />
+          }
+        </ng-container>
         <ng-container ngProjectAs="[primary]"><ng-content select="[primary]" /></ng-container>
         <ng-container ngProjectAs="[overflow]"><ng-content select="[overflow]" /></ng-container>
       </app-page-header>
@@ -202,7 +222,17 @@ let nextId = 0;
               <app-supports-requirements [entityType]="entityType()" [entityId]="entityId()" />
             }
           </ng-content>
-          <ng-content select="[aside-connections]" />
+          <ng-content select="[aside-connections]">
+            @if (connectionsPanel()) {
+              <app-connections-panel
+                [entityType]="entityType()"
+                [entityId]="entityId()"
+                [canEdit]="canEdit()"
+                [relatedTab]="hasRelatedTab()"
+                (showAll)="showRelated()"
+              />
+            }
+          </ng-content>
           <ng-content select="[aside]" />
           <ng-content select="[aside-learn]" />
         </aside>
@@ -230,6 +260,13 @@ export class RecordDetailLayout {
   readonly counts = input<Partial<Record<RecordTab, number>> | undefined>(undefined);
   /** Render the default "Krav dette dokumenterer" panel in `[aside-requirements]`. */
   readonly requirementsPanel = input(false);
+  /**
+   * Render the default connections panel in `[aside-connections]` (P4): what the
+   * record is connected to, link suggestions, "Link to…" and the connection map.
+   */
+  readonly connectionsPanel = input(true);
+  /** Offer "Create from this ⋯" next to the secondary actions (P4). */
+  readonly createFlows = input(true);
   readonly tabs = input<readonly RecordTab[]>(DEFAULT_RECORD_TABS);
   /** Whether the user can edit the record (links, attachments). */
   readonly canEdit = input(false);
@@ -245,6 +282,7 @@ export class RecordDetailLayout {
   readonly backLabelKey = input<string | undefined>(undefined);
 
   private readonly tabButtons = viewChildren<ElementRef<HTMLButtonElement>>('tabButton');
+  private readonly connections = inject(ConnectionsStore);
 
   protected readonly panelId = `cf-record-panel-${++nextId}`;
 
@@ -259,8 +297,34 @@ export class RecordDetailLayout {
     return tabs.find((t) => t === requested) ?? tabs[0];
   });
 
+  protected readonly hasRelatedTab = computed(() => this.visibleTabs().includes('related'));
+
+  constructor() {
+    // The Related tab's count and the aside panel read the same connections.
+    effect(() => {
+      const type = this.entityType();
+      const id = this.entityId();
+      if (this.hasRelatedTab() || this.connectionsPanel()) {
+        untracked(() => this.connections.setRecord(type, id));
+      }
+    });
+  }
+
+  /** "Show all" in the connections panel: open the Related tab and bring it into view. */
+  protected showRelated(): void {
+    this.select('related');
+    const index = this.visibleTabs().indexOf('related');
+    const button = this.tabButtons()[index]?.nativeElement;
+    button?.scrollIntoView?.({ block: 'start', behavior: 'smooth' });
+    button?.focus({ preventScroll: true });
+  }
+
   protected countFor(tab: RecordTab): number | null {
-    const count = this.counts()?.[tab];
+    const explicit = this.counts()?.[tab];
+    const count =
+      explicit === undefined && tab === 'related' && this.hasRelatedTab()
+        ? this.connections.relatedCount()
+        : explicit;
     return count && count > 0 ? count : null;
   }
 
