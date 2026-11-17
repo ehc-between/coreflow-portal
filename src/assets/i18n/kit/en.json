@@ -431,7 +431,20 @@
     "management_review": {
       "to_task": "Action (task)"
     },
-    "formMissing": "This form is not available yet. Create the record from its own page and link it from the Related tab."
+    "formMissing": "This form is not available yet. Create the record from its own page and link it from the Related tab.",
+    "job_application": {
+      "to_deviation": "Deviation from this application",
+      "to_risk": "Risk from this application",
+      "to_task": "Follow-up task"
+    },
+    "job_requisition": {
+      "to_deviation": "Deviation from this requisition",
+      "to_risk": "Risk from this requisition",
+      "to_task": "Follow-up task"
+    },
+    "candidate": {
+      "to_data_subject_request": "Request from this candidate (access or erasure)"
+    }
   },
   "frameworks": {
     "iso9001": "ISO 9001",

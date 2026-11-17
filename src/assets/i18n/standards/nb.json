@@ -210,7 +210,13 @@
       "frameworks": "Standarder",
       "article_refs": "Artikler",
       "requirements": "Krav",
-      "generic": "et felt på posten"
+      "generic": "et felt på posten",
+      "screening_criteria": "Utvalgskriterier",
+      "approval": "Godkjenning av stillingsbehovet",
+      "privacy_notice": "Personvernerklæring gitt",
+      "screening": "Screening mot kriteriene",
+      "checks": "Bakgrunnssjekker",
+      "offer": "Tilbud"
     },
     "origin": {
       "manual": "Lagt til manuelt",

@@ -21,6 +21,8 @@ export interface RequisitionDraft {
   readonly target_start_date: string;
   readonly hiring_manager_user_id: string;
   readonly recruiter_user_id: string;
+  /** People position id ("" = none). */
+  readonly position_id: string;
   readonly screening_criteria: readonly CriterionDraft[];
   readonly posting_title: string;
   readonly posting_text: string;
@@ -41,6 +43,7 @@ export function emptyRequisitionDraft(): RequisitionDraft {
     target_start_date: '',
     hiring_manager_user_id: '',
     recruiter_user_id: '',
+    position_id: '',
     screening_criteria: [],
     posting_title: '',
     posting_text: '',
@@ -61,6 +64,7 @@ export function draftFromRequisition(req: RequisitionDetail): RequisitionDraft {
     target_start_date: req.target_start_date ?? '',
     hiring_manager_user_id: req.hiring_manager?.id ?? '',
     recruiter_user_id: req.recruiter?.id ?? '',
+    position_id: req.position?.id ?? '',
     screening_criteria: req.screening_criteria.map((c) => ({
       id: c.id,
       label: c.label,
@@ -86,6 +90,7 @@ export function requisitionPayload(draft: RequisitionDraft): RequisitionCreate {
     target_start_date: draft.target_start_date || null,
     hiring_manager_user_id: draft.hiring_manager_user_id || null,
     recruiter_user_id: draft.recruiter_user_id || null,
+    position_id: draft.position_id || null,
     screening_criteria: draft.screening_criteria
       .filter((c) => c.label.trim() !== '')
       .map((c) => ({
@@ -126,4 +131,21 @@ export function requisitionChanges(
 /** Whether a PATCH body changes anything besides the reason. */
 export function hasChanges(update: RequisitionUpdate): boolean {
   return Object.keys(update).some((k) => k !== 'change_reason');
+}
+
+/** Fields the form checks before saving (keys of `recruitment.form.errors`). */
+export type RequisitionFormError = 'title' | 'headcount';
+
+export function requisitionErrors(
+  draft: RequisitionDraft,
+): Partial<Record<RequisitionFormError, string>> {
+  const errors: Partial<Record<RequisitionFormError, string>> = {};
+  if (!draft.title.trim()) {
+    errors.title = 'recruitment.form.errors.title';
+  }
+  const n = Number(draft.headcount);
+  if (!Number.isInteger(n) || n < 1 || n > 500) {
+    errors.headcount = 'recruitment.form.errors.headcount';
+  }
+  return errors;
 }

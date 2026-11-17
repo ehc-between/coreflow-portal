@@ -25,6 +25,8 @@ import { inlineValue, linkTypeKey } from './kit-format';
 import { provideKitScope } from './kit-scope';
 
 const PAGE_SIZE = 50;
+/** Event params whose values a module may label (`<scope>.timelineValues.<param>.<value>`). */
+const VALUE_LABEL_PARAM = /(^|_)(stage|status)$/;
 
 /** `"risk:timeline.ownerChanged"` -> scope `risk`, key `timeline.ownerChanged`. */
 export function splitLabelKey(labelKey: string): { scope: string | null; key: string } {
@@ -239,7 +241,10 @@ export class Timeline {
       const fullKey = scope ? `${camelCase(scope)}.${key}` : key;
       const loaded = !scope || this.loadedScopes().has(`${scope}/${lang}`) || scope === 'kit';
       if (loaded) {
-        const text = this.language.translate(fullKey, this.params(item, actor));
+        const text = this.language.translate(
+          fullKey,
+          this.params(item, actor, scope ? camelCase(scope) : null),
+        );
         if (text && text !== fullKey) {
           return { item, text, changes };
         }
@@ -252,8 +257,17 @@ export class Timeline {
     return { item, text, changes };
   }
 
-  /** Event params plus display labels for entity / link types they carry. */
-  private params(item: TimelineItem, actor: string): Record<string, unknown> {
+  /**
+   * Event params plus display labels for entity / link types they carry, and for
+   * module values the scope translates under `<scope>.timelineValues.<param>.<value>`
+   * (e.g. `stage` / `from_stage` → `stage_label` / `from_stage_label`). Only stage and
+   * status params are looked up, so other params never log missing keys.
+   */
+  private params(
+    item: TimelineItem,
+    actor: string,
+    scopePrefix: string | null = null,
+  ): Record<string, unknown> {
     const params: Record<string, unknown> = { ...item.params, actor_name: actor };
     for (const [key, value] of Object.entries(item.params)) {
       if (typeof value !== 'string') {
@@ -264,6 +278,12 @@ export class Timeline {
         params['link_type_label'] = this.language.translate(linkTypeKey(value, direction));
       } else if (key.endsWith('_type') || key === 'entity_type') {
         params[`${key}_label`] = this.entityTypes.label(value);
+      } else if (scopePrefix && VALUE_LABEL_PARAM.test(key)) {
+        const valueKey = `${scopePrefix}.timelineValues.${key}.${value}`;
+        const label = this.language.translate(valueKey);
+        if (label && label !== valueKey) {
+          params[`${key}_label`] = label;
+        }
       }
     }
     return params;

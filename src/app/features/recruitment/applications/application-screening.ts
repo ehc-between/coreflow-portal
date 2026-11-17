@@ -58,12 +58,18 @@ let nextId = 0;
   selector: 'app-application-screening',
   imports: [TranslocoPipe, AiAssistButton, FieldHelp, Button, Card, RecruitmentAiOutput],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'block' },
+  host: { class: 'block scroll-mt-20' },
   template: `
     <app-card>
       <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <h2 class="font-display text-[15px] font-bold text-fg">
+        <h2 class="flex flex-wrap items-center gap-1.5 text-card font-bold text-fg">
           {{ 'recruitment.screening.title' | transloco }}
+          <app-field-help
+            scope="recruitment"
+            page="application"
+            field="screening"
+            [requirements]="refs"
+          />
         </h2>
         @if (canEdit() && app().criteria.length > 0) {
           <app-ai-assist-button
@@ -75,7 +81,20 @@ let nextId = 0;
           />
         }
       </div>
-      <app-field-help scope="recruitment" page="application" field="screening" />
+      @if (rows().length > 0) {
+        <p
+          class="text-ui"
+          [class]="
+            progress().done === progress().total ? 'font-semibold text-pass-ink' : 'text-fg-muted'
+          "
+          data-testid="screening-progress"
+        >
+          {{ 'recruitment.screening.progress' | transloco: progress() }}
+          @if (progress().done < progress().total) {
+            · {{ 'recruitment.screening.progressHint' | transloco }}
+          }
+        </p>
+      }
       @if (summary()) {
         <app-recruitment-ai-output
           class="my-3"
@@ -85,16 +104,16 @@ let nextId = 0;
       }
 
       @if (rows().length === 0) {
-        <p class="mt-2 text-[13px] text-fg-muted">
+        <p class="mt-2 text-ui text-fg-muted">
           {{ 'recruitment.screening.noCriteria' | transloco }}
         </p>
       } @else {
         <ol class="mt-3 flex flex-col gap-3">
           @for (row of rows(); track row.criterion_id; let i = $index) {
             <li class="rounded-tile border border-border p-3">
-              <p class="text-[13.5px] font-semibold text-fg">{{ row.label }}</p>
+              <p class="text-body font-semibold text-fg">{{ row.label }}</p>
               @if (row.description) {
-                <p class="text-[12.5px] text-fg-muted">{{ row.description }}</p>
+                <p class="text-meta text-fg-muted">{{ row.description }}</p>
               }
               <div class="mt-2 flex flex-col gap-2 sm:flex-row">
                 <label class="sr-only" [attr.for]="uid + '-r-' + i">{{
@@ -102,7 +121,7 @@ let nextId = 0;
                 }}</label>
                 <select
                   [id]="uid + '-r-' + i"
-                  class="h-9 rounded-[8px] border border-border bg-bg px-2 text-[13px] text-fg outline-none focus:border-accent sm:w-[180px]"
+                  class="h-9 rounded-tile border border-border bg-bg px-2 text-ui text-fg outline-none focus:border-accent sm:w-[180px]"
                   [disabled]="!canEdit()"
                   (change)="update(i, { result: $any($event.target).value })"
                 >
@@ -117,7 +136,7 @@ let nextId = 0;
                 }}</label>
                 <input
                   [id]="uid + '-n-' + i"
-                  class="h-9 flex-1 rounded-[8px] border border-border bg-bg px-2 text-[13px] text-fg outline-none focus:border-accent"
+                  class="h-9 flex-1 rounded-tile border border-border bg-bg px-2 text-ui text-fg outline-none focus:border-accent"
                   maxlength="2000"
                   [disabled]="!canEdit()"
                   [placeholder]="'recruitment.screening.notePlaceholder' | transloco"
@@ -131,7 +150,7 @@ let nextId = 0;
       }
 
       <div class="mt-4">
-        <label class="text-[13px] font-semibold text-fg-muted" [attr.for]="uid + '-cover'">
+        <label class="text-ui font-semibold text-fg-muted" [attr.for]="uid + '-cover'">
           {{ 'recruitment.fields.coverNote' | transloco }}
         </label>
         @if (canEdit()) {
@@ -139,12 +158,12 @@ let nextId = 0;
             [id]="uid + '-cover'"
             rows="4"
             maxlength="20000"
-            class="mt-1.5 w-full rounded-[10px] border border-border bg-bg px-3 py-2 text-[13.5px] text-fg outline-none focus:border-accent"
+            class="mt-1.5 w-full rounded-tile border border-border bg-bg px-3 py-2 text-body text-fg outline-none focus:border-accent"
             [value]="cover()"
             (input)="cover.set($any($event.target).value)"
           ></textarea>
         } @else {
-          <p [id]="uid + '-cover'" class="mt-1 text-[13.5px] whitespace-pre-wrap text-fg">
+          <p [id]="uid + '-cover'" class="mt-1 text-body whitespace-pre-wrap text-fg">
             {{ app().cover_note || '—' }}
           </p>
         }
@@ -170,6 +189,7 @@ export class ApplicationScreening {
   readonly changed = output<ApplicationDetail>();
 
   protected readonly entityType = ENTITY_APPLICATION;
+  protected readonly refs = ['iso27001:A.6.1', 'hs:7.2'];
   protected readonly results = SCREENING_RESULTS;
   protected readonly uid = `cf-screen-${++nextId}`;
   protected readonly rows = linkedSignal(() => screeningRows(this.app()));
@@ -177,6 +197,11 @@ export class ApplicationScreening {
   protected readonly saving = signal(false);
   protected readonly summary = signal<string | null>(null);
   private readonly edited = linkedSignal({ source: this.app, computation: () => false });
+  /** Criteria with a result ("Ikke vurdert ennå" does not count). */
+  protected readonly progress = computed(() => {
+    const rows = this.rows();
+    return { done: rows.filter((r) => r.result !== 'unknown').length, total: rows.length };
+  });
   protected readonly dirty = computed(
     () => this.edited() || this.cover() !== (this.app().cover_note ?? ''),
   );

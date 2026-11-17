@@ -37,19 +37,23 @@
       "fields": {
         "title": {
           "help": "Stillingstittelen kandidatene kjenner igjen.",
-          "example": "Informasjonssikkerhetsanalytiker"
+          "example": "Informasjonssikkerhetsanalytiker",
+          "requirements": ["hs:7.1"]
         },
         "justification": {
           "help": "Hvorfor organisasjonen trenger stillingen nå: vekst, erstatning, en ny forpliktelse. Den som godkjenner leser dette.",
-          "example": "Erstatter en analytiker som går av med pensjon; nødvendig for å beholde ISO 27001-sertifikatet."
+          "example": "Erstatter en analytiker som går av med pensjon; nødvendig for å beholde ISO 27001-sertifikatet.",
+          "requirements": ["hs:7.1"]
         },
         "role_risk": {
-          "help": "Hvor stor skade en person i stillingen kan gjøre med tilgangene de får. Lav: identitet, arbeidstillatelse og en referanse. Middels legger til arbeidshistorikk og utdanning. Høy legger til politiattest der loven tillater det.",
-          "example": "Høy: administratorer med tilgang til kundedata eller betalingssystemer."
+          "help": "Hvor stor skade en person i stillingen kan gjøre med tilgangene de får. Organisasjonen bestemmer hvilke sjekker hvert nivå krever (Innstillinger). Politiattest og kredittsjekk er aldri automatiske: de krever hjemmel per kandidat.",
+          "example": "Høy: administratorer med tilgang til kundedata eller betalingssystemer.",
+          "requirements": ["iso27001:A.6.1"]
         },
         "screening_criteria": {
           "help": "Objektive krav som alle søknader vurderes mot. Unngå alt som ikke trengs for jobben, som alder, familiesituasjon eller en bestemt nasjonalitet.",
-          "example": "Tre års erfaring med drift av Linux-servere i produksjon."
+          "example": "Tre års erfaring med drift av Linux-servere i produksjon.",
+          "requirements": ["hs:7.2"]
         },
         "posting_text": {
           "help": "Annonsen kandidatene ser. Bruk inkluderende, kjønnsnøytralt språk og be bare om det kriteriene krever.",
@@ -58,17 +62,22 @@
         "change_reason": {
           "help": "Lagres i revisjonshistorikken sammen med hva som ble endret, slik at en revisor ser hvorfor.",
           "example": "Søknadsfristen er forlenget med to uker etter få søknader."
+        },
+        "position": {
+          "help": "Stillingen i Personer som ansettelsen gjelder. Kompetansekravene derfra blir utvalgskriteriene, slik at kompetansen organisasjonen ansetter for passer til rollen.",
+          "example": "Rådgiver informasjonssikkerhet (POS-0003).",
+          "requirements": ["hs:7.2"]
         }
       }
     },
     "requisition": {
       "intro": {
         "title": "Fra godkjenning til besatt stilling",
-        "body": "Arbeid deg gjennom stillingsbehovet ovenfra og ned: godkjenn det, åpne det, følg kandidatene i kandidatløpet og lukk det når stillingen er besatt.",
+        "body": "Arbeid deg gjennom stillingsbehovet ovenfra og ned: få det godkjent, åpne det, følg kandidatene i kandidatløpet og lukk det når stillingen er besatt.",
         "steps": [
           "Den som sendte inn et stillingsbehov kan ikke godkjenne det; en HR-leder bestemmer.",
           "Hold rekrutteringsteamet oppdatert: bare de kan se kandidatene.",
-          "Bruk **Kandidatløp** for å flytte kandidater mellom trinn."
+          "Hvert tall under **Kandidatløp** åpner kandidatene på det trinnet."
         ]
       },
       "why": {
@@ -79,10 +88,10 @@
     "pipeline": {
       "intro": {
         "title": "Kandidatløpet",
-        "body": "Hver kolonne er et trinn. Åpne et kort for å screene søknaden, planlegge intervjuer og registrere sjekker, eller bruk **Flytt til** for å endre trinn.",
+        "body": "Hver kolonne er et trinn. **Screening** er den første vurderingen mot kriteriene. Åpne et kort for å screene, planlegge intervjuer og registrere sjekker, eller bruk **Flytt til** for å endre trinn.",
         "steps": [
-          "Registrer at kandidaten har fått personvernerklæringen før du flytter kandidaten videre etter screening.",
-          "Når søknaden kommer til **Referansesjekk**, planlegges bakgrunnssjekkene risikonivået krever.",
+          "En kandidat går videre etter screening først når alle kriterier har et resultat, eller med en skriftlig begrunnelse.",
+          "Når søknaden kommer til **Referansesjekk**, planlegges sjekkene risikonivået krever.",
           "Avvisning krever alltid en jobbrelatert grunn."
         ]
       },
@@ -128,26 +137,29 @@
       "fields": {
         "notes": {
           "help": "Bare jobbrelaterte observasjoner. Kandidaten kan be om å få se alt du skriver her.",
-          "example": "Anbefalt av nettverksteamet; tilgjengelig fra mars."
+          "example": "Anbefalt av nettverksteamet; tilgjengelig fra mars.",
+          "requirements": ["gdpr:5"]
         },
         "privacy_notice_given": {
           "help": "Kryss av når kandidaten har fått personvernerklæringen for rekruttering. Uten den kan søknaden ikke gå videre etter screening.",
-          "example": "Erklæringen var vedlagt bekreftelsen på e-post."
+          "example": "Erklæringen var vedlagt bekreftelsen på e-post.",
+          "requirements": ["gdpr:13", "gdpr:14"]
         },
         "talent_pool_consent": {
           "help": "Valgfritt. Med samtykke lagres kandidaten lenger for å bli vurdert til fremtidige stillinger; uten slettes kandidaten etter vanlig lagringstid.",
-          "example": "Kandidaten krysset av for «husk meg til fremtidige stillinger»."
+          "example": "Kandidaten krysset av for «husk meg til fremtidige stillinger».",
+          "requirements": ["gdpr:7"]
         }
       }
     },
     "candidate": {
       "intro": {
-        "title": "Én kandidat",
-        "body": "Se kandidatens søknader, registreringen av personvernerklæring og samtykke, og når opplysningene slettes.",
+        "title": "Om denne kandidaten",
+        "body": "Se kandidatens søknader, hvilken personvernerklæring kandidaten fikk og når, samtykke til kandidatbanken, og når opplysningene slettes og hvorfor.",
         "steps": [
           "Registrer personvernerklæringen hvis den mangler.",
           "Trekk samtykket til kandidatbanken med en gang hvis kandidaten ber om det.",
-          "En rekrutteringsansvarlig kan slette opplysningene på forespørsel."
+          "En rekrutteringsansvarlig kan slette opplysningene på forespørsel (under **Mer**)."
         ]
       },
       "why": {
@@ -191,18 +203,19 @@
       "fields": {
         "cover_note": {
           "help": "Søknadsbrevet eller et kort sammendrag. Unngå å kopiere sensitive personopplysninger.",
-          "example": "Fem år i IT-drift, kurs i internrevisjon etter ISO 27001."
+          "example": "Fem år i IT-drift, kurs i internrevisjon etter ISO 27001.",
+          "requirements": ["gdpr:5"]
         }
       }
     },
     "application": {
       "intro": {
         "title": "Vurdere en søknad",
-        "body": "Screen søknaden mot kriteriene i stillingsbehovet, intervju, fyll ut vurderingsskjemaet, fullfør bakgrunnssjekkene og gi tilbudet, i den rekkefølgen.",
+        "body": "**Screening** er den første vurderingen mot kriteriene. Deretter intervju, vurderingsskjema, bakgrunnssjekker og tilbud, i den rekkefølgen.",
         "steps": [
           "Registrer et resultat og dokumentasjon for hvert kriterium.",
           "Planlegg intervjuer; hver intervjuer får en oppgave om vurderingsskjema.",
-          "Fullfør alle påkrevde sjekker før tilbudet."
+          "Tilbudsknappen viser hva som mangler til alle påkrevde sjekker er fullført."
         ]
       },
       "why": {
@@ -212,7 +225,8 @@
       "fields": {
         "screening": {
           "help": "Vurder hvert kriterium for seg, og skriv ned hva i søknaden som viser det. De samme kriteriene gjelder for alle kandidater.",
-          "example": "Oppfylt: ledet migreringen av 40 servere, beskrevet i søknadsbrevet."
+          "example": "Oppfylt: ledet migreringen av 40 servere, beskrevet i søknadsbrevet.",
+          "requirements": ["iso27001:A.6.1", "hs:7.2"]
         },
         "interviewers": {
           "help": "Alle du velger, blir med i rekrutteringsteamet og får en oppgave om å sende inn et vurderingsskjema.",
@@ -223,38 +237,67 @@
           "example": "4 · Sterk: forklarte hendelseshåndtering steg for steg med et reelt eksempel."
         },
         "checks": {
-          "help": "Sjekkene avhenger av risikonivået for stillingen. En sjekk krever kandidatens samtykke før den starter; en frafalt sjekk krever en begrunnelse.",
-          "example": "Referanse: ringte forrige leder 12. mars."
+          "help": "Sjekkene avhenger av risikonivået for stillingen og organisasjonens tabell. En sjekk krever kandidatens samtykke før den starter; en frafalt sjekk krever en begrunnelse. Politiattest og kredittsjekk krever i tillegg hjemmel.",
+          "example": "Referanse: ringte forrige leder 12. mars.",
+          "requirements": ["iso27001:A.6.1"]
+        },
+        "legal_basis": {
+          "help": "Loven som gir hjemmel for sjekken i denne stillingen, og hvorfor den trengs. Uten hjemmel er politiattest eller kredittsjekk som regel ulovlig i Norge.",
+          "example": "Politiregisterloven § 39: stillingen innebærer arbeid med barn.",
+          "requirements": ["gdpr:6", "gdpr:10"]
         }
       }
     },
     "settings": {
       "intro": {
-        "title": "Personvernerklæring og lagring",
-        "body": "Bestem hvor lenge kandidatdata lagres, og skriv personvernerklæringen kandidatene får. Den nattlige jobben sletter kandidater med utløpt lagringstid.",
+        "title": "Personvernerklæring, lagring og sjekker",
+        "body": "Velg personvernerklæringen kandidatene får, koble postene som dekker rekrutteringen i Personvern og KI-styring, og bestem hvor lenge opplysningene lagres og hvilke sjekker hvert risikonivå krever.",
         "steps": [
-          "Skriv erklæringen i et enkelt språk og gi den et versjonsnummer.",
-          "Velg lagringstiden etter at et stillingsbehov lukkes, og den lengre tiden for kandidatbanken.",
-          "Endre versjonen hver gang teksten i erklæringen endres."
+          "Velg den godkjente personvernerklæringen i Dokumenter.",
+          "Opprett eller koble behandlingsprotokollen, og en DPIA når siden anbefaler det.",
+          "Sett lagringstidene; den nattlige jobben sletter kandidater når fristen passeres."
         ]
       },
       "why": {
-        "body": "Lagringsbegrensning og åpenhet er prinsipper i GDPR: kandidatene skal vite hvor lenge opplysningene lagres, og de skal slettes etterpå.",
-        "clauses": ["gdpr:5", "gdpr:13", "gdpr:17"]
+        "body": "GDPR krever at kandidatene får vite hvordan opplysningene brukes, at behandlingen er registrert og vurdert, og at opplysningene slettes når de ikke lenger trengs. KI brukt i rekruttering er høyrisiko etter KI-forordningen.",
+        "clauses": ["gdpr:5", "gdpr:13", "gdpr:17", "gdpr:30", "gdpr:35", "eu_ai_act:26"]
       },
       "fields": {
         "retention_days": {
-          "help": "Antall dager etter at stillingsbehovet er lukket før en kandidat som ikke fikk jobben, slettes. Seks måneder er vanlig, slik at du kan svare på klager.",
-          "example": "180"
+          "help": "Antall dager etter at søknaden er lukket før en kandidat som ikke fikk jobben, slettes. Seks måneder er vanlig, slik at du kan svare på klager.",
+          "example": "180",
+          "requirements": ["gdpr:5"]
         },
         "talent_pool_days": {
           "help": "Antall dager en kandidat med samtykke blir i kandidatbanken etter siste søknad.",
-          "example": "730"
+          "example": "730",
+          "requirements": ["gdpr:5", "gdpr:7"]
         },
         "privacy_notice": {
-          "help": "Hvem dere er, hvorfor dere behandler opplysningene, behandlingsgrunnlaget, hvor lenge de lagres, hvem som ser dem og hvordan kandidatene bruker rettighetene sine.",
-          "example": "Vi behandler søknaden din for å vurdere deg til stillingen …"
+          "help": "Hvem organisasjonen er, hvorfor opplysningene behandles, behandlingsgrunnlaget, hvor lenge de lagres, hvem som ser dem og hvordan kandidatene bruker rettighetene sine. Bedre: godkjenn den som et dokument og velg den over.",
+          "example": "Vi behandler søknaden din for å vurdere deg til stillingen …",
+          "requirements": ["gdpr:13"]
+        },
+        "hired_retention_days": {
+          "help": "Antall dager etter en ansettelse før rekrutteringsdataene (vurderingsskjemaer, screeningnotater, sjekker) slettes. Personoppføringen i Personer blir værende. 180 dager dekker seks måneders prøvetid.",
+          "example": "180",
+          "requirements": ["gdpr:5"]
         }
+      }
+    },
+    "overview": {
+      "intro": {
+        "title": "Rekrutteringen på ett blikk",
+        "body": "Se hva som venter på deg nå: godkjenninger, screening som ikke er ferdig, sjekker over fristen, tilbud og kandidater som skal slettes. Hvert tall åpner listen bak det.",
+        "steps": [
+          "Begynn med rutene som ikke viser null.",
+          "Åpne et stillingsbehov for å følge kandidatene trinn for trinn.",
+          "Bruk tallene nederst i ledelsens gjennomgang."
+        ]
+      },
+      "why": {
+        "body": "Rettferdig, kontrollert og lovlig rekruttering dokumenterer flere standarder samtidig: kompetanse (felles ISO-krav 7.2), bakgrunnskontroll før ansettelse (ISO 27001 A.6.1) og lagringsbegrensning (GDPR art. 5). Denne siden viser om det skjer.",
+        "clauses": ["hs:7.2", "iso27001:A.6.1", "gdpr:5", "hs:9.3"]
       }
     }
   },
@@ -265,7 +308,7 @@
       "sections": [
         {
           "heading": "Bestem kriteriene først",
-          "body": "Bli enige om 4 til 8 jobbrelaterte kriterier **før** dere leser noen søknad. Hvert kriterium sier hva som viser at det er oppfylt. Når de skrives ned først, bøyes de ikke mot en favorittkandidat."
+          "body": "Bli enige om 4 til 8 jobbrelaterte kriterier **før** noen leser en søknad. Hvert kriterium sier hva som viser at det er oppfylt. Når de skrives ned først, bøyes de ikke mot en favorittkandidat."
         },
         {
           "heading": "Vurder alle kandidater likt",
@@ -314,7 +357,7 @@
         },
         {
           "heading": "Samtykke og dokumentasjon",
-          "body": "Fortell kandidaten hvilke sjekker dere gjør, og registrer samtykket før en sjekk starter. Registrer resultatet; en frafalt sjekk krever en skriftlig begrunnelse."
+          "body": "Fortell kandidaten hvilke sjekker organisasjonen gjør, og registrer samtykket før en sjekk starter. Registrer resultatet; en frafalt sjekk krever en skriftlig begrunnelse."
         }
       ],
       "quiz": [
@@ -385,6 +428,40 @@
         "title": "Følg statusen",
         "body": "Filtrer på status for å se hva som venter på godkjenning, hva som er åpent og hva som er lukket."
       }
+    ],
+    "overview": [
+      {
+        "target": "recruitment-overview-attention",
+        "title": "Hva som venter på deg",
+        "body": "Hver rute teller noe som skal følges opp. Klikk for å åpne listen bak tallet."
+      },
+      {
+        "target": "recruitment-overview-kpis",
+        "title": "Tall til ledelsens gjennomgang",
+        "body": "Tid til ansettelse, fullførte sjekker og avvisningsgrunner viser at rekrutteringen er rettferdig og kontrollert."
+      }
     ]
+  },
+  "glossary": {
+    "job-requisition": {
+      "term": "Stillingsbehov",
+      "definition": "Den godkjente forespørselen om å besette en stilling: hvorfor den trengs, risikonivået og kriteriene.",
+      "clauses": ["hs:7.1"]
+    },
+    "screening": {
+      "term": "Screening",
+      "definition": "Den første vurderingen av en søknad mot de avtalte kriteriene, før intervju.",
+      "clauses": ["iso27001:A.6.1"]
+    },
+    "background-check": {
+      "term": "Bakgrunnssjekk",
+      "definition": "Kontroll av identitet, referanser, historikk og lignende før ansettelse, i forhold til risikoen i stillingen.",
+      "clauses": ["iso27001:A.6.1"]
+    },
+    "talent-pool": {
+      "term": "Kandidatbank",
+      "definition": "Kandidater som lagres for fremtidige stillinger. Bare med samtykke, og bare en bestemt tid.",
+      "clauses": ["gdpr:7"]
+    }
   }
 }

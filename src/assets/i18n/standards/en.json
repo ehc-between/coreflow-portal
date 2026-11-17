@@ -210,7 +210,13 @@
       "frameworks": "Standards",
       "article_refs": "Articles",
       "requirements": "Requirements",
-      "generic": "a field on the record"
+      "generic": "a field on the record",
+      "screening_criteria": "Screening criteria",
+      "approval": "Requisition approval",
+      "privacy_notice": "Privacy notice given",
+      "screening": "Screening against the criteria",
+      "checks": "Background checks",
+      "offer": "Offer"
     },
     "origin": {
       "manual": "Added by hand",

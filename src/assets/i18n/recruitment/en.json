@@ -1,10 +1,11 @@
 {
   "nav": {
     "label": "Recruitment sections",
-    "requisitions": "Requisitions",
+    "requisitions": "Job requisitions",
     "candidates": "Candidates",
     "applications": "Applications",
-    "settings": "Privacy and retention"
+    "settings": "Settings",
+    "overview": "Overview"
   },
   "common": {
     "back": "Back",
@@ -15,20 +16,23 @@
     "none": "None",
     "noMatches": "Nothing matches these filters.",
     "ok": "OK",
-    "save": "Save"
-  },
-  "guide": {
-    "lesson": "Micro-lesson"
+    "save": "Save",
+    "loadFailed": "Could not load the list. Check your connection and try again.",
+    "keep": "Keep it",
+    "someone": "Someone"
   },
   "ask": {
-    "criteria": "How do I write good, fair screening criteria for this role?"
+    "criteria": "How do I write good, fair screening criteria for this role?",
+    "justification": "What should a good justification for a new position say?",
+    "roleRisk": "How do I decide the security risk level of this role?",
+    "legalBasis": "When may we ask for a criminal-record certificate or a credit check, and what legal basis do we need?"
   },
   "filters": {
     "status": "Status",
     "allStatuses": "All statuses",
     "activeStatuses": "Active (not closed)",
     "owner": "Owner",
-    "everyone": "Everyone's",
+    "everyone": "Everyone",
     "mine": "Mine",
     "sort": "Sort",
     "talentPool": "Talent pool",
@@ -40,21 +44,33 @@
     "retentionSoon": "Deleted within {{ days }} days",
     "stage": "Stage",
     "allStages": "All stages",
-    "activeStages": "Active stages"
+    "activeStages": "Active stages",
+    "requisition": "Job requisition",
+    "allRequisitions": "All job requisitions",
+    "attention": "Needs follow-up",
+    "anyAttention": "Show all",
+    "attentionValues": {
+      "screening_incomplete": "Screening not finished",
+      "checks_open": "Required checks open",
+      "checks_overdue": "Checks overdue",
+      "stalled": "No progress for 14 days"
+    }
   },
   "requisitions": {
     "title": "Job requisitions",
     "search": "Search requisitions by code or title",
     "new": "New requisition",
     "managedBy": "Hiring manager: {{ name }}",
-    "counts": "{{ active }} active · {{ hires }}/{{ headcount }} hired",
+    "counts": "{{ active }} active · {{ hires }} of {{ headcount }} hired",
     "sort": {
       "newest": "Newest first",
       "oldest": "Oldest first",
       "title": "Title",
       "status": "Status",
       "target_start_date": "Target start date"
-    }
+    },
+    "description": "Every hire starts with an approved request: why the role is needed, its risk and the criteria.",
+    "startsOn": "Starts {{ date }}"
   },
   "requisitionForm": {
     "newTitle": "New job requisition",
@@ -62,20 +78,23 @@
     "roleSection": "The role",
     "criteriaSection": "Screening criteria",
     "postingSection": "Job posting",
-    "checksForRisk": "Background checks for this risk level:",
+    "checksForRisk": "Checks the organisation requires for this risk level:",
     "lockedNotice": "This requisition has been submitted. Headcount, department, employment type, risk level and justification are locked; the posting and the screening criteria can still change.",
     "noRights": "Only the hiring manager, the recruiter, the creator or a recruitment manager can edit this requisition.",
     "created": "Requisition {{ code }} created.",
-    "saved": "Requisition {{ code }} saved."
+    "saved": "Requisition {{ code }} saved.",
+    "create": "Create job requisition",
+    "positionIntro": "Start from a position in People to reuse its title, department, risk level and competence requirements.",
+    "findPosition": "Find a position in People",
+    "removePosition": "Remove the link",
+    "prefilled": "Filled in from the position. Check the fields and change what does not fit."
   },
   "requisition": {
     "pipeline": "Pipeline",
     "pipelineSummary": "Candidate pipeline",
     "requiredChecks": "Required background checks",
-    "noPosting": "No job posting yet.",
+    "noPosting": "No job ad yet. Write the ad, or let the assistant draft one from the criteria.",
     "hiresOf": "{{ hires }} of {{ headcount }} hired",
-    "decision": "Decision",
-    "decidedBy": "{{ name }}, {{ date }}",
     "rejectedNote": "Rejected: {{ note }}",
     "awaitingApproval": "Waiting for approval by an HR manager.",
     "awaitingYou": "This requisition is waiting for your approval.",
@@ -90,7 +109,7 @@
       "open": "Open for applications",
       "hold": "Put on hold",
       "fill": "Close as filled",
-      "cancel": "Cancel requisition",
+      "cancel": "Stop the recruitment",
       "delete": "Delete"
     },
     "confirm": {
@@ -100,7 +119,7 @@
       "open": "Open the requisition for applications.",
       "hold": "Pause the requisition.",
       "fill": "Close the requisition as filled. Remaining applications keep their stage.",
-      "cancel": "Cancel the requisition. Candidate data is then kept only for the retention period.",
+      "cancel": "Stop the recruitment for this requisition. Candidate data is then kept only for the retention period.",
       "delete": "Delete the requisition."
     },
     "done": {
@@ -110,9 +129,29 @@
       "open": "{{ code }} is open for applications.",
       "hold": "{{ code }} is on hold.",
       "fill": "{{ code }} closed as filled.",
-      "cancel": "{{ code }} cancelled.",
+      "cancel": "The recruitment for {{ code }} is stopped.",
       "delete": "{{ code }} deleted."
-    }
+    },
+    "aboutRole": "About the position",
+    "approval": "Approval",
+    "approvedBy": "Approved by {{ name }}, {{ date }}",
+    "rejectedBy": "Rejected by {{ name }}, {{ date }}",
+    "submittedBy": "submitted by {{ name }}, {{ date }}",
+    "awaitingShort": "Waiting for approval",
+    "draftHint": "This is a draft. Add the criteria and the hiring team, then send it for approval.",
+    "allApplications": "See all applications",
+    "noApplications": "No applications yet.",
+    "noApplicationsOpen": "No applications yet. Add the first candidate when you receive an application.",
+    "stageTileLabel": "{{ count }} in {{ stage }}: open the list",
+    "requiredChecksHint": "Planned automatically when a candidate reaches the reference check, from the table for {{ risk }}.",
+    "legalBasisNote": "Criminal-record and credit checks are never planned automatically. Add them per candidate, with the legal basis.",
+    "writePosting": "Write the job ad",
+    "postingDeadline": "Application deadline {{ date }}",
+    "postingNoDeadline": "No application deadline set",
+    "postingLive": "The requisition is open for applications",
+    "postingNotLive": "Not open for applications yet",
+    "showAll": "Show the whole ad",
+    "showLess": "Show less"
   },
   "team": {
     "title": "Hiring team",
@@ -133,13 +172,17 @@
     "descriptionPlaceholder": "For example: has led or taken part in at least two audits",
     "none": "No screening criteria yet.",
     "add": "Add a criterion",
-    "remove": "Remove criterion {{ label }}"
+    "remove": "Remove criterion {{ label }}",
+    "noneOnRequisition": "No screening criteria yet. Edit the requisition to add them before you screen anyone."
   },
   "pipeline": {
     "title": "Candidate pipeline",
     "back": "Back to the requisition",
     "showClosed": "Show rejected and withdrawn",
-    "emptyColumn": "No one here"
+    "emptyColumn": "No candidates at this stage",
+    "stages": "Stages",
+    "scrollLeft": "Show earlier stages",
+    "scrollRight": "Show later stages"
   },
   "move": {
     "label": "Move {{ name }} to another stage",
@@ -149,7 +192,11 @@
     "rejectMessage": "Record why {{ name }} is not continuing. Use a job-related reason; the candidate may ask to see it.",
     "rejectConfirm": "Reject",
     "chooseReason": "Choose a reason",
-    "done": "Moved to {{ stage }}."
+    "done": "Moved to {{ stage }}.",
+    "overrideTitle": "Move on before screening is finished?",
+    "overrideMessage": "{{ count }} criteria have no result yet. Finish the screening first, or explain why the candidate should move to {{ stage }} now. The reason is stored on the application and in the log.",
+    "overrideLabel": "Why the candidate moves on without full screening",
+    "overrideConfirm": "Move on with this reason"
   },
   "candidates": {
     "title": "Candidates",
@@ -157,57 +204,86 @@
     "new": "New candidate",
     "inPool": "Talent pool",
     "noticeMissing": "Privacy notice not recorded",
-    "applicationCount": "Applications: {{ count }}",
+    "applicationCount": "{{ count }} applications",
     "retainedUntil": "Kept until {{ date }}",
     "sort": {
       "newest": "Newest first",
       "oldest": "Oldest first",
       "name": "Name",
       "retention_until": "Deleted soonest"
-    }
+    },
+    "description": "People who have applied, with the privacy notice they got and when their data is deleted.",
+    "nameColumn": "Name",
+    "applicationOne": "1 application",
+    "deletesOn": "Deleted {{ date }}",
+    "deletesWhenClosed": "Deleted after the application closes"
   },
   "candidateForm": {
     "newTitle": "New candidate",
     "editTitle": "Edit candidate",
     "noRights": "Only the hiring team, the creator or a recruitment manager can edit this candidate.",
     "created": "Candidate {{ code }} registered.",
-    "saved": "Candidate {{ code }} saved."
+    "saved": "Candidate {{ code }} saved.",
+    "create": "Register candidate"
   },
   "candidate": {
     "applications": "Applications",
     "noApplications": "No applications yet.",
     "addApplication": "Add to a requisition",
-    "erase": "Erase personal data",
+    "erase": "Delete personal data",
     "eraseTitle": "Erase this candidate?",
     "eraseMessage": "The personal data of {{ code }} is anonymised, the free text of the applications, interviews, scorecards and checks is removed, and comments and attachments are deleted. This cannot be undone.",
-    "erased": "The personal data of {{ code }} has been erased."
+    "erased": "The personal data of {{ code }} has been erased.",
+    "contact": "Contact details"
   },
   "privacy": {
     "title": "Privacy and consent",
     "notice": "Privacy notice",
     "showNotice": "Read the privacy notice (version {{ version }})",
-    "noNotice": "Your organisation has not written a privacy notice yet. A recruitment manager can add it under Privacy and retention.",
+    "noNotice": "The organisation has not chosen a privacy notice yet. A recruitment manager can choose one in the recruitment settings.",
     "noticeGiven": "The candidate has received the privacy notice",
     "poolConsent": "The candidate agrees to be kept in the talent pool for future roles",
     "givenAt": "Given {{ date }} (version {{ version }})",
     "pool": "Talent pool",
     "consentSince": "Consent given {{ date }}",
     "consentWithdrawn": "Consent withdrawn {{ date }}",
-    "noConsent": "No consent",
+    "noConsent": "Has not consented",
     "retention": "Kept until",
     "retentionNone": "Not set yet",
     "recordNotice": "Record that the notice was given",
     "recordConsent": "Record talent-pool consent",
     "withdrawConsent": "Withdraw talent-pool consent",
-    "saved": "Privacy record updated."
+    "saved": "Privacy record updated.",
+    "givenOn": "Given {{ date }}",
+    "revision": "Revision {{ revision }}",
+    "legacyVersion": "Version {{ version }} (text in the recruitment settings)",
+    "noticeFromDocument": "Candidates get the approved privacy notice ({{ version }}):",
+    "retentionPending": "Set when the application closes",
+    "retentionSettings": "Change the retention periods",
+    "retentionBasis": {
+      "active": "The date is set when the application closes ({{ days }} days after).",
+      "closed": "{{ days }} days after the last application closed.",
+      "talent_pool": "Kept in the talent pool with consent ({{ days }} days).",
+      "hired": "Recruitment data is deleted {{ days }} days after the hire. The employee record in People stays."
+    },
+    "retentionBasisNoDays": {
+      "active": "The date is set when the application closes.",
+      "closed": "Counted from when the last application closed.",
+      "talent_pool": "Kept in the talent pool with consent.",
+      "hired": "Counted from the hire. The employee record in People stays."
+    }
   },
   "applications": {
     "title": "Applications",
     "search": "Search by code or candidate",
-    "new": "Add candidate"
+    "new": "Add candidate",
+    "description": "Each candidate's application to one requisition, with screening, checks and stage.",
+    "candidateColumn": "Candidate",
+    "updatedColumn": "Last changed",
+    "filteredBy": "Showing: {{ filter }}."
   },
   "applicationNew": {
-    "title": "Add a candidate to a requisition",
+    "title": "Add candidate",
     "chooseRequisition": "Choose an open requisition",
     "noOpenRequisitions": "There is no open requisition you can add candidates to.",
     "candidate": "Candidate",
@@ -220,7 +296,7 @@
   "application": {
     "backToPipeline": "Back to the pipeline",
     "facts": "Application",
-    "appliedAt": "Applied",
+    "appliedAt": "Applied on",
     "stageSince": "In this stage since",
     "yourRole": "Your role",
     "noticeMissing": "The candidate has not received the privacy notice yet, so the application cannot move past screening.",
@@ -234,7 +310,12 @@
       "accept": "Offer accepted",
       "decline": "Offer declined",
       "hire": "Mark as hired"
-    }
+    },
+    "openPipeline": "Open the pipeline",
+    "delete": "Delete the application",
+    "screeningIncomplete": "Screening not finished",
+    "overrideNote": "{{ name }} moved the candidate on before screening was finished ({{ date }}).",
+    "overrideReason": "Reason: {{ reason }}"
   },
   "screening": {
     "title": "Screening against the criteria",
@@ -243,7 +324,9 @@
     "note": "Evidence for {{ label }}",
     "notePlaceholder": "What in the application shows this?",
     "save": "Save screening",
-    "saved": "Screening saved."
+    "saved": "Screening saved.",
+    "progress": "{{ done }} of {{ total }} criteria assessed",
+    "progressHint": "Finish the screening before the candidate moves on."
   },
   "interviews": {
     "title": "Interviews",
@@ -277,7 +360,7 @@
     "title": "Background and reference checks",
     "plan": "Plan required checks",
     "add": "Add a check",
-    "none": "No checks yet. They are planned automatically when the application reaches the reference check stage.",
+    "none": "No checks added yet.",
     "requiredForRole": "Required for this role:",
     "pending": "Required checks still open: {{ count }}",
     "required": "Required",
@@ -293,16 +376,33 @@
     "deleted": "Check deleted.",
     "waiveTitle": "Waive this check?",
     "waiveMessage": "A waived check counts as settled for the offer. Explain why it is not needed.",
-    "waiveNote": "Reason for waiving"
+    "waiveNote": "Reason for waiving",
+    "upcoming": "Required when the candidate reaches the reference check: {{ checks }}. Nothing to do yet.",
+    "allDone": "Every required check is done.",
+    "noneRequired": "No checks are required for this role.",
+    "openCount": "{{ count }} open",
+    "failedCount": "{{ count }} failed",
+    "doneCount": "{{ count }} done",
+    "notPlanned": "not planned yet: {{ checks }}",
+    "requiredBeforeOffer": "Required before the offer",
+    "legalBasisMissing": "Legal basis missing",
+    "legalBasisShown": "Legal basis: {{ text }}",
+    "addLegalBasis": "Add the legal basis",
+    "legalBasisHint": "Name the law that allows this check for this role and why it is needed, e.g. the Police Register Act § 39 for work with children.",
+    "legalBasisRequired": "Enter the legal basis for this check.",
+    "statusOf": "Status of the {{ type }} check",
+    "waive": "Waive",
+    "remove": "Remove the check",
+    "removeTitle": "Remove this check?",
+    "removeMessage": "The check and its notes are removed from the application."
   },
   "offer": {
     "title": "Offer",
     "extendTitle": "Make an offer",
     "extendMessage": "The candidate moves to the offer stage. Record the start date and any terms you agreed.",
-    "extendBlocked": "Required checks still open: {{ count }}. An offer can only be made once every required check is passed, waived or marked with concerns.",
     "respondMessage": "Record the candidate's answer. A declined offer withdraws the application.",
     "hireTitle": "Mark as hired?",
-    "hireMessage": "{{ name }} is marked as hired and an onboarding task is created for HR. When the headcount is reached the requisition closes as filled.",
+    "hireMessage": "{{ name }} is marked as hired. When People is on, the person is registered there with the start date and an onboarding checklist. When the headcount is reached, the requisition closes as filled.",
     "extendedAt": "Offered",
     "respondedAt": "Answered",
     "hiredAt": "Hired",
@@ -310,22 +410,79 @@
     "extended": "Offer recorded.",
     "accepted": "Offer accepted.",
     "declined": "Offer declined; the application is withdrawn.",
-    "hired": "Hired. The onboarding hand-off has been created."
+    "hired": "Hired. The person and the onboarding are created.",
+    "employee": "In People",
+    "openOnboarding": "Open the onboarding task",
+    "noEmployee": "No person was registered in People (the module is off, or you may not register employees). Register the person there and link the onboarding."
   },
   "settings": {
-    "title": "Privacy and retention",
+    "title": "Recruitment settings",
     "retentionSection": "How long candidate data is kept",
-    "noticeSection": "Candidate privacy notice",
-    "policySection": "Background checks by risk level",
-    "policyIntro": "Checks are proportionate to the role: the higher the risk, the more is verified. Criminal record checks are only used where the law allows them for the role.",
-    "purgeSection": "Delete expired candidates now",
-    "purgeIntro": "Candidates past their retention date are erased automatically every night. You can also run it now. Hired candidates are never erased this way.",
-    "purge": "Erase expired candidates",
+    "noticeSection": "Privacy notice for candidates",
+    "policySection": "Checks per risk level",
+    "policyIntro": "Tick the checks that are planned automatically for each risk level. The higher the risk, the more you verify.",
+    "purgeSection": "Deleting candidate data",
+    "purgeIntro": "Candidates past their deletion date are anonymised every night. This is your evidence for GDPR storage limitation.",
+    "purge": "Delete now",
     "purgeTitle": "Erase expired candidates now?",
-    "purgeMessage": "Every candidate whose retention date has passed is anonymised. This cannot be undone.",
+    "purgeMessage": "{{ count }} candidates past their deletion date are anonymised. This cannot be undone.",
     "purged": "Candidates erased: {{ count }}",
     "saved": "Settings saved.",
-    "updatedAt": "Last changed {{ date }}"
+    "updatedAt": "Last changed {{ date }}",
+    "description": "The privacy notice candidates get, how recruitment is covered in Privacy and AI governance, retention and checks.",
+    "noticeIntro": "Choose the approved notice in Documents. The exact revision is recorded on every candidate, so an auditor can see what each person was told.",
+    "noticeMissing": "No document chosen yet. Candidates cannot move past screening until they have been informed.",
+    "noticePick": "Find the privacy notice in Documents",
+    "noticePickPlaceholder": "Search for the notice by code or title",
+    "noticeVersion": "Candidates are recorded with: {{ version }}",
+    "noticeApprovedAt": "approved {{ date }}",
+    "noticeLegacy": "Use text written here instead (older setup)",
+    "linksSection": "Privacy and AI governance",
+    "linksIntro": "Recruitment processes personal data and may use the assistant. Link the records that document this, or create them with suggested values.",
+    "links": {
+      "processing_record": {
+        "title": "Record of processing",
+        "why": "GDPR art. 30: what recruitment collects, why, the lawful basis and how long it is kept.",
+        "create": "Create the record of processing",
+        "created": "The record of processing is created and linked. Check it in Privacy."
+      },
+      "dpia": {
+        "title": "DPIA (data protection impact assessment)",
+        "why": "GDPR art. 35: needed when processing is likely to be high risk for the candidates.",
+        "create": "Create the DPIA",
+        "created": "The DPIA is created and linked. Complete it in Privacy."
+      },
+      "ai_system": {
+        "title": "AI system",
+        "why": "AI Act art. 26: AI used in recruitment is high-risk and needs a responsible owner and human oversight.",
+        "create": "Register the AI system",
+        "created": "The AI system is registered and linked. Complete it in AI governance."
+      }
+    },
+    "linkExisting": "Link an existing one",
+    "unlink": "Remove the link",
+    "linked": "The link is saved.",
+    "unlinked": "The link is removed.",
+    "linkFailed": "Could not create or link the record. You may lack access to that module; ask someone who manages it.",
+    "dpiaAdvised": "A DPIA is advisable because",
+    "dpiaReasons": {
+      "special_checks": "criminal-record or credit checks are used",
+      "ai_assist": "the recruitment assistant has been used",
+      "profiling": "an AI system that sorts or scores applicants is linked"
+    },
+    "aiUse": "The recruitment assistant was used {{ count }} times in the last 30 days.",
+    "aiLastUse": "last {{ date }}",
+    "retentionIntro": "Data is anonymised automatically every night when the period ends.",
+    "policyReset": "Back to the standard table",
+    "policyCell": "{{ type }} for {{ risk }}",
+    "legalBasisChecks": "{{ checks }} are never planned automatically. Add them per candidate, with the legal basis.",
+    "dueNow": "Due for deletion now",
+    "due30": "Due within 30 days",
+    "lastRun": "Last run",
+    "lastRunValue": "{{ date }}, {{ count }} deleted",
+    "neverRun": "Has not run yet",
+    "purgeCount": "Delete {{ count }} now",
+    "nothingDue": "Nothing to delete now"
   },
   "ai": {
     "suggestCriteria": "Suggest criteria",
@@ -385,10 +542,13 @@
     "offerStatus": "Status",
     "startDate": "Start date",
     "offerNote": "Offer terms and notes",
-    "retentionDays": "Retention after a requisition closes (days)",
-    "talentPoolDays": "Retention in the talent pool (days)",
+    "retentionDays": "After the application closes (days)",
+    "talentPoolDays": "In the talent pool (days)",
     "noticeVersion": "Notice version",
-    "noticeText": "Notice text"
+    "noticeText": "Notice text",
+    "position": "Position in People",
+    "legalBasis": "Legal basis and reason",
+    "hiredRetentionDays": "After a hire (days)"
   },
   "requisitionStatus": {
     "draft": "Draft",
@@ -455,7 +615,7 @@
   "interviewKind": {
     "phone": "Phone",
     "video": "Video",
-    "onsite": "On site",
+    "onsite": "In person",
     "technical": "Technical",
     "panel": "Panel"
   },
@@ -495,7 +655,7 @@
     "employment_history": "Employment history",
     "education": "Education",
     "criminal_record": "Criminal record",
-    "credit": "Credit",
+    "credit": "Credit check",
     "other": "Other"
   },
   "checkStatus": {
@@ -540,7 +700,13 @@
     "scorecard_submitted": "A submitted scorecard can no longer be changed.",
     "source_required": "Choose where the candidate came from.",
     "title_required": "Give the role a title first.",
-    "unknown_criterion": "One of the criteria no longer exists on the requisition. Reload the page."
+    "unknown_criterion": "One of the criteria no longer exists on the requisition. Reload the page.",
+    "screening_incomplete": "Finish the screening first: some criteria have no result yet.",
+    "legal_basis_required": "Enter the legal basis for this check first.",
+    "invalid_position": "That position no longer exists in People.",
+    "notice_document_not_found": "That document no longer exists.",
+    "notice_document_not_approved": "Choose an approved document. A draft cannot be the privacy notice.",
+    "invalid_link": "That record no longer exists, or you cannot see it."
   },
   "notifications": {
     "requisitionCreated": "Requisition {{ code }} created",
@@ -589,7 +755,7 @@
     "candidateErased": "The candidate's personal data was erased",
     "applicationCreated": "{{ actor_name }} added the application",
     "applicationUpdated": "{{ actor_name }} updated the application",
-    "stageChanged": "{{ actor_name }} moved the application to a new stage",
+    "stageChanged": "{{ actor_name }} moved the application from {{ from_stage_label }} to {{ stage_label }}",
     "checksPlanned": "{{ actor_name }} planned the required checks",
     "checkUpdated": "{{ actor_name }} updated a check",
     "interviewScheduled": "{{ actor_name }} scheduled an interview",
@@ -599,5 +765,130 @@
     "offerResponded": "{{ actor_name }} recorded the answer to the offer",
     "hired": "{{ actor_name }} marked the candidate as hired",
     "applicationDeleted": "{{ actor_name }} deleted the application"
+  },
+  "form": {
+    "required": "required",
+    "requiredNote": "Fields marked * are required.",
+    "fixErrors": "Could not save. Fix the fields marked in red.",
+    "errors": {
+      "title": "Give the position a title.",
+      "headcount": "Enter a number from 1 to 500.",
+      "fullName": "Enter the candidate's full name.",
+      "requisition": "Choose an open job requisition.",
+      "candidate": "Choose a candidate from the list, or register a new one.",
+      "days": "Enter a number of days from 30 to 3650."
+    }
+  },
+  "overview": {
+    "description": "What needs attention in recruitment now, the candidates in each stage and the figures for the management review.",
+    "attention": "Needs attention",
+    "allClear": "Nothing is waiting right now. New approvals, checks and deletions show up here.",
+    "open": "Open the list",
+    "pipeline": "Candidates now",
+    "byStage": "Candidates per stage",
+    "seeAll": "See all applications",
+    "kpis": "Figures for the management review",
+    "kpisIntro": "The last 12 months. Use them to show that hiring is fair, checked and lawful.",
+    "counters": {
+      "approvals_waiting": "Waiting for approval",
+      "screening_not_done": "Screening not finished",
+      "checks_overdue": "Checks overdue",
+      "offers_pending": "Offers waiting for an answer",
+      "stalled": "Stalled for 14+ days",
+      "deletions_next_30d": "Deleted within 30 days",
+      "open_requisitions": "Open requisitions",
+      "active_applications": "Active applications",
+      "interviews_next_7d": "In the interview stage",
+      "checks_open": "Required checks open",
+      "deletions_due": "Deletion overdue"
+    },
+    "kpi": {
+      "hires": "Hires",
+      "daysToHire": "Median time to hire",
+      "days": "{{ count }} days",
+      "checksComplete": "Hires with every required check done",
+      "screeningComplete": "Hires screened on every criterion",
+      "retentionOverdue": "Storage limitation (GDPR)",
+      "retentionOk": "No candidate is kept past their deletion date.",
+      "retentionOverdueSome": "{{ count }} candidates are past their deletion date. Run the deletion in the settings.",
+      "rejectionReasons": "Why candidates were rejected"
+    }
+  },
+  "indicators": {
+    "screening": "Screening {{ done }}/{{ total }}",
+    "screeningTitle": "{{ done }} of {{ total }} criteria assessed",
+    "screeningOverridden": "Screening skipped (reason logged)",
+    "checks": "Checks {{ done }}/{{ total }}",
+    "checksTitle": "{{ done }} of {{ total }} required checks done",
+    "scorecards": "{{ count }} scorecards",
+    "daysInStage": "{{ count }} days in stage",
+    "dayInStage": "1 day in stage",
+    "stalled": "No progress for {{ count }} days"
+  },
+  "offerBlockers": {
+    "title": "Before you can make the offer",
+    "go": "Go there",
+    "other": "Something else blocks the offer.",
+    "overrideHint": "You can make the offer before screening is finished only with a written reason, which is logged.",
+    "application_closed": "The application is closed.",
+    "offer_made": "An offer has already been made.",
+    "requisition_not_open": "The requisition is not open for applications.",
+    "privacy_notice_missing": "Record that the candidate has received the privacy notice.",
+    "screening_incomplete": "{{ count }} criteria are not assessed yet.",
+    "checks_open": "{{ count }} required checks are still open: {{ checks }}.",
+    "checks_not_planned": "Required checks are not planned yet: {{ checks }}.",
+    "checks_failed": "A required check has failed: {{ checks }}."
+  },
+  "picker": {
+    "label": "Find a record",
+    "placeholder": "Search by code or title",
+    "none": "No matches. Check the spelling, or create the record first."
+  },
+  "tasks": {
+    "onboarding": "Onboarding {{ code }}: {{ title }}",
+    "scorecard": "Fill in the scorecard for {{ code }}: {{ title }}",
+    "approval": "Approve job requisition {{ code }}: {{ title }}"
+  },
+  "next": {
+    "approvals": {
+      "title": "{{ count }} job requisitions wait for your approval",
+      "why": "Hiring cannot start until someone other than the requester approves."
+    },
+    "checksOverdue": {
+      "title": "{{ count }} background checks are overdue",
+      "why": "ISO 27001 A.6.1: checks must be done before the person starts."
+    },
+    "screening": {
+      "title": "{{ count }} applications are not screened",
+      "why": "Assess every candidate against the same criteria before they move on."
+    },
+    "erasureDue": {
+      "title": "{{ count }} candidates should have been deleted",
+      "why": "GDPR storage limitation: run the deletion in the recruitment settings."
+    }
+  },
+  "timelineValues": {
+    "stage": {
+      "applied": "Applied",
+      "screening": "Screening",
+      "interview": "Interview",
+      "assessment": "Assessment",
+      "reference_check": "Reference check",
+      "offer": "Offer",
+      "hired": "Hired",
+      "rejected": "Rejected",
+      "withdrawn": "Withdrawn"
+    },
+    "from_stage": {
+      "applied": "Applied",
+      "screening": "Screening",
+      "interview": "Interview",
+      "assessment": "Assessment",
+      "reference_check": "Reference check",
+      "offer": "Offer",
+      "hired": "Hired",
+      "rejected": "Rejected",
+      "withdrawn": "Withdrawn"
+    }
   }
 }

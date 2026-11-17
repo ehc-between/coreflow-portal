@@ -25,7 +25,7 @@ let nextId = 0;
       @for (item of criteria(); track $index; let i = $index) {
         <li class="rounded-tile border border-border bg-surface p-3">
           <div class="flex items-start gap-2">
-            <span class="mt-2 w-5 flex-none text-[12px] font-semibold text-fg-subtle">{{
+            <span class="mt-2 w-5 flex-none text-meta font-semibold text-fg-subtle">{{
               i + 1
             }}</span>
             <div class="flex min-w-0 flex-1 flex-col gap-2">
@@ -57,7 +57,7 @@ let nextId = 0;
             @if (!disabled()) {
               <button
                 type="button"
-                class="mt-1.5 flex rounded-[6px] p-1.5 text-fg-subtle hover:text-fail focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                class="mt-1.5 flex rounded-tile p-1.5 text-fg-subtle hover:text-fail focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
                 [attr.aria-label]="
                   'recruitment.criteria.remove' | transloco: { label: item.label || i + 1 }
                 "
@@ -69,13 +69,13 @@ let nextId = 0;
           </div>
         </li>
       } @empty {
-        <li class="text-[13px] text-fg-muted">{{ 'recruitment.criteria.none' | transloco }}</li>
+        <li class="text-ui text-fg-muted">{{ 'recruitment.criteria.none' | transloco }}</li>
       }
     </ol>
     @if (!disabled() && criteria().length < max) {
       <button
         type="button"
-        class="mt-2 inline-flex items-center gap-1.5 rounded-[8px] px-2 py-1 text-[13px] font-semibold text-accent hover:bg-accent-soft focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+        class="mt-2 inline-flex items-center gap-1.5 rounded-tile px-2 py-1 text-ui font-semibold text-accent hover:bg-accent-soft focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
         (click)="add()"
         data-testid="criteria-add"
       >

@@ -12,7 +12,7 @@ import { NotificationService } from '../../../core/notifications/notification.se
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { FieldHelp } from '../../../shared/guidance/field-help';
 import { LocalDatePipe } from '../../../shared/locale/locale-pipes';
-import { Badge } from '../../../shared/ui/badge/badge';
+import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { RecruitmentApi } from '../data/recruitment-api';
@@ -43,13 +43,13 @@ let nextId = 0;
  */
 @Component({
   selector: 'app-application-scorecards',
-  imports: [TranslocoPipe, FieldHelp, LocalDatePipe, Badge, Button, Card],
+  imports: [TranslocoPipe, FieldHelp, LocalDatePipe, StatusBadge, Button, Card],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `
     <app-card>
       <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <h2 class="font-display text-[15px] font-bold text-fg">
+        <h2 class="font-display text-card font-bold text-fg">
           {{ 'recruitment.scorecards.title' | transloco }}
         </h2>
         @if (canFile() && !mine() && !editing()) {
@@ -68,12 +68,12 @@ let nextId = 0;
       @if (editing()) {
         <form class="mt-3 flex flex-col gap-3" (submit)="$event.preventDefault(); save(true)">
           @if (interviews().length > 0 && !mine()) {
-            <label class="text-[13px] font-semibold text-fg-muted" [attr.for]="uid + '-iv'">
+            <label class="text-ui font-semibold text-fg-muted" [attr.for]="uid + '-iv'">
               {{ 'recruitment.scorecards.interview' | transloco }}
             </label>
             <select
               [id]="uid + '-iv'"
-              class="h-9 rounded-[8px] border border-border bg-bg px-2 text-[13px] text-fg outline-none focus:border-accent"
+              class="h-9 rounded-tile border border-border bg-bg px-2 text-ui text-fg outline-none focus:border-accent"
               (change)="interviewId.set($any($event.target).value || null)"
             >
               <option value="">{{ 'recruitment.scorecards.noInterview' | transloco }}</option>
@@ -87,12 +87,12 @@ let nextId = 0;
           }
           @for (r of ratings(); track r.criterion_id; let i = $index) {
             <fieldset class="rounded-tile border border-border p-3">
-              <legend class="px-1 text-[13px] font-semibold text-fg">
+              <legend class="px-1 text-ui font-semibold text-fg">
                 {{ label(r.criterion_id) }}
               </legend>
               <div class="flex flex-wrap gap-3" role="radiogroup">
                 @for (v of ratingValues; track v) {
-                  <label class="inline-flex items-center gap-1.5 text-[13px] text-fg">
+                  <label class="inline-flex items-center gap-1.5 text-ui text-fg">
                     <input
                       type="radio"
                       class="h-4 w-4 accent-[var(--accent)]"
@@ -109,7 +109,7 @@ let nextId = 0;
               }}</label>
               <input
                 [id]="uid + '-note-' + i"
-                class="mt-2 h-9 w-full rounded-[8px] border border-border bg-bg px-2 text-[13px] text-fg outline-none focus:border-accent"
+                class="mt-2 h-9 w-full rounded-tile border border-border bg-bg px-2 text-ui text-fg outline-none focus:border-accent"
                 maxlength="2000"
                 [placeholder]="'recruitment.scorecards.evidence' | transloco"
                 [value]="r.note"
@@ -117,12 +117,12 @@ let nextId = 0;
               />
             </fieldset>
           }
-          <label class="text-[13px] font-semibold text-fg-muted" [attr.for]="uid + '-rec'">
+          <label class="text-ui font-semibold text-fg-muted" [attr.for]="uid + '-rec'">
             {{ 'recruitment.fields.recommendation' | transloco }}
           </label>
           <select
             [id]="uid + '-rec'"
-            class="h-9 rounded-[8px] border border-border bg-bg px-2 text-[13px] text-fg outline-none focus:border-accent"
+            class="h-9 rounded-tile border border-border bg-bg px-2 text-ui text-fg outline-none focus:border-accent"
             (change)="recommendation.set($any($event.target).value || null)"
           >
             <option value="" [selected]="!recommendation()">
@@ -134,14 +134,14 @@ let nextId = 0;
               </option>
             }
           </select>
-          <label class="text-[13px] font-semibold text-fg-muted" [attr.for]="uid + '-summary'">
+          <label class="text-ui font-semibold text-fg-muted" [attr.for]="uid + '-summary'">
             {{ 'recruitment.fields.summary' | transloco }}
           </label>
           <textarea
             [id]="uid + '-summary'"
             rows="3"
             maxlength="5000"
-            class="rounded-[10px] border border-border bg-bg px-3 py-2 text-[13.5px] text-fg outline-none focus:border-accent"
+            class="rounded-tile border border-border bg-bg px-3 py-2 text-body text-fg outline-none focus:border-accent"
             [value]="summary()"
             (input)="summary.set($any($event.target).value)"
           ></textarea>
@@ -156,7 +156,7 @@ let nextId = 0;
               {{ 'recruitment.scorecards.submit' | transloco }}
             </app-button>
           </div>
-          <p class="text-right text-[12px] text-fg-subtle">
+          <p class="text-right text-meta text-fg-subtle">
             {{ 'recruitment.scorecards.submitHint' | transloco }}
           </p>
         </form>
@@ -164,16 +164,20 @@ let nextId = 0;
 
       <ul class="mt-3 flex flex-col gap-2">
         @for (card of scorecards(); track card.id) {
-          <li class="rounded-tile border border-border p-3 text-[13px]">
+          <li class="rounded-tile border border-border p-3 text-ui">
             <div class="flex flex-wrap items-center gap-2">
               <span class="font-semibold text-fg">{{ card.author?.name ?? '—' }}</span>
-              <app-badge [tone]="card.status === 'submitted' ? 'pass' : 'neutral'">
-                {{ 'recruitment.scorecardStatus.' + card.status | transloco }}
-              </app-badge>
+              <app-status-badge
+                meaning="lifecycle"
+                [value]="card.status === 'submitted' ? 'completed' : 'draft'"
+                [labelKey]="'recruitment.scorecardStatus.' + card.status"
+              />
               @if (card.recommendation) {
-                <app-badge tone="info">{{
-                  'recruitment.recommendation.' + card.recommendation | transloco
-                }}</app-badge>
+                <app-status-badge
+                  meaning="lifecycle"
+                  value="submitted"
+                  [labelKey]="'recruitment.recommendation.' + card.recommendation"
+                />
               }
               @if (card.submitted_at) {
                 <span class="text-fg-subtle">{{ card.submitted_at | localDate: 'medium' }}</span>
@@ -181,7 +185,7 @@ let nextId = 0;
               @if (card.can_edit && card.status === 'draft' && !editing()) {
                 <button
                   type="button"
-                  class="ml-auto rounded-[6px] px-2 py-0.5 text-[12.5px] font-semibold text-accent hover:bg-accent-soft"
+                  class="ml-auto rounded-tile px-2 py-0.5 text-meta font-semibold text-accent hover:bg-accent-soft"
                   (click)="start(card)"
                 >
                   {{ 'recruitment.common.edit' | transloco }}
@@ -208,11 +212,11 @@ let nextId = 0;
             }
           </li>
         } @empty {
-          <li class="text-[13px] text-fg-muted">{{ 'recruitment.scorecards.none' | transloco }}</li>
+          <li class="text-ui text-fg-muted">{{ 'recruitment.scorecards.none' | transloco }}</li>
         }
       </ul>
       @if (canFile() && mine()?.status !== 'submitted') {
-        <p class="mt-3 text-[12px] text-fg-subtle">
+        <p class="mt-3 text-meta text-fg-subtle">
           {{ 'recruitment.scorecards.blindNote' | transloco }}
         </p>
       }

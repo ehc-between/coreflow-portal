@@ -83,6 +83,13 @@ const KNOWN_FIELDS = new Set([
   'frameworks',
   'article_refs',
   'requirements',
+  // Recruitment (A12): links that follow the record's own evidence.
+  'screening_criteria',
+  'approval',
+  'privacy_notice',
+  'screening',
+  'checks',
+  'offer',
 ]);
 
 /** i18n key of a field's display name in "Fra feltet «…»". */
