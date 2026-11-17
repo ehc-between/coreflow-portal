@@ -6,7 +6,22 @@
     "standard": "Standard",
     "standard_requirement": "Krav",
     "task": "Oppgave",
-    "attachment": "Vedlegg"
+    "attachment": "Vedlegg",
+    "audit_certification": "Sertifisering",
+    "consent_record": "Samtykke",
+    "continuity_contact": "Beredskapskontakt",
+    "continuity_ict_system": "IKT-system",
+    "env_drill": "Beredskapsøvelse",
+    "env_metric": "Miljøindikator",
+    "learning_progress": "Læringsfremdrift",
+    "legal_basis_assessment": "Vurdering av behandlingsgrunnlag",
+    "people_awareness": "Bevissthetstiltak",
+    "people_checklist": "Sjekkliste",
+    "people_disciplinary": "Personalsak",
+    "record_type": "Posttype",
+    "retention_schedule": "Oppbevaringsplan",
+    "risk_register": "Risikoregister",
+    "workflow_definition": "Arbeidsflyt"
   },
   "linkTypes": {
     "relates_to": {
@@ -64,7 +79,23 @@
     "planned": "Planlagt",
     "completed": "Fullført",
     "archived": "Arkivert",
-    "overdue": "Forfalt"
+    "overdue": "Forfalt",
+    "in_treatment": "Under behandling",
+    "identified": "Identifisert",
+    "assessed": "Vurdert",
+    "accepted": "Akseptert",
+    "treated": "Behandlet",
+    "monitoring": "Overvåkes",
+    "mitigated": "Redusert",
+    "qualified": "Kvalifisert",
+    "suspended": "Suspendert",
+    "terminated": "Avsluttet",
+    "confirmed": "Bekreftet",
+    "suggested": "Forslag",
+    "resolved": "Løst",
+    "verified": "Verifisert",
+    "implemented": "Gjennomført",
+    "published": "Publisert"
   },
   "chip": {
     "open": "Åpne {{ type }} {{ title }}",
@@ -74,7 +105,7 @@
     "title": "Relaterte poster",
     "add": "Koble til en post",
     "empty": "Ingen relaterte poster ennå.",
-    "emptyHint": "Koble denne posten til dokumentene, avvikene, risikoene eller tiltakene den henger sammen med. Revisorer følger disse koblingene for å se hvordan ett bevis støtter et annet.",
+    "emptyHint": "Koble denne posten til dokumentene, avvikene, risikoene eller tiltakene den henger sammen med. Revisorer følger disse koblingene for å se hvordan dokumentasjonen henger sammen.",
     "remove": "Fjern kobling",
     "removeNamed": "Fjern koblingen til {{ title }}",
     "removeTitle": "Fjerne denne koblingen?",
@@ -82,7 +113,8 @@
     "removeConfirm": "Fjern kobling",
     "linkedBy": "Koblet av {{ name }}",
     "count": "{{ count }} koblet",
-    "suggest": "Foreslå relaterte poster"
+    "suggest": "Foreslå relaterte poster",
+    "moreInGroup": "Viser {{ shown }} av {{ count }}"
   },
   "picker": {
     "title": "Koble til en post",
@@ -179,14 +211,16 @@
     "commentMentioned": "{{ actor_name }} nevnte noen i en kommentar",
     "commentDeleted": "{{ actor_name }} slettet en kommentar",
     "linkCreated": "{{ actor_name }} koblet til: {{ other_type_label }} ({{ link_type_label }})",
-    "linkDeleted": "{{ actor_name }} fjernet koblingen til: {{ other_type_label }} ({{ link_type_label }})"
+    "linkDeleted": "{{ actor_name }} fjernet koblingen til: {{ other_type_label }} ({{ link_type_label }})",
+    "flowCompleted": "{{ actor_name }} opprettet posten fra en annen post ({{ source_type_label }})"
   },
   "notifications": {
     "commentCreated": "{{ actor_name }} kommenterte en post du følger",
     "commentMentioned": "{{ actor_name }} nevnte deg i en kommentar",
     "commentDeleted": "{{ actor_name }} slettet en kommentar",
     "linkCreated": "{{ actor_name }} koblet til en post",
-    "linkDeleted": "{{ actor_name }} fjernet en kobling"
+    "linkDeleted": "{{ actor_name }} fjernet en kobling",
+    "flowCompleted": "{{ actor_name }} opprettet en koblet post"
   },
   "list": {
     "search": "Søk",
@@ -243,6 +277,171 @@
     "not_comment_author": "Bare forfatteren kan redigere en kommentar.",
     "comment_not_found": "Denne kommentaren finnes ikke lenger.",
     "revision_not_found": "Revisjonen ble ikke funnet.",
-    "revision_mismatch": "Disse revisjonene tilhører forskjellige poster."
+    "revision_mismatch": "Disse revisjonene tilhører forskjellige poster.",
+    "suggestion_not_found": "Forslaget finnes ikke lenger.",
+    "suggestion_decided": "Noen har allerede tatt stilling til dette forslaget.",
+    "flow_not_found": "Dette valget er ikke tilgjengelig for denne posten.",
+    "invalid_flow_token": "Koblingen tilbake til den opprinnelige posten kunne ikke kontrolleres. Koble den fra fanen Relatert.",
+    "flow_token_expired": "Det har gått mer enn en time, så koblingen tilbake ble ikke laget. Koble den fra fanen Relatert.",
+    "token_required": "Koblingen tilbake til den opprinnelige posten kunne ikke kontrolleres. Koble den fra fanen Relatert.",
+    "requirement_not_found": "Fant ikke kravet.",
+    "invalid_ids": "Listen kunne ikke telles.",
+    "too_many_ids": "Listen kunne ikke telles."
+  },
+  "connections": {
+    "title": "Koblet til",
+    "linkTo": "Koble til…",
+    "retry": "Prøv igjen",
+    "counts": {
+      "records": "{{ count }} poster",
+      "recordsOne": "1 post",
+      "requirements": "{{ count }} krav",
+      "requirementsOne": "1 krav",
+      "tasks": "{{ count }} oppgaver",
+      "tasksOne": "1 oppgave",
+      "requirementSuggestions": "{{ count }} kravforslag",
+      "requirementSuggestionsOne": "1 kravforslag"
+    },
+    "suggestedTitle": "Foreslåtte koblinger ({{ count }})",
+    "suggestedHint": "CoreFlow har funnet poster som trolig hører sammen med denne. Koble de som passer. Avviste forslag kommer ikke tilbake.",
+    "accept": "Koble",
+    "acceptNamed": "Koble til {{ title }}",
+    "dismiss": "Avvis",
+    "dismissNamed": "Avvis forslaget {{ title }}",
+    "moreSuggestions": "Se alle {{ count }} forslag",
+    "empty": "Ikke koblet til andre poster ennå.",
+    "emptyEdit": "Ikke koblet til andre poster ennå. Koble til dokumentene, risikoene eller avvikene denne posten henger sammen med.",
+    "showAll": "Vis alle ({{ count }})",
+    "showMap": "Vis kart",
+    "askAbout": "Spør om koblingene",
+    "askPrompt": "Hva er denne posten ({{ type }}, posttype {{ entity_type }}, id {{ entity_id }}) koblet til, hvilke krav dokumenterer den, og hva mangler? Lenk til alle postene du nevner.",
+    "reasons": {
+      "same_control": "Viser til samme kontroll",
+      "asset_named": "Nevner denne eiendelen",
+      "same_process": "Koblet til samme prosess",
+      "same_asset": "Koblet til samme eiendel",
+      "process_in_scope": "Prosessen er med i revisjonens omfang",
+      "ai_system_named": "Nevner dette KI-systemet",
+      "ai_system_in_ropa": "KI-systemet brukes i denne behandlingen",
+      "same_legal_reference": "Viser til samme lov eller artikkel",
+      "same_framework": "Gjelder samme standard",
+      "legal_requirement": "Merket som lovkrav",
+      "review_input": "Innspill til ledelsens gjennomgang",
+      "text_match": "Lignende formulering",
+      "ai": "Foreslått av assistenten",
+      "other": "Trolig relatert"
+    },
+    "origin": {
+      "auto": "Automatisk",
+      "autoHint": "CoreFlow koblet disse fordi dataene viser at de hører sammen.",
+      "structural": "Via felt",
+      "structuralHint": "Koblet gjennom et felt i posten. Endre feltet for å endre koblingen.",
+      "ai": "KI-forslag",
+      "aiHint": "Foreslått av assistenten og godkjent av en person.",
+      "flowSource": "Opphav",
+      "flowSourceHint": "Denne posten ble laget med utgangspunkt i den.",
+      "flowCreated": "Laget herfra",
+      "flowCreatedHint": "Laget med utgangspunkt i denne posten."
+    },
+    "count": "Koblet til {{ count }} poster",
+    "countOne": "Koblet til 1 post"
+  },
+  "map": {
+    "title": "Koblingskart",
+    "close": "Lukk",
+    "loading": "Tegner kartet…",
+    "empty": "Denne posten er ikke koblet til noe ennå.",
+    "depth2": "Vis koblinger to steg unna",
+    "columns": {
+      "requirements": "Krav den dokumenterer",
+      "record": "Denne posten",
+      "related": "Koblet til",
+      "further": "To steg unna"
+    },
+    "columnEmpty": {
+      "requirements": "Ikke koblet til krav ennå",
+      "record": "Ingenting her",
+      "related": "Ingen koblede poster",
+      "further": "Ingen flere"
+    },
+    "legend": {
+      "confirmed": "Bekreftet kobling",
+      "suggested": "Forslag",
+      "keys": "Piltastene flytter mellom boksene. Enter åpner."
+    },
+    "kinds": {
+      "requirement": "Krav",
+      "person": "Person"
+    },
+    "requirementPart": "krav {{ n }}"
+  },
+  "flows": {
+    "menu": "Lag ny fra denne",
+    "linkedToast": "Koblet til {{ name }}",
+    "linkedToastWithSuggestions": "Koblet til {{ name }}. {{ count }} av kravene derfra er foreslått for den nye posten.",
+    "requirementLinkedToast": "Lagret og koblet til kravet.",
+    "linkFailed": "Lagret, men kunne ikke kobles til {{ name }}. Koble den fra fanen Relatert.",
+    "arrivedHint": "Laget fra {{ name }}: den nye posten kobles automatisk tilbake når du lagrer.",
+    "arrivedRequirementHint": "Når du lagrer, blir den nye posten dokumentasjon for kravet du kom fra.",
+    "banner": "Laget fra {{ name }}. Den kobles tilbake når du lagrer.",
+    "bannerRequirement": "Når du lagrer, blir dette dokumentasjon for {{ label }}.",
+    "openSource": "Åpne {{ name }}",
+    "cancel": "Ikke herfra",
+    "requirement": {
+      "evidence": "{{ type }} som dokumenterer kravet"
+    },
+    "deviation": {
+      "to_risk": "Risiko fra avviket",
+      "to_task": "Oppgave for oppfølging",
+      "to_training": "Opplæringsbehov (kurstildeling)",
+      "to_document": "Endring i et dokument"
+    },
+    "audit_finding": {
+      "to_deviation": "Avvik fra funnet",
+      "to_risk": "Risiko fra funnet"
+    },
+    "inspection_finding": {
+      "to_deviation": "Avvik fra funnet"
+    },
+    "risk": {
+      "to_document": "Kontrolldokument (prosedyre)",
+      "to_policy": "Policy som håndterer risikoen",
+      "to_treatment": "Risikobehandling",
+      "to_task": "Oppgave"
+    },
+    "supplier": {
+      "to_contract": "Kontrakt med leverandøren",
+      "to_evaluation": "Leverandørvurdering",
+      "to_risk": "Leverandørrisiko"
+    },
+    "dpia": {
+      "to_risk": "Risiko fra DPIA-en"
+    },
+    "ai_system": {
+      "to_dpia": "DPIA for KI-systemet",
+      "to_assessment": "KI-vurdering"
+    },
+    "obligation": {
+      "to_policy": "Policy som oppfyller forpliktelsen",
+      "to_document": "Dokument som oppfyller forpliktelsen"
+    },
+    "customer_feedback": {
+      "to_deviation": "Avvik fra tilbakemeldingen"
+    },
+    "management_review": {
+      "to_task": "Tiltak (oppgave)"
+    },
+    "formMissing": "Dette skjemaet finnes ikke ennå. Opprett posten fra sin egen side og koble den fra fanen Relatert."
+  },
+  "frameworks": {
+    "iso9001": "ISO 9001",
+    "iso27001": "ISO 27001",
+    "iso14001": "ISO 14001",
+    "iso45001": "ISO 45001",
+    "iso42001": "ISO 42001",
+    "nis2": "NIS2",
+    "gdpr": "GDPR",
+    "eu_ai_act": "KI-forordningen",
+    "hs": "Felles ISO-krav"
   }
 }
