@@ -177,4 +177,42 @@ describe('HseApi', () => {
     expect(create.request.method).toBe('POST');
     create.flush({});
   });
+  it('records and removes SJA sign-offs without the generic toast', () => {
+    api.signOffSja(ORG, 's1', { user_id: 'u1' }).subscribe();
+    const sign = http.expectOne(url('sja/s1/sign-offs'));
+    expect(sign.request.method).toBe('POST');
+    expect(sign.request.body).toEqual({ user_id: 'u1' });
+    expect(sign.request.context.get(SKIP_ERROR_TOAST)).toBe(true);
+    sign.flush({});
+
+    api.removeSignOff(ORG, 's1', 2).subscribe();
+    const undo = http.expectOne(url('sja/s1/sign-offs/2'));
+    expect(undo.request.method).toBe('DELETE');
+    undo.flush({});
+  });
+
+  it('checks the training a PPE holder needs and filters overdue PPE', () => {
+    api.trainingCheck(ORG, 'p1', 'u1').subscribe();
+    const check = http.expectOne((r) => r.url === url('ppe/p1/training-check'));
+    expect(check.request.params.get('user_id')).toBe('u1');
+    check.flush({ status: 'valid', course: null, completed_at: null, expires_at: null });
+
+    api.listPpe(ORG, { overdue: true, sort: 'due_at' }).subscribe();
+    const list = http.expectOne((r) => r.url === url('ppe'));
+    expect(list.request.params.get('overdue')).toBe('true');
+    expect(list.request.params.get('sort')).toBe('due_at');
+    list.flush({ items: [], total: 0 });
+
+    api.issuePpe(ORG, 'p1', { holder_user_id: 'u1', quantity: 2 }).subscribe();
+    const issue = http.expectOne(url('ppe/p1/issue'));
+    expect(issue.request.body).toEqual({ holder_user_id: 'u1', quantity: 2 });
+    issue.flush({});
+  });
+
+  it('lists the safety walks done in Inspections', () => {
+    api.listSafetyWalks(ORG, { limit: 10 }).subscribe();
+    const req = http.expectOne((r) => r.url === url('safety-rounds/inspections'));
+    expect(req.request.params.get('limit')).toBe('10');
+    req.flush({ available: true, new_url: '/inspections/new', items: [], total: 0 });
+  });
 });

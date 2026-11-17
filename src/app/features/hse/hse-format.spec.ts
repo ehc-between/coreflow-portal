@@ -6,16 +6,26 @@ import {
   incompleteSteps,
   linesToList,
   listToLines,
+  intervalText,
   localInputToWire,
-  riskTone,
+  periodKind,
+  ppeOnly,
+  ppeStatusValue,
+  residualNotLower,
   stepTotals,
   textOrNull,
   wireToLocalInput,
 } from './hse-format';
-import { overviewSections } from './hse-overview';
+import { overviewSections, splitUrl } from './hse-overview';
+import { placePpeActions } from './ppe/ppe-detail';
 import { positiveInt } from './ppe/ppe-editor';
-import { safetyRoundBody } from './safety-rounds/safety-rounds';
-import { mergeSuggestions, stepDraft, stepsFromDrafts } from './sja/sja-editor';
+import { parsePpeFilters } from './ppe/ppe-list';
+import { actionsFromDrafts, actionDraft } from './consultations/consultation-detail';
+import { findingsKey, safetyRoundBody } from './safety-rounds/safety-rounds';
+import { participantRows, placeSjaActions, warningText } from './sja/sja-detail';
+import { controlDraft, mergeSuggestions, stepDraft, stepsFromDrafts } from './sja/sja-editor';
+import { addName } from './shared/people-picker';
+import { Ppe, Sja } from './data/hse.models';
 
 describe('hse format helpers', () => {
   it('splits and joins one-item-per-line lists', () => {
@@ -43,11 +53,76 @@ describe('hse format helpers', () => {
     expect(dayToWire('')).toBeNull();
   });
 
-  it('maps risk levels to badge tones', () => {
-    expect(riskTone('low')).toBe('pass');
-    expect(riskTone('medium')).toBe('warn');
-    expect(riskTone('critical')).toBe('fail');
-    expect(riskTone(null)).toBe('neutral');
+  it('maps PPE statuses to shared tone values', () => {
+    expect(ppeStatusValue('in_stock')).toBe('effective');
+    expect(ppeStatusValue('out_of_service')).toBe('blocked');
+    expect(ppeStatusValue('retired')).toBe('retired');
+  });
+
+  it('flags a residual risk that is not lower than before', () => {
+    expect(residualNotLower('high', 'high')).toBe(true);
+    expect(residualNotLower('medium', 'high')).toBe(true);
+    expect(residualNotLower('high', 'low')).toBe(false);
+    expect(residualNotLower('', 'high')).toBe(false);
+  });
+
+  it('flags steps that rely only on PPE', () => {
+    expect(ppeOnly(['ppe', 'ppe'])).toBe(true);
+    expect(ppeOnly(['ppe', 'engineering'])).toBe(false);
+    expect(ppeOnly(['ppe', ''])).toBe(false);
+    expect(ppeOnly([])).toBe(false);
+  });
+
+  it('says inspection intervals in plain words', () => {
+    expect(intervalText(365)?.key).toBe('hse.interval.yearly');
+    expect(intervalText(30)?.key).toBe('hse.interval.monthly');
+    expect(intervalText(45)).toEqual({ key: 'hse.interval.days', params: { days: 45 } });
+    expect(intervalText(null)).toBeNull();
+  });
+
+  it('picks the period phrasing without a dangling dash', () => {
+    expect(periodKind('2026-11-01T08:00:00', '2026-11-01T15:00:00')).toBe('range');
+    expect(periodKind('2026-11-01T08:00:00', null)).toBe('from');
+    expect(periodKind(null, '2026-11-01T15:00:00')).toBe('until');
+    expect(periodKind(null, null)).toBe('none');
+  });
+
+  it('adds external names once, ignoring case and blanks', () => {
+    expect(addName(['Per'], ' per ')).toEqual(['Per']);
+    expect(addName(['Per'], '  ')).toEqual(['Per']);
+    expect(addName(['Per'], 'Ali (innleid)')).toEqual(['Per', 'Ali (innleid)']);
+  });
+
+  it('splits portal urls into a path and query params', () => {
+    expect(splitUrl('/hse/ppe?overdue=true')).toEqual({
+      path: '/hse/ppe',
+      query: { overdue: 'true' },
+    });
+    expect(splitUrl('/hse/sja/new')).toEqual({ path: '/hse/sja/new', query: null });
+  });
+
+  it('reads the overview and next-action links in the PPE filters', () => {
+    expect(parsePpeFilters({ overdue: 'true' }).due).toBe('overdue');
+    expect(parsePpeFilters({ due: '0' }).due).toBe('overdue');
+    expect(parsePpeFilters({ category: 'head', status: 'in_stock' })).toMatchObject({
+      category: 'head',
+      status: 'in_stock',
+    });
+    expect(parsePpeFilters({ category: 'nope', sort: 'x' })).toMatchObject({
+      category: '',
+      sort: '-created_at',
+    });
+  });
+
+  it('summarises safety-walk findings', () => {
+    const walk = { finding_count: 3, open_finding_count: 1 } as never;
+    expect(findingsKey(walk)).toEqual({
+      key: 'hse.rounds.walks.findings',
+      params: { count: 3, open: 1 },
+    });
+    expect(findingsKey({ finding_count: 0, open_finding_count: 0 } as never).key).toBe(
+      'hse.rounds.walks.noFindings',
+    );
   });
 
   it('counts hazards and controls and finds incomplete steps', () => {
@@ -68,13 +143,19 @@ describe('hse format helpers', () => {
 });
 
 describe('SJA editor helpers', () => {
-  it('drops blank rows and parses hazards / controls per line', () => {
+  it('drops blank rows and controls, keeps control types and the member responsible', () => {
     const rows = [
       {
         ...stepDraft(),
         description: ' Rig the crane ',
         hazards: 'Tip-over\n',
-        controls: 'Outriggers\nLevel ground',
+        controls: [
+          controlDraft('Outriggers', 'engineering'),
+          controlDraft(' '),
+          controlDraft('Level ground'),
+        ],
+        responsibleUserId: 'u1',
+        responsible: 'ignored',
         risk_level: 'high' as const,
       },
       stepDraft(),
@@ -84,10 +165,37 @@ describe('SJA editor helpers', () => {
         description: 'Rig the crane',
         hazards: ['Tip-over'],
         controls: ['Outriggers', 'Level ground'],
+        control_types: ['engineering', null],
+        responsible_user_id: 'u1',
         responsible: null,
         risk_level: 'high',
       },
     ]);
+  });
+
+  it('keeps an external responsible name when no member is picked', () => {
+    const row = { ...stepDraft(), description: 'Weld', responsible: ' Per (contractor) ' };
+    expect(stepsFromDrafts([row])[0]).toMatchObject({
+      responsible_user_id: null,
+      responsible: 'Per (contractor)',
+    });
+  });
+
+  it('reads control types and the responsible member from a saved step', () => {
+    const draft = stepDraft({
+      description: 'Lift',
+      hazards: ['Falling load'],
+      controls: ['Exclusion zone', 'Helmet'],
+      control_types: ['administrative', 'ppe'],
+      responsible_user: { id: 'u2', name: 'Ola' },
+      responsible: 'Ola',
+    });
+    expect(draft.controls.map((c) => [c.text, c.type])).toEqual([
+      ['Exclusion zone', 'administrative'],
+      ['Helmet', 'ppe'],
+    ]);
+    expect(draft.responsibleUserId).toBe('u2');
+    expect(draft.responsible).toBe('');
   });
 
   it('merges assistant suggestions: replaces a blank row, adds new PPE only once', () => {
@@ -171,19 +279,102 @@ describe('overviewSections', () => {
       due_within_30_days: 2,
     },
     consultations: { planned: 1, held: 3, cancelled: 0, held_last_365_days: 0 },
-    safety_rounds: { open: 2, overdue: 1 },
+    safety_rounds: { open: 2, overdue: 1, inspections_open: 1 },
+    incidents: { available: false, url: '/deviations' },
+    risks: { available: false, url: '/risk/risks' },
+    tasks: { open: 3, overdue: 1, url: '/tasks?module=hse' },
+    attention: {
+      ppe: [1, 2, 3, 4].map((n) => ({
+        id: `p${n}`,
+        code: `PPE-000${n}`,
+        title: 'Harness',
+        status: 'in_stock',
+        due_at: null,
+        reason: 'inspection_overdue' as const,
+        url: `/hse/ppe/p${n}`,
+      })),
+    },
+    getting_started: { show: false, steps: [] },
   };
 
-  it('builds the four landing cards with drill-down links', () => {
+  it('builds the four cards with drill-down links and at most three attention items', () => {
     const sections = overviewSections(overview);
     expect(sections.map((s) => s.key)).toEqual(['sja', 'ppe', 'consultations', 'safetyRounds']);
     const review = sections[0].stats.find((s) => s.query?.['status'] === 'in_review');
     expect(review?.value).toBe(2);
-    expect(review?.tone).toBe('warn');
-    const overdue = sections[1].stats.find((s) => s.query?.['due'] === '0');
-    expect(overdue?.tone).toBe('fail');
-    // No consultation held in the last year is a warning sign.
-    expect(sections[2].stats[1].tone).toBe('warn');
+    expect(review?.attention).toBe(true);
+    const overdue = sections[1].stats.find((s) => s.query?.['overdue'] === 'true');
+    expect(overdue?.value).toBe(1);
+    expect(sections[1].attention).toHaveLength(3);
+    expect(sections[0].attention).toEqual([]);
+    expect(sections[3].stats.map((s) => s.value)).toEqual([2, 1, 1]);
+  });
+});
+
+describe('detail page helpers', () => {
+  const sja = (over: Partial<Sja>): Sja =>
+    ({
+      participant_users: [{ id: 'u1', name: 'Kari' }],
+      participants: ['Per (innleid)'],
+      sign_offs: [
+        { name: 'Kari', user_id: 'u1', signed_at: '2026-11-01T07:00:00', recorded_by: null },
+      ],
+      ...over,
+    }) as Sja;
+
+  it('places the next SJA step as primary and the rest under "Mer"', () => {
+    expect(placeSjaActions(['submit', 'cancel'], true)).toEqual({
+      primary: 'submit',
+      secondary: ['edit'],
+      overflow: ['cancel'],
+    });
+    expect(placeSjaActions(['complete', 'revise', 'cancel'], false)).toEqual({
+      primary: 'complete',
+      secondary: [],
+      overflow: ['revise', 'cancel'],
+    });
+    expect(placeSjaActions([], true).primary).toBe('edit');
+  });
+
+  it('matches participants with their sign-offs, members by id and others by name', () => {
+    const rows = participantRows(sja({}));
+    expect(rows.map((r) => [r.name, r.member, !!r.signOff, r.signOffIndex])).toEqual([
+      ['Kari', true, true, 0],
+      ['Per (innleid)', false, false, -1],
+    ]);
+  });
+
+  it('translates the backend warnings with their params', () => {
+    const t = (key: string, params?: Record<string, unknown>) =>
+      `${key}${params ? JSON.stringify(params) : ''}`;
+    expect(warningText({ key: 'ppe_only_controls', steps: [0, 2] }, t)).toBe(
+      'hse.sja.warnings.ppe_only_controls{"steps":"1, 3"}',
+    );
+    expect(warningText({ key: 'sign_offs_missing', count: 2 }, t)).toBe(
+      'hse.sja.warnings.sign_offs_missing{"count":2}',
+    );
+    expect(warningText({ key: 'something_new' }, t)).toBe('');
+  });
+
+  it('offers an inspection instead of issuing PPE that is overdue', () => {
+    const ppe = (over: Partial<Ppe>) =>
+      ({ status: 'in_stock', issuable: true, overdue: false, ...over }) as Ppe;
+    expect(placePpeActions(ppe({}), true).primary).toBe('issue');
+    const overdue = placePpeActions(ppe({ issuable: false, overdue: true }), true);
+    expect(overdue.primary).toBe('inspect');
+    expect(overdue.overflow).toContain('issue');
+    expect(placePpeActions(ppe({ status: 'issued' }), true).primary).toBe('return');
+    expect(placePpeActions(ppe({}), false).primary).toBeNull();
+  });
+
+  it('turns consultation decisions with a title into follow-up actions', () => {
+    const rows = [
+      { ...actionDraft(), title: ' Buy new ladders ', assignee: 'u1', due: '2026-12-01' },
+      actionDraft(),
+    ];
+    expect(actionsFromDrafts(rows)).toEqual([
+      { title: 'Buy new ladders', assignee_user_id: 'u1', due_at: '2026-12-01T23:59:59' },
+    ]);
   });
 });
 

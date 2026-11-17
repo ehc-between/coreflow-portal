@@ -431,7 +431,22 @@
     "management_review": {
       "to_task": "Action (task)"
     },
-    "formMissing": "This form is not available yet. Create the record from its own page and link it from the Related tab."
+    "formMissing": "This form is not available yet. Create the record from its own page and link it from the Related tab.",
+    "sja": {
+      "to_deviation": "Deviation or incident from this job",
+      "to_risk": "Health and safety risk from this job",
+      "to_task": "Task to follow it up",
+      "to_document": "Procedure for doing this job safely"
+    },
+    "ppe_item": {
+      "to_deviation": "Deviation from this item",
+      "to_task": "Task to follow it up"
+    },
+    "worker_consultation": {
+      "to_task": "Task from a decision",
+      "to_deviation": "Deviation raised in the meeting",
+      "to_risk": "Risk raised in the meeting"
+    }
   },
   "frameworks": {
     "iso9001": "ISO 9001",

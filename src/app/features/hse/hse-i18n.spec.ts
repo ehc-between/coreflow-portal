@@ -1,11 +1,14 @@
 import guidanceEn from '../../../assets/guidance/en/hse.json';
 import guidanceNb from '../../../assets/guidance/nb/hse.json';
 import en from '../../../assets/i18n/hse/en.json';
+import kitEn from '../../../assets/i18n/kit/en.json';
+import kitNb from '../../../assets/i18n/kit/nb.json';
 import nb from '../../../assets/i18n/hse/nb.json';
 import { TASK_PRIORITIES, TASK_STATUSES } from '../../core/tasks/task.models';
 import { expectKeyParity } from '../../../testing/i18n-parity';
 import { HSE_ERROR_CODES } from './data/hse-errors';
 import {
+  CONTROL_TYPES,
   CONSULTATION_KINDS,
   CONSULTATION_SORTS,
   CONSULTATION_STATUSES,
@@ -16,6 +19,9 @@ import {
   SJA_ACTIONS,
   SJA_SORTS,
   SJA_STATUSES,
+  SJA_WARNING_KEYS,
+  GETTING_STARTED_STEPS,
+  TRAINING_CHECK_STATUSES,
 } from './data/hse.models';
 import { SJA_FIELD_LABELS } from './sja/sja-detail';
 
@@ -71,7 +77,22 @@ describe('hse i18n', () => {
     ['sja.sort', SJA_SORTS.map(sortKey)],
     ['ppe.status', PPE_STATUSES],
     ['ppe.sort', PPE_SORTS.map(sortKey)],
-    ['ppe.list.dueFilter', ['any', '0', '30']],
+    ['ppe.list.dueFilter', ['any', 'overdue', '30']],
+    ['ppe.badge', ['inspectionOverdue', 'expired']],
+    ['ppe.issue.training', TRAINING_CHECK_STATUSES],
+    ['controlType', [...CONTROL_TYPES, 'none']],
+    ['sja.warnings', SJA_WARNING_KEYS],
+    ['sja.ppe.warning', ['none', 'all_overdue']],
+    ['sja.trail', ['created', 'submitted', 'approved', 'completed', 'cancelled']],
+    [
+      'overview.reason',
+      ['expired', 'inspection_overdue', 'due_soon', 'awaiting_approval', 'overdue', 'planned'],
+    ],
+    ['overview.start', GETTING_STARTED_STEPS.map((step) => `${step}.title`)],
+    [
+      'interval',
+      ['weekly', 'monthly', 'quarterly', 'halfYearly', 'yearly', 'everyTwoYears', 'days'],
+    ],
     ['ppe.inspection.result', ['pass', 'fail']],
     ['ppeCategory', PPE_CATEGORIES],
     ['risk', [...RISK_LEVELS, 'none']],
@@ -121,11 +142,39 @@ describe('hse i18n', () => {
         'Deleted',
       ].map((v) => `ppe${v}`),
       ...['Created', 'Updated', 'Held', 'Cancelled', 'Deleted'].map((v) => `consultation${v}`),
+      'sjaSignedOff',
     ];
-    expect(names).toHaveLength(21);
+    expect(names).toHaveLength(22);
     for (const name of names) {
       expect(typeof get(en, `notifications.${name}`), name).toBe('string');
       expect(typeof get(en, `timeline.${name}`), name).toBe('string');
+    }
+  });
+
+  it('has the next-action keys the backend sends (hse:next.<name>.title / .why)', () => {
+    for (const name of ['sjaAwaiting', 'sjaAwaitingOne', 'ppeOverdue', 'consultationUnrecorded']) {
+      for (const part of ['title', 'why']) {
+        expect(typeof get(en, `next.${name}.${part}`), `${name}.${part}`).toBe('string');
+        expect(typeof get(nb, `next.${name}.${part}`), `${name}.${part}`).toBe('string');
+      }
+    }
+  });
+
+  it('labels every create-from-here flow the backend registers (kit flows.<key>)', () => {
+    const flows = {
+      sja: ['to_deviation', 'to_risk', 'to_task', 'to_document'],
+      ppe_item: ['to_deviation', 'to_task'],
+      worker_consultation: ['to_task', 'to_deviation', 'to_risk'],
+    };
+    for (const [source, targets] of Object.entries(flows)) {
+      for (const target of targets) {
+        expect(typeof get(kitEn, `flows.${source}.${target}`), `${source}.${target}`).toBe(
+          'string',
+        );
+        expect(typeof get(kitNb, `flows.${source}.${target}`), `${source}.${target}`).toBe(
+          'string',
+        );
+      }
     }
   });
 });
@@ -186,7 +235,16 @@ describe('hse guidance', () => {
         'emergency_measures',
         'change_reason',
       ],
-      'ppe-edit': ['category', 'standard_ref', 'inspection_interval_days', 'expires_at', 'status'],
+      'ppe-edit': [
+        'category',
+        'standard_ref',
+        'supplier',
+        'quantity',
+        'required_course',
+        'inspection_interval_days',
+        'expires_at',
+        'status',
+      ],
       'ppe-detail': ['holder', 'next_inspection_at'],
       'consultation-edit': ['kind', 'topics', 'participants', 'worker_representatives'],
       'consultation-detail': ['summary', 'decisions'],
@@ -196,6 +254,25 @@ describe('hse guidance', () => {
       for (const key of keys) {
         expect(get(guidanceEn, `pages.${page}.fields.${key}.help`), `${page}.${key}`).toBeTruthy();
       }
+    }
+  });
+
+  it('says which requirements the key fields of each form document', () => {
+    const forms: Record<string, number> = { 'sja-edit': 3, 'ppe-edit': 3, 'consultation-edit': 3 };
+    for (const [page, min] of Object.entries(forms)) {
+      const fields = get(guidanceEn, `pages.${page}.fields`) as Record<
+        string,
+        { requirements?: string[] }
+      >;
+      const withRefs = Object.values(fields).filter((f) => f.requirements?.length);
+      expect(withRefs.length, page).toBeGreaterThanOrEqual(min);
+    }
+  });
+
+  it('explains the terms the pages mark with app-term', () => {
+    for (const term of ['sja', 'ppe', 'hierarchy-of-controls', 'worker-representative']) {
+      expect(get(guidanceEn, `glossary.${term}.definition`), term).toBeTruthy();
+      expect(get(guidanceNb, `glossary.${term}.definition`), term).toBeTruthy();
     }
   });
 
