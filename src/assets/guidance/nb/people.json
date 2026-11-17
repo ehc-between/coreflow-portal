@@ -40,7 +40,7 @@
           "example": "En lagermedarbeider uten innlogging registreres uten brukerkonto."
         },
         "position_id": {
-          "help": "Stillingen bestemmer hvilke kompetanser personen trenger. Uten stilling gjelder ingen krav, og ingen gap vises.",
+          "help": "Stillingen bestemmer hvilke kompetanser personen trenger. Uten stilling gjelder ingen krav, og ingen mangler vises.",
           "example": "Servicetekniker, som krever elsikkerhet på nivå 3."
         },
         "status": {
@@ -79,7 +79,7 @@
         "body": "«Krav for denne personen» viser det standardene forventer for alle som jobber her, og hva som fortsatt mangler. Under ser du rollen, kompetansen mot stillingen, opplæring, bevisstgjøring og sjekklistene for oppstart og avslutning.",
         "steps": [
           "Rett opp det som er merket «Mangler» under «Krav for denne personen».",
-          "Bruk «Lukk gapet» på kompetansegap, og registrer deretter en ny vurdering.",
+          "Bruk «Rett opp mangelen» på kompetansemangler, og registrer deretter en ny vurdering.",
           "Start avslutningen så snart du vet at noen skal slutte."
         ]
       },
@@ -187,11 +187,11 @@
         "steps": [
           "Legg til kompetansene rollen trenger, med kravnivå.",
           "Merk dem som er obligatoriske, for eksempel lovpålagte sertifikater.",
-          "Sjekk personene i stillingen for gap."
+          "Sjekk om personene i stillingen har kompetansemangler."
         ]
       },
       "why": {
-        "body": "Å bestemme nødvendig kompetanse for hver rolle er første steg i kompetansekravet. Uten det kan verken opplæring eller rekruttering planlegges, og gap kan ikke finnes.",
+        "body": "Å bestemme nødvendig kompetanse for hver rolle er første steg i kompetansekravet. Uten det kan verken opplæring eller rekruttering planlegges, og mangler kan ikke finnes.",
         "clauses": ["hs:5.3", "hs:7.2"]
       },
       "fields": {
@@ -212,7 +212,7 @@
         ]
       },
       "why": {
-        "body": "En felles katalog gjør kompetanse sammenlignbar på tvers av roller og personer, og gyldighetsperioden sørger for at utløpte sertifikater vises som gap før en revisor eller en ulykke finner dem.",
+        "body": "En felles katalog gjør kompetanse sammenlignbar på tvers av roller og personer, og gyldighetsperioden sørger for at utløpte sertifikater vises som mangler før en revisor eller en ulykke finner dem.",
         "clauses": ["hs:7.2"]
       },
       "empty": {
@@ -253,7 +253,7 @@
         "body": "Denne siden viser kompetansen, hvor lenge den er gyldig, og alle som trenger eller har den, med nivå og status.",
         "steps": [
           "Se etter personer som er merket «Mangler» eller «Utløpt».",
-          "Bruk «Lukk gapet» for å tildele opplæring eller opprette en oppgave.",
+          "Bruk «Rett opp mangelen» for å tildele opplæring eller opprette en oppgave.",
           "Registrer en ny vurdering når personen har vist kompetansen."
         ]
       },
@@ -269,11 +269,11 @@
         "steps": [
           "Filtrer på avdeling eller stilling.",
           "Se etter røde celler: kompetanse som mangler eller er utløpt.",
-          "Bytt til «Bare gap», og bruk «Lukk gapet» på hvert av dem."
+          "Bytt til «Bare mangler», og bruk «Rett opp mangelen» på hver av dem."
         ]
       },
       "why": {
-        "body": "Ved å sammenligne det folk kan med det rollene krever, finner dere kompetansegapene og kan sette inn tiltak – opplæring, veiledning, rekruttering eller ny rolle – og deretter kontrollere at tiltaket virket.",
+        "body": "Ved å sammenligne det folk kan med det rollene krever, finner dere kompetansemanglene og kan sette inn tiltak – opplæring, veiledning, rekruttering eller ny rolle – og deretter kontrollere at tiltaket virket.",
         "clauses": ["hs:7.2", "iso9001:7.1.2"]
       },
       "empty": {
@@ -381,8 +381,8 @@
           "body": "Registrer en **vurdering** for hver person: nivået personen har vist, når og dokumentasjonen, som et sertifikat, en kursregistrering eller en observasjon fra lederen."
         },
         {
-          "heading": "3. Lukk gapene",
-          "body": "**Kompetansematrisen** viser hvor folk ikke når kravet, mangler en kompetanse eller har latt den utløpe. Lukk gapene med opplæring, veiledning, rekruttering eller ved å flytte oppgaver."
+          "heading": "3. Rett opp manglene",
+          "body": "**Kompetansematrisen** viser hvor folk ikke når kravet, mangler en kompetanse eller har latt den utløpe. Rett opp manglene med opplæring, veiledning, rekruttering eller ved å flytte oppgaver."
         },
         {
           "heading": "4. Kontroller at det virket, og hold det oppdatert",
@@ -404,7 +404,7 @@
             "Kjøpe et opplæringssystem"
           ],
           "answer": 1,
-          "explanation": "Du kan først finne gap og planlegge opplæring når du vet hva hver rolle krever."
+          "explanation": "Du kan først finne mangler og planlegge opplæring når du vet hva hver rolle krever."
         }
       ],
       "pass_mark": 0.5
@@ -419,7 +419,7 @@
         },
         {
           "heading": "Når noen bytter rolle",
-          "body": "En ny rolle betyr nye krav og andre tilganger. Oppdater stillingen, fjern tilganger den nye rollen ikke trenger, og se etter kompetansegap."
+          "body": "En ny rolle betyr nye krav og andre tilganger. Oppdater stillingen, fjern tilganger den nye rollen ikke trenger, og se etter kompetansemangler."
         },
         {
           "heading": "Når noen slutter",
@@ -483,14 +483,14 @@
       {
         "target": "people-summary",
         "title": "Se hva som trenger oppfølging",
-        "body": "Kompetansegap, kompetanse som utløper, manglende erklæringer og bakgrunnssjekker. Velg en rute for å se hvem det gjelder."
+        "body": "Kompetansemangler, kompetanse som utløper, manglende erklæringer og bakgrunnssjekker. Velg en rute for å se hvem det gjelder."
       }
     ],
     "matrix": [
       {
         "target": "people-matrix-filters",
         "title": "Snevre inn",
-        "body": "Velg en stilling eller avdeling, eller bytt til listen med bare gap."
+        "body": "Velg en stilling eller avdeling, eller bytt til listen med bare mangler."
       }
     ]
   },
@@ -501,7 +501,7 @@
       "clauses": ["hs:7.2"]
     },
     "competence-gap": {
-      "term": "Kompetansegap",
+      "term": "Kompetansemangel",
       "definition": "Forskjellen mellom nivået en rolle krever og nivået en person har, inkludert manglende og utløpte kompetanser.",
       "clauses": ["hs:7.2"]
     },

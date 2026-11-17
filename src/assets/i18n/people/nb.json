@@ -27,7 +27,7 @@
   },
   "summary": {
     "current": "Personer nå",
-    "gaps": "Kompetansegap",
+    "gaps": "Kompetansemangler",
     "openChecklists": "Åpne sjekklister",
     "overdue": "{{ count }} forfalt",
     "missingConfidentiality": "Mangler taushetserklæring",
@@ -43,10 +43,10 @@
     "new": "Ny person",
     "noMatch": "Ingen personer passer med filtrene.",
     "since": "Siden {{ date }}",
-    "gapCount": "{{ count }} kompetansegap",
+    "gapCount": "{{ count }} kompetansemangler",
     "openChecklists": "{{ count }} åpne sjekklister",
     "noConfidentiality": "Mangler taushetserklæring",
-    "gapCountOne": "1 kompetansegap",
+    "gapCountOne": "1 kompetansemangel",
     "openChecklistsOne": "1 åpen sjekkliste",
     "expiringCount": "{{ count }} kompetanser utløper snart",
     "expiringCountOne": "1 kompetanse utløper snart"
@@ -420,25 +420,25 @@
     "viewLabel": "Visning",
     "views": {
       "matrix": "Matrise",
-      "gaps": "Bare gap"
+      "gaps": "Bare mangler"
     },
     "includeFormer": "Ta med personer som har sluttet",
-    "anyGap": "Alle gap",
+    "anyGap": "Alle mangler",
     "mandatoryOnly": "Bare obligatoriske",
     "caption": "Kompetansenivå per person. Hver celle viser nivået personen har, eller statusen mot kravet.",
     "employee": "Person",
-    "gaps": "Gap",
+    "gaps": "Mangler",
     "cellLabel": "{{ competence }}: {{ status }}, har {{ level }}, krav {{ required }}",
     "cellHint": "Tallene er nivået personen har (0–4). Fargene viser statusen mot stillingens krav.",
     "none": "ingen",
     "notRequired": "ikke påkrevd",
-    "noGaps": "Ingen gap passer med filtrene. Alle oppfyller kravene sine.",
+    "noGaps": "Ingen mangler passer med filtrene. Alle oppfyller kravene sine.",
     "gapLevels": "kravnivå {{ required }}, har {{ held }}",
-    "gapTotal": "{{ count }} gap totalt",
+    "gapTotal": "{{ count }} mangler totalt",
     "legendTitle": "Kompetansene i matrisen",
     "cellHintEdit": "Tallene er nivået personen har (0–4), og fargene viser statusen. Velg en celle for å registrere en vurdering.",
     "cellAction": "{{ name }}, {{ label }}. Registrer en vurdering",
-    "gapTotalOne": "1 gap totalt",
+    "gapTotalOne": "1 mangel totalt",
     "export": "Eksporter til CSV"
   },
   "checklists": {
@@ -556,7 +556,7 @@
     "importedOne": "1 person er importert.",
     "gapAction": {
       "training": "Opplæring er tildelt {{ name }}.",
-      "task": "Oppgave opprettet for gapet.",
+      "task": "Oppgave opprettet for mangelen.",
       "assessment": "Ny vurdering er planlagt.",
       "other": "Tiltaket er lagret."
     },
@@ -625,9 +625,9 @@
     "explainCompetence": "Forklar hvordan denne kompetansen bør vurderes, og hvilken dokumentasjon en revisor vil forvente.",
     "securityTerms": "Hva bør ansettelsesvilkårene si om informasjonssikkerhet og taushetsplikt?",
     "checklist": "Hvilke punkter på denne sjekklisten er viktigst for informasjonssikkerheten, og hvorfor?",
-    "gaps": "Hvilke kompetansegap bør vi lukke først, og hvordan?",
+    "gaps": "Hvilke kompetansemangler bør vi rette opp først, og hvordan?",
     "label": "Spør",
-    "gapsLabel": "Spør om gapene"
+    "gapsLabel": "Spør om manglene"
   },
   "lessons": {
     "link": "Leksjon: {{ title }} ({{ minutes }} min)"
@@ -659,7 +659,7 @@
     "disciplinaryOpened": "En disiplinærsak er opprettet",
     "disciplinaryClosed": "En disiplinærsak er lukket",
     "accessRevoked": "Tilgang fjernet for {{ code }}",
-    "competenceActionCreated": "Tiltak planlagt på gapet i {{ competence }} for {{ code }}",
+    "competenceActionCreated": "Tiltak planlagt for mangelen i {{ competence }} for {{ code }}",
     "competenceActionEvaluated": "Et tiltak på et kompetansegap er vurdert",
     "positionReviewed": "Stillingen {{ title }} er gjennomgått"
   },
@@ -685,8 +685,8 @@
     "disciplinaryOpened": "{{ actor_name }} opprettet en disiplinærsak",
     "disciplinaryClosed": "{{ actor_name }} lukket en disiplinærsak",
     "accessRevoked": "Tilgangen til dette systemet ble fjernet for {{ code }}",
-    "competenceActionCreated": "{{ actor_name }} planla et tiltak på gapet i {{ competence }}",
-    "competenceActionEvaluated": "{{ actor_name }} vurderte et tiltak på et kompetansegap",
+    "competenceActionCreated": "{{ actor_name }} planla et tiltak for mangelen i {{ competence }}",
+    "competenceActionEvaluated": "{{ actor_name }} vurderte et tiltak for en kompetansemangel",
     "positionReviewed": "{{ actor_name }} gjennomgikk stillingen"
   },
   "flags": {
@@ -694,7 +694,7 @@
     "missing_security_terms": "Sikkerhetsvilkår ikke akseptert",
     "screening_missing": "Mangler bakgrunnssjekk",
     "screening_recheck_due": "Ny bakgrunnssjekk forfalt",
-    "competence_gaps": "Kompetansegap",
+    "competence_gaps": "Kompetansemangler",
     "expiring_soon": "Kompetanse utløper snart",
     "no_user_account": "Uten brukerkonto"
   },
@@ -756,7 +756,7 @@
       "pending": "Startet, ikke ferdig",
       "not_required": "Ikke påkrevd for denne rollen",
       "recheckDue": "Ny sjekk skulle vært gjort {{ recheck }}",
-      "competenceGaps": "{{ count }} gap mot stillingens krav",
+      "competenceGaps": "{{ count }} mangler mot stillingens krav",
       "competenceExpiring": "Oppfyller stillingens krav; noe utløper snart",
       "assetsOutstanding": "{{ count }} eiendeler er fortsatt registrert på personen"
     },
@@ -793,10 +793,10 @@
     "gdpr_39": "Personvernombudets oppgaver"
   },
   "gapActions": {
-    "open": "Lukk gapet",
-    "title": "Lukk gapet",
+    "open": "Rett opp mangelen",
+    "title": "Rett opp mangelen",
     "message": "Planlegg hva som gjør at {{ name }} når kravnivået i {{ competence }}.",
-    "kindLabel": "Hva skal lukke gapet?",
+    "kindLabel": "Hva skal rette opp mangelen?",
     "kinds": {
       "training": "Tildel opplæring",
       "task": "Opprett oppgave",
@@ -828,7 +828,7 @@
     "cancel": "Avbryt tiltaket",
     "openTask": "Åpne oppgaven",
     "evaluateTitle": "Virket tiltaket?",
-    "evaluateMessage": "Registrer om tiltaket lukket gapet. Den beste dokumentasjonen er en ny vurdering på kravnivået.",
+    "evaluateMessage": "Registrer om tiltaket rettet opp mangelen. Den beste dokumentasjonen er en ny vurdering på kravnivået.",
     "evaluatedOn": "Vurdert",
     "evaluationNote": "Hva så dere?"
   },
@@ -913,7 +913,7 @@
     "levels": "Har / krav",
     "levelPair": "{{ held }} / {{ required }}",
     "assessment": "Vurdering",
-    "actions": "Planlagte tiltak på gap",
+    "actions": "Planlagte tiltak for mangler",
     "none": "Ingenting registrert.",
     "version": "versjon {{ rev }}",
     "position": "Stilling"
