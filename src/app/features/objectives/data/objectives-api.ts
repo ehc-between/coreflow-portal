@@ -7,6 +7,8 @@ import {
   CreateKpiRequest,
   CreateMeasurementRequest,
   CreateObjectiveRequest,
+  ExportFormat,
+  ExportQuery,
   KpiDetail,
   KpiList,
   KpiListQuery,
@@ -55,6 +57,7 @@ export class ObjectivesApi {
         owner: query.owner,
         department_id: query.department_id,
         overdue: query.overdue || undefined,
+        period_year: query.period_year,
         sort: query.sort,
         limit: query.limit,
         offset: query.offset,
@@ -62,9 +65,26 @@ export class ObjectivesApi {
     });
   }
 
-  overview(orgId: string, managementSystem?: ManagementSystem): Observable<ObjectivesOverview> {
+  overview(
+    orgId: string,
+    managementSystem?: ManagementSystem,
+    periodYear?: number,
+  ): Observable<ObjectivesOverview> {
     return this.api.get<ObjectivesOverview>(`${this.base(orgId)}/overview`, {
-      params: { management_system: managementSystem },
+      params: { management_system: managementSystem, period_year: periodYear },
+    });
+  }
+
+  /** The objectives plan ("Målplan 2026") as a file: audit evidence for HS 6.2. */
+  exportPlan(orgId: string, format: ExportFormat, query: ExportQuery = {}): Observable<Blob> {
+    return this.api.getBlob(`${this.base(orgId)}/export`, {
+      params: {
+        format,
+        period_year: query.period_year,
+        management_system: query.management_system,
+        lang: query.lang,
+      },
+      ...skipToast(),
     });
   }
 
@@ -96,6 +116,7 @@ export class ObjectivesApi {
         management_system: query.management_system,
         owner: query.owner,
         department_id: query.department_id,
+        measurement_overdue: query.measurement_overdue || undefined,
         sort: query.sort,
         limit: query.limit,
         offset: query.offset,

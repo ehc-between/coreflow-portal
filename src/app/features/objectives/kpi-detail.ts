@@ -1,4 +1,4 @@
-import { formatNumber } from '@angular/common';
+import { formatDate, formatNumber } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
@@ -15,36 +15,40 @@ import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../core/ai/page-context';
-import { HasPermissionDirective } from '../../core/auth/has-permission.directive';
+import { codedErrorDetail } from '../../core/deviations/deviation-errors';
 import { LanguageService } from '../../core/i18n/language.service';
+import { CreateFlowService } from '../../core/kit/create-flow.service';
+import { KitApi } from '../../core/kit/kit-api';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { AssigneeIn } from '../../core/tasks/task.models';
 import { AskPanelService } from '../ask/ask-panel.service';
 import { WatchButton } from '../../shared/activity/watch-button';
 import { AiAssistButton } from '../../shared/ask/ai-assist-button';
-import { FieldHelp } from '../../shared/guidance/field-help';
-import { GuideIntro } from '../../shared/guidance/guide-intro';
-import { LessonView } from '../../shared/guidance/lesson';
 import { WhyItMatters } from '../../shared/guidance/why-it-matters';
+import { EntityChip } from '../../shared/kit/entity-chip';
 import { RecordDetailLayout, RecordTab } from '../../shared/kit/record-detail-layout';
-import { LocalDayPipe, LocalNumberPipe } from '../../shared/locale/locale-pipes';
+import { LocalDatePipe, LocalDayPipe, LocalNumberPipe } from '../../shared/locale/locale-pipes';
 import { MarkdownPipe } from '../../shared/markdown/markdown.pipe';
-import { SupportsRequirements } from '../../shared/requirement-links/supports-requirements';
 import { AssigneeOptionsService } from '../../shared/tasks/assignee-options';
 import { EntityTasks } from '../../shared/tasks/entity-tasks';
 import { Alert } from '../../shared/ui/alert/alert';
-import { Badge } from '../../shared/ui/badge/badge';
 import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog/confirm-dialog';
+import { EmptyState } from '../../shared/ui/empty-state/empty-state';
+import { FieldItem, FieldList } from '../../shared/ui/field-list/field-list';
 import { FormField } from '../../shared/ui/form-field/form-field';
+import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../shared/ui/icon/icon';
-import { KpiTile } from '../../shared/ui/kpi-tile/kpi-tile';
+import { KpiTile, KpiTone } from '../../shared/ui/kpi-tile/kpi-tile';
+import { LoadingState } from '../../shared/ui/loading-state/loading-state';
+import { MenuItem } from '../../shared/ui/overflow-menu/overflow-menu';
 import { Pager } from '../../shared/ui/pager/pager';
 import { SlideOver } from '../../shared/ui/slide-over/slide-over';
-import { codedErrorDetail } from '../../core/deviations/deviation-errors';
+import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
 import { KpiChart } from './components/kpi-chart';
+import { ObjField } from './components/obj-field';
 import { departmentName } from './components/owner-select';
 import { ObjectivesApi } from './data/objectives-api';
 import { objectivesErrorKey } from './data/objectives-errors';
@@ -52,22 +56,32 @@ import {
   ASSIST_EXPLAIN_DEVIATION,
   KpiDetail as KpiDetailDto,
   KpiSeries,
+  ManagementSystem,
   Measurement,
 } from './data/objectives.models';
 import {
+  KPI_STATUS_TONE,
   OBJECTIVES_MODULE,
   OBJECTIVES_SCOPE,
+  Period,
+  TREND_TONE,
+  changeIsBetter,
+  completedPeriods,
   healthKey,
-  healthTone,
+  healthSpec,
+  isCalendarPeriod,
+  kpiNeedsAction,
   kpiStatusKey,
-  kpiStatusTone,
   managementSystemKey,
   parseNumber,
+  periodContaining,
+  periodLabel,
+  previewStatus,
   textOrNull,
   todayIso,
   trendKey,
-  trendTone,
 } from './objectives-display';
+import { KPIS_CRUMB, OBJECTIVES_ROOT_CRUMB } from './objectives-nav';
 
 const TABS: readonly RecordTab[] = [
   'details',
@@ -79,13 +93,15 @@ const TABS: readonly RecordTab[] = [
   'revisions',
 ];
 const PAGE_SIZE = 12;
+/** "Custom period" choice of the period picker. */
+const CUSTOM = 'custom';
 
 export const KPI_FIELD_LABELS: Readonly<Record<string, string>> = {
   name: 'objectives.kpiFields.name',
   description: 'objectives.kpiFields.description',
   objective_id: 'objectives.kpiFields.objective',
   management_system: 'objectives.fields.managementSystem',
-  owner_user_id: 'objectives.fields.owner',
+  owner_user_id: 'objectives.kpiFields.owner',
   department_id: 'objectives.fields.department',
   unit: 'objectives.kpiFields.unit',
   direction: 'objectives.kpiFields.direction',
@@ -94,178 +110,229 @@ export const KPI_FIELD_LABELS: Readonly<Record<string, string>> = {
   warning_value: 'objectives.kpiFields.warning',
   frequency: 'objectives.kpiFields.frequency',
   data_source: 'objectives.kpiFields.dataSource',
+  evaluated_by_user_id: 'objectives.kpiFields.evaluatedBy',
+  review_forum: 'objectives.kpiFields.reviewForum',
   status: 'objectives.fields.status',
   start_date: 'objectives.kpiFields.startDate',
   measurement_reminders: 'objectives.kpiFields.reminders',
 };
 
+const ISO_SYSTEMS: readonly ManagementSystem[] = [
+  'iso9001',
+  'iso27001',
+  'iso14001',
+  'iso42001',
+  'iso45001',
+];
+
+/** The monitoring clause a KPI documents for a system (9.1 in 27001 and 42001, else 9.1.1). */
+export function monitoringRef(system: ManagementSystem): string | null {
+  if (!ISO_SYSTEMS.includes(system)) {
+    return null;
+  }
+  return system === 'iso27001' || system === 'iso42001' ? `${system}:9.1` : `${system}:9.1.1`;
+}
+
 interface MeasurementDraft {
   readonly id: string | null;
+  /** The picked period (`start|end`) or `custom`. */
+  readonly choice: string;
   readonly period_end: string;
   readonly period_start: string;
   readonly value: string;
   readonly note: string;
 }
 
+/** Tone of the share of periods on track (finding 16: not always green). */
+export function toneOfShare(share: number | null): KpiTone {
+  if (share === null) {
+    return 'neutral';
+  }
+  if (share >= 0.75) {
+    return 'pass';
+  }
+  return share >= 0.5 ? 'warn' : 'fail';
+}
+
 /**
- * `/objectives/kpis/:id`: a KPI's latest value against its thresholds, the
- * trend chart and statistics, the measurement log (record, correct, delete),
- * an explanation of a deviation from target on request, and the shared record
- * tabs (its recurring measurement tasks, related items, activity, …).
+ * `/objectives/kpis/:id`: a KPI on the shared detail frame. Its latest value
+ * against the target value, what to do when it is off track (deviation, task,
+ * adjust the target), the next measurement and its task, the trend chart, the
+ * definition, and the measurement log (record with a period picker and a live
+ * status preview, correct, delete), plus the shared tabs and aside.
  */
 @Component({
   selector: 'app-kpi-detail',
   imports: [
     RouterLink,
     TranslocoPipe,
-    HasPermissionDirective,
+    LocalDatePipe,
     LocalDayPipe,
     LocalNumberPipe,
     MarkdownPipe,
     WatchButton,
     AiAssistButton,
-    FieldHelp,
-    GuideIntro,
-    LessonView,
     WhyItMatters,
+    EntityChip,
     RecordDetailLayout,
-    SupportsRequirements,
     EntityTasks,
     Alert,
-    Badge,
     Button,
     Card,
     ConfirmDialog,
+    EmptyState,
+    FieldItem,
+    FieldList,
     FormField,
+    HelpStrip,
     Icon,
     KpiTile,
+    LoadingState,
+    MenuItem,
     Pager,
     SlideOver,
+    StatusBadge,
     KpiChart,
+    ObjField,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @switch (state()) {
       @case ('loading') {
-        <p class="py-16 text-center text-[14px] text-fg-muted">
-          {{ 'objectives.common.loading' | transloco }}
-        </p>
+        <div class="mx-auto max-w-[1180px] px-4 pt-7 sm:px-8"><app-loading-state [rows]="6" /></div>
       }
       @case ('error') {
-        <div class="mx-auto max-w-[880px] px-4 pt-7 sm:px-8">
-          <app-alert tone="error">{{ 'objectives.common.notFound' | transloco }}</app-alert>
-          <a
-            routerLink="/objectives/kpis"
-            class="mt-3 inline-block text-[13px] font-semibold text-accent"
-          >
-            {{ 'objectives.common.backToKpis' | transloco }}
-          </a>
+        <div class="mx-auto max-w-[760px] px-4 pt-7 sm:px-8" data-testid="kpi-not-found">
+          <app-empty-state
+            icon="search"
+            titleKey="objectives.common.notFoundTitle"
+            bodyKey="objectives.common.notFound"
+            ctaKey="objectives.common.backToKpis"
+            ctaLink="/objectives/kpis"
+            ctaVariant="secondary"
+          />
         </div>
       }
       @case ('ready') {
         @if (kpi(); as k) {
+          @let h = health(k.last_status);
           <app-record-detail-layout
             entityType="kpi"
             [entityId]="k.id"
+            [title]="k.name"
+            [breadcrumbs]="breadcrumbs()"
             [tabs]="tabs"
+            [requirementsPanel]="true"
             [canEdit]="k.can_edit"
             [fieldLabels]="fieldLabels"
-            backLink="/objectives/kpis"
-            backLabelKey="objectives.common.backToKpis"
           >
-            <div header>
-              <p class="font-mono text-[12.5px] text-fg-subtle">{{ k.code }}</p>
-              <h1
-                class="font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]"
-              >
-                {{ k.name }}
-              </h1>
-              <div class="mt-2 flex flex-wrap items-center gap-2">
-                <app-badge [tone]="healthTone(k.last_status)">
-                  {{ healthKey(k.last_status) | transloco }}
-                </app-badge>
-                <app-badge [tone]="statusTone(k.status)">{{
-                  statusKey(k.status) | transloco
-                }}</app-badge>
-                @if (k.measurement_overdue) {
-                  <app-badge tone="warn">
-                    <app-icon name="alert" [size]="12" />
-                    {{ 'objectives.kpi.measurementOverdue' | transloco }}
-                  </app-badge>
-                }
-                @if (k.objective; as obj) {
-                  <a
-                    [routerLink]="['/objectives', obj.id]"
-                    class="inline-flex items-center gap-1 text-[12.5px] font-semibold text-accent hover:underline"
-                  >
-                    <app-icon name="flag" [size]="12" />
-                    {{ obj.code }} {{ obj.title }}
-                  </a>
-                }
-              </div>
-            </div>
-
-            <ng-container actions>
-              <app-watch-button entityType="kpi" [entityId]="k.id" />
-              <app-button variant="ghost" size="sm" (click)="askAbout()">
-                <app-icon name="spark" [size]="14" />
-                {{ 'objectives.ai.summarise' | transloco }}
-              </app-button>
-              @if (k.can_measure && k.status !== 'retired') {
-                <app-button size="sm" (click)="openRecord()" data-testid="record-measurement">
-                  <app-icon name="plus" [size]="14" />
-                  {{ 'objectives.kpi.record' | transloco }}
-                </app-button>
+            <ng-container meta>
+              <span class="font-mono">{{ k.code }}</span>
+              <span aria-hidden="true">·</span>
+              <app-status-badge
+                [meaning]="h.meaning"
+                [value]="h.value"
+                [labelKey]="healthKey(k.last_status)"
+              />
+              @if (k.status !== 'active') {
+                <app-status-badge
+                  [meaning]="statusTone[k.status].meaning"
+                  [value]="statusTone[k.status].value"
+                  [labelKey]="statusKey(k.status)"
+                />
               }
-              @if (k.can_edit) {
-                <app-button variant="secondary" size="sm" (click)="edit()">
-                  {{ 'objectives.detail.edit' | transloco }}
-                </app-button>
+              @if (k.measurement_overdue) {
+                <app-status-badge
+                  meaning="lifecycle"
+                  value="overdue"
+                  labelKey="objectives.kpi.measurementOverdue"
+                />
               }
-              @if (k.can_delete) {
-                <app-button variant="danger" size="sm" (click)="pendingDelete.set('kpi')">
-                  <app-icon name="trash" [size]="14" />
-                  {{ 'objectives.detail.delete' | transloco }}
-                </app-button>
+              @if (k.objective; as obj) {
+                <span class="inline-flex items-center gap-1 text-meta text-fg-muted">
+                  {{ 'objectives.kpi.belongsTo' | transloco }}
+                  <app-entity-chip [ref]="objectiveRef()!" [showType]="false" />
+                </span>
               }
             </ng-container>
 
-            <div class="flex flex-col gap-4">
-              <app-guide-intro [scope]="scope" page="kpiDetail" />
-
-              <section
-                class="grid grid-cols-2 gap-3 lg:grid-cols-4"
-                [attr.aria-label]="'objectives.kpi.statsLabel' | transloco"
+            @if (canRecord()) {
+              <app-button primary (click)="openRecord()" data-testid="record-measurement">
+                <app-icon name="plus" [size]="15" />
+                {{ 'objectives.kpi.record' | transloco }}
+              </app-button>
+            }
+            @if (k.can_edit) {
+              <app-button secondary variant="secondary" (click)="edit()" data-testid="kpi-edit">
+                {{ 'objectives.detail.edit' | transloco }}
+              </app-button>
+            }
+            <app-watch-button secondary entityType="kpi" [entityId]="k.id" />
+            <button appMenuItem overflow type="button" (click)="askAbout()">
+              {{ 'objectives.ai.summariseKpi' | transloco }}
+            </button>
+            @if (k.can_delete) {
+              <button
+                appMenuItem
+                overflow
+                type="button"
+                [danger]="true"
+                (click)="pendingDelete.set('kpi')"
               >
-                <app-kpi-tile
-                  [label]="'objectives.kpi.latest' | transloco"
-                  [value]="valueText(k.last_value)"
-                  [tone]="healthTone(k.last_status)"
-                  [delta]="targetText()"
-                />
-                <app-kpi-tile
-                  [label]="'objectives.kpi.change' | transloco"
-                  [value]="changeText()"
-                  [delta]="changePctText()"
-                />
-                <app-kpi-tile
-                  [label]="'objectives.kpi.trend' | transloco"
-                  [value]="trendLabel()"
-                  [tone]="trendToneValue()"
-                />
-                <app-kpi-tile
-                  [label]="'objectives.kpi.onTrackShare' | transloco"
-                  [value]="onTrackText()"
-                  tone="pass"
-                />
-              </section>
+                {{ 'objectives.detail.delete' | transloco }}
+              </button>
+            }
 
-              <app-card>
-                <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-                  <h2 class="font-display text-[15px] font-bold text-fg">
-                    {{ 'objectives.kpi.chartHeading' | transloco }}
+            <app-help-strip help [scope]="scope" page="kpiDetail" lesson="good-kpis" />
+
+            <div class="flex flex-col gap-4">
+              @if (needsAction()) {
+                <section
+                  class="rounded-card border p-4"
+                  [class]="
+                    k.last_status === 'off_track'
+                      ? 'border-fail/30 bg-fail-soft'
+                      : 'border-warn/30 bg-warn-soft'
+                  "
+                  data-testid="kpi-attention"
+                  [attr.aria-label]="'objectives.attention.label' | transloco"
+                >
+                  <h2 class="font-display text-card font-bold text-fg">
+                    {{ 'objectives.attention.' + k.last_status + '.title' | transloco }}
                   </h2>
-                  @if (k.last_status === 'at_risk' || k.last_status === 'off_track') {
+                  <p class="mt-1 text-ui text-fg">
+                    {{ 'objectives.attention.body' | transloco: attentionParams() }}
+                  </p>
+                  <div class="mt-3 flex flex-wrap items-center gap-2">
+                    @if (flowEnabled('kpi.to_deviation')) {
+                      <app-button
+                        size="sm"
+                        (click)="startFlow('kpi.to_deviation')"
+                        data-testid="kpi-to-deviation"
+                      >
+                        {{ 'objectives.attention.deviation' | transloco }}
+                      </app-button>
+                    }
+                    @if (flowEnabled('kpi.to_task')) {
+                      <app-button
+                        size="sm"
+                        variant="secondary"
+                        (click)="startFlow('kpi.to_task')"
+                        data-testid="kpi-to-task"
+                      >
+                        {{ 'objectives.attention.task' | transloco }}
+                      </app-button>
+                    }
+                    @if (k.can_edit) {
+                      <app-button
+                        size="sm"
+                        variant="ghost"
+                        (click)="edit('target')"
+                        data-testid="kpi-adjust-target"
+                      >
+                        {{ 'objectives.attention.adjustTarget' | transloco }}
+                      </app-button>
+                    }
                     <app-ai-assist-button
                       [assist]="explainAssist"
                       labelKey="objectives.ai.explainDeviation"
@@ -275,131 +342,201 @@ interface MeasurementDraft {
                       (text)="explanation.set($event)"
                       (failed)="explanation.set(null)"
                     />
+                  </div>
+                  @if (explanation(); as text) {
+                    <div
+                      class="mt-3 rounded-tile border border-border bg-surface p-3"
+                      data-testid="deviation-explanation"
+                      aria-live="polite"
+                    >
+                      <p class="mb-1 text-meta font-semibold text-fg-muted">
+                        {{ 'objectives.ai.explanationLabel' | transloco }}
+                      </p>
+                      <div
+                        class="cf-markdown text-body text-fg"
+                        [innerHTML]="text | appMarkdown"
+                      ></div>
+                    </div>
+                  }
+                </section>
+              }
+
+              <section
+                class="grid grid-cols-2 gap-3 lg:grid-cols-4"
+                [attr.aria-label]="'objectives.kpi.statsLabel' | transloco"
+              >
+                <app-kpi-tile
+                  [label]="'objectives.kpi.latest' | transloco"
+                  [value]="valueText(k.last_value)"
+                  [tone]="toneOfLatest()"
+                  [delta]="targetText()"
+                  deltaTone="neutral"
+                />
+                <app-kpi-tile
+                  [label]="'objectives.kpi.change' | transloco"
+                  [value]="changeText()"
+                  [delta]="changeDelta()"
+                  [tone]="toneOfChange()"
+                />
+                <app-kpi-tile
+                  [label]="'objectives.kpi.trend' | transloco"
+                  [value]="trendLabel()"
+                  [tone]="toneOfTrend()"
+                />
+                <app-kpi-tile
+                  [label]="'objectives.kpi.onTrackShare' | transloco"
+                  [value]="onTrackText()"
+                  [tone]="toneOfOnTrack()"
+                  [delta]="onTrackDelta()"
+                  deltaTone="neutral"
+                />
+              </section>
+
+              <app-card data-testid="kpi-next-measurement">
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                  <div class="min-w-0">
+                    <h2 class="font-display text-card font-bold text-fg">
+                      {{ 'objectives.kpi.nextHeading' | transloco }}
+                    </h2>
+                    @if (nextLabel(); as label) {
+                      <p class="mt-1 text-body text-fg">
+                        {{ 'objectives.kpi.nextPeriod' | transloco: { period: label } }}
+                        @if (k.next_due_date) {
+                          <span
+                            [class.text-warn-ink]="k.measurement_overdue"
+                            [class.font-semibold]="k.measurement_overdue"
+                          >
+                            ·
+                            {{
+                              'objectives.kpi.dueOn'
+                                | transloco: { date: (k.next_due_date | localDay) }
+                            }}
+                            @if (k.measurement_overdue) {
+                              · {{ 'objectives.common.overdue' | transloco }}
+                            }
+                          </span>
+                        }
+                      </p>
+                    } @else if (k.status !== 'active') {
+                      <p class="mt-1 text-body text-fg-muted">
+                        {{ 'objectives.kpi.notActive' | transloco }}
+                      </p>
+                    }
+                    <p class="mt-1 text-meta text-fg-muted">
+                      @if (k.measurement_task; as task) {
+                        {{
+                          'objectives.kpi.taskFor'
+                            | transloco
+                              : { name: task.assignee?.name ?? ('common.empty.none' | transloco) }
+                        }}
+                        <a
+                          [routerLink]="task.url"
+                          class="font-semibold text-accent hover:underline"
+                          >{{ task.title }}</a
+                        >
+                        @if (task.due_at) {
+                          ·
+                          {{
+                            'objectives.kpi.dueOn'
+                              | transloco: { date: (task.due_at | localDate: 'mediumDate') }
+                          }}
+                        }
+                      } @else if (k.measurement_reminders) {
+                        {{ 'objectives.kpi.noTask' | transloco }}
+                      } @else {
+                        {{ 'objectives.kpi.remindersOff' | transloco }}
+                      }
+                    </p>
+                  </div>
+                  @if (canRecord()) {
+                    <app-button size="sm" variant="secondary" (click)="openRecord()">
+                      {{ 'objectives.kpi.recordNow' | transloco }}
+                    </app-button>
                   }
                 </div>
-                <app-kpi-chart [series]="series()" />
-                @if (explanation(); as text) {
-                  <div
-                    class="mt-3 rounded-[10px] border border-accent-border bg-accent-soft p-3"
-                    data-testid="deviation-explanation"
-                    aria-live="polite"
-                  >
-                    <p class="mb-1 text-[12px] font-semibold text-fg-muted">
-                      {{ 'objectives.ai.explanationLabel' | transloco }}
-                    </p>
-                    <div
-                      class="cf-markdown text-[13.5px] text-fg"
-                      [innerHTML]="text | appMarkdown"
-                    ></div>
-                  </div>
-                }
               </app-card>
 
               <app-card>
-                <h2 class="mb-3 font-display text-[15px] font-bold text-fg">
+                <h2 class="mb-2 font-display text-card font-bold text-fg">
+                  {{ 'objectives.kpi.chartHeading' | transloco }}
+                </h2>
+                <app-kpi-chart [series]="series()" />
+              </app-card>
+
+              <app-card>
+                <h2 class="mb-3 font-display text-card font-bold text-fg">
                   {{ 'objectives.kpi.definition' | transloco }}
                 </h2>
-                <dl class="grid grid-cols-1 gap-x-6 gap-y-3 text-[13.5px] sm:grid-cols-3">
-                  <div>
-                    <dt class="text-[12px] font-semibold text-fg-muted">
-                      {{ 'objectives.kpiFields.direction' | transloco }}
-                    </dt>
-                    <dd class="text-fg">{{ 'objectives.direction.' + k.direction | transloco }}</dd>
-                  </div>
-                  <div>
-                    <dt class="text-[12px] font-semibold text-fg-muted">
-                      {{ 'objectives.kpiFields.frequency' | transloco }}
-                    </dt>
-                    <dd class="text-fg">{{ 'objectives.frequency.' + k.frequency | transloco }}</dd>
-                  </div>
-                  <div>
-                    <dt class="text-[12px] font-semibold text-fg-muted">
-                      {{ 'objectives.kpi.nextDue' | transloco }}
-                    </dt>
-                    <dd
-                      [class.text-fail]="k.measurement_overdue"
-                      [class.text-fg]="!k.measurement_overdue"
-                    >
-                      {{ (k.next_due_date | localDay) || '—' }}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt class="text-[12px] font-semibold text-fg-muted">
-                      {{ 'objectives.kpiFields.baseline' | transloco }}
-                    </dt>
-                    <dd class="text-fg">{{ valueText(k.baseline_value) }}</dd>
-                  </div>
-                  <div>
-                    <dt class="text-[12px] font-semibold text-fg-muted">
-                      {{ 'objectives.kpiFields.target' | transloco }}
-                    </dt>
-                    <dd class="text-fg">{{ valueText(k.target_value) }}</dd>
-                  </div>
-                  <div>
-                    <dt class="text-[12px] font-semibold text-fg-muted">
-                      {{ 'objectives.kpiFields.warning' | transloco }}
-                    </dt>
-                    <dd class="text-fg">{{ valueText(k.warning_value) }}</dd>
-                  </div>
-                  <div>
-                    <dt class="text-[12px] font-semibold text-fg-muted">
-                      {{ 'objectives.fields.owner' | transloco }}
-                    </dt>
-                    <dd class="text-fg">
-                      {{ k.owner?.name ?? ('objectives.common.noOwner' | transloco) }}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt class="text-[12px] font-semibold text-fg-muted">
-                      {{ 'objectives.fields.department' | transloco }}
-                    </dt>
-                    <dd class="text-fg">{{ department() ?? '—' }}</dd>
-                  </div>
-                  <div>
-                    <dt class="text-[12px] font-semibold text-fg-muted">
-                      {{ 'objectives.fields.managementSystem' | transloco }}
-                    </dt>
-                    <dd class="text-fg">
-                      {{ k.management_system ? (systemKey(k.management_system) | transloco) : '—' }}
-                    </dd>
-                  </div>
-                  <div class="sm:col-span-3">
-                    <dt class="text-[12px] font-semibold text-fg-muted">
-                      {{ 'objectives.kpiFields.dataSource' | transloco }}
-                    </dt>
-                    <dd class="text-fg">{{ k.data_source || '—' }}</dd>
-                  </div>
+                <app-field-list [columns]="3">
+                  <app-field-item
+                    labelKey="objectives.kpiFields.direction"
+                    [value]="'objectives.direction.' + k.direction | transloco"
+                  />
+                  <app-field-item
+                    labelKey="objectives.kpiFields.frequency"
+                    [value]="'objectives.frequency.' + k.frequency | transloco"
+                  />
+                  <app-field-item
+                    labelKey="objectives.kpiFields.startDate"
+                    [value]="k.start_date | localDay"
+                  />
+                  <app-field-item
+                    labelKey="objectives.kpiFields.baseline"
+                    [value]="valueOrNull(k.baseline_value)"
+                  />
+                  <app-field-item
+                    labelKey="objectives.kpiFields.target"
+                    [value]="valueOrNull(k.target_value)"
+                  />
+                  <app-field-item
+                    labelKey="objectives.kpiFields.warning"
+                    [value]="valueOrNull(k.warning_value)"
+                  />
+                  <app-field-item labelKey="objectives.kpiFields.owner" [value]="k.owner?.name" />
+                  <app-field-item
+                    labelKey="objectives.kpiFields.evaluatedBy"
+                    [value]="k.evaluated_by?.name"
+                  />
+                  <app-field-item
+                    labelKey="objectives.kpiFields.reviewForum"
+                    [value]="k.review_forum ?? null"
+                  />
+                  <app-field-item labelKey="objectives.fields.department" [value]="department()" />
+                  <app-field-item
+                    labelKey="objectives.fields.managementSystem"
+                    [value]="
+                      k.management_system ? (systemKey(k.management_system) | transloco) : null
+                    "
+                  />
+                  <app-field-item
+                    labelKey="objectives.kpiFields.dataSource"
+                    [value]="k.data_source"
+                  />
                   @if (k.description) {
-                    <div class="sm:col-span-3">
-                      <dt class="text-[12px] font-semibold text-fg-muted">
-                        {{ 'objectives.kpiFields.description' | transloco }}
-                      </dt>
-                      <dd
-                        class="cf-markdown text-fg"
-                        [innerHTML]="k.description | appMarkdown"
-                      ></dd>
-                    </div>
+                    <app-field-item labelKey="objectives.kpiFields.description" [wide]="true">
+                      <div class="cf-markdown" [innerHTML]="k.description | appMarkdown"></div>
+                    </app-field-item>
                   }
-                </dl>
+                </app-field-list>
               </app-card>
 
               <app-card [padded]="false">
-                <h2 class="px-4 pt-3.5 pb-2 font-display text-[15px] font-bold text-fg">
+                <h2 class="px-5 pt-4 pb-2 font-display text-card font-bold text-fg">
                   {{ 'objectives.kpi.measurements' | transloco }}
                 </h2>
                 @if (measurements().length === 0) {
-                  <p class="px-4 pb-4 text-[13.5px] text-fg-muted">
+                  <p class="px-5 pb-4 text-body text-fg-muted">
                     {{ 'objectives.kpi.noMeasurements' | transloco }}
                   </p>
                 } @else {
                   <div class="overflow-x-auto">
-                    <table class="w-full text-left text-[13px]" data-testid="measurements-table">
+                    <table class="w-full text-left text-ui" data-testid="measurements-table">
                       <caption class="sr-only">
                         {{
                           'objectives.kpi.measurements' | transloco
                         }}
                       </caption>
-                      <thead class="border-y border-border text-[12px] text-fg-muted">
+                      <thead class="border-y border-border text-meta text-fg-muted">
                         <tr>
                           <th scope="col" class="px-4 py-2 font-semibold">
                             {{ 'objectives.measurement.period' | transloco }}
@@ -410,8 +547,11 @@ interface MeasurementDraft {
                           <th scope="col" class="px-4 py-2 font-semibold">
                             {{ 'objectives.measurement.status' | transloco }}
                           </th>
+                          <th scope="col" class="px-4 py-2 font-semibold">
+                            {{ 'objectives.measurement.note' | transloco }}
+                          </th>
                           <th scope="col" class="hidden px-4 py-2 font-semibold md:table-cell">
-                            {{ 'objectives.measurement.recordedBy' | transloco }}
+                            {{ 'objectives.measurement.recorded' | transloco }}
                           </th>
                           <th scope="col" class="px-4 py-2">
                             <span class="sr-only">{{
@@ -422,36 +562,61 @@ interface MeasurementDraft {
                       </thead>
                       <tbody class="divide-y divide-border">
                         @for (m of measurements(); track m.id) {
-                          <tr>
-                            <td class="px-4 py-2 whitespace-nowrap">
-                              {{ m.period_start | localDay }} – {{ m.period_end | localDay }}
-                              @if (m.note) {
-                                <span
-                                  class="block max-w-[260px] truncate text-[12px] text-fg-subtle"
+                          @let mh = health(m.status);
+                          <tr class="align-top">
+                            <td class="px-4 py-2.5 whitespace-nowrap">
+                              <span class="font-semibold text-fg">{{ periodText(m) }}</span>
+                              @if (!calendar(m)) {
+                                <span class="block text-meta text-fg-subtle"
+                                  >{{ m.period_start | localDay }} –
+                                  {{ m.period_end | localDay }}</span
                                 >
-                                  {{ m.note }}
-                                </span>
                               }
                             </td>
-                            <td class="px-4 py-2 text-right font-semibold whitespace-nowrap">
+                            <td class="px-4 py-2.5 text-right font-semibold whitespace-nowrap">
                               {{ m.value | localNumber: '1.0-2' }} {{ k.unit }}
                             </td>
-                            <td class="px-4 py-2">
-                              <app-badge [tone]="healthTone(m.status)">
-                                {{ healthKey(m.status) | transloco }}
-                              </app-badge>
+                            <td class="px-4 py-2.5">
+                              <app-status-badge
+                                [meaning]="mh.meaning"
+                                [value]="mh.value"
+                                [labelKey]="healthKey(m.status)"
+                              />
                             </td>
-                            <td class="hidden px-4 py-2 text-fg-muted md:table-cell">
-                              {{ m.recorded_by?.name ?? '—' }}
+                            <td class="max-w-[280px] min-w-[160px] px-4 py-2.5 text-fg-muted">
+                              @if (m.note) {
+                                @if (expanded().has(m.id) || m.note.length <= 80) {
+                                  <span class="whitespace-pre-line">{{ m.note }}</span>
+                                } @else {
+                                  <span>{{ m.note.slice(0, 80) }}…</span>
+                                  <button
+                                    type="button"
+                                    class="ml-1 font-semibold text-accent hover:underline"
+                                    (click)="expand(m.id)"
+                                  >
+                                    {{ 'objectives.measurement.showMore' | transloco }}
+                                  </button>
+                                }
+                              } @else {
+                                <span class="text-fg-subtle">—</span>
+                              }
                             </td>
-                            <td class="px-4 py-2 text-right whitespace-nowrap">
+                            <td
+                              class="hidden px-4 py-2.5 text-meta whitespace-nowrap text-fg-muted md:table-cell"
+                            >
+                              {{ m.created_at | localDate: 'mediumDate' }}
+                              @if (m.recorded_by) {
+                                <span class="block">{{ m.recorded_by.name }}</span>
+                              }
+                            </td>
+                            <td class="px-2 py-1.5 text-right whitespace-nowrap">
                               @if (m.can_edit) {
                                 <button
                                   type="button"
-                                  class="rounded-[6px] px-2 py-1 text-[12.5px] font-semibold text-accent hover:bg-accent-soft"
+                                  class="inline-flex h-8 items-center rounded-tile px-2 text-ui font-semibold text-accent hover:bg-accent-soft"
                                   [attr.aria-label]="
                                     'objectives.measurement.editLabel'
-                                      | transloco: { period: (m.period_end | localDay) }
+                                      | transloco: { period: periodText(m) }
                                   "
                                   (click)="openEdit(m)"
                                 >
@@ -459,14 +624,14 @@ interface MeasurementDraft {
                                 </button>
                                 <button
                                   type="button"
-                                  class="rounded-[6px] p-1 text-fg-subtle hover:text-fail"
+                                  class="inline-flex h-8 w-8 items-center justify-center rounded-tile text-fg-muted hover:bg-fail-soft hover:text-fail-ink"
                                   [attr.aria-label]="
                                     'objectives.measurement.deleteLabel'
-                                      | transloco: { period: (m.period_end | localDay) }
+                                      | transloco: { period: periodText(m) }
                                   "
-                                  (click)="askDeleteMeasurement(m)"
+                                  (click)="pendingDelete.set(m)"
                                 >
-                                  <app-icon name="trash" [size]="14" />
+                                  <app-icon name="trash" [size]="16" />
                                 </button>
                               }
                             </td>
@@ -475,15 +640,17 @@ interface MeasurementDraft {
                       </tbody>
                     </table>
                   </div>
-                  <div class="border-t border-border px-4 py-2.5">
-                    <app-pager
-                      [offset]="offset()"
-                      [pageSize]="pageSize"
-                      [count]="measurements().length"
-                      [total]="measurementTotal()"
-                      (pageChange)="offset.set($event)"
-                    />
-                  </div>
+                  @if (measurementTotal() > pageSize) {
+                    <div class="border-t border-border px-4 py-2.5">
+                      <app-pager
+                        [offset]="offset()"
+                        [pageSize]="pageSize"
+                        [count]="measurements().length"
+                        [total]="measurementTotal()"
+                        (pageChange)="offset.set($event)"
+                      />
+                    </div>
+                  }
                 }
               </app-card>
             </div>
@@ -498,18 +665,9 @@ interface MeasurementDraft {
               />
             </div>
 
-            <ng-container aside>
-              <app-card *appHasPermission="'standards:read'">
-                <app-supports-requirements entityType="kpi" [entityId]="k.id" />
-              </app-card>
+            <div aside-learn>
               <app-why-it-matters [scope]="scope" page="kpiDetail" />
-              <details class="rounded-card border border-border bg-surface p-4">
-                <summary class="cursor-pointer text-[13.5px] font-semibold text-fg">
-                  {{ 'objectives.lessons.goodKpis' | transloco }}
-                </summary>
-                <div class="mt-3"><app-lesson [scope]="scope" lesson="good-kpis" /></div>
-              </details>
-            </ng-container>
+            </div>
           </app-record-detail-layout>
 
           <app-slide-over
@@ -527,43 +685,84 @@ interface MeasurementDraft {
                 class="flex flex-col gap-4"
                 novalidate
                 (submit)="$event.preventDefault(); saveDraft()"
+                data-testid="measurement-form"
               >
                 @if (draftError(); as key) {
                   <app-alert tone="error">{{ key | transloco }}</app-alert>
                 }
-                <div>
-                  <app-form-field
-                    [label]="'objectives.measurement.periodEnd' | transloco"
-                    inputId="m-period-end"
-                  >
-                    <input
-                      id="m-period-end"
-                      type="date"
-                      required
-                      [max]="today"
-                      [disabled]="!!d.id"
-                      [value]="d.period_end"
-                      (change)="patchDraft({ period_end: $any($event.target).value })"
-                    />
-                  </app-form-field>
-                  <app-field-help [scope]="scope" page="measurement" field="periodEnd" />
+                <div
+                  class="rounded-tile border border-border bg-surface-2 px-3 py-2 text-ui text-fg"
+                  data-testid="measurement-thresholds"
+                >
+                  {{ thresholdsText() }}
                 </div>
+
+                @if (d.id) {
+                  <div>
+                    <p class="text-ui font-semibold text-fg-muted">
+                      {{ 'objectives.measurement.period' | transloco }}
+                    </p>
+                    <p class="mt-1 text-body text-fg">{{ draftPeriodLabel() }}</p>
+                  </div>
+                } @else {
+                  <div>
+                    <app-obj-field
+                      [label]="'objectives.measurement.periodPick' | transloco"
+                      inputId="m-period"
+                      page="measurement"
+                      help="period"
+                    >
+                      <select
+                        id="m-period"
+                        (change)="pickPeriod($any($event.target).value)"
+                        data-testid="measurement-period"
+                      >
+                        @for (p of periodChoices(); track p.value) {
+                          <option [value]="p.value" [selected]="d.choice === p.value">
+                            {{ p.label }}
+                          </option>
+                        }
+                        <option [value]="custom" [selected]="d.choice === custom">
+                          {{ 'objectives.measurement.customPeriod' | transloco }}
+                        </option>
+                      </select>
+                    </app-obj-field>
+                  </div>
+                  @if (d.choice === custom) {
+                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      <app-form-field
+                        [label]="'objectives.measurement.periodStart' | transloco"
+                        inputId="m-period-start"
+                      >
+                        <input
+                          id="m-period-start"
+                          type="date"
+                          [max]="d.period_end || today"
+                          [value]="d.period_start"
+                          (change)="patchDraft({ period_start: $any($event.target).value })"
+                        />
+                      </app-form-field>
+                      <app-form-field
+                        [label]="'objectives.measurement.periodEnd' | transloco"
+                        inputId="m-period-end"
+                      >
+                        <input
+                          id="m-period-end"
+                          type="date"
+                          required
+                          [max]="today"
+                          [value]="d.period_end"
+                          (change)="patchDraft({ period_end: $any($event.target).value })"
+                        />
+                      </app-form-field>
+                    </div>
+                  }
+                }
+
                 <div>
-                  <app-form-field
-                    [label]="'objectives.measurement.periodStart' | transloco"
-                    inputId="m-period-start"
-                  >
-                    <input
-                      id="m-period-start"
-                      type="date"
-                      [value]="d.period_start"
-                      (change)="patchDraft({ period_start: $any($event.target).value })"
-                    />
-                  </app-form-field>
-                  <app-field-help [scope]="scope" page="measurement" field="periodStart" />
-                </div>
-                <div>
-                  <app-form-field
+                  <app-obj-field
+                    page="measurement"
+                    help="value"
                     [label]="
                       k.unit
                         ? ('objectives.measurement.valueWithUnit' | transloco: { unit: k.unit })
@@ -581,18 +780,34 @@ interface MeasurementDraft {
                       [value]="d.value"
                       (input)="patchDraft({ value: $any($event.target).value })"
                     />
-                  </app-form-field>
-                  <app-field-help [scope]="scope" page="measurement" field="value" />
+                  </app-obj-field>
                   @if (draftValueInvalid()) {
-                    <p class="mt-1 text-[12.5px] text-fail">
+                    <p class="mt-1 text-meta text-fail-ink">
                       {{ 'objectives.errors.invalid_number' | transloco }}
+                    </p>
+                  }
+                  @if (preview(); as p) {
+                    @let ph = health(p);
+                    <p
+                      class="mt-2 flex items-center gap-2 text-meta text-fg-muted"
+                      aria-live="polite"
+                      data-testid="measurement-preview"
+                    >
+                      {{ 'objectives.measurement.preview' | transloco }}
+                      <app-status-badge
+                        [meaning]="ph.meaning"
+                        [value]="ph.value"
+                        [labelKey]="healthKey(p)"
+                      />
                     </p>
                   }
                 </div>
                 <div>
-                  <app-form-field
+                  <app-obj-field
                     [label]="'objectives.measurement.note' | transloco"
                     inputId="m-note"
+                    page="measurement"
+                    help="note"
                   >
                     <textarea
                       id="m-note"
@@ -601,16 +816,20 @@ interface MeasurementDraft {
                       [value]="d.note"
                       (input)="patchDraft({ note: $any($event.target).value })"
                     ></textarea>
-                  </app-form-field>
-                  <app-field-help [scope]="scope" page="measurement" field="note" />
+                  </app-obj-field>
                 </div>
-                <div class="flex justify-end gap-2">
-                  <app-button variant="ghost" (click)="closeDraft()">
-                    {{ 'common.cancel' | transloco }}
-                  </app-button>
-                  <app-button type="submit" [loading]="busy()" [disabled]="busy()">
-                    {{ 'common.save' | transloco }}
-                  </app-button>
+                <p class="text-meta text-fg-muted">
+                  {{ 'objectives.measurement.evidenceHint' | transloco }}
+                </p>
+                <div
+                  class="sticky bottom-0 flex justify-end gap-2 border-t border-border bg-surface pt-3"
+                >
+                  <app-button variant="secondary" (click)="closeDraft()">{{
+                    'common.cancel' | transloco
+                  }}</app-button>
+                  <app-button type="submit" [loading]="busy()" [disabled]="busy()">{{
+                    'objectives.measurement.save' | transloco
+                  }}</app-button>
                 </div>
               </form>
             }
@@ -643,6 +862,8 @@ interface MeasurementDraft {
 })
 export class KpiDetail {
   private readonly api = inject(ObjectivesApi);
+  private readonly kit = inject(KitApi);
+  private readonly flows = inject(CreateFlowService);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly language = inject(LanguageService);
   private readonly notifications = inject(NotificationService);
@@ -656,12 +877,13 @@ export class KpiDetail {
   protected readonly tabs = TABS;
   protected readonly fieldLabels = KPI_FIELD_LABELS;
   protected readonly pageSize = PAGE_SIZE;
+  protected readonly custom = CUSTOM;
   protected readonly explainAssist = ASSIST_EXPLAIN_DEVIATION;
   protected readonly today = todayIso();
   protected readonly statusKey = kpiStatusKey;
-  protected readonly statusTone = kpiStatusTone;
+  protected readonly statusTone = KPI_STATUS_TONE;
   protected readonly healthKey = healthKey;
-  protected readonly healthTone = healthTone;
+  protected readonly health = healthSpec;
   protected readonly systemKey = managementSystemKey;
 
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
@@ -676,7 +898,39 @@ export class KpiDetail {
   protected readonly draftSubmitted = signal(false);
   protected readonly pendingDelete = signal<'kpi' | Measurement | null>(null);
   protected readonly busy = signal(false);
+  protected readonly expanded = signal<ReadonlySet<string>>(new Set());
+  private readonly enabledFlows = signal<ReadonlySet<string>>(new Set());
 
+  protected readonly breadcrumbs = computed(() => [
+    OBJECTIVES_ROOT_CRUMB,
+    KPIS_CRUMB,
+    { label: this.kpi()?.code ?? '' },
+  ]);
+  protected readonly canRecord = computed(() => {
+    const k = this.kpi();
+    return !!k && k.can_measure && k.status !== 'retired';
+  });
+  protected readonly needsAction = computed(() => {
+    const k = this.kpi();
+    return !!k && kpiNeedsAction(k);
+  });
+  protected readonly objectiveRef = computed(() => {
+    const o = this.kpi()?.objective;
+    return o
+      ? {
+          entity_type: 'objective',
+          entity_id: o.id,
+          title: o.title,
+          code: o.code,
+          url: `/objectives/${o.id}`,
+        }
+      : null;
+  });
+  protected readonly requirementRefs = computed(() => {
+    const system = this.kpi()?.management_system;
+    const ref = system ? monitoringRef(system) : null;
+    return ref ? [ref] : [];
+  });
   protected readonly department = computed(() =>
     departmentName(this.options, this.kpi()?.department_id ?? null),
   );
@@ -692,7 +946,25 @@ export class KpiDetail {
     const n = parseNumber(d.value);
     return n === null || Number.isNaN(n);
   });
+  protected readonly preview = computed(() => {
+    const d = this.draft();
+    const k = this.kpi();
+    if (!d || !k) {
+      return null;
+    }
+    return previewStatus(parseNumber(d.value), k.direction, k.target_value, k.warning_value);
+  });
 
+  protected readonly toneOfLatest = computed<KpiTone>(() => {
+    const status = this.kpi()?.last_status;
+    return status === 'on_track'
+      ? 'pass'
+      : status === 'at_risk'
+        ? 'warn'
+        : status === 'off_track'
+          ? 'fail'
+          : 'neutral';
+  });
   protected readonly targetText = computed(() => {
     const k = this.kpi();
     return k?.target_value != null
@@ -701,6 +973,10 @@ export class KpiDetail {
         })
       : '';
   });
+  private readonly better = computed(() => {
+    const change = this.series()?.stats.change ?? null;
+    return changeIsBetter(change, this.kpi()?.direction ?? 'higher');
+  });
   protected readonly changeText = computed(() => {
     const change = this.series()?.stats.change;
     if (change == null) {
@@ -708,29 +984,109 @@ export class KpiDetail {
     }
     return `${change > 0 ? '+' : ''}${this.num(change)}`;
   });
-  protected readonly changePctText = computed(() => {
+  protected readonly changeDelta = computed(() => {
     const pct = this.series()?.stats.change_pct;
-    return pct == null ? '' : `${pct > 0 ? '+' : ''}${this.num(pct)} %`;
+    const better = this.better();
+    const parts: string[] = [];
+    if (pct != null) {
+      parts.push(`${pct > 0 ? '+' : ''}${this.num(pct)} %`);
+    }
+    if (better !== null) {
+      parts.push(
+        this.language.translate(better ? 'objectives.kpi.better' : 'objectives.kpi.worse'),
+      );
+    }
+    return parts.join(' · ');
   });
-  protected readonly trendLabel = computed(() => {
-    const trend = this.series()?.stats.trend ?? 'insufficient_data';
-    return this.language.translate(trendKey(trend));
+  protected readonly toneOfChange = computed<KpiTone>(() => {
+    const better = this.better();
+    return better === null ? 'neutral' : better ? 'pass' : 'fail';
   });
-  protected readonly trendToneValue = computed(() =>
-    trendTone(this.series()?.stats.trend ?? 'insufficient_data'),
+  protected readonly trendLabel = computed(() =>
+    this.language.translate(trendKey(this.series()?.stats.trend ?? 'insufficient_data')),
   );
+  protected readonly toneOfTrend = computed<KpiTone>(() => {
+    const spec = TREND_TONE[this.series()?.stats.trend ?? 'insufficient_data'];
+    return spec.value === 'met' ? 'pass' : spec.value === 'not_met' ? 'fail' : 'neutral';
+  });
   protected readonly onTrackText = computed(() => {
     const share = this.series()?.stats.on_track_share;
     return share == null ? '—' : `${this.num(share * 100, '1.0-0')} %`;
   });
+  protected readonly toneOfOnTrack = computed(() =>
+    toneOfShare(this.series()?.stats.on_track_share ?? null),
+  );
+  protected readonly onTrackDelta = computed(() => {
+    const count = this.series()?.stats.count ?? 0;
+    return count ? this.language.translate('objectives.kpi.ofPeriods', { count }) : '';
+  });
+  protected readonly attentionParams = computed(() => {
+    const k = this.kpi();
+    return {
+      value: this.valueText(k?.last_value ?? null),
+      target: this.valueText(k?.target_value ?? null),
+      period: k?.last_period_end ? this.labelFor({ start: '', end: k.last_period_end }) : '—',
+    };
+  });
+  protected readonly nextLabel = computed(() => {
+    const k = this.kpi();
+    if (!k || k.status !== 'active') {
+      return null;
+    }
+    if (k.next_period) {
+      return this.labelFor(k.next_period);
+    }
+    return null;
+  });
+  protected readonly thresholdsText = computed(() => {
+    const k = this.kpi();
+    if (!k) {
+      return '';
+    }
+    const t = (key: string, params?: Record<string, unknown>) =>
+      this.language.translate(key, params);
+    const parts = [t(`objectives.direction.${k.direction}`)];
+    if (k.target_value !== null) {
+      parts.push(t('objectives.kpi.targetIs', { value: this.valueText(k.target_value) }));
+    }
+    if (k.warning_value !== null) {
+      parts.push(t('objectives.kpi.warningIs', { value: this.valueText(k.warning_value) }));
+    }
+    return parts.join(' · ');
+  });
+
+  /** Completed calendar periods, newest first; ones already recorded are marked. */
+  protected readonly periodChoices = computed(() => {
+    const k = this.kpi();
+    if (!k) {
+      return [];
+    }
+    const recorded = new Set(this.measurements().map((m) => m.period_end));
+    return completedPeriods(k.frequency, this.today, 12).map((p) => ({
+      value: `${p.start}|${p.end}`,
+      label: recorded.has(p.end)
+        ? this.language.translate('objectives.measurement.recordedPeriod', {
+            period: this.labelFor(p),
+          })
+        : this.labelFor(p),
+      recorded: recorded.has(p.end),
+      period: p,
+    }));
+  });
+  protected readonly draftPeriodLabel = computed(() => {
+    const d = this.draft();
+    return d ? this.labelFor({ start: d.period_start, end: d.period_end }) : '';
+  });
 
   private request = new Subscription();
   private measurementsRequest = new Subscription();
+  private flowsRequest = new Subscription();
 
   constructor() {
     inject(DestroyRef).onDestroy(() => {
       this.request.unsubscribe();
       this.measurementsRequest.unsubscribe();
+      this.flowsRequest.unsubscribe();
     });
     this.options.ensureLoaded();
     providePageContext(() => ({
@@ -739,6 +1095,7 @@ export class KpiDetail {
       entityId: this.id(),
       view: 'detail',
       title: this.kpi()?.name ?? null,
+      requirements: this.requirementRefs(),
     }));
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();
@@ -761,12 +1118,55 @@ export class KpiDetail {
     return unit ? `${this.num(value)} ${unit}` : this.num(value);
   }
 
+  protected valueOrNull(value: number | null): string | null {
+    return value === null ? null : this.valueText(value);
+  }
+
   private num(value: number, digits = '1.0-2'): string {
     return formatNumber(value, this.language.locale(), digits);
   }
 
-  protected edit(): void {
-    void this.router.navigate(['/objectives/kpis', this.id(), 'edit']);
+  /** A period in words: "oktober 2026", or the two dates for a non-calendar period. */
+  private labelFor(period: Period): string {
+    const k = this.kpi();
+    if (!k || !period.end) {
+      return '';
+    }
+    const p = period.start ? period : periodContaining(k.frequency, period.end);
+    const locale = this.language.locale();
+    if (isCalendarPeriod(k.frequency, p)) {
+      return periodLabel(k.frequency, p, locale, (key, params) =>
+        this.language.translate(key, params),
+      );
+    }
+    return `${formatDate(p.start, 'mediumDate', locale)} – ${formatDate(p.end, 'mediumDate', locale)}`;
+  }
+
+  protected calendar(m: Measurement): boolean {
+    const k = this.kpi();
+    return !!k && isCalendarPeriod(k.frequency, { start: m.period_start, end: m.period_end });
+  }
+
+  protected periodText(m: Measurement): string {
+    return this.labelFor({ start: m.period_start, end: m.period_end });
+  }
+
+  protected expand(id: string): void {
+    this.expanded.update((s) => new Set([...s, id]));
+  }
+
+  protected flowEnabled(key: string): boolean {
+    return this.enabledFlows().has(key);
+  }
+
+  protected startFlow(key: string): void {
+    void this.flows.start(key, 'kpi', this.id());
+  }
+
+  protected edit(focus?: string): void {
+    void this.router.navigate(['/objectives/kpis', this.id(), 'edit'], {
+      queryParams: focus ? { focus } : {},
+    });
   }
 
   protected askAbout(): void {
@@ -781,10 +1181,47 @@ export class KpiDetail {
     }
   }
 
+  /** Open the slide-over on the first completed period that has no value yet. */
   protected openRecord(): void {
+    const k = this.kpi();
     this.draftSubmitted.set(false);
     this.draftError.set(null);
-    this.draft.set({ id: null, period_end: this.today, period_start: '', value: '', note: '' });
+    const choices = this.periodChoices();
+    const next = k?.next_period;
+    const preferred =
+      (next?.complete
+        ? choices.find((c) => c.period.end === next.end && !c.recorded)
+        : undefined) ??
+      choices.find((c) => !c.recorded) ??
+      choices[0];
+    if (!preferred) {
+      this.draft.set({
+        id: null,
+        choice: CUSTOM,
+        period_end: this.today,
+        period_start: '',
+        value: '',
+        note: '',
+      });
+      return;
+    }
+    this.draft.set({
+      id: null,
+      choice: preferred.value,
+      period_start: preferred.period.start,
+      period_end: preferred.period.end,
+      value: '',
+      note: '',
+    });
+  }
+
+  protected pickPeriod(value: string): void {
+    if (value === CUSTOM) {
+      this.patchDraft({ choice: CUSTOM });
+      return;
+    }
+    const [start, end] = value.split('|');
+    this.patchDraft({ choice: value, period_start: start, period_end: end });
   }
 
   protected openEdit(m: Measurement): void {
@@ -792,6 +1229,7 @@ export class KpiDetail {
     this.draftError.set(null);
     this.draft.set({
       id: m.id,
+      choice: `${m.period_start}|${m.period_end}`,
       period_end: m.period_end,
       period_start: m.period_start,
       value: String(m.value),
@@ -822,7 +1260,6 @@ export class KpiDetail {
     const call = d.id
       ? this.api.updateMeasurement(orgId, this.id(), d.id, {
           value,
-          period_start: d.period_start || null,
           note: textOrNull(d.note),
         })
       : this.api.createMeasurement(orgId, this.id(), {
@@ -846,10 +1283,6 @@ export class KpiDetail {
         this.offerExisting(error);
       },
     });
-  }
-
-  protected askDeleteMeasurement(m: Measurement): void {
-    this.pendingDelete.set(m);
   }
 
   protected confirmDelete(): void {
@@ -897,7 +1330,12 @@ export class KpiDetail {
     const existing = this.measurements().find((m) => m.id === existingId);
     const draft = this.draft();
     if (existing && draft) {
-      this.draft.set({ ...draft, id: existing.id, period_start: existing.period_start });
+      this.draft.set({
+        ...draft,
+        id: existing.id,
+        period_start: existing.period_start,
+        period_end: existing.period_end,
+      });
     }
   }
 
@@ -918,6 +1356,21 @@ export class KpiDetail {
       .subscribe({ next: (s) => this.series.set(s), error: () => undefined });
   }
 
+  private loadFlows(orgId: string, id: string): void {
+    this.flowsRequest.unsubscribe();
+    this.flowsRequest = this.kit.createFlows(orgId, 'kpi', { entityId: id }).subscribe({
+      next: (list) =>
+        this.enabledFlows.set(
+          new Set(
+            (Array.isArray(list?.items) ? list.items : [])
+              .filter((f) => f?.enabled)
+              .map((f) => f.key),
+          ),
+        ),
+      error: () => this.enabledFlows.set(new Set()),
+    });
+  }
+
   private load(orgId: string | null, id: string): void {
     this.request.unsubscribe();
     if (!orgId) {
@@ -929,6 +1382,7 @@ export class KpiDetail {
       next: (k) => {
         this.kpi.set(k);
         this.state.set('ready');
+        this.loadFlows(orgId, id);
         this.api.series(orgId, id).subscribe({
           next: (s) => this.series.set(s),
           error: () => this.series.set(null),

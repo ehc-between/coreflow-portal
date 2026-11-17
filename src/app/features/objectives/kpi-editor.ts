@@ -1,3 +1,4 @@
+import { formatNumber } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -9,21 +10,25 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { Subscription } from 'rxjs';
+import { Subscription, catchError, of } from 'rxjs';
 import { providePageContext } from '../../core/ai/page-context';
+import { LanguageService } from '../../core/i18n/language.service';
+import { CreateFlowService } from '../../core/kit/create-flow.service';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
-import { FieldHelp } from '../../shared/guidance/field-help';
-import { GuideIntro } from '../../shared/guidance/guide-intro';
+import { AskAbout } from '../../shared/ask/ask-about';
 import { WhyItMatters } from '../../shared/guidance/why-it-matters';
+import { FlowBanner } from '../../shared/kit/flow-banner';
 import { Alert } from '../../shared/ui/alert/alert';
 import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
-import { FormField } from '../../shared/ui/form-field/form-field';
-import { Icon } from '../../shared/ui/icon/icon';
+import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
+import { LoadingState } from '../../shared/ui/loading-state/loading-state';
+import { PageHeader } from '../../shared/ui/page-header/page-header';
 import { Switch } from '../../shared/ui/switch/switch';
+import { ObjField } from './components/obj-field';
 import { OwnerSelect } from './components/owner-select';
 import { ObjectivesApi } from './data/objectives-api';
 import { objectivesErrorKey } from './data/objectives-errors';
@@ -50,6 +55,7 @@ import {
   thresholdError,
 } from './objectives-display';
 import { changedFields } from './objective-editor';
+import { KPIS_CRUMB, OBJECTIVES_ROOT_CRUMB } from './objectives-nav';
 
 export interface KpiFormValue {
   readonly name: string;
@@ -65,6 +71,8 @@ export interface KpiFormValue {
   readonly warning_value: string;
   readonly frequency: KpiFrequency;
   readonly data_source: string;
+  readonly evaluated_by_user_id: string | null;
+  readonly review_forum: string;
   readonly start_date: string;
   readonly measurement_reminders: boolean;
   readonly status: KpiStatus;
@@ -84,6 +92,8 @@ export const EMPTY_KPI_FORM: KpiFormValue = {
   warning_value: '',
   frequency: 'monthly',
   data_source: '',
+  evaluated_by_user_id: null,
+  review_forum: '',
   start_date: '',
   measurement_reminders: true,
   status: 'active',
@@ -106,6 +116,8 @@ export function kpiToForm(k: KpiDetail): KpiFormValue {
     warning_value: numText(k.warning_value),
     frequency: k.frequency,
     data_source: k.data_source ?? '',
+    evaluated_by_user_id: k.evaluated_by?.id ?? null,
+    review_forum: k.review_forum ?? '',
     start_date: k.start_date ?? '',
     measurement_reminders: k.measurement_reminders,
     status: k.status,
@@ -128,69 +140,76 @@ export function kpiPayload(f: KpiFormValue): Required<Omit<UpdateKpiRequest, 'ch
     warning_value: parseNumber(f.warning_value),
     frequency: f.frequency,
     data_source: textOrNull(f.data_source),
+    evaluated_by_user_id: f.evaluated_by_user_id,
+    review_forum: textOrNull(f.review_forum),
     start_date: f.start_date || null,
     measurement_reminders: f.measurement_reminders,
     status: f.status,
   };
 }
 
+const str = (v: unknown): string | null => (typeof v === 'string' && v ? v : null);
+
 let nextId = 0;
 
 /**
- * `/objectives/kpis/new` (optionally `?objective=<id>`) and
- * `/objectives/kpis/:id/edit`: define what is measured, the unit and direction,
- * baseline / target / warning thresholds, how often it is measured, and whether
- * the owner gets a recurring measurement task.
+ * `/objectives/kpis/new` (optionally `?objective=<id>`, or opened from an objective's
+ * "create from here") and `/objectives/kpis/:id/edit` (`?focus=target` from "Juster
+ * målverdi"). Three groups: what is measured and which objective it belongs to; the
+ * target value and thresholds, with a plain-words reading of them; and how often it
+ * is measured, by whom, who evaluates the results and where they are reviewed.
  */
 @Component({
   selector: 'app-kpi-editor',
   imports: [
-    RouterLink,
     TranslocoPipe,
-    FieldHelp,
-    GuideIntro,
+    AskAbout,
     WhyItMatters,
+    FlowBanner,
     Alert,
     Button,
     Card,
-    FormField,
-    Icon,
+    HelpStrip,
+    LoadingState,
+    PageHeader,
     Switch,
+    ObjField,
     OwnerSelect,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[880px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
-      <a
-        [routerLink]="backLink()"
-        class="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
-      >
-        <app-icon name="back" [size]="16" />
-        {{ 'objectives.common.back' | transloco }}
-      </a>
-      <h1 class="mb-4 font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]">
-        {{ (id() ? 'objectives.kpiForm.editTitle' : 'objectives.kpiForm.newTitle') | transloco }}
-      </h1>
-
-      <div class="mb-4"><app-guide-intro [scope]="scope" page="kpiForm" /></div>
+    <div class="mx-auto max-w-[760px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+      <app-page-header
+        [titleKey]="id() ? 'objectives.kpiForm.editTitle' : 'objectives.kpiForm.newTitle'"
+        [breadcrumbs]="breadcrumbs()"
+        [backLink]="backLink()"
+        [backLabelKey]="backLabelKey()"
+      />
+      <app-help-strip class="mb-4 block" [scope]="scope" page="kpiForm" lesson="good-kpis" />
+      <app-flow-banner [flow]="flow()" />
 
       @if (state() === 'loading') {
-        <p class="py-10 text-center text-[14px] text-fg-muted">
-          {{ 'objectives.common.loading' | transloco }}
-        </p>
+        <app-loading-state [rows]="6" />
       } @else if (state() === 'error') {
         <app-alert tone="error">{{ 'objectives.common.loadFailed' | transloco }}</app-alert>
       } @else {
-        <app-card>
-          <form class="flex flex-col gap-4" novalidate (submit)="$event.preventDefault(); save()">
-            @if (errorKey(); as key) {
-              <app-alert tone="error">{{ key | transloco }}</app-alert>
-            }
+        <form class="flex flex-col gap-5" novalidate (submit)="$event.preventDefault(); save()">
+          @if (errorKey(); as key) {
+            <app-alert tone="error">{{ key | transloco }}</app-alert>
+          }
 
-            <div>
-              <app-form-field
+          <app-card>
+            <fieldset class="flex flex-col gap-4">
+              <legend class="mb-1 font-display text-card font-bold text-fg">
+                {{ 'objectives.kpiForm.group1' | transloco }}
+              </legend>
+              <app-obj-field
                 [label]="'objectives.kpiFields.name' | transloco"
                 [inputId]="fid('name')"
+                page="kpiForm"
+                help="name"
+                [required]="true"
+                [errorKey]="nameMissing() ? 'objectives.errors.name_required' : null"
               >
                 <input
                   [id]="fid('name')"
@@ -202,36 +221,35 @@ let nextId = 0;
                   [value]="form().name"
                   (input)="set('name', $any($event.target).value)"
                 />
-              </app-form-field>
-              <app-field-help [scope]="scope" page="kpiForm" field="name" />
-              @if (nameMissing()) {
-                <p class="mt-1 text-[12.5px] text-fail">
-                  {{ 'objectives.errors.name_required' | transloco }}
-                </p>
-              }
-            </div>
-
-            <div>
-              <app-form-field
+              </app-obj-field>
+              <app-obj-field
                 [label]="'objectives.kpiFields.description' | transloco"
                 [inputId]="fid('description')"
+                page="kpiForm"
+                help="description"
               >
-                <textarea
-                  [id]="fid('description')"
-                  rows="3"
-                  maxlength="20000"
-                  [value]="form().description"
-                  (input)="set('description', $any($event.target).value)"
-                ></textarea>
-              </app-form-field>
-              <app-field-help [scope]="scope" page="kpiForm" field="description" />
-            </div>
-
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
-                <app-form-field
+                <div class="flex items-start gap-1">
+                  <textarea
+                    [id]="fid('description')"
+                    class="min-w-0 flex-1"
+                    rows="3"
+                    maxlength="20000"
+                    [value]="form().description"
+                    (input)="set('description', $any($event.target).value)"
+                  ></textarea>
+                  <app-ask-about
+                    field="description"
+                    [fieldLabel]="'objectives.kpiFields.description' | transloco"
+                    [prompt]="askDefinitionPrompt()"
+                  />
+                </div>
+              </app-obj-field>
+              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <app-obj-field
                   [label]="'objectives.kpiFields.objective' | transloco"
                   [inputId]="fid('objective')"
+                  page="kpiForm"
+                  help="objective"
                 >
                   <select
                     [id]="fid('objective')"
@@ -249,13 +267,12 @@ let nextId = 0;
                       </option>
                     }
                   </select>
-                </app-form-field>
-                <app-field-help [scope]="scope" page="kpiForm" field="objective" />
-              </div>
-              <div>
-                <app-form-field
+                </app-obj-field>
+                <app-obj-field
                   [label]="'objectives.fields.managementSystem' | transloco"
                   [inputId]="fid('ms')"
+                  page="kpiForm"
+                  help="managementSystem"
                 >
                   <select
                     [id]="fid('ms')"
@@ -270,112 +287,105 @@ let nextId = 0;
                       </option>
                     }
                   </select>
-                </app-form-field>
+                </app-obj-field>
               </div>
-              <div>
-                <app-form-field
-                  [label]="'objectives.fields.owner' | transloco"
-                  [inputId]="fid('owner')"
-                >
-                  <app-objectives-owner-select
-                    kind="user"
-                    [inputId]="fid('owner')"
-                    [value]="form().owner_user_id"
-                    [currentName]="original()?.owner?.name ?? null"
-                    (valueChange)="set('owner_user_id', $event)"
-                  />
-                </app-form-field>
-                <app-field-help [scope]="scope" page="kpiForm" field="owner" />
-              </div>
-              <div>
-                <app-form-field
-                  [label]="'objectives.fields.department' | transloco"
-                  [inputId]="fid('department')"
-                >
-                  <app-objectives-owner-select
-                    kind="department"
-                    [inputId]="fid('department')"
-                    [value]="form().department_id"
-                    (valueChange)="set('department_id', $event)"
-                  />
-                </app-form-field>
-              </div>
-            </div>
+            </fieldset>
+          </app-card>
 
-            <fieldset class="rounded-[10px] border border-border p-4">
-              <legend class="px-1 text-[13px] font-semibold text-fg">
-                {{ 'objectives.kpiForm.thresholds' | transloco }}
+          <app-card>
+            <fieldset class="flex flex-col gap-4" id="kpi-section-target">
+              <legend class="mb-1 font-display text-card font-bold text-fg">
+                {{ 'objectives.kpiForm.group2' | transloco }}
               </legend>
+              @if (focus() === 'target' && id()) {
+                <p
+                  class="rounded-tile border border-info/30 bg-info-soft px-3 py-2 text-ui text-info-ink"
+                  data-testid="adjust-target-hint"
+                >
+                  {{ 'objectives.kpiForm.adjustHint' | transloco }}
+                </p>
+              }
               <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div>
-                  <app-form-field
-                    [label]="'objectives.kpiFields.unit' | transloco"
-                    [inputId]="fid('unit')"
+                <app-obj-field
+                  [label]="'objectives.kpiFields.unit' | transloco"
+                  [inputId]="fid('unit')"
+                  page="kpiForm"
+                  help="unit"
+                >
+                  <input
+                    [id]="fid('unit')"
+                    type="text"
+                    maxlength="32"
+                    [value]="form().unit"
+                    (input)="set('unit', $any($event.target).value)"
+                  />
+                </app-obj-field>
+                <app-obj-field
+                  [label]="'objectives.kpiFields.direction' | transloco"
+                  [inputId]="fid('direction')"
+                  page="kpiForm"
+                  help="direction"
+                >
+                  <select
+                    [id]="fid('direction')"
+                    (change)="set('direction', $any($event.target).value)"
+                  >
+                    @for (d of directions; track d) {
+                      <option [value]="d" [selected]="form().direction === d">
+                        {{ 'objectives.direction.' + d | transloco }}
+                      </option>
+                    }
+                  </select>
+                </app-obj-field>
+              </div>
+              <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                @for (n of numberFields; track n.key) {
+                  <app-obj-field
+                    [label]="n.label | transloco"
+                    [inputId]="fid(n.key)"
+                    page="kpiForm"
+                    [help]="n.help"
+                    [errorKey]="isNaNField(n.key) ? 'objectives.errors.invalid_number' : null"
                   >
                     <input
-                      [id]="fid('unit')"
+                      [id]="fid(n.key)"
                       type="text"
-                      maxlength="32"
-                      [value]="form().unit"
-                      (input)="set('unit', $any($event.target).value)"
+                      inputmode="decimal"
+                      autocomplete="off"
+                      [attr.aria-invalid]="isNaNField(n.key) || null"
+                      [value]="form()[n.key]"
+                      (input)="set(n.key, $any($event.target).value)"
                     />
-                  </app-form-field>
-                  <app-field-help [scope]="scope" page="kpiForm" field="unit" />
-                </div>
-                <div>
-                  <app-form-field
-                    [label]="'objectives.kpiFields.direction' | transloco"
-                    [inputId]="fid('direction')"
-                  >
-                    <select
-                      [id]="fid('direction')"
-                      (change)="set('direction', $any($event.target).value)"
-                    >
-                      @for (d of directions; track d) {
-                        <option [value]="d" [selected]="form().direction === d">
-                          {{ 'objectives.direction.' + d | transloco }}
-                        </option>
-                      }
-                    </select>
-                  </app-form-field>
-                  <app-field-help [scope]="scope" page="kpiForm" field="direction" />
-                </div>
-              </div>
-              <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
-                @for (n of numberFields; track n.key) {
-                  <div>
-                    <app-form-field [label]="n.label | transloco" [inputId]="fid(n.key)">
-                      <input
-                        [id]="fid(n.key)"
-                        type="text"
-                        inputmode="decimal"
-                        autocomplete="off"
-                        [attr.aria-invalid]="isNaNField(n.key) || null"
-                        [value]="form()[n.key]"
-                        (input)="set(n.key, $any($event.target).value)"
-                      />
-                    </app-form-field>
-                    <app-field-help [scope]="scope" page="kpiForm" [field]="n.help" />
-                    @if (isNaNField(n.key)) {
-                      <p class="mt-1 text-[12.5px] text-fail">
-                        {{ 'objectives.errors.invalid_number' | transloco }}
-                      </p>
-                    }
-                  </div>
+                  </app-obj-field>
                 }
               </div>
               @if (thresholdProblem(); as code) {
-                <p class="mt-2 text-[12.5px] text-fail" role="alert">
+                <p class="text-meta text-fail-ink" role="alert">
                   {{ 'objectives.errors.' + code | transloco }}
+                </p>
+              } @else if (readingText(); as reading) {
+                <p
+                  class="rounded-tile bg-surface-2 px-3 py-2 text-ui text-fg"
+                  data-testid="threshold-reading"
+                  aria-live="polite"
+                >
+                  {{ reading }}
                 </p>
               }
             </fieldset>
+          </app-card>
 
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-              <div>
-                <app-form-field
+          <app-card>
+            <fieldset class="flex flex-col gap-4">
+              <legend class="mb-1 font-display text-card font-bold text-fg">
+                {{ 'objectives.kpiForm.group3' | transloco }}
+              </legend>
+              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <app-obj-field
                   [label]="'objectives.kpiFields.frequency' | transloco"
                   [inputId]="fid('frequency')"
+                  page="kpiForm"
+                  help="frequency"
                 >
                   <select
                     [id]="fid('frequency')"
@@ -387,48 +397,80 @@ let nextId = 0;
                       </option>
                     }
                   </select>
-                </app-form-field>
-                <app-field-help [scope]="scope" page="kpiForm" field="frequency" />
-              </div>
-              <div>
-                <app-form-field
+                </app-obj-field>
+                <app-obj-field
                   [label]="'objectives.kpiFields.startDate' | transloco"
                   [inputId]="fid('start')"
+                  page="kpiForm"
+                  help="startDate"
                 >
                   <input
                     [id]="fid('start')"
                     type="date"
+                    [lang]="lang()"
                     [value]="form().start_date"
                     (change)="set('start_date', $any($event.target).value)"
                   />
-                </app-form-field>
+                </app-obj-field>
+                <app-obj-field
+                  [label]="'objectives.kpiFields.owner' | transloco"
+                  [inputId]="fid('owner')"
+                  page="kpiForm"
+                  help="owner"
+                >
+                  <app-objectives-owner-select
+                    kind="user"
+                    [inputId]="fid('owner')"
+                    [value]="form().owner_user_id"
+                    [currentName]="original()?.owner?.name ?? null"
+                    (valueChange)="set('owner_user_id', $event)"
+                  />
+                </app-obj-field>
+                <app-obj-field
+                  [label]="'objectives.kpiFields.evaluatedBy' | transloco"
+                  [inputId]="fid('evaluator')"
+                  page="kpiForm"
+                  help="evaluatedBy"
+                >
+                  <app-objectives-owner-select
+                    kind="user"
+                    [inputId]="fid('evaluator')"
+                    [value]="form().evaluated_by_user_id"
+                    [currentName]="original()?.evaluated_by?.name ?? null"
+                    (valueChange)="set('evaluated_by_user_id', $event)"
+                  />
+                </app-obj-field>
+                <app-obj-field
+                  [label]="'objectives.kpiFields.reviewForum' | transloco"
+                  [inputId]="fid('forum')"
+                  page="kpiForm"
+                  help="reviewForum"
+                >
+                  <input
+                    [id]="fid('forum')"
+                    type="text"
+                    maxlength="255"
+                    [value]="form().review_forum"
+                    (input)="set('review_forum', $any($event.target).value)"
+                  />
+                </app-obj-field>
+                <app-obj-field
+                  [label]="'objectives.fields.department' | transloco"
+                  [inputId]="fid('department')"
+                >
+                  <app-objectives-owner-select
+                    kind="department"
+                    [inputId]="fid('department')"
+                    [value]="form().department_id"
+                    (valueChange)="set('department_id', $event)"
+                  />
+                </app-obj-field>
               </div>
-              @if (id()) {
-                <div>
-                  <app-form-field
-                    [label]="'objectives.fields.status' | transloco"
-                    [inputId]="fid('status')"
-                  >
-                    <select
-                      [id]="fid('status')"
-                      (change)="set('status', $any($event.target).value)"
-                    >
-                      @for (s of statuses; track s) {
-                        <option [value]="s" [selected]="form().status === s">
-                          {{ statusKey(s) | transloco }}
-                        </option>
-                      }
-                    </select>
-                  </app-form-field>
-                  <app-field-help [scope]="scope" page="kpiForm" field="status" />
-                </div>
-              }
-            </div>
-
-            <div>
-              <app-form-field
+              <app-obj-field
                 [label]="'objectives.kpiFields.dataSource' | transloco"
                 [inputId]="fid('source')"
+                page="kpiForm"
+                help="dataSource"
               >
                 <input
                   [id]="fid('source')"
@@ -437,25 +479,38 @@ let nextId = 0;
                   [value]="form().data_source"
                   (input)="set('data_source', $any($event.target).value)"
                 />
-              </app-form-field>
-              <app-field-help [scope]="scope" page="kpiForm" field="dataSource" />
-            </div>
-
-            <div>
-              <app-switch
-                [checked]="form().measurement_reminders"
-                (checkedChange)="set('measurement_reminders', $event)"
-              >
-                {{ 'objectives.kpiFields.reminders' | transloco }}
-              </app-switch>
-              <app-field-help [scope]="scope" page="kpiForm" field="reminders" />
-            </div>
-
-            @if (id()) {
+              </app-obj-field>
               <div>
-                <app-form-field
+                <app-switch
+                  [checked]="form().measurement_reminders"
+                  (checkedChange)="set('measurement_reminders', $event)"
+                >
+                  {{ 'objectives.kpiFields.reminders' | transloco }}
+                </app-switch>
+                <p class="mt-1 text-meta text-fg-muted">
+                  {{ 'objectives.kpiForm.remindersHint' | transloco }}
+                </p>
+              </div>
+              @if (id()) {
+                <app-obj-field
+                  [label]="'objectives.fields.status' | transloco"
+                  [inputId]="fid('status')"
+                  page="kpiForm"
+                  help="status"
+                >
+                  <select [id]="fid('status')" (change)="set('status', $any($event.target).value)">
+                    @for (s of statuses; track s) {
+                      <option [value]="s" [selected]="form().status === s">
+                        {{ statusKey(s) | transloco }}
+                      </option>
+                    }
+                  </select>
+                </app-obj-field>
+                <app-obj-field
                   [label]="'objectives.fields.changeReason' | transloco"
                   [inputId]="fid('reason')"
+                  page="kpiForm"
+                  help="changeReason"
                 >
                   <input
                     [id]="fid('reason')"
@@ -464,21 +519,27 @@ let nextId = 0;
                     [value]="changeReason()"
                     (input)="changeReason.set($any($event.target).value)"
                   />
-                </app-form-field>
-                <app-field-help [scope]="scope" page="kpiForm" field="changeReason" />
-              </div>
-            }
+                </app-obj-field>
+              }
+            </fieldset>
+          </app-card>
 
-            <div class="flex flex-wrap justify-end gap-2">
-              <app-button variant="ghost" (click)="cancel()">
-                {{ 'common.cancel' | transloco }}
-              </app-button>
-              <app-button type="submit" [loading]="saving()" [disabled]="saving()">
-                {{ (id() ? 'objectives.form.save' : 'objectives.kpiForm.create') | transloco }}
-              </app-button>
-            </div>
-          </form>
-        </app-card>
+          <div
+            class="sticky bottom-0 z-10 -mx-4 flex flex-wrap justify-end gap-2 border-t border-border bg-bg/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0"
+          >
+            <app-button variant="secondary" (click)="cancel()">{{
+              'common.cancel' | transloco
+            }}</app-button>
+            <app-button
+              type="submit"
+              [loading]="saving()"
+              [disabled]="saving()"
+              data-testid="kpi-save"
+            >
+              {{ (id() ? 'objectives.form.save' : 'objectives.kpiForm.create') | transloco }}
+            </app-button>
+          </div>
+        </form>
 
         <div class="mt-6"><app-why-it-matters [scope]="scope" page="kpiForm" /></div>
       }
@@ -488,13 +549,17 @@ let nextId = 0;
 export class KpiEditor {
   private readonly api = inject(ObjectivesApi);
   private readonly selectedOrg = inject(SelectedOrgService);
+  private readonly language = inject(LanguageService);
   private readonly notifications = inject(NotificationService);
   private readonly router = inject(Router);
+  private readonly flows = inject(CreateFlowService);
 
   /** Route param `:id` when editing. */
   readonly id = input<string | undefined>(undefined);
   /** Query param `?objective=` to link a new KPI to an objective. */
   readonly objective = input<string | undefined>(undefined);
+  /** `?focus=target` ("Juster målverdi" on an off-track KPI). */
+  readonly focus = input<string | undefined>(undefined);
 
   protected readonly scope = OBJECTIVES_SCOPE;
   protected readonly systems = MANAGEMENT_SYSTEMS;
@@ -510,6 +575,9 @@ export class KpiEditor {
   ] as const;
   private readonly uid = ++nextId;
 
+  /** "Create from here" (objective → KPI): objective, system, owner and department. */
+  protected readonly flow = this.flows.consume(inject(ActivatedRoute), { targetType: 'kpi' });
+
   protected readonly state = signal<'loading' | 'error' | 'ready'>('ready');
   protected readonly original = signal<KpiDetail | null>(null);
   protected readonly form = signal<KpiFormValue>(EMPTY_KPI_FORM);
@@ -519,6 +587,7 @@ export class KpiEditor {
   protected readonly saving = signal(false);
   protected readonly errorKey = signal<string | null>(null);
 
+  protected readonly lang = computed(() => this.language.active());
   protected readonly nameMissing = computed(() => this.submitted() && !this.form().name.trim());
   protected readonly payload = computed(() => kpiPayload(this.form()));
   protected readonly thresholdProblem = computed(() => {
@@ -529,40 +598,121 @@ export class KpiEditor {
     }
     return thresholdError(p.direction, p.target_value, p.warning_value);
   });
+  /** The thresholds in plain words ("4 or less is on track; 5-8 at risk; above 8 off track"). */
+  protected readonly readingText = computed(() => {
+    const p = this.payload();
+    if (p.target_value === null || Number.isNaN(p.target_value)) {
+      return null;
+    }
+    const unit = this.form().unit.trim();
+    const v = (n: number) =>
+      `${formatNumber(n, this.language.locale(), '1.0-2')}${unit ? ' ' + unit : ''}`;
+    const dir = p.direction;
+    if (p.warning_value === null || Number.isNaN(p.warning_value)) {
+      return this.language.translate(`objectives.kpiForm.reading.${dir}NoWarning`, {
+        target: v(p.target_value),
+      });
+    }
+    return this.language.translate(`objectives.kpiForm.reading.${dir}`, {
+      target: v(p.target_value),
+      warning: v(p.warning_value),
+    });
+  });
   protected readonly orphanObjective = computed(() => {
     const ref = this.original()?.objective;
     const id = this.form().objective_id;
     return ref && ref.id === id && !this.objectives().some((o) => o.id === id) ? ref : null;
   });
+  private readonly fromObjective = computed(
+    () => this.objective() ?? str(this.flow()?.prefill['objective_id']) ?? undefined,
+  );
   protected readonly backLink = computed(() => {
     const id = this.id();
     if (id) {
       return ['/objectives/kpis', id];
     }
-    const objective = this.objective();
+    const objective = this.fromObjective();
     return objective ? ['/objectives', objective] : ['/objectives/kpis'];
   });
+  protected readonly backLabelKey = computed(() =>
+    this.id()
+      ? 'objectives.common.backToKpi'
+      : this.fromObjective()
+        ? 'objectives.common.backToObjective'
+        : 'objectives.common.backToKpis',
+  );
+  protected readonly breadcrumbs = computed(() => {
+    const k = this.original();
+    return k
+      ? [
+          OBJECTIVES_ROOT_CRUMB,
+          KPIS_CRUMB,
+          { label: k.code, link: ['/objectives/kpis', k.id] },
+          { labelKey: 'objectives.kpiForm.editTitle' },
+        ]
+      : [OBJECTIVES_ROOT_CRUMB, KPIS_CRUMB, { labelKey: 'objectives.kpiForm.newTitle' }];
+  });
+  protected readonly askDefinitionPrompt = computed(() =>
+    this.language.translate('objectives.ai.prompts.askKpiDefinition', {
+      name: this.form().name || '-',
+    }),
+  );
 
   private request = new Subscription();
   private objectivesRequest = new Subscription();
+  private prefillRequest = new Subscription();
 
   constructor() {
     inject(DestroyRef).onDestroy(() => {
       this.request.unsubscribe();
       this.objectivesRequest.unsubscribe();
+      this.prefillRequest.unsubscribe();
     });
     providePageContext(() => ({
       module: OBJECTIVES_MODULE,
       entityType: 'kpi',
       entityId: this.id() ?? null,
       view: this.id() ? 'edit' : 'new',
-      title: this.original()?.name ?? null,
+      title:
+        this.original()?.name ??
+        this.language.translate(
+          this.id() ? 'objectives.kpiForm.editTitle' : 'objectives.kpiForm.newTitle',
+        ),
     }));
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();
       const id = this.id();
-      const objective = this.objective();
+      const objective = this.fromObjective();
       untracked(() => this.load(orgId, id, objective));
+    });
+    // Flow prefill (objective → KPI): only fills what is still empty.
+    effect(() => {
+      const prefill = this.flow()?.prefill;
+      if (!prefill || this.id()) {
+        return;
+      }
+      untracked(() =>
+        this.form.update((f) => ({
+          ...f,
+          objective_id: f.objective_id ?? str(prefill['objective_id']),
+          management_system:
+            f.management_system ||
+            ((str(prefill['management_system']) as ManagementSystem | null) ?? ''),
+          owner_user_id: f.owner_user_id ?? str(prefill['owner_user_id']),
+          department_id: f.department_id ?? str(prefill['department_id']),
+        })),
+      );
+    });
+    effect(() => {
+      if (this.focus() === 'target' && this.state() === 'ready' && this.id()) {
+        untracked(() =>
+          setTimeout(() => {
+            const el = document.getElementById(this.fid('target_value'));
+            el?.scrollIntoView?.({ block: 'center' });
+            el?.focus({ preventScroll: true });
+          }),
+        );
+      }
     });
   }
 
@@ -583,6 +733,9 @@ export class KpiEditor {
   }
 
   protected cancel(): void {
+    if (!this.id()) {
+      this.flows.cancel();
+    }
     void this.router.navigate(this.backLink());
   }
 
@@ -612,6 +765,13 @@ export class KpiEditor {
     call.subscribe({
       next: (saved) => {
         this.saving.set(false);
+        if (!id) {
+          // objective → KPI writes no link (the objective field relates them); this ends the flow.
+          this.flows
+            .complete(saved.id, 'kpi')
+            .pipe(catchError(() => of(null)))
+            .subscribe();
+        }
         this.notifications.success(
           id ? 'objectives.notices.kpiSaved' : 'objectives.notices.kpiCreated',
         );
@@ -627,6 +787,7 @@ export class KpiEditor {
   private load(orgId: string | null, id: string | undefined, objective: string | undefined): void {
     this.request.unsubscribe();
     this.objectivesRequest.unsubscribe();
+    this.prefillRequest.unsubscribe();
     if (!orgId) {
       return;
     }
@@ -634,7 +795,24 @@ export class KpiEditor {
       .list(orgId, { status: ['draft', 'active'], sort: 'code', limit: 200 })
       .subscribe({ next: (page) => this.objectives.set(page.items), error: () => undefined });
     if (!id) {
-      this.form.set({ ...EMPTY_KPI_FORM, objective_id: objective ?? null });
+      this.form.update((f) => ({
+        ...EMPTY_KPI_FORM,
+        ...this.keepPrefill(f),
+        objective_id: objective ?? f.objective_id,
+      }));
+      if (objective) {
+        // Take the objective's system, owner and department as sensible defaults.
+        this.prefillRequest = this.api.get(orgId, objective).subscribe({
+          next: (o) =>
+            this.form.update((f) => ({
+              ...f,
+              management_system: f.management_system || (o.management_system ?? ''),
+              owner_user_id: f.owner_user_id ?? o.owner?.id ?? null,
+              department_id: f.department_id ?? o.department_id,
+            })),
+          error: () => undefined,
+        });
+      }
       return;
     }
     this.state.set('loading');
@@ -650,5 +828,15 @@ export class KpiEditor {
       },
       error: () => this.state.set('error'),
     });
+  }
+
+  /** Values a flow may already have filled in before the form (re)loads. */
+  private keepPrefill(f: KpiFormValue): Partial<KpiFormValue> {
+    return {
+      objective_id: f.objective_id,
+      management_system: f.management_system,
+      owner_user_id: f.owner_user_id,
+      department_id: f.department_id,
+    };
   }
 }

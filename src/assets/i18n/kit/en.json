@@ -407,7 +407,8 @@
       "to_document": "Control document (procedure)",
       "to_policy": "Policy that addresses the risk",
       "to_treatment": "Risk treatment",
-      "to_task": "Task"
+      "to_task": "Task",
+      "to_objective": "Objective that reduces the risk"
     },
     "supplier": {
       "to_contract": "Contract with this supplier",
@@ -430,6 +431,17 @@
     },
     "management_review": {
       "to_task": "Action (task)"
+    },
+    "opportunity": {
+      "to_objective": "Objective that pursues the opportunity"
+    },
+    "objective": {
+      "to_kpi": "KPI that measures the objective",
+      "to_task": "Task on the objective"
+    },
+    "kpi": {
+      "to_deviation": "Deviation (corrective action)",
+      "to_task": "Follow-up task"
     },
     "formMissing": "This form is not available yet. Create the record from its own page and link it from the Related tab."
   },
