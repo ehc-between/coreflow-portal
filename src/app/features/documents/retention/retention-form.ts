@@ -179,6 +179,11 @@ export function ruleBody(v: RetentionFormValue): RetentionRuleCreate | null {
                     data-testid="retention-months"
                   />
                 </app-form-field>
+                @if (yearsHint(); as years) {
+                  <p class="mt-1 text-meta text-fg-muted" data-testid="retention-years">
+                    {{ 'documents.control.retention.equalsYears' | transloco: { count: years } }}
+                  </p>
+                }
                 <app-field-help scope="documents" page="retentionForm" field="months" />
               </div>
               <div>
@@ -249,7 +254,7 @@ export function ruleBody(v: RetentionFormValue): RetentionRuleCreate | null {
                   (input)="set('description', $any($event.target).value)"
                 ></textarea>
               </app-form-field>
-              <label class="inline-flex items-center gap-2 text-[13.5px] text-fg sm:col-span-2">
+              <label class="inline-flex items-center gap-2 text-ui text-fg sm:col-span-2">
                 <input
                   type="checkbox"
                   [checked]="form().active"
@@ -308,15 +313,13 @@ export function ruleBody(v: RetentionFormValue): RetentionRuleCreate | null {
           backLabelKey="documents.control.retention.back"
         >
           <div header>
-            <p class="mb-1 text-[12.5px] text-fg-subtle">
+            <p class="mb-1 text-meta text-fg-subtle">
               {{ 'documents.control.retention.appliesTo.' + r.applies_to | transloco }}
             </p>
-            <h1
-              class="font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]"
-            >
+            <h1 class="font-display text-page font-bold tracking-[-0.03em] text-fg">
               {{ r.name }}
             </h1>
-            <p class="mt-1 text-[12.5px] text-fg-muted">
+            <p class="mt-1 text-meta text-fg-muted">
               {{ 'documents.control.retention.usedBy' | transloco: { count: r.usage_count } }}
             </p>
           </div>
@@ -354,7 +357,7 @@ export function ruleBody(v: RetentionFormValue): RetentionRuleCreate | null {
           <app-alert tone="error">{{ key | transloco }}</app-alert>
         </div>
       } @else {
-        <p class="py-16 text-center text-[14px] text-fg-muted">
+        <p class="py-16 text-center text-body text-fg-muted">
           {{ 'documents.control.common.loading' | transloco }}
         </p>
       }
@@ -362,14 +365,12 @@ export function ruleBody(v: RetentionFormValue): RetentionRuleCreate | null {
       <div class="mx-auto max-w-[860px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
         <a
           routerLink="/documents/retention"
-          class="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
+          class="mb-3 inline-flex items-center gap-1.5 text-ui font-semibold text-fg-muted hover:text-fg"
         >
           <app-icon name="back" [size]="16" />
           {{ 'documents.control.retention.back' | transloco }}
         </a>
-        <h1
-          class="mb-4 font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]"
-        >
+        <h1 class="mb-4 font-display text-page font-bold tracking-[-0.03em] text-fg">
           {{ 'documents.control.retention.new' | transloco }}
         </h1>
         <ng-container [ngTemplateOutlet]="formTpl" />
@@ -389,6 +390,11 @@ export class RetentionFormPage {
   protected readonly tabs = TABS;
   protected readonly fieldLabels = RETENTION_FIELD_LABELS;
   protected readonly appliesTo = RETENTION_APPLIES_TO;
+  /** "Tilsvarer 10 år" under the months field when the period is whole years. */
+  protected readonly yearsHint = computed(() => {
+    const months = intOrNull(this.form().months);
+    return months && months > 0 && months % 12 === 0 ? months / 12 : null;
+  });
   protected readonly triggers = RETENTION_TRIGGERS;
   protected readonly dispositions = RETENTION_DISPOSITIONS;
 

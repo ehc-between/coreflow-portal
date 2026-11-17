@@ -3,8 +3,8 @@
     "nav": {
       "label": "Document management sections",
       "documents": "Documents",
-      "register": "Master list",
-      "campaigns": "Campaigns",
+      "register": "Register",
+      "campaigns": "Distribution",
       "external": "External documents",
       "types": "Types",
       "templates": "Templates",
@@ -92,7 +92,7 @@
       "invalid": "Some values are not valid. Check the form and try again."
     },
     "register": {
-      "title": "Master document list",
+      "title": "Document register (for audits)",
       "searchPlaceholder": "Search code or title…",
       "export": "Export CSV",
       "exportFailed": "The export could not be created. Try again.",
@@ -112,7 +112,7 @@
       }
     },
     "campaigns": {
-      "title": "Distribution campaigns",
+      "title": "Distribute and ask for confirmation",
       "searchPlaceholder": "Search campaigns…",
       "new": "New campaign",
       "back": "Back to campaigns",
@@ -215,7 +215,9 @@
           "role": "Role: {{ name }}",
           "department": "Department: {{ name }}"
         }
-      }
+      },
+      "needAudience": "Add at least one recipient to start.",
+      "needDocument": "Choose an approved document first."
     },
     "external": {
       "title": "External documents",
@@ -253,7 +255,8 @@
         "issuedOn": "Issued on",
         "notes": "Notes",
         "lastReviewed": "Last reviewed"
-      }
+      },
+      "fillMissing": "Add the version and issue date, so everyone can see which edition you work by."
     },
     "types": {
       "title": "Document types",
@@ -279,7 +282,11 @@
         "nextCode": "Next code",
         "documents": "Documents",
         "ack": "Require read and acknowledge"
-      }
+      },
+      "advanced": "Advanced",
+      "keyAuto": "Made from the name",
+      "format": "Code format",
+      "formatCustom": "Custom format"
     },
     "templates": {
       "title": "Document templates",
@@ -322,7 +329,7 @@
       "appliesTo": {
         "document": "Controlled documents",
         "external_document": "External documents",
-        "record": "Other records"
+        "record": "All documents (controlled and external)"
       },
       "triggers": {
         "created": "From creation",
@@ -343,7 +350,9 @@
         "legalBasis": "Legal basis",
         "period": "Period",
         "usage": "In use"
-      }
+      },
+      "periodYears": "{{ count }} years · {{ trigger }}",
+      "equalsYears": "That is {{ count }} years."
     },
     "compare": {
       "title": "Revision history: {{ title }}",
@@ -367,7 +376,8 @@
       "summarise": "Draft change reason",
       "summaryTitle": "Suggested change reason",
       "summaryHint": "Check the text, then use it as the change reason when you submit the revision.",
-      "askExplain": "Explain the main changes between revision {{ from }} and revision {{ to }} of this document and who they affect."
+      "askExplain": "Explain the main changes between revision {{ from }} and revision {{ to }} of this document and who they affect.",
+      "crumb": "Compare revisions"
     },
     "draft": {
       "title": "Draft with AI",
@@ -453,5 +463,116 @@
     "campaignAcknowledged": "Acknowledgement received",
     "campaignCompleted": "Everyone acknowledged",
     "campaignClosed": "Campaign closed"
+  },
+  "page": {
+    "list": {
+      "suggestionHint": "Suggested requirements are proposals that are not yet counted. Open the document to accept or reject them."
+    },
+    "detail": {
+      "askCovers": "Which requirements does this document cover?",
+      "deleteDraft": "Delete draft",
+      "lifecycle": "Where the document is in its life",
+      "writtenBy": "Written by {{name}}, {{date}}",
+      "approvedByOn": "Approved by {{name}}, {{date}}",
+      "approvedOn": "Approved {{date}}",
+      "draftRevision": "{{rev}} (draft)"
+    },
+    "fields": {
+      "owner": "Owner",
+      "approvedBy": "Approved by",
+      "approvedOn": "Approved on",
+      "effectiveFrom": "In force from",
+      "nextReview": "Next periodic review",
+      "changeReason": "Reason for this revision",
+      "approvalNote": "Approval note"
+    },
+    "new": {
+      "about": "About the document",
+      "errors": {
+        "type": "Choose what kind of document this is.",
+        "title": "Give the document a title."
+      }
+    },
+    "editor": {
+      "crumb": "Edit"
+    }
+  },
+  "approval": {
+    "approver": "Who should approve it?",
+    "anyApprover": "Anyone who can approve documents",
+    "submitNamed": "The person you chose is notified. Anyone who can approve documents may still decide.",
+    "segregationNote": "Your organisation requires someone other than the author to approve, so you are not on the list.",
+    "noApprovers": "Nobody else can approve documents yet. Ask an administrator to give someone the approver role.",
+    "approveBody": "Rev {{rev}} becomes the approved version everyone reads. Your note is kept with the approval.",
+    "noteLabel": "Approval note",
+    "notePlaceholder": "For example: checked against the new procurement routine",
+    "selfBlocked": "You wrote this revision, so someone else must approve it.",
+    "waitingFor": "Waiting for approval by {{name}}",
+    "waitingAny": "Waiting for approval",
+    "submittedOn": "sent {{date}}",
+    "segregationExplained": "The person who wrote the revision cannot approve it themselves (segregation of duties).",
+    "errors": {
+      "invalidApprover": "That person cannot approve documents. Choose someone else.",
+      "approverIsAuthor": "You wrote this revision, so you cannot be its approver. Choose someone else."
+    }
+  },
+  "readConfirm": {
+    "on": "Readers must confirm that they have read and understood each approved revision.",
+    "off": "Readers are not asked to confirm that they have read it.",
+    "revision": "Rev {{rev}}",
+    "remind": "Send a reminder",
+    "export": "Export list",
+    "search": "Search people",
+    "showAll": "Show all ({{count}})",
+    "afterApproval": "The list of who has confirmed appears once the document is approved.",
+    "savedToast": "Read-and-understood setting saved.",
+    "csv": {
+      "name": "Name",
+      "email": "Email",
+      "status": "Status",
+      "date": "Confirmed",
+      "done": "Confirmed",
+      "pending": "Not yet"
+    }
+  },
+  "link": {
+    "title": "Connections",
+    "intro": "Say which requirements this document documents and what it belongs to. Then it shows up on the standards pages and on the records.",
+    "requirements": "Requirements it documents",
+    "requirementsHint": "Saved as confirmed links. Requirements from the type and template are added as suggestions you can accept later.",
+    "askWhich": "Which requirements should \"{{title}}\" document?",
+    "fromRequirement": "Created for requirement {{ref}}",
+    "records": "Linked records",
+    "recordPlaceholder": "Search for a process, risk, obligation …",
+    "noRecords": "No matching records.",
+    "removeRecord": "Remove {{title}}",
+    "processLabel": "Process the document describes",
+    "errors": {
+      "unknownRequirement": "One of the requirements was not found. Remove it and pick it again.",
+      "tooManyRequirements": "Pick at most 30 requirements.",
+      "tooManyRelated": "Link at most 20 records.",
+      "invalidLinkType": "One of the links could not be saved. Remove it and try again."
+    }
+  },
+  "proposals": {
+    "reviewsDue": "{{count}} documents are due for periodic review.",
+    "openReviewsDue": "Show documents due for review",
+    "emptyNext": "When someone sends a document for approval, it shows up here.",
+    "openDocuments": "Go to documents",
+    "owner": "Owner {{name}}",
+    "updatedAt": "Updated {{date}}",
+    "newOfType": "Type: {{type}}",
+    "forRequirement": "For {{requirement}}",
+    "proposedBy": "Proposed by {{name}}",
+    "rejectTitle": "Reject \"{{title}}\"?",
+    "rejectBody": "The draft is not added to the documents. The person who proposed it sees your reason.",
+    "rejectReason": "Reason (optional)",
+    "rejectPlaceholder": "For example: we already have a procedure for this",
+    "reasonShown": "Reason: {{reason}}",
+    "status": {
+      "pending": "Waiting",
+      "approved": "Accepted",
+      "rejected": "Rejected"
+    }
   }
 }

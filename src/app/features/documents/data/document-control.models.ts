@@ -4,6 +4,8 @@
  * naive-UTC ISO strings; dates are `YYYY-MM-DD`.
  */
 
+import type { RelatedRecordInput } from '../../../core/documents/document.models';
+
 /** A person reference `{id, name}`. */
 export interface PersonRef {
   readonly id: string;
@@ -39,7 +41,8 @@ export interface DocumentType {
 }
 
 export interface DocumentTypeCreate {
-  readonly key: string;
+  /** Optional: generated from the name when omitted (A01). */
+  readonly key?: string;
   readonly name: string;
   readonly description?: string | null;
   readonly numbering_prefix?: string | null;
@@ -86,6 +89,10 @@ export interface DocumentFromTemplate {
   readonly doc_code?: string | null;
   readonly owner_user_id?: string | null;
   readonly visibility?: 'organization' | 'restricted';
+  /** Clause / requirement refs the new document documents (confirmed links). */
+  readonly requirement_refs?: readonly string[];
+  /** Records to link the new document to. */
+  readonly related?: readonly RelatedRecordInput[];
 }
 
 // --- retention rules ----------------------------------------------------------------

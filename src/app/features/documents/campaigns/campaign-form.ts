@@ -77,12 +77,12 @@ export function campaignBody(form: {
     <div class="mx-auto max-w-[860px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       <a
         routerLink="/documents/campaigns"
-        class="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
+        class="mb-3 inline-flex items-center gap-1.5 text-ui font-semibold text-fg-muted hover:text-fg"
       >
         <app-icon name="back" [size]="16" />
         {{ 'documents.control.campaigns.back' | transloco }}
       </a>
-      <h1 class="mb-4 font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]">
+      <h1 class="mb-4 font-display text-page font-bold tracking-[-0.03em] text-fg">
         {{ 'documents.control.campaigns.new' | transloco }}
       </h1>
       <app-documents-page-guide class="mb-4" page="campaignForm" />
@@ -116,7 +116,7 @@ export function campaignBody(form: {
             </app-form-field>
             <app-field-help scope="documents" page="campaignForm" field="document" />
             @if (documentsLoaded() && documents().length === 0) {
-              <p class="text-[12.5px] text-fg-muted">
+              <p class="text-meta text-fg-muted">
                 {{ 'documents.control.campaigns.noApproved' | transloco }}
               </p>
             }
@@ -157,7 +157,7 @@ export function campaignBody(form: {
               </div>
             </div>
 
-            <label class="inline-flex items-start gap-2 text-[13.5px] text-fg">
+            <label class="inline-flex items-start gap-2 text-ui text-fg">
               <input
                 type="checkbox"
                 class="mt-0.5"
@@ -166,7 +166,7 @@ export function campaignBody(form: {
               />
               <span>
                 {{ 'documents.control.campaigns.fields.requireAck' | transloco }}
-                <span class="block text-[12px] text-fg-subtle">
+                <span class="block text-meta text-fg-subtle">
                   {{ 'documents.control.campaigns.requireAckHint' | transloco }}
                 </span>
               </span>
@@ -210,6 +210,16 @@ export function campaignBody(form: {
           >
             {{ 'documents.control.campaigns.saveDraft' | transloco }}
           </app-button>
+          @if (!canLaunch() && !busy()) {
+            <span class="text-meta text-fg-muted" data-testid="campaign-launch-hint">
+              {{
+                (documentId()
+                  ? 'documents.control.campaigns.needAudience'
+                  : 'documents.control.campaigns.needDocument'
+                ) | transloco
+              }}
+            </span>
+          }
           <a routerLink="/documents/campaigns">
             <app-button type="button" variant="ghost">
               {{ 'documents.control.common.cancel' | transloco }}

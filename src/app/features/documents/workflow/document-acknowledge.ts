@@ -33,7 +33,7 @@ import { Icon } from '../../../shared/ui/icon/icon';
       @if (acknowledgedAt(); as at) {
         <div
           role="status"
-          class="mt-4 flex items-center gap-2.5 rounded-tile border border-pass/30 bg-pass-soft px-4 py-3 text-[13.5px] text-pass"
+          class="mt-4 flex items-center gap-2.5 rounded-tile border border-pass/30 bg-pass-soft px-4 py-3 text-ui text-pass"
         >
           <app-icon name="checkcircle" [size]="17" />
           <span>{{
@@ -45,10 +45,10 @@ import { Icon } from '../../../shared/ui/icon/icon';
           class="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-tile border border-accent-border bg-accent-soft px-4 py-3"
         >
           <div class="min-w-0">
-            <div class="text-[13.5px] font-semibold text-fg">
+            <div class="text-ui font-semibold text-fg">
               {{ 'documents.ack.promptTitle' | transloco }}
             </div>
-            <div class="text-[12.5px] text-fg-muted">
+            <div class="text-meta text-fg-muted">
               {{ 'documents.ack.promptBody' | transloco: { rev: rev() } }}
             </div>
           </div>

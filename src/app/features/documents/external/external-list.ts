@@ -33,8 +33,11 @@ import {
   ExternalSort,
   ExternalStatus,
 } from '../data/document-control.models';
-import { externalStatusTone } from '../shared/document-control-display';
+import { externalLifecycle } from '../shared/document-control-display';
+import { toneFor } from '../../../shared/ui/tones';
 import { DocumentsPageGuide } from '../shared/documents-page-guide';
+import { DocumentsNav } from '../shared/documents-nav';
+import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { DocumentControlPermissions } from '../shared/document-control-permissions';
 
 const PAGE_SIZE = 50;
@@ -108,11 +111,18 @@ export function externalQuery(
     Icon,
     Pager,
     DocumentsPageGuide,
+    DocumentsNav,
+    WhyItMatters,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-record-list-page
       titleKey="documents.control.external.title"
+      [breadcrumbs]="[
+        { labelKey: 'modules.names.documents', link: '/documents' },
+        { labelKey: 'documents.control.external.title' },
+      ]"
+      settingsLink="/documents/types"
       scope="documents"
       page="external"
       searchPlaceholderKey="documents.control.external.searchPlaceholder"
@@ -122,11 +132,11 @@ export function externalQuery(
       (search)="setQuery($event)"
       (viewApplied)="applyView($event)"
     >
-      <div intro class="mt-3">
-        <app-documents-page-guide page="external" lesson="external-documents" tour="external" />
-      </div>
+      <app-documents-nav nav />
+      <app-documents-page-guide help page="external" lesson="external-documents" tour="external" />
+      <app-why-it-matters below scope="documents" page="external" />
       @if (perms.canDraft()) {
-        <app-button toolbar size="sm" [appTourStep]="'documents-external-new'" (click)="create()">
+        <app-button primary [appTourStep]="'documents-external-new'" (click)="create()">
           <app-icon name="plus" [size]="14" />
           {{ 'documents.control.external.new' | transloco }}
         </app-button>
@@ -138,7 +148,7 @@ export function externalQuery(
         }}</label>
         <select
           id="ext-f-status"
-          class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
+          class="h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
           (change)="patch({ status: $any($event.target).value })"
         >
           @for (s of statusFilters; track s) {
@@ -152,7 +162,7 @@ export function externalQuery(
         }}</label>
         <select
           id="ext-f-sort"
-          class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
+          class="h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
           (change)="patch({ sort: $any($event.target).value })"
         >
           @for (s of sorts; track s) {
@@ -161,7 +171,7 @@ export function externalQuery(
             </option>
           }
         </select>
-        <label class="inline-flex h-10 items-center gap-1.5 text-[13px] text-fg-muted">
+        <label class="inline-flex h-10 items-center gap-1.5 text-ui text-fg-muted">
           <input
             type="checkbox"
             [checked]="filters().mine"
@@ -169,7 +179,7 @@ export function externalQuery(
           />
           {{ 'documents.control.filters.mine' | transloco }}
         </label>
-        <label class="inline-flex h-10 items-center gap-1.5 text-[13px] text-fg-muted">
+        <label class="inline-flex h-10 items-center gap-1.5 text-ui text-fg-muted">
           <input
             type="checkbox"
             [checked]="filters().reviewDue"
@@ -182,29 +192,29 @@ export function externalQuery(
       <app-card [padded]="false">
         @switch (state()) {
           @case ('loading') {
-            <p class="py-10 text-center text-[14px] text-fg-muted">
+            <p class="py-10 text-center text-body text-fg-muted">
               {{ 'documents.control.common.loading' | transloco }}
             </p>
           }
           @case ('error') {
-            <p class="py-10 text-center text-[14px] text-fail" role="alert">
+            <p class="py-10 text-center text-body text-fail" role="alert">
               {{ 'documents.control.common.loadFailed' | transloco }}
             </p>
           }
           @default {
             @if (rows().length === 0) {
-              <p class="py-10 text-center text-[14px] text-fg-muted">
+              <p class="py-10 text-center text-body text-fg-muted">
                 {{ 'documents.control.filters.noMatch' | transloco }}
               </p>
             } @else {
               <div class="overflow-x-auto">
-                <table class="w-full min-w-[720px] text-left text-[13px]">
+                <table class="w-full min-w-[720px] text-left text-ui">
                   <caption class="sr-only">
                     {{
                       'documents.control.external.title' | transloco
                     }}
                   </caption>
-                  <thead class="border-b border-border text-[12px] text-fg-muted">
+                  <thead class="border-b border-border text-meta text-fg-muted">
                     <tr>
                       <th scope="col" class="px-4 py-2 font-semibold">
                         {{ 'documents.control.fields.title' | transloco }}
@@ -236,7 +246,7 @@ export function externalQuery(
                             >{{ r.title }}</a
                           >
                           @if (r.code || r.reference) {
-                            <div class="mt-0.5 font-mono text-[12px] text-fg-subtle">
+                            <div class="mt-0.5 font-mono text-meta text-fg-subtle">
                               {{ r.code || r.reference }}
                             </div>
                           }
@@ -358,7 +368,7 @@ export class ExternalListPage {
   }
 
   protected tone(status: ExternalStatus) {
-    return externalStatusTone(status);
+    return toneFor('lifecycle', externalLifecycle(status));
   }
 
   protected setQuery(q: string): void {

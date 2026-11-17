@@ -21,6 +21,8 @@ import { Icon } from '../../../shared/ui/icon/icon';
 import { DocumentControlApi } from '../data/document-control-api';
 import { DocumentType } from '../data/document-control.models';
 import { DocumentsPageGuide } from '../shared/documents-page-guide';
+import { DocumentsNav } from '../shared/documents-nav';
+import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { DocumentControlPermissions } from '../shared/document-control-permissions';
 
 /** Case-insensitive match on name, key and prefix. */
@@ -50,11 +52,18 @@ export function matchesType(type: DocumentType, q: string): boolean {
     Card,
     Icon,
     DocumentsPageGuide,
+    DocumentsNav,
+    WhyItMatters,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-record-list-page
       titleKey="documents.control.types.title"
+      [breadcrumbs]="[
+        { labelKey: 'modules.names.documents', link: '/documents' },
+        { labelKey: 'documents.control.types.title' },
+      ]"
+      settingsLink="/documents/types"
       scope="documents"
       page="types"
       searchPlaceholderKey="documents.control.types.searchPlaceholder"
@@ -64,17 +73,17 @@ export function matchesType(type: DocumentType, q: string): boolean {
       (search)="q.set($event)"
       (viewApplied)="showInactive.set($event.filters['inactive'] === '1')"
     >
-      <div intro class="mt-3">
-        <app-documents-page-guide page="types" lesson="numbering-and-types" tour="types" />
-      </div>
+      <app-documents-nav nav />
+      <app-documents-page-guide help page="types" lesson="numbering-and-types" tour="types" />
+      <app-why-it-matters below scope="documents" page="types" />
       @if (perms.canManage()) {
-        <app-button toolbar size="sm" [appTourStep]="'documents-type-new'" (click)="create()">
+        <app-button primary [appTourStep]="'documents-type-new'" (click)="create()">
           <app-icon name="plus" [size]="14" />
           {{ 'documents.control.types.new' | transloco }}
         </app-button>
       }
       <ng-container filters>
-        <label class="inline-flex h-10 items-center gap-1.5 text-[13px] text-fg-muted">
+        <label class="inline-flex h-10 items-center gap-1.5 text-ui text-fg-muted">
           <input
             type="checkbox"
             [checked]="showInactive()"
@@ -87,29 +96,29 @@ export function matchesType(type: DocumentType, q: string): boolean {
       <app-card [padded]="false">
         @switch (state()) {
           @case ('loading') {
-            <p class="py-10 text-center text-[14px] text-fg-muted">
+            <p class="py-10 text-center text-body text-fg-muted">
               {{ 'documents.control.common.loading' | transloco }}
             </p>
           }
           @case ('error') {
-            <p class="py-10 text-center text-[14px] text-fail" role="alert">
+            <p class="py-10 text-center text-body text-fail" role="alert">
               {{ 'documents.control.common.loadFailed' | transloco }}
             </p>
           }
           @default {
             @if (rows().length === 0) {
-              <p class="py-10 text-center text-[14px] text-fg-muted">
+              <p class="py-10 text-center text-body text-fg-muted">
                 {{ 'documents.control.filters.noMatch' | transloco }}
               </p>
             } @else {
               <div class="overflow-x-auto">
-                <table class="w-full min-w-[640px] text-left text-[13px]">
+                <table class="w-full min-w-[640px] text-left text-ui">
                   <caption class="sr-only">
                     {{
                       'documents.control.types.title' | transloco
                     }}
                   </caption>
-                  <thead class="border-b border-border text-[12px] text-fg-muted">
+                  <thead class="border-b border-border text-meta text-fg-muted">
                     <tr>
                       <th scope="col" class="px-4 py-2 font-semibold">
                         {{ 'documents.control.types.fields.name' | transloco }}
@@ -137,9 +146,9 @@ export function matchesType(type: DocumentType, q: string): boolean {
                             class="font-semibold text-fg hover:underline"
                             >{{ t.name }}</a
                           >
-                          <div class="mt-0.5 font-mono text-[12px] text-fg-subtle">{{ t.key }}</div>
+                          <div class="mt-0.5 font-mono text-meta text-fg-subtle">{{ t.key }}</div>
                         </td>
-                        <td class="px-2 py-2.5 font-mono text-[12px] text-fg-muted">
+                        <td class="px-2 py-2.5 font-mono text-meta text-fg-muted">
                           {{
                             t.next_code || ('documents.control.types.manualNumbering' | transloco)
                           }}
@@ -152,7 +161,7 @@ export function matchesType(type: DocumentType, q: string): boolean {
                               : '—'
                           }}
                           @if (t.default_acknowledgement_required) {
-                            <span class="block text-[11.5px] text-fg-subtle">{{
+                            <span class="block text-micro text-fg-subtle">{{
                               'documents.control.types.ackByDefault' | transloco
                             }}</span>
                           }

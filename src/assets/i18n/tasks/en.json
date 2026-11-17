@@ -405,7 +405,8 @@
       "management_review_signoff": "Management review to sign off",
       "project_milestone": "Project milestone",
       "training_due": "Training",
-      "other": "Other"
+      "other": "Other",
+      "document_periodic_review": "Document review due"
     },
     "why": {
       "overdue": "The deadline passed {{ days }} days ago",

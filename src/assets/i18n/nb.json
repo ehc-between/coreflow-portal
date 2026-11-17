@@ -270,7 +270,7 @@
     "status": {
       "all": "Alle statuser",
       "draft": "Utkast",
-      "in_review": "Til gjennomgang",
+      "in_review": "Til godkjenning",
       "approved": "Godkjent",
       "obsolete": "Utgått",
       "superseded": "Erstattet",
@@ -344,16 +344,16 @@
     },
     "review": {
       "title": "Periodisk gjennomgang",
-      "overdue": "Gjennomgang forfalt",
-      "dueSoon": "Gjennomgang snart",
+      "overdue": "Periodisk gjennomgang forfalt",
+      "dueSoon": "Periodisk gjennomgang snart",
       "interval": "Gjennomgangsintervall",
       "noInterval": "Ingen periodisk gjennomgang",
       "everyMonths": "Hver {{months}}. måned",
       "nextReview": "Neste gjennomgang",
       "nextReviewHint": "La stå tomt for å beregne datoen fra intervallet ved neste godkjenning.",
-      "edit": "Endre gjennomgang",
+      "edit": "Endre intervall for gjennomgang",
       "savedToast": "Innstillingene for gjennomgang er lagret.",
-      "filter": "Gjennomgang forfaller"
+      "filter": "Periodisk gjennomgang"
     },
     "ack": {
       "requireLabel": "Krev «Lest og forstått»",
@@ -384,14 +384,14 @@
     }
   },
   "review": {
-    "title": "Trenger din gjennomgang",
-    "subtitle": "Dokumenter som venter på din godkjenning, og foreslåtte utkast til dokumentbiblioteket.",
-    "empty": "Du er à jour. Ingenting trenger gjennomgang.",
+    "title": "Til godkjenning",
+    "subtitle": "Dokumenter som er sendt til deg for godkjenning, og utkast som er foreslått til dokumentbiblioteket.",
+    "empty": "Ingenting venter på godkjenning.",
     "queuedAt": "Lagt til {{date}}",
     "open": "Åpne",
     "reject": "Avvis",
-    "backToFeed": "Tilbake til gjennomgang",
-    "reviewTitle": "Gjennomgå forslag",
+    "backToFeed": "Tilbake til godkjenning",
+    "reviewTitle": "Vurder det foreslåtte utkastet",
     "saveDraft": "Lagre utkast",
     "approveAndPublish": "Godta og send til godkjenning",
     "notPending": "Dette forslaget er allerede behandlet og kan ikke lenger redigeres.",
@@ -401,8 +401,8 @@
     "rejectedToast": "Utkast avvist.",
     "documentsHeading": "Dokumenter som venter på godkjenning ({{count}})",
     "proposalsHeading": "Foreslåtte utkast ({{count}})",
-    "submittedAt": "Sendt {{date}}",
-    "reviewDocument": "Gå gjennom"
+    "submittedAt": "Sendt inn {{date}}",
+    "reviewDocument": "Åpne"
   },
   "settings": {
     "title": "Organisasjonsinnstillinger",
@@ -559,7 +559,8 @@
         "checklists": "Sjekklistemaler",
         "intake": "Meldekanal",
         "matrices": "Risikomatriser",
-        "settings": "Innstillinger"
+        "settings": "Innstillinger",
+        "retention": "Oppbevaringsregler"
       },
       "membersSection": "Medlemmer, avdelinger og invitasjoner"
     },

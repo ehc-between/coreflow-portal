@@ -154,6 +154,7 @@ export const MODULE_SETTINGS_CARDS: readonly ModuleSettingsCard[] = [
     links: [
       { path: '/documents/types', labelKey: 'settings.hub.moduleLinks.types' },
       { path: '/documents/templates', labelKey: 'settings.hub.moduleLinks.templates' },
+      { path: '/documents/retention', labelKey: 'settings.hub.moduleLinks.retention' },
     ],
   },
   {

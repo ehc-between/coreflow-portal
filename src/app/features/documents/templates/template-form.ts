@@ -164,12 +164,10 @@ const TABS: readonly RecordTab[] = ['details', 'activity', 'related'];
           backLabelKey="documents.control.templates.back"
         >
           <div header>
-            <p class="mb-1 text-[12.5px] text-fg-subtle">
+            <p class="mb-1 text-meta text-fg-subtle">
               {{ t.document_type_name || ('documents.control.templates.anyType' | transloco) }}
             </p>
-            <h1
-              class="font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]"
-            >
+            <h1 class="font-display text-page font-bold tracking-[-0.03em] text-fg">
               {{ t.name }}
             </h1>
           </div>
@@ -227,7 +225,7 @@ const TABS: readonly RecordTab[] = ['details', 'activity', 'related'];
           <app-alert tone="error">{{ key | transloco }}</app-alert>
         </div>
       } @else {
-        <p class="py-16 text-center text-[14px] text-fg-muted">
+        <p class="py-16 text-center text-body text-fg-muted">
           {{ 'documents.control.common.loading' | transloco }}
         </p>
       }
@@ -235,14 +233,12 @@ const TABS: readonly RecordTab[] = ['details', 'activity', 'related'];
       <div class="mx-auto max-w-[980px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
         <a
           routerLink="/documents/templates"
-          class="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
+          class="mb-3 inline-flex items-center gap-1.5 text-ui font-semibold text-fg-muted hover:text-fg"
         >
           <app-icon name="back" [size]="16" />
           {{ 'documents.control.templates.back' | transloco }}
         </a>
-        <h1
-          class="mb-4 font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]"
-        >
+        <h1 class="mb-4 font-display text-page font-bold tracking-[-0.03em] text-fg">
           {{ 'documents.control.templates.new' | transloco }}
         </h1>
         <ng-container [ngTemplateOutlet]="formTpl" />

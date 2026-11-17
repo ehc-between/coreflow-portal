@@ -9,7 +9,6 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../../core/ai/page-context';
@@ -20,8 +19,8 @@ import { LocalDatePipe, LocalPercentPipe } from '../../../shared/locale/locale-p
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Badge } from '../../../shared/ui/badge/badge';
 import { Card } from '../../../shared/ui/card/card';
-import { Icon } from '../../../shared/ui/icon/icon';
-import { statusLabelKey, statusTone } from '../document-status';
+import { statusLabelKey } from '../document-status';
+import { toneFor } from '../../../shared/ui/tones';
 import { DocumentControlApi } from '../data/document-control-api';
 import { documentControlErrorCode, documentControlErrorKey } from '../data/document-control-errors';
 import {
@@ -29,6 +28,7 @@ import {
   RevisionHistory,
   RevisionHistoryItem,
 } from '../data/document-control.models';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { DocumentsPageGuide } from '../shared/documents-page-guide';
 import { DocumentControlPermissions } from '../shared/document-control-permissions';
 import { DiffView } from './diff-view';
@@ -51,7 +51,6 @@ export function defaultPair(
 @Component({
   selector: 'app-document-history',
   imports: [
-    RouterLink,
     TranslocoPipe,
     AiAssistButton,
     AskAbout,
@@ -61,30 +60,29 @@ export function defaultPair(
     Alert,
     Badge,
     Card,
-    Icon,
     DocumentsPageGuide,
     DiffView,
+    PageHeader,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
-      <a
-        [routerLink]="['/documents', id()]"
-        class="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
-      >
-        <app-icon name="back" [size]="16" />
-        {{ 'documents.control.compare.back' | transloco }}
-      </a>
-
       @if (history(); as h) {
-        <header class="mb-4">
+        <app-page-header
+          titleKey="documents.control.compare.title"
+          [titleParams]="{ title: h.document.title }"
+          [breadcrumbs]="[
+            { labelKey: 'modules.names.documents', link: '/documents' },
+            { label: h.document.code || h.document.title, link: ['/documents', id()] },
+            { labelKey: 'documents.control.compare.crumb' },
+          ]"
+          [backLink]="['/documents', id()]"
+          backLabelKey="documents.control.compare.back"
+        >
           @if (h.document.code) {
-            <p class="mb-1 font-mono text-[12.5px] text-fg-subtle">{{ h.document.code }}</p>
+            <span meta class="font-mono">{{ h.document.code }}</span>
           }
-          <h1 class="font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]">
-            {{ 'documents.control.compare.title' | transloco: { title: h.document.title } }}
-          </h1>
-        </header>
+        </app-page-header>
         <app-documents-page-guide
           class="mb-4"
           page="compare"
@@ -95,14 +93,14 @@ export function defaultPair(
         <div class="flex flex-col gap-5 lg:flex-row lg:items-start">
           <app-card class="lg:w-[340px] lg:flex-none" [padded]="false">
             <h2
-              class="px-4 pt-3.5 pb-2 font-display text-[15px] font-bold text-fg"
+              class="px-4 pt-3.5 pb-2 font-display text-card font-bold text-fg"
               [appTourStep]="'documents-compare-history'"
             >
               {{ 'documents.control.compare.history' | transloco }}
             </h2>
             <ol class="divide-y divide-border border-t border-border" data-testid="history-list">
               @for (rev of h.items; track rev.id) {
-                <li class="px-4 py-2.5 text-[13px]">
+                <li class="px-4 py-2.5 text-ui">
                   <div class="flex items-center gap-2">
                     <span class="font-mono font-semibold text-fg">{{
                       'documents.control.compare.rev' | transloco: { rev: rev.rev }
@@ -124,7 +122,7 @@ export function defaultPair(
                   @if (rev.change_reason) {
                     <p class="mt-1 text-fg">{{ rev.change_reason }}</p>
                   }
-                  <p class="mt-1 text-[12px] text-fg-subtle">
+                  <p class="mt-1 text-meta text-fg-subtle">
                     {{
                       'documents.control.compare.authored'
                         | transloco
@@ -151,7 +149,7 @@ export function defaultPair(
                     }
                   </p>
                   @if (h.items.length > 1) {
-                    <div class="mt-1.5 flex gap-3 text-[12px]">
+                    <div class="mt-1.5 flex gap-3 text-meta">
                       <label class="inline-flex items-center gap-1 text-fg-muted">
                         <input
                           type="radio"
@@ -186,9 +184,7 @@ export function defaultPair(
               <app-card>
                 <div class="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <h2
-                      class="flex items-center gap-1.5 font-display text-[16px] font-bold text-fg"
-                    >
+                    <h2 class="flex items-center gap-1.5 font-display text-card font-bold text-fg">
                       {{
                         'documents.control.compare.heading'
                           | transloco: { from: r.from.rev, to: r.to.rev }
@@ -201,7 +197,7 @@ export function defaultPair(
                         field="compare"
                       />
                     </h2>
-                    <p class="mt-1 text-[12.5px] text-fg-muted" data-testid="compare-stats">
+                    <p class="mt-1 text-meta text-fg-muted" data-testid="compare-stats">
                       @if (r.stats.identical) {
                         {{ 'documents.control.compare.identical' | transloco }}
                       } @else {
@@ -235,7 +231,7 @@ export function defaultPair(
                 </div>
                 @if (summary()) {
                   <section
-                    class="mt-3 rounded-tile border border-accent/30 bg-accent-soft p-3 text-[13.5px]"
+                    class="mt-3 rounded-tile border border-accent/30 bg-accent-soft p-3 text-ui"
                     aria-live="polite"
                     [attr.aria-label]="'documents.control.compare.summaryTitle' | transloco"
                   >
@@ -245,14 +241,14 @@ export function defaultPair(
                       </h3>
                       <button
                         type="button"
-                        class="text-[12.5px] font-semibold text-fg-muted hover:text-fg"
+                        class="text-meta font-semibold text-fg-muted hover:text-fg"
                         (click)="summary.set('')"
                       >
                         {{ 'documents.control.common.dismiss' | transloco }}
                       </button>
                     </div>
                     <p class="whitespace-pre-line text-fg">{{ summary() }}</p>
-                    <p class="mt-2 text-[11.5px] text-fg-subtle">
+                    <p class="mt-2 text-micro text-fg-subtle">
                       {{ 'documents.control.compare.summaryHint' | transloco }}
                     </p>
                   </section>
@@ -260,7 +256,7 @@ export function defaultPair(
               </app-card>
               <app-card>
                 @if (r.stats.identical) {
-                  <p class="text-[13.5px] text-fg-muted">
+                  <p class="text-ui text-fg-muted">
                     {{ 'documents.control.compare.identical' | transloco }}
                   </p>
                 } @else {
@@ -268,7 +264,7 @@ export function defaultPair(
                 }
               </app-card>
             } @else {
-              <p class="py-10 text-center text-[14px] text-fg-muted">
+              <p class="py-10 text-center text-body text-fg-muted">
                 {{ 'documents.control.common.loading' | transloco }}
               </p>
             }
@@ -277,7 +273,7 @@ export function defaultPair(
       } @else if (loadError(); as key) {
         <app-alert tone="error">{{ key | transloco }}</app-alert>
       } @else {
-        <p class="py-16 text-center text-[14px] text-fg-muted">
+        <p class="py-16 text-center text-body text-fg-muted">
           {{ 'documents.control.common.loading' | transloco }}
         </p>
       }
@@ -368,7 +364,7 @@ export class DocumentHistoryPage {
   }
 
   protected tone(status: string) {
-    return statusTone(status);
+    return toneFor('lifecycle', status);
   }
 
   protected statusKey(status: string): string {

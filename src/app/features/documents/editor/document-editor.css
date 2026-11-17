@@ -35,3 +35,21 @@
   margin: 0 2px;
   background: var(--border);
 }
+
+/* Filled and outlined tool buttons (component styles beat utility classes, so the
+   colours live here; "Godta" stays white on the accent for contrast). */
+.cf-tool.cf-tool-primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.cf-tool.cf-tool-primary:hover {
+  background: var(--accent-2);
+  color: #fff;
+}
+
+.cf-tool.cf-tool-outline {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--fg);
+}

@@ -12,16 +12,17 @@ const distribute = permissionGuard('documents:distribute', { redirectTo: '/docum
  * Documents feature routes (lazy-loaded; `app.routes.ts` already wraps the module
  * in `moduleGuard('documents')` + `permissionGuard('documents:read')`). The
  * section pages (list, master list, campaigns, external documents, types,
- * templates, retention) share the section navigation; a document's own pages
- * (new, detail, editor, history) do not. Entity URLs from the backend:
+ * templates, retention) show the section navigation (`app-documents-nav`) under
+ * their header; a document's own pages (new, detail, editor, history) do not. Entity URLs from the backend:
  * `/documents/<id>`, `/documents/types/<id>`, `/documents/templates/<id>`,
  * `/documents/retention/<id>`, `/documents/external/<id>`, `/documents/campaigns/<id>`.
  */
 export default [
   {
+    // The section pages (list, master list, distribution, external, types,
+    // templates, retention) each render the module navigation under their header.
     providers: scope,
     path: '',
-    loadComponent: () => import('./shared/documents-shell').then((m) => m.DocumentsShell),
     children: [
       {
         path: '',

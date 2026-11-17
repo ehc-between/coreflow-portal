@@ -39,13 +39,13 @@ const STALE_CODES = new Set(['has_approved_revision', 'reason_required']);
   imports: [TranslocoPipe, Button, Card, Icon, ConfirmDialog, PromptDialog],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    @if (canDelete() || blocked() || adminOnly()) {
+    @if (showCard() && (canDelete() || blocked() || adminOnly())) {
       <app-card>
-        <h2 class="font-display text-[15px] font-bold tracking-[-0.02em] text-fg">
+        <h2 class="font-display text-card font-bold tracking-[-0.02em] text-fg">
           {{ 'documents.delete.title' | transloco }}
         </h2>
         @if (canDelete()) {
-          <p class="mt-1 mb-3 text-[13px] leading-snug text-fg-muted">
+          <p class="mt-1 mb-3 text-ui leading-snug text-fg-muted">
             {{
               (requiresReason() ? 'documents.delete.hintObsolete' : 'documents.delete.hint')
                 | transloco
@@ -56,11 +56,11 @@ const STALE_CODES = new Set(['has_approved_revision', 'reason_required']);
             {{ 'documents.delete.action' | transloco }}
           </app-button>
         } @else if (blocked()) {
-          <p data-testid="delete-blocked" class="mt-1 text-[13px] leading-snug text-fg-muted">
+          <p data-testid="delete-blocked" class="mt-1 text-ui leading-snug text-fg-muted">
             {{ 'documents.delete.blockedHint' | transloco }}
           </p>
         } @else {
-          <p data-testid="delete-admin-only" class="mt-1 text-[13px] leading-snug text-fg-muted">
+          <p data-testid="delete-admin-only" class="mt-1 text-ui leading-snug text-fg-muted">
             {{ 'documents.delete.adminOnlyHint' | transloco }}
           </p>
         }
@@ -104,6 +104,11 @@ export class DocumentDeleteAction {
   readonly document = input.required<DocumentDetail>();
   /** Owner / approver: may see why an approved document can't be deleted. */
   readonly canManage = input(false);
+  /**
+   * Render the explanatory card. The detail page turns it off and offers
+   * "Slett" in its "Mer" menu instead, opening the dialog with {@link start}.
+   */
+  readonly showCard = input(true);
 
   /** The document was deleted. */
   readonly deleted = output<void>();
@@ -111,6 +116,16 @@ export class DocumentDeleteAction {
   readonly reloadRequested = output<void>();
 
   protected readonly open = signal(false);
+
+  /** Whether deleting is possible now (the backend's `can_delete`). */
+  readonly available = computed(() => this.document().can_delete === true);
+
+  /** Ask for confirmation (or the reason) and delete. */
+  start(): void {
+    if (this.available()) {
+      this.open.set(true);
+    }
+  }
   protected readonly busy = signal(false);
 
   protected readonly canDelete = computed(() => this.document().can_delete === true);

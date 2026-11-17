@@ -3,8 +3,8 @@
     "nav": {
       "label": "Seksjoner i dokumentstyring",
       "documents": "Dokumenter",
-      "register": "Dokumentoversikt",
-      "campaigns": "Kampanjer",
+      "register": "Dokumentregister",
+      "campaigns": "Distribusjon",
       "external": "Eksterne dokumenter",
       "types": "Typer",
       "templates": "Maler",
@@ -92,7 +92,7 @@
       "invalid": "Noen verdier er ikke gyldige. Sjekk skjemaet og prøv igjen."
     },
     "register": {
-      "title": "Dokumentoversikt",
+      "title": "Dokumentregister for revisjon",
       "searchPlaceholder": "Søk i kode eller tittel …",
       "export": "Eksporter CSV",
       "exportFailed": "Eksporten kunne ikke lages. Prøv igjen.",
@@ -112,7 +112,7 @@
       }
     },
     "campaigns": {
-      "title": "Distribusjonskampanjer",
+      "title": "Distribuer og be om bekreftelse",
       "searchPlaceholder": "Søk i kampanjer …",
       "new": "Ny kampanje",
       "back": "Tilbake til kampanjer",
@@ -215,7 +215,9 @@
           "role": "Rolle: {{ name }}",
           "department": "Avdeling: {{ name }}"
         }
-      }
+      },
+      "needAudience": "Legg til minst én mottaker for å starte.",
+      "needDocument": "Velg først et godkjent dokument."
     },
     "external": {
       "title": "Eksterne dokumenter",
@@ -253,7 +255,8 @@
         "issuedOn": "Utgitt",
         "notes": "Merknader",
         "lastReviewed": "Sist gjennomgått"
-      }
+      },
+      "fillMissing": "Legg inn versjon og utgivelsesdato, så alle ser hvilken utgave dere jobber etter."
     },
     "types": {
       "title": "Dokumenttyper",
@@ -279,7 +282,11 @@
         "nextCode": "Neste kode",
         "documents": "Dokumenter",
         "ack": "Krev lest og forstått"
-      }
+      },
+      "advanced": "Avansert",
+      "keyAuto": "Lages fra navnet",
+      "format": "Kodeformat",
+      "formatCustom": "Eget format"
     },
     "templates": {
       "title": "Dokumentmaler",
@@ -322,7 +329,7 @@
       "appliesTo": {
         "document": "Styrte dokumenter",
         "external_document": "Eksterne dokumenter",
-        "record": "Andre registreringer"
+        "record": "Alle dokumenter (styrte og eksterne)"
       },
       "triggers": {
         "created": "Fra opprettelse",
@@ -343,7 +350,9 @@
         "legalBasis": "Rettslig grunnlag",
         "period": "Periode",
         "usage": "I bruk"
-      }
+      },
+      "periodYears": "{{ count }} år · {{ trigger }}",
+      "equalsYears": "Det tilsvarer {{ count }} år."
     },
     "compare": {
       "title": "Revisjonshistorikk: {{ title }}",
@@ -367,7 +376,8 @@
       "summarise": "Lag utkast til endringsbegrunnelse",
       "summaryTitle": "Forslag til endringsbegrunnelse",
       "summaryHint": "Les gjennom teksten, og bruk den som endringsbegrunnelse når du sender revisjonen.",
-      "askExplain": "Forklar de viktigste endringene mellom revisjon {{ from }} og revisjon {{ to }} av dette dokumentet, og hvem de berører."
+      "askExplain": "Forklar de viktigste endringene mellom revisjon {{ from }} og revisjon {{ to }} av dette dokumentet, og hvem de berører.",
+      "crumb": "Sammenlign revisjoner"
     },
     "draft": {
       "title": "Lag utkast med KI",
@@ -453,5 +463,116 @@
     "campaignAcknowledged": "Bekreftelse mottatt",
     "campaignCompleted": "Alle har bekreftet",
     "campaignClosed": "Kampanje avsluttet"
+  },
+  "page": {
+    "list": {
+      "suggestionHint": "Foreslåtte krav er forslag som ikke telles ennå. Åpne dokumentet for å godta eller avvise dem."
+    },
+    "detail": {
+      "askCovers": "Hvilke krav dokumenterer dette dokumentet?",
+      "deleteDraft": "Slett utkast",
+      "lifecycle": "Hvor dokumentet er i livsløpet",
+      "writtenBy": "Skrevet av {{name}}, {{date}}",
+      "approvedByOn": "Godkjent av {{name}}, {{date}}",
+      "approvedOn": "Godkjent {{date}}",
+      "draftRevision": "{{rev}} (utkast)"
+    },
+    "fields": {
+      "owner": "Eier",
+      "approvedBy": "Godkjent av",
+      "approvedOn": "Godkjent dato",
+      "effectiveFrom": "Gyldig fra",
+      "nextReview": "Neste periodiske gjennomgang",
+      "changeReason": "Begrunnelse for revisjonen",
+      "approvalNote": "Godkjenningsnotat"
+    },
+    "new": {
+      "about": "Om dokumentet",
+      "errors": {
+        "type": "Velg hva slags dokument dette er.",
+        "title": "Gi dokumentet en tittel."
+      }
+    },
+    "editor": {
+      "crumb": "Rediger"
+    }
+  },
+  "approval": {
+    "approver": "Hvem skal godkjenne?",
+    "anyApprover": "Alle som kan godkjenne dokumenter",
+    "submitNamed": "Personen du valgte, blir varslet. Alle som kan godkjenne dokumenter, kan likevel ta avgjørelsen.",
+    "segregationNote": "Organisasjonen krever at en annen enn forfatteren godkjenner, så du står ikke på listen.",
+    "noApprovers": "Ingen andre kan godkjenne dokumenter ennå. Be en administrator gi noen rollen som godkjenner.",
+    "approveBody": "Rev {{rev}} blir den godkjente versjonen som alle leser. Notatet ditt lagres sammen med godkjenningen.",
+    "noteLabel": "Godkjenningsnotat",
+    "notePlaceholder": "For eksempel: kontrollert mot den nye innkjøpsrutinen",
+    "selfBlocked": "Du skrev denne revisjonen, så en annen må godkjenne den.",
+    "waitingFor": "Venter på godkjenning fra {{name}}",
+    "waitingAny": "Venter på godkjenning",
+    "submittedOn": "sendt {{date}}",
+    "segregationExplained": "Den som skrev revisjonen, kan ikke godkjenne den selv (arbeidsdeling).",
+    "errors": {
+      "invalidApprover": "Den personen kan ikke godkjenne dokumenter. Velg en annen.",
+      "approverIsAuthor": "Du skrev denne revisjonen og kan ikke godkjenne den selv. Velg en annen."
+    }
+  },
+  "readConfirm": {
+    "on": "Leserne må bekrefte at de har lest og forstått hver godkjente revisjon.",
+    "off": "Leserne blir ikke bedt om å bekrefte at de har lest dokumentet.",
+    "revision": "Rev {{rev}}",
+    "remind": "Send påminnelse",
+    "export": "Eksporter listen",
+    "search": "Søk etter personer",
+    "showAll": "Vis alle ({{count}})",
+    "afterApproval": "Listen over hvem som har bekreftet, vises når dokumentet er godkjent.",
+    "savedToast": "Innstillingen for «Lest og forstått» er lagret.",
+    "csv": {
+      "name": "Navn",
+      "email": "E-post",
+      "status": "Status",
+      "date": "Bekreftet",
+      "done": "Bekreftet",
+      "pending": "Ikke ennå"
+    }
+  },
+  "link": {
+    "title": "Kobling",
+    "intro": "Velg hvilke krav dokumentet dokumenterer, og hva det hører til. Da vises det på standardsidene og på registreringene.",
+    "requirements": "Krav dokumentet dokumenterer",
+    "requirementsHint": "Lagres som bekreftede koblinger. Krav fra typen og malen legges til som forslag du kan godta senere.",
+    "askWhich": "Hvilke krav bør «{{title}}» dokumentere?",
+    "fromRequirement": "Laget for kravet {{ref}}",
+    "records": "Koblede registreringer",
+    "recordPlaceholder": "Søk etter en prosess, risiko, forpliktelse …",
+    "noRecords": "Ingen treff.",
+    "removeRecord": "Fjern {{title}}",
+    "processLabel": "Prosessen dokumentet beskriver",
+    "errors": {
+      "unknownRequirement": "Vi fant ikke ett av kravene. Fjern det og velg det på nytt.",
+      "tooManyRequirements": "Velg høyst 30 krav.",
+      "tooManyRelated": "Koble høyst 20 registreringer.",
+      "invalidLinkType": "En av koblingene kunne ikke lagres. Fjern den og prøv igjen."
+    }
+  },
+  "proposals": {
+    "reviewsDue": "{{count}} dokumenter skal til periodisk gjennomgang.",
+    "openReviewsDue": "Vis dokumenter som skal gjennomgås",
+    "emptyNext": "Når noen sender et dokument til godkjenning, dukker det opp her.",
+    "openDocuments": "Gå til dokumentene",
+    "owner": "Eier {{name}}",
+    "updatedAt": "Oppdatert {{date}}",
+    "newOfType": "Type: {{type}}",
+    "forRequirement": "For {{requirement}}",
+    "proposedBy": "Foreslått av {{name}}",
+    "rejectTitle": "Avvise «{{title}}»?",
+    "rejectBody": "Utkastet blir ikke lagt til dokumentene. Den som foreslo det, ser begrunnelsen din.",
+    "rejectReason": "Begrunnelse (valgfritt)",
+    "rejectPlaceholder": "For eksempel: vi har allerede en prosedyre for dette",
+    "reasonShown": "Begrunnelse: {{reason}}",
+    "status": {
+      "pending": "Venter",
+      "approved": "Godtatt",
+      "rejected": "Avvist"
+    }
   }
 }

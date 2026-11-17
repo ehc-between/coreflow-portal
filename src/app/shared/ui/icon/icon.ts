@@ -127,6 +127,8 @@ const ICONS: Record<string, IconDef> = {
   },
   checkcircle: { parts: [{ c: [12, 12, 9] }, 'M8.5 12l2.3 2.3L15.6 9.4'] },
   upload: { parts: ['M12 16V5', 'M8 9l4-4 4 4', 'M5 19h14'] },
+  download: { parts: ['M12 5v11', 'M8 12l4 4 4-4', 'M5 19h14'] },
+  pencil: { parts: ['M4 20l4.2-1 10.3-10.3a2.1 2.1 0 0 0-3-3L5.2 16 4 20z', 'M13.5 7.5l3 3'] },
   grip: {
     parts: ['M9 6h.01', 'M9 12h.01', 'M9 18h.01', 'M15 6h.01', 'M15 12h.01', 'M15 18h.01'],
   },
