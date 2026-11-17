@@ -84,6 +84,8 @@ export interface GuidanceEmpty {
 export interface GuidanceFieldHelp {
   readonly help: string;
   readonly example?: string;
+  /** Clause refs this field documents (`iso9001:8.4.1`), shown as "Dokumenterer: …" (P1). */
+  readonly requirements?: readonly string[];
 }
 
 export interface GuidancePage {

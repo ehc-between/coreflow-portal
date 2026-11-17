@@ -7,7 +7,7 @@ export const READINESS_SEGMENTS = [
   { key: 'fresh', color: 'var(--pass)' },
   { key: 'stale', color: 'color-mix(in oklab, var(--pass) 45%, var(--surface-2))' },
   { key: 'partial', color: 'var(--warn)' },
-  { key: 'missing', color: 'var(--fail)' },
+  { key: 'missing', color: 'var(--border-strong)' },
 ] as const satisfies readonly { key: keyof ReadinessParts; color: string }[];
 
 /**

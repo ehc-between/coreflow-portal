@@ -100,14 +100,15 @@ export function statusTone(status: RequirementStatus): BadgeTone {
       return 'pass';
     case 'partial':
       return 'warn';
+    // Not started is a to-do, not a failure (plan decision 11: coverage is never red).
     case 'not_started':
-      return 'fail';
+      return 'neutral';
     default:
       return 'neutral';
   }
 }
 
-/** CSS colour token for a completeness percentage. */
+/** CSS colour token for a completeness percentage (never red: low coverage is a to-do). */
 export function pctColor(pct: number): string {
   if (pct >= 80) {
     return 'var(--pass)';
@@ -115,7 +116,7 @@ export function pctColor(pct: number): string {
   if (pct >= 40) {
     return 'var(--warn)';
   }
-  return 'var(--fail)';
+  return 'var(--accent)';
 }
 
 /** Completeness: the covered share of applicable requirements, floored (matches the API). */

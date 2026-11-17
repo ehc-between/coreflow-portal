@@ -2020,6 +2020,7 @@
       "organization": "Organisation",
       "org_module": "Module",
       "task": "Task",
+      "journey": "Journey",
       "context_analysis": "Context analysis",
       "interested_party": "Interested party",
       "scope_statement": "Scope statement",

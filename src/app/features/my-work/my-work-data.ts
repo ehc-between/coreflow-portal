@@ -1,4 +1,4 @@
-import { KNOWN_WORK_SOURCES, WorkItem } from '../../core/tasks/task.models';
+import { WorkGroup, WorkItem } from '../../core/tasks/task.models';
 import { addDays, dayOf, localDay } from '../../shared/tasks/task-display';
 
 /** The three My Work views (`?view=`). */
@@ -9,24 +9,120 @@ export function parseView(value: string | null | undefined): MyWorkView {
   return MY_WORK_VIEWS.includes(value as MyWorkView) ? (value as MyWorkView) : 'list';
 }
 
-export type DueFilter = 'all' | 'overdue' | 'today' | 'week' | 'none';
-export const DUE_FILTERS: readonly DueFilter[] = ['all', 'overdue', 'today', 'week', 'none'];
+/**
+ * The My Work tabs (`?tab=`): Overdue, This week, Later and Awaiting review (the old
+ * "Needs your review" page). Each maps to the backend's item `group`.
+ */
+export type WorkTab = 'overdue' | 'this_week' | 'later' | 'review';
+export const WORK_TABS: readonly WorkTab[] = ['overdue', 'this_week', 'later', 'review'];
 
-export interface WorkFilters {
-  /** `all` or a source key. */
-  readonly source: string;
-  readonly due: DueFilter;
-  /** `all` or a priority. */
-  readonly priority: string;
+const TAB_GROUP: Record<WorkTab, WorkGroup> = {
+  overdue: 'overdue',
+  this_week: 'this_week',
+  later: 'later',
+  review: 'awaiting_review',
+};
+
+export function tabGroup(tab: WorkTab): WorkGroup {
+  return TAB_GROUP[tab];
 }
 
-export const NO_FILTERS: WorkFilters = { source: 'all', due: 'all', priority: 'all' };
+/** `?tab=` value -> tab; accepts the group names and `week` too. Null when absent or unknown. */
+export function parseTab(value: string | null | undefined): WorkTab | null {
+  switch (value) {
+    case 'overdue':
+    case 'later':
+    case 'review':
+    case 'this_week':
+      return value;
+    case 'week':
+      return 'this_week';
+    case 'awaiting_review':
+      return 'review';
+    default:
+      return null;
+  }
+}
 
-/** i18n key (scope `tasks`) naming a My Work source; module sources share "Other". */
+/** Sources that ask the caller to review or approve something (the review tab). */
+export const REVIEW_SOURCES: readonly string[] = [
+  'document_review',
+  'proposal',
+  'audit_report_review',
+  'management_review_signoff',
+];
+
+/** Days ahead that count as "this week" (the backend's rule: the next seven days). */
+export const THIS_WEEK_DAYS = 7;
+
+/**
+ * The tab an item belongs in: the backend's `group`, or (for an older backend) the
+ * same rule computed here: review sources, then overdue, then due within seven days.
+ */
+export function groupOf(item: WorkItem, today: string): WorkGroup {
+  if (item.group) {
+    return item.group;
+  }
+  if (REVIEW_SOURCES.includes(item.source)) {
+    return 'awaiting_review';
+  }
+  if (item.overdue) {
+    return 'overdue';
+  }
+  const day = dayOf(item.due_at);
+  return day && day <= addDays(today, THIS_WEEK_DAYS) ? 'this_week' : 'later';
+}
+
+export type TabCounts = Readonly<Record<WorkTab, number>>;
+
+export function countTabs(items: readonly WorkItem[], today: string): TabCounts {
+  const counts: Record<WorkTab, number> = { overdue: 0, this_week: 0, later: 0, review: 0 };
+  for (const item of items) {
+    const group = groupOf(item, today);
+    const tab = WORK_TABS.find((t) => TAB_GROUP[t] === group) ?? 'later';
+    counts[tab]++;
+  }
+  return counts;
+}
+
+/** The tab to open without `?tab=`: the first one with something in it. */
+export function defaultTab(counts: TabCounts): WorkTab {
+  return WORK_TABS.find((tab) => counts[tab] > 0) ?? 'overdue';
+}
+
+export interface WorkFilters {
+  /** `all` or a module key. */
+  readonly module: string;
+  /** `all` or a source key (the item type). */
+  readonly source: string;
+}
+
+export const NO_FILTERS: WorkFilters = { module: 'all', source: 'all' };
+
+/** My Work sources with their own label (`tasks.work.kinds.<source>`); others read "Other". */
+export const LABELLED_SOURCES: readonly string[] = [
+  'task',
+  'deviation_action',
+  'deviation',
+  'document_review',
+  'document_ack',
+  'proposal',
+  'audit_finding',
+  'audit_plan',
+  'audit_report_review',
+  'inspection',
+  'inspection_finding',
+  'management_review',
+  'management_review_signoff',
+  'project_milestone',
+  'training_due',
+];
+
+/** i18n key (scope `tasks`) naming what an item is. */
 export function sourceLabelKey(source: string): string {
-  return (KNOWN_WORK_SOURCES as readonly string[]).includes(source)
-    ? `tasks.sources.${source}`
-    : 'tasks.sources.other';
+  return LABELLED_SOURCES.includes(source)
+    ? `tasks.work.kinds.${source}`
+    : 'tasks.work.kinds.other';
 }
 
 export function sourceIcon(source: string): string {
@@ -38,46 +134,70 @@ export function sourceIcon(source: string): string {
     case 'deviation':
       return 'alert';
     case 'document_review':
-      return 'documents';
     case 'document_ack':
-      return 'check';
+      return 'documents';
+    case 'proposal':
+      return 'spark';
+    case 'audit_finding':
+    case 'audit_plan':
+    case 'audit_report_review':
+      return 'audit';
+    case 'inspection':
+    case 'inspection_finding':
+      return 'qa';
+    case 'management_review':
+    case 'management_review_signoff':
+      return 'calendar';
+    case 'project_milestone':
+      return 'projects';
+    case 'training_due':
+      return 'training';
     default:
       return 'inbox';
   }
 }
 
+const WHY_REASONS = [
+  'overdue',
+  'due_today',
+  'due_soon',
+  'approve',
+  'acknowledge',
+  'owner',
+  'assigned',
+] as const;
+
 /**
- * Apply the My Work filters. Due buckets use the calendar day of `due_at`
- * against `today` (`YYYY-MM-DD`, viewer's timezone); "overdue" trusts the
- * backend flag. "This week" is today plus the next six days.
+ * The i18n key and params of an item's one-line reason ("Due in 3 days", "You are
+ * the approver"). From the backend's `why_key`; a one-day deadline uses the `…One`
+ * variant so the sentence reads naturally ("Due tomorrow").
  */
-export function filterWorkItems(
-  items: readonly WorkItem[],
-  filters: WorkFilters,
-  today: string,
-): WorkItem[] {
-  const weekEnd = addDays(today, 6);
-  return items.filter((item) => {
-    if (filters.source !== 'all' && item.source !== filters.source) {
-      return false;
-    }
-    if (filters.priority !== 'all' && item.priority !== filters.priority) {
-      return false;
-    }
-    const day = dayOf(item.due_at);
-    switch (filters.due) {
-      case 'overdue':
-        return item.overdue;
-      case 'today':
-        return day === today;
-      case 'week':
-        return !!day && day >= today && day <= weekEnd;
-      case 'none':
-        return !day;
-      default:
-        return true;
-    }
-  });
+export function whyOf(item: WorkItem): { key: string; params: Record<string, unknown> } {
+  const raw = item.why_key ?? '';
+  const reason = raw.slice(raw.lastIndexOf('.') + 1);
+  const known = (WHY_REASONS as readonly string[]).includes(reason) ? reason : fallbackReason(item);
+  const days = Math.abs(Number(item.why_params?.['days'] ?? 0)) || 0;
+  const one = (known === 'overdue' || known === 'due_soon') && days === 1;
+  return { key: `tasks.work.why.${known}${one ? 'One' : ''}`, params: { days } };
+}
+
+function fallbackReason(item: WorkItem): string {
+  if (REVIEW_SOURCES.includes(item.source)) {
+    return 'approve';
+  }
+  if (item.overdue) {
+    return 'overdue';
+  }
+  return item.source === 'task' ? 'assigned' : 'owner';
+}
+
+/** Apply the module and type filters. */
+export function filterWorkItems(items: readonly WorkItem[], filters: WorkFilters): WorkItem[] {
+  return items.filter(
+    (item) =>
+      (filters.source === 'all' || item.source === filters.source) &&
+      (filters.module === 'all' || item.module === filters.module),
+  );
 }
 
 /** Board columns: every open-like status lands in "To do". */
@@ -94,18 +214,6 @@ export function groupByColumn(items: readonly WorkItem[]): Record<BoardColumn, W
     groups[boardColumn(item)].push(item);
   }
   return groups;
-}
-
-/** Counts for the My Work summary line. */
-export function summarise(
-  items: readonly WorkItem[],
-  today: string,
-): { readonly total: number; readonly overdue: number; readonly dueToday: number } {
-  return {
-    total: items.length,
-    overdue: items.filter((i) => i.overdue).length,
-    dueToday: items.filter((i) => dayOf(i.due_at) === today && !i.overdue).length,
-  };
 }
 
 export interface CalendarDay {

@@ -9,7 +9,7 @@ import { AssistEvent, AssistRequestBody } from '../../core/ai/ai.models';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { AskPanelService } from '../../features/ask/ask-panel.service';
 import { AiAssistButton } from './ai-assist-button';
-import { AskAbout } from './ask-about';
+import { AskAbout, humaniseField } from './ask-about';
 
 const ID = '6a4a1d8e-6a51-4c0e-a4f5-2b0f61b9a8a2';
 
@@ -42,9 +42,34 @@ describe('AskAbout', () => {
     const button = fixture.nativeElement.querySelector('button') as HTMLButtonElement;
     expect(button.getAttribute('aria-label')).toBe('Ask about this');
     button.click();
-    expect(panel.askAbout).toHaveBeenCalledWith('Why is likelihood scored 1-5?', {
-      field: 'likelihood',
-    });
+    // A bare key is made readable: the assistant never sees a raw identifier.
+    expect(panel.askAbout).toHaveBeenCalledWith(
+      'Why is likelihood scored 1-5?',
+      { field: 'Likelihood' },
+      { requirements: null },
+    );
+  });
+
+  it('names the field by its translated label and passes its requirement refs', async () => {
+    const panel = { askAbout: vi.fn() };
+    configure([{ provide: AskPanelService, useValue: panel }]);
+    const fixture = TestBed.createComponent(AskAbout);
+    fixture.componentRef.setInput('field', 'control_refs');
+    fixture.componentRef.setInput('fieldLabel', 'Controls');
+    fixture.componentRef.setInput('requirements', ['iso27001:A.8.13']);
+    await fixture.whenStable();
+    (fixture.nativeElement.querySelector('button') as HTMLButtonElement).click();
+    expect(panel.askAbout).toHaveBeenCalledWith(
+      'Explain the "Controls" field on this page and how to fill it in.',
+      { field: 'Controls' },
+      { requirements: ['iso27001:A.8.13'] },
+    );
+  });
+
+  it('humanises snake and camel case field keys', () => {
+    expect(humaniseField('owner_name')).toBe('Owner name');
+    expect(humaniseField('riskOwner')).toBe('Risk owner');
+    expect(humaniseField('')).toBe('');
   });
 
   it('uses a neutral question without a prompt, and hides once AI is off', async () => {
@@ -53,7 +78,9 @@ describe('AskAbout', () => {
     const fixture = TestBed.createComponent(AskAbout);
     await fixture.whenStable();
     (fixture.nativeElement.querySelector('button') as HTMLButtonElement).click();
-    expect(panel.askAbout).toHaveBeenCalledWith(searchEn.askAbout.prompt, undefined);
+    expect(panel.askAbout).toHaveBeenCalledWith(searchEn.askAbout.prompt, undefined, {
+      requirements: null,
+    });
 
     TestBed.inject(AiAvailability).markUnavailable();
     await fixture.whenStable();

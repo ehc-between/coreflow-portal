@@ -1,20 +1,42 @@
 {
   "myWork": {
     "title": "Mitt arbeid",
-    "subtitle": "Alt som venter på deg: oppgaver, tiltak, godkjenninger og bekreftelser.",
+    "subtitle": "Alt som venter på deg, sortert etter frist: oppgaver, tiltak, godkjenninger og dokumenter du skal bekrefte.",
     "allTasks": "Alle oppgaver",
     "recurring": "Gjentakende oppgaver",
     "newTask": "Ny oppgave",
-    "proposals": "Endringsforslag som venter på din vurdering: {{ count }}",
     "viewLabel": "Visning",
     "views": {
       "list": "Liste",
       "board": "Tavle",
       "calendar": "Kalender"
     },
-    "summary": "Elementer: {{ count }}",
-    "overdueCount": "{{ count }} forfalt",
-    "dueTodayCount": "{{ count }} forfaller i dag"
+    "tabsLabel": "Vis",
+    "tabs": {
+      "overdue": "Forfalt",
+      "this_week": "Denne uka",
+      "later": "Senere",
+      "review": "Til gjennomgang"
+    },
+    "empty": {
+      "overdue": {
+        "title": "Ingenting er forfalt",
+        "body": "Bra. Alt som er tildelt deg, er innenfor fristen."
+      },
+      "this_week": {
+        "title": "Ingenting har frist denne uka",
+        "body": "Saker med frist de neste sju dagene dukker opp her."
+      },
+      "later": {
+        "title": "Ingenting planlagt senere",
+        "body": "Saker uten frist, eller med frist om mer enn en uke, dukker opp her."
+      },
+      "review": {
+        "title": "Ingenting venter på din gjennomgang",
+        "body": "Dokumenter til godkjenning, endringsforslag, revisjonsrapporter og ledelsens gjennomgang til signering dukker opp her."
+      }
+    },
+    "reviewHint": "Alt som venter på din gjennomgang, finner du også i Mitt arbeid →"
   },
   "list": {
     "title": "Oppgaver",
@@ -123,18 +145,6 @@
     "other": "Annet"
   },
   "filters": {
-    "source": "Kilde",
-    "allSources": "Alle kilder",
-    "due": "Frist",
-    "dueOptions": {
-      "all": "Når som helst",
-      "overdue": "Forfalt",
-      "today": "I dag",
-      "week": "Neste 7 dager",
-      "none": "Ingen frist"
-    },
-    "priority": "Prioritet",
-    "allPriorities": "Alle prioriteter",
     "search": "Søk",
     "searchPlaceholder": "Søk i oppgaver …",
     "assignee": "Vis",
@@ -154,7 +164,11 @@
       "priority": "Prioritet",
       "-created_at": "Nyeste"
     },
-    "noMatch": "Ingenting passer med disse filtrene."
+    "noMatch": "Ingenting passer med disse filtrene.",
+    "module": "Modul",
+    "allModules": "Alle moduler",
+    "type": "Type",
+    "allTypes": "Alle typer"
   },
   "board": {
     "columns": {
@@ -373,5 +387,36 @@
     "completed": "Oppgave merket som utført",
     "reopened": "Oppgave gjenåpnet",
     "cancelled": "Oppgave avbrutt"
+  },
+  "work": {
+    "kinds": {
+      "task": "Oppgave",
+      "deviation_action": "Korrigerende tiltak",
+      "deviation": "Avvik du eier",
+      "document_review": "Dokument til godkjenning",
+      "document_ack": "Dokument du skal lese og bekrefte",
+      "proposal": "Endringsforslag",
+      "audit_finding": "Revisjonsfunn",
+      "audit_plan": "Revisjon",
+      "audit_report_review": "Revisjonsrapport til godkjenning",
+      "inspection": "Inspeksjon",
+      "inspection_finding": "Inspeksjonsfunn",
+      "management_review": "Ledelsens gjennomgang",
+      "management_review_signoff": "Ledelsens gjennomgang til signering",
+      "project_milestone": "Milepæl i prosjekt",
+      "training_due": "Opplæring",
+      "other": "Annet"
+    },
+    "why": {
+      "overdue": "Fristen gikk ut for {{ days }} dager siden",
+      "overdueOne": "Fristen gikk ut i går",
+      "due_today": "Frist i dag",
+      "due_soon": "Frist om {{ days }} dager",
+      "due_soonOne": "Frist i morgen",
+      "approve": "Du er godkjenner",
+      "acknowledge": "Les det, og bekreft at du har gjort det",
+      "owner": "Du er ansvarlig",
+      "assigned": "Tildelt deg"
+    }
   }
 }

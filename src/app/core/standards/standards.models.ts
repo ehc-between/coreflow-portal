@@ -178,7 +178,37 @@ export type LinkEntityType = string;
 
 export type LinkStatus = 'suggested' | 'confirmed' | 'rejected';
 
-export type LinkSource = 'ai' | 'user';
+/** Who wrote the link: an AI suggestion, a user, or platform code (fields, declarations). */
+export type LinkSource = 'ai' | 'user' | 'system';
+
+/**
+ * Why a link exists (P1): typed by a user (`manual`), an AI suggestion, a record
+ * field that cites the clause (`field`), the record type's declarations, a
+ * create-from-here flow, or other platform code.
+ */
+export type LinkOrigin = 'manual' | 'ai' | 'field' | 'declaration' | 'flow' | 'system';
+
+/**
+ * How a requirement is shown everywhere (P1, plan 2.1): "<short> · <number>",
+ * with the clause title in the request language as subtitle or tooltip, and
+ * "(krav 2 av 3)" when the clause has several requirements. The raw `.rN` ref
+ * is never shown.
+ */
+export interface RequirementLabel {
+  readonly ref: string;
+  /** "ISO 27001", "GDPR", "KI-forordningen" (request language). */
+  readonly short: string;
+  readonly number: string;
+  /** Clause title in the request language. */
+  readonly title: string;
+  /** Requirement text in the request language (may be empty). */
+  readonly text?: string;
+  readonly standard_key: string;
+  readonly framework?: string | null;
+  /** 1-based position of the requirement within its clause. */
+  readonly req_index: number;
+  readonly req_count: number;
+}
 
 /** Evidence link between a requirement and a record. */
 export interface RequirementLink {
@@ -195,6 +225,12 @@ export interface RequirementLink {
   readonly entity_label: string | null;
   readonly status: LinkStatus;
   readonly source: LinkSource;
+  /** Why the link exists (older backends omit it: treat as `manual`). */
+  readonly origin?: LinkOrigin;
+  /** For `origin: 'field'`: the record field citing the requirement (e.g. `control_refs`). */
+  readonly origin_field?: string | null;
+  /** Display label in the request language (list endpoint only; null elsewhere). */
+  readonly label?: RequirementLabel | null;
   /** 0–1, AI suggestions only. */
   readonly confidence?: number | null;
   readonly rationale?: string | null;
@@ -212,6 +248,56 @@ export interface CreateRequirementLinkRequest {
   readonly requirement_ref: string;
   readonly entity_type: LinkEntityType;
   readonly entity_id: string;
+  /** `ai` when accepting an assistant proposal, `flow` for create-from-here. Default `manual`. */
+  readonly origin?: 'manual' | 'ai' | 'flow';
+}
+
+/** Confirmed / suggested requirement counts of one record (list rows). */
+export interface RequirementCoverageCounts {
+  readonly confirmed: number;
+  readonly suggested: number;
+}
+
+/** `GET requirement-coverage?entity_type&ids` (zeros for ids without links). */
+export interface RequirementCoverageResponse {
+  readonly items: Readonly<Record<string, RequirementCoverageCounts>>;
+}
+
+/** One entry of "Foreslåtte krav" (`POST requirement-links/suggest`). */
+export interface RequirementSuggestion {
+  readonly ref: string;
+  readonly label: RequirementLabel | null;
+  readonly status: 'suggested';
+  /** `ai` (stored suggestion) or `declaration` (virtual: the type usually evidences it). */
+  readonly origin: LinkOrigin;
+  /** The stored link, or null for a virtual suggestion (confirm it through bulk `items`). */
+  readonly link_id: string | null;
+  readonly confidence?: number | null;
+  readonly rationale?: string | null;
+}
+
+export interface SuggestRequirementsResponse {
+  /** The queued (or reused) AI `record_map` job when AI is configured, else null. */
+  readonly job_id: string | null;
+  readonly suggestions: readonly RequirementSuggestion[];
+}
+
+/** A virtual suggestion to confirm or reject in bulk. */
+export interface BulkLinkItem {
+  readonly requirement_ref: string;
+  readonly entity_type: LinkEntityType;
+  readonly entity_id: string;
+}
+
+/** `POST requirement-links/bulk` (≤200 ids and ≤200 items; all or nothing). */
+export interface BulkLinksRequest {
+  readonly action: 'confirm' | 'reject';
+  readonly ids?: readonly string[];
+  readonly items?: readonly BulkLinkItem[];
+}
+
+export interface BulkLinksResponse {
+  readonly updated: number;
 }
 
 /** `{job_id}` returned when a background job is queued. */
@@ -221,10 +307,10 @@ export interface StandardJobStarted {
 
 export type StandardJobStatus = 'queued' | 'running' | 'done' | 'failed';
 
-export type StandardJobKind = 'ai_map' | 'extract_text' | 'ai_draft';
+export type StandardJobKind = 'ai_map' | 'extract_text' | 'ai_draft' | 'record_map';
 
 /** What an AI mapping job covers. */
-export type StandardJobScope = 'standard' | 'document' | 'requirement';
+export type StandardJobScope = 'standard' | 'document' | 'requirement' | 'record';
 
 /** Body of `POST standards/{key}/ai-map`: the whole standard, one document or one requirement. */
 export interface AiMapTarget {
@@ -243,6 +329,9 @@ export interface StandardJob {
   readonly error?: string | null;
   /** AI mapping jobs only. */
   readonly scope?: StandardJobScope | null;
+  /** `record_map` jobs: the record whose requirements are suggested. */
+  readonly entity_type?: string | null;
+  readonly entity_id?: string | null;
   /** Requirement-scoped `ai_map` and `ai_draft` jobs. */
   readonly requirement_ref?: string | null;
   /** `ai_draft` jobs: the drafted proposal, once done. */
@@ -295,6 +384,10 @@ export interface FrameworkReadiness {
   readonly score: number;
   /** EU AI Act: points left out as not applicable (derived) from the org's AI systems. */
   readonly derived_not_applicable?: number;
+  /** Covered requirements per evidence origin (a requirement counts under each origin it has). */
+  readonly by_origin?: Readonly<Partial<Record<LinkOrigin, number>>>;
+  /** Covered requirements per record type (`risk`, `document`, …). */
+  readonly by_entity_type?: Readonly<Record<string, number>>;
 }
 
 export type MappingRelation = 'equivalent' | 'related' | 'supports';
@@ -341,4 +434,117 @@ export interface EvidenceSuggestion {
 
 export interface EvidenceSuggestions {
   readonly requirements: readonly EvidenceSuggestion[];
+}
+
+// --- Requirements everywhere (P1): evidence, gaps, catalogue -------------------
+
+/** The record behind an evidence link (the registry's `EntityRefDto`). */
+export interface EvidenceEntity {
+  readonly entity_type: string;
+  readonly entity_id: string;
+  readonly title: string;
+  readonly code: string | null;
+  /** Portal path of the record's page, or null when it has none. */
+  readonly url: string | null;
+  readonly status: string | null;
+  readonly module: string | null;
+  /** Global i18n key of the record type's name (`modules.entities.<type>`). */
+  readonly label_key: string | null;
+}
+
+/** One link of `GET standard-requirements/{ref}/evidence`. */
+export interface EvidenceLink {
+  readonly id: string;
+  readonly status: LinkStatus;
+  readonly origin: LinkOrigin;
+  readonly origin_field: string | null;
+  readonly confidence: number | null;
+  readonly rationale: string | null;
+  readonly entity: EvidenceEntity;
+}
+
+export interface ModuleCount {
+  readonly module: string;
+  readonly count: number;
+}
+
+/** A record type whose declarations cover a requirement ("Kan dokumenteres med"). */
+export interface EvidencingType {
+  readonly module: string;
+  readonly entity_type: string;
+  readonly label_key: string;
+  /** New-record route plus `?fromRequirement=<ref>`, or null for sub-records. */
+  readonly create_url: string | null;
+  /** The module is enabled for the org. */
+  readonly enabled: boolean;
+  /** Enabled, has a create page, and the caller may create records of this type. */
+  readonly can_create?: boolean;
+}
+
+export interface EvidenceRequirementInfo {
+  readonly ref: string;
+  readonly label: RequirementLabel | null;
+  readonly text: Partial<LocalizedText>;
+  readonly evidence_examples: LocalizedList | null;
+  readonly clause_number: string;
+  readonly clause_title: LocalizedText;
+  readonly standard_key: string;
+  readonly framework: string | null;
+  readonly applicable: boolean;
+  readonly justification: string | null;
+}
+
+/** `GET standard-requirements/{ref}/evidence`: evidence from every module. */
+export interface RequirementEvidence {
+  readonly requirement: EvidenceRequirementInfo;
+  readonly status: RequirementStatus;
+  /** Only records the caller may read. */
+  readonly links: readonly EvidenceLink[];
+  /** Confirmed links per module. */
+  readonly by_module: readonly ModuleCount[];
+  readonly can_be_evidenced_by: readonly EvidencingType[];
+  readonly mappings: readonly ClauseMappingItem[];
+}
+
+/** One uncovered requirement of `GET frameworks/gaps`. */
+export interface RequirementGap {
+  readonly ref: string;
+  readonly number: string;
+  readonly title: string;
+  readonly text: string;
+  /** Top-level chapter ("8", "A.8", "30"). */
+  readonly chapter: string;
+  readonly status: 'not_started' | 'partial';
+  readonly label: RequirementLabel | null;
+  readonly fix_in: readonly EvidencingType[];
+}
+
+export interface GapsResponse {
+  readonly total: number;
+  readonly items: readonly RequirementGap[];
+}
+
+/** Query of `GET frameworks/gaps`. */
+export interface GapsQuery {
+  readonly chapter?: string | null;
+  readonly limit?: number;
+  readonly offset?: number;
+}
+
+/** A clause of the whole catalogue (`GET requirement-catalogue`), for pickers. */
+export interface CatalogueClause {
+  /** Canonical clause ref (`iso27001:A.8.13`): the value to store in record fields. */
+  readonly clause_ref: string;
+  readonly number: string;
+  /** Title in the request language. */
+  readonly title: string;
+  readonly title_en: string;
+  readonly title_nb: string;
+  readonly kind: ClauseKind;
+  readonly short: string;
+  readonly standard_key: string;
+  readonly framework: string;
+  readonly requirement_count: number;
+  /** The standard is enabled for the org (only enabled standards produce links). */
+  readonly enabled: boolean;
 }

@@ -1,12 +1,21 @@
 import { HttpContext } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
+import { Injectable, Injector, inject } from '@angular/core';
 import { Observable, exhaustMap, takeWhile, timer } from 'rxjs';
 import { SseClient, SseStream } from '../ai/sse-client';
 import { ApiService } from '../http/api.service';
 import { SKIP_ERROR_TOAST } from '../http/error.interceptor';
+import { LanguageService } from '../i18n/language.service';
 import {
   AiMapTarget,
+  BulkLinksRequest,
+  BulkLinksResponse,
+  CatalogueClause,
   ClauseDetail,
+  GapsQuery,
+  GapsResponse,
+  RequirementCoverageResponse,
+  RequirementEvidence,
+  SuggestRequirementsResponse,
   ClauseMappingItem,
   ClauseNode,
   ClauseSupport,
@@ -51,9 +60,23 @@ export function requirementPath(ref: string): string {
 export class StandardsApi {
   private readonly api = inject(ApiService);
   private readonly sse = inject(SseClient);
+  private readonly injector = inject(Injector);
 
   private base(orgId: string): string {
     return `v1/orgs/${orgId}`;
+  }
+
+  /**
+   * UI language for endpoints that return display labels (`?lang=`). Resolved lazily so
+   * the API stays usable where i18n is not set up; then the parameter is left out and
+   * the backend falls back to the browser's Accept-Language.
+   */
+  private lang(): string | undefined {
+    try {
+      return this.injector.get(LanguageService).active();
+    } catch {
+      return undefined;
+    }
   }
 
   // --- Standards -------------------------------------------------------------
@@ -99,9 +122,93 @@ export class StandardsApi {
 
   // --- Evidence links --------------------------------------------------------
 
+  /** Links of a requirement or of a record; items carry a display `label` in the UI language. */
   listLinks(orgId: string, query: RequirementLinkQuery): Observable<RequirementLink[]> {
     return this.api.get<RequirementLink[]>(`${this.base(orgId)}/requirement-links`, {
-      params: { ...query },
+      params: { ...query, lang: this.lang() },
+    });
+  }
+
+  /**
+   * Confirmed / suggested requirement counts per record, for list rows
+   * (≤200 ids per call; see `RequirementCoverageService` for batching).
+   */
+  coverage(
+    orgId: string,
+    entityType: string,
+    ids: readonly string[],
+  ): Observable<RequirementCoverageResponse> {
+    return this.api.get<RequirementCoverageResponse>(`${this.base(orgId)}/requirement-coverage`, {
+      ...INLINE_ERRORS,
+      params: { entity_type: entityType, ids: ids.join(',') },
+    });
+  }
+
+  /**
+   * "Foreslåtte krav" for one record: AI-ranked when AI is configured (a
+   * `record_map` job runs at most once a day per record), else the
+   * requirements this type of record usually evidences (virtual, `link_id: null`).
+   */
+  suggestRequirements(
+    orgId: string,
+    entityType: string,
+    entityId: string,
+  ): Observable<SuggestRequirementsResponse> {
+    return this.api.post<SuggestRequirementsResponse>(
+      `${this.base(orgId)}/requirement-links/suggest`,
+      { entity_type: entityType, entity_id: entityId },
+      { ...INLINE_ERRORS, params: { lang: this.lang() } },
+    );
+  }
+
+  /** Confirm or reject many links and / or virtual suggestions at once (all or nothing). */
+  bulkLinks(orgId: string, body: BulkLinksRequest): Observable<BulkLinksResponse> {
+    return this.api.post<BulkLinksResponse>(
+      `${this.base(orgId)}/requirement-links/bulk`,
+      body,
+      INLINE_ERRORS,
+    );
+  }
+
+  /** One requirement's evidence from every module, what could evidence it, and its mappings. */
+  requirementEvidence(orgId: string, ref: string): Observable<RequirementEvidence> {
+    return this.api.get<RequirementEvidence>(
+      `${this.base(orgId)}/standard-requirements/${requirementPath(ref)}/evidence`,
+      { ...INLINE_ERRORS, params: { lang: this.lang() } },
+    );
+  }
+
+  /** Uncovered applicable requirements of an enabled standard, with where to fix each one. */
+  gaps(orgId: string, standardKey: string, query: GapsQuery = {}): Observable<GapsResponse> {
+    return this.api.get<GapsResponse>(`${this.base(orgId)}/frameworks/gaps`, {
+      ...INLINE_ERRORS,
+      params: {
+        standard_key: standardKey,
+        chapter: query.chapter || undefined,
+        limit: query.limit,
+        offset: query.offset,
+        lang: this.lang(),
+      },
+    });
+  }
+
+  /**
+   * Clause search over the whole catalogue (ref, number or en / nb title), for
+   * the clause picker. `frameworks` narrows to framework keys (`iso27001`, `gdpr`).
+   */
+  searchCatalogue(
+    orgId: string,
+    q: string,
+    options: { readonly frameworks?: readonly string[]; readonly limit?: number } = {},
+  ): Observable<CatalogueClause[]> {
+    return this.api.get<CatalogueClause[]>(`${this.base(orgId)}/requirement-catalogue`, {
+      ...INLINE_ERRORS,
+      params: {
+        q,
+        frameworks: options.frameworks?.length ? options.frameworks.join(',') : undefined,
+        limit: options.limit,
+        lang: this.lang(),
+      },
     });
   }
 

@@ -2,16 +2,16 @@
   "pages": {
     "dashboard": {
       "intro": {
-        "title": "Oversikten over etterlevelsen din",
-        "body": "Oversikten viser hva som trenger oppmerksomhet i organisasjonen akkurat nå: åpne avvik, dokumenter som venter på gjennomgang og forslag fra assistenten. Hvert tall lenker til listen bak det.",
+        "title": "Hvor organisasjonen står, og hva du bør gjøre nå",
+        "body": "Oversikten svarer på to spørsmål: hvor langt organisasjonen har kommet med hver standard, og hva du bør gjøre nå. Forslagene er personlige og endrer seg etter hvert som arbeidet blir gjort.",
         "steps": [
-          "Start med flisene som er merket rødt eller gult: de er forfalt eller trenger en beslutning.",
-          "Åpne en flis for å se registreringene bak tallet.",
-          "Bruk Mitt arbeid for oppgavene som er tildelt deg personlig."
+          "Start med **Gjør dette nå**: hvert forslag forteller hvorfor det er viktig, og har én knapp.",
+          "Under **Slik står organisasjonen** ser du kravdekningen for hver standard og de tre viktigste hullene.",
+          "Følg en **veiledet reise** hvis organisasjonen jobber mot en sertifisering eller vil ha en tydelig rekkefølge å jobbe i."
         ]
       },
       "why": {
-        "body": "Styringssystemer bygger på **overvåking og måling**: du må vite hvordan prosessene presterer før du kan forbedre dem. Oversikten er den raskeste måten å se om systemet ditt fungerer.",
+        "body": "Styringssystemer bygger på **overvåking og måling**: du må vite hvor organisasjonen står før den kan bli bedre. Kravdekningen viser hvor mange krav som allerede har bekreftet dokumentasjon.",
         "clauses": ["hs:9.1", "hs:9.3"]
       }
     },
@@ -147,6 +147,21 @@
           "help": "Nivået medlemmene ser til de velger et selv.",
           "example": "Velg Nybegynner mens organisasjonen forbereder seg til sin første sertifisering."
         }
+      }
+    },
+    "journey": {
+      "intro": {
+        "title": "En trinnvis vei til standarden",
+        "body": "Reisen deler standarden inn i faser og steg i en fornuftig rekkefølge. Hvert steg forteller hva du skal gjøre, hvor i CoreFlow du gjør det og hvilke krav det dekker.",
+        "steps": [
+          "Jobb deg gjennom stegene ovenfra. Neste steg er uthevet.",
+          "Et steg hukes av av seg selv når dataene viser at det er gjort. Finnes registreringene, men de ikke er koblet til kravet ennå, ber steget deg om å koble dem.",
+          "Bruk **Gjør til oppgave** for å gi et steg til en kollega, eller **Hopp over** for steg som ikke gjelder organisasjonen."
+        ]
+      },
+      "why": {
+        "body": "Sertifiseringsrevisjonen sjekker at hvert krav er oppfylt **og dokumentert**. Når du følger reisen, bygger du dokumentasjonen underveis, og den teller i kravdekningen.",
+        "clauses": ["hs:4.4", "hs:6.1", "hs:9.2"]
       }
     }
   },

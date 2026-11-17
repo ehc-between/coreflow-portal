@@ -2,15 +2,20 @@ import { WorkItem } from '../../core/tasks/task.models';
 import {
   NO_FILTERS,
   boardColumn,
+  countTabs,
+  defaultTab,
   filterWorkItems,
   gridRange,
   groupByColumn,
+  groupOf,
   itemsByDay,
   monthGrid,
+  parseTab,
   parseView,
   shiftMonth,
   sourceLabelKey,
-  summarise,
+  tabGroup,
+  whyOf,
 } from './my-work-data';
 
 function item(overrides: Partial<WorkItem>): WorkItem {
@@ -42,9 +47,11 @@ describe('My Work data', () => {
       due_at: '2026-11-18T10:00:00',
       source: 'deviation_action',
       status: 'in_progress',
+      module: 'deviations',
     }),
-    item({ id: 'd', due_at: '2026-11-19T10:00:00', status: 'blocked' }),
-    item({ id: 'e', source: 'document_ack', status: null, priority: null }),
+    item({ id: 'd', due_at: '2026-11-25T10:00:00', status: 'blocked' }),
+    item({ id: 'e', source: 'document_ack', status: null, priority: null, module: 'documents' }),
+    item({ id: 'f', source: 'document_review', module: 'documents' }),
   ];
 
   it('parses the view param', () => {
@@ -54,27 +61,62 @@ describe('My Work data', () => {
     expect(parseView(null)).toBe('list');
   });
 
-  it('filters by source, priority and due bucket', () => {
-    const ids = (f: Partial<typeof NO_FILTERS>) =>
-      filterWorkItems(items, { ...NO_FILTERS, ...f }, TODAY).map((i) => i.id);
-    expect(ids({})).toEqual(['a', 'b', 'c', 'd', 'e']);
-    expect(ids({ source: 'deviation_action' })).toEqual(['c']);
-    expect(ids({ priority: 'high' })).toEqual(['a']);
-    expect(ids({ due: 'overdue' })).toEqual(['a']);
-    expect(ids({ due: 'today' })).toEqual(['b']);
-    // Today plus six days: the 18th is in, the 19th is out.
-    expect(ids({ due: 'week' })).toEqual(['b', 'c']);
-    expect(ids({ due: 'none' })).toEqual(['e']);
+  it('parses the tab param, accepting the backend group names', () => {
+    expect(parseTab('overdue')).toBe('overdue');
+    expect(parseTab('week')).toBe('this_week');
+    expect(parseTab('awaiting_review')).toBe('review');
+    expect(parseTab('review')).toBe('review');
+    expect(parseTab('soon')).toBeNull();
+    expect(parseTab(null)).toBeNull();
+    expect(tabGroup('review')).toBe('awaiting_review');
   });
 
-  it('summarises overdue and due-today counts', () => {
-    expect(summarise(items, TODAY)).toEqual({ total: 5, overdue: 1, dueToday: 1 });
+  it('uses the backend group, else computes it the same way', () => {
+    expect(groupOf(item({ group: 'later', overdue: true }), TODAY)).toBe('later');
+    expect(items.map((i) => groupOf(i, TODAY))).toEqual([
+      'overdue',
+      'this_week',
+      'this_week',
+      'later',
+      'later',
+      'awaiting_review',
+    ]);
+  });
+
+  it('counts the tabs and opens the first one with items', () => {
+    const counts = countTabs(items, TODAY);
+    expect(counts).toEqual({ overdue: 1, this_week: 2, later: 2, review: 1 });
+    expect(defaultTab(counts)).toBe('overdue');
+    expect(defaultTab({ overdue: 0, this_week: 0, later: 3, review: 1 })).toBe('later');
+    expect(defaultTab({ overdue: 0, this_week: 0, later: 0, review: 0 })).toBe('overdue');
+  });
+
+  it('filters by module and type', () => {
+    const ids = (f: Partial<typeof NO_FILTERS>) =>
+      filterWorkItems(items, { ...NO_FILTERS, ...f }).map((i) => i.id);
+    expect(ids({})).toEqual(['a', 'b', 'c', 'd', 'e', 'f']);
+    expect(ids({ source: 'deviation_action' })).toEqual(['c']);
+    expect(ids({ module: 'documents' })).toEqual(['e', 'f']);
+    expect(ids({ module: 'documents', source: 'document_ack' })).toEqual(['e']);
+  });
+
+  it('says why an item is on the list, with a natural one-day variant', () => {
+    expect(whyOf(item({ why_key: 'tasks:work.why.due_soon', why_params: { days: 3 } }))).toEqual({
+      key: 'tasks.work.why.due_soon',
+      params: { days: 3 },
+    });
+    expect(whyOf(item({ why_key: 'tasks:work.why.overdue', why_params: { days: 1 } })).key).toBe(
+      'tasks.work.why.overdueOne',
+    );
+    // Without the P5 fields: derived from the source.
+    expect(whyOf(item({ source: 'proposal' })).key).toBe('tasks.work.why.approve');
+    expect(whyOf(item({ source: 'deviation' })).key).toBe('tasks.work.why.owner');
   });
 
   it('groups items into board columns', () => {
     expect(boardColumn(item({ status: 'pending' }))).toBe('open');
     const board = groupByColumn(items);
-    expect(board.open.map((i) => i.id)).toEqual(['a', 'b', 'e']);
+    expect(board.open.map((i) => i.id)).toEqual(['a', 'b', 'e', 'f']);
     expect(board.in_progress.map((i) => i.id)).toEqual(['c']);
     expect(board.blocked.map((i) => i.id)).toEqual(['d']);
   });
@@ -109,8 +151,9 @@ describe('My Work data', () => {
     expect(shiftMonth({ year: 2026, month: 1 }, -1)).toEqual({ year: 2025, month: 12 });
   });
 
-  it('labels module sources as other', () => {
-    expect(sourceLabelKey('deviation')).toBe('tasks.sources.deviation');
-    expect(sourceLabelKey('training_assignment')).toBe('tasks.sources.other');
+  it('labels every known source and calls the rest other', () => {
+    expect(sourceLabelKey('deviation')).toBe('tasks.work.kinds.deviation');
+    expect(sourceLabelKey('training_due')).toBe('tasks.work.kinds.training_due');
+    expect(sourceLabelKey('vendor_thing')).toBe('tasks.work.kinds.other');
   });
 });

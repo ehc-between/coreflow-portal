@@ -5,9 +5,9 @@
         "title": "Din personlige arbeidskø",
         "body": "Mitt arbeid samler alt som venter på **deg** i denne organisasjonen: oppgaver, korrigerende tiltak, avvik du eier, dokumenter til godkjenning og dokumenter du skal lese og bekrefte.",
         "steps": [
-          "Begynn med det som er merket som forfalt (rødt), og deretter det som forfaller i dag.",
-          "Bytt til **Tavle** for å se hva som pågår eller er blokkert, eller til **Kalender** for å planlegge måneden.",
-          "Kryss av en oppgave for å merke den som utført; åpne et element for å se detaljene."
+          "Start med fanen **Forfalt**, og ta deretter **Denne uka**.",
+          "**Til gjennomgang** samler dokumenter, endringsforslag og rapporter som venter på godkjenningen din.",
+          "Hver rad forteller hva saken er, og hvorfor den er din. Kryss av en oppgave for å merke den som utført, eller åpne saken for å se detaljene."
         ]
       },
       "why": {

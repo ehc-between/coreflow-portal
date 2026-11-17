@@ -12,6 +12,7 @@ import { RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { Subscription, catchError, forkJoin, of } from 'rxjs';
 import { AiAvailability } from '../../core/ai/ai-availability';
+import { providePageContext } from '../../core/ai/page-context';
 import { HasPermissionDirective } from '../../core/auth/has-permission.directive';
 import { FrameworkView } from '../../core/standards/frameworks-data';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
@@ -310,7 +311,7 @@ export class StandardsOverview {
   protected readonly aiUnavailable = inject(AiAvailability).unavailable;
 
   /** The shared ISO structure the overview guide teaches. */
-  protected readonly guideClauses = ['ISO HS 4.1', 'ISO HS 6.1', 'ISO HS 9.1'];
+  protected readonly guideClauses = ['hs:4.1', 'hs:6.1', 'hs:9.1'];
 
   protected readonly standards = signal<readonly StandardSummary[]>([]);
   /** Every framework with its readiness, in framework order. */
@@ -351,6 +352,7 @@ export class StandardsOverview {
   private barsSub: Subscription | null = null;
 
   constructor() {
+    providePageContext(() => ({ module: 'standards', view: 'dashboard' }));
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();
       untracked(() => this.load(orgId));

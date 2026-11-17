@@ -71,9 +71,9 @@ describe('MappingStatus', () => {
 
   it('never mapped: a banner with a one-click "map existing documents"', async () => {
     await setup({ mapping: null, canMap: true });
-    expect(testId('mapping-never')?.textContent).toContain('standards.mapping.never');
+    expect(testId('mapping-never')?.textContent).toContain('standards.reqs.mapping.never');
     const button = el.querySelector<HTMLButtonElement>('app-button button')!;
-    expect(button.textContent).toContain('standards.mapping.mapExisting');
+    expect(button.textContent).toContain('standards.reqs.mapping.findAll');
     button.click();
     expect(maps).toBe(1);
   });
@@ -92,7 +92,7 @@ describe('MappingStatus', () => {
 
   it('running: a progress line', async () => {
     await setup({ mapping: { ...DONE, status: 'running', finished_at: null } });
-    expect(testId('mapping-running')?.textContent).toContain('standards.mapping.running');
+    expect(testId('mapping-running')?.textContent).toContain('standards.reqs.mapping.running');
   });
 
   it('done: last mapped date and count, and a link to the requirements with suggestions', async () => {

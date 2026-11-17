@@ -4,13 +4,16 @@ import { TranslocoService } from '@jsverse/transloco';
 import { firstValueFrom } from 'rxjs';
 import { AiActionsApi, actionErrorState } from '../../core/ai/ai-actions-api';
 import { AiApi, AskStream } from '../../core/ai/ai-api';
+import { AiFeedbackApi } from '../../core/ai/ai-feedback-api';
 import {
   AiActionResult,
+  AnswerRating,
   AskAction,
   AskLink,
   AskMode,
   AskProposal,
   AskSource,
+  AskStatus,
   ConversationTurn,
   GuidanceLevel,
 } from '../../core/ai/ai.models';
@@ -18,6 +21,7 @@ import {
   PageContext,
   PageContextService,
   PageSelection,
+  cleanRefs,
   toPageContextDto,
 } from '../../core/ai/page-context';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
@@ -55,6 +59,14 @@ export interface AskActionCard extends AskAction {
   readonly message?: string | null;
 }
 
+/** The user's rating of one answer and where saving it stands. */
+export interface AskTurnFeedback {
+  readonly rating: AnswerRating;
+  readonly reason?: string | null;
+  readonly comment?: string | null;
+  readonly state: 'saving' | 'saved' | 'error';
+}
+
 /** One turn in the on-screen conversation thread. */
 export interface AskTurn {
   readonly id: number;
@@ -66,11 +78,22 @@ export interface AskTurn {
   actions?: readonly AskActionCard[];
   links?: readonly AskLink[];
   status?: 'streaming' | 'done' | 'error';
+  /** The persisted run of a finished answer (from `done`), the feedback handle. */
+  runId?: string | null;
+  feedback?: AskTurnFeedback;
 }
 
-/** Per-message extras (selection for "Ask about this"). */
+/** Per-message extras (selection and requirement refs for "Ask about this"). */
 export interface AskSendOptions {
   readonly selection?: PageSelection | null;
+  /** Requirement refs of the field asked about, merged into the page context. */
+  readonly requirements?: readonly string[] | null;
+}
+
+/** Extras of {@link AskPanelService.askAbout}. */
+export interface AskAboutOptions {
+  /** Canonical refs the field or record documents (e.g. from field help). */
+  readonly requirements?: readonly string[] | null;
 }
 
 /**
@@ -92,6 +115,7 @@ export interface AskSendOptions {
 export class AskPanelService {
   private readonly ai = inject(AiApi);
   private readonly actionsApi = inject(AiActionsApi);
+  private readonly feedbackApi = inject(AiFeedbackApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly pageContextService = inject(PageContextService);
   private readonly router = inject(Router);
@@ -100,7 +124,7 @@ export class AskPanelService {
   private readonly _open = signal(false);
   private readonly _state = signal<AskPanelState>('chat');
   private readonly _thread = signal<readonly AskTurn[]>([]);
-  private readonly _working = signal<string | null>(null);
+  private readonly _working = signal<AskStatus | null>(null);
   private readonly _mode = signal<AskMode>('ask');
   private readonly _topic = signal<string | null>(null);
   private readonly _usePageContext = signal(true);
@@ -111,9 +135,10 @@ export class AskPanelService {
   readonly state = this._state.asReadonly();
   readonly thread = this._thread.asReadonly();
 
-  /** The latest backend status label for the in-flight turn, or null. Set by a
+  /** The latest backend status for the in-flight turn, or null. Set by a
    *  `status` event during the silent tool-execution gap; cleared once the
-   *  assistant text starts streaming and when the turn finishes. */
+   *  assistant text starts streaming and when the turn finishes. The panel
+   *  translates it (`key` / `category`), falling back to the English `text`. */
   readonly working = this._working.asReadonly();
 
   /** `ask` or `tutor` for the current conversation. */
@@ -151,11 +176,14 @@ export class AskPanelService {
    * "Ask about this": open the panel and ask `prompt` about the current page,
    * optionally naming what is selected (a field, some text, record ids).
    */
-  askAbout(prompt: string, selection?: PageSelection): void {
+  askAbout(prompt: string, selection?: PageSelection, options: AskAboutOptions = {}): void {
     this._open.set(true);
     // Asking about the page re-attaches the page context if it was detached.
     this._usePageContext.set(true);
-    this.send(prompt, { selection: selection ?? null });
+    this.send(prompt, {
+      selection: selection ?? null,
+      requirements: options.requirements ?? null,
+    });
   }
 
   /**
@@ -228,6 +256,9 @@ export class AskPanelService {
     const messages = this.toMessages();
     const userId = userTurn.id;
     const assistantId = assistantTurn.id;
+    // Set when tools ran after some text: the next text belongs to a new model
+    // turn and must not run into the previous sentence ("…deres.Jeg").
+    let breakBeforeNextText = false;
 
     this.stream = this.ai.ask(
       messages,
@@ -235,13 +266,25 @@ export class AskPanelService {
       (event) => {
         switch (event.type) {
           case 'status':
-            this._working.set(event.text);
+            this._working.set({
+              text: event.text ?? '',
+              key: event.key ?? null,
+              category: event.category ?? null,
+              params: event.params ?? null,
+            });
+            breakBeforeNextText = true;
             break;
-          case 'delta':
+          case 'delta': {
             // Visible text is now the progress signal; retire the status label.
             this._working.set(null);
-            this.patch(assistantId, (turn) => ({ ...turn, text: turn.text + event.text }));
+            const afterTools = breakBeforeNextText;
+            breakBeforeNextText = false;
+            this.patch(assistantId, (turn) => ({
+              ...turn,
+              text: joinText(turn.text, event.text, afterTools),
+            }));
             break;
+          }
           case 'sources':
             this.patch(assistantId, (turn) => ({ ...turn, sources: event.sources }));
             break;
@@ -298,7 +341,11 @@ export class AskPanelService {
           }
           case 'done':
             this._working.set(null);
-            this.patch(assistantId, (turn) => ({ ...turn, status: 'done' }));
+            this.patch(assistantId, (turn) => ({
+              ...turn,
+              status: 'done',
+              runId: typeof event.run_id === 'string' && event.run_id ? event.run_id : null,
+            }));
             this.stream = null;
             break;
           case 'error':
@@ -320,7 +367,7 @@ export class AskPanelService {
         }
       },
       {
-        pageContext: this.wirePageContext(options.selection ?? null),
+        pageContext: this.wirePageContext(options.selection ?? null, options.requirements ?? null),
         mode: this._mode(),
         topic: this._topic(),
         guidanceLevel: this._guidanceLevel(),
@@ -359,6 +406,39 @@ export class AskPanelService {
     });
   }
 
+  /**
+   * Rate a finished answer (thumbs up / down, optionally why). Needs the run id
+   * the server sent with `done`; rating again replaces the earlier rating.
+   */
+  rateAnswer(
+    turnId: number,
+    rating: AnswerRating,
+    details: { readonly reason?: string | null; readonly comment?: string | null } = {},
+  ): void {
+    const orgId = this.selectedOrg.currentOrgId();
+    const turn = this._thread().find((t) => t.id === turnId);
+    if (!orgId || !turn?.runId || turn.status !== 'done') {
+      return;
+    }
+    const feedback: AskTurnFeedback = {
+      rating,
+      reason: details.reason ?? null,
+      comment: details.comment ?? null,
+      state: 'saving',
+    };
+    this.patch(turnId, (t) => ({ ...t, feedback }));
+    this.feedbackApi
+      .rate(orgId, turn.runId, {
+        rating,
+        reason: details.reason ?? undefined,
+        comment: details.comment ?? undefined,
+      })
+      .subscribe({
+        next: () => this.settleFeedback(turnId, feedback, 'saved'),
+        error: () => this.settleFeedback(turnId, feedback, 'error'),
+      });
+  }
+
   /** Abort the in-flight stream but keep the thread. */
   stop(): void {
     this.stream?.cancel();
@@ -386,18 +466,41 @@ export class AskPanelService {
     this._usePageContext.set(true);
   }
 
-  private wirePageContext(selection: PageSelection | null) {
+  private wirePageContext(selection: PageSelection | null, requirements: readonly string[] | null) {
     if (!this._usePageContext()) {
       return null;
     }
     const ctx = this.pageContextService.current();
-    const withSelection = selection && ctx ? { ...ctx, selection } : ctx;
-    const dto = toPageContextDto(withSelection, this.router.url);
-    if (dto && selection && !ctx) {
+    const extraRefs = cleanRefs(requirements);
+    let merged: PageContext | null = ctx;
+    if (ctx && (selection || extraRefs.length)) {
+      merged = {
+        ...ctx,
+        selection: selection ?? ctx.selection ?? null,
+        // The field's own refs first: they are what the question is about.
+        requirements: [...extraRefs, ...(ctx.requirements ?? [])],
+      };
+    }
+    const dto = toPageContextDto(merged, this.router.url);
+    if (dto && !ctx && (selection || extraRefs.length)) {
       // No page registered: still pass what the user pointed at.
-      return toPageContextDto({ module: dto.module, view: dto.view, selection }, this.router.url);
+      return toPageContextDto(
+        { module: dto.module, view: dto.view, selection, requirements: extraRefs },
+        this.router.url,
+      );
     }
     return dto;
+  }
+
+  /** Settle the rating this request sent (a newer click may have replaced it). */
+  private settleFeedback(
+    turnId: number,
+    feedback: AskTurnFeedback,
+    state: AskTurnFeedback['state'],
+  ): void {
+    this.patch(turnId, (t) =>
+      t.feedback === feedback ? { ...t, feedback: { ...feedback, state } } : t,
+    );
   }
 
   /** A tutor topic for the current page: `<module>.<view>`, or null. */
@@ -482,4 +585,16 @@ export class AskPanelService {
   private patch(id: number, update: (turn: AskTurn) => AskTurn): void {
     this._thread.update((turns) => turns.map((turn) => (turn.id === id ? update(turn) : turn)));
   }
+}
+
+/**
+ * Append streamed `next` text to `current`. After tools ran (`afterTools`) the
+ * text comes from a new model turn: separate it with a blank line unless either
+ * side already has whitespace at the seam (newer servers send it themselves).
+ */
+export function joinText(current: string, next: string, afterTools: boolean): string {
+  if (!afterTools || !current || !next || /\s$/.test(current) || /^\s/.test(next)) {
+    return current + next;
+  }
+  return `${current}\n\n${next}`;
 }

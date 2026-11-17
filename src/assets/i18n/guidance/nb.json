@@ -98,10 +98,34 @@
   },
   "scopes": {
     "platform": "Grunnleggende om CoreFlow",
+    "context": "Kontekst og ledelse",
     "processes": "Prosesser",
-    "obligations": "Samsvarskrav",
+    "risk": "Risiko og muligheter",
+    "objectives": "Mål og KPI-er",
+    "obligations": "Lover og forskrifter",
+    "documents": "Dokumenter",
+    "deviations": "Avvik",
     "inspections": "Inspeksjoner",
-    "people": "Personer og kompetanse"
+    "audits": "Revisjoner",
+    "management-review": "Ledelsens gjennomgang",
+    "suppliers": "Leverandører",
+    "contracts": "Kontrakter",
+    "projects": "Prosjekter",
+    "assets": "Eiendeler og endringer",
+    "continuity": "Kontinuitet og beredskap",
+    "privacy": "Personvern",
+    "ai-governance": "KI-styring",
+    "environment": "Miljø",
+    "hse": "HMS",
+    "feedback": "Kundetilbakemeldinger",
+    "people": "Personer",
+    "recruitment": "Rekruttering",
+    "training": "Opplæring",
+    "reports": "Rapporter",
+    "records": "Registertyper og arbeidsflyter",
+    "tasks": "Oppgaver",
+    "kit": "Arbeid med registreringer",
+    "search": "Søk og assistenten"
   },
   "tour": {
     "start": "Omvisning",
@@ -137,7 +161,9 @@
     "noMatches": "Ingen leksjoner passer med filtrene.",
     "levelTitle": "Læringsnivå",
     "levelCurrent": "Du ser nå nivået {{ level }}.",
-    "backToCentre": "Tilbake til læringssenteret"
+    "backToCentre": "Tilbake til læringssenteret",
+    "filterArea": "Område",
+    "allAreas": "Alle områder"
   },
   "settings": {
     "title": "Læringsmodus",
