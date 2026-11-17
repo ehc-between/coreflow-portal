@@ -76,4 +76,17 @@ export interface DepartmentDetail {
 export interface OrgSettingsDto {
   /** Documents must be approved by someone other than their author. */
   readonly require_document_segregation: boolean;
+  /**
+   * Require a second factor: "off", of "all" members, or of members holding any
+   * of `mfa_required_roles` (role keys). Members it applies to get no permissions
+   * in this org until they sign in with (or enrol) a second factor.
+   */
+  readonly mfa_policy: OrgMfaPolicy;
+  readonly mfa_required_roles: readonly string[];
 }
+
+/** Who an org requires a second factor of. */
+export type OrgMfaPolicy = 'off' | 'all' | 'roles';
+
+/** `PUT v1/orgs/{org}/settings` body: omitted fields stay unchanged. */
+export type OrgSettingsUpdate = Partial<OrgSettingsDto>;

@@ -3,11 +3,13 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { TranslatedMessage, rateLimitMessage } from '../../../core/auth/auth-errors';
+import { MfaChallenge } from '../../../core/auth/auth.models';
 import { AuthService, LoginNotice } from '../../../core/auth/auth.service';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
 import { FormField } from '../../../shared/ui/form-field/form-field';
 import { AuthShell } from '../auth-shell/auth-shell';
+import { MfaStep } from './mfa-step';
 
 const NOTICE_KEYS: Record<LoginNotice, string> = {
   passwordReset: 'auth.notice.passwordReset',
@@ -22,7 +24,16 @@ const NOTICE_KEYS: Record<LoginNotice, string> = {
  */
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, RouterLink, TranslocoPipe, AuthShell, FormField, Button, Alert],
+  imports: [
+    ReactiveFormsModule,
+    RouterLink,
+    TranslocoPipe,
+    AuthShell,
+    FormField,
+    Button,
+    Alert,
+    MfaStep,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './login.html',
 })
@@ -38,6 +49,8 @@ export class Login {
 
   protected readonly submitting = signal(false);
   protected readonly error = signal<TranslatedMessage | null>(null);
+  /** Set when the password was accepted and a second factor is needed. */
+  protected readonly challenge = signal<MfaChallenge | null>(null);
   protected readonly notice = signal<string | null>(
     NOTICE_KEYS[inject(ActivatedRoute).snapshot.queryParamMap.get('notice') as LoginNotice] ?? null,
   );
@@ -54,16 +67,33 @@ export class Login {
     const { email, password } = this.form.getRawValue();
 
     this.auth.login(email, password).subscribe({
-      next: () => {
-        const returnUrl =
-          this.router.parseUrl(this.router.url).queryParams['returnUrl'] ?? '/dashboard';
-        void this.router.navigateByUrl(returnUrl);
+      next: (result) => {
+        if (result.kind === 'mfa') {
+          this.submitting.set(false);
+          this.form.controls.password.setValue('');
+          this.challenge.set(result.challenge);
+          return;
+        }
+        this.continue();
       },
       error: (err: unknown) => {
         this.error.set(loginErrorMessage(err));
         this.submitting.set(false);
       },
     });
+  }
+
+  /** Signed in (with or without a second step): go to `returnUrl` or the dashboard. */
+  protected continue(): void {
+    const returnUrl =
+      this.router.parseUrl(this.router.url).queryParams['returnUrl'] ?? '/dashboard';
+    void this.router.navigateByUrl(returnUrl);
+  }
+
+  /** Back to the password step, optionally explaining why (challenge expired). */
+  protected restart(message: TranslatedMessage | null = null): void {
+    this.challenge.set(null);
+    this.error.set(message);
   }
 }
 

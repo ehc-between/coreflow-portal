@@ -16,6 +16,10 @@ const AUTH_ENDPOINTS = [
   '/v1/auth/logout',
   '/v1/auth/password-reset/request',
   '/v1/auth/password-reset/confirm',
+  // Sign-in step two: the mfa_token is the credential. A 401 here means the
+  // challenge expired / was burned, never "refresh and retry".
+  '/v1/auth/mfa/verify',
+  '/v1/auth/mfa/webauthn/options',
 ];
 
 function isAuthEndpoint(url: string): boolean {

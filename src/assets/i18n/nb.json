@@ -552,6 +552,30 @@
         "settings": "Innstillinger"
       },
       "membersSection": "Medlemmer, avdelinger og invitasjoner"
+    },
+    "mfa": {
+      "title": "Totrinnsbekreftelse",
+      "hint": "Krev at medlemmer logger inn med et ekstra trinn. Medlemmer det gjelder, beholder rollene sine, men kan ikke bruke organisasjonen før de har satt det opp.",
+      "policy": {
+        "off": "Ikke påkrevd",
+        "all": "Påkrevd for alle",
+        "roles": "Påkrevd for valgte roller"
+      },
+      "policyHint": {
+        "off": "Medlemmene velger selv.",
+        "all": "Alle medlemmer må bruke totrinnsbekreftelse.",
+        "roles": "Medlemmer med en av de valgte rollene må bruke totrinnsbekreftelse."
+      },
+      "rolesLabel": "Roller som krever totrinnsbekreftelse",
+      "saved": "Innstillingene for totrinnsbekreftelse er lagret.",
+      "loadError": "Kunne ikke laste innstillingene for totrinnsbekreftelse.",
+      "setUpOwn": "Sett det opp for kontoen din",
+      "error": {
+        "verifySelf": "Regelen gjelder også deg. Sett opp totrinnsbekreftelse og logg inn med den først, så du ikke blir utestengt.",
+        "rolesRequired": "Velg minst én rolle.",
+        "unknownRoles": "En av de valgte rollene finnes ikke lenger. Last inn siden på nytt og prøv igjen.",
+        "saveFailed": "Kunne ikke lagre innstillingene for totrinnsbekreftelse."
+      }
     }
   },
   "auth": {
@@ -577,7 +601,9 @@
       "changePassword": "Endre passord",
       "notificationSettings": "Varslingsinnstillinger",
       "logoutAll": "Logg ut av alle enheter",
-      "logoutAllFailed": "Kunne ikke logge ut av alle enheter. Prøv igjen."
+      "logoutAllFailed": "Kunne ikke logge ut av alle enheter. Prøv igjen.",
+      "security": "Totrinnsbekreftelse",
+      "sessions": "Innloggede enheter"
     },
     "notice": {
       "passwordReset": "Passordet ditt er tilbakestilt. Logg inn med det nye passordet.",
@@ -621,6 +647,139 @@
       "invalidTitle": "Lenken er ikke tilgjengelig",
       "invalidBody": "Denne lenken for å tilbakestille passordet er ugyldig eller utløpt.",
       "requestNew": "Be om en ny lenke"
+    },
+    "mfa": {
+      "title": "Totrinnsbekreftelse",
+      "subtitle": "Beskytt kontoen din med et ekstra trinn ved innlogging: en kode fra en autentiseringsapp eller en passnøkkel.",
+      "link": "Administrer totrinnsbekreftelse",
+      "enrolledToast": "Metode for totrinnsbekreftelse er lagt til.",
+      "removedToast": "Metode for totrinnsbekreftelse er fjernet.",
+      "required": {
+        "enrol": "Organisasjonen din ({{orgs}}) krever totrinnsbekreftelse. Sett opp en metode nedenfor for å få tilgang igjen.",
+        "signInAgain": "Organisasjonen din ({{orgs}}) krever totrinnsbekreftelse. Logg ut og logg inn igjen med det andre trinnet for å få tilgang igjen.",
+        "signOut": "Logg ut",
+        "verifyToChange": "For å endre metodene for totrinnsbekreftelse må du logge ut og logge inn igjen med det andre trinnet."
+      },
+      "methods": {
+        "title": "Metoder",
+        "none": "Du har ikke satt opp totrinnsbekreftelse ennå."
+      },
+      "factor": {
+        "nameLabel": "Navn (valgfritt)",
+        "added": "Lagt til {{date}}",
+        "lastUsed": "sist brukt {{date}}",
+        "neverUsed": "ikke brukt ennå",
+        "defaultName": {
+          "totp": "Autentiseringsapp",
+          "webauthn": "Passnøkkel"
+        },
+        "kind": {
+          "totp": "Appkode",
+          "webauthn": "Passnøkkel"
+        }
+      },
+      "action": {
+        "addTotp": "Legg til autentiseringsapp",
+        "addPasskey": "Legg til passnøkkel",
+        "remove": "Fjern",
+        "cancel": "Avbryt",
+        "continue": "Fortsett"
+      },
+      "totp": {
+        "title": "Legg til en autentiseringsapp",
+        "namePlaceholder": "For eksempel: Jobbtelefon",
+        "step1": "Skann QR-koden med autentiseringsappen, eller skriv inn nøkkelen manuelt.",
+        "step2": "Skriv inn den sekssifrede koden appen viser, for å bekrefte.",
+        "qrLabel": "QR-kode for å sette opp autentiseringsappen",
+        "manualLabel": "Oppsettsnøkkel",
+        "codeLabel": "Sekssifret kode",
+        "confirm": "Bekreft"
+      },
+      "passkey": {
+        "title": "Legg til en passnøkkel",
+        "hint": "Bruk skjermlåsen på enheten, et fingeravtrykk eller en sikkerhetsnøkkel. Nettleseren veileder deg.",
+        "namePlaceholder": "For eksempel: Bærbar PC",
+        "create": "Opprett passnøkkel",
+        "unsupported": "Denne nettleseren støtter ikke passnøkler."
+      },
+      "recovery": {
+        "title": "Gjenopprettingskoder",
+        "hint": "Bruk en gjenopprettingskode for å logge inn hvis du mister tilgang til autentiseringsappen eller passnøkkelen. Hver kode virker én gang.",
+        "remaining": "{{count}} gjenopprettingskoder igjen",
+        "remainingOne": "{{count}} gjenopprettingskode igjen",
+        "low": "Du har nesten ingen gjenopprettingskoder igjen. Lag nye.",
+        "regenerate": "Lag nye koder",
+        "newTitle": "Gjenopprettingskodene dine",
+        "newHint": "Lagre disse kodene et trygt sted nå. De vises ikke igjen, og hver kode virker én gang.",
+        "copy": "Kopier",
+        "download": "Last ned",
+        "saved": "Jeg har lagret dem",
+        "copied": "Gjenopprettingskodene er kopiert."
+      },
+      "confirm": {
+        "password": "Passord",
+        "removeTitle": "Fjerne denne metoden?",
+        "removeBody": "Skriv inn passordet ditt for å fjerne denne metoden for totrinnsbekreftelse.",
+        "regenerateTitle": "Lage nye gjenopprettingskoder?",
+        "regenerateBody": "De nåværende gjenopprettingskodene slutter å virke. Skriv inn passordet ditt for å fortsette."
+      },
+      "signIn": {
+        "title": "Totrinnsbekreftelse",
+        "hint": {
+          "totp": "Skriv inn koden fra autentiseringsappen.",
+          "webauthn": "Bruk passnøkkelen for å fullføre innloggingen.",
+          "recovery_code": "Skriv inn en av gjenopprettingskodene dine. Hver kode virker én gang."
+        },
+        "codeLabel": "Kode",
+        "recoveryLabel": "Gjenopprettingskode",
+        "usePasskey": "Bruk passnøkkel",
+        "verify": "Bekreft",
+        "verifying": "Bekrefter …",
+        "switch": {
+          "totp": "Bruk en kode fra autentiseringsappen i stedet",
+          "webauthn": "Bruk en passnøkkel i stedet",
+          "recovery_code": "Bruk en gjenopprettingskode i stedet"
+        },
+        "back": "Tilbake til innlogging"
+      },
+      "error": {
+        "invalidCode": "Koden er ikke gyldig. Sjekk den og prøv igjen.",
+        "invalidCodeRemaining": "Koden er ikke gyldig. {{count}} forsøk igjen.",
+        "invalidCodeRemainingOne": "Koden er ikke gyldig. {{count}} forsøk igjen.",
+        "invalidToken": "Innloggingen ble tidsavbrutt. Logg inn igjen.",
+        "tooManyAttempts": "For mange forsøk. Vent litt og prøv igjen.",
+        "tooManyAttemptsSeconds": "For mange forsøk. Prøv igjen om {{seconds}} sek.",
+        "tooManyAttemptsMinutes": "For mange forsøk. Prøv igjen om {{minutes}} min.",
+        "noPasskeys": "Ingen passnøkkel er registrert for denne kontoen. Bruk en annen metode.",
+        "enrolmentExpired": "Oppsettet er utløpt. Start på nytt.",
+        "passkeyFailed": "Passnøkkelen kunne ikke bekreftes. Prøv igjen.",
+        "passkeyCancelled": "Forespørselen om passnøkkel ble avbrutt eller tidsavbrutt.",
+        "passkeyAlreadyRegistered": "Denne passnøkkelen er allerede registrert.",
+        "invalidPassword": "Feil passord.",
+        "factorNotFound": "Denne metoden finnes ikke lenger.",
+        "requiredByOrg": "Organisasjonen din krever totrinnsbekreftelse, så du kan ikke fjerne den siste metoden. Legg til en annen metode først.",
+        "notEnrolled": "Sett opp totrinnsbekreftelse først.",
+        "verificationRequired": "Logg ut og logg inn igjen med det andre trinnet for å endre disse innstillingene.",
+        "tooManyFactors": "Du har nådd maksimalt antall metoder. Fjern en først."
+      }
+    },
+    "sessions": {
+      "title": "Innloggede enheter",
+      "subtitle": "Hvor kontoen din er logget inn. Logg ut enheter du ikke kjenner igjen.",
+      "link": "Se hvor du er logget inn",
+      "empty": "Ingen aktive økter.",
+      "unknownDevice": "Ukjent enhet",
+      "current": "Denne enheten",
+      "verified": "Totrinnsbekreftet",
+      "signedIn": "Logget inn {{date}}",
+      "lastActive": "sist aktiv {{date}}",
+      "ip": "IP {{ip}}",
+      "revoke": "Logg ut",
+      "revokeTitle": "Logge ut denne enheten?",
+      "revokeBody": "Enheten blir logget ut og må logge inn på nytt.",
+      "revokeCurrentBody": "Dette er enheten du bruker nå. Du blir logget ut her.",
+      "revokedToast": "Enheten er logget ut.",
+      "revokeFailed": "Kunne ikke logge ut enheten. Prøv igjen."
     }
   },
   "login": {
@@ -732,7 +891,12 @@
       "reactivateConfirm": "Aktivere {{name}} igjen? Vedkommende kan logge inn igjen med de eksisterende medlemskapene.",
       "deactivatedToast": "{{name}} er deaktivert.",
       "reactivatedToast": "{{name}} er aktivert igjen.",
-      "cancel": "Avbryt"
+      "cancel": "Avbryt",
+      "resetMfa": "Tilbakestill totrinnsbekreftelse",
+      "resetMfaTitle": "Tilbakestill totrinnsbekreftelse",
+      "resetMfaConfirm": "Tilbakestille totrinnsbekreftelse for {{name}}? Alle metodene og gjenopprettingskodene fjernes, og vedkommende logges ut overalt. Gjør dette bare etter at du har bekreftet hvem vedkommende er.",
+      "resetMfaToast": "Totrinnsbekreftelse er tilbakestilt for {{name}}.",
+      "resetMfaFailed": "Kunne ikke tilbakestille totrinnsbekreftelse. Prøv igjen."
     }
   },
   "invite": {

@@ -1,5 +1,6 @@
 import { Route, Routes } from '@angular/router';
 import { authGuard } from './core/auth/auth.guard';
+import { mfaEnrolmentGuard } from './core/auth/mfa.guard';
 import { settingsGuard } from './core/auth/org-manage.guard';
 import { permissionGuard } from './core/auth/permission.guard';
 import { superAdminGuard } from './core/auth/super-admin.guard';
@@ -71,6 +72,8 @@ export const routes: Routes = [
     path: '',
     component: MainLayout,
     canActivate: [authGuard],
+    // An org that requires MFA keeps the member on the setup page until they enrol.
+    canActivateChild: [mfaEnrolmentGuard],
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
       {

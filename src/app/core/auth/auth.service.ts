@@ -9,10 +9,14 @@ import {
   AuthUser,
   ChangePasswordRequest,
   LoginRequest,
+  LoginResult,
+  MfaChallenge,
+  MfaVerifyRequest,
   OrgMembership,
   PasswordResetConfirmRequest,
   PasswordResetRequest,
 } from './auth.models';
+import { WebAuthnLoginOptions } from './mfa.models';
 
 /** Query param the login page reads to show a one-off notice after a redirect. */
 export type LoginNotice = 'passwordReset' | 'signedOutAll';
@@ -71,11 +75,36 @@ export class AuthService {
     return this._accessToken();
   }
 
-  /** Authenticate with email/password and establish a session. */
-  login(email: string, password: string): Observable<AuthUser> {
+  /**
+   * Authenticate with email/password. Without a second factor this establishes
+   * the session; with one enrolled the server returns a challenge instead (no
+   * tokens, no cookie) and the caller completes sign-in with `verifyMfa`.
+   */
+  login(email: string, password: string): Observable<LoginResult> {
     const body: LoginRequest = { email, password };
     return this.http
-      .post<AuthSession>(`${this.authBaseUrl}/login`, body, {
+      .post<AuthSession | MfaChallenge>(`${this.authBaseUrl}/login`, body, {
+        withCredentials: true,
+        context: this.handledInPlace(),
+      })
+      .pipe(
+        map((response): LoginResult => {
+          if (response.mfa_required === true) {
+            return { kind: 'mfa', challenge: response };
+          }
+          this.applySession(response);
+          return { kind: 'session', user: response.user };
+        }),
+      );
+  }
+
+  /**
+   * Sign-in step two: present a second factor for an `mfa_token`. On success
+   * the server sets the refresh cookie and the session is established.
+   */
+  verifyMfa(request: MfaVerifyRequest): Observable<AuthUser> {
+    return this.http
+      .post<AuthSession>(`${this.authBaseUrl}/mfa/verify`, request, {
         withCredentials: true,
         context: this.handledInPlace(),
       })
@@ -83,6 +112,15 @@ export class AuthService {
         tap((session) => this.applySession(session)),
         map((session) => session.user),
       );
+  }
+
+  /** Passkey request options for sign-in step two (fetch again before each attempt). */
+  passkeySignInOptions(mfaToken: string): Observable<WebAuthnLoginOptions> {
+    return this.http.post<WebAuthnLoginOptions>(
+      `${this.authBaseUrl}/mfa/webauthn/options`,
+      { mfa_token: mfaToken },
+      { context: this.handledInPlace() },
+    );
   }
 
   /**
@@ -195,6 +233,14 @@ export class AuthService {
    */
   adoptSession(session: AuthSession): void {
     this.applySession(session);
+  }
+
+  /**
+   * This browser's session was ended server-side (e.g. revoked from the
+   * sessions list): drop local state and return to /login.
+   */
+  endLocalSession(): void {
+    this.signedOut();
   }
 
   /** Clear in-memory auth state (no network). Used after a failed refresh. */

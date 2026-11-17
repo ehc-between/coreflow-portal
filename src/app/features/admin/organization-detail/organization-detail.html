@@ -66,7 +66,17 @@
                         }
                       }
                     </td>
-                    <td class="px-4 py-3 text-right">
+                    <td class="px-4 py-3 text-right whitespace-nowrap">
+                      @if (!isSelf(member)) {
+                        <app-button
+                          variant="ghost"
+                          size="sm"
+                          [attr.data-testid]="'reset-mfa-' + member.user_id"
+                          (click)="pendingMfaReset.set(member)"
+                        >
+                          {{ 'admin.users.resetMfa' | transloco }}
+                        </app-button>
+                      }
                       @if (isActive(member) === true) {
                         <app-button
                           variant="ghost"
@@ -234,4 +244,18 @@
   [cancelLabel]="'admin.users.cancel' | transloco"
   (confirmed)="confirmToggle()"
   (cancelled)="cancelToggle()"
+/>
+
+<app-confirm-dialog
+  [open]="pendingMfaReset() !== null"
+  [busy]="resettingMfa()"
+  [title]="'admin.users.resetMfaTitle' | transloco"
+  [message]="
+    'admin.users.resetMfaConfirm'
+      | transloco: { name: pendingMfaReset()?.full_name || pendingMfaReset()?.email || '' }
+  "
+  [confirmLabel]="'admin.users.resetMfa' | transloco"
+  [cancelLabel]="'admin.users.cancel' | transloco"
+  (confirmed)="confirmMfaReset()"
+  (cancelled)="pendingMfaReset.set(null)"
 />

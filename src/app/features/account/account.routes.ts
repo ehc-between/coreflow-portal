@@ -8,6 +8,16 @@ const routes: Routes = [
     loadComponent: () => import('./change-password/change-password').then((m) => m.ChangePassword),
   },
   {
+    path: 'security',
+    title: 'auth.mfa.title',
+    loadComponent: () => import('./security/account-security').then((m) => m.AccountSecurity),
+  },
+  {
+    path: 'sessions',
+    title: 'auth.sessions.title',
+    loadComponent: () => import('./sessions/account-sessions').then((m) => m.AccountSessions),
+  },
+  {
     path: 'notifications',
     loadComponent: () =>
       import('./notification-preferences/notification-preferences').then(
