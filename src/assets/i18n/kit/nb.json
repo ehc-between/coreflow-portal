@@ -429,9 +429,18 @@
       "to_deviation": "Avvik fra tilbakemeldingen"
     },
     "management_review": {
-      "to_task": "Tiltak (oppgave)"
+      "to_task": "Tiltak (oppgave)",
+      "to_deviation": "Avvik fra gjennomgangen",
+      "to_risk": "Risiko fra gjennomgangen",
+      "to_objective": "Mål fra gjennomgangen",
+      "to_document": "Dokumentendring fra gjennomgangen"
     },
-    "formMissing": "Dette skjemaet finnes ikke ennå. Opprett posten fra sin egen side og koble den fra fanen Relatert."
+    "formMissing": "Dette skjemaet finnes ikke ennå. Opprett posten fra sin egen side og koble den fra fanen Relatert.",
+    "meeting": {
+      "to_task": "Oppgave fra møtet",
+      "to_deviation": "Avvik fra møtet",
+      "to_risk": "Risiko fra møtet"
+    }
   },
   "frameworks": {
     "iso9001": "ISO 9001",

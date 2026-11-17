@@ -2,12 +2,12 @@
   "pages": {
     "list": {
       "intro": {
-        "title": "Management review keeps leadership in charge",
-        "body": "A **management review** is a planned meeting where top management looks at how the management system is doing and decides what to change. CoreFlow compiles the inputs for you, records the meeting and turns decisions into tasks.",
+        "title": "Management review: top management checks that the system works",
+        "body": "A **management review** is a planned meeting where top management looks at how the management system is doing and decides what to change. CoreFlow fetches the figures from the other modules, records the meeting and turns decisions into tasks.",
         "steps": [
-          "Create a review for the period, for example once a year, and choose the standards it covers.",
-          "Go through each input, add notes and mark it reviewed. Hold the meeting and write the minutes.",
-          "Write the conclusions and the overall assessment, submit for sign-off and sign. The report is then frozen."
+          "Plan a review for the period, normally once a year. The standards your organisation follows are chosen for you.",
+          "Go through the inputs, hold the meeting with top management and record the decisions.",
+          "Rate whether the system is suitable, adequate and effective, then send it for sign-off. The signed report is kept as evidence."
         ]
       },
       "why": {
@@ -43,11 +43,11 @@
     "detail": {
       "intro": {
         "title": "Working through a management review",
-        "body": "Start the review, check every input and add your evaluation, then hold the meeting. Write the conclusions and choose the overall assessment. When the meeting is completed you can submit the review for sign-off.",
+        "body": "The review has four steps, shown as buttons above the content: **Inputs**, **Meeting**, **Outputs** and **Sign-off**. A step gets a tick when nothing is missing.",
         "steps": [
-          "Refresh the inputs if new deviations, actions or documents have been recorded since they were compiled.",
-          "Use **Draft summary** to get a first version of the input summary, then edit it.",
-          "Record decisions in the meeting and tick **Create a follow-up task** so every action has an owner and a due date."
+          "Inputs: open each row, look at the figures fetched from CoreFlow, write what you see and tick it as reviewed, or mark it not relevant with a reason.",
+          "Meeting: record who took part (mark top management), write and approve the minutes, and record decisions. Actions get a follow-up task.",
+          "Outputs: write the conclusions and rate each 9.3 point. Sign-off lists anything still missing, with a link to it."
         ]
       },
       "why": {
@@ -56,39 +56,46 @@
       },
       "fields": {
         "inputs": {
-          "help": "One row per topic your standards require. Compiled rows show counts from CoreFlow for the review period; manual rows need your own evaluation in the notes. Only counts are copied, never record text.",
-          "example": "Nonconformities: 12 raised, 9 closed, 2 overdue"
+          "help": "One row per topic your standards require. \"Automatic\" rows show figures CoreFlow fetches from the module that owns the data, with the change since the last review. Only counts are copied, never record text.",
+          "example": "Deviations: 6 reported, 1 closed ▲ 6",
+          "requirements": ["hs:9.3.2"]
         },
         "inputsSummary": {
           "help": "A short overview of what the inputs show: trends, strong points and concerns. This is what top management reads first.",
-          "example": "Fewer customer complaints than last year, but two corrective actions are overdue."
+          "example": "Fewer customer complaints than last year, but two corrective actions are overdue.",
+          "requirements": ["hs:9.3.2"]
         },
         "conclusions": {
           "help": "What top management concludes about the management system. Required before you can submit.",
-          "example": "The system works for production, but supplier follow-up needs more attention."
+          "example": "The system works for production, but supplier follow-up needs more attention.",
+          "requirements": ["hs:9.3.3"]
         },
         "improvementOpportunities": {
-          "help": "Decisions on opportunities for improvement. Record each one as a decision with an owner when it needs follow-up."
+          "help": "Decisions on opportunities for improvement. Record each one as a decision with an owner when it needs follow-up.",
+          "requirements": ["hs:9.3.3", "hs:10.1"]
         },
         "changeNeeds": {
-          "help": "Any changes needed to the management system, such as new processes, policies or scope."
+          "help": "Any changes needed to the management system, such as new processes, policies or scope.",
+          "requirements": ["hs:9.3.3"]
         },
         "resourceNeeds": {
-          "help": "People, skills, tools or budget needed to keep the system effective."
+          "help": "People, skills, tools or budget needed to keep the system effective.",
+          "requirements": ["hs:9.3.3", "hs:7.1"]
         },
         "systemAssessment": {
-          "help": "The overall judgement: is the management system suitable, adequate and effective? Required before you can submit."
+          "help": "Rate each point: is the management system suitable (fits the organisation), adequate (enough) and effective (works)? For ISO 9001 also whether it supports the strategy. The overall result is the weakest rating.",
+          "requirements": ["hs:9.3.1"]
         }
       }
     },
     "meetingDetail": {
       "intro": {
         "title": "Running the meeting",
-        "body": "Start the meeting when it begins, record who attended and write the minutes. Record each decision with its category, owner and due date. Mark the meeting completed when it ends; the chair then approves the minutes.",
+        "body": "Start the meeting when it begins, record who attended and write the minutes. Record each decision with its category, owner and due date, and what it concerns. Mark the meeting held when it ends; the chair then approves the minutes, and the meeting is final.",
         "steps": [
-          "Use **Edit agenda** to adjust the items and their order.",
-          "Write rough notes in the minutes box and use **Draft minutes** to turn them into tidy minutes.",
-          "Approved minutes are locked; a manager can reopen them with a reason."
+          "Use **Edit agenda** to adjust the items, their order and the time for each.",
+          "Write notes in the minutes box and use **Draft minutes** to turn them into tidy minutes.",
+          "Approved minutes lock the meeting. To change it, reopen the minutes and give a reason."
         ]
       },
       "why": {
@@ -97,25 +104,28 @@
       },
       "fields": {
         "attendance": {
-          "help": "Set each person to present, absent or excused. Attendance is part of the record auditors look at."
+          "help": "Set each person to present, absent or excused, and mark who is top management. ISO requires top management to take part in the management review.",
+          "requirements": ["hs:5.1", "hs:9.3"]
         },
         "minutes": {
           "help": "What was discussed and agreed, item by item. Markdown is supported: use headings and bullet points.",
-          "example": "## 1. Previous actions\n- Supplier audit done, closed."
+          "example": "## 1. Previous actions\n- Supplier audit done, closed.",
+          "requirements": ["hs:7.5.3"]
         },
         "decisions": {
-          "help": "Each decision or action, with a category, an owner and a due date. Tick the follow-up task box to put it in the owner's My Work."
+          "help": "Each decision or action, with a category, an owner, a due date and the records it concerns. An action gets a follow-up task in the owner's My work.",
+          "requirements": ["hs:9.3.3", "hs:10.1"]
         }
       }
     },
     "form": {
       "intro": {
         "title": "Planning a management review",
-        "body": "Give the review a title and choose the standards it covers. The review period decides which records the inputs are compiled from. The meeting is created with the review.",
+        "body": "CoreFlow fills in the standards your organisation follows and the period since the last signed review. The meeting is created with the review, with the standard agenda.",
         "steps": [
-          "Choose one or more standards; each adds the inputs it requires.",
-          "Set the period, normally the twelve months since the last review.",
-          "Invite top management and the people who present the inputs."
+          "Check the standards and the period. Each standard adds the inputs it requires.",
+          "Invite top management and the people who present the inputs.",
+          "Save. The figures are fetched straight away."
         ]
       },
       "why": {
@@ -128,19 +138,23 @@
           "example": "Management review 2026"
         },
         "frameworks": {
-          "help": "The standards this review covers. Leave all unticked to use the standards in your organisation profile."
+          "help": "The standards this review covers. Only the standards your organisation follows are offered, and all of them are ticked.",
+          "requirements": ["hs:9.3"]
         },
         "period": {
-          "help": "The period the review looks back on. Inputs are compiled from records in this period; without dates the last twelve months are used."
+          "help": "The period the review looks back on, normally from the last review until today. Figures are fetched for this period.",
+          "requirements": ["hs:9.3.1"]
         },
         "owner": {
           "help": "The person who prepares the review and follows it up, often the quality manager."
         },
         "chair": {
-          "help": "The person who leads the meeting and approves the minutes, normally the managing director."
+          "help": "The person who leads the meeting and approves the minutes, normally the managing director.",
+          "requirements": ["hs:5.1"]
         },
         "attendees": {
-          "help": "Invited people get a notification. You can add external guests and change roles on the meeting page."
+          "help": "Invited people get a notification. Mark who is top management on the meeting page; they must take part.",
+          "requirements": ["hs:5.1", "hs:9.3"]
         }
       }
     },
@@ -160,7 +174,8 @@
       },
       "fields": {
         "kind": {
-          "help": "The type of forum, such as a committee, a project meeting or a safety meeting."
+          "help": "The type of forum, such as a committee, a project meeting or a safety meeting.",
+          "requirements": ["hs:7.4"]
         },
         "chair": {
           "help": "Leads the meeting and approves the minutes."
@@ -170,10 +185,15 @@
         },
         "purpose": {
           "help": "Why the meeting is held and what it should decide.",
-          "example": "Quarterly follow-up of HSE actions and new risks"
+          "example": "Quarterly follow-up of HSE actions and new risks",
+          "requirements": ["hs:7.4"]
         },
         "agenda": {
-          "help": "The topics in the order they are discussed. One line per item."
+          "help": "The topics in the order they are discussed. One line per item.",
+          "requirements": ["hs:7.4"]
+        },
+        "related": {
+          "help": "The records the meeting is about, such as an audit, a project, a deviation or a risk. They are linked to the meeting, so its decisions are easy to trace."
         }
       }
     },
@@ -185,6 +205,25 @@
       "why": {
         "body": "Results of management reviews must be retained as documented information, as evidence for auditors.",
         "clauses": ["hs:9.3.3"]
+      }
+    },
+    "settings": {
+      "intro": {
+        "title": "How often the review is held",
+        "body": "The next management review is due one interval after the last signed one. From the reminder window, it shows on the home page and in My work."
+      },
+      "why": {
+        "body": "ISO requires top management to review the management system at **planned intervals**. A fixed interval with a reminder makes sure the review is not forgotten.",
+        "clauses": ["hs:9.3.1"]
+      },
+      "fields": {
+        "interval": {
+          "help": "Most organisations hold the review once a year. Choose a shorter interval if a lot is changing.",
+          "requirements": ["hs:9.3.1"]
+        },
+        "reminder": {
+          "help": "How many days before the due date CoreFlow reminds you to plan the review."
+        }
       }
     }
   },
@@ -311,17 +350,12 @@
       {
         "target": "mr-progress",
         "title": "Where the review stands",
-        "body": "Planned, in progress, awaiting sign-off and signed. The checklist shows what is missing before you can submit."
+        "body": "Planned, in progress, awaiting sign-off and signed. Below you see the owner, the meeting, follow-up actions and the previous review."
       },
       {
-        "target": "mr-compile",
-        "title": "Refresh the inputs",
-        "body": "Gather the latest counts from deviations, actions, documents and standards readiness for the review period."
-      },
-      {
-        "target": "mr-outputs",
-        "title": "Write the outputs",
-        "body": "Conclusions, improvements, changes, resource needs and the overall assessment. Ask for suggestions based on the inputs."
+        "target": "mr-sections",
+        "title": "Four steps",
+        "body": "Inputs, Meeting, Outputs and Sign-off. Each step gets a tick when nothing is missing; Sign-off links to anything left."
       }
     ],
     "meetingDetail": [

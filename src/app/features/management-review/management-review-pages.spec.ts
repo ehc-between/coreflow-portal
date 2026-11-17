@@ -15,6 +15,7 @@ import { APP_CONFIG } from '../../core/config/app-config';
 import { provideFakeGuidance } from '../../core/guidance/guidance.testing';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
+import { StandardsApi } from '../../core/standards/standards-api';
 import { AskPanelService } from '../ask/ask-panel.service';
 import { AssigneeOptionsService } from '../../shared/tasks/assignee-options';
 import { MeetingWorkspace } from './components/meeting-workspace';
@@ -22,6 +23,7 @@ import { ManagementReviewApi } from './data/management-review-api';
 import {
   MeetingDetail,
   MeetingSummary,
+  Planning,
   ReviewDetail,
   ReviewSummary,
 } from './data/management-review.models';
@@ -146,7 +148,28 @@ function makeDetail(overrides: Partial<ReviewDetail> = {}): ReviewDetail {
     ],
     meeting: makeMeeting(),
     actions: { total: 2, open: 1, done: 1, overdue: 0 },
-    missing_for_submit: ['conclusions', 'system_assessment', 'meeting_completed'],
+    missing_for_submit: ['inputs_reviewed', 'meeting_completed', 'conclusions'],
+    submit_check: {
+      missing: ['inputs_reviewed', 'meeting_completed', 'conclusions'],
+      inputs_total: 1,
+      inputs_done: 0,
+      inputs_pending: ['in-1'],
+      meeting_status: 'planned',
+      minutes_status: 'draft',
+      attendance: null,
+      criteria_complete: false,
+      ready: false,
+    },
+    can_submit: false,
+    assessment_criteria: {
+      required: ['suitability', 'adequacy', 'effectiveness'],
+      items: {},
+      complete: false,
+      derived: null,
+    },
+    previous_review: null,
+    next_review: null,
+    requirement_refs: ['iso9001:9.3'],
     can_edit: true,
     allowed_actions: ['compile', 'submit', 'cancel'],
     ...overrides,
@@ -206,12 +229,35 @@ function commonProviders(
 
 const translocoTesting = () => TranslocoTestingModule.forRoot({ langs: { en: {} } });
 
+const PLANNING: Planning = {
+  interval_months: 12,
+  reminder_days: 60,
+  last_signed: {
+    id: 'r-0',
+    code: 'MR-0000',
+    title: 'Review 2025',
+    status: 'signed',
+    scheduled_at: '2025-12-17T10:00:00',
+    held_at: '2025-12-17T10:00:00',
+    signed_at: '2025-12-24T10:00:00',
+    url: '/management-review/reviews/r-0',
+  },
+  upcoming: null,
+  next_due_on: '2026-12-17',
+  days_until_due: -3,
+  status: 'overdue',
+  can_plan: true,
+};
+
 describe('ReviewsList', () => {
   function setup(
     items: ReviewSummary[],
     permissions = ['management_review:read', 'management_review:write'],
   ) {
-    const api = { listReviews: vi.fn(() => of({ items, total: items.length })) };
+    const api = {
+      listReviews: vi.fn(() => of({ items, total: items.length })),
+      planning: vi.fn(() => of(PLANNING)),
+    };
     TestBed.configureTestingModule({
       imports: [ReviewsList, translocoTesting()],
       providers: commonProviders(api, permissions),
@@ -256,6 +302,16 @@ describe('ReviewsList', () => {
     );
   });
 
+  it('shows when the next review is due and offers to plan it', async () => {
+    const { fixture, el } = setup([]);
+    await flush();
+    fixture.detectChanges();
+    const card = el.querySelector('[data-testid="mr-planning"]');
+    expect(card?.textContent).toContain('managementReview.planning.headline.overdue');
+    expect(card?.textContent).toContain('MR-0000');
+    expect(card?.textContent).toContain('managementReview.planning.plan');
+  });
+
   it('hides the create action without write permission', async () => {
     const { fixture, el } = setup([], ['management_review:read']);
     await flush();
@@ -295,29 +351,49 @@ describe('MeetingsList', () => {
 });
 
 describe('ReviewEditor', () => {
-  it('creates a review with the standard agenda and the meeting details', async () => {
-    const api = { createReview: vi.fn(() => of({ id: 'r-9' })) };
+  const standards = {
+    list: vi.fn(() =>
+      of([
+        { key: 'iso9001-2026', framework: 'iso9001', enabled: true },
+        { key: 'iso27001-2022', framework: 'iso27001', enabled: true },
+        { key: 'iso14001-2015', framework: 'iso14001', enabled: false },
+      ]),
+    ),
+  };
+
+  it('starts with the adopted standards and the period since the last signed review', async () => {
+    const api = {
+      createReview: vi.fn(() => of({ id: 'r-9' })),
+      planning: vi.fn(() => of(PLANNING)),
+    };
     TestBed.configureTestingModule({
       imports: [ReviewEditor, translocoTesting()],
-      providers: commonProviders(api, ['management_review:write']),
+      providers: [
+        ...commonProviders(api, ['management_review:write']),
+        { provide: StandardsApi, useValue: standards },
+      ],
     });
     const fixture = TestBed.createComponent(ReviewEditor);
     fixture.detectChanges();
     await flush();
+    fixture.detectChanges();
     const el = fixture.nativeElement as HTMLElement;
+    // Only the adopted standards are offered, and they are ticked.
+    const boxes = el.querySelectorAll<HTMLInputElement>('fieldset input[type="checkbox"]');
+    expect(boxes.length).toBe(2);
+    expect(Array.from(boxes).every((b) => b.checked)).toBe(true);
+    expect(el.querySelector<HTMLInputElement>('input[id$="-ps"]')!.value).toBe('2025-12-18');
     const title = el.querySelector<HTMLInputElement>('input[id$="-title"]')!;
     title.value = 'Annual review';
     title.dispatchEvent(new Event('input'));
-    const boxes = el.querySelectorAll<HTMLInputElement>('fieldset input[type="checkbox"]');
-    boxes[1].checked = true;
-    boxes[1].dispatchEvent(new Event('change'));
     el.querySelector('form')!.dispatchEvent(new Event('submit'));
     fixture.detectChanges();
     expect(api.createReview).toHaveBeenCalledWith(
       'org-1',
       expect.objectContaining({
         title: 'Annual review',
-        frameworks: ['iso27001'],
+        frameworks: ['iso9001', 'iso27001'],
+        period_start: '2025-12-18',
         owner_user_id: 'u-1',
         chair_user_id: 'u-1',
         compile_inputs: true,
@@ -334,10 +410,14 @@ describe('ReviewEditor', () => {
           () => new HttpErrorResponse({ status: 422, error: { detail: { code: 'invalid_user' } } }),
         ),
       ),
+      planning: vi.fn(() => of(PLANNING)),
     };
     TestBed.configureTestingModule({
       imports: [ReviewEditor, translocoTesting()],
-      providers: commonProviders(api, ['management_review:write']),
+      providers: [
+        ...commonProviders(api, ['management_review:write']),
+        { provide: StandardsApi, useValue: standards },
+      ],
     });
     const fixture = TestBed.createComponent(ReviewEditor);
     fixture.detectChanges();
@@ -443,7 +523,110 @@ describe('MeetingWorkspace', () => {
     );
     expect(el.querySelector('textarea')).toBeNull();
     expect(el.querySelector('[data-testid="reopen-minutes"]')).toBeTruthy();
-    expect(el.textContent).toContain('managementReview.meeting.lockedNotice');
+    expect(el.querySelector('[data-testid="meeting-locked"]')?.textContent).toContain(
+      'managementReview.meeting.locked.review_signed',
+    );
+  });
+
+  it('makes approved minutes final, but still lets an action get its task', async () => {
+    const updated = makeMeeting();
+    const api = { updateDecision: vi.fn(() => of(updated)) };
+    const { fixture, el } = setup(
+      makeMeeting({
+        status: 'completed',
+        minutes: 'Agreed',
+        minutes_status: 'approved',
+        locked: true,
+        locked_reason: 'minutes_approved',
+        can_edit: false,
+        can_create_actions: true,
+        can_reopen_minutes: true,
+        decisions: [
+          {
+            id: 'd-1',
+            position: 0,
+            category: 'action',
+            text: 'Buy ladder stabilisers',
+            owner: { id: 'u-2', name: 'Bo' },
+            due_at: '2026-12-01T00:00:00',
+            task: null,
+            follow_up_missing: true,
+            related: [
+              {
+                entity_type: 'deviation',
+                entity_id: 'dv-1',
+                title: 'Near-miss with ladder',
+                code: 'HMS-1',
+                url: '/deviations/dv-1',
+              },
+            ],
+            created_at: '2026-11-01T10:00:00',
+            updated_at: '2026-11-01T10:00:00',
+          },
+        ],
+      }),
+      api,
+    );
+    expect(el.querySelector('[data-testid="meeting-locked"]')?.textContent).toContain(
+      'managementReview.meeting.locked.minutes_approved',
+    );
+    // No editing of attendees, agenda or decisions.
+    expect(el.querySelector('[data-testid="attendee-form"]')).toBeNull();
+    expect(el.textContent).not.toContain('managementReview.agenda.edit');
+    expect(el.textContent).not.toContain('managementReview.decisions.add');
+    expect(el.querySelector('[data-testid="follow-up-missing"]')).toBeTruthy();
+    expect(el.textContent).toContain('HMS-1');
+    (el.querySelector('[data-testid="create-task-d-1"]') as HTMLButtonElement).click();
+    await flush();
+    fixture.detectChanges();
+    expect(api.updateDecision).toHaveBeenCalledWith('org-1', 'm-1', 'd-1', {
+      create_action: true,
+    });
+  });
+
+  it('shows how many of top management took part, and the agenda time', () => {
+    const { el } = setup(
+      makeMeeting({
+        attendance: {
+          total: 3,
+          present: 2,
+          absent: 1,
+          excused: 0,
+          invited: 0,
+          top_management_total: 1,
+          top_management_present: 1,
+        },
+        agenda_minutes: 150,
+        duration_minutes: 120,
+      }),
+      {},
+    );
+    expect(el.querySelector('[data-testid="attendance-summary"]')?.textContent).toContain(
+      'managementReview.attendees.topManagementPresent',
+    );
+    expect(el.querySelector('[data-testid="agenda-total"]')?.textContent).toContain(
+      'managementReview.agenda.totalOver',
+    );
+    expect(el.querySelector('[data-testid="top-management-at-1"]')).toBeTruthy();
+  });
+
+  it('asks for a reason before reopening approved minutes', async () => {
+    const api = { reopenMinutes: vi.fn(() => of(makeMeeting())) };
+    const { fixture, el } = setup(
+      makeMeeting({
+        status: 'completed',
+        minutes: 'Agreed',
+        minutes_status: 'approved',
+        locked: true,
+        locked_reason: 'minutes_approved',
+        can_edit: false,
+        can_reopen_minutes: true,
+      }),
+      api,
+    );
+    (el.querySelector('[data-testid="reopen-minutes"] button') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(api.reopenMinutes).not.toHaveBeenCalled();
   });
 });
 
@@ -460,38 +643,65 @@ describe('ReviewDetailPage', () => {
     return { fixture, api: fullApi, el: fixture.nativeElement as HTMLElement };
   }
 
-  it('shows the inputs, the submit checklist and the allowed actions', async () => {
+  const openSection = (fixture: { detectChanges(): void }, el: HTMLElement, section: string) => {
+    (el.querySelector(`[data-testid="section-${section}"]`) as HTMLButtonElement).click();
+    fixture.detectChanges();
+  };
+
+  it('opens on the inputs, with readable clauses, and keeps submit disabled until ready', async () => {
     const { fixture, el, api } = setup(makeDetail());
     await flush();
     fixture.detectChanges();
     expect(api.getReview).toHaveBeenCalledWith('org-1', 'r-1');
-    expect(el.querySelector('[data-testid="review-inputs"]')?.textContent).toContain('hs:9.3.2 c');
-    expect(el.querySelector('[data-testid="missing-for-submit"]')?.textContent).toContain(
-      'managementReview.missing.meeting_completed',
-    );
-    expect(el.querySelector('[data-testid="action-submit"]')).toBeTruthy();
+    const inputs = el.querySelector('[data-testid="review-inputs"]')?.textContent ?? '';
+    expect(inputs).toContain('9.3.2 c)');
+    expect(inputs).not.toContain('hs:9.3.2');
+    expect(inputs).toContain('managementReview.inputs.source.auto');
+    const submit = el.querySelector('[data-testid="action-submit"] button') as HTMLButtonElement;
+    expect(submit.disabled).toBe(true);
     expect(el.querySelector('[data-testid="action-sign"]')).toBeNull();
+    openSection(fixture, el, 'signoff');
+    const checklist = el.querySelector('[data-testid="missing-for-submit"]')?.textContent ?? '';
+    expect(checklist).toContain('managementReview.missing.meeting_completed.todo');
+    expect(checklist).toContain('managementReview.missing.top_management_present.done');
   });
 
-  it('saves only the changed outputs', async () => {
+  it('saves notes when the field is left, and marks an input not relevant with a reason', async () => {
+    const updateInput = vi.fn(() => of(makeDetail()));
+    const { fixture, el } = setup(makeDetail(), { updateInput });
+    await flush();
+    fixture.detectChanges();
+    const notes = el.querySelector<HTMLTextAreaElement>('[data-testid="mr-input-notes"]')!;
+    notes.value = 'Fewer deviations than last year';
+    notes.dispatchEvent(new Event('input'));
+    notes.dispatchEvent(new Event('blur'));
+    await flush();
+    expect(updateInput).toHaveBeenCalledWith('org-1', 'r-1', 'in-1', {
+      notes: 'Fewer deviations than last year',
+    });
+  });
+
+  it('saves the changed outputs and criteria from one save bar', async () => {
     const updateReview = vi.fn(() => of(makeDetail({ conclusions: 'Works well' })));
     const { fixture, el } = setup(makeDetail(), { updateReview });
     await flush();
     fixture.detectChanges();
+    openSection(fixture, el, 'outputs');
     const conclusions = el.querySelector<HTMLTextAreaElement>('#mr-out-conclusions')!;
     conclusions.value = 'Works well';
     conclusions.dispatchEvent(new Event('input'));
     const effective = el.querySelector<HTMLInputElement>(
-      'input[name="mr-assessment"][value="effective"]',
+      '[data-testid="mr-criterion-suitability-effective"]',
     )!;
     effective.checked = true;
     effective.dispatchEvent(new Event('change'));
     fixture.detectChanges();
+    expect(fixture.componentInstance.hasUnsavedChanges()).toBe(true);
     (el.querySelector('[data-testid="save-outputs"] button') as HTMLButtonElement).click();
     await flush();
     expect(updateReview).toHaveBeenCalledWith('org-1', 'r-1', {
       conclusions: 'Works well',
-      system_assessment: 'effective',
+      assessment_criteria: { suitability: { rating: 'effective', note: null } },
     });
   });
 
@@ -505,16 +715,26 @@ describe('ReviewDetailPage', () => {
           }),
       ),
     );
-    const { fixture, el } = setup(makeDetail({ missing_for_submit: [] }), { submit });
+    const { fixture, el } = setup(
+      makeDetail({
+        missing_for_submit: [],
+        submit_check: {
+          ...makeDetail().submit_check!,
+          missing: [],
+          ready: true,
+        },
+        can_submit: true,
+      }),
+      { submit },
+    );
     await flush();
     fixture.detectChanges();
-    expect(el.querySelector('[data-testid="missing-for-submit"]')).toBeNull();
     (el.querySelector('[data-testid="action-submit"] button') as HTMLButtonElement).click();
     await flush();
     fixture.detectChanges();
     expect(submit).toHaveBeenCalled();
     expect(el.querySelector('[data-testid="missing-for-submit"]')?.textContent).toContain(
-      'managementReview.missing.conclusions',
+      'managementReview.missing.conclusions.todo',
     );
   });
 

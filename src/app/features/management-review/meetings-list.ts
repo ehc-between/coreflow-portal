@@ -8,28 +8,29 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../core/ai/page-context';
 import { LanguageService } from '../../core/i18n/language.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { AskPanelService } from '../ask/ask-panel.service';
-import { GuideIntro } from '../../shared/guidance/guide-intro';
-import { LessonView } from '../../shared/guidance/lesson';
 import { TeachingEmpty } from '../../shared/guidance/teaching-empty';
-import { TourButton } from '../../shared/guidance/tour-button';
 import { TourStepDirective } from '../../shared/guidance/tour-step.directive';
 import { WhyItMatters } from '../../shared/guidance/why-it-matters';
 import { RecordListPage } from '../../shared/kit/record-list-page';
 import { SavedView } from '../../shared/kit/saved-views.service';
-import { LocalDatePipe } from '../../shared/locale/locale-pipes';
-import { Badge } from '../../shared/ui/badge/badge';
 import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
+import { EmptyState } from '../../shared/ui/empty-state/empty-state';
+import { ErrorState } from '../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../shared/ui/icon/icon';
+import { LoadingState } from '../../shared/ui/loading-state/loading-state';
+import { ModuleNav } from '../../shared/ui/module-nav/module-nav';
 import { Pager } from '../../shared/ui/pager/pager';
-import { MrTabs } from './components/mr-tabs';
+import { RecordRow, RecordRowHeader } from '../../shared/ui/record-row/record-row';
+import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
 import { ManagementReviewApi } from './data/management-review-api';
 import {
   MEETING_KINDS,
@@ -43,73 +44,81 @@ import {
 } from './data/management-review.models';
 import {
   MR_MODULE,
+  MR_NAME_KEY,
+  MR_NAV,
   MR_PERMISSIONS,
   MR_SCOPE,
+  MR_SETTINGS_LINK,
   meetingKindKey,
   meetingStatusKey,
-  meetingStatusTone,
   minutesStatusKey,
+  mrCrumbs,
+  toneValue,
   utcNaive,
 } from './management-review-display';
 
 const PAGE_SIZE = 25;
 
+const SELECT =
+  'h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg outline-none focus:border-accent';
+
 /**
- * `/management-review/meetings`: every meeting with minutes (committees, project
- * and safety meetings, and the meetings of management reviews) with search,
- * filters (status, kind, upcoming), sorting, saved views and paging.
+ * `/management-review/meetings`: every meeting where decisions are taken — the
+ * management review meetings, the safety committee (AMU), project, audit and
+ * other meetings — with search, filters (status, type; sorting, upcoming only
+ * and review meetings under "Flere filtre"), saved views and paging.
  */
 @Component({
   selector: 'app-mr-meetings-list',
   imports: [
-    RouterLink,
     TranslocoPipe,
-    LocalDatePipe,
-    Badge,
-    Button,
-    Card,
-    Icon,
-    Pager,
-    GuideIntro,
-    LessonView,
     TeachingEmpty,
-    TourButton,
     TourStepDirective,
     WhyItMatters,
     RecordListPage,
-    MrTabs,
+    Button,
+    Card,
+    EmptyState,
+    ErrorState,
+    HelpStrip,
+    Icon,
+    LoadingState,
+    ModuleNav,
+    Pager,
+    RecordRow,
+    RecordRowHeader,
+    StatusBadge,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-record-list-page
       titleKey="managementReview.meetings.title"
+      descriptionKey="managementReview.meetings.subtitle"
+      [breadcrumbs]="crumbs"
+      [settingsLink]="settingsLink"
       [scope]="scope"
       page="meetings"
       searchPlaceholderKey="managementReview.meetings.searchPlaceholder"
       [query]="q()"
       [filters]="savedFilters()"
+      [moreFiltersActive]="moreActive()"
+      [empty]="isEmptyRegister()"
       (search)="setQuery($event)"
       (viewApplied)="applyView($event)"
     >
-      <div intro class="mt-1.5">
-        <p class="text-[14px] text-fg-muted">
-          {{ 'managementReview.meetings.subtitle' | transloco }}
-        </p>
-      </div>
-
-      <ng-container toolbar>
-        <app-tour-button [scope]="scope" tour="meetings" />
-        <app-button variant="ghost" size="sm" (click)="askStatus()">
-          <app-icon name="spark" [size]="14" />
-          {{ 'managementReview.ai.summariseMeetings' | transloco }}
+      @if (canWrite()) {
+        <app-button primary appTourStep="mtg-new" (click)="create()" data-testid="mr-new-meeting">
+          <app-icon name="plus" [size]="14" />
+          {{ 'managementReview.meetings.new' | transloco }}
         </app-button>
-        @if (canWrite()) {
-          <app-button size="sm" appTourStep="mtg-new" (click)="create()">
-            <app-icon name="plus" [size]="14" />
-            {{ 'managementReview.meetings.new' | transloco }}
-          </app-button>
-        }
-      </ng-container>
+      }
+      <app-button secondary variant="ghost" (click)="askStatus()">
+        <app-icon name="spark" [size]="14" />
+        {{ 'managementReview.ai.summariseMeetings' | transloco }}
+      </app-button>
+
+      <app-module-nav nav [labelKey]="nameKey" [items]="nav" />
+      <app-help-strip help [scope]="scope" page="meetings" tour="meetings" lesson="good-minutes" />
 
       <ng-container filters>
         <label class="sr-only" for="mtg-status">{{
@@ -117,7 +126,7 @@ const PAGE_SIZE = 25;
         }}</label>
         <select
           id="mtg-status"
-          class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
+          [class]="select"
           appTourStep="mtg-filters"
           (change)="setStatus($any($event.target).value)"
         >
@@ -131,11 +140,7 @@ const PAGE_SIZE = 25;
         <label class="sr-only" for="mtg-kind">{{
           'managementReview.filters.kind' | transloco
         }}</label>
-        <select
-          id="mtg-kind"
-          class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
-          (change)="setKind($any($event.target).value)"
-        >
+        <select id="mtg-kind" [class]="select" (change)="setKind($any($event.target).value)">
           <option value="" [selected]="!kind()">
             {{ 'managementReview.filters.allKinds' | transloco }}
           </option>
@@ -143,23 +148,21 @@ const PAGE_SIZE = 25;
             <option [value]="k" [selected]="kind() === k">{{ kindKey(k) | transloco }}</option>
           }
         </select>
-        <label class="sr-only" for="mtg-sort">{{
-          'managementReview.filters.sort' | transloco
-        }}</label>
-        <select
-          id="mtg-sort"
-          class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
-          (change)="setSort($any($event.target).value)"
-        >
-          @for (s of sorts; track s) {
-            <option [value]="s" [selected]="sort() === s">
-              {{ 'managementReview.filters.meetingSorts.' + s | transloco }}
-            </option>
-          }
-        </select>
-        <label
-          class="inline-flex h-10 items-center gap-1.5 rounded-[10px] border border-border bg-bg px-3 text-[13px] text-fg"
-        >
+      </ng-container>
+      <ng-container more-filters>
+        <div class="flex flex-col gap-1.5">
+          <label for="mtg-sort" class="text-ui font-semibold text-fg-muted">{{
+            'managementReview.filters.sort' | transloco
+          }}</label>
+          <select id="mtg-sort" [class]="select" (change)="setSort($any($event.target).value)">
+            @for (s of sorts; track s) {
+              <option [value]="s" [selected]="sort() === s">
+                {{ 'managementReview.filters.meetingSorts.' + s | transloco }}
+              </option>
+            }
+          </select>
+        </div>
+        <label class="inline-flex min-h-9 items-center gap-2 text-ui text-fg">
           <input
             type="checkbox"
             [checked]="upcoming()"
@@ -167,9 +170,7 @@ const PAGE_SIZE = 25;
           />
           {{ 'managementReview.filters.upcoming' | transloco }}
         </label>
-        <label
-          class="inline-flex h-10 items-center gap-1.5 rounded-[10px] border border-border bg-bg px-3 text-[13px] text-fg"
-        >
+        <label class="inline-flex min-h-9 items-center gap-2 text-ui text-fg">
           <input
             type="checkbox"
             [checked]="includeReviews()"
@@ -179,111 +180,80 @@ const PAGE_SIZE = 25;
         </label>
       </ng-container>
 
-      <div class="mb-4 flex flex-col gap-4">
-        <app-mr-tabs />
-        <app-guide-intro [scope]="scope" page="meetings" />
-      </div>
-
       <app-card [padded]="false">
         @switch (state()) {
           @case ('loading') {
-            <p class="py-10 text-center text-[14px] text-fg-muted">
-              {{ 'managementReview.common.loading' | transloco }}
-            </p>
+            <div class="p-4"><app-loading-state [rows]="4" /></div>
           }
           @case ('error') {
-            <p class="py-10 text-center text-[14px] text-fail" role="alert">
-              {{ 'managementReview.common.loadFailed' | transloco }}
-            </p>
+            <div class="p-4"><app-error-state (retry)="reload()" /></div>
           }
           @default {
             @if (meetings().length === 0) {
-              @if (isFiltered()) {
-                <p class="py-10 text-center text-[14px] text-fg-muted">
-                  {{ 'managementReview.filters.noMatch' | transloco }}
-                </p>
-              } @else {
-                <app-teaching-empty
-                  [scope]="scope"
-                  page="meetings"
-                  [showAction]="canWrite()"
-                  (action)="create()"
-                />
-              }
+              <app-empty-state
+                titleKey="ui.empty.noResults"
+                bodyKey="ui.empty.noResultsBody"
+                ctaKey="ui.empty.clearFilters"
+                ctaVariant="secondary"
+                [compact]="true"
+                (cta)="clearFilters()"
+              />
             } @else {
-              <ul class="divide-y divide-border" data-testid="meeting-rows">
+              <div role="list" data-testid="meeting-rows">
+                <app-record-row-header dateKind="date" [coverage]="false" />
                 @for (m of meetings(); track m.id) {
-                  <li class="flex flex-col gap-2 px-4 py-3 md:flex-row md:items-center md:gap-4">
-                    <div class="min-w-0 flex-1">
-                      <a
-                        [routerLink]="['/management-review/meetings', m.id]"
-                        class="flex min-w-0 items-baseline gap-2 text-[13.5px] font-semibold text-fg hover:underline"
-                      >
-                        <span class="font-mono text-[12px] text-fg-subtle">{{ m.code }}</span>
-                        <span class="truncate">{{ m.title }}</span>
-                      </a>
-                      <span
-                        class="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[12px] text-fg-subtle"
-                      >
-                        <span>{{ kindKey(m.kind) | transloco }}</span>
-                        @if (m.chair) {
-                          <span>{{
-                            'managementReview.meetings.chairedBy'
-                              | transloco: { name: m.chair.name }
-                          }}</span>
-                        }
-                        @if (m.location) {
-                          <span>{{ m.location }}</span>
-                        }
-                        <span>{{
-                          'managementReview.meetings.counts'
-                            | transloco
-                              : { attendees: m.attendee_count, decisions: m.decision_count }
-                        }}</span>
-                      </span>
-                    </div>
-                    <span class="flex flex-wrap items-center gap-2 text-[12.5px] text-fg-muted">
-                      <app-badge [tone]="statusTone(m.status)">{{
-                        statusKey(m.status) | transloco
-                      }}</app-badge>
-                      <app-badge [tone]="m.minutes_status === 'approved' ? 'pass' : 'neutral'">{{
-                        minutesKey(m.minutes_status) | transloco
-                      }}</app-badge>
-                      <span class="min-w-[140px] text-right">
-                        @if (m.scheduled_at) {
-                          {{ m.scheduled_at | localDate: 'medium' }}
-                        } @else {
-                          {{ 'managementReview.common.notScheduled' | transloco }}
-                        }
-                      </span>
-                    </span>
-                  </li>
+                  <app-record-row
+                    [code]="m.code"
+                    [title]="m.title"
+                    [subtitle]="subtitle(m)"
+                    [link]="['/management-review/meetings', m.id]"
+                    [owner]="m.chair?.name ?? null"
+                    [date]="m.scheduled_at"
+                    dateKind="date"
+                  >
+                    <app-status-badge
+                      badges
+                      meaning="lifecycle"
+                      [value]="tone(m.status)"
+                      [labelKey]="statusKey(m.status)"
+                    />
+                    @if (m.status === 'completed') {
+                      <app-status-badge
+                        badges
+                        meaning="lifecycle"
+                        [value]="m.minutes_status === 'approved' ? 'approved' : 'draft'"
+                        [labelKey]="minutesKey(m.minutes_status)"
+                      />
+                    }
+                  </app-record-row>
                 }
-              </ul>
-              <div class="border-t border-border px-4 py-2.5">
-                <app-pager
-                  [offset]="offset()"
-                  [pageSize]="pageSize"
-                  [count]="meetings().length"
-                  [total]="total()"
-                  (pageChange)="offset.set($event)"
-                />
               </div>
+              @if (total() > pageSize) {
+                <div class="px-4 py-2.5">
+                  <app-pager
+                    [offset]="offset()"
+                    [pageSize]="pageSize"
+                    [count]="meetings().length"
+                    [total]="total()"
+                    (pageChange)="offset.set($event)"
+                  />
+                </div>
+              }
             }
           }
         }
       </app-card>
-    </app-record-list-page>
 
-    <div class="mx-auto -mt-6 flex max-w-[1180px] flex-col gap-4 px-4 pb-12 sm:px-8">
-      <app-why-it-matters [scope]="scope" page="meetings" />
-      <details class="rounded-card border border-border bg-surface p-4">
-        <summary class="cursor-pointer text-[13.5px] font-semibold text-fg">
-          {{ 'managementReview.lessons.goodMinutes' | transloco }}
-        </summary>
-        <div class="mt-3"><app-lesson [scope]="scope" lesson="good-minutes" /></div>
-      </details>
-    </div>
+      <app-teaching-empty
+        empty
+        [scope]="scope"
+        page="meetings"
+        [showAction]="canWrite()"
+        (action)="create()"
+      />
+
+      <app-why-it-matters below [scope]="scope" page="meetings" />
+    </app-record-list-page>
   `,
 })
 export class MeetingsList {
@@ -294,12 +264,17 @@ export class MeetingsList {
   private readonly router = inject(Router);
 
   protected readonly scope = MR_SCOPE;
+  protected readonly nameKey = MR_NAME_KEY;
+  protected readonly nav = MR_NAV;
+  protected readonly settingsLink = MR_SETTINGS_LINK;
+  protected readonly crumbs = mrCrumbs({ labelKey: 'managementReview.nav.meetings' });
+  protected readonly select = SELECT;
   protected readonly statuses = MEETING_STATUSES;
   protected readonly kinds = MEETING_KINDS;
   protected readonly sorts = MEETING_SORTS;
   protected readonly pageSize = PAGE_SIZE;
   protected readonly statusKey = meetingStatusKey;
-  protected readonly statusTone = meetingStatusTone;
+  protected readonly tone = toneValue;
   protected readonly minutesKey = minutesStatusKey;
   protected readonly kindKey = meetingKindKey;
 
@@ -323,6 +298,15 @@ export class MeetingsList {
     () =>
       !!this.q() || !!this.status() || !!this.kind() || this.upcoming() || !this.includeReviews(),
   );
+  protected readonly isEmptyRegister = computed(
+    () => this.state() === 'ready' && this.meetings().length === 0 && !this.isFiltered(),
+  );
+  protected readonly moreActive = computed(
+    () =>
+      (this.sort() !== '-scheduled_at' ? 1 : 0) +
+      (this.upcoming() ? 1 : 0) +
+      (this.includeReviews() ? 0 : 1),
+  );
   protected readonly savedFilters = computed<Record<string, string>>(() => ({
     status: this.status(),
     kind: this.kind(),
@@ -330,6 +314,21 @@ export class MeetingsList {
     upcoming: this.upcoming() ? '1' : '',
     reviews: this.includeReviews() ? '1' : '0',
   }));
+
+  private readonly query = computed<MeetingListQuery>(() => {
+    const status = this.status();
+    const kind = this.kind();
+    return {
+      q: this.q() || undefined,
+      status: status ? [status] : undefined,
+      kind: kind ? [kind] : undefined,
+      from: this.upcoming() ? utcNaive() : undefined,
+      include_reviews: this.includeReviews(),
+      sort: this.upcoming() && this.sort() === '-scheduled_at' ? 'scheduled_at' : this.sort(),
+      limit: PAGE_SIZE,
+      offset: this.offset(),
+    };
+  });
 
   private request = new Subscription();
 
@@ -344,20 +343,26 @@ export class MeetingsList {
 
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();
-      const status = this.status();
-      const kind = this.kind();
-      const query: MeetingListQuery = {
-        q: this.q() || undefined,
-        status: status ? [status] : undefined,
-        kind: kind ? [kind] : undefined,
-        from: this.upcoming() ? utcNaive() : undefined,
-        include_reviews: this.includeReviews(),
-        sort: this.upcoming() && this.sort() === '-scheduled_at' ? 'scheduled_at' : this.sort(),
-        limit: PAGE_SIZE,
-        offset: this.offset(),
-      };
+      const query = this.query();
       untracked(() => this.load(orgId, query));
     });
+  }
+
+  /** "Ledelsens gjennomgang · Hovedkontoret · 5 deltakere · 2 beslutninger". */
+  protected subtitle(m: MeetingSummary): string {
+    const t = (key: string, params?: Record<string, unknown>) =>
+      this.language.translate(key, params);
+    const parts = [t(meetingKindKey(m.kind))];
+    if (m.location) {
+      parts.push(m.location);
+    }
+    parts.push(
+      t('managementReview.meetings.counts', {
+        attendees: m.attendee_count,
+        decisions: m.decision_count,
+      }),
+    );
+    return parts.join(' · ');
   }
 
   protected setQuery(value: string): void {
@@ -390,6 +395,15 @@ export class MeetingsList {
     this.includeReviews.set(value);
   }
 
+  protected clearFilters(): void {
+    this.offset.set(0);
+    this.q.set('');
+    this.status.set('');
+    this.kind.set('');
+    this.upcoming.set(false);
+    this.includeReviews.set(true);
+  }
+
   protected applyView(view: SavedView): void {
     const f = view.filters;
     this.offset.set(0);
@@ -414,6 +428,10 @@ export class MeetingsList {
 
   protected askStatus(): void {
     this.ask.showWith(this.language.translate('managementReview.ai.prompts.summariseMeetings'));
+  }
+
+  protected reload(): void {
+    this.load(this.selectedOrg.currentOrgId(), this.query());
   }
 
   private load(orgId: string | null, query: MeetingListQuery): void {
