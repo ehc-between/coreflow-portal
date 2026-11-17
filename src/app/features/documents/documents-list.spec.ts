@@ -64,7 +64,11 @@ async function setup(permissions: string[] = []) {
 
 /** Everything else the page loads on the side (guidance, coverage …). */
 function flushRest(http: HttpTestingController): void {
-  http.match((r) => r.url !== URL).forEach((r) => r.flush({}));
+  http
+    .match((r) => r.url !== URL)
+    .forEach((r) =>
+      r.flush(r.request.url.endsWith('/access-subjects') ? { users: [], departments: [] } : {}),
+    );
 }
 
 const rows = (root: HTMLElement) => Array.from(root.querySelectorAll('app-record-row'));

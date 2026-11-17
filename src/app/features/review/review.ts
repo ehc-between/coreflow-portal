@@ -192,7 +192,9 @@ import { proposalRequirementText } from './proposal-label';
                       class="block font-display text-card font-bold text-fg group-hover:text-accent"
                       >{{ proposal.title }}</span
                     >
-                    @if (proposal.summary) {
+                    <!-- The server summary ("AI-drafted <type>: <title>") is English and only
+                         repeats the type + title; show it only when no readable type exists. -->
+                    @if (proposal.summary && !proposal.type_name) {
                       <span class="mt-1 block text-ui leading-relaxed text-fg-muted">{{
                         proposal.summary
                       }}</span>
