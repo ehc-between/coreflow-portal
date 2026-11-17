@@ -4,21 +4,36 @@ import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { APP_CONFIG } from '../../../core/config/app-config';
 import { SKIP_ERROR_TOAST } from '../../../core/http/error.interceptor';
-import { breakdown, periodStart } from '../insights/feedback-insights';
+import { breakdown, categoryRows, periodStart } from '../insights/feedback-insights';
+import { filtersFromParams } from '../items/feedback-list';
+import { customerFields, primaryAction } from '../items/feedback-detail';
+import { defaultReplyChannel } from '../items/feedback-replies';
+import { toSettings, validateSettings } from '../settings/feedback-settings';
+import { primarySurveyAction } from '../surveys/survey-detail';
 import { distributionRows } from '../surveys/survey-results';
 import { publicSurveyUrl } from '../surveys/survey-detail';
 import { asThemes } from '../themes-panel';
 import { FeedbackApi, PublicSurveyApi, feedbackListParams } from './feedback-api';
-import { npsTone, percentOf, round1, sortKey } from './feedback-display';
+import {
+  exportFileName,
+  npsLevel,
+  percentOf,
+  round1,
+  sortKey,
+  thresholdOnFive,
+  trimmedMonths,
+} from './feedback-display';
 import { feedbackErrorKey } from './feedback-errors';
 import {
   emptyFeedbackForm,
+  formFromFeedback,
   parseTags,
+  toSubjects,
   toCreateRequest,
   toUpdateRequest,
   validateFeedbackForm,
 } from './feedback-form-model';
-import { Question } from './feedback.models';
+import { Feedback, Question } from './feedback.models';
 import {
   cleanAnswers,
   emptyQuestion,
@@ -26,6 +41,7 @@ import {
   missingRequired,
   scaleValues,
   toQuestionIn,
+  toSurveyCreate,
   toSurveyUpdate,
   validateQuestions,
   validateSurveyForm,
@@ -84,6 +100,20 @@ describe('FeedbackApi', () => {
     api.linkDeviation('org-1', 'f-1', 'd-1').subscribe();
     api.unlinkDeviation('org-1', 'f-1', 'd-1').subscribe();
     api.stats('org-1', '2026-01-01').subscribe();
+    api.replies('org-1', 'f-1').subscribe();
+    api.addReply('org-1', 'f-1', { channel: 'phone', body: 'Called back' }).subscribe();
+    api.deleteReply('org-1', 'f-1', 'r-9').subscribe();
+    api.settings('org-1').subscribe();
+    api
+      .saveSettings('org-1', {
+        response_days: { complaint: 3, compliment: 10, suggestion: 10, inquiry: 5, other: null },
+        working_days: true,
+        privacy_notice_url: null,
+        is_default: true,
+      })
+      .subscribe();
+    api.categories('org-1').subscribe();
+    api.responseDue('org-1', 'complaint', '2026-11-16').subscribe();
     api.createSurvey('org-1', { title: 'S' }).subscribe();
     api.surveyAction('org-1', 's-1', 'publish').subscribe();
     api.regenerateLink('org-1', 's-1').subscribe();
@@ -99,6 +129,13 @@ describe('FeedbackApi', () => {
       ['POST', url('/items/f-1/deviations')],
       ['DELETE', url('/items/f-1/deviations/d-1')],
       ['GET', url('/stats')],
+      ['GET', url('/items/f-1/replies')],
+      ['POST', url('/items/f-1/replies')],
+      ['DELETE', url('/items/f-1/replies/r-9')],
+      ['GET', url('/settings')],
+      ['PUT', url('/settings')],
+      ['GET', url('/categories')],
+      ['GET', url('/response-due')],
       ['POST', url('/surveys')],
       ['POST', url('/surveys/s-1/actions/publish')],
       ['POST', url('/surveys/s-1/regenerate-link')],
@@ -115,12 +152,51 @@ describe('FeedbackApi', () => {
         expect(req.request.params.get('from')).toBe('2026-01-01');
         expect(req.request.params.has('to')).toBe(false);
       }
+      if (method === 'PUT' && path.endsWith('/settings')) {
+        // Only the writable fields are sent.
+        expect(Object.keys(req.request.body as object).sort()).toEqual([
+          'privacy_notice_url',
+          'response_days',
+          'working_days',
+        ]);
+      }
+      if (path.endsWith('/response-due')) {
+        expect(req.request.params.get('kind')).toBe('complaint');
+        expect(req.request.params.get('received_on')).toBe('2026-11-16');
+      }
       if (path.endsWith('/responses')) {
         expect(req.request.params.get('limit')).toBe('10');
         expect(req.request.params.get('offset')).toBe('20');
       }
       req.flush(null);
     }
+  });
+
+  it('downloads the exports with the list filters and the language', () => {
+    api
+      .exportLog(
+        'org-1',
+        { kind: ['complaint'], justified: true, sort: 'code', limit: 5 },
+        'csv',
+        'nb',
+      )
+      .subscribe();
+    api.exportStats('org-1', 'pdf', 'en', '2026-01-01').subscribe();
+    api.exportSurvey('org-1', 's-1', 'xlsx', 'nb').subscribe();
+    const log = http.expectOne((r) => r.url === url('/export'));
+    expect(log.request.responseType).toBe('blob');
+    expect(log.request.params.get('kind')).toBe('complaint');
+    expect(log.request.params.get('justified')).toBe('true');
+    expect(log.request.params.get('format')).toBe('csv');
+    expect(log.request.params.get('lang')).toBe('nb');
+    // Paging and sorting do not apply to an export.
+    expect(log.request.params.has('limit')).toBe(false);
+    expect(log.request.params.has('sort')).toBe(false);
+    log.flush(new Blob(['x']));
+    const stats = http.expectOne((r) => r.url === url('/stats/export'));
+    expect(stats.request.params.get('from')).toBe('2026-01-01');
+    stats.flush(new Blob(['x']));
+    http.expectOne((r) => r.url === url('/surveys/s-1/export')).flush(new Blob(['x']));
   });
 
   it('calls the public survey endpoints without an org', () => {
@@ -164,9 +240,16 @@ describe('feedback helpers', () => {
     expect(round1(null)).toBeNull();
     expect(percentOf(1, 4)).toBe(25);
     expect(percentOf(1, 0)).toBe(0);
-    expect(npsTone(40)).toBe('pass');
-    expect(npsTone(-5)).toBe('fail');
-    expect(npsTone(null)).toBe('neutral');
+    expect(npsLevel(40)).toBe('pass');
+    // A low score is something to work on, never shown as a failure.
+    expect(npsLevel(-5)).toBe('warn');
+    expect(npsLevel(null)).toBe('neutral');
+    expect(thresholdOnFive(40)).toBe(3);
+    expect(thresholdOnFive(25)).toBe(2);
+    expect(thresholdOnFive(null)).toBeNull();
+    expect(exportFileName('Logg over kundetilbakemeldinger', 'xlsx', new Date(2026, 10, 17))).toBe(
+      'logg-over-kundetilbakemeldinger-2026-11-17.xlsx',
+    );
   });
 
   it('works out the period start and the breakdown rows', () => {
@@ -178,6 +261,93 @@ describe('feedback helpers', () => {
       ['compliment', 0, 0],
       ['other', 1, 25],
     ]);
+  });
+
+  it('drops empty months at both ends of the trend but keeps gaps', () => {
+    const m = (month: string, total: number) => ({
+      month,
+      total,
+      complaints: 0,
+      compliments: 0,
+      average_satisfaction: null,
+    });
+    const rows = trimmedMonths([
+      m('2026-01', 0),
+      m('2026-02', 2),
+      m('2026-03', 0),
+      m('2026-04', 1),
+      m('2026-05', 0),
+    ]);
+    expect(rows.map((r) => r.month)).toEqual(['2026-02', '2026-03', '2026-04']);
+    expect(trimmedMonths([m('2026-01', 0)])).toEqual([]);
+  });
+
+  it('lists the most used categories with a drill-down query', () => {
+    const rows = categoryRows({ delivery: 3, invoicing: 1, empty: 0 });
+    expect(rows.map((r) => [r.label, r.count, r.percent, r.query['category']])).toEqual([
+      ['delivery', 3, 75, 'delivery'],
+      ['invoicing', 1, 25, 'invoicing'],
+    ]);
+  });
+
+  it('reads register filters from a link', () => {
+    const params = (q: Record<string, string>) => ({ get: (k: string) => q[k] ?? null }) as never;
+    expect(filtersFromParams(params({ kind: 'complaint', status: 'new' }))).toMatchObject({
+      kind: 'complaint',
+      status: 'new',
+      overdue: false,
+    });
+    expect(
+      filtersFromParams(params({ open: 'true', overdue: '1', justified: 'true' })),
+    ).toMatchObject({ status: 'open', overdue: true, justified: 'yes' });
+    expect(filtersFromParams(params({ kind: 'nonsense', department: 'x' }))).toMatchObject({
+      kind: '',
+      department: '',
+    });
+  });
+
+  it('picks one primary step and puts the rest in the menu', () => {
+    expect(
+      primaryAction({
+        allowed_actions: ['acknowledge', 'start', 'resolve', 'close'],
+        next_action: 'acknowledge',
+      }),
+    ).toBe('acknowledge');
+    expect(primaryAction({ allowed_actions: ['close', 'reopen'], next_action: null })).toBe(
+      'close',
+    );
+    expect(primaryAction({ allowed_actions: ['reopen'], next_action: 'reopen' })).toBe('reopen');
+    expect(primarySurveyAction({ allowed_actions: ['close'] })).toBe('close');
+    expect(primarySurveyAction({ allowed_actions: [] })).toBeNull();
+    expect(defaultReplyChannel('phone')).toBe('phone');
+    expect(defaultReplyChannel('social')).toBe('email');
+  });
+
+  it('only shows the customer details that are filled in', () => {
+    const rows = customerFields({
+      customer_name: 'Kari',
+      customer_organisation: null,
+      customer_email: 'kari@example.com',
+      customer_phone: ' ',
+    } as Feedback);
+    expect(rows.map((r) => r.key)).toEqual(['name', 'email']);
+    expect(rows[1].href).toBe('mailto:kari@example.com');
+  });
+
+  it('validates and serialises the module settings', () => {
+    const days = { complaint: '3', compliment: '', suggestion: '10', inquiry: '0', other: 'x' };
+    expect(Object.keys(validateSettings(days, 'ftp://x')).sort()).toEqual([
+      'inquiry',
+      'other',
+      'privacy_notice_url',
+    ]);
+    const fixed = { ...days, inquiry: '5', other: '5' };
+    expect(validateSettings(fixed, 'https://example.no/p')).toEqual({});
+    expect(toSettings(fixed, true, ' ')).toEqual({
+      response_days: { complaint: 3, compliment: null, suggestion: 10, inquiry: 5, other: 5 },
+      working_days: true,
+      privacy_notice_url: null,
+    });
   });
 
   it('builds the public survey url', () => {
@@ -247,6 +417,87 @@ describe('feedback form model', () => {
     });
   });
 
+  it('sends the complaint assessment and the related records', () => {
+    const ref = (entity_type: string, entity_id: string) => ({
+      entity_type,
+      entity_id,
+      title: entity_id,
+      code: null,
+      url: null,
+      status: null,
+      module: null,
+      label_key: null,
+    });
+    const base = {
+      ...emptyFeedbackForm(new Date(2026, 10, 12)),
+      title: 'Late',
+      complaint_justified: 'yes' as const,
+      root_cause: ' Carrier ',
+      subjects: [ref('supplier', 's-1'), ref('supplier', 's-1'), ref('deviation', 'd-1')],
+    };
+    expect(toCreateRequest(base)).toMatchObject({
+      complaint_justified: true,
+      root_cause: 'Carrier',
+      corrective_action_required: null,
+      subjects: [{ entity_type: 'supplier', entity_id: 's-1' }],
+    });
+    // A compliment has no assessment.
+    expect(toCreateRequest({ ...base, kind: 'compliment' }).complaint_justified).toBeNull();
+    expect(toSubjects([ref('process', 'p-1')])).toEqual([
+      { entity_type: 'process', entity_id: 'p-1' },
+    ]);
+    // Only a changed set of subjects is sent, and then in full.
+    const original = { ...base, subjects: [ref('supplier', 's-1')] };
+    expect(toUpdateRequest(original, { ...original }, '')).toEqual({});
+    expect(
+      toUpdateRequest(
+        original,
+        { ...original, subjects: [ref('supplier', 's-1'), ref('contract', 'c-1')] },
+        '',
+      ),
+    ).toEqual({
+      subjects: [
+        { entity_type: 'supplier', entity_id: 's-1' },
+        { entity_type: 'contract', entity_id: 'c-1' },
+      ],
+    });
+  });
+
+  it('reads the assessment back into the form', () => {
+    const v = formFromFeedback({
+      kind: 'complaint',
+      title: 'T',
+      description: null,
+      channel: 'email',
+      severity: null,
+      sentiment: null,
+      category: null,
+      tags: [],
+      customer_name: null,
+      customer_organisation: null,
+      customer_email: null,
+      customer_phone: null,
+      product_or_service: null,
+      satisfaction_score: null,
+      received_on: '2026-11-01',
+      response_due_on: null,
+      owner: null,
+      department_id: null,
+      department: { id: 'dep-1', name: 'Kundeservice' },
+      resolution: null,
+      customer_informed: false,
+      complaint_justified: false,
+      root_cause: null,
+      corrective_action_required: null,
+      customer_accepted: true,
+      subjects: [],
+    } as unknown as Feedback);
+    expect(v.complaint_justified).toBe('no');
+    expect(v.corrective_action_required).toBe('');
+    expect(v.customer_accepted).toBe('yes');
+    expect(v.department_id).toBe('dep-1');
+  });
+
   it('only sends changed fields on update and never clears the owner', () => {
     const original = {
       ...emptyFeedbackForm(new Date(2026, 10, 12)),
@@ -312,6 +563,15 @@ describe('survey form model', () => {
     expect(toQuestionIn({ ...emptyQuestion('rating'), id: 'q1', label: 'R' })).toMatchObject({
       id: 'q1',
       scale: 5,
+    });
+  });
+
+  it('starts a new survey in Norwegian with a follow-up at 40', () => {
+    const v = emptySurveyForm();
+    expect(v.low_score_threshold).toBe('40');
+    expect(toSurveyCreate({ ...v, title: 'S', language: 'en' })).toMatchObject({
+      low_score_threshold: 40,
+      language: 'en',
     });
   });
 

@@ -3,16 +3,16 @@
     "list": {
       "intro": {
         "title": "Alle kundenes stemmer på ett sted",
-        "body": "Registeret samler det kundene forteller dere: klager, ros, forslag og spørsmål, uansett hvordan de kommer inn. Hver registrering har en eier og en svarfrist, slik at ingenting blir glemt, og klager følger en enkel vei fra mottatt til løst og lukket.",
+        "body": "Registeret samler det kundene forteller dere: klager, ros, forslag og spørsmål, uansett hvordan de kommer inn. Hver registrering har en eier og en svarfrist, så ingenting blir glemt.",
         "steps": [
           "Registrer tilbakemeldingen så snart den kommer, med kundens egne ord.",
-          "Bekreft at den er mottatt, behandle den og beskriv hvordan den ble løst.",
-          "Koble klager som avdekker et reelt problem til et avvik, slik at årsaken blir rettet."
+          "Bekreft mottaket, vurder saken og logg hva kunden fikk vite.",
+          "Koble en berettiget klage til et avvik, slik at årsaken blir rettet."
         ]
       },
       "why": {
-        "body": "ISO 9001 krever at dere kommuniserer med kundene om tilbakemeldinger og klager, og at dere overvåker hvor fornøyde de er. Et komplett register er dokumentasjonen: det viser at klager tas på alvor, besvares i tide og brukes til forbedring.",
-        "clauses": ["iso9001:8.2.1", "iso9001:9.1.2"]
+        "body": "ISO 9001 krever at dere kommuniserer med kundene om tilbakemeldingene deres, behandler berettigede klager som avvik og følger med på hvor fornøyde kundene er. Et komplett register er dokumentasjonen.",
+        "clauses": ["iso9001:8.2.1", "iso9001:10.2.1", "iso9001:9.1.2"]
       },
       "empty": {
         "title": "Ingen kundetilbakemeldinger er registrert ennå",
@@ -32,44 +32,84 @@
       },
       "why": {
         "body": "Når tilbakemeldinger registreres strukturert, kan dere svare i tide, se mønstre og vise en revisor hvordan kundekommunikasjonen håndteres. Begrens personopplysningene til det dere trenger for å svare.",
-        "clauses": ["iso9001:8.2.1"]
+        "clauses": ["iso9001:8.2.1", "iso9001:9.1.2"]
       },
       "fields": {
         "kind": {
           "help": "En klage uttrykker misnøye der kunden forventer svar eller en løsning. Ros er skryt, et forslag er en idé, og et spørsmål ber om informasjon.",
-          "example": "«Leveransen kom to dager for sent, og ingen sa fra» er en klage."
+          "example": "«Leveransen kom to dager for sent, og ingen sa fra» er en klage.",
+          "requirements": ["iso9001:8.2.1", "iso9001:10.2.1"]
         },
         "severity": {
           "help": "Hvor mye saken påvirker kunden eller virksomheten. Bruk høy eller kritisk når det gjelder sikkerhet, lov eller kontrakt, eller når dere risikerer å miste kunden.",
-          "example": "En feil faktura er middels; en feil som skadet noen er kritisk."
+          "example": "En feil faktura er middels; en feil som skadet noen er kritisk.",
+          "requirements": ["iso9001:10.2.1"]
         },
         "customer": {
           "help": "Hvem som ga tilbakemeldingen. La feltet stå tomt hvis kunden vil være anonym. E-post og telefon skjules i revisjonsloggen og deles aldri med assistenten.",
           "example": "Kari Nordmann, Nordic Retail AS."
         },
         "satisfaction_score": {
-          "help": "Hvis kunden sa hvor fornøyd hun eller han er, registrer det fra 1 (svært misfornøyd) til 5 (svært fornøyd). Det inngår i statistikken over tilfredshet.",
-          "example": "«Stort sett fornøyd, men dette var irriterende» kan være en 3-er."
+          "help": "Bare hvis kunden sa hvor fornøyd hen er: 1 er svært misfornøyd, 5 er svært fornøyd. La det ellers stå på «Vet ikke». Tallet brukes i tilfredshetstallene på siden Kundetilfredshet.",
+          "example": "«Stort sett fornøyd, men dette var irriterende» kan være en 3-er.",
+          "requirements": ["iso9001:9.1.2"]
         },
         "response_due_on": {
-          "help": "Når kunden skal ha hørt fra dere. Eieren får en påminnelse, og registreringen vises som forfalt etter denne datoen.",
-          "example": "Mange lover et første svar på klager innen tre virkedager."
+          "help": "Når kunden skal ha hørt fra dere. Feltet fylles ut fra standard svarfrist i innstillingene; endre det hvis dere har lovet noe annet. Eieren får en påminnelse, og registreringen vises som forfalt etter denne datoen.",
+          "example": "Mange lover et første svar på klager innen tre arbeidsdager.",
+          "requirements": ["iso9001:8.2.1"]
+        },
+        "sentiment": {
+          "help": "Ditt helhetsinntrykk av meldingen: positiv, nøytral eller negativ. Valgfritt; det hjelper å skille ros fra klager i statistikken.",
+          "example": "Et høflig spørsmål kan være nøytralt selv om det nevner et problem."
+        },
+        "subjects": {
+          "help": "Leverandøren, kontrakten, prosessen, eiendelen, prosjektet eller KI-systemet tilbakemeldingen gjelder. Den vises da også der, så dere ser alle klager på en leverandør samlet.",
+          "example": "En forsinket leveranse: koble transportøren (leverandør) og leveringsprosessen.",
+          "requirements": ["iso9001:8.4.1"]
         }
       }
     },
     "detail": {
       "intro": {
         "title": "Behandle en tilbakemelding",
-        "body": "Flytt registreringen gjennom stegene mens dere jobber med den. For en klage: beskriv løsningen, gi kunden beskjed, og koble til et avvik hvis noe i deres egne prosesser gikk galt.",
+        "body": "Ta saken ett steg om gangen med knappen øverst. For en klage: vurder den, logg hva kunden fikk vite, og koble et avvik når noe i deres egne prosesser gikk galt.",
         "steps": [
-          "Bekreft at tilbakemeldingen er mottatt, så kunden vet det.",
-          "Legg til oppfølgingsoppgaver for arbeidet som må gjøres.",
-          "Beskriv løsningen, gi kunden beskjed og lukk saken."
+          "Bekreft mottaket, så kunden vet at dere har saken.",
+          "Vurder klagen og logg svaret til kunden.",
+          "Beskriv løsningen og lukk saken når kunden har godtatt den."
         ]
       },
       "why": {
-        "body": "Revisorer ser etter bevis på at klager ble besvart, at kunden fikk beskjed, og at reelle problemer førte til korrigerende tiltak. Tidslinjen, løsningen og de koblede avvikene gir den dokumentasjonen.",
-        "clauses": ["iso9001:8.2.1", "iso9001:9.1.2"]
+        "body": "Revisorer ser etter dokumentasjon på at klager ble besvart, at kunden fikk beskjed, og at berettigede klager førte til korrigerende tiltak. Vurderingen, svarloggen og de koblede avvikene gir den dokumentasjonen.",
+        "clauses": ["iso9001:8.2.1", "iso9001:10.2.1", "iso9001:9.1.2"]
+      },
+      "fields": {
+        "complaint_justified": {
+          "help": "Berettiget betyr at kunden hadde rett: produktet, tjenesten eller kommunikasjonen deres innfridde ikke det som var avtalt eller rimelig å forvente. En berettiget klage er et avvik.",
+          "example": "Levering lovet mandag, kom onsdag: berettiget. Kunden bestilte feil størrelse: ikke berettiget.",
+          "requirements": ["iso9001:10.2.1"]
+        },
+        "root_cause": {
+          "help": "Hvorfor det skjedde, ikke hva som skjedde. Spør «hvorfor» til dere kommer til noe dere kan endre.",
+          "example": "Ikke «pakken kom for sent», men «transportøren har ikke ledig tid i vårt område på mandager».",
+          "requirements": ["iso9001:10.2.1"]
+        },
+        "corrective_action_required": {
+          "help": "Ja når årsaken kan skje igjen og bør fjernes. Registrer da et avvik, så det korrigerende tiltaket blir planlagt og fulgt opp.",
+          "example": "En enkelt skrivefeil på en faktura trenger kanskje ikke tiltak; en gjentatt faktureringsfeil gjør det.",
+          "requirements": ["iso9001:10.2.1"]
+        },
+        "customer_accepted": {
+          "help": "Om kunden sa seg fornøyd med hvordan saken ble håndtert. Spør når dere gir beskjed om utfallet.",
+          "example": "Kunden godtok kreditnotaen og takket: ja.",
+          "requirements": ["iso9001:8.2.1"]
+        },
+        "subjects": {
+          "help": "Leverandøren, kontrakten, prosessen eller noe annet tilbakemeldingen gjelder. De koblede registreringene viser også tilbakemeldingen.",
+          "example": "Klager på budfirmaet, koblet til leverandøren, kommer med i leverandørvurderingen.",
+          "requirements": ["iso9001:8.4.1"]
+        }
       }
     },
     "surveys": {
@@ -112,12 +152,18 @@
           "example": "En årlig tilfredshetsundersøkelse er gjerne anonym; en oppfølging etter en supportsak er det kanskje ikke."
         },
         "low_score_threshold": {
-          "help": "Når et svar får en score på eller under denne verdien (0–100), opprettes en tilbakemelding som eieren av undersøkelsen skal følge opp. La feltet stå tomt for å slå det av.",
-          "example": "Med grense 40 gir en kunde som svarer 2 av 5 en oppfølgingssak."
+          "help": "Når et svar får en score på eller under denne verdien, opprettes en oppfølgingssak til eieren av undersøkelsen. Scoren går fra 0 til 100; 40 tilsvarer omtrent 2 av 5 på et vurderingsspørsmål. La feltet stå tomt for å slå det av.",
+          "example": "Med 40 får en kunde som svarer 2 av 5, en oppfølgingssak.",
+          "requirements": ["iso9001:9.1.2"]
         },
         "questions": {
           "help": "Vurderingsspørsmål gir en score; anbefalingsspørsmålet (0–10) gir en NPS; valg og ja/nei viser fordelinger; fritekst samler kommentarer.",
-          "example": "«Hvor fornøyd er du med leveringstidene våre?» på en skala fra 1 til 5."
+          "example": "«Hvor fornøyd er du med leveringstidene våre?» på en skala fra 1 til 5.",
+          "requirements": ["iso9001:9.1.2"]
+        },
+        "language": {
+          "help": "Språket de som svarer, ser undersøkelsen på. Skriv spørsmålene på samme språk.",
+          "example": "En undersøkelse for norske kunder: norsk (bokmål)."
         }
       }
     },
@@ -139,16 +185,72 @@
     "insights": {
       "intro": {
         "title": "Kundetilfredshet i korte trekk",
-        "body": "Tallene kombinerer tilbakemeldingsregisteret og undersøkelsene for den valgte perioden. Bruk dem i ledelsens gjennomgåelse for å vise hvor fornøyde kundene er og hvor godt klager håndteres.",
+        "body": "Tallene kombinerer tilbakemeldingsregisteret og undersøkelsene for den valgte perioden. Klikk på en flis eller en stolpe for å se registreringene bak, og ta med tallene til ledelsens gjennomgang.",
         "steps": [
           "Velg periode.",
-          "Se på åpne klager og svar over fristen først.",
-          "Be assistenten finne temaer, og bestem hva som skal forbedres."
+          "Se først på åpne og forfalte klager, deretter på hvordan klagene håndteres.",
+          "Be assistenten finne temaer, bestem hva som skal forbedres, og eksporter tallene til gjennomgangen."
         ]
       },
       "why": {
-        "body": "ISO 9001 krever at dere analyserer kundetilfredsheten og bruker resultatene i ledelsens gjennomgåelse. En utvikling over flere måneder sier mer enn ett enkelt tall.",
+        "body": "ISO 9001 krever at dere analyserer kundetilfredsheten og bruker resultatene i ledelsens gjennomgang. En utvikling over flere måneder sier mer enn ett enkelt tall.",
+        "clauses": ["iso9001:9.1.2", "iso9001:9.1.3"]
+      }
+    },
+    "edit": {
+      "intro": {
+        "title": "Oppdatere en tilbakemelding",
+        "body": "Rett opp opplysningene, koble det saken gjelder, og for en klage: før inn vurderingen og utfallet. Begrunnelsen for endringen lagres i endringshistorikken.",
+        "steps": [
+          "Endre det som var feil eller manglet.",
+          "For en klage: si om den var berettiget og hva årsaken var.",
+          "Skriv en kort begrunnelse og lagre."
+        ]
+      },
+      "why": {
+        "body": "En registrering som holdes oppdatert, med begrunnelse for hver endring, er dokumentasjon en revisor kan stole på.",
+        "clauses": ["iso9001:8.2.1"]
+      }
+    },
+    "surveyEdit": {
+      "intro": {
+        "title": "Endre en undersøkelse",
+        "body": "Tittel, datoer og regelen for oppfølging kan endres når som helst. Når undersøkelsen er publisert, er spørsmålene låst, så alle svar er gitt på de samme spørsmålene.",
+        "steps": [
+          "Endre innstillingene dere trenger.",
+          "Lagre, og sjekk den offentlige siden hvis dere endret språket."
+        ]
+      },
+      "why": {
+        "body": "Uendrede spørsmål gjør at resultatene kan sammenlignes over tid.",
         "clauses": ["iso9001:9.1.2"]
+      }
+    },
+    "settings": {
+      "intro": {
+        "title": "Sette opp kundetilbakemeldinger",
+        "body": "Velg hvor raskt dere lover å svare på hver type tilbakemelding, og lenk til personvernerklæringen for undersøkelser som samler inn navn eller e-post.",
+        "steps": [
+          "Sett svarfrist per type (for eksempel 3 arbeidsdager for klager).",
+          "Lim inn adressen til personvernerklæringen.",
+          "Lagre. Nye tilbakemeldinger får svarfristen herfra."
+        ]
+      },
+      "why": {
+        "body": "En lovet svarfrist som følges opp, viser at kundekommunikasjonen er planlagt. Når dere samler inn personopplysninger i en undersøkelse, må de som svarer få vite hvem som er ansvarlig og hvorfor.",
+        "clauses": ["iso9001:8.2.1", "gdpr:13"]
+      },
+      "fields": {
+        "response_days": {
+          "help": "Antall dager fra mottatt til svarfrist. La feltet stå tomt hvis den typen ikke skal ha noen standard frist.",
+          "example": "Klager 3, spørsmål 5, ros og forslag 10.",
+          "requirements": ["iso9001:8.2.1"]
+        },
+        "privacy_notice_url": {
+          "help": "Nettsiden som forklarer hvordan dere behandler personopplysninger. Den lenkes fra offentlige undersøkelser som spør etter navn eller e-post.",
+          "example": "https://www.eksempel.no/personvern",
+          "requirements": ["gdpr:13"]
+        }
       }
     }
   },
@@ -166,8 +268,8 @@
           "body": "Bekreft at klagen er mottatt, og si når kunden kan vente svar. En rask bekreftelse betyr ofte mer enn en rask løsning. Sett en **svarfrist**, så får eieren en påminnelse."
         },
         {
-          "heading": "Løs og dokumenter",
-          "body": "Finn ut hva som skjedde, rett det opp for kunden, og skriv ned **løsningen**. Gi kunden beskjed om utfallet og kryss av for *kunden har fått beskjed*. En klage kan bare lukkes når den er løst."
+          "heading": "Vurder, løs og dokumenter",
+          "body": "Avgjør om klagen er **berettiget**, og skriv ned **årsaken**. Rett det opp for kunden, beskriv **løsningen**, og bruk *Logg svar til kunden* for å lagre hva kunden fikk vite. En klage kan bare merkes som løst når den er vurdert, og bare lukkes når den er løst."
         },
         {
           "heading": "Rett årsaken, ikke bare saken",
@@ -177,9 +279,13 @@
       "quiz": [
         {
           "question": "Hva må en klage ha før den kan merkes som løst?",
-          "options": ["En eier", "En beskrevet løsning", "En tilfredshetsscore"],
+          "options": [
+            "En eier",
+            "En beskrevet løsning og et svar på «var den berettiget?»",
+            "En tilfredshetsscore"
+          ],
           "answer": 1,
-          "explanation": "En klage må ha en beskrivelse av hvordan den ble løst; det er den dokumentasjonen en revisor ser etter."
+          "explanation": "En revisor ser etter hvordan klagen ble løst og om den var berettiget. En berettiget klage behandles som et avvik."
         },
         {
           "question": "En klage viser at leveringsprosessen hoppet over en kvalitetskontroll. Hva bør du gjøre?",
@@ -208,7 +314,7 @@
         },
         {
           "heading": "Bruk utviklingen",
-          "body": "Se på utviklingen per måned og sammenlign perioder. Ta med tallene og de viktigste temaene til ledelsens gjennomgåelse, bestem hva som skal forbedres, og mål på nytt."
+          "body": "Se på utviklingen per måned og sammenlign perioder. Ta med tallene og de viktigste temaene til ledelsens gjennomgang, bestem hva som skal forbedres, og mål på nytt."
         }
       ],
       "quiz": [

@@ -1,46 +1,38 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { Router } from '@angular/router';
 import { providePageContext } from '../../../core/ai/page-context';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
-import { GuideIntro } from '../../../shared/guidance/guide-intro';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
-import { Icon } from '../../../shared/ui/icon/icon';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { FeedbackApi } from '../data/feedback-api';
 import { feedbackErrorKey } from '../data/feedback-errors';
 import { SURVEY_ENTITY } from '../data/feedback.models';
 import { emptySurveyForm, toSurveyCreate } from '../data/survey-form-model';
-import { FeedbackLessonLink } from '../lesson-link';
+import { FEEDBACK_SETTINGS_LINK } from '../feedback-nav';
 import { SurveyForm, SurveyFormSubmit } from './survey-form';
 
 /** Design a new survey (`/feedback/surveys/new`); it starts as a draft. */
 @Component({
   selector: 'app-survey-new',
-  imports: [
-    RouterLink,
-    TranslocoPipe,
-    GuideIntro,
-    WhyItMatters,
-    Icon,
-    SurveyForm,
-    FeedbackLessonLink,
-  ],
+  imports: [WhyItMatters, HelpStrip, PageHeader, SurveyForm],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[960px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
-      <a
-        routerLink="/feedback/surveys"
-        class="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
-      >
-        <app-icon name="back" [size]="16" />
-        {{ 'feedback.common.backToSurveys' | transloco }}
-      </a>
-      <h1 class="mb-4 font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]">
-        {{ 'feedback.surveyForm.newTitle' | transloco }}
-      </h1>
-      <div class="mb-5"><app-guide-intro scope="feedback" page="surveyForm" /></div>
+    <div class="mx-auto max-w-[760px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+      <app-page-header
+        titleKey="feedback.surveyForm.newTitle"
+        [breadcrumbs]="[
+          { labelKey: 'modules.names.feedback', link: '/feedback' },
+          { labelKey: 'feedback.tabs.surveys', link: '/feedback/surveys' },
+          { labelKey: 'feedback.surveyForm.newTitle' },
+        ]"
+        [settingsLink]="settingsLink"
+        backLink="/feedback/surveys"
+        backLabelKey="feedback.common.backToSurveys"
+      />
+      <app-help-strip scope="feedback" page="surveyForm" lesson="good-survey-questions" />
       <app-survey-form
         mode="create"
         [value]="seed"
@@ -48,16 +40,14 @@ import { SurveyForm, SurveyFormSubmit } from './survey-form';
         (submitted)="create($event)"
         (cancelled)="cancel()"
       />
-      <div class="mt-6 flex flex-col gap-3">
-        <app-why-it-matters scope="feedback" page="surveyForm" />
-        <app-feedback-lesson-link lesson="good-survey-questions" />
-      </div>
+      <div class="mt-8"><app-why-it-matters scope="feedback" page="surveyForm" /></div>
     </div>
   `,
 })
 export class SurveyNew {
   private readonly api = inject(FeedbackApi);
   private readonly selectedOrg = inject(SelectedOrgService);
+  protected readonly settingsLink = FEEDBACK_SETTINGS_LINK;
   private readonly language = inject(LanguageService);
   private readonly notifications = inject(NotificationService);
   private readonly router = inject(Router);

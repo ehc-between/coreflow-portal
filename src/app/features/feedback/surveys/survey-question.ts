@@ -22,61 +22,70 @@ let nextId = 0;
       [attr.aria-invalid]="invalid() || null"
       [attr.data-testid]="'question-' + q.id"
     >
-      <legend class="mb-1 text-[14.5px] font-semibold text-fg">
+      <legend class="mb-1 text-card font-semibold text-fg">
         <span class="mr-1 text-fg-subtle">{{ position() }}.</span>{{ q.label }}
         @if (q.required) {
-          <span class="text-fail" aria-hidden="true">*</span>
-          <span class="sr-only">{{ 'feedback.answer.required' | transloco }}</span>
+          <span class="whitespace-nowrap text-fail" aria-hidden="true">&nbsp;*</span
+          ><span class="sr-only">{{ 'feedback.answer.required' | transloco }}</span>
         }
       </legend>
       @if (q.help) {
-        <p [id]="helpId" class="-mt-1 text-[12.5px] text-fg-muted">{{ q.help }}</p>
+        <p [id]="helpId" class="-mt-1 text-meta text-fg-muted">{{ q.help }}</p>
       }
 
       @switch (q.type) {
         @case ('rating') {
-          <div class="flex flex-wrap gap-1.5" role="radiogroup" [attr.aria-label]="q.label">
-            @for (n of scale(); track n) {
-              <label [class]="scaleClass(value() === n)">
-                <input
-                  type="radio"
-                  class="sr-only"
-                  [name]="name"
-                  [value]="n"
-                  [checked]="value() === n"
-                  [disabled]="disabled()"
-                  (change)="emit(n)"
-                />
-                {{ n }}
-              </label>
-            }
+          <div class="inline-flex max-w-full flex-col gap-1">
+            <div class="flex flex-wrap gap-1.5" role="radiogroup" [attr.aria-label]="q.label">
+              @for (n of scale(); track n) {
+                <label [class]="scaleClass(value() === n)">
+                  <input
+                    type="radio"
+                    class="sr-only"
+                    [name]="name"
+                    [value]="n"
+                    [checked]="value() === n"
+                    [disabled]="disabled()"
+                    (change)="emit(n)"
+                  />
+                  {{ n }}
+                </label>
+              }
+            </div>
+            <p class="flex justify-between gap-4 text-micro text-fg-subtle" aria-hidden="true">
+              <span>{{ 'feedback.answer.ratingLow' | transloco }}</span>
+              <span class="text-right">{{ 'feedback.answer.ratingHigh' | transloco }}</span>
+            </p>
           </div>
-          <p class="flex justify-between text-[11.5px] text-fg-subtle" aria-hidden="true">
-            <span>{{ 'feedback.answer.ratingLow' | transloco }}</span>
-            <span>{{ 'feedback.answer.ratingHigh' | transloco }}</span>
-          </p>
         }
         @case ('nps') {
-          <div class="flex flex-wrap gap-1" role="radiogroup" [attr.aria-label]="q.label">
-            @for (n of scale(); track n) {
-              <label [class]="scaleClass(value() === n, true)">
-                <input
-                  type="radio"
-                  class="sr-only"
-                  [name]="name"
-                  [value]="n"
-                  [checked]="value() === n"
-                  [disabled]="disabled()"
-                  (change)="emit(n)"
-                />
-                {{ n }}
-              </label>
-            }
+          <div class="flex w-full max-w-[520px] flex-col gap-1">
+            <div
+              class="grid grid-cols-11 gap-0.5 sm:gap-1"
+              role="radiogroup"
+              [attr.aria-label]="q.label"
+              data-testid="nps-scale"
+            >
+              @for (n of scale(); track n) {
+                <label [class]="scaleClass(value() === n, true)">
+                  <input
+                    type="radio"
+                    class="sr-only"
+                    [name]="name"
+                    [value]="n"
+                    [checked]="value() === n"
+                    [disabled]="disabled()"
+                    (change)="emit(n)"
+                  />
+                  {{ n }}
+                </label>
+              }
+            </div>
+            <p class="flex justify-between gap-4 text-micro text-fg-subtle" aria-hidden="true">
+              <span>{{ 'feedback.answer.npsLow' | transloco }}</span>
+              <span class="text-right">{{ 'feedback.answer.npsHigh' | transloco }}</span>
+            </p>
           </div>
-          <p class="flex justify-between text-[11.5px] text-fg-subtle" aria-hidden="true">
-            <span>{{ 'feedback.answer.npsLow' | transloco }}</span>
-            <span>{{ 'feedback.answer.npsHigh' | transloco }}</span>
-          </p>
         }
         @case ('yes_no') {
           <div class="flex flex-wrap gap-2" role="radiogroup" [attr.aria-label]="q.label">
@@ -98,7 +107,7 @@ let nextId = 0;
         @case ('single_choice') {
           <div class="flex flex-col gap-1.5">
             @for (o of q.options ?? []; track o) {
-              <label class="inline-flex items-center gap-2 text-[13.5px] text-fg">
+              <label class="inline-flex items-center gap-2 text-body text-fg">
                 <input
                   type="radio"
                   class="h-4 w-4 accent-[var(--accent)]"
@@ -115,7 +124,7 @@ let nextId = 0;
         @case ('multi_choice') {
           <div class="flex flex-col gap-1.5">
             @for (o of q.options ?? []; track o) {
-              <label class="inline-flex items-center gap-2 text-[13.5px] text-fg">
+              <label class="inline-flex items-center gap-2 text-body text-fg">
                 <input
                   type="checkbox"
                   class="h-4 w-4 accent-[var(--accent)]"
@@ -134,7 +143,7 @@ let nextId = 0;
             [id]="name"
             rows="4"
             [maxLength]="maxText"
-            class="w-full rounded-[10px] border border-border bg-bg px-3 py-2 text-[13.5px] text-fg outline-none focus:border-accent"
+            class="w-full rounded-tile border border-border bg-bg px-3 py-2 text-body text-fg outline-none focus:border-accent"
             [value]="textValue()"
             [disabled]="disabled()"
             (input)="emit($any($event.target).value)"
@@ -142,7 +151,7 @@ let nextId = 0;
         }
       }
       @if (invalid()) {
-        <p class="text-[12px] text-fail" role="alert">
+        <p class="text-meta text-fail" role="alert">
           {{ 'feedback.answer.missing' | transloco }}
         </p>
       }
@@ -177,11 +186,11 @@ export class SurveyQuestion {
   });
 
   protected scaleClass(active: boolean, compact = false): string {
-    const size = compact ? 'h-9 min-w-9 px-2' : 'h-10 min-w-10 px-3';
+    const size = compact ? 'h-10 min-w-0 px-0' : 'h-10 min-w-10 px-3';
     const tone = active
       ? 'border-accent bg-accent text-white'
       : 'border-border bg-bg text-fg hover:border-accent';
-    return `inline-flex cursor-pointer items-center justify-center rounded-tile border text-[13.5px] font-semibold has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-accent ${size} ${tone}`;
+    return `inline-flex cursor-pointer items-center justify-center rounded-tile border text-body font-semibold has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-accent ${size} ${tone}`;
   }
 
   protected emit(value: AnswerValue): void {

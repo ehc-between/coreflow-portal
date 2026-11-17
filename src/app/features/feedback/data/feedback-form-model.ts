@@ -1,3 +1,4 @@
+import { EntityRefDto } from '../../../core/entities/entity.models';
 import { isoDay } from './feedback-display';
 import {
   FEEDBACK_CHANNELS,
@@ -11,10 +12,22 @@ import {
   FeedbackSentiment,
   FeedbackSeverity,
   FeedbackUpdate,
+  MAX_SUBJECTS,
+  SUBJECT_TYPES,
+  SubjectIn,
+  SubjectType,
 } from './feedback.models';
 
 export const MAX_TAGS = 20;
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/** A yes / no answer that may still be open ('' = not assessed yet). */
+export type YesNo = '' | 'yes' | 'no';
+
+export const yesNo = (value: boolean | null | undefined): YesNo =>
+  value === true ? 'yes' : value === false ? 'no' : '';
+export const fromYesNo = (value: YesNo): boolean | null =>
+  value === 'yes' ? true : value === 'no' ? false : null;
 
 /** The editable fields of a feedback record, as plain form values ('' = not set). */
 export interface FeedbackFormValue {
@@ -40,6 +53,13 @@ export interface FeedbackFormValue {
   readonly department_id: string;
   readonly resolution: string;
   readonly customer_informed: boolean;
+  /** Complaint assessment (ISO 9001 10.2). */
+  readonly complaint_justified: YesNo;
+  readonly root_cause: string;
+  readonly corrective_action_required: YesNo;
+  readonly customer_accepted: YesNo;
+  /** What the feedback is about: suppliers, contracts, processes, … */
+  readonly subjects: readonly EntityRefDto[];
 }
 
 export function emptyFeedbackForm(today: Date = new Date()): FeedbackFormValue {
@@ -64,6 +84,11 @@ export function emptyFeedbackForm(today: Date = new Date()): FeedbackFormValue {
     department_id: '',
     resolution: '',
     customer_informed: false,
+    complaint_justified: '',
+    root_cause: '',
+    corrective_action_required: '',
+    customer_accepted: '',
+    subjects: [],
   };
 }
 
@@ -86,9 +111,14 @@ export function formFromFeedback(f: Feedback): FeedbackFormValue {
     received_on: f.received_on,
     response_due_on: f.response_due_on ?? '',
     owner_user_id: f.owner?.id ?? '',
-    department_id: f.department_id ?? '',
+    department_id: f.department?.id ?? f.department_id ?? '',
     resolution: f.resolution ?? '',
     customer_informed: f.customer_informed,
+    complaint_justified: yesNo(f.complaint_justified),
+    root_cause: f.root_cause ?? '',
+    corrective_action_required: yesNo(f.corrective_action_required),
+    customer_accepted: yesNo(f.customer_accepted),
+    subjects: f.subjects ?? [],
   };
 }
 
@@ -102,6 +132,24 @@ export function parseTags(raw: string): string[] {
     }
   }
   return [...seen];
+}
+
+export function isSubjectType(type: string): type is SubjectType {
+  return (SUBJECT_TYPES as readonly string[]).includes(type);
+}
+
+/** The related records as the API takes them (unknown types dropped, de-duplicated). */
+export function toSubjects(refs: readonly EntityRefDto[]): SubjectIn[] {
+  const seen = new Set<string>();
+  const out: SubjectIn[] = [];
+  for (const r of refs) {
+    const key = `${r.entity_type}:${r.entity_id}`;
+    if (isSubjectType(r.entity_type) && !seen.has(key)) {
+      seen.add(key);
+      out.push({ entity_type: r.entity_type, entity_id: r.entity_id });
+    }
+  }
+  return out;
 }
 
 /** Field -> i18n error key (scope `feedback`). Empty when the form is valid. */
@@ -122,6 +170,9 @@ export function validateFeedbackForm(v: FeedbackFormValue): Readonly<Record<stri
   if (v.received_on && v.response_due_on && v.response_due_on < v.received_on) {
     errors['response_due_on'] = 'feedback.form.errors.dueBeforeReceived';
   }
+  if (v.subjects.length > MAX_SUBJECTS) {
+    errors['subjects'] = 'feedback.form.errors.tooManySubjects';
+  }
   return errors;
 }
 
@@ -130,6 +181,7 @@ const opt = <T extends string>(value: T | '', allowed: readonly string[]): T | n
   value && allowed.includes(value) ? value : null;
 
 export function toCreateRequest(v: FeedbackFormValue): FeedbackCreate {
+  const complaint = v.kind === 'complaint';
   return {
     kind: v.kind,
     title: v.title.trim(),
@@ -149,12 +201,25 @@ export function toCreateRequest(v: FeedbackFormValue): FeedbackCreate {
     response_due_on: v.response_due_on || null,
     owner_user_id: v.owner_user_id || null,
     department_id: v.department_id || null,
+    // The assessment only applies to complaints.
+    complaint_justified: complaint ? fromYesNo(v.complaint_justified) : null,
+    root_cause: complaint ? text(v.root_cause) : null,
+    corrective_action_required: complaint ? fromYesNo(v.corrective_action_required) : null,
+    customer_accepted: complaint ? fromYesNo(v.customer_accepted) : null,
+    subjects: toSubjects(v.subjects),
   };
 }
 
+const subjectKey = (s: readonly SubjectIn[] | undefined) =>
+  (s ?? [])
+    .map((x) => `${x.entity_type}:${x.entity_id}`)
+    .sort()
+    .join('|');
+
 /**
  * Only the fields that changed (the backend treats a sent `null` as "clear"), plus
- * the change reason. An unchanged form gives `{}` (+ reason).
+ * the change reason. An unchanged form gives `{}` (+ reason). `subjects` is sent
+ * as the full new set when it changed.
  */
 export function toUpdateRequest(
   original: FeedbackFormValue,
@@ -165,9 +230,15 @@ export function toUpdateRequest(
   const b = { ...toCreateRequest(next), resolution: text(next.resolution) };
   const body: Record<string, unknown> = {};
   for (const key of Object.keys(b) as (keyof typeof b)[]) {
+    if (key === 'subjects') {
+      continue;
+    }
     if (JSON.stringify(a[key]) !== JSON.stringify(b[key])) {
       body[key] = b[key];
     }
+  }
+  if (subjectKey(a.subjects) !== subjectKey(b.subjects)) {
+    body['subjects'] = b.subjects;
   }
   // An owner cannot be cleared: leaving it empty keeps the current owner.
   if (body['owner_user_id'] === null) {
