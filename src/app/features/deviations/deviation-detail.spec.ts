@@ -273,17 +273,14 @@ describe('DeviationDetail delete', () => {
 describe('DeviationDetail edit classification', () => {
   afterEach(() => document.body.replaceChildren());
 
-  it('sends changed standards, tags and department', async () => {
+  it('sends changed tags and department, never the standards', async () => {
     const { fixture, root, api } = await setup(deviation({ department_id: undefined }));
     buttonByText(root, 'deviations.detail.edit').click();
     await fixture.whenStable();
 
-    const iso14001 = Array.from(
-      root.querySelectorAll<HTMLInputElement>(
-        'app-deviation-classification-fields input[type=checkbox]',
-      ),
-    )[1];
-    iso14001.click();
+    expect(
+      root.querySelector('app-deviation-classification-fields input[type=checkbox]'),
+    ).toBeNull();
     const tag = root.querySelector<HTMLInputElement>('#edit-tag')!;
     tag.value = 'leak';
     tag.dispatchEvent(new Event('input'));
@@ -297,7 +294,6 @@ describe('DeviationDetail edit classification', () => {
     await fixture.whenStable();
 
     expect(api.updateDeviation).toHaveBeenCalledWith('org1', 'd1', {
-      standards: ['iso9001', 'iso14001'],
       tags: ['leak'],
       department_id: 'dep1',
     });

@@ -1,29 +1,45 @@
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { TranslocoTestingModule } from '@jsverse/transloco';
+import { APP_CONFIG } from '../../core/config/app-config';
 import { DeviationClassificationFields } from './classification-fields';
 
-function setup() {
+function setup(typical: string[] = []) {
   TestBed.configureTestingModule({
     imports: [DeviationClassificationFields, TranslocoTestingModule.forRoot({ langs: { en: {} } })],
-    providers: [provideZonelessChangeDetection()],
+    providers: [
+      provideZonelessChangeDetection(),
+      provideHttpClient(),
+      provideHttpClientTesting(),
+      {
+        provide: APP_CONFIG,
+        useValue: {
+          apiBaseUrl: 'http://api.test',
+          i18n: { defaultLanguage: 'en', availableLanguages: ['en', 'nb'] },
+        },
+      },
+    ],
   });
   const fixture = TestBed.createComponent(DeviationClassificationFields);
   fixture.componentRef.setInput('idPrefix', 't');
-  fixture.componentRef.setInput('standards', ['iso9001']);
+  fixture.componentRef.setInput('refs', ['iso9001:8.7']);
   fixture.componentRef.setInput('tags', ['a']);
+  fixture.componentRef.setInput('typical', typical);
   return { fixture, root: fixture.nativeElement as HTMLElement };
 }
 
 describe('DeviationClassificationFields', () => {
-  it('toggles standards', async () => {
-    const { fixture, root } = setup();
+  it('offers the typical clauses that are not cited yet, and adds one on click', async () => {
+    const { fixture, root } = setup(['iso9001:8.7', 'hs:10.2']);
     await fixture.whenStable();
-    const boxes = root.querySelectorAll<HTMLInputElement>('input[type=checkbox]');
-    expect(boxes[0].checked).toBe(true);
-    boxes[0].click();
-    boxes[1].click();
-    expect(fixture.componentInstance.standards()).toEqual(['iso14001']);
+    const chips = root.querySelectorAll<HTMLButtonElement>(
+      '[data-testid="typical-clauses"] button',
+    );
+    expect(chips.length).toBe(1);
+    chips[0].click();
+    expect(fixture.componentInstance.refs()).toEqual(['iso9001:8.7', 'hs:10.2']);
   });
 
   it('adds trimmed, de-duplicated tags on Enter and on blur', async () => {
@@ -37,28 +53,5 @@ describe('DeviationClassificationFields', () => {
     input.dispatchEvent(new Event('input'));
     input.dispatchEvent(new Event('blur'));
     expect(fixture.componentInstance.tags()).toEqual(['a', 'b']);
-  });
-
-  it('adds, edits and removes clause rows', async () => {
-    const { fixture, root } = setup();
-    await fixture.whenStable();
-    const add = Array.from(root.querySelectorAll<HTMLButtonElement>('button')).find((b) =>
-      b.textContent?.includes('deviations.create.addClause'),
-    )!;
-    add.click();
-    await fixture.whenStable();
-    const clause = root.querySelector<HTMLInputElement>('input[type=text]')!;
-    clause.value = '8.7';
-    clause.dispatchEvent(new Event('input'));
-    const select = root.querySelector<HTMLSelectElement>('select')!;
-    select.value = 'iso45001';
-    select.dispatchEvent(new Event('change'));
-    expect(fixture.componentInstance.clauses()).toEqual([{ standard: 'iso45001', clause: '8.7' }]);
-
-    await fixture.whenStable();
-    root
-      .querySelector<HTMLButtonElement>('button[aria-label$="deviations.create.removeClause"]')!
-      .click();
-    expect(fixture.componentInstance.clauses()).toEqual([]);
   });
 });

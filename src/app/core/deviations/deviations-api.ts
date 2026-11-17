@@ -40,6 +40,31 @@ import {
  */
 const IN_PLACE = { context: new HttpContext().set(SKIP_ERROR_TOAST, true) };
 
+/** Query params of the list, export and stats endpoints (same filter names). */
+function listParams(filters: DeviationFilters) {
+  return {
+    status: filters.status,
+    category: filters.category,
+    record_type_id: filters.record_type_id,
+    type_id: filters.type_id,
+    standard: filters.standard,
+    severity: filters.severity,
+    tag: filters.tag,
+    clause: filters.clause,
+    owner_user_id: filters.owner_user_id,
+    department_id: filters.department_id,
+    source: filters.source,
+    due_before: filters.due_before,
+    due_after: filters.due_after,
+    q: filters.q,
+    active: filters.active || undefined,
+    overdue: filters.overdue || undefined,
+    sort: filters.sort,
+    limit: filters.limit,
+    offset: filters.offset,
+  };
+}
+
 /**
  * Org-scoped Deviations API. Goes through ApiService, so requests carry the
  * in-memory bearer token (attached by the auth interceptor) and the configured
@@ -112,26 +137,25 @@ export class DeviationsApi {
   /** Page of deviations matching the filters, plus the unpaged total. */
   listDeviations(orgId: string, filters: DeviationFilters = {}): Observable<DeviationListResponse> {
     return this.api.get<DeviationListResponse>(`v1/orgs/${orgId}/deviations`, {
+      params: listParams(filters),
+    });
+  }
+
+  /**
+   * The filtered register as CSV (UTF-8 with BOM, opens in Excel), same filters and
+   * sort as the list (at most 5000 rows). `lang` picks the header row; Norwegian
+   * Excel expects `;` as the delimiter.
+   */
+  exportDeviations(
+    orgId: string,
+    filters: DeviationFilters = {},
+    lang: 'en' | 'nb' = 'en',
+  ): Observable<Blob> {
+    return this.api.getBlob(`v1/orgs/${orgId}/deviations/export`, {
       params: {
-        status: filters.status,
-        category: filters.category,
-        record_type_id: filters.record_type_id,
-        type_id: filters.type_id,
-        standard: filters.standard,
-        severity: filters.severity,
-        tag: filters.tag,
-        clause: filters.clause,
-        owner_user_id: filters.owner_user_id,
-        department_id: filters.department_id,
-        source: filters.source,
-        due_before: filters.due_before,
-        due_after: filters.due_after,
-        q: filters.q,
-        active: filters.active || undefined,
-        overdue: filters.overdue || undefined,
-        sort: filters.sort,
-        limit: filters.limit,
-        offset: filters.offset,
+        ...listParams({ ...filters, limit: undefined, offset: undefined }),
+        lang,
+        delimiter: lang === 'nb' ? ';' : ',',
       },
     });
   }

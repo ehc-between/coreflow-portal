@@ -69,7 +69,8 @@ let nextId = 0;
  * secondary actions. "Details" is
  * the default slot and "Tasks" the `[tasks]` slot (project F2's
  * `<app-entity-tasks>`); related items, activity, comments, attachments and
- * revisions are the shared kit components, rendered when their tab is opened.
+ * revisions are the shared kit components, rendered when their tab is opened
+ * (`customActivity` swaps the activity tab for the `[activity]` slot).
  * `[aside]` is a side column on wide screens (below the tabs on small ones).
  * The open tab is kept in the `?tab=` query parameter so links and reloads
  * return to it. Page context for the assistant is registered by the module
@@ -172,6 +173,9 @@ let nextId = 0;
             <div [hidden]="active() !== 'tasks'">
               <ng-content select="[tasks]" />
             </div>
+            <div [hidden]="active() !== 'activity' || !customActivity()">
+              <ng-content select="[activity]" />
+            </div>
             @switch (active()) {
               @case ('related') {
                 <app-related-items
@@ -181,7 +185,7 @@ let nextId = 0;
                   [linkTypes]="linkTypes()"
                 />
               }
-              @case ('activity') {
+              @case (customActivity() ? '' : 'activity') {
                 <app-timeline
                   [entityType]="entityType()"
                   [entityId]="entityId()"
@@ -275,6 +279,11 @@ export class RecordDetailLayout {
   /** Whether the user can edit the record (links, attachments). */
   readonly canEdit = input(false);
   readonly canComment = input(true);
+  /**
+   * The module renders its own case history in the `[activity]` slot instead of
+   * the generic timeline (one history per record, not two that disagree).
+   */
+  readonly customActivity = input(false);
   /** Start the activity tab with audit-log rows (for `audit:read` holders). */
   readonly includeAudit = input(false);
   /** Snapshot field -> i18n key, for the revisions tab. */

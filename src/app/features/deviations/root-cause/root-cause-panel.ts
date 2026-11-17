@@ -70,7 +70,7 @@ import {
         <div class="flex items-center gap-1.5">
           <h2
             [id]="headingId"
-            class="font-display text-[16px] font-bold tracking-[-0.02em] text-fg"
+            class="font-display text-section font-bold tracking-[-0.02em] text-fg"
           >
             {{ 'deviations.rootCauses.title' | transloco }}
           </h2>
@@ -103,16 +103,16 @@ import {
           (ngSubmit)="save()"
           data-testid="root-cause-editor"
         >
-          <p class="text-[13px] font-semibold text-fg">
+          <p class="text-ui font-semibold text-fg">
             {{ 'deviations.rootCauses.methods.' + f.method | transloco }}
             @if (fromAi()) {
-              <span class="ml-1 text-[12px] font-normal text-fg-muted">{{
+              <span class="ml-1 text-meta font-normal text-fg-muted">{{
                 'deviations.rootCauses.aiDraftNote' | transloco
               }}</span>
             }
           </p>
           <div class="flex flex-col gap-1.5">
-            <label [for]="ids.problem" class="text-[13px] font-semibold text-fg-muted">
+            <label [for]="ids.problem" class="text-ui font-semibold text-fg-muted">
               {{ 'deviations.rootCauses.problem' | transloco }}
             </label>
             <textarea
@@ -122,7 +122,7 @@ import {
               maxlength="4000"
               [ngModel]="f.problem"
               (ngModelChange)="patch({ problem: $event })"
-              class="w-full rounded-[10px] border border-border bg-bg px-3 py-2.5 text-[13.5px] text-fg outline-none focus:border-accent"
+              class="w-full rounded-tile border border-border bg-bg px-3 py-2.5 text-ui text-fg outline-none focus:border-accent"
             ></textarea>
           </div>
 
@@ -133,9 +133,9 @@ import {
             >
               @for (step of f.whys; track $index; let i = $index) {
                 <li
-                  class="grid gap-2 rounded-[10px] border border-border bg-surface p-2.5 sm:grid-cols-[auto_1fr_1fr_auto] sm:items-start"
+                  class="grid gap-2 rounded-tile border border-border bg-surface p-2.5 sm:grid-cols-[auto_1fr_1fr_auto] sm:items-start"
                 >
-                  <span class="pt-2 text-[12px] font-bold text-fg-subtle">{{ i + 1 }}.</span>
+                  <span class="pt-2 text-meta font-bold text-fg-subtle">{{ i + 1 }}.</span>
                   <input
                     type="text"
                     [name]="'q' + i"
@@ -143,7 +143,7 @@ import {
                     [ngModel]="step.question"
                     (ngModelChange)="setWhy(i, 'question', $event)"
                     [attr.aria-label]="'deviations.rootCauses.question' | transloco: { n: i + 1 }"
-                    class="h-9 rounded-[10px] border border-border bg-bg px-3 text-[13px] text-fg outline-none focus:border-accent"
+                    class="h-9 rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent"
                   />
                   <input
                     type="text"
@@ -153,13 +153,13 @@ import {
                     (ngModelChange)="setWhy(i, 'answer', $event)"
                     [placeholder]="'deviations.rootCauses.answerPlaceholder' | transloco"
                     [attr.aria-label]="'deviations.rootCauses.answer' | transloco: { n: i + 1 }"
-                    class="h-9 rounded-[10px] border border-border bg-bg px-3 text-[13px] text-fg outline-none focus:border-accent"
+                    class="h-9 rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent"
                   />
                   <button
                     type="button"
                     (click)="removeWhy(i)"
                     [attr.aria-label]="'deviations.rootCauses.removeWhy' | transloco: { n: i + 1 }"
-                    class="flex h-9 w-9 items-center justify-center rounded-[8px] text-fg-subtle hover:bg-surface-2 hover:text-fail"
+                    class="flex h-9 w-9 items-center justify-center rounded-lg text-fg-subtle hover:bg-surface-2 hover:text-fail"
                   >
                     <app-icon name="x" [size]="15" />
                   </button>
@@ -182,7 +182,7 @@ import {
           }
 
           @if (f.method === 'fishbone') {
-            <p class="text-[12.5px] text-fg-muted">
+            <p class="text-meta text-fg-muted">
               {{ 'deviations.rootCauses.fishboneHint' | transloco }}
             </p>
             <div class="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
@@ -190,7 +190,7 @@ import {
                 <div class="flex flex-col gap-1">
                   <label
                     [for]="ids.category + category"
-                    class="text-[12px] font-semibold text-fg-muted"
+                    class="text-meta font-semibold text-fg-muted"
                   >
                     {{ 'deviations.rootCauses.categories.' + category | transloco }}
                   </label>
@@ -200,7 +200,7 @@ import {
                     rows="3"
                     [ngModel]="f.categories[category]"
                     (ngModelChange)="setCategory(category, $event)"
-                    class="w-full rounded-[10px] border border-border bg-bg px-3 py-2 text-[13px] text-fg outline-none focus:border-accent"
+                    class="w-full rounded-tile border border-border bg-bg px-3 py-2 text-ui text-fg outline-none focus:border-accent"
                   ></textarea>
                 </div>
               }
@@ -208,7 +208,7 @@ import {
           }
 
           <div class="flex flex-col gap-1.5">
-            <label [for]="ids.conclusion" class="text-[13px] font-semibold text-fg-muted">
+            <label [for]="ids.conclusion" class="text-ui font-semibold text-fg-muted">
               {{ 'deviations.rootCauses.conclusion' | transloco }}
             </label>
             <textarea
@@ -218,11 +218,11 @@ import {
               maxlength="4000"
               [ngModel]="f.conclusion"
               (ngModelChange)="patch({ conclusion: $event })"
-              class="w-full rounded-[10px] border border-border bg-bg px-3 py-2.5 text-[13.5px] text-fg outline-none focus:border-accent"
+              class="w-full rounded-tile border border-border bg-bg px-3 py-2.5 text-ui text-fg outline-none focus:border-accent"
             ></textarea>
           </div>
           @if (!editingId()) {
-            <label class="inline-flex items-center gap-2 text-[13px] text-fg">
+            <label class="inline-flex items-center gap-2 text-ui text-fg">
               <input
                 type="checkbox"
                 name="apply"
@@ -245,9 +245,9 @@ import {
       }
 
       @if (loading()) {
-        <p class="py-3 text-[13px] text-fg-muted">{{ 'common.loading' | transloco }}</p>
+        <p class="py-3 text-ui text-fg-muted">{{ 'common.loading' | transloco }}</p>
       } @else if (items().length === 0 && !form()) {
-        <p class="py-3 text-[13.5px] text-fg-muted">
+        <p class="py-3 text-ui text-fg-muted">
           {{ 'deviations.rootCauses.empty' | transloco }}
         </p>
       } @else {
@@ -264,7 +264,7 @@ import {
                     'deviations.rootCauses.applied' | transloco
                   }}</app-badge>
                 }
-                <span class="text-[12px] text-fg-subtle">
+                <span class="text-meta text-fg-subtle">
                   {{
                     'deviations.rootCauses.byline'
                       | transloco
@@ -276,7 +276,7 @@ import {
                 </span>
               </div>
               @if (item.problem) {
-                <p class="mt-2 text-[13px] text-fg">
+                <p class="mt-2 text-ui text-fg">
                   <span class="font-semibold"
                     >{{ 'deviations.rootCauses.problem' | transloco }}:</span
                   >
@@ -286,7 +286,7 @@ import {
               @if (item.whys.length) {
                 <ol class="mt-2 flex flex-col gap-1 border-l-2 border-accent-border pl-3">
                   @for (step of item.whys; track $index) {
-                    <li class="text-[12.5px]">
+                    <li class="text-meta">
                       <span class="text-fg-muted">{{ step.question }}</span>
                       <span class="block text-fg">{{ step.answer || '—' }}</span>
                     </li>
@@ -297,11 +297,11 @@ import {
                 <div class="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3" data-testid="fishbone">
                   @for (category of categories; track category) {
                     @if (item.categories[category]?.length) {
-                      <div class="rounded-[10px] bg-surface-2 px-2.5 py-2">
-                        <p class="text-[11px] font-bold tracking-[0.06em] text-fg-subtle uppercase">
+                      <div class="rounded-tile bg-surface-2 px-2.5 py-2">
+                        <p class="text-micro font-bold tracking-[0.06em] text-fg-subtle uppercase">
                           {{ 'deviations.rootCauses.categories.' + category | transloco }}
                         </p>
-                        <ul class="mt-1 list-disc pl-4 text-[12.5px] text-fg">
+                        <ul class="mt-1 list-disc pl-4 text-meta text-fg">
                           @for (cause of item.categories[category]; track $index) {
                             <li>{{ cause }}</li>
                           }
@@ -312,7 +312,7 @@ import {
                 </div>
               }
               @if (item.conclusion) {
-                <p class="mt-2 rounded-[8px] bg-accent-soft/40 px-3 py-2 text-[13px] text-fg">
+                <p class="mt-2 rounded-lg bg-accent-soft/40 px-3 py-2 text-ui text-fg">
                   <span class="font-semibold"
                     >{{ 'deviations.rootCauses.conclusion' | transloco }}:</span
                   >

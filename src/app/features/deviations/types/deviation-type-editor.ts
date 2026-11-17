@@ -38,6 +38,12 @@ import { hasAnyPermission } from '../../../core/auth/permission';
 import { RecordType } from '../../../core/records/record.models';
 import { RecordsApi } from '../../../core/records/records-api';
 import { FieldHelp } from '../../../shared/guidance/field-help';
+import { ClausePicker } from '../../../shared/requirement-links/clause-picker';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
+import { DEVIATIONS_ROOT_CRUMB } from '../deviation-display';
+import { CLAUSE_FRAMEWORKS } from '../deviation-enums';
 import {
   FIELD_TYPE_OPTIONS,
   STANDARD_OPTIONS,
@@ -76,6 +82,10 @@ import {
   selector: 'app-deviation-type-editor',
   imports: [
     FieldHelp,
+    ClausePicker,
+    HelpStrip,
+    LoadingState,
+    PageHeader,
     FormsModule,
     RouterLink,
     TranslocoPipe,
@@ -87,550 +97,575 @@ import {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[980px] px-8 pt-7 pb-12">
-      <a
-        routerLink="/deviations/types"
-        class="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
-      >
-        <app-icon name="back" [size]="16" />
-        {{ 'deviations.types.backToTypes' | transloco }}
-      </a>
+    <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+      <app-page-header
+        [titleKey]="isEdit() ? 'deviations.types.editTitle' : 'deviations.types.new'"
+        descriptionKey="deviations.types.editor.intro"
+        [breadcrumbs]="breadcrumbs()"
+        backLink="/deviations/types"
+      />
+      <app-help-strip scope="deviations" page="types" lesson="designing-your-process" />
 
-      <h1 class="mb-[18px] font-display text-[26px] font-bold tracking-[-0.025em] text-fg">
-        {{ (isEdit() ? 'deviations.types.editTitle' : 'deviations.types.new') | transloco }}
-      </h1>
-
-      @if (loading()) {
-        <app-card>
-          <p class="py-6 text-center text-[14px] text-fg-muted">
-            {{ 'common.loading' | transloco }}
-          </p>
-        </app-card>
-      } @else {
-        <div class="flex flex-col gap-4">
-          <app-card>
-            <div class="flex flex-col gap-3">
-              <div class="flex items-center gap-2">
-                <app-icon name="spark" [size]="16" class="text-accent" />
-                <span class="text-[13px] font-semibold text-fg">
-                  {{ 'deviations.types.editor.ai.title' | transloco }}
-                </span>
-              </div>
-              <textarea
-                [ngModel]="aiPrompt()"
-                (ngModelChange)="aiPrompt.set($event)"
-                name="aiPrompt"
-                rows="2"
-                [disabled]="drafting()"
-                [placeholder]="'deviations.types.editor.ai.placeholder' | transloco"
-                class="w-full rounded-[10px] border border-border bg-bg px-3 py-2.5 text-[13.5px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)] disabled:opacity-60"
-              ></textarea>
-              <div class="flex">
-                <app-button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  [loading]="drafting()"
-                  [disabled]="!aiPrompt().trim()"
-                  (click)="draftWithAi()"
-                >
-                  @if (!drafting()) {
-                    <app-icon name="spark" [size]="15" />
-                  }
-                  {{
-                    (drafting()
-                      ? 'deviations.types.editor.ai.drafting'
-                      : 'deviations.types.editor.ai.draft'
-                    ) | transloco
-                  }}
-                </app-button>
-              </div>
-            </div>
-          </app-card>
-
-          <form class="flex flex-col gap-4" (ngSubmit)="submit()">
+      <div class="max-w-[980px]">
+        @if (loading()) {
+          <app-loading-state [rows]="4" />
+        } @else {
+          <div class="flex flex-col gap-4">
             <app-card>
-              <div class="flex flex-col gap-4">
-                <div class="grid gap-4 sm:grid-cols-2">
-                  <div class="flex flex-col gap-1.5">
-                    <label for="type-name" class="text-[13px] font-semibold text-fg-muted">
-                      {{ 'deviations.types.editor.name' | transloco }}
-                      <span class="text-fail" aria-hidden="true">*</span>
-                    </label>
-                    <input
-                      id="type-name"
-                      type="text"
-                      [ngModel]="name()"
-                      (ngModelChange)="onNameChange($event)"
-                      name="name"
-                      autocomplete="off"
-                      class="h-10 w-full rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
-                    />
-                    @if (validation().nameError) {
-                      <p class="text-[12px] font-medium text-fail">
-                        {{ validation().nameError! | transloco }}
-                      </p>
-                    }
-                  </div>
-                  <div class="flex flex-col gap-1.5">
-                    <label for="type-key" class="text-[13px] font-semibold text-fg-muted">
-                      {{ 'deviations.types.editor.key' | transloco }}
-                      <span class="text-fail" aria-hidden="true">*</span>
-                    </label>
-                    <input
-                      id="type-key"
-                      type="text"
-                      [ngModel]="key()"
-                      (ngModelChange)="onKeyChange($event)"
-                      name="key"
-                      autocomplete="off"
-                      spellcheck="false"
-                      class="h-10 w-full rounded-[10px] border border-border bg-bg px-3 font-mono text-[13px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
-                    />
-                    @if (keyError()) {
-                      <p class="text-[12px] font-medium text-fail">
-                        {{ keyError()! | transloco }}
-                      </p>
-                    }
-                  </div>
-                </div>
-
-                <div class="flex flex-col gap-1.5">
-                  <label for="type-desc" class="text-[13px] font-semibold text-fg-muted">
-                    {{ 'deviations.types.editor.description' | transloco }}
-                  </label>
-                  <textarea
-                    id="type-desc"
-                    [ngModel]="description()"
-                    (ngModelChange)="description.set($event)"
-                    name="description"
-                    rows="2"
-                    class="w-full rounded-[10px] border border-border bg-bg px-3 py-2.5 text-[13.5px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
-                  ></textarea>
-                </div>
-
-                <div class="grid gap-4 sm:grid-cols-2">
-                  <div class="flex flex-col gap-1.5">
-                    <label for="type-prefix" class="text-[13px] font-semibold text-fg-muted">
-                      {{ 'deviations.types.editor.codePrefix' | transloco }}
-                      <span class="text-fail" aria-hidden="true">*</span>
-                    </label>
-                    <input
-                      id="type-prefix"
-                      type="text"
-                      [ngModel]="codePrefix()"
-                      (ngModelChange)="codePrefix.set($event)"
-                      name="codePrefix"
-                      autocomplete="off"
-                      [placeholder]="'deviations.types.editor.codePrefixPlaceholder' | transloco"
-                      class="h-10 w-full rounded-[10px] border border-border bg-bg px-3 font-mono text-[13px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
-                    />
-                    @if (validation().prefixError) {
-                      <p class="text-[12px] font-medium text-fail">
-                        {{ validation().prefixError! | transloco }}
-                      </p>
-                    }
-                  </div>
-                  <label
-                    class="flex cursor-pointer items-center gap-2 self-end pb-2.5 text-[13.5px] text-fg"
-                  >
-                    <input
-                      type="checkbox"
-                      [ngModel]="isActive()"
-                      (ngModelChange)="isActive.set($event)"
-                      name="isActive"
-                      class="h-4 w-4 accent-[var(--accent)]"
-                    />
-                    {{ 'deviations.types.editor.isActive' | transloco }}
-                  </label>
-                </div>
-
-                <div class="flex flex-col gap-2">
-                  <span class="text-[13px] font-semibold text-fg-muted">
-                    {{ 'deviations.types.editor.standards' | transloco }}
+              <div class="flex flex-col gap-3">
+                <div class="flex items-center gap-2">
+                  <app-icon name="spark" [size]="16" class="text-accent" />
+                  <span class="text-ui font-semibold text-fg">
+                    {{ 'deviations.types.editor.ai.title' | transloco }}
                   </span>
-                  <div class="flex flex-wrap gap-x-4 gap-y-2">
-                    @for (option of standardOptions; track option) {
-                      <label class="flex cursor-pointer items-center gap-2 text-[13.5px] text-fg">
-                        <input
-                          type="checkbox"
-                          [checked]="standards().includes(option)"
-                          (change)="toggleStandard(option)"
-                          class="h-4 w-4 accent-[var(--accent)]"
-                        />
-                        {{ standardLabelKey(option) | transloco }}
-                      </label>
-                    }
-                  </div>
                 </div>
-
-                <div class="flex flex-col gap-1.5 border-t border-border pt-4">
-                  <span class="flex items-center gap-1.5">
-                    <label for="type-record-type" class="text-[13px] font-semibold text-fg-muted">
-                      {{ 'deviations.wf.binding.label' | transloco }}
-                    </label>
-                    <app-field-help scope="deviations" page="types" field="record_type" />
-                  </span>
-                  <select
-                    id="type-record-type"
-                    name="recordType"
-                    [ngModel]="recordTypeId()"
-                    (ngModelChange)="recordTypeId.set($event)"
-                    class="h-10 rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg outline-none focus:border-accent sm:max-w-[60%]"
+                <textarea
+                  [ngModel]="aiPrompt()"
+                  (ngModelChange)="aiPrompt.set($event)"
+                  name="aiPrompt"
+                  rows="2"
+                  [disabled]="drafting()"
+                  [placeholder]="'deviations.types.editor.ai.placeholder' | transloco"
+                  class="w-full rounded-tile border border-border bg-bg px-3 py-2.5 text-ui text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)] disabled:opacity-60"
+                ></textarea>
+                <div class="flex">
+                  <app-button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    [loading]="drafting()"
+                    [disabled]="!aiPrompt().trim()"
+                    (click)="draftWithAi()"
                   >
-                    <option value="">{{ 'deviations.wf.binding.none' | transloco }}</option>
-                    @for (rt of recordTypes(); track rt.id) {
-                      <option [value]="rt.id">{{ rt.name }}</option>
+                    @if (!drafting()) {
+                      <app-icon name="spark" [size]="15" />
                     }
-                    @if (recordTypeId() && !knownRecordType()) {
-                      <option [value]="recordTypeId()">
-                        {{ 'deviations.wf.binding.current' | transloco }}
-                      </option>
-                    }
-                  </select>
-                  @if (recordTypeId()) {
-                    <p class="text-[12.5px] text-fg-muted" data-testid="binding-note">
-                      {{ 'deviations.wf.binding.boundNote' | transloco }}
-                    </p>
-                  } @else {
-                    <p class="text-[12.5px] text-fg-subtle">
-                      {{ 'deviations.wf.binding.hint' | transloco }}
-                    </p>
-                  }
+                    {{
+                      (drafting()
+                        ? 'deviations.types.editor.ai.drafting'
+                        : 'deviations.types.editor.ai.draft'
+                      ) | transloco
+                    }}
+                  </app-button>
                 </div>
               </div>
             </app-card>
 
-            <app-card>
-              <div class="mb-1 flex items-center justify-between gap-2">
-                <span class="text-[13px] font-semibold text-fg-muted">
-                  {{ 'deviations.types.editor.schemaSection' | transloco }}
-                </span>
-                <button
-                  type="button"
-                  (click)="togglePreview()"
-                  class="text-[12.5px] font-semibold text-accent hover:underline"
-                >
-                  {{
-                    (showPreview()
-                      ? 'deviations.types.editor.hidePreview'
-                      : 'deviations.types.editor.showPreview'
-                    ) | transloco
-                  }}
-                </button>
-              </div>
-              <p class="mb-4 text-[12px] text-fg-subtle">
-                {{ 'deviations.types.editor.dragHint' | transloco }}
-              </p>
-
-              <div class="flex flex-col gap-5">
-                @for (section of sections(); track s; let s = $index) {
-                  <div class="rounded-card border border-border bg-surface p-4">
-                    <div class="mb-3 flex items-center gap-2">
+            <form class="flex flex-col gap-4" (ngSubmit)="submit()">
+              <app-card>
+                <div class="flex flex-col gap-4">
+                  <div class="grid gap-4 sm:grid-cols-2">
+                    <div class="flex flex-col gap-1.5">
+                      <label for="type-name" class="text-ui font-semibold text-fg-muted">
+                        {{ 'deviations.types.editor.name' | transloco }}
+                        <span class="text-fail-ink" aria-hidden="true">*</span>
+                      </label>
                       <input
+                        id="type-name"
                         type="text"
-                        [ngModel]="section.title"
-                        (ngModelChange)="setSectionTitle(s, $event)"
-                        [name]="'sectitle-' + s"
+                        [ngModel]="name()"
+                        (ngModelChange)="onNameChange($event)"
+                        name="name"
                         autocomplete="off"
-                        [placeholder]="
-                          (s === 0
-                            ? 'deviations.types.editor.defaultSection'
-                            : 'deviations.types.editor.sectionTitlePlaceholder'
-                          ) | transloco
-                        "
-                        [attr.aria-label]="'deviations.types.editor.sectionTitle' | transloco"
-                        class="h-9 flex-1 rounded-[10px] border border-transparent bg-transparent px-2 text-[14px] font-semibold text-fg outline-none hover:border-border focus:border-accent focus:bg-bg focus:shadow-[0_0_0_3px_var(--accent-soft)]"
+                        class="h-10 w-full rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
                       />
-                      @if (s > 0) {
-                        <button
-                          type="button"
-                          (click)="removeSection(s)"
-                          [attr.aria-label]="'deviations.types.editor.removeSection' | transloco"
-                          class="flex flex-none rounded-[8px] p-1.5 text-fg-subtle hover:bg-surface-2 hover:text-fail"
-                        >
-                          <app-icon name="x" [size]="15" />
-                        </button>
-                      }
-                    </div>
-
-                    <div
-                      cdkDropList
-                      [cdkDropListData]="s"
-                      [cdkDropListConnectedTo]="dropListIds()"
-                      [id]="'droplist-' + s"
-                      (cdkDropListDropped)="onDrop($event)"
-                      class="flex flex-col gap-3"
-                    >
-                      @if (section.fields.length === 0) {
-                        <p
-                          class="rounded-[10px] border border-dashed border-border py-4 text-center text-[13px] text-fg-subtle"
-                        >
-                          {{ 'deviations.types.editor.emptySection' | transloco }}
+                      @if (showErrors() && validation().nameError) {
+                        <p class="text-meta font-medium text-fail-ink" role="alert">
+                          {{ validation().nameError! | transloco }}
                         </p>
                       }
+                    </div>
+                  </div>
 
-                      @for (field of section.fields; track f; let f = $index) {
-                        <div cdkDrag class="rounded-card border border-border bg-bg p-3.5">
-                          <div
-                            *cdkDragPlaceholder
-                            class="rounded-card border border-dashed border-accent bg-accent-soft"
-                            [style.height.px]="64"
-                          ></div>
-                          <div class="mb-3 flex items-center gap-2">
-                            <button
-                              type="button"
-                              cdkDragHandle
-                              [attr.aria-label]="'deviations.types.editor.dragField' | transloco"
-                              class="flex cursor-grab rounded-[8px] p-1 text-fg-subtle hover:bg-surface-2 hover:text-fg active:cursor-grabbing"
-                            >
-                              <app-icon name="grip" [size]="16" />
-                            </button>
-                            <span class="font-mono text-[12px] text-fg-subtle">#{{ f + 1 }}</span>
-                            <div class="ml-auto flex items-center gap-0.5">
-                              <button
-                                type="button"
-                                (click)="removeField(s, f)"
-                                [attr.aria-label]="
-                                  'deviations.types.editor.removeField' | transloco
-                                "
-                                class="flex rounded-[8px] p-1.5 text-fg-subtle hover:bg-surface-2 hover:text-fail"
-                              >
-                                <app-icon name="x" [size]="15" />
-                              </button>
-                            </div>
-                          </div>
+                  <div class="flex flex-col gap-1.5">
+                    <label for="type-desc" class="text-ui font-semibold text-fg-muted">
+                      {{ 'deviations.types.editor.description' | transloco }}
+                    </label>
+                    <textarea
+                      id="type-desc"
+                      [ngModel]="description()"
+                      (ngModelChange)="description.set($event)"
+                      name="description"
+                      rows="2"
+                      class="w-full rounded-tile border border-border bg-bg px-3 py-2.5 text-ui text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
+                    ></textarea>
+                  </div>
 
-                          <div class="grid gap-3 sm:grid-cols-2">
-                            <div class="flex flex-col gap-1.5">
-                              <label
-                                [attr.for]="'flabel-' + s + '-' + f"
-                                class="text-[12.5px] font-semibold text-fg-muted"
-                              >
-                                {{ 'deviations.types.editor.fieldLabel' | transloco }}
-                              </label>
-                              <input
-                                [id]="'flabel-' + s + '-' + f"
-                                type="text"
-                                [ngModel]="field.label"
-                                (ngModelChange)="setFieldLabel(s, f, $event)"
-                                [name]="'flabel-' + s + '-' + f"
-                                autocomplete="off"
-                                class="h-9 w-full rounded-[10px] border border-border bg-surface px-3 text-[13.5px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
-                              />
-                              @if (errorFor(field)?.label; as err) {
-                                <p class="text-[12px] font-medium text-fail">
-                                  {{ err | transloco }}
-                                </p>
-                              }
-                            </div>
-                            <div class="flex flex-col gap-1.5">
-                              <label
-                                [attr.for]="'fkey-' + s + '-' + f"
-                                class="text-[12.5px] font-semibold text-fg-muted"
-                              >
-                                {{ 'deviations.types.editor.fieldKey' | transloco }}
-                              </label>
-                              <input
-                                [id]="'fkey-' + s + '-' + f"
-                                type="text"
-                                [ngModel]="field.key"
-                                (ngModelChange)="setFieldKey(s, f, $event)"
-                                [name]="'fkey-' + s + '-' + f"
-                                autocomplete="off"
-                                spellcheck="false"
-                                class="h-9 w-full rounded-[10px] border border-border bg-surface px-3 font-mono text-[13px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
-                              />
-                              @if (errorFor(field)?.key; as err) {
-                                <p class="text-[12px] font-medium text-fail">
-                                  {{ err | transloco }}
-                                </p>
-                              }
-                            </div>
-                            <div class="flex flex-col gap-1.5">
-                              <label
-                                [attr.for]="'ftype-' + s + '-' + f"
-                                class="text-[12.5px] font-semibold text-fg-muted"
-                              >
-                                {{ 'deviations.types.editor.fieldType' | transloco }}
-                              </label>
-                              <div class="cf-select">
-                                <select
-                                  [id]="'ftype-' + s + '-' + f"
-                                  [ngModel]="field.type"
-                                  (ngModelChange)="setFieldType(s, f, $event)"
-                                  [name]="'ftype-' + s + '-' + f"
-                                >
-                                  @for (option of fieldTypeOptions; track option) {
-                                    <option [value]="option">
-                                      {{ fieldTypeLabelKey(option) | transloco }}
-                                    </option>
-                                  }
-                                </select>
-                              </div>
-                            </div>
-                            <label
-                              class="flex cursor-pointer items-center gap-2 self-end pb-2 text-[13.5px] text-fg"
-                            >
-                              <input
-                                type="checkbox"
-                                [ngModel]="field.required"
-                                (ngModelChange)="setFieldRequired(s, f, $event)"
-                                [name]="'freq-' + s + '-' + f"
-                                class="h-4 w-4 accent-[var(--accent)]"
-                              />
-                              {{ 'deviations.types.editor.fieldRequired' | transloco }}
-                            </label>
-                          </div>
-
-                          <div class="mt-3 flex flex-col gap-1.5">
-                            <span class="text-[12.5px] font-semibold text-fg-muted">
-                              {{ 'deviations.types.editor.fieldWidth' | transloco }}
-                            </span>
-                            <div
-                              class="inline-flex w-fit rounded-[10px] border border-border bg-surface p-0.5"
-                            >
-                              @for (option of widthOptions; track option) {
-                                <button
-                                  type="button"
-                                  (click)="setFieldWidth(s, f, option)"
-                                  [class.bg-accent]="field.width === option"
-                                  [class.text-white]="field.width === option"
-                                  [class.text-fg-muted]="field.width !== option"
-                                  class="rounded-[8px] px-3 py-1 text-[12.5px] font-semibold"
-                                >
-                                  {{
-                                    (option === 'full'
-                                      ? 'deviations.types.editor.widthFull'
-                                      : 'deviations.types.editor.widthHalf'
-                                    ) | transloco
-                                  }}
-                                </button>
-                              }
-                            </div>
-                            <span class="text-[11.5px] text-fg-subtle">
-                              {{ 'deviations.types.editor.widthHint' | transloco }}
-                            </span>
-                          </div>
-
-                          @if (hasOptions(field.type)) {
-                            <div class="mt-3 flex flex-col gap-2">
-                              <span class="text-[12.5px] font-semibold text-fg-muted">
-                                {{ 'deviations.types.editor.options' | transloco }}
-                              </span>
-                              @for (opt of field.options; track j; let j = $index) {
-                                <div class="flex items-center gap-2">
-                                  <input
-                                    type="text"
-                                    [ngModel]="opt"
-                                    (ngModelChange)="setOption(s, f, j, $event)"
-                                    [name]="'fopt-' + s + '-' + f + '-' + j"
-                                    autocomplete="off"
-                                    [placeholder]="
-                                      'deviations.types.editor.optionPlaceholder' | transloco
-                                    "
-                                    class="h-9 flex-1 rounded-[10px] border border-border bg-surface px-3 text-[13.5px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
-                                  />
-                                  <button
-                                    type="button"
-                                    (click)="removeOption(s, f, j)"
-                                    [attr.aria-label]="
-                                      'deviations.types.editor.removeOption' | transloco
-                                    "
-                                    class="flex flex-none rounded-[8px] p-2 text-fg-subtle hover:bg-surface-2 hover:text-fg"
-                                  >
-                                    <app-icon name="x" [size]="14" />
-                                  </button>
-                                </div>
-                              }
-                              <button
-                                type="button"
-                                (click)="addOption(s, f)"
-                                class="inline-flex w-fit items-center gap-1.5 text-[12.5px] font-semibold text-accent hover:underline"
-                              >
-                                <app-icon name="plus" [size]="14" />
-                                {{ 'deviations.types.editor.addOption' | transloco }}
-                              </button>
-                              @if (errorFor(field)?.options; as err) {
-                                <p class="text-[12px] font-medium text-fail">
-                                  {{ err | transloco }}
-                                </p>
-                              }
-                            </div>
-                          }
-
-                          <div class="mt-3 grid gap-3 sm:grid-cols-2">
-                            <input
-                              type="text"
-                              [ngModel]="field.placeholder"
-                              (ngModelChange)="setFieldPlaceholder(s, f, $event)"
-                              [name]="'fph-' + s + '-' + f"
-                              autocomplete="off"
-                              [placeholder]="'deviations.types.editor.placeholderHint' | transloco"
-                              class="h-9 w-full rounded-[10px] border border-border bg-surface px-3 text-[13px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
-                            />
-                            <input
-                              type="text"
-                              [ngModel]="field.help"
-                              (ngModelChange)="setFieldHelp(s, f, $event)"
-                              [name]="'fhelp-' + s + '-' + f"
-                              autocomplete="off"
-                              [placeholder]="'deviations.types.editor.helpHint' | transloco"
-                              class="h-9 w-full rounded-[10px] border border-border bg-surface px-3 text-[13px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
-                            />
-                          </div>
-
-                          @if (showPreview() && field.label.trim() && field.key.trim()) {
-                            <div
-                              class="mt-3 rounded-[10px] border border-dashed border-border px-3 py-2.5"
-                            >
-                              <p
-                                class="mb-2 text-[11px] font-bold tracking-[0.06em] text-fg-subtle uppercase"
-                              >
-                                {{ 'deviations.types.editor.preview' | transloco }}
-                              </p>
-                              <app-dynamic-field [field]="previewOf(field)" />
-                            </div>
-                          }
-                        </div>
+                  <div class="grid gap-4 sm:grid-cols-2">
+                    <div class="flex flex-col gap-1.5">
+                      <label for="type-prefix" class="text-ui font-semibold text-fg-muted">
+                        {{ 'deviations.types.editor.codePrefix' | transloco }}
+                        <span class="text-fail-ink" aria-hidden="true">*</span>
+                      </label>
+                      <input
+                        id="type-prefix"
+                        type="text"
+                        [ngModel]="codePrefix()"
+                        (ngModelChange)="codePrefix.set($event)"
+                        name="codePrefix"
+                        autocomplete="off"
+                        [placeholder]="'deviations.types.editor.codePrefixPlaceholder' | transloco"
+                        class="h-10 w-full rounded-tile border border-border bg-bg px-3 font-mono text-ui text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
+                      />
+                      @if (showErrors() && validation().prefixError) {
+                        <p class="text-meta font-medium text-fail-ink">
+                          {{ validation().prefixError! | transloco }}
+                        </p>
                       }
                     </div>
-
-                    <button
-                      type="button"
-                      (click)="addField(s)"
-                      class="mt-3 inline-flex w-fit items-center gap-1.5 text-[13px] font-semibold text-accent hover:underline"
+                    <label
+                      class="flex cursor-pointer items-center gap-2 self-end pb-2.5 text-ui text-fg"
                     >
-                      <app-icon name="plus" [size]="15" />
-                      {{ 'deviations.types.editor.addField' | transloco }}
-                    </button>
+                      <input
+                        type="checkbox"
+                        [ngModel]="isActive()"
+                        (ngModelChange)="isActive.set($event)"
+                        name="isActive"
+                        class="h-4 w-4 accent-[var(--accent)]"
+                      />
+                      {{ 'deviations.types.editor.isActive' | transloco }}
+                    </label>
                   </div>
-                }
-              </div>
 
-              <button
-                type="button"
-                (click)="addSection()"
-                class="mt-4 inline-flex w-fit items-center gap-1.5 text-[13px] font-semibold text-accent hover:underline"
-              >
-                <app-icon name="plus" [size]="15" />
-                {{ 'deviations.types.editor.addSection' | transloco }}
-              </button>
-            </app-card>
+                  <div class="flex flex-col gap-2">
+                    <span class="text-ui font-semibold text-fg-muted">
+                      {{ 'deviations.types.editor.standards' | transloco }}
+                    </span>
+                    <div class="flex flex-wrap gap-x-4 gap-y-2">
+                      @for (option of standardOptions; track option) {
+                        <label class="flex cursor-pointer items-center gap-2 text-ui text-fg">
+                          <input
+                            type="checkbox"
+                            [checked]="standards().includes(option)"
+                            (change)="toggleStandard(option)"
+                            class="h-4 w-4 accent-[var(--accent)]"
+                          />
+                          {{ standardLabelKey(option) | transloco }}
+                        </label>
+                      }
+                    </div>
+                  </div>
 
-            <div class="flex items-center gap-2">
-              <app-button type="submit" [loading]="saving()">
-                {{ 'deviations.types.editor.save' | transloco }}
-              </app-button>
-              <a routerLink="/deviations/types">
-                <app-button type="button" variant="ghost">
-                  {{ 'deviations.types.editor.cancel' | transloco }}
+                  <div class="flex flex-col gap-1.5">
+                    <label for="type-clauses" class="text-ui font-semibold text-fg-muted">
+                      {{ 'deviations.types.editor.defaultClauses' | transloco }}
+                    </label>
+                    <p class="text-meta text-fg-muted">
+                      {{ 'deviations.types.editor.defaultClausesHint' | transloco }}
+                    </p>
+                    <app-clause-picker
+                      inputId="type-clauses"
+                      name="defaultClauses"
+                      [frameworks]="clauseFrameworks"
+                      [ngModel]="defaultClauses()"
+                      (ngModelChange)="setDefaultClauses($event)"
+                      [ariaLabel]="'deviations.types.editor.defaultClauses' | transloco"
+                    />
+                  </div>
+
+                  <details
+                    class="rounded-tile border border-border px-3 py-2"
+                    [open]="!!keyError()"
+                  >
+                    <summary class="cursor-pointer text-ui font-semibold text-fg-muted">
+                      {{ 'deviations.types.editor.advanced' | transloco }}
+                    </summary>
+                    <div class="mt-3 flex flex-col gap-1.5 sm:max-w-[50%]">
+                      <label for="type-key" class="text-ui font-semibold text-fg-muted">
+                        {{ 'deviations.types.editor.key' | transloco }}
+                      </label>
+                      <p class="text-meta text-fg-muted">
+                        {{ 'deviations.types.editor.keyHint' | transloco }}
+                      </p>
+                      <input
+                        id="type-key"
+                        type="text"
+                        [ngModel]="key()"
+                        (ngModelChange)="onKeyChange($event)"
+                        name="key"
+                        autocomplete="off"
+                        spellcheck="false"
+                        [disabled]="isEdit()"
+                        class="h-10 w-full rounded-tile border border-border bg-bg px-3 font-mono text-ui text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)] disabled:opacity-60"
+                      />
+                      @if (keyError()) {
+                        <p class="text-meta font-medium text-fail-ink" role="alert">
+                          {{ keyError()! | transloco }}
+                        </p>
+                      }
+                    </div>
+                  </details>
+
+                  <div class="flex flex-col gap-1.5 border-t border-border pt-4">
+                    <span class="flex items-center gap-1.5">
+                      <label for="type-record-type" class="text-ui font-semibold text-fg-muted">
+                        {{ 'deviations.wf.binding.label' | transloco }}
+                      </label>
+                      <app-field-help scope="deviations" page="types" field="record_type" />
+                    </span>
+                    <select
+                      id="type-record-type"
+                      name="recordType"
+                      [ngModel]="recordTypeId()"
+                      (ngModelChange)="recordTypeId.set($event)"
+                      class="h-10 rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent sm:max-w-[60%]"
+                    >
+                      <option value="">{{ 'deviations.wf.binding.none' | transloco }}</option>
+                      @for (rt of recordTypes(); track rt.id) {
+                        <option [value]="rt.id">{{ rt.name }}</option>
+                      }
+                      @if (recordTypeId() && !knownRecordType()) {
+                        <option [value]="recordTypeId()">
+                          {{ 'deviations.wf.binding.current' | transloco }}
+                        </option>
+                      }
+                    </select>
+                    @if (recordTypeId()) {
+                      <p class="text-meta text-fg-muted" data-testid="binding-note">
+                        {{ 'deviations.wf.binding.boundNote' | transloco }}
+                      </p>
+                    } @else {
+                      <p class="text-meta text-fg-subtle">
+                        {{ 'deviations.wf.binding.hint' | transloco }}
+                      </p>
+                    }
+                  </div>
+                </div>
+              </app-card>
+
+              <app-card>
+                <div class="mb-1 flex items-center justify-between gap-2">
+                  <span class="text-ui font-semibold text-fg-muted">
+                    {{ 'deviations.types.editor.schemaSection' | transloco }}
+                  </span>
+                  <button
+                    type="button"
+                    (click)="togglePreview()"
+                    class="text-meta font-semibold text-accent hover:underline"
+                  >
+                    {{
+                      (showPreview()
+                        ? 'deviations.types.editor.hidePreview'
+                        : 'deviations.types.editor.showPreview'
+                      ) | transloco
+                    }}
+                  </button>
+                </div>
+                <p class="mb-4 text-meta text-fg-subtle">
+                  {{ 'deviations.types.editor.dragHint' | transloco }}
+                </p>
+
+                <div class="flex flex-col gap-5">
+                  @for (section of sections(); track s; let s = $index) {
+                    <div class="rounded-card border border-border bg-surface p-4">
+                      <div class="mb-3 flex items-center gap-2">
+                        <input
+                          type="text"
+                          [ngModel]="section.title"
+                          (ngModelChange)="setSectionTitle(s, $event)"
+                          [name]="'sectitle-' + s"
+                          autocomplete="off"
+                          [placeholder]="
+                            (s === 0
+                              ? 'deviations.types.editor.defaultSection'
+                              : 'deviations.types.editor.sectionTitlePlaceholder'
+                            ) | transloco
+                          "
+                          [attr.aria-label]="'deviations.types.editor.sectionTitle' | transloco"
+                          class="h-9 flex-1 rounded-tile border border-transparent bg-transparent px-2 text-body font-semibold text-fg outline-none hover:border-border focus:border-accent focus:bg-bg focus:shadow-[0_0_0_3px_var(--accent-soft)]"
+                        />
+                        @if (s > 0) {
+                          <button
+                            type="button"
+                            (click)="removeSection(s)"
+                            [attr.aria-label]="'deviations.types.editor.removeSection' | transloco"
+                            class="flex flex-none rounded-lg p-1.5 text-fg-subtle hover:bg-surface-2 hover:text-fail"
+                          >
+                            <app-icon name="x" [size]="15" />
+                          </button>
+                        }
+                      </div>
+
+                      <div
+                        cdkDropList
+                        [cdkDropListData]="s"
+                        [cdkDropListConnectedTo]="dropListIds()"
+                        [id]="'droplist-' + s"
+                        (cdkDropListDropped)="onDrop($event)"
+                        class="flex flex-col gap-3"
+                      >
+                        @if (section.fields.length === 0) {
+                          <p
+                            class="rounded-tile border border-dashed border-border py-4 text-center text-ui text-fg-subtle"
+                          >
+                            {{ 'deviations.types.editor.emptySection' | transloco }}
+                          </p>
+                        }
+
+                        @for (field of section.fields; track f; let f = $index) {
+                          <div cdkDrag class="rounded-card border border-border bg-bg p-3.5">
+                            <div
+                              *cdkDragPlaceholder
+                              class="rounded-card border border-dashed border-accent bg-accent-soft"
+                              [style.height.px]="64"
+                            ></div>
+                            <div class="mb-3 flex items-center gap-2">
+                              <button
+                                type="button"
+                                cdkDragHandle
+                                [attr.aria-label]="'deviations.types.editor.dragField' | transloco"
+                                class="flex cursor-grab rounded-lg p-1 text-fg-subtle hover:bg-surface-2 hover:text-fg active:cursor-grabbing"
+                              >
+                                <app-icon name="grip" [size]="16" />
+                              </button>
+                              <span class="font-mono text-meta text-fg-subtle">#{{ f + 1 }}</span>
+                              <div class="ml-auto flex items-center gap-0.5">
+                                <button
+                                  type="button"
+                                  (click)="removeField(s, f)"
+                                  [attr.aria-label]="
+                                    'deviations.types.editor.removeField' | transloco
+                                  "
+                                  class="flex rounded-lg p-1.5 text-fg-subtle hover:bg-surface-2 hover:text-fail"
+                                >
+                                  <app-icon name="x" [size]="15" />
+                                </button>
+                              </div>
+                            </div>
+
+                            <div class="grid gap-3 sm:grid-cols-2">
+                              <div class="flex flex-col gap-1.5">
+                                <label
+                                  [attr.for]="'flabel-' + s + '-' + f"
+                                  class="text-meta font-semibold text-fg-muted"
+                                >
+                                  {{ 'deviations.types.editor.fieldLabel' | transloco }}
+                                </label>
+                                <input
+                                  [id]="'flabel-' + s + '-' + f"
+                                  type="text"
+                                  [ngModel]="field.label"
+                                  (ngModelChange)="setFieldLabel(s, f, $event)"
+                                  [name]="'flabel-' + s + '-' + f"
+                                  autocomplete="off"
+                                  class="h-9 w-full rounded-tile border border-border bg-surface px-3 text-ui text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
+                                />
+                                @if (errorFor(field)?.label; as err) {
+                                  <p class="text-meta font-medium text-fail-ink">
+                                    {{ err | transloco }}
+                                  </p>
+                                }
+                              </div>
+                              <div class="flex flex-col gap-1.5">
+                                <label
+                                  [attr.for]="'fkey-' + s + '-' + f"
+                                  class="text-meta font-semibold text-fg-muted"
+                                >
+                                  {{ 'deviations.types.editor.fieldKey' | transloco }}
+                                </label>
+                                <input
+                                  [id]="'fkey-' + s + '-' + f"
+                                  type="text"
+                                  [ngModel]="field.key"
+                                  (ngModelChange)="setFieldKey(s, f, $event)"
+                                  [name]="'fkey-' + s + '-' + f"
+                                  autocomplete="off"
+                                  spellcheck="false"
+                                  class="h-9 w-full rounded-tile border border-border bg-surface px-3 font-mono text-ui text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
+                                />
+                                @if (errorFor(field)?.key; as err) {
+                                  <p class="text-meta font-medium text-fail-ink">
+                                    {{ err | transloco }}
+                                  </p>
+                                }
+                              </div>
+                              <div class="flex flex-col gap-1.5">
+                                <label
+                                  [attr.for]="'ftype-' + s + '-' + f"
+                                  class="text-meta font-semibold text-fg-muted"
+                                >
+                                  {{ 'deviations.types.editor.fieldType' | transloco }}
+                                </label>
+                                <div class="cf-select">
+                                  <select
+                                    [id]="'ftype-' + s + '-' + f"
+                                    [ngModel]="field.type"
+                                    (ngModelChange)="setFieldType(s, f, $event)"
+                                    [name]="'ftype-' + s + '-' + f"
+                                  >
+                                    @for (option of fieldTypeOptions; track option) {
+                                      <option [value]="option">
+                                        {{ fieldTypeLabelKey(option) | transloco }}
+                                      </option>
+                                    }
+                                  </select>
+                                </div>
+                              </div>
+                              <label
+                                class="flex cursor-pointer items-center gap-2 self-end pb-2 text-ui text-fg"
+                              >
+                                <input
+                                  type="checkbox"
+                                  [ngModel]="field.required"
+                                  (ngModelChange)="setFieldRequired(s, f, $event)"
+                                  [name]="'freq-' + s + '-' + f"
+                                  class="h-4 w-4 accent-[var(--accent)]"
+                                />
+                                {{ 'deviations.types.editor.fieldRequired' | transloco }}
+                              </label>
+                            </div>
+
+                            <div class="mt-3 flex flex-col gap-1.5">
+                              <span class="text-meta font-semibold text-fg-muted">
+                                {{ 'deviations.types.editor.fieldWidth' | transloco }}
+                              </span>
+                              <div
+                                class="inline-flex w-fit rounded-tile border border-border bg-surface p-0.5"
+                              >
+                                @for (option of widthOptions; track option) {
+                                  <button
+                                    type="button"
+                                    (click)="setFieldWidth(s, f, option)"
+                                    [class.bg-accent]="field.width === option"
+                                    [class.text-white]="field.width === option"
+                                    [class.text-fg-muted]="field.width !== option"
+                                    class="rounded-lg px-3 py-1 text-meta font-semibold"
+                                  >
+                                    {{
+                                      (option === 'full'
+                                        ? 'deviations.types.editor.widthFull'
+                                        : 'deviations.types.editor.widthHalf'
+                                      ) | transloco
+                                    }}
+                                  </button>
+                                }
+                              </div>
+                              <span class="text-meta text-fg-subtle">
+                                {{ 'deviations.types.editor.widthHint' | transloco }}
+                              </span>
+                            </div>
+
+                            @if (hasOptions(field.type)) {
+                              <div class="mt-3 flex flex-col gap-2">
+                                <span class="text-meta font-semibold text-fg-muted">
+                                  {{ 'deviations.types.editor.options' | transloco }}
+                                </span>
+                                @for (opt of field.options; track j; let j = $index) {
+                                  <div class="flex items-center gap-2">
+                                    <input
+                                      type="text"
+                                      [ngModel]="opt"
+                                      (ngModelChange)="setOption(s, f, j, $event)"
+                                      [name]="'fopt-' + s + '-' + f + '-' + j"
+                                      autocomplete="off"
+                                      [placeholder]="
+                                        'deviations.types.editor.optionPlaceholder' | transloco
+                                      "
+                                      class="h-9 flex-1 rounded-tile border border-border bg-surface px-3 text-ui text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
+                                    />
+                                    <button
+                                      type="button"
+                                      (click)="removeOption(s, f, j)"
+                                      [attr.aria-label]="
+                                        'deviations.types.editor.removeOption' | transloco
+                                      "
+                                      class="flex flex-none rounded-lg p-2 text-fg-subtle hover:bg-surface-2 hover:text-fg"
+                                    >
+                                      <app-icon name="x" [size]="14" />
+                                    </button>
+                                  </div>
+                                }
+                                <button
+                                  type="button"
+                                  (click)="addOption(s, f)"
+                                  class="inline-flex w-fit items-center gap-1.5 text-meta font-semibold text-accent hover:underline"
+                                >
+                                  <app-icon name="plus" [size]="14" />
+                                  {{ 'deviations.types.editor.addOption' | transloco }}
+                                </button>
+                                @if (errorFor(field)?.options; as err) {
+                                  <p class="text-meta font-medium text-fail-ink">
+                                    {{ err | transloco }}
+                                  </p>
+                                }
+                              </div>
+                            }
+
+                            <div class="mt-3 grid gap-3 sm:grid-cols-2">
+                              <input
+                                type="text"
+                                [ngModel]="field.placeholder"
+                                (ngModelChange)="setFieldPlaceholder(s, f, $event)"
+                                [name]="'fph-' + s + '-' + f"
+                                autocomplete="off"
+                                [placeholder]="
+                                  'deviations.types.editor.placeholderHint' | transloco
+                                "
+                                class="h-9 w-full rounded-tile border border-border bg-surface px-3 text-ui text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
+                              />
+                              <input
+                                type="text"
+                                [ngModel]="field.help"
+                                (ngModelChange)="setFieldHelp(s, f, $event)"
+                                [name]="'fhelp-' + s + '-' + f"
+                                autocomplete="off"
+                                [placeholder]="'deviations.types.editor.helpHint' | transloco"
+                                class="h-9 w-full rounded-tile border border-border bg-surface px-3 text-ui text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
+                              />
+                            </div>
+
+                            @if (showPreview() && field.label.trim() && field.key.trim()) {
+                              <div
+                                class="mt-3 rounded-tile border border-dashed border-border px-3 py-2.5"
+                              >
+                                <p
+                                  class="mb-2 text-micro font-bold tracking-[0.06em] text-fg-subtle uppercase"
+                                >
+                                  {{ 'deviations.types.editor.preview' | transloco }}
+                                </p>
+                                <app-dynamic-field [field]="previewOf(field)" />
+                              </div>
+                            }
+                          </div>
+                        }
+                      </div>
+
+                      <button
+                        type="button"
+                        (click)="addField(s)"
+                        class="mt-3 inline-flex w-fit items-center gap-1.5 text-ui font-semibold text-accent hover:underline"
+                      >
+                        <app-icon name="plus" [size]="15" />
+                        {{ 'deviations.types.editor.addField' | transloco }}
+                      </button>
+                    </div>
+                  }
+                </div>
+
+                <button
+                  type="button"
+                  (click)="addSection()"
+                  class="mt-4 inline-flex w-fit items-center gap-1.5 text-ui font-semibold text-accent hover:underline"
+                >
+                  <app-icon name="plus" [size]="15" />
+                  {{ 'deviations.types.editor.addSection' | transloco }}
+                </button>
+              </app-card>
+
+              <div class="flex items-center gap-2">
+                <app-button type="submit" [loading]="saving()">
+                  {{ 'deviations.types.editor.save' | transloco }}
                 </app-button>
-              </a>
-            </div>
-          </form>
-        </div>
-      }
+                <a routerLink="/deviations/types">
+                  <app-button type="button" variant="ghost">
+                    {{ 'deviations.types.editor.cancel' | transloco }}
+                  </app-button>
+                </a>
+              </div>
+            </form>
+          </div>
+        }
+      </div>
     </div>
   `,
   styles: [
@@ -701,6 +736,17 @@ export class DeviationTypeEditor {
   protected readonly sections = signal<DraftSection[]>([{ title: '', fields: [] }]);
 
   protected readonly keyError = signal<string | null>(null);
+  /** Validation messages are shown after the first save attempt. */
+  protected readonly showErrors = signal(false);
+  /** Typical clauses offered as one-click requirement links on this type's cases. */
+  protected readonly defaultClauses = signal<readonly string[]>([]);
+  private defaultClausesTouched = false;
+  protected readonly clauseFrameworks = CLAUSE_FRAMEWORKS;
+  protected readonly breadcrumbs = computed(() => [
+    DEVIATIONS_ROOT_CRUMB,
+    { labelKey: 'deviations.types.title', link: '/deviations/types' },
+    { labelKey: this.isEdit() ? 'deviations.types.editTitle' : 'deviations.types.new' },
+  ]);
 
   // Tracks whether the key slug was auto-derived (so user edits stop tracking).
   private keyTouched = false;
@@ -736,7 +782,13 @@ export class DeviationTypeEditor {
   });
 
   constructor() {
-    providePageContext(() => ({ module: 'deviations', view: 'settings' }));
+    providePageContext(() => ({
+      module: 'deviations',
+      entityType: 'deviation_type',
+      entityId: this.typeId(),
+      view: this.isEdit() ? 'edit' : 'new',
+      title: this.name().trim() || null,
+    }));
     this.sections.set([{ title: '', fields: [] }]);
 
     effect(() => {
@@ -775,8 +827,14 @@ export class DeviationTypeEditor {
     this.showPreview.update((v) => !v);
   }
 
+  /** Field errors show after the first save attempt, not on a pristine form (finding 29). */
   protected errorFor(field: DraftFieldState): FieldErrors | undefined {
-    return this.errorsByField().get(field);
+    return this.showErrors() ? this.errorsByField().get(field) : undefined;
+  }
+
+  protected setDefaultClauses(value: readonly string[] | null): void {
+    this.defaultClauses.set([...(value ?? [])]);
+    this.defaultClausesTouched = true;
   }
 
   /** Live preview of a single draft field via the dynamic-field renderer. */
@@ -939,14 +997,19 @@ export class DeviationTypeEditor {
     if (!orgId || this.saving()) {
       return;
     }
+    this.showErrors.set(true);
     if (!this.validation().valid) {
       this.notifications.error('deviations.types.editor.validationToast');
       return;
     }
-    const keyValue = this.key().trim() || slugify(this.name());
+    // A key the user typed is kept; otherwise the API derives it from the name.
+    const keyValue = this.keyTouched ? this.key().trim() || undefined : undefined;
 
     const body: DeviationTypeInput = {
-      key: keyValue,
+      ...(keyValue && !this.isEdit() ? { key: keyValue } : {}),
+      ...(this.defaultClausesTouched || !this.isEdit()
+        ? { default_clauses: this.defaultClauses().length ? this.defaultClauses() : null }
+        : {}),
       name: this.name().trim(),
       description: this.description().trim() || undefined,
       standards: this.standards().length ? this.standards() : undefined,
@@ -1061,6 +1124,7 @@ export class DeviationTypeEditor {
     this.originalRecordTypeId = type.record_type_id ?? '';
     this.recordTypeId.set(this.originalRecordTypeId);
     this.standards.set([...type.standards]);
+    this.defaultClauses.set([...(type.default_clauses ?? [])]);
     this.setSectionsFromSchema(type.schema);
   }
 }

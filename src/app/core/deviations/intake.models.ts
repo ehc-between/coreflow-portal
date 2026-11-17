@@ -23,7 +23,12 @@ export interface IntakeSettings {
   readonly instructions: string | null;
   readonly allow_contact: boolean;
   readonly updated_at: string | null;
+  /** Setup problems to explain (A02). */
+  readonly warnings?: readonly IntakeWarning[];
 }
+
+/** Intake setup problems the settings page explains. */
+export type IntakeWarning = 'no_default_type' | 'whistleblowing_type_not_dedicated';
 
 /** Body of `PUT deviation-intake`. */
 export interface IntakeSettingsInput {
@@ -52,6 +57,11 @@ export interface IntakeReport {
   readonly triaged_at: string | null;
   readonly created_at: string;
   readonly updated_at: string;
+  // A02, whistleblowing reports only: confirm receipt within 7 days, give feedback
+  // within 3 months; `acknowledged_at` is the first triage.
+  readonly acknowledge_due_at?: string | null;
+  readonly feedback_due_at?: string | null;
+  readonly acknowledged_at?: string | null;
 }
 
 export interface IntakeReportList {

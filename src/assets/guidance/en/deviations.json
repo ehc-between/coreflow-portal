@@ -3,11 +3,11 @@
     "list": {
       "intro": {
         "title": "Deviations, incidents and improvements",
-        "body": "One register for everything that did not go as planned, and for ideas to do better: nonconformities, customer complaints, security, environmental and safety incidents, AI incidents and improvement suggestions.",
+        "body": "One register for everything that did not go as planned, and for ideas to do better. Each case is followed until the cause is fixed and the fix has worked.",
         "steps": [
           "Register what happened as soon as you notice it, even if it seems small.",
           "Find the root cause with a 5 Whys or fishbone analysis.",
-          "Plan corrective actions and set a date to check that they worked."
+          "Plan actions and set a date to check that they worked."
         ]
       },
       "why": {
@@ -36,7 +36,7 @@
     "new": {
       "intro": {
         "title": "Register a deviation",
-        "body": "Describe what happened in plain words. You can type it freely and let AI fill in the form, then check every field before you save.",
+        "body": "Describe what happened in plain words. You add the cause and the actions on the case afterwards.",
         "steps": [
           "Choose the type that fits best: a nonconformity, a complaint, an incident or an idea.",
           "Say what happened, where and when. Stick to facts, not blame.",
@@ -55,11 +55,59 @@
       "fields": {
         "severity": {
           "help": "How serious the consequences are, or could have been.",
-          "example": "A wrong delivery to a customer is usually higher than a typo in an internal form."
+          "example": "A wrong delivery to a customer is usually higher than a typo in an internal form.",
+          "requirements": ["hs:10.2"]
         },
         "root_cause": {
-          "help": "The underlying reason the problem occurred. You can leave it empty now and find it later with the root-cause tools.",
-          "example": "Not \"the operator forgot\", but \"the checklist has no step for this\"."
+          "help": "The underlying reason the problem occurred. Find it with the analysis on the case.",
+          "example": "Not \"the operator forgot\", but \"the checklist has no step for this\".",
+          "requirements": ["hs:10.2"]
+        },
+        "title": {
+          "help": "A short name for what happened, so others recognise the case.",
+          "example": "Wrong label on delivery to Nordbygg",
+          "requirements": ["hs:10.2"]
+        },
+        "description": {
+          "help": "What happened, in plain words. Stick to facts, not blame.",
+          "example": "Two pallets were delivered with the labels of another order.",
+          "requirements": ["hs:10.2", "hs:7.5"]
+        },
+        "occurred_at": {
+          "help": "When the event itself took place. Leave empty if you do not know.",
+          "requirements": ["hs:10.2"]
+        },
+        "detected_at": {
+          "help": "When someone noticed it. Authority deadlines (GDPR 72 h, NIS2 24 h) run from here.",
+          "example": "The customer called at 08:15 on Monday.",
+          "requirements": ["gdpr:33", "nis2:23"]
+        },
+        "location": {
+          "help": "Where it happened: a site, a building, a system or a customer."
+        },
+        "immediate_action": {
+          "help": "What was done at once to limit the harm. ISO calls this \"react to the nonconformity\".",
+          "example": "Stopped the line and quarantined the batch.",
+          "requirements": ["hs:10.2"]
+        },
+        "source": {
+          "help": "Where the deviation was found: your own staff, an audit, an inspection, a customer or an incident.",
+          "requirements": ["hs:9.2", "iso9001:9.1.2"]
+        },
+        "requirements": {
+          "help": "The requirements that were not met, or that this case is evidence for. Each one becomes a requirement link that counts on the standards pages.",
+          "example": "A late delivery: ISO 9001 · 8.4.1. A data breach: GDPR · 33.",
+          "requirements": ["hs:10.2"]
+        },
+        "owner": {
+          "help": "The person who makes sure the case is followed up and closed.",
+          "requirements": ["hs:5.3"]
+        },
+        "due": {
+          "help": "When the case should be closed. Overdue cases show on the home page and in My work."
+        },
+        "visibility": {
+          "help": "Restricted cases are only visible to the owner and the people you share them with, e.g. for whistleblowing or HR matters."
         }
       }
     },
@@ -91,6 +139,62 @@
         "effectiveness_review": {
           "help": "The date you will check that the action really stopped the problem from coming back. A task is created for the deviation's owner.",
           "example": "Three months after a new checklist is introduced, check whether the same error happened again."
+        },
+        "title": {
+          "help": "A short name for what happened, so others recognise the case.",
+          "example": "Wrong label on delivery to Nordbygg",
+          "requirements": ["hs:10.2"]
+        },
+        "description": {
+          "help": "What happened, in plain words. Stick to facts, not blame.",
+          "example": "Two pallets were delivered with the labels of another order.",
+          "requirements": ["hs:10.2", "hs:7.5"]
+        },
+        "occurred_at": {
+          "help": "When the event itself took place. Leave empty if you do not know.",
+          "requirements": ["hs:10.2"]
+        },
+        "detected_at": {
+          "help": "When someone noticed it. Authority deadlines (GDPR 72 h, NIS2 24 h) run from here.",
+          "example": "The customer called at 08:15 on Monday.",
+          "requirements": ["gdpr:33", "nis2:23"]
+        },
+        "location": {
+          "help": "Where it happened: a site, a building, a system or a customer."
+        },
+        "immediate_action": {
+          "help": "What was done at once to limit the harm. ISO calls this \"react to the nonconformity\".",
+          "example": "Stopped the line and quarantined the batch.",
+          "requirements": ["hs:10.2"]
+        },
+        "severity": {
+          "help": "How serious the consequences are, or could have been.",
+          "example": "A wrong delivery to a customer is usually higher than a typo in an internal form.",
+          "requirements": ["hs:10.2"]
+        },
+        "source": {
+          "help": "Where the deviation was found: your own staff, an audit, an inspection, a customer or an incident.",
+          "requirements": ["hs:9.2", "iso9001:9.1.2"]
+        },
+        "requirements": {
+          "help": "The requirements that were not met, or that this case is evidence for. Each one becomes a requirement link that counts on the standards pages.",
+          "example": "A late delivery: ISO 9001 · 8.4.1. A data breach: GDPR · 33.",
+          "requirements": ["hs:10.2"]
+        },
+        "owner": {
+          "help": "The person who makes sure the case is followed up and closed.",
+          "requirements": ["hs:5.3"]
+        },
+        "due": {
+          "help": "When the case should be closed. Overdue cases show on the home page and in My work."
+        },
+        "visibility": {
+          "help": "Restricted cases are only visible to the owner and the people you share them with, e.g. for whistleblowing or HR matters."
+        },
+        "root_cause": {
+          "help": "The underlying reason the problem occurred. Find it with the analysis on the case.",
+          "example": "Not \"the operator forgot\", but \"the checklist has no step for this\".",
+          "requirements": ["hs:10.2"]
         }
       }
     },
@@ -187,6 +291,34 @@
       "why": {
         "body": "Protecting the identity of reporters is essential for trust, and in whistleblowing cases often a legal duty.",
         "clauses": ["iso27001:A.6.8"]
+      }
+    },
+    "actions": {
+      "intro": {
+        "title": "Actions across all deviations",
+        "body": "Every open action from the deviations you can see, soonest due first. Open the deviation to update an action.",
+        "steps": [
+          "Filter on your own actions with \"Assigned to me\".",
+          "Overdue actions are marked and also show in My work."
+        ]
+      },
+      "why": {
+        "body": "An action only counts when it is done and its effect has been checked. Auditors look for actions with owners, deadlines and a recorded effect.",
+        "clauses": ["hs:10.2", "hs:10.3"]
+      }
+    },
+    "stats": {
+      "intro": {
+        "title": "How deviations are handled",
+        "body": "The figures the management review and auditors ask for: how many, how fast they are closed, and whether the actions work.",
+        "steps": [
+          "Click a bar to see the cases behind it.",
+          "Use \"By requirement\" to find the requirements that fail most often."
+        ]
+      },
+      "why": {
+        "body": "The standards ask you to evaluate how well the management system works (clause 9.1) and to bring trends in nonconformities to the management review (9.3).",
+        "clauses": ["hs:9.1", "hs:9.3", "hs:10.2"]
       }
     }
   },

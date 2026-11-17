@@ -82,6 +82,10 @@ export default [
         loadComponent: () => import('./deviation-detail').then((m) => m.DeviationDetail),
       },
       {
+        path: ':id/print',
+        loadComponent: () => import('./print/deviation-print').then((m) => m.DeviationPrintPage),
+      },
+      {
         path: ':id/edit',
         canActivate: [write],
         data: { edit: true },

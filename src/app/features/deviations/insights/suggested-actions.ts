@@ -70,14 +70,14 @@ export function dueInDays(days: number | null, today: Date = new Date()): string
               <div class="flex flex-wrap items-center gap-1.5">
                 <app-badge tone="neutral">{{ kindKey(s.kind) | transloco }}</app-badge>
                 @if (s.due_in_days !== null) {
-                  <span class="text-[12px] text-fg-subtle">{{
+                  <span class="text-meta text-fg-subtle">{{
                     'deviations.assist.dueInDays' | transloco: { count: s.due_in_days }
                   }}</span>
                 }
               </div>
-              <p class="mt-1 text-[13px] text-fg">{{ s.description }}</p>
+              <p class="mt-1 text-ui text-fg">{{ s.description }}</p>
               @if (s.rationale) {
-                <p class="mt-0.5 text-[12px] text-fg-muted">{{ s.rationale }}</p>
+                <p class="mt-0.5 text-meta text-fg-muted">{{ s.rationale }}</p>
               }
               <div class="mt-2 flex gap-2">
                 <app-button
@@ -100,7 +100,7 @@ export function dueInDays(days: number | null, today: Date = new Date()): string
             </li>
           }
         </ul>
-        <p class="text-[11.5px] text-fg-subtle">{{ 'deviations.assist.reviewNote' | transloco }}</p>
+        <p class="text-meta text-fg-subtle">{{ 'deviations.assist.reviewNote' | transloco }}</p>
       }
     </div>
   `,

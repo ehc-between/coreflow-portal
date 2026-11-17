@@ -33,7 +33,8 @@ import { RecordsApi } from '../../../core/records/records-api';
 import { LocalDatePipe } from '../../../shared/locale/locale-pipes';
 import { DynamicForm } from '../../../shared/records/dynamic-form';
 import { PickOption } from '../../../shared/records/form-model';
-import { categoryTone, needsPrompt } from '../../../shared/records/workflow-panel';
+import { needsPrompt } from '../../../shared/records/workflow-panel';
+import { toneFor } from '../../../shared/ui/tones';
 import { RelativeTimePipe } from '../../../shared/relative-time/relative-time';
 import { Badge, BadgeTone } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
@@ -82,14 +83,14 @@ import {
         [attr.aria-label]="'records.panel.title' | transloco"
         data-testid="deviation-workflow-panel"
       >
-        <h2 class="mb-3 text-[12px] font-bold tracking-[0.06em] text-fg-subtle uppercase">
+        <h2 class="mb-3 text-meta font-bold tracking-[0.06em] text-fg-subtle uppercase">
           {{ 'records.panel.title' | transloco }}
         </h2>
         <div class="flex flex-wrap items-center gap-2">
-          <app-badge [tone]="tone(wf.state_category)" data-testid="workflow-state">{{
+          <app-badge [tone]="categoryBadge(wf.state_category)" data-testid="workflow-state">{{
             label(wf.state_label)
           }}</app-badge>
-          <span class="text-[12px] text-fg-subtle">
+          <span class="text-meta text-fg-subtle">
             {{
               'records.panel.since'
                 | transloco: { when: wf.state_entered_at | relativeTime: lang() }
@@ -98,8 +99,8 @@ import {
         </div>
         @if (wf.sla_due_at && !wf.closed_at) {
           <p
-            class="mt-2 inline-flex items-center gap-1.5 text-[12.5px]"
-            [class.text-fail]="overdue()"
+            class="mt-2 inline-flex items-center gap-1.5 text-meta"
+            [class.text-warn-ink]="overdue()"
             [class.text-fg-muted]="!overdue()"
           >
             <app-icon name="clock" [size]="14" />
@@ -109,7 +110,7 @@ import {
             }}
           </p>
         }
-        <p class="mt-1 text-[11.5px] text-fg-subtle">
+        <p class="mt-1 text-meta text-fg-subtle">
           {{
             'records.panel.definition'
               | transloco
@@ -136,17 +137,17 @@ import {
                 >
                   {{ label(option.label) }}
                   @if (option.needs_approval) {
-                    <span class="text-[11px] font-medium opacity-80">
+                    <span class="text-micro font-medium opacity-80">
                       · {{ 'records.panel.needsApproval' | transloco }}
                     </span>
                   }
                 </app-button>
                 @if (option.blocked_by) {
-                  <p class="mt-1 text-[11.5px] text-fg-subtle">
+                  <p class="mt-1 text-meta text-fg-subtle">
                     {{ guardKey(option.blocked_by) | transloco }}
                   </p>
                 } @else if (option.missing_fields.length) {
-                  <p class="mt-1 text-[11.5px] text-fg-subtle">
+                  <p class="mt-1 text-meta text-fg-subtle">
                     {{
                       'deviations.wf.needsFields'
                         | transloco: { count: option.missing_fields.length }
@@ -157,11 +158,11 @@ import {
             }
           </div>
         } @else if (!wf.closed_at) {
-          <p class="mt-4 text-[12.5px] text-fg-subtle">
+          <p class="mt-4 text-meta text-fg-subtle">
             {{ 'records.panel.noActions' | transloco }}
           </p>
         } @else {
-          <p class="mt-4 text-[12.5px] text-fg-subtle">{{ 'deviations.wf.closed' | transloco }}</p>
+          <p class="mt-4 text-meta text-fg-subtle">{{ 'deviations.wf.closed' | transloco }}</p>
         }
 
         @if (active(); as option) {
@@ -171,14 +172,14 @@ import {
             [attr.aria-label]="label(option.label)"
             data-testid="transition-step"
           >
-            <p class="mb-2 text-[13px] font-semibold text-fg">{{ label(option.label) }}</p>
+            <p class="mb-2 text-ui font-semibold text-fg">{{ label(option.label) }}</p>
             @if (option.needs_approval) {
-              <p class="mb-2 text-[12.5px] text-fg-muted">
+              <p class="mb-2 text-meta text-fg-muted">
                 {{ 'records.panel.approvalExplain' | transloco }}
               </p>
             }
             @if (missing().length) {
-              <p class="mb-2 text-[12.5px] text-fg-muted">
+              <p class="mb-2 text-meta text-fg-muted">
                 {{ 'records.panel.fillMissing' | transloco }}
               </p>
               @if (missingSpecs().length) {
@@ -192,7 +193,7 @@ import {
                 />
               }
               @if (unrenderable().length) {
-                <p class="mt-2 text-[12.5px] text-fail">
+                <p class="mt-2 text-meta text-fail-ink">
                   {{
                     'records.panel.missingList' | transloco: { fields: unrenderable().join(', ') }
                   }}
@@ -243,13 +244,13 @@ import {
 
         @if (pending().length) {
           <div class="mt-5">
-            <h3 class="mb-2 text-[12px] font-bold tracking-[0.06em] text-fg-subtle uppercase">
+            <h3 class="mb-2 text-meta font-bold tracking-[0.06em] text-fg-subtle uppercase">
               {{ 'records.panel.approvals' | transloco }}
             </h3>
             <ul class="flex flex-col gap-2">
               @for (approval of pending(); track approval.id) {
                 <li class="rounded-tile border border-border p-3">
-                  <p class="text-[12.5px] text-fg">
+                  <p class="text-meta text-fg">
                     {{
                       'records.panel.approvalLine'
                         | transloco
@@ -259,7 +260,7 @@ import {
                             }
                     }}
                   </p>
-                  <p class="mt-0.5 text-[11.5px] text-fg-subtle">{{ approverText(approval) }}</p>
+                  <p class="mt-0.5 text-meta text-fg-subtle">{{ approverText(approval) }}</p>
                   @if (approval.can_decide || canWithdraw(approval)) {
                     <div class="mt-2 flex flex-wrap gap-2">
                       @if (approval.can_decide) {
@@ -295,12 +296,12 @@ import {
 
         @if (decided().length) {
           <details class="mt-4">
-            <summary class="cursor-pointer text-[12px] font-semibold text-fg-muted">
+            <summary class="cursor-pointer text-meta font-semibold text-fg-muted">
               {{ 'records.panel.history' | transloco: { count: decided().length } }}
             </summary>
             <ul class="mt-2 flex flex-col gap-1.5">
               @for (approval of decided(); track approval.id) {
-                <li class="text-[12px] text-fg-muted">
+                <li class="text-meta text-fg-muted">
                   {{
                     'records.panel.decisionLine.' + approval.decision
                       | transloco
@@ -379,8 +380,8 @@ export class DeviationWorkflowPanel {
     hasAnyPermission(this.selectedOrg.currentOrg()?.permissions, 'records:admin'),
   );
 
-  protected tone(category: string): BadgeTone {
-    return categoryTone(category);
+  protected categoryBadge(category: string): BadgeTone {
+    return toneFor('lifecycle', category === 'done' ? 'closed' : category);
   }
 
   protected label(value: LocalizedText | null | undefined): string {

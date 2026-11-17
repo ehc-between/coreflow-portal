@@ -2,7 +2,7 @@
   "loading": "Laster …",
   "clause": "{{ framework }} {{ clause }}",
   "frameworks": {
-    "hs": "ISO HS",
+    "hs": "Felles ISO-krav",
     "iso9001": "ISO 9001",
     "iso27001": "ISO/IEC 27001",
     "iso14001": "ISO 14001",
