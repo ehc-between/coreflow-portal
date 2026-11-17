@@ -88,6 +88,8 @@ export interface OrgSettingsDto {
    */
   readonly mfa_policy: OrgMfaPolicy;
   readonly mfa_required_roles: readonly string[];
+  /** Accept macro-enabled Office attachments (.docm, .xlsm, ...). Default false. */
+  readonly allow_macro_attachments: boolean;
 }
 
 /** Who an org requires a second factor of. */

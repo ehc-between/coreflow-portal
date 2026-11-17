@@ -21,6 +21,7 @@ import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog'
 import { FormField } from '../../../shared/ui/form-field/form-field';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { OrgDocumentSettings } from '../document-settings/org-document-settings';
+import { OrgAttachmentSettings } from '../attachment-settings/org-attachment-settings';
 import { OrgInvitations } from '../invitations/org-invitations';
 import { OrgMfaSettings } from '../mfa-settings/org-mfa-settings';
 import { OrgMembers } from '../members/org-members';
@@ -48,7 +49,11 @@ import { SETTINGS_MEMBERS_ANCHOR, SettingsLinks } from '../settings-links/settin
     ConfirmDialog,
     OrgMembers,
     OrgDocumentSettings,
+<<<<<<< HEAD
     OrgMfaSettings,
+=======
+    OrgAttachmentSettings,
+>>>>>>> portal/s04-attachment-safety
     OrgInvitations,
     SettingsLinks,
     PageHeader,

@@ -52,6 +52,9 @@ const KNOWN_KEYS = new Set([
   'notifications.actionOverdue',
   ...DOCUMENT_KEYS,
   ...REMINDER_KEYS,
+  // S04: the malware scanner quarantined an upload. Params:
+  // `{attachment_id, filename, parent_type, parent_id}`.
+  'notifications.attachmentQuarantined',
 ]);
 
 /** Fallback title for keys introduced by a newer backend. */
@@ -225,7 +228,14 @@ export function notificationLink(notification: UserNotification): string[] | nul
     return [url];
   }
   const base = ENTITY_ROUTES[notification.entity_type];
-  return base ? [base, notification.entity_id] : null;
+  if (base) {
+    return [base, notification.entity_id];
+  }
+  // Attachment events (e.g. a quarantined upload) link to the record it hangs off.
+  const parentType = notification.params['parent_type'];
+  const parentId = notification.params['parent_id'];
+  const parentBase = typeof parentType === 'string' ? ENTITY_ROUTES[parentType] : undefined;
+  return parentBase && typeof parentId === 'string' && parentId ? [parentBase, parentId] : null;
 }
 
 /**

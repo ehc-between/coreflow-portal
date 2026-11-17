@@ -549,7 +549,9 @@
         "deleted": "Deleted items",
         "deletedHint": "Restore documents that were deleted by mistake.",
         "setup": "Setup wizard",
-        "setupHint": "Go through profile, standards, modules, roles and first tasks again."
+        "setupHint": "Go through profile, standards, modules, roles and first tasks again.",
+        "attachmentDeletions": "File deletion log",
+        "attachmentDeletionsHint": "See which attachment files were permanently deleted and why."
       },
       "moduleLinks": {
         "types": "Types",
@@ -583,6 +585,34 @@
         "rolesRequired": "Choose at least one role.",
         "unknownRoles": "One of the chosen roles no longer exists. Reload and try again.",
         "saveFailed": "Could not save the two-step verification settings."
+      }
+    },
+    "attachments": {
+      "title": "Attachments",
+      "allowMacros": "Allow macro-enabled Office files",
+      "allowMacrosHint": "When on, files such as .docm and .xlsm can be attached. Macros can carry malware, so leave this off unless you need it.",
+      "loadError": "Couldn’t load the attachment settings.",
+      "saved": "Attachment settings saved.",
+      "saveFailed": "Couldn’t save the attachment settings."
+    },
+    "attachmentDeletions": {
+      "title": "File deletion log",
+      "subtitle": "Attachment files permanently deleted from storage, newest first. File names aren’t kept.",
+      "back": "Back to settings",
+      "empty": "No files have been permanently deleted.",
+      "loadError": "Couldn’t load the file deletion log.",
+      "deletedAt": "Deleted",
+      "reason": "Reason",
+      "record": "Record",
+      "versions": "Versions",
+      "keyHash": "Storage key hash",
+      "actor": "By",
+      "system": "System",
+      "reasons": {
+        "erasure": "Erasure",
+        "retention": "Retention",
+        "quarantine": "Quarantine",
+        "rejected": "Rejected upload"
       }
     }
   },
@@ -1578,7 +1608,8 @@
       "title": "Notifications and escalation",
       "subtitle": "Who is notified about what, due-date reminders, escalation and department leads.",
       "open": "Open notification settings"
-    }
+    },
+    "attachmentQuarantined": "Malware found: {{filename}} was quarantined"
   },
   "roles": {
     "admin": {
@@ -1653,7 +1684,27 @@
       "downloadFailed": "Couldn’t download the file. Try again.",
       "deleteFailed": "Couldn’t delete the attachment. Try again.",
       "generic": "Something went wrong with the attachment. Try again.",
-      "deviationClosed": "This deviation is closed. Reopen it to change its attachments."
+      "deviationClosed": "This deviation is closed. Reopen it to change its attachments.",
+      "macroBlocked": "Macro-enabled Office files aren’t allowed in this organization. Save the file without macros and try again.",
+      "executableContent": "The file contains a program, which isn’t allowed.",
+      "contentMismatch": "The file’s content doesn’t match its type. Check the file and try again.",
+      "stillScanning": "The file is still being scanned for malware. Try again in a moment.",
+      "quarantined": "Malware was found in this file, so it can’t be downloaded.",
+      "alreadyPurged": "The file has already been permanently deleted.",
+      "uploadQuarantined": "Malware was found in the uploaded file. It has been quarantined and your administrators have been told."
+    },
+    "notDownloadable": "This file can’t be downloaded until it has passed the malware scan.",
+    "scan": {
+      "scanning": "Scanning",
+      "quarantined": "Quarantined"
+    },
+    "hold": {
+      "badge": "Legal hold",
+      "set": "Hold",
+      "release": "Release hold",
+      "setNamed": "Put {{name}} on legal hold",
+      "releaseNamed": "Release the legal hold on {{name}}",
+      "failed": "Couldn’t change the legal hold. Try again."
     }
   },
   "standards": {

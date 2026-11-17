@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { provideTranslocoScope } from '@jsverse/transloco';
 import { orgManageGuard } from '../../core/auth/org-manage.guard';
+import { permissionGuard } from '../../core/auth/permission.guard';
 
 /** Org-settings feature routes. The shell route needs `org:manage` OR `users:invite`
  *  (settingsGuard upstream); department, module, profile and terminology pages
@@ -16,6 +17,13 @@ const routes: Routes = [
     canActivate: [orgManageGuard],
     loadComponent: () =>
       import('./deleted-documents/deleted-documents').then((m) => m.DeletedDocuments),
+  },
+  {
+    // S04: permanent attachment deletions (erasure, retention, quarantine).
+    path: 'attachment-deletions',
+    canActivate: [permissionGuard('audit:read', { redirectTo: '/settings' })],
+    loadComponent: () =>
+      import('./attachment-deletions/attachment-deletions').then((m) => m.AttachmentDeletions),
   },
   {
     path: 'guidance',
