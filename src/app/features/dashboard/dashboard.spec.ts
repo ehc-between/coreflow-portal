@@ -118,6 +118,21 @@ describe('Dashboard (home)', () => {
     expect(el.textContent).toContain('home.status.emptyTitle');
   });
 
+  it('only links missing setup the user can act on', () => {
+    const missing = makeHome({ setup: { complete: false, missing: ['standards', 'members'] } });
+    const links = (el: HTMLElement) =>
+      Array.from(el.querySelectorAll('[data-testid="home-setup-missing"] a')).map((a) =>
+        a.getAttribute('href'),
+      );
+    expect(
+      links(setup(missing, ['standards:read', 'standards:manage', 'users:invite']).el),
+    ).toEqual(['/standards', '/settings']);
+    TestBed.resetTestingModule();
+    expect(
+      setup(missing, ['standards:read']).el.querySelector('[data-testid="home-setup-missing"]'),
+    ).toBeNull();
+  });
+
   it('shows an error state with retry', () => {
     const { el, api } = setup('error');
     const retry = el.querySelector<HTMLButtonElement>(

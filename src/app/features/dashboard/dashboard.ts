@@ -350,9 +350,16 @@ export class Dashboard {
     return journeyUrl(fw?.framework ?? 'iso27001');
   });
 
-  protected readonly missingSetup = computed(() =>
-    (this.home()?.setup.missing ?? []).filter((item) => item in SETUP_LINKS),
-  );
+  /** Missing setup the caller can act on (inviting needs `users:invite` / `org:manage`,
+   *  choosing standards `standards:manage`); others never see a link they cannot use. */
+  protected readonly missingSetup = computed(() => {
+    const perms = this.permissions();
+    const canAct: Record<string, boolean> = {
+      standards: perms.includes('standards:manage'),
+      members: perms.includes('users:invite') || perms.includes('org:manage'),
+    };
+    return (this.home()?.setup.missing ?? []).filter((item) => item in SETUP_LINKS && canAct[item]);
+  });
 
   protected readonly greeting = computed(() => {
     const name = firstName(this.auth.user()?.full_name);
