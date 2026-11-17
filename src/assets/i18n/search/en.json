@@ -33,7 +33,7 @@
     "exit": "Leave tutor mode",
     "start": "Teach me about this page, step by step.",
     "startTopic": "Teach me about {{topic}}, step by step.",
-    "teachMePage": "Teach me about this page"
+    "teachMePage": "Explain this page"
   },
   "action": {
     "cardLabel": "Proposed change",

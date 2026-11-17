@@ -122,6 +122,19 @@ const QUESTION_STARTS = new Set([
   'hjelp',
 ]);
 
+/** A machine requirement ref (`iso27001-2022:A.5.19.r1`): never shown to users. */
+const REQUIREMENT_REF_RE = /^[a-z0-9-]+:\S+\.r\d+$/i;
+
+/**
+ * The record code to show next to a hit, or null. Requirement refs are hidden: the
+ * hit's title already starts with the clause number, and raw `.rN` refs are not
+ * for users (polish plan §2.1).
+ */
+export function displayCode(code: string | null | undefined): string | null {
+  const value = code?.trim();
+  return value && !REQUIREMENT_REF_RE.test(value) ? value : null;
+}
+
 /**
  * Whether the text reads as a question or request for the assistant rather than a
  * search term: it ends with "?", starts with a question / request word, or is a
@@ -242,10 +255,8 @@ export function looksLikeQuestion(text: string): boolean {
                       <span class="truncate text-body font-medium text-fg">{{
                         row.item.title
                       }}</span>
-                      @if (row.item.code) {
-                        <span class="flex-none font-mono text-meta text-fg-subtle">{{
-                          row.item.code
-                        }}</span>
+                      @if (displayCode(row.item.code); as code) {
+                        <span class="flex-none font-mono text-meta text-fg-subtle">{{ code }}</span>
                       }
                     </span>
                     @if (row.item.snippet) {
@@ -613,6 +624,8 @@ export class CommandPalette {
   protected close(): void {
     this.palette.hide();
   }
+
+  protected readonly displayCode = displayCode;
 }
 
 function isMac(): boolean {

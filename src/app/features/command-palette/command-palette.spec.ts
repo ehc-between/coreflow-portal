@@ -10,7 +10,12 @@ import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { SearchApi } from '../../core/search/search-api';
 import { SearchResponse } from '../../core/search/search.models';
 import { AskPanelService } from '../ask/ask-panel.service';
-import { CommandPalette, SEARCH_DEBOUNCE_MS, looksLikeQuestion } from './command-palette';
+import {
+  CommandPalette,
+  SEARCH_DEBOUNCE_MS,
+  displayCode,
+  looksLikeQuestion,
+} from './command-palette';
 import { CommandPaletteService } from './command-palette.service';
 
 const DOC_ID = '6a4a1d8e-6a51-4c0e-a4f5-2b0f61b9a8a2';
@@ -255,5 +260,16 @@ describe('CommandPalette', () => {
     fixture.detectChanges();
     expect(cmp.searchStatus()).toBe('done');
     expect(cmp.recordGroups()).toEqual([]);
+  });
+});
+
+describe('displayCode', () => {
+  it('shows record codes but hides raw requirement refs', () => {
+    expect(displayCode('QP-07')).toBe('QP-07');
+    expect(displayCode('7.1.5')).toBe('7.1.5');
+    expect(displayCode('iso27001-2022:A.5.19.r1')).toBeNull();
+    expect(displayCode('iso9001-2026:8.4.1.r12')).toBeNull();
+    expect(displayCode('  ')).toBeNull();
+    expect(displayCode(null)).toBeNull();
   });
 });

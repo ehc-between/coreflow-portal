@@ -33,7 +33,7 @@
     "exit": "Avslutt veiledermodus",
     "start": "Lær meg om denne siden, steg for steg.",
     "startTopic": "Lær meg om {{topic}}, steg for steg.",
-    "teachMePage": "Lær meg om denne siden"
+    "teachMePage": "Forklar denne siden"
   },
   "action": {
     "cardLabel": "Foreslått endring",
