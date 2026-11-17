@@ -10,7 +10,7 @@ import { AuthService } from '../../../core/auth/auth.service';
 import { PendingInvitation } from '../../../core/auth/pending-invitation';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { ThemeService } from '../../../core/theme/theme.service';
-import { AcceptInvite } from './accept-invite';
+import { AcceptInvite, acceptInviteErrorMessage } from './accept-invite';
 
 const PREVIEW: InvitePreview = {
   valid: true,
@@ -219,6 +219,27 @@ describe('AcceptInvite', () => {
       expect(navigateByUrl).not.toHaveBeenCalled();
     });
 
+    it('shows "temporarily unavailable" when the limiter is down during an existing-account accept', () => {
+      const { el, fixture, preview$, accept$, navigateByUrl, button } = setup({
+        signedInAs: 'victim@example.com',
+      });
+      preview$.next(EXISTING);
+      fixture.detectChanges();
+
+      button('invite.accept')!.click();
+      accept$.error(
+        new HttpErrorResponse({
+          status: 503,
+          error: { detail: { code: 'rate_limiter_unavailable', retry_after: 30 } },
+        }),
+      );
+      fixture.detectChanges();
+
+      expect(el.textContent).toContain('errors.temporarilyUnavailableSeconds');
+      expect(el.querySelector('[data-testid="invite-mismatch"]')).toBeNull();
+      expect(navigateByUrl).not.toHaveBeenCalled();
+    });
+
     it('sends the user to sign in when the server answers requires_login', () => {
       const { fixture, preview$, accept$, navigate, auth, button } = setup({
         signedInAs: 'victim@example.com',
@@ -235,5 +256,38 @@ describe('AcceptInvite', () => {
         queryParams: { returnUrl: '/invite/accept' },
       });
     });
+  });
+});
+
+describe('acceptInviteErrorMessage', () => {
+  const httpError = (status: number, error: unknown = null) =>
+    new HttpErrorResponse({ status, error });
+
+  it('shows "temporarily unavailable" when the limiter backend is down (503)', () => {
+    const err = httpError(503, { detail: { code: 'rate_limiter_unavailable', retry_after: 30 } });
+    expect(acceptInviteErrorMessage(err)).toEqual({
+      key: 'errors.temporarilyUnavailableSeconds',
+      params: { seconds: 30 },
+    });
+  });
+
+  it('shows the generic "slow down" message for any 429', () => {
+    expect(acceptInviteErrorMessage(httpError(429, { detail: { code: 'rate_limited' } }))).toEqual({
+      key: 'errors.rateLimited',
+    });
+    expect(
+      acceptInviteErrorMessage(
+        httpError(429, { detail: { code: 'too_many_attempts', retry_after: 90 } }),
+      ),
+    ).toEqual({ key: 'errors.rateLimitedMinutes', params: { minutes: 2 } });
+  });
+
+  it('keeps the weak-password and generic invite messages', () => {
+    expect(acceptInviteErrorMessage(httpError(422, { detail: { code: 'weak_password' } }))).toEqual(
+      {
+        key: 'auth.password.weak',
+      },
+    );
+    expect(acceptInviteErrorMessage(httpError(500))).toEqual({ key: 'invite.error' });
   });
 });
