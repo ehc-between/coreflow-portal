@@ -2,82 +2,94 @@
   "pages": {
     "list": {
       "intro": {
-        "title": "Know which requirements you must meet",
-        "body": "The compliance obligations register lists everything the organisation is bound by: laws and regulations, permits and licences, requirements in contracts, industry codes and voluntary commitments. Each obligation has an owner, the specific requirements it places on you, and a periodic **compliance evaluation** that checks you still meet it.",
+        "title": "Know which laws and requirements you must meet",
+        "body": "This register lists everything the organisation is bound by: laws and regulations, permits and licences, requirements in contracts, industry codes and voluntary commitments. Each **obligation** has an owner, concrete **duties** and a periodic **compliance evaluation** that checks you still meet it.",
         "steps": [
-          "Register the obligations that apply to you, starting with the ones with the biggest consequences if missed.",
-          "List the specific requirements and describe how each obligation applies to your activities.",
-          "Schedule a periodic evaluation, record the result with evidence, and follow up any gaps."
+          "Add the obligations that apply to you. Start from the library of common laws, or with the ones that hurt most if missed.",
+          "Write the concrete duties and link them to the clauses in your standards.",
+          "Plan a yearly evaluation, record the result with documentation and follow up any gaps with a deviation or a task."
         ]
       },
       "why": {
-        "body": "Every management system standard expects you to know the legal and other requirements that apply to you, keep that knowledge up to date and evaluate your compliance at planned intervals. Environmental and health and safety standards require the evaluation explicitly; information security and privacy rules expect you to identify and meet statutory, regulatory and contractual requirements and to be able to demonstrate it.",
-        "clauses": ["hs:4.2", "iso14001:6.1.3", "iso45001:6.1.3", "iso27001:A.5.31", "gdpr:24"]
+        "body": "Every management system standard expects you to know the legal and other requirements that apply, keep that knowledge up to date and evaluate compliance at planned intervals. The register is where an auditor looks first.",
+        "clauses": ["hs:4.2", "iso14001:6.1.3", "iso45001:6.1.3", "iso27001:A.5.31"]
       },
       "empty": {
         "title": "No obligations registered yet",
-        "body": "Start with the requirements you already know about: the environmental permit, the working environment act, data protection law, and the key requirements in your largest customer contracts. The assistant can propose the specific requirements once you have entered a title.",
-        "cta": "Register the first obligation"
+        "body": "Start with what you already know: the Working Environment Act, the Internal Control Regulations, data protection law, any environmental permit and the key requirements in your largest contracts. The form has a library of common laws to start from.",
+        "cta": "New obligation"
       }
     },
     "form": {
       "intro": {
         "title": "Registering an obligation",
-        "body": "Describe the obligation in your own words and point to its source. Then list the **specific requirements** it places on you, the things an auditor would ask you to show. Use **Propose requirements** to get suggestions, and check them against the source text.",
+        "body": "Describe the obligation and where it comes from. Then list its **duties**: the concrete things an auditor would ask you to show. Tick the standards it concerns so it counts as documentation there.",
         "steps": [
-          "Choose the type, an owner and the source (issuer, reference and a link).",
-          "Describe how the obligation applies to your sites, products and activities.",
-          "Turn on the periodic evaluation so the owner is reminded to check compliance."
+          "Pick a law from the library, or fill in the type, owner, authority and a link to the legal text.",
+          "Write each duty so it can be checked, and say how the obligation applies to your sites and activities.",
+          "Keep the yearly evaluation on, so the owner is reminded to check compliance."
         ]
       },
       "why": {
-        "body": "A register that only names a law is not enough: you need to know which of its requirements apply to you and how. Documenting applicability, the requirements and the owner makes compliance evaluations repeatable and shows an auditor that the obligations were determined systematically.",
+        "body": "A register that only names a law is not enough: you need to know which duties apply to you and how. Documented duties, owners and clauses make every evaluation repeatable and show the auditor the obligations were determined systematically.",
         "clauses": ["iso14001:6.1.3", "iso45001:6.1.3", "iso27001:A.5.31"]
       },
       "fields": {
         "obligation_type": {
-          "help": "What kind of obligation it is. Laws, regulations and permits are imposed on you; contractual requirements, industry codes and voluntary commitments are ones you have chosen to accept but must still meet.",
-          "example": "The emissions permit for a plant is a permit; a customer's supplier code of conduct is a contractual requirement."
+          "help": "What kind of obligation it is. Laws, regulations and permits are imposed on you; contractual requirements, industry codes and voluntary commitments are accepted by choice but must still be met.",
+          "example": "A discharge permit is a permit; a customer's supplier code of conduct is a contractual requirement."
         },
         "status": {
-          "help": "Draft while you are still working out the requirements; active once it applies and is evaluated; retired when it no longer applies (the history is kept).",
-          "example": "Retire an obligation when a permit is surrendered or a contract ends."
+          "help": "Draft while you are still working out the duties; active once it applies and is evaluated; retired when it no longer applies (the history is kept).",
+          "example": "Mark an obligation as retired when a permit is surrendered or a contract ends."
         },
         "owner": {
           "help": "The person who keeps track of the obligation, carries out or arranges the evaluations and is told about changes.",
-          "example": "The HSE manager owns the working environment requirements; the DPO owns data protection law."
+          "example": "The HSE manager owns the Working Environment Act; the data protection officer owns data protection law.",
+          "requirements": ["iso45001:6.1.3"]
         },
         "description": {
           "help": "A short description of what the obligation is about, in plain language.",
-          "example": "Sets limits for noise and dust emissions from the production site and requires quarterly measurements."
+          "example": "Sets limits for noise and dust from the plant and requires quarterly measurements."
         },
         "issuer": {
-          "help": "Who issued or imposes the obligation: a legislator, an authority, a customer or an industry body.",
-          "example": "The Norwegian Environment Agency, the Data Protection Authority, Customer AS."
+          "help": "The authority or party that imposes the obligation: a legislator, a supervisory authority, a customer or an industry body.",
+          "example": "The Labour Inspection Authority, the Data Protection Authority, Customer AS."
         },
         "reference": {
-          "help": "The official reference, so anyone can find the source: the law's short title and section, the permit number or the contract clause.",
-          "example": "Regulation 2004-06-01-931, chapter 27; permit 2019.0412.T."
+          "help": "The official reference, so anyone can find the source: the law or regulation number, the permit number or the contract clause.",
+          "example": "LOV-2005-06-17-62; permit 2019.0412.T; contract clause 12.3."
         },
         "valid_until": {
-          "help": "When the obligation stops applying, if it does. The owner is reminded before this date, for example to renew a permit or licence.",
+          "help": "When the obligation stops applying, if it does. For permits, licences and contracts a renewal task is added before this date.",
           "example": "A discharge permit valid until 31 December 2028."
+        },
+        "renewal_lead_days": {
+          "help": "How many days before the end the owner should apply for renewal. Applications often take months, so the default is 90 days.",
+          "example": "180 days for a discharge permit that needs a new application to the County Governor."
         },
         "applicability": {
           "help": "How the obligation applies to your organisation: which sites, activities, products or people are covered, and anything explicitly out of scope.",
-          "example": "Applies to the Drammen plant (painting line and solvent store). The Oslo office is out of scope."
+          "example": "Applies to the Drammen plant (painting line and solvent store). The Oslo office is out of scope.",
+          "requirements": ["hs:4.2", "iso14001:6.1.3"]
         },
         "requirements": {
-          "help": "The specific duties the obligation places on you, one per line. Write them so each can be checked: something you must do, measure, report or keep.",
-          "example": "Measure noise at the site boundary every quarter; report annual emissions by 1 March; keep measurement records for 5 years."
+          "help": "The concrete duties the obligation places on you, one per row. Write them so each can be checked: something you must do, measure, report or keep. Each duty can have its own responsible person and clauses.",
+          "example": "Measure noise at the site boundary every quarter; report annual discharges by 1 March.",
+          "requirements": ["iso14001:6.1.3", "iso45001:6.1.3", "iso27001:A.5.31"]
         },
         "frameworks": {
-          "help": "Which of your management system frameworks the obligation is relevant to. This helps filter the register when you prepare for an audit.",
-          "example": "Data protection law relates to GDPR and ISO/IEC 27001."
+          "help": "The standards the obligation concerns. Ticking one proposes its usual clauses.",
+          "example": "Data protection law concerns GDPR and ISO/IEC 27001."
+        },
+        "clause_refs": {
+          "help": "The clauses and articles this obligation documents. They count as documentation on the standards' requirement pages, so an auditor can follow the link both ways.",
+          "example": "GDPR · 30 for the record of processing; ISO 14001 · 6.1.3 for the register itself."
         },
         "evaluation": {
-          "help": "A periodic compliance evaluation creates a recurring task for the owner. Each time it is done, the result and evidence are recorded and the next evaluation is planned automatically.",
-          "example": "Evaluate high-risk permits every quarter and stable laws once a year."
+          "help": "A periodic compliance evaluation creates a recurring task for the owner. Each time it is done, the result and documentation are recorded and the next evaluation is planned automatically.",
+          "example": "Evaluate critical permits every quarter and stable laws once a year.",
+          "requirements": ["iso14001:9.1.2", "iso45001:9.1.2"]
         },
         "evaluation_lead_days": {
           "help": "How many days before the due date the evaluation task appears in the owner's My Work.",
@@ -88,32 +100,38 @@
     "detail": {
       "intro": {
         "title": "Keeping an obligation under control",
-        "body": "This page shows what the obligation requires and how it applies, the history of compliance evaluations with their evidence, and any changes coming up. Evaluation tasks and follow-up actions are in the **Tasks** tab; link related risks, processes or contracts under **Related**.",
+        "body": "The box at the top says what to do next. Below are the **duties** with their documentation and results, the **compliance evaluations** with evidence and follow-up, and changes coming up. Tasks are in the **Tasks** tab; linked records are under **Related**.",
         "steps": [
-          "Record an evaluation when it is due, with findings and evidence files.",
-          "If you are not fully compliant, create a follow-up action to close the gap.",
-          "Note upcoming changes and assess what they mean for you."
+          "Record an evaluation when it is due: a result per duty, findings and documentation.",
+          "If something is missing, register a deviation or a follow-up task so it is closed.",
+          "Note coming changes and update the duties before they take effect."
         ]
       },
       "why": {
-        "body": "Knowing your obligations is only half the job: you also have to check, at planned intervals, that you actually meet them, keep evidence of the result and act when you do not. A recorded evaluation history is what demonstrates compliance, which is what accountability under data protection law and deployer duties under the AI Act ask for.",
-        "clauses": ["iso14001:9.1.2", "iso45001:9.1.2", "gdpr:24", "eu_ai_act:26"]
+        "body": "Knowing your obligations is only half the job: you must also check at planned intervals that you meet them, keep evidence of the result and act when you do not. The evaluation history is what demonstrates compliance.",
+        "clauses": ["iso14001:9.1.2", "iso45001:9.1.2"]
       },
       "fields": {
+        "duties": {
+          "help": "Each duty is evaluated on its own and can be documented with records from other modules: a procedure, an inspection, a training record.",
+          "example": "Duty \"Hold safety rounds twice a year\", documented by inspection INS-12.",
+          "requirements": ["iso14001:6.1.3", "iso45001:6.1.3"]
+        },
         "evaluations": {
-          "help": "Each evaluation records whether you met the obligation on that date: compliant, partially compliant, non-compliant or not applicable. The latest result sets the obligation's compliance status and completes the open evaluation task.",
-          "example": "Quarterly noise measurement within limits: compliant, with the measurement report attached."
+          "help": "Each evaluation records whether you met the obligation on that date, per duty and overall. The latest result sets the compliance status and completes the open evaluation task. Anything less than compliant needs findings and a follow-up.",
+          "example": "Quarterly noise measurement within limits: compliant, with the measurement report linked.",
+          "requirements": ["iso14001:9.1.2", "iso45001:9.1.2"]
         },
         "evidence": {
-          "help": "Describe what you looked at, and tick the files that prove it. Files are uploaded in the Attachments tab and then linked to the evaluation.",
-          "example": "Measurement report Q3, sampling log, the authority's acknowledgement of the annual report."
+          "help": "Link the records you looked at (documents, inspections, training, measurements), add web links, or choose files uploaded in the Attachments tab.",
+          "example": "Measurement report Q3, the sampling log, the authority's receipt for the annual report."
         },
         "changes": {
-          "help": "Write down changes you hear about before they take effect: amendments, new guidance, court rulings or a renegotiated contract. Assess each one and record what (if anything) you need to change.",
-          "example": "Amended emission limits from 1 July next year: high impact, new filter needed."
+          "help": "Write down changes you hear about before they take effect: amendments, new guidance, rulings or a renegotiated contract. With medium or high impact and a date, a task to prepare is added to My Work.",
+          "example": "New discharge limits from 1 July next year: high impact, a new filter is needed."
         },
         "actions": {
-          "help": "Scheduled evaluations and follow-up actions are platform tasks. They show in the assignee's My Work and are reminded and escalated like any other task.",
+          "help": "Scheduled evaluations, renewal tasks and follow-up tasks are ordinary tasks. They show in the assignee's My Work and are reminded and escalated like any other task.",
           "example": "Replace the filter on the painting line by 1 June to meet the new limit."
         }
       }
@@ -149,7 +167,7 @@
           "explanation": "A contractual requirement binds you, so it is a compliance obligation. Tips and ideas do not bind you."
         },
         {
-          "question": "What should you write as the requirements of an obligation?",
+          "question": "What should you write as the duties of an obligation?",
           "options": [
             "The full text of the law",
             "The specific duties that apply to you, each one checkable",
@@ -175,7 +193,7 @@
         },
         {
           "heading": "Recording the result",
-          "body": "Record the result, what you looked at and the **evidence**. If you are only partially compliant or non-compliant, create a **follow-up action** with an owner and a deadline, and evaluate again once it is done."
+          "body": "Record the result, what you looked at and the **evidence**. If you are only partially compliant or non-compliant, register a **deviation** or a **follow-up task** with an owner and a deadline, and evaluate again once it is done."
         }
       ],
       "quiz": [
@@ -183,11 +201,11 @@
           "question": "An evaluation finds that one of three permit conditions is not met. What do you record?",
           "options": [
             "Compliant, since most conditions are met",
-            "Partially compliant, with a follow-up action for the unmet condition",
+            "Partially compliant, with a deviation or follow-up task for the unmet condition",
             "Nothing until it is fixed"
           ],
           "answer": 1,
-          "explanation": "Record the real result and the gap. The follow-up action makes sure it is closed and gives the next evaluation something to check."
+          "explanation": "Record the real result and the gap. The follow-up makes sure it is closed and gives the next evaluation something to check."
         },
         {
           "question": "What decides how often an obligation is evaluated?",
@@ -230,18 +248,18 @@
     "list": [
       {
         "target": "obligations-summary",
-        "title": "The state of compliance at a glance",
-        "body": "How many obligations you have, how many evaluations are overdue, what is not compliant and what ends soon. Click a figure to filter the list."
+        "title": "What needs attention",
+        "body": "Obligations that are not fully compliant, not evaluated, without an evaluation plan, overdue or up for renewal. Click a figure to show just those; click again to show all."
       },
       {
         "target": "obligations-filters",
         "title": "Find the obligations that matter now",
-        "body": "Filter by status, type, compliance, framework or owner, and save the combination as a view."
+        "body": "Filter by status and compliance; more filters (type, standard, owner, validity) are under \"More filters\". Save a combination as a view."
       },
       {
         "target": "obligations-new",
         "title": "Register an obligation",
-        "body": "Add a law, permit, contract requirement or commitment. The assistant can propose the requirements that apply."
+        "body": "Add a law, permit, contract requirement or commitment, or start from the library of common laws."
       }
     ]
   }

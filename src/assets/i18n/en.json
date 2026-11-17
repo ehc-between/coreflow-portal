@@ -2069,6 +2069,7 @@
       "emergency_plan": "Emergency plan",
       "env_measurement": "Environmental measurement",
       "compliance_obligation": "Compliance obligation",
+      "obligation_duty": "Obligation duty",
       "asset": "Asset",
       "access_review": "Access review",
       "change_request": "Change request",

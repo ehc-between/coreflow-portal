@@ -419,17 +419,31 @@
     },
     "ai_system": {
       "to_dpia": "DPIA for this AI system",
-      "to_assessment": "AI assessment"
+      "to_assessment": "AI assessment",
+      "to_obligation": "AI Act duties for this system"
     },
     "obligation": {
       "to_policy": "Policy that meets the obligation",
-      "to_document": "Document that meets the obligation"
+      "to_document": "Document that meets the obligation",
+      "to_deviation": "Deviation for the gap found",
+      "to_risk": "Risk of not meeting the obligation",
+      "to_task": "Task",
+      "to_training": "Training so people know the duties"
     },
     "customer_feedback": {
       "to_deviation": "Deviation from this feedback"
     },
     "management_review": {
       "to_task": "Action (task)"
+    },
+    "env_aspect": {
+      "to_obligation": "Legal requirement or permit for this aspect"
+    },
+    "interested_party": {
+      "to_obligation": "Obligation from this party's requirements"
+    },
+    "contract": {
+      "to_obligation": "Obligation from this contract"
     },
     "formMissing": "This form is not available yet. Create the record from its own page and link it from the Related tab."
   },

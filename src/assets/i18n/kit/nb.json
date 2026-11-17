@@ -419,17 +419,31 @@
     },
     "ai_system": {
       "to_dpia": "DPIA for KI-systemet",
-      "to_assessment": "KI-vurdering"
+      "to_assessment": "KI-vurdering",
+      "to_obligation": "Plikter etter KI-forordningen for dette systemet"
     },
     "obligation": {
       "to_policy": "Policy som oppfyller forpliktelsen",
-      "to_document": "Dokument som oppfyller forpliktelsen"
+      "to_document": "Dokument som oppfyller forpliktelsen",
+      "to_deviation": "Avvik for mangelen som ble funnet",
+      "to_risk": "Risiko for ikke å oppfylle forpliktelsen",
+      "to_task": "Oppgave",
+      "to_training": "Opplæring så de ansatte kjenner pliktene"
     },
     "customer_feedback": {
       "to_deviation": "Avvik fra tilbakemeldingen"
     },
     "management_review": {
       "to_task": "Tiltak (oppgave)"
+    },
+    "env_aspect": {
+      "to_obligation": "Lovkrav eller tillatelse for dette miljøaspektet"
+    },
+    "interested_party": {
+      "to_obligation": "Forpliktelse fra kravene til denne interessenten"
+    },
+    "contract": {
+      "to_obligation": "Forpliktelse fra denne avtalen"
     },
     "formMissing": "Dette skjemaet finnes ikke ennå. Opprett posten fra sin egen side og koble den fra fanen Relatert."
   },
