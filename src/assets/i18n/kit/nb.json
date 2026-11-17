@@ -431,7 +431,17 @@
     "management_review": {
       "to_task": "Tiltak (oppgave)"
     },
-    "formMissing": "Dette skjemaet finnes ikke ennå. Opprett posten fra sin egen side og koble den fra fanen Relatert."
+    "formMissing": "Dette skjemaet finnes ikke ennå. Opprett posten fra sin egen side og koble den fra fanen Relatert.",
+    "training_record": {
+      "to_deviation": "Avvik fra denne opplæringen",
+      "to_task": "Oppgave for oppfølging"
+    },
+    "training_assignment": {
+      "to_task": "Oppgave for oppfølging"
+    },
+    "course": {
+      "to_task": "Oppgave for å forbedre kurset"
+    }
   },
   "frameworks": {
     "iso9001": "ISO 9001",

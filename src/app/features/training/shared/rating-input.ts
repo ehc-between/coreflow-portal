@@ -10,11 +10,11 @@ let nextId = 0;
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <fieldset>
-      <legend class="mb-1.5 text-[13px] font-semibold text-fg-muted">{{ label() }}</legend>
+      <legend class="mb-1.5 text-ui font-semibold text-fg-muted">{{ label() }}</legend>
       <div class="flex flex-wrap gap-1.5">
         @for (n of options; track n) {
           <label
-            class="flex h-9 min-w-9 cursor-pointer items-center justify-center rounded-[8px] border px-2.5 text-[13px] font-semibold focus-within:ring-2 focus-within:ring-accent"
+            class="flex h-9 min-w-9 cursor-pointer items-center justify-center rounded-tile border px-2.5 text-ui font-semibold focus-within:ring-2 focus-within:ring-accent"
             [class]="
               value() === n
                 ? 'border-accent bg-accent-soft text-accent'
@@ -34,7 +34,7 @@ let nextId = 0;
           </label>
         }
       </div>
-      <p class="mt-1 text-[12px] text-fg-subtle">{{ 'training.rating.scale' | transloco }}</p>
+      <p class="mt-1 text-meta text-fg-subtle">{{ 'training.rating.scale' | transloco }}</p>
     </fieldset>
   `,
 })

@@ -6,6 +6,18 @@ import { SKIP_ERROR_TOAST } from '../../../core/http/error.interceptor';
 import {
   Assignment,
   AssignmentList,
+  BulkAssignmentsIn,
+  BulkAssignmentsOut,
+  CertificateCheck,
+  CourseEvaluation,
+  CourseEvaluationIn,
+  DocumentAcknowledgements,
+  NamedOption,
+  PersonTraining,
+  PlanQuery,
+  RulePreview,
+  RuleUndo,
+  TrainingPlan,
   AssignmentQuery,
   AssignmentsCreate,
   AssignmentsCreated,
@@ -34,8 +46,67 @@ import {
   Effectiveness,
 } from './training.models';
 
+/** A People position as listed by `GET people/positions` (only what pickers need). */
+export interface PeopleOption {
+  readonly id: string;
+  readonly title: string;
+  readonly code?: string | null;
+}
+
+/** A supplier as listed by `GET suppliers` (only what pickers need). */
+export interface SupplierOption {
+  readonly id: string;
+  readonly name: string;
+  readonly code?: string | null;
+}
+
 /** Mutations report their own errors in place (codes mapped by `trainingErrorKey`). */
 const IN_PLACE = { context: new HttpContext().set(SKIP_ERROR_TOAST, true) };
+
+/** Which list a CSV export follows. */
+export type TrainingExport = 'records' | 'assignments' | 'matrix';
+
+/** Query values as the API params (empty values dropped). */
+type Params = Record<string, string | number | boolean | readonly string[] | null | undefined>;
+
+function assignmentParams(query: AssignmentQuery): Params {
+  return {
+    course_id: query.course_id || null,
+    user_id: query.user_id || null,
+    mine: query.mine ? true : null,
+    status: query.status?.length ? query.status : null,
+    overdue: query.overdue ?? null,
+    q: query.q?.trim() || null,
+    due_before: query.due_before || null,
+    reason: query.reason || null,
+    sort: query.sort ?? null,
+  };
+}
+
+function recordParams(query: RecordQuery): Params {
+  return {
+    course_id: query.course_id || null,
+    user_id: query.user_id || null,
+    mine: query.mine ? true : null,
+    passed: query.passed ?? null,
+    expiring_within_days: query.expiring_within_days ?? null,
+    expired: query.expired ?? null,
+    expires_before: query.expires_before || null,
+    method: query.method || null,
+    missing_evidence: query.missing_evidence ?? null,
+    q: query.q?.trim() || null,
+    sort: query.sort ?? null,
+  };
+}
+
+function matrixParams(query: MatrixQuery): Params {
+  return {
+    course_ids: query.course_ids?.length ? query.course_ids.join(',') : null,
+    category: query.category || null,
+    department_id: query.department_id || null,
+    position_id: query.position_id || null,
+  };
+}
 
 /**
  * Training (M11) API client: `v1/orgs/{org}/training/...` through `ApiService`
@@ -112,6 +183,23 @@ export class TrainingApi {
     return this.api.delete<void>(`${this.base(orgId)}/courses/${id}`, IN_PLACE);
   }
 
+  /** A course-level effectiveness evaluation (`training:manage`). */
+  addEvaluation(
+    orgId: string,
+    courseId: string,
+    body: CourseEvaluationIn,
+  ): Observable<CourseEvaluation> {
+    return this.api.post<CourseEvaluation>(
+      `${this.base(orgId)}/courses/${courseId}/evaluations`,
+      body,
+      IN_PLACE,
+    );
+  }
+
+  deleteEvaluation(orgId: string, id: string): Observable<void> {
+    return this.api.delete<void>(`${this.base(orgId)}/evaluations/${id}`, IN_PLACE);
+  }
+
   // --- learning --------------------------------------------------------------------
 
   player(orgId: string, courseId: string): Observable<PlayerOut> {
@@ -136,6 +224,20 @@ export class TrainingApi {
     return this.api.get<{ readonly items: readonly Rule[] }>(
       `${this.base(orgId)}/courses/${courseId}/rules`,
     );
+  }
+
+  /** What a rule would do (who it assigns), without saving anything. */
+  previewRule(orgId: string, courseId: string, body: RuleCreate): Observable<RulePreview> {
+    return this.api.post<RulePreview>(
+      `${this.base(orgId)}/courses/${courseId}/rules/preview`,
+      body,
+      IN_PLACE,
+    );
+  }
+
+  /** Delete a rule and withdraw the assignments it created that nobody has started. */
+  undoRule(orgId: string, ruleId: string): Observable<RuleUndo> {
+    return this.api.post<RuleUndo>(`${this.base(orgId)}/rules/${ruleId}/undo`, {}, IN_PLACE);
   }
 
   createRule(orgId: string, courseId: string, body: RuleCreate): Observable<RuleCreated> {
@@ -163,12 +265,7 @@ export class TrainingApi {
   listAssignments(orgId: string, query: AssignmentQuery = {}): Observable<AssignmentList> {
     return this.api.get<AssignmentList>(`${this.base(orgId)}/assignments`, {
       params: {
-        course_id: query.course_id || null,
-        user_id: query.user_id || null,
-        mine: query.mine ? true : null,
-        status: query.status?.length ? query.status : null,
-        overdue: query.overdue ?? null,
-        sort: query.sort ?? null,
+        ...assignmentParams(query),
         limit: query.limit ?? null,
         offset: query.offset ?? null,
       },
@@ -195,18 +292,26 @@ export class TrainingApi {
     return this.api.post<Assignment>(`${this.base(orgId)}/assignments/${id}/cancel`, {}, IN_PLACE);
   }
 
+  /** Send the learner a reminder (409 `recently_reminded` within 20 hours). */
+  remindAssignment(orgId: string, id: string): Observable<Assignment> {
+    return this.api.post<Assignment>(`${this.base(orgId)}/assignments/${id}/remind`, {}, IN_PLACE);
+  }
+
+  /** Extend, cancel or remind many assignments at once. */
+  bulkAssignments(orgId: string, body: BulkAssignmentsIn): Observable<BulkAssignmentsOut> {
+    return this.api.post<BulkAssignmentsOut>(
+      `${this.base(orgId)}/assignments/bulk`,
+      body,
+      IN_PLACE,
+    );
+  }
+
   // --- records ---------------------------------------------------------------------
 
   listRecords(orgId: string, query: RecordQuery = {}): Observable<RecordList> {
     return this.api.get<RecordList>(`${this.base(orgId)}/records`, {
       params: {
-        course_id: query.course_id || null,
-        user_id: query.user_id || null,
-        mine: query.mine ? true : null,
-        passed: query.passed ?? null,
-        expiring_within_days: query.expiring_within_days ?? null,
-        expired: query.expired ?? null,
-        sort: query.sort ?? null,
+        ...recordParams(query),
         limit: query.limit ?? null,
         offset: query.offset ?? null,
       },
@@ -255,16 +360,38 @@ export class TrainingApi {
     return this.api.delete<void>(`${this.base(orgId)}/records/${id}`, IN_PLACE);
   }
 
+  /** Assign the record's course to the same person again (reason "retraining"). */
+  reassign(orgId: string, recordId: string, dueAt?: string | null): Observable<Assignment> {
+    return this.api.post<Assignment>(
+      `${this.base(orgId)}/records/${recordId}/reassign`,
+      { due_at: dueAt ?? null },
+      IN_PLACE,
+    );
+  }
+
+  /** CSV of a list with the same filters as on screen (headers in `lang`). */
+  exportCsv(
+    orgId: string,
+    kind: TrainingExport,
+    query: AssignmentQuery | RecordQuery | MatrixQuery,
+    lang: string,
+  ): Observable<Blob> {
+    const params =
+      kind === 'assignments'
+        ? assignmentParams(query as AssignmentQuery)
+        : kind === 'records'
+          ? recordParams(query as RecordQuery)
+          : matrixParams(query as MatrixQuery);
+    return this.api.getBlob(`${this.base(orgId)}/${kind}/export.csv`, {
+      ...IN_PLACE,
+      params: { ...params, lang },
+    });
+  }
+
   // --- overviews -------------------------------------------------------------------
 
   matrix(orgId: string, query: MatrixQuery = {}): Observable<Matrix> {
-    return this.api.get<Matrix>(`${this.base(orgId)}/matrix`, {
-      params: {
-        course_ids: query.course_ids?.length ? query.course_ids.join(',') : null,
-        category: query.category || null,
-        department_id: query.department_id || null,
-      },
-    });
+    return this.api.get<Matrix>(`${this.base(orgId)}/matrix`, { params: matrixParams(query) });
   }
 
   needs(orgId: string, userId?: string | null): Observable<Needs> {
@@ -275,5 +402,68 @@ export class TrainingApi {
 
   stats(orgId: string): Observable<TrainingStats> {
     return this.api.get<TrainingStats>(`${this.base(orgId)}/stats`);
+  }
+
+  /** One person's training (the caller, or anyone for people who oversee training). */
+  person(orgId: string, userId: string): Observable<PersonTraining> {
+    return this.api.get<PersonTraining>(`${this.base(orgId)}/people/${userId}`, IN_PLACE);
+  }
+
+  /** Due dates and expiries by month (only your own unless you oversee training). */
+  plan(orgId: string, query: PlanQuery = {}): Observable<TrainingPlan> {
+    return this.api.get<TrainingPlan>(`${this.base(orgId)}/plan`, {
+      params: {
+        start: query.start || null,
+        months: query.months ?? null,
+        course_id: query.course_id || null,
+        department_id: query.department_id || null,
+        user_id: query.user_id || null,
+      },
+    });
+  }
+
+  /** Read-and-understood status of a document's current approved revision. */
+  documentAcknowledgements(
+    orgId: string,
+    documentId: string,
+  ): Observable<DocumentAcknowledgements> {
+    return this.api.get<DocumentAcknowledgements>(
+      `${this.base(orgId)}/documents/${documentId}/acknowledgements`,
+      IN_PLACE,
+    );
+  }
+
+  /** Public certificate check (no login), from the code printed on a certificate. */
+  verifyCertificate(code: string): Observable<CertificateCheck> {
+    return this.api.get<CertificateCheck>(
+      `v1/training-certificates/${encodeURIComponent(code)}`,
+      IN_PLACE,
+    );
+  }
+
+  // --- options from other modules (pickers) ---------------------------------------------
+
+  /** People job positions (rule target "position"); empty without People access. */
+  positions(orgId: string): Observable<{ readonly items: readonly PeopleOption[] }> {
+    return this.api.get<{ readonly items: readonly PeopleOption[] }>(
+      `v1/orgs/${orgId}/people/positions`,
+      { ...IN_PLACE, params: { limit: 200 } },
+    );
+  }
+
+  /** People competences (what a course gives). */
+  competences(orgId: string): Observable<{ readonly items: readonly NamedOption[] }> {
+    return this.api.get<{ readonly items: readonly NamedOption[] }>(
+      `v1/orgs/${orgId}/people/competences`,
+      { ...IN_PLACE, params: { limit: 200 } },
+    );
+  }
+
+  /** Suppliers that may have provided external training. */
+  suppliers(orgId: string): Observable<{ readonly items: readonly SupplierOption[] }> {
+    return this.api.get<{ readonly items: readonly SupplierOption[] }>(
+      `v1/orgs/${orgId}/suppliers`,
+      { ...IN_PLACE, params: { limit: 200 } },
+    );
   }
 }

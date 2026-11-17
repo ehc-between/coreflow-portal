@@ -3,11 +3,11 @@
     "home": {
       "intro": {
         "title": "Din opplæring i et overblikk",
-        "body": "Denne siden viser kursene du **må** ta, hva som har frist og hvilke sertifikater du har. Kravene kommer fra organisasjonens tildelingsregler (etter rolle, avdeling eller som nyansatt) og fra opplæring som er tildelt deg direkte.",
+        "body": "Her ser du kursene du **må** ta, hva som har frist, og kursbevisene du har. Kravene kommer fra organisasjonens tildelingsregler (for avdelingen, stillingen eller som nyansatt) og fra opplæring som er tildelt deg direkte.",
         "steps": [
           "Begynn med det som er merket **Forfalt** eller **Utløpt**.",
-          "Åpne et kurs og gå gjennom leksjonene, og ta så den avsluttende quizen.",
-          "Opplæringsregistreringen og kursbeviset opprettes automatisk når du består."
+          "Åpne et kurs, gå gjennom leksjonene og fullfør det siste trinnet.",
+          "Opplæringsregistreringen og kursbeviset lages automatisk når du er ferdig."
         ]
       },
       "why": {
@@ -23,16 +23,16 @@
     "courses": {
       "intro": {
         "title": "Kurskatalogen",
-        "body": "Kurs lærer folk det de trenger å vite, og dokumenterer at de har lært det. Et kurs kan være et **nettkurs** med leksjoner og quizer, en **lest og forstått**-bekreftelse av et styrt dokument, eller **ekstern opplæring** som en opplæringsansvarlig registrerer.",
+        "body": "Et kurs lærer folk det de trenger å vite, og dokumenterer at de har lært det. Det kan være et **nettkurs** med leksjoner og quiz, en **lest og forstått**-bekreftelse av et styrt dokument, eller **ekstern opplæring** som en opplæringsansvarlig registrerer.",
         "steps": [
           "Filtrer på kategori, type eller status, og lagre filtrene som en visning.",
-          "Åpne et kurs for å se leksjonene, tildelingsreglene og hvem som har fullført det.",
-          "Kursbyggere lager utkast, som blir tilgjengelige for deltakerne når de publiseres."
+          "Åpne et kurs for å se leksjonene, hvem som må ta det, og hvem som har fullført.",
+          "Nye kurs starter som utkast og blir tilgjengelige når de publiseres."
         ]
       },
       "why": {
         "body": "En katalog med godkjente kurs gjør bevissthetsopplæring repeterbar og målbar i stedet for en engangspresentasjon. Bevissthet om informasjonssikkerhet og personvern er uttrykkelige krav.",
-        "clauses": ["hs:7.3", "iso27001:A.6.3", "gdpr:39", "nis2:21"]
+        "clauses": ["hs:7.3", "iso27001:A.6.3", "gdpr:39", "nis2:21.2.g"]
       },
       "empty": {
         "title": "Ingen kurs ennå",
@@ -43,11 +43,11 @@
     "detail": {
       "intro": {
         "title": "Arbeide med et kurs",
-        "body": "Et kurs går fra **utkast** til **publisert** til **arkivert**. Hver endring i innholdet, bestått-grensen, typen eller dokumentet i et publisert kurs gir en ny **versjon**, og revisjonshistorikken viser hvem som endret hva og hvorfor.",
+        "body": "Et kurs går fra **utkast** til **publisert** og til slutt **arkivert**. Endrer du innholdet i et publisert kurs, blir det en ny **versjon**, og revisjonene viser hvem som endret hva og hvorfor.",
         "steps": [
-          "Legg til tildelingsregler slik at riktige personer får kurset automatisk.",
-          "Bruk **Tildel** for enkeltstående tildelinger, for eksempel etter en hendelse.",
-          "Koble kurset til kravene det hjelper deg å oppfylle, slik at revisorer finner dokumentasjonen."
+          "Legg til regler slik at riktige personer får kurset automatisk. Du ser hvem regelen tildeler før du lagrer.",
+          "Bruk **Tildel** for enkeltpersoner, for eksempel etter en hendelse.",
+          "Kravene kurset dokumenterer vises i panelet til høyre, slik at revisor finner dokumentasjonen."
         ]
       },
       "why": {
@@ -56,20 +56,26 @@
       },
       "fields": {
         "rules": {
-          "help": "En regel sier hvem som må ta kurset og hvor mange dager de har. Planleggeren oppretter også repetisjon 30 dager før et sertifikat utløper.",
-          "example": "Rolle: Kvalitetsleder, 30 dager. Nyansatte, 14 dager."
+          "help": "En regel sier hvem som må ta kurset og hvor mange dager de har. Velg avdeling eller stilling for jobben folk har; tilgangsrolle gjelder bare rettighetene i CoreFlow. Fornyelse tildeles automatisk før et kursbevis utløper.",
+          "example": "Stilling: Lagermedarbeider, 30 dager. Nyansatte, 14 dager.",
+          "requirements": ["hs:7.2"]
+        },
+        "effectiveness": {
+          "help": "Virket opplæringen? Sammenlign med kriteriene for effekt i kurset, og bruk observasjon, nøkkeltall eller revisjon, ikke bare quizresultater.",
+          "example": "Effektiv: avvik av denne typen er halvert etter kurset.",
+          "requirements": ["hs:7.2"]
         }
       }
     },
     "form": {
       "intro": {
         "title": "Bygge et godt kurs",
-        "body": "Hold leksjonene korte og praktiske: ett tema per leksjon, noen få minutter hver, med eksempler fra eget arbeid. Bruk quizer til å sjekke forståelse av det som virkelig betyr noe, ikke til å lure folk.",
+        "body": "Hold leksjonene korte og praktiske: ett tema per leksjon, noen få minutter hver, med eksempler fra egen hverdag. Bruk quizen til å sjekke at folk har forstått det viktigste.",
         "steps": [
           "Velg type: nettkurs, lest og forstått eller ekstern opplæring.",
-          "Skriv leksjonene i markdown. Hver «## »-overskrift blir et trinn i leksjonsspilleren.",
-          "Legg til to til fire quizspørsmål per leksjon og sett en bestått-grense.",
-          "Sett en gyldighetsperiode hvis opplæringen må gjentas."
+          "Skriv læringsmålene: hva deltakerne skal kunne etterpå.",
+          "Legg til to til fire quizspørsmål per leksjon hvis du trenger bevis på forståelse.",
+          "Under **Krav og gyldighet** velger du hvor lenge kurset er gyldig, hvilke krav det dokumenterer og hvilken kompetanse det gir."
         ]
       },
       "why": {
@@ -88,16 +94,40 @@
           "help": "Det styrte dokumentet kurset handler om. Påkrevd for lest og forstått: bekreftelsen lagres mot dokumentets gjeldende godkjente revisjon."
         },
         "passMark": {
-          "help": "Andelen quizsvar som må være riktige for å bestå. 80 % er vanlig; bruk 100 % for sikkerhetskritiske regler.",
+          "help": "Andelen quizsvar som må være riktige for å bestå. 80 % er vanlig; bruk 100 % for sikkerhetskritiske regler. Gjelder bare nettkurs med quiz.",
           "example": "80"
         },
         "validity": {
-          "help": "Hvor lenge en fullføring er gyldig. La feltet stå tomt hvis opplæringen aldri utløper. Repetisjon tildeles automatisk før utløp.",
-          "example": "12 for årlig sikkerhetsbevissthet"
+          "help": "Hvor lenge en gjennomføring er gyldig. La feltet stå tomt hvis opplæringen aldri utløper. Fornyelse tildeles automatisk før utløp.",
+          "example": "12 for årlig sikkerhetsbevissthet",
+          "requirements": ["hs:7.2"]
         },
         "lessonBody": {
-          "help": "Markdown-tekst. Start hvert trinn med en «## »-overskrift; korte avsnitt og punktlister fungerer best.",
+          "help": "Skriv i korte avsnitt. En linje som starter med ## blir et nytt trinn i leksjonen; korte punktlister fungerer best.",
           "example": "## Hva er en hendelse?\nEnhver hendelse som kan skade konfidensialitet, integritet eller tilgjengelighet for informasjon."
+        },
+        "owner": {
+          "help": "Personen som har ansvar for kurset. Navnet står som utsteder på kursbeviset."
+        },
+        "learningObjectives": {
+          "help": "Hva deltakerne skal kunne etter kurset, ett mål per linje. Målene vises før kurset starter og står på kursbeviset.",
+          "example": "Melde en informasjonssikkerhetshendelse innen én time.",
+          "requirements": ["hs:7.2"]
+        },
+        "clauseRefs": {
+          "help": "Kravene i standardene som kurset hjelper organisasjonen å oppfylle. De blir bekreftede koblinger, så kurset teller som dokumentasjon på kravet.",
+          "example": "ISO 27001 · A.6.3 for bevissthetskurs i informasjonssikkerhet",
+          "requirements": ["hs:7.2", "hs:7.3"]
+        },
+        "competences": {
+          "help": "Kompetansen fra Personer som en person får når hen består kurset. Kompetansen fornyes på den ansattes profil, og et høyere nivå blir aldri senket.",
+          "example": "Førstehjelp, nivå Kompetent",
+          "requirements": ["hs:7.2"]
+        },
+        "effectivenessCriteria": {
+          "help": "Hva som viser at opplæringen virket. Bruk kriteriene når du vurderer kurset etter en tid.",
+          "example": "Ingen gjentatte avvik av denne typen på seks måneder.",
+          "requirements": ["hs:7.2"]
         }
       }
     },
@@ -115,17 +145,17 @@
     "assessment": {
       "intro": {
         "title": "Siste trinn",
-        "body": "Svar på alle spørsmålene og send inn. Svarene vurderes av systemet, og en opplæringsregistrering med sertifikatnummer opprettes når du består."
+        "body": "Svar på alle spørsmålene og send inn. Svarene vurderes av systemet, og en opplæringsregistrering med kursbevisnummer opprettes når du består."
       }
     },
     "assignments": {
       "intro": {
         "title": "Hvem skal ta hvilket kurs",
-        "body": "En tildeling ber én person fullføre ett kurs innen en frist. Tildelinger kommer fra regler, fra opplæring av nyansatte, fra repetisjon før utløp eller fra at noen tildeler kurset direkte.",
+        "body": "En tildeling ber én person fullføre ett kurs innen en frist. Tildelinger kommer fra regler, fra opplæring av nyansatte, fra fornyelse før utløp, fra en ny revisjon av et dokument eller fra at noen tildeler kurset direkte.",
         "steps": [
-          "Filtrer på **Forfalte** for å følge opp oversittede frister.",
-          "Bruk **Tildel opplæring** for å tildele et kurs til flere personer samtidig.",
-          "Deltakerne får et varsel og ser tildelingen i Mitt arbeid."
+          "Velg **Forfalte** for å følge opp oversittede frister.",
+          "Kryss av flere tildelinger for å sende påminnelse, flytte fristen eller avbryte dem samlet.",
+          "Grupper etter kurs eller person for å se hvem som mangler hva."
         ]
       },
       "why": {
@@ -141,7 +171,7 @@
     "assignment": {
       "intro": {
         "title": "Én tildeling",
-        "body": "Tildelingen lukkes automatisk når personen består kurset. Opplæringsansvarlige kan endre fristen eller avbryte tildelingen hvis den ikke lenger gjelder."
+        "body": "Tildelingen lukkes automatisk når personen fullfører kurset. Opplæringsansvarlige kan sende påminnelse, endre fristen eller avbryte tildelingen hvis den ikke lenger gjelder."
       },
       "why": {
         "body": "Tildelinger med frister og historikk viser at opplæringsbehovet er planlagt og fulgt opp.",
@@ -159,11 +189,11 @@
     "records": {
       "intro": {
         "title": "Dokumentasjon av kompetanse",
-        "body": "En opplæringsregistrering viser at en person har fullført et kurs: når, hvilken versjon, resultatet og hvor lenge det er gyldig. Registreringer fra nettkurs opprettes automatisk; ekstern opplæring og klasseromsopplæring registreres av en opplæringsansvarlig.",
+        "body": "En opplæringsregistrering viser at en person har fullført et kurs: når, hvilken versjon, resultatet og hvor lenge det er gyldig. Nettkurs registreres automatisk; ekstern opplæring og klasseromsopplæring registreres av en opplæringsansvarlig.",
         "steps": [
-          "Filtrer på **Utløper innen 30 dager** for å planlegge repetisjon.",
-          "Åpne en registrering for å se kursbeviset og vurderingen av effekt.",
-          "Legg ved kursbevis fra eksterne leverandører på registreringen."
+          "Velg **Utløper innen 30 dager** for å planlegge fornyelse.",
+          "Velg **Mangler dokumentasjon** for å finne ekstern opplæring uten vedlagt kursbevis.",
+          "Eksporter listen som CSV når revisor ber om dokumentasjon."
         ]
       },
       "why": {
@@ -177,7 +207,12 @@
       },
       "fields": {
         "expires": {
-          "help": "Når opplæringen slutter å være gyldig. La feltet stå tomt for å bruke kursets gyldighetsperiode, eller hvis den aldri utløper."
+          "help": "Når opplæringen slutter å være gyldig. La feltet stå tomt for å bruke kursets gyldighetsperiode, eller hvis den aldri utløper.",
+          "requirements": ["hs:7.2"]
+        },
+        "provider": {
+          "help": "Leverandøren som holdt opplæringen. Da kobles registreringen til leverandøren, og du ser opplæringen derfra.",
+          "requirements": ["hs:7.2", "iso9001:8.4"]
         }
       }
     },
@@ -192,24 +227,52 @@
       },
       "fields": {
         "effectiveness": {
-          "help": "Nådde opplæringen målet sitt? Baser vurderingen på observert atferd, resultater eller oppfølging, ikke bare på quizresultatet.",
-          "example": "Effektiv: hendelsesmeldinger etter kurset er komplette og kommer i tide."
+          "help": "Nådde opplæringen målet sitt for denne personen? Baser vurderingen på observert atferd, resultater eller oppfølging, ikke bare på quizresultatet.",
+          "example": "Effektiv: hendelsesmeldinger etter kurset er komplette og kommer i tide.",
+          "requirements": ["hs:7.2"]
         }
       }
     },
     "matrix": {
       "intro": {
-        "title": "Opplæringsmatrisen",
-        "body": "Matrisen viser hver person mot hvert kurs med status for det som er påkrevd: i orden, utløper snart, utløpt, tildelt, forfalt eller ikke påkrevd. Prosenten øverst er andelen påkrevd opplæring som er på plass.",
+        "title": "Kompetansematrisen",
+        "body": "Matrisen viser hver person mot hvert kurs med status for det som er påkrevd. Prosenten øverst er andelen påkrevd opplæring som er på plass, og hvert kurs har sin egen prosent.",
         "steps": [
-          "Filtrer på kategori eller avdeling for å konsentrere deg om ett område.",
-          "Klikk på en celle for å åpne tildelingen eller registreringen bak den.",
-          "Bruk matrisen i ledelsens gjennomgåelse som kompetanseoversikt."
+          "Filtrer på kategori, avdeling eller stilling for å se ett område om gangen.",
+          "Klikk på en celle for å åpne registreringen eller tildelingen bak den, eller på et navn for personens opplæringsoversikt.",
+          "Skriv ut eller eksporter matrisen til ledelsens gjennomgang og revisjoner."
         ]
       },
       "why": {
         "body": "En kompetanse- eller opplæringsmatrise er den vanligste måten å vise revisorer at behovene er kjent og dekket i hele organisasjonen.",
         "clauses": ["hs:7.2", "hs:9.3"]
+      }
+    },
+    "assignNew": {
+      "intro": {
+        "title": "Tildel opplæring",
+        "body": "Velg et publisert kurs, personene som skal ta det, og en frist. Bruk regler på kurset hvis det gjelder en hel avdeling eller stilling, så får nye personer det automatisk."
+      },
+      "fields": {
+        "course": {
+          "help": "Bare publiserte kurs kan tildeles. Kommer du fra et avvik, velger du kurset som skal rette opp kompetansebehovet.",
+          "requirements": ["hs:7.2", "hs:10.2"]
+        }
+      }
+    },
+    "plan": {
+      "intro": {
+        "title": "Opplæringsplanen",
+        "body": "Planen viser måned for måned når opplæring har frist og når kursbevis utløper. Den bygges av tildelingene og reglene, også regler som gjentas hvert år.",
+        "steps": [
+          "Start med det som allerede er forfalt.",
+          "Bla 12 måneder fram eller tilbake for å se årsprogrammet.",
+          "Skriv ut planen når revisor ber om opplæringsplanen."
+        ]
+      },
+      "why": {
+        "body": "Standardene krever at organisasjonen planlegger hvordan den skaffer nødvendig kompetanse og holder den ved like. En plan med datoer viser at det ikke er tilfeldig.",
+        "clauses": ["hs:7.2", "iso27001:A.6.3"]
       }
     }
   },
@@ -228,7 +291,7 @@
         },
         {
           "heading": "Slik hjelper CoreFlow",
-          "body": "Tildelingsregler gir riktige kurs til riktige personer, planleggeren setter opp repetisjon før sertifikater utløper, og hver fullføring blir en registrering med sertifikatnummer og kursversjon."
+          "body": "Tildelingsregler gir riktige kurs til riktige personer, fornyelse tildeles automatisk før kursbevis utløper, og hver fullføring blir en registrering med kursbevisnummer og kursversjon."
         }
       ],
       "quiz": [
@@ -287,8 +350,8 @@
       },
       {
         "target": "training-stats",
-        "title": "Statistikk for programmet",
-        "body": "Hvis du følger opp opplæringen, ser du åpne og forfalte tildelinger, gjennomføringsgrad og sertifikater som snart utløper."
+        "title": "Tall for programmet",
+        "body": "Følger du opp opplæringen, ser du hvor mye påkrevd opplæring som er på plass, åpne og forfalte tildelinger og kursbevis som snart utløper."
       }
     ],
     "courses": [
@@ -302,12 +365,12 @@
       {
         "target": "training-matrix-filters",
         "title": "Avgrens matrisen",
-        "body": "Filtrer på kategori eller avdeling for å se ett område om gangen."
+        "body": "Filtrer på kategori, avdeling eller stilling for å se ett område om gangen."
       },
       {
         "target": "training-matrix-summary",
-        "title": "Samlet etterlevelse",
-        "body": "Andelen påkrevd opplæring som er på plass. Bruk den i ledelsens gjennomgåelse."
+        "title": "Påkrevd opplæring på plass",
+        "body": "Andelen påkrevd opplæring som er på plass. Bruk den i ledelsens gjennomgang."
       }
     ]
   }

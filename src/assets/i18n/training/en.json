@@ -4,22 +4,21 @@
     "mine": "My training",
     "courses": "Courses",
     "assignments": "Assignments",
-    "records": "Records",
-    "matrix": "Matrix"
+    "records": "Training records",
+    "matrix": "Training matrix",
+    "plan": "Training plan"
   },
   "common": {
-    "loading": "Loading…",
     "cancel": "Cancel",
     "close": "Close",
     "back": "Back",
-    "save": "Save",
     "edit": "Edit",
     "delete": "Delete",
     "remove": "Remove",
-    "none": "None"
+    "none": "None",
+    "noDue": "No due date"
   },
   "home": {
-    "title": "My training",
     "subtitle": "The training you need, what is due and the certificates you hold.",
     "browse": "Browse courses",
     "needsTitle": "Your training needs",
@@ -32,29 +31,41 @@
     "viewRecord": "View record",
     "allAssignments": "All my assignments",
     "myCertificates": "My certificates",
-    "lessonTitle": "Why training matters",
-    "lessonBody": "A five-minute lesson on competence, awareness and how training records serve as evidence.",
-    "lessonStart": "Start the lesson"
+    "continue": "Continue",
+    "externalHint": "External training: a training manager records it after you attend.",
+    "myProfile": "My training profile",
+    "aside": "Follow-up and learning",
+    "followUpTitle": "Follow up",
+    "followOverdue": "Overdue assignments",
+    "followExpiring": "Certificates expiring within 30 days",
+    "followEvidence": "Records without documentation",
+    "followMatrix": "Open the training matrix",
+    "learnTitle": "Learning centre",
+    "learnBody": "Short lessons on how CoreFlow and the standards work, with your progress.",
+    "learnLink": "Go to the learning centre"
   },
   "stats": {
-    "label": "Training programme statistics",
+    "label": "Training programme",
     "published": "Published courses",
     "open": "Open assignments",
-    "overdue": "Overdue",
-    "completionRate": "Completion rate",
+    "overdue": "Overdue assignments",
+    "completionRate": "Required training in place",
     "expiring": "Expiring in 30 days",
     "expired": "Expired",
     "pct": "{{ value }} %",
     "effectiveness": "Effectiveness: {{ effective }} effective, {{ partial }} partly effective, {{ not }} not effective, {{ pending }} not yet evaluated",
-    "feedback": "Average feedback {{ rating }} / 5"
+    "feedback": "Average feedback {{ rating }} / 5",
+    "completionOf": "{{ compliant }} of {{ required }} required",
+    "completionRateHelp": "Required training in place = valid completions ÷ training people are required to have (the same figure as in the training matrix). A valid certificate counts, however long ago it was earned."
   },
   "courses": {
     "title": "Courses",
     "search": "Search courses by title or code",
     "new": "New course",
-    "noMatch": "No courses match these filters.",
     "aiDraft": "Drafted with AI",
-    "back": "Back to courses"
+    "subtitle": "Courses, read-and-understood confirmations and external training, with who must take them.",
+    "lessons": "{{ count }} lessons",
+    "lessonsOne": "1 lesson"
   },
   "filters": {
     "status": "Status",
@@ -68,10 +79,21 @@
     "allCategories": "All categories",
     "allKinds": "All types",
     "allDepartments": "All departments",
-    "mine": "Mine",
+    "mine": "Only mine",
     "everyone": "Everyone",
-    "open": "Open",
-    "overdue": "Overdue"
+    "allCourses": "All courses",
+    "allMethods": "All methods",
+    "allPositions": "All job positions",
+    "method": "Method",
+    "position": "Job position",
+    "groupBy": "Group",
+    "noGrouping": "No grouping",
+    "byCourse": "By course",
+    "byPerson": "By person",
+    "evidence": "Documentation",
+    "evidenceAll": "All records",
+    "evidenceMissing": "Missing documentation",
+    "clear": "Clear the filters"
   },
   "sort": {
     "title": "Title",
@@ -98,7 +120,6 @@
     "document": "Document",
     "version": "Version",
     "lessons": "Lessons",
-    "updated": "Updated",
     "published": "Published",
     "course": "Course",
     "person": "Person",
@@ -117,7 +138,27 @@
     "certificate": "Certificate",
     "recordedBy": "Recorded by",
     "acknowledged": "Document",
-    "notes": "Notes"
+    "notes": "Notes",
+    "passMarkLong": "Required to pass (% correct answers)",
+    "learningObjectives": "Learning objectives",
+    "effectivenessCriteria": "Effectiveness criteria",
+    "clauseRefs": "Requirements this course documents",
+    "competences": "Gives competence",
+    "competence": "Competence",
+    "level": "Level",
+    "provider": "Provider",
+    "providerSupplier": "Provider (supplier)",
+    "providerName": "Provider name",
+    "instructor": "Instructor",
+    "hours": "Hours",
+    "location": "Location",
+    "scoreOptional": "Result in % (optional)",
+    "remindedAt": "Reminder sent",
+    "evaluatedOn": "Evaluated on",
+    "evaluationMethod": "How it was evaluated",
+    "result": "Result",
+    "evaluationNotes": "What you found",
+    "followUp": "Follow-up"
   },
   "status": {
     "draft": "Draft",
@@ -149,10 +190,11 @@
     "overdue": "Overdue"
   },
   "reason": {
-    "manual": "Assigned manually",
+    "manual": "Assigned by hand",
     "rule": "Assignment rule",
     "new_hire": "New hire",
-    "retraining": "Re-training"
+    "retraining": "Renewal",
+    "new_revision": "New revision of the document"
   },
   "method": {
     "course": "Course completed",
@@ -163,7 +205,8 @@
   "effectiveness": {
     "effective": "Effective",
     "partially_effective": "Partly effective",
-    "not_effective": "Not effective"
+    "not_effective": "Not effective",
+    "pending": "Not evaluated"
   },
   "cell": {
     "compliant": "Compliant",
@@ -175,10 +218,11 @@
   },
   "ruleTarget": {
     "all": "Everyone",
-    "role": "Role",
+    "role": "Access role in CoreFlow",
     "department": "Department",
-    "user": "Person",
-    "new_hire": "New hires"
+    "user": "One person",
+    "new_hire": "New hires",
+    "position": "Job position"
   },
   "validity": {
     "all": "All records",
@@ -207,8 +251,6 @@
     "countAssigned": "Assigned",
     "countOverdue": "Overdue",
     "countCompleted": "Completed",
-    "effectivenessTitle": "Was the training effective?",
-    "effectivenessHint": "Summarise the results, feedback and evaluations of this course to judge whether it achieved its purpose.",
     "publishTitle": "Publish this course?",
     "publishMessage": "Published courses can be taken and assigned, and the assignment rules start creating assignments.",
     "archiveTitle": "Archive this course?",
@@ -217,24 +259,62 @@
     "deleteMessage": "\"{{ title }}\" is removed from the catalogue. Completion records are kept as evidence.",
     "publishedToast": "Course published",
     "archivedToast": "Course archived",
-    "deletedToast": "Course deleted"
+    "deletedToast": "Course deleted",
+    "howToComplete": "How the course is completed",
+    "monthsOne": "1 month",
+    "lessonsOne": "Lessons (1)",
+    "questionsOne": "1 question",
+    "notPublished": "Not published yet",
+    "publishedAt": "{{ date }}",
+    "publishedBy": "{{ date }} by {{ name }}",
+    "publishMessageNoQuiz": "This course has no knowledge test, so learners complete it by opening every lesson. Add quiz questions first if you need proof of understanding. Published courses can be taken and assigned, and the rules start creating assignments."
   },
   "rules": {
-    "title": "Who must take this course",
-    "intro": "Rules assign the course automatically to everyone, a role, a department, one person or new hires, and plan re-training before a certificate expires.",
-    "empty": "No assignment rules yet.",
+    "title": "Who must take the course",
+    "intro": "A rule assigns the course automatically, for example to a department, a job position or new hires. Before you save it, you see who it assigns.",
+    "empty": "No assignment rules yet. Without a rule, the course is only taken by people who are assigned it or choose it themselves.",
     "dueDays": "due within {{ days }} days",
     "paused": "Paused",
     "active": "Active",
     "target": "Applies to",
-    "value": "Which",
-    "pick": "Choose…",
-    "noValue": "Not needed",
+    "pick": "Choose …",
     "days": "Days to complete",
     "add": "Add rule",
     "added": "Rule added. {{ count }} assignments created.",
-    "sync": "Run planner now",
-    "synced": "Planner finished. {{ count }} assignments created."
+    "sync": "Update assignments now",
+    "synced": "Assignments updated. {{ count }} created.",
+    "draftNote": "The course is a draft: rules start assigning when it is published.",
+    "repeats": "repeats every {{ months }} months",
+    "repeatsOne": "repeats every month",
+    "open": "{{ count }} open assignments",
+    "openOne": "1 open assignment",
+    "pickTarget": "Choose who …",
+    "valueFor": {
+      "department": "Which department",
+      "position": "Which job position",
+      "role": "Which access role",
+      "user": "Which person"
+    },
+    "roleHint": "Access roles decide what someone may do in CoreFlow (for example Auditor). Use Job position for the job someone has.",
+    "noPositions": "No job positions found. Add them under People.",
+    "recurrence": "Repeat every (months)",
+    "recurrencePlaceholder": "Never",
+    "recurrenceHelp": "For an annual programme, enter 12. Leave empty if the course only needs to be taken once (or renewed when it expires).",
+    "check": "See who this assigns",
+    "preview": "This assigns the course to {{ count }} people.",
+    "previewOne": "This assigns the course to 1 person.",
+    "previewDetail": "{{ targeted }} people are covered by the rule. {{ assigned }} already have it assigned and {{ compliant }} have valid training.",
+    "previewDraft": "The course is not published, so nobody is assigned until it is.",
+    "previewSample": "Including:",
+    "previewMore": "{{ names }} and {{ count }} more",
+    "duplicate": "An identical rule already exists for this course.",
+    "confirm": "Save rule and assign {{ count }}",
+    "confirmOne": "Save rule and assign 1",
+    "remove": "Remove rule",
+    "undoTitle": "Remove the rule?",
+    "undoMessage": "The rule stops assigning the course. Its {{ count }} open assignments that nobody has started are withdrawn without a new notification; started ones are kept.",
+    "undone": "Rule removed. {{ cancelled }} assignments withdrawn, {{ kept }} kept because they were started.",
+    "syncHelp": "Runs every rule now instead of waiting for the nightly run: new people get their assignments, and renewals are created before certificates expire."
   },
   "assign": {
     "title": "Assign training",
@@ -246,17 +326,20 @@
     "selectAll": "Select all shown",
     "noPeople": "No people found.",
     "dueDate": "Due date",
-    "submit": "Assign",
-    "done": "{{ created }} assigned, {{ skipped }} skipped (already assigned or not a member)."
+    "submit": "Assign to {{ count }}",
+    "done": "{{ created }} assigned, {{ skipped }} skipped (already assigned or not a member).",
+    "submitOne": "Assign to 1",
+    "clear": "Clear"
   },
   "assignments": {
     "title": "Assignments",
-    "search": "Filter by course or person",
+    "search": "Search by course or person (all pages)",
     "assign": "Assign training",
-    "noMatch": "No assignments match these filters.",
     "courseFilter": "Showing one course.",
     "clearCourse": "Show all courses",
-    "back": "Back to assignments"
+    "subtitle": "Who must complete which course, and by when.",
+    "selectPage": "Select all open assignments on this page",
+    "selectOne": "Select {{ course }} for {{ person }}"
   },
   "assignmentDetail": {
     "title": "{{ course }}: {{ person }}",
@@ -264,28 +347,45 @@
     "cancelTitle": "Cancel this assignment?",
     "cancelMessage": "{{ person }} no longer has to take this course. The history is kept.",
     "cancelled": "Assignment cancelled",
-    "changeDue": "Due date",
-    "dueSaved": "Due date saved"
+    "changeDue": "New due date",
+    "dueSaved": "Due date saved",
+    "notStarted": "Not started",
+    "noAttempts": "No attempts yet",
+    "remind": "Send reminder",
+    "reminded": "Reminder sent to {{ person }}",
+    "remindedRecently": "A reminder was already sent in the last 20 hours.",
+    "whyTitle": "Why this was assigned",
+    "ruleText": "The rule “{{ target }}” assigns the course, with {{ days }} days to complete it.",
+    "ruleDeleted": "It was assigned by a rule that has since been removed ({{ target }}).",
+    "openRules": "See the course's rules",
+    "saveDue": "Save due date"
   },
   "records": {
     "title": "Training records",
-    "search": "Filter by course, person or certificate",
+    "search": "Search by course, person or certificate (all pages)",
     "new": "Record training",
-    "noMatch": "No records match these filters.",
     "notPassed": "Not passed",
     "expired": "Expired",
     "valid": "Valid",
-    "until": "Until {{ date }}",
     "noExpiry": "No expiry",
-    "back": "Back to records"
+    "subtitle": "Completed training and certificates: the evidence that people have the competence they need.",
+    "expiringSoon": "Expires soon",
+    "missingEvidence": "Missing documentation"
   },
   "recordForm": {
     "title": "Record training",
     "passed": "Passed",
-    "evidenceHint": "Attach the course certificate or attendance list on the record after saving.",
+    "evidenceHint": "After you save, you go straight to the record's attachments so you can add the certificate or attendance list. Records without documentation are flagged.",
     "submit": "Save record",
     "created": "Training recorded",
-    "required": "Choose a course, a person and the completion date."
+    "required": "Choose a course, a person and the completion date.",
+    "pickPerson": "Choose a person …",
+    "providerTitle": "Who gave the training",
+    "noSupplier": "Not a registered supplier",
+    "providerPlaceholder": "For example the course provider or the department that ran it",
+    "expiryDefault": "Leave empty to use the course's validity: expires {{ date }}.",
+    "expiryNever": "The course has no validity period: leave empty if the training never expires.",
+    "expiryPickCourse": "Leave empty to use the course's validity period."
   },
   "recordDetail": {
     "title": "{{ course }}: {{ person }}",
@@ -296,7 +396,7 @@
     "noFeedback": "No feedback given.",
     "sendFeedback": "Send feedback",
     "feedbackSaved": "Thank you for your feedback",
-    "effectivenessTitle": "Effectiveness evaluation",
+    "effectivenessTitle": "Did the training work for this person?",
     "notEvaluated": "Not evaluated yet.",
     "evaluate": "How effective was the training?",
     "evaluatedBy": "by {{ name }}, {{ date }}",
@@ -305,36 +405,58 @@
     "deleteTitle": "Delete this record?",
     "deleteMessage": "The record and its certificate are removed from the lists. The audit log keeps the history.",
     "deleted": "Record deleted",
-    "lessonTitle": "Learn to evaluate effectiveness",
-    "lessonStart": "Start the lesson"
+    "reassign": "Assign again",
+    "reassigned": "{{ person }} has been assigned the course again",
+    "alreadyAssigned": "This person already has an open assignment for the course.",
+    "missingEvidenceHelp": "This record has no documentation yet. Attach the certificate or attendance list so an auditor can see the evidence.",
+    "attach": "Add documentation",
+    "followUpHint": "The training did not fully work. Assign it again, or use “Create from this” to open a deviation or a task."
   },
   "certificate": {
-    "back": "Back to the record",
     "print": "Print",
     "heading": "Certificate of completion",
     "certifies": "This certifies that",
     "completed": "has completed",
     "version": "Course version {{ version }}",
-    "issued": "Issued"
+    "issued": "Issued",
+    "pageTitle": "Certificate",
+    "record": "Training record",
+    "objectives": "Learning objectives",
+    "validUntil": "Valid until",
+    "issuedBy": "Issued by",
+    "verifyHint": "Scan the code to check that the certificate is genuine. Verification code:",
+    "qrLabel": "QR code that opens the public check of this certificate"
   },
   "matrix": {
     "title": "Training matrix",
-    "subtitle": "Who has the training they need, and who does not.",
+    "subtitle": "Who has the required training in place, by person and course.",
     "summary": "{{ compliant }} of {{ required }} required trainings are in place ({{ pct }} %).",
-    "compliance": "Compliance",
+    "compliance": "Required training in place",
     "legend": "Legend",
     "empty": "No people or courses to show. Publish courses and add assignment rules first.",
-    "cellLabel": "{{ person }}, {{ course }}: {{ status }}"
+    "cellLabel": "{{ person }}, {{ course }}: {{ status }}",
+    "print": "Print",
+    "emptyTitle": "Nothing to show yet",
+    "coursePct": "{{ pct }} % ({{ compliant }}/{{ required }})",
+    "notRequired": "Not required",
+    "notRequiredCell": "Not required for this person",
+    "dotHelp": "A dot (·) means the course is not required for the person. Click a cell to open the record or assignment behind it.",
+    "legendHelp": {
+      "compliant": "valid training",
+      "expiring": "expires within 30 days",
+      "expired": "must be renewed",
+      "assigned": "assigned, not done yet",
+      "overdue": "assigned, past the due date",
+      "missing": "required, not assigned"
+    }
   },
   "player": {
-    "back": "Back to the course",
     "progress": "Course progress",
     "outline": "Course outline",
     "overview": "Overview",
     "assessment": "Final quiz",
     "confirmStep": "Confirm",
     "finishStep": "Finish",
-    "summary": "{{ lessons }} lessons, {{ questions }} quiz questions. Pass mark {{ pass }}.",
     "begin": "Begin",
     "alreadyCompleted": "You completed this course on {{ date }}.",
     "viewRecord": "View record",
@@ -360,6 +482,20 @@
       "done": "completed",
       "seen": "started",
       "new": "not started"
+    },
+    "crumb": "Take the course",
+    "lessons": "{{ count }} lessons",
+    "lessonsOne": "1 lesson",
+    "minutes": "about {{ count }} min",
+    "assessmentIntro": "Answer every question and submit. Your answers are scored when you submit, and you get a training record when you pass.",
+    "whyRule": "You have this course because it applies to {{ target }}.",
+    "whyManual": "{{ name }} assigned this course to you.",
+    "why": {
+      "manual": "You were assigned this course.",
+      "rule": "An assignment rule gave you this course.",
+      "new_hire": "You have this course because you are new in the organisation.",
+      "retraining": "Your earlier training is expiring or was not effective, so it must be renewed.",
+      "new_revision": "The document has a new revision, so you must confirm it again."
     }
   },
   "rating": {
@@ -369,9 +505,8 @@
   "form": {
     "newTitle": "New course",
     "editTitle": "Edit course",
-    "backToCourse": "Back to the course",
     "basics": "About the course",
-    "passMarkPct": "Pass mark (%)",
+    "passMarkPct": "Required to pass (% correct answers)",
     "validityMonths": "Valid for (months)",
     "estimatedMinutes": "Estimated time (minutes)",
     "lessonsTitle": "Lessons ({{ count }})",
@@ -382,7 +517,7 @@
     "moveDown": "Move down",
     "lessonTitle": "Lesson title",
     "lessonMinutes": "Minutes",
-    "lessonBody": "Content (markdown, use \"## \" headings to split it into steps)",
+    "lessonBody": "Lesson text",
     "videoUrl": "Video link",
     "lessonDocument": "Related document",
     "quizTitle": "Quiz ({{ count }} questions)",
@@ -415,7 +550,29 @@
       "question": "Lesson {{ n }}, question {{ q }}: write the question.",
       "options": "Lesson {{ n }}, question {{ q }}: fill in at least two options.",
       "answer": "Lesson {{ n }}, question {{ q }}: select the correct answer."
-    }
+    },
+    "noOwner": "No owner",
+    "noDocument": "No document",
+    "kindHelp": {
+      "course": "Lessons with an optional quiz, taken in CoreFlow.",
+      "read_and_understood": "People confirm that they have read a controlled document.",
+      "external": "Training held elsewhere (classroom, provider) and recorded by a training manager."
+    },
+    "objectivesPlaceholder": "What participants can do afterwards, one per line",
+    "requirementsTitle": "Requirements and validity",
+    "requirementsIntro": "How the course is passed, how long it is valid, which requirements it documents and which competence it gives.",
+    "passMarkNoQuiz": "The course has no quiz questions yet, so the pass mark is not used: learners complete it by opening every lesson.",
+    "validityPlaceholder": "Never expires",
+    "validityHelpSet": "A completion is valid for {{ months }} months; a renewal is assigned before it expires.",
+    "validityHelpEmpty": "Empty: completions never expire. Use this for one-off training such as onboarding.",
+    "suggestedClauses": "Typical for this category:",
+    "addClause": "Add {{ clause }}",
+    "noCompetences": "No competences registered under People yet.",
+    "pickCompetence": "Choose a competence …",
+    "addCompetence": "Add competence",
+    "criteriaPlaceholder": "For example: no repeat deviations of this kind for six months",
+    "lessonBodyHint": "Write in short paragraphs. Start a line with ## to begin a new step, and with - for a bullet point.",
+    "externalHint": "External training usually needs no lessons. Add one if you want to describe the course or its learning goals."
   },
   "ai": {
     "draftTitle": "Draft a course with AI",
@@ -439,7 +596,9 @@
     "passMark": "How should I choose a pass mark for this course?",
     "validity": "How long should this training stay valid before re-training?",
     "feedback": "Why does the organisation ask for feedback on training?",
-    "effectiveness": "How do I evaluate whether training was effective?"
+    "effectiveness": "How do I evaluate whether training was effective?",
+    "clauses": "Which requirements does a course like this document, and how do I show it to an auditor?",
+    "dueDate": "What is a sensible due date for this training?"
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",
@@ -463,7 +622,15 @@
     "invalid_user": "The person must be a member of the organisation.",
     "completed_in_future": "The completion date cannot be in the future.",
     "no_certificate": "This record has no certificate.",
-    "module_disabled": "Training is not enabled for this organisation."
+    "module_disabled": "Training is not enabled for this organisation.",
+    "notFoundTitle": "Not found",
+    "duplicate_rule": "An identical rule already exists for this course.",
+    "recently_reminded": "A reminder was already sent in the last 20 hours.",
+    "invalid_clause_ref": "One of the requirements is not recognised. Pick it from the list.",
+    "invalid_competence": "One of the competences no longer exists. Remove it and try again.",
+    "invalid_supplier": "The supplier was not found. Pick another or type the provider's name.",
+    "expires_before_completed": "The expiry date must be after the completion date.",
+    "rate_limited": "Too many attempts. Wait a minute and try again."
   },
   "notifications": {
     "courseCreated": "Course {{ code }} created: {{ title }}",
@@ -479,7 +646,10 @@
     "recordRecorded": "Training recorded: {{ code }} {{ title }}",
     "recordEvaluated": "Training effectiveness evaluated",
     "feedbackGiven": "Feedback given on training",
-    "recordDeleted": "Training record deleted"
+    "recordDeleted": "Training record deleted",
+    "reminded": "Reminder: complete {{ code }} {{ title }}",
+    "assignmentWithdrawn": "A training assignment was withdrawn",
+    "courseEvaluated": "Course effectiveness evaluated"
   },
   "timeline": {
     "courseCreated": "{{ actor_name }} created the course",
@@ -495,6 +665,160 @@
     "recordRecorded": "{{ actor_name }} recorded the training",
     "recordEvaluated": "{{ actor_name }} evaluated the effectiveness",
     "feedbackGiven": "{{ actor_name }} gave feedback ({{ rating }} / 5)",
-    "recordDeleted": "{{ actor_name }} deleted the record"
+    "recordDeleted": "{{ actor_name }} deleted the record",
+    "reminded": "{{ actor_name }} sent a reminder",
+    "assignmentWithdrawn": "{{ actor_name }} withdrew the assignment (the rule was removed)",
+    "courseEvaluated": "{{ actor_name }} evaluated the course's effectiveness"
+  },
+  "frameworks": {
+    "hs": "Common ISO requirement",
+    "eu_ai_act": "EU AI Act"
+  },
+  "statusChip": {
+    "open": "Open",
+    "overdue": "Overdue",
+    "completed": "Completed",
+    "cancelled": "Cancelled",
+    "all": "All"
+  },
+  "reasonText": {
+    "rule": "Rule: {{ target }}",
+    "manualBy": "Assigned by {{ name }}"
+  },
+  "completion": {
+    "quiz": "Learners go through the lessons and pass the final quiz with at least {{ pass }} correct answers.",
+    "lessons": "This course has no knowledge test: learners complete it by opening every lesson.",
+    "read_ack": "Learners read the document and confirm that they have read and understood it.",
+    "external": "The training happens elsewhere. A training manager records it when the person has attended."
+  },
+  "competenceLevel": {
+    "0": "Aware",
+    "1": "Basic",
+    "2": "Competent",
+    "3": "Experienced",
+    "4": "Expert"
+  },
+  "effect": {
+    "title": "Does the training work?",
+    "noCriteria": "No criteria yet. Describe in the course what shows that the training worked, for example fewer deviations of a kind.",
+    "recordsTitle": "Evaluations of individual records",
+    "evaluationsTitle": "Course evaluations",
+    "noEvaluations": "No course evaluation yet. Evaluate the course after a while, for example after a survey or an audit.",
+    "add": "Add evaluation",
+    "save": "Save evaluation",
+    "saved": "The evaluation is saved",
+    "deleted": "The evaluation is deleted",
+    "deleteTitle": "Delete the evaluation?",
+    "deleteMessage": "The evaluation is removed from the course. The audit log keeps the history.",
+    "followUpPlaceholder": "For example: update lesson 2 and run the course again for the warehouse"
+  },
+  "evaluationMethod": {
+    "survey": "Survey",
+    "observation": "Observation at work",
+    "test": "Test",
+    "kpi": "Key figures (KPI)",
+    "audit": "Audit",
+    "interview": "Interview",
+    "other": "Other"
+  },
+  "bulk": {
+    "label": "Bulk actions",
+    "selected": "{{ count }} selected",
+    "remind": "Send reminder",
+    "newDue": "New due date",
+    "extend": "Move due date",
+    "cancel": "Cancel assignments",
+    "clear": "Clear selection",
+    "cancelTitle": "Cancel the assignments?",
+    "cancelMessage": "{{ count }} people no longer need to take the course. The history is kept.",
+    "done": {
+      "remind": "{{ count }} reminders sent. {{ skipped }} skipped (already reminded today or closed).",
+      "extend": "Due date moved for {{ count }}. {{ skipped }} skipped (closed).",
+      "cancel": "{{ count }} assignments cancelled. {{ skipped }} skipped (already closed)."
+    }
+  },
+  "assignNew": {
+    "title": "Assign training",
+    "subtitle": "Choose a published course, the people who must take it and a due date. They are notified and see it in My work.",
+    "noCourses": "No published courses yet. Publish a course first."
+  },
+  "person": {
+    "title": "Training: {{ name }}",
+    "titleFallback": "Training profile",
+    "subtitle": "Everything this person must have, has started and has completed, on one page.",
+    "print": "Print",
+    "required": "Required courses",
+    "compliant": "In place",
+    "overdue": "Overdue",
+    "expiring": "Expiring within 30 days",
+    "needsTitle": "Training needs",
+    "noNeeds": "No training is required for this person right now.",
+    "when": "Date",
+    "optional": "not required",
+    "assignmentsTitle": "Open assignments",
+    "noAssignments": "No open assignments.",
+    "recordsTitle": "Completed training",
+    "noRecords": "No completed training yet.",
+    "forbiddenTitle": "You cannot see this person's training",
+    "forbidden": "You can see your own training profile. Training managers and auditors can see everyone's."
+  },
+  "plan": {
+    "title": "Training plan",
+    "subtitle": "When training is due and certificates expire, month by month.",
+    "print": "Print plan",
+    "period": "Period",
+    "periodLabel": "{{ from }} – {{ to }}",
+    "previous": "Previous 12 months",
+    "next": "Next 12 months",
+    "today": "From this month",
+    "totals": "{{ due }} due and {{ expiring }} certificates expiring in the period. {{ overdue }} overdue.",
+    "overdueTitle": "Already overdue",
+    "monthCounts": "{{ due }} due · {{ expiring }} expiring",
+    "nothing": "Nothing this month.",
+    "emptyTitle": "Nothing planned in this period",
+    "empty": "Assign courses or add rules that repeat (for example every 12 months) to build the training plan.",
+    "kind": {
+      "due": "Due",
+      "expiring": "Expires"
+    },
+    "showAll": "Show all {{ count }}"
+  },
+  "verify": {
+    "title": "Check a training certificate",
+    "intro": "This page confirms a certificate issued in CoreFlow from the code printed on it.",
+    "holder": "Holder",
+    "organisation": "Organisation",
+    "status": {
+      "valid": "Valid",
+      "expired": "Expired"
+    },
+    "statusText": {
+      "valid": "The certificate is genuine and valid.",
+      "expired": "The certificate is genuine, but it has expired."
+    },
+    "not_found": "No certificate matches this code. Check the code, or ask the organisation that issued it.",
+    "rate_limited": "Too many checks from this connection. Wait a minute and try again.",
+    "error": "The check could not be completed. Try again later.",
+    "privacy": "Only the details printed on the certificate are shown."
+  },
+  "export": {
+    "csv": "Export CSV",
+    "failed": "The export failed. Try again."
+  },
+  "next": {
+    "orgOverdue": {
+      "title": "{{ count }} training assignments are overdue",
+      "why": "People are missing required training. Send reminders or move the due dates."
+    },
+    "expiring": {
+      "title": "{{ count }} certificates expire within 30 days",
+      "why": "Renew the training in time so competence stays documented."
+    }
+  },
+  "documentAcks": {
+    "title": "Read and understood",
+    "summary": "{{ done }} of {{ required }} have confirmed the current revision.",
+    "summaryRev": "{{ done }} of {{ required }} have confirmed revision {{ rev }}.",
+    "pending": "{{ count }} have not confirmed yet:"
   }
 }

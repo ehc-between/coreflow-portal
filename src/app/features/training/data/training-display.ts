@@ -1,14 +1,9 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, computed, inject } from '@angular/core';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
-import { BadgeTone } from '../../../shared/ui/badge/badge';
-import {
-  AssignmentStatus,
-  CellStatus,
-  CourseStatus,
-  Effectiveness,
-  TrainingRecord,
-} from './training.models';
+import { ModuleNavItem } from '../../../shared/ui/module-nav/module-nav';
+import { ToneMeaning } from '../../../shared/ui/tones';
+import { Assignment, CellStatus, CompletionRule, Course, TrainingRecord } from './training.models';
 
 /** Backend module key (permission prefix, page-context `module`). */
 export const TRAINING_MODULE = 'training';
@@ -33,19 +28,35 @@ export const TRAINING_ERROR_CODES = [
   'completed_in_future',
   'no_certificate',
   'module_disabled',
+  'duplicate_rule',
+  'recently_reminded',
+  'invalid_clause_ref',
+  'invalid_competence',
+  'invalid_supplier',
+  'expires_before_completed',
+  'rate_limited',
 ] as const;
 
 const KNOWN_CODES = new Set<string>(TRAINING_ERROR_CODES);
 
+/** The `{"detail": {"code"}}` of a failed request, if any. */
+export function trainingErrorCode(error: unknown): string | null {
+  if (!(error instanceof HttpErrorResponse)) {
+    return null;
+  }
+  const detail = (error.error as { detail?: unknown } | null)?.detail;
+  const code =
+    detail && typeof detail === 'object' ? (detail as { code?: unknown }).code : undefined;
+  return typeof code === 'string' ? code : null;
+}
+
 /** i18n key (scope `training`) for a failed training request. */
 export function trainingErrorKey(error: unknown): string {
+  const code = trainingErrorCode(error);
+  if (code && KNOWN_CODES.has(code)) {
+    return `training.errors.${code}`;
+  }
   if (error instanceof HttpErrorResponse) {
-    const detail = (error.error as { detail?: unknown } | null)?.detail;
-    const code =
-      detail && typeof detail === 'object' ? (detail as { code?: unknown }).code : undefined;
-    if (typeof code === 'string' && KNOWN_CODES.has(code)) {
-      return `training.errors.${code}`;
-    }
     if (error.status === 403) {
       return 'training.errors.forbidden';
     }
@@ -62,74 +73,118 @@ export function trainingErrorKey(error: unknown): string {
   return 'training.errors.generic';
 }
 
-export function courseStatusTone(status: CourseStatus | string): BadgeTone {
-  switch (status) {
-    case 'published':
-      return 'pass';
-    case 'archived':
-      return 'neutral';
-    default:
-      return 'info';
-  }
+/** What an `app-status-badge` needs: the tone meaning, the tone value and the label. */
+export interface BadgeView {
+  readonly meaning: ToneMeaning;
+  readonly value: string;
+  readonly labelKey: string;
+  readonly labelParams?: Record<string, unknown>;
 }
 
-export function assignmentTone(status: AssignmentStatus | string, overdue = false): BadgeTone {
-  if (overdue && (status === 'assigned' || status === 'in_progress')) {
-    return 'fail';
-  }
-  switch (status) {
-    case 'completed':
-      return 'pass';
-    case 'in_progress':
-      return 'accent';
-    case 'cancelled':
-      return 'neutral';
-    default:
-      return 'info';
-  }
+/** Whether an assignment is still open (assigned or in progress). */
+export function isOpenAssignment(a: Pick<Assignment, 'status'>): boolean {
+  return a.status === 'assigned' || a.status === 'in_progress';
 }
 
-export function cellTone(status: CellStatus | string): BadgeTone {
-  switch (status) {
-    case 'compliant':
-      return 'pass';
-    case 'expiring':
-      return 'warn';
-    case 'expired':
-    case 'overdue':
-      return 'fail';
-    case 'assigned':
-      return 'info';
-    default:
-      return 'neutral';
-  }
+/** Status badge of an assignment; an open one past its due date reads "Forfalt". */
+export function assignmentBadge(a: Pick<Assignment, 'status' | 'overdue'>): BadgeView {
+  const status = a.overdue && isOpenAssignment(a) ? 'overdue' : a.status;
+  // "assigned" is an open to-do (info), like "open" in the tone map.
+  return {
+    meaning: 'lifecycle',
+    value: status === 'assigned' ? 'open' : status,
+    labelKey: `training.assignmentStatus.${status}`,
+  };
 }
 
-export function effectivenessTone(value: Effectiveness | string | null): BadgeTone {
-  switch (value) {
-    case 'effective':
-      return 'pass';
-    case 'partially_effective':
-      return 'warn';
-    case 'not_effective':
-      return 'fail';
-    default:
-      return 'neutral';
-  }
+/** Status badge of a course (draft · published · archived). */
+export function courseBadge(status: string): BadgeView {
+  return { meaning: 'lifecycle', value: status, labelKey: `training.status.${status}` };
 }
 
-/** Badge tone of a record's validity: expired, expiring within 30 days, or valid. */
-export function recordValidityTone(record: TrainingRecord, now = new Date()): BadgeTone {
-  if (!record.passed || record.expired) {
-    return 'fail';
+/**
+ * Status badge of a matrix cell / training need. Valid training is done (green); an
+ * expired certificate is a real gap (red); overdue and expiring are to-dos (amber).
+ */
+export function cellBadge(status: CellStatus | string): BadgeView {
+  const value: Record<string, string> = {
+    compliant: 'compliant',
+    expiring: 'expiring',
+    expired: 'non_compliant',
+    overdue: 'overdue',
+    assigned: 'open',
+    missing: 'not_assessed',
+  };
+  return {
+    meaning:
+      status === 'expiring' || status === 'overdue' || status === 'assigned'
+        ? 'lifecycle'
+        : 'compliance',
+    value: value[status] ?? 'not_assessed',
+    labelKey: `training.cell.${status}`,
+  };
+}
+
+/** Badge of a course-level or per-record effectiveness result. */
+export function effectivenessBadge(value: string | null | undefined): BadgeView {
+  const map: Record<string, string> = {
+    effective: 'compliant',
+    partially_effective: 'partial',
+    not_effective: 'non_compliant',
+  };
+  return {
+    meaning: 'compliance',
+    value: (value && map[value]) || 'not_assessed',
+    labelKey: value ? `training.effectiveness.${value}` : 'training.effectiveness.pending',
+  };
+}
+
+/** Days from now until a naive UTC date-time (negative when past). */
+export function daysUntil(value: string | null | undefined, now = new Date()): number | null {
+  if (!value) {
+    return null;
   }
-  if (record.expires_at) {
-    const days = (Date.parse(`${record.expires_at.slice(0, 19)}Z`) - now.getTime()) / 86_400_000;
-    if (days <= 30) {
-      return 'warn';
-    }
+  const at = Date.parse(`${value.slice(0, 19)}Z`);
+  return Number.isNaN(at) ? null : (at - now.getTime()) / 86_400_000;
+}
+
+/** Whether a record is valid now but expires within `days` (default 30). */
+export function isExpiringSoon(record: TrainingRecord, now = new Date(), days = 30): boolean {
+  const left = daysUntil(record.expires_at, now);
+  return record.passed && !record.expired && left !== null && left <= days;
+}
+
+/** Validity badge of a record: not passed, expired, expires soon, valid until … or valid. */
+export function recordBadge(record: TrainingRecord, now = new Date()): BadgeView {
+  if (!record.passed) {
+    return { meaning: 'lifecycle', value: 'failed', labelKey: 'training.records.notPassed' };
   }
-  return 'pass';
+  if (record.expired) {
+    return { meaning: 'compliance', value: 'non_compliant', labelKey: 'training.records.expired' };
+  }
+  if (isExpiringSoon(record, now)) {
+    return { meaning: 'lifecycle', value: 'expiring', labelKey: 'training.records.expiringSoon' };
+  }
+  return { meaning: 'compliance', value: 'compliant', labelKey: 'training.records.valid' };
+}
+
+/**
+ * How a learner completes the course. Older backends do not send
+ * `completion_rule`; derive it from the kind and the number of quiz questions.
+ */
+export function completionRuleOf(
+  course: Pick<Course, 'kind' | 'quiz_count'> & { readonly completion_rule?: CompletionRule },
+): CompletionRule {
+  if (course.completion_rule) {
+    return course.completion_rule;
+  }
+  if (course.kind === 'external') {
+    return 'external';
+  }
+  if (course.kind === 'read_and_understood') {
+    return 'read_ack';
+  }
+  return course.quiz_count > 0 ? 'quiz' : 'lessons';
 }
 
 /** `YYYY-MM-DD` of a naive UTC date-time ('' when empty), for `<input type="date">`. */
@@ -163,6 +218,36 @@ export function addDaysInput(days: number, from = new Date()): string {
 }
 
 /**
+ * `YYYY-MM-DD` `months` after a `YYYY-MM-DD` date (end-of-month safe: 31 Jan + 1 month
+ * = 28/29 Feb), or '' when the input is not a date.
+ */
+export function addMonthsInput(date: string, months: number): string {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date);
+  if (!match || !Number.isInteger(months)) {
+    return '';
+  }
+  const [y, m, d] = [Number(match[1]), Number(match[2]) - 1, Number(match[3])];
+  const target = new Date(y, m + months, 1);
+  const lastDay = new Date(target.getFullYear(), target.getMonth() + 1, 0).getDate();
+  return todayInput(new Date(target.getFullYear(), target.getMonth(), Math.min(d, lastDay)));
+}
+
+/** The browser download file name of a CSV export (`training-records-2026-11-17.csv`). */
+export function exportFileName(kind: string, now = new Date()): string {
+  return `training-${kind}-${todayInput(now)}.csv`;
+}
+
+/** Trigger a browser download of a Blob. */
+export function saveBlob(blob: Blob, filename: string): void {
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = filename;
+  anchor.click();
+  URL.revokeObjectURL(url);
+}
+
+/**
  * The current user's training permissions in the selected org, as signals.
  * "Oversee" (report, assign or manage) unlocks everyone's assignments and records.
  */
@@ -181,4 +266,34 @@ export class TrainingAccess {
   readonly canManage = computed(() => this.permissions().has('training:manage'));
   readonly canOversee = computed(() => this.canReport() || this.canAssign() || this.canManage());
   readonly canSeeAudit = computed(() => this.permissions().has('audit:read'));
+  readonly canWriteTasks = computed(() => this.permissions().has('tasks:write'));
+  readonly canReadPeople = computed(() => this.permissions().has('people:read'));
+  readonly canReadSuppliers = computed(() => this.permissions().has('suppliers:read'));
+
+  /**
+   * The module's sub-navigation (`app-module-nav`): everyone sees their own training,
+   * the catalogue, assignments, records and plan; the matrix is for people who
+   * oversee training.
+   */
+  readonly navItems = computed<readonly ModuleNavItem[]>(() => {
+    const items: ModuleNavItem[] = [
+      { labelKey: 'training.nav.mine', link: '/training', exact: true, testId: 'nav-mine' },
+      { labelKey: 'training.nav.courses', link: '/training/courses', testId: 'nav-courses' },
+      {
+        labelKey: 'training.nav.assignments',
+        link: '/training/assignments',
+        testId: 'nav-assignments',
+      },
+      { labelKey: 'training.nav.records', link: '/training/records', testId: 'nav-records' },
+      { labelKey: 'training.nav.plan', link: '/training/plan', testId: 'nav-plan' },
+    ];
+    if (this.canOversee()) {
+      items.push({
+        labelKey: 'training.nav.matrix',
+        link: '/training/matrix',
+        testId: 'nav-matrix',
+      });
+    }
+    return items;
+  });
 }
