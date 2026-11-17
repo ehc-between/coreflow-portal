@@ -560,6 +560,30 @@
         "settings": "Settings"
       },
       "membersSection": "Members, departments and invitations"
+    },
+    "mfa": {
+      "title": "Two-step verification",
+      "hint": "Require members to sign in with a second step. Members it applies to keep their roles but cannot use this organization until they set it up.",
+      "policy": {
+        "off": "Not required",
+        "all": "Required for everyone",
+        "roles": "Required for selected roles"
+      },
+      "policyHint": {
+        "off": "Members choose for themselves.",
+        "all": "Every member must use two-step verification.",
+        "roles": "Members with any of the chosen roles must use two-step verification."
+      },
+      "rolesLabel": "Roles that require two-step verification",
+      "saved": "Two-step verification settings saved.",
+      "loadError": "Could not load the two-step verification settings.",
+      "setUpOwn": "Set it up for your account",
+      "error": {
+        "verifySelf": "This rule applies to you too. Set up two-step verification and sign in with it first, so you are not locked out.",
+        "rolesRequired": "Choose at least one role.",
+        "unknownRoles": "One of the chosen roles no longer exists. Reload and try again.",
+        "saveFailed": "Could not save the two-step verification settings."
+      }
     }
   },
   "auth": {
@@ -585,7 +609,9 @@
       "changePassword": "Change password",
       "notificationSettings": "Notification settings",
       "logoutAll": "Sign out of all devices",
-      "logoutAllFailed": "Couldn't sign out of all devices. Please try again."
+      "logoutAllFailed": "Couldn't sign out of all devices. Please try again.",
+      "security": "Two-step verification",
+      "sessions": "Signed-in devices"
     },
     "notice": {
       "passwordReset": "Your password has been reset. Sign in with your new password.",
@@ -629,6 +655,139 @@
       "invalidTitle": "Reset link unavailable",
       "invalidBody": "This password reset link is invalid or has expired.",
       "requestNew": "Request a new link"
+    },
+    "mfa": {
+      "title": "Two-step verification",
+      "subtitle": "Protect your account with a second step at sign-in: a code from an authenticator app or a passkey.",
+      "link": "Manage two-step verification",
+      "enrolledToast": "Two-step verification method added.",
+      "removedToast": "Two-step verification method removed.",
+      "required": {
+        "enrol": "Your organization ({{orgs}}) requires two-step verification. Set up a method below to regain access.",
+        "signInAgain": "Your organization ({{orgs}}) requires two-step verification. Sign out and sign in again using your second step to regain access.",
+        "signOut": "Sign out",
+        "verifyToChange": "To change your two-step verification methods, sign out and sign in again using your second step."
+      },
+      "methods": {
+        "title": "Methods",
+        "none": "You have not set up two-step verification yet."
+      },
+      "factor": {
+        "nameLabel": "Name (optional)",
+        "added": "Added {{date}}",
+        "lastUsed": "last used {{date}}",
+        "neverUsed": "not used yet",
+        "defaultName": {
+          "totp": "Authenticator app",
+          "webauthn": "Passkey"
+        },
+        "kind": {
+          "totp": "App code",
+          "webauthn": "Passkey"
+        }
+      },
+      "action": {
+        "addTotp": "Add authenticator app",
+        "addPasskey": "Add passkey",
+        "remove": "Remove",
+        "cancel": "Cancel",
+        "continue": "Continue"
+      },
+      "totp": {
+        "title": "Add an authenticator app",
+        "namePlaceholder": "For example: Work phone",
+        "step1": "Scan the QR code with your authenticator app, or type the key by hand.",
+        "step2": "Enter the six-digit code the app shows to confirm.",
+        "qrLabel": "QR code for setting up your authenticator app",
+        "manualLabel": "Setup key",
+        "codeLabel": "Six-digit code",
+        "confirm": "Confirm"
+      },
+      "passkey": {
+        "title": "Add a passkey",
+        "hint": "Use your device's screen lock, a fingerprint or a security key. Your browser will guide you.",
+        "namePlaceholder": "For example: Laptop",
+        "create": "Create passkey",
+        "unsupported": "This browser does not support passkeys."
+      },
+      "recovery": {
+        "title": "Recovery codes",
+        "hint": "Use a recovery code to sign in if you lose access to your authenticator app or passkey. Each code works once.",
+        "remaining": "{{count}} recovery codes left",
+        "remainingOne": "{{count}} recovery code left",
+        "low": "You are running out of recovery codes. Generate new ones.",
+        "regenerate": "Generate new codes",
+        "newTitle": "Your recovery codes",
+        "newHint": "Save these codes somewhere safe now. They will not be shown again, and each code works once.",
+        "copy": "Copy",
+        "download": "Download",
+        "saved": "I have saved them",
+        "copied": "Recovery codes copied."
+      },
+      "confirm": {
+        "password": "Password",
+        "removeTitle": "Remove this method?",
+        "removeBody": "Enter your password to remove this two-step verification method.",
+        "regenerateTitle": "Generate new recovery codes?",
+        "regenerateBody": "Your current recovery codes will stop working. Enter your password to continue."
+      },
+      "signIn": {
+        "title": "Two-step verification",
+        "hint": {
+          "totp": "Enter the code from your authenticator app.",
+          "webauthn": "Use your passkey to finish signing in.",
+          "recovery_code": "Enter one of your recovery codes. Each code works once."
+        },
+        "codeLabel": "Code",
+        "recoveryLabel": "Recovery code",
+        "usePasskey": "Use passkey",
+        "verify": "Verify",
+        "verifying": "Verifying…",
+        "switch": {
+          "totp": "Use an authenticator app code instead",
+          "webauthn": "Use a passkey instead",
+          "recovery_code": "Use a recovery code instead"
+        },
+        "back": "Back to sign in"
+      },
+      "error": {
+        "invalidCode": "That code is not valid. Check it and try again.",
+        "invalidCodeRemaining": "That code is not valid. {{count}} attempts left.",
+        "invalidCodeRemainingOne": "That code is not valid. {{count}} attempt left.",
+        "invalidToken": "Your sign-in timed out. Sign in again.",
+        "tooManyAttempts": "Too many attempts. Please wait a moment and try again.",
+        "tooManyAttemptsSeconds": "Too many attempts. Try again in {{seconds}} sec.",
+        "tooManyAttemptsMinutes": "Too many attempts. Try again in {{minutes}} min.",
+        "noPasskeys": "No passkey is registered for this account. Use another method.",
+        "enrolmentExpired": "This setup expired. Start again.",
+        "passkeyFailed": "The passkey could not be verified. Try again.",
+        "passkeyCancelled": "The passkey request was cancelled or timed out.",
+        "passkeyAlreadyRegistered": "This passkey is already registered.",
+        "invalidPassword": "Incorrect password.",
+        "factorNotFound": "This method no longer exists.",
+        "requiredByOrg": "Your organization requires two-step verification, so you cannot remove your last method. Add another method first.",
+        "notEnrolled": "Set up two-step verification first.",
+        "verificationRequired": "Sign out and sign in again using your second step to change these settings.",
+        "tooManyFactors": "You have reached the maximum number of methods. Remove one first."
+      }
+    },
+    "sessions": {
+      "title": "Signed-in devices",
+      "subtitle": "Where your account is signed in. Sign out of any device you do not recognize.",
+      "link": "See where you are signed in",
+      "empty": "No active sessions.",
+      "unknownDevice": "Unknown device",
+      "current": "This device",
+      "verified": "Two-step verified",
+      "signedIn": "Signed in {{date}}",
+      "lastActive": "last active {{date}}",
+      "ip": "IP {{ip}}",
+      "revoke": "Sign out",
+      "revokeTitle": "Sign out this device?",
+      "revokeBody": "The device will be signed out and must sign in again.",
+      "revokeCurrentBody": "This is the device you are using. You will be signed out here.",
+      "revokedToast": "The device was signed out.",
+      "revokeFailed": "Could not sign out the device. Please try again."
     }
   },
   "login": {
@@ -740,7 +899,12 @@
       "reactivateConfirm": "Reactivate {{name}}? They can sign in again with their existing memberships.",
       "deactivatedToast": "{{name}} was deactivated.",
       "reactivatedToast": "{{name}} was reactivated.",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "resetMfa": "Reset two-step verification",
+      "resetMfaTitle": "Reset two-step verification",
+      "resetMfaConfirm": "Reset two-step verification for {{name}}? All their methods and recovery codes are removed and they are signed out everywhere. Only do this after confirming who they are.",
+      "resetMfaToast": "Two-step verification was reset for {{name}}.",
+      "resetMfaFailed": "Could not reset two-step verification. Please try again."
     }
   },
   "invite": {

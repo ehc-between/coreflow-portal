@@ -1,0 +1,264 @@
+<div class="mx-auto w-full max-w-2xl px-4 pt-6 pb-12 sm:px-6 sm:pt-8">
+  <app-page-header titleKey="auth.mfa.title" descriptionKey="auth.mfa.subtitle" />
+
+  @if (loading()) {
+    <app-loading-state [rows]="3" />
+  } @else if (loadError()) {
+    <app-error-state (retry)="load()" />
+  } @else if (status(); as status) {
+    <div class="flex flex-col gap-6">
+      @if (status.required_by_orgs.length > 0 && !status.session_verified) {
+        <div data-testid="mfa-required-banner" class="flex flex-col gap-3">
+          @if (status.enrolled) {
+            <app-alert tone="info">
+              {{
+                'auth.mfa.required.signInAgain' | transloco: { orgs: requiringOrgs().join(', ') }
+              }}
+            </app-alert>
+            <div>
+              <app-button variant="secondary" (click)="signOutToVerify()">
+                {{ 'auth.mfa.required.signOut' | transloco }}
+              </app-button>
+            </div>
+          } @else {
+            <app-alert tone="info">
+              {{ 'auth.mfa.required.enrol' | transloco: { orgs: requiringOrgs().join(', ') } }}
+            </app-alert>
+          }
+        </div>
+      } @else if (needsVerifiedSession()) {
+        <app-alert tone="info">{{ 'auth.mfa.required.verifyToChange' | transloco }}</app-alert>
+      }
+
+      @if (newCodes(); as codes) {
+        <app-card>
+          <app-recovery-codes-panel [codes]="codes" (done)="newCodes.set(null)" />
+        </app-card>
+      }
+
+      <section data-testid="mfa-methods">
+        <h2 class="mb-3 font-display text-section font-bold text-fg">
+          {{ 'auth.mfa.methods.title' | transloco }}
+        </h2>
+        <app-card [padded]="false">
+          @if (status.factors.length === 0) {
+            <p class="px-4 py-6 text-ui text-fg-muted" data-testid="mfa-none">
+              {{ 'auth.mfa.methods.none' | transloco }}
+            </p>
+          } @else {
+            <ul>
+              @for (factor of status.factors; track factor.id) {
+                <li
+                  class="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-border px-4 py-3 last:border-b-0"
+                  data-testid="mfa-factor"
+                >
+                  <span class="flex text-fg-subtle">
+                    <app-icon
+                      [name]="factor.kind === 'webauthn' ? 'lock' : 'devices'"
+                      [size]="16"
+                    />
+                  </span>
+                  <div class="min-w-0 flex-1">
+                    <div class="truncate text-ui font-semibold text-fg">
+                      {{
+                        factorName(factor) ??
+                          ('auth.mfa.factor.defaultName.' + factor.kind | transloco)
+                      }}
+                    </div>
+                    <div class="text-meta text-fg-muted">
+                      {{
+                        'auth.mfa.factor.added' | transloco: { date: factor.created_at | localDate }
+                      }}
+                      ·
+                      @if (factor.last_used_at) {
+                        {{
+                          'auth.mfa.factor.lastUsed'
+                            | transloco: { date: factor.last_used_at | localDate }
+                        }}
+                      } @else {
+                        {{ 'auth.mfa.factor.neverUsed' | transloco }}
+                      }
+                    </div>
+                  </div>
+                  <app-badge tone="neutral">{{
+                    'auth.mfa.factor.kind.' + factor.kind | transloco
+                  }}</app-badge>
+                  <app-button
+                    variant="ghost"
+                    size="sm"
+                    [disabled]="needsVerifiedSession()"
+                    (click)="askRemove(factor)"
+                  >
+                    {{ 'auth.mfa.action.remove' | transloco }}
+                  </app-button>
+                </li>
+              }
+            </ul>
+          }
+        </app-card>
+
+        @switch (adding()) {
+          @case ('totp') {
+            <app-card class="mt-4 block">
+              <app-totp-setup (enrolled)="onEnrolled($event)" (cancelled)="closeAdd()" />
+            </app-card>
+          }
+          @case ('passkey') {
+            <app-card class="mt-4 block">
+              <form
+                class="flex flex-col gap-4"
+                data-testid="passkey-setup"
+                [formGroup]="passkeyForm"
+                (ngSubmit)="addPasskey()"
+              >
+                <h3 class="font-display text-card font-bold text-fg">
+                  {{ 'auth.mfa.passkey.title' | transloco }}
+                </h3>
+                <p class="text-ui text-fg-muted">{{ 'auth.mfa.passkey.hint' | transloco }}</p>
+                <app-form-field
+                  inputId="passkey-label"
+                  [label]="'auth.mfa.factor.nameLabel' | transloco"
+                >
+                  <input
+                    id="passkey-label"
+                    type="text"
+                    maxlength="100"
+                    autocomplete="off"
+                    formControlName="label"
+                    [placeholder]="'auth.mfa.passkey.namePlaceholder' | transloco"
+                  />
+                </app-form-field>
+                @if (passkeyError(); as error) {
+                  <app-alert>{{ error.key | transloco: error.params }}</app-alert>
+                }
+                <div class="flex justify-end gap-2">
+                  <app-button variant="secondary" [disabled]="passkeyBusy()" (click)="closeAdd()">
+                    {{ 'auth.mfa.action.cancel' | transloco }}
+                  </app-button>
+                  <app-button type="submit" [loading]="passkeyBusy()" data-testid="passkey-create">
+                    {{ 'auth.mfa.passkey.create' | transloco }}
+                  </app-button>
+                </div>
+              </form>
+            </app-card>
+          }
+          @default {
+            <div class="mt-4 flex flex-wrap gap-2">
+              <app-button
+                variant="secondary"
+                data-testid="mfa-add-totp"
+                [disabled]="needsVerifiedSession()"
+                (click)="openAdd('totp')"
+              >
+                <app-icon name="plus" [size]="15" />
+                {{ 'auth.mfa.action.addTotp' | transloco }}
+              </app-button>
+              @if (passkeySupported) {
+                <app-button
+                  variant="secondary"
+                  data-testid="mfa-add-passkey"
+                  [disabled]="needsVerifiedSession()"
+                  (click)="openAdd('passkey')"
+                >
+                  <app-icon name="plus" [size]="15" />
+                  {{ 'auth.mfa.action.addPasskey' | transloco }}
+                </app-button>
+              }
+            </div>
+            @if (!passkeySupported) {
+              <p class="mt-2 text-meta text-fg-muted">
+                {{ 'auth.mfa.passkey.unsupported' | transloco }}
+              </p>
+            }
+          }
+        }
+      </section>
+
+      @if (status.enrolled) {
+        <section data-testid="mfa-recovery">
+          <h2 class="mb-3 font-display text-section font-bold text-fg">
+            {{ 'auth.mfa.recovery.title' | transloco }}
+          </h2>
+          <app-card>
+            <div class="flex flex-wrap items-center gap-4">
+              <div class="min-w-0 flex-1">
+                <div class="text-ui font-semibold text-fg" data-testid="recovery-remaining">
+                  {{
+                    pluralKey('auth.mfa.recovery.remaining', status.recovery_codes_remaining)
+                      | transloco: { count: status.recovery_codes_remaining }
+                  }}
+                </div>
+                <div class="mt-0.5 text-meta text-fg-muted">
+                  {{ 'auth.mfa.recovery.hint' | transloco }}
+                </div>
+              </div>
+              <app-button
+                variant="secondary"
+                data-testid="recovery-regenerate"
+                [disabled]="needsVerifiedSession()"
+                (click)="askRegenerate()"
+              >
+                {{ 'auth.mfa.recovery.regenerate' | transloco }}
+              </app-button>
+            </div>
+            @if (status.recovery_codes_remaining <= 2) {
+              <app-alert class="mt-3 block">{{ 'auth.mfa.recovery.low' | transloco }}</app-alert>
+            }
+          </app-card>
+        </section>
+      }
+
+      <p class="text-ui text-fg-muted">
+        <a routerLink="/account/sessions" class="font-semibold text-accent hover:underline">
+          {{ 'auth.sessions.link' | transloco }}
+        </a>
+      </p>
+    </div>
+  }
+</div>
+
+<app-confirm-dialog
+  [open]="pendingPassword() !== null"
+  [busy]="passwordBusy()"
+  [confirmDisabled]="passwordForm.invalid"
+  initialFocus="#mfa-confirm-password"
+  [confirmVariant]="pendingPassword()?.kind === 'remove' ? 'danger' : 'primary'"
+  [title]="
+    (pendingPassword()?.kind === 'remove'
+      ? 'auth.mfa.confirm.removeTitle'
+      : 'auth.mfa.confirm.regenerateTitle'
+    ) | transloco
+  "
+  [message]="
+    (pendingPassword()?.kind === 'remove'
+      ? 'auth.mfa.confirm.removeBody'
+      : 'auth.mfa.confirm.regenerateBody'
+    ) | transloco
+  "
+  [confirmLabel]="
+    (pendingPassword()?.kind === 'remove'
+      ? 'auth.mfa.action.remove'
+      : 'auth.mfa.recovery.regenerate'
+    ) | transloco
+  "
+  [cancelLabel]="'auth.mfa.action.cancel' | transloco"
+  (confirmed)="confirmPassword()"
+  (cancelled)="cancelPassword()"
+>
+  <form class="mt-4 flex flex-col gap-3" [formGroup]="passwordForm" (ngSubmit)="confirmPassword()">
+    <app-form-field
+      inputId="mfa-confirm-password"
+      [label]="'auth.mfa.confirm.password' | transloco"
+    >
+      <input
+        id="mfa-confirm-password"
+        type="password"
+        autocomplete="current-password"
+        formControlName="password"
+      />
+    </app-form-field>
+    @if (passwordError(); as error) {
+      <app-alert>{{ error.key | transloco: error.params }}</app-alert>
+    }
+  </form>
+</app-confirm-dialog>

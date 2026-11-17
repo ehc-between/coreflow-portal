@@ -1,6 +1,6 @@
 import { HttpContext } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { ApiService } from '../http/api.service';
 import { SKIP_ERROR_TOAST } from '../http/error.interceptor';
 import {
@@ -52,6 +52,18 @@ export class AdminApi {
     return this.api.post<AdminUser>(`v1/admin/users/${userId}/deactivate`, null, {
       context: new HttpContext().set(SKIP_ERROR_TOAST, true),
     });
+  }
+
+  /**
+   * Clear a user's second factors and recovery codes (lost device and lost
+   * codes) and sign them out everywhere. Superuser only.
+   */
+  resetUserMfa(userId: string): Observable<void> {
+    return this.api
+      .post<unknown>(`v1/admin/users/${userId}/mfa/reset`, null, {
+        context: new HttpContext().set(SKIP_ERROR_TOAST, true),
+      })
+      .pipe(map(() => undefined));
   }
 
   /** Re-enable a deactivated account. Superuser only. */

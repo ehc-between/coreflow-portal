@@ -120,6 +120,18 @@ export class PeopleApi {
     return this.api.delete<void>(`${this.base(orgId)}/employees/${id}`, IN_PLACE);
   }
 
+  /**
+   * Remove the person's access now (summary dismissal; `people:manage`): memberships
+   * and sessions are revoked, status becomes `former`, `end_date` is today at latest.
+   */
+  revokeAccess(orgId: string, id: string): Observable<Employee> {
+    return this.api.post<Employee>(
+      `${this.base(orgId)}/employees/${id}/revoke-access`,
+      {},
+      IN_PLACE,
+    );
+  }
+
   // --- held competences ---------------------------------------------------------------
 
   employeeCompetences(orgId: string, id: string): Observable<EmployeeCompetences> {

@@ -3,7 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { APP_CONFIG } from '../../../core/config/app-config';
-import { assigneeFromValue } from '../employee-checklists';
+import { assigneeFromValue, startDraftValid, toChecklistCreate } from '../employee-checklists';
 import {
   emptyEmployeeForm,
   formFromEmployee,
@@ -81,6 +81,36 @@ describe('PeopleApi', () => {
     expect(http.expectOne(url('checklists/cl-1/complete')).request.method).toBe('POST');
     api.cancelChecklist('org-1', 'cl-1').subscribe();
     expect(http.expectOne(url('checklists/cl-1/cancel')).request.method).toBe('POST');
+  });
+
+  it('revokes access with a body-less POST on the employee', () => {
+    api.revokeAccess('org-1', 'e-1').subscribe();
+    const req = http.expectOne(url('employees/e-1/revoke-access'));
+    expect(req.request.method).toBe('POST');
+    req.flush({});
+  });
+
+  it('sends the last working day only for offboarding, and requires it', () => {
+    const draft = {
+      kind: 'offboarding' as const,
+      title: '',
+      due_date: '',
+      end_date: '',
+      assignee: '',
+    };
+    expect(startDraftValid(draft)).toBe(false);
+    expect(startDraftValid({ ...draft, end_date: '2026-03-31' })).toBe(true);
+    expect(startDraftValid({ ...draft, kind: 'onboarding' })).toBe(true);
+    expect(toChecklistCreate({ ...draft, end_date: '2026-03-31' })).toEqual({
+      kind: 'offboarding',
+      title: undefined,
+      due_date: undefined,
+      end_date: '2026-03-31',
+      assignee: undefined,
+    });
+    expect(
+      toChecklistCreate({ ...draft, kind: 'onboarding', end_date: '2026-03-31' }).end_date,
+    ).toBeUndefined();
   });
 
   it('uses the restricted disciplinary and awareness paths', () => {

@@ -12,6 +12,8 @@ export type QueryParams = Readonly<
 export interface RequestOptions {
   readonly params?: QueryParams;
   readonly context?: HttpContext;
+  /** Send cookies cross-origin (auth endpoints that read the httpOnly refresh cookie). */
+  readonly withCredentials?: boolean;
 }
 
 /** DELETE options: a DELETE may also carry a JSON body (e.g. a recorded reason). */
@@ -74,7 +76,11 @@ export class ApiService {
   }
 
   private toHttpOptions(options: RequestOptions) {
-    return { params: this.toParams(options.params), context: options.context };
+    return {
+      params: this.toParams(options.params),
+      context: options.context,
+      withCredentials: options.withCredentials,
+    };
   }
 
   private toParams(params?: QueryParams): HttpParams {
