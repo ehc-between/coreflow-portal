@@ -11,21 +11,13 @@
     "searching": "Searching…",
     "error": "Search isn't available right now. You can still jump to a page below.",
     "noResults": "No records match \"{{query}}\".",
-    "count": "{{count}}",
-    "hint": "Type to search documents, deviations, actions and requirements, or pick an action below."
+    "count": "{{count}}"
   },
   "launcher": {
     "label": "Open Ask CoreFlow",
     "title": "Ask CoreFlow ({{shortcut}})"
   },
   "intro": {
-    "tryTitle": "Try asking",
-    "examples": {
-      "find": "Find our procedures about document control",
-      "explain": "What does ISO 9001 clause 6.1 require?",
-      "thisPage": "Summarise what I'm looking at",
-      "create": "Register a deviation for a late delivery"
-    },
     "confirmNote": "CoreFlow never changes anything on its own. When it suggests a change, you see exactly what it will do and confirm it first.",
     "shortcut": "Press Ctrl+J (⌘J on Mac) to open or close the assistant from any page."
   },
@@ -41,10 +33,7 @@
     "exit": "Leave tutor mode",
     "start": "Teach me about this page, step by step.",
     "startTopic": "Teach me about {{topic}}, step by step.",
-    "teachMePage": "Teach me about this page"
-  },
-  "links": {
-    "heading": "Records"
+    "teachMePage": "Explain this page"
   },
   "action": {
     "cardLabel": "Proposed change",

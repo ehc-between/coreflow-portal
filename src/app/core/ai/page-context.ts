@@ -41,7 +41,19 @@ export interface PageContext {
   readonly view: PageView;
   readonly title?: string | null;
   readonly selection?: PageSelection | null;
+  /**
+   * P2: the canonical requirement or clause refs of the record or field in focus
+   * (`iso27001:A.8.13`, `iso9001-2026:8.4.1.r1`), so "which requirement does this
+   * prove?" can be answered. Detail pages pass the record's confirmed refs.
+   */
+  readonly requirements?: readonly string[] | null;
+  /** P2: the standard being viewed (e.g. `iso27001-2022`) on standards pages. */
+  readonly standardKey?: string | null;
 }
+
+/** Max requirement refs per request, and max length of one (backend limits). */
+export const PAGE_CONTEXT_REQUIREMENTS_MAX = 50;
+export const PAGE_CONTEXT_REQUIREMENT_LENGTH = 160;
 
 /** The wire shape of {@link PageContext} (`AskRequest.page_context`, snake_case). */
 export interface PageContextDto {
@@ -56,6 +68,8 @@ export interface PageContextDto {
     readonly field: string | null;
     readonly ids: readonly string[];
   } | null;
+  readonly requirements: readonly string[];
+  readonly standard_key: string | null;
 }
 
 interface Entry {
@@ -177,7 +191,24 @@ export function toPageContextDto(ctx: PageContext | null, url: string): PageCont
           ids: (selection.ids ?? []).filter((id) => UUID_RE.test(id)).slice(0, 50),
         }
       : null,
+    requirements: cleanRefs(base.requirements),
+    standard_key: clip(base.standardKey ?? null, 64),
   };
+}
+
+/** Trimmed, de-duplicated refs within the backend's count and length limits. */
+export function cleanRefs(refs: readonly string[] | null | undefined): string[] {
+  const out: string[] = [];
+  for (const raw of refs ?? []) {
+    const ref = typeof raw === 'string' ? raw.trim() : '';
+    if (ref && ref.length <= PAGE_CONTEXT_REQUIREMENT_LENGTH && !out.includes(ref)) {
+      out.push(ref);
+      if (out.length === PAGE_CONTEXT_REQUIREMENTS_MAX) {
+        break;
+      }
+    }
+  }
+  return out;
 }
 
 /** A URL-derived context: the first path segment as the module (kebab → snake). */

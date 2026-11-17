@@ -91,6 +91,8 @@ describe('toPageContextDto', () => {
       route: '/documents/x',
       title: 'Quality manual',
       selection: { text: null, field: 'owner', ids: [ID] },
+      requirements: [],
+      standard_key: null,
     });
   });
 
@@ -106,6 +108,24 @@ describe('toPageContextDto', () => {
     );
     expect(dto?.title?.length).toBe(200);
     expect(dto?.selection?.text?.length).toBe(2000);
+  });
+
+  it('passes requirement refs and the standard key within the server limits', () => {
+    const many = Array.from({ length: 70 }, (_, i) => `iso9001:8.${i}`);
+    const dto = toPageContextDto(
+      {
+        module: 'standards',
+        entityType: 'standard_requirement',
+        view: 'detail',
+        requirements: [' iso27001:A.8.13 ', 'iso27001:A.8.13', '', 'x'.repeat(161), ...many],
+        standardKey: ' iso27001-2022 ',
+      },
+      '/standards/iso27001-2022',
+    );
+    expect(dto?.requirements[0]).toBe('iso27001:A.8.13');
+    expect(dto?.requirements.length).toBe(50);
+    expect(dto?.requirements.some((ref) => ref.length > 160)).toBe(false);
+    expect(dto?.standard_key).toBe('iso27001-2022');
   });
 
   it('derives a context from the URL when no page registered one', () => {

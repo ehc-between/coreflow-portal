@@ -11,21 +11,13 @@
     "searching": "Søker …",
     "error": "Søket er ikke tilgjengelig akkurat nå. Du kan fortsatt gå til en side nedenfor.",
     "noResults": "Ingen poster passer med «{{query}}».",
-    "count": "{{count}}",
-    "hint": "Skriv for å søke i dokumenter, avvik, tiltak og krav, eller velg en handling nedenfor."
+    "count": "{{count}}"
   },
   "launcher": {
     "label": "Åpne Spør CoreFlow",
     "title": "Spør CoreFlow ({{shortcut}})"
   },
   "intro": {
-    "tryTitle": "Prøv å spørre",
-    "examples": {
-      "find": "Finn prosedyrene våre om dokumentstyring",
-      "explain": "Hva krever ISO 9001 punkt 6.1?",
-      "thisPage": "Oppsummer det jeg ser på",
-      "create": "Registrer et avvik for en forsinket leveranse"
-    },
     "confirmNote": "CoreFlow endrer aldri noe på egen hånd. Når den foreslår en endring, ser du nøyaktig hva den vil gjøre, og bekrefter først.",
     "shortcut": "Trykk Ctrl+J (⌘J på Mac) for å åpne eller lukke assistenten fra hvilken som helst side."
   },
@@ -41,10 +33,7 @@
     "exit": "Avslutt veiledermodus",
     "start": "Lær meg om denne siden, steg for steg.",
     "startTopic": "Lær meg om {{topic}}, steg for steg.",
-    "teachMePage": "Lær meg om denne siden"
-  },
-  "links": {
-    "heading": "Poster"
+    "teachMePage": "Forklar denne siden"
   },
   "action": {
     "cardLabel": "Foreslått endring",

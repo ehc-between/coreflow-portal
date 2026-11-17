@@ -46,6 +46,26 @@ export interface AskLink {
   readonly url: string;
 }
 
+/**
+ * What the assistant is doing while tools run (P2). `key` is `ai.status.<tool>`,
+ * `category` one of a small fixed set the portal translates (searching, listing,
+ * counting, …) and `params` may name the record type, the module and how many
+ * tools run at once. `text` is the English fallback; older servers send only it.
+ */
+export interface AskStatus {
+  readonly text: string;
+  readonly key?: string | null;
+  readonly category?: string | null;
+  readonly params?: AskStatusParams | null;
+}
+
+/** Optional details of a status event. */
+export interface AskStatusParams {
+  readonly entity_type?: string;
+  readonly module?: string;
+  readonly count?: number;
+}
+
 /** Ask mode: a normal answer, or the tutor that teaches step by step. */
 export type AskMode = 'ask' | 'tutor';
 
@@ -65,15 +85,41 @@ export interface ConversationTurn {
  */
 export type AskEvent =
   | { readonly type: 'delta'; readonly text: string }
-  | { readonly type: 'status'; readonly text: string }
+  | ({ readonly type: 'status' } & AskStatus)
   | { readonly type: 'sources'; readonly sources: readonly AskSource[] }
   | { readonly type: 'proposal'; readonly proposal_id: string; readonly title: string }
   | { readonly type: 'question'; readonly question: string; readonly options: readonly string[] }
   | ({ readonly type: 'action' } & AskAction)
   | ({ readonly type: 'link' } & AskLink)
-  | { readonly type: 'done' }
+  | { readonly type: 'done'; readonly run_id?: string | null }
   | { readonly type: 'error'; readonly message: string }
   | { readonly type: 'not-configured' };
+
+// --- Answer feedback (P2) -------------------------------------------------------
+
+/** Thumbs up / down on one answer. */
+export type AnswerRating = 'up' | 'down';
+
+/** Why an answer was not helpful (sent as the `reason` slug: `^[a-z0-9_]+$`, ≤ 32). */
+export const ANSWER_FEEDBACK_REASONS = [
+  'wrong',
+  'incomplete',
+  'not_found',
+  'missing_links',
+  'language',
+  'slow',
+] as const;
+export type AnswerFeedbackReason = (typeof ANSWER_FEEDBACK_REASONS)[number];
+
+/** `POST /orgs/{org}/ai/runs/{run_id}/feedback` body. 204; rating again replaces. */
+export interface AnswerFeedbackBody {
+  readonly rating: AnswerRating;
+  readonly reason?: string;
+  readonly comment?: string;
+}
+
+/** Max length of the optional feedback comment (backend limit). */
+export const ANSWER_FEEDBACK_COMMENT_MAX = 2000;
 
 // --- Confirm-before-write actions (GET/confirm/reject) --------------------------
 

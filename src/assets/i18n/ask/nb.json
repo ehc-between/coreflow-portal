@@ -1,0 +1,236 @@
+{
+  "panel": {
+    "intro": "Spør om alt i CoreFlow: registreringene, dokumentene og kravene dere har, eller hvordan du gjør noe. Svarene lenker til postene de bygger på.",
+    "suggestTitle": "Forslag for denne siden",
+    "suggestTitleGeneral": "Prøv å spørre",
+    "turnLabel": "Svar"
+  },
+  "status": {
+    "categories": {
+      "searching": "Søker i registrene …",
+      "listing": "Går gjennom registeret …",
+      "counting": "Teller opp …",
+      "reading": "Leser posten …",
+      "summarising": "Oppsummerer …",
+      "standards": "Sjekker kravene og dokumentasjonen …",
+      "my_work": "Ser på arbeidslisten din …",
+      "overview": "Leser oversikten …",
+      "howto": "Finner fremgangsmåten …",
+      "proposing": "Lager et forslag du kan bekrefte …",
+      "drafting": "Skriver et utkast …",
+      "designing": "Setter det opp …",
+      "access": "Sjekker hvem som har tilgang …",
+      "working": "Arbeider …"
+    },
+    "typed": {
+      "searching": "Søker i registeret «{{type}}» …",
+      "listing": "Går gjennom registeret «{{type}}» …",
+      "counting": "Teller opp i registeret «{{type}}» …",
+      "reading": "Leser en post fra «{{type}}» …",
+      "summarising": "Oppsummerer en post fra «{{type}}» …"
+    }
+  },
+  "records": {
+    "heading": "Poster og kilder",
+    "showAll": "Vis alle {{count}}",
+    "showFewer": "Vis færre",
+    "open": "Åpne {{title}}"
+  },
+  "turn": {
+    "copy": "Kopier svaret",
+    "copied": "Kopiert"
+  },
+  "feedback": {
+    "question": "Var svaret nyttig?",
+    "up": "Nyttig",
+    "down": "Ikke nyttig",
+    "thanks": "Takk for tilbakemeldingen.",
+    "saving": "Lagrer …",
+    "error": "Tilbakemeldingen kunne ikke lagres. Prøv igjen.",
+    "whyTitle": "Hva var galt?",
+    "reasons": {
+      "wrong": "Feil svar",
+      "incomplete": "Ufullstendig",
+      "not_found": "Fant ikke dataene mine",
+      "missing_links": "Mangler lenker til postene",
+      "language": "Feil språk eller uklart",
+      "slow": "For tregt"
+    },
+    "commentLabel": "Fortell oss mer (valgfritt)",
+    "commentPlaceholder": "Hva hadde du forventet?",
+    "send": "Send tilbakemelding",
+    "cancel": "Hopp over"
+  },
+  "suggest": {
+    "whatNow": "Hva bør jeg gjøre nå?",
+    "coverage": "Hvordan er kravdekningen i standardene våre?",
+    "overdue": "Hva er forfalt i organisasjonen?",
+    "gaps": "Hvilke krav mangler dokumentasjon?",
+    "howFind": "Hvordan finner jeg en post i CoreFlow?",
+    "myToday": "Hva må jeg gjøre i dag?",
+    "myOverdue": "Hvilke av oppgavene mine er forfalt?",
+    "myPrioritise": "Hjelp meg å prioritere arbeidet mitt denne uka",
+    "reqMissing": "Hva mangler for dette kravet?",
+    "reqEvidence": "Hvilken dokumentasjon har vi for dette kravet?",
+    "reqHowTo": "Hvordan kan vi dokumentere dette kravet?",
+    "reqExplain": "Forklar kravet med enkle ord",
+    "stdStatus": "Hvor langt har vi kommet med denne standarden?",
+    "stdGaps": "Hvilke krav i denne standarden mangler dokumentasjon?",
+    "stdFirst": "Hva bør vi gjøre først for å bli klare?",
+    "stdExplain": "Forklar hva denne standarden handler om",
+    "recSummary": "Oppsummer denne posten",
+    "recRequirements": "Hvilke krav dokumenterer denne posten?",
+    "recConnections": "Hva henger denne posten sammen med?",
+    "recNext": "Hva bør jeg gjøre videre med denne posten?",
+    "formHelp": "Hjelp meg å fylle ut skjemaet",
+    "formRequirements": "Hvilke krav kan en slik post dokumentere?",
+    "formExample": "Gi meg et eksempel på en god utfylling",
+    "listOpen": "Hvilke poster her er fortsatt åpne?",
+    "listOverdue": "Hva her er forfalt eller forfaller snart?",
+    "listCounts": "Gi meg en oversikt med antall per status",
+    "listHowTo": "Hvordan registrerer jeg en ny?",
+    "setModules": "Hvilke moduler bør vi slå på?",
+    "setInvite": "Hvordan inviterer jeg en kollega?",
+    "setLearn": "Hvordan lærer jeg meg å bruke CoreFlow?"
+  },
+  "palette": {
+    "hint": "Søk i alle registre, dokumenter og krav, eller still et spørsmål.",
+    "askHint": "Spør CoreFlow",
+    "actionsHeading": "Be CoreFlow om å",
+    "howtoHeading": "Slik gjør du",
+    "howtoTag": "Fremgangsmåte",
+    "actions": {
+      "whatNow": {
+        "label": "Vise hva jeg bør gjøre nå",
+        "prompt": "Hva bør jeg gjøre nå? Vis de viktigste oppgavene og fristene mine."
+      },
+      "coverage": {
+        "label": "Sjekke kravdekningen vår",
+        "prompt": "Hvordan er kravdekningen i standardene vi har slått på?"
+      },
+      "gaps": {
+        "label": "Finne krav uten dokumentasjon",
+        "prompt": "Hvilke krav mangler dokumentasjon i standardene vi har slått på?"
+      },
+      "openDeviations": {
+        "label": "Vise åpne avvik",
+        "prompt": "Hvilke avvik er fortsatt åpne, og hvilke av dem er høye eller kritiske?"
+      },
+      "registerDeviation": {
+        "label": "Registrere et avvik",
+        "prompt": "Jeg vil registrere et avvik."
+      },
+      "topRisks": {
+        "label": "Vise de høyeste risikoene",
+        "prompt": "Hvilke risikoer har høyest risikonivå nå, og hvem er risikoeier?"
+      },
+      "draftProcedure": {
+        "label": "Skrive utkast til en prosedyre",
+        "prompt": "Skriv et utkast til en prosedyre for meg."
+      },
+      "summariseDocument": {
+        "label": "Finne og oppsummere et dokument",
+        "prompt": "Hjelp meg å finne og oppsummere et dokument."
+      },
+      "planAudit": {
+        "label": "Planlegge en internrevisjon",
+        "prompt": "Hjelp meg å planlegge en internrevisjon."
+      },
+      "trainingDue": {
+        "label": "Se hvem som må fornye opplæring",
+        "prompt": "Hvem har opplæring som er forfalt eller forfaller snart?"
+      },
+      "assignTask": {
+        "label": "Lage en oppgave til en kollega",
+        "prompt": "Jeg vil lage en oppgave til en kollega."
+      }
+    }
+  },
+  "howto": {
+    "registerDeviation": {
+      "title": "Registrere et avvik",
+      "question": "Hvordan registrerer jeg et avvik?",
+      "keywords": "avvik hendelse melde feil klage nestenulykke uønsket"
+    },
+    "registerBreach": {
+      "title": "Registrere et sikkerhetsbrudd eller personvernbrudd",
+      "question": "Hvordan registrerer jeg et sikkerhetsbrudd eller et personvernbrudd?",
+      "keywords": "brudd sikkerhetsbrudd personvernbrudd hendelse informasjonssikkerhet gdpr personvern lekkasje"
+    },
+    "handleDeviation": {
+      "title": "Behandle og lukke et avvik",
+      "question": "Hvordan behandler og lukker jeg et avvik?",
+      "keywords": "avvik korrigerende tiltak årsak lukke behandle undersøke"
+    },
+    "createDocument": {
+      "title": "Lage et nytt dokument",
+      "question": "Hvordan lager jeg et nytt dokument?",
+      "keywords": "dokument prosedyre policy instruks rutine skrive mal"
+    },
+    "approveDocument": {
+      "title": "Få et dokument godkjent",
+      "question": "Hvordan får jeg et dokument godkjent?",
+      "keywords": "dokument godkjenning godkjenne gjennomgang publisere"
+    },
+    "readAcknowledge": {
+      "title": "Sikre at de ansatte har lest et dokument",
+      "question": "Hvordan sikrer jeg at de ansatte har lest et dokument?",
+      "keywords": "lest lese bekrefte ansatte distribuere kampanje lesebekreftelse"
+    },
+    "linkRequirement": {
+      "title": "Koble en post til et krav",
+      "question": "Hvordan kobler jeg en post eller et dokument til et krav?",
+      "keywords": "krav punkt standard koble dokumentasjon iso"
+    },
+    "startStandard": {
+      "title": "Komme i gang med en standard",
+      "question": "Hvordan kommer jeg i gang med en standard som ISO 27001?",
+      "keywords": "standard iso 9001 27001 14001 45001 42001 gdpr nis2 starte sertifisering"
+    },
+    "whatNext": {
+      "title": "Se hva vi bør gjøre videre for å bli sertifisert",
+      "question": "Hva bør vi gjøre videre for å bli sertifisert?",
+      "keywords": "sertifisering sertifisert videre mangler kravdekning revisjon"
+    },
+    "confirmSuggestions": {
+      "title": "Bekrefte foreslåtte krav",
+      "question": "Hvordan bekrefter jeg foreslåtte krav?",
+      "keywords": "forslag foreslåtte bekrefte krav dokumentasjon"
+    },
+    "notApplicable": {
+      "title": "Markere et krav som ikke relevant",
+      "question": "Hvordan markerer jeg et krav som ikke relevant?",
+      "keywords": "ikke relevant unnta krav anvendelseserklæring soa begrunnelse"
+    },
+    "createTask": {
+      "title": "Lage en oppgave",
+      "question": "Hvordan lager jeg en oppgave?",
+      "keywords": "oppgave tildele frist gjøremål kollega"
+    },
+    "inviteUser": {
+      "title": "Invitere en kollega",
+      "question": "Hvordan inviterer jeg en kollega?",
+      "keywords": "invitere bruker medlem kollega tilgang rolle"
+    },
+    "enableModule": {
+      "title": "Slå på en modul",
+      "question": "Hvordan slår jeg på en modul?",
+      "keywords": "modul slå på aktivere innstillinger"
+    },
+    "findRecord": {
+      "title": "Finne en post",
+      "question": "Hvordan finner jeg en post i CoreFlow?",
+      "keywords": "finne søke post registrering lete"
+    },
+    "prepareAudit": {
+      "title": "Forberede en revisjon",
+      "question": "Hvordan forbereder jeg en revisjon?",
+      "keywords": "revisjon sertifisering forberede eksport dokumentasjon revisor"
+    },
+    "learn": {
+      "title": "Lære samsvarsarbeid steg for steg",
+      "question": "Hvordan lærer jeg meg samsvarsarbeid og CoreFlow?",
+      "keywords": "lære leksjon kurs nybegynner omvisning opplæring veiledning"
+    }
+  }
+}
