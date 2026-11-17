@@ -220,12 +220,9 @@ export class ProjectAiPanel {
 
   /** Open the risk form prefilled with the suggestion; the risk is linked to the project. */
   protected registerRisk(risk: RiskPrompt): void {
-    void this.flows.start(
-      'project.to_risk',
-      'project',
-      this.projectId(),
-      riskOverlay(risk, this.scale(), this.language.translate('projects.ai.mitigation')),
-    );
+    void this.flows.start('project.to_risk', 'project', this.projectId(), {
+      prefill: riskOverlay(risk, this.scale(), this.language.translate('projects.ai.mitigation')),
+    });
   }
 
   protected addTask(risk: RiskPrompt, index: number): void {

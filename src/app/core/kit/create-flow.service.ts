@@ -53,6 +53,17 @@ interface StoredFlow extends FlowContext {
   readonly orgId: string;
 }
 
+/** Options of {@link CreateFlowService.start}. */
+export interface StartFlowOptions {
+  /**
+   * Values that replace the server's prefill (e.g. the title of a SWOT factor
+   * instead of the analysis title). `from` and `requirement` are kept.
+   */
+  readonly prefill?: Readonly<Record<string, unknown>>;
+  /** Called with the flow token once the flow is underway (before navigating). */
+  readonly onStarted?: (token: string) => void;
+}
+
 /**
  * "Create from here" (P4, polish plan 2.5). A source record offers flows such as
  * "deviation → risk"; starting one asks the backend for prefill values and a
@@ -113,15 +124,13 @@ export class CreateFlowService {
   /**
    * Start a flow: fetch the prefill and token, then open the new-form. For a
    * requirement flow pass `{ ref }` as the source. Resolves to false (with a toast)
-   * when the backend refuses. `overlay` values (in the target create-DTO's field
-   * names) are laid over the server's prefill, e.g. an assistant suggestion the
-   * user chose to register.
+   * when the backend refuses.
    */
   start(
     flow: CreateFlowItem | string,
     sourceType: string,
     source: string | { readonly id?: string | null; readonly ref?: string | null },
-    overlay?: FlowPrefillValues,
+    options: StartFlowOptions = {},
   ): Promise<boolean> {
     const orgId = this.selectedOrg.currentOrgId();
     const key = typeof flow === 'string' ? flow : flow.key;
@@ -136,11 +145,10 @@ export class CreateFlowService {
         .prefillFlow(orgId, key, { sourceId, sourceRef })
         .pipe(finalize(() => this.starting.set(null)))
         .subscribe({
-          next: (fetched) => {
-            const res = overlay
-              ? { ...fetched, prefill: { ...fetched.prefill, ...overlay } }
-              : fetched;
+          next: (response) => {
+            const res = withPrefill(response, options.prefill);
             const ctx = this.remember(orgId, res, sourceType === 'standard_requirement');
+            options.onStarted?.(res.token);
             this.consumed = false;
             void this.router.navigateByUrl(ctx.targetRoute).then((ok) => {
               if (ok && pathOf(this.router.url) !== pathOf(ctx.targetRoute)) {
@@ -521,6 +529,22 @@ export function patchFromPrefill(form: FormGroup, prefill: FlowPrefillValues): v
       control.markAsDirty();
     }
   }
+}
+
+/** A prefill response with caller overrides applied (`from` / `requirement` are kept). */
+export function withPrefill(
+  res: PrefillResponse,
+  overrides: Readonly<Record<string, unknown>> | null | undefined,
+): PrefillResponse {
+  if (!overrides) {
+    return res;
+  }
+  const extra = Object.fromEntries(
+    Object.entries(overrides).filter(
+      ([key, value]) => key !== 'from' && key !== 'requirement' && value !== undefined,
+    ),
+  );
+  return { ...res, prefill: { ...res.prefill, ...extra } };
 }
 
 /** The claims of a flow token (read only to recover after a reload; the server verifies it). */

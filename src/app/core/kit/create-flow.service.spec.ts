@@ -15,6 +15,7 @@ import {
   patchFromPrefill,
   pathOf,
   withParam,
+  withPrefill,
 } from './create-flow.service';
 
 const BASE = 'http://test/api';
@@ -111,6 +112,14 @@ function route(params: Record<string, string>): ActivatedRoute {
 }
 
 describe('create-flow helpers', () => {
+  it('overrides prefill values but keeps where the record comes from', () => {
+    const res = prefill();
+    const out = withPrefill(res, { title: 'Factor', from: 'nope', requirement: 'x' });
+    expect(out.prefill.title).toBe('Factor');
+    expect(out.prefill.from).toEqual(res.prefill.from);
+    expect(withPrefill(res, null)).toBe(res);
+  });
+
   it('reads paths and sets query parameters', () => {
     expect(pathOf('/risk/risks/new?flow=x#top')).toBe('/risk/risks/new');
     expect(pathOf('/risk/risks/')).toBe('/risk/risks');

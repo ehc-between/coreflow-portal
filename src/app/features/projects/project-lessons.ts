@@ -487,8 +487,7 @@ export class ProjectLessons {
   protected toRisk(l: Lesson): void {
     const description = [l.description, l.recommendation].filter(Boolean).join('\n\n');
     void this.flows.start('project.to_risk', 'project', this.projectId(), {
-      title: l.title,
-      ...(description ? { description } : {}),
+      prefill: { title: l.title, ...(description ? { description } : {}) },
     });
   }
 
