@@ -392,7 +392,7 @@
       "body": "Update the validity if it was renewed, or mark the obligation as retired."
     },
     "changes": {
-      "title": "{{ count }} change(s) to handle",
+      "title": "Changes to handle: {{ count }}",
       "body": "Assess what the change means for you and update the duties before it takes effect."
     },
     "ok": {
@@ -418,7 +418,7 @@
     "ownerDefault": "Responsible: the obligation's owner",
     "lastEvaluated": "Evaluated {{ date }}",
     "neverEvaluated": "Not evaluated yet",
-    "openActions": "{{ count }} open task(s)",
+    "openActions": "Open tasks: {{ count }}",
     "clauses": "Clauses it documents",
     "lastNote": "Latest finding",
     "documentation": "Documented by",
@@ -581,7 +581,7 @@
     "changeTitle": "Prepare for the change: {{ code }} {{ title }} (from {{ date }})"
   },
   "nextActions": {
-    "noSchedule": "Plan the evaluation of {{ count }} obligation(s)",
+    "noSchedule": "Plan the evaluation of your obligations ({{ count }})",
     "noScheduleWhy": "{{ count }} of your obligations have no evaluation plan, so nobody is reminded to check compliance.",
     "noFollowUp": "Follow up the gap in {{ code }} {{ title }}",
     "noFollowUpWhy": "The latest evaluation of {{ code }} found gaps, but there is no deviation or follow-up task.",

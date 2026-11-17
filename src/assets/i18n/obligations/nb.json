@@ -392,7 +392,7 @@
       "body": "Oppdater gyldigheten hvis den er fornyet, eller sett forpliktelsen som utgått."
     },
     "changes": {
-      "title": "{{ count }} endring(er) må håndteres",
+      "title": "Endringer som må håndteres: {{ count }}",
       "body": "Vurder hva endringen betyr for dere, og oppdater pliktene før den trer i kraft."
     },
     "ok": {
@@ -418,7 +418,7 @@
     "ownerDefault": "Ansvarlig: forpliktelsens eier",
     "lastEvaluated": "Vurdert {{ date }}",
     "neverEvaluated": "Ikke vurdert ennå",
-    "openActions": "{{ count }} åpne oppgaver",
+    "openActions": "Åpne oppgaver: {{ count }}",
     "clauses": "Punkter den dokumenterer",
     "lastNote": "Siste funn",
     "documentation": "Dokumentert av",
@@ -581,7 +581,7 @@
     "changeTitle": "Forbered endringen: {{ code }} {{ title }} (gjelder fra {{ date }})"
   },
   "nextActions": {
-    "noSchedule": "Planlegg vurdering av {{ count }} forpliktelse(r)",
+    "noSchedule": "Planlegg vurderingen av forpliktelsene dine ({{ count }})",
     "noScheduleWhy": "{{ count }} av forpliktelsene dine har ingen vurderingsplan, så ingen blir påminnet om å sjekke samsvaret.",
     "noFollowUp": "Følg opp mangelen i {{ code }} {{ title }}",
     "noFollowUpWhy": "Siste vurdering av {{ code }} fant mangler, men det finnes verken avvik eller oppfølgingsoppgave.",
