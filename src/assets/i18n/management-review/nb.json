@@ -410,7 +410,7 @@
     "complaints": "Klager",
     "complaints_open": "Åpne klager",
     "completed": "Fullført",
-    "compliance_obligations": "Kravene deres er forpliktelser",
+    "compliance_obligations": "Med krav som er forpliktelser",
     "compliant": "I samsvar",
     "compliments": "Ros",
     "consultations_held": "Medvirkningsmøter holdt",
@@ -956,7 +956,7 @@
   },
   "planning": {
     "label": "Planlegging av gjennomganger",
-    "lastSigned": "Siste signerte:",
+    "lastSigned": "Sist signert:",
     "noneSigned": "Ingen gjennomgang er signert ennå",
     "upcoming": "Neste:",
     "interval": "Holdes hver {{ months }}. måned",

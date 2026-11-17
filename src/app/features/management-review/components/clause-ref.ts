@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input } from '@angular/core';
+import { TranslocoService } from '@jsverse/transloco';
 import { TutorService } from '../../../core/guidance/tutor.service';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { provideSharedScope } from '../../../core/i18n/shared-scope';
@@ -34,6 +35,18 @@ import { formatClauseItem } from '../management-review-display';
 export class ClauseRef {
   private readonly tutor = inject(TutorService);
   private readonly language = inject(LanguageService);
+  private readonly transloco = inject(TranslocoService);
+
+  constructor() {
+    // The label is built from `standards` keys without a pipe, so nothing else loads
+    // that scope on pages without a requirements panel (the report): load it here;
+    // `translate()` refreshes the label once the file arrives.
+    effect(() => {
+      this.transloco
+        .load(`standards/${this.language.active()}`)
+        .subscribe({ error: () => undefined });
+    });
+  }
 
   /** Canonical clause ref (`hs:9.3.2`, `iso9001:9.3.2`). */
   readonly ref = input.required<string>();
