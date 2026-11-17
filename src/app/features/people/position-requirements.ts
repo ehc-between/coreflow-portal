@@ -71,7 +71,7 @@ export function toRequirementsBody(drafts: readonly RequirementDraft[]): Require
   template: `
     <section aria-labelledby="cf-pos-req-h">
       <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <h2 id="cf-pos-req-h" class="font-display text-[15px] font-bold text-fg">
+        <h2 id="cf-pos-req-h" class="text-card font-bold text-fg">
           {{ 'people.requirements.title' | transloco }}
         </h2>
         @if (canManage()) {
@@ -104,7 +104,7 @@ export function toRequirementsBody(drafts: readonly RequirementDraft[]): Require
           class="my-3 rounded-tile border border-border bg-surface-2 p-3"
           data-testid="suggestions"
         >
-          <p class="mb-2 text-[12.5px] font-semibold text-fg">
+          <p class="mb-2 text-meta font-semibold text-fg">
             {{ 'people.ai.suggestionsTitle' | transloco }}
           </p>
           <ul class="flex flex-col gap-2">
@@ -117,7 +117,7 @@ export function toRequirementsBody(drafts: readonly RequirementDraft[]): Require
                   [checked]="chosen().has(i)"
                   (change)="toggle(i)"
                 />
-                <label [for]="'cf-sugg-' + i" class="min-w-0 flex-1 text-[13px] text-fg">
+                <label [for]="'cf-sugg-' + i" class="min-w-0 flex-1 text-ui text-fg">
                   <span class="font-semibold">{{ s.name }}</span>
                   · {{ 'people.levels.' + s.required_level | transloco }}
                   @if (s.mandatory) {
@@ -129,7 +129,7 @@ export function toRequirementsBody(drafts: readonly RequirementDraft[]): Require
                     >
                   }
                   @if (s.rationale) {
-                    <span class="block text-[12px] text-fg-muted">{{ s.rationale }}</span>
+                    <span class="block text-meta text-fg-muted">{{ s.rationale }}</span>
                   }
                 </label>
               </li>
@@ -163,12 +163,12 @@ export function toRequirementsBody(drafts: readonly RequirementDraft[]): Require
                   {{ 'people.requirements.row' | transloco: { n: i + 1 } }}
                 </legend>
                 <div class="flex flex-col gap-1">
-                  <label [for]="'cf-req-comp-' + i" class="text-[12px] font-semibold text-fg-muted">
+                  <label [for]="'cf-req-comp-' + i" class="text-meta font-semibold text-fg-muted">
                     {{ 'people.fields.competence' | transloco }}
                   </label>
                   <select
                     [id]="'cf-req-comp-' + i"
-                    class="h-9 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
+                    class="h-9 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
                     (change)="setCompetence(i, $any($event.target).value)"
                   >
                     <option value="" [selected]="!d.competence_id">
@@ -185,15 +185,12 @@ export function toRequirementsBody(drafts: readonly RequirementDraft[]): Require
                   </select>
                 </div>
                 <div class="flex flex-col gap-1">
-                  <label
-                    [for]="'cf-req-level-' + i"
-                    class="text-[12px] font-semibold text-fg-muted"
-                  >
+                  <label [for]="'cf-req-level-' + i" class="text-meta font-semibold text-fg-muted">
                     {{ 'people.fields.requiredLevel' | transloco }}
                   </label>
                   <select
                     [id]="'cf-req-level-' + i"
-                    class="h-9 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
+                    class="h-9 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
                     (change)="patch(i, { required_level: +$any($event.target).value })"
                   >
                     @for (l of levels; track l) {
@@ -203,7 +200,7 @@ export function toRequirementsBody(drafts: readonly RequirementDraft[]): Require
                     }
                   </select>
                 </div>
-                <label class="flex h-9 items-center gap-2 text-[13px] text-fg">
+                <label class="flex h-9 items-center gap-2 text-ui text-fg">
                   <input
                     type="checkbox"
                     class="h-4 w-4 accent-[var(--accent)]"
@@ -241,13 +238,13 @@ export function toRequirementsBody(drafts: readonly RequirementDraft[]): Require
           </div>
         </div>
       } @else if (position().requirements.length === 0) {
-        <p class="py-3 text-[13px] text-fg-muted" data-testid="requirements-empty">
+        <p class="py-3 text-ui text-fg-muted" data-testid="requirements-empty">
           {{ 'people.requirements.empty' | transloco }}
         </p>
       } @else {
         <ul class="mt-2 divide-y divide-border" data-testid="requirement-rows">
           @for (r of position().requirements; track r.competence_id) {
-            <li class="flex flex-wrap items-center gap-x-3 gap-y-1 py-2 text-[13px]">
+            <li class="flex flex-wrap items-center gap-x-3 gap-y-1 py-2 text-ui">
               <a
                 [routerLink]="['/people/competences', r.competence_id]"
                 class="min-w-0 flex-1 font-semibold text-fg hover:underline"
@@ -256,7 +253,7 @@ export function toRequirementsBody(drafts: readonly RequirementDraft[]): Require
               <span class="text-fg-muted">{{
                 'people.levels.' + r.required_level | transloco
               }}</span>
-              <span class="text-[12px] text-fg-subtle">{{
+              <span class="text-meta text-fg-subtle">{{
                 (r.mandatory ? 'people.competences.mandatory' : 'people.competences.desirable')
                   | transloco
               }}</span>

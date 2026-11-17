@@ -4,6 +4,21 @@ import { DocumentsApi } from '../../core/documents/documents-api';
 import { ROLE_KEYS } from '../../core/org/roles';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 
+/**
+ * A user's option label: the name, with the email added when another member has
+ * the same name (so people with identical names can be told apart).
+ */
+export function userLabel(
+  user: { readonly name: string | null; readonly email: string },
+  all: readonly { readonly name: string | null; readonly email: string }[],
+): string {
+  if (!user.name) {
+    return user.email;
+  }
+  const twins = all.filter((u) => u.name === user.name).length;
+  return twins > 1 ? `${user.name} (${user.email})` : user.name;
+}
+
 export interface AssigneeOption {
   /** Encoded value (`user:<id>`, `role:<key>`, `department:<id>`). */
   readonly value: string;
@@ -77,7 +92,11 @@ export class AssigneeOptionsService {
           orgId: org.id,
           users: [...subjects.users]
             .sort((a, b) => (a.name || a.email).localeCompare(b.name || b.email))
-            .map((u) => ({ value: `user:${u.id}`, label: u.name || u.email, labelIsKey: false })),
+            .map((u, _i, all) => ({
+              value: `user:${u.id}`,
+              label: userLabel(u, all),
+              labelIsKey: false,
+            })),
           departments: [...subjects.departments]
             .sort((a, b) => a.name.localeCompare(b.name))
             .map((d) => ({ value: `department:${d.id}`, label: d.name, labelIsKey: false })),

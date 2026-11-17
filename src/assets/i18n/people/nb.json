@@ -1,11 +1,11 @@
 {
   "sections": {
-    "label": "Områder for personer",
-    "employees": "Ansatte",
+    "label": "Områder under Personer",
+    "employees": "Personer",
     "positions": "Stillinger",
     "competences": "Kompetanser",
     "matrix": "Kompetansematrise",
-    "checklists": "Sjekklister"
+    "checklists": "Oppstart og avslutning"
   },
   "common": {
     "loading": "Laster …",
@@ -16,37 +16,45 @@
     "keep": "Behold",
     "actions": "Handlinger",
     "overdue": "Forfalt",
-    "backToList": "Tilbake til ansatte",
-    "backToEmployee": "Tilbake til den ansatte",
+    "backToList": "Tilbake til personer",
+    "backToEmployee": "Tilbake til personen",
     "backToPositions": "Tilbake til stillinger",
     "backToPosition": "Tilbake til stillingen",
     "backToCompetences": "Tilbake til kompetanser",
     "backToCompetence": "Tilbake til kompetansen",
-    "backToChecklists": "Tilbake til sjekklister"
+    "backToChecklists": "Tilbake til sjekklister",
+    "choose": "Velg …"
   },
   "summary": {
-    "current": "Nåværende ansatte",
+    "current": "Personer nå",
     "gaps": "Kompetansegap",
     "openChecklists": "Åpne sjekklister",
     "overdue": "{{ count }} forfalt",
     "missingConfidentiality": "Mangler taushetserklæring",
-    "expiringSoon": "{{ count }} kompetanser utløper snart"
+    "expiringSoon": "Utløper snart",
+    "screeningMissing": "Mangler bakgrunnssjekk",
+    "noUserAccount": "Uten brukerkonto",
+    "filterLabel": "{{ label }}: {{ count }}. Vis disse personene"
   },
   "employees": {
     "title": "Personer",
-    "subtitle": "Alle som jobber for virksomheten, med rolle, kompetanse og ansettelsesvilkår.",
-    "searchPlaceholder": "Søk etter navn, kode, e-post eller stillingstittel",
-    "new": "Ny ansatt",
-    "noMatch": "Ingen ansatte passer med filtrene.",
+    "subtitle": "Alle som jobber for dere – ansatte, innleide og praktikanter – med rolle, kompetanse og ansettelsesvilkår.",
+    "searchPlaceholder": "Søk etter navn, kode eller e-post",
+    "new": "Ny person",
+    "noMatch": "Ingen personer passer med filtrene.",
     "since": "Siden {{ date }}",
     "gapCount": "{{ count }} kompetansegap",
     "openChecklists": "{{ count }} åpne sjekklister",
-    "noConfidentiality": "Mangler taushetserklæring"
+    "noConfidentiality": "Mangler taushetserklæring",
+    "gapCountOne": "1 kompetansegap",
+    "openChecklistsOne": "1 åpen sjekkliste",
+    "expiringCount": "{{ count }} kompetanser utløper snart",
+    "expiringCountOne": "1 kompetanse utløper snart"
   },
   "filters": {
     "status": "Status",
     "statusOptions": {
-      "current": "Nåværende ansatte",
+      "current": "Nåværende personer",
       "all": "Alle"
     },
     "employmentType": "Ansettelsesform",
@@ -56,12 +64,15 @@
     "department": "Avdeling",
     "anyDepartment": "Alle avdelinger",
     "sort": "Sortering",
-    "risk": "Risikonivå",
-    "anyRisk": "Alle risikonivåer",
+    "risk": "Sikkerhetsrisiko for rollen",
+    "anyRisk": "All sikkerhetsrisiko",
     "category": "Kategori",
     "anyCategory": "Alle kategorier",
     "kind": "Type",
-    "anyKind": "Onboarding og offboarding"
+    "anyKind": "Oppstart og avslutning",
+    "flag": "Trenger oppfølging",
+    "anyFlag": "Alle personer",
+    "clearFlag": "Vis alle"
   },
   "sorts": {
     "name": "Navn A–Å",
@@ -73,11 +84,11 @@
     "created_atDesc": "Nylig lagt til"
   },
   "status": {
-    "onboarding": "Under onboarding",
+    "onboarding": "Under oppstart",
     "active": "Aktiv",
     "on_leave": "Permisjon",
-    "offboarding": "Under offboarding",
-    "former": "Tidligere ansatt"
+    "offboarding": "Under avslutning",
+    "former": "Sluttet"
   },
   "employmentTypes": {
     "permanent": "Fast",
@@ -93,9 +104,9 @@
     "failed": "Ikke godkjent"
   },
   "riskLevels": {
-    "low": "Lav risiko",
-    "medium": "Middels risiko",
-    "high": "Høy risiko"
+    "low": "Lav sikkerhetsrisiko",
+    "medium": "Middels sikkerhetsrisiko",
+    "high": "Høy sikkerhetsrisiko"
   },
   "recordStatus": {
     "active": "Aktiv",
@@ -125,8 +136,8 @@
     "not_required": "Ikke påkrevd"
   },
   "checklistKinds": {
-    "onboarding": "Onboarding",
-    "offboarding": "Offboarding"
+    "onboarding": "Oppstart (onboarding)",
+    "offboarding": "Avslutning (offboarding)"
   },
   "checklistStatus": {
     "open": "Åpen",
@@ -147,7 +158,8 @@
     "briefing": "Orientering",
     "campaign": "Bevissthetskampanje",
     "induction": "Introduksjon",
-    "other": "Annet"
+    "other": "Annet",
+    "training": "Gjennomført kurs"
   },
   "disciplinaryTypes": {
     "security_breach": "Brudd på informasjonssikkerhet",
@@ -201,17 +213,32 @@
     "responsibilities": "Ansvar",
     "authorities": "Myndighet",
     "reportsTo": "Rapporterer til",
-    "riskLevel": "Risikonivå",
+    "riskLevel": "Sikkerhetsrisiko for rollen",
     "owner": "Eier",
     "name": "Navn",
     "category": "Kategori",
-    "validityMonths": "Gyldig i (måneder)"
+    "validityMonths": "Gyldig i (måneder)",
+    "ownTitle": "Egen tittel (valgfritt)",
+    "screeningScope": "Hva ble sjekket",
+    "screeningLegalBasis": "Rettslig grunnlag",
+    "screeningRecheckOn": "Ny sjekk innen",
+    "postEmploymentAckOn": "Plikter etter avsluttet arbeidsforhold bekreftet",
+    "awarenessNotes": "Notater",
+    "method": "Slik ble det vurdert",
+    "assessedBy": "Vurdert av",
+    "trainingRecord": "Bygger på opplæring",
+    "document": "Dokument",
+    "employee": "Person",
+    "jobDescription": "Stillingsbeskrivelse",
+    "nextReviewOn": "Neste gjennomgang",
+    "lastReviewedOn": "Sist gjennomgått",
+    "sourceApplication": "Ansatt gjennom"
   },
   "form": {
-    "newTitle": "Ny ansatt",
-    "editTitle": "Rediger {{ code }}",
-    "create": "Legg til ansatt",
-    "readOnly": "Du kan se denne ansatte, men ikke endre den.",
+    "newTitle": "Ny person",
+    "editTitle": "Rediger {{ name }}",
+    "create": "Legg til person",
+    "readOnly": "Du kan se denne personen, men ikke endre oppføringen.",
     "sections": {
       "identity": "Hvem det er",
       "role": "Rolle",
@@ -223,16 +250,27 @@
     "noPosition": "Ingen stilling",
     "noDepartment": "Ingen avdeling",
     "noManager": "Ingen leder",
-    "securityHint": "Registrer når den ansatte signerte taushetserklæringen og aksepterte sikkerhetsvilkårene, og resultatet av en eventuell bakgrunnssjekk.",
-    "privateHint": "Telefon og HR-notater vises bare for dem som kan redigere ansatte, og for den ansatte selv.",
-    "startOnboarding": "Start en onboarding-sjekkliste fra standardmalen",
+    "securityHint": "Registrer når personen signerte taushetserklæringen og aksepterte sikkerhetsvilkårene, bakgrunnssjekken, og at personen har bekreftet pliktene etter avsluttet arbeidsforhold.",
+    "privateHint": "Telefon, HR-notater, hva som ble sjekket og rettslig grunnlag vises bare for dem som kan redigere personer, og for personen selv.",
+    "startOnboarding": "Start en sjekkliste for oppstart fra standardmalen",
     "changeReason": "Begrunnelse for endringen",
     "changeReasonPlaceholder": "For eksempel: forfremmet til teamleder",
     "errors": {
-      "fullNameRequired": "Skriv inn den ansattes fulle navn.",
+      "fullNameRequired": "Skriv inn personens fulle navn.",
       "email": "Skriv inn en gyldig e-postadresse.",
-      "endBeforeStart": "Sluttdatoen kan ikke være før startdatoen."
-    }
+      "endBeforeStart": "Sluttdatoen kan ikke være før startdatoen.",
+      "legalBasisRequired": "Skriv inn det rettslige grunnlaget for politiattesten.",
+      "recheckAfterCheck": "Neste sjekk må være etter sjekken som er gjort."
+    },
+    "required": "påkrevd",
+    "requiredNote": "Felt merket med * må fylles ut.",
+    "employeeNumberHint": "Deres eget nummer, for eksempel fra lønnssystemet. CoreFlow gir også hver person en kode.",
+    "ownTitleHint": "Bare når den er en annen enn stillingen, for eksempel «Teamleder, kundestøtte».",
+    "positionNeedsScreening": "Denne rollen har høy sikkerhetsrisiko, så bakgrunnssjekk er påkrevd.",
+    "screeningTitle": "Bakgrunnssjekk",
+    "screeningRequired": "Stillingen har høy sikkerhetsrisiko. Registrer bakgrunnssjekken og når den skal gjentas.",
+    "legalBasisHint": "Hvorfor dere har lov til å sjekke dette. Politiattest krever hjemmel.",
+    "recheckHint": "For roller med høy risiko anbefaler vi ny sjekk hvert tredje år."
   },
   "detail": {
     "number": "Nr. {{ n }}",
@@ -244,14 +282,21 @@
     "formerNotice": "Denne personen har sluttet. Oppføringen beholdes for historikken.",
     "atAGlance": "Kort oppsummert",
     "openMatrix": "Åpne kompetansematrisen",
-    "deleteTitle": "Slette denne ansatte?",
-    "deleteMessage": "{{ code }} og tilhørende kompetanse, bevissthetstiltak og sjekklister fjernes. Åpne sjekklister og oppgavene deres avbrytes.",
+    "deleteTitle": "Slette denne personen?",
+    "deleteMessage": "{{ code }} og tilhørende kompetanse, bevisstgjøring og sjekklister fjernes. Åpne sjekklister og oppgavene deres avbrytes.",
     "accessRevokedOn": "Tilgangen til dette systemet ble fjernet {{ date }}.",
     "accessRevokesOn": "Tilgangen til dette systemet fjernes automatisk ved slutten av siste arbeidsdag, {{ date }}.",
     "revokeAccess": "Fjern tilgang nå",
     "revokeTitle": "Fjerne tilgangen nå?",
-    "revokeMessage": "{{ name }} mister tilgangen til virksomheten med en gang: medlemskap fjernes, alle innlogginger avsluttes og statusen endres til «Tidligere ansatt». Bruk dette ved avskjed på dagen.",
-    "revokeConfirm": "Fjern tilgang"
+    "revokeMessage": "{{ name }} mister tilgangen til virksomheten med en gang: medlemskap fjernes, alle innlogginger avsluttes og statusen endres til «Sluttet». Bruk dette ved avskjed på dagen.",
+    "revokeConfirm": "Fjern tilgang",
+    "summarise": "Oppsummer denne personen",
+    "notFoundBody": "Den kan være slettet, eller du har ikke tilgang til den.",
+    "hiredThrough": "Rekruttering {{ code }}",
+    "openChecklist": {
+      "onboarding": "Åpne oppstarten",
+      "offboarding": "Åpne avslutningen"
+    }
   },
   "competences": {
     "title": "Kompetanser",
@@ -269,13 +314,13 @@
     "whoEmpty": "Ingen stilling krever denne kompetansen, og ingen er vurdert i den ennå.",
     "expires": "utløper {{ date }}",
     "heldTitle": "Kompetanse",
-    "heldEmpty": "Ingen kompetanser er påkrevd eller registrert ennå. Gi den ansatte en stilling med krav, eller registrer en vurdering.",
+    "heldEmpty": "Ingen kompetanser er påkrevd eller registrert ennå. Gi personen en stilling med krav, eller registrer en vurdering.",
     "noPosition": "Ingen stilling er satt, så ingenting er påkrevd. Registrerte kompetanser vises likevel.",
     "mandatory": "Obligatorisk",
     "desirable": "Ønskelig",
     "assess": "Registrer vurdering",
     "assessTitle": "Registrer en kompetansevurdering",
-    "assessMessage": "Registrer nivået den ansatte har vist, når det ble vurdert, og dokumentasjonen.",
+    "assessMessage": "Registrer nivået {{ name }} har vist, hvordan og av hvem det ble vurdert, og hva det bygger på.",
     "assessedOn": "vurdert {{ date }}",
     "expiryHint": "La utløpsdatoen stå tom for å bruke kompetansens gyldighetsperiode.",
     "pick": "Velg en kompetanse",
@@ -283,7 +328,22 @@
     "removeTitle": "Fjerne denne vurderingen?",
     "removeMessage": "Det registrerte nivået for {{ name }} fjernes. Hvis stillingen krever den, vises den som mangler.",
     "deleteTitle": "Slette denne kompetansen?",
-    "deleteMessage": "{{ name }} fjernes fra katalogen, fra alle stillingers krav og fra alle ansattes oppføringer."
+    "deleteMessage": "{{ name }} fjernes fra katalogen, fra alle stillingers krav og fra alle personers oppføringer.",
+    "validForOne": "Gyldig i 1 måned",
+    "usedByOne": "Kreves av 1 stilling",
+    "heldByOne": "1 person har den",
+    "heldSubtitle": "Det stillingen krever, og det personen har vist (felles ISO-krav 7.2).",
+    "levelShort": "Nivå",
+    "ofRequired": "av {{ level }} påkrevd",
+    "assessedBy": "av {{ name }}",
+    "basedOn": "Bygger på kurset {{ course }}",
+    "rowMenu": "Mer for denne kompetansen",
+    "saveAssessment": "Lagre vurderingen",
+    "requiredHint": "Stillingen krever nivå {{ level }}.",
+    "evidenceHint": "Kort og saklig, for eksempel «Bestått praktisk prøve, se sertifikat».",
+    "noTrainingRecord": "Ingen opplæring",
+    "noTrainingRecords": "Ingen gjennomførte kurs ennå (eller personen har ingen brukerkonto).",
+    "explain": "Forklar denne kompetansen"
   },
   "competenceForm": {
     "newTitle": "Ny kompetanse",
@@ -293,8 +353,8 @@
     "validityRange": "Skriv inn et helt antall måneder mellom 1 og 240, eller la feltet stå tomt."
   },
   "positions": {
-    "title": "Stillinger og roller",
-    "subtitle": "Hva hver rolle har ansvar for, hva den kan bestemme, og hvilken kompetanse den trenger.",
+    "title": "Stillinger",
+    "subtitle": "Hva hver rolle har ansvar for, hva den kan bestemme, hvilken kompetanse den trenger og hvor stor sikkerhetsrisiko den har.",
     "searchPlaceholder": "Søk i stillinger",
     "new": "Ny stilling",
     "noMatch": "Ingen stillinger passer med filtrene.",
@@ -305,7 +365,23 @@
     "noResponsibilities": "Ansvaret er ikke beskrevet ennå.",
     "noAuthorities": "Myndigheten er ikke beskrevet ennå.",
     "deleteTitle": "Slette denne stillingen?",
-    "deleteMessage": "{{ title }} fjernes. En stilling kan ikke slettes mens noen har den; sett den som utgått i stedet."
+    "deleteMessage": "{{ title }} fjernes. En stilling kan ikke slettes mens noen har den; sett den som utgått i stedet.",
+    "holdersOne": "1 person",
+    "requirementsOne": "1 kompetansekrav",
+    "about": "Om stillingen",
+    "codeHint": "Kort kode for stillingen, brukes i lister og eksporter",
+    "ownerHint": "Holder stillingsbeskrivelsen oppdatert",
+    "screeningRequired": "Krever bakgrunnssjekk av alle i rollen",
+    "screeningNotRequired": "Bakgrunnssjekk er ikke påkrevd",
+    "reviewDue": "Gjennomgang forfalt",
+    "lastReviewed": "Sist gjennomgått {{ date }}",
+    "markReviewed": "Merk som gjennomgått",
+    "reviewTitle": "Registrer gjennomgangen",
+    "reviewMessage": "Bekreft at ansvaret, myndigheten og kompetansekravene for {{ title }} fortsatt stemmer.",
+    "nextReviewHint": "Vi anbefaler én gang i året. Eieren får en påminnelse når den forfaller.",
+    "reviewNote": "Notat (valgfritt)",
+    "reviewNotePlaceholder": "For eksempel: lagt til krav om førstehjelp",
+    "summarise": "Oppsummer denne stillingen"
   },
   "positionForm": {
     "newTitle": "Ny stilling",
@@ -314,7 +390,12 @@
     "titleRequired": "Skriv inn stillingstittelen.",
     "noReportsTo": "Rapporterer ikke til noen stilling",
     "noOwner": "Ingen eier",
-    "requirementsLater": "Kompetansekravene legger du til på stillingens side etter at den er lagret."
+    "requirementsLater": "Kompetansekravene legger du til på stillingens side etter at den er lagret.",
+    "codeHint": "Valgfri kort kode, for eksempel «IT» eller «KS».",
+    "riskHint": "Høy betyr at alle i rollen må ha en bakgrunnssjekk.",
+    "ownerHint": "Personen som holder stillingsbeskrivelsen oppdatert.",
+    "jobDescriptionHint": "Det styrte dokumentet som beskriver rollen, hvis dere har et.",
+    "nextReviewDefault": "La stå tomt for ett år fra i dag."
   },
   "requirements": {
     "title": "Kompetansekrav",
@@ -341,29 +422,34 @@
       "matrix": "Matrise",
       "gaps": "Bare gap"
     },
-    "includeFormer": "Ta med tidligere ansatte",
+    "includeFormer": "Ta med personer som har sluttet",
     "anyGap": "Alle gap",
     "mandatoryOnly": "Bare obligatoriske",
-    "caption": "Kompetansenivå per ansatt. Hver celle viser nivået personen har, eller statusen mot kravet.",
-    "employee": "Ansatt",
+    "caption": "Kompetansenivå per person. Hver celle viser nivået personen har, eller statusen mot kravet.",
+    "employee": "Person",
     "gaps": "Gap",
     "cellLabel": "{{ competence }}: {{ status }}, har {{ level }}, krav {{ required }}",
     "cellHint": "Tallene er nivået personen har (0–4). Fargene viser statusen mot stillingens krav.",
     "none": "ingen",
     "notRequired": "ikke påkrevd",
     "noGaps": "Ingen gap passer med filtrene. Alle oppfyller kravene sine.",
-    "gapLevels": "krav {{ required }}, har {{ held }}",
-    "gapTotal": "{{ count }} gap totalt"
+    "gapLevels": "kravnivå {{ required }}, har {{ held }}",
+    "gapTotal": "{{ count }} gap totalt",
+    "legendTitle": "Kompetansene i matrisen",
+    "cellHintEdit": "Tallene er nivået personen har (0–4), og fargene viser statusen. Velg en celle for å registrere en vurdering.",
+    "cellAction": "{{ name }}, {{ label }}. Registrer en vurdering",
+    "gapTotalOne": "1 gap totalt",
+    "export": "Eksporter til CSV"
   },
   "checklists": {
-    "title": "Onboarding og offboarding",
+    "title": "Oppstart og avslutning",
     "subtitle": "Stegene når folk begynner og slutter: tilganger, utstyr, taushetsplikt og opplæring.",
     "noMatch": "Ingen sjekklister passer med filtrene.",
-    "employeeTitle": "Onboarding og offboarding",
+    "employeeTitle": "Oppstart og avslutning",
     "employeeEmpty": "Ingen sjekklister ennå.",
     "start": {
-      "onboarding": "Start onboarding",
-      "offboarding": "Start offboarding"
+      "onboarding": "Start oppstart",
+      "offboarding": "Start avslutning"
     },
     "startMessage": "Sjekklisten starter fra standardmalen og tildeles som en oppgave.",
     "startConfirm": "Start sjekklisten",
@@ -389,19 +475,47 @@
     "deleteTitle": "Slette denne sjekklisten?",
     "deleteMessage": "{{ title }} og punktene fjernes.",
     "lastWorkingDay": "Siste arbeidsdag",
-    "lastWorkingDayHint": "Tilgangen til dette systemet fjernes automatisk ved slutten av denne dagen: medlemskap og innlogginger trekkes tilbake, og statusen endres til «Tidligere ansatt».",
+    "lastWorkingDayHint": "Tilgangen til dette systemet fjernes automatisk ved slutten av denne dagen: medlemskap og innlogginger trekkes tilbake, og statusen endres til «Sluttet».",
     "automaticPending": "Krysses av automatisk når tilgangen fjernes på siste arbeidsdag.",
-    "automaticDone": "Krysset av automatisk da tilgangen ble fjernet {{ date }}."
+    "automaticDone": "Krysset av automatisk da tilgangen ble fjernet {{ date }}.",
+    "employeeSubtitle": "Sjekklister for når personen begynner og slutter. Noen punkter oppdaterer også personens oppføring.",
+    "requiredOpenOne": "1 obligatorisk punkt åpent",
+    "offboardingHint": "Listen tar med retur av utstyr og fjerning av tilganger. Utstyr registrert på personen må leveres tilbake i Eiendeler først.",
+    "openPerson": "Åpne personen",
+    "ask": "Spør om denne sjekklisten",
+    "itemMenu": "Mer for dette punktet",
+    "assetsOutstanding": "{{ count }} eiendeler er fortsatt registrert på personen. Lever dem tilbake i Eiendeler først.",
+    "assetsOutstandingOne": "1 eiendel er fortsatt registrert på personen. Lever den tilbake i Eiendeler først.",
+    "seeHandover": "Se utstyr og tilganger",
+    "actions": {
+      "confidentiality_signed": "Når punktet krysses av, registreres taushetserklæringen på personen.",
+      "security_terms_accepted": "Når punktet krysses av, registreres det at sikkerhetsvilkårene er akseptert.",
+      "screening_completed": "Når punktet krysses av, registreres bakgrunnssjekken som fullført.",
+      "post_employment_ack": "Når punktet krysses av, registreres det at personen har bekreftet pliktene etter avsluttet arbeidsforhold.",
+      "equipment_returned": "Kan bare krysses av når ikke noe utstyr er registrert på personen."
+    }
   },
   "awareness": {
-    "title": "Bevissthet",
-    "empty": "Ingen bevissthetstiltak registrert ennå. Registrer retningslinjer som er lest, sikkerhetsopplæring og orienteringer personen har gjennomført.",
-    "add": "Registrer tiltak",
-    "addTitle": "Registrer bevissthetstiltak",
-    "editTitle": "Rediger bevissthetstiltak",
+    "title": "Bevisstgjøring",
+    "empty": "Ingen bevisstgjøring registrert ennå. Registrer retningslinjer personen har lest, sikkerhetsopplæring og orienteringer.",
+    "add": "Registrer bevisstgjøring",
+    "addTitle": "Registrer bevisstgjøring",
+    "editTitle": "Rediger bevisstgjøringen",
     "message": "Hva personen er gjort kjent med, og når.",
-    "deleteTitle": "Slette dette tiltaket?",
-    "deleteMessage": "Registreringen «{{ topic }}» fjernes."
+    "deleteTitle": "Slette denne registreringen?",
+    "deleteMessage": "Registreringen «{{ topic }}» fjernes.",
+    "subtitleBefore": "Retningslinjer lest og orienteringer gitt –",
+    "term": "bevissthet",
+    "subtitleAfter": "(felles ISO-krav 7.3). Les og signer fra Dokumenter og beståtte kurs vises her automatisk.",
+    "documentHint": "Velg retningslinjen. Den godkjente versjonen registreres.",
+    "documentOptional": "Valgfritt: koble dokumentet det gjaldt.",
+    "topicFromDocument": "La stå tomt for å bruke dokumentets tittel.",
+    "versionRead": "versjon {{ rev }} lest {{ date }}",
+    "rowMenu": "Mer for denne registreringen",
+    "sources": {
+      "document_ack": "Lest og signert i Dokumenter",
+      "training": "Fra Opplæring"
+    }
   },
   "disciplinary": {
     "title": "Disiplinærsaker",
@@ -414,21 +528,21 @@
     "opened": "Åpnet {{ date }}",
     "closed": "lukket {{ date }}",
     "deleteTitle": "Slette denne saken?",
-    "deleteMessage": "Saken fjernes permanent fra den ansattes oppføring."
+    "deleteMessage": "Saken fjernes permanent fra personens oppføring."
   },
   "notices": {
     "saved": "Endringene er lagret.",
     "noChanges": "Ingenting ble endret.",
-    "employeeCreated": "Ansatt {{ code }} lagt til.",
-    "employeeDeleted": "Ansatt {{ code }} slettet.",
+    "employeeCreated": "{{ name }} er lagt til.",
+    "employeeDeleted": "{{ code }} er slettet.",
     "assessed": "Vurderingen er registrert.",
     "competenceRemoved": "Vurderingen er fjernet.",
     "checklistStarted": "Sjekklisten er startet og tildelt.",
     "checklistCompleted": "Sjekklisten er fullført.",
     "checklistCancelled": "Sjekklisten er avbrutt.",
     "checklistDeleted": "Sjekklisten er slettet.",
-    "awarenessSaved": "Bevissthetstiltaket er lagret.",
-    "awarenessDeleted": "Bevissthetstiltaket er slettet.",
+    "awarenessSaved": "Bevisstgjøringen er lagret.",
+    "awarenessDeleted": "Bevisstgjøringen er slettet.",
     "caseSaved": "Saken er lagret.",
     "caseDeleted": "Saken er slettet.",
     "positionCreated": "Stillingen er lagt til.",
@@ -436,7 +550,20 @@
     "requirementsSaved": "Kompetansekravene er lagret.",
     "competenceCreated": "Kompetansen er lagt til.",
     "competenceDeleted": "Kompetansen {{ name }} er slettet.",
-    "accessRevoked": "Tilgangen er fjernet for {{ name }}."
+    "accessRevoked": "Tilgangen er fjernet for {{ name }}.",
+    "accountLinked": "Koblet til brukerkontoen til {{ name }}.",
+    "imported": "{{ count }} personer er importert.",
+    "importedOne": "1 person er importert.",
+    "gapAction": {
+      "training": "Opplæring er tildelt {{ name }}.",
+      "task": "Oppgave opprettet for gapet.",
+      "assessment": "Ny vurdering er planlagt.",
+      "other": "Tiltaket er lagret."
+    },
+    "gapActionUpdated": "Tiltaket er oppdatert.",
+    "positionReviewed": "{{ title }} er merket som gjennomgått.",
+    "templateSaved": "Malen er lagret. Nye sjekklister bruker den fra nå.",
+    "templateReset": "Standardmalen brukes igjen."
   },
   "errors": {
     "forbidden": "Du har ikke tilgang til dette.",
@@ -444,15 +571,15 @@
     "access_already_revoked": "Tilgangen er allerede fjernet for denne personen.",
     "cannot_revoke_self": "Du kan ikke fjerne din egen tilgang.",
     "checklist_closed": "Denne sjekklisten er lukket og kan ikke lenger endres.",
-    "checklist_exists": "Den ansatte har allerede en åpen sjekkliste av den typen.",
+    "checklist_exists": "Personen har allerede en åpen sjekkliste av den typen.",
     "checklist_incomplete": "Gjør de obligatoriske punktene først ({{ count }} åpne).",
     "competence_exists": "Det finnes allerede en kompetanse med det navnet.",
     "duplicate_competence": "Hver kompetanse kan bare stå én gang.",
-    "employee_former": "Denne personen har sluttet, så onboarding kan ikke startes.",
-    "employee_user_exists": "Den brukerkontoen er allerede koblet til en annen ansatt.",
-    "end_date_in_future": "Statusen kan først settes til «Tidligere ansatt» når siste arbeidsdag er passert. Start en offboarding i stedet.",
+    "employee_former": "Denne personen har sluttet, så oppstart kan ikke startes.",
+    "employee_user_exists": "Den brukerkontoen er allerede koblet til en annen person.",
+    "end_date_in_future": "Statusen kan først settes til «Sluttet» når siste arbeidsdag er passert. Start en avslutning i stedet.",
     "end_date_required": "Skriv inn siste arbeidsdag.",
-    "full_name_required": "Skriv inn den ansattes fulle navn.",
+    "full_name_required": "Skriv inn personens fulle navn.",
     "invalid_case_type": "Velg en gyldig type sak.",
     "invalid_category": "Velg en gyldig kategori.",
     "invalid_competence": "Fant ikke den kompetansen.",
@@ -468,40 +595,56 @@
     "invalid_status": "Velg en gyldig status.",
     "invalid_user": "Den brukeren er ikke medlem av virksomheten.",
     "item_automatic": "Dette punktet krysses av automatisk når tilgangen fjernes. Bare notatet kan endres.",
-    "module_disabled": "Personer og kompetanse er slått av for denne virksomheten.",
+    "module_disabled": "Personer er slått av for denne virksomheten.",
     "name_required": "Skriv inn et navn.",
-    "own_offboarding": "Du kan ikke endre, avbryte eller slette din egen offboarding. Be noen andre i HR om det.",
+    "own_offboarding": "Du kan ikke endre, avbryte eller slette din egen avslutning. Be noen andre i HR om det.",
     "position_in_use": "Noen har fortsatt denne stillingen. Flytt dem først, eller sett stillingen som utgått.",
-    "revoke_not_allowed": "Du kan ikke offboarde denne personen: personen har rettigheter i virksomheten som du ikke har.",
+    "revoke_not_allowed": "Du kan ikke avslutte denne personen: personen har rettigheter i virksomheten som du ikke har.",
     "text_required": "Skriv inn teksten til punktet.",
     "title_required": "Skriv inn en tittel.",
     "too_many_items": "Sjekklisten har for mange punkter.",
-    "topic_required": "Skriv inn et tema."
+    "topic_required": "Skriv inn et tema.",
+    "action_closed": "Dette tiltaket er allerede vurdert eller avbrutt.",
+    "assets_outstanding": "Det er fortsatt utstyr registrert på personen. Lever det tilbake i Eiendeler først.",
+    "course_required": "Velg et kurs.",
+    "invalid_action_key": "Velg hva punktet registrerer på personen.",
+    "invalid_document": "Fant ikke det dokumentet, eller det er ikke synlig for hele virksomheten.",
+    "invalid_method": "Velg hvordan det ble vurdert.",
+    "invalid_revision": "Fant ikke den versjonen av dokumentet.",
+    "invalid_training_record": "Den opplæringen hører ikke til denne personen.",
+    "items_required": "Legg til minst ett punkt.",
+    "no_user_account": "Personen har ingen brukerkonto. Koble kontoen først.",
+    "not_a_member": "Den brukeren er ikke medlem av virksomheten.",
+    "training_assign_required": "Du trenger tillatelse til å tildele opplæring. Opprett en oppgave i stedet, eller spør noen som administrerer opplæring.",
+    "training_disabled": "Opplæring er slått av for denne virksomheten.",
+    "exportFailed": "Eksporten kunne ikke lages. Prøv igjen om litt."
   },
   "ask": {
-    "summariseEmployee": "Oppsummer denne ansattes kompetanse, åpne sjekklister og det som mangler i ansettelsesvilkårene.",
+    "summariseEmployee": "Oppsummer kompetansen til denne personen, åpne sjekklister og det som mangler i ansettelsesvilkårene.",
     "summarisePosition": "Oppsummer denne stillingen og kontroller om ansvaret og kompetansekravene er fullstendige.",
     "explainCompetence": "Forklar hvordan denne kompetansen bør vurderes, og hvilken dokumentasjon en revisor vil forvente.",
     "securityTerms": "Hva bør ansettelsesvilkårene si om informasjonssikkerhet og taushetsplikt?",
     "checklist": "Hvilke punkter på denne sjekklisten er viktigst for informasjonssikkerheten, og hvorfor?",
-    "gaps": "Hvilke kompetansegap bør vi lukke først, og hvordan?"
+    "gaps": "Hvilke kompetansegap bør vi lukke først, og hvordan?",
+    "label": "Spør",
+    "gapsLabel": "Spør om gapene"
   },
   "lessons": {
     "link": "Leksjon: {{ title }} ({{ minutes }} min)"
   },
   "entities": {
-    "people_checklist": "Sjekkliste for onboarding/offboarding",
-    "people_awareness": "Bevissthetstiltak",
+    "people_checklist": "Sjekkliste for oppstart eller avslutning",
+    "people_awareness": "Bevisstgjøring",
     "people_disciplinary": "Disiplinærsak"
   },
   "notifications": {
-    "employeeCreated": "Ansatt {{ code }} lagt til",
-    "employeeUpdated": "Ansatt {{ code }} oppdatert",
-    "employeeStatusChanged": "Ansatt {{ code }} har fått ny status",
-    "employeeDeleted": "Ansatt {{ code }} slettet",
+    "employeeCreated": "{{ code }} er lagt til i Personer",
+    "employeeUpdated": "{{ code }} er oppdatert",
+    "employeeStatusChanged": "{{ code }} har fått ny status",
+    "employeeDeleted": "{{ code }} er slettet",
     "competenceAssessed": "{{ competence }} vurdert for {{ code }}",
     "competenceRemoved": "Kompetansevurdering fjernet for {{ code }}",
-    "awarenessRecorded": "Bevissthetstiltak registrert for {{ code }}",
+    "awarenessRecorded": "Bevisstgjøring registrert for {{ code }}",
     "positionCreated": "Stillingen {{ title }} lagt til",
     "positionUpdated": "Stillingen {{ title }} oppdatert",
     "requirementsChanged": "Kompetansekravene for {{ title }} er endret",
@@ -515,16 +658,19 @@
     "checklistCancelled": "Sjekklisten «{{ title }}» er avbrutt",
     "disciplinaryOpened": "En disiplinærsak er opprettet",
     "disciplinaryClosed": "En disiplinærsak er lukket",
-    "accessRevoked": "Tilgang fjernet for {{ code }}"
+    "accessRevoked": "Tilgang fjernet for {{ code }}",
+    "competenceActionCreated": "Tiltak planlagt på gapet i {{ competence }} for {{ code }}",
+    "competenceActionEvaluated": "Et tiltak på et kompetansegap er vurdert",
+    "positionReviewed": "Stillingen {{ title }} er gjennomgått"
   },
   "timeline": {
-    "employeeCreated": "{{ actor_name }} la til den ansatte {{ code }}",
-    "employeeUpdated": "{{ actor_name }} oppdaterte den ansatte",
-    "employeeStatusChanged": "{{ actor_name }} endret statusen til den ansatte",
-    "employeeDeleted": "{{ actor_name }} slettet den ansatte {{ code }}",
+    "employeeCreated": "{{ actor_name }} la til {{ code }}",
+    "employeeUpdated": "{{ actor_name }} oppdaterte oppføringen",
+    "employeeStatusChanged": "{{ actor_name }} endret statusen",
+    "employeeDeleted": "{{ actor_name }} slettet {{ code }}",
     "competenceAssessed": "{{ actor_name }} registrerte en vurdering av {{ competence }}",
     "competenceRemoved": "{{ actor_name }} fjernet en kompetansevurdering",
-    "awarenessRecorded": "{{ actor_name }} registrerte et bevissthetstiltak",
+    "awarenessRecorded": "{{ actor_name }} registrerte bevisstgjøring",
     "positionCreated": "{{ actor_name }} opprettet stillingen",
     "positionUpdated": "{{ actor_name }} oppdaterte stillingen",
     "requirementsChanged": "{{ actor_name }} endret kompetansekravene",
@@ -538,6 +684,298 @@
     "checklistCancelled": "{{ actor_name }} avbrøt sjekklisten «{{ title }}»",
     "disciplinaryOpened": "{{ actor_name }} opprettet en disiplinærsak",
     "disciplinaryClosed": "{{ actor_name }} lukket en disiplinærsak",
-    "accessRevoked": "Tilgangen til dette systemet ble fjernet for {{ code }}"
+    "accessRevoked": "Tilgangen til dette systemet ble fjernet for {{ code }}",
+    "competenceActionCreated": "{{ actor_name }} planla et tiltak på gapet i {{ competence }}",
+    "competenceActionEvaluated": "{{ actor_name }} vurderte et tiltak på et kompetansegap",
+    "positionReviewed": "{{ actor_name }} gjennomgikk stillingen"
+  },
+  "flags": {
+    "missing_confidentiality": "Mangler taushetserklæring",
+    "missing_security_terms": "Sikkerhetsvilkår ikke akseptert",
+    "screening_missing": "Mangler bakgrunnssjekk",
+    "screening_recheck_due": "Ny bakgrunnssjekk forfalt",
+    "competence_gaps": "Kompetansegap",
+    "expiring_soon": "Kompetanse utløper snart",
+    "no_user_account": "Uten brukerkonto"
+  },
+  "screeningScopes": {
+    "identity": "Identitet",
+    "references": "Referanser",
+    "education": "Utdanning og attester",
+    "criminal_record": "Politiattest",
+    "credit": "Kredittsjekk",
+    "other": "Annet"
+  },
+  "methods": {
+    "test": "Prøve eller eksamen",
+    "observation": "Observert i arbeid",
+    "certificate": "Sertifikat eller vitnemål",
+    "course": "Gjennomført kurs",
+    "interview": "Intervju",
+    "self": "Egenvurdering",
+    "other": "Annet"
+  },
+  "account": {
+    "missingTitle": "Ikke koblet til en brukerkonto",
+    "missingBody": "Opplæring, oppgaver og tilgangsgjennomganger når frem til personen gjennom brukerkontoen. Koble kontoen hvis personen bruker CoreFlow.",
+    "match": {
+      "email": "{{ name }} ({{ email }}) har samme e-postadresse.",
+      "name": "{{ name }} ({{ email }}) har samme navn."
+    },
+    "link": "Koble til kontoen",
+    "choose": "Velg konto"
+  },
+  "compliance": {
+    "title": "Krav for denne personen",
+    "subtitle": "Det standardene forventer for alle som jobber her, og om det er på plass.",
+    "open": "{{ count }} ikke i orden",
+    "openOne": "1 ikke i orden",
+    "allInOrder": "Alt i orden",
+    "keys": {
+      "confidentiality": "Taushetserklæring",
+      "security_terms": "Sikkerhetsvilkår i ansettelsen",
+      "screening": "Bakgrunnssjekk",
+      "competence": "Kompetanse for rollen",
+      "awareness": "Kjennskap til retningslinjer og sikkerhet",
+      "post_employment": "Plikter etter avsluttet arbeidsforhold",
+      "access_revoked": "Tilganger fjernet",
+      "equipment_returned": "Utstyr levert tilbake"
+    },
+    "status": {
+      "ok": "I orden",
+      "missing": "Mangler",
+      "due": "Forfalt",
+      "pending": "Pågår",
+      "not_required": "Ikke påkrevd"
+    },
+    "detail": {
+      "ok": "Gjort {{ date }}",
+      "okUntil": "Gjort {{ date }}, ny sjekk innen {{ recheck }}",
+      "missing": "Ikke registrert ennå",
+      "due": "Forfalt",
+      "pending": "Startet, ikke ferdig",
+      "not_required": "Ikke påkrevd for denne rollen",
+      "recheckDue": "Ny sjekk skulle vært gjort {{ recheck }}",
+      "competenceGaps": "{{ count }} gap mot stillingens krav",
+      "competenceExpiring": "Oppfyller stillingens krav; noe utløper snart",
+      "assetsOutstanding": "{{ count }} eiendeler er fortsatt registrert på personen"
+    },
+    "fix": {
+      "edit": "Registrer",
+      "competences": "Registrer vurdering",
+      "awareness": "Registrer",
+      "offboarding": "Åpne avslutningen"
+    }
+  },
+  "clauses": {
+    "short": {
+      "hs": "Felles ISO-krav",
+      "eu_ai_act": "KI-forordningen"
+    },
+    "hsTooltip": "Et punkt med samme tekst i ISO 9001, ISO 14001, ISO 27001, ISO 42001 og ISO 45001",
+    "hs_5_3": "Roller, ansvar og myndighet",
+    "hs_7_1": "Ressurser",
+    "hs_7_2": "Kompetanse",
+    "hs_7_3": "Bevissthet",
+    "iso9001_7_1_2": "Personell",
+    "iso27001_A_5_11": "Retur av eiendeler",
+    "iso27001_A_5_18": "Tilgangsrettigheter",
+    "iso27001_A_6_1": "Bakgrunnssjekk",
+    "iso27001_A_6_2": "Ansettelsesvilkår",
+    "iso27001_A_6_3": "Bevissthet, opplæring og trening i informasjonssikkerhet",
+    "iso27001_A_6_4": "Disiplinærprosess",
+    "iso27001_A_6_5": "Ansvar etter avsluttet eller endret arbeidsforhold",
+    "iso27001_A_6_6": "Taushetserklæring",
+    "nis2_21_2_g": "Cyberhygiene og opplæring",
+    "nis2_21_2_i": "Personellsikkerhet og tilgangskontroll",
+    "eu_ai_act_4": "KI-kompetanse",
+    "gdpr_32": "Sikkerhet ved behandlingen",
+    "gdpr_39": "Personvernombudets oppgaver"
+  },
+  "gapActions": {
+    "open": "Lukk gapet",
+    "title": "Lukk gapet",
+    "message": "Planlegg hva som gjør at {{ name }} når kravnivået i {{ competence }}.",
+    "kindLabel": "Hva skal lukke gapet?",
+    "kinds": {
+      "training": "Tildel opplæring",
+      "task": "Opprett oppgave",
+      "assessment": "Planlegg ny vurdering",
+      "other": "Annet tiltak"
+    },
+    "kindHints": {
+      "training": "Tildel et kurs i Opplæring til personens brukerkonto.",
+      "task": "En oppgave til noen, for eksempel veiledning eller trening i jobben.",
+      "assessment": "Vurder på nytt, for eksempel etter trening."
+    },
+    "save": {
+      "training": "Tildel opplæring",
+      "task": "Opprett oppgave",
+      "assessment": "Planlegg vurdering",
+      "other": "Lagre tiltaket"
+    },
+    "course": "Kurs",
+    "noCourses": "Det finnes ingen publiserte kurs. Lag et kurs i Opplæring først.",
+    "needsUser": "Opplæring tildeles brukerkontoer. Koble personen til kontoen først, eller opprett en oppgave i stedet.",
+    "assignee": "Hvem gjør det",
+    "owner": "Ansvarlig for oppfølging",
+    "description": "Hva er planen?",
+    "descriptionPlaceholder": "For eksempel to vakter sammen med en erfaren kollega",
+    "effectHint": "Når en ny vurdering når kravnivået, markeres tiltaket automatisk som virksomt.",
+    "menu": "Mer for dette tiltaket",
+    "markDone": "Merk som gjennomført",
+    "evaluate": "Vurder effekten",
+    "cancel": "Avbryt tiltaket",
+    "openTask": "Åpne oppgaven",
+    "evaluateTitle": "Virket tiltaket?",
+    "evaluateMessage": "Registrer om tiltaket lukket gapet. Den beste dokumentasjonen er en ny vurdering på kravnivået.",
+    "evaluatedOn": "Vurdert",
+    "evaluationNote": "Hva så dere?"
+  },
+  "gapActionStatus": {
+    "open": "Planlagt",
+    "done": "Gjennomført, ikke vurdert",
+    "effective": "Virksomt",
+    "not_effective": "Ikke virksomt",
+    "cancelled": "Avbrutt"
+  },
+  "training": {
+    "title": "Opplæring",
+    "subtitle": "Kurs personen er tildelt og har gjennomført, fra Opplæring.",
+    "noUser": "Opplæring tildeles brukerkontoer. Koble personen til kontoen for å se opplæringen her.",
+    "hidden": "Du kan ikke se andres opplæring.",
+    "empty": "Ingen kurs er tildelt eller gjennomført ennå.",
+    "assigned": "Tildelt",
+    "completed": "Gjennomførte kurs",
+    "completedOn": "Gjennomført {{ date }}",
+    "passed": "Bestått",
+    "notPassed": "Ikke bestått",
+    "status": {
+      "assigned": "Ikke startet",
+      "in_progress": "Pågår",
+      "completed": "Fullført",
+      "cancelled": "Avbrutt"
+    }
+  },
+  "handover": {
+    "title": "Utstyr og tilganger",
+    "subtitle": "Det som må leveres tilbake og fjernes før personen slutter.",
+    "noUser": "Ikke koblet til en brukerkonto, så CoreFlow finner ikke utstyr eller tilganger registrert på personen.",
+    "userActive": "Brukerkontoen er fortsatt aktiv. Den stenges ved slutten av siste arbeidsdag.",
+    "assets": "Utstyr registrert på personen",
+    "noAssets": "Ikke noe utstyr er registrert på personen.",
+    "returnAsset": "Lever tilbake",
+    "access": "Tilganger i tilgangsgjennomganger",
+    "noAccess": "Ingen tilgangsgjennomganger gjelder personen.",
+    "removed": "Fjernet",
+    "notRemoved": "Ikke fjernet"
+  },
+  "import": {
+    "open": "Importer brukere som personer",
+    "title": "Importer brukere som personer",
+    "message": "Medlemmer av virksomheten som ikke har en personoppføring ennå. Opplæring, oppgaver og tilgangsgjennomganger når frem til personen gjennom denne koblingen.",
+    "suggestionsTitle": "Forslag til kobling mot eksisterende personer",
+    "reason": {
+      "email": "Samme e-postadresse",
+      "name": "Samme navn"
+    },
+    "membersTitle": "Medlemmer uten personoppføring",
+    "none": "Alle medlemmer har allerede en personoppføring.",
+    "selectAll": "Velg alle",
+    "statusLabel": "Status for de nye oppføringene",
+    "confirm": "Importer {{ count }} personer",
+    "confirmOne": "Importer 1 person"
+  },
+  "documents": {
+    "placeholder": "Søk etter et dokument på tittel eller kode",
+    "noMatch": "Ingen dokumenter passer.",
+    "clear": "Fjern {{ title }}"
+  },
+  "orgChart": {
+    "viewLabel": "Vis stillingene som",
+    "views": {
+      "list": "Liste",
+      "chart": "Organisasjonskart"
+    },
+    "empty": "Ingen stillinger ennå.",
+    "vacant": "Ingen har denne stillingen"
+  },
+  "record": {
+    "open": "Kompetansebevis",
+    "title": "Kompetansebevis – {{ name }}",
+    "heading": "Kompetansebevis",
+    "generated": "Laget {{ date }}",
+    "print": "Skriv ut eller lagre som PDF",
+    "printHint": "Velg «Lagre som PDF» i utskriftsvinduet for å ta vare på en kopi.",
+    "back": "Tilbake til {{ name }}",
+    "control": "Krav",
+    "documents": "Dokumenterer",
+    "levels": "Har / krav",
+    "levelPair": "{{ held }} / {{ required }}",
+    "assessment": "Vurdering",
+    "actions": "Planlagte tiltak på gap",
+    "none": "Ingenting registrert.",
+    "version": "versjon {{ rev }}",
+    "position": "Stilling"
+  },
+  "settings": {
+    "hub": "Innstillinger",
+    "title": "Innstillinger for Personer",
+    "subtitle": "Deres egne standardsjekklister for personer som begynner og slutter.",
+    "kindLabel": "Sjekkliste",
+    "language": "Språket i sjekklisten",
+    "languages": {
+      "nb": "Norsk (bokmål)",
+      "en": "English"
+    },
+    "custom": "Deres egen mal",
+    "builtIn": "CoreFlows standardmal",
+    "kindHint": {
+      "onboarding": "Disse punktene brukes hver gang en oppstart starter. Punkter som registrerer noe på personen, holder oppføringen og sjekklisten i takt.",
+      "offboarding": "Disse punktene brukes hver gang en avslutning starter. «Tilganger fjernet» legges til og krysses av av CoreFlow på siste arbeidsdag."
+    },
+    "itemText": "Teksten i punkt {{ n }}",
+    "actionLabel": "Registrerer også på personen",
+    "noAction": "Registrerer ingenting på personen",
+    "actions": {
+      "confidentiality_signed": "Taushetserklæring signert",
+      "security_terms_accepted": "Sikkerhetsvilkår akseptert",
+      "screening_completed": "Bakgrunnssjekk fullført",
+      "post_employment_ack": "Plikter etter avsluttet arbeidsforhold bekreftet",
+      "equipment_returned": "Utstyr levert tilbake"
+    },
+    "systemItem": "Krysses av av CoreFlow",
+    "moveUp": "Flytt punkt {{ n }} opp",
+    "moveDown": "Flytt punkt {{ n }} ned",
+    "removeItem": "Fjern punkt {{ n }}",
+    "readOnly": "Bare de som administrerer Personer, kan endre malene.",
+    "save": "Lagre malen",
+    "reset": "Tilbakestill til standard",
+    "resetTitle": "Tilbakestille til CoreFlows standardmal?",
+    "resetMessage": "Deres egne punkter for denne sjekklisten fjernes. Sjekklister som allerede er startet, endres ikke."
+  },
+  "next": {
+    "checklistOverdue": {
+      "title": "Sjekklisten for {{ name }} er forfalt",
+      "why": "En uferdig oppstart eller avslutning kan gi åpne tilganger eller manglende opplæring."
+    },
+    "screeningMissing": {
+      "title": "{{ count }} personer i roller med høy risiko mangler bakgrunnssjekk",
+      "why": "ISO 27001 A.6.1 forventer bakgrunnssjekk for roller med høy sikkerhetsrisiko."
+    },
+    "competencesExpiring": {
+      "title": "{{ count }} kompetanser utløper innen 30 dager",
+      "why": "Planlegg fornyelsen nå, så ingen jobber uten gyldig sertifikat."
+    },
+    "positionReview": {
+      "title": "{{ count }} stillinger skal gjennomgås",
+      "why": "Roller og kompetansekrav bør kontrolleres jevnlig (felles ISO-krav 5.3 og 7.2).",
+      "titleOne": "Gå gjennom stillingen {{ title }}",
+      "whyOne": "Roller og kompetansekrav bør kontrolleres jevnlig (felles ISO-krav 5.3 og 7.2)."
+    },
+    "membersWithoutEmployee": {
+      "title": "{{ count }} brukere har ingen personoppføring",
+      "why": "Opplæring, kompetanse og tilgangsgjennomganger trenger en personoppføring for alle som jobber her."
+    }
   }
 }

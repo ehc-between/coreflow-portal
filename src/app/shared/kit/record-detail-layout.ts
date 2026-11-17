@@ -10,7 +10,9 @@ import {
   untracked,
   viewChildren,
 } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
+import { map } from 'rxjs';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Attachments } from '../attachments/attachments';
 import { SupportsRequirements } from '../requirement-links/supports-requirements';
@@ -295,8 +297,14 @@ export class RecordDetailLayout {
     return tabs.length > 0 ? tabs : DEFAULT_RECORD_TABS;
   });
 
+  /** `?tab=` as a signal, so browser back/forward on the same record switches tabs. */
+  private readonly requestedTab = toSignal(
+    this.route.queryParamMap.pipe(map((params) => params.get('tab'))),
+    { initialValue: this.route.snapshot.queryParamMap.get('tab') },
+  );
+
   protected readonly active = linkedSignal<RecordTab>(() => {
-    const requested = this.route.snapshot.queryParamMap.get('tab');
+    const requested = this.requestedTab();
     const tabs = this.visibleTabs();
     return tabs.find((t) => t === requested) ?? tabs[0];
   });

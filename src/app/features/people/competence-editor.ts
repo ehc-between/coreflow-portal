@@ -9,20 +9,21 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../core/ai/page-context';
 import { LanguageService } from '../../core/i18n/language.service';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
-import { FieldHelp } from '../../shared/guidance/field-help';
-import { GuideIntro } from '../../shared/guidance/guide-intro';
-import { Alert } from '../../shared/ui/alert/alert';
 import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
-import { FormField } from '../../shared/ui/form-field/form-field';
-import { Icon } from '../../shared/ui/icon/icon';
+import { EmptyState } from '../../shared/ui/empty-state/empty-state';
+import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
+import { LoadingState } from '../../shared/ui/loading-state/loading-state';
+import { PageHeader } from '../../shared/ui/page-header/page-header';
+import { PeopleField } from './ui/people-field';
+import { PEOPLE_ROOT, PEOPLE_SETTINGS_LINK } from './ui/people-nav';
 import { PeopleApi } from './data/people-api';
 import { textOrNull } from './data/people-display';
 import { peopleErrorKey } from './data/people-errors';
@@ -71,43 +72,55 @@ export function validityOk(value: string): boolean {
  */
 @Component({
   selector: 'app-people-competence-editor',
-  imports: [RouterLink, TranslocoPipe, FieldHelp, GuideIntro, Alert, Button, Card, FormField, Icon],
+  imports: [
+    TranslocoPipe,
+    Button,
+    Card,
+    EmptyState,
+    HelpStrip,
+    LoadingState,
+    PageHeader,
+    PeopleField,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[760px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
-      <a
-        [routerLink]="id() ? ['/people/competences', id()] : '/people/competences'"
-        class="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
-      >
-        <app-icon name="back" [size]="16" />
-        {{
-          (id() ? 'people.common.backToCompetence' : 'people.common.backToCompetences') | transloco
-        }}
-      </a>
-      <h1 class="mb-4 font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]">
-        {{
+    <div class="mx-auto max-w-[760px] px-4 pt-6 pb-24 sm:px-8 sm:pt-7 sm:pb-12">
+      <app-page-header
+        [title]="
           id()
             ? ('people.competenceForm.editTitle' | transloco: { name: original()?.name ?? '' })
-            : ('people.competenceForm.newTitle' | transloco)
-        }}
-      </h1>
-      <div class="mb-5"><app-guide-intro scope="people" page="competenceForm" /></div>
+            : null
+        "
+        [titleKey]="id() ? null : 'people.competenceForm.newTitle'"
+        [breadcrumbs]="breadcrumbs()"
+        [settingsLink]="settingsLink"
+      />
+      <app-help-strip scope="people" page="competenceForm" lesson="competence-basics" />
 
       @switch (state()) {
         @case ('loading') {
-          <p class="py-10 text-center text-[14px] text-fg-muted" role="status">
-            {{ 'people.common.loading' | transloco }}
-          </p>
+          <app-loading-state [rows]="4" />
         }
         @case ('error') {
-          <app-alert tone="error">{{ errorKey() | transloco }}</app-alert>
+          <app-empty-state
+            icon="search"
+            [titleKey]="errorKey()"
+            ctaKey="people.common.backToCompetences"
+            ctaLink="/people/competences"
+          />
         }
         @default {
           <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); submit()" novalidate>
+            <p class="text-meta text-fg-muted">{{ 'people.form.requiredNote' | transloco }}</p>
             <app-card>
               <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div class="sm:col-span-2">
-                  <app-form-field [label]="'people.fields.name' | transloco" inputId="cf-c-name">
+                  <app-people-field
+                    labelKey="people.fields.name"
+                    inputId="cf-c-name"
+                    page="competenceForm"
+                    [required]="true"
+                  >
                     <input
                       id="cf-c-name"
                       type="text"
@@ -118,15 +131,20 @@ export function validityOk(value: string): boolean {
                       [attr.aria-invalid]="attempted() && !form().name.trim()"
                       data-testid="competence-name"
                     />
-                  </app-form-field>
+                  </app-people-field>
                   @if (attempted() && !form().name.trim()) {
-                    <p class="mt-1 text-[12px] text-fail">
+                    <p class="mt-1 text-meta text-fail" role="alert">
                       {{ 'people.competenceForm.nameRequired' | transloco }}
                     </p>
                   }
                 </div>
                 <div>
-                  <app-form-field [label]="'people.fields.category' | transloco" inputId="cf-c-cat">
+                  <app-people-field
+                    labelKey="people.fields.category"
+                    inputId="cf-c-cat"
+                    page="competenceForm"
+                    help="category"
+                  >
                     <select id="cf-c-cat" (change)="set('category', $any($event.target).value)">
                       @for (c of categories; track c) {
                         <option [value]="c" [selected]="form().category === c">
@@ -134,13 +152,14 @@ export function validityOk(value: string): boolean {
                         </option>
                       }
                     </select>
-                  </app-form-field>
-                  <app-field-help scope="people" page="competenceForm" field="category" />
+                  </app-people-field>
                 </div>
                 <div>
-                  <app-form-field
-                    [label]="'people.fields.validityMonths' | transloco"
+                  <app-people-field
+                    labelKey="people.fields.validityMonths"
                     inputId="cf-c-valid"
+                    page="competenceForm"
+                    help="validity_months"
                   >
                     <input
                       id="cf-c-valid"
@@ -152,18 +171,18 @@ export function validityOk(value: string): boolean {
                       (input)="set('validity_months', $any($event.target).value)"
                       [attr.aria-invalid]="!validity()"
                     />
-                  </app-form-field>
+                  </app-people-field>
                   @if (!validity()) {
-                    <p class="mt-1 text-[12px] text-fail">
+                    <p class="mt-1 text-meta text-fail">
                       {{ 'people.competenceForm.validityRange' | transloco }}
                     </p>
                   }
-                  <app-field-help scope="people" page="competenceForm" field="validity_months" />
                 </div>
                 <div class="sm:col-span-2">
-                  <app-form-field
-                    [label]="'people.fields.description' | transloco"
+                  <app-people-field
+                    labelKey="people.fields.description"
                     inputId="cf-c-desc"
+                    page="competenceForm"
                   >
                     <textarea
                       id="cf-c-desc"
@@ -172,12 +191,13 @@ export function validityOk(value: string): boolean {
                       [value]="form().description"
                       (input)="set('description', $any($event.target).value)"
                     ></textarea>
-                  </app-form-field>
+                  </app-people-field>
                 </div>
                 @if (id()) {
-                  <app-form-field
-                    [label]="'people.fields.status' | transloco"
+                  <app-people-field
+                    labelKey="people.fields.status"
                     inputId="cf-c-status"
+                    page="competenceForm"
                   >
                     <select id="cf-c-status" (change)="set('status', $any($event.target).value)">
                       @for (s of statuses; track s) {
@@ -186,10 +206,11 @@ export function validityOk(value: string): boolean {
                         </option>
                       }
                     </select>
-                  </app-form-field>
-                  <app-form-field
-                    [label]="'people.form.changeReason' | transloco"
+                  </app-people-field>
+                  <app-people-field
+                    labelKey="people.form.changeReason"
                     inputId="cf-c-reason"
+                    page="competenceForm"
                   >
                     <input
                       id="cf-c-reason"
@@ -198,11 +219,13 @@ export function validityOk(value: string): boolean {
                       [value]="changeReason()"
                       (input)="changeReason.set($any($event.target).value)"
                     />
-                  </app-form-field>
+                  </app-people-field>
                 }
               </div>
             </app-card>
-            <div class="flex flex-wrap justify-end gap-2">
+            <div
+              class="sticky bottom-0 z-10 -mx-4 flex flex-wrap justify-end gap-2 border-t border-border bg-bg/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0"
+            >
               <app-button variant="ghost" (click)="cancel()">
                 {{ 'common.cancel' | transloco }}
               </app-button>
@@ -236,6 +259,17 @@ export class CompetenceEditor {
   protected readonly state = signal<'loading' | 'error' | 'ready'>('ready');
   protected readonly errorKey = signal('people.common.loadFailed');
   protected readonly original = signal<Competence | null>(null);
+  protected readonly settingsLink = PEOPLE_SETTINGS_LINK;
+  protected readonly breadcrumbs = computed(() => {
+    const c = this.original();
+    const id = this.id();
+    return [
+      PEOPLE_ROOT,
+      { labelKey: 'people.competences.title', link: '/people/competences' },
+      ...(id && c ? [{ label: c.name, link: ['/people/competences', id] }] : []),
+      { labelKey: id ? 'people.common.edit' : 'people.competenceForm.newTitle' },
+    ];
+  });
   protected readonly form = signal<CompetenceFormValue>({
     name: '',
     category: 'skill',
