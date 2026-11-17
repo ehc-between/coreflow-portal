@@ -7,7 +7,7 @@ import {
   Validators,
 } from '@angular/forms';
 import {
-  AI_ACT_ROLES,
+  normaliseAiActRole,
   AiActRole,
   CertificationStatus,
   FRAMEWORK_KEYS,
@@ -93,7 +93,7 @@ export function patchProfileForm(
     industry: profile.industry ?? '',
     size_band: profile.size_band && SIZE_BANDS.includes(profile.size_band) ? profile.size_band : '',
     countries: profile.countries.join(', '),
-    ai_act_role: AI_ACT_ROLES.includes(profile.ai_act_role) ? profile.ai_act_role : 'unknown',
+    ai_act_role: normaliseAiActRole(profile.ai_act_role),
     description: profile.description ?? '',
     frameworks,
   });

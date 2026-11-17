@@ -1592,7 +1592,16 @@
       "automatic": "Automatisk (fra dokumentasjonen)",
       "save": "Lagre",
       "cancel": "Avbryt",
-      "saveError": "Kunne ikke lagre. Prøv igjen."
+      "saveError": "Kunne ikke lagre. Prøv igjen.",
+      "derived": "Utledet",
+      "derivedTitle": "Ikke relevant (utledet)",
+      "derivedHint": "Utledet fra rollene og risikoklassene til KI-systemene deres. Hvis kravet likevel gjelder for dere, marker det som relevant.",
+      "derivedEditHint": "Kravet er ikke relevant (utledet) ut fra KI-systemene deres. Kryss av for å markere det som relevant likevel.",
+      "markApplicable": "Marker som relevant",
+      "overriddenApplies": "Satt av organisasjonen. Ut fra KI-systemene deres ville kravet gjelde.",
+      "overriddenNotApplies": "Satt av organisasjonen. Ut fra KI-systemene deres ville kravet ikke gjelde.",
+      "resetDerived": "Bruk utledet verdi",
+      "applicabilityError": "Kunne ikke endre relevansen. Prøv igjen."
     },
     "evidence": {
       "title": "Dokumentasjon",

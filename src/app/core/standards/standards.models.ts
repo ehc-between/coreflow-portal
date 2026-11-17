@@ -74,11 +74,22 @@ export type CoverageOverride = Exclude<RequirementStatus, 'not_applicable'>;
 
 export type ClauseKind = 'clause' | 'annex_control' | 'article' | 'recital' | 'annex';
 
-/** Extra catalogue facts on a clause (EU AI Act: the roles and risk classes it applies to). */
+/**
+ * Extra catalogue facts on a clause or requirement (EU AI Act: the roles and
+ * risk classes it applies to and, for Art. 50, the transparency triggers).
+ */
 export interface ClauseMeta {
   readonly roles?: readonly string[];
   readonly risk_classes?: readonly string[];
+  readonly transparency?: readonly string[];
 }
+
+/**
+ * Where a requirement's effective applicability comes from: the org's own
+ * decision (`manual`), the EU AI Act derivation from the org's AI systems
+ * (`derived`), or the plain default (applicable).
+ */
+export type ApplicabilitySource = 'manual' | 'derived' | 'default';
 
 /** A requirement inside the clause tree. */
 export interface Requirement {
@@ -91,7 +102,16 @@ export interface Requirement {
   /** Typical evidence, one item per entry. */
   readonly evidence_examples: LocalizedList | null;
   readonly status: RequirementStatus;
+  /** Effective applicability: the org's decision, else the derived value, else true. */
   readonly applicable: boolean;
+  /** Missing on older payloads (see `applicabilitySource()`). */
+  readonly applicability_source?: ApplicabilitySource;
+  /** EU AI Act: the applicability derived from the org's AI systems, even when overridden. */
+  readonly derived_applicable?: boolean | null;
+  /** EU AI Act: why the point is (not) applicable according to the derivation. */
+  readonly derived_reason?: LocalizedText | null;
+  /** EU AI Act: the roles, risk classes and transparency triggers of this point. */
+  readonly meta?: ClauseMeta | null;
   readonly justification: string | null;
   /** Confirmed evidence links. */
   readonly confirmed_links: readonly RequirementLink[];
@@ -136,7 +156,11 @@ export interface ClauseDetail extends Omit<ClauseNode, 'requirements'> {
 
 /** Body of `PATCH standard-requirements/{ref}` — only the fields present change. */
 export interface RequirementPatch {
-  readonly applicable?: boolean;
+  /**
+   * The org's applicability decision; `null` clears it (back to the default or,
+   * for the EU AI Act, to the value derived from the org's AI systems).
+   */
+  readonly applicable?: boolean | null;
   readonly justification?: string | null;
   /** null clears the override (back to the computed status). */
   readonly status_override?: CoverageOverride | null;
@@ -269,6 +293,8 @@ export interface FrameworkReadiness {
   readonly fresh: number;
   /** 0–100. */
   readonly score: number;
+  /** EU AI Act: points left out as not applicable (derived) from the org's AI systems. */
+  readonly derived_not_applicable?: number;
 }
 
 export type MappingRelation = 'equivalent' | 'related' | 'supports';

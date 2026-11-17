@@ -23,6 +23,7 @@
     "loadError": "Kunne ikke laste beredskapen. Prøv igjen.",
     "score": "Beredskap",
     "applicable": "{{count}} gjeldende krav",
+    "derivedNotApplicable": "{{count}} holdt utenfor som ikke relevante (utledet) ut fra rollene og risikoklassene til KI-systemene deres",
     "breakdown": "Fordeling av beredskap",
     "open": "Åpne standarden",
     "legend": {

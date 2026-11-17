@@ -76,6 +76,14 @@
     "limited": "Begrenset risiko: åpenhetspliktene i art. 50 gjelder, for eksempel å fortelle at man har med KI å gjøre eller å merke generert innhold.",
     "minimal": "Minimal risiko: ingen særlige plikter etter KI-forordningen utover KI-kompetanse (art. 4). Frivillige atferdsregler oppmuntres (art. 95)."
   },
+  "riskExplainByRole": {
+    "deployer": {
+      "high": "Et høyrisiko KI-system (art. 6) som dere tar i bruk. Teknisk dokumentasjon, samsvarsvurdering og registrering er tilbyderens plikter. Som idriftsetter bruker dere systemet etter tilbyderens bruksanvisning, sørger for kompetent menneskelig tilsyn, overvåker det, tar vare på loggene og informerer dem som berøres (art. 26)."
+    },
+    "other": {
+      "high": "Et høyrisiko KI-system (art. 6) som dere formidler videre i stedet for å tilby. Før dere gjør det tilgjengelig, kontroller at tilbyderen har gjennomført samsvarsvurderingen, utarbeidet den tekniske dokumentasjonen og påført CE-merking (art. 22–24)."
+    }
+  },
   "status": {
     "planned": "Planlagt",
     "in_development": "Under utvikling",
@@ -89,6 +97,8 @@
     "provider_and_deployer": "Tilbyder og idriftsetter",
     "importer": "Importør",
     "distributor": "Distributør",
+    "authorised_representative": "Autorisert representant",
+    "product_manufacturer": "Produktprodusent",
     "not_applicable": "Ikke aktuelt"
   },
   "roleHelp": {
@@ -97,6 +107,8 @@
     "provider_and_deployer": "Dere lager systemet og bruker det også selv.",
     "importer": "Dere bringer et KI-system fra en tilbyder utenfor EU/EØS inn på markedet.",
     "distributor": "Dere gjør et KI-system tilgjengelig på markedet uten å være tilbyder eller importør.",
+    "authorised_representative": "En tilbyder utenfor EU/EØS har skriftlig utpekt dere til å ivareta pliktene etter KI-forordningen på sine vegne.",
+    "product_manufacturer": "Dere bringer et produkt i omsetning under eget navn med et høyrisiko KI-system som sikkerhetskomponent, og får da tilbyderens plikter.",
     "not_applicable": "KI-forordningen gjelder ikke, for eksempel ved rent personlig bruk eller forskning."
   },
   "kind": {
@@ -513,6 +525,10 @@
     "title": "Dokumentasjon: {{ name }}",
     "required": "Vedlegg IV kreves",
     "requiredBody": "Dette er et høyrisikosystem: den tekniske dokumentasjonen etter vedlegg IV må utarbeides før systemet bringes i omsetning eller tas i bruk, og holdes oppdatert (art. 11).",
+    "providerDuty": "Vedlegg IV: tilbyderens plikt",
+    "deployerBody": "Dere tar i bruk dette høyrisikosystemet, så det er tilbyderens plikt å utarbeide den tekniske dokumentasjonen etter vedlegg IV. Be tilbyderen om bruksanvisningen og følg den, sørg for menneskelig tilsyn og ta vare på loggene. Delene nedenfor hjelper dere å dokumentere hvordan dere bruker systemet.",
+    "otherBody": "Dere importerer, distribuerer eller representerer dette høyrisikosystemet, så dere utarbeider ikke den tekniske dokumentasjonen etter vedlegg IV selv. Kontroller at tilbyderen har utarbeidet den og holder den tilgjengelig før systemet gjøres tilgjengelig.",
+    "guidanceRefs": "Se {{ refs }}.",
     "optionalBody": "Vedlegg IV er bare obligatorisk for høyrisikosystemer, men å skrive disse delene er god praksis etter ISO/IEC 42001 og nyttig hvis klassifiseringen endres.",
     "completeness": "Vedlegg IV: {{ done }} av {{ total }} deler skrevet",
     "completenessLabel": "Fullstendighet for vedlegg IV",

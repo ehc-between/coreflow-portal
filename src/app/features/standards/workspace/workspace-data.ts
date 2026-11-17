@@ -560,6 +560,14 @@ export function requirementPatchFromDetail(detail: RequirementDetail): Partial<R
     justification: detail.justification,
     status_override: detail.status_override,
     note: detail.note,
+    // EU AI Act applicability facts change with every decision / reset.
+    ...(detail.applicability_source !== undefined
+      ? {
+          applicability_source: detail.applicability_source,
+          derived_applicable: detail.derived_applicable ?? null,
+          derived_reason: detail.derived_reason ?? null,
+        }
+      : {}),
   };
   if (!Array.isArray(detail.links)) {
     return patch;

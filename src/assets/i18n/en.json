@@ -1592,7 +1592,16 @@
       "automatic": "Automatic (from evidence)",
       "save": "Save",
       "cancel": "Cancel",
-      "saveError": "Couldn't save. Try again."
+      "saveError": "Couldn't save. Try again.",
+      "derived": "Derived",
+      "derivedTitle": "Not applicable (derived)",
+      "derivedHint": "Worked out from the roles and risk classes of your AI systems. If it applies to you anyway, mark it as applicable.",
+      "derivedEditHint": "This requirement is not applicable (derived) from your AI systems. Tick the box to mark it as applicable anyway.",
+      "markApplicable": "Mark as applicable",
+      "overriddenApplies": "Set by your organisation. Based on your AI systems, this requirement would apply.",
+      "overriddenNotApplies": "Set by your organisation. Based on your AI systems, this requirement would not apply.",
+      "resetDerived": "Use the derived value",
+      "applicabilityError": "Couldn't change the applicability. Try again."
     },
     "evidence": {
       "title": "Evidence",
