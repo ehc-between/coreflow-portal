@@ -1,30 +1,24 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
-import { TranslocoPipe } from '@jsverse/transloco';
-import { Button } from '../../../shared/ui/button/button';
+import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
 import { LoadState } from './loadable';
 
-/** Loading and error placeholders of an audit page or panel (with a retry button). */
+/** Loading skeleton or the neutral error with "Prøv igjen" of an audit page or panel. */
 @Component({
   selector: 'app-audit-load-state',
-  imports: [TranslocoPipe, Button],
+  imports: [ErrorState, LoadingState],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'block' },
+  host: { class: 'block empty:hidden' },
   template: `
     @if (state() === 'loading') {
-      <p class="py-10 text-center text-[14px] text-fg-muted" role="status" aria-live="polite">
-        {{ 'audits.common.loading' | transloco }}
-      </p>
+      <app-loading-state [rows]="rows()" />
     } @else if (state() === 'error') {
-      <div class="flex flex-col items-center gap-3 py-10 text-center" role="alert">
-        <p class="text-[14px] text-fail">{{ 'audits.common.loadFailed' | transloco }}</p>
-        <app-button variant="secondary" size="sm" (click)="retry.emit()">
-          {{ 'audits.common.retry' | transloco }}
-        </app-button>
-      </div>
+      <app-error-state (retry)="retry.emit()" />
     }
   `,
 })
 export class AuditLoadState {
   readonly state = input.required<LoadState>();
+  readonly rows = input(4);
   readonly retry = output<void>();
 }

@@ -44,6 +44,15 @@ export const AUDIT_ERROR_CODES = [
   'invalid_party_type',
   'invalid_finding_type',
   'invalid_risk_level',
+  'invalid_process',
+  'invalid_document',
+  'invalid_report_outcome',
+  'invalid_evidence_ref',
+  'too_many_evidence_refs',
+  'effectiveness_after_closure',
+  'framework_not_certifiable',
+  'invalid_supplier',
+  'invalid_course',
 ] as const;
 
 export type AuditErrorCode = (typeof AUDIT_ERROR_CODES)[number];

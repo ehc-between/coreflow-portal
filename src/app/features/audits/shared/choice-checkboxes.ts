@@ -22,10 +22,10 @@ export function toggleChoice(selected: readonly string[], value: string): string
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <fieldset class="flex flex-col gap-1.5" [attr.aria-describedby]="describedBy() || null">
-      <legend class="mb-1 text-[13px] font-semibold text-fg-muted">{{ legend() }}</legend>
+      <legend class="mb-1.5 text-ui font-semibold text-fg-muted">{{ legend() }}</legend>
       <div class="flex flex-wrap gap-x-4 gap-y-1.5">
         @for (c of choices(); track c.value) {
-          <label class="inline-flex items-center gap-2 text-[13.5px] text-fg">
+          <label class="inline-flex min-h-8 items-center gap-2 text-ui text-fg">
             <input
               type="checkbox"
               class="h-4 w-4 accent-[var(--accent)]"
@@ -36,7 +36,7 @@ export function toggleChoice(selected: readonly string[], value: string): string
             {{ translate() ? (c.label | transloco) : c.label }}
           </label>
         } @empty {
-          <p class="text-[12.5px] text-fg-muted">{{ emptyText() }}</p>
+          <p class="text-meta text-fg-muted">{{ emptyText() }}</p>
         }
       </div>
     </fieldset>

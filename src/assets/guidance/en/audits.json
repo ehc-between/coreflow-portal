@@ -72,7 +72,8 @@
       },
       "empty": {
         "title": "No open findings",
-        "body": "Findings are raised from an audit, usually from a checklist answer. When an audit finds something, it appears here with its owner and response date."
+        "body": "Findings are raised from an audit, usually from a checklist answer. When an audit finds something, it appears here with its owner and response date.",
+        "cta": "Go to audits"
       }
     },
     "certifications": {
@@ -117,11 +118,18 @@
       "fields": {
         "lead": {
           "help": "A lead auditor plans the audit, leads the team and is responsible for the report. They usually have more training and experience.",
-          "example": "Completed a lead auditor course for ISO 9001"
+          "example": "Completed a lead auditor course for ISO 9001",
+          "requirements": ["hs:7.2"]
         },
         "qualifications": {
           "help": "Training, courses and experience that show the person is competent to audit.",
-          "example": "Internal auditor course (2 days), 4 audits as auditor"
+          "example": "Internal auditor course (2 days), 4 audits as auditor",
+          "requirements": ["hs:7.2"]
+        },
+        "courses": {
+          "help": "The training that qualifies the person as an auditor. Validity then follows the training record.",
+          "example": "Internal auditor course ISO 9001",
+          "requirements": ["hs:7.2"]
         }
       }
     },
@@ -131,7 +139,7 @@
         "body": "A good audit plan answers **what** is audited (scope), **against what** (criteria and clauses), **when**, and **by whom**. You add the team and the checklist after saving.",
         "steps": [
           "Keep the scope focused: one process, site or department is often enough.",
-          "List the clauses you will check, for example iso9001:8.4 or hs:9.2.",
+          "Choose the requirements you will check from the list. The audit then counts as evidence for them under Standards.",
           "Choose **External** for audits by a certification body, customer, supplier or regulator."
         ]
       },
@@ -162,15 +170,39 @@
         },
         "scope": {
           "help": "The extent and boundaries of the audit: processes, locations, departments and the period covered.",
-          "example": "Purchasing at the main office, orders from the last six months"
+          "example": "Purchasing at the main office, orders from the last six months",
+          "requirements": ["hs:9.2"]
         },
         "criteria": {
           "help": "What the evidence is compared against: standard requirements, your own procedures, contracts or laws.",
-          "example": "ISO 9001 clause 8.4 and the purchasing procedure"
+          "example": "ISO 9001 clause 8.4 and the purchasing procedure",
+          "requirements": ["hs:9.2"]
         },
         "clauseRefs": {
-          "help": "The clauses to check, separated by commas. Used to generate the checklist from the standard.",
-          "example": "iso9001:8.4, iso9001:7.5"
+          "help": "The requirements this audit checks. Pick them from the list; the checklist is made from them.",
+          "example": "ISO 9001 · 8.4 Control of external providers",
+          "requirements": ["hs:9.2"]
+        },
+        "processes": {
+          "help": "The processes the audit looks at. Their owners cannot audit them.",
+          "example": "Purchasing",
+          "requirements": ["hs:9.2", "hs:4.4"]
+        },
+        "criteriaDocuments": {
+          "help": "Your own procedures and policies the audit compares practice against.",
+          "example": "Purchasing procedure"
+        },
+        "objectives": {
+          "help": "What the audit should find out.",
+          "example": "Check that new suppliers are evaluated before use"
+        },
+        "location": {
+          "help": "Where the audit takes place: site, office or online.",
+          "example": "Main office, Oslo"
+        },
+        "owner": {
+          "help": "Who in the organisation is responsible for the audit being carried out.",
+          "example": "Quality manager"
         }
       }
     },
@@ -195,11 +227,22 @@
         },
         "checklist": {
           "help": "Questions you will ask and the evidence you will look for, one per requirement. Generate them from the clauses or add your own.",
-          "example": "How do you evaluate new suppliers? Ask for: the last three evaluations"
+          "example": "How do you evaluate new suppliers? Ask for: the last three evaluations",
+          "requirements": ["hs:9.2"]
         },
         "reportSummary": {
           "help": "What was audited, the main conclusions and the number and kind of findings. Keep it factual.",
-          "example": "The purchasing process is largely effective. Two minor nonconformities were found."
+          "example": "The purchasing process is largely effective. Two minor nonconformities were found.",
+          "requirements": ["hs:9.2"]
+        },
+        "reportOutcome": {
+          "help": "The overall answer to the audit objective: does the area meet the criteria?",
+          "example": "Conforming, with findings",
+          "requirements": ["hs:9.2"]
+        },
+        "reportLimitations": {
+          "help": "Anything that limits the conclusion, such as people or records that were not available.",
+          "example": "The warehouse was not visited."
         }
       }
     },
@@ -220,15 +263,18 @@
       "fields": {
         "title": {
           "help": "A name for the programme.",
-          "example": "Internal audit programme 2026"
+          "example": "Internal audit programme 2026",
+          "requirements": ["hs:9.2"]
         },
         "objectives": {
           "help": "What the audits in the programme should achieve.",
-          "example": "Confirm readiness for the certification audit in October"
+          "example": "Confirm readiness for the certification audit in October",
+          "requirements": ["hs:9.2"]
         },
         "riskBasis": {
           "help": "Why some areas are audited more often or more deeply: risk, complaints, changes, earlier findings.",
-          "example": "Production had three nonconformities last year and is audited twice."
+          "example": "Production had three nonconformities last year and is audited twice.",
+          "requirements": ["hs:9.2", "hs:6.1"]
         }
       }
     },
@@ -253,19 +299,26 @@
         },
         "description": {
           "help": "The requirement, and what was found that does not meet it.",
-          "example": "The procedure requires a yearly evaluation; two key suppliers were last evaluated in 2023."
+          "example": "The procedure requires a yearly evaluation; two key suppliers were last evaluated in 2023.",
+          "requirements": ["hs:9.2"]
         },
         "evidence": {
           "help": "What you saw, read or heard that supports the finding: records, documents, interviews.",
-          "example": "Supplier register, entries for two suppliers"
+          "example": "Supplier register, entries for two suppliers",
+          "requirements": ["hs:9.2"]
         },
         "responseDue": {
           "help": "When the auditee should have submitted the root cause and correction.",
-          "example": "Four weeks after the audit"
+          "example": "Four weeks after the audit",
+          "requirements": ["hs:10.2"]
         },
         "owner": {
           "help": "The person in the audited area who answers the finding. They can respond even without audit rights.",
           "example": "The purchasing manager"
+        },
+        "clauseRef": {
+          "help": "The requirement that is not met. Pick it from the list.",
+          "example": "ISO 9001 · 8.4.1"
         }
       }
     },
@@ -286,19 +339,28 @@
       "fields": {
         "rootCause": {
           "help": "The underlying reason the requirement was not met, not just the symptom.",
-          "example": "No one was responsible for planning the yearly evaluations."
+          "example": "No one was responsible for planning the yearly evaluations.",
+          "requirements": ["hs:10.2"]
         },
         "correction": {
           "help": "What was done right away to fix the problem itself.",
-          "example": "The two suppliers were evaluated in May."
+          "example": "The two suppliers were evaluated in May.",
+          "requirements": ["hs:10.2"]
         },
         "correctiveAction": {
           "help": "What will stop the problem from happening again, dealing with the root cause.",
-          "example": "Yearly evaluations added as recurring tasks for the purchasing manager."
+          "example": "Yearly evaluations added as recurring tasks for the purchasing manager.",
+          "requirements": ["hs:10.2"]
         },
         "verificationNotes": {
           "help": "What the auditor checked to confirm the response is in place and effective.",
-          "example": "Recurring tasks seen; evaluations for both suppliers on file."
+          "example": "Recurring tasks seen; evaluations for both suppliers on file.",
+          "requirements": ["hs:10.2"]
+        },
+        "decision": {
+          "help": "For an observation or improvement suggestion: what you decided to do, and why.",
+          "example": "We will add a reminder to the yearly review.",
+          "requirements": ["hs:10.3"]
         }
       }
     },
@@ -333,7 +395,8 @@
       "fields": {
         "status": {
           "help": "Where the certificate stands: planned, in progress, certified, suspended, withdrawn or expired.",
-          "example": "Certified"
+          "example": "Certified",
+          "requirements": ["hs:9.2"]
         },
         "body": {
           "help": "The accredited organisation that issues the certificate.",
@@ -341,11 +404,22 @@
         },
         "scope": {
           "help": "The activities and sites the certificate covers, as written on the certificate.",
-          "example": "Design and sale of software, head office"
+          "example": "Design and sale of software, head office",
+          "requirements": ["hs:4.3"]
         },
         "surveillance": {
           "help": "The date of the next yearly surveillance audit.",
-          "example": "One year after the certification audit"
+          "example": "One year after the certification audit",
+          "requirements": ["hs:9.2"]
+        },
+        "framework": {
+          "help": "Only ISO management system standards can be certified.",
+          "example": "ISO 9001"
+        },
+        "supplier": {
+          "help": "Pick the certification body from Suppliers, so it is evaluated like other suppliers.",
+          "example": "DNV",
+          "requirements": ["iso9001:8.4"]
         }
       }
     },

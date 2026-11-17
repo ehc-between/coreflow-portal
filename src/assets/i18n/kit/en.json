@@ -21,7 +21,8 @@
     "record_type": "Record type",
     "retention_schedule": "Retention schedule",
     "risk_register": "Risk register",
-    "workflow_definition": "Workflow"
+    "workflow_definition": "Workflow",
+    "audit_auditor_profile": "Auditor profile"
   },
   "linkTypes": {
     "relates_to": {

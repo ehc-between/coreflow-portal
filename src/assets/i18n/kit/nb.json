@@ -21,7 +21,8 @@
     "record_type": "Posttype",
     "retention_schedule": "Oppbevaringsplan",
     "risk_register": "Risikoregister",
-    "workflow_definition": "Arbeidsflyt"
+    "workflow_definition": "Arbeidsflyt",
+    "audit_auditor_profile": "Revisorprofil"
   },
   "linkTypes": {
     "relates_to": {

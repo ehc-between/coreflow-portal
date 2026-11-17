@@ -17,6 +17,8 @@ import {
   CertificationInput,
   CertificationQuery,
   Checklist,
+  ClauseHistory,
+  Coverage,
   ChecklistItemInput,
   ChecklistItemUpdate,
   FindingAction,
@@ -102,6 +104,21 @@ export class AuditsApi {
     return this.api.delete<void>(`${this.base(orgId)}/programmes/${id}`, quiet());
   }
 
+  /** Coverage of a programme by clause, process and department over `years` years. */
+  coverage(orgId: string, id: string, lang: 'en' | 'nb', years = 3): Observable<Coverage> {
+    return this.api.get<Coverage>(`${this.base(orgId)}/programmes/${id}/coverage`, {
+      params: { lang, years },
+    });
+  }
+
+  /** When a clause was last audited, with what result, and its open findings. */
+  clauseHistory(orgId: string, ref: string): Observable<ClauseHistory> {
+    return this.api.get<ClauseHistory>(`${this.base(orgId)}/clause-history`, {
+      params: { ref },
+      ...quiet(),
+    });
+  }
+
   // --- plans ---------------------------------------------------------------------
 
   listPlans(orgId: string, query: PlanQuery = {}): Observable<ListResponse<Plan>> {
@@ -145,6 +162,14 @@ export class AuditsApi {
 
   report(orgId: string, id: string): Observable<AuditReport> {
     return this.api.get<AuditReport>(`${this.base(orgId)}/plans/${id}/report`);
+  }
+
+  /** The audit report as a PDF, for download. */
+  reportPdf(orgId: string, id: string, lang: 'en' | 'nb'): Observable<Blob> {
+    return this.api.getBlob(`${this.base(orgId)}/plans/${id}/report.pdf`, {
+      params: { lang },
+      ...quiet(),
+    });
   }
 
   // --- audit team ----------------------------------------------------------------
