@@ -303,7 +303,7 @@
     "check": "See who this assigns",
     "preview": "This assigns the course to {{ count }} people.",
     "previewOne": "This assigns the course to 1 person.",
-    "previewDetail": "{{ targeted }} people are covered by the rule. {{ assigned }} already have it assigned and {{ compliant }} have valid training.",
+    "previewDetail": "People covered by the rule: {{ targeted }}. Already assigned: {{ assigned }}. Valid training already in place: {{ compliant }}.",
     "previewDraft": "The course is not published, so nobody is assigned until it is.",
     "previewSample": "Including:",
     "previewMore": "{{ names }} and {{ count }} more",

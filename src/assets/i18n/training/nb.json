@@ -267,7 +267,7 @@
     "notPublished": "Ikke publisert ennå",
     "publishedAt": "{{ date }}",
     "publishedBy": "{{ date }} av {{ name }}",
-    "publishMessageNoQuiz": "Kurset har ingen kunnskapstest, så deltakerne fullfører ved å åpne alle leksjonene. Legg til quizspørsmål først hvis du trenger bevis på forståelse. Publiserte kurs kan tas og tildeles, og reglene begynner å opprette tildelinger."
+    "publishMessageNoQuiz": "Kurset har ingen kunnskapstest, så deltakerne fullfører ved å åpne alle leksjonene. Legg til quizspørsmål først hvis du trenger dokumentasjon på at de har forstått innholdet. Publiserte kurs kan tas og tildeles, og reglene begynner å opprette tildelinger."
   },
   "rules": {
     "title": "Hvem må ta kurset",
@@ -303,7 +303,7 @@
     "check": "Se hvem dette tildeler",
     "preview": "Dette tildeler kurset til {{ count }} personer.",
     "previewOne": "Dette tildeler kurset til 1 person.",
-    "previewDetail": "{{ targeted }} personer omfattes av regelen. {{ assigned }} har det allerede tildelt, og {{ compliant }} har gyldig opplæring.",
+    "previewDetail": "Personer regelen omfatter: {{ targeted }}. Har det allerede tildelt: {{ assigned }}. Har allerede gyldig opplæring: {{ compliant }}.",
     "previewDraft": "Kurset er ikke publisert, så ingen får det tildelt før det er publisert.",
     "previewSample": "Blant annet:",
     "previewMore": "{{ names }} og {{ count }} til",
