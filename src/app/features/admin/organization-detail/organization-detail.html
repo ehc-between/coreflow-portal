@@ -174,7 +174,7 @@
           </p>
         </form>
 
-        @if (lastInvite(); as invite) {
+        @if (lastInvite()?.accept_url; as acceptUrl) {
           <div class="mt-5 rounded-tile border border-accent-border bg-accent-soft p-3">
             <p class="text-[13px] font-semibold text-accent">
               {{ 'admin.invite.linkTitle' | transloco }}
@@ -186,7 +186,7 @@
               <input
                 type="text"
                 readonly
-                [value]="invite.accept_url"
+                [value]="acceptUrl"
                 [attr.aria-label]="'admin.invite.linkTitle' | transloco"
                 (focus)="$any($event.target).select()"
                 class="h-9 w-full rounded-[10px] border border-border bg-bg px-3 text-[12.5px] text-fg outline-none"

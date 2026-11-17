@@ -480,7 +480,7 @@
       "expires": "Utløper",
       "invite": "Inviter bruker",
       "send": "Send invitasjon",
-      "emailNote": "En e-post sendes automatisk når e-postlevering er konfigurert.",
+      "emailNote": "Invitasjonslenken sendes på e-post til denne adressen. Bare mottakeren kan bruke den til å bli med.",
       "linkTitle": "Invitasjonslenke",
       "linkHint": "Del denne lenken med {{email}} slik at vedkommende kan godta invitasjonen.",
       "linkOnceNote": "Invitasjonslenker kan bare kopieres rett etter at de er opprettet. Trekk tilbake invitasjonen og send den på nytt for å få en ny lenke.",
@@ -715,7 +715,7 @@
       "pending": "Ventende invitasjoner",
       "pendingEmpty": "Ingen ventende invitasjoner.",
       "conflict": "Det finnes allerede et medlem eller en ventende invitasjon for denne e-posten.",
-      "emailNote": "En e-post sendes automatisk når e-postlevering er konfigurert.",
+      "emailNote": "Invitasjonslenken sendes på e-post til denne adressen. Bare mottakeren kan bruke den til å bli med.",
       "linkTitle": "Invitasjonslenke",
       "linkHint": "Del denne lenken slik at brukeren kan godta invitasjonen.",
       "createdToast": "Invitasjon opprettet.",
@@ -742,7 +742,8 @@
       "body": "Denne invitasjonen er ugyldig, utløpt eller allerede brukt."
     },
     "existing": {
-      "body": "Du har allerede en konto — logg inn for å bli med i {{org}}."
+      "body": "Du har allerede en konto. Logg inn som {{email}} for å bli med i {{org}}.",
+      "signedIn": "Du er logget inn som {{email}}. Godta for å bli med i {{org}}."
     },
     "new": {
       "body": "Du er invitert til å bli med i {{org}}. Velg et passord for å komme i gang."
@@ -751,7 +752,13 @@
     "fullName": "Fullt navn",
     "password": "Passord",
     "error": "Vi kunne ikke godta denne invitasjonen. Prøv igjen.",
-    "toLogin": "Gå til innlogging"
+    "toLogin": "Gå til innlogging",
+    "mismatch": {
+      "title": "Logget inn med en annen konto",
+      "body": "Denne invitasjonen ble sendt til {{email}}, men du er logget inn som {{current}}. Logg inn med den inviterte kontoen for å godta den."
+    },
+    "switchAccount": "Logg inn med den inviterte kontoen",
+    "joinedToast": "Du er nå med i {{org}}."
   },
   "common": {
     "loading": "Laster …",

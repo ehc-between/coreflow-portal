@@ -136,7 +136,10 @@ export class OrgInvitations {
       next: (invitation) => {
         this.inviting.set(false);
         this.lastInvite.set(invitation);
-        this.acceptUrls.update((urls) => ({ ...urls, [invitation.id]: invitation.accept_url }));
+        const url = invitation.accept_url;
+        if (url) {
+          this.acceptUrls.update((urls) => ({ ...urls, [invitation.id]: url }));
+        }
         this.form.reset({ email: '', role_key: this.defaultRole() });
         this.notifications.success('settings.invitations.createdToast', {
           email: invitation.email,
