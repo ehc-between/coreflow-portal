@@ -49,11 +49,8 @@ import { SETTINGS_MEMBERS_ANCHOR, SettingsLinks } from '../settings-links/settin
     ConfirmDialog,
     OrgMembers,
     OrgDocumentSettings,
-<<<<<<< HEAD
     OrgMfaSettings,
-=======
     OrgAttachmentSettings,
->>>>>>> portal/s04-attachment-safety
     OrgInvitations,
     SettingsLinks,
     PageHeader,
