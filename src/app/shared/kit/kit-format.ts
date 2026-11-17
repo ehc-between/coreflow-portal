@@ -81,3 +81,58 @@ export function linkTypeKey(type: string, form: 'name' | 'outgoing' | 'incoming'
   const known = (LINK_TYPES as readonly string[]).includes(type) ? type : 'other';
   return `kit.linkTypes.${known}.${form}`;
 }
+
+/** Rule reasons of link suggestions the kit explains in words (others: the generic text). */
+const SUGGESTION_REASONS = new Set([
+  'same_control',
+  'asset_named',
+  'same_process',
+  'same_asset',
+  'process_in_scope',
+  'ai_system_named',
+  'ai_system_in_ropa',
+  'same_legal_reference',
+  'same_framework',
+  'legal_requirement',
+  'review_input',
+  'text_match',
+  'ai',
+]);
+
+/** `kit` i18n key explaining why a link was suggested. */
+export function suggestionReasonKey(reason: string | null | undefined): string {
+  return `kit.connections.reasons.${reason && SUGGESTION_REASONS.has(reason) ? reason : 'other'}`;
+}
+
+/** Connection origins shown as a badge ("Automatisk", "Fra avvik AVV-3", …). */
+const ORIGINS = new Set(['user', 'auto', 'flow', 'ai', 'structural']);
+
+/** `kit` i18n key of a connection origin's badge, or null for plain user links. */
+export function originKey(origin: string | null | undefined): string | null {
+  if (!origin || origin === 'user' || !ORIGINS.has(origin)) {
+    return null;
+  }
+  return `kit.connections.origin.${origin}`;
+}
+
+/**
+ * `kit` i18n key of a create-from-here flow label. The backend sends the global
+ * style key `flows.<key>`; the texts live in the kit scope (`kit.flows.<key>`).
+ * Requirement flows share one label with the target type as a parameter.
+ */
+export function flowLabelKey(labelKey: string | null | undefined, key: string): string {
+  if (key.startsWith('requirement.evidence:')) {
+    return 'kit.flows.requirement.evidence';
+  }
+  const raw = labelKey && labelKey.startsWith('flows.') ? labelKey : `flows.${key}`;
+  return `kit.${raw}`;
+}
+
+/** Source type of a flow key (`deviation.to_risk` → `deviation`). */
+export function flowSourceType(flowKey: string | null | undefined): string | null {
+  if (!flowKey) {
+    return null;
+  }
+  const prefix = flowKey.split('.')[0];
+  return prefix === 'obligation' ? 'compliance_obligation' : prefix || null;
+}

@@ -5,6 +5,16 @@ import { ApiService } from '../http/api.service';
 import { SKIP_ERROR_TOAST } from '../http/error.interceptor';
 import { EntityRefDto, EntityTypeList } from '../entities/entity.models';
 import {
+  CompleteFlowRequest,
+  CompleteFlowResponse,
+  ConnectionCountMap,
+  ConnectionGraph,
+  ConnectionsResponse,
+  CreateFlowList,
+  PrefillResponse,
+  SuggestionDecision,
+} from './connections.models';
+import {
   CommentItem,
   CommentList,
   CreateCommentRequest,
@@ -93,6 +103,110 @@ export class KitApi {
 
   deleteLink(orgId: string, linkId: string): Observable<void> {
     return this.api.delete<void>(`v1/orgs/${orgId}/links/${linkId}`, IN_PLACE);
+  }
+
+  // --- connections (P4) -------------------------------------------------------------
+
+  /** Everything a record is connected to: links, field relations, tasks, suggestions. */
+  connections(
+    orgId: string,
+    entityType: string,
+    entityId: string,
+  ): Observable<ConnectionsResponse> {
+    return this.api.get<ConnectionsResponse>(`v1/orgs/${orgId}/connections`, {
+      ...IN_PLACE,
+      params: { entity_type: entityType, entity_id: entityId },
+    });
+  }
+
+  /** The connection map of a record (records, requirements, people, tasks; at most 60 nodes). */
+  connectionGraph(
+    orgId: string,
+    entityType: string,
+    entityId: string,
+    depth: 1 | 2,
+    lang: string,
+  ): Observable<ConnectionGraph> {
+    return this.api.get<ConnectionGraph>(`v1/orgs/${orgId}/connections/graph`, {
+      ...IN_PLACE,
+      params: {
+        entity_type: entityType,
+        entity_id: entityId,
+        depth,
+        lang: lang === 'nb' ? 'nb' : 'en',
+      },
+    });
+  }
+
+  /** Connection counts for list rows (at most 200 ids per call). */
+  connectionCounts(
+    orgId: string,
+    entityType: string,
+    ids: readonly string[],
+  ): Observable<ConnectionCountMap> {
+    return this.api.get<ConnectionCountMap>(`v1/orgs/${orgId}/connections/counts`, {
+      ...IN_PLACE,
+      params: { entity_type: entityType, ids: ids.join(',') },
+    });
+  }
+
+  acceptSuggestion(orgId: string, suggestionId: string): Observable<SuggestionDecision> {
+    return this.api.post<SuggestionDecision>(
+      `v1/orgs/${orgId}/link-suggestions/${suggestionId}/accept`,
+      {},
+      IN_PLACE,
+    );
+  }
+
+  dismissSuggestion(orgId: string, suggestionId: string): Observable<SuggestionDecision> {
+    return this.api.post<SuggestionDecision>(
+      `v1/orgs/${orgId}/link-suggestions/${suggestionId}/dismiss`,
+      {},
+      IN_PLACE,
+    );
+  }
+
+  // --- create from here (P4) --------------------------------------------------------
+
+  /**
+   * The flows the caller can start from a record. For a requirement pass
+   * `entityType = 'standard_requirement'` and its `ref` (or its id).
+   */
+  createFlows(
+    orgId: string,
+    entityType: string,
+    source: { readonly entityId?: string | null; readonly ref?: string | null },
+  ): Observable<CreateFlowList> {
+    return this.api.get<CreateFlowList>(`v1/orgs/${orgId}/create-flows`, {
+      ...IN_PLACE,
+      params: {
+        entity_type: entityType,
+        entity_id: source.entityId ?? null,
+        ref: source.ref ?? null,
+      },
+    });
+  }
+
+  /** Form values for the new record plus the signed flow token. */
+  prefillFlow(
+    orgId: string,
+    key: string,
+    source: { readonly sourceId?: string | null; readonly sourceRef?: string | null },
+  ): Observable<PrefillResponse> {
+    return this.api.post<PrefillResponse>(
+      `v1/orgs/${orgId}/create-flows/${encodeURIComponent(key)}/prefill`,
+      { source_id: source.sourceId ?? null, source_ref: source.sourceRef ?? null },
+      IN_PLACE,
+    );
+  }
+
+  /** Link a just-created record back to the record (or requirement) it was created from. */
+  completeFlow(orgId: string, body: CompleteFlowRequest): Observable<CompleteFlowResponse> {
+    return this.api.post<CompleteFlowResponse>(
+      `v1/orgs/${orgId}/create-flows/complete`,
+      body,
+      IN_PLACE,
+    );
   }
 
   // --- comments -------------------------------------------------------------------
