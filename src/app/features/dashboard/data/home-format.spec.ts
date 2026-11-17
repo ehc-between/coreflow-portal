@@ -10,6 +10,7 @@ import {
   journeyUrl,
   nextOpenStep,
   progressText,
+  keyScope,
   scopedKey,
   splitUrl,
   stepActionKey,
@@ -43,6 +44,12 @@ describe('home format helpers', () => {
     expect(scopedKey('home:next.gap.title')).toBe('home.next.gap.title');
     expect(scopedKey('tasks:work.kinds.task')).toBe('tasks.work.kinds.task');
     expect(scopedKey('common.save')).toBe('common.save');
+    // Module scopes use Transloco's alias (the scope file is loaded by the list).
+    expect(scopedKey('management-review:nextActions.overdue.title')).toBe(
+      'managementReview.nextActions.overdue.title',
+    );
+    expect(keyScope('management-review:nextActions.overdue.title')).toBe('management-review');
+    expect(keyScope('common.save')).toBeNull();
   });
 
   it('labels clause refs without raw suffixes, and shared ISO clauses plainly', () => {

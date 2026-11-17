@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
   inject,
   input,
   output,
@@ -10,10 +11,9 @@ import {
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { LanguageService } from '../../../core/i18n/language.service';
-import { parseScopedKey } from '../../../core/notifications/notification-text';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { MenuItem, OverflowMenu } from '../../../shared/ui/overflow-menu/overflow-menu';
-import { actionView, splitUrl } from '../data/home-format';
+import { actionView, keyScope, splitUrl } from '../data/home-format';
 import { NextAction } from '../data/home.models';
 
 /** A dismissal the parent sends to the API: hide for `days`, or for good. */
@@ -107,7 +107,7 @@ export const SNOOZE_DAYS = 7;
 export class NextActions {
   private readonly language = inject(LanguageService);
   private readonly transloco = inject(TranslocoService);
-  /** `<scope>/<lang>` files already requested for module-owned action keys. */
+  /** Module scope files already requested (`<scope>/<lang>`). */
   private readonly requested = new Set<string>();
 
   readonly actions = input.required<readonly NextAction[]>();
@@ -115,35 +115,34 @@ export class NextActions {
 
   protected readonly snoozeDays = SNOOZE_DAYS;
 
+  constructor() {
+    // Module actions carry their module's keys (`risk:next.…`): load those scope
+    // files so the texts translate (home and tasks are loaded by the route).
+    effect(() => {
+      const lang = this.language.active();
+      const scopes = new Set(
+        this.actions()
+          .flatMap((a) => [keyScope(a.title_key), keyScope(a.why_key)])
+          .filter((s): s is string => !!s && s !== 'home' && s !== 'tasks'),
+      );
+      untracked(() => {
+        for (const scope of scopes) {
+          const path = `${scope}/${lang}`;
+          if (!this.requested.has(path)) {
+            this.requested.add(path);
+            this.transloco.load(path).subscribe({ error: () => undefined });
+          }
+        }
+      });
+    });
+  }
+
   protected readonly rows = computed(() => {
-    // A module's own provider sends keys of its scope (`processes:nextActions.…`); the
-    // home route only provides `home` and `tasks`, so load the others on demand. The
-    // language service bumps its revision on the load, and the rows re-translate.
-    const actions = this.actions();
-    const lang = this.language.active();
-    untracked(() => this.ensureScopes(actions, lang));
     const t = (key: string, params?: Record<string, unknown>) =>
       this.language.translate(key, params);
-    return actions.map((action) => ({
+    return this.actions().map((action) => ({
       view: actionView(action, t),
       link: splitUrl(action.url),
     }));
   });
-
-  private ensureScopes(actions: readonly NextAction[], lang: string): void {
-    for (const action of actions) {
-      for (const key of [action.title_key, action.why_key]) {
-        const scope = parseScopedKey(key ?? '')?.scope;
-        if (!scope || scope === 'home' || scope === 'tasks') {
-          continue;
-        }
-        const path = `${scope}/${lang}`;
-        if (!this.requested.has(path)) {
-          this.requested.add(path);
-          // A missing scope file leaves the key; nothing else depends on it.
-          this.transloco.load(path).subscribe({ error: () => undefined });
-        }
-      }
-    }
-  }
 }
