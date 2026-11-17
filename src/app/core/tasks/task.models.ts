@@ -60,6 +60,14 @@ export interface Task {
   readonly id: string;
   readonly org_id: string;
   readonly title: string;
+  /**
+   * i18n key of a generated title (`"<scope>:<path>"`, e.g. `privacy:tasks.breachAssess`);
+   * null for user-written titles and once the title is edited by hand. Render
+   * with `localizedTitle`; `title` is the English fallback.
+   */
+  readonly title_key?: string | null;
+  /** Params of `title_key` (e.g. `{code}`). */
+  readonly title_params?: Readonly<Record<string, unknown>> | null;
   readonly description: string | null;
   readonly status: TaskStatus;
   readonly priority: TaskPriority;
@@ -216,6 +224,9 @@ export interface WorkItem {
   readonly source: string;
   readonly id: string;
   readonly title: string;
+  /** As `Task.title_key`: render with `localizedTitle`, `title` is the fallback. */
+  readonly title_key?: string | null;
+  readonly title_params?: Readonly<Record<string, unknown>> | null;
   readonly code: string | null;
   readonly status: string | null;
   readonly priority: string | null;

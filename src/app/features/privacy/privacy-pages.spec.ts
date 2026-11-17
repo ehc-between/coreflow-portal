@@ -318,6 +318,117 @@ describe('PrivacyRegisterEdit', () => {
     expect(navigate).toHaveBeenCalledWith(['/privacy', 'breaches', 'b-1']);
   });
 
+  function editBreach(permissions: readonly string[]) {
+    const notify = toasts();
+    const { http } = configureKit(PrivacyRegisterEdit, {
+      permissions,
+      providers: [
+        ...provideFakeGuidance().providers,
+        { provide: NotificationService, useValue: notify },
+      ],
+    });
+    const fixture = TestBed.createComponent(PrivacyRegisterEdit);
+    fixture.componentRef.setInput('register', 'breach');
+    fixture.componentRef.setInput('id', 'b-1');
+    const router = TestBed.inject(Router);
+    vi.spyOn(router, 'navigate').mockResolvedValue(true);
+    return { http, fixture, notify, el: fixture.nativeElement as HTMLElement };
+  }
+
+  function type(el: HTMLElement, testId: string, value: string) {
+    const input = el.querySelector<HTMLInputElement>(`[data-testid="${testId}"]`)!;
+    input.value = value;
+    input.dispatchEvent(new Event('input'));
+  }
+
+  it('lets a privacy manager correct the awareness time only with a reason', async () => {
+    const { http, fixture, el } = editBreach(ALL);
+    await render(fixture);
+    http.expectOne(kitUrl('privacy/breaches/b-1')).flush(makeBreach());
+    await render(fixture);
+    expect(el.querySelector('[data-testid="field-aware_at"]')).toBeTruthy();
+    expect(el.querySelector('[data-testid="edit-hint-aware_at"]')?.textContent).toContain(
+      'privacy.form.awareCorrectionHint',
+    );
+
+    // The user said the laptop was lost at 07:40, not when it was registered.
+    type(el, 'field-aware_at', '2026-11-11T07:40');
+    await render(fixture);
+    el.querySelector<HTMLElement>('[data-testid="privacy-save"] button')!.click();
+    await render(fixture);
+    http.expectNone(kitUrl('privacy/breaches/b-1'));
+    expect(el.textContent).toContain('privacy.form.changeReasonNeeded');
+
+    type(el, 'change-reason', 'Laptop was lost at 07:40 according to the employee');
+    await render(fixture);
+    el.querySelector<HTMLElement>('[data-testid="privacy-save"] button')!.click();
+    await render(fixture);
+    const req = http.expectOne(kitUrl('privacy/breaches/b-1'));
+    expect(req.request.method).toBe('PATCH');
+    expect(Object.keys(req.request.body).sort()).toEqual(['aware_at', 'change_reason']);
+    expect(req.request.body.aware_at).toBe(new Date('2026-11-11T07:40').toISOString().slice(0, 19));
+    expect(req.request.body.change_reason).toBe(
+      'Laptop was lost at 07:40 according to the employee',
+    );
+    req.flush(makeBreach({ aware_at: req.request.body.aware_at }));
+    await render(fixture);
+  });
+
+  it('refuses an awareness time in the future before sending', async () => {
+    const { http, fixture, el } = editBreach(ALL);
+    await render(fixture);
+    http.expectOne(kitUrl('privacy/breaches/b-1')).flush(makeBreach());
+    await render(fixture);
+    const future = new Date(Date.now() + 2 * 24 * 3600 * 1000);
+    const pad = (n: number) => String(n).padStart(2, '0');
+    type(
+      el,
+      'field-aware_at',
+      `${future.getFullYear()}-${pad(future.getMonth() + 1)}-${pad(future.getDate())}T10:00`,
+    );
+    type(el, 'change-reason', 'Typo');
+    await render(fixture);
+    el.querySelector<HTMLElement>('[data-testid="privacy-save"] button')!.click();
+    await render(fixture);
+    http.expectNone(kitUrl('privacy/breaches/b-1'));
+    expect(el.textContent).toContain('privacy.form.notInFuture');
+  });
+
+  it('does not offer the awareness time to an editor without privacy:manage', async () => {
+    const { http, fixture, el } = editBreach(['privacy:read', 'privacy:write']);
+    await render(fixture);
+    http.expectOne(kitUrl('privacy/breaches/b-1')).flush(makeBreach());
+    await render(fixture);
+    expect(el.querySelector('[data-testid="field-aware_at"]')).toBeNull();
+    type(el, 'field-title', 'Lost work laptop');
+    await render(fixture);
+    el.querySelector<HTMLElement>('[data-testid="privacy-save"] button')!.click();
+    await render(fixture);
+    const req = http.expectOne(kitUrl('privacy/breaches/b-1'));
+    expect(req.request.body).toEqual({ title: 'Lost work laptop' });
+    req.flush(makeBreach({ title: 'Lost work laptop' }));
+    await render(fixture);
+  });
+
+  it('shows the backend refusal of an awareness correction', async () => {
+    const { http, fixture, el } = editBreach(ALL);
+    await render(fixture);
+    http.expectOne(kitUrl('privacy/breaches/b-1')).flush(makeBreach());
+    await render(fixture);
+    type(el, 'field-aware_at', '2026-11-11T07:40');
+    type(el, 'change-reason', 'Corrected');
+    await render(fixture);
+    el.querySelector<HTMLElement>('[data-testid="privacy-save"] button')!.click();
+    await render(fixture);
+    http
+      .expectOne(kitUrl('privacy/breaches/b-1'))
+      .flush({ detail: { code: 'aware_at_forbidden' } }, { status: 403, statusText: 'Forbidden' });
+    await render(fixture);
+    expect(el.querySelector('[data-testid="form-error"]')?.textContent).toContain(
+      'privacy.errors.aware_at_forbidden',
+    );
+  });
+
   it('shows a coded error from the backend in place', async () => {
     const { http } = configureKit(PrivacyRegisterEdit, {
       permissions: ALL,

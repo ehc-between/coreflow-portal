@@ -35,6 +35,9 @@ export const PRIVACY_ERROR_CODES = [
   'lia_incomplete',
   'justification_required',
   'input_required',
+  'aware_at_forbidden',
+  'aware_at_in_future',
+  'change_reason_required',
 ] as const;
 
 export type PrivacyErrorCode = (typeof PRIVACY_ERROR_CODES)[number];
