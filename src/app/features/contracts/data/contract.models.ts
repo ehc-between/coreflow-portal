@@ -103,8 +103,25 @@ export const DPA_CLAUSE_KEYS = [
   'international_transfers',
 ] as const;
 
-export type DpaState = 'not_required' | 'covered' | 'missing';
-export const DPA_STATES: readonly DpaState[] = ['not_required', 'covered', 'missing'];
+export type DpaClauseKey = (typeof DPA_CLAUSE_KEYS)[number];
+
+/** DPA status: `covered` only for a signed agreement with every clause confirmed. */
+export type DpaState = 'not_required' | 'covered' | 'incomplete' | 'missing';
+export const DPA_STATES: readonly DpaState[] = ['not_required', 'covered', 'incomplete', 'missing'];
+
+/** What a person (or the assistant) recorded for a clause. */
+export type DpaClauseState = 'present' | 'missing' | 'waived';
+export const DPA_CLAUSE_STATES: readonly DpaClauseState[] = ['present', 'missing', 'waived'];
+/** Who recorded it: `ai` = an unconfirmed assistant finding, `user` = confirmed by a person. */
+export type DpaClauseSource = 'ai' | 'user';
+/** Why a DPA is not covered. */
+export type DpaReason = 'unsigned' | 'clauses_missing' | 'clauses_unconfirmed' | 'no_dpa';
+export const DPA_REASONS: readonly DpaReason[] = [
+  'unsigned',
+  'clauses_missing',
+  'clauses_unconfirmed',
+  'no_dpa',
+];
 
 export interface UserRef {
   readonly id: string;
@@ -215,10 +232,38 @@ export interface ContractVersion {
   readonly created_at: string;
 }
 
+/** One row of the contract's GDPR Art. 28(3) checklist (`unknown` until assessed). */
+export interface DpaChecklistItem {
+  readonly key: string;
+  readonly label: string;
+  readonly state: DpaClauseState | 'unknown';
+  readonly note: string | null;
+  readonly source: DpaClauseSource | null;
+  readonly updated_at: string | null;
+}
+
+/** `PUT contracts/{id}/dpa-clauses` entry (also `ContractCreate.dpa_clauses`). */
+export interface DpaClauseIn {
+  readonly key: DpaClauseKey;
+  readonly state: DpaClauseState;
+  readonly note?: string | null;
+  readonly source?: DpaClauseSource;
+}
+
 export interface DpaCoverage {
   readonly required: boolean;
   readonly status: DpaState;
   readonly linked_dpa_ids: readonly string[];
+  /** Signed agreements with a complete checklist that cover this contract. */
+  readonly covering_ids?: readonly string[];
+  /** The agreement the reasons and clause lists describe (this contract or a linked DPA). */
+  readonly evaluated_id?: string | null;
+  readonly signed?: boolean;
+  readonly missing_clauses?: readonly string[];
+  readonly unconfirmed_clauses?: readonly string[];
+  readonly reasons?: readonly DpaReason[];
+  /** This contract's own checklist, every clause in order. */
+  readonly checklist?: readonly DpaChecklistItem[];
 }
 
 export interface Contract extends ContractListItem {
@@ -274,6 +319,8 @@ export interface ContractCreate extends ContractFields {
   readonly title: string;
   readonly contract_type: ContractType;
   readonly parties?: readonly PartyIn[];
+  /** Checklist findings to store with the new contract (e.g. missing clauses from the extraction). */
+  readonly dpa_clauses?: readonly DpaClauseIn[];
 }
 
 export interface ContractUpdate extends ContractFields {

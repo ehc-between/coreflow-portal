@@ -45,6 +45,8 @@ export function dpaTone(state: DpaState | null | undefined): BadgeTone {
   switch (state) {
     case 'covered':
       return 'pass';
+    case 'incomplete':
+      return 'warn';
     case 'missing':
       return 'fail';
     default:

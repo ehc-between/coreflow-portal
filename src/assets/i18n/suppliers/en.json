@@ -148,9 +148,8 @@
       "schedule": "Re-evaluation"
     },
     "nameRequired": "Give the supplier a name.",
-    "countryHint": "Two-letter country code, for example NO or SE.",
+    "countryHint": "The country where the supplier is registered.",
     "profileHint": "Tick what applies. These answers decide which assessments you need, such as security, privacy or AI.",
-    "listPlaceholder": "For example Norway, EU/EEA",
     "certificationsPlaceholder": "For example ISO 9001, ISO/IEC 27001",
     "intervalHint": "Leave empty to use the default for the criticality ({{ months }} months).",
     "nextEvaluationHint": "Set automatically when an evaluation is decided. Set it here only to override.",
@@ -159,7 +158,10 @@
     "create": "Register supplier",
     "save": "Save changes",
     "created": "Supplier {{ code }} registered.",
-    "saved": "Changes saved."
+    "saved": "Changes saved.",
+    "invalidCountry": "Not recognised as countries: {{ values }}. Remove them and pick countries from the list.",
+    "locationsReview": "Check these locations: {{ codes }}. They were saved before countries were picked from a list and may have been shortened from a country name (for example IR is Iran, not Ireland). Saving the form confirms them.",
+    "transferNeeded": "Personal data stored in {{ countries }} leaves the EU/EEA without an adequacy decision. Register a transfer assessment."
   },
   "detail": {
     "notFound": "This supplier does not exist or you do not have access to it.",
@@ -182,7 +184,11 @@
     "statusChanged": "Status changed.",
     "deleteTitle": "Delete supplier?",
     "deleteMessage": "{{ code }} {{ name }} will be removed with its evaluations and performance log. The audit trail keeps a record.",
-    "deleted": "Supplier {{ code }} deleted."
+    "deleted": "Supplier {{ code }} deleted.",
+    "locationReview": "Check: {{ code }}",
+    "transferNeeded": "Transfer assessment needed.",
+    "transferNeededBody": "This supplier processes personal data in a country outside the EU/EEA without an adequacy decision. Register the transfer with its transfer tool (for example signed standard contractual clauses) and a transfer impact assessment.",
+    "transferCta": "Register a transfer"
   },
   "statusDialog": {
     "title": "Change supplier status",
@@ -463,7 +469,8 @@
     "title_required": "Give it a title.",
     "too_many_questions": "There are too many questions.",
     "unanswered_questions": "Answer every required question first.",
-    "unknown_question": "An answer refers to a question that does not exist."
+    "unknown_question": "An answer refers to a question that does not exist.",
+    "invalid_country": "Some countries were not recognised. Pick countries from the list."
   },
   "notifications": {
     "created": "Supplier registered: {{ code }} {{ title }}",
@@ -492,5 +499,10 @@
     "evaluationReopened": "Evaluation reopened",
     "evaluationDecided": "Evaluation decided",
     "evaluationCancelled": "Evaluation cancelled"
+  },
+  "zones": {
+    "eea": "EU/EEA",
+    "adequacy": "Adequacy decision",
+    "third_country": "Third country"
   }
 }

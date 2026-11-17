@@ -2155,6 +2155,18 @@
       "lightTheme": "Bytt til lyst utseende",
       "darkTheme": "Bytt til mørkt utseende",
       "home": "CoreFlow, til forsiden"
+    },
+    "countries": {
+      "EU": "Den europeiske union (EU)",
+      "EEA": "EU/EØS"
+    },
+    "countryPicker": {
+      "placeholder": "Skriv et land, for eksempel Irland",
+      "hint": "Velg fra forslagene, eller skriv et landnavn eller en landkode og trykk Enter.",
+      "notFound": "«{{ text }}» er ikke et land på listen. Velg et fra forslagene.",
+      "remove": "Fjern {{ name }}",
+      "flagged": "Kontroller denne verdien",
+      "none": "Ikke satt"
     }
   }
 }

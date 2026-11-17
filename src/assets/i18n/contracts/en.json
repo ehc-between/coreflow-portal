@@ -283,15 +283,46 @@
     "status": {
       "not_required": "Not required",
       "covered": "Covered",
-      "missing": "Missing"
+      "missing": "Missing",
+      "incomplete": "Incomplete"
     },
     "explain": {
       "not_required": "The counterparty does not process personal data for you under this contract.",
-      "covered": "A data processing agreement covers this contract.",
-      "missing": "The counterparty processes personal data for you, but no data processing agreement is linked."
+      "covered": "A signed data processing agreement, with every required clause confirmed, covers this contract.",
+      "missing": "The counterparty processes personal data for you, but no data processing agreement is linked.",
+      "incomplete": "There is a data processing agreement, but it does not yet give full protection:"
     },
     "linked": "Linked agreement {{ n }}",
-    "linkCta": "Register the data processing agreement as a contract, then link it here under Related."
+    "linkCta": "Register the data processing agreement as a contract, then link it here under Related.",
+    "reasons": {
+      "unsigned": "It is not signed and active yet.",
+      "clauses_missing": "Required clauses are missing: {{ missing }}.",
+      "clauses_unconfirmed": "Clauses not yet confirmed by a person: {{ unconfirmed }}.",
+      "no_dpa": "No data processing agreement is linked."
+    },
+    "clauseStates": {
+      "present": "Present",
+      "missing": "Missing",
+      "waived": "Waived",
+      "unknown": "Not assessed"
+    },
+    "checklist": {
+      "title": "Data processing clauses (GDPR Art. 28(3))",
+      "intro": "Record whether each required clause is in the agreement. The agreement counts as covering the processing only when it is signed and every clause is confirmed present, or waived with a reason.",
+      "evaluatedElsewhere": "The status is based on a linked data processing agreement.",
+      "openAgreement": "Open the agreement",
+      "suggestions": "Suggestions from the analysis to confirm: {{ count }}",
+      "confirmAll": "Confirm all suggestions",
+      "suggested": "Suggested",
+      "confirm": "Confirm this suggestion",
+      "state": "Assessment",
+      "note": "Note (optional)",
+      "waiverReason": "Reason for waiving (required)",
+      "save": "Save checklist",
+      "negotiationTask": "Create negotiation task",
+      "negotiationTitle": "Negotiate missing data processing clauses ({{ code }})",
+      "negotiationIntro": "Agree these clauses with the counterparty and record them in the checklist:"
+    }
   },
   "dpaClauses": {
     "subject_matter_and_duration": "Subject matter, duration, nature and purpose of the processing",
@@ -341,7 +372,9 @@
     "dpaResult": "Data processing clauses (GDPR Art. 28(3))",
     "dpaNotApplicable": "The text does not look like an agreement where personal data is processed on your behalf.",
     "present": "Present",
-    "missing": "Missing"
+    "missing": "Missing",
+    "recordClauses": "Record in the clause checklist",
+    "recordHint": "Stored as suggestions. A person must confirm each clause."
   },
   "deadlines": {
     "link": "Deadlines",
@@ -378,7 +411,10 @@
       "renew": "{{ code }} has been renewed.",
       "terminate": "{{ code }} has been terminated.",
       "expire": "{{ code }} has been marked as expired."
-    }
+    },
+    "dpaChecklistSaved": "The clause checklist has been saved.",
+    "dpaFindingsRecorded": "The findings have been recorded in the clause checklist for confirmation.",
+    "negotiationTaskAdded": "A negotiation task has been added under Tasks."
   },
   "errors": {
     "contract_closed": "This contract has ended and can no longer be changed.",
@@ -397,7 +433,12 @@
     "module_disabled": "Contract management is turned off for this organisation.",
     "forbidden": "You do not have permission to do that.",
     "notFound": "This contract does not exist or you cannot see it.",
-    "downloadFailed": "The file could not be downloaded."
+    "downloadFailed": "The file could not be downloaded.",
+    "invalid_clause": "That clause is not on the checklist.",
+    "invalid_clause_state": "Choose present, missing or waived.",
+    "invalid_clause_source": "The clause could not be saved. Reload the page and try again.",
+    "waiver_reason_required": "Give the reason for waiving this clause.",
+    "waiver_requires_person": "Only a person can waive a clause."
   },
   "notifications": {
     "ownerChanged": "You now own the contract {{ code }}: {{ title }}",

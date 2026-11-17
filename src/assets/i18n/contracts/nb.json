@@ -283,15 +283,46 @@
     "status": {
       "not_required": "Ikke påkrevd",
       "covered": "Dekket",
-      "missing": "Mangler"
+      "missing": "Mangler",
+      "incomplete": "Ufullstendig"
     },
     "explain": {
       "not_required": "Motparten behandler ikke personopplysninger for dere under denne kontrakten.",
-      "covered": "En databehandleravtale dekker denne kontrakten.",
-      "missing": "Motparten behandler personopplysninger for dere, men ingen databehandleravtale er koblet til."
+      "covered": "En signert databehandleravtale, der alle påkrevde klausuler er bekreftet, dekker denne kontrakten.",
+      "missing": "Motparten behandler personopplysninger for dere, men ingen databehandleravtale er koblet til.",
+      "incomplete": "Det finnes en databehandleravtale, men den gir ennå ikke full beskyttelse:"
     },
     "linked": "Koblet avtale {{ n }}",
-    "linkCta": "Registrer databehandleravtalen som en kontrakt, og koble den hit under Relatert."
+    "linkCta": "Registrer databehandleravtalen som en kontrakt, og koble den hit under Relatert.",
+    "reasons": {
+      "unsigned": "Den er ikke signert og aktiv ennå.",
+      "clauses_missing": "Påkrevde klausuler mangler: {{ missing }}.",
+      "clauses_unconfirmed": "Klausuler som ikke er bekreftet av en person ennå: {{ unconfirmed }}.",
+      "no_dpa": "Ingen databehandleravtale er koblet til."
+    },
+    "clauseStates": {
+      "present": "Finnes",
+      "missing": "Mangler",
+      "waived": "Fraveket",
+      "unknown": "Ikke vurdert"
+    },
+    "checklist": {
+      "title": "Klausuler om databehandling (GDPR art. 28 nr. 3)",
+      "intro": "Registrer om hver påkrevde klausul står i avtalen. Avtalen regnes som dekkende først når den er signert og alle klausuler er bekreftet at finnes, eller er fraveket med en begrunnelse.",
+      "evaluatedElsewhere": "Statusen bygger på en koblet databehandleravtale.",
+      "openAgreement": "Åpne avtalen",
+      "suggestions": "Forslag fra analysen som må bekreftes: {{ count }}",
+      "confirmAll": "Bekreft alle forslag",
+      "suggested": "Forslag",
+      "confirm": "Bekreft dette forslaget",
+      "state": "Vurdering",
+      "note": "Merknad (valgfritt)",
+      "waiverReason": "Begrunnelse for å fravike (påkrevd)",
+      "save": "Lagre sjekklisten",
+      "negotiationTask": "Opprett forhandlingsoppgave",
+      "negotiationTitle": "Forhandle manglende klausuler om databehandling ({{ code }})",
+      "negotiationIntro": "Bli enige med motparten om disse klausulene, og registrer dem i sjekklisten:"
+    }
   },
   "dpaClauses": {
     "subject_matter_and_duration": "Gjenstand, varighet, art og formål med behandlingen",
@@ -341,7 +372,9 @@
     "dpaResult": "Klausuler for databehandling (GDPR art. 28 nr. 3)",
     "dpaNotApplicable": "Teksten ser ikke ut som en avtale der personopplysninger behandles på deres vegne.",
     "present": "Finnes",
-    "missing": "Mangler"
+    "missing": "Mangler",
+    "recordClauses": "Registrer i klausulsjekklisten",
+    "recordHint": "Lagres som forslag. En person må bekrefte hver klausul."
   },
   "deadlines": {
     "link": "Frister",
@@ -378,7 +411,10 @@
       "renew": "{{ code }} er fornyet.",
       "terminate": "{{ code }} er sagt opp.",
       "expire": "{{ code }} er markert som utløpt."
-    }
+    },
+    "dpaChecklistSaved": "Klausulsjekklisten er lagret.",
+    "dpaFindingsRecorded": "Funnene er registrert i klausulsjekklisten og venter på bekreftelse.",
+    "negotiationTaskAdded": "En forhandlingsoppgave er lagt til under Oppgaver."
   },
   "errors": {
     "contract_closed": "Denne kontrakten er avsluttet og kan ikke lenger endres.",
@@ -397,7 +433,12 @@
     "module_disabled": "Kontraktstyring er slått av for denne virksomheten.",
     "forbidden": "Du har ikke tilgang til å gjøre dette.",
     "notFound": "Kontrakten finnes ikke, eller du har ikke tilgang til den.",
-    "downloadFailed": "Filen kunne ikke lastes ned."
+    "downloadFailed": "Filen kunne ikke lastes ned.",
+    "invalid_clause": "Den klausulen står ikke i sjekklisten.",
+    "invalid_clause_state": "Velg finnes, mangler eller fraveket.",
+    "invalid_clause_source": "Klausulen kunne ikke lagres. Last inn siden på nytt og prøv igjen.",
+    "waiver_reason_required": "Oppgi begrunnelsen for å fravike denne klausulen.",
+    "waiver_requires_person": "Bare en person kan fravike en klausul."
   },
   "notifications": {
     "ownerChanged": "Du eier nå kontrakten {{ code }}: {{ title }}",

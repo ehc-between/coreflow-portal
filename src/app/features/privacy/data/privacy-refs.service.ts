@@ -5,6 +5,9 @@ import { PrivacyApi } from './privacy-api';
 import { PrivacyRecord } from './privacy.models';
 import { REGISTERS, RegisterKey } from './privacy-registers';
 
+/** Cache key of the contract options (not a privacy register). */
+const CONTRACTS = '__contracts';
+
 export interface RefOption {
   readonly id: string;
   readonly label: string;
@@ -53,6 +56,24 @@ export class PrivacyRefsService {
     return id ? (this.departments().find((d) => d.id === id)?.label ?? null) : null;
   }
 
+  /** Contracts for the transfer's agreement picker (first 200, by code; empty without contracts:read). */
+  contracts(): readonly RefOption[] {
+    const orgId = this.selectedOrg.currentOrgId();
+    const entry = this.cache()[CONTRACTS];
+    if (!orgId) {
+      return [];
+    }
+    if (!entry || entry.orgId !== orgId) {
+      this.loadContracts(orgId);
+      return [];
+    }
+    return entry.items;
+  }
+
+  contractLabel(id: string | null | undefined): string | null {
+    return id ? (this.contracts().find((o) => o.id === id)?.label ?? null) : null;
+  }
+
   /** Records of a register for a reference picker (first 200, by code). */
   options(register: RegisterKey): readonly RefOption[] {
     const orgId = this.selectedOrg.currentOrgId();
@@ -76,6 +97,32 @@ export class PrivacyRefsService {
     const next = { ...this.cache() };
     delete next[register];
     this.cache.set(next);
+  }
+
+  private loadContracts(orgId: string): void {
+    const token = `${orgId}:${CONTRACTS}`;
+    if (this.loading.has(token)) {
+      return;
+    }
+    this.loading.add(token);
+    queueMicrotask(() =>
+      this.api.contractOptions(orgId).subscribe({
+        next: (items) => {
+          this.loading.delete(token);
+          this.cache.update((c) => ({
+            ...c,
+            [CONTRACTS]: {
+              orgId,
+              items: items.map((r) => ({ id: r.id, label: `${r.code} · ${r.title}` })),
+            },
+          }));
+        },
+        error: () => {
+          this.loading.delete(token);
+          this.cache.update((c) => ({ ...c, [CONTRACTS]: { orgId, items: [] } }));
+        },
+      }),
+    );
   }
 
   private load(orgId: string, register: RegisterKey): void {

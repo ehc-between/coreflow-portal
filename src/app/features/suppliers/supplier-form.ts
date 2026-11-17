@@ -1,14 +1,21 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   computed,
   effect,
+  inject,
   input,
   output,
   signal,
   untracked,
 } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { Subscription } from 'rxjs';
+import { LanguageService } from '../../core/i18n/language.service';
+import { SelectedOrgService } from '../../core/org/selected-org.service';
+import { locationName } from '../../shared/locale/countries';
+import { CountryPicker } from '../../shared/ui/country-picker/country-picker';
 import { AskAbout } from '../../shared/ask/ask-about';
 import { FieldHelp } from '../../shared/guidance/field-help';
 import { Button } from '../../shared/ui/button/button';
@@ -29,7 +36,9 @@ import {
   SupplierCategory,
   SupplierDetail,
   SupplierFields,
+  LocationOption,
 } from './data/supplier.models';
+import { SuppliersApi } from './data/suppliers-api';
 import { SupplierDepartmentSelect, SupplierUserSelect } from './shared/people-select';
 
 /** What the form submits: the full field set plus, when editing, the change reason. */
@@ -56,7 +65,8 @@ interface Draft {
   has_system_access: boolean;
   provides_cloud_services: boolean;
   provides_ai: boolean;
-  data_locations: string;
+  /** ISO 3166-1 alpha-2 codes (plus EU / EEA), picked from the location options. */
+  data_locations: readonly string[];
   certifications: string;
   evaluation_interval_months: string;
   next_evaluation_at: string;
@@ -81,7 +91,7 @@ export function draftFrom(s: SupplierDetail | null): Draft {
     has_system_access: s?.has_system_access ?? false,
     provides_cloud_services: s?.provides_cloud_services ?? false,
     provides_ai: s?.provides_ai ?? false,
-    data_locations: (s?.data_locations ?? []).join(', '),
+    data_locations: [...(s?.data_locations ?? [])],
     certifications: (s?.certifications ?? []).join(', '),
     evaluation_interval_months: s?.evaluation_interval_months?.toString() ?? '',
     next_evaluation_at: wireToDay(s?.next_evaluation_at),
@@ -109,7 +119,9 @@ export function fieldsFrom(d: Draft): SupplierFields {
     has_system_access: d.has_system_access,
     provides_cloud_services: d.provides_cloud_services,
     provides_ai: d.provides_ai,
-    data_locations: splitList(d.data_locations),
+    data_locations: [
+      ...new Set(d.data_locations.map((c) => c.trim().toUpperCase()).filter(Boolean)),
+    ],
     certifications: splitList(d.certifications),
     evaluation_interval_months: Number.isFinite(interval) ? interval : null,
     next_evaluation_at: dayToWire(d.next_evaluation_at),
@@ -130,6 +142,7 @@ export function fieldsFrom(d: Draft): SupplierFields {
     AskAbout,
     Button,
     Card,
+    CountryPicker,
     FieldHelp,
     FormField,
     SupplierDepartmentSelect,
@@ -217,25 +230,26 @@ export function fieldsFrom(d: Draft): SupplierFields {
           </app-form-field>
           <div>
             <app-form-field [label]="'suppliers.fields.country' | transloco" inputId="sup-country">
-              <input
-                id="sup-country"
-                type="text"
-                maxlength="2"
-                autocomplete="country"
-                class="uppercase"
-                [attr.aria-invalid]="showErrors() && !countryValid()"
-                aria-describedby="sup-country-hint"
-                [value]="d().country"
-                (input)="set('country', $any($event.target).value)"
+              <app-country-picker
+                inputId="sup-country"
+                [multiple]="false"
+                [options]="countryCodes()"
+                [value]="d().country ? [d().country] : []"
+                [invalid]="countryInvalid()"
+                (valueChange)="set('country', $event[0] ?? '')"
               />
             </app-form-field>
             <p
               id="sup-country-hint"
               class="mt-1 text-[12px]"
-              [class.text-fail]="showErrors() && !countryValid()"
-              [class.text-fg-subtle]="!(showErrors() && !countryValid())"
+              [class.text-fail]="countryInvalid()"
+              [class.text-fg-subtle]="!countryInvalid()"
             >
-              {{ 'suppliers.form.countryHint' | transloco }}
+              @if (serverInvalid('country')) {
+                {{ 'suppliers.form.invalidCountry' | transloco: { values: rejected() } }}
+              } @else {
+                {{ 'suppliers.form.countryHint' | transloco }}
+              }
             </p>
           </div>
           <app-form-field [label]="'suppliers.fields.website' | transloco" inputId="sup-web">
@@ -361,14 +375,36 @@ export function fieldsFrom(d: Draft): SupplierFields {
               [label]="'suppliers.fields.dataLocations' | transloco"
               inputId="sup-locs"
             >
-              <input
-                id="sup-locs"
-                type="text"
-                [placeholder]="'suppliers.form.listPlaceholder' | transloco"
+              <app-country-picker
+                inputId="sup-locs"
+                [label]="'suppliers.fields.dataLocations' | transloco"
+                [options]="locationCodes()"
                 [value]="d().data_locations"
-                (input)="set('data_locations', $any($event.target).value)"
+                [flagged]="flaggedLocations()"
+                [invalid]="serverInvalid('data_locations')"
+                (valueChange)="set('data_locations', $event)"
               />
             </app-form-field>
+            @if (serverInvalid('data_locations')) {
+              <p class="mt-1 text-[12px] text-fail" role="alert" data-testid="locations-invalid">
+                {{ 'suppliers.form.invalidCountry' | transloco: { values: rejected() } }}
+              </p>
+            }
+            @if (flaggedLocations().length) {
+              <p class="mt-1 text-[12px] text-warn" data-testid="locations-review">
+                {{
+                  'suppliers.form.locationsReview'
+                    | transloco: { codes: flaggedLocations().join(', ') }
+                }}
+              </p>
+            }
+            @if (thirdCountries().length) {
+              <p class="mt-1 text-[12px] text-warn" data-testid="locations-transfer">
+                {{
+                  'suppliers.form.transferNeeded' | transloco: { countries: thirdCountryNames() }
+                }}
+              </p>
+            }
           </div>
           <div>
             <div class="flex items-center gap-1">
@@ -476,6 +512,11 @@ export class SupplierForm {
   /** The supplier being edited (null = a new supplier). */
   readonly value = input<SupplierDetail | null>(null);
   readonly busy = input(false);
+  /** A 422 `invalid_country` from the last save: the field and the rejected entries. */
+  readonly invalidCountry = input<{
+    readonly field: string;
+    readonly values: readonly string[];
+  } | null>(null);
   readonly submitted = output<SupplierFormValue>();
   readonly cancelled = output<void>();
 
@@ -483,7 +524,43 @@ export class SupplierForm {
   protected readonly criticalities = CRITICALITIES;
   protected readonly flags = SUPPLIER_FLAGS;
 
+  private readonly api = inject(SuppliersApi);
+  private readonly selectedOrg = inject(SelectedOrgService);
+  private readonly language = inject(LanguageService);
+
   protected readonly d = signal<Draft>(draftFrom(null));
+  /** The picker's options (`GET /suppliers/location-options`). */
+  protected readonly locationOptions = signal<readonly LocationOption[]>([]);
+  protected readonly locationCodes = computed(() => this.locationOptions().map((o) => o.code));
+  protected readonly countryCodes = computed(() =>
+    this.locationOptions()
+      .filter((o) => !o.region)
+      .map((o) => o.code),
+  );
+  /** Stored locations the backend flagged for review that are still selected. */
+  protected readonly flaggedLocations = computed(() => {
+    const selected = this.d().data_locations;
+    return (this.value()?.data_location_details ?? [])
+      .filter((l) => l.needs_review && selected.includes(l.code))
+      .map((l) => l.code);
+  });
+  /** Selected third-country locations of a supplier that processes personal data. */
+  protected readonly thirdCountries = computed(() => {
+    if (!this.d().processes_personal_data) {
+      return [];
+    }
+    const zones = new Map(this.locationOptions().map((o) => [o.code, o.zone]));
+    return this.d().data_locations.filter((c) => zones.get(c) === 'third_country');
+  });
+  protected readonly thirdCountryNames = computed(() =>
+    this.thirdCountries()
+      .map((c) => locationName(c, this.language))
+      .join(', '),
+  );
+  protected readonly rejected = computed(() => (this.invalidCountry()?.values ?? []).join(', '));
+  protected readonly countryInvalid = computed(
+    () => (this.showErrors() && !this.countryValid()) || this.serverInvalid('country'),
+  );
   protected readonly reason = signal('');
   protected readonly showErrors = signal(false);
   protected readonly editing = computed(() => this.value() !== null);
@@ -503,11 +580,31 @@ export class SupplierForm {
     return Number.isInteger(n) && n >= 1 && n <= 60;
   });
 
+  private optionsRequest = new Subscription();
+
   constructor() {
+    inject(DestroyRef).onDestroy(() => this.optionsRequest.unsubscribe());
     effect(() => {
       const value = this.value();
       untracked(() => this.d.set(draftFrom(value)));
     });
+    effect(() => {
+      const orgId = this.selectedOrg.currentOrgId();
+      untracked(() => {
+        this.optionsRequest.unsubscribe();
+        if (!orgId) {
+          return;
+        }
+        this.optionsRequest = this.api.locationOptions(orgId).subscribe({
+          next: (items) => this.locationOptions.set(items),
+          error: () => this.locationOptions.set([]),
+        });
+      });
+    });
+  }
+
+  protected serverInvalid(field: string): boolean {
+    return this.invalidCountry()?.field === field;
   }
 
   protected set<K extends keyof Draft>(key: K, value: Draft[K]): void {

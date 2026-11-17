@@ -5,6 +5,7 @@ import { httpErrorMessageKey } from '../../../core/http/error.interceptor';
 /** Codes the supplier endpoints return in a 4xx `detail: {code}`; each has `suppliers.errors.<code>`. */
 export const SUPPLIER_ERROR_CODES = [
   'approval_required',
+  'invalid_country',
   'conditions_required',
   'duplicate_question_id',
   'evaluation_not_draft',
@@ -59,6 +60,28 @@ export function supplierErrorKey(error: unknown): string {
     return httpErrorMessageKey(error.status);
   }
   return 'suppliers.errors.generic';
+}
+
+/**
+ * The field and rejected entries of a 422 `invalid_country` (`data_locations` or
+ * `country`), or null for any other error.
+ */
+export function invalidCountry(
+  error: unknown,
+): { readonly field: string; readonly values: readonly string[] } | null {
+  if (!(error instanceof HttpErrorResponse)) {
+    return null;
+  }
+  const detail = (
+    error.error as { detail?: { code?: unknown; field?: unknown; values?: unknown } } | null
+  )?.detail;
+  if (detail?.code !== 'invalid_country') {
+    return null;
+  }
+  const values = Array.isArray(detail.values)
+    ? detail.values.filter((v): v is string => typeof v === 'string')
+    : [];
+  return { field: typeof detail.field === 'string' ? detail.field : 'data_locations', values };
 }
 
 /** Question ids named by a 422 `unanswered_questions` error (empty otherwise). */

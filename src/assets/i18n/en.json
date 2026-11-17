@@ -2155,6 +2155,18 @@
       "lightTheme": "Switch to light",
       "darkTheme": "Switch to dark",
       "home": "CoreFlow home"
+    },
+    "countries": {
+      "EU": "European Union (EU)",
+      "EEA": "EU/EEA"
+    },
+    "countryPicker": {
+      "placeholder": "Type a country, for example Ireland",
+      "hint": "Pick from the suggestions, or type a country name or code and press Enter.",
+      "notFound": "\"{{ text }}\" is not a country on the list. Pick one from the suggestions.",
+      "remove": "Remove {{ name }}",
+      "flagged": "Check this value",
+      "none": "Not set"
     }
   }
 }

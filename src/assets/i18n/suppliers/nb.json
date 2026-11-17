@@ -148,9 +148,8 @@
       "schedule": "Revurdering"
     },
     "nameRequired": "Gi leverandøren et navn.",
-    "countryHint": "Landkode med to bokstaver, for eksempel NO eller SE.",
+    "countryHint": "Landet der leverandøren er registrert.",
     "profileHint": "Kryss av for det som gjelder. Svarene avgjør hvilke vurderinger dere trenger, som sikkerhet, personvern eller KI.",
-    "listPlaceholder": "For eksempel Norge, EU/EØS",
     "certificationsPlaceholder": "For eksempel ISO 9001, ISO/IEC 27001",
     "intervalHint": "La stå tomt for å bruke standarden for kritikaliteten ({{ months }} måneder).",
     "nextEvaluationHint": "Settes automatisk når en evaluering avgjøres. Sett den her bare for å overstyre.",
@@ -159,7 +158,10 @@
     "create": "Registrer leverandør",
     "save": "Lagre endringer",
     "created": "Leverandør {{ code }} er registrert.",
-    "saved": "Endringene er lagret."
+    "saved": "Endringene er lagret.",
+    "invalidCountry": "Gjenkjennes ikke som land: {{ values }}. Fjern dem og velg land fra listen.",
+    "locationsReview": "Kontroller disse lokasjonene: {{ codes }}. De ble lagret før land ble valgt fra en liste, og kan være forkortet fra et landnavn (for eksempel er IR Iran, ikke Irland). Når du lagrer skjemaet, bekrefter du dem.",
+    "transferNeeded": "Personopplysninger som lagres i {{ countries }}, overføres ut av EU/EØS uten en beslutning om tilstrekkelig beskyttelse. Registrer en overføringsvurdering."
   },
   "detail": {
     "notFound": "Denne leverandøren finnes ikke, eller du har ikke tilgang til den.",
@@ -182,7 +184,11 @@
     "statusChanged": "Statusen er endret.",
     "deleteTitle": "Slette leverandøren?",
     "deleteMessage": "{{ code }} {{ name }} fjernes sammen med evalueringene og ytelsesloggen. Revisjonssporet beholder en oppføring.",
-    "deleted": "Leverandør {{ code }} er slettet."
+    "deleted": "Leverandør {{ code }} er slettet.",
+    "locationReview": "Kontroller: {{ code }}",
+    "transferNeeded": "Overføringsvurdering trengs.",
+    "transferNeededBody": "Denne leverandøren behandler personopplysninger i et land utenfor EU/EØS uten beslutning om tilstrekkelig beskyttelse. Registrer overføringen med overføringsgrunnlag (for eksempel signerte standard personvernbestemmelser) og en vurdering av overføringen.",
+    "transferCta": "Registrer en overføring"
   },
   "statusDialog": {
     "title": "Endre leverandørstatus",
@@ -463,7 +469,8 @@
     "title_required": "Gi det en tittel.",
     "too_many_questions": "Det er for mange spørsmål.",
     "unanswered_questions": "Svar på alle påkrevde spørsmål først.",
-    "unknown_question": "Et svar viser til et spørsmål som ikke finnes."
+    "unknown_question": "Et svar viser til et spørsmål som ikke finnes.",
+    "invalid_country": "Noen land ble ikke gjenkjent. Velg land fra listen."
   },
   "notifications": {
     "created": "Leverandør registrert: {{ code }} {{ title }}",
@@ -492,5 +499,10 @@
     "evaluationReopened": "Evaluering gjenåpnet",
     "evaluationDecided": "Evaluering avgjort",
     "evaluationCancelled": "Evaluering avbrutt"
+  },
+  "zones": {
+    "eea": "EU/EØS",
+    "adequacy": "Beslutning om tilstrekkelig beskyttelse",
+    "third_country": "Tredjeland"
   }
 }
