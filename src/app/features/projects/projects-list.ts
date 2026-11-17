@@ -8,25 +8,29 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../core/ai/page-context';
 import { LanguageService } from '../../core/i18n/language.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
-import { GuideIntro } from '../../shared/guidance/guide-intro';
 import { TeachingEmpty } from '../../shared/guidance/teaching-empty';
-import { TourButton } from '../../shared/guidance/tour-button';
 import { TourStepDirective } from '../../shared/guidance/tour-step.directive';
 import { WhyItMatters } from '../../shared/guidance/why-it-matters';
 import { RecordListPage } from '../../shared/kit/record-list-page';
 import { SavedView } from '../../shared/kit/saved-views.service';
-import { LocalDayPipe } from '../../shared/locale/locale-pipes';
-import { Badge } from '../../shared/ui/badge/badge';
+import { CoverageChip } from '../../shared/requirement-links/coverage-chip';
 import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
+import { EmptyState } from '../../shared/ui/empty-state/empty-state';
+import { ErrorState } from '../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../shared/ui/icon/icon';
+import { KpiTile, KpiTone } from '../../shared/ui/kpi-tile/kpi-tile';
+import { LoadingState } from '../../shared/ui/loading-state/loading-state';
 import { Pager } from '../../shared/ui/pager/pager';
+import { RecordRow, RecordRowHeader } from '../../shared/ui/record-row/record-row';
+import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
 import { GanttRow } from './data/gantt';
 import {
   OPEN_PROJECT_STATUSES,
@@ -37,27 +41,33 @@ import {
   Project,
   ProjectKind,
   ProjectListQuery,
+  ProjectOverview,
   ProjectSort,
   ProjectStatus,
+  isClosedStatus,
   isOneOf,
 } from './data/project.models';
 import {
-  healthTone,
-  priorityTone,
+  healthBadge,
+  healthColour,
+  projectStatusBadge,
   projectStatusKey,
-  projectStatusTone,
 } from './data/project-display';
 import { ProjectsApi } from './data/projects-api';
 import { GanttChart } from './gantt-chart';
-import { ProjectLessonLink } from './lesson-link';
 
 const PAGE_SIZE = 25;
+/** The "at risk" view filters open projects in the browser (the API has no health filter). */
+const AT_RISK_LIMIT = 100;
 
 /** Status filter options: `open` = every status that is not closed. */
 export const STATUS_FILTERS = ['open', 'all', ...PROJECT_STATUSES] as const;
 export const PEOPLE_FILTERS = ['', 'owner', 'member'] as const;
 export const LIST_VIEWS = ['list', 'timeline'] as const;
 export type ListView = (typeof LIST_VIEWS)[number];
+/** Summary-strip shortcuts. */
+export const FOCUS_FILTERS = ['', 'at_risk'] as const;
+export type FocusFilter = (typeof FOCUS_FILTERS)[number];
 
 export function statusesForFilter(filter: string): readonly ProjectStatus[] {
   if (filter === 'open') {
@@ -66,7 +76,12 @@ export function statusesForFilter(filter: string): readonly ProjectStatus[] {
   return isOneOf(PROJECT_STATUSES, filter) ? [filter] : [];
 }
 
-/** Portfolio timeline rows: one bar per project from its start to its due date. */
+/** Open and red or amber, or overdue (the overview's `at_risk` rule). */
+export function isAtRisk(p: Pick<Project, 'status' | 'health' | 'is_overdue'>): boolean {
+  return !isClosedStatus(p.status) && (p.health === 'red' || p.health === 'amber' || p.is_overdue);
+}
+
+/** Portfolio timeline rows: one bar per project from its start to its due date, coloured by health. */
 export function projectRows(projects: readonly Project[]): GanttRow[] {
   return projects.map((p) => ({
     id: p.id,
@@ -79,53 +94,66 @@ export function projectRows(projects: readonly Project[]): GanttRow[] {
     depth: 0,
     overdue: p.is_overdue,
     url: p.url,
+    tone: healthColour(p.health),
   }));
 }
 
 /**
- * The project register (`/projects`): search, filters on status, people, kind and
- * overdue, sorting, saved views and paging, as a list or as a portfolio timeline.
+ * The project register (`/projects`): a clickable portfolio summary, search,
+ * filters on status, people and kind (sorting and overdue under "Flere filtre"),
+ * saved views and paging, as a list or as a portfolio timeline.
  */
 @Component({
   selector: 'app-projects-list',
   imports: [
-    RouterLink,
     TranslocoPipe,
-    LocalDayPipe,
-    GuideIntro,
     TeachingEmpty,
-    TourButton,
     TourStepDirective,
     WhyItMatters,
     RecordListPage,
-    Badge,
+    CoverageChip,
     Button,
     Card,
+    EmptyState,
+    ErrorState,
+    HelpStrip,
     Icon,
+    KpiTile,
+    LoadingState,
     Pager,
+    RecordRow,
+    RecordRowHeader,
+    StatusBadge,
     GanttChart,
-    ProjectLessonLink,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-record-list-page
-      titleKey="projects.list.title"
+      titleKey="modules.names.projects"
+      descriptionKey="projects.list.subtitle"
+      [breadcrumbs]="[{ labelKey: 'modules.names.projects' }]"
       scope="projects"
       searchPlaceholderKey="projects.list.searchPlaceholder"
       [query]="q()"
       [filters]="viewFilters()"
+      [moreFiltersActive]="moreActive()"
       [empty]="showEmpty()"
       (search)="setQuery($event)"
       (viewApplied)="applyView($event)"
     >
-      <div intro class="mt-1 flex flex-col gap-2">
-        <p class="text-[14px] text-fg-muted">{{ 'projects.list.subtitle' | transloco }}</p>
-        <app-guide-intro scope="projects" page="list" />
-      </div>
-
-      <app-tour-button toolbar scope="projects" tour="list" />
+      @if (canWrite()) {
+        <app-button
+          primary
+          (click)="newProject()"
+          appTourStep="projects-new"
+          data-testid="new-project"
+        >
+          <app-icon name="plus" [size]="14" />
+          {{ 'projects.list.new' | transloco }}
+        </app-button>
+      }
       <div
-        toolbar
+        secondary
         class="inline-flex rounded-tile border border-border p-0.5"
         role="group"
         [attr.aria-label]="'projects.list.viewLabel' | transloco"
@@ -134,7 +162,7 @@ export function projectRows(projects: readonly Project[]): GanttRow[] {
         @for (v of views; track v) {
           <button
             type="button"
-            class="h-8 rounded-[8px] px-3 text-[12.5px] font-semibold"
+            class="h-8 rounded-tile px-3 text-ui font-semibold"
             [class.bg-accent-soft]="view() === v"
             [class.text-accent]="view() === v"
             [class.text-fg-muted]="view() !== v"
@@ -146,18 +174,31 @@ export function projectRows(projects: readonly Project[]): GanttRow[] {
           </button>
         }
       </div>
-      @if (canWrite()) {
-        <app-button
-          toolbar
-          size="sm"
-          (click)="newProject()"
-          appTourStep="projects-new"
-          data-testid="new-project"
-        >
-          <app-icon name="plus" [size]="14" />
-          {{ 'projects.list.new' | transloco }}
-        </app-button>
-      }
+
+      <app-help-strip help scope="projects" page="list" tour="list" lesson="project-basics" />
+
+      <div kpis class="contents">
+        @for (k of kpis(); track k.key) {
+          <button
+            type="button"
+            class="block w-full rounded-card text-left focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none disabled:cursor-default"
+            [class.ring-2]="k.active"
+            [class.ring-accent]="k.active"
+            [disabled]="!k.clickable"
+            [attr.aria-pressed]="k.clickable ? k.active : null"
+            [attr.data-testid]="'kpi-' + k.key"
+            (click)="focusKpi(k.key)"
+          >
+            <app-kpi-tile
+              [label]="'projects.kpis.' + k.key | transloco"
+              [value]="k.value"
+              [tone]="k.tone"
+              [delta]="k.hintKey ? (k.hintKey | transloco: { count: k.hint }) : ''"
+              deltaTone="neutral"
+            />
+          </button>
+        }
+      </div>
 
       <label filters class="sr-only" for="cf-project-status">
         {{ 'projects.filters.status' | transloco }}
@@ -165,7 +206,7 @@ export function projectRows(projects: readonly Project[]): GanttRow[] {
       <select
         filters
         id="cf-project-status"
-        class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
+        class="h-10 max-w-full rounded-tile border border-border bg-bg px-2 text-ui text-fg"
         (change)="setStatus($any($event.target).value)"
         appTourStep="projects-filters"
         data-testid="filter-status"
@@ -182,7 +223,7 @@ export function projectRows(projects: readonly Project[]): GanttRow[] {
       <select
         filters
         id="cf-project-people"
-        class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
+        class="hidden h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg sm:block"
         (change)="setPeople($any($event.target).value)"
         data-testid="filter-people"
       >
@@ -198,7 +239,7 @@ export function projectRows(projects: readonly Project[]): GanttRow[] {
       <select
         filters
         id="cf-project-kind"
-        class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
+        class="hidden h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg sm:block"
         (change)="setKind($any($event.target).value)"
         data-testid="filter-kind"
       >
@@ -209,52 +250,108 @@ export function projectRows(projects: readonly Project[]): GanttRow[] {
           </option>
         }
       </select>
-      <label filters class="sr-only" for="cf-project-sort">
-        {{ 'projects.filters.sort' | transloco }}
-      </label>
-      <select
-        filters
-        id="cf-project-sort"
-        class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
-        (change)="setSort($any($event.target).value)"
-      >
-        @for (s of sorts; track s) {
-          <option [value]="s" [selected]="sort() === s">
-            {{ 'projects.sorts.' + sortKey(s) | transloco }}
-          </option>
-        }
-      </select>
-      <label
-        filters
-        class="inline-flex h-10 items-center gap-2 rounded-[10px] border border-border bg-bg px-3 text-[13px] text-fg"
-      >
-        <input
-          type="checkbox"
-          class="h-4 w-4 accent-[var(--accent)]"
-          [checked]="overdue()"
-          (change)="setOverdue($any($event.target).checked)"
-          data-testid="filter-overdue"
-        />
-        {{ 'projects.filters.overdue' | transloco }}
-      </label>
+
+      <div more-filters class="flex flex-col gap-3">
+        <div class="flex flex-col gap-1 sm:hidden">
+          <label for="cf-project-people-m" class="text-meta font-semibold text-fg-muted">{{
+            'projects.filters.people' | transloco
+          }}</label>
+          <select
+            id="cf-project-people-m"
+            class="h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
+            (change)="setPeople($any($event.target).value)"
+          >
+            @for (p of peopleFilters; track p) {
+              <option [value]="p" [selected]="people() === p">
+                {{ 'projects.filters.peopleOptions.' + (p || 'anyone') | transloco }}
+              </option>
+            }
+          </select>
+        </div>
+        <div class="flex flex-col gap-1 sm:hidden">
+          <label for="cf-project-kind-m" class="text-meta font-semibold text-fg-muted">{{
+            'projects.filters.kind' | transloco
+          }}</label>
+          <select
+            id="cf-project-kind-m"
+            class="h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
+            (change)="setKind($any($event.target).value)"
+          >
+            <option value="" [selected]="!kind()">
+              {{ 'projects.filters.allKinds' | transloco }}
+            </option>
+            @for (k of kinds; track k) {
+              <option [value]="k" [selected]="kind() === k">
+                {{ 'projects.kinds.' + k | transloco }}
+              </option>
+            }
+          </select>
+        </div>
+        <div class="flex flex-col gap-1">
+          <label for="cf-project-sort" class="text-meta font-semibold text-fg-muted">{{
+            'projects.filters.sort' | transloco
+          }}</label>
+          <select
+            id="cf-project-sort"
+            class="h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
+            (change)="setSort($any($event.target).value)"
+            data-testid="filter-sort"
+          >
+            @for (s of sorts; track s) {
+              <option [value]="s" [selected]="sort() === s">
+                {{ 'projects.sorts.' + sortKey(s) | transloco }}
+              </option>
+            }
+          </select>
+        </div>
+        <label class="inline-flex min-h-8 items-center gap-2 text-ui text-fg">
+          <input
+            type="checkbox"
+            class="h-4 w-4 accent-[var(--accent)]"
+            [checked]="overdue()"
+            (change)="setOverdue($any($event.target).checked)"
+            data-testid="filter-overdue"
+          />
+          {{ 'projects.filters.overdue' | transloco }}
+        </label>
+      </div>
+
+      @if (state() === 'ready' && total() > 0) {
+        <p class="mb-2 text-meta text-fg-muted" data-testid="count-line" aria-live="polite">
+          {{ countLine() }}
+          @if (isFiltered()) {
+            ·
+            <button
+              type="button"
+              class="font-semibold text-accent hover:underline"
+              (click)="resetFilters()"
+              data-testid="reset-filters-inline"
+            >
+              {{ 'projects.list.resetFilters' | transloco }}
+            </button>
+          }
+        </p>
+      }
 
       <app-card [padded]="false">
         @switch (state()) {
           @case ('loading') {
-            <p class="py-10 text-center text-[14px] text-fg-muted" role="status">
-              {{ 'projects.common.loading' | transloco }}
-            </p>
+            <app-loading-state [rows]="5" />
           }
           @case ('error') {
-            <p class="py-10 text-center text-[14px] text-fail" role="alert">
-              {{ 'projects.common.loadFailed' | transloco }}
-            </p>
+            <app-error-state (retry)="reload()" />
           }
           @default {
-            @if (rows().length === 0) {
-              <p class="py-10 text-center text-[14px] text-fg-muted" data-testid="no-match">
-                {{ 'projects.list.noMatch' | transloco }}
-              </p>
+            @if (visibleRows().length === 0) {
+              <app-empty-state
+                icon="search"
+                titleKey="projects.list.noMatch"
+                [bodyKey]="hiddenClosed() ? 'projects.list.noMatchClosedHidden' : null"
+                ctaKey="projects.list.resetFilters"
+                ctaVariant="secondary"
+                (cta)="resetFilters()"
+                data-testid="no-match"
+              />
             } @else {
               @if (view() === 'timeline') {
                 <div class="p-3">
@@ -262,99 +359,80 @@ export function projectRows(projects: readonly Project[]): GanttRow[] {
                     [rows]="timelineRows()"
                     labelKey="projects.list.timelineLabel"
                     emptyKey="projects.list.timelineEmpty"
+                    legend="portfolio"
                   />
                 </div>
               } @else {
-                <ul class="divide-y divide-border" data-testid="project-rows">
-                  @for (p of rows(); track p.id) {
-                    <li
-                      class="flex flex-col gap-1.5 px-4 py-3 sm:flex-row sm:items-center sm:gap-4"
+                <div role="list" data-testid="project-rows">
+                  <app-record-row-header dateKind="due" />
+                  @for (p of visibleRows(); track p.id) {
+                    <app-record-row
+                      [code]="p.code"
+                      [title]="p.title"
+                      [subtitle]="subtitle(p)"
+                      [link]="['/projects', p.id]"
+                      [owner]="p.owner?.name"
+                      [date]="p.due_date"
+                      dateKind="due"
+                      [overdue]="p.is_overdue"
                     >
-                      <div class="min-w-0 flex-1">
-                        <a
-                          [routerLink]="['/projects', p.id]"
-                          class="flex min-w-0 items-center gap-2 text-[13.5px] font-semibold text-fg hover:underline"
-                        >
-                          <span class="flex-none font-mono text-[12px] text-fg-subtle">{{
-                            p.code
-                          }}</span>
-                          <span class="truncate">{{ p.title }}</span>
-                          @if (p.security_relevant) {
-                            <app-icon name="lock" [size]="13" class="flex-none text-fg-subtle" />
-                            <span class="sr-only">{{
-                              'projects.fields.securityRelevant' | transloco
-                            }}</span>
-                          }
-                        </a>
-                        <span
-                          class="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[12px] text-fg-subtle"
-                        >
-                          <span>{{ 'projects.kinds.' + p.kind | transloco }}</span>
-                          @if (p.owner?.name; as ownerName) {
-                            <span>{{
-                              'projects.list.owner' | transloco: { name: ownerName }
-                            }}</span>
-                          }
-                          <span>{{
-                            'projects.list.members' | transloco: { count: p.member_count }
-                          }}</span>
-                        </span>
-                      </div>
-                      <span class="flex flex-wrap items-center gap-2 text-[12.5px] text-fg-muted">
-                        <app-badge [tone]="statusTone(p.status)">{{
-                          statusKey(p.status) | transloco
-                        }}</app-badge>
-                        @if (p.priority !== 'normal') {
-                          <app-badge [tone]="priorityTone(p.priority)">{{
-                            'projects.priorities.' + p.priority | transloco
-                          }}</app-badge>
-                        }
-                        @if (p.health) {
-                          <app-badge [tone]="healthTone(p.health)">{{
-                            'projects.healths.' + p.health | transloco
-                          }}</app-badge>
-                        }
-                        <span
-                          class="inline-flex min-w-[130px] items-center justify-end gap-1 text-right"
-                          [class.text-fail]="p.is_overdue"
-                          [class.font-semibold]="p.is_overdue"
-                        >
-                          @if (p.is_overdue) {
-                            <app-icon name="alert" [size]="13" />
-                            <span class="sr-only">{{ 'projects.common.overdue' | transloco }}</span>
-                          }
-                          @if (p.due_date) {
-                            {{ 'projects.list.due' | transloco: { date: (p.due_date | localDay) } }}
-                          } @else {
-                            {{ 'projects.list.noDue' | transloco }}
-                          }
-                        </span>
+                      <span coverage class="block max-w-full min-w-0 overflow-hidden">
+                        <app-coverage-chip entityType="project" [entityId]="p.id" />
                       </span>
-                    </li>
+                      <span badges class="contents">
+                        <app-status-badge
+                          [meaning]="statusBadge(p.status).meaning"
+                          [value]="statusBadge(p.status).value"
+                          [labelKey]="statusBadge(p.status).labelKey"
+                        />
+                        @if (p.health && !closedStatus(p.status)) {
+                          <app-status-badge
+                            [meaning]="health(p.health).meaning"
+                            [value]="health(p.health).value"
+                            [labelKey]="health(p.health).labelKey"
+                          />
+                        }
+                        @if (p.progress_percent !== undefined) {
+                          <span
+                            class="inline-flex items-center gap-1.5 text-meta text-fg-muted"
+                            [attr.aria-label]="
+                              'projects.list.progressLabel'
+                                | transloco: { percent: p.progress_percent }
+                            "
+                            data-testid="row-progress"
+                          >
+                            <span class="h-1.5 w-12 overflow-hidden rounded-full bg-surface-2">
+                              <span
+                                class="block h-full rounded-full"
+                                [class]="p.progress_percent >= 100 ? 'bg-pass' : 'bg-accent'"
+                                [style.width.%]="p.progress_percent"
+                              ></span>
+                            </span>
+                            <span aria-hidden="true">{{ p.progress_percent }} %</span>
+                          </span>
+                        }
+                      </span>
+                    </app-record-row>
                   }
-                </ul>
+                </div>
               }
-              <div class="border-t border-border px-4 py-2.5">
-                <app-pager
-                  [offset]="offset()"
-                  [pageSize]="pageSize"
-                  [count]="rows().length"
-                  [total]="total()"
-                  (pageChange)="offset.set($event)"
-                />
-              </div>
+              @if (showPager()) {
+                <div class="border-t border-border px-4 py-2.5">
+                  <app-pager
+                    [offset]="offset()"
+                    [pageSize]="pageSize"
+                    [count]="rows().length"
+                    [total]="total()"
+                    (pageChange)="offset.set($event)"
+                  />
+                </div>
+              }
             }
           }
         }
       </app-card>
 
-      <div class="mt-6 flex flex-col gap-3">
-        <app-why-it-matters scope="projects" page="list" />
-        <div class="flex flex-wrap gap-2">
-          <app-project-lesson-link lesson="project-basics" />
-          <app-project-lesson-link lesson="design-control" />
-        </div>
-      </div>
+      <app-why-it-matters below scope="projects" page="list" />
 
       <div empty class="flex flex-col gap-6">
         <app-card>
@@ -366,10 +444,6 @@ export function projectRows(projects: readonly Project[]): GanttRow[] {
           />
         </app-card>
         <app-why-it-matters scope="projects" page="list" />
-        <div class="flex flex-wrap gap-2">
-          <app-project-lesson-link lesson="project-basics" />
-          <app-project-lesson-link lesson="design-control" />
-        </div>
       </div>
     </app-record-list-page>
   `,
@@ -386,10 +460,9 @@ export class ProjectsList {
   protected readonly sorts = PROJECT_SORTS;
   protected readonly views = LIST_VIEWS;
   protected readonly pageSize = PAGE_SIZE;
-  protected readonly statusKey = projectStatusKey;
-  protected readonly statusTone = projectStatusTone;
-  protected readonly healthTone = healthTone;
-  protected readonly priorityTone = priorityTone;
+  protected readonly statusBadge = projectStatusBadge;
+  protected readonly health = healthBadge;
+  protected readonly closedStatus = isClosedStatus;
 
   protected readonly canWrite = computed(() =>
     (this.selectedOrg.currentOrg()?.permissions ?? []).includes(PERM_WRITE),
@@ -400,6 +473,7 @@ export class ProjectsList {
   protected readonly people = signal<(typeof PEOPLE_FILTERS)[number]>('');
   protected readonly kind = signal<ProjectKind | ''>('');
   protected readonly overdue = signal(false);
+  protected readonly focus = signal<FocusFilter>('');
   protected readonly sort = signal<ProjectSort>('-updated_at');
   protected readonly view = signal<ListView>('list');
   protected readonly offset = signal(0);
@@ -407,53 +481,167 @@ export class ProjectsList {
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
   protected readonly rows = signal<readonly Project[]>([]);
   protected readonly total = signal(0);
-  protected readonly timelineRows = computed(() => projectRows(this.rows()));
+  protected readonly overview = signal<ProjectOverview | null>(null);
+  /** The rows shown: all of the page, or only the at-risk ones for that shortcut. */
+  protected readonly visibleRows = computed(() =>
+    this.focus() === 'at_risk' ? this.rows().filter(isAtRisk) : this.rows(),
+  );
+  protected readonly timelineRows = computed(() => projectRows(this.visibleRows()));
 
   protected readonly isFiltered = computed(
     () =>
-      !!this.q() || this.status() !== 'open' || !!this.people() || !!this.kind() || this.overdue(),
+      !!this.q() ||
+      (this.status() !== 'open' && this.status() !== 'all') ||
+      !!this.people() ||
+      !!this.kind() ||
+      this.overdue() ||
+      !!this.focus(),
   );
+  protected readonly moreActive = computed(() => (this.overdue() ? 1 : 0));
   /** The teaching empty state: the register itself is empty (not just this filter). */
-  protected readonly showEmpty = computed(
-    () => this.state() === 'ready' && this.total() === 0 && !this.isFiltered(),
+  protected readonly showEmpty = computed(() => {
+    const o = this.overview();
+    return (
+      this.state() === 'ready' &&
+      this.total() === 0 &&
+      !this.isFiltered() &&
+      (o === null || o.total === 0)
+    );
+  });
+  /** Closed projects exist but the status filter hides them. */
+  protected readonly hiddenClosed = computed(
+    () => this.status() === 'open' && (this.overview()?.closed ?? 0) > 0,
   );
+  protected readonly showPager = computed(
+    () => this.focus() !== 'at_risk' && this.total() > PAGE_SIZE,
+  );
+
+  /** "Viser 3 av 4 prosjekter (1 avsluttet er skjult)". */
+  protected readonly countLine = computed(() => {
+    const shown = this.focus() === 'at_risk' ? this.visibleRows().length : this.total();
+    const all = this.overview()?.total ?? null;
+    const t = (key: string, params: Record<string, unknown>) =>
+      this.language.translate(key, params);
+    const base =
+      all !== null && all !== shown
+        ? t('projects.list.countOf', { shown, total: all })
+        : t('projects.list.count', { count: shown });
+    return this.hiddenClosed()
+      ? `${base} ${t('projects.list.closedHidden', { count: this.overview()?.closed ?? 0 })}`
+      : base;
+  });
+
+  protected readonly kpis = computed(() => {
+    const o = this.overview();
+    if (!o) {
+      return [];
+    }
+    const f = this.focus();
+    const tiles: {
+      key: string;
+      value: number;
+      tone: KpiTone;
+      clickable: boolean;
+      active: boolean;
+      hintKey: string | null;
+      hint: number;
+    }[] = [
+      {
+        key: 'active',
+        value: o.active,
+        tone: 'accent',
+        clickable: true,
+        active: this.status() === 'active' && !f && !this.overdue(),
+        hintKey: o.open > o.active ? 'projects.kpis.openHint' : null,
+        hint: o.open,
+      },
+      {
+        key: 'at_risk',
+        value: o.at_risk,
+        tone: o.at_risk > 0 ? 'warn' : 'neutral',
+        clickable: o.at_risk > 0,
+        active: f === 'at_risk',
+        hintKey: null,
+        hint: 0,
+      },
+      {
+        key: 'reviews_pending',
+        value: o.reviews_pending,
+        tone: o.reviews_pending > 0 ? 'info' : 'neutral',
+        clickable: false,
+        active: false,
+        hintKey: o.milestones_overdue > 0 ? 'projects.kpis.milestonesOverdue' : null,
+        hint: o.milestones_overdue,
+      },
+      {
+        key: 'overdue',
+        value: o.overdue,
+        tone: o.overdue > 0 ? 'warn' : 'neutral',
+        clickable: o.overdue > 0,
+        active: this.overdue() && !f,
+        hintKey: null,
+        hint: 0,
+      },
+    ];
+    return tiles;
+  });
 
   protected readonly viewFilters = computed<Readonly<Record<string, string>>>(() => ({
     status: this.status(),
     people: this.people(),
     kind: this.kind(),
     overdue: this.overdue() ? '1' : '',
+    focus: this.focus(),
     sort: this.sort(),
     view: this.view(),
   }));
 
   private request = new Subscription();
+  private overviewRequest = new Subscription();
+  private readonly reloadTick = signal(0);
 
   constructor() {
-    inject(DestroyRef).onDestroy(() => this.request.unsubscribe());
+    inject(DestroyRef).onDestroy(() => {
+      this.request.unsubscribe();
+      this.overviewRequest.unsubscribe();
+    });
     providePageContext(() => ({
       module: 'projects',
       entityType: 'project',
       view: 'list',
-      title: this.language.translate('projects.list.title'),
+      title: this.language.translate('modules.names.projects'),
     }));
 
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();
+      this.reloadTick();
+      untracked(() => this.loadOverview(orgId));
+    });
+
+    effect(() => {
+      const orgId = this.selectedOrg.currentOrgId();
       const people = this.people();
+      const atRisk = this.focus() === 'at_risk';
+      this.reloadTick();
       const query: ProjectListQuery = {
         q: this.q() || undefined,
-        status: statusesForFilter(this.status()),
+        status: atRisk ? OPEN_PROJECT_STATUSES : statusesForFilter(this.status()),
         owner: people === 'owner' ? 'me' : undefined,
         member: people === 'member' ? 'me' : undefined,
         kind: this.kind() || undefined,
         overdue: this.overdue() ? true : undefined,
         sort: this.sort(),
-        limit: PAGE_SIZE,
-        offset: this.offset(),
+        limit: atRisk ? AT_RISK_LIMIT : PAGE_SIZE,
+        offset: atRisk ? 0 : this.offset(),
       };
       untracked(() => this.load(orgId, query));
     });
+  }
+
+  protected subtitle(p: Project): string {
+    const kind = this.language.translate(`projects.kinds.${p.kind}`);
+    const members = this.language.translate('projects.list.members', { count: p.member_count });
+    return `${kind} · ${members}`;
   }
 
   protected statusFilterKey(filter: string): string {
@@ -466,6 +654,39 @@ export class ProjectsList {
     return sort.startsWith('-') ? `${sort.slice(1)}Desc` : sort;
   }
 
+  protected reload(): void {
+    this.reloadTick.update((v) => v + 1);
+  }
+
+  protected focusKpi(key: string): void {
+    this.offset.set(0);
+    if (key === 'active') {
+      const on = this.status() === 'active' && !this.focus() && !this.overdue();
+      this.focus.set('');
+      this.overdue.set(false);
+      this.status.set(on ? 'open' : 'active');
+    } else if (key === 'at_risk') {
+      this.focus.set(this.focus() === 'at_risk' ? '' : 'at_risk');
+      this.overdue.set(false);
+      this.status.set('open');
+    } else if (key === 'overdue') {
+      const on = this.overdue() && !this.focus();
+      this.focus.set('');
+      this.status.set('open');
+      this.overdue.set(!on);
+    }
+  }
+
+  protected resetFilters(): void {
+    this.offset.set(0);
+    this.q.set('');
+    this.status.set('all');
+    this.people.set('');
+    this.kind.set('');
+    this.overdue.set(false);
+    this.focus.set('');
+  }
+
   protected setQuery(value: string): void {
     this.offset.set(0);
     this.q.set(value.trim());
@@ -473,6 +694,7 @@ export class ProjectsList {
 
   protected setStatus(value: string): void {
     this.offset.set(0);
+    this.focus.set('');
     this.status.set(isOneOf(STATUS_FILTERS, value) ? value : 'open');
   }
 
@@ -507,12 +729,25 @@ export class ProjectsList {
     this.setPeople(f['people'] ?? '');
     this.setKind(f['kind'] ?? '');
     this.setOverdue(f['overdue'] === '1');
+    this.focus.set(isOneOf(FOCUS_FILTERS, f['focus']) ? f['focus'] : '');
     this.setSort(f['sort'] ?? '-updated_at');
     this.setView(f['view'] ?? 'list');
   }
 
   protected newProject(): void {
     void this.router.navigate(['/projects/new']);
+  }
+
+  private loadOverview(orgId: string | null): void {
+    this.overviewRequest.unsubscribe();
+    if (!orgId) {
+      return;
+    }
+    this.overviewRequest = this.api.overview(orgId).subscribe({
+      next: (o) => this.overview.set(o),
+      // Older servers have no overview: the list still works without the strip.
+      error: () => this.overview.set(null),
+    });
   }
 
   private load(orgId: string | null, query: ProjectListQuery): void {

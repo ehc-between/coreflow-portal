@@ -2,21 +2,24 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  computed,
   effect,
   inject,
   input,
   signal,
   untracked,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../core/ai/page-context';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
-import { GuideIntro } from '../../shared/guidance/guide-intro';
 import { Alert } from '../../shared/ui/alert/alert';
-import { Icon } from '../../shared/ui/icon/icon';
+import { ErrorState } from '../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
+import { LoadingState } from '../../shared/ui/loading-state/loading-state';
+import { Breadcrumb, PageHeader } from '../../shared/ui/page-header/page-header';
 import { ProjectDetail, isClosedStatus } from './data/project.models';
 import { projectErrorKey } from './data/project-errors';
 import { ProjectFormValue, formFromProject, toUpdateRequest } from './data/project-form-model';
@@ -26,34 +29,31 @@ import { ProjectForm, ProjectFormSubmit } from './project-form';
 /** Edit a project's fields (`/projects/:id/edit`). The team is managed on the detail page. */
 @Component({
   selector: 'app-project-edit',
-  imports: [RouterLink, TranslocoPipe, GuideIntro, Alert, Icon, ProjectForm],
+  imports: [TranslocoPipe, Alert, ErrorState, HelpStrip, LoadingState, PageHeader, ProjectForm],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[960px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
-      <a
-        [routerLink]="['/projects', id()]"
-        class="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
-      >
-        <app-icon name="back" [size]="16" />
-        {{ 'projects.common.backToProject' | transloco }}
-      </a>
+    <div class="mx-auto max-w-[760px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+      <app-page-header
+        titleKey="projects.form.editTitle"
+        [titleParams]="{ code: project()?.code ?? '' }"
+        [breadcrumbs]="crumbs()"
+        [backLink]="['/projects', id()]"
+        backLabelKey="projects.common.backToProject"
+      />
       @switch (state()) {
         @case ('loading') {
-          <p class="py-10 text-center text-[14px] text-fg-muted" role="status">
-            {{ 'projects.common.loading' | transloco }}
-          </p>
+          <app-loading-state [rows]="6" />
         }
         @case ('error') {
-          <app-alert tone="error">{{ errorKey() | transloco }}</app-alert>
+          @if (errorKey() === 'projects.errors.notFound') {
+            <app-alert tone="error">{{ errorKey() | transloco }}</app-alert>
+          } @else {
+            <app-error-state (retry)="reload()" />
+          }
         }
         @default {
           @if (project(); as p) {
-            <h1
-              class="mb-4 font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]"
-            >
-              {{ 'projects.form.editTitle' | transloco: { code: p.code } }}
-            </h1>
-            <div class="mb-5"><app-guide-intro scope="projects" page="form" /></div>
+            <app-help-strip scope="projects" page="form" lesson="project-basics" />
             @if (closed(p)) {
               <app-alert tone="info" data-testid="edit-closed">{{
                 'projects.form.closedReadOnly' | transloco
@@ -92,17 +92,29 @@ export class ProjectEdit {
   protected readonly seed = signal<ProjectFormValue | null>(null);
   protected readonly saving = signal(false);
 
+  protected readonly crumbs = computed<readonly Breadcrumb[]>(() => {
+    const p = this.project();
+    return [
+      { labelKey: 'modules.names.projects', link: '/projects' },
+      ...(p ? [{ label: `${p.code} ${p.title}`, link: ['/projects', p.id] }] : []),
+      { labelKey: 'projects.form.editCrumb' },
+    ];
+  });
+
   private request = new Subscription();
 
   constructor() {
     inject(DestroyRef).onDestroy(() => this.request.unsubscribe());
-    providePageContext(() => ({
-      module: 'projects',
-      entityType: 'project',
-      entityId: this.id(),
-      view: 'edit',
-      title: this.project()?.title ?? null,
-    }));
+    providePageContext(() => {
+      const p = this.project();
+      return {
+        module: 'projects',
+        entityType: 'project',
+        entityId: this.id(),
+        view: 'edit',
+        title: p ? `${p.code} ${p.title}` : null,
+      };
+    });
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();
       const id = this.id();
@@ -112,6 +124,10 @@ export class ProjectEdit {
 
   protected closed(p: ProjectDetail): boolean {
     return isClosedStatus(p.status);
+  }
+
+  protected reload(): void {
+    this.load(this.selectedOrg.currentOrgId(), this.id());
   }
 
   protected save(event: ProjectFormSubmit): void {

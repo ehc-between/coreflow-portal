@@ -48,7 +48,7 @@ export type MilestoneKind = (typeof MILESTONE_KINDS)[number];
 export const MILESTONE_STATUSES = ['planned', 'in_progress', 'done', 'cancelled'] as const;
 export type MilestoneStatus = (typeof MILESTONE_STATUSES)[number];
 
-export const REVIEW_KINDS = ['review', 'verification', 'validation'] as const;
+export const REVIEW_KINDS = ['review', 'verification', 'validation', 'change'] as const;
 export type ReviewKind = (typeof REVIEW_KINDS)[number];
 
 export const REVIEW_OUTCOMES = ['pending', 'passed', 'passed_with_actions', 'failed'] as const;
@@ -69,12 +69,46 @@ export const PROJECT_SORTS = [
 ] as const;
 export type ProjectSort = (typeof PROJECT_SORTS)[number];
 
+export const OBJECTIVE_MET = ['yes', 'partial', 'no'] as const;
+export type ObjectiveMet = (typeof OBJECTIVE_MET)[number];
+
+/** What `progress.percent` is based on. */
+export type PercentBasis = 'completed' | 'milestones' | 'tasks' | 'none';
+
+/** Link types a new project may be linked to records with (`ProjectCreate.related`). */
+export type RelatedLinkType =
+  | 'relates_to'
+  | 'implements'
+  | 'derived_from'
+  | 'evidence_for'
+  | 'mitigates';
+
+export const SECURITY_CHECKS = [
+  'risk_assessment',
+  'dpia',
+  'supplier_security',
+  'security_test',
+] as const;
+export type SecurityCheckKey = (typeof SECURITY_CHECKS)[number];
+
 export const RISK_LEVELS = ['low', 'medium', 'high'] as const;
 export type RiskLevel = (typeof RISK_LEVELS)[number];
 
 export interface UserRef {
   readonly id: string;
   readonly name: string;
+}
+
+/** A linked record (kit `EntityRefDto` shape). */
+export interface EntityRef {
+  readonly entity_type: string;
+  readonly entity_id: string;
+  readonly title: string;
+  readonly code?: string | null;
+  readonly url?: string | null;
+  readonly status?: string | null;
+  readonly module?: string | null;
+  readonly label_key?: string | null;
 }
 
 // --- projects --------------------------------------------------------------------------
@@ -100,8 +134,18 @@ export interface Project {
   readonly closed_at: string | null;
   readonly closed_by: UserRef | null;
   readonly closeout_summary: string | null;
+  /** ISO 9001 6.3 b/c: possible consequences of the change, and the resources it needs. */
+  readonly change_consequences?: string | null;
+  readonly change_resources?: string | null;
+  /** Close-out: was the objective met, the evidence, and who approved it. */
+  readonly objective_met?: ObjectiveMet | null;
+  readonly objective_evidence?: string | null;
+  readonly closeout_approved_by?: UserRef | null;
+  readonly closeout_approved_at?: string | null;
   readonly is_overdue: boolean;
   readonly member_count: number;
+  /** Same rule as `progress.percent`. */
+  readonly progress_percent?: number;
   readonly created_by: string | null;
   readonly created_at: string;
   readonly updated_at: string;
@@ -123,7 +167,34 @@ export interface ProjectProgress {
   readonly tasks_overdue: number;
   readonly design_reviews_total: number;
   readonly design_reviews_pending: number;
+  /** Tasks raised from design-review findings. */
+  readonly review_actions_total?: number;
+  readonly review_actions_open?: number;
   readonly percent: number;
+  readonly percent_basis?: PercentBasis;
+}
+
+/** Portfolio summary (`GET projects/overview`). */
+export interface ProjectOverview {
+  readonly total: number;
+  readonly open: number;
+  readonly closed: number;
+  readonly active: number;
+  readonly at_risk: number;
+  readonly overdue: number;
+  readonly reviews_pending: number;
+  readonly milestones_overdue: number;
+  readonly by_status: Readonly<Record<string, number>>;
+  readonly by_health: Readonly<Record<string, number>>;
+  readonly by_kind: Readonly<Record<string, number>>;
+}
+
+/** One ISO/IEC 27001 A.5.8 check of a security-relevant project. */
+export interface SecurityCheck {
+  readonly key: SecurityCheckKey;
+  readonly done: boolean;
+  readonly count: number;
+  readonly items: readonly EntityRef[];
 }
 
 export interface ProjectMember {
@@ -137,6 +208,12 @@ export interface ProjectMember {
 export interface ProjectDetail extends Project {
   readonly members: readonly ProjectMember[];
   readonly progress: ProjectProgress;
+  /** What blocks closing as completed (all zero = it can be completed). */
+  readonly open_items?: OpenItemsDetail;
+  /** Only for security-relevant projects. */
+  readonly security_checklist?: readonly SecurityCheck[];
+  /** Documents linked as design outputs (`derived_from`, ISO 9001 8.3.5). */
+  readonly design_outputs?: readonly EntityRef[];
   readonly can_edit: boolean;
   readonly can_contribute: boolean;
   readonly can_manage: boolean;
@@ -178,10 +255,20 @@ export interface ProjectCreate {
   readonly due_date?: string | null;
   readonly security_relevant?: boolean;
   readonly security_requirements?: string | null;
+  readonly change_consequences?: string | null;
+  readonly change_resources?: string | null;
   readonly members?: readonly MemberIn[];
+  /** Records the new project is linked to (affected processes, documents, objectives). */
+  readonly related?: readonly RelatedIn[];
 }
 
-export type ProjectUpdate = Partial<Omit<ProjectCreate, 'members'>> & {
+export interface RelatedIn {
+  readonly entity_type: string;
+  readonly entity_id: string;
+  readonly link_type?: RelatedLinkType;
+}
+
+export type ProjectUpdate = Partial<Omit<ProjectCreate, 'members' | 'related'>> & {
   readonly change_reason?: string | null;
 };
 
@@ -198,6 +285,9 @@ export interface ProjectCloseBody {
   readonly outcome: CloseOutcome;
   readonly closeout_summary?: string | null;
   readonly lessons?: readonly LessonIn[];
+  readonly objective_met?: ObjectiveMet | null;
+  readonly objective_evidence?: string | null;
+  readonly approver_user_id?: string | null;
 }
 
 export interface ProjectReopenBody {
@@ -254,9 +344,16 @@ export interface DesignReview {
   readonly participants: readonly UserRef[];
   readonly inputs: string | null;
   readonly findings: string | null;
+  /** Controlled documents reviewed, pinned to the revision that was reviewed. */
+  readonly input_documents?: readonly InputDocument[];
   readonly outcome: ReviewOutcome;
   readonly decided_by: UserRef | null;
   readonly decided_at: string | null;
+  /** The phase the review belongs to (derived from its milestone). */
+  readonly phase?: { readonly id: string; readonly title: string } | null;
+  readonly milestone_title?: string | null;
+  /** Follow-up tasks raised from the findings (review actions). */
+  readonly actions?: { readonly total: number; readonly open: number; readonly overdue: number };
   readonly created_by: string | null;
   readonly created_at: string;
   readonly updated_at: string;
@@ -273,7 +370,24 @@ export interface DesignReviewCreate {
   readonly participant_ids?: readonly string[];
   readonly inputs?: string | null;
   readonly findings?: string | null;
+  readonly input_documents?: readonly InputDocumentIn[];
   readonly outcome?: ReviewOutcome;
+}
+
+export interface InputDocumentIn {
+  readonly document_id: string;
+  /** Omitted = the document's current approved revision. */
+  readonly revision?: string | null;
+}
+
+export interface InputDocument {
+  readonly document_id: string;
+  readonly revision: string | null;
+  /** Null when the caller cannot read the document. */
+  readonly document: EntityRef | null;
+  readonly current_revision: string | null;
+  /** A newer approved revision exists than the one reviewed. */
+  readonly outdated: boolean;
 }
 
 export type DesignReviewUpdate = Partial<DesignReviewCreate> & {
@@ -289,6 +403,8 @@ export interface Lesson {
   readonly title: string;
   readonly description: string | null;
   readonly recommendation: string | null;
+  /** The records the lesson became (improvement task, risk, …). */
+  readonly follow_ups?: readonly EntityRef[];
   readonly created_by: UserRef | null;
   readonly created_at: string;
   readonly updated_at: string;
@@ -352,6 +468,8 @@ export interface OpenItemsDetail {
   readonly open_milestones: number;
   readonly pending_design_reviews: number;
   readonly open_tasks: number;
+  /** Open tasks from design-review findings (included in `open_tasks`). */
+  readonly open_review_actions?: number;
 }
 
 export function isClosedStatus(status: string | null | undefined): boolean {

@@ -10,26 +10,43 @@ import {
   untracked,
 } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { Subscription } from 'rxjs';
+import { Subscription, switchMap } from 'rxjs';
+import { LanguageService } from '../../core/i18n/language.service';
+import { CreateFlowService } from '../../core/kit/create-flow.service';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
+import { TasksApi } from '../../core/tasks/tasks-api';
 import { FieldHelp } from '../../shared/guidance/field-help';
+import { EntityChip } from '../../shared/kit/entity-chip';
 import { LocalDatePipe } from '../../shared/locale/locale-pipes';
-import { Badge } from '../../shared/ui/badge/badge';
 import { Button } from '../../shared/ui/button/button';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog/confirm-dialog';
+import { ErrorState } from '../../shared/ui/error-state/error-state';
 import { FormField } from '../../shared/ui/form-field/form-field';
 import { Icon } from '../../shared/ui/icon/icon';
+import { LoadingState } from '../../shared/ui/loading-state/loading-state';
+import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
 import {
+  EntityRef,
   LESSON_CATEGORIES,
   Lesson,
   LessonCategory,
   LessonIn,
   isOneOf,
 } from './data/project.models';
-import { lessonCategoryTone } from './data/project-display';
+import { lessonCategoryBadge } from './data/project-display';
 import { projectErrorKey } from './data/project-errors';
 import { ProjectsApi } from './data/projects-api';
+import { ProjectRecordPicker } from './record-picker';
+
+/** Record types a lesson can become (connect existing work). */
+export const FOLLOW_UP_TYPES: readonly string[] = [
+  'task',
+  'risk',
+  'opportunity',
+  'deviation',
+  'document',
+];
 
 export interface LessonDraft {
   readonly category: LessonCategory;
@@ -136,6 +153,9 @@ export class LessonEditor {
 /**
  * Lessons learned: what went well, what to improve, risks to remember. Recorded
  * while the project runs, at close-out or afterwards (also on a closed project).
+ * A lesson leads somewhere (ISO 9001 10.3): it can become an improvement task,
+ * a risk in the register, or be connected to existing work; those follow-ups are
+ * shown on the lesson, and closed projects' lessons feed the management review.
  */
 @Component({
   selector: 'app-project-lessons',
@@ -143,18 +163,25 @@ export class LessonEditor {
     TranslocoPipe,
     LocalDatePipe,
     FieldHelp,
-    Badge,
+    EntityChip,
+    StatusBadge,
     Button,
     ConfirmDialog,
+    ErrorState,
     Icon,
+    LoadingState,
     LessonEditor,
+    ProjectRecordPicker,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-      <h2 class="font-display text-[15px] font-bold text-fg">
-        {{ 'projects.lessons.title' | transloco }}
-      </h2>
+      <div class="flex flex-wrap items-center gap-1.5">
+        <h2 class="font-display text-card font-bold text-fg">
+          {{ 'projects.lessons.title' | transloco }}
+        </h2>
+        <app-field-help scope="projects" page="detail" field="lessons" />
+      </div>
       @if (canContribute() && !draft()) {
         <app-button size="sm" variant="secondary" (click)="openNew()" data-testid="add-lesson">
           <app-icon name="plus" [size]="14" />
@@ -162,7 +189,6 @@ export class LessonEditor {
         </app-button>
       }
     </div>
-    <app-field-help scope="projects" page="detail" field="lessons" />
 
     @if (draft(); as d) {
       <form
@@ -176,7 +202,7 @@ export class LessonEditor {
           (valueChange)="draft.set($event)"
         />
         <div class="mt-3 flex justify-end gap-2">
-          <app-button variant="ghost" size="sm" (click)="cancel()">
+          <app-button variant="secondary" size="sm" (click)="cancel()">
             {{ 'common.cancel' | transloco }}
           </app-button>
           <app-button
@@ -194,42 +220,43 @@ export class LessonEditor {
 
     @switch (state()) {
       @case ('loading') {
-        <p class="py-4 text-[13px] text-fg-muted" role="status">
-          {{ 'projects.common.loading' | transloco }}
-        </p>
+        <app-loading-state [rows]="2" />
       }
       @case ('error') {
-        <p class="py-4 text-[13px] text-fail" role="alert">
-          {{ 'projects.common.loadFailed' | transloco }}
-        </p>
+        <app-error-state (retry)="reload()" />
       }
       @default {
         @if (items().length === 0) {
-          <p class="py-4 text-[13px] text-fg-muted" data-testid="lessons-empty">
+          <p class="py-4 text-ui text-fg-muted" data-testid="lessons-empty">
             {{ 'projects.lessons.empty' | transloco }}
           </p>
         } @else {
           <ul class="mt-2 flex flex-col gap-2" data-testid="lessons">
             @for (l of items(); track l.id) {
-              <li class="rounded-tile border border-border p-3">
+              <li
+                class="rounded-tile border border-border p-3"
+                [attr.data-testid]="'lesson-' + l.id"
+              >
                 <div class="flex flex-wrap items-start gap-2">
-                  <app-badge [tone]="tone(l.category)">{{
-                    'projects.lessonCategories.' + l.category | transloco
-                  }}</app-badge>
-                  <p class="min-w-0 flex-1 text-[13.5px] font-semibold break-words text-fg">
+                  <app-status-badge
+                    [meaning]="badge(l.category).meaning"
+                    [value]="badge(l.category).value"
+                    [labelKey]="badge(l.category).labelKey"
+                  />
+                  <p class="min-w-0 flex-1 text-body font-semibold break-words text-fg">
                     {{ l.title }}
                   </p>
                   @if (canContribute()) {
                     <button
                       type="button"
-                      class="rounded-[8px] px-2 py-1 text-[12px] font-semibold text-accent hover:bg-accent-soft"
+                      class="min-h-7 rounded-tile px-2 py-1 text-meta font-semibold text-accent hover:bg-accent-soft"
                       (click)="openEdit(l)"
                     >
                       {{ 'projects.common.edit' | transloco }}
                     </button>
                     <button
                       type="button"
-                      class="rounded-[8px] p-1.5 text-fg-subtle hover:bg-surface-2 hover:text-fg"
+                      class="inline-flex h-7 w-7 items-center justify-center rounded-tile text-fg-subtle hover:bg-surface-2 hover:text-fg"
                       [attr.aria-label]="
                         'projects.lessons.deleteNamed' | transloco: { title: l.title }
                       "
@@ -240,19 +267,95 @@ export class LessonEditor {
                   }
                 </div>
                 @if (l.description) {
-                  <p class="mt-1.5 text-[13px] whitespace-pre-line text-fg-muted">
+                  <p class="mt-1.5 text-ui whitespace-pre-line text-fg-muted">
                     {{ l.description }}
                   </p>
                 }
                 @if (l.recommendation) {
-                  <p class="mt-1.5 text-[13px] whitespace-pre-line text-fg">
+                  <p class="mt-1.5 text-ui whitespace-pre-line text-fg">
                     <span class="font-semibold"
                       >{{ 'projects.lessons.recommendation' | transloco }}:</span
                     >
                     {{ l.recommendation }}
                   </p>
                 }
-                <p class="mt-1.5 text-[11.5px] text-fg-subtle">
+
+                <div class="mt-2 flex flex-wrap items-center gap-1.5">
+                  <span class="text-meta font-semibold text-fg-muted">{{
+                    'projects.lessons.followUps' | transloco
+                  }}</span>
+                  @for (f of l.follow_ups ?? []; track f.entity_type + f.entity_id) {
+                    <span
+                      class="inline-flex max-w-full items-center gap-1 rounded-full border border-border py-0.5 pr-1 pl-2"
+                    >
+                      <app-entity-chip [ref]="f" />
+                      @if (canFollowUp()) {
+                        <button
+                          type="button"
+                          class="inline-flex h-6 w-6 items-center justify-center rounded-full text-fg-subtle hover:bg-surface-2 hover:text-fg"
+                          [attr.aria-label]="
+                            'projects.lessons.removeFollowUp'
+                              | transloco: { name: f.code || f.title }
+                          "
+                          (click)="removeFollowUp(l, f)"
+                        >
+                          <app-icon name="x" [size]="12" />
+                        </button>
+                      }
+                    </span>
+                  } @empty {
+                    <span class="text-meta text-fg-subtle" data-testid="lesson-no-follow-up">{{
+                      'projects.lessons.noFollowUp' | transloco
+                    }}</span>
+                  }
+                </div>
+                @if (canFollowUp()) {
+                  <div class="mt-2 flex flex-wrap gap-1.5">
+                    <button
+                      type="button"
+                      class="inline-flex min-h-7 items-center gap-1 rounded-tile px-2 py-1 text-meta font-semibold text-accent hover:bg-accent-soft disabled:opacity-50"
+                      [disabled]="busy()"
+                      (click)="toTask(l)"
+                      [attr.data-testid]="'lesson-to-task-' + l.id"
+                    >
+                      <app-icon name="plus" [size]="13" />
+                      {{ 'projects.lessons.toTask' | transloco }}
+                    </button>
+                    <button
+                      type="button"
+                      class="inline-flex min-h-7 items-center gap-1 rounded-tile px-2 py-1 text-meta font-semibold text-accent hover:bg-accent-soft disabled:opacity-50"
+                      [disabled]="flows.starting() !== null"
+                      (click)="toRisk(l)"
+                      [attr.data-testid]="'lesson-to-risk-' + l.id"
+                    >
+                      <app-icon name="risk" [size]="13" />
+                      {{ 'projects.lessons.toRisk' | transloco }}
+                    </button>
+                    <button
+                      type="button"
+                      class="inline-flex min-h-7 items-center gap-1 rounded-tile px-2 py-1 text-meta font-semibold text-accent hover:bg-accent-soft"
+                      [attr.aria-expanded]="connecting() === l.id"
+                      (click)="connecting.set(connecting() === l.id ? null : l.id)"
+                      [attr.data-testid]="'lesson-connect-' + l.id"
+                    >
+                      <app-icon name="link" [size]="13" />
+                      {{ 'projects.lessons.connect' | transloco }}
+                    </button>
+                  </div>
+                  @if (connecting() === l.id) {
+                    <div class="mt-2">
+                      <app-project-record-picker
+                        [types]="followUpTypes"
+                        [picked]="l.follow_ups ?? []"
+                        [label]="'projects.lessons.connect' | transloco"
+                        [placeholder]="'projects.lessons.connectPlaceholder' | transloco"
+                        testId="lesson-picker"
+                        (selected)="addFollowUp(l, $event)"
+                      />
+                    </div>
+                  }
+                }
+                <p class="mt-1.5 text-meta text-fg-subtle">
                   {{
                     'projects.lessons.by'
                       | transloco
@@ -280,19 +383,27 @@ export class LessonEditor {
 })
 export class ProjectLessons {
   private readonly api = inject(ProjectsApi);
+  private readonly tasksApi = inject(TasksApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly notifications = inject(NotificationService);
+  private readonly language = inject(LanguageService);
+  protected readonly flows = inject(CreateFlowService);
 
   readonly projectId = input.required<string>();
   readonly canContribute = input(false);
+  /** Follow-ups (new task, risk, connect) are allowed on closed projects too. */
+  readonly canFollowUp = input(false);
   readonly refresh = input(0);
   readonly changed = output<void>();
 
+  protected readonly badge = lessonCategoryBadge;
+  protected readonly followUpTypes = FOLLOW_UP_TYPES;
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
   protected readonly items = signal<readonly Lesson[]>([]);
   protected readonly draft = signal<LessonDraft | null>(null);
   protected readonly editing = signal<Lesson | null>(null);
   protected readonly deleting = signal<Lesson | null>(null);
+  protected readonly connecting = signal<string | null>(null);
   protected readonly busy = signal(false);
 
   private request = new Subscription();
@@ -307,8 +418,8 @@ export class ProjectLessons {
     });
   }
 
-  protected tone(category: string) {
-    return lessonCategoryTone(category);
+  protected reload(): void {
+    this.load(this.selectedOrg.currentOrgId(), this.projectId());
   }
 
   protected openNew(): void {
@@ -331,6 +442,95 @@ export class ProjectLessons {
   protected cancel(): void {
     this.draft.set(null);
     this.editing.set(null);
+  }
+
+  /** An improvement task on the project, recorded as what the lesson became. */
+  protected toTask(l: Lesson): void {
+    const orgId = this.selectedOrg.currentOrgId();
+    if (!orgId || this.busy()) {
+      return;
+    }
+    this.busy.set(true);
+    const description = [l.recommendation, l.description].filter(Boolean).join('\n\n');
+    this.tasksApi
+      .create(orgId, {
+        title: this.language
+          .translate('projects.lessons.taskTitle', { title: l.title })
+          .slice(0, 255),
+        description: description || null,
+        entity_type: 'project',
+        entity_id: this.projectId(),
+      })
+      .pipe(
+        switchMap((task) =>
+          this.api.addLessonFollowUp(orgId, this.projectId(), l.id, {
+            entity_type: 'task',
+            entity_id: task.id,
+          }),
+        ),
+      )
+      .subscribe({
+        next: (lesson) => {
+          this.busy.set(false);
+          this.replace(lesson);
+          this.notifications.success('projects.notices.lessonTask');
+          this.changed.emit();
+        },
+        error: (error: unknown) => {
+          this.busy.set(false);
+          this.notifications.error(projectErrorKey(error));
+        },
+      });
+  }
+
+  /** Open the risk form prefilled from the lesson (linked back to the project on save). */
+  protected toRisk(l: Lesson): void {
+    const description = [l.description, l.recommendation].filter(Boolean).join('\n\n');
+    void this.flows.start('project.to_risk', 'project', this.projectId(), {
+      title: l.title,
+      ...(description ? { description } : {}),
+    });
+  }
+
+  protected addFollowUp(l: Lesson, ref: EntityRef): void {
+    const orgId = this.selectedOrg.currentOrgId();
+    if (!orgId || this.busy()) {
+      return;
+    }
+    this.busy.set(true);
+    this.api.addLessonFollowUp(orgId, this.projectId(), l.id, ref).subscribe({
+      next: (lesson) => {
+        this.busy.set(false);
+        this.connecting.set(null);
+        this.replace(lesson);
+        this.notifications.success('projects.notices.followUpAdded');
+        this.changed.emit();
+      },
+      error: (error: unknown) => {
+        this.busy.set(false);
+        this.notifications.error(projectErrorKey(error));
+      },
+    });
+  }
+
+  protected removeFollowUp(l: Lesson, ref: EntityRef): void {
+    const orgId = this.selectedOrg.currentOrgId();
+    if (!orgId || this.busy()) {
+      return;
+    }
+    this.busy.set(true);
+    this.api
+      .removeLessonFollowUp(orgId, this.projectId(), l.id, ref.entity_type, ref.entity_id)
+      .subscribe({
+        next: (lesson) => {
+          this.busy.set(false);
+          this.replace(lesson);
+        },
+        error: (error: unknown) => {
+          this.busy.set(false);
+          this.notifications.error(projectErrorKey(error));
+        },
+      });
   }
 
   protected save(): void {
@@ -382,6 +582,10 @@ export class ProjectLessons {
         this.notifications.error(projectErrorKey(error));
       },
     });
+  }
+
+  private replace(lesson: Lesson): void {
+    this.items.update((list) => list.map((i) => (i.id === lesson.id ? lesson : i)));
   }
 
   private load(orgId: string | null, id: string): void {

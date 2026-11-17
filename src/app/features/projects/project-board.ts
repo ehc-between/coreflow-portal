@@ -15,6 +15,7 @@ import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { EditableTaskStatus, TaskDetail, TaskStatus } from '../../core/tasks/task.models';
 import { TasksApi } from '../../core/tasks/tasks-api';
 import { LocalDayPipe } from '../../shared/locale/locale-pipes';
+import { EmptyState } from '../../shared/ui/empty-state/empty-state';
 import { Icon } from '../../shared/ui/icon/icon';
 import { routerTarget } from './data/gantt';
 import { BOARD_COLUMNS } from './data/project-display';
@@ -39,13 +40,20 @@ export function boardColumns(
  */
 @Component({
   selector: 'app-project-board',
-  imports: [RouterLink, TranslocoPipe, LocalDayPipe, Icon],
+  imports: [RouterLink, TranslocoPipe, LocalDayPipe, EmptyState, Icon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (taskCount() === 0) {
-      <p class="py-6 text-center text-[13px] text-fg-muted" data-testid="board-empty">
-        {{ 'projects.board.empty' | transloco }}
-      </p>
+      <app-empty-state
+        icon="checkcircle"
+        [compact]="true"
+        titleKey="projects.board.emptyTitle"
+        bodyKey="projects.board.empty"
+        [ctaKey]="canMove() ? 'projects.board.newTask' : null"
+        ctaVariant="secondary"
+        (cta)="createTask.emit()"
+        data-testid="board-empty"
+      />
     } @else {
       <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4" data-testid="board">
         @for (col of columns(); track col.status) {
@@ -56,27 +64,27 @@ export function boardColumns(
           >
             <h3
               [id]="'cf-board-' + col.status"
-              class="flex items-center justify-between px-1 text-[12.5px] font-semibold text-fg-muted"
+              class="flex items-center justify-between px-1 text-ui font-semibold text-fg-muted"
             >
               {{ 'projects.board.columns.' + col.status | transloco }}
               <span class="text-fg-subtle">{{ col.tasks.length }}</span>
             </h3>
             @for (t of col.tasks; track t.id) {
               <article
-                class="flex flex-col gap-1.5 rounded-[10px] border border-border bg-surface p-2.5"
+                class="flex flex-col gap-1.5 rounded-tile border border-border bg-surface p-2.5"
               >
                 <a
                   [routerLink]="target(t).path"
                   [queryParams]="target(t).query"
-                  class="text-[13px] font-semibold break-words text-fg hover:underline"
+                  class="text-ui font-semibold break-words text-fg hover:underline"
                   >{{ t.title }}</a
                 >
-                <p class="flex flex-wrap items-center gap-x-2 text-[11.5px] text-fg-subtle">
+                <p class="flex flex-wrap items-center gap-x-2 text-meta text-fg-subtle">
                   @if (t.owner?.name; as name) {
                     <span>{{ name }}</span>
                   }
                   @if (t.end) {
-                    <span [class.text-fail]="t.is_overdue" [class.font-semibold]="t.is_overdue">
+                    <span [class.text-warn-ink]="t.is_overdue" [class.font-semibold]="t.is_overdue">
                       @if (t.is_overdue) {
                         <app-icon name="alert" [size]="11" />
                       }
@@ -93,7 +101,7 @@ export function boardColumns(
                   </label>
                   <select
                     [id]="'cf-move-' + t.id"
-                    class="h-8 rounded-[8px] border border-border bg-bg px-2 text-[12px] text-fg"
+                    class="h-8 rounded-tile border border-border bg-bg px-2 text-meta text-fg"
                     [disabled]="busyId() === t.id"
                     (change)="move(t, $any($event.target).value)"
                     [attr.data-testid]="'move-' + t.id"
@@ -122,6 +130,8 @@ export class ProjectBoard {
   readonly canMove = input(false);
   /** Emitted after a task changed status (the page reloads the plan). */
   readonly changed = output<void>();
+  /** "Ny oppgave" on the empty board. */
+  readonly createTask = output<void>();
 
   protected readonly statuses = BOARD_COLUMNS;
   protected readonly busyId = signal<string | null>(null);

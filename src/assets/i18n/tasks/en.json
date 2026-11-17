@@ -404,6 +404,7 @@
       "management_review": "Management review",
       "management_review_signoff": "Management review to sign off",
       "project_milestone": "Project milestone",
+      "project_design_review": "Project review",
       "training_due": "Training",
       "other": "Other"
     },

@@ -1,4 +1,5 @@
 import {
+  EntityRef,
   MemberIn,
   MemberRole,
   OpenProjectStatus,
@@ -8,6 +9,7 @@ import {
   ProjectKind,
   ProjectPriority,
   ProjectUpdate,
+  RelatedLinkType,
   isOpenProjectStatus,
 } from './project.models';
 
@@ -28,8 +30,26 @@ export interface ProjectFormValue {
   readonly due_date: string;
   readonly security_relevant: boolean;
   readonly security_requirements: string;
+  /** ISO 9001 6.3: possible consequences and risks of the change, and the resources it needs. */
+  readonly change_consequences: string;
+  readonly change_resources: string;
   /** Initial team (create only). */
   readonly members: readonly MemberIn[];
+  /** Records linked on create: affected processes and documents, objectives (create only). */
+  readonly related: readonly RelatedPick[];
+}
+
+/** A record picked on the form, linked to the new project with `link_type`. */
+export interface RelatedPick {
+  readonly ref: EntityRef;
+  readonly link_type: RelatedLinkType;
+  /** The form group it was picked in (`affected` / `objectives`). */
+  readonly group: 'affected' | 'objectives';
+}
+
+/** Change planning is shown by default for these kinds (they change how the organisation works). */
+export function plansChange(kind: ProjectKind): boolean {
+  return kind === 'improvement' || kind === 'implementation';
 }
 
 export function emptyProjectForm(patch: Partial<ProjectFormValue> = {}): ProjectFormValue {
@@ -48,7 +68,10 @@ export function emptyProjectForm(patch: Partial<ProjectFormValue> = {}): Project
     due_date: '',
     security_relevant: false,
     security_requirements: '',
+    change_consequences: '',
+    change_resources: '',
     members: [],
+    related: [],
     ...patch,
   };
 }
@@ -69,6 +92,8 @@ export function formFromProject(p: ProjectDetail): ProjectFormValue {
     due_date: p.due_date ?? '',
     security_relevant: p.security_relevant,
     security_requirements: p.security_requirements ?? '',
+    change_consequences: p.change_consequences ?? '',
+    change_resources: p.change_resources ?? '',
   });
 }
 
@@ -119,7 +144,10 @@ export function toCreateRequest(v: ProjectFormValue): ProjectCreate {
     due_date: v.due_date || null,
     security_relevant: v.security_relevant,
     security_requirements: v.security_relevant ? text(v.security_requirements) : null,
+    change_consequences: text(v.change_consequences),
+    change_resources: text(v.change_resources),
     members: dedupeMembers(v.members, v.owner_user_id),
+    related: dedupeRelated(v.related),
   };
 }
 
@@ -146,6 +174,8 @@ export function toUpdateRequest(
     'due_date',
     'security_relevant',
     'security_requirements',
+    'change_consequences',
+    'change_resources',
   ] as const;
   for (const key of keys) {
     if (a[key] !== b[key]) {
@@ -160,6 +190,26 @@ export function toUpdateRequest(
     changes['change_reason'] = changeReason.trim();
   }
   return changes as ProjectUpdate;
+}
+
+/** One link per record and link type. */
+export function dedupeRelated(
+  picks: readonly RelatedPick[],
+): { entity_type: string; entity_id: string; link_type: RelatedLinkType }[] {
+  const seen = new Set<string>();
+  const out: { entity_type: string; entity_id: string; link_type: RelatedLinkType }[] = [];
+  for (const p of picks) {
+    const key = `${p.ref.entity_type}:${p.ref.entity_id}:${p.link_type}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      out.push({
+        entity_type: p.ref.entity_type,
+        entity_id: p.ref.entity_id,
+        link_type: p.link_type,
+      });
+    }
+  }
+  return out;
 }
 
 /** One entry per user, the owner left out (the backend makes the owner a manager). */

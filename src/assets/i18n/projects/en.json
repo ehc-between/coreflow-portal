@@ -14,7 +14,7 @@
   "list": {
     "title": "Projects",
     "subtitle": "Planned changes, improvements and design work, with their milestones, team, reviews and lessons learned.",
-    "searchPlaceholder": "Search projects by code or title",
+    "searchPlaceholder": "Search projects",
     "new": "New project",
     "noMatch": "No projects match these filters.",
     "owner": "Owner: {{ name }}",
@@ -27,7 +27,13 @@
       "timeline": "Timeline"
     },
     "timelineLabel": "Project",
-    "timelineEmpty": "None of these projects has a start or due date yet, so there is nothing to draw."
+    "timelineEmpty": "None of these projects has a start or due date yet, so there is nothing to draw.",
+    "resetFilters": "Reset filters",
+    "noMatchClosedHidden": "Closed projects are hidden by the status filter. Reset the filters to see them all.",
+    "count": "{{ count }} projects",
+    "countOf": "Showing {{ shown }} of {{ total }} projects.",
+    "closedHidden": "Closed projects ({{ count }}) are hidden.",
+    "progressLabel": "Progress {{ percent }} %"
   },
   "filters": {
     "status": "Status",
@@ -85,7 +91,7 @@
   "roles": {
     "manager": "Manager",
     "member": "Member",
-    "reviewer": "Reviewer",
+    "reviewer": "Subject-matter reviewer",
     "stakeholder": "Stakeholder"
   },
   "milestoneStatus": {
@@ -97,7 +103,8 @@
   "reviewKinds": {
     "review": "Design review",
     "verification": "Verification",
-    "validation": "Validation"
+    "validation": "Validation",
+    "change": "Design change"
   },
   "outcomes": {
     "pending": "Pending",
@@ -125,7 +132,7 @@
     "kind": "Kind",
     "status": "Status",
     "priority": "Priority",
-    "health": "Health",
+    "health": "Project health (traffic light)",
     "owner": "Owner",
     "department": "Department",
     "startDate": "Start date",
@@ -134,7 +141,14 @@
     "securityRelevant": "Information security relevant",
     "securityRequirements": "Information security requirements",
     "closeoutSummary": "Close-out summary",
-    "closedAt": "Closed on"
+    "closedAt": "Closed on",
+    "healthHint": "The owner's view of how the project is going: green, amber or red.",
+    "securityShort": "Information security",
+    "changeConsequences": "Possible consequences and risks",
+    "changeResources": "Resources and budget",
+    "objectiveMet": "Was the objective met?",
+    "objectiveEvidence": "What shows the objective was met",
+    "closeoutApprovedBy": "Approved by"
   },
   "form": {
     "newTitle": "New project",
@@ -144,25 +158,36 @@
       "purpose": "Purpose",
       "plan": "Plan",
       "people": "People",
-      "security": "Information security"
+      "security": "Information security",
+      "change": "Change planning"
     },
     "ownerMe": "Me",
     "currentOwner": "Current owner",
     "noDepartment": "No department",
-    "noHealth": "Not assessed yet",
+    "noHealth": "Not rated yet",
     "team": "Team",
     "teamHint": "Add the people who will work on the project. You become a manager automatically as the owner, and you can change the team later.",
     "changeReason": "Reason for the change (optional)",
     "changeReasonHint": "Saved in the revision history so others can see why the project changed.",
     "readOnly": "You can view this project but not edit it. The owner, a team manager or a project administrator can.",
     "closedReadOnly": "This project is closed. Reopen it to make changes.",
-    "assistTitle": "Let the assistant draft it",
-    "assistBody": "Describe the project in a sentence or two and the assistant proposes the title, objective, scope and dates. Nothing is saved until you confirm.",
+    "assistTitle": "Not sure where to start?",
+    "assistBody": "Describe the project in a sentence or two and the assistant drafts a title, objective, scope and dates. Nothing is saved until you confirm.",
     "errors": {
       "titleRequired": "Give the project a title.",
       "invalidDate": "Use a valid date.",
-      "dueBeforeStart": "The due date cannot be before the start date."
-    }
+      "dueBeforeStart": "The due date cannot be before the start date.",
+      "summary": "Could not save. Fix the highlighted fields."
+    },
+    "editCrumb": "Edit",
+    "changeIntro": "When the project changes how the organisation works, plan the change: what could go wrong, what is needed, and what it affects.",
+    "showChange": "Add change planning",
+    "affected": "Affected processes and documents",
+    "affectedPlaceholder": "Search for a process or a document",
+    "objectives": "Contributes to objectives",
+    "objectivesPlaceholder": "Search for an objective or a KPI",
+    "relatedOnDetail": "Add affected processes, documents and objectives on the project page under Overview.",
+    "securityChecklistHint": "The project page gives you a checklist: risk assessment, DPIA, supplier security and security test."
   },
   "detail": {
     "purpose": "Purpose and scope",
@@ -172,25 +197,40 @@
     "dueToday": "Due today",
     "daysOverdue": "{{ count }} days overdue",
     "deleteTitle": "Delete this project?",
-    "deleteMessage": "{{ code }} is removed together with its milestones, design reviews and lessons, and its open tasks are cancelled. The audit trail is kept."
+    "deleteMessage": "{{ code }} is removed together with its milestones, design reviews and lessons, and its open tasks are cancelled. The audit trail is kept.",
+    "closeoutTitle": "Project result",
+    "approvedBy": "{{ name }}, {{ date }}"
   },
   "progress": {
     "title": "Progress",
     "percent": "{{ percent }} %",
     "milestones": "Milestones",
     "tasks": "Tasks",
-    "reviews": "Design reviews pending",
+    "reviews": "Reviews",
     "doneOf": "{{ done }} of {{ total }} done",
     "pendingOf": "{{ pending }} of {{ total }}",
     "overdueCount": "{{ count }} overdue",
-    "nextMilestone": "Next milestone: {{ title }}, due {{ date }}"
+    "nextMilestone": "Next milestone: {{ title }}, due {{ date }}",
+    "noMilestones": "No milestones yet",
+    "noTasks": "No tasks yet",
+    "noReviews": "No reviews yet",
+    "reviewsPending": "{{ total }} in total, {{ pending }} pending",
+    "reviewsNonePending": "{{ total }} in total, none pending",
+    "reviewActionsOpen": "{{ count }} open actions",
+    "basis": {
+      "milestones": "The percentage is the share of phases and milestones that are done (cancelled ones do not count).",
+      "tasks": "The project has no milestones, so the percentage is the share of tasks that are done.",
+      "completed": "The project was closed as completed.",
+      "none": "Nothing is planned yet. Add milestones or tasks to measure progress."
+    }
   },
   "plan": {
     "title": "Plan",
     "viewLabel": "Show the plan as",
     "views": {
-      "gantt": "Gantt chart",
-      "board": "Task board"
+      "gantt": "Gantt",
+      "board": "Board",
+      "list": "List"
     },
     "item": "Phase, milestone or task",
     "empty": "Nothing is scheduled yet. Add phases and milestones with dates, or tasks with due dates, to see the plan.",
@@ -207,11 +247,13 @@
       "span": "Phase or task",
       "milestone": "Milestone",
       "overdue": "Overdue",
-      "today": "Today"
+      "today": "Today",
+      "done": "Done",
+      "noHealth": "Not rated"
     }
   },
   "board": {
-    "empty": "No tasks yet. Add tasks on the Tasks tab or on a milestone.",
+    "empty": "Tasks on the project and its milestones show here, sorted by status.",
     "columns": {
       "open": "To do",
       "in_progress": "In progress",
@@ -221,7 +263,9 @@
     },
     "due": "Due {{ date }}",
     "moveLabel": "Status of {{ title }}",
-    "moveFailed": "The task could not be moved. Check that you may edit it and try again."
+    "moveFailed": "The task could not be moved. Check that you may edit it and try again.",
+    "emptyTitle": "No tasks yet",
+    "newTask": "New task"
   },
   "milestones": {
     "title": "Phases and milestones",
@@ -251,8 +295,8 @@
     "editTitle": "Review",
     "kind": "Type",
     "stage": "Stage",
-    "milestone": "Milestone",
-    "noMilestone": "Not tied to a milestone",
+    "milestone": "Phase or milestone",
+    "noMilestone": "Not tied to a phase or milestone",
     "plannedDate": "Planned date",
     "heldOnLabel": "Held on",
     "heldOn": "Held {{ date }}",
@@ -261,13 +305,29 @@
     "noParticipants": "No participants added yet.",
     "addParticipant": "Add a participant",
     "participantCount": "Participants: {{ count }}",
-    "inputs": "What was reviewed (inputs)",
+    "inputs": "Other input",
     "findings": "Findings and actions",
     "outcome": "Outcome",
     "needsDate": "Give the date the review was held before recording an outcome.",
-    "decidedBy": "Decided by {{ name }} on {{ date }}",
+    "decidedBy": "Decided by {{ name }}, {{ date }}",
     "deleteTitle": "Delete this review?",
-    "deleteMessage": "\"{{ title }}\" is removed. The audit trail is kept."
+    "deleteMessage": "\"{{ title }}\" is removed. The audit trail is kept.",
+    "phaseOption": "Phase: {{ title }}",
+    "inPhase": "phase {{ phase }}",
+    "phaseFromMilestone": "Belongs to the phase \"{{ phase }}\".",
+    "actionsOpen": "{{ open }} of {{ total }} actions open",
+    "actionsDone": "{{ total }} actions, all done",
+    "inputDocuments": "Documents reviewed",
+    "documentPlaceholder": "Search for a controlled document",
+    "documentHidden": "A document you cannot access",
+    "revision": "Revision {{ revision }}",
+    "revisionOnSave": "The current revision is pinned when you save",
+    "outdated": "Newer revision exists ({{ revision }})",
+    "decisionHint": "When you choose a result and save, you are recorded as the one who decided.",
+    "actionsTitle": "Actions from the review",
+    "actionsHint": "Turn each agreed action into a task. Open actions must be done before the project can be closed as completed.",
+    "toDeviation": "Register a deviation",
+    "attachments": "Attachments"
   },
   "lessons": {
     "title": "Lessons learned",
@@ -280,7 +340,15 @@
     "by": "{{ name }} · {{ date }}",
     "deleteNamed": "Delete the lesson {{ title }}",
     "deleteTitle": "Delete this lesson?",
-    "deleteMessage": "\"{{ title }}\" is removed."
+    "deleteMessage": "\"{{ title }}\" is removed.",
+    "followUps": "Followed up with:",
+    "noFollowUp": "Not followed up yet",
+    "removeFollowUp": "Remove the link to {{ name }}",
+    "toTask": "Create an improvement action",
+    "toRisk": "Register as a risk",
+    "connect": "Connect existing work",
+    "connectPlaceholder": "Search for a task, risk, deviation or document",
+    "taskTitle": "Improvement: {{ title }}"
   },
   "team": {
     "title": "Team",
@@ -312,7 +380,8 @@
     "checklist": {
       "milestones": "Open phases and milestones: {{ count }}",
       "reviews": "Pending design reviews: {{ count }}",
-      "tasks": "Open tasks: {{ count }}"
+      "tasks": "Open tasks: {{ count }}",
+      "reviewActions": "Open actions from reviews: {{ count }}"
     },
     "openItems": "The project still has open work: {{ milestones }} milestones, {{ reviews }} pending design reviews and {{ tasks }} open tasks. Finish or cancel them, or close the project as cancelled.",
     "summary": "Close-out summary",
@@ -323,8 +392,24 @@
     "removeLesson": "Remove this lesson",
     "submit": {
       "completed": "Close as completed",
-      "cancelled": "Close as cancelled"
-    }
+      "cancelled": "Close as cancelled",
+      "none": "Close the project"
+    },
+    "noObjective": "The project has no objective written down.",
+    "blocked": "The project cannot be closed as completed yet, because it still has open work:",
+    "showOpen": "Show open work",
+    "objectiveQuestion": "Was the objective met?",
+    "objectiveMet": {
+      "yes": "Yes",
+      "partial": "Partly",
+      "no": "No"
+    },
+    "evidencePlaceholder": "For example: measurements, test reports or feedback.",
+    "noApprover": "No approver chosen",
+    "approverHint": "The person who accepts the result, for example the sponsor or a manager. Optional.",
+    "chooseOutcome": "Choose how the project ended.",
+    "missingObjective": "Answer whether the objective was met.",
+    "missingSummary": "Write a close-out report."
   },
   "reopen": {
     "action": "Reopen",
@@ -348,7 +433,9 @@
     "taskAdded": "Task added",
     "taskTitle": "Assess risk: {{ title }}",
     "taskFailed": "The task could not be added.",
-    "risksNote": "Suggestions only. Register the real risks in the risk register and link them to the project on the Related tab."
+    "risksNote": "Suggestions only. \"Register in the risk register\" opens the risk form filled in, and the risk is linked to the project when you save.",
+    "menu": "AI help: status and risks",
+    "registerRisk": "Register in the risk register"
   },
   "ask": {
     "summarise": "Summarise this project: where it stands, what is late and what needs a decision.",
@@ -358,7 +445,11 @@
     "securityRequirements": "Which information security requirements should this project consider (ISO 27001 A.5.8)?",
     "findings": "Help me write clear findings and actions for this design review.",
     "draft": "Help me set up a new project. Ask me what it is about, then draft it for me to confirm.",
-    "draftLabel": "Draft a project with the assistant"
+    "draftLabel": "Draft with the assistant",
+    "label": "Ask about the project",
+    "consequences": "What consequences and risks should I consider for this change, and which processes could be affected?",
+    "review": "Summarise the review \"{{ title }}\": what was found, which actions came out of it, and have they been followed up?",
+    "reviewLabel": "Ask about the review"
   },
   "lessonsLink": "Lesson: {{ title }} ({{ minutes }} min)",
   "notices": {
@@ -381,7 +472,10 @@
     "reviewDeleted": "Review \"{{ title }}\" deleted.",
     "lessonSaved": "Lesson saved.",
     "lessonDeleted": "Lesson deleted.",
-    "taskAdded": "Task added to the project."
+    "taskAdded": "Task added to the project.",
+    "lessonTask": "The improvement action is created and linked to the lesson.",
+    "followUpAdded": "The lesson is linked.",
+    "linked": "Linked to {{ name }}."
   },
   "errors": {
     "forbidden": "You do not have permission to do that on this project.",
@@ -405,7 +499,13 @@
     "project_has_open_items": "The project still has open milestones, design reviews or tasks.",
     "project_not_closed": "The project is not closed.",
     "title_required": "A title is required.",
-    "user_not_member": "That person is not a member of this organisation."
+    "user_not_member": "That person is not a member of this organisation.",
+    "linkFailed": "Could not link the record. Check that you can access it and try again.",
+    "invalid_document": "The document does not exist, or you cannot access it.",
+    "invalid_revision": "That revision of the document does not exist.",
+    "invalid_objective_met": "Answer yes, partly or no to whether the objective was met.",
+    "invalid_project": "The project does not exist.",
+    "unsupported_entity_type": "This kind of record cannot be linked here."
   },
   "notifications": {
     "created": "New project for you: {{ code }} {{ title }}",
@@ -450,5 +550,57 @@
     "designReviewUpdated": "Design review updated",
     "designReviewDecided": "Design review decided",
     "designReviewDeleted": "Design review deleted"
+  },
+  "kpis": {
+    "active": "Active",
+    "at_risk": "At risk",
+    "reviews_pending": "Reviews pending",
+    "overdue": "Overdue",
+    "openHint": "{{ count }} open in total",
+    "milestonesOverdue": "{{ count }} milestones overdue"
+  },
+  "picker": {
+    "remove": "Remove {{ name }}",
+    "searching": "Searching …",
+    "noResults": "No matches. Try another word."
+  },
+  "sections": {
+    "label": "Parts of the project",
+    "overview": "Overview",
+    "plan": "Plan",
+    "reviews": "Reviews",
+    "lessons": "Lessons"
+  },
+  "security": {
+    "title": "Information security in the project",
+    "intro": "ISO 27001 requires information security to be part of the project. The checklist fills in as you connect the right records to the project.",
+    "done": "Done",
+    "todo": "To do",
+    "checks": {
+      "risk_assessment": "Risk assessment",
+      "dpia": "Data protection impact assessment (DPIA)",
+      "supplier_security": "Supplier security",
+      "security_test": "Security test before go-live"
+    },
+    "hints": {
+      "risk_assessment": "Link or create a risk for the project.",
+      "dpia": "Needed when the project processes personal data with high risk.",
+      "supplier_security": "Link the suppliers the project uses, with a supplier evaluation.",
+      "security_test": "Add a milestone or task for a security test."
+    },
+    "actions": {
+      "risk_assessment": "New risk",
+      "dpia": "New DPIA",
+      "supplier_security": "Link supplier",
+      "security_test": "New task"
+    }
+  },
+  "outputs": {
+    "title": "Design outputs",
+    "add": "New document",
+    "intro": "The documents the project delivers: specifications, drawings, user guides. They are controlled like other documents.",
+    "empty": "No design outputs linked yet.",
+    "changesHint": "Design changes are recorded as reviews of the type \"Design change\".",
+    "toReviews": "Go to reviews"
   }
 }

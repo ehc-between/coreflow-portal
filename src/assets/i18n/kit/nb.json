@@ -431,7 +431,20 @@
     "management_review": {
       "to_task": "Tiltak (oppgave)"
     },
-    "formMissing": "Dette skjemaet finnes ikke ennå. Opprett posten fra sin egen side og koble den fra fanen Relatert."
+    "formMissing": "Dette skjemaet finnes ikke ennå. Opprett posten fra sin egen side og koble den fra fanen Relatert.",
+    "project": {
+      "to_risk": "Risiko for prosjektet",
+      "to_opportunity": "Mulighet fra prosjektet",
+      "to_deviation": "Avvik i prosjektet",
+      "to_task": "Oppgave i prosjektet",
+      "to_document": "Designresultat (dokument)",
+      "to_dpia": "DPIA for prosjektet",
+      "to_change_request": "Endringsforespørsel"
+    },
+    "project_design_review": {
+      "to_task": "Tiltak fra gjennomgangen (oppgave)",
+      "to_deviation": "Avvik fra gjennomgangen"
+    }
   },
   "frameworks": {
     "iso9001": "ISO 9001",

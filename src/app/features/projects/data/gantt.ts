@@ -1,3 +1,4 @@
+import { Tone } from '../../../shared/ui/tones';
 import { PlanItem, PlanItemKind } from './project.models';
 
 /** One row of a Gantt chart (a plan item or a whole project on the portfolio view). */
@@ -15,6 +16,8 @@ export interface GanttRow {
   readonly overdue: boolean;
   /** Router URL (path plus optional `?query`). */
   readonly url: string;
+  /** Bar colour override (portfolio view: the project's health). */
+  readonly tone?: Tone | null;
 }
 
 export interface GanttBar {

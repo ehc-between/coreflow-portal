@@ -1,19 +1,22 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { canReopen } from '../project-detail';
-import { parseRiskPrompts } from '../project-ai-panel';
+import { canReopen, percentExplanation, purposeLinks } from '../project-detail';
+import { parseRiskPrompts, riskOverlay } from '../project-ai-panel';
 import { boardColumns } from '../project-board';
-import { canSubmitClose, closeBody } from '../project-closeout';
+import { canSubmitClose, closeBody, closeChecklist } from '../project-closeout';
 import { emptyLessonDraft } from '../project-lessons';
 import { groupMilestones, milestoneBody, emptyMilestoneDraft } from '../project-milestones';
 import { reviewBody, reviewNeedsDate, emptyReviewDraft } from '../project-reviews';
-import { projectRows, statusesForFilter } from '../projects-list';
+import { isAtRisk, projectRows, statusesForFilter } from '../projects-list';
 import { makeMilestone, makePlanItem, makeProject, makeProjectDetail } from '../projects.testing';
 import { dayNumber, ganttLayout, planRows, routerTarget } from './gantt';
+import { healthBadge, outcomeBadge, projectStatusBadge } from './project-display';
 import { openItemsOf, projectErrorKey } from './project-errors';
+import { levelOnScale } from './projects-api';
 import {
   dedupeMembers,
   emptyProjectForm,
   formFromProject,
+  plansChange,
   toCreateRequest,
   toUpdateRequest,
   validateProjectForm,
@@ -110,7 +113,12 @@ describe('project errors', () => {
           open_tasks: 0,
         }),
       ),
-    ).toEqual({ open_milestones: 2, pending_design_reviews: 1, open_tasks: 0 });
+    ).toEqual({
+      open_milestones: 2,
+      pending_design_reviews: 1,
+      open_tasks: 0,
+      open_review_actions: 0,
+    });
     expect(openItemsOf(coded(409, { code: 'project_closed' }))).toBeNull();
   });
 });
@@ -223,7 +231,11 @@ describe('milestones and reviews', () => {
     const draft = emptyReviewDraft({ title: 'R', outcome: 'passed', participant_ids: ['u-1'] });
     expect(reviewNeedsDate(draft)).toBe(true);
     expect(reviewNeedsDate({ ...draft, held_on: '2026-01-10' })).toBe(false);
-    expect(reviewBody(draft)).toMatchObject({ title: 'R', participant_ids: ['u-1'], stage: null });
+    expect(reviewBody(draft)).toMatchObject({
+      title: 'R',
+      participant_ids: ['u-1'],
+      input_documents: [],
+    });
   });
 });
 
@@ -276,5 +288,188 @@ describe('risk prompts', () => {
       },
     ]);
     expect(parseRiskPrompts(null)).toEqual([]);
+  });
+});
+
+describe('A16 polish helpers', () => {
+  it('places assistant ratings on the org matrix', () => {
+    expect(levelOnScale('low', [1, 2, 3, 4, 5])).toBe(1);
+    expect(levelOnScale('medium', [1, 2, 3, 4, 5])).toBe(3);
+    expect(levelOnScale('high', [1, 2, 3, 4, 5])).toBe(4);
+    expect(levelOnScale('high', [1, 2, 3])).toBe(3);
+    expect(levelOnScale('medium', [])).toBeNull();
+    expect(
+      riskOverlay(
+        {
+          title: 'Supplier late',
+          description: 'Delivery slips',
+          category: 'schedule',
+          likelihood: 'high',
+          impact: 'low',
+          mitigation: 'Weekly check-in',
+        },
+        { likelihood: [1, 2, 3, 4, 5], consequence: [1, 2, 3, 4, 5] },
+        'Tiltak',
+      ),
+    ).toEqual({
+      title: 'Supplier late',
+      description: 'Delivery slips\n\nTiltak: Weekly check-in',
+      treatment_notes: 'Weekly check-in',
+      inherent_likelihood: 4,
+      inherent_consequence: 1,
+    });
+    expect(
+      riskOverlay(
+        {
+          title: 'X',
+          description: '',
+          category: 'general',
+          likelihood: 'low',
+          impact: 'low',
+          mitigation: '',
+        },
+        null,
+        'Tiltak',
+      ),
+    ).toEqual({ title: 'X' });
+  });
+
+  it('lists what blocks a completed close-out, review actions separately', () => {
+    const p = makeProjectDetail({
+      open_items: {
+        open_milestones: 0,
+        pending_design_reviews: 1,
+        open_tasks: 3,
+        open_review_actions: 2,
+      },
+    });
+    expect(closeChecklist(p)).toEqual([
+      { key: 'milestones', open: 0 },
+      { key: 'reviews', open: 1 },
+      { key: 'reviewActions', open: 2 },
+      { key: 'tasks', open: 1 },
+    ]);
+  });
+
+  it('sends the objective check only when completing', () => {
+    const objective = { met: 'partial' as const, evidence: ' 0.6 % errors ', approverId: 'u-2' };
+    expect(closeBody('completed', 'Done', [], objective)).toEqual({
+      outcome: 'completed',
+      closeout_summary: 'Done',
+      lessons: [],
+      objective_met: 'partial',
+      objective_evidence: '0.6 % errors',
+      approver_user_id: 'u-2',
+    });
+    expect(closeBody('cancelled', '', [], objective)).toEqual({
+      outcome: 'cancelled',
+      closeout_summary: null,
+      lessons: [],
+      approver_user_id: 'u-2',
+    });
+    expect(canSubmitClose('completed', 'Done', null)).toBe(false);
+    expect(canSubmitClose(null, 'Done', 'yes')).toBe(false);
+  });
+
+  it('explains how the percentage is computed', () => {
+    const progress = makeProjectDetail().progress;
+    expect(percentExplanation({ ...progress, percent_basis: 'tasks' })).toBe(
+      'projects.progress.basis.tasks',
+    );
+    expect(percentExplanation(progress)).toBe('projects.progress.basis.milestones');
+  });
+
+  it('sorts linked records into affected work and objectives', () => {
+    const ref = (entity_type: string, entity_id: string) => ({
+      entity_type,
+      entity_id,
+      title: entity_id,
+      code: null,
+      url: null,
+      status: null,
+      module: null,
+      label_key: null,
+    });
+    const link = (entity_type: string, id: string, link_type = 'relates_to') => ({
+      id: `l-${id}`,
+      link_type,
+      direction: 'outgoing' as const,
+      other: ref(entity_type, id),
+      created_at: '2026-01-01T00:00:00',
+      created_by: null,
+    });
+    const out = purposeLinks([
+      link('process', 'pr-1'),
+      link('document', 'd-1'),
+      link('document', 'd-out', 'derived_from'),
+      link('objective', 'o-1', 'implements'),
+      link('risk', 'r-1'),
+      link('process', 'pr-1'),
+    ]);
+    expect(out.affected.map((r) => r.entity_id)).toEqual(['pr-1', 'd-1']);
+    expect(out.objectives.map((r) => r.entity_id)).toEqual(['o-1']);
+  });
+
+  it('flags at-risk projects like the overview does', () => {
+    expect(isAtRisk(makeProject({ health: 'amber' }))).toBe(true);
+    expect(isAtRisk(makeProject({ health: 'green', is_overdue: true }))).toBe(true);
+    expect(isAtRisk(makeProject({ health: 'green' }))).toBe(false);
+    expect(isAtRisk(makeProject({ health: 'red', status: 'completed' }))).toBe(false);
+  });
+
+  it('sends change planning and related records on create', () => {
+    expect(plansChange('improvement')).toBe(true);
+    expect(plansChange('general')).toBe(false);
+    const ref = { entity_type: 'process', entity_id: 'pr-1', title: 'Sales' };
+    const body = toCreateRequest(
+      emptyProjectForm({
+        title: 'X',
+        change_consequences: ' Downtime ',
+        related: [
+          { ref, group: 'affected', link_type: 'relates_to' },
+          { ref, group: 'affected', link_type: 'relates_to' },
+        ],
+      }),
+    );
+    expect(body.change_consequences).toBe('Downtime');
+    expect(body.change_resources).toBeNull();
+    expect(body.related).toEqual([
+      { entity_type: 'process', entity_id: 'pr-1', link_type: 'relates_to' },
+    ]);
+  });
+
+  it('pins review documents and leaves the stage alone', () => {
+    const body = reviewBody(
+      emptyReviewDraft({
+        title: 'R',
+        kind: 'change',
+        input_documents: [
+          {
+            document_id: 'd-1',
+            revision: null,
+            ref: null,
+            current_revision: null,
+            outdated: false,
+          },
+          { document_id: 'd-2', revision: 'B', ref: null, current_revision: 'C', outdated: true },
+        ],
+      }),
+    );
+    expect(body.kind).toBe('change');
+    expect(body.input_documents).toEqual([
+      { document_id: 'd-1' },
+      { document_id: 'd-2', revision: 'B' },
+    ]);
+    expect('stage' in body).toBe(false);
+  });
+
+  it('maps project vocabularies onto the shared tone map', () => {
+    expect(projectStatusBadge('proposed')).toEqual({
+      meaning: 'lifecycle',
+      value: 'draft',
+      labelKey: 'projects.status.proposed',
+    });
+    expect(healthBadge('red').value).toBe('non_compliant');
+    expect(outcomeBadge('passed_with_actions')).toMatchObject({ meaning: 'compliance' });
   });
 });

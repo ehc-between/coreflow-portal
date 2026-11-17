@@ -113,12 +113,15 @@ export class CreateFlowService {
   /**
    * Start a flow: fetch the prefill and token, then open the new-form. For a
    * requirement flow pass `{ ref }` as the source. Resolves to false (with a toast)
-   * when the backend refuses.
+   * when the backend refuses. `overlay` values (in the target create-DTO's field
+   * names) are laid over the server's prefill, e.g. an assistant suggestion the
+   * user chose to register.
    */
   start(
     flow: CreateFlowItem | string,
     sourceType: string,
     source: string | { readonly id?: string | null; readonly ref?: string | null },
+    overlay?: FlowPrefillValues,
   ): Promise<boolean> {
     const orgId = this.selectedOrg.currentOrgId();
     const key = typeof flow === 'string' ? flow : flow.key;
@@ -133,7 +136,10 @@ export class CreateFlowService {
         .prefillFlow(orgId, key, { sourceId, sourceRef })
         .pipe(finalize(() => this.starting.set(null)))
         .subscribe({
-          next: (res) => {
+          next: (fetched) => {
+            const res = overlay
+              ? { ...fetched, prefill: { ...fetched.prefill, ...overlay } }
+              : fetched;
             const ctx = this.remember(orgId, res, sourceType === 'standard_requirement');
             this.consumed = false;
             void this.router.navigateByUrl(ctx.targetRoute).then((ok) => {
