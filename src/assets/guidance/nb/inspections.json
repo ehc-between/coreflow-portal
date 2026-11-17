@@ -214,7 +214,7 @@
           "requirements": ["hs:10.2"]
         },
         "severity": {
-          "help": "Hvor alvorlig funnet er: **kritisk** krever umiddelbar handling, **høy** rask handling, **middels** planlagt handling og **lav** en forbedring.",
+          "help": "Hvor alvorlig funnet er: **kritisk** må rettes straks, **høy** raskt, **middels** etter en plan, og **lav** er et forbedringspunkt.",
           "example": "Et manglende brannslukningsapparat er høy; et falmet skilt er lav.",
           "requirements": ["hs:10.2"]
         }
