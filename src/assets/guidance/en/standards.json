@@ -107,10 +107,10 @@
       ],
       "quiz": [
         {
-          "question": "A requirement is covered by a procedure last reviewed two years ago. How much does it count?",
+          "question": "A requirement is covered by an approved procedure that was last changed two years ago and is not yet due for review. How much does it count?",
           "options": ["Nothing", "60 %", "In full"],
           "answer": 1,
-          "explanation": "The requirement is still covered, but the evidence is older than a year, so it counts 60 %. Review the procedure to make it count in full again."
+          "explanation": "The requirement is still covered, but the evidence is older than a year, so it counts 60 %. Review the procedure to make it count in full again. A document past its review date counts only as partly covered."
         }
       ]
     }

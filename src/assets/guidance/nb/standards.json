@@ -72,7 +72,7 @@
         },
         {
           "heading": "Ikke alle krav gjelder alle",
-          "body": "Noen krav kan merkes som **ikke relevante** med en kort begrunnelse, for eksempel et tiltak i vedlegg A som ikke passer virksomheten. Punktene 4–10 i ISO-standardene kan derimot ikke utelates. I ISO 9001 kan krav i punkt 8 bare utelates når omfanget (4.3) begrunner det."
+          "body": "Noen krav kan merkes som **ikke relevante** med en kort begrunnelse, for eksempel en kontroll i vedlegg A som ikke passer virksomheten. Punktene 4–10 i ISO-standardene kan derimot ikke utelates. I ISO 9001 kan krav i punkt 8 bare utelates når omfanget (4.3) begrunner det."
         },
         {
           "heading": "Ansvar og frister",
@@ -107,10 +107,10 @@
       ],
       "quiz": [
         {
-          "question": "Et krav er dekket av en prosedyre som sist ble gjennomgått for to år siden. Hvor mye teller den?",
+          "question": "Et krav er dekket av en godkjent prosedyre som sist ble endret for to år siden, og som ikke har passert gjennomgangsdatoen. Hvor mye teller den?",
           "options": ["Ingenting", "60 %", "Fullt"],
           "answer": 1,
-          "explanation": "Kravet er fortsatt dekket, men dokumentasjonen er eldre enn ett år, så det teller 60 %. Gjennomgå prosedyren for at den skal telle fullt igjen."
+          "explanation": "Kravet er fortsatt dekket, men dokumentasjonen er eldre enn ett år, så det teller 60 %. Gjennomgå prosedyren for at den skal telle fullt igjen. Et dokument som har passert gjennomgangsdatoen, teller bare som delvis dekket."
         }
       ]
     }
