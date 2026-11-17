@@ -12,7 +12,8 @@ const toTemplates = { redirectTo: '/inspections/templates' };
  * `inspections:read`; planning and editing need `inspections:write`, designing
  * templates `inspections:templates`. The backend's entity URLs are
  * `/inspections/<id>`, `/inspections/<id>?finding=<id>` and
- * `/inspections/templates/<id>`.
+ * `/inspections/templates/<id>`; `/inspections/<id>/findings/<finding>` is the same
+ * finding panel as a path (list rows link there).
  */
 export default [
   {
@@ -62,6 +63,12 @@ export default [
       },
       {
         path: ':id',
+        loadComponent: () =>
+          import('./inspections/inspection-detail').then((m) => m.InspectionDetailPage),
+      },
+      {
+        // A finding's own address: its inspection with the finding panel open.
+        path: ':id/findings/:finding',
         loadComponent: () =>
           import('./inspections/inspection-detail').then((m) => m.InspectionDetailPage),
       },

@@ -11,25 +11,35 @@ import {
 import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { providePageContext } from '../../../core/ai/page-context';
+import { LanguageService } from '../../../core/i18n/language.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { WatchButton } from '../../../shared/activity/watch-button';
 import { AskAbout } from '../../../shared/ask/ask-about';
 import { FieldHelp } from '../../../shared/guidance/field-help';
-import { GuideIntro } from '../../../shared/guidance/guide-intro';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { RecordDetailLayout, RecordTab } from '../../../shared/kit/record-detail-layout';
-import { LocalDatePipe } from '../../../shared/locale/locale-pipes';
+import { LocalDatePipe, LocalPercentPipe } from '../../../shared/locale/locale-pipes';
 import { SupportsRequirements } from '../../../shared/requirement-links/supports-requirements';
 import { Alert } from '../../../shared/ui/alert/alert';
-import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
+import { EmptyState } from '../../../shared/ui/empty-state/empty-state';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { MenuItem } from '../../../shared/ui/overflow-menu/overflow-menu';
 import { PromptDialog } from '../../../shared/ui/prompt-dialog/prompt-dialog';
+import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
+import { ClauseRefs } from '../components/clause-refs';
 import { QuestionPreview } from '../components/question-preview';
-import { categoryKey, templateStatusKey, templateStatusTone } from '../data/inspection-display';
+import {
+  INSPECTIONS_SETTINGS_LINK,
+  categoryKey,
+  severityKey,
+  templateStatusKey,
+} from '../data/inspection-display';
 import { inspectionErrorKey } from '../data/inspection-errors';
 import { InspectionReferences } from '../data/inspection-references';
 import {
@@ -43,9 +53,9 @@ const TABS: readonly RecordTab[] = [
   'details',
   'related',
   'activity',
-  'revisions',
   'comments',
   'attachments',
+  'revisions',
 ];
 
 /** Revision snapshot field -> i18n key (revisions tab). */
@@ -60,17 +70,21 @@ export const TEMPLATE_FIELD_LABELS: Readonly<Record<string, string>> = {
   questions: 'inspections.fields.questions',
   pass_threshold: 'inspections.fields.passThreshold',
   auto_deviation: 'inspections.fields.autoDeviation',
+  deviation_min_severity: 'inspections.fields.deviationMinSeverity',
   deviation_type_id: 'inspections.fields.deviationType',
 };
 
 type PendingAction = 'publish' | 'archive';
 
 /**
- * A checklist template (`/inspections/templates/:id`): its questions by section, the
- * scoring and deviation settings, the clauses it supports, and the record kit tabs
- * (related items, timeline, revisions, comments, attachments). Designers
- * (`inspections:templates`) edit, publish, archive and duplicate it; managers also
- * delete it. An active template can be used to plan an inspection or a schedule.
+ * A checklist template (`/inspections/templates/:id`): the header says what it is
+ * (code · version · category · status) with one primary action (plan an inspection,
+ * or publish a draft); the questions show by section with their pass rules and the
+ * clauses they cover; the aside shows the requirements it documents (narrowed to its
+ * standards), its connections, and how it scores and when findings become
+ * deviations, with a link to the inspections that used it. Edit and follow sit next
+ * to the primary action; recurring plans, duplicate, archive and delete are under
+ * "Mer".
  */
 @Component({
   selector: 'app-template-detail',
@@ -80,18 +94,23 @@ type PendingAction = 'publish' | 'archive';
     WatchButton,
     AskAbout,
     FieldHelp,
-    GuideIntro,
     WhyItMatters,
     RecordDetailLayout,
     LocalDatePipe,
+    LocalPercentPipe,
     SupportsRequirements,
     Alert,
-    Badge,
     Button,
     Card,
     ConfirmDialog,
+    EmptyState,
+    HelpStrip,
     Icon,
+    LoadingState,
+    MenuItem,
     PromptDialog,
+    StatusBadge,
+    ClauseRefs,
     QuestionPreview,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -100,88 +119,115 @@ type PendingAction = 'publish' | 'archive';
       <app-record-detail-layout
         [entityType]="entityType"
         [entityId]="t.id"
+        [title]="t.title"
+        [breadcrumbs]="[
+          { labelKey: 'modules.names.inspections', link: '/inspections' },
+          { labelKey: 'inspections.templates.title', link: '/inspections/templates' },
+          { label: t.title },
+        ]"
+        [settingsLink]="settingsLink"
         [tabs]="tabs"
         [canEdit]="canDesign()"
         [fieldLabels]="fieldLabels"
         backLink="/inspections/templates"
         backLabelKey="inspections.templates.backToTemplates"
       >
-        <div header>
-          <p class="font-mono text-[12px] text-fg-subtle">{{ t.code }}</p>
-          <h1
-            class="font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]"
-            data-testid="template-title"
-          >
-            {{ t.title }}
-          </h1>
-          <div class="mt-2 flex flex-wrap items-center gap-1.5">
-            <app-badge [tone]="statusTone(t.status)">{{
-              statusKey(t.status) | transloco
-            }}</app-badge>
-            <app-badge tone="neutral">{{
-              'inspections.templates.version' | transloco: { version: t.version }
-            }}</app-badge>
-            @if (categoryLabel(t.category); as cat) {
-              <app-badge tone="info">{{ cat | transloco }}</app-badge>
-            } @else if (t.category) {
-              <app-badge tone="info">{{ t.category }}</app-badge>
-            }
-            @for (fw of t.frameworks; track fw) {
-              <app-badge tone="neutral">{{ 'inspections.frameworks.' + fw | transloco }}</app-badge>
-            }
-          </div>
-        </div>
+        <ng-container ngProjectAs="[meta]">
+          <span class="font-mono" data-testid="template-code">{{ t.code }}</span>
+          <span aria-hidden="true">·</span>
+          <span>{{
+            'inspections.templates.versionShort' | transloco: { version: t.version }
+          }}</span>
+          @if (categoryLabel(t.category); as cat) {
+            <span aria-hidden="true">·</span>
+            <span>{{ cat | transloco }}</span>
+          } @else if (t.category) {
+            <span aria-hidden="true">·</span>
+            <span>{{ t.category }}</span>
+          }
+          <app-status-badge
+            meaning="lifecycle"
+            [value]="t.status"
+            [labelKey]="statusKey(t.status)"
+          />
+          <span class="sr-only" data-testid="template-title">{{ t.title }}</span>
+        </ng-container>
 
-        <ng-container ngProjectAs="[actions]">
-          <app-watch-button [entityType]="entityType" [entityId]="t.id" />
-          @if (t.status === 'active' && canWrite()) {
-            <a [routerLink]="['/inspections/new']" [queryParams]="{ template: t.id }">
-              <app-button size="sm" data-testid="plan-from-template">
-                <app-icon name="plus" [size]="14" />
-                {{ 'inspections.templates.plan' | transloco }}
+        @if (t.status === 'active' && canWrite()) {
+          <a
+            primary
+            [routerLink]="['/inspections/new']"
+            [queryParams]="{ template: t.id }"
+            data-testid="plan-from-template"
+          >
+            <app-button>
+              <app-icon name="plus" [size]="15" />
+              {{ 'inspections.templates.plan' | transloco }}
+            </app-button>
+          </a>
+        } @else if (t.status === 'draft' && canDesign()) {
+          <app-button primary (click)="pending.set('publish')" data-testid="publish-template">
+            {{ 'inspections.templates.publish' | transloco }}
+          </app-button>
+        }
+
+        <ng-container ngProjectAs="[secondary]">
+          @if (canDesign() && t.status !== 'archived') {
+            <a [routerLink]="['/inspections/templates', t.id, 'edit']">
+              <app-button variant="secondary" data-testid="edit-template">
+                {{ 'inspections.actions.edit' | transloco }}
               </app-button>
             </a>
           }
+          <app-watch-button [entityType]="entityType" [entityId]="t.id" />
+        </ng-container>
+
+        <ng-container ngProjectAs="[overflow]">
           @if (t.status === 'active' && canManage()) {
-            <a [routerLink]="['/inspections/schedules']" [queryParams]="{ template: t.id, new: 1 }">
-              <app-button variant="secondary" size="sm">
-                <app-icon name="calendar" [size]="14" />
-                {{ 'inspections.templates.schedule' | transloco }}
-              </app-button>
-            </a>
+            <button appMenuItem type="button" (click)="schedule()" data-testid="schedule-template">
+              {{ 'inspections.templates.schedule' | transloco }}
+            </button>
           }
           @if (canDesign()) {
-            @if (t.status !== 'archived') {
-              <a [routerLink]="['/inspections/templates', t.id, 'edit']">
-                <app-button variant="secondary" size="sm" data-testid="edit-template">
-                  {{ 'inspections.actions.edit' | transloco }}
-                </app-button>
-              </a>
-            }
-            @if (t.status === 'draft') {
-              <app-button size="sm" (click)="pending.set('publish')" data-testid="publish-template">
-                {{ 'inspections.templates.publish' | transloco }}
-              </app-button>
-            }
-            @if (t.status === 'active') {
-              <app-button variant="ghost" size="sm" (click)="pending.set('archive')">
-                {{ 'inspections.templates.archive' | transloco }}
-              </app-button>
-            }
-            <app-button variant="secondary" size="sm" [loading]="busy()" (click)="duplicate()">
+            <button appMenuItem type="button" (click)="duplicate()" data-testid="duplicate">
               {{ 'inspections.templates.duplicate' | transloco }}
-            </app-button>
-            @if (canManage()) {
-              <app-button variant="danger" size="sm" (click)="confirmDelete.set(true)">
-                <app-icon name="trash" [size]="14" />
-                {{ 'inspections.actions.delete' | transloco }}
-              </app-button>
+            </button>
+            @if (t.status === 'active') {
+              <button
+                appMenuItem
+                type="button"
+                (click)="pending.set('archive')"
+                data-testid="archive"
+              >
+                {{ 'inspections.templates.archive' | transloco }}
+              </button>
             }
+          }
+          @if (canManage()) {
+            <button
+              appMenuItem
+              type="button"
+              [danger]="true"
+              (click)="confirmDelete.set(true)"
+              data-testid="delete"
+            >
+              {{ 'inspections.actions.delete' | transloco }}
+            </button>
           }
         </ng-container>
 
-        <div class="flex flex-col gap-4">
-          <app-guide-intro scope="inspections" page="templateDetail" />
+        <app-help-strip help scope="inspections" page="templateDetail" lesson="inspection-basics" />
+
+        <div aside-requirements>
+          <app-supports-requirements
+            [entityType]="entityType"
+            [entityId]="t.id"
+            [canEdit]="canDesign()"
+            [frameworks]="t.frameworks"
+          />
+        </div>
+
+        <div class="flex flex-col gap-5">
           @if (t.status === 'draft') {
             <app-alert tone="info">{{ 'inspections.templates.draftNotice' | transloco }}</app-alert>
           } @else if (t.status === 'archived') {
@@ -191,22 +237,30 @@ type PendingAction = 'publish' | 'archive';
           }
           @if (t.description) {
             <app-card>
-              <h2 class="mb-1 text-[15px] font-bold text-fg">
+              <h2 class="mb-1 text-card font-bold text-fg">
                 {{ 'inspections.fields.description' | transloco }}
               </h2>
-              <p class="text-[13.5px] whitespace-pre-line text-fg">{{ t.description }}</p>
+              <p class="text-body whitespace-pre-line text-fg">{{ t.description }}</p>
             </app-card>
           }
           <app-card>
             <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-              <h2 class="text-[15px] font-bold text-fg">
+              <h2 class="text-card font-bold text-fg">
                 {{ 'inspections.templates.questions' | transloco: { count: t.question_count } }}
               </h2>
               <app-ask-about
                 [prompt]="'inspections.templates.askImprove' | transloco: { title: t.title }"
                 field="questions"
+                [fieldLabel]="'inspections.fields.questions' | transloco"
+                [requirements]="t.clause_refs ?? []"
+                labelKey="inspections.templates.askImproveLabel"
               />
             </div>
+            @if (t.clause_refs?.length) {
+              <p class="mb-3 flex flex-wrap items-center gap-1.5 text-meta text-fg-muted">
+                <app-clause-refs [refs]="t.clause_refs" labelKey="inspections.templates.covers" />
+              </p>
+            }
             <app-question-preview [questions]="t.questions" />
           </app-card>
           <app-why-it-matters scope="inspections" page="templateDetail" />
@@ -214,27 +268,40 @@ type PendingAction = 'publish' | 'archive';
 
         <ng-container ngProjectAs="[aside]">
           <app-card>
-            <h2 class="mb-2 text-[14px] font-bold text-fg">
-              {{ 'inspections.templates.settings' | transloco }}
-            </h2>
-            <dl class="flex flex-col gap-2 text-[13px]">
+            <div class="mb-2 flex items-center gap-1.5">
+              <h2 class="text-card font-bold text-fg">
+                {{ 'inspections.templates.settings' | transloco }}
+              </h2>
+              <app-field-help scope="inspections" page="templateDetail" field="version" />
+            </div>
+            <dl class="flex flex-col gap-2 text-ui">
               <div class="flex justify-between gap-2">
-                <dt class="text-fg-muted">{{ 'inspections.fields.passThreshold' | transloco }}</dt>
+                <dt class="text-fg-muted">{{ 'inspections.detail.passMark' | transloco }}</dt>
                 <dd class="text-right text-fg">
                   {{
                     t.pass_threshold === null
-                      ? ('inspections.templates.noPassMark' | transloco)
-                      : t.pass_threshold + ' %'
+                      ? ('inspections.templates.noPassMarkShort' | transloco)
+                      : (t.pass_threshold | localPercent)
                   }}
                 </dd>
               </div>
               <div class="flex justify-between gap-2">
-                <dt class="text-fg-muted">{{ 'inspections.fields.autoDeviation' | transloco }}</dt>
-                <dd class="text-right text-fg">
-                  {{
-                    (t.auto_deviation ? 'inspections.common.yes' : 'inspections.common.no')
-                      | transloco
-                  }}
+                <dt class="text-fg-muted">
+                  {{ 'inspections.templates.autoDeviation' | transloco }}
+                </dt>
+                <dd class="text-right text-fg" data-testid="auto-deviation-value">
+                  @if (t.auto_deviation) {
+                    {{
+                      'inspections.templates.fromSeverity'
+                        | transloco
+                          : {
+                              severity:
+                                (severityKey(t.deviation_min_severity ?? 'high') | transloco),
+                            }
+                    }}
+                  } @else {
+                    {{ 'inspections.templates.manualOnly' | transloco }}
+                  }
                 </dd>
               </div>
               @if (t.auto_deviation) {
@@ -247,11 +314,34 @@ type PendingAction = 'publish' | 'archive';
                   </dd>
                 </div>
               }
+              @if (t.frameworks.length) {
+                <div class="flex justify-between gap-2">
+                  <dt class="text-fg-muted">{{ 'inspections.fields.frameworks' | transloco }}</dt>
+                  <dd class="text-right text-fg">{{ frameworkNames() }}</dd>
+                </div>
+              }
               <div class="flex justify-between gap-2">
                 <dt class="text-fg-muted">
                   {{ 'inspections.templates.inspectionCount' | transloco }}
                 </dt>
-                <dd class="text-fg">{{ t.inspection_count }}</dd>
+                <dd>
+                  @if (t.inspection_count > 0) {
+                    <a
+                      routerLink="/inspections"
+                      [queryParams]="{ template: t.id }"
+                      class="font-semibold text-accent hover:underline"
+                      data-testid="inspection-count"
+                      >{{
+                        'inspections.templates.inspectionCountLink'
+                          | transloco: { count: t.inspection_count }
+                      }}</a
+                    >
+                  } @else {
+                    <span class="text-fg-muted">{{
+                      'inspections.templates.noInspections' | transloco
+                    }}</span>
+                  }
+                </dd>
               </div>
               @if (t.published_at) {
                 <div class="flex justify-between gap-2">
@@ -264,14 +354,7 @@ type PendingAction = 'publish' | 'archive';
                 <dd class="text-right text-fg">{{ t.updated_at | localDate }}</dd>
               </div>
             </dl>
-            <app-field-help
-              class="mt-2 block"
-              scope="inspections"
-              page="templateDetail"
-              field="version"
-            />
           </app-card>
-          <app-supports-requirements [entityType]="entityType" [entityId]="t.id" />
         </ng-container>
       </app-record-detail-layout>
 
@@ -297,14 +380,19 @@ type PendingAction = 'publish' | 'archive';
         (cancelled)="confirmDelete.set(false)"
       />
     } @else if (notFound()) {
-      <div class="mx-auto max-w-[720px] px-4 py-10 sm:px-8">
-        <app-alert tone="error">{{ 'inspections.templates.notFound' | transloco }}</app-alert>
-        <a routerLink="/inspections/templates" class="mt-3 inline-block font-semibold text-accent">
-          {{ 'inspections.templates.backToTemplates' | transloco }}
-        </a>
+      <div class="mx-auto max-w-[1180px] px-4 pt-6 sm:px-8">
+        <app-empty-state
+          icon="search"
+          titleKey="inspections.templates.notFoundTitle"
+          bodyKey="inspections.templates.notFound"
+          ctaKey="inspections.templates.backToTemplates"
+          ctaLink="/inspections/templates"
+        />
       </div>
     } @else {
-      <p class="px-8 py-10 text-[14px] text-fg-muted">{{ 'common.loading' | transloco }}</p>
+      <div class="mx-auto max-w-[1180px] px-4 pt-6 sm:px-8">
+        <app-loading-state [rows]="6" />
+      </div>
     }
   `,
 })
@@ -314,14 +402,16 @@ export class TemplateDetailPage {
   private readonly router = inject(Router);
   private readonly notifications = inject(NotificationService);
   private readonly references = inject(InspectionReferences);
+  private readonly language = inject(LanguageService);
 
   readonly id = input.required<string>();
 
   protected readonly entityType = TEMPLATE_ENTITY_TYPE;
   protected readonly tabs = TABS;
   protected readonly fieldLabels = TEMPLATE_FIELD_LABELS;
+  protected readonly settingsLink = INSPECTIONS_SETTINGS_LINK;
   protected readonly statusKey = templateStatusKey;
-  protected readonly statusTone = templateStatusTone;
+  protected readonly severityKey = severityKey;
   protected readonly categoryLabel = categoryKey;
 
   protected readonly template = signal<TemplateDetail | null>(null);
@@ -342,6 +432,12 @@ export class TemplateDetailPage {
     return id ? (this.references.deviationTypes().find((t) => t.id === id)?.name ?? null) : null;
   });
 
+  protected readonly frameworkNames = computed(() =>
+    (this.template()?.frameworks ?? [])
+      .map((fw) => this.language.translate(`inspections.frameworks.${fw}`))
+      .join(', '),
+  );
+
   constructor() {
     providePageContext(() => ({
       module: INSPECTIONS_MODULE,
@@ -349,6 +445,7 @@ export class TemplateDetailPage {
       entityId: this.id(),
       view: 'detail',
       title: this.template()?.title ?? null,
+      requirements: this.template()?.clause_refs ?? [],
     }));
 
     effect(() => {
@@ -369,6 +466,15 @@ export class TemplateDetailPage {
       },
       error: () => this.notFound.set(true),
     });
+  }
+
+  protected schedule(): void {
+    const t = this.template();
+    if (t) {
+      void this.router.navigate(['/inspections/schedules'], {
+        queryParams: { template: t.id, new: 1 },
+      });
+    }
   }
 
   protected runPending(reason: string): void {

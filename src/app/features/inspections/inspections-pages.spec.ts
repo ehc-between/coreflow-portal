@@ -63,19 +63,24 @@ function mount<T>(
 
 describe('inspections list', () => {
   it('parses filters defensively and builds the list query', () => {
-    expect(parseInspectionFilters({ status: 'bogus', overdue: 'true' })).toEqual({
+    expect(parseInspectionFilters({ status: 'bogus', overdue: 'true', template: 'x' })).toEqual({
       ...DEFAULT_INSPECTION_FILTERS,
       overdue: 'true',
     });
+    // The default shows every inspection, completed ones included.
     expect(toInspectionQuery(' a ', DEFAULT_INSPECTION_FILTERS, 25)).toMatchObject({
       q: 'a',
-      status: ['planned', 'in_progress'],
-      sort: 'due_at',
+      status: undefined,
+      sort: '-due_at',
       offset: 25,
     });
     expect(
-      toInspectionQuery('', { ...DEFAULT_INSPECTION_FILTERS, status: '' }, 0).status,
-    ).toBeUndefined();
+      toInspectionQuery('', { ...DEFAULT_INSPECTION_FILTERS, status: 'open' }, 0).status,
+    ).toEqual(['planned', 'in_progress']);
+    const template = '0b6c3c1e-1111-4222-8333-444455556666';
+    expect(toInspectionQuery('', parseInspectionFilters({ template }), 0).template_id).toBe(
+      template,
+    );
   });
 
   it('renders rows and stats and registers page context', async () => {
@@ -84,11 +89,20 @@ describe('inspections list', () => {
     await render();
     expect(list).toHaveBeenCalledWith('org-1', expect.objectContaining({ offset: 0 }));
     expect(byTestId('inspection-rows')?.textContent).toContain('Warehouse walk');
-    expect(byTestId('stats')).not.toBeNull();
+    expect(byTestId('kpi-open')).not.toBeNull();
     expect(TestBed.inject(PageContextService).current()).toMatchObject({
       module: 'inspections',
       view: 'list',
     });
+  });
+
+  it('turns a KPI tile into a filter', async () => {
+    const list = vi.fn(() => of({ items: [makeInspection()], total: 1 }));
+    const { byTestId, render } = mount(InspectionsList, { list, stats: () => of(STATS) });
+    await render();
+    byTestId<HTMLButtonElement>('kpi-overdue')!.click();
+    await render();
+    expect(list).toHaveBeenLastCalledWith('org-1', expect.objectContaining({ overdue: true }));
   });
 
   it('teaches with an empty state when the org has no inspections', async () => {
@@ -118,11 +132,20 @@ describe('inspections list', () => {
 
 describe('findings list', () => {
   it('builds the query from filters', () => {
-    const f = parseFindingFilters({ deviation: 'false', severity: 'high' });
+    const f = parseFindingFilters({
+      deviation: 'false',
+      severity: 'high',
+      from: '2026-01-01',
+      to: '2026-03-31',
+      template: 'nope',
+    });
     expect(toFindingQuery('', f, 0)).toMatchObject({
       status: ['open'],
-      severity: ['high'],
+      severity: ['high', 'critical'],
       has_deviation: false,
+      template_id: undefined,
+      created_from: '2026-01-01T00:00:00',
+      created_to: '2026-03-31T23:59:59',
     });
   });
 
@@ -132,7 +155,25 @@ describe('findings list', () => {
     });
     await render();
     const link = byTestId('finding-rows')?.querySelector('a');
-    expect(link?.getAttribute('href')).toBe('/inspections/i-1?finding=f-1');
+    expect(link?.getAttribute('href')).toBe('/inspections/i-1/findings/f-1');
+  });
+
+  it('exports the filtered register in the UI language', async () => {
+    const exportFindings = vi.fn(() => of(new Blob(['x'])));
+    const { byTestId, render } = mount(FindingsList, {
+      listFindings: () => of({ items: [makeFinding()], total: 1 }),
+      exportFindings,
+    });
+    await render();
+    URL.createObjectURL = vi.fn(() => 'blob:x');
+    URL.revokeObjectURL = vi.fn();
+    byTestId<HTMLElement>('export-xlsx')!.querySelector('button')!.click();
+    expect(exportFindings).toHaveBeenCalledWith(
+      'org-1',
+      'xlsx',
+      'en',
+      expect.objectContaining({ status: ['open'] }),
+    );
   });
 });
 
@@ -154,11 +195,23 @@ describe('inspection run', () => {
       expect(saveResponses).not.toHaveBeenCalled();
       await vi.advanceTimersByTimeAsync(700);
       expect(saveResponses).toHaveBeenCalledWith('org-1', 'i-1', [
-        { question_id: 'q1', value: 'no', is_na: false, note: null },
+        { question_id: 'q1', value: 'no', is_na: false, note: null, attachment_ids: [] },
       ]);
+      // A failed answer asks for a note or a photo.
+      expect(byTestId('fail-prompt')).not.toBeNull();
     } finally {
       vi.useRealTimers();
     }
+  });
+
+  it('says up front which answer does not pass', async () => {
+    const { byTestId, render } = mount(
+      InspectionRun,
+      { get: () => of(makeInspectionDetail()) },
+      { id: 'i-1' },
+    );
+    await render();
+    expect(byTestId('answer-q1')?.querySelector('[data-testid="fail-hint"]')).not.toBeNull();
   });
 
   it('lists missing required answers before completing', async () => {
@@ -222,6 +275,48 @@ describe('inspection detail', () => {
       entityType: 'inspection_finding',
       entityId: 'f-1',
     });
+  });
+
+  it('offers the report as the primary action once completed and explains the score', async () => {
+    const detail = makeInspectionDetail({ status: 'completed', result: 'passed' });
+    const { byTestId, render } = mount(
+      InspectionDetailPage,
+      { get: () => of(detail) },
+      { id: 'i-1' },
+    );
+    await render();
+    expect(byTestId('report')).not.toBeNull();
+    expect(byTestId('run-inspection')).toBeNull();
+    expect(byTestId('score-rule')?.textContent).toContain('inspections.detail.rule');
+  });
+
+  it('requires a closure note before closing a finding', async () => {
+    const closeFinding = vi.fn(() => of(makeFinding({ status: 'closed' })));
+    const detail = makeInspectionDetail({ status: 'completed', findings: [makeFinding()] });
+    const { render } = mount(
+      InspectionDetailPage,
+      { get: () => of(detail), closeFinding },
+      { id: 'i-1', finding: 'f-1' },
+    );
+    await render();
+    const q = <E extends Element = HTMLElement>(id: string) =>
+      document.querySelector<E>(`[data-testid="${id}"]`);
+    q('close-finding')!.querySelector('button')!.click();
+    await render();
+    q('confirm-close')!.querySelector('button')!.click();
+    await render();
+    expect(closeFinding).not.toHaveBeenCalled();
+    const note = q<HTMLTextAreaElement>('closure-note')!;
+    note.value = 'Pallet moved and floor marked';
+    note.dispatchEvent(new Event('input'));
+    await render();
+    q('confirm-close')!.querySelector('button')!.click();
+    await render();
+    expect(closeFinding).toHaveBeenCalledWith(
+      'org-1',
+      'f-1',
+      expect.objectContaining({ closure_note: 'Pallet moved and floor marked' }),
+    );
   });
 });
 

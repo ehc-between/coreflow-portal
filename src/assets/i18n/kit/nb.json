@@ -401,7 +401,11 @@
       "to_risk": "Risiko fra funnet"
     },
     "inspection_finding": {
-      "to_deviation": "Avvik fra funnet"
+      "to_deviation": "Avvik fra funnet",
+      "to_risk": "Risiko fra funnet",
+      "to_task": "Oppgave for oppfølging",
+      "to_training": "Opplæringsbehov (kurstildeling)",
+      "to_document": "Endring i et dokument eller en prosedyre"
     },
     "risk": {
       "to_document": "Kontrolldokument (prosedyre)",

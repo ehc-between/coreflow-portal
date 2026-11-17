@@ -11,27 +11,37 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { providePageContext } from '../../../core/ai/page-context';
 import { HasPermissionDirective } from '../../../core/auth/has-permission.directive';
+import { LanguageService } from '../../../core/i18n/language.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
-import { FRAMEWORK_KEYS } from '../../../core/standards/frameworks-data';
-import { GuideIntro } from '../../../shared/guidance/guide-intro';
 import { TeachingEmpty } from '../../../shared/guidance/teaching-empty';
-import { TourButton } from '../../../shared/guidance/tour-button';
 import { TourStepDirective } from '../../../shared/guidance/tour-step.directive';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { RecordListPage } from '../../../shared/kit/record-list-page';
 import { SavedView } from '../../../shared/kit/saved-views.service';
-import { LocalDayPipe } from '../../../shared/locale/locale-pipes';
-import { Badge } from '../../../shared/ui/badge/badge';
+import { CoverageChip } from '../../../shared/requirement-links/coverage-chip';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
+import { EmptyState } from '../../../shared/ui/empty-state/empty-state';
+import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { ModuleNav } from '../../../shared/ui/module-nav/module-nav';
 import { Pager } from '../../../shared/ui/pager/pager';
+import { RecordRow, RecordRowHeader } from '../../../shared/ui/record-row/record-row';
+import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { FILTER_STYLES, pick } from '../components/filter-styles';
-import { InspectionsTabs } from '../components/inspections-tabs';
-import { categoryKey, templateStatusKey, templateStatusTone } from '../data/inspection-display';
+import {
+  INSPECTIONS_NAV,
+  INSPECTIONS_SETTINGS_LINK,
+  categoryKey,
+  templateStatusKey,
+} from '../data/inspection-display';
 import {
   INSPECTIONS_MODULE,
+  SUPPORTED_FRAMEWORKS,
   TEMPLATE_CATEGORIES,
+  TEMPLATE_ENTITY_TYPE,
   TEMPLATE_SORTS,
   TEMPLATE_STATUSES,
   Template,
@@ -76,7 +86,7 @@ export function parseTemplateFilters(
       'current',
     ),
     category: pick(raw['category'], ['', ...TEMPLATE_CATEGORIES], ''),
-    framework: pick(raw['framework'], ['', ...FRAMEWORK_KEYS], ''),
+    framework: pick(raw['framework'], ['', ...SUPPORTED_FRAMEWORKS], ''),
     sort: pick(raw['sort'], TEMPLATE_SORTS, 'title'),
   };
 }
@@ -98,9 +108,11 @@ export function toTemplateQuery(
 }
 
 /**
- * Checklist templates (`/inspections/templates`): search, filters (status, category,
- * framework), sort, saved views and paging. Designers (`inspections:templates`) build
- * a new template or start from the built-in library.
+ * Checklist templates (`/inspections/templates`, "Sjekklistemaler"): search, filters
+ * (status, category, standard), sort, saved views and paging. Each row shows the
+ * category, question count, version, the standards it is for and the requirements
+ * it documents. Designers (`inspections:templates`) build a new template or start
+ * from the library.
  */
 @Component({
   selector: 'app-templates-list',
@@ -108,46 +120,49 @@ export function toTemplateQuery(
     RouterLink,
     TranslocoPipe,
     HasPermissionDirective,
-    GuideIntro,
     TeachingEmpty,
-    TourButton,
     TourStepDirective,
     WhyItMatters,
     RecordListPage,
-    LocalDayPipe,
-    Badge,
+    CoverageChip,
     Button,
     Card,
+    EmptyState,
+    ErrorState,
+    HelpStrip,
     Icon,
+    LoadingState,
+    ModuleNav,
     Pager,
-    InspectionsTabs,
+    RecordRow,
+    RecordRowHeader,
+    StatusBadge,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-record-list-page
       titleKey="inspections.templates.title"
+      descriptionKey="inspections.templates.subtitle"
+      [breadcrumbs]="breadcrumbs"
       scope="inspections"
       page="templates"
+      [settingsLink]="settingsLink"
       searchPlaceholderKey="inspections.templates.searchPlaceholder"
       [query]="query()"
       [filters]="viewFilters()"
-      [empty]="isEmpty()"
+      [moreFiltersActive]="moreActive()"
+      [empty]="isEmptyRegister()"
       (search)="onSearch($event)"
       (viewApplied)="applyView($event)"
     >
-      <div intro class="mt-1.5 max-w-[680px]">
-        <p class="text-[14px] text-fg-muted">{{ 'inspections.templates.subtitle' | transloco }}</p>
-        <app-inspections-tabs active="templates" />
-      </div>
-      <app-tour-button toolbar scope="inspections" tour="templates" />
-      <a toolbar routerLink="/inspections/templates/library" data-testid="open-library">
+      <a secondary routerLink="/inspections/templates/library" data-testid="open-library">
         <app-button variant="secondary">
           <app-icon name="documents" [size]="15" />
           {{ 'inspections.templates.library' | transloco }}
         </app-button>
       </a>
       <a
-        toolbar
+        primary
         *appHasPermission="'inspections:templates'"
         routerLink="/inspections/templates/new"
         appTourStep="inspections-template-new"
@@ -159,130 +174,132 @@ export function toTemplateQuery(
         </app-button>
       </a>
 
-      <ng-container ngProjectAs="[filters]">
-        <select
-          class="cf-filter"
-          [attr.aria-label]="'inspections.filters.status' | transloco"
-          (change)="setFilter('status', $any($event.target).value)"
-          data-testid="template-filter-status"
-        >
-          <option value="current" [selected]="filters().status === 'current'">
-            {{ 'inspections.filters.current' | transloco }}
-          </option>
-          <option value="" [selected]="filters().status === ''">
-            {{ 'inspections.filters.allStatuses' | transloco }}
-          </option>
-          @for (s of statuses; track s) {
-            <option [value]="s" [selected]="s === filters().status">
-              {{ templateStatusKey(s) | transloco }}
-            </option>
-          }
-        </select>
-        <select
-          class="cf-filter"
-          [attr.aria-label]="'inspections.filters.category' | transloco"
-          (change)="setFilter('category', $any($event.target).value)"
-        >
-          <option value="">{{ 'inspections.filters.anyCategory' | transloco }}</option>
-          @for (c of categories; track c) {
-            <option [value]="c" [selected]="c === filters().category">
-              {{ 'inspections.category.' + c | transloco }}
-            </option>
-          }
-        </select>
-        <select
-          class="cf-filter"
-          [attr.aria-label]="'inspections.filters.framework' | transloco"
-          (change)="setFilter('framework', $any($event.target).value)"
-        >
-          <option value="">{{ 'inspections.filters.anyFramework' | transloco }}</option>
-          @for (fw of frameworks; track fw) {
-            <option [value]="fw" [selected]="fw === filters().framework">
-              {{ 'inspections.frameworks.' + fw | transloco }}
-            </option>
-          }
-        </select>
-        <select
-          class="cf-filter"
-          [attr.aria-label]="'inspections.filters.sort' | transloco"
-          (change)="setFilter('sort', $any($event.target).value)"
-        >
-          @for (s of sorts; track s) {
-            <option [value]="s" [selected]="s === filters().sort">
-              {{ 'inspections.sort.' + sortKeys[s] | transloco }}
-            </option>
-          }
-        </select>
-      </ng-container>
+      <app-module-nav nav class="mb-4 block" labelKey="modules.names.inspections" [items]="nav" />
+      <app-help-strip
+        help
+        scope="inspections"
+        page="templates"
+        tour="templates"
+        lesson="inspection-basics"
+      />
 
-      <app-guide-intro class="mb-3 block" scope="inspections" page="templates" />
-
-      <app-card [padded]="false">
-        @if (loading() && items().length === 0) {
-          <p class="px-4 py-10 text-center text-[14px] text-fg-muted">
-            {{ 'common.loading' | transloco }}
-          </p>
-        } @else if (items().length === 0) {
-          <p class="px-4 py-10 text-center text-[14px] text-fg-muted" data-testid="no-matches">
-            {{ 'inspections.list.noMatches' | transloco }}
-          </p>
-        } @else {
-          <ul [attr.aria-busy]="loading()" data-testid="template-rows">
-            @for (row of items(); track row.id) {
-              <li class="border-b border-border last:border-b-0 hover:bg-surface-2">
-                <a
-                  [routerLink]="['/inspections/templates', row.id]"
-                  class="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3 sm:flex-nowrap"
-                >
-                  <span class="w-[64px] flex-none font-mono text-[12px] text-fg-subtle">{{
-                    row.code
-                  }}</span>
-                  <span class="min-w-0 flex-1 basis-[200px]">
-                    <span class="block truncate font-semibold text-fg">{{ row.title }}</span>
-                    <span class="block truncate text-[12.5px] text-fg-muted">
-                      @if (categoryLabel(row.category); as cat) {
-                        {{ cat | transloco }} ·
-                      } @else if (row.category) {
-                        {{ row.category }} ·
-                      }
-                      {{
-                        'inspections.templates.questions' | transloco: { count: row.question_count }
-                      }}
-                      · {{ 'inspections.templates.version' | transloco: { version: row.version } }}
-                    </span>
-                  </span>
-                  @for (fw of row.frameworks; track fw) {
-                    <app-badge tone="neutral">{{
-                      'inspections.frameworks.' + fw | transloco
-                    }}</app-badge>
-                  }
-                  <app-badge [tone]="templateStatusTone(row.status)">{{
-                    templateStatusKey(row.status) | transloco
-                  }}</app-badge>
-                  <span
-                    class="hidden w-[110px] flex-none text-right text-[12.5px] text-fg-subtle md:block"
-                  >
-                    {{ row.updated_at | localDay }}
-                  </span>
-                </a>
-              </li>
-            }
-          </ul>
+      <select
+        filters
+        class="cf-filter"
+        [attr.aria-label]="'inspections.filters.status' | transloco"
+        (change)="setFilter('status', $any($event.target).value)"
+        data-testid="template-filter-status"
+      >
+        <option value="current" [selected]="filters().status === 'current'">
+          {{ 'inspections.filters.current' | transloco }}
+        </option>
+        <option value="" [selected]="filters().status === ''">
+          {{ 'inspections.filters.allStatuses' | transloco }}
+        </option>
+        @for (s of statuses; track s) {
+          <option [value]="s" [selected]="s === filters().status">
+            {{ templateStatusKey(s) | transloco }}
+          </option>
         }
-      </app-card>
-      <div class="mt-3">
-        <app-pager
-          [offset]="offset()"
-          [pageSize]="pageSize"
-          [count]="items().length"
-          [total]="total()"
-          (pageChange)="offset.set($event)"
-        />
+      </select>
+      <select
+        filters
+        class="cf-filter"
+        [attr.aria-label]="'inspections.filters.category' | transloco"
+        (change)="setFilter('category', $any($event.target).value)"
+      >
+        <option value="" [selected]="filters().category === ''">
+          {{ 'inspections.filters.anyCategory' | transloco }}
+        </option>
+        @for (c of categories; track c) {
+          <option [value]="c" [selected]="c === filters().category">
+            {{ 'inspections.category.' + c | transloco }}
+          </option>
+        }
+      </select>
+      <select
+        filters
+        class="cf-filter"
+        [attr.aria-label]="'inspections.filters.framework' | transloco"
+        (change)="setFilter('framework', $any($event.target).value)"
+      >
+        <option value="" [selected]="filters().framework === ''">
+          {{ 'inspections.filters.anyFramework' | transloco }}
+        </option>
+        @for (fw of frameworks; track fw) {
+          <option [value]="fw" [selected]="fw === filters().framework">
+            {{ 'inspections.frameworks.' + fw | transloco }}
+          </option>
+        }
+      </select>
+      <div more-filters class="flex flex-col gap-3">
+        <label class="flex flex-col gap-1 text-ui font-semibold text-fg-muted">
+          {{ 'inspections.filters.sort' | transloco }}
+          <select class="cf-filter" (change)="setFilter('sort', $any($event.target).value)">
+            @for (s of sorts; track s) {
+              <option [value]="s" [selected]="s === filters().sort">
+                {{ 'inspections.sort.' + sortKeys[s] | transloco }}
+              </option>
+            }
+          </select>
+        </label>
       </div>
-      <app-why-it-matters class="mt-5 block" scope="inspections" page="templates" />
+
+      @if (error()) {
+        <app-error-state (retry)="reload()" />
+      } @else if (loading() && items().length === 0) {
+        <app-loading-state [rows]="5" />
+      } @else if (items().length === 0) {
+        <app-card>
+          <app-empty-state
+            icon="search"
+            titleKey="inspections.list.noMatchesTitle"
+            bodyKey="inspections.templates.noMatches"
+            [compact]="true"
+            data-testid="no-matches"
+          />
+          <div class="-mt-2 pb-4 text-center">
+            <app-button variant="secondary" size="sm" (click)="clearFilters()">
+              {{ 'inspections.list.clearFilters' | transloco }}
+            </app-button>
+          </div>
+        </app-card>
+      } @else {
+        <app-card [padded]="false">
+          <div role="list" [attr.aria-busy]="loading()" data-testid="template-rows">
+            <app-record-row-header dateKind="updated" [owner]="false" />
+            @for (row of items(); track row.id) {
+              <app-record-row
+                [code]="row.code"
+                [title]="row.title"
+                [subtitle]="subtitle(row)"
+                [link]="['/inspections/templates', row.id]"
+                [date]="row.updated_at"
+                dateKind="updated"
+              >
+                <app-coverage-chip coverage [entityType]="entityType" [entityId]="row.id" />
+                <app-status-badge
+                  badges
+                  meaning="lifecycle"
+                  [value]="row.status"
+                  [labelKey]="templateStatusKey(row.status)"
+                />
+              </app-record-row>
+            }
+          </div>
+        </app-card>
+        <div class="mt-3">
+          <app-pager
+            [offset]="offset()"
+            [pageSize]="pageSize"
+            [count]="items().length"
+            [total]="total()"
+            (pageChange)="offset.set($event)"
+          />
+        </div>
+      }
 
       <div empty>
-        <app-guide-intro class="mb-3 block" scope="inspections" page="templates" />
         <app-card>
           <app-teaching-empty
             scope="inspections"
@@ -291,8 +308,9 @@ export function toTemplateQuery(
             (action)="openLibrary()"
           />
         </app-card>
-        <app-why-it-matters class="mt-5 block" scope="inspections" page="templates" />
       </div>
+
+      <app-why-it-matters below scope="inspections" page="templates" />
     </app-record-list-page>
   `,
   styles: [FILTER_STYLES],
@@ -302,16 +320,22 @@ export class TemplatesList {
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly language = inject(LanguageService);
 
   protected readonly pageSize = PAGE_SIZE;
+  protected readonly nav = INSPECTIONS_NAV;
+  protected readonly settingsLink = INSPECTIONS_SETTINGS_LINK;
+  protected readonly entityType = TEMPLATE_ENTITY_TYPE;
+  protected readonly breadcrumbs = [
+    { labelKey: 'modules.names.inspections', link: '/inspections' },
+    { labelKey: 'inspections.templates.title' },
+  ];
   protected readonly statuses = TEMPLATE_STATUSES;
   protected readonly categories = TEMPLATE_CATEGORIES;
-  protected readonly frameworks = FRAMEWORK_KEYS;
+  protected readonly frameworks = SUPPORTED_FRAMEWORKS;
   protected readonly sorts = TEMPLATE_SORTS;
   protected readonly sortKeys = TEMPLATE_SORT_KEYS;
   protected readonly templateStatusKey = templateStatusKey;
-  protected readonly templateStatusTone = templateStatusTone;
-  protected readonly categoryLabel = categoryKey;
 
   protected readonly query = signal('');
   protected readonly filters = signal<TemplateListFilters>(
@@ -321,6 +345,7 @@ export class TemplatesList {
   protected readonly items = signal<readonly Template[]>([]);
   protected readonly total = signal(0);
   protected readonly loading = signal(false);
+  protected readonly error = signal(false);
   private readonly loaded = signal(false);
 
   protected readonly canDesign = computed(
@@ -328,10 +353,14 @@ export class TemplatesList {
   );
 
   protected readonly viewFilters = computed<Record<string, string>>(() => ({ ...this.filters() }));
+  protected readonly moreActive = computed(() =>
+    this.filters().sort !== DEFAULT_TEMPLATE_FILTERS.sort ? 1 : 0,
+  );
 
-  protected readonly isEmpty = computed(
+  protected readonly isEmptyRegister = computed(
     () =>
       this.loaded() &&
+      !this.error() &&
       this.total() === 0 &&
       !this.query().trim() &&
       JSON.stringify(this.filters()) === JSON.stringify(DEFAULT_TEMPLATE_FILTERS),
@@ -340,8 +369,9 @@ export class TemplatesList {
   constructor() {
     providePageContext(() => ({
       module: INSPECTIONS_MODULE,
-      entityType: 'checklist_template',
+      entityType: TEMPLATE_ENTITY_TYPE,
       view: 'list',
+      title: this.language.translate('inspections.templates.title'),
     }));
 
     effect(() => {
@@ -357,6 +387,7 @@ export class TemplatesList {
 
   private load(orgId: string, q: string, filters: TemplateListFilters, offset: number): void {
     this.loading.set(true);
+    this.error.set(false);
     this.api.listTemplates(orgId, toTemplateQuery(q, filters, offset)).subscribe({
       next: (page) => {
         this.items.set(page.items);
@@ -367,8 +398,30 @@ export class TemplatesList {
       error: () => {
         this.loading.set(false);
         this.loaded.set(true);
+        this.error.set(true);
       },
     });
+  }
+
+  protected reload(): void {
+    const orgId = this.selectedOrg.currentOrgId();
+    if (orgId) {
+      this.load(orgId, this.query(), this.filters(), this.offset());
+    }
+  }
+
+  /** "Helse og sikkerhet · 9 spørsmål · versjon 2 · ISO 45001". */
+  protected subtitle(row: Template): string {
+    const t = (key: string, params?: Record<string, unknown>) =>
+      this.language.translate(key, params);
+    const cat = categoryKey(row.category);
+    const parts = [
+      cat ? t(cat) : row.category,
+      t('inspections.templates.questions', { count: row.question_count }),
+      t('inspections.templates.versionShort', { version: row.version }),
+      ...row.frameworks.map((fw) => t(`inspections.frameworks.${fw}`)),
+    ];
+    return parts.filter((p): p is string => !!p).join(' · ');
   }
 
   protected onSearch(text: string): void {
@@ -379,6 +432,11 @@ export class TemplatesList {
   protected setFilter(key: keyof TemplateListFilters, value: string): void {
     this.offset.set(0);
     this.filters.set(parseTemplateFilters({ ...this.filters(), [key]: value }));
+  }
+
+  protected clearFilters(): void {
+    this.offset.set(0);
+    this.filters.set({ ...DEFAULT_TEMPLATE_FILTERS, status: '' });
   }
 
   protected applyView(view: SavedView): void {
