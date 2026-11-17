@@ -411,7 +411,9 @@ const SOA_FIELD_LABELS: Readonly<Record<string, string>> = {
                   {{ 'risk.soa.allThemes' | transloco }}
                 </option>
                 @for (t of themes(); track t) {
-                  <option [value]="t" [selected]="t === theme()">{{ t }}</option>
+                  <option [value]="t" [selected]="t === theme()">
+                    {{ knownThemes.has(t) ? ('standards.themes.' + t | transloco) : t }}
+                  </option>
                 }
               </select>
             }
@@ -979,6 +981,13 @@ export class SoaViewPage {
   protected readonly applicable = signal<ApplicableFilter>('all');
   protected readonly implementation = signal<ImplementationStatus | ''>('');
   protected readonly theme = signal('');
+  /** Annex A themes with a global label (`standards.themes.<theme>`). */
+  protected readonly knownThemes: ReadonlySet<string> = new Set([
+    'organizational',
+    'people',
+    'physical',
+    'technological',
+  ]);
   protected readonly selected = signal<SoaEntry | null>(null);
   protected readonly form = signal<EntryForm>(EMPTY_ENTRY_FORM);
   protected readonly saving = signal(false);
