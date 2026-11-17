@@ -13,10 +13,15 @@ import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../../core/ai/page-context';
+import { AuthService } from '../../../core/auth/auth.service';
+import { LanguageService } from '../../../core/i18n/language.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { WatchButton } from '../../../shared/activity/watch-button';
 import { AiAssistButton } from '../../../shared/ask/ai-assist-button';
 import { AskAbout } from '../../../shared/ask/ask-about';
+import { Term } from '../../../shared/guidance/term';
+import { TourStepDirective } from '../../../shared/guidance/tour-step.directive';
+import { EntityChip } from '../../../shared/kit/entity-chip';
 import { RecordDetailLayout, RecordTab } from '../../../shared/kit/record-detail-layout';
 import { LocalDatePipe, LocalDayPipe } from '../../../shared/locale/locale-pipes';
 import { SupportsRequirements } from '../../../shared/requirement-links/supports-requirements';
@@ -25,11 +30,27 @@ import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
+import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { FieldItem, FieldList } from '../../../shared/ui/field-list/field-list';
 import { FormField } from '../../../shared/ui/form-field/form-field';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { MenuItem } from '../../../shared/ui/overflow-menu/overflow-menu';
 import { PromptDialog } from '../../../shared/ui/prompt-dialog/prompt-dialog';
+import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { RiskApi } from '../data/risk-api';
-import { fromDateInput, riskStatusTone, soaLink } from '../data/risk-display';
+import {
+  appetiteState,
+  canonicalControlRef,
+  controlsOf,
+  currentBasis,
+  currentRating,
+  frameworksForCategory,
+  fromDateInput,
+  riskStatusValue,
+  toDateInput,
+} from '../data/risk-display';
 import { riskErrorKey } from '../data/risk-errors';
 import {
   ControlSuggestion,
@@ -38,11 +59,10 @@ import {
   Risk,
   TreatmentPlan,
 } from '../data/risk.models';
+import { ControlList } from '../shared/control-list';
 import { RatingBadge } from '../shared/rating-badge';
-import { RiskPageGuide } from '../shared/risk-page-guide';
 import { RiskPermissions } from '../shared/risk-permissions';
 import { RiskTreatments } from './risk-treatments';
-import { TourStepDirective } from '../../../shared/guidance/tour-step.directive';
 
 function titleOf(risk: Risk | null): string | null {
   return risk ? `${risk.code} ${risk.title}` : null;
@@ -65,11 +85,13 @@ export const RISK_FIELD_LABELS: Readonly<Record<string, string>> = {
   status: 'risk.fields.status',
   source_type: 'risk.fields.sourceType',
   source_ref: 'risk.fields.sourceRef',
+  source_entity_type: 'risk.fields.sourceEntity',
+  source_entity_id: 'risk.fields.sourceEntity',
   threat: 'risk.fields.threat',
   vulnerability: 'risk.fields.vulnerability',
   consequence_text: 'risk.fields.consequence',
   affected_properties: 'risk.fields.affectedProperties',
-  owner_user_id: 'risk.fields.owner',
+  owner_user_id: 'risk.fields.riskOwner',
   department_id: 'risk.fields.department',
   inherent_likelihood: 'risk.fields.inherentLikelihood',
   inherent_consequence: 'risk.fields.inherentConsequence',
@@ -91,10 +113,13 @@ export const RISK_FIELD_LABELS: Readonly<Record<string, string>> = {
 };
 
 /**
- * One risk: context, inherent -> treatment -> residual, the treatment plan (tasks),
- * acceptance sign-off, periodic review, the controls it references (linking to the
- * SoA) and the record kit tabs (related items, activity, comments, attachments,
- * revisions). AI: suggest controls, draft a treatment plan, ask about the rating.
+ * One risk. The first card says what the risk is (description, the exposed record,
+ * threat, vulnerability, consequence); then the assessment (inherent -> treatment
+ * decision -> residual, against the appetite), the acceptance sign-off, the
+ * treatment plan (tasks, effectiveness checks) and the cited controls (linked to the
+ * SoA with their implementation status). The aside shows the requirements the
+ * risk documents (fed by its controls), its connections and a short summary; the
+ * record kit tabs hold related items, activity, comments, attachments and revisions.
  */
 @Component({
   selector: 'app-risk-detail',
@@ -105,6 +130,8 @@ export const RISK_FIELD_LABELS: Readonly<Record<string, string>> = {
     WatchButton,
     AiAssistButton,
     AskAbout,
+    Term,
+    EntityChip,
     RecordDetailLayout,
     LocalDatePipe,
     LocalDayPipe,
@@ -114,19 +141,34 @@ export const RISK_FIELD_LABELS: Readonly<Record<string, string>> = {
     Button,
     Card,
     ConfirmDialog,
+    ErrorState,
+    FieldItem,
+    FieldList,
     FormField,
+    HelpStrip,
     Icon,
+    LoadingState,
+    MenuItem,
     PromptDialog,
+    StatusBadge,
+    ControlList,
     RatingBadge,
-    RiskPageGuide,
     RiskTreatments,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (risk(); as r) {
+      @let rating = current();
       <app-record-detail-layout
         entityType="risk"
         [entityId]="r.id"
+        [title]="r.title"
+        [breadcrumbs]="[
+          { labelKey: 'modules.names.risk', link: '/risk' },
+          { labelKey: 'risk.risks.title', link: '/risk/risks' },
+          { label: r.code },
+        ]"
+        settingsLink="/risk/matrices"
         [tabs]="tabs"
         [canEdit]="r.can_edit"
         [includeAudit]="perms.canReadAudit()"
@@ -134,86 +176,145 @@ export const RISK_FIELD_LABELS: Readonly<Record<string, string>> = {
         backLink="/risk/risks"
         backLabelKey="risk.common.backToRisks"
       >
-        <div header>
-          <p class="mb-1 flex flex-wrap items-center gap-2 text-[12.5px] text-fg-subtle">
-            <span class="font-mono">{{ r.code }}</span>
-            <a [routerLink]="['/risk/registers', r.register.id]" class="hover:underline">
-              {{ r.register.name }}
-            </a>
-          </p>
-          <h1 class="font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]">
-            {{ r.title }}
-          </h1>
-          <div class="mt-2 flex flex-wrap items-center gap-2">
-            <app-badge [tone]="statusTone()">{{ 'risk.status.' + r.status | transloco }}</app-badge>
-            <app-rating-badge
-              [score]="r.current_score"
-              [level]="r.current_level"
-              [label]="(r.residual ?? r.inherent)?.label"
-              [color]="(r.residual ?? r.inherent)?.color"
-            />
-            @if (r.above_appetite) {
+        <ng-container ngProjectAs="[meta]">
+          <span class="font-mono" data-testid="risk-code">{{ r.code }}</span>
+          <span aria-hidden="true">·</span>
+          <a
+            [routerLink]="['/risk/registers', r.register.id]"
+            class="hover:text-fg hover:underline"
+          >
+            {{ r.register.name }}
+          </a>
+          <app-status-badge
+            meaning="lifecycle"
+            [value]="statusValue(r.status)"
+            [labelKey]="'risk.status.' + r.status"
+          />
+          <app-rating-badge
+            [score]="rating?.score"
+            [level]="rating?.level"
+            [label]="rating?.label"
+            [color]="rating?.color"
+            prefixKey="risk.rating.currentPrefix"
+            [hintKey]="basisHint()"
+          />
+          @switch (appetite()) {
+            @case ('above') {
               <app-badge tone="fail">{{ 'risk.rating.aboveAppetite' | transloco }}</app-badge>
             }
-            @if (r.review_overdue) {
-              <app-badge tone="warn">{{ 'risk.detail.reviewOverdue' | transloco }}</app-badge>
+            @case ('accepted') {
+              <app-badge tone="neutral" data-testid="accepted-above-appetite">
+                {{ acceptedLabel() }}
+              </app-badge>
             }
-          </div>
-        </div>
-
-        <ng-container actions>
+          }
+          @if (r.review_overdue) {
+            <app-badge tone="warn">{{ 'risk.detail.reviewOverdue' | transloco }}</app-badge>
+          }
           <app-watch-button entityType="risk" [entityId]="r.id" />
-          @if (r.can_edit && r.status !== 'closed') {
-            <app-button size="sm" variant="secondary" (click)="reviewOpen.set(true)">
-              <app-icon name="checkcircle" [size]="14" />
-              {{ 'risk.detail.review' | transloco }}
-            </app-button>
-          }
-          @if (r.can_accept && r.status !== 'closed') {
-            @if (r.acceptance) {
-              <app-button size="sm" variant="secondary" (click)="revokeOpen.set(true)">
-                {{ 'risk.detail.revoke' | transloco }}
-              </app-button>
-            } @else {
-              <app-button
-                size="sm"
-                variant="secondary"
-                [disabled]="!r.inherent && !r.residual"
-                (click)="openAccept()"
-              >
-                {{ 'risk.detail.accept' | transloco }}
-              </app-button>
-            }
-          }
-          @if (r.can_edit) {
-            <app-button size="sm" (click)="edit()">
-              {{ 'risk.common.edit' | transloco }}
-            </app-button>
-          }
-          @if (r.can_delete) {
-            <app-button size="sm" variant="ghost" (click)="deleteOpen.set(true)">
-              <app-icon name="trash" [size]="14" />
-              <span class="sr-only sm:not-sr-only">{{ 'risk.common.delete' | transloco }}</span>
-            </app-button>
-          }
         </ng-container>
 
-        <div class="flex flex-col gap-5">
-          <app-risk-page-guide page="detail" lesson="treating-risks" tour="detail" />
+        @if (r.can_edit) {
+          <app-button primary size="sm" (click)="edit()" data-testid="risk-edit">
+            {{ 'risk.common.edit' | transloco }}
+          </app-button>
+        }
+        @if (r.can_edit && r.status !== 'closed') {
+          <app-button secondary size="sm" variant="secondary" (click)="reviewOpen.set(true)">
+            <app-icon name="checkcircle" [size]="14" />
+            {{ 'risk.detail.review' | transloco }}
+          </app-button>
+        }
+        @if (r.can_accept && r.status !== 'closed' && !r.acceptance) {
+          <app-button
+            secondary
+            size="sm"
+            variant="secondary"
+            [disabled]="!rated()"
+            [attr.title]="rated() ? null : ('risk.detail.acceptNeedsRating' | transloco)"
+            (click)="openAccept()"
+            data-testid="risk-accept"
+          >
+            {{ 'risk.detail.accept' | transloco }}
+          </app-button>
+        }
+        @if (r.can_accept && r.status !== 'closed' && r.acceptance) {
+          <button appMenuItem overflow (click)="revokeOpen.set(true)">
+            {{ 'risk.detail.revoke' | transloco }}
+          </button>
+        }
+        @if (r.can_delete) {
+          <button appMenuItem overflow [danger]="true" (click)="deleteOpen.set(true)">
+            {{ 'risk.common.delete' | transloco }}
+          </button>
+        }
 
+        <div class="flex flex-col gap-5">
           @if (errorKey(); as key) {
             <app-alert tone="error">{{ key | transloco }}</app-alert>
           }
 
+          <app-card data-testid="risk-what">
+            <h2 class="mb-3 font-display text-section font-bold text-fg">
+              {{ 'risk.detail.what' | transloco }}
+            </h2>
+            @if (r.description) {
+              <p class="mb-4 text-body whitespace-pre-line text-fg">{{ r.description }}</p>
+            }
+            <app-field-list>
+              <app-field-item labelKey="risk.fields.sourceType" [wide]="true">
+                <div class="flex flex-wrap items-center gap-2">
+                  @if (r.source_type) {
+                    <span>{{ 'risk.sourceTypes.' + r.source_type | transloco }}</span>
+                  }
+                  @if (r.source_entity; as entity) {
+                    <app-entity-chip [ref]="entity" data-testid="risk-subject" />
+                  } @else if (r.source_ref) {
+                    <span class="text-fg-muted">· {{ r.source_ref }}</span>
+                  } @else if (!r.source_type) {
+                    <span class="text-fg-muted">{{ 'common.empty.notSet' | transloco }}</span>
+                  }
+                </div>
+              </app-field-item>
+              <app-field-item
+                labelKey="risk.fields.threat"
+                [value]="r.threat"
+                [wide]="true"
+                [multiline]="true"
+              />
+              <app-field-item
+                labelKey="risk.fields.vulnerability"
+                [value]="r.vulnerability"
+                [wide]="true"
+                [multiline]="true"
+              />
+              <app-field-item
+                labelKey="risk.fields.consequence"
+                [value]="r.consequence_text"
+                [wide]="true"
+                [multiline]="true"
+              />
+              @if (r.affected_properties.length) {
+                <app-field-item
+                  labelKey="risk.fields.affectedProperties"
+                  [value]="properties()"
+                  [wide]="true"
+                />
+              }
+            </app-field-list>
+          </app-card>
+
           <app-card>
-            <h2 class="mb-3 flex items-center gap-1.5 font-display text-[16px] font-bold text-fg">
+            <h2 class="mb-3 flex items-center gap-1.5 font-display text-section font-bold text-fg">
               {{ 'risk.detail.assessment' | transloco }}
               <app-ask-about [prompt]="'risk.ask.rating' | transloco" field="rating" />
             </h2>
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-3" [appTourStep]="'risk-ratings'">
               <div>
-                <p class="mb-1 text-[12px] font-semibold text-fg-muted">
-                  {{ 'risk.fields.inherent' | transloco }}
+                <p class="mb-1 text-meta font-semibold text-fg-muted">
+                  <app-term scope="risk" key="inherent-risk">{{
+                    'risk.fields.inherent' | transloco
+                  }}</app-term>
                 </p>
                 <app-rating-badge
                   [score]="r.inherent?.score"
@@ -222,23 +323,23 @@ export const RISK_FIELD_LABELS: Readonly<Record<string, string>> = {
                   [color]="r.inherent?.color"
                 />
                 @if (r.inherent; as i) {
-                  <p class="mt-1 text-[12px] text-fg-subtle">
+                  <p class="mt-1 text-meta text-fg-subtle">
                     {{ 'risk.detail.lc' | transloco: { l: i.likelihood, c: i.consequence } }}
                   </p>
                 }
               </div>
               <div>
-                <p class="mb-1 text-[12px] font-semibold text-fg-muted">
+                <p class="mb-1 text-meta font-semibold text-fg-muted">
                   {{ 'risk.fields.strategy' | transloco }}
                 </p>
-                <p class="text-[13.5px] text-fg">
+                <p class="text-body text-fg">
                   {{
                     r.treatment_strategy
                       ? ('risk.strategies.' + r.treatment_strategy | transloco)
                       : ('risk.common.notDecided' | transloco)
                   }}
                 </p>
-                <p class="mt-1 text-[12px] text-fg-subtle">
+                <p class="mt-1 text-meta text-fg-subtle">
                   {{
                     'risk.detail.treatmentCounts'
                       | transloco: { open: r.treatments.open, done: r.treatments.done }
@@ -246,8 +347,10 @@ export const RISK_FIELD_LABELS: Readonly<Record<string, string>> = {
                 </p>
               </div>
               <div>
-                <p class="mb-1 text-[12px] font-semibold text-fg-muted">
-                  {{ 'risk.fields.residual' | transloco }}
+                <p class="mb-1 text-meta font-semibold text-fg-muted">
+                  <app-term scope="risk" key="residual-risk">{{
+                    'risk.fields.residual' | transloco
+                  }}</app-term>
                 </p>
                 <app-rating-badge
                   [score]="r.residual?.score"
@@ -256,26 +359,54 @@ export const RISK_FIELD_LABELS: Readonly<Record<string, string>> = {
                   [color]="r.residual?.color"
                 />
                 @if (r.residual; as res) {
-                  <p class="mt-1 text-[12px] text-fg-subtle">
+                  <p class="mt-1 text-meta text-fg-subtle">
                     {{ 'risk.detail.lc' | transloco: { l: res.likelihood, c: res.consequence } }}
+                  </p>
+                } @else if (r.inherent) {
+                  <p class="mt-1 text-meta text-fg-subtle">
+                    {{ 'risk.detail.noResidual' | transloco }}
                   </p>
                 }
               </div>
             </div>
+            <div
+              class="mt-4 flex flex-col gap-1 rounded-tile bg-surface-2 px-3 py-2 text-ui text-fg-muted"
+            >
+              <p>
+                <app-term scope="risk" key="current-rating">{{
+                  'risk.rating.current' | transloco
+                }}</app-term
+                >:
+                {{ basisHint() ?? 'risk.rating.basisHint.none' | transloco }}
+              </p>
+              @if (appetiteMax() !== null) {
+                <p data-testid="risk-appetite-line">
+                  <app-term scope="risk" key="risk-appetite">{{
+                    'risk.overview.appetiteTerm' | transloco
+                  }}</app-term
+                  >:
+                  {{ 'risk.detail.appetiteLine' | transloco: { score: appetiteMax() } }}
+                </p>
+              }
+              @if (!rated() && r.can_accept) {
+                <p>{{ 'risk.detail.acceptNeedsRating' | transloco }}</p>
+              }
+            </div>
             @if (r.treatment_notes) {
-              <p class="mt-3 text-[13.5px] whitespace-pre-line text-fg-muted">
+              <p class="mt-3 text-body whitespace-pre-line text-fg-muted">
                 {{ r.treatment_notes }}
               </p>
             }
             @if (r.status !== 'closed' && r.can_edit) {
               <div class="mt-4 flex flex-wrap items-center gap-2 border-t border-border pt-3">
-                <label for="risk-status" class="text-[12.5px] font-semibold text-fg-muted">
+                <label for="risk-status" class="text-meta font-semibold text-fg-muted">
                   {{ 'risk.detail.changeStatus' | transloco }}
                 </label>
                 <select
                   id="risk-status"
-                  class="h-9 rounded-tile border border-border bg-bg px-2 text-[13px] text-fg"
+                  class="h-9 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
                   [disabled]="!!r.acceptance"
+                  [attr.aria-describedby]="r.acceptance ? 'risk-status-locked' : null"
                   (change)="requestStatus($any($event.target).value)"
                 >
                   @if (r.status === 'accepted') {
@@ -290,7 +421,7 @@ export const RISK_FIELD_LABELS: Readonly<Record<string, string>> = {
                   }
                 </select>
                 @if (r.acceptance) {
-                  <span class="text-[12px] text-fg-subtle">{{
+                  <span id="risk-status-locked" class="text-meta text-fg-subtle">{{
                     'risk.detail.acceptedLocked' | transloco
                   }}</span>
                 }
@@ -299,29 +430,30 @@ export const RISK_FIELD_LABELS: Readonly<Record<string, string>> = {
           </app-card>
 
           @if (r.acceptance; as a) {
-            <app-card>
-              <h2 class="mb-2 font-display text-[16px] font-bold text-fg">
+            <app-card data-testid="risk-acceptance">
+              <h2 class="mb-2 font-display text-section font-bold text-fg">
                 {{ 'risk.detail.acceptance' | transloco }}
               </h2>
-              <p class="text-[13.5px] text-fg">
+              <p class="text-body text-fg">
                 {{
                   'risk.detail.acceptedBy'
                     | transloco
                       : {
                           name: a.accepted_by?.name ?? ('risk.common.unknown' | transloco),
-                          date: (a.accepted_at | localDate: 'mediumDate'),
+                          date: (a.accepted_at | localDay),
                         }
                 }}
               </p>
-              @if (a.expires_at) {
-                <p class="mt-1 text-[12.5px] text-fg-muted">
-                  {{
-                    'risk.detail.acceptanceExpires' | transloco: { date: (a.expires_at | localDay) }
-                  }}
-                </p>
-              }
+              <p class="mt-1 text-ui text-fg-muted">
+                {{
+                  a.expires_at
+                    ? ('risk.detail.acceptanceExpires'
+                      | transloco: { date: (a.expires_at | localDay) })
+                    : ('risk.detail.acceptanceUntilReview' | transloco)
+                }}
+              </p>
               @if (a.note) {
-                <p class="mt-2 text-[13.5px] whitespace-pre-line text-fg-muted">{{ a.note }}</p>
+                <p class="mt-2 text-body whitespace-pre-line text-fg-muted">{{ a.note }}</p>
               }
             </app-card>
           }
@@ -334,12 +466,13 @@ export const RISK_FIELD_LABELS: Readonly<Record<string, string>> = {
               [focusId]="treatmentFocus()"
               (changed)="reload()"
               (planApplied)="applyPlan($event)"
+              (rerate)="rerate()"
             />
           </app-card>
 
-          <app-card>
-            <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-              <h2 class="font-display text-[16px] font-bold text-fg">
+          <app-card data-testid="risk-controls">
+            <div class="mb-1 flex flex-wrap items-center justify-between gap-2">
+              <h2 class="flex items-center gap-1.5 font-display text-section font-bold text-fg">
                 {{ 'risk.detail.controls' | transloco }}
               </h2>
               @if (r.can_edit) {
@@ -353,9 +486,10 @@ export const RISK_FIELD_LABELS: Readonly<Record<string, string>> = {
                 />
               }
             </div>
+            <p class="mb-3 text-meta text-fg-muted">{{ 'risk.detail.controlsHint' | transloco }}</p>
             @if (controlSuggestions().length) {
               <section
-                class="mb-3 rounded-card border border-accent/30 bg-accent-soft p-3 text-[13px]"
+                class="mb-3 rounded-card border border-accent/30 bg-accent-soft p-3 text-ui"
                 aria-live="polite"
                 [attr.aria-label]="'risk.ai.controlsTitle' | transloco"
               >
@@ -363,7 +497,7 @@ export const RISK_FIELD_LABELS: Readonly<Record<string, string>> = {
                   <h3 class="font-semibold text-fg">{{ 'risk.ai.controlsTitle' | transloco }}</h3>
                   <button
                     type="button"
-                    class="text-[12.5px] font-semibold text-fg-muted hover:text-fg"
+                    class="text-meta font-semibold text-fg-muted hover:text-fg"
                     (click)="controlSuggestions.set([])"
                   >
                     {{ 'risk.common.dismiss' | transloco }}
@@ -376,7 +510,7 @@ export const RISK_FIELD_LABELS: Readonly<Record<string, string>> = {
                     >
                       <div class="min-w-0 flex-1">
                         <p class="font-semibold text-fg">
-                          <span class="font-mono">{{ c.ref }}</span>
+                          {{ suggestionNumber(c.ref) }}
                           @if (c.title) {
                             · {{ c.title }}
                           }
@@ -385,7 +519,7 @@ export const RISK_FIELD_LABELS: Readonly<Record<string, string>> = {
                           <p class="text-fg-muted">{{ c.reason }}</p>
                         }
                       </div>
-                      @if (r.control_refs.includes(c.ref)) {
+                      @if (hasControl(c.ref)) {
                         <app-badge tone="pass">{{ 'risk.ai.added' | transloco }}</app-badge>
                       } @else {
                         <app-button size="sm" variant="secondary" (click)="addControl(c.ref)">
@@ -397,149 +531,51 @@ export const RISK_FIELD_LABELS: Readonly<Record<string, string>> = {
                 </ul>
               </section>
             }
-            <ul class="flex flex-wrap gap-2">
-              @for (ref of r.control_refs; track ref) {
-                <li>
-                  @if (soa(ref); as link) {
-                    <a
-                      [routerLink]="link.path"
-                      [queryParams]="{ control: link.control }"
-                      class="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-0.5 font-mono text-[12px] text-fg hover:border-accent hover:text-accent"
-                      >{{ ref }}</a
-                    >
-                  } @else {
-                    <span class="font-mono text-[12px]">{{ ref }}</span>
-                  }
-                </li>
-              } @empty {
-                <li class="text-[13px] text-fg-muted">
-                  {{ 'risk.detail.noControls' | transloco }}
-                </li>
-              }
-            </ul>
-          </app-card>
-
-          <app-card>
-            <h2 class="mb-3 font-display text-[16px] font-bold text-fg">
-              {{ 'risk.detail.context' | transloco }}
-            </h2>
-            <dl class="grid grid-cols-1 gap-3 text-[13.5px] sm:grid-cols-2">
-              @if (r.description) {
-                <div class="sm:col-span-2">
-                  <dt class="text-[12px] font-semibold text-fg-muted">
-                    {{ 'risk.fields.description' | transloco }}
-                  </dt>
-                  <dd class="whitespace-pre-line text-fg">{{ r.description }}</dd>
-                </div>
-              }
-              <div>
-                <dt class="text-[12px] font-semibold text-fg-muted">
-                  {{ 'risk.fields.sourceType' | transloco }}
-                </dt>
-                <dd class="text-fg">
-                  {{ r.source_type ? ('risk.sourceTypes.' + r.source_type | transloco) : '—' }}
-                  @if (r.source_ref) {
-                    · {{ r.source_ref }}
-                  }
-                </dd>
-              </div>
-              <div>
-                <dt class="text-[12px] font-semibold text-fg-muted">
-                  {{ 'risk.fields.affectedProperties' | transloco }}
-                </dt>
-                <dd class="text-fg">
-                  @for (p of r.affected_properties; track p; let last = $last) {
-                    {{ 'risk.properties.' + p | transloco }}{{ last ? '' : ', ' }}
-                  } @empty {
-                    —
-                  }
-                </dd>
-              </div>
-              <div class="sm:col-span-2">
-                <dt class="text-[12px] font-semibold text-fg-muted">
-                  {{ 'risk.fields.threat' | transloco }}
-                </dt>
-                <dd class="whitespace-pre-line text-fg">{{ r.threat || '—' }}</dd>
-              </div>
-              <div class="sm:col-span-2">
-                <dt class="text-[12px] font-semibold text-fg-muted">
-                  {{ 'risk.fields.vulnerability' | transloco }}
-                </dt>
-                <dd class="whitespace-pre-line text-fg">{{ r.vulnerability || '—' }}</dd>
-              </div>
-              <div class="sm:col-span-2">
-                <dt class="text-[12px] font-semibold text-fg-muted">
-                  {{ 'risk.fields.consequence' | transloco }}
-                </dt>
-                <dd class="whitespace-pre-line text-fg">{{ r.consequence_text || '—' }}</dd>
-              </div>
-            </dl>
+            <app-risk-control-list [controls]="controls()" emptyKey="risk.detail.noControls" />
           </app-card>
         </div>
 
-        <ng-container aside>
-          <app-card>
-            <dl class="flex flex-col gap-3 text-[13px]">
-              <div>
-                <dt class="text-[12px] font-semibold text-fg-muted">
-                  {{ 'risk.fields.owner' | transloco }}
-                </dt>
-                <dd class="text-fg">
-                  {{ r.owner?.name ?? ('risk.common.unassigned' | transloco) }}
-                </dd>
-              </div>
-              <div>
-                <dt class="text-[12px] font-semibold text-fg-muted">
-                  {{ 'risk.fields.department' | transloco }}
-                </dt>
-                <dd class="text-fg">{{ r.department?.name ?? '—' }}</dd>
-              </div>
-              <div>
-                <dt class="text-[12px] font-semibold text-fg-muted">
-                  {{ 'risk.fields.category' | transloco }}
-                </dt>
-                <dd class="text-fg">{{ 'risk.categories.' + r.category | transloco }}</dd>
-              </div>
-              <div>
-                <dt class="text-[12px] font-semibold text-fg-muted">
-                  {{ 'risk.fields.lastReviewed' | transloco }}
-                </dt>
-                <dd class="text-fg">
-                  {{ r.last_reviewed_at ? (r.last_reviewed_at | localDate: 'mediumDate') : '—' }}
-                </dd>
-              </div>
-              <div>
-                <dt class="text-[12px] font-semibold text-fg-muted">
-                  {{ 'risk.fields.nextReview' | transloco }}
-                </dt>
-                <dd
-                  [class.text-fail]="r.review_overdue"
-                  [class.font-semibold]="r.review_overdue"
-                  class="text-fg"
-                >
-                  {{ r.next_review_at ? (r.next_review_at | localDay) : '—' }}
-                </dd>
-              </div>
-              @if (r.status_reason) {
-                <div>
-                  <dt class="text-[12px] font-semibold text-fg-muted">
-                    {{ 'risk.fields.statusReason' | transloco }}
-                  </dt>
-                  <dd class="text-fg">{{ r.status_reason }}</dd>
-                </div>
-              }
-              <div>
-                <dt class="text-[12px] font-semibold text-fg-muted">
-                  {{ 'risk.fields.updatedAt' | transloco }}
-                </dt>
-                <dd class="text-fg">{{ r.updated_at | localDate: 'medium' }}</dd>
-              </div>
-            </dl>
-          </app-card>
-          <app-card>
-            <app-supports-requirements entityType="risk" [entityId]="r.id" />
-          </app-card>
-        </ng-container>
+        <app-supports-requirements
+          aside-requirements
+          entityType="risk"
+          [entityId]="r.id"
+          [canEdit]="r.can_edit"
+          [frameworks]="frameworks()"
+        />
+
+        <app-card aside>
+          <h2 class="mb-3 text-card font-semibold text-fg">
+            {{ 'risk.detail.summary' | transloco }}
+          </h2>
+          <app-field-list [columns]="1">
+            <app-field-item labelKey="risk.fields.riskOwner" [value]="r.owner?.name" empty="none" />
+            <app-field-item labelKey="risk.fields.department" [value]="r.department?.name" />
+            <app-field-item
+              labelKey="risk.fields.category"
+              [value]="'risk.categories.' + r.category | transloco"
+            />
+            <app-field-item
+              labelKey="risk.fields.lastReviewed"
+              [value]="r.last_reviewed_at ? (r.last_reviewed_at | localDay) : null"
+            />
+            <app-field-item
+              labelKey="risk.fields.nextReview"
+              [value]="r.next_review_at ? (r.next_review_at | localDay) : null"
+            />
+            @if (r.status_reason) {
+              <app-field-item labelKey="risk.fields.statusReason" [value]="r.status_reason" />
+            }
+            <app-field-item labelKey="risk.fields.updatedAt" [value]="r.updated_at | localDate" />
+          </app-field-list>
+        </app-card>
+
+        <app-help-strip
+          aside-learn
+          scope="risk"
+          page="detail"
+          tour="detail"
+          lesson="treating-risks"
+        />
       </app-record-detail-layout>
 
       <app-prompt-dialog
@@ -591,7 +627,7 @@ export const RISK_FIELD_LABELS: Readonly<Record<string, string>> = {
             | transloco
         "
         confirmVariant="primary"
-        [confirmLabel]="'risk.detail.accept' | transloco"
+        [confirmLabel]="'risk.detail.acceptConfirm' | transloco"
         [cancelLabel]="'risk.common.cancel' | transloco"
         [busy]="busy()"
         [confirmDisabled]="r.above_appetite && !acceptNote().trim()"
@@ -599,17 +635,33 @@ export const RISK_FIELD_LABELS: Readonly<Record<string, string>> = {
         (cancelled)="acceptOpen.set(false)"
       >
         <div class="mt-3 flex flex-col gap-3">
+          <p
+            class="rounded-tile border border-border bg-surface-2 px-3 py-2 text-ui text-fg"
+            data-testid="accept-signer"
+          >
+            <app-icon name="checkcircle" [size]="14" />
+            {{ 'risk.detail.acceptSigner' | transloco: { name: signer() } }}
+          </p>
           <app-form-field
-            [label]="'risk.fields.acceptanceNote' | transloco"
+            [label]="
+              (r.above_appetite
+                ? 'risk.fields.acceptanceNoteRequired'
+                : 'risk.fields.acceptanceNote'
+              ) | transloco
+            "
             inputId="risk-accept-note"
           >
             <textarea
               id="risk-accept-note"
               rows="3"
+              [attr.aria-required]="r.above_appetite || null"
               [value]="acceptNote()"
               (input)="acceptNote.set($any($event.target).value)"
             ></textarea>
           </app-form-field>
+          @if (r.above_appetite && !acceptNote().trim()) {
+            <p class="text-meta text-fg-muted">{{ 'risk.detail.acceptNoteHint' | transloco }}</p>
+          }
           <app-form-field
             [label]="'risk.fields.acceptanceExpires' | transloco"
             inputId="risk-accept-expiry"
@@ -621,6 +673,7 @@ export const RISK_FIELD_LABELS: Readonly<Record<string, string>> = {
               (input)="acceptExpiry.set($any($event.target).value)"
             />
           </app-form-field>
+          <p class="text-meta text-fg-subtle">{{ 'risk.detail.acceptExpiryHint' | transloco }}</p>
         </div>
       </app-confirm-dialog>
 
@@ -636,18 +689,18 @@ export const RISK_FIELD_LABELS: Readonly<Record<string, string>> = {
       />
     } @else if (state() === 'error') {
       <div class="mx-auto max-w-[1180px] px-4 pt-10 sm:px-8">
-        <app-alert tone="error">{{ loadErrorKey() | transloco }}</app-alert>
+        <app-error-state [bodyKey]="loadErrorKey()" (retry)="reload()" />
         <a
           routerLink="/risk/risks"
-          class="mt-3 inline-block text-[13px] font-semibold text-accent hover:underline"
+          class="mt-3 inline-block text-ui font-semibold text-accent hover:underline"
         >
           {{ 'risk.common.backToRisks' | transloco }}
         </a>
       </div>
     } @else {
-      <p class="py-16 text-center text-[14px] text-fg-muted">
-        {{ 'risk.common.loading' | transloco }}
-      </p>
+      <div class="mx-auto max-w-[1180px] px-4 pt-10 sm:px-8">
+        <app-loading-state [rows]="6" />
+      </div>
     }
   `,
 })
@@ -655,6 +708,8 @@ export class RiskDetailPage {
   private readonly api = inject(RiskApi);
   private readonly router = inject(Router);
   private readonly toasts = inject(NotificationService);
+  private readonly auth = inject(AuthService);
+  private readonly language = inject(LanguageService);
   protected readonly perms = inject(RiskPermissions);
 
   readonly id = input.required<string>();
@@ -664,6 +719,7 @@ export class RiskDetailPage {
   protected readonly tabs = TABS;
   protected readonly fieldLabels = RISK_FIELD_LABELS;
   protected readonly patchableStatuses = PATCHABLE_RISK_STATUSES;
+  protected readonly statusValue = riskStatusValue;
 
   protected readonly risk = signal<Risk | null>(null);
   protected readonly state = signal<'loading' | 'ready' | 'error'>('loading');
@@ -681,9 +737,55 @@ export class RiskDetailPage {
   private sub: Subscription | null = null;
 
   protected readonly treatmentFocus = computed(() => this.treatment() ?? null);
-  protected readonly statusTone = computed(() =>
-    riskStatusTone(this.risk()?.status ?? 'identified'),
+  protected readonly current = computed(() => {
+    const risk = this.risk();
+    return risk ? currentRating(risk) : null;
+  });
+  protected readonly rated = computed(() => !!this.risk()?.inherent || !!this.risk()?.residual);
+  protected readonly appetite = computed(() => {
+    const risk = this.risk();
+    return risk ? appetiteState(risk) : null;
+  });
+  protected readonly appetiteMax = computed(() => this.risk()?.appetite_max_score ?? null);
+  protected readonly basisHint = computed(() => {
+    const risk = this.risk();
+    const basis = risk ? currentBasis(risk) : null;
+    return basis ? `risk.rating.basisHint.${basis}` : null;
+  });
+  protected readonly controls = computed(() => {
+    const risk = this.risk();
+    return risk ? controlsOf(risk) : [];
+  });
+  /** Canonical refs of the cited controls (page context, "already added"). */
+  private readonly controlRefs = computed(() => this.controls().map((c) => c.ref));
+  /** Standards the requirement suggestions are narrowed to (from the register category). */
+  protected readonly frameworks = computed(() => {
+    const risk = this.risk();
+    if (!risk) {
+      return null;
+    }
+    const list = risk.frameworks?.length ? risk.frameworks : frameworksForCategory(risk.category);
+    return list.length ? list : null;
+  });
+  protected readonly properties = computed(() =>
+    (this.risk()?.affected_properties ?? [])
+      .map((p) => this.translate(`risk.properties.${p}`))
+      .join(', '),
   );
+  protected readonly signer = computed(() => this.auth.displayName() || '');
+  protected readonly acceptedLabel = computed(() => {
+    const a = this.risk()?.acceptance;
+    if (!a) {
+      return this.translate('risk.rating.acceptedAboveAppetite');
+    }
+    return this.translate('risk.rating.acceptedAboveAppetiteBy', {
+      name: a.accepted_by?.name ?? this.translate('risk.common.unknown'),
+    });
+  });
+
+  private translate(key: string, params?: Record<string, unknown>): string {
+    return this.language.translate(key, params);
+  }
 
   constructor() {
     providePageContext(() => ({
@@ -692,6 +794,7 @@ export class RiskDetailPage {
       entityId: this.id(),
       view: 'detail',
       title: titleOf(this.risk()),
+      requirements: this.controlRefs(),
     }));
     effect(() => {
       const orgId = this.perms.orgId();
@@ -723,12 +826,15 @@ export class RiskDetailPage {
     this.load(this.perms.orgId(), this.id());
   }
 
-  protected soa(ref: string) {
-    return soaLink(ref);
-  }
-
   protected edit(): void {
     void this.router.navigate(['/risk/risks', this.id(), 'edit']);
+  }
+
+  /** After an effectiveness check: re-rate the residual risk on the edit form. */
+  protected rerate(): void {
+    void this.router.navigate(['/risk/risks', this.id(), 'edit'], {
+      queryParams: { step: 'assess' },
+    });
   }
 
   /** Run a mutation that returns the updated risk. */
@@ -768,7 +874,8 @@ export class RiskDetailPage {
 
   protected openAccept(): void {
     this.acceptNote.set('');
-    this.acceptExpiry.set('');
+    // Default: valid until the next periodic review (27001 6.1.3 f).
+    this.acceptExpiry.set(toDateInput(this.risk()?.next_review_at));
     this.acceptOpen.set(true);
   }
 
@@ -826,15 +933,24 @@ export class RiskDetailPage {
     this.controlSuggestions.set(controls.filter((c) => c && typeof c.ref === 'string'));
   }
 
+  protected suggestionNumber(ref: string): string {
+    const canonical = canonicalControlRef(ref);
+    return canonical.slice(canonical.indexOf(':') + 1);
+  }
+
+  protected hasControl(ref: string): boolean {
+    return this.controlRefs().includes(canonicalControlRef(ref));
+  }
+
   protected addControl(ref: string): void {
     const risk = this.risk();
-    if (!risk || risk.control_refs.includes(ref)) {
+    if (!risk || this.hasControl(ref)) {
       return;
     }
     this.mutate(
       (orgId) =>
         this.api.updateRisk(orgId, risk.id, {
-          control_refs: [...risk.control_refs, ref],
+          control_refs: [...this.controlRefs(), canonicalControlRef(ref)],
         }),
       'risk.notices.saved',
     );

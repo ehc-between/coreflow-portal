@@ -351,7 +351,16 @@
     "actions_cancelled": "Tiltak avbrutt",
     "standards": "Standarder",
     "total": "Totalt",
-    "review_overdue": "Revisjon forfalt"
+    "review_overdue": "Revisjon forfalt",
+    "above_appetite": "Over risikoappetitt",
+    "accepted": "Akseptert",
+    "effectiveness_unverified": "Tiltak uten kontroll av effekt",
+    "opportunities_open": "Åpne muligheter",
+    "opportunities_realised": "Realiserte muligheter",
+    "soa_controls": "Kontroller i SoA",
+    "soa_applicable": "Aktuelle kontroller",
+    "soa_implemented": "Implementerte kontroller",
+    "soa_missing_justification": "Kontroller uten begrunnelse"
   },
   "values": {
     "low": "Lav",
@@ -373,7 +382,13 @@
     "obsolete": "Utgått",
     "effective": "Effektivt",
     "not_effective": "Ikke effektivt",
-    "pending": "Venter"
+    "pending": "Venter",
+    "identified": "Identifisert",
+    "assessed": "Vurdert",
+    "in_treatment": "Under behandling",
+    "monitoring": "Overvåkes",
+    "accepted": "Akseptert",
+    "partially_effective": "Virker delvis"
   },
   "inputData": {
     "notCompiled": "Ingen data samlet ennå. Oppdater grunnlaget for å hente de siste tallene.",

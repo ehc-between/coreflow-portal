@@ -21,7 +21,11 @@ import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
-import { Icon } from '../../../shared/ui/icon/icon';
+import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { FieldItem, FieldList } from '../../../shared/ui/field-list/field-list';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { MenuItem } from '../../../shared/ui/overflow-menu/overflow-menu';
 import { RiskApi } from '../data/risk-api';
 import { riskErrorKey } from '../data/risk-errors';
 import { Heatmap, Matrix, Register } from '../data/risk.models';
@@ -44,7 +48,12 @@ const TABS: readonly RecordTab[] = ['details', 'related', 'activity', 'comments'
     Button,
     Card,
     ConfirmDialog,
-    Icon,
+    ErrorState,
+    FieldItem,
+    FieldList,
+    HelpStrip,
+    LoadingState,
+    MenuItem,
     MatrixGrid,
     RegisterFormPanel,
   ],
@@ -54,40 +63,39 @@ const TABS: readonly RecordTab[] = ['details', 'related', 'activity', 'comments'
       <app-record-detail-layout
         entityType="risk_register"
         [entityId]="r.id"
+        [title]="r.name"
+        [breadcrumbs]="[
+          { labelKey: 'modules.names.risk', link: '/risk' },
+          { labelKey: 'risk.registers.title', link: '/risk/registers' },
+          { label: r.name },
+        ]"
+        settingsLink="/risk/matrices"
         [tabs]="tabs"
         [canEdit]="perms.canManage()"
         [includeAudit]="perms.canReadAudit()"
         backLink="/risk/registers"
         backLabelKey="risk.registers.back"
       >
-        <div header>
-          <p class="mb-1 text-[12.5px] text-fg-subtle">
-            {{ 'risk.categories.' + r.category | transloco }}
-          </p>
-          <h1 class="font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]">
-            {{ r.name }}
-          </h1>
-          <div class="mt-2 flex flex-wrap gap-2">
-            @if (r.is_default) {
-              <app-badge tone="accent">{{ 'risk.registers.default' | transloco }}</app-badge>
-            }
-            @if (r.status === 'archived') {
-              <app-badge>{{ 'risk.registers.archivedBadge' | transloco }}</app-badge>
-            }
-          </div>
-        </div>
-        <ng-container actions>
-          <app-watch-button entityType="risk_register" [entityId]="r.id" />
-          @if (perms.canManage()) {
-            <app-button size="sm" (click)="panelOpen.set(true)">{{
-              'risk.common.edit' | transloco
-            }}</app-button>
-            <app-button size="sm" variant="ghost" (click)="deleteOpen.set(true)">
-              <app-icon name="trash" [size]="14" />
-              <span class="sr-only sm:not-sr-only">{{ 'risk.common.delete' | transloco }}</span>
-            </app-button>
+        <ng-container ngProjectAs="[meta]">
+          <span>{{ 'risk.categories.' + r.category | transloco }}</span>
+          @if (r.is_default) {
+            <app-badge tone="accent">{{ 'risk.registers.default' | transloco }}</app-badge>
           }
+          @if (r.status === 'archived') {
+            <app-badge>{{ 'risk.registers.archivedBadge' | transloco }}</app-badge>
+          }
+          <app-watch-button entityType="risk_register" [entityId]="r.id" />
         </ng-container>
+        @if (perms.canManage()) {
+          <app-button primary size="sm" (click)="panelOpen.set(true)">{{
+            'risk.common.edit' | transloco
+          }}</app-button>
+        }
+        @if (perms.canManage()) {
+          <button appMenuItem overflow [danger]="true" (click)="deleteOpen.set(true)">
+            {{ 'risk.common.delete' | transloco }}
+          </button>
+        }
 
         <div class="flex flex-col gap-5">
           @if (errorKey(); as key) {
@@ -95,59 +103,38 @@ const TABS: readonly RecordTab[] = ['details', 'related', 'activity', 'comments'
           }
           <app-card>
             @if (r.description) {
-              <p class="mb-3 text-[13.5px] whitespace-pre-line text-fg">{{ r.description }}</p>
+              <p class="mb-3 text-body whitespace-pre-line text-fg">{{ r.description }}</p>
             }
-            <dl class="grid grid-cols-2 gap-3 text-[13px] sm:grid-cols-4">
-              <div>
-                <dt class="text-[12px] font-semibold text-fg-muted">
-                  {{ 'risk.registers.matrix' | transloco }}
-                </dt>
-                <dd>
-                  <a
-                    [routerLink]="['/risk/matrices', r.matrix_id]"
-                    class="text-accent hover:underline"
-                    >{{ r.matrix_name ?? '—' }}</a
-                  >
-                </dd>
-              </div>
-              <div>
-                <dt class="text-[12px] font-semibold text-fg-muted">
-                  {{ 'risk.fields.owner' | transloco }}
-                </dt>
-                <dd class="text-fg">
-                  {{ r.owner?.name ?? ('risk.common.unassigned' | transloco) }}
-                </dd>
-              </div>
-              <div>
-                <dt class="text-[12px] font-semibold text-fg-muted">
-                  {{ 'risk.fields.reviewInterval' | transloco }}
-                </dt>
-                <dd class="text-fg">
-                  {{ 'risk.registers.months' | transloco: { count: r.review_interval_months } }}
-                </dd>
-              </div>
-              <div>
-                <dt class="text-[12px] font-semibold text-fg-muted">
-                  {{ 'risk.registers.risks' | transloco }}
-                </dt>
-                <dd>
-                  <a
-                    routerLink="/risk/risks"
-                    [queryParams]="{ register: r.id }"
-                    class="text-accent hover:underline"
-                  >
-                    {{
-                      'risk.registers.riskCounts'
-                        | transloco: { open: r.open_risk_count, total: r.risk_count }
-                    }}
-                  </a>
-                </dd>
-              </div>
-            </dl>
+            <app-field-list [columns]="2">
+              <app-field-item labelKey="risk.registers.matrix">
+                <a
+                  [routerLink]="['/risk/matrices', r.matrix_id]"
+                  class="text-accent hover:underline"
+                  >{{ r.matrix_name ?? ('common.empty.notSet' | transloco) }}</a
+                >
+              </app-field-item>
+              <app-field-item labelKey="risk.fields.owner" [value]="r.owner?.name" empty="none" />
+              <app-field-item
+                labelKey="risk.registers.reviewEvery"
+                [value]="'risk.registers.months' | transloco: { count: r.review_interval_months }"
+              />
+              <app-field-item labelKey="risk.registers.risks">
+                <a
+                  routerLink="/risk/risks"
+                  [queryParams]="{ register: r.id }"
+                  class="text-accent hover:underline"
+                >
+                  {{
+                    'risk.registers.riskCounts'
+                      | transloco: { open: r.open_risk_count, total: r.risk_count }
+                  }}
+                </a>
+              </app-field-item>
+            </app-field-list>
           </app-card>
           @if (heatmap(); as h) {
             <app-card>
-              <h2 class="mb-3 font-display text-[16px] font-bold text-fg">
+              <h2 class="mb-3 font-display text-section font-bold text-fg">
                 {{ 'risk.heatmap.title' | transloco }}
               </h2>
               <app-matrix-grid
@@ -160,6 +147,7 @@ const TABS: readonly RecordTab[] = ['details', 'related', 'activity', 'comments'
             </app-card>
           }
         </div>
+        <app-help-strip aside-learn scope="risk" page="registers" />
       </app-record-detail-layout>
 
       <app-register-form-panel
@@ -180,12 +168,12 @@ const TABS: readonly RecordTab[] = ['details', 'related', 'activity', 'comments'
       />
     } @else if (state() === 'error') {
       <div class="mx-auto max-w-[1180px] px-4 pt-10 sm:px-8">
-        <app-alert tone="error">{{ loadErrorKey() | transloco }}</app-alert>
+        <app-error-state [bodyKey]="loadErrorKey()" (retry)="reload()" />
       </div>
     } @else {
-      <p class="py-16 text-center text-[14px] text-fg-muted">
-        {{ 'risk.common.loading' | transloco }}
-      </p>
+      <div class="mx-auto max-w-[1180px] px-4 pt-10 sm:px-8">
+        <app-loading-state [rows]="4" />
+      </div>
     }
   `,
 })
@@ -253,6 +241,10 @@ export class RegisterDetailPage {
         this.state.set('error');
       },
     });
+  }
+
+  protected reload(): void {
+    this.load(this.perms.orgId(), this.id());
   }
 
   protected openRisks(): void {

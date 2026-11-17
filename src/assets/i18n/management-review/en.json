@@ -351,7 +351,16 @@
     "actions_cancelled": "Actions cancelled",
     "standards": "Standards",
     "total": "Total",
-    "review_overdue": "Review overdue"
+    "review_overdue": "Review overdue",
+    "above_appetite": "Above risk appetite",
+    "accepted": "Accepted",
+    "effectiveness_unverified": "Treatments not checked for effect",
+    "opportunities_open": "Open opportunities",
+    "opportunities_realised": "Opportunities realised",
+    "soa_controls": "Controls in the SoA",
+    "soa_applicable": "Applicable controls",
+    "soa_implemented": "Implemented controls",
+    "soa_missing_justification": "Controls without justification"
   },
   "values": {
     "low": "Low",
@@ -373,7 +382,13 @@
     "obsolete": "Obsolete",
     "effective": "Effective",
     "not_effective": "Not effective",
-    "pending": "Pending"
+    "pending": "Pending",
+    "identified": "Identified",
+    "assessed": "Assessed",
+    "in_treatment": "In treatment",
+    "monitoring": "Monitoring",
+    "accepted": "Accepted",
+    "partially_effective": "Partly effective"
   },
   "inputData": {
     "notCompiled": "No data compiled yet. Refresh the inputs to gather the latest figures.",
