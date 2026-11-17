@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { niceTicks, stepPath } from './components/kpi-chart';
 import { kpiPayload, kpiToForm, EMPTY_KPI_FORM } from './kpi-editor';
 import { monitoringRef, toneOfShare } from './kpi-detail';
@@ -20,6 +21,7 @@ import {
   healthSpec,
   isCalendarPeriod,
   isClosedObjective,
+  isMissingRecord,
   isoWeek,
   needsAttention,
   objectiveSystems,
@@ -447,5 +449,15 @@ describe('objective and KPI form payloads', () => {
       warning_value: 6.5,
     });
     expect(kpiPayload({ ...EMPTY_KPI_FORM, target_value: 'x' }).target_value).toBeNaN();
+  });
+});
+
+describe('isMissingRecord', () => {
+  it('treats 404 and 403 as not found and everything else as retryable', () => {
+    expect(isMissingRecord(new HttpErrorResponse({ status: 404 }))).toBe(true);
+    expect(isMissingRecord(new HttpErrorResponse({ status: 403 }))).toBe(true);
+    expect(isMissingRecord(new HttpErrorResponse({ status: 500 }))).toBe(false);
+    expect(isMissingRecord(new HttpErrorResponse({ status: 0 }))).toBe(false);
+    expect(isMissingRecord(new Error('boom'))).toBe(false);
   });
 });

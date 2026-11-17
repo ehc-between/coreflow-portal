@@ -42,6 +42,7 @@ import { FormField } from '../../shared/ui/form-field/form-field';
 import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../shared/ui/icon/icon';
 import { KpiTile, KpiTone } from '../../shared/ui/kpi-tile/kpi-tile';
+import { ErrorState } from '../../shared/ui/error-state/error-state';
 import { LoadingState } from '../../shared/ui/loading-state/loading-state';
 import { MenuItem } from '../../shared/ui/overflow-menu/overflow-menu';
 import { Pager } from '../../shared/ui/pager/pager';
@@ -80,6 +81,7 @@ import {
   textOrNull,
   todayIso,
   trendKey,
+  isMissingRecord,
 } from './objectives-display';
 import { KPIS_CRUMB, OBJECTIVES_ROOT_CRUMB } from './objectives-nav';
 
@@ -188,6 +190,7 @@ export function toneOfShare(share: number | null): KpiTone {
     Icon,
     KpiTile,
     LoadingState,
+    ErrorState,
     MenuItem,
     Pager,
     SlideOver,
@@ -211,6 +214,11 @@ export function toneOfShare(share: number | null): KpiTone {
             ctaLink="/objectives/kpis"
             ctaVariant="secondary"
           />
+        </div>
+      }
+      @case ('failed') {
+        <div class="mx-auto max-w-[760px] px-4 pt-7 sm:px-8">
+          <app-error-state (retry)="retry()" />
         </div>
       }
       @case ('ready') {
@@ -886,7 +894,8 @@ export class KpiDetail {
   protected readonly health = healthSpec;
   protected readonly systemKey = managementSystemKey;
 
-  protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
+  /** `error`: not found / no access; `failed`: could not load (server or network). */
+  protected readonly state = signal<'loading' | 'error' | 'failed' | 'ready'>('loading');
   protected readonly kpi = signal<KpiDetailDto | null>(null);
   protected readonly series = signal<KpiSeries | null>(null);
   protected readonly measurements = signal<readonly Measurement[]>([]);
@@ -1388,8 +1397,12 @@ export class KpiDetail {
           error: () => this.series.set(null),
         });
       },
-      error: () => this.state.set('error'),
+      error: (error: unknown) => this.state.set(isMissingRecord(error) ? 'error' : 'failed'),
     });
+  }
+
+  protected retry(): void {
+    this.load(this.selectedOrg.currentOrgId(), this.id());
   }
 
   private loadMeasurements(orgId: string | null, id: string, offset: number): void {

@@ -1,4 +1,5 @@
 import { formatDate } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { ToneMeaning } from '../../shared/ui/tones';
 import {
   CLOSED_OBJECTIVE_STATUSES,
@@ -374,4 +375,9 @@ export function periodLabel(
 /** The singular form of a counted key (`…One`) when `count` is 1 (repo plural convention). */
 export function countKey(key: string, count: number): string {
   return count === 1 ? `${key}One` : key;
+}
+
+/** 404 / 403: the record is gone or not readable. Anything else (5xx, network) can be retried. */
+export function isMissingRecord(error: unknown): boolean {
+  return error instanceof HttpErrorResponse && (error.status === 404 || error.status === 403);
 }

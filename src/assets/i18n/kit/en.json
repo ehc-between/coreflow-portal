@@ -432,6 +432,9 @@
     "management_review": {
       "to_task": "Action (task)"
     },
+    "policy": {
+      "to_objective": "Objective from the policy"
+    },
     "opportunity": {
       "to_objective": "Objective that pursues the opportunity"
     },

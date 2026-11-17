@@ -432,6 +432,9 @@
     "management_review": {
       "to_task": "Tiltak (oppgave)"
     },
+    "policy": {
+      "to_objective": "Mål fra policyen"
+    },
     "opportunity": {
       "to_objective": "Mål som følger opp muligheten"
     },

@@ -35,6 +35,7 @@ import { EmptyState } from '../../shared/ui/empty-state/empty-state';
 import { FieldItem, FieldList } from '../../shared/ui/field-list/field-list';
 import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../shared/ui/icon/icon';
+import { ErrorState } from '../../shared/ui/error-state/error-state';
 import { LoadingState } from '../../shared/ui/loading-state/loading-state';
 import { MenuItem } from '../../shared/ui/overflow-menu/overflow-menu';
 import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
@@ -62,6 +63,7 @@ import {
   objectiveSystems,
   textOrNull,
   todayIso,
+  isMissingRecord,
 } from './objectives-display';
 import { OBJECTIVES_ROOT_CRUMB } from './objectives-nav';
 
@@ -185,6 +187,7 @@ export function nextSteps(o: ObjectiveDetailDto, today: string = todayIso()): Ne
     HelpStrip,
     Icon,
     LoadingState,
+    ErrorState,
     MenuItem,
     StatusBadge,
     ObjectiveProgress,
@@ -205,6 +208,11 @@ export function nextSteps(o: ObjectiveDetailDto, today: string = todayIso()): Ne
             ctaLink="/objectives"
             ctaVariant="secondary"
           />
+        </div>
+      }
+      @case ('failed') {
+        <div class="mx-auto max-w-[760px] px-4 pt-7 sm:px-8">
+          <app-error-state (retry)="retry()" />
         </div>
       }
       @case ('ready') {
@@ -679,7 +687,8 @@ export class ObjectiveDetail {
   protected readonly health = healthSpec;
   protected readonly closedStatuses = CLOSED_OBJECTIVE_STATUSES;
 
-  protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
+  /** `error`: not found / no access; `failed`: could not load (server or network). */
+  protected readonly state = signal<'loading' | 'error' | 'failed' | 'ready'>('loading');
   protected readonly objective = signal<ObjectiveDetailDto | null>(null);
   protected readonly confirmDelete = signal(false);
   protected readonly confirmActivate = signal(false);
@@ -887,7 +896,11 @@ export class ObjectiveDetail {
         this.objective.set(o);
         this.state.set('ready');
       },
-      error: () => this.state.set('error'),
+      error: (error: unknown) => this.state.set(isMissingRecord(error) ? 'error' : 'failed'),
     });
+  }
+
+  protected retry(): void {
+    this.load(this.selectedOrg.currentOrgId(), this.id());
   }
 }
