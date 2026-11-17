@@ -422,7 +422,7 @@
     "notes": "Notater",
     "notesPlaceholder": "Hva du så, hørte og kontrollerte",
     "raiseFinding": "Registrer et funn fra dette svaret",
-    "empty": "Sjekklisten er tom.",
+    "empty": "Det er ingen spørsmål i sjekklisten.",
     "removeTitle": "Fjerne dette spørsmålet?",
     "removeMessage": "Spørsmålet og svaret fjernes fra sjekklisten.",
     "emptyTitle": "Ingen spørsmål ennå",
@@ -808,7 +808,7 @@
       "departments": "Det er ikke registrert avdelinger ennå."
     },
     "gapsOnly": "Vis bare hull",
-    "action": "Handling",
+    "action": "Neste steg",
     "historyOf": "Revisjonshistorikk for {{ clause }}",
     "openFindings": "{{ count }} åpne funn",
     "cell": {
