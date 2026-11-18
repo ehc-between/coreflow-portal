@@ -23,7 +23,7 @@ const ORG = 'org-1';
 
 function configure(permissions: string[]): void {
   TestBed.configureTestingModule({
-    imports: [OrgSettings, TranslocoTestingModule.forRoot({ langs: { en: {} } })],
+    imports: [OrgSettings, TranslocoTestingModule.forRoot({ langs: { en: {}, 'shell/en': {} } })],
     providers: [
       provideZonelessChangeDetection(),
       ...provideFakeGuidance().providers,
@@ -94,6 +94,9 @@ describe('Settings access for a users:invite-only user', () => {
     expect(
       root.querySelector('[data-testid="settings-card-settings.hub.cards.members"]'),
     ).toBeNull();
+    // The menu card is for org:manage only.
+    http.expectNone(`${BASE}/v1/orgs/${ORG}/settings`);
+    expect(root.querySelector('[data-testid="settings-nav-v2"]')).toBeNull();
   });
 });
 
@@ -109,6 +112,8 @@ describe('Settings hub for an org:manage user', () => {
       { id: 'd1', name: 'IT', member_count: 2, lead_user_id: 'u1', lead_name: 'Ada' },
       { id: 'd2', name: 'Salg', member_count: 0, lead_user_id: null, lead_name: null },
     ]);
+    // U03: the menu card reads the org's nav_v2 setting.
+    http.expectOne(`${BASE}/v1/orgs/${ORG}/settings`).flush({ nav_v2: true });
     await fixture.whenStable();
 
     const root = fixture.nativeElement as HTMLElement;
@@ -120,5 +125,7 @@ describe('Settings hub for an org:manage user', () => {
     ).not.toBeNull();
     const attention = root.querySelector('[data-testid="settings-attention-leads"]');
     expect(attention?.textContent).toContain('settings.departments.noLeadWarningOne');
+    const navSwitch = root.querySelector('[data-testid="nav-v2-switch"]');
+    expect(navSwitch?.getAttribute('aria-checked')).toBe('true');
   });
 });

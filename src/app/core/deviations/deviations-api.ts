@@ -59,6 +59,7 @@ function listParams(filters: DeviationFilters) {
     q: filters.q,
     active: filters.active || undefined,
     overdue: filters.overdue || undefined,
+    closed: filters.closed || undefined,
     sort: filters.sort,
     limit: filters.limit,
     offset: filters.offset,

@@ -10,7 +10,7 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../../core/ai/page-context';
@@ -283,12 +283,19 @@ export class RecordListPage {
 
   /** `?evidence=missing` (from the home page's follow-up list). */
   readonly evidence = input<string | undefined>(undefined);
+  /** `?validity=expiring|expired|…` (U24: the expiring/expired tiles). */
+  private readonly validityParam = signal(
+    inject(ActivatedRoute).snapshot.queryParamMap.get('validity') ?? undefined,
+  );
 
   protected readonly pageSize = PAGE_SIZE;
   protected readonly scope = linkedSignal<'mine' | 'all'>(() =>
     this.access.canOversee() ? 'all' : 'mine',
   );
-  protected readonly validity = signal<ValidityFilter>('');
+  protected readonly validity = linkedSignal<ValidityFilter>(() => {
+    const v = this.validityParam() ?? '';
+    return (VALIDITY_FILTERS as readonly string[]).includes(v) ? (v as ValidityFilter) : '';
+  });
   protected readonly evidenceFilter = linkedSignal<'' | 'missing'>(() =>
     this.evidence() === 'missing' ? 'missing' : '',
   );

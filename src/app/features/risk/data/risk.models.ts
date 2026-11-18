@@ -466,6 +466,33 @@ export interface Treatment {
   readonly updated_at: string;
 }
 
+/** U24: a row of the org-wide treatment plan (`GET /risk/treatments`), with its risk. */
+export interface TreatmentPlanItem extends Treatment {
+  readonly risk: {
+    readonly id: string;
+    readonly code: string;
+    readonly title: string;
+    readonly status: string;
+    readonly url: string;
+  };
+}
+
+export const TREATMENT_SORTS = ['due_at', '-due_at', '-created_at', 'risk'] as const;
+export type TreatmentSort = (typeof TREATMENT_SORTS)[number];
+
+export interface TreatmentPlanQuery {
+  readonly q?: string;
+  /** CSV of statuses, or the meta-value `open` (planned + in progress). */
+  readonly status?: string;
+  readonly owner?: string;
+  readonly risk_id?: string;
+  readonly overdue?: boolean;
+  readonly needs_effectiveness_check?: boolean;
+  readonly sort?: TreatmentSort;
+  readonly limit?: number;
+  readonly offset?: number;
+}
+
 export interface Effectiveness {
   readonly result: EffectivenessResult;
   readonly note: string | null;

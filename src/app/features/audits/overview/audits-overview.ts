@@ -116,18 +116,14 @@ export function setupSteps(
           [appTourStep]="'audits-kpis'"
         >
           @for (k of kpis(); track k.key) {
-            <a
-              [routerLink]="k.link"
+            <app-kpi-tile
+              [link]="k.link"
               [queryParams]="k.params"
-              class="block rounded-card focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none [&:hover_*]:border-border-strong"
               [attr.data-testid]="'audits-kpi-' + k.key"
-            >
-              <app-kpi-tile
-                [label]="'audits.overview.kpi.' + k.key | transloco"
-                [value]="k.value"
-                [tone]="k.tone"
-              />
-            </a>
+              [label]="'audits.overview.kpi.' + k.key | transloco"
+              [value]="k.value"
+              [tone]="k.tone"
+            />
           }
         </div>
 

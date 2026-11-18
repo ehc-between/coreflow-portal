@@ -352,6 +352,29 @@
       "cancelled": "cancelled"
     }
   },
+  "treatmentPlan": {
+    "title": "Treatment plan",
+    "subtitle": "Every treatment across all risks: what is being done, by whom and by when.",
+    "searchPlaceholder": "Search treatments",
+    "overdueOnly": "Overdue only",
+    "needsCheck": "Done, effect not checked",
+    "empty": "No treatments yet. Add them on each risk.",
+    "toRisks": "Go to the risk list",
+    "statusFilters": {
+      "open": "Open (planned or in progress)",
+      "all": "All",
+      "planned": "Planned",
+      "in_progress": "In progress",
+      "done": "Done",
+      "cancelled": "Cancelled"
+    },
+    "sorts": {
+      "due_at": "Due date, earliest first",
+      "-due_at": "Due date, latest first",
+      "-created_at": "Newest first",
+      "risk": "By risk"
+    }
+  },
   "opportunities": {
     "title": "Opportunities",
     "new": "New opportunity",

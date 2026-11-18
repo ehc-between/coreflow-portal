@@ -35,6 +35,9 @@ export const FEEDBACK_ERROR_CODES = [
   'no_feedback',
   'entity_required',
   'module_disabled',
+  'feedback_exists',
+  'feedback_not_found',
+  'nothing_to_do',
 ] as const;
 
 export type FeedbackErrorCode = (typeof FEEDBACK_ERROR_CODES)[number];

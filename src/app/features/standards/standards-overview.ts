@@ -173,27 +173,45 @@ import { loadFrameworks } from './frameworks/frameworks-load';
                               }
                       }}
                     </p>
-                    <div class="mt-2 flex flex-wrap gap-1.5">
-                      <app-badge tone="pass">
-                        {{
-                          'standards.counts.covered'
-                            | transloco: { count: std.completeness.covered }
-                        }}
-                      </app-badge>
-                      @if (std.completeness.partial > 0) {
-                        <app-badge tone="warn">
+                    <!-- U24: the chips open the standard; the gap chips with its gap filter. -->
+                    <div class="mt-2 flex flex-wrap gap-1.5" data-testid="overview-status-chips">
+                      <a
+                        [routerLink]="['/standards', std.key]"
+                        class="rounded-full hover:opacity-80"
+                      >
+                        <app-badge tone="pass">
                           {{
-                            'standards.counts.partial'
-                              | transloco: { count: std.completeness.partial }
+                            'standards.counts.covered'
+                              | transloco: { count: std.completeness.covered }
                           }}
                         </app-badge>
+                      </a>
+                      @if (std.completeness.partial > 0) {
+                        <a
+                          [routerLink]="['/standards', std.key]"
+                          [queryParams]="{ filter: 'gaps' }"
+                          class="rounded-full hover:opacity-80"
+                        >
+                          <app-badge tone="warn">
+                            {{
+                              'standards.counts.partial'
+                                | transloco: { count: std.completeness.partial }
+                            }}
+                          </app-badge>
+                        </a>
                       }
-                      <app-badge tone="neutral">
-                        {{
-                          'standards.counts.not_started'
-                            | transloco: { count: std.completeness.not_started }
-                        }}
-                      </app-badge>
+                      <a
+                        [routerLink]="['/standards', std.key]"
+                        [queryParams]="{ filter: 'gaps' }"
+                        class="rounded-full hover:opacity-80"
+                      >
+                        <app-badge tone="neutral">
+                          {{
+                            'standards.counts.not_started'
+                              | transloco: { count: std.completeness.not_started }
+                          }}
+                        </app-badge>
+                      </a>
                       @if (std.completeness.not_applicable > 0) {
                         <app-badge tone="neutral">
                           {{

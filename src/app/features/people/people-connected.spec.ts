@@ -160,6 +160,30 @@ describe('People A11 helpers', () => {
     expect(tiles[3]).toMatchObject({ value: 0, tone: 'pass' });
   });
 
+  it('U24: flag tiles count people like ?flag=, the gap tile opens the gap list', () => {
+    const tiles = summaryTiles({
+      employees_by_status: { onboarding: 0, active: 4, on_leave: 0, offboarding: 0, former: 0 },
+      positions: 1,
+      competences: 3,
+      open_checklists: 0,
+      overdue_checklists: 0,
+      gaps: 8,
+      expiring_soon: 5,
+      missing_confidentiality: 2,
+      employees_by_flag: { expiring_soon: 2, missing_confidentiality: 2 },
+    });
+    // Eight competence cells: the gap list shows each person/competence pair.
+    expect(tiles[1]).toMatchObject({
+      key: 'gaps',
+      value: 8,
+      flag: null,
+      link: '/people/matrix',
+      queryParams: { view: 'gaps' },
+    });
+    // Five expiring competences held by two people: the tile shows the two people.
+    expect(tiles[2]).toMatchObject({ key: 'expiringSoon', value: 2, flag: 'expiring_soon' });
+  });
+
   it('offers "open checklist" instead of starting a second one', () => {
     expect(primaryActionFor(makeEmployee({ open_onboarding_id: 'cl-1' }))).toEqual({
       kind: 'openChecklist',

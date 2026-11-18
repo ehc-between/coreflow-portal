@@ -586,7 +586,7 @@ export class CommandPalette {
         break;
       case 'nav':
         this.uxMetrics.markNext('palette');
-        void this.router.navigate(['/', row.item.path]);
+        void this.router.navigate(['/' + row.item.path]);
         break;
       case 'record':
         this.uxMetrics.markNext('search');

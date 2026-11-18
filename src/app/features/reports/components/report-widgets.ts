@@ -14,6 +14,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { humanize } from '../../../core/kit/entity-types.service';
 import { LanguageService } from '../../../core/i18n/language.service';
+import { ModuleService } from '../../../core/modules/module.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { roleNameKey } from '../../../core/org/roles';
 import { Card } from '../../../shared/ui/card/card';
@@ -33,6 +34,31 @@ import { provideSharedScope } from '../../../core/i18n/shared-scope';
 import { MetricView } from './metric-view';
 
 let nextId = 0;
+
+/** Why a widget came back without data (`available: false`). */
+export type WidgetUnavailableReason = 'moduleOff' | 'noAccess' | 'failed';
+
+/**
+ * The backend sends `available: false` both when the caller may not see a metric
+ * (module off, no `permission`) and when computing it failed. Tell them apart
+ * from what the portal knows, so an enabled module is never reported as switched
+ * off (simplify D9). `permission` is the widget's own (e.g. `reports:audit_pack`),
+ * `<module>:read` when the server does not send it.
+ */
+export function widgetUnavailableReason(
+  module: string | null,
+  isEnabled: (key: string) => boolean,
+  permissions: readonly string[],
+  permission?: string | null,
+): WidgetUnavailableReason {
+  if (!module) {
+    return 'failed';
+  }
+  if (!isEnabled(module)) {
+    return 'moduleOff';
+  }
+  return permissions.includes(permission || `${module}:read`) ? 'failed' : 'noAccess';
+}
 
 type State =
   | { readonly status: 'loading' }
@@ -128,9 +154,33 @@ export function widgetSpan(size: string): string {
                     [fieldLabels]="widget.field_labels"
                   />
                 } @else {
-                  <p class="text-meta text-fg-muted">
-                    {{ 'reports.widgets.unavailable' | transloco }}
-                  </p>
+                  @switch (unavailableReason(widget)) {
+                    @case ('moduleOff') {
+                      <p class="text-meta text-fg-muted" data-testid="widget-module-off">
+                        {{
+                          'reports.widgets.unavailableModuleOff'
+                            | transloco: { module: moduleName(widget) }
+                        }}
+                      </p>
+                    }
+                    @case ('noAccess') {
+                      <p class="text-meta text-fg-muted" data-testid="widget-no-access">
+                        {{ 'reports.widgets.unavailableNoAccess' | transloco }}
+                      </p>
+                    }
+                    @default {
+                      <p class="text-meta text-fg-muted" data-testid="widget-failed">
+                        {{ 'reports.widgets.unavailableFailed' | transloco }}
+                        <button
+                          type="button"
+                          class="font-semibold text-accent hover:underline focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                          (click)="reload()"
+                        >
+                          {{ 'reports.widgets.retry' | transloco }}
+                        </button>
+                      </p>
+                    }
+                  }
                 }
               </app-card>
             } @empty {
@@ -151,6 +201,7 @@ export class ReportWidgets {
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly language = inject(LanguageService);
   private readonly scoped = inject(ScopedText);
+  private readonly modules = inject(ModuleService);
 
   readonly framework = input<FrameworkKey | null>(null);
 
@@ -219,6 +270,20 @@ export class ReportWidgets {
 
   protected frameworkName(framework: string): string {
     return labelOr((k) => this.language.translate(k), frameworkLabelKey(framework), framework);
+  }
+
+  protected unavailableReason(widget: DashboardWidget): WidgetUnavailableReason {
+    return widgetUnavailableReason(
+      widget.module,
+      (key) => this.modules.isEnabled(key),
+      this.selectedOrg.currentOrg()?.permissions ?? [],
+      widget.permission,
+    );
+  }
+
+  protected moduleName(widget: DashboardWidget): string {
+    const key = widget.module ?? '';
+    return labelOr((k) => this.language.translate(k), `modules.names.${key}`, key);
   }
 
   protected link(widget: DashboardWidget) {

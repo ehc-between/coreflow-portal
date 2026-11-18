@@ -374,6 +374,7 @@ export function toneOfShare(share: number | null): KpiTone {
                 [attr.aria-label]="'objectives.kpi.statsLabel' | transloco"
               >
                 <app-kpi-tile
+                  noLink="measurement"
                   [label]="'objectives.kpi.latest' | transloco"
                   [value]="valueText(k.last_value)"
                   [tone]="toneOfLatest()"
@@ -381,17 +382,20 @@ export function toneOfShare(share: number | null): KpiTone {
                   deltaTone="neutral"
                 />
                 <app-kpi-tile
+                  noLink="measurement"
                   [label]="'objectives.kpi.change' | transloco"
                   [value]="changeText()"
                   [delta]="changeDelta()"
                   [tone]="toneOfChange()"
                 />
                 <app-kpi-tile
+                  noLink="measurement"
                   [label]="'objectives.kpi.trend' | transloco"
                   [value]="trendLabel()"
                   [tone]="toneOfTrend()"
                 />
                 <app-kpi-tile
+                  noLink="average"
                   [label]="'objectives.kpi.onTrackShare' | transloco"
                   [value]="onTrackText()"
                   [tone]="toneOfOnTrack()"

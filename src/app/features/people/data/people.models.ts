@@ -199,6 +199,8 @@ export interface PeopleSummary {
   readonly members_without_employee?: number;
   readonly positions_review_due?: number;
   readonly open_gap_actions?: number;
+  /** U24: current employees per issue flag (the `?flag=` rows). */
+  readonly employees_by_flag?: Readonly<Partial<Record<string, number>>>;
 }
 
 /** A reference to a document (the policy read, a job description). */
@@ -492,6 +494,19 @@ export interface Gap {
   readonly expires_on: string | null;
   readonly status: CellStatus;
   readonly actions?: readonly GapAction[];
+  /** U24: published courses that give this competence, best match first. */
+  readonly suggested_courses?: readonly SuggestedCourse[];
+  /** The person's user account (training is assigned to users). */
+  readonly user_id?: string | null;
+  readonly can_assign_training?: boolean;
+}
+
+export interface SuggestedCourse {
+  readonly id: string;
+  readonly code: string;
+  readonly title: string;
+  readonly level: number;
+  readonly url: string;
 }
 
 export interface GapQuery {
