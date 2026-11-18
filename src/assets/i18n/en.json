@@ -2090,7 +2090,9 @@
       "external_document": "External document",
       "distribution_campaign": "Distribution campaign",
       "document_template": "Document template",
-      "retention_rule": "Retention rule"
+      "retention_rule": "Retention rule",
+      "audit_certification": "Certification",
+      "audit_auditor_profile": "Auditor profile"
     },
     "links": {
       "title": "Organisation",

@@ -2090,7 +2090,9 @@
       "external_document": "Eksternt dokument",
       "distribution_campaign": "Distribusjonskampanje",
       "document_template": "Dokumentmal",
-      "retention_rule": "Oppbevaringsregel"
+      "retention_rule": "Oppbevaringsregel",
+      "audit_certification": "Sertifisering",
+      "audit_auditor_profile": "Revisorprofil"
     },
     "links": {
       "title": "Organisasjon",

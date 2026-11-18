@@ -12,37 +12,50 @@ import {
 import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { providePageContext } from '../../../core/ai/page-context';
+import { LanguageService } from '../../../core/i18n/language.service';
 import { WatchButton } from '../../../shared/activity/watch-button';
+import { AiAssistButton } from '../../../shared/ask/ai-assist-button';
 import { AskAbout } from '../../../shared/ask/ask-about';
-import { ClauseChips } from '../../../shared/guidance/clause-chips';
-import { FieldHelp } from '../../../shared/guidance/field-help';
-import { GuideIntro } from '../../../shared/guidance/guide-intro';
-import { LessonView } from '../../../shared/guidance/lesson';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { EntityChip } from '../../../shared/kit/entity-chip';
 import { RecordDetailLayout, RecordTab } from '../../../shared/kit/record-detail-layout';
 import { LocalDatePipe, LocalDayPipe } from '../../../shared/locale/locale-pipes';
-import { SupportsRequirements } from '../../../shared/requirement-links/supports-requirements';
+import { Alert } from '../../../shared/ui/alert/alert';
 import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
-import { FormField } from '../../../shared/ui/form-field/form-field';
+import { FieldItem, FieldList } from '../../../shared/ui/field-list/field-list';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
+import { Icon } from '../../../shared/ui/icon/icon';
+import { MenuItem } from '../../../shared/ui/overflow-menu/overflow-menu';
 import { PromptDialog } from '../../../shared/ui/prompt-dialog/prompt-dialog';
+import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { AuditAccess } from '../data/audit-access';
 import {
-  findingStatusTone,
-  findingTypeTone,
+  findingStatusBadge,
+  findingTypeBadge,
   fromDateInput,
   textOrNull,
 } from '../data/audit-display';
-import { FindingAction, FindingDetail, NC_TYPES, REASON_REQUIRED } from '../data/audit.models';
+import {
+  EFFECTIVENESS_RESULTS,
+  Effectiveness,
+  EntityRef,
+  FindingAction,
+  FindingDetail,
+  NC_TYPES,
+  REASON_REQUIRED,
+} from '../data/audit.models';
 import { AuditsApi } from '../data/audits-api';
+import { AuditField } from '../shared/audit-field';
+import { AuditsNav } from '../shared/audits-nav';
+import { AuditClauseRefs } from '../shared/clause-refs';
 import { AuditLoadState } from '../shared/load-state';
 import { loadable } from '../shared/loadable';
 import { mutator } from '../shared/mutator';
+import { AuditRecordPicker } from '../shared/record-picker';
 import { AuditUserSelect } from '../shared/user-select';
-import { DeviationPicker } from './deviation-picker';
 
 const TABS: readonly RecordTab[] = [
   'details',
@@ -52,7 +65,8 @@ const TABS: readonly RecordTab[] = [
   'attachments',
   'revisions',
 ];
-const FORWARD: ReadonlySet<FindingAction> = new Set(['start', 'submit', 'verify', 'close']);
+/** The actions that move a finding forward, in order; the first available is the primary button. */
+export const FINDING_FORWARD: readonly FindingAction[] = ['start', 'submit', 'verify', 'close'];
 const RESPONSE_OPEN: readonly string[] = ['open', 'in_progress'];
 
 export const FINDING_FIELD_LABELS: Readonly<Record<string, string>> = {
@@ -67,7 +81,9 @@ export const FINDING_FIELD_LABELS: Readonly<Record<string, string>> = {
   root_cause: 'audits.fields.rootCause',
   correction: 'audits.fields.correction',
   corrective_action: 'audits.fields.correctiveAction',
+  decision: 'audits.fields.decision',
   verification_notes: 'audits.fields.verificationNotes',
+  effectiveness: 'audits.fields.effectiveness',
 };
 
 /** Whether the caller may write the auditee response (the finding owner, or `audits:write`). */
@@ -75,10 +91,29 @@ export function canRespond(f: FindingDetail, userId: string | null, canWrite: bo
   return RESPONSE_OPEN.includes(f.status) && (canWrite || (!!userId && f.owner?.id === userId));
 }
 
+/** Nonconformities need root cause, correction and verification; the others only a decision. */
+export function isNonconformity(
+  f: Pick<FindingDetail, 'finding_type' | 'is_nonconformity'>,
+): boolean {
+  return f.is_nonconformity ?? NC_TYPES.includes(f.finding_type);
+}
+
+/** The one next step of a finding (primary button) and the rest (the "Mer" menu). */
+export function splitFindingActions(actions: readonly FindingAction[]): {
+  readonly primary: FindingAction | null;
+  readonly rest: readonly FindingAction[];
+} {
+  const primary = FINDING_FORWARD.find((a) => actions.includes(a)) ?? null;
+  return { primary, rest: actions.filter((a) => a !== primary) };
+}
+
 /**
- * `/audits/findings/:id`: a finding with the auditee's response (root cause,
- * correction, corrective action), corrective-action tasks, linked deviations,
- * verification and closure, plus related records, activity and revisions.
+ * `/audits/findings/:id`: a finding and what is done about it. A nonconformity
+ * gets the auditee's response (root cause, correction, a summary of the corrective
+ * action), corrective-action tasks or the deviation that holds them, verification
+ * by the auditor and, after closure, the effectiveness check. An observation or
+ * improvement suggestion only needs a decision. "Lag ny fra denne" in the header
+ * creates a deviation or risk from the finding (linked both ways).
  */
 @Component({
   selector: 'app-audit-finding-detail',
@@ -89,203 +124,256 @@ export function canRespond(f: FindingDetail, userId: string | null, canWrite: bo
     LocalDatePipe,
     RecordDetailLayout,
     WatchButton,
+    AiAssistButton,
     AskAbout,
-    ClauseChips,
-    FieldHelp,
-    GuideIntro,
     WhyItMatters,
-    LessonView,
     EntityChip,
-    SupportsRequirements,
+    Alert,
     Badge,
     Button,
     Card,
     ConfirmDialog,
-    FormField,
+    FieldItem,
+    FieldList,
+    HelpStrip,
+    Icon,
+    MenuItem,
     PromptDialog,
+    StatusBadge,
+    AuditField,
+    AuditsNav,
+    AuditClauseRefs,
     AuditLoadState,
+    AuditRecordPicker,
     AuditUserSelect,
-    DeviationPicker,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (data.value(); as f) {
+      @let tb = typeBadge(f.finding_type);
+      @let sb = statusBadge(f.status);
+      @let acts = actions();
       <app-record-detail-layout
         entityType="audit_finding"
         [entityId]="f.id"
+        [title]="f.title"
+        [breadcrumbs]="[
+          { labelKey: 'modules.names.audits', link: '/audits' },
+          { labelKey: 'audits.findings.title', link: '/audits/findings' },
+          { label: f.code },
+        ]"
         [tabs]="tabs"
+        [requirementsPanel]="true"
         [canEdit]="access.canWrite()"
         [includeAudit]="access.canReadAudit()"
         [fieldLabels]="fieldLabels"
         backLink="/audits/findings"
         backLabelKey="audits.findings.back"
       >
-        <div header>
-          <p class="text-[12.5px] font-semibold text-fg-subtle">{{ f.code }}</p>
-          <div class="flex items-start gap-2">
-            <h1
-              class="font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]"
-            >
-              {{ f.title }}
-            </h1>
-            <app-ask-about
-              class="mt-1.5 flex-none"
-              [prompt]="'audits.findingDetail.askAbout' | transloco: { code: f.code }"
-            />
-          </div>
-          <div class="mt-1.5 flex flex-wrap gap-1.5">
-            <app-badge [tone]="typeTone(f.finding_type)">{{
-              'audits.findingType.' + f.finding_type | transloco
-            }}</app-badge>
-            <app-badge [tone]="statusTone(f.status)">{{
-              'audits.findingStatus.' + f.status | transloco
-            }}</app-badge>
-            @if (f.overdue) {
-              <app-badge tone="fail">{{ 'audits.common.overdue' | transloco }}</app-badge>
-            }
-          </div>
-        </div>
-        <div actions class="flex flex-wrap items-center gap-2">
+        <ng-container ngProjectAs="[meta]">
+          <span class="font-mono" data-testid="finding-code">{{ f.code }}</span>
+          <app-status-badge [meaning]="tb.meaning" [value]="tb.value" [labelKey]="tb.labelKey" />
+          <app-status-badge [meaning]="sb.meaning" [value]="sb.value" [labelKey]="sb.labelKey" />
+          @if (f.overdue) {
+            <app-badge tone="warn">{{ 'common.status.overdue' | transloco }}</app-badge>
+          }
+          <app-ask-about
+            [prompt]="'audits.findingDetail.askAbout' | transloco: { code: f.code }"
+            [requirements]="f.clause_ref ? [f.clause_ref] : null"
+          />
           <app-watch-button entityType="audit_finding" [entityId]="f.id" />
-          @for (a of f.available_actions; track a) {
-            <app-button
-              size="sm"
-              [variant]="forward.has(a) ? 'primary' : 'secondary'"
-              [disabled]="saving.busy()"
-              (click)="transition(a)"
-            >
-              {{ 'audits.findingAction.' + a | transloco }}
-            </app-button>
-          }
-          @if (access.canWrite() && f.status !== 'closed' && f.status !== 'cancelled') {
-            <a
-              [routerLink]="['/audits/findings', f.id, 'edit']"
-              class="inline-flex h-8 items-center rounded-[10px] border border-border px-3 text-[13px] font-semibold text-fg hover:bg-surface-2"
-            >
-              {{ 'audits.common.edit' | transloco }}
-            </a>
-          }
-          @if (access.canManage()) {
-            <app-button size="sm" variant="ghost" (click)="deleting.set(true)">{{
-              'audits.common.delete' | transloco
-            }}</app-button>
-          }
-        </div>
+        </ng-container>
 
-        <div class="flex flex-col gap-4">
-          <app-guide-intro scope="audits" page="findingDetail" />
+        @if (acts.primary; as a) {
+          <app-button primary size="sm" [disabled]="saving.busy()" (click)="transition(a)">
+            {{ 'audits.findingAction.' + a | transloco }}
+          </app-button>
+        }
+        @if (access.canWrite() && f.status !== 'closed' && f.status !== 'cancelled') {
+          <a
+            secondary
+            [routerLink]="['/audits/findings', f.id, 'edit']"
+            class="inline-flex h-8 items-center rounded-tile border border-border bg-surface px-3 text-ui font-semibold text-fg hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+          >
+            {{ 'audits.common.edit' | transloco }}
+          </a>
+        }
+        @for (a of acts.rest; track a) {
+          <button appMenuItem overflow [disabled]="saving.busy()" (click)="transition(a)">
+            {{ 'audits.findingAction.' + a | transloco }}
+          </button>
+        }
+        @if (access.canManage()) {
+          <button appMenuItem overflow [danger]="true" (click)="deleting.set(true)">
+            {{ 'audits.common.delete' | transloco }}
+          </button>
+        }
+
+        <app-audits-nav nav />
+        <app-help-strip help scope="audits" page="findingDetail" lesson="findings-and-capa" />
+
+        <div class="flex flex-col gap-5">
           @if (f.status_reason) {
-            <p
-              class="rounded-[10px] border border-border bg-surface-2 px-3 py-2 text-[13px] text-fg-muted"
-            >
+            <app-alert tone="info">
               {{ 'audits.planDetail.statusReason' | transloco: { reason: f.status_reason } }}
-            </p>
+            </app-alert>
           }
-          <app-card>
-            <dl class="grid grid-cols-1 gap-x-6 gap-y-3 text-[13.5px] sm:grid-cols-2">
-              <div class="sm:col-span-2">
-                <dt class="text-[12px] font-semibold text-fg-muted">
-                  {{ 'audits.fields.description' | transloco }}
-                </dt>
-                <dd class="whitespace-pre-line text-fg">{{ f.description || '–' }}</dd>
-              </div>
-              <div class="sm:col-span-2">
-                <dt class="text-[12px] font-semibold text-fg-muted">
-                  {{ 'audits.fields.evidence' | transloco }}
-                </dt>
-                <dd class="whitespace-pre-line text-fg">{{ f.evidence || '–' }}</dd>
-              </div>
-              <div>
-                <dt class="text-[12px] font-semibold text-fg-muted">
-                  {{ 'audits.fields.audit' | transloco }}
-                </dt>
-                <dd>
-                  <a
-                    [routerLink]="['/audits/plans', f.plan.id]"
-                    class="font-semibold text-accent hover:underline"
-                  >
-                    {{ f.plan.code }} · {{ f.plan.title }}
-                  </a>
-                </dd>
-              </div>
-              <div>
-                <dt class="text-[12px] font-semibold text-fg-muted">
-                  {{ 'audits.fields.clauseRef' | transloco }}
-                </dt>
-                <dd>
-                  @if (f.clause_ref) {
-                    <app-clause-chips [clauses]="[f.clause_ref]" />
-                  } @else {
-                    –
-                  }
-                </dd>
-              </div>
-              <div>
-                <dt class="text-[12px] font-semibold text-fg-muted">
-                  {{ 'audits.fields.findingOwner' | transloco }}
-                </dt>
-                <dd class="text-fg">{{ f.owner?.name || '–' }}</dd>
-              </div>
-              <div>
-                <dt class="text-[12px] font-semibold text-fg-muted">
-                  {{ 'audits.fields.responseDue' | transloco }}
-                </dt>
-                <dd [class.text-fail]="f.overdue" class="text-fg">
-                  {{ (f.response_due_at | localDay) || '–' }}
-                </dd>
-              </div>
-            </dl>
+
+          <app-card data-testid="finding-next-step">
+            <p class="text-meta font-semibold tracking-wide text-fg-subtle uppercase">
+              {{ 'audits.planDetail.nowTitle' | transloco }}
+            </p>
+            <p class="mt-1 text-body text-fg">{{ nextStepKey() | transloco }}</p>
           </app-card>
 
           <app-card>
-            <div class="mb-3 flex items-center gap-2">
-              <h2 class="font-display text-[16px] font-bold text-fg">
-                {{ 'audits.findingDetail.response' | transloco }}
+            <h2 class="mb-4 font-display text-section font-bold text-fg">
+              {{ 'audits.findingDetail.about' | transloco }}
+            </h2>
+            <app-field-list>
+              <app-field-item
+                labelKey="audits.fields.description"
+                [value]="f.description"
+                [wide]="true"
+                [multiline]="true"
+              />
+              <app-field-item
+                labelKey="audits.fields.evidence"
+                [value]="f.evidence"
+                [wide]="true"
+                [multiline]="true"
+              />
+              <app-field-item labelKey="audits.fields.audit">
+                <a
+                  [routerLink]="['/audits/plans', f.plan.id]"
+                  class="font-semibold text-accent hover:underline"
+                >
+                  <span class="font-mono text-meta">{{ f.plan.code }}</span> {{ f.plan.title }}
+                </a>
+              </app-field-item>
+              <app-field-item labelKey="audits.fields.clauseRef" empty="notSet">
+                @if (f.clause_ref) {
+                  <app-audit-clause-refs [refs]="[f.clause_ref]" [suggested]="nc()" />
+                  @if (nc()) {
+                    <p class="mt-1 text-meta text-fg-muted">
+                      {{ 'audits.findingDetail.clauseWeak' | transloco }}
+                    </p>
+                  }
+                }
+              </app-field-item>
+              <app-field-item labelKey="audits.fields.findingOwner" [value]="f.owner?.name" />
+              <app-field-item labelKey="audits.fields.department" [value]="f.department_name" />
+              <app-field-item labelKey="audits.fields.responseDue">
+                @if (f.response_due_at) {
+                  <span [class]="f.overdue ? 'font-semibold text-warn-ink' : ''">
+                    {{ f.response_due_at | localDay }}
+                    @if (f.overdue) {
+                      · {{ 'common.status.overdue' | transloco }}
+                    }
+                  </span>
+                }
+              </app-field-item>
+              @if (f.plan.lead_auditor?.name) {
+                <app-field-item
+                  labelKey="audits.fields.leadAuditor"
+                  [value]="f.plan.lead_auditor?.name"
+                />
+              }
+            </app-field-list>
+          </app-card>
+
+          <app-card data-testid="finding-response">
+            <div class="mb-1 flex items-center gap-2">
+              <h2 class="font-display text-section font-bold text-fg">
+                {{
+                  (nc() ? 'audits.findingDetail.response' : 'audits.findingDetail.decisionTitle')
+                    | transloco
+                }}
               </h2>
               <app-ask-about
-                field="root_cause"
-                [prompt]="'audits.findingDetail.askRootCause' | transloco: { code: f.code }"
+                [field]="nc() ? 'root_cause' : 'decision'"
+                [fieldLabel]="
+                  (nc() ? 'audits.fields.rootCause' : 'audits.fields.decision') | transloco
+                "
+                [prompt]="
+                  (nc() ? 'audits.findingDetail.askRootCause' : 'audits.findingDetail.askDecision')
+                    | transloco: { code: f.code }
+                "
               />
             </div>
+            <p class="mb-4 text-meta text-fg-muted">
+              {{
+                (nc() ? 'audits.findingDetail.responseHint' : 'audits.findingDetail.decisionHint')
+                  | transloco
+              }}
+            </p>
             @if (respondable()) {
-              <div class="flex flex-col gap-3">
-                <app-form-field [label]="'audits.fields.rootCause' | transloco" inputId="fd-root">
-                  <textarea
-                    id="fd-root"
-                    rows="3"
-                    [value]="rootCause()"
-                    (input)="rootCause.set($any($event.target).value)"
-                  ></textarea>
-                  <app-field-help scope="audits" page="findingDetail" field="rootCause" />
-                </app-form-field>
-                <app-form-field
-                  [label]="'audits.fields.correction' | transloco"
-                  inputId="fd-correction"
-                >
-                  <textarea
-                    id="fd-correction"
-                    rows="2"
-                    [value]="correction()"
-                    (input)="correction.set($any($event.target).value)"
-                  ></textarea>
-                  <app-field-help scope="audits" page="findingDetail" field="correction" />
-                </app-form-field>
-                <app-form-field
-                  [label]="'audits.fields.correctiveAction' | transloco"
-                  inputId="fd-ca"
-                >
-                  <textarea
-                    id="fd-ca"
-                    rows="3"
-                    [value]="correctiveAction()"
-                    (input)="correctiveAction.set($any($event.target).value)"
-                  ></textarea>
-                  <app-field-help scope="audits" page="findingDetail" field="correctiveAction" />
-                </app-form-field>
-                @if (isNc()) {
-                  <p class="text-[12.5px] text-fg-muted">
-                    {{ 'audits.findingDetail.ncHint' | transloco }}
-                  </p>
+              <div class="flex flex-col gap-4">
+                @if (nc()) {
+                  <app-audit-field
+                    inputId="fd-root"
+                    labelKey="audits.fields.rootCause"
+                    helpPage="findingDetail"
+                    helpField="rootCause"
+                  >
+                    <app-ai-assist-button
+                      ask
+                      assist="audits.suggest_root_cause"
+                      labelKey="audits.ai.suggestRootCause"
+                      variant="ghost"
+                      entityType="audit_finding"
+                      [entityId]="f.id"
+                      [input]="{ finding_id: f.id }"
+                      (result)="applyRootCause($event)"
+                    />
+                    <textarea
+                      id="fd-root"
+                      rows="3"
+                      [value]="rootCause()"
+                      (input)="rootCause.set($any($event.target).value)"
+                    ></textarea>
+                  </app-audit-field>
+                  <app-audit-field
+                    inputId="fd-correction"
+                    labelKey="audits.fields.correction"
+                    helpPage="findingDetail"
+                    helpField="correction"
+                  >
+                    <textarea
+                      id="fd-correction"
+                      rows="2"
+                      [value]="correction()"
+                      (input)="correction.set($any($event.target).value)"
+                    ></textarea>
+                  </app-audit-field>
+                  <app-audit-field
+                    inputId="fd-ca"
+                    labelKey="audits.fields.correctiveAction"
+                    helpPage="findingDetail"
+                    helpField="correctiveAction"
+                  >
+                    <textarea
+                      id="fd-ca"
+                      rows="3"
+                      [value]="correctiveAction()"
+                      (input)="correctiveAction.set($any($event.target).value)"
+                    ></textarea>
+                    <span hint>{{ 'audits.findingDetail.correctiveHint' | transloco }}</span>
+                  </app-audit-field>
+                } @else {
+                  <app-audit-field
+                    inputId="fd-decision"
+                    labelKey="audits.fields.decision"
+                    helpPage="findingDetail"
+                    helpField="decision"
+                  >
+                    <textarea
+                      id="fd-decision"
+                      rows="4"
+                      [value]="decision()"
+                      (input)="decision.set($any($event.target).value)"
+                    ></textarea>
+                  </app-audit-field>
                 }
                 <div class="flex justify-end">
                   <app-button
@@ -299,206 +387,299 @@ export function canRespond(f: FindingDetail, userId: string | null, canWrite: bo
                 </div>
               </div>
             } @else {
-              <dl class="flex flex-col gap-3 text-[13.5px]">
-                <div>
-                  <dt class="text-[12px] font-semibold text-fg-muted">
-                    {{ 'audits.fields.rootCause' | transloco }}
-                  </dt>
-                  <dd class="whitespace-pre-line text-fg">{{ f.root_cause || '–' }}</dd>
-                </div>
-                <div>
-                  <dt class="text-[12px] font-semibold text-fg-muted">
-                    {{ 'audits.fields.correction' | transloco }}
-                  </dt>
-                  <dd class="whitespace-pre-line text-fg">{{ f.correction || '–' }}</dd>
-                </div>
-                <div>
-                  <dt class="text-[12px] font-semibold text-fg-muted">
-                    {{ 'audits.fields.correctiveAction' | transloco }}
-                  </dt>
-                  <dd class="whitespace-pre-line text-fg">{{ f.corrective_action || '–' }}</dd>
-                </div>
-              </dl>
+              <app-field-list [columns]="1">
+                @if (nc()) {
+                  <app-field-item
+                    labelKey="audits.fields.rootCause"
+                    [value]="f.root_cause"
+                    [multiline]="true"
+                  />
+                  <app-field-item
+                    labelKey="audits.fields.correction"
+                    [value]="f.correction"
+                    [multiline]="true"
+                  />
+                  <app-field-item
+                    labelKey="audits.fields.correctiveAction"
+                    [value]="f.corrective_action"
+                    [multiline]="true"
+                  />
+                } @else {
+                  <app-field-item
+                    labelKey="audits.fields.decision"
+                    [value]="f.decision ?? f.corrective_action"
+                    [multiline]="true"
+                  />
+                }
+              </app-field-list>
             }
             @if (f.responded_at) {
-              <p class="mt-2 text-[12px] text-fg-muted">
+              <p class="mt-3 text-meta text-fg-muted">
                 {{
                   'audits.findingDetail.respondedAt'
-                    | transloco: { date: (f.responded_at | localDate: 'medium') }
+                    | transloco: { date: (f.responded_at | localDate) }
                 }}
               </p>
             }
           </app-card>
 
-          <app-card>
-            <h2 class="mb-3 font-display text-[16px] font-bold text-fg">
-              {{ 'audits.findingDetail.verification' | transloco }}
-            </h2>
-            @if (verifiable()) {
-              <app-form-field
-                [label]="'audits.fields.verificationNotes' | transloco"
-                inputId="fd-verify"
-              >
-                <textarea
-                  id="fd-verify"
-                  rows="3"
-                  [value]="verificationNotes()"
-                  (input)="verificationNotes.set($any($event.target).value)"
-                ></textarea>
-                <app-field-help scope="audits" page="findingDetail" field="verificationNotes" />
-              </app-form-field>
-              <div class="mt-2 flex justify-end">
-                <app-button
-                  size="sm"
-                  variant="secondary"
-                  [disabled]="verificationNotes() === (f.verification_notes ?? '') || saving.busy()"
-                  (click)="saveVerification()"
-                >
-                  {{ 'audits.findingDetail.saveNotes' | transloco }}
-                </app-button>
-              </div>
-            } @else {
-              <p class="text-[13.5px] whitespace-pre-line text-fg">
-                {{ f.verification_notes || '–' }}
+          @if (nc()) {
+            <app-card data-testid="finding-verification">
+              <h2 class="mb-1 font-display text-section font-bold text-fg">
+                {{ 'audits.findingDetail.verification' | transloco }}
+              </h2>
+              <p class="mb-4 text-meta text-fg-muted">
+                {{ 'audits.findingDetail.verificationHint' | transloco }}
               </p>
-            }
-            @if (f.verified_at) {
-              <p class="mt-2 text-[12px] text-fg-muted">
-                {{
-                  'audits.findingDetail.verifiedBy'
-                    | transloco
-                      : {
-                          name: f.verified_by?.name || '–',
-                          date: (f.verified_at | localDate: 'medium'),
-                        }
-                }}
-              </p>
-            }
-          </app-card>
-
-          <app-card>
-            <h2 class="mb-3 font-display text-[16px] font-bold text-fg">
-              {{ 'audits.findingDetail.actions' | transloco }}
-            </h2>
-            @if (f.actions.length) {
-              <ul class="divide-y divide-border">
-                @for (t of f.actions; track t.id) {
-                  <li class="flex flex-wrap items-center justify-between gap-2 py-2 text-[13.5px]">
-                    <a
-                      [routerLink]="['/tasks', t.id]"
-                      class="min-w-0 flex-1 font-semibold text-fg hover:text-accent"
-                      >{{ t.title }}</a
-                    >
-                    <span class="text-[12.5px] text-fg-muted">{{ t.assignee?.name || '–' }}</span>
-                    <span
-                      class="text-[12.5px]"
-                      [class.text-fail]="t.overdue"
-                      [class.text-fg-muted]="!t.overdue"
-                      >{{ t.due_at | localDay }}</span
-                    >
-                    <app-badge
-                      [tone]="
-                        t.status === 'done' ? 'pass' : t.status === 'cancelled' ? 'neutral' : 'info'
-                      "
-                    >
-                      {{ 'audits.taskStatus.' + t.status | transloco }}
-                    </app-badge>
-                  </li>
-                }
-              </ul>
-            } @else {
-              <p class="text-[13px] text-fg-muted">
-                {{ 'audits.findingDetail.noActions' | transloco }}
-              </p>
-            }
-            @if (canAddAction()) {
-              <form
-                class="mt-3 grid grid-cols-1 gap-3 rounded-[10px] border border-border bg-surface-2 p-3 sm:grid-cols-2"
-                (submit)="$event.preventDefault(); addAction()"
-              >
-                <app-form-field
-                  class="sm:col-span-2"
-                  [label]="'audits.findingDetail.actionTitle' | transloco"
-                  inputId="fa-title"
+              @if (verifiable()) {
+                <app-audit-field
+                  inputId="fd-verify"
+                  labelKey="audits.fields.verificationNotes"
+                  helpPage="findingDetail"
+                  helpField="verificationNotes"
                 >
-                  <input
-                    id="fa-title"
-                    maxlength="255"
-                    [value]="actionTitle()"
-                    (input)="actionTitle.set($any($event.target).value)"
-                  />
-                </app-form-field>
-                <app-form-field
-                  [label]="'audits.findingDetail.actionAssignee' | transloco"
-                  inputId="fa-assignee"
-                >
-                  <app-audit-user-select
-                    inputId="fa-assignee"
-                    [value]="actionAssignee()"
-                    (valueChange)="actionAssignee.set($event)"
-                  />
-                </app-form-field>
-                <app-form-field
-                  [label]="'audits.findingDetail.actionDue' | transloco"
-                  inputId="fa-due"
-                >
-                  <input
-                    id="fa-due"
-                    type="date"
-                    [value]="actionDue()"
-                    (input)="actionDue.set($any($event.target).value)"
-                  />
-                </app-form-field>
-                <div class="flex justify-end sm:col-span-2">
+                  <textarea
+                    id="fd-verify"
+                    rows="3"
+                    [value]="verificationNotes()"
+                    (input)="verificationNotes.set($any($event.target).value)"
+                  ></textarea>
+                </app-audit-field>
+                <div class="mt-2 flex justify-end">
                   <app-button
-                    type="submit"
                     size="sm"
-                    [disabled]="!actionTitle().trim() || saving.busy()"
+                    variant="secondary"
+                    [disabled]="
+                      verificationNotes() === (f.verification_notes ?? '') || saving.busy()
+                    "
+                    (click)="saveVerification()"
                   >
-                    {{ 'audits.findingDetail.addAction' | transloco }}
+                    {{ 'audits.findingDetail.saveNotes' | transloco }}
                   </app-button>
                 </div>
-              </form>
-            }
-          </app-card>
+              } @else {
+                <app-field-list [columns]="1">
+                  <app-field-item
+                    labelKey="audits.fields.verificationNotes"
+                    [value]="f.verification_notes"
+                    [multiline]="true"
+                  />
+                </app-field-list>
+              }
+              @if (f.verified_at) {
+                <p class="mt-2 text-meta text-fg-muted">
+                  {{
+                    'audits.findingDetail.verifiedBy'
+                      | transloco
+                        : {
+                            name: f.verified_by?.name || ('audits.common.someone' | transloco),
+                            date: (f.verified_at | localDate),
+                          }
+                  }}
+                </p>
+              }
 
-          <app-card>
-            <h2 class="mb-3 font-display text-[16px] font-bold text-fg">
+              @if (f.status === 'closed') {
+                <div class="mt-4 border-t border-border pt-4" data-testid="finding-effectiveness">
+                  <h3 class="text-card font-bold text-fg">
+                    {{ 'audits.findingDetail.effectiveness' | transloco }}
+                  </h3>
+                  <p class="mt-0.5 mb-3 text-meta text-fg-muted">
+                    {{ 'audits.findingDetail.effectivenessHint' | transloco }}
+                  </p>
+                  @if (access.canWrite()) {
+                    <div
+                      class="flex flex-wrap gap-2"
+                      role="group"
+                      [attr.aria-label]="'audits.fields.effectiveness' | transloco"
+                    >
+                      @for (e of effectivenessResults; track e) {
+                        <app-button
+                          size="sm"
+                          [variant]="f.effectiveness === e ? 'primary' : 'secondary'"
+                          [attr.aria-pressed]="f.effectiveness === e"
+                          [disabled]="saving.busy()"
+                          (click)="setEffectiveness(e)"
+                        >
+                          {{ 'audits.effectiveness.' + e | transloco }}
+                        </app-button>
+                      }
+                    </div>
+                  } @else {
+                    <p class="text-body text-fg">
+                      {{
+                        f.effectiveness
+                          ? ('audits.effectiveness.' + f.effectiveness | transloco)
+                          : ('common.empty.notSet' | transloco)
+                      }}
+                    </p>
+                  }
+                  @if (f.effectiveness_checked_at) {
+                    <p class="mt-2 text-meta text-fg-muted">
+                      {{
+                        'audits.findingDetail.checkedBy'
+                          | transloco
+                            : {
+                                name:
+                                  f.effectiveness_checked_by?.name ||
+                                  ('audits.common.someone' | transloco),
+                                date: (f.effectiveness_checked_at | localDate),
+                              }
+                      }}
+                    </p>
+                  }
+                </div>
+              }
+            </app-card>
+
+            <app-card data-testid="finding-actions">
+              <h2 class="mb-1 font-display text-section font-bold text-fg">
+                {{ 'audits.findingDetail.actions' | transloco }}
+              </h2>
+              <p class="mb-3 text-meta text-fg-muted">
+                {{
+                  (f.deviations.length
+                    ? 'audits.findingDetail.actionsInDeviation'
+                    : 'audits.findingDetail.actionsHint'
+                  ) | transloco
+                }}
+              </p>
+              @if (f.actions.length) {
+                <ul class="divide-y divide-border">
+                  @for (t of f.actions; track t.id) {
+                    <li class="flex flex-wrap items-center gap-2 py-2 text-body">
+                      <a
+                        [routerLink]="['/tasks', t.id]"
+                        class="min-w-0 flex-1 basis-[200px] font-semibold text-fg hover:text-accent"
+                        >{{ t.title }}</a
+                      >
+                      <span class="text-meta text-fg-muted">{{
+                        t.assignee?.name || ('common.empty.notSet' | transloco)
+                      }}</span>
+                      @if (t.due_at) {
+                        <span
+                          class="text-meta"
+                          [class]="t.overdue ? 'font-semibold text-warn-ink' : 'text-fg-muted'"
+                          >{{ t.due_at | localDay }}</span
+                        >
+                      }
+                      <app-status-badge
+                        meaning="lifecycle"
+                        [value]="t.status"
+                        [labelKey]="'audits.taskStatus.' + t.status"
+                      />
+                    </li>
+                  }
+                </ul>
+              } @else if (!f.deviations.length) {
+                <p class="text-body text-fg-muted">
+                  {{ 'audits.findingDetail.noActions' | transloco }}
+                </p>
+              }
+              @if (canAddAction() && !f.deviations.length) {
+                @if (!addingAction()) {
+                  <app-button
+                    class="mt-3 inline-block"
+                    variant="secondary"
+                    size="sm"
+                    (click)="addingAction.set(true)"
+                  >
+                    <app-icon name="plus" [size]="13" />
+                    {{ 'audits.findingDetail.addAction' | transloco }}
+                  </app-button>
+                } @else {
+                  <form
+                    class="mt-3 grid grid-cols-1 gap-3 rounded-tile border border-border bg-surface-2 p-3 sm:grid-cols-2"
+                    (submit)="$event.preventDefault(); addAction()"
+                  >
+                    <app-audit-field
+                      class="sm:col-span-2"
+                      inputId="fa-title"
+                      labelKey="audits.findingDetail.actionTitle"
+                      [required]="true"
+                    >
+                      <input
+                        id="fa-title"
+                        maxlength="255"
+                        [value]="actionTitle()"
+                        (input)="actionTitle.set($any($event.target).value)"
+                      />
+                    </app-audit-field>
+                    <app-audit-field
+                      inputId="fa-assignee"
+                      labelKey="audits.findingDetail.actionAssignee"
+                    >
+                      <app-audit-user-select
+                        inputId="fa-assignee"
+                        [value]="actionAssignee()"
+                        (valueChange)="actionAssignee.set($event)"
+                      />
+                    </app-audit-field>
+                    <app-audit-field inputId="fa-due" labelKey="audits.findingDetail.actionDue">
+                      <input
+                        id="fa-due"
+                        type="date"
+                        [attr.lang]="lang()"
+                        [value]="actionDue()"
+                        (input)="actionDue.set($any($event.target).value)"
+                      />
+                    </app-audit-field>
+                    <div class="flex justify-end gap-2 sm:col-span-2">
+                      <app-button variant="secondary" size="sm" (click)="addingAction.set(false)">
+                        {{ 'audits.common.cancel' | transloco }}
+                      </app-button>
+                      <app-button
+                        type="submit"
+                        size="sm"
+                        [disabled]="!actionTitle().trim() || saving.busy()"
+                      >
+                        {{ 'audits.findingDetail.addAction' | transloco }}
+                      </app-button>
+                    </div>
+                  </form>
+                }
+              }
+            </app-card>
+          }
+
+          <app-card data-testid="finding-deviations">
+            <h2 class="mb-1 font-display text-section font-bold text-fg">
               {{ 'audits.findingDetail.deviations' | transloco }}
             </h2>
+            <p class="mb-3 text-meta text-fg-muted">
+              {{ 'audits.findingDetail.deviationsHint' | transloco }}
+            </p>
             @if (f.deviations.length) {
               <div class="flex flex-wrap gap-2">
                 @for (d of f.deviations; track d.entity_id) {
-                  <app-entity-chip [ref]="d" />
+                  <app-entity-chip [ref]="d" [statusText]="true" />
                 }
               </div>
             } @else {
-              <p class="text-[13px] text-fg-muted">
+              <p class="text-body text-fg-muted">
                 {{ 'audits.findingDetail.noDeviations' | transloco }}
               </p>
             }
             @if (canLinkDeviation()) {
               <div class="mt-3">
-                <app-audit-deviation-picker
+                <app-audit-record-picker
+                  [types]="['deviation']"
                   [excluded]="deviationIds()"
+                  placeholderKey="audits.findingDetail.searchDeviation"
                   (picked)="linkDeviation($event)"
                 />
               </div>
             }
           </app-card>
-
-          <app-card>
-            <app-supports-requirements entityType="audit_finding" [entityId]="f.id" />
-          </app-card>
         </div>
-        <div aside class="flex flex-col gap-4">
+
+        <div aside-learn>
           <app-why-it-matters scope="audits" page="findingDetail" />
-          <app-lesson scope="audits" lesson="findings-and-capa" />
         </div>
       </app-record-detail-layout>
     } @else {
       <div class="mx-auto max-w-[1180px] px-4 pt-6 sm:px-8">
-        <app-audit-load-state [state]="data.state()" (retry)="load()" />
+        <app-audit-load-state [state]="data.state()" [rows]="6" (retry)="load()" />
       </div>
     }
 
@@ -529,24 +710,30 @@ export function canRespond(f: FindingDetail, userId: string | null, canWrite: bo
 export class FindingDetailPage {
   private readonly api = inject(AuditsApi);
   private readonly router = inject(Router);
+  private readonly language = inject(LanguageService);
   protected readonly access = inject(AuditAccess);
 
   readonly id = input.required<string>();
 
   protected readonly tabs = TABS;
-  protected readonly forward = FORWARD;
   protected readonly fieldLabels = FINDING_FIELD_LABELS;
-  protected readonly typeTone = findingTypeTone;
-  protected readonly statusTone = findingStatusTone;
+  protected readonly effectivenessResults = EFFECTIVENESS_RESULTS;
+  protected readonly typeBadge = findingTypeBadge;
+  protected readonly statusBadge = findingStatusBadge;
+  protected readonly lang = this.language.active;
   protected readonly data = loadable<FindingDetail>();
   protected readonly saving = mutator();
   protected readonly pending = signal<FindingAction | null>(null);
   protected readonly deleting = signal(false);
+  protected readonly addingAction = signal(false);
 
   protected readonly rootCause = linkedSignal(() => this.data.value()?.root_cause ?? '');
   protected readonly correction = linkedSignal(() => this.data.value()?.correction ?? '');
   protected readonly correctiveAction = linkedSignal(
     () => this.data.value()?.corrective_action ?? '',
+  );
+  protected readonly decision = linkedSignal(
+    () => this.data.value()?.decision ?? this.data.value()?.corrective_action ?? '',
   );
   protected readonly verificationNotes = linkedSignal(
     () => this.data.value()?.verification_notes ?? '',
@@ -555,9 +742,20 @@ export class FindingDetailPage {
   protected readonly actionAssignee = signal('');
   protected readonly actionDue = signal('');
 
-  protected readonly isNc = computed(() =>
-    NC_TYPES.includes(this.data.value()?.finding_type ?? 'ofi'),
+  protected readonly nc = computed(() => {
+    const f = this.data.value();
+    return !!f && isNonconformity(f);
+  });
+  protected readonly actions = computed(() =>
+    splitFindingActions(this.data.value()?.available_actions ?? []),
   );
+  protected readonly nextStepKey = computed(() => {
+    const f = this.data.value();
+    if (!f) {
+      return '';
+    }
+    return `audits.findingDetail.next.${this.nc() ? 'nc' : 'other'}.${f.status}`;
+  });
   protected readonly respondable = computed(() => {
     const f = this.data.value();
     return !!f && canRespond(f, this.access.userId(), this.access.canWrite());
@@ -575,29 +773,41 @@ export class FindingDetailPage {
     );
   });
   protected readonly canLinkDeviation = computed(
-    () => this.access.canWrite() && this.access.canReadDeviations(),
+    () =>
+      this.access.canWrite() &&
+      this.access.canReadDeviations() &&
+      this.data.value()?.status !== 'cancelled',
   );
   protected readonly deviationIds = computed(() =>
     (this.data.value()?.deviations ?? []).map((d) => d.entity_id),
   );
   protected readonly responseDirty = computed(() => {
     const f = this.data.value();
+    if (!f) {
+      return false;
+    }
+    if (!this.nc()) {
+      return this.decision() !== (f.decision ?? f.corrective_action ?? '');
+    }
     return (
-      !!f &&
-      (this.rootCause() !== (f.root_cause ?? '') ||
-        this.correction() !== (f.correction ?? '') ||
-        this.correctiveAction() !== (f.corrective_action ?? ''))
+      this.rootCause() !== (f.root_cause ?? '') ||
+      this.correction() !== (f.correction ?? '') ||
+      this.correctiveAction() !== (f.corrective_action ?? '')
     );
   });
 
   constructor() {
-    providePageContext(() => ({
-      module: 'audits',
-      entityType: 'audit_finding',
-      entityId: this.id(),
-      view: 'detail',
-      title: this.data.value()?.title ?? null,
-    }));
+    providePageContext(() => {
+      const f = this.data.value();
+      return {
+        module: 'audits',
+        entityType: 'audit_finding',
+        entityId: this.id(),
+        view: 'detail',
+        title: f?.title ?? null,
+        requirements: f?.clause_ref ? [f.clause_ref] : [],
+      };
+    });
     effect(() => {
       this.access.orgId();
       this.id();
@@ -624,6 +834,10 @@ export class FindingDetailPage {
   }
 
   protected saveResponse(): void {
+    if (!this.nc()) {
+      this.update({ decision: textOrNull(this.decision()) }, 'audits.notices.responseSaved');
+      return;
+    }
     this.update(
       {
         root_cause: textOrNull(this.rootCause()),
@@ -634,11 +848,40 @@ export class FindingDetailPage {
     );
   }
 
+  /** Take the first suggested cause into empty fields (the user still edits and saves). */
+  protected applyRootCause(data: unknown): void {
+    const causes = (data as { causes?: unknown } | null)?.causes;
+    const first = Array.isArray(causes) ? (causes[0] as Record<string, unknown> | undefined) : null;
+    if (!first) {
+      return;
+    }
+    const text = (v: unknown) => (typeof v === 'string' ? v.trim() : '');
+    const why = Array.isArray(first['why_chain'])
+      ? (first['why_chain'] as unknown[]).map(text).filter(Boolean)
+      : [];
+    const cause = [text(first['cause']), ...why.map((w, i) => `${i + 1}. ${w}`)]
+      .filter(Boolean)
+      .join('\n');
+    if (!this.rootCause().trim() && cause) {
+      this.rootCause.set(cause);
+    }
+    if (!this.correction().trim() && text(first['correction'])) {
+      this.correction.set(text(first['correction']));
+    }
+    if (!this.correctiveAction().trim() && text(first['corrective_action'])) {
+      this.correctiveAction.set(text(first['corrective_action']));
+    }
+  }
+
   protected saveVerification(): void {
     this.update(
       { verification_notes: textOrNull(this.verificationNotes()) },
       'audits.notices.saved',
     );
+  }
+
+  protected setEffectiveness(value: Effectiveness): void {
+    this.update({ effectiveness: value }, 'audits.notices.effectivenessSaved');
   }
 
   protected transition(action: FindingAction): void {
@@ -684,18 +927,19 @@ export class FindingDetailPage {
           this.actionTitle.set('');
           this.actionAssignee.set('');
           this.actionDue.set('');
+          this.addingAction.set(false);
           this.data.set(f);
         },
       },
     );
   }
 
-  protected linkDeviation(deviationId: string): void {
+  protected linkDeviation(ref: EntityRef): void {
     const orgId = this.access.orgId();
     if (!orgId) {
       return;
     }
-    this.saving.run(this.api.linkDeviation(orgId, this.id(), deviationId), {
+    this.saving.run(this.api.linkDeviation(orgId, this.id(), ref.entity_id), {
       success: 'audits.notices.deviationLinked',
       next: (f) => this.data.set(f),
     });

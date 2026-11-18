@@ -11,25 +11,28 @@ import {
 import { Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { providePageContext } from '../../../core/ai/page-context';
-import { FieldHelp } from '../../../shared/guidance/field-help';
-import { FormField } from '../../../shared/ui/form-field/form-field';
+import { LanguageService } from '../../../core/i18n/language.service';
 import { AuditAccess } from '../data/audit-access';
 import { fromDateInput, textOrNull, toDateInput } from '../data/audit-display';
+import { AuditFrameworks } from '../data/audit-frameworks';
 import {
   CERTIFICATION_STATUSES,
   CertificationDetail,
   CertificationInput,
   CertificationStatus,
-  FRAMEWORKS,
+  EntityRef,
 } from '../data/audit.models';
 import { AuditsApi } from '../data/audits-api';
+import { AuditField } from '../shared/audit-field';
 import { AuditFormPage } from '../shared/form-page';
 import { loadable } from '../shared/loadable';
 import { mutator } from '../shared/mutator';
+import { AuditRecordSelect } from '../shared/record-picker';
 import { AuditUserSelect } from '../shared/user-select';
 
 export interface CertificationFormValue {
   framework: string;
+  supplier: EntityRef | null;
   body: string;
   number: string;
   status: CertificationStatus;
@@ -48,7 +51,9 @@ export function certificationFormToInput(
 ): CertificationInput {
   return {
     framework: v.framework,
-    certification_body: v.body.trim(),
+    supplier_id: v.supplier?.entity_id ?? null,
+    // Without a body name the backend uses the supplier's name.
+    certification_body: textOrNull(v.body),
     certificate_number: textOrNull(v.number),
     status: v.status,
     scope: textOrNull(v.scope),
@@ -61,33 +66,49 @@ export function certificationFormToInput(
   };
 }
 
-/** `/audits/certifications/new` and `/:id/edit`: a certificate and its cycle dates. */
+/**
+ * `/audits/certifications/new` and `/:id/edit`: a certificate of a certifiable ISO
+ * standard, its certification body (picked from Suppliers, or typed), and the
+ * cycle dates.
+ */
 @Component({
   selector: 'app-audit-certification-form',
-  imports: [TranslocoPipe, FormField, FieldHelp, AuditFormPage, AuditUserSelect],
+  imports: [TranslocoPipe, AuditField, AuditFormPage, AuditRecordSelect, AuditUserSelect],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-audit-form-page
       [titleKey]="id() ? 'audits.certificationForm.editTitle' : 'audits.certificationForm.newTitle'"
       guidePage="certificationForm"
-      [backLink]="id() ? ['/audits/certifications', id()] : '/audits/certifications'"
+      [breadcrumbs]="breadcrumbs()"
       [busy]="saving.busy()"
       [canSave]="valid()"
+      invalidKey="audits.certificationForm.fix"
       [ready]="!id() || existing.state() === 'ready'"
       (save)="save()"
       (cancelled)="back()"
     >
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <app-form-field [label]="'audits.fields.framework' | transloco" inputId="cert-framework">
+        <app-audit-field
+          inputId="cert-framework"
+          labelKey="audits.fields.framework"
+          [required]="true"
+          helpPage="certificationForm"
+          helpField="framework"
+        >
           <select id="cert-framework" (change)="patch({ framework: $any($event.target).value })">
-            @for (k of frameworks; track k) {
+            @for (k of frameworkOptions(); track k) {
               <option [value]="k" [selected]="f().framework === k">
                 {{ 'audits.frameworks.' + k | transloco }}
               </option>
             }
           </select>
-        </app-form-field>
-        <app-form-field [label]="'audits.fields.status' | transloco" inputId="cert-status">
+        </app-audit-field>
+        <app-audit-field
+          inputId="cert-status"
+          labelKey="audits.fields.status"
+          helpPage="certificationForm"
+          helpField="status"
+        >
           <select id="cert-status" (change)="patch({ status: $any($event.target).value })">
             @for (s of statuses; track s) {
               <option [value]="s" [selected]="f().status === s">
@@ -95,95 +116,122 @@ export function certificationFormToInput(
               </option>
             }
           </select>
-          <app-field-help scope="audits" page="certificationForm" field="status" />
-        </app-form-field>
-        <app-form-field [label]="'audits.fields.certificationBody' | transloco" inputId="cert-body">
+        </app-audit-field>
+      </div>
+      <app-audit-field
+        inputId="cert-supplier"
+        labelKey="audits.certificationForm.supplier"
+        helpPage="certificationForm"
+        helpField="supplier"
+        [plain]="true"
+      >
+        <app-audit-record-select
+          inputId="cert-supplier"
+          [types]="['supplier']"
+          [max]="1"
+          labelKey="audits.certificationForm.supplier"
+          placeholderKey="audits.certificationForm.searchSupplier"
+          [value]="f().supplier ? [f().supplier!] : []"
+          (valueChange)="setSupplier($event[0] ?? null)"
+        />
+      </app-audit-field>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <app-audit-field
+          inputId="cert-body"
+          labelKey="audits.fields.certificationBody"
+          [required]="!f().supplier"
+          helpPage="certificationForm"
+          helpField="body"
+        >
           <input
             id="cert-body"
-            required
-            aria-required="true"
             maxlength="200"
+            [attr.aria-required]="!f().supplier"
             [value]="f().body"
             (input)="patch({ body: $any($event.target).value })"
           />
-          <app-field-help scope="audits" page="certificationForm" field="body" />
-        </app-form-field>
-        <app-form-field
-          [label]="'audits.fields.certificateNumber' | transloco"
-          inputId="cert-number"
-        >
+        </app-audit-field>
+        <app-audit-field inputId="cert-number" labelKey="audits.fields.certificateNumber">
           <input
             id="cert-number"
             maxlength="100"
             [value]="f().number"
             (input)="patch({ number: $any($event.target).value })"
           />
-        </app-form-field>
+        </app-audit-field>
       </div>
-      <app-form-field [label]="'audits.fields.scope' | transloco" inputId="cert-scope">
+      <app-audit-field
+        inputId="cert-scope"
+        labelKey="audits.fields.scope"
+        helpPage="certificationForm"
+        helpField="scope"
+      >
         <textarea
           id="cert-scope"
           rows="3"
           [value]="f().scope"
           (input)="patch({ scope: $any($event.target).value })"
         ></textarea>
-        <app-field-help scope="audits" page="certificationForm" field="scope" />
-      </app-form-field>
+      </app-audit-field>
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <app-form-field [label]="'audits.fields.issuedAt' | transloco" inputId="cert-issued">
+        <app-audit-field inputId="cert-issued" labelKey="audits.fields.issuedAt">
           <input
             id="cert-issued"
             type="date"
+            [attr.lang]="lang()"
             [value]="f().issued"
             (input)="patch({ issued: $any($event.target).value })"
           />
-        </app-form-field>
-        <app-form-field
-          [label]="'audits.certification.nextSurveillance' | transloco"
+        </app-audit-field>
+        <app-audit-field
           inputId="cert-surv"
+          labelKey="audits.certification.nextSurveillance"
+          helpPage="certificationForm"
+          helpField="surveillance"
         >
           <input
             id="cert-surv"
             type="date"
+            [attr.lang]="lang()"
             [value]="f().surveillance"
             (input)="patch({ surveillance: $any($event.target).value })"
           />
-          <app-field-help scope="audits" page="certificationForm" field="surveillance" />
-        </app-form-field>
-        <app-form-field [label]="'audits.fields.expiresAt' | transloco" inputId="cert-expires">
+        </app-audit-field>
+        <app-audit-field inputId="cert-expires" labelKey="audits.fields.expiresAt">
           <input
             id="cert-expires"
             type="date"
+            [attr.lang]="lang()"
             [value]="f().expires"
             (input)="patch({ expires: $any($event.target).value })"
           />
-        </app-form-field>
+        </app-audit-field>
       </div>
-      <app-form-field [label]="'audits.fields.owner' | transloco" inputId="cert-owner">
+      <app-audit-field inputId="cert-owner" labelKey="audits.fields.owner">
         <app-audit-user-select
           inputId="cert-owner"
           [value]="f().ownerId"
           [currentName]="existing.value()?.owner?.name ?? null"
           (valueChange)="patch({ ownerId: $event })"
         />
-      </app-form-field>
-      <app-form-field [label]="'audits.fields.notes' | transloco" inputId="cert-notes">
+      </app-audit-field>
+      <app-audit-field inputId="cert-notes" labelKey="audits.fields.notes">
         <textarea
           id="cert-notes"
           rows="2"
           [value]="f().notes"
           (input)="patch({ notes: $any($event.target).value })"
         ></textarea>
-      </app-form-field>
+      </app-audit-field>
       @if (id()) {
-        <app-form-field [label]="'audits.fields.changeReason' | transloco" inputId="cert-reason">
+        <app-audit-field inputId="cert-reason" labelKey="audits.fields.changeReason">
           <input
             id="cert-reason"
             maxlength="2000"
             [value]="f().changeReason"
             (input)="patch({ changeReason: $any($event.target).value })"
           />
-        </app-form-field>
+        </app-audit-field>
       }
     </app-audit-form-page>
   `,
@@ -192,15 +240,18 @@ export class CertificationForm {
   private readonly api = inject(AuditsApi);
   private readonly router = inject(Router);
   private readonly access = inject(AuditAccess);
+  private readonly frameworks = inject(AuditFrameworks);
+  private readonly language = inject(LanguageService);
 
   readonly id = input<string | undefined>(undefined);
 
-  protected readonly frameworks = FRAMEWORKS;
   protected readonly statuses = CERTIFICATION_STATUSES;
+  protected readonly lang = this.language.active;
   protected readonly existing = loadable<CertificationDetail>();
   protected readonly saving = mutator();
   protected readonly f = signal<CertificationFormValue>({
     framework: 'iso9001',
+    supplier: null,
     body: '',
     number: '',
     status: 'planned',
@@ -212,7 +263,22 @@ export class CertificationForm {
     ownerId: '',
     changeReason: '',
   });
-  protected readonly valid = computed(() => !!this.f().body.trim() && !!this.f().framework);
+  protected readonly frameworkOptions = computed(() =>
+    this.frameworks.certifiable(this.f().framework || null),
+  );
+  protected readonly valid = computed(
+    () => (!!this.f().body.trim() || !!this.f().supplier) && !!this.f().framework,
+  );
+  protected readonly breadcrumbs = computed(() => {
+    const id = this.id();
+    return [
+      { labelKey: 'modules.names.audits', link: '/audits' },
+      { labelKey: 'audits.certifications.title', link: '/audits/certifications' },
+      {
+        labelKey: id ? 'audits.certificationForm.editTitle' : 'audits.certificationForm.newTitle',
+      },
+    ];
+  });
 
   constructor() {
     providePageContext(() => ({
@@ -232,6 +298,7 @@ export class CertificationForm {
         untracked(() =>
           this.f.set({
             framework: c.framework,
+            supplier: c.supplier ?? null,
             body: c.certification_body,
             number: c.certificate_number ?? '',
             status: c.status,
@@ -250,6 +317,15 @@ export class CertificationForm {
 
   protected patch(change: Partial<CertificationFormValue>): void {
     this.f.update((v) => ({ ...v, ...change }));
+  }
+
+  /** Picking a supplier fills the body name when it is still empty. */
+  protected setSupplier(supplier: EntityRef | null): void {
+    this.f.update((v) => ({
+      ...v,
+      supplier,
+      body: supplier && !v.body.trim() ? supplier.title : v.body,
+    }));
   }
 
   protected save(): void {

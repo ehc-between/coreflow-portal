@@ -1,6 +1,6 @@
 {
   "nav": {
-    "label": "Audit sections",
+    "label": "Audit pages",
     "overview": "Overview",
     "plans": "Audits",
     "programmes": "Programmes",
@@ -12,7 +12,7 @@
     "loading": "Loading…",
     "loadFailed": "This could not be loaded.",
     "retry": "Try again",
-    "noMatches": "Nothing matches these filters.",
+    "noMatches": "No matches.",
     "back": "Back",
     "cancel": "Cancel",
     "save": "Save",
@@ -25,7 +25,15 @@
     "nobody": "Nobody",
     "overdue": "Overdue",
     "reason": "Reason",
-    "reasonMessage": "This step needs a reason. It is recorded in the history of the record."
+    "reasonMessage": "This step needs a reason. It is recorded in the history of the record.",
+    "required": "required",
+    "someone": "someone",
+    "noLead": "No lead auditor yet",
+    "removeItem": "Remove {{ name }}",
+    "typeToSearch": "Type to search",
+    "searching": "Searching …",
+    "searchRecords": "Search for a record",
+    "chosen": "Chosen records"
   },
   "fields": {
     "title": "Title",
@@ -41,8 +49,8 @@
     "objectives": "Objectives",
     "frameworks": "Standards",
     "framework": "Standard",
-    "clauseRefs": "Clauses to audit",
-    "clauseRef": "Clause",
+    "clauseRefs": "Requirements to audit",
+    "clauseRef": "Requirement",
     "departments": "Audited departments",
     "department": "Department",
     "plannedStart": "Planned start",
@@ -61,18 +69,27 @@
     "reportConclusion": "Conclusion",
     "findingType": "Type of finding",
     "evidence": "Objective evidence",
-    "findingOwner": "Responsible (auditee)",
+    "findingOwner": "Responsible at the auditee",
     "responseDue": "Response due",
     "audit": "Audit",
     "rootCause": "Root cause",
     "correction": "Correction",
-    "correctiveAction": "Corrective action",
+    "correctiveAction": "Corrective action (summary)",
     "verificationNotes": "Verification notes",
     "certificationBody": "Certification body",
     "certificateNumber": "Certificate number",
     "issuedAt": "Issued",
     "expiresAt": "Expires",
-    "notes": "Notes"
+    "notes": "Notes",
+    "decision": "Decision",
+    "effectiveness": "Effectiveness",
+    "processes": "Audited processes",
+    "criteriaDocuments": "Documents audited against",
+    "auditees": "People interviewed",
+    "distribution": "Report goes to",
+    "location": "Location",
+    "reportOutcome": "Overall conclusion",
+    "reportLimitations": "Limitations of the audit"
   },
   "filters": {
     "status": "Status",
@@ -86,7 +103,27 @@
     "openAudits": "Open audits",
     "openFindings": "Open findings",
     "mine": "Assigned to me",
-    "overdue": "Overdue only"
+    "overdue": "Overdue only",
+    "clear": "Clear the filters",
+    "planStatus": {
+      "unresolved": "Open audits",
+      "all": "All statuses",
+      "planned": "Planned",
+      "in_progress": "In progress",
+      "reporting": "Reporting",
+      "report_review": "Report awaiting approval",
+      "closed": "Closed",
+      "cancelled": "Cancelled"
+    },
+    "findingStatus": {
+      "unresolved": "All open findings",
+      "all": "All findings",
+      "open": "Open (not started)",
+      "in_progress": "Response in progress",
+      "pending_verification": "Awaiting verification",
+      "closed": "Closed",
+      "cancelled": "Cancelled"
+    }
   },
   "frameworks": {
     "iso9001": "ISO 9001",
@@ -126,20 +163,20 @@
   },
   "planStatus": {
     "planned": "Planned",
-    "in_progress": "Fieldwork",
+    "in_progress": "In progress",
     "reporting": "Reporting",
     "report_review": "Report in review",
     "closed": "Closed",
     "cancelled": "Cancelled"
   },
   "planAction": {
-    "start": "Start fieldwork",
-    "finish_fieldwork": "Finish fieldwork",
-    "submit_report": "Submit report",
+    "start": "Start the audit",
+    "finish_fieldwork": "Move on to the report",
+    "submit_report": "Send report for approval",
     "approve_report": "Approve report",
     "reject_report": "Send report back",
-    "cancel": "Cancel audit",
-    "reopen": "Reopen audit"
+    "cancel": "Cancel the audit",
+    "reopen": "Reopen the audit"
   },
   "auditorRole": {
     "lead": "Lead auditor",
@@ -154,7 +191,9 @@
     "competence_framework_missing": "Not qualified for every standard in this audit.",
     "competence_not_lead": "Not qualified as a lead auditor.",
     "independence_own_department": "Works in a department that is being audited.",
-    "independence_department_lead": "Leads a department that is being audited."
+    "independence_department_lead": "Leads a department that is being audited.",
+    "independence_auditee": "Is interviewed in this audit.",
+    "independence_process_owner": "Owns a process that is audited."
   },
   "checklistResult": {
     "unanswered": "Not answered",
@@ -188,13 +227,13 @@
     "cancelled": "Cancelled"
   },
   "findingAction": {
-    "start": "Start response",
-    "submit": "Submit response",
+    "start": "Start the response",
+    "submit": "Send the response",
     "verify": "Verify and close",
     "reject": "Send back",
     "close": "Close",
-    "cancel": "Cancel finding",
-    "reopen": "Reopen finding"
+    "cancel": "Cancel the finding",
+    "reopen": "Reopen the finding"
   },
   "certificationStatus": {
     "planned": "Planned",
@@ -219,35 +258,86 @@
       "running": "Audits under way",
       "closed": "Closed audits",
       "openFindings": "Open findings",
-      "overdue": "Overdue responses"
+      "overdue": "Responses past due"
     },
     "upcoming": "Next audits",
     "noUpcoming": "No audits are planned yet.",
     "findingsByType": "Open findings by type",
     "expiring": "Certificates expiring soon",
     "noExpiring": "No certificate expires in the coming months.",
-    "learn": "Learn about audits"
+    "learn": "Learn about audits",
+    "kpiGroup": "Audits in numbers",
+    "seeAll": "See all",
+    "start": {
+      "title": "Get started with audits",
+      "body": "Do these steps once, in this order. Then the audit cycle runs by itself.",
+      "progress": "{{ done }} of {{ total }} done",
+      "done": "done",
+      "steps": {
+        "programme": {
+          "title": "Make this year's audit programme",
+          "body": "Decide which areas to audit and how often, based on risk.",
+          "cta": "New programme"
+        },
+        "auditors": {
+          "title": "Register your auditors",
+          "body": "Who may audit which standards, and who may lead an audit.",
+          "cta": "Open the register"
+        },
+        "audit": {
+          "title": "Plan the first audit",
+          "body": "Choose what to audit, against which requirements, and who does it.",
+          "cta": "Plan an audit"
+        },
+        "closed": {
+          "title": "Carry out and close an audit",
+          "body": "Answer the checklist, register findings and get the report approved.",
+          "cta": "Go to audits"
+        },
+        "certification": {
+          "title": "Add your certificates",
+          "body": "If you are certified, add the certificate so renewals are not missed.",
+          "cta": "Add a certificate"
+        }
+      }
+    },
+    "mine": {
+      "title": "Your audit work",
+      "audits": "Audits you take part in",
+      "noAudits": "You are not on any open audit.",
+      "findings": "Findings you must answer",
+      "noFindings": "No findings are waiting for you."
+    }
   },
   "plans": {
     "title": "Audits",
     "search": "Search by code, title or scope",
     "new": "Plan an audit",
     "back": "All audits",
-    "progressValue": "{{ answered }} / {{ total }} ({{ percent }} %)",
-    "findingsValue": "{{ open }} open of {{ total }}",
+    "progressValue": "Checklist {{ answered }}/{{ total }}",
+    "findingsValue": "{{ open }} of {{ total }} findings open",
     "sorts": {
       "planned_start": "Earliest start first",
       "-planned_start": "Latest start first",
       "-created_at": "Newest first",
       "code": "By code"
-    }
+    },
+    "subtitle": "Every internal and external audit, with status, lead auditor and progress.",
+    "columnTitle": "Audit"
   },
   "planForm": {
     "newTitle": "Plan an audit",
     "editTitle": "Edit audit",
     "clausePlaceholder": "For example iso9001:8.4, hs:9.2",
     "noDepartments": "No departments are set up in this organisation.",
-    "askCriteria": "Which audit criteria should I use for this audit, and how do I describe them?"
+    "askCriteria": "Which audit criteria should I use for this audit, and how do I describe them?",
+    "clausesHint": "Pick the requirements you will check. The audit then counts as evidence for them under Standards.",
+    "askClauses": "Which requirements should this audit cover, given its scope?",
+    "searchProcesses": "Search for a process",
+    "searchDocuments": "Search for a procedure or policy",
+    "noPeople": "No people found in this organisation.",
+    "fixTitle": "Could not save. Fill in the title.",
+    "fixDates": "Could not save. The end date must be on or after the start date."
   },
   "planDetail": {
     "about": "About this audit",
@@ -258,10 +348,41 @@
     "report": "Audit report",
     "range": "{{ start }} – {{ end }}",
     "statusReason": "Reason: {{ reason }}",
-    "openCertification": "Open the certification",
+    "openCertification": "Open the certificate",
     "askAbout": "Explain audit {{ code }}: what is in scope, how far it has come and what still needs to be done.",
     "deleteTitle": "Delete this audit?",
-    "deleteMessage": "The audit, its checklist and its findings are removed, and their open corrective actions are cancelled. The history is kept in the audit log."
+    "deleteMessage": "The audit, its checklist and its findings are removed, and their open corrective actions are cancelled. The history is kept in the audit log.",
+    "nowTitle": "What to do now",
+    "summary": "In short",
+    "openFindings": "Open findings",
+    "openReport": "Report",
+    "ongoing": "ongoing",
+    "ourTeam": "Our contacts for the audit",
+    "ownChecklist": "Your own checklist (optional)",
+    "ownChecklistHint": "The certification body uses its own plan. Use a checklist here only if you want to prepare.",
+    "external": {
+      "title": "Report and findings from the auditor",
+      "body": "Upload the report you received, and register each finding from it so it is followed up here.",
+      "raise": "Register a finding from the report"
+    },
+    "next": {
+      "internal": {
+        "planned": "Put together the team (with a lead auditor) and the checklist. Then press «Start the audit» on the day.",
+        "in_progress": "Answer each question in the checklist and link the evidence you saw. Register a finding when something is not in order.",
+        "reporting": "Write the summary and the overall conclusion, then send the report for approval.",
+        "report_review": "The report waits for approval by someone who did not write it.",
+        "closed": "The audit is closed. Follow up the open findings until they are verified.",
+        "cancelled": "The audit was cancelled. Reopen it if it should be carried out after all."
+      },
+      "external": {
+        "planned": "Prepare: share the scope with the auditor and name your contacts. Start the audit when it begins.",
+        "in_progress": "Upload the auditor's report when you receive it and register its findings.",
+        "reporting": "Register the remaining findings and write a short summary for management.",
+        "report_review": "The summary waits for approval.",
+        "closed": "The audit is closed. Follow up the findings and keep the certificate up to date.",
+        "cancelled": "The audit was cancelled. Reopen it if it should be held after all."
+      }
+    }
   },
   "team": {
     "empty": "Nobody has been assigned to this audit yet.",
@@ -275,7 +396,7 @@
     "role": "Role",
     "addButton": "Add to team",
     "competent": "Competent",
-    "competenceGap": "Competence gap",
+    "competenceGap": "Competence missing",
     "independent": "Independent",
     "independenceGap": "Not independent",
     "checkPassed": "Competence and independence checks passed.",
@@ -283,26 +404,43 @@
     "overrideLabel": "Why assign them anyway? (recorded)",
     "overrideReason": "Assigned despite the checks: {{ reason }}",
     "removeTitle": "Remove from the audit team?",
-    "removeMessage": "{{ name }} is removed from this audit's team."
+    "removeMessage": "{{ name }} is removed from this audit's team.",
+    "removeNamed": "Remove {{ name }} from the team"
   },
   "checklist": {
     "progress": "{{ answered }} of {{ total }} questions answered",
     "generate": "Generate from clauses",
     "addQuestion": "Add question",
-    "noClauses": "Add the clauses to audit on the audit (Edit) to generate questions from the standard.",
+    "noClauses": "Choose the requirements to audit first (Edit the audit).",
     "draftsTitle": "{{ count }} suggested questions",
     "draftsHint": "Review the suggestions. Untick any you do not want, then add the rest to the checklist.",
     "discardDrafts": "Discard",
     "acceptDrafts": "Add {{ count }} to the checklist",
     "question": "Question",
-    "evidence": "Ask for",
+    "evidence": "What to ask for",
     "result": "Result",
     "notes": "Notes",
     "notesPlaceholder": "What you saw, heard and checked",
     "raiseFinding": "Raise a finding from this answer",
     "empty": "The checklist is empty.",
     "removeTitle": "Remove this question?",
-    "removeMessage": "The question and its answer are removed from the checklist."
+    "removeMessage": "The question and its answer are removed from the checklist.",
+    "emptyTitle": "No questions yet",
+    "emptyBody": "Make the questions from the requirements you chose. You can change and add questions afterwards.",
+    "emptyNoClauses": "Choose which requirements this audit covers. Then CoreFlow can make the questions for you.",
+    "chooseClauses": "Choose requirements",
+    "orElse": "Or",
+    "addOwn": "write your own questions",
+    "lockedHint": "Questions are added before or during the audit.",
+    "askFor": "Ask for: {{ evidence }}",
+    "resultFor": "Result of question {{ n }}",
+    "notesFor": "Notes for question {{ n }}",
+    "removeNumbered": "Remove question {{ n }}",
+    "evidenceRecords": "Evidence",
+    "linkEvidence": "Link evidence",
+    "searchEvidence": "Search for a document, risk, deviation …",
+    "findingsRaised": "Finding:",
+    "answeredBy": "Answered by {{ name }}, {{ date }}"
   },
   "report": {
     "save": "Save report",
@@ -316,7 +454,25 @@
     "scopeCriteria": "Scope, criteria and team",
     "summary": "Summary and conclusion",
     "results": "Checklist results",
-    "approvedBy": "Approved by {{ name }} on {{ date }}"
+    "approvedBy": "Approved by {{ name }} on {{ date }}",
+    "pageTitle": "Audit report",
+    "download": "Download PDF",
+    "generated": "Made {{ date }}",
+    "byOn": "{{ name }}, {{ date }}",
+    "sections": {
+      "about": "About the audit"
+    },
+    "noLimitations": "No limitations recorded.",
+    "resultCount": "{{ label }}: {{ count }}",
+    "noChecklist": "The audit has no checklist.",
+    "dueOn": "response due {{ date }}",
+    "signatures": "Signatures",
+    "signatureRole": {
+      "lead_auditor": "Lead auditor",
+      "approver": "Approved by"
+    },
+    "notSigned": "Not signed yet",
+    "fileSuffix": "audit-report"
   },
   "programmes": {
     "title": "Audit programmes",
@@ -329,12 +485,17 @@
     "noAudits": "No audits are planned in this programme yet.",
     "approved": "Approved",
     "deleteTitle": "Delete this programme?",
-    "deleteMessage": "A programme can only be deleted while it has no audits."
+    "deleteMessage": "A programme can only be deleted while it has no audits.",
+    "subtitle": "The yearly plan of which areas to audit, and how often, based on risk."
   },
   "programmeForm": {
     "newTitle": "New audit programme",
     "editTitle": "Edit audit programme",
-    "askRiskBasis": "How do I decide which processes to audit more often, based on risk and earlier results?"
+    "askRiskBasis": "How do I decide which processes to audit more often, based on risk and earlier results?",
+    "riskHint": "Name the processes, risks and earlier findings that decide what is audited more often.",
+    "quarter": "Q{{ q }}",
+    "proposedAudits": "Proposed audits:",
+    "fix": "Could not save. Fill in the title and a year between 2000 and 2100."
   },
   "findings": {
     "title": "Audit findings",
@@ -346,12 +507,19 @@
       "due": "Response due first",
       "-created_at": "Newest first",
       "code": "By code"
-    }
+    },
+    "subtitle": "Every finding from internal and external audits, and how far the follow-up has come.",
+    "raiseFromAudit": "Findings are registered from an audit",
+    "fromAudit": "From {{ audit }}"
   },
   "findingForm": {
     "newTitle": "Raise a finding",
     "editTitle": "Edit finding",
-    "clausePlaceholder": "For example iso9001:7.2"
+    "clausePlaceholder": "For example iso9001:7.2",
+    "fixTitle": "Could not save. Fill in the title.",
+    "inAudit": "In the audit {{ audit }}",
+    "askEvidence": "What counts as good objective evidence for this finding?",
+    "clauseHint": "The requirement that is not met. It is marked as a weak spot on the requirement in Standards."
   },
   "findingDetail": {
     "askAbout": "Explain finding {{ code }} and what a good response would look like.",
@@ -373,13 +541,44 @@
     "noDeviations": "This finding is not linked to a deviation.",
     "searchDeviation": "Search for a deviation to link",
     "deleteTitle": "Delete this finding?",
-    "deleteMessage": "The finding is removed and its open corrective actions are cancelled."
+    "deleteMessage": "The finding is removed and its open corrective actions are cancelled.",
+    "about": "About the finding",
+    "clauseWeak": "This shows that the requirement is weak. It does not count as evidence that it is met.",
+    "responseHint": "Find the root cause, fix what went wrong now (correction), and prevent it from happening again (corrective action).",
+    "decisionTitle": "Decision",
+    "decisionHint": "An observation or improvement suggestion needs no root cause analysis. Write what you decided to do, and why.",
+    "askDecision": "Help me decide what to do with finding {{ code }}.",
+    "correctiveHint": "A short summary. Add the actual work as tasks below, or link the deviation that holds it.",
+    "verificationHint": "The lead auditor, or someone else with audit rights who did not write the response, checks that the actions are done. Then the finding is closed.",
+    "effectiveness": "Did it work?",
+    "effectivenessHint": "Some time after closing, check that the problem has not come back.",
+    "checkedBy": "Checked by {{ name }}, {{ date }}",
+    "actionsHint": "Tasks that carry out the corrective action.",
+    "actionsInDeviation": "The corrective actions are followed up in the linked deviation.",
+    "deviationsHint": "Link the deviation that handles this finding, or create one with «Create from this».",
+    "next": {
+      "nc": {
+        "open": "The responsible person finds the root cause and plans the correction. Press «Start the response».",
+        "in_progress": "Fill in root cause, correction and corrective action, then send the response.",
+        "pending_verification": "The auditor checks that the actions are done and verifies the finding.",
+        "closed": "The finding is closed. Check later whether the actions worked.",
+        "cancelled": "The finding was cancelled."
+      },
+      "other": {
+        "open": "Decide what to do with the suggestion and write the decision.",
+        "in_progress": "Write the decision and send it.",
+        "pending_verification": "The auditor reads the decision and closes the finding.",
+        "closed": "The finding is closed.",
+        "cancelled": "The finding was cancelled."
+      }
+    }
   },
   "certifications": {
     "title": "Certifications",
     "search": "Search by body, number or scope",
     "new": "Add certification",
-    "back": "All certifications"
+    "back": "All certifications",
+    "subtitle": "Your certificates, who issued them, and when the next audit and expiry come."
   },
   "certification": {
     "nextSurveillance": "Next surveillance",
@@ -388,11 +587,19 @@
     "noAudits": "No external audits are linked to this certificate yet.",
     "planAudit": "Plan an external audit",
     "deleteTitle": "Delete this certification?",
-    "deleteMessage": "The certification is removed. Audits linked to it are kept."
+    "deleteMessage": "The certification is removed. Audits linked to it are kept.",
+    "about": "About the certificate",
+    "titleFallback": "{{ framework }} ({{ body }})",
+    "surveillanceIn": "Surveillance audit in {{ days }} days",
+    "noExpiry": "No expiry date",
+    "askAbout": "Explain the certificate {{ title }}: when it expires and what we must do before the next audit."
   },
   "certificationForm": {
     "newTitle": "Add certification",
-    "editTitle": "Edit certification"
+    "editTitle": "Edit certification",
+    "supplier": "Certification body from Suppliers",
+    "searchSupplier": "Search for a supplier",
+    "fix": "Could not save. Choose the certification body or type its name."
   },
   "auditors": {
     "title": "Auditor register",
@@ -412,11 +619,32 @@
     "inactive": "Inactive",
     "expired": "Expired",
     "removeTitle": "Remove from the register?",
-    "removeMessage": "{{ name }} is removed from the auditor register. Audits they are on keep their team."
+    "removeMessage": "{{ name }} is removed from the auditor register. Audits they are on keep their team.",
+    "subtitle": "Who may audit which standards, the training behind it, and how long it is valid.",
+    "trainingCount": "{{ count }} courses linked",
+    "validUntilShort": "Valid until {{ date }}",
+    "profileTitle": "Auditor profile",
+    "openPerson": "Open the person",
+    "fromTraining": "From the training record",
+    "training": "Training",
+    "completed": "Completed {{ date }}",
+    "notCompleted": "Not completed",
+    "expires": "expires {{ date }}",
+    "noTraining": "No courses linked.",
+    "auditsPerformed": "Audits taken part in: {{ total }} ({{ closed }} closed)",
+    "noAudits": "No audits yet.",
+    "certificates": "Certificates and documents",
+    "courses": "Qualifying courses",
+    "searchCourses": "Search for a course",
+    "coursesHint": "The qualification is then valid as long as the training record is.",
+    "activeLabel": "Active in the register"
   },
   "ai": {
     "draftQuestions": "Suggest questions",
-    "summariseReport": "Draft summary"
+    "summariseReport": "Draft summary",
+    "draftFinding": "Write the finding",
+    "suggestRootCause": "Suggest root cause",
+    "suggestProgramme": "Suggest a programme from risk"
   },
   "notices": {
     "saved": "Saved.",
@@ -440,7 +668,9 @@
     "certificationCreated": "Certification added.",
     "certificationDeleted": "Certification deleted.",
     "profileSaved": "Auditor register updated.",
-    "profileRemoved": "Removed from the auditor register."
+    "profileRemoved": "Removed from the auditor register.",
+    "evidenceSaved": "The evidence is saved.",
+    "effectivenessSaved": "The effectiveness check is saved."
   },
   "errors": {
     "forbidden": "You don't have permission to do that.",
@@ -472,7 +702,7 @@
     "invalid_programme": "Choose a valid audit programme.",
     "invalid_certification": "Choose a valid certification.",
     "invalid_checklist_item": "That checklist question no longer exists.",
-    "invalid_clause_ref": "One of the clause references is not valid (use for example iso9001:8.4).",
+    "invalid_clause_ref": "One of the requirements is not valid. Choose it from the list.",
     "invalid_date": "One of the dates is not valid.",
     "invalid_dates": "The end date must be on or after the start date.",
     "invalid_department": "Choose a valid department.",
@@ -483,7 +713,16 @@
     "invalid_status": "Choose a valid status.",
     "invalid_party_type": "Choose a valid type of external party.",
     "invalid_finding_type": "Choose a valid type of finding.",
-    "invalid_risk_level": "Choose a valid risk level."
+    "invalid_risk_level": "Choose a valid risk level.",
+    "invalid_process": "Choose a valid process.",
+    "invalid_document": "Choose a valid document.",
+    "invalid_report_outcome": "Choose a valid conclusion.",
+    "invalid_evidence_ref": "That record cannot be linked as evidence.",
+    "too_many_evidence_refs": "A question can have at most 20 evidence records.",
+    "effectiveness_after_closure": "Effectiveness can only be recorded after the finding is closed.",
+    "framework_not_certifiable": "Only ISO standards can be certified.",
+    "invalid_supplier": "Choose a valid supplier.",
+    "invalid_course": "Choose a valid course."
   },
   "notifications": {
     "programmeCreated": "Audit programme created: {{ title }}",
@@ -526,5 +765,79 @@
     "certificationCreated": "Certification added",
     "certificationUpdated": "Certification updated",
     "certificationStatusChanged": "Certification status changed"
+  },
+  "clauses": {
+    "openTooltip": "Open the requirement in Standards"
+  },
+  "effectiveness": {
+    "effective": "Effective",
+    "not_effective": "Not effective"
+  },
+  "reportOutcome": {
+    "conforming": "Conforming",
+    "conforming_with_findings": "Conforming, with findings",
+    "not_conforming": "Not conforming",
+    "statement": {
+      "conforming": "Conclusion: the audited area meets the audit criteria.",
+      "conforming_with_findings": "Conclusion: the audited area meets the audit criteria, with the findings listed below to follow up.",
+      "not_conforming": "Conclusion: the audited area does not meet the audit criteria. The nonconformities below must be corrected."
+    }
+  },
+  "coverage": {
+    "title": "What is audited, and when",
+    "intro": "Every requirement, process and department should be audited within the cycle. Gaps are marked, so you can plan an audit for them.",
+    "views": "Show coverage by",
+    "view": {
+      "clauses": "Requirements",
+      "processes": "Processes",
+      "departments": "Departments"
+    },
+    "summary": {
+      "clauses": "{{ covered }} of {{ total }} requirements audited in the last {{ years }} years. {{ gaps }} not yet.",
+      "processes": "{{ covered }} of {{ total }} processes audited in the last {{ years }} years. {{ gaps }} not yet.",
+      "departments": "{{ covered }} of {{ total }} departments audited in the last {{ years }} years. {{ gaps }} not yet."
+    },
+    "caption": {
+      "clauses": "Audits per requirement and year",
+      "processes": "Audits per process and year",
+      "departments": "Audits per department and year"
+    },
+    "empty": {
+      "clauses": "Choose the programme's standards to see its requirements here.",
+      "processes": "No processes are registered yet.",
+      "departments": "No departments are registered yet."
+    },
+    "gapsOnly": "Show only gaps",
+    "action": "Action",
+    "historyOf": "Audit history of {{ clause }}",
+    "openFindings": "{{ count }} open findings",
+    "cell": {
+      "none": "Not audited",
+      "findings": "{{ count }} findings",
+      "title": "{{ done }} done, {{ planned }} planned, {{ findings }} findings. {{ audits }}"
+    },
+    "gap": "Not audited",
+    "planThis": "Plan an audit",
+    "lastAudited": "Last {{ date }}",
+    "legend": {
+      "done": "Audited",
+      "planned": "Planned",
+      "gap": "Amber rows have not been audited in the cycle."
+    },
+    "noGaps": "No gaps: everything has been audited in the cycle.",
+    "history": {
+      "last": "Last audited",
+      "never": "Never",
+      "result": "Last result",
+      "audits": "Audits ({{ count }})",
+      "noAudits": "No audit has covered this requirement yet.",
+      "findings": "Open findings",
+      "noFindings": "No open findings.",
+      "openRequirement": "Open the requirement in Standards"
+    }
+  },
+  "programmeDetail": {
+    "about": "About the programme",
+    "askAbout": "Explain audit programme {{ code }}: what it covers, how far it has come and where the gaps are."
   }
 }

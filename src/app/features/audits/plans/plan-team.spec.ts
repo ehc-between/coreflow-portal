@@ -103,6 +103,10 @@ function setup(api: Partial<Record<keyof AuditsApi, unknown>>) {
   fixture.detectChanges();
   const el = fixture.nativeElement as HTMLElement;
   const choose = async (userId: string, role = 'auditor') => {
+    // The add form is folded behind "+ Legg til i teamet" until it is needed.
+    el.querySelector<HTMLElement>('[data-testid="team-add-open"] button')?.click();
+    el.querySelector<HTMLElement>('[data-testid="team-add-open"]')?.click();
+    await fixture.whenStable();
     const role$ = el.querySelector<HTMLSelectElement>('#team-role')!;
     role$.value = role;
     role$.dispatchEvent(new Event('change'));
