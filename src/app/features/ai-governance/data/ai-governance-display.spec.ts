@@ -1,4 +1,4 @@
-import { riskExplainKey, technicalDocCopy } from './ai-governance-display';
+import { localRef, riskExplainKey, technicalDocCopy } from './ai-governance-display';
 
 describe('riskExplainKey', () => {
   it('gives deployers and intermediaries the duties of their own role for high risk', () => {
@@ -11,8 +11,17 @@ describe('riskExplainKey', () => {
     }
   });
 
-  it('keeps the shared explanation for the other risk classes', () => {
-    expect(riskExplainKey('limited', 'deployer')).toBe('aiGovernance.riskExplain.limited');
+  it('makes the limited-risk text role-aware (Art. 50(1)-(2) is a provider duty)', () => {
+    expect(riskExplainKey('limited', 'provider')).toBe('aiGovernance.riskExplain.limited');
+    expect(riskExplainKey('limited', 'deployer')).toBe(
+      'aiGovernance.riskExplainByRole.deployer.limited',
+    );
+    expect(riskExplainKey('limited', 'importer')).toBe(
+      'aiGovernance.riskExplainByRole.other.limited',
+    );
+    expect(riskExplainKey('limited', 'deployer', true)).toBe(
+      'aiGovernance.riskExplainByRole.builtin.limited',
+    );
     expect(riskExplainKey('minimal', null)).toBe('aiGovernance.riskExplain.minimal');
   });
 });
@@ -24,11 +33,11 @@ describe('technicalDocCopy', () => {
       body: 'aiGovernance.docs.requiredBody',
     });
     expect(technicalDocCopy({ required: false, audience: 'deployer' })).toEqual({
-      badge: 'aiGovernance.docs.providerDuty',
+      badge: 'aiGovernance.docs.optionalForYou',
       body: 'aiGovernance.docs.deployerBody',
     });
     expect(technicalDocCopy({ required: false, audience: 'other' })).toEqual({
-      badge: 'aiGovernance.docs.providerDuty',
+      badge: 'aiGovernance.docs.optionalForYou',
       body: 'aiGovernance.docs.otherBody',
     });
     expect(technicalDocCopy({ required: false, audience: 'none' })).toEqual({
@@ -40,5 +49,14 @@ describe('technicalDocCopy', () => {
   it('falls back to `required` when the payload has no audience', () => {
     expect(technicalDocCopy({ required: true }).body).toBe('aiGovernance.docs.requiredBody');
     expect(technicalDocCopy({ required: false }).badge).toBeNull();
+  });
+});
+
+describe('localRef', () => {
+  it('writes AI Act article and annex labels the Norwegian way in nb', () => {
+    expect(localRef('Annex III(4)', 'nb')).toBe('vedlegg III(4)');
+    expect(localRef('Art. 26(4)-(6)', 'nb')).toBe('art. 26(4)-(6)');
+    expect(localRef('Art. 6(1)', 'en')).toBe('Art. 6(1)');
+    expect(localRef(null, 'nb')).toBe('');
   });
 });

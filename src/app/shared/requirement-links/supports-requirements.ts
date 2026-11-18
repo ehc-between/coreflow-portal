@@ -96,10 +96,34 @@ const KNOWN_FIELDS = new Set([
   'screening',
   'checks',
   'offer',
+  // AI governance (A18): obligations / documentation on ai_system, kind on ai_assessment.
+  'obligations',
+  'documentation',
+  'kind',
 ]);
 
-/** i18n key of a field's display name in "Fra feltet «…»". */
-export function fieldLabelKey(field: string | null | undefined): string {
+/**
+ * Fields whose name means something different on a given record type, keyed by
+ * entity type: an obligation's `clause_refs` are the clauses and articles it
+ * documents, not the clauses an audit plan audits.
+ */
+const ENTITY_FIELD_LABELS: Readonly<Record<string, Readonly<Record<string, string>>>> = {
+  compliance_obligation: { clause_refs: 'documented_refs' },
+  obligation_duty: { clause_refs: 'documented_refs' },
+};
+
+/**
+ * i18n key of a field's display name in "Fra feltet «…»". Pass the record's
+ * entity type when known, so a field gets the label the record's form uses.
+ */
+export function fieldLabelKey(
+  field: string | null | undefined,
+  entityType?: string | null,
+): string {
+  const own = field && entityType ? ENTITY_FIELD_LABELS[entityType]?.[field] : undefined;
+  if (own) {
+    return `standards.reqs.fields.${own}`;
+  }
   return field && KNOWN_FIELDS.has(field)
     ? `standards.reqs.fields.${field}`
     : 'standards.reqs.fields.generic';
@@ -176,6 +200,8 @@ export interface ClauseRow {
   readonly key: string;
   readonly label: RequirementLabel;
   readonly status: 'confirmed' | 'suggested';
+  /** The record the links belong to (this record, or one of its actions). */
+  readonly entityId: string;
   /** 1-based positions of the linked requirements within the clause. */
   readonly positions: readonly number[];
   readonly rows: readonly PanelRow[];
@@ -203,6 +229,7 @@ export function groupByClause(rows: readonly PanelRow[]): ClauseRow[] {
       key,
       label: list[0].label,
       status: list[0].status,
+      entityId: list[0].entityId,
       positions: list.map((r) => r.label.req_index),
       rows: list,
       fromField: fieldRows.length === list.length,
@@ -415,7 +442,14 @@ export function groupByClause(rows: readonly PanelRow[]): ClauseRow[] {
                 <app-icon name="lock" [size]="11" />
                 {{
                   'standards.reqs.fromField'
-                    | transloco: { field: (fieldKey(row.originField) | transloco) }
+                    | transloco
+                      : {
+                          field:
+                            (fieldKey(
+                              row.originField,
+                              row.entityId === entityId() ? entityType() : 'deviation_action'
+                            ) | transloco),
+                        }
                 }}
               </p>
             } @else if (row.status === 'suggested' && row.rationale) {

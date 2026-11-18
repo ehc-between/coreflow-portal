@@ -3,11 +3,11 @@
     "home": {
       "intro": {
         "title": "Your training at a glance",
-        "body": "This page lists the courses you are **required** to take, what is due and which certificates you hold. Requirements come from the organisation's assignment rules (by role, department or as a new hire) and from training assigned to you directly.",
+        "body": "This page shows the courses you **must** take, what is due, and the certificates you hold. The requirements come from the organisation's assignment rules (for your department, job position or as a new hire) and from training assigned to you directly.",
         "steps": [
           "Start with anything marked **Overdue** or **Expired**.",
-          "Open a course and work through its lessons, then take the final quiz.",
-          "Your completion record and certificate are created automatically when you pass."
+          "Open a course, go through the lessons and finish the last step.",
+          "Your training record and certificate are created automatically when you finish."
         ]
       },
       "why": {
@@ -23,16 +23,16 @@
     "courses": {
       "intro": {
         "title": "The course catalogue",
-        "body": "Courses teach what people need to know and record that they learned it. A course can be an **online course** with lessons and quizzes, a **read and understood** confirmation of a controlled document, or **external training** that a training manager records.",
+        "body": "A course teaches people what they need to know and documents that they learned it. It can be an **online course** with lessons and a quiz, a **read-and-understood** confirmation of a controlled document, or **external training** recorded by a training manager.",
         "steps": [
           "Filter by category, type or status, and save the filters as a view.",
-          "Open a course to see its lessons, assignment rules and who has completed it.",
-          "Course builders create drafts, which become available to learners when published."
+          "Open a course to see its lessons, who must take it and who has completed it.",
+          "New courses start as drafts and become available when they are published."
         ]
       },
       "why": {
         "body": "A catalogue of approved courses makes awareness training repeatable and measurable instead of a one-off presentation. Information security and privacy awareness are explicit requirements.",
-        "clauses": ["hs:7.3", "iso27001:A.6.3", "gdpr:39", "nis2:21"]
+        "clauses": ["hs:7.3", "iso27001:A.6.3", "gdpr:39", "nis2:21.2.g"]
       },
       "empty": {
         "title": "No courses yet",
@@ -43,11 +43,11 @@
     "detail": {
       "intro": {
         "title": "Working with a course",
-        "body": "A course moves from **draft** to **published** to **archived**. Every change to a published course's content, pass mark, type or document creates a new **version**, and the revision history shows who changed what and why.",
+        "body": "A course goes from **draft** to **published** and finally **archived**. Changing the content of a published course creates a new **version**, and the revisions show who changed what and why.",
         "steps": [
-          "Add assignment rules so the right people get the course automatically.",
-          "Use **Assign** for one-off assignments, for example after an incident.",
-          "Link the course to the requirements it helps you meet, so auditors find the evidence."
+          "Add rules so the right people get the course automatically. You see who a rule assigns before you save it.",
+          "Use **Assign** for individuals, for example after an incident.",
+          "The requirements the course documents are shown in the panel on the right, so auditors find the evidence."
         ]
       },
       "why": {
@@ -56,20 +56,26 @@
       },
       "fields": {
         "rules": {
-          "help": "A rule says who must take the course and how many days they have. The planner also creates re-training 30 days before a certificate expires.",
-          "example": "Role: Quality manager, 30 days. New hires, 14 days."
+          "help": "A rule says who must take the course and how many days they get. Choose a department or job position for the job people do; an access role only covers rights in CoreFlow. Renewals are assigned automatically before a certificate expires.",
+          "example": "Job position: Warehouse operative, 30 days. New hires, 14 days.",
+          "requirements": ["hs:7.2"]
+        },
+        "effectiveness": {
+          "help": "Did the training work? Compare with the course's effectiveness criteria, using observation, key figures or audits, not only quiz scores.",
+          "example": "Effective: deviations of this kind halved after the course.",
+          "requirements": ["hs:7.2"]
         }
       }
     },
     "form": {
       "intro": {
         "title": "Building a good course",
-        "body": "Keep lessons short and practical: one topic per lesson, a few minutes each, with examples from your own work. Use quizzes to check understanding of what really matters, not to trick people.",
+        "body": "Keep lessons short and practical: one topic per lesson, a few minutes each, with examples from everyday work. Use the quiz to check that people understood what matters most.",
         "steps": [
           "Choose the type: online course, read and understood, or external training.",
-          "Write the lessons in markdown. Each \"## \" heading becomes a step in the lesson player.",
-          "Add two to four quiz questions per lesson and set a pass mark.",
-          "Set a validity period if the training must be repeated."
+          "Write the learning objectives: what participants can do afterwards.",
+          "Add two to four quiz questions per lesson if you need proof of understanding.",
+          "Under **Requirements and validity**, choose how long the course is valid, which requirements it documents and which competence it gives."
         ]
       },
       "why": {
@@ -88,16 +94,40 @@
           "help": "The controlled document the course is about. Required for read and understood: the confirmation is stored against the document's current approved revision."
         },
         "passMark": {
-          "help": "The share of quiz answers that must be correct to pass. 80 % is a common choice; use 100 % for safety-critical rules.",
+          "help": "The share of quiz answers that must be correct to pass. 80 % is common; use 100 % for safety-critical rules. Only applies to online courses with a quiz.",
           "example": "80"
         },
         "validity": {
-          "help": "How long a completion stays valid. Leave empty if the training never expires. Re-training is assigned automatically before expiry.",
-          "example": "12 for yearly security awareness"
+          "help": "How long a completion stays valid. Leave empty if the training never expires. Renewals are assigned automatically before expiry.",
+          "example": "12 for yearly security awareness",
+          "requirements": ["hs:7.2"]
         },
         "lessonBody": {
-          "help": "Markdown text. Start each step with a \"## \" heading; short paragraphs and bullet lists work best.",
-          "example": "## What is an incident?\nAny event that may harm the confidentiality, integrity or availability of information."
+          "help": "Write in short paragraphs. A line that starts with ## becomes a new step in the lesson; short bullet lists work best.",
+          "example": "## What is an incident?\nAny event that could harm the confidentiality, integrity or availability of information."
+        },
+        "owner": {
+          "help": "The person responsible for the course. Their name appears as the issuer on the certificate."
+        },
+        "learningObjectives": {
+          "help": "What participants can do after the course, one objective per line. They are shown before the course starts and printed on the certificate.",
+          "example": "Report an information security incident within one hour.",
+          "requirements": ["hs:7.2"]
+        },
+        "clauseRefs": {
+          "help": "The requirements in the standards that this course helps the organisation meet. They become confirmed links, so the course counts as evidence for the requirement.",
+          "example": "ISO 27001 · A.6.3 for an information security awareness course",
+          "requirements": ["hs:7.2", "hs:7.3"]
+        },
+        "competences": {
+          "help": "The competence from People that someone gets when they pass the course. It is renewed on the employee's profile, and a higher level is never lowered.",
+          "example": "First aid, level Competent",
+          "requirements": ["hs:7.2"]
+        },
+        "effectivenessCriteria": {
+          "help": "What shows that the training worked. Use the criteria when you evaluate the course after a while.",
+          "example": "No repeat deviations of this kind for six months.",
+          "requirements": ["hs:7.2"]
         }
       }
     },
@@ -120,12 +150,12 @@
     },
     "assignments": {
       "intro": {
-        "title": "Who has to take which course",
-        "body": "An assignment asks one person to complete one course by a due date. Assignments come from rules, from onboarding, from re-training before expiry, or from someone assigning the course directly.",
+        "title": "Who takes which course",
+        "body": "An assignment asks one person to complete one course by a due date. Assignments come from rules, new-hire onboarding, renewals before expiry, a new revision of a document, or someone assigning the course directly.",
         "steps": [
-          "Filter on **Overdue** to follow up on missed deadlines.",
-          "Use **Assign training** to assign a course to several people at once.",
-          "Learners get a notification and see the assignment in My Work."
+          "Choose **Overdue** to follow up missed due dates.",
+          "Tick several assignments to send a reminder, move the due date or cancel them together.",
+          "Group by course or person to see who is missing what."
         ]
       },
       "why": {
@@ -141,7 +171,7 @@
     "assignment": {
       "intro": {
         "title": "One assignment",
-        "body": "The assignment closes automatically when the person passes the course. Training managers can change the due date or cancel it if it no longer applies."
+        "body": "The assignment closes automatically when the person completes the course. Training managers can send a reminder, change the due date or cancel the assignment if it no longer applies."
       },
       "why": {
         "body": "Assignments with due dates and their history show that training needs were planned and followed up.",
@@ -159,11 +189,11 @@
     "records": {
       "intro": {
         "title": "Evidence of competence",
-        "body": "A training record shows that a person completed a course: when, which version, the score and how long it is valid. Records from online courses are created automatically; external and classroom training is recorded by a training manager.",
+        "body": "A training record shows that a person completed a course: when, which version, the result and how long it is valid. Online courses are recorded automatically; external and classroom training is recorded by a training manager.",
         "steps": [
-          "Filter on **Expiring in 30 days** to plan re-training.",
-          "Open a record to see the certificate and the effectiveness evaluation.",
-          "Attach certificates from external providers to the record."
+          "Choose **Expiring within 30 days** to plan renewals.",
+          "Choose **Missing documentation** to find external training without an attached certificate.",
+          "Export the list as CSV when an auditor asks for evidence."
         ]
       },
       "why": {
@@ -177,7 +207,12 @@
       },
       "fields": {
         "expires": {
-          "help": "When this training stops being valid. Leave empty to use the course's validity period, or if it never expires."
+          "help": "When the training stops being valid. Leave empty to use the course's validity period, or if it never expires.",
+          "requirements": ["hs:7.2"]
+        },
+        "provider": {
+          "help": "The supplier that delivered the training. The record is then linked to the supplier, and you see the training from there.",
+          "requirements": ["hs:7.2", "iso9001:8.4"]
         }
       }
     },
@@ -192,24 +227,52 @@
       },
       "fields": {
         "effectiveness": {
-          "help": "Did the training achieve its purpose? Base it on observed behaviour, results or follow-up checks, not only on the quiz score.",
-          "example": "Effective: incident reports since the course are complete and on time."
+          "help": "Did the training achieve its goal for this person? Base it on observed behaviour, results or follow-up, not only on the quiz score.",
+          "example": "Effective: incident reports after the course are complete and on time.",
+          "requirements": ["hs:7.2"]
         }
       }
     },
     "matrix": {
       "intro": {
         "title": "The training matrix",
-        "body": "The matrix shows each person against each course with the status of what is required: compliant, expiring soon, expired, assigned, overdue or not required. The percentage at the top is the share of required training in place.",
+        "body": "The matrix shows every person against every course with the status of what is required. The percentage at the top is the share of required training in place, and each course has its own percentage.",
         "steps": [
-          "Filter by category or department to focus on one area.",
-          "Click a cell to open the assignment or the record behind it.",
-          "Use the matrix in management review as the competence overview."
+          "Filter by category, department or job position to focus on one area.",
+          "Click a cell to open the record or assignment behind it, or a name for the person's training profile.",
+          "Print or export the matrix for management review and audits."
         ]
       },
       "why": {
         "body": "A competence or training matrix is the most common way to show auditors that needs are known and met across the organisation.",
         "clauses": ["hs:7.2", "hs:9.3"]
+      }
+    },
+    "assignNew": {
+      "intro": {
+        "title": "Assign training",
+        "body": "Choose a published course, the people who must take it and a due date. Use rules on the course when it applies to a whole department or job position, so new people get it automatically."
+      },
+      "fields": {
+        "course": {
+          "help": "Only published courses can be assigned. If you came from a deviation, choose the course that closes the competence gap.",
+          "requirements": ["hs:7.2", "hs:10.2"]
+        }
+      }
+    },
+    "plan": {
+      "intro": {
+        "title": "The training plan",
+        "body": "The plan shows month by month when training is due and when certificates expire. It is built from the assignments and rules, including rules that repeat every year.",
+        "steps": [
+          "Start with what is already overdue.",
+          "Move 12 months forward or back to see the yearly programme.",
+          "Print the plan when an auditor asks for the training plan."
+        ]
+      },
+      "why": {
+        "body": "The standards require the organisation to plan how it gets the competence it needs and keeps it up to date. A plan with dates shows that this is not left to chance.",
+        "clauses": ["hs:7.2", "iso27001:A.6.3"]
       }
     }
   },
@@ -228,7 +291,7 @@
         },
         {
           "heading": "How CoreFlow helps",
-          "body": "Assignment rules give the right courses to the right people, the planner schedules re-training before certificates expire, and every completion becomes a record with a certificate number and the course version."
+          "body": "Assignment rules give the right courses to the right people, renewals are assigned automatically before certificates expire, and every completion becomes a record with a certificate number and the course version."
         }
       ],
       "quiz": [
@@ -283,12 +346,12 @@
       {
         "target": "training-courses",
         "title": "The course catalogue",
-        "body": "Browse every published course, including ones you are not required to take."
+        "body": "Browse every published course, including the ones you do not have to take."
       },
       {
         "target": "training-stats",
-        "title": "Programme statistics",
-        "body": "If you oversee training you see open and overdue assignments, completion rate and certificates about to expire."
+        "title": "Programme figures",
+        "body": "If you follow up training, you see how much required training is in place, open and overdue assignments, and certificates expiring soon."
       }
     ],
     "courses": [
@@ -301,12 +364,12 @@
     "matrix": [
       {
         "target": "training-matrix-filters",
-        "title": "Focus the matrix",
-        "body": "Filter by category or department to see one area at a time."
+        "title": "Narrow the matrix",
+        "body": "Filter by category, department or job position to see one area at a time."
       },
       {
         "target": "training-matrix-summary",
-        "title": "Overall compliance",
+        "title": "Required training in place",
         "body": "The share of required training that is in place. Use it in management review."
       }
     ]

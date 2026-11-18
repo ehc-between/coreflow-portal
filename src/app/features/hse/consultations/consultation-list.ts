@@ -11,18 +11,24 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../../core/ai/page-context';
+import { LanguageService } from '../../../core/i18n/language.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
-import { GuideIntro } from '../../../shared/guidance/guide-intro';
 import { TeachingEmpty } from '../../../shared/guidance/teaching-empty';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { RecordListPage } from '../../../shared/kit/record-list-page';
 import { SavedView } from '../../../shared/kit/saved-views.service';
-import { LocalDatePipe } from '../../../shared/locale/locale-pipes';
-import { Badge } from '../../../shared/ui/badge/badge';
+import { CoverageChip } from '../../../shared/requirement-links/coverage-chip';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
+import { EmptyState } from '../../../shared/ui/empty-state/empty-state';
+import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { ModuleNav } from '../../../shared/ui/module-nav/module-nav';
 import { Pager } from '../../../shared/ui/pager/pager';
+import { RecordRow, RecordRowHeader } from '../../../shared/ui/record-row/record-row';
+import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { HseApi } from '../data/hse-api';
 import {
   CONSULTATION_KINDS,
@@ -34,202 +40,289 @@ import {
   ConsultationSort,
   ConsultationStatus,
 } from '../data/hse.models';
-import { consultationStatusTone } from '../hse-format';
-import { HSE_MODULE, HseLessonButton, HseNav, injectHsePermissions } from '../shared/hse-shared';
+import { consultationStatusValue } from '../hse-format';
+import { HSE_MODULE, HSE_NAV, HSE_ROOT_CRUMB, injectHsePermissions } from '../shared/hse-shared';
 
 const PAGE_SIZE = 25;
-const SELECT_CLASS =
-  'h-10 rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg outline-none focus:border-accent';
+
+export interface ConsultationListFilters {
+  readonly status: ConsultationStatus | '';
+  readonly kind: ConsultationKind | '';
+  readonly sort: ConsultationSort;
+}
+
+export const CONSULTATION_DEFAULT_FILTERS: ConsultationListFilters = {
+  status: '',
+  kind: '',
+  sort: '-created_at',
+};
+
+export function parseConsultationFilters(
+  raw: Readonly<Record<string, string | null | undefined>>,
+): ConsultationListFilters {
+  const pick = <T extends string>(value: string | null | undefined, allowed: readonly T[], d: T) =>
+    value && (allowed as readonly string[]).includes(value) ? (value as T) : d;
+  return {
+    status: pick(raw['status'], ['', ...CONSULTATION_STATUSES], ''),
+    kind: pick(raw['kind'], ['', ...CONSULTATION_KINDS], ''),
+    sort: pick(raw['sort'], CONSULTATION_SORTS, '-created_at'),
+  };
+}
+
+export function consultationQuery(
+  q: string,
+  f: ConsultationListFilters,
+  offset: number,
+): ConsultationQuery {
+  return {
+    q: q.trim() || undefined,
+    status: f.status ? [f.status] : undefined,
+    kind: f.kind || undefined,
+    sort: f.sort,
+    limit: PAGE_SIZE,
+    offset,
+  };
+}
 
 /**
- * `/hse/consultations`: worker consultation and participation records (meetings,
- * safety committee, surveys, toolbox talks, suggestions) with search, status /
- * kind filters, sorting, saved views and paging.
+ * `/hse/consultations` ("Medvirkning"): worker consultation records with search,
+ * status / kind filters, sorting, saved views and paging. Each row shows the
+ * code, the meeting, its kind and place, the follow-up tasks of its decisions
+ * (open / overdue / done), the requirements it documents, the status (and
+ * "Uten verneombud" when one should have taken part), the organiser and date.
  */
 @Component({
   selector: 'app-consultation-list',
   imports: [
     RouterLink,
     TranslocoPipe,
-    LocalDatePipe,
-    Badge,
     Button,
     Card,
+    CoverageChip,
+    EmptyState,
+    ErrorState,
+    HelpStrip,
     Icon,
+    LoadingState,
+    ModuleNav,
     Pager,
     RecordListPage,
-    GuideIntro,
-    WhyItMatters,
+    RecordRow,
+    RecordRowHeader,
+    StatusBadge,
     TeachingEmpty,
-    HseNav,
-    HseLessonButton,
+    WhyItMatters,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-record-list-page
       titleKey="hse.consultation.list.title"
+      descriptionKey="hse.consultation.list.subtitle"
       scope="hse"
       page="consultations"
       searchPlaceholderKey="hse.consultation.list.search"
+      [breadcrumbs]="crumbs"
       [query]="query()"
-      [filters]="filters()"
+      [filters]="viewFilters()"
+      [moreFiltersActive]="filters().sort !== defaults.sort ? 1 : 0"
+      [empty]="isEmptyRegister()"
       (search)="onSearch($event)"
       (viewApplied)="applyView($event)"
     >
-      <div intro class="mt-1">
-        <p class="text-[14px] text-fg-muted">{{ 'hse.consultation.list.subtitle' | transloco }}</p>
-      </div>
-      <ng-container toolbar>
-        <app-hse-lesson-button lesson="worker-participation" labelKey="hse.consultation.lesson" />
-        @if (perms.write()) {
-          <a routerLink="/hse/consultations/new" tabindex="-1">
-            <app-button>
-              <app-icon name="plus" [size]="15" />
-              {{ 'hse.consultation.new' | transloco }}
-            </app-button>
-          </a>
+      @if (perms.write()) {
+        <a primary routerLink="/hse/consultations/new" tabindex="-1">
+          <app-button>
+            <app-icon name="plus" [size]="15" />
+            {{ 'hse.consultation.new' | transloco }}
+          </app-button>
+        </a>
+      }
+
+      <app-module-nav nav class="mb-4 block" [items]="nav" labelKey="modules.names.hse" />
+      <app-help-strip help scope="hse" page="consultations" lesson="worker-participation" />
+
+      <select
+        filters
+        class="cf-filter"
+        [attr.aria-label]="'hse.common.status' | transloco"
+        (change)="setFilter('status', $any($event.target).value)"
+      >
+        <option value="" [selected]="filters().status === ''">
+          {{ 'hse.common.allStatuses' | transloco }}
+        </option>
+        @for (s of statuses; track s) {
+          <option [value]="s" [selected]="s === filters().status">
+            {{ 'hse.consultation.status.' + s | transloco }}
+          </option>
         }
-      </ng-container>
-      <ng-container filters>
-        <label class="sr-only" for="wc-status">{{ 'hse.common.status' | transloco }}</label>
-        <select
-          id="wc-status"
-          [class]="selectClass"
-          (change)="set('status', $any($event.target).value)"
-        >
-          <option value="">{{ 'hse.common.allStatuses' | transloco }}</option>
-          @for (s of statuses; track s) {
-            <option [value]="s" [selected]="s === status()">
-              {{ 'hse.consultation.status.' + s | transloco }}
-            </option>
-          }
-        </select>
-        <label class="sr-only" for="wc-kind">{{
-          'hse.consultation.fields.kind' | transloco
-        }}</label>
-        <select
-          id="wc-kind"
-          [class]="selectClass"
-          (change)="set('kind', $any($event.target).value)"
-        >
-          <option value="">{{ 'hse.consultation.list.allKinds' | transloco }}</option>
-          @for (k of kinds; track k) {
-            <option [value]="k" [selected]="k === kind()">
-              {{ 'hse.consultation.kind.' + k | transloco }}
-            </option>
-          }
-        </select>
-        <label class="sr-only" for="wc-sort">{{ 'hse.common.sort' | transloco }}</label>
-        <select
-          id="wc-sort"
-          [class]="selectClass"
-          (change)="set('sort', $any($event.target).value)"
-        >
+      </select>
+      <select
+        filters
+        class="cf-filter"
+        [attr.aria-label]="'hse.consultation.fields.kind' | transloco"
+        (change)="setFilter('kind', $any($event.target).value)"
+      >
+        <option value="" [selected]="filters().kind === ''">
+          {{ 'hse.consultation.list.allKinds' | transloco }}
+        </option>
+        @for (k of kinds; track k) {
+          <option [value]="k" [selected]="k === filters().kind">
+            {{ 'hse.consultation.kind.' + k | transloco }}
+          </option>
+        }
+      </select>
+      <label more-filters class="flex flex-col gap-1 text-ui font-semibold text-fg-muted">
+        {{ 'hse.common.sort' | transloco }}
+        <select class="cf-filter" (change)="setFilter('sort', $any($event.target).value)">
           @for (s of sorts; track s) {
-            <option [value]="s" [selected]="s === sort()">
+            <option [value]="s" [selected]="s === filters().sort">
               {{ 'hse.consultation.sort.' + sortKey(s) | transloco }}
             </option>
           }
         </select>
-      </ng-container>
+      </label>
 
-      <app-hse-nav />
-      <div class="mb-4 grid gap-4 lg:grid-cols-[1fr_340px]">
-        <app-guide-intro scope="hse" page="consultations" />
-        <app-why-it-matters scope="hse" page="consultations" />
-      </div>
+      @if (state() === 'error') {
+        <app-error-state (retry)="reload()" />
+      } @else if (state() === 'loading' && items().length === 0) {
+        <app-loading-state [rows]="5" />
+      } @else if (items().length === 0) {
+        <app-card>
+          <app-empty-state
+            icon="search"
+            titleKey="hse.common.noMatchesTitle"
+            bodyKey="hse.common.noMatches"
+            [compact]="true"
+            data-testid="no-matches"
+          />
+          <div class="-mt-2 pb-4 text-center">
+            <app-button variant="secondary" size="sm" (click)="clearFilters()">
+              {{ 'hse.common.clearFilters' | transloco }}
+            </app-button>
+          </div>
+        </app-card>
+      } @else {
+        <app-card [padded]="false">
+          <div role="list" [attr.aria-busy]="state() === 'loading'" data-testid="wc-rows">
+            <app-record-row-header dateKind="date" />
+            @for (row of items(); track row.id) {
+              <app-record-row
+                [code]="row.code"
+                [title]="row.title"
+                [subtitle]="subtitle(row)"
+                [link]="['/hse/consultations', row.id]"
+                [owner]="row.owner?.name"
+                [date]="row.held_at || row.scheduled_at"
+                dateKind="date"
+              >
+                <app-coverage-chip coverage entityType="worker_consultation" [entityId]="row.id" />
+                <app-status-badge
+                  badges
+                  meaning="lifecycle"
+                  [value]="statusValue(row.status)"
+                  [labelKey]="'hse.consultation.status.' + row.status"
+                />
+                @if (row.status === 'held' && !row.worker_representative_present) {
+                  <app-status-badge
+                    badges
+                    meaning="lifecycle"
+                    value="blocked"
+                    labelKey="hse.consultation.list.noRep"
+                  />
+                }
+                @if (row.actions?.overdue) {
+                  <app-status-badge
+                    badges
+                    meaning="lifecycle"
+                    value="overdue"
+                    labelKey="hse.consultation.list.actionsOverdue"
+                    [labelParams]="{ count: row.actions.overdue }"
+                  />
+                }
+              </app-record-row>
+            }
+          </div>
+        </app-card>
+        <div class="mt-3">
+          <app-pager
+            [offset]="offset()"
+            [pageSize]="pageSize"
+            [count]="items().length"
+            [total]="total()"
+            (pageChange)="offset.set($event)"
+          />
+        </div>
+      }
 
-      <app-card [padded]="false">
-        @if (state() === 'loading') {
-          <p class="px-4 py-10 text-center text-[14px] text-fg-muted" role="status">
-            {{ 'hse.common.loading' | transloco }}
-          </p>
-        } @else if (state() === 'error') {
-          <p class="px-4 py-10 text-center text-[14px] text-fail" role="alert">
-            {{ 'hse.common.loadFailed' | transloco }}
-          </p>
-        } @else if (items().length === 0 && !filtered()) {
+      <div empty>
+        <app-card>
           <app-teaching-empty
             scope="hse"
             page="consultations"
             [showAction]="perms.write()"
             (action)="create()"
           />
-        } @else if (items().length === 0) {
-          <p class="px-4 py-10 text-center text-[14px] text-fg-muted">
-            {{ 'hse.common.noMatches' | transloco }}
-          </p>
-        } @else {
-          <ul data-testid="consultation-rows">
-            @for (row of items(); track row.id) {
-              <li class="border-b border-border last:border-b-0 hover:bg-surface-2">
-                <a
-                  [routerLink]="['/hse/consultations', row.id]"
-                  class="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3 outline-none focus-visible:bg-surface-2"
-                >
-                  <span class="w-[84px] flex-none font-mono text-[12px] text-fg-subtle">{{
-                    row.code
-                  }}</span>
-                  <span class="min-w-0 flex-1">
-                    <span class="block truncate font-semibold text-fg">{{ row.title }}</span>
-                    <span class="block truncate text-[12.5px] text-fg-muted">
-                      {{ 'hse.consultation.kind.' + row.kind | transloco }}
-                      @if (row.worker_representative_present) {
-                        · {{ 'hse.consultation.list.repPresent' | transloco }}
-                      }
-                    </span>
-                  </span>
-                  <app-badge [tone]="statusTone(row.status)">{{
-                    'hse.consultation.status.' + row.status | transloco
-                  }}</app-badge>
-                  <span class="w-[110px] flex-none text-right text-[12.5px] text-fg-subtle">
-                    {{ row.held_at || row.scheduled_at | localDate: 'mediumDate' }}
-                  </span>
-                </a>
-              </li>
-            }
-          </ul>
-        }
-      </app-card>
-      <app-pager
-        [offset]="offset()"
-        [pageSize]="pageSize"
-        [count]="items().length"
-        [total]="total()"
-        (pageChange)="offset.set($event)"
-      />
+        </app-card>
+      </div>
+
+      <app-why-it-matters below scope="hse" page="consultations" />
     </app-record-list-page>
   `,
+  styles: [
+    `
+      .cf-filter {
+        height: 40px;
+        max-width: 100%;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: var(--bg);
+        color: var(--fg);
+        font-size: 13px;
+        font-weight: 400;
+        padding: 0 10px;
+        outline: none;
+      }
+      .cf-filter:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px var(--accent-soft);
+      }
+    `,
+  ],
 })
 export class ConsultationList {
   private readonly api = inject(HseApi);
   private readonly selectedOrg = inject(SelectedOrgService);
+  private readonly language = inject(LanguageService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   protected readonly perms = injectHsePermissions();
+  protected readonly nav = HSE_NAV;
+  protected readonly crumbs = [HSE_ROOT_CRUMB, { labelKey: 'hse.nav.consultations' }];
   protected readonly statuses = CONSULTATION_STATUSES;
   protected readonly kinds = CONSULTATION_KINDS;
   protected readonly sorts = CONSULTATION_SORTS;
+  protected readonly defaults = CONSULTATION_DEFAULT_FILTERS;
   protected readonly pageSize = PAGE_SIZE;
-  protected readonly selectClass = SELECT_CLASS;
-  protected readonly statusTone = consultationStatusTone;
+  protected readonly statusValue = consultationStatusValue;
 
   protected readonly query = signal('');
-  protected readonly status = signal<ConsultationStatus | ''>('');
-  protected readonly kind = signal<ConsultationKind | ''>('');
-  protected readonly sort = signal<ConsultationSort>('-created_at');
+  protected readonly filters = signal<ConsultationListFilters>(
+    parseConsultationFilters({ ...this.route.snapshot.queryParams }),
+  );
   protected readonly offset = signal(0);
-
   protected readonly items = signal<readonly Consultation[]>([]);
   protected readonly total = signal(0);
   protected readonly state = signal<'loading' | 'ready' | 'error'>('loading');
 
-  protected readonly filtered = computed(() => !!(this.query() || this.status() || this.kind()));
-  protected readonly filters = computed(() => ({
-    status: this.status(),
-    kind: this.kind(),
-    sort: this.sort(),
-  }));
+  protected readonly viewFilters = computed<Record<string, string>>(() => ({ ...this.filters() }));
+  protected readonly isEmptyRegister = computed(
+    () =>
+      this.state() === 'ready' &&
+      this.total() === 0 &&
+      !this.query() &&
+      JSON.stringify(this.filters()) === JSON.stringify(CONSULTATION_DEFAULT_FILTERS),
+  );
 
   private request = new Subscription();
 
@@ -238,19 +331,11 @@ export class ConsultationList {
       module: HSE_MODULE,
       entityType: 'worker_consultation',
       view: 'list',
+      title: this.language.translate('hse.consultation.list.title'),
     }));
-    const params = inject(ActivatedRoute).snapshot.queryParamMap;
-    this.applyFilters({ status: params.get('status') ?? '' });
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();
-      const query: ConsultationQuery = {
-        q: this.query() || undefined,
-        status: this.status() ? [this.status() as ConsultationStatus] : undefined,
-        kind: this.kind() || undefined,
-        sort: this.sort(),
-        limit: PAGE_SIZE,
-        offset: this.offset(),
-      };
+      const query = consultationQuery(this.query(), this.filters(), this.offset());
       untracked(() => this.load(orgId, query));
     });
   }
@@ -274,23 +359,26 @@ export class ConsultationList {
     });
   }
 
-  private applyFilters(f: Readonly<Record<string, string>>): void {
-    const status = f['status'] ?? '';
-    this.status.set(
-      (CONSULTATION_STATUSES as readonly string[]).includes(status)
-        ? (status as ConsultationStatus)
-        : '',
+  protected reload(): void {
+    this.load(
+      this.selectedOrg.currentOrgId(),
+      consultationQuery(this.query(), this.filters(), this.offset()),
     );
-    const kind = f['kind'] ?? '';
-    this.kind.set(
-      (CONSULTATION_KINDS as readonly string[]).includes(kind) ? (kind as ConsultationKind) : '',
-    );
-    const sort = f['sort'] ?? '';
-    this.sort.set(
-      (CONSULTATION_SORTS as readonly string[]).includes(sort)
-        ? (sort as ConsultationSort)
-        : '-created_at',
-    );
+  }
+
+  /** "AMU-møte · Kantina · 2 oppgaver åpne, 1 fullført". */
+  protected subtitle(row: Consultation): string {
+    const t = (key: string, params?: Record<string, unknown>) =>
+      this.language.translate(key, params);
+    const parts = [t(`hse.consultation.kind.${row.kind}`)];
+    if (row.location) {
+      parts.push(row.location);
+    }
+    const a = row.actions;
+    if (a?.total) {
+      parts.push(t('hse.consultation.list.actions', { open: a.open, done: a.done }));
+    }
+    return parts.join(' · ');
   }
 
   protected sortKey(sort: ConsultationSort): string {
@@ -302,13 +390,19 @@ export class ConsultationList {
     this.offset.set(0);
   }
 
-  protected set(key: 'status' | 'kind' | 'sort', value: string): void {
-    this.applyFilters({ ...this.filters(), [key]: value });
+  protected setFilter(key: keyof ConsultationListFilters, value: string): void {
+    this.filters.set(parseConsultationFilters({ ...this.filters(), [key]: value }));
+    this.offset.set(0);
+  }
+
+  protected clearFilters(): void {
+    this.filters.set(CONSULTATION_DEFAULT_FILTERS);
+    this.query.set('');
     this.offset.set(0);
   }
 
   protected applyView(view: SavedView): void {
-    this.applyFilters(view.filters);
+    this.filters.set(parseConsultationFilters(view.filters));
     this.offset.set(0);
   }
 

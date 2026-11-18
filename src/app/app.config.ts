@@ -10,6 +10,7 @@ import { TitleStrategy, provideRouter, withComponentInputBinding } from '@angula
 import { routes } from './app.routes';
 import { authInterceptor } from './core/auth/auth.interceptor';
 import { AuthService } from './core/auth/auth.service';
+import { acceptLanguageInterceptor } from './core/http/accept-language.interceptor';
 import { errorInterceptor } from './core/http/error.interceptor';
 import { provideI18n } from './core/i18n/i18n.providers';
 import { LanguageService } from './core/i18n/language.service';
@@ -24,8 +25,11 @@ export const appConfig: ApplicationConfig = {
     // Route titles are i18n keys; the tab reads "<page> · CoreFlow" in the active language.
     { provide: TitleStrategy, useClass: CoreflowTitleStrategy },
     // authInterceptor attaches the in-memory bearer token and transparently
-    // refreshes on 401; errorInterceptor centralises reporting + user messages.
-    provideHttpClient(withInterceptors([authInterceptor, errorInterceptor])),
+    // refreshes on 401; errorInterceptor centralises reporting + user messages;
+    // acceptLanguageInterceptor tells the API which language the user reads.
+    provideHttpClient(
+      withInterceptors([acceptLanguageInterceptor, authInterceptor, errorInterceptor]),
+    ),
     // Restore any existing session (httpOnly refresh cookie) on startup. Never
     // block bootstrap on failure — restoreSession swallows a 401 internally.
     provideAppInitializer(() => {

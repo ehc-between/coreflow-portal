@@ -1,12 +1,8 @@
-import { BadgeTone } from '../../../shared/ui/badge/badge';
 import {
   AssessmentKind,
-  AssessmentStatus,
   ClassificationAnswers,
   ClassificationReason,
-  MonitoringResult,
-  RiskClass,
-  SystemStatus,
+  ObligationsSummary,
 } from './ai-governance.models';
 
 /** Backend module key (permission prefix, page-context `module`). */
@@ -23,75 +19,59 @@ export const AI_GOV_PERMISSIONS = {
   approve: 'ai_governance:approve',
 } as const;
 
-export function riskTone(risk: RiskClass | string): BadgeTone {
-  switch (risk) {
-    case 'prohibited':
-      return 'fail';
-    case 'high':
-      return 'warn';
-    case 'limited':
-      return 'info';
-    case 'minimal':
-      return 'pass';
-    default:
-      return 'neutral';
-  }
+// Badge values for the shared tone map (docs/ux-guide.md §5). Each is passed as
+// `app-status-badge [value]` with the module's own `labelKey`; the value only picks
+// the colour, so it is mapped to the tone-map word with the same meaning.
+
+/** Risk class -> severity value (prohibited / high red, limited amber, minimal neutral). */
+export function riskValue(risk: string): string {
+  return risk === 'unclassified' ? 'unknown' : risk;
 }
 
-export function systemStatusTone(status: SystemStatus | string): BadgeTone {
+/** System status -> lifecycle value. */
+export function systemStatusValue(status: string): string {
   switch (status) {
     case 'in_use':
-      return 'pass';
+      return 'active';
     case 'in_development':
-      return 'info';
+      return 'in_progress';
     case 'suspended':
-      return 'warn';
-    case 'retired':
-      return 'neutral';
+      return 'on_hold';
     default:
-      return 'accent';
+      return status;
   }
 }
 
-export function assessmentStatusTone(status: AssessmentStatus | string): BadgeTone {
-  switch (status) {
-    case 'approved':
-      return 'pass';
-    case 'completed':
-      return 'info';
-    default:
-      return 'warn';
-  }
+/** Assessment status -> lifecycle value ("completed" waits for approval). */
+export function assessmentStatusValue(status: string): string {
+  return status === 'completed' ? 'pending_approval' : status;
 }
 
-export function monitoringTone(result: MonitoringResult | string): BadgeTone {
+/** Monitoring result -> compliance value. */
+export function monitoringValue(result: string): string {
   switch (result) {
     case 'pass':
-      return 'pass';
+      return 'compliant';
     case 'warn':
-      return 'warn';
+      return 'partial';
     case 'fail':
-      return 'fail';
+      return 'non_compliant';
     default:
-      return 'neutral';
+      return 'unknown';
   }
 }
 
-/** Tone of an obligation task's status (F2 statuses), `neutral` when no task exists. */
-export function obligationTaskTone(status: string | null | undefined): BadgeTone {
+/** Obligation status -> compliance value. */
+export function obligationValue(status: string | null | undefined): string {
   switch (status) {
-    case 'done':
-      return 'pass';
+    case 'met':
+      return 'met';
     case 'in_progress':
-      return 'info';
-    case 'blocked':
-      return 'fail';
-    case 'cancelled':
-      return 'neutral';
-    case 'open':
-      return 'warn';
+      return 'in_progress';
+    case 'not_relevant':
+      return 'not_applicable';
     default:
-      return 'neutral';
+      return 'not_assessed';
   }
 }
 
@@ -107,18 +87,39 @@ const INTERMEDIARY_ROLES: readonly string[] = [
 ];
 
 /**
- * The risk explanation for a system: the high-risk text lists the provider's
+ * The risk explanation for a system. The plain texts describe the provider's
  * duties, so a deployer or an intermediary (importer, distributor, authorised
- * representative) gets the duties of its own role instead.
+ * representative) gets the text of its own role for high and limited risk:
+ * the Art. 50(1)-(2) transparency duties are the provider's, the deployer only
+ * has Art. 50(3)-(4). A built-in platform feature says that CoreFlow, as the
+ * provider, covers them.
  */
-export function riskExplainKey(risk: string, role: string | null | undefined): string {
-  if (risk === 'high' && role === 'deployer') {
-    return 'aiGovernance.riskExplainByRole.deployer.high';
+export function riskExplainKey(
+  risk: string,
+  role: string | null | undefined,
+  builtin = false,
+): string {
+  if (risk === 'limited' && builtin) {
+    return 'aiGovernance.riskExplainByRole.builtin.limited';
   }
-  if (risk === 'high' && role && INTERMEDIARY_ROLES.includes(role)) {
-    return 'aiGovernance.riskExplainByRole.other.high';
+  if ((risk === 'high' || risk === 'limited') && role === 'deployer') {
+    return `aiGovernance.riskExplainByRole.deployer.${risk}`;
+  }
+  if ((risk === 'high' || risk === 'limited') && role && INTERMEDIARY_ROLES.includes(role)) {
+    return `aiGovernance.riskExplainByRole.other.${risk}`;
   }
   return `aiGovernance.riskExplain.${risk}`;
+}
+
+/** "3 av 5 forpliktelser oppfylt": the obligations that count (not "not relevant"). */
+export function obligationProgress(summary: ObligationsSummary | null | undefined): {
+  readonly met: number;
+  readonly total: number;
+} {
+  if (!summary) {
+    return { met: 0, total: 0 };
+  }
+  return { met: summary.met, total: Math.max(0, summary.total - summary.not_relevant) };
 }
 
 /** Copy keys of the technical-file banner for an audience (older payloads: from `required`). */
@@ -131,9 +132,9 @@ export function technicalDocCopy(doc: { readonly required: boolean; readonly aud
     case 'provider':
       return { badge: 'aiGovernance.docs.required', body: 'aiGovernance.docs.requiredBody' };
     case 'deployer':
-      return { badge: 'aiGovernance.docs.providerDuty', body: 'aiGovernance.docs.deployerBody' };
+      return { badge: 'aiGovernance.docs.optionalForYou', body: 'aiGovernance.docs.deployerBody' };
     case 'other':
-      return { badge: 'aiGovernance.docs.providerDuty', body: 'aiGovernance.docs.otherBody' };
+      return { badge: 'aiGovernance.docs.optionalForYou', body: 'aiGovernance.docs.otherBody' };
     default:
       return { badge: null, body: 'aiGovernance.docs.optionalBody' };
   }
@@ -147,6 +148,8 @@ export const monitoringResultKey = (result: string): string =>
 export const literacySourceKey = (source: string): string =>
   `aiGovernance.literacySource.${source}`;
 export const docSectionKey = (key: string): string => `aiGovernance.docSections.${key}.title`;
+export const obligationStatusKey = (status: string): string =>
+  `aiGovernance.obligationStatus.${status}`;
 export const docSectionHintKey = (key: string): string => `aiGovernance.docSections.${key}.hint`;
 export const prohibitedKey = (key: string): string => `aiGovernance.prohibited.${key}`;
 export const annexIiiKey = (key: string): string => `aiGovernance.annexIii.${key}`;
@@ -158,6 +161,20 @@ export function assessmentSectionKey(kind: AssessmentKind | string, section: str
 }
 export function assessmentSectionHintKey(kind: AssessmentKind | string, section: string): string {
   return `aiGovernance.sections.${kind === 'fria' ? 'fria' : 'impact'}.${section}.hint`;
+}
+
+/**
+ * An AI Act article / annex label from the API ("Art. 26(4)-(6)", "Annex III(4)")
+ * in the UI language: Norwegian writes "art." and "vedlegg".
+ */
+export function localRef(ref: string | null | undefined, lang: string): string {
+  if (!ref) {
+    return '';
+  }
+  if (lang !== 'nb') {
+    return ref;
+  }
+  return ref.replace(/\bArt\.\s*/g, 'art. ').replace(/\bAnnex\s+/g, 'vedlegg ');
 }
 
 export interface ReasonText {
@@ -307,4 +324,41 @@ export function sectionAnswers(answers: unknown): Record<string, string> {
     }
   }
   return out;
+}
+
+/** Split a portal URL into a router path and query params (`/x?risk_class=high`). */
+export function splitUrl(url: string): {
+  readonly path: string;
+  readonly query: Record<string, string> | null;
+} {
+  const at = url.indexOf('?');
+  if (at < 0) {
+    return { path: url, query: null };
+  }
+  const query: Record<string, string> = {};
+  new URLSearchParams(url.slice(at + 1)).forEach((value, key) => {
+    query[key] = value;
+  });
+  return { path: url.slice(0, at), query };
+}
+
+/**
+ * The text key of an overview attention item: `named` when it is about one
+ * system the backend names, `one` for a single item, else `many`.
+ */
+export function attentionTextKey(item: {
+  readonly key: string;
+  readonly count: number;
+  readonly params?: Readonly<Record<string, unknown>>;
+}): string {
+  const base = `aiGovernance.attention.${item.key}`;
+  if (item.count === 1 && item.params?.['name']) {
+    return `${base}.named`;
+  }
+  return item.count === 1 ? `${base}.one` : `${base}.many`;
+}
+
+/** "1 del" / "3 deler": the key of a count-based phrase (`<base>One` for one). */
+export function countKey(base: string, count: number): string {
+  return count === 1 ? `${base}One` : base;
 }

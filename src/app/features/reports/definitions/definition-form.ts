@@ -9,7 +9,7 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../../core/ai/page-context';
@@ -19,17 +19,24 @@ import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { AskAbout } from '../../../shared/ask/ask-about';
 import { AssigneeOptionsService } from '../../../shared/tasks/assignee-options';
 import { FieldHelp } from '../../../shared/guidance/field-help';
-import { GuideIntro } from '../../../shared/guidance/guide-intro';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { FormField } from '../../../shared/ui/form-field/form-field';
-import { Icon } from '../../../shared/ui/icon/icon';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { Breadcrumb, PageHeader } from '../../../shared/ui/page-header/page-header';
 import { ColumnPicker } from '../components/column-picker';
 import { RegisterFilters, supportedFilters } from '../components/register-filters';
 import { reportErrorKey } from '../data/report-errors';
-import { localized } from '../data/report-display';
+import {
+  clauseText,
+  groupRegisters,
+  labelOr,
+  localized,
+  moduleLabelKey,
+} from '../data/report-display';
 import {
   EXPORT_FORMATS,
   ExportFormat,
@@ -101,67 +108,66 @@ export function draftFromDefinition(d: ReportDefinition): DefinitionDraft {
  * `/reports/definitions/new` and `/reports/definitions/:id/edit`: a saved
  * report — name, register, filters, columns, default format and language. On
  * edit the register is fixed; an owner change and a change reason are recorded
- * in the report's revision history.
+ * in the report's revision history. One column, 760 px wide, Save bottom right
+ * (sticky on phones).
  */
 @Component({
   selector: 'app-definition-form',
   imports: [
-    RouterLink,
     TranslocoPipe,
     AskAbout,
     FieldHelp,
-    GuideIntro,
     WhyItMatters,
     Alert,
     Button,
     Card,
     FormField,
-    Icon,
+    HelpStrip,
+    LoadingState,
+    PageHeader,
     ColumnPicker,
     RegisterFilters,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[860px] px-4 pt-6 pb-12 sm:px-8">
-      <a
-        [routerLink]="id() ? ['/reports/definitions', id()] : '/reports/definitions'"
-        class="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
-      >
-        <app-icon name="back" [size]="16" />
-        {{ 'reports.form.back' | transloco }}
-      </a>
-      <h1 class="mb-4 font-display text-[24px] font-bold tracking-[-0.03em] text-fg">
-        {{ (id() ? 'reports.form.editTitle' : 'reports.form.newTitle') | transloco }}
-      </h1>
-
-      <app-guide-intro class="mb-4 block" scope="reports" page="definitionForm" />
+    <div class="mx-auto max-w-[760px] px-4 pt-6 pb-24 sm:px-8 sm:pt-7 sm:pb-12">
+      <app-page-header
+        [titleKey]="id() ? 'reports.form.editTitle' : 'reports.form.newTitle'"
+        descriptionKey="reports.form.subtitle"
+        [breadcrumbs]="crumbs()"
+        [backLink]="id() ? ['/reports/definitions', id()] : '/reports/definitions'"
+        backLabelKey="reports.definitions.back"
+      />
+      <app-help-strip scope="reports" page="definitionForm" />
 
       @if (loadError(); as key) {
         <app-alert>{{ key | transloco }}</app-alert>
       } @else if (!ready()) {
-        <p class="py-10 text-center text-[13.5px] text-fg-muted" role="status">
-          {{ 'reports.common.loading' | transloco }}
-        </p>
+        <app-loading-state [rows]="5" />
       } @else {
         <form (submit)="$event.preventDefault(); save()" novalidate>
           <app-card class="mb-4 block">
             <div class="flex flex-col gap-4">
-              <app-form-field [label]="'reports.form.name' | transloco" inputId="def-name">
-                <input
-                  id="def-name"
-                  type="text"
-                  maxlength="200"
-                  required
-                  [attr.aria-invalid]="submitted() && !draft().name.trim()"
-                  [value]="draft().name"
-                  (input)="patch({ name: $any($event.target).value })"
-                />
-              </app-form-field>
-              @if (submitted() && !draft().name.trim()) {
-                <p class="-mt-3 text-[12px] text-fail" role="alert">
-                  {{ 'reports.form.nameRequired' | transloco }}
-                </p>
-              }
+              <div>
+                <app-form-field [label]="'reports.form.name' | transloco" inputId="def-name">
+                  <input
+                    id="def-name"
+                    type="text"
+                    maxlength="200"
+                    required
+                    aria-required="true"
+                    [attr.aria-invalid]="submitted() && !draft().name.trim()"
+                    [value]="draft().name"
+                    [placeholder]="'reports.form.namePlaceholder' | transloco"
+                    (input)="patch({ name: $any($event.target).value })"
+                  />
+                </app-form-field>
+                @if (submitted() && !draft().name.trim()) {
+                  <p class="mt-1 text-meta text-fail-ink" role="alert">
+                    {{ 'reports.form.nameRequired' | transloco }}
+                  </p>
+                }
+              </div>
               <app-form-field
                 [label]="'reports.form.description' | transloco"
                 inputId="def-description"
@@ -171,38 +177,59 @@ export function draftFromDefinition(d: ReportDefinition): DefinitionDraft {
                   rows="3"
                   maxlength="5000"
                   [value]="draft().description"
+                  [placeholder]="'reports.form.descriptionPlaceholder' | transloco"
                   (input)="patch({ description: $any($event.target).value })"
                 ></textarea>
               </app-form-field>
               <div>
-                <app-form-field
-                  [label]="'reports.form.register' | transloco"
-                  inputId="def-register"
-                >
-                  <select
-                    id="def-register"
-                    required
-                    [disabled]="!!id()"
-                    (change)="changeRegister($any($event.target).value)"
+                <div class="flex items-end gap-1">
+                  <app-form-field
+                    class="min-w-0 flex-1"
+                    [label]="'reports.form.register' | transloco"
+                    inputId="def-register"
                   >
-                    <option value="" [selected]="!draft().register_key">
-                      {{ 'reports.form.chooseRegister' | transloco }}
-                    </option>
-                    @for (reg of registers(); track reg.key) {
-                      <option [value]="reg.key" [selected]="reg.key === draft().register_key">
-                        {{ name(reg) }}
+                    <select
+                      id="def-register"
+                      required
+                      aria-required="true"
+                      [disabled]="!!id()"
+                      (change)="changeRegister($any($event.target).value)"
+                    >
+                      <option value="" [selected]="!draft().register_key">
+                        {{ 'reports.form.chooseRegister' | transloco }}
                       </option>
-                    }
-                  </select>
-                </app-form-field>
+                      @for (group of groups(); track group.module) {
+                        <optgroup [label]="group.name">
+                          @for (reg of group.registers; track reg.key) {
+                            <option [value]="reg.key" [selected]="reg.key === draft().register_key">
+                              {{ name(reg) }}
+                            </option>
+                          }
+                        </optgroup>
+                      }
+                    </select>
+                  </app-form-field>
+                  <app-ask-about
+                    class="mb-1.5"
+                    field="register_key"
+                    [fieldLabel]="'reports.form.register' | transloco"
+                    [prompt]="'reports.form.askRegister' | transloco"
+                  />
+                </div>
                 <app-field-help
                   class="mt-1 block"
                   scope="reports"
                   page="definitionForm"
                   field="register"
                 />
+                @if (clauses().length) {
+                  <p class="mt-1 text-meta text-fg-muted" data-testid="form-register-clauses">
+                    {{ 'reports.registers.evidenceFor' | transloco }}
+                    <span class="text-fg">{{ clauses().join(', ') }}</span>
+                  </p>
+                }
                 @if (submitted() && !draft().register_key) {
-                  <p class="mt-1 text-[12px] text-fail" role="alert">
+                  <p class="mt-1 text-meta text-fail-ink" role="alert">
                     {{ 'reports.form.registerRequired' | transloco }}
                   </p>
                 }
@@ -213,11 +240,12 @@ export function draftFromDefinition(d: ReportDefinition): DefinitionDraft {
           @if (register(); as reg) {
             <app-card class="mb-4 block">
               <div class="mb-3 flex items-center justify-between gap-2">
-                <h2 class="text-[14px] font-semibold text-fg">
+                <h2 class="text-card font-semibold text-fg">
                   {{ 'reports.form.filtersTitle' | transloco }}
                 </h2>
                 <app-ask-about
                   field="filters"
+                  [fieldLabel]="'reports.form.filtersTitle' | transloco"
                   [prompt]="'reports.form.askFilters' | transloco: { register: name(reg) }"
                 />
               </div>
@@ -227,7 +255,7 @@ export function draftFromDefinition(d: ReportDefinition): DefinitionDraft {
                 (valueChange)="patch({ filters: $event })"
               />
               @if (submitted() && reg.requires_standard && !draft().filters.standard_key) {
-                <p class="mt-1 text-[12px] text-fail" role="alert">
+                <p class="mt-1 text-meta text-fail-ink" role="alert">
                   {{ 'reports.errors.standard_required' | transloco }}
                 </p>
               }
@@ -279,7 +307,7 @@ export function draftFromDefinition(d: ReportDefinition): DefinitionDraft {
                   >
                     @if (!hasOwnerOption()) {
                       <option [value]="draft().owner_user_id" selected>
-                        {{ original()?.owner?.name || draft().owner_user_id }}
+                        {{ original()?.owner?.name || ('reports.detail.unknownUser' | transloco) }}
                       </option>
                     }
                     @for (m of members(); track m.id) {
@@ -320,7 +348,10 @@ export function draftFromDefinition(d: ReportDefinition): DefinitionDraft {
             <app-alert class="mb-3 block">{{ key | transloco }}</app-alert>
           }
 
-          <div class="flex flex-wrap justify-end gap-2">
+          <div
+            class="fixed inset-x-0 bottom-0 z-20 flex justify-end gap-2 border-t border-border bg-surface px-4 py-3 sm:static sm:border-0 sm:bg-transparent sm:p-0"
+            data-testid="form-actions"
+          >
             <app-button variant="ghost" (click)="cancel()">{{
               'common.cancel' | transloco
             }}</app-button>
@@ -351,6 +382,11 @@ export class DefinitionForm {
   protected readonly langs = REPORT_LANGS;
 
   protected readonly registers = signal<readonly Register[]>([]);
+  protected readonly groups = computed(() =>
+    groupRegisters(this.registers(), (m) =>
+      labelOr((k) => this.language.translate(k), moduleLabelKey(m), m),
+    ),
+  );
   /** People the owner can be handed to (the org's user options). */
   protected readonly members = computed(() =>
     this.assignees
@@ -373,6 +409,25 @@ export class DefinitionForm {
     () => this.registers().find((r) => r.key === this.draft().register_key) ?? null,
   );
 
+  protected readonly clauses = computed(() => {
+    const lang = this.language.active();
+    return (this.register()?.clauses ?? []).map((c) => clauseText(c, lang));
+  });
+
+  protected readonly crumbs = computed<readonly Breadcrumb[]>(() => {
+    const base: Breadcrumb[] = [
+      { labelKey: 'modules.names.reports', link: '/reports' },
+      { labelKey: 'reports.nav.definitions', link: '/reports/definitions' },
+    ];
+    const id = this.id();
+    const original = this.original();
+    if (id && original) {
+      base.push({ label: original.name, link: ['/reports/definitions', id] });
+    }
+    base.push({ labelKey: id ? 'reports.form.editTitle' : 'reports.form.newTitle' });
+    return base;
+  });
+
   protected readonly hasOwnerOption = computed(() =>
     this.members().some((m) => m.id === this.draft().owner_user_id),
   );
@@ -385,7 +440,10 @@ export class DefinitionForm {
       entityType: 'report_definition',
       entityId: this.id() ?? null,
       view: this.id() ? 'edit' : 'new',
-      title: this.draft().name || null,
+      title:
+        this.draft().name ||
+        this.language.translate(this.id() ? 'reports.form.editTitle' : 'reports.form.newTitle'),
+      requirements: this.register()?.clauses?.map((c) => c.ref) ?? null,
     }));
     inject(DestroyRef).onDestroy(() => this.subs.unsubscribe());
 

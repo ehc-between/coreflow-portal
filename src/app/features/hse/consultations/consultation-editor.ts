@@ -1,23 +1,30 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  Signal,
+  computed,
   effect,
   inject,
+  input,
   signal,
   untracked,
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { providePageContext } from '../../../core/ai/page-context';
+import { LanguageService } from '../../../core/i18n/language.service';
+import { CreateFlowService, FlowContext } from '../../../core/kit/create-flow.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
-import { FieldHelp } from '../../../shared/guidance/field-help';
-import { GuideIntro } from '../../../shared/guidance/guide-intro';
-import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
+import { AskAbout } from '../../../shared/ask/ask-about';
+import { Term } from '../../../shared/guidance/term';
+import { FlowBanner } from '../../../shared/kit/flow-banner';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
-import { FormField } from '../../../shared/ui/form-field/form-field';
-import { Icon } from '../../../shared/ui/icon/icon';
+import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { HseApi } from '../data/hse-api';
 import { hseErrorKey } from '../data/hse-errors';
 import {
@@ -27,133 +34,123 @@ import {
   ConsultationKind,
   ConsultationStatus,
   RelatedIn,
+  UserRef,
 } from '../data/hse.models';
+import { localInputToWire, textOrNull, wireToLocalInput } from '../hse-format';
+import { HsePeoplePicker, NO_PEOPLE, PeopleValue, peopleCount } from '../shared/people-picker';
 import {
-  linesToList,
-  listToLines,
-  localInputToWire,
-  textOrNull,
-  wireToLocalInput,
-} from '../hse-format';
-import { HSE_MODULE, HseDirectorySelect } from '../shared/hse-shared';
+  HSE_CRUMBS,
+  HSE_MODULE,
+  HSE_ROOT_CRUMB,
+  HseDirectorySelect,
+  HseField,
+} from '../shared/hse-shared';
 
 /**
  * `/hse/consultations/new` and `/hse/consultations/:id/edit`: a worker
- * consultation or participation record — what kind it is, when and where, the
- * topics, participants and worker representatives. Once held, the summary and
- * decisions can be edited here too. `?entity_type=&entity_id=` on "new" links the
- * record to that one.
+ * consultation ("medvirkningsmøte"). What kind, when and where, who organises
+ * it; the topics; participants and worker representatives (members by name,
+ * others as free text). "A worker representative took part" follows the
+ * representatives list (it cannot say "no" while one is listed). Once held, the
+ * summary and decisions can be corrected here; new decisions become follow-up
+ * tasks from the record page.
  */
 @Component({
   selector: 'app-consultation-editor',
   imports: [
     RouterLink,
     TranslocoPipe,
+    AskAbout,
     Button,
     Card,
-    FormField,
-    Icon,
-    FieldHelp,
-    GuideIntro,
-    WhyItMatters,
+    ErrorState,
+    FlowBanner,
+    HelpStrip,
+    LoadingState,
+    PageHeader,
+    Term,
     HseDirectorySelect,
+    HseField,
+    HsePeoplePicker,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[860px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
-      <a
-        [routerLink]="id() ? ['/hse/consultations', id()] : '/hse/consultations'"
-        class="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
+    <div class="mx-auto max-w-[760px] px-4 pt-6 pb-28 sm:px-8 sm:pt-7 sm:pb-12">
+      <app-page-header
+        [titleKey]="id() ? 'hse.consultation.edit.title' : 'hse.consultation.edit.newTitle'"
+        [breadcrumbs]="breadcrumbs()"
       >
-        <app-icon name="back" [size]="16" />
-        {{ (id() ? 'hse.common.backToRecord' : 'hse.consultation.list.back') | transloco }}
-      </a>
-      <h1 class="mb-4 font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]">
-        {{ (id() ? 'hse.consultation.edit.title' : 'hse.consultation.edit.newTitle') | transloco }}
         @if (code()) {
-          <span class="ml-2 font-mono text-[14px] font-semibold text-fg-subtle">{{ code() }}</span>
+          <span meta class="font-mono">{{ code() }}</span>
         }
-      </h1>
-      <div class="mb-5 grid gap-4 lg:grid-cols-[1fr_300px]">
-        <app-guide-intro scope="hse" page="consultation-edit" />
-        <app-why-it-matters scope="hse" page="consultation-edit" />
-      </div>
+      </app-page-header>
+      <app-help-strip scope="hse" page="consultation-edit" lesson="worker-participation" />
 
       @if (state() === 'loading') {
-        <p class="py-10 text-center text-[14px] text-fg-muted" role="status">
-          {{ 'hse.common.loading' | transloco }}
-        </p>
+        <app-loading-state [rows]="6" />
       } @else if (state() === 'error') {
-        <p class="py-10 text-center text-[14px] text-fail" role="alert">
-          {{ 'hse.common.loadFailed' | transloco }}
-        </p>
+        <app-error-state
+          titleKey="hse.common.notFoundTitle"
+          bodyKey="hse.common.notFound"
+          (retry)="reload()"
+        />
       } @else {
+        <app-flow-banner [flow]="flow()" />
         <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); save()" novalidate>
-          @if (related().length) {
+          @if (related().length && !flow()) {
             <p
-              class="rounded-tile border border-accent-border bg-accent-soft/50 px-3 py-2 text-[13px] text-fg"
+              class="rounded-tile border border-info/30 bg-info-soft px-3 py-2 text-ui text-info-ink"
             >
               {{ 'hse.common.willLink' | transloco }}
             </p>
           }
           <app-card>
+            <h2 class="mb-4 font-display text-card font-bold text-fg">
+              {{ 'hse.consultation.edit.meetingSection' | transloco }}
+            </h2>
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div class="sm:col-span-2">
-                <app-form-field
-                  [label]="'hse.consultation.fields.title' | transloco"
-                  inputId="wc-title"
-                >
-                  <input
-                    id="wc-title"
-                    type="text"
-                    required
-                    maxlength="255"
-                    autocomplete="off"
-                    [value]="title()"
-                    (input)="title.set($any($event.target).value)"
-                    [attr.aria-invalid]="submitted() && !title().trim()"
-                  />
-                </app-form-field>
-                @if (submitted() && !title().trim()) {
-                  <p class="mt-1 text-[12.5px] text-fail" role="alert">
-                    {{ 'hse.errors.title_required' | transloco }}
-                  </p>
-                }
-              </div>
-              <div>
-                <app-form-field
-                  [label]="'hse.consultation.fields.kind' | transloco"
-                  inputId="wc-kind"
-                >
-                  <select
-                    id="wc-kind"
-                    [value]="kind()"
-                    (change)="kind.set($any($event.target).value)"
-                  >
-                    @for (k of kinds; track k) {
-                      <option [value]="k" [selected]="k === kind()">
-                        {{ 'hse.consultation.kind.' + k | transloco }}
-                      </option>
-                    }
-                  </select>
-                </app-form-field>
-                <app-field-help scope="hse" page="consultation-edit" field="kind" />
-              </div>
-              <app-form-field
-                [label]="'hse.consultation.fields.scheduled_at' | transloco"
-                inputId="wc-scheduled"
+              <app-hse-field
+                class="sm:col-span-2"
+                labelKey="hse.consultation.fields.title"
+                inputId="wc-title"
+                page="consultation-edit"
+                [required]="true"
+                [errorKey]="submitted() && !title().trim() ? 'hse.errors.title_required' : null"
               >
+                <input
+                  id="wc-title"
+                  type="text"
+                  required
+                  maxlength="255"
+                  autocomplete="off"
+                  [value]="title()"
+                  (input)="title.set($any($event.target).value)"
+                  [attr.aria-invalid]="submitted() && !title().trim()"
+                />
+              </app-hse-field>
+              <app-hse-field
+                labelKey="hse.consultation.fields.kind"
+                inputId="wc-kind"
+                page="consultation-edit"
+                help="kind"
+              >
+                <select id="wc-kind" (change)="kind.set($any($event.target).value)">
+                  @for (k of kinds; track k) {
+                    <option [value]="k" [selected]="k === kind()">
+                      {{ 'hse.consultation.kind.' + k | transloco }}
+                    </option>
+                  }
+                </select>
+              </app-hse-field>
+              <app-hse-field labelKey="hse.consultation.fields.scheduled_at" inputId="wc-scheduled">
                 <input
                   id="wc-scheduled"
                   type="datetime-local"
                   [value]="scheduledAt()"
                   (input)="scheduledAt.set($any($event.target).value)"
                 />
-              </app-form-field>
-              <app-form-field
-                [label]="'hse.consultation.fields.location' | transloco"
-                inputId="wc-location"
-              >
+              </app-hse-field>
+              <app-hse-field labelKey="hse.consultation.fields.location" inputId="wc-location">
                 <input
                   id="wc-location"
                   type="text"
@@ -161,11 +158,8 @@ import { HSE_MODULE, HseDirectorySelect } from '../shared/hse-shared';
                   [value]="location()"
                   (input)="location.set($any($event.target).value)"
                 />
-              </app-form-field>
-              <app-form-field
-                [label]="'hse.consultation.fields.owner' | transloco"
-                inputId="wc-owner"
-              >
+              </app-hse-field>
+              <app-hse-field labelKey="hse.consultation.fields.owner" inputId="wc-owner">
                 <app-hse-directory-select
                   inputId="wc-owner"
                   kind="user"
@@ -174,121 +168,143 @@ import { HSE_MODULE, HseDirectorySelect } from '../shared/hse-shared';
                   [currentName]="ownerName()"
                   (valueChange)="ownerId.set($event)"
                 />
-              </app-form-field>
-              <app-form-field [label]="'hse.common.department' | transloco" inputId="wc-department">
+              </app-hse-field>
+              <app-hse-field labelKey="hse.common.department" inputId="wc-department">
                 <app-hse-directory-select
                   inputId="wc-department"
                   kind="department"
                   [value]="departmentId()"
                   (valueChange)="departmentId.set($event)"
                 />
-              </app-form-field>
-              <div class="sm:col-span-2">
-                <app-form-field
-                  [label]="'hse.consultation.fields.topics' | transloco"
-                  inputId="wc-topics"
-                >
-                  <textarea
-                    id="wc-topics"
-                    rows="4"
-                    [value]="topics()"
-                    (input)="topics.set($any($event.target).value)"
-                  ></textarea>
-                </app-form-field>
-                <app-field-help scope="hse" page="consultation-edit" field="topics" />
-              </div>
-              <div>
-                <app-form-field
-                  [label]="'hse.consultation.fields.participants' | transloco"
-                  inputId="wc-participants"
-                >
-                  <textarea
-                    id="wc-participants"
-                    rows="4"
-                    [value]="participants()"
-                    (input)="participants.set($any($event.target).value)"
-                  ></textarea>
-                </app-form-field>
-                <app-field-help scope="hse" page="consultation-edit" field="participants" />
-              </div>
-              <div>
-                <app-form-field
-                  [label]="'hse.consultation.fields.worker_representatives' | transloco"
-                  inputId="wc-reps"
-                >
-                  <textarea
-                    id="wc-reps"
-                    rows="4"
-                    [value]="representatives()"
-                    (input)="representatives.set($any($event.target).value)"
-                  ></textarea>
-                </app-form-field>
-                <app-field-help
-                  scope="hse"
-                  page="consultation-edit"
-                  field="worker_representatives"
+              </app-hse-field>
+              <app-hse-field
+                class="sm:col-span-2"
+                labelKey="hse.consultation.fields.topics"
+                inputId="wc-topics"
+                page="consultation-edit"
+                help="topics"
+              >
+                <app-ask-about
+                  label-extra
+                  [prompt]="'hse.consultation.ai.topicsPrompt' | transloco"
+                  [fieldLabel]="'hse.consultation.fields.topics' | transloco"
+                  labelKey="hse.consultation.ai.askTopics"
                 />
-              </div>
-              <label class="flex items-center gap-2 text-[13.5px] text-fg sm:col-span-2">
+                <textarea
+                  id="wc-topics"
+                  rows="4"
+                  [value]="topics()"
+                  (input)="topics.set($any($event.target).value)"
+                ></textarea>
+              </app-hse-field>
+            </div>
+          </app-card>
+
+          <app-card>
+            <h2 class="mb-4 font-display text-card font-bold text-fg">
+              {{ 'hse.consultation.edit.peopleSection' | transloco }}
+            </h2>
+            <div class="flex flex-col gap-4">
+              <app-hse-field
+                labelKey="hse.consultation.fields.participants"
+                inputId="wc-participants"
+                page="consultation-edit"
+                help="participants"
+                hintKey="hse.people.hint"
+              >
+                <app-hse-people-picker
+                  inputId="wc-participants"
+                  labelKey="hse.consultation.fields.participants"
+                  describedBy="wc-participants-hint"
+                  [value]="participants()"
+                  [known]="knownParticipants()"
+                  (valueChange)="participants.set($event)"
+                  testId="wc-participants-picker"
+                />
+              </app-hse-field>
+              <app-hse-field
+                labelKey="hse.consultation.fields.worker_representatives"
+                inputId="wc-reps"
+                page="consultation-edit"
+                help="worker_representatives"
+                hintKey="hse.consultation.edit.repsHint"
+              >
+                <app-hse-people-picker
+                  inputId="wc-reps"
+                  labelKey="hse.consultation.fields.worker_representatives"
+                  describedBy="wc-reps-hint"
+                  [value]="representatives()"
+                  [known]="knownReps()"
+                  (valueChange)="representatives.set($event)"
+                  testId="wc-reps-picker"
+                />
+              </app-hse-field>
+              <label class="flex min-h-8 items-start gap-2 text-body text-fg">
                 <input
                   type="checkbox"
-                  class="h-4 w-4 accent-[var(--accent)]"
-                  [checked]="repPresent()"
+                  class="mt-0.5 h-4 w-4 accent-[var(--accent)]"
+                  [checked]="repPresentShown()"
+                  [disabled]="hasReps()"
                   (change)="repPresent.set($any($event.target).checked)"
+                  data-testid="wc-rep-present"
                 />
-                {{ 'hse.consultation.fields.worker_representative_present' | transloco }}
+                <span>
+                  <app-term key="worker-representative" scope="hse">{{
+                    'hse.consultation.fields.worker_representative_present' | transloco
+                  }}</app-term>
+                  @if (hasReps()) {
+                    <span class="block text-meta text-fg-muted">{{
+                      'hse.consultation.edit.repAuto' | transloco
+                    }}</span>
+                  }
+                </span>
               </label>
             </div>
           </app-card>
 
           @if (status() === 'held') {
             <app-card>
-              <h2 class="mb-3 font-display text-[16px] font-bold text-fg">
+              <h2 class="mb-4 font-display text-card font-bold text-fg">
                 {{ 'hse.consultation.edit.outcomeSection' | transloco }}
               </h2>
-              <div class="grid grid-cols-1 gap-4">
-                <app-form-field
-                  [label]="'hse.consultation.fields.held_at' | transloco"
-                  inputId="wc-held"
-                >
+              <div class="flex flex-col gap-4">
+                <app-hse-field labelKey="hse.consultation.fields.held_at" inputId="wc-held">
                   <input
                     id="wc-held"
                     type="datetime-local"
                     [value]="heldAt()"
                     (input)="heldAt.set($any($event.target).value)"
                   />
-                </app-form-field>
-                <app-form-field
-                  [label]="'hse.consultation.fields.summary' | transloco"
-                  inputId="wc-summary"
-                >
+                </app-hse-field>
+                <app-hse-field labelKey="hse.consultation.fields.summary" inputId="wc-summary">
                   <textarea
                     id="wc-summary"
                     rows="4"
                     [value]="summary()"
                     (input)="summary.set($any($event.target).value)"
                   ></textarea>
-                </app-form-field>
-                <app-form-field
-                  [label]="'hse.consultation.fields.decisions' | transloco"
+                </app-hse-field>
+                <app-hse-field
+                  labelKey="hse.consultation.fields.decisions"
                   inputId="wc-decisions"
+                  hintKey="hse.consultation.edit.decisionsHint"
                 >
                   <textarea
                     id="wc-decisions"
                     rows="4"
+                    aria-describedby="wc-decisions-hint"
                     [value]="decisions()"
                     (input)="decisions.set($any($event.target).value)"
                   ></textarea>
-                </app-form-field>
+                </app-hse-field>
               </div>
             </app-card>
           }
 
-          <div class="flex flex-wrap items-center justify-end gap-2">
-            <a
-              [routerLink]="id() ? ['/hse/consultations', id()] : '/hse/consultations'"
-              tabindex="-1"
-            >
+          <div
+            class="fixed inset-x-0 bottom-0 z-20 flex flex-wrap items-center justify-end gap-2 border-t border-border bg-surface px-4 py-3 sm:static sm:border-0 sm:bg-transparent sm:p-0"
+          >
+            <a [routerLink]="backLink()" tabindex="-1" (click)="cancelFlow()">
               <app-button variant="secondary">{{ 'hse.common.cancel' | transloco }}</app-button>
             </a>
             <app-button type="submit" [loading]="saving()" [disabled]="saving()">
@@ -305,12 +321,16 @@ export class ConsultationEditor {
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly router = inject(Router);
   private readonly notifications = inject(NotificationService);
+  private readonly language = inject(LanguageService);
+  private readonly flows = inject(CreateFlowService);
   private readonly route = inject(ActivatedRoute);
 
-  protected readonly kinds = CONSULTATION_KINDS;
+  readonly id = input<string | undefined>(undefined);
 
-  protected readonly id = signal<string | null>(this.route.snapshot.paramMap.get('id'));
-  protected readonly state = signal<'loading' | 'ready' | 'error'>(this.id() ? 'loading' : 'ready');
+  protected readonly kinds = CONSULTATION_KINDS;
+  protected readonly state = signal<'loading' | 'ready' | 'error'>(
+    inject(ActivatedRoute).snapshot.paramMap.has('id') ? 'loading' : 'ready',
+  );
   protected readonly code = signal('');
   protected readonly status = signal<ConsultationStatus | null>(null);
 
@@ -322,8 +342,10 @@ export class ConsultationEditor {
   protected readonly ownerName = signal<string | null>(null);
   protected readonly departmentId = signal('');
   protected readonly topics = signal('');
-  protected readonly participants = signal('');
-  protected readonly representatives = signal('');
+  protected readonly participants = signal<PeopleValue>(NO_PEOPLE);
+  protected readonly knownParticipants = signal<readonly UserRef[]>([]);
+  protected readonly representatives = signal<PeopleValue>(NO_PEOPLE);
+  protected readonly knownReps = signal<readonly UserRef[]>([]);
   protected readonly repPresent = signal(false);
   protected readonly heldAt = signal('');
   protected readonly summary = signal('');
@@ -333,32 +355,91 @@ export class ConsultationEditor {
   protected readonly submitted = signal(false);
   protected readonly saving = signal(false);
 
+  private readonly flowSource = signal<Signal<FlowContext | null> | null>(null);
+  protected readonly flow = computed(() => this.flowSource()?.() ?? null);
+
+  /** Listing a representative means one took part (the backend ticks it the same way). */
+  protected readonly hasReps = computed(() => peopleCount(this.representatives()) > 0);
+  protected readonly repPresentShown = computed(() => this.hasReps() || this.repPresent());
+
+  protected readonly breadcrumbs = computed(() => {
+    const id = this.id();
+    return id
+      ? [
+          HSE_ROOT_CRUMB,
+          HSE_CRUMBS.consultations,
+          { label: this.code() || '…', link: ['/hse/consultations', id] },
+          { labelKey: 'hse.common.edit' },
+        ]
+      : [HSE_ROOT_CRUMB, HSE_CRUMBS.consultations, { labelKey: 'hse.consultation.edit.newTitle' }];
+  });
+  protected readonly backLink = computed(() => {
+    const id = this.id();
+    return id ? ['/hse/consultations', id] : ['/hse/consultations'];
+  });
+
   constructor() {
     providePageContext(() => ({
       module: HSE_MODULE,
       entityType: 'worker_consultation',
-      entityId: this.id(),
+      entityId: this.id() ?? null,
       view: this.id() ? 'edit' : 'new',
-      title: this.title() || null,
+      title: this.title() || this.language.translate('hse.consultation.edit.newTitle'),
     }));
+
     const params = this.route.snapshot.queryParamMap;
     const linkType = params.get('entity_type');
     const linkId = params.get('entity_id');
-    if (!this.id() && linkType && linkId) {
+    if (linkType && linkId) {
       this.related.set([{ entity_type: linkType, entity_id: linkId, link_type: 'relates_to' }]);
     }
+
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();
       const id = this.id();
-      if (orgId && id) {
-        untracked(() =>
-          this.api.getConsultation(orgId, id).subscribe({
-            next: (c) => this.fill(c),
-            error: () => this.state.set('error'),
-          }),
-        );
+      untracked(() => {
+        if (id) {
+          this.load(orgId, id);
+        } else if (!this.flowSource()) {
+          this.flowSource.set(
+            this.flows.consume(this.route, { targetType: 'worker_consultation' }),
+          );
+        }
+      });
+    });
+    effect(() => {
+      const flow = this.flow();
+      if (flow && !this.id()) {
+        untracked(() => {
+          const title = flow.prefill.title;
+          if (typeof title === 'string' && title && !this.title()) {
+            this.title.set(title);
+          }
+          const description = flow.prefill.description;
+          if (typeof description === 'string' && description && !this.topics()) {
+            this.topics.set(description);
+          }
+        });
       }
     });
+  }
+
+  private load(orgId: string | null, id: string): void {
+    if (!orgId) {
+      return;
+    }
+    this.state.set('loading');
+    this.api.getConsultation(orgId, id).subscribe({
+      next: (c) => this.fill(c),
+      error: () => this.state.set('error'),
+    });
+  }
+
+  protected reload(): void {
+    const id = this.id();
+    if (id) {
+      this.load(this.selectedOrg.currentOrgId(), id);
+    }
   }
 
   private fill(c: Consultation): void {
@@ -372,8 +453,16 @@ export class ConsultationEditor {
     this.ownerName.set(c.owner?.name ?? null);
     this.departmentId.set(c.department_id ?? '');
     this.topics.set(c.topics ?? '');
-    this.participants.set(listToLines(c.participants));
-    this.representatives.set(listToLines(c.worker_representatives));
+    this.participants.set({
+      userIds: (c.participant_users ?? []).map((u) => u.id),
+      names: [...(c.participants ?? [])],
+    });
+    this.knownParticipants.set(c.participant_users ?? []);
+    this.representatives.set({
+      userIds: (c.representative_users ?? []).map((u) => u.id),
+      names: [...(c.worker_representatives ?? [])],
+    });
+    this.knownReps.set(c.representative_users ?? []);
     this.repPresent.set(c.worker_representative_present);
     this.heldAt.set(wireToLocalInput(c.held_at));
     this.summary.set(c.summary ?? '');
@@ -381,23 +470,33 @@ export class ConsultationEditor {
     this.state.set('ready');
     if (c.status === 'cancelled') {
       this.notifications.info('hse.errors.consultation_cancelled');
-      void this.router.navigate(['/hse/consultations', c.id]);
+      void this.router.navigate(['/hse/consultations', c.id], { replaceUrl: true });
     }
   }
 
   private fields(): ConsultationFields {
+    const people = this.participants();
+    const reps = this.representatives();
     return {
       title: this.title().trim(),
       kind: this.kind(),
       scheduled_at: localInputToWire(this.scheduledAt()),
       location: textOrNull(this.location()),
       topics: textOrNull(this.topics()),
-      participants: linesToList(this.participants()),
-      worker_representatives: linesToList(this.representatives()),
-      worker_representative_present: this.repPresent(),
+      participants: [...people.names],
+      participant_user_ids: [...people.userIds],
+      worker_representatives: [...reps.names],
+      representative_user_ids: [...reps.userIds],
+      worker_representative_present: this.repPresentShown(),
       owner_user_id: this.ownerId() || undefined,
       department_id: this.departmentId() || null,
     };
+  }
+
+  protected cancelFlow(): void {
+    if (!this.id() && this.flow()) {
+      this.flows.cancel();
+    }
   }
 
   protected save(): void {
@@ -422,7 +521,7 @@ export class ConsultationEditor {
       : this.api.createConsultation(orgId, {
           ...fields,
           title: fields.title ?? '',
-          related: this.related().length ? this.related() : undefined,
+          related: this.related().length && !this.flow() ? this.related() : undefined,
         });
     request.subscribe({
       next: (c) => {
@@ -430,6 +529,9 @@ export class ConsultationEditor {
         this.notifications.success(id ? 'hse.common.saved' : 'hse.consultation.created', {
           code: c.code,
         });
+        if (!id && this.flow()) {
+          this.flows.complete(c.id, 'worker_consultation').subscribe();
+        }
         void this.router.navigate(['/hse/consultations', c.id]);
       },
       error: (error: unknown) => {

@@ -1,7 +1,11 @@
-import { matchesAssignment, statusQuery } from './assignments/assignment-list';
-import { targetNeedsValue } from './courses/course-rules';
-import { Assignment, NeedItem, PlayerItem, TrainingRecord } from './data/training.models';
-import { sortNeeds } from './home/training-home';
+import { chipCount, matchesAssignment, statusQuery } from './assignments/assignment-list';
+import { clauseSuggestions } from './courses/course-editor';
+import { ruleBody, targetNeedsValue } from './courses/course-rules';
+import { clauseLabel } from './data/clause-label';
+import { Assignment, NeedItem, PlanItem, PlayerItem, TrainingRecord } from './data/training.models';
+import { needAction, sortNeeds } from './home/training-home';
+import { planLink, shiftMonth } from './plan/training-plan';
+import { groupAssignments } from './shared/assignment-table';
 import { indexCells } from './matrix/training-matrix';
 import {
   allAnswered,
@@ -12,7 +16,7 @@ import {
   readingLesson,
   setAnswer,
 } from './player/player-model';
-import { emptyManualRecord, manualRecordPayload } from './records/record-form';
+import { defaultExpiry, emptyManualRecord, manualRecordPayload } from './records/record-form';
 import { matchesRecord, validityQuery } from './records/record-list';
 import { filterPeople } from './shared/people';
 
@@ -143,6 +147,7 @@ describe('list helpers', () => {
     expect(targetNeedsValue('new_hire')).toBe(false);
     expect(targetNeedsValue('role')).toBe(true);
     expect(targetNeedsValue('user')).toBe(true);
+    expect(targetNeedsValue('position')).toBe(true);
   });
 
   it('indexes matrix cells by person and course', () => {
@@ -181,6 +186,80 @@ describe('list helpers', () => {
       score: 100,
       expires_at: '2027-11-01T00:00:00',
       notes: 'classroom',
+      provider_supplier_id: null,
+      provider_name: null,
+      instructor: null,
+      hours: null,
+      location: null,
     });
+    form.providerName = ' Røde Kors ';
+    form.hours = 7.5;
+    expect(manualRecordPayload(form)).toMatchObject({ provider_name: 'Røde Kors', hours: 7.5 });
+    form.providerSupplierId = 's1';
+    expect(manualRecordPayload(form)).toMatchObject({
+      provider_supplier_id: 's1',
+      provider_name: null,
+    });
+  });
+
+  it('defaults the expiry to completion + the course validity', () => {
+    expect(defaultExpiry('2026-11-17', 24)).toBe('2028-11-17');
+    expect(defaultExpiry('2026-11-17', null)).toBe('');
+  });
+
+  it('builds rule bodies only when complete, with an optional repeat', () => {
+    expect(ruleBody('', '', 30, null)).toBeNull();
+    expect(ruleBody('position', '', 30, null)).toBeNull();
+    expect(ruleBody('all', '', 400, null)).toBeNull();
+    expect(ruleBody('all', 'ignored', 30, '')).toEqual({
+      target_type: 'all',
+      target_value: null,
+      due_days: 30,
+      recurrence_months: null,
+    });
+    expect(ruleBody('position', 'p1', '14', '12')).toEqual({
+      target_type: 'position',
+      target_value: 'p1',
+      due_days: 14,
+      recurrence_months: 12,
+    });
+    expect(ruleBody('all', '', 30, 0)).toBeNull();
+  });
+
+  it('groups assignments by course or person and counts the status chips', () => {
+    const a = (id: string, courseId: string, user: string) =>
+      ({
+        id,
+        course: { ...course, id: courseId, code: courseId.toUpperCase(), title: courseId },
+        user: { id: user, name: user },
+      }) as Assignment;
+    const items = [a('1', 'c1', 'kari'), a('2', 'c2', 'kari'), a('3', 'c1', 'ola')];
+    expect(groupAssignments(items, '')).toHaveLength(1);
+    expect(groupAssignments(items, 'course').map((g) => g.items.length)).toEqual([2, 1]);
+    expect(groupAssignments(items, 'person').map((g) => g.label)).toEqual(['kari', 'ola']);
+    const counts = { assigned: 3, in_progress: 2, overdue: 1, completed: 4, cancelled: 1 };
+    expect(chipCount(counts, 'open')).toBe(5);
+    expect(chipCount(counts, 'overdue')).toBe(1);
+    expect(chipCount(counts, '')).toBe(10);
+    expect(chipCount(undefined, 'open')).toBeNull();
+  });
+
+  it('suggests clauses for the category that are not picked yet', () => {
+    expect(clauseSuggestions('privacy', undefined, ['gdpr:39'])).toEqual([
+      'hs:7.3',
+      'iso27001:A.6.3',
+    ]);
+    expect(clauseSuggestions('privacy', ['gdpr:5'], [])).toEqual(['gdpr:5']);
+  });
+
+  it('labels clauses without "ISO HS" and links plan items', () => {
+    const t = (key: string) => (key === 'training.frameworks.hs' ? 'Felles ISO-krav' : key);
+    expect(clauseLabel('hs:7.2', t)).toBe('Felles ISO-krav · 7.2');
+    expect(clauseLabel('iso27001-2022:A.6.3', t)).toBe('ISO 27001 · A.6.3');
+    const item = { course: { id: 'c1' }, assignment_id: null, record_id: 'r1' } as PlanItem;
+    expect(planLink(item)).toEqual(['/training/records', 'r1']);
+    expect(shiftMonth('2026-11', 2)).toBe('2027-01');
+    expect(needAction({ status: 'missing', course: { kind: 'course' } } as NeedItem)).toBe('start');
+    expect(needAction({ status: 'assigned', course: { kind: 'external' } } as NeedItem)).toBeNull();
   });
 });

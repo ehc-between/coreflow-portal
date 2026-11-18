@@ -432,11 +432,36 @@
     },
     "ai_system": {
       "to_dpia": "DPIA for this AI system",
-      "to_assessment": "AI assessment"
+      "to_assessment": "AI assessment",
+      "to_incident": "AI incident for this system",
+      "to_risk": "AI risk for this system",
+      "to_task": "Task for this system",
+      "to_obligation": "AI Act duties for this system"
+    },
+    "asset": {
+      "to_ict_system": "ICT service for continuity"
+    },
+    "calibration": {
+      "to_deviation": "Deviation from this calibration"
+    },
+    "access_review": {
+      "to_deviation": "Deviation from this access review",
+      "to_risk": "Risk found in this access review"
+    },
+    "change_request": {
+      "to_deviation": "Deviation from this change",
+      "to_risk": "Risk from this change",
+      "to_document": "Document update for this change",
+      "to_task": "Task to follow up the change",
+      "to_training": "Training on this change (course assignment)"
     },
     "obligation": {
       "to_policy": "Policy that meets the obligation",
-      "to_document": "Document that meets the obligation"
+      "to_document": "Document that meets the obligation",
+      "to_deviation": "Deviation for the gap found",
+      "to_risk": "Risk of not meeting the obligation",
+      "to_task": "Task",
+      "to_training": "Training so people know the duties"
     },
     "customer_feedback": {
       "to_deviation": "Deviation from this feedback",
@@ -513,10 +538,8 @@
       "to_risk": "Risk from this contract",
       "to_deviation": "Deviation about this contract",
       "to_task": "Task on this contract",
-      "to_dpa": "Data processing agreement for this contract"
-    },
-    "asset": {
-      "to_ict_system": "ICT service for continuity"
+      "to_dpa": "Data processing agreement for this contract",
+      "to_obligation": "Obligation from this contract"
     },
     "bia": {
       "to_plan": "Continuity plan for the activity",
@@ -538,7 +561,8 @@
       "to_risk": "Risk or opportunity from this aspect",
       "to_document": "Procedure that controls this aspect",
       "to_task": "Task to follow it up",
-      "to_emergency_plan": "Emergency plan for this aspect"
+      "to_emergency_plan": "Emergency plan for this aspect",
+      "to_obligation": "Legal requirement or permit for this aspect"
     },
     "emergency_plan": {
       "to_deviation": "Deviation from this event",
@@ -581,6 +605,37 @@
     "project_design_review": {
       "to_task": "Action from the review (task)",
       "to_deviation": "Deviation from the review"
+    },
+    "sja": {
+      "to_deviation": "Deviation or incident from this job",
+      "to_risk": "Health and safety risk from this job",
+      "to_task": "Task to follow it up",
+      "to_document": "Procedure for doing this job safely"
+    },
+    "ppe_item": {
+      "to_deviation": "Deviation from this item",
+      "to_task": "Task to follow it up"
+    },
+    "worker_consultation": {
+      "to_task": "Task from a decision",
+      "to_deviation": "Deviation raised in the meeting",
+      "to_risk": "Risk raised in the meeting"
+    },
+    "ai_assessment": {
+      "to_risk": "Risk from this assessment"
+    },
+    "audit_plan": {
+      "to_audit_pack": "Audit pack for the audit"
+    },
+    "training_record": {
+      "to_deviation": "Deviation from this training",
+      "to_task": "Follow-up task"
+    },
+    "training_assignment": {
+      "to_task": "Follow-up task"
+    },
+    "course": {
+      "to_task": "Task to improve the course"
     }
   },
   "frameworks": {

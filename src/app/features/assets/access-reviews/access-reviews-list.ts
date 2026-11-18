@@ -8,28 +8,34 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { Subscription } from 'rxjs';
+import { Observable, Subscription, catchError, forkJoin, map, of } from 'rxjs';
+import { AiAvailability } from '../../../core/ai/ai-availability';
 import { providePageContext } from '../../../core/ai/page-context';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { AskPanelService } from '../../ask/ask-panel.service';
-import { GuideIntro } from '../../../shared/guidance/guide-intro';
-import { LessonView } from '../../../shared/guidance/lesson';
 import { TeachingEmpty } from '../../../shared/guidance/teaching-empty';
-import { TourButton } from '../../../shared/guidance/tour-button';
 import { TourStepDirective } from '../../../shared/guidance/tour-step.directive';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { RecordListPage } from '../../../shared/kit/record-list-page';
 import { SavedView } from '../../../shared/kit/saved-views.service';
-import { LocalDayPipe } from '../../../shared/locale/locale-pipes';
-import { Badge } from '../../../shared/ui/badge/badge';
+import { CoverageChip } from '../../../shared/requirement-links/coverage-chip';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
+import { EmptyState } from '../../../shared/ui/empty-state/empty-state';
+import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { KpiTile, KpiTone } from '../../../shared/ui/kpi-tile/kpi-tile';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { ModuleNav } from '../../../shared/ui/module-nav/module-nav';
+import { MenuItem } from '../../../shared/ui/overflow-menu/overflow-menu';
 import { Pager } from '../../../shared/ui/pager/pager';
-import { reviewStatusTone } from '../data/asset-display';
+import { RecordRow, RecordRowHeader } from '../../../shared/ui/record-row/record-row';
+import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
+import { reviewStatusBadge } from '../data/asset-display';
 import {
   AccessReview,
   AccessReviewListQuery,
@@ -39,16 +45,17 @@ import {
   ReviewStatus,
 } from '../data/asset.models';
 import { AssetsApi } from '../data/assets-api';
-import { AssetsNav } from '../shared/assets-nav';
+import { assetsNav } from '../shared/assets-nav';
 
 const PAGE_SIZE = 25;
 
-export const REVIEW_DUE_FILTERS = ['30', '90'] as const;
+export const REVIEW_DUE_FILTERS = ['overdue', '30', '90'] as const;
 
 export interface ReviewFilters {
   /** A status, or `open` for planned + in progress. */
   readonly status: ReviewStatus | 'open' | '';
   readonly reviewer: 'me' | '';
+  /** `overdue`, or due within 30 / 90 days. */
   readonly due: (typeof REVIEW_DUE_FILTERS)[number] | '';
   readonly sort: ReviewSort;
 }
@@ -60,13 +67,20 @@ export const DEFAULT_REVIEW_FILTERS: ReviewFilters = {
   sort: 'due_on',
 };
 
+/** Restore filters from a saved view or the URL (`?overdue=true` from the home page). */
 export function reviewFiltersFromView(values: Readonly<Record<string, string>>): ReviewFilters {
   const pick = <T extends string>(value: string | undefined, allowed: readonly T[]): T | '' =>
     value && (allowed as readonly string[]).includes(value) ? (value as T) : '';
+  const status =
+    values['status'] === 'open'
+      ? 'open'
+      : values['status'] === undefined
+        ? DEFAULT_REVIEW_FILTERS.status
+        : pick(values['status'], REVIEW_STATUSES);
   return {
-    status: values['status'] === 'open' ? 'open' : pick(values['status'], REVIEW_STATUSES),
+    status,
     reviewer: values['reviewer'] === 'me' ? 'me' : '',
-    due: pick(values['due'], REVIEW_DUE_FILTERS),
+    due: values['overdue'] === 'true' ? 'overdue' : pick(values['due'], REVIEW_DUE_FILTERS),
     sort: pick(values['sort'], REVIEW_SORTS) || 'due_on',
   };
 }
@@ -76,36 +90,58 @@ export function reviewQuery(q: string, f: ReviewFilters, offset: number): Access
     q: q || undefined,
     status: f.status === 'open' ? ['planned', 'in_progress'] : f.status ? [f.status] : undefined,
     reviewer: f.reviewer || undefined,
-    due_within_days: f.due ? Number(f.due) : undefined,
+    overdue: f.due === 'overdue' ? true : undefined,
+    due_within_days: f.due && f.due !== 'overdue' ? Number(f.due) : undefined,
     sort: f.sort,
     limit: PAGE_SIZE,
     offset,
   };
 }
 
+interface Kpi {
+  readonly key: string;
+  readonly labelKey: string;
+  readonly value: number;
+  readonly tone: KpiTone;
+  readonly filter: Partial<ReviewFilters>;
+}
+
+interface Summary {
+  readonly open: number;
+  readonly overdue: number;
+  readonly inProgress: number;
+  readonly mine: number;
+  readonly completed: number;
+}
+
 /**
  * Access reviews (`/assets/access-reviews`): the periodic check, per system, that
- * every account still needs the access it has (ISO 27001 A.5.15–A.5.18). Filters on
- * status, reviewer and due date; each row shows the system, the reviewer, progress
- * through the accounts and the due date (red when overdue).
+ * every account still needs the access it has (ISO 27001 A.5.15–A.5.18). Headline
+ * figures that double as filters (open, overdue, in progress, mine, completed);
+ * status, reviewer and due filters; each row shows the system, how many accounts are
+ * decided, flagged holders and access to change, the reviewer and the due date.
  */
 @Component({
   selector: 'app-access-reviews-list',
   imports: [
-    RouterLink,
     TranslocoPipe,
-    LocalDayPipe,
-    AssetsNav,
-    Badge,
     Button,
     Card,
-    GuideIntro,
+    CoverageChip,
+    EmptyState,
+    ErrorState,
+    HelpStrip,
     Icon,
-    LessonView,
+    KpiTile,
+    LoadingState,
+    MenuItem,
+    ModuleNav,
     Pager,
     RecordListPage,
+    RecordRow,
+    RecordRowHeader,
+    StatusBadge,
     TeachingEmpty,
-    TourButton,
     TourStepDirective,
     WhyItMatters,
   ],
@@ -113,6 +149,8 @@ export function reviewQuery(q: string, f: ReviewFilters, offset: number): Access
   template: `
     <app-record-list-page
       titleKey="assets.reviews.title"
+      descriptionKey="assets.reviews.subtitle"
+      [breadcrumbs]="[{ labelKey: 'modules.names.assets', link: '/assets' }]"
       scope="assets"
       page="reviews"
       searchPlaceholderKey="assets.reviews.searchPlaceholder"
@@ -122,79 +160,101 @@ export function reviewQuery(q: string, f: ReviewFilters, offset: number): Access
       (search)="search($event)"
       (viewApplied)="applyView($event)"
     >
-      <div intro>
-        <p class="mt-1 text-[14px] text-fg-muted">{{ 'assets.reviews.subtitle' | transloco }}</p>
-        <app-assets-nav />
-      </div>
-
-      <ng-container toolbar>
-        <app-tour-button scope="assets" tour="reviews" />
-        <app-button variant="ghost" size="sm" (click)="askOverview()">
-          <app-icon name="spark" [size]="14" />
-          {{ 'assets.ai.reviewsOverview' | transloco }}
+      @if (canManage()) {
+        <app-button primary appTourStep="assets-review-new" (click)="create()">
+          <app-icon name="plus" [size]="14" />
+          {{ 'assets.reviews.new' | transloco }}
         </app-button>
-        @if (canManage()) {
-          <app-button size="sm" appTourStep="assets-review-new" (click)="create()">
-            <app-icon name="plus" [size]="14" />
-            {{ 'assets.reviews.new' | transloco }}
-          </app-button>
+      }
+      @if (!ai.unavailable()) {
+        <button appMenuItem overflow type="button" (click)="askOverview()">
+          {{ 'assets.ai.reviewsOverview' | transloco }}
+        </button>
+      }
+
+      <div nav appTourStep="assets-sections">
+        <app-module-nav labelKey="modules.names.assets" [items]="nav()" />
+      </div>
+      <app-help-strip help scope="assets" page="reviews" tour="reviews" lesson="access-reviews" />
+
+      <ng-container ngProjectAs="[kpis]">
+        @for (k of kpis(); track k.key) {
+          <button
+            type="button"
+            class="block h-full w-full rounded-card text-left focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none [&_app-kpi-tile]:block [&_app-kpi-tile]:h-full [&_app-kpi-tile>div]:h-full"
+            [class.max-sm:hidden]="k.key === 'completed'"
+            [class.ring-2]="kpiActive(k)"
+            [class.ring-accent]="kpiActive(k)"
+            [attr.aria-pressed]="kpiActive(k)"
+            [attr.data-testid]="'kpi-' + k.key"
+            (click)="applyKpi(k)"
+          >
+            <app-kpi-tile [label]="k.labelKey | transloco" [value]="k.value" [tone]="k.tone" />
+          </button>
         }
       </ng-container>
 
       <ng-container filters>
-        <div class="flex flex-wrap items-center gap-2" appTourStep="assets-review-filters">
-          <label class="sr-only" for="ar-f-status">{{ 'assets.fields.status' | transloco }}</label>
+        <label class="sr-only" for="ar-f-status">{{ 'assets.fields.status' | transloco }}</label>
+        <select
+          id="ar-f-status"
+          [class]="selectClass"
+          appTourStep="assets-review-filters"
+          (change)="setFilter('status', $any($event.target).value)"
+        >
+          <option value="" [selected]="!filters().status">
+            {{ 'assets.filters.anyStatus' | transloco }}
+          </option>
+          <option value="open" [selected]="filters().status === 'open'">
+            {{ 'assets.reviews.openOnly' | transloco }}
+          </option>
+          @for (s of statuses; track s) {
+            <option [value]="s" [selected]="filters().status === s">
+              {{ 'assets.reviewStatus.' + s | transloco }}
+            </option>
+          }
+        </select>
+        <label class="sr-only" for="ar-f-reviewer">{{
+          'assets.fields.reviewer' | transloco
+        }}</label>
+        <select
+          id="ar-f-reviewer"
+          [class]="selectClass"
+          (change)="setFilter('reviewer', $any($event.target).value)"
+        >
+          <option value="" [selected]="!filters().reviewer">
+            {{ 'assets.filters.anyReviewer' | transloco }}
+          </option>
+          <option value="me" [selected]="filters().reviewer === 'me'">
+            {{ 'assets.filters.reviewedByMe' | transloco }}
+          </option>
+        </select>
+        <label class="sr-only" for="ar-f-due">{{ 'assets.fields.dueOn' | transloco }}</label>
+        <select
+          id="ar-f-due"
+          [class]="selectClass"
+          (change)="setFilter('due', $any($event.target).value)"
+        >
+          <option value="" [selected]="!filters().due">
+            {{ 'assets.filters.anyDue' | transloco }}
+          </option>
+          @for (d of dueFilters; track d) {
+            <option [value]="d" [selected]="filters().due === d">
+              {{
+                d === 'overdue'
+                  ? ('assets.common.overdue' | transloco)
+                  : ('assets.filters.dueWithin' | transloco: { days: d })
+              }}
+            </option>
+          }
+        </select>
+      </ng-container>
+
+      <div more-filters class="flex flex-col gap-3">
+        <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted">
+          {{ 'assets.filters.sort' | transloco }}
           <select
-            id="ar-f-status"
-            [class]="selectClass"
-            (change)="setFilter('status', $any($event.target).value)"
-          >
-            <option value="" [selected]="!filters().status">
-              {{ 'assets.filters.anyStatus' | transloco }}
-            </option>
-            <option value="open" [selected]="filters().status === 'open'">
-              {{ 'assets.reviews.openOnly' | transloco }}
-            </option>
-            @for (s of statuses; track s) {
-              <option [value]="s" [selected]="filters().status === s">
-                {{ 'assets.reviewStatus.' + s | transloco }}
-              </option>
-            }
-          </select>
-          <label class="sr-only" for="ar-f-reviewer">{{
-            'assets.fields.reviewer' | transloco
-          }}</label>
-          <select
-            id="ar-f-reviewer"
-            [class]="selectClass"
-            (change)="setFilter('reviewer', $any($event.target).value)"
-          >
-            <option value="" [selected]="!filters().reviewer">
-              {{ 'assets.filters.anyReviewer' | transloco }}
-            </option>
-            <option value="me" [selected]="filters().reviewer === 'me'">
-              {{ 'assets.filters.reviewedByMe' | transloco }}
-            </option>
-          </select>
-          <label class="sr-only" for="ar-f-due">{{ 'assets.fields.dueOn' | transloco }}</label>
-          <select
-            id="ar-f-due"
-            [class]="selectClass"
-            (change)="setFilter('due', $any($event.target).value)"
-          >
-            <option value="" [selected]="!filters().due">
-              {{ 'assets.filters.anyDue' | transloco }}
-            </option>
-            @for (d of dueFilters; track d) {
-              <option [value]="d" [selected]="filters().due === d">
-                {{ 'assets.filters.dueWithin' | transloco: { days: d } }}
-              </option>
-            }
-          </select>
-          <label class="sr-only" for="ar-f-sort">{{ 'assets.filters.sort' | transloco }}</label>
-          <select
-            id="ar-f-sort"
-            [class]="selectClass"
+            class="h-10 rounded-tile border border-border bg-bg px-2 text-ui font-normal text-fg"
             (change)="setFilter('sort', $any($event.target).value)"
           >
             @for (s of sorts; track s) {
@@ -203,108 +263,88 @@ export function reviewQuery(q: string, f: ReviewFilters, offset: number): Access
               </option>
             }
           </select>
-        </div>
-      </ng-container>
-
-      <div class="mb-4 flex flex-col gap-3">
-        <app-guide-intro scope="assets" page="reviews" />
-        <div><app-lesson scope="assets" lesson="access-reviews" /></div>
+        </label>
       </div>
 
       <app-card [padded]="false">
         @switch (state()) {
           @case ('loading') {
-            <p class="py-10 text-center text-[14px] text-fg-muted">
-              {{ 'assets.common.loading' | transloco }}
-            </p>
+            <app-loading-state [rows]="4" />
           }
           @case ('error') {
-            <p class="py-10 text-center text-[14px] text-fail" role="alert">
-              {{ 'assets.common.loadFailed' | transloco }}
-            </p>
+            <app-error-state (retry)="reload()" />
           }
           @default {
             @if (rows().length === 0) {
-              <p class="py-10 text-center text-[14px] text-fg-muted">
-                {{ 'assets.filters.noMatch' | transloco }}
-              </p>
+              <app-empty-state
+                icon="search"
+                titleKey="ui.empty.noResults"
+                bodyKey="ui.empty.noResultsBody"
+                ctaKey="ui.empty.clearFilters"
+                ctaVariant="secondary"
+                (cta)="clearFilters()"
+              />
             } @else {
-              <ul class="divide-y divide-border" data-testid="review-rows">
+              <div role="list" data-testid="review-rows">
+                <app-record-row-header dateKind="due" />
                 @for (row of rows(); track row.id) {
-                  <li class="flex flex-col gap-1.5 px-4 py-3 md:flex-row md:items-center md:gap-3">
-                    <div class="min-w-0 flex-1">
-                      <a
-                        [routerLink]="['/assets/access-reviews', row.id]"
-                        class="flex items-baseline gap-2 text-[13.5px] font-semibold text-fg hover:underline"
-                      >
-                        <span class="font-mono text-[12px] text-fg-muted">{{ row.code }}</span>
-                        <span class="truncate">{{ row.title }}</span>
-                      </a>
-                      <span class="flex flex-wrap gap-x-3 text-[12px] text-fg-subtle">
-                        <span>{{ row.system_asset?.name ?? row.system_name }}</span>
-                        @if (row.reviewer?.name; as name) {
-                          <span>{{ 'assets.reviews.reviewedBy' | transloco: { name } }}</span>
-                        }
-                        @if (row.frequency_months; as months) {
-                          <span>{{ 'assets.reviews.everyMonths' | transloco: { months } }}</span>
-                        }
-                      </span>
-                    </div>
-                    <span class="flex flex-wrap items-center gap-2 text-[12.5px] text-fg-muted">
-                      <span>
-                        {{
-                          'assets.reviews.progress'
-                            | transloco
-                              : {
-                                  done: row.counts.total - row.counts.pending,
-                                  total: row.counts.total,
-                                }
-                        }}
-                      </span>
-                      @if (row.counts.revoke + row.counts.modify) {
-                        <app-badge tone="warn">
-                          {{
-                            'assets.reviews.changesFound'
-                              | transloco: { count: row.counts.revoke + row.counts.modify }
-                          }}
-                        </app-badge>
-                      }
-                      <app-badge [tone]="tone(row.status)">
-                        {{ 'assets.reviewStatus.' + row.status | transloco }}
-                      </app-badge>
-                      <span
-                        class="inline-flex w-[130px] items-center justify-end gap-1"
-                        [class.text-fail]="row.overdue"
-                        [class.font-semibold]="row.overdue"
-                      >
-                        @if (row.overdue) {
-                          <app-icon name="alert" [size]="13" />
-                          <span class="sr-only">{{ 'assets.common.overdue' | transloco }}</span>
-                        }
-                        {{ 'assets.reviews.dueOn' | transloco: { date: (row.due_on | localDay) } }}
-                      </span>
-                    </span>
-                  </li>
+                  <app-record-row
+                    [code]="row.code"
+                    [title]="row.title"
+                    [subtitle]="subtitle(row)"
+                    [link]="['/assets/access-reviews', row.id]"
+                    [owner]="row.reviewer?.name"
+                    [date]="row.due_on"
+                    dateKind="due"
+                    [overdue]="row.overdue"
+                  >
+                    <app-status-badge
+                      badges
+                      [meaning]="statusBadge(row.status).meaning"
+                      [value]="statusBadge(row.status).value"
+                      [labelKey]="'assets.reviewStatus.' + row.status"
+                    />
+                    @if (row.counts.flagged) {
+                      <app-status-badge
+                        badges
+                        meaning="lifecycle"
+                        value="due"
+                        labelKey="assets.reviews.flagged"
+                        [labelParams]="{ count: row.counts.flagged }"
+                      />
+                    }
+                    @if (row.counts.revoke + row.counts.modify) {
+                      <app-status-badge
+                        badges
+                        meaning="lifecycle"
+                        value="due"
+                        labelKey="assets.reviews.changesFound"
+                        [labelParams]="{ count: row.counts.revoke + row.counts.modify }"
+                      />
+                    }
+                    <app-coverage-chip coverage entityType="access_review" [entityId]="row.id" />
+                  </app-record-row>
                 }
-              </ul>
-              <div class="border-t border-border px-4 py-2.5">
-                <app-pager
-                  [offset]="offset()"
-                  [pageSize]="pageSize"
-                  [count]="rows().length"
-                  [total]="total()"
-                  (pageChange)="offset.set($event)"
-                />
               </div>
+              @if (total() > pageSize) {
+                <div class="border-t border-border px-4 py-2.5">
+                  <app-pager
+                    [offset]="offset()"
+                    [pageSize]="pageSize"
+                    [count]="rows().length"
+                    [total]="total()"
+                    (pageChange)="offset.set($event)"
+                  />
+                </div>
+              }
             }
           }
         }
       </app-card>
 
-      <div class="mt-6"><app-why-it-matters scope="assets" page="reviews" /></div>
+      <app-why-it-matters below scope="assets" page="reviews" />
 
       <div empty class="flex flex-col gap-4">
-        <app-guide-intro scope="assets" page="reviews" />
         <app-teaching-empty
           scope="assets"
           page="reviews"
@@ -322,26 +362,32 @@ export class AccessReviewsList {
   private readonly language = inject(LanguageService);
   private readonly ask = inject(AskPanelService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  protected readonly ai = inject(AiAvailability);
 
   protected readonly selectClass =
-    'h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg';
+    'h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg';
   protected readonly statuses = REVIEW_STATUSES;
   protected readonly dueFilters = REVIEW_DUE_FILTERS;
   protected readonly sorts = REVIEW_SORTS;
   protected readonly pageSize = PAGE_SIZE;
-  protected readonly tone = reviewStatusTone;
+  protected readonly statusBadge = reviewStatusBadge;
 
   protected readonly canManage = computed(() =>
     (this.selectedOrg.currentOrg()?.permissions ?? []).includes('assets:manage'),
   );
 
-  protected readonly q = signal('');
-  protected readonly filters = signal<ReviewFilters>(DEFAULT_REVIEW_FILTERS);
+  protected readonly q = signal(this.route.snapshot.queryParamMap.get('q') ?? '');
+  protected readonly filters = signal<ReviewFilters>(
+    reviewFiltersFromView(this.route.snapshot.queryParams as Record<string, string>),
+  );
   protected readonly offset = signal(0);
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
   protected readonly rows = signal<readonly AccessReview[]>([]);
   protected readonly total = signal(0);
+  protected readonly summary = signal<Summary | null>(null);
 
+  protected readonly nav = computed(() => assetsNav({ openReviews: this.summary()?.open }));
   protected readonly viewFilters = computed(
     () => ({ ...this.filters() }) as Record<string, string>,
   );
@@ -349,15 +395,67 @@ export class AccessReviewsList {
     const f = this.filters();
     return !!this.q() || !!f.reviewer || !!f.due || (!!f.status && f.status !== 'open');
   });
-  /** The teaching empty state: only when there are no open reviews and no narrowing filters. */
+  /** The teaching empty state: only when nothing at all is planned and nothing narrows the list. */
   protected readonly showEmpty = computed(
-    () => this.state() === 'ready' && this.total() === 0 && !this.isFiltered(),
+    () =>
+      this.state() === 'ready' &&
+      this.total() === 0 &&
+      !this.isFiltered() &&
+      (this.summary()?.completed ?? 0) === 0,
   );
 
+  protected readonly kpis = computed<readonly Kpi[]>(() => {
+    const s = this.summary();
+    if (!s || s.open + s.completed === 0) {
+      return [];
+    }
+    return [
+      {
+        key: 'open',
+        labelKey: 'assets.reviews.kpiOpen',
+        value: s.open,
+        tone: 'neutral',
+        filter: { status: 'open', due: '', reviewer: '' },
+      },
+      {
+        key: 'overdue',
+        labelKey: 'assets.reviews.kpiOverdue',
+        value: s.overdue,
+        tone: s.overdue ? 'warn' : 'pass',
+        filter: { status: 'open', due: 'overdue', reviewer: '' },
+      },
+      {
+        key: 'inProgress',
+        labelKey: 'assets.reviews.kpiInProgress',
+        value: s.inProgress,
+        tone: 'neutral',
+        filter: { status: 'in_progress', due: '', reviewer: '' },
+      },
+      {
+        key: 'mine',
+        labelKey: 'assets.reviews.kpiMine',
+        value: s.mine,
+        tone: s.mine ? 'warn' : 'neutral',
+        filter: { status: 'open', due: '', reviewer: 'me' },
+      },
+      {
+        key: 'completed',
+        labelKey: 'assets.reviews.kpiCompleted',
+        value: s.completed,
+        tone: s.completed ? 'pass' : 'neutral',
+        filter: { status: 'completed', due: '', reviewer: '' },
+      },
+    ];
+  });
+
   private request = new Subscription();
+  private summaryRequest = new Subscription();
 
   constructor() {
-    inject(DestroyRef).onDestroy(() => this.request.unsubscribe());
+    inject(DestroyRef).onDestroy(() => {
+      this.request.unsubscribe();
+      this.summaryRequest.unsubscribe();
+    });
     providePageContext(() => ({
       module: 'assets',
       entityType: 'access_review',
@@ -368,6 +466,10 @@ export class AccessReviewsList {
       const orgId = this.selectedOrg.currentOrgId();
       const query = reviewQuery(this.q(), this.filters(), this.offset());
       untracked(() => this.load(orgId, query));
+    });
+    effect(() => {
+      const orgId = this.selectedOrg.currentOrgId();
+      untracked(() => this.loadSummary(orgId));
     });
   }
 
@@ -386,12 +488,62 @@ export class AccessReviewsList {
     this.filters.set(reviewFiltersFromView(view.filters));
   }
 
+  protected clearFilters(): void {
+    this.offset.set(0);
+    this.filters.set({ ...DEFAULT_REVIEW_FILTERS, status: '', sort: this.filters().sort });
+  }
+
+  protected kpiActive(k: Kpi): boolean {
+    const f = this.filters();
+    return Object.entries(k.filter).every(
+      ([key, value]) => f[key as keyof ReviewFilters] === value,
+    );
+  }
+
+  protected applyKpi(k: Kpi): void {
+    this.offset.set(0);
+    const active = this.kpiActive(k);
+    const base: ReviewFilters = { ...DEFAULT_REVIEW_FILTERS, sort: this.filters().sort };
+    this.filters.set(active ? base : { ...base, ...k.filter });
+  }
+
+  /** System · every N months · "3 av 5 avgjort". */
+  protected subtitle(row: AccessReview): string {
+    const t = (key: string, params?: Record<string, unknown>) =>
+      this.language.translate(key, params);
+    const parts: string[] = [];
+    const system = row.system_asset?.name ?? row.system_name;
+    if (system) {
+      parts.push(system);
+    }
+    parts.push(
+      row.frequency_months
+        ? t('assets.reviews.everyMonths', { months: row.frequency_months })
+        : t('assets.reviewDetail.oneOff'),
+    );
+    if (row.counts.total) {
+      parts.push(
+        t('assets.reviews.progress', {
+          done: row.counts.total - row.counts.pending,
+          total: row.counts.total,
+        }),
+      );
+    }
+    return parts.join(' · ');
+  }
+
   protected create(): void {
     void this.router.navigate(['/assets/access-reviews/new']);
   }
 
   protected askOverview(): void {
     this.ask.showWith(this.language.translate('assets.ai.prompts.reviewsOverview'));
+  }
+
+  protected reload(): void {
+    const orgId = this.selectedOrg.currentOrgId();
+    this.load(orgId, reviewQuery(this.q(), this.filters(), this.offset()));
+    this.loadSummary(orgId);
   }
 
   private load(orgId: string | null, query: AccessReviewListQuery): void {
@@ -408,5 +560,25 @@ export class AccessReviewsList {
       },
       error: () => this.state.set('error'),
     });
+  }
+
+  private loadSummary(orgId: string | null): void {
+    this.summaryRequest.unsubscribe();
+    if (!orgId) {
+      return;
+    }
+    const open: readonly ReviewStatus[] = ['planned', 'in_progress'];
+    const count = (query: AccessReviewListQuery): Observable<number> =>
+      this.api.listReviews(orgId, { ...query, limit: 1 }).pipe(
+        map((page) => page.total),
+        catchError(() => of(0)),
+      );
+    this.summaryRequest = forkJoin({
+      open: count({ status: open }),
+      overdue: count({ status: open, overdue: true }),
+      inProgress: count({ status: ['in_progress'] }),
+      mine: count({ status: open, reviewer: 'me' }),
+      completed: count({ status: ['completed'] }),
+    }).subscribe((summary) => this.summary.set(summary));
   }
 }

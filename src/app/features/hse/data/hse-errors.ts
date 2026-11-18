@@ -21,6 +21,14 @@ export const HSE_ERROR_CODES = [
   'invalid_rrule',
   'task_required',
   'module_disabled',
+  'sja_not_signable',
+  'already_signed',
+  'participant_required',
+  'invalid_supplier',
+  'invalid_course',
+  'ppe_inspection_overdue',
+  'ppe_expired',
+  'invalid_quantity',
 ] as const;
 
 export type HseErrorCode = (typeof HSE_ERROR_CODES)[number];

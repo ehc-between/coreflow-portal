@@ -29,6 +29,10 @@ export const REPORT_ERROR_CODES = [
   'unknown_register',
   'audit_pack_too_large',
   'audit_pack_empty',
+  'audit_plan_not_found',
+  'too_many_standards',
+  'run_file_not_kept',
+  'run_not_found',
 ] as const;
 
 export type ReportErrorCode = (typeof REPORT_ERROR_CODES)[number];

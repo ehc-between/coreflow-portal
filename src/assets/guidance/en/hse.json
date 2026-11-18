@@ -2,17 +2,17 @@
   "pages": {
     "overview": {
       "intro": {
-        "title": "Your health and safety workspace",
-        "body": "This is where you plan risky work safely, keep track of protective equipment, document how workers take part and follow up on safety rounds. Incidents and near misses are reported under **Deviations**, and HSE risk assessments live in **Risk**.",
+        "title": "Health and safety (HSE)",
+        "body": "This is where you plan risky work safely, keep track of protective equipment, document how workers take part and follow up safety rounds. Incidents and near misses are reported in **Deviations** and show up here; health and safety risks live in **Risk**. Keep your chemicals register (safety data sheets) as controlled documents in **Documents**.",
         "steps": [
-          "Before a risky job, make a **safe job analysis** (SJA) and have it approved.",
+          "Before a risky job, write a **safe job analysis** (SJA) with the people who do it, and have it approved.",
           "Register **PPE**, who it is issued to and when it must be inspected.",
-          "Record **worker consultation**: meetings, the safety committee, toolbox talks and suggestions.",
-          "Plan regular **safety rounds** with a checklist."
+          "Record **worker participation**: safety committee meetings, toolbox talks and suggestions, with the decisions as tasks.",
+          "Carry out regular **safety rounds** with a checklist; each finding can become a deviation."
         ]
       },
       "why": {
-        "body": "ISO 45001 asks you to identify hazards continually, control the risks with the hierarchy of controls, and involve workers in the decisions that affect their safety. These records are your evidence that it happens in practice.",
+        "body": "ISO 45001 and the Working Environment Act (Arbeidsmiljøloven § 3-1) ask you to identify hazards continually, control the risks with the hierarchy of controls and involve workers in the decisions that affect their safety. These records are the documentation that it happens in practice.",
         "clauses": ["iso45001:5.4", "iso45001:6.1.2", "iso45001:8.1.2", "iso45001:9.1"]
       }
     },
@@ -21,30 +21,30 @@
         "title": "Safe job analysis (SJA)",
         "body": "An SJA is done **before** a job that is risky, unusual or new: work at height, hot work, lifting, confined spaces or work on live equipment. The people doing the job break it into steps, name what can go wrong and agree how to prevent it.",
         "steps": [
-          "Create the SJA and describe the job, the place and the period.",
+          "Create the analysis and describe the job, the place and the period.",
           "Break the job into steps, with the hazards and controls for each.",
-          "Submit it for approval; an HSE manager approves it or returns it with comments.",
-          "Mark it completed when the job is done, and add follow-up actions for anything learned."
+          "Send it for approval. A health and safety manager approves it or sends it back with comments.",
+          "Everyone taking part signs off. Mark it completed when the job is done."
         ]
       },
       "why": {
-        "body": "Hazard identification must cover routine and non-routine activities and the people doing them. An approved SJA shows that the risk was assessed and controlled before the work started.",
-        "clauses": ["iso45001:6.1.2", "iso45001:8.1.2", "hs:8.1"]
+        "body": "Hazard identification must cover routine and non-routine work and the people doing it (Internkontrollforskriften § 5). An approved and signed-off analysis shows that the risk was assessed and controlled before the work started.",
+        "clauses": ["iso45001:6.1.2", "iso45001:8.1.2", "iso45001:8.1.1"]
       },
       "empty": {
         "title": "No safe job analyses yet",
         "body": "Start with the next risky job your team will do. Describe the job and let the assistant suggest the steps, hazards and controls, then go through them together with the people who will do the work.",
-        "cta": "Create the first SJA"
+        "cta": "New safe job analysis"
       }
     },
     "sja-detail": {
       "intro": {
-        "title": "Reading and approving an SJA",
-        "body": "Check that every step has realistic hazards and controls, that the residual risk is acceptable and that the required PPE and emergency measures are clear. Approval locks the SJA; to change it later, **revise** it, which sends it back through approval.",
+        "title": "Read and approve a safe job analysis",
+        "body": "Check that every step has realistic hazards and controls, that the residual risk is acceptable and that the PPE and emergency measures are clear. Approval locks the analysis; to change it later, **revise** it, which sends it back through approval.",
         "steps": [
-          "Owners submit the SJA when every step has a hazard and a control.",
-          "Approvers either approve it or return it with a reason.",
-          "Use **Tasks** for follow-up actions, and **Related** to link the risk assessment or a deviation."
+          "The owner sends it for approval when every step has a hazard and a control.",
+          "The approver approves it or sends it back with a reason. Someone other than the owner should approve.",
+          "Each participant confirms they went through it, and **Create from this** raises a deviation, risk or task linked to it."
         ]
       },
       "why": {
@@ -54,12 +54,12 @@
     },
     "sja-edit": {
       "intro": {
-        "title": "Writing a good SJA",
+        "title": "How to write a good safe job analysis",
         "body": "Write it with the people who will do the job. Keep each step short and concrete, and make each control something that can be checked on site.",
         "steps": [
-          "Describe the job and where it happens.",
+          "Describe the job, where it happens and who takes part.",
           "Add the steps in the order they are done, or ask the assistant for a first draft.",
-          "Rate the risk before and after controls, pick the PPE and write down what to do if something goes wrong."
+          "Tag each control with its place in the hierarchy, rate the risk before and after, pick the PPE and write down what to do if something goes wrong."
         ]
       },
       "why": {
@@ -76,31 +76,37 @@
           "example": "Lift the old fan down with the crane, fit the new one and reconnect power."
         },
         "participants": {
-          "help": "Everyone taking part in the job, including contractors. One name per line."
+          "help": "Everyone who takes part in the job, including contractors. Members are picked from the list; others are added by name.",
+          "requirements": ["iso45001:5.4", "iso45001:7.3"]
         },
         "steps": {
           "help": "Break the job into the main steps in the order they are done. Every step needs at least one hazard and one control before you can submit."
         },
         "hazards": {
-          "help": "What can hurt someone in this step. One hazard per line.",
-          "example": "Fall from the roof edge"
+          "help": "What could hurt someone in this step. One hazard per line.",
+          "example": "Fall from the roof edge",
+          "requirements": ["iso45001:6.1.2"]
         },
         "controls": {
-          "help": "What you do to prevent it, starting with the most effective measure. One control per line.",
-          "example": "Temporary guard rail along the roof edge"
+          "help": "What you do to prevent it, most effective first: remove the hazard, substitute, engineering controls, routines and training, and PPE last.",
+          "example": "Temporary guard rail along the roof edge",
+          "requirements": ["iso45001:8.1.2"]
         },
         "risk_level": {
           "help": "How serious the risk is if nothing is done."
         },
         "residual_risk_level": {
-          "help": "The risk that remains with all controls in place. If it is still high, find better controls before you start."
+          "help": "The risk that remains with all controls in place. If it is still high, find better controls before you start.",
+          "requirements": ["iso45001:6.1.2"]
         },
         "required_ppe": {
-          "help": "The protective equipment everyone must wear. PPE is the last line of defence, not the first."
+          "help": "The protective equipment everyone must wear. PPE is the last line of defence, not the first.",
+          "requirements": ["iso45001:8.1.2"]
         },
         "emergency_measures": {
           "help": "What to do if something goes wrong: who to call, first aid, rescue from height, evacuation.",
-          "example": "Rescue kit at the roof hatch; call 113 and the site manager."
+          "example": "Rescue kit at the roof hatch; call 113 and the site manager.",
+          "requirements": ["iso45001:8.2"]
         },
         "change_reason": {
           "help": "Why you changed the SJA. It is kept in the revision history."
@@ -112,9 +118,9 @@
         "title": "The PPE register",
         "body": "Register protective equipment that needs follow-up: harnesses, helmets, respirators, hearing protection. The register shows who has each item and when it must be inspected or replaced.",
         "steps": [
-          "Add the item with its category, standard and inspection interval.",
-          "Issue it to a person and return it when it comes back.",
-          "Record each inspection; a failed one takes the item out of service."
+          "Add the item with its category, standard, supplier and inspection interval.",
+          "Issue it to a person and return it when it comes back. Items overdue for inspection can not be issued.",
+          "Record each inspection. A failed one takes the item out of service and can become a deviation."
         ]
       },
       "why": {
@@ -124,15 +130,15 @@
       "empty": {
         "title": "The register is empty",
         "body": "Start with equipment that has a legal or manufacturer inspection interval, such as fall-arrest harnesses or respirators. Reminders tell the responsible person when an inspection is due.",
-        "cta": "Add PPE"
+        "cta": "New PPE item"
       }
     },
     "ppe-detail": {
       "intro": {
-        "title": "Following up a PPE item",
+        "title": "Follow up a PPE item",
         "body": "Here you issue and return the item, see its inspection history and record new inspections. The due date is the earlier of the next inspection and the expiry date.",
         "steps": [
-          "Issue the item to a member, or type the name of someone without an account.",
+          "Issue the item to a member; the page warns if the required training is missing.",
           "Record an inspection after each check; the next date follows from the interval.",
           "Retire the item when it reaches the end of its life."
         ]
@@ -152,12 +158,12 @@
     },
     "ppe-edit": {
       "intro": {
-        "title": "Registering PPE",
+        "title": "Register PPE",
         "body": "Give the item a clear name and category, and record the standard it meets. The inspection interval and expiry date drive the reminders.",
         "steps": [
           "Choose the category and the standard, for example EN 361 for a harness.",
-          "Add the serial number so the item can be traced.",
-          "Set the inspection interval and the expiry date."
+          "Pick the supplier and add the serial number, so the item can be traced.",
+          "Set the inspection interval, the expiry date and any training the holder needs."
         ]
       },
       "why": {
@@ -166,52 +172,65 @@
       },
       "fields": {
         "category": {
-          "help": "The kind of protection the item gives."
+          "help": "The kind of protection. It decides which safe job analyses the item covers.",
+          "requirements": ["iso45001:8.1.2"]
         },
         "standard_ref": {
           "help": "The standard the item is certified to.",
           "example": "EN 397 (industrial helmets)"
         },
         "inspection_interval_days": {
-          "help": "How often the item must be inspected, in days. The next inspection date is calculated from each inspection.",
-          "example": "365 for a yearly harness inspection"
+          "help": "How often the item must be inspected, from the manufacturer or regulations. The next date is set after each inspection.",
+          "example": "Every year for fall-arrest harnesses",
+          "requirements": ["iso45001:9.1"]
         },
         "expires_at": {
           "help": "When the item must be replaced, regardless of inspections (from the manufacturer)."
         },
         "status": {
           "help": "Set it out of service when it must not be used, or retired when it is discarded. Issuing is done from the item page."
+        },
+        "supplier": {
+          "help": "Where the item was bought. Linking the supplier makes evaluations, contracts and recalls easy to find.",
+          "requirements": ["iso45001:8.1.4"]
+        },
+        "quantity": {
+          "help": "1 for personal gear that must be traced to one person. More than 1 for a batch on the shelf."
+        },
+        "required_course": {
+          "help": "Training the holder must have before using the item, for example working at height or respiratory protection.",
+          "requirements": ["iso45001:7.2"]
         }
       }
     },
     "consultations": {
       "intro": {
-        "title": "Worker consultation and participation",
-        "body": "Record how workers and their representatives take part in health and safety: safety committee meetings, toolbox talks, surveys and suggestions.",
+        "title": "Worker participation",
+        "body": "Record how workers and their safety representatives take part in health and safety: working environment committee meetings, toolbox talks, surveys and suggestions.",
         "steps": [
-          "Plan the consultation with its topics and the worker representatives.",
-          "Afterwards, mark it as held and write down the summary and decisions.",
-          "Turn decisions into follow-up actions with an owner and a due date."
+          "Plan the meeting with its topics and the safety representatives.",
+          "Afterwards, record it as held with the summary and decisions.",
+          "Each decision becomes a task with an owner and a due date, so you can show it was followed up."
         ]
       },
       "why": {
-        "body": "ISO 45001 requires consultation and participation of workers at all levels, including on hazard identification, controls and incident investigation, and the communication of the outcome.",
+        "body": "Workers must be consulted and take part at all levels, including in hazard identification, controls and incident investigation (ISO 45001 5.4). In Norway, safety representatives and the working environment committee have this role (Arbeidsmiljøloven chapters 6 and 7).",
         "clauses": ["iso45001:5.4", "iso45001:7.4"]
       },
       "empty": {
-        "title": "No consultation records yet",
-        "body": "Record the next safety committee meeting or toolbox talk. Note who took part and what was decided, so you can show that workers are involved.",
-        "cta": "Record a consultation"
+        "title": "No participation meetings yet",
+        "body": "Record the next working environment committee meeting or toolbox talk. Note who took part and what was decided, so you can show that workers are involved.",
+        "cta": "New participation meeting"
       }
     },
     "consultation-detail": {
       "intro": {
-        "title": "Recording the outcome",
-        "body": "Mark the consultation as held when it has taken place, and write down what was discussed and decided. Add follow-up actions for each decision.",
+        "title": "Record the outcome",
+        "body": "Record the meeting as held when it has taken place, and write down what was discussed and decided. Each agreed action becomes a follow-up task.",
         "steps": [
-          "Confirm who took part and whether a worker representative was present.",
+          "Confirm who took part, including the safety representative.",
           "Summarise the discussion and the decisions.",
-          "Add follow-up actions under **Tasks**."
+          "Add the agreed actions with an owner and a due date; they show under **Tasks**."
         ]
       },
       "why": {
@@ -223,18 +242,19 @@
           "help": "The main points raised, in plain language."
         },
         "decisions": {
-          "help": "What was agreed, and who will do what. Add each action as a task too."
+          "help": "What was decided. Add each agreed action below, so it becomes a task with an owner and a due date.",
+          "requirements": ["iso45001:5.4", "iso45001:10.2"]
         }
       }
     },
     "consultation-edit": {
       "intro": {
-        "title": "Planning a consultation",
-        "body": "Say what kind of consultation it is, when it happens and which topics will be covered. List the worker representatives who should take part.",
+        "title": "Plan a participation meeting",
+        "body": "Say what kind of meeting it is, when it happens and which topics it covers. Add the safety representatives who should take part.",
         "steps": [
           "Choose the kind and the time.",
           "List the topics, for example new hazards, incidents or planned changes.",
-          "Add the participants and worker representatives."
+          "Add the participants and the safety representatives."
         ]
       },
       "why": {
@@ -246,25 +266,28 @@
           "help": "Meeting, safety committee, survey, toolbox talk, suggestion or something else."
         },
         "topics": {
-          "help": "What will be discussed.",
-          "example": "New scaffolding routine; near misses last month"
+          "help": "What the meeting will cover, for example new hazards, incidents, planned changes or training.",
+          "example": "Results of the last safety round; new lifting routine",
+          "requirements": ["iso45001:5.4", "iso45001:7.4"]
         },
         "participants": {
-          "help": "Everyone taking part. One name per line."
+          "help": "Who takes part. Pick members, so the participation can be traced; add others by name.",
+          "requirements": ["iso45001:5.4"]
         },
         "worker_representatives": {
-          "help": "Safety representatives or other elected worker representatives. One name per line."
+          "help": "The safety representative and union representatives who take part. Listing one ticks \"A safety representative took part\".",
+          "requirements": ["iso45001:5.4"]
         }
       }
     },
     "safety-rounds": {
       "intro": {
         "title": "Safety rounds",
-        "body": "A safety round is a planned walk-around of a work area with a checklist. Each round becomes a task; findings become follow-up actions or deviations.",
+        "body": "A safety round is a planned walk-around of a work area with a checklist. Carry it out in **Inspections**, so each finding is recorded and can become a deviation. Planned rounds remind the right person when the next one is due.",
         "steps": [
-          "Plan a round, once or on a schedule, and choose who carries it out.",
-          "Adjust the standard checklist to the area.",
-          "Open the round from the list to tick off the checklist and complete it."
+          "Click **Carry out a safety round** and work through the checklist on site.",
+          "Record findings with a photo; serious ones become deviations.",
+          "Plan recurring rounds, for example monthly with the safety representative."
         ]
       },
       "why": {
@@ -284,7 +307,8 @@
           "help": "Each round is created this many days before it is due, so it shows up in My Work in time."
         },
         "checklist": {
-          "help": "One item per line. The standard HSE checklist is filled in; adjust it to the area."
+          "help": "What to check on the round. Start from the standard checklist and adapt it to the area.",
+          "requirements": ["iso45001:9.1", "iso45001:6.1.2"]
         }
       }
     }
@@ -421,7 +445,7 @@
           "question": "What makes a consultation record good evidence?",
           "options": [
             "A long list of topics",
-            "Who took part, what was decided and the follow-up actions",
+            "Who took part, what was decided and the follow-up tasks",
             "The meeting room name"
           ],
           "answer": 1,
@@ -435,13 +459,13 @@
     "overview": [
       {
         "target": "hse-overview-cards",
-        "title": "Your HSE status",
-        "body": "Each card shows the state of one area. Click a number to open the filtered list."
+        "title": "Where you stand",
+        "body": "Each card shows one area and the records that need attention. Click a number to open the filtered list."
       },
       {
         "target": "hse-quick-actions",
         "title": "Start here",
-        "body": "Create a safe job analysis, register PPE or record a worker consultation."
+        "body": "Report an incident, or create a safe job analysis. More actions are under \"More\"."
       }
     ],
     "sja": [
@@ -456,5 +480,27 @@
         "body": "Create an SJA before the work starts. The assistant can suggest steps, hazards and controls."
       }
     ]
+  },
+  "glossary": {
+    "sja": {
+      "term": "Safe job analysis (SJA)",
+      "definition": "A step-by-step review of a risky job before it starts: what can go wrong in each step, and what keeps people safe. Written with the people who do the job.",
+      "clauses": ["iso45001:6.1.2", "iso45001:8.1.2"]
+    },
+    "ppe": {
+      "term": "Personal protective equipment (PPE)",
+      "definition": "Equipment a person wears to be protected from a hazard, such as a helmet, harness or respirator. It is the last line of defence.",
+      "clauses": ["iso45001:8.1.2"]
+    },
+    "hierarchy-of-controls": {
+      "term": "Hierarchy of controls",
+      "definition": "The order in which to reduce a risk: remove the hazard, replace it with something safer, use engineering controls, routines and training, and only then PPE.",
+      "clauses": ["iso45001:8.1.2"]
+    },
+    "worker-representative": {
+      "term": "Safety representative",
+      "definition": "A worker chosen to look after colleagues’ health and safety (verneombud). Takes part in consultations, safety rounds and safe job analyses.",
+      "clauses": ["iso45001:5.4"]
+    }
   }
 }

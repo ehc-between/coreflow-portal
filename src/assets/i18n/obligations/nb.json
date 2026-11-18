@@ -1,31 +1,40 @@
 {
   "common": {
     "loading": "Laster …",
-    "loadFailed": "Kunne ikke laste dataene. Prøv igjen om litt.",
-    "backToList": "Tilbake til samsvarskrav",
-    "backToObligation": "Tilbake til kravet",
+    "loadFailed": "Kunne ikke hente dataene. Prøv igjen om litt.",
+    "backToList": "Tilbake til lover og forskrifter",
+    "backToObligation": "Tilbake til forpliktelsen",
     "edit": "Rediger",
     "delete": "Slett",
-    "none": "Ikke angitt",
+    "none": "Ikke satt",
     "overdue": "Forfalt"
   },
   "list": {
-    "title": "Samsvarskrav",
-    "subtitle": "Lover, forskrifter, tillatelser, kontrakter og frivillige forpliktelser virksomheten må oppfylle, med hvem som eier dem og når samsvar sist ble vurdert.",
-    "searchPlaceholder": "Søk etter tittel, kode, utsteder eller referanse",
-    "new": "Nytt krav",
-    "noMatch": "Ingen krav passer med disse filtrene.",
-    "owner": "Eier: {{ name }}",
-    "nextEvaluation": "Vurdering forfaller {{ date }}",
-    "validUntil": "Gyldig til {{ date }}",
-    "noSchedule": "Ingen vurdering planlagt"
+    "subtitle": "Lovene, forskriftene, tillatelsene, avtalene og forpliktelsene organisasjonen må oppfylle: hvem som eier hver av dem, hvilke plikter de gir og når samsvaret sist ble vurdert.",
+    "searchPlaceholder": "Søk i lover og forpliktelser",
+    "new": "Ny forpliktelse",
+    "noMatch": "Ingen forpliktelser passer med filtrene",
+    "noMatchBody": "Prøv færre filtre, eller fjern dem for å se hele registeret.",
+    "resetFilters": "Fjern filtrene",
+    "showing": "{{ count }} vises",
+    "duties": "{{ count }} plikter",
+    "noPlan": "Ingen vurderingsplan",
+    "renewalDue": "Fornyelse nærmer seg"
+  },
+  "export": {
+    "button": "Eksporter registeret",
+    "xlsx": "Excel (.xlsx)",
+    "pdf": "PDF til ledelsens gjennomgang",
+    "csv": "CSV",
+    "started": "Lager eksporten …"
   },
   "summary": {
-    "total": "Krav",
-    "overdue": "Forfalte vurderinger",
-    "nonCompliant": "Ikke i samsvar",
-    "expiring": "Utløper innen {{ days }} dager",
-    "openChanges": "Åpne endringsnotater"
+    "notFullyCompliant": "Ikke fullt i samsvar",
+    "notEvaluated": "Ikke vurdert",
+    "withoutSchedule": "Uten vurderingsplan",
+    "overdue": "Vurderinger forfalt",
+    "renewalDue": "Fornyelse nærmer seg",
+    "expiring": "Utløper innen {{ days }} dager"
   },
   "filters": {
     "status": "Status",
@@ -37,16 +46,20 @@
     "allTypes": "Alle typer",
     "compliance": "Samsvar",
     "anyCompliance": "Alle samsvarsstatuser",
-    "framework": "Rammeverk",
-    "anyFramework": "Alle rammeverk",
+    "notFully": "Ikke fullt i samsvar",
+    "framework": "Standard",
+    "anyFramework": "Alle standarder",
     "owner": "Eier",
     "anyOwner": "Alle eiere",
     "mine": "Eid av meg",
-    "expiring": "Gyldighetsslutt",
+    "expiring": "Utløpsdato",
     "expiringWithin": "Utløper innen {{ days }} dager",
-    "anyExpiry": "Alle gyldighetsdatoer",
+    "anyExpiry": "Uansett utløpsdato",
     "sort": "Sortering",
-    "overdue": "Vurdering forfalt"
+    "attention": "Trenger oppfølging",
+    "overdue": "Vurdering forfalt",
+    "withoutSchedule": "Uten vurderingsplan",
+    "renewalDue": "Fornyelse nærmer seg"
   },
   "sorts": {
     "updated_atDesc": "Sist oppdatert",
@@ -79,7 +92,7 @@
     "regulation": "Forskrift",
     "permit": "Tillatelse",
     "licence": "Lisens",
-    "contract": "Kontraktskrav",
+    "contract": "Avtalekrav",
     "standard": "Standard",
     "industry_code": "Bransjenorm",
     "voluntary": "Frivillig forpliktelse",
@@ -94,8 +107,8 @@
     "unknown": "Ukjent påvirkning"
   },
   "changeStatus": {
-    "open": "Åpen",
-    "assessed": "Vurdert",
+    "open": "Må håndteres",
+    "assessed": "Håndtert",
     "unknown": "Ukjent"
   },
   "frameworks": {
@@ -107,7 +120,14 @@
     "gdpr": "GDPR",
     "eu_ai_act": "KI-forordningen",
     "nis2": "NIS2",
-    "unknown": "Annet rammeverk"
+    "unknown": "Annen standard"
+  },
+  "jurisdictions": {
+    "NO": "Norge",
+    "EU": "EU",
+    "EEA": "EØS",
+    "INT": "Internasjonalt",
+    "other": "Annet (kommune, region, land …)"
   },
   "fields": {
     "code": "Kode",
@@ -117,214 +137,518 @@
     "complianceStatus": "Samsvarsstatus",
     "description": "Beskrivelse",
     "applicability": "Hvordan det gjelder oss",
-    "requirements": "Gjeldende krav",
-    "frameworks": "Tilknyttede rammeverk",
-    "jurisdiction": "Jurisdiksjon",
-    "issuer": "Utstedt av",
-    "reference": "Referanse",
-    "sourceUrl": "Kildelenke",
+    "requirements": "Plikter",
+    "frameworks": "Standarder den gjelder",
+    "clauseRefs": "Punkter og artikler den dokumenterer",
+    "jurisdiction": "Gjelder i",
+    "issuer": "Myndighet",
+    "reference": "Lov-, forskrifts- eller tillatelsesnummer",
+    "sourceUrl": "Lenke til lovteksten",
     "owner": "Eier",
     "department": "Avdeling",
     "validFrom": "Gyldig fra",
     "validUntil": "Gyldig til",
-    "evaluationRrule": "Vurderingshyppighet",
+    "renewalLeadDays": "Søk om fornyelse (dager før utløp)",
+    "renewalDueOn": "Søk om fornyelse innen",
+    "evaluationRrule": "Hvor ofte samsvaret vurderes",
     "evaluationStart": "Første vurdering forfaller",
     "evaluationLeadDays": "Vis i Mitt arbeid (dager før)"
   },
   "form": {
-    "newTitle": "Nytt samsvarskrav",
+    "newTitle": "Ny forpliktelse",
     "editTitle": "Rediger {{ code }}",
-    "readOnly": "Du kan se dette kravet, men ikke endre det.",
-    "create": "Opprett krav",
+    "readOnly": "Du kan se denne forpliktelsen, men ikke endre den.",
+    "create": "Opprett forpliktelsen",
     "sections": {
-      "basics": "Kravet",
+      "basics": "Forpliktelsen",
       "source": "Kilde og gyldighet",
-      "requirements": "Krav og hvordan det gjelder",
+      "requirements": "Plikter og hvordan de gjelder",
+      "standards": "Krav i standardene",
       "evaluation": "Periodisk samsvarsvurdering"
     },
+    "titlePlaceholder": "For eksempel: Arbeidsmiljøloven",
     "ownerMe": "Meg",
     "currentOwner": "Nåværende eier",
     "noDepartment": "Ingen avdeling",
-    "jurisdictionPlaceholder": "For eksempel NO, EU eller Oslo kommune",
-    "noRequirements": "Ingen krav er listet ennå. Legg til de konkrete pliktene dette medfører for dere.",
-    "requirementLabel": "Krav {{ n }}",
-    "removeRequirement": "Fjern krav {{ n }}",
-    "addRequirement": "Legg til krav",
-    "scheduleEvaluation": "Vurder samsvar etter en fast plan",
-    "evaluationStartHint": "La stå tomt for å starte fra i dag.",
-    "scheduleStops": "Når du lagrer, stoppes vurderingsplanen og den åpne vurderingsoppgaven kanselleres.",
+    "jurisdictionNone": "Ikke satt",
+    "jurisdictionOther": "Hvor den gjelder",
+    "jurisdictionPlaceholder": "For eksempel: Oslo kommune",
+    "issuerPlaceholder": "For eksempel: Arbeidstilsynet",
+    "referencePlaceholder": "For eksempel: LOV-2005-06-17-62 eller tillatelse 2019.0412.T",
+    "renewalHint": "La feltet stå tomt for å bruke {{ days }} dager. Eieren får en oppgave om fornyelse i Mitt arbeid.",
+    "applicabilityPlaceholder": "Hvilke lokasjoner, aktiviteter, produkter eller personer som omfattes, og hva som faller utenfor.",
+    "noRequirements": "Ingen plikter ennå. Legg til det forpliktelsen konkret krever av dere, eller velg en lov fra biblioteket.",
+    "requirementLabel": "Plikt {{ n }}",
+    "requirementPlaceholder": "Noe dere må gjøre, måle, rapportere eller oppbevare",
+    "removeRequirement": "Fjern plikt {{ n }}",
+    "addRequirement": "Legg til plikt",
+    "dutyOwner": "Ansvarlig",
+    "dutyOwnerDefault": "Forpliktelsens eier",
+    "dutyClauses": "Punkter den dokumenterer",
+    "standardsHelp": "Kryss av for standardene forpliktelsen gjelder. CoreFlow foreslår de vanlige punktene, og du kan justere dem. Punktene du beholder, teller som dokumentasjon i standardene.",
+    "clausesProposed": "{{ count }} punkter ble foreslått. Fjern dem som ikke passer.",
+    "scheduleEvaluation": "Vurder samsvaret etter en fast plan",
+    "evaluationStartHint": "La feltet stå tomt for å starte fra i dag.",
+    "scheduleStops": "Når du lagrer, stopper vurderingsplanen og den åpne vurderingsoppgaven avbrytes.",
+    "noScheduleWarning": "Uten plan blir ingen påminnet om å sjekke samsvaret. Standardene forventer vurdering med planlagte mellomrom.",
     "changeReason": "Årsak til endringen",
     "changeReasonPlaceholder": "For eksempel: endret forskrift gjelder fra 1. januar",
-    "retireNotice": "Når kravet settes som utgått, stoppes vurderingsplanen og den åpne vurderingsoppgaven kanselleres. Settes det tilbake til aktivt, fortsetter planen.",
+    "retireNotice": "Når forpliktelsen settes som utgått, stopper vurderingsplanen og den åpne vurderingsoppgaven avbrytes. Settes den til aktiv igjen, fortsetter planen.",
     "errors": {
-      "titleRequired": "Gi kravet en tittel."
+      "titleRequired": "Gi forpliktelsen en tittel.",
+      "renewalLeadDays": "Velg mellom 0 og {{ max }} dager.",
+      "fix": "Kunne ikke lagre. Sjekk feltene som er merket med rødt."
+    }
+  },
+  "library": {
+    "title": "Start fra en vanlig lov",
+    "body": "Velg en for å fylle inn myndighet, lenke til lovteksten, typiske plikter og punktene i standardene. Tilpass alt til organisasjonen før du lagrer.",
+    "applied": "Skjemaet er fylt ut. Sjekk pliktene og beskriv hvordan de gjelder dere.",
+    "entries": {
+      "arbeidsmiljoloven": {
+        "short": "Arbeidsmiljøloven",
+        "title": "Arbeidsmiljøloven",
+        "issuer": "Arbeidstilsynet",
+        "description": "Krav til et trygt og sunt arbeidsmiljø, arbeidstid og medvirkning fra de ansatte.",
+        "duties": {
+          "d1": "Kartlegge og vurdere risikoen i arbeidsmiljøet og følge opp med en tiltaksplan.",
+          "d2": "Ha verneombud, og arbeidsmiljøutvalg når virksomheten har 50 ansatte eller flere.",
+          "d3": "Registrere og følge opp skader og ulykker.",
+          "d4": "Føre oversikt over arbeidstid og overtid."
+        }
+      },
+      "internkontrollforskriften": {
+        "short": "Internkontrollforskriften",
+        "title": "Internkontrollforskriften",
+        "issuer": "Arbeidstilsynet",
+        "description": "Systematisk helse-, miljø- og sikkerhetsarbeid: mål, ansvar, risikovurdering og en årlig gjennomgang.",
+        "duties": {
+          "d1": "Sette skriftlige mål for helse, miljø og sikkerhet.",
+          "d2": "Beskrive hvordan HMS-arbeidet er organisert, og hvem som har ansvar for hva.",
+          "d3": "Kartlegge farer, vurdere risikoen og lage planer for å redusere den.",
+          "d4": "Overvåke og gjennomgå internkontrollen minst én gang i året."
+        }
+      },
+      "personopplysningsloven": {
+        "short": "Personopplysningsloven (GDPR)",
+        "title": "Personopplysningsloven og GDPR",
+        "issuer": "Datatilsynet",
+        "description": "Regler for behandling av personopplysninger, som gjelder i Norge gjennom personopplysningsloven.",
+        "duties": {
+          "d1": "Føre behandlingsprotokoll (art. 30).",
+          "d2": "Ha behandlingsgrunnlag for hver behandling og informere de registrerte (art. 6 og 13).",
+          "d3": "Svare på henvendelser fra registrerte innen én måned (art. 12).",
+          "d4": "Melde personvernbrudd til Datatilsynet innen 72 timer (art. 33).",
+          "d5": "Ha databehandleravtale med alle databehandlere (art. 28)."
+        }
+      },
+      "forurensningsloven": {
+        "short": "Utslippstillatelse (forurensningsloven)",
+        "title": "Utslippstillatelse etter forurensningsloven",
+        "issuer": "Statsforvalteren",
+        "description": "En tillatelse med grenseverdier for utslipp og krav om måling og årlig rapportering.",
+        "duties": {
+          "d1": "Holde utslippene innenfor grenseverdiene i tillatelsen.",
+          "d2": "Måle utslippene slik måleprogrammet i tillatelsen krever.",
+          "d3": "Rapportere årlige utslipp til myndigheten innen fristen."
+        }
+      },
+      "brannvernloven": {
+        "short": "Brann- og eksplosjonsvernloven",
+        "title": "Brann- og eksplosjonsvernloven",
+        "issuer": "DSB og det lokale brannvesenet",
+        "description": "Plikter for å hindre brann og eksplosjon og for å være forberedt hvis det skjer.",
+        "duties": {
+          "d1": "Kontrollere og vedlikeholde brannsikringsutstyret.",
+          "d2": "Holde brannøvelser og lære opp de ansatte.",
+          "d3": "Oppbevare farlige stoffer forsvarlig og holde stoffkartoteket oppdatert."
+        }
+      },
+      "apenhetsloven": {
+        "short": "Åpenhetsloven",
+        "title": "Åpenhetsloven",
+        "issuer": "Forbrukertilsynet",
+        "description": "Større virksomheter må gjøre aktsomhetsvurderinger for menneskerettigheter og anstendige arbeidsforhold i leverandørkjeden.",
+        "duties": {
+          "d1": "Gjøre aktsomhetsvurderinger av leverandører og forretningspartnere.",
+          "d2": "Publisere en redegjørelse for aktsomhetsvurderingene innen 30. juni hvert år.",
+          "d3": "Svare på informasjonskrav innen tre uker."
+        }
+      },
+      "bokforingsloven": {
+        "short": "Bokføringsloven",
+        "title": "Bokføringsloven",
+        "issuer": "Skatteetaten",
+        "description": "Krav til bokføring, dokumentasjon og hvor lenge regnskapsmateriale skal oppbevares.",
+        "duties": {
+          "d1": "Bokføre transaksjoner i tide og med gyldig dokumentasjon.",
+          "d2": "Oppbevare primærdokumentasjonen i fem år."
+        }
+      },
+      "digitalsikkerhetsloven": {
+        "short": "Digitalsikkerhetsloven (NIS)",
+        "title": "Digitalsikkerhetsloven",
+        "issuer": "Nasjonal sikkerhetsmyndighet (NSM)",
+        "description": "Sikkerhetskrav til tilbydere av samfunnsviktige og digitale tjenester. Loven gjennomfører NIS-direktivet; NIS2 ventes å følge.",
+        "duties": {
+          "d1": "Gjennomføre egnede tekniske og organisatoriske sikkerhetstiltak.",
+          "d2": "Varsle myndigheten om alvorlige hendelser uten ugrunnet opphold.",
+          "d3": "Sørge for at ledelsen følger opp og har opplæring i sikkerhetsarbeidet."
+        }
+      },
+      "ki_forordningen": {
+        "short": "KI-forordningen (som idriftsetter)",
+        "title": "KI-forordningen: plikter som idriftsetter av KI-systemer",
+        "issuer": "EU (nasjonal tilsynsmyndighet skal utpekes)",
+        "description": "Plikter for virksomheter som tar i bruk KI-systemer, særlig høyrisikosystemer.",
+        "duties": {
+          "d1": "Sørge for at de som bruker KI-systemer, har tilstrekkelig KI-kompetanse (art. 4).",
+          "d2": "Bruke høyrisikosystemer etter bruksanvisningen, med menneskelig tilsyn og overvåking (art. 26).",
+          "d3": "Informere personer når de samhandler med KI eller ser KI-generert innhold (art. 50)."
+        }
+      }
     }
   },
   "ask": {
-    "applicability": "Hjelp meg å beskrive hvordan dette kravet gjelder for virksomheten vår, og hva som er innenfor og utenfor omfanget.",
-    "explain": "Forklar dette samsvarskravet med enkle ord: hva det krever av oss, og hvordan vi kan vise at vi oppfyller det."
+    "title": "Spør CoreFlow",
+    "explain": "Forklar denne forpliktelsen med enkle ord: hva den krever av oss, og hvordan vi kan vise at vi oppfyller den.",
+    "missingEvidence": "Hvilke plikter i denne forpliktelsen mangler dokumentasjon eller er ikke vurdert?",
+    "nextStep": "Hva bør vi gjøre nå for å være i samsvar med denne forpliktelsen?",
+    "applicability": "Hjelp meg å beskrive hvordan denne forpliktelsen gjelder organisasjonen, og hva som er innenfor og utenfor.",
+    "applicabilityLabel": "Få hjelp til å beskrive hvordan den gjelder"
   },
   "proposal": {
-    "run": "Foreslå krav",
+    "run": "Foreslå plikter",
     "needText": "Fyll ut en tittel eller beskrivelse først.",
-    "title": "Foreslåtte krav",
+    "title": "Foreslåtte plikter",
     "dismiss": "Avvis",
-    "review": "Dette er forslag. Kontroller hvert av dem mot kildeteksten før du stoler på det; ingenting lagres før du lagrer skjemaet.",
+    "review": "Dette er forslag. Kontroller hvert av dem mot lovteksten før du stoler på dem. Ingenting lagres før du lagrer skjemaet.",
     "frequency": "Foreslått vurderingshyppighet",
-    "requirements": "Krav som skal legges til",
-    "none": "Ingen konkrete krav ble foreslått.",
+    "requirements": "Plikter som skal legges til",
+    "none": "Ingen konkrete plikter ble foreslått.",
     "evidence": "Dokumentasjon som vanligvis oppbevares",
     "apply": "Legg {{ count }} inn i skjemaet",
     "applied": "Forslagene ble lagt inn i skjemaet. Gå gjennom dem før du lagrer."
   },
   "summarise": {
-    "title": "Oppsummering med enkle ord",
-    "run": "Oppsummer",
-    "hint": "Få en kort forklaring av hva kravet innebærer, hvem det gjelder for, de viktigste pliktene og fristene, og hvilken dokumentasjon som vanligvis oppbevares."
+    "run": "Forklar med enkle ord"
   },
   "detail": {
-    "summary": "Sammendrag",
-    "retiredNotice": "Dette kravet er utgått. Det beholdes for historikken, men vurderes ikke lenger.",
-    "draftNotice": "Dette kravet er et utkast. Sett det som aktivt når kravene og eieren er bekreftet.",
+    "about": "Om forpliktelsen",
+    "renewalBadge": "Fornyelse nærmer seg",
+    "retire": "Sett som utgått",
+    "reactivate": "Gjør aktiv igjen",
     "noEnd": "Ingen sluttdato",
     "endsIn": "om {{ days }} dager",
     "endedAgo": "utløp for {{ days }} dager siden",
-    "openSource": "Åpne kilden",
+    "validUntilWithDays": "{{ date }} ({{ days }})",
     "noApplicability": "Ikke beskrevet ennå.",
-    "noRequirements": "Ingen krav er listet ennå.",
-    "addRequirements": "Legg til krav",
     "schedule": "Vurderingsplan",
-    "noSchedule": "Ingen periodisk vurdering er planlagt.",
+    "noSchedule": "Ingen vurderingsplan",
     "nextDue": "Neste vurdering forfaller {{ date }}",
     "overdueSince": "Vurderingen har vært forfalt siden {{ date }}",
     "lastEvaluated": "Sist vurdert",
     "never": "Aldri",
     "latestResult": "Siste resultat",
     "evaluationCount": "Registrerte vurderinger",
-    "openChanges": "Åpne endringsnotater",
-    "deleteTitle": "Slette dette kravet?",
-    "deleteMessage": "{{ code }} fjernes fra registeret, de åpne oppgavene kanselleres og vurderingsplanen stoppes. Historikken blir liggende i revisjonsloggen."
+    "openChanges": "Endringer som må håndteres",
+    "deleteTitle": "Slette {{ code }}?",
+    "deleteMessage": "Sletting fjerner forpliktelsen fra registeret, avbryter de åpne oppgavene og stopper vurderingsplanen. Slett bare en forpliktelse som ble registrert ved en feil.",
+    "deleteAnyway": "Slett likevel",
+    "retireInstead": "Gjelder ikke forpliktelsen lenger? Sett den som utgått i stedet. Historikken og vurderingene tas vare på for revisor.",
+    "retireInsteadAction": "Sett som utgått i stedet"
+  },
+  "next": {
+    "retired": {
+      "title": "Denne forpliktelsen er utgått",
+      "body": "Den tas vare på for dokumentasjonens skyld, men vurderes ikke lenger. Gjør den aktiv igjen hvis den gjelder på nytt."
+    },
+    "draft": {
+      "title": "Denne forpliktelsen er et utkast",
+      "body": "Gjør den aktiv når pliktene og eieren er bekreftet. Bare aktive forpliktelser blir vurdert."
+    },
+    "overdue": {
+      "title": "Vurderingen er forfalt (frist {{ date }})",
+      "body": "Sjekk om organisasjonen fortsatt oppfyller hver plikt, og registrer resultatet med dokumentasjon."
+    },
+    "firstEvaluation": {
+      "title": "Ikke vurdert ennå",
+      "body": "Registrer den første samsvarsvurderingen: gå gjennom pliktene og noter hva som er på plass."
+    },
+    "noFollowUp": {
+      "title": "Siste vurdering fant mangler uten oppfølging",
+      "body": "Registrer et avvik eller en oppfølgingsoppgave så mangelen blir lukket, eller begrunn hvorfor ingenting trengs."
+    },
+    "noSchedule": {
+      "title": "Ingen vurderingsplan",
+      "body": "Ingen blir påminnet om å sjekke samsvaret. ISO 14001 og ISO 45001 forventer vurdering med planlagte mellomrom."
+    },
+    "renewal": {
+      "title": "Søk om fornyelse innen {{ date }}",
+      "body": "Tillatelsen eller avtalen utløper snart. Eieren har en oppgave om fornyelse i Mitt arbeid."
+    },
+    "expired": {
+      "title": "Gyldigheten utløp {{ date }}",
+      "body": "Oppdater gyldigheten hvis den er fornyet, eller sett forpliktelsen som utgått."
+    },
+    "changes": {
+      "title": "Endringer som må håndteres: {{ count }}",
+      "body": "Vurder hva endringen betyr for dere, og oppdater pliktene før den trer i kraft."
+    },
+    "ok": {
+      "title": "Alt er i orden",
+      "body": "Forpliktelsen er vurdert, fulgt opp og har en plan. Neste vurdering forfaller {{ date }}."
+    },
+    "actions": {
+      "evaluate": "Registrer vurdering",
+      "createDeviation": "Registrer avvik",
+      "planYearly": "Planlegg årlig vurdering",
+      "activate": "Gjør aktiv",
+      "updateValidity": "Oppdater gyldigheten",
+      "showChanges": "Vis endringene"
+    }
+  },
+  "duties": {
+    "title": "Plikter",
+    "subtitle": "Det forpliktelsen krever av dere, én plikt som kan kontrolleres om gangen. Hver plikt vurderes og dokumenteres for seg.",
+    "editAll": "Rediger pliktene",
+    "add": "Legg til plikter",
+    "none": "Ingen plikter ennå. Legg til det forpliktelsen konkret krever, så hver plikt kan vurderes og dokumenteres.",
+    "owner": "Ansvarlig: {{ name }}",
+    "ownerDefault": "Ansvarlig: forpliktelsens eier",
+    "lastEvaluated": "Vurdert {{ date }}",
+    "neverEvaluated": "Ikke vurdert ennå",
+    "openActions": "Åpne oppgaver: {{ count }}",
+    "clauses": "Punkter den dokumenterer",
+    "lastNote": "Siste funn",
+    "documentation": "Dokumentert av",
+    "noDocumentation": "Ingenting koblet ennå.",
+    "linkDocumentation": "Koble dokumentasjon",
+    "newTask": "Ny oppgave",
+    "linkHelp": "Finn prosedyren, registreringen eller dokumentet som viser at plikten er oppfylt.",
+    "linkAction": "Koble",
+    "taskPlaceholder": "For eksempel: oppdatere rutinen for vernerunder",
+    "taskDefaults": "Hvis du ikke velger noen, går oppgaven til den som er ansvarlig for plikten, med frist om 30 dager."
+  },
+  "picker": {
+    "label": "Søk etter en registrering",
+    "placeholder": "Søk i dokumenter, prosedyrer, inspeksjoner, registreringer …",
+    "hint": "Skriv minst to tegn.",
+    "choose": "Velg",
+    "chosen": "Valgt"
   },
   "evaluations": {
     "title": "Samsvarsvurderinger",
     "record": "Registrer vurdering",
-    "retired": "Utgåtte krav vurderes ikke.",
-    "result": "Resultat",
+    "retired": "Utgåtte forpliktelser blir ikke vurdert.",
+    "formTitle": "Ny samsvarsvurdering",
     "evaluatedOn": "Vurdert dato",
+    "dutiesTitle": "Resultat per plikt",
+    "dutiesHelp": "Gå gjennom hver plikt. Samlet resultat følger av dem hvis du ikke velger et selv.",
+    "dutyResult": "Resultat for {{ code }}",
+    "dutyNotChecked": "Ikke sjekket",
+    "dutyNote": "Hva som mangler for {{ code }}",
+    "dutyNotePlaceholder": "Hva mangler?",
+    "result": "Samlet resultat",
+    "derived": "Fra pliktene: {{ result }}",
+    "derivedNone": "Fra pliktene (ingen sjekket ennå)",
+    "chooseResult": "Velg et resultat",
     "notes": "Funn",
-    "evidenceSummary": "Dokumentasjon",
-    "evidenceFiles": "Dokumentasjonsfiler",
-    "noFiles": "Ingen filer er lagt ved dette kravet ennå. Last opp dokumentasjon i fanen Vedlegg for å koble den hit.",
-    "followUp": "Oppfølgingstiltak",
-    "createFollowUp": "Opprett et oppfølgingstiltak for å lukke avviket",
-    "save": "Lagre vurdering",
+    "notesRequired": "Funn (må fylles ut)",
+    "notesPlaceholder": "Hva sjekket du, og hva er på plass eller mangler?",
+    "evidenceTitle": "Dokumentasjon",
+    "evidenceRecords": "Registreringer i CoreFlow",
+    "removeEvidence": "Fjern {{ title }}",
+    "evidencePlaceholder": "Søk etter et dokument, en inspeksjon, en registrering …",
+    "evidenceHint": "Koble registreringene du så på. Hver av dem kobles til forpliktelsen som dokumentasjon.",
+    "evidenceLinks": "Nettlenker",
+    "addLink": "Legg til lenke",
+    "removeLink": "Fjern lenken",
+    "evidenceFiles": "Filer på denne forpliktelsen",
+    "noFiles": "Ingen filer er lastet opp ennå. Last dem opp i fanen Vedlegg for å kunne velge dem her.",
+    "evidenceSummary": "Hva du så på",
+    "evidenceSummaryPlaceholder": "For eksempel: målerapport for 3. kvartal og prøvetakingsloggen",
+    "followUpTitle": "Hvordan følges mangelen opp?",
+    "followUpHelp": "Når resultatet ikke er fullt i samsvar, må du velge én vei videre.",
+    "resolutions": {
+      "task": "Opprett en oppfølgingsoppgave",
+      "deviation_new": "Registrer et avvik",
+      "deviation_existing": "Koble til et avvik som finnes",
+      "justification": "Ingen tiltak nå"
+    },
+    "resolutionHelp": {
+      "task": "For en liten mangel som én person kan lukke.",
+      "deviation_new": "For et reelt avvik: avviksskjemaet åpnes etter lagring og kobles til denne vurderingen.",
+      "deviation_existing": "Når mangelen allerede er registrert som et avvik.",
+      "justification": "Forklar hvorfor ingen tiltak trengs, for eksempel en akseptert risiko."
+    },
+    "taskPlaceholder": "For eksempel: lukke mangelen i vernerundene",
+    "deviationNewNote": "Når du lagrer, åpnes avviksskjemaet med funnene fylt ut.",
+    "changeDeviation": "Velg et annet",
+    "deviationPlaceholder": "Søk i avvik etter kode eller tittel",
+    "deviationHint": "Skriv minst to tegn.",
+    "justification": "Begrunnelse",
+    "justificationPlaceholder": "Hvorfor trengs det ingen tiltak nå?",
+    "problems": {
+      "date": "Velg en dato som ikke er fram i tid.",
+      "result": "Velg et resultat, eller et resultat for minst én plikt.",
+      "findings": "Beskriv funnene: hva mangler?",
+      "task": "Skriv hva oppfølgingsoppgaven gjelder.",
+      "deviation_existing": "Velg avviket som skal kobles.",
+      "justification": "Skriv begrunnelsen."
+    },
+    "saveAndDeviation": "Lagre og registrer avvik",
+    "save": "Lagre vurderingen",
     "none": "Ingen vurderinger er registrert ennå.",
     "by": "av {{ name }}",
-    "remove": "Slett vurdering",
+    "remove": "Slett vurderingen",
+    "followUp": "Oppfølging:",
+    "openTask": "Åpne oppfølgingsoppgaven",
+    "justified": "Ingen tiltak, begrunnet",
+    "noFollowUp": "Ingen ennå",
+    "createDeviation": "Registrer avvik",
+    "linkDeviation": "Koble avvik",
+    "linkAction": "Koble",
     "removeTitle": "Slette denne vurderingen?",
-    "removeMessage": "Slett bare en vurdering som ble registrert ved en feil. Samsvarsstatusen settes tilbake til den siste gjenværende vurderingen."
+    "removeMessage": "Slett bare en vurdering som ble registrert ved en feil. Samsvarsstatusen går tilbake til den siste vurderingen som er igjen."
   },
   "actions": {
-    "title": "Vurderinger og oppfølgingstiltak",
-    "add": "Legg til tiltak",
+    "title": "Planlagte vurderinger og oppgaver",
+    "subtitle": "Vurderings-, fornyelses- og oppfølgingsoppgaver for forpliktelsen og pliktene. De vises i Mitt arbeid hos den som har dem. Vurderingshistorikken står under Detaljer.",
+    "add": "Legg til oppgave",
     "titleLabel": "Hva må gjøres",
     "description": "Detaljer",
     "assignee": "Tildelt",
     "priority": "Prioritet",
     "dueDate": "Frist",
-    "save": "Legg til tiltak",
-    "none": "Ingen vurderingsoppgaver eller tiltak ennå.",
+    "save": "Legg til oppgaven",
+    "none": "Ingen planlagte vurderinger eller oppgaver ennå.",
     "noDue": "Ingen frist",
     "kinds": {
       "evaluation": "Planlagt vurdering",
-      "action": "Oppfølgingstiltak"
+      "renewal": "Søk om fornyelse",
+      "change": "Forbered en endring",
+      "action": "Oppfølgingsoppgave",
+      "dutyAction": "Oppfølgingsoppgave på en plikt"
     }
   },
   "changes": {
     "title": "Endringsovervåking",
+    "subtitle": "Noter kommende lovendringer, ny veiledning eller avgjørelser, og hva de betyr for dere.",
     "add": "Noter en endring",
     "titleLabel": "Hva endres",
     "details": "Detaljer",
     "impact": "Påvirkning for oss",
-    "sourceUrl": "Kildelenke",
+    "sourceUrl": "Lenke til kilden",
     "notedOn": "Notert dato",
     "effectiveOn": "Gjelder fra",
-    "save": "Lagre notat",
-    "none": "Ingen endringer er notert. Registrer kommende lovendringer, ny veiledning eller avgjørelser her.",
-    "assess": "Vurder",
+    "save": "Lagre notatet",
+    "none": "Ingen endringer notert. Registrer kommende lovendringer, ny veiledning eller avgjørelser her.",
+    "assess": "Merk som håndtert",
     "reopen": "Åpne igjen",
-    "remove": "Slett notat",
+    "remove": "Slett notatet",
     "noted": "Notert {{ date }}",
     "effective": "Gjelder fra {{ date }}",
     "source": "Kilde",
-    "assessmentBy": "Vurdert av {{ name }} {{ date }}:",
-    "assessment": "Vurdering: hva betyr dette for oss?",
-    "markAssessed": "Merk som vurdert",
+    "assessmentBy": "Håndtert av {{ name }} {{ date }}:",
+    "assessment": "Hva betyr dette for oss, og hva ble gjort?",
+    "markAssessed": "Merk som håndtert",
     "removeTitle": "Slette dette endringsnotatet?",
-    "removeMessage": "Notatet «{{ title }}» fjernes fra kravet."
+    "removeMessage": "Notatet «{{ title }}» fjernes fra forpliktelsen.",
+    "taskNote": "Med middels eller høy påvirkning og en dato får eieren en oppgave om å forberede endringen i Mitt arbeid.",
+    "prepareTask": "En oppgave om å forberede endringen ligger i Mitt arbeid (gjelder fra {{ date }}).",
+    "updateObligation": "Oppdater forpliktelsen"
   },
   "notices": {
     "created": "{{ code }} ble lagt til i registeret.",
-    "saved": "Kravet ble lagret.",
+    "saved": "Forpliktelsen ble lagret.",
     "noChanges": "Ingenting ble endret.",
     "deleted": "{{ code }} ble slettet.",
     "evaluated": "Vurderingen av {{ code }} ble registrert.",
     "evaluationRemoved": "Vurderingen ble slettet.",
-    "actionAdded": "Tiltaket ble lagt til.",
+    "actionAdded": "Oppgaven ble lagt til.",
     "changeAdded": "Endringsnotatet ble lagt til.",
     "changeUpdated": "Endringsnotatet ble oppdatert.",
-    "changeRemoved": "Endringsnotatet ble slettet."
+    "changeRemoved": "Endringsnotatet ble slettet.",
+    "dutyLinked": "Dokumentasjonen ble koblet til {{ code }}.",
+    "deviationLinked": "{{ code }} ble koblet til vurderingen.",
+    "planned": "En årlig vurdering er planlagt for {{ code }}.",
+    "retired": "{{ code }} er satt som utgått.",
+    "activated": "{{ code }} er aktiv."
+  },
+  "tasks": {
+    "renewalTitle": "Søk om fornyelse: {{ code }} {{ title }} (utløper {{ date }})",
+    "changeTitle": "Forbered endringen: {{ code }} {{ title }} (gjelder fra {{ date }})"
+  },
+  "nextActions": {
+    "noSchedule": "Planlegg vurderingen av forpliktelsene dine ({{ count }})",
+    "noScheduleWhy": "{{ count }} av forpliktelsene dine har ingen vurderingsplan, så ingen blir påminnet om å sjekke samsvaret.",
+    "noFollowUp": "Følg opp mangelen i {{ code }} {{ title }}",
+    "noFollowUpWhy": "Siste vurdering av {{ code }} fant mangler, men det finnes verken avvik eller oppfølgingsoppgave.",
+    "renewal": "Søk om fornyelse av {{ code }} {{ title }}",
+    "renewalWhy": "{{ code }} {{ title }} utløper snart. Søk innen {{ date }}."
   },
   "errors": {
     "field_required": "Et obligatorisk felt mangler.",
-    "invalid_attachment": "Dokumentasjonen må være en fil som er lagt ved dette kravet.",
-    "invalid_dates": "Sjekk datoene: slutten kan ikke være før starten, og en vurdering kan ikke ligge fram i tid.",
-    "invalid_department": "Den avdelingen finnes ikke.",
-    "invalid_framework": "Et av rammeverkene er ikke gjenkjent.",
+    "findings_required": "Beskriv funnene: hva mangler?",
+    "follow_up_required": "Velg hvordan mangelen følges opp: en oppgave, et avvik eller en begrunnelse.",
+    "invalid_attachment": "Filene må være lastet opp på denne forpliktelsen.",
+    "invalid_clause_ref": "Ett av punktene er ikke kjent. Velg det fra listen.",
+    "invalid_dates": "Sjekk datoene: slutt kan ikke være før start, og en vurdering kan ikke være fram i tid.",
+    "invalid_department": "Avdelingen finnes ikke.",
+    "invalid_deviation": "Avviket finnes ikke, eller du har ikke tilgang til det.",
+    "invalid_duty": "En av pliktene finnes ikke lenger. Last inn siden på nytt og prøv igjen.",
+    "invalid_evidence": "En av de koblede registreringene finnes ikke, eller du har ikke tilgang til den.",
+    "invalid_framework": "En av standardene er ikke kjent.",
     "invalid_lead_days": "Velg mellom 0 og 366 dager.",
-    "invalid_owner": "Eieren må være medlem av virksomheten.",
+    "invalid_owner": "Eieren må være medlem av organisasjonen.",
+    "invalid_result": "Velg et gyldig resultat.",
     "invalid_rrule": "Den vurderingshyppigheten støttes ikke.",
-    "invalid_assignee": "Tiltaket kan ikke tildeles den personen, rollen eller avdelingen.",
-    "module_disabled": "Modulen for samsvarskrav er slått av for denne virksomheten.",
-    "obligation_retired": "Kravet er utgått. Sett det som aktivt igjen først.",
-    "requirement_too_long": "Hvert krav kan være på høyst 1000 tegn.",
+    "invalid_url": "Lenker må begynne med http:// eller https://.",
+    "invalid_assignee": "Oppgaven kan ikke tildeles den personen, rollen eller avdelingen.",
+    "module_disabled": "Lover og forskrifter er slått av for denne organisasjonen.",
+    "note_too_long": "Et notat kan være på høyst 2000 tegn.",
+    "obligation_not_found": "Forpliktelsen ble ikke funnet. Den kan ha blitt slettet.",
+    "obligation_retired": "Forpliktelsen er utgått. Gjør den aktiv igjen først.",
+    "requirement_too_long": "Hver plikt kan være på høyst 1000 tegn.",
+    "result_required": "Velg et resultat, eller et resultat for minst én plikt.",
     "text_required": "Fyll ut en tittel eller beskrivelse først.",
-    "too_many_attachments": "Koble til høyst 20 dokumentasjonsfiler.",
-    "too_many_requirements": "List opp høyst {{ max }} krav.",
+    "too_many_attachments": "Koble høyst 20 filer.",
+    "too_many_clause_refs": "Koble høyst 30 punkter.",
+    "too_many_evidence_refs": "Koble høyst 20 registreringer som dokumentasjon.",
+    "too_many_requirements": "Legg inn høyst {{ max }} plikter.",
+    "too_many_urls": "Legg til høyst 10 lenker.",
     "forbidden": "Du har ikke tilgang til å gjøre dette.",
-    "notFound": "Fant ikke kravet. Det kan ha blitt slettet."
-  },
-  "lessons": {
-    "link": "Leksjon: {{ title }} ({{ minutes }} min)"
+    "notFound": "Forpliktelsen ble ikke funnet. Den kan ha blitt slettet."
   },
   "notifications": {
-    "created": "Krav registrert: {{ code }} {{ title }}",
-    "updated": "Krav oppdatert: {{ code }} {{ title }}",
-    "ownerChanged": "Du eier nå kravet {{ code }}: {{ title }}",
-    "statusChanged": "Status endret for krav: {{ code }} {{ title }}",
+    "created": "Forpliktelse registrert: {{ code }} {{ title }}",
+    "updated": "Forpliktelse oppdatert: {{ code }} {{ title }}",
+    "ownerChanged": "Du eier nå forpliktelsen {{ code }}: {{ title }}",
+    "statusChanged": "Status endret for forpliktelse: {{ code }} {{ title }}",
     "scheduleChanged": "Vurderingsplanen er endret: {{ code }} {{ title }}",
     "evaluated": "Samsvar vurdert: {{ code }} {{ title }}",
     "nonCompliant": "Manglende samsvar funnet: {{ code }} {{ title }}",
     "evaluationRemoved": "Vurdering slettet på {{ code }}",
-    "actionAdded": "Tiltak lagt til på {{ code }}",
+    "actionAdded": "Oppgave lagt til på {{ code }}",
     "changeNoted": "Kommende endring notert: {{ code }} {{ title }}",
     "changeUpdated": "Endringsnotat oppdatert på {{ code }}",
     "changeRemoved": "Endringsnotat slettet fra {{ code }}",
-    "deleted": "Krav slettet: {{ code }} {{ title }}"
+    "deleted": "Forpliktelse slettet: {{ code }} {{ title }}"
   },
   "timeline": {
-    "created": "Krav registrert",
-    "updated": "Krav oppdatert",
+    "created": "Forpliktelse registrert",
+    "updated": "Forpliktelse oppdatert",
     "ownerChanged": "Eier endret",
     "statusChanged": "Status endret",
     "scheduleChanged": "Vurderingsplan endret",
     "evaluated": "Samsvar vurdert",
     "nonCompliant": "Manglende samsvar funnet",
     "evaluationRemoved": "Vurdering slettet",
-    "actionAdded": "Tiltak lagt til",
+    "actionAdded": "Oppgave lagt til",
     "changeNoted": "Endring notert",
     "changeUpdated": "Endringsnotat oppdatert",
     "changeRemoved": "Endringsnotat slettet",
-    "deleted": "Krav slettet"
+    "deleted": "Forpliktelse slettet"
   }
 }

@@ -1,14 +1,17 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { catchError, of } from 'rxjs';
 import { providePageContext } from '../../core/ai/page-context';
 import { LanguageService } from '../../core/i18n/language.service';
+import { CreateFlowService } from '../../core/kit/create-flow.service';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
-import { GuideIntro } from '../../shared/guidance/guide-intro';
 import { WhyItMatters } from '../../shared/guidance/why-it-matters';
+import { FlowBanner } from '../../shared/kit/flow-banner';
 import { Alert } from '../../shared/ui/alert/alert';
-import { Icon } from '../../shared/ui/icon/icon';
+import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
+import { PageHeader } from '../../shared/ui/page-header/page-header';
 import { assetErrorKey } from './data/asset-errors';
 import { CreateAssetRequest } from './data/asset.models';
 import { AssetsApi } from './data/assets-api';
@@ -25,32 +28,35 @@ export function createAssetBody(value: AssetFormValue): CreateAssetRequest {
   };
 }
 
-/** Register a new asset (`/assets/new`). The owner defaults to the caller. */
+/**
+ * Register a new asset (`/assets/new`). The owner defaults to the caller. Opened from a
+ * requirement (`?fromRequirement=`), the new asset documents that requirement once saved.
+ */
 @Component({
   selector: 'app-asset-new',
-  imports: [RouterLink, TranslocoPipe, Alert, AssetForm, GuideIntro, Icon, WhyItMatters],
+  imports: [TranslocoPipe, Alert, AssetForm, FlowBanner, HelpStrip, PageHeader, WhyItMatters],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[880px] px-4 pt-7 pb-12 sm:px-8">
-      <a
-        routerLink="/assets"
-        class="mb-3 inline-flex items-center gap-1 text-[13px] font-semibold text-fg-muted hover:text-fg"
-      >
-        <app-icon name="back" [size]="14" />
-        {{ 'assets.common.backToInventory' | transloco }}
-      </a>
-      <h1 class="mb-1 font-display text-[26px] font-bold tracking-[-0.025em] text-fg">
-        {{ 'assets.form.newTitle' | transloco }}
-      </h1>
-      <p class="mb-4 text-[14px] text-fg-muted">{{ 'assets.form.newSubtitle' | transloco }}</p>
-      <div class="mb-4"><app-guide-intro scope="assets" page="form" /></div>
+    <div class="mx-auto max-w-[760px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+      <app-page-header
+        titleKey="assets.form.newTitle"
+        descriptionKey="assets.form.newSubtitle"
+        [breadcrumbs]="[
+          { labelKey: 'modules.names.assets', link: '/assets' },
+          { labelKey: 'assets.form.newTitle' },
+        ]"
+        backLink="/assets"
+        backLabelKey="assets.common.backToInventory"
+      />
+      <app-help-strip scope="assets" page="form" />
+      <app-flow-banner [flow]="flow()" />
       @if (error(); as key) {
         <div class="mb-4">
           <app-alert>{{ key | transloco }}</app-alert>
         </div>
       }
       <app-asset-form [busy]="busy()" (submitted)="save($event)" (cancelled)="back()" />
-      <div class="mt-6"><app-why-it-matters scope="assets" page="form" /></div>
+      <div class="mt-8"><app-why-it-matters scope="assets" page="form" /></div>
     </div>
   `,
 })
@@ -61,7 +67,10 @@ export class AssetNew {
   private readonly language = inject(LanguageService);
   private readonly options = inject(AssetOptionsService);
   private readonly router = inject(Router);
+  private readonly flows = inject(CreateFlowService);
 
+  /** The requirement (or flow) this form was opened from, if any. */
+  protected readonly flow = this.flows.consume(inject(ActivatedRoute), { targetType: 'asset' });
   protected readonly busy = signal(false);
   protected readonly error = signal<string | null>(null);
 
@@ -86,6 +95,12 @@ export class AssetNew {
         this.busy.set(false);
         this.options.refresh();
         this.notifications.success('assets.form.created', { code: asset.code });
+        if (this.flow()) {
+          this.flows
+            .complete(asset.id, 'asset')
+            .pipe(catchError(() => of(null)))
+            .subscribe();
+        }
         void this.router.navigate(['/assets', asset.id]);
       },
       error: (err: unknown) => {

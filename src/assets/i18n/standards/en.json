@@ -210,6 +210,7 @@
       "frameworks": "Standards",
       "framework": "Standard",
       "article_refs": "Articles",
+      "documented_refs": "Clauses and articles it documents",
       "requirements": "Requirements",
       "generic": "a field on the record",
       "contract_type": "Contract type",
@@ -222,7 +223,10 @@
       "privacy_notice": "Privacy notice given",
       "screening": "Screening against the criteria",
       "checks": "Background checks",
-      "offer": "Offer"
+      "offer": "Offer",
+      "obligations": "Obligations",
+      "documentation": "Technical documentation",
+      "kind": "Completed assessment"
     },
     "origin": {
       "manual": "Added by hand",

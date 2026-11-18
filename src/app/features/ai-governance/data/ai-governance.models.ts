@@ -1,7 +1,8 @@
 /**
  * AI governance (M16, ISO/IEC 42001 + EU AI Act) DTOs. Mirrors coreflow-core
  * `app/modules/ai_governance/schemas.py`; every path is under
- * `/api/v1/orgs/{org_id}/ai-governance`. Times are naive UTC ISO strings.
+ * `/api/v1/orgs/{org_id}/ai-governance`. Times are naive UTC ISO strings. Texts
+ * the server writes follow the `Accept-Language` header (the UI language).
  */
 
 export const AI_ACT_ROLES = [
@@ -55,6 +56,28 @@ export type MonitoringResult = (typeof MONITORING_RESULTS)[number];
 export const LITERACY_SOURCES = ['training', 'briefing', 'self_study', 'external'] as const;
 export type LiteracySource = (typeof LITERACY_SOURCES)[number];
 
+export const OBLIGATION_STATUSES = ['not_started', 'in_progress', 'met', 'not_relevant'] as const;
+export type ObligationStatus = (typeof OBLIGATION_STATUSES)[number];
+
+export const LITERACY_SCOPES = ['all', 'ai_users'] as const;
+export type LiteracyScope = (typeof LITERACY_SCOPES)[number];
+
+/** Overview "needs follow-up" keys, most urgent first (backend `attention`). */
+export const ATTENTION_KEYS = [
+  'prohibited',
+  'unclassified',
+  'no_policy',
+  'fria_missing',
+  'obligations_without_task',
+  'documentation_incomplete',
+  'literacy_gap',
+  'awaiting_approval',
+  'assessments_need_review',
+  'monitoring_missing',
+  'draft_assessments',
+] as const;
+export type AttentionKey = (typeof ATTENTION_KEYS)[number];
+
 export const SYSTEM_SORTS = [
   'name',
   '-name',
@@ -83,12 +106,42 @@ export interface UserRef {
   readonly name: string;
 }
 
+/** A record of another module the caller may read (backend `EntityRefDto`). */
+export interface EntityRef {
+  readonly entity_type: string;
+  readonly entity_id: string;
+  readonly title: string;
+  readonly code?: string | null;
+  readonly url?: string | null;
+  readonly status?: string | null;
+  readonly module?: string | null;
+  readonly label_key?: string | null;
+}
+
 export interface Page<T> {
   readonly items: readonly T[];
   readonly total: number;
 }
 
 // --- overview / catalogue / settings --------------------------------------------------
+
+export interface AttentionItemDto {
+  readonly key: string;
+  readonly count: number;
+  readonly severity: 'high' | 'medium' | 'low';
+  /** Deep link to the place to act (a system, a filtered list, the settings). */
+  readonly url: string;
+  readonly params?: Readonly<Record<string, unknown>>;
+}
+
+export interface ReadinessItem {
+  readonly framework: string;
+  readonly standard_key: string;
+  readonly score: number;
+  readonly covered: number;
+  readonly applicable: number;
+  readonly url: string;
+}
 
 export interface AiGovernanceOverview {
   readonly systems_total: number;
@@ -102,6 +155,25 @@ export interface AiGovernanceOverview {
   readonly monitoring_failures_30d: number;
   readonly literacy_coverage: number;
   readonly has_policy: boolean;
+  readonly assessments_draft?: number;
+  readonly assessments_awaiting_approval?: number;
+  readonly assessments_approved?: number;
+  readonly assessments_need_review?: number;
+  readonly assessment_reviews_overdue?: number;
+  readonly obligations_total?: number;
+  readonly obligations_met?: number;
+  readonly obligations_not_relevant?: number;
+  readonly obligations_without_task?: number;
+  readonly documentation_incomplete?: number;
+  readonly fria_missing?: number;
+  readonly monitoring_missing?: number;
+  readonly literacy_in_scope?: number;
+  readonly literacy_missing?: number;
+  readonly literacy_scope?: LiteracyScope;
+  readonly policy_document?: { readonly id: string; readonly title: string | null } | null;
+  readonly attention?: readonly AttentionItemDto[];
+  readonly readiness?: readonly ReadinessItem[];
+  readonly soa_url?: string | null;
 }
 
 export interface CatalogRef {
@@ -150,6 +222,7 @@ export interface AiGovernanceSettings {
   readonly officer: UserRef | null;
   readonly literacy_validity_months: number;
   readonly review_interval_months: number;
+  readonly literacy_scope?: LiteracyScope;
   readonly updated_at: string | null;
 }
 
@@ -158,6 +231,7 @@ export interface AiGovernanceSettingsUpdate {
   readonly officer_user_id: string | null;
   readonly literacy_validity_months: number;
   readonly review_interval_months: number;
+  readonly literacy_scope?: LiteracyScope;
 }
 
 // --- AI systems -----------------------------------------------------------------------
@@ -167,8 +241,72 @@ export interface Obligation {
   readonly ref: string;
   readonly article: string;
   readonly title: string;
+  /** Canonical clause ref for the clause chips (`eu_ai_act:26`). */
+  readonly clause_ref?: string | null;
+  /** The article label, only when more specific than the chip ("Art. 26(4)-(6)"). */
+  readonly article_detail?: string | null;
   readonly task_id?: string | null;
   readonly task_status?: string | null;
+  readonly status?: ObligationStatus;
+  readonly status_source?: 'manual' | 'task' | 'default';
+  readonly reason?: string | null;
+  readonly evidence?: EntityRef | null;
+  readonly updated_at?: string | null;
+}
+
+export interface ObligationsSummary {
+  readonly total: number;
+  readonly not_started: number;
+  readonly in_progress: number;
+  readonly met: number;
+  readonly not_relevant: number;
+  readonly without_task: number;
+}
+
+export interface ObligationUpdate {
+  /** null returns to the automatic status (from the task). */
+  readonly status?: ObligationStatus | null;
+  readonly reason?: string | null;
+  readonly evidence?: { readonly entity_type: string; readonly entity_id: string } | null;
+}
+
+export interface ObligationTaskRequest {
+  readonly title?: string | null;
+  readonly assignee_user_id?: string | null;
+  readonly due_at?: string | null;
+}
+
+export interface MonitoringMetric {
+  readonly key?: string | null;
+  readonly metric: string;
+  readonly kind: MonitoringKind;
+  readonly threshold: number | null;
+  /** "min": the value must be at least the threshold; "max": at most. */
+  readonly direction: 'min' | 'max';
+  readonly unit?: string | null;
+}
+
+export interface Overseer {
+  readonly id: string;
+  readonly name: string;
+  readonly literacy_valid: boolean;
+}
+
+export interface ClassificationRef {
+  readonly id: string;
+  readonly code: string;
+  readonly status: AssessmentStatus;
+  readonly risk_class: RiskClass;
+  readonly completed_at: string | null;
+  readonly approved_at: string | null;
+}
+
+export interface DocumentationProgress {
+  readonly governance_done: number;
+  readonly governance_total: number;
+  readonly annex_iv_done: number;
+  readonly annex_iv_total: number;
+  readonly annex_iv_required: boolean;
 }
 
 export interface AiSystemSummary {
@@ -180,11 +318,13 @@ export interface AiSystemSummary {
   readonly risk_class: RiskClass;
   readonly gpai: boolean;
   readonly provider_name: string | null;
+  readonly supplier_id?: string | null;
   readonly owner: UserRef | null;
   readonly department_id: string | null;
   readonly classified_at: string | null;
   readonly next_review_at: string | null;
   readonly is_builtin: boolean;
+  readonly obligations_summary?: ObligationsSummary;
   readonly url: string;
   readonly created_at: string;
   readonly updated_at: string;
@@ -198,8 +338,23 @@ export interface AiSystem extends AiSystemSummary {
   readonly uses_personal_data: boolean;
   readonly transparency: readonly string[];
   readonly classification_id: string | null;
+  readonly classification?: ClassificationRef | null;
   readonly obligations: readonly Obligation[];
-  readonly documentation: Readonly<Record<string, string>>;
+  /** The provider's duties when the org only deploys the system (shown, not tracked). */
+  readonly provider_obligations?: readonly Obligation[];
+  /** A FRIA can apply (high-risk system the org deploys). */
+  readonly fria_applicable?: boolean;
+  /** The classification says a FRIA is required (Art. 27). */
+  readonly fria_required?: boolean;
+  readonly documentation: Readonly<Record<string, unknown>>;
+  readonly documentation_progress?: DocumentationProgress | null;
+  readonly processing_activity_id?: string | null;
+  readonly supplier?: EntityRef | null;
+  readonly processing_activity?: EntityRef | null;
+  readonly dpias?: readonly EntityRef[];
+  readonly dpia_recommended?: boolean;
+  readonly overseers?: readonly Overseer[];
+  readonly monitoring_metrics?: readonly MonitoringMetric[];
   readonly builtin_key: string | null;
   readonly created_by: string | null;
 }
@@ -228,6 +383,10 @@ export interface AiSystemWrite {
   readonly owner_user_id: string | null;
   readonly department_id: string | null;
   readonly next_review_at: string | null;
+  readonly supplier_id: string | null;
+  readonly processing_activity_id: string | null;
+  readonly overseer_user_ids: readonly string[];
+  readonly monitoring_metrics: readonly MonitoringMetric[];
 }
 
 export interface AiSystemUpdate extends Partial<AiSystemWrite> {
@@ -243,8 +402,23 @@ export interface DocSection {
   readonly key: string;
   readonly group: 'governance' | 'annex_iv';
   readonly ref: string;
+  /** Canonical clause ref (`eu_ai_act:14`, `iso42001:A.7`, `eu_ai_act:Annex IV`). */
+  readonly clause_ref?: string | null;
+  /** Annex IV point ("1".."9"). */
+  readonly point?: string | null;
+  /** Section title in the UI language. */
+  readonly title?: string | null;
   readonly content: string | null;
+  readonly document_id?: string | null;
+  readonly document?: EntityRef | null;
+  /** True for text or a linked document. */
   readonly complete: boolean;
+}
+
+export interface ProviderChecklistItem {
+  readonly key: string;
+  readonly clause_ref: string;
+  readonly title: string;
 }
 
 export interface TechnicalDocumentation {
@@ -255,6 +429,9 @@ export interface TechnicalDocumentation {
   readonly audience?: TechnicalDocAudience;
   /** Articles the guidance for this audience points to (e.g. "Art. 26", "Art. 13"). */
   readonly guidance_refs?: readonly string[];
+  readonly annex_iv_optional?: boolean;
+  /** What a deployer / importer / distributor obtains from the provider instead. */
+  readonly provider_checklist?: readonly ProviderChecklistItem[];
   readonly sections: readonly DocSection[];
   readonly annex_iv_complete: number;
   readonly annex_iv_total: number;
@@ -266,6 +443,7 @@ export interface ReviewScheduleRequest {
   readonly start_at: string;
   readonly title?: string | null;
   readonly assignee_user_id?: string | null;
+  readonly lang?: 'en' | 'nb';
 }
 
 export interface ReviewScheduleResult {
@@ -301,7 +479,8 @@ export interface MonitoringCreate {
   readonly metric: string;
   readonly value: number | null;
   readonly threshold: number | null;
-  readonly result: MonitoringResult;
+  /** Omit to judge the value against the system's metric definition (else "info"). */
+  readonly result?: MonitoringResult | null;
   readonly notes: string | null;
   readonly measured_at: string | null;
 }
@@ -338,6 +517,11 @@ export interface ClassificationResult {
   readonly art6_3_exception_applied: boolean;
   readonly reasons: readonly ClassificationReason[];
   readonly obligations: readonly Obligation[];
+  readonly provider_obligations?: readonly Obligation[];
+  /** The system's class before this classification (preview only). */
+  readonly current_risk_class?: RiskClass | null;
+  /** How the outcome compares with the current class (preview only). */
+  readonly change?: 'new' | 'same' | 'up' | 'down';
 }
 
 export interface ClassificationPreviewRequest {
@@ -366,6 +550,16 @@ export interface AssessmentSummary {
   readonly due_at: string | null;
   readonly completed_at: string | null;
   readonly approved_at: string | null;
+  readonly next_review_at?: string | null;
+  /** The system changed after the assessment was done. */
+  readonly review_flag?: 'reclassified' | 'system_changed' | null;
+  readonly review_flagged_at?: string | null;
+  /** Classifications are edited in the wizard. */
+  readonly edit_in_wizard?: boolean;
+  readonly required_total?: number;
+  readonly required_complete?: number;
+  readonly missing_sections?: readonly string[];
+  readonly sections_written?: number;
   readonly url: string;
   readonly created_at: string;
   readonly updated_at: string;
@@ -386,6 +580,7 @@ export interface AssessmentListQuery {
   readonly status?: string;
   readonly ai_system_id?: string;
   readonly owner?: string;
+  readonly needs_review?: boolean;
   readonly sort?: AssessmentSort;
   readonly limit?: number;
   readonly offset?: number;
@@ -397,13 +592,17 @@ export interface AssessmentCreate {
   readonly title?: string | null;
   readonly owner_user_id?: string | null;
   readonly due_at?: string | null;
+  readonly next_review_at?: string | null;
   readonly answers: Readonly<Record<string, unknown>>;
+  readonly lang?: 'en' | 'nb';
 }
 
 export interface AssessmentUpdate {
   readonly title?: string;
   readonly owner_user_id?: string | null;
   readonly due_at?: string | null;
+  /** Allowed in any status; the other fields only on a draft. */
+  readonly next_review_at?: string | null;
   readonly answers?: Readonly<Record<string, unknown>>;
   readonly change_reason?: string | null;
 }
@@ -412,6 +611,8 @@ export interface AssessmentCompleteRequest {
   readonly create_tasks: boolean;
   readonly due_in_days: number;
   readonly lang?: 'en' | 'nb';
+  /** Required when a classification lowers the system's current risk class. */
+  readonly confirm_downgrade?: boolean;
 }
 
 // --- AI literacy ----------------------------------------------------------------------
@@ -447,14 +648,32 @@ export interface LiteracyQuery {
   readonly offset?: number;
 }
 
+export interface LiteracyUser extends UserRef {
+  readonly department?: string | null;
+}
+
+export interface CourseRef {
+  readonly id: string;
+  readonly code: string;
+  readonly title: string;
+  readonly url: string;
+}
+
 export interface LiteracyCoverage {
+  readonly scope?: LiteracyScope;
+  /** The people in scope. */
   readonly members_total: number;
+  readonly in_scope_total?: number;
   readonly covered: number;
+  /** Covered only through a Training course tagged "AI literacy". */
+  readonly covered_by_training?: number;
   readonly expired: number;
   readonly missing: number;
   readonly coverage: number;
-  readonly missing_users: readonly UserRef[];
-  readonly expired_users: readonly UserRef[];
+  readonly missing_users: readonly LiteracyUser[];
+  readonly expired_users: readonly LiteracyUser[];
+  /** Published Training courses of the category ai_literacy (they count automatically). */
+  readonly training_courses?: readonly CourseRef[];
 }
 
 // --- assists --------------------------------------------------------------------------

@@ -8,28 +8,40 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { Subscription } from 'rxjs';
+import { Observable, Subscription, catchError, forkJoin, map, of } from 'rxjs';
+import { AiAvailability } from '../../../core/ai/ai-availability';
 import { providePageContext } from '../../../core/ai/page-context';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { AskPanelService } from '../../ask/ask-panel.service';
-import { GuideIntro } from '../../../shared/guidance/guide-intro';
-import { LessonView } from '../../../shared/guidance/lesson';
 import { TeachingEmpty } from '../../../shared/guidance/teaching-empty';
-import { TourButton } from '../../../shared/guidance/tour-button';
 import { TourStepDirective } from '../../../shared/guidance/tour-step.directive';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { RecordListPage } from '../../../shared/kit/record-list-page';
 import { SavedView } from '../../../shared/kit/saved-views.service';
-import { LocalDayPipe } from '../../../shared/locale/locale-pipes';
-import { Badge } from '../../../shared/ui/badge/badge';
+import { formatLocalDay } from '../../../shared/locale/locale-pipes';
+import { CoverageChip } from '../../../shared/requirement-links/coverage-chip';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
+import { EmptyState } from '../../../shared/ui/empty-state/empty-state';
+import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { KpiTile, KpiTone } from '../../../shared/ui/kpi-tile/kpi-tile';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { ModuleNav } from '../../../shared/ui/module-nav/module-nav';
+import { MenuItem } from '../../../shared/ui/overflow-menu/overflow-menu';
 import { Pager } from '../../../shared/ui/pager/pager';
-import { levelTone, localizedLabel, stateCategoryTone } from '../data/asset-display';
+import { RecordRow, RecordRowHeader } from '../../../shared/ui/record-row/record-row';
+import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
+import {
+  changeTypeBadge,
+  levelBadge,
+  localizedLabel,
+  stateCategoryBadge,
+} from '../data/asset-display';
 import {
   CHANGE_CATEGORIES,
   CHANGE_SORTS,
@@ -46,7 +58,7 @@ import {
   RiskLevel,
 } from '../data/asset.models';
 import { AssetsApi } from '../data/assets-api';
-import { AssetsNav } from '../shared/assets-nav';
+import { assetsNav } from '../shared/assets-nav';
 
 const PAGE_SIZE = 25;
 
@@ -69,11 +81,19 @@ export const DEFAULT_CHANGE_FILTERS: ChangeFilters = {
   sort: '-updated_at',
 };
 
+const MORE_FILTERS: readonly (keyof ChangeFilters)[] = ['category', 'owner'];
+
 export function changeFiltersFromView(values: Readonly<Record<string, string>>): ChangeFilters {
   const pick = <T extends string>(value: string | undefined, allowed: readonly T[]): T | '' =>
     value && (allowed as readonly string[]).includes(value) ? (value as T) : '';
+  const status =
+    values['status'] === 'open'
+      ? 'open'
+      : values['status'] === undefined
+        ? DEFAULT_CHANGE_FILTERS.status
+        : pick(values['status'], CHANGE_STATES);
   return {
-    status: values['status'] === 'open' ? 'open' : pick(values['status'], CHANGE_STATES),
+    status,
     type: pick(values['type'], CHANGE_TYPES),
     category: pick(values['category'], CHANGE_CATEGORIES),
     risk: pick(values['risk'], RISK_LEVELS),
@@ -97,28 +117,51 @@ export function changeQuery(q: string, f: ChangeFilters, offset: number): Change
   };
 }
 
+interface Kpi {
+  readonly key: string;
+  readonly labelKey: string;
+  readonly value: number;
+  readonly tone: KpiTone;
+  readonly filter: Partial<ChangeFilters>;
+}
+
+interface Summary {
+  readonly all: number;
+  readonly open: number;
+  readonly assessment: number;
+  readonly implementing: number;
+  readonly review: number;
+  readonly emergency: number;
+}
+
 /**
  * Change requests (`/assets/changes`): planned changes to systems, processes,
  * products or the organisation, each going through request, impact and risk
- * assessment, approval, implementation and review (ISO 27001 A.8.32, ISO 9001 6.3).
+ * assessment, approval, implementation and review (ISO 27001 A.8.32, ISO 9001 6.3 and
+ * 8.5.6). Headline figures by stage double as filters. The filters only appear once
+ * the first change exists, so an empty register shows the teaching empty state alone.
  */
 @Component({
   selector: 'app-changes-list',
   imports: [
-    RouterLink,
     TranslocoPipe,
-    LocalDayPipe,
-    AssetsNav,
-    Badge,
     Button,
     Card,
-    GuideIntro,
+    CoverageChip,
+    EmptyState,
+    ErrorState,
+    HelpStrip,
     Icon,
-    LessonView,
+    KpiTile,
+    LoadingState,
+    MenuItem,
+    ModuleNav,
     Pager,
     RecordListPage,
+    RecordRow,
+    RecordRowHeader,
+    StatusBadge,
     TeachingEmpty,
-    TourButton,
     TourStepDirective,
     WhyItMatters,
   ],
@@ -126,40 +169,64 @@ export function changeQuery(q: string, f: ChangeFilters, offset: number): Change
   template: `
     <app-record-list-page
       titleKey="assets.changes.title"
+      descriptionKey="assets.changes.subtitle"
+      [breadcrumbs]="[{ labelKey: 'modules.names.assets', link: '/assets' }]"
       scope="assets"
       page="changes"
       searchPlaceholderKey="assets.changes.searchPlaceholder"
       [query]="q()"
       [filters]="viewFilters()"
+      [moreFiltersActive]="moreActive()"
       [empty]="showEmpty()"
       (search)="search($event)"
       (viewApplied)="applyView($event)"
     >
-      <div intro>
-        <p class="mt-1 text-[14px] text-fg-muted">{{ 'assets.changes.subtitle' | transloco }}</p>
-        <app-assets-nav />
-      </div>
-
-      <ng-container toolbar>
-        <app-tour-button scope="assets" tour="changes" />
-        <app-button variant="ghost" size="sm" (click)="askOverview()">
-          <app-icon name="spark" [size]="14" />
-          {{ 'assets.ai.changesOverview' | transloco }}
+      @if (canWrite()) {
+        <app-button primary appTourStep="assets-change-new" (click)="create()">
+          <app-icon name="plus" [size]="14" />
+          {{ 'assets.changes.new' | transloco }}
         </app-button>
-        @if (canWrite()) {
-          <app-button size="sm" appTourStep="assets-change-new" (click)="create()">
-            <app-icon name="plus" [size]="14" />
-            {{ 'assets.changes.new' | transloco }}
-          </app-button>
+      }
+      @if (!ai.unavailable() && hasAny()) {
+        <button appMenuItem overflow type="button" (click)="askOverview()">
+          {{ 'assets.ai.changesOverview' | transloco }}
+        </button>
+      }
+
+      <div nav appTourStep="assets-sections">
+        <app-module-nav labelKey="modules.names.assets" [items]="nav()" />
+      </div>
+      <app-help-strip
+        help
+        scope="assets"
+        page="changes"
+        tour="changes"
+        lesson="change-management"
+      />
+
+      <ng-container ngProjectAs="[kpis]">
+        @for (k of kpis(); track k.key) {
+          <button
+            type="button"
+            class="block h-full w-full rounded-card text-left focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none [&_app-kpi-tile]:block [&_app-kpi-tile]:h-full [&_app-kpi-tile>div]:h-full"
+            [class.ring-2]="kpiActive(k)"
+            [class.ring-accent]="kpiActive(k)"
+            [attr.aria-pressed]="kpiActive(k)"
+            [attr.data-testid]="'kpi-' + k.key"
+            (click)="applyKpi(k)"
+          >
+            <app-kpi-tile [label]="k.labelKey | transloco" [value]="k.value" [tone]="k.tone" />
+          </button>
         }
       </ng-container>
 
       <ng-container filters>
-        <div class="flex flex-wrap items-center gap-2" appTourStep="assets-change-filters">
+        @if (hasAny()) {
           <label class="sr-only" for="chg-f-status">{{ 'assets.fields.status' | transloco }}</label>
           <select
             id="chg-f-status"
             [class]="selectClass"
+            appTourStep="assets-change-filters"
             (change)="setFilter('status', $any($event.target).value)"
           >
             <option value="" [selected]="!filters().status">
@@ -187,24 +254,7 @@ export function changeQuery(q: string, f: ChangeFilters, offset: number): Change
             </option>
             @for (t of types; track t) {
               <option [value]="t" [selected]="filters().type === t">
-                {{ 'assets.changeType.' + t | transloco }}
-              </option>
-            }
-          </select>
-          <label class="sr-only" for="chg-f-cat">{{
-            'assets.fields.changeCategory' | transloco
-          }}</label>
-          <select
-            id="chg-f-cat"
-            [class]="selectClass"
-            (change)="setFilter('category', $any($event.target).value)"
-          >
-            <option value="" [selected]="!filters().category">
-              {{ 'assets.filters.anyCategory' | transloco }}
-            </option>
-            @for (c of categories; track c) {
-              <option [value]="c" [selected]="filters().category === c">
-                {{ 'assets.changeCategory.' + c | transloco }}
+                {{ 'assets.changeTypeShort.' + t | transloco }}
               </option>
             }
           </select>
@@ -225,128 +275,144 @@ export function changeQuery(q: string, f: ChangeFilters, offset: number): Change
               </option>
             }
           </select>
-          <label class="sr-only" for="chg-f-owner">{{ 'assets.fields.owner' | transloco }}</label>
-          <select
-            id="chg-f-owner"
-            [class]="selectClass"
-            (change)="setFilter('owner', $any($event.target).value)"
-          >
-            <option value="" [selected]="!filters().owner">
-              {{ 'assets.filters.anyOwner' | transloco }}
-            </option>
-            <option value="me" [selected]="filters().owner === 'me'">
-              {{ 'assets.filters.ownedByMe' | transloco }}
-            </option>
-          </select>
-          <label class="sr-only" for="chg-f-sort">{{ 'assets.filters.sort' | transloco }}</label>
-          <select
-            id="chg-f-sort"
-            [class]="selectClass"
-            (change)="setFilter('sort', $any($event.target).value)"
-          >
-            @for (s of sorts; track s) {
-              <option [value]="s" [selected]="filters().sort === s">
-                {{ 'assets.filters.changeSorts.' + s | transloco }}
-              </option>
-            }
-          </select>
-        </div>
+        }
       </ng-container>
 
-      <div class="mb-4 flex flex-col gap-3">
-        <app-guide-intro scope="assets" page="changes" />
-        <div><app-lesson scope="assets" lesson="change-management" /></div>
+      <div more-filters class="flex flex-col gap-3">
+        @if (hasAny()) {
+          <label [class]="moreLabelClass">
+            {{ 'assets.fields.changeCategory' | transloco }}
+            <select
+              [class]="moreSelectClass"
+              (change)="setFilter('category', $any($event.target).value)"
+            >
+              <option value="" [selected]="!filters().category">
+                {{ 'assets.filters.anyCategory' | transloco }}
+              </option>
+              @for (c of categories; track c) {
+                <option [value]="c" [selected]="filters().category === c">
+                  {{ 'assets.changeCategory.' + c | transloco }}
+                </option>
+              }
+            </select>
+          </label>
+          <label [class]="moreLabelClass">
+            {{ 'assets.fields.owner' | transloco }}
+            <select
+              [class]="moreSelectClass"
+              (change)="setFilter('owner', $any($event.target).value)"
+            >
+              <option value="" [selected]="!filters().owner">
+                {{ 'assets.filters.anyOwner' | transloco }}
+              </option>
+              <option value="me" [selected]="filters().owner === 'me'">
+                {{ 'assets.filters.ownedByMe' | transloco }}
+              </option>
+            </select>
+          </label>
+          <label [class]="moreLabelClass">
+            {{ 'assets.filters.sort' | transloco }}
+            <select
+              [class]="moreSelectClass"
+              (change)="setFilter('sort', $any($event.target).value)"
+            >
+              @for (s of sorts; track s) {
+                <option [value]="s" [selected]="filters().sort === s">
+                  {{ 'assets.filters.changeSorts.' + s | transloco }}
+                </option>
+              }
+            </select>
+          </label>
+        }
       </div>
 
       <app-card [padded]="false">
         @switch (state()) {
           @case ('loading') {
-            <p class="py-10 text-center text-[14px] text-fg-muted">
-              {{ 'assets.common.loading' | transloco }}
-            </p>
+            <app-loading-state [rows]="4" />
           }
           @case ('error') {
-            <p class="py-10 text-center text-[14px] text-fail" role="alert">
-              {{ 'assets.common.loadFailed' | transloco }}
-            </p>
+            <app-error-state (retry)="reload()" />
           }
           @default {
             @if (rows().length === 0) {
-              <p class="py-10 text-center text-[14px] text-fg-muted">
-                {{ 'assets.filters.noMatch' | transloco }}
-              </p>
+              <app-empty-state
+                icon="search"
+                titleKey="ui.empty.noResults"
+                bodyKey="ui.empty.noResultsBody"
+                ctaKey="ui.empty.clearFilters"
+                ctaVariant="secondary"
+                (cta)="clearFilters()"
+              />
             } @else {
-              <ul class="divide-y divide-border" data-testid="change-rows">
+              <div role="list" data-testid="change-rows">
+                <app-record-row-header dateKind="date" />
                 @for (row of rows(); track row.id) {
-                  <li class="flex flex-col gap-1.5 px-4 py-3 md:flex-row md:items-center md:gap-3">
-                    <div class="min-w-0 flex-1">
-                      <a
-                        [routerLink]="['/assets/changes', row.id]"
-                        class="flex items-baseline gap-2 text-[13.5px] font-semibold text-fg hover:underline"
-                      >
-                        <span class="font-mono text-[12px] text-fg-muted">{{ row.code }}</span>
-                        <span class="truncate">{{ row.title }}</span>
-                      </a>
-                      <span class="flex flex-wrap gap-x-3 text-[12px] text-fg-subtle">
-                        <span>{{ 'assets.changeCategory.' + row.category | transloco }}</span>
-                        @if (row.owner?.name; as name) {
-                          <span>{{ 'assets.list.ownedBy' | transloco: { name } }}</span>
-                        }
-                        @if (row.planned_start) {
-                          <span>
-                            {{
-                              'assets.changes.plannedFor'
-                                | transloco: { date: (row.planned_start | localDay) }
-                            }}
-                          </span>
-                        }
-                      </span>
-                    </div>
-                    <span class="flex flex-wrap items-center gap-2 text-[12.5px]">
-                      @if (row.change_type !== 'normal') {
-                        <app-badge [tone]="row.change_type === 'emergency' ? 'fail' : 'neutral'">
-                          {{ 'assets.changeType.' + row.change_type | transloco }}
-                        </app-badge>
-                      }
-                      @if (row.risk_level) {
-                        <app-badge [tone]="riskTone(row.risk_level)">
-                          {{
-                            'assets.changes.riskBadge'
-                              | transloco
-                                : { level: ('assets.criticality.' + row.risk_level | transloco) }
-                          }}
-                        </app-badge>
-                      }
-                      @if (row.pending_approval) {
-                        <app-badge tone="accent">{{
-                          'assets.changes.awaitingApproval' | transloco
-                        }}</app-badge>
-                      }
-                      <app-badge [tone]="catTone(row.status_category)">{{
-                        label(row.status_label)
-                      }}</app-badge>
-                    </span>
-                  </li>
+                  <app-record-row
+                    [code]="row.code"
+                    [title]="row.title"
+                    [subtitle]="subtitle(row)"
+                    [link]="['/assets/changes', row.id]"
+                    [owner]="row.owner?.name"
+                    [date]="row.planned_start"
+                    dateKind="date"
+                  >
+                    <app-status-badge
+                      badges
+                      [meaning]="stateBadge(row.status_category).meaning"
+                      [value]="stateBadge(row.status_category).value"
+                      [labelKey]="'assets.changeState.' + row.status"
+                    />
+                    @if (row.pending_approval) {
+                      <app-status-badge
+                        badges
+                        meaning="lifecycle"
+                        value="pending_approval"
+                        labelKey="assets.changes.awaitingApproval"
+                      />
+                    }
+                    @if (row.change_type === 'emergency') {
+                      <app-status-badge
+                        badges
+                        [meaning]="typeBadge(row.change_type).meaning"
+                        [value]="typeBadge(row.change_type).value"
+                        labelKey="assets.changeTypeShort.emergency"
+                      />
+                    }
+                    @if (row.risk_level) {
+                      <app-status-badge
+                        badges
+                        [meaning]="riskBadge(row.risk_level).meaning"
+                        [value]="riskBadge(row.risk_level).value"
+                        labelKey="assets.changes.riskBadge"
+                        [labelParams]="{
+                          level: ('assets.criticality.' + row.risk_level | transloco),
+                        }"
+                      />
+                    }
+                    <app-coverage-chip coverage entityType="change_request" [entityId]="row.id" />
+                  </app-record-row>
                 }
-              </ul>
-              <div class="border-t border-border px-4 py-2.5">
-                <app-pager
-                  [offset]="offset()"
-                  [pageSize]="pageSize"
-                  [count]="rows().length"
-                  [total]="total()"
-                  (pageChange)="offset.set($event)"
-                />
               </div>
+              @if (total() > pageSize) {
+                <div class="border-t border-border px-4 py-2.5">
+                  <app-pager
+                    [offset]="offset()"
+                    [pageSize]="pageSize"
+                    [count]="rows().length"
+                    [total]="total()"
+                    (pageChange)="offset.set($event)"
+                  />
+                </div>
+              }
             }
           }
         }
       </app-card>
 
-      <div class="mt-6"><app-why-it-matters scope="assets" page="changes" /></div>
+      <app-why-it-matters below scope="assets" page="changes" />
 
       <div empty class="flex flex-col gap-4">
-        <app-guide-intro scope="assets" page="changes" />
         <app-teaching-empty
           scope="assets"
           page="changes"
@@ -364,29 +430,44 @@ export class ChangesList {
   private readonly language = inject(LanguageService);
   private readonly ask = inject(AskPanelService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  protected readonly ai = inject(AiAvailability);
 
   protected readonly selectClass =
-    'h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg';
+    'h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg';
+  protected readonly moreLabelClass = 'flex flex-col gap-1 text-meta font-semibold text-fg-muted';
+  protected readonly moreSelectClass =
+    'h-10 rounded-tile border border-border bg-bg px-2 text-ui font-normal text-fg';
   protected readonly states = CHANGE_STATES;
   protected readonly types = CHANGE_TYPES;
   protected readonly categories = CHANGE_CATEGORIES;
   protected readonly risks = RISK_LEVELS;
   protected readonly sorts = CHANGE_SORTS;
   protected readonly pageSize = PAGE_SIZE;
-  protected readonly riskTone = levelTone;
-  protected readonly catTone = stateCategoryTone;
+  protected readonly riskBadge = levelBadge;
+  protected readonly stateBadge = stateCategoryBadge;
+  protected readonly typeBadge = changeTypeBadge;
 
   protected readonly canWrite = computed(() =>
     (this.selectedOrg.currentOrg()?.permissions ?? []).includes('assets:write'),
   );
 
-  protected readonly q = signal('');
-  protected readonly filters = signal<ChangeFilters>(DEFAULT_CHANGE_FILTERS);
+  protected readonly q = signal(this.route.snapshot.queryParamMap.get('q') ?? '');
+  protected readonly filters = signal<ChangeFilters>(
+    changeFiltersFromView(this.route.snapshot.queryParams as Record<string, string>),
+  );
   protected readonly offset = signal(0);
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
   protected readonly rows = signal<readonly ChangeRequest[]>([]);
   protected readonly total = signal(0);
+  protected readonly summary = signal<Summary | null>(null);
 
+  /** Whether the organisation has any change request at all (shows filters and figures). */
+  protected readonly hasAny = computed(() => (this.summary()?.all ?? 0) > 0);
+  protected readonly nav = computed(() => assetsNav({ openChanges: this.summary()?.open }));
+  protected readonly moreActive = computed(
+    () => MORE_FILTERS.filter((key) => !!this.filters()[key]).length,
+  );
   protected readonly viewFilters = computed(
     () => ({ ...this.filters() }) as Record<string, string>,
   );
@@ -401,14 +482,64 @@ export class ChangesList {
       (!!f.status && f.status !== 'open')
     );
   });
+  /** Teaching empty state: no change requests at all (open or closed). */
   protected readonly showEmpty = computed(
-    () => this.state() === 'ready' && this.total() === 0 && !this.isFiltered(),
+    () =>
+      this.state() === 'ready' && this.summary() !== null && !this.hasAny() && !this.isFiltered(),
   );
 
+  protected readonly kpis = computed<readonly Kpi[]>(() => {
+    const s = this.summary();
+    if (!s || s.all === 0) {
+      return [];
+    }
+    return [
+      {
+        key: 'open',
+        labelKey: 'assets.changes.kpiOpen',
+        value: s.open,
+        tone: 'neutral',
+        filter: { status: 'open', type: '' },
+      },
+      {
+        key: 'assessment',
+        labelKey: 'assets.changes.kpiAssessment',
+        value: s.assessment,
+        tone: s.assessment ? 'warn' : 'neutral',
+        filter: { status: 'assessment', type: '' },
+      },
+      {
+        key: 'implementing',
+        labelKey: 'assets.changes.kpiImplementing',
+        value: s.implementing,
+        tone: 'neutral',
+        filter: { status: 'implementing', type: '' },
+      },
+      {
+        key: 'review',
+        labelKey: 'assets.changes.kpiReview',
+        value: s.review,
+        tone: s.review ? 'warn' : 'neutral',
+        filter: { status: 'review', type: '' },
+      },
+      {
+        key: 'emergency',
+        labelKey: 'assets.changes.kpiEmergency',
+        value: s.emergency,
+        tone: s.emergency ? 'fail' : 'neutral',
+        filter: { status: 'open', type: 'emergency' },
+      },
+    ];
+  });
+
   private request = new Subscription();
+  private summaryRequest = new Subscription();
 
   constructor() {
-    inject(DestroyRef).onDestroy(() => this.request.unsubscribe());
+    inject(DestroyRef).onDestroy(() => {
+      this.request.unsubscribe();
+      this.summaryRequest.unsubscribe();
+    });
     providePageContext(() => ({
       module: 'assets',
       entityType: 'change_request',
@@ -420,10 +551,32 @@ export class ChangesList {
       const query = changeQuery(this.q(), this.filters(), this.offset());
       untracked(() => this.load(orgId, query));
     });
+    effect(() => {
+      const orgId = this.selectedOrg.currentOrgId();
+      untracked(() => this.loadSummary(orgId));
+    });
   }
 
   protected label(value: LocalizedLabel): string {
     return localizedLabel(value, this.language.active());
+  }
+
+  /** Category · type · planned start. */
+  protected subtitle(row: ChangeRequest): string {
+    const t = (key: string, params?: Record<string, unknown>) =>
+      this.language.translate(key, params);
+    const parts = [
+      t(`assets.changeCategory.${row.category}`),
+      t(`assets.changeTypeShort.${row.change_type}`),
+    ];
+    if (row.planned_start) {
+      parts.push(
+        t('assets.changes.plannedFor', {
+          date: formatLocalDay(row.planned_start, 'mediumDate', this.language.locale()),
+        }),
+      );
+    }
+    return parts.join(' · ');
   }
 
   protected search(text: string): void {
@@ -441,12 +594,37 @@ export class ChangesList {
     this.filters.set(changeFiltersFromView(view.filters));
   }
 
+  protected clearFilters(): void {
+    this.offset.set(0);
+    this.filters.set({ ...DEFAULT_CHANGE_FILTERS, status: '', sort: this.filters().sort });
+  }
+
+  protected kpiActive(k: Kpi): boolean {
+    const f = this.filters();
+    return Object.entries(k.filter).every(
+      ([key, value]) => f[key as keyof ChangeFilters] === value,
+    );
+  }
+
+  protected applyKpi(k: Kpi): void {
+    this.offset.set(0);
+    const active = this.kpiActive(k);
+    const base: ChangeFilters = { ...DEFAULT_CHANGE_FILTERS, sort: this.filters().sort };
+    this.filters.set(active ? base : { ...base, ...k.filter });
+  }
+
   protected create(): void {
     void this.router.navigate(['/assets/changes/new']);
   }
 
   protected askOverview(): void {
     this.ask.showWith(this.language.translate('assets.ai.prompts.changesOverview'));
+  }
+
+  protected reload(): void {
+    const orgId = this.selectedOrg.currentOrgId();
+    this.load(orgId, changeQuery(this.q(), this.filters(), this.offset()));
+    this.loadSummary(orgId);
   }
 
   private load(orgId: string | null, query: ChangeListQuery): void {
@@ -463,5 +641,25 @@ export class ChangesList {
       },
       error: () => this.state.set('error'),
     });
+  }
+
+  private loadSummary(orgId: string | null): void {
+    this.summaryRequest.unsubscribe();
+    if (!orgId) {
+      return;
+    }
+    const count = (query: ChangeListQuery): Observable<number> =>
+      this.api.listChanges(orgId, { ...query, limit: 1 }).pipe(
+        map((page) => page.total),
+        catchError(() => of(0)),
+      );
+    this.summaryRequest = forkJoin({
+      all: count({}),
+      open: count({ open: true }),
+      assessment: count({ status: ['assessment'] }),
+      implementing: count({ status: ['implementing'] }),
+      review: count({ status: ['review'] }),
+      emergency: count({ open: true, type: 'emergency' }),
+    }).subscribe((summary) => this.summary.set(summary));
   }
 }

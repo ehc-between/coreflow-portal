@@ -2,118 +2,136 @@
   "pages": {
     "list": {
       "intro": {
-        "title": "Vit hvilke krav dere må oppfylle",
-        "body": "Registeret over samsvarskrav viser alt virksomheten er bundet av: lover og forskrifter, tillatelser og lisenser, krav i kontrakter, bransjenormer og frivillige forpliktelser. Hvert krav har en eier, de konkrete pliktene det medfører, og en periodisk **samsvarsvurdering** som kontrollerer at dere fortsatt oppfyller det.",
+        "title": "Vit hvilke lover og krav dere må oppfylle",
+        "body": "Registeret viser alt organisasjonen er bundet av: lover og forskrifter, tillatelser og lisenser, krav i avtaler, bransjenormer og frivillige forpliktelser. Hver **forpliktelse** har en eier, konkrete **plikter** og en periodisk **samsvarsvurdering** som sjekker at dere fortsatt oppfyller den.",
         "steps": [
-          "Registrer kravene som gjelder for dere, og start med dem som får størst konsekvenser om de brytes.",
-          "List opp de konkrete pliktene og beskriv hvordan hvert krav gjelder for virksomheten.",
-          "Planlegg en periodisk vurdering, registrer resultatet med dokumentasjon og følg opp eventuelle mangler."
+          "Legg inn forpliktelsene som gjelder dere. Start fra biblioteket med vanlige lover, eller med dem som får størst konsekvenser om de brytes.",
+          "Skriv de konkrete pliktene og koble dem til punktene i standardene.",
+          "Planlegg en årlig vurdering, registrer resultatet med dokumentasjon og følg opp mangler med et avvik eller en oppgave."
         ]
       },
       "why": {
-        "body": "Alle standarder for styringssystemer forventer at dere kjenner de lovpålagte og andre kravene som gjelder, holder kunnskapen oppdatert og vurderer samsvar med jevne mellomrom. Standardene for miljø og arbeidsmiljø krever vurderingen uttrykkelig; regler for informasjonssikkerhet og personvern forventer at dere identifiserer og oppfyller lovpålagte, regulatoriske og kontraktsmessige krav og kan dokumentere det.",
-        "clauses": ["hs:4.2", "iso14001:6.1.3", "iso45001:6.1.3", "iso27001:A.5.31", "gdpr:24"]
+        "body": "Alle standarder for styringssystemer forventer at organisasjonen kjenner lovkravene og andre krav som gjelder, holder kunnskapen oppdatert og vurderer samsvar med planlagte mellomrom. Registeret er det første revisor ser på.",
+        "clauses": ["hs:4.2", "iso14001:6.1.3", "iso45001:6.1.3", "iso27001:A.5.31"]
       },
       "empty": {
-        "title": "Ingen krav er registrert ennå",
-        "body": "Start med kravene dere allerede kjenner til: miljøtillatelsen, arbeidsmiljøloven, personvernregelverket og de viktigste kravene i de største kundekontraktene. Assistenten kan foreslå de konkrete kravene når du har skrevet inn en tittel.",
-        "cta": "Registrer det første kravet"
+        "title": "Ingen forpliktelser er registrert ennå",
+        "body": "Start med det dere allerede kjenner: arbeidsmiljøloven, internkontrollforskriften, personvernregelverket, eventuelle miljøtillatelser og de viktigste kravene i de største avtalene. Skjemaet har et bibliotek med vanlige lover å starte fra.",
+        "cta": "Ny forpliktelse"
       }
     },
     "form": {
       "intro": {
-        "title": "Registrere et krav",
-        "body": "Beskriv kravet med egne ord og vis til kilden. List deretter opp de **konkrete pliktene** det medfører, det en revisor ville bedt dere vise. Bruk **Foreslå krav** for å få forslag, og kontroller dem mot kildeteksten.",
+        "title": "Registrere en forpliktelse",
+        "body": "Beskriv forpliktelsen og hvor den kommer fra. List deretter opp **pliktene**: det konkrete en revisor ville bedt dere vise. Kryss av for standardene den gjelder, så teller den som dokumentasjon der.",
         "steps": [
-          "Velg type, en eier og kilden (utsteder, referanse og en lenke).",
-          "Beskriv hvordan kravet gjelder for lokasjoner, produkter og aktiviteter.",
-          "Slå på periodisk vurdering, så blir eieren påminnet om å kontrollere samsvar."
+          "Velg en lov fra biblioteket, eller fyll inn type, eier, myndighet og lenke til lovteksten.",
+          "Skriv hver plikt slik at den kan kontrolleres, og beskriv hvordan forpliktelsen gjelder lokasjoner og aktiviteter.",
+          "La den årlige vurderingen stå på, så blir eieren påminnet om å sjekke samsvaret."
         ]
       },
       "why": {
-        "body": "Et register som bare nevner en lov, er ikke nok: dere må vite hvilke av pliktene som gjelder for dere, og hvordan. Når hvordan kravet gjelder, pliktene og eieren er dokumentert, blir samsvarsvurderingene gjentakbare, og revisoren ser at kravene er kartlagt systematisk.",
+        "body": "Et register som bare nevner en lov, er ikke nok: dere må vite hvilke plikter som gjelder dere, og hvordan. Dokumenterte plikter, eiere og punkter gjør hver vurdering gjentakbar og viser revisor at forpliktelsene er kartlagt systematisk.",
         "clauses": ["iso14001:6.1.3", "iso45001:6.1.3", "iso27001:A.5.31"]
       },
       "fields": {
         "obligation_type": {
-          "help": "Hva slags krav det er. Lover, forskrifter og tillatelser pålegges dere; kontraktskrav, bransjenormer og frivillige forpliktelser har dere valgt å akseptere, men må likevel oppfylle.",
-          "example": "Utslippstillatelsen for et anlegg er en tillatelse; en kundes leverandørkrav er et kontraktskrav."
+          "help": "Hva slags forpliktelse det er. Lover, forskrifter og tillatelser blir pålagt dere. Avtalekrav, bransjenormer og frivillige forpliktelser har dere valgt selv, men må likevel oppfylle.",
+          "example": "En utslippstillatelse er en tillatelse. En kundes leverandørkrav er et avtalekrav."
         },
         "status": {
-          "help": "Utkast mens dere fortsatt kartlegger pliktene; aktiv når kravet gjelder og vurderes; utgått når det ikke lenger gjelder (historikken beholdes).",
-          "example": "Sett et krav som utgått når en tillatelse avsluttes eller en kontrakt løper ut."
+          "help": "Utkast mens dere fortsatt kartlegger pliktene, aktiv når den gjelder og vurderes, og utgått når den ikke lenger gjelder (historikken beholdes).",
+          "example": "Sett en forpliktelse som utgått når en tillatelse avsluttes eller en avtale løper ut."
         },
         "owner": {
-          "help": "Personen som følger med på kravet, gjennomfører eller organiserer vurderingene og får beskjed om endringer.",
-          "example": "HMS-lederen eier arbeidsmiljøkravene; personvernombudet eier personvernregelverket."
+          "help": "Personen som følger med på forpliktelsen, gjennomfører eller organiserer vurderingene og får beskjed om endringer.",
+          "example": "HMS-lederen eier arbeidsmiljøloven, personvernombudet eier personvernregelverket.",
+          "requirements": ["iso45001:6.1.3"]
         },
         "description": {
-          "help": "En kort beskrivelse av hva kravet handler om, med enkle ord.",
-          "example": "Setter grenser for støy og støv fra produksjonsanlegget og krever målinger hvert kvartal."
+          "help": "En kort beskrivelse av hva forpliktelsen handler om, med enkle ord.",
+          "example": "Setter grenser for støy og støv fra anlegget og krever målinger hvert kvartal."
         },
         "issuer": {
-          "help": "Hvem som har utstedt eller pålegger kravet: lovgiver, en myndighet, en kunde eller en bransjeorganisasjon.",
-          "example": "Miljødirektoratet, Datatilsynet, Kunde AS."
+          "help": "Myndigheten eller parten som pålegger forpliktelsen: lovgiver, et tilsyn, en kunde eller en bransjeorganisasjon.",
+          "example": "Arbeidstilsynet, Datatilsynet, Kunde AS."
         },
         "reference": {
-          "help": "Den offisielle referansen, slik at alle kan finne kilden: lovens korttittel og paragraf, tillatelsesnummeret eller kontraktspunktet.",
-          "example": "Forskrift 2004-06-01-931, kapittel 27; tillatelse 2019.0412.T."
+          "help": "Den offisielle referansen, slik at alle kan finne kilden: lov- eller forskriftsnummeret, tillatelsesnummeret eller punktet i avtalen.",
+          "example": "LOV-2005-06-17-62, tillatelse 2019.0412.T, avtalens punkt 12.3."
         },
         "valid_until": {
-          "help": "Når kravet slutter å gjelde, hvis det gjør det. Eieren blir påminnet før denne datoen, for eksempel for å fornye en tillatelse eller lisens.",
+          "help": "Når forpliktelsen slutter å gjelde, hvis den gjør det. For tillatelser, lisenser og avtaler legges det inn en oppgave om fornyelse før denne datoen.",
           "example": "En utslippstillatelse som gjelder til 31. desember 2028."
         },
+        "renewal_lead_days": {
+          "help": "Hvor mange dager før utløp eieren bør søke om fornyelse. En søknad tar ofte måneder, så standard er 90 dager.",
+          "example": "180 dager for en utslippstillatelse som krever ny søknad til Statsforvalteren."
+        },
         "applicability": {
-          "help": "Hvordan kravet gjelder for virksomheten: hvilke lokasjoner, aktiviteter, produkter eller personer som omfattes, og hva som uttrykkelig er utenfor.",
-          "example": "Gjelder anlegget i Drammen (lakkeringslinje og løsemiddellager). Kontoret i Oslo er utenfor."
+          "help": "Hvordan forpliktelsen gjelder organisasjonen: hvilke lokasjoner, aktiviteter, produkter eller personer som omfattes, og hva som uttrykkelig er utenfor.",
+          "example": "Gjelder anlegget i Drammen (lakkeringslinje og løsemiddellager). Kontoret i Oslo er utenfor.",
+          "requirements": ["hs:4.2", "iso14001:6.1.3"]
         },
         "requirements": {
-          "help": "De konkrete pliktene kravet medfører, én per linje. Skriv dem slik at hver kan kontrolleres: noe dere må gjøre, måle, rapportere eller oppbevare.",
-          "example": "Måle støy ved tomtegrensen hvert kvartal; rapportere årlige utslipp innen 1. mars; oppbevare måledata i 5 år."
+          "help": "De konkrete pliktene forpliktelsen gir, én per rad. Skriv dem slik at hver kan kontrolleres: noe dere må gjøre, måle, rapportere eller oppbevare. Hver plikt kan ha egen ansvarlig og egne punkter.",
+          "example": "Måle støy ved tomtegrensen hvert kvartal. Rapportere årlige utslipp innen 1. mars.",
+          "requirements": ["iso14001:6.1.3", "iso45001:6.1.3", "iso27001:A.5.31"]
         },
         "frameworks": {
-          "help": "Hvilke av rammeverkene i styringssystemet kravet er relevant for. Det gjør det enklere å filtrere registeret før en revisjon.",
-          "example": "Personvernregelverket er knyttet til GDPR og ISO/IEC 27001."
+          "help": "Standardene forpliktelsen gjelder. Når du krysser av for en, foreslås de vanlige punktene.",
+          "example": "Personvernregelverket gjelder GDPR og ISO/IEC 27001."
+        },
+        "clause_refs": {
+          "help": "Punktene og artiklene denne forpliktelsen dokumenterer. De teller som dokumentasjon på kravsidene i standardene, så revisor kan følge koblingen begge veier.",
+          "example": "GDPR · 30 for behandlingsprotokollen, ISO 14001 · 6.1.3 for selve registeret."
         },
         "evaluation": {
-          "help": "En periodisk samsvarsvurdering oppretter en gjentakende oppgave for eieren. Hver gang den gjøres, registreres resultat og dokumentasjon, og neste vurdering planlegges automatisk.",
-          "example": "Vurder tillatelser med høy risiko hvert kvartal og stabile lover én gang i året."
+          "help": "En periodisk samsvarsvurdering gir eieren en gjentakende oppgave. Hver gang den gjøres, registreres resultat og dokumentasjon, og neste vurdering planlegges automatisk.",
+          "example": "Vurder kritiske tillatelser hvert kvartal og stabile lover én gang i året.",
+          "requirements": ["iso14001:9.1.2", "iso45001:9.1.2"]
         },
         "evaluation_lead_days": {
-          "help": "Hvor mange dager før fristen vurderingsoppgaven vises i Mitt arbeid for eieren.",
+          "help": "Hvor mange dager før fristen vurderingsoppgaven vises i Mitt arbeid hos eieren.",
           "example": "14 dager gir tid til å samle målinger før en kvartalsvis vurdering."
         }
       }
     },
     "detail": {
       "intro": {
-        "title": "Holde kontroll på et krav",
-        "body": "Denne siden viser hva kravet innebærer og hvordan det gjelder, historikken over samsvarsvurderinger med dokumentasjon, og endringer som kommer. Vurderingsoppgaver og oppfølgingstiltak ligger i fanen **Oppgaver**; koble tilhørende risikoer, prosesser eller kontrakter under **Relatert**.",
+        "title": "Ha kontroll på en forpliktelse",
+        "body": "Boksen øverst sier hva som bør gjøres nå. Under står **pliktene** med dokumentasjon og resultat, **samsvarsvurderingene** med dokumentasjon og oppfølging, og endringer som kommer. Oppgavene ligger i fanen **Oppgaver**, og koblede registreringer under **Relatert**.",
         "steps": [
-          "Registrer en vurdering når den forfaller, med funn og dokumentasjonsfiler.",
-          "Hvis dere ikke er fullt i samsvar, opprett et oppfølgingstiltak for å lukke avviket.",
-          "Noter kommende endringer og vurder hva de betyr for dere."
+          "Registrer en vurdering når den forfaller: resultat per plikt, funn og dokumentasjon.",
+          "Hvis noe mangler, registrer et avvik eller en oppfølgingsoppgave så det blir lukket.",
+          "Noter kommende endringer og oppdater pliktene før de trer i kraft."
         ]
       },
       "why": {
-        "body": "Å kjenne kravene er bare halve jobben: dere må også, med jevne mellomrom, kontrollere at dere faktisk oppfyller dem, ta vare på dokumentasjon av resultatet og handle når dere ikke gjør det. En registrert vurderingshistorikk er det som viser samsvar, og det er nettopp det ansvarlighetsprinsippet i personvernregelverket og brukerpliktene i KI-forordningen krever.",
-        "clauses": ["iso14001:9.1.2", "iso45001:9.1.2", "gdpr:24", "eu_ai_act:26"]
+        "body": "Å kjenne forpliktelsene er bare halve jobben: organisasjonen må også sjekke med planlagte mellomrom at den oppfyller dem, ta vare på dokumentasjon og handle når den ikke gjør det. Vurderingshistorikken er det som viser samsvar.",
+        "clauses": ["iso14001:9.1.2", "iso45001:9.1.2"]
       },
       "fields": {
+        "duties": {
+          "help": "Hver plikt vurderes for seg og kan dokumenteres med registreringer fra andre moduler: en prosedyre, en inspeksjon, en opplæring.",
+          "example": "Plikten «Gjennomføre vernerunder to ganger i året», dokumentert av inspeksjon INS-12.",
+          "requirements": ["iso14001:6.1.3", "iso45001:6.1.3"]
+        },
         "evaluations": {
-          "help": "Hver vurdering registrerer om dere oppfylte kravet på den datoen: i samsvar, delvis i samsvar, ikke i samsvar eller ikke relevant. Det siste resultatet setter kravets samsvarsstatus og fullfører den åpne vurderingsoppgaven.",
-          "example": "Kvartalsvis støymåling innenfor grensene: i samsvar, med målerapporten vedlagt."
+          "help": "Hver vurdering viser om dere oppfylte forpliktelsen den dagen, per plikt og samlet. Det siste resultatet setter samsvarsstatusen og fullfører den åpne vurderingsoppgaven. Alt som ikke er i samsvar, krever funn og oppfølging.",
+          "example": "Kvartalsvis støymåling innenfor grensene: i samsvar, med målerapporten koblet.",
+          "requirements": ["iso14001:9.1.2", "iso45001:9.1.2"]
         },
         "evidence": {
-          "help": "Beskriv hva du så på, og kryss av filene som dokumenterer det. Filer lastes opp i fanen Vedlegg og kobles deretter til vurderingen.",
-          "example": "Målerapport 3. kvartal, prøvetakingslogg, myndighetens kvittering for årsrapporten."
+          "help": "Koble registreringene du så på (dokumenter, inspeksjoner, opplæring, målinger), legg til nettlenker eller velg filer som er lastet opp i fanen Vedlegg.",
+          "example": "Målerapport for 3. kvartal, prøvetakingsloggen, myndighetens kvittering for årsrapporten."
         },
         "changes": {
-          "help": "Skriv ned endringer dere får vite om før de trer i kraft: lovendringer, ny veiledning, rettsavgjørelser eller en reforhandlet kontrakt. Vurder hver av dem og noter hva (om noe) dere må endre.",
+          "help": "Skriv ned endringer dere hører om før de trer i kraft: lovendringer, ny veiledning, avgjørelser eller en reforhandlet avtale. Med middels eller høy påvirkning og en dato får eieren en oppgave om å forberede seg i Mitt arbeid.",
           "example": "Nye utslippsgrenser fra 1. juli neste år: høy påvirkning, nytt filter trengs."
         },
         "actions": {
-          "help": "Planlagte vurderinger og oppfølgingstiltak er plattformoppgaver. De vises i Mitt arbeid for den som er tildelt, og blir påminnet og eskalert som andre oppgaver.",
+          "help": "Planlagte vurderinger, fornyelser og oppfølgingsoppgaver er vanlige oppgaver. De vises i Mitt arbeid hos den som har dem, og blir påminnet og eskalert som andre oppgaver.",
           "example": "Bytt filteret på lakkeringslinjen innen 1. juni for å overholde den nye grensen."
         }
       }
@@ -121,7 +139,7 @@
   },
   "lessons": {
     "legal-register": {
-      "title": "Bygge et register over lovpålagte og andre krav",
+      "title": "Bygge et register over lover og andre krav",
       "minutes": 5,
       "sections": [
         {
@@ -129,27 +147,27 @@
           "body": "Alt dere er **bundet** til å oppfylle: lover og forskrifter, tillatelser og lisenser, vilkår fra myndigheter, krav i kontrakter, bransjenormer dere har sluttet dere til og frivillige forpliktelser dere har tatt på dere offentlig. Utelat generell god praksis som ingen kan holde dere ansvarlige for."
         },
         {
-          "heading": "Fra en lov til konkrete krav",
-          "body": "En lov gjelder sjelden i sin helhet. For hvert krav skriver dere ned **hvordan det gjelder** (hvilke lokasjoner, aktiviteter og personer) og lister opp de **konkrete pliktene**: hva dere må gjøre, måle, rapportere eller oppbevare. Det er disse dere kontrollerer i hver vurdering."
+          "heading": "Fra en lov til konkrete plikter",
+          "body": "En lov gjelder sjelden i sin helhet. For hver forpliktelse skriver dere ned **hvordan det gjelder** (hvilke lokasjoner, aktiviteter og personer) og lister opp de **konkrete pliktene**: hva dere må gjøre, måle, rapportere eller oppbevare. Det er disse dere kontrollerer i hver vurdering."
         },
         {
           "heading": "Holde det oppdatert",
-          "body": "Gi hvert krav en eier som følger med på endringer. Noter lovendringer og ny veiledning som **endringsnotater**, vurder dem, og oppdater pliktene når endringen trer i kraft. Sett krav som ikke lenger gjelder som utgått i stedet for å slette dem, slik at historikken beholdes."
+          "body": "Gi hver forpliktelse en eier som følger med på endringer. Noter lovendringer og ny veiledning som **endringsnotater**, vurder dem, og oppdater pliktene når endringen trer i kraft. Sett forpliktelser som ikke lenger gjelder, som utgått i stedet for å slette dem, slik at historikken beholdes."
         }
       ],
       "quiz": [
         {
-          "question": "Hvilken av disse hører hjemme i registeret over samsvarskrav?",
+          "question": "Hvilken av disse hører hjemme i registeret over lover og forskrifter?",
           "options": [
             "Et blogginnlegg med tips om energisparing",
             "Et punkt i en kundekontrakt som krever ISO 27001-sertifisering",
             "En intern idé til et nytt produkt"
           ],
           "answer": 1,
-          "explanation": "Et kontraktskrav binder dere, og er derfor et samsvarskrav. Tips og ideer binder dere ikke."
+          "explanation": "Et avtalekrav binder organisasjonen, og er derfor en forpliktelse. Tips og ideer binder ingen."
         },
         {
-          "question": "Hva bør du skrive som pliktene i et krav?",
+          "question": "Hva bør du skrive som pliktene i en forpliktelse?",
           "options": [
             "Hele lovteksten",
             "De konkrete pliktene som gjelder for dere, hver av dem kontrollerbar",
@@ -167,7 +185,7 @@
       "sections": [
         {
           "heading": "Hvorfor vurdere i det hele tatt",
-          "body": "Standardene ber dere ikke bare kjenne kravene, men også **vurdere** med jevne mellomrom om dere oppfyller dem. Vurderingen er deres egen kontroll, før en myndighet eller revisor gjør den for dere."
+          "body": "Standardene ber organisasjonen ikke bare kjenne forpliktelsene, men også **vurdere** med jevne mellomrom om dere oppfyller dem. Vurderingen er deres egen kontroll, før en myndighet eller revisor gjør den for dere."
         },
         {
           "heading": "Hvor ofte",
@@ -175,7 +193,7 @@
         },
         {
           "heading": "Registrere resultatet",
-          "body": "Registrer resultatet, hva du så på og **dokumentasjonen**. Hvis dere bare er delvis i samsvar eller ikke i samsvar, opprett et **oppfølgingstiltak** med eier og frist, og vurder på nytt når det er gjennomført."
+          "body": "Registrer resultatet, hva du så på og **dokumentasjonen**. Hvis dere bare er delvis i samsvar eller ikke i samsvar, registrer et **avvik** eller en **oppfølgingsoppgave** med eier og frist, og vurder på nytt når det er gjennomført."
         }
       ],
       "quiz": [
@@ -183,14 +201,14 @@
           "question": "En vurdering viser at ett av tre vilkår i en tillatelse ikke er oppfylt. Hva registrerer du?",
           "options": [
             "I samsvar, siden de fleste vilkårene er oppfylt",
-            "Delvis i samsvar, med et oppfølgingstiltak for vilkåret som ikke er oppfylt",
+            "Delvis i samsvar, med et avvik eller en oppfølgingsoppgave for vilkåret som ikke er oppfylt",
             "Ingenting før det er rettet"
           ],
           "answer": 1,
-          "explanation": "Registrer det faktiske resultatet og mangelen. Oppfølgingstiltaket sørger for at den lukkes, og gir neste vurdering noe å kontrollere."
+          "explanation": "Registrer det faktiske resultatet og mangelen. Oppfølgingen sørger for at den lukkes, og gir neste vurdering noe å kontrollere."
         },
         {
-          "question": "Hva avgjør hvor ofte et krav vurderes?",
+          "question": "Hva avgjør hvor ofte en forpliktelse vurderes?",
           "options": [
             "Alltid én gang i året",
             "Risikoen for brudd og hvor ofte ting endres",
@@ -203,7 +221,7 @@
       "pass_mark": 0.8
     },
     "monitoring-changes": {
-      "title": "Følge med på endringer i kravene",
+      "title": "Følge med på endringer i lover og krav",
       "minutes": 3,
       "sections": [
         {
@@ -212,7 +230,7 @@
         },
         {
           "heading": "Noter, vurder, handle",
-          "body": "Skriv et **endringsnotat** så snart du hører om en endring, med når den trer i kraft og sannsynlig påvirkning. Vurder den: hva må dere endre, og innen når? Oppdater deretter pliktene og legg til tiltak, slik at dere er klare den dagen den gjelder."
+          "body": "Skriv et **endringsnotat** så snart du hører om en endring, med når den trer i kraft og sannsynlig påvirkning. Vurder den: hva må dere endre, og innen når? Oppdater deretter pliktene og legg til oppgaver, slik at dere er klare den dagen den gjelder."
         }
       ],
       "quiz": [
@@ -230,18 +248,18 @@
     "list": [
       {
         "target": "obligations-summary",
-        "title": "Samsvarsstatus med ett blikk",
-        "body": "Hvor mange krav dere har, hvor mange vurderinger som er forfalt, hva som ikke er i samsvar og hva som snart utløper. Klikk på et tall for å filtrere listen."
+        "title": "Det som trenger oppfølging",
+        "body": "Forpliktelser som ikke er fullt i samsvar, ikke er vurdert, mangler vurderingsplan, er forfalt eller skal fornyes. Klikk på et tall for å vise bare dem, og klikk igjen for å vise alle."
       },
       {
         "target": "obligations-filters",
-        "title": "Finn kravene som betyr noe nå",
-        "body": "Filtrer på status, type, samsvar, rammeverk eller eier, og lagre kombinasjonen som en visning."
+        "title": "Finn forpliktelsene som betyr noe nå",
+        "body": "Filtrer på status og samsvar. Flere filtre (type, standard, eier, gyldighet) ligger under «Flere filtre». Lagre kombinasjonen som en visning."
       },
       {
         "target": "obligations-new",
-        "title": "Registrer et krav",
-        "body": "Legg til en lov, en tillatelse, et kontraktskrav eller en forpliktelse. Assistenten kan foreslå pliktene som gjelder."
+        "title": "Registrer en forpliktelse",
+        "body": "Legg til en lov, en tillatelse, et avtalekrav eller en forpliktelse, eller start fra biblioteket med vanlige lover."
       }
     ]
   }

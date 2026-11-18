@@ -561,7 +561,8 @@
         "matrices": "Risikomatriser",
         "settings": "Innstillinger",
         "retention": "Oppbevaringsregler",
-        "significanceMethod": "Vurderingsmetode for miljøaspekter"
+        "significanceMethod": "Vurderingsmetode for miljøaspekter",
+        "roleOverviews": "Rolleoversikter"
       },
       "membersSection": "Medlemmer, avdelinger og invitasjoner"
     },
@@ -2071,7 +2072,8 @@
       "env_aspect": "Miljøaspekt",
       "emergency_plan": "Beredskapsplan",
       "env_measurement": "Miljømåling",
-      "compliance_obligation": "Juridisk krav",
+      "compliance_obligation": "Forpliktelse",
+      "obligation_duty": "Plikt",
       "asset": "Eiendel",
       "access_review": "Tilgangsgjennomgang",
       "change_request": "Endringsønske",

@@ -1,25 +1,52 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { assigneeFields } from '../definitions/schedule-dialog';
 import { draftFromQuery } from '../definitions/definition-form';
-import { builtinLayout, moveItem, normaliseLayout } from '../dashboards/dashboard-designer';
-import { dateFilterValue, dateInputValue, supportedFilters } from '../components/register-filters';
-import { widgetSpan } from '../components/report-widgets';
 import {
+  builtinLayout,
+  moveItem,
+  normaliseLayout,
+  startingLayout,
+} from '../dashboards/dashboard-designer';
+import {
+  dateFilterKey,
+  dateFilterValue,
+  dateInputValue,
+  registerStatusLabel,
+  supportedFilters,
+} from '../components/register-filters';
+import { widgetSpan } from '../components/report-widgets';
+import { packCoverage } from '../audit-packs/audit-pack-detail';
+import { packStandardKeys } from '../audit-packs/audit-packs-list';
+import { prefillFromFlow, validPeriod } from '../audit-packs/generate-pack-dialog';
+import { shortHash } from '../definitions/definition-detail';
+import {
+  calendarState,
   calendarTone,
   cellText,
+  clauseText,
+  columnCell,
   formatBytes,
+  frameworkLabelKey,
   gridWindow,
+  groupAlike,
   groupByDay,
+  groupRegisters,
   localized,
+  metricFieldLabel,
   monthGrid,
+  packReadiness,
   parseMonth,
+  percentOf,
   readHeatMap,
   readPercent,
-  scoreTone,
+  sparklinePoints,
+  STATE_TONE,
+  scoreColor,
+  trendDirection,
   widgetLink,
 } from './report-display';
 import { blobErrorKey, fileStem, reportErrorKey } from './report-errors';
-import { CalendarItem, Register, WidgetCatalogItem } from './reports.models';
+import { AuditPack, CalendarItem, Register, WidgetCatalogItem } from './reports.models';
 
 function item(partial: Partial<CalendarItem>): CalendarItem {
   return {
@@ -89,11 +116,99 @@ describe('report display helpers', () => {
     expect(groups.get('2026-11-12')!.map((i) => i.title)).toEqual(['Z', 'A', 'B']);
   });
 
-  it('chooses a tone per calendar item', () => {
-    expect(calendarTone(item({ overdue: true, kind: 'review' }))).toBe('fail');
-    expect(calendarTone(item({ kind: 'review' }))).toBe('info');
-    expect(calendarTone(item({ kind: 'action' }))).toBe('accent');
-    expect(calendarTone(item({}))).toBe('neutral');
+  it('derives the state of a calendar item and its tone (overdue is warn, never red)', () => {
+    const now = new Date('2026-10-01T00:00:00Z');
+    expect(calendarState(item({ overdue: true, kind: 'review' }), now)).toBe('overdue');
+    expect(calendarTone(item({ overdue: true, kind: 'review' }), now)).toBe('warn');
+    expect(calendarState(item({ kind: 'review' }), now)).toBe('review');
+    expect(calendarTone(item({ kind: 'review' }), now)).toBe('info');
+    expect(calendarState(item({ kind: 'action' }), now)).toBe('action');
+    expect(calendarTone(item({}), now)).toBe('neutral');
+    // Within 14 days counts as "due soon".
+    expect(calendarState(item({ due_at: '2026-10-10T00:00:00' }), now)).toBe('due_soon');
+    // The backend's state wins.
+    expect(calendarState(item({ state: 'due_soon' }), now)).toBe('due_soon');
+    expect(STATE_TONE.due_soon).toBe('accent');
+  });
+
+  it('groups alike items of a day (seven assignments of one course)', () => {
+    const groups = groupAlike([
+      item({ entity_type: 'training_assignment', code: 'TRN-001', title: 'Awareness' }),
+      item({ entity_type: 'training_assignment', code: 'TRN-001', title: 'Awareness' }),
+      item({ entity_type: 'asset', code: 'AST-5', title: 'Laptop' }),
+    ]);
+    expect(groups.map((g) => g.items.length)).toEqual([2, 1]);
+    expect(groups[0].first.code).toBe('TRN-001');
+  });
+
+  it('shows register cells as the export does: display text, else value words', () => {
+    const column = {
+      key: 'status',
+      label: { en: 'Status' },
+      enum: true,
+      values: { in_progress: { en: 'In progress', nb: 'Pågår' } },
+    };
+    expect(columnCell(column, 'in_progress', 'Under arbeid', 'nb')).toBe('Under arbeid');
+    expect(columnCell(column, 'in_progress', undefined, 'nb')).toBe('Pågår');
+    expect(columnCell(column, ['in_progress'], undefined, 'en')).toBe('In progress');
+    expect(columnCell(column, null, undefined, 'en')).toBe('—');
+    expect(columnCell(column, 'x', '', 'en')).toBe('—');
+  });
+
+  it('reads pack coverage as a number, also from packs made before A25', () => {
+    expect(packReadiness(42)).toBe(42);
+    expect(packReadiness({ score: 7.4, applicable: 10 })).toBe(7);
+    expect(packReadiness(null)).toBeNull();
+    expect(percentOf(9, 364)).toBe(2);
+    expect(percentOf(0, 0)).toBe(0);
+  });
+
+  it('labels standards, clauses and metric fields without raw keys', () => {
+    expect(frameworkLabelKey('iso27001-2022')).toBe('reports.frameworks.iso27001');
+    expect(frameworkLabelKey('eu-ai-act-2024')).toBe('reports.frameworks.eu_ai_act');
+    expect(
+      clauseText(
+        { ref: 'hs:7.5', framework: 'hs', number: '7.5', label: { nb: 'Felles ISO-krav · 7.5' } },
+        'nb',
+      ),
+    ).toBe('Felles ISO-krav · 7.5');
+    const translate = (key: string) => (key === 'reports.fields.open' ? 'Åpne' : key);
+    expect(metricFieldLabel(translate, 'open', null, 'nb')).toBe('Åpne');
+    expect(
+      metricFieldLabel(translate, 'ict_gaps', { ict_gaps: { nb: 'IT med mangler' } }, 'nb'),
+    ).toBe('IT med mangler');
+    expect(metricFieldLabel(translate, 'odd_field', null, 'nb')).toBe('Odd field');
+  });
+
+  it('reads trends: good or bad news, and a sparkline inside its box', () => {
+    expect(trendDirection({ delta: -2, better: 'down' })).toBe('better');
+    expect(trendDirection({ delta: 3, better: 'down' })).toBe('worse');
+    expect(trendDirection({ delta: 5, better: 'up' })).toBe('better');
+    expect(trendDirection({ delta: 0, better: 'up' })).toBe('same');
+    expect(trendDirection({ delta: null, better: 'up' })).toBe('same');
+    const points = sparklinePoints(
+      [
+        { period: '2026-09-01', value: 1 },
+        { period: '2026-10-01', value: 3 },
+      ],
+      100,
+      20,
+    );
+    expect(points).toBe('2,18 98,2');
+    expect(sparklinePoints([], 100, 20)).toBe('');
+  });
+
+  it('groups registers by area', () => {
+    const groups = groupRegisters(
+      [
+        { ...REGISTER, key: 'risks', module: 'risk' },
+        { ...REGISTER, key: 'tasks', module: 'tasks' },
+        { ...REGISTER, key: 'treatments', module: 'risk' },
+      ],
+      (m) => (m === 'risk' ? 'Risiko' : 'Oppgaver'),
+    );
+    expect(groups.map((g) => g.name)).toEqual(['Oppgaver', 'Risiko']);
+    expect(groups[1].registers.map((r) => r.key)).toEqual(['risks', 'treatments']);
   });
 
   it('formats register cells', () => {
@@ -132,11 +247,17 @@ describe('report display helpers', () => {
     expect(readPercent({ total: 3 })).toBeNull();
   });
 
-  it('maps scores, sizes, links and bytes', () => {
-    expect(scoreTone(90)).toBe('pass');
-    expect(scoreTone(60)).toBe('warn');
-    expect(scoreTone(10)).toBe('fail');
-    expect(scoreTone(null)).toBe('neutral');
+  it('maps scores, sizes, links and bytes (coverage is never red)', () => {
+    expect(scoreColor(100)).toBe('var(--pass)');
+    expect(scoreColor(60)).toBe('var(--accent)');
+    expect(scoreColor(0)).toBe('var(--fg-subtle)');
+    expect(scoreColor(null)).toBe('var(--fg-subtle)');
+    expect(widgetLink('risk.heat_map', { url: '/risk/risks' })).toEqual({ path: '/risk/risks' });
+    expect(widgetLink('x.y', { url: '/reports/calendar?overdue=1' })).toEqual({
+      path: '/reports/calendar',
+      queryParams: { overdue: '1' },
+    });
+    expect(widgetLink('x.y', { url: 'https://evil.example' })).toBeNull();
     expect(widgetSpan('lg')).toContain('xl:col-span-4');
     expect(widgetSpan('weird')).toContain('xl:col-span-2');
     expect(widgetLink('reports.overdue_items')).toEqual({
@@ -218,6 +339,106 @@ describe('form and designer helpers', () => {
       { key: 'b', default: false },
     ] as unknown as WidgetCatalogItem[];
     expect(builtinLayout(catalog)).toEqual([{ key: 'a', framework: null, size: 'md' }]);
+  });
+
+  it('starts a scope from its role layout, else the built-in default, else the catalogue', () => {
+    const catalog = [{ key: 'a', default: true }] as unknown as WidgetCatalogItem[];
+    const builtin = {
+      default: [{ key: 'tasks.overdue', size: 'sm' as const }],
+      roles: {
+        dpo: [{ key: 'privacy.deadlines', size: 'lg' as const, framework: 'gdpr' as const }],
+      },
+    };
+    expect(startingLayout('dpo', builtin, catalog)).toEqual([
+      { key: 'privacy.deadlines', size: 'lg', framework: 'gdpr' },
+    ]);
+    expect(startingLayout('auditor', builtin, catalog)[0].key).toBe('tasks.overdue');
+    expect(startingLayout('default', null, catalog)[0].key).toBe('a');
+  });
+
+  it('labels date filters after the date they filter on', () => {
+    expect(dateFilterKey('due', 'from')).toBe('reports.filters.dates.due.from');
+    expect(dateFilterKey('aware', 'to')).toBe('reports.filters.dates.aware.to');
+    expect(dateFilterKey('mystery', 'to')).toBe('reports.filters.to');
+    expect(dateFilterKey(undefined, 'from')).toBe('reports.filters.from');
+  });
+
+  it('uses the register words for statuses, then the portal words', () => {
+    const reg = { ...REGISTER, status_labels: { open: { en: 'Open', nb: 'Åpen' } } };
+    const translate = (key: string) => (key === 'reports.statuses.done' ? 'Ferdig' : key);
+    expect(registerStatusLabel(reg, 'open', translate, 'nb')).toBe('Åpen');
+    expect(registerStatusLabel(reg, 'done', translate, 'nb')).toBe('Ferdig');
+    expect(registerStatusLabel(null, 'in_treatment', translate, 'nb')).toBe('In treatment');
+  });
+
+  it('prefills the audit pack drawer from an audit and checks the period', () => {
+    const prefill = prefillFromFlow({
+      key: 'audit_plan.to_audit_pack',
+      token: 't',
+      targetType: 'audit_pack',
+      targetRoute: '/reports/audit-packs?flow=t',
+      prefill: {
+        audit_plan_id: 'plan-1',
+        standard_keys: ['iso27001-2022', 7],
+        title: 'Internrevisjon 2026',
+        from: {
+          entity_type: 'audit_plan',
+          entity_id: 'plan-1',
+          code: 'AUD-2026-002',
+          title: 'Internrevisjon 2026',
+          url: '/audits/plans/plan-1',
+        },
+      },
+      source: null,
+      requirementRef: null,
+      startedAt: 0,
+    });
+    expect(prefill?.standardKeys).toEqual(['iso27001-2022']);
+    expect(prefill?.auditPlan?.code).toBe('AUD-2026-002');
+    expect(prefill?.title).toBe('Internrevisjon 2026');
+    expect(prefillFromFlow(null)).toBeNull();
+    expect(validPeriod('2026-01-01', '2026-12-31')).toBe(true);
+    expect(validPeriod('2026-12-31', '2026-01-01')).toBe(false);
+    expect(validPeriod('', '2026-01-01')).toBe(true);
+  });
+
+  it('reads the standards and coverage of a pack, old and new', () => {
+    const base = {
+      standard_key: 'iso27001-2022',
+      framework: 'iso27001',
+      summary: {
+        requirements: 364,
+        applicable: 300,
+        covered: 30,
+        evidence_links: 40,
+        readiness: 10,
+      },
+    } as unknown as AuditPack;
+    expect(packStandardKeys(base)).toEqual(['iso27001-2022']);
+    expect(packCoverage(base)).toEqual([
+      expect.objectContaining({ applicable: 300, covered: 30, score: 10 }),
+    ]);
+    const multi = {
+      ...base,
+      standard_keys: ['iso9001-2015', 'iso27001-2022'],
+      summary: {
+        standards: [
+          {
+            standard_key: 'iso9001-2015',
+            framework: 'iso9001',
+            requirements: 80,
+            applicable: 80,
+            covered: 8,
+            evidence_links: 9,
+            score: 10,
+          },
+        ],
+      },
+    } as unknown as AuditPack;
+    expect(packStandardKeys(multi)).toHaveLength(2);
+    expect(packCoverage(multi)[0].standard_key).toBe('iso9001-2015');
+    expect(shortHash('abcdef0123456789')).toBe('abcdef012345');
+    expect(shortHash(null)).toBe('—');
   });
 });
 

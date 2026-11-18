@@ -2,93 +2,88 @@
   "pages": {
     "overview": {
       "intro": {
-        "title": "Slik står det til med styringssystemet",
-        "body": "Samsvarsoversikten samler tallene toppledelsen og revisorer spør om først: **modenhet per standard**, hva som er **forfalt**, **åpne avvik** og – når de modulene er slått på – **risikokartet** og **opplæringsetterlevelsen**. Alt følger tilgangen din: du ser bare tall for poster du kan lese.",
+        "title": "Om Rapporter",
+        "body": "Her ser du tallene ledelsen og revisorene spør om først: **forfalte frister** i alle områder, **åpne avvik og funn**, og hvordan tallene har **utviklet seg** måned for måned. Kravdekningen per standard finner du under **Standarder og krav**. Alt følger tilgangen din: du ser bare tall for poster du kan lese.",
         "steps": [
-          "Velg et rammeverk for å se på én standard, eller behold «Alle rammeverk».",
-          "Begynn med de forfalte punktene: de er det tydeligste tegnet på at systemet ikke følges.",
-          "Bruk «Skriv rapporten» for å få en tekstlig oppsummering til ledelsens gjennomgang, og kontroller den før du deler den."
+          "Velg en standard øverst for å se bare tallene for den, eller behold «Alle standarder».",
+          "Begynn med de forfalte fristene. Velg «Lag oppgave» for å fordele oppfølgingen.",
+          "Bruk «Skriv teksten» for å få en kort status til ledelsens gjennomgang, og les den gjennom før du deler den."
         ]
       },
       "why": {
-        "body": "Alle ISO-standarder for styringssystemer krever at dere **overvåker, måler, analyserer og evaluerer** resultatene (punkt 9.1) og tar resultatene med til **ledelsens gjennomgang** (9.3). En felles og alltid oppdatert oversikt gjør at disse innspillene er klare når dere trenger dem, i stedet for å samles inn for hånd før hver gjennomgang.",
+        "body": "Alle ISO-standarder for styringssystemer krever at organisasjonen **overvåker, måler, analyserer og evaluerer** resultatene (punkt 9.1), og at resultatene og **trendene** tas med til **ledelsens gjennomgang** (9.3). En samlet oversikt som alltid er oppdatert, gjør at disse innspillene er klare når dere trenger dem.",
         "clauses": ["hs:9.1", "hs:9.3", "iso27001:9.1"]
-      },
-      "fields": {
-        "readiness": {
-          "help": "Modenheten kombinerer hvor mange gjeldende krav som er dekket av dokumentasjon, hvor mange som er delvis dekket, og om dokumentasjonen er fersk (under ett år gammel).",
-          "example": "80 % eller mer er vanligvis et tegn på at dere er klare for en sertifiseringsrevisjon."
-        }
       }
     },
     "calendar": {
       "intro": {
         "title": "Alle frister på ett sted",
-        "body": "Organisasjonskalenderen viser alle åpne frister du har tilgang til: oppgaver, dokumentgjennomganger, avvik og tiltak, og datoer fra andre moduler som revisjoner, kontraktsfornyelser og utløp av opplæring.",
+        "body": "Organisasjonskalenderen viser alle åpne frister du har tilgang til, fra alle områder: oppgaver, dokumentgjennomganger, avvik og tiltak, revisjoner, kontraktsfornyelser, leverandørvurderinger, utløp av opplæring og mer. Fargen viser hva fristen trenger.",
         "steps": [
-          "Bla mellom månedene med pilene, eller bytt til listevisning på en liten skjerm.",
-          "Filtrer på område eller rammeverk for å planlegge én del av systemet.",
-          "Eksporter til din egen kalender med .ics-knappen."
+          "Bla mellom månedene, eller bytt til listevisning.",
+          "Velg «Mine frister» for å se det du selv er ansvarlig for, eller et område for å planlegge én del av systemet.",
+          "Velg «Lag oppgave» på en frist for å fordele oppfølgingen, eller legg kalenderen til i din egen kalender med .ics-knappen."
         ]
       },
       "why": {
-        "body": "Planlagte aktiviteter fungerer bare hvis noen gjør dem i tide. Når alle frister vises samlet, kan dere fordele arbeidet, unngå kollisjoner med revisjoner og gjennomganger, og vise en revisor at planlagte tiltak følges opp.",
+        "body": "Planlagte aktiviteter fungerer bare hvis noen gjør dem i tide (punkt 8.1). Når alle frister vises samlet, kan dere fordele arbeidet, unngå kollisjoner med revisjoner og gjennomganger, og vise en revisor at planlagte tiltak følges opp.",
         "clauses": ["hs:6.2", "hs:8.1", "hs:9.1"]
       },
       "empty": {
         "title": "Ingenting forfaller i denne perioden",
-        "body": "Når oppgaver, gjennomganger eller tiltak får frister, vises de her. Prøv en annen måned, et annet område, eller kryss av for «Ta med tidligere forfalte punkter»."
+        "body": "Når oppgaver, gjennomganger eller tiltak får frister, vises de her. Prøv en annen måned eller et annet område, eller kryss av for «Ta med eldre forfalte frister»."
       }
     },
     "registers": {
       "intro": {
-        "title": "Eksporter registrene revisorene ber om",
-        "body": "Et register er en liste over poster av én type: oppgaver, avvik, korrigerende tiltak, dokumentoversikten, erklæringen om anvendelse, dokumentasjonsoversikten eller modenhet. Filtrer, velg kolonner, forhåndsvis og eksporter som CSV, Excel eller PDF.",
+        "title": "Last ned registrene revisoren ber om",
+        "body": "Et register er en liste over poster av én type: risikoer, lovkrav, avvik, korrigerende tiltak, dokumenter, opplæring, leverandører, eiendeler, revisjoner, behandlingsprotokollen, KI-systemer og mer. Hvert register viser hvilke krav det er dokumentasjon for.",
         "steps": [
-          "Velg et register til venstre.",
-          "Snevre inn med filtre og kolonner; forhåndsvisningen oppdateres underveis.",
-          "Eksporter, eller lagre valgene som en rapport du kan kjøre på nytt."
+          "Velg et register.",
+          "Snevre inn med filtre og kolonner. Forhåndsvisningen viser nøyaktig det filen vil inneholde.",
+          "Last ned, eller velg «Lagre som rapport» for å kjøre det samme igjen senere."
         ]
       },
       "why": {
-        "body": "Standardene krever at **dokumentert informasjon** er tilgjengelig og egnet for bruk (punkt 7.5). Registre du kan eksportere ved behov, gjør at du kan svare på en revisors forespørsel på minutter, med en fil som viser nøyaktig hva som er registrert.",
+        "body": "Standardene krever at **dokumentert informasjon** er tilgjengelig og egnet for bruk når den trengs (punkt 7.5). Registre du kan laste ned ved behov, gjør at du kan svare på en revisors forespørsel på minutter, med en fil som viser nøyaktig hva som er registrert.",
         "clauses": ["hs:7.5", "hs:9.2", "iso27001:6.1.3"]
       },
       "empty": {
-        "title": "Ingen registre tilgjengelig for deg",
-        "body": "Registrene kommer fra modulene du kan lese. Be en administrator om å aktivere modulene du trenger, eller gi deg tilgang til dem."
+        "title": "Ingen registre er tilgjengelige for deg",
+        "body": "Registrene kommer fra modulene du kan lese. Be en administrator om å slå på modulene du trenger, eller gi deg tilgang til dem."
       },
       "fields": {
         "standard": {
-          "help": "Registre om krav, som erklæringen om anvendelse eller dokumentasjonsoversikten, lages per standard.",
-          "example": "ISO/IEC 27001 for erklæringen om anvendelse etter vedlegg A."
+          "help": "Registre om krav, som anvendelseserklæringen (SoA) og dokumentasjonsoversikten, lages for én standard om gangen.",
+          "example": "ISO 27001 gir anvendelseserklæringen med kontrollene i vedlegg A.",
+          "requirements": ["iso27001:6.1.3", "hs:7.5"]
         }
       }
     },
     "definitions": {
       "intro": {
-        "title": "Rapporter du kan kjøre på nytt med ett klikk",
-        "body": "En lagret rapport husker et register med filtre, kolonner, format og språk. Kjør den når du trenger en fersk kopi, eller planlegg den slik at en gjentakende oppgave minner noen på å kjøre den.",
+        "title": "Rapporter du kjører på nytt med ett klikk",
+        "body": "En lagret rapport husker et register med filtre, kolonner, format og språk. Kjør den når du trenger en fersk kopi, eller planlegg den, slik at noen får en påminnelse. Hver kjøring lagres, og blir dokumentasjon på at dere følger med.",
         "steps": [
-          "Opprett en rapport her, eller bruk «Lagre som rapport» fra registersiden.",
-          "Åpne en rapport for å kjøre den i et hvilket som helst format eller planlegge den.",
-          "Endringer lagres i rapportens revisjonshistorikk."
+          "Lag en rapport her, eller bruk «Lagre som rapport» fra registersiden.",
+          "Åpne en rapport for å kjøre den eller planlegge den.",
+          "Under «Kjøringer» ser du hvem som har kjørt rapporten, og når."
         ]
       },
       "why": {
-        "body": "Det er når dere måler det samme på samme måte over tid at resultatene blir sammenlignbare. Lagrede rapporter holder metoden fast, slik at tallene til ledelsens gjennomgang betyr det samme hver gang.",
+        "body": "Det er når dere måler det samme på samme måte over tid, at resultatene blir sammenlignbare (punkt 9.1). Lagrede rapporter holder metoden fast, slik at tallene til ledelsens gjennomgang betyr det samme hver gang.",
         "clauses": ["hs:9.1", "hs:9.3"]
       },
       "empty": {
         "title": "Ingen lagrede rapporter ennå",
-        "body": "Lagre registrene du eksporterer jevnlig – for eksempel åpne avvik til det månedlige kvalitetsmøtet, eller forfalte oppgaver til ledelsens gjennomgang.",
-        "cta": "Opprett din første rapport"
+        "body": "Lagre registrene du laster ned jevnlig, for eksempel åpne avvik til det månedlige kvalitetsmøtet, eller forfalte oppgaver til ledelsens gjennomgang.",
+        "cta": "Ny rapport"
       }
     },
     "definitionForm": {
       "intro": {
-        "title": "Beskriv hva rapporten skal inneholde",
-        "body": "Velg registeret, deretter filtre og kolonner. Bare filtrene registeret støtter, vises. La kolonnene være som de er for å eksportere alle."
+        "title": "Hva skal rapporten inneholde?",
+        "body": "Velg registeret, og deretter filtre og kolonner. Du ser bare filtrene registeret støtter. La kolonnene stå som de er for å ta med alle."
       },
       "why": {
         "body": "En rapport med tydelig navn og beskrivelse forteller kollegene hva den måler og hvorfor, slik at den fortsatt er nyttig når folk bytter roller.",
@@ -96,85 +91,101 @@
       },
       "fields": {
         "register": {
-          "help": "Listen over poster rapporten eksporterer. Den kan ikke endres senere; opprett en ny rapport for et annet register."
+          "help": "Listen over poster rapporten henter. Registeret kan ikke endres senere. Lag en ny rapport for et annet register.",
+          "example": "Korrigerende tiltak til kvalitetsmøtet, eller risikoregisteret til ledelsens gjennomgang.",
+          "requirements": ["hs:9.1", "hs:9.3"]
         },
         "format": {
-          "help": "Formatet som brukes når du trykker «Kjør». Du kan fortsatt kjøre den i alle andre formater.",
-          "example": "PDF for å dele med ledelsen, Excel for videre analyse."
+          "help": "Formatet som brukes når du velger «Kjør rapporten». Du kan alltid kjøre den i de andre formatene også.",
+          "example": "PDF for å dele med ledelsen, Excel for videre analyse.",
+          "requirements": ["hs:7.5"]
         },
         "changeReason": {
-          "help": "En kort merknad om hvorfor du endret rapporten. Den vises i revisjonshistorikken."
+          "help": "En kort merknad om hvorfor du endret rapporten. Den vises i endringshistorikken.",
+          "requirements": ["hs:7.5"]
         }
       }
     },
     "definitionDetail": {
       "intro": {
-        "title": "Kjør, planlegg og følg opp en lagret rapport",
-        "body": "Kjør rapporten i et hvilket som helst format; hver kjøring registreres i aktivitetsloggen. Planlegg den for å lage en gjentakende oppgave, koble den til relaterte poster, og se alle endringer under Revisjoner."
+        "title": "Kjør, planlegg og følg opp rapporten",
+        "body": "Kjør rapporten i formatet du vil. Hver kjøring lagres med hvem, når, antall rader og en sjekksum. Planlegg den for å få en gjentakende oppgave, som lukkes når rapporten kjøres."
       },
       "why": {
-        "body": "At det registreres når en rapport ble kjørt og av hvem, er en del av dokumentasjonen på at overvåkingen faktisk skjer som planlagt.",
+        "body": "At det registreres når en rapport ble kjørt, og av hvem, er dokumentasjon på at overvåkingen faktisk skjer som planlagt (punkt 9.1), og gir innspill til ledelsens gjennomgang (9.3).",
         "clauses": ["hs:9.1", "hs:9.3"]
       },
       "fields": {
         "leadDays": {
-          "help": "Hvor mange dager før hver kjøredato oppgaven dukker opp i arbeidskøen til den ansvarlige.",
-          "example": "3 dager gir tid til forberedelse før det månedlige møtet."
+          "help": "Hvor mange dager før hver kjøring oppgaven dukker opp hos den ansvarlige.",
+          "example": "3 dager gir tid til å forberede det månedlige møtet.",
+          "requirements": ["hs:9.1"]
         }
       }
     },
     "auditPacks": {
       "intro": {
-        "title": "Alt en revisor ber om, i én fil",
-        "body": "En revisjonspakke er en zip-fil for én standard: en innholdsfortegnelse, erklæringen om anvendelse, dokumentasjonsoversikten, modenhet, godkjente policyer og relevante registre. Et manifest med en SHA-256-sjekksum per fil viser senere at pakken er uendret.",
+        "title": "Alt revisoren ber om, i én fil",
+        "body": "En revisjonspakke er en zip-fil for én eller flere standarder: en innholdsfortegnelse, anvendelseserklæringen (SoA), dokumentasjonsoversikten, kravdekningen, godkjente policyer og registrene en revisor forventer, som risikovurderingen, internrevisjoner, ledelsens gjennomgang, kompetanse og leverandører. En sjekksum per fil viser senere at pakken er uendret.",
         "steps": [
-          "Velg «Lag revisjonspakke» og standarden.",
-          "Bestem om policyer skal være med, og hvilke registre.",
+          "Velg «Lag revisjonspakke», og velg standardene. Koble gjerne pakken til revisjonen den er for.",
+          "Sjekk registrene som er krysset av, og om policyer skal være med.",
           "Last ned zip-filen og send den til revisoren, eller behold den som et øyeblikksbilde."
         ]
       },
       "why": {
-        "body": "Interne og eksterne revisjoner (punkt 9.2) går raskere når dokumentasjonen er fullstendig og ordnet. En datert pakke med sjekksum er også en registrering av hvordan styringssystemet så ut på et gitt tidspunkt.",
+        "body": "Interne og eksterne revisjoner (punkt 9.2) går raskere når dokumentasjonen er fullstendig og ordnet. En datert pakke med sjekksum viser også hvordan styringssystemet så ut på et gitt tidspunkt (punkt 7.5).",
         "clauses": ["hs:9.2", "hs:7.5", "iso27001:6.1.3"]
       },
       "empty": {
         "title": "Ingen revisjonspakker ennå",
-        "body": "Lag en pakke før en internrevisjon, en sertifiseringsrevisjon eller en kundevurdering. Det tar bare et øyeblikk.",
-        "cta": "Lag den første pakken"
+        "body": "Lag en pakke før en internrevisjon, en sertifiseringsrevisjon eller en kundevurdering. Det tar et øyeblikk.",
+        "cta": "Lag revisjonspakke"
       },
       "fields": {
         "standard": {
-          "help": "Bare standarder som er aktivert for organisasjonen, kan pakkes. Pakken inneholder det du har tilgang til akkurat nå."
+          "help": "Bare standarder som er slått på for organisasjonen, kan tas med. Pakken inneholder det du har tilgang til akkurat nå.",
+          "example": "ISO 27001 og GDPR i samme pakke før en kunderevisjon.",
+          "requirements": ["hs:9.2", "iso27001:6.1.3"]
+        },
+        "audit": {
+          "help": "Revisjonen pakken er laget for. Pakken vises da på revisjonen, og revisjonens standarder velges.",
+          "requirements": ["hs:9.2"]
+        },
+        "period": {
+          "help": "Perioden pakken gjelder, for eksempel revisjonsåret. Den skrives i innholdsfortegnelsen.",
+          "requirements": ["hs:9.2", "hs:7.5"]
         }
       }
     },
     "auditPackDetail": {
       "intro": {
-        "title": "Hva denne pakken inneholder",
-        "body": "Tabellen viser hver fil i zip-filen med antall rader og størrelse. Sjekksummen identifiserer akkurat denne pakken; beregn den på nytt for den nedlastede filen for å vise at ingenting er endret."
+        "title": "Hva pakken inneholder",
+        "body": "Her ser du kravdekningen per standard da pakken ble laget, hvilken revisjon den er for, og hver fil i zip-filen. Sjekksummen identifiserer akkurat denne pakken. Beregn den på nytt for den nedlastede filen for å vise at ingenting er endret."
       },
       "why": {
-        "body": "Styrt dokumentert informasjon skal beskyttes mot utilsiktede endringer (punkt 7.5.3). Sjekksummen og den lagrede kopien lar deg vise hva som ble gitt til revisoren.",
+        "body": "Dokumentert informasjon skal beskyttes mot utilsiktede endringer (punkt 7.5.3). Sjekksummen og den lagrede kopien lar deg vise nøyaktig hva revisoren fikk.",
         "clauses": ["hs:7.5", "hs:9.2"]
       }
     },
     "dashboards": {
       "intro": {
-        "title": "Gi hver rolle dashbordet den trenger",
-        "body": "Velg widgetene som vises på startsiden. En rolles oppsett går foran; de som ikke har et, ser organisasjonens standard, og uten den det innebygde oppsettet.",
+        "title": "Gi hver rolle de nøkkeltallene den trenger",
+        "body": "Velg kortene som vises under «Nøkkeltall for rollen din» på Rapporter-siden. Det finnes ferdige oppsett for blant annet kvalitetsleder, informasjonssikkerhetsleder, personvernombud, HMS-leder og revisor. Et oppsett du lagrer for en rolle, går foran.",
         "steps": [
-          "Velg «Organisasjonens standard» eller en rolle.",
-          "Legg til, sorter og endre størrelse på widgetene. Et rammeverk på en widget avgrenser den til én standard.",
-          "Lagre. Tilbakestill fjerner oppsettet, slik at det neste gjelder igjen."
+          "Velg «Hele organisasjonen» eller en rolle.",
+          "Legg til, sorter og endre størrelse på kortene. Velger du en standard på et kort, viser det bare tall for den.",
+          "Lagre. «Tilbakestill» fjerner oppsettet, slik at det neste i rekken gjelder igjen."
         ]
       },
       "why": {
-        "body": "Toppledelsen skal sørge for at styringssystemet oppnår de tilsiktede resultatene (punkt 5.1). Når hver rolle ser målene den har ansvar for, holdes oppmerksomheten på det som betyr noe.",
+        "body": "Toppledelsen skal sørge for at styringssystemet oppnår de tilsiktede resultatene (punkt 5.1). Når hver rolle ser tallene den har ansvar for, holdes oppmerksomheten på det som betyr noe.",
         "clauses": ["hs:5.1", "hs:9.1"]
       },
       "fields": {
         "scope": {
-          "help": "Oppsett merket med en prikk er tilpasset. Widgeter noen ikke har tilgang til, vises som utilgjengelige for dem."
+          "help": "Oppsett merket «(tilpasset)» er lagret for den rollen. Kort noen ikke har tilgang til dataene for, vises som utilgjengelige for dem.",
+          "requirements": ["hs:9.1"]
         }
       }
     }
@@ -186,15 +197,15 @@
       "sections": [
         {
           "heading": "Hva punkt 9.1 krever",
-          "body": "Dere bestemmer **hva** som skal overvåkes og måles, **hvordan** og **når**, og **når resultatene skal analyseres**. Poenget er ikke å samle tall, men å vite om prosessene virker og målene nås."
+          "body": "Organisasjonen bestemmer **hva** som skal overvåkes og måles, **hvordan** og **når**, og **når resultatene skal analyseres**. Poenget er ikke å samle tall, men å vite om prosessene virker og målene nås."
         },
         {
           "heading": "Ledende og etterslepende indikatorer",
-          "body": "Åpne avvik og hendelser forteller hva som allerede har gått galt (etterslepende). Forfalte tiltak, gjennomganger som ikke er gjort og opplæring som ikke er fullført, varsler før det går galt (ledende). Et godt dashbord har begge."
+          "body": "Åpne avvik og hendelser forteller hva som allerede har gått galt (etterslepende). Forfalte tiltak, gjennomganger som ikke er gjort og opplæring som ikke er fullført, varsler før det går galt (ledende). En god oversikt har begge."
         },
         {
           "heading": "Fra tall til beslutninger",
-          "body": "Ta resultatene med til ledelsens gjennomgang (9.3) med en kort forklaring: hva som er endret, hvorfor, og hva dere foreslår. Den tekstlige rapporten er et utgangspunkt – kontroller den alltid mot tallene."
+          "body": "Ta resultatene med til ledelsens gjennomgang (9.3) med en kort forklaring: hva som er endret, hvorfor, og hva dere foreslår. Den skriftlige statusen er et utgangspunkt. Kontroller den alltid mot tallene."
         }
       ],
       "quiz": [
@@ -239,7 +250,7 @@
           "question": "Hva er en registrering?",
           "options": [
             "En plan for fremtidig arbeid",
-            "Bevis på en aktivitet som er utført",
+            "Dokumentasjon på en aktivitet som er utført",
             "En policyerklæring"
           ],
           "answer": 1,
@@ -254,11 +265,11 @@
       "sections": [
         {
           "heading": "Hva revisorer ser på først",
-          "body": "**Omfanget**, **erklæringen om anvendelse** (for ISO/IEC 27001), **policyene** og dokumentasjon på at kravene er oppfylt. En revisjonspakke samler dette, slik at revisoren kan planlegge stikkprøvene."
+          "body": "**Omfanget**, **anvendelseserklæringen (SoA)** (for ISO 27001), **policyene** og dokumentasjon på at kravene er oppfylt. En revisjonspakke samler dette, slik at revisoren kan planlegge stikkprøvene."
         },
         {
-          "heading": "Sjekk modenheten før du sender",
-          "body": "Se på modenheten og antallet krav uten dokumentasjon. Mangler dere kjenner til og jobber med, er greit – si det. Mangler dere ikke visste om, er det revisorene finner."
+          "heading": "Sjekk kravdekningen før du sender",
+          "body": "Se på kravdekningen og antallet krav uten dokumentasjon. Mangler dere kjenner til og jobber med, er greit – si det. Mangler dere ikke visste om, er det revisorene finner."
         },
         {
           "heading": "Behold pakken som et øyeblikksbilde",
@@ -284,18 +295,18 @@
     "overview": [
       {
         "target": "reports-framework",
-        "title": "Se på ett rammeverk",
-        "body": "Velg en standard eller forordning for å se bare dens modenhet, forfalte punkter og avvik."
+        "title": "Se på én standard",
+        "body": "Velg en standard for å se bare dens frister, avvik og utvikling."
       },
       {
         "target": "reports-kpis",
         "title": "Nøkkeltallene",
-        "body": "Gjennomsnittlig modenhet, forfalte punkter, åpne avvik og forfalte oppgaver. Velg forfalte punkter for å åpne dem i kalenderen."
+        "body": "Forfalte frister, åpne avvik og funn, og forfalte oppgaver. Hvert tall viser utviklingen siden forrige måned og åpner listen bak tallet."
       },
       {
         "target": "reports-narrative",
-        "title": "En skriftlig oppsummering",
-        "body": "Assistenten kan gjøre tallene om til en kort rapport for ledelsen, en revisor eller de ansatte. Kontroller den før du deler den."
+        "title": "En kort, skriftlig status",
+        "body": "Få tallene skrevet om til en kort tekst for ledelsen, en revisor eller de ansatte. Les den gjennom før du deler den."
       }
     ],
     "definitions": [
@@ -309,24 +320,24 @@
       {
         "target": "reports-generate-pack",
         "title": "Revisjonspakke med ett klikk",
-        "body": "Velg en standard og last ned en zip-fil med erklæringen om anvendelse, policyer, registre og dokumentasjonsoversikt."
+        "body": "Velg standardene, og eventuelt revisjonen, og last ned en zip-fil med anvendelseserklæringen, dokumentasjonsoversikten, registre og policyer."
       }
     ]
   },
   "glossary": {
     "audit-pack": {
       "term": "Revisjonspakke",
-      "definition": "En datert samling med sjekksum av den dokumenterte informasjonen en revisor trenger for én standard.",
+      "definition": "En datert samling med sjekksum av den dokumenterte informasjonen en revisor trenger for én eller flere standarder.",
       "clauses": ["hs:9.2", "hs:7.5"]
     },
     "readiness-score": {
-      "term": "Modenhet",
-      "definition": "Et mål fra 0 til 100 på hvor mange gjeldende krav i en standard som er dekket av fersk dokumentasjon.",
+      "term": "Kravdekning",
+      "definition": "Andelen gjeldende krav i en standard som har bekreftet dokumentasjon, fra 0 til 100 %.",
       "clauses": ["hs:9.1"]
     },
     "register": {
       "term": "Register",
-      "definition": "En liste over registreringer av én type, for eksempel avvik eller dokumenter, som kan filtreres og eksporteres.",
+      "definition": "En liste over poster av én type, for eksempel avvik eller dokumenter, som kan filtreres og lastes ned.",
       "clauses": ["hs:7.5"]
     }
   }

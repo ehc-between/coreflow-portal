@@ -168,7 +168,8 @@ const MONTHS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const;
       </div>
 
       <p class="text-[12.5px] text-fg-muted" aria-live="polite">
-        <span class="font-semibold">{{ 'tasks.rrule.preview' | transloco }}</span>
+        <span class="font-semibold">{{ 'tasks.rrule.preview' | transloco }}</span
+        >&ngsp;
         <app-rule-summary [rrule]="rrule()" />
       </p>
     </fieldset>

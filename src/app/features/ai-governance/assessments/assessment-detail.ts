@@ -18,19 +18,25 @@ import { NotificationService } from '../../../core/notifications/notification.se
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { AskPanelService } from '../../ask/ask-panel.service';
 import { WatchButton } from '../../../shared/activity/watch-button';
-import { GuideIntro } from '../../../shared/guidance/guide-intro';
-import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { RecordDetailLayout, RecordTab } from '../../../shared/kit/record-detail-layout';
-import { LocalDatePipe, LocalDayPipe } from '../../../shared/locale/locale-pipes';
+import { LocalDayPipe } from '../../../shared/locale/locale-pipes';
 import { MarkdownPipe } from '../../../shared/markdown/markdown.pipe';
 import { SupportsRequirements } from '../../../shared/requirement-links/supports-requirements';
+import { dayOf, dueAtFromDay } from '../../../shared/tasks/task-display';
 import { EntityTasks } from '../../../shared/tasks/entity-tasks';
 import { Alert } from '../../../shared/ui/alert/alert';
-import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
+import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { FieldItem, FieldList } from '../../../shared/ui/field-list/field-list';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { MenuItem } from '../../../shared/ui/overflow-menu/overflow-menu';
+import { ProgressBar } from '../../../shared/ui/progress-bar/progress-bar';
+import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
+import { Badge } from '../../../shared/ui/badge/badge';
 import { AiGovernanceApi } from '../data/ai-governance-api';
 import { aiGovernanceErrorKey, missingSections } from '../data/ai-governance-errors';
 import { AiGovernanceStore } from '../data/ai-governance-store';
@@ -40,17 +46,17 @@ import {
   AI_GOVERNANCE_MODULE,
   AI_GOVERNANCE_SCOPE,
   annexIiiKey,
+  assessmentSectionHintKey,
   assessmentSectionKey,
   assessmentStatusKey,
-  assessmentStatusTone,
-  kindKey,
+  assessmentStatusValue,
   normalizeAnswers,
   prohibitedKey,
   roleKey,
   sectionAnswers,
   transparencyKey,
 } from '../data/ai-governance-display';
-import { AiLessonCard } from '../ui/ai-lesson-card';
+import { AI_GOV_ROOT } from '../ui/ai-gov-page';
 import { AiClassificationResult } from '../ui/classification-result';
 
 type Pending = 'complete' | 'approve' | 'reopen' | 'delete' | null;
@@ -70,6 +76,7 @@ const FIELD_LABELS: Readonly<Record<string, string>> = {
   status: 'aiGovernance.fields.status',
   owner_user_id: 'aiGovernance.fields.owner',
   due_at: 'aiGovernance.fields.dueAt',
+  next_review_at: 'aiGovernance.fields.nextReview',
   answers: 'aiGovernance.fields.answers',
   result: 'aiGovernance.fields.result',
 };
@@ -83,6 +90,8 @@ export function asClassificationResult(result: unknown): ClassificationResult | 
   if (typeof r.risk_class !== 'string' || !Array.isArray(r.obligations)) {
     return null;
   }
+  const isObligation = (o: unknown): o is ClassificationResult['obligations'][number] =>
+    !!o && typeof o === 'object' && typeof (o as { key?: unknown }).key === 'string';
   return {
     risk_class: r.risk_class,
     role: typeof r.role === 'string' ? r.role : 'not_applicable',
@@ -92,19 +101,22 @@ export function asClassificationResult(result: unknown): ClassificationResult | 
     fria_required: !!r.fria_required,
     art6_3_exception_applied: !!r.art6_3_exception_applied,
     reasons: Array.isArray(r.reasons) ? r.reasons : [],
-    obligations: r.obligations.filter(
-      (o): o is ClassificationResult['obligations'][number] =>
-        !!o && typeof o === 'object' && typeof (o as { key?: unknown }).key === 'string',
-    ),
+    obligations: r.obligations.filter(isObligation),
+    provider_obligations: Array.isArray(r.provider_obligations)
+      ? r.provider_obligations.filter(isObligation)
+      : [],
   };
 }
 
 /**
  * `/ai-governance/assessments/:id`: a classification, impact assessment or
  * FRIA. Draft -> completed -> approved; the person who completed it cannot
- * approve it; completed/approved assessments can be reopened. Shows the
- * answers (or the classification outcome and its obligations) and the shared
- * record tabs.
+ * approve it; completed / approved assessments can be reopened. A draft shows
+ * how far it is ("1 av 4 påkrevde deler skrevet") and which parts are missing
+ * before it can be completed; every part shows what to write. An assessment is
+ * flagged when its system was reclassified or changed, and has a next review
+ * date that can be moved in any status. Classifications are edited in the
+ * wizard. "Lag ny fra denne" creates a risk from an impact assessment.
  */
 @Component({
   selector: 'app-ai-assessment-detail',
@@ -112,10 +124,7 @@ export function asClassificationResult(result: unknown): ClassificationResult | 
     RouterLink,
     TranslocoPipe,
     WatchButton,
-    GuideIntro,
-    WhyItMatters,
     RecordDetailLayout,
-    LocalDatePipe,
     LocalDayPipe,
     MarkdownPipe,
     SupportsRequirements,
@@ -125,18 +134,25 @@ export function asClassificationResult(result: unknown): ClassificationResult | 
     Button,
     Card,
     ConfirmDialog,
+    ErrorState,
+    FieldItem,
+    FieldList,
+    HelpStrip,
     Icon,
-    AiLessonCard,
+    LoadingState,
+    MenuItem,
+    ProgressBar,
+    StatusBadge,
     AiClassificationResult,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (loadError()) {
       <div class="mx-auto max-w-[1180px] px-4 pt-7 sm:px-8">
-        <app-alert tone="error">{{ loadError()! | transloco }}</app-alert>
+        <app-error-state (retry)="reload.update((n) => n + 1)" />
         <a
           routerLink="/ai-governance/assessments"
-          class="mt-3 inline-block text-[13px] font-semibold text-accent hover:underline"
+          class="mt-3 inline-block text-ui font-semibold text-accent hover:underline"
         >
           {{ 'aiGovernance.assessments.backToList' | transloco }}
         </a>
@@ -145,6 +161,13 @@ export function asClassificationResult(result: unknown): ClassificationResult | 
       <app-record-detail-layout
         entityType="ai_assessment"
         [entityId]="a.id"
+        [title]="a.title"
+        [breadcrumbs]="[
+          root,
+          { labelKey: 'aiGovernance.assessments.title', link: '/ai-governance/assessments' },
+          { label: a.code },
+        ]"
+        settingsLink="/ai-governance/settings"
         [tabs]="tabs"
         [canEdit]="store.canWrite()"
         [includeAudit]="store.canReadAudit()"
@@ -152,185 +175,248 @@ export function asClassificationResult(result: unknown): ClassificationResult | 
         backLink="/ai-governance/assessments"
         backLabelKey="aiGovernance.assessments.backToList"
       >
-        <div header>
-          <div class="mb-1.5 flex flex-wrap items-center gap-2">
-            <span class="font-mono text-[12.5px] text-fg-subtle">{{ a.code }}</span>
-            <app-badge tone="neutral">{{ kindKey(a.kind) | transloco }}</app-badge>
-            <app-badge [tone]="statusTone(a.status)" data-testid="assessment-status">{{
-              statusKey(a.status) | transloco
-            }}</app-badge>
-          </div>
-          <h1
-            class="font-display text-[24px] font-bold tracking-[-0.03em] break-words text-fg sm:text-[26px]"
-          >
-            {{ a.title }}
-          </h1>
+        <ng-container ngProjectAs="[meta]">
+          <span class="font-mono" data-testid="assessment-code">{{ a.code }}</span>
+          <span aria-hidden="true">·</span>
+          <span>{{ 'aiGovernance.kindShort.' + a.kind | transloco }}</span>
+          <span aria-hidden="true">·</span>
           <a
             [routerLink]="['/ai-governance/systems', a.ai_system.id]"
-            class="mt-1 inline-block text-[13px] font-semibold text-accent hover:underline"
+            class="font-semibold hover:text-fg hover:underline"
+            >{{ a.ai_system.code }} {{ a.ai_system.name }}</a
           >
-            {{ a.ai_system.code }} {{ a.ai_system.name }}
-          </a>
-        </div>
-        <div actions class="flex flex-wrap items-center gap-2">
+          <app-status-badge
+            meaning="lifecycle"
+            [value]="statusValue(a.status)"
+            [labelKey]="statusKey(a.status)"
+            data-testid="assessment-status"
+          />
+          @if (a.review_flag) {
+            <app-badge tone="warn">{{
+              'aiGovernance.assessments.needsReview' | transloco
+            }}</app-badge>
+          }
           <app-watch-button entityType="ai_assessment" [entityId]="a.id" />
-          @if (store.canWrite() && a.status === 'draft') {
-            <a
-              [routerLink]="editLink(a)"
-              [queryParams]="a.kind === 'classification' ? { assessment: a.id } : null"
-              class="inline-flex h-8 items-center rounded-tile border border-border px-3 text-[13px] font-semibold text-fg hover:bg-surface-2"
-              data-testid="assessment-edit"
-            >
-              {{ 'aiGovernance.common.edit' | transloco }}
-            </a>
-            <app-button
-              size="sm"
-              [disabled]="busy()"
-              (click)="pending.set('complete')"
-              data-testid="assessment-complete"
-            >
-              <app-icon name="check" [size]="14" />
-              {{ 'aiGovernance.assessmentDetail.complete' | transloco }}
-            </app-button>
-          }
-          @if (store.canApprove() && a.status === 'completed') {
-            <app-button
-              size="sm"
-              [disabled]="busy() || selfCompleted()"
-              (click)="pending.set('approve')"
-              data-testid="assessment-approve"
-            >
-              <app-icon name="checkcircle" [size]="14" />
-              {{ 'aiGovernance.assessmentDetail.approve' | transloco }}
-            </app-button>
-          }
-          @if (store.canWrite() && a.status !== 'draft') {
-            <app-button
-              size="sm"
-              variant="secondary"
-              [disabled]="busy()"
-              (click)="pending.set('reopen')"
-            >
-              {{ 'aiGovernance.assessmentDetail.reopen' | transloco }}
-            </app-button>
-          }
-          @if (store.canWrite() && a.status !== 'approved') {
-            <app-button
-              size="sm"
-              variant="ghost"
-              [disabled]="busy()"
-              (click)="pending.set('delete')"
-            >
-              <app-icon name="trash" [size]="14" />
-              {{ 'aiGovernance.common.delete' | transloco }}
-            </app-button>
-          }
-        </div>
+        </ng-container>
+
+        @if (draftMode() === 'wizard') {
+          <a
+            primary
+            [routerLink]="['/ai-governance/systems', a.ai_system.id, 'classify']"
+            [queryParams]="{ assessment: a.id }"
+            class="inline-flex h-8 items-center rounded-tile bg-accent px-3 text-ui font-semibold text-white hover:opacity-90"
+            data-testid="assessment-edit"
+          >
+            {{ 'aiGovernance.assessmentDetail.openWizard' | transloco }}
+          </a>
+        }
+        @if (draftMode() === 'missing') {
+          <a
+            primary
+            [routerLink]="['/ai-governance/assessments', a.id, 'edit']"
+            class="inline-flex h-8 items-center rounded-tile bg-accent px-3 text-ui font-semibold text-white hover:opacity-90"
+            data-testid="assessment-edit"
+          >
+            {{ 'aiGovernance.assessmentDetail.continue' | transloco }}
+          </a>
+        }
+        @if (draftMode() === 'missing') {
+          <app-button
+            secondary
+            size="sm"
+            variant="secondary"
+            [disabled]="true"
+            [attr.title]="'aiGovernance.assessmentDetail.completeBlocked' | transloco"
+            data-testid="assessment-complete"
+          >
+            {{ 'aiGovernance.assessmentDetail.complete' | transloco }}
+          </app-button>
+        }
+        @if (draftMode() === 'ready') {
+          <app-button
+            primary
+            size="sm"
+            [disabled]="busy()"
+            (click)="pending.set('complete')"
+            data-testid="assessment-complete"
+          >
+            <app-icon name="check" [size]="14" />
+            {{ 'aiGovernance.assessmentDetail.complete' | transloco }}
+          </app-button>
+        }
+        @if (draftMode() === 'ready') {
+          <a
+            secondary
+            [routerLink]="['/ai-governance/assessments', a.id, 'edit']"
+            class="inline-flex h-8 items-center rounded-tile border border-border bg-surface px-3 text-ui font-semibold text-fg hover:bg-surface-2"
+            data-testid="assessment-edit"
+          >
+            {{ 'aiGovernance.common.edit' | transloco }}
+          </a>
+        }
+        @if (store.canApprove() && a.status === 'completed') {
+          <app-button
+            primary
+            size="sm"
+            [disabled]="busy() || selfCompleted()"
+            (click)="pending.set('approve')"
+            data-testid="assessment-approve"
+          >
+            <app-icon name="checkcircle" [size]="14" />
+            {{ 'aiGovernance.assessmentDetail.approve' | transloco }}
+          </app-button>
+        }
+        <button appMenuItem overflow (click)="askAi('summarise', a)">
+          {{ 'aiGovernance.ai.summariseAssessment' | transloco }}
+        </button>
+        <button appMenuItem overflow (click)="askAi('review', a)">
+          {{ 'aiGovernance.ai.reviewAssessment' | transloco }}
+        </button>
+        @if (store.canWrite() && a.status !== 'draft') {
+          <button
+            appMenuItem
+            overflow
+            (click)="pending.set('reopen')"
+            data-testid="assessment-reopen"
+          >
+            {{ 'aiGovernance.assessmentDetail.reopen' | transloco }}
+          </button>
+        }
+        @if (store.canWrite() && a.status !== 'approved') {
+          <button appMenuItem overflow [danger]="true" (click)="pending.set('delete')">
+            {{ 'aiGovernance.common.delete' | transloco }}
+          </button>
+        }
 
         <div class="flex flex-col gap-5">
-          <app-guide-intro [scope]="scope" page="assessmentDetail" />
           @if (selfCompleted() && a.status === 'completed' && store.canApprove()) {
             <app-alert tone="info">{{
               'aiGovernance.assessmentDetail.selfApprovalHint' | transloco
             }}</app-alert>
           }
-          @if (missing().length) {
-            <app-alert tone="error">
-              {{
-                'aiGovernance.assessmentDetail.missing' | transloco: { sections: missingLabels() }
-              }}
+          @if (a.review_flag) {
+            <app-alert tone="info" data-testid="assessment-review-flag">
+              {{ 'aiGovernance.assessmentDetail.reviewFlag.' + a.review_flag | transloco }}
+              @if (a.review_flagged_at) {
+                ({{ a.review_flagged_at | localDay }})
+              }
             </app-alert>
           }
-          <div
-            class="flex flex-wrap items-center gap-2"
-            role="group"
-            [attr.aria-label]="'aiGovernance.ai.groupLabel' | transloco"
-          >
-            <app-button variant="ghost" size="sm" (click)="askAi('summarise', a)">
-              <app-icon name="spark" [size]="14" />
-              {{ 'aiGovernance.ai.summariseAssessment' | transloco }}
-            </app-button>
-            <app-button variant="ghost" size="sm" (click)="askAi('review', a)">
-              <app-icon name="comment" [size]="14" />
-              {{ 'aiGovernance.ai.reviewAssessment' | transloco }}
-            </app-button>
-          </div>
+
+          @if (a.kind !== 'classification' && a.status === 'draft' && requiredTotal() > 0) {
+            <app-card data-testid="assessment-progress">
+              <div class="mb-2 flex items-center gap-3">
+                <span class="min-w-0 flex-1">
+                  <app-progress-bar
+                    [value]="(requiredDone() / requiredTotal()) * 100"
+                    [label]="progressText()"
+                  />
+                </span>
+                <span class="text-ui font-semibold text-fg">{{ progressText() }}</span>
+              </div>
+              @if (missingList().length) {
+                <p class="text-ui text-fg-muted">
+                  {{
+                    'aiGovernance.assessmentDetail.missing'
+                      | transloco: { sections: missingLabels() }
+                  }}
+                </p>
+              } @else {
+                <p class="text-ui text-fg-muted">
+                  {{ 'aiGovernance.assessmentDetail.readyToComplete' | transloco }}
+                </p>
+              }
+            </app-card>
+          }
 
           <app-card>
-            <dl class="grid grid-cols-1 gap-x-6 gap-y-3 text-[13.5px] sm:grid-cols-3">
-              <div>
-                <dt class="text-[12px] font-semibold text-fg-muted">
-                  {{ 'aiGovernance.fields.owner' | transloco }}
-                </dt>
-                <dd class="text-fg">
-                  {{ a.owner?.name ?? ('aiGovernance.common.nobody' | transloco) }}
-                </dd>
-              </div>
-              <div>
-                <dt class="text-[12px] font-semibold text-fg-muted">
-                  {{ 'aiGovernance.fields.dueAt' | transloco }}
-                </dt>
-                <dd class="text-fg">
-                  @if (a.due_at) {
-                    {{ a.due_at | localDay }}
-                  } @else {
-                    {{ 'aiGovernance.common.noDueDate' | transloco }}
-                  }
-                </dd>
-              </div>
-              <div>
-                <dt class="text-[12px] font-semibold text-fg-muted">
-                  {{ 'aiGovernance.assessmentDetail.completed' | transloco }}
-                </dt>
-                <dd class="text-fg">
-                  @if (a.completed_at) {
-                    {{ a.completed_at | localDate }}
-                    @if (a.completed_by) {
-                      · {{ a.completed_by.name }}
+            <app-field-list [columns]="3">
+              <app-field-item
+                labelKey="aiGovernance.fields.owner"
+                [value]="a.owner?.name"
+                empty="none"
+              />
+              <app-field-item
+                labelKey="aiGovernance.fields.dueAt"
+                [value]="a.due_at ? (a.due_at | localDay) : null"
+                empty="none"
+              />
+              <app-field-item labelKey="aiGovernance.fields.nextReview">
+                @if (editingReview()) {
+                  <form
+                    class="flex flex-wrap items-center gap-2"
+                    (submit)="$event.preventDefault(); saveReview(a)"
+                    (keydown.escape)="editingReview.set(false)"
+                  >
+                    <label class="sr-only" for="aia-next-review">{{
+                      'aiGovernance.fields.nextReview' | transloco
+                    }}</label>
+                    <input
+                      id="aia-next-review"
+                      type="date"
+                      class="h-8 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
+                      [value]="reviewDay()"
+                      (input)="reviewDay.set($any($event.target).value)"
+                    />
+                    <app-button size="sm" type="submit" [loading]="savingReview()">{{
+                      'aiGovernance.common.save' | transloco
+                    }}</app-button>
+                  </form>
+                } @else {
+                  <span class="inline-flex flex-wrap items-center gap-2">
+                    <span>{{
+                      a.next_review_at
+                        ? (a.next_review_at | localDay)
+                        : ('aiGovernance.common.notSet' | transloco)
+                    }}</span>
+                    @if (store.canWrite()) {
+                      <button
+                        type="button"
+                        class="min-h-6 text-meta font-semibold text-accent hover:underline"
+                        (click)="startReviewEdit(a)"
+                        data-testid="assessment-review-edit"
+                      >
+                        {{ 'aiGovernance.common.change' | transloco }}
+                      </button>
                     }
-                  } @else {
-                    {{ 'aiGovernance.common.notYet' | transloco }}
-                  }
-                </dd>
-              </div>
-              <div>
-                <dt class="text-[12px] font-semibold text-fg-muted">
-                  {{ 'aiGovernance.assessmentDetail.approved' | transloco }}
-                </dt>
-                <dd class="text-fg">
-                  @if (a.approved_at) {
-                    {{ a.approved_at | localDate }}
-                    @if (a.approved_by) {
-                      · {{ a.approved_by.name }}
-                    }
-                  } @else {
-                    {{ 'aiGovernance.common.notYet' | transloco }}
-                  }
-                </dd>
-              </div>
-            </dl>
+                  </span>
+                }
+              </app-field-item>
+              <app-field-item
+                labelKey="aiGovernance.assessmentDetail.completed"
+                [value]="
+                  a.completed_at ? completedLine(a) : ('aiGovernance.common.notYet' | transloco)
+                "
+              />
+              <app-field-item
+                labelKey="aiGovernance.assessmentDetail.approved"
+                [value]="
+                  a.approved_at ? approvedLine(a) : ('aiGovernance.common.notYet' | transloco)
+                "
+              />
+            </app-field-list>
           </app-card>
 
           @if (a.kind === 'classification') {
             <app-card>
-              <h2 class="mb-3 font-display text-[15px] font-bold text-fg">
+              <h2 class="mb-3 font-display text-section font-bold text-fg">
                 {{ 'aiGovernance.assessmentDetail.answers' | transloco }}
               </h2>
               @if (answerLines().length) {
-                <ul class="list-disc pl-5 text-[13.5px] text-fg">
+                <ul class="list-disc pl-5 text-body text-fg">
                   @for (line of answerLines(); track $index) {
                     <li>{{ line }}</li>
                   }
                 </ul>
               } @else {
-                <p class="text-[13px] text-fg-muted">
+                <p class="text-ui text-fg-muted">
                   {{ 'aiGovernance.assessmentDetail.noneAnswered' | transloco }}
                 </p>
               }
             </app-card>
             @if (result(); as r) {
               <app-card>
-                <h2 class="mb-3 font-display text-[15px] font-bold text-fg">
+                <h2 class="mb-3 font-display text-section font-bold text-fg">
                   {{ 'aiGovernance.assessmentDetail.outcome' | transloco }}
                 </h2>
                 <app-ai-classification-result [result]="r" />
@@ -342,29 +428,33 @@ export function asClassificationResult(result: unknown): ClassificationResult | 
             }
           } @else {
             @for (key of sectionKeys(); track key) {
-              <app-card>
-                <h2 class="mb-1.5 text-[14px] font-bold text-fg">
+              <app-card [attr.data-testid]="'assessment-section-' + key">
+                <h2 class="mb-0.5 flex flex-wrap items-center gap-2 text-card font-bold text-fg">
                   {{ sectionKey(a.kind, key) | transloco }}
                   @if (requiredSet().has(key)) {
-                    <span class="ml-1 text-[12px] font-semibold text-warn">{{
-                      'aiGovernance.assessmentEdit.required' | transloco
-                    }}</span>
+                    <span
+                      class="text-meta font-semibold"
+                      [class]="sections()[key] ? 'text-fg-subtle' : 'text-warn-ink'"
+                      >{{ 'aiGovernance.assessmentEdit.required' | transloco }}</span
+                    >
                   }
                 </h2>
+                <p class="mb-2 text-meta text-fg-muted">
+                  {{ sectionHintKey(a.kind, key) | transloco }}
+                </p>
                 @if (sections()[key]; as text) {
                   <div
-                    class="cf-prose text-[13.5px] leading-relaxed text-fg"
+                    class="cf-prose text-body leading-relaxed text-fg"
                     [innerHTML]="text | appMarkdown"
                   ></div>
                 } @else {
-                  <p class="text-[13px] text-fg-subtle">
+                  <p class="text-ui text-fg-subtle">
                     {{ 'aiGovernance.assessmentDetail.empty' | transloco }}
                   </p>
                 }
               </app-card>
             }
           }
-          <app-supports-requirements entityType="ai_assessment" [entityId]="a.id" />
         </div>
 
         <div tasks>
@@ -376,10 +466,20 @@ export function asClassificationResult(result: unknown): ClassificationResult | 
           />
         </div>
 
-        <div aside class="flex flex-col gap-4">
-          <app-ai-lesson-card lesson="impact-assessment-and-fria" />
-          <app-why-it-matters [scope]="scope" page="assessmentDetail" />
-        </div>
+        <app-supports-requirements
+          aside-requirements
+          entityType="ai_assessment"
+          [entityId]="a.id"
+          [canEdit]="store.canWrite()"
+          [frameworks]="frameworks"
+        />
+
+        <app-help-strip
+          aside-learn
+          [scope]="scope"
+          page="assessmentDetail"
+          lesson="impact-assessment-and-fria"
+        />
       </app-record-detail-layout>
 
       <app-confirm-dialog
@@ -403,7 +503,7 @@ export function asClassificationResult(result: unknown): ClassificationResult | 
         (cancelled)="pending.set(null)"
       >
         @if (pending() === 'complete') {
-          <label class="mt-3 flex items-start gap-2 text-[13px] text-fg">
+          <label class="mt-3 flex items-start gap-2 text-ui text-fg">
             <input
               type="checkbox"
               class="mt-0.5"
@@ -411,8 +511,8 @@ export function asClassificationResult(result: unknown): ClassificationResult | 
               (change)="createTasks.set($any($event.target).checked)"
             />
             {{
-              (a.kind === 'classification'
-                ? 'aiGovernance.wizard.createTasks'
+              (a.kind === 'fria'
+                ? 'aiGovernance.assessmentDetail.createTasksFria'
                 : 'aiGovernance.assessmentDetail.createTasks'
               ) | transloco
             }}
@@ -420,9 +520,9 @@ export function asClassificationResult(result: unknown): ClassificationResult | 
         }
       </app-confirm-dialog>
     } @else {
-      <p class="mx-auto max-w-[1180px] px-4 pt-7 text-[14px] text-fg-muted sm:px-8">
-        {{ 'aiGovernance.common.loading' | transloco }}
-      </p>
+      <div class="mx-auto max-w-[1180px] px-4 pt-7 sm:px-8">
+        <app-loading-state [rows]="6" />
+      </div>
     }
   `,
 })
@@ -439,24 +539,71 @@ export class AiAssessmentDetail {
   readonly id = input.required<string>();
 
   protected readonly scope = AI_GOVERNANCE_SCOPE;
+  protected readonly root = AI_GOV_ROOT;
   protected readonly tabs = TABS;
   protected readonly fieldLabels = FIELD_LABELS;
-  protected readonly kindKey = kindKey;
+  protected readonly frameworks = ['iso42001', 'eu_ai_act'] as const;
   protected readonly statusKey = assessmentStatusKey;
-  protected readonly statusTone = assessmentStatusTone;
+  protected readonly statusValue = assessmentStatusValue;
   protected readonly sectionKey = assessmentSectionKey;
+  protected readonly sectionHintKey = assessmentSectionHintKey;
 
   protected readonly assessment = signal<Assessment | null>(null);
   protected readonly loadError = signal<string | null>(null);
   protected readonly pending = signal<Pending>(null);
   protected readonly busy = signal(false);
   protected readonly createTasks = signal(true);
-  protected readonly missing = signal<readonly string[]>([]);
+  /** Missing parts reported by a refused completion (422). */
+  protected readonly refusedMissing = signal<readonly string[]>([]);
+  protected readonly editingReview = signal(false);
+  protected readonly reviewDay = signal('');
+  protected readonly savingReview = signal(false);
+  protected readonly reload = signal(0);
 
   protected readonly result = computed(() => asClassificationResult(this.assessment()?.result));
   protected readonly sections = computed(() => sectionAnswers(this.assessment()?.answers));
   protected readonly requiredSet = computed(
     () => new Set(this.assessment()?.required_sections ?? []),
+  );
+  /** Required parts still empty (server summary, else from the answers). */
+  protected readonly missingList = computed<readonly string[]>(() => {
+    const a = this.assessment();
+    if (!a || a.kind === 'classification' || a.status !== 'draft') {
+      return [];
+    }
+    if (this.refusedMissing().length) {
+      return this.refusedMissing();
+    }
+    if (a.missing_sections) {
+      return a.missing_sections;
+    }
+    const written = this.sections();
+    return a.required_sections.filter((key) => !written[key]?.trim());
+  });
+  /** Which actions a draft offers: the wizard, "continue writing", or "complete". */
+  protected readonly draftMode = computed<'wizard' | 'missing' | 'ready' | null>(() => {
+    const a = this.assessment();
+    if (!a || a.status !== 'draft' || !this.store.canWrite()) {
+      return null;
+    }
+    if (this.isWizard(a)) {
+      return 'wizard';
+    }
+    return this.missingList().length ? 'missing' : 'ready';
+  });
+  protected readonly requiredTotal = computed(
+    () => this.assessment()?.required_total ?? this.assessment()?.required_sections.length ?? 0,
+  );
+  protected readonly requiredDone = computed(() =>
+    Math.max(0, this.requiredTotal() - this.missingList().length),
+  );
+  protected readonly progressText = computed(() =>
+    this.language.translate(
+      this.requiredDone() === 1
+        ? 'aiGovernance.assessmentDetail.progressOne'
+        : 'aiGovernance.assessmentDetail.progress',
+      { done: this.requiredDone(), total: this.requiredTotal() },
+    ),
   );
   protected readonly sectionKeys = computed<readonly string[]>(() => {
     const a = this.assessment();
@@ -477,7 +624,7 @@ export class AiAssessmentDetail {
   });
   protected readonly missingLabels = computed(() => {
     const a = this.assessment();
-    return this.missing()
+    return this.missingList()
       .map((key) => this.language.translate(assessmentSectionKey(a?.kind ?? 'impact', key)))
       .join(', ');
   });
@@ -532,6 +679,17 @@ export class AiAssessmentDetail {
     }
     return lines;
   });
+  private readonly refs = computed(() => {
+    const a = this.assessment();
+    if (!a) {
+      return [];
+    }
+    return a.kind === 'fria'
+      ? ['eu_ai_act:27']
+      : a.kind === 'impact'
+        ? ['iso42001:6.1.4', 'iso42001:8.4']
+        : ['eu_ai_act:6'];
+  });
 
   constructor() {
     providePageContext(() => ({
@@ -539,11 +697,14 @@ export class AiAssessmentDetail {
       entityType: AI_ASSESSMENT_ENTITY,
       entityId: this.id(),
       view: 'detail',
-      title: this.assessment()?.title ?? null,
+      title: this.assessment() ? `${this.assessment()!.code} ${this.assessment()!.title}` : null,
+      requirements: this.refs(),
     }));
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();
       const id = this.id();
+      this.reload();
+      this.language.active();
       untracked(() => {
         if (!orgId) {
           return;
@@ -558,10 +719,49 @@ export class AiAssessmentDetail {
     });
   }
 
-  protected editLink(a: Assessment): readonly string[] {
-    return a.kind === 'classification'
-      ? ['/ai-governance/systems', a.ai_system.id, 'classify']
-      : ['/ai-governance/assessments', a.id, 'edit'];
+  protected isWizard(a: Assessment): boolean {
+    return a.edit_in_wizard ?? a.kind === 'classification';
+  }
+
+  protected completedLine(a: Assessment): string {
+    const date = new Intl.DateTimeFormat(this.language.active(), { dateStyle: 'medium' }).format(
+      new Date(`${a.completed_at}Z`),
+    );
+    return a.completed_by ? `${date} · ${a.completed_by.name}` : date;
+  }
+
+  protected approvedLine(a: Assessment): string {
+    const date = new Intl.DateTimeFormat(this.language.active(), { dateStyle: 'medium' }).format(
+      new Date(`${a.approved_at}Z`),
+    );
+    return a.approved_by ? `${date} · ${a.approved_by.name}` : date;
+  }
+
+  protected startReviewEdit(a: Assessment): void {
+    this.reviewDay.set(dayOf(a.next_review_at ?? null));
+    this.editingReview.set(true);
+  }
+
+  protected saveReview(a: Assessment): void {
+    const orgId = this.selectedOrg.currentOrgId();
+    if (!orgId || this.savingReview()) {
+      return;
+    }
+    this.savingReview.set(true);
+    this.api
+      .updateAssessment(orgId, a.id, { next_review_at: dueAtFromDay(this.reviewDay()) })
+      .subscribe({
+        next: (updated) => {
+          this.savingReview.set(false);
+          this.editingReview.set(false);
+          this.assessment.set(updated);
+          this.notifications.success('aiGovernance.assessmentDetail.reviewSaved');
+        },
+        error: (err: unknown) => {
+          this.savingReview.set(false);
+          this.notifications.error(aiGovernanceErrorKey(err));
+        },
+      });
   }
 
   protected askAi(kind: 'summarise' | 'review', a: Assessment): void {
@@ -599,7 +799,7 @@ export class AiAssessmentDetail {
         request$ = this.api.deleteAssessment(orgId, a.id);
     }
     this.busy.set(true);
-    this.missing.set([]);
+    this.refusedMissing.set([]);
     request$.subscribe({
       next: (updated) => {
         this.busy.set(false);
@@ -612,15 +812,18 @@ export class AiAssessmentDetail {
         if (updated) {
           this.assessment.set(updated);
         }
-        this.notifications.success(`aiGovernance.assessmentDetail.done.${action}`, {
-          code: a.code,
-          count: updated ? updated.created_tasks.length : 0,
-        });
+        const count = updated ? updated.created_tasks.length : 0;
+        this.notifications.success(
+          action === 'complete' && count === 1
+            ? 'aiGovernance.assessmentDetail.done.completeOne'
+            : `aiGovernance.assessmentDetail.done.${action}`,
+          { code: a.code, count },
+        );
       },
       error: (err: unknown) => {
         this.busy.set(false);
         this.pending.set(null);
-        this.missing.set(missingSections(err));
+        this.refusedMissing.set(missingSections(err));
         this.notifications.error(aiGovernanceErrorKey(err));
       },
     });

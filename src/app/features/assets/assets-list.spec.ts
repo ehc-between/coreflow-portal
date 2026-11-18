@@ -17,7 +17,11 @@ import { Asset } from './data/asset.models';
 const BASE = 'http://test/api';
 const ORG = 'org-1';
 const listUrl = `${BASE}/v1/orgs/${ORG}/assets`;
-const dueUrl = `${listUrl}/calibrations-due`;
+/** Summary counts are list calls with limit=1; the page itself asks for 25. */
+const isPage = (r: { url: string; params: { get(k: string): string | null } }) =>
+  r.url === listUrl && r.params.get('limit') !== '1';
+const isCount = (r: { url: string; params: { get(k: string): string | null } }) =>
+  r.url === listUrl && r.params.get('limit') === '1';
 
 const row = (over: Partial<Asset> = {}): Asset => ({
   id: 'a-1',
@@ -40,6 +44,8 @@ const row = (over: Partial<Asset> = {}): Asset => ({
   department_id: null,
   location: 'Store 2',
   vendor: null,
+  supplier_id: null,
+  supplier: { id: 's-1', code: 'SUP-0001', name: 'Kalibrering AS', url: '/suppliers/s-1' },
   model: null,
   serial_number: null,
   version: null,
@@ -49,6 +55,10 @@ const row = (over: Partial<Asset> = {}): Asset => ({
   warranty_until: null,
   end_of_life_on: null,
   review_date: null,
+  review_interval_months: null,
+  review_status: null,
+  last_reviewed_at: null,
+  last_reviewed_by: null,
   retired_on: null,
   disposed_on: null,
   disposal_method: null,
@@ -59,6 +69,7 @@ const row = (over: Partial<Asset> = {}): Asset => ({
   last_calibrated_on: '2025-10-01',
   next_calibration_due: '2026-10-01',
   calibration_status: 'overdue',
+  attention: ['calibration_overdue_in_use'],
   notes: null,
   url: '/assets/a-1',
   created_by: 'u-1',
@@ -106,11 +117,17 @@ async function flush(
   items: readonly Asset[],
 ) {
   await fixture.whenStable();
-  for (const req of http.match((r) => r.url === listUrl)) {
+  for (const req of http.match(isPage)) {
     req.flush({ items, total: items.length });
   }
-  for (const req of http.match((r) => r.url === dueUrl)) {
-    req.flush({ items: items.filter((a) => a.calibration_status) });
+  for (const req of http.match(isCount)) {
+    const attention = req.request.params.get('attention');
+    const hits = attention
+      ? items.filter((a) =>
+          attention === 'any' ? a.attention.length : a.attention.includes(attention as never),
+        )
+      : items;
+    req.flush({ items: [], total: hits.length });
   }
   await fixture.whenStable();
 }
@@ -118,19 +135,31 @@ async function flush(
 describe('AssetsList', () => {
   afterEach(() => document.body.replaceChildren());
 
-  it('lists assets with classification, lifecycle and calibration status', async () => {
+  it('lists assets with lifecycle, labelled criticality, calibration and follow-up', async () => {
     const { fixture, http, root } = setup();
     await flush(fixture, http, [row()]);
-    const rows = root.querySelectorAll('[data-testid="asset-rows"] li');
+    const rows = root.querySelectorAll('[data-testid="asset-rows"] [data-testid="record-row"]');
     expect(rows.length).toBe(1);
     const text = rows[0].textContent ?? '';
     expect(text).toContain('AST-0001');
     expect(text).toContain('Cold store thermometer');
-    expect(text).toContain('Internal');
     expect(text).toContain('In use');
-    expect(text).toContain('Overdue');
-    expect(root.textContent).toContain('Calibrations overdue');
+    expect(text).toContain('Criticality: High');
+    expect(text).toContain('Calibration: Overdue');
+    expect(text).toContain('Calibration overdue, still in use');
+    expect(text).toContain('Kalibrering AS');
+    expect(root.querySelector('[data-testid="kpi-attention"]')?.textContent).toContain('1');
     expect(root.textContent).toContain('Register asset');
+  });
+
+  it('a headline figure filters the list on its follow-up flag', async () => {
+    const { fixture, http, root } = setup();
+    await flush(fixture, http, [row()]);
+    root.querySelector<HTMLButtonElement>('[data-testid="kpi-personalData"]')!.click();
+    await fixture.whenStable();
+    const req = http.expectOne(isPage);
+    expect(req.request.params.get('attention')).toBe('personal_data_unlinked');
+    req.flush({ items: [], total: 0 });
   });
 
   it('hides "register" without write access and shows the teaching empty state', async () => {
@@ -143,12 +172,12 @@ describe('AssetsList', () => {
   it('re-queries with the chosen filter', async () => {
     const { fixture, http, root } = setup();
     await flush(fixture, http, [row()]);
-    const select = root.querySelector<HTMLSelectElement>('#ast-f-class')!;
-    select.value = 'restricted';
+    const select = root.querySelector<HTMLSelectElement>('#ast-f-life')!;
+    select.value = 'quarantined';
     select.dispatchEvent(new Event('change'));
     await fixture.whenStable();
-    const req = http.expectOne((r) => r.url === listUrl);
-    expect(req.request.params.get('classification')).toBe('restricted');
+    const req = http.expectOne(isPage);
+    expect(req.request.params.get('lifecycle')).toBe('quarantined');
     req.flush({ items: [], total: 0 });
   });
 

@@ -561,7 +561,8 @@
         "matrices": "Risk matrices",
         "settings": "Settings",
         "retention": "Retention rules",
-        "significanceMethod": "Significance method"
+        "significanceMethod": "Significance method",
+        "roleOverviews": "Role overviews"
       },
       "membersSection": "Members, departments and invitations"
     },
@@ -2072,6 +2073,7 @@
       "emergency_plan": "Emergency plan",
       "env_measurement": "Environmental measurement",
       "compliance_obligation": "Compliance obligation",
+      "obligation_duty": "Obligation duty",
       "asset": "Asset",
       "access_review": "Access review",
       "change_request": "Change request",

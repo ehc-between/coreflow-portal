@@ -11,47 +11,55 @@ import {
 import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { providePageContext } from '../../../core/ai/page-context';
-import { AssigneeIn } from '../../../core/tasks/task.models';
 import { LanguageService } from '../../../core/i18n/language.service';
+import { CreateFlowService } from '../../../core/kit/create-flow.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
+import { AssigneeIn } from '../../../core/tasks/task.models';
 import { AskPanelService } from '../../ask/ask-panel.service';
 import { WatchButton } from '../../../shared/activity/watch-button';
 import { AiAssistButton } from '../../../shared/ask/ai-assist-button';
-import { GuideIntro } from '../../../shared/guidance/guide-intro';
-import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
+import { Term } from '../../../shared/guidance/term';
+import { EntityChip } from '../../../shared/kit/entity-chip';
 import { RecordDetailLayout, RecordTab } from '../../../shared/kit/record-detail-layout';
 import { LocalDatePipe, LocalDayPipe } from '../../../shared/locale/locale-pipes';
 import { MarkdownPipe } from '../../../shared/markdown/markdown.pipe';
 import { SupportsRequirements } from '../../../shared/requirement-links/supports-requirements';
 import { AssigneeOptionsService } from '../../../shared/tasks/assignee-options';
 import { EntityTasks } from '../../../shared/tasks/entity-tasks';
-import { Alert } from '../../../shared/ui/alert/alert';
 import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
+import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { FieldItem, FieldList } from '../../../shared/ui/field-list/field-list';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { MenuItem } from '../../../shared/ui/overflow-menu/overflow-menu';
+import { ProgressBar } from '../../../shared/ui/progress-bar/progress-bar';
+import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { AiGovernanceApi } from '../data/ai-governance-api';
 import { aiGovernanceErrorKey } from '../data/ai-governance-errors';
 import { AiGovernanceStore } from '../data/ai-governance-store';
-import { AiSystem, AssessmentSummary } from '../data/ai-governance.models';
+import { AiSystem, AssessmentSummary, Obligation } from '../data/ai-governance.models';
 import {
   AI_GOVERNANCE_MODULE,
   AI_GOVERNANCE_SCOPE,
   AI_SYSTEM_ENTITY,
   assessmentStatusKey,
-  assessmentStatusTone,
+  assessmentStatusValue,
   kindKey,
-  riskKey,
-  riskTone,
-  roleKey,
   riskExplainKey,
+  riskKey,
+  riskValue,
+  roleKey,
   statusKey,
-  systemStatusTone,
+  systemStatusValue,
   transparencyKey,
 } from '../data/ai-governance-display';
-import { AiLessonCard } from '../ui/ai-lesson-card';
+import { AI_GOV_ROOT } from '../ui/ai-gov-page';
+import { downloadBlob } from '../ui/download';
 import { AiObligationList } from '../ui/obligation-list';
 import { AiSystemIncidents } from './system-incidents';
 import { AiSystemMonitoring } from './system-monitoring';
@@ -68,30 +76,39 @@ const TABS: readonly RecordTab[] = [
 ];
 
 /** Revision snapshot fields -> labels (for the revisions tab). */
-const FIELD_LABELS: Readonly<Record<string, string>> = {
+export const SYSTEM_FIELD_LABELS: Readonly<Record<string, string>> = {
   name: 'aiGovernance.fields.name',
   description: 'aiGovernance.fields.description',
   intended_purpose: 'aiGovernance.fields.intendedPurpose',
   ai_act_role: 'aiGovernance.fields.role',
   status: 'aiGovernance.fields.status',
   provider_name: 'aiGovernance.fields.provider',
+  supplier_id: 'aiGovernance.fields.supplier',
+  processing_activity_id: 'aiGovernance.fields.processingActivity',
   models: 'aiGovernance.fields.models',
   data_categories: 'aiGovernance.fields.dataCategories',
   uses_personal_data: 'aiGovernance.fields.usesPersonalData',
   owner_user_id: 'aiGovernance.fields.owner',
+  overseer_user_ids: 'aiGovernance.fields.overseers',
   department_id: 'aiGovernance.fields.department',
   next_review_at: 'aiGovernance.fields.nextReview',
   risk_class: 'aiGovernance.fields.riskClass',
   documentation: 'aiGovernance.fields.documentation',
   obligations: 'aiGovernance.fields.obligations',
+  obligation_state: 'aiGovernance.fields.obligations',
+  monitoring_metrics: 'aiGovernance.fields.monitoringMetrics',
 };
 
 /**
- * `/ai-governance/systems/:id`: one AI system — what it is for, its AI Act
- * classification and obligations (with their tasks), its assessments,
- * monitoring, incidents and post-market review schedule, plus the shared
- * record tabs (tasks, related items, activity, comments, attachments,
- * revisions). The assistant can explain the obligations.
+ * `/ai-governance/systems/:id`: one AI system and everything connected to it.
+ * What it is and where it comes from (supplier, processing activity, DPIAs,
+ * owner and the people who oversee it), its AI Act classification explained
+ * for the org's role, the obligations as a to-do list (status, evidence, task),
+ * the provider's duties when the org only deploys it, assessments (FRIA only
+ * offered where it can apply), documentation progress, risks, monitoring and
+ * incidents. The aside shows the requirements it documents, its connections
+ * and the review plan; "Lag ny fra denne" creates an AI incident, AI risk,
+ * DPIA, assessment or task with the system filled in.
  */
 @Component({
   selector: 'app-ai-system-detail',
@@ -100,21 +117,27 @@ const FIELD_LABELS: Readonly<Record<string, string>> = {
     TranslocoPipe,
     WatchButton,
     AiAssistButton,
-    GuideIntro,
-    WhyItMatters,
+    Term,
+    EntityChip,
     RecordDetailLayout,
     LocalDatePipe,
     LocalDayPipe,
     MarkdownPipe,
     SupportsRequirements,
     EntityTasks,
-    Alert,
     Badge,
     Button,
     Card,
     ConfirmDialog,
+    ErrorState,
+    FieldItem,
+    FieldList,
+    HelpStrip,
     Icon,
-    AiLessonCard,
+    LoadingState,
+    MenuItem,
+    ProgressBar,
+    StatusBadge,
     AiObligationList,
     AiSystemIncidents,
     AiSystemMonitoring,
@@ -124,10 +147,10 @@ const FIELD_LABELS: Readonly<Record<string, string>> = {
   template: `
     @if (loadError()) {
       <div class="mx-auto max-w-[1180px] px-4 pt-7 sm:px-8">
-        <app-alert tone="error">{{ loadError()! | transloco }}</app-alert>
+        <app-error-state (retry)="reload.update((n) => n + 1)" />
         <a
           routerLink="/ai-governance/systems"
-          class="mt-3 inline-block text-[13px] font-semibold text-accent hover:underline"
+          class="mt-3 inline-block text-ui font-semibold text-accent hover:underline"
         >
           {{ 'aiGovernance.systems.backToList' | transloco }}
         </a>
@@ -136,6 +159,13 @@ const FIELD_LABELS: Readonly<Record<string, string>> = {
       <app-record-detail-layout
         entityType="ai_system"
         [entityId]="s.id"
+        [title]="s.name"
+        [breadcrumbs]="[
+          root,
+          { labelKey: 'aiGovernance.systems.title', link: '/ai-governance/systems' },
+          { label: s.code },
+        ]"
+        settingsLink="/ai-governance/settings"
         [tabs]="tabs"
         [canEdit]="store.canWrite()"
         [includeAudit]="store.canReadAudit()"
@@ -143,251 +173,349 @@ const FIELD_LABELS: Readonly<Record<string, string>> = {
         backLink="/ai-governance/systems"
         backLabelKey="aiGovernance.systems.backToList"
       >
-        <div header>
-          <div class="mb-1.5 flex flex-wrap items-center gap-2">
-            <span class="font-mono text-[12.5px] text-fg-subtle">{{ s.code }}</span>
-            <app-badge [tone]="riskTone(s.risk_class)" data-testid="system-risk">{{
-              riskKey(s.risk_class) | transloco
+        <ng-container ngProjectAs="[meta]">
+          <span class="font-mono" data-testid="system-code">{{ s.code }}</span>
+          <span aria-hidden="true">·</span>
+          <span>{{ roleKey(s.ai_act_role) | transloco }}</span>
+          <app-status-badge
+            meaning="severity"
+            [value]="riskValue(s.risk_class)"
+            [labelKey]="riskKey(s.risk_class)"
+            data-testid="system-risk"
+          />
+          <app-status-badge
+            meaning="lifecycle"
+            [value]="statusValue(s.status)"
+            [labelKey]="statusKey(s.status)"
+          />
+          @if (s.fria_required) {
+            <app-badge tone="warn" data-testid="system-fria-required">{{
+              'aiGovernance.systemDetail.friaRequired' | transloco
             }}</app-badge>
-            <app-badge [tone]="statusTone(s.status)">{{
-              statusKey(s.status) | transloco
-            }}</app-badge>
-            <app-badge tone="neutral">{{ roleKey(s.ai_act_role) | transloco }}</app-badge>
-            @if (s.gpai) {
-              <app-badge tone="accent">{{ 'aiGovernance.result.gpai' | transloco }}</app-badge>
-            }
-            @if (s.is_builtin) {
-              <app-badge tone="accent">{{ 'aiGovernance.systems.builtin' | transloco }}</app-badge>
-            }
-          </div>
-          <h1
-            class="font-display text-[24px] font-bold tracking-[-0.03em] break-words text-fg sm:text-[26px]"
-          >
-            {{ s.name }}
-          </h1>
-        </div>
-        <div actions class="flex flex-wrap items-center gap-2">
+          }
+          @if (s.gpai) {
+            <app-badge tone="neutral">{{ 'aiGovernance.result.gpai' | transloco }}</app-badge>
+          }
+          @if (s.is_builtin) {
+            <app-badge tone="neutral">{{ 'aiGovernance.systems.builtin' | transloco }}</app-badge>
+          }
           <app-watch-button entityType="ai_system" [entityId]="s.id" />
-          @if (store.canWrite()) {
-            <a
-              [routerLink]="['/ai-governance/systems', s.id, 'classify']"
-              class="inline-flex h-8 items-center gap-1.5 rounded-tile bg-accent px-3 text-[13px] font-semibold text-white hover:opacity-90"
-              data-testid="system-classify"
-            >
-              {{
-                (s.risk_class === 'unclassified'
-                  ? 'aiGovernance.systemDetail.classify'
-                  : 'aiGovernance.systemDetail.reclassify'
-                ) | transloco
-              }}
-            </a>
-            <a
-              [routerLink]="['/ai-governance/systems', s.id, 'edit']"
-              class="inline-flex h-8 items-center rounded-tile border border-border px-3 text-[13px] font-semibold text-fg hover:bg-surface-2"
-            >
-              {{ 'aiGovernance.common.edit' | transloco }}
-            </a>
-          }
-          @if (store.canManage()) {
-            <app-button variant="ghost" size="sm" (click)="confirmDelete.set(true)">
-              <app-icon name="trash" [size]="14" />
-              {{ 'aiGovernance.common.delete' | transloco }}
-            </app-button>
-          }
-        </div>
+        </ng-container>
+
+        @if (store.canWrite()) {
+          <app-button
+            primary
+            size="sm"
+            [loading]="classifying()"
+            (click)="classify(s)"
+            data-testid="system-classify"
+          >
+            {{
+              (s.risk_class === 'unclassified'
+                ? 'aiGovernance.systemDetail.classify'
+                : 'aiGovernance.systemDetail.reclassify'
+              ) | transloco
+            }}
+          </app-button>
+        }
+        @if (store.canWrite()) {
+          <a
+            secondary
+            [routerLink]="['/ai-governance/systems', s.id, 'edit']"
+            class="inline-flex h-8 items-center rounded-tile border border-border bg-surface px-3 text-ui font-semibold text-fg hover:bg-surface-2"
+            data-testid="system-edit"
+          >
+            {{ 'aiGovernance.common.edit' | transloco }}
+          </a>
+        }
+        <button appMenuItem overflow (click)="askAbout(s)">
+          {{ 'aiGovernance.ai.askAboutSystem' | transloco }}
+        </button>
+        <button appMenuItem overflow (click)="exportFile(s)">
+          {{ 'aiGovernance.docs.export' | transloco }}
+        </button>
+        @if (store.canManage()) {
+          <button appMenuItem overflow [danger]="true" (click)="confirmDelete.set(true)">
+            {{ 'aiGovernance.common.delete' | transloco }}
+          </button>
+        }
 
         <div class="flex flex-col gap-5">
-          <app-guide-intro [scope]="scope" page="systemDetail" />
-          <div
-            class="flex flex-wrap items-center gap-2"
-            role="group"
-            [attr.aria-label]="'aiGovernance.ai.groupLabel' | transloco"
-          >
-            <app-ai-assist-button
-              assist="ai_governance.explain_obligations"
-              labelKey="aiGovernance.ai.explainObligations"
-              [input]="{ ai_system_id: s.id }"
-              entityType="ai_system"
-              [entityId]="s.id"
-              (text)="explanation.set($event)"
-            />
-            <app-button variant="ghost" size="sm" (click)="askAbout(s)">
-              <app-icon name="comment" [size]="14" />
-              {{ 'aiGovernance.ai.askAboutSystem' | transloco }}
-            </app-button>
-          </div>
-          @if (explanation()) {
-            <app-card>
-              <div class="mb-2 flex items-center justify-between gap-2">
-                <h2 class="font-display text-[15px] font-bold text-fg">
-                  {{ 'aiGovernance.ai.explanationTitle' | transloco }}
-                </h2>
-                <button
-                  type="button"
-                  class="rounded-[8px] p-1 text-fg-subtle hover:text-fg"
-                  [attr.aria-label]="'aiGovernance.common.close' | transloco"
-                  (click)="explanation.set('')"
-                >
-                  <app-icon name="x" [size]="14" />
-                </button>
-              </div>
-              <div
-                class="cf-prose text-[13.5px] leading-relaxed text-fg"
-                [innerHTML]="explanation() | appMarkdown"
-              ></div>
-              <p class="mt-2 text-[12px] text-fg-subtle">
-                {{ 'aiGovernance.ai.reviewNotice' | transloco }}
-              </p>
-            </app-card>
-          }
-
-          <app-card>
-            <h2 class="mb-3 font-display text-[15px] font-bold text-fg">
+          <app-card data-testid="system-about">
+            <h2 class="mb-3 font-display text-section font-bold text-fg">
               {{ 'aiGovernance.systemDetail.about' | transloco }}
             </h2>
-            <dl class="grid grid-cols-1 gap-x-6 gap-y-3 text-[13.5px] sm:grid-cols-2">
-              <div class="sm:col-span-2">
-                <dt class="text-[12px] font-semibold text-fg-muted">
-                  {{ 'aiGovernance.fields.intendedPurpose' | transloco }}
-                </dt>
-                <dd class="whitespace-pre-line text-fg">
-                  {{ s.intended_purpose || ('aiGovernance.common.notSet' | transloco) }}
-                </dd>
-              </div>
-              @if (s.description) {
-                <div class="sm:col-span-2">
-                  <dt class="text-[12px] font-semibold text-fg-muted">
-                    {{ 'aiGovernance.fields.description' | transloco }}
-                  </dt>
-                  <dd class="whitespace-pre-line text-fg">{{ s.description }}</dd>
-                </div>
+            <app-field-list>
+              <app-field-item
+                labelKey="aiGovernance.fields.intendedPurpose"
+                [value]="s.intended_purpose"
+                [wide]="true"
+                [multiline]="true"
+              />
+              @if (s.description && s.description !== s.intended_purpose) {
+                <app-field-item
+                  labelKey="aiGovernance.fields.description"
+                  [value]="s.description"
+                  [wide]="true"
+                  [multiline]="true"
+                />
               }
-              <div>
-                <dt class="text-[12px] font-semibold text-fg-muted">
-                  {{ 'aiGovernance.fields.provider' | transloco }}
-                </dt>
-                <dd class="text-fg">
-                  {{ s.provider_name || ('aiGovernance.common.notSet' | transloco) }}
-                </dd>
-              </div>
-              <div>
-                <dt class="text-[12px] font-semibold text-fg-muted">
-                  {{ 'aiGovernance.fields.models' | transloco }}
-                </dt>
-                <dd class="text-fg">
-                  {{
-                    s.models.length
-                      ? s.models.join(', ')
-                      : ('aiGovernance.common.notSet' | transloco)
-                  }}
-                </dd>
-              </div>
-              <div>
-                <dt class="text-[12px] font-semibold text-fg-muted">
-                  {{ 'aiGovernance.fields.dataCategories' | transloco }}
-                </dt>
-                <dd class="text-fg">
-                  {{
-                    s.data_categories.length
-                      ? s.data_categories.join(', ')
-                      : ('aiGovernance.common.notSet' | transloco)
-                  }}
-                </dd>
-              </div>
-              <div>
-                <dt class="text-[12px] font-semibold text-fg-muted">
-                  {{ 'aiGovernance.fields.usesPersonalData' | transloco }}
-                </dt>
-                <dd class="text-fg">
-                  {{
+              <app-field-item labelKey="aiGovernance.fields.supplier">
+                @if (s.supplier; as sup) {
+                  <app-entity-chip [ref]="sup" data-testid="system-supplier" />
+                } @else if (s.provider_name) {
+                  <span>{{ s.provider_name }}</span>
+                } @else {
+                  <span class="text-fg-muted">{{ 'aiGovernance.common.notSet' | transloco }}</span>
+                }
+              </app-field-item>
+              <app-field-item
+                labelKey="aiGovernance.fields.models"
+                [value]="s.models.length ? s.models.join(', ') : null"
+              />
+              <app-field-item
+                labelKey="aiGovernance.fields.dataCategories"
+                [value]="s.data_categories.length ? s.data_categories.join(', ') : null"
+              />
+              <app-field-item labelKey="aiGovernance.fields.usesPersonalData">
+                <div class="flex flex-col gap-1.5">
+                  <span>{{
                     (s.uses_personal_data ? 'aiGovernance.common.yes' : 'aiGovernance.common.no')
                       | transloco
-                  }}
-                </dd>
-              </div>
-              <div>
-                <dt class="text-[12px] font-semibold text-fg-muted">
-                  {{ 'aiGovernance.fields.owner' | transloco }}
-                </dt>
-                <dd class="text-fg">
-                  {{ s.owner?.name ?? ('aiGovernance.common.nobody' | transloco) }}
-                </dd>
-              </div>
-              <div>
-                <dt class="text-[12px] font-semibold text-fg-muted">
-                  {{ 'aiGovernance.fields.department' | transloco }}
-                </dt>
-                <dd class="text-fg">
-                  {{ departmentName() ?? ('aiGovernance.common.notSet' | transloco) }}
-                </dd>
-              </div>
-              <div>
-                <dt class="text-[12px] font-semibold text-fg-muted">
-                  {{ 'aiGovernance.fields.nextReview' | transloco }}
-                </dt>
-                <dd class="text-fg">
-                  @if (s.next_review_at) {
-                    {{ s.next_review_at | localDay }}
-                  } @else {
-                    {{ 'aiGovernance.common.notSet' | transloco }}
+                  }}</span>
+                  @if (s.processing_activity; as ropa) {
+                    <app-entity-chip [ref]="ropa" data-testid="system-ropa" />
+                  } @else if (s.uses_personal_data) {
+                    <span class="text-meta text-warn-ink">{{
+                      'aiGovernance.systemDetail.noRopa' | transloco
+                    }}</span>
                   }
-                </dd>
-              </div>
-              <div>
-                <dt class="text-[12px] font-semibold text-fg-muted">
-                  {{ 'aiGovernance.fields.classifiedAt' | transloco }}
-                </dt>
-                <dd class="text-fg">
-                  @if (s.classified_at) {
-                    {{ s.classified_at | localDate }}
-                  } @else {
-                    {{ 'aiGovernance.systemDetail.notClassified' | transloco }}
-                  }
-                </dd>
-              </div>
-            </dl>
+                </div>
+              </app-field-item>
+              @if (s.uses_personal_data || s.dpias?.length) {
+                <app-field-item labelKey="aiGovernance.fields.dpia" [wide]="true">
+                  <div class="flex flex-wrap items-center gap-2" data-testid="system-dpias">
+                    @for (d of s.dpias ?? []; track d.entity_id) {
+                      <app-entity-chip [ref]="d" [statusText]="true" />
+                    } @empty {
+                      <span class="text-fg-muted">
+                        {{
+                          (s.dpia_recommended
+                            ? 'aiGovernance.systemDetail.dpiaRecommended'
+                            : 'aiGovernance.systemDetail.noDpia'
+                          ) | transloco
+                        }}
+                      </span>
+                      @if (store.canWrite()) {
+                        <app-button
+                          size="sm"
+                          variant="secondary"
+                          [loading]="flows.starting() === 'ai_system.to_dpia'"
+                          (click)="startFlow('ai_system.to_dpia', s)"
+                        >
+                          {{ 'aiGovernance.systemDetail.createDpia' | transloco }}
+                        </app-button>
+                      }
+                    }
+                  </div>
+                </app-field-item>
+              }
+              <app-field-item
+                labelKey="aiGovernance.fields.owner"
+                [value]="s.owner?.name"
+                empty="none"
+              />
+              <app-field-item
+                labelKey="aiGovernance.fields.department"
+                [value]="departmentName()"
+              />
+              <app-field-item labelKey="aiGovernance.fields.overseers" [wide]="true">
+                @if (s.overseers?.length) {
+                  <ul class="flex flex-wrap gap-1.5" data-testid="system-overseers">
+                    @for (o of s.overseers; track o.id) {
+                      <li
+                        class="inline-flex min-h-7 items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-ui"
+                        [class]="
+                          o.literacy_valid
+                            ? 'border-border text-fg'
+                            : 'border-warn/40 bg-warn-soft text-fg'
+                        "
+                      >
+                        {{ o.name }}
+                        @if (!o.literacy_valid) {
+                          <span class="text-meta text-warn-ink"
+                            >· {{ 'aiGovernance.systemDetail.literacyMissing' | transloco }}</span
+                          >
+                        }
+                      </li>
+                    }
+                  </ul>
+                } @else {
+                  <span class="text-fg-muted">{{
+                    'aiGovernance.systemDetail.noOverseers' | transloco
+                  }}</span>
+                }
+              </app-field-item>
+              <app-field-item
+                labelKey="aiGovernance.fields.nextReview"
+                [value]="s.next_review_at ? (s.next_review_at | localDay) : null"
+              />
+            </app-field-list>
           </app-card>
 
-          <app-card>
+          <app-card data-testid="system-classification">
             <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-              <h2 class="font-display text-[15px] font-bold text-fg">
+              <h2 class="font-display text-section font-bold text-fg">
                 {{ 'aiGovernance.systemDetail.classification' | transloco }}
               </h2>
-              @if (s.classification_id) {
+              @if (s.classification; as c) {
                 <a
-                  [routerLink]="['/ai-governance/assessments', s.classification_id]"
-                  class="text-[13px] font-semibold text-accent hover:underline"
+                  [routerLink]="['/ai-governance/assessments', c.id]"
+                  class="inline-flex min-h-6 items-center gap-1.5 text-ui font-semibold text-accent hover:underline"
                 >
-                  {{ 'aiGovernance.systemDetail.openClassification' | transloco }}
+                  <span class="font-mono text-meta">{{ c.code }}</span>
+                  <app-status-badge
+                    meaning="lifecycle"
+                    [value]="assessmentValue(c.status)"
+                    [labelKey]="assessmentStatusKey(c.status)"
+                  />
                 </a>
               }
             </div>
             @if (s.risk_class === 'unclassified') {
-              <p class="text-[13.5px] text-fg-muted">
+              <p class="text-body text-fg-muted">
                 {{ 'aiGovernance.systemDetail.unclassifiedHint' | transloco }}
               </p>
             } @else {
-              <p class="mb-2 text-[13.5px] text-fg">
-                {{ riskExplainKey(s.risk_class, s.ai_act_role) | transloco }}
+              <p class="text-body text-fg">
+                {{ explainKey(s) | transloco }}
               </p>
               @if (s.transparency.length) {
-                <p class="mb-2 text-[12.5px] text-fg-muted">
+                <p class="mt-2 text-ui text-fg-muted">
                   {{ 'aiGovernance.systemDetail.transparency' | transloco }}:
                   @for (t of s.transparency; track t; let last = $last) {
                     {{ transparencyKey(t) | transloco }}{{ last ? '' : ', ' }}
                   }
                 </p>
               }
-              <h3 class="mt-3 mb-1 text-[13px] font-bold text-fg">
-                {{ 'aiGovernance.result.obligations' | transloco: { count: s.obligations.length } }}
-              </h3>
-              <app-ai-obligation-list [obligations]="s.obligations" />
+              @if (s.classified_at) {
+                <p class="mt-2 text-meta text-fg-subtle">
+                  {{
+                    'aiGovernance.systemDetail.classifiedOn'
+                      | transloco: { date: (s.classified_at | localDate) }
+                  }}
+                </p>
+              }
+              @if (s.fria_applicable) {
+                <p
+                  class="mt-3 rounded-tile px-3 py-2 text-ui"
+                  [class]="s.fria_required ? 'bg-warn-soft text-fg' : 'bg-surface-2 text-fg-muted'"
+                  data-testid="system-fria"
+                >
+                  <app-term scope="ai-governance" key="fria">FRIA</app-term>:
+                  {{
+                    (s.fria_required
+                      ? hasFria()
+                        ? 'aiGovernance.systemDetail.friaDone'
+                        : 'aiGovernance.systemDetail.friaRequiredBody'
+                      : 'aiGovernance.systemDetail.friaVoluntary'
+                    ) | transloco
+                  }}
+                </p>
+              }
             }
           </app-card>
 
-          <app-card>
+          @if (s.risk_class !== 'unclassified') {
+            <app-card data-testid="system-obligations">
+              <div class="mb-1 flex flex-wrap items-center justify-between gap-2">
+                <h2 class="font-display text-section font-bold text-fg">
+                  {{ 'aiGovernance.systemDetail.obligations' | transloco }}
+                </h2>
+                @if (s.obligations.length) {
+                  <app-ai-assist-button
+                    assist="ai_governance.explain_obligations"
+                    labelKey="aiGovernance.ai.explainObligations"
+                    [input]="{ ai_system_id: s.id }"
+                    entityType="ai_system"
+                    [entityId]="s.id"
+                    (text)="explanation.set($event)"
+                  />
+                }
+              </div>
+              @if (obligationTotals(); as t) {
+                @if (t.total > 0) {
+                  <div class="mb-2 flex items-center gap-3">
+                    <span class="min-w-0 flex-1">
+                      <app-progress-bar
+                        [value]="t.total ? (t.met / t.total) * 100 : 0"
+                        [label]="'aiGovernance.systemDetail.obligationsMet' | transloco: t"
+                      />
+                    </span>
+                    <span class="text-ui font-semibold text-fg" data-testid="obligations-met">{{
+                      'aiGovernance.systemDetail.obligationsMet' | transloco: t
+                    }}</span>
+                  </div>
+                }
+              }
+              @if (explanation()) {
+                <div class="my-3 rounded-tile border border-border bg-surface-2 p-3">
+                  <div class="mb-1 flex items-center justify-between gap-2">
+                    <h3 class="text-ui font-bold text-fg">
+                      {{ 'aiGovernance.ai.explanationTitle' | transloco }}
+                    </h3>
+                    <button
+                      type="button"
+                      class="inline-flex h-6 w-6 items-center justify-center rounded-full text-fg-subtle hover:text-fg"
+                      [attr.aria-label]="'aiGovernance.common.close' | transloco"
+                      (click)="explanation.set('')"
+                    >
+                      <app-icon name="x" [size]="14" />
+                    </button>
+                  </div>
+                  <div
+                    class="cf-prose text-ui leading-relaxed text-fg"
+                    [innerHTML]="explanation() | appMarkdown"
+                  ></div>
+                  <p class="mt-2 text-meta text-fg-subtle">
+                    {{ 'aiGovernance.ai.reviewNotice' | transloco }}
+                  </p>
+                </div>
+              }
+              <app-ai-obligation-list
+                [obligations]="obligations()"
+                [systemId]="s.id"
+                [canWrite]="store.canWrite()"
+                (changed)="obligations.set($event)"
+              />
+              @if (s.provider_obligations?.length) {
+                <div
+                  class="mt-4 border-t border-border pt-4"
+                  data-testid="system-provider-obligations"
+                >
+                  <h3 class="text-card font-semibold text-fg">
+                    {{ 'aiGovernance.result.providerObligations' | transloco }}
+                  </h3>
+                  <p class="mb-1 text-meta text-fg-muted">
+                    {{
+                      (s.is_builtin
+                        ? 'aiGovernance.systemDetail.providerBuiltin'
+                        : 'aiGovernance.result.providerObligationsHint'
+                      ) | transloco
+                    }}
+                  </p>
+                  <app-ai-obligation-list
+                    [obligations]="s.provider_obligations!"
+                    [tracked]="false"
+                  />
+                </div>
+              }
+            </app-card>
+          }
+
+          <app-card data-testid="system-assessments">
             <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-              <h2 class="font-display text-[15px] font-bold text-fg">
+              <h2 class="font-display text-section font-bold text-fg">
                 {{ 'aiGovernance.systemDetail.assessments' | transloco }}
               </h2>
               @if (store.canWrite()) {
@@ -395,22 +523,25 @@ const FIELD_LABELS: Readonly<Record<string, string>> = {
                   <a
                     routerLink="/ai-governance/assessments/new"
                     [queryParams]="{ system: s.id, kind: 'impact' }"
-                    class="inline-flex h-8 items-center rounded-tile border border-border px-3 text-[13px] font-semibold text-fg hover:bg-surface-2"
+                    class="inline-flex h-8 items-center rounded-tile border border-border px-3 text-ui font-semibold text-fg hover:bg-surface-2"
                   >
                     {{ 'aiGovernance.systemDetail.newImpact' | transloco }}
                   </a>
-                  <a
-                    routerLink="/ai-governance/assessments/new"
-                    [queryParams]="{ system: s.id, kind: 'fria' }"
-                    class="inline-flex h-8 items-center rounded-tile border border-border px-3 text-[13px] font-semibold text-fg hover:bg-surface-2"
-                  >
-                    {{ 'aiGovernance.systemDetail.newFria' | transloco }}
-                  </a>
+                  @if (s.fria_applicable) {
+                    <a
+                      routerLink="/ai-governance/assessments/new"
+                      [queryParams]="{ system: s.id, kind: 'fria' }"
+                      class="inline-flex h-8 items-center rounded-tile border border-border px-3 text-ui font-semibold text-fg hover:bg-surface-2"
+                      data-testid="system-new-fria"
+                    >
+                      {{ 'aiGovernance.systemDetail.newFria' | transloco }}
+                    </a>
+                  }
                 </div>
               }
             </div>
             @if (assessments().length === 0) {
-              <p class="text-[13px] text-fg-muted">
+              <p class="text-ui text-fg-muted">
                 {{ 'aiGovernance.systemDetail.noAssessments' | transloco }}
               </p>
             } @else {
@@ -419,16 +550,23 @@ const FIELD_LABELS: Readonly<Record<string, string>> = {
                   <li class="flex flex-wrap items-center justify-between gap-2 py-2">
                     <a
                       [routerLink]="['/ai-governance/assessments', a.id]"
-                      class="min-w-0 truncate text-[13.5px] font-semibold text-fg hover:underline"
+                      class="min-w-0 truncate text-body font-semibold text-fg hover:underline"
                     >
-                      <span class="mr-1 font-mono text-[12px] text-fg-subtle">{{ a.code }}</span>
+                      <span class="mr-1 font-mono text-meta text-fg-subtle">{{ a.code }}</span>
                       {{ a.title }}
                     </a>
-                    <span class="flex items-center gap-2">
-                      <app-badge tone="neutral">{{ kindKey(a.kind) | transloco }}</app-badge>
-                      <app-badge [tone]="assessmentTone(a.status)">{{
-                        assessmentStatusKey(a.status) | transloco
-                      }}</app-badge>
+                    <span class="flex flex-wrap items-center gap-2">
+                      <span class="text-meta text-fg-muted">{{ kindKey(a.kind) | transloco }}</span>
+                      @if (a.review_flag) {
+                        <app-badge tone="warn">{{
+                          'aiGovernance.assessments.needsReview' | transloco
+                        }}</app-badge>
+                      }
+                      <app-status-badge
+                        meaning="lifecycle"
+                        [value]="assessmentValue(a.status)"
+                        [labelKey]="assessmentStatusKey(a.status)"
+                      />
                     </span>
                   </li>
                 }
@@ -436,23 +574,36 @@ const FIELD_LABELS: Readonly<Record<string, string>> = {
             }
           </app-card>
 
-          <app-card>
-            <div class="flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <h2 class="font-display text-[15px] font-bold text-fg">
+          <app-card data-testid="system-documentation">
+            <div class="flex flex-wrap items-start justify-between gap-3">
+              <div class="min-w-0 flex-1">
+                <h2 class="font-display text-section font-bold text-fg">
                   {{ 'aiGovernance.systemDetail.documentation' | transloco }}
                 </h2>
-                <p class="mt-0.5 text-[12.5px] text-fg-muted">
-                  {{
-                    'aiGovernance.systemDetail.documentationHint'
-                      | transloco: { count: documentedCount() }
-                  }}
-                </p>
+                @if (s.documentation_progress; as p) {
+                  <p class="mt-1 text-ui text-fg-muted">
+                    {{
+                      'aiGovernance.systemDetail.governanceProgress'
+                        | transloco: { done: p.governance_done, total: p.governance_total }
+                    }}
+                    ·
+                    {{
+                      (p.annex_iv_required
+                        ? 'aiGovernance.systemDetail.annexProgress'
+                        : 'aiGovernance.systemDetail.annexOptional'
+                      ) | transloco: { done: p.annex_iv_done, total: p.annex_iv_total }
+                    }}
+                  </p>
+                } @else {
+                  <p class="mt-1 text-ui text-fg-muted">
+                    {{ 'aiGovernance.systemDetail.documentationHint' | transloco }}
+                  </p>
+                }
               </div>
               <a
                 [routerLink]="['/ai-governance/systems', s.id, 'documentation']"
-                class="inline-flex h-8 items-center gap-1.5 rounded-tile border border-border px-3 text-[13px] font-semibold text-fg hover:bg-surface-2"
-                data-testid="system-documentation"
+                class="inline-flex h-8 items-center gap-1.5 rounded-tile border border-border px-3 text-ui font-semibold text-fg hover:bg-surface-2"
+                data-testid="system-documentation-link"
               >
                 <app-icon name="documents" [size]="14" />
                 {{ 'aiGovernance.systemDetail.openDocumentation' | transloco }}
@@ -460,9 +611,44 @@ const FIELD_LABELS: Readonly<Record<string, string>> = {
             </div>
           </app-card>
 
-          <app-ai-system-monitoring [systemId]="s.id" [canWrite]="store.canWrite()" />
-          <app-ai-system-incidents [systemId]="s.id" [canWrite]="store.canWrite()" />
-          <app-supports-requirements entityType="ai_system" [entityId]="s.id" />
+          <app-card data-testid="system-risks">
+            <div class="flex flex-wrap items-start justify-between gap-3">
+              <div class="min-w-0 flex-1">
+                <h2 class="font-display text-section font-bold text-fg">
+                  {{ 'aiGovernance.systemDetail.risks' | transloco }}
+                </h2>
+                <p class="mt-1 text-ui text-fg-muted">
+                  {{ 'aiGovernance.systemDetail.risksHint' | transloco }}
+                </p>
+              </div>
+              @if (store.canWrite()) {
+                <app-button
+                  size="sm"
+                  variant="secondary"
+                  [loading]="flows.starting() === 'ai_system.to_risk'"
+                  (click)="startFlow('ai_system.to_risk', s)"
+                  data-testid="system-create-risk"
+                >
+                  <app-icon name="plus" [size]="14" />
+                  {{ 'aiGovernance.systemDetail.createRisk' | transloco }}
+                </app-button>
+              }
+            </div>
+          </app-card>
+
+          <app-ai-system-monitoring
+            [systemId]="s.id"
+            [canWrite]="store.canWrite()"
+            [metrics]="s.monitoring_metrics ?? []"
+            [highRisk]="s.risk_class === 'high'"
+            (reportIncident)="startFlow('ai_system.to_incident', s)"
+          />
+          <app-ai-system-incidents
+            [systemId]="s.id"
+            [canWrite]="store.canWrite()"
+            [starting]="flows.starting() === 'ai_system.to_incident'"
+            (report)="startFlow('ai_system.to_incident', s)"
+          />
         </div>
 
         <div tasks>
@@ -475,11 +661,24 @@ const FIELD_LABELS: Readonly<Record<string, string>> = {
           />
         </div>
 
+        <app-supports-requirements
+          aside-requirements
+          entityType="ai_system"
+          [entityId]="s.id"
+          [canEdit]="store.canWrite()"
+          [frameworks]="frameworks"
+        />
+
         <div aside class="flex flex-col gap-4">
           <app-ai-system-review-schedule [systemId]="s.id" [canWrite]="store.canWrite()" />
-          <app-ai-lesson-card lesson="ai-act-obligations" />
-          <app-why-it-matters [scope]="scope" page="systemDetail" />
         </div>
+
+        <app-help-strip
+          aside-learn
+          [scope]="scope"
+          page="systemDetail"
+          lesson="ai-act-obligations"
+        />
       </app-record-detail-layout>
 
       <app-confirm-dialog
@@ -488,14 +687,15 @@ const FIELD_LABELS: Readonly<Record<string, string>> = {
         [message]="'aiGovernance.systemDetail.deleteMessage' | transloco: { name: s.name }"
         [confirmLabel]="'aiGovernance.common.delete' | transloco"
         [cancelLabel]="'aiGovernance.common.cancel' | transloco"
+        confirmVariant="danger"
         [busy]="deleting()"
         (confirmed)="remove(s)"
         (cancelled)="confirmDelete.set(false)"
       />
     } @else {
-      <p class="mx-auto max-w-[1180px] px-4 pt-7 text-[14px] text-fg-muted sm:px-8">
-        {{ 'aiGovernance.common.loading' | transloco }}
-      </p>
+      <div class="mx-auto max-w-[1180px] px-4 pt-7 sm:px-8">
+        <app-loading-state [rows]="6" />
+      </div>
     }
   `,
 })
@@ -507,33 +707,44 @@ export class AiSystemDetail {
   private readonly assigneeOptions = inject(AssigneeOptionsService);
   private readonly ask = inject(AskPanelService);
   private readonly router = inject(Router);
+  protected readonly flows = inject(CreateFlowService);
   protected readonly store = inject(AiGovernanceStore);
 
   readonly id = input.required<string>();
 
   protected readonly scope = AI_GOVERNANCE_SCOPE;
+  protected readonly root = AI_GOV_ROOT;
   protected readonly tabs = TABS;
-  protected readonly fieldLabels = FIELD_LABELS;
+  protected readonly fieldLabels = SYSTEM_FIELD_LABELS;
+  protected readonly frameworks = ['iso42001', 'eu_ai_act'] as const;
   protected readonly riskKey = riskKey;
-  protected readonly riskTone = riskTone;
+  protected readonly riskValue = riskValue;
   protected readonly statusKey = statusKey;
-  protected readonly statusTone = systemStatusTone;
+  protected readonly statusValue = systemStatusValue;
   protected readonly roleKey = roleKey;
-  protected readonly riskExplainKey = riskExplainKey;
   protected readonly kindKey = kindKey;
   protected readonly assessmentStatusKey = assessmentStatusKey;
-  protected readonly assessmentTone = assessmentStatusTone;
+  protected readonly assessmentValue = assessmentStatusValue;
   protected readonly transparencyKey = transparencyKey;
 
   protected readonly system = signal<AiSystem | null>(null);
+  protected readonly obligations = signal<readonly Obligation[]>([]);
   protected readonly assessments = signal<readonly AssessmentSummary[]>([]);
   protected readonly loadError = signal<string | null>(null);
   protected readonly explanation = signal('');
   protected readonly confirmDelete = signal(false);
   protected readonly deleting = signal(false);
+  protected readonly classifying = signal(false);
+  protected readonly reload = signal(0);
 
-  protected readonly documentedCount = computed(
-    () => Object.values(this.system()?.documentation ?? {}).filter((v) => !!v).length,
+  /** Met vs. counted obligations (not-relevant ones do not count). */
+  protected readonly obligationTotals = computed(() => {
+    const list = this.obligations();
+    const counted = list.filter((o) => o.status !== 'not_relevant');
+    return { met: counted.filter((o) => o.status === 'met').length, total: counted.length };
+  });
+  protected readonly hasFria = computed(() =>
+    this.assessments().some((a) => a.kind === 'fria' && a.status !== 'draft'),
   );
   protected readonly departmentName = computed(() => {
     const id = this.system()?.department_id;
@@ -549,6 +760,10 @@ export class AiSystemDetail {
     const owner = this.system()?.owner;
     return owner ? { type: 'user', value: owner.id } : null;
   });
+  /** The clauses the system's obligations come from (assistant page context). */
+  private readonly obligationRefs = computed(() =>
+    [...new Set(this.obligations().map((o) => o.clause_ref || o.ref))].filter(Boolean),
+  );
 
   constructor() {
     providePageContext(() => ({
@@ -556,11 +771,14 @@ export class AiSystemDetail {
       entityType: AI_SYSTEM_ENTITY,
       entityId: this.id(),
       view: 'detail',
-      title: this.system()?.name ?? null,
+      title: this.titleOf(this.system()),
+      requirements: this.obligationRefs(),
     }));
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();
       const id = this.id();
+      this.reload();
+      this.language.active();
       untracked(() => {
         if (!orgId) {
           return;
@@ -568,7 +786,10 @@ export class AiSystemDetail {
         this.assigneeOptions.ensureLoaded();
         this.loadError.set(null);
         this.api.getSystem(orgId, id).subscribe({
-          next: (system) => this.system.set(system),
+          next: (system) => {
+            this.system.set(system);
+            this.obligations.set(system.obligations);
+          },
           error: (err: unknown) => this.loadError.set(aiGovernanceErrorKey(err)),
         });
         this.api.listAssessments(orgId, { ai_system_id: id, limit: 50 }).subscribe({
@@ -579,6 +800,39 @@ export class AiSystemDetail {
     });
   }
 
+  private titleOf(s: AiSystem | null): string | null {
+    return s ? `${s.code} ${s.name}` : null;
+  }
+
+  protected explainKey(s: AiSystem): string {
+    return riskExplainKey(s.risk_class, s.ai_act_role, s.is_builtin);
+  }
+
+  /** Classify / reclassify: open the wizard on a draft prefilled with the current answers. */
+  protected classify(s: AiSystem): void {
+    const orgId = this.selectedOrg.currentOrgId();
+    if (!orgId || this.classifying()) {
+      return;
+    }
+    this.classifying.set(true);
+    this.api.reclassify(orgId, s.id, this.language.active()).subscribe({
+      next: (draft) => {
+        this.classifying.set(false);
+        void this.router.navigate(['/ai-governance/systems', s.id, 'classify'], {
+          queryParams: { assessment: draft.id },
+        });
+      },
+      error: (err: unknown) => {
+        this.classifying.set(false);
+        this.notifications.error(aiGovernanceErrorKey(err));
+      },
+    });
+  }
+
+  protected startFlow(key: string, s: AiSystem): void {
+    void this.flows.start(key, AI_SYSTEM_ENTITY, s.id);
+  }
+
   protected askAbout(system: AiSystem): void {
     this.ask.askAbout(
       this.language.translate('aiGovernance.ai.prompts.askAboutSystem', {
@@ -586,6 +840,17 @@ export class AiSystemDetail {
         name: system.name,
       }),
     );
+  }
+
+  protected exportFile(s: AiSystem): void {
+    const orgId = this.selectedOrg.currentOrgId();
+    if (!orgId) {
+      return;
+    }
+    this.api.exportTechnicalDocumentation(orgId, s.id, this.language.active()).subscribe({
+      next: (blob) => downloadBlob(blob, `${s.code}-technical-file.pdf`),
+      error: (err: unknown) => this.notifications.error(aiGovernanceErrorKey(err)),
+    });
   }
 
   protected remove(system: AiSystem): void {

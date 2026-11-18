@@ -49,6 +49,9 @@ describe('ObligationsApi', () => {
       owner: 'me',
       evaluation_overdue: true,
       expiring_within_days: 60,
+      without_schedule: undefined,
+      renewal_due: undefined,
+      clause_ref: undefined,
       sort: 'valid_until',
       limit: undefined,
       offset: undefined,
@@ -111,5 +114,27 @@ describe('ObligationsApi', () => {
     for (const [method, path] of expected) {
       http.expectOne({ method, url: url(path) }).flush({});
     }
+  });
+
+  it('wires the A20 endpoints: clause defaults, export, evaluation deviation and duty tasks', () => {
+    api.clauseDefaults('org-1').subscribe();
+    http.expectOne({ method: 'GET', url: url('/clause-defaults') }).flush({ items: {} });
+
+    api.export('org-1', 'pdf', 'nb', { without_schedule: true, limit: 25, offset: 50 }).subscribe();
+    const exp = http.expectOne((r) => r.url === url('/export'));
+    expect(exp.request.responseType).toBe('blob');
+    expect(exp.request.params.get('format')).toBe('pdf');
+    expect(exp.request.params.get('lang')).toBe('nb');
+    expect(exp.request.params.get('without_schedule')).toBe('true');
+    expect(exp.request.params.has('offset')).toBe(false);
+    exp.flush(new Blob(['x']));
+
+    api.setEvaluationDeviation('org-1', 'o-1', 'e-1', 'dev-1').subscribe();
+    const dev = http.expectOne({ method: 'PUT', url: url('/o-1/evaluations/e-1/deviation') });
+    expect(dev.request.body).toEqual({ deviation_id: 'dev-1' });
+    dev.flush({});
+
+    api.addDutyAction('org-1', 'o-1', 'd-1', { title: 'Fix' }).subscribe();
+    http.expectOne({ method: 'POST', url: url('/o-1/duties/d-1/actions') }).flush({});
   });
 });

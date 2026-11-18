@@ -9,24 +9,33 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription, catchError, map, of, switchMap } from 'rxjs';
 import { providePageContext } from '../../../core/ai/page-context';
 import { LanguageService } from '../../../core/i18n/language.service';
+import { CreateFlowService, FlowContext } from '../../../core/kit/create-flow.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { FieldHelp } from '../../../shared/guidance/field-help';
-import { GuideIntro } from '../../../shared/guidance/guide-intro';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
+import { FlowBanner } from '../../../shared/kit/flow-banner';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
+import { ErrorState } from '../../../shared/ui/error-state/error-state';
 import { FormField } from '../../../shared/ui/form-field/form-field';
-import { Icon } from '../../../shared/ui/icon/icon';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { blankToNull, changedFields, dayOrNull } from '../data/asset-display';
 import { assetErrorKey } from '../data/asset-errors';
-import { AccessReviewDetail, AccessReviewFields } from '../data/asset.models';
+import {
+  AccessReviewDetail,
+  AccessReviewFields,
+  REVIEW_FREQUENCIES,
+  SYSTEM_ASSET_TYPES,
+} from '../data/asset.models';
 import { AssetsApi } from '../data/assets-api';
 import { AssetSelect } from '../shared/asset-select';
 import { AssetUserSelect } from '../shared/people-select';
@@ -89,52 +98,89 @@ export function reviewDraftErrors(d: ReviewDraft): Readonly<Record<string, strin
   return errors;
 }
 
+/** Apply create-from-here values (`asset.to_access_review`) to a new review draft. */
+export function reviewDraftFromPrefill(
+  d: ReviewDraft,
+  prefill: Readonly<Record<string, unknown>>,
+): ReviewDraft {
+  const text = (key: string) => (typeof prefill[key] === 'string' ? (prefill[key] as string) : '');
+  const system = text('system_asset_id');
+  return {
+    ...d,
+    title: text('title') || d.title,
+    systemMode: system ? 'asset' : d.systemMode,
+    system_asset_id: system || d.system_asset_id,
+    reviewer_user_id: text('reviewer_user_id') || d.reviewer_user_id,
+    scope: text('scope') || d.scope,
+  };
+}
+
 /**
- * Plan an access review (`/assets/access-reviews/new`, `?asset=<id>` preselects the
- * system) or edit one (`/assets/access-reviews/:id/edit`): the system (an asset in
- * the inventory or a named system), scope, reviewer, due date and how often it
- * repeats. A new review can start with every organisation member as an account.
+ * Plan an access review (`/assets/access-reviews/new`, `?asset=<id>` or the
+ * "Planlegg tilgangsgjennomgang" flow from an asset preselects the system) or edit one
+ * (`/assets/access-reviews/:id/edit`): the system (an asset in the inventory — systems
+ * people log in to by default, "Vis alle" for the rest — or a named system), scope,
+ * the person responsible, due date and how often it repeats. A new review can start
+ * with every organisation member as an account.
  */
 @Component({
   selector: 'app-access-review-edit',
   imports: [
-    RouterLink,
     TranslocoPipe,
     Alert,
     AssetSelect,
     AssetUserSelect,
     Button,
     Card,
+    ErrorState,
     FieldHelp,
+    FlowBanner,
     FormField,
-    GuideIntro,
-    Icon,
+    HelpStrip,
+    LoadingState,
+    PageHeader,
     WhyItMatters,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[880px] px-4 pt-7 pb-12 sm:px-8">
-      <a
-        [routerLink]="id() ? ['/assets/access-reviews', id()] : '/assets/access-reviews'"
-        class="mb-3 inline-flex items-center gap-1 text-[13px] font-semibold text-fg-muted hover:text-fg"
-      >
-        <app-icon name="back" [size]="14" />
-        {{ (id() ? 'assets.common.backToReview' : 'assets.common.backToReviews') | transloco }}
-      </a>
+    <div class="mx-auto max-w-[760px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       @if (state() === 'loading') {
-        <p class="text-[14px] text-fg-muted">{{ 'assets.common.loading' | transloco }}</p>
+        <app-loading-state [rows]="5" />
       } @else if (state() === 'error') {
-        <app-alert>{{ 'assets.reviewDetail.notFound' | transloco }}</app-alert>
+        <app-error-state
+          titleKey="assets.reviewDetail.notFoundTitle"
+          bodyKey="assets.reviewDetail.notFound"
+          (retry)="retry()"
+        />
       } @else {
-        <h1 class="mb-1 font-display text-[26px] font-bold tracking-[-0.025em] text-fg">
-          @if (review(); as r) {
-            {{ 'assets.reviewForm.editTitle' | transloco: { code: r.code } }}
-          } @else {
-            {{ 'assets.reviewForm.newTitle' | transloco }}
-          }
-        </h1>
-        <p class="mb-4 text-[14px] text-fg-muted">{{ 'assets.reviewForm.subtitle' | transloco }}</p>
-        <div class="mb-4"><app-guide-intro scope="assets" page="reviewForm" /></div>
+        @if (review(); as r) {
+          <app-page-header
+            titleKey="assets.reviewForm.editTitle"
+            [titleParams]="{ code: r.code }"
+            [breadcrumbs]="[
+              { labelKey: 'modules.names.assets', link: '/assets' },
+              { labelKey: 'assets.reviews.title', link: '/assets/access-reviews' },
+              { label: r.code, link: ['/assets/access-reviews', r.id] },
+              { labelKey: 'assets.common.edit' },
+            ]"
+            [backLink]="['/assets/access-reviews', r.id]"
+            backLabelKey="assets.common.backToReview"
+          />
+        } @else {
+          <app-page-header
+            titleKey="assets.reviewForm.newTitle"
+            descriptionKey="assets.reviewForm.subtitle"
+            [breadcrumbs]="[
+              { labelKey: 'modules.names.assets', link: '/assets' },
+              { labelKey: 'assets.reviews.title', link: '/assets/access-reviews' },
+              { labelKey: 'assets.reviewForm.newTitle' },
+            ]"
+            backLink="/assets/access-reviews"
+            backLabelKey="assets.common.backToReviews"
+          />
+        }
+        <app-help-strip scope="assets" page="reviewForm" />
+        <app-flow-banner [flow]="flow()" />
         @if (review()?.status === 'completed' || review()?.status === 'cancelled') {
           <app-alert tone="info">{{ 'assets.reviewForm.closed' | transloco }}</app-alert>
         } @else {
@@ -148,12 +194,13 @@ export function reviewDraftErrors(d: ReviewDraft): Readonly<Record<string, strin
               <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <fieldset class="sm:col-span-2">
                   <legend
-                    class="mb-2 flex items-center gap-1 text-[13px] font-semibold text-fg-muted"
+                    class="mb-2 flex items-center gap-1.5 text-ui font-semibold text-fg-muted"
                   >
                     {{ 'assets.fields.system' | transloco }}
+                    <span class="text-fail-ink" aria-hidden="true">*</span>
                     <app-field-help scope="assets" page="reviewForm" field="system" />
                   </legend>
-                  <div class="mb-2 flex flex-wrap gap-4 text-[13px] text-fg">
+                  <div class="mb-2 flex flex-wrap gap-4 text-ui text-fg">
                     <label class="inline-flex items-center gap-1.5">
                       <input
                         type="radio"
@@ -176,33 +223,45 @@ export function reviewDraftErrors(d: ReviewDraft): Readonly<Record<string, strin
                     </label>
                   </div>
                   @if (d().systemMode === 'asset') {
-                    <label class="sr-only" for="ar-system-asset">{{
-                      'assets.fields.system' | transloco
-                    }}</label>
-                    <app-asset-select
+                    <app-form-field
+                      [label]="'assets.reviewForm.systemAsset' | transloco"
                       inputId="ar-system-asset"
-                      describedBy="ar-system-err"
-                      [value]="d().system_asset_id"
-                      [currentLabel]="review()?.system_asset?.name ?? null"
-                      (valueChange)="set('system_asset_id', $event)"
-                    />
+                    >
+                      <app-asset-select
+                        inputId="ar-system-asset"
+                        describedBy="ar-system-err"
+                        [types]="showAllAssets() ? null : systemTypes"
+                        [value]="d().system_asset_id"
+                        [currentLabel]="review()?.system_asset?.name ?? null"
+                        (valueChange)="set('system_asset_id', $event)"
+                      />
+                    </app-form-field>
+                    <label class="mt-2 inline-flex items-center gap-1.5 text-meta text-fg-muted">
+                      <input
+                        type="checkbox"
+                        [checked]="showAllAssets()"
+                        (change)="showAllAssets.set($any($event.target).checked)"
+                      />
+                      {{ 'assets.reviewForm.showAllAssets' | transloco }}
+                    </label>
                   } @else {
-                    <label class="sr-only" for="ar-system-name">{{
-                      'assets.fields.systemName' | transloco
-                    }}</label>
-                    <input
-                      id="ar-system-name"
-                      type="text"
-                      maxlength="255"
-                      aria-describedby="ar-system-err"
-                      class="h-10 w-full rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg"
-                      [placeholder]="'assets.reviewForm.systemNamePlaceholder' | transloco"
-                      [value]="d().system_name"
-                      (input)="set('system_name', $any($event.target).value)"
-                    />
+                    <app-form-field
+                      [label]="'assets.fields.systemName' | transloco"
+                      inputId="ar-system-name"
+                    >
+                      <input
+                        id="ar-system-name"
+                        type="text"
+                        maxlength="255"
+                        aria-describedby="ar-system-err"
+                        [placeholder]="'assets.reviewForm.systemNamePlaceholder' | transloco"
+                        [value]="d().system_name"
+                        (input)="set('system_name', $any($event.target).value)"
+                      />
+                    </app-form-field>
                   }
                   @if (showErrors() && errors()['system']; as key) {
-                    <p id="ar-system-err" class="mt-1 text-[12px] text-fail" role="alert">
+                    <p id="ar-system-err" class="mt-1 text-meta text-fail-ink" role="alert">
                       {{ key | transloco }}
                     </p>
                   }
@@ -218,13 +277,13 @@ export function reviewDraftErrors(d: ReviewDraft): Readonly<Record<string, strin
                       (input)="set('title', $any($event.target).value)"
                     />
                   </app-form-field>
-                  <p id="ar-title-hint" class="mt-1 text-[12px] text-fg-subtle">
+                  <p id="ar-title-hint" class="mt-1 text-meta text-fg-subtle">
                     {{ 'assets.reviewForm.titleHint' | transloco }}
                   </p>
                 </div>
                 <div class="sm:col-span-2">
-                  <app-field-help scope="assets" page="reviewForm" field="scope" />
                   <app-form-field [label]="'assets.fields.scope' | transloco" inputId="ar-scope">
+                    <app-field-help label-suffix scope="assets" page="reviewForm" field="scope" />
                     <textarea
                       id="ar-scope"
                       rows="3"
@@ -236,11 +295,17 @@ export function reviewDraftErrors(d: ReviewDraft): Readonly<Record<string, strin
                   </app-form-field>
                 </div>
                 <div>
-                  <app-field-help scope="assets" page="reviewForm" field="reviewer" />
                   <app-form-field
                     [label]="'assets.fields.reviewer' | transloco"
                     inputId="ar-reviewer"
+                    [required]="true"
                   >
+                    <app-field-help
+                      label-suffix
+                      scope="assets"
+                      page="reviewForm"
+                      field="reviewer"
+                    />
                     <app-asset-user-select
                       inputId="ar-reviewer"
                       describedBy="ar-reviewer-err"
@@ -252,57 +317,75 @@ export function reviewDraftErrors(d: ReviewDraft): Readonly<Record<string, strin
                     />
                   </app-form-field>
                   @if (showErrors() && errors()['reviewer']; as key) {
-                    <p id="ar-reviewer-err" class="mt-1 text-[12px] text-fail" role="alert">
+                    <p id="ar-reviewer-err" class="mt-1 text-meta text-fail-ink" role="alert">
                       {{ key | transloco }}
                     </p>
                   }
                 </div>
                 <div>
-                  <app-form-field [label]="'assets.fields.dueOn' | transloco" inputId="ar-due">
+                  <app-form-field
+                    [label]="'assets.fields.dueOn' | transloco"
+                    inputId="ar-due"
+                    [required]="true"
+                  >
                     <input
                       id="ar-due"
                       type="date"
                       required
+                      aria-required="true"
                       aria-describedby="ar-due-err"
+                      [attr.lang]="lang()"
                       [attr.aria-invalid]="showErrors() && !!errors()['due_on']"
                       [value]="d().due_on"
                       (input)="set('due_on', $any($event.target).value)"
                     />
                   </app-form-field>
                   @if (showErrors() && errors()['due_on']; as key) {
-                    <p id="ar-due-err" class="mt-1 text-[12px] text-fail" role="alert">
+                    <p id="ar-due-err" class="mt-1 text-meta text-fail-ink" role="alert">
                       {{ key | transloco }}
                     </p>
                   }
                 </div>
-                <div>
-                  <app-field-help scope="assets" page="reviewForm" field="frequency_months" />
+                <div class="sm:col-span-2">
                   <app-form-field
                     [label]="'assets.fields.frequencyMonths' | transloco"
                     inputId="ar-freq"
                   >
-                    <input
-                      id="ar-freq"
-                      type="number"
-                      min="1"
-                      max="60"
-                      aria-describedby="ar-freq-hint"
-                      [attr.aria-invalid]="showErrors() && !!errors()['frequency']"
-                      [value]="d().frequency_months"
-                      (input)="set('frequency_months', $any($event.target).value)"
+                    <app-field-help
+                      label-suffix
+                      scope="assets"
+                      page="reviewForm"
+                      field="frequency_months"
                     />
+                    <select
+                      id="ar-freq"
+                      aria-describedby="ar-freq-hint"
+                      (change)="set('frequency_months', $any($event.target).value)"
+                    >
+                      <option value="" [selected]="!d().frequency_months">
+                        {{ 'assets.reviewForm.frequency.oneOff' | transloco }}
+                      </option>
+                      @for (m of frequencies; track m) {
+                        <option [value]="m" [selected]="d().frequency_months === '' + m">
+                          {{ 'assets.reviewForm.frequency.' + m | transloco }}
+                        </option>
+                      }
+                      @if (customFrequency()) {
+                        <option [value]="d().frequency_months" selected>
+                          {{
+                            'assets.reviews.everyMonths'
+                              | transloco: { months: d().frequency_months }
+                          }}
+                        </option>
+                      }
+                    </select>
                   </app-form-field>
-                  <p
-                    id="ar-freq-hint"
-                    class="mt-1 text-[12px]"
-                    [class.text-fail]="showErrors() && !!errors()['frequency']"
-                    [class.text-fg-subtle]="!(showErrors() && errors()['frequency'])"
-                  >
+                  <p id="ar-freq-hint" class="mt-1 text-meta text-fg-subtle">
                     {{ 'assets.reviewForm.frequencyHint' | transloco }}
                   </p>
                 </div>
                 @if (!review()) {
-                  <label class="flex items-start gap-2 text-[13.5px] text-fg sm:col-span-2">
+                  <label class="flex items-start gap-2 text-body text-fg sm:col-span-2">
                     <input
                       type="checkbox"
                       class="mt-1"
@@ -311,7 +394,7 @@ export function reviewDraftErrors(d: ReviewDraft): Readonly<Record<string, strin
                     />
                     <span>
                       {{ 'assets.reviewForm.importMembers' | transloco }}
-                      <span class="block text-[12px] text-fg-subtle">
+                      <span class="block text-meta text-fg-subtle">
                         {{ 'assets.reviewForm.importMembersHint' | transloco }}
                       </span>
                     </span>
@@ -319,7 +402,9 @@ export function reviewDraftErrors(d: ReviewDraft): Readonly<Record<string, strin
                 }
               </div>
             </app-card>
-            <div class="flex flex-wrap items-center justify-end gap-2">
+            <div
+              class="sticky bottom-0 z-20 -mx-4 flex flex-wrap items-center justify-end gap-2 border-t border-border bg-bg/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none"
+            >
               <app-button variant="ghost" (click)="back()">{{
                 'common.cancel' | transloco
               }}</app-button>
@@ -329,7 +414,7 @@ export function reviewDraftErrors(d: ReviewDraft): Readonly<Record<string, strin
             </div>
           </form>
         }
-        <div class="mt-6"><app-why-it-matters scope="assets" page="reviewForm" /></div>
+        <div class="mt-8"><app-why-it-matters scope="assets" page="reviewForm" /></div>
       }
     </div>
   `,
@@ -340,22 +425,37 @@ export class AccessReviewEdit {
   private readonly notifications = inject(NotificationService);
   private readonly language = inject(LanguageService);
   private readonly router = inject(Router);
+  private readonly flows = inject(CreateFlowService);
 
   /** The review to edit (absent on `/new`). */
   readonly id = input<string | undefined>(undefined);
   /** `?asset=<id>`: preselect the system asset of a new review. */
   readonly asset = input<string | undefined>(undefined);
 
+  /** The create-from-here flow (asset → access review) this form was opened from. */
+  protected readonly flow = this.flows.consume(inject(ActivatedRoute), {
+    targetType: 'access_review',
+  });
+  protected readonly frequencies = REVIEW_FREQUENCIES;
+  protected readonly systemTypes = SYSTEM_ASSET_TYPES;
   protected readonly state = signal<'loading' | 'error' | 'ready'>('ready');
   protected readonly review = signal<AccessReviewDetail | null>(null);
   protected readonly d = signal<ReviewDraft>(reviewDraftFrom(null));
   protected readonly importMembers = signal(false);
+  protected readonly showAllAssets = signal(false);
   protected readonly showErrors = signal(false);
   protected readonly busy = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly errors = computed(() => reviewDraftErrors(this.d()));
+  protected readonly lang = computed(() => this.language.active());
+  /** A stored interval that is not one of the offered choices (kept selectable). */
+  protected readonly customFrequency = computed(() => {
+    const value = this.d().frequency_months;
+    return !!value && !(REVIEW_FREQUENCIES as readonly number[]).includes(Number(value));
+  });
 
   private request = new Subscription();
+  private appliedFlow: FlowContext | null = null;
 
   constructor() {
     inject(DestroyRef).onDestroy(() => this.request.unsubscribe());
@@ -372,10 +472,21 @@ export class AccessReviewEdit {
       const asset = this.asset();
       untracked(() => this.load(orgId, id, asset));
     });
+    effect(() => {
+      const flow = this.flow();
+      if (flow && flow !== this.appliedFlow && !this.id()) {
+        this.appliedFlow = flow;
+        untracked(() => this.d.update((d) => reviewDraftFromPrefill(d, flow.prefill)));
+      }
+    });
   }
 
   protected set<K extends keyof ReviewDraft>(key: K, value: ReviewDraft[K]): void {
     this.d.update((d) => ({ ...d, [key]: value }));
+  }
+
+  protected retry(): void {
+    this.load(this.selectedOrg.currentOrgId(), this.id(), this.asset());
   }
 
   protected save(): void {
@@ -432,6 +543,12 @@ export class AccessReviewEdit {
         next: (created) => {
           this.busy.set(false);
           this.notifications.success('assets.reviewForm.created', { code: created.code });
+          if (this.flow()) {
+            this.flows
+              .complete(created.id, 'access_review')
+              .pipe(catchError(() => of(null)))
+              .subscribe();
+          }
           void this.router.navigate(['/assets/access-reviews', created.id]);
         },
         error: (err: unknown) => {
@@ -450,7 +567,9 @@ export class AccessReviewEdit {
     this.request.unsubscribe();
     if (!id) {
       this.review.set(null);
-      this.d.set(reviewDraftFrom(null, asset ?? ''));
+      const draft = reviewDraftFrom(null, asset ?? '');
+      const flow = this.flow();
+      this.d.set(flow ? reviewDraftFromPrefill(draft, flow.prefill) : draft);
       this.state.set('ready');
       return;
     }

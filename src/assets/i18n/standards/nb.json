@@ -210,6 +210,7 @@
       "frameworks": "Standarder",
       "framework": "Standard",
       "article_refs": "Artikler",
+      "documented_refs": "Punkter og artikler den dokumenterer",
       "requirements": "Krav",
       "generic": "et felt på posten",
       "contract_type": "Kontrakttype",
@@ -222,7 +223,10 @@
       "privacy_notice": "Personvernerklæring gitt",
       "screening": "Screening mot kriteriene",
       "checks": "Bakgrunnssjekker",
-      "offer": "Tilbud"
+      "offer": "Tilbud",
+      "obligations": "Forpliktelser",
+      "documentation": "Teknisk dokumentasjon",
+      "kind": "Fullført vurdering"
     },
     "origin": {
       "manual": "Lagt til manuelt",

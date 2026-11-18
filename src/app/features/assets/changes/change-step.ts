@@ -73,10 +73,10 @@ export function stepPatch(values: Readonly<Record<string, string>>): UpdateChang
         [attr.aria-label]="'assets.changeStep.title' | transloco"
         data-testid="change-step"
       >
-        <h2 class="font-display text-[15px] font-bold text-fg">
+        <h2 class="font-display text-card font-bold text-fg">
           {{ 'assets.changeStep.title' | transloco }}
         </h2>
-        <p class="mt-1 mb-3 text-[13px] text-fg-muted">
+        <p class="mt-1 mb-3 text-ui text-fg-muted">
           {{ 'assets.changeStep.intro.' + change().status | transloco }}
         </p>
         @if (editable()) {
@@ -150,7 +150,7 @@ export function stepPatch(values: Readonly<Record<string, string>>): UpdateChang
             </div>
           </form>
         } @else {
-          <ul class="list-disc pl-5 text-[13px] text-fg">
+          <ul class="list-disc pl-5 text-ui text-fg">
             @for (field of missing(); track field) {
               <li>{{ 'assets.fields.' + labels[field] | transloco }}</li>
             }

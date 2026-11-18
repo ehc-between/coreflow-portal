@@ -7,13 +7,18 @@ import { SKIP_ERROR_TOAST } from '../../../core/http/error.interceptor';
 import { TrainingApi } from './training-api';
 import {
   addDaysInput,
-  assignmentTone,
-  cellTone,
+  addMonthsInput,
+  assignmentBadge,
+  cellBadge,
+  completionRuleOf,
+  effectivenessBadge,
+  exportFileName,
   fromDateInput,
-  recordValidityTone,
+  recordBadge,
   toDateInput,
   trainingErrorKey,
 } from './training-display';
+import { toneFor } from '../../../shared/ui/tones';
 import { TrainingRecord } from './training.models';
 
 const BASE = 'http://test/api';
@@ -162,6 +167,79 @@ describe('TrainingApi', () => {
     api.certificate('org-1', 'r1').subscribe();
     http.expectOne(url('records/r1/certificate')).flush({});
   });
+
+  it('previews, undoes and repeats rules', () => {
+    api
+      .previewRule('org-1', 'c1', { target_type: 'position', target_value: 'p1', due_days: 30 })
+      .subscribe();
+    const preview = http.expectOne(url('courses/c1/rules/preview'));
+    expect(preview.request.method).toBe('POST');
+    expect(preview.request.body).toEqual({
+      target_type: 'position',
+      target_value: 'p1',
+      due_days: 30,
+    });
+    expect(preview.request.context.get(SKIP_ERROR_TOAST)).toBe(true);
+    preview.flush({});
+    api.undoRule('org-1', 'r1').subscribe();
+    expect(http.expectOne(url('rules/r1/undo')).request.method).toBe('POST');
+  });
+
+  it('searches assignments on the server and acts on many', () => {
+    api
+      .listAssignments('org-1', { q: ' kari ', due_before: '2026-12-01', sort: 'person' })
+      .subscribe();
+    const list = http.expectOne((r) => r.url === url('assignments'));
+    expect(list.request.params.get('q')).toBe('kari');
+    expect(list.request.params.get('due_before')).toBe('2026-12-01');
+    expect(list.request.params.get('sort')).toBe('person');
+    list.flush({ items: [], total: 0 });
+    api
+      .bulkAssignments('org-1', { ids: ['a1'], action: 'extend', due_at: '2026-12-01T23:59:59' })
+      .subscribe();
+    expect(http.expectOne(url('assignments/bulk')).request.body.action).toBe('extend');
+    api.remindAssignment('org-1', 'a1').subscribe();
+    expect(http.expectOne(url('assignments/a1/remind')).request.method).toBe('POST');
+  });
+
+  it('exports CSV with the list filters and the UI language', () => {
+    api.exportCsv('org-1', 'records', { missing_evidence: true, q: 'first aid' }, 'nb').subscribe();
+    const req = http.expectOne((r) => r.url === url('records/export.csv'));
+    expect(req.request.responseType).toBe('blob');
+    expect(req.request.params.get('missing_evidence')).toBe('true');
+    expect(req.request.params.get('q')).toBe('first aid');
+    expect(req.request.params.get('lang')).toBe('nb');
+    req.flush(new Blob(['a;b']));
+    api.exportCsv('org-1', 'matrix', { position_id: 'p1' }, 'en').subscribe();
+    const matrix = http.expectOne((r) => r.url === url('matrix/export.csv'));
+    expect(matrix.request.params.get('position_id')).toBe('p1');
+    matrix.flush(new Blob(['']));
+  });
+
+  it('loads the person profile, the plan, document status and the public check', () => {
+    api.person('org-1', 'u1').subscribe();
+    http.expectOne(url('people/u1')).flush({});
+    api.plan('org-1', { start: '2026-11', months: 12 }).subscribe();
+    const plan = http.expectOne((r) => r.url === url('plan'));
+    expect(plan.request.params.get('start')).toBe('2026-11');
+    plan.flush({});
+    api.documentAcknowledgements('org-1', 'd1').subscribe();
+    http.expectOne(url('documents/d1/acknowledgements')).flush({});
+    api.verifyCertificate('AB 12').subscribe();
+    http.expectOne(`${BASE}/v1/training-certificates/AB%2012`).flush({});
+    api.reassign('org-1', 'r1').subscribe();
+    expect(http.expectOne(url('records/r1/reassign')).request.body).toEqual({ due_at: null });
+    api
+      .addEvaluation('org-1', 'c1', {
+        evaluated_on: '2026-11-01',
+        method: 'survey',
+        result: 'effective',
+      })
+      .subscribe();
+    expect(http.expectOne(url('courses/c1/evaluations')).request.method).toBe('POST');
+    api.deleteEvaluation('org-1', 'e1').subscribe();
+    expect(http.expectOne(url('evaluations/e1')).request.method).toBe('DELETE');
+  });
 });
 
 describe('training display helpers', () => {
@@ -180,22 +258,56 @@ describe('training display helpers', () => {
     expect(trainingErrorKey(new Error('x'))).toBe('training.errors.generic');
   });
 
-  it('picks badge tones', () => {
-    expect(assignmentTone('assigned', true)).toBe('fail');
-    expect(assignmentTone('completed', true)).toBe('pass');
-    expect(assignmentTone('in_progress')).toBe('accent');
-    expect(cellTone('expiring')).toBe('warn');
-    expect(cellTone('missing')).toBe('neutral');
+  it('maps statuses to the shared tone map (overdue is a to-do, not a failure)', () => {
+    const tone = (b: { meaning: Parameters<typeof toneFor>[0]; value: string }) =>
+      toneFor(b.meaning, b.value);
+    expect(tone(assignmentBadge({ status: 'assigned', overdue: true }))).toBe('warn');
+    expect(assignmentBadge({ status: 'assigned', overdue: true }).labelKey).toBe(
+      'training.assignmentStatus.overdue',
+    );
+    expect(tone(assignmentBadge({ status: 'completed', overdue: true }))).toBe('pass');
+    expect(tone(assignmentBadge({ status: 'in_progress', overdue: false }))).toBe('accent');
+    expect(tone(assignmentBadge({ status: 'assigned', overdue: false }))).toBe('info');
+    expect(tone(cellBadge('compliant'))).toBe('pass');
+    expect(tone(cellBadge('expiring'))).toBe('warn');
+    expect(tone(cellBadge('expired'))).toBe('fail');
+    expect(tone(cellBadge('overdue'))).toBe('warn');
+    expect(tone(cellBadge('missing'))).toBe('neutral');
+    expect(tone(effectivenessBadge('effective'))).toBe('pass');
+    expect(tone(effectivenessBadge('partially_effective'))).toBe('warn');
+    expect(tone(effectivenessBadge('not_effective'))).toBe('fail');
+    expect(effectivenessBadge(null).labelKey).toBe('training.effectiveness.pending');
   });
 
-  it('flags records that expire within 30 days', () => {
+  it('labels a record by validity, flagging expiry within 30 days', () => {
     const now = new Date('2026-11-12T12:00:00Z');
     const base = { passed: true, expired: false } as TrainingRecord;
-    expect(recordValidityTone({ ...base, expires_at: '2026-11-20T00:00:00' }, now)).toBe('warn');
-    expect(recordValidityTone({ ...base, expires_at: '2027-06-01T00:00:00' }, now)).toBe('pass');
-    expect(recordValidityTone({ ...base, expires_at: null }, now)).toBe('pass');
-    expect(recordValidityTone({ ...base, expired: true, expires_at: null }, now)).toBe('fail');
-    expect(recordValidityTone({ ...base, passed: false, expires_at: null }, now)).toBe('fail');
+    const key = (r: Partial<TrainingRecord>) =>
+      recordBadge({ ...base, ...r } as TrainingRecord, now).labelKey;
+    expect(key({ expires_at: '2026-11-20T00:00:00' })).toBe('training.records.expiringSoon');
+    expect(key({ expires_at: '2027-06-01T00:00:00' })).toBe('training.records.valid');
+    expect(key({ expires_at: null })).toBe('training.records.valid');
+    expect(key({ expired: true, expires_at: null })).toBe('training.records.expired');
+    expect(key({ passed: false, expires_at: null })).toBe('training.records.notPassed');
+  });
+
+  it('derives how a course is completed when the backend does not say', () => {
+    expect(completionRuleOf({ kind: 'course', quiz_count: 3 })).toBe('quiz');
+    expect(completionRuleOf({ kind: 'course', quiz_count: 0 })).toBe('lessons');
+    expect(completionRuleOf({ kind: 'read_and_understood', quiz_count: 0 })).toBe('read_ack');
+    expect(completionRuleOf({ kind: 'external', quiz_count: 0 })).toBe('external');
+    expect(completionRuleOf({ kind: 'course', quiz_count: 0, completion_rule: 'quiz' })).toBe(
+      'quiz',
+    );
+  });
+
+  it('adds months end-of-month safe and names exports', () => {
+    expect(addMonthsInput('2026-01-31', 1)).toBe('2026-02-28');
+    expect(addMonthsInput('2026-11-17', 12)).toBe('2027-11-17');
+    expect(addMonthsInput('', 12)).toBe('');
+    expect(exportFileName('records', new Date(2026, 10, 17))).toBe(
+      'training-records-2026-11-17.csv',
+    );
   });
 
   it('converts between date inputs and naive UTC', () => {

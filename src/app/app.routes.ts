@@ -60,6 +60,13 @@ export const routes: Routes = [
     loadChildren: () => import('./features/feedback/feedback-public.routes'),
   },
 
+  // Public check of a printed training certificate (M11, `/verify/certificate/<code>`,
+  // opened from the certificate's QR code) — kept outside the protected shell.
+  {
+    path: 'verify',
+    loadChildren: () => import('./features/training/training-public.routes'),
+  },
+
   // Public anonymous / whistleblowing report form (M03), reached through an org's
   // intake link; no account needed. Kept outside the protected shell.
   {

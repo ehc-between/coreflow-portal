@@ -14,21 +14,25 @@ import { Subscription } from 'rxjs';
 import { providePageContext } from '../../../core/ai/page-context';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
-import { GuideIntro } from '../../../shared/guidance/guide-intro';
 import { TeachingEmpty } from '../../../shared/guidance/teaching-empty';
-import { TourButton } from '../../../shared/guidance/tour-button';
 import { TourStepDirective } from '../../../shared/guidance/tour-step.directive';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { RecordListPage } from '../../../shared/kit/record-list-page';
 import { SavedView } from '../../../shared/kit/saved-views.service';
 import { LocalDatePipe } from '../../../shared/locale/locale-pipes';
+import { CoverageChip } from '../../../shared/requirement-links/coverage-chip';
 import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
+import { EmptyState } from '../../../shared/ui/empty-state/empty-state';
+import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
 import { Pager } from '../../../shared/ui/pager/pager';
+import { ReportsNav } from '../components/reports-nav';
 import { reportErrorKey } from '../data/report-errors';
-import { localized } from '../data/report-display';
+import { clauseText, localized } from '../data/report-display';
 import {
   DEFINITION_SORTS,
   DefinitionSort,
@@ -38,6 +42,7 @@ import {
   ReportDefinition,
 } from '../data/reports.models';
 import { ReportsApi } from '../data/reports-api';
+import { pluralKey } from '../../../shared/i18n/plural';
 
 const PAGE_SIZE = 25;
 
@@ -46,8 +51,9 @@ export const OWNER_FILTERS: readonly OwnerFilter[] = ['all', 'me'];
 
 /**
  * `/reports/definitions`: saved reports (a register with its filters, columns,
- * format and language) the caller can re-run in one click. Search, filter by
- * register and owner, sort, saved views.
+ * format and language) that anyone can run again in one click. Each row says what
+ * it exports, which requirements it is evidence for, when it last ran and whether
+ * it is scheduled. Search, filter by register and owner, sort, saved views.
  */
 @Component({
   selector: 'app-definitions-list',
@@ -55,51 +61,56 @@ export const OWNER_FILTERS: readonly OwnerFilter[] = ['all', 'me'];
     RouterLink,
     TranslocoPipe,
     LocalDatePipe,
-    GuideIntro,
     TeachingEmpty,
-    TourButton,
     TourStepDirective,
     WhyItMatters,
     RecordListPage,
+    CoverageChip,
     Badge,
     Button,
     Card,
+    EmptyState,
+    ErrorState,
+    HelpStrip,
     Icon,
+    LoadingState,
     Pager,
+    ReportsNav,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-record-list-page
       titleKey="reports.definitions.title"
+      descriptionKey="reports.definitions.subtitle"
+      [breadcrumbs]="[
+        { labelKey: 'modules.names.reports', link: '/reports' },
+        { labelKey: 'reports.nav.definitions' },
+      ]"
       scope="reports"
       page="definitions"
       searchPlaceholderKey="reports.definitions.search"
       [query]="q()"
       [filters]="viewFilters()"
-      [empty]="loaded() && items().length === 0 && !error()"
+      [empty]="loaded() && !error() && items().length === 0 && !filtered()"
       (search)="setSearch($event)"
       (viewApplied)="applyView($event)"
     >
-      <div intro class="mt-3 flex flex-col gap-3">
-        <app-guide-intro scope="reports" page="definitions" />
-        <app-why-it-matters scope="reports" page="definitions" />
-      </div>
-      <ng-container toolbar>
-        <app-tour-button scope="reports" tour="definitions" />
-        @if (canWrite()) {
-          <app-button [appTourStep]="'reports-new-definition'" (click)="create()">
-            <app-icon name="plus" [size]="15" />
-            {{ 'reports.definitions.new' | transloco }}
-          </app-button>
-        }
-      </ng-container>
+      @if (canWrite()) {
+        <app-button primary [appTourStep]="'reports-new-definition'" (click)="create()">
+          <app-icon name="plus" [size]="15" />
+          {{ 'reports.definitions.new' | transloco }}
+        </app-button>
+      }
+      <app-reports-nav nav />
+      <app-help-strip help scope="reports" page="definitions" tour="definitions" />
+
       <ng-container filters>
         <label for="def-register" class="sr-only">{{
           'reports.definitions.register' | transloco
         }}</label>
         <select
           id="def-register"
-          class="h-10 rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg"
+          class="h-10 max-w-full rounded-tile border border-border bg-bg px-3 text-ui text-fg"
           (change)="registerKey.set($any($event.target).value || null); offset.set(0)"
         >
           <option value="" [selected]="!registerKey()">
@@ -114,7 +125,7 @@ export const OWNER_FILTERS: readonly OwnerFilter[] = ['all', 'me'];
         <label for="def-owner" class="sr-only">{{ 'reports.definitions.owner' | transloco }}</label>
         <select
           id="def-owner"
-          class="h-10 rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg"
+          class="h-10 rounded-tile border border-border bg-bg px-3 text-ui text-fg"
           (change)="owner.set($any($event.target).value); offset.set(0)"
         >
           @for (o of owners; track o) {
@@ -128,7 +139,7 @@ export const OWNER_FILTERS: readonly OwnerFilter[] = ['all', 'me'];
         }}</label>
         <select
           id="def-sort"
-          class="h-10 rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg"
+          class="h-10 rounded-tile border border-border bg-bg px-3 text-ui text-fg"
           (change)="sort.set($any($event.target).value); offset.set(0)"
         >
           @for (s of sorts; track s) {
@@ -140,50 +151,64 @@ export const OWNER_FILTERS: readonly OwnerFilter[] = ['all', 'me'];
       </ng-container>
 
       @if (error(); as key) {
-        <app-card>
-          <p class="py-6 text-center text-[13.5px] text-fg-muted" role="alert">
-            {{ key | transloco }}
-          </p>
-        </app-card>
+        <app-error-state [bodyKey]="key" (retry)="reload()" />
       } @else if (!loaded()) {
-        <p class="py-10 text-center text-[13.5px] text-fg-muted" role="status">
-          {{ 'reports.common.loading' | transloco }}
-        </p>
+        <app-loading-state [rows]="5" />
+      } @else if (items().length === 0) {
+        <app-empty-state
+          titleKey="ui.empty.noResults"
+          bodyKey="ui.empty.noResultsBody"
+          ctaKey="ui.empty.clearFilters"
+          ctaVariant="secondary"
+          (cta)="clearFilters()"
+        />
       } @else {
         <app-card [padded]="false">
           <ul class="divide-y divide-border" data-testid="definitions">
             @for (d of items(); track d.id) {
               <li
-                class="flex flex-col gap-1 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+                class="relative flex flex-col gap-2 px-4 py-3 hover:bg-surface-2 lg:flex-row lg:items-center lg:gap-4"
               >
-                <div class="min-w-0">
+                <div class="min-w-0 flex-1">
                   <a
                     [routerLink]="['/reports/definitions', d.id]"
-                    class="font-semibold text-fg hover:text-accent hover:underline"
+                    class="block truncate text-body font-semibold text-fg after:absolute after:inset-0 after:content-[''] hover:underline focus-visible:outline-none focus-visible:after:rounded-tile focus-visible:after:ring-2 focus-visible:after:ring-accent"
                   >
                     {{ d.name }}
                   </a>
-                  <p
-                    class="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12.5px] text-fg-muted"
-                  >
-                    <app-badge tone="info">{{
-                      registerName(d.register_label, d.register_key)
-                    }}</app-badge>
-                    <span>{{ 'reports.formats.' + d.default_format | transloco }}</span>
+                  <p class="mt-0.5 truncate text-meta text-fg-muted">
+                    {{ registerName(d.register_label, d.register_key) }} ·
+                    {{ 'reports.formats.' + d.default_format | transloco }} ·
+                    {{ 'reports.langs.' + d.lang | transloco }}
                     @if (d.owner?.name; as ownerName) {
-                      <span
-                        >·
-                        {{ 'reports.definitions.ownedBy' | transloco: { name: ownerName } }}</span
-                      >
+                      · {{ 'reports.definitions.ownedBy' | transloco: { name: ownerName } }}
                     }
                   </p>
+                  @if (clauses(d).length) {
+                    <p class="mt-1 truncate text-meta text-fg-subtle">
+                      {{ 'reports.registers.evidenceFor' | transloco }}
+                      {{ clauses(d).join(', ') }}
+                    </p>
+                  }
                 </div>
-                <p class="flex-none text-[12px] text-fg-subtle">
-                  @if (d.last_exported_at) {
-                    {{
-                      'reports.definitions.lastExported'
-                        | transloco: { date: (d.last_exported_at | localDate) }
-                    }}
+                <div class="relative z-10 flex flex-wrap items-center gap-1.5">
+                  <app-coverage-chip entityType="report_definition" [entityId]="d.id" />
+                  @if (d.schedule) {
+                    <app-badge tone="info">
+                      <app-icon name="clock" [size]="12" />
+                      {{ 'reports.definitions.scheduled' | transloco }}
+                    </app-badge>
+                  }
+                </div>
+                <p class="flex-none text-meta text-fg-subtle lg:w-[190px] lg:text-right">
+                  @if (lastRunAt(d); as at) {
+                    {{ 'reports.definitions.lastExported' | transloco: { date: (at | localDate) } }}
+                    @if (d.run_count) {
+                      <span class="block">{{
+                        plural('reports.definitions.runCount', d.run_count)
+                          | transloco: { count: d.run_count }
+                      }}</span>
+                    }
                   } @else {
                     {{ 'reports.definitions.neverExported' | transloco }}
                   }
@@ -212,6 +237,8 @@ export const OWNER_FILTERS: readonly OwnerFilter[] = ['all', 'me'];
           />
         </app-card>
       </div>
+
+      <app-why-it-matters below scope="reports" page="definitions" />
     </app-record-list-page>
   `,
 })
@@ -222,6 +249,7 @@ export class DefinitionsList {
   private readonly language = inject(LanguageService);
 
   protected readonly owners = OWNER_FILTERS;
+  protected readonly plural = pluralKey;
   protected readonly sorts = DEFINITION_SORTS;
   protected readonly pageSize = PAGE_SIZE;
 
@@ -241,6 +269,11 @@ export class DefinitionsList {
     (this.selectedOrg.currentOrg()?.permissions ?? []).includes(REPORTS_PERMISSIONS.write),
   );
 
+  /** Whether a search or filter narrows the list (an empty result is then "no match"). */
+  protected readonly filtered = computed(
+    () => !!this.q().trim() || !!this.registerKey() || this.owner() !== 'all',
+  );
+
   protected readonly viewFilters = computed(() => ({
     register: this.registerKey() ?? '',
     owner: this.owner(),
@@ -254,6 +287,7 @@ export class DefinitionsList {
       module: REPORTS_MODULE,
       entityType: 'report_definition',
       view: 'list',
+      title: this.language.translate('reports.definitions.title'),
     }));
     inject(DestroyRef).onDestroy(() => this.sub.unsubscribe());
     effect(() => {
@@ -287,6 +321,15 @@ export class DefinitionsList {
     return localized(label, this.language.active(), key);
   }
 
+  protected clauses(d: ReportDefinition): string[] {
+    const lang = this.language.active();
+    return (d.register_clauses ?? []).map((c) => clauseText(c, lang));
+  }
+
+  protected lastRunAt(d: ReportDefinition): string | null {
+    return d.last_run?.run_at ?? d.last_exported_at;
+  }
+
   /** `-updated_at` -> `updated` (i18n key segment). */
   protected sortKey(sort: DefinitionSort): string {
     return sort.replace(/^-/, '').replace(/_at$/, '').replace('register_key', 'register');
@@ -294,6 +337,13 @@ export class DefinitionsList {
 
   protected setSearch(text: string): void {
     this.q.set(text);
+    this.offset.set(0);
+  }
+
+  protected clearFilters(): void {
+    this.registerKey.set(null);
+    this.owner.set('all');
+    this.q.set('');
     this.offset.set(0);
   }
 
@@ -311,6 +361,17 @@ export class DefinitionsList {
 
   protected create(): void {
     void this.router.navigate(['/reports/definitions/new']);
+  }
+
+  protected reload(): void {
+    this.load({
+      orgId: this.selectedOrg.currentOrgId(),
+      q: this.q(),
+      register: this.registerKey(),
+      owner: this.owner(),
+      sort: this.sort(),
+      offset: this.offset(),
+    });
   }
 
   private load(args: {

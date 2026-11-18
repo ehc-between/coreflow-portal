@@ -3,6 +3,7 @@ import {
   Component,
   computed,
   effect,
+  inject,
   input,
   output,
   signal,
@@ -25,10 +26,15 @@ import {
   ChangeFields,
   ChangeType,
   REVIEW_OUTCOMES,
+  CHANGE_RELATED_TYPES,
   RISK_LEVELS,
+  RelatedRecord,
   ReviewOutcome,
   RiskLevel,
 } from '../data/asset.models';
+import { SearchHit } from '../../../core/kit/kit.models';
+import { LanguageService } from '../../../core/i18n/language.service';
+import { AssetRelatedPicker } from '../shared/related-picker';
 import { AssetMultiSelect } from '../shared/asset-select';
 import { AssetDepartmentSelect, AssetUserSelect } from '../shared/people-select';
 
@@ -42,6 +48,8 @@ export interface ChangeFormFields extends ChangeFields {
 export interface ChangeFormValue {
   readonly fields: ChangeFormFields;
   readonly assetIds: readonly string[];
+  /** Processes, documents, suppliers and risks the change affects (new changes only). */
+  readonly related: readonly RelatedRecord[];
   readonly changeReason: string | null;
 }
 
@@ -125,6 +133,23 @@ export function applyAssessment(d: ChangeDraft, s: ChangeAssessmentSuggestion): 
   };
 }
 
+/** Apply create-from-here values (e.g. `asset.to_change`: category) to a new change draft. */
+export function changeDraftFromPrefill(
+  d: ChangeDraft,
+  prefill: Readonly<Record<string, unknown>>,
+): ChangeDraft {
+  const text = (key: string) => (typeof prefill[key] === 'string' ? (prefill[key] as string) : '');
+  const category = text('category');
+  return {
+    ...d,
+    title: text('title') || d.title,
+    description: text('description') || d.description,
+    category: (CHANGE_CATEGORIES as readonly string[]).includes(category)
+      ? (category as ChangeCategory)
+      : d.category,
+  };
+}
+
 /** States from which the implementation and review fields are shown. */
 const LATE_STATES = ['implementing', 'review', 'closed'];
 
@@ -142,6 +167,7 @@ const LATE_STATES = ['implementing', 'review', 'closed'];
     AskAbout,
     AssetDepartmentSelect,
     AssetMultiSelect,
+    AssetRelatedPicker,
     AssetUserSelect,
     Button,
     Card,
@@ -152,22 +178,27 @@ const LATE_STATES = ['implementing', 'review', 'closed'];
   template: `
     <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); submit()" novalidate>
       @if (lockedCount()) {
-        <p class="rounded-tile bg-surface-2 px-3 py-2 text-[12.5px] text-fg-muted" role="note">
+        <p class="rounded-tile bg-surface-2 px-3 py-2 text-meta text-fg-muted" role="note">
           {{ 'assets.changeForm.lockedNote' | transloco }}
         </p>
       }
       <app-card>
-        <h2 class="mb-3 font-display text-[15px] font-bold text-fg">
+        <h2 class="mb-3 font-display text-card font-bold text-fg">
           {{ 'assets.changeForm.sections.request' | transloco }}
         </h2>
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div class="sm:col-span-2">
-            <app-form-field [label]="'assets.fields.title' | transloco" inputId="chg-title">
+            <app-form-field
+              [label]="'assets.fields.title' | transloco"
+              inputId="chg-title"
+              [required]="true"
+            >
               <input
                 id="chg-title"
                 type="text"
                 maxlength="255"
                 required
+                aria-required="true"
                 [disabled]="locked('title')"
                 [attr.aria-invalid]="showErrors() && !d().title.trim()"
                 aria-describedby="chg-title-err"
@@ -176,16 +207,21 @@ const LATE_STATES = ['implementing', 'review', 'closed'];
               />
             </app-form-field>
             @if (showErrors() && !d().title.trim()) {
-              <p id="chg-title-err" class="mt-1 text-[12px] text-fail" role="alert">
+              <p id="chg-title-err" class="mt-1 text-meta text-fail-ink" role="alert">
                 {{ 'assets.changeForm.titleRequired' | transloco }}
               </p>
             }
           </div>
           <div>
-            <app-field-help scope="assets" page="changeForm" field="change_type" />
-            <app-form-field [label]="'assets.fields.changeType' | transloco" inputId="chg-type">
+            <app-form-field
+              [label]="'assets.fields.changeType' | transloco"
+              inputId="chg-type"
+              [required]="true"
+            >
+              <app-field-help label-suffix scope="assets" page="changeForm" field="change_type" />
               <select
                 id="chg-type"
+                aria-describedby="chg-type-hint"
                 [disabled]="locked('change_type')"
                 (change)="set('change_type', $any($event.target).value)"
               >
@@ -196,6 +232,9 @@ const LATE_STATES = ['implementing', 'review', 'closed'];
                 }
               </select>
             </app-form-field>
+            <p id="chg-type-hint" class="mt-1 text-meta text-fg-subtle">
+              {{ 'assets.changeTypeHint.' + d().change_type | transloco }}
+            </p>
           </div>
           <app-form-field [label]="'assets.fields.changeCategory' | transloco" inputId="chg-cat">
             <select
@@ -212,11 +251,11 @@ const LATE_STATES = ['implementing', 'review', 'closed'];
           </app-form-field>
           @for (key of requestTexts; track key.field) {
             <div class="sm:col-span-2">
-              <app-field-help scope="assets" page="changeForm" [field]="key.field" />
               <app-form-field
                 [label]="'assets.fields.' + key.label | transloco"
                 [inputId]="'chg-' + key.field"
               >
+                <app-field-help label-suffix scope="assets" page="changeForm" [field]="key.field" />
                 <textarea
                   [id]="'chg-' + key.field"
                   rows="3"
@@ -248,6 +287,7 @@ const LATE_STATES = ['implementing', 'review', 'closed'];
             <input
               id="chg-start"
               type="date"
+              [attr.lang]="lang()"
               [value]="d().planned_start"
               (input)="set('planned_start', $any($event.target).value)"
             />
@@ -257,6 +297,7 @@ const LATE_STATES = ['implementing', 'review', 'closed'];
               <input
                 id="chg-end"
                 type="date"
+                [attr.lang]="lang()"
                 aria-describedby="chg-end-err"
                 [attr.aria-invalid]="showErrors() && !datesValid()"
                 [value]="d().planned_end"
@@ -264,18 +305,23 @@ const LATE_STATES = ['implementing', 'review', 'closed'];
               />
             </app-form-field>
             @if (showErrors() && !datesValid()) {
-              <p id="chg-end-err" class="mt-1 text-[12px] text-fail" role="alert">
+              <p id="chg-end-err" class="mt-1 text-meta text-fail-ink" role="alert">
                 {{ 'assets.errors.invalid_dates' | transloco }}
               </p>
             }
           </div>
           @if (!editing()) {
             <div class="sm:col-span-2">
-              <app-field-help scope="assets" page="changeForm" field="affected_assets" />
               <app-form-field
                 [label]="'assets.fields.affectedAssets' | transloco"
                 inputId="chg-assets"
               >
+                <app-field-help
+                  label-suffix
+                  scope="assets"
+                  page="changeForm"
+                  field="affected_assets"
+                />
                 <app-asset-multi-select
                   inputId="chg-assets"
                   [value]="assetIds()"
@@ -283,13 +329,36 @@ const LATE_STATES = ['implementing', 'review', 'closed'];
                 />
               </app-form-field>
             </div>
+            <div class="sm:col-span-2">
+              <app-form-field
+                [label]="'assets.fields.affectedRecords' | transloco"
+                inputId="chg-related"
+              >
+                <app-field-help
+                  label-suffix
+                  scope="assets"
+                  page="changeForm"
+                  field="affected_records"
+                />
+                <app-asset-related-picker
+                  inputId="chg-related"
+                  describedBy="chg-related-hint"
+                  [types]="relatedTypes"
+                  [value]="related()"
+                  (valueChange)="related.set($event)"
+                />
+              </app-form-field>
+              <p id="chg-related-hint" class="mt-1 text-meta text-fg-subtle">
+                {{ 'assets.changeForm.relatedHint' | transloco }}
+              </p>
+            </div>
           }
         </div>
       </app-card>
 
       <app-card>
         <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <h2 class="font-display text-[15px] font-bold text-fg">
+          <h2 class="font-display text-card font-bold text-fg">
             {{ 'assets.changeForm.sections.assessment' | transloco }}
           </h2>
           @if (!locked('impact_assessment')) {
@@ -306,7 +375,7 @@ const LATE_STATES = ['implementing', 'review', 'closed'];
         </div>
         @if (assessment(); as s) {
           <div
-            class="mb-4 rounded-tile border border-accent/30 bg-accent-soft px-3 py-2.5 text-[13px] text-fg"
+            class="mb-4 rounded-tile border border-accent/30 bg-accent-soft px-3 py-2.5 text-ui text-fg"
             role="status"
           >
             <p class="font-semibold">{{ 'assets.changeForm.assessmentApplied' | transloco }}</p>
@@ -330,7 +399,7 @@ const LATE_STATES = ['implementing', 'review', 'closed'];
             @if (s.controls?.length) {
               <ul class="mt-1 flex flex-col gap-0.5">
                 @for (c of s.controls; track c.ref) {
-                  <li class="text-[12.5px]">
+                  <li class="text-meta">
                     <span class="font-mono text-fg-muted">{{ c.ref }}</span> {{ c.title }}
                   </li>
                 }
@@ -340,14 +409,15 @@ const LATE_STATES = ['implementing', 'review', 'closed'];
         }
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <div class="flex items-center gap-1">
-              <app-field-help scope="assets" page="changeForm" field="risk_level" />
+            <app-form-field [label]="'assets.fields.riskLevel' | transloco" inputId="chg-risk">
+              <app-field-help label-suffix scope="assets" page="changeForm" field="risk_level" />
               <app-ask-about
+                label-suffix
                 [prompt]="'assets.ai.prompts.riskLevel' | transloco"
                 field="risk_level"
+                [fieldLabel]="'assets.fields.riskLevel' | transloco"
+                labelKey="assets.ai.askRiskLevel"
               />
-            </div>
-            <app-form-field [label]="'assets.fields.riskLevel' | transloco" inputId="chg-risk">
               <select
                 id="chg-risk"
                 [disabled]="locked('risk_level')"
@@ -367,11 +437,20 @@ const LATE_STATES = ['implementing', 'review', 'closed'];
           <div class="hidden sm:block"></div>
           @for (key of assessmentTexts; track key.field) {
             <div class="sm:col-span-2">
-              <app-field-help scope="assets" page="changeForm" [field]="key.field" />
               <app-form-field
                 [label]="'assets.fields.' + key.label | transloco"
                 [inputId]="'chg-' + key.field"
               >
+                <app-field-help label-suffix scope="assets" page="changeForm" [field]="key.field" />
+                @if (key.field === 'impact_assessment') {
+                  <app-ask-about
+                    label-suffix
+                    [prompt]="'assets.ai.prompts.reviewAssessment' | transloco"
+                    field="impact_assessment"
+                    [fieldLabel]="'assets.fields.impactAssessment' | transloco"
+                    labelKey="assets.ai.askAssessment"
+                  />
+                }
                 <textarea
                   [id]="'chg-' + key.field"
                   rows="3"
@@ -389,7 +468,7 @@ const LATE_STATES = ['implementing', 'review', 'closed'];
 
       @if (showLate()) {
         <app-card>
-          <h2 class="mb-3 font-display text-[15px] font-bold text-fg">
+          <h2 class="mb-3 font-display text-card font-bold text-fg">
             {{ 'assets.changeForm.sections.implementation' | transloco }}
           </h2>
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -397,16 +476,22 @@ const LATE_STATES = ['implementing', 'review', 'closed'];
               <input
                 id="chg-impl"
                 type="date"
+                [attr.lang]="lang()"
                 [value]="d().implemented_at"
                 (input)="set('implemented_at', $any($event.target).value)"
               />
             </app-form-field>
             <div>
-              <app-field-help scope="assets" page="changeForm" field="review_outcome" />
               <app-form-field
                 [label]="'assets.fields.reviewOutcome' | transloco"
                 inputId="chg-outcome"
               >
+                <app-field-help
+                  label-suffix
+                  scope="assets"
+                  page="changeForm"
+                  field="review_outcome"
+                />
                 <select
                   id="chg-outcome"
                   (change)="set('review_outcome', $any($event.target).value)"
@@ -453,13 +538,15 @@ const LATE_STATES = ['implementing', 'review', 'closed'];
               (input)="changeReason.set($any($event.target).value)"
             ></textarea>
           </app-form-field>
-          <p id="chg-reason-hint" class="mt-1 text-[12px] text-fg-subtle">
+          <p id="chg-reason-hint" class="mt-1 text-meta text-fg-subtle">
             {{ 'assets.form.changeReasonHint' | transloco }}
           </p>
         </app-card>
       }
 
-      <div class="flex flex-wrap items-center justify-end gap-2">
+      <div
+        class="sticky bottom-0 z-20 -mx-4 flex flex-wrap items-center justify-end gap-2 border-t border-border bg-bg/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none"
+      >
         <app-button variant="ghost" (click)="cancelled.emit()">{{
           'common.cancel' | transloco
         }}</app-button>
@@ -475,11 +562,18 @@ export class ChangeForm {
   readonly value = input<ChangeDetail | null>(null);
   /** Assets to preselect on a new change (e.g. raised from an asset page). */
   readonly initialAssets = input<readonly string[]>([]);
+  /** Create-from-here values for a new change (title, description, category). */
+  readonly prefill = input<Readonly<Record<string, unknown>> | null>(null);
   readonly busy = input(false);
   readonly submitted = output<ChangeFormValue>();
   readonly cancelled = output<void>();
 
+  private readonly language = inject(LanguageService);
+
   protected readonly types = CHANGE_TYPES;
+  protected readonly relatedTypes = CHANGE_RELATED_TYPES;
+  protected readonly related = signal<readonly SearchHit[]>([]);
+  protected readonly lang = computed(() => this.language.active());
   protected readonly categories = CHANGE_CATEGORIES;
   protected readonly risks = RISK_LEVELS;
   protected readonly outcomes = REVIEW_OUTCOMES;
@@ -517,7 +611,11 @@ export class ChangeForm {
   constructor() {
     effect(() => {
       const value = this.value();
-      untracked(() => this.d.set(changeDraftFrom(value)));
+      const prefill = this.prefill();
+      untracked(() => {
+        const draft = changeDraftFrom(value);
+        this.d.set(!value && prefill ? changeDraftFromPrefill(draft, prefill) : draft);
+      });
     });
     effect(() => {
       const initial = this.initialAssets();
@@ -550,6 +648,7 @@ export class ChangeForm {
     this.submitted.emit({
       fields: changeFieldsFrom(this.d()),
       assetIds: this.assetIds(),
+      related: this.related().map((r) => ({ entity_type: r.entity_type, entity_id: r.entity_id })),
       changeReason: blankToNull(this.changeReason()),
     });
   }

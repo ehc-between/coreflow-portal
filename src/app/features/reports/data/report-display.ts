@@ -1,5 +1,16 @@
 import { humanize } from '../../../core/kit/entity-types.service';
-import { CalendarItem, LocalizedLabel } from './reports.models';
+import { frameworkOf } from '../../../shared/requirement-links/requirement-label';
+import { toneFor } from '../../../shared/ui/tones';
+import {
+  CalendarItem,
+  CalendarItemState,
+  ClauseLabel,
+  LocalizedLabel,
+  Register,
+  RegisterColumn,
+  TrendPoint,
+  TrendSeries,
+} from './reports.models';
 
 /** The label in the UI language, else English, else any language, else `fallback`. */
 export function localized(
@@ -13,9 +24,13 @@ export function localized(
   return label[lang] || label['en'] || Object.values(label).find((v) => !!v) || fallback;
 }
 
-/** `reports.frameworks.<key>` (the eight framework names live in the reports scope). */
-export function frameworkLabelKey(framework: string): string {
-  return `reports.frameworks.${framework}`;
+/**
+ * `reports.frameworks.<key>`: the short, readable standard name in the UI language
+ * ("ISO 9001 – kvalitet"). Accepts a framework key (`iso9001`) or a catalogue
+ * standard key (`iso9001-2015`, `eu-ai-act-2024`).
+ */
+export function frameworkLabelKey(frameworkOrStandard: string): string {
+  return `reports.frameworks.${frameworkOf(frameworkOrStandard)}`;
 }
 
 /** Global module name key (`modules.names.<key>`, provided by the module registry). */
@@ -29,14 +44,32 @@ export function moduleLabelKey(module: string): string {
  */
 export function labelOr(translate: (key: string) => string, key: string, raw: string): string {
   const text = translate(key);
-  return text && text !== key ? text : humanize(raw);
+  return isTranslated(text, key) ? text : humanize(raw);
 }
 
-/** Where a dashboard widget's "open" link goes (null: no list page behind it). */
-export function widgetLink(key: string): {
+/** Whether `translate(key)` found a text (missing keys come back as the key, sometimes prefixed). */
+export function isTranslated(text: string | null | undefined, key: string): text is string {
+  return !!text && text !== key && !text.endsWith(`.${key}`);
+}
+
+/** A clause badge in the UI language ("Felles ISO-krav · 7.5"), never the raw ref. */
+export function clauseText(clause: ClauseLabel, lang: string): string {
+  return localized(clause.label, lang, clause.number);
+}
+
+export interface WidgetTarget {
   readonly path: string;
   readonly queryParams?: Readonly<Record<string, string>>;
-} | null {
+}
+
+/**
+ * Where a dashboard widget's "open" link goes: the list behind the built-in metrics,
+ * else the `url` a module metric sends in its data (null: no page behind it).
+ */
+export function widgetLink(
+  key: string,
+  data?: Readonly<Record<string, unknown>> | null,
+): WidgetTarget | null {
   switch (key) {
     case 'standards.readiness':
       return { path: '/standards' };
@@ -53,9 +86,18 @@ export function widgetLink(key: string): {
       return { path: '/reports/calendar' };
     case 'reports.audit_packs':
       return { path: '/reports/audit-packs' };
-    default:
-      return null;
   }
+  const url = data?.['url'];
+  if (typeof url === 'string' && url.startsWith('/') && !url.startsWith('//')) {
+    const [path, query] = url.split('?');
+    if (!query) {
+      return { path };
+    }
+    const queryParams: Record<string, string> = {};
+    new URLSearchParams(query).forEach((value, name) => (queryParams[name] = value));
+    return { path, queryParams };
+  }
+  return null;
 }
 
 /** Human file size (`1.2 MB`), using the given number formatter. */
@@ -75,31 +117,43 @@ export function formatBytes(bytes: number, lang = 'en'): string {
   return `${text} ${units[unit]}`;
 }
 
-/** Tone of a readiness score (0–100). */
-export function scoreTone(score: number | null | undefined): 'pass' | 'warn' | 'fail' | 'neutral' {
-  if (score === null || score === undefined) {
-    return 'neutral';
-  }
-  if (score >= 80) return 'pass';
-  if (score >= 50) return 'warn';
-  return 'fail';
-}
-
-/** CSS colour of a readiness score (for rings and bars). */
+/**
+ * CSS colour of a requirement-coverage score (for rings and bars), from the shared
+ * `progress` tone: 100 is done, above 0 is progress, 0 or unknown is neutral. Never
+ * red (polish plan decision 11).
+ */
 export function scoreColor(score: number | null | undefined): string {
-  switch (scoreTone(score)) {
+  switch (toneFor('progress', score)) {
     case 'pass':
       return 'var(--pass)';
-    case 'warn':
-      return 'var(--warn)';
-    case 'fail':
-      return 'var(--fail)';
-    default:
+    case 'accent':
       return 'var(--accent)';
+    default:
+      return 'var(--fg-subtle)';
   }
+}
+
+/** A pack's coverage as a number (packs made before A25 stored the whole readiness row). */
+export function packReadiness(value: unknown): number | null {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return Math.round(value);
+  }
+  if (value && typeof value === 'object') {
+    const score = (value as Record<string, unknown>)['score'];
+    return typeof score === 'number' && Number.isFinite(score) ? Math.round(score) : null;
+  }
+  return null;
+}
+
+/** `covered / applicable` as a whole percent (0 when nothing applies). */
+export function percentOf(covered: number, applicable: number): number {
+  return applicable > 0 ? Math.round((covered / applicable) * 100) : 0;
 }
 
 // --- calendar -----------------------------------------------------------------------------
+
+/** Within this many days an item counts as "due soon" (the backend uses the same). */
+export const DUE_SOON_DAYS = 14;
 
 /** `YYYY-MM-DD` of a local date. */
 export function dayKey(date: Date): string {
@@ -197,12 +251,76 @@ export function groupByDay(items: readonly CalendarItem[]): Map<string, Calendar
   return groups;
 }
 
+/**
+ * What an item needs (the backend's `state`; derived for older backends): late,
+ * due within 14 days, a review, an action, or a plain due date.
+ */
+export function calendarState(item: CalendarItem, now: Date = new Date()): CalendarItemState {
+  const state = item.state;
+  if (
+    state === 'overdue' ||
+    state === 'due_soon' ||
+    state === 'review' ||
+    state === 'action' ||
+    state === 'due'
+  ) {
+    return state;
+  }
+  if (item.overdue) {
+    return 'overdue';
+  }
+  const due = new Date(item.due_at.slice(0, 19) + 'Z').getTime();
+  if (Number.isFinite(due) && due - now.getTime() <= DUE_SOON_DAYS * 86_400_000) {
+    return 'due_soon';
+  }
+  if (item.kind === 'review' || item.kind === 'action') {
+    return item.kind;
+  }
+  return 'due';
+}
+
+export type CalendarTone = 'warn' | 'accent' | 'info' | 'neutral';
+
+/**
+ * Colour of a calendar state, from the shared tone map: overdue is warn (always
+ * with the word "Forfalt"), due soon accent, reviews info, the rest neutral.
+ */
+export const STATE_TONE: Readonly<Record<CalendarItemState, CalendarTone>> = {
+  overdue: 'warn',
+  due_soon: 'accent',
+  review: 'info',
+  action: 'neutral',
+  due: 'neutral',
+};
+
 /** Badge tone of a calendar item. */
-export function calendarTone(item: CalendarItem): 'fail' | 'info' | 'accent' | 'neutral' {
-  if (item.overdue) return 'fail';
-  if (item.kind === 'review') return 'info';
-  if (item.kind === 'action') return 'accent';
-  return 'neutral';
+export function calendarTone(item: CalendarItem, now: Date = new Date()): CalendarTone {
+  return STATE_TONE[calendarState(item, now)];
+}
+
+/** Items of one day that look the same (e.g. seven assignments of one course). */
+export interface CalendarGroup {
+  readonly key: string;
+  readonly first: CalendarItem;
+  readonly items: readonly CalendarItem[];
+}
+
+/**
+ * Collapse items of the same type, code and title (seven training assignments of
+ * TRN-001 on one day) into one group, keeping the day's order.
+ */
+export function groupAlike(items: readonly CalendarItem[]): CalendarGroup[] {
+  const groups = new Map<string, CalendarItem[]>();
+  for (const item of items) {
+    const key = `${item.entity_type}|${item.code ?? ''}|${item.title}`;
+    const list = groups.get(key);
+    if (list) {
+      list.push(item);
+    } else {
+      groups.set(key, [item]);
+    }
+  }
+  return [...groups.entries()].map(([key, list]) => ({ key, first: list[0], items: list }));
 }
 
 // --- metric data -----------------------------------------------------------------------------
@@ -234,6 +352,9 @@ export function metricBreakdowns(
   }
   const out: { field: string; entries: MetricNumber[] }[] = [];
   for (const [field, value] of Object.entries(data)) {
+    if (field === 'matrix') {
+      continue;
+    }
     if (value && typeof value === 'object' && !Array.isArray(value)) {
       const entries = Object.entries(value as Record<string, unknown>)
         .filter(([, v]) => typeof v === 'number')
@@ -252,11 +373,12 @@ export interface HeatCell {
   readonly col: number;
   readonly count: number;
   readonly color: string | null;
+  readonly level: string | null;
 }
 
 /**
  * Read a heat map from a metric's data. Accepts `{cells: [{likelihood,
- * consequence, count, color?}]}` (or `row`/`col`, `x`/`y`) plus optional
+ * consequence, count, color?, level?}]}` (or `row`/`col`, `x`/`y`) plus optional
  * `rows`/`cols` sizes; returns null for any other shape so the page can fall back
  * to the generic view.
  */
@@ -284,6 +406,7 @@ export function readHeatMap(
       col,
       count: Number.isFinite(count) ? count : 0,
       color: typeof e['color'] === 'string' ? (e['color'] as string) : null,
+      level: typeof e['level'] === 'string' ? (e['level'] as string) : null,
     });
   }
   if (!cells.length) {
@@ -307,6 +430,71 @@ export function readPercent(
   return null;
 }
 
+/**
+ * The label of a metric field: the portal's `reports.fields.<field>`, else the
+ * metric's own words from the backend, else a humanized key.
+ */
+export function metricFieldLabel(
+  translate: (key: string) => string,
+  field: string,
+  labels: Readonly<Record<string, LocalizedLabel>> | null | undefined,
+  lang: string,
+): string {
+  const key = `reports.fields.${field}`;
+  const text = translate(key);
+  if (isTranslated(text, key)) {
+    return text;
+  }
+  return localized(labels?.[field], lang, '') || humanize(field);
+}
+
+// --- trends --------------------------------------------------------------------------------
+
+export type TrendDirection = 'better' | 'worse' | 'same';
+
+/** Whether the latest change is good news (`better` says which way is good). */
+export function trendDirection(series: Pick<TrendSeries, 'delta' | 'better'>): TrendDirection {
+  const delta = series.delta;
+  if (delta === null || delta === undefined || !Number.isFinite(delta) || delta === 0) {
+    return 'same';
+  }
+  const up = delta > 0;
+  return (series.better === 'down' ? !up : up) ? 'better' : 'worse';
+}
+
+/**
+ * An SVG polyline (`x,y x,y …`) of the points in a `width` × `height` box, with a
+ * 2 px inset so the stroke is not clipped. Flat series sit in the middle.
+ */
+export function sparklinePoints(
+  points: readonly TrendPoint[],
+  width: number,
+  height: number,
+): string {
+  const values = points.map((p) => p.value).filter((v) => Number.isFinite(v));
+  if (values.length === 0) {
+    return '';
+  }
+  const inset = 2;
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const span = max - min;
+  const step = values.length > 1 ? (width - inset * 2) / (values.length - 1) : 0;
+  return values
+    .map((v, i) => {
+      const x = values.length > 1 ? inset + i * step : width / 2;
+      const y = span === 0 ? height / 2 : inset + (1 - (v - min) / span) * (height - inset * 2);
+      return `${round1(x)},${round1(y)}`;
+    })
+    .join(' ');
+}
+
+function round1(value: number): number {
+  return Math.round(value * 10) / 10;
+}
+
+// --- register cells ---------------------------------------------------------------------------
+
 const ISO_DATETIME = /^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2})(?::(\d{2}))?)?/;
 
 /**
@@ -328,7 +516,9 @@ export function cellText(value: unknown, lang = 'en'): string {
     return value.map((v) => cellText(v, lang)).join(', ') || '—';
   }
   if (typeof value === 'object') {
-    return JSON.stringify(value);
+    const record = value as Record<string, unknown>;
+    const text = record['title'] ?? record['name'] ?? record['code'];
+    return typeof text === 'string' && text ? text : '—';
   }
   const text = String(value);
   const match = ISO_DATETIME.exec(text);
@@ -341,4 +531,62 @@ export function cellText(value: unknown, lang = 'en'): string {
     }
   }
   return text;
+}
+
+/**
+ * The text of one preview cell: the backend's display text (exactly what the
+ * export shows) when it sent one, else the column's value words for enum codes,
+ * else {@link cellText}.
+ */
+export function columnCell(
+  column: RegisterColumn,
+  raw: unknown,
+  display: string | undefined,
+  lang: string,
+): string {
+  if (typeof display === 'string') {
+    return display || '—';
+  }
+  const words = column.values;
+  if (words) {
+    if (typeof raw === 'string' && words[raw]) {
+      return localized(words[raw], lang, raw);
+    }
+    if (Array.isArray(raw)) {
+      return (
+        raw
+          .map((v) => (typeof v === 'string' && words[v] ? localized(words[v], lang, v) : v))
+          .map((v) => cellText(v, lang))
+          .join(', ') || '—'
+      );
+    }
+  }
+  return cellText(raw, lang);
+}
+
+// --- registers ------------------------------------------------------------------------------
+
+export interface RegisterGroup {
+  readonly module: string;
+  readonly name: string;
+  readonly registers: readonly Register[];
+}
+
+/** Registers grouped by area, areas in name order. */
+export function groupRegisters(
+  registers: readonly Register[],
+  moduleName: (module: string) => string,
+): RegisterGroup[] {
+  const groups = new Map<string, Register[]>();
+  for (const reg of registers) {
+    const list = groups.get(reg.module);
+    if (list) {
+      list.push(reg);
+    } else {
+      groups.set(reg.module, [reg]);
+    }
+  }
+  return [...groups.entries()]
+    .map(([module, list]) => ({ module, name: moduleName(module), registers: list }))
+    .sort((a, b) => a.name.localeCompare(b.name));
 }

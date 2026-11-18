@@ -9,7 +9,8 @@ const OVERSEE = ['training:report', 'training:assign', 'training:manage'];
  * `/training` (module `training`, scope `training`): training and courses (M11).
  * `app.routes.ts` already wraps this in `moduleGuard('training')` and
  * `permissionGuard('training:read')`. Entity URLs registered by the backend:
- * `/training/courses/<id>`, `/training/assignments/<id>`, `/training/records/<id>`.
+ * `/training/courses/<id>`, `/training/assignments/<id>`, `/training/records/<id>`,
+ * `/training/people/<user id>` (matrix `users[].url`), `/training/plan`.
  */
 export default [
   {
@@ -47,6 +48,11 @@ export default [
         loadComponent: () => import('./assignments/assignment-list').then((m) => m.AssignmentList),
       },
       {
+        path: 'assignments/new',
+        canActivate: [permissionGuard('training:assign', { redirectTo: '/training/assignments' })],
+        loadComponent: () => import('./assignments/assignment-new').then((m) => m.AssignmentNew),
+      },
+      {
         path: 'assignments/:id',
         loadComponent: () =>
           import('./assignments/assignment-detail').then((m) => m.AssignmentDetail),
@@ -67,6 +73,16 @@ export default [
         path: 'matrix',
         canActivate: [permissionGuard(OVERSEE, { redirectTo: '/training' })],
         loadComponent: () => import('./matrix/training-matrix').then((m) => m.TrainingMatrix),
+      },
+      {
+        path: 'plan',
+        loadComponent: () => import('./plan/training-plan').then((m) => m.TrainingPlanPage),
+      },
+      {
+        // A person's training profile: yourself, or anyone for people who oversee
+        // training (the API answers 403 otherwise and the page says so).
+        path: 'people/:userId',
+        loadComponent: () => import('./people/person-training').then((m) => m.PersonTrainingPage),
       },
     ],
   },

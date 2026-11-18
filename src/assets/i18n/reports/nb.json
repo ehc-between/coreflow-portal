@@ -1,39 +1,36 @@
 {
   "nav": {
-    "label": "Rapportdeler",
-    "overview": "Samsvarsoversikt",
+    "overview": "Oversikt",
     "calendar": "Kalender",
-    "registers": "Registre",
+    "registers": "Registre og eksport",
     "definitions": "Lagrede rapporter",
     "auditPacks": "Revisjonspakker",
-    "dashboards": "Rolledashbord"
+    "dashboards": "Rolleoversikter"
   },
   "common": {
     "loading": "Laster …",
     "retry": "Prøv igjen",
-    "close": "Lukk"
-  },
-  "lesson": {
-    "open": "Minikurs",
-    "close": "Lukk kurset"
+    "close": "Lukk",
+    "ask": "Spør om dette"
   },
   "framework": {
-    "label": "Rammeverk",
-    "all": "Alle rammeverk"
+    "label": "Standard",
+    "all": "Alle standarder"
   },
   "frameworks": {
-    "iso9001": "ISO 9001 Kvalitet",
-    "iso27001": "ISO/IEC 27001 Informasjonssikkerhet",
-    "iso14001": "ISO 14001 Miljø",
-    "iso42001": "ISO/IEC 42001 KI-styring",
-    "iso45001": "ISO 45001 Helse og sikkerhet",
-    "gdpr": "GDPR Personvern",
-    "eu_ai_act": "EUs KI-forordning",
-    "nis2": "NIS2 Cybersikkerhet"
+    "iso9001": "ISO 9001 – kvalitet",
+    "iso27001": "ISO 27001 – informasjonssikkerhet",
+    "iso14001": "ISO 14001 – miljø",
+    "iso42001": "ISO 42001 – KI-styring",
+    "iso45001": "ISO 45001 – arbeidsmiljø",
+    "gdpr": "GDPR – personvern",
+    "eu_ai_act": "KI-forordningen (EU)",
+    "nis2": "NIS2 – cybersikkerhet",
+    "hs": "Felles ISO-krav"
   },
   "formats": {
     "csv": "CSV",
-    "xlsx": "Excel (XLSX)",
+    "xlsx": "Excel",
     "pdf": "PDF"
   },
   "langs": {
@@ -45,23 +42,64 @@
     "total": "Totalt",
     "open": "Åpne",
     "overdue": "Forfalt",
-    "due_soon": "Forfaller de neste 14 dagene",
+    "due_soon": "Forfaller snart",
     "open_actions": "Åpne tiltak",
     "overdue_actions": "Forfalte tiltak",
     "average": "Gjennomsnitt",
     "by_module": "Per område",
-    "by_severity": "Per alvorlighet",
-    "percent": "Etterlevelse",
+    "by_severity": "Etter alvorlighet",
+    "by_level": "Åpne risikoer etter nivå",
+    "by_type": "Åpne funn etter type",
+    "percent": "Fullført i tide",
     "completed": "Fullført",
     "assigned": "Tildelt",
     "expired": "Utløpt",
-    "expiring": "Utløper snart"
+    "expiring": "Utløper snart",
+    "unrated": "Ikke vurdert ennå",
+    "above_appetite": "Over akseptgrensen",
+    "reviews_overdue": "Gjennomganger forfalt",
+    "treatments_overdue": "Risikobehandlinger forfalt",
+    "not_compliant": "Ikke oppfylt",
+    "partly_compliant": "Delvis oppfylt",
+    "not_evaluated": "Ikke vurdert",
+    "at_risk": "I faresonen",
+    "on_track": "I rute",
+    "measurement_overdue": "Målinger forfalt",
+    "objectives_overdue": "Mål over frist",
+    "critical": "Kritiske leverandører",
+    "requests_overdue": "Henvendelser forfalt",
+    "breaches_open": "Åpne personvernbrudd",
+    "breaches_overdue": "Personvernbrudd over 72 timer",
+    "dpias_open": "Åpne DPIA-er",
+    "processors_without_dpa": "Databehandlere uten databehandleravtale",
+    "high_risk": "Høyrisikosystemer",
+    "unclassified": "Ikke klassifisert",
+    "upcoming_audits": "Planlagte revisjoner",
+    "overdue_inspections": "Forfalte inspeksjoner",
+    "failed": "Ikke bestått",
+    "sja_waiting": "SJA-er som venter på godkjenning",
+    "consultations_planned": "Planlagt medvirkning",
+    "safety_rounds_overdue": "Vernerunder forfalt",
+    "drills_overdue": "Øvelser forfalt",
+    "plans_review_overdue": "Planer som skal gjennomgås",
+    "exercises_overdue": "Øvelser forfalt",
+    "ict_gaps": "IT-systemer med mangler"
   },
   "severity": {
+    "very_low": "Svært lav",
     "low": "Lav",
     "medium": "Middels",
     "high": "Høy",
-    "critical": "Kritisk"
+    "very_high": "Svært høy",
+    "critical": "Kritisk",
+    "minor": "Mindre",
+    "major": "Større"
+  },
+  "values": {
+    "major_nc": "Større avvik",
+    "minor_nc": "Mindre avvik",
+    "observation": "Observasjon",
+    "ofi": "Forbedringsmulighet"
   },
   "statuses": {
     "open": "Åpen",
@@ -78,68 +116,84 @@
     "in_review": "Til gjennomgang",
     "approved": "Godkjent",
     "obsolete": "Utgått",
-    "covered": "Dekket",
-    "partial": "Delvis dekket",
+    "covered": "Dokumentert",
+    "partial": "Delvis dokumentert",
     "not_started": "Ikke startet",
     "not_applicable": "Ikke aktuelt",
     "confirmed": "Bekreftet",
     "suggested": "Foreslått"
   },
   "metric": {
-    "readinessLabel": "Modenhet {{ score }} %",
-    "noStandards": "Ingen standarder er aktivert ennå.",
+    "documentedOf": "{{ covered }} av {{ applicable }} krav dokumentert",
+    "noStandards": "Ingen standarder er slått på ennå.",
     "listTotal": "{{ count }} totalt",
     "nothing": "Ingenting å vise akkurat nå.",
+    "noRisks": "Ingen åpne risikoer er vurdert ennå.",
     "heatMapLabel": "Risikokart med {{ count }} risikoer",
     "likelihood": "Sannsynlighet",
     "consequence": "Konsekvens"
   },
   "overview": {
-    "title": "Samsvarsoversikt",
-    "subtitle": "Modenhet, forfalt arbeid og åpne avvik på tvers av styringssystemet.",
+    "description": "Tallene ledelsens gjennomgang og revisorer spør om først: forfalte frister, åpne avvik og funn, og hvordan tallene har utviklet seg. Herfra lager du også rapporter og revisjonspakker.",
     "generatedAt": "Tall per {{ date }}",
     "kpi": {
-      "readiness": "Gjennomsnittlig modenhet",
-      "noStandards": "Ingen standarder aktivert",
-      "overdue": "Forfalte punkter",
-      "findings": "Åpne avvik",
+      "overdue": "Forfalte frister (alle områder)",
+      "overdueHint": "Oppgaver, gjennomganger, tiltak og andre frister som har passert",
+      "findings": "Åpne avvik og funn",
+      "findingsHint": "Fra avvik, revisjoner og inspeksjoner",
       "tasks": "Forfalte oppgaver",
-      "dueSoon": "{{ count }} forfaller innen 14 dager"
+      "dueSoon": "{{ count }} forfaller de neste 14 dagene",
+      "dueSoonOne": "1 forfaller de neste 14 dagene",
+      "noneDueSoon": "Ingen forfaller de neste 14 dagene",
+      "tasksUnavailable": "Du har ikke tilgang til oppgaver"
     },
-    "readiness": {
-      "title": "Modenhet per standard",
-      "open": "Åpne standarder",
-      "ask": "Forklar hvordan modenheten for standardene våre beregnes, og hva som vil heve den mest.",
-      "unavailable": "Modenhet krever standardmodulen og tilgang til å lese standarder."
+    "coverage": {
+      "pointer": "Kravdekning per standard og kravene som mangler dokumentasjon, finner du under Standarder og krav.",
+      "open": "Gå til Standarder og krav"
     },
     "overdue": {
-      "title": "Forfalte punkter",
-      "open": "Åpne kalenderen",
+      "title": "Forfalte frister",
+      "open": "Åpne i kalenderen",
       "none": "Ingenting er forfalt. Godt jobbet.",
-      "truncated": "Bare de første punktene er telt; filtrer kalenderen for å se resten."
+      "areaLink": "{{ area }}: {{ count }} forfalte frister. Vis dem i kalenderen.",
+      "areaLinkOne": "{{ area }}: 1 forfalt frist. Vis den i kalenderen.",
+      "more": "Viser {{ shown }} av {{ total }}. Åpne kalenderen for å se alle."
     },
     "findings": {
-      "title": "Åpne avvik",
-      "open": "Åpne avvik",
-      "none": "Ingen åpne avvik du har tilgang til."
+      "title": "Åpne avvik og funn",
+      "open": "Gå til avvik",
+      "none": "Ingen åpne avvik eller funn du har tilgang til."
     },
     "documents": {
       "title": "Dokumentgjennomganger",
-      "unavailable": "Du trenger tilgang til dokumenter for å se gjennomgangene."
+      "definition": "Dokumenter som skal gjennomgås jevnlig, og der fristen er passert eller nærmer seg (14 dager).",
+      "open": "Gå til dokumenter"
     },
     "risk": {
-      "title": "Risikokart",
-      "unavailable": "Risikokartet vises når risikomodulen er aktivert og du kan lese risikoer."
+      "open": "Gå til risikoer"
     },
     "training": {
-      "title": "Opplæringsetterlevelse",
-      "unavailable": "Opplæringsetterlevelse vises når opplæringsmodulen er aktivert og du kan lese opplæringsposter."
+      "open": "Gå til opplæring"
     }
   },
+  "trends": {
+    "title": "Utvikling de siste 12 månedene",
+    "subtitle": "Tallene lagres hver måned, slik at ledelsens gjennomgang kan se trender (ISO, punkt 9.3.2).",
+    "upCount": "{{ count }} flere enn forrige måned",
+    "upCountOne": "1 flere enn forrige måned",
+    "downCount": "{{ count }} færre enn forrige måned",
+    "downCountOne": "1 færre enn forrige måned",
+    "upPoints": "{{ count }} prosentpoeng høyere enn forrige måned",
+    "upPointsOne": "1 prosentpoeng høyere enn forrige måned",
+    "downPoints": "{{ count }} prosentpoeng lavere enn forrige måned",
+    "downPointsOne": "1 prosentpoeng lavere enn forrige måned",
+    "same": "Uendret siden forrige måned",
+    "noPrevious": "Ingen tall fra forrige måned ennå"
+  },
   "narrative": {
-    "title": "Rapport om samsvarsstatus",
-    "subtitle": "En skriftlig oppsummering av tallene over, for ledelsens gjennomgang, en revisor eller de ansatte.",
-    "audience": "Målgruppe",
+    "title": "Skriftlig status til ledelsen",
+    "subtitle": "En kort tekst som oppsummerer tallene over, for ledelsens gjennomgang, en revisor eller de ansatte.",
+    "audience": "Hvem er teksten til",
     "audiences": {
       "management": "Toppledelsen",
       "auditor": "Revisor",
@@ -147,72 +201,154 @@
     },
     "period": "Se fremover",
     "days": "{{ count }} dager",
-    "generate": "Skriv rapporten",
+    "generate": "Skriv teksten",
     "copy": "Kopier teksten",
-    "copied": "Rapporten er kopiert til utklippstavlen.",
-    "empty": "Velg målgruppe og skriv rapporten. Ingenting lagres før du selv kopierer eller lagrer den.",
-    "disclaimer": "Utkast fra assistenten basert på tallene du har tilgang til. Kontroller det før du deler det."
+    "copied": "Teksten er kopiert.",
+    "empty": "Velg hvem teksten er til, og trykk «Skriv teksten». Ingenting lagres før du selv kopierer den.",
+    "disclaimer": "Et utkast basert på tallene du har tilgang til. Les det gjennom før du deler det."
+  },
+  "followUp": {
+    "title": "Ny oppgave for oppfølging",
+    "create": "Lag oppgave",
+    "createFor": "Lag en oppgave for å følge opp {{ title }}",
+    "created": "Oppgaven er laget og koblet til posten."
   },
   "calendar": {
     "title": "Organisasjonskalender",
-    "subtitle": "Alle åpne frister du har tilgang til: oppgaver, gjennomganger, tiltak og mer.",
-    "exportIcs": "Eksporter til kalender (.ics)",
+    "subtitle": "Alle åpne frister du har tilgang til, fra alle områder: oppgaver, gjennomganger, tiltak, revisjoner, fornyelser og mer.",
+    "contextTitle": "Organisasjonskalender, {{ month }}",
+    "exportIcs": "Legg til i egen kalender (.ics)",
+    "icsFile": "organisasjonskalender.ics",
     "previous": "Forrige måned",
     "next": "Neste måned",
     "today": "I dag",
     "module": "Område",
     "allModules": "Alle områder",
-    "includeOverdue": "Ta med tidligere forfalte punkter",
-    "viewLabel": "Kalendervisning",
+    "owner": "Ansvarlig",
+    "owners": {
+      "all": "Alle ansvarlige",
+      "me": "Mine frister"
+    },
+    "includeOverdue": "Ta med eldre forfalte frister",
+    "viewLabel": "Visning",
     "views": {
       "month": "Måned",
       "list": "Liste"
     },
-    "kinds": {
-      "due": "Frist",
+    "legend": "Fargeforklaring",
+    "states": {
+      "overdue": "Forfalt",
+      "due_soon": "Snart",
       "review": "Gjennomgang",
-      "action": "Tiltak"
+      "action": "Tiltak",
+      "due": "Frist"
     },
-    "truncated": "Det er flere punkter enn det som kan vises. Snevre inn område eller rammeverk for å se alle.",
-    "earlierOverdue": "Forfalt fra tidligere ({{ count }})",
+    "truncated": "Det er flere frister enn kalenderen kan vise. Velg et område eller en standard for å se alle.",
+    "earlierOverdue": "Forfalt fra før ({{ count }})",
     "showDay": "Vis {{ date }}",
-    "dayWithItems": "{{ date }}, {{ count }} punkter",
+    "dayWithItems": "{{ date }}, {{ count }} frister",
+    "dayWithItemsOne": "{{ date }}, 1 frist",
+    "grouped": "{{ title }} ({{ count }} like frister)",
     "more": "+{{ count }} til",
     "nothingThisDay": "Ingenting forfaller denne dagen.",
     "nothingThisMonth": "Ingenting forfaller denne måneden."
   },
   "registers": {
     "title": "Registre og eksport",
-    "subtitle": "Filtrer et register, forhåndsvis det og eksporter det som CSV, Excel eller PDF.",
-    "pick": "Velg et register",
-    "language": "Eksportspråk",
-    "export": "Eksporter",
-    "exported": "Eksporten er lastet ned.",
+    "subtitle": "Velg et register, snevre det inn og last det ned som CSV, Excel eller PDF. Det revisoren ber om, på minutter.",
+    "contextTitle": "Registeret {{ register }}",
+    "pick": "Velg register",
+    "language": "Språk i eksporten",
+    "export": "Last ned som",
+    "exported": "Filen er lastet ned.",
     "saveAsReport": "Lagre som rapport",
-    "needsStandard": "Velg en standard for å forhåndsvise dette registeret.",
+    "evidenceFor": "Dokumentasjon for:",
+    "needsStandard": "Velg en standard for å se dette registeret.",
     "noRows": "Ingen rader passer med disse filtrene.",
-    "previewCount": "Viser {{ shown }} av {{ total }} rader",
-    "previewTruncated": "Forhåndsvisningen viser bare de første radene. Eksporten inneholder alle radene du har tilgang til.",
+    "previewCount": "Viser de første {{ shown }} av {{ total }} rader",
+    "previewAll": "Viser alle {{ total }} radene",
+    "previewTruncated": "Her ser du bare de første radene. Filen du laster ned, inneholder alle radene du har tilgang til.",
+    "scrollHint": "Sveip sidelengs for å se flere kolonner.",
     "askAbout": "Hva forteller registeret «{{ register }}» en revisor, og hvilke filtre er mest nyttige?"
   },
   "filters": {
     "q": "Søk",
     "qPlaceholder": "Tittel, kode eller tekst",
     "standard": "Standard",
+    "standardRequired": "Standard (må velges)",
     "chooseStandard": "Velg en standard",
     "anyStandard": "Alle standarder",
     "from": "Fra",
     "to": "Til",
+    "dates": {
+      "due": {
+        "from": "Frist fra",
+        "to": "Frist til"
+      },
+      "raised": {
+        "from": "Meldt fra",
+        "to": "Meldt til"
+      },
+      "review": {
+        "from": "Neste gjennomgang fra",
+        "to": "Neste gjennomgang til"
+      },
+      "completed": {
+        "from": "Fullført fra",
+        "to": "Fullført til"
+      },
+      "linked": {
+        "from": "Koblet fra",
+        "to": "Koblet til"
+      },
+      "evaluated": {
+        "from": "Vurdert fra",
+        "to": "Vurdert til"
+      },
+      "evaluation": {
+        "from": "Neste vurdering fra",
+        "to": "Neste vurdering til"
+      },
+      "measured": {
+        "from": "Målt fra",
+        "to": "Målt til"
+      },
+      "planned": {
+        "from": "Planlagt fra",
+        "to": "Planlagt til"
+      },
+      "period": {
+        "from": "Periode fra",
+        "to": "Periode til"
+      },
+      "work": {
+        "from": "Arbeid fra",
+        "to": "Arbeid til"
+      },
+      "aware": {
+        "from": "Oppdaget fra",
+        "to": "Oppdaget til"
+      },
+      "end": {
+        "from": "Utløper fra",
+        "to": "Utløper til"
+      },
+      "created": {
+        "from": "Opprettet fra",
+        "to": "Opprettet til"
+      }
+    },
     "status": "Status",
-    "statusHint": "Ingen valgt status betyr alle statuser.",
+    "statusHint": "Velger du ingen status, tas alle med.",
     "none": "Registeret «{{ register }}» har ingen filtre."
   },
   "columns": {
     "legend": "Kolonner",
-    "hint": "Alle kolonner eksporteres med mindre du fjerner noen."
+    "hint": "Alle kolonner tas med, med mindre du fjerner noen."
   },
   "definitions": {
     "title": "Lagrede rapporter",
+    "subtitle": "Et register med faste filtre, kolonner og format. Kjør det på nytt med ett klikk, eller planlegg det slik at noen får en påminnelse.",
     "search": "Søk i lagrede rapporter",
     "new": "Ny rapport",
     "back": "Lagrede rapporter",
@@ -220,7 +356,7 @@
     "allRegisters": "Alle registre",
     "owner": "Eier",
     "owners": {
-      "all": "Alles rapporter",
+      "all": "Alle rapporter",
       "me": "Mine rapporter"
     },
     "sortLabel": "Sortering",
@@ -231,123 +367,184 @@
       "register": "Register"
     },
     "ownedBy": "Eier: {{ name }}",
+    "scheduled": "Planlagt",
     "lastExported": "Sist kjørt {{ date }}",
+    "runCount": "Kjørt {{ count }} ganger",
+    "runCountOne": "Kjørt én gang",
     "neverExported": "Ikke kjørt ennå"
   },
   "form": {
-    "back": "Tilbake",
-    "newTitle": "Ny lagret rapport",
-    "editTitle": "Rediger lagret rapport",
+    "newTitle": "Ny rapport",
+    "editTitle": "Endre rapporten",
+    "subtitle": "Velg registeret, og bestem hva som skal være med. Du kan kjøre rapporten så ofte du vil.",
     "name": "Navn",
+    "namePlaceholder": "For eksempel: Åpne avvik til kvalitetsmøtet",
     "nameRequired": "Gi rapporten et navn.",
     "description": "Beskrivelse",
+    "descriptionPlaceholder": "Hva rapporten brukes til, og hvem som får den",
     "register": "Register",
     "chooseRegister": "Velg et register",
-    "registerRequired": "Velg registeret denne rapporten eksporterer.",
+    "registerRequired": "Velg registeret rapporten skal hente fra.",
+    "askRegister": "Hvilket register passer best for en jevnlig rapport til ledelsens gjennomgang?",
     "filtersTitle": "Filtre",
-    "askFilters": "Hvilke filtre på registeret «{{ register }}» gir en nyttig, gjentakende rapport?",
-    "format": "Standardformat",
+    "askFilters": "Hvilke filtre på registeret «{{ register }}» gir en nyttig, jevnlig rapport?",
+    "format": "Format",
     "lang": "Språk",
     "owner": "Eier",
-    "changeReason": "Årsak til endringen",
-    "changeReasonPlaceholder": "For eksempel: la til filter for forfalte punkter til kvartalsgjennomgangen",
-    "create": "Opprett rapport",
-    "saveChanges": "Lagre endringer",
+    "changeReason": "Hvorfor endres rapporten",
+    "changeReasonPlaceholder": "For eksempel: la til filter for forfalte frister til kvartalsgjennomgangen",
+    "create": "Lagre rapporten",
+    "saveChanges": "Lagre endringene",
     "created": "Rapporten er lagret.",
     "saved": "Endringene er lagret."
   },
   "detail": {
-    "run": "Kjør ({{ format }})",
+    "run": "Kjør rapporten ({{ format }})",
+    "runAs": "Kjør som {{ format }}",
+    "otherFormats": "Andre formater",
+    "ran": "Rapporten er kjørt og lastet ned. Kjøringen er lagret i historikken.",
     "schedule": "Planlegg",
-    "edit": "Rediger",
-    "delete": "Slett rapport",
-    "deleteTitle": "Slette denne rapporten?",
-    "deleteMessage": "«{{ name }}» og de planlagte kjøringene fjernes. Filer som allerede er eksportert, påvirkes ikke.",
+    "reschedule": "Endre plan",
+    "edit": "Endre",
+    "delete": "Slett rapporten",
+    "deleteTitle": "Slette rapporten?",
+    "deleteMessage": "«{{ name }}» og den planlagte påminnelsen fjernes. Filer som allerede er lastet ned, påvirkes ikke.",
     "deleted": "Rapporten er slettet.",
-    "exportAs": "Kjør som",
+    "whatTitle": "Hva rapporten viser",
     "lastExported": "Sist kjørt",
+    "createdBy": "Laget",
     "noFilters": "Ingen filtre: alle rader du har tilgang til.",
     "allColumns": "Alle kolonner",
     "filterQ": "Søk: {{ q }}",
     "filterFrom": "Fra {{ date }}",
     "filterTo": "Til {{ date }}",
     "filterStandard": "Standard: {{ standard }}",
-    "created": "Opprettet av {{ name }} {{ date }}",
+    "created": "{{ name }}, {{ date }}",
     "unknownUser": "Ukjent bruker",
-    "askSummarise": "Oppsummer den lagrede rapporten «{{ name }}»: hva den viser og når den er nyttig."
+    "scheduleTitle": "Plan",
+    "repeats": "Gjentas",
+    "once": "Én gang",
+    "nextRun": "Neste kjøring",
+    "openTask": "Åpne oppgaven",
+    "scheduleNote": "Den ansvarlige får en oppgave før hver kjøring. Oppgaven lukkes når rapporten kjøres, og filen legges ved som dokumentasjon.",
+    "notScheduled": "Rapporten er ikke planlagt. Velg «Planlegg» for å få en påminnelse, for eksempel hver måned.",
+    "askSummarise": "Oppsummer den lagrede rapporten «{{ name }}»: hva den viser, hvilke krav den dokumenterer, og når den er nyttig."
+  },
+  "runs": {
+    "title": "Kjøringer",
+    "subtitle": "Hver gang rapporten kjøres, lagres hvem, når, format, antall rader og en sjekksum. Det er dokumentasjon på at dere følger med (ISO, punkt 9.1).",
+    "empty": "Ikke kjørt ennå. Kjør rapporten for å lage den første versjonen.",
+    "rows": "{{ count }} rader",
+    "rowsOne": "1 rad",
+    "fromTask": "fra planlagt oppgave",
+    "download": "Last ned",
+    "downloadLabel": "Last ned kjøringen fra {{ date }}",
+    "notKept": "Filen er ikke lagret",
+    "more": "Vis flere"
   },
   "schedule": {
-    "title": "Planlegg rapport",
-    "intro": "En gjentakende oppgave minner den ansvarlige på å kjøre rapporten. Sletter du rapporten, avbrytes oppgaven.",
+    "title": "Planlegg rapporten",
+    "intro": "En gjentakende oppgave minner den ansvarlige på å kjøre rapporten. Oppgaven lukkes når rapporten kjøres. Sletter du rapporten, stopper påminnelsene.",
     "start": "Første kjøring",
     "leadDays": "Vis oppgaven så mange dager før",
-    "assignee": "Tildel til",
-    "assigneeHint": "La stå tomt for å tildele den til deg selv.",
-    "submit": "Opprett plan",
-    "created": "Planen er opprettet. Du finner oppgaven under Mitt arbeid."
+    "assignee": "Ansvarlig",
+    "assigneeHint": "La feltet stå tomt for å få påminnelsen selv.",
+    "submit": "Lagre planen",
+    "created": "Planen er lagret. Oppgaven vises under Mitt arbeid."
+  },
+  "tasks": {
+    "runReport": "Kjør rapporten: {{ name }}"
   },
   "packs": {
     "title": "Revisjonspakker",
-    "subtitle": "Med ett klikk får revisoren erklæringen om anvendelse, policyer, registre og dokumentasjonsoversikt.",
+    "subtitle": "Alt revisoren ber om, i én fil: anvendelseserklæringen (SoA), dokumentasjonsoversikten, kravdekningen, relevante registre og godkjente policyer.",
     "generate": "Lag revisjonspakke",
     "generateTitle": "Lag revisjonspakke",
-    "generateIntro": "Pakken bygges av det du har tilgang til nå, og lagres med en sjekksum, slik at du senere kan vise at den ikke er endret.",
+    "generateIntro": "Pakken lages av det du har tilgang til nå, og lagres med en sjekksum, slik at du senere kan vise at den ikke er endret.",
     "generateSubmit": "Lag pakken",
-    "building": "Bygger pakken. Det kan ta litt tid for store registre …",
+    "building": "Lager pakken. Det kan ta litt tid for store registre …",
     "generated": "Revisjonspakken er klar.",
-    "noStandards": "Ingen standarder er aktivert. Aktiver en standard under Standarder før du lager en pakke.",
-    "standard": "Standard",
-    "standardRequired": "Velg standarden pakken gjelder.",
+    "noStandards": "Ingen standarder er slått på. Slå på en standard under Standarder og krav før du lager en pakke.",
+    "standards": "Standarder pakken gjelder",
+    "standardRequired": "Velg minst én standard, eller en revisjon.",
+    "audit": "Revisjon",
+    "auditSearch": "Søk etter en revisjon (valgfritt)",
+    "removeAudit": "Fjern",
+    "noAudit": "Ikke koblet til en revisjon",
+    "periodStart": "Periode fra (valgfritt)",
+    "periodEnd": "Periode til (valgfritt)",
+    "periodLabel": "Periode",
+    "noPeriod": "Ingen periode valgt",
+    "period": "Periode {{ from }} – {{ to }}",
     "packTitle": "Tittel",
-    "packTitlePlaceholder": "La stå tomt for en tittel med standard og dato",
+    "packTitlePlaceholder": "La stå tomt for å få standard og dato som tittel",
     "includePolicies": "Ta med godkjente policyer",
-    "registers": "Registre som skal være med",
-    "registersHint": "Alle relevante registre tas med når alle boksene er krysset av.",
-    "readiness": "Modenhet {{ score }} %",
+    "registers": "Registre som tas med",
+    "recommendedHint": "Registrene en revisor av disse standardene forventer, er krysset av.",
+    "recommended": "Anbefalt",
+    "chooseAll": "Velg alle",
+    "chooseRecommended": "Bare de anbefalte",
+    "readiness": "Kravdekning {{ score }} %",
+    "forAudit": "Pakker for én revisjon",
+    "clearAudit": "Vis pakker for alle revisjoner",
     "download": "Last ned",
+    "downloadLabel": "Last ned «{{ title }}»",
     "back": "Revisjonspakker",
-    "delete": "Slett pakke",
-    "deleteTitle": "Slette denne revisjonspakken?",
+    "delete": "Slett pakken",
+    "deleteTitle": "Slette revisjonspakken?",
     "deleteMessage": "«{{ title }}» fjernes fra listen. Kopier som allerede er lastet ned, påvirkes ikke.",
     "deleted": "Revisjonspakken er slettet.",
-    "generatedBy": "Laget av {{ name }} {{ date }}",
+    "coverageTitle": "Kravdekning i pakken",
+    "coverageExplain": "Gjeldende krav er de som er tatt med i anvendelseserklæringen. Et krav er dokumentert når minst én post er bekreftet som dokumentasjon for det.",
+    "coveredOf": "{{ covered }} av {{ applicable }} gjeldende krav dokumentert ({{ percent }} %)",
+    "notApplicable": "{{ count }} ikke aktuelle",
+    "notApplicableOne": "1 ikke aktuelt",
+    "evidenceLinks": "{{ count }} koblinger til dokumentasjon",
+    "evidenceLinksOne": "1 kobling til dokumentasjon",
+    "noCoverage": "Pakken har ingen tall for kravdekning.",
+    "aboutTitle": "Om pakken",
+    "generatedByLabel": "Laget av",
     "checksum": "SHA-256-sjekksum",
+    "checksumAt": "Laget {{ date }}",
     "contents": "Innhold",
     "file": "Fil",
-    "kind": "Type",
+    "kind": "Innhold",
     "rows": "Rader",
     "size": "Størrelse",
-    "noContents": "Denne pakken har ingen filer.",
-    "askSummarise": "Oppsummer revisjonspakken «{{ title }}» og pek på mangler en revisor sannsynligvis vil spørre om.",
+    "noContents": "Pakken har ingen filer.",
+    "askSummarise": "Oppsummer revisjonspakken «{{ title }}», og pek på mangler en revisor sannsynligvis vil spørre om.",
     "summary": {
       "requirements": "Krav",
       "applicable": "Gjeldende",
-      "covered": "Dekket",
-      "evidence_links": "Dokumentasjonskoblinger",
+      "covered": "Dokumentert",
+      "evidence_links": "Koblinger til dokumentasjon",
       "policies": "Policyer"
     },
     "kinds": {
       "index": "Innholdsfortegnelse",
-      "soa": "Erklæring om anvendelse",
+      "soa": "Anvendelseserklæring (SoA)",
       "evidence": "Dokumentasjonsoversikt",
-      "readiness": "Modenhet",
+      "readiness": "Kravdekning",
       "policy": "Policy",
-      "policy_index": "Policyoversikt",
+      "policy_index": "Oversikt over policyer",
       "registers": "Registre",
-      "manifest": "Manifest"
+      "manifest": "Filliste med sjekksummer"
     }
   },
   "designer": {
-    "title": "Rolledashbord",
-    "subtitle": "Velg hvilke widgeter folk ser på startsiden, for hele organisasjonen eller per rolle.",
-    "openDashboard": "Åpne mitt dashbord",
+    "title": "Rolleoversikter",
+    "subtitle": "Velg hvilke kort folk ser på Rapporter-siden, for hele organisasjonen eller for hver rolle.",
     "scope": "Oppsett for",
-    "orgDefault": "Organisasjonens standard",
-    "customised": "Tilpasset av {{ name }} {{ date }}",
-    "usingBuiltin": "Bruker det innebygde oppsettet. Lagre for å gjøre det til organisasjonens standard.",
-    "usingFallback": "Ingen oppsett for denne rollen ennå: medlemmene ser organisasjonens standard.",
-    "widgets": "Widgeter ({{ count }} av {{ max }})",
-    "notAvailable": "Ikke tilgjengelig for deg",
+    "orgDefault": "Hele organisasjonen",
+    "customisedOption": "{{ scope }} (tilpasset)",
+    "customised": "Tilpasset av {{ name }}, {{ date }}",
+    "usingBuiltin": "Bruker det innebygde oppsettet. Lagre for å gjøre det til oppsettet for hele organisasjonen.",
+    "usingRoleBuiltin": "Bruker det innebygde oppsettet for {{ role }}. Lagre for å tilpasse det.",
+    "usingFallback": "Ingen eget oppsett for denne rollen: medlemmene ser oppsettet for hele organisasjonen.",
+    "usingBuiltinFallback": "Ingen eget oppsett for denne rollen: medlemmene ser det innebygde oppsettet.",
+    "widgets": "Kort på oversikten",
+    "count": "{{ count }} valgt (høyst {{ max }})",
+    "notAvailable": "Du har ikke tilgang til dataene",
     "size": "Størrelse",
     "sizes": {
       "sm": "Liten",
@@ -357,28 +554,30 @@
     "moveUp": "Flytt «{{ title }}» opp",
     "moveDown": "Flytt «{{ title }}» ned",
     "remove": "Fjern «{{ title }}»",
-    "noWidgets": "Ingen widgeter. Legg til en nedenfor.",
-    "add": "Legg til widget",
-    "choose": "Velg en widget",
-    "save": "Lagre oppsett",
+    "noWidgets": "Ingen kort er valgt. Legg til et nedenfor.",
+    "add": "Legg til kort",
+    "choose": "Velg et kort",
+    "save": "Lagre oppsettet",
     "saved": "Oppsettet er lagret.",
     "reset": "Tilbakestill",
-    "resetTitle": "Tilbakestille dette oppsettet?",
-    "resetMessage": "Oppsettet for {{ scope }} fjernes, og personene faller tilbake til neste oppsett.",
+    "resetTitle": "Tilbakestille oppsettet?",
+    "resetMessage": "Oppsettet for {{ scope }} fjernes, og medlemmene ser neste oppsett i rekken.",
     "wasReset": "Oppsettet er tilbakestilt."
   },
   "widgets": {
-    "heading": "Ditt dashbord",
-    "sourceRole": "Oppsett for {{ role }}",
-    "sourceOrg": "Organisasjonens oppsett",
-    "sourceBuiltin": "Standardoppsett",
-    "loadFailed": "Dashbordwidgetene kunne ikke lastes.",
-    "unavailable": "Du har ikke tilgang til denne informasjonen, eller modulen er slått av.",
-    "empty": "Ingen widgeter er valgt for dashbordet ditt.",
+    "heading": "Nøkkeltall for rollen din",
+    "sourceRole": "Oppsettet for {{ role }}",
+    "sourceOrg": "Oppsettet for hele organisasjonen",
+    "sourceBuiltin": "Det innebygde oppsettet",
+    "sourceBuiltinRole": "Det innebygde oppsettet for {{ role }}",
+    "customise": "Tilpass kortene",
+    "loadFailed": "Kortene kunne ikke lastes.",
+    "unavailable": "Du har ikke tilgang til disse dataene, eller modulen er slått av.",
+    "empty": "Ingen kort er valgt for rollen din.",
     "open": "Åpne {{ title }}",
     "readiness": {
-      "title": "Modenhet",
-      "description": "Modenhet per aktivert standard, basert på anvendelse, dokumentasjon og hvor fersk den er."
+      "title": "Kravdekning",
+      "description": "Andelen gjeldende krav med bekreftet dokumentasjon, per standard."
     },
     "openFindings": {
       "title": "Åpne avvik",
@@ -394,70 +593,130 @@
     },
     "documentReviews": {
       "title": "Dokumentgjennomganger",
-      "description": "Dokumenter der den periodiske gjennomgangen er forfalt eller forfaller snart."
+      "description": "Dokumenter der den faste gjennomgangen er forfalt eller nærmer seg."
     },
     "overdueItems": {
-      "title": "Forfalte punkter",
+      "title": "Forfalte frister",
       "description": "Alt som har passert fristen, per område."
     },
     "upcoming": {
-      "title": "Kommer snart",
+      "title": "Kommende frister",
       "description": "Frister de neste fire ukene."
     },
     "auditPacks": {
       "title": "Siste revisjonspakker",
-      "description": "De sist genererte revisjonspakkene."
+      "description": "De revisjonspakkene som sist er laget."
+    },
+    "heatMap": {
+      "title": "Risikokart",
+      "description": "Åpne risikoer etter sannsynlighet og konsekvens i organisasjonens risikomatrise."
+    },
+    "risksAboveAppetite": {
+      "title": "Risikoer over akseptgrensen",
+      "description": "Åpne risikoer med høyere score enn det organisasjonen har bestemt å akseptere."
+    },
+    "trainingCompliance": {
+      "title": "Gjennomført opplæring",
+      "description": "Andelen av opplæringen tildelt de siste 12 månedene som er fullført."
+    },
+    "competenceGaps": {
+      "title": "Manglende kompetanse",
+      "description": "Kompetanse en stilling krever, men som personene i stillingen ikke har ennå."
+    },
+    "obligationEvaluations": {
+      "title": "Vurdering av lovkrav",
+      "description": "Lover og andre krav der vurderingen av etterlevelse er forfalt."
+    },
+    "kpisOffTrack": {
+      "title": "Mål og nøkkeltall",
+      "description": "Nøkkeltall som ikke er i rute, eller som står i fare for ikke å nå målet."
+    },
+    "supplierEvaluations": {
+      "title": "Leverandørvurderinger",
+      "description": "Leverandører der den faste vurderingen er forfalt eller nærmer seg."
+    },
+    "privacyDeadlines": {
+      "title": "Personvernfrister",
+      "description": "Åpne henvendelser fra registrerte, og personvernbrudd der 72-timersfristen løper."
+    },
+    "aiAssessments": {
+      "title": "KI-vurderinger",
+      "description": "KI-vurderinger som pågår, og KI-systemer som fortsatt trenger en avklaring."
+    },
+    "auditFindings": {
+      "title": "Revisjonsfunn",
+      "description": "Åpne funn fra interne og eksterne revisjoner."
+    },
+    "inspectionFindings": {
+      "title": "Inspeksjonsfunn",
+      "description": "Åpne funn fra inspeksjoner og vernerunder."
+    },
+    "hseFollowUp": {
+      "title": "HMS-oppfølging",
+      "description": "Verneutstyr som skal kontrolleres, og sikre jobbanalyser som venter på godkjenning."
+    },
+    "environmentalAspects": {
+      "title": "Miljøaspekter",
+      "description": "Vesentlige miljøaspekter, og gjennomganger eller øvelser som er forfalt."
+    },
+    "continuityReadiness": {
+      "title": "Kontinuitet og beredskap",
+      "description": "Kritiske aktiviteter uten plan, og planer eller øvelser som er forfalt."
     }
   },
   "errors": {
     "module_disabled": "Rapporter er slått av for denne organisasjonen.",
-    "forbidden": "Du har ikke tillatelse til å gjøre dette.",
-    "unknown_framework": "Dette rammeverket er ukjent.",
-    "report_definition_not_found": "Denne rapporten finnes ikke lenger.",
-    "audit_pack_not_found": "Denne revisjonspakken finnes ikke lenger.",
-    "register_not_found": "Dette registeret er ikke tilgjengelig.",
-    "register_unavailable": "Registeret bak denne rapporten er ikke lenger tilgjengelig.",
-    "unknown_column": "En av de valgte kolonnene finnes ikke i dette registeret.",
-    "unsupported_filter": "Dette registeret støtter ikke et av filtrene.",
-    "invalid_filters": "Kontroller filtrene og prøv igjen.",
-    "invalid_status": "En av statusene er ikke gyldig for dette registeret.",
+    "forbidden": "Du har ikke tilgang til å gjøre dette.",
+    "unknown_framework": "Standarden er ukjent.",
+    "report_definition_not_found": "Rapporten finnes ikke lenger.",
+    "audit_pack_not_found": "Revisjonspakken finnes ikke lenger.",
+    "register_not_found": "Registeret er ikke tilgjengelig.",
+    "register_unavailable": "Registeret bak rapporten er ikke lenger tilgjengelig.",
+    "unknown_column": "En av kolonnene finnes ikke i dette registeret.",
+    "unsupported_filter": "Registeret støtter ikke et av filtrene.",
+    "invalid_filters": "Sjekk filtrene og prøv igjen.",
+    "invalid_status": "En av statusene gjelder ikke for dette registeret.",
     "standard_required": "Velg en standard for dette registeret.",
-    "standard_not_found": "Denne standarden er ukjent.",
-    "standard_not_enabled": "Denne standarden er ikke aktivert for organisasjonen.",
-    "invalid_window": "Sluttdatoen må komme etter startdatoen.",
+    "standard_not_found": "Standarden er ukjent.",
+    "standard_not_enabled": "Standarden er ikke slått på for organisasjonen.",
+    "invalid_window": "Sluttdatoen må være etter startdatoen.",
     "window_too_large": "Velg en kortere periode (høyst 400 dager).",
-    "invalid_owner": "Den nye eieren må være medlem av organisasjonen.",
+    "invalid_owner": "Velg en person som er medlem av organisasjonen.",
     "invalid_assignee": "Velg en gyldig ansvarlig.",
-    "invalid_rrule": "Gjentakelsesregelen er ikke gyldig.",
-    "role_not_found": "Denne rollen finnes ikke.",
-    "unknown_widget": "En av widgetene er ikke lenger tilgjengelig.",
+    "invalid_rrule": "Sjekk hvor ofte rapporten skal gjentas.",
+    "role_not_found": "Rollen finnes ikke.",
+    "unknown_widget": "Et av kortene er ikke lenger tilgjengelig.",
     "dashboard_not_found": "Det finnes ikke noe lagret oppsett å tilbakestille.",
-    "unknown_register": "Et av de valgte registrene er ukjent.",
-    "audit_pack_too_large": "Pakken ville blitt for stor. Utelat noen registre eller policyer.",
-    "audit_pack_empty": "Denne revisjonspakken har ingen fil å laste ned."
+    "unknown_register": "Et av registrene er ukjent.",
+    "audit_pack_too_large": "Pakken ville blitt for stor. Ta bort noen registre eller policyer.",
+    "audit_pack_empty": "Revisjonspakken har ingen fil å laste ned.",
+    "audit_plan_not_found": "Revisjonen finnes ikke lenger, eller du har ikke tilgang til den.",
+    "too_many_standards": "Velg høyst 8 standarder i én pakke.",
+    "run_file_not_kept": "Filen fra denne kjøringen er ikke lagret. Kjør rapporten på nytt.",
+    "run_not_found": "Kjøringen finnes ikke lenger."
   },
   "notifications": {
     "definitionCreated": "Ny rapport: {{ title }}",
-    "definitionUpdated": "Rapport oppdatert: {{ title }}",
+    "definitionUpdated": "Rapport endret: {{ title }}",
     "definitionDeleted": "Rapport slettet: {{ title }}",
     "definitionExported": "Rapport kjørt: {{ title }}",
     "definitionScheduled": "Rapport planlagt: {{ title }}",
     "definitionOwnerChanged": "Du eier nå rapporten: {{ title }}",
     "auditPackGenerated": "Revisjonspakke klar: {{ title }}",
     "auditPackDeleted": "Revisjonspakke slettet: {{ title }}",
-    "dashboardUpdated": "Dashbordoppsett oppdatert",
-    "dashboardReset": "Dashbordoppsett tilbakestilt"
+    "dashboardUpdated": "Rolleoversikt endret",
+    "dashboardReset": "Rolleoversikt tilbakestilt"
   },
   "timeline": {
-    "definitionCreated": "Rapport opprettet",
-    "definitionUpdated": "Rapport oppdatert",
+    "definitionCreated": "Rapport laget",
+    "definitionUpdated": "Rapport endret",
     "definitionDeleted": "Rapport slettet",
     "definitionExported": "Rapport kjørt",
     "definitionScheduled": "Rapport planlagt",
     "definitionOwnerChanged": "Eier endret",
     "auditPackGenerated": "Revisjonspakke laget",
     "auditPackDeleted": "Revisjonspakke slettet",
-    "dashboardUpdated": "Dashbordoppsett oppdatert",
-    "dashboardReset": "Dashbordoppsett tilbakestilt"
+    "dashboardUpdated": "Rolleoversikt endret",
+    "dashboardReset": "Rolleoversikt tilbakestilt"
   }
 }

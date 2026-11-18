@@ -23,11 +23,14 @@ import {
   PpeQuery,
   PpeUpdate,
   SafetyRoundCreate,
+  SafetyWalkList,
   Sja,
   SjaAction,
   SjaCreate,
   SjaQuery,
+  SjaSignOffIn,
   SjaUpdate,
+  TrainingCheck,
 } from './hse.models';
 
 /** Mutations toast their own coded message (see `hseErrorKey`), so skip the generic one. */
@@ -95,6 +98,15 @@ export class HseApi {
     );
   }
 
+  /** A participant confirms they went through the SJA (members may confirm for themselves). */
+  signOffSja(orgId: string, id: string, body: SjaSignOffIn): Observable<Sja> {
+    return this.api.post<Sja>(`${this.base(orgId)}/sja/${id}/sign-offs`, body, quiet());
+  }
+
+  removeSignOff(orgId: string, id: string, index: number): Observable<Sja> {
+    return this.api.delete<Sja>(`${this.base(orgId)}/sja/${id}/sign-offs/${index}`, quiet());
+  }
+
   deleteSja(orgId: string, id: string): Observable<void> {
     return this.api.delete<void>(`${this.base(orgId)}/sja/${id}`, quiet());
   }
@@ -120,6 +132,14 @@ export class HseApi {
 
   issuePpe(orgId: string, id: string, body: PpeIssue): Observable<Ppe> {
     return this.api.post<Ppe>(`${this.base(orgId)}/ppe/${id}/issue`, body, quiet());
+  }
+
+  /** Whether a member has the course the item requires (`not_required` when none). */
+  trainingCheck(orgId: string, id: string, userId: string): Observable<TrainingCheck> {
+    return this.api.get<TrainingCheck>(`${this.base(orgId)}/ppe/${id}/training-check`, {
+      params: { user_id: userId },
+      ...quiet(),
+    });
   }
 
   returnPpe(orgId: string, id: string): Observable<Ppe> {
@@ -221,6 +241,16 @@ export class HseApi {
   ): Observable<TaskList> {
     const params: QueryParams = { ...query, status: csv(query.status) };
     return this.api.get<TaskList>(`${this.base(orgId)}/safety-rounds`, { params });
+  }
+
+  /** Safety walks done in Inspections with the safety-walk checklist, with finding counts. */
+  listSafetyWalks(
+    orgId: string,
+    query: { status?: string; limit?: number; offset?: number } = {},
+  ): Observable<SafetyWalkList> {
+    return this.api.get<SafetyWalkList>(`${this.base(orgId)}/safety-rounds/inspections`, {
+      params: { ...query },
+    });
   }
 
   createSafetyRound(orgId: string, body: SafetyRoundCreate): Observable<TaskDetail> {

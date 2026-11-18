@@ -14,19 +14,22 @@ import { catchError, debounceTime, distinctUntilChanged, map, of, switchMap } fr
 import { providePageContext } from '../../../core/ai/page-context';
 import { DocumentsApi } from '../../../core/documents/documents-api';
 import { DocumentSearchResult } from '../../../core/documents/document.models';
+import { LanguageService } from '../../../core/i18n/language.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
-import { FieldHelp } from '../../../shared/guidance/field-help';
 import { LocalDatePipe } from '../../../shared/locale/locale-pipes';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
-import { FormField } from '../../../shared/ui/form-field/form-field';
+import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { Icon } from '../../../shared/ui/icon/icon';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
 import { AiGovernanceApi } from '../data/ai-governance-api';
 import { aiGovernanceErrorKey } from '../data/ai-governance-errors';
 import { AiGovernanceStore } from '../data/ai-governance-store';
-import { AiGovernanceSettings } from '../data/ai-governance.models';
-import { AI_GOVERNANCE_MODULE, AI_GOVERNANCE_SCOPE } from '../data/ai-governance-display';
+import { AiGovernanceSettings, LITERACY_SCOPES, LiteracyScope } from '../data/ai-governance.models';
+import { AI_GOVERNANCE_MODULE } from '../data/ai-governance-display';
+import { AiField } from '../ui/ai-field';
 import { AiGovPage } from '../ui/ai-gov-page';
 import { AiUserSelect } from '../ui/user-select';
 
@@ -45,114 +48,174 @@ export function clampMonths(
 }
 
 /**
- * `/ai-governance/settings`: the AI policy (a controlled document), the AI
- * governance officer, how long an AI literacy record stays valid and the
- * default review interval of AI systems. Read-only without
- * `ai_governance:manage`.
+ * `/ai-governance/settings`: the AI policy (a controlled document), the person
+ * responsible for AI governance, who AI literacy is measured over (everyone, or
+ * the people who own or oversee AI systems), how long a literacy record stays
+ * valid and the default review interval of AI systems and assessments.
+ * Read-only without `ai_governance:manage`.
  */
 @Component({
   selector: 'app-ai-governance-settings',
   imports: [
     RouterLink,
     TranslocoPipe,
-    FieldHelp,
     LocalDatePipe,
     Alert,
     Button,
     Card,
-    FormField,
+    ErrorState,
+    Icon,
+    LoadingState,
+    AiField,
     AiGovPage,
     AiUserSelect,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <app-ai-gov-page titleKey="aiGovernance.settings.title" page="settings">
+    <app-ai-gov-page
+      titleKey="aiGovernance.settings.title"
+      descriptionKey="aiGovernance.settings.subtitle"
+      [breadcrumbs]="[{ labelKey: 'aiGovernance.nav.settings' }]"
+      page="settings"
+      [settingsLink]="null"
+    >
       @if (loadError()) {
-        <app-alert tone="error">{{ loadError()! | transloco }}</app-alert>
+        <app-error-state (retry)="load()" />
       } @else if (settings(); as s) {
         @if (!store.canManage()) {
           <app-alert tone="info" class="mb-4">{{
             'aiGovernance.settings.readOnly' | transloco
           }}</app-alert>
         }
-        <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); save()" novalidate>
+        <form
+          class="flex max-w-[760px] flex-col gap-5"
+          (submit)="$event.preventDefault(); save()"
+          novalidate
+        >
           <app-card>
-            <h2 class="mb-1 font-display text-[15px] font-bold text-fg">
-              {{ 'aiGovernance.settings.policy' | transloco }}
-            </h2>
-            <app-field-help [scope]="scope" page="settings" field="policy" />
-            <div class="mt-2 flex flex-wrap items-center gap-2">
-              @if (policyId()) {
-                <a
-                  [routerLink]="['/documents', policyId()]"
-                  class="text-[13.5px] font-semibold text-accent hover:underline"
-                  data-testid="policy-link"
-                >
-                  {{ policyTitle() || ('aiGovernance.settings.policyDocument' | transloco) }}
-                </a>
-                @if (store.canManage()) {
-                  <app-button size="sm" variant="ghost" (click)="setPolicy(null, null)">{{
-                    'aiGovernance.settings.removePolicy' | transloco
-                  }}</app-button>
+            <app-ai-field
+              inputId="ais-policy"
+              labelKey="aiGovernance.settings.policy"
+              helpPage="settings"
+              helpField="policy"
+              [plain]="true"
+            >
+              <div class="flex flex-wrap items-center gap-2">
+                @if (policyId()) {
+                  <a
+                    [routerLink]="['/documents', policyId()]"
+                    class="inline-flex min-h-6 items-center gap-1.5 text-body font-semibold text-accent hover:underline"
+                    data-testid="policy-link"
+                  >
+                    <app-icon name="documents" [size]="14" />
+                    {{ policyTitle() || ('aiGovernance.settings.policyDocument' | transloco) }}
+                  </a>
+                  @if (store.canManage()) {
+                    <app-button size="sm" variant="ghost" (click)="setPolicy(null, null)">{{
+                      'aiGovernance.settings.removePolicy' | transloco
+                    }}</app-button>
+                  }
+                } @else {
+                  <span class="text-body text-fg-muted">{{
+                    'aiGovernance.settings.noPolicy' | transloco
+                  }}</span>
                 }
-              } @else {
-                <span class="text-[13.5px] text-fg-muted">{{
-                  'aiGovernance.settings.noPolicy' | transloco
-                }}</span>
-              }
-            </div>
-            @if (store.canManage()) {
-              <label class="mt-3 flex flex-col gap-1 text-[12.5px] font-semibold text-fg-muted">
-                {{ 'aiGovernance.settings.findPolicy' | transloco }}
+              </div>
+              @if (store.canManage()) {
+                <p class="mt-3 text-meta text-fg-muted">
+                  {{ 'aiGovernance.settings.findPolicy' | transloco }}
+                </p>
                 <input
+                  id="ais-policy"
                   type="search"
-                  class="h-9 rounded-tile border border-border bg-bg px-3 text-[13.5px] font-normal text-fg"
+                  class="mt-1 h-10 w-full rounded-tile border border-border bg-bg px-3 text-ui text-fg"
                   [placeholder]="'aiGovernance.settings.findPolicyPlaceholder' | transloco"
                   [value]="docQuery()"
                   (input)="docQuery.set($any($event.target).value)"
                 />
-              </label>
-              @if (docHits().length) {
-                <ul class="mt-2 flex flex-col gap-1" aria-live="polite">
-                  @for (d of docHits(); track d.id) {
-                    <li>
-                      <button
-                        type="button"
-                        class="w-full rounded-tile px-2 py-1.5 text-left text-[13px] text-fg hover:bg-surface-2"
-                        (click)="setPolicy(d.id, d.title)"
-                      >
-                        <span class="mr-1 font-mono text-[12px] text-fg-subtle">{{
-                          d.doc_code
-                        }}</span
-                        >{{ d.title }}
-                      </button>
-                    </li>
-                  }
-                </ul>
+                @if (docHits().length) {
+                  <ul class="mt-2 flex flex-col gap-1" aria-live="polite">
+                    @for (d of docHits(); track d.id) {
+                      <li>
+                        <button
+                          type="button"
+                          class="min-h-8 w-full rounded-tile px-2 py-1.5 text-left text-ui text-fg hover:bg-surface-2"
+                          (click)="setPolicy(d.id, d.title)"
+                        >
+                          <span class="mr-1 font-mono text-meta text-fg-subtle">{{
+                            d.doc_code
+                          }}</span
+                          >{{ d.title }}
+                        </button>
+                      </li>
+                    }
+                  </ul>
+                }
               }
-            }
+            </app-ai-field>
           </app-card>
 
           <app-card>
-            <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-              <div>
-                <app-form-field
-                  [label]="'aiGovernance.settings.officer' | transloco"
-                  inputId="ais-officer"
+            <div class="flex flex-col gap-4">
+              <app-ai-field
+                inputId="ais-officer"
+                labelKey="aiGovernance.settings.officer"
+                helpPage="settings"
+                helpField="officer"
+                [plain]="true"
+              >
+                <app-ai-user-select
+                  selectId="ais-officer"
+                  [currentName]="s.officer?.name ?? null"
+                  [disabled]="!store.canManage()"
+                  [(value)]="officer"
+                />
+              </app-ai-field>
+
+              <app-ai-field
+                inputId="ais-scope"
+                labelKey="aiGovernance.settings.literacyScope"
+                helpPage="settings"
+                helpField="literacy_scope"
+                [plain]="true"
+                [legend]="true"
+              >
+                <div
+                  class="flex flex-col gap-2"
+                  role="radiogroup"
+                  aria-labelledby="ais-scope-label"
                 >
-                  <app-ai-user-select
-                    selectId="ais-officer"
-                    [currentName]="s.officer?.name ?? null"
-                    [disabled]="!store.canManage()"
-                    [(value)]="officer"
-                  />
-                </app-form-field>
-                <app-field-help [scope]="scope" page="settings" field="officer" />
-              </div>
-              <div>
-                <app-form-field
-                  [label]="'aiGovernance.settings.literacyValidity' | transloco"
+                  @for (option of scopes; track option) {
+                    <label class="flex items-start gap-2 text-body text-fg">
+                      <input
+                        type="radio"
+                        name="ais-scope"
+                        class="mt-1"
+                        [value]="option"
+                        [checked]="scope() === option"
+                        [disabled]="!store.canManage()"
+                        (change)="scope.set(option)"
+                        [attr.data-testid]="'settings-scope-' + option"
+                      />
+                      <span>
+                        <span class="font-semibold">{{
+                          'aiGovernance.settings.scopes.' + option + '.label' | transloco
+                        }}</span>
+                        <span class="block text-meta text-fg-muted">{{
+                          'aiGovernance.settings.scopes.' + option + '.hint' | transloco
+                        }}</span>
+                      </span>
+                    </label>
+                  }
+                </div>
+              </app-ai-field>
+
+              <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <app-ai-field
                   inputId="ais-validity"
+                  labelKey="aiGovernance.settings.literacyValidity"
+                  helpPage="settings"
+                  helpField="literacy_validity_months"
                 >
                   <input
                     id="ais-validity"
@@ -163,13 +226,12 @@ export function clampMonths(
                     [value]="validity()"
                     (input)="validity.set(clamp($any($event.target).value, 1, 120, 24))"
                   />
-                </app-form-field>
-                <app-field-help [scope]="scope" page="settings" field="literacy_validity_months" />
-              </div>
-              <div>
-                <app-form-field
-                  [label]="'aiGovernance.settings.reviewInterval' | transloco"
+                </app-ai-field>
+                <app-ai-field
                   inputId="ais-interval"
+                  labelKey="aiGovernance.settings.reviewInterval"
+                  helpPage="settings"
+                  helpField="review_interval_months"
                 >
                   <input
                     id="ais-interval"
@@ -180,12 +242,11 @@ export function clampMonths(
                     [value]="interval()"
                     (input)="interval.set(clamp($any($event.target).value, 1, 60, 12))"
                   />
-                </app-form-field>
-                <app-field-help [scope]="scope" page="settings" field="review_interval_months" />
+                </app-ai-field>
               </div>
             </div>
             @if (s.updated_at) {
-              <p class="mt-3 text-[12px] text-fg-subtle">
+              <p class="mt-3 text-meta text-fg-subtle">
                 {{
                   'aiGovernance.settings.updatedAt'
                     | transloco: { date: (s.updated_at | localDate) }
@@ -197,7 +258,9 @@ export function clampMonths(
             <app-alert tone="error">{{ error()! | transloco }}</app-alert>
           }
           @if (store.canManage()) {
-            <div class="flex justify-end">
+            <div
+              class="sticky bottom-0 z-10 -mx-4 flex justify-end border-t border-border bg-bg/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0"
+            >
               <app-button type="submit" [loading]="saving()" data-testid="settings-save">{{
                 'aiGovernance.common.save' | transloco
               }}</app-button>
@@ -205,7 +268,7 @@ export function clampMonths(
           }
         </form>
       } @else {
-        <p class="text-[14px] text-fg-muted">{{ 'aiGovernance.common.loading' | transloco }}</p>
+        <app-loading-state [rows]="4" />
       }
     </app-ai-gov-page>
   `,
@@ -214,17 +277,19 @@ export class AiGovernanceSettingsPage {
   private readonly api = inject(AiGovernanceApi);
   private readonly documents = inject(DocumentsApi);
   private readonly selectedOrg = inject(SelectedOrgService);
+  private readonly language = inject(LanguageService);
   private readonly notifications = inject(NotificationService);
   protected readonly store = inject(AiGovernanceStore);
 
-  protected readonly scope = AI_GOVERNANCE_SCOPE;
   protected readonly clamp = clampMonths;
+  protected readonly scopes = LITERACY_SCOPES;
 
   protected readonly settings = signal<AiGovernanceSettings | null>(null);
   protected readonly loadError = signal<string | null>(null);
   protected readonly policyId = signal<string | null>(null);
   protected readonly policyTitle = signal<string | null>(null);
   protected readonly officer = signal('');
+  protected readonly scope = signal<LiteracyScope>('all');
   protected readonly validity = signal(24);
   protected readonly interval = signal(12);
   protected readonly docQuery = signal('');
@@ -233,17 +298,17 @@ export class AiGovernanceSettingsPage {
   protected readonly error = signal<string | null>(null);
 
   constructor() {
-    providePageContext(() => ({ module: AI_GOVERNANCE_MODULE, view: 'settings' }));
+    providePageContext(() => ({
+      module: AI_GOVERNANCE_MODULE,
+      view: 'settings',
+      title: this.language.translate('aiGovernance.settings.title'),
+    }));
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();
       untracked(() => {
-        if (!orgId) {
-          return;
+        if (orgId) {
+          this.load();
         }
-        this.api.settings(orgId).subscribe({
-          next: (s) => this.apply(s),
-          error: (err: unknown) => this.loadError.set(aiGovernanceErrorKey(err)),
-        });
       });
     });
     const sub = toObservable(this.docQuery)
@@ -265,11 +330,24 @@ export class AiGovernanceSettingsPage {
     inject(DestroyRef).onDestroy(() => sub.unsubscribe());
   }
 
+  protected load(): void {
+    const orgId = this.selectedOrg.currentOrgId();
+    if (!orgId) {
+      return;
+    }
+    this.loadError.set(null);
+    this.api.settings(orgId).subscribe({
+      next: (s) => this.apply(s),
+      error: (err: unknown) => this.loadError.set(aiGovernanceErrorKey(err)),
+    });
+  }
+
   private apply(s: AiGovernanceSettings): void {
     this.settings.set(s);
     this.policyId.set(s.policy_document_id);
     this.policyTitle.set(s.policy_document_title);
     this.officer.set(s.officer?.id ?? '');
+    this.scope.set(s.literacy_scope ?? 'all');
     this.validity.set(s.literacy_validity_months);
     this.interval.set(s.review_interval_months);
   }
@@ -294,6 +372,7 @@ export class AiGovernanceSettingsPage {
         officer_user_id: this.officer() || null,
         literacy_validity_months: this.validity(),
         review_interval_months: this.interval(),
+        literacy_scope: this.scope(),
       })
       .subscribe({
         next: (s) => {

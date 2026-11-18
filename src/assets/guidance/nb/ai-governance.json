@@ -52,15 +52,16 @@
       "fields": {
         "intended_purpose": {
           "help": "Hva systemet skal gjøre, i hvilken prosess, og hvilke beslutninger det støtter.",
-          "example": "Sorterer innkommende kundeeposter etter hast for kundeservice, som selv bestemmer rekkefølgen."
+          "example": "Sorterer innkommende kundeeposter etter hast for kundeservice, som selv bestemmer rekkefølgen.",
+          "requirements": ["eu_ai_act:26", "iso42001:A.6.2.2"]
         },
         "ai_act_role": {
           "help": "Tilbyder: dere utvikler det og bringer det i omsetning eller tar det i bruk under eget navn. Idriftsetter: dere bruker det under egen myndighet.",
-          "example": "En bedrift som bruker en innkjøpt chatbot på nettsiden, er idriftsetter."
+          "example": "En bedrift som bruker en innkjøpt chatbot på nettsiden, er idriftsetter.",
+          "requirements": ["eu_ai_act:3", "iso42001:A.10.2"]
         },
         "provider_name": {
-          "help": "Selskapet som leverer systemet eller modellen, hvis det ikke er dere.",
-          "example": "Leverandøren av rekrutteringsverktøyet."
+          "help": "Bare når leverandøren ikke finnes i leverandørregisteret: skriv navnet her."
         },
         "models": {
           "help": "KI-modellene eller modellfamiliene systemet bruker, så langt dere kjenner dem.",
@@ -68,26 +69,55 @@
         },
         "data_categories": {
           "help": "Hvilke typer data systemet mottar eller er trent på.",
-          "example": "Kundeeposter, ordrehistorikk, CV-er"
+          "example": "Kundeeposter, ordrehistorikk, CV-er",
+          "requirements": ["iso42001:A.7.2", "eu_ai_act:10"]
         },
         "owner": {
-          "help": "Personen som er ansvarlig for systemet: holder registreringen, klassifiseringen og oppgavene oppdatert."
+          "help": "Personen som er ansvarlig for systemet: holder registreringen, klassifiseringen og oppgavene oppdatert.",
+          "requirements": ["iso42001:5.3", "iso42001:A.3.2"]
+        },
+        "name": {
+          "help": "Et kort navn folk kjenner igjen, for eksempel navnet på produktet eller funksjonen.",
+          "example": "Rangering av jobbsøknader"
+        },
+        "description": {
+          "help": "Valgfritt. Det som hjelper andre å forstå systemet, og som ikke er formålet."
+        },
+        "supplier": {
+          "help": "Leverandøren dere kjøper systemet eller modellen fra, hentet fra leverandørregisteret. La stå tom når dere lager det selv.",
+          "example": "Leverandøren av rekrutteringsverktøyet.",
+          "requirements": ["iso42001:A.10.3", "eu_ai_act:26"]
+        },
+        "processing_activity": {
+          "help": "Behandlingsaktiviteten i Personvern som dekker denne bruken av personopplysninger. En DPIA koblet til den vises her.",
+          "requirements": ["gdpr:30", "eu_ai_act:26"]
+        },
+        "overseers": {
+          "help": "Personene som følger med på hvordan systemet fungerer, kan overstyre det og kan stanse det. De trenger gyldig KI-kompetanse.",
+          "example": "Rekrutteringslederen og en HR-rådgiver.",
+          "requirements": ["eu_ai_act:26", "eu_ai_act:14", "iso42001:A.3.2"]
+        },
+        "department": {
+          "help": "Den delen av organisasjonen som bruker systemet."
+        },
+        "next_review": {
+          "help": "Når systemet, klassifiseringen og dokumentasjonen skal gjennomgås neste gang."
         }
       }
     },
     "systemDetail": {
       "intro": {
-        "title": "Ett KI-system, alt på ett sted",
-        "body": "Her ser du systemets klassifisering og forpliktelser, vurderinger, dokumentasjon, overvåking og hendelser. Oppgavene for hver forpliktelse ligger under **Oppgaver**.",
+        "title": "Ett KI-system, alt koblet sammen",
+        "body": "Her ser du hva systemet er til, hvor det kommer fra, hvordan det er klassifisert og hva dere må gjøre. Hver forpliktelse er et gjøremål: gi den en oppgave, merk den som oppfylt og koble dokumentasjonen som viser det.",
         "steps": [
           "Klassifiser systemet hvis det ikke er gjort ennå.",
-          "Arbeid deg gjennom oppgavene; åpne dokumentasjonen for å skrive det som kreves.",
-          "Registrer overvåkingsresultater og koble til KI-hendelser når de skjer."
+          "Gå gjennom forpliktelsene: opprett en oppgave, eller merk dem som oppfylt med dokumentasjon.",
+          "Koble leverandøren, behandlingsaktiviteten og personene som fører tilsyn med systemet."
         ]
       },
       "why": {
-        "body": "Idriftsettere av høyrisikosystemer må bruke dem etter bruksanvisningen, sørge for menneskelig tilsyn, overvåke driften og ta vare på logger. Tilbydere må overvåke etter omsetning og melde alvorlige hendelser.",
-        "clauses": ["eu_ai_act:26", "eu_ai_act:72", "iso42001:9.1", "iso42001:A.6.2.6"]
+        "body": "KI-forordningen gir ulike plikter til tilbydere og idriftsettere, og pliktene avhenger av risikoklassen. ISO/IEC 42001 krever at dere planlegger, gjennomfører og følger opp det hvert KI-system trenger, og tar vare på dokumentasjonen.",
+        "clauses": ["eu_ai_act:16", "eu_ai_act:26", "iso42001:8.1", "iso42001:9.1"]
       },
       "fields": {
         "monitoring": {
@@ -142,10 +172,10 @@
     "documentation": {
       "intro": {
         "title": "Strukturert dokumentasjon",
-        "body": "Skriv styringsdokumentasjonen alle KI-systemer bør ha, og de ni delene av den **tekniske filen etter vedlegg IV** som høyrisikosystemer må ha.",
+        "body": "Skriv styringsdokumentasjonen alle KI-systemer bør ha, og de ni punktene i den **tekniske filen etter vedlegg IV**. Filen kreves av tilbydere av høyrisikosystemer; idriftsettere henter den fra tilbyderen.",
         "steps": [
           "Start med den generelle beskrivelsen og utformingen av menneskelig tilsyn.",
-          "Hold hver del kort og saklig; legg ved dokumentasjon som vedlegg på systemet.",
+          "Hold hver del kort og saklig. Ligger delen allerede i et styrt dokument, kobler du dokumentet i stedet for å skrive teksten på nytt.",
           "Bruk **Spør assistenten** for et første utkast til en del, og rediger det etterpå."
         ]
       },
@@ -192,7 +222,17 @@
       },
       "fields": {
         "kind": {
-          "help": "Usikker? Kjør klassifiseringen først: den forteller om FRIA kreves."
+          "help": "Usikker? Kjør klassifiseringen først: den forteller om FRIA kreves.",
+          "requirements": ["iso42001:6.1.4", "iso42001:A.5.2", "eu_ai_act:27"]
+        },
+        "system": {
+          "help": "KI-systemet vurderingen gjelder."
+        },
+        "owner": {
+          "help": "Personen som skriver og har ansvaret for vurderingen."
+        },
+        "next_review": {
+          "help": "Når systemet, klassifiseringen og dokumentasjonen skal gjennomgås neste gang."
         }
       }
     },
@@ -228,12 +268,12 @@
         "steps": [
           "Registrer opplæring, orientering eller selvstudium for hver person.",
           "Sjekk dekningen og følg opp personene som mangler eller har utløpt registrering.",
-          "Kjør kurs i Opplæring; registrer gjennomføringen her som KI-kompetanse."
+          "Merk kurs i Opplæring med kategorien KI-kompetanse, så teller fullføringene automatisk. Orienteringer og eksterne kurs registrerer du her."
         ]
       },
       "why": {
         "body": "Fra februar 2025 må tilbydere og idriftsettere sørge for et tilstrekkelig nivå av KI-kompetanse hos de ansatte (art. 4). ISO/IEC 42001 krever kompetanse og bevissthet.",
-        "clauses": ["eu_ai_act:4", "hs:7.2", "hs:7.3"]
+        "clauses": ["eu_ai_act:4", "iso42001:7.2", "iso42001:7.3"]
       },
       "empty": {
         "title": "Ingen registreringer av KI-kompetanse ennå",
@@ -243,7 +283,8 @@
       "fields": {
         "topic": {
           "help": "Hva opplæringen handlet om.",
-          "example": "KI-policyen vår og trygg bruk av skriveassistenten"
+          "example": "KI-policyen vår og trygg bruk av skriveassistenten",
+          "requirements": ["eu_ai_act:4", "iso42001:7.2", "iso42001:7.3"]
         }
       }
     },
@@ -254,14 +295,16 @@
       },
       "why": {
         "body": "ISO/IEC 42001 krever en dokumentert KI-policy og definerte roller og ansvar for KI.",
-        "clauses": ["iso42001:A.2.2", "iso42001:A.3.2", "hs:5.2"]
+        "clauses": ["iso42001:A.2.2", "iso42001:A.3.2", "iso42001:5.2"]
       },
       "fields": {
         "policy": {
-          "help": "KI-policyen er et styrt dokument i Dokumenter. Koble den her så revisjoner og oversikten finner den."
+          "help": "KI-policyen er et styrt dokument i Dokumenter. Koble den her så revisjoner og oversikten finner den.",
+          "requirements": ["iso42001:5.2", "iso42001:A.2.2"]
         },
         "officer": {
-          "help": "Personen som koordinerer KI-styringen. Oppgaver for forpliktelser uten systemeier går til rollen ansvarlig for KI-styring."
+          "help": "Personen som koordinerer KI-styringen. Oppgaver for forpliktelser uten systemeier går til rollen ansvarlig for KI-styring.",
+          "requirements": ["iso42001:5.3", "iso42001:A.3.2"]
         },
         "literacy_validity_months": {
           "help": "Hvor lenge en registrering av KI-kompetanse er gyldig når ingen sluttdato er oppgitt.",
@@ -270,6 +313,10 @@
         "review_interval_months": {
           "help": "Standard tid mellom gjennomganger av et KI-system.",
           "example": "12"
+        },
+        "literacy_scope": {
+          "help": "Art. 4 gjelder ansatte som driver eller bruker KI-systemer. Velg «personer som arbeider med KI-systemer» for bare å måle eiere og tilsynsansvarlige.",
+          "requirements": ["eu_ai_act:4", "iso42001:7.2"]
         }
       }
     }
@@ -280,7 +327,7 @@
       "minutes": 5,
       "sections": [
         {
-          "heading": "To rammeverk, ett mål",
+          "heading": "Lov og standard, ett mål",
           "body": "**KI-forordningen** er lov: den gir plikter ut fra hvor stor risiko et KI-system har. **ISO/IEC 42001** er en standard for styringssystemer: den beskriver hvordan arbeidet organiseres, med policy, roller, risiko- og konsekvensvurderinger og overvåking. Med begge vet dere hvilke plikter dere har, og har en fast måte å oppfylle dem på."
         },
         {
@@ -490,12 +537,12 @@
       {
         "target": "ai-overview-kpis",
         "title": "Nøkkeltall",
-        "body": "Hvor mange KI-systemer dere har, hvor mange som har høy risiko, åpne vurderinger og dekning av KI-kompetanse."
+        "body": "Hvor mange KI-systemer dere har, hvor mange som har høy risiko, hvor mange forpliktelser som er oppfylt, hva som venter på godkjenning og dekningen av KI-kompetanse. Hver flis åpner listen bak tallet."
       },
       {
         "target": "ai-overview-attention",
         "title": "Hva som trenger oppfølging",
-        "body": "Systemer som ikke er klassifisert, vurderinger og gjennomganger som har passert fristen, målinger som ikke er bestått og manglende KI-policy. Klikk på et punkt for å gå dit."
+        "body": "Alt som trenger oppfølging, det viktigste først: systemer som ikke er klassifisert, manglende policy eller FRIA, forpliktelser uten oppgave, mangelfull dokumentasjon og hull i KI-kompetansen."
       },
       {
         "target": "ai-overview-new",
@@ -510,14 +557,9 @@
         "body": "Legg til hvert KI-system dere lager eller bruker."
       },
       {
-        "target": "ai-systems-register-platform",
-        "title": "Et ferdig eksempel",
-        "body": "Registrer plattformens egne KI-funksjoner med ett klikk. De er klassifisert med begrenset risiko og viser hvordan en registrering ser ut."
-      },
-      {
         "target": "ai-systems-filters",
         "title": "Filtre og lagrede visninger",
-        "body": "Filtrer på status, risikoklasse eller rolle, og lagre visningen til senere."
+        "body": "Filtrer på risikoklasse og status. Rolle og sortering finner du under Flere filtre. Lagre visningen til senere."
       }
     ],
     "classify": [
@@ -529,7 +571,7 @@
       {
         "target": "ai-classify-result",
         "title": "Resultat underveis",
-        "body": "Risikoklassen, begrunnelsene og forpliktelsene oppdateres mens du svarer."
+        "body": "Resultatet oppdateres mens du svarer. Det sammenlignes med den gjeldende klassen, og du blir bedt om å bekrefte før klassen senkes."
       },
       {
         "target": "ai-classify-suggest",
@@ -578,6 +620,11 @@
       "term": "KI-kompetanse",
       "definition": "Ferdigheter, kunnskap og forståelse som trengs for å ta i bruk KI-systemer på et informert grunnlag og være klar over muligheter, risiko og mulig skade.",
       "clauses": ["eu_ai_act:4"]
+    },
+    "human-oversight": {
+      "term": "Menneskelig tilsyn",
+      "definition": "Personer som forstår hva et KI-system gjør, følger med mens det brukes og kan overstyre eller stanse det. Idriftsettere av høyrisikosystemer må gi dette ansvaret til personer med riktig kompetanse.",
+      "clauses": ["eu_ai_act:14", "eu_ai_act:26", "iso42001:A.3.2"]
     }
   }
 }
