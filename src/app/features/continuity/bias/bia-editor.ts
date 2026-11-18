@@ -2,71 +2,79 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  computed,
   effect,
   inject,
   input,
   signal,
   untracked,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../../core/ai/page-context';
 import { LanguageService } from '../../../core/i18n/language.service';
+import { CreateFlowService } from '../../../core/kit/create-flow.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
-import { GuideIntro } from '../../../shared/guidance/guide-intro';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
+import { FlowBanner } from '../../../shared/kit/flow-banner';
 import { Alert } from '../../../shared/ui/alert/alert';
-import { Icon } from '../../../shared/ui/icon/icon';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { ContinuityApi } from '../data/continuity-api';
 import { changedFields } from '../data/continuity-display';
 import { continuityErrorKey } from '../data/continuity-errors';
 import { BiaDetail } from '../data/continuity.models';
-import { BiaForm, BiaFormValue, biaDraft, biaFields } from './bia-form';
+import { formCrumbs } from '../shared/continuity-page';
+import { prefillText } from '../shared/flow-prefill';
+import { BiaForm, BiaFormValue, BiaPrefill, biaDraft, biaFields } from './bia-form';
 
 /**
- * Create (`/continuity/bias/new`) or edit (`/continuity/bias/:id/edit`) a business
- * impact analysis. Editing sends only the changed fields with the change reason; a
- * material change to an approved or in-review BIA sends it back to draft.
+ * Create (`/continuity/bias/new`, also from a process: "create from here") or edit
+ * (`/continuity/bias/:id/edit`) a business impact analysis. Editing sends only the
+ * changed fields with the change reason; a material change to an approved or
+ * in-review BIA sends it back to draft.
  */
 @Component({
   selector: 'app-bia-editor',
-  imports: [RouterLink, TranslocoPipe, Alert, BiaForm, GuideIntro, Icon, WhyItMatters],
+  imports: [
+    TranslocoPipe,
+    Alert,
+    BiaForm,
+    FlowBanner,
+    HelpStrip,
+    LoadingState,
+    PageHeader,
+    WhyItMatters,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[920px] px-4 pt-7 pb-12 sm:px-8">
-      <a
-        [routerLink]="id() ? ['/continuity/bias', id()] : '/continuity/bias'"
-        class="mb-3 inline-flex items-center gap-1 text-[13px] font-semibold text-fg-muted hover:text-fg"
-      >
-        <app-icon name="back" [size]="14" />
-        {{ (id() ? 'continuity.common.backToRecord' : 'continuity.bias.back') | transloco }}
-      </a>
+    <div class="mx-auto max-w-[808px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+      <app-page-header
+        [titleKey]="bia() ? 'continuity.bias.editTitle' : 'continuity.bias.newTitle'"
+        [titleParams]="{ code: bia()?.code, title: bia()?.title }"
+        [breadcrumbs]="crumbs()"
+      />
       @switch (state()) {
         @case ('loading') {
-          <p class="text-[14px] text-fg-muted">{{ 'continuity.common.loading' | transloco }}</p>
+          <app-loading-state [rows]="6" />
         }
         @case ('error') {
           <app-alert>{{ 'continuity.common.notFound' | transloco }}</app-alert>
         }
         @default {
-          <h1 class="mb-1 font-display text-[26px] font-bold tracking-[-0.025em] text-fg">
-            @if (bia(); as b) {
-              {{ 'continuity.bias.editTitle' | transloco: { code: b.code, title: b.title } }}
-            } @else {
-              {{ 'continuity.bias.newTitle' | transloco }}
-            }
-          </h1>
           @if (bia()?.can_edit === false) {
             <app-alert tone="info">{{ 'continuity.form.readOnly' | transloco }}</app-alert>
           } @else {
+            <app-flow-banner [flow]="flow()" (cancelled)="flows.cancel()" />
             @if (bia()?.status === 'approved' || bia()?.status === 'in_review') {
-              <div class="mt-2">
+              <div class="mb-4">
                 <app-alert tone="info">{{ 'continuity.form.backToDraft' | transloco }}</app-alert>
               </div>
             }
-            <div class="mt-3 mb-4"><app-guide-intro scope="continuity" page="biaForm" /></div>
+            <app-help-strip scope="continuity" page="biaForm" lesson="running-a-bia" />
             @if (error(); as key) {
               <div class="mb-4">
                 <app-alert>{{ key | transloco }}</app-alert>
@@ -74,11 +82,12 @@ import { BiaForm, BiaFormValue, biaDraft, biaFields } from './bia-form';
             }
             <app-bia-form
               [value]="bia()"
+              [prefill]="prefill()"
               [busy]="busy()"
               (submitted)="save($event)"
               (cancelled)="back()"
             />
-            <div class="mt-6"><app-why-it-matters scope="continuity" page="biaForm" /></div>
+            <div class="mt-8"><app-why-it-matters scope="continuity" page="biaForm" /></div>
           }
         }
       }
@@ -91,14 +100,49 @@ export class BiaEditor {
   private readonly notifications = inject(NotificationService);
   private readonly language = inject(LanguageService);
   private readonly router = inject(Router);
+  protected readonly flows = inject(CreateFlowService);
 
   /** Route `:id` (absent on `/new`). */
   readonly id = input<string | undefined>(undefined);
+
+  /** "Create from here" (process → BIA) or `?fromRequirement=`. */
+  protected readonly flow = this.flows.consume(inject(ActivatedRoute), { targetType: 'bia' });
+  protected readonly prefill = computed<BiaPrefill | null>(() => {
+    const values = this.flow()?.prefill;
+    if (!values) {
+      return null;
+    }
+    const from = this.flow()?.source;
+    const processId = prefillText(values, 'process_id');
+    return {
+      title: prefillText(values, 'title'),
+      description: prefillText(values, 'description'),
+      owner_user_id: prefillText(values, 'owner_user_id'),
+      department_id: prefillText(values, 'department_id'),
+      process: processId
+        ? {
+            entity_type: 'process',
+            entity_id: processId,
+            title: from?.title ?? '—',
+            code: from?.code ?? null,
+            url: from?.url ?? null,
+          }
+        : null,
+    };
+  });
 
   protected readonly state = signal<'loading' | 'error' | 'ready'>('ready');
   protected readonly bia = signal<BiaDetail | null>(null);
   protected readonly busy = signal(false);
   protected readonly error = signal<string | null>(null);
+  protected readonly crumbs = computed(() => {
+    const b = this.bia();
+    return formCrumbs(
+      'bias',
+      b ? { id: b.id, label: b.code } : null,
+      b ? 'continuity.common.edit' : 'continuity.bias.new',
+    );
+  });
   private request = new Subscription();
 
   constructor() {
@@ -143,6 +187,7 @@ export class BiaEditor {
         next: (b) => {
           this.busy.set(false);
           this.notifications.success('continuity.bias.created', { code: b.code });
+          this.flows.complete(b.id, 'bia').subscribe();
           void this.router.navigate(['/continuity/bias', b.id]);
         },
         error: (err: unknown) => {

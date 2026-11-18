@@ -13,31 +13,34 @@ import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../../core/ai/page-context';
-import { HasPermissionDirective } from '../../../core/auth/has-permission.directive';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { AskPanelService } from '../../ask/ask-panel.service';
 import { WatchButton } from '../../../shared/activity/watch-button';
-import { GuideIntro } from '../../../shared/guidance/guide-intro';
-import { LessonView } from '../../../shared/guidance/lesson';
-import { TeachMe } from '../../../shared/guidance/teach-me';
+import { Term } from '../../../shared/guidance/term';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { RecordDetailLayout, RecordTab } from '../../../shared/kit/record-detail-layout';
 import { LocalDayPipe } from '../../../shared/locale/locale-pipes';
-import { SupportsRequirements } from '../../../shared/requirement-links/supports-requirements';
 import { Alert } from '../../../shared/ui/alert/alert';
-import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
+import { FieldItem, FieldList } from '../../../shared/ui/field-list/field-list';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { ModuleNav } from '../../../shared/ui/module-nav/module-nav';
+import { MenuItem } from '../../../shared/ui/overflow-menu/overflow-menu';
 import { PromptDialog } from '../../../shared/ui/prompt-dialog/prompt-dialog';
+import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { ContinuityApi } from '../data/continuity-api';
-import { exerciseStatusTone, outcomeTone } from '../data/continuity-display';
+import { badge } from '../data/continuity-display';
 import { continuityErrorKey } from '../data/continuity-errors';
 import { ExerciseCompleteRequest, ExerciseDetail } from '../data/continuity.models';
+import { CONTINUITY_NAV, ContinuityLearnMore, recordCrumbs } from '../shared/continuity-page';
 import { ContinuityDuration } from '../shared/duration';
+import { confirmedRequirementRefs } from '../shared/page-requirements';
 import { ExerciseCompleteDialog } from './complete-dialog';
 import { ExerciseFollowUps } from './follow-ups-panel';
 
@@ -63,6 +66,9 @@ export const EXERCISE_FIELD_LABELS: Readonly<Record<string, string>> = {
   scenario: 'continuity.fields.scenario',
   objectives: 'continuity.fields.objectives',
   participants: 'continuity.fields.participants',
+  participant_user_ids: 'continuity.fields.participantMembers',
+  target_recovery_minutes: 'continuity.fields.targetRecovery',
+  success_criteria: 'continuity.fields.successCriteria',
   conducted_on: 'continuity.fields.conductedOn',
   outcome: 'continuity.fields.outcome',
   achieved_recovery_minutes: 'continuity.fields.achievedRecovery',
@@ -71,10 +77,10 @@ export const EXERCISE_FIELD_LABELS: Readonly<Record<string, string>> = {
 };
 
 /**
- * An exercise or test (`/continuity/exercises/:id`): what is exercised, the
- * scenario and objectives, the result (outcome, achieved recovery time against the
- * target RTO, lessons learned), the follow-up actions, and complete / cancel /
- * reopen actions, plus the shared record tabs.
+ * An exercise or test (`/continuity/exercises/:id`): what is exercised and who takes
+ * part, the scenario, objectives and success criteria, the result (outcome and the
+ * recovery time achieved against the target, flagged when they disagree), the lessons
+ * learned and their follow-up (tasks, deviations, risks), plus the shared record tabs.
  */
 @Component({
   selector: 'app-exercise-detail',
@@ -83,21 +89,24 @@ export const EXERCISE_FIELD_LABELS: Readonly<Record<string, string>> = {
     TranslocoPipe,
     LocalDayPipe,
     Alert,
-    Badge,
     Button,
     Card,
     ConfirmDialog,
     ContinuityDuration,
+    ContinuityLearnMore,
     ExerciseCompleteDialog,
     ExerciseFollowUps,
-    GuideIntro,
-    HasPermissionDirective,
+    FieldItem,
+    FieldList,
+    HelpStrip,
     Icon,
-    LessonView,
+    LoadingState,
+    MenuItem,
+    ModuleNav,
     PromptDialog,
     RecordDetailLayout,
-    SupportsRequirements,
-    TeachMe,
+    StatusBadge,
+    Term,
     WatchButton,
     WhyItMatters,
   ],
@@ -105,15 +114,13 @@ export const EXERCISE_FIELD_LABELS: Readonly<Record<string, string>> = {
   template: `
     @switch (state()) {
       @case ('loading') {
-        <p class="mx-auto max-w-[1180px] px-4 pt-7 text-[14px] text-fg-muted sm:px-8">
-          {{ 'continuity.common.loading' | transloco }}
-        </p>
+        <div class="mx-auto max-w-[1180px] px-4 pt-7 sm:px-8"><app-loading-state [rows]="6" /></div>
       }
       @case ('error') {
         <div class="mx-auto max-w-[1180px] px-4 pt-7 sm:px-8">
           <a
             routerLink="/continuity/exercises"
-            class="mb-3 inline-flex items-center gap-1 text-[13px] font-semibold text-fg-muted hover:text-fg"
+            class="mb-3 inline-flex items-center gap-1 text-ui font-semibold text-fg-muted hover:text-fg"
           >
             <app-icon name="back" [size]="14" />
             {{ 'continuity.exercises.back' | transloco }}
@@ -126,216 +133,169 @@ export const EXERCISE_FIELD_LABELS: Readonly<Record<string, string>> = {
           <app-record-detail-layout
             entityType="continuity_exercise"
             [entityId]="e.id"
+            [title]="e.title"
+            [breadcrumbs]="crumbs()"
             [tabs]="tabs"
             [canEdit]="e.can_edit"
             [includeAudit]="canAudit()"
             [fieldLabels]="fieldLabels"
+            [requirementsPanel]="true"
             backLink="/continuity/exercises"
             backLabelKey="continuity.exercises.back"
           >
-            <div header>
-              <div class="mb-1.5 flex flex-wrap items-center gap-2">
-                <span class="font-mono text-[12.5px] text-fg-muted">{{ e.code }}</span>
-                <app-badge [tone]="statusTone(e.status)">
-                  {{ 'continuity.exerciseStatus.' + e.status | transloco }}
-                </app-badge>
-                <app-badge>{{
-                  'continuity.exerciseType.' + e.exercise_type | transloco
-                }}</app-badge>
-                @if (e.outcome) {
-                  <app-badge [tone]="resultTone(e.outcome)">
-                    {{ 'continuity.outcome.' + e.outcome | transloco }}
-                  </app-badge>
-                }
-                @if (e.overdue) {
-                  <app-badge tone="fail">{{ 'continuity.common.overdue' | transloco }}</app-badge>
-                }
-              </div>
-              <h1
-                class="font-display text-[24px] font-bold tracking-[-0.03em] break-words text-fg sm:text-[26px]"
-              >
-                {{ e.title }}
-              </h1>
-            </div>
-
-            <ng-container actions>
-              <app-watch-button entityType="continuity_exercise" [entityId]="e.id" />
-              <app-button variant="ghost" size="sm" (click)="askSummary()">
-                <app-icon name="spark" [size]="14" />
-                {{ 'continuity.ai.summarise' | transloco }}
-              </app-button>
-              @if (e.can_edit && e.status !== 'cancelled') {
-                <a
-                  [routerLink]="['/continuity/exercises', e.id, 'edit']"
-                  class="inline-flex h-8 items-center rounded-tile border border-border px-3 text-[13px] font-semibold text-fg hover:bg-surface-2"
-                >
-                  {{ 'continuity.common.edit' | transloco }}
-                </a>
+            <ng-container meta>
+              <span class="font-mono">{{ e.code }}</span>
+              <span aria-hidden="true">·</span>
+              <span>{{ 'continuity.exerciseType.' + e.exercise_type | transloco }}</span>
+              @if (e.outcome) {
+                <app-status-badge
+                  [meaning]="outcomeBadge(e).meaning"
+                  [value]="outcomeBadge(e).value"
+                  [labelKey]="'continuity.outcome.' + e.outcome"
+                />
+              } @else {
+                <app-status-badge
+                  meaning="lifecycle"
+                  [value]="e.status"
+                  [labelKey]="'continuity.exerciseStatus.' + e.status"
+                />
               }
-              @if (allowed(e, 'complete')) {
-                <app-button size="sm" (click)="openComplete()">
-                  {{ 'continuity.exercises.complete' | transloco }}
-                </app-button>
-              }
-              @if (allowed(e, 'cancel')) {
-                <app-button size="sm" variant="secondary" (click)="cancelOpen.set(true)">
-                  {{ 'continuity.exercises.cancel' | transloco }}
-                </app-button>
-              }
-              @if (allowed(e, 'reopen')) {
-                <app-button size="sm" variant="secondary" [disabled]="busy()" (click)="reopen(e)">
-                  {{ 'continuity.exercises.reopen' | transloco }}
-                </app-button>
-              }
-              @if (e.can_delete) {
-                <app-button variant="ghost" size="sm" (click)="confirmDelete.set(true)">
-                  <app-icon name="trash" [size]="14" />
-                  {{ 'continuity.common.delete' | transloco }}
-                </app-button>
+              @if (e.overdue) {
+                <app-status-badge
+                  meaning="lifecycle"
+                  value="overdue"
+                  labelKey="continuity.common.overdue"
+                />
               }
             </ng-container>
 
-            <div class="flex flex-col gap-5">
-              <app-guide-intro scope="continuity" page="exerciseDetail" />
+            <app-watch-button secondary entityType="continuity_exercise" [entityId]="e.id" />
+            @if (allowed(e, 'complete') && e.can_edit) {
+              <app-button secondary variant="secondary" (click)="edit(e)">
+                {{ 'continuity.common.edit' | transloco }}
+              </app-button>
+            }
+            @if (allowed(e, 'complete')) {
+              <app-button primary (click)="openComplete()" data-testid="exercise-complete">
+                {{ 'continuity.exercises.complete' | transloco }}
+              </app-button>
+            } @else if (e.can_edit && e.status !== 'cancelled') {
+              <app-button primary (click)="edit(e)">
+                {{ 'continuity.common.edit' | transloco }}
+              </app-button>
+            }
+            <button appMenuItem overflow (click)="askSummary()">
+              {{ 'continuity.ai.summarise' | transloco }}
+            </button>
+            @if (allowed(e, 'reopen')) {
+              <button appMenuItem overflow [disabled]="busy()" (click)="reopen(e)">
+                {{ 'continuity.exercises.reopen' | transloco }}
+              </button>
+            }
+            @if (allowed(e, 'cancel')) {
+              <button appMenuItem overflow (click)="cancelOpen.set(true)">
+                {{ 'continuity.exercises.cancel' | transloco }}
+              </button>
+            }
+            @if (e.can_delete) {
+              <button appMenuItem overflow [danger]="true" (click)="confirmDelete.set(true)">
+                {{ 'continuity.common.delete' | transloco }}
+              </button>
+            }
 
-              <app-card>
-                <h2 class="mb-3 font-display text-[15px] font-bold text-fg">
-                  {{ 'continuity.form.sections.exercise' | transloco }}
-                </h2>
-                <dl class="grid grid-cols-1 gap-x-6 gap-y-3 text-[13.5px] sm:grid-cols-2">
-                  <div>
-                    <dt class="text-[12px] text-fg-muted">
-                      {{ 'continuity.fields.plan' | transloco }}
-                    </dt>
-                    <dd class="text-fg">
-                      @if (e.plan; as plan) {
-                        <a
-                          [routerLink]="['/continuity/plans', plan.id]"
-                          class="text-accent hover:underline"
-                        >
-                          {{ plan.code }} {{ plan.title }}
-                        </a>
-                      } @else {
-                        –
-                      }
-                    </dd>
-                  </div>
-                  <div>
-                    <dt class="text-[12px] text-fg-muted">
-                      {{ 'continuity.fields.ictSystem' | transloco }}
-                    </dt>
-                    <dd class="text-fg">
-                      @if (e.ict_system; as system) {
-                        <a
-                          [routerLink]="['/continuity/ict-systems', system.id]"
-                          class="text-accent hover:underline"
-                        >
-                          {{ system.code }} {{ system.name }}
-                        </a>
-                      } @else {
-                        –
-                      }
-                    </dd>
-                  </div>
-                  <div>
-                    <dt class="text-[12px] text-fg-muted">
-                      {{ 'continuity.fields.owner' | transloco }}
-                    </dt>
-                    <dd class="text-fg">
-                      {{ e.owner?.name ?? ('continuity.common.nobody' | transloco) }}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt class="text-[12px] text-fg-muted">
-                      {{ 'continuity.fields.scheduledOn' | transloco }}
-                    </dt>
-                    <dd class="text-fg" [class.text-fail]="e.overdue">
-                      {{
-                        e.scheduled_on
-                          ? (e.scheduled_on | localDay)
-                          : ('continuity.exercises.notScheduled' | transloco)
-                      }}
-                    </dd>
-                  </div>
-                  @if (e.participants) {
-                    <div class="sm:col-span-2">
-                      <dt class="text-[12px] text-fg-muted">
-                        {{ 'continuity.fields.participants' | transloco }}
-                      </dt>
-                      <dd class="text-fg">{{ e.participants }}</dd>
-                    </div>
-                  }
-                  @if (e.scenario) {
-                    <div class="sm:col-span-2">
-                      <dt class="text-[12px] text-fg-muted">
-                        {{ 'continuity.fields.scenario' | transloco }}
-                      </dt>
-                      <dd class="whitespace-pre-line text-fg">{{ e.scenario }}</dd>
-                    </div>
-                  }
-                  @if (e.objectives) {
-                    <div class="sm:col-span-2">
-                      <dt class="text-[12px] text-fg-muted">
-                        {{ 'continuity.fields.objectives' | transloco }}
-                      </dt>
-                      <dd class="whitespace-pre-line text-fg">{{ e.objectives }}</dd>
-                    </div>
-                  }
-                </dl>
-              </app-card>
+            <app-module-nav nav labelKey="continuity.nav.label" [items]="nav" />
+            <app-help-strip
+              help
+              scope="continuity"
+              page="exerciseDetail"
+              lesson="exercising-plans"
+              [subject]="e.title"
+            />
+
+            <div class="flex flex-col gap-5">
+              @if (actionError(); as key) {
+                <app-alert>{{ key | transloco }}</app-alert>
+              }
 
               @if (e.status === 'completed') {
                 <app-card>
-                  <h2 class="mb-3 font-display text-[15px] font-bold text-fg">
+                  <h2 class="mb-3 font-display text-card font-bold text-fg">
                     {{ 'continuity.exercises.results' | transloco }}
                   </h2>
+                  @if (outcomeConflict(e)) {
+                    <div class="mb-3" data-testid="outcome-conflict">
+                      <app-alert>{{
+                        'continuity.exercises.outcomeConflict' | transloco
+                      }}</app-alert>
+                    </div>
+                  }
                   <dl
-                    class="grid grid-cols-1 gap-x-6 gap-y-3 text-[13.5px] sm:grid-cols-3"
+                    class="grid grid-cols-1 gap-x-6 gap-y-3 text-body sm:grid-cols-3"
                     data-testid="exercise-results"
                   >
                     <div>
-                      <dt class="text-[12px] text-fg-muted">
+                      <dt class="text-meta text-fg-muted">
                         {{ 'continuity.fields.conductedOn' | transloco }}
                       </dt>
                       <dd class="text-fg">
-                        {{ e.conducted_on ? (e.conducted_on | localDay) : '–' }}
+                        {{
+                          e.conducted_on
+                            ? (e.conducted_on | localDay)
+                            : ('continuity.common.notSet' | transloco)
+                        }}
                       </dd>
                     </div>
                     <div>
-                      <dt class="text-[12px] text-fg-muted">
+                      <dt class="text-meta text-fg-muted">
                         {{ 'continuity.fields.achievedRecovery' | transloco }}
                       </dt>
-                      <dd class="text-fg">
+                      <dd
+                        class="text-card font-semibold"
+                        [class]="e.rto_met === false ? 'text-fail-ink' : 'text-fg'"
+                      >
                         <app-continuity-duration [minutes]="e.achieved_recovery_minutes" />
                       </dd>
                     </div>
                     <div>
-                      <dt class="text-[12px] text-fg-muted">
-                        {{ 'continuity.exercises.targetRto' | transloco }}
+                      <dt class="text-meta text-fg-muted">
+                        <app-term key="rto" scope="continuity">{{
+                          'continuity.exercises.targetRto' | transloco
+                        }}</app-term>
                       </dt>
                       <dd class="flex flex-wrap items-center gap-2 text-fg">
-                        <app-continuity-duration [minutes]="e.target_rto_minutes" />
+                        <span class="text-card font-semibold"
+                          ><app-continuity-duration [minutes]="e.target_rto_minutes"
+                        /></span>
                         @if (e.rto_met === true) {
-                          <app-badge tone="pass">{{
-                            'continuity.exercises.rtoMet' | transloco
-                          }}</app-badge>
+                          <app-status-badge
+                            meaning="compliance"
+                            value="met"
+                            labelKey="continuity.exercises.rtoMet"
+                          />
                         } @else if (e.rto_met === false) {
-                          <app-badge tone="fail">{{
-                            'continuity.exercises.rtoMissed' | transloco
-                          }}</app-badge>
+                          <app-status-badge
+                            meaning="compliance"
+                            value="not_met"
+                            labelKey="continuity.exercises.rtoMissed"
+                          />
                         }
                       </dd>
+                      @if (e.target_source) {
+                        <dd class="mt-0.5 text-meta text-fg-subtle">
+                          {{ 'continuity.exercises.targetSource.' + e.target_source | transloco }}
+                        </dd>
+                      }
                     </div>
                     @if (e.results) {
                       <div class="sm:col-span-3">
-                        <dt class="text-[12px] text-fg-muted">
+                        <dt class="text-meta text-fg-muted">
                           {{ 'continuity.fields.results' | transloco }}
                         </dt>
                         <dd class="whitespace-pre-line text-fg">{{ e.results }}</dd>
                       </div>
                     }
                     <div class="sm:col-span-3">
-                      <dt class="text-[12px] text-fg-muted">
+                      <dt class="text-meta text-fg-muted">
                         {{ 'continuity.fields.lessonsLearned' | transloco }}
                       </dt>
                       <dd class="whitespace-pre-line text-fg">
@@ -343,49 +303,115 @@ export const EXERCISE_FIELD_LABELS: Readonly<Record<string, string>> = {
                       </dd>
                     </div>
                     @if (e.completed_at) {
-                      <div class="sm:col-span-3 text-[12px] text-fg-subtle">
+                      <div class="text-meta text-fg-subtle sm:col-span-3">
                         {{
                           'continuity.exercises.completedBy'
                             | transloco
                               : {
                                   date: (e.completed_at | localDay),
-                                  name: e.completed_by?.name ?? '–',
+                                  name:
+                                    e.completed_by?.name ||
+                                    ('continuity.common.unknownPerson' | transloco),
                                 }
                         }}
                       </div>
                     }
                   </dl>
                 </app-card>
+
+                <app-exercise-follow-ups
+                  [exerciseId]="e.id"
+                  [tasks]="e.actions"
+                  [canAdd]="e.can_edit"
+                  [canFlow]="e.can_edit"
+                  [nudge]="!!e.lessons_need_follow_up"
+                  [linkedCount]="linkedFollowUps(e)"
+                  (added)="reload()"
+                />
               }
 
-              <app-exercise-follow-ups
-                [exerciseId]="e.id"
-                [tasks]="e.actions"
-                [canAdd]="e.can_edit && e.status !== 'cancelled'"
-                (added)="reload()"
-              />
-
-              @if (actionError(); as key) {
-                <app-alert>{{ key | transloco }}</app-alert>
-              }
+              <app-card>
+                <h2 class="mb-3 font-display text-card font-bold text-fg">
+                  {{ 'continuity.form.sections.exercise' | transloco }}
+                </h2>
+                <app-field-list>
+                  <app-field-item labelKey="continuity.fields.plan">
+                    @if (e.plan; as plan) {
+                      <a
+                        [routerLink]="['/continuity/plans', plan.id]"
+                        class="text-accent hover:underline"
+                      >
+                        <span class="font-mono text-meta">{{ plan.code }}</span> {{ plan.title }}
+                      </a>
+                    }
+                  </app-field-item>
+                  <app-field-item labelKey="continuity.fields.ictSystem">
+                    @if (e.ict_system; as system) {
+                      <a
+                        [routerLink]="['/continuity/ict-systems', system.id]"
+                        class="text-accent hover:underline"
+                      >
+                        <span class="font-mono text-meta">{{ system.code }}</span> {{ system.name }}
+                      </a>
+                    }
+                  </app-field-item>
+                  <app-field-item labelKey="continuity.fields.owner" [value]="e.owner?.name" />
+                  <app-field-item labelKey="continuity.fields.scheduledOn">
+                    @if (e.scheduled_on) {
+                      <span [class.text-warn-ink]="e.overdue">{{ e.scheduled_on | localDay }}</span>
+                    }
+                  </app-field-item>
+                  @if (e.status !== 'completed') {
+                    <app-field-item labelKey="continuity.fields.targetRecovery">
+                      @if (e.target_rto_minutes !== null) {
+                        <app-continuity-duration [minutes]="e.target_rto_minutes" />
+                        @if (e.target_source) {
+                          <span class="block text-meta text-fg-subtle">{{
+                            'continuity.exercises.targetSource.' + e.target_source | transloco
+                          }}</span>
+                        }
+                      }
+                    </app-field-item>
+                  }
+                  <app-field-item
+                    labelKey="continuity.fields.participants"
+                    [wide]="true"
+                    empty="none"
+                  >
+                    @if ((e.participant_members ?? []).length || e.participants) {
+                      <span class="flex flex-wrap gap-1.5">
+                        @for (m of e.participant_members ?? []; track m.id) {
+                          <span
+                            class="rounded-full border border-border bg-surface-2 px-2 py-0.5 text-meta text-fg"
+                            >{{ m.name || ('continuity.common.unknownPerson' | transloco) }}</span
+                          >
+                        }
+                      </span>
+                      @if (e.participants) {
+                        <span class="mt-1 block text-ui text-fg-muted">{{ e.participants }}</span>
+                      }
+                    }
+                  </app-field-item>
+                  @for (field of textFields; track field.key) {
+                    @if (e[field.key]; as text) {
+                      <app-field-item
+                        [labelKey]="field.label"
+                        [value]="text"
+                        [wide]="true"
+                        [multiline]="true"
+                      />
+                    }
+                  }
+                </app-field-list>
+              </app-card>
 
               <app-why-it-matters scope="continuity" page="exerciseDetail" />
             </div>
 
-            <ng-container aside>
-              <app-card>
-                <h2 class="mb-2 font-display text-[14px] font-bold text-fg">
-                  {{ 'continuity.common.learn' | transloco }}
-                </h2>
-                <div class="flex flex-col items-start gap-2">
-                  <app-lesson scope="continuity" lesson="exercising-plans" />
-                  <app-teach-me topic="continuity.exercise" [subject]="e.title" />
-                </div>
-              </app-card>
-              <app-card *appHasPermission="'standards:read'">
-                <app-supports-requirements entityType="continuity_exercise" [entityId]="e.id" />
-              </app-card>
-            </ng-container>
+            <app-continuity-learn-more
+              aside-learn
+              [lessons]="['writing-a-plan', 'ict-readiness']"
+            />
           </app-record-detail-layout>
 
           <app-exercise-complete-dialog
@@ -393,6 +419,7 @@ export const EXERCISE_FIELD_LABELS: Readonly<Record<string, string>> = {
             [busy]="busy()"
             [error]="completeError()"
             [targetRto]="e.target_rto_minutes"
+            [successCriteria]="e.success_criteria ?? null"
             (confirmed)="complete(e, $event)"
             (cancelled)="completeOpen.set(false)"
           />
@@ -437,10 +464,15 @@ export class ExerciseDetailPage {
 
   readonly id = input.required<string>();
 
+  protected readonly nav = CONTINUITY_NAV;
   protected readonly tabs = TABS;
   protected readonly fieldLabels = EXERCISE_FIELD_LABELS;
-  protected readonly statusTone = exerciseStatusTone;
-  protected readonly resultTone = outcomeTone;
+  protected readonly outcomeBadge = (e: ExerciseDetail) => badge.outcome(e.outcome);
+  protected readonly textFields = [
+    { key: 'scenario', label: 'continuity.fields.scenario' },
+    { key: 'objectives', label: 'continuity.fields.objectives' },
+    { key: 'success_criteria', label: 'continuity.fields.successCriteria' },
+  ] as const;
 
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
   protected readonly exercise = signal<ExerciseDetail | null>(null);
@@ -454,6 +486,12 @@ export class ExerciseDetailPage {
   protected readonly canAudit = computed(() =>
     (this.selectedOrg.currentOrg()?.permissions ?? []).includes('audit:read'),
   );
+  protected readonly crumbs = computed(() =>
+    recordCrumbs('exercises', this.exercise()?.code ?? ''),
+  );
+
+  /** Requirements the record documents, for the assistant's page context. */
+  private readonly requirements = confirmedRequirementRefs('continuity_exercise', () => this.id());
 
   private request = new Subscription();
 
@@ -466,6 +504,7 @@ export class ExerciseDetailPage {
         entityType: 'continuity_exercise',
         entityId: this.id(),
         view: 'detail',
+        requirements: this.requirements(),
         title: e ? `${e.code} ${e.title}` : null,
       };
     });
@@ -480,8 +519,22 @@ export class ExerciseDetailPage {
     return e.allowed_actions.includes(action);
   }
 
+  /** Marked successful although the recovery target was missed. */
+  protected outcomeConflict(e: ExerciseDetail): boolean {
+    return e.outcome === 'successful' && e.rto_met === false;
+  }
+
+  /** Follow-ups that are linked records (deviations, risks…), not tasks listed here. */
+  protected linkedFollowUps(e: ExerciseDetail): number {
+    return Math.max((e.follow_up_count ?? 0) - e.actions.length, 0);
+  }
+
   protected reload(): void {
     this.load(this.selectedOrg.currentOrgId(), this.id(), false);
+  }
+
+  protected edit(e: ExerciseDetail): void {
+    void this.router.navigate(['/continuity/exercises', e.id, 'edit']);
   }
 
   protected askSummary(): void {

@@ -431,7 +431,28 @@
     "management_review": {
       "to_task": "Action (task)"
     },
-    "formMissing": "This form is not available yet. Create the record from its own page and link it from the Related tab."
+    "formMissing": "This form is not available yet. Create the record from its own page and link it from the Related tab.",
+    "process": {
+      "to_bia": "Impact analysis (BIA) for the process"
+    },
+    "asset": {
+      "to_ict_system": "ICT service for continuity"
+    },
+    "bia": {
+      "to_plan": "Continuity plan for the activity",
+      "to_risk": "Assess the risk of the activity"
+    },
+    "continuity_exercise": {
+      "to_deviation": "Deviation from the exercise",
+      "to_risk": "Risk from the exercise",
+      "to_task": "Follow-up task"
+    },
+    "continuity_plan": {
+      "to_deviation": "Register the incident as a deviation"
+    },
+    "continuity_ict_system": {
+      "to_task": "Task to close the readiness gap"
+    }
   },
   "frameworks": {
     "iso9001": "ISO 9001",

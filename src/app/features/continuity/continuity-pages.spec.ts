@@ -49,12 +49,34 @@ const overview: Overview = {
     next: { code: 'EX-0002', title: 'Tabletop', url: '/continuity/exercises/e-2' },
   },
   ict: { total: 2, ready: 1, attention: 0, gap: 1 },
-  contacts: { total: 4, org_wide: 3, needs_verification: 1 },
+  contacts: { total: 4, org_wide: 3, plan_specific: 1, needs_verification: 1 },
+  foundation: {
+    scope: [],
+    policies: [
+      {
+        entity_type: 'document',
+        entity_id: 'd-1',
+        title: 'Continuity policy',
+        code: 'POL-002',
+        url: '/documents/d-1',
+      },
+    ],
+    objectives: [],
+    obligations: [],
+  },
   attention: {
     uncovered_bias: [{ code: 'BIA-0003', title: 'Support', url: '/continuity/bias/b-3' }],
     plans_review_overdue: [],
     plans_not_exercised: [],
     exercises_overdue: [],
+    plans_ict_gap: [
+      {
+        code: 'BCP-0001',
+        title: 'Orders',
+        url: '/continuity/plans/p-1',
+        services: ['ICT-0001 ERP'],
+      },
+    ],
     ict_gaps: [{ code: 'ICT-0001', title: 'ERP', url: '/continuity/ict-systems/i-1' }],
   },
 };
@@ -109,24 +131,27 @@ describe('BiaList', () => {
   it('lists BIAs with targets, status, a missing plan and an overdue review', async () => {
     const s = setup(BiaList, ['continuity:read', 'continuity:write']);
     await flush(s, [bia()]);
-    const rows = s.root.querySelectorAll('[data-testid="bia-rows"] li');
+    const rows = s.root.querySelectorAll('[data-testid="bia-rows"] app-record-row');
     expect(rows.length).toBe(1);
     const text = rows[0].textContent ?? '';
     expect(text).toContain('BIA-0001');
     expect(text).toContain('Payroll');
-    expect(text).toContain('1 d');
-    expect(text).toContain('4 h');
+    expect(text).toContain('RTO 1 d');
+    expect(text).toContain('RPO 4 h');
     expect(text).toContain('Approved');
     expect(text).toContain('No plan');
-    expect(text).toContain('Review overdue');
+    expect(text).toContain('Overdue');
     expect(s.root.textContent).toContain('New impact analysis');
+    // One page of results: no pager strip under the list.
+    expect(s.root.querySelector('app-pager')).toBeNull();
   });
 
   it('hides "new" without write access', async () => {
     const s = setup(BiaList, ['continuity:read']);
     await flush(s, [bia({ plan_count: 2 })]);
     expect(s.root.textContent).not.toContain('New impact analysis');
-    expect(s.root.textContent).toContain('2 plan(s)');
+    expect(s.root.textContent).toContain('2 plans');
+    expect(s.root.textContent).not.toContain('plan(s)');
   });
 
   it('re-queries with the chosen filter', async () => {
@@ -163,10 +188,17 @@ describe('ContinuityOverview', () => {
     const tiles = s.root.querySelector('[data-testid="overview-tiles"]')?.textContent ?? '';
     expect(tiles).toContain('Impact analyses');
     expect(tiles).toContain('2 approved · 1 without a plan');
-    expect(tiles).toContain('1 ready · 1 with a gap');
+    expect(tiles).toContain('1 ready · 1 fall short');
+    expect(tiles).toContain('3 shared · 1 in plans · 1 to verify');
     expect(s.root.textContent).toContain('Impact analyses without a plan');
     expect(s.root.textContent).toContain('BIA-0003');
-    expect(s.root.textContent).toContain('ICT services with a readiness gap');
+    expect(s.root.textContent).toContain(
+      'ICT services that fall short of the recovery requirement',
+    );
+    expect(s.root.textContent).toContain('Relies on: ICT-0001 ERP');
+    const foundation = s.root.querySelector('[data-testid="foundation"]')?.textContent ?? '';
+    expect(foundation).toContain('POL-002');
+    expect(foundation).toContain('No scope linked');
     expect(s.root.textContent).not.toContain('Plans overdue for review');
     expect(s.root.textContent).toContain('EX-0002');
   });
@@ -176,9 +208,9 @@ describe('ContinuityOverview', () => {
     await s.fixture.whenStable();
     s.http.expectOne(api('/overview')).flush(overview);
     await s.fixture.whenStable();
-    const button = [...s.root.querySelectorAll('button')].find((b) =>
-      b.textContent?.includes('Assess readiness'),
-    )!;
+    const button = s.root.querySelector<HTMLButtonElement>('[data-testid="continuity-ask"]')!;
+    expect(button.textContent).toContain('Assess readiness');
+    expect(button.title).toContain('assistant');
     button.click();
     expect(s.prompts.length).toBe(1);
     expect(s.prompts[0]).toContain('How ready are we');

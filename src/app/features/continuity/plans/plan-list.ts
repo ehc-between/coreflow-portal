@@ -8,29 +8,32 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../../core/ai/page-context';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
-import { AskPanelService } from '../../ask/ask-panel.service';
-import { GuideIntro } from '../../../shared/guidance/guide-intro';
-import { LessonView } from '../../../shared/guidance/lesson';
 import { TeachingEmpty } from '../../../shared/guidance/teaching-empty';
-import { TourButton } from '../../../shared/guidance/tour-button';
 import { TourStepDirective } from '../../../shared/guidance/tour-step.directive';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
+import { pluralKey } from '../../../shared/i18n/plural';
 import { RecordListPage } from '../../../shared/kit/record-list-page';
+import { formatLocalDay } from '../../../shared/locale/locale-pipes';
 import { SavedView } from '../../../shared/kit/saved-views.service';
-import { LocalDayPipe } from '../../../shared/locale/locale-pipes';
-import { Badge } from '../../../shared/ui/badge/badge';
+import { CoverageChip } from '../../../shared/requirement-links/coverage-chip';
 import { Button } from '../../../shared/ui/button/button';
-import { Card } from '../../../shared/ui/card/card';
+import { EmptyState } from '../../../shared/ui/empty-state/empty-state';
+import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { ModuleNav } from '../../../shared/ui/module-nav/module-nav';
 import { Pager } from '../../../shared/ui/pager/pager';
+import { RecordRow, RecordRowHeader } from '../../../shared/ui/record-row/record-row';
+import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { ContinuityApi } from '../data/continuity-api';
-import { controlledStatusTone, reviewStateTone } from '../data/continuity-display';
+import { badge, formatDuration } from '../data/continuity-display';
 import {
   CONTROLLED_STATUSES,
   ControlledStatus,
@@ -41,8 +44,12 @@ import {
   PlanSort,
   PlanType,
 } from '../data/continuity.models';
-import { ContinuityNav } from '../shared/continuity-nav';
-import { ContinuityDuration } from '../shared/duration';
+import {
+  CONTINUITY_NAV,
+  ContinuityAskButton,
+  ContinuityTargetsLegend,
+  sectionCrumbs,
+} from '../shared/continuity-page';
 
 const PAGE_SIZE = 25;
 
@@ -88,122 +95,128 @@ export function planQuery(q: string, f: PlanFilters, offset: number): PlanListQu
   };
 }
 
+const SELECT =
+  'h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg focus:border-accent focus:outline-none';
+
 /**
- * Continuity plans (`/continuity/plans`): search, filters on status, plan type,
- * owner and review due, saved views, sort and paging. Each row shows the plan's
- * recovery targets (the strictest of the BIAs it covers) and when it was last
- * exercised.
+ * Continuity plans (`/continuity/plans`): search, filters on status, plan type and
+ * review due (owner and sort under "More filters"), saved views and paging. Each row
+ * shows the plan's recovery targets (the strictest of the BIAs it covers), the
+ * requirements it documents, an ICT gap, and when it was last exercised.
  */
 @Component({
   selector: 'app-plan-list',
   imports: [
-    RouterLink,
     TranslocoPipe,
-    LocalDayPipe,
-    Badge,
     Button,
-    Card,
-    ContinuityDuration,
-    ContinuityNav,
-    GuideIntro,
+    ContinuityAskButton,
+    ContinuityTargetsLegend,
+    CoverageChip,
+    EmptyState,
+    ErrorState,
+    HelpStrip,
     Icon,
-    LessonView,
+    LoadingState,
+    ModuleNav,
     Pager,
     RecordListPage,
+    RecordRow,
+    RecordRowHeader,
+    StatusBadge,
     TeachingEmpty,
-    TourButton,
     TourStepDirective,
     WhyItMatters,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-record-list-page
-      titleKey="continuity.plans.title"
+      titleKey="continuity.nav.plans"
+      descriptionKey="continuity.plans.subtitle"
       scope="continuity"
       page="plans"
+      [breadcrumbs]="crumbs"
       searchPlaceholderKey="continuity.plans.searchPlaceholder"
       [query]="q()"
       [filters]="viewFilters()"
+      [moreFiltersActive]="moreActive()"
       [empty]="showEmpty()"
       (search)="search($event)"
       (viewApplied)="applyView($event)"
     >
-      <div intro>
-        <p class="mt-1 text-[14px] text-fg-muted">{{ 'continuity.plans.subtitle' | transloco }}</p>
-        <app-continuity-nav />
-      </div>
-
-      <ng-container toolbar>
-        <app-tour-button scope="continuity" tour="plans" />
-        <app-button variant="ghost" size="sm" (click)="askOverview()">
-          <app-icon name="spark" [size]="14" />
-          {{ 'continuity.ai.planOverview' | transloco }}
+      <app-continuity-ask-button
+        secondary
+        labelKey="continuity.ai.planOverview"
+        promptKey="continuity.ai.prompts.planOverview"
+      />
+      @if (canWrite()) {
+        <app-button primary appTourStep="continuity-plan-new" (click)="create()">
+          <app-icon name="plus" [size]="14" />
+          {{ 'continuity.plans.new' | transloco }}
         </app-button>
-        @if (canWrite()) {
-          <app-button size="sm" appTourStep="continuity-plan-new" (click)="create()">
-            <app-icon name="plus" [size]="14" />
-            {{ 'continuity.plans.new' | transloco }}
-          </app-button>
-        }
-      </ng-container>
+      }
+
+      <app-module-nav nav labelKey="continuity.nav.label" [items]="nav" />
+      <app-help-strip help scope="continuity" page="plans" tour="plans" lesson="writing-a-plan" />
 
       <ng-container filters>
-        <div class="flex flex-wrap items-center gap-2" appTourStep="continuity-plan-filters">
-          <label class="sr-only" for="plan-f-status">{{
-            'continuity.fields.status' | transloco
-          }}</label>
-          <select
-            id="plan-f-status"
-            class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
-            (change)="setFilter('status', $any($event.target).value)"
-          >
-            <option value="" [selected]="!filters().status">
-              {{ 'continuity.filters.anyStatus' | transloco }}
+        <label class="sr-only" for="plan-f-status">{{
+          'continuity.fields.status' | transloco
+        }}</label>
+        <select
+          id="plan-f-status"
+          appTourStep="continuity-plan-filters"
+          [class]="select"
+          (change)="setFilter('status', $any($event.target).value)"
+        >
+          <option value="" [selected]="!filters().status">
+            {{ 'continuity.filters.anyStatus' | transloco }}
+          </option>
+          @for (s of statuses; track s) {
+            <option [value]="s" [selected]="filters().status === s">
+              {{ 'continuity.status.' + s | transloco }}
             </option>
-            @for (s of statuses; track s) {
-              <option [value]="s" [selected]="filters().status === s">
-                {{ 'continuity.status.' + s | transloco }}
-              </option>
-            }
-          </select>
-          <label class="sr-only" for="plan-f-type">{{
-            'continuity.fields.planType' | transloco
-          }}</label>
-          <select
-            id="plan-f-type"
-            class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
-            (change)="setFilter('type', $any($event.target).value)"
-          >
-            <option value="" [selected]="!filters().type">
-              {{ 'continuity.filters.anyType' | transloco }}
+          }
+        </select>
+        <label class="sr-only" for="plan-f-type">{{
+          'continuity.fields.planType' | transloco
+        }}</label>
+        <select
+          id="plan-f-type"
+          [class]="select"
+          (change)="setFilter('type', $any($event.target).value)"
+        >
+          <option value="" [selected]="!filters().type">
+            {{ 'continuity.filters.anyType' | transloco }}
+          </option>
+          @for (t of types; track t) {
+            <option [value]="t" [selected]="filters().type === t">
+              {{ 'continuity.planType.' + t | transloco }}
             </option>
-            @for (t of types; track t) {
-              <option [value]="t" [selected]="filters().type === t">
-                {{ 'continuity.planType.' + t | transloco }}
-              </option>
-            }
-          </select>
-          <label class="sr-only" for="plan-f-review">{{
-            'continuity.filters.show' | transloco
-          }}</label>
-          <select
-            id="plan-f-review"
-            class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
-            (change)="setFilter('reviewDue', $any($event.target).value)"
-          >
-            <option value="" [selected]="!filters().reviewDue">
-              {{ 'continuity.filters.all' | transloco }}
-            </option>
-            <option value="yes" [selected]="filters().reviewDue === 'yes'">
-              {{ 'continuity.filters.reviewDue' | transloco }}
-            </option>
-          </select>
-          <label class="sr-only" for="plan-f-owner">{{
-            'continuity.fields.owner' | transloco
-          }}</label>
+          }
+        </select>
+        <label class="sr-only" for="plan-f-review">{{
+          'continuity.filters.show' | transloco
+        }}</label>
+        <select
+          id="plan-f-review"
+          [class]="select"
+          (change)="setFilter('reviewDue', $any($event.target).value)"
+        >
+          <option value="" [selected]="!filters().reviewDue">
+            {{ 'continuity.filters.all' | transloco }}
+          </option>
+          <option value="yes" [selected]="filters().reviewDue === 'yes'">
+            {{ 'continuity.filters.reviewDue' | transloco }}
+          </option>
+        </select>
+      </ng-container>
+
+      <div more-filters class="flex flex-col gap-3">
+        <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted" for="plan-f-owner">
+          {{ 'continuity.fields.owner' | transloco }}
           <select
             id="plan-f-owner"
-            class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
+            [class]="select"
             (change)="setFilter('owner', $any($event.target).value)"
           >
             <option value="" [selected]="!filters().owner">
@@ -213,12 +226,12 @@ export function planQuery(q: string, f: PlanFilters, offset: number): PlanListQu
               {{ 'continuity.filters.ownedByMe' | transloco }}
             </option>
           </select>
-          <label class="sr-only" for="plan-f-sort">{{
-            'continuity.filters.sort' | transloco
-          }}</label>
+        </label>
+        <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted" for="plan-f-sort">
+          {{ 'continuity.filters.sort' | transloco }}
           <select
             id="plan-f-sort"
-            class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
+            [class]="select"
             (change)="setFilter('sort', $any($event.target).value)"
           >
             @for (s of sorts; track s) {
@@ -227,93 +240,72 @@ export function planQuery(q: string, f: PlanFilters, offset: number): PlanListQu
               </option>
             }
           </select>
-        </div>
-      </ng-container>
-
-      <div class="mb-4 flex flex-col gap-3">
-        <app-guide-intro scope="continuity" page="plans" />
-        <div><app-lesson scope="continuity" lesson="writing-a-plan" /></div>
+        </label>
       </div>
 
-      <app-card [padded]="false">
-        @switch (state()) {
-          @case ('loading') {
-            <p class="py-10 text-center text-[14px] text-fg-muted">
-              {{ 'continuity.common.loading' | transloco }}
-            </p>
-          }
-          @case ('error') {
-            <p class="py-10 text-center text-[14px] text-fail" role="alert">
-              {{ 'continuity.common.loadFailed' | transloco }}
-            </p>
-          }
-          @default {
-            @if (rows().length === 0) {
-              <p class="py-10 text-center text-[14px] text-fg-muted">
-                {{ 'continuity.filters.noMatch' | transloco }}
-              </p>
-            } @else {
-              <ul class="divide-y divide-border" data-testid="plan-rows">
-                @for (row of rows(); track row.id) {
-                  <li class="flex flex-col gap-1.5 px-4 py-3 md:flex-row md:items-center md:gap-3">
-                    <div class="min-w-0 flex-1">
-                      <a
-                        [routerLink]="['/continuity/plans', row.id]"
-                        class="flex items-baseline gap-2 text-[13.5px] font-semibold text-fg hover:underline"
-                      >
-                        <span class="font-mono text-[12px] text-fg-muted">{{ row.code }}</span>
-                        <span class="truncate">{{ row.title }}</span>
-                      </a>
-                      <span
-                        class="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[12px] text-fg-subtle"
-                      >
-                        <span>{{ 'continuity.planType.' + row.plan_type | transloco }}</span>
-                        <span>
-                          {{ 'continuity.fields.rtoShort' | transloco }}:
-                          <app-continuity-duration [minutes]="row.recovery_targets.rto_minutes" />
-                        </span>
-                        <span>{{
-                          'continuity.plans.biaCount' | transloco: { count: row.bia_count }
-                        }}</span>
-                        @if (row.location) {
-                          <span>{{ row.location }}</span>
-                        }
-                        @if (row.owner?.name; as owner) {
-                          <span>{{
-                            'continuity.common.ownedBy' | transloco: { name: owner }
-                          }}</span>
-                        }
-                      </span>
-                    </div>
-                    <span class="flex flex-wrap items-center gap-2 text-[12.5px] text-fg-muted">
-                      <app-badge [tone]="statusTone(row.status)">
-                        {{ 'continuity.status.' + row.status | transloco }}
-                      </app-badge>
-                      <span>{{
-                        'continuity.control.version' | transloco: { version: row.version }
-                      }}</span>
-                      @if (row.last_exercised_on) {
-                        <span>
-                          {{
-                            'continuity.plans.lastExercised'
-                              | transloco: { date: (row.last_exercised_on | localDay) }
-                          }}
-                        </span>
-                      } @else {
-                        <app-badge tone="warn">{{
-                          'continuity.plans.neverExercised' | transloco
-                        }}</app-badge>
-                      }
-                      @if (row.review_state === 'overdue' || row.review_state === 'due_soon') {
-                        <app-badge [tone]="reviewTone(row.review_state)">
-                          {{ 'continuity.reviewState.' + row.review_state | transloco }}
-                        </app-badge>
-                      }
-                    </span>
-                  </li>
-                }
-              </ul>
-              <div class="border-t border-border px-4 py-2.5">
+      @switch (state()) {
+        @case ('loading') {
+          <app-loading-state [rows]="5" />
+        }
+        @case ('error') {
+          <app-error-state (retry)="reload()" />
+        }
+        @default {
+          @if (rows().length === 0) {
+            <app-empty-state
+              icon="search"
+              titleKey="ui.empty.noResults"
+              ctaKey="continuity.filters.clear"
+              ctaVariant="secondary"
+              (cta)="clearFilters()"
+            />
+          } @else {
+            <app-continuity-targets-legend class="mb-2" />
+            <div
+              role="list"
+              class="overflow-hidden rounded-card border border-border bg-surface"
+              data-testid="plan-rows"
+            >
+              <app-record-row-header dateKind="next" />
+              @for (row of rows(); track row.id) {
+                <app-record-row
+                  [code]="row.code"
+                  [title]="row.title"
+                  [subtitle]="subtitle(row)"
+                  [link]="['/continuity/plans', row.id]"
+                  [owner]="row.owner?.name"
+                  [date]="row.next_review_on"
+                  dateKind="next"
+                  [overdue]="row.review_state === 'overdue'"
+                >
+                  <app-coverage-chip coverage entityType="continuity_plan" [entityId]="row.id" />
+                  <app-status-badge
+                    badges
+                    [meaning]="status(row).meaning"
+                    [value]="status(row).value"
+                    [labelKey]="'continuity.status.' + row.status"
+                  />
+                  @if (row.ict_gap) {
+                    <app-status-badge
+                      badges
+                      meaning="compliance"
+                      value="not_met"
+                      labelKey="continuity.plans.ictGapBadge"
+                    />
+                  }
+                  @if (!row.last_exercised_on && row.status !== 'retired') {
+                    <app-status-badge
+                      badges
+                      meaning="lifecycle"
+                      value="due"
+                      labelKey="continuity.plans.neverExercised"
+                    />
+                  }
+                </app-record-row>
+              }
+            </div>
+            @if (total() > pageSize) {
+              <div class="mt-3">
                 <app-pager
                   [offset]="offset()"
                   [pageSize]="pageSize"
@@ -325,22 +317,16 @@ export function planQuery(q: string, f: PlanFilters, offset: number): PlanListQu
             }
           }
         }
-      </app-card>
+      }
 
-      <div class="mt-6">
-        <app-why-it-matters scope="continuity" page="plans" />
-      </div>
-
-      <div empty class="flex flex-col gap-4">
-        <app-guide-intro scope="continuity" page="plans" />
-        <app-teaching-empty
-          scope="continuity"
-          page="plans"
-          [showAction]="canWrite()"
-          (action)="create()"
-        />
-        <app-why-it-matters scope="continuity" page="plans" />
-      </div>
+      <app-teaching-empty
+        empty
+        scope="continuity"
+        page="plans"
+        [showAction]="canWrite()"
+        (action)="create()"
+      />
+      <app-why-it-matters below scope="continuity" page="plans" />
     </app-record-list-page>
   `,
 })
@@ -348,15 +334,16 @@ export class PlanList {
   private readonly api = inject(ContinuityApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly language = inject(LanguageService);
-  private readonly ask = inject(AskPanelService);
   private readonly router = inject(Router);
 
+  protected readonly nav = CONTINUITY_NAV;
+  protected readonly crumbs = sectionCrumbs('plans');
+  protected readonly select = SELECT;
   protected readonly statuses = CONTROLLED_STATUSES;
   protected readonly types = PLAN_TYPES;
   protected readonly sorts = PLAN_SORTS;
   protected readonly pageSize = PAGE_SIZE;
-  protected readonly statusTone = controlledStatusTone;
-  protected readonly reviewTone = reviewStateTone;
+  protected readonly status = (row: PlanListItem) => badge.controlled(row.status);
 
   protected readonly canWrite = computed(() =>
     (this.selectedOrg.currentOrg()?.permissions ?? []).includes('continuity:write'),
@@ -371,6 +358,9 @@ export class PlanList {
 
   protected readonly viewFilters = computed(
     () => ({ ...this.filters() }) as Record<string, string>,
+  );
+  protected readonly moreActive = computed(
+    () => (this.filters().owner ? 1 : 0) + (this.filters().sort !== 'code' ? 1 : 0),
   );
   private readonly isFiltered = computed(
     () => !!this.q() || Object.entries(this.filters()).some(([k, v]) => k !== 'sort' && !!v),
@@ -387,13 +377,32 @@ export class PlanList {
       module: 'continuity',
       entityType: 'continuity_plan',
       view: 'list',
-      title: this.language.translate('continuity.plans.title'),
+      title: this.language.translate('continuity.nav.plans'),
     }));
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();
       const query = planQuery(this.q(), this.filters(), this.offset());
       untracked(() => this.load(orgId, query));
     });
+  }
+
+  /** "Kontinuitetsplan · RTO 4 t · 2 konsekvensanalyser · sist øvd 12. okt. 2026". */
+  protected subtitle(row: PlanListItem): string {
+    const t = (key: string, params?: Record<string, unknown>) =>
+      this.language.translate(key, params);
+    const parts = [
+      t('continuity.planType.' + row.plan_type),
+      `${t('continuity.fields.rtoShort')} ${formatDuration(row.recovery_targets.rto_minutes, t)}`,
+      t(pluralKey('continuity.plans.biaCount', row.bia_count), { count: row.bia_count }),
+    ];
+    if (row.last_exercised_on) {
+      parts.push(
+        t('continuity.plans.lastExercisedShort', {
+          date: formatLocalDay(row.last_exercised_on, 'mediumDate', this.language.locale()),
+        }),
+      );
+    }
+    return parts.join(' · ');
   }
 
   protected search(text: string): void {
@@ -411,12 +420,18 @@ export class PlanList {
     this.filters.set(planFiltersFromView(view.filters));
   }
 
+  protected clearFilters(): void {
+    this.offset.set(0);
+    this.q.set('');
+    this.filters.set(DEFAULT_PLAN_FILTERS);
+  }
+
   protected create(): void {
     void this.router.navigate(['/continuity/plans/new']);
   }
 
-  protected askOverview(): void {
-    this.ask.showWith(this.language.translate('continuity.ai.prompts.planOverview'));
+  protected reload(): void {
+    this.load(this.selectedOrg.currentOrgId(), planQuery(this.q(), this.filters(), this.offset()));
   }
 
   private load(orgId: string | null, query: PlanListQuery): void {

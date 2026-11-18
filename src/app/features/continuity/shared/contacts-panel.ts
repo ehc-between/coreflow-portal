@@ -15,19 +15,30 @@ import { Subscription } from 'rxjs';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { FieldHelp } from '../../../shared/guidance/field-help';
+import { pluralKey } from '../../../shared/i18n/plural';
 import { LocalDayPipe } from '../../../shared/locale/locale-pipes';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
+import { EmptyState } from '../../../shared/ui/empty-state/empty-state';
+import { ErrorState } from '../../../shared/ui/error-state/error-state';
 import { FormField } from '../../../shared/ui/form-field/form-field';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
 import { SlideOver } from '../../../shared/ui/slide-over/slide-over';
 import { ContinuityApi } from '../data/continuity-api';
 import { blankToNull, telHref, todayIso } from '../data/continuity-display';
 import { continuityErrorKey } from '../data/continuity-errors';
-import { CONTACT_TYPES, Contact, ContactFields, ContactType } from '../data/continuity.models';
+import {
+  CONTACT_TYPES,
+  Contact,
+  ContactFields,
+  ContactType,
+  LinkedRef,
+} from '../data/continuity.models';
+import { ContinuityRecordPicker } from './record-picker';
 import { ContinuityUserSelect } from './user-select';
 
 interface ContactDraft {
@@ -36,12 +47,12 @@ interface ContactDraft {
   crisis_role: string;
   organisation: string;
   user_id: string;
+  supplier: LinkedRef | null;
   phone: string;
   alt_phone: string;
   email: string;
   available_24_7: boolean;
   notes: string;
-  position: string;
   verified_on: string;
 }
 
@@ -52,30 +63,42 @@ export function contactDraft(c: Contact | null): ContactDraft {
     crisis_role: c?.crisis_role ?? '',
     organisation: c?.organisation ?? '',
     user_id: c?.user?.id ?? '',
+    supplier: c?.supplier_id
+      ? {
+          entity_type: 'supplier',
+          entity_id: c.supplier_id,
+          title: c.organisation || c.name,
+          url: `/suppliers/${c.supplier_id}`,
+        }
+      : null,
     phone: c?.phone ?? '',
     alt_phone: c?.alt_phone ?? '',
     email: c?.email ?? '',
     available_24_7: c?.available_24_7 ?? false,
     notes: c?.notes ?? '',
-    position: c ? String(c.position) : '',
     verified_on: c?.verified_on ?? '',
   };
 }
 
+/**
+ * The API fields of a draft. The order in the list is changed by dragging (or the
+ * move buttons), so `position` is left to the server: `null` puts a new contact
+ * last and keeps an edited contact where it is.
+ */
 export function contactFields(d: ContactDraft): ContactFields {
-  const position = Number.parseInt(d.position, 10);
   return {
     name: d.name.trim(),
     contact_type: d.contact_type,
     crisis_role: blankToNull(d.crisis_role),
     organisation: blankToNull(d.organisation),
     user_id: d.user_id || null,
+    supplier_id: d.supplier?.entity_id ?? null,
     phone: blankToNull(d.phone),
     alt_phone: blankToNull(d.alt_phone),
     email: blankToNull(d.email),
     available_24_7: d.available_24_7,
     notes: blankToNull(d.notes),
-    position: Number.isFinite(position) ? position : null,
+    position: null,
     verified_on: d.verified_on || null,
   };
 }
@@ -85,11 +108,23 @@ export function isReachable(d: ContactDraft): boolean {
   return !!(d.phone.trim() || d.email.trim() || d.user_id);
 }
 
+/** Move one id within a list (drag and drop, or the move buttons). */
+export function moveId(ids: readonly string[], from: number, to: number): string[] {
+  const next = [...ids];
+  if (from < 0 || from >= next.length || to < 0 || to >= next.length || from === to) {
+    return next;
+  }
+  const [moved] = next.splice(from, 1);
+  next.splice(to, 0, moved);
+  return next;
+}
+
 /**
  * A crisis contact list: the org-wide list (`planId` null) or a plan's own list.
  * Shows role, how to reach each contact (tap-to-call and e-mail links), 24/7
  * availability and a flag on contacts not verified within a year. With write access
- * it adds, edits, marks verified and removes contacts in a side panel.
+ * it adds, edits, marks verified, reorders (drag the handle, or use the move
+ * buttons) and removes contacts.
  */
 @Component({
   selector: 'app-continuity-contacts-panel',
@@ -101,10 +136,14 @@ export function isReachable(d: ContactDraft): boolean {
     Button,
     Card,
     ConfirmDialog,
+    ContinuityRecordPicker,
     ContinuityUserSelect,
+    EmptyState,
+    ErrorState,
     FieldHelp,
     FormField,
     Icon,
+    LoadingState,
     SlideOver,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -114,18 +153,22 @@ export function isReachable(d: ContactDraft): boolean {
         class="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3"
       >
         <div>
-          <h2 class="font-display text-[15px] font-bold text-fg" [id]="headingId">
+          <h2 class="font-display text-card font-bold text-fg" [id]="headingId">
             {{
               (planId() ? 'continuity.contacts.planTitle' : 'continuity.contacts.orgTitle')
                 | transloco
             }}
           </h2>
           @if (needsVerification() > 0) {
-            <p class="text-[12.5px] text-warn">
+            <p class="text-meta text-warn-ink">
               {{
-                'continuity.contacts.needsVerificationCount'
+                plural('continuity.contacts.needsVerificationCount', needsVerification())
                   | transloco: { count: needsVerification() }
               }}
+            </p>
+          } @else if (canEdit() && contacts().length > 1) {
+            <p class="text-meta text-fg-muted">
+              {{ 'continuity.contacts.reorderHint' | transloco }}
             </p>
           }
         </div>
@@ -138,118 +181,179 @@ export function isReachable(d: ContactDraft): boolean {
       </div>
       @switch (state()) {
         @case ('loading') {
-          <p class="px-4 py-6 text-[13.5px] text-fg-muted">
-            {{ 'continuity.common.loading' | transloco }}
-          </p>
+          <app-loading-state [rows]="3" />
         }
         @case ('error') {
-          <p class="px-4 py-6 text-[13.5px] text-fail" role="alert">
-            {{ 'continuity.common.loadFailed' | transloco }}
-          </p>
+          <app-error-state (retry)="reload()" />
         }
         @default {
           @if (contacts().length === 0) {
-            <p class="px-4 py-6 text-[13.5px] text-fg-muted">
-              {{
-                (planId() ? 'continuity.contacts.emptyPlan' : 'continuity.contacts.emptyOrg')
-                  | transloco
-              }}
-            </p>
+            <app-empty-state
+              icon="people"
+              [titleKey]="
+                planId() ? 'continuity.contacts.emptyPlan' : 'continuity.contacts.emptyOrg'
+              "
+              [ctaKey]="canEdit() ? 'continuity.contacts.add' : null"
+              (cta)="openNew()"
+            />
           } @else {
             <ul
               class="divide-y divide-border"
               [attr.aria-labelledby]="headingId"
               data-testid="contact-rows"
             >
-              @for (c of contacts(); track c.id) {
-                <li class="flex flex-col gap-2 px-4 py-3 md:flex-row md:items-start md:gap-4">
-                  <div class="min-w-0 flex-1">
-                    <p
-                      class="flex flex-wrap items-center gap-2 text-[13.5px] font-semibold text-fg"
-                    >
-                      <span>{{ c.name }}</span>
-                      @if (c.crisis_role) {
-                        <span class="font-normal text-fg-muted">· {{ c.crisis_role }}</span>
-                      }
-                      <app-badge>{{
-                        'continuity.contactType.' + c.contact_type | transloco
-                      }}</app-badge>
-                      @if (c.available_24_7) {
-                        <app-badge tone="accent">{{
-                          'continuity.contacts.available247' | transloco
+              @for (c of contacts(); track c.id; let i = $index, first = $first, last = $last) {
+                <li
+                  class="flex gap-2 px-3 py-3 sm:px-4"
+                  [class.bg-accent-soft]="dragOver() === i"
+                  [attr.draggable]="canEdit() && contacts().length > 1 ? 'true' : null"
+                  (dragstart)="onDragStart($event, i)"
+                  (dragover)="onDragOver($event, i)"
+                  (dragleave)="dragOver.set(null)"
+                  (drop)="onDrop($event, i)"
+                  (dragend)="dragFrom.set(null); dragOver.set(null)"
+                >
+                  @if (canEdit() && contacts().length > 1) {
+                    <span
+                      class="mt-0.5 flex flex-none cursor-grab items-start text-fg-subtle"
+                      aria-hidden="true"
+                      ><app-icon name="grip" [size]="16"
+                    /></span>
+                  }
+                  <div
+                    class="flex min-w-0 flex-1 flex-col gap-2 md:flex-row md:items-start md:gap-4"
+                  >
+                    <div class="min-w-0 flex-1">
+                      <p
+                        class="flex flex-wrap items-center gap-x-2 gap-y-1 text-body font-semibold text-fg"
+                      >
+                        <span>{{ c.name }}</span>
+                        @if (c.crisis_role && c.crisis_role !== c.name) {
+                          <span class="font-normal text-fg-muted">· {{ c.crisis_role }}</span>
+                        }
+                        <app-badge>{{
+                          'continuity.contactType.' + c.contact_type | transloco
                         }}</app-badge>
-                      }
-                      @if (c.needs_verification) {
-                        <app-badge tone="warn">{{
-                          'continuity.contacts.needsVerification' | transloco
-                        }}</app-badge>
-                      }
-                    </p>
-                    @if (c.organisation || c.user?.name) {
-                      <p class="text-[12.5px] text-fg-subtle">
-                        {{ c.organisation || '' }}
-                        @if (c.user?.name; as member) {
-                          {{ 'continuity.contacts.linkedMember' | transloco: { name: member } }}
+                        @if (c.available_24_7) {
+                          <app-badge tone="accent">{{
+                            'continuity.contacts.available247' | transloco
+                          }}</app-badge>
+                        }
+                        @if (c.needs_verification) {
+                          <app-badge tone="warn">{{
+                            'continuity.contacts.needsVerification' | transloco
+                          }}</app-badge>
                         }
                       </p>
-                    }
-                    <p class="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-[13px]">
-                      @if (tel(c.phone); as href) {
-                        <a [href]="href" class="text-accent hover:underline">
-                          {{ 'continuity.contacts.callPhone' | transloco: { phone: c.phone } }}
-                        </a>
+                      @if (c.organisation || c.user?.name) {
+                        <p class="text-meta text-fg-subtle">
+                          @if (c.organisation) {
+                            {{ c.organisation }}
+                          }
+                          @if (c.user?.name; as member) {
+                            @if (c.organisation) {
+                              ·
+                            }
+                            {{
+                              (member === c.name
+                                ? 'continuity.contacts.isMember'
+                                : 'continuity.contacts.linkedMember'
+                              ) | transloco: { name: member }
+                            }}
+                          }
+                        </p>
                       }
-                      @if (tel(c.alt_phone); as href) {
-                        <a [href]="href" class="text-accent hover:underline">
-                          {{ 'continuity.contacts.callAlt' | transloco: { phone: c.alt_phone } }}
-                        </a>
-                      }
-                      @if (c.email) {
-                        <a [href]="'mailto:' + c.email" class="text-accent hover:underline">
-                          {{ c.email }}
-                        </a>
-                      }
-                    </p>
-                    @if (c.notes) {
-                      <p class="mt-1 text-[12.5px] whitespace-pre-line text-fg-muted">
-                        {{ c.notes }}
+                      <p class="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-ui">
+                        @if (tel(c.phone); as href) {
+                          <a
+                            [href]="href"
+                            class="inline-flex min-h-6 items-center text-accent hover:underline"
+                          >
+                            {{ 'continuity.contacts.callPhone' | transloco: { phone: c.phone } }}
+                          </a>
+                        }
+                        @if (tel(c.alt_phone); as href) {
+                          <a
+                            [href]="href"
+                            class="inline-flex min-h-6 items-center text-accent hover:underline"
+                          >
+                            {{ 'continuity.contacts.callAlt' | transloco: { phone: c.alt_phone } }}
+                          </a>
+                        }
+                        @if (c.email) {
+                          <a
+                            [href]="'mailto:' + c.email"
+                            class="inline-flex min-h-6 items-center text-accent hover:underline"
+                          >
+                            {{ c.email }}
+                          </a>
+                        }
                       </p>
-                    }
-                    <p class="mt-1 text-[12px] text-fg-subtle">
-                      @if (c.verified_on) {
-                        {{
-                          'continuity.contacts.verifiedOn'
-                            | transloco: { date: (c.verified_on | localDay) }
-                        }}
-                      } @else {
-                        {{ 'continuity.contacts.neverVerified' | transloco }}
+                      @if (c.notes) {
+                        <p class="mt-1 text-meta whitespace-pre-line text-fg-muted">
+                          {{ c.notes }}
+                        </p>
                       }
-                    </p>
-                  </div>
-                  @if (canEdit()) {
-                    <div class="flex flex-wrap gap-1.5">
-                      @if (c.needs_verification) {
-                        <app-button
-                          size="sm"
-                          variant="secondary"
-                          [disabled]="busy()"
-                          (click)="markVerified(c)"
-                        >
-                          {{ 'continuity.contacts.markVerified' | transloco }}
-                        </app-button>
-                      }
-                      <app-button size="sm" variant="ghost" (click)="openEdit(c)">
-                        {{ 'continuity.common.edit' | transloco }}
-                        <span class="sr-only">{{ c.name }}</span>
-                      </app-button>
-                      <app-button size="sm" variant="ghost" (click)="removing.set(c)">
-                        <app-icon name="trash" [size]="14" />
-                        <span class="sr-only">
-                          {{ 'continuity.contacts.removeNamed' | transloco: { name: c.name } }}
-                        </span>
-                      </app-button>
+                      <p class="mt-1 text-meta text-fg-subtle">
+                        @if (c.verified_on) {
+                          {{
+                            'continuity.contacts.verifiedOn'
+                              | transloco: { date: (c.verified_on | localDay) }
+                          }}
+                        } @else {
+                          {{ 'continuity.contacts.neverVerified' | transloco }}
+                        }
+                      </p>
                     </div>
-                  }
+                    @if (canEdit()) {
+                      <div class="flex flex-wrap items-center gap-1.5">
+                        @if (c.needs_verification) {
+                          <app-button
+                            size="sm"
+                            variant="secondary"
+                            [disabled]="busy()"
+                            (click)="markVerified(c)"
+                          >
+                            {{ 'continuity.contacts.markVerified' | transloco }}
+                          </app-button>
+                        }
+                        <app-button size="sm" variant="ghost" (click)="openEdit(c)">
+                          {{ 'continuity.common.edit' | transloco }}
+                          <span class="sr-only">{{ c.name }}</span>
+                        </app-button>
+                        @if (contacts().length > 1) {
+                          <button
+                            type="button"
+                            class="inline-flex h-8 w-8 items-center justify-center rounded-tile text-fg-muted hover:bg-surface-2 hover:text-fg disabled:opacity-40"
+                            [disabled]="first || busy()"
+                            [attr.aria-label]="
+                              'continuity.contacts.moveUp' | transloco: { name: c.name }
+                            "
+                            (click)="move(i, i - 1)"
+                          >
+                            <span class="rotate-180"><app-icon name="chevron" [size]="14" /></span>
+                          </button>
+                          <button
+                            type="button"
+                            class="inline-flex h-8 w-8 items-center justify-center rounded-tile text-fg-muted hover:bg-surface-2 hover:text-fg disabled:opacity-40"
+                            [disabled]="last || busy()"
+                            [attr.aria-label]="
+                              'continuity.contacts.moveDown' | transloco: { name: c.name }
+                            "
+                            (click)="move(i, i + 1)"
+                          >
+                            <app-icon name="chevron" [size]="14" />
+                          </button>
+                        }
+                        <app-button size="sm" variant="ghost" (click)="removing.set(c)">
+                          <app-icon name="trash" [size]="14" />
+                          <span class="sr-only">
+                            {{ 'continuity.contacts.removeNamed' | transloco: { name: c.name } }}
+                          </span>
+                        </app-button>
+                      </div>
+                    }
+                  </div>
                 </li>
               }
             </ul>
@@ -280,28 +384,24 @@ export function isReachable(d: ContactDraft): boolean {
             />
           </app-form-field>
           @if (showErrors() && !d().name.trim()) {
-            <p class="mt-1 text-[12px] text-fail" role="alert">
+            <p class="mt-1 text-meta text-fail-ink" role="alert">
               {{ 'continuity.contacts.nameRequired' | transloco }}
             </p>
           }
         </div>
-        <div>
-          <div class="flex items-center gap-1">
-            <app-field-help scope="continuity" page="contacts" field="crisis_role" />
-          </div>
-          <app-form-field
-            [label]="'continuity.contacts.fields.crisisRole' | transloco"
-            inputId="cc-role"
-          >
-            <input
-              id="cc-role"
-              type="text"
-              maxlength="255"
-              [value]="d().crisis_role"
-              (input)="set('crisis_role', $any($event.target).value)"
-            />
-          </app-form-field>
-        </div>
+        <app-form-field
+          [label]="'continuity.contacts.fields.crisisRole' | transloco"
+          inputId="cc-role"
+        >
+          <input
+            id="cc-role"
+            type="text"
+            maxlength="255"
+            [value]="d().crisis_role"
+            (input)="set('crisis_role', $any($event.target).value)"
+          />
+          <app-field-help scope="continuity" page="contacts" field="crisis_role" />
+        </app-form-field>
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <app-form-field [label]="'continuity.contacts.fields.type' | transloco" inputId="cc-type">
             <select id="cc-type" (change)="set('contact_type', $any($event.target).value)">
@@ -325,13 +425,30 @@ export function isReachable(d: ContactDraft): boolean {
             />
           </app-form-field>
         </div>
+        @if (d().contact_type === 'supplier' || d().supplier) {
+          <app-form-field
+            [label]="'continuity.contacts.fields.supplier' | transloco"
+            inputId="cc-supplier"
+          >
+            <app-continuity-record-picker
+              inputId="cc-supplier"
+              [types]="['supplier']"
+              [value]="d().supplier"
+              (picked)="pickSupplier($event)"
+            />
+          </app-form-field>
+        }
         <app-form-field [label]="'continuity.contacts.fields.member' | transloco" inputId="cc-user">
           <app-continuity-user-select
             inputId="cc-user"
             [value]="d().user_id"
             [currentName]="editing()?.user?.name ?? null"
+            describedBy="cc-user-hint"
             (valueChange)="set('user_id', $event)"
           />
+          <p id="cc-user-hint" class="text-meta text-fg-subtle">
+            {{ 'continuity.contacts.memberHint' | transloco }}
+          </p>
         </app-form-field>
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <app-form-field
@@ -372,11 +489,11 @@ export function isReachable(d: ContactDraft): boolean {
           />
         </app-form-field>
         @if (showErrors() && !reachable()) {
-          <p class="text-[12px] text-fail" role="alert">
+          <p class="text-meta text-fail-ink" role="alert">
             {{ 'continuity.errors.contact_unreachable' | transloco }}
           </p>
         }
-        <label class="flex items-center gap-2 text-[13.5px] text-fg">
+        <label class="flex min-h-6 items-center gap-2 text-body text-fg">
           <input
             type="checkbox"
             class="h-4 w-4"
@@ -385,38 +502,22 @@ export function isReachable(d: ContactDraft): boolean {
           />
           {{ 'continuity.contacts.fields.available247' | transloco }}
         </label>
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div>
-            <div class="flex items-center gap-1">
-              <app-field-help scope="continuity" page="contacts" field="verified_on" />
-            </div>
-            <app-form-field
-              [label]="'continuity.contacts.fields.verifiedOn' | transloco"
-              inputId="cc-verified"
-            >
-              <input
-                id="cc-verified"
-                type="date"
-                [max]="today"
-                [value]="d().verified_on"
-                (input)="set('verified_on', $any($event.target).value)"
-              />
-            </app-form-field>
-          </div>
-          <app-form-field
-            [label]="'continuity.contacts.fields.position' | transloco"
-            inputId="cc-pos"
-          >
-            <input
-              id="cc-pos"
-              type="number"
-              min="0"
-              max="1000"
-              [value]="d().position"
-              (input)="set('position', $any($event.target).value)"
-            />
-          </app-form-field>
-        </div>
+        <app-form-field
+          [label]="'continuity.contacts.fields.verifiedOn' | transloco"
+          inputId="cc-verified"
+        >
+          <input
+            id="cc-verified"
+            type="date"
+            [max]="today"
+            [value]="d().verified_on"
+            (input)="set('verified_on', $any($event.target).value)"
+          />
+          @if (d().verified_on) {
+            <p class="text-meta text-fg-subtle">{{ d().verified_on | localDay: 'longDate' }}</p>
+          }
+          <app-field-help scope="continuity" page="contacts" field="verified_on" />
+        </app-form-field>
         <app-form-field [label]="'continuity.contacts.fields.notes' | transloco" inputId="cc-notes">
           <textarea
             id="cc-notes"
@@ -458,13 +559,15 @@ export class ContinuityContactsPanel {
   /** The plan whose own list this is (null = the org-wide list). */
   readonly planId = input<string | null>(null);
   readonly canEdit = input(false);
-  /** Fires after a contact was added, edited or removed. */
+  /** Fires after a contact was added, edited, reordered or removed. */
   readonly changed = output<void>();
 
-  protected readonly headingId = `cc-heading-${Math.random().toString(36).slice(2, 8)}`;
+  private static nextId = 0;
+  protected readonly headingId = `cc-heading-${++ContinuityContactsPanel.nextId}`;
   protected readonly types = CONTACT_TYPES;
   protected readonly today = todayIso();
   protected readonly tel = telHref;
+  protected readonly plural = pluralKey;
 
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
   protected readonly contacts = signal<readonly Contact[]>([]);
@@ -480,6 +583,8 @@ export class ContinuityContactsPanel {
   protected readonly error = signal<string | null>(null);
   protected readonly removing = signal<Contact | null>(null);
   protected readonly reachable = computed(() => isReachable(this.d()));
+  protected readonly dragFrom = signal<number | null>(null);
+  protected readonly dragOver = signal<number | null>(null);
 
   private request = new Subscription();
 
@@ -494,6 +599,15 @@ export class ContinuityContactsPanel {
 
   protected set<K extends keyof ContactDraft>(key: K, value: ContactDraft[K]): void {
     this.d.update((d) => ({ ...d, [key]: value }));
+  }
+
+  protected pickSupplier(ref: LinkedRef | null): void {
+    this.d.update((d) => ({
+      ...d,
+      supplier: ref,
+      // The supplier names the organisation when none is written yet.
+      organisation: ref && !d.organisation.trim() ? ref.title : d.organisation,
+    }));
   }
 
   protected openNew(): void {
@@ -512,6 +626,10 @@ export class ContinuityContactsPanel {
     this.editorOpen.set(true);
   }
 
+  protected reload(): void {
+    this.load(this.selectedOrg.currentOrgId(), this.planId(), true);
+  }
+
   protected save(): void {
     const orgId = this.selectedOrg.currentOrgId();
     const d = this.d();
@@ -522,13 +640,16 @@ export class ContinuityContactsPanel {
       this.showErrors.set(true);
       return;
     }
-    const fields = contactFields(d);
+    // The order is changed by dragging, so an edit never sends a position.
+    const fields = Object.fromEntries(
+      Object.entries(contactFields(d)).filter(([key]) => key !== 'position'),
+    ) as Partial<ContactFields>;
     const current = this.editing();
     this.busy.set(true);
     this.error.set(null);
     const request = current
       ? this.api.updateContact(orgId, current.id, fields)
-      : this.api.createContact(orgId, { ...fields, plan_id: this.planId() });
+      : this.api.createContact(orgId, { ...contactFields(d), plan_id: this.planId() });
     request.subscribe({
       next: () => {
         this.busy.set(false);
@@ -558,6 +679,65 @@ export class ContinuityContactsPanel {
       error: (err: unknown) => {
         this.busy.set(false);
         this.notifications.error(continuityErrorKey(err));
+      },
+    });
+  }
+
+  protected onDragStart(event: DragEvent, index: number): void {
+    if (!this.canEdit()) {
+      return;
+    }
+    this.dragFrom.set(index);
+    event.dataTransfer?.setData('text/plain', String(index));
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'move';
+    }
+  }
+
+  protected onDragOver(event: DragEvent, index: number): void {
+    if (this.dragFrom() === null) {
+      return;
+    }
+    event.preventDefault();
+    this.dragOver.set(index);
+  }
+
+  protected onDrop(event: DragEvent, index: number): void {
+    event.preventDefault();
+    const from = this.dragFrom();
+    this.dragFrom.set(null);
+    this.dragOver.set(null);
+    if (from !== null) {
+      this.move(from, index);
+    }
+  }
+
+  /** Save a new order (optimistic; reloads the server's order on failure). */
+  protected move(from: number, to: number): void {
+    const orgId = this.selectedOrg.currentOrgId();
+    const current = this.contacts();
+    const ids = moveId(
+      current.map((c) => c.id),
+      from,
+      to,
+    );
+    if (!orgId || this.busy() || ids.every((id, i) => id === current[i]?.id)) {
+      return;
+    }
+    const byId = new Map(current.map((c) => [c.id, c]));
+    this.contacts.set(ids.map((id) => byId.get(id)!));
+    this.busy.set(true);
+    this.api.reorderContacts(orgId, this.planId(), ids).subscribe({
+      next: (items) => {
+        this.busy.set(false);
+        this.contacts.set(items);
+        this.notifications.success('continuity.contacts.reordered');
+        this.changed.emit();
+      },
+      error: (err: unknown) => {
+        this.busy.set(false);
+        this.notifications.error(continuityErrorKey(err));
+        this.load(orgId, this.planId(), false);
       },
     });
   }

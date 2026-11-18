@@ -101,6 +101,10 @@ export const READINESS_ISSUES = [
   'never_tested',
   'test_overdue',
   'last_test_failed',
+  'tested_rto_missed',
+  'sla_rto_exceeds',
+  'plan_rto_gap',
+  'plan_rpo_gap',
 ] as const;
 export type ReadinessIssue = (typeof READINESS_ISSUES)[number];
 
@@ -167,6 +171,50 @@ export interface CodeRef {
   readonly status: string | null;
 }
 
+/**
+ * A record of another register, as the platform's `EntityRefDto` (null in a DTO when
+ * the reader may not open it). Fits `app-entity-chip`.
+ */
+export interface LinkedRef {
+  readonly entity_type: string;
+  readonly entity_id: string;
+  readonly title: string;
+  readonly code?: string | null;
+  readonly url?: string | null;
+  readonly status?: string | null;
+  readonly module?: string | null;
+  readonly label_key?: string | null;
+}
+
+/** Impact over time: the interval keys of `impact_timeline`, in order. */
+export const IMPACT_INTERVALS = ['4h', '1d', '3d', '1w', '2w'] as const;
+export type ImpactInterval = (typeof IMPACT_INTERVALS)[number];
+export type ImpactTimeline = Readonly<Record<ImpactInterval, number | null>>;
+
+/** Register record types a dependency may point at (besides ICT services). */
+export const DEPENDENCY_ENTITY_TYPES = [
+  'supplier',
+  'asset',
+  'employee',
+  'position',
+  'document',
+  'ropa_entry',
+] as const;
+export type DependencyEntityType = (typeof DEPENDENCY_ENTITY_TYPES)[number];
+
+/** Which register records each dependency kind may link to (`other` = any). */
+export const DEPENDENCY_LINK_TYPES: Readonly<
+  Record<DependencyKind, readonly DependencyEntityType[]>
+> = {
+  supplier: ['supplier'],
+  site: ['asset'],
+  equipment: ['asset'],
+  people: ['employee', 'position'],
+  information: ['document', 'asset', 'ropa_entry'],
+  ict: [],
+  other: DEPENDENCY_ENTITY_TYPES,
+};
+
 export interface RecoveryTargets {
   readonly rto_minutes: number | null;
   readonly rpo_minutes: number | null;
@@ -200,6 +248,8 @@ export interface DependencyIn {
   readonly name?: string | null;
   readonly notes?: string | null;
   readonly ict_system_id?: string | null;
+  readonly entity_type?: DependencyEntityType | null;
+  readonly entity_id?: string | null;
 }
 
 export interface DependencyOut {
@@ -208,6 +258,12 @@ export interface DependencyOut {
   readonly notes: string | null;
   readonly ict_system_id: string | null;
   readonly ict_system_code: string | null;
+  readonly ict_readiness?: ReadinessState | null;
+  readonly ict_issues?: readonly string[];
+  readonly entity_type?: string | null;
+  readonly entity_id?: string | null;
+  /** Null when the record is gone or the reader may not open it (the name stays). */
+  readonly entity?: LinkedRef | null;
 }
 
 export interface BiaListItem {
@@ -220,6 +276,7 @@ export interface BiaListItem {
   readonly mtpd_minutes: number | null;
   readonly rto_minutes: number | null;
   readonly rpo_minutes: number | null;
+  readonly process_id?: string | null;
   readonly owner: UserRef | null;
   readonly department_id: string | null;
   readonly version: number;
@@ -232,8 +289,12 @@ export interface BiaListItem {
 
 export interface BiaDetail extends BiaListItem, ControlledDetail {
   readonly status: ControlledStatus;
+  readonly process?: LinkedRef | null;
   readonly description: string | null;
   readonly impacts: Impacts;
+  readonly impact_timeline?: Partial<ImpactTimeline>;
+  /** The MTPD the timeline points at (first interval rated 4 or worse), a suggestion. */
+  readonly suggested_mtpd_minutes?: number | null;
   readonly impact_notes: string | null;
   readonly mbco: string | null;
   readonly peak_periods: string | null;
@@ -247,10 +308,12 @@ export interface BiaDetail extends BiaListItem, ControlledDetail {
 export interface BiaFields {
   readonly title: string;
   readonly description: string | null;
+  readonly process_id: string | null;
   readonly owner_user_id: string | null;
   readonly department_id: string | null;
   readonly criticality: Criticality | null;
   readonly impacts: Impacts;
+  readonly impact_timeline: ImpactTimeline;
   readonly impact_notes: string | null;
   readonly mtpd_minutes: number | null;
   readonly rto_minutes: number | null;
@@ -271,6 +334,7 @@ export interface BiaListQuery {
   readonly owner?: string;
   readonly uncovered?: boolean;
   readonly review_due?: boolean;
+  readonly process_id?: string;
   readonly sort?: BiaSort;
   readonly limit?: number;
   readonly offset?: number;
@@ -299,9 +363,33 @@ export interface PlanListItem {
   readonly bia_count: number;
   readonly recovery_targets: RecoveryTargets;
   readonly last_exercised_on: string | null;
+  readonly last_activated_at?: string | null;
   readonly next_review_on: string | null;
   readonly review_state: ReviewState;
+  /** An ICT service the plan depends on cannot meet the plan's recovery targets. */
+  readonly ict_gap?: boolean;
   readonly updated_at: string;
+  readonly url: string;
+}
+
+/** An ICT service a plan's BIAs depend on, judged against the plan's targets. */
+export interface PlanIct {
+  readonly id: string;
+  readonly code: string;
+  readonly name: string;
+  readonly status: string;
+  readonly readiness: ReadinessState;
+  readonly issues: readonly string[];
+  readonly achievable_rto_minutes: number | null;
+  readonly achievable_rpo_minutes: number | null;
+  readonly last_test_recovery_minutes: number | null;
+  readonly url: string;
+}
+
+export interface PlanRef {
+  readonly id: string;
+  readonly code: string;
+  readonly title: string;
   readonly url: string;
 }
 
@@ -352,8 +440,15 @@ export interface PlanDetail extends PlanListItem, ControlledDetail {
   readonly created_by: UserRef | null;
   readonly created_at: string;
   readonly bias: readonly PlanBia[];
+  readonly ict_dependencies?: readonly PlanIct[];
   readonly contacts: readonly Contact[];
   readonly exercises: readonly ExerciseBrief[];
+  readonly activation_count?: number;
+  readonly distributed_version?: number | null;
+  readonly distributed_at?: string | null;
+  readonly distributed_by?: UserRef | null;
+  /** The current version is the one last printed / downloaded. */
+  readonly distribution_current?: boolean;
   readonly next_exercise_on: string | null;
   readonly next_exercise_due_at: string | null;
   readonly exercise_schedule_active: boolean;
@@ -389,6 +484,13 @@ export interface PlanListQuery {
   readonly sort?: PlanSort;
   readonly limit?: number;
   readonly offset?: number;
+}
+
+/** `POST plans/{id}/activation`: a real activation (incident), not an exercise. */
+export interface PlanActivationRequest {
+  /** Naive UTC; defaults to now on the server. */
+  readonly activated_at?: string | null;
+  readonly reason?: string | null;
 }
 
 export interface ExerciseScheduleRequest {
@@ -438,8 +540,18 @@ export interface ExerciseDetail extends ExerciseListItem {
   readonly scenario: string | null;
   readonly objectives: string | null;
   readonly participants: string | null;
+  readonly participant_user_ids?: readonly string[];
+  readonly participant_members?: readonly UserRef[];
+  readonly success_criteria?: string | null;
+  readonly target_recovery_minutes?: number | null;
   readonly achieved_recovery_minutes: number | null;
+  /** The target the result is judged against (own target, else plan / ICT requirement). */
   readonly target_rto_minutes: number | null;
+  readonly target_source?: TargetSource | null;
+  /** Tasks plus linked deviations / risks / opportunities / documents. */
+  readonly follow_up_count?: number;
+  /** Completed with lessons learned but nothing followed up yet. */
+  readonly lessons_need_follow_up?: boolean;
   readonly rto_met: boolean | null;
   readonly results: string | null;
   readonly lessons_learned: string | null;
@@ -453,6 +565,9 @@ export interface ExerciseDetail extends ExerciseListItem {
   readonly can_delete: boolean;
 }
 
+export const TARGET_SOURCES = ['exercise', 'plan', 'ict_requirement'] as const;
+export type TargetSource = (typeof TARGET_SOURCES)[number];
+
 export interface ExerciseCreate {
   readonly title: string;
   readonly exercise_type: ExerciseType;
@@ -463,6 +578,9 @@ export interface ExerciseCreate {
   readonly scenario: string | null;
   readonly objectives: string | null;
   readonly participants: string | null;
+  readonly participant_user_ids: readonly string[];
+  readonly target_recovery_minutes: number | null;
+  readonly success_criteria: string | null;
 }
 
 export interface ExerciseUpdate extends Partial<ExerciseCreate> {
@@ -521,12 +639,19 @@ export interface IctListItem {
   readonly name: string;
   readonly status: IctStatus;
   readonly provider: string | null;
+  readonly asset_id?: string | null;
+  readonly supplier_id?: string | null;
+  readonly contract_id?: string | null;
   readonly owner: UserRef | null;
   readonly achievable_rto_minutes: number | null;
   readonly achievable_rpo_minutes: number | null;
+  /** The recovery time agreed in the contract. */
+  readonly sla_rto_minutes?: number | null;
   readonly test_interval_months: number;
   readonly last_tested_on: string | null;
   readonly last_test_outcome: Outcome | null;
+  /** Measured in the last recovery test. */
+  readonly last_test_recovery_minutes?: number | null;
   readonly readiness: Readiness;
   readonly updated_at: string;
   readonly url: string;
@@ -551,11 +676,34 @@ export interface IctTest {
   readonly outcome: Outcome | null;
 }
 
+export interface IctPlan {
+  readonly id: string;
+  readonly code: string;
+  readonly title: string;
+  readonly status: string;
+  readonly url: string;
+}
+
+export interface IctSupplierContact {
+  readonly id: string;
+  readonly name: string;
+  readonly crisis_role: string | null;
+  readonly phone: string | null;
+  readonly email: string | null;
+  readonly available_24_7: boolean;
+}
+
 export interface IctDetail extends IctListItem {
   readonly description: string | null;
   readonly recovery_strategy: string | null;
   readonly backup_strategy: string | null;
-  readonly last_test_recovery_minutes: number | null;
+  readonly asset?: LinkedRef | null;
+  readonly supplier?: LinkedRef | null;
+  readonly contract?: LinkedRef | null;
+  /** Plans covering the BIAs that depend on the service (who acts when it is down). */
+  readonly dependent_plans?: readonly IctPlan[];
+  /** Crisis contacts registered for the provider. */
+  readonly supplier_contacts?: readonly IctSupplierContact[];
   readonly created_by: UserRef | null;
   readonly created_at: string;
   readonly dependent_bias: readonly IctDependentBia[];
@@ -569,6 +717,10 @@ export interface IctFields {
   readonly description: string | null;
   readonly owner_user_id: string | null;
   readonly provider: string | null;
+  readonly asset_id: string | null;
+  readonly supplier_id: string | null;
+  readonly contract_id: string | null;
+  readonly sla_rto_minutes: number | null;
   readonly achievable_rto_minutes: number | null;
   readonly achievable_rpo_minutes: number | null;
   readonly recovery_strategy: string | null;
@@ -593,6 +745,9 @@ export interface IctListQuery {
 export interface Contact {
   readonly id: string;
   readonly plan_id: string | null;
+  /** The plan whose list the contact is on (null = the org-wide list). */
+  readonly plan?: PlanRef | null;
+  readonly supplier_id?: string | null;
   readonly name: string;
   readonly crisis_role: string | null;
   readonly organisation: string | null;
@@ -615,6 +770,7 @@ export interface ContactFields {
   readonly crisis_role: string | null;
   readonly organisation: string | null;
   readonly user_id: string | null;
+  readonly supplier_id: string | null;
   readonly phone: string | null;
   readonly alt_phone: string | null;
   readonly email: string | null;
@@ -653,6 +809,7 @@ export interface Overview {
     readonly in_review: number;
     readonly review_overdue: number;
     readonly not_exercised: number;
+    readonly ict_gap?: number;
   };
   readonly exercises: {
     readonly planned: number;
@@ -668,24 +825,35 @@ export interface Overview {
   readonly contacts: {
     readonly total: number;
     readonly org_wide: number;
+    readonly plan_specific?: number;
     readonly needs_verification: number;
   };
+  /** Records the continuity work rests on (empty lists = nothing linked yet). */
+  readonly foundation?: Readonly<Record<FoundationGroup, readonly LinkedRef[]>>;
   readonly attention: {
     readonly uncovered_bias: readonly AttentionItem[];
     readonly plans_review_overdue: readonly AttentionItem[];
     readonly plans_not_exercised: readonly AttentionItem[];
     readonly exercises_overdue: readonly AttentionItem[];
+    /** Plans whose ICT services cannot meet the plan's targets (`services`: "CODE name"). */
+    readonly plans_ict_gap?: readonly AttentionItem[];
     readonly ict_gaps: readonly AttentionItem[];
   };
 }
 
+/** The attention groups, most urgent first. */
 export const ATTENTION_GROUPS = [
+  'plans_ict_gap',
+  'ict_gaps',
   'uncovered_bias',
   'plans_review_overdue',
   'plans_not_exercised',
   'exercises_overdue',
-  'ict_gaps',
 ] as const;
+
+/** What the continuity work rests on (overview "Grunnlag" card). */
+export const FOUNDATION_GROUPS = ['scope', 'policies', 'objectives', 'obligations'] as const;
+export type FoundationGroup = (typeof FOUNDATION_GROUPS)[number];
 export type AttentionGroup = (typeof ATTENTION_GROUPS)[number];
 
 // --- assist results -----------------------------------------------------------------

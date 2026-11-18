@@ -431,7 +431,28 @@
     "management_review": {
       "to_task": "Tiltak (oppgave)"
     },
-    "formMissing": "Dette skjemaet finnes ikke ennå. Opprett posten fra sin egen side og koble den fra fanen Relatert."
+    "formMissing": "Dette skjemaet finnes ikke ennå. Opprett posten fra sin egen side og koble den fra fanen Relatert.",
+    "process": {
+      "to_bia": "Konsekvensanalyse (BIA) for prosessen"
+    },
+    "asset": {
+      "to_ict_system": "IKT-tjeneste for kontinuitet"
+    },
+    "bia": {
+      "to_plan": "Kontinuitetsplan for aktiviteten",
+      "to_risk": "Vurder risiko for aktiviteten"
+    },
+    "continuity_exercise": {
+      "to_deviation": "Avvik fra øvelsen",
+      "to_risk": "Risiko fra øvelsen",
+      "to_task": "Oppgave for oppfølging"
+    },
+    "continuity_plan": {
+      "to_deviation": "Registrer hendelsen som avvik"
+    },
+    "continuity_ict_system": {
+      "to_task": "Oppgave for å lukke beredskapsmangelen"
+    }
   },
   "frameworks": {
     "iso9001": "ISO 9001",

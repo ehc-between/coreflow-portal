@@ -25,7 +25,14 @@
     "backToRecord": "Tilbake til posten",
     "deleted": "{{ code }} ble slettet.",
     "deleteMessage": "Slette {{ code }} {{ title }}? Den fjernes fra alle lister, men revisjonssporet beholder historikken.",
-    "months": "{{ count }} måneder"
+    "months": "{{ count }} måneder",
+    "notYet": "Ikke ennå",
+    "unknownPerson": "en som ikke lenger er i organisasjonen",
+    "seeAll": "Se alle",
+    "more": "+{{ count }} til",
+    "minutes": "{{ count }} min",
+    "addPerson": "Legg til en person …",
+    "removeNamed": "Fjern {{ name }}"
   },
   "duration": {
     "notSet": "Ikke satt",
@@ -46,13 +53,15 @@
       "bias": "Konsekvensanalyser",
       "biasDelta": "{{ approved }} godkjent · {{ uncovered }} uten plan",
       "plans": "Kontinuitetsplaner",
-      "plansDelta": "{{ approved }} godkjent · {{ overdue }} med forfalt gjennomgang",
+      "plansDelta": "{{ approved }} godkjent · {{ overdue }} forfalt",
       "exercises": "Planlagte øvelser",
       "exercisesDelta": "{{ overdue }} forfalt",
       "ict": "IKT-tjenester",
-      "ictDelta": "{{ ready }} klare · {{ gap }} med avvik",
+      "ictDelta": "{{ ready }} klare · {{ gap }} når ikke kravet",
       "contacts": "Krisekontakter",
-      "contactsDelta": "{{ count }} må bekreftes"
+      "contactsSplit": "{{ shared }} felles · {{ plans }} i planene",
+      "contactsVerify": "{{ count }} må bekreftes",
+      "contactsVerifyOne": "1 må bekreftes"
     },
     "nextExercise": "Neste øvelse:",
     "attention": "Trenger oppfølging",
@@ -62,12 +71,42 @@
       "plans_review_overdue": "Planer med forfalt gjennomgang",
       "plans_not_exercised": "Planer som aldri er øvd",
       "exercises_overdue": "Forfalte øvelser",
-      "ict_gaps": "IKT-tjenester med beredskapsavvik"
+      "ict_gaps": "IKT-tjenester som ikke når gjenopprettingskravet",
+      "plans_ict_gap": "Planer som er avhengige av en for treg IKT-tjeneste"
+    },
+    "dependsOn": "Er avhengig av: {{ services }}",
+    "groupHelp": {
+      "plans_ict_gap": "Planen lover en gjenopprettingstid som en IKT-tjeneste den trenger, ikke klarer.",
+      "ict_gaps": "For trege, mister for mye data, eller ikke testet som planlagt.",
+      "uncovered_bias": "Analyserte aktiviteter som ingen plan beskytter ennå.",
+      "plans_review_overdue": "Planer som skulle vært gjennomgått nå.",
+      "plans_not_exercised": "En plan ingen har øvd på, virker kanskje ikke når det gjelder.",
+      "exercises_overdue": "Planlagte øvelser som har passert datoen."
+    },
+    "foundation": {
+      "title": "Grunnlag",
+      "intro": "Det kontinuitetsarbeidet bygger på: hva det omfatter, policyen, målene og lovkravene. Koble dem fra fanen Relatert på postene.",
+      "scope": "Omfang",
+      "policies": "Policy",
+      "objectives": "Mål",
+      "obligations": "Lovkrav",
+      "empty": {
+        "scope": "Ikke koblet til et omfang. Hva omfatter kontinuitetsarbeidet?",
+        "policies": "Ingen policy er koblet.",
+        "objectives": "Ingen mål for kontinuitet er koblet.",
+        "obligations": "Ingen lovkrav er koblet (f.eks. internkontroll, brannvern, digitalsikkerhet)."
+      },
+      "open": {
+        "scope": "Åpne omfang",
+        "policies": "Åpne policyer",
+        "objectives": "Åpne mål",
+        "obligations": "Åpne lover og forskrifter"
+      }
     }
   },
   "bias": {
-    "title": "Konsekvensanalyser (BIA)",
-    "subtitle": "Hva skjer hvis en aktivitet stopper, og hvor raskt den må gjenopprettes.",
+    "title": "Konsekvensanalyser",
+    "subtitle": "Hva skjer hvis en aktivitet stopper, og hvor raskt den må være tilbake? Én konsekvensanalyse (BIA) per aktivitet.",
     "searchPlaceholder": "Søk i konsekvensanalyser",
     "new": "Ny konsekvensanalyse",
     "create": "Opprett konsekvensanalyse",
@@ -77,15 +116,22 @@
     "created": "{{ code }} ble opprettet.",
     "maxImpact": "Høyeste konsekvens {{ value }}/5",
     "uncovered": "Ingen plan",
-    "planCount": "{{ count }} plan(er)",
+    "planCount": "{{ count }} planer",
     "coveringPlans": "Planer som dekker denne aktiviteten",
     "noPlans": "Ingen kontinuitetsplan dekker denne aktiviteten ennå. Lag en, slik at gjenopprettingsmålene kan nås.",
-    "createPlan": "Lag en plan for den",
-    "deleteTitle": "Slett konsekvensanalyse"
+    "createPlan": "Lag kontinuitetsplan",
+    "deleteTitle": "Slett konsekvensanalyse",
+    "planCountOne": "1 plan",
+    "impactsIntro": "Hvor alvorlig det blir per område hvis aktiviteten står stille så lenge den tåler.",
+    "noTimeline": "Ikke fylt ut. Vurder konsekvensen etter 4 timer, 1 døgn, 3 døgn og 1 uke for å finne riktig MTPD.",
+    "suggestedMtpd": "Konsekvensen blir alvorlig etter",
+    "mtpdLonger": "Den satte MTPD-en er lengre enn dette.",
+    "noProcess": "Ikke koblet til en prosess. Koble den, så viser prosessiden gjenopprettingsmålet.",
+    "linkHidden": "(du har ikke tilgang til den koblede posten)"
   },
   "plans": {
     "title": "Kontinuitetsplaner",
-    "subtitle": "Hvordan dere håndterer, gjenoppretter og normaliserer når noe går galt.",
+    "subtitle": "Hvordan organisasjonen håndterer, gjenoppretter og går tilbake til normal drift når noe går galt.",
     "searchPlaceholder": "Søk i planer",
     "new": "Ny plan",
     "create": "Opprett plan",
@@ -93,7 +139,7 @@
     "editTitle": "Rediger {{ code }} {{ title }}",
     "back": "Tilbake til planer",
     "created": "{{ code }} ble opprettet.",
-    "biaCount": "{{ count }} konsekvensanalyse(r)",
+    "biaCount": "{{ count }} konsekvensanalyser",
     "lastExercised": "Sist øvd {{ date }}",
     "neverExercised": "Aldri øvd",
     "nextExercise": "neste planlagt {{ date }}",
@@ -104,7 +150,30 @@
     "noExercises": "Planen er ikke øvd ennå.",
     "planExercise": "Planlegg en øvelse",
     "deleteTitle": "Slett kontinuitetsplan",
-    "deleteMessage": "Slette {{ code }} {{ title }}? Planens egne krisekontakter slettes også. Revisjonssporet beholder historikken."
+    "deleteMessage": "Slette {{ code }} {{ title }}? Planens egne krisekontakter slettes også. Revisjonssporet beholder historikken.",
+    "biaCountOne": "1 konsekvensanalyse",
+    "useTitle": "Bruk planen ved en hendelse",
+    "neverActivated": "Planen er ikke aktivert ved en virkelig hendelse.",
+    "lastActivated": "Sist aktivert {{ date }} ({{ count }} ganger totalt).",
+    "lastActivatedOne": "Aktivert {{ date }}.",
+    "neverDistributed": "Ingen versjon er skrevet ut eller lastet ned ennå. Ha en kopi utenfor systemene: planen må virke når de er nede.",
+    "distributedCurrent": "Versjon {{ version }} (den gjeldende) ble skrevet ut eller lastet ned {{ date }} av {{ name }}.",
+    "distributedOld": "Utskriften er versjon {{ version }} ({{ date }}, {{ name }}). Skriv ut den gjeldende versjonen og bytt ut de gamle kopiene.",
+    "activate": "Aktiver plan",
+    "activateTitle": "Aktiver {{ code }}",
+    "activateMessage": "Bruk dette ved en virkelig hendelse, ikke en øvelse. Eieren, godkjennerne og alle som følger planen blir varslet. Registrer deretter hendelsen som et avvik.",
+    "activateReason": "Hva skjedde (valgfritt)",
+    "activated": "{{ code }} er aktivert. Registrer hendelsen som et avvik når du kan.",
+    "registerIncident": "Registrer hendelsen som avvik",
+    "exportPdf": "Skriv ut / last ned PDF",
+    "ictServices": "IKT-tjenester planen er avhengig av",
+    "noIct": "Ingen av konsekvensanalysene planen dekker har en IKT-tjeneste som avhengighet.",
+    "ictCan": "Klarer",
+    "ictTested": "siste test",
+    "ictCannotMeet": "For treg for planen",
+    "ictGapBadge": "IKT-mangel",
+    "ictGapWarning": "Planen kan ikke nå gjenopprettingstiden: {{ services }} kan ikke gjenopprettes raskt nok. Forbedre tjenesten, eller avtal en lengre gjenopprettingstid i konsekvensanalysen.",
+    "lastExercisedShort": "øvd {{ date }}"
   },
   "exercises": {
     "title": "Øvelser og tester",
@@ -138,11 +207,18 @@
       "complete": "Resultatet av {{ code }} ble registrert.",
       "cancel": "{{ code }} ble avlyst.",
       "reopen": "{{ code }} ble gjenåpnet."
+    },
+    "targetMissed": "Gjenopprettingen tok lengre tid enn målet. Utfallet er satt til «Delvis vellykket». Endre det bare hvis målet ikke gjaldt.",
+    "outcomeConflict": "Merket som vellykket, men gjenopprettingstiden nådde ikke målet. Sjekk utfallet.",
+    "targetSource": {
+      "exercise": "Satt for denne øvelsen",
+      "plan": "Fra planens RTO",
+      "ict_requirement": "Fra kravet virksomheten stiller til IKT-tjenesten"
     }
   },
   "ict": {
     "title": "IKT-beredskap",
-    "subtitle": "Kan hver IKT-tjeneste gjenopprettes så raskt som virksomheten trenger?",
+    "subtitle": "Kan hver IKT-tjeneste gjenopprettes så raskt som organisasjonen trenger?",
     "searchPlaceholder": "Søk i IKT-tjenester",
     "new": "Ny IKT-tjeneste",
     "create": "Registrer IKT-tjeneste",
@@ -151,15 +227,15 @@
     "back": "Tilbake til IKT-beredskap",
     "created": "{{ code }} ble registrert.",
     "rtoVsRequired": "RTO oppnåelig / påkrevd",
-    "dependentBias": "{{ count }} avhengig(e) konsekvensanalyse(r)",
+    "dependentBias": "{{ count }} konsekvensanalyser er avhengige av den",
     "lastTested": "Testet {{ date }}",
     "neverTested": "Aldri testet",
     "capability": "Gjenopprettingsevne",
     "testing": "Testing",
     "readinessTitle": "Beredskap",
-    "achievable": "Oppnåelig",
-    "required": "Påkrevd av virksomheten",
-    "allGood": "Tjenesten kan oppfylle det virksomheten krever, og testene er à jour.",
+    "achievable": "Klarer",
+    "required": "Krav",
+    "allGood": "Tjenesten klarer det organisasjonen krever, og testene er à jour.",
     "nextTestDue": "Neste test forfaller",
     "lastTestRecovery": "Gjenopprettingstid i siste test",
     "profile": "Tjeneste",
@@ -170,12 +246,22 @@
     "planTest": "Planlegg en gjenopprettingstest",
     "retire": "Fas ut",
     "reactivate": "Aktiver igjen",
-    "deleteTitle": "Slett IKT-tjeneste"
+    "deleteTitle": "Slett IKT-tjeneste",
+    "dependentBiasOne": "1 konsekvensanalyse er avhengig av den",
+    "capabilityPair": "{{ label }}: klarer {{ can }} · krav {{ need }}",
+    "noRequirement": "ingen",
+    "lastTestTook": "siste test {{ duration }}",
+    "lastTest": "Siste test",
+    "target": "Mål",
+    "slaLine": "Avtalen (SLA) lover gjenoppretting innen",
+    "supplierContacts": "Hvem du ringer hos leverandøren",
+    "dependentPlans": "Planer som tas i bruk når den er nede",
+    "closeGapTask": "Lag en oppgave for å lukke mangelen"
   },
   "contacts": {
     "title": "Krisekontakter",
-    "subtitle": "Hvem dere ringer når noe går galt: kriseledelsen, myndigheter, nødetater og viktige leverandører.",
-    "orgTitle": "Krisekontakter for hele virksomheten",
+    "subtitle": "Hvem du ringer når noe går galt: kriseledelsen, myndigheter, nødetater og viktige leverandører.",
+    "orgTitle": "Felles krisekontakter (hele organisasjonen)",
     "planTitle": "Krisekontakter for denne planen",
     "emptyOrg": "Ingen krisekontakter ennå. Begynn med kriseleder, stedfortreder og nødetatene.",
     "emptyPlan": "Planen har ingen egne kontakter. Listen for hele virksomheten gjelder fortsatt.",
@@ -190,11 +276,11 @@
     "removeNamed": "Fjern {{ name }}",
     "available247": "Døgnet rundt",
     "needsVerification": "Bekreft",
-    "needsVerificationCount": "{{ count }} kontakt(er) ikke bekreftet det siste året",
+    "needsVerificationCount": "{{ count }} kontakter er ikke bekreftet det siste året",
     "markVerified": "Merk som bekreftet",
     "verifiedOn": "Bekreftet {{ date }}",
     "neverVerified": "Aldri bekreftet",
-    "linkedMember": "(medlem: {{ name }})",
+    "linkedMember": "koblet til {{ name }} i CoreFlow",
     "callPhone": "Ring {{ phone }}",
     "callAlt": "Alt. {{ phone }}",
     "nameRequired": "Oppgi et navn.",
@@ -203,33 +289,53 @@
       "crisisRole": "Rolle i krise",
       "type": "Type",
       "organisation": "Organisasjon",
-      "member": "Koblet medlem",
+      "member": "Person i CoreFlow (valgfritt)",
       "phone": "Telefon",
       "altPhone": "Alternativ telefon",
       "email": "E-post",
       "available247": "Kan nås døgnet rundt",
       "verifiedOn": "Sist bekreftet",
-      "position": "Rekkefølge i listen",
-      "notes": "Merknader"
-    }
+      "notes": "Merknader",
+      "supplier": "Leverandør (valgfritt)"
+    },
+    "needsVerificationCountOne": "1 kontakt er ikke bekreftet det siste året",
+    "isMember": "bruker i CoreFlow",
+    "memberHint": "Koble kontakten til en bruker, så får vedkommende planen i arbeidet sitt og kan nås gjennom CoreFlow.",
+    "exportPdf": "Skriv ut / last ned PDF",
+    "fileName": "krisekontakter",
+    "searchLabel": "Hvem ringer jeg? Søk i alle listene",
+    "searchPlaceholder": "Navn, rolle, organisasjon eller system, f.eks. «ERP»",
+    "noHits": "Ingen kontakter passer.",
+    "onPlan": "I {{ code }} {{ title }}",
+    "onOrgList": "Felles liste",
+    "inPlansTitle": "Kontakter i planene",
+    "inPlansIntro": "Hver plan kan ha egne kontakter i tillegg til den felles listen. Endre dem i planen.",
+    "inPlansEmpty": "Ingen planer har egne kontakter.",
+    "openPlanList": "Åpne planens liste",
+    "reorderHint": "Dra en kontakt, eller bruk pilene, for å endre rekkefølgen (hvem som ringes først).",
+    "reordered": "Rekkefølgen ble lagret.",
+    "moveUp": "Flytt {{ name }} opp",
+    "moveDown": "Flytt {{ name }} ned"
   },
   "control": {
     "title": "Godkjenning og gjennomgang",
     "version": "Versjon {{ version }}",
-    "approvedOn": "Godkjent {{ date }} av {{ name }}",
+    "approvedOn": "{{ date }} av {{ name }}",
     "notApproved": "Ikke godkjent ennå",
     "submittedOn": "Sendt inn {{ date }} av {{ name }}",
     "interval": "Gjennomgås hver {{ months }}. måned når den er godkjent",
-    "note": "Merknad (valgfri, unntatt ved avvisning)"
+    "note": "Merknad (valgfri, unntatt ved avvisning)",
+    "approvedBy": "Godkjent av {{ name }}",
+    "approvedUndated": "Godkjent (dato ikke registrert)"
   },
   "schedule": {
-    "title": "Øvelsesplan",
-    "active": "Planlagt",
-    "none": "Ikke planlagt",
+    "title": "Fast øvelse",
+    "active": "Gjentas",
+    "none": "Ingen fast gjentakelse",
     "nextDue": "Neste øvelse forfaller {{ date }}.",
-    "noneHint": "Sett opp en gjentakende plan, så blir eieren minnet på å øve planen.",
-    "setUp": "Sett opp plan",
-    "addAnother": "Legg til en ny plan",
+    "noneHint": "Sett opp en fast gjentakelse (for eksempel hvert år), så blir eieren minnet på å øve planen.",
+    "setUp": "Sett opp gjentakelse",
+    "addAnother": "Legg til en gjentakelse til",
     "firstDue": "Første øvelse forfaller",
     "leadDays": "Påminnelse så mange dager før",
     "assignee": "Tildel til",
@@ -238,7 +344,7 @@
     "saved": "Øvelsesplanen ble lagret."
   },
   "followUps": {
-    "title": "Oppfølgingstiltak",
+    "title": "Oppfølging",
     "empty": "Ingen oppfølgingstiltak ennå. Gjør hver erfaring om til et tiltak med ansvarlig og frist.",
     "add": "Legg til tiltak",
     "what": "Hva som må gjøres",
@@ -246,14 +352,19 @@
     "dueOn": "Frist",
     "details": "Detaljer",
     "due": "Frist {{ date }}",
-    "added": "Oppfølgingstiltaket ble lagt til."
+    "added": "Oppfølgingstiltaket ble lagt til.",
+    "toDeviation": "Registrer som avvik",
+    "toRisk": "Legg til risiko",
+    "nudge": "Det er registrert erfaringer, men ingenting er fulgt opp ennå. Gjør dem om til et tiltak, et avvik eller en risiko.",
+    "linkedElsewhere": "{{ count }} oppfølginger er koblede poster (avvik, risikoer). Se fanen Relatert.",
+    "linkedElsewhereOne": "Én oppfølging er en koblet post (et avvik eller en risiko). Se fanen Relatert."
   },
   "filters": {
     "anyStatus": "Alle statuser",
     "anyCriticality": "Alle kritikaliteter",
     "anyType": "Alle typer",
     "anyOwner": "Alle eiere",
-    "anyReadiness": "All beredskap",
+    "anyReadiness": "Alle nivåer av beredskap",
     "ownedByMe": "Eid av meg",
     "show": "Vis",
     "all": "Alle",
@@ -273,7 +384,8 @@
       "-created_at": "Sist opprettet",
       "scheduled_on": "Dato (tidligste først)",
       "-scheduled_on": "Dato (seneste først)"
-    }
+    },
+    "clear": "Fjern filtrene"
   },
   "fields": {
     "code": "Kode",
@@ -304,7 +416,7 @@
     "reviewInterval": "Gjennomgangsintervall (måneder)",
     "lastReviewed": "Sist gjennomgått",
     "nextReview": "Neste gjennomgang",
-    "approved": "Godkjent",
+    "approved": "Godkjent av / dato",
     "planType": "Plantype",
     "location": "Sted eller lokasjon",
     "phase": "Fase",
@@ -331,7 +443,18 @@
     "testInterval": "Test hver (måneder)",
     "lastTested": "Sist testet",
     "lastOutcome": "Utfall av siste test",
-    "readiness": "Beredskap"
+    "readiness": "Beredskap",
+    "process": "Prosess",
+    "impactTimeline": "Konsekvens over tid",
+    "participantMembers": "Deltakere i CoreFlow",
+    "participantsOther": "Andre deltakere (eksterne)",
+    "successCriteria": "Suksesskriterier",
+    "targetRecovery": "Mål for gjenopprettingstid",
+    "asset": "Kjører på (eiendel)",
+    "supplier": "Leverandør",
+    "contract": "Avtale",
+    "providerText": "Leverandør (ikke i leverandørregisteret)",
+    "slaRto": "Gjenopprettingstid i avtalen (SLA)"
   },
   "form": {
     "save": "Lagre endringer",
@@ -340,7 +463,7 @@
     "backToDraft": "Denne posten er godkjent eller til godkjenning. En endring av innholdet sender den tilbake til utkast, og den må godkjennes på nytt.",
     "changeReason": "Årsak til endringen",
     "changeReasonHint": "Lagres i revisjonshistorikken, så andre kan se hvorfor den ble endret.",
-    "impactScale": "Vurder hvor alvorlig konsekvensen blir hvis aktiviteten stopper i den maksimale akseptable perioden: 0 ingen, 5 katastrofal.",
+    "impactScale": "Hvor alvorlig blir det per område hvis aktiviteten står stille så lenge den tåler? 0 ingen, 5 katastrofal.",
     "addDependency": "Legg til avhengighet",
     "noDependencies": "Ingen avhengigheter registrert.",
     "dependencyN": "Avhengighet {{ n }}",
@@ -358,7 +481,7 @@
     "removeStep": "Fjern",
     "sections": {
       "activity": "Aktivitet",
-      "impacts": "Konsekvens over tid",
+      "impacts": "Konsekvens ved avbrudd",
       "targets": "Gjenopprettingsmål",
       "dependencies": "Avhengigheter",
       "plan": "Plan",
@@ -373,8 +496,25 @@
       "interval": "Oppgi et helt antall måneder mellom 1 og 120.",
       "dependencyName": "Gi hver avhengighet et navn, eller velg IKT-tjenesten.",
       "stepTitle": "Gi hvert steg en tittel.",
-      "rtoExceedsMtpd": "RTO kan ikke være lengre enn MTPD."
-    }
+      "rtoExceedsMtpd": "RTO kan ikke være lengre enn MTPD.",
+      "timelineDecreasing": "Konsekvensen kan ikke bli mindre etter hvert som tiden går."
+    },
+    "processPlaceholder": "Søk i prosessregisteret",
+    "processHint": "Begynn med prosessen aktiviteten hører til. Navnet blir tittelen hvis du ikke har skrevet en ennå.",
+    "timelineHint": "Vurder den verste konsekvensen etter hver periode. Den kan holde seg lik eller bli verre, aldri bedre.",
+    "useSuggestion": "Bruk som MTPD",
+    "nameIfNotListed": "Skriv et navn hvis den ikke finnes i registeret",
+    "linkRecord": {
+      "supplier": "Leverandør",
+      "site": "Lokasjon (eiendel)",
+      "equipment": "Utstyr (eiendel)",
+      "people": "Person eller stilling",
+      "information": "Dokument, eiendel eller behandlingsaktivitet",
+      "other": "Post i CoreFlow (valgfritt)"
+    },
+    "targetHint": "La stå tomt for å bruke planens RTO.",
+    "membersHint": "Deltakelsen teller som opplæring for hver person.",
+    "assetHint": "Serveren, skytjenesten eller systemet i eiendelsregisteret som tjenesten kjører på."
   },
   "ai": {
     "summarise": "Oppsummer",
@@ -407,8 +547,12 @@
       "nextStep": "Hva er neste steg for denne posten i godkjennings- og gjennomgangsprosessen?",
       "impacts": "Hvordan vurderer jeg konsekvensen av et avbrudd over tid for denne aktiviteten?",
       "targets": "Hvordan velger jeg fornuftige verdier for MTPD, RTO og RPO for denne aktiviteten?",
-      "activation": "Hva kjennetegner gode aktiveringskriterier for en kontinuitetsplan?"
-    }
+      "activation": "Hva kjennetegner gode aktiveringskriterier for en kontinuitetsplan?",
+      "recoveryStrategy": "Hvordan beskriver jeg en gjenopprettingsstrategi som når planens gjenopprettingstid?",
+      "successCriteria": "Hva er gode suksesskriterier for denne øvelsen, så vi etterpå kan se om planen virket?",
+      "sla": "Hva bør gjenopprettingstiden i avtalen være, sammenlignet med det virksomheten trenger av denne tjenesten?"
+    },
+    "answersInPanel": "Assistenten svarer i panelet til høyre."
   },
   "status": {
     "draft": "Utkast",
@@ -538,7 +682,7 @@
   "readiness": {
     "ready": "Klar",
     "attention": "Trenger oppfølging",
-    "gap": "Avvik",
+    "gap": "Når ikke kravet",
     "retired": "Faset ut"
   },
   "readinessIssue": {
@@ -548,7 +692,11 @@
     "rpo_capability_unknown": "RPO ukjent",
     "never_tested": "Aldri testet",
     "test_overdue": "Test forfalt",
-    "last_test_failed": "Siste test feilet"
+    "last_test_failed": "Siste test feilet",
+    "tested_rto_missed": "Siste test for treg",
+    "sla_rto_exceeds": "Avtalen tillater lenger tid",
+    "plan_rto_gap": "For treg for planen",
+    "plan_rpo_gap": "Mister for mye data for planen"
   },
   "readinessIssueHelp": {
     "rto_gap": "Tjenesten bruker lengre tid på å gjenopprettes enn virksomheten tåler. Forbedre gjenopprettingsstrategien eller avtal en lengre RTO.",
@@ -557,7 +705,11 @@
     "rpo_capability_unknown": "Ingen har registrert hvor mye data som kan gå tapt. Sjekk intervallet for sikkerhetskopi eller replikering.",
     "never_tested": "Gjenoppretting er aldri testet. Planlegg en gjenopprettingstest.",
     "test_overdue": "Siste test er eldre enn testsyklusen. Planlegg en ny test.",
-    "last_test_failed": "Siste test lyktes ikke. Følg opp erfaringene og test igjen."
+    "last_test_failed": "Siste test lyktes ikke. Følg opp erfaringene og test igjen.",
+    "tested_rto_missed": "Siste gjenopprettingstest tok lengre tid enn virksomheten tåler. Forbedre gjenopprettingen og test på nytt.",
+    "sla_rto_exceeds": "Avtalen lar leverandøren bruke lengre tid på gjenoppretting enn virksomheten trenger. Ta det opp med leverandøren.",
+    "plan_rto_gap": "Tjenesten kan ikke gjenopprettes innen planens gjenopprettingstid.",
+    "plan_rpo_gap": "Det kan gå tapt mer data enn planen godtar."
   },
   "contactType": {
     "internal": "Intern",
@@ -582,7 +734,7 @@
     "field_required": "Et påkrevd felt mangler.",
     "invalid_action": "Den handlingen er ikke tilgjengelig.",
     "invalid_bia": "En av de valgte konsekvensanalysene finnes ikke lenger.",
-    "invalid_dates": "Kontroller datoene. Gjennomføringsdatoen kan ikke være frem i tid.",
+    "invalid_dates": "Sjekk datoene. En gjennomføring eller aktivering kan ikke ligge fram i tid.",
     "invalid_department": "Den valgte avdelingen finnes ikke.",
     "invalid_dependencies": "En av avhengighetene er ikke gyldig.",
     "invalid_ict_system": "Den valgte IKT-tjenesten finnes ikke eller er faset ut.",
@@ -601,7 +753,13 @@
     "too_many_steps": "En plan kan ha høyst 100 steg.",
     "forbidden": "Du har ikke tillatelse til å gjøre det.",
     "invalid": "Noen verdier er ikke gyldige. Kontroller skjemaet og prøv igjen.",
-    "generic": "Noe gikk galt. Prøv igjen."
+    "generic": "Noe gikk galt. Prøv igjen.",
+    "impact_timeline_decreasing": "Konsekvensen kan ikke bli mindre etter hvert som tiden går. Sjekk vurderingene over tid.",
+    "invalid_impact_timeline": "Vurderingene over tid må være mellom 0 og 5.",
+    "invalid_dependency_link": "En avhengighet peker på feil type post. En leverandøravhengighet trenger en leverandør, en lokasjon en eiendel, og så videre.",
+    "invalid_link": "En koblet post finnes ikke lenger, eller du har ikke tilgang til den.",
+    "invalid_order": "Listen ble endret mens du sorterte den. Last inn på nytt og prøv igjen.",
+    "invalid_reason": "Teksten er for lang. Kort den ned til 2 000 tegn."
   },
   "notifications": {
     "bia": {
@@ -628,7 +786,9 @@
       "restored": "Kontinuitetsplan gjenopprettet: {{ code }} {{ title }}",
       "deleted": "Kontinuitetsplan slettet: {{ code }} {{ title }}",
       "exercised": "Kontinuitetsplan øvd: {{ code }} {{ title }}",
-      "exerciseScheduled": "Øvelsesplan satt for {{ code }} {{ title }}"
+      "exerciseScheduled": "Øvelsesplan satt for {{ code }} {{ title }}",
+      "activated": "Kontinuitetsplan aktivert: {{ code }} {{ title }}",
+      "distributed": "Kontinuitetsplan skrevet ut eller lastet ned: {{ code }} {{ title }}"
     },
     "exercise": {
       "created": "Øvelse planlagt: {{ code }} {{ title }}",
@@ -649,7 +809,8 @@
     "contact": {
       "created": "Krisekontakt lagt til",
       "updated": "Krisekontakt oppdatert",
-      "deleted": "Krisekontakt fjernet"
+      "deleted": "Krisekontakt fjernet",
+      "reordered": "Rekkefølgen på krisekontaktene ble endret"
     }
   },
   "timeline": {
@@ -677,7 +838,9 @@
       "restored": "Gjenopprettet",
       "deleted": "Slettet",
       "exercised": "Øvd",
-      "exerciseScheduled": "Øvelsesplan satt"
+      "exerciseScheduled": "Øvelsesplan satt",
+      "activated": "Aktivert ved en hendelse",
+      "distributed": "Skrevet ut eller lastet ned"
     },
     "exercise": {
       "created": "Øvelse planlagt",
@@ -698,7 +861,51 @@
     "contact": {
       "created": "Kontakt lagt til",
       "updated": "Kontakt oppdatert",
-      "deleted": "Kontakt fjernet"
+      "deleted": "Kontakt fjernet",
+      "reordered": "Rekkefølgen endret"
+    }
+  },
+  "legend": {
+    "lead": "Målene i radene:",
+    "rto": "RTO = tilbake innen",
+    "rpo": "RPO = mest data som kan gå tapt",
+    "mtpd": "MTPD = lengste tillatte stans"
+  },
+  "picker": {
+    "placeholder": "Søk etter navn eller kode",
+    "change": "Endre",
+    "remove": "Fjern",
+    "removeNamed": "Fjern koblingen til {{ name }}",
+    "none": "Ingen treff. Sjekk stavemåten, eller registrer den i sin egen modul først.",
+    "failed": "Søket feilet. Prøv igjen."
+  },
+  "intervals": {
+    "4h": "Etter 4 t",
+    "1d": "Etter 1 døgn",
+    "3d": "Etter 3 døgn",
+    "1w": "Etter 1 uke",
+    "2w": "Etter 2 uker"
+  },
+  "impactShort": {
+    "0": "0 Ingen",
+    "1": "1 Liten",
+    "2": "2 Merkbar",
+    "3": "3 Betydelig",
+    "4": "4 Alvorlig",
+    "5": "5 Katastrofal"
+  },
+  "next": {
+    "ictGap": {
+      "title": "{{ code }} kan ikke nå gjenopprettingstiden",
+      "why": "{{ count }} planer er avhengige av en IKT-tjeneste som er for treg, først {{ name }}."
+    },
+    "uncoveredBias": {
+      "title": "Lag kontinuitetsplan for {{ code }}",
+      "why": "{{ count }} analyserte aktiviteter har ingen plan ennå, først {{ name }}."
+    },
+    "notExercised": {
+      "title": "Øv {{ code }}",
+      "why": "{{ count }} godkjente planer er ikke øvd det siste året, først {{ name }}."
     }
   }
 }
