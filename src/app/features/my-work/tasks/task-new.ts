@@ -1,3 +1,4 @@
+import { Location } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -9,6 +10,7 @@ import { TaskWhyItMatters } from '../../../shared/tasks/guidance/task-why-it-mat
 import { TaskForm, TaskFormResult, TaskFormValue } from '../../../shared/tasks/task-form';
 import { Card } from '../../../shared/ui/card/card';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { goBack } from '../go-back';
 import { provideTasksPageContext } from '../tasks-page-context';
 
 /**
@@ -43,6 +45,7 @@ import { provideTasksPageContext } from '../tasks-page-context';
 export class TaskNew {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly location = inject(Location);
   private readonly notifications = inject(NotificationService);
   private readonly language = inject(LanguageService);
 
@@ -80,7 +83,8 @@ export class TaskNew {
     }
   }
 
+  /** Cancel returns to where the user came from (U08); a direct visit lands in My Work. */
   protected back(): void {
-    void this.router.navigate(['/tasks']);
+    goBack(this.router, this.location, ['/my-work']);
   }
 }

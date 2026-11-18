@@ -186,7 +186,17 @@ interface Row {
           }
         </div>
 
-        <div class="border-t border-border px-4 py-2.5">
+        <div
+          class="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t border-border px-4 py-2.5"
+        >
+          <a
+            routerLink="/my-work"
+            data-testid="notifications-my-work"
+            (click)="close(false)"
+            class="text-meta font-medium text-accent hover:underline focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+          >
+            {{ 'notifications.panel.myWork' | transloco }}
+          </a>
           <a
             routerLink="/account/notifications"
             (click)="close(false)"

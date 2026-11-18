@@ -277,8 +277,8 @@ export class TrainingAccess {
    */
   readonly navItems = computed<readonly ModuleNavItem[]>(() => {
     const items: ModuleNavItem[] = [
-      { labelKey: 'training.nav.mine', link: '/training', exact: true, testId: 'nav-mine' },
       { labelKey: 'training.nav.courses', link: '/training/courses', testId: 'nav-courses' },
+      { labelKey: 'training.nav.mine', link: '/training/mine', testId: 'nav-mine' },
       {
         labelKey: 'training.nav.assignments',
         link: '/training/assignments',

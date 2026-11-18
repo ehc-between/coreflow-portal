@@ -79,7 +79,7 @@ import { PrintChrome } from '../shared/print-chrome';
             { labelKey: 'modules.names.training', link: '/training' },
             access.canOversee()
               ? { labelKey: 'training.matrix.title', link: '/training/matrix' }
-              : { labelKey: 'training.nav.mine', link: '/training' },
+              : { labelKey: 'training.nav.mine', link: '/training/mine' },
             { label: p.user.name },
           ]"
         >
