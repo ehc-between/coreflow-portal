@@ -41,7 +41,7 @@ export interface StatusChange {
       (closed)="cancelled.emit()"
     >
       <form class="flex flex-col gap-4" (submit)="$event.preventDefault(); confirm()">
-        <p class="text-[13px] text-fg-muted">{{ 'suppliers.statusDialog.hint' | transloco }}</p>
+        <p class="text-ui text-fg-muted">{{ 'suppliers.statusDialog.hint' | transloco }}</p>
         <app-form-field [label]="'suppliers.statusDialog.newStatus' | transloco" inputId="sup-st">
           <select id="sup-st" (change)="target.set($any($event.target).value)">
             <option value="" [selected]="!target()">
@@ -55,7 +55,7 @@ export interface StatusChange {
           </select>
         </app-form-field>
         @if (!canApprove()) {
-          <p class="text-[12.5px] text-fg-subtle">
+          <p class="text-meta text-fg-subtle">
             {{ 'suppliers.statusDialog.approvalOnly' | transloco }}
           </p>
         } @else if (target() && approvalTarget()) {

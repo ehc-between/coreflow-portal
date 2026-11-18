@@ -13,7 +13,7 @@ import { NotificationService } from '../../../core/notifications/notification.se
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { FieldHelp } from '../../../shared/guidance/field-help';
 import { LocalDatePipe } from '../../../shared/locale/locale-pipes';
-import { Badge } from '../../../shared/ui/badge/badge';
+import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
@@ -21,7 +21,7 @@ import { FormField } from '../../../shared/ui/form-field/form-field';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { SlideOver } from '../../../shared/ui/slide-over/slide-over';
 import { RecruitmentApi } from '../data/recruitment-api';
-import { blankToNull, fromLocalInput } from '../data/recruitment-display';
+import { blankToNull, fromLocalInput, interviewToneValue } from '../data/recruitment-display';
 import { recruitmentError } from '../data/recruitment-errors';
 import { RecruitmentPeople } from '../data/recruitment-people';
 import {
@@ -62,7 +62,7 @@ function emptyDraft(): InterviewDraft {
     TranslocoPipe,
     FieldHelp,
     LocalDatePipe,
-    Badge,
+    StatusBadge,
     Button,
     Card,
     ConfirmDialog,
@@ -75,7 +75,7 @@ function emptyDraft(): InterviewDraft {
   template: `
     <app-card>
       <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <h2 class="font-display text-[15px] font-bold text-fg">
+        <h2 class="font-display text-card font-bold text-fg">
           {{ 'recruitment.interviews.title' | transloco }}
         </h2>
         @if (canEdit()) {
@@ -87,7 +87,7 @@ function emptyDraft(): InterviewDraft {
       </div>
       <ul class="flex flex-col gap-2">
         @for (iv of interviews(); track iv.id) {
-          <li class="rounded-tile border border-border p-3 text-[13px]">
+          <li class="rounded-tile border border-border p-3 text-ui">
             <div class="flex flex-wrap items-center gap-2">
               <span class="font-semibold text-fg">{{
                 'recruitment.interviewKind.' + iv.kind | transloco
@@ -96,17 +96,11 @@ function emptyDraft(): InterviewDraft {
               <span class="text-fg-subtle">{{
                 'recruitment.interviews.minutes' | transloco: { count: iv.duration_minutes }
               }}</span>
-              <app-badge
-                [tone]="
-                  iv.status === 'completed'
-                    ? 'pass'
-                    : iv.status === 'scheduled'
-                      ? 'info'
-                      : 'neutral'
-                "
-              >
-                {{ 'recruitment.interviewStatus.' + iv.status | transloco }}
-              </app-badge>
+              <app-status-badge
+                meaning="lifecycle"
+                [value]="interviewValue(iv.status)"
+                [labelKey]="'recruitment.interviewStatus.' + iv.status"
+              />
             </div>
             @if (iv.location) {
               <p class="mt-1 text-fg-muted">{{ iv.location }}</p>
@@ -124,7 +118,7 @@ function emptyDraft(): InterviewDraft {
                 }}</label>
                 <select
                   [id]="'iv-status-' + iv.id"
-                  class="h-8 rounded-[8px] border border-border bg-bg px-2 text-[12.5px] text-fg outline-none focus:border-accent"
+                  class="h-8 rounded-tile border border-border bg-bg px-2 text-meta text-fg outline-none focus:border-accent"
                   (change)="setStatus(iv, $any($event.target).value)"
                 >
                   @for (s of statuses; track s) {
@@ -135,7 +129,7 @@ function emptyDraft(): InterviewDraft {
                 </select>
                 <button
                   type="button"
-                  class="inline-flex items-center gap-1 rounded-[6px] px-2 py-1 text-[12.5px] font-semibold text-fg-muted hover:text-fail focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                  class="inline-flex items-center gap-1 rounded-tile px-2 py-1 text-meta font-semibold text-fg-muted hover:text-fail focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
                   (click)="deleting.set(iv)"
                 >
                   <app-icon name="trash" [size]="13" />
@@ -145,7 +139,7 @@ function emptyDraft(): InterviewDraft {
             }
           </li>
         } @empty {
-          <li class="text-[13px] text-fg-muted">{{ 'recruitment.interviews.none' | transloco }}</li>
+          <li class="text-ui text-fg-muted">{{ 'recruitment.interviews.none' | transloco }}</li>
         }
       </ul>
     </app-card>
@@ -198,14 +192,14 @@ function emptyDraft(): InterviewDraft {
           />
         </app-form-field>
         <fieldset>
-          <legend class="mb-1.5 text-[13px] font-semibold text-fg-muted">
+          <legend class="mb-1.5 text-ui font-semibold text-fg-muted">
             {{ 'recruitment.fields.interviewers' | transloco }}
           </legend>
           <div
             class="flex max-h-[220px] flex-col gap-1 overflow-y-auto rounded-tile border border-border p-2"
           >
             @for (u of people.users(); track u.id) {
-              <label class="flex items-center gap-2 text-[13px] text-fg">
+              <label class="flex items-center gap-2 text-ui text-fg">
                 <input
                   type="checkbox"
                   class="h-4 w-4 accent-[var(--accent)]"
@@ -254,6 +248,7 @@ function emptyDraft(): InterviewDraft {
   `,
 })
 export class ApplicationInterviews {
+  protected readonly interviewValue = interviewToneValue;
   private readonly api = inject(RecruitmentApi);
   private readonly orgId = inject(SelectedOrgService).currentOrgId;
   private readonly toasts = inject(NotificationService);

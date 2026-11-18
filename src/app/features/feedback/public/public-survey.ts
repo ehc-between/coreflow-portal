@@ -10,7 +10,7 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { ThemeService } from '../../../core/theme/theme.service';
 import { LanguageSwitcher } from '../../../shared/language-switcher/language-switcher';
@@ -53,7 +53,7 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
           type="button"
           (click)="theme.toggle()"
           [attr.aria-label]="'theme.toggle' | transloco"
-          class="flex h-9 w-9 items-center justify-center rounded-[9px] text-fg-muted hover:bg-surface-2 hover:text-fg"
+          class="flex h-9 w-9 items-center justify-center rounded-tile text-fg-muted hover:bg-surface-2 hover:text-fg"
         >
           <app-icon [name]="theme.theme() === 'dark' ? 'sun' : 'moon'" [size]="18" />
         </button>
@@ -63,17 +63,17 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       <main class="mx-auto w-full max-w-[680px]">
         @switch (state()) {
           @case ('loading') {
-            <p class="py-16 text-center text-[14px] text-fg-muted" role="status">
+            <p class="py-16 text-center text-body text-fg-muted" role="status">
               {{ 'feedback.public.loading' | transloco }}
             </p>
           }
           @case ('unavailable') {
             <app-card>
               <div class="p-2 text-center" data-testid="survey-unavailable">
-                <h1 class="font-display text-[22px] font-bold text-fg">
+                <h1 class="font-display text-page font-bold text-fg">
                   {{ 'feedback.public.unavailableTitle' | transloco }}
                 </h1>
-                <p class="mt-2 text-[13.5px] text-fg-muted">
+                <p class="mt-2 text-body text-fg-muted">
                   {{ 'feedback.public.unavailableBody' | transloco }}
                 </p>
               </div>
@@ -90,10 +90,10 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                 >
                   <app-icon name="check" [size]="22" />
                 </span>
-                <h1 class="font-display text-[22px] font-bold text-fg">
+                <h1 class="font-display text-page font-bold text-fg">
                   {{ 'feedback.public.thanksTitle' | transloco }}
                 </h1>
-                <p class="mt-2 text-[14px] whitespace-pre-line text-fg-muted">
+                <p class="mt-2 text-body whitespace-pre-line text-fg-muted">
                   {{ thankYou() || ('feedback.public.thanksBody' | transloco) }}
                 </p>
               </div>
@@ -101,19 +101,19 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
           }
           @default {
             @if (survey(); as s) {
-              <p class="mb-1 text-[13px] font-semibold text-fg-subtle">{{ s.organisation_name }}</p>
+              <p class="mb-1 text-ui font-semibold text-fg-subtle">{{ s.organisation_name }}</p>
               <h1
-                class="font-display text-[26px] font-bold tracking-[-0.03em] text-fg"
+                class="font-display text-page font-bold tracking-[-0.03em] text-fg"
                 data-testid="public-survey-title"
               >
                 {{ s.title }}
               </h1>
               @if (s.description) {
-                <p class="mt-2 text-[14px] whitespace-pre-line text-fg-muted">
+                <p class="mt-2 text-body whitespace-pre-line text-fg-muted">
                   {{ s.description }}
                 </p>
               }
-              <p class="mt-2 text-[12.5px] text-fg-subtle">
+              <p class="mt-2 text-meta text-fg-subtle">
                 {{
                   (s.anonymous ? 'feedback.public.anonymous' : 'feedback.public.named') | transloco
                 }}
@@ -144,17 +144,17 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
                 @if (!s.anonymous) {
                   <app-card>
-                    <h2 class="mb-1 font-display text-[15px] font-bold text-fg">
+                    <h2 class="mb-1 font-display text-card font-bold text-fg">
                       {{ 'feedback.public.aboutYou' | transloco }}
                     </h2>
-                    <p class="mb-3 text-[12.5px] text-fg-muted">
+                    <p class="mb-3 text-meta text-fg-muted">
                       {{ 'feedback.public.aboutYouHint' | transloco }}
                     </p>
                     <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                       <div>
                         <label
                           for="cf-ps-name"
-                          class="mb-1 block text-[13px] font-semibold text-fg-muted"
+                          class="mb-1 block text-ui font-semibold text-fg-muted"
                         >
                           {{ 'feedback.public.name' | transloco }}
                         </label>
@@ -163,7 +163,7 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                           type="text"
                           maxlength="255"
                           autocomplete="name"
-                          class="h-10 w-full rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg outline-none focus:border-accent"
+                          class="h-10 w-full rounded-tile border border-border bg-bg px-3 text-body text-fg outline-none focus:border-accent"
                           [value]="name()"
                           (input)="name.set($any($event.target).value)"
                         />
@@ -171,7 +171,7 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                       <div>
                         <label
                           for="cf-ps-email"
-                          class="mb-1 block text-[13px] font-semibold text-fg-muted"
+                          class="mb-1 block text-ui font-semibold text-fg-muted"
                         >
                           {{ 'feedback.public.email' | transloco }}
                         </label>
@@ -179,13 +179,13 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                           id="cf-ps-email"
                           type="email"
                           autocomplete="email"
-                          class="h-10 w-full rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg outline-none focus:border-accent"
+                          class="h-10 w-full rounded-tile border border-border bg-bg px-3 text-body text-fg outline-none focus:border-accent"
                           [value]="email()"
                           (input)="email.set($any($event.target).value)"
                           [attr.aria-invalid]="emailInvalid() || null"
                         />
                         @if (emailInvalid()) {
-                          <p class="mt-1 text-[12px] text-fail">
+                          <p class="mt-1 text-meta text-fail">
                             {{ 'feedback.form.errors.email' | transloco }}
                           </p>
                         }
@@ -217,9 +217,31 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             }
           }
         }
-        <p class="mt-10 text-center text-[11.5px] text-fg-subtle">
-          {{ 'feedback.public.privacy' | transloco }}
-        </p>
+        <div class="mt-10 text-center text-meta text-fg-muted" data-testid="survey-privacy">
+          @if (survey()?.collects_contact || survey()?.anonymous === false) {
+            <p>
+              {{
+                'feedback.public.privacyNamed'
+                  | transloco
+                    : { controller: survey()?.controller_name || survey()?.organisation_name || '' }
+              }}
+            </p>
+          } @else {
+            <p>{{ 'feedback.public.privacy' | transloco }}</p>
+          }
+          @if (survey()?.privacy_notice_url; as url) {
+            <p class="mt-1">
+              <a
+                [href]="url"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="font-semibold text-accent hover:underline"
+                data-testid="privacy-link"
+                >{{ 'feedback.public.privacyLink' | transloco }}</a
+              >
+            </p>
+          }
+        </div>
       </main>
     </div>
   `,
@@ -227,6 +249,7 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export class PublicSurveyPage {
   private readonly api = inject(PublicSurveyApi);
   private readonly document = inject(DOCUMENT);
+  private readonly transloco = inject(TranslocoService);
   protected readonly theme = inject(ThemeService);
 
   readonly token = input.required<string>();
@@ -324,6 +347,17 @@ export class PublicSurveyPage {
         this.survey.set(survey);
         this.answers.set({});
         this.state.set('ready');
+        // Show the page in the survey's own language (the questions are written in
+        // it); the respondent can still switch. Not stored as a preference.
+        const lang = survey.language;
+        if (lang && lang !== this.transloco.getActiveLang()) {
+          const available = this.transloco
+            .getAvailableLangs()
+            .map((l) => (typeof l === 'string' ? l : l.id));
+          if (available.includes(lang)) {
+            this.transloco.setActiveLang(lang);
+          }
+        }
       },
       error: (error: unknown) => {
         const code = feedbackErrorCode(error);

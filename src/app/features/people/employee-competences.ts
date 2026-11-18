@@ -2,7 +2,6 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
-  computed,
   effect,
   inject,
   input,
@@ -15,32 +14,34 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
-import { FieldHelp } from '../../shared/guidance/field-help';
 import { LocalDayPipe } from '../../shared/locale/locale-pipes';
 import { Badge } from '../../shared/ui/badge/badge';
 import { Button } from '../../shared/ui/button/button';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog/confirm-dialog';
-import { FormField } from '../../shared/ui/form-field/form-field';
+import { ErrorState } from '../../shared/ui/error-state/error-state';
 import { Icon } from '../../shared/ui/icon/icon';
+import { LoadingState } from '../../shared/ui/loading-state/loading-state';
+import { MenuItem, OverflowMenu } from '../../shared/ui/overflow-menu/overflow-menu';
+import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
 import { PeopleApi } from './data/people-api';
-import { cellStatusTone, textOrNull, todayIso } from './data/people-display';
+import { cellLook } from './data/people-display';
 import { peopleErrorKey } from './data/people-errors';
-import { PeopleLookups } from './data/people-lookups';
-import { COMPETENCE_LEVELS, EmployeeCompetences, HeldCompetence } from './data/people.models';
+import { EmployeeCompetences, HeldCompetence } from './data/people.models';
+import { AssessDialog, AssessTarget } from './ui/assess-dialog';
+import { GapActionDialog, GapTarget } from './ui/gap-action-dialog';
+import { GapActions } from './ui/gap-actions';
 
-interface AssessDraft {
-  readonly competence_id: string;
-  readonly level: number;
-  readonly assessed_on: string;
-  readonly expires_on: string;
-  readonly evidence_note: string;
+/** Whether a row is a gap that can be acted on (below the level, missing or expired). */
+export function isGap(row: HeldCompetence): boolean {
+  return row.status === 'gap' || row.status === 'missing' || row.status === 'expired';
 }
 
 /**
- * The competences of one employee: what their position requires and what they hold,
- * each with its status (met, gap, missing, expired, not required). Writers record an
- * assessment (level 0-4, date, evidence; expiry defaults from the competence's
- * validity) or remove one.
+ * The competences of one person: what their position requires and what they hold,
+ * each with its status. For every gap the person's page offers "Lukk gapet" (assign
+ * a course, create a task or plan a new assessment) and shows the open actions until
+ * a new assessment proves they worked (HS 7.2 c). Each assessment shows how it was
+ * made, by whom and the training record it rests on (HS 7.2 d).
  */
 @Component({
   selector: 'app-people-employee-competences',
@@ -48,18 +49,24 @@ interface AssessDraft {
     RouterLink,
     TranslocoPipe,
     LocalDayPipe,
-    FieldHelp,
     Badge,
     Button,
     ConfirmDialog,
-    FormField,
+    ErrorState,
     Icon,
+    LoadingState,
+    MenuItem,
+    OverflowMenu,
+    StatusBadge,
+    AssessDialog,
+    GapActionDialog,
+    GapActions,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section aria-labelledby="cf-emp-comp-h" id="competences">
-      <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <h2 id="cf-emp-comp-h" class="font-display text-[15px] font-bold text-fg">
+      <div class="mb-1 flex flex-wrap items-center justify-between gap-2">
+        <h2 id="cf-emp-comp-h" class="text-card font-bold text-fg">
           {{ 'people.competences.heldTitle' | transloco }}
         </h2>
         @if (canEdit()) {
@@ -74,213 +81,167 @@ interface AssessDraft {
           </app-button>
         }
       </div>
+      <p class="mb-3 text-meta text-fg-muted">
+        {{ 'people.competences.heldSubtitle' | transloco }}
+      </p>
       @switch (state()) {
         @case ('loading') {
-          <p class="py-4 text-[13px] text-fg-muted" role="status">
-            {{ 'people.common.loading' | transloco }}
-          </p>
+          <app-loading-state [rows]="3" />
         }
         @case ('error') {
-          <p class="py-4 text-[13px] text-fail" role="alert">
-            {{ 'people.common.loadFailed' | transloco }}
-          </p>
+          <app-error-state (retry)="reload()" />
         }
         @default {
           @if (data(); as d) {
             @if (!d.position_id) {
-              <p class="mb-2 text-[12.5px] text-fg-muted">
+              <p class="mb-2 text-meta text-fg-muted">
                 {{ 'people.competences.noPosition' | transloco }}
               </p>
             }
             @if (d.items.length === 0) {
-              <p class="py-3 text-[13px] text-fg-muted" data-testid="competences-empty">
+              <p class="py-3 text-ui text-fg-muted" data-testid="competences-empty">
                 {{ 'people.competences.heldEmpty' | transloco }}
               </p>
             } @else {
-              <div class="overflow-x-auto">
-                <table class="w-full min-w-[560px] text-left text-[13px]" data-testid="held-rows">
-                  <thead class="text-[12px] text-fg-subtle">
-                    <tr class="border-b border-border">
-                      <th scope="col" class="py-2 pr-3 font-semibold">
-                        {{ 'people.fields.competence' | transloco }}
-                      </th>
-                      <th scope="col" class="py-2 pr-3 font-semibold">
-                        {{ 'people.fields.requiredLevel' | transloco }}
-                      </th>
-                      <th scope="col" class="py-2 pr-3 font-semibold">
-                        {{ 'people.fields.level' | transloco }}
-                      </th>
-                      <th scope="col" class="py-2 pr-3 font-semibold">
-                        {{ 'people.fields.expiresOn' | transloco }}
-                      </th>
-                      <th scope="col" class="py-2 pr-3 font-semibold">
-                        {{ 'people.fields.status' | transloco }}
-                      </th>
-                      @if (canEdit()) {
-                        <th scope="col" class="py-2 font-semibold">
-                          <span class="sr-only">{{ 'people.common.actions' | transloco }}</span>
-                        </th>
-                      }
-                    </tr>
-                  </thead>
-                  <tbody class="divide-y divide-border">
-                    @for (row of d.items; track row.competence_id) {
-                      <tr>
-                        <td class="py-2 pr-3">
+              <ul class="divide-y divide-border" data-testid="held-rows">
+                @for (row of d.items; track row.competence_id) {
+                  <li class="py-2.5" [attr.data-testid]="'held-' + row.competence_id">
+                    <div class="flex flex-wrap items-start gap-x-3 gap-y-1.5">
+                      <div class="min-w-0 flex-1">
+                        <p class="flex flex-wrap items-center gap-1.5">
                           <a
                             [routerLink]="['/people/competences', row.competence_id]"
-                            class="font-semibold text-fg hover:underline"
+                            class="text-body font-semibold text-fg hover:underline"
                             >{{ row.competence_name }}</a
                           >
                           @if (row.mandatory && row.required_level !== null) {
-                            <span class="ml-1 text-[11.5px] text-fg-subtle">{{
+                            <app-badge tone="neutral">{{
                               'people.competences.mandatory' | transloco
-                            }}</span>
+                            }}</app-badge>
                           }
-                          @if (row.evidence_note) {
-                            <p class="text-[12px] text-fg-subtle">{{ row.evidence_note }}</p>
-                          }
-                        </td>
-                        <td class="py-2 pr-3">
-                          {{
-                            row.required_level !== null
-                              ? ('people.levels.' + row.required_level | transloco)
-                              : '–'
-                          }}
-                        </td>
-                        <td class="py-2 pr-3">
-                          {{
-                            row.level !== null ? ('people.levels.' + row.level | transloco) : '–'
-                          }}
-                          @if (row.assessed_on) {
-                            <span class="block text-[11.5px] text-fg-subtle">{{
-                              'people.competences.assessedOn'
-                                | transloco: { date: (row.assessed_on | localDay) }
-                            }}</span>
-                          }
-                        </td>
-                        <td class="py-2 pr-3">
-                          {{ row.expires_on ? (row.expires_on | localDay) : '–' }}
-                        </td>
-                        <td class="py-2 pr-3">
-                          <app-badge [tone]="tone(row.status)">{{
-                            'people.cellStatus.' + row.status | transloco
-                          }}</app-badge>
-                        </td>
-                        @if (canEdit()) {
-                          <td class="py-2 text-right whitespace-nowrap">
-                            <app-button
-                              size="sm"
-                              variant="ghost"
-                              (click)="openAssess(row)"
-                              [attr.data-testid]="'assess-' + row.competence_id"
+                        </p>
+                        <p
+                          class="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-meta text-fg-muted"
+                        >
+                          <span>
+                            {{ 'people.competences.levelShort' | transloco }}
+                            <span
+                              class="font-semibold text-fg"
+                              [title]="
+                                row.level !== null ? ('people.levels.' + row.level | transloco) : ''
+                              "
+                              >{{ row.level ?? '–' }}</span
                             >
-                              {{ 'people.competences.assess' | transloco }}
-                            </app-button>
-                            @if (row.level !== null) {
-                              <app-button size="sm" variant="ghost" (click)="removing.set(row)">
-                                <app-icon name="trash" [size]="14" />
-                                <span class="sr-only">{{
-                                  'people.competences.remove' | transloco
-                                }}</span>
-                              </app-button>
+                            @if (row.required_level !== null) {
+                              {{
+                                'people.competences.ofRequired'
+                                  | transloco: { level: row.required_level }
+                              }}
                             }
-                          </td>
+                          </span>
+                          @if (row.assessed_on) {
+                            <span>
+                              {{
+                                'people.competences.assessedOn'
+                                  | transloco: { date: (row.assessed_on | localDay) }
+                              }}
+                              @if (row.method) {
+                                · {{ 'people.methods.' + row.method | transloco }}
+                              }
+                              @if (row.assessed_by?.name; as by) {
+                                · {{ 'people.competences.assessedBy' | transloco: { name: by } }}
+                              }
+                            </span>
+                          }
+                          @if (row.expires_on) {
+                            <span>{{
+                              'people.competences.expires'
+                                | transloco: { date: (row.expires_on | localDay) }
+                            }}</span>
+                          }
+                          @if (row.training_record; as tr) {
+                            <a [routerLink]="tr.url" class="text-accent hover:underline">
+                              {{
+                                'people.competences.basedOn'
+                                  | transloco: { course: tr.course_code ?? '' }
+                              }}
+                            </a>
+                          }
+                        </p>
+                        @if (row.evidence_note) {
+                          <p class="mt-0.5 text-meta text-fg-subtle">{{ row.evidence_note }}</p>
                         }
-                      </tr>
-                    }
-                  </tbody>
-                </table>
-              </div>
+                      </div>
+                      <span class="flex items-center gap-1.5">
+                        <app-status-badge
+                          [meaning]="look(row.status).meaning"
+                          [value]="look(row.status).value"
+                          [labelKey]="'people.cellStatus.' + row.status"
+                        />
+                        @if (canEdit() && isGap(row) && !(row.actions ?? []).length) {
+                          <app-button
+                            size="sm"
+                            variant="secondary"
+                            (click)="openGap(row)"
+                            [attr.data-testid]="'close-gap-' + row.competence_id"
+                          >
+                            {{ 'people.gapActions.open' | transloco }}
+                          </app-button>
+                        }
+                        @if (canEdit()) {
+                          <app-overflow-menu
+                            [iconOnly]="true"
+                            labelKey="people.competences.rowMenu"
+                            [attr.data-testid]="'row-menu-' + row.competence_id"
+                          >
+                            <button appMenuItem type="button" (click)="openAssess(row)">
+                              {{ 'people.competences.assess' | transloco }}
+                            </button>
+                            @if (isGap(row)) {
+                              <button appMenuItem type="button" (click)="openGap(row)">
+                                {{ 'people.gapActions.open' | transloco }}
+                              </button>
+                            }
+                            @if (row.level !== null) {
+                              <button
+                                appMenuItem
+                                type="button"
+                                [danger]="true"
+                                (click)="removing.set(row)"
+                              >
+                                {{ 'people.competences.remove' | transloco }}
+                              </button>
+                            }
+                          </app-overflow-menu>
+                        }
+                      </span>
+                    </div>
+                    <app-people-gap-actions
+                      [actions]="row.actions ?? []"
+                      [canEdit]="canEdit()"
+                      (changed)="reload(); changed.emit()"
+                    />
+                  </li>
+                }
+              </ul>
             }
           }
         }
       }
     </section>
 
-    <app-confirm-dialog
-      [open]="draft() !== null"
-      [title]="'people.competences.assessTitle' | transloco"
-      [message]="'people.competences.assessMessage' | transloco"
-      [confirmLabel]="'common.save' | transloco"
-      [cancelLabel]="'common.cancel' | transloco"
-      confirmVariant="primary"
-      [busy]="busy()"
-      [confirmDisabled]="!draft()?.competence_id"
-      initialFocus="#cf-assess-comp"
-      (confirmed)="saveAssessment()"
-      (cancelled)="draft.set(null)"
-    >
-      @if (draft(); as a) {
-        <div class="mt-4 flex flex-col gap-3">
-          <app-form-field [label]="'people.fields.competence' | transloco" inputId="cf-assess-comp">
-            <select
-              id="cf-assess-comp"
-              [disabled]="lockedCompetence()"
-              (change)="patch({ competence_id: $any($event.target).value })"
-              data-testid="assess-competence"
-            >
-              <option value="" [selected]="!a.competence_id">
-                {{ 'people.competences.pick' | transloco }}
-              </option>
-              @for (c of competenceOptions(); track c.id) {
-                <option [value]="c.id" [selected]="a.competence_id === c.id">{{ c.name }}</option>
-              }
-            </select>
-          </app-form-field>
-          <app-form-field [label]="'people.fields.level' | transloco" inputId="cf-assess-level">
-            <select
-              id="cf-assess-level"
-              (change)="patch({ level: +$any($event.target).value })"
-              data-testid="assess-level"
-            >
-              @for (l of levels; track l) {
-                <option [value]="l" [selected]="a.level === l">
-                  {{ 'people.levels.' + l | transloco }}
-                </option>
-              }
-            </select>
-          </app-form-field>
-          <app-field-help scope="people" page="detail" field="level" />
-          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <app-form-field
-              [label]="'people.fields.assessedOn' | transloco"
-              inputId="cf-assess-date"
-            >
-              <input
-                id="cf-assess-date"
-                type="date"
-                [value]="a.assessed_on"
-                (change)="patch({ assessed_on: $any($event.target).value })"
-              />
-            </app-form-field>
-            <app-form-field [label]="'people.fields.expiresOn' | transloco" inputId="cf-assess-exp">
-              <input
-                id="cf-assess-exp"
-                type="date"
-                [value]="a.expires_on"
-                (change)="patch({ expires_on: $any($event.target).value })"
-              />
-            </app-form-field>
-          </div>
-          <p class="text-[12px] text-fg-subtle">
-            {{ 'people.competences.expiryHint' | transloco }}
-          </p>
-          <app-form-field
-            [label]="'people.fields.evidenceNote' | transloco"
-            inputId="cf-assess-note"
-          >
-            <input
-              id="cf-assess-note"
-              type="text"
-              maxlength="1000"
-              [value]="a.evidence_note"
-              (input)="patch({ evidence_note: $any($event.target).value })"
-            />
-          </app-form-field>
-        </div>
-      }
-    </app-confirm-dialog>
+    <app-people-assess-dialog
+      [target]="assessing()"
+      [listed]="data()?.items ?? []"
+      (saved)="onAssessed($event)"
+      (closed)="assessing.set(null)"
+    />
+
+    <app-people-gap-action-dialog
+      [target]="closingGap()"
+      (created)="onGapAction()"
+      (closed)="closingGap.set(null)"
+    />
 
     <app-confirm-dialog
       [open]="removing() !== null"
@@ -300,35 +261,24 @@ export class EmployeeCompetencesSection {
   private readonly api = inject(PeopleApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly notifications = inject(NotificationService);
-  private readonly lookups = inject(PeopleLookups);
 
   readonly employeeId = input.required<string>();
+  readonly employeeName = input('');
+  /** Whether the person has a user account (training reaches users). */
+  readonly hasUser = input(false);
   readonly canEdit = input(false);
   /** Bumped by the page to force a reload (e.g. after the position changed). */
   readonly refresh = input(0);
   readonly changed = output<void>();
 
-  protected readonly levels = COMPETENCE_LEVELS;
-  protected readonly tone = cellStatusTone;
+  protected readonly look = cellLook;
+  protected readonly isGap = isGap;
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
   protected readonly data = signal<EmployeeCompetences | null>(null);
-  protected readonly draft = signal<AssessDraft | null>(null);
-  protected readonly lockedCompetence = signal(false);
+  protected readonly assessing = signal<AssessTarget | null>(null);
+  protected readonly closingGap = signal<GapTarget | null>(null);
   protected readonly removing = signal<HeldCompetence | null>(null);
   protected readonly busy = signal(false);
-
-  protected readonly competenceOptions = computed(() => {
-    const active = this.lookups.competences().filter((c) => c.status === 'active');
-    const listed = (this.data()?.items ?? []).map((i) => ({
-      id: i.competence_id,
-      name: i.competence_name,
-    }));
-    const seen = new Set(listed.map((c) => c.id));
-    return [
-      ...listed,
-      ...active.filter((c) => !seen.has(c.id)).map((c) => ({ id: c.id, name: c.name })),
-    ];
-  });
 
   private request = new Subscription();
 
@@ -338,55 +288,43 @@ export class EmployeeCompetencesSection {
       const orgId = this.selectedOrg.currentOrgId();
       const id = this.employeeId();
       this.refresh();
-      untracked(() => {
-        this.lookups.ensureLoaded();
-        this.load(orgId, id);
-      });
+      untracked(() => this.load(orgId, id));
     });
   }
 
-  protected openAssess(row: HeldCompetence | null): void {
-    this.lockedCompetence.set(!!row);
-    this.draft.set({
-      competence_id: row?.competence_id ?? '',
-      level: row?.level ?? row?.required_level ?? 2,
-      assessed_on: todayIso(),
-      expires_on: '',
-      evidence_note: row?.evidence_note ?? '',
+  /** Opened from the page (e.g. "Registrer vurdering" in the compliance card). */
+  openAssess(row: HeldCompetence | null): void {
+    this.assessing.set({
+      employeeId: this.employeeId(),
+      employeeName: this.employeeName(),
+      row,
     });
   }
 
-  protected patch(patch: Partial<AssessDraft>): void {
-    this.draft.update((d) => (d ? { ...d, ...patch } : d));
+  protected openGap(row: HeldCompetence): void {
+    this.closingGap.set({
+      employeeId: this.employeeId(),
+      employeeName: this.employeeName(),
+      competenceId: row.competence_id,
+      competenceName: row.competence_name,
+      hasUser: this.hasUser(),
+    });
   }
 
-  protected saveAssessment(): void {
-    const orgId = this.selectedOrg.currentOrgId();
-    const d = this.draft();
-    if (!orgId || !d?.competence_id || this.busy()) {
-      return;
-    }
-    this.busy.set(true);
-    this.api
-      .assessCompetence(orgId, this.employeeId(), d.competence_id, {
-        level: d.level,
-        assessed_on: d.assessed_on || null,
-        expires_on: d.expires_on || null,
-        evidence_note: textOrNull(d.evidence_note),
-      })
-      .subscribe({
-        next: (data) => {
-          this.busy.set(false);
-          this.draft.set(null);
-          this.data.set(data);
-          this.notifications.success('people.notices.assessed');
-          this.changed.emit();
-        },
-        error: (error: unknown) => {
-          this.busy.set(false);
-          this.notifications.error(peopleErrorKey(error));
-        },
-      });
+  protected onAssessed(data: EmployeeCompetences): void {
+    this.assessing.set(null);
+    this.data.set(data);
+    this.changed.emit();
+  }
+
+  protected onGapAction(): void {
+    this.closingGap.set(null);
+    this.reload();
+    this.changed.emit();
+  }
+
+  protected reload(): void {
+    this.load(this.selectedOrg.currentOrgId(), this.employeeId());
   }
 
   protected remove(): void {
@@ -401,7 +339,7 @@ export class EmployeeCompetencesSection {
         this.busy.set(false);
         this.removing.set(null);
         this.notifications.success('people.notices.competenceRemoved');
-        this.load(orgId, this.employeeId());
+        this.reload();
         this.changed.emit();
       },
       error: (error: unknown) => {

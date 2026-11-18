@@ -1,6 +1,6 @@
 {
   "nav": {
-    "label": "Revisjonsseksjoner",
+    "label": "Revisjon – undersider",
     "overview": "Oversikt",
     "plans": "Revisjoner",
     "programmes": "Programmer",
@@ -12,7 +12,7 @@
     "loading": "Laster …",
     "loadFailed": "Dette kunne ikke lastes.",
     "retry": "Prøv igjen",
-    "noMatches": "Ingenting passer med disse filtrene.",
+    "noMatches": "Ingen treff.",
     "back": "Tilbake",
     "cancel": "Avbryt",
     "save": "Lagre",
@@ -25,7 +25,15 @@
     "nobody": "Ingen",
     "overdue": "Forfalt",
     "reason": "Begrunnelse",
-    "reasonMessage": "Dette steget krever en begrunnelse. Den lagres i historikken til posten."
+    "reasonMessage": "Dette steget krever en begrunnelse. Den lagres i historikken til posten.",
+    "required": "må fylles ut",
+    "someone": "noen",
+    "noLead": "Ingen ledende revisor ennå",
+    "removeItem": "Fjern {{ name }}",
+    "typeToSearch": "Skriv for å søke",
+    "searching": "Søker …",
+    "searchRecords": "Søk etter en post",
+    "chosen": "Valgte poster"
   },
   "fields": {
     "title": "Tittel",
@@ -60,19 +68,28 @@
     "reportSummary": "Sammendrag i rapporten",
     "reportConclusion": "Konklusjon",
     "findingType": "Type funn",
-    "evidence": "Objektive bevis",
-    "findingOwner": "Ansvarlig (revidert)",
+    "evidence": "Objektiv dokumentasjon",
+    "findingOwner": "Ansvarlig hos den reviderte",
     "responseDue": "Svarfrist",
     "audit": "Revisjon",
     "rootCause": "Rotårsak",
     "correction": "Korreksjon",
-    "correctiveAction": "Korrigerende tiltak",
+    "correctiveAction": "Korrigerende tiltak (sammendrag)",
     "verificationNotes": "Notater fra verifiseringen",
     "certificationBody": "Sertifiseringsorgan",
     "certificateNumber": "Sertifikatnummer",
     "issuedAt": "Utstedt",
     "expiresAt": "Utløper",
-    "notes": "Notater"
+    "notes": "Notater",
+    "decision": "Beslutning",
+    "effectiveness": "Effekt",
+    "processes": "Reviderte prosesser",
+    "criteriaDocuments": "Dokumenter det revideres mot",
+    "auditees": "Personer som intervjues",
+    "distribution": "Rapporten sendes til",
+    "location": "Sted",
+    "reportOutcome": "Samlet konklusjon",
+    "reportLimitations": "Begrensninger ved revisjonen"
   },
   "filters": {
     "status": "Status",
@@ -86,7 +103,27 @@
     "openAudits": "Åpne revisjoner",
     "openFindings": "Åpne funn",
     "mine": "Tildelt meg",
-    "overdue": "Bare forfalte"
+    "overdue": "Bare forfalte",
+    "clear": "Fjern filtrene",
+    "planStatus": {
+      "unresolved": "Åpne revisjoner",
+      "all": "Alle statuser",
+      "planned": "Planlagt",
+      "in_progress": "Pågår",
+      "reporting": "Rapportering",
+      "report_review": "Rapport til godkjenning",
+      "closed": "Avsluttet",
+      "cancelled": "Avlyst"
+    },
+    "findingStatus": {
+      "unresolved": "Alle åpne funn",
+      "all": "Alle funn",
+      "open": "Åpen (ikke startet)",
+      "in_progress": "Svar under arbeid",
+      "pending_verification": "Venter på verifisering",
+      "closed": "Lukket",
+      "cancelled": "Avlyst"
+    }
   },
   "frameworks": {
     "iso9001": "ISO 9001",
@@ -126,16 +163,16 @@
   },
   "planStatus": {
     "planned": "Planlagt",
-    "in_progress": "Gjennomføring",
+    "in_progress": "Pågår",
     "reporting": "Rapportering",
     "report_review": "Rapport til godkjenning",
     "closed": "Avsluttet",
     "cancelled": "Avlyst"
   },
   "planAction": {
-    "start": "Start gjennomføringen",
-    "finish_fieldwork": "Avslutt gjennomføringen",
-    "submit_report": "Send inn rapporten",
+    "start": "Start revisjonen",
+    "finish_fieldwork": "Gå videre til rapporten",
+    "submit_report": "Send rapporten til godkjenning",
     "approve_report": "Godkjenn rapporten",
     "reject_report": "Send rapporten tilbake",
     "cancel": "Avlys revisjonen",
@@ -154,7 +191,9 @@
     "competence_framework_missing": "Ikke kvalifisert for alle standardene i denne revisjonen.",
     "competence_not_lead": "Ikke kvalifisert som ledende revisor.",
     "independence_own_department": "Jobber i en avdeling som blir revidert.",
-    "independence_department_lead": "Leder en avdeling som blir revidert."
+    "independence_department_lead": "Leder en avdeling som blir revidert.",
+    "independence_auditee": "Skal intervjues i denne revisjonen.",
+    "independence_process_owner": "Eier en prosess som revideres."
   },
   "checklistResult": {
     "unanswered": "Ikke besvart",
@@ -181,7 +220,7 @@
     "ofi": "Et forslag som vil gjøre en prosess bedre."
   },
   "findingStatus": {
-    "open": "Åpent",
+    "open": "Åpen",
     "in_progress": "Svar under arbeid",
     "pending_verification": "Venter på verifisering",
     "closed": "Lukket",
@@ -219,35 +258,86 @@
       "running": "Pågående revisjoner",
       "closed": "Avsluttede revisjoner",
       "openFindings": "Åpne funn",
-      "overdue": "Forfalte svar"
+      "overdue": "Svar over fristen"
     },
     "upcoming": "Neste revisjoner",
     "noUpcoming": "Ingen revisjoner er planlagt ennå.",
     "findingsByType": "Åpne funn etter type",
     "expiring": "Sertifikater som snart utløper",
     "noExpiring": "Ingen sertifikater utløper de neste månedene.",
-    "learn": "Lær om revisjoner"
+    "learn": "Lær om revisjoner",
+    "kpiGroup": "Revisjoner i tall",
+    "seeAll": "Se alle",
+    "start": {
+      "title": "Kom i gang med revisjoner",
+      "body": "Gjør disse stegene én gang, i denne rekkefølgen. Deretter går revisjonssyklusen av seg selv.",
+      "progress": "{{ done }} av {{ total }} fullført",
+      "done": "fullført",
+      "steps": {
+        "programme": {
+          "title": "Lag årets revisjonsprogram",
+          "body": "Bestem hvilke områder som skal revideres, og hvor ofte, ut fra risiko.",
+          "cta": "Nytt program"
+        },
+        "auditors": {
+          "title": "Registrer revisorene",
+          "body": "Hvem som kan revidere hvilke standarder, og hvem som kan lede en revisjon.",
+          "cta": "Åpne registeret"
+        },
+        "audit": {
+          "title": "Planlegg den første revisjonen",
+          "body": "Velg hva som skal revideres, mot hvilke krav, og hvem som gjør det.",
+          "cta": "Planlegg en revisjon"
+        },
+        "closed": {
+          "title": "Gjennomfør og avslutt en revisjon",
+          "body": "Svar på sjekklisten, registrer funn og få rapporten godkjent.",
+          "cta": "Gå til revisjonene"
+        },
+        "certification": {
+          "title": "Legg inn sertifikatene",
+          "body": "Er organisasjonen sertifisert, legger du inn sertifikatet så ingen fornyelse glipper.",
+          "cta": "Legg til sertifisering"
+        }
+      }
+    },
+    "mine": {
+      "title": "Ditt arbeid med revisjoner",
+      "audits": "Revisjoner du er med i",
+      "noAudits": "Du er ikke med i noen åpen revisjon.",
+      "findings": "Funn du skal svare på",
+      "noFindings": "Ingen funn venter på deg."
+    }
   },
   "plans": {
     "title": "Revisjoner",
     "search": "Søk etter kode, tittel eller omfang",
     "new": "Planlegg en revisjon",
     "back": "Alle revisjoner",
-    "progressValue": "{{ answered }} / {{ total }} ({{ percent }} %)",
-    "findingsValue": "{{ open }} åpne av {{ total }}",
+    "progressValue": "Sjekkliste {{ answered }}/{{ total }}",
+    "findingsValue": "{{ open }} av {{ total }} funn åpne",
     "sorts": {
       "planned_start": "Tidligste start først",
       "-planned_start": "Seneste start først",
       "-created_at": "Nyeste først",
       "code": "Etter kode"
-    }
+    },
+    "subtitle": "Alle interne og eksterne revisjoner, med status, ledende revisor og fremdrift.",
+    "columnTitle": "Revisjon"
   },
   "planForm": {
     "newTitle": "Planlegg en revisjon",
     "editTitle": "Rediger revisjonen",
     "clausePlaceholder": "For eksempel iso9001:8.4, hs:9.2",
     "noDepartments": "Det er ikke satt opp avdelinger i denne organisasjonen.",
-    "askCriteria": "Hvilke revisjonskriterier bør jeg bruke for denne revisjonen, og hvordan beskriver jeg dem?"
+    "askCriteria": "Hvilke revisjonskriterier bør jeg bruke for denne revisjonen, og hvordan beskriver jeg dem?",
+    "clausesHint": "Velg kravene du skal kontrollere. Revisjonen teller da som dokumentasjon for dem under Standarder og krav.",
+    "askClauses": "Hvilke krav bør denne revisjonen dekke, ut fra omfanget?",
+    "searchProcesses": "Søk etter en prosess",
+    "searchDocuments": "Søk etter en prosedyre eller policy",
+    "noPeople": "Fant ingen personer i organisasjonen.",
+    "fixTitle": "Kunne ikke lagre. Fyll ut tittel.",
+    "fixDates": "Kunne ikke lagre. Sluttdatoen må være samme dag som eller etter startdatoen."
   },
   "planDetail": {
     "about": "Om denne revisjonen",
@@ -258,14 +348,45 @@
     "report": "Revisjonsrapport",
     "range": "{{ start }} – {{ end }}",
     "statusReason": "Begrunnelse: {{ reason }}",
-    "openCertification": "Åpne sertifiseringen",
+    "openCertification": "Åpne sertifikatet",
     "askAbout": "Forklar revisjon {{ code }}: hva som er i omfanget, hvor langt den har kommet og hva som gjenstår.",
     "deleteTitle": "Slette denne revisjonen?",
-    "deleteMessage": "Revisjonen, sjekklisten og funnene fjernes, og åpne korrigerende tiltak avlyses. Historikken beholdes i revisjonsloggen."
+    "deleteMessage": "Revisjonen, sjekklisten og funnene fjernes, og åpne korrigerende tiltak avlyses. Historikken beholdes i revisjonsloggen.",
+    "nowTitle": "Dette gjør du nå",
+    "summary": "Kort oppsummert",
+    "openFindings": "Åpne funn",
+    "openReport": "Rapport",
+    "ongoing": "pågår",
+    "ourTeam": "Våre kontaktpersoner i revisjonen",
+    "ownChecklist": "Egen sjekkliste (valgfritt)",
+    "ownChecklistHint": "Sertifiseringsorganet bruker sin egen plan. Bruk en sjekkliste her bare hvis du vil forberede deg.",
+    "external": {
+      "title": "Rapport og funn fra revisoren",
+      "body": "Last opp rapporten dere fikk, og registrer hvert funn i den, så det følges opp her.",
+      "raise": "Registrer et funn fra rapporten"
+    },
+    "next": {
+      "internal": {
+        "planned": "Sett sammen teamet (med en ledende revisor) og sjekklisten. Trykk «Start revisjonen» når dagen kommer.",
+        "in_progress": "Svar på hvert spørsmål i sjekklisten og koble dokumentasjonen du så. Registrer et funn når noe ikke er i orden.",
+        "reporting": "Skriv sammendraget og den samlede konklusjonen, og send rapporten til godkjenning.",
+        "report_review": "Rapporten venter på godkjenning fra noen som ikke skrev den.",
+        "closed": "Revisjonen er avsluttet. Følg opp de åpne funnene til de er verifisert.",
+        "cancelled": "Revisjonen er avlyst. Gjenåpne den hvis den likevel skal gjennomføres."
+      },
+      "external": {
+        "planned": "Forbered dere: del omfanget med revisoren og pek ut kontaktpersoner. Start revisjonen når den begynner.",
+        "in_progress": "Last opp rapporten fra revisoren når dere får den, og registrer funnene i den.",
+        "reporting": "Registrer de siste funnene og skriv et kort sammendrag til ledelsen.",
+        "report_review": "Sammendraget venter på godkjenning.",
+        "closed": "Revisjonen er avsluttet. Følg opp funnene og hold sertifikatet oppdatert.",
+        "cancelled": "Revisjonen er avlyst. Gjenåpne den hvis den likevel skal holdes."
+      }
+    }
   },
   "team": {
     "empty": "Ingen er tildelt denne revisjonen ennå.",
-    "add": "Legg til noen i teamet",
+    "add": "Legg til i teamet",
     "who": "Hvem",
     "member": "Medlem av organisasjonen",
     "externalPerson": "Ekstern person",
@@ -275,7 +396,7 @@
     "role": "Rolle",
     "addButton": "Legg til i teamet",
     "competent": "Kompetent",
-    "competenceGap": "Kompetansegap",
+    "competenceGap": "Mangler kompetanse",
     "independent": "Uavhengig",
     "independenceGap": "Ikke uavhengig",
     "checkPassed": "Kontrollen av kompetanse og uavhengighet er bestått.",
@@ -283,26 +404,43 @@
     "overrideLabel": "Hvorfor tildele likevel? (lagres)",
     "overrideReason": "Tildelt til tross for kontrollene: {{ reason }}",
     "removeTitle": "Fjerne fra revisjonsteamet?",
-    "removeMessage": "{{ name }} fjernes fra teamet i denne revisjonen."
+    "removeMessage": "{{ name }} fjernes fra teamet i denne revisjonen.",
+    "removeNamed": "Fjern {{ name }} fra teamet"
   },
   "checklist": {
     "progress": "{{ answered }} av {{ total }} spørsmål besvart",
     "generate": "Lag fra kravene",
     "addQuestion": "Legg til spørsmål",
-    "noClauses": "Legg inn kravene som skal revideres på revisjonen (Rediger) for å lage spørsmål fra standarden.",
+    "noClauses": "Velg først kravene som skal revideres (Rediger revisjonen).",
     "draftsTitle": "{{ count }} foreslåtte spørsmål",
     "draftsHint": "Gå gjennom forslagene. Fjern haken på dem du ikke vil ha, og legg resten til i sjekklisten.",
     "discardDrafts": "Forkast",
     "acceptDrafts": "Legg {{ count }} til i sjekklisten",
     "question": "Spørsmål",
-    "evidence": "Be om",
+    "evidence": "Hva du skal be om",
     "result": "Resultat",
     "notes": "Notater",
     "notesPlaceholder": "Hva du så, hørte og kontrollerte",
     "raiseFinding": "Registrer et funn fra dette svaret",
-    "empty": "Sjekklisten er tom.",
+    "empty": "Det er ingen spørsmål i sjekklisten.",
     "removeTitle": "Fjerne dette spørsmålet?",
-    "removeMessage": "Spørsmålet og svaret fjernes fra sjekklisten."
+    "removeMessage": "Spørsmålet og svaret fjernes fra sjekklisten.",
+    "emptyTitle": "Ingen spørsmål ennå",
+    "emptyBody": "Lag spørsmålene ut fra kravene du valgte. Du kan endre og legge til spørsmål etterpå.",
+    "emptyNoClauses": "Velg hvilke krav revisjonen skal dekke. Da kan CoreFlow lage spørsmålene for deg.",
+    "chooseClauses": "Velg krav",
+    "orElse": "Eller",
+    "addOwn": "skriv dine egne spørsmål",
+    "lockedHint": "Spørsmål legges til før eller under revisjonen.",
+    "askFor": "Be om: {{ evidence }}",
+    "resultFor": "Resultat for spørsmål {{ n }}",
+    "notesFor": "Notater til spørsmål {{ n }}",
+    "removeNumbered": "Fjern spørsmål {{ n }}",
+    "evidenceRecords": "Dokumentasjon",
+    "linkEvidence": "Koble dokumentasjon",
+    "searchEvidence": "Søk etter dokument, risiko, avvik …",
+    "findingsRaised": "Funn:",
+    "answeredBy": "Besvart av {{ name }}, {{ date }}"
   },
   "report": {
     "save": "Lagre rapporten",
@@ -316,7 +454,25 @@
     "scopeCriteria": "Omfang, kriterier og team",
     "summary": "Sammendrag og konklusjon",
     "results": "Resultater fra sjekklisten",
-    "approvedBy": "Godkjent av {{ name }} {{ date }}"
+    "approvedBy": "Godkjent av {{ name }} {{ date }}",
+    "pageTitle": "Revisjonsrapport",
+    "download": "Last ned PDF",
+    "generated": "Laget {{ date }}",
+    "byOn": "{{ name }}, {{ date }}",
+    "sections": {
+      "about": "Om revisjonen"
+    },
+    "noLimitations": "Ingen begrensninger er registrert.",
+    "resultCount": "{{ label }}: {{ count }}",
+    "noChecklist": "Revisjonen har ingen sjekkliste.",
+    "dueOn": "svarfrist {{ date }}",
+    "signatures": "Underskrifter",
+    "signatureRole": {
+      "lead_auditor": "Ledende revisor",
+      "approver": "Godkjent av"
+    },
+    "notSigned": "Ikke signert ennå",
+    "fileSuffix": "revisjonsrapport"
   },
   "programmes": {
     "title": "Revisjonsprogrammer",
@@ -329,12 +485,17 @@
     "noAudits": "Det er ikke planlagt revisjoner i dette programmet ennå.",
     "approved": "Godkjent",
     "deleteTitle": "Slette dette programmet?",
-    "deleteMessage": "Et program kan bare slettes når det ikke har revisjoner."
+    "deleteMessage": "Et program kan bare slettes når det ikke har revisjoner.",
+    "subtitle": "Årsplanen for hvilke områder som revideres, og hvor ofte, ut fra risiko."
   },
   "programmeForm": {
     "newTitle": "Nytt revisjonsprogram",
     "editTitle": "Rediger revisjonsprogrammet",
-    "askRiskBasis": "Hvordan avgjør jeg hvilke prosesser som skal revideres oftere, basert på risiko og tidligere resultater?"
+    "askRiskBasis": "Hvordan avgjør jeg hvilke prosesser som skal revideres oftere, basert på risiko og tidligere resultater?",
+    "riskHint": "Nevn prosessene, risikoene og tidligere funn som avgjør hva som revideres oftere.",
+    "quarter": "{{ q }}. kvartal",
+    "proposedAudits": "Foreslåtte revisjoner:",
+    "fix": "Kunne ikke lagre. Fyll ut tittel og et år mellom 2000 og 2100."
   },
   "findings": {
     "title": "Revisjonsfunn",
@@ -346,12 +507,19 @@
       "due": "Svarfrist først",
       "-created_at": "Nyeste først",
       "code": "Etter kode"
-    }
+    },
+    "subtitle": "Alle funn fra interne og eksterne revisjoner, og hvor langt oppfølgingen har kommet.",
+    "raiseFromAudit": "Funn registreres fra en revisjon",
+    "fromAudit": "Fra {{ audit }}"
   },
   "findingForm": {
     "newTitle": "Registrer et funn",
     "editTitle": "Rediger funnet",
-    "clausePlaceholder": "For eksempel iso9001:7.2"
+    "clausePlaceholder": "For eksempel iso9001:7.2",
+    "fixTitle": "Kunne ikke lagre. Fyll ut tittel.",
+    "inAudit": "I revisjonen {{ audit }}",
+    "askEvidence": "Hva er god objektiv dokumentasjon for dette funnet?",
+    "clauseHint": "Kravet som ikke er oppfylt. Det merkes som et svakt punkt på kravet under Standarder og krav."
   },
   "findingDetail": {
     "askAbout": "Forklar funn {{ code }} og hvordan et godt svar ser ut.",
@@ -373,13 +541,44 @@
     "noDeviations": "Dette funnet er ikke koblet til et avvik.",
     "searchDeviation": "Søk etter et avvik å koble til",
     "deleteTitle": "Slette dette funnet?",
-    "deleteMessage": "Funnet fjernes, og åpne korrigerende tiltak avlyses."
+    "deleteMessage": "Funnet fjernes, og åpne korrigerende tiltak avlyses.",
+    "about": "Om funnet",
+    "clauseWeak": "Dette viser at kravet er svakt. Det teller ikke som dokumentasjon for at kravet er oppfylt.",
+    "responseHint": "Finn rotårsaken, rett opp det som gikk galt nå (korreksjon), og hindre at det skjer igjen (korrigerende tiltak).",
+    "decisionTitle": "Beslutning",
+    "decisionHint": "En observasjon eller et forbedringsforslag trenger ingen rotårsaksanalyse. Skriv hva dere bestemte å gjøre, og hvorfor.",
+    "askDecision": "Hjelp meg å bestemme hva vi skal gjøre med funn {{ code }}.",
+    "correctiveHint": "Et kort sammendrag. Legg selve arbeidet inn som oppgaver nedenfor, eller koble avviket der det følges opp.",
+    "verificationHint": "Den ledende revisoren, eller en annen med revisjonsrettigheter som ikke skrev svaret, kontrollerer at tiltakene er gjennomført. Deretter lukkes funnet.",
+    "effectiveness": "Virket tiltakene?",
+    "effectivenessHint": "En tid etter at funnet er lukket, sjekker du at problemet ikke har kommet tilbake.",
+    "checkedBy": "Kontrollert av {{ name }}, {{ date }}",
+    "actionsHint": "Oppgaver som gjennomfører det korrigerende tiltaket.",
+    "actionsInDeviation": "De korrigerende tiltakene følges opp i det koblede avviket.",
+    "deviationsHint": "Koble avviket som håndterer dette funnet, eller opprett et med «Lag ny fra denne».",
+    "next": {
+      "nc": {
+        "open": "Den ansvarlige finner rotårsaken og planlegger korreksjonen. Trykk «Start svaret».",
+        "in_progress": "Fyll ut rotårsak, korreksjon og korrigerende tiltak, og send inn svaret.",
+        "pending_verification": "Revisoren kontrollerer at tiltakene er gjennomført, og verifiserer funnet.",
+        "closed": "Funnet er lukket. Sjekk senere om tiltakene virket.",
+        "cancelled": "Funnet er avlyst."
+      },
+      "other": {
+        "open": "Bestem hva dere vil gjøre med forslaget, og skriv beslutningen.",
+        "in_progress": "Skriv beslutningen og send den inn.",
+        "pending_verification": "Revisoren leser beslutningen og lukker funnet.",
+        "closed": "Funnet er lukket.",
+        "cancelled": "Funnet er avlyst."
+      }
+    }
   },
   "certifications": {
     "title": "Sertifiseringer",
     "search": "Søk etter organ, nummer eller omfang",
     "new": "Legg til sertifisering",
-    "back": "Alle sertifiseringer"
+    "back": "Alle sertifiseringer",
+    "subtitle": "Sertifikatene deres, hvem som utstedte dem, og når neste revisjon og utløp kommer."
   },
   "certification": {
     "nextSurveillance": "Neste oppfølgingsrevisjon",
@@ -388,11 +587,19 @@
     "noAudits": "Ingen eksterne revisjoner er koblet til dette sertifikatet ennå.",
     "planAudit": "Planlegg en ekstern revisjon",
     "deleteTitle": "Slette denne sertifiseringen?",
-    "deleteMessage": "Sertifiseringen fjernes. Revisjoner som er koblet til den, beholdes."
+    "deleteMessage": "Sertifiseringen fjernes. Revisjoner som er koblet til den, beholdes.",
+    "about": "Om sertifikatet",
+    "titleFallback": "{{ framework }} ({{ body }})",
+    "surveillanceIn": "Oppfølgingsrevisjon om {{ days }} dager",
+    "noExpiry": "Ingen utløpsdato",
+    "askAbout": "Forklar sertifikatet {{ title }}: når det utløper, og hva vi må gjøre før neste revisjon."
   },
   "certificationForm": {
     "newTitle": "Legg til sertifisering",
-    "editTitle": "Rediger sertifiseringen"
+    "editTitle": "Rediger sertifiseringen",
+    "supplier": "Sertifiseringsorgan fra Leverandører",
+    "searchSupplier": "Søk etter en leverandør",
+    "fix": "Kunne ikke lagre. Velg sertifiseringsorganet eller skriv inn navnet."
   },
   "auditors": {
     "title": "Revisorregister",
@@ -412,11 +619,32 @@
     "inactive": "Inaktiv",
     "expired": "Utløpt",
     "removeTitle": "Fjerne fra registeret?",
-    "removeMessage": "{{ name }} fjernes fra revisorregisteret. Revisjoner personen er med i, beholder teamet sitt."
+    "removeMessage": "{{ name }} fjernes fra revisorregisteret. Revisjoner personen er med i, beholder teamet sitt.",
+    "subtitle": "Hvem som kan revidere hvilke standarder, opplæringen bak, og hvor lenge den gjelder.",
+    "trainingCount": "{{ count }} kurs koblet",
+    "validUntilShort": "Gyldig til {{ date }}",
+    "profileTitle": "Revisorprofil",
+    "openPerson": "Åpne personen",
+    "fromTraining": "Fra opplæringsregisteret",
+    "training": "Opplæring",
+    "completed": "Fullført {{ date }}",
+    "notCompleted": "Ikke fullført",
+    "expires": "utløper {{ date }}",
+    "noTraining": "Ingen kurs er koblet.",
+    "auditsPerformed": "Revisjoner personen har deltatt i: {{ total }} ({{ closed }} avsluttet)",
+    "noAudits": "Ingen revisjoner ennå.",
+    "certificates": "Sertifikater og dokumenter",
+    "courses": "Kurs som kvalifiserer",
+    "searchCourses": "Søk etter et kurs",
+    "coursesHint": "Kvalifikasjonen gjelder da så lenge opplæringen er gyldig.",
+    "activeLabel": "Aktiv i registeret"
   },
   "ai": {
     "draftQuestions": "Foreslå spørsmål",
-    "summariseReport": "Lag utkast til sammendrag"
+    "summariseReport": "Lag utkast til sammendrag",
+    "draftFinding": "Formuler funnet",
+    "suggestRootCause": "Foreslå rotårsak",
+    "suggestProgramme": "Foreslå program ut fra risiko"
   },
   "notices": {
     "saved": "Lagret.",
@@ -440,7 +668,9 @@
     "certificationCreated": "Sertifiseringen er lagt til.",
     "certificationDeleted": "Sertifiseringen er slettet.",
     "profileSaved": "Revisorregisteret er oppdatert.",
-    "profileRemoved": "Fjernet fra revisorregisteret."
+    "profileRemoved": "Fjernet fra revisorregisteret.",
+    "evidenceSaved": "Dokumentasjonen er lagret.",
+    "effectivenessSaved": "Effektkontrollen er lagret."
   },
   "errors": {
     "forbidden": "Du har ikke tilgang til å gjøre dette.",
@@ -472,7 +702,7 @@
     "invalid_programme": "Velg et gyldig revisjonsprogram.",
     "invalid_certification": "Velg en gyldig sertifisering.",
     "invalid_checklist_item": "Det spørsmålet i sjekklisten finnes ikke lenger.",
-    "invalid_clause_ref": "En av kravhenvisningene er ugyldig (bruk for eksempel iso9001:8.4).",
+    "invalid_clause_ref": "Ett av kravene er ugyldig. Velg det fra listen.",
     "invalid_date": "En av datoene er ugyldig.",
     "invalid_dates": "Sluttdatoen må være samme dag som eller etter startdatoen.",
     "invalid_department": "Velg en gyldig avdeling.",
@@ -483,7 +713,16 @@
     "invalid_status": "Velg en gyldig status.",
     "invalid_party_type": "Velg en gyldig type ekstern part.",
     "invalid_finding_type": "Velg en gyldig type funn.",
-    "invalid_risk_level": "Velg et gyldig risikonivå."
+    "invalid_risk_level": "Velg et gyldig risikonivå.",
+    "invalid_process": "Velg en gyldig prosess.",
+    "invalid_document": "Velg et gyldig dokument.",
+    "invalid_report_outcome": "Velg en gyldig konklusjon.",
+    "invalid_evidence_ref": "Den posten kan ikke kobles som dokumentasjon.",
+    "too_many_evidence_refs": "Et spørsmål kan ha høyst 20 poster som dokumentasjon.",
+    "effectiveness_after_closure": "Effekten kan bare registreres etter at funnet er lukket.",
+    "framework_not_certifiable": "Bare ISO-standarder kan sertifiseres.",
+    "invalid_supplier": "Velg en gyldig leverandør.",
+    "invalid_course": "Velg et gyldig kurs."
   },
   "notifications": {
     "programmeCreated": "Revisjonsprogram opprettet: {{ title }}",
@@ -526,5 +765,79 @@
     "certificationCreated": "Sertifisering lagt til",
     "certificationUpdated": "Sertifisering oppdatert",
     "certificationStatusChanged": "Sertifiseringen fikk ny status"
+  },
+  "clauses": {
+    "openTooltip": "Åpne kravet under Standarder og krav"
+  },
+  "effectiveness": {
+    "effective": "Virket",
+    "not_effective": "Virket ikke"
+  },
+  "reportOutcome": {
+    "conforming": "I samsvar",
+    "conforming_with_findings": "I samsvar, med funn",
+    "not_conforming": "Ikke i samsvar",
+    "statement": {
+      "conforming": "Konklusjon: Det reviderte området oppfyller revisjonskriteriene.",
+      "conforming_with_findings": "Konklusjon: Det reviderte området oppfyller revisjonskriteriene, men funnene nedenfor må følges opp.",
+      "not_conforming": "Konklusjon: Det reviderte området oppfyller ikke revisjonskriteriene. Avvikene nedenfor må rettes."
+    }
+  },
+  "coverage": {
+    "title": "Hva som revideres, og når",
+    "intro": "Alle krav, prosesser og avdelinger bør revideres i løpet av syklusen. Hull er merket, så du kan planlegge en revisjon for dem.",
+    "views": "Vis dekning etter",
+    "view": {
+      "clauses": "Krav",
+      "processes": "Prosesser",
+      "departments": "Avdelinger"
+    },
+    "summary": {
+      "clauses": "{{ covered }} av {{ total }} krav er revidert de siste {{ years }} årene. {{ gaps }} gjenstår.",
+      "processes": "{{ covered }} av {{ total }} prosesser er revidert de siste {{ years }} årene. {{ gaps }} gjenstår.",
+      "departments": "{{ covered }} av {{ total }} avdelinger er revidert de siste {{ years }} årene. {{ gaps }} gjenstår."
+    },
+    "caption": {
+      "clauses": "Revisjoner per krav og år",
+      "processes": "Revisjoner per prosess og år",
+      "departments": "Revisjoner per avdeling og år"
+    },
+    "empty": {
+      "clauses": "Velg standardene for programmet for å se kravene her.",
+      "processes": "Det er ikke registrert prosesser ennå.",
+      "departments": "Det er ikke registrert avdelinger ennå."
+    },
+    "gapsOnly": "Vis bare hull",
+    "action": "Neste steg",
+    "historyOf": "Revisjonshistorikk for {{ clause }}",
+    "openFindings": "{{ count }} åpne funn",
+    "cell": {
+      "none": "Ikke revidert",
+      "findings": "{{ count }} funn",
+      "title": "{{ done }} gjennomført, {{ planned }} planlagt, {{ findings }} funn. {{ audits }}"
+    },
+    "gap": "Ikke revidert",
+    "planThis": "Planlegg revisjon",
+    "lastAudited": "Sist {{ date }}",
+    "legend": {
+      "done": "Revidert",
+      "planned": "Planlagt",
+      "gap": "Gule rader er ikke revidert i syklusen."
+    },
+    "noGaps": "Ingen hull: alt er revidert i syklusen.",
+    "history": {
+      "last": "Sist revidert",
+      "never": "Aldri",
+      "result": "Siste resultat",
+      "audits": "Revisjoner ({{ count }})",
+      "noAudits": "Ingen revisjon har dekket dette kravet ennå.",
+      "findings": "Åpne funn",
+      "noFindings": "Ingen åpne funn.",
+      "openRequirement": "Åpne kravet under Standarder og krav"
+    }
+  },
+  "programmeDetail": {
+    "about": "Om programmet",
+    "askAbout": "Forklar revisjonsprogram {{ code }}: hva det dekker, hvor langt det har kommet og hvor hullene er."
   }
 }

@@ -1,8 +1,13 @@
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { Component, provideZonelessChangeDetection, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { TranslocoTestingModule } from '@jsverse/transloco';
 import en from '../../../assets/i18n/en.json';
 import suppliersEn from '../../../assets/i18n/suppliers/en.json';
+import { APP_CONFIG } from '../../core/config/app-config';
+import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { Question, SupplierStatus } from './data/supplier.models';
 import { StatusChange, SupplierStatusDialog } from './detail/status-dialog';
 import {
@@ -53,7 +58,7 @@ const question = (id: string, over: Partial<Question> = {}): Question => ({
 })
 class Host {
   readonly questions = signal<readonly Question[]>([
-    question('a', { critical: true }),
+    question('a', { critical: true, requirement_refs: ['iso27001:A.5.20'] }),
     question('b', { type: 'score', max_score: 3, category: 'Quality' }),
     question('c', { type: 'text', required: false }),
   ]);
@@ -71,7 +76,20 @@ class Host {
 async function setup(): Promise<{ fixture: ComponentFixture<Host>; root: HTMLElement }> {
   TestBed.configureTestingModule({
     imports: [Host, transloco()],
-    providers: [provideZonelessChangeDetection()],
+    providers: [
+      provideZonelessChangeDetection(),
+      provideHttpClient(),
+      provideHttpClientTesting(),
+      provideRouter([]),
+      { provide: APP_CONFIG, useValue: { apiBaseUrl: 'http://test/api' } },
+      {
+        provide: SelectedOrgService,
+        useValue: {
+          currentOrgId: signal('org-1').asReadonly(),
+          currentOrg: signal({ id: 'org-1', name: 'Org', roles: [], permissions: [] }).asReadonly(),
+        },
+      },
+    ],
   });
   const fixture = TestBed.createComponent(Host);
   document.body.appendChild(fixture.nativeElement);
@@ -92,6 +110,16 @@ describe('supplier components', () => {
     expect(root.querySelector('[data-question="c"] textarea')).not.toBeNull();
     expect(root.querySelector('[data-question="a"]')?.textContent).toContain('Critical');
     expect(root.querySelector('[data-question="c"]')?.textContent).toContain('Optional');
+    // Known sections are translated, custom ones shown as typed.
+    const sections = Array.from(root.querySelectorAll('[data-testid="question-section"]')).map(
+      (h) => h.textContent?.trim(),
+    );
+    expect(sections).toEqual(['General', 'Quality']);
+    // The clauses a question checks are shown next to it.
+    expect(
+      root.querySelector('[data-question="a"] [data-testid="question-refs"]')?.textContent,
+    ).toContain('Checks:');
+    expect(root.querySelector('[data-question="b"] [data-testid="question-refs"]')).toBeNull();
   });
 
   it('emits answer changes with normalised values', async () => {

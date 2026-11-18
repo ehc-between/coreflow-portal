@@ -20,7 +20,10 @@ import { FieldHelp } from '../../shared/guidance/field-help';
 import { LocalDayPipe } from '../../shared/locale/locale-pipes';
 import { AssigneeOptionsService } from '../../shared/tasks/assignee-options';
 import { EntityTasks } from '../../shared/tasks/entity-tasks';
-import { Badge } from '../../shared/ui/badge/badge';
+import { SupportsRequirements } from '../../shared/requirement-links/supports-requirements';
+import { ErrorState } from '../../shared/ui/error-state/error-state';
+import { LoadingState } from '../../shared/ui/loading-state/loading-state';
+import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
 import { Button } from '../../shared/ui/button/button';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog/confirm-dialog';
 import { FormField } from '../../shared/ui/form-field/form-field';
@@ -34,7 +37,7 @@ import {
   MilestoneStatus,
   isOneOf,
 } from './data/project.models';
-import { milestoneStatusTone } from './data/project-display';
+import { milestoneStatusBadge } from './data/project-display';
 import { projectErrorKey } from './data/project-errors';
 import { datesInOrder } from './data/project-form-model';
 import { ProjectsApi } from './data/projects-api';
@@ -123,7 +126,10 @@ export function groupMilestones(items: readonly Milestone[]): {
     LocalDayPipe,
     FieldHelp,
     EntityTasks,
-    Badge,
+    SupportsRequirements,
+    ErrorState,
+    LoadingState,
+    StatusBadge,
     Button,
     ConfirmDialog,
     FormField,
@@ -132,78 +138,80 @@ export function groupMilestones(items: readonly Milestone[]): {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-      <h2 class="font-display text-[15px] font-bold text-fg">
-        {{ 'projects.milestones.title' | transloco }}
-      </h2>
-      @if (canContribute()) {
-        <div class="flex flex-wrap gap-2">
-          <app-button
-            size="sm"
-            variant="secondary"
-            (click)="openNew('phase')"
-            data-testid="add-phase"
-          >
-            <app-icon name="plus" [size]="14" />
-            {{ 'projects.milestones.addPhase' | transloco }}
-          </app-button>
-          <app-button size="sm" (click)="openNew('milestone')" data-testid="add-milestone">
-            <app-icon name="flag" [size]="14" />
-            {{ 'projects.milestones.addMilestone' | transloco }}
-          </app-button>
+    @if (showHeader()) {
+      <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <div class="flex flex-wrap items-center gap-1.5">
+          <h2 class="font-display text-card font-bold text-fg">
+            {{ 'projects.milestones.title' | transloco }}
+          </h2>
+          <app-field-help scope="projects" page="detail" field="milestones" />
         </div>
-      }
-    </div>
-    <app-field-help scope="projects" page="detail" field="milestones" />
-
-    @switch (state()) {
-      @case ('loading') {
-        <p class="py-4 text-[13px] text-fg-muted" role="status">
-          {{ 'projects.common.loading' | transloco }}
-        </p>
-      }
-      @case ('error') {
-        <p class="py-4 text-[13px] text-fail" role="alert">
-          {{ 'projects.common.loadFailed' | transloco }}
-        </p>
-      }
-      @default {
-        @if (items().length === 0) {
-          <p class="py-4 text-[13px] text-fg-muted" data-testid="milestones-empty">
-            {{ 'projects.milestones.empty' | transloco }}
-          </p>
-        } @else {
-          <div class="mt-2 flex flex-col gap-3" data-testid="milestones">
-            @for (g of groups().phases; track g.phase.id) {
-              <section class="rounded-tile border border-border">
-                <ng-container
-                  *ngTemplateOutlet="row; context: { $implicit: g.phase, phase: true }"
-                />
-                @if (g.milestones.length) {
-                  <ul class="divide-y divide-border border-t border-border">
-                    @for (m of g.milestones; track m.id) {
-                      <li class="pl-4">
-                        <ng-container
-                          *ngTemplateOutlet="row; context: { $implicit: m, phase: false }"
-                        />
-                      </li>
-                    }
-                  </ul>
-                }
-              </section>
-            }
-            @if (groups().loose.length) {
-              <ul class="divide-y divide-border rounded-tile border border-border">
-                @for (m of groups().loose; track m.id) {
-                  <li>
-                    <ng-container
-                      *ngTemplateOutlet="row; context: { $implicit: m, phase: false }"
-                    />
-                  </li>
-                }
-              </ul>
-            }
+        @if (canContribute()) {
+          <div class="flex flex-wrap gap-2">
+            <app-button
+              size="sm"
+              variant="secondary"
+              (click)="openNew('phase')"
+              data-testid="add-phase"
+            >
+              <app-icon name="plus" [size]="14" />
+              {{ 'projects.milestones.addPhase' | transloco }}
+            </app-button>
+            <app-button size="sm" (click)="openNew('milestone')" data-testid="add-milestone">
+              <app-icon name="flag" [size]="14" />
+              {{ 'projects.milestones.addMilestone' | transloco }}
+            </app-button>
           </div>
+        }
+      </div>
+    }
+
+    @if (listVisible()) {
+      @switch (state()) {
+        @case ('loading') {
+          <app-loading-state [rows]="3" />
+        }
+        @case ('error') {
+          <app-error-state (retry)="reload()" />
+        }
+        @default {
+          @if (items().length === 0) {
+            <p class="py-4 text-ui text-fg-muted" data-testid="milestones-empty">
+              {{ 'projects.milestones.empty' | transloco }}
+            </p>
+          } @else {
+            <div class="mt-2 flex flex-col gap-3" data-testid="milestones">
+              @for (g of groups().phases; track g.phase.id) {
+                <section class="rounded-tile border border-border">
+                  <ng-container
+                    *ngTemplateOutlet="row; context: { $implicit: g.phase, phase: true }"
+                  />
+                  @if (g.milestones.length) {
+                    <ul class="divide-y divide-border border-t border-border">
+                      @for (m of g.milestones; track m.id) {
+                        <li class="pl-4">
+                          <ng-container
+                            *ngTemplateOutlet="row; context: { $implicit: m, phase: false }"
+                          />
+                        </li>
+                      }
+                    </ul>
+                  }
+                </section>
+              }
+              @if (groups().loose.length) {
+                <ul class="divide-y divide-border rounded-tile border border-border">
+                  @for (m of groups().loose; track m.id) {
+                    <li>
+                      <ng-container
+                        *ngTemplateOutlet="row; context: { $implicit: m, phase: false }"
+                      />
+                    </li>
+                  }
+                </ul>
+              }
+            </div>
+          }
         }
       }
     }
@@ -216,7 +224,7 @@ export function groupMilestones(items: readonly Milestone[]): {
       >
         <button
           type="button"
-          class="flex min-w-0 flex-1 items-center gap-2 text-left text-[13.5px] text-fg hover:underline"
+          class="flex min-h-8 min-w-0 flex-1 items-center gap-2 text-left text-body text-fg hover:underline"
           [class.font-semibold]="phase"
           (click)="openEdit(m)"
         >
@@ -228,27 +236,29 @@ export function groupMilestones(items: readonly Milestone[]): {
           <span class="truncate">{{ m.title }}</span>
           <span class="sr-only">{{ 'projects.plan.kinds.' + m.kind | transloco }}</span>
         </button>
-        <span class="flex flex-wrap items-center gap-2 text-[12px] text-fg-muted">
+        <span class="flex flex-wrap items-center gap-2 text-meta text-fg-muted">
           @if (m.owner?.name; as name) {
             <span>{{ name }}</span>
           }
           @if (m.start_date && m.due_date) {
             <span>{{ m.start_date | localDay }} – {{ m.due_date | localDay }}</span>
           } @else if (m.due_date) {
-            <span [class.text-fail]="m.is_overdue" [class.font-semibold]="m.is_overdue">
+            <span [class.text-warn-ink]="m.is_overdue" [class.font-semibold]="m.is_overdue">
               {{ 'projects.milestones.due' | transloco: { date: (m.due_date | localDay) } }}
             </span>
           }
           @if (m.is_overdue) {
-            <app-badge tone="fail">{{ 'projects.common.overdue' | transloco }}</app-badge>
+            <app-status-badge meaning="lifecycle" value="overdue" />
           }
-          <app-badge [tone]="statusTone(m.status)">{{
-            'projects.milestoneStatus.' + m.status | transloco
-          }}</app-badge>
+          <app-status-badge
+            [meaning]="badge(m.status).meaning"
+            [value]="badge(m.status).value"
+            [labelKey]="badge(m.status).labelKey"
+          />
           @if (canContribute() && m.status !== 'done' && m.status !== 'cancelled') {
             <button
               type="button"
-              class="inline-flex items-center gap-1 rounded-[8px] px-2 py-1 font-semibold text-accent hover:bg-accent-soft"
+              class="inline-flex min-h-7 items-center gap-1 rounded-tile px-2 py-1 font-semibold text-accent hover:bg-accent-soft"
               (click)="markDone(m)"
               [disabled]="busy()"
               [attr.data-testid]="'done-' + m.id"
@@ -320,7 +330,7 @@ export function groupMilestones(items: readonly Milestone[]): {
               </app-form-field>
             </div>
             @if (!datesOk()) {
-              <p class="text-[12px] text-fail" role="alert">
+              <p class="text-meta text-fail-ink" role="alert">
                 {{ 'projects.form.errors.dueBeforeStart' | transloco }}
               </p>
             }
@@ -392,6 +402,13 @@ export function groupMilestones(items: readonly Milestone[]): {
         </form>
         @if (editing(); as m) {
           <div class="mt-6 border-t border-border pt-4">
+            <app-supports-requirements
+              entityType="project_milestone"
+              [entityId]="m.id"
+              [canEdit]="canContribute()"
+            />
+          </div>
+          <div class="mt-6 border-t border-border pt-4">
             <app-entity-tasks
               entityType="project_milestone"
               [entityId]="m.id"
@@ -430,9 +447,14 @@ export class ProjectMilestones {
   readonly refresh = input(0);
   /** A milestone to open (deep link `?milestone=`). */
   readonly focusId = input<string | null>(null);
+  /** Render the heading and add buttons (the project page puts them in its Plan header). */
+  readonly showHeader = input(true);
+  /** Render the list (off: only the side panel, opened from the Gantt chart or the header). */
+  readonly listVisible = input(true);
   readonly changed = output<void>();
 
   protected readonly statuses = MILESTONE_STATUSES;
+  protected readonly badge = milestoneStatusBadge;
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
   protected readonly items = signal<readonly Milestone[]>([]);
   protected readonly groups = computed(() => groupMilestones(this.items()));
@@ -491,11 +513,19 @@ export class ProjectMilestones {
     });
   }
 
-  protected statusTone(status: string) {
-    return milestoneStatusTone(status);
+  /** Open the panel of a phase or milestone by id (Gantt rows). */
+  openById(id: string): void {
+    const m = this.items().find((i) => i.id === id);
+    if (m) {
+      this.openEdit(m);
+    }
   }
 
-  protected openNew(kind: MilestoneKind): void {
+  protected reload(): void {
+    this.load(this.selectedOrg.currentOrgId(), this.projectId());
+  }
+
+  openNew(kind: MilestoneKind): void {
     this.editing.set(null);
     this.draft.set(emptyMilestoneDraft({ kind }));
     this.panelOpen.set(true);

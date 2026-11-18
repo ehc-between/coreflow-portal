@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
 import { TranslocoPipe } from '@jsverse/transloco';
 import { LocalDatePipe, LocalNumberPipe } from '../../../shared/locale/locale-pipes';
 import { KpiTile } from '../../../shared/ui/kpi-tile/kpi-tile';
-import { npsTone, percentOf, questionTypeKey, round1, scoreTone } from '../data/feedback-display';
+import { npsLevel, percentOf, questionTypeKey, round1, scoreLevel } from '../data/feedback-display';
 import { QuestionResult, SurveyResults } from '../data/feedback.models';
 
 export interface DistributionRow {
@@ -41,7 +41,9 @@ export function distributionRows(q: QuestionResult): DistributionRow[] {
       <app-kpi-tile
         [label]="'feedback.results.averageScore' | transloco"
         [value]="score() ?? '–'"
-        [tone]="scoreTone(r.average_score)"
+        [tone]="scoreLevel(r.average_score)"
+        [delta]="'feedback.results.scoreHint' | transloco"
+        deltaTone="neutral"
       />
       <app-kpi-tile
         [label]="'feedback.results.nps' | transloco"
@@ -50,7 +52,7 @@ export function distributionRows(q: QuestionResult): DistributionRow[] {
           'feedback.results.splitDelta'
             | transloco: { promoters: r.promoters, passives: r.passives, detractors: r.detractors }
         "
-        [tone]="npsTone(r.nps)"
+        [tone]="npsLevel(r.nps)"
       />
       <app-kpi-tile
         [label]="'feedback.results.promoters' | transloco"
@@ -58,8 +60,9 @@ export function distributionRows(q: QuestionResult): DistributionRow[] {
         tone="pass"
       />
     </div>
+    <p class="mt-2 text-meta text-fg-muted">{{ 'feedback.results.scales' | transloco }}</p>
     @if (r.last_response_at) {
-      <p class="mt-2 text-[12px] text-fg-subtle">
+      <p class="mt-1 text-meta text-fg-subtle">
         {{
           'feedback.results.lastResponse' | transloco: { date: (r.last_response_at | localDate) }
         }}
@@ -67,17 +70,17 @@ export function distributionRows(q: QuestionResult): DistributionRow[] {
     }
 
     @if (r.response_count === 0) {
-      <p class="mt-4 text-[13px] text-fg-muted" data-testid="results-empty">
+      <p class="mt-4 text-ui text-fg-muted" data-testid="results-empty">
         {{ 'feedback.results.none' | transloco }}
       </p>
     } @else {
       <ol class="mt-5 flex flex-col gap-5" data-testid="results-questions">
         @for (q of r.questions; track q.id; let i = $index) {
           <li>
-            <h3 class="text-[13.5px] font-semibold text-fg">
+            <h3 class="text-body font-semibold text-fg">
               <span class="text-fg-subtle">{{ i + 1 }}.</span> {{ q.label }}
             </h3>
-            <p class="mb-2 text-[12px] text-fg-subtle">
+            <p class="mb-2 text-meta text-fg-subtle">
               {{ typeKey(q.type) | transloco }} ·
               {{ 'feedback.results.answered' | transloco: { count: q.answered } }}
               @if (q.average !== null) {
@@ -99,14 +102,14 @@ export function distributionRows(q: QuestionResult): DistributionRow[] {
                 <ul class="flex flex-col gap-1.5">
                   @for (c of q.comments; track $index) {
                     <li
-                      class="rounded-tile bg-surface-2 px-3 py-2 text-[13px] whitespace-pre-line text-fg"
+                      class="rounded-tile bg-surface-2 px-3 py-2 text-ui whitespace-pre-line text-fg"
                     >
                       {{ c }}
                     </li>
                   }
                 </ul>
               } @else {
-                <p class="text-[12.5px] text-fg-muted">
+                <p class="text-meta text-fg-muted">
                   {{ 'feedback.results.noComments' | transloco }}
                 </p>
               }
@@ -114,7 +117,7 @@ export function distributionRows(q: QuestionResult): DistributionRow[] {
               <ul class="flex flex-col gap-1">
                 @for (row of rows(q); track row.label) {
                   <li
-                    class="grid grid-cols-[minmax(48px,auto)_1fr_72px] items-center gap-2 text-[12.5px]"
+                    class="grid grid-cols-[minmax(48px,auto)_1fr_72px] items-center gap-2 text-meta"
                   >
                     <span class="truncate text-fg">{{
                       row.labelIsKey ? (row.label | transloco) : row.label
@@ -145,8 +148,8 @@ export class SurveyResultsView {
   readonly results = input.required<SurveyResults>();
 
   protected readonly typeKey = questionTypeKey;
-  protected readonly npsTone = npsTone;
-  protected readonly scoreTone = scoreTone;
+  protected readonly npsLevel = npsLevel;
+  protected readonly scoreLevel = scoreLevel;
   protected readonly rows = distributionRows;
   protected readonly score = computed(() => round1(this.results().average_score));
   protected readonly nps = computed(() => round1(this.results().nps));

@@ -3,16 +3,16 @@
     "overview": {
       "intro": {
         "title": "Hold virksomheten i gang når noe går galt",
-        "body": "Kontinuitetsstyring handler om å vite hvilke aktiviteter som betyr mest, hvor lenge dere klarer dere uten dem, og å ha testede planer for å få dem tilbake. Denne siden viser hvor godt forberedt dere er.",
+        "body": "Kontinuitetsstyring handler om å vite hvilke aktiviteter som betyr mest, hvor lenge organisasjonen klarer seg uten dem, og å ha testede planer for å få dem tilbake. Denne siden viser hvor godt forberedt organisasjonen er.",
         "steps": [
           "Begynn med en **konsekvensanalyse** (BIA) for hver kritisk aktivitet: hva skjer hvis den stopper, og hvor raskt må den være tilbake.",
-          "Skriv en **kontinuitetsplan** som dekker aktivitetene og oppfyller gjenopprettingsmålene deres.",
+          "Skriv en **kontinuitetsplan** som dekker aktivitetene og når gjenopprettingsmålene i dem.",
           "**Øv** planene jevnlig, registrer erfaringene og følg dem opp.",
           "Kontroller at hver **IKT-tjeneste** kan gjenopprettes så raskt som aktivitetene trenger, og hold **krisekontaktlisten** oppdatert."
         ]
       },
       "why": {
-        "body": "Standardene forventer at dere planlegger hvordan informasjonssikkerhet og kritiske tjenester opprettholdes under et avbrudd, at IKT er forberedt på det, og at planene testes. Beredskap er også et krav innen helse, miljø og sikkerhet, og NIS2 har kontinuitet og krisehåndtering blant minimumstiltakene.",
+        "body": "Standardene forventer at organisasjonen planlegger hvordan informasjonssikkerhet og kritiske tjenester opprettholdes under et avbrudd, at IKT er forberedt på det, og at planene testes. Beredskap er også et krav innen helse, miljø og sikkerhet, og NIS2 har kontinuitet og krisehåndtering blant minimumstiltakene.",
         "clauses": [
           "iso27001:A.5.29",
           "iso27001:A.5.30",
@@ -33,12 +33,12 @@
         ]
       },
       "why": {
-        "body": "Uten en BIA er gjenopprettingsmålene gjetninger. BIA-en er beviset på at kontinuitet og IKT-beredskap bygger på det virksomheten faktisk trenger.",
+        "body": "Uten en BIA er gjenopprettingsmålene gjetninger. BIA-en dokumenterer at kontinuitet og IKT-beredskap bygger på det virksomheten faktisk trenger.",
         "clauses": ["iso27001:A.5.30", "iso27001:A.5.29", "nis2:21.2.c"]
       },
       "empty": {
         "title": "Ingen konsekvensanalyser ennå",
-        "body": "Velg de tre til fem aktivitetene dere minst klarer dere uten, og analyser dem først. Resten kan dere legge til senere.",
+        "body": "Velg de tre til fem aktivitetene organisasjonen minst klarer seg uten, og analyser dem først. Resten kan du legge til senere.",
         "cta": "Start en konsekvensanalyse"
       }
     },
@@ -48,7 +48,7 @@
         "body": "Beskriv aktiviteten, vurder hvordan et avbrudd påvirker den, og bestem gjenopprettingsmålene. Assistenten kan foreslå vurderinger og mål som utgangspunkt.",
         "steps": [
           "Vurder hver konsekvenskategori for et avbrudd som varer opp til MTPD.",
-          "Sett MTPD først, deretter en RTO som er kortere, og en RPO for hvor mye data dere kan miste.",
+          "Sett MTPD først, deretter en RTO som er kortere, og en RPO for hvor mye data som kan gå tapt.",
           "List opp hva aktiviteten er avhengig av: personer, lokaler, IKT-tjenester, leverandører, utstyr og informasjon."
         ]
       },
@@ -67,23 +67,32 @@
         },
         "mtpd_minutes": {
           "help": "Maksimal akseptabel avbruddstid: hvor lenge aktiviteten kan være nede før skaden blir uakseptabel.",
-          "example": "3 døgn for lønn hvis lønnen utbetales den 25."
+          "example": "3 døgn for lønn hvis lønnen utbetales den 25.",
+          "requirements": ["iso27001:A.5.30"]
         },
         "rto_minutes": {
-          "help": "Mål for gjenopprettingstid: hvor raskt dere vil ha aktiviteten i gang igjen. Den må være kortere enn MTPD for å gi en sikkerhetsmargin.",
-          "example": "MTPD 3 døgn, RTO 1 døgn."
+          "help": "Mål for gjenopprettingstid: hvor raskt aktiviteten må være i gang igjen. Den må være kortere enn MTPD for å gi en sikkerhetsmargin.",
+          "example": "MTPD 3 døgn, RTO 1 døgn.",
+          "requirements": ["iso27001:A.5.30", "nis2:21.2.c"]
         },
         "rpo_minutes": {
-          "help": "Mål for gjenopprettingspunkt: hvor mye data dere har råd til å miste, målt som tid tilbake fra avbruddet. Det bestemmer hvor ofte dere tar sikkerhetskopi eller replikerer.",
-          "example": "RPO 4 timer betyr sikkerhetskopi minst hver 4. time."
+          "help": "Mål for gjenopprettingspunkt: hvor mye data organisasjonen har råd til å miste, målt som tid tilbake fra avbruddet. Det bestemmer hvor ofte det tas sikkerhetskopi eller replikeres.",
+          "example": "RPO 4 timer betyr sikkerhetskopi minst hver 4. time.",
+          "requirements": ["iso27001:A.5.30", "iso27001:A.8.13"]
         },
         "mbco": {
-          "help": "Minimumsnivå for drift: det reduserte tjenestenivået som er akseptabelt mens dere gjenoppretter.",
+          "help": "Minimumsnivå for drift: det reduserte tjenestenivået som er akseptabelt mens aktiviteten gjenopprettes.",
           "example": "Besvar bare hastesaker fra kunder; utsett alt annet."
         },
         "dependencies": {
           "help": "Det aktiviteten trenger for å fungere. En IKT-avhengighet kan peke på en IKT-tjeneste, slik at IKT-beredskapen kan sammenligne hva tjenesten klarer med hva aktiviteten krever.",
-          "example": "Personer: to opplærte lønnsmedarbeidere. IKT: lønnssystemet. Leverandør: banken."
+          "example": "Personer: to opplærte lønnsmedarbeidere. IKT: lønnssystemet. Leverandør: banken.",
+          "requirements": ["iso27001:A.5.30"]
+        },
+        "impact_timeline": {
+          "help": "Hvor alvorlig konsekvensen blir etter 4 timer, 1 døgn, 3 døgn, 1 uke og 2 uker. Den første perioden som er vurdert til 4 (alvorlig) eller verre, gir forslaget til MTPD.",
+          "example": "4 t: 1, 1 døgn: 3, 3 døgn: 4 → MTPD omtrent 3 døgn.",
+          "requirements": ["iso27001:A.5.30"]
         }
       }
     },
@@ -105,7 +114,7 @@
     "plans": {
       "intro": {
         "title": "Kontinuitetsplaner",
-        "body": "En **kontinuitetsplan** beskriver hvordan dere håndterer et avbrudd og gjenoppretter aktivitetene den dekker. Den arver de strengeste gjenopprettingsmålene fra konsekvensanalysene den dekker.",
+        "body": "En **kontinuitetsplan** beskriver hvordan organisasjonen håndterer et avbrudd og gjenoppretter aktivitetene den dekker. Den arver de strengeste gjenopprettingsmålene fra konsekvensanalysene den dekker.",
         "steps": [
           "Lag en plan og velg konsekvensanalysene den dekker.",
           "Skriv delene og stegene for hver fase: aktivering, respons, gjenoppretting, normalisering og avslutning.",
@@ -142,7 +151,7 @@
           "example": "Katastrofegjenoppretting for datasenteret; beredskapsplan for brann og evakuering."
         },
         "bia_ids": {
-          "help": "Konsekvensanalysene planen beskytter. Planens gjenopprettingsmål er de strengeste av deres."
+          "help": "Konsekvensanalysene planen beskytter. Planens gjenopprettingsmål er de strengeste av målene i dem."
         },
         "scope": {
           "help": "Hvilke aktiviteter, lokasjoner og avbrudd planen dekker, og hva den ikke dekker."
@@ -152,23 +161,27 @@
         },
         "activation_criteria": {
           "help": "Når og av hvem planen aktiveres. Gjør kriteriene konkrete, så ingen nøler.",
-          "example": "ERP-systemet er nede i mer enn 2 timer, eller lokalene kan ikke brukes."
+          "example": "ERP-systemet er nede i mer enn 2 timer, eller lokalene kan ikke brukes.",
+          "requirements": ["iso27001:A.5.29"]
         },
         "roles_responsibilities": {
           "help": "Kriserollene (for eksempel kriseleder, stedfortreder, kommunikasjon) og hva hver av dem har ansvar for."
         },
         "recovery_strategy": {
-          "help": "Hvordan aktivitetene gjenopprettes: alternative lokaler, manuelle løsninger, reservesystemer eller leverandører."
+          "help": "Hvordan aktivitetene gjenopprettes: alternative lokaler, manuelle løsninger, reservesystemer eller leverandører.",
+          "requirements": ["iso27001:A.5.29", "iso27001:A.5.30"]
         },
         "communication_plan": {
-          "help": "Hvem som informerer hvem, hvordan og når: ansatte, kunder, myndigheter, leverandører og media."
+          "help": "Hvem som informerer hvem, hvordan og når: ansatte, kunder, myndigheter, leverandører og media.",
+          "requirements": ["iso27001:A.5.29"]
         },
         "resources": {
           "help": "Hva som trengs for å gjennomføre planen: personer, utstyr, tilganger, dokumenter og budsjett."
         },
         "steps": {
           "help": "Tiltakene i rekkefølge, gruppert etter fase. Gi hvert steg en ansvarlig rolle og en måltid.",
-          "example": "Aktivering: kriseleder beslutter aktivering (15 min). Gjenoppretting: gjenopprett ERP fra sikkerhetskopi (4 t)."
+          "example": "Aktivering: kriseleder beslutter aktivering (15 min). Gjenoppretting: gjenopprett ERP fra sikkerhetskopi (4 t).",
+          "requirements": ["iso27001:A.5.29", "nis2:21.2.c"]
         }
       }
     },
@@ -224,20 +237,30 @@
         ]
       },
       "why": {
-        "body": "Planlagte øvelser med tydelige mål gir bevis for at planene er effektive.",
+        "body": "Planlagte øvelser med tydelige mål dokumenterer at planene virker.",
         "clauses": ["iso27001:A.5.29", "iso45001:8.2"]
       },
       "fields": {
         "exercise_type": {
           "help": "Hvor realistisk øvelsen er. Begynn enkelt (gjennomgang, skrivebordsøvelse) og bygg opp til simuleringer og fullskalaøvelser.",
-          "example": "Skrivebordsøvelse: snakk gjennom et løsepengevirusangrep. IKT-gjenopprettingstest: gjenopprett ERP til en testserver."
+          "example": "Skrivebordsøvelse: snakk gjennom et løsepengevirusangrep. IKT-gjenopprettingstest: gjenopprett ERP til en testserver.",
+          "requirements": ["iso27001:A.5.30", "iso45001:8.2"]
         },
         "ict_system_id": {
           "help": "For en gjenopprettingstest: IKT-tjenesten som testes. Når testen er gjennomført, oppdateres tjenestens teststatus og beredskap."
         },
         "scenario": {
           "help": "Situasjonen deltakerne skal håndtere, og hendelsene (ny informasjon) som gis underveis.",
-          "example": "Mandag kl. 08.00: kontoret er oversvømt. Kl. 08.30: telefonsystemet er nede."
+          "example": "Mandag kl. 08.00: kontoret er oversvømt. Kl. 08.30: telefonsystemet er nede.",
+          "requirements": ["iso27001:A.5.30"]
+        },
+        "target_recovery_minutes": {
+          "help": "Gjenopprettingstiden øvelsen må nå. Står den tom, brukes planens RTO (eller kravet til IKT-tjenesten)."
+        },
+        "success_criteria": {
+          "help": "Hva som må skje for at øvelsen skal regnes som vellykket, avtalt før den starter.",
+          "example": "ERP-systemet kjører igjen innen 4 timer, og kriseledelsen er samlet innen 30 minutter.",
+          "requirements": ["iso27001:A.5.30"]
         }
       }
     },
@@ -298,23 +321,34 @@
         ]
       },
       "why": {
-        "body": "Dokumentert gjenopprettingsevne og sikkerhetskopiordninger er beviset på at IKT-beredskapen svarer til behovet.",
+        "body": "Dokumentert gjenopprettingsevne og sikkerhetskopiordninger viser at IKT-beredskapen svarer til behovet.",
         "clauses": ["iso27001:A.5.30", "iso27001:A.8.13", "iso27001:A.8.14"]
       },
       "fields": {
         "achievable_rto_minutes": {
           "help": "Hvor raskt tjenesten realistisk kan gjenopprettes etter en feil, med dagens oppsett.",
-          "example": "4 timer for å gjenopprette fra sikkerhetskopi til en reserveserver."
+          "example": "4 timer for å gjenopprette fra sikkerhetskopi til en reserveserver.",
+          "requirements": ["iso27001:A.5.30"]
         },
         "achievable_rpo_minutes": {
           "help": "Hvor mye data som kan gå tapt, gitt hvor ofte det tas sikkerhetskopi eller replikeres.",
           "example": "Nattlig sikkerhetskopi betyr at opptil 24 timer med data kan gå tapt."
         },
         "backup_strategy": {
-          "help": "Hvordan data sikkerhetskopieres: hvor ofte, hvor kopiene lagres, hvordan de beskyttes og hvordan gjenoppretting testes."
+          "help": "Hvordan data sikkerhetskopieres: hvor ofte, hvor kopiene lagres, hvordan de beskyttes og hvordan gjenoppretting testes.",
+          "requirements": ["iso27001:A.8.13"]
         },
         "test_interval_months": {
-          "help": "Hvor ofte gjenoppretting må testes. Når siste test er eldre enn dette, trenger tjenesten oppfølging."
+          "help": "Hvor ofte gjenoppretting må testes. Når siste test er eldre enn dette, trenger tjenesten oppfølging.",
+          "requirements": ["iso27001:A.5.30"]
+        },
+        "supplier_id": {
+          "help": "Leverandøren som drifter eller leverer tjenesten. Krisekontaktene hos leverandøren og avtalen vises da på tjenesten.",
+          "requirements": ["iso27001:A.5.30"]
+        },
+        "sla_rto_minutes": {
+          "help": "Gjenopprettingstiden avtalen lover. Er den lengre enn virksomheten trenger, blir tjenesten merket for oppfølging.",
+          "example": "Driftsavtalen lover gjenoppretting innen 8 timer."
         }
       }
     },
@@ -336,7 +370,7 @@
     "contacts": {
       "intro": {
         "title": "Krisekontakter",
-        "body": "I en krise må dere raskt nå de riktige personene. Ha én liste for hele virksomheten, og la hver plan legge til sine egne kontakter.",
+        "body": "I en krise må du raskt nå de riktige personene. Ha én felles liste for hele organisasjonen, og la hver plan legge til sine egne kontakter.",
         "steps": [
           "Legg til kriseledelsen, stedfortredere, nødetater, myndigheter og viktige leverandører.",
           "Gi hver kontakt et telefonnummer, en e-postadresse eller et koblet medlem.",
@@ -344,16 +378,18 @@
         ]
       },
       "why": {
-        "body": "Beredskap krever at dere vet hvem som skal kontaktes, også nødetater og myndigheter. En utdatert liste svikter akkurat når den trengs.",
+        "body": "Beredskap krever at organisasjonen vet hvem som skal kontaktes, også nødetater og myndigheter. En utdatert liste svikter akkurat når den trengs.",
         "clauses": ["iso45001:8.2", "iso14001:8.2", "iso27001:A.5.29"]
       },
       "fields": {
         "crisis_role": {
           "help": "Personens rolle i en krise, som kan være en annen enn stillingstittelen.",
-          "example": "Kriseleder, stedfortredende kriseleder, kommunikasjon, IT-gjenoppretting."
+          "example": "Kriseleder, stedfortredende kriseleder, kommunikasjon, IT-gjenoppretting.",
+          "requirements": ["iso27001:A.5.29"]
         },
         "verified_on": {
-          "help": "Når dere sist bekreftet at opplysningene stemmer, for eksempel ved å ringe nummeret."
+          "help": "Når noen sist bekreftet at opplysningene stemmer, for eksempel ved å ringe nummeret.",
+          "requirements": ["iso27001:A.5.29"]
         }
       }
     }
@@ -369,7 +405,7 @@
         },
         {
           "heading": "Syklusen",
-          "body": "1. **Analyser** konsekvensen av et avbrudd for hver kritisk aktivitet (BIA).\n2. **Planlegg** hvordan dere håndterer og gjenoppretter innen målene.\n3. **Øv** planene og lær av det.\n4. **Gjennomgå** og forbedre, minst årlig."
+          "body": "1. **Analyser** konsekvensen av et avbrudd for hver kritisk aktivitet (BIA).\n2. **Planlegg** hvordan organisasjonen håndterer og gjenoppretter innen målene.\n3. **Øv** planene og lær av det.\n4. **Gjennomgå** og forbedre, minst årlig."
         },
         {
           "heading": "Hvor IKT kommer inn",
@@ -428,11 +464,11 @@
           "question": "Hva betyr en RPO på 4 timer?",
           "options": [
             "Aktiviteten må være tilbake innen 4 timer",
-            "Dere kan miste høyst 4 timer med data",
+            "Høyst 4 timer med data kan gå tapt",
             "Planen gjennomgås hver 4. time"
           ],
           "answer": 1,
-          "explanation": "RPO handler om datatap, og bestemmer hvor ofte dere tar sikkerhetskopi eller replikerer."
+          "explanation": "RPO handler om datatap, og bestemmer hvor ofte det tas sikkerhetskopi eller replikeres."
         }
       ],
       "pass_mark": 0.5
@@ -443,7 +479,7 @@
       "sections": [
         {
           "heading": "Fire tall",
-          "body": "- **MTPD**: hvor lenge før skaden blir uakseptabel.\n- **RTO**: hvor raskt dere vil gjenopprette (kortere enn MTPD).\n- **RPO**: hvor mye data dere kan miste.\n- **MBCO**: det reduserte tjenestenivået som er akseptabelt under gjenopprettingen."
+          "body": "- **MTPD**: hvor lenge før skaden blir uakseptabel.\n- **RTO**: hvor raskt det må gjenopprettes (kortere enn MTPD).\n- **RPO**: hvor mye data som kan gå tapt.\n- **MBCO**: det reduserte tjenestenivået som er akseptabelt under gjenopprettingen."
         },
         {
           "heading": "Hvordan de brukes",
@@ -510,7 +546,7 @@
       ],
       "quiz": [
         {
-          "question": "En IKT-gjenopprettingstest tok 6 timer mot en RTO på 4 timer. Hva bør dere gjøre?",
+          "question": "En IKT-gjenopprettingstest tok 6 timer mot en RTO på 4 timer. Hva bør du gjøre?",
           "options": [
             "Ingenting, testen ble gjennomført",
             "Registrere resultatet og lage oppfølgingstiltak for å lukke avviket",
@@ -583,7 +619,7 @@
       {
         "target": "continuity-figures",
         "title": "Nøkkeltall",
-        "body": "Hvor mange poster dere har og hvor mange som trenger oppfølging. Velg et tall for å åpne listen."
+        "body": "Hvor mange poster organisasjonen har, og hvor mange som trenger oppfølging. Velg et tall for å åpne listen."
       },
       {
         "target": "continuity-attention",
@@ -641,9 +677,19 @@
     ],
     "contacts": [
       {
+        "target": "continuity-contacts-search",
+        "title": "Hvem ringer jeg?",
+        "body": "Søk i alle listene samtidig: på navn, rolle, organisasjon eller systemet som er nede."
+      },
+      {
+        "target": "continuity-contacts-pdf",
+        "title": "Ha en kopi utenfor systemet",
+        "body": "Skriv ut eller last ned alle listene som PDF. Ved et virkelig utfall kan også CoreFlow være utilgjengelig."
+      },
+      {
         "target": "continuity-sections",
-        "title": "Krisekontakter",
-        "body": "Dette er listen for hele virksomheten. Hver plan har også egne kontakter på plansiden."
+        "title": "Felles liste og planlister",
+        "body": "Den felles listen gjelder hele organisasjonen. Hver plan kan legge til egne kontakter på plansiden."
       }
     ]
   },

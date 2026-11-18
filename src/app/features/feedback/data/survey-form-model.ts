@@ -1,4 +1,6 @@
 import {
+  SURVEY_LANGUAGES,
+  SurveyLanguage,
   AnswerValue,
   Question,
   QuestionIn,
@@ -13,6 +15,8 @@ export const MAX_OPTIONS = 20;
 export const MIN_OPTIONS = 2;
 export const DEFAULT_SCALE = 5;
 export const MAX_TEXT_ANSWER = 5000;
+/** The default follow-up threshold for a new survey (0–100; 40 = 2 of 5). */
+export const DEFAULT_THRESHOLD = 40;
 export const CHOICE_TYPES: readonly QuestionType[] = ['single_choice', 'multi_choice'];
 
 export const isChoice = (type: QuestionType) => CHOICE_TYPES.includes(type);
@@ -39,6 +43,8 @@ export interface SurveyFormValue {
   /** '' or '0'..'100'. */
   readonly low_score_threshold: string;
   readonly owner_user_id: string;
+  /** The language respondents see the survey page in. */
+  readonly language: SurveyLanguage;
   readonly questions: readonly QuestionDraft[];
 }
 
@@ -98,8 +104,10 @@ export function emptySurveyForm(): SurveyFormValue {
     thank_you_message: '',
     opens_on: '',
     closes_on: '',
-    low_score_threshold: '',
+    // A response at or below 40 / 100 (2 of 5) raises a follow-up by default.
+    low_score_threshold: String(DEFAULT_THRESHOLD),
     owner_user_id: '',
+    language: 'nb',
     questions: [],
   };
 }
@@ -114,6 +122,10 @@ export function formFromSurvey(s: Survey): SurveyFormValue {
     closes_on: s.closes_on ?? '',
     low_score_threshold: s.low_score_threshold === null ? '' : String(s.low_score_threshold),
     owner_user_id: s.owner?.id ?? '',
+    language:
+      s.language && (SURVEY_LANGUAGES as readonly string[]).includes(s.language)
+        ? s.language
+        : 'nb',
     questions: s.questions.map(draftFromQuestion),
   };
 }
@@ -194,6 +206,7 @@ export function toSurveyCreate(v: SurveyFormValue, includeQuestions = true): Sur
     closes_on: v.closes_on || null,
     low_score_threshold: v.low_score_threshold === '' ? null : Number(v.low_score_threshold),
     owner_user_id: v.owner_user_id || null,
+    language: v.language,
     ...(includeQuestions ? { questions: v.questions.map(toQuestionIn) } : {}),
   };
 }

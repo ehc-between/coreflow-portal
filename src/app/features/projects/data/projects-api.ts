@@ -20,11 +20,40 @@ import {
   ProjectList,
   ProjectListQuery,
   ProjectMember,
+  ProjectOverview,
   ProjectPlan,
   ProjectReopenBody,
   ProjectSummary,
   ProjectUpdate,
 } from './project.models';
+
+/** The part of a risk matrix the projects module reads. */
+interface MatrixLevels {
+  readonly is_default?: boolean;
+  readonly likelihood_levels?: readonly { readonly value: number }[];
+  readonly consequence_levels?: readonly { readonly value: number }[];
+}
+
+/** Level values of a risk matrix, ascending. */
+export interface RiskScale {
+  readonly likelihood: readonly number[];
+  readonly consequence: readonly number[];
+}
+
+/**
+ * A low / medium / high assistant rating on a matrix scale: the lowest level,
+ * the middle one, and the second-highest on scales of five or more ("high", not
+ * "very high").
+ */
+export function levelOnScale(level: string, values: readonly number[]): number | null {
+  if (!values.length) {
+    return null;
+  }
+  const n = values.length;
+  const index =
+    level === 'low' ? 0 : level === 'high' ? (n >= 5 ? n - 2 : n - 1) : Math.floor((n - 1) / 2);
+  return values[index];
+}
 
 /** Pages show coded errors themselves, so the generic toast is skipped. */
 const IN_PLACE = { context: new HttpContext().set(SKIP_ERROR_TOAST, true) };
@@ -65,6 +94,11 @@ export class ProjectsApi {
       ...IN_PLACE,
       params: projectListParams(query),
     });
+  }
+
+  /** Portfolio summary for the list's summary strip. */
+  overview(orgId: string): Observable<ProjectOverview> {
+    return this.api.get<ProjectOverview>(`${this.base(orgId)}/overview`, IN_PLACE);
   }
 
   get(orgId: string, id: string): Observable<ProjectDetail> {
@@ -205,5 +239,59 @@ export class ProjectsApi {
 
   deleteLesson(orgId: string, id: string, lessonId: string): Observable<void> {
     return this.api.delete<void>(`${this.one(orgId, id)}/lessons/${lessonId}`, IN_PLACE);
+  }
+
+  /** Record what a lesson became (the improvement task, risk, …); the project is linked to it too. */
+  addLessonFollowUp(
+    orgId: string,
+    id: string,
+    lessonId: string,
+    target: { readonly entity_type: string; readonly entity_id: string },
+  ): Observable<Lesson> {
+    return this.api.post<Lesson>(
+      `${this.one(orgId, id)}/lessons/${lessonId}/follow-ups`,
+      { entity_type: target.entity_type, entity_id: target.entity_id },
+      IN_PLACE,
+    );
+  }
+
+  removeLessonFollowUp(
+    orgId: string,
+    id: string,
+    lessonId: string,
+    entityType: string,
+    entityId: string,
+  ): Observable<Lesson> {
+    return this.api.delete<Lesson>(
+      `${this.one(orgId, id)}/lessons/${lessonId}/follow-ups/${entityType}/${entityId}`,
+      IN_PLACE,
+    );
+  }
+
+  /**
+   * Number of likelihood and consequence levels of the org's default risk matrix
+   * (to place an assistant risk suggestion on the org's own scale); null when
+   * unknown (no access to risk, or no matrix).
+   */
+  riskScale(orgId: string): Observable<RiskScale | null> {
+    return this.api
+      .get<{ items: readonly MatrixLevels[] }>(`v1/orgs/${orgId}/risk/matrices`, IN_PLACE)
+      .pipe(
+        map((r) => {
+          const items: readonly MatrixLevels[] = Array.isArray(r?.items) ? r.items : [];
+          const m = items.find((i) => i.is_default) ?? items[0];
+          if (!m?.likelihood_levels?.length || !m.consequence_levels?.length) {
+            return null;
+          }
+          return {
+            likelihood: m.likelihood_levels
+              .map((l) => l.value)
+              .sort((a: number, b: number) => a - b),
+            consequence: m.consequence_levels
+              .map((l) => l.value)
+              .sort((a: number, b: number) => a - b),
+          };
+        }),
+      );
   }
 }

@@ -560,7 +560,8 @@
         "intake": "Meldekanal",
         "matrices": "Risikomatriser",
         "settings": "Innstillinger",
-        "retention": "Oppbevaringsregler"
+        "retention": "Oppbevaringsregler",
+        "significanceMethod": "Vurderingsmetode for miljøaspekter"
       },
       "membersSection": "Medlemmer, avdelinger og invitasjoner"
     },
@@ -1965,11 +1966,11 @@
       "audits": "Revisjonsprogram, planer, funn og sertifiseringssykluser.",
       "management_review": "Gjennomgangsmøter med samlet grunnlag, referat og beslutninger.",
       "objectives": "Mål med målverdier, eiere, planer og målte KPI-er.",
-      "people": "Ansattregister, kompetansematrise og onboarding.",
+      "people": "Personregister, kompetanse, oppstart og avslutning.",
       "recruitment": "Stillingsbehov, kandidatløp og bakgrunnssjekker.",
       "training": "Kurs, tildelinger, gjennomføringer og fornyet opplæring.",
       "contracts": "Kontraktsregister, viktige datoer, forpliktelser og fornyelser.",
-      "suppliers": "Leverandørregister, evalueringer og oppfølging.",
+      "suppliers": "Leverandørregister, vurderinger og oppfølging.",
       "projects": "Prosjekter med milepæler, oppgaver, risikoer og endringsønsker.",
       "privacy": "Behandlingsprotokoll, DPIA, henvendelser fra registrerte og personvernbrudd.",
       "ai_governance": "Oversikt over KI-systemer, klassifisering etter KI-forordningen og konsekvensvurderinger.",
@@ -2044,7 +2045,7 @@
       "meeting": "Møte",
       "objective": "Mål",
       "kpi": "KPI",
-      "employee": "Ansatt",
+      "employee": "Person",
       "position": "Stilling",
       "competence": "Kompetanse",
       "job_requisition": "Stillingsbehov",
@@ -2055,7 +2056,7 @@
       "training_record": "Opplæringsregistrering",
       "contract": "Kontrakt",
       "supplier": "Leverandør",
-      "supplier_evaluation": "Leverandørevaluering",
+      "supplier_evaluation": "Leverandørvurdering",
       "project": "Prosjekt",
       "project_milestone": "Prosjektmilepæl",
       "project_design_review": "Gjennomgang av utforming",
@@ -2089,7 +2090,9 @@
       "external_document": "Eksternt dokument",
       "distribution_campaign": "Distribusjonskampanje",
       "document_template": "Dokumentmal",
-      "retention_rule": "Oppbevaringsregel"
+      "retention_rule": "Oppbevaringsregel",
+      "audit_certification": "Sertifisering",
+      "audit_auditor_profile": "Revisorprofil"
     },
     "links": {
       "title": "Organisasjon",
@@ -2146,8 +2149,8 @@
       "other": "leverandører"
     },
     "employee": {
-      "one": "ansatt",
-      "other": "ansatte"
+      "one": "person",
+      "other": "personer"
     }
   },
   "ui": {

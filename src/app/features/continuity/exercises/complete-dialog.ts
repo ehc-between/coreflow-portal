@@ -1,9 +1,18 @@
-import { ChangeDetectionStrategy, Component, effect, input, output, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  input,
+  output,
+  signal,
+} from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { FieldHelp } from '../../../shared/guidance/field-help';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
 import { FormField } from '../../../shared/ui/form-field/form-field';
+import { LocalDayPipe } from '../../../shared/locale/locale-pipes';
 import { SlideOver } from '../../../shared/ui/slide-over/slide-over';
 import { blankToNull, todayIso } from '../data/continuity-display';
 import { ExerciseCompleteRequest, OUTCOMES, Outcome } from '../data/continuity.models';
@@ -11,9 +20,10 @@ import { ContinuityDuration, ContinuityDurationInput } from '../shared/duration'
 
 /**
  * Record the result of an exercise: the date it was held (not in the future), the
- * outcome, the recovery time achieved (compared with the target RTO), the results
- * and the lessons learned. Completing it updates the plan's last-exercised date and,
- * for an ICT test, the service's test status.
+ * outcome, the recovery time achieved (compared with the target), the results and
+ * the lessons learned. When the achieved time misses the target the dialog says so
+ * and proposes "partly successful" (the user can still choose). Completing it updates
+ * the plan's last-exercised date and, for an ICT test, the service's test status.
  */
 @Component({
   selector: 'app-exercise-complete-dialog',
@@ -25,6 +35,7 @@ import { ContinuityDuration, ContinuityDurationInput } from '../shared/duration'
     ContinuityDurationInput,
     FieldHelp,
     FormField,
+    LocalDayPipe,
     SlideOver,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -46,19 +57,62 @@ import { ContinuityDuration, ContinuityDurationInput } from '../shared/duration'
             [value]="conductedOn()"
             (input)="conductedOn.set($any($event.target).value)"
           />
+          @if (validDate()) {
+            <p class="text-meta text-fg-subtle">{{ conductedOn() | localDay: 'longDate' }}</p>
+          }
         </app-form-field>
         @if (showErrors() && !validDate()) {
-          <p class="text-[12px] text-fail" role="alert">
+          <p class="text-meta text-fail-ink" role="alert">
             {{ 'continuity.exercises.dateRequired' | transloco }}
           </p>
         }
+        @if (successCriteria(); as criteria) {
+          <div class="rounded-tile border border-border bg-surface-2 px-3 py-2">
+            <p class="text-meta font-semibold text-fg-muted">
+              {{ 'continuity.fields.successCriteria' | transloco }}
+            </p>
+            <p class="mt-0.5 text-ui whitespace-pre-line text-fg">{{ criteria }}</p>
+          </div>
+        }
+        <div>
+          <app-form-field
+            [label]="'continuity.fields.achievedRecovery' | transloco"
+            inputId="exc-achieved"
+          >
+            <app-continuity-duration-input
+              inputId="exc-achieved"
+              [value]="achieved()"
+              (valueChange)="setAchieved($event)"
+            />
+            <app-field-help
+              scope="continuity"
+              page="exerciseDetail"
+              field="achieved_recovery_minutes"
+            />
+          </app-form-field>
+          @if (targetRto() !== null) {
+            <p class="mt-1 text-meta text-fg-subtle">
+              {{ 'continuity.exercises.targetRto' | transloco }}:
+              <app-continuity-duration [minutes]="targetRto()" />
+            </p>
+          }
+          @if (missed()) {
+            <p
+              class="mt-2 rounded-tile border border-warn/30 bg-warn-soft px-3 py-2 text-ui text-warn-ink"
+              role="status"
+              data-testid="target-missed"
+            >
+              {{ 'continuity.exercises.targetMissed' | transloco }}
+            </p>
+          }
+        </div>
         <fieldset>
-          <legend class="mb-1.5 text-[13px] font-semibold text-fg-muted">
+          <legend class="mb-1.5 text-ui font-semibold text-fg-muted">
             {{ 'continuity.fields.outcome' | transloco }}
           </legend>
           <div class="flex flex-col gap-1.5">
             @for (o of outcomes; track o) {
-              <label class="flex items-center gap-2 text-[13.5px] text-fg">
+              <label class="flex items-center gap-2 text-body text-fg">
                 <input
                   type="radio"
                   name="exc-outcome"
@@ -72,36 +126,11 @@ import { ContinuityDuration, ContinuityDurationInput } from '../shared/duration'
             }
           </div>
           @if (showErrors() && !outcome()) {
-            <p class="mt-1 text-[12px] text-fail" role="alert">
+            <p class="mt-1 text-meta text-fail-ink" role="alert">
               {{ 'continuity.exercises.outcomeRequired' | transloco }}
             </p>
           }
         </fieldset>
-        <div>
-          <div class="flex items-center gap-1">
-            <app-field-help
-              scope="continuity"
-              page="exerciseDetail"
-              field="achieved_recovery_minutes"
-            />
-          </div>
-          <app-form-field
-            [label]="'continuity.fields.achievedRecovery' | transloco"
-            inputId="exc-achieved"
-          >
-            <app-continuity-duration-input
-              inputId="exc-achieved"
-              [value]="achieved()"
-              (valueChange)="achieved.set($event)"
-            />
-          </app-form-field>
-          @if (targetRto() !== null) {
-            <p class="mt-1 text-[12px] text-fg-subtle">
-              {{ 'continuity.exercises.targetRto' | transloco }}:
-              <app-continuity-duration [minutes]="targetRto()" />
-            </p>
-          }
-        </div>
         <app-form-field [label]="'continuity.fields.results' | transloco" inputId="exc-results">
           <textarea
             id="exc-results"
@@ -111,23 +140,19 @@ import { ContinuityDuration, ContinuityDurationInput } from '../shared/duration'
             (input)="results.set($any($event.target).value)"
           ></textarea>
         </app-form-field>
-        <div>
-          <div class="flex items-center gap-1">
-            <app-field-help scope="continuity" page="exerciseDetail" field="lessons_learned" />
-          </div>
-          <app-form-field
-            [label]="'continuity.fields.lessonsLearned' | transloco"
-            inputId="exc-lessons"
-          >
-            <textarea
-              id="exc-lessons"
-              rows="4"
-              maxlength="20000"
-              [value]="lessons()"
-              (input)="lessons.set($any($event.target).value)"
-            ></textarea>
-          </app-form-field>
-        </div>
+        <app-form-field
+          [label]="'continuity.fields.lessonsLearned' | transloco"
+          inputId="exc-lessons"
+        >
+          <textarea
+            id="exc-lessons"
+            rows="4"
+            maxlength="20000"
+            [value]="lessons()"
+            (input)="lessons.set($any($event.target).value)"
+          ></textarea>
+          <app-field-help scope="continuity" page="exerciseDetail" field="lessons_learned" />
+        </app-form-field>
         @if (error(); as key) {
           <app-alert>{{ key | transloco }}</app-alert>
         }
@@ -148,6 +173,7 @@ export class ExerciseCompleteDialog {
   readonly busy = input(false);
   readonly error = input<string | null>(null);
   readonly targetRto = input<number | null>(null);
+  readonly successCriteria = input<string | null>(null);
   readonly confirmed = output<ExerciseCompleteRequest>();
   readonly cancelled = output<void>();
 
@@ -159,6 +185,12 @@ export class ExerciseCompleteDialog {
   protected readonly results = signal('');
   protected readonly lessons = signal('');
   protected readonly showErrors = signal(false);
+  /** The achieved time is longer than the target. */
+  protected readonly missed = computed(() => {
+    const target = this.targetRto();
+    const achieved = this.achieved();
+    return target !== null && achieved !== null && achieved > target;
+  });
 
   constructor() {
     effect(() => {
@@ -171,6 +203,14 @@ export class ExerciseCompleteDialog {
         this.showErrors.set(false);
       }
     });
+  }
+
+  /** A missed target proposes "partly successful" unless the user chose otherwise. */
+  protected setAchieved(minutes: number | null): void {
+    this.achieved.set(minutes);
+    if (this.missed() && (this.outcome() === '' || this.outcome() === 'successful')) {
+      this.outcome.set('partially_successful');
+    }
   }
 
   protected validDate(): boolean {

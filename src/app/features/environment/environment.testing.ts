@@ -2,6 +2,8 @@ import {
   Aspect,
   Drill,
   EmergencyPlan,
+  Emissions,
+  EnvironmentOverview,
   Measurement,
   Metric,
   ScoringMethod,
@@ -12,7 +14,16 @@ export function makeMethod(overrides: Partial<ScoringMethod> = {}): ScoringMetho
   return {
     method: 'sum',
     criteria: [
-      { key: 'severity', label: { en: 'Severity', nb: 'Alvorlighet' }, weight: 1 },
+      {
+        key: 'severity',
+        label: { en: 'Severity', nb: 'Alvorlighet' },
+        description: {
+          en: 'How much harm the impact can do',
+          nb: 'Hvor stor skade påvirkningen kan gjøre',
+        },
+        weight: 1,
+        levels: { '5': { en: 'Severe and lasting harm', nb: 'Alvorlig og varig skade' } },
+      },
       { key: 'probability', label: { en: 'Probability', nb: 'Sannsynlighet' }, weight: 1 },
       { key: 'extent', label: { en: 'Extent', nb: 'Omfang' }, weight: 1 },
       { key: 'stakeholder_concern', label: { en: 'Concern', nb: 'Bekymring' }, weight: 1 },
@@ -165,6 +176,66 @@ export function makeMeasurement(overrides: Partial<Measurement> = {}): Measureme
     can_edit: true,
     created_at: '2026-03-01T10:00:00',
     updated_at: '2026-03-01T10:00:00',
+    ...overrides,
+  };
+}
+
+export function makeOverview(overrides: Partial<EnvironmentOverview> = {}): EnvironmentOverview {
+  return {
+    aspects_total: 5,
+    aspects_significant: 2,
+    aspects_draft: 1,
+    aspects_review_overdue: 0,
+    plans_total: 2,
+    plans_active: 2,
+    plans_drill_overdue: 1,
+    plans_review_overdue: 0,
+    metrics_active: 3,
+    measurements_last_12_months: 30,
+    emissions_ytd_kg: 12500,
+    ...overrides,
+  };
+}
+
+export function makeEmissions(overrides: Partial<Emissions> = {}): Emissions {
+  return {
+    year: 2026,
+    scopes: { scope1: 3000, scope2: 1000, scope3: 0 },
+    scope_status: { scope1: 'measured', scope2: 'measured', scope3: 'not_measured' },
+    total_kg: 4000,
+    total_t: 4,
+    by_metric: [
+      {
+        metric_id: 'm-1',
+        code: 'MET-001',
+        name: 'Diesel for vans',
+        ghg_scope: 'scope1',
+        unit: 'l',
+        value: 1119.4,
+        co2e_kg: 3000,
+        emission_factor: 2.68,
+        factor_source: 'Norwegian Environment Agency',
+        factor_year: 2025,
+        previous_co2e_kg: 3300,
+        change_pct: -9.1,
+        url: '/environment/metrics/m-1',
+      },
+    ],
+    previous_year: { year: 2025, scopes: { scope1: 3300 }, total_kg: 3300 },
+    change_pct: 21.2,
+    scope_change_pct: { scope1: -9.1, scope2: null, scope3: null },
+    missing_factor: [
+      {
+        metric_id: 'm-2',
+        code: 'MET-003',
+        name: 'Water',
+        unit: 'm3',
+        category: 'water',
+        ghg_scope: null,
+        reason: 'no_factor',
+        url: '/environment/metrics/m-2',
+      },
+    ],
     ...overrides,
   };
 }

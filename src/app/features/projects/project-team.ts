@@ -12,7 +12,7 @@ import { NotificationService } from '../../core/notifications/notification.servi
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { FieldHelp } from '../../shared/guidance/field-help';
 import { AssigneeOptionsService } from '../../shared/tasks/assignee-options';
-import { Badge } from '../../shared/ui/badge/badge';
+import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
 import { Button } from '../../shared/ui/button/button';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog/confirm-dialog';
 import { Icon } from '../../shared/ui/icon/icon';
@@ -27,23 +27,23 @@ import { ProjectsApi } from './data/projects-api';
  */
 @Component({
   selector: 'app-project-team',
-  imports: [TranslocoPipe, FieldHelp, Badge, Button, ConfirmDialog, Icon],
+  imports: [TranslocoPipe, FieldHelp, StatusBadge, Button, ConfirmDialog, Icon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mb-3 flex items-center justify-between gap-2">
-      <h2 class="font-display text-[15px] font-bold text-fg">
+    <div class="mb-2 flex flex-wrap items-center gap-1.5">
+      <h2 class="font-display text-card font-bold text-fg">
         {{ 'projects.team.title' | transloco }}
-        <span class="ml-1 text-[13px] font-normal text-fg-subtle">{{ members().length }}</span>
+        <span class="ml-1 text-ui font-normal text-fg-subtle">{{ members().length }}</span>
       </h2>
+      <app-field-help scope="projects" page="detail" field="team" />
     </div>
-    <app-field-help scope="projects" page="detail" field="team" />
     <ul class="mt-2 flex flex-col divide-y divide-border" data-testid="team">
       @for (m of members(); track m.user_id) {
         <li class="flex flex-wrap items-center gap-2 py-2">
-          <span class="min-w-0 flex-1">
-            <span class="block truncate text-[13.5px] font-semibold text-fg">{{ m.name }}</span>
+          <span class="min-w-[9rem] flex-1">
+            <span class="block truncate text-body font-semibold text-fg">{{ m.name }}</span>
             @if (m.is_owner) {
-              <app-badge tone="accent">{{ 'projects.team.owner' | transloco }}</app-badge>
+              <app-status-badge meaning="lifecycle" value="active" labelKey="projects.team.owner" />
             }
           </span>
           @if (canEdit() && !m.is_owner) {
@@ -52,7 +52,7 @@ import { ProjectsApi } from './data/projects-api';
             </label>
             <select
               [id]="'cf-team-role-' + m.user_id"
-              class="h-8 rounded-[8px] border border-border bg-bg px-2 text-[12.5px] text-fg"
+              class="h-9 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
               [disabled]="busy()"
               (change)="setRole(m.user_id, $any($event.target).value)"
             >
@@ -64,7 +64,7 @@ import { ProjectsApi } from './data/projects-api';
             </select>
             <button
               type="button"
-              class="rounded-[8px] p-1.5 text-fg-subtle hover:bg-surface-2 hover:text-fg"
+              class="inline-flex h-8 w-8 items-center justify-center rounded-tile text-fg-subtle hover:bg-surface-2 hover:text-fg"
               [attr.aria-label]="'projects.team.removeNamed' | transloco: { name: m.name }"
               (click)="removing.set(m)"
               [attr.data-testid]="'remove-member-' + m.user_id"
@@ -72,25 +72,23 @@ import { ProjectsApi } from './data/projects-api';
               <app-icon name="x" [size]="14" />
             </button>
           } @else {
-            <span class="text-[12.5px] text-fg-muted">{{
-              'projects.roles.' + m.role | transloco
-            }}</span>
+            <span class="text-ui text-fg-muted">{{ 'projects.roles.' + m.role | transloco }}</span>
           }
         </li>
       } @empty {
-        <li class="py-2 text-[13px] text-fg-muted">{{ 'projects.team.empty' | transloco }}</li>
+        <li class="py-2 text-ui text-fg-muted">{{ 'projects.team.empty' | transloco }}</li>
       }
     </ul>
 
     @if (canEdit()) {
       <div class="mt-3 flex flex-wrap items-end gap-2">
         <div class="flex min-w-[160px] flex-1 flex-col gap-1">
-          <label for="cf-team-add" class="text-[12.5px] font-semibold text-fg-muted">
+          <label for="cf-team-add" class="text-meta font-semibold text-fg-muted">
             {{ 'projects.team.addPerson' | transloco }}
           </label>
           <select
             id="cf-team-add"
-            class="h-9 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
+            class="h-9 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
             (change)="pick.set($any($event.target).value)"
             data-testid="team-add-user"
           >
@@ -103,12 +101,12 @@ import { ProjectsApi } from './data/projects-api';
           </select>
         </div>
         <div class="flex flex-col gap-1">
-          <label for="cf-team-add-role" class="text-[12.5px] font-semibold text-fg-muted">
+          <label for="cf-team-add-role" class="text-meta font-semibold text-fg-muted">
             {{ 'projects.team.role' | transloco }}
           </label>
           <select
             id="cf-team-add-role"
-            class="h-9 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
+            class="h-9 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
             (change)="pickRole.set($any($event.target).value)"
           >
             @for (r of roles; track r) {
@@ -166,7 +164,8 @@ export class ProjectTeam {
     return this.assignees
       .options()
       .users.map((o) => ({ id: o.value.slice(5), label: o.label }))
-      .filter((u) => !taken.has(u.id));
+      .filter((u) => !taken.has(u.id))
+      .sort((a, b) => a.label.localeCompare(b.label));
   });
 
   constructor() {

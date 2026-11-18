@@ -8,29 +8,30 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../../core/ai/page-context';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
-import { AskPanelService } from '../../ask/ask-panel.service';
-import { GuideIntro } from '../../../shared/guidance/guide-intro';
-import { LessonView } from '../../../shared/guidance/lesson';
 import { TeachingEmpty } from '../../../shared/guidance/teaching-empty';
-import { TourButton } from '../../../shared/guidance/tour-button';
 import { TourStepDirective } from '../../../shared/guidance/tour-step.directive';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { RecordListPage } from '../../../shared/kit/record-list-page';
 import { SavedView } from '../../../shared/kit/saved-views.service';
-import { LocalDayPipe } from '../../../shared/locale/locale-pipes';
-import { Badge } from '../../../shared/ui/badge/badge';
+import { CoverageChip } from '../../../shared/requirement-links/coverage-chip';
 import { Button } from '../../../shared/ui/button/button';
-import { Card } from '../../../shared/ui/card/card';
+import { EmptyState } from '../../../shared/ui/empty-state/empty-state';
+import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { ModuleNav } from '../../../shared/ui/module-nav/module-nav';
 import { Pager } from '../../../shared/ui/pager/pager';
+import { RecordRow, RecordRowHeader } from '../../../shared/ui/record-row/record-row';
+import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { ContinuityApi } from '../data/continuity-api';
-import { readinessTone } from '../data/continuity-display';
+import { badge, formatDuration } from '../data/continuity-display';
 import {
   ICT_STATUSES,
   IctListItem,
@@ -39,10 +40,16 @@ import {
   READINESS_STATES,
   ReadinessState,
 } from '../data/continuity.models';
-import { ContinuityNav } from '../shared/continuity-nav';
-import { ContinuityDuration } from '../shared/duration';
+import {
+  CONTINUITY_NAV,
+  ContinuityAskButton,
+  ContinuityTargetsLegend,
+  sectionCrumbs,
+} from '../shared/continuity-page';
 
 const PAGE_SIZE = 25;
+/** Issue badges shown per row before "+N". */
+const MAX_ISSUES = 2;
 
 export interface IctFilters {
   readonly status: IctStatus | '';
@@ -70,37 +77,77 @@ export function ictQuery(q: string, f: IctFilters, offset: number): IctListQuery
 }
 
 /**
+ * "RTO: klarer 8 t · krav 4 t" plus the time measured in the last recovery test: what the service can do against what the
+ * business needs, in plain words.
+ */
+export function ictCapabilityText(
+  row: IctListItem,
+  t: (key: string, params?: Record<string, unknown>) => string,
+): string {
+  const pair = (label: string, can: number | null, need: number | null) =>
+    t('continuity.ict.capabilityPair', {
+      label,
+      can: formatDuration(can, t),
+      need: need === null ? t('continuity.ict.noRequirement') : formatDuration(need, t),
+    });
+  // The RPO pair is on the detail page; the row keeps to what fits in one line.
+  const parts = [
+    pair(
+      t('continuity.fields.rtoShort'),
+      row.achievable_rto_minutes,
+      row.readiness.required_rto_minutes,
+    ),
+  ];
+  if (row.last_test_recovery_minutes !== null && row.last_test_recovery_minutes !== undefined) {
+    parts.push(
+      t('continuity.ict.lastTestTook', {
+        duration: formatDuration(row.last_test_recovery_minutes, t),
+      }),
+    );
+  }
+  return parts.join(' · ');
+}
+
+const SELECT =
+  'h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg focus:border-accent focus:outline-none';
+
+/**
  * ICT readiness (`/continuity/ict-systems`, ISO 27001 A.5.30): each ICT service with
- * its achievable RTO/RPO against what the dependent BIAs require, its last test and
- * its readiness (ready, attention, gap) with the issues found.
+ * what it can recover in against what the BIAs that depend on it require, the
+ * requirements it documents, its readiness and the issues found (a missed target in
+ * the last test included).
  */
 @Component({
   selector: 'app-ict-list',
   imports: [
-    RouterLink,
     TranslocoPipe,
-    LocalDayPipe,
-    Badge,
     Button,
-    Card,
-    ContinuityDuration,
-    ContinuityNav,
-    GuideIntro,
+    ContinuityAskButton,
+    ContinuityTargetsLegend,
+    CoverageChip,
+    EmptyState,
+    ErrorState,
+    HelpStrip,
     Icon,
-    LessonView,
+    LoadingState,
+    ModuleNav,
     Pager,
     RecordListPage,
+    RecordRow,
+    RecordRowHeader,
+    StatusBadge,
     TeachingEmpty,
-    TourButton,
     TourStepDirective,
     WhyItMatters,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-record-list-page
-      titleKey="continuity.ict.title"
+      titleKey="continuity.nav.ict"
+      descriptionKey="continuity.ict.subtitle"
       scope="continuity"
       page="ict"
+      [breadcrumbs]="crumbs"
       searchPlaceholderKey="continuity.ict.searchPlaceholder"
       [query]="q()"
       [filters]="viewFilters()"
@@ -108,142 +155,125 @@ export function ictQuery(q: string, f: IctFilters, offset: number): IctListQuery
       (search)="search($event)"
       (viewApplied)="applyView($event)"
     >
-      <div intro>
-        <p class="mt-1 text-[14px] text-fg-muted">{{ 'continuity.ict.subtitle' | transloco }}</p>
-        <app-continuity-nav />
-      </div>
-
-      <ng-container toolbar>
-        <app-tour-button scope="continuity" tour="ict" />
-        <app-button variant="ghost" size="sm" (click)="askReadiness()">
-          <app-icon name="spark" [size]="14" />
-          {{ 'continuity.ai.readiness' | transloco }}
+      <app-continuity-ask-button
+        secondary
+        labelKey="continuity.ai.readiness"
+        promptKey="continuity.ai.prompts.readiness"
+      />
+      @if (canWrite()) {
+        <app-button primary appTourStep="continuity-ict-new" (click)="create()">
+          <app-icon name="plus" [size]="14" />
+          {{ 'continuity.ict.new' | transloco }}
         </app-button>
-        @if (canWrite()) {
-          <app-button size="sm" appTourStep="continuity-ict-new" (click)="create()">
-            <app-icon name="plus" [size]="14" />
-            {{ 'continuity.ict.new' | transloco }}
-          </app-button>
-        }
-      </ng-container>
+      }
+
+      <app-module-nav nav labelKey="continuity.nav.label" [items]="nav" />
+      <app-help-strip help scope="continuity" page="ict" tour="ict" lesson="ict-readiness" />
 
       <ng-container filters>
-        <div class="flex flex-wrap items-center gap-2" appTourStep="continuity-ict-filters">
-          <label class="sr-only" for="ict-f-readiness">{{
-            'continuity.fields.readiness' | transloco
-          }}</label>
-          <select
-            id="ict-f-readiness"
-            class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
-            (change)="setFilter('readiness', $any($event.target).value)"
-          >
-            <option value="" [selected]="!filters().readiness">
-              {{ 'continuity.filters.anyReadiness' | transloco }}
+        <label class="sr-only" for="ict-f-readiness">{{
+          'continuity.fields.readiness' | transloco
+        }}</label>
+        <select
+          id="ict-f-readiness"
+          appTourStep="continuity-ict-filters"
+          [class]="select"
+          (change)="setFilter('readiness', $any($event.target).value)"
+        >
+          <option value="" [selected]="!filters().readiness">
+            {{ 'continuity.filters.anyReadiness' | transloco }}
+          </option>
+          @for (r of readinessStates; track r) {
+            <option [value]="r" [selected]="filters().readiness === r">
+              {{ 'continuity.readiness.' + r | transloco }}
             </option>
-            @for (r of readinessStates; track r) {
-              <option [value]="r" [selected]="filters().readiness === r">
-                {{ 'continuity.readiness.' + r | transloco }}
-              </option>
-            }
-          </select>
-          <label class="sr-only" for="ict-f-status">{{
-            'continuity.fields.status' | transloco
-          }}</label>
-          <select
-            id="ict-f-status"
-            class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
-            (change)="setFilter('status', $any($event.target).value)"
-          >
-            <option value="" [selected]="!filters().status">
-              {{ 'continuity.filters.anyStatus' | transloco }}
+          }
+        </select>
+        <label class="sr-only" for="ict-f-status">{{
+          'continuity.fields.status' | transloco
+        }}</label>
+        <select
+          id="ict-f-status"
+          [class]="select"
+          (change)="setFilter('status', $any($event.target).value)"
+        >
+          <option value="" [selected]="!filters().status">
+            {{ 'continuity.filters.anyStatus' | transloco }}
+          </option>
+          @for (s of statuses; track s) {
+            <option [value]="s" [selected]="filters().status === s">
+              {{ 'continuity.ictStatus.' + s | transloco }}
             </option>
-            @for (s of statuses; track s) {
-              <option [value]="s" [selected]="filters().status === s">
-                {{ 'continuity.ictStatus.' + s | transloco }}
-              </option>
-            }
-          </select>
-        </div>
+          }
+        </select>
       </ng-container>
 
-      <div class="mb-4 flex flex-col gap-3">
-        <app-guide-intro scope="continuity" page="ict" />
-        <div><app-lesson scope="continuity" lesson="ict-readiness" /></div>
-      </div>
-
-      <app-card [padded]="false">
-        @switch (state()) {
-          @case ('loading') {
-            <p class="py-10 text-center text-[14px] text-fg-muted">
-              {{ 'continuity.common.loading' | transloco }}
-            </p>
-          }
-          @case ('error') {
-            <p class="py-10 text-center text-[14px] text-fail" role="alert">
-              {{ 'continuity.common.loadFailed' | transloco }}
-            </p>
-          }
-          @default {
-            @if (rows().length === 0) {
-              <p class="py-10 text-center text-[14px] text-fg-muted">
-                {{ 'continuity.filters.noMatch' | transloco }}
-              </p>
-            } @else {
-              <ul class="divide-y divide-border" data-testid="ict-rows">
-                @for (row of rows(); track row.id) {
-                  <li class="flex flex-col gap-1.5 px-4 py-3 md:flex-row md:items-center md:gap-3">
-                    <div class="min-w-0 flex-1">
-                      <a
-                        [routerLink]="['/continuity/ict-systems', row.id]"
-                        class="flex items-baseline gap-2 text-[13.5px] font-semibold text-fg hover:underline"
-                      >
-                        <span class="font-mono text-[12px] text-fg-muted">{{ row.code }}</span>
-                        <span class="truncate">{{ row.name }}</span>
-                      </a>
-                      <span
-                        class="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[12px] text-fg-subtle"
-                      >
-                        @if (row.provider) {
-                          <span>{{ row.provider }}</span>
-                        }
-                        <span>
-                          {{ 'continuity.ict.rtoVsRequired' | transloco }}:
-                          <app-continuity-duration [minutes]="row.achievable_rto_minutes" />
-                          /
-                          <app-continuity-duration [minutes]="row.readiness.required_rto_minutes" />
-                        </span>
-                        <span>
-                          {{
-                            'continuity.ict.dependentBias'
-                              | transloco: { count: row.readiness.dependent_bia_count }
-                          }}
-                        </span>
-                        @if (row.last_tested_on) {
-                          <span>
-                            {{
-                              'continuity.ict.lastTested'
-                                | transloco: { date: (row.last_tested_on | localDay) }
-                            }}
-                          </span>
-                        }
-                      </span>
-                    </div>
-                    <span class="flex flex-wrap items-center gap-2 text-[12.5px] text-fg-muted">
-                      <app-badge [tone]="tone(row.readiness.state)">
-                        {{ 'continuity.readiness.' + row.readiness.state | transloco }}
-                      </app-badge>
-                      @for (issue of row.readiness.issues; track issue) {
-                        <span
-                          class="rounded-full bg-surface-2 px-2 py-0.5 text-[11px] text-fg-muted"
-                        >
-                          {{ 'continuity.readinessIssue.' + issue | transloco }}
-                        </span>
-                      }
-                    </span>
-                  </li>
-                }
-              </ul>
-              <div class="border-t border-border px-4 py-2.5">
+      @switch (state()) {
+        @case ('loading') {
+          <app-loading-state [rows]="5" />
+        }
+        @case ('error') {
+          <app-error-state (retry)="reload()" />
+        }
+        @default {
+          @if (rows().length === 0) {
+            <app-empty-state
+              icon="search"
+              titleKey="ui.empty.noResults"
+              ctaKey="continuity.filters.clear"
+              ctaVariant="secondary"
+              (cta)="clearFilters()"
+            />
+          } @else {
+            <app-continuity-targets-legend class="mb-2" [mtpd]="false" />
+            <div
+              role="list"
+              class="overflow-hidden rounded-card border border-border bg-surface"
+              data-testid="ict-rows"
+            >
+              <app-record-row-header dateKind="next" />
+              @for (row of rows(); track row.id) {
+                <app-record-row
+                  [code]="row.code"
+                  [title]="row.name"
+                  [subtitle]="capability(row)"
+                  [link]="['/continuity/ict-systems', row.id]"
+                  [owner]="row.owner?.name"
+                  [date]="row.readiness.next_test_due_on"
+                  dateKind="next"
+                  [overdue]="row.readiness.issues.includes('test_overdue')"
+                >
+                  <app-coverage-chip
+                    coverage
+                    class="max-w-full [&_[data-testid=coverage-chip]]:flex-wrap [&_[data-testid=coverage-chip]]:whitespace-normal"
+                    entityType="continuity_ict_system"
+                    [entityId]="row.id"
+                  />
+                  <app-status-badge
+                    badges
+                    [meaning]="readiness(row).meaning"
+                    [value]="readiness(row).value"
+                    [labelKey]="'continuity.readiness.' + row.readiness.state"
+                  />
+                  @for (issue of row.readiness.issues.slice(0, maxIssues); track issue) {
+                    <span
+                      badges
+                      class="text-meta"
+                      [class]="isGap(issue) ? 'font-semibold text-fail-ink' : 'text-warn-ink'"
+                      >{{ 'continuity.readinessIssue.' + issue | transloco }}</span
+                    >
+                  }
+                  @if (row.readiness.issues.length > maxIssues) {
+                    <span badges class="text-meta text-fg-muted">{{
+                      'continuity.common.more'
+                        | transloco: { count: row.readiness.issues.length - maxIssues }
+                    }}</span>
+                  }
+                </app-record-row>
+              }
+            </div>
+            @if (total() > pageSize) {
+              <div class="mt-3">
                 <app-pager
                   [offset]="offset()"
                   [pageSize]="pageSize"
@@ -255,22 +285,16 @@ export function ictQuery(q: string, f: IctFilters, offset: number): IctListQuery
             }
           }
         }
-      </app-card>
+      }
 
-      <div class="mt-6">
-        <app-why-it-matters scope="continuity" page="ict" />
-      </div>
-
-      <div empty class="flex flex-col gap-4">
-        <app-guide-intro scope="continuity" page="ict" />
-        <app-teaching-empty
-          scope="continuity"
-          page="ict"
-          [showAction]="canWrite()"
-          (action)="create()"
-        />
-        <app-why-it-matters scope="continuity" page="ict" />
-      </div>
+      <app-teaching-empty
+        empty
+        scope="continuity"
+        page="ict"
+        [showAction]="canWrite()"
+        (action)="create()"
+      />
+      <app-why-it-matters below scope="continuity" page="ict" />
     </app-record-list-page>
   `,
 })
@@ -278,13 +302,16 @@ export class IctList {
   private readonly api = inject(ContinuityApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly language = inject(LanguageService);
-  private readonly ask = inject(AskPanelService);
   private readonly router = inject(Router);
 
+  protected readonly nav = CONTINUITY_NAV;
+  protected readonly crumbs = sectionCrumbs('ict');
+  protected readonly select = SELECT;
   protected readonly statuses = ICT_STATUSES;
   protected readonly readinessStates = READINESS_STATES;
   protected readonly pageSize = PAGE_SIZE;
-  protected readonly tone = readinessTone;
+  protected readonly maxIssues = MAX_ISSUES;
+  protected readonly readiness = (row: IctListItem) => badge.readiness(row.readiness.state);
 
   protected readonly canWrite = computed(() =>
     (this.selectedOrg.currentOrg()?.permissions ?? []).includes('continuity:write'),
@@ -315,13 +342,27 @@ export class IctList {
       module: 'continuity',
       entityType: 'continuity_ict_system',
       view: 'list',
-      title: this.language.translate('continuity.ict.title'),
+      title: this.language.translate('continuity.nav.ict'),
     }));
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();
       const query = ictQuery(this.q(), this.filters(), this.offset());
       untracked(() => this.load(orgId, query));
     });
+  }
+
+  protected capability(row: IctListItem): string {
+    return ictCapabilityText(row, (key, params) => this.language.translate(key, params));
+  }
+
+  /** Issues that make the service miss the requirement (shown in red). */
+  protected isGap(issue: string): boolean {
+    return (
+      issue === 'rto_gap' ||
+      issue === 'rpo_gap' ||
+      issue === 'tested_rto_missed' ||
+      issue === 'last_test_failed'
+    );
   }
 
   protected search(text: string): void {
@@ -339,12 +380,18 @@ export class IctList {
     this.filters.set(ictFiltersFromView(view.filters));
   }
 
+  protected clearFilters(): void {
+    this.offset.set(0);
+    this.q.set('');
+    this.filters.set({ status: '', readiness: '' });
+  }
+
   protected create(): void {
     void this.router.navigate(['/continuity/ict-systems/new']);
   }
 
-  protected askReadiness(): void {
-    this.ask.showWith(this.language.translate('continuity.ai.prompts.readiness'));
+  protected reload(): void {
+    this.load(this.selectedOrg.currentOrgId(), ictQuery(this.q(), this.filters(), this.offset()));
   }
 
   private load(orgId: string | null, query: IctListQuery): void {

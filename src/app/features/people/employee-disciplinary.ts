@@ -14,13 +14,13 @@ import { NotificationService } from '../../core/notifications/notification.servi
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { FieldHelp } from '../../shared/guidance/field-help';
 import { LocalDayPipe } from '../../shared/locale/locale-pipes';
-import { Badge } from '../../shared/ui/badge/badge';
 import { Button } from '../../shared/ui/button/button';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog/confirm-dialog';
 import { FormField } from '../../shared/ui/form-field/form-field';
 import { Icon } from '../../shared/ui/icon/icon';
 import { PeopleApi } from './data/people-api';
-import { disciplinaryTone, textOrNull, todayIso } from './data/people-display';
+import { disciplinaryLook, textOrNull, todayIso } from './data/people-display';
+import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
 import { peopleErrorKey } from './data/people-errors';
 import {
   DISCIPLINARY_STATUSES,
@@ -47,15 +47,21 @@ interface CaseDraft {
  */
 @Component({
   selector: 'app-people-employee-disciplinary',
-  imports: [TranslocoPipe, LocalDayPipe, FieldHelp, Badge, Button, ConfirmDialog, FormField, Icon],
+  imports: [
+    TranslocoPipe,
+    LocalDayPipe,
+    FieldHelp,
+    StatusBadge,
+    Button,
+    ConfirmDialog,
+    FormField,
+    Icon,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section aria-labelledby="cf-emp-dc-h" id="disciplinary">
       <div class="mb-1 flex flex-wrap items-center justify-between gap-2">
-        <h2
-          id="cf-emp-dc-h"
-          class="flex items-center gap-2 font-display text-[15px] font-bold text-fg"
-        >
+        <h2 id="cf-emp-dc-h" class="flex items-center gap-2 text-card font-bold text-fg">
           <app-icon name="lock" [size]="14" class="text-fg-subtle" />
           {{ 'people.disciplinary.title' | transloco }}
         </h2>
@@ -64,23 +70,23 @@ interface CaseDraft {
           {{ 'people.disciplinary.add' | transloco }}
         </app-button>
       </div>
-      <p class="mb-3 text-[12.5px] text-fg-muted">
+      <p class="mb-3 text-meta text-fg-muted">
         {{ 'people.disciplinary.restricted' | transloco }}
       </p>
       @switch (state()) {
         @case ('loading') {
-          <p class="py-4 text-[13px] text-fg-muted" role="status">
+          <p class="py-4 text-ui text-fg-muted" role="status">
             {{ 'people.common.loading' | transloco }}
           </p>
         }
         @case ('error') {
-          <p class="py-4 text-[13px] text-fail" role="alert">
+          <p class="py-4 text-ui text-fail" role="alert">
             {{ 'people.common.loadFailed' | transloco }}
           </p>
         }
         @default {
           @if (items().length === 0) {
-            <p class="py-3 text-[13px] text-fg-muted">
+            <p class="py-3 text-ui text-fg-muted">
               {{ 'people.disciplinary.empty' | transloco }}
             </p>
           } @else {
@@ -88,15 +94,15 @@ interface CaseDraft {
               @for (c of items(); track c.id) {
                 <li class="flex flex-wrap items-start gap-2 py-2.5">
                   <div class="min-w-0 flex-1">
-                    <p
-                      class="flex flex-wrap items-center gap-2 text-[13.5px] font-semibold text-fg"
-                    >
+                    <p class="flex flex-wrap items-center gap-2 text-body font-semibold text-fg">
                       {{ 'people.disciplinaryTypes.' + c.case_type | transloco }}
-                      <app-badge [tone]="tone(c.status)">{{
-                        'people.disciplinaryStatus.' + c.status | transloco
-                      }}</app-badge>
+                      <app-status-badge
+                        [meaning]="look(c.status).meaning"
+                        [value]="look(c.status).value"
+                        [labelKey]="'people.disciplinaryStatus.' + c.status"
+                      />
                     </p>
-                    <p class="text-[12px] text-fg-subtle">
+                    <p class="text-meta text-fg-subtle">
                       {{
                         'people.disciplinary.opened' | transloco: { date: (c.opened_on | localDay) }
                       }}
@@ -109,12 +115,12 @@ interface CaseDraft {
                       }
                     </p>
                     @if (c.summary) {
-                      <p class="mt-1 text-[12.5px] whitespace-pre-line text-fg-muted">
+                      <p class="mt-1 text-meta whitespace-pre-line text-fg-muted">
                         {{ c.summary }}
                       </p>
                     }
                     @if (c.outcome) {
-                      <p class="mt-1 text-[12.5px] whitespace-pre-line text-fg-muted">
+                      <p class="mt-1 text-meta whitespace-pre-line text-fg-muted">
                         <span class="font-semibold text-fg"
                           >{{ 'people.fields.outcome' | transloco }}:</span
                         >
@@ -231,7 +237,7 @@ export class EmployeeDisciplinarySection {
 
   protected readonly types = DISCIPLINARY_TYPES;
   protected readonly statuses = DISCIPLINARY_STATUSES;
-  protected readonly tone = disciplinaryTone;
+  protected readonly look = disciplinaryLook;
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
   protected readonly items = signal<readonly DisciplinaryCase[]>([]);
   protected readonly draft = signal<CaseDraft | null>(null);

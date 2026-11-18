@@ -15,13 +15,14 @@
     "env_metric": "Environmental indicator",
     "learning_progress": "Learning progress",
     "legal_basis_assessment": "Legal basis assessment",
-    "people_awareness": "Awareness activity",
+    "people_awareness": "Awareness record",
     "people_checklist": "Checklist",
     "people_disciplinary": "Personnel case",
     "record_type": "Record type",
     "retention_schedule": "Retention schedule",
     "risk_register": "Risk register",
-    "workflow_definition": "Workflow"
+    "workflow_definition": "Workflow",
+    "audit_auditor_profile": "Auditor profile"
   },
   "linkTypes": {
     "relates_to": {
@@ -329,7 +330,8 @@
       "review_input": "Input to this management review",
       "text_match": "Similar wording",
       "ai": "Suggested by the assistant",
-      "other": "Probably related"
+      "other": "Probably related",
+      "supplier_named": "Names this supplier"
     },
     "origin": {
       "auto": "Automatic",
@@ -419,7 +421,11 @@
     "supplier": {
       "to_contract": "Contract with this supplier",
       "to_evaluation": "Supplier evaluation",
-      "to_risk": "Supplier risk"
+      "to_risk": "Supplier risk",
+      "to_deviation": "Deviation for this supplier",
+      "to_processor": "Register as data processor",
+      "to_dpa": "Data processing agreement",
+      "to_transfer": "Transfer assessment (data outside the EU/EEA)"
     },
     "dpia": {
       "to_risk": "Risk from this DPIA"
@@ -433,7 +439,12 @@
       "to_document": "Document that meets the obligation"
     },
     "customer_feedback": {
-      "to_deviation": "Deviation from this feedback"
+      "to_deviation": "Deviation from this feedback",
+      "to_risk": "Risk this feedback reveals",
+      "to_task": "Follow-up task",
+      "to_objective": "Improvement goal",
+      "to_incident": "Security incident",
+      "to_data_subject_request": "Data subject request"
     },
     "management_review": {
       "to_task": "Action (task)",
@@ -443,6 +454,9 @@
       "to_document": "Document change decided in the review"
     },
     "formMissing": "This form is not available yet. Create the record from its own page and link it from the Related tab.",
+    "survey": {
+      "to_task": "Task from the results"
+    },
     "opportunity": {
       "to_task": "Action (task)",
       "to_objective": "Objective that pursues the opportunity",
@@ -479,7 +493,8 @@
       "to_risk": "Risk for the process",
       "to_task": "Task for the process",
       "to_audit_plan": "Internal audit of the process",
-      "to_kpi": "KPI for the process"
+      "to_kpi": "KPI for the process",
+      "to_bia": "Impact analysis (BIA) for the process"
     },
     "objective": {
       "to_kpi": "KPI that measures the objective",
@@ -499,6 +514,73 @@
       "to_deviation": "Deviation about this contract",
       "to_task": "Task on this contract",
       "to_dpa": "Data processing agreement for this contract"
+    },
+    "asset": {
+      "to_ict_system": "ICT service for continuity"
+    },
+    "bia": {
+      "to_plan": "Continuity plan for the activity",
+      "to_risk": "Assess the risk of the activity"
+    },
+    "continuity_exercise": {
+      "to_deviation": "Deviation from the exercise",
+      "to_risk": "Risk from the exercise",
+      "to_task": "Follow-up task"
+    },
+    "continuity_plan": {
+      "to_deviation": "Register the incident as a deviation"
+    },
+    "continuity_ict_system": {
+      "to_task": "Task to close the readiness gap"
+    },
+    "env_aspect": {
+      "to_objective": "Environmental objective for this aspect",
+      "to_risk": "Risk or opportunity from this aspect",
+      "to_document": "Procedure that controls this aspect",
+      "to_task": "Task to follow it up",
+      "to_emergency_plan": "Emergency plan for this aspect"
+    },
+    "emergency_plan": {
+      "to_deviation": "Deviation from this event",
+      "to_task": "Task to follow it up"
+    },
+    "env_drill": {
+      "to_deviation": "Deviation from this drill or event",
+      "to_task": "Task from the lessons learned"
+    },
+    "env_metric": {
+      "to_objective": "Environmental objective for this indicator",
+      "to_kpi": "KPI that tracks this indicator",
+      "to_deviation": "Deviation: off target"
+    },
+    "job_application": {
+      "to_deviation": "Deviation from this application",
+      "to_risk": "Risk from this application",
+      "to_task": "Follow-up task"
+    },
+    "job_requisition": {
+      "to_deviation": "Deviation from this requisition",
+      "to_risk": "Risk from this requisition",
+      "to_task": "Follow-up task"
+    },
+    "candidate": {
+      "to_data_subject_request": "Request from this candidate (access or erasure)"
+    },
+    "supplier_evaluation": {
+      "to_deviation": "Deviation from this evaluation"
+    },
+    "project": {
+      "to_risk": "Risk for the project",
+      "to_opportunity": "Opportunity from the project",
+      "to_deviation": "Deviation in the project",
+      "to_task": "Task in the project",
+      "to_document": "Design output (document)",
+      "to_dpia": "DPIA for the project",
+      "to_change_request": "Change request"
+    },
+    "project_design_review": {
+      "to_task": "Action from the review (task)",
+      "to_deviation": "Deviation from the review"
     }
   },
   "frameworks": {

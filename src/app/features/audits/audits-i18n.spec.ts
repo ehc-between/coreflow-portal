@@ -11,20 +11,25 @@ import {
   CERTIFICATION_STATUSES,
   CHECKLIST_RESULTS,
   CHECKLIST_SOURCES,
+  EFFECTIVENESS_RESULTS,
   EXTERNAL_PARTY_TYPES,
   FINDING_ACTIONS,
   FINDING_SORTS,
   FINDING_STATUSES,
+  FINDING_STATUS_FILTERS,
   FINDING_TYPES,
   FRAMEWORKS,
   PLAN_ACTIONS,
   PLAN_KINDS,
   PLAN_SORTS,
   PLAN_STATUSES,
+  PLAN_STATUS_FILTERS,
   PROGRAMME_ACTIONS,
   PROGRAMME_STATUSES,
+  REPORT_OUTCOMES,
   RISK_LEVELS,
 } from './data/audit.models';
+import { COVERAGE_VIEWS } from './programmes/programme-coverage';
 import { AUDIT_SECTIONS } from './shared/audits-nav';
 
 type Tree = Record<string, unknown>;
@@ -115,6 +120,20 @@ describe('audits i18n and guidance', () => {
     ['findingAction', FINDING_ACTIONS],
     ['findings.sorts', FINDING_SORTS],
     ['certificationStatus', CERTIFICATION_STATUSES],
+    ['effectiveness', EFFECTIVENESS_RESULTS],
+    ['reportOutcome', REPORT_OUTCOMES],
+    ['reportOutcome.statement', REPORT_OUTCOMES],
+    ['filters.planStatus', PLAN_STATUS_FILTERS],
+    ['filters.findingStatus', FINDING_STATUS_FILTERS],
+    ['planDetail.next.internal', PLAN_STATUSES],
+    ['planDetail.next.external', PLAN_STATUSES],
+    ['findingDetail.next.nc', FINDING_STATUSES],
+    ['findingDetail.next.other', FINDING_STATUSES],
+    ['coverage.view', COVERAGE_VIEWS],
+    ['coverage.summary', COVERAGE_VIEWS],
+    ['coverage.caption', COVERAGE_VIEWS],
+    ['coverage.empty', COVERAGE_VIEWS],
+    ['report.signatureRole', ['lead_auditor', 'approver']],
     ['taskStatus', TASK_STATUSES],
     ['errors', AUDIT_ERROR_CODES],
     ['notifications', EVENT_NAMES],
@@ -150,6 +169,13 @@ describe('audits i18n and guidance', () => {
         }
       }
       expect(guide.tours.overview.length).toBeGreaterThan(0);
+    }
+  });
+
+  it('follows the nb glossary (dokumentasjon, standard, felles ISO-krav)', () => {
+    const banned = /\b(bevis\w*|rammeverk\w*|ISO HS|klausul\w*|dashbord)\b/i;
+    for (const file of [nb, guideNb]) {
+      expect(strings(file).filter((s) => banned.test(s))).toEqual([]);
     }
   });
 

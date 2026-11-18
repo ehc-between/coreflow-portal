@@ -560,7 +560,8 @@
         "intake": "Reporting channel",
         "matrices": "Risk matrices",
         "settings": "Settings",
-        "retention": "Retention rules"
+        "retention": "Retention rules",
+        "significanceMethod": "Significance method"
       },
       "membersSection": "Members, departments and invitations"
     },
@@ -1965,7 +1966,7 @@
       "audits": "Audit programme, plans, findings and certification cycles.",
       "management_review": "Review meetings with compiled inputs, minutes and decisions.",
       "objectives": "Objectives with targets, owners, plans and measured KPIs.",
-      "people": "Employee register, competence matrix and onboarding.",
+      "people": "People register, competence, onboarding and offboarding.",
       "recruitment": "Job requisitions, candidate pipeline and screening records.",
       "training": "Courses, assignments, completion records and re-training.",
       "contracts": "Contract register, key dates, obligations and renewals.",
@@ -2044,7 +2045,7 @@
       "meeting": "Meeting",
       "objective": "Objective",
       "kpi": "KPI",
-      "employee": "Employee",
+      "employee": "Person",
       "position": "Position",
       "competence": "Competence",
       "job_requisition": "Job requisition",
@@ -2089,7 +2090,9 @@
       "external_document": "External document",
       "distribution_campaign": "Distribution campaign",
       "document_template": "Document template",
-      "retention_rule": "Retention rule"
+      "retention_rule": "Retention rule",
+      "audit_certification": "Certification",
+      "audit_auditor_profile": "Auditor profile"
     },
     "links": {
       "title": "Organisation",
@@ -2146,8 +2149,8 @@
       "other": "suppliers"
     },
     "employee": {
-      "one": "employee",
-      "other": "employees"
+      "one": "person",
+      "other": "people"
     }
   },
   "ui": {

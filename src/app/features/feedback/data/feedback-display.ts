@@ -1,16 +1,21 @@
-import { BadgeTone } from '../../../shared/ui/badge/badge';
+import { KpiTone } from '../../../shared/ui/kpi-tile/kpi-tile';
 import {
   FeedbackAction,
   FeedbackKind,
   FeedbackSentiment,
   FeedbackSeverity,
   FeedbackStatus,
+  MonthlyStat,
   OPEN_FEEDBACK_STATUSES,
   QuestionType,
   SurveyStatus,
 } from './feedback.models';
 
-/** i18n keys and badge tones for feedback and survey values (scope `feedback`). */
+/**
+ * i18n keys and small display helpers for feedback and survey values (scope
+ * `feedback`). Badge colours come from the shared tone map (`app-status-badge`);
+ * the kind of feedback is not a status, so it is shown as a neutral badge.
+ */
 
 export const feedbackKindKey = (kind: FeedbackKind | string) => `feedback.kinds.${kind}`;
 export const feedbackChannelKey = (channel: string) => `feedback.channels.${channel}`;
@@ -20,93 +25,35 @@ export const feedbackSentimentKey = (s: FeedbackSentiment | string) => `feedback
 export const feedbackActionKey = (a: FeedbackAction | string) => `feedback.actions.${a}`;
 export const surveyStatusKey = (status: SurveyStatus | string) => `feedback.surveyStatus.${status}`;
 export const questionTypeKey = (type: QuestionType | string) => `feedback.questionTypes.${type}`;
+export const replyChannelKey = (channel: string) => `feedback.replyChannels.${channel}`;
+export const subjectTypeKey = (type: string) => `feedback.subjectTypes.${type}`;
 
 /** `-received_on` -> `received_onDesc` (the sort option's i18n key suffix). */
 export function sortKey(sort: string): string {
   return sort.startsWith('-') ? `${sort.slice(1)}Desc` : sort;
 }
 
-export function feedbackStatusTone(status: FeedbackStatus | string): BadgeTone {
-  switch (status) {
-    case 'new':
-      return 'info';
-    case 'acknowledged':
-    case 'in_progress':
-      return 'warn';
-    case 'resolved':
-      return 'pass';
-    default:
-      return 'neutral';
-  }
-}
-
-export function feedbackKindTone(kind: FeedbackKind | string): BadgeTone {
-  switch (kind) {
-    case 'complaint':
-      return 'fail';
-    case 'compliment':
-      return 'pass';
-    case 'suggestion':
-      return 'accent';
-    case 'inquiry':
-      return 'info';
-    default:
-      return 'neutral';
-  }
-}
-
-export function severityTone(severity: FeedbackSeverity | string | null): BadgeTone {
-  switch (severity) {
-    case 'critical':
-    case 'high':
-      return 'fail';
-    case 'medium':
-      return 'warn';
-    default:
-      return 'neutral';
-  }
-}
-
-export function sentimentTone(sentiment: FeedbackSentiment | string | null): BadgeTone {
-  switch (sentiment) {
-    case 'positive':
-      return 'pass';
-    case 'negative':
-      return 'fail';
-    default:
-      return 'neutral';
-  }
-}
-
-export function surveyStatusTone(status: SurveyStatus | string): BadgeTone {
-  switch (status) {
-    case 'open':
-      return 'pass';
-    case 'draft':
-      return 'info';
-    default:
-      return 'neutral';
-  }
-}
-
 export function isOpenFeedback(status: FeedbackStatus | string | undefined | null): boolean {
   return !!status && (OPEN_FEEDBACK_STATUSES as readonly string[]).includes(status);
 }
 
-/** NPS ranges from -100 to 100: green from 30, amber from 0, otherwise red. */
-export function npsTone(nps: number | null | undefined): 'pass' | 'warn' | 'fail' | 'neutral' {
+/**
+ * The tile colour of a net promoter score (−100 to 100): green from 30, amber
+ * from 0, otherwise amber too. A low score is something to work on, not a failure.
+ */
+export function npsLevel(nps: number | null | undefined): KpiTone {
   if (nps === null || nps === undefined) {
     return 'neutral';
   }
-  return nps >= 30 ? 'pass' : nps >= 0 ? 'warn' : 'fail';
+  return nps >= 30 ? 'pass' : 'warn';
 }
 
-/** A 0–100 score: green from 75, amber from 50, otherwise red. */
-export function scoreTone(score: number | null | undefined): 'pass' | 'warn' | 'fail' | 'neutral' {
+/** The tile colour of a 0–100 score: green from 75, amber below. */
+export function scoreLevel(score: number | null | undefined): KpiTone {
   if (score === null || score === undefined) {
     return 'neutral';
   }
-  return score >= 75 ? 'pass' : score >= 50 ? 'warn' : 'fail';
+  return score >= 75 ? 'pass' : 'warn';
 }
 
 /** Round for display (one decimal), or null. */
@@ -133,4 +80,61 @@ export function isoDay(date: Date): string {
 export function addDays(days: number, from: Date = new Date()): string {
   const d = new Date(from.getFullYear(), from.getMonth(), from.getDate() + days);
   return isoDay(d);
+}
+
+/** A 0–100 survey threshold on a 1–5 rating scale ("2 of 5"), or null. */
+export function thresholdOnFive(threshold: number | null | undefined): number | null {
+  if (threshold === null || threshold === undefined || Number.isNaN(threshold)) {
+    return null;
+  }
+  // Scores map 1..5 linearly onto 0..100 (1 = 0, 5 = 100).
+  return Math.max(1, Math.min(5, Math.round((threshold / 100) * 4 + 1)));
+}
+
+/**
+ * The months of a trend worth showing: leading and trailing months without any
+ * feedback are dropped, gaps in between are kept so the chart stays honest.
+ */
+export function trimmedMonths(monthly: readonly MonthlyStat[]): readonly MonthlyStat[] {
+  const first = monthly.findIndex((m) => m.total > 0);
+  if (first < 0) {
+    return [];
+  }
+  let last = monthly.length - 1;
+  while (last > first && monthly[last].total === 0) {
+    last--;
+  }
+  return monthly.slice(first, last + 1);
+}
+
+/** A download file name: `<slug>-<YYYY-MM-DD>.<ext>`. */
+export function exportFileName(title: string, format: string, today: Date = new Date()): string {
+  const slug =
+    title
+      .toLowerCase()
+      .normalize('NFKD')
+      .replace(/æ/g, 'ae')
+      .replace(/ø/g, 'o')
+      .replace(/å/g, 'a')
+      .replace(/[^\w\s-]/g, '')
+      .trim()
+      .replace(/[\s_]+/g, '-')
+      .replace(/-+/g, '-')
+      .slice(0, 60) || 'feedback';
+  return `${slug}-${isoDay(today)}.${format}`;
+}
+
+/** Trigger a browser download of a Blob. */
+export function saveBlob(blob: Blob, filename: string): void {
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = filename;
+  anchor.click();
+  URL.revokeObjectURL(url);
+}
+
+/** Router link of a backend portal `url` (`/suppliers/…`), else null. */
+export function portalLink(url: string | null | undefined): string | null {
+  return url && url.startsWith('/') && !url.startsWith('//') ? url : null;
 }

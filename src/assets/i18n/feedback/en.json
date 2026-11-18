@@ -18,18 +18,16 @@
     "insights": "Insights"
   },
   "list": {
-    "title": "Customer feedback",
     "subtitle": "Complaints, compliments, suggestions and questions from customers, and how each one was handled.",
     "searchPlaceholder": "Search by title, code, customer or text",
     "new": "Register feedback",
     "noMatch": "No feedback matches these filters.",
-    "received": "Received {{ date }}",
-    "score": "Satisfaction {{ score }}/5",
-    "owner": "Owner: {{ name }}",
-    "due": "Reply by {{ date }}",
-    "noDue": "No reply date",
     "surveyFilter": "Showing the feedback raised from one survey.",
-    "clearSurveyFilter": "Show all feedback"
+    "clearSurveyFilter": "Show all feedback",
+    "countOf": "Showing {{ shown }} of {{ total }}",
+    "resetFilters": "Reset filters",
+    "noMatchBody": "Try fewer filters, or reset them to see all feedback.",
+    "categoryValue": "Category: {{ category }}"
   },
   "filters": {
     "status": "Status",
@@ -45,7 +43,19 @@
     "anyOwner": "Any owner",
     "mine": "Owned by me",
     "sort": "Sort",
-    "overdue": "Reply overdue"
+    "overdue": "Reply overdue",
+    "severity": "Impact",
+    "anySeverity": "Any impact",
+    "justified": "Justified complaint",
+    "justifiedOptions": {
+      "any": "Justified or not",
+      "yes": "Justified",
+      "no": "Not justified"
+    },
+    "department": "Department",
+    "anyDepartment": "All departments",
+    "category": "Category",
+    "anyCategory": "Any category"
   },
   "sorts": {
     "updated_atDesc": "Recently updated",
@@ -105,25 +115,27 @@
     "titles": {
       "acknowledge": "Acknowledge this feedback?",
       "start": "Start handling this feedback?",
-      "resolve": "Mark as resolved",
+      "resolve": "Mark as resolved?",
       "close": "Close this feedback?",
       "reopen": "Reopen this feedback?"
     },
     "messages": {
       "acknowledge": "The customer's feedback is marked as received.",
       "start": "The feedback is marked as being worked on.",
-      "resolve": "Describe what was done. For a complaint, the resolution is required.",
+      "resolve": "Describe what was done for the customer.",
       "close": "A closed record is read-only until it is reopened.",
-      "reopen": "The record goes back to in progress so it can be handled again."
-    }
+      "reopen": "The record goes back to in progress so it can be handled again.",
+      "resolveComplaint": "Say whether the complaint was justified and what was done. A justified complaint that needs corrective action should get a deviation, so the cause is fixed."
+    },
+    "justifiedHint": "Was the customer right that something went wrong on your side?",
+    "createDeviation": "Register a deviation for the cause when the complaint is resolved"
   },
   "workflow": {
-    "complaintRule": "A complaint needs a resolution before it can be resolved, and must be resolved before it is closed.",
     "hint": {
       "new": "Let the customer know you have received this, then start handling it.",
       "acknowledged": "Received. Start handling it when someone picks it up.",
-      "in_progress": "Being handled. Record the resolution and mark it as resolved when done.",
-      "resolved": "Resolved. Close it once the customer has been told, or reopen it if needed.",
+      "in_progress": "Being handled. Assess it, tell the customer and mark it as resolved when it is done.",
+      "resolved": "Resolved. Close it once the customer has accepted the outcome, or reopen it.",
       "closed": "Closed. Reopen it if the customer comes back on the same matter."
     }
   },
@@ -134,7 +146,7 @@
     "channel": "Channel",
     "status": "Status",
     "severity": "Impact",
-    "sentiment": "Sentiment",
+    "sentiment": "Impression",
     "category": "Category",
     "tags": "Tags",
     "customerName": "Customer name",
@@ -169,9 +181,12 @@
     "ownerKeep": "Keep the current owner",
     "currentOwner": "Current owner",
     "sections": {
-      "what": "What was said",
+      "what": "What the customer said",
       "customer": "Customer",
-      "handling": "Handling"
+      "handling": "Handling",
+      "about": "What it is about",
+      "impact": "How serious it is",
+      "outcome": "Outcome"
     },
     "scoreOption": {
       "1": "1 – Very dissatisfied",
@@ -185,7 +200,26 @@
       "kindRequired": "Choose the kind of feedback.",
       "email": "Enter a valid email address.",
       "tooManyTags": "Use at most 20 tags.",
-      "dueBeforeReceived": "The reply date can't be before the date it was received."
+      "dueBeforeReceived": "The reply date can't be before the date it was received.",
+      "tooManySubjects": "Link at most 20 records."
+    },
+    "editCrumb": "Edit",
+    "titlePlaceholder": "For example: \"Delivery two days late\"",
+    "fixProblems": "Fix the highlighted fields before saving.",
+    "scoreUnknown": "Not known",
+    "aboutHint": "Link what the feedback concerns. A supplier or process then lists it too, and the figures can be broken down.",
+    "impactHint": "Impact says how serious it is; satisfaction is what the customer said.",
+    "categoryHint": "Pick a category already in use, so the statistics stay together.",
+    "dueHint": "When the customer should hear back from you.",
+    "dueDefault": "Filled in from the default reply time for {{ kind }}: {{ days }} days.",
+    "dueDefaultWorking": "Filled in from the default reply time for {{ kind }}: {{ days }} working days.",
+    "dueNoDefault": "There is no default reply time for {{ kind }}. Set a date if you promise one.",
+    "kindHint": {
+      "complaint": "The customer is dissatisfied and expects an answer or a fix.",
+      "compliment": "Praise: worth recording, it shows what customers value.",
+      "suggestion": "An idea for doing better. It can become an improvement goal.",
+      "inquiry": "The customer asks for information.",
+      "other": "Anything else the customer told you."
     }
   },
   "detail": {
@@ -202,7 +236,10 @@
     "openTasks": "Open follow-up tasks: {{ count }}",
     "closedNotice": "This feedback is closed and read-only. Reopen it to make changes.",
     "deleteTitle": "Delete this feedback?",
-    "deleteMessage": "{{ code }} and its open follow-up tasks will be removed. The audit trail is kept."
+    "deleteMessage": "{{ code }} and its open follow-up tasks will be removed. The audit trail is kept.",
+    "receivedVia": "via {{ channel }}",
+    "noCustomer": "No customer details were recorded.",
+    "addCustomer": "Add customer details"
   },
   "deviations": {
     "title": "Linked deviations",
@@ -215,18 +252,11 @@
     "noHits": "No deviations match.",
     "alreadyLinked": "Linked",
     "none": "No deviations are linked.",
-    "unlink": "Remove the link to {{ title }}"
+    "unlink": "Remove the link to {{ title }}",
+    "alsoRelated": "Linked deviations also show under the Related tab."
   },
   "reply": {
-    "title": "Reply to the customer",
-    "intro": "Let the assistant draft a reply from this record. Check it before you send it.",
     "run": "Draft a reply",
-    "notesLabel": "Notes for the draft",
-    "notesPlaceholder": "Optional: what the reply should say or the tone to use",
-    "generated": "Draft by the assistant – check before sending",
-    "copy": "Copy",
-    "discard": "Discard",
-    "copied": "Copied to the clipboard.",
     "copyFailed": "Could not copy to the clipboard."
   },
   "themes": {
@@ -236,7 +266,9 @@
     "generated": "Analysis by the assistant – check it against the records",
     "count": "{{ count }} records",
     "trends": "Trends",
-    "recommendations": "Suggested improvements"
+    "recommendations": "Suggested improvements",
+    "createTask": "Create task",
+    "taskDescription": "From the theme analysis of the survey {{ code }} {{ title }}."
   },
   "surveys": {
     "title": "Satisfaction surveys",
@@ -249,7 +281,7 @@
     "named": "Asks for name and email",
     "closesOn": "Closes {{ date }}",
     "responses": "{{ count }} responses",
-    "averageScore": "Score {{ score }}/100",
+    "averageScore": "Score {{ score }} of 100",
     "noScore": "No score yet"
   },
   "surveyStatus": {
@@ -295,7 +327,7 @@
     "opensOn": "Opens on",
     "closesOn": "Closes on",
     "anonymous": "Anonymous (don't ask for name or email)",
-    "lowScoreThreshold": "Follow-up threshold (0–100)",
+    "lowScoreThreshold": "Create a follow-up when the score is at or below",
     "thankYouMessage": "Thank-you message",
     "questionLabel": "Question",
     "questionType": "Question type",
@@ -303,7 +335,8 @@
     "options": "Options",
     "required": "Required",
     "scale": "Scale",
-    "publishedAt": "Published"
+    "publishedAt": "Published",
+    "language": "Survey language"
   },
   "surveyForm": {
     "newTitle": "New satisfaction survey",
@@ -343,7 +376,10 @@
       "labelRequired": "Write the question.",
       "options": "Give between 2 and 20 different options.",
       "scale": "The scale must be from 3 to 10."
-    }
+    },
+    "languageHint": "The language respondents see the page in. Write the questions in it.",
+    "thresholdHint": "Scores run from 0 to 100. This is about {{ five }} of 5 on a rating question.",
+    "thresholdOff": "Leave it empty for no automatic follow-up."
   },
   "surveyDetail": {
     "accepting": "Accepting answers",
@@ -352,13 +388,16 @@
     "noQuestions": "No questions yet. Edit the survey to add some.",
     "noThreshold": "No automatic follow-up",
     "summary": "Survey",
-    "relatedFeedback": "Feedback raised from this survey",
     "deleteTitle": "Delete this survey?",
-    "deleteMessage": "{{ code }} and its public link will be removed. Feedback already raised from it is kept."
+    "deleteMessage": "{{ code }} and its public link will be removed. Feedback already raised from it is kept.",
+    "requiredBadge": "required",
+    "followUpRule": "Automatic follow-up",
+    "thresholdValue": "At a score of {{ value }} or lower (about {{ five }} of 5)",
+    "followUps": "Follow-ups from low scores: {{ count }}"
   },
   "share": {
     "title": "Public link",
-    "intro": "Anyone with this link can answer, without signing in. Share it by email, on a receipt or as a QR code.",
+    "intro": "Anyone with this link can answer, without signing in. Share it by email, in a newsletter or on a receipt.",
     "linkLabel": "Public survey link",
     "copy": "Copy link",
     "copied": "Link copied.",
@@ -380,7 +419,9 @@
     "answered": "{{ count }} answered",
     "average": "average {{ value }}",
     "npsValue": "NPS {{ value }}",
-    "noComments": "No comments yet."
+    "noComments": "No comments yet.",
+    "scoreHint": "0–100, where 100 is best",
+    "scales": "The score turns every rating answer into 0–100. NPS goes from −100 to 100: the share who would recommend you minus the share who would not."
   },
   "responses": {
     "title": "Responses",
@@ -417,38 +458,69 @@
     "submit": "Send answers",
     "thanksTitle": "Thank you!",
     "thanksBody": "Your answers have been received.",
-    "privacy": "Your answers go to the organisation that sent you this survey and are used to improve its products and services."
+    "privacy": "Your answers go to the organisation that sent you this survey and are used to improve its products and services.",
+    "privacyNamed": "{{ controller }} is responsible for your answers. Your name and email are only used to reply to you, and you can leave them out.",
+    "privacyLink": "Read the privacy notice"
   },
   "insights": {
-    "title": "Customer satisfaction insights",
-    "subtitle": "How satisfied customers are, what they complain about and how quickly you respond.",
+    "title": "Customer satisfaction",
+    "subtitle": "How satisfied customers are, what they complain about and how quickly you answer. Use it in the management review.",
     "period": "Period",
     "months": "Last {{ count }} months",
     "range": "{{ from }} – {{ to }}",
-    "total": "Feedback received",
-    "openComplaints": "Open complaints",
-    "overdue": "Replies overdue",
-    "satisfaction": "Average satisfaction (1–5)",
-    "satisfactionCount": "{{ count }} scored",
-    "daysToResolve": "Average days to resolve",
-    "surveyResponses": "Survey responses",
-    "surveyScore": "Survey score (0–100)",
-    "nps": "Net promoter score",
     "byKind": "By kind",
     "byStatus": "By status",
     "byChannel": "By channel",
-    "bySentiment": "By sentiment",
+    "bySentiment": "By impression",
     "trend": "Monthly trend",
     "month": "Month",
-    "noData": "No feedback in this period."
-  },
-  "lessons": {
-    "link": "Lesson: {{ title }} ({{ minutes }} min)"
+    "noData": "No feedback in this period.",
+    "toManagementReview": "Use in management review",
+    "tiles": {
+      "total": "Feedback received",
+      "openComplaints": "Open complaints",
+      "overdue": "Replies overdue",
+      "daysToResolve": "Days to resolve",
+      "satisfaction": "Satisfaction (1–5)",
+      "surveyScore": "Survey score (0–100)",
+      "nps": "Net promoter score",
+      "surveyResponses": "Survey answers"
+    },
+    "hints": {
+      "total": "{{ count }} of them complaints",
+      "openComplaints": "Received, not yet resolved",
+      "overdue": "Past the promised reply date",
+      "daysToResolve": "Average from received to resolved",
+      "satisfaction": "5 is very satisfied · {{ count }} scores",
+      "surveyScore": "100 is best · {{ count }} answers",
+      "nps": "−100 to 100 · above 0 is good · {{ count }} answers",
+      "surveyResponses": "Answers to your surveys"
+    },
+    "scales": "Satisfaction is what customers told you (1–5); the survey score turns survey ratings into 0–100; NPS is how many would recommend you.",
+    "handling": {
+      "title": "How complaints are handled",
+      "intro": "For each complaint: was it assessed, was it justified, and did the customer get an answer?",
+      "none": "No complaints in this period.",
+      "assessed": "Assessed",
+      "justified": "Justified",
+      "replied": "Reply logged",
+      "ofTotal": "{{ count }} of {{ total }} ({{ percent }} %)",
+      "openJustified": "Show the justified complaints"
+    },
+    "byCategory": "By category",
+    "rowLabel": "{{ label }}: {{ count }}. Show them",
+    "legendOther": "Other feedback",
+    "chartLabel": "Feedback per month, complaints shown separately",
+    "showTable": "Show as a table"
   },
   "ask": {
     "summarise": "Summarise this customer feedback: what happened, how it has been handled and what is still open.",
     "resolution": "What makes a good resolution of a customer complaint, and what should I record about it?",
-    "surveyResults": "Summarise this survey's results and suggest what we should improve first."
+    "surveyResults": "Summarise this survey's results and suggest what we should improve first.",
+    "button": "Ask about this",
+    "kind": "How do I tell a complaint from other feedback, and why does it matter?",
+    "severity": "How should I judge the impact of this feedback?",
+    "assessment": "How do I decide whether this complaint is justified, and what should I record about the root cause?"
   },
   "notices": {
     "created": "{{ code }} registered.",
@@ -471,7 +543,13 @@
       "publish": "{{ code }} published. Share the link to collect answers.",
       "close": "{{ code }} closed.",
       "reopen": "{{ code }} reopened."
-    }
+    },
+    "replyLogged": "Reply logged. The customer is marked as informed.",
+    "replyDeleted": "Reply deleted.",
+    "assessmentSaved": "Assessment saved.",
+    "subjectsSaved": "Links saved.",
+    "settingsSaved": "Settings saved.",
+    "taskCreated": "Task created. You find it under Tasks."
   },
   "errors": {
     "forbidden": "You don't have permission to do this.",
@@ -503,7 +581,10 @@
     "too_many_attempts": "Too many answers have been sent from here. Try again later.",
     "no_feedback": "There is no feedback to analyse in this period.",
     "entity_required": "Open a feedback record first.",
-    "module_disabled": "Customer feedback is not enabled for this organisation."
+    "module_disabled": "Customer feedback is not enabled for this organisation.",
+    "assessment_required": "Say whether the complaint was justified before you resolve it.",
+    "invalid_subject": "That kind of record can not be linked here.",
+    "invalid_privacy_notice_url": "Use a full web address starting with https://."
   },
   "notifications": {
     "feedbackCreated": "Feedback registered: {{ code }} {{ title }}",
@@ -528,7 +609,8 @@
     "surveyDeleted": "Survey deleted: {{ code }} {{ title }}",
     "surveyResponseReceived": "New survey response: {{ code }} {{ title }}",
     "surveyResponseDeleted": "Survey response deleted: {{ code }} {{ title }}",
-    "surveyLowScore": "Low survey score needs follow-up: {{ code }} {{ title }}"
+    "surveyLowScore": "Low survey score needs follow-up: {{ code }} {{ title }}",
+    "feedbackReplyLogged": "Reply to the customer logged: {{ code }} {{ title }}"
   },
   "timeline": {
     "feedbackCreated": "Feedback registered",
@@ -553,6 +635,138 @@
     "surveyDeleted": "Deleted",
     "surveyResponseReceived": "Response received",
     "surveyResponseDeleted": "Response deleted",
-    "surveyLowScore": "Low score received"
+    "surveyLowScore": "Low score received",
+    "feedbackReplyLogged": "Reply to the customer logged"
+  },
+  "next": {
+    "title": "Next step",
+    "unacknowledged": {
+      "title": "Confirm receipt of new complaints ({{ count }})",
+      "why": "The oldest is {{ code }} {{ title }}. Customers should hear within a day that their complaint has arrived."
+    }
+  },
+  "kpis": {
+    "openComplaints": "Open complaints",
+    "openComplaintsHint": "{{ count }} complaints in the last 12 months",
+    "overdue": "Replies overdue",
+    "overdueHint": "Past the reply date",
+    "new": "Not yet acknowledged",
+    "newHint": "New, waiting for a first answer",
+    "satisfaction": "Satisfaction",
+    "satisfactionHint": "Average of 1–5, from {{ count }} scores"
+  },
+  "replyChannels": {
+    "email": "Email",
+    "phone": "Phone",
+    "letter": "Letter",
+    "in_person": "In person",
+    "web": "Website or portal",
+    "other": "Other"
+  },
+  "subjectTypes": {
+    "supplier": "Supplier",
+    "contract": "Contract",
+    "process": "Process",
+    "asset": "Asset",
+    "interested_party": "Interested party",
+    "project": "Project",
+    "ai_system": "AI system"
+  },
+  "gaps": {
+    "assessment": "Decide whether the complaint is justified",
+    "assessmentAction": "Assess",
+    "root_cause": "Record the root cause",
+    "root_causeAction": "Add the cause",
+    "deviation": "Corrective action is needed, but no deviation is linked",
+    "deviationAction": "Register a deviation",
+    "reply": "No reply to the customer has been logged",
+    "replyAction": "Log a reply"
+  },
+  "assessment": {
+    "title": "Complaint assessment",
+    "intro": "An auditor looks for this on every complaint: was it justified, why did it happen, and was it put right?",
+    "justified": "Was the complaint justified?",
+    "correctiveAction": "Is corrective action needed?",
+    "customerAccepted": "Did the customer accept the outcome?",
+    "rootCause": "Root cause",
+    "rootCausePlaceholder": "Why did it happen? For example: \"The carrier skipped the delivery slot.\"",
+    "noRootCause": "No root cause recorded yet.",
+    "start": "Assess the complaint",
+    "change": "Change",
+    "save": "Save assessment",
+    "answers": {
+      "yes": "Yes",
+      "no": "No",
+      "unset": "Not assessed yet"
+    }
+  },
+  "replies": {
+    "title": "Replies to the customer",
+    "log": "Log a reply to the customer",
+    "none": "No reply has been logged yet. Log what you told the customer, so it is on record.",
+    "noneInformed": "The customer has been told the outcome, but no reply is logged. Log it, so it is on record.",
+    "by": "by {{ name }}",
+    "delete": "Delete this reply",
+    "deleteTitle": "Delete this reply?",
+    "deleteMessage": "The reply is removed from the log. The activity history keeps a trace.",
+    "dialogTitle": "Log a reply to the customer",
+    "dialogMessage": "Record what you told the customer and how. The customer is then marked as informed.",
+    "sentOn": "Sent on",
+    "future": "The date can not be in the future.",
+    "channel": "How",
+    "body": "What you told the customer",
+    "bodyPlaceholder": "Paste or write the reply",
+    "bodyHint": "The assistant can draft a reply from the record. Check it before you send it.",
+    "save": "Log the reply"
+  },
+  "subjects": {
+    "title": "What it is about",
+    "hint": "Link the supplier, contract, process or other record the feedback concerns. It then shows on that record too.",
+    "edit": "Link records",
+    "save": "Save links",
+    "none": "Not linked to any record yet.",
+    "searchLabel": "Find a supplier, contract, process or other record",
+    "placeholder": "Search suppliers, contracts, processes, assets …",
+    "searching": "Searching …",
+    "noResults": "No matching records.",
+    "remove": "Remove {{ name }}"
+  },
+  "export": {
+    "button": "Export",
+    "formats": {
+      "xlsx": "Excel (.xlsx)",
+      "csv": "CSV (.csv)",
+      "pdf": "PDF (.pdf)"
+    },
+    "as": {
+      "xlsx": "Export as Excel",
+      "csv": "Export as CSV",
+      "pdf": "Export as PDF"
+    },
+    "logFile": "Customer feedback log",
+    "insightsFile": "Customer satisfaction"
+  },
+  "settings": {
+    "title": "Customer feedback settings",
+    "crumb": "Settings",
+    "subtitle": "Default reply times and the privacy notice for surveys.",
+    "readOnly": "Only people who can manage customer feedback can change these settings.",
+    "responseTitle": "Default reply time",
+    "responseIntro": "New feedback gets a reply date from this, so the owner is reminded and late replies show as overdue.",
+    "noDefault": "No default",
+    "workingDays": "Count working days (skip weekends)",
+    "emptyMeansNone": "Leave a field empty for no default reply date for that kind.",
+    "privacyTitle": "Privacy notice for surveys",
+    "privacyIntro": "Surveys that ask for a name or email link to this page, so respondents can read how their data is used.",
+    "privacyUrl": "Web address of the privacy notice",
+    "save": "Save settings",
+    "errors": {
+      "days": "Use a whole number of days from 1 to 365.",
+      "url": "Use a full web address starting with https://."
+    }
+  },
+  "surveyLanguages": {
+    "nb": "Norwegian (Bokmål)",
+    "en": "English"
   }
 }

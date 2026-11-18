@@ -119,15 +119,17 @@ describe('SuppliersApi', () => {
 
   it('drives the evaluation lifecycle', () => {
     api.createEvaluation(ORG, 's-1', { kind: 'initial', lang: 'nb' }).subscribe();
-    const create = http.expectOne(url('/s-1/evaluations'));
+    const create = http.expectOne((r) => r.url === url('/s-1/evaluations'));
     expect(create.request.body).toEqual({ kind: 'initial', lang: 'nb' });
+    expect(create.request.params.get('lang')).toBe('nb');
     create.flush({});
 
     api.updateEvaluation(ORG, 'e-1', { answers: { q1: { value: 'yes' } } }).subscribe();
     expect(http.expectOne(url('/evaluations/e-1')).request.method).toBe('PATCH');
 
-    api.submitEvaluation(ORG, 'e-1').subscribe();
-    expect(http.expectOne(url('/evaluations/e-1/submit')).request.method).toBe('POST');
+    api.submitEvaluation(ORG, 'e-1', 'nb').subscribe();
+    const submit = http.expectOne((r) => r.url === url('/evaluations/e-1/submit'));
+    expect(submit.request.params.get('lang')).toBe('nb');
 
     api.reopenEvaluation(ORG, 'e-1', '').subscribe();
     expect(http.expectOne(url('/evaluations/e-1/reopen')).request.body).toEqual({ reason: null });
@@ -145,6 +147,20 @@ describe('SuppliersApi', () => {
 
     api.deleteEvaluation(ORG, 'e-1').subscribe();
     expect(http.expectOne(url('/evaluations/e-1')).request.method).toBe('DELETE');
+  });
+
+  it('reads the agreements hub and filters on follow-up flags', () => {
+    api.agreements(ORG, 's-1').subscribe();
+    expect(http.expectOne(url('/s-1/agreements')).request.method).toBe('GET');
+    api
+      .list(ORG, { attention: true, attention_code: ['dpa_missing', 'certificate_expired'] })
+      .subscribe();
+    const list = http.expectOne((r) => r.url === url(''));
+    expect(list.request.params.get('attention')).toBe('true');
+    expect(list.request.params.get('attention_code')).toBe('dpa_missing,certificate_expired');
+    api.listEvaluations(ORG, { status: ['completed'] }, 'nb').subscribe();
+    const evs = http.expectOne((r) => r.url === url('/evaluations'));
+    expect(evs.request.params.get('lang')).toBe('nb');
   });
 
   it('manages questionnaire templates in the requested language', () => {

@@ -12,21 +12,26 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import {
   DURATION_UNITS,
   DurationUnit,
-  durationLabel,
+  durationParts,
   splitDuration,
   toMinutes,
 } from '../data/continuity-display';
 
-/** A duration in minutes, shown in the largest whole unit ("4 hours", "2 days"). */
+/** A duration in minutes, the same way everywhere ("4 t", "6 t 50 min", "1 d 2 t"). */
 @Component({
   selector: 'app-continuity-duration',
   imports: [TranslocoPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `{{ label().key | transloco: label().params }}`,
+  template: `@for (part of parts(); track $index) {
+    @if (!$first) {
+      &#32;
+    }
+    {{ part.key | transloco: part.params }}
+  }`,
 })
 export class ContinuityDuration {
   readonly minutes = input<number | null | undefined>(null);
-  protected readonly label = computed(() => durationLabel(this.minutes()));
+  protected readonly parts = computed(() => durationParts(this.minutes()));
 }
 
 /**

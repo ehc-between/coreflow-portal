@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
-import { TranslocoPipe } from '@jsverse/transloco';
 import { TourStepDirective } from '../../../shared/guidance/tour-step.directive';
+import { ModuleNav, ModuleNavItem } from '../../../shared/ui/module-nav/module-nav';
 
 export const AUDIT_SECTIONS = [
   { key: 'overview', path: '/audits', exact: true },
@@ -12,34 +11,27 @@ export const AUDIT_SECTIONS = [
   { key: 'auditors', path: '/audits/auditors', exact: false },
 ] as const;
 
-/** Section links of the audit module (overview, audits, programmes, findings, …). */
+export const AUDIT_NAV_ITEMS: readonly ModuleNavItem[] = AUDIT_SECTIONS.map((s) => ({
+  labelKey: `audits.nav.${s.key}`,
+  link: s.path,
+  exact: s.exact,
+  testId: `audits-nav-${s.key}`,
+}));
+
+/**
+ * Sub-navigation of the audit module (overview, audits, programmes, findings,
+ * certifications, auditors) on the shared `app-module-nav`, so the active tab is
+ * underlined like everywhere else.
+ */
 @Component({
   selector: 'app-audits-nav',
-  imports: [RouterLink, RouterLinkActive, TranslocoPipe, TourStepDirective],
+  imports: [ModuleNav, TourStepDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
-  template: `
-    <nav
-      [attr.aria-label]="'audits.nav.label' | transloco"
-      class="mt-3 flex gap-1 overflow-x-auto border-b border-border"
-      [appTourStep]="'audits-nav'"
-    >
-      @for (s of sections; track s.key) {
-        <a
-          [routerLink]="s.path"
-          routerLinkActive="border-accent text-fg"
-          [routerLinkActiveOptions]="{ exact: s.exact }"
-          #rla="routerLinkActive"
-          [attr.aria-current]="rla.isActive ? 'page' : null"
-          class="-mb-px border-b-2 border-transparent px-3 py-2 text-[13px] font-semibold whitespace-nowrap text-fg-muted hover:text-fg focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
-          [attr.data-testid]="'audits-nav-' + s.key"
-        >
-          {{ 'audits.nav.' + s.key | transloco }}
-        </a>
-      }
-    </nav>
-  `,
+  template: `<div [appTourStep]="'audits-nav'">
+    <app-module-nav labelKey="audits.nav.label" [items]="items" />
+  </div>`,
 })
 export class AuditsNav {
-  protected readonly sections = AUDIT_SECTIONS;
+  protected readonly items = AUDIT_NAV_ITEMS;
 }

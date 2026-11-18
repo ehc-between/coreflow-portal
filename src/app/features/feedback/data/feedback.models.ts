@@ -70,6 +70,33 @@ export const FEEDBACK_SORTS = [
 ] as const;
 export type FeedbackSort = (typeof FEEDBACK_SORTS)[number];
 
+/** Records feedback can be about (written as `relates_to` links, listed on both pages). */
+export const SUBJECT_TYPES = [
+  'supplier',
+  'contract',
+  'process',
+  'asset',
+  'interested_party',
+  'project',
+  'ai_system',
+] as const;
+export type SubjectType = (typeof SUBJECT_TYPES)[number];
+export const MAX_SUBJECTS = 20;
+
+/** How a reply reached the customer. */
+export const REPLY_CHANNELS = ['email', 'phone', 'letter', 'in_person', 'web', 'other'] as const;
+export type ReplyChannel = (typeof REPLY_CHANNELS)[number];
+
+/** What a sound complaint record still lacks (`assessment_gaps`). */
+export const ASSESSMENT_GAPS = ['assessment', 'root_cause', 'deviation', 'reply'] as const;
+export type AssessmentGap = (typeof ASSESSMENT_GAPS)[number];
+
+export const EXPORT_FORMATS = ['xlsx', 'csv', 'pdf'] as const;
+export type ExportFormat = (typeof EXPORT_FORMATS)[number];
+
+export const SURVEY_LANGUAGES = ['nb', 'en'] as const;
+export type SurveyLanguage = (typeof SURVEY_LANGUAGES)[number];
+
 export const SURVEY_STATUSES = ['draft', 'open', 'closed'] as const;
 export type SurveyStatus = (typeof SURVEY_STATUSES)[number];
 
@@ -101,6 +128,25 @@ export interface UserRef {
   readonly name: string | null;
 }
 
+export interface DepartmentRef {
+  readonly id: string;
+  readonly name: string;
+}
+
+/** A related record sent on create / update (`subjects`). */
+export interface SubjectIn {
+  readonly entity_type: SubjectType;
+  readonly entity_id: string;
+}
+
+/** The four complaint assessment fields (asked for in the resolve dialog). */
+export interface ComplaintAssessment {
+  readonly complaint_justified?: boolean | null;
+  readonly root_cause?: string | null;
+  readonly corrective_action_required?: boolean | null;
+  readonly customer_accepted?: boolean | null;
+}
+
 // --- customer feedback -----------------------------------------------------------------
 
 export interface FeedbackListItem {
@@ -122,6 +168,7 @@ export interface FeedbackListItem {
   readonly overdue: boolean;
   readonly owner: UserRef | null;
   readonly department_id: string | null;
+  readonly department?: DepartmentRef | null;
   readonly survey_id: string | null;
   readonly url: string;
   readonly created_at: string;
@@ -144,15 +191,25 @@ export interface Feedback extends FeedbackListItem {
   readonly resolved_at: string | null;
   readonly closed_at: string | null;
   readonly survey_response_id: string | null;
+  readonly survey?: EntityRefDto | null;
   readonly created_by: UserRef | null;
+  readonly complaint_justified: boolean | null;
+  readonly root_cause: string | null;
+  readonly corrective_action_required: boolean | null;
+  readonly customer_accepted: boolean | null;
+  readonly assessment_gaps: readonly AssessmentGap[];
   readonly linked_deviations: readonly EntityRefDto[];
+  readonly subjects: readonly EntityRefDto[];
+  readonly replies: readonly Reply[];
   readonly open_tasks: number;
   readonly allowed_actions: readonly FeedbackAction[];
+  /** The one recommended next step (the page's primary button). */
+  readonly next_action: FeedbackAction | null;
   readonly can_edit: boolean;
   readonly can_delete: boolean;
 }
 
-export interface FeedbackCreate {
+export interface FeedbackCreate extends ComplaintAssessment {
   readonly kind: FeedbackKind;
   readonly title: string;
   readonly description?: string | null;
@@ -171,6 +228,8 @@ export interface FeedbackCreate {
   readonly response_due_on?: string | null;
   readonly owner_user_id?: string | null;
   readonly department_id?: string | null;
+  /** Related records; on update the full set (links left out are removed). */
+  readonly subjects?: readonly SubjectIn[];
 }
 
 export interface FeedbackUpdate extends Partial<FeedbackCreate> {
@@ -179,7 +238,7 @@ export interface FeedbackUpdate extends Partial<FeedbackCreate> {
   readonly change_reason?: string | null;
 }
 
-export interface FeedbackActionBody {
+export interface FeedbackActionBody extends ComplaintAssessment {
   readonly resolution?: string | null;
   readonly customer_informed?: boolean | null;
   readonly note?: string | null;
@@ -192,6 +251,10 @@ export interface FeedbackListQuery {
   readonly channel?: readonly FeedbackChannel[];
   readonly owner?: string;
   readonly survey_id?: string;
+  readonly severity?: readonly FeedbackSeverity[];
+  readonly department_id?: string;
+  readonly category?: string;
+  readonly justified?: boolean;
   readonly overdue?: boolean;
   readonly open?: boolean;
   readonly received_from?: string;
@@ -199,6 +262,56 @@ export interface FeedbackListQuery {
   readonly sort?: FeedbackSort;
   readonly limit?: number;
   readonly offset?: number;
+}
+
+// --- replies, settings, categories -----------------------------------------------------
+
+/** A reply sent to the customer (the reply log). */
+export interface Reply {
+  readonly id: string;
+  readonly sent_on: string;
+  readonly channel: ReplyChannel;
+  readonly body: string;
+  readonly created_by: UserRef | null;
+  readonly created_at: string;
+}
+
+export interface ReplyCreate {
+  readonly sent_on?: string | null;
+  readonly channel: ReplyChannel;
+  readonly body: string;
+}
+
+export interface ReplyList {
+  readonly items: readonly Reply[];
+}
+
+/** Default response time in days per kind; `null` = no default deadline. */
+export type ResponseDays = Readonly<Record<FeedbackKind, number | null>>;
+
+export interface FeedbackSettings {
+  readonly response_days: ResponseDays;
+  readonly working_days: boolean;
+  readonly privacy_notice_url: string | null;
+  readonly updated_at?: string | null;
+  readonly is_default?: boolean;
+}
+
+export interface CategoryCount {
+  readonly value: string;
+  readonly count: number;
+}
+
+export interface CategoryList {
+  readonly items: readonly CategoryCount[];
+}
+
+export interface ResponseDue {
+  readonly kind: FeedbackKind;
+  readonly received_on: string;
+  readonly days: number | null;
+  readonly working_days: boolean;
+  readonly response_due_on: string | null;
 }
 
 export interface DeviationLinks {
@@ -230,6 +343,12 @@ export interface FeedbackStats {
   readonly survey_responses: number;
   readonly survey_average_score: number | null;
   readonly nps: number | null;
+  readonly nps_responses?: number;
+  readonly by_category?: Readonly<Record<string, number>>;
+  readonly complaints?: number;
+  readonly complaints_justified?: number;
+  readonly complaints_assessed?: number;
+  readonly complaints_replied?: number;
 }
 
 // --- surveys ----------------------------------------------------------------------------
@@ -268,6 +387,7 @@ export interface SurveyListItem {
   readonly opens_on: string | null;
   readonly closes_on: string | null;
   readonly owner: UserRef | null;
+  readonly language?: SurveyLanguage | null;
   readonly url: string;
   readonly created_at: string;
   readonly updated_at: string;
@@ -292,6 +412,9 @@ export interface Survey extends SurveyListItem {
   readonly allowed_actions: readonly SurveyAction[];
   readonly can_edit: boolean;
   readonly questions_locked: boolean;
+  /** Feedback records created from low-score responses. */
+  readonly follow_ups?: number;
+  readonly open_tasks?: number;
 }
 
 export interface SurveyCreate {
@@ -304,6 +427,7 @@ export interface SurveyCreate {
   readonly closes_on?: string | null;
   readonly low_score_threshold?: number | null;
   readonly owner_user_id?: string | null;
+  readonly language?: SurveyLanguage | null;
 }
 
 export interface SurveyUpdate extends Partial<SurveyCreate> {
@@ -369,6 +493,13 @@ export interface PublicSurvey {
   readonly anonymous: boolean;
   readonly closes_on: string | null;
   readonly questions: readonly Question[];
+  /** The page language (the survey's own, else nb). */
+  readonly language?: SurveyLanguage;
+  /** Names / e-mails are collected (the survey is not anonymous). */
+  readonly collects_contact?: boolean;
+  /** The data controller (the organisation). */
+  readonly controller_name?: string;
+  readonly privacy_notice_url?: string | null;
 }
 
 export interface PublicResponseIn {

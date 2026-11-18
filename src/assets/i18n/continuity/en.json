@@ -25,7 +25,14 @@
     "backToRecord": "Back to the record",
     "deleted": "{{ code }} was deleted.",
     "deleteMessage": "Delete {{ code }} {{ title }}? It is removed from all lists, but the audit trail keeps its history.",
-    "months": "{{ count }} months"
+    "months": "{{ count }} months",
+    "notYet": "Not yet",
+    "unknownPerson": "someone no longer in the organisation",
+    "seeAll": "See all",
+    "more": "+{{ count }} more",
+    "minutes": "{{ count }} min",
+    "addPerson": "Add a person…",
+    "removeNamed": "Remove {{ name }}"
   },
   "duration": {
     "notSet": "Not set",
@@ -46,13 +53,15 @@
       "bias": "Impact analyses",
       "biasDelta": "{{ approved }} approved · {{ uncovered }} without a plan",
       "plans": "Continuity plans",
-      "plansDelta": "{{ approved }} approved · {{ overdue }} overdue for review",
+      "plansDelta": "{{ approved }} approved · {{ overdue }} overdue",
       "exercises": "Planned exercises",
       "exercisesDelta": "{{ overdue }} overdue",
       "ict": "ICT services",
-      "ictDelta": "{{ ready }} ready · {{ gap }} with a gap",
+      "ictDelta": "{{ ready }} ready · {{ gap }} fall short",
       "contacts": "Crisis contacts",
-      "contactsDelta": "{{ count }} to verify"
+      "contactsSplit": "{{ shared }} shared · {{ plans }} in plans",
+      "contactsVerify": "{{ count }} to verify",
+      "contactsVerifyOne": "1 to verify"
     },
     "nextExercise": "Next exercise:",
     "attention": "Needs attention",
@@ -62,12 +71,42 @@
       "plans_review_overdue": "Plans overdue for review",
       "plans_not_exercised": "Plans never exercised",
       "exercises_overdue": "Exercises overdue",
-      "ict_gaps": "ICT services with a readiness gap"
+      "ict_gaps": "ICT services that fall short of the recovery requirement",
+      "plans_ict_gap": "Plans relying on an ICT service that is too slow"
+    },
+    "dependsOn": "Relies on: {{ services }}",
+    "groupHelp": {
+      "plans_ict_gap": "The plan promises a recovery time an ICT service it needs cannot deliver.",
+      "ict_gaps": "Too slow, loses too much data, or not tested as planned.",
+      "uncovered_bias": "Analysed activities that no plan protects yet.",
+      "plans_review_overdue": "Plans that should have been reviewed by now.",
+      "plans_not_exercised": "A plan nobody has practised may not work when it counts.",
+      "exercises_overdue": "Planned exercises that are past their date."
+    },
+    "foundation": {
+      "title": "Foundation",
+      "intro": "What the continuity work rests on: what it covers, the policy, the objectives and the legal duties. Link them from the records' Related tab.",
+      "scope": "Scope",
+      "policies": "Policy",
+      "objectives": "Objectives",
+      "obligations": "Legal duties",
+      "empty": {
+        "scope": "No scope linked. What does the continuity work cover?",
+        "policies": "No policy linked.",
+        "objectives": "No continuity objective linked.",
+        "obligations": "No legal duty linked (e.g. internal control, fire safety, digital security)."
+      },
+      "open": {
+        "scope": "Open the scopes",
+        "policies": "Open the policies",
+        "objectives": "Open the objectives",
+        "obligations": "Open legal duties"
+      }
     }
   },
   "bias": {
-    "title": "Business impact analyses",
-    "subtitle": "What happens if an activity stops, and how quickly it must be recovered.",
+    "title": "Impact analyses",
+    "subtitle": "What happens if an activity stops, and how quickly it must be back. One business impact analysis (BIA) per activity.",
     "searchPlaceholder": "Search impact analyses",
     "new": "New impact analysis",
     "create": "Create impact analysis",
@@ -77,15 +116,22 @@
     "created": "{{ code }} was created.",
     "maxImpact": "Max impact {{ value }}/5",
     "uncovered": "No plan",
-    "planCount": "{{ count }} plan(s)",
+    "planCount": "{{ count }} plans",
     "coveringPlans": "Plans that cover this activity",
     "noPlans": "No continuity plan covers this activity yet. Create one so the recovery targets have a way to be met.",
-    "createPlan": "Create a plan for it",
-    "deleteTitle": "Delete impact analysis"
+    "createPlan": "Create continuity plan",
+    "deleteTitle": "Delete impact analysis",
+    "planCountOne": "1 plan",
+    "impactsIntro": "How bad it gets per area if the activity stops for as long as it can tolerate.",
+    "noTimeline": "Not filled in. Rate the impact after 4 hours, 1 day, 3 days and 1 week to find the real MTPD.",
+    "suggestedMtpd": "The impact becomes serious after",
+    "mtpdLonger": "The MTPD set is longer than that.",
+    "noProcess": "Not linked to a process. Link it, so the process page shows its recovery target.",
+    "linkHidden": "(you cannot open the linked record)"
   },
   "plans": {
     "title": "Continuity plans",
-    "subtitle": "How you respond, recover and restore when a disruption happens.",
+    "subtitle": "How the organisation responds, recovers and returns to normal when a disruption happens.",
     "searchPlaceholder": "Search plans",
     "new": "New plan",
     "create": "Create plan",
@@ -93,7 +139,7 @@
     "editTitle": "Edit {{ code }} {{ title }}",
     "back": "Back to plans",
     "created": "{{ code }} was created.",
-    "biaCount": "{{ count }} impact analysis(es)",
+    "biaCount": "{{ count }} impact analyses",
     "lastExercised": "Last exercised {{ date }}",
     "neverExercised": "Never exercised",
     "nextExercise": "next planned {{ date }}",
@@ -104,7 +150,30 @@
     "noExercises": "This plan has not been exercised yet.",
     "planExercise": "Plan an exercise",
     "deleteTitle": "Delete continuity plan",
-    "deleteMessage": "Delete {{ code }} {{ title }}? Its own crisis contacts are deleted too. The audit trail keeps its history."
+    "deleteMessage": "Delete {{ code }} {{ title }}? Its own crisis contacts are deleted too. The audit trail keeps its history.",
+    "biaCountOne": "1 impact analysis",
+    "useTitle": "Use the plan in an incident",
+    "neverActivated": "The plan has not been activated for a real incident.",
+    "lastActivated": "Last activated {{ date }} ({{ count }} times in total).",
+    "lastActivatedOne": "Activated {{ date }}.",
+    "neverDistributed": "No version has been printed or downloaded yet. Keep a copy offline: the plan must work when the systems are down.",
+    "distributedCurrent": "Version {{ version }} (the current one) was printed or downloaded {{ date }} by {{ name }}.",
+    "distributedOld": "The printed copy is version {{ version }} ({{ date }}, {{ name }}). Print the current version and replace the old copies.",
+    "activate": "Activate plan",
+    "activateTitle": "Activate {{ code }}",
+    "activateMessage": "Use this for a real incident, not an exercise. The owner, the approvers and everyone following the plan are notified. Afterwards, register the incident as a deviation.",
+    "activateReason": "What happened (optional)",
+    "activated": "{{ code }} is activated. Register the incident as a deviation when you can.",
+    "registerIncident": "Register the incident as a deviation",
+    "exportPdf": "Print / download PDF",
+    "ictServices": "ICT services the plan relies on",
+    "noIct": "None of the covered impact analyses lists an ICT service.",
+    "ictCan": "Can recover in",
+    "ictTested": "last test",
+    "ictCannotMeet": "Too slow for the plan",
+    "ictGapBadge": "ICT gap",
+    "ictGapWarning": "The plan cannot meet its recovery time: {{ services }} cannot be recovered fast enough. Improve the service, or agree a longer recovery time in the impact analysis.",
+    "lastExercisedShort": "exercised {{ date }}"
   },
   "exercises": {
     "title": "Exercises and tests",
@@ -138,11 +207,18 @@
       "complete": "The result of {{ code }} was recorded.",
       "cancel": "{{ code }} was cancelled.",
       "reopen": "{{ code }} was reopened."
+    },
+    "targetMissed": "The recovery took longer than the target. The outcome is set to \"Partly successful\"; change it only if the target did not apply.",
+    "outcomeConflict": "Marked successful, but the recovery time missed the target. Check the outcome.",
+    "targetSource": {
+      "exercise": "Set for this exercise",
+      "plan": "From the plan's RTO",
+      "ict_requirement": "From what the business requires of the ICT service"
     }
   },
   "ict": {
     "title": "ICT readiness",
-    "subtitle": "Can each ICT service be recovered as fast as the business needs it?",
+    "subtitle": "Can each ICT service be recovered as fast as the organisation needs it?",
     "searchPlaceholder": "Search ICT services",
     "new": "New ICT service",
     "create": "Register ICT service",
@@ -151,15 +227,15 @@
     "back": "Back to ICT readiness",
     "created": "{{ code }} was registered.",
     "rtoVsRequired": "RTO achievable / required",
-    "dependentBias": "{{ count }} dependent impact analysis(es)",
+    "dependentBias": "{{ count }} dependent impact analyses",
     "lastTested": "Tested {{ date }}",
     "neverTested": "Never tested",
     "capability": "Recovery capability",
     "testing": "Testing",
     "readinessTitle": "Readiness",
-    "achievable": "Achievable",
-    "required": "Required by the business",
-    "allGood": "The service can meet what the business requires, and its tests are up to date.",
+    "achievable": "Can recover in",
+    "required": "Required",
+    "allGood": "The service meets what the organisation requires, and its tests are up to date.",
     "nextTestDue": "Next test due",
     "lastTestRecovery": "Recovery time in the last test",
     "profile": "Service",
@@ -170,12 +246,22 @@
     "planTest": "Plan a recovery test",
     "retire": "Retire",
     "reactivate": "Reactivate",
-    "deleteTitle": "Delete ICT service"
+    "deleteTitle": "Delete ICT service",
+    "dependentBiasOne": "1 dependent impact analysis",
+    "capabilityPair": "{{ label }}: can {{ can }} · required {{ need }}",
+    "noRequirement": "none",
+    "lastTestTook": "last test {{ duration }}",
+    "lastTest": "Last test",
+    "target": "Target",
+    "slaLine": "The contract (SLA) promises recovery within",
+    "supplierContacts": "Who to call at the provider",
+    "dependentPlans": "Plans that act when it is down",
+    "closeGapTask": "Create a task to close the gap"
   },
   "contacts": {
     "title": "Crisis contacts",
     "subtitle": "Who to call when something goes wrong: the crisis team, authorities, emergency services and key suppliers.",
-    "orgTitle": "Organisation-wide crisis contacts",
+    "orgTitle": "Shared crisis contacts (whole organisation)",
     "planTitle": "Crisis contacts for this plan",
     "emptyOrg": "No crisis contacts yet. Start with the crisis team leader, the deputy and the emergency services.",
     "emptyPlan": "This plan has no contacts of its own. The organisation-wide list still applies.",
@@ -190,11 +276,11 @@
     "removeNamed": "Remove {{ name }}",
     "available247": "24/7",
     "needsVerification": "Verify",
-    "needsVerificationCount": "{{ count }} contact(s) not verified in the last year",
+    "needsVerificationCount": "{{ count }} contacts not verified in the last year",
     "markVerified": "Mark verified",
     "verifiedOn": "Verified {{ date }}",
     "neverVerified": "Never verified",
-    "linkedMember": "(member: {{ name }})",
+    "linkedMember": "linked to {{ name }} in CoreFlow",
     "callPhone": "Call {{ phone }}",
     "callAlt": "Alt. {{ phone }}",
     "nameRequired": "Enter a name.",
@@ -203,33 +289,53 @@
       "crisisRole": "Crisis role",
       "type": "Type",
       "organisation": "Organisation",
-      "member": "Linked member",
+      "member": "Person in CoreFlow (optional)",
       "phone": "Phone",
       "altPhone": "Alternative phone",
       "email": "E-mail",
       "available247": "Reachable around the clock (24/7)",
       "verifiedOn": "Last verified",
-      "position": "Order in the list",
-      "notes": "Notes"
-    }
+      "notes": "Notes",
+      "supplier": "Supplier (optional)"
+    },
+    "needsVerificationCountOne": "1 contact not verified in the last year",
+    "isMember": "user in CoreFlow",
+    "memberHint": "Link the contact to a user, so they get the plan in their work and can be reached through CoreFlow.",
+    "exportPdf": "Print / download PDF",
+    "fileName": "crisis-contacts",
+    "searchLabel": "Who do I call? Search every list",
+    "searchPlaceholder": "Name, role, organisation or system, e.g. \"ERP\"",
+    "noHits": "No contact matches.",
+    "onPlan": "On {{ code }} {{ title }}",
+    "onOrgList": "Shared list",
+    "inPlansTitle": "Contacts in the plans",
+    "inPlansIntro": "Each plan can have its own contacts in addition to the shared list. Change them on the plan.",
+    "inPlansEmpty": "No plan has contacts of its own.",
+    "openPlanList": "Open the plan's list",
+    "reorderHint": "Drag a contact, or use the arrows, to change the order (who is called first).",
+    "reordered": "The order was saved.",
+    "moveUp": "Move {{ name }} up",
+    "moveDown": "Move {{ name }} down"
   },
   "control": {
     "title": "Approval and review",
     "version": "Version {{ version }}",
-    "approvedOn": "Approved {{ date }} by {{ name }}",
+    "approvedOn": "{{ date }} by {{ name }}",
     "notApproved": "Not approved yet",
     "submittedOn": "Submitted {{ date }} by {{ name }}",
     "interval": "Reviewed every {{ months }} months once approved",
-    "note": "Note (optional unless rejecting)"
+    "note": "Note (optional unless rejecting)",
+    "approvedBy": "Approved by {{ name }}",
+    "approvedUndated": "Approved (no date recorded)"
   },
   "schedule": {
-    "title": "Exercise schedule",
-    "active": "Scheduled",
-    "none": "Not scheduled",
+    "title": "Exercise every …",
+    "active": "Repeats",
+    "none": "No fixed repetition",
     "nextDue": "The next exercise is due {{ date }}.",
-    "noneHint": "Set up a recurring schedule so the owner is reminded to exercise the plan.",
-    "setUp": "Set up schedule",
-    "addAnother": "Add another schedule",
+    "noneHint": "Set up a repeating schedule (for example every year), so the owner is reminded to exercise the plan.",
+    "setUp": "Set up repetition",
+    "addAnother": "Add another repetition",
     "firstDue": "First exercise due",
     "leadDays": "Remind this many days before",
     "assignee": "Assign to",
@@ -238,7 +344,7 @@
     "saved": "The exercise schedule was saved."
   },
   "followUps": {
-    "title": "Follow-up actions",
+    "title": "Follow-up",
     "empty": "No follow-up actions yet. Turn each lesson learned into an action with an owner and a due date.",
     "add": "Add action",
     "what": "What needs to be done",
@@ -246,7 +352,12 @@
     "dueOn": "Due",
     "details": "Details",
     "due": "Due {{ date }}",
-    "added": "The follow-up action was added."
+    "added": "The follow-up action was added.",
+    "toDeviation": "Register as deviation",
+    "toRisk": "Add risk",
+    "nudge": "Lessons were learned, but nothing is followed up yet. Turn them into an action, a deviation or a risk.",
+    "linkedElsewhere": "{{ count }} follow-ups are linked records (deviations, risks). See the Related tab.",
+    "linkedElsewhereOne": "One follow-up is a linked record (a deviation or risk). See the Related tab."
   },
   "filters": {
     "anyStatus": "Any status",
@@ -273,7 +384,8 @@
       "-created_at": "Recently created",
       "scheduled_on": "Date (earliest first)",
       "-scheduled_on": "Date (latest first)"
-    }
+    },
+    "clear": "Clear the filters"
   },
   "fields": {
     "code": "Code",
@@ -304,7 +416,7 @@
     "reviewInterval": "Review interval (months)",
     "lastReviewed": "Last reviewed",
     "nextReview": "Next review",
-    "approved": "Approved",
+    "approved": "Approved by / date",
     "planType": "Plan type",
     "location": "Location or site",
     "phase": "Phase",
@@ -331,7 +443,18 @@
     "testInterval": "Test every (months)",
     "lastTested": "Last tested",
     "lastOutcome": "Last test outcome",
-    "readiness": "Readiness"
+    "readiness": "Readiness",
+    "process": "Process",
+    "impactTimeline": "Impact over time",
+    "participantMembers": "Participants in CoreFlow",
+    "participantsOther": "Other participants (external)",
+    "successCriteria": "Success criteria",
+    "targetRecovery": "Target recovery time",
+    "asset": "Runs on (asset)",
+    "supplier": "Provider (supplier)",
+    "contract": "Contract",
+    "providerText": "Provider (not in the supplier register)",
+    "slaRto": "Recovery time in the contract (SLA)"
   },
   "form": {
     "save": "Save changes",
@@ -340,7 +463,7 @@
     "backToDraft": "This record is approved or in review. A change to its content sends it back to draft, and it must be approved again.",
     "changeReason": "Reason for the change",
     "changeReasonHint": "Recorded in the revision history, so others can see why it changed.",
-    "impactScale": "Rate how bad the impact becomes if the activity stops for the maximum tolerable period: 0 none, 5 catastrophic.",
+    "impactScale": "How bad does it get per area if the activity stops for the longest period it can tolerate? 0 none, 5 catastrophic.",
     "addDependency": "Add dependency",
     "noDependencies": "No dependencies recorded.",
     "dependencyN": "Dependency {{ n }}",
@@ -358,7 +481,7 @@
     "removeStep": "Remove",
     "sections": {
       "activity": "Activity",
-      "impacts": "Impact over time",
+      "impacts": "Impact of a disruption",
       "targets": "Recovery targets",
       "dependencies": "Dependencies",
       "plan": "Plan",
@@ -373,8 +496,25 @@
       "interval": "Enter a whole number of months between 1 and 120.",
       "dependencyName": "Give every dependency a name, or choose the ICT service.",
       "stepTitle": "Give every step a title.",
-      "rtoExceedsMtpd": "The RTO cannot be longer than the MTPD."
-    }
+      "rtoExceedsMtpd": "The RTO cannot be longer than the MTPD.",
+      "timelineDecreasing": "The impact cannot get smaller as time goes on."
+    },
+    "processPlaceholder": "Search the process register",
+    "processHint": "Start with the process the activity belongs to. Its name becomes the title if none is written yet.",
+    "timelineHint": "Rate the worst impact after each period. It can stay the same or get worse, never better.",
+    "useSuggestion": "Use as MTPD",
+    "nameIfNotListed": "Write a name if it is not in the register",
+    "linkRecord": {
+      "supplier": "Supplier",
+      "site": "Site (asset)",
+      "equipment": "Equipment (asset)",
+      "people": "Person or position",
+      "information": "Document, asset or processing record",
+      "other": "Record in CoreFlow (optional)"
+    },
+    "targetHint": "Leave empty to use the plan's RTO.",
+    "membersHint": "Taking part counts as training for each person.",
+    "assetHint": "The server, cloud service or system in the asset register the service runs on."
   },
   "ai": {
     "summarise": "Summarise",
@@ -407,8 +547,12 @@
       "nextStep": "What is the next step for this record in the approval and review process?",
       "impacts": "How do I rate the impact of a disruption over time for this activity?",
       "targets": "How do I choose a sensible MTPD, RTO and RPO for this activity?",
-      "activation": "What makes good activation criteria for a continuity plan?"
-    }
+      "activation": "What makes good activation criteria for a continuity plan?",
+      "recoveryStrategy": "How do I describe a recovery strategy that meets the recovery time of this plan?",
+      "successCriteria": "What are good success criteria for this exercise, so we can tell afterwards whether the plan worked?",
+      "sla": "What should the recovery time in the contract be, compared with what the business needs from this service?"
+    },
+    "answersInPanel": "The assistant answers in the panel on the right."
   },
   "status": {
     "draft": "Draft",
@@ -538,7 +682,7 @@
   "readiness": {
     "ready": "Ready",
     "attention": "Needs attention",
-    "gap": "Gap",
+    "gap": "Falls short",
     "retired": "Retired"
   },
   "readinessIssue": {
@@ -548,7 +692,11 @@
     "rpo_capability_unknown": "RPO unknown",
     "never_tested": "Never tested",
     "test_overdue": "Test overdue",
-    "last_test_failed": "Last test failed"
+    "last_test_failed": "Last test failed",
+    "tested_rto_missed": "Last test too slow",
+    "sla_rto_exceeds": "Contract allows longer",
+    "plan_rto_gap": "Too slow for the plan",
+    "plan_rpo_gap": "Loses too much data for the plan"
   },
   "readinessIssueHelp": {
     "rto_gap": "The service takes longer to recover than the business can tolerate. Improve the recovery strategy or agree a longer RTO.",
@@ -557,7 +705,11 @@
     "rpo_capability_unknown": "Nobody has recorded how much data could be lost. Check the backup or replication interval.",
     "never_tested": "Recovery has never been tested. Plan a recovery test.",
     "test_overdue": "The last test is older than the test cycle. Plan a new test.",
-    "last_test_failed": "The last test did not succeed. Follow up the lessons learned and test again."
+    "last_test_failed": "The last test did not succeed. Follow up the lessons learned and test again.",
+    "tested_rto_missed": "The last recovery test took longer than the business can tolerate. Improve the recovery and test again.",
+    "sla_rto_exceeds": "The contract lets the provider take longer to recover than the business needs. Raise it with the supplier.",
+    "plan_rto_gap": "The service cannot be recovered within the plan's recovery time.",
+    "plan_rpo_gap": "More data could be lost than the plan accepts."
   },
   "contactType": {
     "internal": "Internal",
@@ -582,7 +734,7 @@
     "field_required": "A required field is missing.",
     "invalid_action": "That action is not available.",
     "invalid_bia": "One of the chosen impact analyses no longer exists.",
-    "invalid_dates": "Check the dates. The date held cannot be in the future.",
+    "invalid_dates": "Check the dates. A date held or an activation cannot be in the future.",
     "invalid_department": "The chosen department does not exist.",
     "invalid_dependencies": "One of the dependencies is not valid.",
     "invalid_ict_system": "The chosen ICT service does not exist or is retired.",
@@ -601,7 +753,13 @@
     "too_many_steps": "A plan can have at most 100 steps.",
     "forbidden": "You do not have permission to do that.",
     "invalid": "Some values are not valid. Check the form and try again.",
-    "generic": "Something went wrong. Try again."
+    "generic": "Something went wrong. Try again.",
+    "impact_timeline_decreasing": "The impact cannot get smaller as time goes on. Check the ratings over time.",
+    "invalid_impact_timeline": "The ratings over time must be between 0 and 5.",
+    "invalid_dependency_link": "A dependency points at the wrong kind of record. A supplier dependency needs a supplier, a site an asset, and so on.",
+    "invalid_link": "A linked record no longer exists, or you cannot open it.",
+    "invalid_order": "The list changed while you sorted it. Reload and try again.",
+    "invalid_reason": "The text is too long. Shorten it to 2,000 characters."
   },
   "notifications": {
     "bia": {
@@ -628,7 +786,9 @@
       "restored": "Continuity plan restored: {{ code }} {{ title }}",
       "deleted": "Continuity plan deleted: {{ code }} {{ title }}",
       "exercised": "Continuity plan exercised: {{ code }} {{ title }}",
-      "exerciseScheduled": "Exercise schedule set for {{ code }} {{ title }}"
+      "exerciseScheduled": "Exercise schedule set for {{ code }} {{ title }}",
+      "activated": "Continuity plan activated: {{ code }} {{ title }}",
+      "distributed": "Continuity plan printed or downloaded: {{ code }} {{ title }}"
     },
     "exercise": {
       "created": "Exercise planned: {{ code }} {{ title }}",
@@ -649,7 +809,8 @@
     "contact": {
       "created": "Crisis contact added",
       "updated": "Crisis contact updated",
-      "deleted": "Crisis contact removed"
+      "deleted": "Crisis contact removed",
+      "reordered": "Crisis contacts reordered"
     }
   },
   "timeline": {
@@ -677,7 +838,9 @@
       "restored": "Restored",
       "deleted": "Deleted",
       "exercised": "Exercised",
-      "exerciseScheduled": "Exercise schedule set"
+      "exerciseScheduled": "Exercise schedule set",
+      "activated": "Activated for an incident",
+      "distributed": "Printed or downloaded"
     },
     "exercise": {
       "created": "Exercise planned",
@@ -698,7 +861,51 @@
     "contact": {
       "created": "Contact added",
       "updated": "Contact updated",
-      "deleted": "Contact removed"
+      "deleted": "Contact removed",
+      "reordered": "Order changed"
+    }
+  },
+  "legend": {
+    "lead": "Recovery targets in the rows:",
+    "rto": "RTO = back within",
+    "rpo": "RPO = most data you can lose",
+    "mtpd": "MTPD = longest it can be down"
+  },
+  "picker": {
+    "placeholder": "Search by name or code",
+    "change": "Change",
+    "remove": "Remove",
+    "removeNamed": "Remove the link to {{ name }}",
+    "none": "No match. Check the spelling, or register it in its own module first.",
+    "failed": "The search failed. Try again."
+  },
+  "intervals": {
+    "4h": "After 4 h",
+    "1d": "After 1 day",
+    "3d": "After 3 days",
+    "1w": "After 1 week",
+    "2w": "After 2 weeks"
+  },
+  "impactShort": {
+    "0": "0 None",
+    "1": "1 Minor",
+    "2": "2 Moderate",
+    "3": "3 Significant",
+    "4": "4 Serious",
+    "5": "5 Catastrophic"
+  },
+  "next": {
+    "ictGap": {
+      "title": "{{ code }} cannot meet its recovery time",
+      "why": "{{ count }} plans rely on an ICT service that is too slow, starting with {{ name }}."
+    },
+    "uncoveredBias": {
+      "title": "Create a continuity plan for {{ code }}",
+      "why": "{{ count }} analysed activities have no plan yet, starting with {{ name }}."
+    },
+    "notExercised": {
+      "title": "Exercise {{ code }}",
+      "why": "{{ count }} approved plans have not been exercised in the last year, starting with {{ name }}."
     }
   }
 }

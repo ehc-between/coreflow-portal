@@ -1,6 +1,10 @@
 /**
  * M06 audit management DTOs, mirroring coreflow-core `app/modules/audits/schemas.py`.
  * All paths live under `v1/orgs/{org_id}/audits`. Datetimes are naive UTC ISO strings.
+ *
+ * Fields added by the A08 backend (processes, evidence, coverage, decision, …) are
+ * typed optional so the pages also render against a server that has not been
+ * updated yet; the templates fall back to empty values.
  */
 import { EntityRefDto } from '../../../core/entities/entity.models';
 import { Task } from '../../../core/tasks/task.models';
@@ -16,6 +20,14 @@ export const FRAMEWORKS = [
   'nis2',
 ] as const;
 export type Framework = (typeof FRAMEWORKS)[number];
+/** The standards a certification body can certify (422 `framework_not_certifiable` otherwise). */
+export const CERTIFIABLE_FRAMEWORKS: readonly string[] = [
+  'iso9001',
+  'iso27001',
+  'iso14001',
+  'iso42001',
+  'iso45001',
+];
 
 export const PROGRAMME_STATUSES = ['draft', 'approved', 'closed'] as const;
 export type ProgrammeStatus = (typeof PROGRAMME_STATUSES)[number];
@@ -43,6 +55,15 @@ export const PLAN_STATUSES = [
   'cancelled',
 ] as const;
 export type PlanStatus = (typeof PLAN_STATUSES)[number];
+export const PLAN_OPEN_STATUSES: readonly PlanStatus[] = [
+  'planned',
+  'in_progress',
+  'reporting',
+  'report_review',
+];
+/** Plan list status filter: every open status (`unresolved`), everything, or one status. */
+export const PLAN_STATUS_FILTERS = ['unresolved', 'all', ...PLAN_STATUSES] as const;
+export type PlanStatusFilter = (typeof PLAN_STATUS_FILTERS)[number];
 export const PLAN_ACTIONS = [
   'start',
   'finish_fieldwork',
@@ -55,6 +76,12 @@ export const PLAN_ACTIONS = [
 export type PlanAction = (typeof PLAN_ACTIONS)[number];
 export const PLAN_SORTS = ['planned_start', '-planned_start', '-created_at', 'code'] as const;
 export type PlanSort = (typeof PLAN_SORTS)[number];
+export const REPORT_OUTCOMES = [
+  'conforming',
+  'conforming_with_findings',
+  'not_conforming',
+] as const;
+export type ReportOutcome = (typeof REPORT_OUTCOMES)[number];
 
 export const AUDITOR_ROLES = ['lead', 'auditor', 'observer', 'technical_expert'] as const;
 export type AuditorRole = (typeof AUDITOR_ROLES)[number];
@@ -66,6 +93,8 @@ export const AUDITOR_ISSUES = [
   'competence_not_lead',
   'independence_own_department',
   'independence_department_lead',
+  'independence_auditee',
+  'independence_process_owner',
 ] as const;
 
 export const CHECKLIST_RESULTS = [
@@ -94,6 +123,14 @@ export const FINDING_OPEN_STATUSES: readonly FindingStatus[] = [
   'in_progress',
   'pending_verification',
 ];
+/**
+ * Finding list status filter. `unresolved` (every open status) is the default and
+ * has its own value, so the single status "open" can still be chosen.
+ */
+export const FINDING_STATUS_FILTERS = ['unresolved', 'all', ...FINDING_STATUSES] as const;
+export type FindingStatusFilter = (typeof FINDING_STATUS_FILTERS)[number];
+export const EFFECTIVENESS_RESULTS = ['effective', 'not_effective'] as const;
+export type Effectiveness = (typeof EFFECTIVENESS_RESULTS)[number];
 export const FINDING_ACTIONS = [
   'start',
   'submit',
@@ -139,6 +176,14 @@ export interface RecordRef {
   readonly title: string;
 }
 
+/** Another module's record (process, document, supplier, …), shown as an entity chip. */
+export type EntityRef = EntityRefDto;
+
+export interface DepartmentRef {
+  readonly id: string;
+  readonly name: string;
+}
+
 export interface ListResponse<T> {
   readonly items: readonly T[];
   readonly total: number;
@@ -160,7 +205,11 @@ export interface PlanSummary {
   readonly risk_level: RiskLevel;
   readonly planned_start: string | null;
   readonly planned_end: string | null;
+  readonly actual_end?: string | null;
+  readonly report_outcome?: ReportOutcome | null;
   readonly lead_auditor: UserRef | null;
+  /** The lead's name, also for an external lead auditor. */
+  readonly lead_auditor_name?: string | null;
   readonly url: string;
 }
 
@@ -221,6 +270,17 @@ export interface PlanAuditor {
   readonly created_at: string;
 }
 
+export interface CertificationRef {
+  readonly id: string;
+  readonly framework: string;
+  readonly certification_body: string;
+  readonly certificate_number: string | null;
+  readonly status: CertificationStatus;
+  /** "ISO 9001 (DNV)". */
+  readonly title: string;
+  readonly url: string;
+}
+
 export interface Plan {
   readonly id: string;
   readonly org_id: string;
@@ -231,12 +291,19 @@ export interface Plan {
   readonly external_party_name: string | null;
   readonly programme: RecordRef | null;
   readonly certification_id: string | null;
+  readonly certification?: CertificationRef | null;
   readonly scope: string | null;
   readonly criteria: string | null;
   readonly objectives: string | null;
   readonly frameworks: readonly string[];
+  /** Canonical clause refs (`iso9001:8.4`); they count as evidence for those requirements. */
   readonly clause_refs: readonly string[];
   readonly auditee_department_ids: readonly string[];
+  readonly process_ids?: readonly string[];
+  readonly criteria_document_ids?: readonly string[];
+  readonly auditee_user_ids?: readonly string[];
+  readonly distribution_user_ids?: readonly string[];
+  readonly location?: string | null;
   readonly risk_level: RiskLevel;
   readonly status: PlanStatus;
   readonly status_reason: string | null;
@@ -246,8 +313,11 @@ export interface Plan {
   readonly actual_end: string | null;
   readonly owner: UserRef | null;
   readonly lead_auditor: UserRef | null;
+  readonly lead_auditor_name?: string | null;
   readonly report_summary: string | null;
   readonly report_conclusion: string | null;
+  readonly report_outcome?: ReportOutcome | null;
+  readonly report_limitations?: string | null;
   readonly report_submitted_at: string | null;
   readonly report_submitted_by: UserRef | null;
   readonly report_approved_at: string | null;
@@ -266,6 +336,13 @@ export interface PlanDetail extends Plan {
   readonly auditors: readonly PlanAuditor[];
   readonly findings_by_type: Readonly<Record<string, number>>;
   readonly available_actions: readonly PlanAction[];
+  /** Audited processes and criteria documents the caller can read. */
+  readonly processes?: readonly EntityRef[];
+  readonly criteria_documents?: readonly EntityRef[];
+  /** People interviewed, and who receives the report. */
+  readonly auditees?: readonly UserRef[];
+  readonly distribution?: readonly UserRef[];
+  readonly auditee_departments?: readonly DepartmentRef[];
 }
 
 export interface PlanQuery extends PageQuery {
@@ -275,6 +352,8 @@ export interface PlanQuery extends PageQuery {
   readonly programme_id?: string;
   readonly certification_id?: string;
   readonly auditor?: string;
+  readonly process_id?: string;
+  readonly clause?: string;
   readonly start_from?: string;
   readonly start_to?: string;
   readonly sort?: PlanSort;
@@ -293,6 +372,11 @@ export interface PlanInput {
   readonly frameworks: readonly string[];
   readonly clause_refs: readonly string[];
   readonly auditee_department_ids: readonly string[];
+  readonly process_ids: readonly string[];
+  readonly criteria_document_ids: readonly string[];
+  readonly auditee_user_ids: readonly string[];
+  readonly distribution_user_ids: readonly string[];
+  readonly location?: string | null;
   readonly risk_level: RiskLevel;
   readonly planned_start?: string | null;
   readonly planned_end?: string | null;
@@ -303,6 +387,8 @@ export interface PlanInput {
 export interface PlanReportInput {
   readonly report_summary?: string | null;
   readonly report_conclusion?: string | null;
+  readonly report_outcome?: ReportOutcome | null;
+  readonly report_limitations?: string | null;
 }
 
 export interface AuditorAssignInput {
@@ -321,6 +407,23 @@ export interface AuditorCheck {
 
 // --- checklist -------------------------------------------------------------------
 
+export interface EvidenceRef {
+  readonly entity_type: string;
+  readonly entity_id: string;
+}
+
+export interface ItemFinding {
+  readonly id: string;
+  readonly code: string;
+  readonly title: string;
+  readonly finding_type: FindingType;
+  readonly status: FindingStatus;
+  readonly url: string;
+}
+
+/** At most this many evidence records per checklist question (else `too_many_evidence_refs`). */
+export const MAX_EVIDENCE_REFS = 20;
+
 export interface ChecklistItem {
   readonly id: string;
   readonly position: number;
@@ -330,6 +433,11 @@ export interface ChecklistItem {
   readonly source: string;
   readonly result: ChecklistResult;
   readonly notes: string | null;
+  readonly evidence_refs?: readonly EvidenceRef[];
+  /** Records linked as evidence (readable ones only). */
+  readonly evidence?: readonly EntityRef[];
+  /** Findings raised from this question. */
+  readonly findings?: readonly ItemFinding[];
   readonly answered_by: UserRef | null;
   readonly answered_at: string | null;
   readonly created_at: string;
@@ -355,6 +463,8 @@ export interface ChecklistItemUpdate {
   readonly result?: ChecklistResult;
   readonly notes?: string | null;
   readonly position?: number;
+  /** Replaces the item's evidence records. */
+  readonly evidence_refs?: readonly EvidenceRef[];
 }
 
 /** One question of the `audits.draft_questions` assist result. */
@@ -366,31 +476,49 @@ export interface DraftQuestion {
 
 // --- findings --------------------------------------------------------------------
 
+export interface FindingPlanRef {
+  readonly id: string;
+  readonly code: string | null;
+  readonly title: string;
+  readonly kind?: PlanKind | null;
+  readonly status?: PlanStatus | null;
+  readonly url?: string | null;
+  readonly lead_auditor?: UserRef | null;
+}
+
 export interface Finding {
   readonly id: string;
   readonly org_id: string;
   readonly code: string;
-  readonly plan: RecordRef;
+  readonly plan: FindingPlanRef;
   readonly finding_type: FindingType;
   readonly title: string;
   readonly description: string | null;
   readonly evidence: string | null;
+  /** Canonical clause ref; a suggested requirement link (a weak spot, not evidence). */
   readonly clause_ref: string | null;
   readonly checklist_item_id: string | null;
   readonly status: FindingStatus;
   readonly status_reason: string | null;
   readonly owner: UserRef | null;
   readonly department_id: string | null;
+  readonly department_name?: string | null;
+  readonly is_nonconformity?: boolean;
   readonly response_due_at: string | null;
   readonly overdue: boolean;
   readonly root_cause: string | null;
   readonly correction: string | null;
   readonly corrective_action: string | null;
+  /** The decision on an observation or improvement suggestion. */
+  readonly decision?: string | null;
   readonly responded_at: string | null;
   readonly verification_notes: string | null;
   readonly verified_by: UserRef | null;
   readonly verified_at: string | null;
   readonly closed_at: string | null;
+  readonly effectiveness?: Effectiveness | null;
+  readonly effectiveness_checked_at?: string | null;
+  readonly effectiveness_checked_by?: UserRef | null;
   readonly created_by: string | null;
   readonly created_at: string;
   readonly updated_at: string;
@@ -410,6 +538,7 @@ export interface FindingQuery extends PageQuery {
   readonly finding_type?: string;
   readonly owner?: string;
   readonly overdue?: boolean;
+  readonly clause?: string;
   readonly sort?: FindingSort;
 }
 
@@ -430,7 +559,9 @@ export interface FindingResponseInput {
   readonly root_cause?: string | null;
   readonly correction?: string | null;
   readonly corrective_action?: string | null;
+  readonly decision?: string | null;
   readonly verification_notes?: string | null;
+  readonly effectiveness?: Effectiveness | null;
 }
 
 export interface FindingActionInput {
@@ -443,6 +574,35 @@ export interface FindingActionInput {
 
 // --- auditor register ------------------------------------------------------------
 
+export interface CourseRef {
+  readonly id: string;
+  readonly code: string | null;
+  readonly title: string;
+  readonly url: string;
+}
+
+export interface AuditorTraining {
+  readonly course: CourseRef;
+  readonly completed_at: string | null;
+  readonly expires_at: string | null;
+  readonly certificate_no: string | null;
+}
+
+export interface AuditPlanRef {
+  readonly id: string;
+  readonly code: string;
+  readonly title: string;
+  readonly status: PlanStatus;
+  readonly planned_start: string | null;
+  readonly url: string;
+}
+
+export interface AuditsPerformed {
+  readonly total: number;
+  readonly closed: number;
+  readonly recent: readonly AuditPlanRef[];
+}
+
 export interface AuditorProfile {
   readonly id: string;
   readonly user: UserRef;
@@ -451,8 +611,16 @@ export interface AuditorProfile {
   readonly qualifications: string | null;
   readonly trained_at: string | null;
   readonly valid_until: string | null;
+  /** Valid until, following the linked training records when there are any. */
+  readonly derived_valid_until?: string | null;
+  readonly course_ids?: readonly string[];
+  readonly training?: readonly AuditorTraining[];
+  /** The person's People profile. */
+  readonly employee?: { readonly id: string; readonly url: string } | null;
+  readonly audits_performed?: AuditsPerformed;
   readonly active: boolean;
   readonly expired: boolean;
+  readonly url?: string;
   readonly created_at: string;
   readonly updated_at: string;
 }
@@ -464,6 +632,7 @@ export interface AuditorProfileInput {
   readonly qualifications?: string | null;
   readonly trained_at?: string | null;
   readonly valid_until?: string | null;
+  readonly course_ids: readonly string[];
   readonly active: boolean;
 }
 
@@ -473,7 +642,10 @@ export interface Certification {
   readonly id: string;
   readonly org_id: string;
   readonly framework: string;
+  /** "ISO 9001 (DNV)". */
+  readonly title?: string;
   readonly certification_body: string;
+  readonly supplier_id?: string | null;
   readonly certificate_number: string | null;
   readonly status: CertificationStatus;
   readonly scope: string | null;
@@ -482,6 +654,7 @@ export interface Certification {
   readonly expires_at: string | null;
   readonly next_surveillance_at: string | null;
   readonly days_to_expiry: number | null;
+  readonly days_to_surveillance?: number | null;
   readonly owner: UserRef | null;
   readonly created_by: string | null;
   readonly created_at: string;
@@ -491,17 +664,23 @@ export interface Certification {
 
 export interface CertificationDetail extends Certification {
   readonly audits: readonly PlanSummary[];
+  /** The certification body as a supplier (when linked). */
+  readonly supplier?: EntityRef | null;
 }
 
 export interface CertificationQuery extends PageQuery {
   readonly status?: string;
+  /** One framework or a comma list. */
   readonly framework?: string;
+  readonly supplier_id?: string;
   readonly expiring_within_days?: number;
 }
 
 export interface CertificationInput {
   readonly framework: string;
-  readonly certification_body: string;
+  /** May be left out when `supplier_id` names the body (it defaults to the supplier name). */
+  readonly certification_body?: string | null;
+  readonly supplier_id?: string | null;
   readonly certificate_number?: string | null;
   readonly status: CertificationStatus;
   readonly scope?: string | null;
@@ -515,16 +694,150 @@ export interface CertificationInput {
 
 // --- overview / report -----------------------------------------------------------
 
+export interface OverviewSetup {
+  readonly programmes: number;
+  readonly auditors: number;
+  readonly audits: number;
+  readonly audits_closed: number;
+  readonly certifications: number;
+}
+
+export interface MyFinding {
+  readonly id: string;
+  readonly code: string;
+  readonly title: string;
+  readonly finding_type: FindingType;
+  readonly status: FindingStatus;
+  readonly response_due_at: string | null;
+  readonly overdue: boolean;
+  readonly url: string;
+}
+
+export interface OverviewMine {
+  readonly audits: readonly PlanSummary[];
+  readonly findings: readonly MyFinding[];
+}
+
 export interface AuditsOverview {
   readonly plans_by_status: Readonly<Record<string, number>>;
   readonly findings_open_by_type: Readonly<Record<string, number>>;
+  readonly findings_open_total?: number;
   readonly findings_overdue: number;
   readonly upcoming_audits: readonly PlanSummary[];
   readonly certifications_expiring: readonly Certification[];
+  /** Counts for the "getting started" checklist. */
+  readonly setup?: OverviewSetup;
+  /** The caller's own audits and the findings they must answer. */
+  readonly mine?: OverviewMine | null;
+}
+
+export interface ReportSignature {
+  readonly role: 'lead_auditor' | 'approver';
+  readonly name: string | null;
+  readonly at: string | null;
 }
 
 export interface AuditReport {
+  readonly org_name?: string;
   readonly plan: PlanDetail;
   readonly checklist: Checklist;
   readonly findings: readonly Finding[];
+  readonly signatures?: readonly ReportSignature[];
+  readonly generated_at?: string;
+}
+
+// --- coverage / clause history ----------------------------------------------------
+
+export interface CoverageCell {
+  readonly planned: number;
+  readonly done: number;
+  readonly findings: number;
+  readonly nonconformities: number;
+  readonly plans: readonly RecordRef[];
+}
+
+export interface CoverageRowBase {
+  /** Keyed by year ("2026"). */
+  readonly cells: Readonly<Record<string, CoverageCell>>;
+  readonly audits: number;
+  readonly open_findings: number;
+  readonly last_audited_at: string | null;
+  /** Not audited in the cycle. */
+  readonly gap: boolean;
+  /** Prefill for a new audit: `frameworks` + `clause_refs`, `process_ids` or `auditee_department_ids`. */
+  readonly suggest: Readonly<Record<string, readonly string[]>>;
+}
+
+export interface CoverageClauseRow extends CoverageRowBase {
+  readonly ref: string;
+  readonly framework: string;
+  readonly number: string;
+  readonly title: string;
+  readonly hs_ref: string | null;
+}
+
+export interface CoverageProcessRow extends CoverageRowBase {
+  readonly id: string;
+  readonly code: string | null;
+  readonly title: string;
+  readonly url: string;
+}
+
+export interface CoverageDepartmentRow extends CoverageRowBase {
+  readonly id: string;
+  readonly name: string;
+}
+
+export interface CoverageCount {
+  readonly total: number;
+  readonly covered: number;
+}
+
+export interface Coverage {
+  readonly programme: RecordRef & { readonly year?: number };
+  readonly years: readonly number[];
+  readonly frameworks: readonly string[];
+  readonly clauses: readonly CoverageClauseRow[];
+  readonly processes: readonly CoverageProcessRow[];
+  readonly departments: readonly CoverageDepartmentRow[];
+  readonly summary: {
+    readonly audits: number;
+    readonly clauses: CoverageCount;
+    readonly processes: CoverageCount;
+    readonly departments: CoverageCount;
+  };
+}
+
+export type ClauseResult = 'conforming' | 'nonconforming' | 'observation';
+
+export interface ClauseAudit {
+  readonly id: string;
+  readonly code: string;
+  readonly title: string;
+  readonly kind: PlanKind;
+  readonly status: PlanStatus;
+  readonly planned_start: string | null;
+  readonly actual_end: string | null;
+  readonly result: ClauseResult | null;
+  readonly results: Readonly<Record<string, number>>;
+  readonly url: string;
+}
+
+export interface ClauseFinding {
+  readonly id: string;
+  readonly code: string;
+  readonly title: string;
+  readonly finding_type: FindingType;
+  readonly status: FindingStatus;
+  readonly response_due_at: string | null;
+  readonly url: string;
+}
+
+export interface ClauseHistory {
+  readonly ref: string;
+  readonly audits: readonly ClauseAudit[];
+  readonly audits_total: number;
+  readonly last_audited_at: string | null;
+  readonly last_result: ClauseResult | null;
+  readonly open_findings: readonly ClauseFinding[];
 }

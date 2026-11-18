@@ -8,27 +8,31 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../../core/ai/page-context';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
-import { GuideIntro } from '../../../shared/guidance/guide-intro';
 import { TeachingEmpty } from '../../../shared/guidance/teaching-empty';
-import { TourButton } from '../../../shared/guidance/tour-button';
 import { TourStepDirective } from '../../../shared/guidance/tour-step.directive';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { RecordListPage } from '../../../shared/kit/record-list-page';
 import { SavedView } from '../../../shared/kit/saved-views.service';
-import { LocalDayPipe, LocalNumberPipe } from '../../../shared/locale/locale-pipes';
-import { Badge } from '../../../shared/ui/badge/badge';
+import { CoverageChip } from '../../../shared/requirement-links/coverage-chip';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
+import { EmptyState } from '../../../shared/ui/empty-state/empty-state';
+import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { ModuleNav } from '../../../shared/ui/module-nav/module-nav';
 import { Pager } from '../../../shared/ui/pager/pager';
+import { RecordRow, RecordRowHeader } from '../../../shared/ui/record-row/record-row';
+import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { FeedbackApi } from '../data/feedback-api';
-import { sortKey, surveyStatusKey, surveyStatusTone } from '../data/feedback-display';
+import { round1, sortKey, surveyStatusKey } from '../data/feedback-display';
 import {
   PERM_MANAGE,
   SURVEY_ENTITY,
@@ -38,60 +42,60 @@ import {
   SurveySort,
   SurveyStatus,
 } from '../data/feedback.models';
-import { FeedbackTabs } from '../feedback-tabs';
-import { FeedbackLessonLink } from '../lesson-link';
+import { FEEDBACK_NAV, FEEDBACK_SETTINGS_LINK } from '../feedback-nav';
 
 const PAGE_SIZE = 25;
+const DEFAULT_SORT: SurveySort = '-updated_at';
 
 /**
- * Satisfaction surveys (`/feedback/surveys`): each survey's status, response
- * count and average score, with search, a status filter, sorting and saved views.
+ * Satisfaction surveys (`/feedback/surveys`): each survey's status, number of
+ * answers and score, with search, a status filter, sorting and saved views.
  */
 @Component({
   selector: 'app-surveys-list',
   imports: [
-    RouterLink,
     TranslocoPipe,
-    LocalDayPipe,
-    LocalNumberPipe,
-    GuideIntro,
     TeachingEmpty,
-    TourButton,
     TourStepDirective,
     WhyItMatters,
     RecordListPage,
-    Badge,
+    CoverageChip,
     Button,
     Card,
+    EmptyState,
+    ErrorState,
+    HelpStrip,
     Icon,
+    LoadingState,
+    ModuleNav,
     Pager,
-    FeedbackTabs,
-    FeedbackLessonLink,
+    RecordRow,
+    RecordRowHeader,
+    StatusBadge,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-record-list-page
       titleKey="feedback.surveys.title"
+      descriptionKey="feedback.surveys.subtitle"
+      [breadcrumbs]="[
+        { labelKey: 'modules.names.feedback', link: '/feedback' },
+        { labelKey: 'feedback.tabs.surveys' },
+      ]"
+      [settingsLink]="settingsLink"
       scope="feedback"
       page="surveys"
       searchPlaceholderKey="feedback.surveys.searchPlaceholder"
       [query]="q()"
       [filters]="viewFilters()"
+      [moreFiltersActive]="sort() !== defaultSort ? 1 : 0"
       [empty]="showEmpty()"
       (search)="setQuery($event)"
       (viewApplied)="applyView($event)"
     >
-      <div intro class="mt-1 flex flex-col gap-2">
-        <p class="text-[14px] text-fg-muted">{{ 'feedback.surveys.subtitle' | transloco }}</p>
-        <app-feedback-tabs />
-        <app-guide-intro scope="feedback" page="surveys" />
-      </div>
-
-      <app-tour-button toolbar scope="feedback" tour="surveys" />
       @if (canManage()) {
         <app-button
-          toolbar
-          size="sm"
+          primary
           (click)="newSurvey()"
           appTourStep="feedback-survey-new"
           data-testid="new-survey"
@@ -101,13 +105,22 @@ const PAGE_SIZE = 25;
         </app-button>
       }
 
+      <app-module-nav nav labelKey="modules.names.feedback" [items]="nav" />
+      <app-help-strip
+        help
+        scope="feedback"
+        page="surveys"
+        tour="surveys"
+        lesson="measuring-satisfaction"
+      />
+
       <label filters class="sr-only" for="cf-sv-status">
         {{ 'feedback.filters.status' | transloco }}
       </label>
       <select
         filters
         id="cf-sv-status"
-        class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
+        class="h-10 max-w-full rounded-tile border border-border bg-bg px-2 text-ui text-fg focus:border-accent focus:outline-none"
         (change)="setStatus($any($event.target).value)"
         data-testid="survey-filter-status"
       >
@@ -118,113 +131,85 @@ const PAGE_SIZE = 25;
           <option [value]="s" [selected]="status() === s">{{ statusKey(s) | transloco }}</option>
         }
       </select>
-      <label filters class="sr-only" for="cf-sv-sort">
-        {{ 'feedback.filters.sort' | transloco }}
-      </label>
-      <select
-        filters
-        id="cf-sv-sort"
-        class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
-        (change)="setSort($any($event.target).value)"
-      >
-        @for (s of sorts; track s) {
-          <option [value]="s" [selected]="sort() === s">
-            {{ 'feedback.sorts.' + sortKey(s) | transloco }}
-          </option>
-        }
-      </select>
+
+      <div more-filters class="flex flex-col gap-1">
+        <label for="cf-sv-sort" class="text-meta font-semibold text-fg-muted">{{
+          'feedback.filters.sort' | transloco
+        }}</label>
+        <select
+          id="cf-sv-sort"
+          class="h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
+          (change)="setSort($any($event.target).value)"
+        >
+          @for (s of sorts; track s) {
+            <option [value]="s" [selected]="sort() === s">
+              {{ 'feedback.sorts.' + sortKey(s) | transloco }}
+            </option>
+          }
+        </select>
+      </div>
 
       <app-card [padded]="false">
         @switch (state()) {
           @case ('loading') {
-            <p class="py-10 text-center text-[14px] text-fg-muted" role="status">
-              {{ 'feedback.common.loading' | transloco }}
-            </p>
+            <app-loading-state [rows]="4" />
           }
           @case ('error') {
-            <p class="py-10 text-center text-[14px] text-fail" role="alert">
-              {{ 'feedback.common.loadFailed' | transloco }}
-            </p>
+            <app-error-state (retry)="reload()" />
           }
           @default {
             @if (rows().length === 0) {
-              <p class="py-10 text-center text-[14px] text-fg-muted" data-testid="no-match">
-                {{ 'feedback.surveys.noMatch' | transloco }}
-              </p>
+              <app-empty-state
+                icon="search"
+                titleKey="feedback.surveys.noMatch"
+                ctaKey="feedback.list.resetFilters"
+                ctaVariant="secondary"
+                (cta)="resetFilters()"
+                data-testid="no-match"
+              />
             } @else {
-              <ul class="divide-y divide-border" data-testid="survey-rows">
+              <div role="list" data-testid="survey-rows">
+                <app-record-row-header dateKind="updated" [owner]="true" />
                 @for (s of rows(); track s.id) {
-                  <li class="flex flex-col gap-1.5 px-4 py-3 sm:flex-row sm:items-center sm:gap-3">
-                    <div class="min-w-0 flex-1">
-                      <a
-                        [routerLink]="['/feedback/surveys', s.id]"
-                        class="flex min-w-0 items-center gap-2 text-[13.5px] font-semibold text-fg hover:underline"
-                      >
-                        <span class="flex-none font-mono text-[12px] text-fg-subtle">{{
-                          s.code
-                        }}</span>
-                        <span class="truncate">{{ s.title }}</span>
-                      </a>
-                      <span
-                        class="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[12px] text-fg-subtle"
-                      >
-                        <span>{{
-                          'feedback.surveys.questionCount' | transloco: { count: s.question_count }
-                        }}</span>
-                        <span>{{
-                          (s.anonymous ? 'feedback.surveys.anonymous' : 'feedback.surveys.named')
-                            | transloco
-                        }}</span>
-                        @if (s.closes_on) {
-                          <span>{{
-                            'feedback.surveys.closesOn'
-                              | transloco: { date: (s.closes_on | localDay) }
-                          }}</span>
-                        }
-                        @if (s.owner?.name; as ownerName) {
-                          <span>{{ 'feedback.list.owner' | transloco: { name: ownerName } }}</span>
-                        }
-                      </span>
-                    </div>
-                    <span class="flex flex-wrap items-center gap-3 text-[12.5px] text-fg-muted">
-                      <app-badge [tone]="statusTone(s.status)">{{
-                        statusKey(s.status) | transloco
-                      }}</app-badge>
-                      <span>{{
-                        'feedback.surveys.responses' | transloco: { count: s.response_count }
-                      }}</span>
-                      <span class="min-w-[90px] text-right">
-                        @if (s.average_score !== null) {
-                          {{
-                            'feedback.surveys.averageScore'
-                              | transloco: { score: (s.average_score | localNumber: '1.0-0') }
-                          }}
-                        } @else {
-                          {{ 'feedback.surveys.noScore' | transloco }}
-                        }
-                      </span>
+                  <app-record-row
+                    [code]="s.code"
+                    [title]="s.title"
+                    [subtitle]="subtitle(s)"
+                    [link]="['/feedback/surveys', s.id]"
+                    [owner]="s.owner?.name"
+                    [date]="s.last_response_at ?? s.updated_at"
+                    dateKind="updated"
+                  >
+                    <span coverage class="block max-w-full min-w-0 overflow-hidden">
+                      <app-coverage-chip [entityType]="entityType" [entityId]="s.id" />
                     </span>
-                  </li>
+                    <span badges class="contents">
+                      <app-status-badge
+                        meaning="lifecycle"
+                        [value]="s.status"
+                        [labelKey]="statusKey(s.status)"
+                      />
+                    </span>
+                  </app-record-row>
                 }
-              </ul>
-              <div class="border-t border-border px-4 py-2.5">
-                <app-pager
-                  [offset]="offset()"
-                  [pageSize]="pageSize"
-                  [count]="rows().length"
-                  [total]="total()"
-                  (pageChange)="offset.set($event)"
-                />
               </div>
+              @if (total() > pageSize) {
+                <div class="border-t border-border px-4 py-2.5">
+                  <app-pager
+                    [offset]="offset()"
+                    [pageSize]="pageSize"
+                    [count]="rows().length"
+                    [total]="total()"
+                    (pageChange)="offset.set($event)"
+                  />
+                </div>
+              }
             }
           }
         }
       </app-card>
 
-      <div class="mt-6 flex flex-col gap-3">
-        <app-why-it-matters scope="feedback" page="surveys" />
-        <app-feedback-lesson-link lesson="measuring-satisfaction" />
-      </div>
+      <app-why-it-matters below scope="feedback" page="surveys" />
 
       <div empty class="flex flex-col gap-6">
         <app-card>
@@ -236,7 +221,6 @@ const PAGE_SIZE = 25;
           />
         </app-card>
         <app-why-it-matters scope="feedback" page="surveys" />
-        <app-feedback-lesson-link lesson="measuring-satisfaction" />
       </div>
     </app-record-list-page>
   `,
@@ -247,11 +231,14 @@ export class SurveysList {
   private readonly language = inject(LanguageService);
   private readonly router = inject(Router);
 
+  protected readonly entityType = SURVEY_ENTITY;
+  protected readonly nav = FEEDBACK_NAV;
+  protected readonly settingsLink = FEEDBACK_SETTINGS_LINK;
   protected readonly statuses = SURVEY_STATUSES;
   protected readonly sorts = SURVEY_SORTS;
+  protected readonly defaultSort = DEFAULT_SORT;
   protected readonly pageSize = PAGE_SIZE;
   protected readonly statusKey = surveyStatusKey;
-  protected readonly statusTone = surveyStatusTone;
   protected readonly sortKey = sortKey;
 
   protected readonly canManage = computed(() =>
@@ -260,12 +247,13 @@ export class SurveysList {
 
   protected readonly q = signal('');
   protected readonly status = signal<SurveyStatus | ''>('');
-  protected readonly sort = signal<SurveySort>('-updated_at');
+  protected readonly sort = signal<SurveySort>(DEFAULT_SORT);
   protected readonly offset = signal(0);
 
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
   protected readonly rows = signal<readonly SurveyListItem[]>([]);
   protected readonly total = signal(0);
+  private readonly reloads = signal(0);
 
   protected readonly showEmpty = computed(
     () => this.state() === 'ready' && this.total() === 0 && !this.q() && !this.status(),
@@ -295,8 +283,24 @@ export class SurveysList {
         limit: PAGE_SIZE,
         offset: this.offset(),
       };
+      this.reloads();
       untracked(() => this.load(orgId, query));
     });
+  }
+
+  /** Questions · answers · score · anonymous / named, in the UI language. */
+  protected subtitle(s: SurveyListItem): string {
+    const t = (key: string, params?: Record<string, unknown>) =>
+      this.language.translate(key, params);
+    const parts = [
+      t('feedback.surveys.questionCount', { count: s.question_count }),
+      t('feedback.surveys.responses', { count: s.response_count }),
+      s.average_score !== null
+        ? t('feedback.surveys.averageScore', { score: round1(s.average_score) })
+        : t('feedback.surveys.noScore'),
+      t(s.anonymous ? 'feedback.surveys.anonymous' : 'feedback.surveys.named'),
+    ];
+    return parts.join(' · ');
   }
 
   protected setQuery(value: string): void {
@@ -314,13 +318,24 @@ export class SurveysList {
   protected setSort(value: string): void {
     this.offset.set(0);
     this.sort.set(
-      (SURVEY_SORTS as readonly string[]).includes(value) ? (value as SurveySort) : '-updated_at',
+      (SURVEY_SORTS as readonly string[]).includes(value) ? (value as SurveySort) : DEFAULT_SORT,
     );
   }
 
   protected applyView(view: SavedView): void {
     this.setStatus(view.filters['status'] ?? '');
-    this.setSort(view.filters['sort'] ?? '-updated_at');
+    this.setSort(view.filters['sort'] ?? DEFAULT_SORT);
+  }
+
+  protected resetFilters(): void {
+    this.offset.set(0);
+    this.q.set('');
+    this.status.set('');
+    this.sort.set(DEFAULT_SORT);
+  }
+
+  protected reload(): void {
+    this.reloads.update((n) => n + 1);
   }
 
   protected newSurvey(): void {

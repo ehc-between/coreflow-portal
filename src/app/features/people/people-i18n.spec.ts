@@ -5,6 +5,8 @@ import nb from '../../../assets/i18n/people/nb.json';
 import { expectKeyParity } from '../../../testing/i18n-parity';
 import { PEOPLE_ERROR_CODES } from './data/people-errors';
 import {
+  ACTION_KEYS,
+  ASSESSMENT_METHODS,
   AWARENESS_KINDS,
   CELL_STATUSES,
   CHECKLIST_KINDS,
@@ -16,13 +18,21 @@ import {
   EMPLOYEE_SORTS,
   EMPLOYEE_STATUSES,
   EMPLOYMENT_TYPES,
+  EMPLOYEE_FLAGS,
+  GAP_ACTION_KINDS,
+  GAP_ACTION_STATUSES,
+  COMPLIANCE_KEYS,
   ITEM_CATEGORIES,
   RECORD_STATUSES,
   RISK_LEVELS,
+  SCREENING_SCOPES,
   SCREENING_STATUSES,
 } from './data/people.models';
 import { sortKey } from './data/people-display';
-import { PEOPLE_SECTIONS } from './people-section-nav';
+import { PEOPLE_NAV } from './ui/people-nav';
+
+/** The sub-area keys of `people.sections.<key>`. */
+const PEOPLE_SECTIONS = PEOPLE_NAV.map((item) => item.labelKey.replace('people.sections.', ''));
 
 type Tree = Record<string, unknown>;
 
@@ -63,6 +73,18 @@ const EVENT_KEYS = [
   'disciplinaryOpened',
   'disciplinaryClosed',
   'accessRevoked',
+  'competenceActionCreated',
+  'competenceActionEvaluated',
+  'positionReviewed',
+];
+
+/** The `x` of the backend's `people:next.<x>.title` / `.why` next-action keys. */
+const NEXT_KEYS = [
+  'checklistOverdue',
+  'screeningMissing',
+  'competencesExpiring',
+  'positionReview',
+  'membersWithoutEmployee',
 ];
 
 /** Entity types whose label keys point at this scope (`people:entities.<type>`). */
@@ -82,12 +104,15 @@ const GUIDED_PAGES = [
   'matrix',
   'checklists',
   'checklistDetail',
+  'checklistOnboarding',
+  'checklistOffboarding',
+  'settings',
 ];
 
 /** The clauses the backend declares for the module (manifest `clauses`). */
 const DECLARED = new Set([
   'hs:5.3',
-  'hs:7.1',
+  'iso9001:7.1.2',
   'hs:7.2',
   'hs:7.3',
   'iso27001:A.6.1',
@@ -98,6 +123,11 @@ const DECLARED = new Set([
   'iso27001:A.6.6',
   'iso27001:A.5.11',
   'iso27001:A.5.18',
+  'nis2:21.2.g',
+  'nis2:21.2.i',
+  'eu_ai_act:4',
+  'gdpr:32',
+  'gdpr:39',
 ]);
 
 describe('people i18n and guidance', () => {
@@ -135,6 +165,19 @@ describe('people i18n and guidance', () => {
     ['entities', ENTITY_TYPES],
     ['matrix.views', ['matrix', 'gaps']],
     ['filters.statusOptions', ['current', 'all']],
+    ['flags', EMPLOYEE_FLAGS],
+    ['screeningScopes', SCREENING_SCOPES],
+    ['methods', ASSESSMENT_METHODS],
+    ['gapActions.kinds', GAP_ACTION_KINDS],
+    ['gapActions.save', GAP_ACTION_KINDS],
+    ['gapActionStatus', GAP_ACTION_STATUSES],
+    ['compliance.keys', COMPLIANCE_KEYS],
+    ['compliance.status', ['ok', 'missing', 'due', 'pending', 'not_required']],
+    ['checklists.actions', ACTION_KEYS],
+    ['settings.actions', ACTION_KEYS],
+    ['notices.gapAction', GAP_ACTION_KINDS],
+    ['next', NEXT_KEYS.flatMap((k) => [`${k}.title`, `${k}.why`])],
+    ['next.positionReview', ['titleOne', 'whyOne']],
   ])('translates every %s value', (prefix, values) => {
     for (const lang of [en, nb]) {
       for (const value of values as readonly string[]) {
@@ -172,6 +215,17 @@ describe('people i18n and guidance', () => {
       for (const ref of refs) {
         expect(DECLARED.has(ref), ref).toBe(true);
       }
+    }
+  });
+
+  it('names every clause the module declares in plain words, never "ISO HS"', () => {
+    for (const lang of [en, nb]) {
+      for (const ref of DECLARED) {
+        const [framework, number] = ref.split(':');
+        const key = `clauses.${framework}_${number.replace(/\./g, '_')}`;
+        expect(typeof lookup(lang, key), key).toBe('string');
+      }
+      expect(strings(lang).filter((s) => /ISO HS/.test(s))).toEqual([]);
     }
   });
 

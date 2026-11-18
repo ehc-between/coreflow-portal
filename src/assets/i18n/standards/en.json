@@ -212,7 +212,17 @@
       "article_refs": "Articles",
       "requirements": "Requirements",
       "generic": "a field on the record",
-      "contract_type": "Contract type"
+      "contract_type": "Contract type",
+      "aspect_evaluation": "Aspect evaluation",
+      "emergency_preparedness": "Emergency plan",
+      "drill_result": "Drill result",
+      "monitoring": "Monitoring",
+      "screening_criteria": "Screening criteria",
+      "approval": "Requisition approval",
+      "privacy_notice": "Privacy notice given",
+      "screening": "Screening against the criteria",
+      "checks": "Background checks",
+      "offer": "Offer"
     },
     "origin": {
       "manual": "Added by hand",

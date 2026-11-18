@@ -7,27 +7,32 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { providePageContext } from '../../../core/ai/page-context';
-import { GuideIntro } from '../../../shared/guidance/guide-intro';
+import { LanguageService } from '../../../core/i18n/language.service';
 import { TeachingEmpty } from '../../../shared/guidance/teaching-empty';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { RecordListPage } from '../../../shared/kit/record-list-page';
 import { SavedView } from '../../../shared/kit/saved-views.service';
-import { LocalDayPipe } from '../../../shared/locale/locale-pipes';
-import { Badge } from '../../../shared/ui/badge/badge';
+import { CoverageChip } from '../../../shared/requirement-links/coverage-chip';
 import { Card } from '../../../shared/ui/card/card';
+import { EmptyState } from '../../../shared/ui/empty-state/empty-state';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
+import { Icon } from '../../../shared/ui/icon/icon';
 import { Pager } from '../../../shared/ui/pager/pager';
+import { RecordRow, RecordRowHeader } from '../../../shared/ui/record-row/record-row';
+import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { AuditAccess } from '../data/audit-access';
-import { findingStatusTone, findingTypeTone } from '../data/audit-display';
+import { findingStatusBadge, findingTypeBadge } from '../data/audit-display';
 import {
-  FINDING_OPEN_STATUSES,
   FINDING_SORTS,
   FINDING_STATUSES,
+  FINDING_STATUS_FILTERS,
   FINDING_TYPES,
   Finding,
   FindingSort,
+  FindingStatusFilter,
   ListResponse,
 } from '../data/audit.models';
 import { AuditsApi } from '../data/audits-api';
@@ -37,28 +42,49 @@ import { loadable } from '../shared/loadable';
 
 const PAGE_SIZE = 25;
 
-/** The `status` query value of a status filter ('open' = every open status). */
+/**
+ * The `status` query value of a status filter. `unresolved` is the backend's
+ * meta-value for every open status; `all` sends nothing; a single status is sent as is.
+ */
 export function findingStatusParam(filter: string): string | undefined {
-  if (filter === 'open') {
-    return FINDING_OPEN_STATUSES.join(',');
+  if (filter === 'unresolved') {
+    return 'unresolved';
   }
   return (FINDING_STATUSES as readonly string[]).includes(filter) ? filter : undefined;
 }
 
-/** `/audits/findings`: every audit finding with filters (status, type, mine, overdue). */
+/** A status filter from the URL / a saved view; the old group value `open` meant every open status. */
+export function parseFindingStatusFilter(value: string | null | undefined): FindingStatusFilter {
+  if (!value) {
+    return 'unresolved';
+  }
+  return (FINDING_STATUS_FILTERS as readonly string[]).includes(value)
+    ? (value as FindingStatusFilter)
+    : 'unresolved';
+}
+
+/**
+ * `/audits/findings`: every audit finding with filters (status, type, mine,
+ * overdue). Findings are raised from an audit, so the page says so and links to
+ * the audits instead of offering a create button here.
+ */
 @Component({
   selector: 'app-audit-finding-list',
   imports: [
     RouterLink,
     TranslocoPipe,
-    LocalDayPipe,
-    Badge,
     Card,
+    CoverageChip,
+    EmptyState,
+    HelpStrip,
+    Icon,
     Pager,
     RecordListPage,
-    GuideIntro,
-    WhyItMatters,
+    RecordRow,
+    RecordRowHeader,
+    StatusBadge,
     TeachingEmpty,
+    WhyItMatters,
     AuditsNav,
     AuditLoadState,
   ],
@@ -66,45 +92,49 @@ export function findingStatusParam(filter: string): string | undefined {
   template: `
     <app-record-list-page
       titleKey="audits.findings.title"
+      descriptionKey="audits.findings.subtitle"
       scope="audits"
       page="findings"
+      [breadcrumbs]="[
+        { labelKey: 'modules.names.audits', link: '/audits' },
+        { labelKey: 'audits.findings.title' },
+      ]"
       searchPlaceholderKey="audits.findings.search"
       [query]="q()"
       [filters]="filterValues()"
+      [moreFiltersActive]="moreActive()"
       [empty]="isEmpty()"
       (search)="q.set($event); offset.set(0)"
       (viewApplied)="applyView($event)"
     >
-      <div intro>
-        <app-audits-nav />
-        <div class="mt-4 flex flex-col gap-3">
-          <app-guide-intro scope="audits" page="findings" />
-          <app-why-it-matters scope="audits" page="findings" />
-        </div>
-      </div>
-      <div filters class="flex flex-wrap items-center gap-2">
+      <a
+        secondary
+        routerLink="/audits/plans"
+        class="inline-flex h-9 items-center gap-1.5 rounded-tile border border-border bg-surface px-3 text-ui font-semibold text-fg hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+      >
+        <app-icon name="audit" [size]="14" />
+        {{ 'audits.findings.raiseFromAudit' | transloco }}
+      </a>
+      <app-audits-nav nav />
+      <app-help-strip help scope="audits" page="findings" lesson="findings-and-capa" />
+
+      <ng-container filters>
         <label class="sr-only" for="fd-status">{{ 'audits.filters.status' | transloco }}</label>
         <select
           id="fd-status"
-          class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
+          class="h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
           (change)="status.set($any($event.target).value); offset.set(0)"
         >
-          <option value="" [selected]="!status()">
-            {{ 'audits.filters.anyStatus' | transloco }}
-          </option>
-          <option value="open" [selected]="status() === 'open'">
-            {{ 'audits.filters.openFindings' | transloco }}
-          </option>
-          @for (s of statuses; track s) {
+          @for (s of statusFilters; track s) {
             <option [value]="s" [selected]="status() === s">
-              {{ 'audits.findingStatus.' + s | transloco }}
+              {{ 'audits.filters.findingStatus.' + s | transloco }}
             </option>
           }
         </select>
         <label class="sr-only" for="fd-type">{{ 'audits.filters.type' | transloco }}</label>
         <select
           id="fd-type"
-          class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
+          class="h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
           (change)="type.set($any($event.target).value); offset.set(0)"
         >
           <option value="" [selected]="!type()">{{ 'audits.filters.anyType' | transloco }}</option>
@@ -114,19 +144,7 @@ export function findingStatusParam(filter: string): string | undefined {
             </option>
           }
         </select>
-        <label class="sr-only" for="fd-sort">{{ 'audits.filters.sort' | transloco }}</label>
-        <select
-          id="fd-sort"
-          class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
-          (change)="sort.set($any($event.target).value); offset.set(0)"
-        >
-          @for (s of sorts; track s) {
-            <option [value]="s" [selected]="sort() === s">
-              {{ 'audits.findings.sorts.' + s | transloco }}
-            </option>
-          }
-        </select>
-        <label class="inline-flex h-10 items-center gap-1.5 text-[13px] text-fg">
+        <label class="inline-flex h-10 items-center gap-1.5 text-ui text-fg">
           <input
             type="checkbox"
             [checked]="mine()"
@@ -134,7 +152,25 @@ export function findingStatusParam(filter: string): string | undefined {
           />
           {{ 'audits.filters.mine' | transloco }}
         </label>
-        <label class="inline-flex h-10 items-center gap-1.5 text-[13px] text-fg">
+      </ng-container>
+      <div more-filters class="flex flex-col gap-3">
+        <div class="flex flex-col gap-1">
+          <label class="text-meta font-semibold text-fg-muted" for="fd-sort">{{
+            'audits.filters.sort' | transloco
+          }}</label>
+          <select
+            id="fd-sort"
+            class="h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
+            (change)="sort.set($any($event.target).value); offset.set(0)"
+          >
+            @for (s of sorts; track s) {
+              <option [value]="s" [selected]="sort() === s">
+                {{ 'audits.findings.sorts.' + s | transloco }}
+              </option>
+            }
+          </select>
+        </div>
+        <label class="inline-flex min-h-8 items-center gap-2 text-ui text-fg">
           <input
             type="checkbox"
             [checked]="overdue()"
@@ -145,119 +181,89 @@ export function findingStatusParam(filter: string): string | undefined {
       </div>
 
       <app-card [padded]="false">
-        <app-audit-load-state [state]="data.state()" (retry)="load()" />
+        <app-audit-load-state [state]="data.state()" [rows]="5" (retry)="load()" />
         @if (data.state() === 'ready') {
           @if (rows().length) {
-            <div class="overflow-x-auto">
-              <table class="w-full min-w-[680px] text-left text-[13px]">
-                <caption class="sr-only">
-                  {{
-                    'audits.findings.title' | transloco
-                  }}
-                </caption>
-                <thead class="border-b border-border text-[12px] text-fg-muted">
-                  <tr>
-                    <th scope="col" class="px-4 py-2.5 font-semibold">
-                      {{ 'audits.fields.title' | transloco }}
-                    </th>
-                    <th scope="col" class="px-3 py-2.5 font-semibold">
-                      {{ 'audits.fields.findingType' | transloco }}
-                    </th>
-                    <th scope="col" class="px-3 py-2.5 font-semibold">
-                      {{ 'audits.fields.audit' | transloco }}
-                    </th>
-                    <th scope="col" class="px-3 py-2.5 font-semibold">
-                      {{ 'audits.fields.findingOwner' | transloco }}
-                    </th>
-                    <th scope="col" class="px-3 py-2.5 font-semibold">
-                      {{ 'audits.fields.responseDue' | transloco }}
-                    </th>
-                    <th scope="col" class="px-3 py-2.5 font-semibold">
-                      {{ 'audits.fields.status' | transloco }}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-border">
-                  @for (f of rows(); track f.id) {
-                    <tr class="hover:bg-surface-2">
-                      <td class="px-4 py-2.5">
-                        <a
-                          [routerLink]="['/audits/findings', f.id]"
-                          class="font-semibold text-fg hover:text-accent"
-                        >
-                          <span class="block text-[11.5px] font-normal text-fg-subtle">{{
-                            f.code
-                          }}</span>
-                          {{ f.title }}
-                        </a>
-                      </td>
-                      <td class="px-3 py-2.5">
-                        <app-badge [tone]="typeTone(f.finding_type)">{{
-                          'audits.findingType.' + f.finding_type | transloco
-                        }}</app-badge>
-                      </td>
-                      <td class="px-3 py-2.5 text-fg-muted">
-                        <a [routerLink]="['/audits/plans', f.plan.id]" class="hover:text-accent">{{
-                          f.plan.code
-                        }}</a>
-                      </td>
-                      <td class="px-3 py-2.5 text-fg-muted">{{ f.owner?.name || '–' }}</td>
-                      <td
-                        class="px-3 py-2.5"
-                        [class.text-fail]="f.overdue"
-                        [class.text-fg-muted]="!f.overdue"
-                      >
-                        {{ f.response_due_at | localDay }}
-                        @if (f.overdue) {
-                          <span class="block text-[11.5px] font-semibold">{{
-                            'audits.common.overdue' | transloco
-                          }}</span>
-                        }
-                      </td>
-                      <td class="px-3 py-2.5">
-                        <app-badge [tone]="statusTone(f.status)">{{
-                          'audits.findingStatus.' + f.status | transloco
-                        }}</app-badge>
-                      </td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
+            <div role="list" [attr.aria-label]="'audits.findings.title' | transloco">
+              <app-record-row-header dateKind="due" />
+              @for (f of rows(); track f.id) {
+                @let tb = typeBadge(f.finding_type);
+                @let sb = statusBadge(f.status);
+                <app-record-row
+                  [code]="f.code"
+                  [title]="f.title"
+                  [subtitle]="subtitle(f)"
+                  [link]="['/audits/findings', f.id]"
+                  [owner]="f.owner?.name"
+                  [date]="f.response_due_at"
+                  dateKind="due"
+                  [overdue]="f.overdue"
+                >
+                  <app-coverage-chip coverage entityType="audit_finding" [entityId]="f.id" />
+                  <app-status-badge
+                    badges
+                    [meaning]="tb.meaning"
+                    [value]="tb.value"
+                    [labelKey]="tb.labelKey"
+                  />
+                  <app-status-badge
+                    badges
+                    [meaning]="sb.meaning"
+                    [value]="sb.value"
+                    [labelKey]="sb.labelKey"
+                  />
+                </app-record-row>
+              }
+            </div>
+            <div class="px-4 py-2">
+              <app-pager
+                [offset]="offset()"
+                [pageSize]="pageSize"
+                [count]="rows().length"
+                [total]="data.value()?.total ?? null"
+                (pageChange)="offset.set($event)"
+              />
             </div>
           } @else {
-            <p class="py-10 text-center text-[14px] text-fg-muted">
-              {{ 'audits.common.noMatches' | transloco }}
-            </p>
+            <app-empty-state
+              icon="search"
+              titleKey="ui.empty.noResults"
+              ctaKey="audits.filters.clear"
+              ctaVariant="secondary"
+              [compact]="true"
+              (cta)="clearFilters()"
+            />
           }
         }
       </app-card>
-      <app-pager
-        [offset]="offset()"
-        [pageSize]="pageSize"
-        [count]="rows().length"
-        [total]="data.value()?.total ?? null"
-        (pageChange)="offset.set($event)"
-      />
 
-      <app-teaching-empty empty scope="audits" page="findings" [showAction]="false" />
+      <app-card empty>
+        <app-teaching-empty scope="audits" page="findings" (action)="toAudits()" />
+      </app-card>
+      <app-why-it-matters below scope="audits" page="findings" />
     </app-record-list-page>
   `,
 })
 export class FindingList {
   private readonly api = inject(AuditsApi);
+  private readonly language = inject(LanguageService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   protected readonly access = inject(AuditAccess);
   protected readonly data = loadable<ListResponse<Finding>>();
 
-  protected readonly statuses = FINDING_STATUSES;
+  protected readonly statusFilters = FINDING_STATUS_FILTERS;
   protected readonly types = FINDING_TYPES;
   protected readonly sorts = FINDING_SORTS;
   protected readonly pageSize = PAGE_SIZE;
-  protected readonly typeTone = findingTypeTone;
-  protected readonly statusTone = findingStatusTone;
+  protected readonly typeBadge = findingTypeBadge;
+  protected readonly statusBadge = findingStatusBadge;
 
-  private readonly initial = inject(ActivatedRoute).snapshot.queryParamMap;
-  protected readonly q = signal('');
-  protected readonly status = signal(this.initial.get('status') ?? 'open');
+  private readonly initial = this.route.snapshot.queryParamMap;
+  protected readonly q = signal(this.initial.get('q') ?? '');
+  protected readonly status = signal<FindingStatusFilter>(
+    parseFindingStatusFilter(this.initial.get('status')),
+  );
   protected readonly type = signal(
     (FINDING_TYPES as readonly string[]).includes(this.initial.get('type') ?? '')
       ? this.initial.get('type')!
@@ -276,19 +282,27 @@ export class FindingList {
     mine: this.mine() ? '1' : '',
     overdue: this.overdue() ? '1' : '',
   }));
+  protected readonly moreActive = computed(
+    () => (this.sort() !== 'severity' ? 1 : 0) + (this.overdue() ? 1 : 0),
+  );
   protected readonly isEmpty = computed(
     () =>
       this.data.state() === 'ready' &&
       (this.data.value()?.total ?? 0) === 0 &&
       !this.q() &&
-      (!this.status() || this.status() === 'open') &&
+      (this.status() === 'all' || this.status() === 'unresolved') &&
       !this.type() &&
       !this.mine() &&
       !this.overdue(),
   );
 
   constructor() {
-    providePageContext(() => ({ module: 'audits', entityType: 'audit_finding', view: 'list' }));
+    providePageContext(() => ({
+      module: 'audits',
+      entityType: 'audit_finding',
+      view: 'list',
+      title: this.language.translate('audits.findings.title'),
+    }));
     effect(() => {
       this.access.orgId();
       this.filterValues();
@@ -318,8 +332,23 @@ export class FindingList {
     );
   }
 
+  protected subtitle(f: Finding): string {
+    const plan = [f.plan.code, f.plan.title].filter(Boolean).join(' · ');
+    return this.language.translate('audits.findings.fromAudit', { audit: plan });
+  }
+
+  protected clearFilters(): void {
+    this.q.set('');
+    this.status.set('unresolved');
+    this.type.set('');
+    this.sort.set('severity');
+    this.mine.set(false);
+    this.overdue.set(false);
+    this.offset.set(0);
+  }
+
   protected applyView(view: SavedView): void {
-    this.status.set(view.filters['status'] ?? '');
+    this.status.set(parseFindingStatusFilter(view.filters['status']));
     this.type.set(view.filters['type'] ?? '');
     this.sort.set(
       ((FINDING_SORTS as readonly string[]).includes(view.filters['sort'] ?? '')
@@ -329,5 +358,9 @@ export class FindingList {
     this.mine.set(view.filters['mine'] === '1');
     this.overdue.set(view.filters['overdue'] === '1');
     this.offset.set(0);
+  }
+
+  protected toAudits(): void {
+    void this.router.navigate(['/audits/plans']);
   }
 }

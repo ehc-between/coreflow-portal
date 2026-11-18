@@ -15,6 +15,7 @@ import { Subscription } from 'rxjs';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { AiAssistButton } from '../../../shared/ask/ai-assist-button';
+import { AskAbout } from '../../../shared/ask/ask-about';
 import { FieldHelp } from '../../../shared/guidance/field-help';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
@@ -34,7 +35,8 @@ import {
   PlanListItem,
 } from '../data/continuity.models';
 import { ContinuityDurationInput } from '../shared/duration';
-import { ContinuityUserSelect } from '../shared/user-select';
+import { ContinuityMemberPicker, ContinuityUserSelect } from '../shared/user-select';
+import { LocalDayPipe } from '../../../shared/locale/locale-pipes';
 
 export interface ExerciseDraft {
   title: string;
@@ -46,6 +48,9 @@ export interface ExerciseDraft {
   scenario: string;
   objectives: string;
   participants: string;
+  participant_user_ids: string[];
+  target_recovery_minutes: number | null;
+  success_criteria: string;
   conducted_on: string;
   outcome: Outcome | '';
   achieved_recovery_minutes: number | null;
@@ -67,6 +72,9 @@ export function exerciseDraft(
     scenario: e?.scenario ?? '',
     objectives: e?.objectives ?? '',
     participants: e?.participants ?? '',
+    participant_user_ids: [...(e?.participant_user_ids ?? [])],
+    target_recovery_minutes: e?.target_recovery_minutes ?? null,
+    success_criteria: e?.success_criteria ?? '',
     conducted_on: e?.conducted_on ?? '',
     outcome: e?.outcome ?? '',
     achieved_recovery_minutes: e?.achieved_recovery_minutes ?? null,
@@ -87,16 +95,21 @@ export function exercisePlanning(d: ExerciseDraft): ExerciseCreate {
     scenario: blankToNull(d.scenario),
     objectives: blankToNull(d.objectives),
     participants: blankToNull(d.participants),
+    participant_user_ids: [...d.participant_user_ids],
+    target_recovery_minutes: d.target_recovery_minutes,
+    success_criteria: blankToNull(d.success_criteria),
   };
 }
 
-/** The fields editable once completed: the texts and the results. */
+/** The fields editable once completed: the texts, who took part and the results. */
 export function exerciseResults(d: ExerciseDraft): ExerciseUpdate {
   return {
     title: d.title.trim(),
     scenario: blankToNull(d.scenario),
     objectives: blankToNull(d.objectives),
     participants: blankToNull(d.participants),
+    participant_user_ids: [...d.participant_user_ids],
+    success_criteria: blankToNull(d.success_criteria),
     conducted_on: d.conducted_on || null,
     outcome: d.outcome || null,
     achieved_recovery_minutes: d.achieved_recovery_minutes,
@@ -120,11 +133,8 @@ export function applyScenario(
   if (injects.length) {
     scenario = `${scenario}\n\n${labels.injects}\n${injects.join('\n')}`.trim();
   }
-  let objectives = (r.objectives ?? '').trim();
-  const criteria = lines(r.success_criteria);
-  if (criteria.length) {
-    objectives = `${objectives}\n\n${labels.successCriteria}\n${criteria.join('\n')}`.trim();
-  }
+  const objectives = (r.objectives ?? '').trim();
+  const criteria = lines(r.success_criteria).join('\n');
   const participants = (r.participants ?? []).filter((p) => p?.trim()).join(', ');
   return {
     ...d,
@@ -135,6 +145,7 @@ export function applyScenario(
         : d.exercise_type,
     scenario: d.scenario.trim() ? d.scenario : scenario,
     objectives: d.objectives.trim() ? d.objectives : objectives,
+    success_criteria: d.success_criteria.trim() ? d.success_criteria : criteria,
     participants: d.participants.trim() ? d.participants : participants,
   };
 }
@@ -145,50 +156,60 @@ export interface ExerciseFormValue {
 
 /**
  * Create / edit form of an exercise or test. While planned: what is exercised (a
- * plan and/or an ICT service), the type, owner, date, scenario, objectives and
- * participants; the assistant can write a scenario with injects for the chosen
- * plan. Once completed, the planning fields are locked and the results (date held,
- * outcome, achieved recovery time, results, lessons learned) become editable.
+ * plan and/or an ICT service), the type, owner, date, the participants (org members,
+ * plus others in free text), the target recovery time, the success criteria, the
+ * scenario and objectives; the assistant can write a scenario with injects for the
+ * chosen plan. Once completed, the planning fields are locked and the results (date
+ * held, outcome, achieved recovery time, results, lessons learned) become editable;
+ * participants and success criteria stay editable.
  */
 @Component({
   selector: 'app-exercise-form',
   imports: [
     TranslocoPipe,
     AiAssistButton,
+    AskAbout,
     Button,
     Card,
     ContinuityDurationInput,
+    ContinuityMemberPicker,
     ContinuityUserSelect,
     FieldHelp,
     FormField,
+    LocalDayPipe,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); submit()" novalidate>
       <app-card>
         <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <h2 class="font-display text-[15px] font-bold text-fg">
+          <h2 class="font-display text-card font-bold text-fg">
             {{ 'continuity.form.sections.exercise' | transloco }}
           </h2>
           @if (!completed()) {
-            <app-ai-assist-button
-              assist="continuity.exercise_scenario"
-              labelKey="continuity.ai.draftScenario"
-              [input]="{
-                plan_id: d().plan_id || null,
-                exercise_type: d().exercise_type,
-                notes: d().title || null,
-              }"
-              [disabled]="!d().plan_id"
-              (result)="applyResult($event)"
-            />
+            <div class="flex flex-col items-end gap-1">
+              <app-ai-assist-button
+                assist="continuity.exercise_scenario"
+                labelKey="continuity.ai.draftScenario"
+                [input]="{
+                  plan_id: d().plan_id || null,
+                  exercise_type: d().exercise_type,
+                  notes: d().title || null,
+                }"
+                [disabled]="!d().plan_id"
+                (result)="applyResult($event)"
+              />
+              @if (!d().plan_id) {
+                <p
+                  class="max-w-[280px] text-right text-meta text-fg-subtle"
+                  data-testid="scenario-hint"
+                >
+                  {{ 'continuity.ai.scenarioNeedsPlan' | transloco }}
+                </p>
+              }
+            </div>
           }
         </div>
-        @if (!completed() && !d().plan_id) {
-          <p class="mb-3 text-[12.5px] text-fg-subtle">
-            {{ 'continuity.ai.scenarioNeedsPlan' | transloco }}
-          </p>
-        }
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div class="sm:col-span-2">
             <app-form-field [label]="'continuity.fields.title' | transloco" inputId="ex-title">
@@ -203,32 +224,25 @@ export interface ExerciseFormValue {
               />
             </app-form-field>
             @if (showErrors() && !d().title.trim()) {
-              <p class="mt-1 text-[12px] text-fail" role="alert">
+              <p class="mt-1 text-meta text-fail-ink" role="alert">
                 {{ 'continuity.form.errors.titleRequired' | transloco }}
               </p>
             }
           </div>
-          <div>
-            <div class="flex items-center gap-1">
-              <app-field-help scope="continuity" page="exerciseForm" field="exercise_type" />
-            </div>
-            <app-form-field
-              [label]="'continuity.fields.exerciseType' | transloco"
-              inputId="ex-type"
+          <app-form-field [label]="'continuity.fields.exerciseType' | transloco" inputId="ex-type">
+            <select
+              id="ex-type"
+              [disabled]="completed()"
+              (change)="set('exercise_type', $any($event.target).value)"
             >
-              <select
-                id="ex-type"
-                [disabled]="completed()"
-                (change)="set('exercise_type', $any($event.target).value)"
-              >
-                @for (t of types; track t) {
-                  <option [value]="t" [selected]="d().exercise_type === t">
-                    {{ 'continuity.exerciseType.' + t | transloco }}
-                  </option>
-                }
-              </select>
-            </app-form-field>
-          </div>
+              @for (t of types; track t) {
+                <option [value]="t" [selected]="d().exercise_type === t">
+                  {{ 'continuity.exerciseType.' + t | transloco }}
+                </option>
+              }
+            </select>
+            <app-field-help scope="continuity" page="exerciseForm" field="exercise_type" />
+          </app-form-field>
           <app-form-field [label]="'continuity.fields.scheduledOn' | transloco" inputId="ex-date">
             <input
               id="ex-date"
@@ -237,6 +251,9 @@ export interface ExerciseFormValue {
               [value]="d().scheduled_on"
               (input)="set('scheduled_on', $any($event.target).value)"
             />
+            @if (d().scheduled_on) {
+              <p class="text-meta text-fg-subtle">{{ d().scheduled_on | localDay: 'longDate' }}</p>
+            }
           </app-form-field>
           <app-form-field [label]="'continuity.fields.plan' | transloco" inputId="ex-plan">
             <select
@@ -258,9 +275,6 @@ export interface ExerciseFormValue {
             </select>
           </app-form-field>
           <div>
-            <div class="flex items-center gap-1">
-              <app-field-help scope="continuity" page="exerciseForm" field="ict_system_id" />
-            </div>
             <app-form-field [label]="'continuity.fields.ictSystem' | transloco" inputId="ex-ict">
               <select
                 id="ex-ict"
@@ -279,6 +293,7 @@ export interface ExerciseFormValue {
                   </option>
                 }
               </select>
+              <app-field-help scope="continuity" page="exerciseForm" field="ict_system_id" />
             </app-form-field>
           </div>
           <app-form-field [label]="'continuity.fields.owner' | transloco" inputId="ex-owner">
@@ -290,22 +305,80 @@ export interface ExerciseFormValue {
               (valueChange)="set('owner_user_id', $event)"
             />
           </app-form-field>
-          <app-form-field
-            [label]="'continuity.fields.participants' | transloco"
-            inputId="ex-participants"
-          >
-            <input
-              id="ex-participants"
-              type="text"
-              maxlength="5000"
-              [value]="d().participants"
-              (input)="set('participants', $any($event.target).value)"
-            />
-          </app-form-field>
+          @if (!completed()) {
+            <app-form-field
+              [label]="'continuity.fields.targetRecovery' | transloco"
+              inputId="ex-target"
+            >
+              <app-continuity-duration-input
+                inputId="ex-target"
+                [value]="d().target_recovery_minutes"
+                describedBy="ex-target-hint"
+                (valueChange)="set('target_recovery_minutes', $event)"
+              />
+              <p id="ex-target-hint" class="text-meta text-fg-subtle">
+                {{ 'continuity.form.targetHint' | transloco }}
+              </p>
+              <app-field-help
+                scope="continuity"
+                page="exerciseForm"
+                field="target_recovery_minutes"
+              />
+            </app-form-field>
+          }
           <div class="sm:col-span-2">
-            <div class="flex items-center gap-1">
-              <app-field-help scope="continuity" page="exerciseForm" field="scenario" />
-            </div>
+            <app-form-field
+              [label]="'continuity.fields.participantMembers' | transloco"
+              inputId="ex-members"
+            >
+              <app-continuity-member-picker
+                inputId="ex-members"
+                [value]="d().participant_user_ids"
+                [known]="value()?.participant_members ?? []"
+                describedBy="ex-members-hint"
+                (valueChange)="set('participant_user_ids', $event)"
+              />
+              <p id="ex-members-hint" class="text-meta text-fg-subtle">
+                {{ 'continuity.form.membersHint' | transloco }}
+              </p>
+            </app-form-field>
+          </div>
+          <div class="sm:col-span-2">
+            <app-form-field
+              [label]="'continuity.fields.participantsOther' | transloco"
+              inputId="ex-participants"
+            >
+              <input
+                id="ex-participants"
+                type="text"
+                maxlength="5000"
+                [value]="d().participants"
+                (input)="set('participants', $any($event.target).value)"
+              />
+            </app-form-field>
+          </div>
+          <div class="sm:col-span-2">
+            <app-form-field
+              [label]="'continuity.fields.successCriteria' | transloco"
+              inputId="ex-criteria"
+            >
+              <textarea
+                id="ex-criteria"
+                rows="3"
+                maxlength="20000"
+                [value]="d().success_criteria"
+                (input)="set('success_criteria', $any($event.target).value)"
+              ></textarea>
+              <span class="flex flex-wrap items-center gap-2">
+                <app-field-help scope="continuity" page="exerciseForm" field="success_criteria" />
+                <app-ask-about
+                  [prompt]="'continuity.ai.prompts.successCriteria' | transloco"
+                  field="success_criteria"
+                />
+              </span>
+            </app-form-field>
+          </div>
+          <div class="sm:col-span-2">
             <app-form-field
               [label]="'continuity.fields.scenario' | transloco"
               inputId="ex-scenario"
@@ -317,6 +390,7 @@ export interface ExerciseFormValue {
                 [value]="d().scenario"
                 (input)="set('scenario', $any($event.target).value)"
               ></textarea>
+              <app-field-help scope="continuity" page="exerciseForm" field="scenario" />
             </app-form-field>
           </div>
           <div class="sm:col-span-2">
@@ -338,7 +412,7 @@ export interface ExerciseFormValue {
 
       @if (completed()) {
         <app-card>
-          <h2 class="mb-3 font-display text-[15px] font-bold text-fg">
+          <h2 class="mb-3 font-display text-card font-bold text-fg">
             {{ 'continuity.exercises.results' | transloco }}
           </h2>
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -353,6 +427,11 @@ export interface ExerciseFormValue {
                 [value]="d().conducted_on"
                 (input)="set('conducted_on', $any($event.target).value)"
               />
+              @if (d().conducted_on) {
+                <p class="text-meta text-fg-subtle">
+                  {{ d().conducted_on | localDay: 'longDate' }}
+                </p>
+              }
             </app-form-field>
             <app-form-field [label]="'continuity.fields.outcome' | transloco" inputId="ex-outcome">
               <select id="ex-outcome" (change)="set('outcome', $any($event.target).value)">
@@ -405,7 +484,9 @@ export interface ExerciseFormValue {
         </app-card>
       }
 
-      <div class="flex flex-wrap items-center justify-end gap-2">
+      <div
+        class="sticky bottom-0 z-10 -mx-4 flex flex-wrap items-center justify-end gap-2 border-t border-border bg-bg/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0"
+      >
         <app-button variant="ghost" (click)="cancelled.emit()">
           {{ 'common.cancel' | transloco }}
         </app-button>

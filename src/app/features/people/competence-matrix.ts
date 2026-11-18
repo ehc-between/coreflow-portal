@@ -13,18 +13,30 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../core/ai/page-context';
 import { LanguageService } from '../../core/i18n/language.service';
+import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
-import { AskAbout } from '../../shared/ask/ask-about';
-import { GuideIntro } from '../../shared/guidance/guide-intro';
 import { TeachingEmpty } from '../../shared/guidance/teaching-empty';
-import { TourButton } from '../../shared/guidance/tour-button';
 import { TourStepDirective } from '../../shared/guidance/tour-step.directive';
 import { WhyItMatters } from '../../shared/guidance/why-it-matters';
 import { LocalDayPipe } from '../../shared/locale/locale-pipes';
 import { Badge } from '../../shared/ui/badge/badge';
+import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
-import { PeopleApi } from './data/people-api';
-import { FILTER_SELECT_CLASS, cellClass, cellStatusTone } from './data/people-display';
+import { ErrorState } from '../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
+import { LoadingState } from '../../shared/ui/loading-state/loading-state';
+import { ModuleNav } from '../../shared/ui/module-nav/module-nav';
+import { PageHeader } from '../../shared/ui/page-header/page-header';
+import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
+import { gapParams, matrixParams, PeopleApi } from './data/people-api';
+import {
+  FILTER_SELECT_CLASS,
+  cellClass,
+  cellLook,
+  countKey,
+  downloadBlob,
+  hasPerm,
+} from './data/people-display';
 import { PeopleLookups } from './data/people-lookups';
 import {
   CELL_STATUSES,
@@ -34,8 +46,14 @@ import {
   GapStatus,
   Matrix,
   MatrixCell,
+  MatrixRow,
+  PERM_WRITE,
 } from './data/people.models';
-import { PeopleLessonLink, PeopleSectionNav } from './people-section-nav';
+import { AssessDialog, AssessTarget } from './ui/assess-dialog';
+import { GapActionDialog, GapTarget } from './ui/gap-action-dialog';
+import { GapActions } from './ui/gap-actions';
+import { PeopleAsk } from './ui/people-ask';
+import { PEOPLE_NAV, PEOPLE_ROOT, PEOPLE_SETTINGS_LINK } from './ui/people-nav';
 
 /** Short visual marker of a matrix cell (always paired with a screen-reader label). */
 export const CELL_SYMBOL: Readonly<Record<CellStatus, string>> = {
@@ -47,9 +65,11 @@ export const CELL_SYMBOL: Readonly<Record<CellStatus, string>> = {
 };
 
 /**
- * The competence matrix and gap analysis (`/people/matrix`): who holds which
- * competence at what level against what their position requires, filterable by
- * department and position; the gap list shows only what is missing, short or expired.
+ * The competence matrix and gaps (`/people/matrix`): who holds which competence at
+ * what level against what their position requires. Columns are numbered with a
+ * legend of the full names; every cell opens the assessment for that person and
+ * competence. The gap view lists only what is missing, short or expired, with
+ * "Lukk gapet" and the open actions. Both views export to CSV.
  */
 @Component({
   selector: 'app-people-competence-matrix',
@@ -57,45 +77,61 @@ export const CELL_SYMBOL: Readonly<Record<CellStatus, string>> = {
     RouterLink,
     TranslocoPipe,
     LocalDayPipe,
-    AskAbout,
-    GuideIntro,
     TeachingEmpty,
-    TourButton,
     TourStepDirective,
     WhyItMatters,
     Badge,
+    Button,
     Card,
-    PeopleLessonLink,
-    PeopleSectionNav,
+    ErrorState,
+    HelpStrip,
+    LoadingState,
+    ModuleNav,
+    PageHeader,
+    StatusBadge,
+    AssessDialog,
+    GapActionDialog,
+    GapActions,
+    PeopleAsk,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
-      <div class="flex flex-wrap items-start justify-between gap-3">
-        <h1 class="font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]">
-          {{ 'people.matrix.title' | transloco }}
-        </h1>
-        <div class="flex items-center gap-2">
-          <app-ask-about [prompt]="'people.ask.gaps' | transloco" />
-          <app-tour-button scope="people" tour="matrix" />
-        </div>
-      </div>
-      <div class="mt-1 mb-4 flex flex-col gap-2">
-        <app-people-section-nav />
-        <p class="text-[14px] text-fg-muted">{{ 'people.matrix.subtitle' | transloco }}</p>
-        <app-guide-intro scope="people" page="matrix" />
-      </div>
+      <app-page-header
+        titleKey="people.matrix.title"
+        descriptionKey="people.matrix.subtitle"
+        [breadcrumbs]="[root, { labelKey: 'people.matrix.title' }]"
+        [settingsLink]="settingsLink"
+      >
+        <ng-container ngProjectAs="[secondary]">
+          <app-people-ask
+            [prompt]="'people.ask.gaps' | transloco"
+            [field]="'people.matrix.title' | transloco"
+            labelKey="people.ask.gapsLabel"
+          />
+          <app-button
+            variant="secondary"
+            (click)="export()"
+            [loading]="exporting()"
+            data-testid="matrix-export"
+          >
+            {{ 'people.matrix.export' | transloco }}
+          </app-button>
+        </ng-container>
+      </app-page-header>
+      <app-module-nav [items]="nav" labelKey="people.sections.label" />
+      <app-help-strip scope="people" page="matrix" tour="matrix" lesson="competence-basics" />
 
       <div class="mb-4 flex flex-wrap items-center gap-2" appTourStep="people-matrix-filters">
         <div
-          class="inline-flex rounded-[10px] border border-border bg-bg p-0.5"
+          class="inline-flex rounded-tile border border-border bg-bg p-0.5"
           role="group"
           [attr.aria-label]="'people.matrix.viewLabel' | transloco"
         >
           @for (v of views; track v) {
             <button
               type="button"
-              class="h-9 rounded-[8px] px-3 text-[13px] font-semibold"
+              class="h-9 rounded-lg px-3 text-ui font-semibold"
               [class]="view() === v ? 'bg-accent-soft text-accent' : 'text-fg-muted hover:text-fg'"
               [attr.aria-pressed]="view() === v"
               (click)="view.set(v)"
@@ -138,7 +174,7 @@ export const CELL_SYMBOL: Readonly<Record<CellStatus, string>> = {
         }
         @if (view() === 'matrix') {
           <label
-            class="inline-flex h-10 items-center gap-2 rounded-[10px] border border-border bg-bg px-3 text-[13px] text-fg"
+            class="inline-flex h-10 items-center gap-2 rounded-tile border border-border bg-bg px-3 text-ui text-fg"
           >
             <input
               type="checkbox"
@@ -168,7 +204,7 @@ export const CELL_SYMBOL: Readonly<Record<CellStatus, string>> = {
             }
           </select>
           <label
-            class="inline-flex h-10 items-center gap-2 rounded-[10px] border border-border bg-bg px-3 text-[13px] text-fg"
+            class="inline-flex h-10 items-center gap-2 rounded-tile border border-border bg-bg px-3 text-ui text-fg"
           >
             <input
               type="checkbox"
@@ -185,25 +221,21 @@ export const CELL_SYMBOL: Readonly<Record<CellStatus, string>> = {
       <app-card [padded]="view() === 'matrix' && !matrixEmpty()">
         @switch (state()) {
           @case ('loading') {
-            <p class="py-10 text-center text-[14px] text-fg-muted" role="status">
-              {{ 'people.common.loading' | transloco }}
-            </p>
+            <app-loading-state [rows]="5" />
           }
           @case ('error') {
-            <p class="py-10 text-center text-[14px] text-fail" role="alert">
-              {{ 'people.common.loadFailed' | transloco }}
-            </p>
+            <app-error-state (retry)="reload()" />
           }
           @default {
             @if (view() === 'matrix') {
               @if (matrixEmpty()) {
                 <app-teaching-empty scope="people" page="matrix" [showAction]="false" />
               } @else if (matrix(); as m) {
-                <div class="mb-3 flex flex-wrap gap-3 text-[12px] text-fg-muted" aria-hidden="true">
+                <div class="mb-3 flex flex-wrap gap-3 text-meta text-fg-muted" aria-hidden="true">
                   @for (s of cellStatuses; track s) {
                     <span class="inline-flex items-center gap-1">
                       <span
-                        class="inline-flex h-5 w-5 items-center justify-center rounded-[5px] text-[11px] font-bold"
+                        class="inline-flex h-5 w-5 items-center justify-center rounded text-micro font-bold"
                         [class]="cellClass(s)"
                         >{{ symbol[s] }}</span
                       >
@@ -211,16 +243,31 @@ export const CELL_SYMBOL: Readonly<Record<CellStatus, string>> = {
                     </span>
                   }
                 </div>
+                <h2 class="sr-only">{{ 'people.matrix.legendTitle' | transloco }}</h2>
+                <ol
+                  class="mb-3 grid grid-cols-1 gap-x-4 gap-y-1 text-meta sm:grid-cols-2 lg:grid-cols-3"
+                  data-testid="matrix-legend"
+                >
+                  @for (c of m.competences; track c.id; let i = $index) {
+                    <li class="flex min-w-0 items-baseline gap-1.5">
+                      <span class="w-5 flex-none text-right font-mono font-bold text-fg-subtle">{{
+                        i + 1
+                      }}</span>
+                      <a
+                        [routerLink]="['/people/competences', c.id]"
+                        class="min-w-0 text-fg hover:underline"
+                        >{{ c.name }}</a
+                      >
+                    </li>
+                  }
+                </ol>
                 <div
                   class="overflow-x-auto"
                   role="region"
                   tabindex="0"
                   [attr.aria-label]="'people.matrix.title' | transloco"
                 >
-                  <table
-                    class="border-separate border-spacing-0 text-[12.5px]"
-                    data-testid="matrix"
-                  >
+                  <table class="border-separate border-spacing-0 text-meta" data-testid="matrix">
                     <caption class="sr-only">
                       {{
                         'people.matrix.caption' | transloco
@@ -230,21 +277,18 @@ export const CELL_SYMBOL: Readonly<Record<CellStatus, string>> = {
                       <tr>
                         <th
                           scope="col"
-                          class="sticky left-0 z-10 min-w-[180px] border-b border-border bg-surface py-2 pr-3 text-left font-semibold text-fg-subtle"
+                          class="sticky left-0 z-10 min-w-[160px] border-b border-border bg-surface py-2 pr-3 text-left font-semibold text-fg-subtle"
                         >
                           {{ 'people.matrix.employee' | transloco }}
                         </th>
-                        @for (c of m.competences; track c.id) {
+                        @for (c of m.competences; track c.id; let i = $index) {
                           <th
                             scope="col"
-                            class="h-[120px] w-10 min-w-10 border-b border-border px-1 pb-2 align-bottom font-semibold text-fg-muted"
+                            class="w-10 min-w-10 border-b border-border px-0.5 pb-2 text-center align-bottom font-mono font-bold text-fg-muted"
+                            [title]="c.name"
                           >
-                            <a
-                              [routerLink]="['/people/competences', c.id]"
-                              class="inline-block max-h-[110px] overflow-hidden text-ellipsis whitespace-nowrap [writing-mode:vertical-rl] rotate-180 hover:text-fg"
-                              [title]="c.name"
-                              >{{ c.name }}</a
-                            >
+                            <span aria-hidden="true">{{ i + 1 }}</span>
+                            <span class="sr-only">{{ c.name }}</span>
                           </th>
                         }
                         <th
@@ -268,28 +312,42 @@ export const CELL_SYMBOL: Readonly<Record<CellStatus, string>> = {
                               >{{ row.full_name }}</a
                             >
                             @if (row.position?.name; as pos) {
-                              <span class="block text-[11.5px] text-fg-subtle">{{ pos }}</span>
+                              <span class="block text-meta text-fg-subtle">{{ pos }}</span>
                             }
                           </th>
                           @for (cell of row.cells; track cell.competence_id) {
                             <td class="border-b border-border p-0.5 text-center">
-                              <span
-                                class="inline-flex h-7 w-8 items-center justify-center rounded-[6px] text-[12px] font-bold"
-                                [class]="cellClass(cell.status)"
-                                [title]="cellLabel(cell)"
-                              >
-                                <span aria-hidden="true">{{
-                                  cell.level !== null && cell.status !== 'not_required'
-                                    ? cell.level
-                                    : symbol[cell.status]
-                                }}</span>
-                                <span class="sr-only">{{ cellLabel(cell) }}</span>
-                              </span>
+                              @if (canWrite()) {
+                                <button
+                                  type="button"
+                                  class="inline-flex h-8 w-9 items-center justify-center rounded-md text-ui font-bold hover:ring-2 hover:ring-accent focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                                  [class]="cellClass(cell.status)"
+                                  [attr.aria-label]="cellAction(row, cell)"
+                                  [title]="cellLabel(cell)"
+                                  (click)="openCell(row, cell)"
+                                  [attr.data-testid]="
+                                    'cell-' + row.employee_id + '-' + cell.competence_id
+                                  "
+                                >
+                                  <span aria-hidden="true">{{ cellText(cell) }}</span>
+                                </button>
+                              } @else {
+                                <a
+                                  [routerLink]="['/people/employees', row.employee_id]"
+                                  [queryParams]="{ section: 'competences' }"
+                                  class="inline-flex h-8 w-9 items-center justify-center rounded-md text-ui font-bold focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                                  [class]="cellClass(cell.status)"
+                                  [attr.aria-label]="row.full_name + ': ' + cellLabel(cell)"
+                                  [title]="cellLabel(cell)"
+                                >
+                                  <span aria-hidden="true">{{ cellText(cell) }}</span>
+                                </a>
+                              }
                             </td>
                           }
                           <td
                             class="border-b border-border px-2 text-center font-semibold"
-                            [class.text-warn]="row.gap_count > 0"
+                            [class.text-warn-ink]="row.gap_count > 0"
                           >
                             {{ row.gap_count }}
                           </td>
@@ -298,66 +356,94 @@ export const CELL_SYMBOL: Readonly<Record<CellStatus, string>> = {
                     </tbody>
                   </table>
                 </div>
-                <p class="mt-3 text-[12px] text-fg-subtle">
-                  {{ 'people.matrix.cellHint' | transloco }}
+                <p class="mt-3 text-meta text-fg-muted">
+                  {{
+                    (canWrite() ? 'people.matrix.cellHintEdit' : 'people.matrix.cellHint')
+                      | transloco
+                  }}
                 </p>
               }
             } @else {
               @if (gaps().length === 0) {
-                <p class="py-10 text-center text-[14px] text-fg-muted" data-testid="no-gaps">
+                <p class="py-10 text-center text-body text-fg-muted" data-testid="no-gaps">
                   {{ 'people.matrix.noGaps' | transloco }}
                 </p>
               } @else {
                 <ul class="divide-y divide-border" data-testid="gap-rows">
                   @for (g of gaps(); track g.employee_id + g.competence_id) {
-                    <li class="flex flex-col gap-1 px-4 py-3 sm:flex-row sm:items-center sm:gap-3">
-                      <div class="min-w-0 flex-1">
-                        <a
-                          [routerLink]="['/people/employees', g.employee_id]"
-                          [queryParams]="{ tab: 'competences' }"
-                          class="text-[13.5px] font-semibold text-fg hover:underline"
-                          >{{ g.employee_name }}</a
-                        >
-                        <p class="text-[12px] text-fg-subtle">
-                          {{ g.competence_name }} ·
-                          {{
-                            'people.matrix.gapLevels'
-                              | transloco
-                                : {
-                                    required: ('people.levels.' + g.required_level | transloco),
-                                    held:
-                                      g.level !== null
-                                        ? ('people.levels.' + g.level | transloco)
-                                        : ('people.matrix.none' | transloco),
-                                  }
-                          }}
-                          @if (g.expires_on) {
+                    <li class="px-4 py-3">
+                      <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
+                        <div class="min-w-0 flex-1">
+                          <a
+                            [routerLink]="['/people/employees', g.employee_id]"
+                            [queryParams]="{ section: 'competences' }"
+                            class="text-body font-semibold text-fg hover:underline"
+                            >{{ g.employee_name }}</a
+                          >
+                          <p class="text-meta text-fg-muted">
+                            <span class="font-semibold text-fg">{{ g.competence_name }}</span>
                             ·
                             {{
-                              'people.competences.expires'
-                                | transloco: { date: (g.expires_on | localDay) }
+                              'people.matrix.gapLevels'
+                                | transloco
+                                  : {
+                                      required: g.required_level,
+                                      held:
+                                        g.level !== null
+                                          ? g.level
+                                          : ('people.matrix.none' | transloco),
+                                    }
                             }}
+                            @if (g.expires_on) {
+                              ·
+                              {{
+                                'people.competences.expires'
+                                  | transloco: { date: (g.expires_on | localDay) }
+                              }}
+                            }
+                            @if (g.position?.name; as pos) {
+                              · {{ pos }}
+                            }
+                          </p>
+                        </div>
+                        <span class="flex flex-wrap items-center gap-2">
+                          @if (g.mandatory) {
+                            <app-badge tone="neutral">{{
+                              'people.competences.mandatory' | transloco
+                            }}</app-badge>
                           }
-                          @if (g.position?.name; as pos) {
-                            · {{ pos }}
+                          <app-status-badge
+                            [meaning]="look(g.status).meaning"
+                            [value]="look(g.status).value"
+                            [labelKey]="'people.cellStatus.' + g.status"
+                          />
+                          @if (canWrite() && !(g.actions ?? []).length) {
+                            <app-button
+                              size="sm"
+                              variant="secondary"
+                              (click)="openGap(g)"
+                              [attr.data-testid]="
+                                'close-gap-' + g.employee_id + '-' + g.competence_id
+                              "
+                            >
+                              {{ 'people.gapActions.open' | transloco }}
+                            </app-button>
                           }
-                        </p>
+                        </span>
                       </div>
-                      <span class="flex items-center gap-2">
-                        @if (g.mandatory) {
-                          <span class="text-[11.5px] text-fg-subtle">{{
-                            'people.competences.mandatory' | transloco
-                          }}</span>
-                        }
-                        <app-badge [tone]="cellTone(g.status)">{{
-                          'people.cellStatus.' + g.status | transloco
-                        }}</app-badge>
-                      </span>
+                      <app-people-gap-actions
+                        [actions]="g.actions ?? []"
+                        [canEdit]="canWrite()"
+                        (changed)="reload()"
+                      />
                     </li>
                   }
                 </ul>
-                <p class="border-t border-border px-4 py-2.5 text-[12px] text-fg-subtle">
-                  {{ 'people.matrix.gapTotal' | transloco: { count: gapTotal() } }}
+                <p class="border-t border-border px-4 py-2.5 text-meta text-fg-muted">
+                  {{
+                    countKey('people.matrix.gapTotal', gapTotal())
+                      | transloco: { count: gapTotal() }
+                  }}
                 </p>
               }
             }
@@ -365,26 +451,39 @@ export const CELL_SYMBOL: Readonly<Record<CellStatus, string>> = {
         }
       </app-card>
 
-      <div class="mt-6 flex flex-col gap-3">
-        <app-why-it-matters scope="people" page="matrix" />
-        <app-people-lesson-link lesson="competence-basics" />
-      </div>
+      <div class="mt-8"><app-why-it-matters scope="people" page="matrix" /></div>
     </div>
+
+    <app-people-assess-dialog
+      [target]="assessing()"
+      (saved)="onAssessed()"
+      (closed)="assessing.set(null)"
+    />
+    <app-people-gap-action-dialog
+      [target]="closingGap()"
+      (created)="onGapAction()"
+      (closed)="closingGap.set(null)"
+    />
   `,
 })
 export class CompetenceMatrix {
   private readonly api = inject(PeopleApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly language = inject(LanguageService);
+  private readonly notifications = inject(NotificationService);
   protected readonly lookups = inject(PeopleLookups);
 
+  protected readonly nav = PEOPLE_NAV;
+  protected readonly root = PEOPLE_ROOT;
+  protected readonly settingsLink = PEOPLE_SETTINGS_LINK;
   protected readonly selectClass = FILTER_SELECT_CLASS;
   protected readonly views = ['matrix', 'gaps'] as const;
   protected readonly cellStatuses = CELL_STATUSES;
   protected readonly gapStatuses = GAP_STATUSES;
   protected readonly symbol = CELL_SYMBOL;
   protected readonly cellClass = cellClass;
-  protected readonly cellTone = cellStatusTone;
+  protected readonly look = cellLook;
+  protected readonly countKey = countKey;
 
   protected readonly view = signal<'matrix' | 'gaps'>('matrix');
   protected readonly positionId = signal('');
@@ -392,11 +491,19 @@ export class CompetenceMatrix {
   protected readonly includeFormer = signal(false);
   protected readonly gapStatus = signal<GapStatus | ''>('');
   protected readonly mandatoryOnly = signal(false);
+  protected readonly exporting = signal(false);
 
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
   protected readonly matrix = signal<Matrix | null>(null);
   protected readonly gaps = signal<readonly Gap[]>([]);
   protected readonly gapTotal = signal(0);
+  protected readonly assessing = signal<AssessTarget | null>(null);
+  protected readonly closingGap = signal<GapTarget | null>(null);
+  private readonly bump = signal(0);
+
+  protected readonly canWrite = computed(() =>
+    hasPerm(this.selectedOrg.currentOrg()?.permissions, PERM_WRITE),
+  );
 
   protected readonly matrixEmpty = computed(() => {
     const m = this.matrix();
@@ -409,9 +516,10 @@ export class CompetenceMatrix {
     inject(DestroyRef).onDestroy(() => this.request.unsubscribe());
     providePageContext(() => ({
       module: 'people',
-      entityType: 'competence',
+      entityType: 'competence_gap',
       view: 'other',
       title: this.language.translate('people.matrix.title'),
+      requirements: ['hs:7.2'],
     }));
     effect(() => {
       this.selectedOrg.currentOrgId();
@@ -427,12 +535,15 @@ export class CompetenceMatrix {
       const includeFormer = this.includeFormer();
       const gapStatus = this.gapStatus();
       const mandatoryOnly = this.mandatoryOnly();
+      this.bump();
       untracked(() => {
         this.request.unsubscribe();
         if (!orgId) {
           return;
         }
-        this.state.set('loading');
+        if (this.state() !== 'ready') {
+          this.state.set('loading');
+        }
         this.request =
           view === 'matrix'
             ? this.api.matrix(orgId, { ...filters, include_former: includeFormer }).subscribe({
@@ -460,6 +571,16 @@ export class CompetenceMatrix {
     });
   }
 
+  protected reload(): void {
+    this.bump.update((n) => n + 1);
+  }
+
+  protected cellText(cell: MatrixCell): string {
+    return cell.level !== null && cell.status !== 'not_required'
+      ? `${cell.level}`
+      : CELL_SYMBOL[cell.status];
+  }
+
   protected cellLabel(cell: MatrixCell): string {
     const name = this.matrix()?.competences.find((c) => c.id === cell.competence_id)?.name ?? '';
     return this.language.translate('people.matrix.cellLabel', {
@@ -473,6 +594,75 @@ export class CompetenceMatrix {
         cell.required_level !== null
           ? this.language.translate(`people.levels.${cell.required_level}`)
           : this.language.translate('people.matrix.notRequired'),
+    });
+  }
+
+  protected cellAction(row: MatrixRow, cell: MatrixCell): string {
+    return this.language.translate('people.matrix.cellAction', {
+      name: row.full_name,
+      label: this.cellLabel(cell),
+    });
+  }
+
+  protected openCell(row: MatrixRow, cell: MatrixCell): void {
+    this.assessing.set({
+      employeeId: row.employee_id,
+      employeeName: row.full_name,
+      row: null,
+      competenceId: cell.competence_id,
+      requiredLevel: cell.required_level,
+    });
+  }
+
+  protected openGap(g: Gap): void {
+    this.closingGap.set({
+      employeeId: g.employee_id,
+      employeeName: g.employee_name,
+      competenceId: g.competence_id,
+      competenceName: g.competence_name,
+      // The gap list does not say; the backend refuses training without an account.
+      hasUser: true,
+    });
+  }
+
+  protected onAssessed(): void {
+    this.assessing.set(null);
+    this.reload();
+  }
+
+  protected onGapAction(): void {
+    this.closingGap.set(null);
+    this.reload();
+  }
+
+  protected export(): void {
+    const orgId = this.selectedOrg.currentOrgId();
+    if (!orgId || this.exporting()) {
+      return;
+    }
+    const filters = {
+      position_id: this.positionId() || undefined,
+      department_id: this.departmentId() || undefined,
+    };
+    const kind = this.view() === 'matrix' ? 'matrix' : 'gaps';
+    const params =
+      kind === 'matrix'
+        ? matrixParams({ ...filters, include_former: this.includeFormer() })
+        : gapParams({
+            ...filters,
+            status: this.gapStatus() ? [this.gapStatus() as GapStatus] : undefined,
+            mandatory_only: this.mandatoryOnly(),
+          });
+    this.exporting.set(true);
+    this.api.exportCsv(orgId, kind, params).subscribe({
+      next: (blob) => {
+        this.exporting.set(false);
+        downloadBlob(blob, kind === 'matrix' ? 'competence-matrix.csv' : 'competence-gaps.csv');
+      },
+      error: () => {
+        this.exporting.set(false);
+        this.notifications.error('people.errors.exportFailed');
+      },
     });
   }
 }

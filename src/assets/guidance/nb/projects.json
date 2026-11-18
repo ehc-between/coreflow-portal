@@ -37,18 +37,20 @@
       "fields": {
         "kind": {
           "help": "Velg **Utforming og utvikling** når prosjektet lager eller endrer et produkt eller en tjeneste. Slike prosjekter trenger planlagt gjennomgang, verifisering og validering (ISO 9001 8.3).",
-          "example": "En ny kundeportal er utforming og utvikling; flytting av kontoret er et generelt prosjekt."
+          "example": "En ny kundeportal er utforming og utvikling; flytting av kontoret er et generelt prosjekt.",
+          "requirements": ["iso9001:8.3.2"]
         },
         "objective": {
           "help": "Resultatet prosjektet skal levere, skrevet slik at du til slutt kan se om det ble nådd.",
-          "example": "Alle kundeordrer behandles i det nye systemet innen 1. mars, med høyst 1 % ordrefeil."
+          "example": "Alle kundeordrer behandles i det nye systemet innen 1. mars, med høyst 1 % ordrefeil.",
+          "requirements": ["iso9001:6.3"]
         },
         "scope": {
           "help": "Hva prosjektet omfatter, og like viktig, hva det ikke omfatter.",
           "example": "Med: ordrebehandling og fakturering. Ikke med: lagersystemet."
         },
         "health": {
-          "help": "Eierens ærlige vurdering av hvordan prosjektet går: på sporet, i faresonen eller ute av kurs. Oppdater den når bildet endrer seg."
+          "help": "Eierens ærlige vurdering av hvordan prosjektet går, som et trafikklys: grønt (på sporet), gult (i faresonen) eller rødt (ute av kurs). Sett den når prosjektet er i gang, og oppdater den når bildet endrer seg."
         },
         "owner": {
           "help": "Personen som er ansvarlig for prosjektet. Eieren er alltid leder i teamet og får påminnelser om frister."
@@ -58,18 +60,35 @@
         },
         "security_requirements": {
           "help": "Kravene til informasjonssikkerhet prosjektet må oppfylle, og hvordan de skal kontrolleres.",
-          "example": "Felles pålogging med totrinnsbekreftelse; data lagret i EU; sikkerhetsgjennomgang av leverandøren før produksjon."
+          "example": "Felles pålogging med totrinnsbekreftelse; data lagret i EU; sikkerhetsgjennomgang av leverandøren før produksjon.",
+          "requirements": ["iso27001:A.5.8"]
+        },
+        "change_consequences": {
+          "help": "Hva kan gå galt, og hva påvirkes når endringen gjennomføres? Tenk på kunder, ansatte, andre prosesser og informasjonssikkerhet.",
+          "example": "Nedetid i ordresystemet ved overgangen; kundeservice må læres opp før lansering.",
+          "requirements": ["iso9001:6.3"]
+        },
+        "change_resources": {
+          "help": "Folk, tid, budsjett og verktøy prosjektet trenger, og om de er avklart.",
+          "example": "2 utviklere i 4 måneder, 300 000 kr til lisenser, godkjent av ledergruppen.",
+          "requirements": ["iso9001:6.3"]
+        },
+        "affected": {
+          "help": "Prosessene og de styrte dokumentene som må endres eller følges opp når prosjektet er ferdig. De kobles til prosjektet."
+        },
+        "objectives": {
+          "help": "Kvalitets- eller sikkerhetsmålene prosjektet hjelper organisasjonen å nå. De kobles til prosjektet."
         }
       }
     },
     "detail": {
       "intro": {
         "title": "Drive prosjektet",
-        "body": "Denne siden er prosjektets felles sannhet. Hold planen oppdatert, merk milepæler som ferdige, registrer gjennomganger og legg til erfaringer etter hvert. Oppgaver-fanen inneholder arbeidet, og Relatert-fanen kobler til risikoer, endringsforespørsler og dokumenter.",
+        "body": "Denne siden er prosjektets felles sannhet. Oversikt viser formål, endringsplanlegging, fremdrift og sikkerhet. Plan viser faser, milepæler og oppgaver. Under Gjennomganger registrerer du kontroller og tiltak, og under Erfaringer hva dere lærte og hva det førte til.",
         "steps": [
-          "Se på Gantt-diagrammet og oppgavetavlen hver uke.",
-          "Registrer hver gjennomgang, verifisering eller validering med resultat.",
-          "Avslutt prosjektet når arbeidet er ferdig, med en kort rapport og erfaringer."
+          "Hold planen oppdatert, og merk milepæler som ferdige.",
+          "Registrer hver gjennomgang med resultat, og gjør avtalte tiltak om til oppgaver.",
+          "Avslutt prosjektet når arbeidet er ferdig: svar på om målet ble nådd, og skriv erfaringer."
         ]
       },
       "why": {
@@ -78,27 +97,33 @@
       },
       "fields": {
         "team": {
-          "help": "**Ledere** kan endre prosjektet og teamet. **Medlemmer** og **kontrollører** kan legge til milepæler, gjennomganger, erfaringer og oppgaver. **Interessenter** kan følge prosjektet, men ikke endre det."
+          "help": "**Ledere** kan endre prosjektet og teamet. **Medlemmer** og **fagkontrollører** kan legge til milepæler, gjennomganger, erfaringer og oppgaver; en fagkontrollør deltar særlig i gjennomganger. **Interessenter** kan følge prosjektet, men ikke endre det."
         },
         "milestones": {
           "help": "En **fase** er en arbeidsperiode med start og slutt. En **milepæl** er et punkt der noe må være ferdig eller besluttet, og kan ligge inne i en fase."
         },
         "design_reviews": {
-          "help": "En **gjennomgang** kontrollerer fremdriften mot kravene i et planlagt trinn. **Verifisering** kontrollerer at resultatene oppfyller kravene i grunnlaget. **Validering** kontrollerer at resultatet fungerer til tiltenkt bruk."
+          "help": "En **gjennomgang** kontrollerer fremdriften mot kravene i et planlagt trinn. **Verifisering** kontrollerer at resultatene oppfyller kravene i grunnlaget. **Validering** kontrollerer at resultatet fungerer til tiltenkt bruk. En **designendring** registrerer hva som ble endret, hvem som vurderte det og hvem som godkjente det."
         },
         "review_kind": {
-          "help": "Velg typen som passer spørsmålet som skal besvares: er vi på sporet (gjennomgang), laget vi det riktig (verifisering), laget vi riktig ting (validering)?"
+          "help": "Velg typen som passer spørsmålet som skal besvares: er vi på sporet (gjennomgang), laget vi det riktig (verifisering), laget vi riktig ting (validering), eller skal en endring godkjennes (designendring)?",
+          "requirements": ["iso9001:8.3.4", "iso9001:8.3.6"]
         },
         "review_inputs": {
-          "help": "Hva som ble gjennomgått: tegninger, spesifikasjoner, testresultater, prototyper eller dokumenter.",
-          "example": "Kravspesifikasjon v2, rapport fra brukertest 12. mai."
+          "help": "Annet som ble gjennomgått og ikke er et styrt dokument: prototyper, testresultater, møtenotater.",
+          "example": "Rapport fra brukertest 12. mai."
         },
         "review_findings": {
           "help": "Hva gjennomgangen fant og hvilke tiltak som ble avtalt. Legg til oppgaver for tiltakene så de følges opp.",
-          "example": "Påloggingen er for lang; reduser til to trinn før piloten."
+          "example": "Påloggingen er for lang; reduser til to trinn før piloten.",
+          "requirements": ["iso9001:8.3.4"]
         },
         "lessons": {
-          "help": "Korte notater om hva som gikk bra og hva som bør gjøres annerledes. Skriv dem mens prosjektet pågår; de er mest nyttige for neste prosjekt."
+          "help": "Korte notater om hva som gikk bra og hva som bør gjøres annerledes. Gjør en erfaring om til et forbedringstiltak eller en risiko, så blir den fulgt opp og vist i ledelsens gjennomgang."
+        },
+        "review_documents": {
+          "help": "Velg de styrte dokumentene som ble gjennomgått. Versjonen låses, så du ser senere om dokumentet har endret seg siden.",
+          "requirements": ["iso9001:8.3.4"]
         }
       }
     },
@@ -114,7 +139,12 @@
       "fields": {
         "summary": {
           "help": "Ble målet nådd? Oppsummer resultatet, avvik fra planen og hva linjeorganisasjonen må følge opp.",
-          "example": "Det nye ordresystemet har vært i drift siden 1. mars. Ordrefeil falt til 0,6 %. Opplæring av nattskiftet er overlevert til HR."
+          "example": "Det nye ordresystemet har vært i drift siden 1. mars. Ordrefeil falt til 0,6 %. Opplæring av nattskiftet er overlevert til HR.",
+          "requirements": ["iso9001:8.3.5"]
+        },
+        "objective_met": {
+          "help": "Sammenlign resultatet med målet som ble satt ved oppstart. «Delvis» er et ærlig svar; beskriv hva som gjenstår i rapporten.",
+          "requirements": ["iso9001:6.3"]
         }
       }
     }

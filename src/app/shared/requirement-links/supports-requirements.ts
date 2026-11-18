@@ -85,6 +85,17 @@ const KNOWN_FIELDS = new Set([
   'article_refs',
   'requirements',
   'contract_type',
+  'aspect_evaluation',
+  'emergency_preparedness',
+  'drill_result',
+  'monitoring',
+  // Recruitment (A12): links that follow the record's own evidence.
+  'screening_criteria',
+  'approval',
+  'privacy_notice',
+  'screening',
+  'checks',
+  'offer',
 ]);
 
 /** i18n key of a field's display name in "Fra feltet «…»". */

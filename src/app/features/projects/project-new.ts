@@ -1,70 +1,76 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { providePageContext } from '../../core/ai/page-context';
+import { CreateFlowService } from '../../core/kit/create-flow.service';
 import { LanguageService } from '../../core/i18n/language.service';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
-import { AskAbout } from '../../shared/ask/ask-about';
-import { GuideIntro } from '../../shared/guidance/guide-intro';
 import { WhyItMatters } from '../../shared/guidance/why-it-matters';
+import { FlowBanner } from '../../shared/kit/flow-banner';
 import { Card } from '../../shared/ui/card/card';
-import { Icon } from '../../shared/ui/icon/icon';
+import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
+import { PageHeader } from '../../shared/ui/page-header/page-header';
+import { ProjectAskButton } from './ask-button';
 import { projectErrorKey } from './data/project-errors';
 import { emptyProjectForm, toCreateRequest } from './data/project-form-model';
 import { ProjectsApi } from './data/projects-api';
-import { ProjectLessonLink } from './lesson-link';
 import { ProjectForm, ProjectFormSubmit } from './project-form';
 
 /**
  * Start a project (`/projects/new`). The assistant can draft one from a short
  * description (its `projects_create_draft` tool asks for confirmation first).
+ * Opened from a requirement (`?fromRequirement=`) or a create-from-here flow,
+ * the new project is linked back when it is saved.
  */
 @Component({
   selector: 'app-project-new',
   imports: [
-    RouterLink,
     TranslocoPipe,
-    AskAbout,
-    GuideIntro,
     WhyItMatters,
+    FlowBanner,
     Card,
-    Icon,
+    HelpStrip,
+    PageHeader,
+    ProjectAskButton,
     ProjectForm,
-    ProjectLessonLink,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[960px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
-      <a
-        routerLink="/projects"
-        class="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
-      >
-        <app-icon name="back" [size]="16" />
-        {{ 'projects.common.backToList' | transloco }}
-      </a>
-      <h1 class="mb-4 font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]">
-        {{ 'projects.form.newTitle' | transloco }}
-      </h1>
-      <div class="mb-5 flex flex-col gap-3">
-        <app-guide-intro scope="projects" page="form" />
-        <app-card>
-          <div class="flex items-start gap-3">
-            <app-ask-about
-              [prompt]="'projects.ask.draft' | transloco"
-              labelKey="projects.ask.draftLabel"
-            />
-            <div class="min-w-0 flex-1">
-              <p class="text-[13.5px] font-semibold text-fg">
-                {{ 'projects.form.assistTitle' | transloco }}
-              </p>
-              <p class="text-[12.5px] text-fg-muted">
-                {{ 'projects.form.assistBody' | transloco }}
-              </p>
-            </div>
+    <div class="mx-auto max-w-[760px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+      <app-page-header
+        titleKey="projects.form.newTitle"
+        [breadcrumbs]="[
+          { labelKey: 'modules.names.projects', link: '/projects' },
+          { labelKey: 'projects.form.newTitle' },
+        ]"
+        backLink="/projects"
+        backLabelKey="projects.common.backToList"
+      />
+      <app-help-strip scope="projects" page="form" lesson="project-basics" />
+      <app-flow-banner [flow]="flow()" />
+      <app-card class="mb-5 block">
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="min-w-0 flex-1 basis-64">
+            <p class="text-body font-semibold text-fg">
+              {{ 'projects.form.assistTitle' | transloco }}
+            </p>
+            <p class="text-meta text-fg-muted">{{ 'projects.form.assistBody' | transloco }}</p>
           </div>
-        </app-card>
-      </div>
+          <app-project-ask-button
+            promptKey="projects.ask.draft"
+            labelKey="projects.ask.draftLabel"
+            testId="project-draft"
+          />
+        </div>
+      </app-card>
       <app-project-form
         mode="create"
         [value]="seed"
@@ -72,10 +78,7 @@ import { ProjectForm, ProjectFormSubmit } from './project-form';
         (submitted)="save($event)"
         (cancelled)="back()"
       />
-      <div class="mt-6 flex flex-col gap-3">
-        <app-why-it-matters scope="projects" page="form" />
-        <app-project-lesson-link lesson="project-basics" />
-      </div>
+      <div class="mt-8"><app-why-it-matters scope="projects" page="form" /></div>
     </div>
   `,
 })
@@ -85,9 +88,13 @@ export class ProjectNew {
   private readonly notifications = inject(NotificationService);
   private readonly language = inject(LanguageService);
   private readonly router = inject(Router);
+  private readonly flows = inject(CreateFlowService);
+  private readonly formCmp = viewChild(ProjectForm);
 
   protected readonly seed = emptyProjectForm();
   protected readonly saving = signal(false);
+  /** A create-from-here flow or `?fromRequirement=` the form was opened with. */
+  protected readonly flow = this.flows.consume(inject(ActivatedRoute), { targetType: 'project' });
 
   constructor() {
     providePageContext(() => ({
@@ -96,6 +103,20 @@ export class ProjectNew {
       view: 'new',
       title: this.language.translate('projects.form.newTitle'),
     }));
+    effect(() => {
+      const flow = this.flow();
+      const form = this.formCmp();
+      if (flow && form) {
+        const p = flow.prefill;
+        const str = (v: unknown) => (typeof v === 'string' ? v : undefined);
+        form.patchEmpty({
+          title: str(p.title),
+          description: str(p.description),
+          objective: str(p['objective']),
+          scope: str(p['scope']),
+        });
+      }
+    });
   }
 
   protected save(event: ProjectFormSubmit): void {
@@ -108,6 +129,7 @@ export class ProjectNew {
       next: (project) => {
         this.saving.set(false);
         this.notifications.success('projects.notices.created', { code: project.code });
+        this.flows.complete(project.id, 'project').subscribe();
         void this.router.navigate(['/projects', project.id]);
       },
       error: (error: unknown) => {
@@ -118,6 +140,7 @@ export class ProjectNew {
   }
 
   protected back(): void {
+    this.flows.cancel();
     void this.router.navigate(['/projects']);
   }
 }

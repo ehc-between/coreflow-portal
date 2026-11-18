@@ -10,7 +10,9 @@ import {
   MEMBER_ROLES,
   MILESTONE_KINDS,
   MILESTONE_STATUSES,
+  OBJECTIVE_MET,
   PROJECT_HEALTHS,
+  SECURITY_CHECKS,
   PROJECT_KINDS,
   PROJECT_PRIORITIES,
   PROJECT_SORTS,
@@ -20,7 +22,7 @@ import {
   RISK_LEVELS,
 } from './data/project.models';
 import { BOARD_COLUMNS, PROJECT_FIELD_LABELS } from './data/project-display';
-import { PLAN_VIEWS } from './project-detail';
+import { PLAN_VIEWS, SECTIONS } from './project-detail';
 import { LIST_VIEWS, PEOPLE_FILTERS } from './projects-list';
 
 type Tree = Record<string, unknown>;
@@ -99,7 +101,15 @@ describe('projects i18n and guidance', () => {
     ['board.columns', BOARD_COLUMNS],
     ['closeout.outcomes', CLOSE_OUTCOMES],
     ['closeout.outcomeHints', CLOSE_OUTCOMES],
-    ['closeout.submit', CLOSE_OUTCOMES],
+    ['closeout.submit', [...CLOSE_OUTCOMES, 'none']],
+    ['closeout.objectiveMet', OBJECTIVE_MET],
+    ['closeout.checklist', ['milestones', 'reviews', 'reviewActions', 'tasks']],
+    ['sections', SECTIONS],
+    ['security.checks', SECURITY_CHECKS],
+    ['security.hints', SECURITY_CHECKS],
+    ['security.actions', SECURITY_CHECKS],
+    ['kpis', ['active', 'at_risk', 'reviews_pending', 'overdue']],
+    ['progress.basis', ['milestones', 'tasks', 'completed', 'none']],
     ['notices.closed', CLOSE_OUTCOMES],
     ['filters.peopleOptions', PEOPLE_FILTERS.map((p) => p || 'anyone')],
     ['filters.statusOptions', ['open', 'all']],
@@ -148,6 +158,16 @@ describe('projects i18n and guidance', () => {
         'projects-filters',
         'projects-views',
       ]);
+    }
+  });
+
+  it('marks at least three form fields as evidence for a requirement', () => {
+    for (const guide of [guideEn, guideNb]) {
+      const fields = (guide.pages.form as Tree)['fields'] as Record<string, Tree>;
+      const withRefs = Object.values(fields).filter(
+        (f) => ((f['requirements'] as string[] | undefined) ?? []).length > 0,
+      );
+      expect(withRefs.length).toBeGreaterThanOrEqual(3);
     }
   });
 

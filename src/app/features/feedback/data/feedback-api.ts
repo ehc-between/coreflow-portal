@@ -5,18 +5,26 @@ import { ApiService, QueryParams } from '../../../core/http/api.service';
 import { SKIP_ERROR_TOAST } from '../../../core/http/error.interceptor';
 import { TaskList } from '../../../core/tasks/task.models';
 import {
+  CategoryList,
   DeviationLinks,
+  ExportFormat,
   Feedback,
   FeedbackAction,
   FeedbackActionBody,
   FeedbackCreate,
+  FeedbackKind,
   FeedbackList,
   FeedbackListQuery,
+  FeedbackSettings,
   FeedbackStats,
   FeedbackUpdate,
   PublicResponseIn,
   PublicResponseOut,
   PublicSurvey,
+  Reply,
+  ReplyCreate,
+  ReplyList,
+  ResponseDue,
   Survey,
   SurveyAction,
   SurveyCreate,
@@ -34,19 +42,30 @@ function csv(values: readonly string[] | undefined): string | undefined {
   return values?.length ? values.join(',') : undefined;
 }
 
-/** The query parameters of `GET feedback/items` (csv lists, unset values dropped). */
-export function feedbackListParams(query: FeedbackListQuery): QueryParams {
+/** The filters of `GET feedback/items` (and its export): csv lists, unset values dropped. */
+export function feedbackFilterParams(query: FeedbackListQuery): QueryParams {
   return {
     q: query.q?.trim() || undefined,
     kind: csv(query.kind),
     status: csv(query.status),
     channel: csv(query.channel),
+    severity: csv(query.severity),
     owner: query.owner || undefined,
     survey_id: query.survey_id || undefined,
+    department_id: query.department_id || undefined,
+    category: query.category?.trim() || undefined,
+    justified: query.justified,
     overdue: query.overdue,
     open: query.open,
     received_from: query.received_from || undefined,
     received_to: query.received_to || undefined,
+  };
+}
+
+/** The query parameters of `GET feedback/items` (filters plus sort and paging). */
+export function feedbackListParams(query: FeedbackListQuery): QueryParams {
+  return {
+    ...feedbackFilterParams(query),
     sort: query.sort,
     limit: query.limit,
     offset: query.offset,
@@ -130,6 +149,19 @@ export class FeedbackApi {
     );
   }
 
+  replies(orgId: string, id: string): Observable<ReplyList> {
+    return this.api.get<ReplyList>(`${this.base(orgId)}/items/${id}/replies`, IN_PLACE);
+  }
+
+  /** Log a reply sent to the customer; the backend also ticks `customer_informed`. */
+  addReply(orgId: string, id: string, body: ReplyCreate): Observable<Reply> {
+    return this.api.post<Reply>(`${this.base(orgId)}/items/${id}/replies`, body, IN_PLACE);
+  }
+
+  deleteReply(orgId: string, id: string, replyId: string): Observable<void> {
+    return this.api.delete<void>(`${this.base(orgId)}/items/${id}/replies/${replyId}`, IN_PLACE);
+  }
+
   tasks(orgId: string, id: string): Observable<TaskList> {
     return this.api.get<TaskList>(`${this.base(orgId)}/items/${id}/tasks`, IN_PLACE);
   }
@@ -138,6 +170,74 @@ export class FeedbackApi {
     return this.api.get<FeedbackStats>(`${this.base(orgId)}/stats`, {
       ...IN_PLACE,
       params: { from: from || undefined, to: to || undefined },
+    });
+  }
+
+  // --- settings, categories, default reply date --------------------------------------
+
+  settings(orgId: string): Observable<FeedbackSettings> {
+    return this.api.get<FeedbackSettings>(`${this.base(orgId)}/settings`, IN_PLACE);
+  }
+
+  saveSettings(orgId: string, body: FeedbackSettings): Observable<FeedbackSettings> {
+    return this.api.put<FeedbackSettings>(
+      `${this.base(orgId)}/settings`,
+      {
+        response_days: body.response_days,
+        working_days: body.working_days,
+        privacy_notice_url: body.privacy_notice_url,
+      },
+      IN_PLACE,
+    );
+  }
+
+  /** Categories in use, most used first (for the category suggestions). */
+  categories(orgId: string): Observable<CategoryList> {
+    return this.api.get<CategoryList>(`${this.base(orgId)}/categories`, IN_PLACE);
+  }
+
+  /** The default reply date for a kind received on a day (from the module settings). */
+  responseDue(orgId: string, kind: FeedbackKind, receivedOn?: string): Observable<ResponseDue> {
+    return this.api.get<ResponseDue>(`${this.base(orgId)}/response-due`, {
+      ...IN_PLACE,
+      params: { kind, received_on: receivedOn || undefined },
+    });
+  }
+
+  // --- exports (audit evidence) --------------------------------------------------------
+
+  /** The feedback / complaint log, with the list filters. */
+  exportLog(
+    orgId: string,
+    query: FeedbackListQuery,
+    format: ExportFormat,
+    lang: string,
+  ): Observable<Blob> {
+    return this.api.getBlob(`${this.base(orgId)}/export`, {
+      ...IN_PLACE,
+      params: { ...feedbackFilterParams(query), format, lang },
+    });
+  }
+
+  /** The insights figures and the monthly trend for a period. */
+  exportStats(
+    orgId: string,
+    format: ExportFormat,
+    lang: string,
+    from?: string,
+    to?: string,
+  ): Observable<Blob> {
+    return this.api.getBlob(`${this.base(orgId)}/stats/export`, {
+      ...IN_PLACE,
+      params: { format, lang, from: from || undefined, to: to || undefined },
+    });
+  }
+
+  /** One survey's figures per question plus every response. */
+  exportSurvey(orgId: string, id: string, format: ExportFormat, lang: string): Observable<Blob> {
+    return this.api.getBlob(`${this.base(orgId)}/surveys/${id}/export`, {
+      ...IN_PLACE,
+      params: { format, lang },
     });
   }
 
