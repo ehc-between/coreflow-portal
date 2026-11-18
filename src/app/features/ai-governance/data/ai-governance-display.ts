@@ -163,6 +163,20 @@ export function assessmentSectionHintKey(kind: AssessmentKind | string, section:
   return `aiGovernance.sections.${kind === 'fria' ? 'fria' : 'impact'}.${section}.hint`;
 }
 
+/**
+ * An AI Act article / annex label from the API ("Art. 26(4)-(6)", "Annex III(4)")
+ * in the UI language: Norwegian writes "art." and "vedlegg".
+ */
+export function localRef(ref: string | null | undefined, lang: string): string {
+  if (!ref) {
+    return '';
+  }
+  if (lang !== 'nb') {
+    return ref;
+  }
+  return ref.replace(/\bArt\.\s*/g, 'art. ').replace(/\bAnnex\s+/g, 'vedlegg ');
+}
+
 export interface ReasonText {
   readonly key: string;
   readonly params: Record<string, unknown>;

@@ -1,4 +1,4 @@
-import { riskExplainKey, technicalDocCopy } from './ai-governance-display';
+import { localRef, riskExplainKey, technicalDocCopy } from './ai-governance-display';
 
 describe('riskExplainKey', () => {
   it('gives deployers and intermediaries the duties of their own role for high risk', () => {
@@ -49,5 +49,14 @@ describe('technicalDocCopy', () => {
   it('falls back to `required` when the payload has no audience', () => {
     expect(technicalDocCopy({ required: true }).body).toBe('aiGovernance.docs.requiredBody');
     expect(technicalDocCopy({ required: false }).badge).toBeNull();
+  });
+});
+
+describe('localRef', () => {
+  it('writes AI Act article and annex labels the Norwegian way in nb', () => {
+    expect(localRef('Annex III(4)', 'nb')).toBe('vedlegg III(4)');
+    expect(localRef('Art. 26(4)-(6)', 'nb')).toBe('art. 26(4)-(6)');
+    expect(localRef('Art. 6(1)', 'en')).toBe('Art. 6(1)');
+    expect(localRef(null, 'nb')).toBe('');
   });
 });

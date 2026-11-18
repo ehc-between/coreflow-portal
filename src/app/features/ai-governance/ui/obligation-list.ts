@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, input, output, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { LanguageService } from '../../../core/i18n/language.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { ClauseChips } from '../../../shared/guidance/clause-chips';
@@ -16,7 +17,7 @@ import {
   Obligation,
   ObligationStatus,
 } from '../data/ai-governance.models';
-import { obligationStatusKey, obligationValue } from '../data/ai-governance-display';
+import { localRef, obligationStatusKey, obligationValue } from '../data/ai-governance-display';
 import { AiRecordPicker } from './record-picker';
 
 /** Records that can show an obligation is met (the evidence picker searches these). */
@@ -79,7 +80,7 @@ function taskStatusKey(status: string | null | undefined): string {
                 <p class="mt-0.5 flex flex-wrap items-baseline gap-x-1.5 text-meta text-fg-subtle">
                   <app-clause-chips [clauses]="[o.clause_ref || o.ref]" />
                   @if (o.article_detail) {
-                    <span>· {{ o.article_detail }}</span>
+                    <span>· {{ articleLabel(o.article_detail) }}</span>
                   }
                 </p>
                 @if (o.status === 'not_relevant' && o.reason) {
@@ -246,6 +247,12 @@ export class AiObligationList {
   private readonly api = inject(AiGovernanceApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly notifications = inject(NotificationService);
+  private readonly language = inject(LanguageService);
+
+  /** The article detail ("Art. 26(4)-(6)") in the UI language. */
+  protected articleLabel(ref: string | null | undefined): string {
+    return localRef(ref, this.language.active());
+  }
 
   readonly obligations = input<readonly Obligation[]>([]);
   /** Show status and task per row (off for previews and the provider's duties). */

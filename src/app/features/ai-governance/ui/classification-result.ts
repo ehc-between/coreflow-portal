@@ -4,6 +4,7 @@ import { LanguageService } from '../../../core/i18n/language.service';
 import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { ClassificationResult } from '../data/ai-governance.models';
 import {
+  localRef,
   reasonText,
   riskExplainKey,
   riskKey,
@@ -176,7 +177,8 @@ export class AiClassificationResult {
     (this.result()?.reasons ?? []).map((reason) => {
       const text = reasonText(reason);
       const item = text.itemKey ? this.language.translate(text.itemKey) : undefined;
-      return this.language.translate(text.key, { ...text.params, item });
+      const ref = localRef(reason.ref, this.language.active());
+      return this.language.translate(text.key, { ...text.params, ref, item });
     }),
   );
 }
