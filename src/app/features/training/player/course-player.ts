@@ -10,29 +10,39 @@ import {
   untracked,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../../core/ai/page-context';
 import { LearningProgressService } from '../../../core/guidance/learning-progress.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
+import { LanguageService } from '../../../core/i18n/language.service';
+import { roleNameKey } from '../../../core/org/roles';
 import { AskAbout } from '../../../shared/ask/ask-about';
-import { GuideIntro } from '../../../shared/guidance/guide-intro';
 import { LessonPlayer } from '../../../shared/guidance/lesson-player';
-import { TeachMe } from '../../../shared/guidance/teach-me';
 import { LocalDayPipe, LocalPercentPipe } from '../../../shared/locale/locale-pipes';
 import { MarkdownPipe } from '../../../shared/markdown/markdown.pipe';
 import { Alert } from '../../../shared/ui/alert/alert';
-import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
+import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { ModuleNav } from '../../../shared/ui/module-nav/module-nav';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { ProgressBar } from '../../../shared/ui/progress-bar/progress-bar';
+import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { TrainingApi } from '../data/training-api';
-import { TRAINING_MODULE, assignmentTone, trainingErrorKey } from '../data/training-display';
+import {
+  TRAINING_MODULE,
+  TrainingAccess,
+  assignmentBadge,
+  completionRuleOf,
+  trainingErrorKey,
+} from '../data/training-display';
 import { AttemptOut, PlayerItem, PlayerOut } from '../data/training.models';
 import { RatingInput } from '../shared/rating-input';
-import { TrainingNav } from '../training-nav';
 import {
   Answers,
   allAnswered,
@@ -65,61 +75,59 @@ type Stage =
     LocalPercentPipe,
     MarkdownPipe,
     Alert,
-    Badge,
     Button,
     Card,
+    ErrorState,
+    HelpStrip,
     Icon,
+    LoadingState,
+    ModuleNav,
+    PageHeader,
     ProgressBar,
+    StatusBadge,
     AskAbout,
-    GuideIntro,
     LessonPlayer,
-    TeachMe,
     RatingInput,
-    TrainingNav,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <app-training-nav />
-    <div class="mx-auto max-w-[1100px] px-4 pt-6 pb-16 sm:px-8">
-      <a
-        [routerLink]="['/training/courses', id()]"
-        class="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
-      >
-        <app-icon name="back" [size]="16" />
-        {{ 'training.player.back' | transloco }}
-      </a>
-
+    <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-16 sm:px-8 sm:pt-7">
       @if (data(); as d) {
-        <header class="mb-4">
-          <div class="mb-1 flex flex-wrap items-center gap-2 text-[12.5px] text-fg-muted">
+        @let badge = d.assignment ? assignmentBadgeOf(d.assignment) : null;
+        <app-page-header
+          [title]="d.course.title"
+          [breadcrumbs]="[
+            { labelKey: 'modules.names.training', link: '/training' },
+            { labelKey: 'training.courses.title', link: '/training/courses' },
+            { label: d.course.title, link: ['/training/courses', d.course.id] },
+            { labelKey: 'training.player.crumb' },
+          ]"
+        >
+          <ng-container ngProjectAs="[meta]">
             <span class="font-mono">{{ d.course.code }}</span>
-            <app-badge tone="neutral">{{ 'training.kind.' + d.course.kind | transloco }}</app-badge>
-            @if (d.assignment; as a) {
-              <app-badge [tone]="tone(a.status, a.overdue)">
-                {{
-                  (a.overdue
-                    ? 'training.assignmentStatus.overdue'
-                    : 'training.assignmentStatus.' + a.status
-                  ) | transloco
-                }}
-              </app-badge>
-              @if (a.due_at) {
-                <span>{{
-                  'training.home.dueOn' | transloco: { date: (a.due_at | localDay) }
-                }}</span>
-              }
+            <span aria-hidden="true">·</span>
+            <span>{{ 'training.kind.' + d.course.kind | transloco }}</span>
+            @if (badge) {
+              <span aria-hidden="true">·</span>
+              <app-status-badge
+                [meaning]="badge.meaning"
+                [value]="badge.value"
+                [labelKey]="badge.labelKey"
+              />
             }
-          </div>
-          <h1 class="font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]">
-            {{ d.course.title }}
-          </h1>
-          <div class="mt-3">
-            <app-progress-bar
-              [value]="progressPct()"
-              [label]="'training.player.progress' | transloco"
-            />
-          </div>
-        </header>
+            @if (d.assignment?.due_at; as due) {
+              <span>{{ 'training.home.dueOn' | transloco: { date: (due | localDay) } }}</span>
+            }
+          </ng-container>
+        </app-page-header>
+        <app-module-nav [items]="access.navItems()" labelKey="training.nav.label" />
+        <app-help-strip scope="training" page="player" />
+        <div class="mb-4">
+          <app-progress-bar
+            [value]="progressPct()"
+            [label]="'training.player.progress' | transloco"
+          />
+        </div>
 
         @if (d.latest_record; as r) {
           @if (r.passed && !r.expired) {
@@ -146,7 +154,7 @@ type Stage =
                 <li>
                   <button
                     type="button"
-                    class="w-full rounded-tile px-3 py-2 text-left text-[13px] font-semibold"
+                    class="w-full rounded-tile px-3 py-2 text-left text-ui font-semibold"
                     [class]="
                       stage().kind === 'overview'
                         ? 'bg-accent-soft text-accent'
@@ -162,7 +170,7 @@ type Stage =
                   <li>
                     <button
                       type="button"
-                      class="flex w-full items-center gap-2 rounded-tile px-3 py-2 text-left text-[13px]"
+                      class="flex w-full items-center gap-2 rounded-tile px-3 py-2 text-left text-ui"
                       [class]="
                         isLesson(i)
                           ? 'bg-accent-soft font-semibold text-accent'
@@ -172,7 +180,7 @@ type Stage =
                       (click)="openLesson(i)"
                     >
                       <span
-                        class="flex h-5 w-5 flex-none items-center justify-center rounded-full text-[11px]"
+                        class="flex h-5 w-5 flex-none items-center justify-center rounded-full text-micro"
                         [class]="
                           state(item) === 'done'
                             ? 'bg-pass text-white'
@@ -196,7 +204,7 @@ type Stage =
                 <li>
                   <button
                     type="button"
-                    class="w-full rounded-tile px-3 py-2 text-left text-[13px] font-semibold"
+                    class="w-full rounded-tile px-3 py-2 text-left text-ui font-semibold"
                     [class]="
                       stage().kind === 'assessment'
                         ? 'bg-accent-soft text-accent'
@@ -216,21 +224,51 @@ type Stage =
               @switch (stage().kind) {
                 @case ('overview') {
                   <div class="flex flex-col gap-4">
-                    <app-guide-intro scope="training" page="player" />
                     @if (d.course.description) {
                       <div class="cf-prose" [innerHTML]="d.course.description | appMarkdown"></div>
                     }
-                    <p class="text-[13px] text-fg-muted">
-                      {{
-                        'training.player.summary'
-                          | transloco
-                            : {
-                                lessons: d.items.length,
-                                questions: totalQuestions(),
-                                pass: (d.course.pass_mark * 100 | localPercent),
-                              }
-                      }}
-                    </p>
+                    <ul class="flex flex-col gap-1.5 text-ui text-fg" data-testid="player-facts">
+                      <li>
+                        {{
+                          (d.items.length === 1
+                            ? 'training.player.lessonsOne'
+                            : 'training.player.lessons'
+                          ) | transloco: { count: d.items.length }
+                        }}
+                        @if (d.course.estimated_minutes) {
+                          ·
+                          {{
+                            'training.player.minutes'
+                              | transloco: { count: d.course.estimated_minutes }
+                          }}
+                        }
+                      </li>
+                      <li class="text-fg-muted">
+                        {{
+                          'training.completion.' + completionRule()
+                            | transloco: { pass: (d.course.pass_mark * 100 | localPercent) }
+                        }}
+                      </li>
+                    </ul>
+                    @if (d.course.learning_objectives) {
+                      <section>
+                        <h2 class="mb-1 text-card font-semibold text-fg">
+                          {{ 'training.fields.learningObjectives' | transloco }}
+                        </h2>
+                        <div
+                          class="cf-prose text-ui"
+                          [innerHTML]="d.course.learning_objectives | appMarkdown"
+                        ></div>
+                      </section>
+                    }
+                    @if (d.assignment; as a) {
+                      <p
+                        class="rounded-tile border border-info/25 bg-info-soft/60 px-3 py-2 text-ui text-fg"
+                        data-testid="player-why"
+                      >
+                        {{ whyAssigned() }}
+                      </p>
+                    }
                     <div class="flex flex-wrap gap-2">
                       <app-button
                         (click)="begin()"
@@ -239,7 +277,6 @@ type Stage =
                       >
                         {{ 'training.player.begin' | transloco }}
                       </app-button>
-                      <app-teach-me topic="training.player" [subject]="d.course.title" />
                     </div>
                     @if (error(); as key) {
                       <app-alert>{{ key | transloco }}</app-alert>
@@ -307,7 +344,7 @@ type Stage =
                         }
                       </app-alert>
                       @if (r.results.length) {
-                        <ul class="flex flex-col gap-1 text-[13px]">
+                        <ul class="flex flex-col gap-1 text-ui">
                           @for (lr of r.results; track lr.lesson_id) {
                             @if (lr.total) {
                               <li
@@ -327,15 +364,18 @@ type Stage =
                       }
                       <div class="flex flex-wrap gap-2">
                         @if (r.record; as rec) {
-                          <a [routerLink]="['/training/records', rec.id]">
-                            <app-button>{{ 'training.player.viewRecord' | transloco }}</app-button>
-                          </a>
+                          <app-button (click)="router.navigate(['/training/records', rec.id])">
+                            {{ 'training.player.viewRecord' | transloco }}
+                          </app-button>
                           @if (rec.certificate_no) {
-                            <a [routerLink]="['/training/records', rec.id, 'certificate']">
-                              <app-button variant="secondary">
-                                {{ 'training.player.certificate' | transloco }}
-                              </app-button>
-                            </a>
+                            <app-button
+                              variant="secondary"
+                              (click)="
+                                router.navigate(['/training/records', rec.id, 'certificate'])
+                              "
+                            >
+                              {{ 'training.player.certificate' | transloco }}
+                            </app-button>
                           }
                         } @else {
                           <app-button (click)="retry()" data-testid="attempt-retry">
@@ -353,23 +393,25 @@ type Stage =
                       (submit)="$event.preventDefault(); submit()"
                       data-testid="assessment-form"
                     >
-                      <app-guide-intro scope="training" page="assessment" />
+                      <p class="text-ui text-fg-muted">
+                        {{ 'training.player.assessmentIntro' | transloco }}
+                      </p>
                       @for (item of quizItems(); track item.id) {
                         <section class="flex flex-col gap-3">
-                          <h2 class="text-[15px] font-semibold text-fg">{{ item.lesson.title }}</h2>
+                          <h2 class="text-card font-semibold text-fg">{{ item.lesson.title }}</h2>
                           @for (q of item.lesson.quiz; track $index; let qi = $index) {
                             <fieldset
                               class="rounded-card border border-border bg-surface p-4"
                               data-testid="assessment-question"
                             >
-                              <legend class="px-1 text-[14px] font-semibold text-fg">
+                              <legend class="px-1 text-body font-semibold text-fg">
                                 {{ 'training.player.questionN' | transloco: { n: qi + 1 } }}
                                 {{ q.question }}
                               </legend>
                               <div class="mt-2 flex flex-col gap-1.5">
                                 @for (option of q.options; track $index; let oi = $index) {
                                   <label
-                                    class="flex cursor-pointer items-start gap-2.5 rounded-tile px-2 py-1.5 text-[13.5px] text-fg hover:bg-surface-2"
+                                    class="flex cursor-pointer items-start gap-2.5 rounded-tile px-2 py-1.5 text-ui text-fg hover:bg-surface-2"
                                   >
                                     <input
                                       type="radio"
@@ -390,7 +432,7 @@ type Stage =
                       @if (d.course.kind === 'read_and_understood') {
                         <app-card>
                           @if (d.document; as doc) {
-                            <p class="mb-2 text-[13px] text-fg">
+                            <p class="mb-2 text-ui text-fg">
                               <a
                                 [routerLink]="doc.url"
                                 target="_blank"
@@ -403,7 +445,7 @@ type Stage =
                               </a>
                             </p>
                           }
-                          <label class="flex items-start gap-2.5 text-[13.5px] text-fg">
+                          <label class="flex items-start gap-2.5 text-ui text-fg">
                             <input
                               type="checkbox"
                               class="mt-0.5 accent-accent"
@@ -417,7 +459,7 @@ type Stage =
                       }
 
                       <app-card>
-                        <h2 class="mb-2 flex items-center gap-1 text-[14px] font-semibold text-fg">
+                        <h2 class="mb-2 flex items-center gap-1 text-body font-semibold text-fg">
                           {{ 'training.player.feedbackTitle' | transloco }}
                           <app-ask-about
                             field="feedback"
@@ -431,7 +473,7 @@ type Stage =
                         />
                         <label
                           for="attempt-comment"
-                          class="mt-3 mb-1 block text-[13px] font-semibold text-fg-muted"
+                          class="mt-3 mb-1 block text-ui font-semibold text-fg-muted"
                         >
                           {{ 'training.player.comment' | transloco }}
                         </label>
@@ -440,7 +482,7 @@ type Stage =
                           name="comment"
                           rows="2"
                           maxlength="2000"
-                          class="w-full rounded-[10px] border border-border bg-bg px-3 py-2 text-[13.5px] text-fg outline-none focus:border-accent"
+                          class="w-full rounded-tile border border-border bg-bg px-3 py-2 text-ui text-fg outline-none focus:border-accent"
                           [(ngModel)]="comment"
                         ></textarea>
                       </app-card>
@@ -466,11 +508,13 @@ type Stage =
           </div>
         }
       } @else if (loadError(); as key) {
-        <app-alert>{{ key | transloco }}</app-alert>
+        <app-error-state
+          titleKey="training.errors.notFoundTitle"
+          [bodyKey]="key"
+          (retry)="reload()"
+        />
       } @else {
-        <p class="text-[13.5px] text-fg-muted" role="status">
-          {{ 'training.common.loading' | transloco }}
-        </p>
+        <app-loading-state [rows]="6" />
       }
     </div>
   `,
@@ -479,6 +523,10 @@ export class CoursePlayer {
   private readonly api = inject(TrainingApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly progress = inject(LearningProgressService);
+  private readonly language = inject(LanguageService);
+  protected readonly router = inject(Router);
+  protected readonly access = inject(TrainingAccess);
+  protected readonly assignmentBadgeOf = assignmentBadge;
 
   /** Route param. */
   readonly id = input.required<string>();
@@ -549,8 +597,37 @@ export class CoursePlayer {
     });
   }
 
-  protected tone(status: string, overdue: boolean) {
-    return assignmentTone(status, overdue);
+  protected readonly completionRule = computed(() => {
+    const course = this.data()?.course;
+    return course ? completionRuleOf(course) : 'quiz';
+  });
+
+  /** "Du har fått kurset fordi det gjelder Avdeling: Drift. Frist 1. des. 2026." */
+  protected readonly whyAssigned = computed(() => {
+    const a = this.data()?.assignment;
+    if (!a) {
+      return '';
+    }
+    const t = (key: string, params?: Record<string, unknown>) =>
+      this.language.translate(key, params);
+    let reason: string;
+    if (a.reason === 'rule' && a.rule) {
+      const kind = t(`training.ruleTarget.${a.rule.target_type}`);
+      const value =
+        a.rule.target_type === 'role' && a.rule.target_value
+          ? t(roleNameKey(a.rule.target_value))
+          : a.rule.target_label;
+      reason = t('training.player.whyRule', { target: value ? `${kind}: ${value}` : kind });
+    } else if (a.reason === 'manual' && a.assigned_by) {
+      reason = t('training.player.whyManual', { name: a.assigned_by.name });
+    } else {
+      reason = t(`training.player.why.${a.reason}`);
+    }
+    return reason;
+  });
+
+  protected reload(): void {
+    this.load(this.selectedOrg.currentOrgId(), this.id());
   }
 
   protected state(item: PlayerItem) {

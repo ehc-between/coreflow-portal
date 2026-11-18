@@ -619,6 +619,16 @@
     },
     "audit_plan": {
       "to_audit_pack": "Audit pack for the audit"
+    },
+    "training_record": {
+      "to_deviation": "Deviation from this training",
+      "to_task": "Follow-up task"
+    },
+    "training_assignment": {
+      "to_task": "Follow-up task"
+    },
+    "course": {
+      "to_task": "Task to improve the course"
     }
   },
   "frameworks": {

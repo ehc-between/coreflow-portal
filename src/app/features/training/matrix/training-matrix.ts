@@ -13,80 +13,120 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../../core/ai/page-context';
 import { LanguageService } from '../../../core/i18n/language.service';
+import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
-import { GuideIntro } from '../../../shared/guidance/guide-intro';
-import { TourButton } from '../../../shared/guidance/tour-button';
 import { TourStepDirective } from '../../../shared/guidance/tour-step.directive';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
-import { Badge } from '../../../shared/ui/badge/badge';
+import { Button } from '../../../shared/ui/button/button';
+import { EmptyState } from '../../../shared/ui/empty-state/empty-state';
+import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { ModuleNav } from '../../../shared/ui/module-nav/module-nav';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { ProgressBar } from '../../../shared/ui/progress-bar/progress-bar';
+import { toneFor } from '../../../shared/ui/tones';
 import { TrainingApi } from '../data/training-api';
-import { TRAINING_MODULE, cellTone } from '../data/training-display';
+import {
+  TRAINING_MODULE,
+  TrainingAccess,
+  cellBadge,
+  exportFileName,
+  saveBlob,
+} from '../data/training-display';
 import {
   CELL_STATUSES,
   COURSE_CATEGORIES,
   CourseCategory,
   Matrix,
   MatrixCell,
+  MatrixQuery,
+  MatrixUser,
 } from '../data/training.models';
 import { FilterOption, FilterSelect } from '../shared/filter-select';
+import { PrintChrome } from '../shared/print-chrome';
 import { TrainingPeople } from '../shared/people';
-import { TrainingNav } from '../training-nav';
 
 /** Index cells by `<user>:<course>`. */
 export function indexCells(cells: readonly MatrixCell[]): ReadonlyMap<string, MatrixCell> {
   return new Map(cells.map((c) => [`${c.user_id}:${c.course_id}`, c]));
 }
 
-/** Short symbol per cell status (the badge also carries the full label for screen readers). */
-const SYMBOL: Readonly<Record<string, string>> = {
+/** Symbol per cell status; the cell always shows its word too, so colour is never the only signal. */
+export const CELL_SYMBOL: Readonly<Record<string, string>> = {
   compliant: '✓',
   expiring: '!',
   expired: '×',
-  overdue: '×',
+  overdue: '!',
   assigned: '•',
   missing: '–',
 };
 
+/** "Drift · Lagerarbeider" under a person's name in the matrix. */
+export function personSubtitle(u: MatrixUser): string {
+  return [u.department, u.position].filter((v) => !!v).join(' · ');
+}
+
+const TONE_CELL: Readonly<Record<string, string>> = {
+  pass: 'bg-pass-soft text-pass-ink',
+  warn: 'bg-warn-soft text-warn-ink',
+  fail: 'bg-fail-soft text-fail-ink',
+  info: 'bg-info-soft text-info-ink',
+  accent: 'bg-accent-soft text-accent',
+  neutral: 'bg-surface-2 text-fg-muted',
+};
+
 /**
- * `/training/matrix` (oversee): the training matrix, people by courses, with the
- * status of each required course and the overall compliance percentage.
+ * `/training/matrix` ("Kompetansematrise", for people who oversee training): who
+ * has the required training in place, people × courses. Filter by category,
+ * department or job position (People); each course shows its own percentage;
+ * cells open the record or assignment behind them; names open the person's
+ * training profile. Export as CSV or print with the legend.
  */
 @Component({
   selector: 'app-training-matrix',
   imports: [
     RouterLink,
     TranslocoPipe,
-    Badge,
+    Button,
+    EmptyState,
+    ErrorState,
+    HelpStrip,
+    LoadingState,
+    ModuleNav,
+    PageHeader,
+    PrintChrome,
     ProgressBar,
-    GuideIntro,
-    WhyItMatters,
-    TourButton,
     TourStepDirective,
+    WhyItMatters,
     FilterSelect,
-    TrainingNav,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <app-training-nav />
-    <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8">
-      <div class="mb-5 flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 class="font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]">
-            {{ 'training.matrix.title' | transloco }}
-          </h1>
-          <p class="mt-1 text-[13.5px] text-fg-muted">
-            {{ 'training.matrix.subtitle' | transloco }}
-          </p>
-        </div>
-        <app-tour-button scope="training" tour="matrix" />
-      </div>
-      <div class="mb-5 grid gap-4 lg:grid-cols-[1fr_320px]">
-        <app-guide-intro scope="training" page="matrix" />
-        <app-why-it-matters scope="training" page="matrix" />
-      </div>
+    <app-training-print-chrome />
+    <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+      <app-page-header
+        titleKey="training.matrix.title"
+        descriptionKey="training.matrix.subtitle"
+        [breadcrumbs]="[
+          { labelKey: 'modules.names.training', link: '/training' },
+          { labelKey: 'training.matrix.title' },
+        ]"
+      >
+        <app-button secondary variant="secondary" (click)="print()">
+          {{ 'training.matrix.print' | transloco }}
+        </app-button>
+        <app-button secondary variant="secondary" [loading]="exporting()" (click)="exportCsv()">
+          {{ 'training.export.csv' | transloco }}
+        </app-button>
+      </app-page-header>
+      <app-module-nav [items]="access.navItems()" labelKey="training.nav.label" />
+      <app-help-strip scope="training" page="matrix" tour="matrix" />
 
-      <div class="mb-4 flex flex-wrap items-center gap-2" [appTourStep]="'training-matrix-filters'">
+      <div
+        class="mb-4 flex flex-wrap items-center gap-2 print:hidden"
+        [appTourStep]="'training-matrix-filters'"
+      >
         <app-training-filter
           [label]="'training.filters.category' | transloco"
           [value]="category()"
@@ -101,11 +141,20 @@ const SYMBOL: Readonly<Record<string, string>> = {
             (valueChange)="department.set($event)"
           />
         }
+        @if (positionOptions().length > 1) {
+          <app-training-filter
+            [label]="'training.filters.position' | transloco"
+            [value]="position()"
+            [options]="positionOptions()"
+            testId="filter-position"
+            (valueChange)="position.set($event)"
+          />
+        }
       </div>
 
       @if (matrix(); as m) {
-        <div class="mb-4 max-w-[420px]" [appTourStep]="'training-matrix-summary'">
-          <p class="mb-1 text-[13px] text-fg">
+        <div class="mb-4 max-w-[460px]" [appTourStep]="'training-matrix-summary'">
+          <p class="mb-1 text-ui text-fg">
             {{
               'training.matrix.summary'
                 | transloco
@@ -123,108 +172,157 @@ const SYMBOL: Readonly<Record<string, string>> = {
         </div>
 
         <ul
-          class="mb-3 flex flex-wrap gap-2 text-[12px]"
+          class="mb-3 flex flex-wrap gap-x-4 gap-y-1.5 text-meta"
           [attr.aria-label]="'training.matrix.legend' | transloco"
+          data-testid="matrix-legend"
         >
           @for (s of statuses; track s) {
-            <li>
-              <app-badge [tone]="tone(s)"
-                >{{ symbol(s) }} {{ 'training.cell.' + s | transloco }}</app-badge
+            <li class="flex items-center gap-1.5">
+              <span
+                class="inline-flex h-6 min-w-6 items-center justify-center rounded-tile px-1 text-ui font-bold"
+                [class]="cellClass(s)"
+                aria-hidden="true"
+                >{{ symbol(s) }}</span
+              >
+              <span class="text-fg">{{ 'training.cell.' + s | transloco }}</span>
+              <span class="text-fg-muted"
+                >– {{ 'training.matrix.legendHelp.' + s | transloco }}</span
               >
             </li>
           }
         </ul>
 
         @if (m.users.length === 0 || m.courses.length === 0) {
-          <p class="py-8 text-center text-[13.5px] text-fg-muted">
-            {{ 'training.matrix.empty' | transloco }}
-          </p>
+          <app-empty-state
+            icon="grid"
+            titleKey="training.matrix.emptyTitle"
+            bodyKey="training.matrix.empty"
+          />
         } @else {
           <div
-            class="overflow-auto rounded-card border border-border bg-surface"
+            class="max-h-[70vh] overflow-auto rounded-card border border-border bg-surface print:max-h-none print:overflow-visible"
             data-testid="matrix"
           >
-            <table class="text-[12.5px]">
+            <table class="border-separate border-spacing-0 text-ui">
               <caption class="sr-only">
                 {{
                   'training.matrix.title' | transloco
                 }}
               </caption>
               <thead>
-                <tr class="border-b border-border">
+                <tr>
                   <th
                     scope="col"
-                    class="sticky left-0 z-10 bg-surface px-3 py-2 text-left font-semibold text-fg-muted"
+                    class="sticky top-0 left-0 z-30 min-w-[200px] border-b border-border bg-surface px-3 py-2 text-left align-bottom text-meta font-semibold text-fg-muted"
                   >
                     {{ 'training.fields.person' | transloco }}
                   </th>
                   @for (c of m.courses; track c.id) {
                     <th
                       scope="col"
-                      class="min-w-[90px] px-2 py-2 text-center font-semibold text-fg-muted"
+                      class="sticky top-0 z-20 w-[128px] min-w-[128px] border-b border-l border-border bg-surface px-2 py-2 text-left align-bottom font-semibold"
                     >
                       <a
                         [routerLink]="['/training/courses', c.id]"
-                        [attr.title]="c.title"
-                        class="hover:text-accent"
+                        class="line-clamp-3 text-meta leading-snug text-fg hover:text-accent hover:underline"
+                        [attr.title]="c.code + ' · ' + c.title"
                       >
-                        {{ c.code }}
+                        {{ c.title }}
                       </a>
-                      <span class="sr-only">{{ c.title }}</span>
+                      <span class="mt-0.5 block font-mono text-micro text-fg-subtle">{{
+                        c.code
+                      }}</span>
+                      @if (c.pct !== undefined) {
+                        <span
+                          class="mt-1 block text-micro font-semibold"
+                          [class.text-fg-muted]="c.pct === null"
+                          [class.text-fg]="c.pct !== null"
+                          data-testid="matrix-course-pct"
+                        >
+                          @if (c.pct === null) {
+                            {{ 'training.matrix.notRequired' | transloco }}
+                          } @else {
+                            {{
+                              'training.matrix.coursePct'
+                                | transloco
+                                  : {
+                                      pct: c.pct,
+                                      compliant: c.compliant ?? 0,
+                                      required: c.required ?? 0,
+                                    }
+                            }}
+                          }
+                        </span>
+                      }
                     </th>
                   }
                 </tr>
               </thead>
               <tbody>
                 @for (u of m.users; track u.id) {
-                  <tr class="border-b border-border last:border-0">
+                  <tr>
                     <th
                       scope="row"
-                      class="sticky left-0 z-10 bg-surface px-3 py-1.5 text-left font-medium whitespace-nowrap text-fg"
+                      class="sticky left-0 z-10 border-b border-border bg-surface px-3 py-2 text-left font-normal"
                     >
-                      {{ u.name }}
+                      <a
+                        [routerLink]="u.url ?? ['/training/people', u.id]"
+                        class="font-semibold whitespace-nowrap text-fg hover:text-accent hover:underline"
+                        >{{ displayName(u) }}</a
+                      >
+                      @if (subtitle(u); as sub) {
+                        <span class="block text-meta whitespace-nowrap text-fg-muted">{{
+                          sub
+                        }}</span>
+                      }
                     </th>
                     @for (c of m.courses; track c.id) {
                       @let cell = cellFor(u.id, c.id);
-                      <td class="px-2 py-1.5 text-center">
+                      <td class="border-b border-l border-border p-1">
                         @if (cell && cell.status !== 'missing') {
-                          @if (cell.record_id) {
+                          @if (cell.record_id || cell.assignment_id) {
                             <a
-                              [routerLink]="['/training/records', cell.record_id]"
+                              [routerLink]="
+                                cell.record_id
+                                  ? ['/training/records', cell.record_id]
+                                  : ['/training/assignments', cell.assignment_id]
+                              "
+                              class="flex h-9 items-center gap-1 rounded-tile px-2 text-meta font-semibold whitespace-nowrap hover:ring-2 hover:ring-accent focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                              [class]="cellClass(cell.status)"
                               [attr.aria-label]="cellLabel(u.name, c.title, cell.status)"
                             >
-                              <app-badge [tone]="tone(cell.status)">{{
-                                symbol(cell.status)
-                              }}</app-badge>
-                            </a>
-                          } @else if (cell.assignment_id) {
-                            <a
-                              [routerLink]="['/training/assignments', cell.assignment_id]"
-                              [attr.aria-label]="cellLabel(u.name, c.title, cell.status)"
-                            >
-                              <app-badge [tone]="tone(cell.status)">{{
-                                symbol(cell.status)
-                              }}</app-badge>
+                              <span aria-hidden="true">{{ symbol(cell.status) }}</span>
+                              <span aria-hidden="true">{{
+                                'training.cell.' + cell.status | transloco
+                              }}</span>
                             </a>
                           } @else {
                             <span
-                              [attr.aria-label]="cellLabel(u.name, c.title, cell.status)"
+                              class="flex h-9 items-center gap-1 rounded-tile px-2 text-meta font-semibold whitespace-nowrap"
+                              [class]="cellClass(cell.status)"
                               role="img"
+                              [attr.aria-label]="cellLabel(u.name, c.title, cell.status)"
                             >
-                              <app-badge [tone]="tone(cell.status)">{{
-                                symbol(cell.status)
-                              }}</app-badge>
+                              <span aria-hidden="true">{{ symbol(cell.status) }}</span>
+                              <span aria-hidden="true">{{
+                                'training.cell.' + cell.status | transloco
+                              }}</span>
                             </span>
                           }
                         } @else if (cell) {
                           <span
-                            class="text-fg-subtle"
+                            class="flex h-9 items-center px-2 text-meta text-fg-subtle"
                             role="img"
                             [attr.aria-label]="cellLabel(u.name, c.title, 'missing')"
                             >–</span
                           >
                         } @else {
-                          <span class="text-fg-subtle" aria-hidden="true">·</span>
+                          <span
+                            class="flex h-9 items-center px-2 text-meta text-fg-subtle"
+                            [attr.title]="'training.matrix.notRequiredCell' | transloco"
+                            aria-hidden="true"
+                            >·</span
+                          >
                         }
                       </td>
                     }
@@ -233,16 +331,17 @@ const SYMBOL: Readonly<Record<string, string>> = {
               </tbody>
             </table>
           </div>
+          <p class="mt-2 text-meta text-fg-muted">{{ 'training.matrix.dotHelp' | transloco }}</p>
         }
       } @else if (failed()) {
-        <p class="text-[13.5px] text-fail" role="alert">
-          {{ 'training.errors.loadFailed' | transloco }}
-        </p>
+        <app-error-state (retry)="reload()" />
       } @else {
-        <p class="text-[13.5px] text-fg-muted" role="status">
-          {{ 'training.common.loading' | transloco }}
-        </p>
+        <app-loading-state [rows]="6" />
       }
+
+      <div class="mt-8 print:hidden">
+        <app-why-it-matters scope="training" page="matrix" />
+      </div>
     </div>
   `,
 })
@@ -250,14 +349,34 @@ export class TrainingMatrix {
   private readonly api = inject(TrainingApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly language = inject(LanguageService);
+  private readonly notifications = inject(NotificationService);
   private readonly directory = inject(TrainingPeople);
+  protected readonly access = inject(TrainingAccess);
 
   protected readonly statuses = CELL_STATUSES;
   protected readonly category = signal<CourseCategory | ''>('');
   protected readonly department = signal('');
+  protected readonly position = signal('');
   protected readonly matrix = signal<Matrix | null>(null);
   protected readonly failed = signal(false);
+  protected readonly exporting = signal(false);
+  protected readonly subtitle = personSubtitle;
+  private readonly tick = signal(0);
   private readonly cells = computed(() => indexCells(this.matrix()?.cells ?? []));
+  /** Names shared by several people get their e-mail added. */
+  private readonly sharedNames = computed(() => {
+    const seen = new Map<string, number>();
+    for (const u of this.matrix()?.users ?? []) {
+      seen.set(u.name, (seen.get(u.name) ?? 0) + 1);
+    }
+    return new Set([...seen.entries()].filter(([, n]) => n > 1).map(([name]) => name));
+  });
+
+  private readonly query = computed<MatrixQuery>(() => ({
+    category: this.category(),
+    department_id: this.department() || undefined,
+    position_id: this.position() || undefined,
+  }));
 
   protected readonly categoryOptions = computed<FilterOption[]>(() => [
     { value: '', label: this.language.translate('training.filters.allCategories') },
@@ -266,20 +385,35 @@ export class TrainingMatrix {
       label: this.language.translate(`training.category.${c}`),
     })),
   ]);
-  protected readonly departmentOptions = computed<FilterOption[]>(() => [
-    { value: '', label: this.language.translate('training.filters.allDepartments') },
-    ...this.directory.departments().map((d) => ({ value: d.id, label: d.name })),
+  protected readonly departmentOptions = computed<FilterOption[]>(() => {
+    const fromMatrix = this.matrix()?.departments;
+    const list = fromMatrix?.length
+      ? fromMatrix
+      : this.directory.departments().map((d) => ({ id: d.id, name: d.name }));
+    return [
+      { value: '', label: this.language.translate('training.filters.allDepartments') },
+      ...list.map((d) => ({ value: d.id, label: d.name })),
+    ];
+  });
+  protected readonly positionOptions = computed<FilterOption[]>(() => [
+    { value: '', label: this.language.translate('training.filters.allPositions') },
+    ...(this.matrix()?.positions ?? []).map((p) => ({ value: p.id, label: p.name })),
   ]);
 
   private sub: Subscription | null = null;
 
   constructor() {
-    providePageContext(() => ({ module: TRAINING_MODULE, view: 'dashboard', title: null }));
+    providePageContext(() => ({
+      module: TRAINING_MODULE,
+      view: 'dashboard',
+      title: this.language.translate('training.matrix.title'),
+    }));
     inject(DestroyRef).onDestroy(() => this.sub?.unsubscribe());
     this.directory.ensureLoaded();
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();
-      const query = { category: this.category(), department_id: this.department() || undefined };
+      const query = this.query();
+      this.tick();
       untracked(() => {
         this.sub?.unsubscribe();
         if (!orgId) {
@@ -297,6 +431,10 @@ export class TrainingMatrix {
     });
   }
 
+  protected reload(): void {
+    this.tick.update((n) => n + 1);
+  }
+
   protected setCategory(value: string): void {
     this.category.set(
       (COURSE_CATEGORIES as readonly string[]).includes(value) ? (value as CourseCategory) : '',
@@ -307,12 +445,17 @@ export class TrainingMatrix {
     return this.cells().get(`${userId}:${courseId}`);
   }
 
-  protected tone(status: string) {
-    return cellTone(status);
+  protected displayName(u: MatrixUser): string {
+    return this.sharedNames().has(u.name) && u.email ? `${u.name} (${u.email})` : u.name;
+  }
+
+  protected cellClass(status: string): string {
+    const badge = cellBadge(status);
+    return TONE_CELL[toneFor(badge.meaning, badge.value)] ?? TONE_CELL['neutral'];
   }
 
   protected symbol(status: string): string {
-    return SYMBOL[status] ?? '';
+    return CELL_SYMBOL[status] ?? '';
   }
 
   protected cellLabel(person: string, course: string, status: string): string {
@@ -320,6 +463,28 @@ export class TrainingMatrix {
       person,
       course,
       status: this.language.translate(`training.cell.${status}`),
+    });
+  }
+
+  protected print(): void {
+    globalThis.print?.();
+  }
+
+  protected exportCsv(): void {
+    const orgId = this.selectedOrg.currentOrgId();
+    if (!orgId || this.exporting()) {
+      return;
+    }
+    this.exporting.set(true);
+    this.api.exportCsv(orgId, 'matrix', this.query(), this.language.active()).subscribe({
+      next: (blob) => {
+        this.exporting.set(false);
+        saveBlob(blob, exportFileName('matrix'));
+      },
+      error: () => {
+        this.exporting.set(false);
+        this.notifications.error('training.export.failed');
+      },
     });
   }
 }

@@ -619,6 +619,16 @@
     },
     "audit_plan": {
       "to_audit_pack": "Revisjonspakke for revisjonen"
+    },
+    "training_record": {
+      "to_deviation": "Avvik fra denne opplæringen",
+      "to_task": "Oppgave for oppfølging"
+    },
+    "training_assignment": {
+      "to_task": "Oppgave for oppfølging"
+    },
+    "course": {
+      "to_task": "Oppgave for å forbedre kurset"
     }
   },
   "frameworks": {

@@ -5,31 +5,50 @@ import {
   computed,
   effect,
   inject,
+  input,
   linkedSignal,
   signal,
   untracked,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../../core/ai/page-context';
 import { LanguageService } from '../../../core/i18n/language.service';
+import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
-import { GuideIntro } from '../../../shared/guidance/guide-intro';
 import { TeachingEmpty } from '../../../shared/guidance/teaching-empty';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { RecordListPage as KitListPage } from '../../../shared/kit/record-list-page';
 import { SavedView } from '../../../shared/kit/saved-views.service';
-import { LocalDayPipe } from '../../../shared/locale/locale-pipes';
+import { CoverageChip } from '../../../shared/requirement-links/coverage-chip';
 import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
+import { EmptyState } from '../../../shared/ui/empty-state/empty-state';
+import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { ModuleNav } from '../../../shared/ui/module-nav/module-nav';
 import { Pager } from '../../../shared/ui/pager/pager';
+import { RecordRow, RecordRowHeader } from '../../../shared/ui/record-row/record-row';
+import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { TrainingApi } from '../data/training-api';
-import { TRAINING_MODULE, TrainingAccess, recordValidityTone } from '../data/training-display';
-import { RecordQuery, RecordSort, TrainingRecord } from '../data/training.models';
+import {
+  TRAINING_MODULE,
+  TrainingAccess,
+  exportFileName,
+  recordBadge,
+  saveBlob,
+} from '../data/training-display';
+import {
+  RECORD_METHODS,
+  RecordMethod,
+  RecordQuery,
+  RecordSort,
+  TrainingRecord,
+} from '../data/training.models';
 import { FilterOption, FilterSelect } from '../shared/filter-select';
-import { TrainingNav } from '../training-nav';
 import { RecordForm } from './record-form';
 
 const PAGE_SIZE = 50;
@@ -53,6 +72,7 @@ export function validityQuery(filter: ValidityFilter): Partial<RecordQuery> {
   }
 }
 
+/** Text match on course code/title, person name and certificate number. */
 export function matchesRecord(r: TrainingRecord, q: string): boolean {
   const needle = q.trim().toLowerCase();
   return (
@@ -65,51 +85,73 @@ export function matchesRecord(r: TrainingRecord, q: string): boolean {
 }
 
 /**
- * `/training/records`: completion records and certificates (the evidence of
- * competence). Training managers record external or classroom training.
+ * `/training/records` ("Gjennomført opplæring"): completion records and
+ * certificates, the evidence of competence. Search covers every page (server
+ * side). Training managers record external or classroom training; auditors
+ * export the filtered list and find records that lack documentation
+ * (`?evidence=missing`).
  */
 @Component({
   selector: 'app-record-list',
   imports: [
-    RouterLink,
     TranslocoPipe,
-    LocalDayPipe,
     Badge,
     Button,
+    CoverageChip,
+    EmptyState,
+    ErrorState,
+    HelpStrip,
     Icon,
+    LoadingState,
+    ModuleNav,
     Pager,
-    GuideIntro,
-    WhyItMatters,
+    RecordRow,
+    RecordRowHeader,
+    StatusBadge,
     TeachingEmpty,
+    WhyItMatters,
     KitListPage,
     FilterSelect,
     RecordForm,
-    TrainingNav,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <app-training-nav />
     <app-record-list-page
       titleKey="training.records.title"
+      descriptionKey="training.records.subtitle"
+      [breadcrumbs]="[
+        { labelKey: 'modules.names.training', link: '/training' },
+        { labelKey: 'training.records.title' },
+      ]"
       scope="training"
       page="records"
       searchPlaceholderKey="training.records.search"
       [query]="q()"
       [filters]="filters()"
-      [empty]="loaded() && items().length === 0 && !hasFilters()"
-      (search)="q.set($event)"
+      [moreFiltersActive]="moreActive()"
+      [empty]="loaded() && !failed() && items().length === 0 && !hasFilters()"
+      (search)="setQuery($event)"
       (viewApplied)="applyView($event)"
     >
-      <div intro class="mt-3 grid gap-3 lg:grid-cols-[1fr_300px]">
-        <app-guide-intro scope="training" page="records" />
-        <app-why-it-matters scope="training" page="records" />
-      </div>
       @if (access.canManage()) {
-        <app-button toolbar (click)="formOpen.set(true)" data-testid="record-new">
+        <app-button primary (click)="formOpen.set(true)" data-testid="record-new">
           <app-icon name="plus" [size]="15" />
           {{ 'training.records.new' | transloco }}
         </app-button>
       }
+      @if (access.canOversee()) {
+        <app-button
+          secondary
+          variant="secondary"
+          [loading]="exporting()"
+          (click)="exportCsv()"
+          data-testid="records-export"
+        >
+          {{ 'training.export.csv' | transloco }}
+        </app-button>
+      }
+      <app-module-nav nav [items]="access.navItems()" labelKey="training.nav.label" />
+      <app-help-strip help scope="training" page="records" lesson="evaluating-effectiveness" />
 
       @if (access.canOversee()) {
         <app-training-filter
@@ -128,95 +170,83 @@ export function matchesRecord(r: TrainingRecord, q: string): boolean {
         testId="filter-validity"
         (valueChange)="setValidity($event)"
       />
-      <app-training-filter
-        filters
-        [label]="'training.filters.sort' | transloco"
-        [value]="sort()"
-        [options]="sortOptions()"
-        (valueChange)="setSort($event)"
-      />
+      @if (access.canOversee()) {
+        <app-training-filter
+          filters
+          [label]="'training.filters.evidence' | transloco"
+          [value]="evidenceFilter()"
+          [options]="evidenceOptions()"
+          testId="filter-evidence"
+          (valueChange)="setEvidence($event)"
+        />
+      }
+      <div more-filters class="flex flex-col gap-3">
+        <app-training-filter
+          [label]="'training.filters.method' | transloco"
+          [showLabel]="true"
+          [value]="method()"
+          [options]="methodOptions()"
+          (valueChange)="setMethod($event)"
+        />
+        <app-training-filter
+          [label]="'training.filters.sort' | transloco"
+          [showLabel]="true"
+          [value]="sort()"
+          [options]="sortOptions()"
+          (valueChange)="setSort($event)"
+        />
+      </div>
 
-      @if (failed()) {
-        <p class="text-[13.5px] text-fail" role="alert">
-          {{ 'training.errors.loadFailed' | transloco }}
-        </p>
-      } @else if (loaded() && visible().length === 0) {
-        <p class="py-8 text-center text-[13.5px] text-fg-muted">
-          {{ 'training.records.noMatch' | transloco }}
-        </p>
+      @if (!loaded()) {
+        <app-loading-state [rows]="6" />
+      } @else if (failed()) {
+        <app-error-state (retry)="reload()" />
+      } @else if (items().length === 0) {
+        <app-empty-state
+          icon="search"
+          titleKey="ui.empty.noResults"
+          ctaKey="training.filters.clear"
+          ctaVariant="secondary"
+          (cta)="clearFilters()"
+        />
       } @else {
-        <div class="overflow-x-auto rounded-card border border-border bg-surface">
-          <table class="w-full min-w-[720px] text-left text-[13px]" data-testid="record-table">
-            <caption class="sr-only">
-              {{
-                'training.records.title' | transloco
-              }}
-            </caption>
-            <thead class="border-b border-border text-[12px] text-fg-muted">
-              <tr>
-                <th scope="col" class="px-4 py-2.5 font-semibold">
-                  {{ 'training.fields.course' | transloco }}
-                </th>
-                @if (scope() === 'all') {
-                  <th scope="col" class="px-4 py-2.5 font-semibold">
-                    {{ 'training.fields.person' | transloco }}
-                  </th>
-                }
-                <th scope="col" class="px-4 py-2.5 font-semibold">
-                  {{ 'training.fields.completed' | transloco }}
-                </th>
-                <th scope="col" class="px-4 py-2.5 font-semibold">
-                  {{ 'training.fields.method' | transloco }}
-                </th>
-                <th scope="col" class="px-4 py-2.5 font-semibold">
-                  {{ 'training.fields.validity' | transloco }}
-                </th>
-                <th scope="col" class="px-4 py-2.5 font-semibold">
-                  {{ 'training.fields.certificate' | transloco }}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (r of visible(); track r.id) {
-                <tr class="border-b border-border last:border-0 hover:bg-surface-2">
-                  <td class="px-4 py-2.5">
-                    <a
-                      [routerLink]="['/training/records', r.id]"
-                      class="font-semibold text-fg hover:text-accent"
-                    >
-                      <span class="font-mono text-[12px] text-fg-muted">{{ r.course.code }}</span>
-                      {{ r.course.title }}
-                    </a>
-                  </td>
-                  @if (scope() === 'all') {
-                    <td class="px-4 py-2.5">{{ r.user.name }}</td>
-                  }
-                  <td class="px-4 py-2.5 text-fg-muted">{{ r.completed_at | localDay }}</td>
-                  <td class="px-4 py-2.5 text-fg-muted">
-                    {{ 'training.method.' + r.method | transloco }}
-                  </td>
-                  <td class="px-4 py-2.5">
-                    <app-badge [tone]="tone(r)">
-                      @if (!r.passed) {
-                        {{ 'training.records.notPassed' | transloco }}
-                      } @else if (r.expired) {
-                        {{ 'training.records.expired' | transloco }}
-                      } @else if (r.expires_at) {
-                        {{
-                          'training.records.until' | transloco: { date: (r.expires_at | localDay) }
-                        }}
-                      } @else {
-                        {{ 'training.records.noExpiry' | transloco }}
-                      }
-                    </app-badge>
-                  </td>
-                  <td class="px-4 py-2.5 font-mono text-[12px] text-fg-muted">
-                    {{ r.certificate_no ?? '' }}
-                  </td>
-                </tr>
+        <div
+          role="list"
+          class="overflow-hidden rounded-card border border-border bg-surface"
+          data-testid="record-table"
+          [attr.aria-label]="'training.records.title' | transloco"
+        >
+          <app-record-row-header
+            dateKind="date"
+            codeKey="training.fields.code"
+            titleKey="training.fields.course"
+            [owner]="scope() === 'all'"
+          />
+          @for (r of items(); track r.id) {
+            @let badge = validityOf(r);
+            <app-record-row
+              [code]="r.course.code"
+              [title]="r.course.title"
+              [subtitle]="subtitle(r)"
+              [link]="['/training/records', r.id]"
+              [owner]="scope() === 'all' ? r.user.name : null"
+              [date]="r.completed_at"
+              dateKind="date"
+            >
+              <app-coverage-chip coverage entityType="training_record" [entityId]="r.id" />
+              <app-status-badge
+                badges
+                [meaning]="badge.meaning"
+                [value]="badge.value"
+                [labelKey]="badge.labelKey"
+              />
+              @if (r.missing_evidence) {
+                <app-badge badges tone="warn" data-testid="missing-evidence">
+                  {{ 'training.records.missingEvidence' | transloco }}
+                </app-badge>
               }
-            </tbody>
-          </table>
+            </app-record-row>
+          }
         </div>
         <app-pager
           [offset]="offset()"
@@ -233,6 +263,7 @@ export function matchesRecord(r: TrainingRecord, q: string): boolean {
         page="records"
         (action)="router.navigate(['/training'])"
       />
+      <app-why-it-matters below scope="training" page="records" />
     </app-record-list-page>
 
     <app-training-record-form
@@ -246,14 +277,22 @@ export class RecordListPage {
   private readonly api = inject(TrainingApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly language = inject(LanguageService);
+  private readonly notifications = inject(NotificationService);
   protected readonly access = inject(TrainingAccess);
   protected readonly router = inject(Router);
+
+  /** `?evidence=missing` (from the home page's follow-up list). */
+  readonly evidence = input<string | undefined>(undefined);
 
   protected readonly pageSize = PAGE_SIZE;
   protected readonly scope = linkedSignal<'mine' | 'all'>(() =>
     this.access.canOversee() ? 'all' : 'mine',
   );
   protected readonly validity = signal<ValidityFilter>('');
+  protected readonly evidenceFilter = linkedSignal<'' | 'missing'>(() =>
+    this.evidence() === 'missing' ? 'missing' : '',
+  );
+  protected readonly method = signal<RecordMethod | ''>('');
   protected readonly sort = signal<RecordSort>('-completed_at');
   protected readonly q = signal('');
   protected readonly offset = signal(0);
@@ -261,21 +300,35 @@ export class RecordListPage {
   protected readonly total = signal<number | null>(null);
   protected readonly loaded = signal(false);
   protected readonly failed = signal(false);
+  protected readonly exporting = signal(false);
   protected readonly formOpen = signal(false);
+  private readonly tick = signal(0);
 
-  protected readonly visible = computed(() =>
-    this.items().filter((r) => matchesRecord(r, this.q())),
-  );
   protected readonly filters = computed(() => ({
     scope: this.scope(),
     validity: this.validity(),
+    evidence: this.evidenceFilter(),
+    method: this.method(),
     sort: this.sort(),
   }));
-  protected readonly hasFilters = computed(() => !!this.q() || !!this.validity());
+  protected readonly moreActive = computed(
+    () => (this.method() ? 1 : 0) + (this.sort() !== '-completed_at' ? 1 : 0),
+  );
+  protected readonly hasFilters = computed(
+    () => !!this.q() || !!this.validity() || !!this.evidenceFilter() || !!this.method(),
+  );
+  private readonly query = computed<RecordQuery>(() => ({
+    ...validityQuery(this.validity()),
+    mine: this.scope() === 'mine',
+    q: this.q() || undefined,
+    method: this.method(),
+    missing_evidence: this.evidenceFilter() === 'missing' ? true : undefined,
+    sort: this.sort(),
+  }));
 
   protected readonly scopeOptions = computed<FilterOption[]>(() => [
-    { value: 'mine', label: this.language.translate('training.filters.mine') },
     { value: 'all', label: this.language.translate('training.filters.everyone') },
+    { value: 'mine', label: this.language.translate('training.filters.mine') },
   ]);
   protected readonly validityOptions = computed<FilterOption[]>(() =>
     VALIDITY_FILTERS.map((v) => ({
@@ -283,6 +336,17 @@ export class RecordListPage {
       label: this.language.translate(`training.validity.${v || 'all'}`),
     })),
   );
+  protected readonly evidenceOptions = computed<FilterOption[]>(() => [
+    { value: '', label: this.language.translate('training.filters.evidenceAll') },
+    { value: 'missing', label: this.language.translate('training.filters.evidenceMissing') },
+  ]);
+  protected readonly methodOptions = computed<FilterOption[]>(() => [
+    { value: '', label: this.language.translate('training.filters.allMethods') },
+    ...RECORD_METHODS.map((m) => ({
+      value: m,
+      label: this.language.translate(`training.method.${m}`),
+    })),
+  ]);
   protected readonly sortOptions = computed<FilterOption[]>(() =>
     SORTS.map((s) => ({ value: s, label: this.language.translate(`training.sort.${s}`) })),
   );
@@ -294,17 +358,13 @@ export class RecordListPage {
       module: TRAINING_MODULE,
       entityType: 'training_record',
       view: 'list',
+      title: this.language.translate('training.records.title'),
     }));
     inject(DestroyRef).onDestroy(() => this.sub?.unsubscribe());
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();
-      const query: RecordQuery = {
-        ...validityQuery(this.validity()),
-        mine: this.scope() === 'mine',
-        sort: this.sort(),
-        limit: PAGE_SIZE,
-        offset: this.offset(),
-      };
+      this.tick();
+      const query: RecordQuery = { ...this.query(), limit: PAGE_SIZE, offset: this.offset() };
       untracked(() => {
         this.sub?.unsubscribe();
         if (!orgId) {
@@ -326,8 +386,32 @@ export class RecordListPage {
     });
   }
 
-  protected tone(r: TrainingRecord) {
-    return recordValidityTone(r);
+  protected reload(): void {
+    this.tick.update((n) => n + 1);
+  }
+
+  protected validityOf(r: TrainingRecord) {
+    return recordBadge(r);
+  }
+
+  /** "Kari Nordmann · Ekstern opplæring · Gyldig til 1. mar. 2027". */
+  protected subtitle(r: TrainingRecord): string {
+    const t = (key: string) => this.language.translate(key);
+    const parts: string[] = [];
+    if (this.scope() === 'mine') {
+      parts.push(t(`training.method.${r.method}`));
+    } else {
+      parts.push(r.user.name, t(`training.method.${r.method}`));
+    }
+    if (r.certificate_no) {
+      parts.push(r.certificate_no);
+    }
+    return parts.join(' · ');
+  }
+
+  protected setQuery(text: string): void {
+    this.q.set(text);
+    this.offset.set(0);
   }
 
   protected setScope(value: string): void {
@@ -342,6 +426,18 @@ export class RecordListPage {
     this.offset.set(0);
   }
 
+  protected setEvidence(value: string): void {
+    this.evidenceFilter.set(value === 'missing' ? 'missing' : '');
+    this.offset.set(0);
+  }
+
+  protected setMethod(value: string): void {
+    this.method.set(
+      (RECORD_METHODS as readonly string[]).includes(value) ? (value as RecordMethod) : '',
+    );
+    this.offset.set(0);
+  }
+
   protected setSort(value: string): void {
     this.sort.set(
       (SORTS as readonly string[]).includes(value) ? (value as RecordSort) : '-completed_at',
@@ -349,16 +445,47 @@ export class RecordListPage {
     this.offset.set(0);
   }
 
+  protected clearFilters(): void {
+    this.q.set('');
+    this.validity.set('');
+    this.evidenceFilter.set('');
+    this.method.set('');
+    this.offset.set(0);
+  }
+
+  protected exportCsv(): void {
+    const orgId = this.selectedOrg.currentOrgId();
+    if (!orgId || this.exporting()) {
+      return;
+    }
+    this.exporting.set(true);
+    this.api.exportCsv(orgId, 'records', this.query(), this.language.active()).subscribe({
+      next: (blob) => {
+        this.exporting.set(false);
+        saveBlob(blob, exportFileName('records'));
+      },
+      error: () => {
+        this.exporting.set(false);
+        this.notifications.error('training.export.failed');
+      },
+    });
+  }
+
   protected applyView(view: SavedView): void {
     if (view.filters['scope']) {
       this.setScope(view.filters['scope']);
     }
     this.setValidity(view.filters['validity'] ?? '');
+    this.setEvidence(view.filters['evidence'] ?? '');
+    this.setMethod(view.filters['method'] ?? '');
     this.setSort(view.filters['sort'] ?? '-completed_at');
   }
 
   protected onCreated(record: TrainingRecord): void {
     this.formOpen.set(false);
-    void this.router.navigate(['/training/records', record.id]);
+    void this.router.navigate(['/training/records', record.id], {
+      queryParams:
+        record.method === 'external' || record.method === 'manual' ? { tab: 'attachments' } : {},
+    });
   }
 }

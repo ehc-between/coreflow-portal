@@ -10,10 +10,12 @@ import {
   ASSIGNMENT_REASONS,
   ASSIGNMENT_STATUSES,
   CELL_STATUSES,
+  COMPLETION_RULES,
   COURSE_CATEGORIES,
   COURSE_KINDS,
   COURSE_STATUSES,
   EFFECTIVENESS,
+  EVALUATION_METHODS,
   RECORD_METHODS,
   RULE_TARGETS,
 } from './data/training.models';
@@ -60,6 +62,9 @@ const EVENT_NAMES = [
   'recordEvaluated',
   'feedbackGiven',
   'recordDeleted',
+  'reminded',
+  'assignmentWithdrawn',
+  'courseEvaluated',
 ];
 
 const SORTS = [
@@ -102,12 +107,31 @@ describe('training i18n', () => {
         ['sort', SORTS],
         ['validity', VALIDITY_FILTERS.map((v) => v || 'all')],
         ['player.state', ['done', 'seen', 'new']],
+        ['completion', COMPLETION_RULES],
+        ['evaluationMethod', EVALUATION_METHODS],
+        ['competenceLevel', ['0', '1', '2', '3', '4']],
+        ['statusChip', ['open', 'overdue', 'completed', 'cancelled', 'all']],
+        ['rules.valueFor', ['department', 'position', 'role', 'user']],
+        ['matrix.legendHelp', CELL_STATUSES],
+        ['player.why', ASSIGNMENT_REASONS],
+        ['bulk.done', ['extend', 'cancel', 'remind']],
+        ['verify', ['not_found', 'rate_limited', 'error']],
+        ['frameworks', ['hs', 'eu_ai_act']],
       ];
       for (const [group, values] of groups) {
         for (const value of values) {
           const node = lookup(lookup(lang, group), value);
           expect(node, `${group}.${value}`).toBeTypeOf('string');
         }
+      }
+    }
+  });
+
+  it('has the home-page next actions the backend registers', () => {
+    for (const lang of [en, nb]) {
+      for (const name of ['orgOverdue', 'expiring']) {
+        expect(lookup(lang, `next.${name}.title`), name).toBeTypeOf('string');
+        expect(lookup(lang, `next.${name}.why`), name).toBeTypeOf('string');
       }
     }
   });
@@ -156,6 +180,8 @@ describe('training i18n', () => {
       'records',
       'record',
       'matrix',
+      'plan',
+      'assignNew',
     ]) {
       expect(lookup(pages, `${page}.intro.title`), page).toBeTypeOf('string');
     }

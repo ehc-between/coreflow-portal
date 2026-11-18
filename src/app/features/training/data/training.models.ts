@@ -27,15 +27,28 @@ export type CourseStatus = (typeof COURSE_STATUSES)[number];
 export type CourseSource = 'manual' | 'ai';
 export type CourseSort = 'title' | 'code' | '-updated_at' | '-created_at';
 
-export const RULE_TARGETS = ['all', 'role', 'department', 'user', 'new_hire'] as const;
+/** Rule targets in the order the picker offers them (`role` = access role in CoreFlow). */
+export const RULE_TARGETS = ['all', 'department', 'position', 'role', 'user', 'new_hire'] as const;
 export type RuleTarget = (typeof RULE_TARGETS)[number];
 
 export const ASSIGNMENT_STATUSES = ['assigned', 'in_progress', 'completed', 'cancelled'] as const;
 export type AssignmentStatus = (typeof ASSIGNMENT_STATUSES)[number];
 
-export const ASSIGNMENT_REASONS = ['manual', 'rule', 'new_hire', 'retraining'] as const;
+export const ASSIGNMENT_REASONS = [
+  'manual',
+  'rule',
+  'new_hire',
+  'retraining',
+  'new_revision',
+] as const;
 export type AssignmentReason = (typeof ASSIGNMENT_REASONS)[number];
-export type AssignmentSort = 'due_at' | '-due_at' | '-created_at' | '-completed_at';
+export type AssignmentSort =
+  | 'due_at'
+  | '-due_at'
+  | '-created_at'
+  | '-completed_at'
+  | 'course'
+  | 'person';
 
 export const RECORD_METHODS = ['course', 'read_ack', 'manual', 'external'] as const;
 export type RecordMethod = (typeof RECORD_METHODS)[number];
@@ -44,6 +57,23 @@ export type RecordSort = '-completed_at' | 'completed_at' | 'expires_at';
 
 export const EFFECTIVENESS = ['effective', 'partially_effective', 'not_effective'] as const;
 export type Effectiveness = (typeof EFFECTIVENESS)[number];
+
+/** How a learner completes a course (decides whether the pass mark applies). */
+export const COMPLETION_RULES = ['quiz', 'lessons', 'read_ack', 'external'] as const;
+export type CompletionRule = (typeof COMPLETION_RULES)[number];
+
+export const EVALUATION_METHODS = [
+  'survey',
+  'observation',
+  'test',
+  'kpi',
+  'audit',
+  'interview',
+  'other',
+] as const;
+export type EvaluationMethod = (typeof EVALUATION_METHODS)[number];
+
+export type BulkAction = 'extend' | 'cancel' | 'remind';
 
 export const CELL_STATUSES = [
   'compliant',
@@ -58,6 +88,24 @@ export type CellStatus = (typeof CELL_STATUSES)[number];
 export interface UserBrief {
   readonly id: string;
   readonly name: string;
+}
+
+/** A person where two people may share a name (previews, pending lists). */
+export interface PersonBrief extends UserBrief {
+  readonly email?: string | null;
+}
+
+/** A People competence the course gives when passed (`level` 0-4). */
+export interface CompetenceGrant {
+  readonly id: string;
+  readonly name: string;
+  readonly level: number;
+  readonly url: string;
+}
+
+export interface CompetenceGrantIn {
+  readonly competence_id: string;
+  readonly level: number;
 }
 
 export interface CourseBrief {
@@ -125,6 +173,15 @@ export interface Course {
   readonly published_at: string | null;
   readonly lesson_count: number;
   readonly quiz_count: number;
+  /** Optional on older backends; use `completionRuleOf`. */
+  readonly completion_rule?: CompletionRule;
+  readonly learning_objectives?: string | null;
+  readonly effectiveness_criteria?: string | null;
+  /** Canonical clause refs, synced to confirmed requirement links. */
+  readonly clause_refs?: readonly string[];
+  /** Clauses typical for the category (picker suggestions, not links). */
+  readonly suggested_clause_refs?: readonly string[];
+  readonly competences?: readonly CompetenceGrant[];
   readonly created_by: string | null;
   readonly created_at: string;
   readonly updated_at: string;
@@ -138,11 +195,47 @@ export interface CourseCounts {
   readonly completed: number;
 }
 
+export interface EffectivenessCounts {
+  readonly effective: number;
+  readonly partially_effective: number;
+  readonly not_effective: number;
+  readonly not_evaluated: number;
+}
+
+export interface CourseEvaluation {
+  readonly id: string;
+  readonly course_id: string;
+  readonly evaluated_on: string;
+  readonly method: EvaluationMethod | string;
+  readonly result: Effectiveness | string;
+  readonly notes: string | null;
+  readonly follow_up: string | null;
+  readonly evaluated_by: UserBrief | null;
+  readonly created_at: string;
+}
+
+export interface CourseEvaluationIn {
+  readonly evaluated_on: string;
+  readonly method: EvaluationMethod;
+  readonly result: Effectiveness;
+  readonly notes?: string | null;
+  readonly follow_up?: string | null;
+}
+
+export interface CourseEffectiveness {
+  readonly criteria: string | null;
+  /** Per-record results; zeros for people who do not oversee training. */
+  readonly records: EffectivenessCounts;
+  readonly evaluations: readonly CourseEvaluation[];
+}
+
 export interface CourseDetail extends Course {
   readonly lessons: readonly LessonOut[];
   readonly document: DocumentBrief | null;
+  readonly published_by?: UserBrief | null;
   readonly rule_count: number;
   readonly counts: CourseCounts;
+  readonly effectiveness?: CourseEffectiveness;
 }
 
 export interface CourseList {
@@ -173,6 +266,10 @@ export interface CourseCreate {
   readonly document_id?: string | null;
   readonly source?: CourseSource;
   readonly lessons?: readonly LessonIn[];
+  readonly learning_objectives?: string | null;
+  readonly effectiveness_criteria?: string | null;
+  readonly clause_refs?: readonly string[];
+  readonly competences?: readonly CompetenceGrantIn[];
 }
 
 export type CourseUpdate = Partial<Omit<CourseCreate, 'source' | 'lessons'>> & {
@@ -251,7 +348,10 @@ export interface Rule {
   readonly target_value: string | null;
   readonly target_label: string | null;
   readonly due_days: number;
+  readonly recurrence_months?: number | null;
   readonly active: boolean;
+  /** Open assignments this rule created (what "undo" withdraws). */
+  readonly open_assignments?: number;
   readonly created_by: string | null;
   readonly created_at: string;
 }
@@ -264,11 +364,39 @@ export interface RuleCreate {
   readonly target_type: RuleTarget;
   readonly target_value?: string | null;
   readonly due_days?: number;
+  readonly recurrence_months?: number | null;
 }
 
 export interface RuleUpdate {
   readonly due_days?: number;
   readonly active?: boolean;
+  readonly recurrence_months?: number | null;
+}
+
+/** What a rule would do before it is saved. */
+export interface RulePreview {
+  readonly targeted: number;
+  readonly will_assign: number;
+  readonly already_assigned: number;
+  readonly already_compliant: number;
+  readonly sample: readonly PersonBrief[];
+  readonly duplicate_rule_id: string | null;
+  readonly course_published: boolean;
+}
+
+export interface RuleUndo {
+  readonly cancelled: number;
+  readonly kept: number;
+}
+
+/** The rule an assignment came from. */
+export interface RuleBrief {
+  readonly id: string;
+  readonly target_type: RuleTarget | string;
+  readonly target_value: string | null;
+  readonly target_label: string | null;
+  readonly due_days: number;
+  readonly deleted: boolean;
 }
 
 // --- assignments ------------------------------------------------------------------
@@ -285,18 +413,30 @@ export interface Assignment {
   readonly started_at: string | null;
   readonly completed_at: string | null;
   readonly cancelled_at: string | null;
+  readonly reminded_at?: string | null;
   readonly attempts: number;
   readonly last_score: number | null;
   readonly rule_id: string | null;
+  readonly rule?: RuleBrief | null;
   readonly record_id: string | null;
   readonly created_at: string;
   readonly url: string;
   readonly can_manage: boolean;
 }
 
+/** Counts for the status chips (every filter applied except the status). */
+export interface AssignmentCounts {
+  readonly assigned: number;
+  readonly in_progress: number;
+  readonly overdue: number;
+  readonly completed: number;
+  readonly cancelled: number;
+}
+
 export interface AssignmentList {
   readonly items: readonly Assignment[];
   readonly total: number;
+  readonly counts?: AssignmentCounts;
 }
 
 export interface AssignmentQuery {
@@ -305,9 +445,27 @@ export interface AssignmentQuery {
   readonly mine?: boolean;
   readonly status?: readonly AssignmentStatus[];
   readonly overdue?: boolean;
+  readonly q?: string;
+  /** `YYYY-MM-DD`. */
+  readonly due_before?: string;
+  readonly reason?: string;
   readonly sort?: AssignmentSort;
   readonly limit?: number;
   readonly offset?: number;
+}
+
+export interface BulkAssignmentsIn {
+  readonly ids: readonly string[];
+  readonly action: BulkAction;
+  readonly due_at?: string | null;
+}
+
+export interface BulkAssignmentsOut {
+  readonly updated: number;
+  readonly skipped: readonly {
+    readonly id: string;
+    readonly reason: 'not_found' | 'closed' | 'recently_reminded';
+  }[];
 }
 
 export interface AssignmentsCreate {
@@ -343,6 +501,14 @@ export interface TrainingRecord {
   readonly acknowledged_revision_id: string | null;
   readonly recorded_by: UserBrief | null;
   readonly notes: string | null;
+  readonly provider_supplier?: SupplierBrief | null;
+  readonly provider_name?: string | null;
+  readonly instructor?: string | null;
+  readonly hours?: number | null;
+  readonly location?: string | null;
+  readonly attachment_count?: number;
+  /** A manual / external record without any attached documentation. */
+  readonly missing_evidence?: boolean;
   readonly feedback_rating: number | null;
   readonly feedback_comment: string | null;
   readonly effectiveness: Effectiveness | null;
@@ -350,6 +516,13 @@ export interface TrainingRecord {
   readonly evaluated_by: UserBrief | null;
   readonly evaluated_at: string | null;
   readonly created_at: string;
+  readonly url: string;
+}
+
+export interface SupplierBrief {
+  readonly id: string;
+  readonly code: string | null;
+  readonly name: string;
   readonly url: string;
 }
 
@@ -365,6 +538,11 @@ export interface RecordQuery {
   readonly passed?: boolean;
   readonly expiring_within_days?: number;
   readonly expired?: boolean;
+  /** `YYYY-MM-DD`. */
+  readonly expires_before?: string;
+  readonly method?: RecordMethod | '';
+  readonly missing_evidence?: boolean;
+  readonly q?: string;
   readonly sort?: RecordSort;
   readonly limit?: number;
   readonly offset?: number;
@@ -379,6 +557,11 @@ export interface RecordCreate {
   readonly method: ManualMethod;
   readonly expires_at?: string | null;
   readonly notes?: string | null;
+  readonly provider_supplier_id?: string | null;
+  readonly provider_name?: string | null;
+  readonly instructor?: string | null;
+  readonly hours?: number | null;
+  readonly location?: string | null;
 }
 
 export interface Certificate {
@@ -393,6 +576,26 @@ export interface Certificate {
   readonly score: number | null;
   readonly method: RecordMethod;
   readonly issued_at: string;
+  /** The course owner. */
+  readonly issued_by?: string | null;
+  readonly learning_objectives?: readonly string[];
+  readonly hours?: number | null;
+  readonly provider_name?: string | null;
+  readonly verification_code?: string;
+  /** Portal path of the public check (`/verify/certificate/<code>`). */
+  readonly verify_path?: string;
+}
+
+/** The public verification of a printed certificate (no login). */
+export interface CertificateCheck {
+  readonly status: 'valid' | 'expired';
+  readonly certificate_no: string;
+  readonly org_name: string;
+  readonly holder_name: string;
+  readonly course_title: string;
+  readonly completed_at: string;
+  readonly expires_at: string | null;
+  readonly issued_by: string | null;
 }
 
 // --- overviews --------------------------------------------------------------------
@@ -409,21 +612,47 @@ export interface MatrixCell {
   readonly record_id: string | null;
 }
 
+export interface MatrixCourse {
+  readonly id: string;
+  readonly code: string;
+  readonly title: string;
+  readonly category?: string;
+  readonly kind?: string;
+  readonly required?: number;
+  readonly compliant?: number;
+  /** null when nobody is required to take it. */
+  readonly pct?: number | null;
+}
+
+/** A person in the matrix, with their job (People) where known. */
+export interface MatrixUser extends UserBrief {
+  readonly email?: string | null;
+  readonly department?: string | null;
+  readonly position_id?: string | null;
+  readonly position?: string | null;
+  /** Portal path of the person's training profile. */
+  readonly url?: string;
+}
+
+export interface FilterChoice {
+  readonly id: string;
+  readonly name: string;
+}
+
 export interface Matrix {
-  readonly courses: readonly {
-    readonly id: string;
-    readonly code: string;
-    readonly title: string;
-  }[];
-  readonly users: readonly UserBrief[];
+  readonly courses: readonly MatrixCourse[];
+  readonly users: readonly MatrixUser[];
   readonly cells: readonly MatrixCell[];
   readonly summary: { readonly required: number; readonly compliant: number; readonly pct: number };
+  readonly positions?: readonly FilterChoice[];
+  readonly departments?: readonly FilterChoice[];
 }
 
 export interface MatrixQuery {
   readonly course_ids?: readonly string[];
   readonly category?: CourseCategory | '';
   readonly department_id?: string;
+  readonly position_id?: string;
 }
 
 export interface NeedItem {
@@ -447,8 +676,10 @@ export interface TrainingStats {
   readonly assignments_open: number;
   readonly assignments_overdue: number;
   readonly completed_last_365_days: number;
-  /** Percentage (0-100). */
+  /** Required training in place: compliant ÷ required over the matrix (0-100). */
   readonly completion_rate: number;
+  readonly required?: number;
+  readonly compliant?: number;
   readonly expiring_30_days: number;
   readonly expired: number;
   readonly effectiveness: {
@@ -458,6 +689,77 @@ export interface TrainingStats {
     readonly not_evaluated: number;
   };
   readonly average_feedback: number | null;
+}
+
+// --- person profile / plan / documents ---------------------------------------------
+
+export interface PersonSummary {
+  readonly required: number;
+  readonly compliant: number;
+  readonly overdue: number;
+  readonly expiring: number;
+}
+
+export interface PersonTraining {
+  readonly user: MatrixUser;
+  readonly summary: PersonSummary;
+  readonly needs: readonly NeedItem[];
+  readonly assignments: readonly Assignment[];
+  readonly records: readonly TrainingRecord[];
+}
+
+export interface PlanItem {
+  readonly kind: 'due' | 'expiring';
+  readonly date: string;
+  readonly overdue: boolean;
+  readonly course: CourseBrief;
+  readonly user: UserBrief;
+  readonly assignment_id: string | null;
+  readonly record_id: string | null;
+  readonly url: string;
+}
+
+export interface PlanMonth {
+  /** `YYYY-MM`. */
+  readonly month: string;
+  readonly due: number;
+  readonly expiring: number;
+  readonly items: readonly PlanItem[];
+}
+
+export interface TrainingPlan {
+  readonly start: string;
+  readonly months: readonly PlanMonth[];
+  /** Due before the first month and still open. */
+  readonly overdue: readonly PlanItem[];
+  readonly totals: { readonly due: number; readonly expiring: number; readonly overdue: number };
+}
+
+export interface PlanQuery {
+  /** `YYYY-MM`. */
+  readonly start?: string;
+  readonly months?: number;
+  readonly course_id?: string;
+  readonly department_id?: string;
+  readonly user_id?: string;
+}
+
+/** Read-and-understood status of a document's current approved revision. */
+export interface DocumentAcknowledgements {
+  readonly document_id: string;
+  readonly revision_id: string | null;
+  readonly rev: string | null;
+  readonly courses: readonly CourseBrief[];
+  readonly required: number;
+  readonly acknowledged: number;
+  /** Who has not confirmed yet (people who oversee training only). */
+  readonly pending: readonly PersonBrief[];
+}
+
+/** An id + name option from another module (positions, competences, suppliers). */
+export interface NamedOption {
+  readonly id: string;
+  readonly name: string;
 }
 
 // --- AI assists -------------------------------------------------------------------

@@ -9,7 +9,7 @@ import {
   untracked,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../core/ai/page-context';
 import { AuthService } from '../../core/auth/auth.service';
@@ -314,6 +314,7 @@ export class Dashboard {
   private readonly language = inject(LanguageService);
   private readonly modules = inject(ModuleService);
   private readonly notifications = inject(NotificationService);
+  private readonly transloco = inject(TranslocoService);
 
   protected readonly workTiles = WORK_TILES;
   protected readonly setupLinks = SETUP_LINKS;
@@ -413,6 +414,21 @@ export class Dashboard {
     });
   }
 
+  /**
+   * Module next actions use their module's scope (`training:next.<name>.title`); load
+   * those translation files on demand (like notification titles) so they never show raw.
+   */
+  private loadActionScopes(actions: readonly { readonly title_key: string }[], lang: string): void {
+    const scopes = new Set(
+      actions
+        .map((a) => /^([a-z][\w-]*):/.exec(a.title_key)?.[1])
+        .filter((scope): scope is string => !!scope && scope !== 'home' && scope !== 'tasks'),
+    );
+    for (const scope of scopes) {
+      this.transloco.load(`${scope}/${lang}`).subscribe({ error: () => undefined });
+    }
+  }
+
   private load(orgId: string | null, lang: string): void {
     this.request.unsubscribe();
     this.hidden.set(new Set());
@@ -429,6 +445,7 @@ export class Dashboard {
     this.loadedOrg = orgId;
     this.request = this.api.home(orgId, lang).subscribe({
       next: (home) => {
+        this.loadActionScopes(home.next_actions ?? [], lang);
         this.home.set(home);
         this.state.set('ready');
       },
