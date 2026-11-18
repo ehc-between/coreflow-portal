@@ -2530,7 +2530,9 @@
       "tour": "Omvisning",
       "lesson": "Leksjon",
       "lessonMinutes": "Leksjon · {{ minutes }} min",
-      "explain": "Forklar denne siden"
+      "explain": "Forklar denne siden",
+      "open": "Slik fungerer siden",
+      "back": "Tilbake til hjelpen"
     },
     "recordRow": {
       "code": "Kode",

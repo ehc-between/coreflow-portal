@@ -1,14 +1,18 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   computed,
+  effect,
   inject,
   input,
   linkedSignal,
+  untracked,
 } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { GuidanceContentService } from '../../core/guidance/guidance-content.service';
 import { GuidanceService } from '../../core/guidance/guidance.service';
+import { PageHelpRegistry } from '../../core/guidance/page-help.registry';
 import { MarkdownPipe } from '../markdown/markdown.pipe';
 import { provideSharedScope } from '../../core/i18n/shared-scope';
 import { ClauseChips } from './clause-chips';
@@ -20,6 +24,10 @@ let nextId = 0;
  * serves as plain teaching links ("Les om: ISO 27001 · A.5.24") that open the tutor for
  * that clause. Teaching links are never pills, so they are not mistaken for evidence.
  * Experts see the links only, with the explanation one click away.
+ *
+ * U38 (one help entry point per page): when the page has an `<app-help-strip>` (the
+ * "?"), this note renders nothing in place and is shown inside the help panel instead.
+ * The panel renders it with `inPanel`.
  */
 @Component({
   selector: 'app-why-it-matters',
@@ -28,7 +36,7 @@ let nextId = 0;
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `
-    @if (why(); as why) {
+    @if (shown() && why(); as why) {
       <aside
         data-testid="why-it-matters"
         class="rounded-card border border-border bg-surface px-4 py-3"
@@ -67,6 +75,7 @@ let nextId = 0;
 export class WhyItMatters {
   private readonly content = inject(GuidanceContentService);
   private readonly guidance = inject(GuidanceService);
+  private readonly registry = inject(PageHelpRegistry);
 
   readonly scope = input.required<string>();
   readonly page = input.required<string>();
@@ -76,6 +85,11 @@ export class WhyItMatters {
    * (`hs:`) always stay. Unset or empty shows every clause.
    */
   readonly frameworks = input<readonly string[] | null | undefined>(null);
+  /** Rendered inside the help panel: always shown, never handed over. */
+  readonly inPanel = input(false);
+
+  /** In place only while the page has no help strip to hold it. */
+  protected readonly shown = computed(() => this.inPanel() || !this.registry.hasStrip());
 
   protected readonly headingId = `why-${nextId++}`;
   protected readonly bodyId = `${this.headingId}-body`;
@@ -96,5 +110,21 @@ export class WhyItMatters {
     return { ...why, clauses };
   });
   protected readonly expert = this.guidance.isExpert;
-  protected readonly showBody = linkedSignal(() => !this.guidance.isExpert());
+  protected readonly showBody = linkedSignal(() => this.inPanel() || !this.guidance.isExpert());
+
+  constructor() {
+    let id: number | null = null;
+    effect(() => {
+      if (this.inPanel()) {
+        return;
+      }
+      const entry = {
+        scope: this.scope(),
+        page: this.page(),
+        frameworks: this.frameworks() ?? null,
+      };
+      untracked(() => (id = this.registry.setWhy(id, entry)));
+    });
+    inject(DestroyRef).onDestroy(() => this.registry.removeWhy(id));
+  }
 }

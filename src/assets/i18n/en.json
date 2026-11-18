@@ -2530,7 +2530,9 @@
       "tour": "Tour",
       "lesson": "Lesson",
       "lessonMinutes": "Lesson · {{ minutes }} min",
-      "explain": "Explain this page"
+      "explain": "Explain this page",
+      "open": "How this page works",
+      "back": "Back to the help"
     },
     "recordRow": {
       "code": "Code",
