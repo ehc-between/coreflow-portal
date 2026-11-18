@@ -2,22 +2,42 @@ import { HttpErrorResponse } from '@angular/common/http';
 import {
   reviewDraftErrors,
   reviewDraftFrom,
+  reviewDraftFromPrefill,
   reviewFieldsFrom,
 } from '../access-reviews/access-review-edit';
 import { reviewQuery } from '../access-reviews/access-reviews-list';
-import { countItems } from '../access-reviews/review-items';
-import { canComplete } from '../access-reviews/access-review-detail';
+import { countItems, sortItems } from '../access-reviews/review-items';
+import { canComplete, reviewNextStep } from '../access-reviews/access-review-detail';
 import { applySuggestion, assetDraftFrom, assetFieldsFrom } from '../asset-form';
 import { createAssetBody } from '../asset-new';
-import { assetFiltersFromView, assetQuery, DEFAULT_ASSET_FILTERS } from '../assets-list';
-import { calibrationBody } from '../detail/calibration-panel';
+import {
+  assetFiltersFromView,
+  assetQuery,
+  DEFAULT_ASSET_FILTERS,
+  moreAssetFiltersCount,
+} from '../assets-list';
+import { attentionAction, securityUnset } from '../asset-detail';
+import { dueRows } from '../calibration/calibrations-due';
+import { changeFollowUps } from '../changes/change-detail';
+import { toneFor } from '../../../shared/ui/tones';
+import { blankCalibrationDraft, calibrationBody } from '../detail/calibration-panel';
 import { createChangeBody } from '../changes/change-edit';
-import { applyAssessment, changeDraftFrom, changeFieldsFrom } from '../changes/change-form';
+import {
+  applyAssessment,
+  changeDraftFrom,
+  changeDraftFromPrefill,
+  changeFieldsFrom,
+} from '../changes/change-form';
 import { stepPatch } from '../changes/change-step';
 import { changeQuery, DEFAULT_CHANGE_FILTERS } from '../changes/changes-list';
 import {
   addMonths,
+  calibrationBadge,
   changedFields,
+  decisionBadge,
+  isFlaggedSubject,
+  levelBadge,
+  lifecycleBadge,
   daysUntil,
   localizedLabel,
   missingStepFields,
@@ -209,22 +229,30 @@ describe('asset form mapping', () => {
   it('builds a calibration body with blank values as null', () => {
     expect(
       calibrationBody({
+        ...blankCalibrationDraft(),
         performed_on: '2026-11-01',
         result: 'pass',
         performed_by: ' ',
+        supplier_id: 's-1',
         certificate_number: 'C-1',
-        notes: '',
-        impact_assessment: '',
-        next_due_on: '',
+        as_found: '+0.8 °C',
+        method: ' ',
       }),
     ).toEqual({
       performed_on: '2026-11-01',
       result: 'pass',
       performed_by: null,
+      supplier_id: 's-1',
       certificate_number: 'C-1',
       notes: null,
       impact_assessment: null,
       next_due_on: null,
+      as_found: '+0.8 °C',
+      as_left: null,
+      measurement_uncertainty: null,
+      reference_standard: null,
+      method: null,
+      environment: null,
     });
   });
 });
@@ -291,19 +319,37 @@ describe('access review logic', () => {
       item({ id: '1', decision: 'keep' }),
       item({ id: '2', decision: 'revoke' }),
       item({ id: '3', decision: 'modify', remediated_at: '2026-11-02T00:00:00' }),
+      item({ id: '4', decision: 'pending', subject_status: 'left', suggested_decision: 'revoke' }),
     ];
     const counts = countItems(items);
     expect(counts).toEqual({
-      total: 3,
-      pending: 0,
+      total: 4,
+      pending: 1,
       keep: 1,
       revoke: 1,
       modify: 1,
       unremediated: 1,
+      decided: 3,
+      flagged: 1,
     });
-    const review = { status: 'in_progress', counts } as AccessReviewDetail;
+    // Flagged holders (left, leaving) are listed first.
+    expect(sortItems(items).map((i) => i.id)[0]).toBe('4');
+    const review = {
+      status: 'in_progress',
+      counts: { ...counts, pending: 0 },
+    } as AccessReviewDetail;
     expect(canComplete(review)).toBe(true);
-    expect(canComplete({ ...review, counts: { ...counts, pending: 1 } })).toBe(false);
+    expect(reviewNextStep({ ...review, can_work: true })).toBe('complete');
+    expect(reviewNextStep({ ...review, can_work: false })).toBeNull();
+    expect(
+      reviewNextStep({
+        ...review,
+        status: 'planned',
+        can_work: true,
+        counts: { ...counts, pending: 2 },
+      }),
+    ).toBe('start');
+    expect(canComplete({ ...review, counts })).toBe(false);
     expect(canComplete({ ...review, counts: countItems([]) })).toBe(false);
     expect(canComplete({ ...review, status: 'completed' })).toBe(false);
   });
@@ -331,10 +377,18 @@ describe('change request logic', () => {
 
   it('creates without implementation fields and with the chosen assets', () => {
     const fields = changeFieldsFrom({ ...changeDraftFrom(null), title: 'X' });
-    const body = createChangeBody({ fields, assetIds: ['a-1'], changeReason: null });
+    const body = createChangeBody({ fields, assetIds: ['a-1'], related: [], changeReason: null });
     expect(body).not.toHaveProperty('implemented_at');
     expect(body).not.toHaveProperty('owner_user_id');
+    expect(body).not.toHaveProperty('related');
     expect(body.asset_ids).toEqual(['a-1']);
+    const linked = createChangeBody({
+      fields,
+      assetIds: [],
+      related: [{ entity_type: 'process', entity_id: 'p-1' }],
+      changeReason: null,
+    });
+    expect(linked.related).toEqual([{ entity_type: 'process', entity_id: 'p-1' }]);
   });
 
   it('builds the step patch from the filled values', () => {
@@ -342,5 +396,119 @@ describe('change request logic', () => {
       description: 'New',
       implemented_at: '2026-11-05T00:00:00',
     });
+  });
+});
+
+describe('A21 helpers', () => {
+  it('restores list filters from home-page and assistant links', () => {
+    expect(assetFiltersFromView({ attention: 'any' }).attention).toBe('any');
+    expect(assetFiltersFromView({ attention: '1' }).attention).toBe('any');
+    expect(assetFiltersFromView({ attention: 'held_by_leaver' }).attention).toBe('held_by_leaver');
+    expect(assetFiltersFromView({ attention: 'nonsense' }).attention).toBe('');
+    expect(assetFiltersFromView({ review_overdue: 'true' }).review).toBe('overdue');
+    expect(assetFiltersFromView({ custodian: 'me' }).holder).toBe('me');
+    expect(assetFiltersFromView({ supplier_id: 'not-a-uuid' }).supplier).toBe('');
+    const query = assetQuery('', { ...DEFAULT_ASSET_FILTERS, review: 'overdue', holder: 'me' }, 0);
+    expect(query.review_overdue).toBe(true);
+    expect(query.custodian).toBe('me');
+    expect(
+      moreAssetFiltersCount({
+        ...DEFAULT_ASSET_FILTERS,
+        holder: 'me',
+        flag: 'contains_personal_data',
+      }),
+    ).toBe(2);
+  });
+
+  it('maps every follow-up flag to the action that closes it', () => {
+    expect(attentionAction('calibration_overdue_in_use')).toBe('calibrate');
+    expect(attentionAction('calibration_impact_missing')).toBe('impact');
+    expect(attentionAction('review_overdue')).toBe('review');
+    expect(attentionAction('no_owner')).toBe('edit');
+    expect(attentionAction('held_by_leaver')).toBe('edit');
+    expect(attentionAction('personal_data_unlinked')).toBe('processing');
+  });
+
+  it('uses the shared tone map: overdue calibration red, quarantine amber, low criticality grey', () => {
+    expect(toneFor(calibrationBadge('overdue').meaning, calibrationBadge('overdue').value)).toBe(
+      'fail',
+    );
+    expect(
+      toneFor(lifecycleBadge('quarantined').meaning, lifecycleBadge('quarantined').value),
+    ).toBe('warn');
+    expect(toneFor(levelBadge('low').meaning, levelBadge('low').value)).toBe('neutral');
+    expect(toneFor(decisionBadge('revoke').meaning, decisionBadge('revoke').value)).toBe('fail');
+    expect(isFlaggedSubject('leaving')).toBe(true);
+    expect(isFlaggedSubject('current')).toBe(false);
+  });
+
+  it('suggests the follow-ups a change needs at its stage', () => {
+    expect(changeFollowUps(change({ status: 'draft' }))).toEqual([]);
+    expect(changeFollowUps(change({ status: 'implementing' })).map((f) => f.key)).toEqual([
+      'change_request.to_document',
+      'change_request.to_training',
+      'change_request.to_task',
+    ]);
+    expect(
+      changeFollowUps(change({ status: 'review', review_outcome: 'rolled_back' }))[0].key,
+    ).toBe('change_request.to_deviation');
+  });
+
+  it('prefills a new review and change from create-from-here values', () => {
+    const review = reviewDraftFromPrefill(reviewDraftFrom(null), {
+      system_asset_id: 'a-9',
+      reviewer_user_id: 'u-2',
+    });
+    expect(review.systemMode).toBe('asset');
+    expect(review.system_asset_id).toBe('a-9');
+    expect(review.reviewer_user_id).toBe('u-2');
+    const changeDraft = changeDraftFromPrefill(changeDraftFrom(null), {
+      category: 'infrastructure',
+      title: '',
+    });
+    expect(changeDraft.category).toBe('infrastructure');
+    expect(changeDraftFromPrefill(changeDraftFrom(null), { category: 'bogus' }).category).toBe(
+      'other',
+    );
+  });
+
+  it('sorts and searches the calibration due list', () => {
+    const a = {
+      code: 'AST-1',
+      name: 'Caliper',
+      next_calibration_due: '2026-12-01',
+      location: null,
+      owner: null,
+      serial_number: null,
+    } as never;
+    const b = {
+      code: 'AST-2',
+      name: 'Thermometer',
+      next_calibration_due: '2026-10-01',
+      location: 'Lab',
+      owner: null,
+      serial_number: null,
+    } as never;
+    expect(dueRows([a, b], '').map((r) => r.code)).toEqual(['AST-2', 'AST-1']);
+    expect(dueRows([a, b], 'lab').map((r) => r.code)).toEqual(['AST-2']);
+  });
+
+  it('folds the security block away for unrated measuring equipment', () => {
+    expect(
+      securityUnset({
+        confidentiality: null,
+        integrity: null,
+        availability: null,
+        handling_rules: null,
+      } as never),
+    ).toBe(true);
+    expect(
+      securityUnset({
+        confidentiality: 'low',
+        integrity: null,
+        availability: null,
+        handling_rules: null,
+      } as never),
+    ).toBe(false);
   });
 });

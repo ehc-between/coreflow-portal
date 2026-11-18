@@ -28,6 +28,7 @@ export const LIFECYCLE_STATUSES = [
   'planned',
   'in_use',
   'maintenance',
+  'quarantined',
   'retired',
   'disposed',
 ] as const;
@@ -38,6 +39,29 @@ export type CalibrationResult = (typeof CALIBRATION_RESULTS)[number];
 
 export const CALIBRATION_STATUSES = ['ok', 'due_soon', 'overdue', 'not_scheduled'] as const;
 export type CalibrationStatus = (typeof CALIBRATION_STATUSES)[number];
+
+/** Whether the register entry's review (ISO 27001 A.5.9) is on time. */
+export type ReviewDue = CalibrationStatus;
+
+/** Follow-up flags the backend computes per asset (`attention`). */
+export const ATTENTION_CODES = [
+  'calibration_overdue_in_use',
+  'calibration_impact_missing',
+  'review_overdue',
+  'no_owner',
+  'personal_data_unlinked',
+  'held_by_leaver',
+] as const;
+export type AttentionCode = (typeof ATTENTION_CODES)[number];
+
+/** How a reviewed account's holder stands in People. */
+export type SubjectStatus = 'current' | 'leaving' | 'left' | 'not_member';
+
+/** The repeat intervals offered for access reviews, in months (none = one-off). */
+export const REVIEW_FREQUENCIES = [1, 3, 6, 12] as const;
+
+/** Asset types that are systems people have accounts in (offered for access reviews). */
+export const SYSTEM_ASSET_TYPES: readonly string[] = ['software', 'service', 'information'];
 
 export const ASSET_SORTS = [
   'code',
@@ -124,6 +148,23 @@ export interface UserRef {
   readonly name: string | null;
 }
 
+/** A supplier in the Suppliers register. */
+export interface SupplierRef {
+  readonly id: string;
+  readonly code: string;
+  readonly name: string;
+  readonly url: string;
+}
+
+/** A person in People (the holder of an account). */
+export interface EmployeeRef {
+  readonly id: string;
+  readonly code: string;
+  readonly name: string;
+  readonly status: string;
+  readonly url: string;
+}
+
 export interface Page<T> {
   readonly items: readonly T[];
   readonly total: number;
@@ -152,6 +193,7 @@ export interface AssetFields {
   readonly department_id: string | null;
   readonly location: string | null;
   readonly vendor: string | null;
+  readonly supplier_id: string | null;
   readonly model: string | null;
   readonly serial_number: string | null;
   readonly version: string | null;
@@ -161,6 +203,7 @@ export interface AssetFields {
   readonly warranty_until: string | null;
   readonly end_of_life_on: string | null;
   readonly review_date: string | null;
+  readonly review_interval_months: number | null;
   readonly retired_on: string | null;
   readonly disposed_on: string | null;
   readonly disposal_method: string | null;
@@ -187,15 +230,48 @@ export interface Asset extends AssetFields {
   readonly custodian: UserRef | null;
   readonly last_calibrated_on: string | null;
   readonly calibration_status: CalibrationStatus | null;
+  readonly supplier: SupplierRef | null;
+  readonly review_status: ReviewDue | null;
+  readonly last_reviewed_at: string | null;
+  readonly last_reviewed_by: UserRef | null;
+  readonly attention: readonly AttentionCode[];
   readonly url: string;
   readonly created_by: string | null;
   readonly created_at: string;
   readonly updated_at: string;
 }
 
+/** An access review as summarised on the asset (system) it reviews. */
+export interface ReviewBrief {
+  readonly id: string;
+  readonly code: string;
+  readonly title: string;
+  readonly status: ReviewStatus;
+  readonly due_on: string;
+  readonly completed_at: string | null;
+  readonly overdue: boolean;
+  readonly url: string;
+}
+
+export interface AssetAccessReviews {
+  readonly total: number;
+  readonly last: ReviewBrief | null;
+  readonly next: ReviewBrief | null;
+  readonly open_revocations: number;
+  readonly items: readonly ReviewBrief[];
+}
+
 export interface AssetDetail extends Asset {
   readonly recent_calibrations: readonly Calibration[];
   readonly open_tasks: number;
+  /** Processing activities (privacy) linked to the asset. */
+  readonly processing_activities: number;
+  readonly access_reviews: AssetAccessReviews;
+}
+
+/** `POST /assets/{id}/confirm-review`. */
+export interface ConfirmReviewRequest {
+  readonly note?: string | null;
 }
 
 export interface AssetListQuery {
@@ -208,31 +284,61 @@ export interface AssetListQuery {
   readonly requires_calibration?: boolean;
   readonly calibration_due_within_days?: number;
   readonly contains_personal_data?: boolean;
+  /** A user id or `me`. */
+  readonly custodian?: string;
+  readonly supplier_id?: string;
+  readonly review_overdue?: boolean;
+  /** Attention codes, or `any` for at least one flag. */
+  readonly attention?: readonly AttentionCode[] | 'any';
   readonly sort?: AssetSort;
   readonly limit?: number;
   readonly offset?: number;
 }
 
-export interface Calibration {
+/** Traceability of a calibration (ISO 9001 7.1.5.2). */
+export interface CalibrationTrace {
+  readonly as_found: string | null;
+  readonly as_left: string | null;
+  readonly measurement_uncertainty: string | null;
+  readonly reference_standard: string | null;
+  readonly method: string | null;
+  readonly environment: string | null;
+}
+
+export const CALIBRATION_TRACE_FIELDS = [
+  'as_found',
+  'as_left',
+  'measurement_uncertainty',
+  'reference_standard',
+  'method',
+  'environment',
+] as const satisfies readonly (keyof CalibrationTrace)[];
+
+export interface Calibration extends CalibrationTrace {
   readonly id: string;
   readonly asset_id: string;
   readonly performed_on: string;
   readonly performed_by: string | null;
+  /** The laboratory in the Suppliers register. */
+  readonly supplier_id: string | null;
+  readonly supplier: SupplierRef | null;
   readonly certificate_number: string | null;
   readonly result: CalibrationResult;
   readonly notes: string | null;
   readonly impact_assessment: string | null;
   readonly needs_impact_assessment: boolean;
   readonly next_due_on: string | null;
+  readonly url: string;
   readonly created_by: UserRef | null;
   readonly created_at: string;
   readonly updated_at: string;
 }
 
-export interface CalibrationRequest {
+export interface CalibrationRequest extends Partial<CalibrationTrace> {
   readonly performed_on: string;
   readonly result: CalibrationResult;
   readonly performed_by?: string | null;
+  readonly supplier_id?: string | null;
   readonly certificate_number?: string | null;
   readonly notes?: string | null;
   readonly impact_assessment?: string | null;
@@ -255,6 +361,10 @@ export interface ReviewCounts {
   readonly revoke: number;
   readonly modify: number;
   readonly unremediated: number;
+  /** Accounts with a decision. */
+  readonly decided?: number;
+  /** Accounts whose holder has left, is leaving or is no longer a member. */
+  readonly flagged?: number;
 }
 
 export interface AccessReview {
@@ -298,12 +408,26 @@ export interface ReviewItem {
   readonly remediated_at: string | null;
   readonly remediated_by: UserRef | null;
   readonly position: number;
+  readonly subject_status?: SubjectStatus | null;
+  readonly subject_employee?: EmployeeRef | null;
+  readonly suggested_decision?: 'revoke' | null;
   readonly created_at: string;
   readonly updated_at: string;
 }
 
+/** A task created to carry out a revoked or changed access. */
+export interface RemediationTask {
+  readonly id: string;
+  readonly title: string;
+  readonly status: string;
+  readonly due_at: string | null;
+  readonly assignee: UserRef | null;
+  readonly url: string;
+}
+
 export interface AccessReviewDetail extends AccessReview {
   readonly items: readonly ReviewItem[];
+  readonly remediation_tasks?: readonly RemediationTask[];
   readonly can_work: boolean;
   readonly can_manage: boolean;
 }
@@ -347,6 +471,7 @@ export interface AccessReviewListQuery {
   readonly reviewer?: string;
   readonly system_asset_id?: string;
   readonly due_within_days?: number;
+  readonly overdue?: boolean;
   readonly sort?: ReviewSort;
   readonly limit?: number;
   readonly offset?: number;
@@ -371,9 +496,19 @@ export interface ChangeFields {
   readonly department_id: string | null;
 }
 
+/** A record a change affects (process, document, supplier, risk…), linked on create. */
+export interface RelatedRecord {
+  readonly entity_type: string;
+  readonly entity_id: string;
+}
+
+/** The record types a change request can name as affected (besides assets). */
+export const CHANGE_RELATED_TYPES = ['process', 'document', 'supplier', 'risk'] as const;
+
 export type CreateChangeRequest = Partial<ChangeFields> & {
   readonly title: string;
   readonly asset_ids?: readonly string[];
+  readonly related?: readonly RelatedRecord[];
 };
 
 export type UpdateChangeRequest = Partial<ChangeFields> & {

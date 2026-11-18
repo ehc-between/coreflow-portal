@@ -9,17 +9,21 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { Subscription } from 'rxjs';
+import { Subscription, catchError, of } from 'rxjs';
 import { providePageContext } from '../../../core/ai/page-context';
 import { LanguageService } from '../../../core/i18n/language.service';
+import { CreateFlowService } from '../../../core/kit/create-flow.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
-import { GuideIntro } from '../../../shared/guidance/guide-intro';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
+import { FlowBanner } from '../../../shared/kit/flow-banner';
 import { Alert } from '../../../shared/ui/alert/alert';
-import { Icon } from '../../../shared/ui/icon/icon';
+import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { changedFields } from '../data/asset-display';
 import { assetErrorMessage } from '../data/asset-errors';
 import { ChangeDetail, CreateChangeRequest } from '../data/asset.models';
@@ -45,41 +49,69 @@ export function createChangeBody(value: ChangeFormValue): CreateChangeRequest {
     department_id: f.department_id,
     ...(f.owner_user_id ? { owner_user_id: f.owner_user_id } : {}),
     asset_ids: value.assetIds,
+    ...(value.related.length ? { related: value.related } : {}),
   };
 }
 
 /**
- * Raise a change request (`/assets/changes/new`, `?asset=<id>` preselects an
- * affected asset) or edit one (`/assets/changes/:id/edit`). Only changed fields are
- * sent; a 409 `change_locked` / `change_closed` is explained in place.
+ * Raise a change request (`/assets/changes/new`; `?asset=<id>` or the "Meld endring"
+ * flow from an asset preselects the affected asset and category) or edit one
+ * (`/assets/changes/:id/edit`). Only changed fields are sent; a 409 `change_locked` /
+ * `change_closed` is explained in place.
  */
 @Component({
   selector: 'app-change-edit',
-  imports: [RouterLink, TranslocoPipe, Alert, ChangeForm, GuideIntro, Icon, WhyItMatters],
+  imports: [
+    TranslocoPipe,
+    Alert,
+    ChangeForm,
+    ErrorState,
+    FlowBanner,
+    HelpStrip,
+    LoadingState,
+    PageHeader,
+    WhyItMatters,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[880px] px-4 pt-7 pb-12 sm:px-8">
-      <a
-        [routerLink]="id() ? ['/assets/changes', id()] : '/assets/changes'"
-        class="mb-3 inline-flex items-center gap-1 text-[13px] font-semibold text-fg-muted hover:text-fg"
-      >
-        <app-icon name="back" [size]="14" />
-        {{ (id() ? 'assets.common.backToChange' : 'assets.common.backToChanges') | transloco }}
-      </a>
+    <div class="mx-auto max-w-[760px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       @if (state() === 'loading') {
-        <p class="text-[14px] text-fg-muted">{{ 'assets.common.loading' | transloco }}</p>
+        <app-loading-state [rows]="6" />
       } @else if (state() === 'error') {
-        <app-alert>{{ 'assets.changeDetail.notFound' | transloco }}</app-alert>
+        <app-error-state
+          titleKey="assets.changeDetail.notFoundTitle"
+          bodyKey="assets.changeDetail.notFound"
+          (retry)="retry()"
+        />
       } @else {
-        <h1 class="mb-1 font-display text-[26px] font-bold tracking-[-0.025em] text-fg">
-          @if (change(); as c) {
-            {{ 'assets.changeForm.editTitle' | transloco: { code: c.code, title: c.title } }}
-          } @else {
-            {{ 'assets.changeForm.newTitle' | transloco }}
-          }
-        </h1>
-        <p class="mb-4 text-[14px] text-fg-muted">{{ 'assets.changeForm.subtitle' | transloco }}</p>
-        <div class="mb-4"><app-guide-intro scope="assets" page="changeForm" /></div>
+        @if (change(); as c) {
+          <app-page-header
+            titleKey="assets.changeForm.editTitle"
+            [titleParams]="{ code: c.code, title: c.title }"
+            [breadcrumbs]="[
+              { labelKey: 'modules.names.assets', link: '/assets' },
+              { labelKey: 'assets.changes.title', link: '/assets/changes' },
+              { label: c.code, link: ['/assets/changes', c.id] },
+              { labelKey: 'assets.common.edit' },
+            ]"
+            [backLink]="['/assets/changes', c.id]"
+            backLabelKey="assets.common.backToChange"
+          />
+        } @else {
+          <app-page-header
+            titleKey="assets.changeForm.newTitle"
+            descriptionKey="assets.changeForm.subtitle"
+            [breadcrumbs]="[
+              { labelKey: 'modules.names.assets', link: '/assets' },
+              { labelKey: 'assets.changes.title', link: '/assets/changes' },
+              { labelKey: 'assets.changeForm.newTitle' },
+            ]"
+            backLink="/assets/changes"
+            backLabelKey="assets.common.backToChanges"
+          />
+        }
+        <app-help-strip scope="assets" page="changeForm" />
+        <app-flow-banner [flow]="flow()" />
         @if (change()?.closed) {
           <app-alert tone="info">{{ 'assets.errors.change_closed' | transloco }}</app-alert>
         } @else {
@@ -91,12 +123,13 @@ export function createChangeBody(value: ChangeFormValue): CreateChangeRequest {
           <app-change-form
             [value]="change()"
             [initialAssets]="initialAssets()"
+            [prefill]="flow()?.prefill ?? null"
             [busy]="busy()"
             (submitted)="save($event)"
             (cancelled)="back()"
           />
         }
-        <div class="mt-6"><app-why-it-matters scope="assets" page="changeForm" /></div>
+        <div class="mt-8"><app-why-it-matters scope="assets" page="changeForm" /></div>
       }
     </div>
   `,
@@ -107,6 +140,7 @@ export class ChangeEdit {
   private readonly notifications = inject(NotificationService);
   private readonly language = inject(LanguageService);
   private readonly router = inject(Router);
+  private readonly flows = inject(CreateFlowService);
 
   readonly id = input<string | undefined>(undefined);
   /** `?asset=<id>`: an affected asset to preselect on a new change. */
@@ -116,7 +150,15 @@ export class ChangeEdit {
   protected readonly change = signal<ChangeDetail | null>(null);
   protected readonly busy = signal(false);
   protected readonly error = signal<{ key: string; params: Record<string, unknown> } | null>(null);
+  /** The create-from-here flow (asset → change) this form was opened from. */
+  protected readonly flow = this.flows.consume(inject(ActivatedRoute), {
+    targetType: 'change_request',
+  });
   protected readonly initialAssets = computed(() => {
+    const fromFlow = this.flow()?.prefill['asset_ids'];
+    if (Array.isArray(fromFlow) && fromFlow.length) {
+      return fromFlow.filter((id): id is string => typeof id === 'string');
+    }
     const asset = this.asset();
     return asset ? [asset] : [];
   });
@@ -137,6 +179,10 @@ export class ChangeEdit {
       const id = this.id();
       untracked(() => this.load(orgId, id));
     });
+  }
+
+  protected retry(): void {
+    this.load(this.selectedOrg.currentOrgId(), this.id());
   }
 
   protected save(value: ChangeFormValue): void {
@@ -174,6 +220,12 @@ export class ChangeEdit {
       next: (created) => {
         this.busy.set(false);
         this.notifications.success('assets.changeForm.created', { code: created.code });
+        if (this.flow()) {
+          this.flows
+            .complete(created.id, 'change_request')
+            .pipe(catchError(() => of(null)))
+            .subscribe();
+        }
         void this.router.navigate(['/assets/changes', created.id]);
       },
       error: (err: unknown) => {

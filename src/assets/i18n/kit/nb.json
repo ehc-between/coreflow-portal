@@ -434,6 +434,27 @@
       "to_dpia": "DPIA for KI-systemet",
       "to_assessment": "KI-vurdering"
     },
+    "asset": {
+      "to_deviation": "Avvik for denne eiendelen",
+      "to_risk": "Risiko for denne eiendelen",
+      "to_processing": "Behandlingsaktivitet (behandlingsprotokoll)",
+      "to_change": "Endringsforespørsel for denne eiendelen",
+      "to_access_review": "Tilgangsgjennomgang av dette systemet"
+    },
+    "calibration": {
+      "to_deviation": "Avvik fra denne kalibreringen"
+    },
+    "access_review": {
+      "to_deviation": "Avvik fra denne tilgangsgjennomgangen",
+      "to_risk": "Risiko funnet i tilgangsgjennomgangen"
+    },
+    "change_request": {
+      "to_deviation": "Avvik fra denne endringen",
+      "to_risk": "Risiko fra denne endringen",
+      "to_document": "Dokumentoppdatering for endringen",
+      "to_task": "Oppgave for å følge opp endringen",
+      "to_training": "Opplæring i endringen (kurstildeling)"
+    },
     "obligation": {
       "to_policy": "Policy som oppfyller forpliktelsen",
       "to_document": "Dokument som oppfyller forpliktelsen"

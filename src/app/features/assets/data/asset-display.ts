@@ -1,8 +1,10 @@
-import { BadgeTone } from '../../../shared/ui/badge/badge';
+import { ToneMeaning } from '../../../shared/ui/tones';
 import {
+  AttentionCode,
   CalibrationResult,
   CalibrationStatus,
   ChangeDetail,
+  ChangeType,
   Classification,
   Criticality,
   Decision,
@@ -10,111 +12,153 @@ import {
   LocalizedLabel,
   ReviewStatus,
   RiskLevel,
+  SubjectStatus,
 } from './asset.models';
 
-/** Badge tone of an information classification. */
-export function classificationTone(value: Classification): BadgeTone {
+/** A badge on the shared tone map: `<app-status-badge [meaning] [value] [labelKey]>`. */
+export interface BadgeSpec {
+  readonly meaning: ToneMeaning;
+  readonly value: string;
+}
+
+const lifecycle = (value: string): BadgeSpec => ({ meaning: 'lifecycle', value });
+const severity = (value: string): BadgeSpec => ({ meaning: 'severity', value });
+
+/**
+ * Classification reads as sensitivity: restricted red, confidential amber, internal and
+ * public grey (there is nothing to celebrate about a public document).
+ */
+export function classificationBadge(value: Classification): BadgeSpec {
   switch (value) {
     case 'restricted':
-      return 'fail';
+      return severity('high');
     case 'confidential':
-      return 'warn';
-    case 'internal':
-      return 'info';
+      return severity('medium');
     default:
-      return 'neutral';
+      return severity('low');
   }
 }
 
-/** Badge tone of a criticality or risk level. */
-export function levelTone(value: Criticality | RiskLevel | null | undefined): BadgeTone {
-  switch (value) {
-    case 'critical':
-      return 'fail';
-    case 'high':
-      return 'warn';
-    case 'medium':
-      return 'info';
-    default:
-      return 'neutral';
-  }
+/** Criticality and risk level use the severity scale (critical / high red, medium amber). */
+export function levelBadge(value: Criticality | RiskLevel | string): BadgeSpec {
+  return severity(value);
 }
 
-export function lifecycleTone(value: LifecycleStatus): BadgeTone {
-  switch (value) {
-    case 'in_use':
-      return 'pass';
-    case 'planned':
-      return 'info';
-    case 'maintenance':
-      return 'warn';
-    default:
-      return 'neutral';
-  }
+const LIFECYCLE_BADGES: Readonly<Record<LifecycleStatus, BadgeSpec>> = {
+  planned: lifecycle('planned'),
+  in_use: lifecycle('active'),
+  maintenance: lifecycle('on_hold'),
+  quarantined: lifecycle('blocked'),
+  retired: lifecycle('retired'),
+  disposed: lifecycle('archived'),
+};
+
+/** Lifecycle: in use blue, maintenance / out of use amber, retired / disposed grey. */
+export function lifecycleBadge(value: LifecycleStatus): BadgeSpec {
+  return LIFECYCLE_BADGES[value] ?? lifecycle(value);
 }
 
-export function calibrationTone(value: CalibrationStatus | null | undefined): BadgeTone {
+/** Calibration status: calibrated green, due soon amber, overdue red. */
+export function calibrationBadge(value: CalibrationStatus | null | undefined): BadgeSpec {
   switch (value) {
     case 'ok':
-      return 'pass';
+      return lifecycle('effective');
     case 'due_soon':
-      return 'warn';
+      return lifecycle('due');
     case 'overdue':
-      return 'fail';
+      return lifecycle('failed');
     default:
-      return 'neutral';
+      return lifecycle('draft');
   }
 }
 
-export function resultTone(value: CalibrationResult): BadgeTone {
+/** Register review (A.5.9): on time green, due soon / overdue amber. */
+export function reviewDueBadge(value: CalibrationStatus | null | undefined): BadgeSpec {
+  switch (value) {
+    case 'ok':
+      return lifecycle('effective');
+    case 'due_soon':
+      return lifecycle('due');
+    case 'overdue':
+      return lifecycle('overdue');
+    default:
+      return lifecycle('draft');
+  }
+}
+
+/** A calibration result: passed green, adjusted amber, failed red. */
+export function resultBadge(value: CalibrationResult): BadgeSpec {
   switch (value) {
     case 'pass':
-      return 'pass';
+      return lifecycle('passed');
     case 'adjusted':
-      return 'warn';
+      return lifecycle('due');
     default:
-      return 'fail';
+      return lifecycle('failed');
   }
 }
 
-export function reviewStatusTone(value: ReviewStatus): BadgeTone {
-  switch (value) {
-    case 'planned':
-      return 'info';
-    case 'in_progress':
-      return 'warn';
-    case 'completed':
-      return 'pass';
-    default:
-      return 'neutral';
-  }
+/** Access review status (planned, in progress, completed, cancelled). */
+export function reviewStatusBadge(value: ReviewStatus): BadgeSpec {
+  return lifecycle(value);
 }
 
-export function decisionTone(value: Decision): BadgeTone {
+/** A reviewer's decision: keep green, change amber, revoke red, undecided grey. */
+export function decisionBadge(value: Decision): BadgeSpec {
   switch (value) {
     case 'keep':
-      return 'pass';
+      return lifecycle('approved');
     case 'modify':
-      return 'warn';
+      return lifecycle('due');
     case 'revoke':
-      return 'fail';
+      return lifecycle('rejected');
     default:
-      return 'neutral';
+      return lifecycle('draft');
   }
 }
 
-/** Badge tone of a workflow state category (open, in_progress, done, cancelled). */
-export function stateCategoryTone(category: string): BadgeTone {
+/** The holder of an account in People: left / not a member red, leaving amber. */
+export function subjectStatusBadge(value: SubjectStatus): BadgeSpec {
+  switch (value) {
+    case 'left':
+    case 'not_member':
+      return lifecycle('failed');
+    case 'leaving':
+      return lifecycle('due');
+    default:
+      return lifecycle('active');
+  }
+}
+
+/** Whether an account's holder should make the reviewer look twice. */
+export function isFlaggedSubject(value: SubjectStatus | null | undefined): boolean {
+  return value === 'left' || value === 'leaving' || value === 'not_member';
+}
+
+/** A workflow state category (open, in_progress, done, cancelled) on the lifecycle scale. */
+export function stateCategoryBadge(category: string): BadgeSpec {
   switch (category) {
     case 'done':
-      return 'pass';
+      return lifecycle('done');
     case 'in_progress':
-      return 'warn';
+      return lifecycle('in_progress');
     case 'cancelled':
-      return 'neutral';
+      return lifecycle('cancelled');
     default:
-      return 'info';
+      return lifecycle('open');
   }
+}
+
+/** Change type: emergency red (approved afterwards), standard grey, normal not shown. */
+export function changeTypeBadge(value: ChangeType): BadgeSpec {
+  return value === 'emergency' ? severity('high') : severity('low');
+}
+
+/** Every follow-up flag is a to-do (amber); the overdue calibration in use is red. */
+export function attentionBadge(code: AttentionCode): BadgeSpec {
+  return code === 'calibration_overdue_in_use' || code === 'calibration_impact_missing'
+    ? lifecycle('failed')
+    : lifecycle('due');
 }
 
 /** The label of a workflow state in the active language (falls back to English, then the key). */

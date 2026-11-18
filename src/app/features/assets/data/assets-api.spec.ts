@@ -124,6 +124,52 @@ describe('AssetsApi', () => {
     patch.flush({});
   });
 
+  it('filters the register on follow-up, holder, supplier and overdue review', () => {
+    api
+      .list(ORG, {
+        attention: ['held_by_leaver'],
+        custodian: 'me',
+        supplier_id: 's-1',
+        review_overdue: true,
+      })
+      .subscribe();
+    const p = http.expectOne((r) => r.url === url('')).request.params;
+    expect(p.get('attention')).toBe('held_by_leaver');
+    expect(p.get('custodian')).toBe('me');
+    expect(p.get('supplier_id')).toBe('s-1');
+    expect(p.get('review_overdue')).toBe('true');
+
+    api.list(ORG, { attention: 'any' }).subscribe();
+    expect(http.expectOne((r) => r.url === url('')).request.params.get('attention')).toBe('any');
+  });
+
+  it('confirms a register review and imports a pasted account list', () => {
+    api.confirmReview(ORG, 'a-1', { note: 'Checked' }).subscribe();
+    const confirm = http.expectOne(url('/a-1/confirm-review'));
+    expect(confirm.request.method).toBe('POST');
+    expect(confirm.request.body).toEqual({ note: 'Checked' });
+    expect(confirm.request.context.get(SKIP_ERROR_TOAST)).toBe(true);
+    confirm.flush({});
+
+    api.importAccountsCsv(ORG, 'r-1', 'name;account\nKari;kari@x.no').subscribe();
+    const csv = http.expectOne(url('/access-reviews/r-1/items/import-csv'));
+    expect(csv.request.body).toEqual({ text: 'name;account\nKari;kari@x.no' });
+    csv.flush({ items: [] });
+
+    api.listReviews(ORG, { overdue: true }).subscribe();
+    const reviews = http.expectOne((r) => r.url === url('/access-reviews'));
+    expect(reviews.request.params.get('overdue')).toBe('true');
+    reviews.flush({ items: [], total: 0 });
+  });
+
+  it('reads the Suppliers register for the supplier picker', () => {
+    api.supplierOptions(ORG).subscribe();
+    const req = http.expectOne((r) => r.url === `${BASE}/v1/orgs/${ORG}/suppliers`);
+    expect(req.request.params.get('limit')).toBe('200');
+    expect(req.request.params.get('sort')).toBe('name');
+    req.flush({ items: [] });
+  });
+
   it('lists change requests with the open flag and creates one with assets', () => {
     api
       .listChanges(ORG, {

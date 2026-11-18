@@ -8,160 +8,231 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
+import { AiAvailability } from '../../../core/ai/ai-availability';
 import { providePageContext } from '../../../core/ai/page-context';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { AskPanelService } from '../../ask/ask-panel.service';
-import { GuideIntro } from '../../../shared/guidance/guide-intro';
-import { LessonView } from '../../../shared/guidance/lesson';
 import { TeachingEmpty } from '../../../shared/guidance/teaching-empty';
+import { TourStepDirective } from '../../../shared/guidance/tour-step.directive';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
-import { LocalDayPipe } from '../../../shared/locale/locale-pipes';
-import { Badge } from '../../../shared/ui/badge/badge';
-import { Button } from '../../../shared/ui/button/button';
+import { RecordListPage } from '../../../shared/kit/record-list-page';
+import { SavedView } from '../../../shared/kit/saved-views.service';
+import { formatLocalDay } from '../../../shared/locale/locale-pipes';
 import { Card } from '../../../shared/ui/card/card';
-import { Icon } from '../../../shared/ui/icon/icon';
-import { calibrationTone, daysUntil } from '../data/asset-display';
+import { EmptyState } from '../../../shared/ui/empty-state/empty-state';
+import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
+import { KpiTile } from '../../../shared/ui/kpi-tile/kpi-tile';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { ModuleNav } from '../../../shared/ui/module-nav/module-nav';
+import { MenuItem } from '../../../shared/ui/overflow-menu/overflow-menu';
+import { RecordRow, RecordRowHeader } from '../../../shared/ui/record-row/record-row';
+import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
+import { calibrationBadge, daysUntil, lifecycleBadge } from '../data/asset-display';
 import { Asset } from '../data/asset.models';
 import { AssetsApi } from '../data/assets-api';
-import { AssetsNav } from '../shared/assets-nav';
+import { assetsNav } from '../shared/assets-nav';
 
 export const DUE_WINDOWS = [30, 60, 90, 365] as const;
 
+/** Rows matching a search text (code, name, location, owner), soonest due first. */
+export function dueRows(items: readonly Asset[], q: string): readonly Asset[] {
+  const text = q.trim().toLocaleLowerCase();
+  const hit = (a: Asset) =>
+    !text ||
+    [a.code, a.name, a.location, a.owner?.name, a.serial_number]
+      .filter((v): v is string => !!v)
+      .some((v) => v.toLocaleLowerCase().includes(text));
+  return [...items]
+    .filter(hit)
+    .sort((a, b) =>
+      (a.next_calibration_due ?? '9999').localeCompare(b.next_calibration_due ?? '9999'),
+    );
+}
+
 /**
- * Calibration due list (`/assets/calibration`): measuring equipment whose
- * calibration is overdue or falls due within the chosen window (ISO 9001 7.1.5),
- * soonest first, with a link to record the calibration on the asset.
+ * Calibration (`/assets/calibration`): measuring equipment whose calibration is
+ * overdue or falls due within the chosen window (ISO 9001 7.1.5), soonest first.
+ * Each row says how many days are left (or overdue), shows when an overdue
+ * instrument is still in use, and offers "Registrer kalibrering" directly
+ * (`/assets/<id>?calibrate=1` opens the form on the instrument's page).
  */
 @Component({
   selector: 'app-calibrations-due',
   imports: [
     RouterLink,
     TranslocoPipe,
-    LocalDayPipe,
-    AssetsNav,
-    Badge,
-    Button,
     Card,
-    GuideIntro,
-    Icon,
-    LessonView,
+    EmptyState,
+    ErrorState,
+    HelpStrip,
+    KpiTile,
+    LoadingState,
+    MenuItem,
+    ModuleNav,
+    RecordListPage,
+    RecordRow,
+    RecordRowHeader,
+    StatusBadge,
     TeachingEmpty,
+    TourStepDirective,
     WhyItMatters,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[1180px] px-4 pt-7 pb-12 sm:px-8">
-      <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 class="font-display text-[26px] font-bold tracking-[-0.025em] text-fg">
-            {{ 'assets.calibrationPage.title' | transloco }}
-          </h1>
-          <p class="mt-1 text-[14px] text-fg-muted">
-            {{ 'assets.calibrationPage.subtitle' | transloco }}
-          </p>
-          <app-assets-nav />
-        </div>
-        <div class="flex flex-wrap items-center gap-2">
-          <app-button variant="ghost" size="sm" (click)="askPlan()">
-            <app-icon name="spark" [size]="14" />
-            {{ 'assets.ai.calibrationPlan' | transloco }}
-          </app-button>
-          <label class="sr-only" for="cal-window">{{
-            'assets.calibrationPage.window' | transloco
-          }}</label>
-          <select
-            id="cal-window"
-            class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
-            (change)="windowDays.set(+$any($event.target).value)"
-          >
-            @for (w of windows; track w) {
-              <option [value]="w" [selected]="windowDays() === w">
-                {{ 'assets.calibrationPage.within' | transloco: { days: w } }}
-              </option>
-            }
-          </select>
-        </div>
-      </div>
-
-      <div class="mb-4 flex flex-col gap-3">
-        <app-guide-intro scope="assets" page="calibration" />
-        <div><app-lesson scope="assets" lesson="calibration" /></div>
-      </div>
-
-      @switch (state()) {
-        @case ('loading') {
-          <p class="py-10 text-center text-[14px] text-fg-muted">
-            {{ 'assets.common.loading' | transloco }}
-          </p>
-        }
-        @case ('error') {
-          <p class="py-10 text-center text-[14px] text-fail" role="alert">
-            {{ 'assets.common.loadFailed' | transloco }}
-          </p>
-        }
-        @default {
-          @if (rows().length === 0) {
-            <app-teaching-empty scope="assets" page="calibration" [showAction]="false" />
-          } @else {
-            <app-card [padded]="false">
-              <ul class="divide-y divide-border" data-testid="due-rows">
-                @for (row of rows(); track row.id) {
-                  <li class="flex flex-col gap-1.5 px-4 py-3 md:flex-row md:items-center md:gap-3">
-                    <div class="min-w-0 flex-1">
-                      <a
-                        [routerLink]="['/assets', row.id]"
-                        class="flex items-baseline gap-2 text-[13.5px] font-semibold text-fg hover:underline"
-                      >
-                        <span class="font-mono text-[12px] text-fg-muted">{{ row.code }}</span>
-                        <span class="truncate">{{ row.name }}</span>
-                      </a>
-                      <span class="flex flex-wrap gap-x-3 text-[12px] text-fg-subtle">
-                        @if (row.location) {
-                          <span>{{ row.location }}</span>
-                        }
-                        @if (row.owner?.name; as owner) {
-                          <span>{{ 'assets.list.ownedBy' | transloco: { name: owner } }}</span>
-                        }
-                        @if (row.last_calibrated_on) {
-                          <span>
-                            {{
-                              'assets.calibrationPage.last'
-                                | transloco: { date: (row.last_calibrated_on | localDay) }
-                            }}
-                          </span>
-                        }
-                      </span>
-                    </div>
-                    <span class="flex flex-wrap items-center gap-2 text-[12.5px]">
-                      @if (row.calibration_status) {
-                        <app-badge [tone]="tone(row.calibration_status)">
-                          {{ 'assets.calibrationStatus.' + row.calibration_status | transloco }}
-                        </app-badge>
-                      }
-                      @if (row.next_calibration_due) {
-                        <span
-                          class="w-[170px] text-right text-fg-muted"
-                          [class.text-fail]="row.calibration_status === 'overdue'"
-                          [class.font-semibold]="row.calibration_status === 'overdue'"
-                        >
-                          {{ dueText(row) }}
-                        </span>
-                      }
-                    </span>
-                  </li>
-                }
-              </ul>
-            </app-card>
-          }
-        }
+    <app-record-list-page
+      titleKey="assets.calibrationPage.title"
+      descriptionKey="assets.calibrationPage.subtitle"
+      [breadcrumbs]="[{ labelKey: 'modules.names.assets', link: '/assets' }]"
+      scope="assets"
+      page="calibration"
+      searchPlaceholderKey="assets.calibrationPage.searchPlaceholder"
+      [query]="q()"
+      [filters]="{ window: '' + windowDays() }"
+      [empty]="showEmpty()"
+      (search)="q.set($event)"
+      (viewApplied)="applyView($event)"
+    >
+      @if (!ai.unavailable()) {
+        <button appMenuItem overflow type="button" (click)="askPlan()">
+          {{ 'assets.ai.calibrationPlan' | transloco }}
+        </button>
       }
 
-      <div class="mt-6"><app-why-it-matters scope="assets" page="calibration" /></div>
-    </div>
+      <div nav appTourStep="assets-sections">
+        <app-module-nav labelKey="modules.names.assets" [items]="nav()" />
+      </div>
+      <app-help-strip
+        help
+        scope="assets"
+        page="calibration"
+        tour="calibration"
+        lesson="calibration"
+      />
+
+      <ng-container ngProjectAs="[kpis]">
+        @if (state() === 'ready' && items().length) {
+          <app-kpi-tile
+            appTourStep="assets-calibration-summary"
+            [label]="'assets.calibrationPage.overdue' | transloco"
+            [value]="overdue()"
+            [tone]="overdue() ? 'fail' : 'pass'"
+          />
+          <app-kpi-tile
+            [label]="'assets.calibrationPage.inUseOverdue' | transloco"
+            [value]="inUseOverdue()"
+            [tone]="inUseOverdue() ? 'fail' : 'neutral'"
+          />
+          <app-kpi-tile
+            [label]="'assets.calibrationPage.dueSoon' | transloco: { days: windowDays() }"
+            [value]="dueSoon()"
+            [tone]="dueSoon() ? 'warn' : 'neutral'"
+          />
+        }
+      </ng-container>
+
+      <ng-container filters>
+        <label class="sr-only" for="cal-window">{{
+          'assets.calibrationPage.window' | transloco
+        }}</label>
+        <select
+          id="cal-window"
+          class="h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
+          appTourStep="assets-calibration-window"
+          (change)="windowDays.set(+$any($event.target).value)"
+        >
+          @for (w of windows; track w) {
+            <option [value]="w" [selected]="windowDays() === w">
+              {{ 'assets.calibrationPage.within' | transloco: { days: w } }}
+            </option>
+          }
+        </select>
+      </ng-container>
+
+      <app-card [padded]="false">
+        @switch (state()) {
+          @case ('loading') {
+            <app-loading-state [rows]="4" />
+          }
+          @case ('error') {
+            <app-error-state (retry)="reload()" />
+          }
+          @default {
+            @if (rows().length === 0) {
+              <app-empty-state
+                icon="search"
+                titleKey="ui.empty.noResults"
+                bodyKey="ui.empty.noResultsBody"
+              />
+            } @else {
+              <div role="list" data-testid="due-rows">
+                <app-record-row-header dateKind="next" />
+                @for (row of rows(); track row.id) {
+                  <app-record-row
+                    [code]="row.code"
+                    [title]="row.name"
+                    [subtitle]="subtitle(row)"
+                    [link]="['/assets', row.id]"
+                    [owner]="row.owner?.name"
+                    [date]="row.next_calibration_due"
+                    dateKind="next"
+                    [overdue]="row.calibration_status === 'overdue'"
+                  >
+                    @if (row.calibration_status) {
+                      <app-status-badge
+                        badges
+                        [meaning]="calBadge(row.calibration_status).meaning"
+                        [value]="calBadge(row.calibration_status).value"
+                        [labelKey]="'assets.calibrationStatus.' + row.calibration_status"
+                      />
+                    }
+                    @if (
+                      row.lifecycle_status !== 'in_use' || row.calibration_status === 'overdue'
+                    ) {
+                      <app-status-badge
+                        badges
+                        [meaning]="lifeBadge(row.lifecycle_status).meaning"
+                        [value]="lifeBadge(row.lifecycle_status).value"
+                        [labelKey]="'assets.lifecycle.' + row.lifecycle_status"
+                      />
+                    }
+                    @if (canWrite()) {
+                      <a
+                        coverage
+                        [routerLink]="['/assets', row.id]"
+                        [queryParams]="{ calibrate: 1 }"
+                        class="inline-flex h-8 items-center rounded-tile border border-border bg-bg px-2.5 text-meta font-semibold whitespace-nowrap text-fg hover:bg-surface-2"
+                        [attr.aria-label]="
+                          'assets.calibrationPage.recordFor' | transloco: { name: row.name }
+                        "
+                        data-testid="row-record-calibration"
+                        >{{ 'assets.calibration.record' | transloco }}</a
+                      >
+                    }
+                  </app-record-row>
+                }
+              </div>
+            }
+          }
+        }
+      </app-card>
+
+      <app-why-it-matters below scope="assets" page="calibration" />
+
+      <div empty class="flex flex-col gap-4">
+        <app-teaching-empty
+          scope="assets"
+          page="calibration"
+          [showAction]="true"
+          (action)="toInventory()"
+        />
+        <app-why-it-matters scope="assets" page="calibration" />
+      </div>
+    </app-record-list-page>
   `,
 })
 export class CalibrationsDue {
@@ -169,17 +240,36 @@ export class CalibrationsDue {
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly language = inject(LanguageService);
   private readonly ask = inject(AskPanelService);
+  private readonly router = inject(Router);
+  protected readonly ai = inject(AiAvailability);
 
   protected readonly windows = DUE_WINDOWS;
-  protected readonly tone = calibrationTone;
+  protected readonly calBadge = calibrationBadge;
+  protected readonly lifeBadge = lifecycleBadge;
   protected readonly windowDays = signal<number>(60);
+  protected readonly q = signal('');
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
-  private readonly items = signal<readonly Asset[]>([]);
-  protected readonly rows = computed(() =>
-    [...this.items()].sort((a, b) =>
-      (a.next_calibration_due ?? '9999').localeCompare(b.next_calibration_due ?? '9999'),
-    ),
+  protected readonly items = signal<readonly Asset[]>([]);
+  protected readonly rows = computed(() => dueRows(this.items(), this.q()));
+  protected readonly overdue = computed(
+    () => this.items().filter((a) => a.calibration_status === 'overdue').length,
   );
+  protected readonly inUseOverdue = computed(
+    () =>
+      this.items().filter(
+        (a) => a.calibration_status === 'overdue' && a.lifecycle_status === 'in_use',
+      ).length,
+  );
+  protected readonly dueSoon = computed(
+    () => this.items().filter((a) => a.calibration_status !== 'overdue').length,
+  );
+  protected readonly nav = computed(() => assetsNav({ calibrationDue: this.overdue() }));
+  protected readonly showEmpty = computed(
+    () => this.state() === 'ready' && this.items().length === 0 && !this.q(),
+  );
+
+  private readonly permissions = computed(() => this.selectedOrg.currentOrg()?.permissions ?? []);
+  protected readonly canWrite = computed(() => this.permissions().includes('assets:write'));
 
   private request = new Subscription();
 
@@ -198,6 +288,26 @@ export class CalibrationsDue {
     });
   }
 
+  /** "12 dager på overtid · Lab A · sist kalibrert 3. mars 2025". */
+  protected subtitle(row: Asset): string {
+    const parts: string[] = [];
+    const due = this.dueText(row);
+    if (due) {
+      parts.push(due);
+    }
+    if (row.location) {
+      parts.push(row.location);
+    }
+    if (row.last_calibrated_on) {
+      parts.push(
+        this.language.translate('assets.calibrationPage.last', {
+          date: formatLocalDay(row.last_calibrated_on, 'mediumDate', this.language.locale()),
+        }),
+      );
+    }
+    return parts.join(' · ');
+  }
+
   protected dueText(row: Asset): string {
     const days = daysUntil(row.next_calibration_due);
     if (days === null) {
@@ -212,8 +322,23 @@ export class CalibrationsDue {
     return this.language.translate('assets.calibrationPage.dueIn', { days });
   }
 
+  protected applyView(view: SavedView): void {
+    const days = Number(view.filters['window']);
+    if ((DUE_WINDOWS as readonly number[]).includes(days)) {
+      this.windowDays.set(days);
+    }
+  }
+
+  protected toInventory(): void {
+    void this.router.navigate(['/assets']);
+  }
+
   protected askPlan(): void {
     this.ask.showWith(this.language.translate('assets.ai.prompts.calibrationPlan'));
+  }
+
+  protected reload(): void {
+    this.load(this.selectedOrg.currentOrgId(), this.windowDays());
   }
 
   private load(orgId: string | null, days: number): void {

@@ -434,6 +434,27 @@
       "to_dpia": "DPIA for this AI system",
       "to_assessment": "AI assessment"
     },
+    "asset": {
+      "to_deviation": "Deviation for this asset",
+      "to_risk": "Risk to this asset",
+      "to_processing": "Processing activity (record of processing)",
+      "to_change": "Change request for this asset",
+      "to_access_review": "Access review of this system"
+    },
+    "calibration": {
+      "to_deviation": "Deviation from this calibration"
+    },
+    "access_review": {
+      "to_deviation": "Deviation from this access review",
+      "to_risk": "Risk found in this access review"
+    },
+    "change_request": {
+      "to_deviation": "Deviation from this change",
+      "to_risk": "Risk from this change",
+      "to_document": "Document update for this change",
+      "to_task": "Task to follow up the change",
+      "to_training": "Training on this change (course assignment)"
+    },
     "obligation": {
       "to_policy": "Policy that meets the obligation",
       "to_document": "Document that meets the obligation"
