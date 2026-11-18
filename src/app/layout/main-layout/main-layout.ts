@@ -14,6 +14,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { filter } from 'rxjs';
 import { LanguageService } from '../../core/i18n/language.service';
 import { loadSearchScope } from '../../core/search/search-scope';
+import { ShellPreferencesService } from '../../core/shell/shell-preferences.service';
 import { AskPanel } from '../../features/ask/ask-panel';
 import { AskPanelService } from '../../features/ask/ask-panel.service';
 import { CommandPalette } from '../../features/command-palette/command-palette';
@@ -22,6 +23,7 @@ import { trapTabKey } from '../../shared/ui/focus-trap';
 import { Icon } from '../../shared/ui/icon/icon';
 import { NavDrawerService } from '../nav-drawer.service';
 import { SideNav } from '../side-nav/side-nav';
+import { SideNavV2 } from '../side-nav-v2/side-nav-v2';
 import { TopBar } from '../top-bar/top-bar';
 
 /**
@@ -35,6 +37,9 @@ import { TopBar } from '../top-bar/top-bar';
  * The assistant is reachable from every page: a floating Ask button (bottom
  * right, hidden while the panel is open) and the Ctrl/Cmd + J shortcut, which
  * toggles the panel (Ctrl/Cmd + K stays the command palette).
+ *
+ * Shell v2 (U03): when the org has `coreflow.nav.v2` on (and the user has not
+ * switched back), the seven-destination nav and top bar replace the module list.
  */
 @Component({
   selector: 'app-main-layout',
@@ -43,6 +48,7 @@ import { TopBar } from '../top-bar/top-bar';
     TranslocoPipe,
     TopBar,
     SideNav,
+    SideNavV2,
     Notifications,
     AskPanel,
     CommandPalette,
@@ -55,6 +61,7 @@ import { TopBar } from '../top-bar/top-bar';
 export class MainLayout {
   protected readonly ask = inject(AskPanelService);
   protected readonly drawer = inject(NavDrawerService);
+  protected readonly shell = inject(ShellPreferencesService);
   private readonly navPanel = viewChild.required<ElementRef<HTMLElement>>('navPanel');
 
   /** The shortcut as shown to the user (Cmd on Apple platforms). */

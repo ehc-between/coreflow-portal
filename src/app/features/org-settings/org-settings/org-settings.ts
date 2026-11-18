@@ -19,6 +19,7 @@ import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { countKey, departmentsWithoutLead } from '../departments/departments-page';
+import { OrgNavSettings } from '../nav-settings/org-nav-settings';
 import { SettingsLinks } from '../settings-links/settings-links';
 
 /**
@@ -30,7 +31,16 @@ import { SettingsLinks } from '../settings-links/settings-links';
  */
 @Component({
   selector: 'app-org-settings',
-  imports: [RouterLink, TranslocoPipe, Card, HelpStrip, Icon, PageHeader, SettingsLinks],
+  imports: [
+    RouterLink,
+    TranslocoPipe,
+    Card,
+    HelpStrip,
+    Icon,
+    PageHeader,
+    SettingsLinks,
+    OrgNavSettings,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './org-settings.html',
 })

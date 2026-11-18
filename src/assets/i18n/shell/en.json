@@ -1,0 +1,80 @@
+{
+  "nav": {
+    "home": "Home",
+    "myWork": "My work",
+    "standards": "Standards",
+    "registers": "Registers",
+    "library": "Documents and reports",
+    "settings": "Settings"
+  },
+  "registrer": {
+    "label": "Add new",
+    "heading": "What do you want to add?",
+    "deviation": "Deviation or incident",
+    "breach": "Personal data breach",
+    "feedback": "Customer feedback",
+    "risk": "Risk",
+    "task": "Task",
+    "document": "Document",
+    "supplier": "Supplier"
+  },
+  "groups": {
+    "governance": "Governance",
+    "risk": "Risk",
+    "improvement": "Incidents and improvement",
+    "suppliersAssets": "Suppliers and assets",
+    "people": "People",
+    "privacy": "Privacy",
+    "ai": "AI",
+    "envHse": "Environment and health and safety",
+    "continuity": "Preparedness",
+    "library": "Documents and reports"
+  },
+  "pins": {
+    "heading": "Pinned",
+    "edit": "Change",
+    "ropa": "Record of processing",
+    "breaches": "Personal data breaches",
+    "sja": "Safe job analysis (SJA)"
+  },
+  "help": {
+    "label": "Help and learning",
+    "lessons": "My lessons",
+    "ask": "Ask the assistant"
+  },
+  "search": {
+    "placeholder": "Find or ask…"
+  },
+  "account": {
+    "heading": "Menu",
+    "showAll": "Show everything",
+    "showAllHint": "Show every menu item you have access to, not just the ones for your role.",
+    "newMenu": "New, simpler menu",
+    "newMenuOnHint": "Turn off to go back to the old menu.",
+    "newMenuOffHint": "Seven fixed menu items instead of one per module."
+  },
+  "prefs": {
+    "saveFailed": "Could not save your menu choice. Try again."
+  },
+  "registers": {
+    "title": "Registers",
+    "description": "Every list in the organisation, grouped by area of work. Pin the ones you use most and they appear in the menu.",
+    "filterLabel": "Find a register",
+    "filterPlaceholder": "Find a register…",
+    "pinnedHeading": "Pinned to the menu ({{ count }} of {{ max }})",
+    "pin": "Pin {{ name }} to the menu",
+    "unpin": "Unpin {{ name }} from the menu",
+    "pinsFull": "You can pin up to {{ max }} registers. Unpin one to pin {{ name }}.",
+    "emptyTitle": "No registers match",
+    "emptyBody": "Try another word, or use \"Find or ask\" at the top of the page."
+  },
+  "orgSettings": {
+    "title": "Menu",
+    "label": "New, simpler menu",
+    "hint": "Seven fixed menu items (Add new, Home, My work, Standards, Registers, Documents and reports, Settings) instead of one per module. Each member can switch back in their account menu.",
+    "loadError": "Could not load the menu setting.",
+    "savedOn": "The new menu is now on for the organisation.",
+    "savedOff": "The organisation uses the old menu again.",
+    "saveFailed": "Could not save the menu setting. Try again."
+  }
+}

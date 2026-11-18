@@ -1,0 +1,80 @@
+{
+  "nav": {
+    "home": "Hjem",
+    "myWork": "Mitt arbeid",
+    "standards": "Standarder",
+    "registers": "Registre",
+    "library": "Dokumenter og rapporter",
+    "settings": "Innstillinger"
+  },
+  "registrer": {
+    "label": "Registrer",
+    "heading": "Hva vil du registrere?",
+    "deviation": "Avvik eller hendelse",
+    "breach": "Personvernbrudd",
+    "feedback": "Kundetilbakemelding",
+    "risk": "Risiko",
+    "task": "Oppgave",
+    "document": "Dokument",
+    "supplier": "Leverandør"
+  },
+  "groups": {
+    "governance": "Styring",
+    "risk": "Risiko",
+    "improvement": "Hendelser og forbedring",
+    "suppliersAssets": "Leverandører og eiendeler",
+    "people": "Mennesker",
+    "privacy": "Personvern",
+    "ai": "KI",
+    "envHse": "Miljø og HMS",
+    "continuity": "Beredskap",
+    "library": "Dokumenter og rapporter"
+  },
+  "pins": {
+    "heading": "Festet",
+    "edit": "Endre",
+    "ropa": "Behandlingsprotokoll",
+    "breaches": "Personvernbrudd",
+    "sja": "Sikker jobbanalyse (SJA)"
+  },
+  "help": {
+    "label": "Hjelp og læring",
+    "lessons": "Mine leksjoner",
+    "ask": "Spør assistenten"
+  },
+  "search": {
+    "placeholder": "Finn eller spør …"
+  },
+  "account": {
+    "heading": "Meny",
+    "showAll": "Vis alt",
+    "showAllHint": "Vis alle menypunkter du har tilgang til, ikke bare dem for rollen din.",
+    "newMenu": "Ny, enklere meny",
+    "newMenuOnHint": "Slå av for å gå tilbake til den gamle menyen.",
+    "newMenuOffHint": "Sju faste menypunkter i stedet for ett per modul."
+  },
+  "prefs": {
+    "saveFailed": "Kunne ikke lagre menyvalget. Prøv igjen."
+  },
+  "registers": {
+    "title": "Registre",
+    "description": "Alle listene i organisasjonen, samlet etter arbeidsområde. Fest dem du bruker mest, så ligger de i menyen.",
+    "filterLabel": "Finn et register",
+    "filterPlaceholder": "Finn et register …",
+    "pinnedHeading": "Festet i menyen ({{ count }} av {{ max }})",
+    "pin": "Fest {{ name }} i menyen",
+    "unpin": "Løsne {{ name }} fra menyen",
+    "pinsFull": "Du kan feste opptil {{ max }} registre. Løsne ett for å feste {{ name }}.",
+    "emptyTitle": "Ingen registre passer",
+    "emptyBody": "Prøv et annet ord, eller bruk «Finn eller spør» øverst på siden."
+  },
+  "orgSettings": {
+    "title": "Meny",
+    "label": "Ny, enklere meny",
+    "hint": "Sju faste menypunkter (Registrer, Hjem, Mitt arbeid, Standarder, Registre, Dokumenter og rapporter, Innstillinger) i stedet for ett per modul. Hver bruker kan bytte tilbake i kontomenyen.",
+    "loadError": "Kunne ikke hente menyinnstillingen.",
+    "savedOn": "Den nye menyen er slått på for organisasjonen.",
+    "savedOff": "Organisasjonen bruker den gamle menyen igjen.",
+    "saveFailed": "Kunne ikke lagre menyinnstillingen. Prøv igjen."
+  }
+}

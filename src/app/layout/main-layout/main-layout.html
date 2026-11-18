@@ -3,7 +3,7 @@
     'ui.shell.skipToContent' | transloco
   }}</a>
 
-  <app-top-bar />
+  <app-top-bar [v2]="shell.navV2()" />
 
   <div class="flex min-h-0 flex-1">
     <!-- Below lg the side nav is an off-canvas drawer (hamburger in the top bar). -->
@@ -29,7 +29,16 @@
       [attr.aria-label]="drawer.open() ? ('ui.shell.mainNav' | transloco) : null"
       (keydown)="onNavKeydown($event)"
     >
-      <app-side-nav class="w-full" />
+      @if (shell.navV2()) {
+        <!-- Shell v2 (U03) loads on demand, so orgs on the old menu don't pay for it. -->
+        @defer (on immediate) {
+          <app-side-nav-v2 class="w-full" />
+        } @placeholder {
+          <div class="w-full border-r border-border bg-surface lg:w-[248px]"></div>
+        }
+      } @else {
+        <app-side-nav class="w-full" />
+      }
     </div>
     <!-- pb-20 keeps the end of every page clear of the floating assistant button. -->
     <main id="main-content" tabindex="-1" class="min-w-0 flex-1 overflow-y-auto pb-20 outline-none">
