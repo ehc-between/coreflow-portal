@@ -44,7 +44,7 @@
   "kinds": {
     "register_export": "Registereksporter",
     "record_report": "Rapporter om én post",
-    "compiled_controlled": "Styrende dokumenter",
+    "compiled_controlled": "Sammenstilte dokumenter",
     "pack": "Pakker",
     "public": "Offentlige dokumenter"
   },

@@ -44,7 +44,7 @@
   "kinds": {
     "register_export": "Register exports",
     "record_report": "Reports on one record",
-    "compiled_controlled": "Controlled documents",
+    "compiled_controlled": "Compiled documents",
     "pack": "Packs",
     "public": "Public documents"
   },
