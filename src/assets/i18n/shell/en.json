@@ -35,7 +35,17 @@
     "edit": "Change",
     "ropa": "Record of processing",
     "breaches": "Personal data breaches",
-    "sja": "Safe job analysis (SJA)"
+    "sja": "Safe job analysis (SJA)",
+    "requests": "Data subject requests",
+    "processors": "Data processors",
+    "risks": "Risk register",
+    "feedback": "Feedback",
+    "ppe": "Protective equipment",
+    "accessReviews": "Access reviews",
+    "changes": "Changes",
+    "candidates": "Candidates",
+    "aiAssessments": "AI assessments",
+    "auditFindings": "Audit findings"
   },
   "help": {
     "label": "Help and learning",
@@ -55,18 +65,6 @@
   },
   "prefs": {
     "saveFailed": "Could not save your menu choice. Try again."
-  },
-  "registers": {
-    "title": "Registers",
-    "description": "Every list in the organisation, grouped by area of work. Pin the ones you use most and they appear in the menu.",
-    "filterLabel": "Find a register",
-    "filterPlaceholder": "Find a register…",
-    "pinnedHeading": "Pinned to the menu ({{ count }} of {{ max }})",
-    "pin": "Pin {{ name }} to the menu",
-    "unpin": "Unpin {{ name }} from the menu",
-    "pinsFull": "You can pin up to {{ max }} registers. Unpin one to pin {{ name }}.",
-    "emptyTitle": "No registers match",
-    "emptyBody": "Try another word, or use \"Find or ask\" at the top of the page."
   },
   "orgSettings": {
     "title": "Menu",

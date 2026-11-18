@@ -7,6 +7,8 @@ import {
   CreateOverrideRequest,
   EvaluateRequest,
   EvaluateResponse,
+  LocationCounts,
+  LocationKind,
   LocationOverride,
   LocationRequirements,
   LocationRole,
@@ -61,6 +63,21 @@ export class LocationsApi {
   ): Observable<LocationVocabulary[]> {
     return this.api.get<LocationVocabulary[]>(`${this.base(orgId)}/locations`, {
       params: { ...filter, lang },
+      context: QUIET,
+    });
+  }
+
+  /**
+   * Row count and last change per readable place of the enabled modules (Registre
+   * hub, U04). Open to members; `kinds` empty means every kind.
+   */
+  counts(
+    orgId: string,
+    lang: string,
+    kinds: readonly LocationKind[] = [],
+  ): Observable<LocationCounts> {
+    return this.api.get<LocationCounts>(`${this.base(orgId)}/locations/counts`, {
+      params: { lang, kind: kinds.length ? kinds : undefined },
       context: QUIET,
     });
   }

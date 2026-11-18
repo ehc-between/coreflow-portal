@@ -65,6 +65,13 @@ describe('LocationsApi', () => {
       .flush({});
   });
 
+  it('reads the register counts, optionally per kind', () => {
+    api.counts('org-1', 'nb', ['register', 'page']).subscribe();
+    http.expectOne(`${ROOT}/locations/counts?lang=nb&kind=register&kind=page`).flush({ items: [] });
+    api.counts('org-1', 'en').subscribe();
+    http.expectOne(`${ROOT}/locations/counts?lang=en`).flush({ items: [] });
+  });
+
   it('creates, updates and retires overrides', () => {
     api
       .createOverride('org-1', {

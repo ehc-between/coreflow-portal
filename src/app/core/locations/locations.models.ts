@@ -223,3 +223,22 @@ export interface ReadinessBasisFields {
   readonly standard_key?: string;
   readonly by_basis?: Readonly<Partial<Record<'location' | 'links' | 'manual', number>>>;
 }
+
+/** One place with its row count (`GET orgs/{org}/locations/counts`, Registre hub, U04). */
+export interface LocationCount extends LocationLite {
+  readonly description: string;
+  readonly kind: LocationKind;
+  readonly entity_type: string | null;
+  /** Live rows of the place's table; null for places without a table of their own. */
+  readonly count: number | null;
+  readonly last_updated_at: string | null;
+  /** The org's enabled standards that map a requirement to the place. */
+  readonly needed_by: readonly string[];
+  /** Not needed by any enabled standard and holds no data: shown under "More registers". */
+  readonly folded: boolean;
+}
+
+export interface LocationCounts {
+  readonly items: readonly LocationCount[];
+  readonly generated_at: string;
+}
