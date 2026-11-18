@@ -8,8 +8,8 @@ import {
   CreateSupplierRequest,
   DecideEvaluationRequest,
   EvaluationDetail,
-  EvaluationListItem,
   EvaluationListQuery,
+  EvaluationPage,
   EvaluationKind,
   LocationOption,
   Page,
@@ -19,6 +19,7 @@ import {
   PerformanceRequest,
   Questionnaire,
   QuestionnaireRequest,
+  SupplierAgreements,
   SupplierDetail,
   SupplierListItem,
   SupplierListQuery,
@@ -30,6 +31,12 @@ import {
 
 /** Mutations skip the generic toast: pages show a translated, code-specific message. */
 const skipToast = () => ({ context: new HttpContext().set(SKIP_ERROR_TOAST, true) });
+
+/** Built-in questions and default titles are returned in this language. */
+export type Lang = 'en' | 'nb';
+
+/** A mutation that skips the generic toast and asks for built-in texts in `lang`. */
+const langOptions = (lang: Lang | undefined) => ({ ...skipToast(), params: { lang } });
 
 const csv = (values: readonly string[] | undefined) =>
   values && values.length ? values.join(',') : undefined;
@@ -68,6 +75,8 @@ export class SuppliersApi {
         has_system_access: query.has_system_access,
         provides_cloud_services: query.provides_cloud_services,
         provides_ai: query.provides_ai,
+        attention: query.attention || undefined,
+        attention_code: csv(query.attention_code),
         sort: query.sort,
         limit: query.limit,
         offset: query.offset,
@@ -100,6 +109,15 @@ export class SuppliersApi {
     return this.api.patch<SupplierDetail>(`${this.base(orgId)}/${id}`, body, skipToast());
   }
 
+  /**
+   * The supplier as a hub: linked contracts (DPA coverage, expiry), processors,
+   * transfer assessments, AI systems, assets, risks and deviations, plus records that
+   * carry the supplier's name but are not linked yet.
+   */
+  agreements(orgId: string, id: string): Observable<SupplierAgreements> {
+    return this.api.get<SupplierAgreements>(`${this.base(orgId)}/${id}/agreements`);
+  }
+
   setStatus(orgId: string, id: string, body: SupplierStatusRequest): Observable<SupplierDetail> {
     return this.api.post<SupplierDetail>(`${this.base(orgId)}/${id}/status`, body, skipToast());
   }
@@ -110,11 +128,16 @@ export class SuppliersApi {
 
   // --- evaluations -------------------------------------------------------------------
 
+  /**
+   * Every evaluation of the org. `status_counts` counts each status with the other
+   * filters applied. `lang` shows built-in titles in that language.
+   */
   listEvaluations(
     orgId: string,
     query: EvaluationListQuery = {},
-  ): Observable<Page<EvaluationListItem>> {
-    return this.api.get<Page<EvaluationListItem>>(`${this.base(orgId)}/evaluations`, {
+    lang?: Lang,
+  ): Observable<EvaluationPage> {
+    return this.api.get<EvaluationPage>(`${this.base(orgId)}/evaluations`, {
       params: {
         supplier_id: query.supplier_id,
         status: csv(query.status),
@@ -123,6 +146,7 @@ export class SuppliersApi {
         overdue: query.overdue || undefined,
         limit: query.limit,
         offset: query.offset,
+        lang,
       },
     });
   }
@@ -131,13 +155,15 @@ export class SuppliersApi {
     orgId: string,
     supplierId: string,
     query: Pick<EvaluationListQuery, 'status' | 'kind' | 'limit' | 'offset'> = {},
-  ): Observable<Page<EvaluationListItem>> {
-    return this.api.get<Page<EvaluationListItem>>(`${this.base(orgId)}/${supplierId}/evaluations`, {
+    lang?: Lang,
+  ): Observable<EvaluationPage> {
+    return this.api.get<EvaluationPage>(`${this.base(orgId)}/${supplierId}/evaluations`, {
       params: {
         status: csv(query.status),
         kind: query.kind,
         limit: query.limit,
         offset: query.offset,
+        lang,
       },
     });
   }
@@ -150,31 +176,34 @@ export class SuppliersApi {
     return this.api.post<EvaluationDetail>(
       `${this.base(orgId)}/${supplierId}/evaluations`,
       body,
-      skipToast(),
+      langOptions(body.lang),
     );
   }
 
-  getEvaluation(orgId: string, evaluationId: string): Observable<EvaluationDetail> {
-    return this.api.get<EvaluationDetail>(`${this.base(orgId)}/evaluations/${evaluationId}`);
+  getEvaluation(orgId: string, evaluationId: string, lang?: Lang): Observable<EvaluationDetail> {
+    return this.api.get<EvaluationDetail>(`${this.base(orgId)}/evaluations/${evaluationId}`, {
+      params: { lang },
+    });
   }
 
   updateEvaluation(
     orgId: string,
     evaluationId: string,
     body: UpdateEvaluationRequest,
+    lang?: Lang,
   ): Observable<EvaluationDetail> {
     return this.api.patch<EvaluationDetail>(
       `${this.base(orgId)}/evaluations/${evaluationId}`,
       body,
-      skipToast(),
+      langOptions(lang),
     );
   }
 
-  submitEvaluation(orgId: string, evaluationId: string): Observable<EvaluationDetail> {
+  submitEvaluation(orgId: string, evaluationId: string, lang?: Lang): Observable<EvaluationDetail> {
     return this.api.post<EvaluationDetail>(
       `${this.base(orgId)}/evaluations/${evaluationId}/submit`,
       {},
-      skipToast(),
+      langOptions(lang),
     );
   }
 
@@ -182,11 +211,12 @@ export class SuppliersApi {
     orgId: string,
     evaluationId: string,
     reason?: string | null,
+    lang?: Lang,
   ): Observable<EvaluationDetail> {
     return this.api.post<EvaluationDetail>(
       `${this.base(orgId)}/evaluations/${evaluationId}/reopen`,
       { reason: reason || null },
-      skipToast(),
+      langOptions(lang),
     );
   }
 
@@ -194,11 +224,12 @@ export class SuppliersApi {
     orgId: string,
     evaluationId: string,
     body: DecideEvaluationRequest,
+    lang?: Lang,
   ): Observable<EvaluationDetail> {
     return this.api.post<EvaluationDetail>(
       `${this.base(orgId)}/evaluations/${evaluationId}/decide`,
       body,
-      skipToast(),
+      langOptions(lang),
     );
   }
 
@@ -206,11 +237,12 @@ export class SuppliersApi {
     orgId: string,
     evaluationId: string,
     reason?: string | null,
+    lang?: Lang,
   ): Observable<EvaluationDetail> {
     return this.api.post<EvaluationDetail>(
       `${this.base(orgId)}/evaluations/${evaluationId}/cancel`,
       { reason: reason || null },
-      skipToast(),
+      langOptions(lang),
     );
   }
 

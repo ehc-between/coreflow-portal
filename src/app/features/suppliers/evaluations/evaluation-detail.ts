@@ -12,33 +12,39 @@ import {
 import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Observable, Subscription, of, switchMap } from 'rxjs';
+import { AiAvailability } from '../../../core/ai/ai-availability';
 import { providePageContext } from '../../../core/ai/page-context';
+import { LanguageService } from '../../../core/i18n/language.service';
+import { CreateFlowService } from '../../../core/kit/create-flow.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
+import { AskPanelService } from '../../ask/ask-panel.service';
 import { WatchButton } from '../../../shared/activity/watch-button';
 import { AiAssistButton } from '../../../shared/ask/ai-assist-button';
-import { AskAbout } from '../../../shared/ask/ask-about';
+import { ClauseChips } from '../../../shared/guidance/clause-chips';
 import { FieldHelp } from '../../../shared/guidance/field-help';
-import { GuideIntro } from '../../../shared/guidance/guide-intro';
-import { LessonView } from '../../../shared/guidance/lesson';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { RecordDetailLayout, RecordTab } from '../../../shared/kit/record-detail-layout';
 import { LocalDatePipe, LocalDayPipe, LocalNumberPipe } from '../../../shared/locale/locale-pipes';
 import { MarkdownPipe } from '../../../shared/markdown/markdown.pipe';
 import { EntityTasks } from '../../../shared/tasks/entity-tasks';
 import { Alert } from '../../../shared/ui/alert/alert';
-import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
+import { ErrorState } from '../../../shared/ui/error-state/error-state';
 import { FormField } from '../../../shared/ui/form-field/form-field';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { MenuItem } from '../../../shared/ui/overflow-menu/overflow-menu';
 import { ProgressBar } from '../../../shared/ui/progress-bar/progress-bar';
 import { PromptDialog } from '../../../shared/ui/prompt-dialog/prompt-dialog';
+import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import {
   blankToNull,
-  decisionTone,
-  evaluationStatusTone,
+  decisionBadge,
+  evaluationStatusBadge,
   previewScore,
   wireToDay,
 } from '../data/supplier-display';
@@ -53,6 +59,7 @@ import {
 } from '../data/supplier.models';
 import { SuppliersApi } from '../data/suppliers-api';
 import { SupplierUserSelect } from '../shared/people-select';
+import { questionnaireLang } from '../detail/start-evaluation-dialog';
 import {
   EditableQuestion,
   QuestionEditor,
@@ -132,23 +139,25 @@ export function answersBody(
     MarkdownPipe,
     AiAssistButton,
     Alert,
-    AskAbout,
-    Badge,
     Button,
     Card,
+    ClauseChips,
     ConfirmDialog,
     EntityTasks,
+    ErrorState,
     EvaluationDecideDialog,
     FieldHelp,
     FormField,
-    GuideIntro,
+    HelpStrip,
     Icon,
-    LessonView,
+    LoadingState,
+    MenuItem,
     ProgressBar,
     PromptDialog,
     QuestionEditor,
     QuestionnaireAnswers,
     RecordDetailLayout,
+    StatusBadge,
     SupplierUserSelect,
     WatchButton,
     WhyItMatters,
@@ -157,20 +166,22 @@ export function answersBody(
   template: `
     @switch (state()) {
       @case ('loading') {
-        <p class="mx-auto max-w-[1180px] px-4 pt-7 text-[14px] text-fg-muted sm:px-8">
-          {{ 'suppliers.common.loading' | transloco }}
-        </p>
+        <div class="mx-auto max-w-[1180px] px-4 pt-7 sm:px-8"><app-loading-state [rows]="6" /></div>
       }
       @case ('error') {
         <div class="mx-auto max-w-[1180px] px-4 pt-7 sm:px-8">
           <a
             [routerLink]="['/suppliers', id()]"
-            class="mb-3 inline-flex items-center gap-1 text-[13px] font-semibold text-fg-muted hover:text-fg"
+            class="mb-3 inline-flex items-center gap-1 text-ui font-semibold text-fg-muted hover:text-fg"
           >
             <app-icon name="back" [size]="14" />
             {{ 'suppliers.common.backToSupplier' | transloco }}
           </a>
-          <app-alert>{{ 'suppliers.evaluation.notFound' | transloco }}</app-alert>
+          <app-error-state
+            titleKey="suppliers.evaluation.notFoundTitle"
+            bodyKey="suppliers.evaluation.notFound"
+            (retry)="reload()"
+          />
         </div>
       }
       @default {
@@ -178,79 +189,97 @@ export function answersBody(
           <app-record-detail-layout
             entityType="supplier_evaluation"
             [entityId]="e.id"
+            [title]="e.title"
+            [breadcrumbs]="[
+              { labelKey: 'modules.names.suppliers', link: '/suppliers' },
+              { label: e.supplier.name, link: ['/suppliers', e.supplier.id] },
+              { label: e.title },
+            ]"
             [tabs]="tabs"
             [canEdit]="e.can_edit"
+            [requirementsPanel]="true"
             [includeAudit]="canAudit()"
             [fieldLabels]="fieldLabels"
             [backLink]="['/suppliers', e.supplier.id]"
             backLabelKey="suppliers.common.backToSupplier"
           >
-            <div header>
-              <div class="mb-1.5 flex flex-wrap items-center gap-2 text-[12.5px]">
-                <a
-                  [routerLink]="['/suppliers', e.supplier.id]"
-                  class="font-semibold text-fg-muted hover:underline"
-                >
-                  <span class="font-mono">{{ e.supplier.code }}</span> {{ e.supplier.name }}
-                </a>
-                <app-badge tone="accent">
-                  {{ 'suppliers.evaluationKind.' + e.kind | transloco }}
-                </app-badge>
-                <app-badge [tone]="statusTone(e.status)">
-                  {{ 'suppliers.evaluationStatus.' + e.status | transloco }}
-                </app-badge>
-                @if (e.overdue) {
-                  <app-badge tone="fail">{{ 'suppliers.common.overdue' | transloco }}</app-badge>
-                }
-              </div>
-              <h1
-                class="font-display text-[24px] font-bold tracking-[-0.03em] break-words text-fg sm:text-[26px]"
+            <ng-container ngProjectAs="[meta]">
+              <a
+                [routerLink]="['/suppliers', e.supplier.id]"
+                class="font-semibold hover:underline"
+                data-testid="evaluation-supplier"
               >
-                {{ e.title }}
-              </h1>
-            </div>
-
-            <ng-container actions>
-              <app-watch-button entityType="supplier_evaluation" [entityId]="e.id" />
-              @if (e.status === 'draft' && e.can_edit) {
-                <app-button
-                  variant="secondary"
-                  size="sm"
-                  [disabled]="!dirty() && !summaryDirty()"
-                  [loading]="saving()"
-                  (click)="saveAnswers()"
-                >
-                  {{ 'suppliers.evaluation.saveAnswers' | transloco }}
-                </app-button>
-                <app-button size="sm" [loading]="busy()" (click)="submit()">
-                  {{ 'suppliers.evaluation.submit' | transloco }}
-                </app-button>
-              }
-              @if (e.status === 'submitted' && e.can_decide) {
-                <app-button size="sm" (click)="openDecide()">
-                  {{ 'suppliers.evaluation.decide' | transloco }}
-                </app-button>
-              }
-              @if (e.status === 'submitted' && e.can_edit) {
-                <app-button variant="secondary" size="sm" (click)="pending.set('reopen')">
-                  {{ 'suppliers.evaluation.reopen' | transloco }}
-                </app-button>
-              }
-              @if (isOpen() && e.can_edit) {
-                <app-button variant="ghost" size="sm" (click)="pending.set('cancel')">
-                  {{ 'suppliers.evaluation.cancel' | transloco }}
-                </app-button>
-              }
-              @if (canManage()) {
-                <app-button variant="ghost" size="sm" (click)="pending.set('delete')">
-                  <app-icon name="trash" [size]="14" />
-                  {{ 'suppliers.common.delete' | transloco }}
-                </app-button>
+                <span class="font-mono">{{ e.supplier.code }}</span> {{ e.supplier.name }}
+              </a>
+              <span aria-hidden="true">·</span>
+              <span>{{ 'suppliers.evaluationKind.' + e.kind | transloco }}</span>
+              @let st = statusBadge(e.status);
+              <app-status-badge
+                [meaning]="st.meaning"
+                [value]="st.value"
+                [labelKey]="'suppliers.evaluationStatus.' + e.status"
+              />
+              @if (e.overdue && isOpen()) {
+                <app-status-badge
+                  meaning="lifecycle"
+                  value="overdue"
+                  labelKey="suppliers.common.overdue"
+                />
               }
             </ng-container>
 
+            @if (e.status === 'draft' && e.can_edit) {
+              <app-button primary [loading]="busy()" (click)="submit()">
+                {{ 'suppliers.evaluation.submit' | transloco }}
+              </app-button>
+            }
+            @if (e.status === 'submitted' && e.can_decide) {
+              <app-button primary (click)="openDecide()">
+                {{ 'suppliers.evaluation.decide' | transloco }}
+              </app-button>
+            }
+            @if (e.status === 'draft' && e.can_edit) {
+              <app-button
+                secondary
+                variant="secondary"
+                [disabled]="!dirty() && !summaryDirty()"
+                [loading]="saving()"
+                (click)="saveAnswers()"
+              >
+                {{ 'suppliers.evaluation.saveAnswers' | transloco }}
+              </app-button>
+            }
+            @if (e.status === 'submitted' && e.can_edit) {
+              <app-button secondary variant="secondary" (click)="pending.set('reopen')">
+                {{ 'suppliers.evaluation.reopen' | transloco }}
+              </app-button>
+            }
+            <app-watch-button secondary entityType="supplier_evaluation" [entityId]="e.id" />
+            @if (isOpen() && e.can_edit) {
+              <button appMenuItem overflow type="button" (click)="pending.set('cancel')">
+                {{ 'suppliers.evaluation.cancel' | transloco }}
+              </button>
+            }
+            @if (canManage()) {
+              <button
+                appMenuItem
+                overflow
+                type="button"
+                [danger]="true"
+                (click)="pending.set('delete')"
+              >
+                {{ 'suppliers.common.delete' | transloco }}
+              </button>
+            }
+
+            <app-help-strip
+              help
+              scope="suppliers"
+              page="evaluation"
+              [lesson]="e.kind === 'security' ? 'third-party-security' : 'evaluating-suppliers'"
+            />
+
             <div class="flex flex-col gap-5">
-              <app-guide-intro scope="suppliers" page="evaluation" />
               @if (actionError(); as key) {
                 <app-alert>{{ key | transloco }}</app-alert>
               }
@@ -264,51 +293,64 @@ export function answersBody(
 
               <app-card>
                 <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-                  <h2 class="flex items-center gap-1 font-display text-[15px] font-bold text-fg">
+                  <h2 class="flex items-center gap-1.5 font-display text-card font-bold text-fg">
                     {{ 'suppliers.evaluation.scoreTitle' | transloco }}
                     <app-field-help scope="suppliers" page="evaluation" field="score" />
                   </h2>
-                  <app-ask-about
-                    [prompt]="'suppliers.ai.prompts.explainScore' | transloco"
-                    field="score"
-                  />
+                  @if (!ai.unavailable()) {
+                    <app-button variant="ghost" size="sm" (click)="askScore()">
+                      <app-icon name="spark" [size]="14" />
+                      {{ 'suppliers.ai.explainScore' | transloco }}
+                    </app-button>
+                  }
                 </div>
                 <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
                   <div>
-                    <p class="text-[12px] text-fg-muted">
+                    <p class="text-meta text-fg-muted">
                       {{ 'suppliers.evaluation.score' | transloco }}
                     </p>
-                    <p class="font-display text-[22px] font-bold text-fg" data-testid="score">
-                      {{ score() === null ? '–' : (score() | localNumber: '1.0-1') }}
+                    <p class="font-display text-section font-bold text-fg" data-testid="score">
+                      @if (score() === null) {
+                        –
+                      } @else {
+                        {{ score() | localNumber: '1.0-1' }}
+                        <span class="text-ui font-normal text-fg-muted">/ 100</span>
+                      }
                     </p>
                   </div>
                   <div>
-                    <p class="text-[12px] text-fg-muted">
+                    <p class="text-meta text-fg-muted">
                       {{ 'suppliers.evaluation.passScore' | transloco }}
                     </p>
-                    <p class="font-display text-[22px] font-bold text-fg">{{ e.pass_score }}</p>
+                    <p class="font-display text-section font-bold text-fg">{{ e.pass_score }}</p>
                   </div>
                   <div>
-                    <p class="text-[12px] text-fg-muted">
+                    <p class="text-meta text-fg-muted">
                       {{ 'suppliers.evaluation.answered' | transloco }}
                     </p>
-                    <p class="font-display text-[22px] font-bold text-fg">
+                    <p class="font-display text-section font-bold text-fg">
                       {{ preview().answered }} / {{ preview().total }}
                     </p>
                   </div>
                   <div>
-                    <p class="text-[12px] text-fg-muted">
+                    <p class="text-meta text-fg-muted">
                       {{ 'suppliers.evaluation.recommendation' | transloco }}
                     </p>
                     @if (recommendation(); as rec) {
-                      <app-badge [tone]="decisionTone(rec)">
-                        {{ 'suppliers.recommendation.' + rec | transloco }}
-                      </app-badge>
+                      @let rb = decision(rec);
+                      <app-status-badge
+                        [meaning]="rb.meaning"
+                        [value]="rb.value"
+                        [labelKey]="'suppliers.recommendation.' + rec"
+                      />
                     } @else {
-                      <p class="text-[13px] text-fg-subtle">–</p>
+                      <p class="text-ui text-fg-subtle">–</p>
                     }
                   </div>
                 </div>
+                <p class="mt-2 text-meta text-fg-muted" data-testid="score-meaning">
+                  {{ 'suppliers.evaluation.scoreMeaning' | transloco: { pass: e.pass_score } }}
+                </p>
                 <div class="mt-3">
                   <app-progress-bar
                     [value]="preview().total ? (preview().answered / preview().total) * 100 : 0"
@@ -316,27 +358,43 @@ export function answersBody(
                   />
                 </div>
                 @if (criticalFailures().length) {
-                  <p class="mt-3 text-[13px] font-semibold text-fail" role="status">
+                  <p class="mt-3 text-ui font-semibold text-fail-ink" role="status">
                     {{
                       'suppliers.evaluation.criticalFailures'
                         | transloco: { count: criticalFailures().length }
                     }}
                   </p>
                 }
-                <p class="mt-2 text-[12px] text-fg-subtle">
+                @if (canRaiseDeviation()) {
+                  <div
+                    class="mt-3 flex flex-wrap items-center gap-2 rounded-tile bg-surface-2 px-3 py-2"
+                    data-testid="raise-deviation-box"
+                  >
+                    <p class="min-w-0 flex-1 text-ui text-fg-muted">
+                      {{ 'suppliers.evaluation.raiseDeviationHint' | transloco }}
+                    </p>
+                    <app-button size="sm" variant="secondary" (click)="raiseDeviation()">
+                      {{ 'suppliers.evaluation.raiseDeviation' | transloco }}
+                    </app-button>
+                  </div>
+                }
+                <p class="mt-2 text-meta text-fg-subtle">
                   {{ 'suppliers.evaluation.advisory' | transloco }}
                 </p>
               </app-card>
 
               @if (e.status === 'completed' && e.decision) {
                 <app-card>
-                  <h2 class="mb-2 font-display text-[15px] font-bold text-fg">
+                  <h2 class="mb-2 font-display text-card font-bold text-fg">
                     {{ 'suppliers.evaluation.decisionTitle' | transloco }}
                   </h2>
-                  <p class="mb-2 flex flex-wrap items-center gap-2 text-[13px] text-fg-muted">
-                    <app-badge [tone]="decisionTone(e.decision)">
-                      {{ 'suppliers.decision.' + e.decision | transloco }}
-                    </app-badge>
+                  <p class="mb-2 flex flex-wrap items-center gap-2 text-ui text-fg-muted">
+                    @let db = decision(e.decision);
+                    <app-status-badge
+                      [meaning]="db.meaning"
+                      [value]="db.value"
+                      [labelKey]="'suppliers.decision.' + e.decision"
+                    />
                     @if (e.decided_at) {
                       {{
                         'suppliers.evaluation.decidedBy'
@@ -346,18 +404,18 @@ export function answersBody(
                     }
                   </p>
                   @if (e.conditions) {
-                    <h3 class="mt-2 text-[12px] font-semibold text-fg-muted">
+                    <h3 class="mt-2 text-meta font-semibold text-fg-muted">
                       {{ 'suppliers.decide.conditions' | transloco }}
                     </h3>
-                    <p class="text-[13.5px] whitespace-pre-line text-fg">{{ e.conditions }}</p>
+                    <p class="text-body whitespace-pre-line text-fg">{{ e.conditions }}</p>
                   }
                   @if (e.decision_notes) {
-                    <h3 class="mt-2 text-[12px] font-semibold text-fg-muted">
+                    <h3 class="mt-2 text-meta font-semibold text-fg-muted">
                       {{ 'suppliers.decide.notes' | transloco }}
                     </h3>
-                    <p class="text-[13.5px] whitespace-pre-line text-fg">{{ e.decision_notes }}</p>
+                    <p class="text-body whitespace-pre-line text-fg">{{ e.decision_notes }}</p>
                   }
-                  <p class="mt-3 text-[12px] text-fg-subtle">
+                  <p class="mt-3 text-meta text-fg-subtle">
                     {{
                       (setsStatus()
                         ? 'suppliers.decide.setsStatus'
@@ -365,12 +423,23 @@ export function answersBody(
                       ) | transloco
                     }}
                   </p>
+                  @if (checkedRefs().length) {
+                    <p
+                      class="mt-2 flex flex-wrap items-baseline gap-x-1 text-meta"
+                      data-testid="evidence-note"
+                    >
+                      <span class="text-fg-subtle">{{
+                        'suppliers.evaluation.evidenceFor' | transloco
+                      }}</span>
+                      <app-clause-chips [clauses]="checkedRefs()" />
+                    </p>
+                  }
                 </app-card>
               }
 
               <app-card>
                 <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-                  <h2 class="font-display text-[15px] font-bold text-fg">
+                  <h2 class="font-display text-card font-bold text-fg">
                     {{ 'suppliers.evaluation.questions' | transloco }}
                   </h2>
                   @if (e.status === 'draft' && e.can_edit && !editingQuestions()) {
@@ -387,24 +456,25 @@ export function answersBody(
                       [input]="{ kind: e.kind, count: 5, supplier_id: e.supplier.id }"
                       (result)="addDrafted($event)"
                     />
-                    <label class="flex items-center gap-2 text-[13px] text-fg-muted">
+                    <label class="flex items-center gap-2 text-ui text-fg-muted">
                       {{ 'suppliers.evaluation.passScore' | transloco }}
                       <input
                         type="number"
                         min="0"
                         max="100"
-                        class="h-9 w-20 rounded-tile border border-border bg-bg px-2 text-[13px] text-fg"
+                        class="h-9 w-20 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
                         [value]="passDraft()"
                         (change)="passDraft.set(+$any($event.target).value)"
                       />
                     </label>
+                    <app-field-help scope="suppliers" page="questionnaire" field="pass_score" />
                   </div>
                   <app-question-editor
                     [questions]="questionDraft()"
                     [disabled]="saving()"
                     (questionsChange)="questionDraft.set($event)"
                   />
-                  <p class="mt-2 text-[12px] text-fg-subtle">
+                  <p class="mt-2 text-meta text-fg-subtle">
                     {{ 'suppliers.evaluation.questionsHint' | transloco }}
                   </p>
                   <div class="mt-3 flex justify-end gap-2">
@@ -428,7 +498,7 @@ export function answersBody(
 
               <app-card>
                 <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-                  <h2 class="flex items-center gap-1 font-display text-[15px] font-bold text-fg">
+                  <h2 class="flex items-center gap-1 font-display text-card font-bold text-fg">
                     {{ 'suppliers.evaluation.summary' | transloco }}
                     <app-field-help scope="suppliers" page="evaluation" field="summary" />
                   </h2>
@@ -446,13 +516,10 @@ export function answersBody(
                     class="mb-3 rounded-tile border border-accent bg-accent-soft p-3"
                     aria-live="polite"
                   >
-                    <p class="mb-1 text-[12px] font-semibold text-accent">
+                    <p class="mb-1 text-meta font-semibold text-accent">
                       {{ 'suppliers.ai.suggestion' | transloco }}
                     </p>
-                    <div
-                      class="cf-prose text-[13.5px] text-fg"
-                      [innerHTML]="text | appMarkdown"
-                    ></div>
+                    <div class="cf-prose text-body text-fg" [innerHTML]="text | appMarkdown"></div>
                     <div class="mt-2 flex gap-2">
                       @if (canEditSummary()) {
                         <app-button size="sm" variant="secondary" (click)="useAiSummary(text)">
@@ -473,7 +540,7 @@ export function answersBody(
                     id="ev-summary"
                     rows="4"
                     maxlength="20000"
-                    class="w-full rounded-tile border border-border bg-bg px-3 py-2 text-[13.5px] text-fg"
+                    class="w-full rounded-tile border border-border bg-bg px-3 py-2 text-body text-fg"
                     [placeholder]="'suppliers.evaluation.summaryPlaceholder' | transloco"
                     [value]="summaryDraft()"
                     (input)="summaryDraft.set($any($event.target).value)"
@@ -491,11 +558,11 @@ export function answersBody(
                   </div>
                 } @else if (e.summary) {
                   <div
-                    class="cf-prose text-[13.5px] text-fg"
+                    class="cf-prose text-body text-fg"
                     [innerHTML]="e.summary | appMarkdown"
                   ></div>
                 } @else {
-                  <p class="text-[13.5px] text-fg-subtle">
+                  <p class="text-body text-fg-subtle">
                     {{ 'suppliers.evaluation.noSummary' | transloco }}
                   </p>
                 }
@@ -507,13 +574,13 @@ export function answersBody(
             <ng-container aside>
               <app-card>
                 <div class="mb-2 flex items-center justify-between gap-2">
-                  <h2 class="font-display text-[14px] font-bold text-fg">
+                  <h2 class="font-display text-body font-bold text-fg">
                     {{ 'suppliers.evaluation.details' | transloco }}
                   </h2>
                   @if (isOpen() && e.can_edit && !editingDetails()) {
                     <button
                       type="button"
-                      class="text-[12.5px] font-semibold text-accent hover:underline"
+                      class="text-meta font-semibold text-accent hover:underline"
                       (click)="startEditDetails()"
                     >
                       {{ 'suppliers.common.edit' | transloco }}
@@ -555,6 +622,7 @@ export function answersBody(
                       <input
                         id="ed-due"
                         type="date"
+                        [attr.lang]="lang()"
                         [value]="dueDraft()"
                         (input)="dueDraft.set($any($event.target).value)"
                       />
@@ -574,9 +642,9 @@ export function answersBody(
                     </div>
                   </form>
                 } @else {
-                  <dl class="flex flex-col gap-2 text-[13px]">
+                  <dl class="flex flex-col gap-2 text-ui">
                     <div>
-                      <dt class="text-[12px] text-fg-muted">
+                      <dt class="text-meta text-fg-muted">
                         {{ 'suppliers.evaluations.evaluator' | transloco }}
                       </dt>
                       <dd class="text-fg">
@@ -584,16 +652,16 @@ export function answersBody(
                       </dd>
                     </div>
                     <div>
-                      <dt class="text-[12px] text-fg-muted">
+                      <dt class="text-meta text-fg-muted">
                         {{ 'suppliers.evaluations.dueAt' | transloco }}
                       </dt>
-                      <dd [class.text-fail]="e.overdue">
+                      <dd [class.text-warn-ink]="e.overdue && isOpen()">
                         {{ e.due_at ? (e.due_at | localDay) : '–' }}
                       </dd>
                     </div>
                     @if (e.submitted_at) {
                       <div>
-                        <dt class="text-[12px] text-fg-muted">
+                        <dt class="text-meta text-fg-muted">
                           {{ 'suppliers.evaluation.submitted' | transloco }}
                         </dt>
                         <dd class="text-fg">
@@ -605,7 +673,7 @@ export function answersBody(
                       </div>
                     }
                     <div>
-                      <dt class="text-[12px] text-fg-muted">
+                      <dt class="text-meta text-fg-muted">
                         {{ 'suppliers.evaluation.createdBy' | transloco }}
                       </dt>
                       <dd class="text-fg">
@@ -614,12 +682,6 @@ export function answersBody(
                     </div>
                   </dl>
                 }
-              </app-card>
-              <app-card>
-                <h2 class="mb-2 font-display text-[14px] font-bold text-fg">
-                  {{ 'suppliers.detail.learn' | transloco }}
-                </h2>
-                <app-lesson scope="suppliers" lesson="evaluating-suppliers" />
               </app-card>
             </ng-container>
 
@@ -703,6 +765,10 @@ export class EvaluationDetailPage {
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly notifications = inject(NotificationService);
   private readonly router = inject(Router);
+  private readonly language = inject(LanguageService);
+  private readonly ask = inject(AskPanelService);
+  private readonly flows = inject(CreateFlowService);
+  protected readonly ai = inject(AiAvailability);
 
   /** Supplier id (route `:id`). */
   readonly id = input.required<string>();
@@ -711,8 +777,10 @@ export class EvaluationDetailPage {
 
   protected readonly tabs = TABS;
   protected readonly fieldLabels = EVALUATION_FIELD_LABELS;
-  protected readonly statusTone = evaluationStatusTone;
-  protected readonly decisionTone = decisionTone;
+  protected readonly statusBadge = evaluationStatusBadge;
+  protected readonly decision = decisionBadge;
+  /** Built-in questions and default titles come back in the UI language. */
+  protected readonly lang = computed(() => questionnaireLang(this.language.active()));
 
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
   protected readonly evaluation = signal<EvaluationDetail | null>(null);
@@ -778,6 +846,26 @@ export class EvaluationDetailPage {
       ? this.preview().criticalFailures
       : (e?.critical_failures ?? []);
   });
+  /** Every clause the questions check (a decided evaluation is evidence for them). */
+  protected readonly checkedRefs = computed(() => {
+    const refs = new Set<string>();
+    for (const q of this.evaluation()?.questions ?? []) {
+      for (const ref of q.requirement_refs ?? []) {
+        refs.add(ref);
+      }
+    }
+    return [...refs];
+  });
+  /** Failed critical questions or a rejection: offer "Registrer avvik" (create from here). */
+  protected readonly canRaiseDeviation = computed(() => {
+    const e = this.evaluation();
+    return (
+      !!e &&
+      e.can_edit &&
+      this.permissions().includes('deviations:write') &&
+      (e.decision === 'rejected' || (e.status !== 'draft' && this.criticalFailures().length > 0))
+    );
+  });
 
   private request = new Subscription();
 
@@ -791,13 +879,30 @@ export class EvaluationDetailPage {
         entityId: this.eid(),
         view: 'detail',
         title: e ? `${e.supplier.code} ${e.title}` : null,
+        requirements: this.checkedRefs(),
       };
     });
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();
       const eid = this.eid();
-      untracked(() => this.load(orgId, eid));
+      const lang = this.lang();
+      untracked(() => this.load(orgId, eid, lang));
     });
+  }
+
+  protected reload(): void {
+    this.load(this.selectedOrg.currentOrgId(), this.eid(), this.lang());
+  }
+
+  protected askScore(): void {
+    this.ask.showWith(this.language.translate('suppliers.ai.prompts.explainScore'));
+  }
+
+  protected raiseDeviation(): void {
+    const e = this.evaluation();
+    if (e) {
+      void this.flows.start('supplier_evaluation.to_deviation', 'supplier_evaluation', e.id);
+    }
   }
 
   protected setAnswer(change: AnswerChange): void {
@@ -820,7 +925,7 @@ export class EvaluationDetailPage {
       : 'suppliers.evaluation.summarySaved';
     this.saving.set(true);
     this.actionError.set(null);
-    this.api.updateEvaluation(orgId, e.id, body).subscribe({
+    this.api.updateEvaluation(orgId, e.id, body, this.lang()).subscribe({
       next: (updated) => {
         this.saving.set(false);
         this.apply(updated);
@@ -858,9 +963,9 @@ export class EvaluationDetailPage {
     this.actionError.set(null);
     const body = this.pendingChanges();
     const save$: Observable<unknown> = body
-      ? this.api.updateEvaluation(orgId, e.id, body)
+      ? this.api.updateEvaluation(orgId, e.id, body, this.lang())
       : of(null);
-    save$.pipe(switchMap(() => this.api.submitEvaluation(orgId, e.id))).subscribe({
+    save$.pipe(switchMap(() => this.api.submitEvaluation(orgId, e.id, this.lang()))).subscribe({
       next: (updated) => {
         this.busy.set(false);
         this.pending.set(null);
@@ -893,7 +998,7 @@ export class EvaluationDetailPage {
     }
     this.busy.set(true);
     this.decideError.set(null);
-    this.api.decideEvaluation(orgId, e.id, body).subscribe({
+    this.api.decideEvaluation(orgId, e.id, body, this.lang()).subscribe({
       next: (updated) => {
         this.busy.set(false);
         this.decideOpen.set(false);
@@ -916,8 +1021,8 @@ export class EvaluationDetailPage {
     }
     const call =
       action === 'reopen'
-        ? this.api.reopenEvaluation(orgId, e.id, blankToNull(reason))
-        : this.api.cancelEvaluation(orgId, e.id, blankToNull(reason));
+        ? this.api.reopenEvaluation(orgId, e.id, blankToNull(reason), this.lang())
+        : this.api.cancelEvaluation(orgId, e.id, blankToNull(reason), this.lang());
     this.busy.set(true);
     this.actionError.set(null);
     call.subscribe({
@@ -991,7 +1096,7 @@ export class EvaluationDetailPage {
     const pass = Math.min(100, Math.max(0, Math.round(this.passDraft() || 0)));
     this.saving.set(true);
     this.actionError.set(null);
-    this.api.updateEvaluation(orgId, e.id, { questions, pass_score: pass }).subscribe({
+    this.api.updateEvaluation(orgId, e.id, { questions, pass_score: pass }, this.lang()).subscribe({
       next: (updated) => {
         this.saving.set(false);
         this.editingQuestions.set(false);
@@ -1025,11 +1130,16 @@ export class EvaluationDetailPage {
     this.saving.set(true);
     this.actionError.set(null);
     this.api
-      .updateEvaluation(orgId, e.id, {
-        title: this.titleDraft().trim(),
-        evaluator_user_id: this.evaluatorDraft() || null,
-        due_at: due ? `${due}T23:59:59` : null,
-      })
+      .updateEvaluation(
+        orgId,
+        e.id,
+        {
+          title: this.titleDraft().trim(),
+          evaluator_user_id: this.evaluatorDraft() || null,
+          due_at: due ? `${due}T23:59:59` : null,
+        },
+        this.lang(),
+      )
       .subscribe({
         next: (updated) => {
           this.saving.set(false);
@@ -1057,7 +1167,7 @@ export class EvaluationDetailPage {
     this.saving.set(true);
     this.actionError.set(null);
     this.api
-      .updateEvaluation(orgId, e.id, { summary: blankToNull(this.summaryDraft()) })
+      .updateEvaluation(orgId, e.id, { summary: blankToNull(this.summaryDraft()) }, this.lang())
       .subscribe({
         next: (updated) => {
           this.saving.set(false);
@@ -1101,13 +1211,13 @@ export class EvaluationDetailPage {
     this.unanswered.set([]);
   }
 
-  private load(orgId: string | null, eid: string): void {
+  private load(orgId: string | null, eid: string, lang: 'en' | 'nb'): void {
     this.request.unsubscribe();
     if (!orgId) {
       return;
     }
     this.state.set('loading');
-    this.request = this.api.getEvaluation(orgId, eid).subscribe({
+    this.request = this.api.getEvaluation(orgId, eid, lang).subscribe({
       next: (e) => {
         this.apply(e);
         this.state.set('ready');

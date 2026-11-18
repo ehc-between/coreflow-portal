@@ -145,4 +145,22 @@ export class NextActions {
       link: splitUrl(action.url),
     }));
   });
+
+  constructor() {
+    // Module actions carry scoped keys (e.g. 'suppliers:next.dpaMissing.title'): load
+    // the module's translation file so the title is not shown as a raw key.
+    const transloco = inject(TranslocoService);
+    const requested = new Set<string>();
+    effect(() => {
+      const lang = this.language.active();
+      for (const action of this.actions()) {
+        const at = action.title_key.indexOf(':');
+        const path = at > 0 ? action.title_key.slice(0, at) + '/' + lang : null;
+        if (path && !requested.has(path)) {
+          requested.add(path);
+          untracked(() => transloco.load(path).subscribe({ error: () => undefined }));
+        }
+      }
+    });
+  }
 }

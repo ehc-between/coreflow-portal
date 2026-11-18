@@ -1,7 +1,16 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { ClausePicker } from '../../../shared/requirement-links/clause-picker';
+import { FormField } from '../../../shared/ui/form-field/form-field';
 import { Icon } from '../../../shared/ui/icon/icon';
-import { QUESTION_TYPES, QuestionIn, QuestionType } from '../data/supplier.models';
+import {
+  MAX_QUESTION_REFS,
+  QUESTION_CATEGORIES,
+  QUESTION_TYPES,
+  QuestionIn,
+  QuestionType,
+} from '../data/supplier.models';
 
 /** A question row being edited (every field set, so the template stays simple). */
 export interface EditableQuestion {
@@ -14,19 +23,28 @@ export interface EditableQuestion {
   readonly max_score: number;
   readonly critical: boolean;
   readonly required: boolean;
+  /** Clauses the question checks (canonical refs). */
+  readonly requirement_refs: readonly string[];
+}
+
+/** Whether a section is one of the known (translated) sections. */
+export function isKnownCategory(category: string): boolean {
+  return (QUESTION_CATEGORIES as readonly string[]).includes(category.trim().toLowerCase());
 }
 
 export function toEditable(q: QuestionIn): EditableQuestion {
+  const category = (q.category || 'general').trim();
   return {
     id: q.id ?? null,
     text: q.text ?? '',
     help: q.help ?? '',
-    category: q.category || 'general',
+    category: isKnownCategory(category) ? category.toLowerCase() : category,
     type: q.type ?? 'yes_no',
     weight: clampInt(q.weight ?? 1, 1, 10),
     max_score: clampInt(q.max_score ?? 5, 1, 10),
     critical: !!q.critical,
     required: q.required ?? true,
+    requirement_refs: [...(q.requirement_refs ?? [])].slice(0, MAX_QUESTION_REFS),
   };
 }
 
@@ -44,6 +62,7 @@ export function toQuestionIn(rows: readonly EditableQuestion[]): QuestionIn[] {
       max_score: r.max_score,
       critical: r.critical,
       required: r.required,
+      requirement_refs: [...r.requirement_refs].slice(0, MAX_QUESTION_REFS),
     }));
 }
 
@@ -56,27 +75,37 @@ function clampInt(value: number, min: number, max: number): number {
   return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : min;
 }
 
+/** The select value of a row's section: a known key, or `other` for a custom one. */
+export function categoryChoice(category: string): string {
+  return isKnownCategory(category) ? category : 'other';
+}
+
+let nextId = 0;
+
 /**
- * Editor for a questionnaire's questions: text, help, category, answer type, weight,
- * maximum score (score questions), and the critical / required flags; rows can be
- * reordered, removed and added. Stateless: emits the full new list on every change.
+ * Editor for a questionnaire's questions: text, guidance for the person answering,
+ * section (a known one or "Annet" with a name), answer type, weight (how much the
+ * question counts), maximum score (score questions), the clauses the question checks
+ * and the critical / required flags (critical: a "Nei" means rejection whatever the
+ * score). Rows can be reordered, removed and added. Stateless: emits the full new list
+ * on every change.
  */
 @Component({
   selector: 'app-question-editor',
-  imports: [TranslocoPipe, Icon],
+  imports: [FormsModule, TranslocoPipe, ClausePicker, FormField, Icon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <ol class="flex flex-col gap-3" [attr.aria-label]="'suppliers.questions.listLabel' | transloco">
       @for (q of questions(); track $index; let i = $index; let first = $first; let last = $last) {
         <li class="rounded-tile border border-border bg-bg p-3" data-testid="question-row">
           <div class="mb-2 flex items-center justify-between gap-2">
-            <span class="text-[12px] font-semibold text-fg-subtle">
+            <span class="text-meta font-semibold text-fg-subtle">
               {{ 'suppliers.questions.number' | transloco: { n: i + 1 } }}
             </span>
             <span class="flex items-center gap-1">
               <button
                 type="button"
-                class="rounded-[8px] px-2 py-1 text-[12px] text-fg-muted hover:bg-surface-2 disabled:opacity-40"
+                class="h-7 rounded-tile px-2 text-meta text-fg-muted hover:bg-surface-2 disabled:opacity-40"
                 [disabled]="disabled() || first"
                 [attr.aria-label]="'suppliers.questions.moveUp' | transloco: { n: i + 1 }"
                 (click)="move(i, -1)"
@@ -85,7 +114,7 @@ function clampInt(value: number, min: number, max: number): number {
               </button>
               <button
                 type="button"
-                class="rounded-[8px] px-2 py-1 text-[12px] text-fg-muted hover:bg-surface-2 disabled:opacity-40"
+                class="h-7 rounded-tile px-2 text-meta text-fg-muted hover:bg-surface-2 disabled:opacity-40"
                 [disabled]="disabled() || last"
                 [attr.aria-label]="'suppliers.questions.moveDown' | transloco: { n: i + 1 }"
                 (click)="move(i, 1)"
@@ -94,7 +123,7 @@ function clampInt(value: number, min: number, max: number): number {
               </button>
               <button
                 type="button"
-                class="rounded-[8px] p-1 text-fg-subtle hover:text-fail disabled:opacity-40"
+                class="h-7 rounded-tile p-1 text-fg-subtle hover:text-fail disabled:opacity-40"
                 [disabled]="disabled()"
                 [attr.aria-label]="'suppliers.questions.remove' | transloco: { n: i + 1 }"
                 (click)="remove(i)"
@@ -103,99 +132,162 @@ function clampInt(value: number, min: number, max: number): number {
               </button>
             </span>
           </div>
-          <div class="grid grid-cols-1 gap-2 sm:grid-cols-6">
-            <label
-              class="flex flex-col gap-1 text-[12px] font-semibold text-fg-muted sm:col-span-6"
-            >
-              {{ 'suppliers.questions.text' | transloco }}
-              <textarea
-                rows="2"
-                maxlength="1000"
-                class="rounded-tile border border-border bg-bg px-3 py-2 text-[13.5px] font-normal text-fg"
-                [value]="q.text"
-                [disabled]="disabled()"
-                (input)="patch(i, { text: $any($event.target).value })"
-              ></textarea>
-            </label>
-            <label
-              class="flex flex-col gap-1 text-[12px] font-semibold text-fg-muted sm:col-span-6"
-            >
-              {{ 'suppliers.questions.help' | transloco }}
-              <input
-                type="text"
-                maxlength="1000"
-                class="h-9 rounded-tile border border-border bg-bg px-3 text-[13px] font-normal text-fg"
-                [value]="q.help"
-                [disabled]="disabled()"
-                (input)="patch(i, { help: $any($event.target).value })"
-              />
-            </label>
-            <label
-              class="flex flex-col gap-1 text-[12px] font-semibold text-fg-muted sm:col-span-2"
-            >
-              {{ 'suppliers.questions.category' | transloco }}
-              <input
-                type="text"
-                maxlength="64"
-                class="h-9 rounded-tile border border-border bg-bg px-3 text-[13px] font-normal text-fg"
-                [value]="q.category"
-                [disabled]="disabled()"
-                (input)="patch(i, { category: $any($event.target).value })"
-              />
-            </label>
-            <label
-              class="flex flex-col gap-1 text-[12px] font-semibold text-fg-muted sm:col-span-2"
-            >
-              {{ 'suppliers.questions.type' | transloco }}
-              <select
-                class="h-9 rounded-tile border border-border bg-bg px-2 text-[13px] font-normal text-fg"
-                [disabled]="disabled()"
-                (change)="patch(i, { type: $any($event.target).value })"
+          <div class="grid grid-cols-1 gap-3 sm:grid-cols-6">
+            <div class="sm:col-span-6">
+              <app-form-field
+                [label]="'suppliers.questions.text' | transloco"
+                [inputId]="id + '-text-' + i"
               >
-                @for (t of types; track t) {
-                  <option [value]="t" [selected]="t === q.type">
-                    {{ 'suppliers.questionType.' + t | transloco }}
-                  </option>
-                }
-              </select>
-            </label>
-            <label class="flex flex-col gap-1 text-[12px] font-semibold text-fg-muted">
-              {{ 'suppliers.questions.weight' | transloco }}
-              <input
-                type="number"
-                min="1"
-                max="10"
-                class="h-9 rounded-tile border border-border bg-bg px-2 text-[13px] font-normal text-fg"
-                [value]="q.weight"
-                [disabled]="disabled() || q.type === 'text'"
-                (change)="patchNumber(i, 'weight', $any($event.target).value)"
-              />
-            </label>
-            @if (q.type === 'score') {
-              <label class="flex flex-col gap-1 text-[12px] font-semibold text-fg-muted">
-                {{ 'suppliers.questions.maxScore' | transloco }}
+                <textarea
+                  [id]="id + '-text-' + i"
+                  rows="2"
+                  maxlength="1000"
+                  [value]="q.text"
+                  [disabled]="disabled()"
+                  (input)="patch(i, { text: $any($event.target).value })"
+                ></textarea>
+              </app-form-field>
+            </div>
+            <div class="sm:col-span-6">
+              <app-form-field
+                [label]="'suppliers.questions.help' | transloco"
+                [inputId]="id + '-help-' + i"
+              >
                 <input
+                  [id]="id + '-help-' + i"
+                  type="text"
+                  maxlength="1000"
+                  [value]="q.help"
+                  [disabled]="disabled()"
+                  (input)="patch(i, { help: $any($event.target).value })"
+                />
+              </app-form-field>
+            </div>
+            <div class="sm:col-span-3">
+              <app-form-field
+                [label]="'suppliers.questions.category' | transloco"
+                [inputId]="id + '-cat-' + i"
+              >
+                <select
+                  [id]="id + '-cat-' + i"
+                  [disabled]="disabled()"
+                  (change)="setCategory(i, $any($event.target).value)"
+                >
+                  @for (c of categories; track c) {
+                    <option [value]="c" [selected]="choice(q.category) === c">
+                      {{ 'suppliers.questionCategory.' + c | transloco }}
+                    </option>
+                  }
+                  <option value="other" [selected]="choice(q.category) === 'other'">
+                    {{ 'suppliers.questionCategory.other' | transloco }}
+                  </option>
+                </select>
+              </app-form-field>
+              @if (choice(q.category) === 'other') {
+                <label class="sr-only" [attr.for]="id + '-catname-' + i">
+                  {{ 'suppliers.questions.categoryName' | transloco }}
+                </label>
+                <input
+                  [id]="id + '-catname-' + i"
+                  type="text"
+                  maxlength="64"
+                  class="mt-2 h-10 w-full rounded-tile border border-border bg-bg px-3 text-ui text-fg"
+                  [placeholder]="'suppliers.questions.categoryName' | transloco"
+                  [value]="q.category === 'other' ? '' : q.category"
+                  [disabled]="disabled()"
+                  (input)="patch(i, { category: $any($event.target).value || 'other' })"
+                />
+              }
+            </div>
+            <div class="sm:col-span-3">
+              <app-form-field
+                [label]="'suppliers.questions.type' | transloco"
+                [inputId]="id + '-type-' + i"
+              >
+                <select
+                  [id]="id + '-type-' + i"
+                  [disabled]="disabled()"
+                  (change)="patch(i, { type: $any($event.target).value })"
+                >
+                  @for (t of types; track t) {
+                    <option [value]="t" [selected]="t === q.type">
+                      {{ 'suppliers.questionType.' + t | transloco }}
+                    </option>
+                  }
+                </select>
+              </app-form-field>
+            </div>
+            <div class="sm:col-span-3">
+              <app-form-field
+                [label]="'suppliers.questions.weight' | transloco"
+                [inputId]="id + '-weight-' + i"
+              >
+                <input
+                  [id]="id + '-weight-' + i"
                   type="number"
                   min="1"
                   max="10"
-                  class="h-9 rounded-tile border border-border bg-bg px-2 text-[13px] font-normal text-fg"
-                  [value]="q.max_score"
-                  [disabled]="disabled()"
-                  (change)="patchNumber(i, 'max_score', $any($event.target).value)"
+                  [attr.aria-describedby]="id + '-weight-hint-' + i"
+                  [value]="q.weight"
+                  [disabled]="disabled() || q.type === 'text'"
+                  (change)="patchNumber(i, 'weight', $any($event.target).value)"
                 />
-              </label>
+              </app-form-field>
+              <p [id]="id + '-weight-hint-' + i" class="mt-1 text-meta text-fg-subtle">
+                {{ 'suppliers.questions.weightHint' | transloco }}
+              </p>
+            </div>
+            @if (q.type === 'score') {
+              <div class="sm:col-span-3">
+                <app-form-field
+                  [label]="'suppliers.questions.maxScore' | transloco"
+                  [inputId]="id + '-max-' + i"
+                >
+                  <input
+                    [id]="id + '-max-' + i"
+                    type="number"
+                    min="1"
+                    max="10"
+                    [value]="q.max_score"
+                    [disabled]="disabled()"
+                    (change)="patchNumber(i, 'max_score', $any($event.target).value)"
+                  />
+                </app-form-field>
+              </div>
             }
+            <div class="sm:col-span-6">
+              <app-form-field
+                [label]="'suppliers.questions.refs' | transloco"
+                [inputId]="id + '-refs-' + i"
+              >
+                <app-clause-picker
+                  [inputId]="id + '-refs-' + i"
+                  [ngModel]="q.requirement_refs"
+                  [ngModelOptions]="{ standalone: true }"
+                  [disabled]="disabled()"
+                  (ngModelChange)="setRefs(i, $event)"
+                />
+              </app-form-field>
+              <p class="mt-1 text-meta text-fg-subtle">
+                {{ 'suppliers.questions.refsHint' | transloco: { max: maxRefs } }}
+              </p>
+            </div>
           </div>
-          <div class="mt-2 flex flex-wrap gap-4 text-[13px] text-fg">
-            <label class="inline-flex items-center gap-2">
+          <div class="mt-3 flex flex-col gap-2 text-ui text-fg">
+            <label class="inline-flex items-start gap-2">
               <input
                 type="checkbox"
-                class="h-4 w-4"
+                class="mt-0.5 h-4 w-4 flex-none"
                 [checked]="q.critical"
                 [disabled]="disabled() || q.type === 'text'"
                 (change)="patch(i, { critical: $any($event.target).checked })"
               />
-              {{ 'suppliers.questions.critical' | transloco }}
+              <span>
+                {{ 'suppliers.questions.critical' | transloco }}
+                <span class="block text-meta text-fg-subtle">
+                  {{ 'suppliers.questions.criticalHint' | transloco }}
+                </span>
+              </span>
             </label>
             <label class="inline-flex items-center gap-2">
               <input
@@ -210,14 +302,14 @@ function clampInt(value: number, min: number, max: number): number {
           </div>
         </li>
       } @empty {
-        <li class="rounded-tile border border-dashed border-border p-4 text-[13px] text-fg-muted">
+        <li class="rounded-tile border border-dashed border-border p-4 text-ui text-fg-muted">
           {{ 'suppliers.questions.empty' | transloco }}
         </li>
       }
     </ol>
     <button
       type="button"
-      class="mt-3 inline-flex items-center gap-1.5 rounded-tile px-3 py-1.5 text-[13px] font-semibold text-accent hover:bg-accent-soft disabled:opacity-50"
+      class="mt-3 inline-flex items-center gap-1.5 rounded-tile px-3 py-1.5 text-ui font-semibold text-accent hover:bg-accent-soft disabled:opacity-50"
       [disabled]="disabled()"
       (click)="add()"
       data-testid="question-add"
@@ -232,13 +324,32 @@ export class QuestionEditor {
   readonly disabled = input(false);
   readonly questionsChange = output<readonly EditableQuestion[]>();
 
+  protected readonly id = `sup-q-${++nextId}`;
   protected readonly types = QUESTION_TYPES;
+  protected readonly categories = QUESTION_CATEGORIES;
+  protected readonly maxRefs = MAX_QUESTION_REFS;
+  protected readonly choice = categoryChoice;
 
   protected patch(index: number, change: Partial<EditableQuestion>): void {
     const next = [...this.questions()];
     const merged = { ...next[index], ...change };
     next[index] = merged.type === 'text' ? { ...merged, critical: false } : merged;
     this.questionsChange.emit(next);
+  }
+
+  protected setCategory(index: number, value: string): void {
+    // "Annet" keeps a custom name already typed; a known section replaces it.
+    const current = this.questions()[index]?.category ?? '';
+    if (value === 'other') {
+      this.patch(index, { category: isKnownCategory(current) ? 'other' : current || 'other' });
+    } else {
+      this.patch(index, { category: value });
+    }
+  }
+
+  protected setRefs(index: number, value: unknown): void {
+    const refs = Array.isArray(value) ? (value as string[]) : [];
+    this.patch(index, { requirement_refs: refs.slice(0, MAX_QUESTION_REFS) });
   }
 
   protected patchNumber(index: number, key: 'weight' | 'max_score', raw: string): void {

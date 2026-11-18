@@ -329,7 +329,8 @@
       "review_input": "Input to this management review",
       "text_match": "Similar wording",
       "ai": "Suggested by the assistant",
-      "other": "Probably related"
+      "other": "Probably related",
+      "supplier_named": "Names this supplier"
     },
     "origin": {
       "auto": "Automatic",
@@ -419,7 +420,11 @@
     "supplier": {
       "to_contract": "Contract with this supplier",
       "to_evaluation": "Supplier evaluation",
-      "to_risk": "Supplier risk"
+      "to_risk": "Supplier risk",
+      "to_deviation": "Deviation for this supplier",
+      "to_processor": "Register as data processor",
+      "to_dpa": "Data processing agreement",
+      "to_transfer": "Transfer assessment (data outside the EU/EEA)"
     },
     "dpia": {
       "to_risk": "Risk from this DPIA"
@@ -559,6 +564,9 @@
     },
     "candidate": {
       "to_data_subject_request": "Request from this candidate (access or erasure)"
+    },
+    "supplier_evaluation": {
+      "to_deviation": "Deviation from this evaluation"
     }
   },
   "frameworks": {
