@@ -1651,7 +1651,12 @@
         "multiselect": "Flervalg",
         "checkbox": "Avkrysning",
         "user": "Person",
-        "department": "Avdeling"
+        "department": "Avdeling",
+        "richtext": "Formatert tekst",
+        "datetime": "Dato og klokkeslett",
+        "file": "Vedlegg",
+        "entity_ref": "Lenke til en registrering",
+        "calculated": "Beregnet"
       },
       "editor": {
         "name": "Navn",

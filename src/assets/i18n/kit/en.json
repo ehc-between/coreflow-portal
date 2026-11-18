@@ -440,6 +440,11 @@
       "to_obligation": "AI Act duties for this system"
     },
     "asset": {
+      "to_deviation": "Deviation for this asset",
+      "to_risk": "Risk to this asset",
+      "to_processing": "Processing activity (record of processing)",
+      "to_change": "Change request for this asset",
+      "to_access_review": "Access review of this system",
       "to_ict_system": "ICT service for continuity"
     },
     "calibration": {
