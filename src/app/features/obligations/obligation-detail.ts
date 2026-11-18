@@ -51,7 +51,7 @@ import {
   jurisdictionKey,
   nextSteps,
   obligationStatusKey,
-  obligationStatusTone,
+  obligationStatusMeaning,
   obligationTypeKey,
   resultKey,
   safeUrl,
@@ -196,7 +196,7 @@ const ASK_PROMPTS: readonly AskPrompt[] = [
               <span>{{ typeKey(o.obligation_type) | transloco }}</span>
               <app-status-badge
                 meaning="lifecycle"
-                [value]="statusTone(o.status)"
+                [value]="statusMeaning(o.status)"
                 [labelKey]="statusKey(o.status)"
                 data-testid="obligation-status"
               />
@@ -576,7 +576,7 @@ export class ObligationDetail {
   protected readonly fieldLabels = OBLIGATION_FIELD_LABELS;
   protected readonly askPrompts = ASK_PROMPTS;
   protected readonly statusKey = obligationStatusKey;
-  protected readonly statusTone = obligationStatusTone;
+  protected readonly statusMeaning = obligationStatusMeaning;
   protected readonly typeKey = obligationTypeKey;
   protected readonly complianceKey = complianceKey;
   protected readonly resultKey = resultKey;

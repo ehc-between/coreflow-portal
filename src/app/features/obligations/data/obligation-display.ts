@@ -49,7 +49,7 @@ export function changeStatusKey(status: string | null | undefined): string {
  * The tone-map value of a change note's status (`app-status-badge meaning="lifecycle"`):
  * an open note is still to be handled, a handled one is done.
  */
-export function changeStatusTone(status: ChangeStatus | string): string {
+export function changeStatusMeaning(status: ChangeStatus | string): string {
   return status === 'assessed' ? 'done' : 'open';
 }
 
@@ -57,7 +57,7 @@ export function changeStatusTone(status: ChangeStatus | string): string {
  * The tone-map value of an obligation's lifecycle status: active is in force (accent),
  * a draft is not yet in use, a retired obligation no longer applies.
  */
-export function obligationStatusTone(status: string): string {
+export function obligationStatusMeaning(status: string): string {
   return status === 'active' ? 'active' : status === 'retired' ? 'retired' : 'draft';
 }
 

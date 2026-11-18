@@ -198,7 +198,7 @@ function flag(value: string | null): boolean {
             <app-kpi-tile
               [label]="'obligations.summary.notFullyCompliant' | transloco"
               [value]="s.not_fully_compliant"
-              [tone]="tileTone('notFully', s.not_fully_compliant, 'warn')"
+              [tone]="tileEmphasis('notFully', s.not_fully_compliant, 'warn')"
             />
           </button>
           <button
@@ -211,7 +211,7 @@ function flag(value: string | null): boolean {
             <app-kpi-tile
               [label]="'obligations.summary.notEvaluated' | transloco"
               [value]="s.not_evaluated"
-              [tone]="tileTone('notEvaluated', s.not_evaluated, 'info')"
+              [tone]="tileEmphasis('notEvaluated', s.not_evaluated, 'info')"
             />
           </button>
           <button
@@ -224,7 +224,7 @@ function flag(value: string | null): boolean {
             <app-kpi-tile
               [label]="'obligations.summary.withoutSchedule' | transloco"
               [value]="s.without_schedule"
-              [tone]="tileTone('withoutSchedule', s.without_schedule, 'warn')"
+              [tone]="tileEmphasis('withoutSchedule', s.without_schedule, 'warn')"
             />
           </button>
           <button
@@ -237,7 +237,7 @@ function flag(value: string | null): boolean {
             <app-kpi-tile
               [label]="'obligations.summary.overdue' | transloco"
               [value]="s.evaluations_overdue"
-              [tone]="tileTone('overdue', s.evaluations_overdue, 'warn')"
+              [tone]="tileEmphasis('overdue', s.evaluations_overdue, 'warn')"
             />
           </button>
           <button
@@ -250,7 +250,7 @@ function flag(value: string | null): boolean {
             <app-kpi-tile
               [label]="'obligations.summary.renewalDue' | transloco"
               [value]="s.renewal_due"
-              [tone]="tileTone('renewal', s.renewal_due, 'warn')"
+              [tone]="tileEmphasis('renewal', s.renewal_due, 'warn')"
             />
           </button>
           <button
@@ -263,7 +263,7 @@ function flag(value: string | null): boolean {
             <app-kpi-tile
               [label]="'obligations.summary.expiring' | transloco: { days: s.expiring_within_days }"
               [value]="s.expiring_soon"
-              [tone]="tileTone('expiring', s.expiring_soon, 'warn')"
+              [tone]="tileEmphasis('expiring', s.expiring_soon, 'warn')"
             />
           </button>
         }
@@ -712,7 +712,7 @@ export class ObligationsList {
     return parts.join(' · ');
   }
 
-  protected tileTone(tile: TileFilter, value: number, tone: 'warn' | 'info') {
+  protected tileEmphasis(tile: TileFilter, value: number, tone: 'warn' | 'info') {
     if (this.tile() === tile) {
       return 'accent' as const;
     }

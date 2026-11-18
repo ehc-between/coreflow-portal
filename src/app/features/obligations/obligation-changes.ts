@@ -33,7 +33,7 @@ import {
 } from './data/obligation.models';
 import {
   changeStatusKey,
-  changeStatusTone,
+  changeStatusMeaning,
   impactKey,
   safeUrl,
   todayIso,
@@ -234,7 +234,7 @@ export function preparesTask(change: Pick<Change, 'impact' | 'effective_on'>): b
                     />
                     <app-status-badge
                       meaning="lifecycle"
-                      [value]="changeStatusTone(c.status)"
+                      [value]="changeStatusMeaning(c.status)"
                       [labelKey]="changeStatusKey(c.status)"
                     />
                     @if (canEdit()) {
@@ -386,7 +386,7 @@ export class ObligationChanges {
 
   protected readonly impacts = IMPACTS;
   protected readonly impactKey = impactKey;
-  protected readonly changeStatusTone = changeStatusTone;
+  protected readonly changeStatusMeaning = changeStatusMeaning;
   protected readonly preparesTask = preparesTask;
   protected readonly changeStatusKey = changeStatusKey;
   protected readonly link = safeUrl;

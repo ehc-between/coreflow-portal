@@ -374,6 +374,14 @@ describe('supports-requirements helpers', () => {
     expect(fieldLabelKey('control_refs')).toBe('standards.reqs.fields.control_refs');
     expect(fieldLabelKey('mystery')).toBe('standards.reqs.fields.generic');
     expect(fieldLabelKey(null)).toBe('standards.reqs.fields.generic');
+    expect(fieldLabelKey('clause_refs')).toBe('standards.reqs.fields.clause_refs');
+    expect(fieldLabelKey('clause_refs', 'audit_plan')).toBe('standards.reqs.fields.clause_refs');
+    expect(fieldLabelKey('clause_refs', 'compliance_obligation')).toBe(
+      'standards.reqs.fields.documented_refs',
+    );
+    expect(fieldLabelKey('clause_refs', 'obligation_duty')).toBe(
+      'standards.reqs.fields.documented_refs',
+    );
   });
 
   it('merges stored and virtual suggestions without repeating known or rejected refs', () => {
