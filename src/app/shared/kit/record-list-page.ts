@@ -161,6 +161,20 @@ let nextId = 0;
               class="absolute right-0 z-30 mt-1 w-[260px] rounded-tile border border-border bg-surface p-1.5 shadow-card"
               data-testid="views-menu"
             >
+              @for (view of presetViews(); track view.id) {
+                <button
+                  type="button"
+                  class="block w-full truncate rounded-lg px-2.5 py-1.5 text-left text-ui text-fg hover:bg-surface-2"
+                  [attr.aria-label]="'kit.list.applyView' | transloco: { name: view.name }"
+                  (click)="apply(view)"
+                  [attr.data-testid]="'preset-view-' + view.id"
+                >
+                  {{ view.name }}
+                </button>
+              }
+              @if (presetViews().length && views().length) {
+                <div class="my-1 border-t border-border" aria-hidden="true"></div>
+              }
               @for (view of views(); track view.id) {
                 <div class="flex items-center gap-1 rounded-lg hover:bg-surface-2">
                   <button
@@ -181,9 +195,11 @@ let nextId = 0;
                   </button>
                 </div>
               } @empty {
-                <p class="px-2.5 py-1.5 text-meta text-fg-muted">
-                  {{ 'kit.list.noViews' | transloco }}
-                </p>
+                @if (!presetViews().length) {
+                  <p class="px-2.5 py-1.5 text-meta text-fg-muted">
+                    {{ 'kit.list.noViews' | transloco }}
+                  </p>
+                }
               }
               <div class="mt-1 border-t border-border pt-1">
                 <button
@@ -246,6 +262,8 @@ export class RecordListPage {
   readonly query = input('');
   /** The current filter values, stored with a saved view. */
   readonly filters = input<Readonly<Record<string, string>>>({});
+  /** Ready-made views of the page (listed first, cannot be deleted). Names are display text. */
+  readonly presetViews = input<readonly SavedView[]>([]);
   /** Show the `[empty]` slot instead of the list. */
   readonly empty = input(false);
 

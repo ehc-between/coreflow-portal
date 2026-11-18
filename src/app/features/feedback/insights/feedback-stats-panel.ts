@@ -11,20 +11,15 @@ import {
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
-import { providePageContext } from '../../../core/ai/page-context';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
-import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { LocalDayPipe, LocalNumberPipe } from '../../../shared/locale/locale-pipes';
 import { Card } from '../../../shared/ui/card/card';
 import { ErrorState } from '../../../shared/ui/error-state/error-state';
-import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { KpiTile, KpiTone } from '../../../shared/ui/kpi-tile/kpi-tile';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
-import { ModuleNav } from '../../../shared/ui/module-nav/module-nav';
-import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { FeedbackApi } from '../data/feedback-api';
 import {
   addDays,
@@ -40,15 +35,14 @@ import { feedbackErrorKey } from '../data/feedback-errors';
 import {
   ExportFormat,
   FEEDBACK_CHANNELS,
-  FEEDBACK_ENTITY,
   FEEDBACK_KINDS,
   FEEDBACK_SENTIMENTS,
+  FEEDBACK_SOURCES,
   FEEDBACK_STATUSES,
   FeedbackStats,
   MonthlyStat,
 } from '../data/feedback.models';
 import { FeedbackExportMenu } from '../export-menu';
-import { FEEDBACK_NAV, FEEDBACK_SETTINGS_LINK } from '../feedback-nav';
 import { FeedbackThemes } from '../themes-panel';
 
 export const PERIODS = ['3', '6', '12', '24'] as const;
@@ -108,75 +102,91 @@ export function periodStart(months: number, today: Date = new Date()): string {
   return addDays(0, d);
 }
 
-interface InsightTile {
+/** The period's received-on window, added to every drill-down so counts match the list. */
+export function periodQuery(
+  stats: Pick<FeedbackStats, 'from_date' | 'to_date'> | null,
+): Readonly<Record<string, string>> {
+  return stats ? { received_from: stats.from_date, received_to: stats.to_date } : {};
+}
+
+/**
+ * One month of the trend as a received-on window, clamped to the period so the
+ * list it opens counts exactly the month's bar (`month` is `YYYY-MM`).
+ */
+export function monthQuery(
+  month: string,
+  stats: Pick<FeedbackStats, 'from_date' | 'to_date'> | null,
+): Readonly<Record<string, string>> {
+  const [year, mon] = month.split('-').map(Number);
+  const first = `${month}-01`;
+  const last = addDays(0, new Date(year, mon, 0));
+  const from = stats && stats.from_date > first ? stats.from_date : first;
+  const to = stats && stats.to_date < last ? stats.to_date : last;
+  return { received_from: from, received_to: to };
+}
+
+/** The complaint-handling rows; each opens the complaints it counts in the period. */
+export const HANDLING_ROWS = ['assessed', 'justified', 'replied'] as const;
+export type HandlingRow = (typeof HANDLING_ROWS)[number];
+
+/** The register filter behind a complaint-handling row (the same rules as the stats). */
+export function handlingQuery(key: HandlingRow): Readonly<Record<string, string>> {
+  if (key === 'justified') {
+    return { kind: 'complaint', justified: 'yes' };
+  }
+  return { kind: 'complaint', [key]: 'true' };
+}
+
+interface PanelTile {
   readonly key: string;
   readonly value: string | number;
   readonly tone: KpiTone;
   readonly hintKey: string;
   readonly hintParams: Record<string, unknown>;
+  /** Null for an average: there is no list behind it. */
   readonly link: string | null;
-  readonly query: Readonly<Record<string, string | undefined>> | null;
+  readonly query: Readonly<Record<string, string>> | null;
 }
 
 /**
- * Customer satisfaction insights (`/feedback/insights`), the evidence for ISO 9001
- * 9.1.2 and the management review: tiles that say what each figure means (and open
- * the matching records), complaint handling (assessed, justified, answered),
- * breakdowns that drill down to the register, a monthly chart, the survey score
- * and NPS, an export for the audit file, and an AI summary of themes.
+ * The register's statistics, folded out under the KPI band (`/feedback?stats=1`;
+ * `/feedback/insights` redirects here). The evidence for ISO 9001 9.1.2 and the
+ * management review: the period's totals, complaint handling, breakdowns that each
+ * open the register filtered on the row and the period, the monthly trend, the
+ * survey score and NPS, an export, and the themes in what customers wrote.
  */
 @Component({
-  selector: 'app-feedback-insights',
+  selector: 'app-feedback-stats-panel',
   imports: [
     RouterLink,
     TranslocoPipe,
     LocalDayPipe,
     LocalNumberPipe,
-    WhyItMatters,
     Card,
     ErrorState,
-    HelpStrip,
     Icon,
     KpiTile,
     LoadingState,
-    ModuleNav,
-    PageHeader,
     FeedbackExportMenu,
     FeedbackThemes,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
-      <app-page-header
-        titleKey="feedback.insights.title"
-        descriptionKey="feedback.insights.subtitle"
-        [breadcrumbs]="[
-          { labelKey: 'modules.names.feedback', link: '/feedback' },
-          { labelKey: 'feedback.tabs.insights' },
-        ]"
-        [settingsLink]="settingsLink"
-      >
-        <a
-          secondary
-          routerLink="/management-review"
-          class="inline-flex h-9 items-center gap-1.5 rounded-tile border border-border bg-surface px-3 text-ui font-semibold text-fg hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
-          data-testid="to-management-review"
-        >
-          <app-icon name="reports" [size]="14" />
-          {{ 'feedback.insights.toManagementReview' | transloco }}
-        </a>
-        <app-feedback-export-menu secondary [busy]="exporting()" (chosen)="export($event)" />
-      </app-page-header>
-      <app-module-nav labelKey="modules.names.feedback" [items]="nav" />
-      <app-help-strip scope="feedback" page="insights" lesson="measuring-satisfaction" />
-
-      <div class="mb-4 flex flex-wrap items-center gap-2">
-        <label for="cf-fb-period" class="text-ui font-semibold text-fg-muted">
+    <section
+      class="mb-6 rounded-card border border-border bg-surface-2 p-3 sm:p-4"
+      [attr.aria-labelledby]="headingId"
+      data-testid="stats-panel"
+    >
+      <div class="mb-3 flex flex-wrap items-center gap-2">
+        <h2 [id]="headingId" class="mr-auto font-display text-card font-bold text-fg">
+          {{ 'feedback.stats.title' | transloco }}
+        </h2>
+        <label for="cf-fb-period" class="sr-only">
           {{ 'feedback.insights.period' | transloco }}
         </label>
         <select
           id="cf-fb-period"
-          class="h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg focus:border-accent focus:outline-none"
+          class="h-9 rounded-tile border border-border bg-bg px-2 text-ui text-fg focus:border-accent focus:outline-none"
           (change)="setPeriod($any($event.target).value)"
           data-testid="insights-period"
         >
@@ -186,29 +196,37 @@ interface InsightTile {
             </option>
           }
         </select>
-        @if (stats(); as s) {
-          <span class="text-meta text-fg-muted" data-testid="insights-range">
-            {{
-              'feedback.insights.range'
-                | transloco: { from: (s.from_date | localDay), to: (s.to_date | localDay) }
-            }}
-          </span>
-        }
+        <app-feedback-export-menu [busy]="exporting()" (chosen)="export($event)" />
+        <a
+          routerLink="/management-review"
+          class="inline-flex h-9 items-center gap-1.5 rounded-tile border border-border bg-surface px-3 text-ui font-semibold text-fg hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+          data-testid="to-management-review"
+        >
+          <app-icon name="reports" [size]="14" />
+          <span class="hidden sm:inline">{{
+            'feedback.insights.toManagementReview' | transloco
+          }}</span>
+        </a>
       </div>
+      @if (stats(); as s) {
+        <p class="mb-3 text-meta text-fg-muted" data-testid="insights-range">
+          {{
+            'feedback.insights.range'
+              | transloco: { from: (s.from_date | localDay), to: (s.to_date | localDay) }
+          }}
+        </p>
+      }
 
       @switch (state()) {
         @case ('loading') {
-          <app-loading-state [rows]="6" />
+          <app-loading-state [rows]="4" />
         }
         @case ('error') {
           <app-error-state (retry)="reload()" />
         }
         @default {
           @if (stats(); as s) {
-            <div
-              class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4"
-              data-testid="insights-kpis"
-            >
+            <div class="grid grid-cols-2 gap-3 lg:grid-cols-4" data-testid="insights-kpis">
               @for (t of tiles(); track t.key) {
                 @if (t.link) {
                   <a
@@ -241,10 +259,10 @@ interface InsightTile {
             </div>
             <p class="mt-2 text-meta text-fg-muted">{{ 'feedback.insights.scales' | transloco }}</p>
 
-            <app-card class="mt-6 block">
-              <h2 class="mb-1 font-display text-card font-bold text-fg">
+            <app-card class="mt-4 block">
+              <h3 class="mb-1 font-display text-card font-bold text-fg">
                 {{ 'feedback.insights.handling.title' | transloco }}
-              </h2>
+              </h3>
               <p class="mb-3 text-meta text-fg-muted">
                 {{ 'feedback.insights.handling.intro' | transloco }}
               </p>
@@ -255,44 +273,42 @@ interface InsightTile {
               } @else {
                 <ul class="flex flex-col gap-2" data-testid="complaint-handling">
                   @for (h of handling(); track h.key) {
-                    <li
-                      class="grid grid-cols-[minmax(0,1fr)_88px] items-center gap-3 text-ui sm:grid-cols-[220px_minmax(0,1fr)_88px]"
-                    >
-                      <span class="text-fg">{{
-                        'feedback.insights.handling.' + h.key | transloco
-                      }}</span>
-                      <span
-                        class="hidden h-2.5 overflow-hidden rounded-full bg-surface-2 sm:block"
-                        aria-hidden="true"
+                    <li>
+                      <a
+                        routerLink="/feedback"
+                        [queryParams]="h.query"
+                        class="grid grid-cols-[minmax(0,1fr)_88px] items-center gap-3 rounded-tile px-1 py-1 text-ui hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none sm:grid-cols-[220px_minmax(0,1fr)_88px]"
+                        [attr.data-testid]="'handling-' + h.key"
                       >
+                        <span class="text-fg">{{
+                          'feedback.insights.handling.' + h.key | transloco
+                        }}</span>
                         <span
-                          class="block h-full rounded-full bg-accent"
-                          [style.width.%]="h.percent"
-                        ></span>
-                      </span>
-                      <span class="text-right text-fg-muted">{{
-                        'feedback.insights.handling.ofTotal'
-                          | transloco: { count: h.count, total: s.complaints, percent: h.percent }
-                      }}</span>
+                          class="hidden h-2.5 overflow-hidden rounded-full bg-surface-2 sm:block"
+                          aria-hidden="true"
+                        >
+                          <span
+                            class="block h-full rounded-full bg-accent"
+                            [style.width.%]="h.percent"
+                          ></span>
+                        </span>
+                        <span class="text-right font-semibold text-accent">{{
+                          'feedback.insights.handling.ofTotal'
+                            | transloco: { count: h.count, total: s.complaints, percent: h.percent }
+                        }}</span>
+                      </a>
                     </li>
                   }
                 </ul>
-                <a
-                  routerLink="/feedback"
-                  [queryParams]="{ kind: 'complaint', justified: 'yes' }"
-                  class="mt-3 inline-block text-meta font-semibold text-accent hover:underline"
-                >
-                  {{ 'feedback.insights.handling.openJustified' | transloco }}
-                </a>
               }
             </app-card>
 
-            <div class="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
+            <div class="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
               @for (b of breakdowns(); track b.titleKey) {
                 <app-card>
-                  <h2 class="mb-3 font-display text-card font-bold text-fg">
+                  <h3 class="mb-3 font-display text-card font-bold text-fg">
                     {{ b.titleKey | transloco }}
-                  </h2>
+                  </h3>
                   @if (b.rows.length === 0) {
                     <p class="text-ui text-fg-muted">
                       {{ 'feedback.insights.noData' | transloco }}
@@ -336,10 +352,10 @@ interface InsightTile {
               }
             </div>
 
-            <app-card class="mt-6 block">
-              <h2 class="mb-1 font-display text-card font-bold text-fg">
+            <app-card class="mt-4 block">
+              <h3 class="mb-1 font-display text-card font-bold text-fg">
                 {{ 'feedback.insights.trend' | transloco }}
-              </h2>
+              </h3>
               @if (months().length === 0) {
                 <p class="text-ui text-fg-muted">{{ 'feedback.insights.noData' | transloco }}</p>
               } @else {
@@ -361,24 +377,45 @@ interface InsightTile {
                 </p>
                 <div
                   class="flex h-40 items-end gap-1.5 overflow-x-auto border-b border-border pb-0.5 sm:gap-3"
-                  role="img"
+                  role="group"
                   [attr.aria-label]="'feedback.insights.chartLabel' | transloco"
                   data-testid="insights-chart"
                 >
                   @for (m of months(); track m.month) {
-                    <div class="flex h-full min-w-8 flex-1 flex-col items-center justify-end gap-1">
-                      <span class="text-micro text-fg-muted">{{ m.total || '' }}</span>
-                      <div
-                        class="flex w-full max-w-10 flex-col justify-end overflow-hidden rounded-t-md"
-                        [style.height.%]="barHeight(m.total)"
+                    @if (m.total) {
+                      <a
+                        routerLink="/feedback"
+                        [queryParams]="m.query"
+                        class="group flex h-full min-w-8 flex-1 flex-col items-center justify-end gap-1 rounded-t-md focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                        [attr.aria-label]="
+                          'feedback.insights.monthLabel'
+                            | transloco
+                              : {
+                                  month: (m.month + '-01' | localDay: 'MMMM y'),
+                                  count: m.total,
+                                  complaints: m.complaints,
+                                }
+                        "
+                        [attr.data-testid]="'month-' + m.month"
                       >
+                        <span class="text-micro font-semibold text-accent">{{ m.total }}</span>
                         <span
-                          class="block w-full bg-accent"
-                          [style.flex-grow]="m.total - m.complaints"
-                        ></span>
-                        <span class="block w-full bg-warn" [style.flex-grow]="m.complaints"></span>
-                      </div>
-                    </div>
+                          class="flex w-full max-w-10 flex-col justify-end overflow-hidden rounded-t-md group-hover:opacity-80"
+                          [style.height.%]="barHeight(m.total)"
+                        >
+                          <span
+                            class="block w-full bg-accent"
+                            [style.flex-grow]="m.total - m.complaints"
+                          ></span>
+                          <span
+                            class="block w-full bg-warn"
+                            [style.flex-grow]="m.complaints"
+                          ></span>
+                        </span>
+                      </a>
+                    } @else {
+                      <span class="min-w-8 flex-1" aria-hidden="true"></span>
+                    }
                   }
                 </div>
                 <div class="mt-1 flex gap-1.5 overflow-x-auto sm:gap-3" aria-hidden="true">
@@ -422,9 +459,21 @@ interface InsightTile {
                             <th scope="row" class="py-1.5 pr-3 font-normal text-fg">
                               {{ m.month + '-01' | localDay: 'MMMM y' }}
                             </th>
-                            <td class="py-1.5 pr-3">{{ m.total }}</td>
-                            <td class="py-1.5 pr-3">{{ m.complaints }}</td>
-                            <td class="py-1.5 pr-3">{{ m.compliments }}</td>
+                            @for (c of m.cells; track c.key) {
+                              <td class="py-1.5 pr-3">
+                                @if (c.count) {
+                                  <a
+                                    routerLink="/feedback"
+                                    [queryParams]="c.query"
+                                    class="font-semibold text-accent hover:underline"
+                                    [attr.data-testid]="'trend-' + m.month + '-' + c.key"
+                                    >{{ c.count }}</a
+                                  >
+                                } @else {
+                                  0
+                                }
+                              </td>
+                            }
                             <td class="py-1.5">
                               {{
                                 m.average_satisfaction === null
@@ -444,28 +493,24 @@ interface InsightTile {
         }
       }
 
-      <app-card class="mt-6 block">
+      <app-card class="mt-4 block">
         <app-feedback-themes
           [assistInput]="themesInput()"
-          [disabled]="(stats()?.total ?? 0) === 0"
+          [disabled]="(stats()?.total ?? 0) === 0 && (stats()?.survey_responses ?? 0) === 0"
         />
       </app-card>
-
-      <div class="mt-6">
-        <app-why-it-matters scope="feedback" page="insights" />
-      </div>
-    </div>
+    </section>
   `,
 })
-export class FeedbackInsights {
+export class FeedbackStatsPanel {
   private readonly api = inject(FeedbackApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly language = inject(LanguageService);
   private readonly notifications = inject(NotificationService);
 
+  private static nextId = 0;
+  protected readonly headingId = `cf-fb-stats-${FeedbackStatsPanel.nextId++}`;
   protected readonly periods = PERIODS;
-  protected readonly nav = FEEDBACK_NAV;
-  protected readonly settingsLink = FEEDBACK_SETTINGS_LINK;
 
   protected readonly period = signal<Period>('12');
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
@@ -474,14 +519,15 @@ export class FeedbackInsights {
 
   protected readonly from = computed(() => periodStart(Number(this.period())));
   protected readonly themesInput = computed(() => ({ from: this.from() }));
+  private readonly window = computed(() => periodQuery(this.stats()));
 
-  protected readonly tiles = computed<InsightTile[]>(() => {
+  protected readonly tiles = computed<PanelTile[]>(() => {
     const s = this.stats();
     if (!s) {
       return [];
     }
     const dash = '–';
-    const tiles: InsightTile[] = [
+    return [
       {
         key: 'total',
         value: s.total,
@@ -489,25 +535,7 @@ export class FeedbackInsights {
         hintKey: 'feedback.insights.hints.total',
         hintParams: { count: s.complaints ?? s.by_kind['complaint'] ?? 0 },
         link: '/feedback',
-        query: null,
-      },
-      {
-        key: 'openComplaints',
-        value: s.open_complaints,
-        tone: s.open_complaints ? 'warn' : 'pass',
-        hintKey: 'feedback.insights.hints.openComplaints',
-        hintParams: {},
-        link: '/feedback',
-        query: { kind: 'complaint', status: 'open' },
-      },
-      {
-        key: 'overdue',
-        value: s.overdue,
-        tone: s.overdue ? 'warn' : 'pass',
-        hintKey: 'feedback.insights.hints.overdue',
-        hintParams: {},
-        link: '/feedback',
-        query: { overdue: '1' },
+        query: this.window(),
       },
       {
         key: 'daysToResolve',
@@ -519,22 +547,14 @@ export class FeedbackInsights {
         query: null,
       },
       {
-        key: 'satisfaction',
-        value: round1(s.average_satisfaction) ?? dash,
-        tone: 'accent',
-        hintKey: 'feedback.insights.hints.satisfaction',
-        hintParams: { count: s.satisfaction_count },
-        link: null,
-        query: null,
-      },
-      {
         key: 'surveyScore',
         value: round1(s.survey_average_score) ?? dash,
         tone: scoreLevel(s.survey_average_score),
         hintKey: 'feedback.insights.hints.surveyScore',
         hintParams: { count: s.survey_responses },
-        link: '/feedback/surveys',
-        query: null,
+        // The answers the score is built from, in the same period (the hint's count).
+        link: '/feedback/answers',
+        query: { submitted_from: s.from_date, submitted_to: s.to_date },
       },
       {
         key: 'nps',
@@ -545,28 +565,24 @@ export class FeedbackInsights {
         link: '/feedback/surveys',
         query: null,
       },
-      {
-        key: 'surveyResponses',
-        value: s.survey_responses,
-        tone: 'neutral',
-        hintKey: 'feedback.insights.hints.surveyResponses',
-        hintParams: {},
-        link: '/feedback/surveys',
-        query: null,
-      },
     ];
-    return tiles;
   });
 
   protected readonly handling = computed(() => {
     const s = this.stats();
     const total = s?.complaints ?? 0;
-    const row = (key: string, count: number) => ({ key, count, percent: percentOf(count, total) });
-    return [
-      row('assessed', s?.complaints_assessed ?? 0),
-      row('justified', s?.complaints_justified ?? 0),
-      row('replied', s?.complaints_replied ?? 0),
-    ];
+    const counts: Record<HandlingRow, number> = {
+      assessed: s?.complaints_assessed ?? 0,
+      justified: s?.complaints_justified ?? 0,
+      replied: s?.complaints_replied ?? 0,
+    };
+    const win = this.window();
+    return HANDLING_ROWS.map((key) => ({
+      key,
+      count: counts[key],
+      percent: percentOf(counts[key], total),
+      query: { ...win, ...handlingQuery(key) },
+    }));
   });
 
   protected readonly breakdowns = computed(() => {
@@ -574,46 +590,65 @@ export class FeedbackInsights {
     if (!s) {
       return [];
     }
-    const groups = [
+    const win = this.window();
+    const withWindow = (rows: BreakdownRow[]) =>
+      rows.map((r) => ({ ...r, query: { ...win, ...r.query } }));
+    return [
       {
         titleKey: 'feedback.insights.byKind',
-        rows: breakdown(s.by_kind, FEEDBACK_KINDS, 'feedback.kinds', 'kind'),
+        rows: withWindow(breakdown(s.by_kind, FEEDBACK_KINDS, 'feedback.kinds', 'kind')),
       },
       {
         titleKey: 'feedback.insights.byStatus',
-        rows: breakdown(s.by_status, FEEDBACK_STATUSES, 'feedback.status', 'status'),
+        rows: withWindow(breakdown(s.by_status, FEEDBACK_STATUSES, 'feedback.status', 'status')),
+      },
+      {
+        titleKey: 'feedback.insights.bySource',
+        rows: withWindow(
+          breakdown(s.by_source ?? {}, FEEDBACK_SOURCES, 'feedback.sources', 'source'),
+        ),
       },
       {
         titleKey: 'feedback.insights.byChannel',
-        rows: breakdown(s.by_channel, FEEDBACK_CHANNELS, 'feedback.channels', 'channel'),
-      },
-      {
-        titleKey: 'feedback.insights.byCategory',
-        rows: categoryRows(s.by_category),
+        rows: withWindow(
+          breakdown(s.by_channel, FEEDBACK_CHANNELS, 'feedback.channels', 'channel'),
+        ),
       },
       {
         titleKey: 'feedback.insights.bySentiment',
-        rows: breakdown(s.by_sentiment, FEEDBACK_SENTIMENTS, 'feedback.sentiments'),
+        rows: withWindow(
+          breakdown(s.by_sentiment, FEEDBACK_SENTIMENTS, 'feedback.sentiments', 'sentiment'),
+        ),
+      },
+      {
+        titleKey: 'feedback.insights.byCategory',
+        rows: withWindow(categoryRows(s.by_category)),
       },
     ];
-    return groups;
   });
 
-  protected readonly months = computed<readonly MonthlyStat[]>(() =>
-    trimmedMonths(this.stats()?.monthly ?? []),
-  );
+  /** The trend months; each bar and table count opens that month's records. */
+  protected readonly months = computed(() => {
+    const s = this.stats();
+    return trimmedMonths(s?.monthly ?? []).map((m: MonthlyStat) => {
+      const query = monthQuery(m.month, s);
+      return {
+        ...m,
+        query,
+        cells: [
+          { key: 'total', count: m.total, query },
+          { key: 'complaints', count: m.complaints, query: { ...query, kind: 'complaint' } },
+          { key: 'compliments', count: m.compliments, query: { ...query, kind: 'compliment' } },
+        ],
+      };
+    });
+  });
   private readonly maxMonthly = computed(() => Math.max(1, ...this.months().map((m) => m.total)));
 
   private request = new Subscription();
 
   constructor() {
     inject(DestroyRef).onDestroy(() => this.request.unsubscribe());
-    providePageContext(() => ({
-      module: 'feedback',
-      entityType: FEEDBACK_ENTITY,
-      view: 'dashboard',
-      title: this.language.translate('feedback.insights.title'),
-    }));
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();
       const from = this.from();
