@@ -526,6 +526,26 @@
     },
     "continuity_ict_system": {
       "to_task": "Task to close the readiness gap"
+    },
+    "env_aspect": {
+      "to_objective": "Environmental objective for this aspect",
+      "to_risk": "Risk or opportunity from this aspect",
+      "to_document": "Procedure that controls this aspect",
+      "to_task": "Task to follow it up",
+      "to_emergency_plan": "Emergency plan for this aspect"
+    },
+    "emergency_plan": {
+      "to_deviation": "Deviation from this event",
+      "to_task": "Task to follow it up"
+    },
+    "env_drill": {
+      "to_deviation": "Deviation from this drill or event",
+      "to_task": "Task from the lessons learned"
+    },
+    "env_metric": {
+      "to_objective": "Environmental objective for this indicator",
+      "to_kpi": "KPI that tracks this indicator",
+      "to_deviation": "Deviation: off target"
     }
   },
   "frameworks": {

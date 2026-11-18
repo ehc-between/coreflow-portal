@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  Signal,
   computed,
   effect,
   inject,
@@ -9,26 +10,33 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../core/ai/page-context';
 import { AuthService } from '../../core/auth/auth.service';
+import { CreateFlowService, FlowContext } from '../../core/kit/create-flow.service';
 import { LanguageService } from '../../core/i18n/language.service';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { AskAbout } from '../../shared/ask/ask-about';
-import { FieldHelp } from '../../shared/guidance/field-help';
-import { GuideIntro } from '../../shared/guidance/guide-intro';
-import { WhyItMatters } from '../../shared/guidance/why-it-matters';
+import { FlowBanner } from '../../shared/kit/flow-banner';
 import { RecurrencePicker } from '../../shared/tasks/recurrence-picker';
-import { Alert } from '../../shared/ui/alert/alert';
 import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
-import { FormField } from '../../shared/ui/form-field/form-field';
-import { Icon } from '../../shared/ui/icon/icon';
+import { ErrorState } from '../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
+import { LoadingState } from '../../shared/ui/loading-state/loading-state';
+import { PageHeader } from '../../shared/ui/page-header/page-header';
 import { EnvironmentApi } from './data/environment-api';
-import { GHG_SCOPES, METRIC_CATEGORIES, METRIC_STATUSES, Metric } from './data/environment.models';
+import {
+  ENTITY_METRIC,
+  GHG_SCOPES,
+  METRIC_CATEGORIES,
+  METRIC_DIRECTIONS,
+  METRIC_STATUSES,
+  Metric,
+} from './data/environment.models';
 import { environmentErrorKey } from './data/environment-errors';
 import {
   MetricFormValue,
@@ -38,72 +46,96 @@ import {
   toMetricUpdate,
   validateMetricForm,
 } from './data/form-models';
-import { EnvOwnerFields } from './owner-fields';
+import {
+  ENV_CRUMBS,
+  ENV_MODULE,
+  ENV_ROOT_CRUMB,
+  EnvDirectorySelect,
+  EnvField,
+  injectEnvPermissions,
+} from './environment-shared';
 
-/** Common units per category, offered as suggestions in the unit field. */
-export const UNIT_SUGGESTIONS = ['kWh', 'MWh', 'l', 'm³', 'kg', 't', 'km', 'Nm³', 't CO₂e'];
+/** Form values a create-from-here prefill may set (name, unit, description). */
+export function metricPrefill(
+  form: MetricFormValue,
+  prefill: Readonly<Record<string, unknown>>,
+): MetricFormValue {
+  const str = (key: string) => (typeof prefill[key] === 'string' ? (prefill[key] as string) : null);
+  return {
+    ...form,
+    name: str('name') ?? str('title') ?? form.name,
+    unit: str('unit') ?? form.unit,
+    description: str('description') ?? form.description,
+  };
+}
 
 /**
- * Create (`/environment/metrics/new`) or edit (`/environment/metrics/:id/edit`)
- * a monitoring metric: what is measured, its unit, GHG scope and emission factor
- * (kg CO2e per unit), and an optional collection schedule that reminds the owner.
+ * Create (`/environment/metrics/new`) or edit (`/environment/metrics/:id/edit`) an
+ * environmental indicator: what is measured and how, the target and baseline (so
+ * the data can be judged against criteria, 9.1.1), the emission category (scope,
+ * explained where you choose it) and emission factor with its source and year, the
+ * owner and a reminder to record values.
  */
 @Component({
   selector: 'app-env-metric-editor',
   imports: [
-    RouterLink,
     TranslocoPipe,
     AskAbout,
-    FieldHelp,
-    GuideIntro,
-    WhyItMatters,
+    FlowBanner,
     RecurrencePicker,
-    Alert,
     Button,
     Card,
-    FormField,
-    Icon,
-    EnvOwnerFields,
+    ErrorState,
+    HelpStrip,
+    LoadingState,
+    PageHeader,
+    EnvDirectorySelect,
+    EnvField,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[960px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
-      <a
-        [routerLink]="id() ? ['/environment/metrics', id()] : '/environment/metrics'"
-        class="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
-      >
-        <app-icon name="back" [size]="16" />
-        {{ (id() ? 'environment.common.backToRecord' : 'environment.metrics.back') | transloco }}
-      </a>
-      <h1
-        class="mb-4 font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]"
-        data-testid="metric-form-title"
-      >
-        @if (original(); as m) {
-          {{ 'environment.metric.editTitle' | transloco: { code: m.code } }}
-        } @else {
-          {{ 'environment.metric.newTitle' | transloco }}
-        }
-      </h1>
-      <div class="mb-5"><app-guide-intro scope="environment" page="metricForm" /></div>
+    <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+      <div class="max-w-[760px]">
+        <app-page-header
+          [titleKey]="id() ? 'environment.metric.editTitle' : 'environment.metric.newTitle'"
+          [titleParams]="{ code: original()?.code ?? '' }"
+          [breadcrumbs]="breadcrumbs()"
+          titleTestId="metric-form-title"
+        />
+        <app-help-strip scope="environment" page="metricForm" lesson="monitoring-and-emissions" />
 
-      @switch (state()) {
-        @case ('loading') {
-          <p class="py-10 text-center text-[14px] text-fg-muted" role="status">
-            {{ 'environment.common.loading' | transloco }}
-          </p>
-        }
-        @case ('error') {
-          <app-alert tone="error">{{ errorKey() | transloco }}</app-alert>
-        }
-        @default {
-          <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); submit()" novalidate>
-            <app-card>
-              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div class="sm:col-span-2">
-                  <app-form-field
-                    [label]="'environment.fields.name' | transloco"
+        @switch (state()) {
+          @case ('loading') {
+            <app-loading-state [rows]="6" />
+          }
+          @case ('error') {
+            <app-error-state [bodyKey]="errorKey()" (retry)="reload()" />
+          }
+          @default {
+            <app-flow-banner [flow]="flow()" (cancelled)="cancelFlow()" />
+            <form
+              class="flex flex-col gap-5"
+              (submit)="$event.preventDefault(); submit()"
+              novalidate
+            >
+              <p class="text-meta text-fg-muted">
+                <span class="text-fail" aria-hidden="true">*</span>
+                {{ 'environment.form.requiredHint' | transloco }}
+              </p>
+
+              <app-card>
+                <h2 class="mb-4 font-display text-card font-bold text-fg">
+                  {{ 'environment.metric.sections.what' | transloco }}
+                </h2>
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <app-env-field
+                    class="sm:col-span-2"
+                    labelKey="environment.fields.name"
                     inputId="cf-env-m-name"
+                    page="metricForm"
+                    help="name"
+                    [required]="true"
+                    [errorKey]="shown()['name']"
                   >
                     <input
                       id="cf-env-m-name"
@@ -115,63 +147,216 @@ export const UNIT_SUGGESTIONS = ['kWh', 'MWh', 'l', 'm³', 'kg', 't', 'km', 'Nm�
                       [attr.aria-invalid]="!!shown()['name']"
                       data-testid="metric-name"
                     />
-                  </app-form-field>
-                  @if (shown()['name']; as key) {
-                    <p class="mt-1 text-[12px] text-fail" role="alert">{{ key | transloco }}</p>
-                  }
-                </div>
-                <div>
-                  <app-form-field
-                    [label]="'environment.fields.category' | transloco"
-                    inputId="cf-env-m-category"
+                  </app-env-field>
+                  <app-env-field
+                    labelKey="environment.fields.category"
+                    inputId="cf-env-m-cat"
+                    [required]="true"
                   >
-                    <select
-                      id="cf-env-m-category"
-                      (change)="set('category', $any($event.target).value)"
-                    >
+                    <select id="cf-env-m-cat" (change)="set('category', $any($event.target).value)">
                       @for (c of categories; track c) {
                         <option [value]="c" [selected]="form().category === c">
                           {{ 'environment.categories.' + c | transloco }}
                         </option>
                       }
                     </select>
-                  </app-form-field>
-                </div>
-                <div>
-                  <app-form-field
-                    [label]="'environment.fields.unit' | transloco"
+                  </app-env-field>
+                  <app-env-field
+                    labelKey="environment.fields.unit"
                     inputId="cf-env-m-unit"
+                    hintKey="environment.metric.unitHint"
+                    [required]="true"
+                    [errorKey]="shown()['unit']"
                   >
                     <input
                       id="cf-env-m-unit"
                       type="text"
                       maxlength="32"
-                      list="cf-env-m-units"
                       required
+                      aria-describedby="cf-env-m-unit-hint"
                       [value]="form().unit"
                       (input)="set('unit', $any($event.target).value)"
                       [attr.aria-invalid]="!!shown()['unit']"
                       data-testid="metric-unit"
                     />
-                  </app-form-field>
-                  <datalist id="cf-env-m-units">
-                    @for (u of units; track u) {
-                      <option [value]="u"></option>
-                    }
-                  </datalist>
-                  @if (shown()['unit']; as key) {
-                    <p class="mt-1 text-[12px] text-fail" role="alert">{{ key | transloco }}</p>
-                  }
-                  <app-field-help scope="environment" page="metricForm" field="unit" />
+                  </app-env-field>
+                  <app-env-field
+                    class="sm:col-span-2"
+                    labelKey="environment.fields.measurementMethod"
+                    inputId="cf-env-m-method"
+                    page="metricForm"
+                    help="measurement_method"
+                  >
+                    <app-ask-about
+                      label-extra
+                      [prompt]="'environment.ask.methodField' | transloco"
+                      field="measurement_method"
+                      [fieldLabel]="'environment.fields.measurementMethod' | transloco"
+                      [requirements]="['iso14001:9.1.1']"
+                    />
+                    <textarea
+                      id="cf-env-m-method"
+                      rows="2"
+                      maxlength="2000"
+                      [value]="form().measurement_method"
+                      (input)="set('measurement_method', $any($event.target).value)"
+                    ></textarea>
+                  </app-env-field>
+                  <app-env-field
+                    class="sm:col-span-2"
+                    labelKey="environment.fields.description"
+                    inputId="cf-env-m-desc"
+                  >
+                    <textarea
+                      id="cf-env-m-desc"
+                      rows="2"
+                      maxlength="20000"
+                      [value]="form().description"
+                      (input)="set('description', $any($event.target).value)"
+                    ></textarea>
+                  </app-env-field>
+                  <app-env-field labelKey="environment.fields.site" inputId="cf-env-m-site">
+                    <input
+                      id="cf-env-m-site"
+                      type="text"
+                      maxlength="128"
+                      [value]="form().site"
+                      (input)="set('site', $any($event.target).value)"
+                    />
+                  </app-env-field>
                 </div>
-                <div>
-                  <app-form-field
-                    [label]="'environment.fields.ghgScope' | transloco"
+              </app-card>
+
+              <app-card id="target">
+                <h2 class="mb-1 font-display text-card font-bold text-fg">
+                  {{ 'environment.metric.targetTitle' | transloco }}
+                </h2>
+                <p class="mb-4 text-ui text-fg-muted">
+                  {{ 'environment.metric.targetFormHint' | transloco }}
+                </p>
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <app-env-field
+                    class="sm:col-span-2"
+                    labelKey="environment.fields.direction"
+                    inputId="cf-env-m-dir"
+                    page="metricForm"
+                    help="direction"
+                    [legend]="true"
+                  >
+                    <div
+                      class="flex flex-wrap gap-4"
+                      role="radiogroup"
+                      aria-labelledby="cf-env-m-dir-label"
+                    >
+                      @for (d of directions; track d) {
+                        <label class="inline-flex items-center gap-2 text-body text-fg">
+                          <input
+                            type="radio"
+                            name="cf-env-m-dir"
+                            class="h-4 w-4 accent-[var(--accent)]"
+                            [checked]="form().direction === d"
+                            (change)="set('direction', d)"
+                          />
+                          {{ 'environment.directions.' + d | transloco }}
+                        </label>
+                      }
+                    </div>
+                  </app-env-field>
+                  <app-env-field
+                    labelKey="environment.fields.targetValueIn"
+                    [labelParams]="{ unit: form().unit || '…' }"
+                    inputId="cf-env-m-target"
+                    page="metricForm"
+                    help="target_value"
+                    [errorKey]="shown()['target_value']"
+                  >
+                    <app-ask-about
+                      label-extra
+                      [prompt]="'environment.ask.targetField' | transloco"
+                      field="target_value"
+                      [fieldLabel]="'environment.fields.targetValue' | transloco"
+                      [requirements]="['iso14001:6.2.1', 'iso14001:9.1.1']"
+                    />
+                    <input
+                      id="cf-env-m-target"
+                      type="text"
+                      inputmode="decimal"
+                      [value]="form().target_value"
+                      (input)="set('target_value', $any($event.target).value)"
+                      [attr.aria-invalid]="!!shown()['target_value']"
+                      data-testid="metric-target"
+                    />
+                  </app-env-field>
+                  <app-env-field
+                    labelKey="environment.fields.targetYear"
+                    inputId="cf-env-m-target-year"
+                    [errorKey]="shown()['target_year']"
+                  >
+                    <input
+                      id="cf-env-m-target-year"
+                      type="text"
+                      inputmode="numeric"
+                      maxlength="4"
+                      [value]="form().target_year"
+                      (input)="set('target_year', $any($event.target).value)"
+                      [attr.aria-invalid]="!!shown()['target_year']"
+                    />
+                  </app-env-field>
+                  <app-env-field
+                    labelKey="environment.fields.baselineValueIn"
+                    [labelParams]="{ unit: form().unit || '…' }"
+                    inputId="cf-env-m-baseline"
+                    page="metricForm"
+                    help="baseline_value"
+                    [errorKey]="shown()['baseline_value']"
+                  >
+                    <input
+                      id="cf-env-m-baseline"
+                      type="text"
+                      inputmode="decimal"
+                      [value]="form().baseline_value"
+                      (input)="set('baseline_value', $any($event.target).value)"
+                      [attr.aria-invalid]="!!shown()['baseline_value']"
+                    />
+                  </app-env-field>
+                  <app-env-field
+                    labelKey="environment.fields.baselineYear"
+                    inputId="cf-env-m-baseline-year"
+                    [errorKey]="shown()['baseline_year']"
+                  >
+                    <input
+                      id="cf-env-m-baseline-year"
+                      type="text"
+                      inputmode="numeric"
+                      maxlength="4"
+                      [value]="form().baseline_year"
+                      (input)="set('baseline_year', $any($event.target).value)"
+                      [attr.aria-invalid]="!!shown()['baseline_year']"
+                    />
+                  </app-env-field>
+                </div>
+              </app-card>
+
+              <app-card>
+                <h2 class="mb-1 font-display text-card font-bold text-fg">
+                  {{ 'environment.metric.sections.emissions' | transloco }}
+                </h2>
+                <p class="mb-4 text-ui text-fg-muted">
+                  {{ 'environment.metric.emissionsHint' | transloco }}
+                </p>
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <app-env-field
+                    class="sm:col-span-2"
+                    labelKey="environment.fields.ghgScope"
                     inputId="cf-env-m-scope"
+                    page="metricForm"
+                    help="ghg_scope"
                   >
                     <select
                       id="cf-env-m-scope"
+                      aria-describedby="cf-env-m-scope-explain"
                       (change)="set('ghg_scope', $any($event.target).value)"
+                      data-testid="metric-scope"
                     >
                       <option value="" [selected]="!form().ghg_scope">
                         {{ 'environment.scopes.none' | transloco }}
@@ -182,70 +367,103 @@ export const UNIT_SUGGESTIONS = ['kWh', 'MWh', 'l', 'm³', 'kg', 't', 'km', 'Nm�
                         </option>
                       }
                     </select>
-                  </app-form-field>
-                  <app-field-help scope="environment" page="metricForm" field="ghg_scope" />
-                </div>
-                <div>
-                  <div class="flex items-end gap-1">
-                    <div class="flex-1">
-                      <app-form-field
-                        [label]="'environment.fields.emissionFactor' | transloco"
-                        inputId="cf-env-m-factor"
-                      >
-                        <input
-                          id="cf-env-m-factor"
-                          type="text"
-                          inputmode="decimal"
-                          [value]="form().emission_factor"
-                          (input)="set('emission_factor', $any($event.target).value)"
-                          [attr.aria-invalid]="!!shown()['emission_factor']"
-                          data-testid="metric-factor"
-                        />
-                      </app-form-field>
+                    <div id="cf-env-m-scope-explain" class="mt-1.5 text-meta text-fg-muted">
+                      @if (form().ghg_scope; as s) {
+                        {{ 'environment.scopeHelp.' + s | transloco }}
+                      } @else {
+                        <ul class="flex flex-col gap-0.5">
+                          @for (s of scopes; track s) {
+                            <li>
+                              <span class="font-semibold"
+                                >{{ 'environment.scopes.' + s | transloco }}:</span
+                              >
+                              {{ 'environment.scopeHelp.' + s | transloco }}
+                            </li>
+                          }
+                        </ul>
+                      }
                     </div>
+                  </app-env-field>
+                  <app-env-field
+                    labelKey="environment.fields.emissionFactor"
+                    inputId="cf-env-m-factor"
+                    page="metricForm"
+                    help="emission_factor"
+                    [errorKey]="shown()['emission_factor']"
+                  >
                     <app-ask-about
+                      label-extra
                       [prompt]="'environment.ask.emissionFactor' | transloco: { unit: form().unit }"
                       field="emission_factor"
+                      [fieldLabel]="'environment.fields.emissionFactor' | transloco"
+                      [requirements]="['iso14001:9.1.1']"
                     />
-                  </div>
-                  @if (shown()['emission_factor']; as key) {
-                    <p class="mt-1 text-[12px] text-fail" role="alert">{{ key | transloco }}</p>
-                  }
-                  <app-field-help scope="environment" page="metricForm" field="emission_factor" />
-                </div>
-                <div class="sm:col-span-2">
-                  <app-form-field
-                    [label]="'environment.fields.description' | transloco"
-                    inputId="cf-env-m-desc"
-                  >
-                    <textarea
-                      id="cf-env-m-desc"
-                      rows="3"
-                      maxlength="20000"
-                      [value]="form().description"
-                      (input)="set('description', $any($event.target).value)"
-                    ></textarea>
-                  </app-form-field>
-                </div>
-                <div>
-                  <app-form-field
-                    [label]="'environment.fields.site' | transloco"
-                    inputId="cf-env-m-site"
+                    <input
+                      id="cf-env-m-factor"
+                      type="text"
+                      inputmode="decimal"
+                      [value]="form().emission_factor"
+                      (input)="set('emission_factor', $any($event.target).value)"
+                      [attr.aria-invalid]="!!shown()['emission_factor']"
+                      data-testid="metric-factor"
+                    />
+                  </app-env-field>
+                  <div class="hidden sm:block"></div>
+                  <app-env-field
+                    labelKey="environment.fields.factorSource"
+                    inputId="cf-env-m-fsource"
+                    page="metricForm"
+                    help="factor_source"
                   >
                     <input
-                      id="cf-env-m-site"
+                      id="cf-env-m-fsource"
                       type="text"
-                      maxlength="128"
-                      [value]="form().site"
-                      (input)="set('site', $any($event.target).value)"
+                      maxlength="255"
+                      [value]="form().factor_source"
+                      (input)="set('factor_source', $any($event.target).value)"
                     />
-                  </app-form-field>
-                </div>
-                <div>
-                  <app-form-field
-                    [label]="'environment.fields.status' | transloco"
-                    inputId="cf-env-m-status"
+                  </app-env-field>
+                  <app-env-field
+                    labelKey="environment.fields.factorYear"
+                    inputId="cf-env-m-fyear"
+                    [errorKey]="shown()['factor_year']"
                   >
+                    <input
+                      id="cf-env-m-fyear"
+                      type="text"
+                      inputmode="numeric"
+                      maxlength="4"
+                      [value]="form().factor_year"
+                      (input)="set('factor_year', $any($event.target).value)"
+                      [attr.aria-invalid]="!!shown()['factor_year']"
+                    />
+                  </app-env-field>
+                </div>
+              </app-card>
+
+              <app-card>
+                <h2 class="mb-4 font-display text-card font-bold text-fg">
+                  {{ 'environment.metric.sections.ownership' | transloco }}
+                </h2>
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <app-env-field labelKey="environment.fields.owner" inputId="cf-env-m-owner">
+                    <app-env-directory-select
+                      inputId="cf-env-m-owner"
+                      [value]="form().owner_user_id"
+                      [currentName]="original()?.owner_name ?? null"
+                      (valueChange)="set('owner_user_id', $event)"
+                    />
+                  </app-env-field>
+                  <app-env-field labelKey="environment.fields.department" inputId="cf-env-m-dept">
+                    <app-env-directory-select
+                      kind="department"
+                      inputId="cf-env-m-dept"
+                      noneKey="environment.form.noDepartment"
+                      [value]="form().department_id"
+                      (valueChange)="set('department_id', $event)"
+                    />
+                  </app-env-field>
+                  <app-env-field labelKey="environment.fields.status" inputId="cf-env-m-status">
                     <select
                       id="cf-env-m-status"
                       (change)="set('status', $any($event.target).value)"
@@ -256,72 +474,63 @@ export const UNIT_SUGGESTIONS = ['kWh', 'MWh', 'l', 'm³', 'kg', 't', 'km', 'Nm�
                         </option>
                       }
                     </select>
-                  </app-form-field>
+                  </app-env-field>
                 </div>
-                <app-env-owner-fields
-                  idPrefix="cf-env-m"
-                  [ownerId]="form().owner_user_id"
-                  [departmentId]="form().department_id"
-                  [ownerName]="original()?.owner_name ?? null"
-                  (ownerChange)="set('owner_user_id', $event)"
-                  (departmentChange)="set('department_id', $event)"
-                />
-              </div>
-            </app-card>
-
-            <app-card>
-              <h2 class="mb-3 font-display text-[16px] font-bold text-fg">
-                {{ 'environment.metric.collection' | transloco }}
-              </h2>
-              <label class="flex items-center gap-2 text-[13.5px] text-fg">
-                <input
-                  type="checkbox"
-                  class="h-4 w-4 accent-[var(--accent)]"
-                  [checked]="form().collection_enabled"
-                  (change)="set('collection_enabled', $any($event.target).checked)"
-                />
-                {{ 'environment.metric.scheduleCollection' | transloco }}
-              </label>
-              <app-field-help scope="environment" page="metricForm" field="collection_rrule" />
-              @if (form().collection_enabled) {
-                <div class="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-[2fr_1fr] sm:items-start">
-                  <app-recurrence-picker
-                    idPrefix="cf-env-collect"
-                    [rrule]="form().collection_rrule"
-                    (rruleChange)="set('collection_rrule', $event)"
+                <label class="mt-4 flex items-center gap-2 text-body text-fg">
+                  <input
+                    type="checkbox"
+                    class="h-4 w-4 accent-[var(--accent)]"
+                    [checked]="form().collection_enabled"
+                    (change)="set('collection_enabled', $any($event.target).checked)"
                   />
-                  <app-form-field
-                    [label]="'environment.fields.firstReminder' | transloco"
-                    inputId="cf-env-m-start"
-                  >
-                    <input
-                      id="cf-env-m-start"
-                      type="date"
-                      [value]="form().collection_start"
-                      (change)="set('collection_start', $any($event.target).value)"
+                  {{ 'environment.metric.scheduleCollection' | transloco }}
+                </label>
+                @if (form().collection_enabled) {
+                  <div class="mt-3 flex flex-col gap-3">
+                    <app-recurrence-picker
+                      idPrefix="cf-env-collect"
+                      [rrule]="form().collection_rrule"
+                      (rruleChange)="set('collection_rrule', $event)"
                     />
-                  </app-form-field>
-                </div>
-              }
-            </app-card>
+                    <app-env-field
+                      labelKey="environment.fields.firstReminder"
+                      inputId="cf-env-m-start"
+                    >
+                      <input
+                        id="cf-env-m-start"
+                        type="date"
+                        [value]="form().collection_start"
+                        (change)="set('collection_start', $any($event.target).value)"
+                      />
+                    </app-env-field>
+                  </div>
+                }
+              </app-card>
 
-            <div class="flex flex-wrap justify-end gap-2">
-              <app-button variant="ghost" (click)="back()">
-                {{ 'common.cancel' | transloco }}
-              </app-button>
-              <app-button
-                type="submit"
-                [loading]="saving()"
-                [disabled]="saving()"
-                data-testid="metric-save"
+              <div
+                class="sticky bottom-0 z-10 -mx-4 flex flex-wrap items-center justify-end gap-2 border-t border-border bg-bg px-4 py-3 sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0"
               >
-                {{ (id() ? 'common.save' : 'environment.metric.create') | transloco }}
-              </app-button>
-            </div>
-          </form>
-          <div class="mt-6"><app-why-it-matters scope="environment" page="metricForm" /></div>
+                @if (attempted() && errorCount()) {
+                  <p class="mr-auto text-meta font-semibold text-fail" role="alert">
+                    {{ 'environment.form.fixErrors' | transloco: { count: errorCount() } }}
+                  </p>
+                }
+                <app-button variant="secondary" (click)="back()">
+                  {{ 'common.cancel' | transloco }}
+                </app-button>
+                <app-button
+                  type="submit"
+                  [loading]="saving()"
+                  [disabled]="saving()"
+                  data-testid="metric-save"
+                >
+                  {{ (id() ? 'common.save' : 'environment.metric.create') | transloco }}
+                </app-button>
+              </div>
+            </form>
+          }
         }
-      }
+      </div>
     </div>
   `,
 })
@@ -332,29 +541,42 @@ export class MetricEditor {
   private readonly notifications = inject(NotificationService);
   private readonly language = inject(LanguageService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  private readonly flows = inject(CreateFlowService);
 
   readonly id = input<string | undefined>(undefined);
 
+  protected readonly perms = injectEnvPermissions();
   protected readonly categories = METRIC_CATEGORIES;
   protected readonly scopes = GHG_SCOPES;
   protected readonly statuses = METRIC_STATUSES;
-  protected readonly units = UNIT_SUGGESTIONS;
+  protected readonly directions = METRIC_DIRECTIONS;
 
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
-  protected readonly errorKey = signal('environment.common.loadFailed');
+  protected readonly errorKey = signal('ui.error.body');
   protected readonly original = signal<Metric | null>(null);
   private readonly seed = signal<MetricFormValue | null>(null);
   protected readonly form = signal<MetricFormValue>(emptyMetricForm());
   protected readonly saving = signal(false);
-  private readonly attempted = signal(false);
+  protected readonly attempted = signal(false);
+
+  private readonly flowSource = signal<Signal<FlowContext | null> | null>(null);
+  protected readonly flow = computed(() => this.flowSource()?.() ?? null);
 
   protected readonly errors = computed(() => validateMetricForm(this.form()));
-  protected readonly shown = computed(() => {
-    const errors = this.errors();
-    // Format problems show at once; missing required values only after submitting.
-    return this.attempted()
-      ? errors
-      : Object.fromEntries(Object.entries(errors).filter(([k]) => k === 'emission_factor'));
+  protected readonly shown = computed(() => (this.attempted() ? this.errors() : {}));
+  protected readonly errorCount = computed(() => Object.keys(this.errors()).length);
+
+  protected readonly breadcrumbs = computed(() => {
+    const m = this.original();
+    return m
+      ? [
+          ENV_ROOT_CRUMB,
+          ENV_CRUMBS.metrics,
+          { label: m.code, link: ['/environment/metrics', m.id] },
+          { labelKey: 'environment.common.edit' },
+        ]
+      : [ENV_ROOT_CRUMB, ENV_CRUMBS.metrics, { labelKey: 'environment.metric.newTitle' }];
   });
 
   private request = new Subscription();
@@ -362,8 +584,8 @@ export class MetricEditor {
   constructor() {
     inject(DestroyRef).onDestroy(() => this.request.unsubscribe());
     providePageContext(() => ({
-      module: 'environment',
-      entityType: 'env_metric',
+      module: ENV_MODULE,
+      entityType: ENTITY_METRIC,
       entityId: this.id() ?? null,
       view: this.id() ? 'edit' : 'new',
       title: this.original()?.name ?? this.language.translate('environment.metric.newTitle'),
@@ -373,16 +595,30 @@ export class MetricEditor {
       const id = this.id();
       untracked(() => this.load(orgId, id));
     });
+    effect(() => {
+      const flow = this.flow();
+      if (flow && !this.id()) {
+        untracked(() => this.form.update((f) => metricPrefill(f, flow.prefill)));
+      }
+    });
   }
 
   protected set<K extends keyof MetricFormValue>(key: K, value: MetricFormValue[K]): void {
     this.form.update((f) => ({ ...f, [key]: value }));
   }
 
+  protected cancelFlow(): void {
+    this.flows.cancel();
+  }
+
+  protected reload(): void {
+    this.load(this.selectedOrg.currentOrgId(), this.id());
+  }
+
   protected submit(): void {
     this.attempted.set(true);
     const orgId = this.selectedOrg.currentOrgId();
-    if (!orgId || this.saving() || Object.keys(this.errors()).length) {
+    if (!orgId || this.saving() || this.errorCount()) {
       return;
     }
     const id = this.id();
@@ -403,13 +639,21 @@ export class MetricEditor {
     }
     this.saving.set(true);
     this.api.createMetric(orgId, toMetricCreate(this.form())).subscribe({
-      next: (m) => this.saved(m.id, 'environment.notices.created', m.code),
+      next: (m) => {
+        if (this.flow()) {
+          this.flows.complete(m.id, ENTITY_METRIC).subscribe();
+        }
+        this.saved(m.id, 'environment.notices.created', m.code);
+      },
       error: (error: unknown) => this.failed(error),
     });
   }
 
   protected back(): void {
     const id = this.id();
+    if (!id && this.flow()) {
+      this.flows.cancel();
+    }
     void this.router.navigate(id ? ['/environment/metrics', id] : ['/environment/metrics']);
   }
 
@@ -431,14 +675,17 @@ export class MetricEditor {
     }
     if (!id) {
       this.form.set(emptyMetricForm({ owner_user_id: this.auth.user()?.id ?? '' }));
+      if (!this.flowSource()) {
+        this.flowSource.set(this.flows.consume(this.route, { targetType: ENTITY_METRIC }));
+      }
       this.state.set('ready');
       return;
     }
     this.state.set('loading');
     this.request = this.api.getMetric(orgId, id).subscribe({
-      next: (metric) => {
-        const value = metricFormFrom(metric);
-        this.original.set(metric);
+      next: (m) => {
+        const value = metricFormFrom(m);
+        this.original.set(m);
         this.seed.set(value);
         this.form.set(value);
         this.state.set('ready');

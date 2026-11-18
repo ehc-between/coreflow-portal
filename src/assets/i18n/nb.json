@@ -560,7 +560,8 @@
         "intake": "Meldekanal",
         "matrices": "Risikomatriser",
         "settings": "Innstillinger",
-        "retention": "Oppbevaringsregler"
+        "retention": "Oppbevaringsregler",
+        "significanceMethod": "Vurderingsmetode for miljøaspekter"
       },
       "membersSection": "Medlemmer, avdelinger og invitasjoner"
     },

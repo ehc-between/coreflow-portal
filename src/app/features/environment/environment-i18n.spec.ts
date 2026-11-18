@@ -6,20 +6,26 @@ import { expectKeyParity } from '../../../testing/i18n-parity';
 import { SIGNIFICANCE_FILTERS, STATUS_FILTERS } from './aspects-list';
 import { ENVIRONMENT_ERROR_CODES } from './data/environment-errors';
 import {
+  ASPECT_ATTENTION,
   ASPECT_SORTS,
   CONDITIONS,
   CONTROL_LEVELS,
   DRILL_KINDS,
   DRILL_OUTCOMES,
+  FLOWS,
   GHG_SCOPES,
   IMPACT_TYPES,
   LIFECYCLE_STAGES,
+  MEASUREMENT_SOURCES,
   METRIC_CATEGORIES,
+  METRIC_DIRECTIONS,
   METRIC_SORTS,
+  PLAN_ATTENTION,
   PLAN_SORTS,
   RECORD_STATUSES,
   SCORING_METHODS,
   SIGNIFICANCE_REASONS,
+  TARGET_STATUSES,
   TREND_BUCKETS,
 } from './data/environment.models';
 import { sortKey } from './data/environment-display';
@@ -65,9 +71,19 @@ const EVENT_KEYS = [
   'measurementDeleted',
 ];
 
+/** Home "do this now" items the backend emits (environment:next.<name>.title / .why). */
+const NEXT_ACTIONS = [
+  'drillOverdue',
+  'aspectWithoutControls',
+  'aspectNeedsPlan',
+  'aspectReviewOverdue',
+  'planReviewOverdue',
+];
+
 /** Clauses the backend module declares (F7). */
 const DECLARED = new Set([
   'iso14001:6.1.2',
+  'iso14001:6.1.3',
   'iso14001:6.1.4',
   'iso14001:8.1',
   'iso14001:8.2',
@@ -101,11 +117,22 @@ describe('environment i18n and guidance', () => {
     ['reasons', SIGNIFICANCE_REASONS],
     ['scoring.methods', SCORING_METHODS],
     ['aspect.methodSummary', SCORING_METHODS],
-    ['filters.statusOptions', [...STATUS_FILTERS, ...METRIC_STATUS_FILTERS]],
+    ['filters.statusOptions', STATUS_FILTERS],
+    ['filters.metricStatus', METRIC_STATUS_FILTERS],
+    ['filters.aspectAttention', ASPECT_ATTENTION],
+    ['filters.planAttention', PLAN_ATTENTION],
+    ['targetStatus', TARGET_STATUSES],
+    ['directions', METRIC_DIRECTIONS],
+    ['sources', MEASUREMENT_SOURCES],
+    ['drill.titles', DRILL_KINDS],
+    ['drill.save', DRILL_KINDS],
+    ['flowButtons', Object.values(FLOWS).map((k) => k.replace('.', '_'))],
+    ['next', NEXT_ACTIONS.map((n) => `${n}.title`)],
+    ['next', NEXT_ACTIONS.map((n) => `${n}.why`)],
     ['filters.significanceOptions', SIGNIFICANCE_FILTERS.map((s) => s || 'any')],
     ['overrides', ['none', 'significant', 'not_significant']],
     ['sorts', [...ASPECT_SORTS, ...PLAN_SORTS, ...METRIC_SORTS].map(sortKey)],
-    ['tabs', ['overview', 'aspects', 'plans', 'metrics', 'emissions', 'scoring']],
+    ['nav', ['overview', 'aspects', 'plans', 'metrics', 'emissions', 'scoring']],
     ['errors', ENVIRONMENT_ERROR_CODES],
     ['notifications', EVENT_KEYS],
     ['timeline', EVENT_KEYS],

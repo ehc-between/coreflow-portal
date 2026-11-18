@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  Signal,
   computed,
   effect,
   inject,
@@ -9,32 +10,35 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../core/ai/page-context';
 import { AuthService } from '../../core/auth/auth.service';
+import { CreateFlowService, FlowContext } from '../../core/kit/create-flow.service';
 import { LanguageService } from '../../core/i18n/language.service';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { AiAssistButton } from '../../shared/ask/ai-assist-button';
 import { AskAbout } from '../../shared/ask/ask-about';
-import { FieldHelp } from '../../shared/guidance/field-help';
-import { GuideIntro } from '../../shared/guidance/guide-intro';
-import { WhyItMatters } from '../../shared/guidance/why-it-matters';
+import { FlowBanner } from '../../shared/kit/flow-banner';
 import { LocalNumberPipe } from '../../shared/locale/locale-pipes';
-import { Alert } from '../../shared/ui/alert/alert';
-import { Badge } from '../../shared/ui/badge/badge';
 import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
-import { FormField } from '../../shared/ui/form-field/form-field';
-import { Icon } from '../../shared/ui/icon/icon';
+import { ErrorState } from '../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
+import { LoadingState } from '../../shared/ui/loading-state/loading-state';
+import { PageHeader } from '../../shared/ui/page-header/page-header';
+import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
 import { EnvironmentApi } from './data/environment-api';
 import {
   ASSIST_SUGGEST_ASPECTS,
   Aspect,
   CONDITIONS,
   CONTROL_LEVELS,
+  ENTITY_ASPECT,
+  ENTITY_OBLIGATION,
+  ENTITY_PROCESS,
   IMPACT_TYPES,
   LIFECYCLE_STAGES,
   LifecycleStage,
@@ -42,11 +46,18 @@ import {
   ScoringMethod,
   SuggestedAspect,
 } from './data/environment.models';
-import { criterionLabel, previewScore } from './data/environment-display';
+import {
+  criterionLabel,
+  levelText,
+  localText,
+  previewScore,
+  scaleValues,
+} from './data/environment-display';
 import { environmentErrorKey, fieldErrors } from './data/environment-errors';
 import {
   AspectFormValue,
   OverrideChoice,
+  PickedRecord,
   aspectFormFrom,
   aspectFormFromSuggestion,
   emptyAspectForm,
@@ -54,7 +65,15 @@ import {
   toAspectUpdate,
   validateAspectForm,
 } from './data/form-models';
-import { EnvOwnerFields } from './owner-fields';
+import {
+  ENV_CRUMBS,
+  ENV_MODULE,
+  ENV_ROOT_CRUMB,
+  EnvDirectorySelect,
+  EnvField,
+  injectEnvPermissions,
+} from './environment-shared';
+import { EnvRecordPicker } from './record-picker';
 
 /** Normalise the `environment.suggest_aspects` result (drops malformed rows). */
 export function suggestionsFrom(result: unknown): SuggestedAspect[] {
@@ -79,12 +98,29 @@ export function suggestionsFrom(result: unknown): SuggestedAspect[] {
     }));
 }
 
+/** Form values a create-from-here prefill may set (strings and ids only). */
+export function aspectPrefill(
+  form: AspectFormValue,
+  prefill: Readonly<Record<string, unknown>>,
+): AspectFormValue {
+  const str = (key: string) => (typeof prefill[key] === 'string' ? (prefill[key] as string) : null);
+  return {
+    ...form,
+    activity: str('activity') ?? form.activity,
+    aspect: str('aspect') ?? str('title') ?? form.aspect,
+    impact: str('impact') ?? str('description') ?? form.impact,
+    site: str('site') ?? form.site,
+  };
+}
+
 /**
- * Create (`/environment/aspects/new`) or edit (`/environment/aspects/:id/edit`)
- * an environmental aspect: the activity and its aspect and impact, condition and
- * lifecycle stages, the significance scores under the org's method (with a live
- * score preview), an optional manual override with a reason, and the operational
- * controls. On create, the assistant can suggest aspects for an activity.
+ * Create (`/environment/aspects/new`) or edit (`/environment/aspects/:id/edit`) an
+ * environmental aspect. The activity can be tied to a process; the assistant can
+ * suggest aspects for it. Required fields are marked; the type of impact has no
+ * default. Each criterion's score options say what the score means, and the live
+ * preview reads "Poeng 9 av 20 · vesentlig fra 12". Obligations from "Lover og
+ * forskrifter" replace the old yes/no "legal requirement" box. Save sits
+ * bottom-right (sticky on phones).
  */
 @Component({
   selector: 'app-env-aspect-editor',
@@ -94,59 +130,61 @@ export function suggestionsFrom(result: unknown): SuggestedAspect[] {
     LocalNumberPipe,
     AiAssistButton,
     AskAbout,
-    FieldHelp,
-    GuideIntro,
-    WhyItMatters,
-    Alert,
-    Badge,
+    FlowBanner,
     Button,
     Card,
-    FormField,
-    Icon,
-    EnvOwnerFields,
+    ErrorState,
+    HelpStrip,
+    LoadingState,
+    PageHeader,
+    StatusBadge,
+    EnvDirectorySelect,
+    EnvField,
+    EnvRecordPicker,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[960px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
-      <a
-        [routerLink]="id() ? ['/environment/aspects', id()] : '/environment/aspects'"
-        class="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
-      >
-        <app-icon name="back" [size]="16" />
-        {{ (id() ? 'environment.common.backToRecord' : 'environment.aspects.back') | transloco }}
-      </a>
-      <h1
-        class="mb-4 font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]"
-        data-testid="aspect-form-title"
-      >
-        @if (original(); as a) {
-          {{ 'environment.aspect.editTitle' | transloco: { code: a.code } }}
-        } @else {
-          {{ 'environment.aspect.newTitle' | transloco }}
-        }
-      </h1>
-      <div class="mb-5"><app-guide-intro scope="environment" page="aspectForm" /></div>
+    <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+      <div class="max-w-[760px]">
+        <app-page-header
+          [titleKey]="id() ? 'environment.aspect.editTitle' : 'environment.aspect.newTitle'"
+          [titleParams]="{ code: original()?.code ?? '' }"
+          [breadcrumbs]="breadcrumbs()"
+          titleTestId="aspect-form-title"
+        />
+        <app-help-strip scope="environment" page="aspectForm" lesson="aspects-and-impacts" />
 
-      @switch (state()) {
-        @case ('loading') {
-          <p class="py-10 text-center text-[14px] text-fg-muted" role="status">
-            {{ 'environment.common.loading' | transloco }}
-          </p>
-        }
-        @case ('error') {
-          <app-alert tone="error">{{ errorKey() | transloco }}</app-alert>
-        }
-        @default {
-          <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); submit()" novalidate>
-            <app-card>
-              <h2 class="mb-4 font-display text-[16px] font-bold text-fg">
-                {{ 'environment.aspect.sections.identify' | transloco }}
-              </h2>
-              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div class="sm:col-span-2">
-                  <app-form-field
-                    [label]="'environment.fields.activity' | transloco"
+        @switch (state()) {
+          @case ('loading') {
+            <app-loading-state [rows]="6" />
+          }
+          @case ('error') {
+            <app-error-state [bodyKey]="errorKey()" (retry)="reload()" />
+          }
+          @default {
+            <app-flow-banner [flow]="flow()" (cancelled)="cancelFlow()" />
+            <form
+              class="flex flex-col gap-5"
+              (submit)="$event.preventDefault(); submit()"
+              novalidate
+            >
+              <p class="text-meta text-fg-muted">
+                <span class="text-fail" aria-hidden="true">*</span>
+                {{ 'environment.form.requiredHint' | transloco }}
+              </p>
+
+              <app-card>
+                <h2 class="mb-4 font-display text-card font-bold text-fg">
+                  {{ 'environment.aspect.sections.identify' | transloco }}
+                </h2>
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <app-env-field
+                    class="sm:col-span-2"
+                    labelKey="environment.fields.activity"
                     inputId="cf-env-activity"
+                    help="activity"
+                    [required]="true"
+                    [errorKey]="shown()['activity']"
                   >
                     <input
                       id="cf-env-activity"
@@ -158,19 +196,35 @@ export function suggestionsFrom(result: unknown): SuggestedAspect[] {
                       [attr.aria-invalid]="!!shown()['activity']"
                       data-testid="aspect-activity"
                     />
-                  </app-form-field>
-                  @if (shown()['activity']; as key) {
-                    <p class="mt-1 text-[12px] text-fail" role="alert">{{ key | transloco }}</p>
-                  }
-                  <app-field-help scope="environment" page="aspectForm" field="activity" />
-                </div>
+                  </app-env-field>
 
-                @if (!id()) {
-                  <div class="sm:col-span-2">
-                    <div
-                      class="flex flex-col gap-2 rounded-card border border-accent-border bg-accent-soft p-3"
+                  @if (perms.has('processes:read')()) {
+                    <app-env-field
+                      class="sm:col-span-2"
+                      labelKey="environment.fields.process"
+                      inputId="cf-env-process"
+                      help="process"
+                      hintKey="environment.aspect.processHint"
+                      [legend]="true"
                     >
-                      <p class="text-[13px] text-fg-muted">
+                      <app-env-record-picker
+                        [entityType]="processType"
+                        [multiple]="false"
+                        [value]="processValue()"
+                        inputId="cf-env-process"
+                        placeholderKey="environment.picker.processPlaceholder"
+                        describedBy="cf-env-process-hint"
+                        testId="aspect-process"
+                        (valueChange)="setProcess($event)"
+                      />
+                    </app-env-field>
+                  }
+
+                  @if (!id()) {
+                    <div
+                      class="flex flex-col gap-2 rounded-card border border-accent-border bg-accent-soft p-3 sm:col-span-2"
+                    >
+                      <p class="text-ui text-fg-muted">
                         {{ 'environment.aspect.suggestHint' | transloco }}
                       </p>
                       <div>
@@ -189,21 +243,15 @@ export function suggestionsFrom(result: unknown): SuggestedAspect[] {
                             <li class="rounded-tile border border-border bg-surface p-3">
                               <div class="flex flex-wrap items-start justify-between gap-2">
                                 <div class="min-w-0 flex-1">
-                                  <p class="text-[13.5px] font-semibold text-fg">{{ s.aspect }}</p>
-                                  <p class="text-[12.5px] text-fg-muted">{{ s.impact }}</p>
-                                  <p
-                                    class="mt-1 flex flex-wrap gap-1.5 text-[11.5px] text-fg-subtle"
-                                  >
-                                    <span>{{
-                                      'environment.impactTypes.' + s.impact_type | transloco
-                                    }}</span>
-                                    <span>·</span>
-                                    <span>{{
-                                      'environment.conditions.' + s.condition | transloco
-                                    }}</span>
+                                  <p class="text-body font-semibold text-fg">{{ s.aspect }}</p>
+                                  <p class="text-ui text-fg-muted">{{ s.impact }}</p>
+                                  <p class="mt-1 text-meta text-fg-subtle">
+                                    {{ 'environment.impactTypes.' + s.impact_type | transloco }}
+                                    ·
+                                    {{ 'environment.conditions.' + s.condition | transloco }}
                                   </p>
                                   @if (s.rationale) {
-                                    <p class="mt-1 text-[12px] text-fg-subtle italic">
+                                    <p class="mt-1 text-meta text-fg-subtle italic">
                                       {{ s.rationale }}
                                     </p>
                                   }
@@ -220,19 +268,28 @@ export function suggestionsFrom(result: unknown): SuggestedAspect[] {
                           }
                         </ul>
                       } @else if (suggestionsEmpty()) {
-                        <p class="text-[12.5px] text-fg-muted">
+                        <p class="text-ui text-fg-muted">
                           {{ 'environment.aspect.noSuggestions' | transloco }}
                         </p>
                       }
                     </div>
-                  </div>
-                }
+                  }
 
-                <div class="sm:col-span-2">
-                  <app-form-field
-                    [label]="'environment.fields.aspect' | transloco"
+                  <app-env-field
+                    class="sm:col-span-2"
+                    labelKey="environment.fields.aspect"
                     inputId="cf-env-aspect"
+                    help="aspect"
+                    [required]="true"
+                    [errorKey]="shown()['aspect']"
                   >
+                    <app-ask-about
+                      label-extra
+                      [prompt]="'environment.ask.aspectField' | transloco"
+                      field="aspect"
+                      [fieldLabel]="'environment.fields.aspect' | transloco"
+                      [requirements]="['iso14001:6.1.2']"
+                    />
                     <input
                       id="cf-env-aspect"
                       type="text"
@@ -243,16 +300,12 @@ export function suggestionsFrom(result: unknown): SuggestedAspect[] {
                       [attr.aria-invalid]="!!shown()['aspect']"
                       data-testid="aspect-aspect"
                     />
-                  </app-form-field>
-                  @if (shown()['aspect']; as key) {
-                    <p class="mt-1 text-[12px] text-fail" role="alert">{{ key | transloco }}</p>
-                  }
-                  <app-field-help scope="environment" page="aspectForm" field="aspect" />
-                </div>
-                <div class="sm:col-span-2">
-                  <app-form-field
-                    [label]="'environment.fields.impact' | transloco"
+                  </app-env-field>
+                  <app-env-field
+                    class="sm:col-span-2"
+                    labelKey="environment.fields.impact"
                     inputId="cf-env-impact"
+                    help="impact"
                   >
                     <textarea
                       id="cf-env-impact"
@@ -261,30 +314,33 @@ export function suggestionsFrom(result: unknown): SuggestedAspect[] {
                       [value]="form().impact"
                       (input)="set('impact', $any($event.target).value)"
                     ></textarea>
-                  </app-form-field>
-                  <app-field-help scope="environment" page="aspectForm" field="impact" />
-                </div>
-                <div>
-                  <app-form-field
-                    [label]="'environment.fields.impactType' | transloco"
+                  </app-env-field>
+                  <app-env-field
+                    labelKey="environment.fields.impactType"
                     inputId="cf-env-itype"
+                    [required]="true"
+                    [errorKey]="shown()['impact_type']"
                   >
                     <select
                       id="cf-env-itype"
                       (change)="set('impact_type', $any($event.target).value)"
+                      [attr.aria-invalid]="!!shown()['impact_type']"
+                      data-testid="aspect-impact-type"
                     >
+                      <option value="" disabled [selected]="!form().impact_type">
+                        {{ 'environment.form.choose' | transloco }}
+                      </option>
                       @for (t of impactTypes; track t) {
                         <option [value]="t" [selected]="form().impact_type === t">
                           {{ 'environment.impactTypes.' + t | transloco }}
                         </option>
                       }
                     </select>
-                  </app-form-field>
-                </div>
-                <div>
-                  <app-form-field
-                    [label]="'environment.fields.condition' | transloco"
+                  </app-env-field>
+                  <app-env-field
+                    labelKey="environment.fields.condition"
                     inputId="cf-env-cond"
+                    help="condition"
                   >
                     <select id="cf-env-cond" (change)="set('condition', $any($event.target).value)">
                       @for (c of conditions; track c) {
@@ -293,13 +349,11 @@ export function suggestionsFrom(result: unknown): SuggestedAspect[] {
                         </option>
                       }
                     </select>
-                  </app-form-field>
-                  <app-field-help scope="environment" page="aspectForm" field="condition" />
-                </div>
-                <div>
-                  <app-form-field
-                    [label]="'environment.fields.controlLevel' | transloco"
+                  </app-env-field>
+                  <app-env-field
+                    labelKey="environment.fields.controlLevel"
                     inputId="cf-env-ctrl"
+                    help="control_level"
                   >
                     <select
                       id="cf-env-ctrl"
@@ -311,14 +365,8 @@ export function suggestionsFrom(result: unknown): SuggestedAspect[] {
                         </option>
                       }
                     </select>
-                  </app-form-field>
-                  <app-field-help scope="environment" page="aspectForm" field="control_level" />
-                </div>
-                <div>
-                  <app-form-field
-                    [label]="'environment.fields.site' | transloco"
-                    inputId="cf-env-site"
-                  >
+                  </app-env-field>
+                  <app-env-field labelKey="environment.fields.site" inputId="cf-env-site">
                     <input
                       id="cf-env-site"
                       type="text"
@@ -326,57 +374,78 @@ export function suggestionsFrom(result: unknown): SuggestedAspect[] {
                       [value]="form().site"
                       (input)="set('site', $any($event.target).value)"
                     />
-                  </app-form-field>
+                  </app-env-field>
+                  <app-env-field
+                    class="sm:col-span-2"
+                    labelKey="environment.fields.lifecycleStages"
+                    inputId="cf-env-stages"
+                    help="lifecycle_stages"
+                    hintKey="environment.aspect.stagesHint"
+                    [legend]="true"
+                  >
+                    <div
+                      class="flex flex-wrap gap-x-4 gap-y-2"
+                      role="group"
+                      aria-labelledby="cf-env-stages-label"
+                      aria-describedby="cf-env-stages-hint"
+                    >
+                      @for (s of stages; track s) {
+                        <label class="inline-flex items-center gap-2 text-ui text-fg">
+                          <input
+                            type="checkbox"
+                            class="h-4 w-4 accent-[var(--accent)]"
+                            [checked]="form().lifecycle_stages.includes(s)"
+                            (change)="toggleStage(s, $any($event.target).checked)"
+                          />
+                          {{ 'environment.stages.' + s | transloco }}
+                        </label>
+                      }
+                    </div>
+                  </app-env-field>
                 </div>
-                <fieldset class="sm:col-span-2">
-                  <legend class="mb-1.5 text-[13px] font-semibold text-fg-muted">
-                    {{ 'environment.fields.lifecycleStages' | transloco }}
-                  </legend>
-                  <div class="flex flex-wrap gap-x-4 gap-y-2">
-                    @for (s of stages; track s) {
-                      <label class="inline-flex items-center gap-2 text-[13px] text-fg">
-                        <input
-                          type="checkbox"
-                          class="h-4 w-4 accent-[var(--accent)]"
-                          [checked]="form().lifecycle_stages.includes(s)"
-                          (change)="toggleStage(s, $any($event.target).checked)"
-                        />
-                        {{ 'environment.stages.' + s | transloco }}
-                      </label>
-                    }
-                  </div>
-                  <app-field-help scope="environment" page="aspectForm" field="lifecycle_stages" />
-                </fieldset>
-              </div>
-            </app-card>
+              </app-card>
 
-            <app-card>
-              <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-                <h2 class="font-display text-[16px] font-bold text-fg">
-                  {{ 'environment.aspect.sections.evaluate' | transloco }}
-                </h2>
-                <app-ask-about [prompt]="'environment.ask.scoring' | transloco" field="scores" />
-              </div>
-              @if (method(); as m) {
-                <p class="mb-3 text-[12.5px] text-fg-muted">
-                  {{
-                    'environment.aspect.methodSummary.' + m.method
-                      | transloco
-                        : {
-                            min: m.scale_min,
-                            max: m.scale_max,
-                            threshold: (m.threshold | localNumber: '1.0-2'),
-                          }
-                  }}
-                </p>
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                  @for (c of m.criteria; track c.key) {
-                    <div>
-                      <app-form-field [label]="label(c)" [inputId]="'cf-env-score-' + c.key">
+              <app-card>
+                <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
+                  <h2 class="font-display text-card font-bold text-fg">
+                    {{ 'environment.aspect.sections.evaluate' | transloco }}
+                  </h2>
+                  <app-ask-about
+                    [prompt]="'environment.ask.scoring' | transloco"
+                    field="scores"
+                    [fieldLabel]="'environment.fields.scores' | transloco"
+                    [requirements]="['iso14001:6.1.2']"
+                  />
+                </div>
+                @if (method(); as m) {
+                  <p class="mb-4 text-ui text-fg-muted">
+                    {{
+                      'environment.aspect.methodSummary.' + m.method
+                        | transloco
+                          : {
+                              min: m.scale_min,
+                              max: m.scale_max,
+                              threshold: (m.threshold | localNumber: '1.0-2'),
+                            }
+                    }}
+                  </p>
+                  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    @for (c of m.criteria; track c.key) {
+                      <app-env-field
+                        [labelKey]="'environment.aspect.criterionLabel'"
+                        [labelParams]="{ label: label(c) }"
+                        [inputId]="'cf-env-score-' + c.key"
+                        [errorKey]="
+                          serverErrors()[c.key] ? 'environment.errors.invalid_scores' : null
+                        "
+                      >
                         <select
                           [id]="'cf-env-score-' + c.key"
                           (change)="setScore(c.key, $any($event.target).value)"
                           [attr.aria-invalid]="!!serverErrors()[c.key]"
+                          [attr.aria-describedby]="
+                            description(c) ? 'cf-env-score-' + c.key + '-desc' : null
+                          "
                           [attr.data-testid]="'score-' + c.key"
                         >
                           <option
@@ -389,71 +458,69 @@ export function suggestionsFrom(result: unknown): SuggestedAspect[] {
                           </option>
                           @for (v of scale(); track v) {
                             <option [value]="v" [selected]="form().scores[c.key] === v">
-                              {{ v }}
+                              {{ optionText(c, v) }}
                             </option>
                           }
                         </select>
-                      </app-form-field>
-                      @if (m.method === 'sum' && c.weight !== 1) {
-                        <p class="mt-1 text-[11.5px] text-fg-subtle">
-                          {{ 'environment.aspect.weight' | transloco: { weight: c.weight } }}
-                        </p>
-                      }
-                    </div>
-                  }
-                </div>
-                <app-field-help scope="environment" page="aspectForm" field="scores" />
-                <div
-                  class="mt-3 flex flex-wrap items-center gap-2 text-[13px]"
-                  aria-live="polite"
-                  data-testid="score-preview"
-                >
-                  @if (preview() !== null) {
-                    <span class="font-semibold text-fg">
-                      {{
-                        'environment.aspect.scoreOf'
-                          | transloco
-                            : {
-                                score: (preview() | localNumber: '1.0-2'),
-                                max: (m.max_score | localNumber: '1.0-2'),
-                              }
-                      }}
-                    </span>
-                    @if (previewSignificant()) {
-                      <app-badge tone="warn">{{
-                        'environment.aspect.significant' | transloco
-                      }}</app-badge>
-                    } @else {
-                      <app-badge tone="neutral">{{
-                        'environment.aspect.notSignificant' | transloco
-                      }}</app-badge>
+                        @if (description(c); as d) {
+                          <p
+                            class="mt-1 text-meta text-fg-muted"
+                            [id]="'cf-env-score-' + c.key + '-desc'"
+                          >
+                            {{ d }}
+                          </p>
+                        }
+                        @if (m.method === 'sum' && c.weight !== 1) {
+                          <p class="mt-1 text-meta text-fg-subtle">
+                            {{ 'environment.aspect.weight' | transloco: { weight: c.weight } }}
+                          </p>
+                        }
+                      </app-env-field>
                     }
-                  } @else {
-                    <span class="text-fg-muted">{{
-                      'environment.aspect.scoreIncomplete' | transloco
-                    }}</span>
-                  }
-                </div>
-              }
+                  </div>
+                  <div
+                    class="mt-4 flex flex-wrap items-center gap-2 rounded-tile bg-surface-2 px-3 py-2.5 text-ui"
+                    aria-live="polite"
+                    data-testid="score-preview"
+                  >
+                    @if (preview() !== null) {
+                      <span class="font-semibold text-fg">
+                        {{
+                          'environment.aspect.scoreLine'
+                            | transloco
+                              : {
+                                  score: (preview() | localNumber: '1.0-2'),
+                                  max: (m.max_score | localNumber: '1.0-2'),
+                                  threshold: (m.threshold | localNumber: '1.0-2'),
+                                }
+                        }}
+                      </span>
+                    } @else {
+                      <span class="text-fg-muted">{{
+                        'environment.aspect.scoreIncomplete' | transloco
+                      }}</span>
+                    }
+                    @if (previewSignificant()) {
+                      <app-status-badge
+                        meaning="severity"
+                        value="medium"
+                        labelKey="environment.aspect.significant"
+                      />
+                    } @else if (preview() !== null) {
+                      <app-status-badge
+                        meaning="severity"
+                        value="low"
+                        labelKey="environment.aspect.notSignificant"
+                      />
+                    }
+                  </div>
+                }
 
-              <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div class="flex flex-col gap-1 sm:col-span-2">
-                  <label class="flex items-center gap-2 text-[13.5px] text-fg">
-                    <input
-                      type="checkbox"
-                      class="h-4 w-4 accent-[var(--accent)]"
-                      [checked]="form().legal_requirement"
-                      (change)="set('legal_requirement', $any($event.target).checked)"
-                      data-testid="aspect-legal"
-                    />
-                    {{ 'environment.fields.legalRequirement' | transloco }}
-                  </label>
-                  <app-field-help scope="environment" page="aspectForm" field="legal_requirement" />
-                </div>
-                <div>
-                  <app-form-field
-                    [label]="'environment.fields.override' | transloco"
+                <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <app-env-field
+                    labelKey="environment.fields.override"
                     inputId="cf-env-override"
+                    help="override"
                   >
                     <select
                       id="cf-env-override"
@@ -466,14 +533,13 @@ export function suggestionsFrom(result: unknown): SuggestedAspect[] {
                         </option>
                       }
                     </select>
-                  </app-form-field>
-                  <app-field-help scope="environment" page="aspectForm" field="override" />
-                </div>
-                @if (form().override) {
-                  <div>
-                    <app-form-field
-                      [label]="'environment.fields.overrideReason' | transloco"
+                  </app-env-field>
+                  @if (form().override) {
+                    <app-env-field
+                      labelKey="environment.fields.overrideReason"
                       inputId="cf-env-override-reason"
+                      [required]="true"
+                      [errorKey]="shown()['override_reason']"
                     >
                       <input
                         id="cf-env-override-reason"
@@ -484,51 +550,101 @@ export function suggestionsFrom(result: unknown): SuggestedAspect[] {
                         [attr.aria-invalid]="!!shown()['override_reason']"
                         data-testid="aspect-override-reason"
                       />
-                    </app-form-field>
-                    @if (shown()['override_reason']; as key) {
-                      <p class="mt-1 text-[12px] text-fail" role="alert">{{ key | transloco }}</p>
-                    }
-                  </div>
-                }
-              </div>
-            </app-card>
+                    </app-env-field>
+                  }
+                </div>
+              </app-card>
 
-            <app-card>
-              <h2 class="mb-4 font-display text-[16px] font-bold text-fg">
-                {{ 'environment.aspect.sections.control' | transloco }}
-              </h2>
-              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div class="sm:col-span-2">
-                  <app-form-field
-                    [label]="'environment.fields.operationalControls' | transloco"
-                    inputId="cf-env-controls"
+              <app-card id="obligations">
+                <h2 class="mb-1 font-display text-card font-bold text-fg">
+                  {{ 'environment.aspect.sections.obligations' | transloco }}
+                </h2>
+                <p class="mb-4 text-ui text-fg-muted">
+                  {{ 'environment.aspect.obligationsFormHint' | transloco }}
+                </p>
+                @if (perms.has('obligations:read')()) {
+                  <app-env-field
+                    labelKey="environment.fields.obligations"
+                    inputId="cf-env-obligations"
+                    help="obligations"
+                    [legend]="true"
                   >
+                    <app-env-record-picker
+                      [entityType]="obligationType"
+                      [value]="form().obligations"
+                      inputId="cf-env-obligations"
+                      labelledBy="cf-env-obligations-label"
+                      placeholderKey="environment.picker.obligationPlaceholder"
+                      testId="aspect-obligations"
+                      (valueChange)="set('obligations', $event)"
+                    />
+                  </app-env-field>
+                  @if (!form().obligations.length) {
+                    <p class="mt-2 text-meta text-fg-subtle">
+                      {{ 'environment.aspect.noObligationsYet' | transloco }}
+                      <a
+                        routerLink="/obligations"
+                        class="font-semibold text-accent hover:underline"
+                        >{{ 'environment.aspect.openObligations' | transloco }}</a
+                      >
+                    </p>
+                  }
+                } @else {
+                  <p class="text-ui text-fg-muted">
+                    {{ 'environment.aspect.obligationsNoAccess' | transloco }}
+                  </p>
+                }
+              </app-card>
+
+              <app-card>
+                <h2 class="mb-4 font-display text-card font-bold text-fg">
+                  {{ 'environment.aspect.sections.control' | transloco }}
+                </h2>
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <app-env-field
+                    class="sm:col-span-2"
+                    labelKey="environment.fields.operationalControls"
+                    inputId="cf-env-controls"
+                    help="operational_controls"
+                    hintKey="environment.aspect.controlsFormHint"
+                  >
+                    <app-ask-about
+                      label-extra
+                      [prompt]="'environment.ask.controlsField' | transloco"
+                      field="operational_controls"
+                      [fieldLabel]="'environment.fields.operationalControls' | transloco"
+                      [requirements]="['iso14001:8.1']"
+                    />
                     <textarea
                       id="cf-env-controls"
                       rows="4"
                       maxlength="20000"
+                      aria-describedby="cf-env-controls-hint"
                       [value]="form().operational_controls"
                       (input)="set('operational_controls', $any($event.target).value)"
                     ></textarea>
-                  </app-form-field>
-                  <app-field-help
-                    scope="environment"
-                    page="aspectForm"
-                    field="operational_controls"
-                  />
-                </div>
-                <app-env-owner-fields
-                  idPrefix="cf-env-a"
-                  [ownerId]="form().owner_user_id"
-                  [departmentId]="form().department_id"
-                  [ownerName]="original()?.owner_name ?? null"
-                  (ownerChange)="set('owner_user_id', $event)"
-                  (departmentChange)="set('department_id', $event)"
-                />
-                <div>
-                  <app-form-field
-                    [label]="'environment.fields.status' | transloco"
+                  </app-env-field>
+                  <app-env-field labelKey="environment.fields.owner" inputId="cf-env-a-owner">
+                    <app-env-directory-select
+                      inputId="cf-env-a-owner"
+                      [value]="form().owner_user_id"
+                      [currentName]="original()?.owner_name ?? null"
+                      (valueChange)="set('owner_user_id', $event)"
+                    />
+                  </app-env-field>
+                  <app-env-field labelKey="environment.fields.department" inputId="cf-env-a-dept">
+                    <app-env-directory-select
+                      kind="department"
+                      inputId="cf-env-a-dept"
+                      noneKey="environment.form.noDepartment"
+                      [value]="form().department_id"
+                      (valueChange)="set('department_id', $event)"
+                    />
+                  </app-env-field>
+                  <app-env-field
+                    labelKey="environment.fields.status"
                     inputId="cf-env-a-status"
+                    help="status"
                   >
                     <select
                       id="cf-env-a-status"
@@ -540,12 +656,11 @@ export function suggestionsFrom(result: unknown): SuggestedAspect[] {
                         </option>
                       }
                     </select>
-                  </app-form-field>
-                </div>
-                <div>
-                  <app-form-field
-                    [label]="'environment.fields.reviewDue' | transloco"
+                  </app-env-field>
+                  <app-env-field
+                    labelKey="environment.fields.reviewDue"
                     inputId="cf-env-a-review"
+                    help="review_due_at"
                   >
                     <input
                       id="cf-env-a-review"
@@ -553,49 +668,53 @@ export function suggestionsFrom(result: unknown): SuggestedAspect[] {
                       [value]="form().review_due"
                       (change)="set('review_due', $any($event.target).value)"
                     />
-                  </app-form-field>
-                  <app-field-help scope="environment" page="aspectForm" field="review_due_at" />
+                  </app-env-field>
                 </div>
-              </div>
-            </app-card>
-
-            @if (id()) {
-              <app-card>
-                <app-form-field
-                  [label]="'environment.fields.changeReason' | transloco"
-                  inputId="cf-env-a-reason"
-                >
-                  <input
-                    id="cf-env-a-reason"
-                    type="text"
-                    maxlength="2000"
-                    [value]="changeReason()"
-                    (input)="changeReason.set($any($event.target).value)"
-                  />
-                </app-form-field>
-                <p class="mt-1 text-[12px] text-fg-subtle">
-                  {{ 'environment.form.changeReasonHint' | transloco }}
-                </p>
               </app-card>
-            }
 
-            <div class="flex flex-wrap justify-end gap-2">
-              <app-button variant="ghost" (click)="back()">
-                {{ 'common.cancel' | transloco }}
-              </app-button>
-              <app-button
-                type="submit"
-                [loading]="saving()"
-                [disabled]="saving()"
-                data-testid="aspect-save"
+              @if (id()) {
+                <app-card>
+                  <app-env-field
+                    labelKey="environment.fields.changeReason"
+                    inputId="cf-env-a-reason"
+                    hintKey="environment.form.changeReasonHint"
+                  >
+                    <input
+                      id="cf-env-a-reason"
+                      type="text"
+                      maxlength="2000"
+                      aria-describedby="cf-env-a-reason-hint"
+                      [value]="changeReason()"
+                      (input)="changeReason.set($any($event.target).value)"
+                    />
+                  </app-env-field>
+                </app-card>
+              }
+
+              <div
+                class="sticky bottom-0 z-10 -mx-4 flex flex-wrap items-center justify-end gap-2 border-t border-border bg-bg px-4 py-3 sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0"
               >
-                {{ (id() ? 'common.save' : 'environment.aspect.create') | transloco }}
-              </app-button>
-            </div>
-          </form>
-          <div class="mt-6"><app-why-it-matters scope="environment" page="aspectForm" /></div>
+                @if (attempted() && errorCount()) {
+                  <p class="mr-auto text-meta font-semibold text-fail" role="alert">
+                    {{ 'environment.form.fixErrors' | transloco: { count: errorCount() } }}
+                  </p>
+                }
+                <app-button variant="secondary" (click)="back()">
+                  {{ 'common.cancel' | transloco }}
+                </app-button>
+                <app-button
+                  type="submit"
+                  [loading]="saving()"
+                  [disabled]="saving()"
+                  data-testid="aspect-save"
+                >
+                  {{ (id() ? 'common.save' : 'environment.aspect.create') | transloco }}
+                </app-button>
+              </div>
+            </form>
+          }
         }
-      }
+      </div>
     </div>
   `,
 })
@@ -606,40 +725,63 @@ export class AspectEditor {
   private readonly notifications = inject(NotificationService);
   private readonly language = inject(LanguageService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  private readonly flows = inject(CreateFlowService);
 
   /** Route parameter; absent on `new`. */
   readonly id = input<string | undefined>(undefined);
 
+  protected readonly perms = injectEnvPermissions();
   protected readonly suggestAssist = ASSIST_SUGGEST_ASPECTS;
   protected readonly impactTypes = IMPACT_TYPES;
   protected readonly conditions = CONDITIONS;
   protected readonly controlLevels = CONTROL_LEVELS;
   protected readonly stages = LIFECYCLE_STAGES;
   protected readonly statuses = RECORD_STATUSES;
+  protected readonly obligationType = ENTITY_OBLIGATION;
+  protected readonly processType = ENTITY_PROCESS;
   protected readonly overrides: readonly OverrideChoice[] = ['', 'significant', 'not_significant'];
 
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
-  protected readonly errorKey = signal('environment.common.loadFailed');
+  protected readonly errorKey = signal('ui.error.body');
   protected readonly method = signal<ScoringMethod | null>(null);
   protected readonly original = signal<Aspect | null>(null);
   private readonly seed = signal<AspectFormValue | null>(null);
   protected readonly form = signal<AspectFormValue>(emptyAspectForm());
   protected readonly changeReason = signal('');
   protected readonly saving = signal(false);
-  private readonly attempted = signal(false);
+  protected readonly attempted = signal(false);
   protected readonly serverErrors = signal<Readonly<Record<string, string>>>({});
   protected readonly suggestions = signal<readonly SuggestedAspect[]>([]);
   protected readonly suggestionsEmpty = signal(false);
 
+  /** The "create from here" flow (or `?fromRequirement=`) this new form was opened with. */
+  private readonly flowSource = signal<Signal<FlowContext | null> | null>(null);
+  protected readonly flow = computed(() => this.flowSource()?.() ?? null);
+
   protected readonly errors = computed(() => validateAspectForm(this.form()));
   protected readonly shown = computed(() => (this.attempted() ? this.errors() : {}));
+  protected readonly errorCount = computed(() => Object.keys(this.errors()).length);
+  protected readonly processValue = computed(() => {
+    const p = this.form().process;
+    return p ? [p] : [];
+  });
+
+  protected readonly breadcrumbs = computed(() => {
+    const a = this.original();
+    return a
+      ? [
+          ENV_ROOT_CRUMB,
+          ENV_CRUMBS.aspects,
+          { label: a.code, link: ['/environment/aspects', a.id] },
+          { labelKey: 'environment.common.edit' },
+        ]
+      : [ENV_ROOT_CRUMB, ENV_CRUMBS.aspects, { labelKey: 'environment.aspect.newTitle' }];
+  });
 
   protected readonly scale = computed(() => {
     const m = this.method();
-    if (!m) {
-      return [];
-    }
-    return Array.from({ length: m.scale_max - m.scale_min + 1 }, (_, i) => m.scale_min + i);
+    return m ? scaleValues(m) : [];
   });
 
   protected readonly preview = computed(() => {
@@ -659,7 +801,7 @@ export class AspectEditor {
     const score = this.preview();
     return (
       (score !== null && score >= m.threshold) ||
-      (f.legal_requirement && m.legal_requirement_significant) ||
+      (f.obligations.length > 0 && m.legal_requirement_significant) ||
       (f.condition === 'emergency' && m.emergency_significant)
     );
   });
@@ -675,8 +817,8 @@ export class AspectEditor {
   constructor() {
     inject(DestroyRef).onDestroy(() => this.request.unsubscribe());
     providePageContext(() => ({
-      module: 'environment',
-      entityType: 'env_aspect',
+      module: ENV_MODULE,
+      entityType: ENTITY_ASPECT,
       entityId: this.id() ?? null,
       view: this.id() ? 'edit' : 'new',
       title: this.original()?.aspect ?? this.language.translate('environment.aspect.newTitle'),
@@ -686,14 +828,35 @@ export class AspectEditor {
       const id = this.id();
       untracked(() => this.load(orgId, id));
     });
+    // Prefill from a create-from-here flow (may arrive after the form opened).
+    effect(() => {
+      const flow = this.flow();
+      if (flow && !this.id()) {
+        untracked(() => this.form.update((f) => aspectPrefill(f, flow.prefill)));
+      }
+    });
   }
 
   protected label(c: ScoringMethod['criteria'][number]): string {
     return criterionLabel(c, this.language.active());
   }
 
+  protected description(c: ScoringMethod['criteria'][number]): string {
+    return localText(c.description, this.language.active());
+  }
+
+  /** "3 – Merkbar påvirkning som går over av seg selv" (or just "3"). */
+  protected optionText(c: ScoringMethod['criteria'][number], value: number): string {
+    const text = levelText(c, value, this.language.active());
+    return text ? `${value} – ${text}` : String(value);
+  }
+
   protected set<K extends keyof AspectFormValue>(key: K, value: AspectFormValue[K]): void {
     this.form.update((f) => ({ ...f, [key]: value }));
+  }
+
+  protected setProcess(value: readonly PickedRecord[]): void {
+    this.set('process', value[0] ?? null);
   }
 
   protected setScore(key: string, raw: string): void {
@@ -727,21 +890,22 @@ export class AspectEditor {
   }
 
   protected useSuggestion(s: SuggestedAspect): void {
-    const f = this.form();
-    this.form.set({
-      ...aspectFormFromSuggestion(f.activity.trim(), f.site, s),
-      owner_user_id: f.owner_user_id,
-      department_id: f.department_id,
-      scores: f.scores,
-      review_due: f.review_due,
-    });
+    this.form.set(aspectFormFromSuggestion(this.form(), s));
     this.notifications.info('environment.aspect.suggestionApplied');
+  }
+
+  protected cancelFlow(): void {
+    this.flows.cancel();
+  }
+
+  protected reload(): void {
+    this.load(this.selectedOrg.currentOrgId(), this.id());
   }
 
   protected submit(): void {
     this.attempted.set(true);
     const orgId = this.selectedOrg.currentOrgId();
-    if (!orgId || this.saving() || Object.keys(this.errors()).length) {
+    if (!orgId || this.saving() || this.errorCount()) {
       return;
     }
     const id = this.id();
@@ -762,13 +926,21 @@ export class AspectEditor {
     }
     this.saving.set(true);
     this.api.createAspect(orgId, toAspectCreate(this.form())).subscribe({
-      next: (a) => this.saved(a.id, 'environment.notices.created', a.code),
+      next: (a) => {
+        if (this.flow()) {
+          this.flows.complete(a.id, ENTITY_ASPECT).subscribe();
+        }
+        this.saved(a.id, 'environment.notices.created', a.code);
+      },
       error: (error: unknown) => this.failed(error),
     });
   }
 
   protected back(): void {
     const id = this.id();
+    if (!id && this.flow()) {
+      this.flows.cancel();
+    }
     void this.router.navigate(id ? ['/environment/aspects', id] : ['/environment/aspects']);
   }
 
@@ -796,6 +968,9 @@ export class AspectEditor {
         if (!id) {
           const me = this.auth.user()?.id ?? '';
           this.form.set(emptyAspectForm({ owner_user_id: me }));
+          if (!this.flowSource()) {
+            this.flowSource.set(this.flows.consume(this.route, { targetType: ENTITY_ASPECT }));
+          }
           this.state.set('ready');
           return;
         }

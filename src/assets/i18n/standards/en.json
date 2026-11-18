@@ -212,7 +212,11 @@
       "article_refs": "Articles",
       "requirements": "Requirements",
       "generic": "a field on the record",
-      "contract_type": "Contract type"
+      "contract_type": "Contract type",
+      "aspect_evaluation": "Aspect evaluation",
+      "emergency_preparedness": "Emergency plan",
+      "drill_result": "Drill result",
+      "monitoring": "Monitoring"
     },
     "origin": {
       "manual": "Added by hand",

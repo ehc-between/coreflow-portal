@@ -212,7 +212,11 @@
       "article_refs": "Artikler",
       "requirements": "Krav",
       "generic": "et felt på posten",
-      "contract_type": "Kontrakttype"
+      "contract_type": "Kontrakttype",
+      "aspect_evaluation": "Vurdering av aspektet",
+      "emergency_preparedness": "Beredskapsplan",
+      "drill_result": "Resultat av øvelsen",
+      "monitoring": "Overvåking"
     },
     "origin": {
       "manual": "Lagt til manuelt",

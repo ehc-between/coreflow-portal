@@ -14,38 +14,57 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription, map } from 'rxjs';
 import { providePageContext } from '../../core/ai/page-context';
+import { CreateFlowService } from '../../core/kit/create-flow.service';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
+import { RequirementLink } from '../../core/standards/standards.models';
 import { WatchButton } from '../../shared/activity/watch-button';
 import { AskAbout } from '../../shared/ask/ask-about';
-import { GuideIntro } from '../../shared/guidance/guide-intro';
+import { Term } from '../../shared/guidance/term';
 import { WhyItMatters } from '../../shared/guidance/why-it-matters';
+import { EntityChip } from '../../shared/kit/entity-chip';
 import { RecordDetailLayout, RecordTab } from '../../shared/kit/record-detail-layout';
 import { LocalDatePipe, LocalDayPipe } from '../../shared/locale/locale-pipes';
+import { MarkdownPipe } from '../../shared/markdown/markdown.pipe';
 import { SupportsRequirements } from '../../shared/requirement-links/supports-requirements';
+import { AssigneeOptionsService } from '../../shared/tasks/assignee-options';
 import { EntityTasks } from '../../shared/tasks/entity-tasks';
 import { RuleSummary } from '../../shared/tasks/rule-summary';
-import { Alert } from '../../shared/ui/alert/alert';
-import { Badge } from '../../shared/ui/badge/badge';
 import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog/confirm-dialog';
+import { ErrorState } from '../../shared/ui/error-state/error-state';
+import { FieldItem, FieldList } from '../../shared/ui/field-list/field-list';
+import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../shared/ui/icon/icon';
+import { LoadingState } from '../../shared/ui/loading-state/loading-state';
+import { ModuleNav } from '../../shared/ui/module-nav/module-nav';
+import { MenuItem } from '../../shared/ui/overflow-menu/overflow-menu';
+import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
 import { EnvironmentApi } from './data/environment-api';
 import {
   Drill,
   DrillCreate,
+  ENTITY_DRILL,
   ENTITY_PLAN,
   EmergencyPlan,
-  PERM_MANAGE,
-  PERM_RECORD,
-  PERM_WRITE,
+  FLOWS,
   ReviewIn,
 } from './data/environment.models';
-import { outcomeTone, statusTone } from './data/environment-display';
+import { outcomeBadgeValue } from './data/environment-display';
 import { environmentErrorKey } from './data/environment-errors';
+import { chipRef } from './aspect-detail';
 import { EnvDrillDialog } from './drill-dialog';
-import { EnvLessonLink } from './lesson-link';
+import {
+  ENV_CRUMBS,
+  ENV_MODULE,
+  ENV_PLAN_FRAMEWORKS,
+  ENV_ROOT_CRUMB,
+  EnvAskButton,
+  departmentName,
+  injectEnvPermissions,
+} from './environment-shared';
+import { EnvFlowButtons } from './flow-buttons';
 import { EnvReviewDialog } from './review-dialog';
 
 const TABS: readonly RecordTab[] = [
@@ -75,12 +94,44 @@ export const PLAN_FIELD_LABELS: Readonly<Record<string, string>> = {
   last_reviewed_at: 'environment.fields.lastReviewed',
 };
 
+/** The flows offered on each recorded drill or real event. */
+export const DRILL_FLOWS: readonly string[] = [FLOWS.drillToDeviation, FLOWS.drillToTask];
+
+export type PlanNotice = 'drill' | 'revision' | 'review' | 'noAspects';
+
+export function planNotices(p: EmergencyPlan): PlanNotice[] {
+  const out: PlanNotice[] = [];
+  if (p.drill_overdue) {
+    out.push('drill');
+  }
+  if ((p.open_revision_tasks ?? 0) > 0) {
+    out.push('revision');
+  }
+  if (p.review_overdue) {
+    out.push('review');
+  }
+  if (p.aspects && p.aspects.length === 0 && p.status !== 'retired') {
+    out.push('noAspects');
+  }
+  return out;
+}
+
+/** "Kari Nordmann, Ola Hansen og 3 andre" style participant line parts. */
+export function participantNames(d: Drill): { names: string; others: number } {
+  const people = d.participant_list ?? [];
+  const others = Math.max(0, (d.participants ?? 0) - people.length);
+  return { names: people.map((p) => p.name).join(', '), others };
+}
+
 /**
- * An emergency preparedness and response plan
- * (`/environment/emergency-plans/:id`): the scenario, its potential impact, the
- * response procedure, resources and contacts; the drill schedule and the record
- * of drills held (`?drill=<id>` highlights one); drill tasks in the Tasks tab and
- * the shared record kit for related records, activity, comments and revisions.
+ * An emergency preparedness and response plan (`/environment/emergency-plans/:id`).
+ * Header: code, status, overdue drill; "Registrer øvelse" is the primary action,
+ * Edit and "Lag ny fra denne" are secondary, review and delete sit under "Mer".
+ * Body: what needs attention, the scenario, the aspects the plan covers, the
+ * response procedure and resources, contacts (members or external), and the drills
+ * and real events with outcome, participants, findings and "Opprett avvik" /
+ * "Opprett oppgave" per drill. `?drill=<id>` highlights one drill; `?recordDrill=1`
+ * opens the recording dialog (from the home page's "do this now").
  */
 @Component({
   selector: 'app-env-plan-detail',
@@ -89,41 +140,55 @@ export const PLAN_FIELD_LABELS: Readonly<Record<string, string>> = {
     TranslocoPipe,
     LocalDatePipe,
     LocalDayPipe,
+    MarkdownPipe,
     WatchButton,
     AskAbout,
-    GuideIntro,
+    Term,
     WhyItMatters,
+    EntityChip,
     RecordDetailLayout,
     SupportsRequirements,
     EntityTasks,
     RuleSummary,
-    Alert,
-    Badge,
     Button,
     Card,
     ConfirmDialog,
+    ErrorState,
+    FieldItem,
+    FieldList,
+    HelpStrip,
     Icon,
+    LoadingState,
+    MenuItem,
+    ModuleNav,
+    StatusBadge,
+    EnvAskButton,
     EnvDrillDialog,
-    EnvLessonLink,
+    EnvFlowButtons,
     EnvReviewDialog,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @switch (state()) {
       @case ('loading') {
-        <p class="py-16 text-center text-[14px] text-fg-muted" role="status">
-          {{ 'environment.common.loading' | transloco }}
-        </p>
+        <div class="mx-auto max-w-[1180px] px-4 pt-7 sm:px-8">
+          <app-loading-state [rows]="6" />
+        </div>
       }
       @case ('error') {
-        <div class="mx-auto max-w-[760px] px-4 pt-8 sm:px-8">
-          <app-alert tone="error">{{ errorKey() | transloco }}</app-alert>
-          <a
-            routerLink="/environment/emergency-plans"
-            class="mt-4 inline-block text-[13px] font-semibold text-accent"
-          >
-            {{ 'environment.plans.back' | transloco }}
-          </a>
+        <div class="mx-auto max-w-[1180px] px-4 pt-7 sm:px-8">
+          <app-error-state
+            titleKey="environment.common.notFoundTitle"
+            [bodyKey]="errorKey()"
+            (retry)="reload()"
+          />
+          <p class="mt-3 text-center">
+            <a
+              routerLink="/environment/emergency-plans"
+              class="text-ui font-semibold text-accent hover:underline"
+              >{{ 'environment.plans.back' | transloco }}</a
+            >
+          </p>
         </div>
       }
       @default {
@@ -131,207 +196,311 @@ export const PLAN_FIELD_LABELS: Readonly<Record<string, string>> = {
           <app-record-detail-layout
             [entityType]="entityType"
             [entityId]="p.id"
+            [title]="p.title"
+            [breadcrumbs]="breadcrumbs()"
+            [settingsLink]="perms.settingsLink()"
             [tabs]="tabs"
-            [canEdit]="canWrite()"
+            [canEdit]="perms.write()"
             [fieldLabels]="fieldLabels"
-            backLink="/environment/emergency-plans"
-            backLabelKey="environment.plans.back"
           >
-            <div header>
-              <p class="mb-1 flex flex-wrap items-center gap-2 text-[12.5px] text-fg-subtle">
-                <span class="font-mono font-semibold">{{ p.code }}</span>
-                @if (p.site) {
-                  <span>{{ p.site }}</span>
-                }
-              </p>
-              <h1
-                class="font-display text-[24px] font-bold tracking-[-0.03em] break-words text-fg sm:text-[26px]"
-                data-testid="plan-heading"
-              >
-                {{ p.title }}
-              </h1>
-              <div class="mt-2 flex flex-wrap items-center gap-2">
-                <app-badge [tone]="tone(p.status)" data-testid="plan-status">{{
-                  'environment.status.' + p.status | transloco
-                }}</app-badge>
-                @if (p.drill_overdue) {
-                  <app-badge tone="fail" data-testid="plan-drill-overdue">
-                    <app-icon name="alert" [size]="12" />
-                    {{ 'environment.plan.drillOverdue' | transloco }}
-                  </app-badge>
-                }
-                @if (p.review_overdue) {
-                  <app-badge tone="fail">{{
-                    'environment.common.reviewIsOverdue' | transloco
-                  }}</app-badge>
-                }
-              </div>
-            </div>
-
-            <ng-container actions>
-              <app-watch-button [entityType]="entityType" [entityId]="p.id" />
-              <app-ask-about [prompt]="'environment.ask.summarisePlan' | transloco" />
-              @if (canRecord()) {
-                <app-button size="sm" (click)="recording.set(true)" data-testid="record-drill">
-                  <app-icon name="plus" [size]="14" />
-                  {{ 'environment.drill.record' | transloco }}
-                </app-button>
-              }
-              @if (canWrite()) {
-                <app-button
-                  variant="secondary"
-                  size="sm"
-                  (click)="reviewing.set(true)"
-                  data-testid="plan-review"
-                >
-                  <app-icon name="checkcircle" [size]="14" />
-                  {{ 'environment.review.action' | transloco }}
-                </app-button>
-                <a
-                  [routerLink]="['/environment/emergency-plans', p.id, 'edit']"
-                  class="inline-flex h-8 items-center rounded-tile border border-border px-3 text-[13px] font-semibold text-fg hover:bg-surface-2"
-                  data-testid="plan-edit"
-                >
-                  {{ 'environment.common.edit' | transloco }}
-                </a>
-              }
-              @if (canManage()) {
-                <app-button variant="ghost" size="sm" (click)="deleting.set(true)">
-                  <app-icon name="trash" [size]="14" />
-                  {{ 'environment.common.delete' | transloco }}
-                </app-button>
+            <ng-container ngProjectAs="[meta]">
+              <span class="font-mono">{{ p.code }}</span>
+              <span aria-hidden="true">·</span>
+              <app-term key="emergency-preparedness" scope="environment">{{
+                'environment.plan.one' | transloco
+              }}</app-term>
+              <span aria-hidden="true">·</span>
+              <app-status-badge
+                meaning="lifecycle"
+                [value]="p.status"
+                [labelKey]="'environment.status.' + p.status"
+                data-testid="plan-status"
+              />
+              @if (p.drill_overdue) {
+                <app-status-badge
+                  meaning="lifecycle"
+                  value="overdue"
+                  labelKey="environment.plan.drillOverdue"
+                  data-testid="plan-drill-overdue"
+                />
               }
             </ng-container>
 
-            <div class="flex flex-col gap-6">
-              <app-guide-intro scope="environment" page="planDetail" />
+            @if (perms.record()) {
+              <app-button primary (click)="recording.set(true)" data-testid="record-drill">
+                <app-icon name="plus" [size]="15" />
+                {{ 'environment.drill.record' | transloco }}
+              </app-button>
+            }
+            @if (perms.write()) {
+              <a
+                secondary
+                [routerLink]="['/environment/emergency-plans', p.id, 'edit']"
+                tabindex="-1"
+                data-testid="plan-edit"
+              >
+                <app-button variant="secondary">{{
+                  'environment.common.edit' | transloco
+                }}</app-button>
+              </a>
+            }
+            @if (perms.write()) {
+              <button
+                appMenuItem
+                overflow
+                type="button"
+                (click)="reviewing.set(true)"
+                data-testid="plan-review"
+              >
+                {{ 'environment.review.action' | transloco }}
+              </button>
+            }
+            @if (perms.manage()) {
+              <button
+                appMenuItem
+                overflow
+                type="button"
+                [danger]="true"
+                (click)="deleting.set(true)"
+                data-testid="plan-delete"
+              >
+                {{ 'environment.common.delete' | transloco }}
+              </button>
+            }
+
+            <app-module-nav
+              nav
+              class="mb-4 block"
+              [items]="perms.nav()"
+              labelKey="modules.names.environment"
+            />
+            <app-help-strip
+              help
+              scope="environment"
+              page="planDetail"
+              lesson="emergency-preparedness"
+              [subject]="p.title"
+            />
+
+            <div class="flex flex-col gap-5">
+              @if (notices().length) {
+                <ul class="flex flex-col gap-2" role="status" data-testid="plan-notices">
+                  @for (n of notices(); track n) {
+                    <li
+                      class="flex flex-col gap-2 rounded-tile border border-warn/40 bg-warn-soft px-4 py-3 text-ui text-warn-ink sm:flex-row sm:items-center"
+                    >
+                      <span class="flex min-w-0 flex-1 gap-2">
+                        <app-icon name="alert" [size]="15" class="mt-0.5 flex-none" />
+                        <span>{{
+                          'environment.plan.notices.' + n
+                            | transloco
+                              : {
+                                  count: p.open_revision_tasks ?? 0,
+                                  date: (p.review_due_at | localDay),
+                                }
+                        }}</span>
+                      </span>
+                      <span class="flex flex-none flex-wrap gap-2">
+                        @switch (n) {
+                          @case ('drill') {
+                            @if (perms.record()) {
+                              <app-button
+                                variant="secondary"
+                                size="sm"
+                                (click)="recording.set(true)"
+                              >
+                                {{ 'environment.drill.record' | transloco }}
+                              </app-button>
+                            }
+                          }
+                          @case ('revision') {
+                            <a
+                              [routerLink]="[]"
+                              [queryParams]="{ tab: 'tasks' }"
+                              class="text-ui font-semibold text-accent hover:underline"
+                              >{{ 'environment.plan.openTasks' | transloco }}</a
+                            >
+                          }
+                          @case ('review') {
+                            @if (perms.write()) {
+                              <app-button
+                                variant="secondary"
+                                size="sm"
+                                (click)="reviewing.set(true)"
+                              >
+                                {{ 'environment.review.action' | transloco }}
+                              </app-button>
+                            }
+                          }
+                          @case ('noAspects') {
+                            @if (perms.write()) {
+                              <a
+                                [routerLink]="['/environment/emergency-plans', p.id, 'edit']"
+                                fragment="aspects"
+                                class="text-ui font-semibold text-accent hover:underline"
+                                >{{ 'environment.plan.linkAspects' | transloco }}</a
+                              >
+                            }
+                          }
+                        }
+                      </span>
+                    </li>
+                  }
+                </ul>
+              }
 
               <app-card>
-                <h2 class="mb-3 font-display text-[15px] font-bold text-fg">
+                <h2 class="mb-3 font-display text-card font-bold text-fg">
                   {{ 'environment.plan.sections.scenario' | transloco }}
                 </h2>
-                <dl class="flex flex-col gap-3 text-[13.5px]">
-                  <div>
-                    <dt class="text-[13px] text-fg-subtle">
-                      {{ 'environment.fields.scenario' | transloco }}
-                    </dt>
-                    <dd class="whitespace-pre-line text-fg">
-                      {{ p.scenario ?? ('environment.common.none' | transloco) }}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt class="text-[13px] text-fg-subtle">
-                      {{ 'environment.fields.potentialImpact' | transloco }}
-                    </dt>
-                    <dd class="whitespace-pre-line text-fg">
-                      {{ p.potential_impact ?? ('environment.common.none' | transloco) }}
-                    </dd>
-                  </div>
-                </dl>
+                <app-field-list>
+                  <app-field-item
+                    labelKey="environment.fields.scenario"
+                    [value]="p.scenario"
+                    [wide]="true"
+                    [multiline]="true"
+                  />
+                  <app-field-item
+                    labelKey="environment.fields.potentialImpact"
+                    [value]="p.potential_impact"
+                    [wide]="true"
+                    [multiline]="true"
+                  />
+                  <app-field-item labelKey="environment.fields.site" [value]="p.site" />
+                </app-field-list>
               </app-card>
 
-              <app-card>
-                <h2 class="mb-3 font-display text-[15px] font-bold text-fg">
-                  {{ 'environment.fields.responseProcedure' | transloco }}
-                </h2>
-                @if (p.response_procedure) {
-                  <p class="text-[13.5px] whitespace-pre-line text-fg" data-testid="plan-procedure">
-                    {{ p.response_procedure }}
-                  </p>
+              <app-card data-testid="plan-aspects">
+                <div class="mb-1 flex flex-wrap items-center justify-between gap-2">
+                  <h2 class="font-display text-card font-bold text-fg">
+                    {{ 'environment.plan.sections.aspects' | transloco }}
+                  </h2>
+                  @if (perms.write()) {
+                    <a
+                      [routerLink]="['/environment/emergency-plans', p.id, 'edit']"
+                      fragment="aspects"
+                      class="text-ui font-semibold text-accent hover:underline"
+                      >{{ 'environment.plan.editAspects' | transloco }}</a
+                    >
+                  }
+                </div>
+                <p class="mb-3 text-meta text-fg-muted">
+                  {{ 'environment.plan.aspectsHint' | transloco }}
+                </p>
+                @if (aspects().length) {
+                  <ul class="flex flex-col gap-2">
+                    @for (a of aspects(); track a.id) {
+                      <li><app-entity-chip [ref]="ref(a)" [statusText]="true" /></li>
+                    }
+                  </ul>
                 } @else {
-                  <p class="text-[13px] text-fg-muted">
-                    {{ 'environment.plan.noProcedure' | transloco }}
-                  </p>
-                }
-                @if (p.resources) {
-                  <h3 class="mt-4 mb-1 text-[13px] font-semibold text-fg-subtle">
-                    {{ 'environment.fields.resources' | transloco }}
-                  </h3>
-                  <p class="text-[13.5px] whitespace-pre-line text-fg">{{ p.resources }}</p>
-                }
-              </app-card>
-
-              <app-card>
-                <h2 class="mb-3 font-display text-[15px] font-bold text-fg">
-                  {{ 'environment.fields.contacts' | transloco }}
-                </h2>
-                @if (p.contacts.length) {
-                  <div class="overflow-x-auto">
-                    <table class="w-full text-left text-[13px]" data-testid="plan-contacts">
-                      <thead class="text-fg-subtle">
-                        <tr>
-                          <th scope="col" class="py-1 pr-3 font-semibold">
-                            {{ 'environment.fields.contactName' | transloco }}
-                          </th>
-                          <th scope="col" class="py-1 pr-3 font-semibold">
-                            {{ 'environment.fields.contactRole' | transloco }}
-                          </th>
-                          <th scope="col" class="py-1 pr-3 font-semibold">
-                            {{ 'environment.fields.contactPhone' | transloco }}
-                          </th>
-                          <th scope="col" class="py-1 font-semibold">
-                            {{ 'environment.fields.contactEmail' | transloco }}
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody class="divide-y divide-border text-fg">
-                        @for (c of p.contacts; track $index) {
-                          <tr>
-                            <td class="py-1.5 pr-3 font-semibold">{{ c.name }}</td>
-                            <td class="py-1.5 pr-3">{{ c.role ?? '' }}</td>
-                            <td class="py-1.5 pr-3">
-                              @if (c.phone) {
-                                <a [href]="'tel:' + c.phone" class="text-accent hover:underline">{{
-                                  c.phone
-                                }}</a>
-                              }
-                            </td>
-                            <td class="py-1.5">
-                              @if (c.email) {
-                                <a
-                                  [href]="'mailto:' + c.email"
-                                  class="break-all text-accent hover:underline"
-                                  >{{ c.email }}</a
-                                >
-                              }
-                            </td>
-                          </tr>
-                        }
-                      </tbody>
-                    </table>
-                  </div>
-                } @else {
-                  <p class="text-[13px] text-fg-muted">
-                    {{ 'environment.plan.noContacts' | transloco }}
+                  <p class="text-ui text-fg-muted">
+                    {{ 'environment.plan.noAspects' | transloco }}
                   </p>
                 }
               </app-card>
 
               <app-card>
                 <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-                  <h2 class="font-display text-[15px] font-bold text-fg">
+                  <h2 class="font-display text-card font-bold text-fg">
+                    {{ 'environment.fields.responseProcedure' | transloco }}
+                  </h2>
+                  <app-ask-about
+                    [prompt]="'environment.ask.procedure' | transloco"
+                    field="response_procedure"
+                    [fieldLabel]="'environment.fields.responseProcedure' | transloco"
+                    [requirements]="confirmedRefs()"
+                  />
+                </div>
+                @if (p.response_procedure) {
+                  <div
+                    class="cf-prose text-body text-fg"
+                    data-testid="plan-procedure"
+                    [innerHTML]="p.response_procedure | appMarkdown"
+                  ></div>
+                } @else {
+                  <p class="text-ui text-fg-muted">
+                    {{ 'environment.plan.noProcedure' | transloco }}
+                  </p>
+                }
+                @if (p.resources) {
+                  <h3 class="mt-4 mb-1 text-meta font-semibold text-fg-muted">
+                    {{ 'environment.fields.resources' | transloco }}
+                  </h3>
+                  <p class="text-body whitespace-pre-line text-fg">{{ p.resources }}</p>
+                }
+              </app-card>
+
+              <app-card>
+                <h2 class="mb-3 font-display text-card font-bold text-fg">
+                  {{ 'environment.fields.contacts' | transloco }}
+                </h2>
+                @if (p.contacts.length) {
+                  <ul class="flex flex-col divide-y divide-border" data-testid="plan-contacts">
+                    @for (c of p.contacts; track $index) {
+                      <li class="flex flex-col gap-0.5 py-2 sm:flex-row sm:items-center sm:gap-4">
+                        <span class="min-w-0 flex-1">
+                          <span class="block text-ui font-semibold text-fg">
+                            {{ c.name }}
+                            <span class="ml-1 text-meta font-normal text-fg-subtle">{{
+                              (c.user_id
+                                ? 'environment.plan.contactMember'
+                                : 'environment.plan.contactExternal'
+                              ) | transloco
+                            }}</span>
+                          </span>
+                          @if (c.role) {
+                            <span class="block text-meta text-fg-muted">{{ c.role }}</span>
+                          }
+                        </span>
+                        <span class="flex flex-wrap gap-x-4 text-ui">
+                          @if (c.phone) {
+                            <a [href]="'tel:' + c.phone" class="text-accent hover:underline">{{
+                              c.phone
+                            }}</a>
+                          }
+                          @if (c.email) {
+                            <a
+                              [href]="'mailto:' + c.email"
+                              class="break-all text-accent hover:underline"
+                              >{{ c.email }}</a
+                            >
+                          }
+                        </span>
+                      </li>
+                    }
+                  </ul>
+                } @else {
+                  <p class="text-ui text-fg-muted">
+                    {{ 'environment.plan.noContacts' | transloco }}
+                  </p>
+                }
+              </app-card>
+
+              <app-card data-testid="plan-drills">
+                <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+                  <h2 class="font-display text-card font-bold text-fg">
                     {{ 'environment.drill.listTitle' | transloco }}
                   </h2>
                   <app-ask-about
                     [prompt]="'environment.ask.drillLessons' | transloco"
                     field="drills"
+                    [fieldLabel]="'environment.drill.listTitle' | transloco"
+                    [requirements]="confirmedRefs()"
                   />
                 </div>
                 @switch (drillsState()) {
                   @case ('loading') {
-                    <p class="text-[13px] text-fg-muted" role="status">
-                      {{ 'environment.common.loading' | transloco }}
-                    </p>
+                    <app-loading-state [rows]="2" />
                   }
                   @case ('error') {
-                    <p class="text-[13px] text-fail" role="alert">
-                      {{ 'environment.common.loadFailed' | transloco }}
-                    </p>
+                    <app-error-state (retry)="loadDrills(p.id)" />
                   }
                   @default {
                     @if (drills().length) {
                       <ul class="flex flex-col gap-3" data-testid="drill-rows">
                         @for (d of drills(); track d.id) {
+                          @let who = people(d);
                           <li
                             [id]="'drill-' + d.id"
                             class="rounded-tile border p-3"
@@ -340,35 +509,48 @@ export const PLAN_FIELD_LABELS: Readonly<Record<string, string>> = {
                             [class.border-border]="d.id !== highlightDrill()"
                           >
                             <div class="flex flex-wrap items-center justify-between gap-2">
-                              <div class="flex flex-wrap items-center gap-2 text-[13px]">
+                              <div class="flex flex-wrap items-center gap-2 text-ui">
                                 <span class="font-semibold text-fg">{{
-                                  d.held_at | localDate: 'medium'
+                                  d.held_at | localDate
                                 }}</span>
-                                <span class="text-fg-subtle">{{
+                                <span class="text-fg-muted">{{
                                   'environment.drillKinds.' + d.kind | transloco
                                 }}</span>
-                                <app-badge [tone]="outcome(d.outcome)">{{
-                                  'environment.outcomes.' + d.outcome | transloco
-                                }}</app-badge>
+                                <app-status-badge
+                                  meaning="compliance"
+                                  [value]="outcomeValue(d.outcome)"
+                                  [labelKey]="'environment.outcomes.' + d.outcome"
+                                />
                                 @if (d.plan_revision_needed) {
-                                  <app-badge tone="warn">{{
-                                    'environment.drill.revisionNeeded' | transloco
-                                  }}</app-badge>
+                                  <app-status-badge
+                                    meaning="lifecycle"
+                                    value="due"
+                                    labelKey="environment.drill.revisionNeeded"
+                                  />
                                 }
                               </div>
-                              @if (canManage()) {
-                                <app-button
-                                  variant="ghost"
-                                  size="sm"
+                              @if (perms.manage()) {
+                                <button
+                                  type="button"
+                                  class="inline-flex h-8 w-8 items-center justify-center rounded-tile text-fg-subtle hover:bg-surface-2 hover:text-fail focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
                                   [attr.aria-label]="'environment.drill.delete' | transloco"
+                                  [title]="'environment.drill.delete' | transloco"
                                   (click)="deletingDrill.set(d)"
                                 >
                                   <app-icon name="trash" [size]="14" />
-                                </app-button>
+                                </button>
                               }
                             </div>
-                            <p class="mt-1 text-[12px] text-fg-subtle">
-                              @if (d.participants !== null) {
+                            <p class="mt-1 text-meta text-fg-muted">
+                              @if (who.names) {
+                                {{
+                                  (who.others
+                                    ? 'environment.drill.participantsWithOthers'
+                                    : 'environment.drill.participantsNamed'
+                                  ) | transloco: { names: who.names, count: who.others }
+                                }}
+                                ·
+                              } @else if (d.participants !== null) {
                                 {{
                                   'environment.drill.participants'
                                     | transloco: { count: d.participants }
@@ -386,7 +568,7 @@ export const PLAN_FIELD_LABELS: Readonly<Record<string, string>> = {
                               }}
                             </p>
                             @if (d.findings) {
-                              <p class="mt-2 text-[13px] whitespace-pre-line text-fg">
+                              <p class="mt-2 text-ui whitespace-pre-line text-fg">
                                 <span class="font-semibold"
                                   >{{ 'environment.fields.findings' | transloco }}:</span
                                 >
@@ -394,18 +576,32 @@ export const PLAN_FIELD_LABELS: Readonly<Record<string, string>> = {
                               </p>
                             }
                             @if (d.lessons_learned) {
-                              <p class="mt-1 text-[13px] whitespace-pre-line text-fg">
+                              <p class="mt-1 text-ui whitespace-pre-line text-fg">
                                 <span class="font-semibold"
                                   >{{ 'environment.fields.lessonsLearned' | transloco }}:</span
                                 >
                                 {{ d.lessons_learned }}
                               </p>
                             }
+                            <div class="mt-2 flex flex-wrap items-center gap-2">
+                              @if (d.revision_task_id) {
+                                <a
+                                  [routerLink]="['/tasks', d.revision_task_id]"
+                                  class="mr-2 text-meta font-semibold text-accent hover:underline"
+                                  >{{ 'environment.drill.openRevisionTask' | transloco }}</a
+                                >
+                              }
+                              <app-env-flow-buttons
+                                [entityType]="drillType"
+                                [entityId]="d.id"
+                                [keys]="drillFlows"
+                              />
+                            </div>
                           </li>
                         }
                       </ul>
                     } @else {
-                      <p class="text-[13px] text-fg-muted" data-testid="no-drills">
+                      <p class="text-ui text-fg-muted" data-testid="no-drills">
                         {{ 'environment.drill.none' | transloco }}
                       </p>
                     }
@@ -418,85 +614,101 @@ export const PLAN_FIELD_LABELS: Readonly<Record<string, string>> = {
               <app-entity-tasks
                 [entityType]="entityType"
                 [entityId]="p.id"
-                [canCreate]="canWrite()"
+                [canCreate]="perms.write()"
                 [entityLabel]="p.code + ' ' + p.title"
               />
             </div>
 
-            <ng-container aside>
-              <app-card>
-                <h2 class="mb-2 text-[13px] font-semibold text-fg-subtle">
-                  {{ 'environment.plan.sections.drills' | transloco }}
-                </h2>
-                <dl class="flex flex-col gap-2 text-[13px]" data-testid="plan-drill-summary">
-                  <div>
-                    <dt class="text-fg-subtle">
-                      {{ 'environment.fields.drillSchedule' | transloco }}
-                    </dt>
-                    <dd class="text-fg">
-                      @if (p.drill_rrule) {
-                        <app-rule-summary [rrule]="p.drill_rrule" />
-                      } @else {
-                        {{ 'environment.plan.noSchedule' | transloco }}
+            <app-supports-requirements
+              aside-requirements
+              [entityType]="entityType"
+              [entityId]="p.id"
+              [canEdit]="perms.write()"
+              [frameworks]="frameworks"
+              (linksChange)="onLinks($event)"
+            />
+
+            <div aside class="flex flex-col gap-4">
+              <app-card data-testid="plan-drill-summary">
+                <div class="mb-3 flex items-center justify-between gap-2">
+                  <h2 class="font-display text-card font-bold text-fg">
+                    {{ 'environment.plan.sections.drillsAndReview' | transloco }}
+                  </h2>
+                  <app-watch-button [entityType]="entityType" [entityId]="p.id" />
+                </div>
+                <app-field-list [columns]="1">
+                  <app-field-item labelKey="environment.fields.drillSchedule">
+                    @if (p.drill_rrule) {
+                      <app-rule-summary [rrule]="p.drill_rrule" />
+                    } @else {
+                      <span class="text-fg-muted">{{ 'common.empty.notSet' | transloco }}</span>
+                      @if (perms.write()) {
+                        ·
+                        <a
+                          [routerLink]="['/environment/emergency-plans', p.id, 'edit']"
+                          fragment="drills"
+                          class="font-semibold text-accent hover:underline"
+                          >{{ 'environment.plan.setSchedule' | transloco }}</a
+                        >
                       }
-                    </dd>
-                  </div>
-                  @if (p.next_drill_due_at) {
-                    <div>
-                      <dt class="text-fg-subtle">{{ 'environment.plan.nextDrill' | transloco }}</dt>
-                      <dd class="text-fg">{{ p.next_drill_due_at | localDay }}</dd>
-                    </div>
-                  }
-                  <div>
-                    <dt class="text-fg-subtle">
-                      {{ 'environment.plan.lastDrillLabel' | transloco }}
-                    </dt>
-                    <dd class="text-fg" [class.text-fail]="p.drill_overdue">
-                      {{
-                        p.last_drill_at
-                          ? (p.last_drill_at | localDay)
-                          : ('environment.common.never' | transloco)
-                      }}
-                    </dd>
-                  </div>
-                </dl>
+                    }
+                  </app-field-item>
+                  <app-field-item
+                    labelKey="environment.plan.nextDrill"
+                    [value]="p.next_drill_due_at ? (p.next_drill_due_at | localDay) : null"
+                  />
+                  <app-field-item labelKey="environment.plan.lastDrillLabel">
+                    @if (p.last_drill_at) {
+                      <span
+                        [class.font-semibold]="p.drill_overdue"
+                        [class.text-warn-ink]="p.drill_overdue"
+                      >
+                        {{ p.last_drill_at | localDay }}
+                      </span>
+                    } @else {
+                      <span class="text-fg-muted">{{
+                        'environment.common.never' | transloco
+                      }}</span>
+                    }
+                  </app-field-item>
+                  <app-field-item labelKey="environment.fields.owner" [value]="p.owner_name" />
+                  <app-field-item labelKey="environment.fields.department" [value]="department()" />
+                  <app-field-item labelKey="environment.fields.reviewDue">
+                    @if (p.review_due_at) {
+                      <span
+                        [class.font-semibold]="p.review_overdue"
+                        [class.text-warn-ink]="p.review_overdue"
+                      >
+                        {{ p.review_due_at | localDay }}
+                        @if (p.review_overdue) {
+                          · {{ 'common.status.overdue' | transloco }}
+                        }
+                      </span>
+                    }
+                  </app-field-item>
+                  <app-field-item
+                    labelKey="environment.fields.lastReviewed"
+                    [value]="p.last_reviewed_at ? (p.last_reviewed_at | localDate) : null"
+                    empty="none"
+                  />
+                </app-field-list>
+                <div
+                  class="mt-4 flex flex-wrap gap-1"
+                  role="group"
+                  [attr.aria-label]="'environment.ask.group' | transloco"
+                >
+                  <app-env-ask-button
+                    labelKey="environment.ask.checkPlanLabel"
+                    promptKey="environment.ask.summarisePlan"
+                    [requirements]="confirmedRefs()"
+                  />
+                </div>
               </app-card>
-              <app-card>
-                <dl class="flex flex-col gap-2 text-[13px]">
-                  <div>
-                    <dt class="text-fg-subtle">{{ 'environment.fields.owner' | transloco }}</dt>
-                    <dd class="text-fg">
-                      {{ p.owner_name ?? ('environment.common.none' | transloco) }}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt class="text-fg-subtle">{{ 'environment.fields.reviewDue' | transloco }}</dt>
-                    <dd class="text-fg" [class.text-fail]="p.review_overdue">
-                      {{
-                        p.review_due_at
-                          ? (p.review_due_at | localDay)
-                          : ('environment.common.none' | transloco)
-                      }}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt class="text-fg-subtle">
-                      {{ 'environment.fields.lastReviewed' | transloco }}
-                    </dt>
-                    <dd class="text-fg">
-                      {{
-                        p.last_reviewed_at
-                          ? (p.last_reviewed_at | localDate)
-                          : ('environment.common.never' | transloco)
-                      }}
-                    </dd>
-                  </div>
-                </dl>
-              </app-card>
-              <app-supports-requirements [entityType]="entityType" [entityId]="p.id" />
+            </div>
+
+            <div aside-learn>
               <app-why-it-matters scope="environment" page="planDetail" />
-              <app-env-lesson-link lesson="emergency-preparedness" />
-            </ng-container>
+            </div>
           </app-record-detail-layout>
 
           <app-env-drill-dialog
@@ -511,6 +723,16 @@ export const PLAN_FIELD_LABELS: Readonly<Record<string, string>> = {
             [busy]="acting()"
             (confirmed)="review($event)"
             (cancelled)="reviewing.set(false)"
+          />
+          <app-confirm-dialog
+            [open]="!!deviationFor()"
+            [title]="'environment.drill.deviationPromptTitle' | transloco"
+            [message]="'environment.drill.deviationPromptMessage' | transloco"
+            [confirmLabel]="'environment.drill.deviationPromptConfirm' | transloco"
+            [cancelLabel]="'environment.drill.deviationPromptLater' | transloco"
+            confirmVariant="primary"
+            (confirmed)="startDeviation()"
+            (cancelled)="deviationFor.set(null)"
           />
           <app-confirm-dialog
             [open]="deleting()"
@@ -543,17 +765,25 @@ export class PlanDetail {
   private readonly notifications = inject(NotificationService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly directory = inject(AssigneeOptionsService);
+  private readonly flows = inject(CreateFlowService);
 
+  /** Route param (component input binding): follows navigation between plans. */
   readonly id = input.required<string>();
 
+  protected readonly perms = injectEnvPermissions();
   protected readonly entityType = ENTITY_PLAN;
+  protected readonly drillType = ENTITY_DRILL;
   protected readonly tabs = TABS;
   protected readonly fieldLabels = PLAN_FIELD_LABELS;
-  protected readonly tone = statusTone;
-  protected readonly outcome = outcomeTone;
+  protected readonly frameworks = ENV_PLAN_FRAMEWORKS;
+  protected readonly drillFlows = DRILL_FLOWS;
+  protected readonly outcomeValue = outcomeBadgeValue;
+  protected readonly ref = chipRef;
+  protected readonly people = participantNames;
 
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
-  protected readonly errorKey = signal('environment.common.loadFailed');
+  protected readonly errorKey = signal('environment.errors.notFound');
   protected readonly plan = signal<EmergencyPlan | null>(null);
   protected readonly drills = signal<readonly Drill[]>([]);
   protected readonly drillsState = signal<'loading' | 'error' | 'ready'>('loading');
@@ -562,6 +792,9 @@ export class PlanDetail {
   protected readonly reviewing = signal(false);
   protected readonly recording = signal(false);
   protected readonly deletingDrill = signal<Drill | null>(null);
+  /** A just-recorded real event that may need a deviation. */
+  protected readonly deviationFor = signal<Drill | null>(null);
+  protected readonly confirmedRefs = signal<readonly string[]>([]);
 
   /** `?drill=<id>` (the backend's link to one drill) highlights it. */
   protected readonly highlightDrill = toSignal(
@@ -569,13 +802,23 @@ export class PlanDetail {
     { initialValue: null },
   );
 
-  private readonly permissions = computed(() => this.selectedOrg.currentOrg()?.permissions ?? []);
-  protected readonly canWrite = computed(() => this.permissions().includes(PERM_WRITE));
-  protected readonly canManage = computed(() => this.permissions().includes(PERM_MANAGE));
-  protected readonly canRecord = computed(() => this.permissions().includes(PERM_RECORD));
+  protected readonly breadcrumbs = computed(() => [
+    ENV_ROOT_CRUMB,
+    ENV_CRUMBS.plans,
+    { label: this.plan()?.code ?? '' },
+  ]);
+  protected readonly notices = computed(() => {
+    const p = this.plan();
+    return p ? planNotices(p) : [];
+  });
+  protected readonly aspects = computed(() => this.plan()?.aspects ?? []);
+  protected readonly department = computed(() =>
+    departmentName(this.directory, this.plan()?.department_id),
+  );
 
   private request = new Subscription();
   private drillsRequest = new Subscription();
+  private openedFromLink = false;
 
   constructor() {
     inject(DestroyRef).onDestroy(() => {
@@ -585,21 +828,50 @@ export class PlanDetail {
     providePageContext(() => {
       const p = this.plan();
       return {
-        module: 'environment',
+        module: ENV_MODULE,
         entityType: ENTITY_PLAN,
         entityId: this.id(),
         view: 'detail',
         title: p ? `${p.code} ${p.title}` : null,
+        requirements: this.confirmedRefs().length ? this.confirmedRefs() : null,
       };
     });
+    this.directory.ensureLoaded();
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();
       const id = this.id();
       untracked(() => {
         this.load(orgId, id, true);
-        this.loadDrills(orgId, id);
+        this.loadDrills(id);
       });
     });
+    // "?recordDrill=1" (home "do this now"): open the dialog once the plan is shown.
+    effect(() => {
+      const ready = this.state() === 'ready';
+      const canRecord = this.perms.record();
+      untracked(() => {
+        if (
+          ready &&
+          canRecord &&
+          !this.openedFromLink &&
+          this.route.snapshot.queryParamMap.get('recordDrill') === '1'
+        ) {
+          this.openedFromLink = true;
+          this.recording.set(true);
+        }
+      });
+    });
+  }
+
+  protected onLinks(links: readonly RequirementLink[]): void {
+    this.confirmedRefs.set(
+      links.filter((l) => l.status === 'confirmed').map((l) => l.requirement_ref),
+    );
+  }
+
+  protected reload(): void {
+    this.load(this.selectedOrg.currentOrgId(), this.id(), true);
+    this.loadDrills(this.id());
   }
 
   protected recordDrill(body: DrillCreate): void {
@@ -609,17 +881,32 @@ export class PlanDetail {
     }
     this.acting.set(true);
     this.api.recordDrill(orgId, this.id(), body).subscribe({
-      next: () => {
+      next: (drill) => {
         this.acting.set(false);
         this.recording.set(false);
-        this.notifications.success('environment.notices.drillRecorded');
+        this.notifications.success(
+          drill.plan_revision_needed
+            ? 'environment.notices.drillRecordedWithTask'
+            : 'environment.notices.drillRecorded',
+        );
         this.refresh();
+        if (drill.kind === 'real_event' && this.perms.has('deviations:write')()) {
+          this.deviationFor.set(drill);
+        }
       },
       error: (error: unknown) => {
         this.acting.set(false);
         this.notifications.error(environmentErrorKey(error));
       },
     });
+  }
+
+  protected startDeviation(): void {
+    const drill = this.deviationFor();
+    this.deviationFor.set(null);
+    if (drill) {
+      void this.flows.start(FLOWS.drillToDeviation, ENTITY_DRILL, drill.id);
+    }
   }
 
   protected review(body: ReviewIn): void {
@@ -684,18 +971,36 @@ export class PlanDetail {
     });
   }
 
-  private refresh(): void {
+  protected loadDrills(id: string): void {
     const orgId = this.selectedOrg.currentOrgId();
-    this.load(orgId, this.id(), false);
-    this.loadDrills(orgId, this.id());
+    this.drillsRequest.unsubscribe();
+    if (!orgId || !id) {
+      return;
+    }
+    this.drillsState.set('loading');
+    this.drillsRequest = this.api.listDrills(orgId, id).subscribe({
+      next: (page) => {
+        this.drills.set(page.items);
+        this.drillsState.set('ready');
+      },
+      error: () => this.drillsState.set('error'),
+    });
+  }
+
+  private refresh(): void {
+    this.load(this.selectedOrg.currentOrgId(), this.id(), false);
+    this.loadDrills(this.id());
   }
 
   private load(orgId: string | null, id: string, initial: boolean): void {
     this.request.unsubscribe();
-    if (!orgId) {
+    if (!orgId || !id) {
       return;
     }
-    if (initial) {
+    if (initial && this.plan()?.id !== id) {
+      this.plan.set(null);
+      this.drills.set([]);
+      this.confirmedRefs.set([]);
       this.state.set('loading');
     }
     this.request = this.api.getPlan(orgId, id).subscribe({
@@ -711,21 +1016,6 @@ export class PlanDetail {
           this.notifications.error(environmentErrorKey(error));
         }
       },
-    });
-  }
-
-  private loadDrills(orgId: string | null, id: string): void {
-    this.drillsRequest.unsubscribe();
-    if (!orgId) {
-      return;
-    }
-    this.drillsState.set('loading');
-    this.drillsRequest = this.api.listDrills(orgId, id).subscribe({
-      next: (page) => {
-        this.drills.set(page.items);
-        this.drillsState.set('ready');
-      },
-      error: () => this.drillsState.set('error'),
     });
   }
 }

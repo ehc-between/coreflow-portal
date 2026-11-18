@@ -560,7 +560,8 @@
         "intake": "Reporting channel",
         "matrices": "Risk matrices",
         "settings": "Settings",
-        "retention": "Retention rules"
+        "retention": "Retention rules",
+        "significanceMethod": "Significance method"
       },
       "membersSection": "Members, departments and invitations"
     },
