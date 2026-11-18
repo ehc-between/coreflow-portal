@@ -11,9 +11,9 @@ import { ModuleService } from '../../core/modules/module.service';
 import { roleLabel } from '../../core/org/roles';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { ShellPreferencesService } from '../../core/shell/shell-preferences.service';
+import { RegistrerService } from '../../shared/registrer/registrer.service';
 import { Avatar } from '../../shared/ui/avatar/avatar';
 import { Icon } from '../../shared/ui/icon/icon';
-import { MenuItem, OverflowMenu } from '../../shared/ui/overflow-menu/overflow-menu';
 import { ADMIN_SECTION, MODULE_NAV_ITEMS } from '../nav';
 import {
   LIBRARY_MODULES,
@@ -26,6 +26,7 @@ import {
   navWorkspace,
   registerGroups,
 } from '../nav-v2';
+import { NavDrawerService } from '../nav-drawer.service';
 import { OrgSwitcher } from '../org-switcher/org-switcher';
 
 /** A rendered nav link. */
@@ -51,16 +52,7 @@ interface NavLink {
  */
 @Component({
   selector: 'app-side-nav-v2',
-  imports: [
-    NgTemplateOutlet,
-    RouterLink,
-    TranslocoPipe,
-    Icon,
-    Avatar,
-    OrgSwitcher,
-    OverflowMenu,
-    MenuItem,
-  ],
+  imports: [NgTemplateOutlet, RouterLink, TranslocoPipe, Icon, Avatar, OrgSwitcher],
   viewProviders: [provideSharedScope('shell')],
   host: { class: 'flex min-h-0' },
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -73,31 +65,18 @@ interface NavLink {
       <app-org-switcher class="mb-2" />
 
       @if (registerActions().length > 0) {
-        <app-overflow-menu
-          class="mb-2 w-full"
-          variant="primary"
-          icon="plus"
-          align="start"
-          labelKey="shell.registrer.label"
-          triggerTestId="nav-registrer"
+        <!-- U05: one dialog for every quick type (also the N shortcut). -->
+        <button
+          type="button"
+          class="mb-2 flex h-9 w-full items-center justify-center gap-2 rounded-tile bg-accent px-4 text-ui font-semibold text-white hover:bg-accent-2 focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:outline-none"
+          aria-haspopup="dialog"
+          aria-keyshortcuts="N"
+          data-testid="nav-registrer"
+          (click)="openRegistrer()"
         >
-          <div
-            class="px-2.5 pt-1 pb-1.5 text-micro font-bold tracking-[0.08em] text-fg-subtle uppercase"
-            aria-hidden="true"
-          >
-            {{ 'shell.registrer.heading' | transloco }}
-          </div>
-          @for (action of registerActions(); track action.key) {
-            <a
-              appMenuItem
-              [routerLink]="'/' + action.path"
-              [attr.data-testid]="'registrer-' + action.key"
-            >
-              <span class="flex text-fg-subtle"><app-icon [name]="action.icon" [size]="16" /></span>
-              {{ action.labelKey | transloco }}
-            </a>
-          }
-        </app-overflow-menu>
+          <app-icon name="plus" [size]="16" />
+          {{ 'shell.registrer.label' | transloco }}
+        </button>
       }
 
       <ul class="flex flex-col gap-0.5" data-testid="nav-destinations">
@@ -182,6 +161,8 @@ export class SideNavV2 {
   private readonly modules = inject(ModuleService);
   private readonly prefs = inject(ShellPreferencesService);
   private readonly router = inject(Router);
+  private readonly registrer = inject(RegistrerService);
+  private readonly drawer = inject(NavDrawerService);
 
   protected readonly adminSection = ADMIN_SECTION;
   protected readonly adminLinks: readonly NavLink[] = ADMIN_SECTION.items.map((item) => ({
@@ -221,9 +202,15 @@ export class SideNavV2 {
   });
   protected readonly hasRegisters = computed(() => this.registerModules().length > 0);
 
+  /** Whether the user may create anything at all (the dialog lists what, per type). */
   protected readonly registerActions = computed(() =>
     REGISTER_ACTIONS.filter((action) => this.allowed(action)),
   );
+
+  protected openRegistrer(): void {
+    this.drawer.close();
+    this.registrer.show();
+  }
 
   /** The fixed destinations this user gets, in order (Innstillinger included, shown last). */
   protected readonly destinations = computed<readonly NavLink[]>(() => {

@@ -1,0 +1,149 @@
+{
+  "title": "Hva vil du registrere?",
+  "close": "Lukk",
+  "back": "Tilbake",
+  "cancel": "Avbryt",
+  "submit": "Registrer",
+  "loading": "Henter …",
+  "none": "Du har ikke tilgang til å registrere noe her. Spør en administrator om du trenger det.",
+  "me": "Meg",
+  "choose": "Velg …",
+  "allTypes": "Alle typer …",
+  "shortcutHint": "Tips: Trykk N på en hvilken som helst side for å åpne dette vinduet.",
+  "nextHeading": "Hva skjer videre:",
+  "deadline": "Frist: {{date}}.",
+  "incident": {
+    "heading": "Meld noe som gikk galt",
+    "question": "Hva har skjedd? Velg det som passer best."
+  },
+  "other": "Registrer noe annet",
+  "triage": {
+    "wentWrong": { "label": "Noe ble ikke gjort som det skulle", "term": "Avvik" },
+    "nearMiss": { "label": "Noen var nær ved å bli skadet", "term": "Nestenulykke" },
+    "injury": { "label": "Noen ble skadet eller syk av jobben", "term": "HMS-hendelse" },
+    "phishing": {
+      "label": "Mistenkelig e-post, SMS eller lenke",
+      "term": "Phishing (sikkerhetshendelse)"
+    },
+    "security": {
+      "label": "Noe annet med IT eller informasjonssikkerhet",
+      "term": "Sikkerhetshendelse"
+    },
+    "breach": { "label": "Personopplysninger kom på avveie", "term": "Personvernbrudd" },
+    "complaint": { "label": "En kunde er misfornøyd", "term": "Klage" }
+  },
+  "types": {
+    "deviation": "Avvik",
+    "near_miss": "HMS-hendelse",
+    "security_incident": "Sikkerhetshendelse",
+    "data_breach": "Personvernbrudd",
+    "complaint": "Klage",
+    "improvement": "Forbedringsforslag",
+    "customer_feedback": "Kundetilbakemelding",
+    "risk": "Risiko",
+    "task": "Oppgave",
+    "document": "Dokument",
+    "supplier": "Leverandør"
+  },
+  "fields": {
+    "title": "Kort tittel",
+    "kind": "Type",
+    "description": "Hva skjedde, eller hva gjelder det?",
+    "occurred_at": "Når skjedde det?",
+    "customer_name": "Kunde",
+    "document_type": "Dokumenttype",
+    "due_at": "Frist",
+    "owner_user_id": "Ansvarlig"
+  },
+  "kindQuestion": {
+    "near_miss": "Hva slags hendelse?",
+    "security_incident": "Hva slags hendelse?",
+    "customer_feedback": "Hva slags tilbakemelding?"
+  },
+  "options": {
+    "kind": {
+      "near_miss": "Nestenulykke",
+      "injury": "Personskade",
+      "occupational_illness": "Arbeidsrelatert sykdom",
+      "dangerous_condition": "Farlig forhold",
+      "property_damage": "Materiell skade",
+      "phishing": "Phishing (falsk e-post, SMS eller lenke)",
+      "malware": "Skadevare (virus o.l.)",
+      "unauthorised_access": "Noen fikk tilgang de ikke skulle ha",
+      "data_loss": "Data ble borte eller kom på avveie",
+      "denial_of_service": "Et system eller nettsted er nede (tjenestenekt)",
+      "lost_device": "Tapt eller stjålet PC eller telefon",
+      "complaint": "Klage",
+      "compliment": "Ros",
+      "suggestion": "Forslag",
+      "inquiry": "Spørsmål",
+      "other": "Annet"
+    }
+  },
+  "next": {
+    "deviation_follow_up": "Den ansvarlige får avviket, vurderer det og finner årsaken.",
+    "hse_follow_up": "Den ansvarlige for HMS følger opp. Er noen alvorlig skadet, skal Arbeidstilsynet og politiet varsles straks.",
+    "security_follow_up": "Den ansvarlige for informasjonssikkerhet vurderer hvor alvorlig hendelsen er.",
+    "breach_72h": "Fristen for å melde fra til Datatilsynet løper nå: senest 72 timer etter at bruddet ble oppdaget.",
+    "breach_reported_72h": "Den som har ansvar for personvern får beskjed. Er bruddet meldepliktig, skal Datatilsynet ha melding innen 72 timer.",
+    "complaint_response": "Den ansvarlige svarer kunden og ser om noe må rettes.",
+    "improvement_review": "Forslaget blir vurdert, og du ser svaret på posten.",
+    "feedback_follow_up": "Den ansvarlige følger opp tilbakemeldingen.",
+    "risk_assess": "Neste steg er å vurdere hvor sannsynlig risikoen er og hva den kan føre til.",
+    "task_assigned": "Oppgaven vises under Mitt arbeid hos den ansvarlige.",
+    "document_draft": "Dokumentet lagres som utkast. Skriv innholdet og send det til godkjenning.",
+    "supplier_evaluate": "Neste steg er å vurdere hvor viktig leverandøren er for dere."
+  },
+  "context": {
+    "linked": "Kobles til: {{title}}",
+    "linkedPage": "Kobles til siden du kom fra",
+    "unlink": "Ikke koble"
+  },
+  "done": {
+    "title": "Registrert",
+    "body": "Takk! Det er registrert, og den ansvarlige har fått beskjed."
+  },
+  "complete": {
+    "title": "Registrert. Fullfør posten når du har tid",
+    "intro": "Dette mangler fortsatt:",
+    "dismiss": "Skjul",
+    "fields": {
+      "severity": "Alvorlighetsgrad",
+      "location": "Sted",
+      "immediate_action": "Strakstiltak",
+      "root_cause": "Årsak",
+      "persons_involved": "Hvem som var involvert",
+      "breach_types": "Hva slags brudd",
+      "data_categories": "Hvilke personopplysninger",
+      "approx_subjects": "Omtrent hvor mange personer",
+      "risk_level": "Risiko for de berørte",
+      "measures_taken": "Tiltak som er gjort",
+      "customer_organisation": "Kundens virksomhet",
+      "product_or_service": "Produkt eller tjeneste",
+      "benefit": "Hva vi får ut av det",
+      "effort": "Hvor mye arbeid det er",
+      "channel": "Hvor tilbakemeldingen kom fra",
+      "satisfaction_score": "Hvor fornøyd kunden er",
+      "inherent_likelihood": "Sannsynlighet",
+      "inherent_consequence": "Konsekvens",
+      "treatment_strategy": "Hva vi gjør med risikoen",
+      "priority": "Prioritet",
+      "checklist": "Sjekkliste",
+      "content": "Innhold",
+      "review": "Gjennomgang og godkjenning",
+      "criticality": "Hvor viktig leverandøren er",
+      "category": "Kategori",
+      "country": "Land",
+      "contact_name": "Kontaktperson"
+    }
+  },
+  "errors": {
+    "generic": "Det gikk ikke å registrere. Prøv igjen om litt.",
+    "load": "Klarte ikke å hente valgene. Prøv igjen om litt.",
+    "forbidden": "Du har ikke tilgang til å registrere dette.",
+    "module_disabled": "Denne modulen er ikke slått på for virksomheten.",
+    "type_inactive": "Denne typen er slått av i innstillingene.",
+    "field_required": "Fyll ut «{{field}}».",
+    "invalid_option": "Velg et av alternativene for «{{field}}»."
+  }
+}
