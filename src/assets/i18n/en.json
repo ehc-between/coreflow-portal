@@ -1651,7 +1651,12 @@
         "multiselect": "Multiple choice",
         "checkbox": "Checkbox",
         "user": "Person",
-        "department": "Department"
+        "department": "Department",
+        "richtext": "Formatted text",
+        "datetime": "Date and time",
+        "file": "Attachment",
+        "entity_ref": "Link to a record",
+        "calculated": "Calculated"
       },
       "editor": {
         "name": "Name",

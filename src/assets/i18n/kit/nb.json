@@ -440,6 +440,11 @@
       "to_obligation": "Plikter etter KI-forordningen for dette systemet"
     },
     "asset": {
+      "to_deviation": "Avvik for denne eiendelen",
+      "to_risk": "Risiko for denne eiendelen",
+      "to_processing": "Behandlingsaktivitet (behandlingsprotokoll)",
+      "to_change": "Endringsforespørsel for denne eiendelen",
+      "to_access_review": "Tilgangsgjennomgang av dette systemet",
       "to_ict_system": "IKT-tjeneste for kontinuitet"
     },
     "calibration": {
