@@ -832,6 +832,15 @@ export class DeviationNew {
         if (active.length === 1 && !this.selectedType()) {
           this.selectType(active[0]);
         }
+        // `?type=<key>` (Home "Foreslå en forbedring", U07) preselects that type when the
+        // org has it (a reinstalled template gets a `_2` suffix); otherwise the picker.
+        const wanted = this.route.snapshot.queryParamMap.get('type');
+        const match = wanted
+          ? active.find((t) => t.key === wanted || t.key.startsWith(`${wanted}_`))
+          : undefined;
+        if (match && !this.selectedType()) {
+          this.selectType(match);
+        }
       },
       error: () => this.loadingTypes.set(false),
     });

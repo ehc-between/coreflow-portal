@@ -74,6 +74,11 @@ export function makeJourney(over: Partial<Journey> = {}): Journey {
 
 export function makeHome(over: Partial<HomeResponse> = {}): HomeResponse {
   return {
+    workspace: { key: 'quality_lead', source: 'role', roles: ['admin'] },
+    quick_actions: [
+      { key: 'report_issue', url: '/deviations/new', module: 'deviations' },
+      { key: 'find_document', url: '/documents', module: 'documents' },
+    ],
     frameworks: [
       {
         framework: 'iso27001',
@@ -81,9 +86,15 @@ export function makeHome(over: Partial<HomeResponse> = {}): HomeResponse {
         name: 'ISO/IEC 27001 Information security management systems',
         kind: 'standard',
         score: 42,
+        percent: 42,
         covered: 153,
         partial: 4,
         applicable: 364,
+        remaining: 211,
+        remaining_url: '/standards/gaps/iso27001-2022',
+        is_target: true,
+        target_date: '2027-01-11',
+        target_status: 'in_progress',
         trend_30d: 3,
         open_gaps: 40,
         top_gaps: [
@@ -121,7 +132,16 @@ export function makeHome(over: Partial<HomeResponse> = {}): HomeResponse {
         module: 'standards',
       },
     ],
-    my_work: { overdue: 1, due_this_week: 2, later: 3, awaiting_review: 1, total: 7 },
+    my_work: {
+      overdue: 1,
+      due_this_week: 2,
+      later: 3,
+      awaiting_review: 1,
+      total: 7,
+      acknowledge: 2,
+      training: 1,
+      tasks: 4,
+    },
     journeys: [
       {
         id: 'j-1',

@@ -48,6 +48,7 @@ const ACTION_NAMES = [
   'journey_enable_module',
   'start_journey',
   'gap',
+  'suggestions',
 ];
 
 const EVENT_NAMES = [
