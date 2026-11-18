@@ -112,6 +112,29 @@ describe('OrgMembers', () => {
     expect(row(fixture, 'ops')?.textContent).toContain('settings.members.operator');
   });
 
+  it('U26: flags staff without an employee card (never operators or unknown)', () => {
+    const { fixture } = setup([
+      ...MEMBERS,
+      {
+        user_id: 'u-3',
+        email: 'emma@x.no',
+        full_name: 'Emma',
+        is_active: true,
+        roles: ['member'],
+        person: null,
+      },
+      { ...MEMBERS[3], user_id: 'ops-2', person: null },
+    ]);
+    expect(row(fixture, 'u-3')?.querySelector('[data-testid="member-no-card"]')).not.toBeNull();
+    expect(row(fixture, 'u-1')?.querySelector('[data-testid="member-no-card"]')).toBeNull();
+    expect(row(fixture, 'me')?.querySelector('[data-testid="member-no-card"]')).toBeNull();
+    const summary = (fixture.nativeElement as HTMLElement).querySelector(
+      '[data-testid="members-without-card"]',
+    );
+    expect(summary?.textContent).toContain('settings.members.withoutCardOne');
+    expect(summary?.getAttribute('href')).toBe('/people/employees');
+  });
+
   it('filters by search text, department and status', () => {
     const { fixture, cmp } = setup();
     cmp.patchFilter({ query: 'ada' });

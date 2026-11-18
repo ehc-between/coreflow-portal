@@ -930,6 +930,8 @@ export interface UserMatches {
 export interface ImportUsersIn {
   readonly user_ids: readonly string[];
   readonly status: 'active' | 'onboarding';
+  /** U26: e.g. `contractor` for consultants and auditors (default `permanent`). */
+  readonly employment_type?: EmploymentType;
 }
 
 export interface OrgChartNode {

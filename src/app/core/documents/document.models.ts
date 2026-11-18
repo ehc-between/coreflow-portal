@@ -213,9 +213,25 @@ export interface AccessSubject {
   readonly email?: string;
 }
 
+/**
+ * A user in the access-subjects directory. U26: the pickers read the People
+ * register, so each user carries their current employee card (`null` when the
+ * user has no current card, i.e. is a gap in the register). Optional so older
+ * fixtures stay valid.
+ */
+export interface AccessSubjectUser {
+  readonly id: string;
+  readonly name: string;
+  readonly email: string;
+  readonly employee_id?: string | null;
+  readonly employee_code?: string | null;
+  /** The card's job title, else its position title. */
+  readonly job_title?: string | null;
+}
+
 /** The selectable subjects for the access pickers, split by kind. */
 export interface AccessSubjects {
-  readonly users: readonly { readonly id: string; readonly name: string; readonly email: string }[];
+  readonly users: readonly AccessSubjectUser[];
   readonly departments: readonly { readonly id: string; readonly name: string }[];
 }
 
