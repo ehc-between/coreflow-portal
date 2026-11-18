@@ -156,3 +156,43 @@ export function humaniseValue(value: string | null | undefined): string {
   const text = (value ?? '').trim().replace(/[_-]+/g, ' ');
   return text ? text.charAt(0).toUpperCase() + text.slice(1).toLowerCase() : '';
 }
+
+/**
+ * The four plain status words a register shows (copy rule U41: at most 4 per
+ * register): Open, In progress, Overdue, Closed. Workflow states map onto them
+ * by meaning; a value that is not a known workflow state has no plain word (null).
+ */
+export type PlainStatus = 'open' | 'inProgress' | 'overdue' | 'closed';
+
+const PLAIN_BY_VALUE: Readonly<Record<string, PlainStatus>> = {
+  overdue: 'overdue',
+  expired: 'overdue',
+  on_hold: 'inProgress',
+  blocked: 'inProgress',
+  due: 'open',
+  expiring: 'open',
+  draft: 'open',
+  rejected: 'closed',
+  failed: 'closed',
+};
+
+const PLAIN_BY_TONE: Readonly<Partial<Record<Tone, PlainStatus>>> = {
+  info: 'open',
+  accent: 'inProgress',
+  pass: 'closed',
+  neutral: 'closed',
+};
+
+/** The plain status word for a workflow value (`"under_review"` → `inProgress`), or null. */
+export function plainStatus(value: string | null | undefined): PlainStatus | null {
+  const key = normaliseToneValue(value);
+  if (!key || !(key in LIFECYCLE)) {
+    return null;
+  }
+  return PLAIN_BY_VALUE[key] ?? PLAIN_BY_TONE[LIFECYCLE[key]] ?? null;
+}
+
+/** The i18n key of a plain status word (`ui.plainStatus.<word>`). */
+export function plainStatusKey(status: PlainStatus): string {
+  return `ui.plainStatus.${status}`;
+}

@@ -250,11 +250,32 @@ export class Timeline {
         }
       }
     }
+    if (item.source === 'audit' && !(lang === 'en' && item.summary)) {
+      // The audit summary is English free text: outside English, say it from the action.
+      return { item, text: this.auditText(item.kind, actor), changes };
+    }
     const text = this.language.translate('kit.timeline.fallback', {
       actor,
       kind: item.source === 'audit' && item.summary ? item.summary : humanize(item.kind),
     });
     return { item, text, changes };
+  }
+
+  /** "Ola created: Root cause analysis" from an audit action (`deviation_root_cause.created`). */
+  private auditText(action: string, actor: string): string {
+    const dot = action.lastIndexOf('.');
+    const entity = dot > 0 ? action.slice(0, dot) : action;
+    const verb = dot > 0 ? action.slice(dot + 1) : '';
+    const verbKey = `kit.timeline.auditVerbs.${verb}`;
+    const verbText = verb ? this.language.translate(verbKey) : '';
+    return this.language.translate('kit.timeline.auditAction', {
+      actor,
+      action:
+        verbText && verbText !== verbKey
+          ? verbText
+          : this.language.translate('kit.timeline.auditVerbs.changed'),
+      entity: this.entityTypes.label(entity),
+    });
   }
 
   /**

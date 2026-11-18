@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { localize } from '../../core/records/localized';
 import { FieldSpec } from '../../core/records/record.models';
+import { DateInput } from '../ui/date-input/date-input';
 import { FormField } from '../ui/form-field/form-field';
 import { DynamicValue } from './dynamic-value';
 import { PickOption, dataErrorKey, optionList } from './form-model';
@@ -19,7 +20,7 @@ let nextId = 0;
  */
 @Component({
   selector: 'app-dynamic-control',
-  imports: [FormsModule, TranslocoPipe, FormField, DynamicValue],
+  imports: [FormsModule, TranslocoPipe, FormField, DynamicValue, DateInput],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @let f = field();
@@ -95,14 +96,13 @@ let nextId = 0;
               />
             }
             @case ('date') {
-              <input
-                [id]="controlId"
-                type="date"
-                [ngModel]="text()"
-                (ngModelChange)="valueChange.emit($event || null)"
-                [attr.aria-describedby]="describedBy()"
-                [attr.aria-invalid]="!!error()"
-                [attr.aria-required]="f.required || null"
+              <app-date-input
+                [inputId]="controlId"
+                [value]="text()"
+                (valueChange)="valueChange.emit($event || null)"
+                [describedBy]="describedBy()"
+                [invalid]="!!error()"
+                [required]="!!f.required"
               />
             }
             @case ('datetime') {

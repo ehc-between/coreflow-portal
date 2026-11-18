@@ -1741,7 +1741,7 @@
       "subtitle": "Tall på tvers av avvikene dine. Filtrer for å avgrense, og klikk på en stolpe for å se sakene bak.",
       "link": "Statistikk",
       "empty": "Ingen avvik samsvarer med disse filtrene ennå.",
-      "noData": "Ingen data.",
+      "noData": "Ingen avvik i dette utvalget.",
       "unknownDepartment": "Ukjent avdeling",
       "cards": {
         "total": "Totalt",
@@ -2565,7 +2565,11 @@
       "title": "Ingenting her ennå",
       "noResults": "Ingen treff",
       "noResultsBody": "Prøv andre ord, eller fjern filtrene.",
-      "clearFilters": "Fjern filtrene"
+      "clearFilters": "Fjern filtrene",
+      "cleared": "Du er à jour",
+      "clearedBody": "Ingenting venter på deg akkurat nå.",
+      "firstBody": "Ingenting er registrert her ennå.",
+      "fromTemplate": "Fyll ut fra mal"
     },
     "error": {
       "title": "Kunne ikke laste innholdet",
@@ -2604,6 +2608,20 @@
       "remove": "Fjern {{ name }}",
       "flagged": "Kontroller denne verdien",
       "none": "Ikke satt"
+    },
+    "dateInput": {
+      "placeholder": "dd.mm.åååå",
+      "pick": "Velg dato i kalenderen"
+    },
+    "due": {
+      "by": "innen {{ date }}",
+      "overdueSince": "forfalt {{ date }}"
+    },
+    "plainStatus": {
+      "open": "Åpen",
+      "inProgress": "Pågår",
+      "overdue": "Forfalt",
+      "closed": "Lukket"
     }
   },
   "account": {

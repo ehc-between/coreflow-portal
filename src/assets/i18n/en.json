@@ -1741,7 +1741,7 @@
       "subtitle": "Aggregate metrics across your deviations. Filter to focus, click a bar to drill in.",
       "link": "Statistics",
       "empty": "No deviations match these filters yet.",
-      "noData": "No data.",
+      "noData": "No deviations in this selection.",
       "unknownDepartment": "Unknown department",
       "cards": {
         "total": "Total",
@@ -2565,7 +2565,11 @@
       "title": "Nothing here yet",
       "noResults": "No matches",
       "noResultsBody": "Try other words, or clear the filters.",
-      "clearFilters": "Clear filters"
+      "clearFilters": "Clear filters",
+      "cleared": "You're all caught up",
+      "clearedBody": "Nothing is waiting for you right now.",
+      "firstBody": "Nothing has been registered here yet.",
+      "fromTemplate": "Fill in from a template"
     },
     "error": {
       "title": "Couldn't load this",
@@ -2604,6 +2608,20 @@
       "remove": "Remove {{ name }}",
       "flagged": "Check this value",
       "none": "Not set"
+    },
+    "dateInput": {
+      "placeholder": "mm/dd/yyyy",
+      "pick": "Pick a date from the calendar"
+    },
+    "due": {
+      "by": "by {{ date }}",
+      "overdueSince": "overdue since {{ date }}"
+    },
+    "plainStatus": {
+      "open": "Open",
+      "inProgress": "In progress",
+      "overdue": "Overdue",
+      "closed": "Closed"
     }
   },
   "account": {
