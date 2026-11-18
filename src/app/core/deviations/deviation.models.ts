@@ -556,6 +556,8 @@ export interface DeviationFilters {
   readonly active?: boolean;
   /** Only deviations that are not closed or cancelled and past their due date. */
   readonly overdue?: boolean;
+  /** U24: only closed deviations (the same rule as `stats.closed`). */
+  readonly closed?: boolean;
   readonly sort?: string;
   readonly limit?: number;
   readonly offset?: number;

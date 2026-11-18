@@ -6,11 +6,15 @@ import { SKIP_ERROR_TOAST } from '../../../core/http/error.interceptor';
 import { TaskList } from '../../../core/tasks/task.models';
 import {
   CategoryList,
+  ComplaintDeviationList,
+  ComplaintDeviationQuery,
   DeviationLinks,
   ExportFormat,
   Feedback,
   FeedbackAction,
   FeedbackActionBody,
+  FeedbackBulk,
+  FeedbackBulkResult,
   FeedbackCreate,
   FeedbackKind,
   FeedbackList,
@@ -25,12 +29,14 @@ import {
   ReplyCreate,
   ReplyList,
   ResponseDue,
+  ResponseToFeedback,
   Survey,
   SurveyAction,
   SurveyCreate,
   SurveyList,
   SurveyListQuery,
   SurveyResponseList,
+  SurveyResponseQuery,
   SurveyResults,
   SurveyUpdate,
 } from './feedback.models';
@@ -59,6 +65,28 @@ export function feedbackFilterParams(query: FeedbackListQuery): QueryParams {
     open: query.open,
     received_from: query.received_from || undefined,
     received_to: query.received_to || undefined,
+    sentiment: csv(query.sentiment),
+    source: csv(query.source),
+    unanswered_days: query.unanswered_days,
+    assessed: query.assessed,
+    replied: query.replied,
+  };
+}
+
+/** The query parameters of `GET feedback/surveys/{id}/responses`. */
+export function responseListParams(query: SurveyResponseQuery): QueryParams {
+  return {
+    q: query.q?.trim() || undefined,
+    low: query.low || undefined,
+    has_feedback: query.has_feedback,
+    question_id: query.question_id && query.value ? query.question_id : undefined,
+    value: query.question_id && query.value ? query.value : undefined,
+    nps_group: query.nps_group,
+    submitted_from: query.submitted_from || undefined,
+    submitted_to: query.submitted_to || undefined,
+    survey_id: query.survey_id || undefined,
+    limit: query.limit,
+    offset: query.offset,
   };
 }
 
@@ -164,6 +192,28 @@ export class FeedbackApi {
 
   tasks(orgId: string, id: string): Observable<TaskList> {
     return this.api.get<TaskList>(`${this.base(orgId)}/items/${id}/tasks`, IN_PLACE);
+  }
+
+  /** Status change and / or assignment of many records; each is saved on its own. */
+  bulk(orgId: string, body: FeedbackBulk): Observable<FeedbackBulkResult> {
+    return this.api.post<FeedbackBulkResult>(`${this.base(orgId)}/items/bulk`, body, IN_PLACE);
+  }
+
+  /** Deviations of a customer-complaint type, cross-listed in the complaints view. */
+  complaintDeviations(
+    orgId: string,
+    query: ComplaintDeviationQuery = {},
+  ): Observable<ComplaintDeviationList> {
+    return this.api.get<ComplaintDeviationList>(`${this.base(orgId)}/complaint-deviations`, {
+      ...IN_PLACE,
+      params: {
+        q: query.q?.trim() || undefined,
+        open: query.open,
+        unlinked_only: query.unlinked_only,
+        limit: query.limit,
+        offset: query.offset,
+      },
+    });
   }
 
   stats(orgId: string, from?: string, to?: string): Observable<FeedbackStats> {
@@ -282,11 +332,44 @@ export class FeedbackApi {
     return this.api.get<SurveyResults>(`${this.base(orgId)}/surveys/${id}/results`, IN_PLACE);
   }
 
-  responses(orgId: string, id: string, limit = 25, offset = 0): Observable<SurveyResponseList> {
+  responses(
+    orgId: string,
+    id: string,
+    limit = 25,
+    offset = 0,
+    query: SurveyResponseQuery = {},
+  ): Observable<SurveyResponseList> {
     return this.api.get<SurveyResponseList>(`${this.base(orgId)}/surveys/${id}/responses`, {
       ...IN_PLACE,
-      params: { limit, offset },
+      params: responseListParams({ ...query, limit, offset }),
     });
+  }
+
+  /** Answers from every survey, newest first, each naming its survey ("Svar fra undersøkelser"). */
+  allResponses(
+    orgId: string,
+    limit = 25,
+    offset = 0,
+    query: SurveyResponseQuery = {},
+  ): Observable<SurveyResponseList> {
+    return this.api.get<SurveyResponseList>(`${this.base(orgId)}/survey-responses`, {
+      ...IN_PLACE,
+      params: responseListParams({ ...query, limit, offset }),
+    });
+  }
+
+  /** Turn one survey answer into a feedback record (409 `feedback_exists` when it is one). */
+  responseToFeedback(
+    orgId: string,
+    id: string,
+    responseId: string,
+    body: ResponseToFeedback = {},
+  ): Observable<Feedback> {
+    return this.api.post<Feedback>(
+      `${this.base(orgId)}/surveys/${id}/responses/${responseId}/feedback`,
+      body,
+      IN_PLACE,
+    );
   }
 
   deleteResponse(orgId: string, id: string, responseId: string): Observable<void> {

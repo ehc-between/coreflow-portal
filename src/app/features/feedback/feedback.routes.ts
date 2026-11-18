@@ -1,4 +1,5 @@
-import { Routes } from '@angular/router';
+import { inject } from '@angular/core';
+import { Router, Routes } from '@angular/router';
 import { provideTranslocoScope } from '@jsverse/transloco';
 import { permissionGuard } from '../../core/auth/permission.guard';
 import { PERM_MANAGE, PERM_WRITE } from './data/feedback.models';
@@ -6,6 +7,11 @@ import { moduleConfigRedirect } from '../../core/modules/module-config';
 
 const toList = { redirectTo: '/feedback' };
 const toSurveys = { redirectTo: '/feedback/surveys' };
+
+/** `/feedback/insights` → the register with its statistics folded out. */
+export function insightsRedirect() {
+  return inject(Router).createUrlTree(['/feedback'], { queryParams: { stats: '1' } });
+}
 
 /**
  * Customer feedback and satisfaction (M22, scope `feedback`). `app.routes.ts`
@@ -39,12 +45,15 @@ export default [
         canActivate: [permissionGuard(PERM_WRITE, toList)],
         loadComponent: () => import('./items/feedback-edit').then((m) => m.FeedbackEdit),
       },
-      {
-        path: 'insights',
-        loadComponent: () => import('./insights/feedback-insights').then((m) => m.FeedbackInsights),
-      },
+      // The statistics are a band on the register now (U23); old links keep working.
+      { path: 'insights', pathMatch: 'full', redirectTo: insightsRedirect },
       // U10: the module's configuration lives under /settings/modules/feedback.
       moduleConfigRedirect('settings', 'feedback', ''),
+      // U23: every survey's answers in one table ("Svar fra undersøkelser").
+      {
+        path: 'answers',
+        loadComponent: () => import('./surveys/all-answers-page').then((m) => m.AllAnswersPage),
+      },
       {
         path: 'surveys',
         loadComponent: () => import('./surveys/surveys-list').then((m) => m.SurveysList),

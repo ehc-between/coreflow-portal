@@ -279,6 +279,8 @@ export interface DashboardWidget extends MetricTexts {
   readonly framework: string | null;
   readonly size: WidgetSize | string;
   readonly module: string | null;
+  /** The permission the widget needs (left out by older servers: `<module>:read`). */
+  readonly permission?: string | null;
   readonly kind: string | null;
   readonly title_key: string | null;
   readonly available: boolean;

@@ -13,12 +13,12 @@
   },
   "tabs": {
     "label": "Customer feedback sections",
-    "register": "Feedback",
+    "register": "Feedback and answers",
     "surveys": "Surveys",
-    "insights": "Insights"
+    "answers": "Survey answers"
   },
   "list": {
-    "subtitle": "Complaints, compliments, suggestions and questions from customers, and how each one was handled.",
+    "subtitle": "Every complaint, compliment, suggestion and question from customers, including survey follow-ups. Newest first.",
     "searchPlaceholder": "Search by title, code, customer or text",
     "new": "Register feedback",
     "noMatch": "No feedback matches these filters.",
@@ -27,13 +27,21 @@
     "countOf": "Showing {{ shown }} of {{ total }}",
     "resetFilters": "Reset filters",
     "noMatchBody": "Try fewer filters, or reset them to see all feedback.",
-    "categoryValue": "Category: {{ category }}"
+    "categoryValue": "Category: {{ category }}",
+    "periodFilter": "Received {{ from }}–{{ to }}.",
+    "clearPeriod": "Any date",
+    "lowScore": "Low score ({{ score }})",
+    "handlingFilter": {
+      "assessed": "Only assessed complaints.",
+      "replied": "Only complaints with a reply logged."
+    },
+    "clearHandling": "Show all"
   },
   "filters": {
     "status": "Status",
     "statusOptions": {
       "all": "All statuses",
-      "open": "Still open"
+      "open": "Open"
     },
     "kind": "Kind",
     "allKinds": "All kinds",
@@ -55,7 +63,12 @@
     "department": "Department",
     "anyDepartment": "All departments",
     "category": "Category",
-    "anyCategory": "Any category"
+    "anyCategory": "Any category",
+    "source": "Source",
+    "allSources": "All sources",
+    "sentiment": "Impression",
+    "anySentiment": "Any impression",
+    "unanswered": "No reply for more than {{ days }} days"
   },
   "sorts": {
     "updated_atDesc": "Recently updated",
@@ -246,7 +259,7 @@
     "hint": "Link a deviation when the feedback shows that something went wrong.",
     "hintComplaint": "A justified complaint is a nonconformity: link it to a deviation so the cause is investigated and corrected.",
     "link": "Link a deviation",
-    "register": "Register a deviation",
+    "register": "Make it a deviation",
     "searchLabel": "Find a deviation",
     "searchPlaceholder": "Search by code or title",
     "noHits": "No deviations match.",
@@ -413,7 +426,6 @@
     "averageScore": "Average score (0–100)",
     "nps": "Net promoter score",
     "promoters": "Promoters",
-    "splitDelta": "{{ promoters }} promoters · {{ passives }} passives · {{ detractors }} detractors",
     "lastResponse": "Last answer {{ date }}",
     "none": "No answers yet.",
     "answered": "{{ count }} answered",
@@ -421,7 +433,16 @@
     "npsValue": "NPS {{ value }}",
     "noComments": "No comments yet.",
     "scoreHint": "0–100, where 100 is best",
-    "scales": "The score turns every rating answer into 0–100. NPS goes from −100 to 100: the share who would recommend you minus the share who would not."
+    "scales": "The score turns every rating answer into 0–100. NPS goes from −100 to 100: the share who would recommend you minus the share who would not.",
+    "openAnswers": "Show the answers",
+    "npsHint": "−100 to 100 · above 0 is good",
+    "ofNpsAnswers": "{{ count }} answered 9–10",
+    "npsGroups": {
+      "promoter": "{{ count }} promoters",
+      "passive": "{{ count }} passives",
+      "detractor": "{{ count }} detractors"
+    },
+    "rowLabel": "{{ label }}: {{ count }}. Show the answers"
   },
   "responses": {
     "title": "Responses",
@@ -504,14 +525,15 @@
       "assessed": "Assessed",
       "justified": "Justified",
       "replied": "Reply logged",
-      "ofTotal": "{{ count }} of {{ total }} ({{ percent }} %)",
-      "openJustified": "Show the justified complaints"
+      "ofTotal": "{{ count }} of {{ total }} ({{ percent }} %)"
     },
     "byCategory": "By category",
     "rowLabel": "{{ label }}: {{ count }}. Show them",
     "legendOther": "Other feedback",
     "chartLabel": "Feedback per month, complaints shown separately",
-    "showTable": "Show as a table"
+    "showTable": "Show as a table",
+    "bySource": "By source",
+    "monthLabel": "{{ month }}: {{ count }} received, {{ complaints }} complaints. Show them"
   },
   "ask": {
     "summarise": "Summarise this customer feedback: what happened, how it has been handled and what is still open.",
@@ -584,7 +606,10 @@
     "module_disabled": "Customer feedback is not enabled for this organisation.",
     "assessment_required": "Say whether the complaint was justified before you resolve it.",
     "invalid_subject": "That kind of record can not be linked here.",
-    "invalid_privacy_notice_url": "Use a full web address starting with https://."
+    "invalid_privacy_notice_url": "Use a full web address starting with https://.",
+    "feedback_exists": "This answer is already a feedback record.",
+    "feedback_not_found": "This feedback no longer exists.",
+    "nothing_to_do": "Choose a new status or an owner first."
   },
   "notifications": {
     "feedbackCreated": "Feedback registered: {{ code }} {{ title }}",
@@ -646,14 +671,16 @@
     }
   },
   "kpis": {
-    "openComplaints": "Open complaints",
-    "openComplaintsHint": "{{ count }} complaints in the last 12 months",
-    "overdue": "Replies overdue",
-    "overdueHint": "Past the reply date",
-    "new": "Not yet acknowledged",
-    "newHint": "New, waiting for a first answer",
     "satisfaction": "Satisfaction",
-    "satisfactionHint": "Average of 1–5, from {{ count }} scores"
+    "open": "Open",
+    "openHint": "New or being handled",
+    "complaints": "Complaints",
+    "complaintsHint": "All complaints, including closed ones",
+    "complaintsHintDeviations": "Plus {{ count }} in the deviation register",
+    "unanswered": "No reply > {{ days }} days",
+    "unansweredHint": "Open, the customer has not heard back",
+    "showStats": "Average of 1–5 · Show statistics",
+    "hideStats": "Average of 1–5 · Hide statistics"
   },
   "replyChannels": {
     "email": "Email",
@@ -769,5 +796,98 @@
     "nb": "Norwegian (Bokmål)",
     "en": "English"
   },
-  "statusPair": "Resolved means the customer has had an answer or help. Closed means the case is finished and read-only until someone reopens it."
+  "statusWords": {
+    "new": "New",
+    "in_work": "Being handled",
+    "done": "Done"
+  },
+  "sources": {
+    "manual": "Recorded by us",
+    "survey": "Survey",
+    "public_form": "Public form"
+  },
+  "views": {
+    "complaints": "Complaints",
+    "unanswered": "No reply > {{ days }} days",
+    "fromSurveys": "From surveys"
+  },
+  "bulk": {
+    "label": "Change the selected feedback",
+    "selected": "Selected: {{ count }}",
+    "action": "New status",
+    "keepStatus": "Keep the status",
+    "owner": "Owner",
+    "keepOwner": "Keep the owner",
+    "noOwner": "No owner",
+    "apply": "Apply to {{ count }}",
+    "clear": "Clear selection",
+    "failedRow": "{{ code }}: {{ reason }}",
+    "done": "Updated: {{ count }}",
+    "someFailed": "Not changed: {{ count }}. The reasons are shown above the list.",
+    "selectPage": "Select all on this page",
+    "selectRow": "Select {{ code }}"
+  },
+  "complaintDeviations": {
+    "title": "Complaints recorded as deviations ({{ count }})",
+    "intro": "These complaints were recorded as deviations. They are listed here so all complaints are in one place; open one to handle it as a deviation.",
+    "linked": "Linked to {{ code }}",
+    "more": "See all {{ count }} in Deviations",
+    "status": {
+      "open": "Open",
+      "in_progress": "Being handled",
+      "done": "Done",
+      "cancelled": "Cancelled"
+    }
+  },
+  "stats": {
+    "title": "Statistics and trends"
+  },
+  "answers": {
+    "title": "Answers",
+    "viewLabel": "Show",
+    "views": {
+      "answers": "Answers ({{ count }})",
+      "overview": "Set-up and results"
+    },
+    "search": "Search the answers",
+    "searchPlaceholder": "Search answers, name or email",
+    "onlyLow": "Low scores only",
+    "hasFeedback": "Follow-up",
+    "hasFeedbackOptions": {
+      "any": "With or without follow-up",
+      "yes": "Has a feedback record",
+      "no": "No feedback record yet"
+    },
+    "thresholdNote": "Answers with a score of {{ threshold }} or lower are flagged and become feedback records automatically.",
+    "noMatch": "No answers match.",
+    "anonymous": "Anonymous",
+    "noComment": "No written comment.",
+    "showAll": "Show all answers",
+    "low": "Low score",
+    "openFeedback": "Open {{ code }}",
+    "makeFeedback": "Make feedback",
+    "makeDeviation": "Make a deviation",
+    "created": "{{ code }} was added to the feedback register.",
+    "columns": {
+      "date": "Received",
+      "answer": "Comment",
+      "score": "Score",
+      "followUp": "Follow-up"
+    },
+    "scope": "Showing: {{ label }}.",
+    "clearScope": "Show all answers",
+    "scopeAnswer": "{{ question }}: {{ value }}",
+    "scopeNps": {
+      "promoter": "promoters (9–10)",
+      "passive": "passives (7–8)",
+      "detractor": "detractors (0–6)"
+    },
+    "scopeSurvey": "one survey",
+    "scopePeriod": "answered {{ from }}–{{ to }}"
+  },
+  "allAnswers": {
+    "title": "Survey answers",
+    "subtitle": "Every answer to your surveys in one place, newest first. Low scores are flagged, and any answer can become feedback or a deviation."
+  },
+  "statusPair": "Done covers two statuses. Resolved means the customer has had an answer or help. Closed means the case is finished and read-only, until someone reopens it."
 }

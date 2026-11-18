@@ -5,10 +5,11 @@ import {
   computed,
   effect,
   inject,
+  linkedSignal,
   signal,
   untracked,
 } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../../core/ai/page-context';
@@ -209,7 +210,14 @@ export class CourseList {
 
   protected readonly pageSize = PAGE_SIZE;
   protected readonly q = signal('');
-  protected readonly status = signal<CourseStatus | ''>('');
+  /** `?status=published` (U24: the "Published courses" tile). */
+  private readonly statusParam = signal(
+    inject(ActivatedRoute).snapshot.queryParamMap.get('status') ?? undefined,
+  );
+  protected readonly status = linkedSignal<CourseStatus | ''>(() => {
+    const v = this.statusParam() ?? '';
+    return (COURSE_STATUSES as readonly string[]).includes(v) ? (v as CourseStatus) : '';
+  });
   protected readonly category = signal<CourseCategory | ''>('');
   protected readonly kind = signal<CourseKind | ''>('');
   protected readonly sort = signal<CourseSort>('title');

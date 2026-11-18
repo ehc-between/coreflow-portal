@@ -141,6 +141,11 @@ export const routes: Routes = [
         loadChildren: () => import('./features/account/account.routes'),
       },
       {
+        // Registre (shell v2, U03): every register the user can open, by job area.
+        path: 'registers',
+        loadChildren: () => import('./features/registers/registers.routes'),
+      },
+      {
         // "Needs your review" moves into My work (P5); the route stays so links keep working.
         path: 'review',
         title: 'nav.review',

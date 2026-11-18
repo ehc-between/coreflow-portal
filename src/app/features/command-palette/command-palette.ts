@@ -29,6 +29,7 @@ import { entityTypeLabel } from '../../core/search/entity-label';
 import { InternalLink, internalLink } from '../../core/search/internal-link';
 import { SearchApi } from '../../core/search/search-api';
 import { SearchItem, SearchResponse } from '../../core/search/search.models';
+import { UxMetricsService } from '../../core/ux-metrics/ux-metrics.service';
 import { Icon } from '../../shared/ui/icon/icon';
 import { NAV_ITEMS, NavItem } from '../../layout/nav';
 import { AskPanelService } from '../ask/ask-panel.service';
@@ -389,6 +390,7 @@ export class CommandPalette {
   private readonly searchApi = inject(SearchApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly language = inject(LanguageService);
+  private readonly uxMetrics = inject(UxMetricsService);
 
   private readonly inputRef = viewChild<ElementRef<HTMLInputElement>>('input');
 
@@ -583,9 +585,11 @@ export class CommandPalette {
         this.ask.showWith(this.language.translate(`ask.howto.${row.entry.key}.question`));
         break;
       case 'nav':
-        void this.router.navigate(['/', row.item.path]);
+        this.uxMetrics.markNext('palette');
+        void this.router.navigate(['/' + row.item.path]);
         break;
       case 'record':
+        this.uxMetrics.markNext('search');
         void this.router.navigate([row.link.path], {
           queryParams: row.link.queryParams ?? undefined,
         });

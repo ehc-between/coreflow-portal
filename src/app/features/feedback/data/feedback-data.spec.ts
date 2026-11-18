@@ -4,7 +4,7 @@ import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { APP_CONFIG } from '../../../core/config/app-config';
 import { SKIP_ERROR_TOAST } from '../../../core/http/error.interceptor';
-import { breakdown, categoryRows, periodStart } from '../insights/feedback-insights';
+import { breakdown, categoryRows, periodStart } from '../insights/feedback-stats-panel';
 import { filtersFromParams } from '../items/feedback-list';
 import { customerFields, primaryAction } from '../items/feedback-detail';
 import { defaultReplyChannel } from '../items/feedback-replies';
@@ -376,8 +376,8 @@ describe('feedback helpers', () => {
       comments: [],
     });
     expect(rows).toEqual([
-      { label: 'feedback.answer.yes', labelIsKey: true, count: 3, percent: 75 },
-      { label: 'feedback.answer.no', labelIsKey: true, count: 1, percent: 25 },
+      { key: 'yes', label: 'feedback.answer.yes', labelIsKey: true, count: 3, percent: 75 },
+      { key: 'no', label: 'feedback.answer.no', labelIsKey: true, count: 1, percent: 25 },
     ]);
   });
 });

@@ -5,10 +5,11 @@ import {
   computed,
   effect,
   inject,
+  linkedSignal,
   signal,
   untracked,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../core/ai/page-context';
@@ -417,6 +418,24 @@ export const CELL_SYMBOL: Readonly<Record<CellStatus, string>> = {
                             [value]="look(g.status).value"
                             [labelKey]="'people.cellStatus.' + g.status"
                           />
+                          @let course = (g.suggested_courses ?? [])[0];
+                          @if (
+                            canAssignTraining() && g.can_assign_training && g.user_id && course
+                          ) {
+                            <a
+                              routerLink="/training/assignments/new"
+                              [queryParams]="{ course: course.id, user: g.user_id }"
+                              class="inline-flex min-h-8 items-center rounded-tile border border-border px-2.5 text-meta font-semibold text-accent hover:bg-surface-2"
+                              [attr.title]="course.code + ' ' + course.title"
+                              [attr.data-testid]="
+                                'assign-training-' + g.employee_id + '-' + g.competence_id
+                              "
+                            >
+                              {{
+                                'people.matrix.assignTraining' | transloco: { course: course.title }
+                              }}
+                            </a>
+                          }
                           @if (canWrite() && !(g.actions ?? []).length) {
                             <app-button
                               size="sm"
@@ -485,7 +504,13 @@ export class CompetenceMatrix {
   protected readonly look = cellLook;
   protected readonly countKey = countKey;
 
-  protected readonly view = signal<'matrix' | 'gaps'>('matrix');
+  /** `?view=gaps` (U24: the "Kompetansegap" tile opens the gap list). */
+  private readonly viewParam = signal(
+    inject(ActivatedRoute).snapshot.queryParamMap.get('view') ?? undefined,
+  );
+  protected readonly view = linkedSignal<'matrix' | 'gaps'>(() =>
+    this.viewParam() === 'gaps' ? 'gaps' : 'matrix',
+  );
   protected readonly positionId = signal('');
   protected readonly departmentId = signal('');
   protected readonly includeFormer = signal(false);
@@ -503,6 +528,10 @@ export class CompetenceMatrix {
 
   protected readonly canWrite = computed(() =>
     hasPerm(this.selectedOrg.currentOrg()?.permissions, PERM_WRITE),
+  );
+  /** U24: gap -> course -> "Tildel opplæring" needs the training assign permission. */
+  protected readonly canAssignTraining = computed(() =>
+    hasPerm(this.selectedOrg.currentOrg()?.permissions, 'training:assign'),
   );
 
   protected readonly matrixEmpty = computed(() => {

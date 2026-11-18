@@ -439,7 +439,8 @@
     "cellHintEdit": "Numbers are the level held (0–4); colours show the status. Select a cell to record an assessment.",
     "cellAction": "{{ name }}, {{ label }}. Record an assessment",
     "gapTotalOne": "1 gap in total",
-    "export": "Export to CSV"
+    "export": "Export to CSV",
+    "assignTraining": "Assign training: {{ course }}"
   },
   "checklists": {
     "title": "Joining and leaving",

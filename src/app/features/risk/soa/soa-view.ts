@@ -323,23 +323,41 @@ const SOA_FIELD_LABELS: Readonly<Record<string, string>> = {
               [attr.aria-label]="'risk.soa.stats' | transloco"
               [appTourStep]="'risk-soa-stats'"
             >
-              <app-kpi-tile
-                [label]="'risk.soa.statApplicable' | transloco"
-                [value]="s.stats.applicable"
-                [delta]="'risk.soa.ofTotal' | transloco: { total: s.stats.total }"
-              />
-              <app-kpi-tile
-                [label]="'risk.soa.statExcluded' | transloco"
-                [value]="s.stats.excluded"
-                [delta]="'risk.soa.excludedDelta' | transloco"
-                deltaTone="neutral"
-              />
-              <app-kpi-tile
-                [label]="'risk.soa.statImplemented' | transloco"
-                [value]="s.stats.implemented"
-                tone="pass"
-                [delta]="'risk.soa.partialCount' | transloco: { count: s.stats.partial }"
-              />
+              <button
+                type="button"
+                class="block w-full rounded-card p-0 text-left align-top focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                (click)="applicable.set('yes'); implementation.set('')"
+              >
+                <app-kpi-tile
+                  [label]="'risk.soa.statApplicable' | transloco"
+                  [value]="s.stats.applicable"
+                  [delta]="'risk.soa.ofTotal' | transloco: { total: s.stats.total }"
+                />
+              </button>
+              <button
+                type="button"
+                class="block w-full rounded-card p-0 text-left align-top focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                (click)="applicable.set('no'); implementation.set('')"
+              >
+                <app-kpi-tile
+                  [label]="'risk.soa.statExcluded' | transloco"
+                  [value]="s.stats.excluded"
+                  [delta]="'risk.soa.excludedDelta' | transloco"
+                  deltaTone="neutral"
+                />
+              </button>
+              <button
+                type="button"
+                class="block w-full rounded-card p-0 text-left align-top focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                (click)="applicable.set('yes'); implementation.set('implemented')"
+              >
+                <app-kpi-tile
+                  [label]="'risk.soa.statImplemented' | transloco"
+                  [value]="s.stats.implemented"
+                  tone="pass"
+                  [delta]="'risk.soa.partialCount' | transloco: { count: s.stats.partial }"
+                />
+              </button>
               <button
                 type="button"
                 class="block w-full rounded-card p-0 text-left align-top focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"

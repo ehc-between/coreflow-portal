@@ -81,21 +81,32 @@ export interface SummaryTile {
   readonly value: number;
   readonly flag: EmployeeFlag | null;
   readonly tone: 'accent' | 'warn' | 'pass';
+  /** U24: a tile that opens another list (the gaps view counts competence cells). */
+  readonly link?: string;
+  readonly queryParams?: Readonly<Record<string, string>>;
 }
 
 /** The six tiles above the register (each one is a filter). */
 export function summaryTiles(s: PeopleSummary): readonly SummaryTile[] {
   const by = s.employees_by_status;
   const current = by.onboarding + by.active + by.on_leave + by.offboarding;
-  const issue = (key: string, value: number, flag: EmployeeFlag): SummaryTile => ({
-    key,
-    value,
-    flag,
-    tone: value ? 'warn' : 'pass',
-  });
+  // U24: a flag tile shows the number of people the `?flag=` filter lists.
+  const byFlag = s.employees_by_flag ?? {};
+  const issue = (key: string, value: number, flag: EmployeeFlag): SummaryTile => {
+    const people = byFlag[flag] ?? value;
+    return { key, value: people, flag, tone: people ? 'warn' : 'pass' };
+  };
   return [
     { key: 'current', value: current, flag: null, tone: 'accent' },
-    issue('gaps', s.gaps, 'competence_gaps'),
+    // Competence gaps are counted per person and competence: the gap list shows each one.
+    {
+      key: 'gaps',
+      value: s.gaps,
+      flag: null,
+      tone: s.gaps ? 'warn' : 'pass',
+      link: '/people/matrix',
+      queryParams: { view: 'gaps' },
+    },
     issue('expiringSoon', s.expiring_soon, 'expiring_soon'),
     issue('missingConfidentiality', s.missing_confidentiality, 'missing_confidentiality'),
     issue('screeningMissing', s.screening_missing ?? 0, 'screening_missing'),
@@ -187,26 +198,37 @@ function isFlag(value: string | null | undefined): value is EmployeeFlag {
 
       <div kpis class="contents" appTourStep="people-summary" data-testid="people-summary">
         @for (tile of tiles(); track tile.key) {
-          <button
-            type="button"
-            class="block w-full rounded-card text-left focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
-            [class.ring-2]="tile.flag !== null && flag() === tile.flag"
-            [class.ring-accent]="tile.flag !== null && flag() === tile.flag"
-            [attr.aria-pressed]="tile.flag !== null ? flag() === tile.flag : null"
-            [attr.aria-label]="
-              'people.summary.filterLabel'
-                | transloco
-                  : { label: ('people.summary.' + tile.key | transloco), count: tile.value }
-            "
-            (click)="setFlag(tile.flag && flag() !== tile.flag ? tile.flag : '')"
-            [attr.data-testid]="'tile-' + tile.key"
-          >
+          @if (tile.link) {
             <app-kpi-tile
+              [link]="tile.link"
+              [queryParams]="tile.queryParams ?? null"
+              [attr.data-testid]="'tile-' + tile.key"
               [label]="'people.summary.' + tile.key | transloco"
               [value]="tile.value"
               [tone]="tile.tone"
             />
-          </button>
+          } @else {
+            <button
+              type="button"
+              class="block w-full rounded-card text-left focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+              [class.ring-2]="tile.flag !== null && flag() === tile.flag"
+              [class.ring-accent]="tile.flag !== null && flag() === tile.flag"
+              [attr.aria-pressed]="tile.flag !== null ? flag() === tile.flag : null"
+              [attr.aria-label]="
+                'people.summary.filterLabel'
+                  | transloco
+                    : { label: ('people.summary.' + tile.key | transloco), count: tile.value }
+              "
+              (click)="setFlag(tile.flag && flag() !== tile.flag ? tile.flag : '')"
+              [attr.data-testid]="'tile-' + tile.key"
+            >
+              <app-kpi-tile
+                [label]="'people.summary.' + tile.key | transloco"
+                [value]="tile.value"
+                [tone]="tile.tone"
+              />
+            </button>
+          }
         }
       </div>
 

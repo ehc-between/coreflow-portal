@@ -55,6 +55,7 @@ import {
 import { DeviationStatusLabels, STATUS_CATEGORIES } from './deviation-status';
 import { DeviationFilter, FilterGroup, FilterOption } from './ui/filter-select';
 import { DeviationsNavService } from './ui/deviations-nav';
+import { DeviationKpiBand } from './stats/deviation-kpi-band';
 import { FulfilsRequirements } from '../../shared/requirement-locations/fulfils-requirements';
 import { StatusLegend } from '../../shared/ui/status-legend/status-legend';
 
@@ -104,7 +105,7 @@ export const SORT_OPTIONS: readonly FilterOption[] = [
  */
 export function stateFilter(
   value: string,
-): Pick<DeviationFilters, 'active' | 'overdue' | 'category' | 'status'> {
+): Pick<DeviationFilters, 'active' | 'overdue' | 'closed' | 'category' | 'status'> {
   if (!value) {
     return {};
   }
@@ -113,6 +114,9 @@ export function stateFilter(
   }
   if (value === 'scope:overdue') {
     return { overdue: true };
+  }
+  if (value === 'scope:closed') {
+    return { closed: true };
   }
   if (value.startsWith('cat:')) {
     return { category: value.slice(4) as StatusCategory };
@@ -157,9 +161,11 @@ export function filtersFromParams(params: {
       ? 'scope:overdue'
       : params.get('active') === 'true'
         ? 'scope:active'
-        : params.get('category')
-          ? `cat:${params.get('category')}`
-          : params.get('status'));
+        : params.get('closed') === 'true'
+          ? 'scope:closed'
+          : params.get('category')
+            ? `cat:${params.get('category')}`
+            : params.get('status'));
   if (state) {
     out['state'] = state;
   }
@@ -206,6 +212,7 @@ export function filtersFromParams(params: {
     RecordRowHeader,
     StatusBadge,
     DeviationFilter,
+    DeviationKpiBand,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -248,6 +255,14 @@ export function filtersFromParams(params: {
       </app-button>
       <app-module-nav nav [items]="nav.items()" labelKey="modules.names.deviations" />
       <app-help-strip help scope="deviations" page="list" tour="list" lesson="deviations-basics" />
+      @if (kpiBand()) {
+        <app-deviation-kpi-band
+          kpis
+          [filters]="bandFilters()"
+          [active]="filters()['state'] ?? ''"
+          (pick)="setFilter('state', $event)"
+        />
+      }
 
       <app-deviation-filter
         filters
@@ -523,6 +538,9 @@ export class DeviationsList {
     filtersFromParams(this.route.snapshot.queryParamMap),
   );
   protected readonly offset = signal(0);
+  /** U24: `?kpi=1` shows the statistics band on top of the register. */
+  protected readonly kpiBand = signal(this.route.snapshot.queryParamMap.get('kpi') === '1');
+  protected readonly bandFilters = computed(() => toDeviationFilters('', this.filters()));
 
   protected readonly items = signal<readonly DeviationListItem[]>([]);
   protected readonly total = signal(0);
@@ -556,6 +574,7 @@ export class DeviationsList {
       options: [
         { value: 'scope:active', label: 'deviations.filters.scopeActive' },
         { value: 'scope:overdue', label: 'deviations.filters.scopeOverdue' },
+        { value: 'scope:closed', label: 'deviations.filters.scopeClosed' },
       ],
     },
     {
@@ -729,9 +748,10 @@ export class DeviationsList {
 
   private syncUrl(): void {
     const queryParams: Record<string, string | null> = { q: this.query().trim() || null };
-    for (const key of [...LIST_FILTER_KEYS, 'status', 'category', 'active', 'overdue']) {
+    for (const key of [...LIST_FILTER_KEYS, 'status', 'category', 'active', 'overdue', 'closed']) {
       queryParams[key] = this.filters()[key] || null;
     }
+    queryParams['kpi'] = this.kpiBand() ? '1' : null;
     void this.router.navigate([], {
       relativeTo: this.route,
       queryParams,

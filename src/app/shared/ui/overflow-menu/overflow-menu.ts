@@ -17,6 +17,13 @@ import { Icon } from '../icon/icon';
 
 let nextId = 0;
 
+const FOCUS = 'focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none';
+const TRIGGER_CLASSES = {
+  default: `inline-flex h-9 items-center gap-1.5 rounded-tile border border-border bg-surface px-3 text-ui font-semibold text-fg hover:border-border-strong hover:bg-surface-2 ${FOCUS}`,
+  primary: `inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-tile bg-accent px-3 py-2 text-ui font-semibold text-white shadow-sm hover:brightness-110 ${FOCUS} focus-visible:ring-offset-2`,
+  ghost: `flex h-10 w-10 items-center justify-center rounded-tile text-fg-muted hover:bg-surface-2 hover:text-fg ${FOCUS}`,
+} as const;
+
 /**
  * An item of `app-overflow-menu`: `<button appMenuItem (click)="…">Arkiver</button>`.
  * `danger` styles a destructive item (red); the page must still ask for confirmation
@@ -68,15 +75,20 @@ export class MenuItem {
       [attr.aria-expanded]="open()"
       [attr.aria-controls]="menuId"
       [attr.aria-label]="iconOnly() ? (labelKey() | transloco) : null"
-      data-testid="overflow-trigger"
-      class="inline-flex h-9 items-center gap-1.5 rounded-tile border border-border bg-surface px-3 text-ui font-semibold text-fg hover:border-border-strong hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+      [attr.data-testid]="triggerTestId()"
+      [class]="triggerClass()"
       (click)="toggle()"
       (keydown)="onTriggerKeydown($event)"
     >
+      @if (variant() === 'primary') {
+        <app-icon [name]="icon()" [size]="17" />
+      }
       @if (!iconOnly()) {
         <span>{{ labelKey() | transloco }}</span>
       }
-      <app-icon name="more" [size]="16" />
+      @if (variant() !== 'primary') {
+        <app-icon [name]="icon()" [size]="variant() === 'ghost' ? 19 : 16" />
+      }
     </button>
     <div
       #panel
@@ -105,6 +117,16 @@ export class OverflowMenu {
   /** Show only the ⋯ icon (the label becomes the aria-label). */
   readonly iconOnly = input(false);
   readonly align = input<'start' | 'end'>('end');
+  /** Trigger icon (shared Icon set); "⋯" by default. */
+  readonly icon = input('more');
+  /**
+   * Trigger look: `default` (bordered "Mer ⋯"), `primary` (a full-width accent button,
+   * icon first, e.g. the shell's "Registrer") or `ghost` (a borderless top-bar icon).
+   */
+  readonly variant = input<'default' | 'primary' | 'ghost'>('default');
+  readonly triggerTestId = input('overflow-trigger');
+
+  protected readonly triggerClass = computed(() => TRIGGER_CLASSES[this.variant()]);
 
   private readonly trigger = viewChild.required<ElementRef<HTMLButtonElement>>('trigger');
   private readonly panel = viewChild.required<ElementRef<HTMLElement>>('panel');

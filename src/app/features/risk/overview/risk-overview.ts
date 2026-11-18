@@ -134,45 +134,38 @@ type LoadState = 'loading' | 'ready' | 'error';
                 [attr.aria-label]="'risk.overview.kpis' | transloco"
                 [appTourStep]="'risk-kpis'"
               >
-                <a
-                  routerLink="/risk/risks"
-                  class="block rounded-card focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                <app-kpi-tile
+                  link="/risk/risks"
+                  [queryParams]="{ status: 'open' }"
                   [attr.title]="'risk.overview.openHint' | transloco"
                   data-testid="kpi-open"
-                >
-                  <app-kpi-tile
-                    [label]="'risk.overview.openRisks' | transloco"
-                    [value]="o.risks.open"
-                    [delta]="'risk.overview.ofTotal' | transloco: { total: o.risks.total }"
-                  />
-                </a>
-                <a
-                  routerLink="/risk/risks"
+                  [label]="'risk.overview.openRisks' | transloco"
+                  [value]="o.risks.open"
+                  [delta]="'risk.overview.ofTotal' | transloco: { total: o.risks.total }"
+                />
+                <app-kpi-tile
+                  link="/risk/risks"
                   [queryParams]="{ appetite: 'above' }"
-                  class="block rounded-card focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
                   [attr.title]="'risk.overview.appetiteHint' | transloco"
                   data-testid="kpi-appetite"
-                >
-                  <app-kpi-tile
-                    [label]="'risk.overview.aboveAppetite' | transloco"
-                    [value]="o.risks.above_appetite"
-                    [tone]="o.risks.above_appetite > 0 ? 'fail' : 'neutral'"
-                    [delta]="appetiteDelta()"
-                    deltaTone="neutral"
-                  />
-                </a>
-                <a
-                  routerLink="/risk/risks"
-                  [queryParams]="{ review: 'due' }"
-                  class="block rounded-card focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
-                >
-                  <app-kpi-tile
-                    [label]="'risk.overview.reviewsOverdue' | transloco"
-                    [value]="o.risks.reviews_overdue"
-                    [tone]="o.risks.reviews_overdue > 0 ? 'warn' : 'neutral'"
-                  />
-                </a>
+                  [label]="'risk.overview.aboveAppetite' | transloco"
+                  [value]="o.risks.above_appetite"
+                  [tone]="o.risks.above_appetite > 0 ? 'fail' : 'neutral'"
+                  [delta]="appetiteDelta()"
+                  deltaTone="neutral"
+                />
                 <app-kpi-tile
+                  link="/risk/risks"
+                  [queryParams]="{ review: 'due' }"
+                  data-testid="kpi-reviews"
+                  [label]="'risk.overview.reviewsOverdue' | transloco"
+                  [value]="o.risks.reviews_overdue"
+                  [tone]="o.risks.reviews_overdue > 0 ? 'warn' : 'neutral'"
+                />
+                <app-kpi-tile
+                  link="/risk/treatments"
+                  [queryParams]="{ status: 'open' }"
+                  data-testid="kpi-treatments"
                   [label]="'risk.overview.openTreatments' | transloco"
                   [value]="o.treatments.open"
                   [delta]="treatmentDelta()"
@@ -314,17 +307,27 @@ type LoadState = 'loading' | 'ready' | 'error';
                       }
                     </ul>
                     @if (o.risks.unowned > 0) {
-                      <p class="mt-3 text-meta text-warn-ink">
+                      <a
+                        routerLink="/risk/risks"
+                        [queryParams]="{ owner: 'none' }"
+                        class="mt-3 block text-meta text-warn-ink hover:underline"
+                        data-testid="risk-unowned"
+                      >
                         {{ 'risk.overview.unowned' | transloco: { count: o.risks.unowned } }}
-                      </p>
+                      </a>
                     }
                     @if (o.treatments.awaiting_effectiveness_check) {
-                      <p class="mt-2 text-meta text-warn-ink">
+                      <a
+                        routerLink="/risk/treatments"
+                        [queryParams]="{ status: 'done', check: 'true' }"
+                        class="mt-2 block text-meta text-warn-ink hover:underline"
+                        data-testid="risk-awaiting-check"
+                      >
                         {{
                           'risk.overview.awaitingCheck'
                             | transloco: { count: o.treatments.awaiting_effectiveness_check }
                         }}
-                      </p>
+                      </a>
                     }
                     <a
                       routerLink="/risk/opportunities"

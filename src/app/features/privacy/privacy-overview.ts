@@ -54,6 +54,7 @@ interface Stat {
   readonly key: string;
   readonly params: Readonly<Record<string, number>>;
   readonly link: readonly unknown[];
+  readonly query?: Readonly<Record<string, string>>;
 }
 
 /** Lessons offered on the overview (keys in `assets/guidance/<lang>/privacy.json`). */
@@ -147,18 +148,14 @@ export const OVERVIEW_LESSONS = [
                 @if (tiles().length) {
                   <div class="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
                     @for (t of tiles(); track t.key) {
-                      <a
-                        [routerLink]="t.link"
+                      <app-kpi-tile
+                        [link]="t.link"
                         [queryParams]="t.query ?? null"
-                        class="rounded-card outline-none focus-visible:ring-2 focus-visible:ring-accent"
                         [attr.data-testid]="'kpi-' + t.key"
-                      >
-                        <app-kpi-tile
-                          [label]="'privacy.overview.tiles.' + t.key | transloco"
-                          [value]="t.value"
-                          [tone]="t.tone"
-                        />
-                      </a>
+                        [label]="'privacy.overview.tiles.' + t.key | transloco"
+                        [value]="t.value"
+                        [tone]="t.tone"
+                      />
                     }
                   </div>
                 } @else {
@@ -273,7 +270,11 @@ export const OVERVIEW_LESSONS = [
                 >
                   @for (s of stats(); track s.key) {
                     <li>
-                      <a [routerLink]="s.link" class="hover:text-fg hover:underline">
+                      <a
+                        [routerLink]="s.link"
+                        [queryParams]="s.query ?? null"
+                        class="hover:text-fg hover:underline"
+                      >
                         {{ 'privacy.overview.stat.' + s.key | transloco: s.params }}
                       </a>
                     </li>
@@ -361,6 +362,7 @@ export class PrivacyOverview {
         value: o.breaches_active ?? o.breaches_clock_running,
         tone: 'warn',
         link: ['/privacy', 'breaches'],
+        query: { attention: 'active' },
       },
       {
         key: 'dsrOverdue',
@@ -374,43 +376,49 @@ export class PrivacyOverview {
         value: o.dpias_required_undecided,
         tone: 'warn',
         link: ['/privacy', 'dpias'],
+        query: { attention: 'required_undecided' },
       },
       {
         key: 'processorsWithoutDpa',
         value: o.processors_without_dpa,
         tone: 'warn',
         link: ['/privacy', 'processors'],
+        query: { attention: 'without_dpa' },
       },
       {
         key: 'transfersMissingTia',
         value: o.transfers_missing_tia,
         tone: 'warn',
         link: ['/privacy', 'transfers'],
+        query: { attention: 'missing_tia' },
       },
       {
         key: 'transfersUnsignedSafeguards',
         value: o.transfers_unsigned_safeguards ?? 0,
         tone: 'warn',
         link: ['/privacy', 'transfers'],
+        query: { attention: 'unsigned_safeguards' },
       },
       {
         key: 'retentionExecutionsDue',
         value: o.retention_executions_due ?? 0,
         tone: 'warn',
         link: ['/privacy', 'retention-schedules'],
+        query: { attention: 'execution_due' },
       },
       {
         key: 'breachesAwaitingClosure',
         value: o.breaches_awaiting_closure ?? 0,
         tone: 'info',
         link: ['/privacy', 'breaches'],
+        query: { attention: 'awaiting_closure' },
       },
       {
         key: 'reviewsOverdue',
         value: o.reviews_overdue,
         tone: 'warn',
         link: ['/privacy', 'ropa'],
-        query: { overdue: '1' },
+        query: { attention: 'review_overdue' },
       },
     ];
     return all.filter((t) => t.value > 0);
@@ -428,19 +436,26 @@ export class PrivacyOverview {
         params: { active: o.ropa_active, total: o.ropa_total },
         link: ['/privacy', 'ropa'],
       },
-      { key: 'dpias', params: { count: o.dpias_open }, link: ['/privacy', 'dpias'] },
+      {
+        key: 'dpias',
+        params: { count: o.dpias_open },
+        link: ['/privacy', 'dpias'],
+        query: { attention: 'open' },
+      },
     ];
     if (o.dsr_open !== null) {
       out.push({
         key: 'requests',
         params: { count: o.dsr_open },
         link: ['/privacy', 'data-subject-requests'],
+        query: { attention: 'open' },
       });
     }
     out.push({
       key: 'breaches',
       params: { count: o.breaches_open },
       link: ['/privacy', 'breaches'],
+      query: { attention: 'open' },
     });
     out.push({
       key: 'gaps',

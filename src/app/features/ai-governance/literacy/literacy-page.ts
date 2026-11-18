@@ -135,11 +135,13 @@ export function filterPeople(people: readonly LiteracyUser[], q: string): Litera
       } @else if (coverage(); as c) {
         <div class="mb-5 grid grid-cols-2 gap-3 md:grid-cols-4">
           <app-kpi-tile
+            noLink="average"
             [label]="'aiGovernance.literacy.coverage' | transloco"
             [value]="c.coverage + ' %'"
             [tone]="c.coverage >= 80 ? 'pass' : 'accent'"
           />
           <app-kpi-tile
+            noLink="average"
             [label]="'aiGovernance.literacy.covered' | transloco"
             [value]="c.covered"
             tone="pass"
@@ -152,11 +154,13 @@ export function filterPeople(people: readonly LiteracyUser[], q: string): Litera
             deltaTone="neutral"
           />
           <app-kpi-tile
+            noLink="shownBelow"
             [label]="'aiGovernance.literacy.expired' | transloco"
             [value]="c.expired"
             [tone]="c.expired ? 'warn' : 'neutral'"
           />
           <app-kpi-tile
+            noLink="shownBelow"
             [label]="'aiGovernance.literacy.missing' | transloco"
             [value]="c.missing"
             [tone]="c.missing ? 'warn' : 'neutral'"

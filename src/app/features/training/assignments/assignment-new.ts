@@ -5,6 +5,7 @@ import {
   effect,
   inject,
   input,
+  linkedSignal,
   signal,
   untracked,
 } from '@angular/core';
@@ -177,6 +178,8 @@ export class AssignmentNew {
 
   /** `?course=` preselects a course. */
   readonly course = input<string | undefined>(undefined);
+  /** `?user=` preselects a person (U24: "Tildel opplæring" from a competence gap). */
+  readonly user = input<string | undefined>(undefined);
 
   protected readonly flow = this.flows.consume(inject(ActivatedRoute), {
     targetType: 'training_assignment',
@@ -184,7 +187,9 @@ export class AssignmentNew {
   protected readonly courses = signal<readonly Course[]>([]);
   protected readonly loaded = signal(false);
   protected readonly courseId = signal('');
-  protected readonly selected = signal<ReadonlySet<string>>(new Set());
+  protected readonly selected = linkedSignal<ReadonlySet<string>>(
+    () => new Set(this.user() ? [this.user() as string] : []),
+  );
   protected readonly dueDate = signal(addDaysInput(30));
   protected readonly busy = signal(false);
   protected readonly error = signal<string | null>(null);

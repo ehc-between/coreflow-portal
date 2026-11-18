@@ -1464,7 +1464,8 @@
       "scope": "Active / overdue",
       "allScopes": "Open and closed",
       "scopeActive": "Active only",
-      "scopeOverdue": "Overdue only"
+      "scopeOverdue": "Overdue only",
+      "scopeClosed": "Closed only"
     },
     "sort": {
       "newest": "Newest first",
@@ -1760,7 +1761,9 @@
       },
       "trend": {
         "title": "Registered and closed per month"
-      }
+      },
+      "fullStats": "Full statistics",
+      "showOnRegister": "Show on the register"
     },
     "actionsList": {
       "link": "Actions",

@@ -190,6 +190,11 @@ export interface OrgSettingsDto {
   readonly mfa_required_roles: readonly string[];
   /** Accept macro-enabled Office attachments (.docm, .xlsm, ...). Default false. */
   readonly allow_macro_attachments: boolean;
+  /**
+   * Shell v2 (U03, `coreflow.nav.v2`): the new seven-destination menu is the org's
+   * default. Members can still switch back for themselves. Absent on older servers.
+   */
+  readonly nav_v2?: boolean;
 }
 
 /** Who an org requires a second factor of. */
