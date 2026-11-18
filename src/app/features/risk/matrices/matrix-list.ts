@@ -20,7 +20,11 @@ import { Icon } from '../../../shared/ui/icon/icon';
 import { RiskApi } from '../data/risk-api';
 import { Matrix } from '../data/risk.models';
 import { MatrixGrid } from '../shared/matrix-grid';
-import { RiskPageGuide } from '../shared/risk-page-guide';
+import { RiskNav } from '../shared/risk-nav';
+import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { RiskPermissions } from '../shared/risk-permissions';
 
 /** The org's risk matrices (likelihood x consequence scales, bands, risk appetite). */
@@ -35,37 +39,39 @@ import { RiskPermissions } from '../shared/risk-permissions';
     Card,
     Icon,
     MatrixGrid,
-    RiskPageGuide,
+    RiskNav,
+    ErrorState,
+    HelpStrip,
+    LoadingState,
+    PageHeader,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8">
-      <header class="mb-4 flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 class="font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]">
-            {{ 'risk.matrices.title' | transloco }}
-          </h1>
-          <p class="mt-1 text-[13.5px] text-fg-muted">{{ 'risk.matrices.subtitle' | transloco }}</p>
-        </div>
+    <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+      <app-page-header
+        titleKey="risk.matrices.title"
+        descriptionKey="risk.matrices.subtitle"
+        [breadcrumbs]="[
+          { labelKey: 'modules.names.risk', link: '/risk' },
+          { labelKey: 'risk.matrices.title' },
+        ]"
+      >
         @if (perms.canManage()) {
-          <app-button size="sm" (click)="newMatrix()">
+          <app-button primary size="sm" (click)="newMatrix()">
             <app-icon name="plus" [size]="14" />
             {{ 'risk.matrices.new' | transloco }}
           </app-button>
         }
-      </header>
-      <app-risk-page-guide class="mb-5" page="matrices" lesson="risk-matrix" />
+      </app-page-header>
+      <app-risk-nav />
+      <app-help-strip scope="risk" page="matrices" lesson="risk-matrix" />
 
       @switch (state()) {
         @case ('loading') {
-          <p class="py-10 text-center text-[14px] text-fg-muted">
-            {{ 'risk.common.loading' | transloco }}
-          </p>
+          <app-loading-state [rows]="3" />
         }
         @case ('error') {
-          <p class="py-10 text-center text-[14px] text-fail" role="alert">
-            {{ 'risk.common.loadFailed' | transloco }}
-          </p>
+          <app-error-state (retry)="reload()" />
         }
         @default {
           @if (matrices().length === 0) {
@@ -85,10 +91,10 @@ import { RiskPermissions } from '../shared/risk-permissions';
                     <div class="min-w-0">
                       <a
                         [routerLink]="['/risk/matrices', m.id]"
-                        class="font-display text-[16px] font-bold text-fg hover:underline"
+                        class="font-display text-section font-bold text-fg hover:underline"
                         >{{ m.name }}</a
                       >
-                      <p class="text-[12.5px] text-fg-muted">
+                      <p class="text-meta text-fg-muted">
                         {{
                           'risk.matrices.summary'
                             | transloco
@@ -105,7 +111,7 @@ import { RiskPermissions } from '../shared/risk-permissions';
                     }
                   </div>
                   <app-matrix-grid [matrix]="m" [showAppetite]="true" [ariaLabel]="m.name" />
-                  <p class="mt-2 text-[12.5px] text-fg-muted">
+                  <p class="mt-2 text-meta text-fg-muted">
                     {{
                       m.acceptable_max_score !== null
                         ? ('risk.matrices.appetiteValue'
@@ -141,21 +147,28 @@ export class MatrixListPage {
     }));
     effect(() => {
       const orgId = this.perms.orgId();
-      untracked(() => {
-        this.sub?.unsubscribe();
-        if (!orgId) {
-          return;
-        }
-        this.sub = this.api.listMatrices(orgId).subscribe({
-          next: (res) => {
-            this.matrices.set(res.items);
-            this.state.set('ready');
-          },
-          error: () => this.state.set('error'),
-        });
-      });
+      untracked(() => this.load(orgId));
     });
     inject(DestroyRef).onDestroy(() => this.sub?.unsubscribe());
+  }
+
+  protected reload(): void {
+    this.load(this.perms.orgId());
+  }
+
+  private load(orgId: string | null): void {
+    this.sub?.unsubscribe();
+    if (!orgId) {
+      return;
+    }
+    this.state.set('loading');
+    this.sub = this.api.listMatrices(orgId).subscribe({
+      next: (res) => {
+        this.matrices.set(res.items);
+        this.state.set('ready');
+      },
+      error: () => this.state.set('error'),
+    });
   }
 
   protected newMatrix(): void {

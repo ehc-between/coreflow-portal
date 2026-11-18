@@ -36,6 +36,7 @@ import { AuditsApi } from '../data/audits-api';
 import { AuditsNav } from '../shared/audits-nav';
 import { AuditLoadState } from '../shared/load-state';
 import { loadable } from '../shared/loadable';
+import { FulfilsRequirements } from '../../../shared/requirement-locations/fulfils-requirements';
 
 const PAGE_SIZE = 25;
 
@@ -47,6 +48,7 @@ function pick<T extends string>(value: string | null | undefined, allowed: reado
 @Component({
   selector: 'app-audit-plan-list',
   imports: [
+    FulfilsRequirements,
     RouterLink,
     TranslocoPipe,
     LocalDayPipe,
@@ -75,6 +77,7 @@ function pick<T extends string>(value: string | null | undefined, allowed: reado
       (search)="setQuery($event)"
       (viewApplied)="applyView($event)"
     >
+      <app-fulfils-requirements help locationKey="audits.plans" />
       <div intro>
         <app-audits-nav />
         <div class="mt-4 flex flex-col gap-3">

@@ -29,6 +29,7 @@ import { HseApi } from '../data/hse-api';
 import { SJA_SORTS, SJA_STATUSES, Sja, SjaSort, SjaStatus } from '../data/hse.models';
 import { riskTone, sjaStatusTone } from '../hse-format';
 import { HSE_MODULE, HseLessonButton, HseNav, injectHsePermissions } from '../shared/hse-shared';
+import { FulfilsRequirements } from '../../../shared/requirement-locations/fulfils-requirements';
 
 const PAGE_SIZE = 25;
 
@@ -39,6 +40,7 @@ const PAGE_SIZE = 25;
 @Component({
   selector: 'app-sja-list',
   imports: [
+    FulfilsRequirements,
     RouterLink,
     TranslocoPipe,
     LocalDatePipe,
@@ -68,6 +70,7 @@ const PAGE_SIZE = 25;
       (search)="onSearch($event)"
       (viewApplied)="applyView($event)"
     >
+      <app-fulfils-requirements help locationKey="hse.sja" />
       <div intro class="mt-1">
         <p class="text-[14px] text-fg-muted">{{ 'hse.sja.list.subtitle' | transloco }}</p>
       </div>

@@ -46,6 +46,7 @@ import { TeachingEmpty } from '../../shared/guidance/teaching-empty';
 import { TourStepDirective } from '../../shared/guidance/tour-step.directive';
 import { DeviationStatusLabels, STATUS_CATEGORIES } from './deviation-status';
 import { DeviationPageGuide } from './guide/deviation-page-guide';
+import { FulfilsRequirements } from '../../shared/requirement-locations/fulfils-requirements';
 
 const PAGE_SIZE = 25;
 
@@ -71,6 +72,7 @@ interface SortOption {
 @Component({
   selector: 'app-deviations-list',
   imports: [
+    FulfilsRequirements,
     LocalDayPipe,
     LocalNumberPipe,
     FormsModule,
@@ -134,6 +136,8 @@ interface SortOption {
           </a>
         </div>
       </div>
+
+      <app-fulfils-requirements locationKey="deviations.register" />
 
       <app-deviation-page-guide class="mb-5" page="list" lesson="deviations-basics" tour="list" />
 

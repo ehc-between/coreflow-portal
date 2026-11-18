@@ -43,6 +43,7 @@ import {
 } from '../data/continuity.models';
 import { ContinuityNav } from '../shared/continuity-nav';
 import { ContinuityDuration } from '../shared/duration';
+import { FulfilsRequirements } from '../../../shared/requirement-locations/fulfils-requirements';
 
 const PAGE_SIZE = 25;
 
@@ -97,6 +98,7 @@ export function planQuery(q: string, f: PlanFilters, offset: number): PlanListQu
 @Component({
   selector: 'app-plan-list',
   imports: [
+    FulfilsRequirements,
     RouterLink,
     TranslocoPipe,
     LocalDayPipe,
@@ -128,6 +130,7 @@ export function planQuery(q: string, f: PlanFilters, offset: number): PlanListQu
       (search)="search($event)"
       (viewApplied)="applyView($event)"
     >
+      <app-fulfils-requirements help locationKey="continuity.plans" />
       <div intro>
         <p class="mt-1 text-[14px] text-fg-muted">{{ 'continuity.plans.subtitle' | transloco }}</p>
         <app-continuity-nav />

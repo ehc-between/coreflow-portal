@@ -17,11 +17,17 @@ import { TeachingEmpty } from '../../../shared/guidance/teaching-empty';
 import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
+import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
+import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { FieldItem, FieldList } from '../../../shared/ui/field-list/field-list';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { RiskApi } from '../data/risk-api';
 import { riskErrorKey } from '../data/risk-errors';
 import { Matrix, Register } from '../data/risk.models';
-import { RiskPageGuide } from '../shared/risk-page-guide';
+import { RiskNav } from '../shared/risk-nav';
 import { RiskPermissions } from '../shared/risk-permissions';
 import { RegisterFormPanel } from './register-form-panel';
 
@@ -40,40 +46,44 @@ import { RegisterFormPanel } from './register-form-panel';
     Button,
     Card,
     Icon,
-    RiskPageGuide,
+    RiskNav,
+    WhyItMatters,
+    ErrorState,
+    FieldItem,
+    FieldList,
+    HelpStrip,
+    LoadingState,
+    PageHeader,
     RegisterFormPanel,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8">
-      <header class="mb-4 flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 class="font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]">
-            {{ 'risk.registers.title' | transloco }}
-          </h1>
-          <p class="mt-1 text-[13.5px] text-fg-muted">
-            {{ 'risk.registers.subtitle' | transloco }}
-          </p>
-        </div>
+    <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+      <app-page-header
+        titleKey="risk.registers.title"
+        descriptionKey="risk.registers.subtitle"
+        settingsLink="/risk/matrices"
+        [breadcrumbs]="[
+          { labelKey: 'modules.names.risk', link: '/risk' },
+          { labelKey: 'risk.registers.title' },
+        ]"
+      >
         @if (perms.canManage()) {
-          <app-button size="sm" (click)="openNew()">
+          <app-button primary size="sm" (click)="openNew()">
             <app-icon name="plus" [size]="14" />
             {{ 'risk.registers.new' | transloco }}
           </app-button>
         }
-      </header>
-      <app-risk-page-guide class="mb-5" page="registers" />
+      </app-page-header>
+      <app-risk-nav />
+      <app-help-strip scope="risk" page="registers" />
 
       @switch (state()) {
         @case ('loading') {
-          <p class="py-10 text-center text-[14px] text-fg-muted">
-            {{ 'risk.common.loading' | transloco }}
-          </p>
+          <app-loading-state [rows]="3" />
         }
         @case ('error') {
-          <p class="py-10 text-center text-[14px] text-fail" role="alert">
-            {{ 'risk.common.loadFailed' | transloco }}
-          </p>
+          <app-error-state (retry)="reload()" />
         }
         @default {
           @if (registers().length === 0) {
@@ -93,63 +103,56 @@ import { RegisterFormPanel } from './register-form-panel';
                     <div class="min-w-0">
                       <a
                         [routerLink]="['/risk/registers', r.id]"
-                        class="font-display text-[16px] font-bold text-fg hover:underline"
+                        class="font-display text-section font-bold text-fg hover:underline"
                         >{{ r.name }}</a
                       >
-                      <p class="text-[12.5px] text-fg-muted">
+                      <p class="text-meta text-fg-muted">
                         {{ 'risk.categories.' + r.category | transloco }}
                       </p>
                     </div>
                     <div class="flex flex-wrap gap-1.5">
                       @if (r.is_default) {
-                        <app-badge tone="accent">{{
-                          'risk.registers.default' | transloco
-                        }}</app-badge>
+                        <app-badge
+                          tone="accent"
+                          [attr.title]="'risk.registers.defaultHint' | transloco"
+                          >{{ 'risk.registers.default' | transloco }}</app-badge
+                        >
                       }
                       @if (r.status === 'archived') {
                         <app-badge>{{ 'risk.registers.archivedBadge' | transloco }}</app-badge>
                       }
                     </div>
                   </div>
-                  <dl class="mt-3 grid grid-cols-2 gap-2 text-[12.5px]">
-                    <div>
-                      <dt class="text-fg-muted">{{ 'risk.registers.matrix' | transloco }}</dt>
-                      <dd class="text-fg">
-                        <a [routerLink]="['/risk/matrices', r.matrix_id]" class="hover:underline">{{
-                          r.matrix_name ?? '—'
-                        }}</a>
-                      </dd>
-                    </div>
-                    <div>
-                      <dt class="text-fg-muted">{{ 'risk.fields.owner' | transloco }}</dt>
-                      <dd class="text-fg">
-                        {{ r.owner?.name ?? ('risk.common.unassigned' | transloco) }}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt class="text-fg-muted">{{ 'risk.registers.risks' | transloco }}</dt>
-                      <dd class="text-fg">
-                        <a
-                          routerLink="/risk/risks"
-                          [queryParams]="{ register: r.id }"
-                          class="hover:underline"
-                        >
-                          {{
-                            'risk.registers.riskCounts'
-                              | transloco: { open: r.open_risk_count, total: r.risk_count }
-                          }}
-                        </a>
-                      </dd>
-                    </div>
-                    <div>
-                      <dt class="text-fg-muted">{{ 'risk.fields.reviewInterval' | transloco }}</dt>
-                      <dd class="text-fg">
+                  <app-field-list class="mt-3" [columns]="2">
+                    <app-field-item labelKey="risk.registers.matrix">
+                      <a [routerLink]="['/risk/matrices', r.matrix_id]" class="hover:underline">{{
+                        r.matrix_name ?? ('common.empty.notSet' | transloco)
+                      }}</a>
+                    </app-field-item>
+                    <app-field-item
+                      labelKey="risk.fields.owner"
+                      [value]="r.owner?.name"
+                      empty="none"
+                    />
+                    <app-field-item labelKey="risk.registers.risks">
+                      <a
+                        routerLink="/risk/risks"
+                        [queryParams]="{ register: r.id }"
+                        class="hover:underline"
+                      >
                         {{
-                          'risk.registers.months' | transloco: { count: r.review_interval_months }
+                          'risk.registers.riskCounts'
+                            | transloco: { open: r.open_risk_count, total: r.risk_count }
                         }}
-                      </dd>
-                    </div>
-                  </dl>
+                      </a>
+                    </app-field-item>
+                    <app-field-item
+                      labelKey="risk.registers.reviewEvery"
+                      [value]="
+                        'risk.registers.months' | transloco: { count: r.review_interval_months }
+                      "
+                    />
+                  </app-field-list>
                   @if (perms.canManage()) {
                     <div class="mt-3 flex justify-end">
                       <app-button size="sm" variant="ghost" (click)="openEdit(r)">
@@ -161,6 +164,7 @@ import { RegisterFormPanel } from './register-form-panel';
               }
             </div>
           }
+          <app-why-it-matters class="mt-8 block" scope="risk" page="registers" />
         }
       }
     </div>
@@ -217,6 +221,10 @@ export class RegisterListPage {
       },
       error: () => this.state.set('error'),
     });
+  }
+
+  protected reload(): void {
+    this.load(this.perms.orgId());
   }
 
   protected openNew(): void {

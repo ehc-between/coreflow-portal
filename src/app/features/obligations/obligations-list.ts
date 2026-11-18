@@ -53,6 +53,7 @@ import {
   obligationTypeKey,
 } from './data/obligation-display';
 import { ObligationLessonLink } from './lesson-link';
+import { FulfilsRequirements } from '../../shared/requirement-locations/fulfils-requirements';
 
 const PAGE_SIZE = 25;
 /** The "expiring soon" window of the summary tile. */
@@ -85,6 +86,7 @@ export function sortKey(sort: string): string {
 @Component({
   selector: 'app-obligations-list',
   imports: [
+    FulfilsRequirements,
     RouterLink,
     TranslocoPipe,
     LocalDayPipe,
@@ -114,6 +116,7 @@ export function sortKey(sort: string): string {
       (search)="setQuery($event)"
       (viewApplied)="applyView($event)"
     >
+      <app-fulfils-requirements help locationKey="obligations.register" />
       <div intro class="mt-1 flex flex-col gap-3">
         <p class="text-[14px] text-fg-muted">{{ 'obligations.list.subtitle' | transloco }}</p>
         <app-guide-intro scope="obligations" page="list" />

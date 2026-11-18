@@ -44,6 +44,7 @@ import {
   PeopleSummary,
 } from './data/people.models';
 import { PeopleLessonLink, PeopleSectionNav } from './people-section-nav';
+import { FulfilsRequirements } from '../../shared/requirement-locations/fulfils-requirements';
 
 const PAGE_SIZE = 25;
 
@@ -66,6 +67,7 @@ export function statusesForFilter(filter: string): readonly EmployeeStatus[] {
 @Component({
   selector: 'app-people-employees-list',
   imports: [
+    FulfilsRequirements,
     RouterLink,
     TranslocoPipe,
     LocalDayPipe,
@@ -97,6 +99,7 @@ export function statusesForFilter(filter: string): readonly EmployeeStatus[] {
       (search)="setQuery($event)"
       (viewApplied)="applyView($event)"
     >
+      <app-fulfils-requirements help locationKey="people.employees" />
       <div intro class="mt-1 flex flex-col gap-2">
         <app-people-section-nav />
         <p class="text-[14px] text-fg-muted">{{ 'people.employees.subtitle' | transloco }}</p>

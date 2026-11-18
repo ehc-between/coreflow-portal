@@ -40,6 +40,7 @@ import {
 } from '../../core/standards/standards.models';
 import { EntityChip } from '../../shared/kit/entity-chip';
 import { fieldLabelKey } from '../../shared/requirement-links/supports-requirements';
+import { RequirementLocations } from '../../shared/requirement-locations/requirement-locations';
 import { Badge } from '../../shared/ui/badge/badge';
 import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
@@ -108,6 +109,7 @@ export function evidenceByModule(evidence: RequirementEvidence | null): ModuleEv
     FormField,
     Icon,
     EvidencePicker,
+    RequirementLocations, // requirement-locations (L4)
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -138,6 +140,14 @@ export function evidenceByModule(evidence: RequirementEvidence | null): ModuleEv
         </div>
         <p class="text-body text-fg">{{ text(req.text) }}</p>
       }
+
+      <!-- requirement-locations (L4): where this is filled in, first and prominently -->
+      <app-requirement-locations
+        class="mb-3"
+        [class.mt-3]="!embedded()"
+        [ref]="req.ref"
+        [canManage]="canManage()"
+      />
 
       @if (checklist().length > 0) {
         <div [class.mt-3]="!embedded()">
@@ -309,6 +319,10 @@ export function evidenceByModule(evidence: RequirementEvidence | null): ModuleEv
             @if (confirmedCount() > 0) {
               <span class="ml-1 font-normal text-fg-subtle">({{ confirmedCount() }})</span>
             }
+            <!-- requirement-locations (L4) -->
+            <span class="block text-meta font-normal text-fg-muted">{{
+              'standards.reqs.card.evidenceHint' | transloco
+            }}</span>
           </h3>
           @if (canManage() && !picking()) {
             <button

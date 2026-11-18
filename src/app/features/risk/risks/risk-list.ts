@@ -8,23 +8,38 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../../core/ai/page-context';
 import { LanguageService } from '../../../core/i18n/language.service';
+import { NotificationService } from '../../../core/notifications/notification.service';
 import { TeachingEmpty } from '../../../shared/guidance/teaching-empty';
 import { TourStepDirective } from '../../../shared/guidance/tour-step.directive';
+import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { RecordListPage } from '../../../shared/kit/record-list-page';
 import { SavedView } from '../../../shared/kit/saved-views.service';
-import { LocalDayPipe } from '../../../shared/locale/locale-pipes';
+import { CoverageChip } from '../../../shared/requirement-links/coverage-chip';
 import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
+import { EmptyState } from '../../../shared/ui/empty-state/empty-state';
+import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
 import { Pager } from '../../../shared/ui/pager/pager';
+import { RecordRow, RecordRowHeader } from '../../../shared/ui/record-row/record-row';
+import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { RiskApi } from '../data/risk-api';
-import { bandLabel, riskStatusTone } from '../data/risk-display';
+import {
+  appetiteState,
+  bandLabel,
+  currentBasis,
+  currentRating,
+  riskStatusValue,
+  saveBlob,
+} from '../data/risk-display';
 import {
   MatrixBand,
   OPEN_RISK_STATUSES,
@@ -37,8 +52,9 @@ import {
   RiskStatus,
 } from '../data/risk.models';
 import { RatingBadge } from '../shared/rating-badge';
-import { RiskPageGuide } from '../shared/risk-page-guide';
+import { RiskNav } from '../shared/risk-nav';
 import { RiskPermissions } from '../shared/risk-permissions';
+import { FulfilsRequirements } from '../../../shared/requirement-locations/fulfils-requirements';
 
 const PAGE_SIZE = 50;
 
@@ -52,6 +68,7 @@ export interface RiskFilters {
   readonly level: string;
   readonly owner: '' | 'me';
   readonly review: '' | 'due';
+  readonly appetite: '' | 'above';
   readonly sort: RiskSort;
 }
 
@@ -61,6 +78,7 @@ const DEFAULT_FILTERS: RiskFilters = {
   level: '',
   owner: '',
   review: '',
+  appetite: '',
   sort: '-score',
 };
 
@@ -74,11 +92,15 @@ export function parseRiskFilters(raw: Readonly<Record<string, string | undefined
     level: raw['level'] ?? '',
     owner: raw['owner'] === 'me' ? 'me' : '',
     review: raw['review'] === 'due' ? 'due' : '',
+    appetite: raw['appetite'] === 'above' ? 'above' : '',
     sort: pick(raw['sort'], RISK_SORTS, DEFAULT_FILTERS.sort),
   };
 }
 
-/** The API query for a filter set. */
+/**
+ * The API query for a filter set. "Open" uses the same statuses as the overview
+ * KPI (accepted risks included), so the two numbers always agree.
+ */
 export function riskQuery(filters: RiskFilters, q: string, offset: number): RiskListQuery {
   const status: readonly RiskStatus[] =
     filters.status === 'open'
@@ -93,6 +115,7 @@ export function riskQuery(filters: RiskFilters, q: string, offset: number): Risk
     level: filters.level ? [filters.level] : undefined,
     owner: filters.owner || undefined,
     review_due: filters.review === 'due' ? true : undefined,
+    above_appetite: filters.appetite === 'above' ? true : undefined,
     include_closed: filters.status === 'all' || filters.status === 'closed',
     sort: filters.sort,
     limit: PAGE_SIZE,
@@ -100,56 +123,94 @@ export function riskQuery(filters: RiskFilters, q: string, offset: number): Risk
   };
 }
 
+/** How many of the "Flere filtre" options are set. */
+export function moreFiltersCount(filters: RiskFilters): number {
+  return (
+    (filters.sort !== DEFAULT_FILTERS.sort ? 1 : 0) +
+    (filters.owner ? 1 : 0) +
+    (filters.review ? 1 : 0) +
+    (filters.appetite ? 1 : 0)
+  );
+}
+
 /**
- * The risk register: every risk the caller can read, filtered by status, register,
- * level, owner and review due date, searchable, sortable, with saved views. Rows show
- * the inherent and residual rating so the effect of treatment is visible at a glance.
+ * Risks across every register the caller can read: filtered by status, register
+ * and level (plus owner, review due and appetite under "Flere filtre"),
+ * searchable, sortable, with saved views and a CSV export that keeps the filters.
+ * Each row shows the current rating (residual when set, otherwise inherent) and
+ * whether the risk is above the appetite or accepted above it.
  */
 @Component({
   selector: 'app-risk-list',
   imports: [
-    RouterLink,
+    FulfilsRequirements,
     TranslocoPipe,
-    LocalDayPipe,
     TeachingEmpty,
     TourStepDirective,
+    WhyItMatters,
     RecordListPage,
+    CoverageChip,
     Badge,
     Button,
     Card,
+    EmptyState,
+    ErrorState,
+    HelpStrip,
     Icon,
+    LoadingState,
     Pager,
+    RecordRow,
+    RecordRowHeader,
+    StatusBadge,
     RatingBadge,
-    RiskPageGuide,
+    RiskNav,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-record-list-page
       titleKey="risk.risks.title"
+      descriptionKey="risk.risks.subtitle"
       scope="risk"
       page="risks"
+      settingsLink="/risk/matrices"
+      [breadcrumbs]="[
+        { labelKey: 'modules.names.risk', link: '/risk' },
+        { labelKey: 'risk.risks.title' },
+      ]"
       searchPlaceholderKey="risk.risks.searchPlaceholder"
       [query]="q()"
       [filters]="filterRecord()"
+      [moreFiltersActive]="moreActive()"
       [empty]="state() === 'ready' && rows().length === 0 && !isFiltered()"
       (search)="setQuery($event)"
       (viewApplied)="applyView($event)"
     >
-      <div intro class="mt-3">
-        <app-risk-page-guide page="risks" lesson="first-risk-assessment" tour="risks" />
-      </div>
+      <app-fulfils-requirements help locationKey="risk.risks" />
       @if (perms.canWrite()) {
-        <app-button toolbar size="sm" [appTourStep]="'risk-new'" (click)="newRisk()">
+        <app-button primary [appTourStep]="'risk-new'" (click)="newRisk()">
           <app-icon name="plus" [size]="14" />
           {{ 'risk.risks.new' | transloco }}
         </app-button>
       }
+      <app-button
+        secondary
+        variant="secondary"
+        [loading]="exporting()"
+        (click)="exportCsv()"
+        data-testid="risk-export"
+      >
+        <app-icon name="upload" [size]="14" />
+        {{ 'risk.risks.export' | transloco }}
+      </app-button>
+
+      <app-risk-nav nav />
+      <app-help-strip help scope="risk" page="risks" tour="risks" lesson="first-risk-assessment" />
 
       <ng-container filters>
         <label class="sr-only" for="risk-f-status">{{ 'risk.filters.status' | transloco }}</label>
         <select
           id="risk-f-status"
-          class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
+          class="h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
           [appTourStep]="'risk-filters'"
           (change)="patch({ status: $any($event.target).value })"
         >
@@ -165,7 +226,7 @@ export function riskQuery(filters: RiskFilters, q: string, offset: number): Risk
           }}</label>
           <select
             id="risk-f-register"
-            class="h-10 max-w-[200px] rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
+            class="h-10 max-w-[200px] rounded-tile border border-border bg-bg px-2 text-ui text-fg"
             (change)="patch({ register: $any($event.target).value })"
           >
             <option value="" [selected]="!filters().register">
@@ -179,7 +240,7 @@ export function riskQuery(filters: RiskFilters, q: string, offset: number): Risk
         <label class="sr-only" for="risk-f-level">{{ 'risk.filters.level' | transloco }}</label>
         <select
           id="risk-f-level"
-          class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
+          class="h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
           (change)="patch({ level: $any($event.target).value })"
         >
           <option value="" [selected]="!filters().level">
@@ -189,19 +250,26 @@ export function riskQuery(filters: RiskFilters, q: string, offset: number): Risk
             <option [value]="b.key" [selected]="b.key === filters().level">{{ b.text }}</option>
           }
         </select>
-        <label class="sr-only" for="risk-f-sort">{{ 'risk.filters.sort' | transloco }}</label>
-        <select
-          id="risk-f-sort"
-          class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
-          (change)="patch({ sort: $any($event.target).value })"
-        >
-          @for (s of sorts; track s) {
-            <option [value]="s" [selected]="s === filters().sort">
-              {{ 'risk.filters.sorts.' + s | transloco }}
-            </option>
-          }
-        </select>
-        <label class="inline-flex h-10 items-center gap-1.5 text-[13px] text-fg-muted">
+      </ng-container>
+
+      <div more-filters class="flex flex-col gap-3">
+        <div class="flex flex-col gap-1">
+          <label class="text-meta font-semibold text-fg-muted" for="risk-f-sort">{{
+            'risk.filters.sort' | transloco
+          }}</label>
+          <select
+            id="risk-f-sort"
+            class="h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
+            (change)="patch({ sort: $any($event.target).value })"
+          >
+            @for (s of sorts; track s) {
+              <option [value]="s" [selected]="s === filters().sort">
+                {{ 'risk.filters.sorts.' + s | transloco }}
+              </option>
+            }
+          </select>
+        </div>
+        <label class="inline-flex min-h-8 items-center gap-2 text-ui text-fg">
           <input
             type="checkbox"
             [checked]="filters().owner === 'me'"
@@ -209,7 +277,7 @@ export function riskQuery(filters: RiskFilters, q: string, offset: number): Risk
           />
           {{ 'risk.filters.mine' | transloco }}
         </label>
-        <label class="inline-flex h-10 items-center gap-1.5 text-[13px] text-fg-muted">
+        <label class="inline-flex min-h-8 items-center gap-2 text-ui text-fg">
           <input
             type="checkbox"
             [checked]="filters().review === 'due'"
@@ -217,128 +285,85 @@ export function riskQuery(filters: RiskFilters, q: string, offset: number): Risk
           />
           {{ 'risk.filters.reviewDue' | transloco }}
         </label>
-      </ng-container>
+        <label class="inline-flex min-h-8 items-center gap-2 text-ui text-fg">
+          <input
+            type="checkbox"
+            [checked]="filters().appetite === 'above'"
+            (change)="patch({ appetite: $any($event.target).checked ? 'above' : '' })"
+          />
+          {{ 'risk.filters.aboveAppetite' | transloco }}
+        </label>
+      </div>
 
       <app-card [padded]="false">
         @switch (state()) {
           @case ('loading') {
-            <p class="py-10 text-center text-[14px] text-fg-muted">
-              {{ 'risk.common.loading' | transloco }}
-            </p>
+            <app-loading-state [rows]="5" />
           }
           @case ('error') {
-            <p class="py-10 text-center text-[14px] text-fail" role="alert">
-              {{ 'risk.common.loadFailed' | transloco }}
-            </p>
+            <app-error-state (retry)="reload()" />
           }
           @default {
             @if (rows().length === 0) {
-              <p class="py-10 text-center text-[14px] text-fg-muted">
-                {{ 'risk.filters.noMatch' | transloco }}
-              </p>
+              <app-empty-state
+                icon="search"
+                titleKey="ui.empty.noResults"
+                ctaKey="risk.filters.clear"
+                ctaVariant="secondary"
+                [compact]="true"
+                (cta)="clearFilters()"
+              />
             } @else {
-              <div class="overflow-x-auto">
-                <table class="w-full min-w-[760px] text-left text-[13px]">
-                  <caption class="sr-only">
-                    {{
-                      'risk.risks.title' | transloco
-                    }}
-                  </caption>
-                  <thead class="border-b border-border text-[12px] text-fg-muted">
-                    <tr>
-                      <th scope="col" class="px-4 py-2 font-semibold">
-                        {{ 'risk.fields.code' | transloco }}
-                      </th>
-                      <th scope="col" class="px-2 py-2 font-semibold">
-                        {{ 'risk.fields.title' | transloco }}
-                      </th>
-                      <th scope="col" class="px-2 py-2 font-semibold">
-                        {{ 'risk.fields.inherent' | transloco }}
-                      </th>
-                      <th scope="col" class="px-2 py-2 font-semibold">
-                        {{ 'risk.fields.residual' | transloco }}
-                      </th>
-                      <th scope="col" class="px-2 py-2 font-semibold">
-                        {{ 'risk.fields.status' | transloco }}
-                      </th>
-                      <th scope="col" class="px-2 py-2 font-semibold">
-                        {{ 'risk.fields.owner' | transloco }}
-                      </th>
-                      <th scope="col" class="px-4 py-2 font-semibold">
-                        {{ 'risk.fields.nextReview' | transloco }}
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody class="divide-y divide-border">
-                    @for (r of rows(); track r.id) {
-                      <tr class="align-top hover:bg-surface-2">
-                        <td
-                          class="px-4 py-2.5 font-mono text-[12px] whitespace-nowrap text-fg-subtle"
-                        >
-                          {{ r.code }}
-                        </td>
-                        <td class="px-2 py-2.5">
-                          <a
-                            [routerLink]="['/risk/risks', r.id]"
-                            class="font-semibold text-fg hover:underline"
-                            [class.line-through]="r.status === 'closed'"
-                            >{{ r.title }}</a
-                          >
-                          <div class="mt-0.5 flex flex-wrap gap-x-3 text-[12px] text-fg-subtle">
-                            <span>{{ r.register.name }}</span>
-                            @if (r.above_appetite) {
-                              <span class="font-semibold text-fail">
-                                {{ 'risk.rating.aboveAppetite' | transloco }}
-                              </span>
-                            }
-                            @if (r.treatments.open > 0) {
-                              <span>
-                                {{
-                                  'risk.risks.openTreatments'
-                                    | transloco: { count: r.treatments.open }
-                                }}
-                              </span>
-                            }
-                          </div>
-                        </td>
-                        <td class="px-2 py-2.5">
-                          <app-rating-badge
-                            [score]="r.inherent?.score"
-                            [level]="r.inherent?.level"
-                            [label]="r.inherent?.label"
-                            [color]="r.inherent?.color"
-                          />
-                        </td>
-                        <td class="px-2 py-2.5">
-                          <app-rating-badge
-                            [score]="r.residual?.score"
-                            [level]="r.residual?.level"
-                            [label]="r.residual?.label"
-                            [color]="r.residual?.color"
-                          />
-                        </td>
-                        <td class="px-2 py-2.5">
-                          <app-badge [tone]="statusTone(r.status)">
-                            {{ 'risk.status.' + r.status | transloco }}
-                          </app-badge>
-                        </td>
-                        <td class="px-2 py-2.5 text-fg-muted">
-                          {{ r.owner?.name ?? ('risk.common.unassigned' | transloco) }}
-                        </td>
-                        <td
-                          class="px-4 py-2.5 whitespace-nowrap"
-                          [class.text-fail]="r.review_overdue"
-                          [class.font-semibold]="r.review_overdue"
-                          [class.text-fg-muted]="!r.review_overdue"
-                        >
-                          {{ r.next_review_at | localDay }}
-                        </td>
-                      </tr>
+              <div role="list" [attr.aria-label]="'risk.risks.title' | transloco">
+                <app-record-row-header dateKind="next" />
+                @for (r of rows(); track r.id) {
+                  @let rating = current(r);
+                  <app-record-row
+                    [code]="r.code"
+                    [title]="r.title"
+                    [subtitle]="subtitle(r)"
+                    [link]="['/risk/risks', r.id]"
+                    [owner]="r.owner?.name ?? ('risk.common.unassigned' | transloco)"
+                    [date]="r.next_review_at"
+                    dateKind="next"
+                    [overdue]="r.review_overdue"
+                  >
+                    <app-coverage-chip
+                      coverage
+                      class="max-w-full [&_[data-testid=coverage-chip]]:flex-wrap [&_[data-testid=coverage-chip]]:whitespace-normal"
+                      entityType="risk"
+                      [entityId]="r.id"
+                    />
+                    <app-status-badge
+                      badges
+                      meaning="lifecycle"
+                      [value]="statusValue(r.status)"
+                      [labelKey]="'risk.status.' + r.status"
+                    />
+                    <app-rating-badge
+                      badges
+                      [score]="rating?.score"
+                      [level]="rating?.level"
+                      [label]="rating?.label"
+                      [color]="rating?.color"
+                      [hintKey]="basisHint(r)"
+                    />
+                    @switch (appetite(r)) {
+                      @case ('above') {
+                        <app-badge badges tone="fail">{{
+                          'risk.rating.aboveAppetite' | transloco
+                        }}</app-badge>
+                      }
+                      @case ('accepted') {
+                        <app-badge badges tone="neutral">{{
+                          'risk.rating.acceptedAboveAppetite' | transloco
+                        }}</app-badge>
+                      }
                     }
-                  </tbody>
-                </table>
+                  </app-record-row>
+                }
               </div>
-              <div class="border-t border-border px-4 py-2">
+              <div class="px-4 py-2">
                 <app-pager
                   [offset]="offset()"
                   [pageSize]="pageSize"
@@ -360,6 +385,8 @@ export function riskQuery(filters: RiskFilters, q: string, offset: number): Risk
           (action)="newRisk()"
         />
       </app-card>
+
+      <app-why-it-matters below scope="risk" page="risks" />
     </app-record-list-page>
   `,
 })
@@ -368,6 +395,7 @@ export class RiskListPage {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly language = inject(LanguageService);
+  private readonly toasts = inject(NotificationService);
   protected readonly perms = inject(RiskPermissions);
 
   protected readonly statusFilters = RISK_STATUS_FILTERS;
@@ -380,6 +408,7 @@ export class RiskListPage {
   protected readonly registers = signal<readonly Register[]>([]);
   private readonly bands = signal<readonly MatrixBand[]>([]);
   protected readonly offset = signal(0);
+  protected readonly exporting = signal(false);
   protected readonly q = signal(this.route.snapshot.queryParamMap.get('q') ?? '');
   protected readonly filters = signal<RiskFilters>(
     parseRiskFilters(this.route.snapshot.queryParams as Record<string, string>),
@@ -387,11 +416,18 @@ export class RiskListPage {
   private sub: Subscription | null = null;
 
   protected readonly filterRecord = computed<Record<string, string>>(() => ({ ...this.filters() }));
+  protected readonly moreActive = computed(() => moreFiltersCount(this.filters()));
 
   protected readonly isFiltered = computed(() => {
     const f = this.filters();
     return (
-      !!this.q() || f.status !== 'open' || !!f.register || !!f.level || !!f.owner || !!f.review
+      !!this.q() ||
+      f.status !== 'open' ||
+      !!f.register ||
+      !!f.level ||
+      !!f.owner ||
+      !!f.review ||
+      !!f.appetite
     );
   });
 
@@ -408,6 +444,10 @@ export class RiskListPage {
     }
     return [...seen.entries()].map(([key, text]) => ({ key, text }));
   });
+
+  protected readonly current = currentRating;
+  protected readonly appetite = appetiteState;
+  protected readonly statusValue = riskStatusValue;
 
   constructor() {
     providePageContext(() => ({
@@ -465,8 +505,24 @@ export class RiskListPage {
     });
   }
 
-  protected statusTone(status: RiskStatus) {
-    return riskStatusTone(status);
+  protected reload(): void {
+    this.load(this.perms.orgId(), this.filters(), this.q(), this.offset());
+  }
+
+  /** Register name, plus the open treatments. */
+  protected subtitle(r: Risk): string {
+    const parts = [r.register.name];
+    if (r.treatments.open > 0) {
+      parts.push(
+        this.language.translate('risk.risks.openTreatments', { count: r.treatments.open }),
+      );
+    }
+    return parts.join(' · ');
+  }
+
+  protected basisHint(r: Risk): string | null {
+    const basis = currentBasis(r);
+    return basis ? `risk.rating.basisHint.${basis}` : null;
   }
 
   protected setQuery(q: string): void {
@@ -481,6 +537,13 @@ export class RiskListPage {
     this.syncUrl();
   }
 
+  protected clearFilters(): void {
+    this.q.set('');
+    this.filters.set(DEFAULT_FILTERS);
+    this.offset.set(0);
+    this.syncUrl();
+  }
+
   protected applyView(view: SavedView): void {
     this.filters.set(parseRiskFilters(view.filters));
     this.offset.set(0);
@@ -489,6 +552,26 @@ export class RiskListPage {
 
   protected newRisk(): void {
     void this.router.navigate(['/risk/risks/new']);
+  }
+
+  protected exportCsv(): void {
+    const orgId = this.perms.orgId();
+    if (!orgId || this.exporting()) {
+      return;
+    }
+    this.exporting.set(true);
+    // The export takes the list's filters but never its page window.
+    const query = riskQuery(this.filters(), this.q(), 0);
+    this.api.exportRisks(orgId, query, this.language.active()).subscribe({
+      next: (blob) => {
+        this.exporting.set(false);
+        saveBlob(blob, 'risk-register.csv');
+      },
+      error: () => {
+        this.exporting.set(false);
+        this.toasts.error('risk.risks.exportFailed');
+      },
+    });
   }
 
   private syncUrl(): void {
@@ -503,6 +586,7 @@ export class RiskListPage {
         level: f.level || null,
         owner: f.owner || null,
         review: f.review || null,
+        appetite: f.appetite || null,
         sort: f.sort === DEFAULT_FILTERS.sort ? null : f.sort,
       },
     });
