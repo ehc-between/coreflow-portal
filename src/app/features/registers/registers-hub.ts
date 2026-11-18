@@ -172,6 +172,8 @@ export class RegistersHub {
   );
 
   private sub: Subscription | null = null;
+  /** The org whose rows are on screen. */
+  private shownOrg: string | null = null;
 
   constructor() {
     effect(() => {
@@ -217,14 +219,17 @@ export class RegistersHub {
       this.state.set('ready');
       return;
     }
-    // Keep the rows on screen while a language switch reloads them.
-    if (!this.rows().length) {
+    // Keep the rows on screen while a language switch reloads them, but never show the
+    // previous org's registers while another org's load.
+    if (!this.rows().length || this.shownOrg !== orgId) {
+      this.rows.set([]);
       this.state.set('loading');
     }
     this.sub = this.api.counts(orgId, lang, ['register', 'page', 'settings']).subscribe({
       next: (res) => {
         // The menu names registers pinned here from the same data.
         this.catalog.remember(orgId, lang, res.items);
+        this.shownOrg = orgId;
         this.rows.set(toRows(res.items));
         this.state.set('ready');
       },
