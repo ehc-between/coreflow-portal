@@ -97,16 +97,16 @@ import { SlideOver } from '../slide-over/slide-over';
         (closed)="closePanel()"
       >
         @if (panelOpen()) {
-          @if (lessonOpen() && lesson(); as key) {
+          @if (openLesson(); as open) {
             <button
               type="button"
               data-testid="help-strip-back"
               class="mb-3 inline-flex h-8 items-center gap-1.5 rounded-tile px-2 text-ui font-semibold text-accent hover:bg-accent-soft focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
-              (click)="lessonOpen.set(false)"
+              (click)="openLesson.set(null)"
             >
               <span aria-hidden="true">←</span> {{ 'ui.help.back' | transloco }}
             </button>
-            <app-lesson [scope]="scope()" [lesson]="key" />
+            <app-lesson [scope]="open.scope" [lesson]="open.key" />
           } @else {
             <div data-testid="help-panel" class="flex flex-col gap-5">
               @if (intro(); as i) {
@@ -142,7 +142,7 @@ import { SlideOver } from '../slide-over/slide-over';
                       type="button"
                       data-testid="help-strip-lesson"
                       class="inline-flex h-9 items-center gap-1.5 rounded-tile border border-border bg-surface px-3 text-ui font-semibold text-fg hover:border-border-strong hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
-                      (click)="lessonOpen.set(true)"
+                      (click)="openLesson.set({ scope: scope(), key: lesson()! })"
                     >
                       <app-icon name="book" [size]="14" />
                       @if (l.minutes) {
@@ -164,6 +164,33 @@ import { SlideOver } from '../slide-over/slide-over';
                     </button>
                   }
                 </div>
+              }
+              @if (moreLessons().length) {
+                <section data-testid="help-strip-more-lessons">
+                  <h3 class="text-meta font-bold tracking-wide text-fg-subtle uppercase">
+                    {{ 'ui.help.moreLessons' | transloco }}
+                  </h3>
+                  <ul class="mt-2 flex flex-col gap-1.5">
+                    @for (item of moreLessons(); track item.scope + '.' + item.key) {
+                      <li>
+                        <button
+                          type="button"
+                          data-testid="help-strip-more-lesson"
+                          class="inline-flex min-h-8 items-center gap-1.5 text-left text-ui font-semibold text-accent hover:underline focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                          (click)="openLesson.set({ scope: item.scope, key: item.key })"
+                        >
+                          <app-icon name="book" [size]="14" />
+                          {{ item.title }}
+                          @if (item.minutes) {
+                            <span class="font-normal text-fg-subtle">{{
+                              'ui.help.minutes' | transloco: { minutes: item.minutes }
+                            }}</span>
+                          }
+                        </button>
+                      </li>
+                    }
+                  </ul>
+                </section>
               }
               @for (why of whyNotes(); track why.scope + '.' + why.page) {
                 <app-why-it-matters
@@ -198,7 +225,8 @@ export class HelpStrip {
   readonly subject = input<string | null | undefined>(null);
 
   protected readonly panelOpen = signal(false);
-  protected readonly lessonOpen = signal(false);
+  /** The lesson shown inside the panel (the page's own or one handed over). */
+  protected readonly openLesson = signal<{ scope: string; key: string } | null>(null);
   protected readonly beginner = this.guidance.isBeginner;
 
   protected readonly intro = computed(
@@ -231,7 +259,22 @@ export class HelpStrip {
       !!this.ownWhy() ||
       this.hasTour() ||
       !!this.lessonContent() ||
+      this.moreLessons().length > 0 ||
       this.canExplain(),
+  );
+  /** Lessons other widgets on the page handed over ("Lær mer" cards), minus the strip's own. */
+  protected readonly moreLessons = computed(() =>
+    this.registry
+      .lessonEntries()
+      .filter((e) => !(e.scope === this.scope() && e.key === this.lesson()))
+      .map((e) => ({ ...e, lesson: this.content.readLesson(e.scope, e.key) }))
+      .filter((e) => e.lesson !== null)
+      .map((e) => ({
+        scope: e.scope,
+        key: e.key,
+        title: e.lesson!.title,
+        minutes: e.lesson!.minutes ?? null,
+      })),
   );
   /** The page's own why-note first, then the ones other widgets on the page handed over. */
   protected readonly whyNotes = computed<PageWhyEntry[]>(() => {
@@ -250,13 +293,13 @@ export class HelpStrip {
   }
 
   protected openPanel(): void {
-    this.lessonOpen.set(false);
+    this.openLesson.set(null);
     this.panelOpen.set(true);
   }
 
   protected closePanel(): void {
     this.panelOpen.set(false);
-    this.lessonOpen.set(false);
+    this.openLesson.set(null);
   }
 
   protected startTour(): void {
