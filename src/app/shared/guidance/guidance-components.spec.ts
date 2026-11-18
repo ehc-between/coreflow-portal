@@ -173,10 +173,11 @@ describe('guidance components', () => {
 
 describe('One help entry point per page (U38)', () => {
   @Component({
-    imports: [HelpStrip, WhyItMatters],
+    imports: [HelpStrip, WhyItMatters, TeachingEmpty],
     template: `
       <app-help-strip scope="risk" page="list" />
       <app-why-it-matters scope="risk" page="list" />
+      <app-teaching-empty scope="risk" page="list" />
     `,
   })
   class PageWithHelp {}
@@ -226,6 +227,9 @@ describe('One help entry point per page (U38)', () => {
       'Intro body',
     );
     expect(el.textContent).not.toContain('Step one');
+    // The empty state keeps its call to action but leaves "Teach me" to the "?".
+    expect(el.querySelector('[data-testid="teaching-empty"]')?.textContent).toContain('No risks');
+    expect(el.querySelector('[data-testid="teach-me"]')).toBeNull();
   });
 });
 
