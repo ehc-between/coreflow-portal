@@ -573,15 +573,15 @@
     "weak_performance": "Svake resultater"
   },
   "attentionWhy": {
-    "not_approved": "Leverandøren er høy eller kritisk, men ikke godkjent. Vurder den før dere tar den i bruk.",
-    "no_next_evaluation": "En høy eller kritisk leverandør trenger en dato for neste revurdering.",
+    "not_approved": "Leverandøren har høy eller kritisk kritikalitet, men er ikke godkjent. Vurder den før dere tar den i bruk.",
+    "no_next_evaluation": "En leverandør med høy eller kritisk kritikalitet trenger en dato for neste revurdering.",
     "evaluation_overdue": "Revurderingsdatoen er passert. Sjekk at leverandøren fortsatt oppfyller kravene deres.",
     "dpa_missing": "Leverandøren behandler personopplysninger for dere, men ingen databehandleravtale er koblet til (personvernforordningen art. 28).",
     "dpa_pending": "En databehandleravtale er bedt om eller ligger i utkast. Følg den opp til den er signert.",
     "transfer_assessment_missing": "Personopplysninger lagres utenfor EU/EØS, og ingen overføringsvurdering er registrert.",
     "certificate_expired": "Et sertifikat leverandøren viser til, er utløpt. Be om et fornyet sertifikat.",
     "certificate_expiring": "Et sertifikat utløper innen 60 dager. Be om det fornyede sertifikatet i god tid.",
-    "weak_performance": "Leveranser eller kvalitet har vært svake i det siste. Vurder en ekstraordinær vurdering."
+    "weak_performance": "Leveransene eller kvaliteten har vært svake i det siste. Start gjerne en ekstraordinær vurdering."
   },
   "attentionAction": {
     "no_next_evaluation": "Sett en dato",

@@ -96,7 +96,7 @@
         "title": "Følge opp en leverandør",
         "body": "Siden viser om leverandøren er godkjent, hva som må følges opp, hvilke vurderinger risikoprofilen krever, avtalene dere har med den og hvordan den har levert.",
         "steps": [
-          "Gå gjennom **Trenger oppfølging** øverst: hvert punkt har handlingen som lukker det.",
+          "Gå gjennom **Trenger oppfølging** øverst: ved hver mangel står knappen som retter den.",
           "Fullfør de **påkrevde vurderingene**. En avgjort vurdering dokumenterer kravene spørsmålene sjekker.",
           "Hold **Avtaler og databehandling** komplett: kontrakten, databehandleravtalen og systemene leverandøren drifter."
         ]
