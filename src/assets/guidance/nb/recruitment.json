@@ -131,7 +131,7 @@
         ]
       },
       "why": {
-        "body": "Dataminimering og åpenhet er grunnleggende prinsipper i GDPR. Å registrere når erklæringen ble gitt, beviser at kandidaten ble informert.",
+        "body": "Dataminimering og åpenhet er grunnleggende prinsipper i GDPR. Når du registrerer at erklæringen er gitt, dokumenterer det at kandidaten ble informert.",
         "clauses": ["gdpr:5", "gdpr:13", "gdpr:14"]
       },
       "fields": {
