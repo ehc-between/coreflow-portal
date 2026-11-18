@@ -49,6 +49,13 @@ const CODE_KEYS: Readonly<Record<string, string>> = {
   no_approved_revision: 'documents.workflow.errors.noApprovedRevision',
   has_approved_revision: 'documents.delete.errors.hasApprovedRevision',
   reason_required: 'documents.delete.errors.reasonRequired',
+  // A01: named approver, and requirement / record links sent on create.
+  invalid_approver: 'documents.approval.errors.invalidApprover',
+  approver_is_author: 'documents.approval.errors.approverIsAuthor',
+  unknown_requirement: 'documents.link.errors.unknownRequirement',
+  too_many_requirements: 'documents.link.errors.tooManyRequirements',
+  too_many_related: 'documents.link.errors.tooManyRelated',
+  invalid_link_type: 'documents.link.errors.invalidLinkType',
 };
 
 /**

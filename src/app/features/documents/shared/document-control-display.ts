@@ -1,28 +1,11 @@
-import { BadgeTone } from '../../../shared/ui/badge/badge';
-import { CampaignStatus, ExternalStatus } from '../data/document-control.models';
+import { ExternalStatus } from '../data/document-control.models';
 
-export function campaignStatusTone(status: CampaignStatus): BadgeTone {
-  switch (status) {
-    case 'active':
-      return 'info';
-    case 'completed':
-      return 'pass';
-    case 'closed':
-      return 'neutral';
-    default:
-      return 'warn';
-  }
-}
-
-export function externalStatusTone(status: ExternalStatus): BadgeTone {
-  switch (status) {
-    case 'current':
-      return 'pass';
-    case 'superseded':
-      return 'warn';
-    default:
-      return 'neutral';
-  }
+/**
+ * The shared lifecycle value of an external document's status, for `toneFor`:
+ * the edition in use ("current") reads as in force; the others keep their word.
+ */
+export function externalLifecycle(status: ExternalStatus | string): string {
+  return status === 'current' ? 'effective' : status;
 }
 
 /** `YYYY-MM-DD` of an ISO datetime / date (for `<input type="date">`), '' when null. */

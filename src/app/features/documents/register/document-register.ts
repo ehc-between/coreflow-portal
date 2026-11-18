@@ -25,7 +25,8 @@ import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { Pager } from '../../../shared/ui/pager/pager';
-import { statusLabelKey, statusTone } from '../document-status';
+import { statusLabelKey } from '../document-status';
+import { toneFor } from '../../../shared/ui/tones';
 import { DocumentControlApi } from '../data/document-control-api';
 import {
   DocumentType,
@@ -36,8 +37,10 @@ import {
   RegisterSort,
 } from '../data/document-control.models';
 import { DocumentsPageGuide } from '../shared/documents-page-guide';
+import { DocumentsNav } from '../shared/documents-nav';
+import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { DocumentControlPermissions } from '../shared/document-control-permissions';
-import { externalStatusTone, portalLink, saveBlob } from '../shared/document-control-display';
+import { externalLifecycle, portalLink, saveBlob } from '../shared/document-control-display';
 
 export const REGISTER_PAGE_SIZE = 100;
 
@@ -132,11 +135,18 @@ export function registerQuery(
     Icon,
     Pager,
     DocumentsPageGuide,
+    DocumentsNav,
+    WhyItMatters,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-record-list-page
       titleKey="documents.control.register.title"
+      [breadcrumbs]="[
+        { labelKey: 'modules.names.documents', link: '/documents' },
+        { labelKey: 'documents.control.register.title' },
+      ]"
+      settingsLink="/documents/types"
       scope="documents"
       page="register"
       searchPlaceholderKey="documents.control.register.searchPlaceholder"
@@ -146,9 +156,9 @@ export function registerQuery(
       (search)="setQuery($event)"
       (viewApplied)="applyView($event)"
     >
-      <div intro class="mt-3">
-        <app-documents-page-guide page="register" lesson="master-list" tour="register" />
-      </div>
+      <app-documents-nav nav />
+      <app-documents-page-guide help page="register" lesson="master-list" tour="register" />
+      <app-why-it-matters below scope="documents" page="register" />
       <app-button
         toolbar
         size="sm"
@@ -169,7 +179,7 @@ export function registerQuery(
           }}</label>
           <select
             id="reg-f-type"
-            class="h-10 max-w-[200px] rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
+            class="h-10 max-w-[200px] rounded-tile border border-border bg-bg px-2 text-ui text-fg"
             (change)="patch({ type: $any($event.target).value })"
           >
             <option value="" [selected]="!filters().type">
@@ -185,7 +195,7 @@ export function registerQuery(
         }}</label>
         <select
           id="reg-f-status"
-          class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
+          class="h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
           [appTourStep]="'documents-register-filters'"
           (change)="patch({ status: $any($event.target).value })"
         >
@@ -200,7 +210,7 @@ export function registerQuery(
         }}</label>
         <select
           id="reg-f-sort"
-          class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
+          class="h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
           (change)="patch({ sort: $any($event.target).value })"
         >
           @for (s of sorts; track s) {
@@ -209,7 +219,7 @@ export function registerQuery(
             </option>
           }
         </select>
-        <label class="inline-flex h-10 items-center gap-1.5 text-[13px] text-fg-muted">
+        <label class="inline-flex h-10 items-center gap-1.5 text-ui text-fg-muted">
           <input
             type="checkbox"
             [checked]="filters().mine"
@@ -217,7 +227,7 @@ export function registerQuery(
           />
           {{ 'documents.control.filters.mine' | transloco }}
         </label>
-        <label class="inline-flex h-10 items-center gap-1.5 text-[13px] text-fg-muted">
+        <label class="inline-flex h-10 items-center gap-1.5 text-ui text-fg-muted">
           <input
             type="checkbox"
             [checked]="filters().reviewDue"
@@ -225,7 +235,7 @@ export function registerQuery(
           />
           {{ 'documents.control.filters.reviewDue' | transloco }}
         </label>
-        <label class="inline-flex h-10 items-center gap-1.5 text-[13px] text-fg-muted">
+        <label class="inline-flex h-10 items-center gap-1.5 text-ui text-fg-muted">
           <input
             type="checkbox"
             [checked]="filters().external"
@@ -239,29 +249,29 @@ export function registerQuery(
       <app-card [padded]="false">
         @switch (state()) {
           @case ('loading') {
-            <p class="py-10 text-center text-[14px] text-fg-muted">
+            <p class="py-10 text-center text-body text-fg-muted">
               {{ 'documents.control.common.loading' | transloco }}
             </p>
           }
           @case ('error') {
-            <p class="py-10 text-center text-[14px] text-fail" role="alert">
+            <p class="py-10 text-center text-body text-fail" role="alert">
               {{ 'documents.control.common.loadFailed' | transloco }}
             </p>
           }
           @default {
             @if (rows().length === 0) {
-              <p class="py-10 text-center text-[14px] text-fg-muted">
+              <p class="py-10 text-center text-body text-fg-muted">
                 {{ 'documents.control.filters.noMatch' | transloco }}
               </p>
             } @else {
               <div class="overflow-x-auto">
-                <table class="w-full min-w-[900px] text-left text-[13px]">
+                <table class="w-full min-w-[900px] text-left text-ui">
                   <caption class="sr-only">
                     {{
                       'documents.control.register.title' | transloco
                     }}
                   </caption>
-                  <thead class="border-b border-border text-[12px] text-fg-muted">
+                  <thead class="border-b border-border text-meta text-fg-muted">
                     <tr>
                       <th scope="col" class="px-4 py-2 font-semibold">
                         {{ 'documents.control.fields.code' | transloco }}
@@ -296,7 +306,7 @@ export function registerQuery(
                     @for (r of rows(); track r.kind + r.id) {
                       <tr class="align-top hover:bg-surface-2" data-testid="register-row">
                         <td
-                          class="px-4 py-2.5 font-mono text-[12px] whitespace-nowrap text-fg-subtle"
+                          class="px-4 py-2.5 font-mono text-meta whitespace-nowrap text-fg-subtle"
                         >
                           {{ r.code || '—' }}
                         </td>
@@ -308,7 +318,7 @@ export function registerQuery(
                           } @else {
                             <span class="font-semibold text-fg">{{ r.title }}</span>
                           }
-                          <div class="mt-0.5 flex flex-wrap gap-x-3 text-[12px] text-fg-subtle">
+                          <div class="mt-0.5 flex flex-wrap gap-x-3 text-meta text-fg-subtle">
                             @if (r.kind === 'external_document') {
                               <span>{{
                                 'documents.control.register.externalTag' | transloco
@@ -335,7 +345,7 @@ export function registerQuery(
                         <td class="px-2 py-2.5 text-fg-muted">
                           {{ r.type_name || r.type || '—' }}
                         </td>
-                        <td class="px-2 py-2.5 font-mono text-[12px] text-fg-muted">
+                        <td class="px-2 py-2.5 font-mono text-meta text-fg-muted">
                           {{ r.revision || '—' }}
                         </td>
                         <td class="px-2 py-2.5">
@@ -358,9 +368,7 @@ export function registerQuery(
                           @if (r.retention_until) {
                             {{ r.retention_until | localDay }}
                             @if (r.retention_rule; as rule) {
-                              <span class="block text-[11.5px] text-fg-subtle">{{
-                                rule.name
-                              }}</span>
+                              <span class="block text-micro text-fg-subtle">{{ rule.name }}</span>
                             }
                           } @else {
                             —
@@ -506,8 +514,8 @@ export class DocumentRegisterPage {
 
   protected tone(row: RegisterItem) {
     return row.kind === 'external_document'
-      ? externalStatusTone(row.status as ExternalStatus)
-      : statusTone(row.status);
+      ? toneFor('lifecycle', externalLifecycle(row.status as ExternalStatus))
+      : toneFor('lifecycle', row.status);
   }
 
   protected statusKey(row: RegisterItem): string {

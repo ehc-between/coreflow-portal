@@ -21,7 +21,7 @@ import {
 import { EXTERNAL_STATUS_FILTERS } from './external/external-list';
 import { REGISTER_STATUS_FILTERS } from './register/document-register';
 import { DUE_WINDOWS } from './retention/retention-list';
-import { DOCUMENTS_SUBNAV } from './shared/documents-subnav';
+import { DOCUMENTS_NAV } from './shared/documents-nav';
 
 type Tree = Record<string, unknown>;
 
@@ -109,7 +109,7 @@ describe('documents i18n and guidance', () => {
   });
 
   it.each([
-    ['nav', [...DOCUMENTS_SUBNAV.map((i) => i.key), 'label']],
+    ['nav', [...DOCUMENTS_NAV.map((i) => i.key), 'label']],
     ['errors', [...DOCUMENT_CONTROL_ERROR_CODES, 'forbidden', 'notFound', 'invalid']],
     ['filters.sorts', [...REGISTER_SORTS, ...CAMPAIGN_SORTS, ...EXTERNAL_SORTS]],
     ['register.status', REGISTER_STATUS_FILTERS.map((s) => s || 'all')],

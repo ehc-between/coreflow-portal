@@ -21,6 +21,8 @@ import { Icon } from '../../../shared/ui/icon/icon';
 import { DocumentControlApi } from '../data/document-control-api';
 import { DocumentTemplate, DocumentType } from '../data/document-control.models';
 import { DocumentsPageGuide } from '../shared/documents-page-guide';
+import { DocumentsNav } from '../shared/documents-nav';
+import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { DocumentControlPermissions } from '../shared/document-control-permissions';
 
 export function matchesTemplate(t: DocumentTemplate, q: string): boolean {
@@ -47,11 +49,18 @@ export function matchesTemplate(t: DocumentTemplate, q: string): boolean {
     Card,
     Icon,
     DocumentsPageGuide,
+    DocumentsNav,
+    WhyItMatters,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-record-list-page
       titleKey="documents.control.templates.title"
+      [breadcrumbs]="[
+        { labelKey: 'modules.names.documents', link: '/documents' },
+        { labelKey: 'documents.control.templates.title' },
+      ]"
+      settingsLink="/documents/types"
       scope="documents"
       page="templates"
       searchPlaceholderKey="documents.control.templates.searchPlaceholder"
@@ -61,11 +70,16 @@ export function matchesTemplate(t: DocumentTemplate, q: string): boolean {
       (search)="q.set($event)"
       (viewApplied)="typeId.set($event.filters['type'] ?? '')"
     >
-      <div intro class="mt-3">
-        <app-documents-page-guide page="templates" lesson="numbering-and-types" tour="templates" />
-      </div>
+      <app-documents-nav nav />
+      <app-documents-page-guide
+        help
+        page="templates"
+        lesson="numbering-and-types"
+        tour="templates"
+      />
+      <app-why-it-matters below scope="documents" page="templates" />
       @if (perms.canManage()) {
-        <app-button toolbar size="sm" [appTourStep]="'documents-template-new'" (click)="create()">
+        <app-button primary [appTourStep]="'documents-template-new'" (click)="create()">
           <app-icon name="plus" [size]="14" />
           {{ 'documents.control.templates.new' | transloco }}
         </app-button>
@@ -77,7 +91,7 @@ export function matchesTemplate(t: DocumentTemplate, q: string): boolean {
           }}</label>
           <select
             id="tpl-f-type"
-            class="h-10 max-w-[200px] rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
+            class="h-10 max-w-[200px] rounded-tile border border-border bg-bg px-2 text-ui text-fg"
             (change)="typeId.set($any($event.target).value)"
           >
             <option value="" [selected]="!typeId()">
@@ -92,19 +106,19 @@ export function matchesTemplate(t: DocumentTemplate, q: string): boolean {
 
       @switch (state()) {
         @case ('loading') {
-          <p class="py-10 text-center text-[14px] text-fg-muted">
+          <p class="py-10 text-center text-body text-fg-muted">
             {{ 'documents.control.common.loading' | transloco }}
           </p>
         }
         @case ('error') {
-          <p class="py-10 text-center text-[14px] text-fail" role="alert">
+          <p class="py-10 text-center text-body text-fail" role="alert">
             {{ 'documents.control.common.loadFailed' | transloco }}
           </p>
         }
         @default {
           @if (rows().length === 0) {
             <app-card>
-              <p class="py-6 text-center text-[14px] text-fg-muted">
+              <p class="py-6 text-center text-body text-fg-muted">
                 {{ 'documents.control.filters.noMatch' | transloco }}
               </p>
             </app-card>
@@ -121,11 +135,11 @@ export function matchesTemplate(t: DocumentTemplate, q: string): boolean {
                       {{ t.name }}
                     </span>
                     @if (t.description) {
-                      <span class="mt-1 line-clamp-2 text-[12.5px] text-fg-muted">{{
+                      <span class="mt-1 line-clamp-2 text-meta text-fg-muted">{{
                         t.description
                       }}</span>
                     }
-                    <span class="mt-auto flex flex-wrap gap-x-3 pt-3 text-[12px] text-fg-subtle">
+                    <span class="mt-auto flex flex-wrap gap-x-3 pt-3 text-meta text-fg-subtle">
                       <span>{{
                         t.document_type_name || ('documents.control.templates.anyType' | transloco)
                       }}</span>

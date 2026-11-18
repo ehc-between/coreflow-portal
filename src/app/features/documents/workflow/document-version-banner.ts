@@ -22,7 +22,7 @@ export type VersionView = 'approved' | 'draft';
   template: `
     @if (changeRequest(); as request) {
       <div role="status" class="mb-4 rounded-tile border border-warn/30 bg-warn-soft px-4 py-3">
-        <div class="flex items-center gap-2 text-[13.5px] font-semibold text-warn">
+        <div class="flex items-center gap-2 text-ui font-semibold text-warn">
           <app-icon name="history" [size]="15" />
           @if (request.by_name) {
             {{ 'documents.workflow.changesRequestedBy' | transloco: { name: request.by_name } }}
@@ -33,16 +33,16 @@ export type VersionView = 'approved' | 'draft';
             <span class="font-normal text-fg-subtle">{{ request.at | localDate: 'medium' }}</span>
           }
         </div>
-        <p class="mt-1 text-[13.5px] whitespace-pre-line text-fg">{{ request.comment }}</p>
+        <p class="mt-1 text-ui whitespace-pre-line text-fg">{{ request.comment }}</p>
       </div>
     }
 
     @if (obsoleteReason(); as reason) {
       <div role="status" class="mb-4 rounded-tile border border-border bg-surface-2 px-4 py-3">
-        <div class="text-[13.5px] font-semibold text-fg">
+        <div class="text-ui font-semibold text-fg">
           {{ 'documents.workflow.obsoleteNotice' | transloco }}
         </div>
-        <p class="mt-1 text-[13.5px] whitespace-pre-line text-fg-muted">{{ reason }}</p>
+        <p class="mt-1 text-ui whitespace-pre-line text-fg-muted">{{ reason }}</p>
       </div>
     }
 
@@ -51,7 +51,7 @@ export type VersionView = 'approved' | 'draft';
         class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-tile border px-4 py-3"
         [class]="view() === 'draft' ? 'border-info/30 bg-info-soft' : 'border-border bg-surface-2'"
       >
-        <div class="min-w-0 text-[13.5px]">
+        <div class="min-w-0 text-ui">
           @if (approved(); as approvedRev) {
             @if (view() === 'draft') {
               <span class="font-semibold text-info">{{
@@ -75,7 +75,7 @@ export type VersionView = 'approved' | 'draft';
             <span class="text-fg-muted"> {{ 'documents.workflow.neverApproved' | transloco }}</span>
           }
           @if (view() === 'draft' && draftRev.change_reason) {
-            <span class="mt-0.5 block text-[12.5px] text-fg-muted">{{
+            <span class="mt-0.5 block text-meta text-fg-muted">{{
               'documents.workflow.changeReasonShown' | transloco: { reason: draftRev.change_reason }
             }}</span>
           }
@@ -137,7 +137,7 @@ export class DocumentVersionBanner {
   });
 
   protected segmentClass(active: boolean): string {
-    const base = 'rounded-[7px] px-2.5 py-1 text-[12.5px] font-semibold transition-colors';
+    const base = 'rounded-tile px-2.5 py-1 text-meta font-semibold transition-colors';
     return active ? `${base} bg-accent text-white` : `${base} text-fg-muted hover:text-fg`;
   }
 }

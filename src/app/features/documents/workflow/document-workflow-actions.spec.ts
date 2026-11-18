@@ -3,6 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { provideZonelessChangeDetection, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { TranslocoTestingModule } from '@jsverse/transloco';
+import { AuthService } from '../../../core/auth/auth.service';
 import { APP_CONFIG } from '../../../core/config/app-config';
 import { DocumentDetail, DocumentStatus } from '../../../core/documents/document.models';
 import { NotificationService } from '../../../core/notifications/notification.service';
@@ -33,7 +34,7 @@ function doc(status: DocumentStatus): DocumentDetail {
   };
 }
 
-async function setup(status: DocumentStatus, permissions: string[]) {
+async function setup(status: DocumentStatus, permissions: string[], me = 'u-2') {
   const notifications = { success: vi.fn(), warning: vi.fn(), info: vi.fn(), error: vi.fn() };
   TestBed.configureTestingModule({
     imports: [DocumentWorkflowActions, TranslocoTestingModule.forRoot({ langs: { en: {} } })],
@@ -43,6 +44,7 @@ async function setup(status: DocumentStatus, permissions: string[]) {
       provideHttpClientTesting(),
       { provide: APP_CONFIG, useValue: { apiBaseUrl: BASE } },
       { provide: NotificationService, useValue: notifications },
+      { provide: AuthService, useValue: { user: signal({ id: me }).asReadonly() } },
       {
         provide: SelectedOrgService,
         useValue: {
@@ -102,24 +104,38 @@ describe('DocumentWorkflowActions', () => {
     expect(labels(reader.root)).toEqual([]);
   });
 
-  it('offers Request changes, Approve and Obsolete to approvers while in review', async () => {
+  it('offers Request changes and Approve to approvers while in review', async () => {
     const { root } = await setup('in_review', ['documents:approve']);
-    expect(labels(root)).toEqual([
-      'documents.requestChanges',
-      'documents.approve',
-      'documents.workflow.obsolete',
-    ]);
+    expect(labels(root)).toEqual(['documents.requestChanges', 'documents.approve']);
   });
 
-  it('submits for review after confirming', async () => {
+  it('explains instead of offering Approve when the approver wrote the revision', async () => {
+    const { root } = await setup('in_review', ['documents:approve'], 'u-1');
+    expect(labels(root)).toEqual(['documents.requestChanges']);
+    expect(root.querySelector('[data-testid="self-approval-note"]')).not.toBeNull();
+  });
+
+  it('submits for approval to the chosen approver', async () => {
     const { fixture, root, http, changed, notifications } = await setup('draft', [
       'documents:draft',
     ]);
     click(root, 'documents.workflow.submit');
     await fixture.whenStable();
+    http.expectOne(`${DOC_URL}/approvers`).flush({
+      segregation_required: true,
+      author_user_id: 'u-1',
+      approvers: [{ user_id: 'u-9', name: 'Lars Olsen', email: 'lars@example.no' }],
+    });
+    await fixture.whenStable();
+    expect(root.querySelector('[data-testid="segregation-note"]')).not.toBeNull();
+    const select = root.querySelector<HTMLSelectElement>('[data-testid="approver-select"]')!;
+    select.value = 'u-9';
+    select.dispatchEvent(new Event('change'));
+    await fixture.whenStable();
     confirmIn(root).click();
 
     const req = http.expectOne(`${DOC_URL}/submit`);
+    expect(req.request.body).toEqual({ approver_user_id: 'u-9' });
     req.flush(doc('in_review'));
     await fixture.whenStable();
     expect(changed.map((d) => d.status)).toEqual(['in_review']);
@@ -152,14 +168,19 @@ describe('DocumentWorkflowActions', () => {
     ]);
     click(root, 'documents.approve');
     await fixture.whenStable();
+    expect(confirmIn(root).disabled).toBe(true);
+    const note = dialog(root).querySelector('textarea')!;
+    note.value = 'Checked against the routine';
+    note.dispatchEvent(new Event('input'));
+    await fixture.whenStable();
     confirmIn(root).click();
 
-    http
-      .expectOne(`${DOC_URL}/approve`)
-      .flush(
-        { detail: { code: 'self_approval', message: 'x' } },
-        { status: 409, statusText: 'Conflict' },
-      );
+    const approve = http.expectOne(`${DOC_URL}/approve`);
+    expect(approve.request.body).toEqual({ note: 'Checked against the routine' });
+    approve.flush(
+      { detail: { code: 'self_approval', message: 'x' } },
+      { status: 409, statusText: 'Conflict' },
+    );
     await fixture.whenStable();
     expect(notifications.error).toHaveBeenCalledWith('documents.workflow.errors.selfApproval');
     expect(reloads()).toBe(0);
@@ -172,6 +193,10 @@ describe('DocumentWorkflowActions', () => {
     ]);
     click(root, 'documents.approve');
     await fixture.whenStable();
+    const note = dialog(root).querySelector('textarea')!;
+    note.value = 'Ok';
+    note.dispatchEvent(new Event('input'));
+    await fixture.whenStable();
     confirmIn(root).click();
 
     http
@@ -183,8 +208,10 @@ describe('DocumentWorkflowActions', () => {
 
   it('obsoletes with the reason given', async () => {
     const { fixture, root, http, changed } = await setup('approved', ['documents:approve']);
-    expect(labels(root)).toEqual(['documents.workflow.obsolete']);
-    click(root, 'documents.workflow.obsolete');
+    // Retiring lives in the page's "Mer" menu, which opens the dialog.
+    expect(labels(root)).toEqual([]);
+    expect(fixture.componentInstance.canObsolete()).toBe(true);
+    fixture.componentInstance.open('obsolete');
     await fixture.whenStable();
     const textarea = dialog(root).querySelector('textarea')!;
     textarea.value = 'Replaced by QM-2';

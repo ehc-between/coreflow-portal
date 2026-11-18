@@ -11,6 +11,7 @@ import {
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { toneFor } from '../../../shared/ui/tones';
 import { Observable, Subscription } from 'rxjs';
 import { providePageContext } from '../../../core/ai/page-context';
 import { NotificationService } from '../../../core/notifications/notification.service';
@@ -29,13 +30,7 @@ import { ProgressBar } from '../../../shared/ui/progress-bar/progress-bar';
 import { DocumentControlApi } from '../data/document-control-api';
 import { documentControlErrorKey } from '../data/document-control-errors';
 import { AudienceEntry, CampaignDetail, CampaignUpdate } from '../data/document-control.models';
-import {
-  campaignStatusTone,
-  endOfDay,
-  portalLink,
-  textOrNull,
-  toDateInput,
-} from '../shared/document-control-display';
+import { endOfDay, portalLink, textOrNull, toDateInput } from '../shared/document-control-display';
 import { DocumentsPageGuide } from '../shared/documents-page-guide';
 import { DocumentControlPermissions } from '../shared/document-control-permissions';
 import { AudienceEditor } from './audience-editor';
@@ -91,7 +86,7 @@ export const RECIPIENT_FILTERS: readonly RecipientFilter[] = [
         backLabelKey="documents.control.campaigns.back"
       >
         <div header>
-          <p class="mb-1 flex flex-wrap items-center gap-2 text-[12.5px] text-fg-subtle">
+          <p class="mb-1 flex flex-wrap items-center gap-2 text-meta text-fg-subtle">
             @if (docLink(); as href) {
               <a [routerLink]="href" class="hover:underline">
                 <span class="font-mono">{{ c.document.code }}</span> {{ c.document.title }}
@@ -103,7 +98,7 @@ export const RECIPIENT_FILTERS: readonly RecipientFilter[] = [
               }}</span>
             }
           </p>
-          <h1 class="font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]">
+          <h1 class="font-display text-page font-bold tracking-[-0.03em] text-fg">
             {{ c.title }}
           </h1>
           <div class="mt-2 flex flex-wrap items-center gap-2">
@@ -172,7 +167,7 @@ export const RECIPIENT_FILTERS: readonly RecipientFilter[] = [
 
           @if (editing()) {
             <app-card>
-              <h2 class="mb-3 font-display text-[16px] font-bold text-fg">
+              <h2 class="mb-3 font-display text-card font-bold text-fg">
                 {{ 'documents.control.campaigns.editTitle' | transloco }}
               </h2>
               <div class="flex flex-col gap-4">
@@ -201,7 +196,7 @@ export const RECIPIENT_FILTERS: readonly RecipientFilter[] = [
                   ></textarea>
                 </app-form-field>
                 @if (c.status === 'draft') {
-                  <label class="inline-flex items-center gap-2 text-[13.5px] text-fg">
+                  <label class="inline-flex items-center gap-2 text-ui text-fg">
                     <input
                       type="checkbox"
                       [checked]="editAck()"
@@ -225,7 +220,7 @@ export const RECIPIENT_FILTERS: readonly RecipientFilter[] = [
                     (valueChange)="editAudience.set($event)"
                   />
                 } @else {
-                  <p class="text-[12.5px] text-fg-subtle">
+                  <p class="text-meta text-fg-subtle">
                     {{ 'documents.control.campaigns.lockedAfterLaunch' | transloco }}
                   </p>
                 }
@@ -247,11 +242,11 @@ export const RECIPIENT_FILTERS: readonly RecipientFilter[] = [
           }
 
           <app-card>
-            <h2 class="mb-3 font-display text-[16px] font-bold text-fg">
+            <h2 class="mb-3 font-display text-card font-bold text-fg">
               {{ 'documents.control.campaigns.progressTitle' | transloco }}
             </h2>
             @if (c.status === 'draft') {
-              <p class="text-[13.5px] text-fg-muted">
+              <p class="text-ui text-fg-muted">
                 {{ 'documents.control.campaigns.draftHint' | transloco }}
               </p>
             } @else {
@@ -262,37 +257,37 @@ export const RECIPIENT_FILTERS: readonly RecipientFilter[] = [
                     | transloco: { done: c.stats.acknowledged, total: c.stats.total }
                 "
               />
-              <dl class="mt-3 grid grid-cols-2 gap-3 text-[13px] sm:grid-cols-4">
+              <dl class="mt-3 grid grid-cols-2 gap-3 text-ui sm:grid-cols-4">
                 <div>
-                  <dt class="text-[12px] text-fg-muted">
+                  <dt class="text-meta text-fg-muted">
                     {{ 'documents.control.campaigns.stats.total' | transloco }}
                   </dt>
-                  <dd class="text-[18px] font-bold text-fg">{{ c.stats.total }}</dd>
+                  <dd class="text-section font-bold text-fg">{{ c.stats.total }}</dd>
                 </div>
                 <div>
-                  <dt class="text-[12px] text-fg-muted">
+                  <dt class="text-meta text-fg-muted">
                     {{ 'documents.control.campaigns.stats.acknowledged' | transloco }}
                   </dt>
-                  <dd class="text-[18px] font-bold text-pass">{{ c.stats.acknowledged }}</dd>
+                  <dd class="text-section font-bold text-pass">{{ c.stats.acknowledged }}</dd>
                 </div>
                 <div>
-                  <dt class="text-[12px] text-fg-muted">
+                  <dt class="text-meta text-fg-muted">
                     {{ 'documents.control.campaigns.stats.pending' | transloco }}
                   </dt>
-                  <dd class="text-[18px] font-bold text-fg">{{ c.stats.pending }}</dd>
+                  <dd class="text-section font-bold text-fg">{{ c.stats.pending }}</dd>
                 </div>
                 <div>
-                  <dt class="text-[12px] text-fg-muted">
+                  <dt class="text-meta text-fg-muted">
                     {{ 'documents.control.campaigns.stats.overdue' | transloco }}
                   </dt>
-                  <dd class="text-[18px] font-bold" [class.text-fail]="c.stats.overdue > 0">
+                  <dd class="text-section font-bold" [class.text-fail]="c.stats.overdue > 0">
                     {{ c.stats.overdue }}
                   </dd>
                 </div>
               </dl>
             }
             @if (c.message) {
-              <p class="mt-3 border-t border-border pt-3 text-[13.5px] whitespace-pre-line text-fg">
+              <p class="mt-3 border-t border-border pt-3 text-ui whitespace-pre-line text-fg">
                 {{ c.message }}
               </p>
             }
@@ -300,7 +295,7 @@ export const RECIPIENT_FILTERS: readonly RecipientFilter[] = [
 
           @if (c.status === 'active') {
             <app-card>
-              <h2 class="mb-2 font-display text-[16px] font-bold text-fg">
+              <h2 class="mb-2 font-display text-card font-bold text-fg">
                 {{ 'documents.control.campaigns.addRecipients' | transloco }}
               </h2>
               <app-audience-editor [value]="extra()" (valueChange)="extra.set($event)" />
@@ -320,7 +315,7 @@ export const RECIPIENT_FILTERS: readonly RecipientFilter[] = [
 
           <app-card [padded]="false">
             <div class="flex flex-wrap items-center justify-between gap-2 px-4 pt-3.5 pb-2">
-              <h2 class="font-display text-[16px] font-bold text-fg">
+              <h2 class="font-display text-card font-bold text-fg">
                 {{ 'documents.control.campaigns.recipients' | transloco }}
               </h2>
               @if (c.recipients.length) {
@@ -329,7 +324,7 @@ export const RECIPIENT_FILTERS: readonly RecipientFilter[] = [
                 }}</label>
                 <select
                   id="camp-rec-filter"
-                  class="h-8 rounded-tile border border-border bg-bg px-2 text-[12.5px] text-fg"
+                  class="h-8 rounded-tile border border-border bg-bg px-2 text-meta text-fg"
                   (change)="recipientFilter.set($any($event.target).value)"
                 >
                   @for (f of recipientFilters; track f) {
@@ -345,18 +340,18 @@ export const RECIPIENT_FILTERS: readonly RecipientFilter[] = [
                 <app-audience-editor [value]="c.audience" [readOnly]="true" />
               </div>
             } @else if (visibleRecipients().length === 0) {
-              <p class="px-4 pb-4 text-[13px] text-fg-muted">
+              <p class="px-4 pb-4 text-ui text-fg-muted">
                 {{ 'documents.control.campaigns.noRecipients' | transloco }}
               </p>
             } @else {
               <div class="overflow-x-auto">
-                <table class="w-full min-w-[560px] text-left text-[13px]">
+                <table class="w-full min-w-[560px] text-left text-ui">
                   <caption class="sr-only">
                     {{
                       'documents.control.campaigns.recipients' | transloco
                     }}
                   </caption>
-                  <thead class="border-y border-border text-[12px] text-fg-muted">
+                  <thead class="border-y border-border text-meta text-fg-muted">
                     <tr>
                       <th scope="col" class="px-4 py-2 font-semibold">
                         {{ 'documents.control.campaigns.fields.person' | transloco }}
@@ -377,7 +372,7 @@ export const RECIPIENT_FILTERS: readonly RecipientFilter[] = [
                           @if (r.task_id) {
                             <a
                               [routerLink]="['/tasks', r.task_id]"
-                              class="ml-2 text-[12px] text-accent hover:underline"
+                              class="ml-2 text-meta text-accent hover:underline"
                               >{{ 'documents.control.campaigns.task' | transloco }}</a
                             >
                           }
@@ -411,22 +406,22 @@ export const RECIPIENT_FILTERS: readonly RecipientFilter[] = [
 
         <ng-container aside>
           <app-card>
-            <dl class="flex flex-col gap-3 text-[13px]">
+            <dl class="flex flex-col gap-3 text-ui">
               <div>
-                <dt class="text-[12px] font-semibold text-fg-muted">
+                <dt class="text-meta font-semibold text-fg-muted">
                   {{ 'documents.control.campaigns.fields.due' | transloco }}
                 </dt>
                 <dd class="text-fg">{{ c.due_at ? (c.due_at | localDay) : '—' }}</dd>
               </div>
               <div>
-                <dt class="text-[12px] font-semibold text-fg-muted">
+                <dt class="text-meta font-semibold text-fg-muted">
                   {{ 'documents.control.campaigns.fields.launched' | transloco }}
                 </dt>
                 <dd class="text-fg">
                   @if (c.launched_at) {
                     {{ c.launched_at | localDate: 'medium' }}
                     @if (c.launched_by?.name; as who) {
-                      <span class="block text-[12px] text-fg-subtle">{{ who }}</span>
+                      <span class="block text-meta text-fg-subtle">{{ who }}</span>
                     }
                   } @else {
                     —
@@ -435,7 +430,7 @@ export const RECIPIENT_FILTERS: readonly RecipientFilter[] = [
               </div>
               @if (c.completed_at) {
                 <div>
-                  <dt class="text-[12px] font-semibold text-fg-muted">
+                  <dt class="text-meta font-semibold text-fg-muted">
                     {{ 'documents.control.campaigns.fields.completed' | transloco }}
                   </dt>
                   <dd class="text-fg">{{ c.completed_at | localDate: 'medium' }}</dd>
@@ -443,14 +438,14 @@ export const RECIPIENT_FILTERS: readonly RecipientFilter[] = [
               }
               @if (c.closed_at) {
                 <div>
-                  <dt class="text-[12px] font-semibold text-fg-muted">
+                  <dt class="text-meta font-semibold text-fg-muted">
                     {{ 'documents.control.campaigns.fields.closed' | transloco }}
                   </dt>
                   <dd class="text-fg">{{ c.closed_at | localDate: 'medium' }}</dd>
                 </div>
               }
               <div>
-                <dt class="text-[12px] font-semibold text-fg-muted">
+                <dt class="text-meta font-semibold text-fg-muted">
                   {{ 'documents.control.fields.createdBy' | transloco }}
                 </dt>
                 <dd class="text-fg">{{ c.created_by?.name ?? '—' }}</dd>
@@ -491,13 +486,13 @@ export const RECIPIENT_FILTERS: readonly RecipientFilter[] = [
         <app-alert tone="error">{{ loadErrorKey() | transloco }}</app-alert>
         <a
           routerLink="/documents/campaigns"
-          class="mt-3 inline-block text-[13px] font-semibold text-accent hover:underline"
+          class="mt-3 inline-block text-ui font-semibold text-accent hover:underline"
         >
           {{ 'documents.control.campaigns.back' | transloco }}
         </a>
       </div>
     } @else {
-      <p class="py-16 text-center text-[14px] text-fg-muted">
+      <p class="py-16 text-center text-body text-fg-muted">
         {{ 'documents.control.common.loading' | transloco }}
       </p>
     }
@@ -531,7 +526,9 @@ export class CampaignDetailPage {
   protected readonly recipientFilter = signal<RecipientFilter>('all');
   private sub: Subscription | null = null;
 
-  protected readonly tone = computed(() => campaignStatusTone(this.campaign()?.status ?? 'draft'));
+  protected readonly tone = computed(() =>
+    toneFor('lifecycle', this.campaign()?.status ?? 'draft'),
+  );
   protected readonly docLink = computed(() => portalLink(this.campaign()?.document.url));
 
   protected readonly visibleRecipients = computed(() => {

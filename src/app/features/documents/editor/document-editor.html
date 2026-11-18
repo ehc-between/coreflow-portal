@@ -255,25 +255,6 @@
       <app-icon name="spark" [size]="15" />
       <span>{{ 'documents.editor.ai.continue' | transloco }}</span>
     </button>
-
-    @if (!embedded()) {
-      <span class="ml-auto"></span>
-
-      <button type="button" class="cf-tool px-3 text-fg-muted" (click)="onCancel()">
-        {{ 'documents.cancel' | transloco }}
-      </button>
-      <button
-        type="button"
-        class="cf-tool gap-1.5 bg-accent px-3.5 text-white hover:bg-accent-2 hover:text-white"
-        [disabled]="!canSave()"
-        (click)="onSave()"
-      >
-        @if (saving()) {
-          <span class="animate-cf-pulse inline-flex"><app-icon name="spark" [size]="15" /></span>
-        }
-        {{ 'documents.editor.save' | transloco }}
-      </button>
-    }
   </div>
 
   <div class="relative">
@@ -344,11 +325,11 @@
                 name="instruction"
                 [placeholder]="'documents.editor.ai.askPlaceholder' | transloco"
                 [attr.aria-label]="'documents.editor.ai.ask' | transloco"
-                class="h-8 w-64 rounded-[8px] border border-border bg-bg px-2.5 text-[13px] text-fg outline-none focus:border-accent"
+                class="h-8 w-64 rounded-tile border border-border bg-bg px-2.5 text-ui text-fg outline-none focus:border-accent"
               />
               <button
                 type="submit"
-                class="flex h-8 w-8 flex-none items-center justify-center rounded-[8px] bg-accent text-white hover:bg-accent-2"
+                class="flex h-8 w-8 flex-none items-center justify-center rounded-tile bg-accent text-white hover:bg-accent-2"
                 [attr.aria-label]="'documents.editor.ai.run' | transloco"
               >
                 <app-icon name="send" [size]="15" />
@@ -373,12 +354,12 @@
       >
         <header class="flex flex-none items-center gap-2.5 border-b border-border px-4 py-3">
           <span
-            class="flex h-7 w-7 flex-none items-center justify-center rounded-[8px] bg-accent-soft text-accent"
+            class="flex h-7 w-7 flex-none items-center justify-center rounded-tile bg-accent-soft text-accent"
           >
             <app-icon name="spark" [size]="16" />
           </span>
           <span
-            class="min-w-0 flex-1 truncate font-display text-[15px] font-bold tracking-[-0.02em] text-fg"
+            class="min-w-0 flex-1 truncate font-display text-card font-bold tracking-[-0.02em] text-fg"
           >
             @if (aiActionLabelKey(session); as labelKey) {
               {{ labelKey | transloco }}
@@ -390,7 +371,7 @@
             type="button"
             (click)="rejectAi()"
             [attr.aria-label]="'documents.editor.ai.close' | transloco"
-            class="flex h-8 w-8 flex-none items-center justify-center rounded-[9px] text-fg-muted hover:bg-surface-2 hover:text-fg"
+            class="flex h-8 w-8 flex-none items-center justify-center rounded-tile text-fg-muted hover:bg-surface-2 hover:text-fg"
           >
             <app-icon name="x" [size]="18" />
           </button>
@@ -400,7 +381,7 @@
           @if (session.phase === 'error') {
             <p
               role="alert"
-              class="rounded-tile border border-fail/30 bg-fail-soft px-3 py-2 text-[13px] font-medium text-fail"
+              class="rounded-tile border border-fail/30 bg-fail-soft px-3 py-2 text-ui font-medium text-fail"
             >
               {{ 'documents.editor.ai.error' | transloco }}
             </p>
@@ -411,39 +392,39 @@
               >
                 <app-icon name="spark" [size]="20" />
               </span>
-              <p class="max-w-[280px] text-[13px] text-fg-muted">
+              <p class="max-w-[280px] text-ui text-fg-muted">
                 {{ 'documents.editor.ai.notConfigured' | transloco }}
               </p>
             </div>
           } @else {
             <div class="flex flex-col gap-4">
               <section class="flex flex-col gap-2">
-                <div class="text-[11px] font-bold tracking-[0.08em] text-fg-subtle uppercase">
+                <div class="text-micro font-bold tracking-[0.08em] text-fg-subtle uppercase">
                   {{ 'documents.editor.ai.original' | transloco }}
                 </div>
                 @if (session.insert) {
-                  <p class="text-[13px] text-fg-muted italic">
+                  <p class="text-ui text-fg-muted italic">
                     {{ 'documents.editor.ai.addingNew' | transloco }}
                   </p>
                 } @else {
                   <div
-                    class="cf-doc !max-w-none !border-0 !p-0 !text-[14px] !shadow-none"
+                    class="cf-doc !max-w-none !border-0 !p-0 !text-body !shadow-none"
                     [innerHTML]="aiPreview(session.selectionHtml)"
                   ></div>
                 }
               </section>
 
               <section class="flex flex-col gap-2 border-t border-border pt-4">
-                <div class="text-[11px] font-bold tracking-[0.08em] text-fg-subtle uppercase">
+                <div class="text-micro font-bold tracking-[0.08em] text-fg-subtle uppercase">
                   {{ 'documents.editor.ai.suggested' | transloco }}
                 </div>
                 @if (session.phase === 'streaming' && !session.html) {
-                  <p class="animate-cf-pulse text-[13px] text-fg-muted">
+                  <p class="animate-cf-pulse text-ui text-fg-muted">
                     {{ 'documents.editor.ai.working' | transloco }}
                   </p>
                 } @else {
                   <div
-                    class="cf-doc !max-w-none !border-0 !p-0 !text-[14px] !shadow-none"
+                    class="cf-doc !max-w-none !border-0 !p-0 !text-body !shadow-none"
                     [innerHTML]="aiPreview(session.html)"
                   ></div>
                 }
@@ -456,32 +437,44 @@
           <div class="flex flex-none items-center gap-2 border-t border-border px-4 py-3">
             <button
               type="button"
-              class="cf-tool gap-1.5 bg-accent px-3.5 text-white hover:bg-accent-2 hover:text-white"
+              class="cf-tool cf-tool-primary gap-1.5 px-3.5"
               (click)="acceptAi()"
             >
               <app-icon name="check" [size]="15" />
               {{ 'documents.editor.ai.accept' | transloco }}
             </button>
-            <button
-              type="button"
-              class="cf-tool border border-border bg-surface px-3 text-fg"
-              (click)="rejectAi()"
-            >
+            <button type="button" class="cf-tool cf-tool-outline px-3" (click)="rejectAi()">
               {{ 'documents.editor.ai.reject' | transloco }}
             </button>
           </div>
         } @else if (session.phase === 'error' || session.phase === 'not-configured') {
           <div class="flex flex-none items-center border-t border-border px-4 py-3">
-            <button
-              type="button"
-              class="cf-tool border border-border bg-surface px-3 text-fg"
-              (click)="rejectAi()"
-            >
+            <button type="button" class="cf-tool cf-tool-outline px-3" (click)="rejectAi()">
               {{ 'documents.editor.ai.dismiss' | transloco }}
             </button>
           </div>
         }
       </aside>
+    </div>
+  }
+
+  @if (!embedded()) {
+    <!-- Save / cancel sit under the text (sticky), not in the formatting toolbar. -->
+    <div
+      class="sticky bottom-0 z-20 flex justify-end gap-2 border-t border-border bg-bg py-3"
+      data-testid="editor-actions"
+    >
+      <app-button variant="secondary" (click)="onCancel()">
+        {{ 'documents.cancel' | transloco }}
+      </app-button>
+      <app-button
+        [loading]="saving()"
+        [disabled]="!canSave()"
+        (click)="onSave()"
+        data-testid="editor-save"
+      >
+        {{ 'documents.editor.save' | transloco }}
+      </app-button>
     </div>
   }
 </div>

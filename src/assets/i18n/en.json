@@ -270,7 +270,7 @@
     "status": {
       "all": "All statuses",
       "draft": "Draft",
-      "in_review": "In review",
+      "in_review": "Awaiting approval",
       "approved": "Approved",
       "obsolete": "Obsolete",
       "superseded": "Superseded",
@@ -344,16 +344,16 @@
     },
     "review": {
       "title": "Periodic review",
-      "overdue": "Review overdue",
-      "dueSoon": "Review due",
+      "overdue": "Periodic review overdue",
+      "dueSoon": "Periodic review due",
       "interval": "Review interval",
       "noInterval": "No periodic review",
       "everyMonths": "Every {{months}} months",
       "nextReview": "Next review",
       "nextReviewHint": "Leave empty to schedule it from the interval at the next approval.",
-      "edit": "Edit review settings",
+      "edit": "Change review interval",
       "savedToast": "Review settings saved.",
-      "filter": "Review due"
+      "filter": "Periodic review due"
     },
     "ack": {
       "requireLabel": "Require \"Read and understood\"",
@@ -384,14 +384,14 @@
     }
   },
   "review": {
-    "title": "Needs your review",
-    "subtitle": "Documents waiting for your approval and drafts proposed for the library.",
-    "empty": "You're all caught up. Nothing needs your review.",
+    "title": "Awaiting approval",
+    "subtitle": "Documents sent to you for approval, and drafts proposed for the document library.",
+    "empty": "Nothing is waiting for approval.",
     "queuedAt": "Added {{date}}",
     "open": "Open",
     "reject": "Reject",
-    "backToFeed": "Back to review",
-    "reviewTitle": "Review proposal",
+    "backToFeed": "Back to approvals",
+    "reviewTitle": "Assess the proposed draft",
     "saveDraft": "Save draft",
     "approveAndPublish": "Accept & submit for review",
     "notPending": "This proposal has already been handled and can no longer be edited.",
@@ -401,8 +401,8 @@
     "rejectedToast": "Draft rejected.",
     "documentsHeading": "Documents awaiting approval ({{count}})",
     "proposalsHeading": "Proposed drafts ({{count}})",
-    "submittedAt": "Submitted {{date}}",
-    "reviewDocument": "Review"
+    "submittedAt": "Sent {{date}}",
+    "reviewDocument": "Open"
   },
   "settings": {
     "title": "Org Settings",
@@ -559,7 +559,8 @@
         "checklists": "Checklist templates",
         "intake": "Reporting channel",
         "matrices": "Risk matrices",
-        "settings": "Settings"
+        "settings": "Settings",
+        "retention": "Retention rules"
       },
       "membersSection": "Members, departments and invitations"
     },

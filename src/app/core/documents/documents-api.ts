@@ -16,6 +16,7 @@ import {
   DeletedDocument,
   DocumentAccess,
   DocumentAcknowledgements,
+  DocumentApprovers,
   DocumentControlUpdate,
   DocumentDetail,
   DocumentListQuery,
@@ -113,15 +114,41 @@ export class DocumentsApi {
   }
 
   /** Fetch a document export (PDF or Word) as raw file bytes. */
-  export(orgId: string, documentId: string, format: ExportFormat): Observable<Blob> {
+  export(
+    orgId: string,
+    documentId: string,
+    format: ExportFormat,
+    lang?: string | null,
+  ): Observable<Blob> {
     return this.api.getBlob(`v1/orgs/${orgId}/documents/${documentId}/export`, {
-      params: { format },
+      params: { format, lang: lang ?? undefined },
     });
   }
 
-  /** Submit the working draft for review (draft → in_review; `documents:draft`). */
-  submit(orgId: string, documentId: string): Observable<DocumentDetail> {
-    return this.workflow(orgId, documentId, 'submit', null);
+  /**
+   * Submit the working draft for approval (draft → in_review; `documents:draft`).
+   * With `approverUserId` only that person is notified (422 `invalid_approver` /
+   * `approver_is_author`); any approver may still decide.
+   */
+  submit(
+    orgId: string,
+    documentId: string,
+    approverUserId?: string | null,
+  ): Observable<DocumentDetail> {
+    return this.workflow(
+      orgId,
+      documentId,
+      'submit',
+      approverUserId ? { approver_user_id: approverUserId } : null,
+    );
+  }
+
+  /** Who may approve this document (`documents:draft` + edit access). */
+  listApprovers(orgId: string, documentId: string): Observable<DocumentApprovers> {
+    return this.api.get<DocumentApprovers>(
+      `v1/orgs/${orgId}/documents/${documentId}/approvers`,
+      IN_PLACE,
+    );
   }
 
   /** Send an in-review document back to draft with a reviewer comment (`documents:approve`). */
@@ -133,8 +160,9 @@ export class DocumentsApi {
    * Approve the in-review revision (`documents:approve`). 409 with code
    * `self_approval` (approver authored it) or `not_in_review`.
    */
-  approve(orgId: string, documentId: string): Observable<DocumentDetail> {
-    return this.workflow(orgId, documentId, 'approve', null);
+  approve(orgId: string, documentId: string, note?: string | null): Observable<DocumentDetail> {
+    const trimmed = note?.trim();
+    return this.workflow(orgId, documentId, 'approve', trimmed ? { note: trimmed } : null);
   }
 
   /** Retire a document with a recorded reason (`documents:approve`). */
@@ -288,14 +316,16 @@ export class DocumentsApi {
     return this.api.delete<void>(`v1/orgs/${orgId}/documents/${documentId}/comments/${commentId}`);
   }
 
-  listProposals(orgId: string): Observable<Proposal[]> {
+  listProposals(orgId: string, lang?: string | null): Observable<Proposal[]> {
     return this.api.get<Proposal[]>(`v1/orgs/${orgId}/proposals`, {
-      params: { status: 'pending' },
+      params: { status: 'pending', lang: lang ?? undefined },
     });
   }
 
-  getProposal(orgId: string, proposalId: string): Observable<ProposalDetail> {
-    return this.api.get<ProposalDetail>(`v1/orgs/${orgId}/proposals/${proposalId}`);
+  getProposal(orgId: string, proposalId: string, lang?: string | null): Observable<ProposalDetail> {
+    return this.api.get<ProposalDetail>(`v1/orgs/${orgId}/proposals/${proposalId}`, {
+      params: { lang: lang ?? undefined },
+    });
   }
 
   /** Persist edits to a pending proposal's draft (all fields optional). */
@@ -319,8 +349,17 @@ export class DocumentsApi {
     );
   }
 
-  rejectProposal(orgId: string, proposalId: string): Observable<{ ok: boolean }> {
-    return this.api.post<{ ok: boolean }>(`v1/orgs/${orgId}/proposals/${proposalId}/reject`, null);
+  /** Reject a proposal; the optional reason is kept as its `review_note`. */
+  rejectProposal(
+    orgId: string,
+    proposalId: string,
+    reason?: string | null,
+  ): Observable<{ ok: boolean }> {
+    const trimmed = reason?.trim();
+    return this.api.post<{ ok: boolean }>(
+      `v1/orgs/${orgId}/proposals/${proposalId}/reject`,
+      trimmed ? { reason: trimmed } : null,
+    );
   }
 
   /** Subjects (org users + departments) assignable as document access grants. */

@@ -33,8 +33,10 @@ import {
   CampaignSort,
   CampaignStatus,
 } from '../data/document-control.models';
-import { campaignStatusTone } from '../shared/document-control-display';
+import { toneFor } from '../../../shared/ui/tones';
 import { DocumentsPageGuide } from '../shared/documents-page-guide';
+import { DocumentsNav } from '../shared/documents-nav';
+import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { DocumentControlPermissions } from '../shared/document-control-permissions';
 
 const PAGE_SIZE = 50;
@@ -74,11 +76,18 @@ export function campaignQuery(
     Pager,
     ProgressBar,
     DocumentsPageGuide,
+    DocumentsNav,
+    WhyItMatters,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-record-list-page
       titleKey="documents.control.campaigns.title"
+      [breadcrumbs]="[
+        { labelKey: 'modules.names.documents', link: '/documents' },
+        { labelKey: 'documents.control.campaigns.title' },
+      ]"
+      settingsLink="/documents/types"
       scope="documents"
       page="campaigns"
       searchPlaceholderKey="documents.control.campaigns.searchPlaceholder"
@@ -88,13 +97,20 @@ export function campaignQuery(
       (search)="setQuery($event)"
       (viewApplied)="applyView($event)"
     >
-      <div intro class="mt-3">
-        <app-documents-page-guide page="campaigns" lesson="read-and-acknowledge" tour="campaigns" />
-      </div>
-      <app-button toolbar size="sm" [appTourStep]="'documents-campaign-new'" (click)="create()">
-        <app-icon name="plus" [size]="14" />
-        {{ 'documents.control.campaigns.new' | transloco }}
-      </app-button>
+      <app-documents-nav nav />
+      <app-documents-page-guide
+        help
+        page="campaigns"
+        lesson="read-and-acknowledge"
+        tour="campaigns"
+      />
+      <app-why-it-matters below scope="documents" page="campaigns" />
+      @if (!(state() === 'ready' && rows().length === 0 && !q() && status() === 'open')) {
+        <app-button primary [appTourStep]="'documents-campaign-new'" (click)="create()">
+          <app-icon name="plus" [size]="14" />
+          {{ 'documents.control.campaigns.new' | transloco }}
+        </app-button>
+      }
 
       <ng-container filters>
         <label class="sr-only" for="camp-f-status">{{
@@ -102,7 +118,7 @@ export function campaignQuery(
         }}</label>
         <select
           id="camp-f-status"
-          class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
+          class="h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
           (change)="setStatus($any($event.target).value)"
         >
           @for (s of statusFilters; track s) {
@@ -116,7 +132,7 @@ export function campaignQuery(
         }}</label>
         <select
           id="camp-f-sort"
-          class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
+          class="h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
           (change)="setSort($any($event.target).value)"
         >
           @for (s of sorts; track s) {
@@ -130,18 +146,18 @@ export function campaignQuery(
       <app-card [padded]="false">
         @switch (state()) {
           @case ('loading') {
-            <p class="py-10 text-center text-[14px] text-fg-muted">
+            <p class="py-10 text-center text-body text-fg-muted">
               {{ 'documents.control.common.loading' | transloco }}
             </p>
           }
           @case ('error') {
-            <p class="py-10 text-center text-[14px] text-fail" role="alert">
+            <p class="py-10 text-center text-body text-fail" role="alert">
               {{ 'documents.control.common.loadFailed' | transloco }}
             </p>
           }
           @default {
             @if (rows().length === 0) {
-              <p class="py-10 text-center text-[14px] text-fg-muted">
+              <p class="py-10 text-center text-body text-fg-muted">
                 {{ 'documents.control.filters.noMatch' | transloco }}
               </p>
             } @else {
@@ -157,7 +173,7 @@ export function campaignQuery(
                         class="font-semibold text-fg hover:underline"
                         >{{ c.title }}</a
                       >
-                      <p class="mt-0.5 flex flex-wrap gap-x-3 text-[12px] text-fg-subtle">
+                      <p class="mt-0.5 flex flex-wrap gap-x-3 text-meta text-fg-subtle">
                         <span class="font-mono">{{ c.document.code }}</span>
                         <span>{{ c.document.title }}</span>
                         @if (c.revision) {
@@ -184,7 +200,7 @@ export function campaignQuery(
                                 | transloco: { done: c.stats.acknowledged, total: c.stats.total }
                             "
                           />
-                          <p class="mt-0.5 text-[11.5px] text-fg-subtle">
+                          <p class="mt-0.5 text-micro text-fg-subtle">
                             {{
                               (c.require_acknowledgement
                                 ? 'documents.control.campaigns.progress'
@@ -285,7 +301,7 @@ export class CampaignListPage {
   }
 
   protected tone(status: CampaignStatus) {
-    return campaignStatusTone(status);
+    return toneFor('lifecycle', status);
   }
 
   protected setQuery(q: string): void {

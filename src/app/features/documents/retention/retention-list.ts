@@ -23,6 +23,8 @@ import { DocumentControlApi } from '../data/document-control-api';
 import { RetentionDueItem, RetentionRule } from '../data/document-control.models';
 import { portalLink } from '../shared/document-control-display';
 import { DocumentsPageGuide } from '../shared/documents-page-guide';
+import { DocumentsNav } from '../shared/documents-nav';
+import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { DocumentControlPermissions } from '../shared/document-control-permissions';
 
 /** Look-ahead windows of the "due for disposition" report, in days. */
@@ -57,11 +59,18 @@ export function matchesRule(rule: RetentionRule, q: string): boolean {
     Card,
     Icon,
     DocumentsPageGuide,
+    DocumentsNav,
+    WhyItMatters,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-record-list-page
       titleKey="documents.control.retention.title"
+      [breadcrumbs]="[
+        { labelKey: 'modules.names.documents', link: '/documents' },
+        { labelKey: 'documents.control.retention.title' },
+      ]"
+      settingsLink="/documents/types"
       scope="documents"
       page="retention"
       searchPlaceholderKey="documents.control.retention.searchPlaceholder"
@@ -69,11 +78,11 @@ export function matchesRule(rule: RetentionRule, q: string): boolean {
       [empty]="state() === 'ready' && rules().length === 0"
       (search)="q.set($event)"
     >
-      <div intro class="mt-3">
-        <app-documents-page-guide page="retention" lesson="retention-basics" tour="retention" />
-      </div>
+      <app-documents-nav nav />
+      <app-documents-page-guide help page="retention" lesson="retention-basics" tour="retention" />
+      <app-why-it-matters below scope="documents" page="retention" />
       @if (perms.canManage()) {
-        <app-button toolbar size="sm" [appTourStep]="'documents-retention-new'" (click)="create()">
+        <app-button primary [appTourStep]="'documents-retention-new'" (click)="create()">
           <app-icon name="plus" [size]="14" />
           {{ 'documents.control.retention.new' | transloco }}
         </app-button>
@@ -83,29 +92,29 @@ export function matchesRule(rule: RetentionRule, q: string): boolean {
         <app-card [padded]="false">
           @switch (state()) {
             @case ('loading') {
-              <p class="py-10 text-center text-[14px] text-fg-muted">
+              <p class="py-10 text-center text-body text-fg-muted">
                 {{ 'documents.control.common.loading' | transloco }}
               </p>
             }
             @case ('error') {
-              <p class="py-10 text-center text-[14px] text-fail" role="alert">
+              <p class="py-10 text-center text-body text-fail" role="alert">
                 {{ 'documents.control.common.loadFailed' | transloco }}
               </p>
             }
             @default {
               @if (rows().length === 0) {
-                <p class="py-10 text-center text-[14px] text-fg-muted">
+                <p class="py-10 text-center text-body text-fg-muted">
                   {{ 'documents.control.filters.noMatch' | transloco }}
                 </p>
               } @else {
                 <div class="overflow-x-auto">
-                  <table class="w-full min-w-[640px] text-left text-[13px]">
+                  <table class="w-full min-w-[640px] text-left text-ui">
                     <caption class="sr-only">
                       {{
                         'documents.control.retention.title' | transloco
                       }}
                     </caption>
-                    <thead class="border-b border-border text-[12px] text-fg-muted">
+                    <thead class="border-b border-border text-meta text-fg-muted">
                       <tr>
                         <th scope="col" class="px-4 py-2 font-semibold">
                           {{ 'documents.control.retention.fields.name' | transloco }}
@@ -133,7 +142,7 @@ export function matchesRule(rule: RetentionRule, q: string): boolean {
                               class="font-semibold text-fg hover:underline"
                               >{{ r.name }}</a
                             >
-                            <div class="mt-0.5 text-[12px] text-fg-subtle">
+                            <div class="mt-0.5 text-meta text-fg-subtle">
                               {{
                                 'documents.control.retention.appliesTo.' + r.applies_to | transloco
                               }}
@@ -144,10 +153,16 @@ export function matchesRule(rule: RetentionRule, q: string): boolean {
                           </td>
                           <td class="px-2 py-2.5 text-fg-muted">
                             {{
-                              'documents.control.retention.periodText'
+                              (r.retention_months > 0 && r.retention_months % 12 === 0
+                                ? 'documents.control.retention.periodYears'
+                                : 'documents.control.retention.periodText'
+                              )
                                 | transloco
                                   : {
-                                      count: r.retention_months,
+                                      count:
+                                        r.retention_months > 0 && r.retention_months % 12 === 0
+                                          ? r.retention_months / 12
+                                          : r.retention_months,
                                       trigger:
                                         ('documents.control.retention.triggers.' + r.trigger
                                         | transloco),
@@ -185,7 +200,7 @@ export function matchesRule(rule: RetentionRule, q: string): boolean {
               class="flex flex-wrap items-center justify-between gap-2 px-4 pt-3.5 pb-2"
               [appTourStep]="'documents-retention-due'"
             >
-              <h2 class="font-display text-[16px] font-bold text-fg">
+              <h2 class="font-display text-card font-bold text-fg">
                 {{ 'documents.control.retention.dueTitle' | transloco }}
               </h2>
               <label class="sr-only" for="ret-window">{{
@@ -193,7 +208,7 @@ export function matchesRule(rule: RetentionRule, q: string): boolean {
               }}</label>
               <select
                 id="ret-window"
-                class="h-8 rounded-tile border border-border bg-bg px-2 text-[12.5px] text-fg"
+                class="h-8 rounded-tile border border-border bg-bg px-2 text-meta text-fg"
                 (change)="window.set(+$any($event.target).value)"
               >
                 @for (w of windows; track w) {
@@ -203,29 +218,29 @@ export function matchesRule(rule: RetentionRule, q: string): boolean {
                 }
               </select>
             </div>
-            <p class="px-4 pb-2 text-[12.5px] text-fg-muted">
+            <p class="px-4 pb-2 text-meta text-fg-muted">
               {{ 'documents.control.retention.dueHint' | transloco }}
             </p>
             @if (dueState() === 'error') {
-              <p class="px-4 pb-4 text-[13px] text-fail" role="alert">
+              <p class="px-4 pb-4 text-ui text-fail" role="alert">
                 {{ 'documents.control.common.loadFailed' | transloco }}
               </p>
             } @else if (due().length === 0) {
-              <p class="px-4 pb-4 text-[13px] text-fg-muted">
+              <p class="px-4 pb-4 text-ui text-fg-muted">
                 {{ 'documents.control.retention.noneDue' | transloco }}
               </p>
             } @else {
               <ul class="divide-y divide-border border-t border-border">
                 @for (d of due(); track d.kind + d.id) {
                   <li
-                    class="flex flex-wrap items-center gap-2 px-4 py-2.5 text-[13px]"
+                    class="flex flex-wrap items-center gap-2 px-4 py-2.5 text-ui"
                     data-testid="retention-due-row"
                   >
                     <span class="min-w-0 flex-1">
                       @if (link(d); as href) {
                         <a [routerLink]="href" class="font-semibold text-fg hover:underline">
                           @if (d.code) {
-                            <span class="font-mono text-[12px] text-fg-subtle">{{ d.code }}</span>
+                            <span class="font-mono text-meta text-fg-subtle">{{ d.code }}</span>
                           }
                           {{ d.title }}
                         </a>
@@ -233,7 +248,7 @@ export function matchesRule(rule: RetentionRule, q: string): boolean {
                         <span class="font-semibold text-fg">{{ d.title }}</span>
                       }
                       @if (d.retention_rule; as rule) {
-                        <span class="block text-[12px] text-fg-subtle">
+                        <span class="block text-meta text-fg-subtle">
                           {{ rule.name }} ·
                           {{
                             'documents.control.retention.dispositions.' + rule.disposition

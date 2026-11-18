@@ -131,12 +131,12 @@ export function externalBody(v: ExternalFormValue): ExternalCreate {
     <div class="mx-auto max-w-[860px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       <a
         [routerLink]="backLink()"
-        class="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
+        class="mb-3 inline-flex items-center gap-1.5 text-ui font-semibold text-fg-muted hover:text-fg"
       >
         <app-icon name="back" [size]="16" />
         {{ 'documents.control.external.back' | transloco }}
       </a>
-      <h1 class="mb-4 font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]">
+      <h1 class="mb-4 font-display text-page font-bold tracking-[-0.03em] text-fg">
         {{
           (id() ? 'documents.control.external.editTitle' : 'documents.control.external.new')
             | transloco
@@ -377,7 +377,7 @@ export function externalBody(v: ExternalFormValue): ExternalCreate {
           </div>
         </form>
       } @else {
-        <p class="py-16 text-center text-[14px] text-fg-muted">
+        <p class="py-16 text-center text-body text-fg-muted">
           {{ 'documents.control.common.loading' | transloco }}
         </p>
       }
