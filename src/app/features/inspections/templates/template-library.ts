@@ -7,69 +7,76 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { providePageContext } from '../../../core/ai/page-context';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
-import { GuideIntro } from '../../../shared/guidance/guide-intro';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
-import { Alert } from '../../../shared/ui/alert/alert';
+import { LocalPercentPipe } from '../../../shared/locale/locale-pipes';
 import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
-import { Icon } from '../../../shared/ui/icon/icon';
+import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { ModuleNav } from '../../../shared/ui/module-nav/module-nav';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { SlideOver } from '../../../shared/ui/slide-over/slide-over';
+import { ClauseRefs } from '../components/clause-refs';
 import { QuestionPreview } from '../components/question-preview';
-import { categoryKey } from '../data/inspection-display';
+import {
+  INSPECTIONS_NAV,
+  INSPECTIONS_SETTINGS_LINK,
+  categoryKey,
+  severityKey,
+} from '../data/inspection-display';
 import { inspectionErrorKey } from '../data/inspection-errors';
 import { INSPECTIONS_MODULE, Lang, LibraryDetail, LibraryItem } from '../data/inspection.models';
 import { InspectionsApi } from '../data/inspections-api';
 
 /**
- * The built-in checklist library (`/inspections/templates/library`): ready-made
- * checklists in the user's language (safety walk, fire safety, environmental site
- * check, 5S, information security walkthrough). Preview the questions; designers
- * (`inspections:templates`) import one as a draft template and adapt it.
+ * The built-in checklist library (`/inspections/templates/library`, "Malbibliotek"):
+ * ready-made checklists in the user's language (vernerunde, brannvern, miljørunde,
+ * 5S, informasjonssikkerhet), each with the standards and clauses it covers and when
+ * its findings become deviations. Preview the questions; designers
+ * (`inspections:templates`) import one as a draft and adapt it.
  */
 @Component({
   selector: 'app-template-library',
   imports: [
-    RouterLink,
     TranslocoPipe,
-    GuideIntro,
     WhyItMatters,
-    Alert,
+    LocalPercentPipe,
     Badge,
     Button,
     Card,
-    Icon,
+    ErrorState,
+    HelpStrip,
+    LoadingState,
+    ModuleNav,
+    PageHeader,
     SlideOver,
+    ClauseRefs,
     QuestionPreview,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
-      <a
-        routerLink="/inspections/templates"
-        class="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
-      >
-        <app-icon name="back" [size]="16" />
-        {{ 'inspections.templates.backToTemplates' | transloco }}
-      </a>
-      <h1 class="font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]">
-        {{ 'inspections.library.title' | transloco }}
-      </h1>
-      <p class="mt-1.5 mb-4 max-w-[680px] text-[14px] text-fg-muted">
-        {{ 'inspections.library.subtitle' | transloco }}
-      </p>
-      <app-guide-intro class="mb-4 block" scope="inspections" page="library" />
+      <app-page-header
+        titleKey="inspections.library.title"
+        descriptionKey="inspections.library.subtitle"
+        [breadcrumbs]="breadcrumbs"
+        [settingsLink]="settingsLink"
+      />
+      <app-module-nav class="mb-4 block" labelKey="modules.names.inspections" [items]="nav" />
+      <app-help-strip scope="inspections" page="library" lesson="inspection-basics" />
 
       @if (failed()) {
-        <app-alert tone="error">{{ 'inspections.library.failed' | transloco }}</app-alert>
-      } @else if (items().length === 0) {
-        <p class="text-[14px] text-fg-muted">{{ 'common.loading' | transloco }}</p>
+        <app-error-state (retry)="load()" />
+      } @else if (!loaded()) {
+        <app-loading-state [rows]="4" />
       } @else {
         <ul
           class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3"
@@ -77,9 +84,9 @@ import { InspectionsApi } from '../data/inspections-api';
         >
           @for (item of items(); track item.key) {
             <li>
-              <app-card>
+              <app-card class="block h-full">
                 <div class="flex h-full flex-col gap-2">
-                  <h2 class="text-[15px] font-bold text-fg">{{ item.title }}</h2>
+                  <h2 class="text-card font-bold text-fg">{{ item.title }}</h2>
                   <div class="flex flex-wrap gap-1.5">
                     @if (categoryLabel(item.category); as cat) {
                       <app-badge tone="info">{{ cat | transloco }}</app-badge>
@@ -90,20 +97,45 @@ import { InspectionsApi } from '../data/inspections-api';
                       }}</app-badge>
                     }
                   </div>
-                  <p class="flex-1 text-[13px] text-fg-muted">{{ item.description }}</p>
-                  <p class="text-[12.5px] text-fg-subtle">
+                  <p class="flex-1 text-ui text-fg-muted">{{ item.description }}</p>
+                  @if (item.clause_refs?.length) {
+                    <p class="flex flex-wrap items-center gap-1 text-meta">
+                      <app-clause-refs
+                        [refs]="item.clause_refs"
+                        labelKey="inspections.templates.covers"
+                      />
+                    </p>
+                  }
+                  <p class="text-meta text-fg-subtle">
                     {{
                       'inspections.templates.questions' | transloco: { count: item.question_count }
                     }}
                     @if (item.pass_threshold !== null) {
                       ·
                       {{
-                        'inspections.library.passMark' | transloco: { value: item.pass_threshold }
+                        'inspections.library.passMark'
+                          | transloco: { value: (item.pass_threshold | localPercent) }
+                      }}
+                    }
+                    @if (item.auto_deviation) {
+                      ·
+                      {{
+                        'inspections.library.deviationsFrom'
+                          | transloco
+                            : {
+                                severity:
+                                  (severityKey(item.deviation_min_severity ?? 'high') | transloco),
+                              }
                       }}
                     }
                   </p>
                   <div class="mt-1 flex flex-wrap gap-2">
-                    <app-button variant="secondary" size="sm" (click)="preview(item)">
+                    <app-button
+                      variant="secondary"
+                      size="sm"
+                      (click)="preview(item)"
+                      [attr.data-testid]="'preview-' + item.key"
+                    >
                       {{ 'inspections.library.preview' | transloco }}
                     </app-button>
                     @if (canDesign()) {
@@ -123,7 +155,7 @@ import { InspectionsApi } from '../data/inspections-api';
           }
         </ul>
       }
-      <app-why-it-matters class="mt-6 block" scope="inspections" page="library" />
+      <div class="mt-8"><app-why-it-matters scope="inspections" page="library" /></div>
     </div>
 
     <app-slide-over
@@ -134,18 +166,18 @@ import { InspectionsApi } from '../data/inspections-api';
       (closed)="previewing.set(null)"
     >
       @if (previewing(); as item) {
-        <p class="mb-3 text-[13px] text-fg-muted">{{ item.description }}</p>
+        <p class="mb-3 text-ui text-fg-muted">{{ item.description }}</p>
         @if (detail(); as d) {
           <app-question-preview [questions]="d.questions" />
           @if (canDesign()) {
-            <div class="mt-4">
+            <div class="sticky bottom-0 mt-4 border-t border-border bg-surface py-3">
               <app-button [loading]="importing() === item.key" (click)="importItem(item.key)">
                 {{ 'inspections.library.import' | transloco }}
               </app-button>
             </div>
           }
         } @else {
-          <p class="text-[13px] text-fg-muted">{{ 'common.loading' | transloco }}</p>
+          <app-loading-state [rows]="4" />
         }
       }
     </app-slide-over>
@@ -158,8 +190,17 @@ export class TemplateLibrary {
   private readonly router = inject(Router);
   private readonly notifications = inject(NotificationService);
 
+  protected readonly nav = INSPECTIONS_NAV;
+  protected readonly settingsLink = INSPECTIONS_SETTINGS_LINK;
+  protected readonly breadcrumbs = [
+    { labelKey: 'modules.names.inspections', link: '/inspections' },
+    { labelKey: 'inspections.templates.title', link: '/inspections/templates' },
+    { labelKey: 'inspections.library.title' },
+  ];
   protected readonly categoryLabel = categoryKey;
+  protected readonly severityKey = severityKey;
   protected readonly items = signal<readonly LibraryItem[]>([]);
+  protected readonly loaded = signal(false);
   protected readonly failed = signal(false);
   protected readonly previewing = signal<LibraryItem | null>(null);
   protected readonly detail = signal<LibraryDetail | null>(null);
@@ -181,19 +222,28 @@ export class TemplateLibrary {
 
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();
-      const lang = this.lang();
-      if (!orgId) {
-        return;
+      this.lang();
+      if (orgId) {
+        untracked(() => this.load());
       }
-      untracked(() =>
-        this.api.listLibrary(orgId, lang).subscribe({
-          next: (items) => {
-            this.failed.set(false);
-            this.items.set(items);
-          },
-          error: () => this.failed.set(true),
-        }),
-      );
+    });
+  }
+
+  protected load(): void {
+    const orgId = this.selectedOrg.currentOrgId();
+    if (!orgId) {
+      return;
+    }
+    this.failed.set(false);
+    this.api.listLibrary(orgId, this.lang()).subscribe({
+      next: (items) => {
+        this.items.set(items);
+        this.loaded.set(true);
+      },
+      error: () => {
+        this.loaded.set(true);
+        this.failed.set(true);
+      },
     });
   }
 

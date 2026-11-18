@@ -401,7 +401,11 @@
       "to_risk": "Risk from this finding"
     },
     "inspection_finding": {
-      "to_deviation": "Deviation from this finding"
+      "to_deviation": "Deviation from this finding",
+      "to_risk": "Risk from this finding",
+      "to_task": "Task to follow it up",
+      "to_training": "Training need (course assignment)",
+      "to_document": "Change to a document or procedure"
     },
     "risk": {
       "to_document": "Control document (procedure)",

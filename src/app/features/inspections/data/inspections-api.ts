@@ -1,7 +1,7 @@
 import { HttpContext } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { ApiService } from '../../../core/http/api.service';
+import { ApiService, QueryParams } from '../../../core/http/api.service';
 import { SKIP_ERROR_TOAST } from '../../../core/http/error.interceptor';
 import {
   ActionCreated,
@@ -12,12 +12,15 @@ import {
   CreateInspectionRequest,
   CreateScheduleRequest,
   CreateTemplateRequest,
+  CloseFindingRequest,
+  ExportFormat,
   Finding,
   FindingListQuery,
   Inspection,
   InspectionDetail,
   InspectionListQuery,
   InspectionStats,
+  FrameworkOption,
   Lang,
   LibraryDetail,
   LibraryItem,
@@ -124,6 +127,11 @@ export class InspectionsApi {
     return this.api.delete<void>(`${this.base(orgId)}/templates/${id}`, skipToast());
   }
 
+  /** The standards checklists can cite, and whether the org has each one switched on. */
+  frameworks(orgId: string): Observable<FrameworkOption[]> {
+    return this.api.get<FrameworkOption[]>(`${this.base(orgId)}/frameworks`);
+  }
+
   // --- library ---------------------------------------------------------------------
 
   listLibrary(orgId: string, lang: Lang): Observable<LibraryItem[]> {
@@ -153,6 +161,8 @@ export class InspectionsApi {
         status: csv(query.status),
         template_id: query.template_id,
         schedule_id: query.schedule_id,
+        subject_type: query.subject_type,
+        subject_id: query.subject_id,
         inspector: query.inspector,
         result: query.result,
         due_before: query.due_before,
@@ -213,21 +223,28 @@ export class InspectionsApi {
     return this.api.delete<void>(`${this.base(orgId)}/${id}`, skipToast());
   }
 
+  /** The printable inspection report (facts, answers, sign-off and findings). */
+  reportPdf(orgId: string, id: string, lang: Lang): Observable<Blob> {
+    return this.api.getBlob(`${this.base(orgId)}/${id}/report.pdf`, { params: { lang } });
+  }
+
   // --- findings --------------------------------------------------------------------
 
   listFindings(orgId: string, query: FindingListQuery = {}): Observable<Page<Finding>> {
     return this.api.get<Page<Finding>>(`${this.base(orgId)}/findings`, {
-      params: {
-        inspection_id: query.inspection_id,
-        status: csv(query.status),
-        severity: csv(query.severity),
-        owner: query.owner,
-        has_deviation: query.has_deviation,
-        q: query.q?.trim() || undefined,
-        sort: query.sort,
-        limit: query.limit,
-        offset: query.offset,
-      },
+      params: findingParams(query),
+    });
+  }
+
+  /** The findings register as a file, with the same filters as the list. */
+  exportFindings(
+    orgId: string,
+    format: ExportFormat,
+    lang: Lang,
+    query: FindingListQuery = {},
+  ): Observable<Blob> {
+    return this.api.getBlob(`${this.base(orgId)}/findings/export`, {
+      params: { ...findingParams(query), limit: undefined, offset: undefined, format, lang },
     });
   }
 
@@ -251,8 +268,18 @@ export class InspectionsApi {
     return this.api.patch<Finding>(`${this.base(orgId)}/findings/${id}`, body, skipToast());
   }
 
-  closeFinding(orgId: string, id: string): Observable<Finding> {
-    return this.api.post<Finding>(`${this.base(orgId)}/findings/${id}/close`, {}, skipToast());
+  /** Close with a note on what was done (required) and, optionally, the effectiveness check. */
+  closeFinding(orgId: string, id: string, body: CloseFindingRequest): Observable<Finding> {
+    return this.api.post<Finding>(`${this.base(orgId)}/findings/${id}/close`, body, skipToast());
+  }
+
+  /** Record that the correction of a closed finding was checked and works. */
+  checkEffectiveness(orgId: string, id: string, note?: string | null): Observable<Finding> {
+    return this.api.post<Finding>(
+      `${this.base(orgId)}/findings/${id}/effectiveness`,
+      { note: note?.trim() || null },
+      skipToast(),
+    );
   }
 
   reopenFinding(orgId: string, id: string): Observable<Finding> {
@@ -303,4 +330,22 @@ export class InspectionsApi {
   deleteSchedule(orgId: string, id: string): Observable<void> {
     return this.api.delete<void>(`${this.base(orgId)}/schedules/${id}`, skipToast());
   }
+}
+
+/** Query params of `GET /findings` (and its export). */
+function findingParams(query: FindingListQuery): QueryParams {
+  return {
+    inspection_id: query.inspection_id,
+    status: csv(query.status),
+    severity: csv(query.severity),
+    owner: query.owner,
+    has_deviation: query.has_deviation,
+    template_id: query.template_id,
+    created_from: query.created_from,
+    created_to: query.created_to,
+    q: query.q?.trim() || undefined,
+    sort: query.sort,
+    limit: query.limit,
+    offset: query.offset,
+  };
 }

@@ -12,18 +12,26 @@ import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { providePageContext } from '../../../core/ai/page-context';
 import { AuthService } from '../../../core/auth/auth.service';
+import { LanguageService } from '../../../core/i18n/language.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
-import { FieldHelp } from '../../../shared/guidance/field-help';
-import { GuideIntro } from '../../../shared/guidance/guide-intro';
+import { AskAbout } from '../../../shared/ask/ask-about';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
-import { FormField } from '../../../shared/ui/form-field/form-field';
-import { Icon } from '../../../shared/ui/icon/icon';
+import { EmptyState } from '../../../shared/ui/empty-state/empty-state';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
+import { InspectionField } from '../components/inspection-field';
 import { RefSelect } from '../components/ref-select';
-import { dateInputToIso, isoToDateInput } from '../data/inspection-display';
+import { NO_SUBJECT, SubjectPicker, SubjectValue } from '../components/subject-picker';
+import {
+  INSPECTIONS_SETTINGS_LINK,
+  dateInputToIso,
+  isoToDateInput,
+} from '../data/inspection-display';
 import { inspectionErrorKey } from '../data/inspection-errors';
 import { InspectionReferences, NamedRef } from '../data/inspection-references';
 import {
@@ -44,6 +52,7 @@ export interface InspectionForm {
   readonly departmentId: string;
   readonly dueDate: string;
   readonly changeReason: string;
+  readonly subject: SubjectValue;
 }
 
 export const EMPTY_INSPECTION_FORM: InspectionForm = {
@@ -56,6 +65,7 @@ export const EMPTY_INSPECTION_FORM: InspectionForm = {
   departmentId: '',
   dueDate: '',
   changeReason: '',
+  subject: NO_SUBJECT,
 };
 
 export function formFromInspection(i: InspectionDetail): InspectionForm {
@@ -69,10 +79,16 @@ export function formFromInspection(i: InspectionDetail): InspectionForm {
     departmentId: i.department_id ?? '',
     dueDate: isoToDateInput(i.due_at),
     changeReason: '',
+    subject: {
+      type: i.subject_type ?? null,
+      id: i.subject_id ?? null,
+      title: i.subject ? [i.subject.code, i.subject.title].filter(Boolean).join(' ') : null,
+    },
   };
 }
 
 export function toInspectionFields(f: InspectionForm): InspectionFields {
+  const subject = f.subject.type && f.subject.id ? f.subject : null;
   return {
     title: f.title.trim() || null,
     location: f.location.trim() || null,
@@ -81,68 +97,86 @@ export function toInspectionFields(f: InspectionForm): InspectionFields {
     owner_user_id: f.ownerId || null,
     department_id: f.departmentId || null,
     due_at: dateInputToIso(f.dueDate),
+    subject_type: subject?.type ?? null,
+    subject_id: subject?.id ?? null,
   };
+}
+
+/** The title the server gives an untitled inspection: "Checklist – Location". */
+export function defaultTitle(templateTitle: string | null, location: string): string {
+  const place = location.trim();
+  return templateTitle ? (place ? `${templateTitle} – ${place}` : templateTitle) : '';
 }
 
 /**
  * Plan an inspection (`/inspections/new`, optionally `?template=<id>`) or change a
- * planned one (`/inspections/:id/edit`): the checklist template (active ones only, and
- * only when planning), title (defaults to the template's), location, inspector,
- * owner, department, due date and notes. The questions are copied from the template
- * when the inspection is created, so later template edits never change it.
+ * planned one (`/inspections/:id/edit`): the checklist (active ones only, chosen when
+ * planning), what it checks (an optional asset, process, supplier or risk), place,
+ * due date, the inspector who does it and the owner who follows up, department and
+ * notes. The title defaults to "Checklist – Place". The questions are copied from the
+ * checklist when the inspection is created, so later edits never change it.
  */
 @Component({
   selector: 'app-inspection-form',
   imports: [
     RouterLink,
     TranslocoPipe,
-    FieldHelp,
-    GuideIntro,
+    AskAbout,
     WhyItMatters,
     Alert,
     Button,
     Card,
-    FormField,
-    Icon,
+    EmptyState,
+    HelpStrip,
+    LoadingState,
+    PageHeader,
+    InspectionField,
     RefSelect,
+    SubjectPicker,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[820px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
-      <a
-        [routerLink]="id() ? ['/inspections', id()] : '/inspections'"
-        class="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
-      >
-        <app-icon name="back" [size]="16" />
-        {{ (id() ? 'inspections.detail.back' : 'inspections.list.back') | transloco }}
-      </a>
-      <h1 class="mb-4 font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]">
-        {{ (id() ? 'inspections.form.editTitle' : 'inspections.form.newTitle') | transloco }}
-      </h1>
-      <app-guide-intro class="mb-4 block" scope="inspections" page="form" />
+    <div class="mx-auto max-w-[760px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+      <app-page-header
+        [titleKey]="id() ? 'inspections.form.editTitle' : 'inspections.form.newTitle'"
+        [breadcrumbs]="breadcrumbs()"
+        [settingsLink]="settingsLink"
+      />
+      <app-help-strip scope="inspections" page="form" lesson="inspection-basics" />
 
       @if (closed()) {
-        <app-alert tone="error">{{ 'inspections.errors.inspection_closed' | transloco }}</app-alert>
+        <app-alert tone="info">{{ 'inspections.errors.inspection_closed' | transloco }}</app-alert>
       } @else if (id() && !original()) {
-        <p class="text-[14px] text-fg-muted">{{ 'common.loading' | transloco }}</p>
+        @if (loadFailed()) {
+          <app-empty-state
+            icon="search"
+            titleKey="inspections.detail.notFoundTitle"
+            bodyKey="inspections.detail.notFound"
+            ctaKey="inspections.list.back"
+            ctaLink="/inspections"
+          />
+        } @else {
+          <app-loading-state [rows]="4" />
+        }
       } @else {
-        <form (submit)="$event.preventDefault(); save()">
+        <form (submit)="$event.preventDefault(); save()" novalidate>
           <app-card>
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div class="sm:col-span-2">
-                @if (id()) {
-                  <p class="text-[13px] text-fg-muted">
-                    {{ 'inspections.fields.template' | transloco }}:
-                    <span class="font-semibold text-fg">{{ original()?.template?.title }}</span>
-                    ({{
-                      'inspections.templates.version'
-                        | transloco: { version: original()?.template?.version }
-                    }})
-                  </p>
-                } @else {
-                  <app-form-field
-                    [label]="'inspections.fields.template' | transloco"
+            <div class="flex flex-col gap-5">
+              @if (id()) {
+                <p class="text-ui text-fg-muted">
+                  {{ 'inspections.fields.template' | transloco }}:
+                  <span class="font-semibold text-fg">{{ original()?.template?.title }}</span>
+                  ({{
+                    'inspections.templates.versionShort'
+                      | transloco: { version: original()?.template?.version }
+                  }})
+                </p>
+              } @else {
+                <div>
+                  <app-inspection-field
+                    labelKey="inspections.fields.template"
                     inputId="if-template"
+                    help="template"
                   >
                     <app-ref-select
                       inputId="if-template"
@@ -150,35 +184,47 @@ export function toInspectionFields(f: InspectionForm): InspectionFields {
                       [value]="form().templateId"
                       [noneLabel]="'inspections.form.chooseTemplate' | transloco"
                       testId="template-select"
+                      [describedBy]="templateError() ? 'if-template-error' : ''"
                       (valueChange)="set('templateId', $event)"
                     />
-                  </app-form-field>
-                  <app-field-help scope="inspections" page="form" field="template" />
+                  </app-inspection-field>
+                  @if (templateError()) {
+                    <p id="if-template-error" class="mt-1 text-meta text-fail" role="alert">
+                      {{ 'inspections.errors.template_required' | transloco }}
+                    </p>
+                  }
                   @if (templatesLoaded() && templateOptions().length === 0) {
                     <app-alert tone="info" class="mt-2 block">
                       {{ 'inspections.form.noTemplates' | transloco }}
-                      <a routerLink="/inspections/templates" class="font-semibold text-accent">
+                      <a
+                        routerLink="/inspections/templates/library"
+                        class="font-semibold text-accent"
+                      >
                         {{ 'inspections.list.browseTemplates' | transloco }}
                       </a>
                     </app-alert>
                   }
-                }
-              </div>
-              <div class="sm:col-span-2">
-                <app-form-field [label]="'inspections.fields.title' | transloco" inputId="if-title">
-                  <input
-                    id="if-title"
-                    maxlength="255"
-                    [value]="form().title"
-                    [placeholder]="selectedTemplateTitle() ?? ''"
-                    (input)="set('title', $any($event.target).value)"
-                  />
-                </app-form-field>
-              </div>
-              <div>
-                <app-form-field
-                  [label]="'inspections.fields.location' | transloco"
+                </div>
+              }
+              <app-inspection-field
+                labelKey="inspections.subject.label"
+                inputId="if-subject"
+                help="subject"
+                [optional]="true"
+                hintKey="inspections.subject.hint"
+              >
+                <app-subject-picker
+                  inputId="if-subject"
+                  [value]="form().subject"
+                  (valueChange)="set('subject', $event)"
+                />
+              </app-inspection-field>
+              <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                <app-inspection-field
+                  labelKey="inspections.fields.location"
                   inputId="if-location"
+                  help="location"
+                  [optional]="true"
                 >
                   <input
                     id="if-location"
@@ -186,23 +232,35 @@ export function toInspectionFields(f: InspectionForm): InspectionFields {
                     [value]="form().location"
                     (input)="set('location', $any($event.target).value)"
                   />
-                </app-form-field>
-                <app-field-help scope="inspections" page="form" field="location" />
-              </div>
-              <div>
-                <app-form-field [label]="'inspections.fields.dueAt' | transloco" inputId="if-due">
+                </app-inspection-field>
+                <app-inspection-field labelKey="inspections.fields.dueAt" inputId="if-due">
                   <input
                     id="if-due"
                     type="date"
                     [value]="form().dueDate"
                     (input)="set('dueDate', $any($event.target).value)"
                   />
-                </app-form-field>
+                </app-inspection-field>
               </div>
-              <div>
-                <app-form-field
-                  [label]="'inspections.fields.inspector' | transloco"
+              <app-inspection-field
+                labelKey="inspections.fields.title"
+                inputId="if-title"
+                [optional]="!id()"
+                [hintKey]="id() ? null : 'inspections.form.titleHint'"
+              >
+                <input
+                  id="if-title"
+                  maxlength="255"
+                  [value]="form().title"
+                  [placeholder]="suggestedTitle()"
+                  (input)="set('title', $any($event.target).value)"
+                />
+              </app-inspection-field>
+              <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                <app-inspection-field
+                  labelKey="inspections.fields.inspector"
                   inputId="if-inspector"
+                  help="inspector"
                 >
                   <app-ref-select
                     inputId="if-inspector"
@@ -213,11 +271,12 @@ export function toInspectionFields(f: InspectionForm): InspectionFields {
                     testId="inspector-select"
                     (valueChange)="set('inspectorId', $event)"
                   />
-                </app-form-field>
-                <app-field-help scope="inspections" page="form" field="inspector" />
-              </div>
-              <div>
-                <app-form-field [label]="'inspections.fields.owner' | transloco" inputId="if-owner">
+                </app-inspection-field>
+                <app-inspection-field
+                  labelKey="inspections.fields.owner"
+                  inputId="if-owner"
+                  help="owner"
+                >
                   <app-ref-select
                     inputId="if-owner"
                     [options]="users()"
@@ -226,69 +285,73 @@ export function toInspectionFields(f: InspectionForm): InspectionFields {
                     [currentName]="original()?.owner?.name ?? null"
                     (valueChange)="set('ownerId', $event)"
                   />
-                </app-form-field>
-                <app-field-help scope="inspections" page="form" field="owner" />
+                </app-inspection-field>
               </div>
-              <div>
-                <app-form-field
-                  [label]="'inspections.fields.department' | transloco"
+              <p class="-mt-3 text-meta text-fg-muted">
+                {{ 'inspections.form.rolesHint' | transloco }}
+              </p>
+              <app-inspection-field
+                labelKey="inspections.fields.department"
+                inputId="if-department"
+                [optional]="true"
+              >
+                <app-ref-select
                   inputId="if-department"
-                >
-                  <app-ref-select
-                    inputId="if-department"
-                    [options]="departments()"
-                    [value]="form().departmentId"
-                    [noneLabel]="'inspections.form.noDepartment' | transloco"
-                    (valueChange)="set('departmentId', $event)"
-                  />
-                </app-form-field>
-              </div>
-              <div class="sm:col-span-2">
-                <app-form-field [label]="'inspections.fields.notes' | transloco" inputId="if-notes">
-                  <textarea
-                    id="if-notes"
-                    rows="3"
-                    maxlength="20000"
-                    [value]="form().notes"
-                    (input)="set('notes', $any($event.target).value)"
-                  ></textarea>
-                </app-form-field>
-              </div>
+                  [options]="departments()"
+                  [value]="form().departmentId"
+                  [noneLabel]="'inspections.form.noDepartment' | transloco"
+                  (valueChange)="set('departmentId', $event)"
+                />
+              </app-inspection-field>
+              <app-inspection-field
+                labelKey="inspections.fields.notes"
+                inputId="if-notes"
+                [optional]="true"
+              >
+                <app-ask-about
+                  label-extra
+                  [prompt]="'inspections.form.askPlan' | transloco"
+                  field="notes"
+                />
+                <textarea
+                  id="if-notes"
+                  rows="3"
+                  maxlength="20000"
+                  [value]="form().notes"
+                  (input)="set('notes', $any($event.target).value)"
+                ></textarea>
+              </app-inspection-field>
               @if (id()) {
-                <div class="sm:col-span-2">
-                  <app-form-field
-                    [label]="'inspections.fields.changeReason' | transloco"
-                    inputId="if-reason"
-                  >
-                    <input
-                      id="if-reason"
-                      maxlength="2000"
-                      [value]="form().changeReason"
-                      (input)="set('changeReason', $any($event.target).value)"
-                    />
-                  </app-form-field>
-                </div>
+                <app-inspection-field
+                  labelKey="inspections.fields.changeReason"
+                  inputId="if-reason"
+                  [optional]="true"
+                >
+                  <input
+                    id="if-reason"
+                    maxlength="2000"
+                    [value]="form().changeReason"
+                    (input)="set('changeReason', $any($event.target).value)"
+                  />
+                </app-inspection-field>
               }
             </div>
           </app-card>
-          <div class="mt-4 flex flex-wrap justify-end gap-2">
+          <div
+            class="sticky bottom-0 z-10 -mx-4 mt-4 flex flex-wrap justify-end gap-2 border-t border-border bg-bg px-4 py-3 sm:static sm:mx-0 sm:border-0 sm:px-0"
+          >
             <a [routerLink]="id() ? ['/inspections', id()] : '/inspections'">
-              <app-button variant="ghost">{{
+              <app-button variant="secondary">{{
                 'inspections.actions.cancel' | transloco
               }}</app-button>
             </a>
-            <app-button
-              type="submit"
-              [loading]="saving()"
-              [disabled]="!id() && !form().templateId"
-              data-testid="save-inspection"
-            >
+            <app-button type="submit" [loading]="saving()" data-testid="save-inspection">
               {{ (id() ? 'inspections.actions.save' : 'inspections.form.plan') | transloco }}
             </app-button>
           </div>
         </form>
       }
-      <app-why-it-matters class="mt-6 block" scope="inspections" page="form" />
+      <div class="mt-8"><app-why-it-matters scope="inspections" page="form" /></div>
     </div>
   `,
 })
@@ -299,15 +362,19 @@ export class InspectionFormPage {
   private readonly notifications = inject(NotificationService);
   private readonly references = inject(InspectionReferences);
   private readonly auth = inject(AuthService);
+  private readonly language = inject(LanguageService);
 
   /** Route param on `:id/edit`. */
   readonly id = input<string | undefined>(undefined);
   /** `?template=<id>` preselects a template when planning. */
   readonly template = input<string | undefined>(undefined);
 
+  protected readonly settingsLink = INSPECTIONS_SETTINGS_LINK;
   protected readonly original = signal<InspectionDetail | null>(null);
   protected readonly form = signal<InspectionForm>(EMPTY_INSPECTION_FORM);
   protected readonly saving = signal(false);
+  protected readonly attempted = signal(false);
+  protected readonly loadFailed = signal(false);
 
   protected readonly users = this.references.users;
   protected readonly departments = this.references.departments;
@@ -318,9 +385,24 @@ export class InspectionFormPage {
     this.references.activeTemplates().map((t) => ({ id: t.id, name: `${t.code} · ${t.title}` })),
   );
 
-  protected readonly selectedTemplateTitle = computed(() => {
+  protected readonly breadcrumbs = computed(() => {
+    const original = this.original();
+    return [
+      { labelKey: 'modules.names.inspections', link: '/inspections' },
+      ...(original ? [{ label: original.title, link: `/inspections/${original.id}` }] : []),
+      { labelKey: this.id() ? 'inspections.form.editTitle' : 'inspections.form.newTitle' },
+    ];
+  });
+
+  protected readonly templateError = computed(
+    () => this.attempted() && !this.id() && !this.form().templateId,
+  );
+
+  /** "Vernerunde – Lager": what the title becomes when it is left empty. */
+  protected readonly suggestedTitle = computed(() => {
     const id = this.form().templateId;
-    return this.references.activeTemplates().find((t) => t.id === id)?.title ?? null;
+    const template = this.references.activeTemplates().find((t) => t.id === id)?.title ?? null;
+    return defaultTitle(template, this.form().location);
   });
 
   protected readonly closed = computed(() => {
@@ -334,6 +416,11 @@ export class InspectionFormPage {
       entityType: INSPECTION_ENTITY_TYPE,
       entityId: this.id() ?? null,
       view: this.id() ? 'edit' : 'new',
+      title:
+        this.original()?.title ??
+        this.language.translate(
+          this.id() ? 'inspections.form.editTitle' : 'inspections.form.newTitle',
+        ),
     }));
 
     this.references.ensurePeople();
@@ -367,7 +454,7 @@ export class InspectionFormPage {
               this.original.set(i);
               this.form.set(formFromInspection(i));
             },
-            error: (e: unknown) => this.notifications.error(inspectionErrorKey(e)),
+            error: () => this.loadFailed.set(true),
           }),
         );
       }
@@ -379,9 +466,14 @@ export class InspectionFormPage {
   }
 
   protected save(): void {
+    this.attempted.set(true);
     const orgId = this.selectedOrg.currentOrgId();
     const f = this.form();
-    if (!orgId || this.saving() || (!this.id() && !f.templateId)) {
+    if (!orgId || this.saving()) {
+      return;
+    }
+    if (!this.id() && !f.templateId) {
+      document.getElementById('if-template')?.focus();
       return;
     }
     const fields = toInspectionFields(f);

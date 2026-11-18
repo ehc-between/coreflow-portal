@@ -9,23 +9,28 @@ import {
   untracked,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { providePageContext } from '../../../core/ai/page-context';
+import { LanguageService } from '../../../core/i18n/language.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
-import { FRAMEWORK_KEYS } from '../../../core/standards/frameworks-data';
 import { AiAssistButton } from '../../../shared/ask/ai-assist-button';
 import { FieldHelp } from '../../../shared/guidance/field-help';
-import { GuideIntro } from '../../../shared/guidance/guide-intro';
-import { TourButton } from '../../../shared/guidance/tour-button';
 import { TourStepDirective } from '../../../shared/guidance/tour-step.directive';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
+import { ClausePicker } from '../../../shared/requirement-links/clause-picker';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
+import { EmptyState } from '../../../shared/ui/empty-state/empty-state';
 import { FormField } from '../../../shared/ui/form-field/form-field';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { SlideOver } from '../../../shared/ui/slide-over/slide-over';
+import { InspectionField } from '../components/inspection-field';
 import { QuestionPreview } from '../components/question-preview';
 import {
   EditableQuestion,
@@ -38,7 +43,11 @@ import {
   toEditable,
   toQuestionInput,
 } from '../data/answer-model';
-import { questionTypeKey } from '../data/inspection-display';
+import {
+  INSPECTIONS_SETTINGS_LINK,
+  questionTypeKey,
+  severityKey,
+} from '../data/inspection-display';
 import { inspectionErrorKey, problemIndexesOf } from '../data/inspection-errors';
 import { InspectionReferences } from '../data/inspection-references';
 import {
@@ -46,8 +55,11 @@ import {
   GeneratedChecklist,
   INSPECTIONS_MODULE,
   QUESTION_TYPES,
+  SUPPORTED_FRAMEWORKS,
   Question,
   QuestionType,
+  SEVERITIES,
+  Severity,
   TEMPLATE_CATEGORIES,
   TEMPLATE_ENTITY_TYPE,
   TemplateDetail,
@@ -64,6 +76,8 @@ export interface TemplateForm {
   /** '' = no pass mark (any failed answer fails the inspection). */
   readonly passThreshold: string;
   readonly autoDeviation: boolean;
+  /** Findings of at least this severity become deviations (with `autoDeviation`). */
+  readonly deviationMinSeverity: Severity;
   readonly deviationTypeId: string;
   readonly changeReason: string;
 }
@@ -75,6 +89,7 @@ export const EMPTY_TEMPLATE_FORM: TemplateForm = {
   frameworks: [],
   passThreshold: '',
   autoDeviation: true,
+  deviationMinSeverity: 'high',
   deviationTypeId: '',
   changeReason: '',
 };
@@ -87,6 +102,7 @@ export function formFromTemplate(t: TemplateDetail): TemplateForm {
     frameworks: t.frameworks,
     passThreshold: t.pass_threshold === null ? '' : String(t.pass_threshold),
     autoDeviation: t.auto_deviation,
+    deviationMinSeverity: t.deviation_min_severity ?? 'high',
     deviationTypeId: t.deviation_type_id ?? '',
     changeReason: '',
   };
@@ -114,6 +130,7 @@ export function toTemplateFields(
     questions: questions.map(toQuestionInput),
     pass_threshold: parseThreshold(form.passThreshold),
     auto_deviation: form.autoDeviation,
+    deviation_min_severity: form.deviationMinSeverity,
     deviation_type_id: form.autoDeviation ? form.deviationTypeId || null : null,
     change_reason: form.changeReason.trim() || null,
   };
@@ -121,114 +138,133 @@ export function toTemplateFields(
 
 /**
  * The checklist template builder (`/inspections/templates/new`, `/:id/edit`): title,
- * description, category, frameworks, the pass mark and automatic deviations, and the
- * question list (add by type, edit, reorder, duplicate, remove). The assistant can
- * draft a checklist from a description, a standard clause or a question count; the
- * draft is previewed and nothing is saved until the designer saves. Needs
- * `inspections:templates`. Editing an active template's questions or pass mark raises
- * its version (inspections already planned keep their own copy).
+ * description, category, the standards it is for (only those the module supports,
+ * and the org has switched on), the pass mark, and when findings become deviations
+ * (from a chosen severity); then the questions as one-line summaries that open for
+ * editing (add by type, reorder, duplicate, remove), each citing the clauses it
+ * documents. The assistant can draft a checklist from a description or a clause;
+ * nothing is saved until the designer saves. Needs `inspections:templates`. Editing
+ * an active template's questions or pass mark raises its version (inspections
+ * already planned keep their own copy).
  */
 @Component({
   selector: 'app-template-builder',
   imports: [
+    FormsModule,
     RouterLink,
     TranslocoPipe,
     AiAssistButton,
     FieldHelp,
-    GuideIntro,
-    TourButton,
     TourStepDirective,
     WhyItMatters,
+    ClausePicker,
     Alert,
     Button,
     Card,
+    EmptyState,
     FormField,
+    HelpStrip,
     Icon,
+    LoadingState,
+    PageHeader,
     SlideOver,
+    InspectionField,
     QuestionPreview,
     QuestionEditor,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[980px] px-4 pt-6 pb-24 sm:px-8 sm:pt-7">
-      <a
-        [routerLink]="id() ? ['/inspections/templates', id()] : '/inspections/templates'"
-        class="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
+    <div class="mx-auto max-w-[760px] px-4 pt-6 pb-24 sm:px-8 sm:pt-7">
+      <app-page-header
+        [titleKey]="id() ? 'inspections.builder.editTitle' : 'inspections.builder.newTitle'"
+        [breadcrumbs]="breadcrumbs()"
+        [settingsLink]="settingsLink"
       >
-        <app-icon name="back" [size]="16" />
-        {{ 'inspections.builder.back' | transloco }}
-      </a>
-      <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 class="font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]">
-            {{
-              (id() ? 'inspections.builder.editTitle' : 'inspections.builder.newTitle') | transloco
-            }}
-          </h1>
+        <ng-container ngProjectAs="[meta]">
           @if (original(); as t) {
-            <p class="mt-1 text-[13px] text-fg-muted">
-              {{ t.code }} ·
-              {{ 'inspections.templates.version' | transloco: { version: t.version } }}
-            </p>
+            <span class="font-mono">{{ t.code }}</span>
+            <span aria-hidden="true">·</span>
+            <span>{{
+              'inspections.templates.versionShort' | transloco: { version: t.version }
+            }}</span>
           }
-        </div>
-        <div class="flex flex-wrap gap-2">
-          <app-tour-button scope="inspections" tour="builder" />
-          <app-button
-            variant="secondary"
-            (click)="aiOpen.set(true)"
-            appTourStep="inspections-builder-ai"
-            data-testid="open-generate"
-          >
-            <app-icon name="spark" [size]="15" />
-            {{ 'inspections.builder.generate' | transloco }}
-          </app-button>
-        </div>
-      </div>
-
-      <app-guide-intro class="mb-4 block" scope="inspections" page="builder" />
+        </ng-container>
+        <app-button
+          secondary
+          variant="secondary"
+          (click)="aiOpen.set(true)"
+          appTourStep="inspections-builder-ai"
+          data-testid="open-generate"
+        >
+          <app-icon name="spark" [size]="15" />
+          {{ 'inspections.builder.generate' | transloco }}
+        </app-button>
+      </app-page-header>
+      <app-help-strip
+        scope="inspections"
+        page="builder"
+        tour="builder"
+        lesson="inspection-basics"
+      />
 
       @if (original()?.status === 'archived') {
-        <app-alert tone="error">{{ 'inspections.errors.template_archived' | transloco }}</app-alert>
+        <app-alert tone="info">{{ 'inspections.errors.template_archived' | transloco }}</app-alert>
       } @else if (id() && !original()) {
-        <p class="text-[14px] text-fg-muted">{{ 'common.loading' | transloco }}</p>
+        @if (loadFailed()) {
+          <app-empty-state
+            icon="search"
+            titleKey="inspections.templates.notFoundTitle"
+            bodyKey="inspections.templates.notFound"
+            ctaKey="inspections.templates.backToTemplates"
+            ctaLink="/inspections/templates"
+          />
+        } @else {
+          <app-loading-state [rows]="5" />
+        }
       } @else {
-        <form class="flex flex-col gap-4" (submit)="$event.preventDefault(); save(false)">
+        <form
+          class="flex flex-col gap-5"
+          (submit)="$event.preventDefault(); save(false)"
+          novalidate
+        >
           <app-card>
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div class="sm:col-span-2">
-                <app-form-field [label]="'inspections.fields.title' | transloco" inputId="tb-title">
-                  <input
-                    id="tb-title"
-                    required
-                    maxlength="255"
-                    [value]="form().title"
-                    (input)="set('title', $any($event.target).value)"
-                    [attr.aria-invalid]="attempted() && !form().title.trim()"
-                    data-testid="template-title-input"
-                  />
-                </app-form-field>
-                <app-field-help scope="inspections" page="builder" field="title" />
-              </div>
-              <div class="sm:col-span-2">
-                <app-form-field
-                  [label]="'inspections.fields.description' | transloco"
-                  inputId="tb-description"
-                >
-                  <textarea
-                    id="tb-description"
-                    rows="3"
-                    maxlength="20000"
-                    [value]="form().description"
-                    (input)="set('description', $any($event.target).value)"
-                  ></textarea>
-                </app-form-field>
-              </div>
-              <div>
-                <app-form-field
-                  [label]="'inspections.fields.category' | transloco"
-                  inputId="tb-category"
-                >
+            <div class="flex flex-col gap-5">
+              <app-inspection-field
+                labelKey="inspections.fields.title"
+                inputId="tb-title"
+                page="builder"
+                help="title"
+              >
+                <input
+                  id="tb-title"
+                  required
+                  maxlength="255"
+                  [value]="form().title"
+                  (input)="set('title', $any($event.target).value)"
+                  [attr.aria-invalid]="attempted() && !form().title.trim()"
+                  data-testid="template-title-input"
+                />
+              </app-inspection-field>
+              @if (attempted() && !form().title.trim()) {
+                <p class="-mt-4 text-meta text-fail" role="alert">
+                  {{ 'inspections.builder.problems.titleRequired' | transloco }}
+                </p>
+              }
+              <app-inspection-field
+                labelKey="inspections.fields.description"
+                inputId="tb-description"
+                [optional]="true"
+              >
+                <textarea
+                  id="tb-description"
+                  rows="3"
+                  maxlength="20000"
+                  [value]="form().description"
+                  (input)="set('description', $any($event.target).value)"
+                ></textarea>
+              </app-inspection-field>
+              <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                <app-inspection-field labelKey="inspections.fields.category" inputId="tb-category">
                   <select id="tb-category" (change)="set('category', $any($event.target).value)">
                     <option value="" [selected]="!form().category">
                       {{ 'inspections.builder.noCategory' | transloco }}
@@ -242,48 +278,72 @@ export function toTemplateFields(
                       </option>
                     }
                   </select>
-                </app-form-field>
+                </app-inspection-field>
+                <div>
+                  <app-inspection-field
+                    labelKey="inspections.fields.passThreshold"
+                    inputId="tb-threshold"
+                    page="builder"
+                    help="passThreshold"
+                    [optional]="true"
+                  >
+                    <input
+                      id="tb-threshold"
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="1"
+                      inputmode="decimal"
+                      [value]="form().passThreshold"
+                      [attr.aria-invalid]="thresholdInvalid()"
+                      (input)="set('passThreshold', $any($event.target).value)"
+                      appTourStep="inspections-builder-threshold"
+                    />
+                  </app-inspection-field>
+                  <p class="mt-1 text-meta text-fg-muted">
+                    {{ 'inspections.builder.passThresholdHint' | transloco }}
+                  </p>
+                </div>
               </div>
-              <div>
-                <app-form-field
-                  [label]="'inspections.fields.passThreshold' | transloco"
-                  inputId="tb-threshold"
+              <fieldset>
+                <legend
+                  class="mb-1.5 flex items-center gap-1.5 text-ui font-semibold text-fg-muted"
                 >
-                  <input
-                    id="tb-threshold"
-                    type="number"
-                    min="0"
-                    max="100"
-                    step="1"
-                    inputmode="decimal"
-                    [value]="form().passThreshold"
-                    [attr.aria-invalid]="thresholdInvalid()"
-                    (input)="set('passThreshold', $any($event.target).value)"
-                    appTourStep="inspections-builder-threshold"
-                  />
-                </app-form-field>
-                <app-field-help scope="inspections" page="builder" field="passThreshold" />
-              </div>
-              <fieldset class="sm:col-span-2">
-                <legend class="mb-1.5 text-[13px] font-semibold text-fg-muted">
                   {{ 'inspections.fields.frameworks' | transloco }}
+                  <app-field-help scope="inspections" page="builder" field="frameworks" />
                 </legend>
                 <div class="flex flex-wrap gap-x-4 gap-y-2">
-                  @for (fw of frameworks; track fw) {
-                    <label class="inline-flex items-center gap-2 text-[13px] text-fg">
+                  @for (fw of frameworkOptions(); track fw.key) {
+                    <label class="inline-flex min-h-8 items-center gap-2 text-ui text-fg">
                       <input
                         type="checkbox"
                         class="h-4 w-4 accent-[var(--accent)]"
-                        [checked]="form().frameworks.includes(fw)"
-                        (change)="toggleFramework(fw, $any($event.target).checked)"
+                        [checked]="form().frameworks.includes(fw.key)"
+                        (change)="toggleFramework(fw.key, $any($event.target).checked)"
+                        [attr.data-testid]="'framework-' + fw.key"
                       />
-                      {{ 'inspections.frameworks.' + fw | transloco }}
+                      {{ 'inspections.frameworks.' + fw.key | transloco }}
+                      @if (!fw.enabled) {
+                        <span class="text-meta text-fg-subtle">{{
+                          'inspections.builder.notEnabled' | transloco
+                        }}</span>
+                      }
                     </label>
                   }
                 </div>
+                <p class="mt-1 text-meta text-fg-muted">
+                  {{ 'inspections.builder.frameworksHint' | transloco }}
+                </p>
               </fieldset>
-              <div class="sm:col-span-2">
-                <label class="inline-flex items-center gap-2 text-[13.5px] text-fg">
+
+              <fieldset class="rounded-card border border-border p-3.5">
+                <legend class="px-1 text-ui font-semibold text-fg-muted">
+                  {{ 'inspections.builder.followUp' | transloco }}
+                </legend>
+                <p class="mb-3 text-meta text-fg-muted">
+                  {{ 'inspections.builder.findingVsDeviation' | transloco }}
+                </p>
+                <label class="inline-flex min-h-8 items-center gap-2 text-ui text-fg">
                   <input
                     type="checkbox"
                     class="h-4 w-4 accent-[var(--accent)]"
@@ -292,52 +352,69 @@ export function toTemplateFields(
                     data-testid="auto-deviation"
                   />
                   {{ 'inspections.fields.autoDeviation' | transloco }}
+                  <app-field-help scope="inspections" page="builder" field="autoDeviation" />
                 </label>
-                <app-field-help scope="inspections" page="builder" field="autoDeviation" />
-              </div>
-              @if (form().autoDeviation && deviationTypes().length > 0) {
-                <div>
-                  <app-form-field
-                    [label]="'inspections.fields.deviationType' | transloco"
-                    inputId="tb-devtype"
-                  >
-                    <select
-                      id="tb-devtype"
-                      (change)="set('deviationTypeId', $any($event.target).value)"
+                @if (form().autoDeviation) {
+                  <div class="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <app-form-field
+                      [label]="'inspections.fields.deviationMinSeverity' | transloco"
+                      inputId="tb-minsev"
                     >
-                      <option value="" [selected]="!form().deviationTypeId">
-                        {{ 'inspections.templates.defaultType' | transloco }}
-                      </option>
-                      @for (t of deviationTypes(); track t.id) {
-                        <option [value]="t.id" [selected]="t.id === form().deviationTypeId">
-                          {{ t.name }}
-                        </option>
-                      }
-                    </select>
-                  </app-form-field>
-                </div>
-              }
+                      <select
+                        id="tb-minsev"
+                        (change)="set('deviationMinSeverity', $any($event.target).value)"
+                        data-testid="deviation-min-severity"
+                      >
+                        @for (s of severities; track s) {
+                          <option [value]="s" [selected]="s === form().deviationMinSeverity">
+                            {{ 'inspections.builder.severityAndUp.' + s | transloco }}
+                          </option>
+                        }
+                      </select>
+                    </app-form-field>
+                    @if (deviationTypes().length > 0) {
+                      <app-form-field
+                        [label]="'inspections.fields.deviationType' | transloco"
+                        inputId="tb-devtype"
+                      >
+                        <select
+                          id="tb-devtype"
+                          (change)="set('deviationTypeId', $any($event.target).value)"
+                        >
+                          <option value="" [selected]="!form().deviationTypeId">
+                            {{ 'inspections.templates.defaultType' | transloco }}
+                          </option>
+                          @for (t of deviationTypes(); track t.id) {
+                            <option [value]="t.id" [selected]="t.id === form().deviationTypeId">
+                              {{ t.name }}
+                            </option>
+                          }
+                        </select>
+                      </app-form-field>
+                    }
+                  </div>
+                }
+              </fieldset>
             </div>
           </app-card>
 
           <section [attr.aria-label]="'inspections.builder.questionsHeading' | transloco">
             <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-              <h2 class="text-[16px] font-bold text-fg">
+              <h2 class="flex items-center gap-1.5 text-section font-bold text-fg">
                 {{ 'inspections.builder.questionsHeading' | transloco }}
-                <span class="text-[13px] font-normal text-fg-muted">
-                  ·
-                  {{ 'inspections.templates.questions' | transloco: { count: questions().length } }}
-                  · {{ 'inspections.builder.maxScore' | transloco: { value: maxScore() } }}
-                </span>
+                <app-field-help scope="inspections" page="builder" field="questionType" />
               </h2>
-              <app-field-help scope="inspections" page="builder" field="questionType" />
+              <span class="text-meta text-fg-muted">
+                {{ 'inspections.templates.questions' | transloco: { count: questions().length } }}
+                · {{ 'inspections.builder.maxScore' | transloco: { value: maxScore() } }}
+              </span>
             </div>
             <datalist [id]="sectionListId">
               @for (s of sections(); track s) {
                 <option [value]="s"></option>
               }
             </datalist>
-            <div class="flex flex-col gap-3" data-testid="question-list">
+            <div class="flex flex-col gap-2" data-testid="question-list">
               @for (q of questions(); track q.key; let i = $index) {
                 <app-question-editor
                   [question]="q"
@@ -346,6 +423,7 @@ export function toTemplateFields(
                   [showProblems]="attempted()"
                   [serverInvalid]="serverInvalid().has(q.key)"
                   [sectionListId]="sectionListId"
+                  [frameworks]="form().frameworks"
                   (changed)="updateQuestion(q.key, $event)"
                   (move)="moveQuestion(i, $event)"
                   (remove)="removeQuestion(q.key)"
@@ -353,7 +431,7 @@ export function toTemplateFields(
                 />
               } @empty {
                 <app-card>
-                  <p class="text-center text-[13.5px] text-fg-muted">
+                  <p class="text-center text-body text-fg-muted">
                     {{ 'inspections.builder.empty' | transloco }}
                   </p>
                 </app-card>
@@ -363,7 +441,7 @@ export function toTemplateFields(
               class="mt-3 flex flex-wrap items-center gap-2"
               appTourStep="inspections-builder-add"
             >
-              <span class="text-[13px] font-semibold text-fg-muted">
+              <span class="text-ui font-semibold text-fg-muted">
                 {{ 'inspections.builder.add' | transloco }}
               </span>
               @for (t of types; track t) {
@@ -393,7 +471,7 @@ export function toTemplateFields(
                   (input)="set('changeReason', $any($event.target).value)"
                 />
               </app-form-field>
-              <p class="mt-1.5 text-[12.5px] text-fg-muted">
+              <p class="mt-1.5 text-meta text-fg-muted">
                 {{ 'inspections.builder.versionNotice' | transloco }}
               </p>
             </app-card>
@@ -406,10 +484,10 @@ export function toTemplateFields(
           }
 
           <div
-            class="sticky bottom-0 -mx-4 flex flex-wrap justify-end gap-2 border-t border-border bg-bg/95 px-4 py-3 backdrop-blur sm:-mx-8 sm:px-8"
+            class="sticky bottom-0 z-10 -mx-4 flex flex-wrap justify-end gap-2 border-t border-border bg-bg px-4 py-3 sm:-mx-8 sm:px-8"
           >
             <a [routerLink]="id() ? ['/inspections/templates', id()] : '/inspections/templates'">
-              <app-button variant="ghost">{{
+              <app-button variant="secondary">{{
                 'inspections.actions.cancel' | transloco
               }}</app-button>
             </a>
@@ -434,7 +512,7 @@ export function toTemplateFields(
           </div>
         </form>
       }
-      <app-why-it-matters class="mt-6 block" scope="inspections" page="builder" />
+      <div class="mt-8"><app-why-it-matters scope="inspections" page="builder" /></div>
     </div>
 
     <app-slide-over
@@ -445,7 +523,7 @@ export function toTemplateFields(
       (closed)="aiOpen.set(false)"
     >
       <div class="flex flex-col gap-3">
-        <p class="text-[13px] text-fg-muted">
+        <p class="text-ui text-fg-muted">
           {{ 'inspections.builder.generateIntro' | transloco }}
         </p>
         <app-form-field
@@ -461,19 +539,20 @@ export function toTemplateFields(
             [placeholder]="'inspections.builder.generatePlaceholder' | transloco"
           ></textarea>
         </app-form-field>
-        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <app-form-field
-            [label]="'inspections.builder.generateClause' | transloco"
-            inputId="gen-clause"
-          >
-            <input
-              id="gen-clause"
-              maxlength="64"
-              placeholder="iso45001:9.1.1"
-              [value]="aiClause()"
-              (input)="aiClause.set($any($event.target).value)"
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_140px]">
+          <div>
+            <label for="gen-clause" class="mb-1.5 block text-ui font-semibold text-fg-muted">
+              {{ 'inspections.builder.generateClause' | transloco }}
+            </label>
+            <app-clause-picker
+              inputId="gen-clause"
+              [multiple]="false"
+              [frameworks]="supportedFrameworks"
+              placeholderKey="inspections.builder.clausePlaceholder"
+              [ngModel]="aiClause() || null"
+              (ngModelChange)="aiClause.set($event ?? '')"
             />
-          </app-form-field>
+          </div>
           <app-form-field
             [label]="'inspections.builder.generateCount' | transloco"
             inputId="gen-count"
@@ -504,9 +583,9 @@ export function toTemplateFields(
             class="mt-2 rounded-card border border-border bg-surface-2 p-3"
             data-testid="generated"
           >
-            <h3 class="mb-1 text-[14px] font-bold text-fg">{{ g.title }}</h3>
+            <h3 class="mb-1 text-card font-bold text-fg">{{ g.title }}</h3>
             @if (g.description) {
-              <p class="mb-2 text-[13px] text-fg-muted">{{ g.description }}</p>
+              <p class="mb-2 text-ui text-fg-muted">{{ g.description }}</p>
             }
             <app-question-preview [questions]="g.questions" />
             <div class="mt-3 flex flex-wrap gap-2">
@@ -519,7 +598,7 @@ export function toTemplateFields(
                 </app-button>
               }
             </div>
-            <p class="mt-2 text-[12px] text-fg-subtle">
+            <p class="mt-2 text-meta text-fg-subtle">
               {{ 'inspections.builder.generatedNotice' | transloco }}
             </p>
           </div>
@@ -534,22 +613,27 @@ export class TemplateBuilder {
   private readonly router = inject(Router);
   private readonly notifications = inject(NotificationService);
   private readonly references = inject(InspectionReferences);
+  private readonly language = inject(LanguageService);
 
   /** Route param on `:id/edit`; absent on `new`. */
   readonly id = input<string | undefined>(undefined);
 
   protected readonly types = QUESTION_TYPES;
   protected readonly categories = TEMPLATE_CATEGORIES;
-  protected readonly frameworks = FRAMEWORK_KEYS;
+  protected readonly severities = SEVERITIES;
   protected readonly typeKey = questionTypeKey;
+  protected readonly severityKey = severityKey;
   protected readonly generateAssist = ASSIST_GENERATE_CHECKLIST;
+  protected readonly settingsLink = INSPECTIONS_SETTINGS_LINK;
   protected readonly sectionListId = 'tb-sections';
+  protected readonly supportedFrameworks = SUPPORTED_FRAMEWORKS;
 
   protected readonly original = signal<TemplateDetail | null>(null);
   protected readonly form = signal<TemplateForm>(EMPTY_TEMPLATE_FORM);
   protected readonly questions = signal<readonly EditableQuestion[]>([]);
   protected readonly attempted = signal(false);
   protected readonly saving = signal(false);
+  protected readonly loadFailed = signal(false);
   protected readonly serverInvalid = signal<ReadonlySet<string>>(new Set());
 
   protected readonly aiOpen = signal(false);
@@ -565,6 +649,27 @@ export class TemplateBuilder {
   } | null>(null);
 
   protected readonly deviationTypes = this.references.deviationTypes;
+
+  protected readonly breadcrumbs = computed(() => {
+    const t = this.original();
+    return [
+      { labelKey: 'modules.names.inspections', link: '/inspections' },
+      { labelKey: 'inspections.templates.title', link: '/inspections/templates' },
+      ...(t ? [{ label: t.title, link: `/inspections/templates/${t.id}` }] : []),
+      { labelKey: this.id() ? 'inspections.builder.editTitle' : 'inspections.builder.newTitle' },
+    ];
+  });
+
+  /**
+   * The standards to offer: those the org has switched on, plus any the template
+   * already names; all four (marked) when none is on yet.
+   */
+  protected readonly frameworkOptions = computed(() => {
+    const all = this.references.frameworks();
+    const chosen = this.form().frameworks;
+    const enabled = all.filter((f) => f.enabled || chosen.includes(f.key));
+    return enabled.length ? enabled : all;
+  });
 
   protected readonly sections = computed(() => [
     ...new Set(
@@ -613,7 +718,12 @@ export class TemplateBuilder {
       entityType: TEMPLATE_ENTITY_TYPE,
       entityId: this.id() ?? null,
       view: this.id() ? 'edit' : 'new',
-      title: this.form().title || null,
+      title:
+        this.form().title ||
+        this.language.translate(
+          this.id() ? 'inspections.builder.editTitle' : 'inspections.builder.newTitle',
+        ),
+      requirements: [...new Set(this.questions().flatMap((q) => q.clause_refs))],
     }));
 
     effect(() => {
@@ -627,12 +737,13 @@ export class TemplateBuilder {
               this.form.set(formFromTemplate(t));
               this.questions.set(toEditable(t.questions));
             },
-            error: (e: unknown) => this.notifications.error(inspectionErrorKey(e)),
+            error: () => this.loadFailed.set(true),
           }),
         );
       }
     });
     this.references.ensureDeviationTypes();
+    this.references.ensureFrameworks();
   }
 
   protected set<K extends keyof TemplateForm>(key: K, value: TemplateForm[K]): void {
@@ -719,7 +830,13 @@ export class TemplateBuilder {
   protected save(publish: boolean): void {
     this.attempted.set(true);
     const orgId = this.selectedOrg.currentOrgId();
-    if (!orgId || this.saving() || this.problemCount() > 0) {
+    if (!orgId || this.saving()) {
+      return;
+    }
+    if (this.problemCount() > 0) {
+      if (!this.form().title.trim()) {
+        document.getElementById('tb-title')?.focus();
+      }
       return;
     }
     if (publish && this.questions().length === 0) {

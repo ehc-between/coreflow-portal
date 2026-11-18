@@ -243,7 +243,14 @@ export function inspectionsTestingProviders(
       { provide: AttachmentsApi, useValue: attachments },
       { provide: DeviationsApi, useValue: { listTypes: () => of([]) } },
       { provide: NotificationService, useValue: toasts },
-      { provide: InspectionsApi, useValue: api },
+      {
+        provide: InspectionsApi,
+        useValue: {
+          listTemplates: () => of({ items: [], total: 0 }),
+          frameworks: () => of([]),
+          ...api,
+        },
+      },
       ...guidance.providers,
     ],
   };

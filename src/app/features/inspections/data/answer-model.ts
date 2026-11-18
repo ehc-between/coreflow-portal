@@ -187,23 +187,28 @@ export function predictedResult(
   return failed > 0 ? 'failed' : 'passed';
 }
 
-/** The `PUT /responses` item for a draft (`clear` when nothing is left). */
+/**
+ * The `PUT /responses` item for a draft (`clear` when nothing is left). Photos can
+ * back up any answer (a failed yes/no with a picture of the problem), so
+ * `attachment_ids` travel with every type.
+ */
 export function toAnswerInput(question: Question, draft: AnswerDraft): AnswerInput {
   const note = draft.note.trim() || null;
+  const photos = draft.attachment_ids;
   if (draft.is_na && canBeNa(question)) {
-    return { question_id: question.id, is_na: true, value: null, note };
+    return { question_id: question.id, is_na: true, value: null, note, attachment_ids: photos };
   }
   if (question.type === 'photo') {
-    if (draft.attachment_ids.length === 0 && !note) {
+    if (photos.length === 0 && !note) {
       return { question_id: question.id, clear: true };
     }
-    return { question_id: question.id, attachment_ids: draft.attachment_ids, note };
+    return { question_id: question.id, attachment_ids: photos, note };
   }
   const value = cleanValue(question, draft.value);
-  if (value === null && !note) {
+  if (value === null && !note && photos.length === 0) {
     return { question_id: question.id, clear: true };
   }
-  return { question_id: question.id, value, is_na: false, note };
+  return { question_id: question.id, value, is_na: false, note, attachment_ids: photos };
 }
 
 export interface Section<T> {

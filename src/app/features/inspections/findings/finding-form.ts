@@ -11,12 +11,12 @@ import {
 import { TranslocoPipe } from '@jsverse/transloco';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
-import { FieldHelp } from '../../../shared/guidance/field-help';
 import { AssigneeSelect } from '../../../shared/tasks/assignee-select';
 import { Button } from '../../../shared/ui/button/button';
 import { FormField } from '../../../shared/ui/form-field/form-field';
+import { InspectionField } from '../components/inspection-field';
 import { RefSelect } from '../components/ref-select';
-import { dateInputToIso, severityKey } from '../data/inspection-display';
+import { dateInputToIso, isSerious, severityKey } from '../data/inspection-display';
 import { inspectionErrorKey } from '../data/inspection-errors';
 import { InspectionReferences, NamedRef } from '../data/inspection-references';
 import {
@@ -82,7 +82,7 @@ export function toFindingRequest(d: FindingDraft): CreateFindingRequest {
  */
 @Component({
   selector: 'app-finding-form',
-  imports: [TranslocoPipe, FieldHelp, AssigneeSelect, Button, FormField, RefSelect],
+  imports: [TranslocoPipe, AssigneeSelect, Button, FormField, InspectionField, RefSelect],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <form class="flex flex-col gap-3" (submit)="$event.preventDefault(); save()">
@@ -106,18 +106,20 @@ export function toFindingRequest(d: FindingDraft): CreateFindingRequest {
         ></textarea>
       </app-form-field>
       <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <div>
-          <app-form-field [label]="'inspections.fields.severity' | transloco" inputId="ff-sev">
-            <select id="ff-sev" (change)="set('severity', $any($event.target).value)">
-              @for (s of severities; track s) {
-                <option [value]="s" [selected]="s === draft().severity">
-                  {{ severityKey(s) | transloco }}
-                </option>
-              }
-            </select>
-          </app-form-field>
-          <app-field-help scope="inspections" page="detail" field="severity" />
-        </div>
+        <app-inspection-field
+          labelKey="inspections.fields.severity"
+          inputId="ff-sev"
+          page="detail"
+          help="severity"
+        >
+          <select id="ff-sev" (change)="setSeverity($any($event.target).value)">
+            @for (s of severities; track s) {
+              <option [value]="s" [selected]="s === draft().severity">
+                {{ severityKey(s) | transloco }}
+              </option>
+            }
+          </select>
+        </app-inspection-field>
         <app-form-field [label]="'inspections.fields.question' | transloco" inputId="ff-question">
           <app-ref-select
             inputId="ff-question"
@@ -147,7 +149,7 @@ export function toFindingRequest(d: FindingDraft): CreateFindingRequest {
       </div>
 
       <fieldset class="rounded-card border border-border p-3">
-        <legend class="px-1 text-[13px] font-semibold text-fg-muted">
+        <legend class="px-1 text-ui font-semibold text-fg-muted">
           {{ 'inspections.findings.firstAction' | transloco }}
         </legend>
         <div class="flex flex-col gap-2">
@@ -191,19 +193,25 @@ export function toFindingRequest(d: FindingDraft): CreateFindingRequest {
       </fieldset>
 
       @if (canRaiseDeviation()) {
-        <label class="inline-flex items-center gap-2 text-[13.5px] text-fg">
+        <label class="inline-flex min-h-8 items-start gap-2 text-body text-fg">
           <input
             type="checkbox"
-            class="h-4 w-4 accent-[var(--accent)]"
+            class="mt-0.5 h-4 w-4 accent-[var(--accent)]"
             [checked]="draft().raiseDeviation"
             (change)="set('raiseDeviation', $any($event.target).checked)"
+            data-testid="raise-deviation"
           />
-          {{ 'inspections.findings.raiseDeviation' | transloco }}
+          <span>
+            {{ 'inspections.findings.raiseDeviation' | transloco }}
+            <span class="block text-meta text-fg-muted">{{
+              'inspections.findings.raiseDeviationHint' | transloco
+            }}</span>
+          </span>
         </label>
       }
 
       <div class="flex justify-end gap-2">
-        <app-button variant="ghost" (click)="cancelled.emit()">
+        <app-button variant="secondary" (click)="cancelled.emit()">
           {{ 'inspections.actions.cancel' | transloco }}
         </app-button>
         <app-button
@@ -253,6 +261,15 @@ export class FindingForm {
 
   protected set<K extends keyof FindingDraft>(key: K, value: FindingDraft[K]): void {
     this.draft.update((d) => ({ ...d, [key]: value }));
+  }
+
+  /** Serious findings (high, critical) suggest a deviation straight away. */
+  protected setSeverity(severity: Severity): void {
+    this.draft.update((d) => ({
+      ...d,
+      severity,
+      raiseDeviation: this.canRaiseDeviation() && isSerious(severity) ? true : d.raiseDeviation,
+    }));
   }
 
   protected save(): void {

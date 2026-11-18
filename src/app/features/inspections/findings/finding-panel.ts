@@ -10,28 +10,34 @@ import {
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { AuthService } from '../../../core/auth/auth.service';
+import { LanguageService } from '../../../core/i18n/language.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { AiAssistButton } from '../../../shared/ask/ai-assist-button';
+import { AskAbout } from '../../../shared/ask/ask-about';
 import { FieldHelp } from '../../../shared/guidance/field-help';
+import { CreateFromHere } from '../../../shared/kit/create-from-here';
 import { Timeline } from '../../../shared/kit/timeline';
 import { LocalDatePipe, LocalDayPipe } from '../../../shared/locale/locale-pipes';
 import { MarkdownPipe } from '../../../shared/markdown/markdown.pipe';
+import { SupportsRequirements } from '../../../shared/requirement-links/supports-requirements';
 import { AssigneeSelect } from '../../../shared/tasks/assignee-select';
 import { EntityTasks } from '../../../shared/tasks/entity-tasks';
-import { Badge } from '../../../shared/ui/badge/badge';
+import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
+import { FieldItem, FieldList } from '../../../shared/ui/field-list/field-list';
 import { FormField } from '../../../shared/ui/form-field/form-field';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
+import { ClauseRefs } from '../components/clause-refs';
 import { RefSelect } from '../components/ref-select';
 import {
   dateInputToIso,
   findingStatusKey,
-  findingStatusTone,
+  isSerious,
   isoToDateInput,
   severityKey,
-  severityTone,
 } from '../data/inspection-display';
 import { inspectionErrorKey } from '../data/inspection-errors';
 import { InspectionReferences } from '../data/inspection-references';
@@ -41,8 +47,10 @@ import {
   Finding,
   FindingAssignee,
   InspectionPermissions,
+  Question,
   SEVERITIES,
   Severity,
+  Signature,
 } from '../data/inspection.models';
 import { InspectionsApi } from '../data/inspections-api';
 
@@ -52,6 +60,17 @@ interface FindingEdit {
   readonly severity: Severity;
   readonly ownerId: string;
   readonly dueDate: string;
+  readonly immediateCorrection: string;
+  readonly rootCause: string;
+}
+
+/** The close form: what was done (required) and whether it was checked to work. */
+export interface CloseDraft {
+  readonly closureNote: string;
+  readonly immediateCorrection: string;
+  readonly rootCause: string;
+  readonly effective: boolean;
+  readonly effectivenessNote: string;
 }
 
 /** `user:<id>` / `role:<key>` / `department:<id>` -> the API's assignee (null when empty). */
@@ -60,12 +79,21 @@ export function parseAssignee(encoded: string): FindingAssignee | null {
   return match ? { type: match[1] as FindingAssignee['type'], value: match[2] } : null;
 }
 
+/** The question text differs from the finding title (else "Fra spørsmål" only repeats it). */
+export function showsQuestion(f: Pick<Finding, 'title' | 'question_text'>): boolean {
+  const q = f.question_text?.trim().toLowerCase();
+  return !!q && q !== f.title.trim().toLowerCase();
+}
+
 /**
- * One finding, in a side panel of its inspection: what failed, severity, owner and
- * due date, the linked deviation, follow-up actions (F2 tasks), the timeline and an
- * assistant suggestion for actions. People with edit rights edit, close and reopen
- * it, add actions and escalate it to a deviation (`deviations:write`); managers
- * delete it.
+ * One finding, in a side panel of its inspection, laid out as the follow-up an auditor
+ * expects (ISO 9001 / 45001 10.2): what was found (with the failed answer, its note,
+ * photos and the clauses it concerns), what was done at once, the cause, follow-up
+ * tasks, the deviation, closing with a note on what was done, and a later check that
+ * the correction works. Serious findings (high, critical) without a deviation make
+ * "Opprett avvik" the primary action. "Lag ny fra denne" creates a risk, task,
+ * training need or document change from it, linked back. People with edit rights edit,
+ * close, reopen and add tasks; managers delete it.
  */
 @Component({
   selector: 'app-finding-panel',
@@ -73,38 +101,44 @@ export function parseAssignee(encoded: string): FindingAssignee | null {
     RouterLink,
     TranslocoPipe,
     AiAssistButton,
+    AskAbout,
     FieldHelp,
+    CreateFromHere,
     Timeline,
     LocalDatePipe,
     LocalDayPipe,
     MarkdownPipe,
+    SupportsRequirements,
     AssigneeSelect,
     EntityTasks,
-    Badge,
+    Alert,
     Button,
     ConfirmDialog,
+    FieldItem,
+    FieldList,
     FormField,
     Icon,
+    StatusBadge,
+    ClauseRefs,
     RefSelect,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @let f = finding();
-    <div class="flex flex-col gap-4" data-testid="finding-panel">
-      <div>
-        <p class="font-mono text-[12px] text-fg-subtle">{{ f.code }}</p>
-        <div class="mt-1 flex flex-wrap gap-1.5">
-          <app-badge [tone]="severityTone(f.severity)">{{
-            severityKey(f.severity) | transloco
-          }}</app-badge>
-          <app-badge [tone]="statusTone(f.status)">{{ statusKey(f.status) | transloco }}</app-badge>
-          <app-badge tone="neutral">{{
-            'inspections.findings.source.' + f.source | transloco
-          }}</app-badge>
-          @if (f.is_overdue) {
-            <app-badge tone="fail">{{ 'inspections.list.overdue' | transloco }}</app-badge>
-          }
-        </div>
+    <div class="flex flex-col gap-5" data-testid="finding-panel">
+      <div class="flex flex-wrap items-center gap-1.5">
+        <app-status-badge
+          meaning="severity"
+          [value]="f.severity"
+          [labelKey]="severityKey(f.severity)"
+        />
+        <app-status-badge meaning="lifecycle" [value]="f.status" [labelKey]="statusKey(f.status)" />
+        @if (f.is_overdue) {
+          <app-status-badge meaning="lifecycle" value="overdue" />
+        }
+        <span class="text-meta text-fg-subtle">{{
+          'inspections.findings.source.' + f.source | transloco
+        }}</span>
       </div>
 
       @if (editing()) {
@@ -156,8 +190,31 @@ export function parseAssignee(encoded: string): FindingAssignee | null {
               />
             </app-form-field>
           </div>
+          <app-form-field
+            [label]="'inspections.findings.immediateCorrection' | transloco"
+            inputId="fp-correction"
+          >
+            <textarea
+              id="fp-correction"
+              rows="2"
+              maxlength="20000"
+              [placeholder]="'inspections.findings.immediateCorrectionPlaceholder' | transloco"
+              [value]="edit().immediateCorrection"
+              (input)="patchEdit({ immediateCorrection: $any($event.target).value })"
+            ></textarea>
+          </app-form-field>
+          <app-form-field [label]="'inspections.findings.rootCause' | transloco" inputId="fp-cause">
+            <textarea
+              id="fp-cause"
+              rows="2"
+              maxlength="20000"
+              [placeholder]="'inspections.findings.rootCausePlaceholder' | transloco"
+              [value]="edit().rootCause"
+              (input)="patchEdit({ rootCause: $any($event.target).value })"
+            ></textarea>
+          </app-form-field>
           <div class="flex justify-end gap-2">
-            <app-button variant="ghost" size="sm" (click)="editing.set(false)">
+            <app-button variant="secondary" size="sm" (click)="editing.set(false)">
               {{ 'inspections.actions.cancel' | transloco }}
             </app-button>
             <app-button
@@ -171,100 +228,350 @@ export function parseAssignee(encoded: string): FindingAssignee | null {
           </div>
         </form>
       } @else {
-        <div>
-          <h3 class="text-[16px] font-bold text-fg">{{ f.title }}</h3>
-          @if (f.question_text) {
-            <p class="mt-1 text-[12.5px] text-fg-muted">
-              {{ 'inspections.findings.fromQuestion' | transloco }}: {{ f.question_text }}
+        <section
+          class="flex flex-col gap-2"
+          [attr.aria-label]="'inspections.findings.what' | transloco"
+        >
+          <h3 class="text-section font-bold text-fg" data-testid="finding-title">{{ f.title }}</h3>
+          @if (showQuestion()) {
+            <p class="text-meta text-fg-muted">
+              {{ 'inspections.findings.fromQuestion' | transloco: { question: f.question_text } }}
             </p>
           }
           @if (f.description) {
-            <p class="mt-2 text-[13.5px] whitespace-pre-line text-fg">{{ f.description }}</p>
+            <p class="text-body whitespace-pre-line text-fg">{{ f.description }}</p>
           }
-        </div>
-        <dl class="grid grid-cols-2 gap-2 text-[13px]">
-          <dt class="text-fg-muted">{{ 'inspections.fields.owner' | transloco }}</dt>
-          <dd class="text-fg">
-            {{ f.owner?.name ?? ('inspections.findings.noOwner' | transloco) }}
-          </dd>
-          <dt class="text-fg-muted">{{ 'inspections.fields.dueAt' | transloco }}</dt>
-          <dd [class.text-fail]="f.is_overdue">{{ f.due_at ? (f.due_at | localDay) : '—' }}</dd>
-          <dt class="text-fg-muted">{{ 'inspections.findings.deviation' | transloco }}</dt>
-          <dd>
-            @if (f.deviation; as dev) {
-              <a [routerLink]="dev.url" class="font-semibold text-accent hover:underline">
-                {{ dev.code }}
-              </a>
-              <span class="text-fg-muted"> · {{ dev.status }}</span>
-            } @else {
-              <span class="text-fg-subtle">{{
-                'inspections.findings.noDeviation' | transloco
-              }}</span>
-            }
-          </dd>
-          @if (f.closed_at) {
-            <dt class="text-fg-muted">{{ 'inspections.findings.closedAt' | transloco }}</dt>
-            <dd class="text-fg">
-              {{ f.closed_at | localDate }}
-              @if (f.closed_by?.name) {
-                · {{ f.closed_by?.name }}
+          @if (f.answer; as a) {
+            <div
+              class="rounded-tile border border-border bg-surface-2 px-3 py-2 text-ui"
+              data-testid="finding-answer"
+            >
+              <p class="font-semibold text-fg">
+                {{ 'inspections.findings.answerWas' | transloco: { answer: answerText() } }}
+              </p>
+              @if (a.note && a.note.trim() !== (f.description ?? '').trim()) {
+                <p class="mt-1 whitespace-pre-line text-fg-muted">{{ a.note }}</p>
               }
-            </dd>
+              @if (a.attachment_ids.length) {
+                <p class="mt-1 text-meta text-fg-muted">
+                  {{ 'inspections.detail.photos' | transloco: { count: a.attachment_ids.length } }}
+                </p>
+              }
+            </div>
           }
-        </dl>
-        <app-field-help scope="inspections" page="detail" field="finding" />
+          <app-clause-refs
+            [refs]="f.question_clause_refs"
+            labelKey="inspections.findings.concerns"
+          />
+        </section>
 
-        <div class="flex flex-wrap gap-2">
-          @if (canEdit()) {
-            <app-button variant="secondary" size="sm" (click)="startEdit()">
-              {{ 'inspections.actions.edit' | transloco }}
-            </app-button>
+        @if (canEdit() && !closing()) {
+          <div class="flex flex-wrap gap-2" data-testid="finding-actions">
             @if (f.status === 'open') {
-              <app-button
-                size="sm"
-                [loading]="busy()"
-                (click)="setStatus('close')"
-                data-testid="close-finding"
-              >
-                {{ 'inspections.findings.close' | transloco }}
-              </app-button>
+              @if (escalateFirst()) {
+                <app-button
+                  size="sm"
+                  [loading]="busy()"
+                  (click)="escalate()"
+                  data-testid="escalate"
+                >
+                  <app-icon name="flag" [size]="14" />
+                  {{ 'inspections.findings.escalate' | transloco }}
+                </app-button>
+                <app-button
+                  variant="secondary"
+                  size="sm"
+                  (click)="startClose()"
+                  data-testid="close-finding"
+                >
+                  {{ 'inspections.findings.close' | transloco }}
+                </app-button>
+              } @else {
+                <app-button size="sm" (click)="startClose()" data-testid="close-finding">
+                  {{ 'inspections.findings.close' | transloco }}
+                </app-button>
+                @if (!f.deviation && canEscalate()) {
+                  <app-button
+                    variant="secondary"
+                    size="sm"
+                    [loading]="busy()"
+                    (click)="escalate()"
+                    data-testid="escalate"
+                  >
+                    <app-icon name="flag" [size]="14" />
+                    {{ 'inspections.findings.escalate' | transloco }}
+                  </app-button>
+                }
+              }
             } @else {
+              @if (!f.effectiveness_checked_at) {
+                <app-button size="sm" (click)="checkingEffect.set(true)" data-testid="check-effect">
+                  <app-icon name="checkcircle" [size]="14" />
+                  {{ 'inspections.findings.checkEffect' | transloco }}
+                </app-button>
+              }
               <app-button
                 variant="secondary"
                 size="sm"
                 [loading]="busy()"
-                (click)="setStatus('reopen')"
+                (click)="reopen()"
+                data-testid="reopen"
               >
                 {{ 'inspections.findings.reopen' | transloco }}
               </app-button>
             }
-            @if (!f.deviation && canEscalate()) {
-              <app-button
-                variant="secondary"
-                size="sm"
-                [loading]="busy()"
-                (click)="escalate()"
-                data-testid="escalate"
-              >
-                <app-icon name="flag" [size]="14" />
-                {{ 'inspections.findings.escalate' | transloco }}
-              </app-button>
-            }
-          }
-          @if (permissions().can_manage) {
-            <app-button variant="danger" size="sm" (click)="confirmDelete.set(true)">
-              <app-icon name="trash" [size]="14" />
-              {{ 'inspections.actions.delete' | transloco }}
+            <app-button variant="secondary" size="sm" (click)="startEdit()">
+              {{ 'inspections.actions.edit' | transloco }}
             </app-button>
+            <app-create-from-here [entityType]="entityType" [entityId]="f.id" />
+          </div>
+          @if (escalateFirst()) {
+            <p class="-mt-3 text-meta text-fg-muted">
+              {{ 'inspections.findings.escalateHint' | transloco }}
+            </p>
           }
-        </div>
+        }
+
+        @if (closing()) {
+          <form
+            class="flex flex-col gap-3 rounded-card border border-border bg-surface p-4"
+            (submit)="$event.preventDefault(); close()"
+            data-testid="close-form"
+          >
+            <h3 class="text-card font-bold text-fg">
+              {{ 'inspections.findings.closeTitle' | transloco }}
+            </h3>
+            @if ((f.open_action_count ?? 0) > 0) {
+              <app-alert tone="info">{{
+                'inspections.findings.openTasksWarning' | transloco: { count: f.open_action_count }
+              }}</app-alert>
+            }
+            @if (escalateFirst()) {
+              <app-alert tone="info">{{
+                'inspections.findings.seriousWarning' | transloco
+              }}</app-alert>
+            }
+            <app-form-field
+              [label]="'inspections.findings.closureNote' | transloco"
+              inputId="fp-closure"
+            >
+              <textarea
+                id="fp-closure"
+                rows="3"
+                maxlength="20000"
+                required
+                [attr.aria-invalid]="closeAttempted() && !closeDraft().closureNote.trim()"
+                [attr.aria-describedby]="'fp-closure-hint'"
+                [placeholder]="'inspections.findings.closureNotePlaceholder' | transloco"
+                [value]="closeDraft().closureNote"
+                (input)="patchClose({ closureNote: $any($event.target).value })"
+                data-testid="closure-note"
+              ></textarea>
+            </app-form-field>
+            <p
+              id="fp-closure-hint"
+              class="-mt-2 text-meta"
+              [class.text-fail]="closeAttempted() && !closeDraft().closureNote.trim()"
+              [class.text-fg-muted]="!(closeAttempted() && !closeDraft().closureNote.trim())"
+            >
+              {{ 'inspections.findings.closureNoteHint' | transloco }}
+            </p>
+            <app-form-field
+              [label]="'inspections.findings.immediateCorrection' | transloco"
+              inputId="fp-close-correction"
+            >
+              <textarea
+                id="fp-close-correction"
+                rows="2"
+                maxlength="20000"
+                [value]="closeDraft().immediateCorrection"
+                (input)="patchClose({ immediateCorrection: $any($event.target).value })"
+              ></textarea>
+            </app-form-field>
+            <app-form-field
+              [label]="'inspections.findings.rootCause' | transloco"
+              inputId="fp-close-cause"
+            >
+              <textarea
+                id="fp-close-cause"
+                rows="2"
+                maxlength="20000"
+                [value]="closeDraft().rootCause"
+                (input)="patchClose({ rootCause: $any($event.target).value })"
+              ></textarea>
+            </app-form-field>
+            <label class="inline-flex min-h-8 items-start gap-2 text-ui text-fg">
+              <input
+                type="checkbox"
+                class="mt-0.5 h-4 w-4 accent-[var(--accent)]"
+                [checked]="closeDraft().effective"
+                (change)="patchClose({ effective: $any($event.target).checked })"
+                data-testid="effective"
+              />
+              <span>
+                {{ 'inspections.findings.effectiveNow' | transloco }}
+                <span class="block text-meta text-fg-muted">{{
+                  'inspections.findings.effectiveHint' | transloco
+                }}</span>
+              </span>
+            </label>
+            @if (closeDraft().effective) {
+              <app-form-field
+                [label]="'inspections.findings.effectivenessNote' | transloco"
+                inputId="fp-close-effect"
+              >
+                <textarea
+                  id="fp-close-effect"
+                  rows="2"
+                  maxlength="20000"
+                  [value]="closeDraft().effectivenessNote"
+                  (input)="patchClose({ effectivenessNote: $any($event.target).value })"
+                ></textarea>
+              </app-form-field>
+            }
+            <div class="flex justify-end gap-2">
+              <app-button variant="secondary" size="sm" (click)="closing.set(false)">
+                {{ 'inspections.actions.cancel' | transloco }}
+              </app-button>
+              <app-button type="submit" size="sm" [loading]="busy()" data-testid="confirm-close">
+                {{ 'inspections.findings.close' | transloco }}
+              </app-button>
+            </div>
+          </form>
+        }
+
+        @if (checkingEffect()) {
+          <form
+            class="flex flex-col gap-3 rounded-card border border-border bg-surface p-4"
+            (submit)="$event.preventDefault(); checkEffect()"
+          >
+            <h3 class="text-card font-bold text-fg">
+              {{ 'inspections.findings.checkEffectTitle' | transloco }}
+            </h3>
+            <p class="text-ui text-fg-muted">
+              {{ 'inspections.findings.effectiveHint' | transloco }}
+            </p>
+            <app-form-field
+              [label]="'inspections.findings.effectivenessNote' | transloco"
+              inputId="fp-effect-note"
+            >
+              <textarea
+                id="fp-effect-note"
+                rows="2"
+                maxlength="20000"
+                [value]="effectNote()"
+                (input)="effectNote.set($any($event.target).value)"
+              ></textarea>
+            </app-form-field>
+            <div class="flex justify-end gap-2">
+              <app-button variant="secondary" size="sm" (click)="checkingEffect.set(false)">
+                {{ 'inspections.actions.cancel' | transloco }}
+              </app-button>
+              <app-button type="submit" size="sm" [loading]="busy()" data-testid="confirm-effect">
+                {{ 'inspections.findings.checkEffectConfirm' | transloco }}
+              </app-button>
+            </div>
+          </form>
+        }
+
+        <section [attr.aria-label]="'inspections.findings.followUp' | transloco">
+          <app-field-list [columns]="2">
+            <app-field-item
+              labelKey="inspections.fields.owner"
+              [value]="f.owner?.name ?? ('inspections.findings.noOwner' | transloco)"
+            />
+            <app-field-item
+              labelKey="inspections.fields.dueAt"
+              [value]="f.due_at ? (f.due_at | localDay) : null"
+            />
+            <app-field-item labelKey="inspections.findings.deviation" empty="none">
+              @if (f.deviation; as dev) {
+                <a [routerLink]="dev.url" class="font-semibold text-accent hover:underline">{{
+                  dev.code
+                }}</a>
+                <app-status-badge class="ml-1.5" meaning="lifecycle" [value]="dev.status" />
+              }
+            </app-field-item>
+            <app-field-item labelKey="inspections.findings.tasks" [value]="tasksText()" />
+            <app-field-item
+              labelKey="inspections.findings.immediateCorrection"
+              [value]="f.immediate_correction"
+              [wide]="true"
+              [multiline]="true"
+            />
+            <app-field-item
+              labelKey="inspections.findings.rootCause"
+              [value]="f.root_cause"
+              [wide]="true"
+              [multiline]="true"
+            />
+            @if (f.status === 'closed' || f.closure_note) {
+              <app-field-item
+                labelKey="inspections.findings.closureNote"
+                [value]="f.closure_note"
+                [wide]="true"
+                [multiline]="true"
+              />
+              @if (f.closed_at) {
+                <app-field-item
+                  labelKey="inspections.findings.closedAt"
+                  [value]="
+                    f.closed_by?.name
+                      ? ('inspections.detail.completedBy'
+                        | transloco: { date: (f.closed_at | localDate), name: f.closed_by?.name })
+                      : (f.closed_at | localDate)
+                  "
+                />
+              }
+              <app-field-item labelKey="inspections.findings.effectiveness">
+                @if (f.effectiveness_checked_at) {
+                  <span class="text-pass-ink">{{
+                    'inspections.findings.effectChecked'
+                      | transloco
+                        : {
+                            date: (f.effectiveness_checked_at | localDate),
+                            name: f.effectiveness_checked_by?.name ?? '',
+                          }
+                  }}</span>
+                  @if (f.effectiveness_note) {
+                    <span class="mt-0.5 block text-ui whitespace-pre-line text-fg-muted">{{
+                      f.effectiveness_note
+                    }}</span>
+                  }
+                } @else {
+                  <span class="text-warn-ink">{{
+                    'inspections.findings.effectNotChecked' | transloco
+                  }}</span>
+                }
+              </app-field-item>
+            }
+          </app-field-list>
+          <div class="mt-3 flex items-start gap-1.5">
+            <p class="text-meta text-fg-muted">
+              {{ 'inspections.findings.vsDeviation' | transloco }}
+            </p>
+            <app-field-help scope="inspections" page="detail" field="finding" />
+          </div>
+        </section>
+
+        @if (permissions().can_manage) {
+          <div>
+            <app-button variant="ghost" size="sm" (click)="confirmDelete.set(true)">
+              <app-icon name="trash" [size]="14" />
+              {{ 'inspections.findings.delete' | transloco }}
+            </app-button>
+          </div>
+        }
       }
 
-      <section class="border-t border-border pt-3">
-        <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-          <h3 class="text-[14px] font-bold text-fg">
-            {{ 'inspections.findings.actions' | transloco }}
-          </h3>
+      <app-supports-requirements
+        [entityType]="entityType"
+        [entityId]="f.id"
+        [canEdit]="canEdit()"
+      />
+
+      <section class="border-t border-border pt-4">
+        <div class="mb-1 flex justify-end gap-1.5">
           <app-ai-assist-button
             [assist]="suggestAssist"
             labelKey="inspections.ai.suggestActions"
@@ -273,10 +580,16 @@ export function parseAssignee(encoded: string): FindingAssignee | null {
             [entityId]="f.id"
             (text)="suggestion.set($event)"
           />
+          <app-ask-about
+            [prompt]="'inspections.findings.askCause' | transloco: { code: f.code }"
+            field="root_cause"
+            [fieldLabel]="'inspections.findings.rootCause' | transloco"
+            [requirements]="f.question_clause_refs ?? []"
+          />
         </div>
         @if (suggestion()) {
           <div
-            class="mb-3 rounded-card border border-accent-border bg-accent-soft p-3 text-[13px] text-fg"
+            class="mb-3 rounded-card border border-accent-border bg-accent-soft p-3 text-ui text-fg"
             data-testid="suggestion"
             [innerHTML]="suggestion() | appMarkdown"
           ></div>
@@ -302,6 +615,7 @@ export function parseAssignee(encoded: string): FindingAssignee | null {
                 id="fp-action"
                 maxlength="255"
                 [value]="actionTitle()"
+                [placeholder]="'inspections.findings.actionPlaceholder' | transloco"
                 (input)="actionTitle.set($any($event.target).value)"
                 data-testid="action-title"
               />
@@ -333,6 +647,7 @@ export function parseAssignee(encoded: string): FindingAssignee | null {
               <app-button
                 type="submit"
                 size="sm"
+                variant="secondary"
                 [loading]="busy()"
                 [disabled]="!actionTitle().trim()"
               >
@@ -344,10 +659,7 @@ export function parseAssignee(encoded: string): FindingAssignee | null {
         }
       </section>
 
-      <section class="border-t border-border pt-3">
-        <h3 class="mb-2 text-[14px] font-bold text-fg">
-          {{ 'inspections.findings.activity' | transloco }}
-        </h3>
+      <section class="border-t border-border pt-4">
         <app-timeline [entityType]="entityType" [entityId]="f.id" />
       </section>
     </div>
@@ -368,11 +680,14 @@ export class FindingPanel {
   private readonly api = inject(InspectionsApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly notifications = inject(NotificationService);
+  private readonly language = inject(LanguageService);
   protected readonly references = inject(InspectionReferences);
 
   readonly finding = input.required<Finding>();
   /** Rights on the finding's inspection. */
   readonly permissions = input.required<InspectionPermissions>();
+  /** The failed question (to show the failing answer in its own words). */
+  readonly question = input<Question | null>(null);
 
   readonly changed = output<Finding>();
   readonly deleted = output<string>();
@@ -381,9 +696,7 @@ export class FindingPanel {
   protected readonly suggestAssist = ASSIST_SUGGEST_ACTIONS;
   protected readonly severities = SEVERITIES;
   protected readonly severityKey = severityKey;
-  protected readonly severityTone = severityTone;
   protected readonly statusKey = findingStatusKey;
-  protected readonly statusTone = findingStatusTone;
 
   protected readonly editing = signal(false);
   protected readonly edit = signal<FindingEdit>({
@@ -392,7 +705,20 @@ export class FindingPanel {
     severity: 'medium',
     ownerId: '',
     dueDate: '',
+    immediateCorrection: '',
+    rootCause: '',
   });
+  protected readonly closing = signal(false);
+  protected readonly closeAttempted = signal(false);
+  protected readonly closeDraft = signal<CloseDraft>({
+    closureNote: '',
+    immediateCorrection: '',
+    rootCause: '',
+    effective: false,
+    effectivenessNote: '',
+  });
+  protected readonly checkingEffect = signal(false);
+  protected readonly effectNote = signal('');
   protected readonly busy = signal(false);
   protected readonly confirmDelete = signal(false);
   protected readonly suggestion = signal('');
@@ -428,6 +754,52 @@ export class FindingPanel {
     this.orgPermissions().includes('deviations:write'),
   );
 
+  /** A serious, open finding without a deviation: creating one comes first. */
+  protected readonly escalateFirst = computed(() => {
+    const f = this.finding();
+    return f.status === 'open' && !f.deviation && isSerious(f.severity) && this.canEscalate();
+  });
+
+  protected readonly showQuestion = computed(() => showsQuestion(this.finding()));
+
+  /** "Nei" / "3 av 5" / "12 stk": the failed answer in words. */
+  protected readonly answerText = computed(() => {
+    const a = this.finding().answer;
+    const q = this.question();
+    if (!a) {
+      return '';
+    }
+    if (a.is_na) {
+      return this.language.translate('inspections.answers.na');
+    }
+    const v = a.value;
+    if (v === 'yes' || v === 'no') {
+      return this.language.translate(`inspections.answers.${v}`);
+    }
+    if (typeof v === 'number') {
+      const n = new Intl.NumberFormat(this.language.locale()).format(v);
+      if (q?.type === 'score') {
+        return `${n} / ${q.scale_max}`;
+      }
+      return q?.unit ? `${n} ${q.unit}` : n;
+    }
+    if (v && typeof v === 'object') {
+      return (v as Signature).name ?? '';
+    }
+    return v === null || v === undefined ? '' : String(v);
+  });
+
+  protected readonly tasksText = computed(() => {
+    const f = this.finding();
+    const all = f.action_count ?? 0;
+    return all === 0
+      ? this.language.translate('inspections.findings.noTasks')
+      : this.language.translate('inspections.findings.tasksCount', {
+          open: f.open_action_count ?? 0,
+          count: all,
+        });
+  });
+
   constructor() {
     this.references.ensurePeople();
   }
@@ -440,12 +812,32 @@ export class FindingPanel {
       severity: f.severity,
       ownerId: f.owner?.id ?? '',
       dueDate: isoToDateInput(f.due_at),
+      immediateCorrection: f.immediate_correction ?? '',
+      rootCause: f.root_cause ?? '',
     });
+    this.closing.set(false);
     this.editing.set(true);
   }
 
   protected patchEdit(change: Partial<FindingEdit>): void {
     this.edit.update((e) => ({ ...e, ...change }));
+  }
+
+  protected startClose(): void {
+    const f = this.finding();
+    this.closeDraft.set({
+      closureNote: f.closure_note ?? '',
+      immediateCorrection: f.immediate_correction ?? '',
+      rootCause: f.root_cause ?? '',
+      effective: false,
+      effectivenessNote: '',
+    });
+    this.closeAttempted.set(false);
+    this.closing.set(true);
+  }
+
+  protected patchClose(change: Partial<CloseDraft>): void {
+    this.closeDraft.update((d) => ({ ...d, ...change }));
   }
 
   private orgId(): string | null {
@@ -466,6 +858,8 @@ export class FindingPanel {
         severity: e.severity,
         owner_user_id: e.ownerId || null,
         due_at: dateInputToIso(e.dueDate),
+        immediate_correction: e.immediateCorrection.trim() || null,
+        root_cause: e.rootCause.trim() || null,
       })
       .subscribe({
         next: (f) =>
@@ -474,24 +868,54 @@ export class FindingPanel {
       });
   }
 
-  protected setStatus(action: 'close' | 'reopen'): void {
+  protected close(): void {
+    this.closeAttempted.set(true);
+    const orgId = this.orgId();
+    const d = this.closeDraft();
+    if (!orgId || !d.closureNote.trim()) {
+      document.getElementById('fp-closure')?.focus();
+      return;
+    }
+    this.busy.set(true);
+    this.api
+      .closeFinding(orgId, this.finding().id, {
+        closure_note: d.closureNote.trim(),
+        immediate_correction: d.immediateCorrection.trim() || null,
+        root_cause: d.rootCause.trim() || null,
+        effectiveness_checked: d.effective,
+        effectiveness_note: d.effective ? d.effectivenessNote.trim() || null : null,
+      })
+      .subscribe({
+        next: (f) =>
+          this.done(f, 'inspections.notices.findingClosed', () => this.closing.set(false)),
+        error: (err: unknown) => this.fail(err),
+      });
+  }
+
+  protected reopen(): void {
     const orgId = this.orgId();
     if (!orgId) {
       return;
     }
     this.busy.set(true);
-    const call =
-      action === 'close'
-        ? this.api.closeFinding(orgId, this.finding().id)
-        : this.api.reopenFinding(orgId, this.finding().id);
-    call.subscribe({
+    this.api.reopenFinding(orgId, this.finding().id).subscribe({
+      next: (f) => this.done(f, 'inspections.notices.findingReopened'),
+      error: (err: unknown) => this.fail(err),
+    });
+  }
+
+  protected checkEffect(): void {
+    const orgId = this.orgId();
+    if (!orgId) {
+      return;
+    }
+    this.busy.set(true);
+    this.api.checkEffectiveness(orgId, this.finding().id, this.effectNote()).subscribe({
       next: (f) =>
-        this.done(
-          f,
-          action === 'close'
-            ? 'inspections.notices.findingClosed'
-            : 'inspections.notices.findingReopened',
-        ),
+        this.done(f, 'inspections.notices.effectChecked', () => {
+          this.checkingEffect.set(false);
+          this.effectNote.set('');
+        }),
       error: (err: unknown) => this.fail(err),
     });
   }
@@ -529,6 +953,7 @@ export class FindingPanel {
           this.actionDue.set('');
           this.tasksRev.update((n) => n + 1);
           this.notifications.success('inspections.notices.actionAdded');
+          this.changed.emit(this.finding());
         },
         error: (err: unknown) => this.fail(err),
       });
