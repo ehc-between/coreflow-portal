@@ -1,0 +1,192 @@
+{
+  "title": "Dokumenter og rapporter",
+  "description": "Dokumenter og eksporter laget av det dere har registrert. Velg et dokument og trykk Lag dokument.",
+  "link": "Dokumenter og rapporter",
+  "nav": {
+    "outputs": "Hent ut",
+    "saved": "Arkiv",
+    "reports": "Lagrede rapporter",
+    "auditPacks": "Revisjonspakker"
+  },
+  "library": {
+    "registers": "Eksporter et register",
+    "documents": "Styrende dokumenter",
+    "search": "Søk",
+    "searchPlaceholder": "For eksempel behandling, risiko eller avvik",
+    "standard": "Standard",
+    "allStandards": "Alle standarder",
+    "fromModule": "Viser dokumenter fra {{ module }}.",
+    "ofKind": "Viser: {{ kind }}.",
+    "showAll": "Vis alle",
+    "recent": "Sist laget",
+    "seeAll": "Åpne arkivet ({{ count }})"
+  },
+  "panel": {
+    "emptyTitle": "Ingen dokumenter å lage ennå",
+    "emptyBody": "Dokumentene vises her når modulene som har dataene, er slått på og du har tilgang til dem.",
+    "noMatchTitle": "Ingen dokumenter passer",
+    "noMatchBody": "Prøv et annet ord, eller vis alle dokumenter."
+  },
+  "groups": {
+    "auditor": "Til revisor",
+    "authority": "Til myndigheter",
+    "customers": "Til kunder",
+    "board": "Til styret og ledelsen",
+    "employees": "Til ansatte"
+  },
+  "audiences": {
+    "auditor": "revisor",
+    "authority": "myndigheter",
+    "customers": "kunder",
+    "board": "styret",
+    "employees": "ansatte"
+  },
+  "kinds": {
+    "register_export": "Registereksporter",
+    "record_report": "Rapporter om én post",
+    "compiled_controlled": "Styrende dokumenter",
+    "pack": "Pakker",
+    "public": "Offentlige dokumenter"
+  },
+  "formats": {
+    "pdf": "PDF",
+    "docx": "Word",
+    "xlsx": "Excel",
+    "csv": "CSV"
+  },
+  "langs": {
+    "nb": "Norsk (bokmål)",
+    "en": "Engelsk"
+  },
+  "card": {
+    "ready": "Klar",
+    "missing": "Mangler {{ count }}",
+    "missingOne": "Mangler 1",
+    "for": "For:",
+    "moreClauses": "+{{ count }}",
+    "last": "Versjon {{ version }}, laget {{ date }}",
+    "withGaps": "med mangler"
+  },
+  "status": {
+    "draft": "Utkast",
+    "final": "Endelig",
+    "aiDraft": "Foreslått utkast, ikke kontrollert ennå",
+    "gaps": "Har mangler",
+    "superseded": "Erstattet"
+  },
+  "actions": {
+    "make": "Lag dokument",
+    "makeAnyway": "Lag likevel",
+    "download": "Last ned",
+    "openVersion": "Åpne den lagrede versjonen",
+    "openFlow": "Åpne",
+    "newVersion": "Lag ny versjon"
+  },
+  "generate": {
+    "subtitle": "Vi sjekker hva som mangler før dokumentet lages.",
+    "close": "Lukk",
+    "doneTitle": "Dokumentet er klart",
+    "doneBody": "Versjon {{ version }} · {{ format }} · {{ lang }}. Det er lagret i arkivet.",
+    "doneGaps": "Det som mangler, er listet opp og merket i dokumentet.",
+    "doneDraft": "Dette er et utkast. Det teller ikke som dokumentasjon før en endelig versjon er laget.",
+    "standard": "Standard",
+    "pickStandard": "Velg en standard",
+    "fromRecord": "Dette dokumentet lages fra én post. Åpne posten og lag det der.",
+    "format": "Filtype",
+    "lang": "Språk i dokumentet"
+  },
+  "preflight": {
+    "title": "Før du lager dokumentet",
+    "checking": "Sjekker hva som mangler …",
+    "ready": "Alt som trengs, er på plass.",
+    "missing": "{{ count }} ting mangler.",
+    "missingOne": "1 ting mangler.",
+    "recommended": "Anbefalt, ikke påkrevd",
+    "fix": "Fyll ut nå",
+    "anywayHint": "Det som mangler, blir merket i dokumentet."
+  },
+  "row": {
+    "meta": "Versjon {{ version }} · {{ format }} · {{ lang }} · {{ date }}",
+    "by": "av {{ name }}"
+  },
+  "saved": {
+    "title": "Arkiv",
+    "description": "Alle dokumenter som er laget, nyeste først. Hver versjon lagres uendret.",
+    "currentOnly": "Bare gjeldende versjoner",
+    "emptyTitle": "Ingenting er laget ennå",
+    "emptyBody": "Dokumenter du lager, lagres her, så du kan finne og laste dem ned igjen.",
+    "emptyCta": "Lag et dokument",
+    "total": "Totalt: {{ count }}",
+    "more": "Vis flere"
+  },
+  "generated": {
+    "title": "Lagret dokument",
+    "notFoundTitle": "Fant ikke dokumentet",
+    "notFoundBody": "Det kan tilhøre en annen organisasjon, eller du har ikke tilgang til det.",
+    "version": "Versjon {{ version }}",
+    "sourceChanged": "Dataene er endret siden denne versjonen ble laget.",
+    "supersededOn": "Erstattet av en nyere versjon {{ date }}.",
+    "checksumHint": "Et fingeravtrykk av filen. Har en kopi samme verdi, er den ikke endret.",
+    "gapsTitle": "Manglet da dokumentet ble laget",
+    "noEvidence": "Brukes ikke som dokumentasjon.",
+    "noEvidenceDraft": "Utkast teller ikke som dokumentasjon.",
+    "noEvidenceGaps": "Dokumenter med mangler teller ikke som dokumentasjon.",
+    "noEvidenceSuperseded": "En nyere versjon brukes som dokumentasjon.",
+    "fields": {
+      "output": "Dokument",
+      "made": "Laget",
+      "format": "Filtype og språk",
+      "size": "Størrelse",
+      "standard": "Standard",
+      "rows": "Rader",
+      "clauses": "Krav det dekker",
+      "evidence": "Teller som dokumentasjon for",
+      "checksum": "Kontrollsum (SHA-256)"
+    }
+  },
+  "branding": {
+    "title": "Merkevare",
+    "description": "Logoen, fargen og bunnteksten på alle PDF- og Word-dokumenter CoreFlow lager.",
+    "logo": "Logo",
+    "logoHint": "PNG eller JPEG, høyst 512 KB. Den vises øverst i hvert dokument.",
+    "logoAlt": "Organisasjonens logo",
+    "noLogo": "Ingen logo",
+    "uploadLogo": "Last opp logo",
+    "replaceLogo": "Bytt logo",
+    "removeLogo": "Fjern",
+    "accent": "Profilfarge",
+    "accentInvalid": "Bruk en fargekode som #1f6feb.",
+    "footer": "Bunntekst",
+    "footerHint": "{{ count }} av {{ max }} tegn. Vises nederst på hver side.",
+    "classification": "Standard gradering",
+    "none": "Ingen",
+    "lang": "Standard dokumentspråk",
+    "langAuto": "Samme som brukerens språk",
+    "save": "Lagre",
+    "saved": "Merkevaren er lagret.",
+    "logoSaved": "Logoen er lagret."
+  },
+  "classification": {
+    "public": "Åpen",
+    "internal": "Intern",
+    "confidential": "Fortrolig",
+    "restricted": "Strengt fortrolig"
+  },
+  "errors": {
+    "forbidden": "Du har ikke tilgang til dette dokumentet.",
+    "output_not_found": "Dette dokumentet er ikke tilgjengelig.",
+    "module_disabled": "Modulen som har disse dataene, er slått av.",
+    "preflight_incomplete": "Noe påkrevd informasjon mangler.",
+    "output_has_own_flow": "Dette dokumentet lages på en egen side.",
+    "standard_not_enabled": "Denne standarden er ikke slått på for organisasjonen.",
+    "standard_required": "Velg en standard først.",
+    "standard_not_found": "Fant ikke standarden.",
+    "entity_required": "Dette dokumentet lages fra én post.",
+    "entity_type_required": "Dette dokumentet lages fra én post.",
+    "format_not_available": "Denne filtypen finnes ikke for dette dokumentet.",
+    "unsupported_filter": "Ett av filtrene kan ikke brukes for denne eksporten.",
+    "export_unavailable": "Filer kan ikke lages akkurat nå. Prøv igjen senere.",
+    "unsupported_logo_type": "Logoen må være et PNG- eller JPEG-bilde.",
+    "logo_too_large": "Logoen er for stor. Grensen er 512 KB."
+  }
+}

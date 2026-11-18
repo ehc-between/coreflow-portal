@@ -30,7 +30,7 @@ import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { ReportsAsk } from '../components/ask-button';
 import { ColumnPicker } from '../components/column-picker';
 import { RegisterFilters, supportedFilters } from '../components/register-filters';
-import { ReportsNav } from '../components/reports-nav';
+import { LibraryNav } from '../../../shared/outputs/library-nav';
 import { blobErrorKey, fileStem, reportErrorKey, saveBlob } from '../data/report-errors';
 import {
   clauseText,
@@ -64,7 +64,7 @@ type Preview =
   | { readonly status: 'ready'; readonly value: RegisterPreview };
 
 /**
- * `/reports/registers`: pick a register — the platform's own (tasks, deviations,
+ * `/library/registers`: pick a register — the platform's own (tasks, deviations,
  * corrective actions, documents, the Statement of Applicability, the evidence index,
  * requirement coverage) and every module's (risks, legal requirements, objectives,
  * training, suppliers, assets, audits, management reviews, processing records, AI
@@ -90,7 +90,7 @@ type Preview =
     ReportsAsk,
     ColumnPicker,
     RegisterFilters,
-    ReportsNav,
+    LibraryNav,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -99,11 +99,11 @@ type Preview =
         titleKey="reports.registers.title"
         descriptionKey="reports.registers.subtitle"
         [breadcrumbs]="[
-          { labelKey: 'modules.names.reports', link: '/reports' },
+          { labelKey: 'outputs.title', link: '/library' },
           { labelKey: 'reports.nav.registers' },
         ]"
       />
-      <app-reports-nav />
+      <app-library-nav />
       <app-help-strip scope="reports" page="registers" lesson="exporting-registers" />
 
       @if (loadError(); as key) {
@@ -228,7 +228,7 @@ type Preview =
                   @if (canWrite()) {
                     <a
                       class="ml-auto inline-flex h-8 items-center gap-1.5 rounded-tile border border-border bg-surface px-3 text-ui font-semibold text-fg hover:border-border-strong hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
-                      routerLink="/reports/definitions/new"
+                      routerLink="/library/reports/new"
                       [queryParams]="saveParams()"
                       data-testid="save-as-report"
                     >

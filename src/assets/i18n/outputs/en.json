@@ -1,0 +1,192 @@
+{
+  "title": "Documents and reports",
+  "description": "Documents and exports built from what you have recorded. Pick a document and choose Make document.",
+  "link": "Documents and reports",
+  "nav": {
+    "outputs": "Get documents",
+    "saved": "Archive",
+    "reports": "Saved reports",
+    "auditPacks": "Audit packs"
+  },
+  "library": {
+    "registers": "Export a register",
+    "documents": "Controlled documents",
+    "search": "Search",
+    "searchPlaceholder": "For example processing, risk or deviations",
+    "standard": "Standard",
+    "allStandards": "All standards",
+    "fromModule": "Showing documents from {{ module }}.",
+    "ofKind": "Showing: {{ kind }}.",
+    "showAll": "Show all",
+    "recent": "Recently made",
+    "seeAll": "Open the archive ({{ count }})"
+  },
+  "panel": {
+    "emptyTitle": "No documents to make yet",
+    "emptyBody": "Documents appear here when the modules that hold their data are switched on and you have access to them.",
+    "noMatchTitle": "No documents match",
+    "noMatchBody": "Try another word, or show all documents."
+  },
+  "groups": {
+    "auditor": "For the auditor",
+    "authority": "For the authorities",
+    "customers": "For customers",
+    "board": "For the board and management",
+    "employees": "For employees"
+  },
+  "audiences": {
+    "auditor": "auditor",
+    "authority": "authorities",
+    "customers": "customers",
+    "board": "board",
+    "employees": "employees"
+  },
+  "kinds": {
+    "register_export": "Register exports",
+    "record_report": "Reports on one record",
+    "compiled_controlled": "Controlled documents",
+    "pack": "Packs",
+    "public": "Public documents"
+  },
+  "formats": {
+    "pdf": "PDF",
+    "docx": "Word",
+    "xlsx": "Excel",
+    "csv": "CSV"
+  },
+  "langs": {
+    "nb": "Norwegian (Bokmål)",
+    "en": "English"
+  },
+  "card": {
+    "ready": "Ready",
+    "missing": "{{ count }} missing",
+    "missingOne": "1 missing",
+    "for": "For:",
+    "moreClauses": "+{{ count }}",
+    "last": "Version {{ version }}, made {{ date }}",
+    "withGaps": "with gaps"
+  },
+  "status": {
+    "draft": "Draft",
+    "final": "Final",
+    "aiDraft": "Suggested draft, not checked yet",
+    "gaps": "Has gaps",
+    "superseded": "Replaced"
+  },
+  "actions": {
+    "make": "Make document",
+    "makeAnyway": "Make it anyway",
+    "download": "Download",
+    "openVersion": "Open the saved version",
+    "openFlow": "Open",
+    "newVersion": "Make a new version"
+  },
+  "generate": {
+    "subtitle": "We check what is missing before the document is made.",
+    "close": "Close",
+    "doneTitle": "The document is ready",
+    "doneBody": "Version {{ version }} · {{ format }} · {{ lang }}. It is saved in the archive.",
+    "doneGaps": "The missing information is listed and marked in the document.",
+    "doneDraft": "This is a draft. It does not count as documentation until a final version is made.",
+    "standard": "Standard",
+    "pickStandard": "Choose a standard",
+    "fromRecord": "This document is made from one record. Open the record and make it there.",
+    "format": "File type",
+    "lang": "Document language"
+  },
+  "preflight": {
+    "title": "Before you make it",
+    "checking": "Checking what is missing …",
+    "ready": "Everything needed is in place.",
+    "missing": "{{ count }} things are missing.",
+    "missingOne": "1 thing is missing.",
+    "recommended": "Recommended, not required",
+    "fix": "Fill in now",
+    "anywayHint": "What is missing is marked in the document."
+  },
+  "row": {
+    "meta": "Version {{ version }} · {{ format }} · {{ lang }} · {{ date }}",
+    "by": "by {{ name }}"
+  },
+  "saved": {
+    "title": "Archive",
+    "description": "Every document that has been made, newest first. Each version is kept unchanged.",
+    "currentOnly": "Only current versions",
+    "emptyTitle": "Nothing made yet",
+    "emptyBody": "Documents you make are saved here, so you can find and download them again.",
+    "emptyCta": "Make a document",
+    "total": "Total: {{ count }}",
+    "more": "Show more"
+  },
+  "generated": {
+    "title": "Saved document",
+    "notFoundTitle": "Document not found",
+    "notFoundBody": "It may belong to another organisation, or you do not have access to it.",
+    "version": "Version {{ version }}",
+    "sourceChanged": "The data has changed since this version was made.",
+    "supersededOn": "Replaced by a newer version on {{ date }}.",
+    "checksumHint": "A fingerprint of the file. If a copy has the same value, it has not been changed.",
+    "gapsTitle": "Missing when the document was made",
+    "noEvidence": "Not used as documentation.",
+    "noEvidenceDraft": "Drafts do not count as documentation.",
+    "noEvidenceGaps": "Documents with missing information do not count as documentation.",
+    "noEvidenceSuperseded": "A newer version is used as documentation.",
+    "fields": {
+      "output": "Document",
+      "made": "Made",
+      "format": "File type and language",
+      "size": "Size",
+      "standard": "Standard",
+      "rows": "Rows",
+      "clauses": "Requirements it covers",
+      "evidence": "Counts as documentation for",
+      "checksum": "Checksum (SHA-256)"
+    }
+  },
+  "branding": {
+    "title": "Branding",
+    "description": "The logo, colour and footer on every PDF and Word document CoreFlow makes.",
+    "logo": "Logo",
+    "logoHint": "PNG or JPEG, at most 512 KB. It is shown at the top of each document.",
+    "logoAlt": "Your organisation's logo",
+    "noLogo": "No logo",
+    "uploadLogo": "Upload logo",
+    "replaceLogo": "Replace logo",
+    "removeLogo": "Remove",
+    "accent": "Accent colour",
+    "accentInvalid": "Use a colour code such as #1f6feb.",
+    "footer": "Footer text",
+    "footerHint": "{{ count }} of {{ max }} characters. Shown at the bottom of every page.",
+    "classification": "Default classification",
+    "none": "None",
+    "lang": "Default document language",
+    "langAuto": "Same as the user's language",
+    "save": "Save",
+    "saved": "Branding saved.",
+    "logoSaved": "Logo saved."
+  },
+  "classification": {
+    "public": "Public",
+    "internal": "Internal",
+    "confidential": "Confidential",
+    "restricted": "Strictly confidential"
+  },
+  "errors": {
+    "forbidden": "You do not have access to this document.",
+    "output_not_found": "This document is not available.",
+    "module_disabled": "The module that holds this data is switched off.",
+    "preflight_incomplete": "Some required information is missing.",
+    "output_has_own_flow": "This document is made on its own page.",
+    "standard_not_enabled": "This standard is not switched on for your organisation.",
+    "standard_required": "Choose a standard first.",
+    "standard_not_found": "The standard was not found.",
+    "entity_required": "This document is made from one record.",
+    "entity_type_required": "This document is made from one record.",
+    "format_not_available": "This file type is not available for this document.",
+    "unsupported_filter": "One of the filters cannot be used for this export.",
+    "export_unavailable": "Files cannot be made right now. Try again later.",
+    "unsupported_logo_type": "The logo must be a PNG or JPEG image.",
+    "logo_too_large": "The logo is too large. The limit is 512 KB."
+  }
+}

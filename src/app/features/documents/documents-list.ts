@@ -104,6 +104,7 @@ interface Row {
   template: `
     <app-record-list-page
       titleKey="modules.names.documents"
+      outputsModule="documents"
       descriptionKey="documents.subtitle"
       scope="documents"
       page="list"

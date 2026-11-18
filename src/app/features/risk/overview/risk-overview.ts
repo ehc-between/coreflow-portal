@@ -83,6 +83,7 @@ type LoadState = 'loading' | 'ready' | 'error';
         titleKey="modules.names.risk"
         descriptionKey="risk.overview.subtitle"
         settingsLink="/risk/matrices"
+        outputsModule="risk"
       >
         @if (perms.canWrite()) {
           <app-button

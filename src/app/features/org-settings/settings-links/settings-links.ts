@@ -88,6 +88,15 @@ export const SETTINGS_HUB_CARDS: readonly SettingsLink[] = [
     group: 'organisation',
   },
   {
+    // U11: logo, colour, footer and classification of every generated document.
+    path: '/settings/branding',
+    labelKey: 'settings.hub.cards.branding',
+    hintKey: 'settings.hub.cards.brandingHint',
+    icon: 'flag',
+    permission: 'org:manage',
+    group: 'organisation',
+  },
+  {
     path: '/setup',
     labelKey: 'settings.hub.cards.setup',
     hintKey: 'settings.hub.cards.setupHint',

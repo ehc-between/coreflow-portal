@@ -85,7 +85,7 @@ export function widgetLink(
     case 'reports.upcoming':
       return { path: '/reports/calendar' };
     case 'reports.audit_packs':
-      return { path: '/reports/audit-packs' };
+      return { path: '/library/audit-packs' };
   }
   const url = data?.['url'];
   if (typeof url === 'string' && url.startsWith('/') && !url.startsWith('//')) {

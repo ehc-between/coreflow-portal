@@ -258,7 +258,7 @@ export function evidenceSources(
                           {{ 'standards.export.' + format | transloco }}
                         </button>
                       }
-                      <a appMenuItem routerLink="/reports/audit-packs">
+                      <a appMenuItem routerLink="/library/audit-packs">
                         <app-icon name="qa" [size]="15" />
                         {{ 'standards.export.auditPack' | transloco }}
                       </a>
