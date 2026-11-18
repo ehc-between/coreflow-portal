@@ -2,11 +2,14 @@ import guideEn from '../../../assets/guidance/en/objectives.json';
 import guideNb from '../../../assets/guidance/nb/objectives.json';
 import en from '../../../assets/i18n/objectives/en.json';
 import nb from '../../../assets/i18n/objectives/nb.json';
+import kitEn from '../../../assets/i18n/kit/en.json';
+import kitNb from '../../../assets/i18n/kit/nb.json';
 import { expectKeyParity } from '../../../testing/i18n-parity';
 import { KNOWN_FRAMEWORKS } from '../../core/guidance/clause-ref';
 import { GuidanceFile } from '../../core/guidance/guidance.models';
 import { OBJECTIVES_ERROR_CODES } from './data/objectives-errors';
 import {
+  EXPORT_FORMATS,
   KPI_DIRECTIONS,
   KPI_FREQUENCIES,
   KPI_HEALTH_FILTERS,
@@ -17,7 +20,7 @@ import {
   OBJECTIVE_STATUSES,
   TRENDS,
 } from './data/objectives.models';
-import { KPI_STATUS_FILTERS } from './kpis-list';
+import { KPI_HEALTH_CHOICES, KPI_STATUS_FILTERS } from './kpis-list';
 import { OBJECTIVE_STATUS_FILTERS } from './objectives-list';
 
 type Tree = Record<string, unknown>;
@@ -51,7 +54,37 @@ const EVENT_NAMES = [
   'kpiDeleted',
 ];
 
+/** State-driven steps on the objective page (objective-detail `nextSteps`). */
+const NEXT_STEPS = [
+  'activate',
+  'addKpi',
+  'close',
+  'origins',
+  'systems',
+  'communicate',
+  'attention',
+];
+/** Next-action keys the backend sends for the home page (`objectives:next.<name>.title|why`). */
+const BACKEND_NEXT_ACTIONS = ['objectiveOverdue', 'measurementOverdue', 'kpiOffTrack'];
+/** Create-from-here flows the backend registers (labels `kit.flows.<key>`). */
+const FLOWS = [
+  'kpi.to_deviation',
+  'kpi.to_task',
+  'objective.to_kpi',
+  'objective.to_task',
+  'risk.to_objective',
+  'opportunity.to_objective',
+];
+
 describe('objectives i18n and guidance', () => {
+  it('labels every create-from-here flow of the module in both languages', () => {
+    for (const kit of [kitEn, kitNb] as Tree[]) {
+      for (const key of FLOWS) {
+        expect(typeof lookup(kit, 'flows.' + key), key).toBe('string');
+      }
+    }
+  });
+
   it('keeps the scoped translations at full en/nb parity', () => {
     expectKeyParity(en, nb);
   });
@@ -74,6 +107,14 @@ describe('objectives i18n and guidance', () => {
     ['direction', KPI_DIRECTIONS],
     ['frequency', KPI_FREQUENCIES],
     ['managementSystems', MANAGEMENT_SYSTEMS],
+    ['managementSystemsShort', MANAGEMENT_SYSTEMS],
+    ['filters.healthOptions', KPI_HEALTH_CHOICES],
+    ['export', EXPORT_FORMATS],
+    ['period', ['week', 'month', 'quarter', 'half', 'year']],
+    ['attention', ['at_risk.title', 'off_track.title', 'body']],
+    ['next', NEXT_STEPS.flatMap((k) => [k + '.text', k + '.cta'])],
+    ['next', BACKEND_NEXT_ACTIONS.flatMap((k) => [k + '.title', k + '.why'])],
+    ['tasks', ['recordMeasurement']],
     ['errors', OBJECTIVES_ERROR_CODES],
     ['filters.statusOptions', OBJECTIVE_STATUS_FILTERS],
     ['filters.kpiStatusOptions', KPI_STATUS_FILTERS],

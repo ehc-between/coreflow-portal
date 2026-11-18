@@ -2,36 +2,36 @@
   "pages": {
     "list": {
       "intro": {
-        "title": "Målene viser hvor dere skal",
-        "body": "Et **mål** er et resultat organisasjonen forplikter seg til å nå innenfor et styringssystem, for eksempel færre kundeklager, raskere håndtering av hendelser eller lavere energibruk. Hvert mål har en eier, en målbar målsetting, en plan og en frist.",
+        "title": "Målene viser hvor organisasjonen skal",
+        "body": "Et **mål** er et resultat organisasjonen forplikter seg til, for eksempel færre kundeklager eller raskere håndtering av sikkerhetshendelser. Hvert mål har en eier, et målbart resultat, en plan og en frist. **Nøkkeltall (KPI-er)** er tallene som viser om organisasjonen er på sporet.",
         "steps": [
-          "Opprett mål per styringssystem, og gi dem en eier og en frist.",
-          "Skriv målsettingen slik at hvem som helst senere kan se om den ble nådd.",
-          "Legg til én eller flere KPI-er, slik at fremdriften bygger på målte data, ikke synsing."
+          "Opprett de to eller tre målene som betyr mest i år, og gi hvert av dem en eier og en frist.",
+          "Koble hvert mål til policyen, risikoen eller muligheten det kommer fra.",
+          "Legg til en KPI på hvert mål, slik at fremdriften beregnes ut fra målte data."
         ]
       },
       "why": {
-        "body": "Standardene krever mål for relevante funksjoner og nivåer som er **målbare**, overvåkes, kommuniseres og oppdateres, med en plan for hva som skal gjøres, av hvem, med hvilke ressurser, innen når og hvordan resultatene skal evalueres.",
+        "body": "Standardene krever mål for relevante funksjoner og nivåer. Målene skal være **målbare**, følges opp, kommuniseres og oppdateres, og det skal finnes en plan for hva som skal gjøres, av hvem, med hvilke ressurser, innen når og hvordan resultatet skal vurderes.",
         "clauses": ["hs:6.2", "iso9001:6.2", "iso27001:6.2", "iso14001:6.2"]
       },
       "empty": {
         "title": "Ingen mål ennå",
-        "body": "Start med to eller tre mål som betyr mest i år, for eksempel ett for kvalitet og ett for informasjonssikkerhet. Du kan be om SMARTe forslag når du oppretter et mål.",
+        "body": "Start med de to eller tre målene som betyr mest i år, for eksempel ett for kvalitet og ett for informasjonssikkerhet. Du kan be om forslag til SMARTe mål når du oppretter et mål.",
         "cta": "Opprett det første målet"
       }
     },
     "kpis": {
       "intro": {
-        "title": "KPI-er måler om dere er på rett vei",
-        "body": "En **KPI** (nøkkelindikator) er et tall dere registrerer jevnlig, for eksempel klageandel per måned eller andelen ansatte som har fullført opplæring. Hver KPI har en enhet, en retning (er høyere eller lavere bedre?), en målverdi og en valgfri varselgrense.",
+        "title": "KPI-er viser om du er på sporet",
+        "body": "En **KPI** (nøkkeltall) er et tall du registrerer jevnlig, for eksempel antall klager per måned eller andelen ansatte som har fullført opplæringen. Hver KPI har en enhet, sier om høyere eller lavere verdi er bedre, og har en målverdi og eventuelt en varselgrense.",
         "steps": [
-          "Knytt hver KPI til målet den måler.",
-          "Sett en målverdi, og en varselgrense for å få et tidlig signal før dere bommer.",
-          "Velg hvor ofte den måles: eieren får da en gjentakende måleoppgave."
+          "Koble hver KPI til målet den måler.",
+          "Sett en målverdi, og en varselgrense som gir et tidlig signal før målet bommes.",
+          "Velg hvor ofte den måles. Den som registrerer verdiene, får en gjentakende oppgave."
         ]
       },
       "why": {
-        "body": "Dere må bestemme **hva** som overvåkes og måles, **hvordan**, **når** og **hvem** som evaluerer resultatene, og ta vare på resultatene som dokumentert informasjon. KPI-er med registrerte målinger er det beviset.",
+        "body": "Organisasjonen må bestemme **hva** som skal overvåkes og måles, **hvordan**, **når** og **hvem** som vurderer resultatene, og ta vare på resultatene som dokumentert informasjon. KPI-er med registrerte målinger er den dokumentasjonen.",
         "clauses": ["hs:9.1", "iso9001:9.1.1", "iso27001:9.1", "iso14001:9.1.1"]
       },
       "empty": {
@@ -43,30 +43,30 @@
     "detail": {
       "intro": {
         "title": "Oppfølging av et mål",
-        "body": "Hold planen oppdatert, oppdater fremdriften og sjekk KPI-ene. Når fristen er nådd, avslutt målet som **nådd** eller **ikke nådd**, og skriv et kort avslutningsnotat om hva dere lærte.",
+        "body": "Øverst på siden ser du neste steg. Fremdriften beregnes fra KPI-ene, så hold målingene oppdatert. Når fristen kommer, bruker du **Avslutt mål** og registrerer om målet ble nådd.",
         "steps": [
           "Bruk **Oppgaver** til å fordele tiltakene i planen.",
-          "Koble relaterte risikoer, prosesser eller dokumenter under **Relatert**.",
+          "Policyen og risikoene målet kommer fra, legger du under **Utgangspunkt**. Andre poster kobler du under **Relatert**.",
           "Hver endring lagres som en revisjon, med årsaken du oppgir."
         ]
       },
       "why": {
-        "body": "Revisorer ser etter mål som overvåkes og oppdateres ved behov, og etter bevis for at de planlagte tiltakene ble gjennomført og evaluert.",
+        "body": "Revisorer ser etter mål som følges opp og oppdateres ved behov, og etter dokumentasjon på at de planlagte tiltakene ble gjennomført og vurdert.",
         "clauses": ["hs:6.2", "hs:9.1"]
       }
     },
     "kpiDetail": {
       "intro": {
         "title": "Slik leser du en KPI",
-        "body": "Diagrammet viser hver registrerte periode mot målverdien (stiplet linje) og varselgrensen (prikket linje). Hvert punkt er merket **på mål**, **i faresonen** eller **utenfor mål** slik det var da det ble registrert.",
+        "body": "Diagrammet viser hver registrerte periode mot målverdien (stiplet linje) og varselgrensen (prikket linje), slik de var da målingen ble gjort. Hvert punkt er merket **på sporet**, **i faresonen** eller **utenfor målverdien**.",
         "steps": [
-          "Registrer en måling når perioden er slutt; den åpne måleoppgaven fullføres da.",
-          "Er KPI-en utenfor mål, be om en forklaring og bestem tiltak.",
-          "Korriger en verdi hvis den var feil; korrigeringen tas vare på i historikken."
+          "Registrer en måling når perioden er over. Den åpne måleoppgaven blir da fullført.",
+          "Er KPI-en i faresonen eller utenfor målverdien, oppretter du et avvik eller en oppgave fra boksen øverst.",
+          "Korriger en verdi hvis den var feil. Korrigeringen tas vare på i historikken."
         ]
       },
       "why": {
-        "body": "Resultater fra overvåking skal analyseres og evalueres. En trend over flere perioder, sammenlignet med en målverdi, er grunnlaget for ledelsens gjennomgåelse og for å bestemme korrigerende tiltak.",
+        "body": "Resultatene fra overvåkingen skal analyseres og vurderes. En trend over flere perioder, sammenlignet med en målverdi, er grunnlaget for ledelsens gjennomgang og for å bestemme korrigerende tiltak.",
         "clauses": ["hs:9.1", "hs:9.3", "hs:10.2"]
       }
     },
@@ -75,56 +75,84 @@
         "title": "Slik skriver du et godt mål",
         "body": "Gjør målet **SMART**: spesifikt, målbart, oppnåelig, relevant og tidsbestemt. Beskriv planen slik at en annen person kunne gjennomført den.",
         "steps": [
-          "Velg styringssystemet målet hører til.",
-          "Skriv en målsetting med et tall og en dato.",
-          "Beskriv planen, ressursene og hvordan dere vil evaluere resultatet."
+          "Velg styringssystemene målet hører til.",
+          "Skriv et målbart resultat med et tall og en dato.",
+          "Beskriv tiltakene, ressursene og hvordan resultatet skal vurderes."
         ]
       },
       "why": {
-        "body": "Når dere planlegger hvordan målene skal nås, ber standardene dere bestemme hva som skal gjøres, hvilke ressurser som trengs, hvem som er ansvarlig, når det skal være ferdig og hvordan resultatene skal evalueres.",
+        "body": "Når organisasjonen planlegger hvordan målene skal nås, krever standardene at den bestemmer hva som skal gjøres, hvilke ressurser som trengs, hvem som er ansvarlig, når det skal være ferdig og hvordan resultatet skal vurderes.",
         "clauses": ["hs:6.2"]
       },
       "fields": {
         "title": {
-          "help": "Et kort navn på resultatet dere ønsker.",
+          "help": "Et kort navn på resultatet organisasjonen ønsker.",
           "example": "Færre kundeklager"
         },
-        "managementSystem": {
-          "help": "Standarden målet støtter. Den avgjør hvor målet vises i revisjoner og rapporter."
-        },
         "status": {
-          "help": "Utkast mens dere planlegger; Aktiv når det er vedtatt. Avslutt det som Nådd, Ikke nådd eller Avbrutt."
+          "help": "Utkast mens målet planlegges, Aktiv når det er vedtatt. Avslutt det som Nådd, Ikke nådd eller Avbrutt."
         },
         "owner": {
           "help": "Personen som er ansvarlig for målet. Vedkommende varsles om endringer og frister."
         },
         "target": {
           "help": "Hva som skal oppnås, med et tall og en frist, slik at hvem som helst senere kan sjekke om det ble nådd.",
-          "example": "Færre enn 5 klager per 1 000 ordrer innen 31. desember"
+          "example": "Færre enn 5 klager per 1 000 ordrer innen 31. desember",
+          "requirements": ["hs:6.2"]
         },
         "plan": {
-          "help": "Tiltakene dere vil gjennomføre for å nå målsettingen. Fordel dem som oppgaver på målet."
+          "help": "Tiltakene som skal gjennomføres for å nå resultatet. Fordel dem som oppgaver på målet.",
+          "requirements": ["hs:6.2"]
         },
         "resources": {
           "help": "Personer, tid, budsjett eller verktøy planen trenger.",
           "example": "To dager opplæring, 20 timer fra kundestøtte"
         },
         "evaluationMethod": {
-          "help": "Hvordan og når dere sjekker resultatet, for eksempel med en KPI som gjennomgås månedlig.",
-          "example": "Månedlig KPI for klageandel, gjennomgått i ledelsens gjennomgåelse"
+          "help": "Hvordan og når resultatet sjekkes, for eksempel med en KPI som gjennomgås hver måned.",
+          "example": "Månedlig KPI for klageandel, gjennomgått i ledelsens gjennomgang",
+          "requirements": ["hs:6.2", "hs:9.1"]
         },
         "dueDate": {
           "help": "Når målsettingen skal være nådd. Åpne mål etter denne datoen vises som forfalt."
         },
         "progress": {
-          "help": "Ditt anslag over hvor langt planen har kommet, fra 0 til 100."
+          "help": "Beregnes fra KPI-ene. Sett den bare manuelt når KPI-ene ikke forteller hele historien."
         },
         "closingNote": {
-          "help": "Hva som ble oppnådd og hva dere lærte. Nyttig til neste planleggingsrunde."
+          "help": "Hva som ble oppnådd, og hva organisasjonen lærte. Nyttig til neste planleggingsrunde."
         },
         "changeReason": {
           "help": "Hvorfor du endrer målet. Årsaken lagres i revisjonshistorikken.",
-          "example": "Målsetting justert etter ledelsens gjennomgåelse"
+          "example": "Resultatet justert etter ledelsens gjennomgang"
+        },
+        "description": {
+          "help": "Hvorfor målet er viktig nå, for eksempel hva som utløste det."
+        },
+        "managementSystems": {
+          "help": "Standardene målet støtter. Et integrert styringssystem kan dele ett mål mellom ISO 9001, 14001 og 45001. Det første du velger, er hovedsystemet.",
+          "requirements": ["hs:6.2"]
+        },
+        "origins": {
+          "help": "Policyen, risikoene, mulighetene, forholdene i konteksten, kravene fra interessenter eller lovkravene målet følger opp. Målene skal være i tråd med policyen og håndtere risikoer og muligheter.",
+          "requirements": ["hs:6.1", "hs:6.2"]
+        },
+        "periodYear": {
+          "help": "Planåret målet hører til. Målplanen for året kan lastes ned som dokumentasjon."
+        },
+        "approvedBy": {
+          "help": "Hvem som godkjente målet. Fylles ut automatisk når et utkast aktiveres."
+        },
+        "communicatedTo": {
+          "help": "Hvem som har fått vite om målet, og hvordan (allmøte, intranett, tavle i avdelingen).",
+          "example": "Alle ansatte på allmøtet i januar, publisert på intranettet",
+          "requirements": ["hs:6.2"]
+        },
+        "lastCommunicatedOn": {
+          "help": "Når målet sist ble kommunisert."
+        },
+        "progressNote": {
+          "help": "Hvorfor tallet du setter, avviker fra det KPI-ene viser."
         }
       }
     },
@@ -139,7 +167,7 @@
         ]
       },
       "why": {
-        "body": "Når metode, tidspunkt og ansvar for hver måling er definert, blir resultatene sammenlignbare over tid og gyldige som bevis.",
+        "body": "Når metode, tidspunkt og ansvar for hver måling er bestemt, blir resultatene sammenlignbare over tid og gyldige som dokumentasjon.",
         "clauses": ["hs:9.1"]
       },
       "fields": {
@@ -155,7 +183,7 @@
           "help": "Målet denne KPI-en viser fremdrift for. Målets styringssystem brukes når du ikke velger et."
         },
         "owner": {
-          "help": "Personen som registrerer målingen."
+          "help": "Personen som registrerer verdiene. Vedkommende får den gjentakende måleoppgaven."
         },
         "unit": {
           "help": "Enheten for verdien, opptil 32 tegn.",
@@ -165,17 +193,19 @@
           "help": "Om en høyere eller lavere verdi er bedre. Det avgjør hvordan grenseverdiene leses."
         },
         "baseline": {
-          "help": "Verdien da dere startet, for å vise hvor langt dere har kommet."
+          "help": "Verdien ved start, slik at du ser hvor langt organisasjonen har kommet."
         },
         "target": {
-          "help": "Verdien som regnes som på mål."
+          "help": "Verdien som regnes som på sporet.",
+          "requirements": ["hs:9.1"]
         },
         "warning": {
-          "help": "En tidlig varselverdi på den dårlige siden av målverdien. Mellom de to er KPI-en i faresonen; forbi den er den utenfor mål.",
+          "help": "En verdi på den dårlige siden av målverdien som gir et tidlig varsel. Mellom de to er KPI-en i faresonen. Forbi varselgrensen er den utenfor målverdien.",
           "example": "Målverdi 95 %, varselgrense 90 %"
         },
         "frequency": {
-          "help": "Hvor ofte en verdi registreres. Hver periode får én måling."
+          "help": "Hvor ofte en verdi registreres. Hver periode får én måling.",
+          "requirements": ["hs:9.1"]
         },
         "status": {
           "help": "Sett en KPI på pause for å stoppe påminnelser en stund; avvikle den når den ikke lenger brukes."
@@ -189,6 +219,21 @@
         },
         "changeReason": {
           "help": "Hvorfor du endrer KPI-en. Årsaken lagres i revisjonshistorikken."
+        },
+        "managementSystem": {
+          "help": "La feltet stå tomt for å bruke hovedsystemet til målet."
+        },
+        "evaluatedBy": {
+          "help": "Hvem som analyserer og vurderer resultatene. Ofte eieren av målet eller en leder.",
+          "requirements": ["hs:9.1"]
+        },
+        "reviewForum": {
+          "help": "Hvor og hvor ofte resultatene gjennomgås.",
+          "example": "Månedlig ledermøte, og årlig i ledelsens gjennomgang",
+          "requirements": ["hs:9.1", "hs:9.3"]
+        },
+        "startDate": {
+          "help": "Den første perioden du vil måle. La feltet stå tomt for å starte med inneværende periode."
         }
       }
     },
@@ -198,7 +243,7 @@
         "body": "Registrer én verdi per periode. Statusen beregnes mot grenseverdiene som gjelder når du registrerer den."
       },
       "why": {
-        "body": "Registrerte målinger er det dokumenterte beviset på resultater fra overvåking.",
+        "body": "Registrerte målinger dokumenterer resultatene fra overvåkingen.",
         "clauses": ["hs:9.1"]
       },
       "fields": {
@@ -210,10 +255,14 @@
         },
         "value": {
           "help": "Den målte verdien, i KPI-ens enhet.",
-          "example": "4,2"
+          "example": "4,2",
+          "requirements": ["hs:9.1"]
         },
         "note": {
           "help": "Alt som forklarer verdien, for eksempel en enkelthendelse."
+        },
+        "period": {
+          "help": "Kalenderperioden verdien gjelder. Den første perioden uten verdi er valgt for deg."
         }
       }
     }
@@ -255,7 +304,7 @@
             "Navnene på alle i organisasjonen"
           ],
           "answer": 1,
-          "explanation": "Disse fem elementene er det punkt 6.2 ber dere bestemme."
+          "explanation": "Det er disse fem elementene punkt 6.2 krever at organisasjonen bestemmer."
         }
       ],
       "pass_mark": 0.5
@@ -270,11 +319,11 @@
         },
         {
           "heading": "Målverdi og varselgrense",
-          "body": "**Målverdien** er verdien som regnes som på mål. **Varselgrensen** ligger på den dårlige siden av målverdien. Mellom de to er KPI-en **i faresonen**, forbi varselgrensen er den **utenfor mål**. Er høyere bedre, ligger varselgrensen under målverdien; er lavere bedre, ligger den over."
+          "body": "**Målverdien** er verdien som regnes som på sporet. **Varselgrensen** ligger på den dårlige siden av målverdien. Mellom de to er KPI-en **i faresonen**, forbi varselgrensen er den **utenfor målverdien**. Er høyere bedre, ligger varselgrensen under målverdien; er lavere bedre, ligger den over."
         },
         {
           "heading": "Trender slår enkeltverdier",
-          "body": "Én dårlig måned kan være støy. Se på trenden over flere perioder før dere bestemmer korrigerende tiltak, og noter uvanlige hendelser på målingen."
+          "body": "Én dårlig måned kan være støy. Se på trenden over flere perioder før du bestemmer korrigerende tiltak, og noter uvanlige hendelser på målingen."
         }
       ],
       "quiz": [
@@ -285,11 +334,11 @@
           "explanation": "Når lavere er bedre, er den dårlige siden av målverdien over den."
         },
         {
-          "question": "En KPI var utenfor mål én måned etter lang tid på mål. Hva er et fornuftig første steg?",
+          "question": "En KPI var utenfor målverdien én måned etter lang tid på sporet. Hva er et fornuftig første steg?",
           "options": [
             "Avvikle KPI-en",
-            "Se på trenden og notatet for den perioden før dere bestemmer tiltak",
-            "Endre målverdien slik at den er på mål igjen"
+            "Se på trenden og notatet for den perioden før du bestemmer tiltak",
+            "Endre målverdien slik at den er på sporet igjen"
           ],
           "answer": 1,
           "explanation": "Én verdi kan være støy; trenden og sammenhengen viser om det trengs tiltak."
@@ -315,12 +364,12 @@
       {
         "target": "kpis-new",
         "title": "Opprett en KPI",
-        "body": "Definer hva dere måler, enheten, målverdien og hvor ofte den registreres."
+        "body": "Definer hva som måles, enheten, målverdien og hvor ofte den registreres."
       },
       {
         "target": "kpis-health",
         "title": "Finn KPI-er som trenger oppmerksomhet",
-        "body": "Filtrer på tilstand for å se hvilke KPI-er som er i faresonen eller utenfor mål."
+        "body": "Filtrer på tilstand for å se hvilke KPI-er som er i faresonen eller utenfor målverdien."
       }
     ]
   },
@@ -331,13 +380,13 @@
       "clauses": ["hs:6.2"]
     },
     "kpi": {
-      "term": "KPI",
-      "definition": "Nøkkelindikator: en verdi som måles jevnlig for å vise om et mål eller en prosess fungerer som tiltenkt.",
+      "term": "KPI (nøkkeltall)",
+      "definition": "Nøkkeltall: en verdi som måles jevnlig for å vise om et mål eller en prosess fungerer som tiltenkt.",
       "clauses": ["hs:9.1"]
     },
     "warning-threshold": {
       "term": "Varselgrense",
-      "definition": "En verdi på den dårlige siden av en KPIs målverdi som markerer overgangen fra i faresonen til utenfor mål."
+      "definition": "En verdi på den dårlige siden av målverdien til en KPI. Den markerer overgangen fra i faresonen til utenfor målverdien."
     }
   }
 }

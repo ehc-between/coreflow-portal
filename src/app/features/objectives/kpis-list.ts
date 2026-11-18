@@ -5,35 +5,37 @@ import {
   computed,
   effect,
   inject,
+  input,
   signal,
   untracked,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
+import { formatNumber } from '@angular/common';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../core/ai/page-context';
 import { LanguageService } from '../../core/i18n/language.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
-import { GuideIntro } from '../../shared/guidance/guide-intro';
-import { LessonView } from '../../shared/guidance/lesson';
+import { AskPanelService } from '../ask/ask-panel.service';
 import { TeachingEmpty } from '../../shared/guidance/teaching-empty';
-import { TourButton } from '../../shared/guidance/tour-button';
 import { TourStepDirective } from '../../shared/guidance/tour-step.directive';
 import { WhyItMatters } from '../../shared/guidance/why-it-matters';
 import { RecordListPage } from '../../shared/kit/record-list-page';
 import { SavedView } from '../../shared/kit/saved-views.service';
-import { LocalDayPipe, LocalNumberPipe } from '../../shared/locale/locale-pipes';
-import { Badge } from '../../shared/ui/badge/badge';
+import { CoverageChip } from '../../shared/requirement-links/coverage-chip';
 import { Button } from '../../shared/ui/button/button';
-import { Card } from '../../shared/ui/card/card';
+import { EmptyState } from '../../shared/ui/empty-state/empty-state';
+import { ErrorState } from '../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../shared/ui/icon/icon';
+import { LoadingState } from '../../shared/ui/loading-state/loading-state';
+import { ModuleNav } from '../../shared/ui/module-nav/module-nav';
 import { Pager } from '../../shared/ui/pager/pager';
-import { AskPanelService } from '../ask/ask-panel.service';
-import { ObjectivesOverviewTiles } from './components/objectives-overview';
-import { ObjectivesTabs } from './components/objectives-tabs';
+import { RecordRow, RecordRowHeader } from '../../shared/ui/record-row/record-row';
+import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
+import { ObjectivesTiles, SummaryTile } from './components/summary-tiles';
 import { ObjectivesApi } from './data/objectives-api';
 import {
-  KPI_HEALTH_FILTERS,
   KPI_SORTS,
   KPI_STATUSES,
   Kpi,
@@ -46,20 +48,32 @@ import {
   ObjectivesOverview,
 } from './data/objectives.models';
 import {
+  KPI_STATUS_TONE,
   OBJECTIVES_MODULE,
   OBJECTIVES_SCOPE,
   healthKey,
-  healthTone,
+  healthSpec,
   kpiStatusKey,
-  kpiStatusTone,
   managementSystemKey,
 } from './objectives-display';
+import { KPIS_CRUMB, OBJECTIVES_NAV, OBJECTIVES_ROOT_CRUMB } from './objectives-nav';
 
 const PAGE_SIZE = 25;
 
 /** KPI status filter: `in_use` (active + paused) by default, one status, or everything. */
 export type KpiStatusFilter = 'in_use' | 'all' | KpiStatus;
 export const KPI_STATUS_FILTERS: readonly KpiStatusFilter[] = ['in_use', ...KPI_STATUSES, 'all'];
+
+/** Health filter: one health, or "needs attention" (at risk + off track). */
+export type KpiHealthChoice = KpiHealthFilter | 'attention';
+export const KPI_HEALTH_CHOICES: readonly KpiHealthChoice[] = [
+  'attention',
+  'on_track',
+  'at_risk',
+  'off_track',
+  'no_data',
+  'no_target',
+];
 
 export function kpiStatusesForFilter(filter: KpiStatusFilter): readonly KpiStatus[] {
   if (filter === 'in_use') {
@@ -68,245 +82,280 @@ export function kpiStatusesForFilter(filter: KpiStatusFilter): readonly KpiStatu
   return filter === 'all' ? [] : [filter];
 }
 
+export function healthForChoice(
+  choice: KpiHealthChoice | '',
+): readonly KpiHealthFilter[] | undefined {
+  if (!choice) {
+    return undefined;
+  }
+  return choice === 'attention' ? ['at_risk', 'off_track'] : [choice];
+}
+
+/** KPI-tab tiles (finding 28): totals by health plus overdue measurements; each is a filter. */
+export function kpiTiles(
+  o: ObjectivesOverview | null,
+  health: KpiHealthChoice | '',
+  overdue: boolean,
+): SummaryTile[] {
+  if (!o) {
+    return [];
+  }
+  const k = o.kpis;
+  return [
+    {
+      key: 'all',
+      labelKey: 'objectives.tiles.kpisTotal',
+      value: k.total,
+      tone: 'info',
+      active: !health && !overdue,
+    },
+    {
+      key: 'on_track',
+      labelKey: 'objectives.tiles.onTrack',
+      value: k.on_track,
+      tone: 'pass',
+      active: health === 'on_track',
+    },
+    {
+      key: 'at_risk',
+      labelKey: 'objectives.tiles.atRisk',
+      value: k.at_risk,
+      tone: 'warn',
+      active: health === 'at_risk',
+    },
+    {
+      key: 'off_track',
+      labelKey: 'objectives.tiles.offTrack',
+      value: k.off_track,
+      tone: 'fail',
+      active: health === 'off_track',
+    },
+    {
+      key: 'no_data',
+      labelKey: 'objectives.tiles.noData',
+      value: k.no_data,
+      tone: 'neutral',
+      active: health === 'no_data',
+    },
+    {
+      key: 'overdue',
+      labelKey: 'objectives.tiles.measurementOverdue',
+      value: k.measurement_overdue,
+      tone: 'warn',
+      active: overdue,
+    },
+  ];
+}
+
 /**
- * `/objectives/kpis`: every KPI with its latest value against target, health
- * (on track / at risk / off track), the next measurement due, and filters on
- * status, health, management system and owner.
+ * `/objectives/kpis`: every KPI with its latest value against the target value,
+ * its health (on track / at risk / off track), the next measurement due, and
+ * filters on status, health, management system, owner and overdue measurement.
+ * `?attention=1` opens it on the KPIs that need attention.
  */
 @Component({
   selector: 'app-kpis-list',
   imports: [
-    RouterLink,
     TranslocoPipe,
-    LocalDayPipe,
-    LocalNumberPipe,
-    Badge,
-    Button,
-    Card,
-    Icon,
-    Pager,
-    GuideIntro,
-    LessonView,
     TeachingEmpty,
-    TourButton,
     TourStepDirective,
     WhyItMatters,
     RecordListPage,
-    ObjectivesOverviewTiles,
-    ObjectivesTabs,
+    CoverageChip,
+    Button,
+    EmptyState,
+    ErrorState,
+    HelpStrip,
+    Icon,
+    LoadingState,
+    ModuleNav,
+    Pager,
+    RecordRow,
+    RecordRowHeader,
+    StatusBadge,
+    ObjectivesTiles,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-record-list-page
       titleKey="objectives.kpiList.title"
+      descriptionKey="objectives.kpiList.description"
+      [breadcrumbs]="breadcrumbs"
       [scope]="scope"
       page="kpis"
       searchPlaceholderKey="objectives.kpiList.searchPlaceholder"
       [query]="q()"
       [filters]="savedFilters()"
+      [moreFiltersActive]="moreActive()"
+      [empty]="state() === 'ready' && kpis().length === 0 && !isFiltered()"
       (search)="setQuery($event)"
       (viewApplied)="applyView($event)"
     >
-      <p intro class="mt-1.5 text-[14px] text-fg-muted">
-        {{ 'objectives.kpiList.subtitle' | transloco }}
-      </p>
-
-      <ng-container toolbar>
-        <app-tour-button [scope]="scope" tour="kpis" />
-        <app-button variant="ghost" size="sm" (click)="askOffTarget()">
-          <app-icon name="spark" [size]="14" />
-          {{ 'objectives.ai.explainOffTarget' | transloco }}
+      @if (canWrite()) {
+        <app-button primary appTourStep="kpis-new" (click)="create()" data-testid="kpi-new">
+          <app-icon name="plus" [size]="15" />
+          {{ 'objectives.kpiList.new' | transloco }}
         </app-button>
-        @if (canWrite()) {
-          <app-button size="sm" appTourStep="kpis-new" (click)="create()">
-            <app-icon name="plus" [size]="14" />
-            {{ 'objectives.kpiList.new' | transloco }}
-          </app-button>
-        }
-      </ng-container>
+      }
+      <app-button
+        secondary
+        variant="secondary"
+        [attr.title]="'objectives.ai.opensAssistant' | transloco"
+        (click)="askOffTarget()"
+      >
+        <app-icon name="spark" [size]="15" />
+        {{ 'objectives.ai.explainAttention' | transloco }}
+      </app-button>
 
-      <ng-container filters>
-        <label class="sr-only" for="kpi-status">{{
-          'objectives.filters.status' | transloco
-        }}</label>
-        <select
-          id="kpi-status"
-          class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
-          (change)="setStatus($any($event.target).value)"
-        >
-          @for (s of statusFilters; track s) {
-            <option [value]="s" [selected]="status() === s">
-              {{ 'objectives.filters.kpiStatusOptions.' + s | transloco }}
-            </option>
-          }
-        </select>
-        <label class="sr-only" for="kpi-health">{{
-          'objectives.filters.health' | transloco
-        }}</label>
-        <select
-          id="kpi-health"
-          class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
-          appTourStep="kpis-health"
-          (change)="setHealth($any($event.target).value)"
-        >
-          <option value="" [selected]="!health()">
-            {{ 'objectives.filters.anyHealth' | transloco }}
+      <app-module-nav nav [items]="nav" labelKey="modules.names.objectives" />
+      <app-help-strip help [scope]="scope" page="kpis" tour="kpis" lesson="good-kpis" />
+
+      <app-objectives-tiles kpis [tiles]="tiles()" (selected)="applyTile($event)" />
+
+      <label filters class="sr-only" for="kpi-health">{{
+        'objectives.filters.health' | transloco
+      }}</label>
+      <select
+        filters
+        id="kpi-health"
+        class="h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
+        appTourStep="kpis-health"
+        (change)="setHealth($any($event.target).value)"
+      >
+        <option value="" [selected]="!healthChoice()">
+          {{ 'objectives.filters.anyHealth' | transloco }}
+        </option>
+        @for (h of healthChoices; track h) {
+          <option [value]="h" [selected]="healthChoice() === h">
+            {{ 'objectives.filters.healthOptions.' + h | transloco }}
           </option>
-          @for (h of healthFilters; track h) {
-            <option [value]="h" [selected]="health() === h">
-              {{ 'objectives.health.' + h | transloco }}
-            </option>
-          }
-        </select>
-        <label class="sr-only" for="kpi-ms">{{ 'objectives.filters.system' | transloco }}</label>
-        <select
-          id="kpi-ms"
-          class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
-          (change)="setSystem($any($event.target).value)"
-        >
-          <option value="" [selected]="!system()">
-            {{ 'objectives.filters.allSystems' | transloco }}
+        }
+      </select>
+      <label filters class="sr-only" for="kpi-ms">{{
+        'objectives.filters.system' | transloco
+      }}</label>
+      <select
+        filters
+        id="kpi-ms"
+        class="h-10 max-w-[220px] rounded-tile border border-border bg-bg px-2 text-ui text-fg"
+        (change)="setSystem($any($event.target).value)"
+      >
+        <option value="" [selected]="!system()">
+          {{ 'objectives.filters.allSystems' | transloco }}
+        </option>
+        @for (m of systems; track m) {
+          <option [value]="m" [selected]="system() === m">{{ systemKey(m) | transloco }}</option>
+        }
+      </select>
+      <label filters class="sr-only" for="kpi-status">{{
+        'objectives.filters.status' | transloco
+      }}</label>
+      <select
+        filters
+        id="kpi-status"
+        class="h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
+        (change)="setStatus($any($event.target).value)"
+      >
+        @for (s of statusFilters; track s) {
+          <option [value]="s" [selected]="status() === s">
+            {{ 'objectives.filters.kpiStatusOptions.' + s | transloco }}
           </option>
-          @for (m of systems; track m) {
-            <option [value]="m" [selected]="system() === m">{{ systemKey(m) | transloco }}</option>
-          }
-        </select>
-        <label class="sr-only" for="kpi-sort">{{ 'objectives.filters.sort' | transloco }}</label>
-        <select
-          id="kpi-sort"
-          class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
-          (change)="setSort($any($event.target).value)"
-        >
-          @for (s of sorts; track s) {
-            <option [value]="s" [selected]="sort() === s">
-              {{ 'objectives.filters.kpiSorts.' + s | transloco }}
-            </option>
-          }
-        </select>
-        <label
-          class="inline-flex h-10 items-center gap-1.5 rounded-[10px] border border-border bg-bg px-3 text-[13px] text-fg"
-        >
+        }
+      </select>
+
+      <div more-filters class="flex flex-col gap-3">
+        <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted" for="kpi-sort">
+          {{ 'objectives.filters.sort' | transloco }}
+          <select
+            id="kpi-sort"
+            class="h-10 rounded-tile border border-border bg-bg px-2 text-ui font-normal text-fg"
+            (change)="setSort($any($event.target).value)"
+          >
+            @for (s of sorts; track s) {
+              <option [value]="s" [selected]="sort() === s">
+                {{ 'objectives.filters.kpiSorts.' + s | transloco }}
+              </option>
+            }
+          </select>
+        </label>
+        <label class="inline-flex min-h-9 items-center gap-2 text-ui text-fg">
           <input
             type="checkbox"
             [checked]="mine()"
             (change)="setMine($any($event.target).checked)"
           />
-          {{ 'objectives.filters.mine' | transloco }}
+          {{ 'objectives.filters.mineKpis' | transloco }}
         </label>
-      </ng-container>
-
-      <div class="mb-4 flex flex-col gap-4">
-        <app-objectives-tabs />
-        <app-guide-intro [scope]="scope" page="kpis" />
-        <app-objectives-overview [overview]="overview()" />
+        <label class="inline-flex min-h-9 items-center gap-2 text-ui text-fg">
+          <input
+            type="checkbox"
+            [checked]="overdue()"
+            (change)="setOverdue($any($event.target).checked)"
+          />
+          {{ 'objectives.filters.measurementOverdue' | transloco }}
+        </label>
       </div>
 
-      <app-card [padded]="false">
-        @switch (state()) {
-          @case ('loading') {
-            <p class="py-10 text-center text-[14px] text-fg-muted">
-              {{ 'objectives.common.loading' | transloco }}
-            </p>
-          }
-          @case ('error') {
-            <p class="py-10 text-center text-[14px] text-fail" role="alert">
-              {{ 'objectives.common.loadFailed' | transloco }}
-            </p>
-          }
-          @default {
-            @if (kpis().length === 0) {
-              @if (isFiltered()) {
-                <p class="py-10 text-center text-[14px] text-fg-muted">
-                  {{ 'objectives.filters.noMatch' | transloco }}
-                </p>
-              } @else {
-                <app-teaching-empty
-                  [scope]="scope"
-                  page="kpis"
-                  [showAction]="canWrite()"
-                  (action)="create()"
-                />
-              }
-            } @else {
-              <ul class="divide-y divide-border" data-testid="kpi-rows">
+      @switch (state()) {
+        @case ('loading') {
+          <app-loading-state [rows]="5" />
+        }
+        @case ('error') {
+          <app-error-state (retry)="reload()" />
+        }
+        @default {
+          @if (kpis().length === 0) {
+            <app-empty-state
+              icon="search"
+              titleKey="ui.empty.noResults"
+              bodyKey="ui.empty.noResultsBody"
+              ctaKey="ui.empty.clearFilters"
+              ctaVariant="secondary"
+              (cta)="clearFilters()"
+            />
+          } @else {
+            <div class="overflow-hidden rounded-card border border-border bg-surface">
+              <app-record-row-header dateKind="next" titleKey="objectives.kpiList.columnTitle" />
+              <div
+                role="list"
+                [attr.aria-label]="'objectives.kpiList.title' | transloco"
+                data-testid="kpi-rows"
+              >
                 @for (k of kpis(); track k.id) {
-                  <li class="flex flex-col gap-2 px-4 py-3 md:flex-row md:items-center md:gap-4">
-                    <div class="min-w-0 flex-1">
-                      <a
-                        [routerLink]="['/objectives/kpis', k.id]"
-                        class="flex min-w-0 items-baseline gap-2 text-[13.5px] font-semibold text-fg hover:underline"
-                      >
-                        <span class="font-mono text-[12px] text-fg-subtle">{{ k.code }}</span>
-                        <span class="truncate">{{ k.name }}</span>
-                      </a>
-                      <span
-                        class="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[12px] text-fg-subtle"
-                      >
-                        @if (k.objective; as obj) {
-                          <span class="inline-flex items-center gap-1">
-                            <app-icon name="flag" [size]="12" />
-                            <span class="font-mono">{{ obj.code }}</span>
-                            {{ obj.title }}
-                          </span>
-                        }
-                        <span>{{ 'objectives.frequency.' + k.frequency | transloco }}</span>
-                        <span>{{
-                          k.owner?.name ?? ('objectives.common.noOwner' | transloco)
-                        }}</span>
-                      </span>
-                    </div>
-                    <div class="text-[13px] text-fg md:w-[180px] md:text-right">
-                      @if (k.last_value !== null) {
-                        <span class="font-semibold">{{ k.last_value | localNumber: '1.0-2' }}</span>
-                        {{ k.unit }}
-                      } @else {
-                        <span class="text-fg-muted">{{
-                          'objectives.common.noValue' | transloco
-                        }}</span>
-                      }
-                      @if (k.target_value !== null) {
-                        <span class="block text-[12px] text-fg-subtle">
-                          {{
-                            'objectives.kpiList.target'
-                              | transloco
-                                : {
-                                    value: (k.target_value | localNumber: '1.0-2'),
-                                    unit: k.unit ?? '',
-                                  }
-                          }}
-                        </span>
-                      }
-                    </div>
-                    <span class="flex flex-wrap items-center gap-2 text-[12.5px] text-fg-muted">
-                      @if (k.status !== 'active') {
-                        <app-badge [tone]="statusTone(k.status)">
-                          {{ statusKey(k.status) | transloco }}
-                        </app-badge>
-                      }
-                      <app-badge [tone]="healthTone(k.last_status)">
-                        {{ healthKey(k.last_status) | transloco }}
-                      </app-badge>
-                      <span
-                        class="inline-flex min-w-[110px] items-center justify-end gap-1"
-                        [class.text-fail]="k.measurement_overdue"
-                        [class.font-semibold]="k.measurement_overdue"
-                      >
-                        @if (k.measurement_overdue) {
-                          <app-icon name="alert" [size]="13" />
-                          <span class="sr-only">
-                            {{ 'objectives.kpi.measurementOverdue' | transloco }}
-                          </span>
-                        }
-                        @if (k.next_due_date) {
-                          {{ 'objectives.kpiList.nextDue' | transloco }}
-                          {{ k.next_due_date | localDay }}
-                        }
-                      </span>
+                  <app-record-row
+                    [code]="k.code"
+                    [title]="k.name"
+                    [subtitle]="subtitle(k)"
+                    [link]="['/objectives/kpis', k.id]"
+                    [owner]="k.owner?.name"
+                    [date]="k.next_due_date"
+                    dateKind="next"
+                    [overdue]="k.measurement_overdue"
+                  >
+                    <span coverage class="block min-w-0 [&_span]:whitespace-normal">
+                      <app-coverage-chip entityType="kpi" [entityId]="k.id" />
                     </span>
-                  </li>
+                    @let h = health(k);
+                    <app-status-badge
+                      badges
+                      [meaning]="h.meaning"
+                      [value]="h.value"
+                      [labelKey]="healthKey(k.last_status)"
+                    />
+                    @if (k.status !== 'active') {
+                      <app-status-badge
+                        badges
+                        [meaning]="statusTone[k.status].meaning"
+                        [value]="statusTone[k.status].value"
+                        [labelKey]="statusKey(k.status)"
+                      />
+                    }
+                  </app-record-row>
                 }
-              </ul>
-              <div class="border-t border-border px-4 py-2.5">
+              </div>
+            </div>
+            @if (total() > pageSize) {
+              <div class="mt-3">
                 <app-pager
                   [offset]="offset()"
                   [pageSize]="pageSize"
@@ -318,20 +367,19 @@ export function kpiStatusesForFilter(filter: KpiStatusFilter): readonly KpiStatu
             }
           }
         }
-      </app-card>
-    </app-record-list-page>
+      }
 
-    <div class="mx-auto -mt-6 flex max-w-[1180px] flex-col gap-4 px-4 pb-12 sm:px-8">
-      <app-why-it-matters [scope]="scope" page="kpis" />
-      <details class="rounded-card border border-border bg-surface p-4">
-        <summary class="cursor-pointer text-[13.5px] font-semibold text-fg">
-          {{ 'objectives.lessons.goodKpis' | transloco }}
-        </summary>
-        <div class="mt-3">
-          <app-lesson [scope]="scope" lesson="good-kpis" />
-        </div>
-      </details>
-    </div>
+      <div empty>
+        <app-teaching-empty
+          [scope]="scope"
+          page="kpis"
+          [showAction]="canWrite()"
+          (action)="create()"
+        />
+      </div>
+
+      <app-why-it-matters below [scope]="scope" page="kpis" />
+    </app-record-list-page>
   `,
 })
 export class KpisList {
@@ -341,16 +389,21 @@ export class KpisList {
   private readonly ask = inject(AskPanelService);
   private readonly router = inject(Router);
 
+  /** `?attention=1`: start on the KPIs that need attention (from the objectives tile). */
+  readonly attention = input<string | undefined>(undefined);
+
   protected readonly scope = OBJECTIVES_SCOPE;
+  protected readonly nav = OBJECTIVES_NAV;
+  protected readonly breadcrumbs = [OBJECTIVES_ROOT_CRUMB, { labelKey: KPIS_CRUMB.labelKey }];
   protected readonly statusFilters = KPI_STATUS_FILTERS;
-  protected readonly healthFilters = KPI_HEALTH_FILTERS;
+  protected readonly healthChoices = KPI_HEALTH_CHOICES;
   protected readonly systems = MANAGEMENT_SYSTEMS;
   protected readonly sorts = KPI_SORTS;
   protected readonly pageSize = PAGE_SIZE;
   protected readonly statusKey = kpiStatusKey;
-  protected readonly statusTone = kpiStatusTone;
+  protected readonly statusTone = KPI_STATUS_TONE;
   protected readonly healthKey = healthKey;
-  protected readonly healthTone = healthTone;
+  protected readonly health = (k: Kpi) => healthSpec(k.last_status);
   protected readonly systemKey = managementSystemKey;
 
   protected readonly canWrite = computed(() =>
@@ -359,10 +412,11 @@ export class KpisList {
 
   protected readonly q = signal('');
   protected readonly status = signal<KpiStatusFilter>('in_use');
-  protected readonly health = signal<KpiHealthFilter | ''>('');
+  protected readonly healthChoice = signal<KpiHealthChoice | ''>('');
   protected readonly system = signal<ManagementSystem | ''>('');
   protected readonly sort = signal<KpiSort>('code');
   protected readonly mine = signal(false);
+  protected readonly overdue = signal(false);
   protected readonly offset = signal(0);
 
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
@@ -370,16 +424,40 @@ export class KpisList {
   protected readonly total = signal(0);
   protected readonly overview = signal<ObjectivesOverview | null>(null);
 
+  protected readonly tiles = computed(() =>
+    kpiTiles(this.overview(), this.healthChoice(), this.overdue()),
+  );
+  protected readonly moreActive = computed(
+    () => (this.sort() !== 'code' ? 1 : 0) + (this.mine() ? 1 : 0) + (this.overdue() ? 1 : 0),
+  );
   protected readonly isFiltered = computed(
     () =>
-      !!this.q() || this.status() !== 'in_use' || !!this.health() || !!this.system() || this.mine(),
+      !!this.q() ||
+      this.status() !== 'in_use' ||
+      !!this.healthChoice() ||
+      !!this.system() ||
+      this.mine() ||
+      this.overdue(),
   );
   protected readonly savedFilters = computed<Record<string, string>>(() => ({
     status: this.status(),
-    health: this.health(),
+    health: this.healthChoice(),
     system: this.system(),
     sort: this.sort(),
     mine: this.mine() ? '1' : '',
+    overdue: this.overdue() ? '1' : '',
+  }));
+
+  private readonly query = computed<KpiListQuery>(() => ({
+    q: this.q() || undefined,
+    status: kpiStatusesForFilter(this.status()),
+    last_status: healthForChoice(this.healthChoice()),
+    management_system: this.system() || undefined,
+    owner: this.mine() ? 'me' : undefined,
+    measurement_overdue: this.overdue() || undefined,
+    sort: this.sort(),
+    limit: PAGE_SIZE,
+    offset: this.offset(),
   }));
 
   private request = new Subscription();
@@ -398,6 +476,12 @@ export class KpisList {
     }));
 
     effect(() => {
+      if (this.attention() === '1') {
+        untracked(() => this.healthChoice.set('attention'));
+      }
+    });
+
+    effect(() => {
       const orgId = this.selectedOrg.currentOrgId();
       const system = this.system() || undefined;
       untracked(() => {
@@ -413,19 +497,31 @@ export class KpisList {
 
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();
-      const health = this.health();
-      const query: KpiListQuery = {
-        q: this.q() || undefined,
-        status: kpiStatusesForFilter(this.status()),
-        last_status: health ? [health] : undefined,
-        management_system: this.system() || undefined,
-        owner: this.mine() ? 'me' : undefined,
-        sort: this.sort(),
-        limit: PAGE_SIZE,
-        offset: this.offset(),
-      };
+      const query = this.query();
       untracked(() => this.load(orgId, query));
     });
+  }
+
+  /** "Siste 4 stk. · målverdi 5 stk. · Hører til OBJ-001 · Månedlig". */
+  protected subtitle(k: Kpi): string {
+    const t = (key: string, params?: Record<string, unknown>) =>
+      this.language.translate(key, params);
+    const num = (v: number) => formatNumber(v, this.language.locale(), '1.0-2');
+    const unit = k.unit ? ` ${k.unit}` : '';
+    const parts: string[] = [];
+    parts.push(
+      k.last_value !== null
+        ? t('objectives.kpiList.latest', { value: `${num(k.last_value)}${unit}` })
+        : t('objectives.common.noValue'),
+    );
+    if (k.target_value !== null) {
+      parts.push(t('objectives.kpiList.target', { value: `${num(k.target_value)}${unit}` }));
+    }
+    if (k.objective) {
+      parts.push(t('objectives.kpiList.belongsTo', { code: k.objective.code }));
+    }
+    parts.push(t(`objectives.frequency.${k.frequency}`));
+    return parts.join(' · ');
   }
 
   protected setQuery(value: string): void {
@@ -438,9 +534,9 @@ export class KpisList {
     this.status.set(value);
   }
 
-  protected setHealth(value: KpiHealthFilter | ''): void {
+  protected setHealth(value: KpiHealthChoice | ''): void {
     this.offset.set(0);
-    this.health.set(value);
+    this.healthChoice.set(value);
   }
 
   protected setSystem(value: ManagementSystem | ''): void {
@@ -458,6 +554,35 @@ export class KpisList {
     this.mine.set(value);
   }
 
+  protected setOverdue(value: boolean): void {
+    this.offset.set(0);
+    this.overdue.set(value);
+  }
+
+  protected applyTile(key: string): void {
+    this.offset.set(0);
+    if (key === 'overdue') {
+      this.overdue.set(!this.overdue());
+      return;
+    }
+    this.overdue.set(false);
+    if (key === 'all') {
+      this.healthChoice.set('');
+      return;
+    }
+    this.healthChoice.set(this.healthChoice() === key ? '' : (key as KpiHealthChoice));
+  }
+
+  protected clearFilters(): void {
+    this.offset.set(0);
+    this.q.set('');
+    this.status.set('in_use');
+    this.healthChoice.set('');
+    this.system.set('');
+    this.mine.set(false);
+    this.overdue.set(false);
+  }
+
   protected applyView(view: SavedView): void {
     const f = view.filters;
     this.offset.set(0);
@@ -466,9 +591,9 @@ export class KpisList {
         ? (f['status'] as KpiStatusFilter)
         : 'in_use',
     );
-    this.health.set(
-      KPI_HEALTH_FILTERS.includes(f['health'] as KpiHealthFilter)
-        ? (f['health'] as KpiHealthFilter)
+    this.healthChoice.set(
+      KPI_HEALTH_CHOICES.includes(f['health'] as KpiHealthChoice)
+        ? (f['health'] as KpiHealthChoice)
         : '',
     );
     this.system.set(
@@ -478,10 +603,15 @@ export class KpisList {
     );
     this.sort.set(KPI_SORTS.includes(f['sort'] as KpiSort) ? (f['sort'] as KpiSort) : 'code');
     this.mine.set(f['mine'] === '1');
+    this.overdue.set(f['overdue'] === '1');
   }
 
   protected create(): void {
     void this.router.navigate(['/objectives/kpis/new']);
+  }
+
+  protected reload(): void {
+    this.load(this.selectedOrg.currentOrgId(), this.query());
   }
 
   protected askOffTarget(): void {

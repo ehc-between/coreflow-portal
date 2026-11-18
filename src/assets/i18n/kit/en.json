@@ -409,7 +409,8 @@
       "to_treatment": "Risk treatment",
       "to_task": "Task",
       "to_deviation": "Deviation from this risk",
-      "to_project": "Project to treat the risk"
+      "to_project": "Project to treat the risk",
+      "to_objective": "Objective that reduces the risk"
     },
     "supplier": {
       "to_contract": "Contract with this supplier",
@@ -436,7 +437,7 @@
     "formMissing": "This form is not available yet. Create the record from its own page and link it from the Related tab.",
     "opportunity": {
       "to_task": "Action (task)",
-      "to_objective": "Objective from this opportunity",
+      "to_objective": "Objective that pursues the opportunity",
       "to_project": "Project to realise it"
     },
     "context_analysis": {
@@ -471,6 +472,14 @@
       "to_task": "Task for the process",
       "to_audit_plan": "Internal audit of the process",
       "to_kpi": "KPI for the process"
+    },
+    "objective": {
+      "to_kpi": "KPI that measures the objective",
+      "to_task": "Task on the objective"
+    },
+    "kpi": {
+      "to_deviation": "Deviation (corrective action)",
+      "to_task": "Follow-up task"
     }
   },
   "frameworks": {

@@ -409,7 +409,8 @@
       "to_treatment": "Risikobehandling",
       "to_task": "Oppgave",
       "to_deviation": "Avvik fra denne risikoen",
-      "to_project": "Prosjekt for å behandle risikoen"
+      "to_project": "Prosjekt for å behandle risikoen",
+      "to_objective": "Mål som skal redusere risikoen"
     },
     "supplier": {
       "to_contract": "Kontrakt med leverandøren",
@@ -436,7 +437,7 @@
     "formMissing": "Dette skjemaet finnes ikke ennå. Opprett posten fra sin egen side og koble den fra fanen Relatert.",
     "opportunity": {
       "to_task": "Tiltak (oppgave)",
-      "to_objective": "Mål fra denne muligheten",
+      "to_objective": "Mål som følger opp muligheten",
       "to_project": "Prosjekt for å realisere den"
     },
     "context_analysis": {
@@ -471,6 +472,14 @@
       "to_task": "Oppgave for prosessen",
       "to_audit_plan": "Internrevisjon av prosessen",
       "to_kpi": "Nøkkeltall for prosessen"
+    },
+    "objective": {
+      "to_kpi": "KPI som måler målet",
+      "to_task": "Oppgave på målet"
+    },
+    "kpi": {
+      "to_deviation": "Avvik (korrigerende tiltak)",
+      "to_task": "Oppgave for oppfølging"
     }
   },
   "frameworks": {

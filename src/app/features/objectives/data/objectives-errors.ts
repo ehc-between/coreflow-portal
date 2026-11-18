@@ -22,6 +22,8 @@ export const OBJECTIVES_ERROR_CODES = [
   'invalid_frequency',
   'invalid_management_system',
   'invalid_number',
+  'invalid_origin',
+  'progress_note_required',
   'objective_not_found',
   'kpi_not_found',
   'measurement_not_found',
