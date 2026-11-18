@@ -52,6 +52,7 @@ import {
 } from '../data/ai-governance-display';
 import { AiGovNav } from '../ui/ai-gov-nav';
 import { AiLessonCard } from '../ui/ai-lesson-card';
+import { FulfilsRequirements } from '../../../shared/requirement-locations/fulfils-requirements';
 
 const PAGE_SIZE = 25;
 
@@ -63,6 +64,7 @@ const PAGE_SIZE = 25;
 @Component({
   selector: 'app-ai-systems-list',
   imports: [
+    FulfilsRequirements,
     RouterLink,
     TranslocoPipe,
     GuideIntro,
@@ -92,6 +94,7 @@ const PAGE_SIZE = 25;
       (search)="setQuery($event)"
       (viewApplied)="applyView($event)"
     >
+      <app-fulfils-requirements help locationKey="ai_governance.systems" />
       <div intro class="mt-3 flex flex-col gap-3">
         <app-ai-gov-nav />
         <app-guide-intro [scope]="scope" page="systems" />

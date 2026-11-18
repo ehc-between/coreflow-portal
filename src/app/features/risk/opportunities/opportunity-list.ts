@@ -8,22 +8,28 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../../core/ai/page-context';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { TeachingEmpty } from '../../../shared/guidance/teaching-empty';
+import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { RecordListPage } from '../../../shared/kit/record-list-page';
 import { SavedView } from '../../../shared/kit/saved-views.service';
-import { LocalDayPipe } from '../../../shared/locale/locale-pipes';
-import { Badge } from '../../../shared/ui/badge/badge';
+import { CoverageChip } from '../../../shared/requirement-links/coverage-chip';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
+import { EmptyState } from '../../../shared/ui/empty-state/empty-state';
+import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
 import { Pager } from '../../../shared/ui/pager/pager';
+import { RecordRow, RecordRowHeader } from '../../../shared/ui/record-row/record-row';
+import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { RiskApi } from '../data/risk-api';
-import { opportunityStatusTone } from '../data/risk-display';
+import { opportunityStatusValue } from '../data/risk-display';
 import {
   OPPORTUNITY_SORTS,
   OPPORTUNITY_STATUSES,
@@ -31,7 +37,8 @@ import {
   OpportunitySort,
   OpportunityStatus,
 } from '../data/risk.models';
-import { RiskPageGuide } from '../shared/risk-page-guide';
+import { OpportunityScore } from '../shared/opportunity-score';
+import { RiskNav } from '../shared/risk-nav';
 import { RiskPermissions } from '../shared/risk-permissions';
 
 const PAGE_SIZE = 50;
@@ -47,50 +54,65 @@ export type OpportunityStatusFilter = (typeof OPPORTUNITY_STATUS_FILTERS)[number
 
 /**
  * Opportunities (ISO 6.1: actions to address risks *and opportunities*): ideas with a
- * benefit x feasibility score, an owner, a due date and an action plan.
+ * benefit x feasibility score out of 25, an owner, a due date and action items. The
+ * same list rows as risks: code, title, score, status, owner and due date.
  */
 @Component({
   selector: 'app-opportunity-list',
   imports: [
-    RouterLink,
     TranslocoPipe,
-    LocalDayPipe,
     TeachingEmpty,
+    WhyItMatters,
     RecordListPage,
-    Badge,
+    CoverageChip,
     Button,
     Card,
+    EmptyState,
+    ErrorState,
+    HelpStrip,
     Icon,
+    LoadingState,
     Pager,
-    RiskPageGuide,
+    RecordRow,
+    RecordRowHeader,
+    StatusBadge,
+    OpportunityScore,
+    RiskNav,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-record-list-page
       titleKey="risk.opportunities.title"
+      descriptionKey="risk.opportunities.subtitle"
       scope="risk"
       page="opportunities"
+      settingsLink="/risk/registers"
+      [breadcrumbs]="[
+        { labelKey: 'modules.names.risk', link: '/risk' },
+        { labelKey: 'risk.opportunities.title' },
+      ]"
       searchPlaceholderKey="risk.opportunities.searchPlaceholder"
       [query]="q()"
       [filters]="filterRecord()"
+      [moreFiltersActive]="mine() ? 1 : 0"
       [empty]="state() === 'ready' && rows().length === 0 && !isFiltered()"
       (search)="setQuery($event)"
       (viewApplied)="applyView($event)"
     >
-      <div intro class="mt-3">
-        <app-risk-page-guide page="opportunities" lesson="opportunities" />
-      </div>
       @if (perms.canWrite()) {
-        <app-button toolbar size="sm" (click)="newOpportunity()">
+        <app-button primary (click)="newOpportunity()">
           <app-icon name="plus" [size]="14" />
           {{ 'risk.opportunities.new' | transloco }}
         </app-button>
       }
+      <app-risk-nav nav />
+      <app-help-strip help scope="risk" page="opportunities" lesson="opportunities" />
+
       <ng-container filters>
         <label class="sr-only" for="opp-f-status">{{ 'risk.filters.status' | transloco }}</label>
         <select
           id="opp-f-status"
-          class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
+          class="h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
           (change)="setStatus($any($event.target).value)"
         >
           @for (s of statusFilters; track s) {
@@ -102,7 +124,7 @@ export type OpportunityStatusFilter = (typeof OPPORTUNITY_STATUS_FILTERS)[number
         <label class="sr-only" for="opp-f-sort">{{ 'risk.filters.sort' | transloco }}</label>
         <select
           id="opp-f-sort"
-          class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
+          class="h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
           (change)="setSort($any($event.target).value)"
         >
           @for (s of sorts; track s) {
@@ -111,7 +133,9 @@ export type OpportunityStatusFilter = (typeof OPPORTUNITY_STATUS_FILTERS)[number
             </option>
           }
         </select>
-        <label class="inline-flex h-10 items-center gap-1.5 text-[13px] text-fg-muted">
+      </ng-container>
+      <div more-filters>
+        <label class="inline-flex min-h-8 items-center gap-2 text-ui text-fg">
           <input
             type="checkbox"
             [checked]="mine()"
@@ -119,62 +143,57 @@ export type OpportunityStatusFilter = (typeof OPPORTUNITY_STATUS_FILTERS)[number
           />
           {{ 'risk.filters.mine' | transloco }}
         </label>
-      </ng-container>
+      </div>
 
       <app-card [padded]="false">
         @switch (state()) {
           @case ('loading') {
-            <p class="py-10 text-center text-[14px] text-fg-muted">
-              {{ 'risk.common.loading' | transloco }}
-            </p>
+            <app-loading-state [rows]="4" />
           }
           @case ('error') {
-            <p class="py-10 text-center text-[14px] text-fail" role="alert">
-              {{ 'risk.common.loadFailed' | transloco }}
-            </p>
+            <app-error-state (retry)="reload()" />
           }
           @default {
-            <ul class="divide-y divide-border">
-              @for (o of rows(); track o.id) {
-                <li class="flex flex-col gap-1.5 px-4 py-3 sm:flex-row sm:items-center sm:gap-3">
-                  <span class="font-mono text-[12px] text-fg-subtle">{{ o.code }}</span>
-                  <div class="min-w-0 flex-1">
-                    <a
-                      [routerLink]="['/risk/opportunities', o.id]"
-                      class="block truncate text-[13.5px] font-semibold text-fg hover:underline"
-                      >{{ o.title }}</a
-                    >
-                    <span class="flex flex-wrap gap-x-3 text-[12px] text-fg-subtle">
-                      <span>{{ o.owner?.name ?? ('risk.common.unassigned' | transloco) }}</span>
-                      @if (o.due_at) {
-                        <span [class.text-fail]="o.overdue" [class.font-semibold]="o.overdue">
-                          {{ 'risk.treatments.due' | transloco: { date: (o.due_at | localDay) } }}
-                        </span>
-                      }
-                    </span>
-                  </div>
-                  @if (o.score !== null) {
-                    <span
-                      class="rounded-full bg-accent-soft px-2 py-0.5 text-[12px] font-semibold text-accent"
-                      [attr.aria-label]="
-                        'risk.opportunities.scoreLabel' | transloco: { score: o.score }
-                      "
-                    >
-                      {{ o.score }}
-                    </span>
-                  }
-                  <app-badge [tone]="tone(o.status)">
-                    {{ 'risk.opportunities.status.' + o.status | transloco }}
-                  </app-badge>
-                </li>
-              } @empty {
-                <li class="py-10 text-center text-[14px] text-fg-muted">
-                  {{ 'risk.filters.noMatch' | transloco }}
-                </li>
-              }
-            </ul>
-            @if (rows().length) {
-              <div class="border-t border-border px-4 py-2">
+            @if (rows().length === 0) {
+              <app-empty-state
+                icon="search"
+                titleKey="ui.empty.noResults"
+                ctaKey="risk.filters.clear"
+                ctaVariant="secondary"
+                [compact]="true"
+                (cta)="clearFilters()"
+              />
+            } @else {
+              <div role="list" [attr.aria-label]="'risk.opportunities.title' | transloco">
+                <app-record-row-header dateKind="due" />
+                @for (o of rows(); track o.id) {
+                  <app-record-row
+                    [code]="o.code"
+                    [title]="o.title"
+                    [subtitle]="subtitle(o)"
+                    [link]="['/risk/opportunities', o.id]"
+                    [owner]="o.owner?.name ?? ('risk.common.unassigned' | transloco)"
+                    [date]="o.due_at"
+                    dateKind="due"
+                    [overdue]="o.overdue"
+                  >
+                    <app-coverage-chip
+                      coverage
+                      class="max-w-full [&_[data-testid=coverage-chip]]:flex-wrap [&_[data-testid=coverage-chip]]:whitespace-normal"
+                      entityType="opportunity"
+                      [entityId]="o.id"
+                    />
+                    <app-status-badge
+                      badges
+                      meaning="lifecycle"
+                      [value]="statusValue(o.status)"
+                      [labelKey]="'risk.opportunities.status.' + o.status"
+                    />
+                    <app-opportunity-score badges [score]="o.score" [max]="o.max_score ?? 25" />
+                  </app-record-row>
+                }
+              </div>
+              <div class="px-4 py-2">
                 <app-pager
                   [offset]="offset()"
                   [pageSize]="pageSize"
@@ -196,6 +215,8 @@ export type OpportunityStatusFilter = (typeof OPPORTUNITY_STATUS_FILTERS)[number
           (action)="newOpportunity()"
         />
       </app-card>
+
+      <app-why-it-matters below scope="risk" page="opportunities" />
     </app-record-list-page>
   `,
 })
@@ -209,6 +230,7 @@ export class OpportunityListPage {
   protected readonly statusFilters = OPPORTUNITY_STATUS_FILTERS;
   protected readonly sorts = OPPORTUNITY_SORTS;
   protected readonly pageSize = PAGE_SIZE;
+  protected readonly statusValue = opportunityStatusValue;
 
   protected readonly state = signal<'loading' | 'ready' | 'error'>('loading');
   protected readonly rows = signal<readonly Opportunity[]>([]);
@@ -220,6 +242,7 @@ export class OpportunityListPage {
   );
   protected readonly sort = signal<OpportunitySort>('-score');
   protected readonly mine = signal(false);
+  private readonly revision = signal(0);
   private sub: Subscription | null = null;
 
   protected readonly filterRecord = computed<Record<string, string>>(() => ({
@@ -237,6 +260,11 @@ export class OpportunityListPage {
       entityType: 'opportunity',
       view: 'list',
       title: this.language.translate('risk.opportunities.title'),
+      selection: {
+        ids: this.rows()
+          .slice(0, 50)
+          .map((o) => o.id),
+      },
     }));
     effect(() => {
       const orgId = this.perms.orgId();
@@ -245,6 +273,7 @@ export class OpportunityListPage {
       const sort = this.sort();
       const mine = this.mine();
       const offset = this.offset();
+      this.revision();
       untracked(() => {
         this.sub?.unsubscribe();
         if (!orgId) {
@@ -273,8 +302,22 @@ export class OpportunityListPage {
     inject(DestroyRef).onDestroy(() => this.sub?.unsubscribe());
   }
 
-  protected tone(status: OpportunityStatus) {
-    return opportunityStatusTone(status);
+  /** Register and the open action items. */
+  protected subtitle(o: Opportunity): string {
+    const parts: string[] = [];
+    if (o.register) {
+      parts.push(o.register.name);
+    }
+    if (o.actions && o.actions.open > 0) {
+      parts.push(
+        this.language.translate('risk.opportunities.openActions', { count: o.actions.open }),
+      );
+    }
+    return parts.join(' · ');
+  }
+
+  protected reload(): void {
+    this.revision.update((n) => n + 1);
   }
 
   protected setQuery(q: string): void {
@@ -296,6 +339,12 @@ export class OpportunityListPage {
   protected setMine(value: boolean): void {
     this.mine.set(value);
     this.offset.set(0);
+  }
+
+  protected clearFilters(): void {
+    this.q.set('');
+    this.setStatus('open');
+    this.setMine(false);
   }
 
   protected applyView(view: SavedView): void {

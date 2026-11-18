@@ -50,6 +50,7 @@ import {
   objectiveStatusKey,
   objectiveStatusTone,
 } from './objectives-display';
+import { FulfilsRequirements } from '../../shared/requirement-locations/fulfils-requirements';
 
 const PAGE_SIZE = 25;
 
@@ -75,6 +76,7 @@ export function statusesForFilter(filter: ObjectiveStatusFilter): readonly Objec
 @Component({
   selector: 'app-objectives-list',
   imports: [
+    FulfilsRequirements,
     RouterLink,
     TranslocoPipe,
     LocalDayPipe,
@@ -105,6 +107,7 @@ export function statusesForFilter(filter: ObjectiveStatusFilter): readonly Objec
       (search)="setQuery($event)"
       (viewApplied)="applyView($event)"
     >
+      <app-fulfils-requirements help locationKey="objectives.objectives" />
       <div intro class="mt-1.5 flex flex-col gap-3">
         <p class="text-[14px] text-fg-muted">{{ 'objectives.list.subtitle' | transloco }}</p>
       </div>

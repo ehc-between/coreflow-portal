@@ -50,6 +50,7 @@ import { ContextLessonButton } from '../ui/context-lesson-button';
 import { ContextNav } from '../ui/context-nav';
 import { ContextFilter } from '../ui/filter-select';
 import { SORT_OPTIONS, cleanFilters, listFilters, toListQuery } from './list-config';
+import { FulfilsRequirements } from '../../../shared/requirement-locations/fulfils-requirements';
 
 const PAGE_SIZE = 25;
 
@@ -71,6 +72,7 @@ const LIST_LESSON: Readonly<Record<ContextKind, string>> = {
 @Component({
   selector: 'app-context-list',
   imports: [
+    FulfilsRequirements,
     RouterLink,
     TranslocoPipe,
     LocalDayPipe,
@@ -102,6 +104,7 @@ const LIST_LESSON: Readonly<Record<ContextKind, string>> = {
       (search)="onSearch($event)"
       (viewApplied)="applyView($event)"
     >
+      <app-fulfils-requirements help />
       <div intro>
         <app-context-nav />
       </div>

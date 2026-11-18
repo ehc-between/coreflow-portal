@@ -46,6 +46,7 @@ import {
   deadlineKindKey,
 } from './data/contract-display';
 import { ContractLessonLink } from './lesson-link';
+import { FulfilsRequirements } from '../../shared/requirement-locations/fulfils-requirements';
 
 const PAGE_SIZE = 25;
 
@@ -71,6 +72,7 @@ export function statusesForFilter(filter: string): readonly ContractStatus[] {
 @Component({
   selector: 'app-contracts-list',
   imports: [
+    FulfilsRequirements,
     RouterLink,
     TranslocoPipe,
     LocalDayPipe,
@@ -100,6 +102,7 @@ export function statusesForFilter(filter: string): readonly ContractStatus[] {
       (search)="setQuery($event)"
       (viewApplied)="applyView($event)"
     >
+      <app-fulfils-requirements help locationKey="contracts.register" />
       <div intro class="mt-1 flex flex-col gap-2">
         <p class="text-[14px] text-fg-muted">{{ 'contracts.list.subtitle' | transloco }}</p>
         <app-guide-intro scope="contracts" page="list" />

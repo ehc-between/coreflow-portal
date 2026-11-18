@@ -5,7 +5,9 @@ import { contrastText, templateLabel } from '../data/risk-display';
 
 /**
  * A risk level chip in the band's colour: "High · 12". `level` is the band key,
- * `label` the org's band label (template labels are translated). Renders a muted
+ * `label` the org's band label (template labels are translated). With
+ * `prefixKey` it reads "Nåværende: Høy · 12", and `hintKey` becomes its tooltip
+ * (e.g. "residual rating, because treatment is planned"). Renders a muted
  * "Not rated" chip without a score.
  */
 @Component({
@@ -16,17 +18,21 @@ import { contrastText, templateLabel } from '../data/risk-display';
   template: `
     @if (score() !== null && score() !== undefined) {
       <span
-        class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[12px] font-semibold whitespace-nowrap"
+        class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-meta font-semibold whitespace-nowrap"
         [style.background]="color() || 'var(--surface-2)'"
         [style.color]="textColor()"
+        [attr.title]="hintKey() ? (hintKey()! | transloco) : null"
         data-testid="rating-badge"
       >
+        @if (prefixKey(); as prefix) {
+          <span class="font-medium opacity-90">{{ prefix | transloco }}</span>
+        }
         {{ text() }}
         <span class="opacity-80">· {{ score() }}</span>
       </span>
     } @else {
       <span
-        class="inline-flex items-center rounded-full bg-surface-2 px-2 py-0.5 text-[12px] font-semibold whitespace-nowrap text-fg-muted"
+        class="inline-flex items-center rounded-full bg-surface-2 px-2 py-0.5 text-meta font-semibold whitespace-nowrap text-fg-muted"
       >
         {{ 'risk.rating.notRated' | transloco }}
       </span>
@@ -40,6 +46,10 @@ export class RatingBadge {
   readonly level = input<string | null | undefined>(null);
   readonly label = input<string | null | undefined>(null);
   readonly color = input<string | null | undefined>(null);
+  /** i18n key of a short prefix ("Nåværende:"). */
+  readonly prefixKey = input<string | null>(null);
+  /** i18n key of the tooltip that explains which rating this is. */
+  readonly hintKey = input<string | null>(null);
 
   protected readonly text = computed(() =>
     templateLabel('bands', this.level(), this.label(), (k, p) => this.language.translate(k, p)),

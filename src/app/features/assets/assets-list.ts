@@ -50,6 +50,7 @@ import {
 } from './data/asset.models';
 import { AssetsApi } from './data/assets-api';
 import { AssetsNav } from './shared/assets-nav';
+import { FulfilsRequirements } from '../../shared/requirement-locations/fulfils-requirements';
 
 const PAGE_SIZE = 25;
 
@@ -113,6 +114,7 @@ export function assetQuery(q: string, f: AssetFilters, offset: number): AssetLis
 @Component({
   selector: 'app-assets-list',
   imports: [
+    FulfilsRequirements,
     RouterLink,
     TranslocoPipe,
     LocalDayPipe,
@@ -143,6 +145,7 @@ export function assetQuery(q: string, f: AssetFilters, offset: number): AssetLis
       (search)="search($event)"
       (viewApplied)="applyView($event)"
     >
+      <app-fulfils-requirements help locationKey="assets.register" />
       <div intro>
         <p class="mt-1 text-[14px] text-fg-muted">{{ 'assets.list.subtitle' | transloco }}</p>
         <app-assets-nav />

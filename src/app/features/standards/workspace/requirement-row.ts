@@ -15,6 +15,7 @@ import { RequirementCard, requirementAnchorId } from '../requirement-card';
 import { RequirementAiHelp } from './requirement-ai-help';
 import { toRequirementDetail } from './workspace-data';
 import { pluralKey } from '../../../shared/i18n/plural';
+import { LocationHint } from '../../../shared/requirement-locations/location-hint';
 
 /**
  * One requirement inside a workspace section: a compact, clickable summary
@@ -25,7 +26,7 @@ import { pluralKey } from '../../../shared/i18n/plural';
  */
 @Component({
   selector: 'app-requirement-row',
-  imports: [TranslocoPipe, Badge, Icon, RequirementCard, RequirementAiHelp],
+  imports: [TranslocoPipe, Badge, Icon, RequirementCard, RequirementAiHelp, LocationHint],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @let req = requirement();
@@ -63,6 +64,8 @@ import { pluralKey } from '../../../shared/i18n/plural';
           >
         </span>
         <span class="mt-0.5 flex flex-none items-center gap-2.5 text-[12px] text-fg-subtle">
+          <!-- requirement-locations (L4) -->
+          <app-location-hint class="hidden lg:inline-flex" [requirement]="req" />
           @if (req.status_override) {
             <span
               class="hidden rounded-full border border-border px-2 py-px text-[11px] font-semibold sm:inline"

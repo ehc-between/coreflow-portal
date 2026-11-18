@@ -1,0 +1,105 @@
+{
+  "block": {
+    "title": "Her fyller du ut dette",
+    "supporting": "Også relevant",
+    "adjusted": "{{count}} tilpasninger",
+    "adjustedOne": "1 tilpasning",
+    "adjustedBy": "Tilpasset av {{name}}, {{date}}",
+    "orphaned": "Stedet finnes ikke lenger i standardoppsettet, så tilpasningen teller ikke",
+    "restore": "Bruk standardoppsettet igjen"
+  },
+  "adjust": {
+    "menu": "Tilpass",
+    "repoint": "Bruk et annet sted",
+    "rules": "Endre regel",
+    "disable": "Slå av for oss",
+    "add": "Legg til et sted",
+    "addFirst": "Legg til stedet der dere fyller ut dette"
+  },
+  "card": {
+    "moduleOff": "Modulen er ikke slått på",
+    "enableModule": "Slå på i innstillinger",
+    "askAdmin": "Be en administrator slå den på",
+    "lastChanged": "sist endret {{date}}",
+    "notUpdated": "ikke oppdatert siste 12 mnd",
+    "samples": "Må følges opp:",
+    "updating": "Statusen oppdateres …",
+    "adjusted": "Tilpasset for dere: {{reason}}",
+    "goTo": "Gå til {{label}}",
+    "create": "Legg til ny"
+  },
+  "outcome": {
+    "met": "Oppfylt",
+    "partial": "Delvis oppfylt",
+    "not_met": "Ikke oppfylt ennå",
+    "not_evaluable": "Kan ikke vurderes nå"
+  },
+  "override": {
+    "title": {
+      "repoint": "Bruk et annet sted",
+      "add": "Legg til et sted",
+      "rules": "Endre regel",
+      "disable": "Slå av for oss"
+    },
+    "intro": {
+      "repoint": "Velg stedet der dere faktisk fyller ut dette kravet. Det nåværende stedet slås av for dere.",
+      "add": "Velg et sted til der dette kravet fylles ut, og hva som skal til for at det teller som oppfylt.",
+      "rules": "Velg hva som skal til for at stedet teller som oppfylt for dette kravet.",
+      "disable": "Stedet teller ikke lenger for dette kravet hos dere. Statusen kommer da fra koblet dokumentasjon. Skriv kort hvorfor."
+    },
+    "close": "Lukk",
+    "place": "Sted",
+    "search": "Søk etter et sted",
+    "noPlaces": "Ingen steder passer søket",
+    "role": "Rolle",
+    "rolePrimary": "Her fyller du ut dette (teller for statusen)",
+    "roleSupporting": "Også relevant (teller ikke alene)",
+    "rules": "Når teller det som oppfylt?",
+    "preset": {
+      "minBefore": "Minst",
+      "minLabel": "Antall oppføringer",
+      "minAfter": "oppføringer",
+      "state": "Alle er",
+      "stateLabel": "Status",
+      "daysBefore": "Gjennomgått de siste",
+      "daysLabel": "Antall dager",
+      "daysAfter": "dagene",
+      "noneOverdue": "Ingen er på overtid"
+    },
+    "noRules": "Dette stedet har ingen regler å velge. Det kan bare legges til som «Også relevant».",
+    "justification": "Begrunnelse",
+    "justificationHint": "For eksempel: Vi dokumenterer interessentene i et eget dokument.",
+    "previewTitle": "Slik blir det",
+    "previewError": "Kunne ikke vise hvordan det blir. Prøv igjen.",
+    "saveError": "Kunne ikke lagre tilpasningen. Prøv igjen.",
+    "preview": "Forhåndsvis",
+    "cancel": "Avbryt",
+    "save": {
+      "repoint": "Bruk dette stedet",
+      "add": "Legg til",
+      "rules": "Lagre regel",
+      "disable": "Slå av"
+    }
+  },
+  "fulfils": {
+    "title": "Dette oppfyller:",
+    "cameFrom": "Du kom hit fra {{short}} · {{number}}: {{title}}",
+    "cameFromNoTitle": "Du kom hit fra {{short}} · {{number}}",
+    "cameFromRequirement": "Du kom hit fra et krav",
+    "back": "Tilbake til kravet",
+    "more": "+ {{count}} til",
+    "show": "Vis hva som mangler",
+    "hide": "Skjul",
+    "supporting": "også relevant"
+  },
+  "hint": {
+    "location": "Status fra stedet der kravet fylles ut: {{text}}",
+    "manual": "Satt manuelt. Stedet sier: {{text}}"
+  },
+  "gaps": {
+    "fillIn": "Fyll ut i"
+  },
+  "readiness": {
+    "byBasis": "{{location}} krav dekket fra registre, {{links}} fra koblet dokumentasjon, {{manual}} manuelt vurdert"
+  }
+}

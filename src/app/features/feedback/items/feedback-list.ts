@@ -67,6 +67,7 @@ import {
 } from '../data/feedback.models';
 import { FeedbackExportMenu } from '../export-menu';
 import { FEEDBACK_NAV, FEEDBACK_SETTINGS_LINK } from '../feedback-nav';
+import { FulfilsRequirements } from '../../../shared/requirement-locations/fulfils-requirements';
 
 const PAGE_SIZE = 25;
 const DEFAULT_SORT: FeedbackSort = '-received_on';
@@ -145,6 +146,7 @@ const SELECT =
 @Component({
   selector: 'app-feedback-list',
   imports: [
+    FulfilsRequirements,
     TranslocoPipe,
     TeachingEmpty,
     TourStepDirective,
@@ -183,6 +185,7 @@ const SELECT =
       (search)="setQuery($event)"
       (viewApplied)="applyView($event)"
     >
+      <app-fulfils-requirements help locationKey="feedback.items" />
       @if (canWrite()) {
         <app-button
           primary

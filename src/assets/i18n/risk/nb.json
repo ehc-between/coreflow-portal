@@ -31,8 +31,8 @@
     "lessonButton": "Leksjon: {{ title }}"
   },
   "overview": {
-    "title": "Oversikt over risikoer og muligheter",
-    "subtitle": "Hvor virksomhetens risikoer ligger, hva som gjøres med dem, og hvor langt anvendelseserklæringen har kommet.",
+    "title": "Risiko og muligheter",
+    "subtitle": "Hvor risikoene ligger, hva som gjøres med dem, og hvor langt anvendelseserklæringen har kommet.",
     "kpis": "Nøkkeltall",
     "openRisks": "Åpne risikoer",
     "ofTotal": "av {{ total }} totalt",
@@ -46,24 +46,37 @@
     "soaProgress": "Anvendelseserklæring",
     "soaImplemented": "{{ implemented }} av {{ applicable }} implementert",
     "noSoa": "Ingen anvendelseserklæring er generert ennå.",
-    "openSoa": "Gå til anvendelseserklæringen"
+    "openSoa": "Gå til anvendelseserklæringen",
+    "openHint": "Alle risikoer som ikke er lukket, også aksepterte risikoer organisasjonen bærer.",
+    "appetiteHint": "Åpne risikoer som er vurdert over risikoappetitten og ikke formelt akseptert. De trenger en beslutning.",
+    "appetiteTerm": "Risikoappetitt",
+    "appetiteValue": "Akseptabelt: til og med {{ score }} poeng",
+    "noAppetite": "Ingen risikoappetitt satt",
+    "acceptedAbove": "{{ count }} akseptert over den",
+    "awaitingCheck": "{{ count }} fullførte tiltak venter på kontroll av effekt.",
+    "seeAll": "Se alle"
   },
   "setup": {
-    "done": "Risikostyring er satt opp med en 5x5-matrise og et virksomhetsrisikoregister.",
-    "askManager": "Be en risikoansvarlig om å sette opp risikostyring for virksomheten."
+    "done": "Risikostyring er satt opp med en 5x5-matrise og et risikoregister for virksomheten.",
+    "askManager": "Be en risikoansvarlig om å sette opp risikostyring for organisasjonen."
   },
   "heatmap": {
     "title": "Varmekart",
-    "basis": "Vurdering som vises",
+    "basis": "Vis",
     "bases": {
-      "current": "Gjeldende vurdering",
-      "inherent": "Iboende vurdering",
-      "residual": "Restrisiko"
+      "current": "Nåværende vurdering",
+      "inherent": "Iboende vurdering (før tiltak)",
+      "residual": "Restrisiko (etter tiltak)"
     },
-    "defaultMatrix": "Standardmatrise",
-    "summary": "{{ total }} vurderte risikoer, {{ unrated }} ikke vurdert ennå.",
+    "defaultMatrix": "Forvalgt matrise",
+    "summary": "{{ rated }} av {{ total }} risikoer er vurdert.",
     "cellRisks": "Risikoer med sannsynlighet {{ likelihood }} og konsekvens {{ consequence }}",
-    "askPrompt": "Forklar hva dette varmekartet viser, og hvilke risikoer jeg bør se på først."
+    "askPrompt": "Forklar hva dette varmekartet viser, og hvilke risikoer jeg bør se på først.",
+    "basisHints": {
+      "current": "Hver risiko plasseres etter restrisikoen hvis den er vurdert, ellers etter den iboende vurderingen.",
+      "inherent": "Hver risiko plasseres etter vurderingen før tiltak.",
+      "residual": "Hver risiko plasseres etter vurderingen du forventer når tiltakene er på plass."
+    }
   },
   "matrix": {
     "gridLabel": "Risikomatrise",
@@ -84,7 +97,7 @@
       "almost_certain": "Nesten sikker",
       "insignificant": "Ubetydelig",
       "minor": "Liten",
-      "moderate": "Moderat",
+      "moderate": "Middels",
       "major": "Alvorlig",
       "severe": "Svært alvorlig"
     }
@@ -96,13 +109,25 @@
     "result": "Resultat:",
     "notRated": "Ikke vurdert",
     "aboveAppetite": "Over risikoappetitt",
-    "clear": "Fjern vurdering"
+    "clear": "Fjern vurdering",
+    "current": "Nåværende vurdering",
+    "currentPrefix": "Nåværende:",
+    "acceptedAboveAppetite": "Akseptert over appetitt",
+    "acceptedAboveAppetiteBy": "Akseptert over appetitt av {{ name }}",
+    "basisHint": {
+      "residual": "restrisikoen, fordi risikoen er vurdert etter tiltak",
+      "inherent": "den iboende vurderingen, fordi restrisikoen ikke er vurdert ennå",
+      "none": "ikke vurdert ennå"
+    }
   },
   "risks": {
-    "title": "Risikoregister",
+    "title": "Risikoer",
     "new": "Ny risiko",
     "searchPlaceholder": "Søk i kode, tittel, trussel …",
-    "openTreatments": "{{ count }} åpne tiltak"
+    "openTreatments": "{{ count }} åpne tiltak",
+    "subtitle": "Alle risikoer på tvers av registrene, med nåværende vurdering og eier.",
+    "export": "Eksporter CSV",
+    "exportFailed": "Eksporten mislyktes. Prøv igjen om litt."
   },
   "filters": {
     "status": "Status",
@@ -132,7 +157,9 @@
       "-created_at": "Nyeste først",
       "-updated_at": "Sist oppdatert",
       "next_review_at": "Neste gjennomgang"
-    }
+    },
+    "aboveAppetite": "Over risikoappetitt",
+    "clear": "Fjern filtrene"
   },
   "fields": {
     "code": "Kode",
@@ -161,20 +188,24 @@
     "strategy": "Behandlingsstrategi",
     "treatmentNotes": "Notater om behandling",
     "controlRefs": "Kontroller",
-    "reviewInterval": "Gjennomgangsintervall (måneder)",
+    "reviewInterval": "Gjennomgang hver (måned)",
     "nextReview": "Neste gjennomgang",
     "lastReviewed": "Sist gjennomgått",
     "changeReason": "Begrunnelse for endringen (valgfritt)",
     "acceptedAt": "Akseptert",
-    "acceptanceNote": "Notat om aksept",
-    "acceptanceExpires": "Aksept gyldig til (valgfritt)",
+    "acceptanceNote": "Notat om aksepten",
+    "acceptanceExpires": "Aksepten gjelder til",
     "dueAt": "Frist",
     "benefit": "Nytte",
     "feasibility": "Gjennomførbarhet",
     "score": "Poeng",
     "actionPlan": "Handlingsplan",
     "realisedAt": "Realisert",
-    "updatedAt": "Sist oppdatert"
+    "updatedAt": "Sist oppdatert",
+    "sourceEntity": "Hvilken post",
+    "sourceRefOther": "Eller beskriv det med egne ord",
+    "acceptanceNoteRequired": "Hvorfor organisasjonen aksepterer den (påkrevd)",
+    "riskOwner": "Risikoeier"
   },
   "categories": {
     "enterprise": "Virksomhet",
@@ -232,10 +263,29 @@
     "inherentLegend": "Vurder risikoen slik den er i dag, før planlagte tiltak",
     "residualLegend": "Vurder risikoen du forventer når tiltakene er på plass",
     "inherentMarker": "Ringen markerer den iboende vurderingen.",
-    "noMatrix": "En standard 5x5-matrise opprettes når du lagrer. Vurder risikoen etterpå.",
-    "controlRefsPlaceholder": "f.eks. iso27001-2022:A.5.15, iso27001-2022:A.8.13",
-    "intervalPlaceholder": "Registerets standard",
-    "acceptanceWarning": "Denne risikoen er akseptert. Endrer du en vurdering, trekkes aksepten tilbake."
+    "noMatrix": "En forvalgt 5x5-matrise opprettes når du lagrer. Vurder risikoen etterpå.",
+    "controlRefsPlaceholder": "Søk på nummer eller tittel, f.eks. A.8.13 eller backup",
+    "intervalPlaceholder": "Registerets forvalg",
+    "acceptanceWarning": "Denne risikoen er akseptert. Endrer du en vurdering, trekkes aksepten tilbake.",
+    "required": "påkrevd",
+    "stepsLabel": "Steg",
+    "steps": {
+      "describe": "Beskriv",
+      "assess": "Vurder",
+      "treat": "Behandle"
+    },
+    "stepHints": {
+      "describe": "Si hva som kan gå galt, hva det rammer og hvem som eier risikoen.",
+      "assess": "Vurder risikoen slik den er i dag, med kontrollene dere allerede har.",
+      "treat": "Bestem hva som skal gjøres, hvilke kontroller som gjelder og hva som gjenstår."
+    },
+    "next": "Neste",
+    "back": "Tilbake",
+    "subjectHint": "Kobler du til den faktiske posten, vises risikoen også der.",
+    "controlPickerPlaceholder": "Søk på nummer eller tittel, f.eks. A.8.13 eller backup",
+    "controlsHint": "Valgte kontroller merkes som dokumentert av denne risikoen.",
+    "appetiteNote": "Risikoer med mer enn {{ score }} poeng må behandles eller aksepteres formelt.",
+    "residualAfterStrategy": "Velg en behandlingsstrategi først. Vurder deretter risikoen du forventer etter tiltakene."
   },
   "detail": {
     "assessment": "Vurdering",
@@ -250,7 +300,7 @@
     "reviewNote": "Notat fra gjennomgangen (valgfritt)",
     "accept": "Aksepter risiko",
     "acceptTitle": "Aksepter denne risikoen",
-    "acceptMessage": "Ved å akseptere bekrefter du at virksomheten bevisst beholder risikoen på dagens nivå.",
+    "acceptMessage": "Ved å akseptere bekrefter du at organisasjonen bevisst beholder risikoen på dagens nivå.",
     "acceptAboveAppetite": "Denne risikoen er over risikoappetitten. For å akseptere den må du skrive et notat som forklarer hvorfor.",
     "acceptance": "Risikoaksept",
     "acceptedBy": "Akseptert av {{ name }} {{ date }}",
@@ -262,17 +312,28 @@
     "statusTitle": "Endre status",
     "statusMessage": "Flytt risikoen til {{ status }}.",
     "controls": "Kontroller",
-    "noControls": "Ingen kontroller er referert ennå.",
+    "noControls": "Ingen kontroller er valgt ennå. Rediger risikoen for å legge til kontrollene som reduserer den.",
     "context": "Kontekst",
     "deleteTitle": "Slette denne risikoen?",
-    "deleteMessage": "{{ code }} og de åpne tiltaksoppgavene fjernes. Dette kan ikke angres herfra."
+    "deleteMessage": "{{ code }} og de åpne tiltaksoppgavene fjernes. Dette kan ikke angres herfra.",
+    "what": "Hva risikoen er",
+    "summary": "Kort oppsummert",
+    "noResidual": "Ikke vurdert etter tiltak ennå",
+    "appetiteLine": "til og med {{ score }} poeng er akseptabelt",
+    "acceptNeedsRating": "Vurder risikoen før den kan aksepteres.",
+    "acceptConfirm": "Signer aksepten",
+    "acceptSigner": "Du signerer som risikoeier eller ledelse: {{ name }}",
+    "acceptNoteHint": "Skriv hvorfor organisasjonen aksepterer en risiko over appetitten.",
+    "acceptExpiryHint": "Satt til neste gjennomgang som forvalg. Aksepten må fornyes etter denne datoen.",
+    "acceptanceUntilReview": "Gjelder til neste gjennomgang",
+    "controlsHint": "Kontrollene i vedlegg A (eller andre kontroller) som reduserer denne risikoen."
   },
   "treatments": {
     "title": "Tiltaksplan",
     "add": "Legg til tiltak",
     "newTitle": "Nytt tiltak",
     "editTitle": "Tiltak",
-    "empty": "Ingen tiltak ennå. Legg til handlingene som skal redusere denne risikoen.",
+    "empty": "Ingen tiltak ennå. Legg til tiltakene som skal redusere denne risikoen.",
     "due": "Frist {{ date }}",
     "task": "Oppgave",
     "deleteTitle": "Slette dette tiltaket?",
@@ -326,12 +387,42 @@
       "3": "Middels",
       "4": "Høy",
       "5": "Svært høy"
-    }
+    },
+    "subtitle": "Muligheter til forbedring, vurdert på nytte og gjennomførbarhet, hver med en eier.",
+    "what": "Hva muligheten er",
+    "concerns": "Hva gjelder muligheten",
+    "evaluationHint": "Vurder begge fra 1 til 5. Poengene er nytte x gjennomførbarhet, høyst 25.",
+    "scoreOf": "{{ score }} av {{ max }} · {{ band }}",
+    "scoreHint": "Poeng = nytte x gjennomførbarhet (1–25). 15 eller mer er en sterk mulighet.",
+    "bands": {
+      "high": "Høy",
+      "medium": "Middels",
+      "low": "Lav"
+    },
+    "levels": {
+      "benefit": {
+        "1": "Knapt merkbar",
+        "2": "En liten forbedring for noen få",
+        "3": "En tydelig forbedring for ett område",
+        "4": "En stor gevinst for flere områder eller kunder",
+        "5": "En stor gevinst for hele organisasjonen"
+      },
+      "feasibility": {
+        "1": "Svært vanskelig: store kostnader eller mange ukjente",
+        "2": "Vanskelig: krever budsjett og beslutninger",
+        "3": "Gjennomførbart med en viss innsats",
+        "4": "Enkelt med ressursene dere har",
+        "5": "Svært enkelt: kan starte nå"
+      }
+    },
+    "actionPlanHint": "Legg inn de konkrete stegene som tiltak på muligheten etter at du har lagret.",
+    "actionsHint": "Tiltak er oppgaver: de vises i Mitt arbeid hos den som har ansvaret. Bruk «Lag ny fra denne» for et mål eller et prosjekt.",
+    "openActions": "{{ count }} åpne tiltak"
   },
   "soa": {
     "title": "Anvendelseserklæring",
-    "subtitle": "For hver kontroll i vedlegg A: er den aktuell, hvorfor, og hvor langt er den implementert.",
-    "viewSubtitle": "Ta stilling til og begrunn hver kontroll. Kontroller som risikoer refererer til, er merket som valgt av risikovurderingen.",
+    "subtitle": "For hver kontroll: gjelder den, hvorfor, hvor langt er den implementert, og hvor er den dokumentert.",
+    "viewSubtitle": "Ta stilling til og begrunn hver kontroll. Kontroller som risikoer viser til, er merket som valgt av risikovurderingen.",
     "back": "Alle erklæringer",
     "enabled": "Standarden er aktivert",
     "notEnabled": "Standarden er ikke aktivert",
@@ -366,7 +457,7 @@
     "yes": "Ja",
     "no": "Nei",
     "needsJustification": "Trenger begrunnelse",
-    "applicableLabel": "Denne kontrollen er aktuell",
+    "applicableLabel": "Denne kontrollen gjelder for oss",
     "markReviewed": "Merk som gjennomgått nå",
     "lastReviewed": "sist gjennomgått {{ date }}",
     "relatedRisks": "Relaterte risikoer ({{ treatments }} tiltak)",
@@ -381,7 +472,8 @@
       "notes": "Notater om implementering",
       "risks": "Risikoer",
       "theme": "Tema",
-      "reviewedAt": "Gjennomgått"
+      "reviewedAt": "Gjennomgått",
+      "documentedIn": "Dokumentert i"
     },
     "implementation": {
       "not_started": "Ikke startet",
@@ -395,7 +487,65 @@
       "contractual": "Kontraktskrav",
       "business": "Forretningskrav",
       "best_practice": "Beste praksis"
-    }
+    },
+    "standards": {
+      "iso27001": "ISO/IEC 27001:2022 – Informasjonssikkerhet",
+      "iso42001": "ISO/IEC 42001:2023 – Styring av KI"
+    },
+    "notGeneratedShort": "Ikke generert ennå",
+    "missingControls": "{{ count }} kontroller i standarden er ikke med i erklæringen ennå.",
+    "progress": {
+      "decided": "Tatt stilling til (begrunnet)",
+      "implemented": "Implementert",
+      "count": "{{ part }} av {{ whole }} kontroller",
+      "countApplicable": "{{ part }} av {{ whole }} aktuelle"
+    },
+    "excluded": "Utelatt",
+    "showMissing": "Vis kontrollene som mangler begrunnelse",
+    "applicableHint": "En utelatt kontroll må ha en begrunnelse. Kravene regnes da som ikke aktuelle.",
+    "saveNextMissing": "Lagre og gå til neste uten begrunnelse",
+    "documentation": {
+      "title": "Dokumentasjon",
+      "hint": "Retningslinjene og prosedyrene som viser at kontrollen er på plass.",
+      "none": "Ingen dokumenter er koblet til ennå.",
+      "linked": "{{ name }} er koblet til kontrollen.",
+      "linkFailed": "Dokumentet kunne ikke kobles til. Prøv igjen om litt."
+    },
+    "bulk": {
+      "label": "Endre flere kontroller",
+      "selected": "{{ count }} valgt",
+      "edit": "Endre valgte",
+      "clear": "Fjern utvalget",
+      "select": "Velg {{ control }}",
+      "selectAll": "Velg alle viste kontroller",
+      "title": "Endre {{ count }} kontroller",
+      "hint": "Bare feltene du fyller ut, endres. Alt annet forblir som det er.",
+      "unchanged": "La stå som det er",
+      "reasonsHint": "Krysser du av grunner, erstatter de grunnene som står nå.",
+      "justificationHint": "Erstatter begrunnelsen på alle valgte kontroller.",
+      "apply": "Endre {{ count }} kontroller",
+      "done": "{{ count }} kontroller er endret."
+    },
+    "version": {
+      "approve": "Godkjenn versjon",
+      "approveTitle": "Godkjenn denne versjonen",
+      "approveMessage": "En fast kopi av {{ name }} lagres med ditt navn og dagens dato. Senere endringer krever en ny versjon.",
+      "approveConfirm": "Godkjenn",
+      "signer": "Du godkjenner som: {{ name }}",
+      "note": "Notat (valgfritt)",
+      "approved": "Versjon {{ version }} er godkjent.",
+      "latest": "Sist godkjent: versjon {{ version }}, {{ date }} av {{ name }}",
+      "none": "Ikke godkjent ennå",
+      "changed": "Endret etter godkjenning",
+      "blocked": "Alle kontroller må ha en begrunnelse før du kan godkjenne.",
+      "blockedHint": "{{ count }} kontroller mangler fortsatt begrunnelse. Når alle er tatt stilling til, kan du godkjenne en versjon.",
+      "history": "Versjonshistorikk",
+      "label": "Versjon {{ version }}",
+      "approvedBy": "Godkjent av {{ name }} {{ date }}",
+      "empty": "Ingen godkjente versjoner ennå."
+    },
+    "excludedDelta": "Hver må begrunnes",
+    "showMissingShort": "Vis dem"
   },
   "registers": {
     "title": "Risikoregistre",
@@ -406,25 +556,27 @@
     "back": "Alle registre",
     "name": "Navn",
     "matrix": "Matrise",
-    "defaultMatrix": "Standardmatrise (opprettes ved lagring)",
-    "isDefault": "Standardregister for nye risikoer",
+    "defaultMatrix": "Forvalgt matrise (opprettes ved lagring)",
+    "isDefault": "Bruk for nye risikoer som forvalg",
     "archived": "Arkivert (ingen nye risikoer)",
     "archivedBadge": "Arkivert",
-    "default": "Standard",
+    "default": "Forvalgt",
     "risks": "Risikoer",
     "riskCounts": "{{ open }} åpne av {{ total }}",
-    "months": "{{ count }} måneder",
+    "months": "Hver {{ count }}. måned",
     "deleteTitle": "Slette dette registeret?",
-    "deleteMessage": "{{ name }} kan bare slettes når det ikke inneholder risikoer."
+    "deleteMessage": "{{ name }} kan bare slettes når det ikke inneholder risikoer.",
+    "defaultHint": "Nye risikoer havner i dette registeret hvis du ikke velger et annet.",
+    "reviewEvery": "Gjennomgang"
   },
   "matrices": {
     "title": "Risikomatriser",
-    "subtitle": "Skalaene virksomheten bruker for å vurdere sannsynlighet og konsekvens, og hvor risiko blir uakseptabel.",
+    "subtitle": "Skalaene organisasjonen bruker for å vurdere sannsynlighet og konsekvens, og hvor risiko blir uakseptabel.",
     "new": "Ny matrise",
     "newTitle": "Ny risikomatrise",
     "create": "Opprett matrise",
     "back": "Alle matriser",
-    "default": "Standard",
+    "default": "Forvalgt",
     "summary": "{{ l }} x {{ c }}, brukt av {{ registers }} registre",
     "usedBy": "Brukt av {{ count }} registre",
     "appetiteValue": "Risikoappetitt: poeng til og med {{ score }} er akseptable.",
@@ -438,14 +590,14 @@
     },
     "templateName": "{{ size }} risikomatrise",
     "appetite": "Risikoappetitt (høyeste akseptable poeng)",
-    "isDefault": "Standardmatrise for nye registre",
+    "isDefault": "Forvalgt matrise for nye registre",
     "likelihoodLevels": "Sannsynlighetsnivåer",
     "consequenceLevels": "Konsekvensnivåer",
     "addLevel": "Legg til nivå",
     "removeLevel": "Fjern nivå {{ value }}",
     "levelLabel": "Navn på nivå {{ value }}",
     "levelDescription": "Beskrivelse av nivå {{ value }}",
-    "descriptionPlaceholder": "Hva nivået betyr i praksis (valgfritt)",
+    "descriptionPlaceholder": "Hva nivået betyr i praksis",
     "bands": "Risikonivåer (bånd)",
     "addBand": "Legg til nivå",
     "removeBand": "Fjern {{ label }}",
@@ -463,7 +615,10 @@
     "auto": "Etter poeng",
     "recalcNote": "Når du lagrer endrede bånd, beregnes nivået på nytt for alle risikoer som er vurdert på denne matrisen.",
     "deleteTitle": "Slette denne matrisen?",
-    "deleteMessage": "{{ name }} kan bare slettes når ingen registre bruker den."
+    "deleteMessage": "{{ name }} kan bare slettes når ingen registre bruker den.",
+    "descriptionExample": "For eksempel: {{ example }}",
+    "missingDescriptions": "{{ count }} nivåer mangler beskrivelse. Revisorer forventer at hvert nivå er definert.",
+    "fillDescriptions": "Fyll inn eksempler"
   },
   "ai": {
     "suggestThreats": "Foreslå trusler",
@@ -484,7 +639,9 @@
   "ask": {
     "inherent": "Hjelp meg å vurdere sannsynlighet og konsekvens for denne risikoen før tiltak.",
     "rating": "Forklar vurderingen av denne risikoen og om tiltakene er nok.",
-    "opportunity": "Hjelp meg å vurdere nytten og gjennomførbarheten av denne muligheten."
+    "opportunity": "Hjelp meg å vurdere nytten og gjennomførbarheten av denne muligheten.",
+    "threat": "Hjelp meg å beskrive hva som kan skje, svakheten det utnytter og konsekvensen.",
+    "controls": "Hvilke kontroller vil redusere denne risikoen, og hvorfor?"
   },
   "notices": {
     "created": "{{ code }} er opprettet.",
@@ -501,22 +658,23 @@
     "registerDeleted": "Registeret {{ name }} er slettet.",
     "matrixSaved": "Matrisen {{ name }} er lagret.",
     "matrixDeleted": "Matrisen er slettet.",
-    "soaSaved": "Kontroll {{ ref }} er lagret."
+    "soaSaved": "Kontroll {{ ref }} er lagret.",
+    "effectivenessSaved": "Kontrollen av effekt er registrert."
   },
   "errors": {
     "forbidden": "Du har ikke tilgang til å gjøre dette.",
     "notFound": "Dette finnes ikke lenger, eller du har ikke tilgang til det.",
-    "module_disabled": "Risikostyring er ikke aktivert for denne virksomheten.",
-    "no_matrix": "Virksomheten har ingen risikomatrise ennå.",
+    "module_disabled": "Risikostyring er ikke aktivert for denne organisasjonen.",
+    "no_matrix": "Organisasjonen har ingen risikomatrise ennå.",
     "invalid_matrix": "Matrisen er ikke gyldig. Sjekk at nivåene starter på 1, at det laveste båndet starter på 1, og at fargene er satt.",
     "matrix_in_use": "Matrisen er i bruk. Du kan ikke slette den eller endre antall nivåer mens risikoer er vurdert på den.",
     "register_not_empty": "Registeret inneholder fortsatt risikoer. Flytt eller slett dem først.",
     "ratings_do_not_fit": "Noen risikoer i registeret er vurdert utenfor skalaene i den nye matrisen.",
     "rating_incomplete": "Velg både sannsynlighet og konsekvens, eller ingen av dem.",
     "rating_out_of_range": "Vurderingen er utenfor matrisens skalaer.",
-    "invalid_owner": "Eieren må være medlem av virksomheten.",
-    "invalid_department": "Velg en avdeling i denne virksomheten.",
-    "invalid_control_ref": "En eller flere kontrollreferanser er ukjente. Bruk formen standard:nummer, f.eks. iso27001-2022:A.5.15.",
+    "invalid_owner": "Eieren må være medlem av organisasjonen.",
+    "invalid_department": "Velg en avdeling i denne organisasjonen.",
+    "invalid_control_ref": "En eller flere kontroller er ukjente. Velg dem fra listen.",
     "too_many_control_refs": "For mange kontrollreferanser.",
     "acceptance_note_required": "En risiko over risikoappetitten kan bare aksepteres med et notat.",
     "invalid_expiry": "Sluttdatoen for aksepten må være fram i tid.",
@@ -532,7 +690,14 @@
     "justification_required": "En utelatt kontroll må ha en begrunnelse.",
     "standard_not_found": "Standarden finnes ikke i katalogen.",
     "no_annex_controls": "Standarden har ingen kontroller i vedlegg A.",
-    "title_required": "Gi den en tittel."
+    "title_required": "Gi den en tittel.",
+    "owner_required": "Velg en risikoeier.",
+    "invalid_source_entity": "Den posten kan ikke kobles her. Velg en annen.",
+    "treatment_not_done": "Merk tiltaket som fullført før du kontrollerer effekten.",
+    "effectiveness_note_required": "Beskriv hva som ikke virket.",
+    "invalid_checked_at": "Kontrolldatoen kan ikke være fram i tid.",
+    "justification_missing": "Alle kontroller må ha en begrunnelse før du kan godkjenne.",
+    "soa_not_generated": "Generer erklæringen først."
   },
   "notifications": {
     "riskCreated": "Ny risiko {{ code }}: {{ title }}",
@@ -551,7 +716,8 @@
     "opportunityUpdated": "Mulighet {{ code }} er oppdatert",
     "opportunityOwnerChanged": "Du eier nå mulighet {{ code }}: {{ title }}",
     "opportunityStatusChanged": "Mulighet {{ code }} har endret status: {{ title }}",
-    "soaEntryUpdated": "Anvendelseserklæringen er oppdatert: {{ code }}"
+    "soaEntryUpdated": "Anvendelseserklæringen er oppdatert: {{ code }}",
+    "treatmentVerified": "Effekt kontrollert på {{ code }}: {{ treatment_title }}"
   },
   "timeline": {
     "riskCreated": "Risiko opprettet",
@@ -570,6 +736,61 @@
     "opportunityUpdated": "Mulighet oppdatert",
     "opportunityOwnerChanged": "Eier endret",
     "opportunityStatusChanged": "Status endret",
-    "soaEntryUpdated": "Beslutning om kontroll oppdatert"
+    "soaEntryUpdated": "Beslutning om kontroll oppdatert",
+    "treatmentVerified": "Effekt kontrollert: {{ treatment_title }}"
+  },
+  "controls": {
+    "openInSoa": "Åpne kontrollen i anvendelseserklæringen",
+    "excluded": "Utelatt i SoA"
+  },
+  "effectiveness": {
+    "title": "Virket tiltaket?",
+    "message": "«{{ title }}» er fullført. Registrer hvordan dere sjekket at det virker, slik at en revisor kan se det.",
+    "result": "Resultat av kontrollen",
+    "results": {
+      "effective": "Virker",
+      "partially_effective": "Virker delvis",
+      "not_effective": "Virker ikke"
+    },
+    "note": "Hvordan det ble kontrollert (valgfritt)",
+    "noteRequired": "Hva virket ikke (påkrevd)",
+    "noteHint": "For eksempel: gjenopprettingstest av sikkerhetskopien 12. november var vellykket.",
+    "checkedAt": "Kontrollert dato",
+    "save": "Registrer kontrollen",
+    "later": "Senere",
+    "needed": "Effekten er ikke kontrollert ennå",
+    "check": "Kontroller effekt",
+    "checkedBy": "Kontrollert av {{ name }} {{ date }}",
+    "rerateOffer": "Stemmer restrisikoen fortsatt? Vurder den på nytt hvis tiltaket har endret den.",
+    "rerate": "Vurder risikoen på nytt"
+  },
+  "subject": {
+    "placeholder": "Søk på navn eller kode …",
+    "noResults": "Ingen poster passer.",
+    "remove": "Fjern {{ name }}"
+  },
+  "widgets": {
+    "heatMap": {
+      "title": "Varmekart for risiko",
+      "description": "Hvor de åpne risikoene ligger i risikomatrisen, etter sannsynlighet og konsekvens."
+    }
+  },
+  "next": {
+    "reviewsOverdue": {
+      "title": "Gå gjennom {{ count }} risikoer med forfalt gjennomgang",
+      "why": "Risikoer skal vurderes på nytt med planlagte mellomrom."
+    },
+    "aboveAppetite": {
+      "title": "Ta stilling til {{ count }} risikoer over appetitten",
+      "why": "De må behandles eller aksepteres formelt."
+    },
+    "effectiveness": {
+      "title": "Sjekk om {{ count }} fullførte tiltak virket",
+      "why": "Revisorer spør hvordan dere vet at et tiltak har effekt."
+    },
+    "soaUnjustified": {
+      "title": "Begrunn {{ count }} kontroller i anvendelseserklæringen",
+      "why": "Hver kontroll trenger en beslutning og en begrunnelse før erklæringen kan godkjennes."
+    }
   }
 }
