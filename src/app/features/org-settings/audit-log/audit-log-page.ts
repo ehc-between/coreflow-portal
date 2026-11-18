@@ -836,8 +836,11 @@ export class AuditLogPage {
     return label !== key ? label : module.replace(/_/g, ' ');
   }
 
-  /** "Personvern: ropa" — the module's name and the rest of the key. */
+  /** A named output ("Personvern: protokoll"), else the module's name and the rest of the key. */
   protected outputLabel(outputKey: string): string {
+    const namedKey = `settings.audit.outputNames.${outputKey.replace(/\./g, '_')}`;
+    const named = this.language.translate(namedKey);
+    if (named !== namedKey) return named;
     const [module, ...rest] = outputKey.split('.');
     const name = rest.join('.').replace(/[_.]/g, ' ').trim();
     const moduleName = this.moduleName(module ?? outputKey);

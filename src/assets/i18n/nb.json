@@ -844,6 +844,12 @@
       "emptyOutputsTitle": "Ingen dokumenter laget ennå",
       "emptyOutputsBody": "Hver gang noen lager, laster ned eller deler et dokument eller en eksport, logges det her.",
       "sameOutput": "Vis alle utgaver av dette dokumentet",
+      "outputNames": {
+        "privacy_ropa": "Personvern: behandlingsprotokoll",
+        "privacy_breaches": "Personvern: brudd på personvernet",
+        "privacy_requests": "Personvern: henvendelser fra registrerte",
+        "privacy_processors": "Personvern: databehandlere"
+      },
       "export": "Eksporter som CSV",
       "exportFailed": "Kunne ikke eksportere revisjonsloggen. Prøv igjen.",
       "search": "Søk i revisjonsloggen",

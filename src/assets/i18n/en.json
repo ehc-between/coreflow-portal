@@ -844,6 +844,12 @@
       "emptyOutputsTitle": "No documents made yet",
       "emptyOutputsBody": "Every document or export someone makes, downloads or shares is logged here.",
       "sameOutput": "Show every copy of this document",
+      "outputNames": {
+        "privacy_ropa": "Privacy: record of processing (ROPA)",
+        "privacy_breaches": "Privacy: breach log",
+        "privacy_requests": "Privacy: data subject requests",
+        "privacy_processors": "Privacy: processors"
+      },
       "export": "Export as CSV",
       "exportFailed": "Could not export the audit log. Try again.",
       "search": "Search the audit log",
