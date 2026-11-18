@@ -8,8 +8,8 @@
     "settings": "Settings"
   },
   "registrer": {
-    "label": "Register",
-    "heading": "What do you want to register?",
+    "label": "Add new",
+    "heading": "What do you want to add?",
     "deviation": "Deviation or incident",
     "breach": "Personal data breach",
     "feedback": "Customer feedback",
@@ -71,7 +71,7 @@
   "orgSettings": {
     "title": "Menu",
     "label": "New, simpler menu",
-    "hint": "Seven fixed menu items (Register, Home, My work, Standards, Registers, Documents and reports, Settings) instead of one per module. Each member can switch back in their account menu.",
+    "hint": "Seven fixed menu items (Add new, Home, My work, Standards, Registers, Documents and reports, Settings) instead of one per module. Each member can switch back in their account menu.",
     "loadError": "Could not load the menu setting.",
     "savedOn": "The new menu is now on for the organisation.",
     "savedOff": "The organisation uses the old menu again.",
