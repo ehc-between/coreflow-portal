@@ -19,13 +19,13 @@ import { Icon } from '../../../shared/ui/icon/icon';
       [attr.aria-label]="'recruitment.ai.outputLabel' | transloco"
       aria-live="polite"
     >
-      <p class="mb-2 flex items-center gap-1.5 text-[12px] font-semibold text-accent">
+      <p class="mb-2 flex items-center gap-1.5 text-meta font-semibold text-accent">
         <app-icon name="spark" [size]="14" />
         {{ 'recruitment.ai.generatedNotice' | transloco }}
       </p>
       <ng-content />
       @if (text()) {
-        <div class="text-[13.5px] leading-relaxed whitespace-pre-wrap text-fg">{{ text() }}</div>
+        <div class="text-body leading-relaxed whitespace-pre-wrap text-fg">{{ text() }}</div>
       }
       <div class="mt-3 flex flex-wrap gap-2">
         @if (useLabelKey(); as key) {

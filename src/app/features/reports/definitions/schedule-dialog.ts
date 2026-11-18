@@ -52,7 +52,7 @@ export function assigneeFields(
     >
       @if (open()) {
         <form class="flex flex-col gap-4" (submit)="$event.preventDefault(); submit()" novalidate>
-          <p class="text-[13px] text-fg-muted">{{ 'reports.schedule.intro' | transloco }}</p>
+          <p class="text-ui text-fg-muted">{{ 'reports.schedule.intro' | transloco }}</p>
           <app-recurrence-picker [(rrule)]="rrule" idPrefix="report-schedule" />
           <div class="grid gap-3 sm:grid-cols-2">
             <app-form-field [label]="'reports.schedule.start' | transloco" inputId="sched-start">
@@ -96,7 +96,7 @@ export function assigneeFields(
               (valueChange)="assignee.set($event)"
             />
           </app-form-field>
-          <p class="-mt-2 text-[11.5px] text-fg-subtle">
+          <p class="-mt-2 text-meta text-fg-subtle">
             {{ 'reports.schedule.assigneeHint' | transloco }}
           </p>
           @if (error(); as key) {

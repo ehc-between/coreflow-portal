@@ -63,9 +63,17 @@ function makeFeedback(overrides: Partial<Feedback> = {}): Feedback {
     closed_at: null,
     survey_response_id: null,
     created_by: { id: 'u-1', name: 'Ada' },
+    complaint_justified: null,
+    root_cause: null,
+    corrective_action_required: null,
+    customer_accepted: null,
+    assessment_gaps: ['assessment', 'reply'],
     linked_deviations: [],
+    subjects: [],
+    replies: [],
     open_tasks: 0,
     allowed_actions: ['resolve'],
+    next_action: 'resolve',
     can_edit: true,
     can_delete: false,
     ...overrides,
@@ -203,20 +211,88 @@ describe('FeedbackDetail', () => {
     return ctx;
   }
 
-  it('renders the record with its kind, status and overdue reply date', async () => {
+  it('renders the record with its kind, status, overdue reply date and what is missing', async () => {
     const { el } = await loaded();
-    expect(el.querySelector('[data-testid="feedback-heading"]')?.textContent).toContain(
-      'Delivery two days late',
-    );
+    expect(el.querySelector('h1')?.textContent).toContain('Delivery two days late');
     expect(el.querySelector('[data-testid="feedback-kind"]')?.textContent).toContain(
       'feedback.kinds.complaint',
     );
-    expect(el.querySelector('[data-testid="feedback-due"]')?.classList).toContain('text-fail');
+    expect(el.querySelector('[data-testid="feedback-due"]')?.classList).toContain('text-warn-ink');
     expect(el.querySelector('[data-testid="action-resolve"]')).toBeTruthy();
     expect(el.querySelector('[data-testid="no-deviations"]')).toBeTruthy();
+    // A complaint shows its assessment and what an auditor would still miss.
+    expect(el.querySelector('[data-testid="feedback-assessment"]')).toBeTruthy();
+    expect(el.querySelector('[data-testid="assessment-gaps"]')?.textContent).toContain(
+      'feedback.gaps.assessment',
+    );
+    expect(el.querySelector('[data-testid="no-replies"]')).toBeTruthy();
+    expect(el.querySelector('[data-testid="no-subjects"]')).toBeTruthy();
+    // Six empty customer fields are not shown as a wall of "not set".
+    expect(el.querySelector('[data-testid="no-customer"]')).toBeNull();
   });
 
-  it('requires a resolution before resolving a complaint, then posts it', async () => {
+  it('shows one primary step and asks before acknowledging', async () => {
+    const { el, http, fixture } = await loaded(
+      makeFeedback({
+        status: 'new',
+        allowed_actions: ['acknowledge', 'start', 'resolve', 'close'],
+        next_action: 'acknowledge',
+      }),
+    );
+    const primary = el.querySelector<HTMLElement>('[data-testid="action-acknowledge"] button')!;
+    expect(primary).toBeTruthy();
+    // The other steps sit in the overflow menu, not as more primary buttons.
+    expect(el.querySelectorAll('app-button[data-testid^="action-"]').length).toBe(1);
+    primary.click();
+    await render(fixture);
+    http.expectNone(kitUrl('feedback/items/f-1/actions/acknowledge'));
+    const dialog = document.querySelector('[role="alertdialog"]') ?? el;
+    expect(dialog.textContent).toContain('feedback.actionDialog.titles.acknowledge');
+    const confirm = Array.from(dialog.querySelectorAll('button')).find((b) =>
+      b.textContent?.includes('feedback.actions.acknowledge'),
+    )!;
+    confirm.click();
+    await render(fixture);
+    const req = http.expectOne(kitUrl('feedback/items/f-1/actions/acknowledge'));
+    expect(req.request.body).toEqual({ note: null });
+    req.flush(makeFeedback({ status: 'acknowledged', allowed_actions: ['start'] }));
+  });
+
+  it('logs a reply to the customer', async () => {
+    const { el, http, fixture, notify } = await loaded();
+    el.querySelector<HTMLElement>('[data-testid="log-reply"] button')!.click();
+    await render(fixture);
+    const dialog = document.querySelector('[role="alertdialog"]') ?? el;
+    const body = dialog.querySelector<HTMLTextAreaElement>('[data-testid="reply-body"]')!;
+    body.value = 'We have refunded the shipping.';
+    body.dispatchEvent(new Event('input'));
+    await render(fixture);
+    const save = Array.from(dialog.querySelectorAll('button')).find((b) =>
+      b.textContent?.includes('feedback.replies.save'),
+    )!;
+    save.click();
+    await render(fixture);
+    const req = http.expectOne(kitUrl('feedback/items/f-1/replies'));
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toMatchObject({
+      channel: 'email',
+      body: 'We have refunded the shipping.',
+    });
+    req.flush({
+      id: 'r-1',
+      sent_on: '2026-11-02',
+      channel: 'email',
+      body: 'We have refunded the shipping.',
+      created_by: null,
+      created_at: '2026-11-02T10:00:00',
+    });
+    await render(fixture);
+    expect(notify.success).toHaveBeenCalledWith('feedback.notices.replyLogged');
+    // The record is re-read: the customer is now informed.
+    http.expectOne(kitUrl('feedback/items/f-1')).flush(makeFeedback({ customer_informed: true }));
+  });
+
+  it('asks whether a complaint was justified before resolving it, then posts the assessment', async () => {
     const { el, http, fixture, notify } = await loaded();
     el.querySelector<HTMLElement>('[data-testid="action-resolve"] button')!.click();
     await render(fixture);
@@ -229,6 +305,10 @@ describe('FeedbackDetail', () => {
     text.value = 'Refunded the shipping cost';
     text.dispatchEvent(new Event('input'));
     await render(fixture);
+    // Still blocked: the complaint has not been assessed.
+    expect(confirm.disabled).toBe(true);
+    dialog.querySelector<HTMLInputElement>('[data-testid="resolve-justified-yes"]')!.click();
+    await render(fixture);
     expect(confirm.disabled).toBe(false);
     confirm.click();
     await render(fixture);
@@ -237,6 +317,9 @@ describe('FeedbackDetail', () => {
     expect(req.request.body).toEqual({
       resolution: 'Refunded the shipping cost',
       customer_informed: false,
+      complaint_justified: true,
+      root_cause: null,
+      corrective_action_required: null,
     });
     req.flush(
       makeFeedback({
@@ -249,9 +332,10 @@ describe('FeedbackDetail', () => {
     expect(notify.success).toHaveBeenCalledWith('feedback.notices.actions.resolve', {
       code: 'FB-0001',
     });
-    expect(el.querySelector('[data-testid="feedback-status"]')?.textContent).toContain(
-      'feedback.status.resolved',
-    );
+    // The status badge uses the shared tone map (resolved = pass).
+    expect(
+      el.querySelector('[data-testid="feedback-status"] [data-tone]')?.getAttribute('data-tone'),
+    ).toBe('pass');
     expect(el.querySelector('[data-testid="feedback-resolution"]')?.textContent).toContain(
       'Refunded',
     );
@@ -307,6 +391,11 @@ describe('SurveyDetail', () => {
     expect(el.querySelector('[data-testid="survey-questions"]')?.textContent).toContain('Overall?');
     expect(el.querySelector('[data-testid="results-empty"]')).toBeTruthy();
     expect(el.querySelector('[data-testid="survey-action-close"]')).toBeTruthy();
+    // No promise of a QR code that does not exist.
+    expect(el.textContent).not.toContain('QR');
+    expect(el.querySelector('[data-testid="survey-threshold"]')?.textContent).toContain(
+      'feedback.surveyDetail.thresholdValue',
+    );
   });
 });
 
@@ -387,6 +476,25 @@ describe('PublicSurveyPage', () => {
     await render(fixture);
     expect(el.querySelector('[data-testid="survey-thanks"]')?.textContent).toContain(
       'Thanks a lot',
+    );
+  });
+
+  it('names the controller and links the privacy notice when contact details are asked for', async () => {
+    const { http, fixture, el } = setup();
+    await render(fixture);
+    http.expectOne(publicUrl).flush({
+      ...survey,
+      anonymous: false,
+      collects_contact: true,
+      controller_name: 'Acme AS',
+      privacy_notice_url: 'https://acme.example/privacy',
+    });
+    await render(fixture);
+    expect(el.querySelector('[data-testid="survey-privacy"]')?.textContent).toContain(
+      'feedback.public.privacyNamed',
+    );
+    expect(el.querySelector<HTMLAnchorElement>('[data-testid="privacy-link"]')?.href).toBe(
+      'https://acme.example/privacy',
     );
   });
 

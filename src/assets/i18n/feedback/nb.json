@@ -18,18 +18,16 @@
     "insights": "Innsikt"
   },
   "list": {
-    "title": "Kundetilbakemeldinger",
     "subtitle": "Klager, ros, forslag og spørsmål fra kunder, og hvordan hver av dem ble håndtert.",
     "searchPlaceholder": "Søk på tittel, kode, kunde eller tekst",
     "new": "Registrer tilbakemelding",
     "noMatch": "Ingen tilbakemeldinger passer med disse filtrene.",
-    "received": "Mottatt {{ date }}",
-    "score": "Tilfredshet {{ score }}/5",
-    "owner": "Eier: {{ name }}",
-    "due": "Svar innen {{ date }}",
-    "noDue": "Ingen svarfrist",
     "surveyFilter": "Viser tilbakemeldingene som kom fra én undersøkelse.",
-    "clearSurveyFilter": "Vis alle tilbakemeldinger"
+    "clearSurveyFilter": "Vis alle tilbakemeldinger",
+    "countOf": "Viser {{ shown }} av {{ total }}",
+    "resetFilters": "Nullstill filtre",
+    "noMatchBody": "Prøv færre filtre, eller nullstill dem for å se alle tilbakemeldingene.",
+    "categoryValue": "Kategori: {{ category }}"
   },
   "filters": {
     "status": "Status",
@@ -45,7 +43,19 @@
     "anyOwner": "Alle eiere",
     "mine": "Eid av meg",
     "sort": "Sortering",
-    "overdue": "Svarfrist passert"
+    "overdue": "Svarfrist passert",
+    "severity": "Konsekvens",
+    "anySeverity": "Alle konsekvenser",
+    "justified": "Berettiget klage",
+    "justifiedOptions": {
+      "any": "Berettiget eller ikke",
+      "yes": "Berettiget",
+      "no": "Ikke berettiget"
+    },
+    "department": "Avdeling",
+    "anyDepartment": "Alle avdelinger",
+    "category": "Kategori",
+    "anyCategory": "Alle kategorier"
   },
   "sorts": {
     "updated_atDesc": "Sist oppdatert",
@@ -70,7 +80,7 @@
     "email": "E-post",
     "phone": "Telefon",
     "web": "Nettsted",
-    "in_person": "Personlig",
+    "in_person": "Ansikt til ansikt",
     "survey": "Undersøkelse",
     "social": "Sosiale medier",
     "other": "Annet"
@@ -105,25 +115,27 @@
     "titles": {
       "acknowledge": "Bekrefte at tilbakemeldingen er mottatt?",
       "start": "Starte behandlingen av tilbakemeldingen?",
-      "resolve": "Merk som løst",
+      "resolve": "Merke som løst?",
       "close": "Lukke tilbakemeldingen?",
       "reopen": "Gjenåpne tilbakemeldingen?"
     },
     "messages": {
       "acknowledge": "Kundens tilbakemelding merkes som mottatt.",
       "start": "Tilbakemeldingen merkes som under behandling.",
-      "resolve": "Beskriv hva som ble gjort. For en klage er løsningen påkrevd.",
+      "resolve": "Beskriv hva som ble gjort for kunden.",
       "close": "En lukket registrering kan bare leses til den gjenåpnes.",
-      "reopen": "Registreringen går tilbake til under behandling, slik at den kan håndteres på nytt."
-    }
+      "reopen": "Registreringen går tilbake til under behandling, slik at den kan håndteres på nytt.",
+      "resolveComplaint": "Si om klagen var berettiget og hva som ble gjort. En berettiget klage som krever korrigerende tiltak, bør få et avvik, slik at årsaken blir rettet."
+    },
+    "justifiedHint": "Hadde kunden rett i at noe gikk galt hos dere?",
+    "createDeviation": "Registrer et avvik for årsaken når klagen er løst"
   },
   "workflow": {
-    "complaintRule": "En klage må ha en beskrevet løsning før den kan merkes som løst, og må være løst før den lukkes.",
     "hint": {
       "new": "Gi kunden beskjed om at dere har mottatt dette, og start behandlingen.",
       "acknowledged": "Mottatt. Start behandlingen når noen tar saken.",
-      "in_progress": "Under behandling. Beskriv løsningen og merk den som løst når den er ferdig.",
-      "resolved": "Løst. Lukk saken når kunden har fått beskjed, eller gjenåpne den ved behov.",
+      "in_progress": "Under behandling. Vurder saken, gi kunden svar og merk den som løst når den er ferdig.",
+      "resolved": "Løst. Lukk saken når kunden har godtatt utfallet, eller gjenåpne den.",
       "closed": "Lukket. Gjenåpne den hvis kunden tar kontakt igjen om samme sak."
     }
   },
@@ -134,7 +146,7 @@
     "channel": "Kanal",
     "status": "Status",
     "severity": "Konsekvens",
-    "sentiment": "Stemning",
+    "sentiment": "Inntrykk",
     "category": "Kategori",
     "tags": "Stikkord",
     "customerName": "Kundens navn",
@@ -169,9 +181,12 @@
     "ownerKeep": "Behold nåværende eier",
     "currentOwner": "Nåværende eier",
     "sections": {
-      "what": "Hva som ble sagt",
+      "what": "Hva kunden sa",
       "customer": "Kunde",
-      "handling": "Behandling"
+      "handling": "Behandling",
+      "about": "Hva det gjelder",
+      "impact": "Hvor alvorlig det er",
+      "outcome": "Utfall"
     },
     "scoreOption": {
       "1": "1 – Svært misfornøyd",
@@ -185,7 +200,26 @@
       "kindRequired": "Velg type tilbakemelding.",
       "email": "Skriv inn en gyldig e-postadresse.",
       "tooManyTags": "Bruk høyst 20 stikkord.",
-      "dueBeforeReceived": "Svarfristen kan ikke være før datoen den ble mottatt."
+      "dueBeforeReceived": "Svarfristen kan ikke være før datoen den ble mottatt.",
+      "tooManySubjects": "Koble til høyst 20 registreringer."
+    },
+    "editCrumb": "Rediger",
+    "titlePlaceholder": "For eksempel: «Leveransen kom to dager for sent»",
+    "fixProblems": "Rett opp feltene som er merket, før du lagrer.",
+    "scoreUnknown": "Vet ikke",
+    "aboutHint": "Koble det tilbakemeldingen gjelder. En leverandør eller prosess viser den da også, og tallene kan brytes ned.",
+    "impactHint": "Konsekvens sier hvor alvorlig det er; tilfredshet er det kunden selv sa.",
+    "categoryHint": "Velg en kategori som allerede er i bruk, så statistikken holdes samlet.",
+    "dueHint": "Når kunden skal høre fra dere.",
+    "dueDefault": "Fylt ut fra standard svarfrist for {{ kind }}: {{ days }} dager.",
+    "dueDefaultWorking": "Fylt ut fra standard svarfrist for {{ kind }}: {{ days }} arbeidsdager.",
+    "dueNoDefault": "Det er ingen standard svarfrist for {{ kind }}. Sett en dato hvis dere lover svar.",
+    "kindHint": {
+      "complaint": "Kunden er misfornøyd og venter et svar eller en løsning.",
+      "compliment": "Ros: verdt å registrere, den viser hva kundene setter pris på.",
+      "suggestion": "En idé til forbedring. Den kan bli et forbedringsmål.",
+      "inquiry": "Kunden ber om informasjon.",
+      "other": "Alt annet kunden har fortalt dere."
     }
   },
   "detail": {
@@ -202,12 +236,15 @@
     "openTasks": "Åpne oppfølgingsoppgaver: {{ count }}",
     "closedNotice": "Denne tilbakemeldingen er lukket og kan bare leses. Gjenåpne den for å gjøre endringer.",
     "deleteTitle": "Slette tilbakemeldingen?",
-    "deleteMessage": "{{ code }} og de åpne oppfølgingsoppgavene fjernes. Revisjonssporet beholdes."
+    "deleteMessage": "{{ code }} og de åpne oppfølgingsoppgavene fjernes. Revisjonssporet beholdes.",
+    "receivedVia": "via {{ channel }}",
+    "noCustomer": "Ingen kundeopplysninger er registrert.",
+    "addCustomer": "Legg til kundeopplysninger"
   },
   "deviations": {
     "title": "Koblede avvik",
     "hint": "Koble til et avvik når tilbakemeldingen viser at noe gikk galt.",
-    "hintComplaint": "En berettiget klage er et avvik: koble den til en avviksmelding, slik at årsaken undersøkes og rettes.",
+    "hintComplaint": "En berettiget klage er et avvik: koble den til et avvik, slik at årsaken blir undersøkt og rettet.",
     "link": "Koble til avvik",
     "register": "Registrer avvik",
     "searchLabel": "Finn et avvik",
@@ -215,18 +252,11 @@
     "noHits": "Ingen avvik passer.",
     "alreadyLinked": "Koblet",
     "none": "Ingen avvik er koblet.",
-    "unlink": "Fjern koblingen til {{ title }}"
+    "unlink": "Fjern koblingen til {{ title }}",
+    "alsoRelated": "Koblede avvik vises også under fanen Relatert."
   },
   "reply": {
-    "title": "Svar til kunden",
-    "intro": "La assistenten lage et utkast til svar ut fra denne registreringen. Sjekk det før du sender.",
     "run": "Lag svarutkast",
-    "notesLabel": "Notater til utkastet",
-    "notesPlaceholder": "Valgfritt: hva svaret bør si, eller hvilken tone det skal ha",
-    "generated": "Utkast fra assistenten – sjekk før du sender",
-    "copy": "Kopier",
-    "discard": "Forkast",
-    "copied": "Kopiert til utklippstavlen.",
     "copyFailed": "Kunne ikke kopiere til utklippstavlen."
   },
   "themes": {
@@ -236,7 +266,9 @@
     "generated": "Analyse fra assistenten – kontroller den mot registreringene",
     "count": "{{ count }} registreringer",
     "trends": "Trender",
-    "recommendations": "Foreslåtte forbedringer"
+    "recommendations": "Foreslåtte forbedringer",
+    "createTask": "Opprett oppgave",
+    "taskDescription": "Fra temaanalysen av undersøkelsen {{ code }} {{ title }}."
   },
   "surveys": {
     "title": "Tilfredshetsundersøkelser",
@@ -249,7 +281,7 @@
     "named": "Ber om navn og e-post",
     "closesOn": "Stenger {{ date }}",
     "responses": "{{ count }} svar",
-    "averageScore": "Score {{ score }}/100",
+    "averageScore": "Score {{ score }} av 100",
     "noScore": "Ingen score ennå"
   },
   "surveyStatus": {
@@ -295,7 +327,7 @@
     "opensOn": "Åpner",
     "closesOn": "Stenger",
     "anonymous": "Anonym (ikke spør om navn eller e-post)",
-    "lowScoreThreshold": "Grense for oppfølging (0–100)",
+    "lowScoreThreshold": "Opprett oppfølgingssak når scoren er på eller under",
     "thankYouMessage": "Takkemelding",
     "questionLabel": "Spørsmål",
     "questionType": "Spørsmålstype",
@@ -303,7 +335,8 @@
     "options": "Alternativer",
     "required": "Påkrevd",
     "scale": "Skala",
-    "publishedAt": "Publisert"
+    "publishedAt": "Publisert",
+    "language": "Språk i undersøkelsen"
   },
   "surveyForm": {
     "newTitle": "Ny tilfredshetsundersøkelse",
@@ -338,12 +371,15 @@
     "errors": {
       "titleRequired": "Gi undersøkelsen en tittel.",
       "closesBeforeOpens": "Stengedatoen kan ikke være før åpningsdatoen.",
-      "threshold": "Bruk et heltall fra 0 til 100.",
+      "threshold": "Bruk et helt tall fra 0 til 100.",
       "tooManyQuestions": "En undersøkelse kan ha høyst 50 spørsmål.",
       "labelRequired": "Skriv spørsmålet.",
       "options": "Oppgi mellom 2 og 20 ulike alternativer.",
       "scale": "Skalaen må være fra 3 til 10."
-    }
+    },
+    "languageHint": "Språket de som svarer, ser siden på. Skriv spørsmålene på dette språket.",
+    "thresholdHint": "Scoren går fra 0 til 100. Dette tilsvarer omtrent {{ five }} av 5 på et vurderingsspørsmål.",
+    "thresholdOff": "La feltet stå tomt for ingen automatisk oppfølging."
   },
   "surveyDetail": {
     "accepting": "Tar imot svar",
@@ -352,13 +388,16 @@
     "noQuestions": "Ingen spørsmål ennå. Rediger undersøkelsen for å legge til.",
     "noThreshold": "Ingen automatisk oppfølging",
     "summary": "Undersøkelse",
-    "relatedFeedback": "Tilbakemeldinger fra denne undersøkelsen",
     "deleteTitle": "Slette undersøkelsen?",
-    "deleteMessage": "{{ code }} og den offentlige lenken fjernes. Tilbakemeldinger som allerede er opprettet fra den, beholdes."
+    "deleteMessage": "{{ code }} og den offentlige lenken fjernes. Tilbakemeldinger som allerede er opprettet fra den, beholdes.",
+    "requiredBadge": "påkrevd",
+    "followUpRule": "Automatisk oppfølging",
+    "thresholdValue": "Ved score på {{ value }} eller lavere (omtrent {{ five }} av 5)",
+    "followUps": "Oppfølgingssaker fra lave scorer: {{ count }}"
   },
   "share": {
     "title": "Offentlig lenke",
-    "intro": "Alle som har denne lenken kan svare, uten å logge inn. Del den på e-post, på en kvittering eller som QR-kode.",
+    "intro": "Alle som har denne lenken, kan svare uten å logge inn. Del den på e-post, i et nyhetsbrev eller på en kvittering.",
     "linkLabel": "Offentlig lenke til undersøkelsen",
     "copy": "Kopier lenke",
     "copied": "Lenken er kopiert.",
@@ -380,7 +419,9 @@
     "answered": "{{ count }} har svart",
     "average": "snitt {{ value }}",
     "npsValue": "NPS {{ value }}",
-    "noComments": "Ingen kommentarer ennå."
+    "noComments": "Ingen kommentarer ennå.",
+    "scoreHint": "0–100, der 100 er best",
+    "scales": "Scoren gjør om alle vurderingssvar til 0–100. NPS går fra −100 til 100: andelen som vil anbefale dere, minus andelen som ikke vil."
   },
   "responses": {
     "title": "Svar",
@@ -417,38 +458,69 @@
     "submit": "Send svar",
     "thanksTitle": "Takk!",
     "thanksBody": "Svarene dine er mottatt.",
-    "privacy": "Svarene dine går til organisasjonen som sendte deg undersøkelsen, og brukes til å forbedre produktene og tjenestene deres."
+    "privacy": "Svarene dine går til organisasjonen som sendte deg undersøkelsen, og brukes til å forbedre produktene og tjenestene deres.",
+    "privacyNamed": "{{ controller }} er ansvarlig for svarene dine. Navn og e-post brukes bare til å svare deg, og du kan la dem stå tomme.",
+    "privacyLink": "Les personvernerklæringen"
   },
   "insights": {
-    "title": "Innsikt i kundetilfredshet",
-    "subtitle": "Hvor fornøyde kundene er, hva de klager på og hvor raskt dere svarer.",
+    "title": "Kundetilfredshet",
+    "subtitle": "Hvor fornøyde kundene er, hva de klager på og hvor raskt dere svarer. Bruk det i ledelsens gjennomgang.",
     "period": "Periode",
     "months": "Siste {{ count }} måneder",
     "range": "{{ from }} – {{ to }}",
-    "total": "Mottatte tilbakemeldinger",
-    "openComplaints": "Åpne klager",
-    "overdue": "Svar over fristen",
-    "satisfaction": "Gjennomsnittlig tilfredshet (1–5)",
-    "satisfactionCount": "{{ count }} med score",
-    "daysToResolve": "Gjennomsnittlig antall dager til løst",
-    "surveyResponses": "Svar på undersøkelser",
-    "surveyScore": "Undersøkelsesscore (0–100)",
-    "nps": "Netto anbefalingsscore (NPS)",
     "byKind": "Etter type",
     "byStatus": "Etter status",
     "byChannel": "Etter kanal",
-    "bySentiment": "Etter stemning",
+    "bySentiment": "Etter inntrykk",
     "trend": "Utvikling per måned",
     "month": "Måned",
-    "noData": "Ingen tilbakemeldinger i denne perioden."
-  },
-  "lessons": {
-    "link": "Leksjon: {{ title }} ({{ minutes }} min)"
+    "noData": "Ingen tilbakemeldinger i perioden.",
+    "toManagementReview": "Bruk i ledelsens gjennomgang",
+    "tiles": {
+      "total": "Tilbakemeldinger mottatt",
+      "openComplaints": "Åpne klager",
+      "overdue": "Svar forfalt",
+      "daysToResolve": "Dager til løst",
+      "satisfaction": "Tilfredshet (1–5)",
+      "surveyScore": "Score i undersøkelser (0–100)",
+      "nps": "Netto anbefalingsscore (NPS)",
+      "surveyResponses": "Svar på undersøkelser"
+    },
+    "hints": {
+      "total": "{{ count }} av dem er klager",
+      "openComplaints": "Mottatt, ikke løst ennå",
+      "overdue": "Lovet svarfrist er passert",
+      "daysToResolve": "Snitt fra mottatt til løst",
+      "satisfaction": "5 er svært fornøyd · {{ count }} vurderinger",
+      "surveyScore": "100 er best · {{ count }} svar",
+      "nps": "−100 til 100 · over 0 er bra · {{ count }} svar",
+      "surveyResponses": "Svar på undersøkelsene deres"
+    },
+    "scales": "Tilfredshet er det kundene selv sa (1–5); scoren gjør om svarene i undersøkelser til 0–100; NPS viser hvor mange som vil anbefale dere.",
+    "handling": {
+      "title": "Hvordan klagene håndteres",
+      "intro": "For hver klage: er den vurdert, var den berettiget, og fikk kunden svar?",
+      "none": "Ingen klager i perioden.",
+      "assessed": "Vurdert",
+      "justified": "Berettiget",
+      "replied": "Svar logget",
+      "ofTotal": "{{ count }} av {{ total }} ({{ percent }} %)",
+      "openJustified": "Vis de berettigede klagene"
+    },
+    "byCategory": "Etter kategori",
+    "rowLabel": "{{ label }}: {{ count }}. Vis dem",
+    "legendOther": "Andre tilbakemeldinger",
+    "chartLabel": "Tilbakemeldinger per måned, med klager vist for seg",
+    "showTable": "Vis som tabell"
   },
   "ask": {
     "summarise": "Oppsummer denne kundetilbakemeldingen: hva som skjedde, hvordan den er håndtert og hva som fortsatt er åpent.",
     "resolution": "Hva kjennetegner en god løsning på en kundeklage, og hva bør jeg registrere om den?",
-    "surveyResults": "Oppsummer resultatene fra denne undersøkelsen og foreslå hva vi bør forbedre først."
+    "surveyResults": "Oppsummer resultatene fra denne undersøkelsen og foreslå hva vi bør forbedre først.",
+    "button": "Spør om denne",
+    "kind": "Hvordan skiller jeg en klage fra andre tilbakemeldinger, og hvorfor betyr det noe?",
+    "severity": "Hvordan bør jeg vurdere konsekvensen av denne tilbakemeldingen?",
+    "assessment": "Hvordan avgjør jeg om denne klagen er berettiget, og hva bør jeg skrive om årsaken?"
   },
   "notices": {
     "created": "{{ code }} er registrert.",
@@ -471,7 +543,13 @@
       "publish": "{{ code }} er publisert. Del lenken for å samle svar.",
       "close": "{{ code }} er lukket.",
       "reopen": "{{ code }} er gjenåpnet."
-    }
+    },
+    "replyLogged": "Svaret er logget. Kunden er merket som informert.",
+    "replyDeleted": "Svaret er slettet.",
+    "assessmentSaved": "Vurderingen er lagret.",
+    "subjectsSaved": "Koblingene er lagret.",
+    "settingsSaved": "Innstillingene er lagret.",
+    "taskCreated": "Oppgaven er opprettet. Du finner den under Oppgaver."
   },
   "errors": {
     "forbidden": "Du har ikke tilgang til å gjøre dette.",
@@ -503,7 +581,10 @@
     "too_many_attempts": "For mange svar er sendt herfra. Prøv igjen senere.",
     "no_feedback": "Det finnes ingen tilbakemeldinger å analysere i denne perioden.",
     "entity_required": "Åpne en tilbakemelding først.",
-    "module_disabled": "Kundetilbakemeldinger er ikke slått på for denne organisasjonen."
+    "module_disabled": "Kundetilbakemeldinger er ikke slått på for denne organisasjonen.",
+    "assessment_required": "Si om klagen var berettiget før du merker den som løst.",
+    "invalid_subject": "Den typen registrering kan ikke kobles her.",
+    "invalid_privacy_notice_url": "Bruk en fullstendig nettadresse som begynner med https://."
   },
   "notifications": {
     "feedbackCreated": "Tilbakemelding registrert: {{ code }} {{ title }}",
@@ -528,7 +609,8 @@
     "surveyDeleted": "Undersøkelse slettet: {{ code }} {{ title }}",
     "surveyResponseReceived": "Nytt svar på undersøkelsen: {{ code }} {{ title }}",
     "surveyResponseDeleted": "Svar på undersøkelsen slettet: {{ code }} {{ title }}",
-    "surveyLowScore": "Lav score må følges opp: {{ code }} {{ title }}"
+    "surveyLowScore": "Lav score må følges opp: {{ code }} {{ title }}",
+    "feedbackReplyLogged": "Svar til kunden logget: {{ code }} {{ title }}"
   },
   "timeline": {
     "feedbackCreated": "Tilbakemelding registrert",
@@ -553,6 +635,138 @@
     "surveyDeleted": "Slettet",
     "surveyResponseReceived": "Svar mottatt",
     "surveyResponseDeleted": "Svar slettet",
-    "surveyLowScore": "Lav score mottatt"
+    "surveyLowScore": "Lav score mottatt",
+    "feedbackReplyLogged": "Svar til kunden logget"
+  },
+  "next": {
+    "title": "Neste steg",
+    "unacknowledged": {
+      "title": "Bekreft mottak av nye klager ({{ count }})",
+      "why": "Den eldste er {{ code }} {{ title }}. Kunden bør få beskjed innen en dag om at klagen er kommet fram."
+    }
+  },
+  "kpis": {
+    "openComplaints": "Åpne klager",
+    "openComplaintsHint": "{{ count }} klager siste 12 måneder",
+    "overdue": "Svar forfalt",
+    "overdueHint": "Svarfristen er passert",
+    "new": "Ikke bekreftet mottatt",
+    "newHint": "Nye, venter på første svar",
+    "satisfaction": "Tilfredshet",
+    "satisfactionHint": "Snitt på 1–5, fra {{ count }} vurderinger"
+  },
+  "replyChannels": {
+    "email": "E-post",
+    "phone": "Telefon",
+    "letter": "Brev",
+    "in_person": "Ansikt til ansikt",
+    "web": "Nettsted eller portal",
+    "other": "Annet"
+  },
+  "subjectTypes": {
+    "supplier": "Leverandør",
+    "contract": "Kontrakt",
+    "process": "Prosess",
+    "asset": "Eiendel",
+    "interested_party": "Interessent",
+    "project": "Prosjekt",
+    "ai_system": "KI-system"
+  },
+  "gaps": {
+    "assessment": "Avgjør om klagen er berettiget",
+    "assessmentAction": "Vurder",
+    "root_cause": "Skriv ned årsaken",
+    "root_causeAction": "Legg til årsak",
+    "deviation": "Det trengs korrigerende tiltak, men ingen avvik er koblet",
+    "deviationAction": "Registrer avvik",
+    "reply": "Ingen svar til kunden er logget",
+    "replyAction": "Logg svar"
+  },
+  "assessment": {
+    "title": "Vurdering av klagen",
+    "intro": "Dette ser en revisor etter på hver klage: var den berettiget, hvorfor skjedde det, og ble det rettet opp?",
+    "justified": "Var klagen berettiget?",
+    "correctiveAction": "Trengs korrigerende tiltak?",
+    "customerAccepted": "Godtok kunden utfallet?",
+    "rootCause": "Årsak",
+    "rootCausePlaceholder": "Hvorfor skjedde det? For eksempel: «Transportøren hoppet over leveringsvinduet.»",
+    "noRootCause": "Ingen årsak er registrert ennå.",
+    "start": "Vurder klagen",
+    "change": "Endre",
+    "save": "Lagre vurderingen",
+    "answers": {
+      "yes": "Ja",
+      "no": "Nei",
+      "unset": "Ikke vurdert ennå"
+    }
+  },
+  "replies": {
+    "title": "Svar til kunden",
+    "log": "Logg svar til kunden",
+    "none": "Ingen svar er logget ennå. Logg hva kunden fikk vite, så det er dokumentert.",
+    "noneInformed": "Kunden har fått beskjed om utfallet, men ingen svar er logget. Logg det, så det er dokumentert.",
+    "by": "av {{ name }}",
+    "delete": "Slett dette svaret",
+    "deleteTitle": "Slette svaret?",
+    "deleteMessage": "Svaret fjernes fra loggen. Aktivitetshistorikken beholder et spor.",
+    "dialogTitle": "Logg svar til kunden",
+    "dialogMessage": "Skriv ned hva kunden fikk vite, og hvordan. Kunden merkes da som informert.",
+    "sentOn": "Sendt",
+    "future": "Datoen kan ikke være fram i tid.",
+    "channel": "Hvordan",
+    "body": "Hva kunden fikk vite",
+    "bodyPlaceholder": "Lim inn eller skriv svaret",
+    "bodyHint": "Assistenten kan lage et utkast ut fra registreringen. Les gjennom før du sender.",
+    "save": "Logg svaret"
+  },
+  "subjects": {
+    "title": "Hva det gjelder",
+    "hint": "Koble leverandøren, kontrakten, prosessen eller noe annet tilbakemeldingen gjelder. Den vises da også der.",
+    "edit": "Koble til",
+    "save": "Lagre koblingene",
+    "none": "Ikke koblet til noe ennå.",
+    "searchLabel": "Finn en leverandør, kontrakt, prosess eller annen registrering",
+    "placeholder": "Søk i leverandører, kontrakter, prosesser, eiendeler …",
+    "searching": "Søker …",
+    "noResults": "Fant ingen treff.",
+    "remove": "Fjern {{ name }}"
+  },
+  "export": {
+    "button": "Eksporter",
+    "formats": {
+      "xlsx": "Excel (.xlsx)",
+      "csv": "CSV (.csv)",
+      "pdf": "PDF (.pdf)"
+    },
+    "as": {
+      "xlsx": "Eksporter som Excel",
+      "csv": "Eksporter som CSV",
+      "pdf": "Eksporter som PDF"
+    },
+    "logFile": "Logg over kundetilbakemeldinger",
+    "insightsFile": "Kundetilfredshet"
+  },
+  "settings": {
+    "title": "Innstillinger for kundetilbakemeldinger",
+    "crumb": "Innstillinger",
+    "subtitle": "Standard svarfrister og personvernerklæringen for undersøkelser.",
+    "readOnly": "Bare de som kan administrere kundetilbakemeldinger, kan endre disse innstillingene.",
+    "responseTitle": "Standard svarfrist",
+    "responseIntro": "Nye tilbakemeldinger får en svarfrist herfra, så eieren blir påminnet og sene svar vises som forfalt.",
+    "noDefault": "Ingen standard",
+    "workingDays": "Tell arbeidsdager (hopp over helger)",
+    "emptyMeansNone": "La et felt stå tomt hvis den typen ikke skal ha noen standard svarfrist.",
+    "privacyTitle": "Personvernerklæring for undersøkelser",
+    "privacyIntro": "Undersøkelser som spør etter navn eller e-post, lenker til denne siden, så de som svarer kan lese hvordan opplysningene brukes.",
+    "privacyUrl": "Nettadressen til personvernerklæringen",
+    "save": "Lagre innstillingene",
+    "errors": {
+      "days": "Bruk et helt antall dager fra 1 til 365.",
+      "url": "Bruk en fullstendig nettadresse som begynner med https://."
+    }
+  },
+  "surveyLanguages": {
+    "nb": "Norsk (bokmål)",
+    "en": "Engelsk"
   }
 }

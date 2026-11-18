@@ -105,6 +105,46 @@ describe('ProjectsList', () => {
     expect(el.querySelector('[data-testid="project-rows"]')).toBeNull();
   });
 
+  it('shows a clickable portfolio summary and filters to the projects at risk', async () => {
+    const { http, fixture, el } = setup();
+    await render(fixture);
+    http.expectOne(listUrl + '/overview').flush({
+      total: 3,
+      open: 2,
+      closed: 1,
+      active: 2,
+      at_risk: 1,
+      overdue: 0,
+      reviews_pending: 1,
+      milestones_overdue: 0,
+      by_status: {},
+      by_health: {},
+      by_kind: {},
+    });
+    http
+      .expectOne((r) => r.url === listUrl)
+      .flush({
+        items: [makeProject(), makeProject({ id: 'p-2', code: 'PRJ-002', health: 'green' })],
+        total: 2,
+      });
+    await render(fixture);
+    expect(el.querySelector('[data-testid="count-line"]')?.textContent).toContain(
+      'projects.list.countOf',
+    );
+    el.querySelector<HTMLButtonElement>('[data-testid="kpi-at_risk"]')!.click();
+    await render(fixture);
+    const req = http.expectOne((r) => r.url === listUrl);
+    expect(req.request.params.get('limit')).toBe('100');
+    req.flush({
+      items: [makeProject(), makeProject({ id: 'p-2', code: 'PRJ-002', health: 'green' })],
+      total: 2,
+    });
+    await render(fixture);
+    const rows = el.querySelector('[data-testid="project-rows"]')!;
+    expect(rows.textContent).toContain('PRJ-001');
+    expect(rows.textContent).not.toContain('PRJ-002');
+  });
+
   it('shows the teaching empty state for an empty register and hides "new" without write', async () => {
     const { http, fixture, el } = setup(['projects:read']);
     await render(fixture);
@@ -149,30 +189,88 @@ describe('ProjectDetailPage', () => {
 
   it('renders the project, its progress and next milestone', async () => {
     const { el } = await loaded();
-    expect(el.querySelector('[data-testid="project-heading"]')?.textContent).toContain(
+    expect(el.querySelector('[data-testid="page-title"]')?.textContent).toContain(
       'New order system',
     );
-    expect(el.querySelector('[data-testid="project-status"]')?.textContent).toContain(
-      'projects.status.active',
-    );
-    expect(el.querySelector('[data-testid="security-requirements"]')?.textContent).toContain(
+    // Untranslated in tests: the status badge falls back to the humanised value.
+    expect(el.querySelector('[data-testid="project-status"]')?.textContent).toMatch(/active/i);
+    expect(el.querySelector('[data-testid="security-card"]')?.textContent).toContain(
       'Data stored in the EU.',
+    );
+    expect(el.querySelector('[data-testid="progress-basis"]')?.textContent).toContain(
+      'projects.progress.basis.milestones',
     );
     expect(el.querySelector('[data-testid="next-milestone"]')).toBeTruthy();
     expect(el.querySelector('[data-testid="project-close"]')).toBeTruthy();
     expect(el.querySelector('[data-testid="project-reopen"]')).toBeNull();
   });
 
-  it('shows the open-item counts when completing is refused', async () => {
-    const { el, http, fixture } = await loaded();
+  it('lists affected records once: as picker chips when editable, read-only otherwise', async () => {
+    const process = {
+      entity_type: 'process',
+      entity_id: 'pr-1',
+      title: 'Sales and order handling',
+      code: 'PR-002',
+    };
+    const withLinks = async (project: ProjectDetail) => {
+      const ctx = await loaded(project);
+      const page = ctx.fixture.componentInstance as unknown as {
+        links: { set(v: readonly unknown[]): void };
+      };
+      page.links.set([{ link_type: 'relates_to', other: process }]);
+      await render(ctx.fixture);
+      return ctx.el;
+    };
+
+    const editable = await withLinks(makeProjectDetail());
+    expect(editable.querySelector('[data-testid="affected"]')).toBeNull();
+    expect(
+      editable.querySelector('[data-testid="detail-pick-affected-picked"]')?.textContent,
+    ).toContain('Sales and order handling');
+
+    TestBed.resetTestingModule();
+    const readOnly = await withLinks(makeProjectDetail({ can_edit: false }));
+    expect(readOnly.querySelector('[data-testid="detail-pick-affected-picked"]')).toBeNull();
+    expect(readOnly.querySelector('[data-testid="affected"]')?.textContent).toContain(
+      'Sales and order handling',
+    );
+  });
+
+  it('explains up front why completing is blocked', async () => {
+    const { el, fixture } = await loaded();
     el.querySelector<HTMLElement>('[data-testid="project-close"] button')!.click();
     await render(fixture);
     const panel = document.body;
+    expect(panel.querySelector('[data-testid="closeout-blocked"]')).toBeTruthy();
+    const completed = panel.querySelector<HTMLInputElement>('[data-testid="outcome-completed"]')!;
+    expect(completed.disabled).toBe(true);
+    expect(completed.checked).toBe(false);
+  });
+
+  it('asks for the objective check and shows the open-item counts when completing is refused', async () => {
+    const done = makeProjectDetail({
+      progress: {
+        ...makeProjectDetail().progress,
+        milestones_done: 2,
+        tasks_open: 0,
+        design_reviews_pending: 0,
+      },
+    });
+    const { el, http, fixture } = await loaded(done);
+    el.querySelector<HTMLElement>('[data-testid="project-close"] button')!.click();
+    await render(fixture);
+    const panel = document.body;
+    expect(panel.querySelector('[data-testid="closeout-objective"]')?.textContent).toContain(
+      'All orders in the new system by March.',
+    );
     const submit = panel.querySelector<HTMLElement>('[data-testid="closeout-submit"] button')!;
     expect((submit as HTMLButtonElement).disabled).toBe(true);
     const summary = panel.querySelector<HTMLTextAreaElement>('[data-testid="closeout-summary"]')!;
     summary.value = 'Objective reached.';
     summary.dispatchEvent(new Event('input'));
+    await render(fixture);
+    expect((submit as HTMLButtonElement).disabled).toBe(true);
+    panel.querySelector<HTMLInputElement>('[data-testid="met-yes"]')!.click();
     await render(fixture);
     expect((submit as HTMLButtonElement).disabled).toBe(false);
     submit.click();
@@ -182,6 +280,7 @@ describe('ProjectDetailPage', () => {
       outcome: 'completed',
       closeout_summary: 'Objective reached.',
       lessons: [],
+      objective_met: 'yes',
     });
     req.flush(
       {
@@ -255,6 +354,10 @@ describe('ProjectDetailPage', () => {
       flushSides(http);
       await render(fixture);
     }
+    el.querySelector<HTMLButtonElement>('[data-testid="section-plan"]')!.click();
+    await render(fixture);
+    flushSides(http);
+    await render(fixture);
     expect(el.querySelector('[data-testid="gantt"]')?.textContent).toContain('Build');
     el.querySelector<HTMLButtonElement>('[data-testid="plan-view-board"]')!.click();
     await render(fixture);

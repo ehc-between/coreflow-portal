@@ -150,10 +150,15 @@ describe('EvaluationDetailPage summary (S10)', () => {
     await render();
 
     expect(api.updateEvaluation).toHaveBeenCalledTimes(1);
-    expect(api.updateEvaluation).toHaveBeenCalledWith('org-1', 'ev-1', {
-      answers: { q1: { value: 'yes', comment: null } },
-      summary: 'Strong delivery record; certification pending.',
-    });
+    expect(api.updateEvaluation).toHaveBeenCalledWith(
+      'org-1',
+      'ev-1',
+      {
+        answers: { q1: { value: 'yes', comment: null } },
+        summary: 'Strong delivery record; certification pending.',
+      },
+      'en',
+    );
     expect(page.summaryDraft()).toBe('Strong delivery record; certification pending.');
     const textarea = el.querySelector<HTMLTextAreaElement>('#ev-summary')!;
     expect(textarea.value).toBe('Strong delivery record; certification pending.');
@@ -170,9 +175,14 @@ describe('EvaluationDetailPage summary (S10)', () => {
     save.click();
     await render();
 
-    expect(api.updateEvaluation).toHaveBeenCalledWith('org-1', 'ev-1', {
-      summary: 'Adopted text',
-    });
+    expect(api.updateEvaluation).toHaveBeenCalledWith(
+      'org-1',
+      'ev-1',
+      {
+        summary: 'Adopted text',
+      },
+      'en',
+    );
     expect(toasts.success).toHaveBeenCalledWith('suppliers.evaluation.summarySaved');
   });
 
@@ -199,6 +209,7 @@ describe('EvaluationDetailPage summary (S10)', () => {
       'org-1',
       'ev-1',
       expect.not.objectContaining({ summary: expect.anything() }),
+      'en',
     );
     expect(page.summaryDraft()).toBe('Not saved yet');
   });
@@ -211,10 +222,15 @@ describe('EvaluationDetailPage summary (S10)', () => {
     button('suppliers.evaluation.submit')!.click();
     await render();
 
-    expect(api.updateEvaluation).toHaveBeenCalledWith('org-1', 'ev-1', {
-      summary: 'Adopted text',
-    });
-    expect(api.submitEvaluation).toHaveBeenCalledWith('org-1', 'ev-1');
+    expect(api.updateEvaluation).toHaveBeenCalledWith(
+      'org-1',
+      'ev-1',
+      {
+        summary: 'Adopted text',
+      },
+      'en',
+    );
+    expect(api.submitEvaluation).toHaveBeenCalledWith('org-1', 'ev-1', 'en');
     expect(api.updateEvaluation.mock.invocationCallOrder[0]).toBeLessThan(
       api.submitEvaluation.mock.invocationCallOrder[0],
     );

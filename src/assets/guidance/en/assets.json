@@ -17,8 +17,8 @@
           "iso27001:A.5.10",
           "iso27001:A.5.11",
           "iso27001:A.5.12",
-          "iso27001:A.5.13",
-          "iso27001:A.7.14"
+          "iso27001:A.7.14",
+          "iso9001:7.1.5"
         ]
       },
       "empty": {
@@ -39,16 +39,17 @@
       },
       "why": {
         "body": "Classification links each asset to the right protection: who may see it, how it is stored and sent, and how it is destroyed. Calibrated measuring equipment is needed when you rely on measurements to show that products and services meet requirements.",
-        "clauses": ["iso27001:A.5.9", "iso27001:A.5.12", "iso27001:A.5.13", "iso9001:7.1.5"]
+        "clauses": ["iso27001:A.5.9", "iso27001:A.5.12", "iso27001:A.5.10"]
       },
       "fields": {
         "asset_type": {
-          "help": "What kind of asset it is. 'Held by a person' is for things issued to someone, such as a laptop, phone or access card.",
+          "help": "What kind of asset it is. \"Equipment held by employees\" is for things handed out to someone, such as a laptop, phone or access card.",
           "example": "A cloud accounting system is software; the accounting data in it is information."
         },
         "classification": {
           "help": "How sensitive the asset is. Public can be shared freely; restricted is only for a few named people.",
-          "example": "Payroll data is usually restricted; the price list is public."
+          "example": "Payroll data is usually restricted; the price list is public.",
+          "requirements": ["iso27001:A.5.12"]
         },
         "criticality": {
           "help": "How important the asset is for keeping the business running.",
@@ -56,19 +57,23 @@
         },
         "cia": {
           "help": "Rate the harm if the asset is disclosed (confidentiality), changed or corrupted (integrity), or unavailable (availability).",
-          "example": "A public website has low confidentiality but high availability."
+          "example": "A public website has low confidentiality but high availability.",
+          "requirements": ["iso27001:A.5.12"]
         },
         "handling_rules": {
           "help": "Practical rules for using, storing, sending and destroying the asset, matching its classification.",
-          "example": "Encrypt when stored, share only through the document system, shred paper copies."
+          "example": "Encrypt when stored, share only through the document system, shred paper copies.",
+          "requirements": ["iso27001:A.5.10", "iso27001:A.5.13"]
         },
         "owner": {
           "help": "The person accountable for the asset: they decide who gets access and make sure it is protected.",
-          "example": "The finance manager owns the accounting system."
+          "example": "The finance manager owns the accounting system.",
+          "requirements": ["iso27001:A.5.9"]
         },
         "custodian": {
-          "help": "The person who holds or looks after the asset day to day, if not the owner.",
-          "example": "An employee who has been issued a company laptop."
+          "help": "The person who has the asset day to day or looks after it, such as the employee with the laptop. The owner answers for it; the custodian takes care of it.",
+          "example": "Owner: IT manager. Custodian: the employee who uses the PC.",
+          "requirements": ["iso27001:A.5.11"]
         },
         "lifecycle_status": {
           "help": "Where the asset is in its life. Retired assets are no longer used; disposed assets are gone.",
@@ -76,15 +81,32 @@
         },
         "review_date": {
           "help": "When the owner should next check that the details and classification are still right. A reminder is sent.",
-          "example": "Once a year for most assets."
+          "example": "Once a year for most assets.",
+          "requirements": ["iso27001:A.5.9"]
         },
         "disposal_method": {
           "help": "How the asset was disposed of, so you can show that information was removed securely.",
-          "example": "Disks wiped with certified software; certificate attached."
+          "example": "Disks wiped with certified software; certificate attached.",
+          "requirements": ["iso27001:A.7.14"]
         },
         "requires_calibration": {
           "help": "Tick this for instruments whose readings you rely on, so they are calibrated on a schedule and you get reminders.",
-          "example": "Thermometers in a cold store, scales, torque wrenches."
+          "example": "Thermometers in a cold store, scales, torque wrenches.",
+          "requirements": ["iso9001:7.1.5.1"]
+        },
+        "supplier": {
+          "help": "The supplier that delivers or runs the asset, from the Suppliers register. The asset then shows up on the supplier page too.",
+          "example": "The CRM system is delivered by the CRM vendor; the laptop by the PC supplier.",
+          "requirements": ["iso27001:A.5.19"]
+        },
+        "calibration_interval": {
+          "help": "How often the instrument must be calibrated. The next due date is worked out from each calibration.",
+          "example": "Thermometers used for food control: every 12 months.",
+          "requirements": ["iso9001:7.1.5.2"]
+        },
+        "accuracy": {
+          "help": "The accuracy the measurements need. A calibration outside this is a failed calibration.",
+          "example": "±0.5 °C"
         }
       }
     },
@@ -99,17 +121,54 @@
         ]
       },
       "why": {
-        "body": "An inventory is only useful if it is kept current. Owners should review their assets regularly, and measuring equipment must be calibrated, protected from adjustments that would invalidate it, and assessed when it is found to be out of tolerance.",
-        "clauses": ["iso27001:A.5.9", "iso27001:A.5.11", "iso9001:7.1.5"]
+        "body": "An inventory is only useful if it is kept current. Owners should review their assets regularly, keep the classification and handling rules right, and make sure assets are returned when people leave.",
+        "clauses": ["iso27001:A.5.9", "iso27001:A.5.11", "iso27001:A.5.12"]
       },
       "fields": {
         "calibration_result": {
           "help": "Passed: within tolerance. Adjusted: outside tolerance, then adjusted. Failed: outside tolerance and not usable.",
-          "example": "A scale that read 2 g too high and was adjusted is 'Adjusted'."
+          "example": "A scale that read 2 g too high and was adjusted is 'Adjusted'.",
+          "requirements": ["iso9001:7.1.5.2"]
         },
         "impact_assessment": {
           "help": "When an instrument is found to be wrong, assess whether earlier measurements were affected and what you did about it.",
-          "example": "Batches 120–124 were weighed with the scale; re-checked samples were within limits."
+          "example": "Batches 120–124 were weighed with the scale; re-checked samples were within limits.",
+          "requirements": ["iso9001:7.1.5.2"]
+        },
+        "calibration_lab": {
+          "help": "The laboratory or company that calibrated the instrument, from the Suppliers register, so its accreditation can be followed up there.",
+          "requirements": ["iso9001:7.1.5.2"]
+        }
+      }
+    },
+    "detailInstrument": {
+      "intro": {
+        "title": "Keep this instrument fit for measuring",
+        "body": "Record each calibration with the result and the certificate. If the calibration is overdue, do not use the instrument for checks until it has been calibrated, and assess the impact if a calibration fails.",
+        "steps": [
+          "Record the calibration with the laboratory and the certificate.",
+          "Mark the instrument as out of use when the calibration is overdue.",
+          "Assess the impact of a failed calibration, and register a deviation if products are affected."
+        ]
+      },
+      "why": {
+        "body": "When you use measurements to show that products or services meet requirements, the instruments must be calibrated at set intervals against traceable standards, protected from adjustments, and assessed when they are found to be out of tolerance.",
+        "clauses": ["iso9001:7.1.5"]
+      },
+      "fields": {
+        "calibration_result": {
+          "help": "Passed: within tolerance. Adjusted: outside tolerance, then adjusted. Failed: outside tolerance and not usable.",
+          "example": "A scale that read 2 g too high and was adjusted is 'Adjusted'.",
+          "requirements": ["iso9001:7.1.5.2"]
+        },
+        "impact_assessment": {
+          "help": "When an instrument is found to be wrong, assess whether earlier measurements were affected and what you did about it.",
+          "example": "Batches 120–124 were weighed with the scale; re-checked samples were within limits.",
+          "requirements": ["iso9001:7.1.5.2"]
+        },
+        "calibration_lab": {
+          "help": "The laboratory or company that calibrated the instrument, from the Suppliers register, so its accreditation can be followed up there.",
+          "requirements": ["iso9001:7.1.5.2"]
         }
       }
     },
@@ -170,7 +229,8 @@
       "fields": {
         "system": {
           "help": "The system whose access you review: choose one from the inventory, or type a name if it is not registered.",
-          "example": "The CRM system, the file server, the bank portal."
+          "example": "The CRM system, the file server, the bank portal.",
+          "requirements": ["iso27001:A.5.18"]
         },
         "scope": {
           "help": "What the review covers, so the reviewer knows what to include.",
@@ -178,11 +238,13 @@
         },
         "reviewer": {
           "help": "The person who decides for each account. They get a task in My Work.",
-          "example": "The head of finance for the accounting system."
+          "example": "The head of finance for the accounting system.",
+          "requirements": ["iso27001:A.5.18"]
         },
         "frequency_months": {
           "help": "How often the review repeats. When it is completed, the next one is planned with the kept accounts.",
-          "example": "6 for systems with sensitive data, 12 for the rest."
+          "example": "6 for systems with sensitive data, 12 for the rest.",
+          "requirements": ["iso27001:A.5.18"]
         }
       }
     },
@@ -198,12 +260,13 @@
       },
       "why": {
         "body": "The attestation is your evidence that access was checked by a responsible person. Revoked access must actually be removed, which is why each one becomes a task.",
-        "clauses": ["iso27001:A.5.18", "iso27001:A.5.15"]
+        "clauses": ["iso27001:A.5.18", "iso27001:A.5.15", "iso27001:A.8.2"]
       },
       "fields": {
         "decision": {
           "help": "Keep: the access is still needed. Revoke: remove it. Change: reduce or adjust it.",
-          "example": "A former project member who still has write access: Revoke."
+          "example": "A former project member who still has write access: Revoke.",
+          "requirements": ["iso27001:A.5.18", "iso27001:A.5.15"]
         }
       }
     },
@@ -244,7 +307,8 @@
       "fields": {
         "change_type": {
           "help": "Standard: low-risk, routine and pre-approved. Normal: assessed and approved each time. Emergency: urgent, approved quickly and reviewed afterwards.",
-          "example": "Adding a user is standard; replacing the firewall is normal."
+          "example": "Adding a user is standard; replacing the firewall is normal.",
+          "requirements": ["iso27001:A.8.32"]
         },
         "description": {
           "help": "What will change, where, and for whom.",
@@ -260,11 +324,13 @@
         },
         "risk_level": {
           "help": "The overall risk of the change: how likely it is to go wrong and how bad it would be.",
-          "example": "High if a failure would stop invoicing for days."
+          "example": "High if a failure would stop invoicing for days.",
+          "requirements": ["iso27001:A.8.32"]
         },
         "impact_assessment": {
           "help": "Who and what is affected: users, customers, other systems, processes and documents.",
-          "example": "Finance cannot log in for two hours; the bank integration must be retested."
+          "example": "Finance cannot log in for two hours; the bank integration must be retested.",
+          "requirements": ["iso27001:A.8.32", "iso9001:6.3"]
         },
         "risk_assessment": {
           "help": "What could go wrong and how you reduce the risk.",
@@ -284,7 +350,13 @@
         },
         "review_outcome": {
           "help": "The result of the check after the change: did it achieve its purpose without unwanted effects?",
-          "example": "Partly successful: works, but one report must be rebuilt."
+          "example": "Partly successful: works, but one report must be rebuilt.",
+          "requirements": ["iso9001:8.5.6"]
+        },
+        "affected_records": {
+          "help": "The processes, documents, suppliers and risks the change touches. They are linked to the change, so you can see what must be updated afterwards.",
+          "example": "A new payroll system: the payroll process, the payroll procedure and the payroll supplier.",
+          "requirements": ["iso9001:6.3", "iso9001:8.5.6"]
         }
       }
     },
@@ -300,7 +372,7 @@
       },
       "why": {
         "body": "Separating the requester from the approver, and checking the result afterwards, are what make a change controlled. The history of each step is your evidence for audits.",
-        "clauses": ["iso27001:A.8.32", "iso27001:A.5.3", "iso9001:6.3", "iso9001:8.5.6"]
+        "clauses": ["iso27001:A.8.32", "iso9001:6.3", "iso9001:8.5.6"]
       }
     }
   },
@@ -549,6 +621,23 @@
         "target": "assets-change-new",
         "title": "Raise a change",
         "body": "Describe the change and why. It then goes through assessment, approval, implementation and review."
+      }
+    ],
+    "calibration": [
+      {
+        "target": "assets-calibration-summary",
+        "title": "Overdue first",
+        "body": "How many instruments are overdue, how many are still in use, and how many fall due soon."
+      },
+      {
+        "target": "assets-calibration-window",
+        "title": "Choose the period",
+        "body": "Show calibrations that fall due within 30, 60, 90 or 365 days."
+      },
+      {
+        "target": "assets-sections",
+        "title": "Register a calibration",
+        "body": "Use \"Record calibration\" on a row to go straight to the form on the instrument page."
       }
     ]
   },

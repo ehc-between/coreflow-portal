@@ -2,7 +2,6 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
-  computed,
   effect,
   inject,
   input,
@@ -10,49 +9,29 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
-import { FieldHelp } from '../../../shared/guidance/field-help';
-import { LocalDayPipe, LocalNumberPipe } from '../../../shared/locale/locale-pipes';
-import { Alert } from '../../../shared/ui/alert/alert';
-import { Badge } from '../../../shared/ui/badge/badge';
-import { Button } from '../../../shared/ui/button/button';
+import { LocalDayPipe } from '../../../shared/locale/locale-pipes';
 import { Card } from '../../../shared/ui/card/card';
-import { FormField } from '../../../shared/ui/form-field/form-field';
-import { Icon } from '../../../shared/ui/icon/icon';
-import { SlideOver } from '../../../shared/ui/slide-over/slide-over';
-import { blankToNull, decisionTone, evaluationStatusTone } from '../data/supplier-display';
-import { supplierErrorKey } from '../data/supplier-errors';
-import {
-  APPROVAL_KINDS,
-  EVALUATION_KINDS,
-  EvaluationKind,
-  EvaluationListItem,
-  Questionnaire,
-  SupplierDetail,
-} from '../data/supplier.models';
+import { EmptyState } from '../../../shared/ui/empty-state/empty-state';
+import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
+import { decisionBadge, evaluationStatusBadge, scoreParams } from '../data/supplier-display';
+import { EvaluationListItem, SupplierDetail } from '../data/supplier.models';
 import { SuppliersApi } from '../data/suppliers-api';
-import { SupplierUserSelect } from '../shared/people-select';
+import { questionnaireLang } from './start-evaluation-dialog';
 
-/** The questionnaire language for the active UI language (the backend has en and nb). */
-export function questionnaireLang(active: string): 'en' | 'nb' {
-  return active === 'nb' ? 'nb' : 'en';
-}
-
-/** The default kind of a new evaluation: initial until approved once, then periodic. */
-export function defaultKind(s: Pick<SupplierDetail, 'approved_at' | 'status'>): EvaluationKind {
-  return s.approved_at || s.status === 'approved' || s.status === 'conditional'
-    ? 'periodic'
-    : 'initial';
-}
+export { defaultKind, questionnaireLang } from './start-evaluation-dialog';
 
 /**
- * A supplier's evaluations (all kinds) and the "start evaluation" form: kind, the
- * questionnaire (built-in or an org template for that kind), title, evaluator and
- * due date. Creating one opens it, ready to answer.
+ * A supplier's evaluations (all kinds): title, kind, evaluator, the score against its
+ * pass mark ("64 / 100 (grense 70)"), the decision or status and the due date of open
+ * ones. Starting one is the page's primary action; the empty state asks for it
+ * (`startRequested`).
  */
 @Component({
   selector: 'app-supplier-evaluations-panel',
@@ -60,85 +39,88 @@ export function defaultKind(s: Pick<SupplierDetail, 'approved_at' | 'status'>): 
     RouterLink,
     TranslocoPipe,
     LocalDayPipe,
-    LocalNumberPipe,
-    Alert,
-    Badge,
-    Button,
     Card,
-    FieldHelp,
-    FormField,
-    Icon,
-    SlideOver,
-    SupplierUserSelect,
+    EmptyState,
+    ErrorState,
+    LoadingState,
+    StatusBadge,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-card [padded]="false">
-      <div class="flex flex-wrap items-center justify-between gap-2 px-4 pt-3.5 pb-2">
-        <h2 class="font-display text-[15px] font-bold text-fg">
-          {{ 'suppliers.evaluations.title' | transloco }}
-        </h2>
-        @if (canWrite()) {
-          <app-button size="sm" (click)="openForm()" data-testid="start-evaluation">
-            <app-icon name="plus" [size]="14" />
-            {{ 'suppliers.evaluations.start' | transloco }}
-          </app-button>
-        }
-      </div>
+      <h2 class="px-5 pt-4 pb-2 font-display text-card font-bold text-fg">
+        {{ 'suppliers.evaluations.title' | transloco }}
+      </h2>
       @switch (state()) {
         @case ('loading') {
-          <p class="px-4 pb-4 text-[13.5px] text-fg-muted">
-            {{ 'suppliers.common.loading' | transloco }}
-          </p>
+          <app-loading-state [rows]="2" />
         }
         @case ('error') {
-          <p class="px-4 pb-4 text-[13.5px] text-fail">
-            {{ 'suppliers.common.loadFailed' | transloco }}
-          </p>
+          <app-error-state (retry)="reload()" />
         }
         @default {
           @if (items().length === 0) {
-            <p class="px-4 pb-4 text-[13.5px] text-fg-muted">
-              {{ 'suppliers.evaluations.none' | transloco }}
-            </p>
+            <app-empty-state
+              [compact]="true"
+              icon="checkcircle"
+              titleKey="suppliers.evaluations.noneTitle"
+              bodyKey="suppliers.evaluations.none"
+              [ctaKey]="canWrite() ? 'suppliers.evaluations.start' : null"
+              (cta)="startRequested.emit()"
+            />
           } @else {
-            <ul class="divide-y divide-border border-t border-border">
+            <ul class="divide-y divide-border border-t border-border" data-testid="evaluation-rows">
               @for (e of items(); track e.id) {
-                <li class="flex flex-col gap-1 px-4 py-2.5 sm:flex-row sm:items-center sm:gap-3">
+                <li class="flex flex-col gap-1 px-5 py-2.5 sm:flex-row sm:items-center sm:gap-3">
                   <div class="min-w-0 flex-1">
                     <a
                       [routerLink]="['/suppliers', supplier().id, 'evaluations', e.id]"
-                      class="block truncate text-[13.5px] font-semibold text-fg hover:underline"
+                      class="block truncate text-body font-semibold text-fg hover:underline"
                     >
                       {{ e.title }}
                     </a>
-                    <span class="text-[12px] text-fg-subtle">
+                    <span class="text-meta text-fg-subtle">
                       {{ 'suppliers.evaluationKind.' + e.kind | transloco }}
                       @if (e.evaluator?.name; as name) {
                         · {{ name }}
                       }
                     </span>
                   </div>
-                  <span class="flex flex-wrap items-center gap-2 text-[12.5px] text-fg-muted">
-                    @if (e.score !== null) {
-                      <span>{{
-                        'suppliers.list.score'
-                          | transloco: { score: (e.score | localNumber: '1.0-1') }
-                      }}</span>
+                  <span class="flex flex-wrap items-center gap-2 text-meta text-fg-muted">
+                    @if (score(e); as sc) {
+                      <span class="whitespace-nowrap" data-testid="evaluation-score">
+                        {{
+                          (sc.pass === null ? 'suppliers.score.of100' : 'suppliers.score.withPass')
+                            | transloco: sc
+                        }}
+                      </span>
                     }
                     @if (e.decision) {
-                      <app-badge [tone]="decisionTone(e.decision)">
-                        {{ 'suppliers.decision.' + e.decision | transloco }}
-                      </app-badge>
+                      @let d = decision(e.decision);
+                      <app-status-badge
+                        [meaning]="d.meaning"
+                        [value]="d.value"
+                        [labelKey]="'suppliers.decision.' + e.decision"
+                      />
                     } @else {
-                      <app-badge [tone]="statusTone(e.status)">
-                        {{ 'suppliers.evaluationStatus.' + e.status | transloco }}
-                      </app-badge>
+                      @let st = status(e.status);
+                      <app-status-badge
+                        [meaning]="st.meaning"
+                        [value]="st.value"
+                        [labelKey]="'suppliers.evaluationStatus.' + e.status"
+                      />
                     }
                     @if (e.due_at && (e.status === 'draft' || e.status === 'submitted')) {
-                      <span [class.text-fail]="e.overdue" [class.font-semibold]="e.overdue">
+                      <span
+                        class="whitespace-nowrap"
+                        [class.text-warn-ink]="e.overdue"
+                        [class.font-semibold]="e.overdue"
+                      >
                         {{
-                          'suppliers.evaluations.due' | transloco: { date: (e.due_at | localDay) }
+                          (e.overdue
+                            ? 'suppliers.evaluations.overdueSince'
+                            : 'suppliers.evaluations.due'
+                          ) | transloco: { date: (e.due_at | localDay) }
                         }}
                       </span>
                     }
@@ -150,126 +132,23 @@ export function defaultKind(s: Pick<SupplierDetail, 'approved_at' | 'status'>): 
         }
       }
     </app-card>
-
-    <app-slide-over
-      [open]="formOpen()"
-      [title]="'suppliers.evaluations.startTitle' | transloco"
-      [subtitle]="supplier().code + ' ' + supplier().name"
-      [closeLabel]="'common.cancel' | transloco"
-      (closed)="formOpen.set(false)"
-    >
-      <form class="flex flex-col gap-4" (submit)="$event.preventDefault(); create()">
-        <div>
-          <div class="flex items-center gap-1">
-            <app-field-help scope="suppliers" page="evaluation" field="kind" />
-          </div>
-          <app-form-field [label]="'suppliers.evaluations.kind' | transloco" inputId="ev-kind">
-            <select id="ev-kind" (change)="setKind($any($event.target).value)">
-              @for (k of kinds; track k) {
-                <option [value]="k" [selected]="kind() === k">
-                  {{ 'suppliers.evaluationKind.' + k | transloco }}
-                </option>
-              }
-            </select>
-          </app-form-field>
-          <p class="mt-1 text-[12px] text-fg-subtle">
-            {{
-              (affectsStatus()
-                ? 'suppliers.evaluations.kindSetsStatus'
-                : 'suppliers.evaluations.kindRecordsOnly'
-              ) | transloco
-            }}
-          </p>
-        </div>
-        <app-form-field
-          [label]="'suppliers.evaluations.questionnaire' | transloco"
-          inputId="ev-template"
-        >
-          <select id="ev-template" (change)="templateId.set($any($event.target).value)">
-            @for (t of templates(); track t.id) {
-              <option [value]="t.id" [selected]="templateId() === t.id">
-                {{ t.name }}
-                ({{
-                  'suppliers.evaluations.questionCount' | transloco: { count: t.questions.length }
-                }})
-              </option>
-            }
-          </select>
-        </app-form-field>
-        <app-form-field [label]="'suppliers.evaluations.titleField' | transloco" inputId="ev-title">
-          <input
-            id="ev-title"
-            type="text"
-            maxlength="255"
-            [placeholder]="'suppliers.evaluations.titlePlaceholder' | transloco"
-            [value]="title()"
-            (input)="title.set($any($event.target).value)"
-          />
-        </app-form-field>
-        <app-form-field [label]="'suppliers.evaluations.evaluator' | transloco" inputId="ev-user">
-          <app-supplier-user-select
-            inputId="ev-user"
-            [value]="evaluator()"
-            (valueChange)="evaluator.set($event)"
-          />
-        </app-form-field>
-        <app-form-field [label]="'suppliers.evaluations.dueAt' | transloco" inputId="ev-due">
-          <input
-            id="ev-due"
-            type="date"
-            [value]="dueDay()"
-            (input)="dueDay.set($any($event.target).value)"
-          />
-        </app-form-field>
-        @if (formError(); as key) {
-          <app-alert>{{ key | transloco }}</app-alert>
-        }
-        <div class="flex justify-end gap-2">
-          <app-button variant="ghost" (click)="formOpen.set(false)">
-            {{ 'common.cancel' | transloco }}
-          </app-button>
-          <app-button type="submit" [loading]="busy()">
-            {{ 'suppliers.evaluations.create' | transloco }}
-          </app-button>
-        </div>
-      </form>
-    </app-slide-over>
   `,
 })
 export class SupplierEvaluationsPanel {
   private readonly api = inject(SuppliersApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly language = inject(LanguageService);
-  private readonly router = inject(Router);
 
   readonly supplier = input.required<SupplierDetail>();
   readonly canWrite = input(false);
-  /** Ask the panel to open the start form (e.g. from the page header). */
-  readonly startRequest = input(0);
-  /** An evaluation was created (the page refreshes the supplier). */
-  readonly created = output<EvaluationListItem>();
+  /** "Start vurdering" from the empty state (the page owns the dialog). */
+  readonly startRequested = output<void>();
 
-  protected readonly kinds = EVALUATION_KINDS;
-  protected readonly statusTone = evaluationStatusTone;
-  protected readonly decisionTone = decisionTone;
+  protected readonly decision = decisionBadge;
+  protected readonly status = evaluationStatusBadge;
 
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
   protected readonly items = signal<readonly EvaluationListItem[]>([]);
-
-  protected readonly formOpen = signal(false);
-  protected readonly kind = signal<EvaluationKind>('initial');
-  protected readonly allTemplates = signal<readonly Questionnaire[]>([]);
-  protected readonly templateId = signal('');
-  protected readonly title = signal('');
-  protected readonly evaluator = signal('');
-  protected readonly dueDay = signal('');
-  protected readonly busy = signal(false);
-  protected readonly formError = signal<string | null>(null);
-
-  protected readonly templates = computed(() =>
-    this.allTemplates().filter((t) => t.kind === this.kind()),
-  );
-  protected readonly affectsStatus = computed(() => APPROVAL_KINDS.includes(this.kind()));
 
   private request = new Subscription();
 
@@ -279,95 +158,37 @@ export class SupplierEvaluationsPanel {
       const orgId = this.selectedOrg.currentOrgId();
       // Tracks the whole record, so the list reloads when the supplier refreshes.
       const id = this.supplier().id;
-      untracked(() => this.load(orgId, id));
-    });
-    effect(() => {
-      if (this.startRequest() > 0) {
-        untracked(() => this.openForm());
-      }
+      const lang = questionnaireLang(this.language.active());
+      untracked(() => this.load(orgId, id, lang));
     });
   }
 
-  protected openForm(): void {
-    const orgId = this.selectedOrg.currentOrgId();
-    if (!orgId) {
-      return;
-    }
-    this.formError.set(null);
-    this.title.set('');
-    this.evaluator.set('');
-    this.dueDay.set('');
-    this.setKind(defaultKind(this.supplier()));
-    this.formOpen.set(true);
-    const lang = questionnaireLang(this.language.active());
-    this.api.listQuestionnaires(orgId, { lang }).subscribe({
-      next: (res) => {
-        this.allTemplates.set(res.items);
-        this.pickDefaultTemplate();
-      },
-      error: () => this.allTemplates.set([]),
-    });
+  protected score(e: EvaluationListItem) {
+    return scoreParams(e.score, e.pass_score, this.language.locale());
   }
 
-  protected setKind(kind: EvaluationKind): void {
-    this.kind.set(kind);
-    this.pickDefaultTemplate();
+  protected reload(): void {
+    this.load(
+      this.selectedOrg.currentOrgId(),
+      this.supplier().id,
+      questionnaireLang(this.language.active()),
+    );
   }
 
-  private pickDefaultTemplate(): void {
-    const list = this.templates();
-    const builtin = list.find((t) => t.id === `builtin-${this.kind()}`);
-    this.templateId.set(builtin?.id ?? list[0]?.id ?? '');
-  }
-
-  protected create(): void {
-    const orgId = this.selectedOrg.currentOrgId();
-    if (!orgId || this.busy()) {
-      return;
-    }
-    const due = this.dueDay();
-    this.busy.set(true);
-    this.formError.set(null);
-    this.api
-      .createEvaluation(orgId, this.supplier().id, {
-        kind: this.kind(),
-        title: blankToNull(this.title()),
-        template_id: this.templateId() || null,
-        evaluator_user_id: this.evaluator() || null,
-        due_at: due ? `${due}T23:59:59` : null,
-        lang: questionnaireLang(this.language.active()),
-      })
-      .subscribe({
-        next: (evaluation) => {
-          this.busy.set(false);
-          this.formOpen.set(false);
-          this.created.emit(evaluation);
-          void this.router.navigate([
-            '/suppliers',
-            this.supplier().id,
-            'evaluations',
-            evaluation.id,
-          ]);
-        },
-        error: (err: unknown) => {
-          this.busy.set(false);
-          this.formError.set(supplierErrorKey(err));
-        },
-      });
-  }
-
-  private load(orgId: string | null, supplierId: string): void {
+  private load(orgId: string | null, supplierId: string, lang: 'en' | 'nb'): void {
     this.request.unsubscribe();
     if (!orgId) {
       return;
     }
     this.state.set('loading');
-    this.request = this.api.listSupplierEvaluations(orgId, supplierId, { limit: 50 }).subscribe({
-      next: (page) => {
-        this.items.set(page.items);
-        this.state.set('ready');
-      },
-      error: () => this.state.set('error'),
-    });
+    this.request = this.api
+      .listSupplierEvaluations(orgId, supplierId, { limit: 50 }, lang)
+      .subscribe({
+        next: (page) => {
+          this.items.set(page.items);
+          this.state.set('ready');
+        },
+        error: () => this.state.set('error'),
+      });
   }
 }

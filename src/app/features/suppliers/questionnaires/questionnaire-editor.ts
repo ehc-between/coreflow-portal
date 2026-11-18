@@ -8,7 +8,7 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../../core/ai/page-context';
@@ -17,12 +17,14 @@ import { NotificationService } from '../../../core/notifications/notification.se
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { AiAssistButton } from '../../../shared/ask/ai-assist-button';
 import { FieldHelp } from '../../../shared/guidance/field-help';
-import { GuideIntro } from '../../../shared/guidance/guide-intro';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { FormField } from '../../../shared/ui/form-field/form-field';
-import { Icon } from '../../../shared/ui/icon/icon';
+
 import { blankToNull } from '../data/supplier-display';
 import { supplierErrorKey } from '../data/supplier-errors';
 import {
@@ -33,7 +35,7 @@ import {
   Questionnaire,
 } from '../data/supplier.models';
 import { SuppliersApi } from '../data/suppliers-api';
-import { questionnaireLang } from '../detail/supplier-evaluations-panel';
+import { questionnaireLang } from '../detail/start-evaluation-dialog';
 import {
   EditableQuestion,
   QuestionEditor,
@@ -50,7 +52,6 @@ import {
 @Component({
   selector: 'app-questionnaire-editor',
   imports: [
-    RouterLink,
     TranslocoPipe,
     AiAssistButton,
     Alert,
@@ -58,30 +59,34 @@ import {
     Card,
     FieldHelp,
     FormField,
-    GuideIntro,
-    Icon,
+    HelpStrip,
+    LoadingState,
+    PageHeader,
     QuestionEditor,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[880px] px-4 pt-7 pb-12 sm:px-8">
-      <a
-        routerLink="/suppliers/questionnaires"
-        class="mb-3 inline-flex items-center gap-1 text-[13px] font-semibold text-fg-muted hover:text-fg"
-      >
-        <app-icon name="back" [size]="14" />
-        {{ 'suppliers.questionnaires.back' | transloco }}
-      </a>
-      <h1 class="mb-3 font-display text-[26px] font-bold tracking-[-0.025em] text-fg">
-        {{
-          (qid() ? 'suppliers.questionnaires.editTitle' : 'suppliers.questionnaires.newTitle')
-            | transloco
-        }}
-      </h1>
-      <div class="mb-4"><app-guide-intro scope="suppliers" page="questionnaire" /></div>
+    <div class="mx-auto max-w-[760px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+      <app-page-header
+        [titleKey]="
+          qid() ? 'suppliers.questionnaires.editTitle' : 'suppliers.questionnaires.newTitle'
+        "
+        [breadcrumbs]="[
+          { labelKey: 'modules.names.suppliers', link: '/suppliers' },
+          { labelKey: 'suppliers.questionnaires.title', link: '/suppliers/questionnaires' },
+          {
+            labelKey: qid()
+              ? 'suppliers.questionnaires.editTitle'
+              : 'suppliers.questionnaires.newTitle',
+          },
+        ]"
+        backLink="/suppliers/questionnaires"
+        backLabelKey="suppliers.questionnaires.back"
+      />
+      <app-help-strip scope="suppliers" page="questionnaire" />
 
       @if (state() === 'loading') {
-        <p class="text-[14px] text-fg-muted">{{ 'suppliers.common.loading' | transloco }}</p>
+        <app-loading-state [rows]="5" />
       } @else if (state() === 'error') {
         <app-alert>{{ 'suppliers.questionnaires.notFound' | transloco }}</app-alert>
       } @else {
@@ -113,13 +118,16 @@ import {
                 </select>
               </app-form-field>
               <div>
-                <div class="flex items-center gap-1">
-                  <app-field-help scope="suppliers" page="questionnaire" field="pass_score" />
-                </div>
                 <app-form-field
                   [label]="'suppliers.evaluation.passScore' | transloco"
                   inputId="qn-pass"
                 >
+                  <app-field-help
+                    label-suffix
+                    scope="suppliers"
+                    page="questionnaire"
+                    field="pass_score"
+                  />
                   <input
                     id="qn-pass"
                     type="number"
@@ -149,16 +157,16 @@ import {
 
           <app-card>
             <div class="mb-3 flex flex-wrap items-end justify-between gap-2">
-              <h2 class="font-display text-[15px] font-bold text-fg">
+              <h2 class="font-display text-card font-bold text-fg">
                 {{ 'suppliers.evaluation.questions' | transloco }}
               </h2>
               <div class="flex flex-wrap items-end gap-2">
-                <label class="flex flex-col gap-1 text-[12px] font-semibold text-fg-muted">
+                <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted">
                   {{ 'suppliers.questionnaires.focus' | transloco }}
                   <input
                     type="text"
                     maxlength="200"
-                    class="h-9 rounded-tile border border-border bg-bg px-3 text-[13px] font-normal text-fg"
+                    class="h-9 rounded-tile border border-border bg-bg px-3 text-ui font-normal text-fg"
                     [placeholder]="'suppliers.questionnaires.focusPlaceholder' | transloco"
                     [value]="focus()"
                     (input)="focus.set($any($event.target).value)"

@@ -37,18 +37,20 @@
       "fields": {
         "kind": {
           "help": "Choose **Design and development** when the project creates or changes a product or service. Those projects need planned design reviews, verification and validation (ISO 9001 8.3).",
-          "example": "A new customer portal is design and development; moving the office is a general project."
+          "example": "A new customer portal is design and development; moving the office is a general project.",
+          "requirements": ["iso9001:8.3.2"]
         },
         "objective": {
           "help": "The result the project must deliver, written so you can tell at the end whether it was reached.",
-          "example": "All customer orders are handled in the new system by 1 March, with no more than 1 % order errors."
+          "example": "All customer orders are handled in the new system by 1 March, with no more than 1 % order errors.",
+          "requirements": ["iso9001:6.3"]
         },
         "scope": {
           "help": "What the project includes and, just as important, what it does not include.",
           "example": "In scope: order handling and invoicing. Out of scope: the warehouse system."
         },
         "health": {
-          "help": "The owner's honest view of how the project is going: on track, at risk or off track. Update it when the picture changes."
+          "help": "The owner's honest view of how the project is going, as a traffic light: green (on track), amber (at risk) or red (off track). Set it once the project is under way and update it when the picture changes."
         },
         "owner": {
           "help": "The person accountable for the project. The owner is always a manager in the team and gets reminders about deadlines."
@@ -58,18 +60,35 @@
         },
         "security_requirements": {
           "help": "The information security requirements the project must meet, and how they will be checked.",
-          "example": "Single sign-on with two-factor login; data stored in the EU; supplier security review before go-live."
+          "example": "Single sign-on with two-factor login; data stored in the EU; supplier security review before go-live.",
+          "requirements": ["iso27001:A.5.8"]
+        },
+        "change_consequences": {
+          "help": "What could go wrong, and what is affected when the change is carried out? Think of customers, staff, other processes and information security.",
+          "example": "Downtime in the order system at cut-over; customer service must be trained before launch.",
+          "requirements": ["iso9001:6.3"]
+        },
+        "change_resources": {
+          "help": "People, time, budget and tools the project needs, and whether they are agreed.",
+          "example": "2 developers for 4 months, NOK 300,000 for licences, approved by management.",
+          "requirements": ["iso9001:6.3"]
+        },
+        "affected": {
+          "help": "The processes and controlled documents that must change or be followed up when the project is done. They are linked to the project."
+        },
+        "objectives": {
+          "help": "The quality or security objectives the project helps the organisation reach. They are linked to the project."
         }
       }
     },
     "detail": {
       "intro": {
         "title": "Running the project",
-        "body": "This page is the project's single source of truth. Keep the plan current, mark milestones as done, record design reviews and add lessons as you learn them. The Tasks tab holds the work, and the Related tab links risks, change requests and documents.",
+        "body": "This page is the project's single source of truth. Overview shows purpose, change planning, progress and security. Plan shows phases, milestones and tasks. Under Reviews you record checks and actions, and under Lessons what you learned and what it led to.",
         "steps": [
-          "Check the Gantt chart and the task board each week.",
-          "Record each design review, verification or validation with its outcome.",
-          "Close the project when the work is done, with a short summary and lessons learned."
+          "Keep the plan up to date and mark milestones as done.",
+          "Record every review with its result, and turn agreed actions into tasks.",
+          "Close the project when the work is done: say whether the objective was met, and write lessons learned."
         ]
       },
       "why": {
@@ -78,27 +97,33 @@
       },
       "fields": {
         "team": {
-          "help": "**Managers** can change the project and its team. **Members** and **reviewers** can add milestones, reviews, lessons and tasks. **Stakeholders** can follow the project but not change it."
+          "help": "**Managers** can change the project and the team. **Members** and **subject-matter reviewers** can add milestones, reviews, lessons and tasks; a reviewer mainly takes part in reviews. **Stakeholders** can follow the project but not change it."
         },
         "milestones": {
           "help": "A **phase** is a period of work with a start and an end. A **milestone** is a point where something must be finished or decided, and can sit inside a phase."
         },
         "design_reviews": {
-          "help": "A **design review** checks progress against the requirements at a planned stage. **Verification** checks that the outputs meet the input requirements. **Validation** checks that the result works for its intended use."
+          "help": "A **review** checks progress against the requirements at a planned stage. **Verification** checks that the outputs meet the input requirements. **Validation** checks that the result works for its intended use. A **design change** records what changed, who assessed it and who approved it."
         },
         "review_kind": {
-          "help": "Pick the type that matches the question being answered: are we on track (review), did we build it right (verification), did we build the right thing (validation)?"
+          "help": "Choose the type that fits the question: are we on track (review), did we build it right (verification), did we build the right thing (validation), or must a change be approved (design change)?",
+          "requirements": ["iso9001:8.3.4", "iso9001:8.3.6"]
         },
         "review_inputs": {
-          "help": "What was reviewed: drawings, specifications, test results, prototypes or documents.",
-          "example": "Requirements specification v2, usability test report from 12 May."
+          "help": "Anything else that was reviewed and is not a controlled document: prototypes, test results, meeting notes.",
+          "example": "User test report of 12 May."
         },
         "review_findings": {
           "help": "What the review found and which actions were agreed. Add tasks for the actions so they are followed up.",
-          "example": "Login flow is too long; reduce to two steps before the pilot."
+          "example": "Login flow is too long; reduce to two steps before the pilot.",
+          "requirements": ["iso9001:8.3.4"]
         },
         "lessons": {
-          "help": "Short notes on what went well and what should be done differently. Write them while the project runs; they are most useful for the next project."
+          "help": "Short notes on what went well and what should be done differently. Turn a lesson into an improvement action or a risk, so it is followed up and shows in the management review."
+        },
+        "review_documents": {
+          "help": "Choose the controlled documents that were reviewed. The revision is pinned, so you can later see whether the document has changed since.",
+          "requirements": ["iso9001:8.3.4"]
         }
       }
     },
@@ -114,7 +139,12 @@
       "fields": {
         "summary": {
           "help": "Was the objective reached? Summarise the result, any deviations from the plan, and what remains for the line organisation to follow up.",
-          "example": "The new order system has been live since 1 March. Order errors fell to 0.6 %. Training for the night shift is handed over to HR."
+          "example": "The new order system has been live since 1 March. Order errors fell to 0.6 %. Training for the night shift is handed over to HR.",
+          "requirements": ["iso9001:8.3.5"]
+        },
+        "objective_met": {
+          "help": "Compare the result with the objective set at the start. \"Partly\" is an honest answer; describe what remains in the report.",
+          "requirements": ["iso9001:6.3"]
         }
       }
     }

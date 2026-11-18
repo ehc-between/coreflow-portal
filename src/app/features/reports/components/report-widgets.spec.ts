@@ -102,13 +102,15 @@ describe('MetricView', () => {
       by_standard: { iso9001: 5 },
     });
     expect(el.textContent).toContain('5');
-    expect(el.textContent).toContain('reports.fields.by_severity');
+    // Missing translations read as words, never as raw keys.
+    expect(el.textContent).toContain('By severity');
+    expect(el.textContent).not.toContain('reports.fields');
     // Critical is listed before low, and the by-standard map is not shown.
     const labels = Array.from(el.querySelectorAll('li span:first-child')).map((s) =>
       s.textContent?.trim(),
     );
-    const critical = labels.findIndex((l) => l?.endsWith('severity.critical'));
-    const low = labels.findIndex((l) => l?.endsWith('severity.low'));
+    const critical = labels.findIndex((l) => l === 'Critical');
+    const low = labels.findIndex((l) => l === 'Low');
     expect(critical).toBeGreaterThanOrEqual(0);
     expect(critical).toBeLessThan(low);
     expect(el.textContent).not.toContain('by_standard');
@@ -124,6 +126,31 @@ describe('MetricView', () => {
     expect(grid.children.length).toBe(9);
     // Highest likelihood row first: the top-right cell carries the count.
     expect(grid.children[2].textContent?.trim()).toBe('2');
+  });
+
+  it('labels module metric fields with the metric own words when the portal has none', () => {
+    TestBed.configureTestingModule({
+      imports: [MetricView, TranslocoTestingModule.forRoot({ langs: { en: {} } })],
+      providers: [provideZonelessChangeDetection(), provideRouter([])],
+    });
+    const fixture = TestBed.createComponent(MetricView);
+    fixture.componentRef.setInput('kind', 'number');
+    fixture.componentRef.setInput('data', { value: 3, ict_gaps: 2, url: '/continuity' });
+    fixture.componentRef.setInput('fieldLabels', {
+      value: { en: 'Activities without a plan' },
+      ict_gaps: { en: 'IT systems with gaps' },
+    });
+    fixture.detectChanges();
+    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(text).toContain('Activities without a plan');
+    expect(text).toContain('IT systems with gaps');
+    expect(text).not.toContain('/continuity');
+  });
+
+  it('shows training completion as a percentage with a bar', () => {
+    const el = render('training', { percent: 82, open: 4, overdue: 1 });
+    expect(el.textContent).toContain('82 %');
+    expect(el.querySelector('app-progress-bar')).toBeTruthy();
   });
 
   it('renders list items with links', () => {

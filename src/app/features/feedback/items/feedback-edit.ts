@@ -8,52 +8,53 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../../core/ai/page-context';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
-import { GuideIntro } from '../../../shared/guidance/guide-intro';
 import { Alert } from '../../../shared/ui/alert/alert';
-import { Icon } from '../../../shared/ui/icon/icon';
+import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { FeedbackApi } from '../data/feedback-api';
 import { feedbackErrorKey } from '../data/feedback-errors';
 import { FeedbackFormValue, formFromFeedback, toUpdateRequest } from '../data/feedback-form-model';
 import { FEEDBACK_ENTITY, Feedback } from '../data/feedback.models';
+import { FEEDBACK_SETTINGS_LINK } from '../feedback-nav';
 import { FeedbackForm, FeedbackFormSubmit } from './feedback-form';
 
 /** Edit a feedback record (`/feedback/items/:id/edit`). */
 @Component({
   selector: 'app-feedback-edit',
-  imports: [RouterLink, TranslocoPipe, GuideIntro, Alert, Icon, FeedbackForm],
+  imports: [TranslocoPipe, Alert, ErrorState, HelpStrip, LoadingState, PageHeader, FeedbackForm],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[960px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
-      <a
-        [routerLink]="['/feedback/items', id()]"
-        class="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
-      >
-        <app-icon name="back" [size]="16" />
-        {{ 'feedback.common.backToRecord' | transloco }}
-      </a>
+    <div class="mx-auto max-w-[760px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+      <app-page-header
+        titleKey="feedback.form.editTitle"
+        [titleParams]="{ code: feedback()?.code ?? '' }"
+        [breadcrumbs]="[
+          { labelKey: 'modules.names.feedback', link: '/feedback' },
+          { label: feedback()?.code ?? '', link: ['/feedback/items', id()] },
+          { labelKey: 'feedback.form.editCrumb' },
+        ]"
+        [settingsLink]="settingsLink"
+        [backLink]="['/feedback/items', id()]"
+        backLabelKey="feedback.common.backToRecord"
+      />
       @switch (state()) {
         @case ('loading') {
-          <p class="py-10 text-center text-[14px] text-fg-muted" role="status">
-            {{ 'feedback.common.loading' | transloco }}
-          </p>
+          <app-loading-state [rows]="6" />
         }
         @case ('error') {
-          <app-alert tone="error">{{ errorKey() | transloco }}</app-alert>
+          <app-error-state [bodyKey]="errorKey()" (retry)="reload()" />
         }
         @default {
           @if (feedback(); as f) {
-            <h1
-              class="mb-4 font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]"
-            >
-              {{ 'feedback.form.editTitle' | transloco: { code: f.code } }}
-            </h1>
-            <div class="mb-5"><app-guide-intro scope="feedback" page="form" /></div>
+            <app-help-strip scope="feedback" page="edit" lesson="handling-complaints" />
             @if (!f.can_edit) {
               <app-alert tone="info">{{ 'feedback.form.readOnly' | transloco }}</app-alert>
             } @else if (seed(); as value) {
@@ -80,6 +81,7 @@ export class FeedbackEdit {
 
   readonly id = input.required<string>();
 
+  protected readonly settingsLink = FEEDBACK_SETTINGS_LINK;
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
   protected readonly errorKey = signal('feedback.common.loadFailed');
   protected readonly feedback = signal<Feedback | null>(null);
@@ -135,6 +137,10 @@ export class FeedbackEdit {
 
   protected back(): void {
     void this.router.navigate(['/feedback/items', this.id()]);
+  }
+
+  protected reload(): void {
+    this.load(this.selectedOrg.currentOrgId(), this.id());
   }
 
   private load(orgId: string | null, id: string): void {

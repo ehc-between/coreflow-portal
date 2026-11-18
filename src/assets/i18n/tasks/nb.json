@@ -254,7 +254,7 @@
       "MONTHLY": "Månedlig",
       "YEARLY": "Årlig"
     },
-    "interval": "Hver (antall perioder)",
+    "interval": "Gjenta hver",
     "weekdaysLabel": "På disse dagene",
     "month": "Måned",
     "monthDay": "Dag i måneden",
@@ -263,7 +263,7 @@
     "endNever": "Aldri",
     "endCount": "Etter",
     "endCountLabel": "Antall ganger",
-    "endUntil": "Den",
+    "endUntil": "På dato",
     "endUntilLabel": "Sluttdato",
     "preview": "Gjentas:",
     "summary": {
@@ -404,6 +404,7 @@
       "management_review": "Ledelsens gjennomgang",
       "management_review_signoff": "Ledelsens gjennomgang til signering",
       "project_milestone": "Milepæl i prosjekt",
+      "project_design_review": "Gjennomgang i prosjekt",
       "training_due": "Opplæring",
       "other": "Annet",
       "document_periodic_review": "Dokument til periodisk gjennomgang"

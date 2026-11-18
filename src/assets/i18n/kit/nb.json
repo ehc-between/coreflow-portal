@@ -15,13 +15,14 @@
     "env_metric": "Miljøindikator",
     "learning_progress": "Læringsfremdrift",
     "legal_basis_assessment": "Vurdering av behandlingsgrunnlag",
-    "people_awareness": "Bevissthetstiltak",
+    "people_awareness": "Bevisstgjøring",
     "people_checklist": "Sjekkliste",
     "people_disciplinary": "Personalsak",
     "record_type": "Posttype",
     "retention_schedule": "Oppbevaringsplan",
     "risk_register": "Risikoregister",
-    "workflow_definition": "Arbeidsflyt"
+    "workflow_definition": "Arbeidsflyt",
+    "audit_auditor_profile": "Revisorprofil"
   },
   "linkTypes": {
     "relates_to": {
@@ -329,7 +330,8 @@
       "review_input": "Innspill til ledelsens gjennomgang",
       "text_match": "Lignende formulering",
       "ai": "Foreslått av assistenten",
-      "other": "Trolig relatert"
+      "other": "Trolig relatert",
+      "supplier_named": "Nevner denne leverandøren"
     },
     "origin": {
       "auto": "Automatisk",
@@ -419,21 +421,55 @@
     "supplier": {
       "to_contract": "Kontrakt med leverandøren",
       "to_evaluation": "Leverandørvurdering",
-      "to_risk": "Leverandørrisiko"
+      "to_risk": "Leverandørrisiko",
+      "to_deviation": "Avvik hos denne leverandøren",
+      "to_processor": "Registrer som databehandler",
+      "to_dpa": "Databehandleravtale",
+      "to_transfer": "Overføringsvurdering (data utenfor EU/EØS)"
     },
     "dpia": {
       "to_risk": "Risiko fra DPIA-en"
     },
     "ai_system": {
       "to_dpia": "DPIA for KI-systemet",
-      "to_assessment": "KI-vurdering"
+      "to_assessment": "KI-vurdering",
+      "to_incident": "KI-hendelse for dette systemet",
+      "to_risk": "KI-risiko for dette systemet",
+      "to_task": "Oppgave for dette systemet",
+      "to_obligation": "Plikter etter KI-forordningen for dette systemet"
+    },
+    "asset": {
+      "to_ict_system": "IKT-tjeneste for kontinuitet"
+    },
+    "calibration": {
+      "to_deviation": "Avvik fra denne kalibreringen"
+    },
+    "access_review": {
+      "to_deviation": "Avvik fra denne tilgangsgjennomgangen",
+      "to_risk": "Risiko funnet i tilgangsgjennomgangen"
+    },
+    "change_request": {
+      "to_deviation": "Avvik fra denne endringen",
+      "to_risk": "Risiko fra denne endringen",
+      "to_document": "Dokumentoppdatering for endringen",
+      "to_task": "Oppgave for å følge opp endringen",
+      "to_training": "Opplæring i endringen (kurstildeling)"
     },
     "obligation": {
       "to_policy": "Policy som oppfyller forpliktelsen",
-      "to_document": "Dokument som oppfyller forpliktelsen"
+      "to_document": "Dokument som oppfyller forpliktelsen",
+      "to_deviation": "Avvik for mangelen som ble funnet",
+      "to_risk": "Risiko for ikke å oppfylle forpliktelsen",
+      "to_task": "Oppgave",
+      "to_training": "Opplæring så de ansatte kjenner pliktene"
     },
     "customer_feedback": {
-      "to_deviation": "Avvik fra tilbakemeldingen"
+      "to_deviation": "Avvik fra denne tilbakemeldingen",
+      "to_risk": "Risiko tilbakemeldingen avdekker",
+      "to_task": "Oppfølgingsoppgave",
+      "to_objective": "Forbedringsmål",
+      "to_incident": "Sikkerhetshendelse",
+      "to_data_subject_request": "Henvendelse fra registrert"
     },
     "management_review": {
       "to_task": "Tiltak (oppgave)",
@@ -443,6 +479,9 @@
       "to_document": "Dokumentendring fra gjennomgangen"
     },
     "formMissing": "Dette skjemaet finnes ikke ennå. Opprett posten fra sin egen side og koble den fra fanen Relatert.",
+    "survey": {
+      "to_task": "Oppgave fra resultatene"
+    },
     "opportunity": {
       "to_task": "Tiltak (oppgave)",
       "to_objective": "Mål som følger opp muligheten",
@@ -479,7 +518,8 @@
       "to_risk": "Risiko for prosessen",
       "to_task": "Oppgave for prosessen",
       "to_audit_plan": "Internrevisjon av prosessen",
-      "to_kpi": "Nøkkeltall for prosessen"
+      "to_kpi": "Nøkkeltall for prosessen",
+      "to_bia": "Konsekvensanalyse (BIA) for prosessen"
     },
     "objective": {
       "to_kpi": "KPI som måler målet",
@@ -498,7 +538,104 @@
       "to_risk": "Risiko fra kontrakten",
       "to_deviation": "Avvik knyttet til kontrakten",
       "to_task": "Oppgave på kontrakten",
-      "to_dpa": "Databehandleravtale for kontrakten"
+      "to_dpa": "Databehandleravtale for kontrakten",
+      "to_obligation": "Forpliktelse fra denne avtalen"
+    },
+    "bia": {
+      "to_plan": "Kontinuitetsplan for aktiviteten",
+      "to_risk": "Vurder risiko for aktiviteten"
+    },
+    "continuity_exercise": {
+      "to_deviation": "Avvik fra øvelsen",
+      "to_risk": "Risiko fra øvelsen",
+      "to_task": "Oppgave for oppfølging"
+    },
+    "continuity_plan": {
+      "to_deviation": "Registrer hendelsen som avvik"
+    },
+    "continuity_ict_system": {
+      "to_task": "Oppgave for å lukke beredskapsmangelen"
+    },
+    "env_aspect": {
+      "to_objective": "Miljømål for dette aspektet",
+      "to_risk": "Risiko eller mulighet fra dette aspektet",
+      "to_document": "Prosedyre som styrer aspektet",
+      "to_task": "Oppgave til oppfølging",
+      "to_emergency_plan": "Beredskapsplan for dette aspektet",
+      "to_obligation": "Lovkrav eller tillatelse for dette miljøaspektet"
+    },
+    "emergency_plan": {
+      "to_deviation": "Avvik fra denne hendelsen",
+      "to_task": "Oppgave til oppfølging"
+    },
+    "env_drill": {
+      "to_deviation": "Avvik fra denne øvelsen eller hendelsen",
+      "to_task": "Oppgave fra erfaringene"
+    },
+    "env_metric": {
+      "to_objective": "Miljømål for denne indikatoren",
+      "to_kpi": "Nøkkeltall (KPI) som følger indikatoren",
+      "to_deviation": "Avvik: når ikke målet"
+    },
+    "job_application": {
+      "to_deviation": "Avvik fra søknaden",
+      "to_risk": "Risiko fra søknaden",
+      "to_task": "Oppgave for oppfølging"
+    },
+    "job_requisition": {
+      "to_deviation": "Avvik fra stillingsbehovet",
+      "to_risk": "Risiko fra stillingsbehovet",
+      "to_task": "Oppgave for oppfølging"
+    },
+    "candidate": {
+      "to_data_subject_request": "Henvendelse fra kandidaten (innsyn eller sletting)"
+    },
+    "supplier_evaluation": {
+      "to_deviation": "Avvik fra denne vurderingen"
+    },
+    "project": {
+      "to_risk": "Risiko for prosjektet",
+      "to_opportunity": "Mulighet fra prosjektet",
+      "to_deviation": "Avvik i prosjektet",
+      "to_task": "Oppgave i prosjektet",
+      "to_document": "Designresultat (dokument)",
+      "to_dpia": "DPIA for prosjektet",
+      "to_change_request": "Endringsforespørsel"
+    },
+    "project_design_review": {
+      "to_task": "Tiltak fra gjennomgangen (oppgave)",
+      "to_deviation": "Avvik fra gjennomgangen"
+    },
+    "sja": {
+      "to_deviation": "Avvik eller uønsket hendelse fra denne jobben",
+      "to_risk": "HMS-risiko fra denne jobben",
+      "to_task": "Oppgave til oppfølging",
+      "to_document": "Prosedyre for å gjøre jobben sikkert"
+    },
+    "ppe_item": {
+      "to_deviation": "Avvik fra dette utstyret",
+      "to_task": "Oppgave til oppfølging"
+    },
+    "worker_consultation": {
+      "to_task": "Oppgave fra en beslutning",
+      "to_deviation": "Avvik tatt opp i møtet",
+      "to_risk": "Risiko tatt opp i møtet"
+    },
+    "ai_assessment": {
+      "to_risk": "Risiko fra denne vurderingen"
+    },
+    "audit_plan": {
+      "to_audit_pack": "Revisjonspakke for revisjonen"
+    },
+    "training_record": {
+      "to_deviation": "Avvik fra denne opplæringen",
+      "to_task": "Oppgave for oppfølging"
+    },
+    "training_assignment": {
+      "to_task": "Oppgave for oppfølging"
+    },
+    "course": {
+      "to_task": "Oppgave for å forbedre kurset"
     }
   },
   "frameworks": {

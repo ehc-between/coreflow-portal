@@ -8,20 +8,31 @@ import {
   signal,
   untracked,
 } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { providePageContext } from '../../../core/ai/page-context';
+import { LanguageService } from '../../../core/i18n/language.service';
+import { CreateFlowService } from '../../../core/kit/create-flow.service';
 import { AskAbout } from '../../../shared/ask/ask-about';
-import { FieldHelp } from '../../../shared/guidance/field-help';
+import { FlowBanner } from '../../../shared/kit/flow-banner';
+import { ClausePicker } from '../../../shared/requirement-links/clause-picker';
+import { frameworkOf } from '../../../shared/requirement-links/requirement-label';
 import { AssigneeOptionsService } from '../../../shared/tasks/assignee-options';
-import { FormField } from '../../../shared/ui/form-field/form-field';
 import { AuditAccess } from '../data/audit-access';
-import { fromDateInput, parseClauseRefs, textOrNull, toDateInput } from '../data/audit-display';
+import {
+  fromDateInput,
+  frameworksOfClauses,
+  listParam,
+  textOrNull,
+  toDateInput,
+} from '../data/audit-display';
+import { AuditFrameworks } from '../data/audit-frameworks';
 import {
   Certification,
   EXTERNAL_PARTY_TYPES,
+  EntityRef,
   ExternalPartyType,
-  FRAMEWORKS,
   ListResponse,
   PLAN_KINDS,
   PlanDetail,
@@ -32,10 +43,13 @@ import {
   RiskLevel,
 } from '../data/audit.models';
 import { AuditsApi } from '../data/audits-api';
+import { certificationTitle } from '../certifications/certification-list';
+import { AuditField } from '../shared/audit-field';
 import { AuditChoiceCheckboxes, Choice } from '../shared/choice-checkboxes';
 import { AuditFormPage } from '../shared/form-page';
 import { loadable } from '../shared/loadable';
 import { mutator } from '../shared/mutator';
+import { AuditRecordSelect } from '../shared/record-picker';
 import { AuditUserSelect } from '../shared/user-select';
 
 /** The form state of an audit plan. */
@@ -48,10 +62,15 @@ export interface PlanFormValue {
   partyName: string;
   scope: string;
   criteria: string;
+  criteriaDocuments: EntityRef[];
   objectives: string;
   frameworks: string[];
-  clauseRefs: string;
+  clauseRefs: string[];
+  processes: EntityRef[];
   departments: string[];
+  auditees: string[];
+  distribution: string[];
+  location: string;
   risk: RiskLevel;
   start: string;
   end: string;
@@ -69,10 +88,15 @@ export function emptyPlanForm(): PlanFormValue {
     partyName: '',
     scope: '',
     criteria: '',
+    criteriaDocuments: [],
     objectives: '',
     frameworks: [],
-    clauseRefs: '',
+    clauseRefs: [],
+    processes: [],
     departments: [],
+    auditees: [],
+    distribution: [],
+    location: '',
     risk: 'medium',
     start: '',
     end: '',
@@ -81,7 +105,26 @@ export function emptyPlanForm(): PlanFormValue {
   };
 }
 
+/** A placeholder ref for a record known only by id (shown until the plan is saved). */
+function idRef(entityType: string, id: string, title: string): EntityRef {
+  return {
+    entity_type: entityType,
+    entity_id: id,
+    title,
+    code: null,
+    url: null,
+    status: null,
+    module: null,
+    label_key: `modules.entities.${entityType}`,
+  };
+}
+
 export function planToForm(p: PlanDetail): PlanFormValue {
+  const processes =
+    p.processes ?? (p.process_ids ?? []).map((id) => idRef('process', id, id.slice(0, 8)));
+  const documents =
+    p.criteria_documents ??
+    (p.criteria_document_ids ?? []).map((id) => idRef('document', id, id.slice(0, 8)));
   return {
     title: p.title,
     kind: p.kind,
@@ -91,10 +134,15 @@ export function planToForm(p: PlanDetail): PlanFormValue {
     partyName: p.external_party_name ?? '',
     scope: p.scope ?? '',
     criteria: p.criteria ?? '',
+    criteriaDocuments: [...documents],
     objectives: p.objectives ?? '',
     frameworks: [...p.frameworks],
-    clauseRefs: p.clause_refs.join(', '),
+    clauseRefs: [...p.clause_refs],
+    processes: [...processes],
     departments: [...p.auditee_department_ids],
+    auditees: [...(p.auditee_user_ids ?? p.auditees?.map((u) => u.id) ?? [])],
+    distribution: [...(p.distribution_user_ids ?? p.distribution?.map((u) => u.id) ?? [])],
+    location: p.location ?? '',
     risk: p.risk_level,
     start: toDateInput(p.planned_start),
     end: toDateInput(p.planned_end),
@@ -117,8 +165,13 @@ export function planFormToInput(v: PlanFormValue, editing: boolean): PlanInput {
     criteria: textOrNull(v.criteria),
     objectives: textOrNull(v.objectives),
     frameworks: v.frameworks,
-    clause_refs: parseClauseRefs(v.clauseRefs),
+    clause_refs: [...new Set(v.clauseRefs)],
     auditee_department_ids: v.departments,
+    process_ids: v.processes.map((p) => p.entity_id),
+    criteria_document_ids: v.criteriaDocuments.map((d) => d.entity_id),
+    auditee_user_ids: v.auditees,
+    distribution_user_ids: v.distribution,
+    location: textOrNull(v.location),
     risk_level: v.risk,
     planned_start: fromDateInput(v.start),
     planned_end: fromDateInput(v.end),
@@ -127,16 +180,63 @@ export function planFormToInput(v: PlanFormValue, editing: boolean): PlanInput {
   };
 }
 
+/**
+ * The canonical clause ref of a requirement ref (`iso9001-2026:8.4.1.r2` →
+ * `iso9001:8.4.1`), so "Plan an audit" from a requirement page pre-fills the clause.
+ */
+export function clauseOfRequirement(ref: string | null | undefined): string | null {
+  if (!ref || !ref.includes(':')) {
+    return null;
+  }
+  const at = ref.indexOf(':');
+  const framework = frameworkOf(ref.slice(0, at));
+  const number = ref.slice(at + 1).replace(/\.r\d+$/, '');
+  return framework && number ? `${framework}:${number}` : null;
+}
+
+/** Pre-filled values from the query (`?programme=`, `?clauses=`, a coverage gap, a requirement). */
+export function planPrefill(
+  q: { get(name: string): string | null },
+  fromRequirement: string | null,
+): Partial<PlanFormValue> {
+  const clauses = listParam(q.get('clauses'));
+  const fromReq = clauseOfRequirement(fromRequirement);
+  if (fromReq && !clauses.includes(fromReq)) {
+    clauses.push(fromReq);
+  }
+  const frameworks = listParam(q.get('frameworks'));
+  for (const f of frameworksOfClauses(clauses)) {
+    if (!frameworks.includes(f)) {
+      frameworks.push(f);
+    }
+  }
+  const processTitle = q.get('processTitle');
+  return {
+    programmeId: q.get('programme') ?? '',
+    certificationId: q.get('certification') ?? '',
+    kind: q.get('kind') === 'external' || q.get('certification') ? 'external' : 'internal',
+    clauseRefs: clauses,
+    frameworks,
+    processes: listParam(q.get('processes')).map((id) =>
+      idRef('process', id, processTitle || id.slice(0, 8)),
+    ),
+    departments: listParam(q.get('departments')),
+  };
+}
+
 /** `/audits/plans/new` and `/audits/plans/:id/edit`: plan an audit (scope, criteria, schedule). */
 @Component({
   selector: 'app-audit-plan-form',
   imports: [
+    FormsModule,
     TranslocoPipe,
-    FormField,
-    FieldHelp,
     AskAbout,
+    ClausePicker,
+    FlowBanner,
+    AuditField,
     AuditFormPage,
     AuditChoiceCheckboxes,
+    AuditRecordSelect,
     AuditUserSelect,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -144,14 +244,24 @@ export function planFormToInput(v: PlanFormValue, editing: boolean): PlanInput {
     <app-audit-form-page
       [titleKey]="id() ? 'audits.planForm.editTitle' : 'audits.planForm.newTitle'"
       guidePage="planForm"
-      [backLink]="id() ? ['/audits/plans', id()] : '/audits/plans'"
+      lesson="internal-audits"
+      [breadcrumbs]="breadcrumbs()"
       [busy]="saving.busy()"
       [canSave]="valid()"
+      [invalidKey]="invalidKey()"
       [ready]="!id() || existing.state() === 'ready'"
       (save)="save()"
       (cancelled)="back()"
     >
-      <app-form-field [label]="'audits.fields.title' | transloco" inputId="plan-title">
+      <app-flow-banner before [flow]="flow()" />
+
+      <app-audit-field
+        inputId="plan-title"
+        labelKey="audits.fields.title"
+        [required]="true"
+        helpField="title"
+        [error]="titleError()"
+      >
         <input
           id="plan-title"
           required
@@ -160,11 +270,10 @@ export function planFormToInput(v: PlanFormValue, editing: boolean): PlanInput {
           [value]="f().title"
           (input)="patch({ title: $any($event.target).value })"
         />
-        <app-field-help scope="audits" page="planForm" field="title" />
-      </app-form-field>
+      </app-audit-field>
 
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <app-form-field [label]="'audits.fields.kind' | transloco" inputId="plan-kind">
+        <app-audit-field inputId="plan-kind" labelKey="audits.fields.kind" helpField="kind">
           <select id="plan-kind" (change)="patch({ kind: $any($event.target).value })">
             @for (k of kinds; track k) {
               <option [value]="k" [selected]="f().kind === k">
@@ -172,9 +281,8 @@ export function planFormToInput(v: PlanFormValue, editing: boolean): PlanInput {
               </option>
             }
           </select>
-          <app-field-help scope="audits" page="planForm" field="kind" />
-        </app-form-field>
-        <app-form-field [label]="'audits.fields.risk' | transloco" inputId="plan-risk">
+        </app-audit-field>
+        <app-audit-field inputId="plan-risk" labelKey="audits.fields.risk" helpField="risk">
           <select id="plan-risk" (change)="patch({ risk: $any($event.target).value })">
             @for (r of risks; track r) {
               <option [value]="r" [selected]="f().risk === r">
@@ -182,15 +290,14 @@ export function planFormToInput(v: PlanFormValue, editing: boolean): PlanInput {
               </option>
             }
           </select>
-          <app-field-help scope="audits" page="planForm" field="risk" />
-        </app-form-field>
+        </app-audit-field>
       </div>
 
       @if (f().kind === 'external') {
         <div
-          class="grid grid-cols-1 gap-4 rounded-[10px] border border-border bg-surface-2 p-3 sm:grid-cols-2"
+          class="grid grid-cols-1 gap-4 rounded-tile border border-border bg-surface-2 p-3 sm:grid-cols-2"
         >
-          <app-form-field [label]="'audits.fields.partyType' | transloco" inputId="plan-party-type">
+          <app-audit-field inputId="plan-party-type" labelKey="audits.fields.partyType">
             <select id="plan-party-type" (change)="patch({ partyType: $any($event.target).value })">
               <option value="">{{ 'audits.common.choose' | transloco }}</option>
               @for (t of partyTypes; track t) {
@@ -199,94 +306,73 @@ export function planFormToInput(v: PlanFormValue, editing: boolean): PlanInput {
                 </option>
               }
             </select>
-          </app-form-field>
-          <app-form-field [label]="'audits.fields.partyName' | transloco" inputId="plan-party-name">
+          </app-audit-field>
+          <app-audit-field inputId="plan-party-name" labelKey="audits.fields.partyName">
             <input
               id="plan-party-name"
               maxlength="200"
               [value]="f().partyName"
               (input)="patch({ partyName: $any($event.target).value })"
             />
-          </app-form-field>
-          <app-form-field
+          </app-audit-field>
+          <app-audit-field
             class="sm:col-span-2"
-            [label]="'audits.fields.certification' | transloco"
             inputId="plan-cert"
+            labelKey="audits.fields.certification"
+            helpField="certification"
           >
             <select id="plan-cert" (change)="patch({ certificationId: $any($event.target).value })">
-              <option value="">{{ 'audits.common.none' | transloco }}</option>
+              <option value="">{{ 'common.empty.none' | transloco }}</option>
               @for (c of certifications(); track c.id) {
                 <option [value]="c.id" [selected]="f().certificationId === c.id">
-                  {{ 'audits.frameworks.' + c.framework | transloco }} · {{ c.certification_body }}
+                  {{ certTitle(c) }}
                 </option>
               }
             </select>
-            <app-field-help scope="audits" page="planForm" field="certification" />
-          </app-form-field>
+          </app-audit-field>
         </div>
       }
 
-      <app-form-field [label]="'audits.fields.programme' | transloco" inputId="plan-programme">
+      <app-audit-field
+        inputId="plan-programme"
+        labelKey="audits.fields.programme"
+        helpField="programme"
+      >
         <select id="plan-programme" (change)="patch({ programmeId: $any($event.target).value })">
-          <option value="">{{ 'audits.common.none' | transloco }}</option>
+          <option value="">{{ 'common.empty.none' | transloco }}</option>
           @for (p of programmes(); track p.id) {
             <option [value]="p.id" [selected]="f().programmeId === p.id">
               {{ p.code }} · {{ p.title }}
             </option>
           }
         </select>
-        <app-field-help scope="audits" page="planForm" field="programme" />
-      </app-form-field>
+      </app-audit-field>
 
-      <app-form-field [label]="'audits.fields.scope' | transloco" inputId="plan-scope">
+      <app-audit-field inputId="plan-scope" labelKey="audits.fields.scope" helpField="scope">
         <textarea
           id="plan-scope"
           rows="3"
           [value]="f().scope"
           (input)="patch({ scope: $any($event.target).value })"
         ></textarea>
-        <app-field-help scope="audits" page="planForm" field="scope" />
-      </app-form-field>
-      <app-form-field [label]="'audits.fields.criteria' | transloco" inputId="plan-criteria">
-        <div class="flex items-start gap-2">
-          <textarea
-            id="plan-criteria"
-            rows="3"
-            [value]="f().criteria"
-            (input)="patch({ criteria: $any($event.target).value })"
-          ></textarea>
-          <app-ask-about
-            class="mt-1.5 flex-none"
-            field="criteria"
-            [prompt]="'audits.planForm.askCriteria' | transloco"
-          />
-        </div>
-        <app-field-help scope="audits" page="planForm" field="criteria" />
-      </app-form-field>
-      <app-form-field [label]="'audits.fields.objectives' | transloco" inputId="plan-objectives">
-        <textarea
-          id="plan-objectives"
-          rows="2"
-          [value]="f().objectives"
-          (input)="patch({ objectives: $any($event.target).value })"
-        ></textarea>
-      </app-form-field>
+      </app-audit-field>
 
-      <app-audit-choice-checkboxes
-        [legend]="'audits.fields.frameworks' | transloco"
-        [choices]="frameworkChoices"
-        [selected]="f().frameworks"
-        (selectedChange)="patch({ frameworks: $event })"
-      />
-      <app-form-field [label]="'audits.fields.clauseRefs' | transloco" inputId="plan-clauses">
-        <input
-          id="plan-clauses"
-          [value]="f().clauseRefs"
-          [placeholder]="'audits.planForm.clausePlaceholder' | transloco"
-          (input)="patch({ clauseRefs: $any($event.target).value })"
+      <app-audit-field
+        inputId="plan-processes"
+        labelKey="audits.fields.processes"
+        helpField="processes"
+        [plain]="true"
+      >
+        <app-audit-record-select
+          inputId="plan-processes"
+          [types]="['process']"
+          labelKey="audits.fields.processes"
+          placeholderKey="audits.planForm.searchProcesses"
+          [value]="f().processes"
+          (valueChange)="patch({ processes: $event })"
         />
-        <app-field-help scope="audits" page="planForm" field="clauseRefs" />
-      </app-form-field>
+      </app-audit-field>
+
       <app-audit-choice-checkboxes
         [legend]="'audits.fields.departments' | transloco"
         [choices]="departmentChoices()"
@@ -296,47 +382,154 @@ export function planFormToInput(v: PlanFormValue, editing: boolean): PlanInput {
         (selectedChange)="patch({ departments: $event })"
       />
 
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <app-form-field [label]="'audits.fields.plannedStart' | transloco" inputId="plan-start">
+      <app-audit-choice-checkboxes
+        [legend]="'audits.fields.frameworks' | transloco"
+        [choices]="frameworkChoices()"
+        [selected]="f().frameworks"
+        (selectedChange)="patch({ frameworks: $event })"
+      />
+
+      <app-audit-field
+        inputId="plan-clauses"
+        labelKey="audits.fields.clauseRefs"
+        helpField="clauseRefs"
+        [plain]="true"
+      >
+        <app-ask-about
+          ask
+          field="clause_refs"
+          [fieldLabel]="'audits.fields.clauseRefs' | transloco"
+          [prompt]="'audits.planForm.askClauses' | transloco"
+        />
+        <app-clause-picker
+          inputId="plan-clauses"
+          [frameworks]="f().frameworks.length ? f().frameworks : null"
+          [ngModel]="f().clauseRefs"
+          (ngModelChange)="patch({ clauseRefs: $event ?? [] })"
+          [ngModelOptions]="{ standalone: true }"
+        />
+        <span hint>{{ 'audits.planForm.clausesHint' | transloco }}</span>
+      </app-audit-field>
+
+      <app-audit-field
+        inputId="plan-criteria"
+        labelKey="audits.fields.criteria"
+        helpField="criteria"
+      >
+        <app-ask-about
+          ask
+          field="criteria"
+          [fieldLabel]="'audits.fields.criteria' | transloco"
+          [prompt]="'audits.planForm.askCriteria' | transloco"
+        />
+        <textarea
+          id="plan-criteria"
+          rows="3"
+          [value]="f().criteria"
+          (input)="patch({ criteria: $any($event.target).value })"
+        ></textarea>
+      </app-audit-field>
+
+      <app-audit-field
+        inputId="plan-criteria-docs"
+        labelKey="audits.fields.criteriaDocuments"
+        helpField="criteriaDocuments"
+        [plain]="true"
+      >
+        <app-audit-record-select
+          inputId="plan-criteria-docs"
+          [types]="['document']"
+          labelKey="audits.fields.criteriaDocuments"
+          placeholderKey="audits.planForm.searchDocuments"
+          [value]="f().criteriaDocuments"
+          (valueChange)="patch({ criteriaDocuments: $event })"
+        />
+      </app-audit-field>
+
+      <app-audit-field
+        inputId="plan-objectives"
+        labelKey="audits.fields.objectives"
+        helpField="objectives"
+      >
+        <textarea
+          id="plan-objectives"
+          rows="2"
+          [value]="f().objectives"
+          (input)="patch({ objectives: $any($event.target).value })"
+        ></textarea>
+      </app-audit-field>
+
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <app-audit-field inputId="plan-start" labelKey="audits.fields.plannedStart">
           <input
             id="plan-start"
             type="date"
+            [attr.lang]="lang()"
             [value]="f().start"
             (input)="patch({ start: $any($event.target).value })"
           />
-        </app-form-field>
-        <app-form-field [label]="'audits.fields.plannedEnd' | transloco" inputId="plan-end">
+        </app-audit-field>
+        <app-audit-field
+          inputId="plan-end"
+          labelKey="audits.fields.plannedEnd"
+          [error]="datesInvalid() ? 'audits.errors.invalid_dates' : null"
+        >
           <input
             id="plan-end"
             type="date"
+            [attr.lang]="lang()"
             [value]="f().end"
             (input)="patch({ end: $any($event.target).value })"
           />
-        </app-form-field>
-        <app-form-field [label]="'audits.fields.owner' | transloco" inputId="plan-owner">
+        </app-audit-field>
+        <app-audit-field
+          inputId="plan-location"
+          labelKey="audits.fields.location"
+          helpField="location"
+        >
+          <input
+            id="plan-location"
+            maxlength="200"
+            [value]="f().location"
+            (input)="patch({ location: $any($event.target).value })"
+          />
+        </app-audit-field>
+        <app-audit-field inputId="plan-owner" labelKey="audits.fields.owner" helpField="owner">
           <app-audit-user-select
             inputId="plan-owner"
             [value]="f().ownerId"
             [currentName]="existing.value()?.owner?.name ?? null"
             (valueChange)="patch({ ownerId: $event })"
           />
-        </app-form-field>
+        </app-audit-field>
       </div>
-      @if (datesInvalid()) {
-        <p class="text-[12.5px] text-fail" role="alert">
-          {{ 'audits.errors.invalid_dates' | transloco }}
-        </p>
-      }
+
+      <app-audit-choice-checkboxes
+        [legend]="'audits.fields.auditees' | transloco"
+        [choices]="userChoices()"
+        [translate]="false"
+        [selected]="f().auditees"
+        [emptyText]="'audits.planForm.noPeople' | transloco"
+        (selectedChange)="patch({ auditees: $event })"
+      />
+      <app-audit-choice-checkboxes
+        [legend]="'audits.fields.distribution' | transloco"
+        [choices]="userChoices()"
+        [translate]="false"
+        [selected]="f().distribution"
+        [emptyText]="'audits.planForm.noPeople' | transloco"
+        (selectedChange)="patch({ distribution: $event })"
+      />
 
       @if (id()) {
-        <app-form-field [label]="'audits.fields.changeReason' | transloco" inputId="plan-reason">
+        <app-audit-field inputId="plan-reason" labelKey="audits.fields.changeReason">
           <input
             id="plan-reason"
             maxlength="2000"
             [value]="f().changeReason"
             (input)="patch({ changeReason: $any($event.target).value })"
           />
-        </app-form-field>
+        </app-audit-field>
       }
     </app-audit-form-page>
   `,
@@ -346,6 +539,9 @@ export class PlanForm {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly options = inject(AssigneeOptionsService);
+  private readonly language = inject(LanguageService);
+  private readonly frameworks = inject(AuditFrameworks);
+  private readonly flows = inject(CreateFlowService);
   protected readonly access = inject(AuditAccess);
 
   /** Route param on `/plans/:id/edit` (absent when creating). */
@@ -354,17 +550,31 @@ export class PlanForm {
   protected readonly kinds = PLAN_KINDS;
   protected readonly risks = RISK_LEVELS;
   protected readonly partyTypes = EXTERNAL_PARTY_TYPES;
-  protected readonly frameworkChoices: readonly Choice[] = FRAMEWORKS.map((k) => ({
-    value: k,
-    label: `audits.frameworks.${k}`,
-  }));
+  protected readonly lang = this.language.active;
+  protected readonly flow = this.flows.consume(this.route, { targetType: 'audit_plan' });
 
   protected readonly existing = loadable<PlanDetail>();
   private readonly programmeList = loadable<ListResponse<Programme>>();
   private readonly certificationList = loadable<ListResponse<Certification>>();
   protected readonly saving = mutator();
   protected readonly f = signal<PlanFormValue>(emptyPlanForm());
+  private readonly touched = signal(false);
 
+  protected readonly breadcrumbs = computed(() => {
+    const id = this.id();
+    const plan = this.existing.value();
+    return [
+      { labelKey: 'modules.names.audits', link: '/audits' },
+      { labelKey: 'audits.plans.title', link: '/audits/plans' },
+      ...(id && plan ? [{ label: plan.code, link: ['/audits/plans', id] }] : []),
+      { labelKey: id ? 'audits.planForm.editTitle' : 'audits.planForm.newTitle' },
+    ];
+  });
+  protected readonly frameworkChoices = computed<readonly Choice[]>(() =>
+    this.frameworks
+      .options(this.f().frameworks)
+      .map((k) => ({ value: k, label: `audits.frameworks.${k}` })),
+  );
   protected readonly programmes = computed(() =>
     (this.programmeList.value()?.items ?? []).filter(
       (p) => p.status !== 'closed' || p.id === this.f().programmeId,
@@ -377,28 +587,42 @@ export class PlanForm {
       label: d.label,
     })),
   );
+  protected readonly userChoices = computed<readonly Choice[]>(() =>
+    this.options
+      .options()
+      .users.filter((o) => o.value.startsWith('user:'))
+      .map((o) => ({ value: o.value.slice('user:'.length), label: o.label })),
+  );
   protected readonly datesInvalid = computed(() => {
     const { start, end } = this.f();
     return !!start && !!end && end < start;
   });
+  protected readonly titleError = computed(() =>
+    this.touched() && !this.f().title.trim() ? 'audits.errors.title_required' : null,
+  );
   protected readonly valid = computed(() => !!this.f().title.trim() && !this.datesInvalid());
+  protected readonly invalidKey = computed(() =>
+    !this.f().title.trim()
+      ? 'audits.planForm.fixTitle'
+      : this.datesInvalid()
+        ? 'audits.planForm.fixDates'
+        : null,
+  );
 
   constructor() {
     this.options.ensureLoaded();
-    const query = this.route.snapshot.queryParamMap;
-    this.f.update((v) => ({
-      ...v,
-      programmeId: query.get('programme') ?? '',
-      certificationId: query.get('certification') ?? '',
-      kind:
-        query.get('kind') === 'external' || query.get('certification') ? 'external' : 'internal',
-    }));
+    const prefill = planPrefill(
+      this.route.snapshot.queryParamMap,
+      this.route.snapshot.queryParamMap.get('fromRequirement'),
+    );
+    this.f.update((v) => ({ ...v, ...prefill }));
     providePageContext(() => ({
       module: 'audits',
       entityType: 'audit_plan',
       entityId: this.id() ?? null,
       view: this.id() ? 'edit' : 'new',
       title: this.f().title || null,
+      requirements: this.f().clauseRefs,
     }));
     effect(() => {
       const orgId = this.access.orgId();
@@ -422,11 +646,19 @@ export class PlanForm {
     });
   }
 
+  protected certTitle(c: Certification): string {
+    return certificationTitle(c, (k, p) => this.language.translate(k, p));
+  }
+
   protected patch(change: Partial<PlanFormValue>): void {
+    if ('title' in change) {
+      this.touched.set(true);
+    }
     this.f.update((v) => ({ ...v, ...change }));
   }
 
   protected save(): void {
+    this.touched.set(true);
     const orgId = this.access.orgId();
     if (!orgId || !this.valid()) {
       return;
@@ -435,7 +667,12 @@ export class PlanForm {
     const body = planFormToInput(this.f(), !!id);
     this.saving.run(id ? this.api.updatePlan(orgId, id, body) : this.api.createPlan(orgId, body), {
       success: id ? 'audits.notices.saved' : 'audits.notices.planCreated',
-      next: (plan) => void this.router.navigate(['/audits/plans', plan.id]),
+      next: (plan) => {
+        if (!id) {
+          this.flows.complete(plan.id, 'audit_plan').subscribe();
+        }
+        void this.router.navigate(['/audits/plans', plan.id]);
+      },
     });
   }
 

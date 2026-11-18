@@ -14,7 +14,7 @@
   "list": {
     "title": "Prosjekter",
     "subtitle": "Planlagte endringer, forbedringer og utviklingsarbeid, med milepæler, team, gjennomganger og erfaringer.",
-    "searchPlaceholder": "Søk i prosjekter etter kode eller tittel",
+    "searchPlaceholder": "Søk i prosjekter",
     "new": "Nytt prosjekt",
     "noMatch": "Ingen prosjekter passer med disse filtrene.",
     "owner": "Eier: {{ name }}",
@@ -27,7 +27,13 @@
       "timeline": "Tidslinje"
     },
     "timelineLabel": "Prosjekt",
-    "timelineEmpty": "Ingen av disse prosjektene har startdato eller frist ennå, så det er ingenting å tegne."
+    "timelineEmpty": "Ingen av disse prosjektene har startdato eller frist ennå, så det er ingenting å tegne.",
+    "resetFilters": "Nullstill filtre",
+    "noMatchClosedHidden": "Avsluttede prosjekter er skjult av statusfilteret. Nullstill filtrene for å se alle.",
+    "count": "{{ count }} prosjekter",
+    "countOf": "Viser {{ shown }} av {{ total }} prosjekter.",
+    "closedHidden": "Avsluttede ({{ count }}) er skjult.",
+    "progressLabel": "Fremdrift {{ percent }} %"
   },
   "filters": {
     "status": "Status",
@@ -85,7 +91,7 @@
   "roles": {
     "manager": "Leder",
     "member": "Medlem",
-    "reviewer": "Kontrollør",
+    "reviewer": "Fagkontrollør",
     "stakeholder": "Interessent"
   },
   "milestoneStatus": {
@@ -97,7 +103,8 @@
   "reviewKinds": {
     "review": "Gjennomgang av utforming",
     "verification": "Verifisering",
-    "validation": "Validering"
+    "validation": "Validering",
+    "change": "Designendring"
   },
   "outcomes": {
     "pending": "Venter",
@@ -125,7 +132,7 @@
     "kind": "Type",
     "status": "Status",
     "priority": "Prioritet",
-    "health": "Tilstand",
+    "health": "Prosjekthelse (trafikklys)",
     "owner": "Eier",
     "department": "Avdeling",
     "startDate": "Startdato",
@@ -134,7 +141,14 @@
     "securityRelevant": "Relevant for informasjonssikkerhet",
     "securityRequirements": "Krav til informasjonssikkerhet",
     "closeoutSummary": "Avslutningsrapport",
-    "closedAt": "Avsluttet"
+    "closedAt": "Avsluttet",
+    "healthHint": "Eierens vurdering av hvordan prosjektet går: grønt, gult eller rødt.",
+    "securityShort": "Informasjonssikkerhet",
+    "changeConsequences": "Mulige konsekvenser og risikoer",
+    "changeResources": "Ressurser og budsjett",
+    "objectiveMet": "Ble målet nådd?",
+    "objectiveEvidence": "Hva viser at målet ble nådd",
+    "closeoutApprovedBy": "Godkjent av"
   },
   "form": {
     "newTitle": "Nytt prosjekt",
@@ -144,7 +158,8 @@
       "purpose": "Formål",
       "plan": "Plan",
       "people": "Personer",
-      "security": "Informasjonssikkerhet"
+      "security": "Informasjonssikkerhet",
+      "change": "Endringsplanlegging"
     },
     "ownerMe": "Meg",
     "currentOwner": "Nåværende eier",
@@ -156,13 +171,23 @@
     "changeReasonHint": "Lagres i endringshistorikken så andre ser hvorfor prosjektet ble endret.",
     "readOnly": "Du kan se prosjektet, men ikke redigere det. Eieren, en leder i teamet eller en prosjektadministrator kan.",
     "closedReadOnly": "Prosjektet er avsluttet. Gjenåpne det for å gjøre endringer.",
-    "assistTitle": "La assistenten lage et utkast",
-    "assistBody": "Beskriv prosjektet med en setning eller to, så foreslår assistenten tittel, mål, omfang og datoer. Ingenting lagres før du bekrefter.",
+    "assistTitle": "Usikker på hvor du skal begynne?",
+    "assistBody": "Beskriv prosjektet med en setning eller to, så lager assistenten et utkast med tittel, mål, omfang og datoer. Ingenting lagres før du bekrefter.",
     "errors": {
       "titleRequired": "Gi prosjektet en tittel.",
       "invalidDate": "Bruk en gyldig dato.",
-      "dueBeforeStart": "Fristen kan ikke være før startdatoen."
-    }
+      "dueBeforeStart": "Fristen kan ikke være før startdatoen.",
+      "summary": "Kunne ikke lagre. Rett feltene som er markert."
+    },
+    "editCrumb": "Rediger",
+    "changeIntro": "Når prosjektet endrer hvordan organisasjonen jobber, skal endringen planlegges: hva kan gå galt, hva trengs, og hva berøres.",
+    "showChange": "Legg til endringsplanlegging",
+    "affected": "Berørte prosesser og dokumenter",
+    "affectedPlaceholder": "Søk etter en prosess eller et dokument",
+    "objectives": "Bidrar til mål",
+    "objectivesPlaceholder": "Søk etter et mål eller et nøkkeltall",
+    "relatedOnDetail": "Berørte prosesser, dokumenter og mål legger du til på prosjektsiden under Oversikt.",
+    "securityChecklistHint": "På prosjektsiden får du en sjekkliste: risikovurdering, DPIA, leverandørsikkerhet og sikkerhetstest."
   },
   "detail": {
     "purpose": "Formål og omfang",
@@ -172,25 +197,40 @@
     "dueToday": "Frist i dag",
     "daysOverdue": "{{ count }} dager på overtid",
     "deleteTitle": "Slette prosjektet?",
-    "deleteMessage": "{{ code }} fjernes sammen med milepæler, gjennomganger og erfaringer, og åpne oppgaver avbrytes. Revisjonssporet beholdes."
+    "deleteMessage": "{{ code }} fjernes sammen med milepæler, gjennomganger og erfaringer, og åpne oppgaver avbrytes. Revisjonssporet beholdes.",
+    "closeoutTitle": "Resultat av prosjektet",
+    "approvedBy": "{{ name }}, {{ date }}"
   },
   "progress": {
     "title": "Fremdrift",
     "percent": "{{ percent }} %",
     "milestones": "Milepæler",
     "tasks": "Oppgaver",
-    "reviews": "Gjennomganger som venter",
+    "reviews": "Gjennomganger",
     "doneOf": "{{ done }} av {{ total }} ferdig",
     "pendingOf": "{{ pending }} av {{ total }}",
     "overdueCount": "{{ count }} forfalt",
-    "nextMilestone": "Neste milepæl: {{ title }}, frist {{ date }}"
+    "nextMilestone": "Neste milepæl: {{ title }}, frist {{ date }}",
+    "noMilestones": "Ingen milepæler ennå",
+    "noTasks": "Ingen oppgaver ennå",
+    "noReviews": "Ingen gjennomganger ennå",
+    "reviewsPending": "{{ total }} totalt, {{ pending }} venter",
+    "reviewsNonePending": "{{ total }} totalt, ingen venter",
+    "reviewActionsOpen": "{{ count }} åpne tiltak",
+    "basis": {
+      "milestones": "Prosenten er andelen faser og milepæler som er ferdige (avbrutte teller ikke).",
+      "tasks": "Prosjektet har ingen milepæler, så prosenten er andelen oppgaver som er ferdige.",
+      "completed": "Prosjektet er avsluttet som fullført.",
+      "none": "Ingenting er planlagt ennå. Legg til milepæler eller oppgaver for å måle fremdriften."
+    }
   },
   "plan": {
     "title": "Plan",
     "viewLabel": "Vis planen som",
     "views": {
-      "gantt": "Gantt-diagram",
-      "board": "Oppgavetavle"
+      "gantt": "Gantt",
+      "board": "Tavle",
+      "list": "Liste"
     },
     "item": "Fase, milepæl eller oppgave",
     "empty": "Ingenting er planlagt ennå. Legg til faser og milepæler med datoer, eller oppgaver med frister, for å se planen.",
@@ -207,11 +247,13 @@
       "span": "Fase eller oppgave",
       "milestone": "Milepæl",
       "overdue": "Forfalt",
-      "today": "I dag"
+      "today": "I dag",
+      "done": "Ferdig",
+      "noHealth": "Ikke vurdert"
     }
   },
   "board": {
-    "empty": "Ingen oppgaver ennå. Legg til oppgaver i Oppgaver-fanen eller på en milepæl.",
+    "empty": "Oppgavene i prosjektet og på milepælene vises her, sortert etter status.",
     "columns": {
       "open": "Å gjøre",
       "in_progress": "Pågår",
@@ -221,7 +263,9 @@
     },
     "due": "Frist {{ date }}",
     "moveLabel": "Status for {{ title }}",
-    "moveFailed": "Oppgaven kunne ikke flyttes. Sjekk at du har lov til å endre den, og prøv igjen."
+    "moveFailed": "Oppgaven kunne ikke flyttes. Sjekk at du har lov til å endre den, og prøv igjen.",
+    "emptyTitle": "Ingen oppgaver ennå",
+    "newTask": "Ny oppgave"
   },
   "milestones": {
     "title": "Faser og milepæler",
@@ -251,8 +295,8 @@
     "editTitle": "Gjennomgang",
     "kind": "Type",
     "stage": "Fase eller trinn",
-    "milestone": "Milepæl",
-    "noMilestone": "Ikke knyttet til en milepæl",
+    "milestone": "Fase eller milepæl",
+    "noMilestone": "Ikke knyttet til en fase eller milepæl",
     "plannedDate": "Planlagt dato",
     "heldOnLabel": "Holdt dato",
     "heldOn": "Holdt {{ date }}",
@@ -261,13 +305,29 @@
     "noParticipants": "Ingen deltakere lagt til ennå.",
     "addParticipant": "Legg til en deltaker",
     "participantCount": "Deltakere: {{ count }}",
-    "inputs": "Hva ble gjennomgått (grunnlag)",
+    "inputs": "Annet grunnlag",
     "findings": "Funn og tiltak",
     "outcome": "Resultat",
     "needsDate": "Oppgi datoen gjennomgangen ble holdt før du registrerer et resultat.",
-    "decidedBy": "Besluttet av {{ name }} {{ date }}",
+    "decidedBy": "Besluttet av {{ name }}, {{ date }}",
     "deleteTitle": "Slette gjennomgangen?",
-    "deleteMessage": "«{{ title }}» fjernes. Revisjonssporet beholdes."
+    "deleteMessage": "«{{ title }}» fjernes. Revisjonssporet beholdes.",
+    "phaseOption": "Fase: {{ title }}",
+    "inPhase": "fase {{ phase }}",
+    "phaseFromMilestone": "Hører til fasen «{{ phase }}».",
+    "actionsOpen": "{{ open }} av {{ total }} tiltak åpne",
+    "actionsDone": "{{ total }} tiltak, alle ferdige",
+    "inputDocuments": "Dokumenter som ble gjennomgått",
+    "documentPlaceholder": "Søk etter et styrt dokument",
+    "documentHidden": "Dokument du ikke har tilgang til",
+    "revision": "Versjon {{ revision }}",
+    "revisionOnSave": "Gjeldende versjon låses når du lagrer",
+    "outdated": "Nyere versjon finnes ({{ revision }})",
+    "decisionHint": "Når du velger et resultat og lagrer, registreres du som den som besluttet.",
+    "actionsTitle": "Tiltak fra gjennomgangen",
+    "actionsHint": "Gjør hvert avtalte tiltak til en oppgave. Åpne tiltak må være ferdige før prosjektet kan avsluttes som fullført.",
+    "toDeviation": "Registrer avvik",
+    "attachments": "Vedlegg"
   },
   "lessons": {
     "title": "Erfaringer",
@@ -280,7 +340,15 @@
     "by": "{{ name }} · {{ date }}",
     "deleteNamed": "Slett erfaringen {{ title }}",
     "deleteTitle": "Slette erfaringen?",
-    "deleteMessage": "«{{ title }}» fjernes."
+    "deleteMessage": "«{{ title }}» fjernes.",
+    "followUps": "Fulgt opp med:",
+    "noFollowUp": "Ikke fulgt opp ennå",
+    "removeFollowUp": "Fjern koblingen til {{ name }}",
+    "toTask": "Lag forbedringstiltak",
+    "toRisk": "Registrer som risiko",
+    "connect": "Koble til eksisterende",
+    "connectPlaceholder": "Søk etter en oppgave, risiko, et avvik eller et dokument",
+    "taskTitle": "Forbedring: {{ title }}"
   },
   "team": {
     "title": "Team",
@@ -312,7 +380,8 @@
     "checklist": {
       "milestones": "Åpne faser og milepæler: {{ count }}",
       "reviews": "Gjennomganger som venter: {{ count }}",
-      "tasks": "Åpne oppgaver: {{ count }}"
+      "tasks": "Åpne oppgaver: {{ count }}",
+      "reviewActions": "Åpne tiltak fra gjennomganger: {{ count }}"
     },
     "openItems": "Prosjektet har fortsatt åpent arbeid: {{ milestones }} milepæler, {{ reviews }} gjennomganger som venter og {{ tasks }} åpne oppgaver. Gjør dem ferdige eller avbryt dem, eller avslutt prosjektet som avbrutt.",
     "summary": "Avslutningsrapport",
@@ -323,8 +392,24 @@
     "removeLesson": "Fjern denne erfaringen",
     "submit": {
       "completed": "Avslutt som fullført",
-      "cancelled": "Avslutt som avbrutt"
-    }
+      "cancelled": "Avslutt som avbrutt",
+      "none": "Avslutt prosjektet"
+    },
+    "noObjective": "Prosjektet har ikke noe mål skrevet ned.",
+    "blocked": "Prosjektet kan ikke avsluttes som fullført ennå, fordi det fortsatt har åpent arbeid:",
+    "showOpen": "Vis åpent arbeid",
+    "objectiveQuestion": "Ble målet nådd?",
+    "objectiveMet": {
+      "yes": "Ja",
+      "partial": "Delvis",
+      "no": "Nei"
+    },
+    "evidencePlaceholder": "For eksempel: målinger, testrapporter eller tilbakemeldinger.",
+    "noApprover": "Ingen godkjenner valgt",
+    "approverHint": "Personen som godtar resultatet, for eksempel oppdragsgiver eller leder. Valgfritt.",
+    "chooseOutcome": "Velg hvordan prosjektet endte.",
+    "missingObjective": "Svar på om målet ble nådd.",
+    "missingSummary": "Skriv en avslutningsrapport."
   },
   "reopen": {
     "action": "Gjenåpne",
@@ -348,7 +433,9 @@
     "taskAdded": "Oppgave lagt til",
     "taskTitle": "Vurder risiko: {{ title }}",
     "taskFailed": "Oppgaven kunne ikke legges til.",
-    "risksNote": "Bare forslag. Registrer de faktiske risikoene i risikoregisteret og koble dem til prosjektet i Relatert-fanen."
+    "risksNote": "Bare forslag. «Registrer i risikoregisteret» åpner risikoskjemaet ferdig utfylt, og risikoen kobles til prosjektet når du lagrer.",
+    "menu": "KI-hjelp: status og risikoer",
+    "registerRisk": "Registrer i risikoregisteret"
   },
   "ask": {
     "summarise": "Oppsummer dette prosjektet: hvor det står, hva som er forsinket og hva som trenger en beslutning.",
@@ -358,7 +445,11 @@
     "securityRequirements": "Hvilke krav til informasjonssikkerhet bør dette prosjektet ta hensyn til (ISO 27001 A.5.8)?",
     "findings": "Hjelp meg å skrive tydelige funn og tiltak for denne gjennomgangen.",
     "draft": "Hjelp meg å sette opp et nytt prosjekt. Spør meg hva det handler om, og lag så et utkast jeg kan bekrefte.",
-    "draftLabel": "Lag et prosjektutkast med assistenten"
+    "draftLabel": "Lag utkast med assistenten",
+    "label": "Spør om prosjektet",
+    "consequences": "Hvilke konsekvenser og risikoer bør jeg tenke på for denne endringen, og hvilke prosesser kan bli berørt?",
+    "review": "Oppsummer gjennomgangen «{{ title }}»: hva ble funnet, hvilke tiltak kom ut av den, og er de fulgt opp?",
+    "reviewLabel": "Spør om gjennomgangen"
   },
   "lessonsLink": "Leksjon: {{ title }} ({{ minutes }} min)",
   "notices": {
@@ -381,7 +472,10 @@
     "reviewDeleted": "Gjennomgangen «{{ title }}» er slettet.",
     "lessonSaved": "Erfaringen er lagret.",
     "lessonDeleted": "Erfaringen er slettet.",
-    "taskAdded": "Oppgaven er lagt til i prosjektet."
+    "taskAdded": "Oppgaven er lagt til i prosjektet.",
+    "lessonTask": "Forbedringstiltaket er opprettet og koblet til erfaringen.",
+    "followUpAdded": "Erfaringen er koblet.",
+    "linked": "Koblet til {{ name }}."
   },
   "errors": {
     "forbidden": "Du har ikke tilgang til å gjøre dette i prosjektet.",
@@ -405,7 +499,13 @@
     "project_has_open_items": "Prosjektet har fortsatt åpne milepæler, gjennomganger eller oppgaver.",
     "project_not_closed": "Prosjektet er ikke avsluttet.",
     "title_required": "Tittel er påkrevd.",
-    "user_not_member": "Personen er ikke medlem av denne organisasjonen."
+    "user_not_member": "Personen er ikke medlem av denne organisasjonen.",
+    "linkFailed": "Kunne ikke koble posten. Sjekk at du har tilgang til den, og prøv igjen.",
+    "invalid_document": "Dokumentet finnes ikke, eller du har ikke tilgang til det.",
+    "invalid_revision": "Den versjonen av dokumentet finnes ikke.",
+    "invalid_objective_met": "Svar ja, delvis eller nei på om målet ble nådd.",
+    "invalid_project": "Prosjektet finnes ikke.",
+    "unsupported_entity_type": "Denne typen post kan ikke kobles her."
   },
   "notifications": {
     "created": "Nytt prosjekt til deg: {{ code }} {{ title }}",
@@ -450,5 +550,57 @@
     "designReviewUpdated": "Gjennomgang oppdatert",
     "designReviewDecided": "Gjennomgang besluttet",
     "designReviewDeleted": "Gjennomgang slettet"
+  },
+  "kpis": {
+    "active": "Aktive",
+    "at_risk": "I faresonen",
+    "reviews_pending": "Gjennomganger venter",
+    "overdue": "Forfalt",
+    "openHint": "{{ count }} åpne totalt",
+    "milestonesOverdue": "{{ count }} milepæler forfalt"
+  },
+  "picker": {
+    "remove": "Fjern {{ name }}",
+    "searching": "Søker …",
+    "noResults": "Fant ingen treff. Prøv et annet ord."
+  },
+  "sections": {
+    "label": "Deler av prosjektet",
+    "overview": "Oversikt",
+    "plan": "Plan",
+    "reviews": "Gjennomganger",
+    "lessons": "Erfaringer"
+  },
+  "security": {
+    "title": "Informasjonssikkerhet i prosjektet",
+    "intro": "ISO 27001 krever at informasjonssikkerhet er en del av prosjektet. Sjekklisten fylles ut når du kobler riktige poster til prosjektet.",
+    "done": "Utført",
+    "todo": "Gjenstår",
+    "checks": {
+      "risk_assessment": "Risikovurdering",
+      "dpia": "Personvernkonsekvensvurdering (DPIA)",
+      "supplier_security": "Sikkerhet hos leverandører",
+      "security_test": "Sikkerhetstest før produksjon"
+    },
+    "hints": {
+      "risk_assessment": "Koble eller opprett en risiko for prosjektet.",
+      "dpia": "Trengs når prosjektet behandler personopplysninger med høy risiko.",
+      "supplier_security": "Koble leverandørene prosjektet bruker, med en leverandørvurdering.",
+      "security_test": "Planlegg en verifikasjon eller validering under Gjennomganger, og registrer at den ble godkjent."
+    },
+    "actions": {
+      "risk_assessment": "Ny risiko",
+      "dpia": "Ny DPIA",
+      "supplier_security": "Koble leverandør",
+      "security_test": "Planlegg en test"
+    }
+  },
+  "outputs": {
+    "title": "Designresultater",
+    "add": "Nytt dokument",
+    "intro": "Dokumentene prosjektet leverer: spesifikasjoner, tegninger, brukerveiledninger. De styres som andre dokumenter.",
+    "empty": "Ingen designresultater koblet ennå.",
+    "changesHint": "Designendringer registreres som gjennomganger av typen «Designendring».",
+    "toReviews": "Gå til gjennomganger"
   }
 }

@@ -1,4 +1,4 @@
-import { Change, Evaluation, Obligation, ObligationListItem } from './data/obligation.models';
+import { Change, Duty, Evaluation, Obligation, ObligationListItem } from './data/obligation.models';
 
 /** Test-only fixtures for the obligation specs (not used by app code). */
 export function makeObligationItem(
@@ -16,16 +16,38 @@ export function makeObligationItem(
     issuer: 'Environment Agency',
     reference: '2019.0412.T',
     frameworks: ['iso14001'],
+    clause_refs: ['iso14001:6.1.3'],
+    duty_count: 2,
     owner: { id: 'u-1', name: 'Ada' },
     department_id: null,
     valid_from: '2024-01-01',
     valid_until: '2028-12-31',
+    renewal_due_on: '2028-10-02',
+    renewal_due: false,
+    needs_schedule: false,
     evaluation_rrule: 'FREQ=MONTHLY;INTERVAL=3',
     last_evaluated_at: '2026-09-01T10:00:00',
     next_evaluation: { task_id: 't-1', due_at: '2026-12-01T23:59:59', overdue: false },
     url: '/obligations/o-1',
     created_at: '2026-01-01T10:00:00',
     updated_at: '2026-09-01T10:00:00',
+    ...overrides,
+  };
+}
+
+export function makeDuty(overrides: Partial<Duty> = {}): Duty {
+  return {
+    id: 'd-1',
+    code: 'OB-0001-1',
+    position: 1,
+    title: 'Measure noise every quarter',
+    owner: null,
+    clause_refs: ['iso14001:9.1.2'],
+    compliance_status: 'compliant',
+    last_evaluated_on: '2026-09-01',
+    last_note: null,
+    open_actions: 0,
+    url: '/obligations/o-1?tab=duties&duty=d-1',
     ...overrides,
   };
 }
@@ -40,6 +62,12 @@ export function makeEvaluation(overrides: Partial<Evaluation> = {}): Evaluation 
     notes: 'Noise within limits.',
     evidence_summary: 'Q3 measurement report',
     attachment_ids: [],
+    evidence: [],
+    evidence_urls: [],
+    duty_results: [],
+    justification: null,
+    deviation_id: null,
+    deviation: null,
     task_id: null,
     created_at: '2026-09-01T10:00:00',
     ...overrides,
@@ -52,6 +80,17 @@ export function makeObligation(overrides: Partial<Obligation> = {}): Obligation 
     description: 'Limits for noise and dust from the plant.',
     applicability: 'The Drammen plant.',
     requirements: ['Measure noise every quarter', 'Report emissions by 1 March'],
+    duties: [
+      makeDuty(),
+      makeDuty({
+        id: 'd-2',
+        code: 'OB-0001-2',
+        position: 2,
+        title: 'Report emissions by 1 March',
+        clause_refs: [],
+      }),
+    ],
+    renewal_lead_days: null,
     source_url: 'https://example.org/permit',
     evaluation_start: '2026-03-01',
     evaluation_lead_days: 14,

@@ -17,6 +17,7 @@ export interface AssetOption {
   readonly id: string;
   readonly code: string;
   readonly name: string;
+  readonly asset_type: string;
 }
 
 /**
@@ -60,7 +61,12 @@ export class AssetOptionsService {
         this.loadingFor = null;
         this.state.set({
           orgId,
-          items: page.items.map((a) => ({ id: a.id, code: a.code, name: a.name })),
+          items: page.items.map((a) => ({
+            id: a.id,
+            code: a.code,
+            name: a.name,
+            asset_type: a.asset_type,
+          })),
         });
       },
       error: () => {
@@ -101,12 +107,19 @@ export class AssetSelect {
   readonly currentLabel = input<string | null>(null);
   readonly disabled = input(false);
   readonly describedBy = input('');
+  /** Only offer assets of these types (null = every asset); the chosen one always stays. */
+  readonly types = input<readonly string[] | null>(null);
   readonly valueChange = output<string>();
 
-  protected readonly options = this.service.options;
+  protected readonly options = computed(() => {
+    const types = this.types();
+    const value = this.value();
+    const all = this.service.options();
+    return types ? all.filter((a) => types.includes(a.asset_type) || a.id === value) : all;
+  });
   protected readonly orphan = computed(() => {
     const value = this.value();
-    return !!value && !this.options().some((a) => a.id === value);
+    return !!value && !this.service.options().some((a) => a.id === value);
   });
 
   constructor() {
@@ -138,9 +151,9 @@ export class AssetSelect {
         >
           @for (a of chosen(); track a.id) {
             <li
-              class="inline-flex items-center gap-1 rounded-full bg-surface-2 py-0.5 pr-1 pl-2.5 text-[12.5px] text-fg"
+              class="inline-flex items-center gap-1 rounded-full bg-surface-2 py-0.5 pr-1 pl-2.5 text-meta text-fg"
             >
-              <span class="font-mono text-[11.5px] text-fg-muted">{{ a.code }}</span>
+              <span class="font-mono text-meta text-fg-muted">{{ a.code }}</span>
               {{ a.name }}
               <button
                 type="button"

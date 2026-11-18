@@ -9,26 +9,31 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../../core/ai/page-context';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
-import { GuideIntro } from '../../../shared/guidance/guide-intro';
 import { TeachingEmpty } from '../../../shared/guidance/teaching-empty';
-import { TourButton } from '../../../shared/guidance/tour-button';
 import { TourStepDirective } from '../../../shared/guidance/tour-step.directive';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { RecordListPage } from '../../../shared/kit/record-list-page';
 import { SavedView } from '../../../shared/kit/saved-views.service';
-import { LocalDayPipe } from '../../../shared/locale/locale-pipes';
+import { CoverageChip } from '../../../shared/requirement-links/coverage-chip';
 import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
+import { EmptyState } from '../../../shared/ui/empty-state/empty-state';
+import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { MenuItem } from '../../../shared/ui/overflow-menu/overflow-menu';
 import { Pager } from '../../../shared/ui/pager/pager';
+import { RecordRow, RecordRowHeader } from '../../../shared/ui/record-row/record-row';
+import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { AiGovernanceApi } from '../data/ai-governance-api';
 import { aiGovernanceErrorKey } from '../data/ai-governance-errors';
 import { AiGovernanceStore } from '../data/ai-governance-store';
@@ -44,108 +49,103 @@ import {
   AI_GOVERNANCE_MODULE,
   AI_GOVERNANCE_SCOPE,
   AI_SYSTEM_ENTITY,
+  obligationProgress,
   riskKey,
-  riskTone,
+  riskValue,
   roleKey,
   statusKey,
-  systemStatusTone,
+  systemStatusValue,
 } from '../data/ai-governance-display';
-import { AiGovNav } from '../ui/ai-gov-nav';
-import { AiLessonCard } from '../ui/ai-lesson-card';
+import { AI_GOV_ROOT } from '../ui/ai-gov-page';
+import { AiNav } from '../ui/ai-nav';
 import { FulfilsRequirements } from '../../../shared/requirement-locations/fulfils-requirements';
 
 const PAGE_SIZE = 25;
 
 /**
  * `/ai-governance/systems`: the AI system inventory, with search, filters
- * (status, risk class, AI Act role), sorting, saved views and paging. Writers
- * can register a system or the platform's own AI features in one click.
+ * (status, risk class, AI Act role), sorting, saved views and paging. Each row
+ * shows the risk class, status, how many obligations are met and the
+ * requirements it documents. The overview deep-links here with
+ * `?risk_class=` (or the older `?risk=`).
  */
 @Component({
   selector: 'app-ai-systems-list',
   imports: [
     FulfilsRequirements,
-    RouterLink,
     TranslocoPipe,
-    GuideIntro,
-    AiLessonCard,
     TeachingEmpty,
-    TourButton,
     TourStepDirective,
     WhyItMatters,
     RecordListPage,
-    LocalDayPipe,
+    CoverageChip,
     Badge,
     Button,
     Card,
+    EmptyState,
+    ErrorState,
+    HelpStrip,
     Icon,
+    LoadingState,
+    MenuItem,
     Pager,
-    AiGovNav,
+    RecordRow,
+    RecordRowHeader,
+    StatusBadge,
+    AiNav,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-record-list-page
       titleKey="aiGovernance.systems.title"
+      descriptionKey="aiGovernance.systems.subtitle"
       [scope]="scope"
+      page="systems"
+      settingsLink="/ai-governance/settings"
+      [breadcrumbs]="[root, { labelKey: 'aiGovernance.systems.title' }]"
       searchPlaceholderKey="aiGovernance.systems.searchPlaceholder"
       [query]="q()"
       [filters]="filters()"
+      [moreFiltersActive]="role() ? 1 : 0"
       [empty]="state() === 'ready' && total() === 0 && !isFiltered()"
       (search)="setQuery($event)"
       (viewApplied)="applyView($event)"
     >
       <app-fulfils-requirements help locationKey="ai_governance.systems" />
-      <div intro class="mt-3 flex flex-col gap-3">
-        <app-ai-gov-nav />
-        <app-guide-intro [scope]="scope" page="systems" />
-      </div>
-      <div toolbar class="flex flex-wrap items-center gap-2">
-        <app-tour-button [scope]="scope" tour="systems" />
-        @if (store.canWrite()) {
-          <app-button
-            variant="secondary"
-            size="sm"
-            [loading]="registering()"
-            (click)="registerPlatform()"
-            appTourStep="ai-systems-register-platform"
-          >
-            <app-icon name="spark" [size]="14" />
-            {{ 'aiGovernance.systems.registerPlatform' | transloco }}
-          </app-button>
-          <app-button
-            size="sm"
-            (click)="create()"
-            appTourStep="ai-systems-new"
-            data-testid="system-new"
-          >
-            <app-icon name="plus" [size]="14" />
-            {{ 'aiGovernance.systems.new' | transloco }}
-          </app-button>
-        }
-      </div>
-
-      <div filters class="flex flex-wrap items-center gap-2" appTourStep="ai-systems-filters">
-        <label class="sr-only" for="ai-sys-status">{{
-          'aiGovernance.filters.status' | transloco
-        }}</label>
-        <select
-          id="ai-sys-status"
-          class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
-          (change)="setFilter('status', $any($event.target).value)"
+      @if (store.canWrite()) {
+        <app-button
+          primary
+          (click)="create()"
+          appTourStep="ai-systems-new"
+          data-testid="system-new"
         >
-          <option value="" [selected]="!status()">
-            {{ 'aiGovernance.filters.anyStatus' | transloco }}
-          </option>
-          @for (s of statuses; track s) {
-            <option [value]="s" [selected]="status() === s">{{ statusKey(s) | transloco }}</option>
-          }
-        </select>
+          <app-icon name="plus" [size]="14" />
+          {{ 'aiGovernance.systems.new' | transloco }}
+        </app-button>
+      }
+      @if (store.canWrite()) {
+        <button appMenuItem overflow (click)="registerPlatform()" data-testid="register-platform">
+          {{ 'aiGovernance.systems.registerPlatform' | transloco }}
+        </button>
+      }
+
+      <app-ai-nav nav />
+      <app-help-strip
+        help
+        [scope]="scope"
+        page="systems"
+        tour="systems"
+        lesson="ai-inventory-basics"
+      />
+
+      <ng-container filters>
         <label class="sr-only" for="ai-sys-risk">{{
           'aiGovernance.filters.risk' | transloco
         }}</label>
         <select
           id="ai-sys-risk"
-          class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
+          class="h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
+          appTourStep="ai-systems-filters"
           (change)="setFilter('risk', $any($event.target).value)"
         >
           <option value="" [selected]="!riskFilter()">
@@ -157,145 +157,122 @@ const PAGE_SIZE = 25;
             </option>
           }
         </select>
-        <label class="sr-only" for="ai-sys-role">{{
-          'aiGovernance.filters.role' | transloco
+        <label class="sr-only" for="ai-sys-status">{{
+          'aiGovernance.filters.status' | transloco
         }}</label>
         <select
-          id="ai-sys-role"
-          class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
-          (change)="setFilter('role', $any($event.target).value)"
+          id="ai-sys-status"
+          class="h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
+          (change)="setFilter('status', $any($event.target).value)"
         >
-          <option value="" [selected]="!role()">
-            {{ 'aiGovernance.filters.anyRole' | transloco }}
+          <option value="" [selected]="!status()">
+            {{ 'aiGovernance.filters.anyStatus' | transloco }}
           </option>
-          @for (r of roles; track r) {
-            <option [value]="r" [selected]="role() === r">{{ roleKey(r) | transloco }}</option>
+          @for (s of statuses; track s) {
+            <option [value]="s" [selected]="status() === s">{{ statusKey(s) | transloco }}</option>
           }
         </select>
-        <label class="sr-only" for="ai-sys-sort">{{
-          'aiGovernance.filters.sort' | transloco
-        }}</label>
-        <select
-          id="ai-sys-sort"
-          class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
-          (change)="setFilter('sort', $any($event.target).value)"
-        >
-          @for (s of sorts; track s) {
-            <option [value]="s" [selected]="sort() === s">
-              {{ 'aiGovernance.systems.sorts.' + s | transloco }}
+      </ng-container>
+
+      <div more-filters class="flex flex-col gap-3">
+        <div class="flex flex-col gap-1">
+          <label class="text-meta font-semibold text-fg-muted" for="ai-sys-role">{{
+            'aiGovernance.filters.role' | transloco
+          }}</label>
+          <select
+            id="ai-sys-role"
+            class="h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
+            (change)="setFilter('role', $any($event.target).value)"
+          >
+            <option value="" [selected]="!role()">
+              {{ 'aiGovernance.filters.anyRole' | transloco }}
             </option>
-          }
-        </select>
+            @for (r of roles; track r) {
+              <option [value]="r" [selected]="role() === r">{{ roleKey(r) | transloco }}</option>
+            }
+          </select>
+        </div>
+        <div class="flex flex-col gap-1">
+          <label class="text-meta font-semibold text-fg-muted" for="ai-sys-sort">{{
+            'aiGovernance.filters.sort' | transloco
+          }}</label>
+          <select
+            id="ai-sys-sort"
+            class="h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
+            (change)="setFilter('sort', $any($event.target).value)"
+          >
+            @for (s of sorts; track s) {
+              <option [value]="s" [selected]="sort() === s">
+                {{ 'aiGovernance.systems.sorts.' + s | transloco }}
+              </option>
+            }
+          </select>
+        </div>
       </div>
 
       <app-card [padded]="false">
         @switch (state()) {
           @case ('loading') {
-            <p class="py-10 text-center text-[14px] text-fg-muted">
-              {{ 'aiGovernance.common.loading' | transloco }}
-            </p>
+            <app-loading-state [rows]="5" />
           }
           @case ('error') {
-            <p class="py-10 text-center text-[14px] text-fail" role="alert">
-              {{ errorKey() | transloco }}
-            </p>
+            <app-error-state (retry)="reload.update((n) => n + 1)" />
           }
           @default {
             @if (items().length === 0) {
-              <p class="py-10 text-center text-[14px] text-fg-muted">
-                {{ 'aiGovernance.filters.noMatch' | transloco }}
-              </p>
+              <app-empty-state
+                icon="search"
+                titleKey="ui.empty.noResults"
+                ctaKey="aiGovernance.filters.clear"
+                ctaVariant="secondary"
+                [compact]="true"
+                (cta)="clearFilters()"
+              />
             } @else {
-              <div class="overflow-x-auto">
-                <table
-                  class="w-full min-w-[640px] text-left text-[13px]"
-                  data-testid="systems-table"
-                >
-                  <caption class="sr-only">
-                    {{
-                      'aiGovernance.systems.title' | transloco
-                    }}
-                  </caption>
-                  <thead class="border-b border-border text-[12px] text-fg-muted">
-                    <tr>
-                      <th scope="col" class="px-4 py-2.5 font-semibold">
-                        {{ 'aiGovernance.fields.name' | transloco }}
-                      </th>
-                      <th scope="col" class="px-3 py-2.5 font-semibold">
-                        {{ 'aiGovernance.fields.riskClass' | transloco }}
-                      </th>
-                      <th scope="col" class="px-3 py-2.5 font-semibold">
-                        {{ 'aiGovernance.fields.status' | transloco }}
-                      </th>
-                      <th scope="col" class="hidden px-3 py-2.5 font-semibold md:table-cell">
-                        {{ 'aiGovernance.fields.role' | transloco }}
-                      </th>
-                      <th scope="col" class="hidden px-3 py-2.5 font-semibold md:table-cell">
-                        {{ 'aiGovernance.fields.owner' | transloco }}
-                      </th>
-                      <th scope="col" class="px-3 py-2.5 font-semibold">
-                        {{ 'aiGovernance.fields.nextReview' | transloco }}
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody class="divide-y divide-border">
-                    @for (s of items(); track s.id) {
-                      <tr class="hover:bg-surface-2">
-                        <td class="px-4 py-2.5">
-                          <a
-                            [routerLink]="['/ai-governance/systems', s.id]"
-                            class="font-semibold text-fg hover:underline"
-                          >
-                            <span class="mr-1.5 font-mono text-[12px] text-fg-subtle">{{
-                              s.code
-                            }}</span>
-                            {{ s.name }}
-                          </a>
-                          <span class="mt-0.5 flex flex-wrap gap-1.5 text-[12px] text-fg-subtle">
-                            @if (s.provider_name) {
-                              <span>{{ s.provider_name }}</span>
-                            }
-                            @if (s.is_builtin) {
-                              <app-badge tone="accent">{{
-                                'aiGovernance.systems.builtin' | transloco
-                              }}</app-badge>
-                            }
-                            @if (s.gpai) {
-                              <app-badge tone="neutral">{{
-                                'aiGovernance.result.gpai' | transloco
-                              }}</app-badge>
-                            }
-                          </span>
-                        </td>
-                        <td class="px-3 py-2.5">
-                          <app-badge [tone]="riskTone(s.risk_class)">{{
-                            riskKey(s.risk_class) | transloco
-                          }}</app-badge>
-                        </td>
-                        <td class="px-3 py-2.5">
-                          <app-badge [tone]="statusTone(s.status)">{{
-                            statusKey(s.status) | transloco
-                          }}</app-badge>
-                        </td>
-                        <td class="hidden px-3 py-2.5 text-fg-muted md:table-cell">
-                          {{ roleKey(s.ai_act_role) | transloco }}
-                        </td>
-                        <td class="hidden px-3 py-2.5 text-fg-muted md:table-cell">
-                          {{ s.owner?.name ?? ('aiGovernance.common.nobody' | transloco) }}
-                        </td>
-                        <td class="px-3 py-2.5 text-fg-muted">
-                          @if (s.next_review_at) {
-                            {{ s.next_review_at | localDay }}
-                          } @else {
-                            {{ 'aiGovernance.common.notSet' | transloco }}
-                          }
-                        </td>
-                      </tr>
+              <div
+                role="list"
+                [attr.aria-label]="'aiGovernance.systems.title' | transloco"
+                data-testid="systems-table"
+              >
+                <app-record-row-header dateKind="next" />
+                @for (s of items(); track s.id) {
+                  <app-record-row
+                    [code]="s.code"
+                    [title]="s.name"
+                    [subtitle]="subtitle(s)"
+                    [link]="['/ai-governance/systems', s.id]"
+                    [owner]="s.owner?.name ?? ('aiGovernance.common.noOwner' | transloco)"
+                    [date]="s.next_review_at"
+                    dateKind="next"
+                    [overdue]="reviewOverdue(s)"
+                  >
+                    <app-coverage-chip
+                      coverage
+                      class="max-w-full [&_[data-testid=coverage-chip]]:flex-wrap [&_[data-testid=coverage-chip]]:whitespace-normal"
+                      [entityType]="entity"
+                      [entityId]="s.id"
+                    />
+                    <app-status-badge
+                      badges
+                      meaning="severity"
+                      [value]="riskValue(s.risk_class)"
+                      [labelKey]="riskKey(s.risk_class)"
+                    />
+                    <app-status-badge
+                      badges
+                      meaning="lifecycle"
+                      [value]="statusValue(s.status)"
+                      [labelKey]="statusKey(s.status)"
+                    />
+                    @if (s.is_builtin) {
+                      <app-badge badges tone="neutral">{{
+                        'aiGovernance.systems.builtin' | transloco
+                      }}</app-badge>
                     }
-                  </tbody>
-                </table>
+                  </app-record-row>
+                }
               </div>
-              <div class="border-t border-border px-4 py-2.5">
+              <div class="px-4 py-2">
                 <app-pager
                   [offset]="offset()"
                   [pageSize]="pageSize"
@@ -309,34 +286,33 @@ const PAGE_SIZE = 25;
         }
       </app-card>
 
-      <div empty>
-        <app-card>
-          <app-teaching-empty
-            [scope]="scope"
-            page="systems"
-            [showAction]="store.canWrite()"
-            (action)="create()"
-          />
-          @if (store.canWrite()) {
-            <div class="flex justify-center pb-6">
-              <app-button
-                variant="secondary"
-                size="sm"
-                [loading]="registering()"
-                (click)="registerPlatform()"
-              >
-                <app-icon name="spark" [size]="14" />
-                {{ 'aiGovernance.systems.registerPlatform' | transloco }}
-              </app-button>
-            </div>
-          }
-        </app-card>
-      </div>
+      <app-card empty>
+        <app-teaching-empty
+          [scope]="scope"
+          page="systems"
+          [showAction]="store.canWrite()"
+          (action)="create()"
+        />
+        @if (store.canWrite()) {
+          <div class="flex flex-col items-center gap-2 pb-6 text-center">
+            <p class="max-w-[52ch] text-ui text-fg-muted">
+              {{ 'aiGovernance.systems.registerPlatformHint' | transloco }}
+            </p>
+            <app-button
+              variant="secondary"
+              size="sm"
+              [loading]="registering()"
+              (click)="registerPlatform()"
+            >
+              <app-icon name="spark" [size]="14" />
+              {{ 'aiGovernance.systems.registerPlatform' | transloco }}
+            </app-button>
+          </div>
+        }
+      </app-card>
+
+      <app-why-it-matters below [scope]="scope" page="systems" />
     </app-record-list-page>
-    <div class="mx-auto -mt-6 flex max-w-[1180px] flex-col gap-4 px-4 pb-12 sm:px-8">
-      <app-ai-lesson-card lesson="ai-inventory-basics" />
-      <app-why-it-matters [scope]="scope" page="systems" />
-    </div>
   `,
 })
 export class AiSystemsList {
@@ -348,18 +324,21 @@ export class AiSystemsList {
   protected readonly store = inject(AiGovernanceStore);
 
   protected readonly scope = AI_GOVERNANCE_SCOPE;
+  protected readonly root = AI_GOV_ROOT;
+  protected readonly entity = AI_SYSTEM_ENTITY;
   protected readonly pageSize = PAGE_SIZE;
   protected readonly statuses = SYSTEM_STATUSES;
   protected readonly risks = RISK_CLASSES;
   protected readonly roles = AI_ACT_ROLES;
   protected readonly sorts = SYSTEM_SORTS;
   protected readonly riskKey = riskKey;
-  protected readonly riskTone = riskTone;
+  protected readonly riskValue = riskValue;
   protected readonly statusKey = statusKey;
-  protected readonly statusTone = systemStatusTone;
+  protected readonly statusValue = systemStatusValue;
   protected readonly roleKey = roleKey;
 
-  /** The `risk` query param presets the risk-class filter (links from the overview). */
+  /** Query params preset the filters (links from the overview). */
+  readonly risk_class = input<string | undefined>(undefined);
   readonly risk = input<string | undefined>(undefined);
 
   protected readonly q = signal('');
@@ -370,11 +349,10 @@ export class AiSystemsList {
   protected readonly offset = signal(0);
 
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
-  protected readonly errorKey = signal('aiGovernance.common.loadFailed');
   protected readonly items = signal<readonly AiSystemSummary[]>([]);
   protected readonly total = signal(0);
   protected readonly registering = signal(false);
-  private readonly reload = signal(0);
+  protected readonly reload = signal(0);
 
   protected readonly filters = computed(() => ({
     status: this.status(),
@@ -397,7 +375,7 @@ export class AiSystemsList {
       title: this.language.translate('aiGovernance.systems.title'),
     }));
     effect(() => {
-      const preset = this.risk();
+      const preset = this.risk_class() ?? this.risk();
       untracked(() => {
         if (preset && (RISK_CLASSES as readonly string[]).includes(preset)) {
           this.riskFilter.set(preset);
@@ -407,6 +385,7 @@ export class AiSystemsList {
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();
       this.reload();
+      this.language.active();
       const query = {
         q: this.q() || undefined,
         status: this.status() || undefined,
@@ -428,13 +407,32 @@ export class AiSystemsList {
             this.total.set(page.total);
             this.state.set('ready');
           },
-          error: (err: unknown) => {
-            this.errorKey.set(aiGovernanceErrorKey(err));
-            this.state.set('error');
-          },
+          error: () => this.state.set('error'),
         });
       });
     });
+  }
+
+  /** "Idriftsetter · 2 av 5 forpliktelser oppfylt" (role, then obligation progress). */
+  protected subtitle(s: AiSystemSummary): string {
+    const parts = [this.language.translate(roleKey(s.ai_act_role))];
+    const progress = obligationProgress(s.obligations_summary);
+    if (progress.total > 0) {
+      parts.push(
+        this.language.translate('aiGovernance.systems.obligationsMet', {
+          met: progress.met,
+          total: progress.total,
+        }),
+      );
+    }
+    if (s.provider_name) {
+      parts.push(s.provider_name);
+    }
+    return parts.join(' · ');
+  }
+
+  protected reviewOverdue(s: AiSystemSummary): boolean {
+    return !!s.next_review_at && new Date(s.next_review_at).getTime() < Date.now();
   }
 
   protected setQuery(q: string): void {
@@ -453,6 +451,14 @@ export class AiSystemsList {
     } else {
       this[key].set(value);
     }
+  }
+
+  protected clearFilters(): void {
+    this.offset.set(0);
+    this.q.set('');
+    this.status.set('');
+    this.riskFilter.set('');
+    this.role.set('');
   }
 
   protected applyView(view: SavedView): void {
@@ -480,9 +486,11 @@ export class AiSystemsList {
       next: (result) => {
         this.registering.set(false);
         this.notifications.success(
-          result.created > 0
-            ? 'aiGovernance.systems.registered'
-            : 'aiGovernance.systems.alreadyRegistered',
+          result.created === 0
+            ? 'aiGovernance.systems.alreadyRegistered'
+            : result.created === 1
+              ? 'aiGovernance.systems.registeredOne'
+              : 'aiGovernance.systems.registered',
           { count: result.created },
         );
         this.reload.update((n) => n + 1);

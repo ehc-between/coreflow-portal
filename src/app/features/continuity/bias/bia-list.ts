@@ -8,34 +8,31 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../../core/ai/page-context';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
-import { AskPanelService } from '../../ask/ask-panel.service';
-import { GuideIntro } from '../../../shared/guidance/guide-intro';
-import { LessonView } from '../../../shared/guidance/lesson';
 import { TeachingEmpty } from '../../../shared/guidance/teaching-empty';
-import { TourButton } from '../../../shared/guidance/tour-button';
 import { TourStepDirective } from '../../../shared/guidance/tour-step.directive';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
+import { pluralKey } from '../../../shared/i18n/plural';
 import { RecordListPage } from '../../../shared/kit/record-list-page';
 import { SavedView } from '../../../shared/kit/saved-views.service';
-import { LocalDayPipe } from '../../../shared/locale/locale-pipes';
-import { Badge } from '../../../shared/ui/badge/badge';
+import { CoverageChip } from '../../../shared/requirement-links/coverage-chip';
 import { Button } from '../../../shared/ui/button/button';
-import { Card } from '../../../shared/ui/card/card';
+import { EmptyState } from '../../../shared/ui/empty-state/empty-state';
+import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { ModuleNav } from '../../../shared/ui/module-nav/module-nav';
 import { Pager } from '../../../shared/ui/pager/pager';
+import { RecordRow, RecordRowHeader } from '../../../shared/ui/record-row/record-row';
+import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { ContinuityApi } from '../data/continuity-api';
-import {
-  controlledStatusTone,
-  criticalityTone,
-  impactTone,
-  reviewStateTone,
-} from '../data/continuity-display';
+import { badge, formatDuration } from '../data/continuity-display';
 import {
   BIA_SORTS,
   BiaListItem,
@@ -46,8 +43,12 @@ import {
   ControlledStatus,
   Criticality,
 } from '../data/continuity.models';
-import { ContinuityNav } from '../shared/continuity-nav';
-import { ContinuityDuration } from '../shared/duration';
+import {
+  CONTINUITY_NAV,
+  ContinuityAskButton,
+  ContinuityTargetsLegend,
+  sectionCrumbs,
+} from '../shared/continuity-page';
 
 const PAGE_SIZE = 25;
 
@@ -95,124 +96,129 @@ export function biaQuery(q: string, f: BiaFilters, offset: number): BiaListQuery
   };
 }
 
+const SELECT =
+  'h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg focus:border-accent focus:outline-none';
+
 /**
  * The business impact analyses (`/continuity/bias`): search, filters on status,
- * criticality, owner, coverage and review due, saved views, sort and paging. Each
- * row shows the highest impact, the MTPD/RTO/RPO and how many plans cover it.
+ * criticality and coverage (owner and sort under "More filters"), saved views and
+ * paging. Each row shows the recovery targets, the requirements it documents, the
+ * criticality, the highest impact, the status and how many plans cover it.
  */
 @Component({
   selector: 'app-bia-list',
   imports: [
-    RouterLink,
     TranslocoPipe,
-    LocalDayPipe,
-    Badge,
     Button,
-    Card,
-    ContinuityDuration,
-    ContinuityNav,
-    GuideIntro,
+    ContinuityAskButton,
+    ContinuityTargetsLegend,
+    CoverageChip,
+    EmptyState,
+    ErrorState,
+    HelpStrip,
     Icon,
-    LessonView,
+    LoadingState,
+    ModuleNav,
     Pager,
     RecordListPage,
+    RecordRow,
+    RecordRowHeader,
+    StatusBadge,
     TeachingEmpty,
-    TourButton,
     TourStepDirective,
     WhyItMatters,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-record-list-page
-      titleKey="continuity.bias.title"
+      titleKey="continuity.nav.bias"
+      descriptionKey="continuity.bias.subtitle"
       scope="continuity"
       page="bias"
+      [breadcrumbs]="crumbs"
       searchPlaceholderKey="continuity.bias.searchPlaceholder"
       [query]="q()"
       [filters]="viewFilters()"
+      [moreFiltersActive]="moreActive()"
       [empty]="showEmpty()"
       (search)="search($event)"
       (viewApplied)="applyView($event)"
     >
-      <div intro>
-        <p class="mt-1 text-[14px] text-fg-muted">{{ 'continuity.bias.subtitle' | transloco }}</p>
-        <app-continuity-nav />
-      </div>
-
-      <ng-container toolbar>
-        <app-tour-button scope="continuity" tour="bias" />
-        <app-button variant="ghost" size="sm" (click)="askOverview()">
-          <app-icon name="spark" [size]="14" />
-          {{ 'continuity.ai.biaOverview' | transloco }}
+      <app-continuity-ask-button
+        secondary
+        labelKey="continuity.ai.biaOverview"
+        promptKey="continuity.ai.prompts.biaOverview"
+      />
+      @if (canWrite()) {
+        <app-button primary appTourStep="continuity-bia-new" (click)="create()">
+          <app-icon name="plus" [size]="14" />
+          {{ 'continuity.bias.new' | transloco }}
         </app-button>
-        @if (canWrite()) {
-          <app-button size="sm" appTourStep="continuity-bia-new" (click)="create()">
-            <app-icon name="plus" [size]="14" />
-            {{ 'continuity.bias.new' | transloco }}
-          </app-button>
-        }
-      </ng-container>
+      }
+
+      <app-module-nav nav labelKey="continuity.nav.label" [items]="nav" />
+      <app-help-strip help scope="continuity" page="bias" tour="bias" lesson="running-a-bia" />
 
       <ng-container filters>
-        <div class="flex flex-wrap items-center gap-2" appTourStep="continuity-bia-filters">
-          <label class="sr-only" for="bia-f-status">{{
-            'continuity.fields.status' | transloco
-          }}</label>
-          <select
-            id="bia-f-status"
-            class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
-            (change)="setFilter('status', $any($event.target).value)"
-          >
-            <option value="" [selected]="!filters().status">
-              {{ 'continuity.filters.anyStatus' | transloco }}
+        <label class="sr-only" for="bia-f-status">{{
+          'continuity.fields.status' | transloco
+        }}</label>
+        <select
+          id="bia-f-status"
+          appTourStep="continuity-bia-filters"
+          [class]="select"
+          (change)="setFilter('status', $any($event.target).value)"
+        >
+          <option value="" [selected]="!filters().status">
+            {{ 'continuity.filters.anyStatus' | transloco }}
+          </option>
+          @for (s of statuses; track s) {
+            <option [value]="s" [selected]="filters().status === s">
+              {{ 'continuity.status.' + s | transloco }}
             </option>
-            @for (s of statuses; track s) {
-              <option [value]="s" [selected]="filters().status === s">
-                {{ 'continuity.status.' + s | transloco }}
-              </option>
-            }
-          </select>
-          <label class="sr-only" for="bia-f-crit">{{
-            'continuity.fields.criticality' | transloco
-          }}</label>
-          <select
-            id="bia-f-crit"
-            class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
-            (change)="setFilter('criticality', $any($event.target).value)"
-          >
-            <option value="" [selected]="!filters().criticality">
-              {{ 'continuity.filters.anyCriticality' | transloco }}
+          }
+        </select>
+        <label class="sr-only" for="bia-f-crit">{{
+          'continuity.fields.criticality' | transloco
+        }}</label>
+        <select
+          id="bia-f-crit"
+          [class]="select"
+          (change)="setFilter('criticality', $any($event.target).value)"
+        >
+          <option value="" [selected]="!filters().criticality">
+            {{ 'continuity.filters.anyCriticality' | transloco }}
+          </option>
+          @for (c of criticalities; track c) {
+            <option [value]="c" [selected]="filters().criticality === c">
+              {{ 'continuity.criticality.' + c | transloco }}
             </option>
-            @for (c of criticalities; track c) {
-              <option [value]="c" [selected]="filters().criticality === c">
-                {{ 'continuity.criticality.' + c | transloco }}
-              </option>
-            }
-          </select>
-          <label class="sr-only" for="bia-f-flag">{{
-            'continuity.filters.show' | transloco
-          }}</label>
-          <select
-            id="bia-f-flag"
-            class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
-            (change)="setFilter('flag', $any($event.target).value)"
-          >
-            <option value="" [selected]="!filters().flag">
-              {{ 'continuity.filters.all' | transloco }}
-            </option>
-            <option value="uncovered" [selected]="filters().flag === 'uncovered'">
-              {{ 'continuity.filters.uncovered' | transloco }}
-            </option>
-            <option value="review_due" [selected]="filters().flag === 'review_due'">
-              {{ 'continuity.filters.reviewDue' | transloco }}
-            </option>
-          </select>
-          <label class="sr-only" for="bia-f-owner">{{
-            'continuity.fields.owner' | transloco
-          }}</label>
+          }
+        </select>
+        <label class="sr-only" for="bia-f-flag">{{ 'continuity.filters.show' | transloco }}</label>
+        <select
+          id="bia-f-flag"
+          [class]="select"
+          (change)="setFilter('flag', $any($event.target).value)"
+        >
+          <option value="" [selected]="!filters().flag">
+            {{ 'continuity.filters.all' | transloco }}
+          </option>
+          <option value="uncovered" [selected]="filters().flag === 'uncovered'">
+            {{ 'continuity.filters.uncovered' | transloco }}
+          </option>
+          <option value="review_due" [selected]="filters().flag === 'review_due'">
+            {{ 'continuity.filters.reviewDue' | transloco }}
+          </option>
+        </select>
+      </ng-container>
+
+      <div more-filters class="flex flex-col gap-3">
+        <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted" for="bia-f-owner">
+          {{ 'continuity.fields.owner' | transloco }}
           <select
             id="bia-f-owner"
-            class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
+            [class]="select"
             (change)="setFilter('owner', $any($event.target).value)"
           >
             <option value="" [selected]="!filters().owner">
@@ -222,12 +228,12 @@ export function biaQuery(q: string, f: BiaFilters, offset: number): BiaListQuery
               {{ 'continuity.filters.ownedByMe' | transloco }}
             </option>
           </select>
-          <label class="sr-only" for="bia-f-sort">{{
-            'continuity.filters.sort' | transloco
-          }}</label>
+        </label>
+        <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted" for="bia-f-sort">
+          {{ 'continuity.filters.sort' | transloco }}
           <select
             id="bia-f-sort"
-            class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
+            [class]="select"
             (change)="setFilter('sort', $any($event.target).value)"
           >
             @for (s of sorts; track s) {
@@ -236,99 +242,81 @@ export function biaQuery(q: string, f: BiaFilters, offset: number): BiaListQuery
               </option>
             }
           </select>
-        </div>
-      </ng-container>
-
-      <div class="mb-4 flex flex-col gap-3">
-        <app-guide-intro scope="continuity" page="bias" />
-        <div><app-lesson scope="continuity" lesson="running-a-bia" /></div>
+        </label>
       </div>
 
-      <app-card [padded]="false">
-        @switch (state()) {
-          @case ('loading') {
-            <p class="py-10 text-center text-[14px] text-fg-muted">
-              {{ 'continuity.common.loading' | transloco }}
-            </p>
-          }
-          @case ('error') {
-            <p class="py-10 text-center text-[14px] text-fail" role="alert">
-              {{ 'continuity.common.loadFailed' | transloco }}
-            </p>
-          }
-          @default {
-            @if (rows().length === 0) {
-              <p class="py-10 text-center text-[14px] text-fg-muted">
-                {{ 'continuity.filters.noMatch' | transloco }}
-              </p>
-            } @else {
-              <ul class="divide-y divide-border" data-testid="bia-rows">
-                @for (row of rows(); track row.id) {
-                  <li class="flex flex-col gap-1.5 px-4 py-3 md:flex-row md:items-center md:gap-3">
-                    <div class="min-w-0 flex-1">
-                      <a
-                        [routerLink]="['/continuity/bias', row.id]"
-                        class="flex items-baseline gap-2 text-[13.5px] font-semibold text-fg hover:underline"
-                      >
-                        <span class="font-mono text-[12px] text-fg-muted">{{ row.code }}</span>
-                        <span class="truncate">{{ row.title }}</span>
-                      </a>
-                      <span
-                        class="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[12px] text-fg-subtle"
-                      >
-                        <span>
-                          {{ 'continuity.fields.rtoShort' | transloco }}:
-                          <app-continuity-duration [minutes]="row.rto_minutes" />
-                        </span>
-                        <span>
-                          {{ 'continuity.fields.rpoShort' | transloco }}:
-                          <app-continuity-duration [minutes]="row.rpo_minutes" />
-                        </span>
-                        <span>
-                          {{ 'continuity.fields.mtpdShort' | transloco }}:
-                          <app-continuity-duration [minutes]="row.mtpd_minutes" />
-                        </span>
-                        @if (row.owner?.name; as owner) {
-                          <span>{{
-                            'continuity.common.ownedBy' | transloco: { name: owner }
-                          }}</span>
-                        }
-                      </span>
-                    </div>
-                    <span class="flex flex-wrap items-center gap-2 text-[12.5px] text-fg-muted">
-                      @if (row.criticality) {
-                        <app-badge [tone]="critTone(row.criticality)">
-                          {{ 'continuity.criticality.' + row.criticality | transloco }}
-                        </app-badge>
-                      }
-                      <app-badge [tone]="impTone(row.max_impact)">
-                        {{ 'continuity.bias.maxImpact' | transloco: { value: row.max_impact } }}
-                      </app-badge>
-                      <app-badge [tone]="statusTone(row.status)">
-                        {{ 'continuity.status.' + row.status | transloco }}
-                      </app-badge>
-                      @if (row.plan_count === 0 && row.status !== 'retired') {
-                        <app-badge tone="warn">{{
-                          'continuity.bias.uncovered' | transloco
-                        }}</app-badge>
-                      } @else {
-                        <span>{{
-                          'continuity.bias.planCount' | transloco: { count: row.plan_count }
-                        }}</span>
-                      }
-                      @if (row.review_state === 'overdue' || row.review_state === 'due_soon') {
-                        <app-badge [tone]="reviewTone(row.review_state)">
-                          {{ 'continuity.reviewState.' + row.review_state | transloco }}
-                          @if (row.next_review_on) {
-                            · {{ row.next_review_on | localDay }}
-                          }
-                        </app-badge>
-                      }
-                    </span>
-                  </li>
-                }
-              </ul>
-              <div class="border-t border-border px-4 py-2.5">
+      @switch (state()) {
+        @case ('loading') {
+          <app-loading-state [rows]="5" />
+        }
+        @case ('error') {
+          <app-error-state (retry)="reload()" />
+        }
+        @default {
+          @if (rows().length === 0) {
+            <app-empty-state
+              icon="search"
+              titleKey="ui.empty.noResults"
+              ctaKey="continuity.filters.clear"
+              ctaVariant="secondary"
+              (cta)="clearFilters()"
+            />
+          } @else {
+            <app-continuity-targets-legend class="mb-2" />
+            <div
+              role="list"
+              class="overflow-hidden rounded-card border border-border bg-surface"
+              data-testid="bia-rows"
+            >
+              <app-record-row-header dateKind="next" />
+              @for (row of rows(); track row.id) {
+                <app-record-row
+                  [code]="row.code"
+                  [title]="row.title"
+                  [subtitle]="targets(row)"
+                  [link]="['/continuity/bias', row.id]"
+                  [owner]="row.owner?.name"
+                  [date]="row.next_review_on"
+                  dateKind="next"
+                  [overdue]="row.review_state === 'overdue'"
+                >
+                  <app-coverage-chip
+                    coverage
+                    class="max-w-full [&_[data-testid=coverage-chip]]:flex-wrap [&_[data-testid=coverage-chip]]:whitespace-normal"
+                    entityType="bia"
+                    [entityId]="row.id"
+                  />
+                  <app-status-badge
+                    badges
+                    [meaning]="status(row).meaning"
+                    [value]="status(row).value"
+                    [labelKey]="'continuity.status.' + row.status"
+                  />
+                  @if (row.criticality) {
+                    <app-status-badge
+                      badges
+                      meaning="severity"
+                      [value]="row.criticality"
+                      [labelKey]="'continuity.criticality.' + row.criticality"
+                    />
+                  }
+                  @if (row.plan_count === 0 && row.status !== 'retired') {
+                    <app-status-badge
+                      badges
+                      meaning="lifecycle"
+                      value="due"
+                      labelKey="continuity.bias.uncovered"
+                    />
+                  } @else if (row.plan_count > 0) {
+                    <span badges class="text-meta text-fg-muted">{{
+                      planCountKey(row.plan_count) | transloco: { count: row.plan_count }
+                    }}</span>
+                  }
+                </app-record-row>
+              }
+            </div>
+            @if (total() > pageSize) {
+              <div class="mt-3">
                 <app-pager
                   [offset]="offset()"
                   [pageSize]="pageSize"
@@ -340,22 +328,16 @@ export function biaQuery(q: string, f: BiaFilters, offset: number): BiaListQuery
             }
           }
         }
-      </app-card>
+      }
 
-      <div class="mt-6">
-        <app-why-it-matters scope="continuity" page="bias" />
-      </div>
-
-      <div empty class="flex flex-col gap-4">
-        <app-guide-intro scope="continuity" page="bias" />
-        <app-teaching-empty
-          scope="continuity"
-          page="bias"
-          [showAction]="canWrite()"
-          (action)="create()"
-        />
-        <app-why-it-matters scope="continuity" page="bias" />
-      </div>
+      <app-teaching-empty
+        empty
+        scope="continuity"
+        page="bias"
+        [showAction]="canWrite()"
+        (action)="create()"
+      />
+      <app-why-it-matters below scope="continuity" page="bias" />
     </app-record-list-page>
   `,
 })
@@ -363,17 +345,16 @@ export class BiaList {
   private readonly api = inject(ContinuityApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly language = inject(LanguageService);
-  private readonly ask = inject(AskPanelService);
   private readonly router = inject(Router);
 
+  protected readonly nav = CONTINUITY_NAV;
+  protected readonly crumbs = sectionCrumbs('bias');
+  protected readonly select = SELECT;
   protected readonly statuses = CONTROLLED_STATUSES;
   protected readonly criticalities = CRITICALITIES;
   protected readonly sorts = BIA_SORTS;
   protected readonly pageSize = PAGE_SIZE;
-  protected readonly statusTone = controlledStatusTone;
-  protected readonly critTone = criticalityTone;
-  protected readonly impTone = impactTone;
-  protected readonly reviewTone = reviewStateTone;
+  protected readonly status = (row: BiaListItem) => badge.controlled(row.status);
 
   protected readonly canWrite = computed(() =>
     (this.selectedOrg.currentOrg()?.permissions ?? []).includes('continuity:write'),
@@ -388,6 +369,9 @@ export class BiaList {
 
   protected readonly viewFilters = computed(
     () => ({ ...this.filters() }) as Record<string, string>,
+  );
+  protected readonly moreActive = computed(
+    () => (this.filters().owner ? 1 : 0) + (this.filters().sort !== 'code' ? 1 : 0),
   );
   private readonly isFiltered = computed(
     () => !!this.q() || Object.entries(this.filters()).some(([k, v]) => k !== 'sort' && !!v),
@@ -404,13 +388,28 @@ export class BiaList {
       module: 'continuity',
       entityType: 'bia',
       view: 'list',
-      title: this.language.translate('continuity.bias.title'),
+      title: this.language.translate('continuity.nav.bias'),
     }));
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();
       const query = biaQuery(this.q(), this.filters(), this.offset());
       untracked(() => this.load(orgId, query));
     });
+  }
+
+  /** "RTO 1 d · RPO 4 t · MTPD 3 d" (the legend above the list explains them). */
+  protected targets(row: BiaListItem): string {
+    const t = (key: string, params?: Record<string, unknown>) =>
+      this.language.translate(key, params);
+    return [
+      `${t('continuity.fields.rtoShort')} ${formatDuration(row.rto_minutes, t)}`,
+      `${t('continuity.fields.rpoShort')} ${formatDuration(row.rpo_minutes, t)}`,
+      `${t('continuity.fields.mtpdShort')} ${formatDuration(row.mtpd_minutes, t)}`,
+    ].join(' · ');
+  }
+
+  protected planCountKey(count: number): string {
+    return pluralKey('continuity.bias.planCount', count);
   }
 
   protected search(text: string): void {
@@ -428,12 +427,18 @@ export class BiaList {
     this.filters.set(biaFiltersFromView(view.filters));
   }
 
+  protected clearFilters(): void {
+    this.offset.set(0);
+    this.q.set('');
+    this.filters.set(DEFAULT_BIA_FILTERS);
+  }
+
   protected create(): void {
     void this.router.navigate(['/continuity/bias/new']);
   }
 
-  protected askOverview(): void {
-    this.ask.showWith(this.language.translate('continuity.ai.prompts.biaOverview'));
+  protected reload(): void {
+    this.load(this.selectedOrg.currentOrgId(), biaQuery(this.q(), this.filters(), this.offset()));
   }
 
   private load(orgId: string | null, query: BiaListQuery): void {

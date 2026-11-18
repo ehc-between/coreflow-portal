@@ -37,19 +37,23 @@
       "fields": {
         "title": {
           "help": "The job title candidates will recognise.",
-          "example": "Information security analyst"
+          "example": "Information security analyst",
+          "requirements": ["hs:7.1"]
         },
         "justification": {
           "help": "Why the organisation needs this role now: growth, replacement, a new obligation. The approver reads this.",
-          "example": "Replaces a retiring analyst; needed to keep the ISO 27001 certificate."
+          "example": "Replaces a retiring analyst; needed to keep the ISO 27001 certificate.",
+          "requirements": ["hs:7.1"]
         },
         "role_risk": {
-          "help": "How much harm someone in this role could do with the access they get. Low: identity, right to work and a reference. Medium adds employment history and education. High adds a criminal record check where the law allows it.",
-          "example": "High: administrators with access to customer data or payment systems."
+          "help": "How much harm a person in this role could do with the access they get. The organisation decides which checks each level requires (Settings). Criminal-record and credit checks are never automatic: they need a legal basis per candidate.",
+          "example": "High: administrators with access to customer data or payment systems.",
+          "requirements": ["iso27001:A.6.1"]
         },
         "screening_criteria": {
           "help": "Objective requirements every application is assessed against. Avoid anything that is not needed for the job, such as age, family situation or a specific nationality.",
-          "example": "Three years' experience operating Linux servers in production."
+          "example": "Three years' experience operating Linux servers in production.",
+          "requirements": ["hs:7.2"]
         },
         "posting_text": {
           "help": "The advert candidates see. Use inclusive, gender-neutral language and only ask for what the criteria require.",
@@ -58,17 +62,22 @@
         "change_reason": {
           "help": "Recorded in the revision history together with what changed, so an auditor can see why.",
           "example": "Posting extended by two weeks after few applications."
+        },
+        "position": {
+          "help": "The position in People this hire is for. Its competence requirements become the screening criteria, so the competence you hire for matches the role.",
+          "example": "Information security adviser (POS-0003).",
+          "requirements": ["hs:7.2"]
         }
       }
     },
     "requisition": {
       "intro": {
         "title": "From approval to a filled position",
-        "body": "Work through the requisition from top to bottom: approve it, open it, follow the candidates in the pipeline and close it when the position is filled.",
+        "body": "Work through the requisition from the top: get it approved, open it, follow the candidates in the pipeline and close it when the position is filled.",
         "steps": [
-          "The person who submitted a requisition cannot approve it; an HR manager decides.",
-          "Keep the hiring team current: only they can see the candidates.",
-          "Use **Pipeline** to move candidates between stages."
+          "Whoever submitted a requisition cannot approve it; an HR lead decides.",
+          "Keep the hiring team up to date: only they can see the candidates.",
+          "Each number under **Candidate flow** opens the candidates at that stage."
         ]
       },
       "why": {
@@ -79,10 +88,10 @@
     "pipeline": {
       "intro": {
         "title": "The candidate pipeline",
-        "body": "Each column is a stage. Open a card to screen the application, schedule interviews and record checks, or use **Move to** to change its stage.",
+        "body": "Each column is a stage. **Screening** is the first assessment against the criteria. Open a card to screen, plan interviews and record checks, or use **Move to** to change stage.",
         "steps": [
-          "Record that the candidate received the privacy notice before moving them past screening.",
-          "Entering **Reference check** plans the background checks the role's risk level requires.",
+          "A candidate moves past screening only when every criterion has a result, or with a written reason.",
+          "When the application reaches **Reference check**, the checks the risk level requires are planned.",
           "Rejecting always needs a job-related reason."
         ]
       },
@@ -128,26 +137,29 @@
       "fields": {
         "notes": {
           "help": "Job-related observations only. The candidate can ask to see everything you write here.",
-          "example": "Referred by the network team; available from March."
+          "example": "Referred by the network team; available from March.",
+          "requirements": ["gdpr:5"]
         },
         "privacy_notice_given": {
           "help": "Tick when the candidate has received your recruitment privacy notice. Without it, the application cannot move past screening.",
-          "example": "The notice was attached to the confirmation email."
+          "example": "The notice was attached to the confirmation email.",
+          "requirements": ["gdpr:13", "gdpr:14"]
         },
         "talent_pool_consent": {
           "help": "Optional. With consent the candidate is kept longer to be considered for future roles; without it, they are erased after the normal retention period.",
-          "example": "The candidate ticked \"keep me in mind for future roles\"."
+          "example": "The candidate ticked \"keep me in mind for future roles\".",
+          "requirements": ["gdpr:7"]
         }
       }
     },
     "candidate": {
       "intro": {
-        "title": "One candidate",
-        "body": "See the candidate's applications, the privacy notice and consent record, and when the data will be erased.",
+        "title": "About this candidate",
+        "body": "See the candidate's applications, which privacy notice they got and when, consent to the talent pool, and when the data is deleted and why.",
         "steps": [
           "Record the privacy notice if it is missing.",
-          "Withdraw talent-pool consent straight away if the candidate asks.",
-          "A recruitment manager can erase the data on request."
+          "Withdraw talent-pool consent at once if the candidate asks.",
+          "A recruitment manager can delete the data on request (in **More**)."
         ]
       },
       "why": {
@@ -191,18 +203,19 @@
       "fields": {
         "cover_note": {
           "help": "The cover letter or a short summary. Avoid copying sensitive personal information.",
-          "example": "Five years in IT operations, ISO 27001 internal auditor course."
+          "example": "Five years in IT operations, ISO 27001 internal auditor course.",
+          "requirements": ["gdpr:5"]
         }
       }
     },
     "application": {
       "intro": {
         "title": "Assessing an application",
-        "body": "Screen the application against the requisition's criteria, interview, file your scorecard, complete the background checks and make the offer, in that order.",
+        "body": "**Screening** is the first assessment against the criteria. Then interview, fill in the scorecard, finish the background checks and make the offer, in that order.",
         "steps": [
-          "Record a result and the evidence for each criterion.",
-          "Schedule interviews; each interviewer gets a scorecard task.",
-          "Complete every required check before the offer."
+          "Record a result and evidence for every criterion.",
+          "Plan interviews; each interviewer gets a scorecard task.",
+          "The offer button says what is missing until every required check is done."
         ]
       },
       "why": {
@@ -212,7 +225,8 @@
       "fields": {
         "screening": {
           "help": "Assess each criterion on its own, and write down what in the application shows it. The same criteria apply to every candidate.",
-          "example": "Met: led the migration of 40 servers, described in the cover letter."
+          "example": "Met: led the migration of 40 servers, described in the cover letter.",
+          "requirements": ["iso27001:A.6.1", "hs:7.2"]
         },
         "interviewers": {
           "help": "Everyone you pick joins the hiring team and gets a task to submit a scorecard.",
@@ -223,38 +237,67 @@
           "example": "4 · Strong: explained incident handling step by step with a real example."
         },
         "checks": {
-          "help": "The checks depend on the role's risk level. A check needs the candidate's consent before it starts; a waived check needs a reason.",
-          "example": "Reference: called the previous manager on 12 March."
+          "help": "The checks depend on the risk level of the role and the organisation's table. A check needs the candidate's consent before it starts; waiving one needs a reason. Criminal-record and credit checks also need a legal basis.",
+          "example": "Reference: called the previous manager on 12 March.",
+          "requirements": ["iso27001:A.6.1"]
+        },
+        "legal_basis": {
+          "help": "The law that allows this check for this role, and why it is needed. Without a legal basis, a criminal-record or credit check is usually unlawful in Norway.",
+          "example": "Police Register Act § 39: the role works with children.",
+          "requirements": ["gdpr:6", "gdpr:10"]
         }
       }
     },
     "settings": {
       "intro": {
-        "title": "Privacy notice and retention",
-        "body": "Set how long candidate data is kept and write the privacy notice candidates receive. The nightly job erases candidates whose retention date has passed.",
+        "title": "Privacy notice, retention and checks",
+        "body": "Choose the privacy notice candidates get, link the records that cover recruitment in Privacy and AI governance, and decide how long data is kept and which checks each risk level needs.",
         "steps": [
-          "Write the notice in plain language and give it a version number.",
-          "Choose the retention period after a requisition closes, and the longer period for the talent pool.",
-          "Change the version whenever the notice text changes."
+          "Choose the approved privacy notice in Documents.",
+          "Create or link the record of processing, and a DPIA when the page advises it.",
+          "Set the retention periods; the nightly run deletes candidates when they pass."
         ]
       },
       "why": {
-        "body": "Storage limitation and transparency are GDPR principles: candidates must know how long their data is kept, and it must be deleted afterwards.",
-        "clauses": ["gdpr:5", "gdpr:13", "gdpr:17"]
+        "body": "GDPR requires that candidates are told how their data is used, that processing is recorded and assessed, and that data is deleted when it is no longer needed. AI used in hiring is high-risk under the AI Act.",
+        "clauses": ["gdpr:5", "gdpr:13", "gdpr:17", "gdpr:30", "gdpr:35", "eu_ai_act:26"]
       },
       "fields": {
         "retention_days": {
-          "help": "Days after the requisition closes before an unsuccessful candidate is erased. Six months is common so you can answer complaints.",
-          "example": "180"
+          "help": "Days after the application closes before a candidate who did not get the job is deleted. Six months is common, so you can answer complaints.",
+          "example": "180",
+          "requirements": ["gdpr:5"]
         },
         "talent_pool_days": {
           "help": "Days a consenting candidate stays in the talent pool after their last application.",
-          "example": "730"
+          "example": "730",
+          "requirements": ["gdpr:5", "gdpr:7"]
         },
         "privacy_notice": {
-          "help": "Who you are, why you process the data, the legal basis, how long you keep it, who sees it and how candidates use their rights.",
-          "example": "We process your application to assess you for the position…"
+          "help": "Who the organisation is, why it processes the data, the lawful basis, how long it is kept, who sees it and how candidates use their rights. Better: approve it as a document and choose it above.",
+          "example": "We process your application to assess you for the position …",
+          "requirements": ["gdpr:13"]
+        },
+        "hired_retention_days": {
+          "help": "Days after a hire before the recruitment data (scorecards, screening notes, checks) is deleted. The employee record in People stays. 180 days covers a six-month probation.",
+          "example": "180",
+          "requirements": ["gdpr:5"]
         }
+      }
+    },
+    "overview": {
+      "intro": {
+        "title": "Recruitment at a glance",
+        "body": "See what needs you now: approvals, screening that is not finished, checks past their deadline, offers and candidates to delete. Every number opens the list behind it.",
+        "steps": [
+          "Start with the tiles that are not zero.",
+          "Open a requisition to follow its candidates stage by stage.",
+          "Use the figures at the bottom in the management review."
+        ]
+      },
+      "why": {
+        "body": "Fair, checked and lawful hiring is evidence for several standards at once: competence (shared ISO requirement 7.2), screening before employment (ISO 27001 A.6.1) and storage limitation (GDPR art. 5). This page shows whether it is happening.",
+        "clauses": ["hs:7.2", "iso27001:A.6.1", "gdpr:5", "hs:9.3"]
       }
     }
   },
@@ -381,6 +424,40 @@
         "title": "Follow the status",
         "body": "Filter by status to see what is waiting for approval, what is open and what is closed."
       }
+    ],
+    "overview": [
+      {
+        "target": "recruitment-overview-attention",
+        "title": "What needs you now",
+        "body": "Each tile counts something to follow up. Click it to open the list behind the number."
+      },
+      {
+        "target": "recruitment-overview-kpis",
+        "title": "Figures for the management review",
+        "body": "Time to hire, checks done and rejection reasons show that hiring is fair and controlled."
+      }
     ]
+  },
+  "glossary": {
+    "job-requisition": {
+      "term": "Job requisition",
+      "definition": "The approved request to fill a position: why it is needed, its risk level and the criteria.",
+      "clauses": ["hs:7.1"]
+    },
+    "screening": {
+      "term": "Screening",
+      "definition": "The first assessment of an application against the agreed criteria, before interviews.",
+      "clauses": ["iso27001:A.6.1"]
+    },
+    "background-check": {
+      "term": "Background check",
+      "definition": "Verifying identity, references, history and similar before employment, in proportion to the risk of the role.",
+      "clauses": ["iso27001:A.6.1"]
+    },
+    "talent-pool": {
+      "term": "Talent pool",
+      "definition": "Candidates kept for future positions. Only with their consent, and only for a set time.",
+      "clauses": ["gdpr:7"]
+    }
   }
 }

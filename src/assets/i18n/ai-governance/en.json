@@ -1,6 +1,5 @@
 {
   "nav": {
-    "label": "AI governance sections",
     "overview": "Overview",
     "systems": "AI systems",
     "assessments": "Assessments",
@@ -23,7 +22,10 @@
     "notSet": "Not set",
     "notYet": "Not yet",
     "noDueDate": "No due date",
-    "overdue": "Overdue"
+    "overdue": "Overdue",
+    "required": "Required",
+    "change": "Change",
+    "noOwner": "No owner"
   },
   "fields": {
     "name": "Name",
@@ -31,7 +33,7 @@
     "intendedPurpose": "Intended purpose",
     "role": "AI Act role",
     "status": "Status",
-    "provider": "Provider / vendor",
+    "provider": "Provider (name)",
     "models": "Models",
     "dataCategories": "Data categories",
     "usesPersonalData": "Uses personal data",
@@ -48,7 +50,12 @@
     "title": "Title",
     "dueAt": "Due date",
     "answers": "Answers",
-    "result": "Outcome"
+    "result": "Outcome",
+    "supplier": "Supplier",
+    "processingActivity": "Processing activity (records of processing)",
+    "dpia": "Data protection impact assessment (DPIA)",
+    "overseers": "Responsible for human oversight",
+    "monitoringMetrics": "Monitoring metrics"
   },
   "filters": {
     "status": "Status",
@@ -60,7 +67,9 @@
     "anyRisk": "Any risk class",
     "anyRole": "Any role",
     "anyKind": "Any type",
-    "noMatch": "Nothing matches these filters."
+    "noMatch": "Nothing matches these filters.",
+    "clear": "Clear the filters",
+    "needsReview": "Only assessments that need a review"
   },
   "risk": {
     "unclassified": "Not classified",
@@ -78,10 +87,15 @@
   },
   "riskExplainByRole": {
     "deployer": {
-      "high": "A high-risk AI system (Art. 6) that you deploy. The technical documentation, conformity assessment and registration are the provider's duties. As deployer you use the system according to the provider's instructions for use, assign competent human oversight, monitor it, keep the logs and inform the people affected (Art. 26)."
+      "high": "A high-risk AI system (Art. 6) that you deploy. The technical documentation, conformity assessment and registration are the provider's duties. As deployer you use the system according to the provider's instructions for use, assign competent human oversight, monitor it, keep the logs and inform the people affected (Art. 26).",
+      "limited": "Limited risk. The transparency duties in Art. 50(1)-(2), such as telling people they are talking to AI and marking generated content, apply to the provider. Check that your supplier meets them. As a deployer you must say so when the system recognises emotions, categorises people biometrically or creates deep fakes (Art. 50(3)-(4)), and make sure the people who use it have AI literacy (Art. 4)."
     },
     "other": {
-      "high": "A high-risk AI system (Art. 6) that you pass on rather than provide. Before making it available, check that the provider has carried out the conformity assessment, drawn up the technical documentation and affixed the CE marking (Art. 22-24)."
+      "high": "A high-risk AI system (Art. 6) that you pass on rather than provide. Before making it available, check that the provider has carried out the conformity assessment, drawn up the technical documentation and affixed the CE marking (Art. 22-24).",
+      "limited": "Limited risk. The transparency duties in Art. 50 apply to the provider. Before you make the system available, check that the provider has built them in."
+    },
+    "builtin": {
+      "limited": "Limited risk. This is a built-in feature of the platform: the platform, as the provider, tells users they are working with AI and marks generated content (Art. 50(1)-(2)). Your part is to make sure the people who use it have AI literacy (Art. 4)."
     }
   },
   "status": {
@@ -127,7 +141,7 @@
     "approved": "Approved"
   },
   "taskStatus": {
-    "open": "Task open",
+    "open": "Open",
     "in_progress": "In progress",
     "blocked": "Blocked",
     "done": "Done",
@@ -203,44 +217,79 @@
     "friaRequired": "As a deployer you must carry out a fundamental rights impact assessment (FRIA) before first use (Art. 27).",
     "exceptionApplied": "The Art. 6(3) exception was applied. Document why the system is not high-risk and register it (Art. 6(4)).",
     "reasons": "Why",
-    "obligations": "Obligations ({{ count }})"
+    "obligations": "{{ count }} obligations for you",
+    "obligationsOne": "1 obligation for you",
+    "providerObligations": "The provider's duties",
+    "providerObligationsHint": "You deploy this system, so these duties belong to the provider. Ask your supplier to confirm that they are met.",
+    "current": "Current:",
+    "new": "New:",
+    "downgradeHint": "This lowers the risk class. Obligations that no longer apply stop counting, so you will be asked to confirm.",
+    "undecided": "Not decided yet. Answer the questions about prohibited practices, high risk and transparency to see the result."
   },
   "obligations": {
     "none": "No specific obligations for this classification.",
     "noTask": "No task",
-    "openTask": "Open the task"
+    "createTask": "Create task",
+    "taskCreated": "Task created and linked to the obligation.",
+    "task": "Task: {{ status }}",
+    "edit": "Update",
+    "editFor": "Update status and documentation for “{{ title }}”",
+    "statusLabel": "Status",
+    "statusAuto": "Follow the task",
+    "reasonLabel": "Why is it not relevant?",
+    "reason": "Not relevant: {{ reason }}",
+    "evidence": "Documented in",
+    "evidenceLabel": "Documentation that shows it is met (optional)",
+    "evidencePlaceholder": "Search documents, courses, risks, contracts …",
+    "evidenceHint": "The record is also linked to the AI system, so auditors find it from both sides.",
+    "saved": "The obligation is updated."
   },
   "overview": {
-    "title": "AI governance",
-    "subtitle": "ISO/IEC 42001 and the EU AI Act: know your AI systems, their risks and your duties.",
+    "subtitle": "ISO/IEC 42001 and the EU AI Act: know your AI systems, their risk and your duties.",
     "systems": "AI systems",
     "highRisk": "High-risk systems",
-    "assessmentsOpen": "Open assessments",
-    "literacy": "AI literacy coverage",
+    "literacy": "AI literacy",
     "startTitle": "Start your AI inventory",
     "startBody": "List every AI system you build or use, including tools bought from vendors. A good first example is this platform's own AI features: register them with one click and see how they are classified.",
-    "attention": "Needs attention",
-    "allGood": "Nothing needs attention right now.",
-    "attentionItems": {
-      "unclassified": "{{ count }} AI system(s) not classified yet",
-      "prohibited": "{{ count }} system(s) classified as a prohibited practice",
-      "assessmentsOverdue": "{{ count }} assessment(s) overdue",
-      "reviewsOverdue": "{{ count }} system review(s) overdue",
-      "monitoringFailures": "{{ count }} failed monitoring result(s) in the last 30 days",
-      "noPolicy": "No AI policy linked yet"
-    },
+    "attention": "Needs follow-up",
+    "allGood": "Nothing needs follow-up right now.",
     "byRisk": "By risk class",
     "byStatus": "By status",
-    "linkSystems": "The inventory of AI systems you build or use.",
-    "linkAssessments": "Classifications, impact assessments and FRIAs.",
-    "linkLiteracy": "Who has the AI knowledge their role needs."
+    "obligationsMet": "Obligations met",
+    "ofTotal": "{{ done }} of {{ total }}",
+    "awaitingApproval": "Waiting for approval",
+    "drafts": "Draft assessments",
+    "overdue": "{{ count }} past due",
+    "literacyScope": "of {{ count }} people in scope",
+    "attentionHint": "The most important first. Each line opens the place to fix it.",
+    "severity": {
+      "high": "High priority",
+      "medium": "Medium priority",
+      "low": "Low priority"
+    },
+    "readiness": "Requirement coverage",
+    "readinessHint": "How many requirements of the standards are documented, from Standards and requirements.",
+    "readinessNone": "ISO/IEC 42001 and the AI Act are not enabled as standards yet.",
+    "readinessOpen": "Open Standards and requirements",
+    "readinessLine": "{{ score }} % · {{ covered }} of {{ total }} requirements",
+    "frameworks": {
+      "iso42001": "ISO/IEC 42001",
+      "eu_ai_act": "EU AI Act"
+    },
+    "soa": "Statement of Applicability for ISO/IEC 42001",
+    "policy": "AI policy",
+    "noPolicy": "No AI policy is linked yet.",
+    "linkPolicy": "Link the AI policy",
+    "termSystem": "What counts as an AI system?",
+    "termHighRisk": "What is high risk?",
+    "termLiteracy": "What is AI literacy?"
   },
   "systems": {
     "title": "AI systems",
     "searchPlaceholder": "Search by name, code, purpose or provider",
     "new": "Register AI system",
     "registerPlatform": "Register this platform's AI features",
-    "registered": "{{ count }} AI feature(s) of this platform registered.",
+    "registered": "{{ count }} platform AI features registered.",
     "alreadyRegistered": "This platform's AI features are already in the inventory.",
     "builtin": "Platform feature",
     "backToList": "Back to AI systems",
@@ -253,7 +302,11 @@
       "-updated_at": "Recently updated",
       "risk_class": "Risk class",
       "status": "Status"
-    }
+    },
+    "subtitle": "Every AI system you make or use, with its risk class and how far the obligations have come.",
+    "registeredOne": "1 platform AI feature registered.",
+    "registerPlatformHint": "This platform has AI features of its own. Register them to see how they are classified.",
+    "obligationsMet": "{{ met }} of {{ total }} obligations met"
   },
   "systemForm": {
     "newTitle": "Register AI system",
@@ -262,27 +315,69 @@
     "created": "{{ code }} registered.",
     "updated": "{{ code }} saved.",
     "tagsPlaceholder": "Separate with commas",
-    "askRole": "Help me decide whether we are the provider or the deployer of this AI system under the EU AI Act."
+    "askRole": "Help me decide whether we are the provider or the deployer of this AI system under the EU AI Act.",
+    "sections": {
+      "what": "What the system is",
+      "source": "Where it comes from and which data it uses",
+      "people": "Who is responsible",
+      "metrics": "What you measure"
+    },
+    "supplierPlaceholder": "Search suppliers by name or code",
+    "supplierHint": "Linking the supplier shows its contracts, data processing agreement and evaluations.",
+    "ropaPlaceholder": "Search processing activities",
+    "ropaHint": "The processing activity in Privacy that describes this use of personal data.",
+    "addOverseer": "Add a person …",
+    "removeOverseer": "Remove {{ name }}",
+    "oversightTerm": "Human oversight:",
+    "oversightHint": "the people who can understand, overrule or stop the system.",
+    "askPurpose": "Help me describe the intended purpose of this AI system in plain words.",
+    "askOversight": "What does human oversight of this AI system involve, and who should be responsible?",
+    "metricsHint": "Define what you check and the limit it must stay within. Measurements are then judged automatically.",
+    "addMetric": "Add a metric",
+    "removeMetric": "Remove the metric {{ metric }}",
+    "direction": "The value must be",
+    "directionMin": "at least the threshold",
+    "directionMax": "at most the threshold",
+    "unit": "Unit (optional)",
+    "changeReasonHint": "Saved with the change history."
   },
   "systemDetail": {
     "about": "About this system",
     "classify": "Classify",
     "reclassify": "Classify again",
-    "notClassified": "Not classified",
     "classification": "AI Act classification",
-    "openClassification": "Open the classification",
-    "unclassifiedHint": "Run the classification wizard to find the risk class and the obligations that apply. Each obligation becomes a task.",
+    "unclassifiedHint": "Run the classification wizard to find the risk class and the obligations that apply.",
     "transparency": "Transparency duties",
     "assessments": "Assessments",
     "newImpact": "New impact assessment",
-    "newFria": "New FRIA",
+    "newFria": "New FRIA (fundamental rights)",
     "noAssessments": "No assessments yet.",
     "documentation": "Documentation and technical file",
-    "documentationHint": "{{ count }} section(s) written. Data and model documentation, human oversight, logging, accuracy and the Annex IV technical file.",
+    "documentationHint": "Data and model documentation, human oversight, logging, accuracy and the technical file under Annex IV.",
     "openDocumentation": "Open documentation",
     "deleteTitle": "Delete this AI system?",
     "deleteMessage": "\"{{ name }}\" and its assessments are removed from the inventory and its open tasks are cancelled. The history is kept in the audit log.",
-    "deleted": "{{ code }} deleted."
+    "deleted": "{{ code }} deleted.",
+    "obligations": "Obligations",
+    "obligationsMet": "{{ met }} of {{ total }} met",
+    "classifiedOn": "Classified {{ date }}",
+    "friaRequired": "FRIA required",
+    "friaRequiredBody": "required before first use (Art. 27). It has not been done yet.",
+    "friaDone": "required (Art. 27), and it has been done.",
+    "friaVoluntary": "not required for this system, but you can do one voluntarily.",
+    "noRopa": "Link the processing activity in the form.",
+    "noDpia": "No DPIA is linked.",
+    "dpiaRecommended": "A DPIA is recommended for this system (GDPR Art. 35, AI Act Art. 26(9)).",
+    "createDpia": "Create DPIA",
+    "noOverseers": "Nobody is named yet.",
+    "literacyMissing": "AI literacy missing",
+    "providerBuiltin": "The platform is the provider of this built-in feature and covers these duties. They are listed so you can see who does what.",
+    "governanceProgress": "Governance: {{ done }} of {{ total }} parts",
+    "annexProgress": "Annex IV: {{ done }} of {{ total }} points",
+    "annexOptional": "Annex IV is optional for you",
+    "risks": "AI risks",
+    "risksHint": "Record the risks this system brings in the Risk module (ISO/IEC 42001 6.1.2). Linked risks show under Connections.",
+    "createRisk": "Create AI risk"
   },
   "wizard": {
     "title": "Classify: {{ name }}",
@@ -299,7 +394,7 @@
     "complete": "Complete classification",
     "completeHint": "Completing sets the system's risk class and obligations. Someone else with approval rights then approves it.",
     "saved": "Classification draft saved.",
-    "completed": "Classification completed. {{ count }} task(s) created.",
+    "completed": "The classification is complete. {{ count }} tasks created.",
     "locked": "This classification is completed. Reopen it from the assessment to change the answers.",
     "suggestionTitle": "Suggested answers",
     "suggestionHint": "The assistant filled in answers from the system's description. Review every step before you complete; you are responsible for the classification.",
@@ -366,7 +461,15 @@
       "deployer_public_service": "Public service",
       "deployer_credit_or_insurance": "Credit or insurance",
       "notes": "Notes"
-    }
+    },
+    "crumb": "Classify",
+    "visited": "Seen",
+    "prefilled": "The answers from the current classification are filled in. Change what is different and complete it again.",
+    "visitAll": "Go through every step before you complete it ({{ left }} of {{ total }} left).",
+    "completedOne": "The classification is complete. 1 task created.",
+    "downgradeTitle": "Lower the risk class?",
+    "downgradeMessage": "The system goes from {{ from }} to {{ to }}. Obligations that no longer apply stop counting. Check that the answers are right before you continue.",
+    "downgradeConfirm": "Yes, lower the risk class"
   },
   "answers": {
     "role": "Role: {{ role }}",
@@ -395,7 +498,10 @@
       "code": "Code (oldest first)",
       "-code": "Code (newest first)",
       "title": "Title (A–Z)"
-    }
+    },
+    "subtitle": "Classifications, impact assessments and FRIAs for every AI system.",
+    "needsReview": "Needs review",
+    "progress": "{{ done }} of {{ total }} required parts written"
   },
   "assessmentNew": {
     "title": "New assessment",
@@ -404,7 +510,10 @@
     "titlePlaceholder": "Leave empty for a title based on the system",
     "openWizard": "Open the classification wizard",
     "create": "Create draft",
-    "created": "{{ code }} created. Write the sections next."
+    "created": "{{ code }} created. Write the sections next.",
+    "friaNotRequired": "(not required for this system)",
+    "whatIsFria": "What is a FRIA?",
+    "nextReviewHint": "Leave empty to use the review interval from the settings."
   },
   "assessmentEdit": {
     "title": "Edit {{ code }}",
@@ -412,9 +521,11 @@
     "locked": "Only draft assessments can be edited. Reopen the assessment to change it.",
     "required": "Required",
     "ask": "Help me write the \"{{ section }}\" section of this AI assessment.",
-    "drafted": "{{ count }} empty section(s) drafted. Review and edit them before saving.",
+    "drafted": "{{ count }} empty parts have a draft. Review and edit them before you save.",
     "nothingDrafted": "Nothing to fill in: every section already has text.",
-    "saved": "Assessment saved."
+    "saved": "Assessment saved.",
+    "draftedOne": "1 empty part has a draft. Review and edit it before you save.",
+    "inWizard": "Classifications are changed in the classification wizard, step by step."
   },
   "assessmentDetail": {
     "complete": "Complete",
@@ -427,9 +538,9 @@
     "outcome": "Outcome",
     "notCompletedHint": "The outcome is stored when the classification is completed.",
     "empty": "Not written yet.",
-    "createTasks": "Create the follow-up tasks (for a FRIA: notifying the market surveillance authority, Art. 27(3))",
+    "createTasks": "Create the follow-up tasks",
     "selfApprovalHint": "You completed this assessment, so someone else must approve it.",
-    "missing": "Complete these required sections first: {{ sections }}",
+    "missing": "Missing before you can complete it: {{ sections }}",
     "deleted": "{{ code }} deleted.",
     "confirm": {
       "complete": {
@@ -454,9 +565,22 @@
       }
     },
     "done": {
-      "complete": "{{ code }} completed. {{ count }} task(s) created.",
+      "complete": "{{ code }} is complete. {{ count }} tasks created.",
       "approve": "{{ code }} approved.",
-      "reopen": "{{ code }} reopened."
+      "reopen": "{{ code }} reopened.",
+      "completeOne": "{{ code }} is complete. 1 task created."
+    },
+    "openWizard": "Open in the wizard",
+    "continue": "Continue writing",
+    "completeBlocked": "Write the required parts first.",
+    "progress": "{{ done }} of {{ total }} required parts written",
+    "progressOne": "1 of {{ total }} required parts written",
+    "readyToComplete": "All required parts are written. You can complete the assessment.",
+    "createTasksFria": "Create the follow-up tasks, including notifying the market surveillance authority (Art. 27(3))",
+    "reviewSaved": "Next review date saved.",
+    "reviewFlag": {
+      "reclassified": "The AI system has been reclassified since this assessment was done. Review it.",
+      "system_changed": "The AI system has changed since this assessment was done (purpose, role, models or data). Review it."
     }
   },
   "sections": {
@@ -525,12 +649,10 @@
     "title": "Documentation: {{ name }}",
     "required": "Annex IV required",
     "requiredBody": "This is a high-risk system: the technical documentation in Annex IV must be drawn up before it is placed on the market or put into service, and kept up to date (Art. 11).",
-    "providerDuty": "Annex IV: the provider's duty",
     "deployerBody": "You deploy this high-risk system, so drawing up the Annex IV technical file is the provider's duty. Ask the provider for its instructions for use and follow them, assign human oversight and keep the logs. The sections below help you record how you use the system.",
     "otherBody": "You import, distribute or represent this high-risk system, so you do not draw up the Annex IV technical file yourselves. Check that the provider has drawn it up and keeps it available before the system is made available.",
-    "guidanceRefs": "See {{ refs }}.",
     "optionalBody": "Annex IV is only mandatory for high-risk systems, but writing these sections is good practice under ISO/IEC 42001 and helps if the classification changes.",
-    "completeness": "Annex IV: {{ done }} of {{ total }} sections written",
+    "completeness": "Annex IV: {{ done }} of {{ total }} points documented",
     "completenessLabel": "Annex IV completeness",
     "complete": "Written",
     "saved": "Section saved.",
@@ -538,7 +660,25 @@
     "groups": {
       "governance": "Governance documentation",
       "annex_iv": "Technical documentation (Annex IV)"
-    }
+    },
+    "optionalForYou": "Annex IV optional for you",
+    "requiredShort": "Required before the system is placed on the market (Art. 11).",
+    "optionalShort": "Optional, but good practice under ISO/IEC 42001.",
+    "governanceDone": "Governance documentation: {{ done }} of {{ total }} parts",
+    "fromProvider": "Get this from the provider",
+    "fromProviderHint": "As a deployer you rely on the provider’s documentation. Keep these where you can show them.",
+    "annexPoint": "Annex IV point {{ point }}",
+    "groupHints": {
+      "governance": "How you govern the system day to day (ISO/IEC 42001).",
+      "annex_iv": "The technical file in Annex IV of the AI Act, point by point."
+    },
+    "linkedDocument": "Controlled document that holds this part (optional)",
+    "documentPlaceholder": "Search documents",
+    "text": "Text",
+    "heldIn": "Kept in",
+    "notWritten": "Not written yet.",
+    "export": "Export technical file (PDF)",
+    "crumb": "Documentation"
   },
   "docSections": {
     "data_documentation": {
@@ -615,13 +755,22 @@
     "notes": "Notes",
     "save": "Save measurement",
     "saved": "Measurement recorded.",
-    "savedAlert": "Measurement recorded. A failed result alerts the system owner.",
+    "savedAlert": "The measurement did not pass. The system owner has been notified.",
     "empty": "No measurements yet. Record accuracy, bias or drift checks to show the system keeps performing as intended.",
     "valueLine": "Value {{ value }}",
     "thresholdLine": "threshold {{ value }}",
     "delete": "Delete measurement {{ metric }}",
     "deleteTitle": "Delete this measurement?",
-    "deleteMessage": "\"{{ metric }}\" is removed from the monitoring log."
+    "deleteMessage": "\"{{ metric }}\" is removed from the monitoring log.",
+    "defined": "What is measured",
+    "noMetrics": "No metrics are defined. Add them in the system form so results are judged automatically.",
+    "atLeast": "at least {{ value }} {{ unit }}",
+    "atMost": "at most {{ value }} {{ unit }}",
+    "pickMetric": "Metric",
+    "otherMetric": "Another metric …",
+    "resultAuto": "Judge it from the threshold",
+    "failedAlert": "“{{ metric }}” did not pass. Should it be reported as an AI incident?",
+    "reportIncident": "Report AI incident"
   },
   "incidents": {
     "title": "AI incidents",
@@ -655,9 +804,7 @@
     "covered": "Covered",
     "expired": "Expired",
     "missing": "Missing",
-    "coverageOf": "{{ covered }} of {{ total }} members have valid AI literacy",
-    "missingUsers": "No record yet",
-    "expiredUsers": "Record expired",
+    "coverageOf": "{{ covered }} of {{ total }} people have valid AI literacy",
     "valid": "Valid",
     "expiredOne": "Expired",
     "validUntil": "Valid until {{ date }}",
@@ -674,7 +821,24 @@
     "validUntilLabel": "Valid until (optional)",
     "validUntilHint": "Leave empty to use the organisation's validity period.",
     "notes": "Notes",
-    "saved": "AI literacy recorded."
+    "saved": "AI literacy recorded.",
+    "subtitle": "Who has the AI literacy their work requires (AI Act Art. 4).",
+    "viaTraining": "{{ count }} through Training",
+    "scope": {
+      "all": "Measured over everyone in the organisation.",
+      "ai_users": "Measured over the people who own or oversee AI systems in use."
+    },
+    "changeScope": "Change",
+    "needsAttention": "Missing or expired ({{ count }})",
+    "searchPeople": "Search by name or department",
+    "noDepartment": "No department",
+    "recordFor": "Record AI literacy for {{ name }}",
+    "showAll": "Show all ({{ count }})",
+    "courses": "Courses that count automatically",
+    "coursesHint": "Completions of these Training courses count as AI literacy.",
+    "noCourses": "No course is tagged as AI literacy. Give a course the category “AI literacy” in Training so its completions count here.",
+    "records": "Recorded briefings and courses",
+    "termLink": "What does AI literacy mean?"
   },
   "settings": {
     "title": "AI governance settings",
@@ -685,14 +849,23 @@
     "removePolicy": "Remove",
     "findPolicy": "Link a controlled document as the AI policy",
     "findPolicyPlaceholder": "Search documents",
-    "officer": "AI governance officer",
+    "officer": "Responsible for AI governance",
     "literacyValidity": "AI literacy valid for (months)",
-    "reviewInterval": "Review AI systems every (months)",
+    "reviewInterval": "Review AI systems and assessments every (months)",
     "updatedAt": "Last changed {{ date }}",
-    "saved": "Settings saved."
-  },
-  "lesson": {
-    "label": "Lesson: {{ title }} · {{ minutes }} min"
+    "saved": "Settings saved.",
+    "subtitle": "The AI policy, who is responsible and how AI literacy and reviews are followed up.",
+    "literacyScope": "Measure AI literacy over",
+    "scopes": {
+      "all": {
+        "label": "Everyone in the organisation",
+        "hint": "Every member counts, also those who never use AI."
+      },
+      "ai_users": {
+        "label": "People who work with AI systems",
+        "hint": "Owners and overseers of AI systems in use (Art. 4 covers staff who operate or use AI)."
+      }
+    }
   },
   "ai": {
     "groupLabel": "Assistant actions",
@@ -738,7 +911,18 @@
     "section_too_long": "A section is too long.",
     "title_required": "Give it a title.",
     "unknown_section": "This section is not recognised.",
-    "module_disabled": "AI governance is not enabled for this organisation."
+    "module_disabled": "AI governance is not enabled for this organisation.",
+    "classification_downgrade": "This lowers the risk class. Confirm it before you complete.",
+    "reason_required": "Say why the obligation is not relevant.",
+    "reason_too_long": "The reason is too long.",
+    "obligation_not_found": "This obligation no longer applies to the system.",
+    "obligation_has_task": "This obligation already has an open task.",
+    "invalid_supplier": "Choose a supplier in this organisation.",
+    "invalid_ropa_entry": "Choose a processing activity in this organisation.",
+    "duplicate_metric": "Two metrics have the same name.",
+    "metric_required": "Give every metric a name.",
+    "too_many_metrics": "You can define at most 30 metrics.",
+    "too_many_overseers": "You can name at most 20 people."
   },
   "notifications": {
     "systemCreated": "AI system {{ code }} \"{{ title }}\" registered",
@@ -760,7 +944,7 @@
     "systemUpdated": "{{ actor_name }} updated the AI system",
     "systemOwnerChanged": "{{ actor_name }} changed the owner",
     "systemStatusChanged": "{{ actor_name }} changed the status",
-    "systemClassified": "{{ actor_name }} completed the classification ({{ obligations }} obligation(s), {{ tasks_created }} task(s) created)",
+    "systemClassified": "{{ actor_name }} completed the classification. Obligations: {{ obligations }}, new tasks: {{ tasks_created }}",
     "systemMonitored": "{{ actor_name }} recorded a measurement: {{ metric }}",
     "systemMonitoringAlert": "{{ actor_name }} recorded a failed measurement: {{ metric }}",
     "systemDeleted": "{{ actor_name }} deleted the AI system",
@@ -769,5 +953,108 @@
     "assessmentApproved": "{{ actor_name }} approved the assessment",
     "assessmentReopened": "{{ actor_name }} reopened the assessment",
     "assessmentDeleted": "{{ actor_name }} deleted the assessment"
+  },
+  "kindShort": {
+    "classification": "Classification",
+    "impact": "Impact assessment",
+    "fria": "FRIA"
+  },
+  "obligationStatus": {
+    "not_started": "Not started",
+    "in_progress": "In progress",
+    "met": "Met",
+    "not_relevant": "Not relevant"
+  },
+  "attention": {
+    "prohibited": {
+      "one": "1 AI system is classified as a prohibited practice",
+      "many": "{{ count }} AI systems are classified as a prohibited practice",
+      "named": "{{ code }} {{ name }} is classified as a prohibited practice"
+    },
+    "unclassified": {
+      "one": "1 AI system is not classified yet",
+      "many": "{{ count }} AI systems are not classified yet",
+      "named": "{{ code }} {{ name }} is not classified yet"
+    },
+    "no_policy": {
+      "one": "No AI policy is linked yet",
+      "many": "No AI policy is linked yet",
+      "named": "No AI policy is linked yet"
+    },
+    "fria_missing": {
+      "one": "1 high-risk system needs a fundamental rights impact assessment (FRIA)",
+      "many": "{{ count }} high-risk systems need a fundamental rights impact assessment (FRIA)",
+      "named": "{{ code }} {{ name }} needs a fundamental rights impact assessment (FRIA)"
+    },
+    "obligations_without_task": {
+      "one": "1 obligation has no task yet",
+      "many": "{{ count }} obligations have no task yet",
+      "named": "{{ count }} obligations of {{ code }} {{ name }} have no task yet"
+    },
+    "documentation_incomplete": {
+      "one": "1 high-risk system has incomplete documentation",
+      "many": "{{ count }} high-risk systems have incomplete documentation",
+      "named": "The documentation of {{ code }} {{ name }} is incomplete"
+    },
+    "literacy_gap": {
+      "one": "1 person lacks valid AI literacy",
+      "many": "{{ count }} people lack valid AI literacy",
+      "named": "1 person lacks valid AI literacy"
+    },
+    "awaiting_approval": {
+      "one": "1 assessment is waiting for approval",
+      "many": "{{ count }} assessments are waiting for approval",
+      "named": "1 assessment is waiting for approval"
+    },
+    "assessments_need_review": {
+      "one": "1 assessment needs a review because the system changed",
+      "many": "{{ count }} assessments need a review because the system changed",
+      "named": "1 assessment needs a review because the system changed"
+    },
+    "monitoring_missing": {
+      "one": "1 high-risk system in use has no recent monitoring",
+      "many": "{{ count }} high-risk systems in use have no recent monitoring",
+      "named": "{{ code }} {{ name }} has no monitoring in the last 90 days"
+    },
+    "draft_assessments": {
+      "one": "1 assessment is still a draft",
+      "many": "{{ count }} assessments are still drafts",
+      "named": "1 assessment is still a draft"
+    }
+  },
+  "next": {
+    "prohibited": {
+      "title": "Stop using {{ code }} {{ name }}",
+      "why": "It is classified as a prohibited AI practice (AI Act Art. 5)."
+    },
+    "unclassified": {
+      "title": "Classify {{ count }} AI systems",
+      "why": "The risk class decides which AI Act obligations apply."
+    },
+    "friaMissing": {
+      "title": "Do a fundamental rights impact assessment for {{ code }} {{ name }}",
+      "why": "Required before first use of this high-risk system (AI Act Art. 27)."
+    },
+    "obligationsWithoutTask": {
+      "title": "Plan {{ count }} AI obligations",
+      "why": "Obligations without a task or status are easy to forget."
+    },
+    "documentationIncomplete": {
+      "title": "Complete the documentation of {{ count }} high-risk AI systems",
+      "why": "Auditors and authorities ask for it (AI Act Art. 11, ISO/IEC 42001 7.5)."
+    },
+    "awaitingApproval": {
+      "title": "Approve {{ count }} AI assessments",
+      "why": "A classification or assessment counts as evidence once it is approved."
+    },
+    "assessmentsNeedReview": {
+      "title": "Review {{ count }} AI assessments",
+      "why": "The AI system changed after the assessment was done (ISO/IEC 42001 A.5.2)."
+    }
+  },
+  "picker": {
+    "placeholder": "Search …",
+    "noResults": "Nothing found.",
+    "remove": "Remove {{ name }}"
   }
 }

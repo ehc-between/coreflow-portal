@@ -11,19 +11,28 @@ import {
 import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { providePageContext } from '../../../core/ai/page-context';
+import { LanguageService } from '../../../core/i18n/language.service';
 import { WatchButton } from '../../../shared/activity/watch-button';
-import { GuideIntro } from '../../../shared/guidance/guide-intro';
+import { AskAbout } from '../../../shared/ask/ask-about';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { RecordDetailLayout, RecordTab } from '../../../shared/kit/record-detail-layout';
 import { LocalDatePipe, LocalDayPipe } from '../../../shared/locale/locale-pipes';
-import { SupportsRequirements } from '../../../shared/requirement-links/supports-requirements';
-import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
+import { FieldItem, FieldList } from '../../../shared/ui/field-list/field-list';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
+import { Icon } from '../../../shared/ui/icon/icon';
+import { MenuItem } from '../../../shared/ui/overflow-menu/overflow-menu';
 import { PromptDialog } from '../../../shared/ui/prompt-dialog/prompt-dialog';
+import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { AuditAccess } from '../data/audit-access';
-import { planStatusTone, programmeStatusTone, riskTone } from '../data/audit-display';
+import {
+  leadAuditorName,
+  planStatusBadge,
+  programmeStatusBadge,
+  riskBadge,
+} from '../data/audit-display';
 import {
   PLAN_STATUSES,
   ProgrammeAction,
@@ -31,9 +40,11 @@ import {
   REASON_REQUIRED,
 } from '../data/audit.models';
 import { AuditsApi } from '../data/audits-api';
+import { AuditsNav } from '../shared/audits-nav';
 import { AuditLoadState } from '../shared/load-state';
 import { loadable } from '../shared/loadable';
 import { mutator } from '../shared/mutator';
+import { ProgrammeCoverage } from './programme-coverage';
 
 const TABS: readonly RecordTab[] = [
   'details',
@@ -55,7 +66,11 @@ export const PROGRAMME_FIELD_LABELS: Readonly<Record<string, string>> = {
   owner_user_id: 'audits.fields.owner',
 };
 
-/** `/audits/programmes/:id`: an audit programme with its audits, approval and history. */
+/**
+ * `/audits/programmes/:id`: an audit programme. Its basis (objectives, risks),
+ * the audits in it, and the coverage matrix that shows what has and has not been
+ * audited over the cycle, with "Plan an audit for this" on every gap.
+ */
 @Component({
   selector: 'app-audit-programme-detail',
   imports: [
@@ -65,183 +80,215 @@ export const PROGRAMME_FIELD_LABELS: Readonly<Record<string, string>> = {
     LocalDatePipe,
     RecordDetailLayout,
     WatchButton,
-    GuideIntro,
+    AskAbout,
     WhyItMatters,
-    SupportsRequirements,
-    Badge,
     Button,
     Card,
     ConfirmDialog,
+    FieldItem,
+    FieldList,
+    HelpStrip,
+    Icon,
+    MenuItem,
     PromptDialog,
+    StatusBadge,
+    AuditsNav,
     AuditLoadState,
+    ProgrammeCoverage,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (data.value(); as p) {
+      @let sb = badge(p.status);
       <app-record-detail-layout
         entityType="audit_programme"
         [entityId]="p.id"
+        [title]="p.title"
+        [breadcrumbs]="[
+          { labelKey: 'modules.names.audits', link: '/audits' },
+          { labelKey: 'audits.programmes.title', link: '/audits/programmes' },
+          { label: p.code },
+        ]"
         [tabs]="tabs"
+        [requirementsPanel]="true"
         [canEdit]="access.canWrite()"
         [includeAudit]="access.canReadAudit()"
         [fieldLabels]="fieldLabels"
         backLink="/audits/programmes"
         backLabelKey="audits.programmes.back"
       >
-        <div header>
-          <p class="text-[12.5px] font-semibold text-fg-subtle">{{ p.code }} · {{ p.year }}</p>
-          <h1 class="font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]">
-            {{ p.title }}
-          </h1>
-          <div class="mt-1.5 flex flex-wrap gap-1.5">
-            <app-badge [tone]="tone(p.status)">{{
-              'audits.programmeStatus.' + p.status | transloco
-            }}</app-badge>
-          </div>
-        </div>
-        <div actions class="flex flex-wrap items-center gap-2">
+        <ng-container ngProjectAs="[meta]">
+          <span class="font-mono">{{ p.code }}</span>
+          <span aria-hidden="true">·</span>
+          <span>{{ p.year }}</span>
+          <app-status-badge [meaning]="sb.meaning" [value]="sb.value" [labelKey]="sb.labelKey" />
+          <app-ask-about
+            [prompt]="'audits.programmeDetail.askAbout' | transloco: { code: p.code }"
+          />
           <app-watch-button entityType="audit_programme" [entityId]="p.id" />
-          @for (a of p.available_actions; track a) {
-            <app-button
-              size="sm"
-              [variant]="a === 'approve' ? 'primary' : 'secondary'"
-              [disabled]="saving.busy()"
-              (click)="transition(a)"
-            >
-              {{ 'audits.programmeAction.' + a | transloco }}
-            </app-button>
-          }
-          @if (access.canWrite() && p.status !== 'closed') {
-            <a
-              [routerLink]="['/audits/programmes', p.id, 'edit']"
-              class="inline-flex h-8 items-center rounded-[10px] border border-border px-3 text-[13px] font-semibold text-fg hover:bg-surface-2"
-            >
-              {{ 'audits.common.edit' | transloco }}
-            </a>
-          }
-          @if (access.canManage()) {
-            <app-button size="sm" variant="ghost" (click)="deleting.set(true)">{{
-              'audits.common.delete' | transloco
-            }}</app-button>
-          }
-        </div>
+        </ng-container>
 
-        <div class="flex flex-col gap-4">
-          <app-guide-intro scope="audits" page="programmeDetail" />
+        @if (primary(); as a) {
+          <app-button primary size="sm" [disabled]="saving.busy()" (click)="transition(a)">
+            {{ 'audits.programmeAction.' + a | transloco }}
+          </app-button>
+        }
+        @if (access.canWrite() && p.status !== 'closed') {
+          <a
+            secondary
+            [routerLink]="['/audits/plans/new']"
+            [queryParams]="{ programme: p.id }"
+            class="inline-flex h-8 items-center gap-1.5 rounded-tile border border-border bg-surface px-3 text-ui font-semibold text-fg hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+          >
+            <app-icon name="plus" [size]="13" />
+            {{ 'audits.programmes.addAudit' | transloco }}
+          </a>
+        }
+        @if (access.canWrite() && p.status !== 'closed') {
+          <a
+            secondary
+            [routerLink]="['/audits/programmes', p.id, 'edit']"
+            class="inline-flex h-8 items-center rounded-tile border border-border bg-surface px-3 text-ui font-semibold text-fg hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+          >
+            {{ 'audits.common.edit' | transloco }}
+          </a>
+        }
+        @for (a of rest(); track a) {
+          <button appMenuItem overflow [disabled]="saving.busy()" (click)="transition(a)">
+            {{ 'audits.programmeAction.' + a | transloco }}
+          </button>
+        }
+        @if (access.canManage()) {
+          <button appMenuItem overflow [danger]="true" (click)="deleting.set(true)">
+            {{ 'audits.common.delete' | transloco }}
+          </button>
+        }
+
+        <app-audits-nav nav />
+        <app-help-strip help scope="audits" page="programmeDetail" lesson="internal-audits" />
+
+        <div class="flex flex-col gap-5">
           <app-card>
-            <dl class="grid grid-cols-1 gap-x-6 gap-y-3 text-[13.5px] sm:grid-cols-2">
-              <div class="sm:col-span-2">
-                <dt class="text-[12px] font-semibold text-fg-muted">
-                  {{ 'audits.fields.description' | transloco }}
-                </dt>
-                <dd class="whitespace-pre-line text-fg">{{ p.description || '–' }}</dd>
-              </div>
-              <div class="sm:col-span-2">
-                <dt class="text-[12px] font-semibold text-fg-muted">
-                  {{ 'audits.fields.objectives' | transloco }}
-                </dt>
-                <dd class="whitespace-pre-line text-fg">{{ p.objectives || '–' }}</dd>
-              </div>
-              <div class="sm:col-span-2">
-                <dt class="text-[12px] font-semibold text-fg-muted">
-                  {{ 'audits.fields.riskBasis' | transloco }}
-                </dt>
-                <dd class="whitespace-pre-line text-fg">{{ p.risk_basis || '–' }}</dd>
-              </div>
-              <div>
-                <dt class="text-[12px] font-semibold text-fg-muted">
-                  {{ 'audits.fields.frameworks' | transloco }}
-                </dt>
-                <dd class="text-fg">
-                  @for (f of p.frameworks; track f; let last = $last) {
-                    {{ 'audits.frameworks.' + f | transloco }}{{ last ? '' : ', ' }}
-                  } @empty {
-                    –
-                  }
-                </dd>
-              </div>
-              <div>
-                <dt class="text-[12px] font-semibold text-fg-muted">
-                  {{ 'audits.fields.owner' | transloco }}
-                </dt>
-                <dd class="text-fg">{{ p.owner?.name || '–' }}</dd>
-              </div>
+            <h2 class="mb-4 font-display text-section font-bold text-fg">
+              {{ 'audits.programmeDetail.about' | transloco }}
+            </h2>
+            <app-field-list>
+              <app-field-item
+                labelKey="audits.fields.description"
+                [value]="p.description"
+                [wide]="true"
+                [multiline]="true"
+              />
+              <app-field-item
+                labelKey="audits.fields.objectives"
+                [value]="p.objectives"
+                [wide]="true"
+                [multiline]="true"
+              />
+              <app-field-item
+                labelKey="audits.fields.riskBasis"
+                [value]="p.risk_basis"
+                [wide]="true"
+                [multiline]="true"
+              />
+              <app-field-item
+                labelKey="audits.fields.frameworks"
+                [value]="frameworkNames()"
+                empty="none"
+              />
+              <app-field-item labelKey="audits.fields.owner" [value]="p.owner?.name" />
               @if (p.approved_at) {
-                <div>
-                  <dt class="text-[12px] font-semibold text-fg-muted">
-                    {{ 'audits.programmes.approved' | transloco }}
-                  </dt>
-                  <dd class="text-fg">
-                    {{ p.approved_by?.name || '–' }}, {{ p.approved_at | localDate: 'medium' }}
-                  </dd>
-                </div>
+                <app-field-item
+                  labelKey="audits.programmes.approved"
+                  [value]="
+                    'audits.report.byOn'
+                      | transloco
+                        : {
+                            name: p.approved_by?.name || ('audits.common.someone' | transloco),
+                            date: (p.approved_at | localDate),
+                          }
+                  "
+                />
               }
-            </dl>
+            </app-field-list>
+          </app-card>
+
+          <app-card data-testid="programme-coverage">
+            <h2 class="mb-1 font-display text-section font-bold text-fg">
+              {{ 'audits.coverage.title' | transloco }}
+            </h2>
+            <p class="mb-4 text-meta text-fg-muted">{{ 'audits.coverage.intro' | transloco }}</p>
+            <app-audit-programme-coverage [programmeId]="p.id" />
           </app-card>
 
           <app-card>
-            <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-              <h2 class="font-display text-[16px] font-bold text-fg">
-                {{ 'audits.programmes.audits' | transloco: { count: p.plans.length } }}
-              </h2>
-              @if (access.canWrite() && p.status !== 'closed') {
-                <a
-                  [routerLink]="['/audits/plans/new']"
-                  [queryParams]="{ programme: p.id }"
-                  class="text-[13px] font-semibold text-accent hover:underline"
-                >
-                  {{ 'audits.programmes.addAudit' | transloco }}
-                </a>
-              }
-            </div>
-            <div class="mb-3 flex flex-wrap gap-1.5">
-              @for (s of planStatuses; track s) {
-                @if (p.plan_counts[s]) {
-                  <app-badge [tone]="planTone(s)"
-                    >{{ 'audits.planStatus.' + s | transloco }}: {{ p.plan_counts[s] }}</app-badge
-                  >
-                }
-              }
-            </div>
+            <h2 class="mb-3 font-display text-section font-bold text-fg">
+              {{ 'audits.programmes.audits' | transloco: { count: p.plans.length } }}
+            </h2>
             @if (p.plans.length) {
               <ul class="divide-y divide-border">
                 @for (a of p.plans; track a.id) {
-                  <li class="flex flex-wrap items-center justify-between gap-2 py-2">
+                  @let ab = planBadge(a.status);
+                  @let rb = risk(a.risk_level);
+                  <li class="flex flex-wrap items-center gap-2 py-2">
                     <a
                       [routerLink]="['/audits/plans', a.id]"
-                      class="min-w-0 flex-1 text-[13.5px] font-semibold text-fg hover:text-accent"
+                      class="min-w-0 flex-1 basis-[220px] text-body font-semibold text-fg hover:text-accent"
                     >
-                      <span class="text-fg-subtle">{{ a.code }}</span> {{ a.title }}
+                      <span class="font-mono text-meta font-normal text-fg-subtle">{{
+                        a.code
+                      }}</span>
+                      {{ a.title }}
                     </a>
-                    <span class="text-[12.5px] text-fg-muted">{{
-                      a.planned_start | localDay
-                    }}</span>
-                    <app-badge [tone]="riskTone(a.risk_level)">{{
-                      'audits.risk.' + a.risk_level | transloco
-                    }}</app-badge>
-                    <app-badge [tone]="planTone(a.status)">{{
-                      'audits.planStatus.' + a.status | transloco
-                    }}</app-badge>
+                    <span class="text-meta text-fg-muted">{{ a.planned_start | localDay }}</span>
+                    <span class="text-meta text-fg-muted">{{ lead(a) }}</span>
+                    <app-status-badge
+                      [meaning]="rb.meaning"
+                      [value]="rb.value"
+                      [labelKey]="rb.labelKey"
+                    />
+                    <app-status-badge
+                      [meaning]="ab.meaning"
+                      [value]="ab.value"
+                      [labelKey]="ab.labelKey"
+                    />
                   </li>
                 }
               </ul>
             } @else {
-              <p class="text-[13px] text-fg-muted">
+              <p class="text-body text-fg-muted">
                 {{ 'audits.programmes.noAudits' | transloco }}
               </p>
             }
           </app-card>
-          <app-card>
-            <app-supports-requirements entityType="audit_programme" [entityId]="p.id" />
-          </app-card>
         </div>
-        <div aside>
+
+        <app-card aside>
+          <h2 class="mb-3 font-display text-card font-bold text-fg">
+            {{ 'audits.planDetail.summary' | transloco }}
+          </h2>
+          @if (p.plans.length) {
+            <dl class="flex flex-col gap-1.5 text-ui">
+              @for (s of planStatuses; track s) {
+                @if (p.plan_counts[s]) {
+                  <div class="flex justify-between gap-2">
+                    <dt class="text-fg-muted">{{ 'audits.planStatus.' + s | transloco }}</dt>
+                    <dd class="font-semibold text-fg">{{ p.plan_counts[s] }}</dd>
+                  </div>
+                }
+              }
+            </dl>
+          } @else {
+            <p class="text-meta text-fg-muted">{{ 'audits.programmes.noAudits' | transloco }}</p>
+          }
+        </app-card>
+        <div aside-learn>
           <app-why-it-matters scope="audits" page="programmeDetail" />
         </div>
       </app-record-detail-layout>
     } @else {
       <div class="mx-auto max-w-[1180px] px-4 pt-6 sm:px-8">
-        <app-audit-load-state [state]="data.state()" (retry)="load()" />
+        <app-audit-load-state [state]="data.state()" [rows]="6" (retry)="load()" />
       </div>
     }
 
@@ -272,6 +319,7 @@ export const PROGRAMME_FIELD_LABELS: Readonly<Record<string, string>> = {
 export class ProgrammeDetailPage {
   private readonly api = inject(AuditsApi);
   private readonly router = inject(Router);
+  private readonly language = inject(LanguageService);
   protected readonly access = inject(AuditAccess);
 
   readonly id = input.required<string>();
@@ -279,14 +327,27 @@ export class ProgrammeDetailPage {
   protected readonly tabs = TABS;
   protected readonly fieldLabels = PROGRAMME_FIELD_LABELS;
   protected readonly planStatuses = PLAN_STATUSES;
-  protected readonly tone = programmeStatusTone;
-  protected readonly planTone = planStatusTone;
-  protected readonly riskTone = riskTone;
+  protected readonly badge = programmeStatusBadge;
+  protected readonly planBadge = planStatusBadge;
+  protected readonly risk = riskBadge;
+  protected readonly lead = leadAuditorName;
   protected readonly data = loadable<ProgrammeDetail>();
   protected readonly saving = mutator();
   protected readonly pending = signal<ProgrammeAction | null>(null);
   protected readonly deleting = signal(false);
-  protected readonly title = computed(() => this.data.value()?.title ?? null);
+
+  protected readonly primary = computed<ProgrammeAction | null>(() => {
+    const actions = this.data.value()?.available_actions ?? [];
+    return actions.includes('approve') ? 'approve' : null;
+  });
+  protected readonly rest = computed(() =>
+    (this.data.value()?.available_actions ?? []).filter((a) => a !== this.primary()),
+  );
+  protected readonly frameworkNames = computed(() =>
+    (this.data.value()?.frameworks ?? [])
+      .map((f) => this.language.translate(`audits.frameworks.${f}`))
+      .join(', '),
+  );
 
   constructor() {
     providePageContext(() => ({
@@ -294,7 +355,7 @@ export class ProgrammeDetailPage {
       entityType: 'audit_programme',
       entityId: this.id(),
       view: 'detail',
-      title: this.title(),
+      title: this.data.value()?.title ?? null,
     }));
     effect(() => {
       this.access.orgId();

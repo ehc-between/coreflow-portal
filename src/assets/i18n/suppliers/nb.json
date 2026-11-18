@@ -1,13 +1,10 @@
 {
   "nav": {
-    "label": "Leverandørseksjoner",
     "register": "Register",
-    "evaluations": "Evalueringer",
+    "evaluations": "Vurderinger",
     "questionnaires": "Spørreskjemaer"
   },
   "common": {
-    "loading": "Laster …",
-    "loadFailed": "Kunne ikke laste inn. Prøv igjen om litt.",
     "backToRegister": "Tilbake til leverandører",
     "backToSupplier": "Tilbake til leverandøren",
     "edit": "Rediger",
@@ -18,36 +15,35 @@
     "otherDepartment": "Nåværende avdeling"
   },
   "list": {
-    "title": "Leverandører",
-    "subtitle": "De eksterne leverandørene dere er avhengige av, hvor kritiske de er og om de er godkjent.",
+    "subtitle": "De eksterne leverandørene dere er avhengige av: hvor kritiske de er, om de er godkjent og hva som må følges opp.",
     "searchPlaceholder": "Søk etter navn, kode eller juridisk navn",
     "new": "Ny leverandør",
-    "ownedBy": "Eier: {{ name }}",
-    "score": "Poeng {{ score }}",
-    "nextEvaluation": "Revurderes {{ date }}",
-    "noEvaluationDate": "Ingen revurderingsdato"
+    "score": "Poeng {{ score }} / 100",
+    "noEvaluationDate": "Ingen revurderingsdato",
+    "lastScore": "Siste poengsum {{ score }} / 100",
+    "attentionMore": "{{ first }} +{{ count }}"
   },
   "summary": {
-    "total": "Leverandører",
     "approved": "Godkjent",
-    "overdue": "Forfalte revurderinger",
-    "dueSoon": "Forfaller innen 30 dager",
-    "openEvaluations": "Åpne evalueringer",
-    "processors": "Behandler personopplysninger",
-    "aiSuppliers": "{{ count }} leverer KI"
+    "overdue": "Revurdering forfalt",
+    "dueSoon": "Revurderes snart",
+    "openEvaluations": "Åpne vurderinger",
+    "processors": "Personopplysninger",
+    "needsAttention": "Trenger oppfølging",
+    "conditional": "Med vilkår",
+    "withoutDpa": "{{ count }} uten databehandleravtale"
   },
   "filters": {
     "anyStatus": "Alle statuser",
-    "anyCriticality": "All kritikalitet",
+    "anyCriticality": "Alle nivåer",
     "anyCategory": "Alle kategorier",
     "anyDue": "Alle revurderingsdatoer",
-    "anyFlag": "Alle risikoprofiler",
+    "anyFlag": "Alt",
     "anyOwner": "Alle eiere",
     "ownedByMe": "Eid av meg",
     "evaluationDue": "Revurdering",
-    "flag": "Risikoprofil",
+    "flag": "Hva de gjør for oss",
     "sort": "Sortering",
-    "noMatch": "Ingen leverandører passer med disse filtrene.",
     "due": {
       "overdue": "Revurdering forfalt",
       "due_soon": "Revurdering forfaller snart"
@@ -61,7 +57,10 @@
       "next_evaluation_at": "Neste revurdering",
       "-updated_at": "Nylig oppdatert",
       "-created_at": "Nylig lagt til"
-    }
+    },
+    "attention": "Oppfølging",
+    "anyAttention": "Oppfølging: alle",
+    "needsAttention": "Trenger oppfølging"
   },
   "fields": {
     "code": "Kode",
@@ -72,18 +71,18 @@
     "website": "Nettsted",
     "category": "Kategori",
     "description": "Beskrivelse",
-    "criticality": "Kritikalitet",
+    "criticality": "Hvor kritisk",
     "status": "Status",
     "owner": "Leverandøransvarlig",
     "department": "Avdeling",
     "contactName": "Kontaktperson",
     "contactEmail": "E-post til kontakt",
     "contactPhone": "Telefon til kontakt",
-    "dataLocations": "Datalokasjoner",
-    "certifications": "Sertifiseringer",
+    "dataLocations": "Hvor dataene lagres",
+    "certifications": "Sertifikater",
     "intervalMonths": "Revurderingsintervall (måneder)",
     "nextEvaluation": "Neste revurdering",
-    "lastEvaluated": "Sist evaluert",
+    "lastEvaluated": "Sist vurdert",
     "approvedAt": "Godkjent",
     "approvedBy": "Godkjent av"
   },
@@ -108,7 +107,7 @@
   },
   "status": {
     "prospective": "Potensiell",
-    "under_evaluation": "Under evaluering",
+    "under_evaluation": "Under vurdering",
     "approved": "Godkjent",
     "conditional": "Godkjent med vilkår",
     "suspended": "Suspendert",
@@ -116,9 +115,9 @@
     "inactive": "Inaktiv"
   },
   "statusHelp": {
-    "prospective": "Potensiell: registrert, men ikke evaluert ennå. Ikke bruk leverandøren ennå.",
-    "under_evaluation": "Under evaluering: en evaluering pågår.",
-    "approved": "Godkjent: leverandøren oppfylte kravene deres ved siste evaluering.",
+    "prospective": "Potensiell: registrert, men ikke vurdert ennå. Ikke ta leverandøren i bruk ennå.",
+    "under_evaluation": "Under vurdering: en vurdering pågår.",
+    "approved": "Godkjent: leverandøren oppfylte kravene deres ved siste vurdering.",
     "conditional": "Godkjent med vilkår: godkjent med vilkår som må følges opp, i høyst seks måneder.",
     "suspended": "Suspendert: ikke legg inn nye bestillinger før problemene er løst.",
     "rejected": "Avvist: leverandøren oppfylte ikke kravene deres.",
@@ -138,8 +137,8 @@
   },
   "form": {
     "newTitle": "Ny leverandør",
-    "newSubtitle": "Registrer en leverandør. Den er potensiell til en evaluering godkjenner den.",
-    "editTitle": "Rediger {{ code }} {{ name }}",
+    "newSubtitle": "Registrer en leverandør. Den får status «Potensiell» til en vurdering har godkjent den.",
+    "editTitle": "Rediger {{ name }}",
     "readOnly": "Du kan se denne leverandøren, men ikke endre den.",
     "sections": {
       "identity": "Leverandør",
@@ -149,10 +148,9 @@
     },
     "nameRequired": "Gi leverandøren et navn.",
     "countryHint": "Landet der leverandøren er registrert.",
-    "profileHint": "Kryss av for det som gjelder. Svarene avgjør hvilke vurderinger dere trenger, som sikkerhet, personvern eller KI.",
-    "certificationsPlaceholder": "For eksempel ISO 9001, ISO/IEC 27001",
-    "intervalHint": "La stå tomt for å bruke standarden for kritikaliteten ({{ months }} måneder).",
-    "nextEvaluationHint": "Settes automatisk når en evaluering avgjøres. Sett den her bare for å overstyre.",
+    "profileHint": "Kryss av for det som gjelder. Svarene avgjør hvilke vurderinger leverandøren trenger.",
+    "intervalHint": "La stå tomt for å bruke standarden for kritikalitet {{ level }} ({{ months }} måneder).",
+    "nextEvaluationHint": "Settes automatisk når en vurdering avgjøres. Sett den her bare for å overstyre.",
     "changeReason": "Begrunnelse for endringen",
     "changeReasonHint": "Lagres i revisjonshistorikken slik at andre ser hvorfor posten ble endret.",
     "create": "Registrer leverandør",
@@ -161,7 +159,15 @@
     "saved": "Endringene er lagret.",
     "invalidCountry": "Gjenkjennes ikke som land: {{ values }}. Fjern dem og velg land fra listen.",
     "locationsReview": "Kontroller disse lokasjonene: {{ codes }}. De ble lagret før land ble valgt fra en liste, og kan være forkortet fra et landnavn (for eksempel er IR Iran, ikke Irland). Når du lagrer skjemaet, bekrefter du dem.",
-    "transferNeeded": "Personopplysninger som lagres i {{ countries }}, overføres ut av EU/EØS uten en beslutning om tilstrekkelig beskyttelse. Registrer en overføringsvurdering."
+    "transferNeeded": "Personopplysninger som lagres i {{ countries }}, overføres ut av EU/EØS uten en beslutning om tilstrekkelig beskyttelse. Registrer en overføringsvurdering.",
+    "criticalityQuestion": "Hvor kritisk er leverandøren?",
+    "criticalityMeaning": {
+      "low": "Lav: lett å erstatte, liten skade om den svikter. Revurderes hver {{ months }}. måned som standard.",
+      "medium": "Middels: en svikt er plagsom, men dere klarer dere. Revurderes hver {{ months }}. måned som standard.",
+      "high": "Høy: en svikt rammer produktene, tjenestene eller informasjonen deres hardt. Revurderes hver {{ months }}. måned som standard.",
+      "critical": "Kritisk: dere kan ikke levere uten den, eller den har de mest sensitive dataene deres. Revurderes hver {{ months }}. måned som standard."
+    },
+    "profileNeeds": "I tillegg til godkjenningen trenger leverandøren: {{ kinds }}."
   },
   "detail": {
     "notFound": "Denne leverandøren finnes ikke, eller du har ikke tilgang til den.",
@@ -170,30 +176,35 @@
     "approval": "Godkjenning og revurdering",
     "approvedOn": "{{ date }} av {{ name }}",
     "notApproved": "Ikke godkjent ennå",
-    "neverEvaluated": "Aldri evaluert",
+    "neverEvaluated": "Aldri vurdert",
     "intervalOwn": "Hver {{ months }}. måned (satt for denne leverandøren)",
     "intervalDefault": "Hver {{ months }}. måned (standard for kritikalitet {{ criticality }})",
-    "latestAssessments": "Siste beslutning per evalueringstype",
-    "noAssessment": "Ingen ennå",
     "profile": "Profil",
     "contact": "Kontakt",
-    "riskFlags": "Risikoprofil",
-    "noFlags": "Ingen av risikoflaggene gjelder",
-    "processorHint": "Denne leverandøren behandler personopplysninger for dere, og er trolig en databehandler. Sørg for at det finnes en databehandleravtale, og koble den til under Relatert.",
-    "learn": "Lær",
+    "riskFlags": "Hva leverandøren gjør for oss",
+    "noFlags": "Ingen av disse gjelder",
     "statusChanged": "Statusen er endret.",
     "deleteTitle": "Slette leverandøren?",
-    "deleteMessage": "{{ code }} {{ name }} fjernes sammen med evalueringene og ytelsesloggen. Revisjonssporet beholder en oppføring.",
+    "deleteMessage": "{{ code }} {{ name }} fjernes sammen med vurderingene og ytelsesloggen. Revisjonssporet beholder en oppføring.",
     "deleted": "Leverandør {{ code }} er slettet.",
     "locationReview": "Kontroller: {{ code }}",
-    "transferNeeded": "Overføringsvurdering trengs.",
-    "transferNeededBody": "Denne leverandøren behandler personopplysninger i et land utenfor EU/EØS uten beslutning om tilstrekkelig beskyttelse. Registrer overføringen med overføringsgrunnlag (for eksempel signerte standard personvernbestemmelser) og en vurdering av overføringen.",
-    "transferCta": "Registrer en overføring"
+    "transferNeeded": "Overføringsvurdering mangler",
+    "transferNeededBody": "Leverandøren behandler personopplysninger i et land utenfor EU/EØS uten beslutning om tilstrekkelig beskyttelse. Registrer overføringen med overføringsgrunnlag (for eksempel signerte standard personvernbestemmelser) og en vurdering av overføringen.",
+    "notFoundTitle": "Fant ikke leverandøren",
+    "onDate": "{{ date }}",
+    "overdueSince": "Forfalt siden {{ date }}",
+    "attentionTitle": "Trenger oppfølging ({{ count }})",
+    "startKind": "Start {{ kind }}",
+    "conditionsTitle": "Vilkår som må følges opp",
+    "conditionsDue": "Revurderes innen {{ date }}",
+    "conditionsOverdue": "Forfalt siden {{ date }}",
+    "conditionsTask": "Oppfølgingsoppgave: {{ status }}",
+    "openDecision": "Åpne beslutningen"
   },
   "statusDialog": {
     "title": "Endre leverandørstatus",
     "current": "Nåværende status: {{ status }}",
-    "hint": "Godkjenning kommer normalt fra en avgjort evaluering. Endre statusen manuelt når noe skjer mellom evalueringene, for eksempel en suspensjon etter en alvorlig hendelse.",
+    "hint": "Godkjenning kommer normalt fra en avgjort vurdering. Endre statusen manuelt når noe skjer mellom vurderingene, for eksempel en suspensjon etter en alvorlig hendelse.",
     "newStatus": "Ny status",
     "choose": "Velg en status",
     "approvalOnly": "Bare personer med godkjenningsrett kan flytte en leverandør inn i eller ut av godkjent, godkjent med vilkår, suspendert eller avvist.",
@@ -202,26 +213,30 @@
     "confirm": "Endre status"
   },
   "evaluations": {
-    "title": "Evalueringer",
-    "start": "Start evaluering",
-    "startTitle": "Start en evaluering",
-    "none": "Ingen evalueringer ennå. Start en for å godkjenne leverandøren.",
+    "title": "Vurderinger",
+    "start": "Start vurdering",
+    "startTitle": "Start en vurdering",
+    "none": "En vurdering besvarer et spørreskjema og ender i en beslutning. Start en for å godkjenne leverandøren.",
     "kind": "Type",
-    "kindSetsStatus": "Beslutningen for denne typen setter leverandørens godkjenningsstatus og planlegger neste revurdering.",
-    "kindRecordsOnly": "Denne vurderingen registreres for sin type og endrer ikke leverandørens status.",
+    "kindSetsStatus": "Beslutningen setter leverandørens godkjenningsstatus og planlegger neste revurdering.",
+    "kindRecordsOnly": "Vurderingen registreres for sin type og endrer ikke leverandørens status.",
     "questionnaire": "Spørreskjema",
     "questionCount": "{{ count }} spørsmål",
     "titleField": "Tittel",
-    "titlePlaceholder": "La stå tomt for en standardtittel",
-    "evaluator": "Evaluerer",
+    "titlePlaceholder": "La stå tomt for å bruke «{{ kind }}»",
+    "evaluator": "Vurderer",
     "dueAt": "Frist",
     "due": "Frist {{ date }}",
-    "create": "Start"
+    "create": "Start",
+    "noneTitle": "Ingen vurderinger ennå",
+    "kindRecommended": "{{ kind }} (anbefalt)",
+    "showAllKinds": "Vis alle typer",
+    "overdueSince": "Forfalt siden {{ date }}"
   },
   "evaluationKind": {
-    "initial": "Førstegangsevaluering",
+    "initial": "Førstegangsvurdering",
     "periodic": "Periodisk revurdering",
-    "ad_hoc": "Ekstraordinær evaluering",
+    "ad_hoc": "Ekstraordinær vurdering",
     "security": "Sikkerhetsvurdering",
     "privacy": "Personvernvurdering",
     "ai": "KI-vurdering"
@@ -243,35 +258,40 @@
     "reject": "Avvis"
   },
   "evaluationsPage": {
-    "title": "Leverandørevalueringer",
-    "subtitle": "Alle evalueringer og vurderinger, med det som venter på svar eller beslutning.",
-    "openOnly": "Åpne (utkast eller venter på beslutning)",
+    "title": "Leverandørvurderinger",
+    "subtitle": "Alle vurderinger: hva som venter på svar eller beslutning, og hva som er avgjort.",
+    "openOnly": "Åpne",
     "anyKind": "Alle typer",
     "anyone": "Alle",
     "mine": "Tildelt meg",
-    "overdueOnly": "Bare forfalte"
+    "overdueOnly": "Bare forfalte",
+    "all": "Alle",
+    "supplierColumn": "Leverandør",
+    "noneTitle": "Ingen vurderinger her",
+    "noneOpen": "Ingenting venter på svar eller beslutning. Avgjorte vurderinger finner du under «Alle».",
+    "showAll": "Vis alle vurderinger"
   },
   "evaluation": {
-    "notFound": "Denne evalueringen finnes ikke, eller du har ikke tilgang til den.",
+    "notFound": "Denne vurderingen finnes ikke, eller du har ikke tilgang til den.",
     "saveAnswers": "Lagre svar",
     "answersSaved": "Svarene er lagret.",
     "submit": "Send til beslutning",
-    "submittedToast": "Evalueringen er sendt til beslutning.",
+    "submittedToast": "Vurderingen er sendt til beslutning.",
     "submitNoSummaryTitle": "Sende inn uten oppsummering?",
-    "submitNoSummaryMessage": "Evalueringen har ingen oppsummering. Den som skal beslutte, ser bare poengsummen og svarene. Legg til en oppsummering først, eller send inn likevel.",
+    "submitNoSummaryMessage": "Vurderingen har ingen oppsummering. Den som skal beslutte, ser bare poengsummen og svarene. Legg til en oppsummering først, eller send inn likevel.",
     "submitAnyway": "Send inn likevel",
     "decide": "Avgjør",
     "decidedToast": "Beslutningen er registrert.",
     "reopen": "Gjenåpne",
-    "reopenTitle": "Gjenåpne evalueringen?",
-    "reopenMessage": "Evalueringen går tilbake til utkast slik at svarene kan endres.",
-    "cancel": "Avbryt evaluering",
-    "cancelTitle": "Avbryte evalueringen?",
-    "cancelMessage": "En avbrutt evaluering beholdes for ettertiden, men kan ikke lenger besvares eller avgjøres.",
+    "reopenTitle": "Gjenåpne vurderingen?",
+    "reopenMessage": "Vurderingen går tilbake til utkast slik at svarene kan endres.",
+    "cancel": "Avbryt vurdering",
+    "cancelTitle": "Avbryte vurderingen?",
+    "cancelMessage": "En avbrutt vurdering beholdes for ettertiden, men kan ikke lenger besvares eller avgjøres.",
     "reason": "Begrunnelse (valgfritt)",
-    "deleteTitle": "Slette evalueringen?",
+    "deleteTitle": "Slette vurderingen?",
     "deleteMessage": "«{{ title }}» fjernes. Revisjonssporet beholder en oppføring.",
-    "deleted": "Evalueringen er slettet.",
+    "deleted": "Vurderingen er slettet.",
     "unanswered": "{{ count }} påkrevde spørsmål er ikke besvart ennå. De er markert nedenfor.",
     "scoreTitle": "Poengsum",
     "score": "Poeng",
@@ -294,10 +314,15 @@
     "noSummary": "Ingen oppsummering ennå.",
     "details": "Detaljer",
     "submitted": "Sendt inn",
-    "createdBy": "Opprettet av"
+    "createdBy": "Opprettet av",
+    "notFoundTitle": "Fant ikke vurderingen",
+    "scoreMeaning": "Poengsummen er den vektede andelen poeng (0–100). Med {{ pass }} eller mer, og ingen kritiske spørsmål ikke bestått, anbefales godkjenning.",
+    "raiseDeviation": "Registrer avvik",
+    "raiseDeviationHint": "Et ikke bestått kritisk spørsmål eller en avvisning er et avvik. Registrer det slik at det blir fulgt opp.",
+    "evidenceFor": "Denne avgjorte vurderingen dokumenterer:"
   },
   "decide": {
-    "title": "Avgjør evalueringen",
+    "title": "Avgjør vurderingen",
     "recommendation": "Anbefalt ut fra poengsummen:",
     "advisory": "Du bestemmer. Anbefalingen gjenspeiler bare svarene.",
     "decision": "Beslutning",
@@ -326,7 +351,13 @@
     "moveDown": "Flytt spørsmål {{ n }} ned",
     "remove": "Fjern spørsmål {{ n }}",
     "add": "Legg til spørsmål",
-    "empty": "Ingen spørsmål ennå."
+    "empty": "Ingen spørsmål ennå.",
+    "weightHint": "Hvor mye spørsmålet teller i poengsummen (1–10).",
+    "criticalHint": "Et «Nei» (eller 0 poeng) betyr avvisning, uansett poengsum.",
+    "categoryName": "Navn på seksjonen",
+    "refs": "Krav spørsmålet sjekker",
+    "refsHint": "Når vurderingen er avgjort, dokumenterer den disse kravene. Inntil {{ max }}.",
+    "checks": "Sjekker:"
   },
   "questionType": {
     "yes_no": "Ja / nei",
@@ -345,7 +376,7 @@
   },
   "questionnaires": {
     "title": "Spørreskjemaer",
-    "subtitle": "Spørsmålssettene som brukes til å evaluere leverandører. Innebygde sett dekker alle evalueringstyper; dere kan legge til egne.",
+    "subtitle": "Spørsmålssettene som brukes til å vurdere leverandører. Innebygde sett dekker alle typer, og hvert spørsmål viser kravene det sjekker. Dere kan legge til egne.",
     "new": "Nytt spørreskjema",
     "newTitle": "Nytt spørreskjema",
     "editTitle": "Rediger spørreskjema",
@@ -359,17 +390,17 @@
     "name": "Navn",
     "description": "Beskrivelse",
     "focus": "Fokus for foreslåtte spørsmål",
-    "focusPlaceholder": "For eksempel overføring av data ut av EU",
+    "focusPlaceholder": "For eksempel data utenfor EU",
     "saved": "Spørreskjemaet er lagret.",
     "deleteTitle": "Slette spørreskjemaet?",
-    "deleteMessage": "«{{ name }}» fjernes. Evalueringer som allerede er startet, beholder spørsmålene sine."
+    "deleteMessage": "«{{ name }}» fjernes. Vurderinger som allerede er startet, beholder spørsmålene sine."
   },
   "performance": {
     "title": "Ytelseslogg",
     "log": "Loggfør",
     "logTitle": "Loggfør leverandørytelse",
     "editTitle": "Rediger ytelsesoppføring",
-    "none": "Ingenting loggført ennå. Registrer leveranser, kvalitetsproblemer og hendelser for å bygge grunnlaget for neste revurdering.",
+    "none": "Ingenting loggført ennå. Registrer leveranser, kvalitetsproblemer og hendelser som grunnlag for neste revurdering.",
     "logged": "Oppføringen er loggført.",
     "saved": "Oppføringen er lagret.",
     "linkedDeviation": "Koblet avvik",
@@ -396,7 +427,7 @@
       "title": "Hva skjedde",
       "description": "Detaljer",
       "rating": "Vurdering",
-      "noRating": "Ingen vurdering",
+      "noRating": "Ikke vurdert",
       "onTime": "I tide?",
       "qualityOk": "Kvalitet som avtalt?",
       "reference": "Referanse",
@@ -409,7 +440,17 @@
         "unknown": "Ikke vurdert",
         "yes": "Ja",
         "no": "Nei"
-      }
+      },
+      "deviationHint": "Gikk noe galt? Når du har lagret, bruk «Registrer avvik» på oppføringen slik at det blir fulgt opp."
+    },
+    "raiseDeviation": "Registrer avvik",
+    "raiseDeviationFor": "Registrer avvik for {{ title }}",
+    "warning": {
+      "title": "Resultatene er svake",
+      "on_time": "Under {{ threshold }} % av leveransene kom i tide.",
+      "quality": "Under {{ threshold }} % av leveransene hadde avtalt kvalitet.",
+      "deviation": "Et avvik er koblet til leverandøren.",
+      "evaluate": "Start ekstraordinær vurdering"
     }
   },
   "performanceKind": {
@@ -423,7 +464,7 @@
   },
   "ai": {
     "overview": "Spør om registeret",
-    "summarise": "Oppsummer",
+    "summarise": "Oppsummer med assistenten",
     "evaluationPriorities": "Hva trenger oppmerksomhet?",
     "draftQuestions": "Foreslå spørsmål",
     "summariseResponses": "Oppsummer svarene",
@@ -431,13 +472,17 @@
     "useSummary": "Bruk som oppsummering",
     "discard": "Forkast",
     "prompts": {
-      "overview": "Gi meg en oversikt over leverandørregisteret vårt: hvilke kritiske leverandører er ikke godkjent, hvilke revurderinger er forfalt, og hva bør jeg gjøre først?",
-      "summarise": "Oppsummer denne leverandøren: status, de siste evalueringene, åpne vilkår, nylig ytelse og risikoer jeg bør kjenne til.",
-      "nextStep": "Ut fra leverandørens status og evalueringer, hva bør skje videre, og hvorfor?",
+      "overview": "Gi meg en oversikt over leverandørregisteret: hvilke leverandører trenger oppfølging, hvilke kritiske er ikke godkjent, hvilke behandler personopplysninger uten databehandleravtale, og hva bør jeg gjøre først?",
+      "summarise": "Oppsummer denne leverandøren: status, de siste vurderingene, åpne vilkår, avtaler og databehandling, nylig ytelse og hva som må følges opp.",
+      "nextStep": "Ut fra leverandørens status, vurderinger og avtaler: hva bør skje videre, og hvorfor?",
       "criticality": "Hvordan bør jeg avgjøre hvor kritisk en leverandør er? Forklar lav, middels, høy og kritisk med eksempler.",
-      "explainScore": "Forklar hvordan denne evalueringen poengsettes, hva anbefalingen betyr og hvilke svar som trakk poengsummen ned.",
-      "evaluationPriorities": "Hvilke leverandørevalueringer er forfalt eller venter på beslutning, og hvilke bør jeg ta først?"
-    }
+      "explainScore": "Forklar hvordan denne vurderingen poengsettes, hva anbefalingen betyr og hvilke svar som trakk poengsummen ned.",
+      "evaluationPriorities": "Hvilke leverandørvurderinger er forfalt eller venter på beslutning, og hvilke bør jeg ta først?",
+      "dataLocations": "Hvilke av disse datalokasjonene er utenfor EU/EØS, og hva trenger jeg for en lovlig overføring?",
+      "certificates": "Hvilke sertifikater bør jeg be denne typen leverandør om, og hva bør jeg sjekke på dem?"
+    },
+    "askNextStep": "Spør om neste steg",
+    "explainScore": "Forklar poengsummen"
   },
   "errors": {
     "generic": "Noe gikk galt. Prøv igjen.",
@@ -446,18 +491,18 @@
     "approval_required": "Bare personer med godkjenningsrett kan gjøre denne statusendringen.",
     "conditions_required": "Beskriv vilkårene for en godkjenning med vilkår.",
     "duplicate_question_id": "To spørsmål har samme id.",
-    "evaluation_not_draft": "Bare en evaluering i utkast kan sendes inn.",
-    "evaluation_not_editable": "Denne evalueringen kan ikke lenger endres på denne måten.",
-    "evaluation_not_open": "Denne evalueringen er allerede lukket.",
-    "evaluation_not_submitted": "Evalueringen må sendes inn først.",
+    "evaluation_not_draft": "Bare en vurdering i utkast kan sendes inn.",
+    "evaluation_not_editable": "Denne vurderingen kan ikke lenger endres på denne måten.",
+    "evaluation_not_open": "Denne vurderingen er allerede lukket.",
+    "evaluation_not_submitted": "Vurderingen må sendes inn først.",
     "field_required": "Et påkrevd felt mangler.",
     "invalid_answer": "Et av svarene er ikke gyldig for spørsmålet.",
     "invalid_category": "Velg en gyldig kategori.",
-    "invalid_criticality": "Velg en gyldig kritikalitet.",
+    "invalid_criticality": "Velg hvor kritisk leverandøren er.",
     "invalid_decision": "Velg en gyldig beslutning.",
     "invalid_department": "Avdelingen finnes ikke i denne organisasjonen.",
-    "invalid_kind": "Velg en gyldig evalueringstype.",
-    "invalid_question": "Et av spørsmålene er ikke gyldig. Sjekk teksten og innstillingene.",
+    "invalid_kind": "Velg en gyldig vurderingstype.",
+    "invalid_question": "Et av spørsmålene er ikke gyldig. Sjekk teksten, innstillingene og kravene det sjekker.",
     "invalid_rating": "Vurderingen må være mellom 1 og 5.",
     "invalid_status": "Velg en gyldig status.",
     "invalid_user": "Personen du valgte er ikke medlem av denne organisasjonen.",
@@ -470,7 +515,10 @@
     "too_many_questions": "Det er for mange spørsmål.",
     "unanswered_questions": "Svar på alle påkrevde spørsmål først.",
     "unknown_question": "Et svar viser til et spørsmål som ikke finnes.",
-    "invalid_country": "Noen land ble ikke gjenkjent. Velg land fra listen."
+    "invalid_country": "Noen land ble ikke gjenkjent. Velg land fra listen.",
+    "invalid_certificate": "Et av sertifikatene er ikke gyldig. Sjekk standarden og datoen.",
+    "invalid_certificate_attachment": "Sertifikatfilen må først lastes opp som vedlegg på denne leverandøren.",
+    "too_many_certificates": "Det er for mange sertifikater."
   },
   "notifications": {
     "created": "Leverandør registrert: {{ code }} {{ title }}",
@@ -479,12 +527,12 @@
     "statusChanged": "Leverandørstatus endret: {{ code }} {{ title }}",
     "deleted": "Leverandør slettet: {{ code }} {{ title }}",
     "performanceLogged": "Ytelse loggført for {{ code }} {{ title }}",
-    "evaluationCreated": "Evaluering startet for {{ code }}: {{ title }}",
-    "evaluationAssigned": "Leverandørevaluering tildelt deg: {{ title }} ({{ code }})",
-    "evaluationSubmitted": "Leverandørevaluering klar til beslutning: {{ title }} ({{ code }})",
-    "evaluationReopened": "Leverandørevaluering gjenåpnet: {{ title }} ({{ code }})",
-    "evaluationDecided": "Leverandørevaluering avgjort: {{ title }} ({{ code }})",
-    "evaluationCancelled": "Leverandørevaluering avbrutt: {{ title }} ({{ code }})"
+    "evaluationCreated": "Vurdering startet for {{ code }}: {{ title }}",
+    "evaluationAssigned": "Leverandørvurdering tildelt deg: {{ title }} ({{ code }})",
+    "evaluationSubmitted": "Leverandørvurdering klar til beslutning: {{ title }} ({{ code }})",
+    "evaluationReopened": "Leverandørvurdering gjenåpnet: {{ title }} ({{ code }})",
+    "evaluationDecided": "Leverandørvurdering avgjort: {{ title }} ({{ code }})",
+    "evaluationCancelled": "Leverandørvurdering avbrutt: {{ title }} ({{ code }})"
   },
   "timeline": {
     "created": "Leverandør registrert",
@@ -493,16 +541,191 @@
     "statusChanged": "Status endret",
     "deleted": "Leverandør slettet",
     "performanceLogged": "Ytelsesoppføring loggført",
-    "evaluationCreated": "Evaluering startet",
-    "evaluationAssigned": "Evaluerer tildelt",
-    "evaluationSubmitted": "Evaluering sendt inn",
-    "evaluationReopened": "Evaluering gjenåpnet",
-    "evaluationDecided": "Evaluering avgjort",
-    "evaluationCancelled": "Evaluering avbrutt"
+    "evaluationCreated": "Vurdering startet",
+    "evaluationAssigned": "Vurderer tildelt",
+    "evaluationSubmitted": "Vurdering sendt inn",
+    "evaluationReopened": "Vurdering gjenåpnet",
+    "evaluationDecided": "Vurdering avgjort",
+    "evaluationCancelled": "Vurdering avbrutt"
   },
   "zones": {
     "eea": "EU/EØS",
     "adequacy": "Beslutning om tilstrekkelig beskyttelse",
     "third_country": "Tredjeland"
+  },
+  "criticalityLabel": "Kritikalitet: {{ level }}",
+  "taskStatus": {
+    "open": "åpen",
+    "in_progress": "pågår",
+    "blocked": "blokkert",
+    "done": "ferdig",
+    "cancelled": "avlyst"
+  },
+  "attention": {
+    "not_approved": "Ikke godkjent",
+    "no_next_evaluation": "Mangler revurderingsdato",
+    "evaluation_overdue": "Revurdering forfalt",
+    "dpa_missing": "Mangler databehandleravtale",
+    "dpa_pending": "Databehandleravtale ikke signert",
+    "transfer_assessment_missing": "Mangler overføringsvurdering",
+    "certificate_expired": "Sertifikat utløpt",
+    "certificate_expiring": "Sertifikat utløper snart",
+    "weak_performance": "Svake resultater"
+  },
+  "attentionWhy": {
+    "not_approved": "Leverandøren har høy eller kritisk kritikalitet, men er ikke godkjent. Vurder den før dere tar den i bruk.",
+    "no_next_evaluation": "En leverandør med høy eller kritisk kritikalitet trenger en dato for neste revurdering.",
+    "evaluation_overdue": "Revurderingsdatoen er passert. Sjekk at leverandøren fortsatt oppfyller kravene deres.",
+    "dpa_missing": "Leverandøren behandler personopplysninger for dere, men ingen databehandleravtale er koblet til (personvernforordningen art. 28).",
+    "dpa_pending": "En databehandleravtale er bedt om eller ligger i utkast. Følg den opp til den er signert.",
+    "transfer_assessment_missing": "Personopplysninger lagres utenfor EU/EØS, og ingen overføringsvurdering er registrert.",
+    "certificate_expired": "Et sertifikat leverandøren viser til, er utløpt. Be om et fornyet sertifikat.",
+    "certificate_expiring": "Et sertifikat utløper innen 60 dager. Be om det fornyede sertifikatet i god tid.",
+    "weak_performance": "Leveransene eller kvaliteten har vært svake i det siste. Start gjerne en ekstraordinær vurdering."
+  },
+  "attentionAction": {
+    "no_next_evaluation": "Sett en dato",
+    "dpa_missing": "Opprett databehandleravtale",
+    "transfer_assessment_missing": "Registrer overføringsvurdering",
+    "certificate_expired": "Oppdater sertifikatet",
+    "certificate_expiring": "Oppdater sertifikatet"
+  },
+  "required": {
+    "title": "Påkrevde vurderinger: {{ done }} av {{ total }} gjort",
+    "done": "gjort",
+    "notDone": "ikke gjort",
+    "inProgress": "Pågår",
+    "notStarted": "Ikke startet",
+    "start": "Start",
+    "why": {
+      "always": "Alle leverandører godkjennes gjennom en vurdering.",
+      "personal_data": "Påkrevd fordi leverandøren behandler personopplysninger for dere.",
+      "system_access": "Påkrevd fordi leverandøren har tilgang til systemene eller lokalene deres.",
+      "cloud": "Påkrevd fordi leverandøren leverer skytjenester.",
+      "ai": "Påkrevd fordi leverandøren leverer eller bruker KI for dere."
+    }
+  },
+  "agreements": {
+    "title": "Avtaler og databehandling",
+    "empty": "Ingenting er koblet til leverandøren ennå: ingen kontrakter, databehandleravtaler, systemer eller risikoer.",
+    "dpaStatus": {
+      "not_needed": "Trenger ikke databehandleravtale",
+      "covered": "Databehandleravtale på plass",
+      "pending": "Databehandleravtale ikke signert",
+      "missing": "Mangler databehandleravtale"
+    },
+    "dpaGap": {
+      "missing": {
+        "title": "Personopplysninger uten databehandleravtale",
+        "body": "Leverandøren behandler personopplysninger for dere. Personvernforordningen art. 28 krever en databehandleravtale. Opprett den her, eller koble en eksisterende kontrakt under Relatert."
+      },
+      "pending": {
+        "title": "Databehandleravtalen er ikke signert ennå",
+        "body": "Den er bedt om eller ligger i utkast. Følg den opp med leverandøren til den er signert."
+      }
+    },
+    "groups": {
+      "contracts": "Kontrakter",
+      "processors": "Databehandlerregisteret",
+      "transfers": "Overføringsvurderinger",
+      "ai_systems": "KI-systemer",
+      "assets": "Eiendeler",
+      "risks": "Risikoer ({{ open }} åpne)",
+      "deviations": "Avvik ({{ open }} åpne)"
+    },
+    "dpaTag": "Databehandleravtale",
+    "expired": "Utløpt",
+    "expiresIn": "Utløper om {{ days }} dager",
+    "endsOn": "Utløper {{ date }}",
+    "noEndDate": "Ingen sluttdato",
+    "processorDpa": {
+      "none": "Ingen databehandleravtale",
+      "requested": "Databehandleravtale bedt om",
+      "signed": "Databehandleravtale signert",
+      "expired": "Databehandleravtale utløpt",
+      "not_required": "Trenger ikke databehandleravtale"
+    },
+    "suggestionsTitle": "Hører disse til leverandøren?",
+    "suggestionsHint": "De nevner «{{ name }}», men er ikke koblet til ennå.",
+    "link": "Koble",
+    "dismiss": "Hører ikke til",
+    "linked": "Koblet til leverandøren.",
+    "actions": {
+      "toDpa": "Opprett databehandleravtale",
+      "toProcessor": "Registrer som databehandler",
+      "toTransfer": "Registrer overføringsvurdering",
+      "toContract": "Ny kontrakt",
+      "toRisk": "Registrer risiko",
+      "toDeviation": "Registrer avvik"
+    }
+  },
+  "certificates": {
+    "hint": "Sertifikatene leverandøren har, med utløpsdato. Dere får en påminnelse før et sertifikat utløper.",
+    "row": "Sertifikat {{ n }}",
+    "remove": "Fjern sertifikat {{ n }}",
+    "add": "Legg til sertifikat",
+    "standard": "Standard",
+    "other": "Annet (skriv navnet)",
+    "label": "Navn på sertifiseringen",
+    "labelPlaceholder": "For eksempel Miljøfyrtårn",
+    "number": "Sertifikatnummer",
+    "numberShort": "Nr. {{ number }}",
+    "issuer": "Utstedt av",
+    "issuerPlaceholder": "For eksempel DNV",
+    "validUntilField": "Gyldig til",
+    "validUntil": "gyldig til {{ date }}",
+    "file": "Sertifikatfil",
+    "noFile": "Ingen fil",
+    "fileAfterCreate": "Last opp sertifikatet under Vedlegg når leverandøren er registrert, og velg det her.",
+    "noFilesYet": "Ingen filer er lastet opp ennå. Last opp sertifikater under Vedlegg på leverandørsiden.",
+    "attached": "fil vedlagt",
+    "status": {
+      "valid": "Gyldig",
+      "expiring": "Utløper snart",
+      "expired": "Utløpt",
+      "no_expiry": "Ingen utløpsdato"
+    },
+    "standards": {
+      "iso9001": "ISO 9001 (kvalitet)",
+      "iso14001": "ISO 14001 (miljø)",
+      "iso27001": "ISO/IEC 27001 (informasjonssikkerhet)",
+      "iso27017": "ISO/IEC 27017 (skysikkerhet)",
+      "iso27018": "ISO/IEC 27018 (personopplysninger i skyen)",
+      "iso27701": "ISO/IEC 27701 (personvernstyring)",
+      "iso42001": "ISO/IEC 42001 (KI-styring)",
+      "iso45001": "ISO 45001 (helse, miljø og sikkerhet)",
+      "iso22301": "ISO 22301 (kontinuitet)",
+      "iso50001": "ISO 50001 (energi)",
+      "soc2": "SOC 2-rapport"
+    }
+  },
+  "score": {
+    "of100": "{{ score }} / 100",
+    "withPass": "{{ score }} / 100 (grense {{ pass }})"
+  },
+  "questionCategory": {
+    "general": "Generelt",
+    "quality": "Kvalitet",
+    "delivery": "Leveranse",
+    "commercial": "Kommersielt",
+    "sustainability": "Bærekraft",
+    "security": "Informasjonssikkerhet",
+    "privacy": "Personvern",
+    "ai": "KI",
+    "other": "Annet"
+  },
+  "tasks": {
+    "evaluate": "Vurder {{ supplier }} ({{ code }})",
+    "followConditions": "Følg opp vilkårene for godkjenningen av {{ supplier }} ({{ code }})"
+  },
+  "next": {
+    "dpaMissing": {
+      "title": "Mangler databehandleravtale: {{ name }} ({{ count }})",
+      "why": "Leverandører som behandler personopplysninger for dere, trenger en databehandleravtale (personvernforordningen art. 28)."
+    },
+    "attention": {
+      "title": "Leverandører trenger oppfølging: {{ name }} ({{ count }})",
+      "why": "Godkjenning, revurderingsdatoer, sertifikater eller ytelse må følges opp."
+    }
   }
 }

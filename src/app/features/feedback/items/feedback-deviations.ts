@@ -8,10 +8,10 @@ import {
   output,
   signal,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subject, Subscription, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
 import { EntityRefDto } from '../../../core/entities/entity.models';
+import { CreateFlowService } from '../../../core/kit/create-flow.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { SearchApi } from '../../../core/search/search-api';
@@ -21,6 +21,10 @@ import { Button } from '../../../shared/ui/button/button';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { FeedbackApi } from '../data/feedback-api';
 import { feedbackErrorKey } from '../data/feedback-errors';
+import { FEEDBACK_ENTITY } from '../data/feedback.models';
+
+/** The P4 create flow that opens a pre-filled, linked deviation from a feedback record. */
+export const DEVIATION_FLOW = 'customer_feedback.to_deviation';
 
 /**
  * Complaint linkage to deviations (M03): the deviations a feedback record is
@@ -30,12 +34,12 @@ import { feedbackErrorKey } from '../data/feedback-errors';
  */
 @Component({
   selector: 'app-feedback-deviations',
-  imports: [RouterLink, TranslocoPipe, EntityChip, Button, Icon],
+  imports: [TranslocoPipe, EntityChip, Button, Icon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section [attr.aria-labelledby]="headingId">
       <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <h2 [id]="headingId" class="font-display text-[15px] font-bold text-fg">
+        <h2 [id]="headingId" class="font-display text-card font-bold text-fg">
           {{ 'feedback.deviations.title' | transloco }}
         </h2>
         @if (canEdit() && !picking()) {
@@ -49,35 +53,36 @@ import { feedbackErrorKey } from '../data/feedback-errors';
               <app-icon name="link" [size]="14" />
               {{ 'feedback.deviations.link' | transloco }}
             </app-button>
-            <a
-              routerLink="/deviations/new"
-              class="inline-flex h-8 items-center gap-1.5 rounded-tile px-3 text-[13px] font-semibold text-accent hover:bg-accent-soft"
+            <app-button
+              size="sm"
+              variant="ghost"
+              [loading]="flows.starting() === flowKey"
+              (click)="register()"
+              data-testid="register-deviation"
             >
               <app-icon name="plus" [size]="14" />
               {{ 'feedback.deviations.register' | transloco }}
-            </a>
+            </app-button>
           </div>
         }
       </div>
-      <p class="mb-3 text-[12.5px] text-fg-muted">
+      <p class="mb-3 text-meta text-fg-muted">
         {{
           (isComplaint() ? 'feedback.deviations.hintComplaint' : 'feedback.deviations.hint')
             | transloco
         }}
+        {{ 'feedback.deviations.alsoRelated' | transloco }}
       </p>
 
       @if (picking()) {
         <div class="mb-3 rounded-tile border border-border bg-surface-2 p-3">
-          <label
-            for="cf-fb-dev-search"
-            class="mb-1.5 block text-[13px] font-semibold text-fg-muted"
-          >
+          <label for="cf-fb-dev-search" class="mb-1.5 block text-ui font-semibold text-fg-muted">
             {{ 'feedback.deviations.searchLabel' | transloco }}
           </label>
           <input
             id="cf-fb-dev-search"
             type="search"
-            class="h-10 w-full rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg outline-none focus:border-accent"
+            class="h-10 w-full rounded-tile border border-border bg-bg px-3 text-body text-fg outline-none focus:border-accent"
             [placeholder]="'feedback.deviations.searchPlaceholder' | transloco"
             [value]="query()"
             (input)="onQuery($any($event.target).value)"
@@ -85,11 +90,11 @@ import { feedbackErrorKey } from '../data/feedback-errors';
             data-testid="deviation-search"
           />
           @if (searching()) {
-            <p class="mt-2 text-[12.5px] text-fg-muted" role="status">
+            <p class="mt-2 text-meta text-fg-muted" role="status">
               {{ 'feedback.common.loading' | transloco }}
             </p>
           } @else if (query().trim() && hits().length === 0) {
-            <p class="mt-2 text-[12.5px] text-fg-muted">
+            <p class="mt-2 text-meta text-fg-muted">
               {{ 'feedback.deviations.noHits' | transloco }}
             </p>
           }
@@ -99,16 +104,16 @@ import { feedbackErrorKey } from '../data/feedback-errors';
                 <li>
                   <button
                     type="button"
-                    class="flex w-full items-center gap-2 rounded-tile px-2 py-1.5 text-left text-[13px] hover:bg-surface focus-visible:ring-2 focus-visible:ring-accent outline-none disabled:opacity-50"
+                    class="flex w-full items-center gap-2 rounded-tile px-2 py-1.5 text-left text-ui hover:bg-surface focus-visible:ring-2 focus-visible:ring-accent outline-none disabled:opacity-50"
                     [disabled]="busy() || isLinked(hit.entity_id)"
                     (click)="link(hit)"
                   >
                     @if (hit.code) {
-                      <span class="font-mono text-[12px] text-fg-subtle">{{ hit.code }}</span>
+                      <span class="font-mono text-meta text-fg-subtle">{{ hit.code }}</span>
                     }
                     <span class="truncate text-fg">{{ hit.title }}</span>
                     @if (isLinked(hit.entity_id)) {
-                      <span class="ml-auto text-[12px] text-fg-subtle">
+                      <span class="ml-auto text-meta text-fg-subtle">
                         {{ 'feedback.deviations.alreadyLinked' | transloco }}
                       </span>
                     }
@@ -126,7 +131,7 @@ import { feedbackErrorKey } from '../data/feedback-errors';
       }
 
       @if (links().length === 0) {
-        <p class="text-[13px] text-fg-subtle" data-testid="no-deviations">
+        <p class="text-ui text-fg-subtle" data-testid="no-deviations">
           {{ 'feedback.deviations.none' | transloco }}
         </p>
       } @else {
@@ -157,6 +162,9 @@ export class FeedbackDeviations {
   private readonly search = inject(SearchApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly notifications = inject(NotificationService);
+  protected readonly flows = inject(CreateFlowService);
+  /** The central "deviation from this feedback" flow (prefilled, linked back on save). */
+  protected readonly flowKey = DEVIATION_FLOW;
 
   readonly feedbackId = input.required<string>();
   readonly links = input<readonly EntityRefDto[]>([]);
@@ -202,6 +210,11 @@ export class FeedbackDeviations {
         },
       });
     inject(DestroyRef).onDestroy(() => this.searchSub.unsubscribe());
+  }
+
+  /** "Registrer avvik": a new deviation pre-filled from the feedback, linked back on save. */
+  protected register(): void {
+    void this.flows.start(DEVIATION_FLOW, FEEDBACK_ENTITY, this.feedbackId());
   }
 
   protected isLinked(id: string): boolean {

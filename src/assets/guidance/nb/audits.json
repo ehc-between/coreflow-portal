@@ -3,7 +3,7 @@
     "overview": {
       "intro": {
         "title": "Revisjoner holder styringssystemet ærlig",
-        "body": "En revisjon kontrollerer, med bevis, om det dere **sier** at dere gjør, er det dere **faktisk** gjør, og om det virker. Modulen dekker hele syklusen: et årlig **program**, enkeltvise **revisjoner** med team og sjekkliste, **funn** som følges opp, og **sertifiseringer** fra eksterne organer.",
+        "body": "En revisjon kontrollerer, med dokumentasjon, om det dere **sier** at dere gjør, er det dere **faktisk** gjør, og om det virker. Modulen dekker hele syklusen: et årlig **program**, enkeltvise **revisjoner** med team og sjekkliste, **funn** som følges opp, og **sertifiseringer** fra eksterne organer.",
         "steps": [
           "Start med et revisjonsprogram for året, basert på risiko og tidligere resultater.",
           "Planlegg hver revisjon: omfang, kriterier, datoer og et kompetent og uavhengig team.",
@@ -27,7 +27,7 @@
         ]
       },
       "why": {
-        "body": "Planlagte og dokumenterte revisjoner er beviset på at kravet om internrevisjon er oppfylt. Revisorer og sertifiseringsorganer vil be om å se planen, resultatene og hvordan funnene ble håndtert.",
+        "body": "Planlagte og dokumenterte revisjoner dokumenterer at kravet om internrevisjon er oppfylt. Revisorer og sertifiseringsorganer vil be om å se planen, resultatene og hvordan funnene ble håndtert.",
         "clauses": ["hs:9.2"]
       },
       "empty": {
@@ -67,12 +67,13 @@
         ]
       },
       "why": {
-        "body": "Avvik skal håndteres, årsakene finnes og tiltak iverksettes slik at de ikke gjentar seg, og effekten av tiltakene skal vurderes. Lukkede og verifiserte funn er beviset på dette.",
+        "body": "Avvik skal håndteres, årsakene finnes og tiltak iverksettes slik at de ikke gjentar seg, og effekten av tiltakene skal vurderes. Lukkede og verifiserte funn dokumenterer dette.",
         "clauses": ["hs:10.2", "hs:9.2"]
       },
       "empty": {
         "title": "Ingen åpne funn",
-        "body": "Funn registreres fra en revisjon, vanligvis fra et svar i sjekklisten. Når en revisjon finner noe, vises det her med ansvarlig og svarfrist."
+        "body": "Funn registreres fra en revisjon, vanligvis fra et svar i sjekklisten. Når en revisjon finner noe, vises det her med ansvarlig og svarfrist.",
+        "cta": "Gå til revisjonene"
       }
     },
     "certifications": {
@@ -117,11 +118,18 @@
       "fields": {
         "lead": {
           "help": "En ledende revisor planlegger revisjonen, leder teamet og har ansvaret for rapporten. Vanligvis med mer opplæring og erfaring.",
-          "example": "Har fullført kurs for ledende revisor i ISO 9001"
+          "example": "Har fullført kurs for ledende revisor i ISO 9001",
+          "requirements": ["hs:7.2"]
         },
         "qualifications": {
           "help": "Opplæring, kurs og erfaring som viser at personen er kompetent til å revidere.",
-          "example": "Internrevisorkurs (2 dager), 4 revisjoner som revisor"
+          "example": "Internrevisorkurs (2 dager), 4 revisjoner som revisor",
+          "requirements": ["hs:7.2"]
+        },
+        "courses": {
+          "help": "Opplæringen som kvalifiserer personen som revisor. Gyldigheten følger da opplæringsregisteret.",
+          "example": "Internrevisorkurs ISO 9001",
+          "requirements": ["hs:7.2"]
         }
       }
     },
@@ -131,7 +139,7 @@
         "body": "En god revisjonsplan svarer på **hva** som revideres (omfang), **mot hva** (kriterier og krav), **når** og **av hvem**. Team og sjekkliste legges til etter at du har lagret.",
         "steps": [
           "Hold omfanget avgrenset: én prosess, ett sted eller én avdeling er ofte nok.",
-          "List opp kravene du skal kontrollere, for eksempel iso9001:8.4 eller hs:9.2.",
+          "Velg kravene du skal kontrollere fra listen. Revisjonen teller da som dokumentasjon for dem under Standarder og krav.",
           "Velg **Ekstern** for revisjoner fra sertifiseringsorgan, kunde, leverandør eller myndighet."
         ]
       },
@@ -162,15 +170,39 @@
         },
         "scope": {
           "help": "Omfanget og grensene for revisjonen: prosesser, steder, avdelinger og perioden som dekkes.",
-          "example": "Innkjøp ved hovedkontoret, bestillinger fra de siste seks månedene"
+          "example": "Innkjøp ved hovedkontoret, bestillinger fra de siste seks månedene",
+          "requirements": ["hs:9.2"]
         },
         "criteria": {
-          "help": "Det bevisene sammenlignes med: krav i standarder, egne prosedyrer, kontrakter eller lover.",
-          "example": "ISO 9001 krav 8.4 og innkjøpsprosedyren"
+          "help": "Det dokumentasjonen sammenlignes med: krav i standarder, egne prosedyrer, kontrakter eller lover.",
+          "example": "ISO 9001 krav 8.4 og innkjøpsprosedyren",
+          "requirements": ["hs:9.2"]
         },
         "clauseRefs": {
-          "help": "Kravene som skal kontrolleres, adskilt med komma. Brukes til å lage sjekklisten fra standarden.",
-          "example": "iso9001:8.4, iso9001:7.5"
+          "help": "Kravene denne revisjonen kontrollerer. Velg dem fra listen; sjekklisten lages ut fra dem.",
+          "example": "ISO 9001 · 8.4 Styring av eksterne leverandører",
+          "requirements": ["hs:9.2"]
+        },
+        "processes": {
+          "help": "Prosessene revisjonen ser på. Eierne av prosessene kan ikke revidere dem.",
+          "example": "Innkjøp",
+          "requirements": ["hs:9.2", "hs:4.4"]
+        },
+        "criteriaDocuments": {
+          "help": "Egne prosedyrer og policyer som praksis sammenlignes med.",
+          "example": "Innkjøpsprosedyren"
+        },
+        "objectives": {
+          "help": "Hva revisjonen skal finne ut av.",
+          "example": "Kontrollere at nye leverandører vurderes før de tas i bruk"
+        },
+        "location": {
+          "help": "Hvor revisjonen skjer: lokasjon, kontor eller digitalt.",
+          "example": "Hovedkontoret i Oslo"
+        },
+        "owner": {
+          "help": "Hvem i organisasjonen som har ansvar for at revisjonen blir gjennomført.",
+          "example": "Kvalitetsleder"
         }
       }
     },
@@ -185,7 +217,7 @@
         ]
       },
       "why": {
-        "body": "Revisjonsresultatene skal rapporteres til relevant ledelse og oppbevares som dokumentert informasjon. En godkjent rapport med sjekkliste og funn er dette beviset.",
+        "body": "Revisjonsresultatene skal rapporteres til relevant ledelse og oppbevares som dokumentert informasjon. En godkjent rapport med sjekkliste og funn dokumenterer dette.",
         "clauses": ["hs:9.2", "iso19011:6.5", "iso27001:A.5.35"]
       },
       "fields": {
@@ -194,12 +226,23 @@
           "example": "Revisor"
         },
         "checklist": {
-          "help": "Spørsmålene du skal stille og bevisene du skal se etter, ett per krav. Lag dem fra kravene eller legg til egne.",
-          "example": "Hvordan vurderer dere nye leverandører? Be om: de tre siste vurderingene"
+          "help": "Spørsmålene du skal stille og dokumentasjonen du skal se etter, ett per krav. Lag dem fra kravene eller legg til egne.",
+          "example": "Hvordan vurderer dere nye leverandører? Be om: de tre siste vurderingene",
+          "requirements": ["hs:9.2"]
         },
         "reportSummary": {
           "help": "Hva som ble revidert, de viktigste konklusjonene og antall og type funn. Hold det saklig.",
-          "example": "Innkjøpsprosessen fungerer i hovedsak. Det ble funnet to mindre avvik."
+          "example": "Innkjøpsprosessen fungerer i hovedsak. Det ble funnet to mindre avvik.",
+          "requirements": ["hs:9.2"]
+        },
+        "reportOutcome": {
+          "help": "Det samlede svaret på revisjonens mål: oppfyller området kriteriene?",
+          "example": "I samsvar, med funn",
+          "requirements": ["hs:9.2"]
+        },
+        "reportLimitations": {
+          "help": "Alt som begrenser konklusjonen, for eksempel personer eller registreringer som ikke var tilgjengelige.",
+          "example": "Lageret ble ikke besøkt."
         }
       }
     },
@@ -220,30 +263,33 @@
       "fields": {
         "title": {
           "help": "Et navn på programmet.",
-          "example": "Internrevisjonsprogram 2026"
+          "example": "Internrevisjonsprogram 2026",
+          "requirements": ["hs:9.2"]
         },
         "objectives": {
           "help": "Hva revisjonene i programmet skal oppnå.",
-          "example": "Bekrefte at vi er klare for sertifiseringsrevisjonen i oktober"
+          "example": "Bekrefte at vi er klare for sertifiseringsrevisjonen i oktober",
+          "requirements": ["hs:9.2"]
         },
         "riskBasis": {
           "help": "Hvorfor noen områder revideres oftere eller grundigere: risiko, klager, endringer, tidligere funn.",
-          "example": "Produksjonen hadde tre avvik i fjor og revideres to ganger."
+          "example": "Produksjonen hadde tre avvik i fjor og revideres to ganger.",
+          "requirements": ["hs:9.2", "hs:6.1"]
         }
       }
     },
     "findingForm": {
       "intro": {
         "title": "Skrive et tydelig funn",
-        "body": "Et godt funn angir **kravet**, hva du **observerte** og **bevisene**, slik at hvem som helst forstår det uten å ha vært der.",
+        "body": "Et godt funn angir **kravet**, hva du **observerte** og **dokumentasjonen**, slik at hvem som helst forstår det uten å ha vært der.",
         "steps": [
           "Velg type: større eller mindre avvik, observasjon eller forbedringsmulighet.",
-          "Beskriv avviket fra kravet, og deretter de objektive bevisene du så.",
+          "Beskriv avviket fra kravet, og deretter den objektive dokumentasjonen du så.",
           "Tildel den reviderte som skal svare, og sett en svarfrist."
         ]
       },
       "why": {
-        "body": "Revisjonsfunn sammenlignes med revisjonskriteriene og skal støttes av objektive bevis. De utløser de korrigerende tiltakene standarden krever.",
+        "body": "Revisjonsfunn sammenlignes med revisjonskriteriene og skal støttes av objektiv dokumentasjon. De utløser de korrigerende tiltakene standarden krever.",
         "clauses": ["hs:10.2", "iso19011:6.4.8"]
       },
       "fields": {
@@ -253,19 +299,26 @@
         },
         "description": {
           "help": "Kravet, og hva som ble funnet som ikke oppfyller det.",
-          "example": "Prosedyren krever årlig vurdering; to viktige leverandører ble sist vurdert i 2023."
+          "example": "Prosedyren krever årlig vurdering; to viktige leverandører ble sist vurdert i 2023.",
+          "requirements": ["hs:9.2"]
         },
         "evidence": {
           "help": "Det du så, leste eller hørte som støtter funnet: registreringer, dokumenter, intervjuer.",
-          "example": "Leverandørregisteret, oppføringene for to leverandører"
+          "example": "Leverandørregisteret, oppføringene for to leverandører",
+          "requirements": ["hs:9.2"]
         },
         "responseDue": {
           "help": "Når den reviderte skal ha levert rotårsak og korreksjon.",
-          "example": "Fire uker etter revisjonen"
+          "example": "Fire uker etter revisjonen",
+          "requirements": ["hs:10.2"]
         },
         "owner": {
           "help": "Personen i det reviderte området som svarer på funnet. Vedkommende kan svare selv uten revisjonsrettigheter.",
           "example": "Innkjøpssjefen"
+        },
+        "clauseRef": {
+          "help": "Kravet som ikke er oppfylt. Velg det fra listen.",
+          "example": "ISO 9001 · 8.4.1"
         }
       }
     },
@@ -280,25 +333,34 @@
         ]
       },
       "why": {
-        "body": "Når et avvik oppstår, skal dere reagere, finne årsaken, iverksette tiltak, vurdere effekten og ta vare på bevis for alt dette.",
+        "body": "Når et avvik oppstår, skal dere reagere, finne årsaken, iverksette tiltak, vurdere effekten og dokumentere alt dette.",
         "clauses": ["hs:10.2", "iso27001:A.5.35"]
       },
       "fields": {
         "rootCause": {
           "help": "Den underliggende grunnen til at kravet ikke ble oppfylt, ikke bare symptomet.",
-          "example": "Ingen hadde ansvaret for å planlegge de årlige vurderingene."
+          "example": "Ingen hadde ansvaret for å planlegge de årlige vurderingene.",
+          "requirements": ["hs:10.2"]
         },
         "correction": {
           "help": "Det som ble gjort med en gang for å rette selve problemet.",
-          "example": "De to leverandørene ble vurdert i mai."
+          "example": "De to leverandørene ble vurdert i mai.",
+          "requirements": ["hs:10.2"]
         },
         "correctiveAction": {
           "help": "Det som hindrer at problemet oppstår igjen, ved å fjerne rotårsaken.",
-          "example": "Årlige vurderinger lagt inn som gjentakende oppgaver for innkjøpssjefen."
+          "example": "Årlige vurderinger lagt inn som gjentakende oppgaver for innkjøpssjefen.",
+          "requirements": ["hs:10.2"]
         },
         "verificationNotes": {
           "help": "Det revisoren kontrollerte for å bekrefte at svaret er gjennomført og virker.",
-          "example": "Gjentakende oppgaver sett; vurderinger av begge leverandørene er arkivert."
+          "example": "Gjentakende oppgaver sett; vurderinger av begge leverandørene er arkivert.",
+          "requirements": ["hs:10.2"]
+        },
+        "decision": {
+          "help": "For en observasjon eller et forbedringsforslag: hva dere bestemte å gjøre, og hvorfor.",
+          "example": "Vi legger inn en påminnelse i den årlige gjennomgangen.",
+          "requirements": ["hs:10.3"]
         }
       }
     },
@@ -313,7 +375,7 @@
         ]
       },
       "why": {
-        "body": "Programmet og resultatene er dokumentert bevis på at revisjonsprogrammet er gjennomført.",
+        "body": "Programmet og resultatene dokumenterer at revisjonsprogrammet er gjennomført.",
         "clauses": ["hs:9.2"]
       }
     },
@@ -333,7 +395,8 @@
       "fields": {
         "status": {
           "help": "Hvor sertifikatet står: planlagt, pågår, sertifisert, suspendert, trukket tilbake eller utløpt.",
-          "example": "Sertifisert"
+          "example": "Sertifisert",
+          "requirements": ["hs:9.2"]
         },
         "body": {
           "help": "Den akkrediterte organisasjonen som utsteder sertifikatet.",
@@ -341,11 +404,22 @@
         },
         "scope": {
           "help": "Aktivitetene og stedene sertifikatet dekker, slik det står på sertifikatet.",
-          "example": "Utvikling og salg av programvare, hovedkontoret"
+          "example": "Utvikling og salg av programvare, hovedkontoret",
+          "requirements": ["hs:4.3"]
         },
         "surveillance": {
           "help": "Datoen for neste årlige oppfølgingsrevisjon.",
-          "example": "Ett år etter sertifiseringsrevisjonen"
+          "example": "Ett år etter sertifiseringsrevisjonen",
+          "requirements": ["hs:9.2"]
+        },
+        "framework": {
+          "help": "Bare ISO-standarder for styringssystemer kan sertifiseres.",
+          "example": "ISO 9001"
+        },
+        "supplier": {
+          "help": "Velg sertifiseringsorganet fra Leverandører, så det vurderes som andre leverandører.",
+          "example": "DNV",
+          "requirements": ["iso9001:8.4"]
         }
       }
     },
@@ -371,7 +445,7 @@
       "sections": [
         {
           "heading": "Hva en internrevisjon er",
-          "body": "En internrevisjon er en planlagt, uavhengig kontroll av om styringssystemet oppfyller kravene (i standarden og deres egne) og virker i praksis. Den ser etter **bevis**, ikke meninger."
+          "body": "En internrevisjon er en planlagt, uavhengig kontroll av om styringssystemet oppfyller kravene (i standarden og deres egne) og virker i praksis. Den ser etter **dokumentasjon**, ikke meninger."
         },
         {
           "heading": "Programmet og planen",
@@ -379,7 +453,7 @@
         },
         {
           "heading": "Gjennomføring og sjekkliste",
-          "body": "Under gjennomføringen intervjuer revisoren folk, ser på registreringer og observerer arbeidet. Sjekklisten viser spørsmålene og bevisene det skal bes om, per krav. Notatene viser hva som faktisk ble sett."
+          "body": "Under gjennomføringen intervjuer revisoren folk, ser på registreringer og observerer arbeidet. Sjekklisten viser spørsmålene og dokumentasjonen det skal bes om, per krav. Notatene viser hva som faktisk ble sett."
         },
         {
           "heading": "Rapport og oppfølging",
@@ -389,9 +463,9 @@
       "quiz": [
         {
           "question": "Hva bygger en revisor et funn på?",
-          "options": ["Sin egen mening", "Objektive bevis", "Det lederen sier skal skje"],
+          "options": ["Sin egen mening", "Objektiv dokumentasjon", "Det lederen sier skal skje"],
           "answer": 1,
-          "explanation": "Funn sammenligner objektive bevis (registreringer, observasjoner, intervjuer) med revisjonskriteriene."
+          "explanation": "Funn sammenligner objektiv dokumentasjon (registreringer, observasjoner, intervjuer) med revisjonskriteriene."
         },
         {
           "question": "Hvilke områder bør revideres oftere?",
@@ -502,11 +576,11 @@
     },
     "audit-criteria": {
       "term": "Revisjonskriterier",
-      "definition": "Kravene revisjonsbevisene sammenlignes med, for eksempel krav i standarder, prosedyrer eller kontrakter.",
+      "definition": "Kravene revisjonsdokumentasjonen sammenlignes med, for eksempel krav i standarder, prosedyrer eller kontrakter.",
       "clauses": ["iso19011:3.7"]
     },
     "objective-evidence": {
-      "term": "Objektive bevis",
+      "term": "Objektiv dokumentasjon",
       "definition": "Fakta som støtter en konklusjon: registreringer, dokumenter, observasjoner eller utsagn som kan etterprøves."
     },
     "lead-auditor": {

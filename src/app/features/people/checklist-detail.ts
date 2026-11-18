@@ -16,22 +16,26 @@ import { providePageContext } from '../../core/ai/page-context';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { WatchButton } from '../../shared/activity/watch-button';
-import { AskAbout } from '../../shared/ask/ask-about';
 import { FieldHelp } from '../../shared/guidance/field-help';
-import { GuideIntro } from '../../shared/guidance/guide-intro';
 import { WhyItMatters } from '../../shared/guidance/why-it-matters';
 import { RecordDetailLayout, RecordTab } from '../../shared/kit/record-detail-layout';
 import { LocalDatePipe, LocalDayPipe } from '../../shared/locale/locale-pipes';
-import { SupportsRequirements } from '../../shared/requirement-links/supports-requirements';
 import { Alert } from '../../shared/ui/alert/alert';
-import { Badge } from '../../shared/ui/badge/badge';
 import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog/confirm-dialog';
+import { EmptyState } from '../../shared/ui/empty-state/empty-state';
+import { FieldItem, FieldList } from '../../shared/ui/field-list/field-list';
+import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../shared/ui/icon/icon';
+import { LoadingState } from '../../shared/ui/loading-state/loading-state';
+import { MenuItem, OverflowMenu } from '../../shared/ui/overflow-menu/overflow-menu';
 import { ProgressBar } from '../../shared/ui/progress-bar/progress-bar';
+import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
+import { LanguageService } from '../../core/i18n/language.service';
+import { AskPanelService } from '../ask/ask-panel.service';
 import { PeopleApi } from './data/people-api';
-import { checklistStatusTone, hasPerm } from './data/people-display';
+import { countKey, hasPerm, todayIso } from './data/people-display';
 import { peopleErrorCode, peopleErrorExtra, peopleErrorKey } from './data/people-errors';
 import {
   ChecklistDetail,
@@ -41,14 +45,18 @@ import {
   PERM_MANAGE,
   PERM_WRITE,
 } from './data/people.models';
-import { PeopleLessonLink } from './people-section-nav';
+import { EmployeeHandoverSection } from './ui/employee-training';
+import { PEOPLE_ROOT, PEOPLE_SETTINGS_LINK } from './ui/people-nav';
 
 const TABS: readonly RecordTab[] = ['details', 'related', 'activity', 'comments', 'attachments'];
 
 /**
- * An onboarding or offboarding checklist (`/people/checklists/:id`): the items by
- * category (access, equipment, confidentiality, ...), ticked off one by one, then
- * completed (blocked while required items are open) or cancelled. The work is a
+ * A joiner or leaver checklist (`/people/checklists/:id`, "Oppstart – Jonas Lie"):
+ * the items by category, ticked off one by one, then completed (blocked while
+ * required items are open) or cancelled. Items with a meaning also update the
+ * person: ticking "confidentiality agreement received" records the date on the
+ * person, and "equipment returned" is refused while assets are still registered to
+ * them (the leaver's assets and access are listed below the items). The work is a
  * platform task, linked from here.
  */
 @Component({
@@ -59,38 +67,42 @@ const TABS: readonly RecordTab[] = ['details', 'related', 'activity', 'comments'
     LocalDatePipe,
     LocalDayPipe,
     WatchButton,
-    AskAbout,
     FieldHelp,
-    GuideIntro,
     WhyItMatters,
     RecordDetailLayout,
-    SupportsRequirements,
     Alert,
-    Badge,
     Button,
     Card,
     ConfirmDialog,
+    EmptyState,
+    FieldItem,
+    FieldList,
+    HelpStrip,
     Icon,
+    LoadingState,
+    MenuItem,
+    OverflowMenu,
     ProgressBar,
-    PeopleLessonLink,
+    StatusBadge,
+    EmployeeHandoverSection,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @switch (state()) {
       @case ('loading') {
-        <p class="py-16 text-center text-[14px] text-fg-muted" role="status">
-          {{ 'people.common.loading' | transloco }}
-        </p>
+        <div class="mx-auto max-w-[1180px] px-4 pt-8 sm:px-8">
+          <app-loading-state [rows]="6" />
+        </div>
       }
       @case ('error') {
         <div class="mx-auto max-w-[760px] px-4 pt-8 sm:px-8">
-          <app-alert tone="error">{{ errorKey() | transloco }}</app-alert>
-          <a
-            routerLink="/people/checklists"
-            class="mt-4 inline-block text-[13px] font-semibold text-accent"
-          >
-            {{ 'people.common.backToChecklists' | transloco }}
-          </a>
+          <app-empty-state
+            icon="search"
+            [titleKey]="errorKey()"
+            bodyKey="people.detail.notFoundBody"
+            ctaKey="people.common.backToChecklists"
+            ctaLink="/people/checklists"
+          />
         </div>
       }
       @default {
@@ -98,65 +110,91 @@ const TABS: readonly RecordTab[] = ['details', 'related', 'activity', 'comments'
           <app-record-detail-layout
             entityType="people_checklist"
             [entityId]="c.id"
+            [title]="c.title"
+            [breadcrumbs]="[
+              root,
+              { labelKey: 'people.checklists.title', link: '/people/checklists' },
+              { label: c.title },
+            ]"
+            [settingsLink]="settingsLink"
             [tabs]="tabs"
             [canEdit]="editable()"
-            backLink="/people/checklists"
-            backLabelKey="people.common.backToChecklists"
+            [requirementsPanel]="true"
           >
-            <div header>
-              <p class="mb-1 text-[12.5px] text-fg-subtle">
-                {{ 'people.checklistKinds.' + c.kind | transloco }} ·
-                <a [routerLink]="['/people/employees', c.employee_id]" class="hover:underline"
-                  >{{ c.employee_name }} ({{ c.employee_code }})</a
-                >
-              </p>
-              <h1
-                class="font-display text-[24px] font-bold tracking-[-0.03em] break-words text-fg sm:text-[26px]"
-                data-testid="checklist-heading"
+            <ng-container ngProjectAs="[meta]">
+              <span>{{ 'people.checklistKinds.' + c.kind | transloco }}</span>
+              <span aria-hidden="true">·</span>
+              <a
+                [routerLink]="['/people/employees', c.employee_id]"
+                class="font-semibold text-accent hover:underline"
+                data-testid="checklist-employee"
+                >{{ c.employee_name }}</a
               >
-                {{ c.title }}
-              </h1>
-              <div class="mt-2 flex flex-wrap items-center gap-2">
-                <app-badge [tone]="tone(c.status)" data-testid="checklist-status">{{
-                  'people.checklistStatus.' + c.status | transloco
-                }}</app-badge>
-                @if (c.due_date) {
-                  <span class="text-[13px] text-fg-muted">{{
-                    'people.checklists.due' | transloco: { date: (c.due_date | localDay) }
-                  }}</span>
-                }
-              </div>
-            </div>
+              <app-status-badge
+                meaning="lifecycle"
+                [value]="c.status"
+                [labelKey]="'people.checklistStatus.' + c.status"
+                data-testid="checklist-status"
+              />
+              @if (c.due_date) {
+                <span [class.font-semibold]="overdue()" [class.text-warn-ink]="overdue()">{{
+                  'people.checklists.due' | transloco: { date: (c.due_date | localDay) }
+                }}</span>
+              }
+              <span class="sr-only" data-testid="checklist-heading">{{ c.title }}</span>
+            </ng-container>
 
-            <ng-container actions>
-              <app-watch-button entityType="people_checklist" [entityId]="c.id" />
-              <app-ask-about [prompt]="'people.ask.checklist' | transloco" />
-              @if (editable()) {
+            @if (editable()) {
+              <ng-container ngProjectAs="[primary]">
                 <app-button
-                  size="sm"
                   (click)="complete()"
                   [loading]="busy()"
                   [disabled]="busy()"
                   data-testid="checklist-complete"
                 >
-                  <app-icon name="check" [size]="14" />
+                  <app-icon name="check" [size]="15" />
                   {{ 'people.checklists.complete' | transloco }}
                 </app-button>
-                <app-button size="sm" variant="ghost" (click)="cancelling.set(true)">
+              </ng-container>
+            }
+            <ng-container ngProjectAs="[secondary]">
+              <a [routerLink]="['/people/employees', c.employee_id]">
+                <app-button variant="secondary">{{
+                  'people.checklists.openPerson' | transloco
+                }}</app-button>
+              </a>
+              <app-watch-button entityType="people_checklist" [entityId]="c.id" />
+            </ng-container>
+            <ng-container ngProjectAs="[overflow]">
+              <button appMenuItem type="button" (click)="askAbout()">
+                {{ 'people.checklists.ask' | transloco }}
+              </button>
+              @if (editable()) {
+                <button appMenuItem type="button" (click)="cancelling.set(true)">
                   {{ 'people.checklists.cancel' | transloco }}
-                </app-button>
+                </button>
               }
               @if (canManage()) {
-                <app-button size="sm" variant="ghost" (click)="deleting.set(true)">
-                  <app-icon name="trash" [size]="14" />
-                  <span class="sr-only">{{ 'people.common.delete' | transloco }}</span>
-                </app-button>
+                <button
+                  appMenuItem
+                  type="button"
+                  [danger]="true"
+                  (click)="deleting.set(true)"
+                  data-testid="checklist-delete"
+                >
+                  {{ 'people.common.delete' | transloco }}
+                </button>
               }
             </ng-container>
 
-            <div class="flex flex-col gap-6">
-              <app-guide-intro scope="people" page="checklistDetail" />
+            <app-help-strip
+              help
+              scope="people"
+              [page]="c.kind === 'offboarding' ? 'checklistOffboarding' : 'checklistOnboarding'"
+              lesson="joiners-and-leavers"
+            />
 
+            <div class="flex flex-col gap-5">
               @if (c.status !== 'open') {
                 <app-alert tone="info">
                   {{
@@ -177,6 +215,20 @@ const TABS: readonly RecordTab[] = ['details', 'related', 'activity', 'comments'
                   {{ 'people.errors.checklist_incomplete' | transloco: { count: openRequired() } }}
                 </app-alert>
               }
+              @if (assetsOutstanding() !== null) {
+                <app-alert tone="error" data-testid="assets-outstanding">
+                  {{
+                    countKey('people.checklists.assetsOutstanding', assetsOutstanding())
+                      | transloco: { count: assetsOutstanding() }
+                  }}
+                  <a
+                    [routerLink]="['/people/employees', c.employee_id]"
+                    [queryParams]="{ section: 'handover' }"
+                    class="ml-1 font-semibold underline"
+                    >{{ 'people.checklists.seeHandover' | transloco }}</a
+                  >
+                </app-alert>
+              }
 
               <app-card>
                 <div class="mb-3">
@@ -187,14 +239,17 @@ const TABS: readonly RecordTab[] = ['details', 'related', 'activity', 'comments'
                         | transloco: { done: c.items_done, total: c.items_total }
                     "
                   />
-                  <p class="mt-1 text-[12px] text-fg-subtle" data-testid="checklist-progress">
+                  <p class="mt-1 text-meta text-fg-muted" data-testid="checklist-progress">
                     {{
                       'people.checklists.progress'
                         | transloco: { done: c.items_done, total: c.items_total }
                     }}
                     @if (c.required_open > 0) {
                       ·
-                      {{ 'people.checklists.requiredOpen' | transloco: { count: c.required_open } }}
+                      {{
+                        countKey('people.checklists.requiredOpen', c.required_open)
+                          | transloco: { count: c.required_open }
+                      }}
                     }
                   </p>
                 </div>
@@ -206,7 +261,7 @@ const TABS: readonly RecordTab[] = ['details', 'related', 'activity', 'comments'
                   >
                     <h2
                       [id]="'cf-cat-' + group.category"
-                      class="mb-1 text-[12.5px] font-semibold tracking-wide text-fg-subtle uppercase"
+                      class="mb-1 text-meta font-semibold tracking-wide text-fg-subtle uppercase"
                     >
                       {{ 'people.itemCategories.' + group.category | transloco }}
                     </h2>
@@ -220,7 +275,7 @@ const TABS: readonly RecordTab[] = ['details', 'related', 'activity', 'comments'
                             [checked]="item.done"
                             [disabled]="!editable() || busy() || !!item.system_key"
                             [attr.aria-describedby]="
-                              item.system_key ? 'cf-item-auto-' + item.id : null
+                              item.system_key || item.action_key ? 'cf-item-auto-' + item.id : null
                             "
                             (change)="toggle(item, $any($event.target).checked)"
                             [attr.data-testid]="'item-' + item.id"
@@ -228,21 +283,21 @@ const TABS: readonly RecordTab[] = ['details', 'related', 'activity', 'comments'
                           <div class="min-w-0 flex-1">
                             <label
                               [for]="'cf-item-' + item.id"
-                              class="text-[13.5px] text-fg"
+                              class="text-body text-fg"
                               [class.line-through]="item.done"
                               [class.text-fg-muted]="item.done"
                             >
                               {{ item.text }}
                             </label>
                             @if (item.required) {
-                              <span class="ml-1 text-[11.5px] text-fg-subtle">{{
+                              <span class="ml-1 text-meta text-fg-subtle">{{
                                 'people.checklists.required' | transloco
                               }}</span>
                             }
                             @if (item.system_key) {
                               <p
                                 [id]="'cf-item-auto-' + item.id"
-                                class="text-[11.5px] text-fg-subtle"
+                                class="text-meta text-fg-muted"
                                 [attr.data-testid]="'item-auto-' + item.id"
                               >
                                 {{
@@ -254,8 +309,17 @@ const TABS: readonly RecordTab[] = ['details', 'related', 'activity', 'comments'
                                       : { date: item.done_at ? (item.done_at | localDate) : '' }
                                 }}
                               </p>
-                            } @else if (item.done && item.done_by) {
-                              <p class="text-[11.5px] text-fg-subtle">
+                            } @else if (item.action_key) {
+                              <p
+                                [id]="'cf-item-auto-' + item.id"
+                                class="text-meta text-fg-muted"
+                                [attr.data-testid]="'item-action-' + item.id"
+                              >
+                                {{ 'people.checklists.actions.' + item.action_key | transloco }}
+                              </p>
+                            }
+                            @if (item.done && item.done_by && !item.system_key) {
+                              <p class="text-meta text-fg-subtle">
                                 {{
                                   'people.checklists.doneBy'
                                     | transloco
@@ -267,26 +331,30 @@ const TABS: readonly RecordTab[] = ['details', 'related', 'activity', 'comments'
                               </p>
                             }
                             @if (item.note) {
-                              <p class="text-[12px] text-fg-muted">{{ item.note }}</p>
+                              <p class="text-meta text-fg-muted">{{ item.note }}</p>
                             }
                           </div>
                           @if (editable()) {
-                            <app-button size="sm" variant="ghost" (click)="openNote(item)">
-                              {{ 'people.checklists.note' | transloco }}
-                            </app-button>
-                            @if (!item.system_key) {
-                              <app-button
-                                size="sm"
-                                variant="ghost"
-                                (click)="removeItem(item)"
-                                [attr.data-testid]="'remove-' + item.id"
-                              >
-                                <app-icon name="trash" [size]="14" />
-                                <span class="sr-only">{{
-                                  'people.checklists.removeItem' | transloco
-                                }}</span>
-                              </app-button>
-                            }
+                            <app-overflow-menu
+                              [iconOnly]="true"
+                              labelKey="people.checklists.itemMenu"
+                              [attr.data-testid]="'item-menu-' + item.id"
+                            >
+                              <button appMenuItem type="button" (click)="openNote(item)">
+                                {{ 'people.checklists.note' | transloco }}
+                              </button>
+                              @if (!item.system_key) {
+                                <button
+                                  appMenuItem
+                                  type="button"
+                                  [danger]="true"
+                                  (click)="removeItem(item)"
+                                  [attr.data-testid]="'remove-' + item.id"
+                                >
+                                  {{ 'people.checklists.removeItem' | transloco }}
+                                </button>
+                              }
+                            </app-overflow-menu>
                           }
                         </li>
                       }
@@ -300,26 +368,29 @@ const TABS: readonly RecordTab[] = ['details', 'related', 'activity', 'comments'
                     (submit)="$event.preventDefault(); addItem()"
                   >
                     <div class="flex min-w-0 flex-1 flex-col gap-1">
-                      <label for="cf-new-item" class="text-[12px] font-semibold text-fg-muted">
-                        {{ 'people.checklists.newItem' | transloco }}
-                      </label>
+                      <span class="flex items-center gap-1.5">
+                        <label for="cf-new-item" class="text-meta font-semibold text-fg-muted">
+                          {{ 'people.checklists.newItem' | transloco }}
+                        </label>
+                        <app-field-help scope="people" page="checklistDetail" field="items" />
+                      </span>
                       <input
                         id="cf-new-item"
                         type="text"
                         maxlength="500"
-                        class="h-9 rounded-[10px] border border-border bg-bg px-3 text-[13px] text-fg outline-none focus:border-accent"
+                        class="h-10 rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent"
                         [value]="newText()"
                         (input)="newText.set($any($event.target).value)"
                         data-testid="new-item-text"
                       />
                     </div>
                     <div class="flex flex-col gap-1">
-                      <label for="cf-new-cat" class="text-[12px] font-semibold text-fg-muted">
+                      <label for="cf-new-cat" class="text-meta font-semibold text-fg-muted">
                         {{ 'people.fields.category' | transloco }}
                       </label>
                       <select
                         id="cf-new-cat"
-                        class="h-9 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
+                        class="h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
                         (change)="newCategory.set($any($event.target).value)"
                       >
                         @for (k of categories; track k) {
@@ -329,7 +400,7 @@ const TABS: readonly RecordTab[] = ['details', 'related', 'activity', 'comments'
                         }
                       </select>
                     </div>
-                    <label class="flex h-9 items-center gap-2 text-[13px] text-fg">
+                    <label class="flex h-10 items-center gap-2 text-ui text-fg">
                       <input
                         type="checkbox"
                         class="h-4 w-4 accent-[var(--accent)]"
@@ -340,7 +411,6 @@ const TABS: readonly RecordTab[] = ['details', 'related', 'activity', 'comments'
                     </label>
                     <app-button
                       type="submit"
-                      size="sm"
                       variant="secondary"
                       [disabled]="!newText().trim() || busy()"
                     >
@@ -348,38 +418,51 @@ const TABS: readonly RecordTab[] = ['details', 'related', 'activity', 'comments'
                       {{ 'people.checklists.addItem' | transloco }}
                     </app-button>
                   </form>
-                  <app-field-help scope="people" page="checklistDetail" field="items" />
                 }
               </app-card>
+
+              @if (c.kind === 'offboarding') {
+                <app-card>
+                  <app-people-employee-handover
+                    [employeeId]="c.employee_id"
+                    [refresh]="refreshCount()"
+                  />
+                </app-card>
+              }
             </div>
 
-            <ng-container aside>
+            <ng-container ngProjectAs="[aside]">
               <app-card>
-                <dl class="flex flex-col gap-2 text-[13px]">
-                  <div>
-                    <dt class="text-fg-subtle">{{ 'people.fields.owner' | transloco }}</dt>
-                    <dd class="text-fg">
-                      {{ c.owner?.name ?? ('people.common.none' | transloco) }}
-                    </dd>
-                  </div>
+                <app-field-list [columns]="1">
+                  <app-field-item labelKey="people.fields.employee">
+                    <a
+                      [routerLink]="['/people/employees', c.employee_id]"
+                      class="font-semibold text-accent hover:underline"
+                      >{{ c.employee_name }}</a
+                    >
+                    <span class="ml-1 font-mono text-meta text-fg-subtle">{{
+                      c.employee_code
+                    }}</span>
+                  </app-field-item>
+                  <app-field-item labelKey="people.fields.owner" [value]="c.owner?.name" />
                   @if (c.task_id) {
-                    <div>
-                      <dt class="text-fg-subtle">{{ 'people.checklists.task' | transloco }}</dt>
-                      <dd>
-                        <a
-                          [routerLink]="['/tasks', c.task_id]"
-                          class="font-semibold text-accent hover:underline"
-                          data-testid="checklist-task"
-                          >{{ 'people.checklists.openTask' | transloco }}</a
-                        >
-                      </dd>
-                    </div>
+                    <app-field-item labelKey="people.checklists.task">
+                      <a
+                        [routerLink]="['/tasks', c.task_id]"
+                        class="font-semibold text-accent hover:underline"
+                        data-testid="checklist-task"
+                        >{{ 'people.checklists.openTask' | transloco }}</a
+                      >
+                    </app-field-item>
                   }
-                </dl>
+                </app-field-list>
               </app-card>
-              <app-supports-requirements entityType="people_checklist" [entityId]="c.id" />
-              <app-why-it-matters scope="people" page="checklistDetail" />
-              <app-people-lesson-link lesson="joiners-and-leavers" />
+            </ng-container>
+            <ng-container ngProjectAs="[aside-learn]">
+              <app-why-it-matters
+                scope="people"
+                [page]="c.kind === 'offboarding' ? 'checklistOffboarding' : 'checklistOnboarding'"
+              />
             </ng-container>
           </app-record-detail-layout>
 
@@ -403,7 +486,7 @@ const TABS: readonly RecordTab[] = ['details', 'related', 'activity', 'comments'
                 id="cf-item-note"
                 rows="3"
                 maxlength="500"
-                class="w-full rounded-[10px] border border-border bg-bg px-3 py-2 text-[13px] text-fg outline-none focus:border-accent"
+                class="w-full rounded-tile border border-border bg-bg px-3 py-2 text-ui text-fg outline-none focus:border-accent"
                 [value]="noteText()"
                 (input)="noteText.set($any($event.target).value)"
               ></textarea>
@@ -446,7 +529,19 @@ export class ChecklistDetailPage {
 
   protected readonly tabs = TABS;
   protected readonly categories = ITEM_CATEGORIES;
-  protected readonly tone = checklistStatusTone;
+  protected readonly countKey = countKey;
+  protected readonly root = PEOPLE_ROOT;
+  protected readonly settingsLink = PEOPLE_SETTINGS_LINK;
+  private readonly language = inject(LanguageService);
+  private readonly ask = inject(AskPanelService);
+  private readonly today = todayIso();
+  protected readonly assetsOutstanding = signal<number | null>(null);
+  /** Bumped after each change so the handover card reloads. */
+  protected readonly refreshCount = signal(0);
+  protected readonly overdue = computed(() => {
+    const c = this.checklist();
+    return !!c && c.status === 'open' && !!c.due_date && c.due_date < this.today;
+  });
 
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
   protected readonly errorKey = signal('people.common.loadFailed');
@@ -486,6 +581,10 @@ export class ChecklistDetailPage {
       entityId: this.id(),
       view: 'detail',
       title: this.checklist()?.title ?? null,
+      requirements:
+        this.checklist()?.kind === 'offboarding'
+          ? ['iso27001:A.5.11', 'iso27001:A.5.18', 'iso27001:A.6.5']
+          : ['iso27001:A.6.2', 'iso27001:A.6.6'],
     }));
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();
@@ -494,10 +593,15 @@ export class ChecklistDetailPage {
     });
   }
 
+  protected askAbout(): void {
+    this.ask.askAbout(this.language.translate('people.ask.checklist'));
+  }
+
   protected toggle(item: ChecklistItem, done: boolean): void {
     if (item.system_key) {
       return;
     }
+    this.assetsOutstanding.set(null);
     this.mutate((orgId, id) => this.api.updateChecklistItem(orgId, id, item.id, { done }));
   }
 
@@ -593,10 +697,17 @@ export class ChecklistDetailPage {
       next: (checklist) => {
         this.busy.set(false);
         this.checklist.set(checklist);
+        this.refreshCount.update((n) => n + 1);
         after?.();
       },
       error: (error: unknown) => {
         this.busy.set(false);
+        if (peopleErrorCode(error) === 'assets_outstanding') {
+          const assets = peopleErrorExtra(error, 'assets');
+          this.assetsOutstanding.set(typeof assets === 'number' ? assets : 1);
+          this.load(orgId, this.id());
+          return;
+        }
         if (peopleErrorCode(error) === 'checklist_incomplete') {
           const open = peopleErrorExtra(error, 'open_required');
           this.openRequired.set(typeof open === 'number' ? open : 1);

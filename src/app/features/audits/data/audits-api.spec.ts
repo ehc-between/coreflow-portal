@@ -159,4 +159,44 @@ describe('AuditsApi', () => {
     api.deleteCertification(ORG, 'c-1').subscribe();
     expect(http.expectOne(`${ROOT}/certifications/c-1`).request.method).toBe('DELETE');
   });
+
+  it('loads programme coverage, clause history and the PDF report', () => {
+    api.coverage(ORG, 'pg-1', 'nb').subscribe();
+    const cov = http.expectOne((r) => r.url === `${ROOT}/programmes/pg-1/coverage`);
+    expect(cov.request.params.get('lang')).toBe('nb');
+    expect(cov.request.params.get('years')).toBe('3');
+    cov.flush({});
+
+    api.clauseHistory(ORG, 'iso9001:8.4.1').subscribe();
+    const hist = http.expectOne((r) => r.url === `${ROOT}/clause-history`);
+    expect(hist.request.params.get('ref')).toBe('iso9001:8.4.1');
+    expect(hist.request.context.get(SKIP_ERROR_TOAST)).toBe(true);
+    hist.flush({});
+
+    api.reportPdf(ORG, 'p-1', 'en').subscribe();
+    const pdf = http.expectOne((r) => r.url === `${ROOT}/plans/p-1/report.pdf`);
+    expect(pdf.request.responseType).toBe('blob');
+    expect(pdf.request.params.get('lang')).toBe('en');
+    pdf.flush(new Blob());
+  });
+
+  it('sends checklist evidence and the finding decision and effectiveness', () => {
+    api
+      .updateChecklistItem(ORG, 'p-1', 'i-1', {
+        evidence_refs: [{ entity_type: 'document', entity_id: 'd-1' }],
+      })
+      .subscribe();
+    expect(http.expectOne(`${ROOT}/plans/p-1/checklist/i-1`).request.body).toEqual({
+      evidence_refs: [{ entity_type: 'document', entity_id: 'd-1' }],
+    });
+    api.updateFinding(ORG, 'f-1', { decision: 'Adopt', effectiveness: 'effective' }).subscribe();
+    expect(http.expectOne(`${ROOT}/findings/f-1`).request.body).toEqual({
+      decision: 'Adopt',
+      effectiveness: 'effective',
+    });
+    api.listFindings(ORG, { status: 'unresolved', clause: 'iso9001:8.4' }).subscribe();
+    const list = http.expectOne((r) => r.url === `${ROOT}/findings`);
+    expect(list.request.params.get('status')).toBe('unresolved');
+    expect(list.request.params.get('clause')).toBe('iso9001:8.4');
+  });
 });

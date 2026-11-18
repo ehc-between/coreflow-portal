@@ -12,7 +12,7 @@ import {
   validateEmployeeForm,
 } from './employee-form-model';
 import { PeopleApi, employeeListParams, gapParams, matrixParams } from './people-api';
-import { cellStatusTone, sortKey, textOrNull, todayIso } from './people-display';
+import { cellLook, countKey, sameTitle, sortKey, textOrNull, todayIso } from './people-display';
 import { peopleErrorExtra, peopleErrorKey } from './people-errors';
 import { toRequirementsBody } from '../position-requirements';
 import { toCompetenceFields, validityOk } from '../competence-editor';
@@ -182,8 +182,12 @@ describe('people helpers', () => {
     expect(sortKey('-start_date')).toBe('start_dateDesc');
     expect(textOrNull('  ')).toBeNull();
     expect(todayIso(new Date(2026, 0, 5))).toBe('2026-01-05');
-    expect(cellStatusTone('expired')).toBe('fail');
-    expect(cellStatusTone('met')).toBe('pass');
+    expect(cellLook('expired')).toEqual({ meaning: 'compliance', value: 'not_met' });
+    expect(cellLook('met')).toEqual({ meaning: 'compliance', value: 'met' });
+    expect(countKey('people.employees.gapCount', 1)).toBe('people.employees.gapCountOne');
+    expect(countKey('people.employees.gapCount', 2)).toBe('people.employees.gapCount');
+    expect(sameTitle('IT administrator', 'IT Administrator')).toBe(true);
+    expect(sameTitle('Team lead', 'IT administrator')).toBe(false);
   });
 
   it('encodes the checklist assignee', () => {

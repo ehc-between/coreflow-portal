@@ -272,7 +272,12 @@ export function evidenceByModule(evidence: RequirementEvidence | null): ModuleEv
                     <span class="mt-0.5 block text-micro text-fg-subtle">
                       {{
                         originKey(link)
-                          | transloco: { field: (fieldKey(link.origin_field) | transloco) }
+                          | transloco
+                            : {
+                                field:
+                                  (fieldKey(link.origin_field, link.entity.entity_type)
+                                  | transloco),
+                              }
                       }}
                       @if (link.confidence !== null) {
                         ·
@@ -373,7 +378,12 @@ export function evidenceByModule(evidence: RequirementEvidence | null): ModuleEv
                         <span class="block text-micro text-fg-subtle">
                           {{
                             originKey(link)
-                              | transloco: { field: (fieldKey(link.origin_field) | transloco) }
+                              | transloco
+                                : {
+                                    field:
+                                      (fieldKey(link.origin_field, link.entity.entity_type)
+                                      | transloco),
+                                  }
                           }}
                         </span>
                       </span>

@@ -4,9 +4,11 @@ import { httpErrorMessageKey } from '../../../core/http/error.interceptor';
 
 /** Codes the assets endpoints return in a 4xx `detail: {code}`; each has `assets.errors.<code>`. */
 export const ASSET_ERROR_CODES = [
+  'asset_closed',
   'attestation_required',
   'change_closed',
   'change_locked',
+  'csv_empty',
   'field_required',
   'invalid_asset',
   'invalid_calibration_interval',
@@ -14,9 +16,12 @@ export const ASSET_ERROR_CODES = [
   'invalid_dates',
   'invalid_department',
   'invalid_frequency',
+  'invalid_related',
+  'invalid_review_interval',
   'invalid_owner',
   'invalid_reviewer',
   'invalid_subject_user',
+  'invalid_supplier',
   'invalid_system_asset',
   'items_pending',
   'module_disabled',

@@ -4,24 +4,23 @@
     "mine": "Min opplæring",
     "courses": "Kurs",
     "assignments": "Tildelinger",
-    "records": "Registreringer",
-    "matrix": "Matrise"
+    "records": "Gjennomført opplæring",
+    "matrix": "Kompetansematrise",
+    "plan": "Opplæringsplan"
   },
   "common": {
-    "loading": "Laster …",
     "cancel": "Avbryt",
     "close": "Lukk",
     "back": "Tilbake",
-    "save": "Lagre",
     "edit": "Rediger",
     "delete": "Slett",
     "remove": "Fjern",
-    "none": "Ingen"
+    "none": "Ingen",
+    "noDue": "Ingen frist"
   },
   "home": {
-    "title": "Min opplæring",
-    "subtitle": "Opplæringen du trenger, hva som har frist, og sertifikatene du har.",
-    "browse": "Se kurs",
+    "subtitle": "Opplæringen du trenger, hva som har frist, og kursbevisene du har.",
+    "browse": "Se kurskatalogen",
     "needsTitle": "Ditt opplæringsbehov",
     "dueOn": "Frist {{ date }}",
     "validUntil": "Gyldig til {{ date }}",
@@ -31,36 +30,48 @@
     "retake": "Ta på nytt",
     "viewRecord": "Se registrering",
     "allAssignments": "Alle mine tildelinger",
-    "myCertificates": "Mine sertifikater",
-    "lessonTitle": "Hvorfor opplæring er viktig",
-    "lessonBody": "En leksjon på fem minutter om kompetanse, bevissthet og hvordan opplæringsregistreringer fungerer som dokumentasjon.",
-    "lessonStart": "Start leksjonen"
+    "myCertificates": "Mine kursbevis",
+    "continue": "Fortsett",
+    "externalHint": "Ekstern opplæring: en opplæringsansvarlig registrerer den når du har deltatt.",
+    "myProfile": "Min opplæringsoversikt",
+    "aside": "Oppfølging og læring",
+    "followUpTitle": "Følg opp",
+    "followOverdue": "Forfalte tildelinger",
+    "followExpiring": "Kursbevis som utløper innen 30 dager",
+    "followEvidence": "Registreringer uten dokumentasjon",
+    "followMatrix": "Åpne kompetansematrisen",
+    "learnTitle": "Læringssenteret",
+    "learnBody": "Korte leksjoner om hvordan CoreFlow og standardene fungerer, med din fremdrift.",
+    "learnLink": "Gå til læringssenteret"
   },
   "stats": {
-    "label": "Statistikk for opplæringsprogrammet",
+    "label": "Opplæringsprogrammet",
     "published": "Publiserte kurs",
     "open": "Åpne tildelinger",
-    "overdue": "Forfalt",
-    "completionRate": "Gjennomføringsgrad",
+    "overdue": "Forfalte tildelinger",
+    "completionRate": "Påkrevd opplæring på plass",
     "expiring": "Utløper innen 30 dager",
     "expired": "Utløpt",
     "pct": "{{ value }} %",
     "effectiveness": "Effekt: {{ effective }} effektive, {{ partial }} delvis effektive, {{ not }} ikke effektive, {{ pending }} ikke vurdert",
-    "feedback": "Gjennomsnittlig tilbakemelding {{ rating }} / 5"
+    "feedback": "Gjennomsnittlig tilbakemelding {{ rating }} / 5",
+    "completionOf": "{{ compliant }} av {{ required }} påkrevde",
+    "completionRateHelp": "Påkrevd opplæring på plass = gyldige gjennomføringer ÷ opplæring folk skal ha (samme tall som i kompetansematrisen). Et gyldig kursbevis teller uansett hvor lenge siden det ble tatt."
   },
   "courses": {
     "title": "Kurs",
     "search": "Søk etter kurs på tittel eller kode",
     "new": "Nytt kurs",
-    "noMatch": "Ingen kurs passer filtrene.",
     "aiDraft": "Utkast laget med KI",
-    "back": "Tilbake til kurs"
+    "subtitle": "Kurs, lest og forstått-bekreftelser og ekstern opplæring, og hvem som må ta dem.",
+    "lessons": "{{ count }} leksjoner",
+    "lessonsOne": "1 leksjon"
   },
   "filters": {
     "status": "Status",
     "category": "Kategori",
     "kind": "Type",
-    "sort": "Sortering",
+    "sort": "Sorter",
     "scope": "Vis",
     "validity": "Gyldighet",
     "department": "Avdeling",
@@ -68,10 +79,21 @@
     "allCategories": "Alle kategorier",
     "allKinds": "Alle typer",
     "allDepartments": "Alle avdelinger",
-    "mine": "Mine",
+    "mine": "Bare mine",
     "everyone": "Alle",
-    "open": "Åpne",
-    "overdue": "Forfalte"
+    "allCourses": "Alle kurs",
+    "allMethods": "Alle metoder",
+    "allPositions": "Alle stillinger",
+    "method": "Metode",
+    "position": "Stilling",
+    "groupBy": "Grupper",
+    "noGrouping": "Ingen gruppering",
+    "byCourse": "Etter kurs",
+    "byPerson": "Etter person",
+    "evidence": "Dokumentasjon",
+    "evidenceAll": "Alle registreringer",
+    "evidenceMissing": "Mangler dokumentasjon",
+    "clear": "Fjern filtrene"
   },
   "sort": {
     "title": "Tittel",
@@ -92,13 +114,12 @@
     "kind": "Type",
     "status": "Status",
     "owner": "Eier",
-    "passMark": "Bestått-grense",
+    "passMark": "Krav for å bestå",
     "validity": "Gyldighet",
     "minutes": "Beregnet tid",
     "document": "Dokument",
     "version": "Versjon",
     "lessons": "Leksjoner",
-    "updated": "Oppdatert",
     "published": "Publisert",
     "course": "Kurs",
     "person": "Person",
@@ -114,10 +135,30 @@
     "method": "Metode",
     "expires": "Utløper",
     "score": "Resultat",
-    "certificate": "Sertifikat",
+    "certificate": "Kursbevis",
     "recordedBy": "Registrert av",
     "acknowledged": "Dokument",
-    "notes": "Notater"
+    "notes": "Notater",
+    "passMarkLong": "Krav for å bestå (% riktige svar)",
+    "learningObjectives": "Læringsmål",
+    "effectivenessCriteria": "Kriterier for effekt",
+    "clauseRefs": "Krav kurset dokumenterer",
+    "competences": "Gir kompetanse",
+    "competence": "Kompetanse",
+    "level": "Nivå",
+    "provider": "Tilbyder",
+    "providerSupplier": "Tilbyder (leverandør)",
+    "providerName": "Navn på tilbyder",
+    "instructor": "Instruktør",
+    "hours": "Timer",
+    "location": "Sted",
+    "scoreOptional": "Resultat i % (valgfritt)",
+    "remindedAt": "Påminnelse sendt",
+    "evaluatedOn": "Vurdert dato",
+    "evaluationMethod": "Hvordan det ble vurdert",
+    "result": "Resultat",
+    "evaluationNotes": "Hva du fant",
+    "followUp": "Oppfølging"
   },
   "status": {
     "draft": "Utkast",
@@ -152,7 +193,8 @@
     "manual": "Tildelt manuelt",
     "rule": "Tildelingsregel",
     "new_hire": "Nyansatt",
-    "retraining": "Repetisjon"
+    "retraining": "Fornyelse",
+    "new_revision": "Ny revisjon av dokumentet"
   },
   "method": {
     "course": "Kurs fullført",
@@ -163,7 +205,8 @@
   "effectiveness": {
     "effective": "Effektiv",
     "partially_effective": "Delvis effektiv",
-    "not_effective": "Ikke effektiv"
+    "not_effective": "Ikke effektiv",
+    "pending": "Ikke vurdert"
   },
   "cell": {
     "compliant": "I orden",
@@ -175,10 +218,11 @@
   },
   "ruleTarget": {
     "all": "Alle",
-    "role": "Rolle",
+    "role": "Tilgangsrolle i CoreFlow",
     "department": "Avdeling",
-    "user": "Person",
-    "new_hire": "Nyansatte"
+    "user": "Én person",
+    "new_hire": "Nyansatte",
+    "position": "Stilling"
   },
   "validity": {
     "all": "Alle registreringer",
@@ -207,8 +251,6 @@
     "countAssigned": "Tildelt",
     "countOverdue": "Forfalt",
     "countCompleted": "Fullført",
-    "effectivenessTitle": "Var opplæringen effektiv?",
-    "effectivenessHint": "Oppsummer resultater, tilbakemeldinger og vurderinger av kurset for å bedømme om det nådde målet.",
     "publishTitle": "Publisere kurset?",
     "publishMessage": "Publiserte kurs kan tas og tildeles, og tildelingsreglene begynner å opprette tildelinger.",
     "archiveTitle": "Arkivere kurset?",
@@ -217,24 +259,62 @@
     "deleteMessage": "«{{ title }}» fjernes fra katalogen. Registreringene beholdes som dokumentasjon.",
     "publishedToast": "Kurset er publisert",
     "archivedToast": "Kurset er arkivert",
-    "deletedToast": "Kurset er slettet"
+    "deletedToast": "Kurset er slettet",
+    "howToComplete": "Slik fullføres kurset",
+    "monthsOne": "1 måned",
+    "lessonsOne": "Leksjoner (1)",
+    "questionsOne": "1 spørsmål",
+    "notPublished": "Ikke publisert ennå",
+    "publishedAt": "{{ date }}",
+    "publishedBy": "{{ date }} av {{ name }}",
+    "publishMessageNoQuiz": "Kurset har ingen kunnskapstest, så deltakerne fullfører ved å åpne alle leksjonene. Legg til quizspørsmål først hvis du trenger dokumentasjon på at de har forstått innholdet. Publiserte kurs kan tas og tildeles, og reglene begynner å opprette tildelinger."
   },
   "rules": {
     "title": "Hvem må ta kurset",
-    "intro": "Regler tildeler kurset automatisk til alle, en rolle, en avdeling, én person eller nyansatte, og planlegger repetisjon før et sertifikat utløper.",
-    "empty": "Ingen tildelingsregler ennå.",
+    "intro": "En regel tildeler kurset automatisk, for eksempel til en avdeling, en stilling eller nyansatte. Før du lagrer, ser du hvem den tildeler kurset til.",
+    "empty": "Ingen tildelingsregler ennå. Uten en regel tas kurset bare av dem som får det tildelt eller velger det selv.",
     "dueDays": "frist innen {{ days }} dager",
     "paused": "Satt på pause",
     "active": "Aktiv",
     "target": "Gjelder",
-    "value": "Hvilken",
     "pick": "Velg …",
-    "noValue": "Ikke nødvendig",
     "days": "Dager til frist",
     "add": "Legg til regel",
-    "added": "Regel lagt til. {{ count }} tildelinger opprettet.",
-    "sync": "Kjør planleggeren nå",
-    "synced": "Planleggeren er ferdig. {{ count }} tildelinger opprettet."
+    "added": "Regelen er lagt til. {{ count }} tildelinger opprettet.",
+    "sync": "Oppdater tildelinger nå",
+    "synced": "Tildelingene er oppdatert. {{ count }} opprettet.",
+    "draftNote": "Kurset er et utkast: reglene begynner å tildele når det er publisert.",
+    "repeats": "gjentas hver {{ months }}. måned",
+    "repeatsOne": "gjentas hver måned",
+    "open": "{{ count }} åpne tildelinger",
+    "openOne": "1 åpen tildeling",
+    "pickTarget": "Velg hvem …",
+    "valueFor": {
+      "department": "Hvilken avdeling",
+      "position": "Hvilken stilling",
+      "role": "Hvilken tilgangsrolle",
+      "user": "Hvilken person"
+    },
+    "roleHint": "Tilgangsroller styrer hva noen kan gjøre i CoreFlow (for eksempel Revisor). Bruk Stilling for jobben personen har.",
+    "noPositions": "Fant ingen stillinger. Legg dem inn under Personer.",
+    "recurrence": "Gjenta hver (måneder)",
+    "recurrencePlaceholder": "Aldri",
+    "recurrenceHelp": "For et årlig program skriver du 12. La feltet stå tomt hvis kurset bare skal tas én gang (eller fornyes når det utløper).",
+    "check": "Se hvem dette tildeler",
+    "preview": "Dette tildeler kurset til {{ count }} personer.",
+    "previewOne": "Dette tildeler kurset til 1 person.",
+    "previewDetail": "Personer regelen omfatter: {{ targeted }}. Har det allerede tildelt: {{ assigned }}. Har allerede gyldig opplæring: {{ compliant }}.",
+    "previewDraft": "Kurset er ikke publisert, så ingen får det tildelt før det er publisert.",
+    "previewSample": "Blant annet:",
+    "previewMore": "{{ names }} og {{ count }} til",
+    "duplicate": "Det finnes allerede en lik regel for dette kurset.",
+    "confirm": "Lagre regelen og tildel {{ count }}",
+    "confirmOne": "Lagre regelen og tildel 1",
+    "remove": "Fjern regelen",
+    "undoTitle": "Fjerne regelen?",
+    "undoMessage": "Regelen slutter å tildele kurset. De {{ count }} åpne tildelingene den laget som ingen har startet på, trekkes tilbake uten nytt varsel. Påbegynte beholdes.",
+    "undone": "Regelen er fjernet. {{ cancelled }} tildelinger trukket tilbake, {{ kept }} beholdt fordi de var påbegynt.",
+    "syncHelp": "Kjører alle reglene nå i stedet for å vente på nattkjøringen: nye personer får tildelingene sine, og fornyelse opprettes før kursbevis utløper."
   },
   "assign": {
     "title": "Tildel opplæring",
@@ -246,17 +326,20 @@
     "selectAll": "Velg alle som vises",
     "noPeople": "Fant ingen personer.",
     "dueDate": "Frist",
-    "submit": "Tildel",
-    "done": "{{ created }} tildelt, {{ skipped }} hoppet over (allerede tildelt eller ikke medlem)."
+    "submit": "Tildel til {{ count }}",
+    "done": "{{ created }} tildelt, {{ skipped }} hoppet over (allerede tildelt eller ikke medlem).",
+    "submitOne": "Tildel til 1",
+    "clear": "Fjern valget"
   },
   "assignments": {
     "title": "Tildelinger",
-    "search": "Filtrer på kurs eller person",
+    "search": "Søk på kurs eller person (alle sider)",
     "assign": "Tildel opplæring",
-    "noMatch": "Ingen tildelinger passer filtrene.",
     "courseFilter": "Viser ett kurs.",
     "clearCourse": "Vis alle kurs",
-    "back": "Tilbake til tildelinger"
+    "subtitle": "Hvem som skal fullføre hvilket kurs, og innen når.",
+    "selectPage": "Velg alle åpne tildelinger på denne siden",
+    "selectOne": "Velg {{ course }} for {{ person }}"
   },
   "assignmentDetail": {
     "title": "{{ course }}: {{ person }}",
@@ -264,77 +347,116 @@
     "cancelTitle": "Avbryte tildelingen?",
     "cancelMessage": "{{ person }} trenger ikke lenger ta kurset. Historikken beholdes.",
     "cancelled": "Tildelingen er avbrutt",
-    "changeDue": "Frist",
-    "dueSaved": "Fristen er lagret"
+    "changeDue": "Ny frist",
+    "dueSaved": "Fristen er lagret",
+    "notStarted": "Ikke startet",
+    "noAttempts": "Ingen forsøk ennå",
+    "remind": "Send påminnelse",
+    "reminded": "Påminnelse sendt til {{ person }}",
+    "remindedRecently": "Det er allerede sendt en påminnelse de siste 20 timene.",
+    "whyTitle": "Hvorfor dette er tildelt",
+    "ruleText": "Regelen «{{ target }}» tildeler kurset, med {{ days }} dager til frist.",
+    "ruleDeleted": "Det ble tildelt av en regel som senere er fjernet ({{ target }}).",
+    "openRules": "Se reglene for kurset",
+    "saveDue": "Lagre fristen"
   },
   "records": {
-    "title": "Opplæringsregistreringer",
-    "search": "Filtrer på kurs, person eller sertifikat",
+    "title": "Gjennomført opplæring",
+    "search": "Søk på kurs, person eller kursbevis (alle sider)",
     "new": "Registrer opplæring",
-    "noMatch": "Ingen registreringer passer filtrene.",
     "notPassed": "Ikke bestått",
     "expired": "Utløpt",
     "valid": "Gyldig",
-    "until": "Til {{ date }}",
     "noExpiry": "Utløper ikke",
-    "back": "Tilbake til registreringer"
+    "subtitle": "Fullført opplæring og kursbevis: dokumentasjonen på at folk har kompetansen de trenger.",
+    "expiringSoon": "Utløper snart",
+    "missingEvidence": "Mangler dokumentasjon"
   },
   "recordForm": {
     "title": "Registrer opplæring",
     "passed": "Bestått",
-    "evidenceHint": "Legg ved kursbevis eller deltakerliste på registreringen etter at den er lagret.",
+    "evidenceHint": "Når du lagrer, kommer du rett til vedleggene på registreringen, slik at du kan legge ved kursbeviset eller deltakerlisten. Registreringer uten dokumentasjon blir merket.",
     "submit": "Lagre registrering",
     "created": "Opplæringen er registrert",
-    "required": "Velg kurs, person og dato for fullføring."
+    "required": "Velg kurs, person og dato for fullføring.",
+    "pickPerson": "Velg en person …",
+    "providerTitle": "Hvem holdt opplæringen",
+    "noSupplier": "Ikke en registrert leverandør",
+    "providerPlaceholder": "For eksempel kursleverandøren eller avdelingen som holdt kurset",
+    "expiryDefault": "La feltet stå tomt for å bruke kursets gyldighet: utløper {{ date }}.",
+    "expiryNever": "Kurset har ingen gyldighetsperiode: la feltet stå tomt hvis opplæringen aldri utløper.",
+    "expiryPickCourse": "La feltet stå tomt for å bruke kursets gyldighetsperiode."
   },
   "recordDetail": {
     "title": "{{ course }}: {{ person }}",
-    "certificate": "Sertifikat",
+    "certificate": "Kursbevis",
     "acknowledged": "Lest og bekreftet (godkjent revisjon)",
     "feedbackTitle": "Tilbakemelding fra deltakeren",
     "rating": "Vurdert til {{ rating }} / 5",
     "noFeedback": "Ingen tilbakemelding gitt.",
     "sendFeedback": "Send tilbakemelding",
     "feedbackSaved": "Takk for tilbakemeldingen",
-    "effectivenessTitle": "Vurdering av effekt",
+    "effectivenessTitle": "Virket opplæringen for denne personen?",
     "notEvaluated": "Ikke vurdert ennå.",
     "evaluate": "Hvor effektiv var opplæringen?",
     "evaluatedBy": "av {{ name }}, {{ date }}",
     "saveEvaluation": "Lagre vurdering",
     "evaluationSaved": "Vurderingen er lagret",
     "deleteTitle": "Slette registreringen?",
-    "deleteMessage": "Registreringen og sertifikatet fjernes fra listene. Revisjonsloggen beholder historikken.",
+    "deleteMessage": "Registreringen og kursbeviset fjernes fra listene. Revisjonsloggen beholder historikken.",
     "deleted": "Registreringen er slettet",
-    "lessonTitle": "Lær å vurdere effekt",
-    "lessonStart": "Start leksjonen"
+    "reassign": "Tildel på nytt",
+    "reassigned": "{{ person }} har fått kurset tildelt på nytt",
+    "alreadyAssigned": "Personen har allerede en åpen tildeling av kurset.",
+    "missingEvidenceHelp": "Registreringen mangler dokumentasjon. Legg ved kursbeviset eller deltakerlisten, så revisor kan se dokumentasjonen.",
+    "attach": "Legg ved dokumentasjon",
+    "followUpHint": "Opplæringen virket ikke helt. Tildel kurset på nytt, eller bruk «Lag ny fra denne» for å opprette et avvik eller en oppgave."
   },
   "certificate": {
-    "back": "Tilbake til registreringen",
     "print": "Skriv ut",
     "heading": "Kursbevis",
     "certifies": "Dette bekrefter at",
     "completed": "har fullført",
     "version": "Kursversjon {{ version }}",
-    "issued": "Utstedt"
+    "issued": "Utstedt",
+    "pageTitle": "Kursbevis",
+    "record": "Opplæringsregistrering",
+    "objectives": "Læringsmål",
+    "validUntil": "Gyldig til",
+    "issuedBy": "Utstedt av",
+    "verifyHint": "Skann koden for å sjekke at kursbeviset er ekte. Verifiseringskode:",
+    "qrLabel": "QR-kode som åpner den offentlige kontrollen av dette kursbeviset"
   },
   "matrix": {
-    "title": "Opplæringsmatrise",
-    "subtitle": "Hvem har opplæringen de trenger, og hvem mangler den.",
+    "title": "Kompetansematrise",
+    "subtitle": "Hvem som har påkrevd opplæring på plass, per person og kurs.",
     "summary": "{{ compliant }} av {{ required }} påkrevde opplæringer er på plass ({{ pct }} %).",
-    "compliance": "Etterlevelse",
+    "compliance": "Påkrevd opplæring på plass",
     "legend": "Tegnforklaring",
     "empty": "Ingen personer eller kurs å vise. Publiser kurs og legg til tildelingsregler først.",
-    "cellLabel": "{{ person }}, {{ course }}: {{ status }}"
+    "cellLabel": "{{ person }}, {{ course }}: {{ status }}",
+    "print": "Skriv ut",
+    "emptyTitle": "Ingenting å vise ennå",
+    "coursePct": "{{ pct }} % ({{ compliant }}/{{ required }})",
+    "notRequired": "Ikke påkrevd",
+    "notRequiredCell": "Ikke påkrevd for denne personen",
+    "dotHelp": "Et punktum (·) betyr at kurset ikke er påkrevd for personen. Klikk på en celle for å åpne registreringen eller tildelingen bak den.",
+    "legendHelp": {
+      "compliant": "gyldig opplæring",
+      "expiring": "utløper innen 30 dager",
+      "expired": "må fornyes",
+      "assigned": "tildelt, ikke gjennomført ennå",
+      "overdue": "tildelt, fristen er passert",
+      "missing": "påkrevd, ikke tildelt"
+    }
   },
   "player": {
-    "back": "Tilbake til kurset",
     "progress": "Fremdrift i kurset",
     "outline": "Kursinnhold",
     "overview": "Oversikt",
     "assessment": "Avsluttende quiz",
     "confirmStep": "Bekreft",
     "finishStep": "Fullfør",
-    "summary": "{{ lessons }} leksjoner, {{ questions }} quizspørsmål. Bestått-grense {{ pass }}.",
     "begin": "Begynn",
     "alreadyCompleted": "Du fullførte dette kurset {{ date }}.",
     "viewRecord": "Se registrering",
@@ -360,6 +482,20 @@
       "done": "fullført",
       "seen": "påbegynt",
       "new": "ikke startet"
+    },
+    "crumb": "Ta kurset",
+    "lessons": "{{ count }} leksjoner",
+    "lessonsOne": "1 leksjon",
+    "minutes": "omtrent {{ count }} min",
+    "assessmentIntro": "Svar på alle spørsmålene og send inn. Svarene vurderes når du sender inn, og du får en opplæringsregistrering når du består.",
+    "whyRule": "Du har fått kurset fordi det gjelder {{ target }}.",
+    "whyManual": "{{ name }} har tildelt deg dette kurset.",
+    "why": {
+      "manual": "Du har fått dette kurset tildelt.",
+      "rule": "En tildelingsregel har gitt deg dette kurset.",
+      "new_hire": "Du har fått kurset fordi du er ny i organisasjonen.",
+      "retraining": "Den forrige opplæringen din utløper eller virket ikke, så den må fornyes.",
+      "new_revision": "Dokumentet har fått en ny revisjon, så du må bekrefte det på nytt."
     }
   },
   "rating": {
@@ -369,9 +505,8 @@
   "form": {
     "newTitle": "Nytt kurs",
     "editTitle": "Rediger kurs",
-    "backToCourse": "Tilbake til kurset",
     "basics": "Om kurset",
-    "passMarkPct": "Bestått-grense (%)",
+    "passMarkPct": "Krav for å bestå (% riktige svar)",
     "validityMonths": "Gyldig i (måneder)",
     "estimatedMinutes": "Beregnet tid (minutter)",
     "lessonsTitle": "Leksjoner ({{ count }})",
@@ -382,7 +517,7 @@
     "moveDown": "Flytt ned",
     "lessonTitle": "Tittel på leksjonen",
     "lessonMinutes": "Minutter",
-    "lessonBody": "Innhold (markdown, bruk «## »-overskrifter for å dele det i trinn)",
+    "lessonBody": "Tekst i leksjonen",
     "videoUrl": "Videolenke",
     "lessonDocument": "Tilknyttet dokument",
     "quizTitle": "Quiz ({{ count }} spørsmål)",
@@ -415,7 +550,29 @@
       "question": "Leksjon {{ n }}, spørsmål {{ q }}: skriv spørsmålet.",
       "options": "Leksjon {{ n }}, spørsmål {{ q }}: fyll inn minst to alternativer.",
       "answer": "Leksjon {{ n }}, spørsmål {{ q }}: velg riktig svar."
-    }
+    },
+    "noOwner": "Ingen eier",
+    "noDocument": "Ingen dokument",
+    "kindHelp": {
+      "course": "Leksjoner med valgfri quiz, som tas i CoreFlow.",
+      "read_and_understood": "Folk bekrefter at de har lest et styrt dokument.",
+      "external": "Opplæring som holdes et annet sted (klasserom, kursleverandør) og registreres av en opplæringsansvarlig."
+    },
+    "objectivesPlaceholder": "Hva deltakerne kan etterpå, ett mål per linje",
+    "requirementsTitle": "Krav og gyldighet",
+    "requirementsIntro": "Hvordan kurset bestås, hvor lenge det er gyldig, hvilke krav det dokumenterer og hvilken kompetanse det gir.",
+    "passMarkNoQuiz": "Kurset har ingen quizspørsmål ennå, så kravet brukes ikke: deltakerne fullfører ved å åpne alle leksjonene.",
+    "validityPlaceholder": "Utløper aldri",
+    "validityHelpSet": "En gjennomføring er gyldig i {{ months }} måneder, og fornyelse tildeles før den utløper.",
+    "validityHelpEmpty": "Tomt: gjennomføringer utløper aldri. Bruk dette for engangsopplæring, som opplæring av nyansatte.",
+    "suggestedClauses": "Vanlig for denne kategorien:",
+    "addClause": "Legg til {{ clause }}",
+    "noCompetences": "Ingen kompetanser er registrert under Personer ennå.",
+    "pickCompetence": "Velg en kompetanse …",
+    "addCompetence": "Legg til kompetanse",
+    "criteriaPlaceholder": "For eksempel: ingen gjentatte avvik av denne typen på seks måneder",
+    "lessonBodyHint": "Skriv i korte avsnitt. Start en linje med ## for å begynne et nytt trinn, og med - for et kulepunkt.",
+    "externalHint": "Ekstern opplæring trenger vanligvis ingen leksjoner. Legg til en hvis du vil beskrive kurset eller læringsmålene."
   },
   "ai": {
     "draftTitle": "Lag et kursutkast med KI",
@@ -439,7 +596,9 @@
     "passMark": "Hvordan bør jeg velge bestått-grense for dette kurset?",
     "validity": "Hvor lenge bør denne opplæringen være gyldig før repetisjon?",
     "feedback": "Hvorfor ber organisasjonen om tilbakemelding på opplæring?",
-    "effectiveness": "Hvordan vurderer jeg om opplæringen var effektiv?"
+    "effectiveness": "Hvordan vurderer jeg om opplæringen var effektiv?",
+    "clauses": "Hvilke krav dokumenterer et kurs som dette, og hvordan viser jeg det til en revisor?",
+    "dueDate": "Hva er en fornuftig frist for denne opplæringen?"
   },
   "errors": {
     "generic": "Noe gikk galt. Prøv igjen.",
@@ -462,8 +621,16 @@
     "assignment_closed": "Tildelingen er allerede fullført eller avbrutt.",
     "invalid_user": "Personen må være medlem av organisasjonen.",
     "completed_in_future": "Datoen for fullføring kan ikke være i fremtiden.",
-    "no_certificate": "Registreringen har ikke noe sertifikat.",
-    "module_disabled": "Opplæring er ikke slått på for denne organisasjonen."
+    "no_certificate": "Registreringen har ikke noe kursbevis.",
+    "module_disabled": "Opplæring er ikke slått på for denne organisasjonen.",
+    "notFoundTitle": "Fant ikke siden",
+    "duplicate_rule": "Det finnes allerede en lik regel for dette kurset.",
+    "recently_reminded": "Det er allerede sendt en påminnelse de siste 20 timene.",
+    "invalid_clause_ref": "Et av kravene gjenkjennes ikke. Velg det fra listen.",
+    "invalid_competence": "En av kompetansene finnes ikke lenger. Fjern den og prøv igjen.",
+    "invalid_supplier": "Fant ikke leverandøren. Velg en annen, eller skriv navnet på tilbyderen.",
+    "expires_before_completed": "Utløpsdatoen må være etter datoen for fullføring.",
+    "rate_limited": "For mange forsøk. Vent ett minutt og prøv igjen."
   },
   "notifications": {
     "courseCreated": "Kurs {{ code }} opprettet: {{ title }}",
@@ -479,7 +646,10 @@
     "recordRecorded": "Opplæring registrert: {{ code }} {{ title }}",
     "recordEvaluated": "Effekten av opplæringen er vurdert",
     "feedbackGiven": "Tilbakemelding gitt på opplæring",
-    "recordDeleted": "Opplæringsregistrering slettet"
+    "recordDeleted": "Opplæringsregistrering slettet",
+    "reminded": "Påminnelse: fullfør {{ code }} {{ title }}",
+    "assignmentWithdrawn": "En opplæringstildeling ble trukket tilbake",
+    "courseEvaluated": "Effekten av et kurs er vurdert"
   },
   "timeline": {
     "courseCreated": "{{ actor_name }} opprettet kurset",
@@ -495,6 +665,160 @@
     "recordRecorded": "{{ actor_name }} registrerte opplæringen",
     "recordEvaluated": "{{ actor_name }} vurderte effekten",
     "feedbackGiven": "{{ actor_name }} ga tilbakemelding ({{ rating }} / 5)",
-    "recordDeleted": "{{ actor_name }} slettet registreringen"
+    "recordDeleted": "{{ actor_name }} slettet registreringen",
+    "reminded": "{{ actor_name }} sendte en påminnelse",
+    "assignmentWithdrawn": "{{ actor_name }} trakk tilbake tildelingen (regelen ble fjernet)",
+    "courseEvaluated": "{{ actor_name }} vurderte effekten av kurset"
+  },
+  "frameworks": {
+    "hs": "Felles ISO-krav",
+    "eu_ai_act": "KI-forordningen"
+  },
+  "statusChip": {
+    "open": "Åpne",
+    "overdue": "Forfalte",
+    "completed": "Fullførte",
+    "cancelled": "Avbrutte",
+    "all": "Alle"
+  },
+  "reasonText": {
+    "rule": "Regel: {{ target }}",
+    "manualBy": "Tildelt av {{ name }}"
+  },
+  "completion": {
+    "quiz": "Deltakerne går gjennom leksjonene og består den avsluttende quizen med minst {{ pass }} riktige svar.",
+    "lessons": "Kurset har ingen kunnskapstest: deltakerne fullfører ved å åpne alle leksjonene.",
+    "read_ack": "Deltakerne leser dokumentet og bekrefter at de har lest og forstått det.",
+    "external": "Opplæringen foregår et annet sted. En opplæringsansvarlig registrerer den når personen har deltatt."
+  },
+  "competenceLevel": {
+    "0": "Kjenner til",
+    "1": "Grunnleggende",
+    "2": "Kompetent",
+    "3": "Erfaren",
+    "4": "Ekspert"
+  },
+  "effect": {
+    "title": "Virker opplæringen?",
+    "noCriteria": "Ingen kriterier ennå. Beskriv i kurset hva som viser at opplæringen virket, for eksempel færre avvik av en bestemt type.",
+    "recordsTitle": "Vurderinger av enkeltregistreringer",
+    "evaluationsTitle": "Vurderinger av kurset",
+    "noEvaluations": "Ingen vurdering av kurset ennå. Vurder kurset etter en tid, for eksempel etter en spørreundersøkelse eller en revisjon.",
+    "add": "Legg til vurdering",
+    "save": "Lagre vurderingen",
+    "saved": "Vurderingen er lagret",
+    "deleted": "Vurderingen er slettet",
+    "deleteTitle": "Slette vurderingen?",
+    "deleteMessage": "Vurderingen fjernes fra kurset. Revisjonsloggen beholder historikken.",
+    "followUpPlaceholder": "For eksempel: oppdater leksjon 2 og kjør kurset på nytt for lageret"
+  },
+  "evaluationMethod": {
+    "survey": "Spørreundersøkelse",
+    "observation": "Observasjon i arbeid",
+    "test": "Test",
+    "kpi": "Nøkkeltall (KPI)",
+    "audit": "Revisjon",
+    "interview": "Intervju",
+    "other": "Annet"
+  },
+  "bulk": {
+    "label": "Handlinger for flere",
+    "selected": "{{ count }} valgt",
+    "remind": "Send påminnelse",
+    "newDue": "Ny frist",
+    "extend": "Flytt fristen",
+    "cancel": "Avbryt tildelingene",
+    "clear": "Fjern valget",
+    "cancelTitle": "Avbryte tildelingene?",
+    "cancelMessage": "{{ count }} personer trenger ikke lenger ta kurset. Historikken beholdes.",
+    "done": {
+      "remind": "{{ count }} påminnelser sendt. {{ skipped }} hoppet over (allerede påminnet i dag eller lukket).",
+      "extend": "Fristen er flyttet for {{ count }}. {{ skipped }} hoppet over (lukket).",
+      "cancel": "{{ count }} tildelinger avbrutt. {{ skipped }} hoppet over (allerede lukket)."
+    }
+  },
+  "assignNew": {
+    "title": "Tildel opplæring",
+    "subtitle": "Velg et publisert kurs, hvem som skal ta det, og en frist. De får varsel og ser det i Mitt arbeid.",
+    "noCourses": "Ingen publiserte kurs ennå. Publiser et kurs først."
+  },
+  "person": {
+    "title": "Opplæring: {{ name }}",
+    "titleFallback": "Opplæringsoversikt",
+    "subtitle": "Alt denne personen skal ha, har startet på og har fullført, samlet på én side.",
+    "print": "Skriv ut",
+    "required": "Påkrevde kurs",
+    "compliant": "På plass",
+    "overdue": "Forfalt",
+    "expiring": "Utløper innen 30 dager",
+    "needsTitle": "Opplæringsbehov",
+    "noNeeds": "Ingen opplæring er påkrevd for denne personen nå.",
+    "when": "Dato",
+    "optional": "ikke påkrevd",
+    "assignmentsTitle": "Åpne tildelinger",
+    "noAssignments": "Ingen åpne tildelinger.",
+    "recordsTitle": "Gjennomført opplæring",
+    "noRecords": "Ingen gjennomført opplæring ennå.",
+    "forbiddenTitle": "Du kan ikke se opplæringen til denne personen",
+    "forbidden": "Du kan se din egen opplæringsoversikt. Opplæringsansvarlige og revisorer kan se alles."
+  },
+  "plan": {
+    "title": "Opplæringsplan",
+    "subtitle": "Når opplæring har frist og kursbevis utløper, måned for måned.",
+    "print": "Skriv ut planen",
+    "period": "Periode",
+    "periodLabel": "{{ from }} – {{ to }}",
+    "previous": "Forrige 12 måneder",
+    "next": "Neste 12 måneder",
+    "today": "Fra denne måneden",
+    "totals": "{{ due }} med frist og {{ expiring }} kursbevis som utløper i perioden. {{ overdue }} forfalt.",
+    "overdueTitle": "Allerede forfalt",
+    "monthCounts": "{{ due }} med frist · {{ expiring }} utløper",
+    "nothing": "Ingenting denne måneden.",
+    "emptyTitle": "Ingenting planlagt i perioden",
+    "empty": "Tildel kurs eller legg til regler som gjentas (for eksempel hver 12. måned) for å bygge opplæringsplanen.",
+    "kind": {
+      "due": "Frist",
+      "expiring": "Utløper"
+    },
+    "showAll": "Vis alle {{ count }}"
+  },
+  "verify": {
+    "title": "Kontroller et kursbevis",
+    "intro": "Denne siden bekrefter et kursbevis utstedt i CoreFlow ut fra koden som står på det.",
+    "holder": "Innehaver",
+    "organisation": "Organisasjon",
+    "status": {
+      "valid": "Gyldig",
+      "expired": "Utløpt"
+    },
+    "statusText": {
+      "valid": "Kursbeviset er ekte og gyldig.",
+      "expired": "Kursbeviset er ekte, men det har utløpt."
+    },
+    "not_found": "Ingen kursbevis har denne koden. Sjekk koden, eller spør organisasjonen som utstedte det.",
+    "rate_limited": "For mange kontroller fra denne tilkoblingen. Vent ett minutt og prøv igjen.",
+    "error": "Kontrollen kunne ikke fullføres. Prøv igjen senere.",
+    "privacy": "Bare opplysningene som står på kursbeviset, vises."
+  },
+  "export": {
+    "csv": "Eksporter CSV",
+    "failed": "Eksporten mislyktes. Prøv igjen."
+  },
+  "next": {
+    "orgOverdue": {
+      "title": "{{ count }} opplæringstildelinger er forfalt",
+      "why": "Noen mangler påkrevd opplæring. Send påminnelser eller flytt fristene."
+    },
+    "expiring": {
+      "title": "{{ count }} kursbevis utløper innen 30 dager",
+      "why": "Forny opplæringen i tide, så kompetansen fortsatt er dokumentert."
+    }
+  },
+  "documentAcks": {
+    "title": "Lest og forstått",
+    "summary": "{{ done }} av {{ required }} har bekreftet gjeldende revisjon.",
+    "summaryRev": "{{ done }} av {{ required }} har bekreftet revisjon {{ rev }}.",
+    "pending": "{{ count }} har ikke bekreftet ennå:"
   }
 }

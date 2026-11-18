@@ -3,40 +3,40 @@
     "list": {
       "intro": {
         "title": "Everyone who works here, in one register",
-        "body": "The employee register holds each person's role, manager, employment details and the security terms they have signed. It is the starting point for competence: each person's position says what they need to know, and their record shows what they can actually do.",
+        "body": "The people register holds each person's role, manager, employment details and the security terms they have signed. The tiles above the list show what needs attention; select one to see who.",
         "steps": [
-          "Add your employees, or link them to their user accounts.",
-          "Give each one a position, so their competence requirements apply.",
-          "Record the confidentiality agreement and security terms they have signed."
+          "Add people, or import the organisation's users as people.",
+          "Give each person a position, so the competence requirements apply.",
+          "Record the confidentiality agreement, security terms and background check."
         ]
       },
       "why": {
-        "body": "The standards expect you to decide what competence each role needs, make sure people have it, and keep evidence. For information security you must also screen people before they join, include security responsibilities in their terms of employment and manage what happens when they leave or change role.",
-        "clauses": ["hs:7.1", "hs:7.2", "iso27001:A.6.1", "iso27001:A.6.2", "iso27001:A.6.5"]
+        "body": "The standards expect you to decide what competence each role needs, make sure people have it, and keep evidence. For information security you must also check people before they join, put security responsibilities in their terms of employment and handle what happens when they leave or change role.",
+        "clauses": ["iso9001:7.1.2", "hs:7.2", "iso27001:A.6.1", "iso27001:A.6.2", "iso27001:A.6.5"]
       },
       "empty": {
-        "title": "No employees registered yet",
-        "body": "Start with the people in your most important roles: managers, people with access to sensitive information and people whose work affects your customers. You can add the rest later.",
-        "cta": "Add the first employee"
+        "title": "No people registered yet",
+        "body": "Start with the people in your most important roles, or import the organisation's users as people in one go. You can add the rest later.",
+        "cta": "Add the first person"
       }
     },
     "form": {
       "intro": {
-        "title": "Registering an employee",
+        "title": "Registering a person",
         "body": "Fill in who the person is, their role and the security terms of their employment. Only the name is required, but the position is what makes competence requirements apply.",
         "steps": [
-          "Link the employee to their user account if they use CoreFlow.",
+          "Link the person to their user account if they use CoreFlow.",
           "Choose the position and the manager.",
-          "Record the dates they signed the confidentiality agreement and accepted the security terms."
+          "Record the dates of the confidentiality agreement, the security terms and the background check."
         ]
       },
       "why": {
-        "body": "Terms of employment should state each person's responsibilities for information security, and everyone with access to confidential information should sign a confidentiality agreement. Recording the dates gives an auditor direct evidence.",
+        "body": "Terms of employment should state each person's responsibilities for information security, and everyone with access to confidential information should sign a confidentiality agreement. Each date you record documents a requirement on its own.",
         "clauses": ["iso27001:A.6.1", "iso27001:A.6.2", "iso27001:A.6.6"]
       },
       "fields": {
         "user_id": {
-          "help": "Link the employee to their CoreFlow user account so tasks, training and checklists reach them. People who don't use CoreFlow can stay unlinked.",
+          "help": "Link the person to their CoreFlow user account so tasks, training and checklists reach them. People who don't use CoreFlow can stay unlinked.",
           "example": "A warehouse worker without a login is registered without a user account."
         },
         "position_id": {
@@ -44,31 +44,43 @@
           "example": "Service technician, which requires electrical safety at level 3."
         },
         "status": {
-          "help": "Onboarding while the person is starting, active once they are in place, offboarding while they are leaving, former when they have left. Completing an onboarding or offboarding checklist updates the status for you.",
-          "example": "A new hire starts as onboarding and becomes active when the onboarding checklist is complete."
+          "help": "Onboarding while the person is starting, active once they are in place, offboarding while they are leaving, left when they have gone. Completing an onboarding or offboarding checklist updates the status for you.",
+          "example": "A new hire starts in onboarding and becomes active when the checklist is complete."
         },
         "confidentiality_signed_on": {
           "help": "The date the person signed a confidentiality or non-disclosure agreement. Leave it empty if they have not signed one yet; the register then flags it.",
-          "example": "Signed together with the employment contract on the first day."
+          "example": "Signed together with the employment contract on the first day.",
+          "requirements": ["iso27001:A.6.6"]
         },
         "security_terms_accepted_on": {
           "help": "The date the person accepted the information security terms of their employment, for example the acceptable use policy and their security responsibilities.",
-          "example": "Accepted the IT and security rules during induction."
+          "example": "Accepted the IT and security rules during induction.",
+          "requirements": ["iso27001:A.6.2"]
         },
         "screening_status": {
-          "help": "Background checks before employment, in proportion to the role and the information it can reach, and within what the law allows.",
-          "example": "Reference checks and a police certificate for a role with access to customer data."
+          "help": "A background check before the person starts, matched to the role and the information it can reach, and within what the law allows. Roles with high security risk require one.",
+          "example": "Reference checks and a police certificate for a role with access to customer data.",
+          "requirements": ["iso27001:A.6.1"]
+        },
+        "screening_legal_basis": {
+          "help": "Why you may carry out this check. A police certificate may only be required where a law allows it (GDPR Art. 10). Write the law or the rule you rely on.",
+          "example": "Police certificate under the Security Act for access to classified information."
+        },
+        "post_employment_ack_on": {
+          "help": "The date the person confirmed that they know their duties continue after they leave, for example confidentiality. Usually in the exit conversation.",
+          "example": "Confirmed in the exit interview on the last working day.",
+          "requirements": ["iso27001:A.6.5"]
         }
       }
     },
     "detail": {
       "intro": {
-        "title": "One person's role, competence and terms",
-        "body": "This page shows the employee's role, the security terms they have signed, their competence compared with what their position requires, their onboarding and offboarding checklists and the awareness activities they have completed.",
+        "title": "One person's requirements, role and competence",
+        "body": "\"Requirements for this person\" shows what the standards expect for everyone who works here and what is still missing. Below are the role, competence against the position, training, awareness and the onboarding and offboarding checklists.",
         "steps": [
-          "Check the competence list for gaps, missing or expired competences.",
-          "Record an assessment when someone has shown a competence.",
-          "Start the offboarding checklist as soon as you know someone is leaving."
+          "Fix anything marked missing in \"Requirements for this person\".",
+          "Use \"Close the gap\" on competence gaps, then record a new assessment.",
+          "Start the offboarding as soon as you know someone is leaving."
         ]
       },
       "why": {
@@ -86,7 +98,8 @@
       "fields": {
         "level": {
           "help": "0 = none, 1 = basic (can do it with help), 2 = working (does it alone), 3 = proficient (handles unusual cases), 4 = expert (can teach others).",
-          "example": "A newly trained first aider is level 2; the instructor is level 4."
+          "example": "A newly trained first aider is level 2; the instructor is level 4.",
+          "requirements": ["hs:7.2"]
         },
         "checklist_assignee": {
           "help": "The person, role or department who does the work. They get it as a task in My Work. Leave it empty to give it to the checklist owner or yourself.",
@@ -94,22 +107,27 @@
         },
         "awareness": {
           "help": "Awareness records show that the person knows the policies, the risks and their own role, for example after reading the security policy or attending a phishing campaign.",
-          "example": "Security awareness training completed on 3 March."
+          "example": "Security awareness training completed on 3 March.",
+          "requirements": ["hs:7.3", "iso27001:A.6.3"]
         },
         "disciplinary": {
           "help": "A formal process for people who break the security policy or other rules. Record only facts and keep it short; only people with disciplinary access can see these cases.",
           "example": "Shared a password with a supplier against the policy; written warning."
+        },
+        "method": {
+          "help": "How the person showed the competence. An auditor wants to see that the assessment rests on something: a test, observation at work, a certificate or a completed course.",
+          "example": "Observed doing a safe isolation on site."
         }
       }
     },
     "positions": {
       "intro": {
         "title": "Roles with clear responsibilities",
-        "body": "A position describes what a role is responsible for, what it may decide and which competences it needs. Employees in the position inherit its competence requirements.",
+        "body": "A position describes what a role is responsible for, what it may decide, which competences it needs and how much security risk it carries. People in the position inherit its requirements.",
         "steps": [
           "Create the positions that matter most, starting with managers and key roles.",
           "Describe responsibilities and authorities in a few lines.",
-          "Add competence requirements, or let the assistant suggest them."
+          "Add competence requirements, and review each position once a year."
         ]
       },
       "why": {
@@ -125,11 +143,11 @@
     "positionForm": {
       "intro": {
         "title": "Describing a position",
-        "body": "Give the position a title and describe its purpose, responsibilities and authorities. The assistant can write a first draft of the responsibilities for you to edit.",
+        "body": "Give the position a title and describe its purpose, responsibilities and authorities. Link the job description document if you have one. The assistant can write a first draft of the responsibilities.",
         "steps": [
           "Write the title and a short description.",
           "List the responsibilities and what the role may decide.",
-          "Set the risk level: high for roles with access to sensitive information or critical systems."
+          "Set the security risk: high for roles with access to sensitive information or critical systems."
         ]
       },
       "why": {
@@ -139,22 +157,33 @@
       "fields": {
         "responsibilities": {
           "help": "What the person in the position must make sure happens. Short sentences starting with a verb work best.",
-          "example": "Plans and follows up service jobs; reports deviations; keeps the service log up to date."
+          "example": "Plans and follows up service jobs; reports deviations; keeps the service log up to date.",
+          "requirements": ["hs:5.3"]
         },
         "authorities": {
           "help": "What the role may decide or approve without asking anyone.",
-          "example": "May stop work that is unsafe; may approve purchases up to 20,000."
+          "example": "May stop work that is unsafe; may approve purchases up to 20,000.",
+          "requirements": ["hs:5.3"]
         },
         "risk_level": {
-          "help": "High for roles with access to sensitive information, money or critical systems. A higher risk level calls for more careful screening and stricter offboarding.",
-          "example": "System administrator: high. Receptionist: low."
+          "help": "How much harm a mistake or misuse in this role could do. High is for roles with access to sensitive information, money or critical systems; everyone in a high-risk role must have a background check.",
+          "example": "System administrator: high. Receptionist: low.",
+          "requirements": ["iso27001:A.6.1"]
+        },
+        "owner_user_id": {
+          "help": "The person who keeps the position description and its requirements up to date, and who is reminded when the yearly review is due.",
+          "example": "The head of the department the position belongs to."
+        },
+        "job_description": {
+          "help": "The controlled document that describes the role, for example from the HR handbook. People can read it from the position.",
+          "example": "HR-012 Job description: IT administrator."
         }
       }
     },
     "positionDetail": {
       "intro": {
         "title": "What this role needs",
-        "body": "The competence requirements of a position apply to everyone who holds it. The competence matrix and gap analysis compare each person against these requirements.",
+        "body": "The competence requirements of a position apply to everyone who holds it. Review the position once a year: mark it as reviewed and CoreFlow schedules the next review.",
         "steps": [
           "Add the competences the role needs, with the required level.",
           "Mark the ones that are mandatory, such as legal certificates.",
@@ -213,7 +242,8 @@
         },
         "validity_months": {
           "help": "How long an assessment stays valid. The expiry date of each person's record is set from this, and expiring competences are reminded.",
-          "example": "First aid: 24 months. Leave empty for a university degree."
+          "example": "First aid: 24 months. Leave empty for a university degree.",
+          "requirements": ["hs:7.2"]
         }
       }
     },
@@ -223,8 +253,8 @@
         "body": "This page shows the competence, how long it stays valid and every person who needs or holds it, with their level and status.",
         "steps": [
           "Look for people marked missing or expired.",
-          "Open a person to record a new assessment.",
-          "Plan training for the gaps."
+          "Use \"Close the gap\" to assign training or create a task.",
+          "Record a new assessment when the person has shown it."
         ]
       },
       "why": {
@@ -235,16 +265,16 @@
     "matrix": {
       "intro": {
         "title": "The competence matrix",
-        "body": "Each row is a person and each column a competence. The cells show the level each person holds and whether it meets what their position requires. Switch to gaps only for a to-do list.",
+        "body": "Each row is a person and each numbered column a competence (the names are listed above the table). The cells show the level each person holds and whether it meets the position. Select a cell to record an assessment.",
         "steps": [
           "Filter by department or position.",
           "Look for red cells: missing or expired competences.",
-          "Use the gap list to plan training or recruitment."
+          "Switch to gaps only and use \"Close the gap\" on each one."
         ]
       },
       "why": {
         "body": "Comparing what people can do with what their roles require is how you find competence gaps and take action, whether training, mentoring, recruitment or reassignment, and then check that it worked.",
-        "clauses": ["hs:7.2", "hs:7.1"]
+        "clauses": ["hs:7.2", "iso9001:7.1.2"]
       },
       "empty": {
         "title": "Nothing to compare yet",
@@ -256,9 +286,9 @@
         "title": "Joining and leaving, done the same way every time",
         "body": "Onboarding and offboarding checklists make sure nothing is forgotten when people start or leave: access, equipment, confidentiality, training and documentation.",
         "steps": [
-          "Start a checklist from the employee's page.",
-          "Tick off items as they are done; required items must all be done.",
-          "Complete it: the employee's status is updated for you."
+          "Start a checklist from the person's page.",
+          "Tick off items as they are done; some also update the person's record.",
+          "Complete it: the person's status is updated for you."
         ]
       },
       "why": {
@@ -267,7 +297,7 @@
       },
       "empty": {
         "title": "No open checklists",
-        "body": "Open an employee and choose Start onboarding or Start offboarding. Each checklist starts from a template and is assigned as a task."
+        "body": "Open a person and choose Start onboarding or Start offboarding. Each checklist starts from your template (see settings) and is assigned as a task."
       }
     },
     "checklistDetail": {
@@ -289,6 +319,51 @@
           "help": "Add items specific to this person, for example a system only they used. Mark an item as required if the checklist must not be completed without it.",
           "example": "Remove access to the payroll system (required)."
         }
+      }
+    },
+    "checklistOnboarding": {
+      "intro": {
+        "title": "Getting a new person started",
+        "body": "Tick each item when it is done. Items about the confidentiality agreement, security terms and background check also record the date on the person, so the record and the checklist always agree.",
+        "steps": [
+          "Give access to the systems the role needs, and nothing more.",
+          "Collect the signed confidentiality agreement and security terms.",
+          "Book the introduction and the mandatory training."
+        ]
+      },
+      "why": {
+        "body": "New people must know the rules and their own security responsibilities from day one. The checklist is the evidence that the terms were signed and the introduction happened.",
+        "clauses": ["iso27001:A.6.2", "iso27001:A.6.6", "hs:7.3"]
+      }
+    },
+    "checklistOffboarding": {
+      "intro": {
+        "title": "Closing down when someone leaves",
+        "body": "Tick each item when it is done. Equipment registered to the person is listed below the items and must be returned in Assets first. Access to CoreFlow is removed automatically at the end of the last working day.",
+        "steps": [
+          "Collect equipment and remove access on the last working day.",
+          "Remind the person of their confidentiality duties and record that they confirmed them.",
+          "Complete the checklist when everything required is done."
+        ]
+      },
+      "why": {
+        "body": "Access left open after someone has left is one of the most common security weaknesses. Recording who removed what and when shows that it is handled.",
+        "clauses": ["iso27001:A.6.5", "iso27001:A.5.11", "iso27001:A.5.18"]
+      }
+    },
+    "settings": {
+      "intro": {
+        "title": "Your own joiner and leaver checklists",
+        "body": "Each new onboarding or offboarding starts from these items. Write them in your own words, in Norwegian and English, and choose which items also record something on the person.",
+        "steps": [
+          "Choose the checklist and the language.",
+          "Edit, add, reorder or remove items.",
+          "Save. Checklists that have already started are not changed."
+        ]
+      },
+      "why": {
+        "body": "A fixed checklist makes joining and leaving happen the same way every time, which is what an auditor looks for.",
+        "clauses": ["iso27001:A.6.2", "iso27001:A.6.5", "iso27001:A.5.11"]
       }
     }
   },
@@ -397,18 +472,18 @@
     "list": [
       {
         "target": "people-new",
-        "title": "Add an employee",
-        "body": "Register a person, link them to their user account and give them a position."
+        "title": "Add a person",
+        "body": "Register a person, link them to their user account and give them a position. Or import the organisation's users as people."
       },
       {
         "target": "people-filters",
         "title": "Find the right people",
-        "body": "Filter by status, employment type, position and department, and save the combination as a view."
+        "body": "Filter by status, what needs attention and position, and save the combination as a view."
       },
       {
         "target": "people-summary",
         "title": "See what needs attention",
-        "body": "Competence gaps, open checklists and missing confidentiality agreements across the organisation."
+        "body": "Competence gaps, expiring competences, missing agreements and background checks. Select a tile to see who."
       }
     ],
     "matrix": [
@@ -434,6 +509,21 @@
       "term": "Awareness",
       "definition": "Knowing the policies, the relevant risks and your own contribution, and what happens if you do not follow the rules.",
       "clauses": ["hs:7.3", "iso27001:A.6.3"]
+    },
+    "background-check": {
+      "term": "Background check",
+      "definition": "Checking a person's identity, references, education and, where the law allows, police certificate before they start. How much you check depends on the security risk of the role.",
+      "clauses": ["iso27001:A.6.1"]
+    },
+    "onboarding": {
+      "term": "Onboarding",
+      "definition": "Everything that happens when a person starts: access, equipment, signed terms, introduction and training.",
+      "clauses": ["iso27001:A.6.2"]
+    },
+    "offboarding": {
+      "term": "Offboarding",
+      "definition": "Everything that happens when a person leaves: equipment returned, access removed and duties after leaving explained.",
+      "clauses": ["iso27001:A.6.5", "iso27001:A.5.11"]
     }
   }
 }

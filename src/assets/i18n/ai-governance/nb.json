@@ -1,6 +1,5 @@
 {
   "nav": {
-    "label": "Deler av KI-styring",
     "overview": "Oversikt",
     "systems": "KI-systemer",
     "assessments": "Vurderinger",
@@ -23,7 +22,10 @@
     "notSet": "Ikke satt",
     "notYet": "Ikke ennå",
     "noDueDate": "Ingen frist",
-    "overdue": "Forfalt"
+    "overdue": "Forfalt",
+    "required": "Påkrevd",
+    "change": "Endre",
+    "noOwner": "Ingen eier"
   },
   "fields": {
     "name": "Navn",
@@ -31,7 +33,7 @@
     "intendedPurpose": "Tiltenkt formål",
     "role": "Rolle etter KI-forordningen",
     "status": "Status",
-    "provider": "Leverandør",
+    "provider": "Leverandør (navn)",
     "models": "Modeller",
     "dataCategories": "Datakategorier",
     "usesPersonalData": "Bruker personopplysninger",
@@ -48,7 +50,12 @@
     "title": "Tittel",
     "dueAt": "Frist",
     "answers": "Svar",
-    "result": "Resultat"
+    "result": "Resultat",
+    "supplier": "Leverandør",
+    "processingActivity": "Behandlingsaktivitet (behandlingsprotokoll)",
+    "dpia": "Personvernkonsekvensvurdering (DPIA)",
+    "overseers": "Ansvarlig for menneskelig tilsyn",
+    "monitoringMetrics": "Måleparametere"
   },
   "filters": {
     "status": "Status",
@@ -60,7 +67,9 @@
     "anyRisk": "Alle risikoklasser",
     "anyRole": "Alle roller",
     "anyKind": "Alle typer",
-    "noMatch": "Ingenting passer med disse filtrene."
+    "noMatch": "Ingenting passer med disse filtrene.",
+    "clear": "Fjern filtrene",
+    "needsReview": "Bare vurderinger som må gjennomgås"
   },
   "risk": {
     "unclassified": "Ikke klassifisert",
@@ -78,10 +87,15 @@
   },
   "riskExplainByRole": {
     "deployer": {
-      "high": "Et høyrisiko KI-system (art. 6) som dere tar i bruk. Teknisk dokumentasjon, samsvarsvurdering og registrering er tilbyderens plikter. Som idriftsetter bruker dere systemet etter tilbyderens bruksanvisning, sørger for kompetent menneskelig tilsyn, overvåker det, tar vare på loggene og informerer dem som berøres (art. 26)."
+      "high": "Et høyrisiko KI-system (art. 6) som dere tar i bruk. Teknisk dokumentasjon, samsvarsvurdering og registrering er tilbyderens plikter. Som idriftsetter bruker dere systemet etter tilbyderens bruksanvisning, sørger for kompetent menneskelig tilsyn, overvåker det, tar vare på loggene og informerer dem som berøres (art. 26).",
+      "limited": "Begrenset risiko. Åpenhetspliktene i art. 50(1)–(2), som å fortelle at man snakker med KI og å merke generert innhold, gjelder tilbyderen. Kontroller at leverandøren oppfyller dem. Som idriftsetter må dere si fra når systemet gjenkjenner følelser, kategoriserer personer biometrisk eller lager dypforfalskninger (art. 50(3)–(4)), og sørge for at de som bruker det har KI-kompetanse (art. 4)."
     },
     "other": {
-      "high": "Et høyrisiko KI-system (art. 6) som dere formidler videre i stedet for å tilby. Før dere gjør det tilgjengelig, kontroller at tilbyderen har gjennomført samsvarsvurderingen, utarbeidet den tekniske dokumentasjonen og påført CE-merking (art. 22–24)."
+      "high": "Et høyrisiko KI-system (art. 6) som dere formidler videre i stedet for å tilby. Før dere gjør det tilgjengelig, kontroller at tilbyderen har gjennomført samsvarsvurderingen, utarbeidet den tekniske dokumentasjonen og påført CE-merking (art. 22–24).",
+      "limited": "Begrenset risiko. Åpenhetspliktene i art. 50 gjelder tilbyderen. Kontroller at tilbyderen har bygget dem inn før dere gjør systemet tilgjengelig."
+    },
+    "builtin": {
+      "limited": "Begrenset risiko. Dette er en innebygd funksjon i plattformen. Plattformen er tilbyder og forteller brukerne at de arbeider med KI og merker generert innhold (art. 50(1)–(2)). Deres del er å sørge for at de som bruker funksjonen har KI-kompetanse (art. 4)."
     }
   },
   "status": {
@@ -127,7 +141,7 @@
     "approved": "Godkjent"
   },
   "taskStatus": {
-    "open": "Oppgave åpen",
+    "open": "Åpen",
     "in_progress": "Pågår",
     "blocked": "Blokkert",
     "done": "Utført",
@@ -203,44 +217,79 @@
     "friaRequired": "Som idriftsetter må dere gjennomføre en konsekvensvurdering for grunnleggende rettigheter (FRIA) før første bruk (art. 27).",
     "exceptionApplied": "Unntaket i art. 6(3) ble brukt. Dokumenter hvorfor systemet ikke er høyrisiko, og registrer det (art. 6(4)).",
     "reasons": "Hvorfor",
-    "obligations": "Forpliktelser ({{ count }})"
+    "obligations": "{{ count }} forpliktelser for dere",
+    "obligationsOne": "1 forpliktelse for dere",
+    "providerObligations": "Tilbyderens plikter",
+    "providerObligationsHint": "Dere tar systemet i bruk, så disse pliktene ligger hos tilbyderen. Be leverandøren bekrefte at de er oppfylt.",
+    "current": "Nåværende:",
+    "new": "Ny:",
+    "downgradeHint": "Dette senker risikoklassen. Forpliktelser som ikke lenger gjelder, slutter å telle, så du blir bedt om å bekrefte.",
+    "undecided": "Ikke avgjort ennå. Svar på spørsmålene om forbudt praksis, høy risiko og åpenhet for å se resultatet."
   },
   "obligations": {
     "none": "Ingen særlige forpliktelser for denne klassifiseringen.",
     "noTask": "Ingen oppgave",
-    "openTask": "Åpne oppgaven"
+    "createTask": "Opprett oppgave",
+    "taskCreated": "Oppgaven er opprettet og koblet til forpliktelsen.",
+    "task": "Oppgave: {{ status }}",
+    "edit": "Oppdater",
+    "editFor": "Oppdater status og dokumentasjon for «{{ title }}»",
+    "statusLabel": "Status",
+    "statusAuto": "Følg oppgaven",
+    "reasonLabel": "Hvorfor er den ikke relevant?",
+    "reason": "Ikke relevant: {{ reason }}",
+    "evidence": "Dokumentert i",
+    "evidenceLabel": "Dokumentasjon som viser at den er oppfylt (valgfritt)",
+    "evidencePlaceholder": "Søk i dokumenter, kurs, risikoer, kontrakter …",
+    "evidenceHint": "Posten kobles også til KI-systemet, så revisorer finner den fra begge sider.",
+    "saved": "Forpliktelsen er oppdatert."
   },
   "overview": {
-    "title": "KI-styring",
     "subtitle": "ISO/IEC 42001 og KI-forordningen: kjenn KI-systemene deres, risikoen og pliktene.",
     "systems": "KI-systemer",
     "highRisk": "Høyrisikosystemer",
-    "assessmentsOpen": "Åpne vurderinger",
-    "literacy": "Dekning av KI-kompetanse",
+    "literacy": "KI-kompetanse",
     "startTitle": "Start KI-oversikten",
     "startBody": "Før opp alle KI-systemer dere lager eller bruker, også verktøy kjøpt fra leverandører. Et godt første eksempel er denne plattformens egne KI-funksjoner: registrer dem med ett klikk og se hvordan de er klassifisert.",
     "attention": "Trenger oppfølging",
     "allGood": "Ingenting trenger oppfølging akkurat nå.",
-    "attentionItems": {
-      "unclassified": "{{ count }} KI-system(er) er ikke klassifisert ennå",
-      "prohibited": "{{ count }} system(er) er klassifisert som forbudt praksis",
-      "assessmentsOverdue": "{{ count }} vurdering(er) har passert fristen",
-      "reviewsOverdue": "{{ count }} gjennomgang(er) av systemer har passert fristen",
-      "monitoringFailures": "{{ count }} målinger ikke bestått de siste 30 dagene",
-      "noPolicy": "Ingen KI-policy er koblet til ennå"
-    },
     "byRisk": "Etter risikoklasse",
     "byStatus": "Etter status",
-    "linkSystems": "Oversikten over KI-systemer dere lager eller bruker.",
-    "linkAssessments": "Klassifiseringer, konsekvensvurderinger og FRIA.",
-    "linkLiteracy": "Hvem som har KI-kompetansen rollen krever."
+    "obligationsMet": "Forpliktelser oppfylt",
+    "ofTotal": "{{ done }} av {{ total }}",
+    "awaitingApproval": "Venter på godkjenning",
+    "drafts": "Vurderinger i utkast",
+    "overdue": "{{ count }} over fristen",
+    "literacyScope": "av {{ count }} personer som omfattes",
+    "attentionHint": "Det viktigste først. Hver linje åpner stedet der du ordner det.",
+    "severity": {
+      "high": "Høy prioritet",
+      "medium": "Middels prioritet",
+      "low": "Lav prioritet"
+    },
+    "readiness": "Kravdekning",
+    "readinessHint": "Hvor mange krav i standardene som er dokumentert, hentet fra Standarder og krav.",
+    "readinessNone": "ISO/IEC 42001 og KI-forordningen er ikke slått på som standarder ennå.",
+    "readinessOpen": "Åpne Standarder og krav",
+    "readinessLine": "{{ score }} % · {{ covered }} av {{ total }} krav",
+    "frameworks": {
+      "iso42001": "ISO/IEC 42001",
+      "eu_ai_act": "KI-forordningen"
+    },
+    "soa": "Anvendelseserklæring (SoA) for ISO/IEC 42001",
+    "policy": "KI-policy",
+    "noPolicy": "Ingen KI-policy er koblet til ennå.",
+    "linkPolicy": "Koble til KI-policyen",
+    "termSystem": "Hva regnes som et KI-system?",
+    "termHighRisk": "Hva er høy risiko?",
+    "termLiteracy": "Hva er KI-kompetanse?"
   },
   "systems": {
     "title": "KI-systemer",
     "searchPlaceholder": "Søk etter navn, kode, formål eller leverandør",
     "new": "Registrer KI-system",
     "registerPlatform": "Registrer plattformens KI-funksjoner",
-    "registered": "{{ count }} KI-funksjon(er) i plattformen registrert.",
+    "registered": "{{ count }} KI-funksjoner i plattformen er registrert.",
     "alreadyRegistered": "Plattformens KI-funksjoner er allerede i oversikten.",
     "builtin": "Plattformfunksjon",
     "backToList": "Tilbake til KI-systemer",
@@ -253,7 +302,11 @@
       "-updated_at": "Nylig oppdatert",
       "risk_class": "Risikoklasse",
       "status": "Status"
-    }
+    },
+    "subtitle": "Alle KI-systemer dere lager eller bruker, med risikoklasse og hvor langt forpliktelsene har kommet.",
+    "registeredOne": "1 KI-funksjon i plattformen er registrert.",
+    "registerPlatformHint": "Denne plattformen har egne KI-funksjoner. Registrer dem for å se hvordan de er klassifisert.",
+    "obligationsMet": "{{ met }} av {{ total }} forpliktelser oppfylt"
   },
   "systemForm": {
     "newTitle": "Registrer KI-system",
@@ -262,27 +315,69 @@
     "created": "{{ code }} registrert.",
     "updated": "{{ code }} lagret.",
     "tagsPlaceholder": "Skill med komma",
-    "askRole": "Hjelp meg å avgjøre om vi er tilbyder eller idriftsetter av dette KI-systemet etter KI-forordningen."
+    "askRole": "Hjelp meg å avgjøre om vi er tilbyder eller idriftsetter av dette KI-systemet etter KI-forordningen.",
+    "sections": {
+      "what": "Hva systemet er",
+      "source": "Hvor det kommer fra og hvilke data det bruker",
+      "people": "Hvem som har ansvaret",
+      "metrics": "Hva dere måler"
+    },
+    "supplierPlaceholder": "Søk etter leverandør på navn eller kode",
+    "supplierHint": "Når leverandøren er koblet, ser du kontrakter, databehandleravtale og leverandørvurderinger.",
+    "ropaPlaceholder": "Søk i behandlingsaktiviteter",
+    "ropaHint": "Behandlingsaktiviteten i Personvern som beskriver denne bruken av personopplysninger.",
+    "addOverseer": "Legg til en person …",
+    "removeOverseer": "Fjern {{ name }}",
+    "oversightTerm": "Menneskelig tilsyn:",
+    "oversightHint": "personene som kan forstå, overstyre eller stanse systemet.",
+    "askPurpose": "Hjelp meg å beskrive det tiltenkte formålet med dette KI-systemet med enkle ord.",
+    "askOversight": "Hva innebærer menneskelig tilsyn med dette KI-systemet, og hvem bør ha ansvaret?",
+    "metricsHint": "Bestem hva dere kontrollerer og grensen det må holde seg innenfor. Da vurderes målingene automatisk.",
+    "addMetric": "Legg til en måleparameter",
+    "removeMetric": "Fjern måleparameteren {{ metric }}",
+    "direction": "Verdien må være",
+    "directionMin": "minst terskelen",
+    "directionMax": "høyst terskelen",
+    "unit": "Enhet (valgfritt)",
+    "changeReasonHint": "Lagres i endringshistorikken."
   },
   "systemDetail": {
     "about": "Om systemet",
     "classify": "Klassifiser",
     "reclassify": "Klassifiser på nytt",
-    "notClassified": "Ikke klassifisert",
     "classification": "Klassifisering etter KI-forordningen",
-    "openClassification": "Åpne klassifiseringen",
-    "unclassifiedHint": "Kjør klassifiseringsveiviseren for å finne risikoklassen og forpliktelsene som gjelder. Hver forpliktelse blir en oppgave.",
+    "unclassifiedHint": "Kjør klassifiseringsveiviseren for å finne risikoklassen og forpliktelsene som gjelder.",
     "transparency": "Åpenhetsplikter",
     "assessments": "Vurderinger",
     "newImpact": "Ny konsekvensvurdering",
-    "newFria": "Ny FRIA",
+    "newFria": "Ny FRIA (grunnleggende rettigheter)",
     "noAssessments": "Ingen vurderinger ennå.",
     "documentation": "Dokumentasjon og teknisk fil",
-    "documentationHint": "{{ count }} del(er) skrevet. Data- og modelldokumentasjon, menneskelig tilsyn, logging, nøyaktighet og den tekniske filen etter vedlegg IV.",
+    "documentationHint": "Data- og modelldokumentasjon, menneskelig tilsyn, logging, nøyaktighet og den tekniske filen etter vedlegg IV.",
     "openDocumentation": "Åpne dokumentasjonen",
     "deleteTitle": "Slette dette KI-systemet?",
     "deleteMessage": "«{{ name }}» og vurderingene fjernes fra oversikten, og åpne oppgaver avbrytes. Historikken beholdes i revisjonsloggen.",
-    "deleted": "{{ code }} slettet."
+    "deleted": "{{ code }} slettet.",
+    "obligations": "Forpliktelser",
+    "obligationsMet": "{{ met }} av {{ total }} oppfylt",
+    "classifiedOn": "Klassifisert {{ date }}",
+    "friaRequired": "FRIA påkrevd",
+    "friaRequiredBody": "påkrevd før første bruk (art. 27). Den er ikke gjennomført ennå.",
+    "friaDone": "påkrevd (art. 27), og den er gjennomført.",
+    "friaVoluntary": "ikke påkrevd for dette systemet, men dere kan gjennomføre en frivillig.",
+    "noRopa": "Koble behandlingsaktiviteten i skjemaet.",
+    "noDpia": "Ingen DPIA er koblet til.",
+    "dpiaRecommended": "En DPIA anbefales for dette systemet (GDPR art. 35, KI-forordningen art. 26(9)).",
+    "createDpia": "Opprett DPIA",
+    "noOverseers": "Ingen er utpekt ennå.",
+    "literacyMissing": "mangler KI-kompetanse",
+    "providerBuiltin": "Plattformen er tilbyder av denne innebygde funksjonen og ivaretar disse pliktene. De vises så dere ser hvem som gjør hva.",
+    "governanceProgress": "Styring: {{ done }} av {{ total }} deler",
+    "annexProgress": "Vedlegg IV: {{ done }} av {{ total }} punkter",
+    "annexOptional": "Vedlegg IV er valgfritt for dere",
+    "risks": "KI-risikoer",
+    "risksHint": "Registrer risikoene systemet medfører i Risiko-modulen (ISO/IEC 42001 6.1.2). Koblede risikoer vises under Koblinger.",
+    "createRisk": "Opprett KI-risiko"
   },
   "wizard": {
     "title": "Klassifiser: {{ name }}",
@@ -299,7 +394,7 @@
     "complete": "Fullfør klassifiseringen",
     "completeHint": "Når du fullfører, settes systemets risikoklasse og forpliktelser. Deretter godkjenner en annen person med godkjenningsrett.",
     "saved": "Utkast til klassifisering lagret.",
-    "completed": "Klassifiseringen er fullført. {{ count }} oppgave(r) opprettet.",
+    "completed": "Klassifiseringen er fullført. {{ count }} oppgaver er opprettet.",
     "locked": "Denne klassifiseringen er fullført. Gjenåpne den fra vurderingen for å endre svarene.",
     "suggestionTitle": "Foreslåtte svar",
     "suggestionHint": "Assistenten fylte inn svar ut fra systembeskrivelsen. Gå gjennom hvert trinn før du fullfører; dere er ansvarlige for klassifiseringen.",
@@ -366,7 +461,15 @@
       "deployer_public_service": "Offentlig tjeneste",
       "deployer_credit_or_insurance": "Kreditt eller forsikring",
       "notes": "Merknader"
-    }
+    },
+    "crumb": "Klassifiser",
+    "visited": "Sett",
+    "prefilled": "Svarene fra den gjeldende klassifiseringen er fylt inn. Endre det som er annerledes, og fullfør på nytt.",
+    "visitAll": "Gå gjennom alle trinnene før du fullfører ({{ left }} av {{ total }} gjenstår).",
+    "completedOne": "Klassifiseringen er fullført. 1 oppgave er opprettet.",
+    "downgradeTitle": "Senke risikoklassen?",
+    "downgradeMessage": "Systemet går fra {{ from }} til {{ to }}. Forpliktelser som ikke lenger gjelder, slutter å telle. Kontroller at svarene stemmer før du går videre.",
+    "downgradeConfirm": "Ja, senk risikoklassen"
   },
   "answers": {
     "role": "Rolle: {{ role }}",
@@ -395,7 +498,10 @@
       "code": "Kode (eldste først)",
       "-code": "Kode (nyeste først)",
       "title": "Tittel (A–Å)"
-    }
+    },
+    "subtitle": "Klassifiseringer, konsekvensvurderinger og FRIA for alle KI-systemer.",
+    "needsReview": "Må gjennomgås",
+    "progress": "{{ done }} av {{ total }} påkrevde deler skrevet"
   },
   "assessmentNew": {
     "title": "Ny vurdering",
@@ -404,7 +510,10 @@
     "titlePlaceholder": "La stå tom for en tittel basert på systemet",
     "openWizard": "Åpne klassifiseringsveiviseren",
     "create": "Opprett utkast",
-    "created": "{{ code }} opprettet. Skriv delene nå."
+    "created": "{{ code }} opprettet. Skriv delene nå.",
+    "friaNotRequired": "(ikke påkrevd for dette systemet)",
+    "whatIsFria": "Hva er en FRIA?",
+    "nextReviewHint": "La stå tom for å bruke gjennomgangsintervallet fra innstillingene."
   },
   "assessmentEdit": {
     "title": "Rediger {{ code }}",
@@ -412,9 +521,11 @@
     "locked": "Bare utkast kan redigeres. Gjenåpne vurderingen for å endre den.",
     "required": "Påkrevd",
     "ask": "Hjelp meg å skrive delen «{{ section }}» i denne KI-vurderingen.",
-    "drafted": "{{ count }} tomme del(er) har fått utkast. Gå gjennom og rediger dem før du lagrer.",
+    "drafted": "{{ count }} tomme deler har fått et utkast. Gå gjennom og rediger dem før du lagrer.",
     "nothingDrafted": "Ingenting å fylle inn: alle delene har allerede tekst.",
-    "saved": "Vurderingen er lagret."
+    "saved": "Vurderingen er lagret.",
+    "draftedOne": "1 tom del har fått et utkast. Gå gjennom og rediger den før du lagrer.",
+    "inWizard": "Klassifiseringer endres i klassifiseringsveiviseren, trinn for trinn."
   },
   "assessmentDetail": {
     "complete": "Fullfør",
@@ -427,9 +538,9 @@
     "outcome": "Resultat",
     "notCompletedHint": "Resultatet lagres når klassifiseringen fullføres.",
     "empty": "Ikke skrevet ennå.",
-    "createTasks": "Opprett oppfølgingsoppgavene (for FRIA: varsling av markedstilsynsmyndigheten, art. 27(3))",
+    "createTasks": "Opprett oppfølgingsoppgavene",
     "selfApprovalHint": "Du fullførte denne vurderingen, så en annen person må godkjenne den.",
-    "missing": "Fyll ut disse påkrevde delene først: {{ sections }}",
+    "missing": "Mangler før du kan fullføre: {{ sections }}",
     "deleted": "{{ code }} slettet.",
     "confirm": {
       "complete": {
@@ -454,9 +565,22 @@
       }
     },
     "done": {
-      "complete": "{{ code }} fullført. {{ count }} oppgave(r) opprettet.",
+      "complete": "{{ code }} er fullført. {{ count }} oppgaver er opprettet.",
       "approve": "{{ code }} godkjent.",
-      "reopen": "{{ code }} gjenåpnet."
+      "reopen": "{{ code }} gjenåpnet.",
+      "completeOne": "{{ code }} er fullført. 1 oppgave er opprettet."
+    },
+    "openWizard": "Åpne i veiviseren",
+    "continue": "Fortsett å skrive",
+    "completeBlocked": "Skriv de påkrevde delene først.",
+    "progress": "{{ done }} av {{ total }} påkrevde deler skrevet",
+    "progressOne": "1 av {{ total }} påkrevde deler skrevet",
+    "readyToComplete": "Alle påkrevde deler er skrevet. Du kan fullføre vurderingen.",
+    "createTasksFria": "Opprett oppfølgingsoppgavene, også varsling av markedstilsynsmyndigheten (art. 27(3))",
+    "reviewSaved": "Neste gjennomgang er lagret.",
+    "reviewFlag": {
+      "reclassified": "KI-systemet er klassifisert på nytt etter at denne vurderingen ble gjort. Gå gjennom den.",
+      "system_changed": "KI-systemet er endret etter at denne vurderingen ble gjort (formål, rolle, modeller eller data). Gå gjennom den."
     }
   },
   "sections": {
@@ -525,12 +649,10 @@
     "title": "Dokumentasjon: {{ name }}",
     "required": "Vedlegg IV kreves",
     "requiredBody": "Dette er et høyrisikosystem: den tekniske dokumentasjonen etter vedlegg IV må utarbeides før systemet bringes i omsetning eller tas i bruk, og holdes oppdatert (art. 11).",
-    "providerDuty": "Vedlegg IV: tilbyderens plikt",
     "deployerBody": "Dere tar i bruk dette høyrisikosystemet, så det er tilbyderens plikt å utarbeide den tekniske dokumentasjonen etter vedlegg IV. Be tilbyderen om bruksanvisningen og følg den, sørg for menneskelig tilsyn og ta vare på loggene. Delene nedenfor hjelper dere å dokumentere hvordan dere bruker systemet.",
     "otherBody": "Dere importerer, distribuerer eller representerer dette høyrisikosystemet, så dere utarbeider ikke den tekniske dokumentasjonen etter vedlegg IV selv. Kontroller at tilbyderen har utarbeidet den og holder den tilgjengelig før systemet gjøres tilgjengelig.",
-    "guidanceRefs": "Se {{ refs }}.",
     "optionalBody": "Vedlegg IV er bare obligatorisk for høyrisikosystemer, men å skrive disse delene er god praksis etter ISO/IEC 42001 og nyttig hvis klassifiseringen endres.",
-    "completeness": "Vedlegg IV: {{ done }} av {{ total }} deler skrevet",
+    "completeness": "Vedlegg IV: {{ done }} av {{ total }} punkter dokumentert",
     "completenessLabel": "Fullstendighet for vedlegg IV",
     "complete": "Skrevet",
     "saved": "Delen er lagret.",
@@ -538,7 +660,25 @@
     "groups": {
       "governance": "Styringsdokumentasjon",
       "annex_iv": "Teknisk dokumentasjon (vedlegg IV)"
-    }
+    },
+    "optionalForYou": "Vedlegg IV er valgfritt for dere",
+    "requiredShort": "Kreves før systemet bringes i omsetning (art. 11).",
+    "optionalShort": "Valgfritt, men god praksis etter ISO/IEC 42001.",
+    "governanceDone": "Styringsdokumentasjon: {{ done }} av {{ total }} deler",
+    "fromProvider": "Hent dette fra tilbyderen",
+    "fromProviderHint": "Som idriftsetter bygger dere på tilbyderens dokumentasjon. Oppbevar dette der dere kan vise det fram.",
+    "annexPoint": "Vedlegg IV nr. {{ point }}",
+    "groupHints": {
+      "governance": "Hvordan dere styrer systemet i det daglige (ISO/IEC 42001).",
+      "annex_iv": "Den tekniske filen etter vedlegg IV i KI-forordningen, punkt for punkt."
+    },
+    "linkedDocument": "Styrt dokument som inneholder denne delen (valgfritt)",
+    "documentPlaceholder": "Søk i dokumenter",
+    "text": "Tekst",
+    "heldIn": "Ligger i",
+    "notWritten": "Ikke skrevet ennå.",
+    "export": "Eksporter teknisk fil (PDF)",
+    "crumb": "Dokumentasjon"
   },
   "docSections": {
     "data_documentation": {
@@ -615,13 +755,22 @@
     "notes": "Merknader",
     "save": "Lagre måling",
     "saved": "Målingen er registrert.",
-    "savedAlert": "Målingen er registrert. Et resultat som ikke er bestått varsler systemets eier.",
+    "savedAlert": "Målingen er ikke bestått. Systemets eier er varslet.",
     "empty": "Ingen målinger ennå. Registrer kontroller av nøyaktighet, skjevhet eller drift for å vise at systemet fortsatt fungerer som tiltenkt.",
     "valueLine": "Verdi {{ value }}",
     "thresholdLine": "terskel {{ value }}",
     "delete": "Slett målingen {{ metric }}",
     "deleteTitle": "Slette denne målingen?",
-    "deleteMessage": "«{{ metric }}» fjernes fra overvåkingsloggen."
+    "deleteMessage": "«{{ metric }}» fjernes fra overvåkingsloggen.",
+    "defined": "Hva som måles",
+    "noMetrics": "Ingen måleparametere er definert. Legg dem til i skjemaet for systemet, så vurderes målingene automatisk.",
+    "atLeast": "minst {{ value }} {{ unit }}",
+    "atMost": "høyst {{ value }} {{ unit }}",
+    "pickMetric": "Måleparameter",
+    "otherMetric": "En annen måleparameter …",
+    "resultAuto": "Vurder ut fra terskelen",
+    "failedAlert": "«{{ metric }}» er ikke bestått. Skal det meldes som en KI-hendelse?",
+    "reportIncident": "Meld KI-hendelse"
   },
   "incidents": {
     "title": "KI-hendelser",
@@ -655,9 +804,7 @@
     "covered": "Dekket",
     "expired": "Utløpt",
     "missing": "Mangler",
-    "coverageOf": "{{ covered }} av {{ total }} medlemmer har gyldig KI-kompetanse",
-    "missingUsers": "Ingen registrering ennå",
-    "expiredUsers": "Registreringen er utløpt",
+    "coverageOf": "{{ covered }} av {{ total }} personer har gyldig KI-kompetanse",
     "valid": "Gyldig",
     "expiredOne": "Utløpt",
     "validUntil": "Gyldig til {{ date }}",
@@ -674,7 +821,24 @@
     "validUntilLabel": "Gyldig til (valgfritt)",
     "validUntilHint": "La stå tom for å bruke organisasjonens gyldighetsperiode.",
     "notes": "Merknader",
-    "saved": "KI-kompetanse registrert."
+    "saved": "KI-kompetanse registrert.",
+    "subtitle": "Hvem som har KI-kompetansen arbeidet krever (KI-forordningen art. 4).",
+    "viaTraining": "{{ count }} gjennom Opplæring",
+    "scope": {
+      "all": "Måles over alle i organisasjonen.",
+      "ai_users": "Måles over dem som eier eller fører tilsyn med KI-systemer i bruk."
+    },
+    "changeScope": "Endre",
+    "needsAttention": "Mangler eller utløpt ({{ count }})",
+    "searchPeople": "Søk på navn eller avdeling",
+    "noDepartment": "Ingen avdeling",
+    "recordFor": "Registrer KI-kompetanse for {{ name }}",
+    "showAll": "Vis alle ({{ count }})",
+    "courses": "Kurs som teller automatisk",
+    "coursesHint": "Fullføringer av disse kursene i Opplæring teller som KI-kompetanse.",
+    "noCourses": "Ingen kurs er merket som KI-kompetanse. Gi et kurs kategorien «KI-kompetanse» i Opplæring, så teller fullføringene her.",
+    "records": "Registrerte orienteringer og kurs",
+    "termLink": "Hva betyr KI-kompetanse?"
   },
   "settings": {
     "title": "Innstillinger for KI-styring",
@@ -687,12 +851,21 @@
     "findPolicyPlaceholder": "Søk i dokumenter",
     "officer": "Ansvarlig for KI-styring",
     "literacyValidity": "KI-kompetanse er gyldig i (måneder)",
-    "reviewInterval": "Gjennomgå KI-systemer hver (måned)",
+    "reviewInterval": "Gjennomgå KI-systemer og vurderinger hver (måneder)",
     "updatedAt": "Sist endret {{ date }}",
-    "saved": "Innstillingene er lagret."
-  },
-  "lesson": {
-    "label": "Leksjon: {{ title }} · {{ minutes }} min"
+    "saved": "Innstillingene er lagret.",
+    "subtitle": "KI-policyen, hvem som har ansvaret og hvordan KI-kompetanse og gjennomganger følges opp.",
+    "literacyScope": "Mål KI-kompetanse over",
+    "scopes": {
+      "all": {
+        "label": "Alle i organisasjonen",
+        "hint": "Alle medlemmer teller, også de som aldri bruker KI."
+      },
+      "ai_users": {
+        "label": "Personer som arbeider med KI-systemer",
+        "hint": "Eiere av og tilsynsansvarlige for KI-systemer i bruk (art. 4 gjelder ansatte som driver eller bruker KI)."
+      }
+    }
   },
   "ai": {
     "groupLabel": "Handlinger med assistenten",
@@ -738,7 +911,18 @@
     "section_too_long": "En del er for lang.",
     "title_required": "Gi den en tittel.",
     "unknown_section": "Denne delen er ikke kjent.",
-    "module_disabled": "KI-styring er ikke slått på for denne organisasjonen."
+    "module_disabled": "KI-styring er ikke slått på for denne organisasjonen.",
+    "classification_downgrade": "Dette senker risikoklassen. Bekreft det før du fullfører.",
+    "reason_required": "Skriv hvorfor forpliktelsen ikke er relevant.",
+    "reason_too_long": "Begrunnelsen er for lang.",
+    "obligation_not_found": "Denne forpliktelsen gjelder ikke lenger for systemet.",
+    "obligation_has_task": "Denne forpliktelsen har allerede en åpen oppgave.",
+    "invalid_supplier": "Velg en leverandør i denne organisasjonen.",
+    "invalid_ropa_entry": "Velg en behandlingsaktivitet i denne organisasjonen.",
+    "duplicate_metric": "To måleparametere har samme navn.",
+    "metric_required": "Gi hver måleparameter et navn.",
+    "too_many_metrics": "Du kan definere høyst 30 måleparametere.",
+    "too_many_overseers": "Du kan utpeke høyst 20 personer."
   },
   "notifications": {
     "systemCreated": "KI-systemet {{ code }} «{{ title }}» er registrert",
@@ -760,7 +944,7 @@
     "systemUpdated": "{{ actor_name }} oppdaterte KI-systemet",
     "systemOwnerChanged": "{{ actor_name }} endret eier",
     "systemStatusChanged": "{{ actor_name }} endret status",
-    "systemClassified": "{{ actor_name }} fullførte klassifiseringen ({{ obligations }} forpliktelse(r), {{ tasks_created }} oppgave(r) opprettet)",
+    "systemClassified": "{{ actor_name }} fullførte klassifiseringen. Forpliktelser: {{ obligations }}, nye oppgaver: {{ tasks_created }}",
     "systemMonitored": "{{ actor_name }} registrerte en måling: {{ metric }}",
     "systemMonitoringAlert": "{{ actor_name }} registrerte en måling som ikke er bestått: {{ metric }}",
     "systemDeleted": "{{ actor_name }} slettet KI-systemet",
@@ -769,5 +953,108 @@
     "assessmentApproved": "{{ actor_name }} godkjente vurderingen",
     "assessmentReopened": "{{ actor_name }} gjenåpnet vurderingen",
     "assessmentDeleted": "{{ actor_name }} slettet vurderingen"
+  },
+  "kindShort": {
+    "classification": "Klassifisering",
+    "impact": "Konsekvensvurdering",
+    "fria": "FRIA"
+  },
+  "obligationStatus": {
+    "not_started": "Ikke startet",
+    "in_progress": "Pågår",
+    "met": "Oppfylt",
+    "not_relevant": "Ikke relevant"
+  },
+  "attention": {
+    "prohibited": {
+      "one": "1 KI-system er klassifisert som forbudt praksis",
+      "many": "{{ count }} KI-systemer er klassifisert som forbudt praksis",
+      "named": "{{ code }} {{ name }} er klassifisert som forbudt praksis"
+    },
+    "unclassified": {
+      "one": "1 KI-system er ikke klassifisert ennå",
+      "many": "{{ count }} KI-systemer er ikke klassifisert ennå",
+      "named": "{{ code }} {{ name }} er ikke klassifisert ennå"
+    },
+    "no_policy": {
+      "one": "Ingen KI-policy er koblet til ennå",
+      "many": "Ingen KI-policy er koblet til ennå",
+      "named": "Ingen KI-policy er koblet til ennå"
+    },
+    "fria_missing": {
+      "one": "1 høyrisikosystem trenger en konsekvensvurdering for grunnleggende rettigheter (FRIA)",
+      "many": "{{ count }} høyrisikosystemer trenger en konsekvensvurdering for grunnleggende rettigheter (FRIA)",
+      "named": "{{ code }} {{ name }} trenger en konsekvensvurdering for grunnleggende rettigheter (FRIA)"
+    },
+    "obligations_without_task": {
+      "one": "1 forpliktelse har ingen oppgave ennå",
+      "many": "{{ count }} forpliktelser har ingen oppgave ennå",
+      "named": "{{ count }} forpliktelser for {{ code }} {{ name }} har ingen oppgave ennå"
+    },
+    "documentation_incomplete": {
+      "one": "1 høyrisikosystem har mangelfull dokumentasjon",
+      "many": "{{ count }} høyrisikosystemer har mangelfull dokumentasjon",
+      "named": "Dokumentasjonen for {{ code }} {{ name }} er ikke komplett"
+    },
+    "literacy_gap": {
+      "one": "1 person mangler gyldig KI-kompetanse",
+      "many": "{{ count }} personer mangler gyldig KI-kompetanse",
+      "named": "1 person mangler gyldig KI-kompetanse"
+    },
+    "awaiting_approval": {
+      "one": "1 vurdering venter på godkjenning",
+      "many": "{{ count }} vurderinger venter på godkjenning",
+      "named": "1 vurdering venter på godkjenning"
+    },
+    "assessments_need_review": {
+      "one": "1 vurdering må gjennomgås fordi systemet er endret",
+      "many": "{{ count }} vurderinger må gjennomgås fordi systemet er endret",
+      "named": "1 vurdering må gjennomgås fordi systemet er endret"
+    },
+    "monitoring_missing": {
+      "one": "1 høyrisikosystem i bruk mangler nylig overvåking",
+      "many": "{{ count }} høyrisikosystemer i bruk mangler nylig overvåking",
+      "named": "{{ code }} {{ name }} har ingen målinger de siste 90 dagene"
+    },
+    "draft_assessments": {
+      "one": "1 vurdering er fortsatt et utkast",
+      "many": "{{ count }} vurderinger er fortsatt utkast",
+      "named": "1 vurdering er fortsatt et utkast"
+    }
+  },
+  "next": {
+    "prohibited": {
+      "title": "Stans bruken av {{ code }} {{ name }}",
+      "why": "Den er klassifisert som forbudt KI-praksis (KI-forordningen art. 5)."
+    },
+    "unclassified": {
+      "title": "Klassifiser {{ count }} KI-systemer",
+      "why": "Risikoklassen avgjør hvilke plikter etter KI-forordningen som gjelder."
+    },
+    "friaMissing": {
+      "title": "Gjennomfør en konsekvensvurdering for grunnleggende rettigheter for {{ code }} {{ name }}",
+      "why": "Kreves før første bruk av dette høyrisikosystemet (KI-forordningen art. 27)."
+    },
+    "obligationsWithoutTask": {
+      "title": "Planlegg {{ count }} KI-forpliktelser",
+      "why": "Forpliktelser uten oppgave eller status blir lett glemt."
+    },
+    "documentationIncomplete": {
+      "title": "Fullfør dokumentasjonen for {{ count }} høyrisiko KI-systemer",
+      "why": "Revisorer og myndigheter ber om den (KI-forordningen art. 11, ISO/IEC 42001 7.5)."
+    },
+    "awaitingApproval": {
+      "title": "Godkjenn {{ count }} KI-vurderinger",
+      "why": "En klassifisering eller vurdering teller som dokumentasjon når den er godkjent."
+    },
+    "assessmentsNeedReview": {
+      "title": "Gå gjennom {{ count }} KI-vurderinger",
+      "why": "KI-systemet er endret etter at vurderingen ble gjort (ISO/IEC 42001 A.5.2)."
+    }
+  },
+  "picker": {
+    "placeholder": "Søk …",
+    "noResults": "Fant ingenting.",
+    "remove": "Fjern {{ name }}"
   }
 }

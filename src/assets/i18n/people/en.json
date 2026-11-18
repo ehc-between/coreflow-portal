@@ -1,11 +1,11 @@
 {
   "sections": {
     "label": "People areas",
-    "employees": "Employees",
+    "employees": "People",
     "positions": "Positions",
     "competences": "Competences",
     "matrix": "Competence matrix",
-    "checklists": "Checklists"
+    "checklists": "Joining and leaving"
   },
   "common": {
     "loading": "Loading…",
@@ -16,37 +16,45 @@
     "keep": "Keep it",
     "actions": "Actions",
     "overdue": "Overdue",
-    "backToList": "Back to employees",
-    "backToEmployee": "Back to the employee",
+    "backToList": "Back to people",
+    "backToEmployee": "Back to the person",
     "backToPositions": "Back to positions",
     "backToPosition": "Back to the position",
     "backToCompetences": "Back to competences",
     "backToCompetence": "Back to the competence",
-    "backToChecklists": "Back to checklists"
+    "backToChecklists": "Back to checklists",
+    "choose": "Choose…"
   },
   "summary": {
-    "current": "Current employees",
+    "current": "People now",
     "gaps": "Competence gaps",
     "openChecklists": "Open checklists",
     "overdue": "{{ count }} overdue",
     "missingConfidentiality": "No confidentiality agreement",
-    "expiringSoon": "{{ count }} competences expire soon"
+    "expiringSoon": "Expiring soon",
+    "screeningMissing": "Background check missing",
+    "noUserAccount": "No user account",
+    "filterLabel": "{{ label }}: {{ count }}. Show these people"
   },
   "employees": {
     "title": "People",
-    "subtitle": "Everyone who works for the organisation, their role, competence and terms of employment.",
-    "searchPlaceholder": "Search by name, code, email or job title",
-    "new": "New employee",
-    "noMatch": "No employees match these filters.",
+    "subtitle": "Everyone who works for you – employees, contractors and interns – with their role, competence and terms of employment.",
+    "searchPlaceholder": "Search by name, code or email",
+    "new": "New person",
+    "noMatch": "No people match these filters.",
     "since": "Since {{ date }}",
     "gapCount": "{{ count }} competence gaps",
     "openChecklists": "{{ count }} open checklists",
-    "noConfidentiality": "No confidentiality agreement"
+    "noConfidentiality": "No confidentiality agreement",
+    "gapCountOne": "1 competence gap",
+    "openChecklistsOne": "1 open checklist",
+    "expiringCount": "{{ count }} competences expire soon",
+    "expiringCountOne": "1 competence expires soon"
   },
   "filters": {
     "status": "Status",
     "statusOptions": {
-      "current": "Current employees",
+      "current": "Current people",
       "all": "All"
     },
     "employmentType": "Employment type",
@@ -56,12 +64,15 @@
     "department": "Department",
     "anyDepartment": "All departments",
     "sort": "Sort",
-    "risk": "Risk level",
-    "anyRisk": "All risk levels",
+    "risk": "Security risk of the role",
+    "anyRisk": "Any security risk",
     "category": "Category",
     "anyCategory": "All categories",
     "kind": "Kind",
-    "anyKind": "Onboarding and offboarding"
+    "anyKind": "Joining and leaving",
+    "flag": "Needs attention",
+    "anyFlag": "All people",
+    "clearFlag": "Show everyone"
   },
   "sorts": {
     "name": "Name A–Z",
@@ -77,7 +88,7 @@
     "active": "Active",
     "on_leave": "On leave",
     "offboarding": "Offboarding",
-    "former": "Former"
+    "former": "Left"
   },
   "employmentTypes": {
     "permanent": "Permanent",
@@ -93,9 +104,9 @@
     "failed": "Failed"
   },
   "riskLevels": {
-    "low": "Low risk",
-    "medium": "Medium risk",
-    "high": "High risk"
+    "low": "Low security risk",
+    "medium": "Medium security risk",
+    "high": "High security risk"
   },
   "recordStatus": {
     "active": "Active",
@@ -147,7 +158,8 @@
     "briefing": "Briefing",
     "campaign": "Awareness campaign",
     "induction": "Induction",
-    "other": "Other"
+    "other": "Other",
+    "training": "Completed course"
   },
   "disciplinaryTypes": {
     "security_breach": "Information security breach",
@@ -177,8 +189,8 @@
     "endDate": "End date",
     "confidentialitySignedOn": "Confidentiality agreement signed",
     "securityTermsAcceptedOn": "Security terms accepted",
-    "screeningStatus": "Background screening",
-    "screeningCompletedOn": "Screening completed",
+    "screeningStatus": "Background check",
+    "screeningCompletedOn": "Background check completed",
     "notes": "HR notes",
     "competence": "Competence",
     "requiredLevel": "Required level",
@@ -201,17 +213,32 @@
     "responsibilities": "Responsibilities",
     "authorities": "Authorities",
     "reportsTo": "Reports to",
-    "riskLevel": "Risk level",
+    "riskLevel": "Security risk of the role",
     "owner": "Owner",
     "name": "Name",
     "category": "Category",
-    "validityMonths": "Valid for (months)"
+    "validityMonths": "Valid for (months)",
+    "ownTitle": "Own job title (optional)",
+    "screeningScope": "What was checked",
+    "screeningLegalBasis": "Legal basis",
+    "screeningRecheckOn": "Check again by",
+    "postEmploymentAckOn": "Duties after leaving acknowledged",
+    "awarenessNotes": "Notes",
+    "method": "How it was assessed",
+    "assessedBy": "Assessed by",
+    "trainingRecord": "Based on training",
+    "document": "Document",
+    "employee": "Person",
+    "jobDescription": "Job description",
+    "nextReviewOn": "Next review",
+    "lastReviewedOn": "Last reviewed",
+    "sourceApplication": "Hired through"
   },
   "form": {
-    "newTitle": "New employee",
-    "editTitle": "Edit {{ code }}",
-    "create": "Add employee",
-    "readOnly": "You can view this employee, but not change it.",
+    "newTitle": "New person",
+    "editTitle": "Edit {{ name }}",
+    "create": "Add person",
+    "readOnly": "You can view this person, but not change the record.",
     "sections": {
       "identity": "Who they are",
       "role": "Role",
@@ -223,16 +250,27 @@
     "noPosition": "No position",
     "noDepartment": "No department",
     "noManager": "No manager",
-    "securityHint": "Record when the employee signed the confidentiality agreement and accepted the security terms, and the result of any background screening.",
-    "privateHint": "Phone and HR notes are only shown to people who can edit employees, and to the employee.",
+    "securityHint": "Record when the person signed the confidentiality agreement and accepted the security terms, the background check, and that they acknowledged their duties after leaving.",
+    "privateHint": "Phone, HR notes, what was checked and the legal basis are only shown to people who can edit people, and to the person.",
     "startOnboarding": "Start an onboarding checklist from the default template",
     "changeReason": "Reason for the change",
     "changeReasonPlaceholder": "For example: promoted to team lead",
     "errors": {
-      "fullNameRequired": "Enter the employee's full name.",
+      "fullNameRequired": "Enter the person's full name.",
       "email": "Enter a valid email address.",
-      "endBeforeStart": "The end date cannot be before the start date."
-    }
+      "endBeforeStart": "The end date cannot be before the start date.",
+      "legalBasisRequired": "Enter the legal basis for the police certificate.",
+      "recheckAfterCheck": "The next check must be after the check that was done."
+    },
+    "required": "required",
+    "requiredNote": "Fields marked * are required.",
+    "employeeNumberHint": "Your own number, e.g. from payroll. CoreFlow also gives each person a code.",
+    "ownTitleHint": "Only when it differs from the position, e.g. \"Team lead, support\".",
+    "positionNeedsScreening": "This role has a high security risk, so a background check is required.",
+    "screeningTitle": "Background check",
+    "screeningRequired": "The position has a high security risk. Record the background check and when it must be repeated.",
+    "legalBasisHint": "Why you may check this. A police certificate needs a legal basis.",
+    "recheckHint": "For high-risk roles we suggest a new check every three years."
   },
   "detail": {
     "number": "No. {{ n }}",
@@ -244,14 +282,21 @@
     "formerNotice": "This person has left the organisation. Their record is kept for the history.",
     "atAGlance": "At a glance",
     "openMatrix": "Open the competence matrix",
-    "deleteTitle": "Delete this employee?",
+    "deleteTitle": "Delete this person?",
     "deleteMessage": "{{ code }} and their competence, awareness and checklist records are removed. Open checklists and their tasks are cancelled.",
     "accessRevokedOn": "Access to this system was removed on {{ date }}.",
     "accessRevokesOn": "Access to this system is removed automatically at the end of the last working day, {{ date }}.",
     "revokeAccess": "Remove access now",
     "revokeTitle": "Remove access now?",
-    "revokeMessage": "{{ name }} loses access to this organisation straight away: memberships are removed, every sign-in is ended and the status changes to Former. Use this for a summary dismissal.",
-    "revokeConfirm": "Remove access"
+    "revokeMessage": "{{ name }} loses access to this organisation straight away: memberships are removed, every sign-in is ended and the status changes to Left. Use this for a summary dismissal.",
+    "revokeConfirm": "Remove access",
+    "summarise": "Summarise this person",
+    "notFoundBody": "It may have been deleted, or you may not have access to it.",
+    "hiredThrough": "Recruitment {{ code }}",
+    "openChecklist": {
+      "onboarding": "Open onboarding",
+      "offboarding": "Open offboarding"
+    }
   },
   "competences": {
     "title": "Competences",
@@ -269,13 +314,13 @@
     "whoEmpty": "No position requires this competence and nobody has been assessed in it yet.",
     "expires": "expires {{ date }}",
     "heldTitle": "Competence",
-    "heldEmpty": "No competences are required or recorded yet. Give the employee a position with requirements, or record an assessment.",
+    "heldEmpty": "No competences are required or recorded yet. Give the person a position with requirements, or record an assessment.",
     "noPosition": "No position is set, so nothing is required. Recorded competences are still listed.",
     "mandatory": "Mandatory",
     "desirable": "Desirable",
     "assess": "Record assessment",
     "assessTitle": "Record a competence assessment",
-    "assessMessage": "Record the level the employee has shown, when it was assessed and the evidence.",
+    "assessMessage": "Record the level {{ name }} has shown, how and by whom it was assessed, and what it rests on.",
     "assessedOn": "assessed {{ date }}",
     "expiryHint": "Leave the expiry empty to use the competence's validity period.",
     "pick": "Choose a competence",
@@ -283,7 +328,22 @@
     "removeTitle": "Remove this assessment?",
     "removeMessage": "The recorded level for {{ name }} is removed. If the position requires it, it shows as missing.",
     "deleteTitle": "Delete this competence?",
-    "deleteMessage": "{{ name }} is removed from the catalogue, from every position's requirements and from every employee's record."
+    "deleteMessage": "{{ name }} is removed from the catalogue, from every position's requirements and from every person's record.",
+    "validForOne": "Valid for 1 month",
+    "usedByOne": "Required by 1 position",
+    "heldByOne": "Held by 1 person",
+    "heldSubtitle": "What the position requires and what the person has shown (common ISO requirement 7.2).",
+    "levelShort": "Level",
+    "ofRequired": "of {{ level }} required",
+    "assessedBy": "by {{ name }}",
+    "basedOn": "Based on course {{ course }}",
+    "rowMenu": "More for this competence",
+    "saveAssessment": "Save assessment",
+    "requiredHint": "The position requires level {{ level }}.",
+    "evidenceHint": "Short and factual, e.g. \"Passed practical test, see certificate\".",
+    "noTrainingRecord": "No training record",
+    "noTrainingRecords": "No completed courses yet (or the person has no user account).",
+    "explain": "Explain this competence"
   },
   "competenceForm": {
     "newTitle": "New competence",
@@ -293,8 +353,8 @@
     "validityRange": "Enter a whole number of months between 1 and 240, or leave it empty."
   },
   "positions": {
-    "title": "Positions and roles",
-    "subtitle": "What each role is responsible for, what it may decide and what competence it needs.",
+    "title": "Positions",
+    "subtitle": "What each role is responsible for, what it may decide, what competence it needs and how much security risk it carries.",
     "searchPlaceholder": "Search positions",
     "new": "New position",
     "noMatch": "No positions match these filters.",
@@ -305,7 +365,23 @@
     "noResponsibilities": "No responsibilities described yet.",
     "noAuthorities": "No authorities described yet.",
     "deleteTitle": "Delete this position?",
-    "deleteMessage": "{{ title }} is removed. A position cannot be deleted while people hold it; retire it instead."
+    "deleteMessage": "{{ title }} is removed. A position cannot be deleted while people hold it; retire it instead.",
+    "holdersOne": "1 person",
+    "requirementsOne": "1 competence requirement",
+    "about": "About the position",
+    "codeHint": "Short code for the position, used in lists and exports",
+    "ownerHint": "Keeps the job description up to date",
+    "screeningRequired": "Requires a background check of everyone in the role",
+    "screeningNotRequired": "No background check required",
+    "reviewDue": "Review overdue",
+    "lastReviewed": "Last reviewed {{ date }}",
+    "markReviewed": "Mark as reviewed",
+    "reviewTitle": "Record the review",
+    "reviewMessage": "Confirm that the responsibilities, authorities and competence requirements of {{ title }} are still right.",
+    "nextReviewHint": "We suggest once a year. The owner is reminded when it is due.",
+    "reviewNote": "Note (optional)",
+    "reviewNotePlaceholder": "E.g. requirement for first aid added",
+    "summarise": "Summarise this position"
   },
   "positionForm": {
     "newTitle": "New position",
@@ -314,7 +390,12 @@
     "titleRequired": "Enter the position title.",
     "noReportsTo": "Reports to no position",
     "noOwner": "No owner",
-    "requirementsLater": "You add the competence requirements on the position's page after saving."
+    "requirementsLater": "You add the competence requirements on the position's page after saving.",
+    "codeHint": "Optional short code, e.g. \"IT\" or \"QM\".",
+    "riskHint": "High means people in the role must have a background check.",
+    "ownerHint": "The person who keeps the job description up to date.",
+    "jobDescriptionHint": "The controlled document that describes the role, if you have one.",
+    "nextReviewDefault": "Leave empty for one year from today."
   },
   "requirements": {
     "title": "Competence requirements",
@@ -341,23 +422,28 @@
       "matrix": "Matrix",
       "gaps": "Gaps only"
     },
-    "includeFormer": "Include former employees",
+    "includeFormer": "Include people who have left",
     "anyGap": "All gaps",
     "mandatoryOnly": "Mandatory only",
-    "caption": "Competence levels per employee. Each cell shows the level held or the status against the requirement.",
-    "employee": "Employee",
+    "caption": "Competence levels per person. Each cell shows the level held or the status against the requirement.",
+    "employee": "Person",
     "gaps": "Gaps",
     "cellLabel": "{{ competence }}: {{ status }}, held {{ level }}, required {{ required }}",
     "cellHint": "Numbers are the level held (0–4). Colours show the status against the position's requirement.",
     "none": "none",
     "notRequired": "not required",
     "noGaps": "No gaps match these filters. Everyone meets their requirements.",
-    "gapLevels": "required {{ required }}, held {{ held }}",
-    "gapTotal": "{{ count }} gaps in total"
+    "gapLevels": "required level {{ required }}, held {{ held }}",
+    "gapTotal": "{{ count }} gaps in total",
+    "legendTitle": "Competences in the matrix",
+    "cellHintEdit": "Numbers are the level held (0–4); colours show the status. Select a cell to record an assessment.",
+    "cellAction": "{{ name }}, {{ label }}. Record an assessment",
+    "gapTotalOne": "1 gap in total",
+    "export": "Export to CSV"
   },
   "checklists": {
-    "title": "Onboarding and offboarding",
-    "subtitle": "The steps for people joining and leaving: access, equipment, confidentiality and training.",
+    "title": "Joining and leaving",
+    "subtitle": "The steps for people who start and leave: access, equipment, confidentiality and training.",
     "noMatch": "No checklists match these filters.",
     "employeeTitle": "Onboarding and offboarding",
     "employeeEmpty": "No checklists yet.",
@@ -391,17 +477,45 @@
     "lastWorkingDay": "Last working day",
     "lastWorkingDayHint": "Access to this system is removed automatically at the end of this day: memberships and sign-ins are revoked and the status changes to Former.",
     "automaticPending": "Ticked automatically when access is removed on the last working day.",
-    "automaticDone": "Ticked automatically when access was removed on {{ date }}."
+    "automaticDone": "Ticked automatically when access was removed on {{ date }}.",
+    "employeeSubtitle": "Checklists for when the person starts and leaves. Some items also update the person's record.",
+    "requiredOpenOne": "1 required item open",
+    "offboardingHint": "The list includes returning equipment and removing access. Equipment registered to the person must be returned in Assets first.",
+    "openPerson": "Open the person",
+    "ask": "Ask about this checklist",
+    "itemMenu": "More for this item",
+    "assetsOutstanding": "{{ count }} assets are still registered to the person. Return them in Assets first.",
+    "assetsOutstandingOne": "1 asset is still registered to the person. Return it in Assets first.",
+    "seeHandover": "See equipment and access",
+    "actions": {
+      "confidentiality_signed": "Ticking it records the confidentiality agreement on the person.",
+      "security_terms_accepted": "Ticking it records that the security terms were accepted.",
+      "screening_completed": "Ticking it records the background check as completed.",
+      "post_employment_ack": "Ticking it records that the person acknowledged their duties after leaving.",
+      "equipment_returned": "Can only be ticked when no equipment is registered to the person."
+    }
   },
   "awareness": {
     "title": "Awareness",
-    "empty": "No awareness records yet. Record the policies read, security awareness sessions and briefings this person has completed.",
+    "empty": "No awareness records yet. Record the policies this person has read, security awareness sessions and briefings.",
     "add": "Record awareness",
     "addTitle": "Record awareness",
     "editTitle": "Edit awareness record",
-    "message": "What the person was made aware of and when.",
+    "message": "What the person was made aware of, and when.",
     "deleteTitle": "Delete this awareness record?",
-    "deleteMessage": "The record \"{{ topic }}\" is removed."
+    "deleteMessage": "The record \"{{ topic }}\" is removed.",
+    "subtitleBefore": "Policies read and briefings given –",
+    "term": "awareness",
+    "subtitleAfter": "(common ISO requirement 7.3). Read-and-sign from Documents and passed courses appear here automatically.",
+    "documentHint": "Choose the policy. The approved version is recorded.",
+    "documentOptional": "Optional: link the document it was about.",
+    "topicFromDocument": "Leave empty to use the document title.",
+    "versionRead": "version {{ rev }} read {{ date }}",
+    "rowMenu": "More for this record",
+    "sources": {
+      "document_ack": "Read and signed in Documents",
+      "training": "From Training"
+    }
   },
   "disciplinary": {
     "title": "Disciplinary process",
@@ -414,13 +528,13 @@
     "opened": "Opened {{ date }}",
     "closed": "closed {{ date }}",
     "deleteTitle": "Delete this case?",
-    "deleteMessage": "The case is removed permanently from the employee's record."
+    "deleteMessage": "The case is removed permanently from the person's record."
   },
   "notices": {
     "saved": "Changes saved.",
     "noChanges": "Nothing changed.",
-    "employeeCreated": "Employee {{ code }} added.",
-    "employeeDeleted": "Employee {{ code }} deleted.",
+    "employeeCreated": "{{ name }} added.",
+    "employeeDeleted": "{{ code }} deleted.",
     "assessed": "Assessment recorded.",
     "competenceRemoved": "Assessment removed.",
     "checklistStarted": "Checklist started and assigned.",
@@ -436,7 +550,20 @@
     "requirementsSaved": "Competence requirements saved.",
     "competenceCreated": "Competence added.",
     "competenceDeleted": "Competence {{ name }} deleted.",
-    "accessRevoked": "Access removed for {{ name }}."
+    "accessRevoked": "Access removed for {{ name }}.",
+    "accountLinked": "Linked to {{ name }}'s user account.",
+    "imported": "{{ count }} people imported.",
+    "importedOne": "1 person imported.",
+    "gapAction": {
+      "training": "Training assigned to {{ name }}.",
+      "task": "Task created for the gap.",
+      "assessment": "New assessment planned.",
+      "other": "Action saved."
+    },
+    "gapActionUpdated": "Action updated.",
+    "positionReviewed": "{{ title }} marked as reviewed.",
+    "templateSaved": "Template saved. New checklists use it from now on.",
+    "templateReset": "The standard template is used again."
   },
   "errors": {
     "forbidden": "You do not have access to this.",
@@ -444,15 +571,15 @@
     "access_already_revoked": "Access has already been removed for this person.",
     "cannot_revoke_self": "You cannot remove your own access.",
     "checklist_closed": "This checklist is closed and can no longer be changed.",
-    "checklist_exists": "This employee already has an open checklist of that kind.",
+    "checklist_exists": "This person already has an open checklist of that kind.",
     "checklist_incomplete": "Finish the required items first ({{ count }} open).",
     "competence_exists": "A competence with that name already exists.",
     "duplicate_competence": "Each competence can only be listed once.",
-    "employee_former": "This person has left the organisation, so onboarding cannot start.",
-    "employee_user_exists": "That user account is already linked to another employee.",
-    "end_date_in_future": "The status can only be Former once the last working day has passed. Start an offboarding instead.",
+    "employee_former": "This person has left, so onboarding cannot start.",
+    "employee_user_exists": "That user account is already linked to another person.",
+    "end_date_in_future": "The status can only be Left once the last working day has passed. Start an offboarding instead.",
     "end_date_required": "Enter the last working day.",
-    "full_name_required": "Enter the employee's full name.",
+    "full_name_required": "Enter the person's full name.",
     "invalid_case_type": "Choose a valid type of case.",
     "invalid_category": "Choose a valid category.",
     "invalid_competence": "That competence was not found.",
@@ -468,7 +595,7 @@
     "invalid_status": "Choose a valid status.",
     "invalid_user": "That user is not a member of this organisation.",
     "item_automatic": "This item is ticked automatically when access is removed. Only the note can be changed.",
-    "module_disabled": "People and competence is turned off for this organisation.",
+    "module_disabled": "People is turned off for this organisation.",
     "name_required": "Enter a name.",
     "own_offboarding": "You cannot change, cancel or delete your own offboarding. Ask someone else in HR.",
     "position_in_use": "People still hold this position. Move them first, or retire the position.",
@@ -476,29 +603,45 @@
     "text_required": "Enter the text of the item.",
     "title_required": "Enter a title.",
     "too_many_items": "The checklist has too many items.",
-    "topic_required": "Enter a topic."
+    "topic_required": "Enter a topic.",
+    "action_closed": "This action has already been evaluated or cancelled.",
+    "assets_outstanding": "Equipment is still registered to the person. Return it in Assets first.",
+    "course_required": "Choose a course.",
+    "invalid_action_key": "Choose what the item records on the person.",
+    "invalid_document": "That document was not found, or it is not visible to the whole organisation.",
+    "invalid_method": "Choose how it was assessed.",
+    "invalid_revision": "That version of the document was not found.",
+    "invalid_training_record": "That training record does not belong to this person.",
+    "items_required": "Add at least one item.",
+    "no_user_account": "The person has no user account. Link the account first.",
+    "not_a_member": "That user is not a member of the organisation.",
+    "training_assign_required": "You need permission to assign training. Create a task instead, or ask someone who manages training.",
+    "training_disabled": "Training is turned off for this organisation.",
+    "exportFailed": "The export could not be created. Try again in a moment."
   },
   "ask": {
-    "summariseEmployee": "Summarise this employee's competence, open checklists and anything missing in their terms of employment.",
+    "summariseEmployee": "Summarise this person's competence, open checklists and anything missing in their terms of employment.",
     "summarisePosition": "Summarise this position and check whether its responsibilities and competence requirements are complete.",
     "explainCompetence": "Explain how to assess this competence and what evidence an auditor would expect.",
     "securityTerms": "What should the terms of employment say about information security and confidentiality?",
     "checklist": "Which items on this checklist matter most for information security, and why?",
-    "gaps": "Which competence gaps should we close first, and how?"
+    "gaps": "Which competence gaps should we close first, and how?",
+    "label": "Ask",
+    "gapsLabel": "Ask about the gaps"
   },
   "lessons": {
     "link": "Lesson: {{ title }} ({{ minutes }} min)"
   },
   "entities": {
-    "people_checklist": "Onboarding/offboarding checklist",
+    "people_checklist": "Onboarding or offboarding checklist",
     "people_awareness": "Awareness record",
     "people_disciplinary": "Disciplinary case"
   },
   "notifications": {
-    "employeeCreated": "Employee {{ code }} added",
-    "employeeUpdated": "Employee {{ code }} updated",
-    "employeeStatusChanged": "Employee {{ code }} changed status",
-    "employeeDeleted": "Employee {{ code }} deleted",
+    "employeeCreated": "{{ code }} added to People",
+    "employeeUpdated": "{{ code }} updated",
+    "employeeStatusChanged": "{{ code }} changed status",
+    "employeeDeleted": "{{ code }} deleted",
     "competenceAssessed": "{{ competence }} assessed for {{ code }}",
     "competenceRemoved": "Competence assessment removed for {{ code }}",
     "awarenessRecorded": "Awareness recorded for {{ code }}",
@@ -515,13 +658,16 @@
     "checklistCancelled": "Checklist \"{{ title }}\" cancelled",
     "disciplinaryOpened": "A disciplinary case was opened",
     "disciplinaryClosed": "A disciplinary case was closed",
-    "accessRevoked": "Access removed for {{ code }}"
+    "accessRevoked": "Access removed for {{ code }}",
+    "competenceActionCreated": "Action planned on the {{ competence }} gap for {{ code }}",
+    "competenceActionEvaluated": "An action on a competence gap was evaluated",
+    "positionReviewed": "Position {{ title }} reviewed"
   },
   "timeline": {
-    "employeeCreated": "{{ actor_name }} added the employee {{ code }}",
-    "employeeUpdated": "{{ actor_name }} updated the employee",
-    "employeeStatusChanged": "{{ actor_name }} changed the employee's status",
-    "employeeDeleted": "{{ actor_name }} deleted the employee {{ code }}",
+    "employeeCreated": "{{ actor_name }} added {{ code }}",
+    "employeeUpdated": "{{ actor_name }} updated the record",
+    "employeeStatusChanged": "{{ actor_name }} changed the status",
+    "employeeDeleted": "{{ actor_name }} deleted {{ code }}",
     "competenceAssessed": "{{ actor_name }} recorded an assessment of {{ competence }}",
     "competenceRemoved": "{{ actor_name }} removed a competence assessment",
     "awarenessRecorded": "{{ actor_name }} recorded awareness",
@@ -538,6 +684,298 @@
     "checklistCancelled": "{{ actor_name }} cancelled the checklist \"{{ title }}\"",
     "disciplinaryOpened": "{{ actor_name }} opened a disciplinary case",
     "disciplinaryClosed": "{{ actor_name }} closed a disciplinary case",
-    "accessRevoked": "Access to this system was removed for {{ code }}"
+    "accessRevoked": "Access to this system was removed for {{ code }}",
+    "competenceActionCreated": "{{ actor_name }} planned an action on the {{ competence }} gap",
+    "competenceActionEvaluated": "{{ actor_name }} evaluated an action on a competence gap",
+    "positionReviewed": "{{ actor_name }} reviewed the position"
+  },
+  "flags": {
+    "missing_confidentiality": "No confidentiality agreement",
+    "missing_security_terms": "Security terms not accepted",
+    "screening_missing": "Background check missing",
+    "screening_recheck_due": "Background check due again",
+    "competence_gaps": "Competence gaps",
+    "expiring_soon": "Competence expiring soon",
+    "no_user_account": "No user account"
+  },
+  "screeningScopes": {
+    "identity": "Identity",
+    "references": "References",
+    "education": "Education and certificates",
+    "criminal_record": "Police certificate",
+    "credit": "Credit check",
+    "other": "Other"
+  },
+  "methods": {
+    "test": "Test or exam",
+    "observation": "Observed at work",
+    "certificate": "Certificate or diploma",
+    "course": "Completed course",
+    "interview": "Interview",
+    "self": "Self-assessment",
+    "other": "Other"
+  },
+  "account": {
+    "missingTitle": "Not linked to a user account",
+    "missingBody": "Training, tasks and access reviews reach people through their user account. Link the account if the person uses CoreFlow.",
+    "match": {
+      "email": "{{ name }} ({{ email }}) has the same email address.",
+      "name": "{{ name }} ({{ email }}) has the same name."
+    },
+    "link": "Link account",
+    "choose": "Choose account"
+  },
+  "compliance": {
+    "title": "Requirements for this person",
+    "subtitle": "What the standards expect for everyone who works here, and whether it is in place.",
+    "open": "{{ count }} not in order",
+    "openOne": "1 not in order",
+    "allInOrder": "All in order",
+    "keys": {
+      "confidentiality": "Confidentiality agreement",
+      "security_terms": "Security terms of employment",
+      "screening": "Background check",
+      "competence": "Competence for the role",
+      "awareness": "Awareness of policies and security",
+      "post_employment": "Duties after leaving",
+      "access_revoked": "Access removed",
+      "equipment_returned": "Equipment returned"
+    },
+    "status": {
+      "ok": "In order",
+      "missing": "Missing",
+      "due": "Due",
+      "pending": "In progress",
+      "not_required": "Not required"
+    },
+    "detail": {
+      "ok": "Done {{ date }}",
+      "okUntil": "Done {{ date }}, check again by {{ recheck }}",
+      "missing": "Not recorded yet",
+      "due": "Due",
+      "pending": "Started, not finished",
+      "not_required": "Not required for this role",
+      "recheckDue": "Was due again {{ recheck }}",
+      "competenceGaps": "{{ count }} gaps against the position",
+      "competenceExpiring": "Meets the position; something expires soon",
+      "assetsOutstanding": "{{ count }} assets still registered to the person"
+    },
+    "fix": {
+      "edit": "Record",
+      "competences": "Record assessment",
+      "awareness": "Record",
+      "offboarding": "Open offboarding"
+    }
+  },
+  "clauses": {
+    "short": {
+      "hs": "Common ISO requirement",
+      "eu_ai_act": "EU AI Act"
+    },
+    "hsTooltip": "A clause with the same text in ISO 9001, ISO 14001, ISO 27001, ISO 42001 and ISO 45001",
+    "hs_5_3": "Roles, responsibilities and authorities",
+    "hs_7_1": "Resources",
+    "hs_7_2": "Competence",
+    "hs_7_3": "Awareness",
+    "iso9001_7_1_2": "People",
+    "iso27001_A_5_11": "Return of assets",
+    "iso27001_A_5_18": "Access rights",
+    "iso27001_A_6_1": "Screening",
+    "iso27001_A_6_2": "Terms and conditions of employment",
+    "iso27001_A_6_3": "Security awareness, education and training",
+    "iso27001_A_6_4": "Disciplinary process",
+    "iso27001_A_6_5": "Responsibilities after leaving or changing jobs",
+    "iso27001_A_6_6": "Confidentiality agreements",
+    "nis2_21_2_g": "Cyber hygiene and training",
+    "nis2_21_2_i": "Personnel security and access control",
+    "eu_ai_act_4": "AI literacy",
+    "gdpr_32": "Security of processing",
+    "gdpr_39": "Tasks of the data protection officer"
+  },
+  "gapActions": {
+    "open": "Close the gap",
+    "title": "Close the gap",
+    "message": "Plan what brings {{ name }} up to the required level in {{ competence }}.",
+    "kindLabel": "What will close the gap?",
+    "kinds": {
+      "training": "Assign training",
+      "task": "Create task",
+      "assessment": "Plan a new assessment",
+      "other": "Other action"
+    },
+    "kindHints": {
+      "training": "Assign a course in Training to the person's user account.",
+      "task": "A task for someone, e.g. mentoring or practice on the job.",
+      "assessment": "Assess again, e.g. after practice."
+    },
+    "save": {
+      "training": "Assign training",
+      "task": "Create task",
+      "assessment": "Plan assessment",
+      "other": "Save action"
+    },
+    "course": "Course",
+    "noCourses": "There are no published courses. Create one in Training first.",
+    "needsUser": "Training is assigned to user accounts. Link the person to their account first, or create a task instead.",
+    "assignee": "Who does it",
+    "owner": "Responsible for following up",
+    "description": "What is the plan?",
+    "descriptionPlaceholder": "E.g. two shifts with an experienced colleague",
+    "effectHint": "When a new assessment reaches the required level, the action is marked as effective automatically.",
+    "menu": "More for this action",
+    "markDone": "Mark as done",
+    "evaluate": "Check the effect",
+    "cancel": "Cancel action",
+    "openTask": "Open the task",
+    "evaluateTitle": "Did the action work?",
+    "evaluateMessage": "Record whether the action closed the gap. The best proof is a new assessment at the required level.",
+    "evaluatedOn": "Checked on",
+    "evaluationNote": "What did you see?"
+  },
+  "gapActionStatus": {
+    "open": "Planned",
+    "done": "Done, not checked",
+    "effective": "Effective",
+    "not_effective": "Not effective",
+    "cancelled": "Cancelled"
+  },
+  "training": {
+    "title": "Training",
+    "subtitle": "Courses assigned to the person and courses they have completed, from Training.",
+    "noUser": "Training is assigned to user accounts. Link the person to their account to see their training here.",
+    "hidden": "You cannot see other people's training.",
+    "empty": "No courses assigned or completed yet.",
+    "assigned": "Assigned",
+    "completed": "Completed courses",
+    "completedOn": "Completed {{ date }}",
+    "passed": "Passed",
+    "notPassed": "Not passed",
+    "status": {
+      "assigned": "Not started",
+      "in_progress": "In progress",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    }
+  },
+  "handover": {
+    "title": "Equipment and access",
+    "subtitle": "What must be returned and removed before the person leaves.",
+    "noUser": "Not linked to a user account, so CoreFlow cannot find equipment or access registered to the person.",
+    "userActive": "The user account is still active. It is closed at the end of the last working day.",
+    "assets": "Equipment registered to the person",
+    "noAssets": "No equipment is registered to the person.",
+    "returnAsset": "Return",
+    "access": "Access in access reviews",
+    "noAccess": "No access-review entries are about the person.",
+    "removed": "Removed",
+    "notRemoved": "Not removed"
+  },
+  "import": {
+    "open": "Import users as people",
+    "title": "Import users as people",
+    "message": "Members of the organisation who have no person record yet. Training, tasks and access reviews reach people through this link.",
+    "suggestionsTitle": "Suggested links to existing people",
+    "reason": {
+      "email": "Same email address",
+      "name": "Same name"
+    },
+    "membersTitle": "Members without a person record",
+    "none": "Every member already has a person record.",
+    "selectAll": "Select all",
+    "statusLabel": "Status of the new records",
+    "confirm": "Import {{ count }} people",
+    "confirmOne": "Import 1 person"
+  },
+  "documents": {
+    "placeholder": "Search for a document by title or code",
+    "noMatch": "No documents match.",
+    "clear": "Remove {{ title }}"
+  },
+  "orgChart": {
+    "viewLabel": "Show positions as",
+    "views": {
+      "list": "List",
+      "chart": "Organisation chart"
+    },
+    "empty": "No positions yet.",
+    "vacant": "Nobody holds this position"
+  },
+  "record": {
+    "open": "Competence record",
+    "title": "Competence record – {{ name }}",
+    "heading": "Competence record",
+    "generated": "Produced {{ date }}",
+    "print": "Print or save as PDF",
+    "printHint": "Use \"Save as PDF\" in the print dialog to keep a copy.",
+    "back": "Back to {{ name }}",
+    "control": "Requirement",
+    "documents": "Documents",
+    "levels": "Held / required",
+    "levelPair": "{{ held }} / {{ required }}",
+    "assessment": "Assessment",
+    "actions": "Planned actions on gaps",
+    "none": "None recorded.",
+    "version": "version {{ rev }}",
+    "position": "Position"
+  },
+  "settings": {
+    "hub": "Settings",
+    "title": "People settings",
+    "subtitle": "Your own default checklists for people who start and leave.",
+    "kindLabel": "Checklist",
+    "language": "Language of the checklist",
+    "languages": {
+      "nb": "Norwegian (bokmål)",
+      "en": "English"
+    },
+    "custom": "Your own template",
+    "builtIn": "CoreFlow's standard template",
+    "kindHint": {
+      "onboarding": "These items are used every time an onboarding starts. Items that record something on the person keep the record and the checklist in step.",
+      "offboarding": "These items are used every time an offboarding starts. \"Access removed\" is added and ticked by CoreFlow on the last working day."
+    },
+    "itemText": "Text of item {{ n }}",
+    "actionLabel": "Also records on the person",
+    "noAction": "Records nothing on the person",
+    "actions": {
+      "confidentiality_signed": "Confidentiality agreement signed",
+      "security_terms_accepted": "Security terms accepted",
+      "screening_completed": "Background check completed",
+      "post_employment_ack": "Duties after leaving acknowledged",
+      "equipment_returned": "Equipment returned"
+    },
+    "systemItem": "Ticked by CoreFlow",
+    "moveUp": "Move item {{ n }} up",
+    "moveDown": "Move item {{ n }} down",
+    "removeItem": "Remove item {{ n }}",
+    "readOnly": "Only people who manage People can change the templates.",
+    "save": "Save template",
+    "reset": "Reset to standard",
+    "resetTitle": "Reset to CoreFlow's standard template?",
+    "resetMessage": "Your own items for this checklist are removed. Checklists that have already started are not changed."
+  },
+  "next": {
+    "checklistOverdue": {
+      "title": "The checklist for {{ name }} is overdue",
+      "why": "Unfinished onboarding or offboarding can leave access open or training undone."
+    },
+    "screeningMissing": {
+      "title": "{{ count }} people in high-risk roles have no background check",
+      "why": "ISO 27001 A.6.1 expects a background check for roles with high security risk."
+    },
+    "competencesExpiring": {
+      "title": "{{ count }} competences expire within 30 days",
+      "why": "Plan renewal now so nobody works without a valid certificate."
+    },
+    "positionReview": {
+      "title": "{{ count }} positions are due for review",
+      "why": "Roles and competence requirements should be checked regularly (common ISO requirement 5.3 and 7.2).",
+      "titleOne": "Review the position {{ title }}",
+      "whyOne": "Roles and competence requirements should be checked regularly (common ISO requirement 5.3 and 7.2)."
+    },
+    "membersWithoutEmployee": {
+      "title": "{{ count }} users have no person record",
+      "why": "Training, competence and access reviews need a person record for everyone who works here."
+    }
   }
 }

@@ -1,27 +1,43 @@
-import { BadgeTone } from '../../../shared/ui/badge/badge';
-import { DrillOutcome, RecordStatus, ScoringCriterion, ScoringMethod } from './environment.models';
+import {
+  DrillOutcome,
+  LocalText,
+  RecordStatus,
+  ScoringCriterion,
+  ScoringMethod,
+  TargetStatus,
+} from './environment.models';
 
-export function statusTone(status: string | null | undefined): BadgeTone {
-  switch (status) {
-    case 'active':
-      return 'pass';
-    case 'draft':
-      return 'info';
+/**
+ * The value an `app-status-badge meaning="compliance"` shows for a drill outcome
+ * (worked → pass, partly → warn, did not work → fail); the label stays the
+ * module's own (`environment.outcomes.<outcome>`).
+ */
+export function outcomeBadgeValue(outcome: DrillOutcome | string | null | undefined): string {
+  switch (outcome) {
+    case 'effective':
+      return 'compliant';
+    case 'partially_effective':
+      return 'partial';
+    case 'ineffective':
+      return 'non_compliant';
     default:
-      return 'neutral';
+      return 'unknown';
   }
 }
 
-export function outcomeTone(outcome: DrillOutcome | string | null | undefined): BadgeTone {
-  switch (outcome) {
-    case 'effective':
-      return 'pass';
-    case 'partially_effective':
-      return 'warn';
-    case 'ineffective':
-      return 'fail';
+/**
+ * The value an `app-status-badge meaning="compliance"` shows for a metric's target
+ * status: on track → pass, off track → warn (a to-do, never red), no target or no
+ * data → neutral.
+ */
+export function targetBadgeValue(status: TargetStatus | string | null | undefined): string {
+  switch (status) {
+    case 'on_track':
+      return 'met';
+    case 'off_track':
+      return 'partial';
     default:
-      return 'neutral';
+      return 'not_assessed';
   }
 }
 
@@ -80,9 +96,25 @@ export function localDay(days = 0, from = new Date()): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
+/** A bilingual text in the active language (falls back to English, then ''). */
+export function localText(text: LocalText | null | undefined, lang: string): string {
+  return text?.[lang] || text?.['en'] || '';
+}
+
 /** A criterion's label in the active language (falls back to English, then the key). */
 export function criterionLabel(criterion: ScoringCriterion, lang: string): string {
-  return criterion.label[lang] || criterion.label['en'] || criterion.key;
+  return localText(criterion.label, lang) || criterion.key;
+}
+
+/** What one score value of a criterion means ("Merkbar, men begrenset …"), or ''. */
+export function levelText(criterion: ScoringCriterion, level: number, lang: string): string {
+  return localText(criterion.levels?.[String(level)], lang);
+}
+
+/** The values of the method's scale, low to high. */
+export function scaleValues(method: Pick<ScoringMethod, 'scale_min' | 'scale_max'>): number[] {
+  const count = Math.max(0, method.scale_max - method.scale_min + 1);
+  return Array.from({ length: count }, (_, i) => method.scale_min + i);
 }
 
 /**
@@ -107,4 +139,47 @@ export function previewScore(
 /** kg CO2e as tonnes, rounded to 2 decimals. */
 export function kgToTonnes(kg: number | null | undefined): number {
   return Math.round(((kg ?? 0) / 1000) * 100) / 100;
+}
+
+/**
+ * A unit as people write it: `m3` -> `m³`, `m2` -> `m²`, `co2` -> `CO₂`. Anything
+ * else is shown as stored.
+ */
+export function displayUnit(unit: string | null | undefined): string {
+  return (unit ?? '')
+    .replace(/\bm3\b/g, 'm³')
+    .replace(/\bm2\b/g, 'm²')
+    .replace(/\bco2e?\b/gi, (m) => (m.toLowerCase() === 'co2e' ? 'CO₂e' : 'CO₂'));
+}
+
+/** Direction of a change for an arrow: up, down or flat (|change| < 0.5 %). */
+export function changeDirection(pct: number | null | undefined): 'up' | 'down' | 'flat' | null {
+  if (pct === null || pct === undefined || !Number.isFinite(pct)) {
+    return null;
+  }
+  if (Math.abs(pct) < 0.5) {
+    return 'flat';
+  }
+  return pct > 0 ? 'up' : 'down';
+}
+
+/**
+ * Whether a change is good news for a metric: less is better for `decrease`
+ * metrics (energy, waste), more for `increase` metrics. Null when flat or unknown.
+ */
+export function changeIsGood(
+  pct: number | null | undefined,
+  direction: string | null | undefined,
+): boolean | null {
+  const dir = changeDirection(pct);
+  if (!dir || dir === 'flat') {
+    return null;
+  }
+  return direction === 'increase' ? dir === 'up' : dir === 'down';
+}
+
+/** The year of a `YYYY-MM-DD` date, or null. */
+export function yearOf(value: string | null | undefined): number | null {
+  const m = value?.match(/^(\d{4})-/);
+  return m ? Number(m[1]) : null;
 }

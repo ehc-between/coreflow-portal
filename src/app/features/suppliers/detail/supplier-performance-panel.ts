@@ -13,18 +13,22 @@ import {
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
+import { LanguageService } from '../../../core/i18n/language.service';
+import { CreateFlowService } from '../../../core/kit/create-flow.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { FieldHelp } from '../../../shared/guidance/field-help';
 import { LocalDayPipe, LocalNumberPipe } from '../../../shared/locale/locale-pipes';
 import { Alert } from '../../../shared/ui/alert/alert';
-import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
+import { ErrorState } from '../../../shared/ui/error-state/error-state';
 import { FormField } from '../../../shared/ui/form-field/form-field';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
 import { SlideOver } from '../../../shared/ui/slide-over/slide-over';
+import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { blankToNull, ratePercent } from '../data/supplier-display';
 import { supplierErrorKey } from '../data/supplier-errors';
 import {
@@ -33,6 +37,7 @@ import {
   PerformanceKind,
   PerformanceRequest,
   PerformanceStats,
+  PerformanceWarning,
 } from '../data/supplier.models';
 import { SuppliersApi } from '../data/suppliers-api';
 import { PickedDeviation, SupplierDeviationPicker } from '../shared/deviation-picker';
@@ -83,10 +88,18 @@ export function entryBody(d: EntryDraft): PerformanceRequest {
   };
 }
 
+/** A late or not-OK entry (or a nonconformity) that has no deviation linked yet. */
+export function needsDeviation(e: PerformanceEntry): boolean {
+  return (
+    !e.deviation_id && (e.on_time === false || e.quality_ok === false || e.kind === 'nonconformity')
+  );
+}
+
 /**
  * The supplier's performance log: 12-month figures (entries, nonconformities,
- * average rating, on-time and quality rates), the entries themselves, and a form to
- * log or edit one (optionally linked to a deviation).
+ * average rating, on-time and quality rates), a warning when results are weak (with
+ * "Start ekstraordinær vurdering"), the entries themselves ("Registrer avvik" on a late
+ * or not-OK one), and a form to log or edit one (optionally linked to a deviation).
  */
 @Component({
   selector: 'app-supplier-performance-panel',
@@ -96,21 +109,23 @@ export function entryBody(d: EntryDraft): PerformanceRequest {
     LocalDayPipe,
     LocalNumberPipe,
     Alert,
-    Badge,
     Button,
     Card,
     ConfirmDialog,
+    ErrorState,
     FieldHelp,
     FormField,
     Icon,
+    LoadingState,
     SlideOver,
+    StatusBadge,
     SupplierDeviationPicker,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-card [padded]="false">
-      <div class="flex flex-wrap items-center justify-between gap-2 px-4 pt-3.5 pb-2">
-        <h2 class="font-display text-[15px] font-bold text-fg">
+      <div class="flex flex-wrap items-center justify-between gap-2 px-5 pt-4 pb-2">
+        <h2 class="font-display text-card font-bold text-fg">
           {{ 'suppliers.performance.title' | transloco }}
         </h2>
         @if (canWrite()) {
@@ -120,77 +135,96 @@ export function entryBody(d: EntryDraft): PerformanceRequest {
           </app-button>
         }
       </div>
+      @if (warning(); as w) {
+        <div
+          class="mx-5 mb-3 rounded-tile border border-warn bg-warn-soft px-3 py-2.5 text-ui text-fg"
+          role="note"
+          data-testid="performance-warning"
+        >
+          <p class="font-semibold">{{ 'suppliers.performance.warning.title' | transloco }}</p>
+          <ul class="mt-1 list-disc pl-5 text-fg-muted">
+            @for (r of w.reasons; track r) {
+              <li>
+                {{ 'suppliers.performance.warning.' + r | transloco: { threshold: w.threshold } }}
+              </li>
+            }
+          </ul>
+          @if (w.suggest_evaluation && canWrite()) {
+            <div class="mt-2">
+              <app-button size="sm" variant="secondary" (click)="evaluateRequested.emit()">
+                {{ 'suppliers.performance.warning.evaluate' | transloco }}
+              </app-button>
+            </div>
+          }
+        </div>
+      }
       @if (stats(); as s) {
-        <dl class="grid grid-cols-2 gap-3 px-4 pb-3 sm:grid-cols-5">
+        <dl class="grid grid-cols-2 gap-3 px-5 pb-3 sm:grid-cols-5">
           <div>
-            <dt class="text-[12px] text-fg-muted">
+            <dt class="text-meta text-fg-muted">
               {{ 'suppliers.performance.stats.entries' | transloco }}
             </dt>
-            <dd class="font-display text-[18px] font-bold text-fg">{{ s.entries }}</dd>
+            <dd class="font-display text-section font-bold text-fg">{{ s.entries }}</dd>
           </div>
           <div>
-            <dt class="text-[12px] text-fg-muted">
+            <dt class="text-meta text-fg-muted">
               {{ 'suppliers.performance.stats.nonconformities' | transloco }}
             </dt>
             <dd
-              class="font-display text-[18px] font-bold"
-              [class.text-fail]="s.nonconformities > 0"
+              class="font-display text-section font-bold"
+              [class.text-warn-ink]="s.nonconformities > 0"
             >
               {{ s.nonconformities }}
             </dd>
           </div>
           <div>
-            <dt class="text-[12px] text-fg-muted">
+            <dt class="text-meta text-fg-muted">
               {{ 'suppliers.performance.stats.rating' | transloco }}
             </dt>
-            <dd class="font-display text-[18px] font-bold text-fg">
+            <dd class="font-display text-section font-bold text-fg">
               {{ s.average_rating === null ? '–' : (s.average_rating | localNumber: '1.1-1') }}
             </dd>
           </div>
           <div>
-            <dt class="text-[12px] text-fg-muted">
+            <dt class="text-meta text-fg-muted">
               {{ 'suppliers.performance.stats.onTime' | transloco }}
             </dt>
-            <dd class="font-display text-[18px] font-bold text-fg">
+            <dd class="font-display text-section font-bold text-fg">
               {{ rate(s.on_time_rate) }}
             </dd>
           </div>
           <div>
-            <dt class="text-[12px] text-fg-muted">
+            <dt class="text-meta text-fg-muted">
               {{ 'suppliers.performance.stats.quality' | transloco }}
             </dt>
-            <dd class="font-display text-[18px] font-bold text-fg">
+            <dd class="font-display text-section font-bold text-fg">
               {{ rate(s.quality_ok_rate) }}
             </dd>
           </div>
         </dl>
-        <p class="px-4 pb-2 text-[12px] text-fg-subtle">
+        <p class="px-5 pb-2 text-meta text-fg-subtle">
           {{ 'suppliers.performance.stats.period' | transloco: { days: s.period_days } }}
         </p>
       }
       @switch (state()) {
         @case ('loading') {
-          <p class="px-4 pb-4 text-[13.5px] text-fg-muted">
-            {{ 'suppliers.common.loading' | transloco }}
-          </p>
+          <app-loading-state [rows]="2" />
         }
         @case ('error') {
-          <p class="px-4 pb-4 text-[13.5px] text-fail">
-            {{ 'suppliers.common.loadFailed' | transloco }}
-          </p>
+          <app-error-state (retry)="reloadList()" />
         }
         @default {
           @if (entries().length === 0) {
-            <p class="px-4 pb-4 text-[13.5px] text-fg-muted">
+            <p class="px-5 pb-4 text-ui text-fg-muted">
               {{ 'suppliers.performance.none' | transloco }}
             </p>
           } @else {
             <ul class="divide-y divide-border border-t border-border">
               @for (e of entries(); track e.id) {
-                <li class="flex flex-col gap-1 px-4 py-2.5 sm:flex-row sm:items-start sm:gap-3">
+                <li class="flex flex-col gap-1 px-5 py-2.5 sm:flex-row sm:items-start sm:gap-3">
                   <div class="min-w-0 flex-1">
-                    <p class="text-[13.5px] font-semibold text-fg">{{ e.title }}</p>
-                    <p class="flex flex-wrap gap-x-3 text-[12px] text-fg-subtle">
+                    <p class="text-body font-semibold text-fg">{{ e.title }}</p>
+                    <p class="flex flex-wrap gap-x-3 text-meta text-fg-subtle">
                       <span>{{ e.occurred_on | localDay }}</span>
                       <span>{{ 'suppliers.performanceKind.' + e.kind | transloco }}</span>
                       @if (e.reference) {
@@ -203,48 +237,57 @@ export function entryBody(d: EntryDraft): PerformanceRequest {
                         >
                           {{ 'suppliers.performance.linkedDeviation' | transloco }}
                         </a>
+                      } @else if (canRaise(e)) {
+                        <button
+                          type="button"
+                          class="font-semibold text-accent hover:underline"
+                          [attr.aria-label]="
+                            'suppliers.performance.raiseDeviationFor'
+                              | transloco: { title: e.title }
+                          "
+                          (click)="raiseDeviation()"
+                          data-testid="raise-deviation"
+                        >
+                          {{ 'suppliers.performance.raiseDeviation' | transloco }}
+                        </button>
                       }
                     </p>
                     @if (e.description) {
-                      <p class="mt-1 text-[13px] whitespace-pre-line text-fg-muted">
+                      <p class="mt-1 text-ui whitespace-pre-line text-fg-muted">
                         {{ e.description }}
                       </p>
                     }
                   </div>
-                  <span class="flex flex-wrap items-center gap-2 text-[12.5px]">
+                  <span class="flex flex-wrap items-center gap-2 text-meta">
                     @if (e.rating !== null) {
-                      <span
-                        [attr.aria-label]="
-                          'suppliers.performance.ratingOf' | transloco: { rating: e.rating }
-                        "
-                      >
+                      <span>
                         {{ 'suppliers.performance.ratingOf' | transloco: { rating: e.rating } }}
                       </span>
                     }
                     @if (e.on_time !== null) {
-                      <app-badge [tone]="e.on_time ? 'pass' : 'fail'">
-                        {{
-                          (e.on_time
-                            ? 'suppliers.performance.onTime'
-                            : 'suppliers.performance.late'
-                          ) | transloco
-                        }}
-                      </app-badge>
+                      <app-status-badge
+                        meaning="lifecycle"
+                        [value]="e.on_time ? 'passed' : 'failed'"
+                        [labelKey]="
+                          e.on_time ? 'suppliers.performance.onTime' : 'suppliers.performance.late'
+                        "
+                      />
                     }
                     @if (e.quality_ok !== null) {
-                      <app-badge [tone]="e.quality_ok ? 'pass' : 'fail'">
-                        {{
-                          (e.quality_ok
+                      <app-status-badge
+                        meaning="lifecycle"
+                        [value]="e.quality_ok ? 'passed' : 'failed'"
+                        [labelKey]="
+                          e.quality_ok
                             ? 'suppliers.performance.qualityOk'
                             : 'suppliers.performance.qualityNotOk'
-                          ) | transloco
-                        }}
-                      </app-badge>
+                        "
+                      />
                     }
                     @if (e.can_edit) {
                       <button
                         type="button"
-                        class="rounded-[8px] px-2 py-1 text-[12.5px] font-semibold text-accent hover:bg-accent-soft"
+                        class="rounded-tile px-2 py-1 text-meta font-semibold text-accent hover:bg-accent-soft"
                         [attr.aria-label]="
                           'suppliers.performance.editEntry' | transloco: { title: e.title }
                         "
@@ -254,7 +297,7 @@ export function entryBody(d: EntryDraft): PerformanceRequest {
                       </button>
                       <button
                         type="button"
-                        class="rounded-[8px] p-1 text-fg-subtle hover:text-fail"
+                        class="rounded-tile p-1 text-fg-subtle hover:text-fail"
                         [attr.aria-label]="
                           'suppliers.performance.deleteEntry' | transloco: { title: e.title }
                         "
@@ -282,7 +325,7 @@ export function entryBody(d: EntryDraft): PerformanceRequest {
       (closed)="formOpen.set(false)"
     >
       <form class="flex flex-col gap-4" (submit)="$event.preventDefault(); save()">
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <app-form-field [label]="'suppliers.performance.form.kind' | transloco" inputId="pf-kind">
             <select id="pf-kind" (change)="set('kind', $any($event.target).value)">
               @for (k of kinds; track k) {
@@ -296,17 +339,23 @@ export function entryBody(d: EntryDraft): PerformanceRequest {
             <input
               id="pf-date"
               type="date"
+              [attr.lang]="lang()"
               [value]="d().occurred_on"
               (input)="set('occurred_on', $any($event.target).value)"
             />
           </app-form-field>
         </div>
-        <app-form-field [label]="'suppliers.performance.form.title' | transloco" inputId="pf-title">
+        <app-form-field
+          [label]="'suppliers.performance.form.title' | transloco"
+          inputId="pf-title"
+          [required]="true"
+        >
           <input
             id="pf-title"
             type="text"
             maxlength="255"
             required
+            aria-required="true"
             [value]="d().title"
             (input)="set('title', $any($event.target).value)"
           />
@@ -323,27 +372,23 @@ export function entryBody(d: EntryDraft): PerformanceRequest {
             (input)="set('description', $any($event.target).value)"
           ></textarea>
         </app-form-field>
-        <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <div>
-            <div class="flex items-center gap-1">
-              <app-field-help scope="suppliers" page="performance" field="rating" />
-            </div>
-            <app-form-field
-              [label]="'suppliers.performance.form.rating' | transloco"
-              inputId="pf-rating"
-            >
-              <select id="pf-rating" (change)="set('rating', $any($event.target).value)">
-                <option value="" [selected]="!d().rating">
-                  {{ 'suppliers.performance.form.noRating' | transloco }}
-                </option>
-                @for (r of ratings; track r) {
-                  <option [value]="r" [selected]="d().rating === '' + r">
-                    {{ 'suppliers.performance.ratingOf' | transloco: { rating: r } }}
-                  </option>
-                }
-              </select>
-            </app-form-field>
-          </div>
+        <app-form-field
+          [label]="'suppliers.performance.form.rating' | transloco"
+          inputId="pf-rating"
+        >
+          <app-field-help label-suffix scope="suppliers" page="performance" field="rating" />
+          <select id="pf-rating" (change)="set('rating', $any($event.target).value)">
+            <option value="" [selected]="!d().rating">
+              {{ 'suppliers.performance.form.noRating' | transloco }}
+            </option>
+            @for (r of ratings; track r) {
+              <option [value]="r" [selected]="d().rating === '' + r">
+                {{ 'suppliers.performance.ratingOf' | transloco: { rating: r } }}
+              </option>
+            }
+          </select>
+        </app-form-field>
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <app-form-field
             [label]="'suppliers.performance.form.onTime' | transloco"
             inputId="pf-ontime"
@@ -392,6 +437,11 @@ export function entryBody(d: EntryDraft): PerformanceRequest {
             (valueChange)="set('deviation', $event)"
           />
         </app-form-field>
+        @if (badEntry() && !d().deviation) {
+          <p class="text-meta text-fg-muted" data-testid="deviation-hint">
+            {{ 'suppliers.performance.form.deviationHint' | transloco }}
+          </p>
+        }
         @if (formError(); as key) {
           <app-alert>{{ key | transloco }}</app-alert>
         }
@@ -424,11 +474,17 @@ export class SupplierPerformancePanel {
   private readonly api = inject(SuppliersApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly notifications = inject(NotificationService);
+  private readonly language = inject(LanguageService);
+  private readonly flows = inject(CreateFlowService);
 
   readonly supplierId = input.required<string>();
   readonly canWrite = input(false);
+  /** Weak results (from the supplier): shown with "Start ekstraordinær vurdering". */
+  readonly warning = input<PerformanceWarning | null | undefined>(null);
   /** The log changed (the page refreshes the supplier's figures). */
   readonly changed = output<void>();
+  /** "Start ekstraordinær vurdering" from the warning (the page owns the dialog). */
+  readonly evaluateRequested = output<void>();
 
   protected readonly kinds = PERFORMANCE_KINDS;
   protected readonly ratings = [1, 2, 3, 4, 5] as const;
@@ -445,6 +501,14 @@ export class SupplierPerformancePanel {
   protected readonly busy = signal(false);
   protected readonly formError = signal<string | null>(null);
   protected readonly pendingDelete = signal<PerformanceEntry | null>(null);
+  protected readonly lang = computed(() => (this.language.active() === 'nb' ? 'nb' : 'en'));
+  /** The entry being written went wrong (late or quality not OK). */
+  protected readonly badEntry = computed(
+    () => this.d().on_time === 'no' || this.d().quality_ok === 'no',
+  );
+  private readonly canWriteDeviations = computed(() =>
+    (this.selectedOrg.currentOrg()?.permissions ?? []).includes('deviations:write'),
+  );
 
   private request = new Subscription();
 
@@ -455,6 +519,20 @@ export class SupplierPerformancePanel {
       const id = this.supplierId();
       untracked(() => this.load(orgId, id));
     });
+  }
+
+  /** Offer "Registrer avvik" on a late or not-OK entry without a linked deviation. */
+  protected canRaise(e: PerformanceEntry): boolean {
+    return this.canWrite() && this.canWriteDeviations() && needsDeviation(e);
+  }
+
+  /** A new deviation linked to the supplier (create from here). */
+  protected raiseDeviation(): void {
+    void this.flows.start('supplier.to_deviation', 'supplier', this.supplierId());
+  }
+
+  protected reloadList(): void {
+    this.load(this.selectedOrg.currentOrgId(), this.supplierId());
   }
 
   protected rate(value: number | null): string {
@@ -533,7 +611,9 @@ export class SupplierPerformancePanel {
     if (!orgId) {
       return;
     }
-    this.state.set('loading');
+    if (!this.stats()) {
+      this.state.set('loading');
+    }
     this.request = this.api.listPerformance(orgId, supplierId, { limit: 50 }).subscribe({
       next: (res) => {
         this.entries.set(res.items);

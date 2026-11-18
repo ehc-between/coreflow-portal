@@ -8,7 +8,7 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { providePageContext } from '../../../core/ai/page-context';
 import { NotificationService } from '../../../core/notifications/notification.service';
@@ -19,6 +19,8 @@ import { dayOf, dueAtFromDay } from '../../../shared/tasks/task-display';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
+import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
 import { FormField } from '../../../shared/ui/form-field/form-field';
 import { AiGovernanceApi } from '../data/ai-governance-api';
 import { aiGovernanceErrorKey } from '../data/ai-governance-errors';
@@ -69,6 +71,9 @@ export function mergeDraft(
 @Component({
   selector: 'app-ai-assessment-edit',
   imports: [
+    RouterLink,
+    ErrorState,
+    LoadingState,
     TranslocoPipe,
     AiAssistButton,
     AskAbout,
@@ -84,13 +89,16 @@ export function mergeDraft(
     <app-ai-gov-page
       titleKey="aiGovernance.assessmentEdit.title"
       [titleParams]="{ code: assessment()?.code ?? '' }"
+      [breadcrumbs]="crumbs()"
       page="assessmentEdit"
+      [nav]="false"
+      [why]="false"
       [backLink]="['/ai-governance/assessments', id()]"
       backLabelKey="aiGovernance.assessmentEdit.back"
     >
-      <div actions>
+      <div secondary>
         @if (assessment(); as a) {
-          @if (a.status === 'draft') {
+          @if (a.status === 'draft' && a.kind !== 'classification') {
             <app-ai-assist-button
               assist="ai_governance.draft_assessment"
               labelKey="aiGovernance.ai.draftAssessment"
@@ -103,14 +111,31 @@ export function mergeDraft(
         }
       </div>
       @if (loadError()) {
-        <app-alert tone="error">{{ loadError()! | transloco }}</app-alert>
+        <app-error-state (retry)="reload.update((n) => n + 1)" />
       } @else if (assessment(); as a) {
-        @if (a.status !== 'draft') {
+        @if (a.kind === 'classification') {
+          <app-alert tone="info" data-testid="assessment-edit-wizard">
+            {{ 'aiGovernance.assessmentEdit.inWizard' | transloco }}
+          </app-alert>
+          <div class="mt-3 flex flex-wrap gap-2">
+            <a
+              [routerLink]="['/ai-governance/systems', a.ai_system.id, 'classify']"
+              [queryParams]="{ assessment: a.id }"
+              class="inline-flex h-9 items-center rounded-tile bg-accent px-3.5 text-ui font-semibold text-white hover:opacity-90"
+            >
+              {{ 'aiGovernance.assessmentDetail.openWizard' | transloco }}
+            </a>
+          </div>
+        } @else if (a.status !== 'draft') {
           <app-alert tone="info">{{ 'aiGovernance.assessmentEdit.locked' | transloco }}</app-alert>
         } @else {
-          <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); save()" novalidate>
+          <form
+            class="flex max-w-[760px] flex-col gap-5"
+            (submit)="$event.preventDefault(); save()"
+            novalidate
+          >
             <app-card>
-              <p class="mb-3 text-[13px] text-fg-muted">
+              <p class="mb-3 text-ui text-fg-muted">
                 {{ kindKey(a.kind) | transloco }} · {{ a.ai_system.code }} {{ a.ai_system.name }}
               </p>
               <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -156,6 +181,19 @@ export function mergeDraft(
                 </div>
                 <div>
                   <app-form-field
+                    [label]="'aiGovernance.fields.nextReview' | transloco"
+                    inputId="aie-review"
+                  >
+                    <input
+                      id="aie-review"
+                      type="date"
+                      [value]="nextReview()"
+                      (input)="nextReview.set($any($event.target).value)"
+                    />
+                  </app-form-field>
+                </div>
+                <div class="md:col-span-3">
+                  <app-form-field
                     [label]="'aiGovernance.fields.changeReason' | transloco"
                     inputId="aie-reason"
                   >
@@ -174,10 +212,10 @@ export function mergeDraft(
             @for (key of sectionKeys(); track key) {
               <app-card>
                 <div class="mb-1 flex items-start justify-between gap-2">
-                  <label [for]="'aie-s-' + key" class="text-[14px] font-bold text-fg">
+                  <label [for]="'aie-s-' + key" class="text-card font-bold text-fg">
                     {{ sectionKey(a.kind, key) | transloco }}
                     @if (required().has(key)) {
-                      <span class="ml-1 text-[12px] font-semibold text-warn">{{
+                      <span class="ml-1 text-meta font-semibold text-warn">{{
                         'aiGovernance.assessmentEdit.required' | transloco
                       }}</span>
                     }
@@ -191,7 +229,7 @@ export function mergeDraft(
                     labelKey="aiGovernance.wizard.askAbout"
                   />
                 </div>
-                <p [id]="'aie-h-' + key" class="mb-2 text-[12.5px] text-fg-muted">
+                <p [id]="'aie-h-' + key" class="mb-2 text-meta text-fg-muted">
                   {{ sectionHintKey(a.kind, key) | transloco }}
                 </p>
                 <textarea
@@ -199,7 +237,7 @@ export function mergeDraft(
                   rows="5"
                   maxlength="20000"
                   [attr.aria-describedby]="'aie-h-' + key"
-                  class="w-full rounded-tile border border-border bg-bg px-3 py-2 text-[13.5px] text-fg"
+                  class="w-full rounded-tile border border-border bg-bg px-3 py-2 text-body text-fg"
                   [class.border-fail]="missing().has(key)"
                   [value]="sections()[key] ?? ''"
                   (input)="setSection(key, $any($event.target).value)"
@@ -210,7 +248,9 @@ export function mergeDraft(
             @if (error()) {
               <app-alert tone="error">{{ error()! | transloco }}</app-alert>
             }
-            <div class="flex flex-wrap justify-end gap-2">
+            <div
+              class="sticky bottom-0 z-10 -mx-4 flex flex-wrap justify-end gap-2 border-t border-border bg-bg/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0"
+            >
               <app-button variant="secondary" (click)="back()">{{
                 'aiGovernance.common.cancel' | transloco
               }}</app-button>
@@ -226,7 +266,7 @@ export function mergeDraft(
           </form>
         }
       } @else {
-        <p class="text-[14px] text-fg-muted">{{ 'aiGovernance.common.loading' | transloco }}</p>
+        <app-loading-state [rows]="6" />
       }
     </app-ai-gov-page>
   `,
@@ -249,6 +289,16 @@ export class AiAssessmentEdit {
   protected readonly title = signal('');
   protected readonly owner = signal('');
   protected readonly due = signal('');
+  protected readonly nextReview = signal('');
+  protected readonly reload = signal(0);
+  protected readonly crumbs = computed(() => {
+    const a = this.assessment();
+    return [
+      { labelKey: 'aiGovernance.assessments.title', link: '/ai-governance/assessments' },
+      { label: a?.code ?? '…', link: ['/ai-governance/assessments', this.id()] },
+      { labelKey: 'aiGovernance.common.edit' },
+    ];
+  });
   protected readonly reason = signal('');
   protected readonly sections = signal<Record<string, string>>({});
   protected readonly missing = signal<ReadonlySet<string>>(new Set());
@@ -276,6 +326,7 @@ export class AiAssessmentEdit {
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();
       const id = this.id();
+      this.reload();
       untracked(() => {
         if (!orgId) {
           return;
@@ -283,14 +334,8 @@ export class AiAssessmentEdit {
         this.store.ensureCatalog();
         this.api.getAssessment(orgId, id).subscribe({
           next: (a) => {
-            if (a.kind === 'classification') {
-              void this.router.navigate(['/ai-governance/systems', a.ai_system.id, 'classify'], {
-                queryParams: { assessment: a.id },
-                replaceUrl: true,
-              });
-              return;
-            }
             this.assessment.set(a);
+            this.nextReview.set(dayOf(a.next_review_at ?? null));
             this.title.set(a.title);
             this.owner.set(a.owner?.id ?? '');
             this.due.set(dayOf(a.due_at));
@@ -315,9 +360,11 @@ export class AiAssessmentEdit {
     const { sections, filled } = mergeDraft(this.sections(), data, this.sectionKeys());
     this.sections.set(sections);
     this.notifications.info(
-      filled > 0
-        ? 'aiGovernance.assessmentEdit.drafted'
-        : 'aiGovernance.assessmentEdit.nothingDrafted',
+      filled === 0
+        ? 'aiGovernance.assessmentEdit.nothingDrafted'
+        : filled === 1
+          ? 'aiGovernance.assessmentEdit.draftedOne'
+          : 'aiGovernance.assessmentEdit.drafted',
       { count: filled },
     );
   }
@@ -345,6 +392,7 @@ export class AiAssessmentEdit {
         title: this.title().trim(),
         owner_user_id: this.owner() || null,
         due_at: dueAtFromDay(this.due()),
+        next_review_at: dueAtFromDay(this.nextReview()),
         answers,
         change_reason: this.reason().trim() || null,
       })

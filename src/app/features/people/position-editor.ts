@@ -9,7 +9,7 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../core/ai/page-context';
@@ -17,14 +17,13 @@ import { LanguageService } from '../../core/i18n/language.service';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { AiAssistButton } from '../../shared/ask/ai-assist-button';
-import { FieldHelp } from '../../shared/guidance/field-help';
-import { GuideIntro } from '../../shared/guidance/guide-intro';
 import { WhyItMatters } from '../../shared/guidance/why-it-matters';
-import { Alert } from '../../shared/ui/alert/alert';
 import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
-import { FormField } from '../../shared/ui/form-field/form-field';
-import { Icon } from '../../shared/ui/icon/icon';
+import { EmptyState } from '../../shared/ui/empty-state/empty-state';
+import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
+import { LoadingState } from '../../shared/ui/loading-state/loading-state';
+import { PageHeader } from '../../shared/ui/page-header/page-header';
 import { PeopleApi } from './data/people-api';
 import { textOrNull } from './data/people-display';
 import { peopleErrorKey } from './data/people-errors';
@@ -37,7 +36,9 @@ import {
   RecordStatus,
   RiskLevel,
 } from './data/people.models';
-import { PeopleLessonLink } from './people-section-nav';
+import { PeopleDocumentPicker, PickedDocument } from './ui/document-picker';
+import { PeopleField } from './ui/people-field';
+import { PEOPLE_ROOT, PEOPLE_SETTINGS_LINK } from './ui/people-nav';
 
 export interface PositionFormValue {
   readonly title: string;
@@ -50,6 +51,8 @@ export interface PositionFormValue {
   readonly risk_level: RiskLevel;
   readonly owner_user_id: string;
   readonly status: RecordStatus;
+  readonly next_review_on: string;
+  readonly job_description: PickedDocument | null;
 }
 
 export function emptyPositionForm(): PositionFormValue {
@@ -64,6 +67,8 @@ export function emptyPositionForm(): PositionFormValue {
     risk_level: 'low',
     owner_user_id: '',
     status: 'active',
+    next_review_on: '',
+    job_description: null,
   };
 }
 
@@ -79,6 +84,10 @@ export function formFromPosition(p: PositionDetail): PositionFormValue {
     risk_level: p.risk_level,
     owner_user_id: p.owner?.id ?? '',
     status: p.status,
+    next_review_on: p.next_review_on ?? '',
+    job_description: p.job_description
+      ? { id: p.job_description.id, code: p.job_description.code, title: p.job_description.title }
+      : null,
   };
 }
 
@@ -93,66 +102,70 @@ export function toPositionFields(v: PositionFormValue): PositionFields {
     reports_to_id: v.reports_to_id || null,
     risk_level: v.risk_level,
     owner_user_id: v.owner_user_id || null,
+    next_review_on: v.next_review_on || null,
+    job_description_document_id: v.job_description?.id ?? null,
   };
 }
 
 /**
  * Create (`/people/positions/new`) or edit (`/people/positions/:id/edit`) a position:
- * purpose, responsibilities and authorities (ISO HS 5.3), department, reporting line,
- * risk level and owner. "Draft responsibilities" asks the assistant for a first draft.
+ * purpose, responsibilities and authorities (HS 5.3), the job description document,
+ * department, reporting line, the role's security risk (high requires a background
+ * check), owner and next review. "Draft responsibilities" asks the assistant.
  */
 @Component({
   selector: 'app-people-position-editor',
   imports: [
-    RouterLink,
     TranslocoPipe,
     AiAssistButton,
-    FieldHelp,
-    GuideIntro,
     WhyItMatters,
-    Alert,
     Button,
     Card,
-    FormField,
-    Icon,
-    PeopleLessonLink,
+    EmptyState,
+    HelpStrip,
+    LoadingState,
+    PageHeader,
+    PeopleDocumentPicker,
+    PeopleField,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[960px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
-      <a
-        [routerLink]="id() ? ['/people/positions', id()] : '/people/positions'"
-        class="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
-      >
-        <app-icon name="back" [size]="16" />
-        {{ (id() ? 'people.common.backToPosition' : 'people.common.backToPositions') | transloco }}
-      </a>
-      <h1 class="mb-4 font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]">
-        {{
+    <div class="mx-auto max-w-[760px] px-4 pt-6 pb-24 sm:px-8 sm:pt-7 sm:pb-12">
+      <app-page-header
+        [title]="
           id()
             ? ('people.positionForm.editTitle' | transloco: { title: original()?.title ?? '' })
-            : ('people.positionForm.newTitle' | transloco)
-        }}
-      </h1>
-      <div class="mb-5"><app-guide-intro scope="people" page="positionForm" /></div>
+            : null
+        "
+        [titleKey]="id() ? null : 'people.positionForm.newTitle'"
+        [breadcrumbs]="breadcrumbs()"
+        [settingsLink]="settingsLink"
+      />
+      <app-help-strip scope="people" page="positionForm" lesson="roles-and-responsibilities" />
 
       @switch (state()) {
         @case ('loading') {
-          <p class="py-10 text-center text-[14px] text-fg-muted" role="status">
-            {{ 'people.common.loading' | transloco }}
-          </p>
+          <app-loading-state [rows]="6" />
         }
         @case ('error') {
-          <app-alert tone="error">{{ errorKey() | transloco }}</app-alert>
+          <app-empty-state
+            icon="search"
+            [titleKey]="errorKey()"
+            ctaKey="people.common.backToPositions"
+            ctaLink="/people/positions"
+          />
         }
         @default {
           <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); submit()" novalidate>
+            <p class="text-meta text-fg-muted">{{ 'people.form.requiredNote' | transloco }}</p>
             <app-card>
-              <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div class="sm:col-span-2">
-                  <app-form-field
-                    [label]="'people.fields.positionTitle' | transloco"
+                  <app-people-field
+                    labelKey="people.fields.positionTitle"
                     inputId="cf-p-title"
+                    page="positionForm"
+                    [required]="true"
                   >
                     <input
                       id="cf-p-title"
@@ -167,14 +180,19 @@ export function toPositionFields(v: PositionFormValue): PositionFields {
                       "
                       data-testid="position-title"
                     />
-                  </app-form-field>
+                  </app-people-field>
                   @if (attempted() && !form().title.trim()) {
-                    <p id="cf-p-title-err" class="mt-1 text-[12px] text-fail">
+                    <p id="cf-p-title-err" class="mt-1 text-meta text-fail" role="alert">
                       {{ 'people.positionForm.titleRequired' | transloco }}
                     </p>
                   }
                 </div>
-                <app-form-field [label]="'people.fields.code' | transloco" inputId="cf-p-code">
+                <app-people-field
+                  labelKey="people.fields.code"
+                  inputId="cf-p-code"
+                  page="positionForm"
+                  hintKey="people.positionForm.codeHint"
+                >
                   <input
                     id="cf-p-code"
                     type="text"
@@ -182,11 +200,12 @@ export function toPositionFields(v: PositionFormValue): PositionFields {
                     [value]="form().code"
                     (input)="set('code', $any($event.target).value)"
                   />
-                </app-form-field>
-                <div class="sm:col-span-3">
-                  <app-form-field
-                    [label]="'people.fields.description' | transloco"
+                </app-people-field>
+                <div class="sm:col-span-2">
+                  <app-people-field
+                    labelKey="people.fields.description"
                     inputId="cf-p-desc"
+                    page="positionForm"
                   >
                     <textarea
                       id="cf-p-desc"
@@ -195,12 +214,14 @@ export function toPositionFields(v: PositionFormValue): PositionFields {
                       [value]="form().description"
                       (input)="set('description', $any($event.target).value)"
                     ></textarea>
-                  </app-form-field>
+                  </app-people-field>
                 </div>
-                <div class="sm:col-span-3">
-                  <app-form-field
-                    [label]="'people.fields.responsibilities' | transloco"
+                <div class="sm:col-span-2">
+                  <app-people-field
+                    labelKey="people.fields.responsibilities"
                     inputId="cf-p-resp"
+                    page="positionForm"
+                    help="responsibilities"
                   >
                     <textarea
                       id="cf-p-resp"
@@ -210,7 +231,7 @@ export function toPositionFields(v: PositionFormValue): PositionFields {
                       (input)="set('responsibilities', $any($event.target).value)"
                       data-testid="position-responsibilities"
                     ></textarea>
-                  </app-form-field>
+                  </app-people-field>
                   <div class="mt-2 flex flex-wrap items-center gap-2">
                     <app-ai-assist-button
                       assist="people.draft_responsibilities"
@@ -219,7 +240,6 @@ export function toPositionFields(v: PositionFormValue): PositionFields {
                       [disabled]="!form().title.trim()"
                       (text)="draftText.set($event)"
                     />
-                    <app-field-help scope="people" page="positionForm" field="responsibilities" />
                   </div>
                   @if (draftText()) {
                     <div
@@ -227,10 +247,10 @@ export function toPositionFields(v: PositionFormValue): PositionFields {
                       role="status"
                       data-testid="responsibilities-draft"
                     >
-                      <p class="mb-2 text-[12px] font-semibold text-fg-subtle">
+                      <p class="mb-2 text-meta font-semibold text-fg-subtle">
                         {{ 'people.ai.draftPreview' | transloco }}
                       </p>
-                      <p class="text-[13px] whitespace-pre-line text-fg">{{ draftText() }}</p>
+                      <p class="text-ui whitespace-pre-line text-fg">{{ draftText() }}</p>
                       <div class="mt-2 flex gap-2">
                         <app-button size="sm" (click)="useDraft()">
                           {{ 'people.ai.useDraft' | transloco }}
@@ -242,10 +262,12 @@ export function toPositionFields(v: PositionFormValue): PositionFields {
                     </div>
                   }
                 </div>
-                <div class="sm:col-span-3">
-                  <app-form-field
-                    [label]="'people.fields.authorities' | transloco"
+                <div class="sm:col-span-2">
+                  <app-people-field
+                    labelKey="people.fields.authorities"
                     inputId="cf-p-auth"
+                    page="positionForm"
+                    help="authorities"
                   >
                     <textarea
                       id="cf-p-auth"
@@ -254,12 +276,27 @@ export function toPositionFields(v: PositionFormValue): PositionFields {
                       [value]="form().authorities"
                       (input)="set('authorities', $any($event.target).value)"
                     ></textarea>
-                  </app-form-field>
-                  <app-field-help scope="people" page="positionForm" field="authorities" />
+                  </app-people-field>
                 </div>
-                <app-form-field
-                  [label]="'people.fields.department' | transloco"
+                <div class="sm:col-span-2">
+                  <app-people-field
+                    labelKey="people.fields.jobDescription"
+                    inputId="cf-p-jd"
+                    page="positionForm"
+                    help="job_description"
+                    hintKey="people.positionForm.jobDescriptionHint"
+                  >
+                    <app-people-document-picker
+                      inputId="cf-p-jd"
+                      [value]="form().job_description"
+                      (valueChange)="set('job_description', $event)"
+                    />
+                  </app-people-field>
+                </div>
+                <app-people-field
+                  labelKey="people.fields.department"
                   inputId="cf-p-dept"
+                  page="positionForm"
                 >
                   <select id="cf-p-dept" (change)="set('department_id', $any($event.target).value)">
                     <option value="" [selected]="!form().department_id">
@@ -276,10 +313,11 @@ export function toPositionFields(v: PositionFormValue): PositionFields {
                       </option>
                     }
                   </select>
-                </app-form-field>
-                <app-form-field
-                  [label]="'people.fields.reportsTo' | transloco"
+                </app-people-field>
+                <app-people-field
+                  labelKey="people.fields.reportsTo"
                   inputId="cf-p-reports"
+                  page="positionForm"
                 >
                   <select
                     id="cf-p-reports"
@@ -294,11 +332,14 @@ export function toPositionFields(v: PositionFormValue): PositionFields {
                       </option>
                     }
                   </select>
-                </app-form-field>
+                </app-people-field>
                 <div>
-                  <app-form-field
-                    [label]="'people.fields.riskLevel' | transloco"
+                  <app-people-field
+                    labelKey="people.fields.riskLevel"
                     inputId="cf-p-risk"
+                    page="positionForm"
+                    help="risk_level"
+                    hintKey="people.positionForm.riskHint"
                   >
                     <select id="cf-p-risk" (change)="set('risk_level', $any($event.target).value)">
                       @for (r of risks; track r) {
@@ -307,10 +348,15 @@ export function toPositionFields(v: PositionFormValue): PositionFields {
                         </option>
                       }
                     </select>
-                  </app-form-field>
-                  <app-field-help scope="people" page="positionForm" field="risk_level" />
+                  </app-people-field>
                 </div>
-                <app-form-field [label]="'people.fields.owner' | transloco" inputId="cf-p-owner">
+                <app-people-field
+                  labelKey="people.fields.owner"
+                  inputId="cf-p-owner"
+                  page="positionForm"
+                  help="owner_user_id"
+                  hintKey="people.positionForm.ownerHint"
+                >
                   <select
                     id="cf-p-owner"
                     (change)="set('owner_user_id', $any($event.target).value)"
@@ -329,11 +375,25 @@ export function toPositionFields(v: PositionFormValue): PositionFields {
                       </option>
                     }
                   </select>
-                </app-form-field>
+                </app-people-field>
+                <app-people-field
+                  labelKey="people.fields.nextReviewOn"
+                  inputId="cf-p-next"
+                  page="positionForm"
+                  [hintKey]="id() ? null : 'people.positionForm.nextReviewDefault'"
+                >
+                  <input
+                    id="cf-p-next"
+                    type="date"
+                    [value]="form().next_review_on"
+                    (change)="set('next_review_on', $any($event.target).value)"
+                  />
+                </app-people-field>
                 @if (id()) {
-                  <app-form-field
-                    [label]="'people.fields.status' | transloco"
+                  <app-people-field
+                    labelKey="people.fields.status"
                     inputId="cf-p-status"
+                    page="positionForm"
                   >
                     <select id="cf-p-status" (change)="set('status', $any($event.target).value)">
                       @for (s of statuses; track s) {
@@ -342,16 +402,17 @@ export function toPositionFields(v: PositionFormValue): PositionFields {
                         </option>
                       }
                     </select>
-                  </app-form-field>
+                  </app-people-field>
                 }
               </div>
             </app-card>
 
             @if (id()) {
               <app-card>
-                <app-form-field
-                  [label]="'people.form.changeReason' | transloco"
+                <app-people-field
+                  labelKey="people.form.changeReason"
                   inputId="cf-p-reason"
+                  page="positionForm"
                 >
                   <input
                     id="cf-p-reason"
@@ -361,15 +422,17 @@ export function toPositionFields(v: PositionFormValue): PositionFields {
                     [value]="changeReason()"
                     (input)="changeReason.set($any($event.target).value)"
                   />
-                </app-form-field>
+                </app-people-field>
               </app-card>
             } @else {
-              <p class="text-[12.5px] text-fg-muted">
+              <p class="text-meta text-fg-muted">
                 {{ 'people.positionForm.requirementsLater' | transloco }}
               </p>
             }
 
-            <div class="flex flex-wrap justify-end gap-2">
+            <div
+              class="sticky bottom-0 z-10 -mx-4 flex flex-wrap justify-end gap-2 border-t border-border bg-bg/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0"
+            >
               <app-button variant="ghost" (click)="cancel()">
                 {{ 'common.cancel' | transloco }}
               </app-button>
@@ -386,10 +449,7 @@ export function toPositionFields(v: PositionFormValue): PositionFields {
         }
       }
 
-      <div class="mt-6 flex flex-col gap-3">
-        <app-why-it-matters scope="people" page="positionForm" />
-        <app-people-lesson-link lesson="roles-and-responsibilities" />
-      </div>
+      <div class="mt-8"><app-why-it-matters scope="people" page="positionForm" /></div>
     </div>
   `,
 })
@@ -408,6 +468,17 @@ export class PositionEditor {
   protected readonly state = signal<'loading' | 'error' | 'ready'>('ready');
   protected readonly errorKey = signal('people.common.loadFailed');
   protected readonly original = signal<PositionDetail | null>(null);
+  protected readonly settingsLink = PEOPLE_SETTINGS_LINK;
+  protected readonly breadcrumbs = computed(() => {
+    const p = this.original();
+    const id = this.id();
+    return [
+      PEOPLE_ROOT,
+      { labelKey: 'people.positions.title', link: '/people/positions' },
+      ...(id && p ? [{ label: p.title, link: ['/people/positions', id] }] : []),
+      { labelKey: id ? 'people.common.edit' : 'people.positionForm.newTitle' },
+    ];
+  });
   protected readonly seed = signal<PositionFormValue>(emptyPositionForm());
   protected readonly form = signal<PositionFormValue>(emptyPositionForm());
   protected readonly changeReason = signal('');

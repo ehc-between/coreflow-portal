@@ -15,6 +15,7 @@ import {
   ChangeDetail,
   ChangeListQuery,
   ChangeRequest,
+  ConfirmReviewRequest,
   CreateAccessReviewRequest,
   CreateAssetRequest,
   CreateChangeRequest,
@@ -23,6 +24,7 @@ import {
   ReviewItem,
   ReviewItemInput,
   ReviewItemUpdate,
+  SupplierRef,
   UpdateAccessReviewRequest,
   UpdateAssetRequest,
   UpdateChangeRequest,
@@ -67,6 +69,11 @@ export class AssetsApi {
         requires_calibration: query.requires_calibration,
         calibration_due_within_days: query.calibration_due_within_days,
         contains_personal_data: query.contains_personal_data,
+        custodian: query.custodian || undefined,
+        supplier_id: query.supplier_id || undefined,
+        review_overdue: query.review_overdue,
+        attention:
+          query.attention === 'any' ? 'any' : csv(query.attention as readonly string[] | undefined),
         sort: query.sort,
         limit: query.limit,
         offset: query.offset,
@@ -88,6 +95,26 @@ export class AssetsApi {
 
   delete(orgId: string, id: string): Observable<void> {
     return this.api.delete<void>(`${this.base(orgId)}/${id}`, skipToast());
+  }
+
+  /** "Confirm review": stamps who reviewed the register entry and moves the review date on. */
+  confirmReview(orgId: string, id: string, body: ConfirmReviewRequest): Observable<AssetDetail> {
+    return this.api.post<AssetDetail>(
+      `${this.base(orgId)}/${id}/confirm-review`,
+      body,
+      skipToast(),
+    );
+  }
+
+  /**
+   * Suppliers in the Suppliers register, as picker options (the first 200 by name).
+   * Fails quietly (empty list) when the suppliers module is off or not readable.
+   */
+  supplierOptions(orgId: string): Observable<Items<SupplierRef>> {
+    return this.api.get<Items<SupplierRef>>(`v1/orgs/${orgId}/suppliers`, {
+      params: { sort: 'name', limit: 200 },
+      ...skipToast(),
+    });
   }
 
   // --- calibration ---------------------------------------------------------------------
@@ -140,6 +167,7 @@ export class AssetsApi {
         reviewer: query.reviewer || undefined,
         system_asset_id: query.system_asset_id || undefined,
         due_within_days: query.due_within_days,
+        overdue: query.overdue,
         sort: query.sort,
         limit: query.limit,
         offset: query.offset,
@@ -215,6 +243,15 @@ export class AssetsApi {
     return this.api.post<Items<ReviewItem>>(
       `${this.base(orgId)}/access-reviews/${id}/items/import-members`,
       {},
+      skipToast(),
+    );
+  }
+
+  /** Import accounts from a pasted account list (CSV, semicolon or tab separated). */
+  importAccountsCsv(orgId: string, id: string, text: string): Observable<Items<ReviewItem>> {
+    return this.api.post<Items<ReviewItem>>(
+      `${this.base(orgId)}/access-reviews/${id}/items/import-csv`,
+      { text },
       skipToast(),
     );
   }

@@ -31,12 +31,12 @@ export interface PickedDeviation {
     @if (value(); as picked) {
       <div class="flex items-center gap-2 rounded-tile border border-border bg-bg px-3 py-2">
         <app-icon name="flag" [size]="14" />
-        <span class="min-w-0 flex-1 truncate text-[13px] text-fg">{{
+        <span class="min-w-0 flex-1 truncate text-ui text-fg">{{
           picked.label || ('suppliers.performance.linkedDeviation' | transloco)
         }}</span>
         <button
           type="button"
-          class="rounded-[8px] p-1 text-fg-subtle hover:text-fail"
+          class="rounded-tile p-1 text-fg-subtle hover:text-fail"
           [attr.aria-label]="'suppliers.performance.form.unlinkDeviation' | transloco"
           (click)="valueChange.emit(null)"
         >
@@ -47,7 +47,7 @@ export interface PickedDeviation {
       <input
         [id]="inputId()"
         type="search"
-        class="h-10 w-full rounded-tile border border-border bg-bg px-3 text-[13.5px]"
+        class="h-10 w-full rounded-tile border border-border bg-bg px-3 text-body"
         [placeholder]="'suppliers.performance.form.deviationPlaceholder' | transloco"
         (input)="search($any($event.target).value)"
       />
@@ -61,7 +61,7 @@ export interface PickedDeviation {
             <li role="option" aria-selected="false">
               <button
                 type="button"
-                class="w-full px-3 py-2 text-left text-[13px] text-fg hover:bg-surface-2"
+                class="w-full px-3 py-2 text-left text-ui text-fg hover:bg-surface-2"
                 (click)="pick(item)"
               >
                 @if (item.code) {

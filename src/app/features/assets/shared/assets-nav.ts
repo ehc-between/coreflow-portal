@@ -1,38 +1,31 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
-import { TranslocoPipe } from '@jsverse/transloco';
-import { TourStepDirective } from '../../../shared/guidance/tour-step.directive';
+import { ModuleNavItem } from '../../../shared/ui/module-nav/module-nav';
 
-/** Section links of the assets module: inventory, calibration, access reviews, changes. */
-@Component({
-  selector: 'app-assets-nav',
-  imports: [RouterLink, RouterLinkActive, TranslocoPipe, TourStepDirective],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <nav
-      class="mt-3 flex flex-wrap gap-1"
-      [attr.aria-label]="'assets.nav.label' | transloco"
-      appTourStep="assets-sections"
-    >
-      @for (link of links; track link.path) {
-        <a
-          [routerLink]="link.path"
-          routerLinkActive="bg-accent-soft text-accent"
-          [routerLinkActiveOptions]="{ exact: link.exact }"
-          ariaCurrentWhenActive="page"
-          class="rounded-tile px-3 py-1.5 text-[13px] font-semibold text-fg-muted hover:bg-surface-2 hover:text-fg"
-        >
-          {{ link.labelKey | transloco }}
-        </a>
-      }
-    </nav>
-  `,
-})
-export class AssetsNav {
-  protected readonly links = [
-    { path: '/assets', labelKey: 'assets.nav.inventory', exact: true },
-    { path: '/assets/calibration', labelKey: 'assets.nav.calibration', exact: true },
-    { path: '/assets/access-reviews', labelKey: 'assets.nav.accessReviews', exact: false },
-    { path: '/assets/changes', labelKey: 'assets.nav.changes', exact: false },
-  ] as const;
+/** Counts shown on the sub-page tabs (unset or 0 shows none). */
+export interface AssetsNavCounts {
+  readonly calibrationDue?: number | null;
+  readonly openReviews?: number | null;
+  readonly openChanges?: number | null;
+}
+
+/**
+ * The assets module's sub-pages for `app-module-nav`: the register, calibration of
+ * measuring equipment, access reviews and change requests.
+ */
+export function assetsNav(counts: AssetsNavCounts = {}): readonly ModuleNavItem[] {
+  const count = (n: number | null | undefined) => (n ? { count: n } : {});
+  return [
+    { labelKey: 'assets.nav.inventory', link: '/assets', exact: true },
+    {
+      labelKey: 'assets.nav.calibration',
+      link: '/assets/calibration',
+      exact: true,
+      ...count(counts.calibrationDue),
+    },
+    {
+      labelKey: 'assets.nav.accessReviews',
+      link: '/assets/access-reviews',
+      ...count(counts.openReviews),
+    },
+    { labelKey: 'assets.nav.changes', link: '/assets/changes', ...count(counts.openChanges) },
+  ];
 }

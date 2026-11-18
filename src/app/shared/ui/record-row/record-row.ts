@@ -88,7 +88,9 @@ export const RECORD_ROW_COLUMNS =
           <span class="lg:sr-only">{{ dateLabelKey() | transloco }} </span>
           {{ isDay() ? (date() | localDay) : (date() | localDate: 'mediumDate') }}
           @if (overdue()) {
-            <span> · {{ 'common.status.overdue' | transloco }}</span>
+            <span class="lg:block"
+              ><span class="lg:hidden"> · </span>{{ 'common.status.overdue' | transloco }}</span
+            >
           }
         }
       </span>

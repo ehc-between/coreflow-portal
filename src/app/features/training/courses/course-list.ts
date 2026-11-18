@@ -8,26 +8,30 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../../core/ai/page-context';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
-import { GuideIntro } from '../../../shared/guidance/guide-intro';
 import { TeachingEmpty } from '../../../shared/guidance/teaching-empty';
-import { TourButton } from '../../../shared/guidance/tour-button';
 import { TourStepDirective } from '../../../shared/guidance/tour-step.directive';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { RecordListPage } from '../../../shared/kit/record-list-page';
 import { SavedView } from '../../../shared/kit/saved-views.service';
-import { LocalDatePipe } from '../../../shared/locale/locale-pipes';
-import { Badge } from '../../../shared/ui/badge/badge';
+import { CoverageChip } from '../../../shared/requirement-links/coverage-chip';
 import { Button } from '../../../shared/ui/button/button';
+import { EmptyState } from '../../../shared/ui/empty-state/empty-state';
+import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { ModuleNav } from '../../../shared/ui/module-nav/module-nav';
 import { Pager } from '../../../shared/ui/pager/pager';
+import { RecordRow, RecordRowHeader } from '../../../shared/ui/record-row/record-row';
+import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { TrainingApi } from '../data/training-api';
-import { TRAINING_MODULE, TrainingAccess, courseStatusTone } from '../data/training-display';
+import { TRAINING_MODULE, TrainingAccess, courseBadge } from '../data/training-display';
 import {
   COURSE_CATEGORIES,
   COURSE_KINDS,
@@ -39,7 +43,6 @@ import {
   CourseStatus,
 } from '../data/training.models';
 import { FilterOption, FilterSelect } from '../shared/filter-select';
-import { TrainingNav } from '../training-nav';
 import { FulfilsRequirements } from '../../../shared/requirement-locations/fulfils-requirements';
 
 const PAGE_SIZE = 25;
@@ -50,50 +53,58 @@ const SORTS: readonly CourseSort[] = ['title', 'code', '-updated_at', '-created_
   selector: 'app-course-list',
   imports: [
     FulfilsRequirements,
-    RouterLink,
     TranslocoPipe,
-    LocalDatePipe,
-    Badge,
     Button,
+    CoverageChip,
+    EmptyState,
+    ErrorState,
+    HelpStrip,
     Icon,
+    LoadingState,
+    ModuleNav,
     Pager,
-    GuideIntro,
-    WhyItMatters,
-    TeachingEmpty,
-    TourButton,
-    TourStepDirective,
     RecordListPage,
+    RecordRow,
+    RecordRowHeader,
+    StatusBadge,
+    TeachingEmpty,
+    TourStepDirective,
+    WhyItMatters,
     FilterSelect,
-    TrainingNav,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <app-training-nav />
     <app-record-list-page
       titleKey="training.courses.title"
+      descriptionKey="training.courses.subtitle"
+      [breadcrumbs]="[
+        { labelKey: 'modules.names.training', link: '/training' },
+        { labelKey: 'training.courses.title' },
+      ]"
       scope="training"
       page="courses"
       searchPlaceholderKey="training.courses.search"
       [query]="q()"
       [filters]="filters()"
-      [empty]="loaded() && courses().length === 0 && !hasFilters()"
+      [moreFiltersActive]="sort() !== 'title' ? 1 : 0"
+      [empty]="loaded() && !failed() && courses().length === 0 && !hasFilters()"
       (search)="setQuery($event)"
       (viewApplied)="applyView($event)"
     >
       <app-fulfils-requirements help locationKey="training.courses" />
-      <div intro class="mt-3 grid gap-3 lg:grid-cols-[1fr_300px]">
-        <app-guide-intro scope="training" page="courses" />
-        <app-why-it-matters scope="training" page="courses" />
-      </div>
-      <app-tour-button toolbar scope="training" tour="courses" />
       @if (access.canWrite()) {
-        <a toolbar routerLink="/training/courses/new" [appTourStep]="'training-new-course'">
-          <app-button data-testid="course-new">
-            <app-icon name="plus" [size]="15" />
-            {{ 'training.courses.new' | transloco }}
-          </app-button>
-        </a>
+        <app-button
+          primary
+          (click)="router.navigate(['/training/courses/new'])"
+          data-testid="course-new"
+          [appTourStep]="'training-new-course'"
+        >
+          <app-icon name="plus" [size]="15" />
+          {{ 'training.courses.new' | transloco }}
+        </app-button>
       }
+      <app-module-nav nav [items]="access.navItems()" labelKey="training.nav.label" />
+      <app-help-strip help scope="training" page="courses" tour="courses" />
 
       <app-training-filter
         filters
@@ -117,88 +128,57 @@ const SORTS: readonly CourseSort[] = ['title', 'code', '-updated_at', '-created_
         [options]="kindOptions()"
         (valueChange)="setFilter('kind', $event)"
       />
-      <app-training-filter
-        filters
-        [label]="'training.filters.sort' | transloco"
-        [value]="sort()"
-        [options]="sortOptions()"
-        (valueChange)="setFilter('sort', $event)"
-      />
+      <div more-filters>
+        <app-training-filter
+          [label]="'training.filters.sort' | transloco"
+          [showLabel]="true"
+          [value]="sort()"
+          [options]="sortOptions()"
+          (valueChange)="setFilter('sort', $event)"
+        />
+      </div>
 
-      @if (failed()) {
-        <p class="text-[13.5px] text-fail" role="alert">
-          {{ 'training.errors.loadFailed' | transloco }}
-        </p>
-      } @else if (loaded() && courses().length === 0) {
-        <p class="py-8 text-center text-[13.5px] text-fg-muted" data-testid="courses-no-match">
-          {{ 'training.courses.noMatch' | transloco }}
-        </p>
+      @if (!loaded()) {
+        <app-loading-state [rows]="5" />
+      } @else if (failed()) {
+        <app-error-state (retry)="reload()" />
+      } @else if (courses().length === 0) {
+        <app-empty-state
+          icon="search"
+          titleKey="ui.empty.noResults"
+          ctaKey="training.filters.clear"
+          ctaVariant="secondary"
+          (cta)="clearFilters()"
+          data-testid="courses-no-match"
+        />
       } @else {
-        <div class="overflow-x-auto rounded-card border border-border bg-surface">
-          <table class="w-full min-w-[720px] text-left text-[13px]" data-testid="course-table">
-            <caption class="sr-only">
-              {{
-                'training.courses.title' | transloco
-              }}
-            </caption>
-            <thead class="border-b border-border text-[12px] text-fg-muted">
-              <tr>
-                <th scope="col" class="px-4 py-2.5 font-semibold">
-                  {{ 'training.fields.code' | transloco }}
-                </th>
-                <th scope="col" class="px-4 py-2.5 font-semibold">
-                  {{ 'training.fields.title' | transloco }}
-                </th>
-                <th scope="col" class="px-4 py-2.5 font-semibold">
-                  {{ 'training.fields.category' | transloco }}
-                </th>
-                <th scope="col" class="px-4 py-2.5 font-semibold">
-                  {{ 'training.fields.kind' | transloco }}
-                </th>
-                <th scope="col" class="px-4 py-2.5 font-semibold">
-                  {{ 'training.fields.status' | transloco }}
-                </th>
-                <th scope="col" class="px-4 py-2.5 text-right font-semibold">
-                  {{ 'training.fields.lessons' | transloco }}
-                </th>
-                <th scope="col" class="px-4 py-2.5 font-semibold">
-                  {{ 'training.fields.updated' | transloco }}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (course of courses(); track course.id) {
-                <tr class="border-b border-border last:border-0 hover:bg-surface-2">
-                  <td class="px-4 py-2.5 font-mono text-[12px] text-fg-muted">{{ course.code }}</td>
-                  <td class="px-4 py-2.5">
-                    <a
-                      [routerLink]="['/training/courses', course.id]"
-                      class="font-semibold text-fg hover:text-accent"
-                      >{{ course.title }}</a
-                    >
-                    @if (course.source === 'ai') {
-                      <span class="ml-1.5 text-[11.5px] text-fg-subtle">
-                        {{ 'training.courses.aiDraft' | transloco }}
-                      </span>
-                    }
-                  </td>
-                  <td class="px-4 py-2.5 text-fg-muted">
-                    {{ 'training.category.' + course.category | transloco }}
-                  </td>
-                  <td class="px-4 py-2.5 text-fg-muted">
-                    {{ 'training.kind.' + course.kind | transloco }}
-                  </td>
-                  <td class="px-4 py-2.5">
-                    <app-badge [tone]="statusTone(course.status)">
-                      {{ 'training.status.' + course.status | transloco }}
-                    </app-badge>
-                  </td>
-                  <td class="px-4 py-2.5 text-right text-fg-muted">{{ course.lesson_count }}</td>
-                  <td class="px-4 py-2.5 text-fg-muted">{{ course.updated_at | localDate }}</td>
-                </tr>
-              }
-            </tbody>
-          </table>
+        <div
+          role="list"
+          class="overflow-hidden rounded-card border border-border bg-surface"
+          data-testid="course-table"
+          [attr.aria-label]="'training.courses.title' | transloco"
+        >
+          <app-record-row-header dateKind="updated" />
+          @for (course of courses(); track course.id) {
+            @let badge = statusBadge(course.status);
+            <app-record-row
+              [code]="course.code"
+              [title]="course.title"
+              [subtitle]="subtitle(course)"
+              [link]="['/training/courses', course.id]"
+              [owner]="course.owner?.name"
+              [date]="course.updated_at"
+              dateKind="updated"
+            >
+              <app-coverage-chip coverage entityType="course" [entityId]="course.id" />
+              <app-status-badge
+                badges
+                [meaning]="badge.meaning"
+                [value]="badge.value"
+                [labelKey]="badge.labelKey"
+              />
+            </app-record-row>
+          }
         </div>
         <app-pager
           [offset]="offset()"
@@ -216,6 +196,7 @@ const SORTS: readonly CourseSort[] = ['title', 'code', '-updated_at', '-created_
         [showAction]="access.canWrite()"
         (action)="router.navigate(['/training/courses/new'])"
       />
+      <app-why-it-matters below scope="training" page="courses" />
     </app-record-list-page>
   `,
 })
@@ -233,11 +214,13 @@ export class CourseList {
   protected readonly kind = signal<CourseKind | ''>('');
   protected readonly sort = signal<CourseSort>('title');
   protected readonly offset = signal(0);
+  private readonly tick = signal(0);
 
   protected readonly courses = signal<readonly Course[]>([]);
   protected readonly total = signal<number | null>(null);
   protected readonly loaded = signal(false);
   protected readonly failed = signal(false);
+  protected readonly statusBadge = courseBadge;
 
   protected readonly filters = computed(() => ({
     status: this.status(),
@@ -277,10 +260,16 @@ export class CourseList {
   private sub: Subscription | null = null;
 
   constructor() {
-    providePageContext(() => ({ module: TRAINING_MODULE, entityType: 'course', view: 'list' }));
+    providePageContext(() => ({
+      module: TRAINING_MODULE,
+      entityType: 'course',
+      view: 'list',
+      title: this.language.translate('training.courses.title'),
+    }));
     inject(DestroyRef).onDestroy(() => this.sub?.unsubscribe());
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();
+      this.tick();
       const query = {
         q: this.q(),
         status: this.status() ? [this.status() as CourseStatus] : [],
@@ -311,12 +300,38 @@ export class CourseList {
     });
   }
 
-  protected statusTone(status: string) {
-    return courseStatusTone(status);
+  protected reload(): void {
+    this.tick.update((n) => n + 1);
+  }
+
+  /** "Informasjonssikkerhet · Nettkurs · 4 leksjoner" (AI drafts say so). */
+  protected subtitle(course: Course): string {
+    const t = (key: string, params?: Record<string, unknown>) =>
+      this.language.translate(key, params);
+    const parts = [t(`training.category.${course.category}`), t(`training.kind.${course.kind}`)];
+    if (course.kind !== 'external') {
+      parts.push(
+        t(course.lesson_count === 1 ? 'training.courses.lessonsOne' : 'training.courses.lessons', {
+          count: course.lesson_count,
+        }),
+      );
+    }
+    if (course.source === 'ai') {
+      parts.push(t('training.courses.aiDraft'));
+    }
+    return parts.join(' · ');
   }
 
   protected setQuery(text: string): void {
     this.q.set(text);
+    this.offset.set(0);
+  }
+
+  protected clearFilters(): void {
+    this.q.set('');
+    this.status.set('');
+    this.category.set('');
+    this.kind.set('');
     this.offset.set(0);
   }
 

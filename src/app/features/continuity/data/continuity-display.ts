@@ -1,5 +1,5 @@
 import { todayDay } from '../../../shared/tasks/task-display';
-import { BadgeTone } from '../../../shared/ui/badge/badge';
+import { ToneMeaning } from '../../../shared/ui/tones';
 import {
   ControlledStatus,
   Criticality,
@@ -9,99 +9,80 @@ import {
   ReviewState,
 } from './continuity.models';
 
-/** Badge tone of a BIA / plan status. */
-export function controlledStatusTone(status: ControlledStatus | string): BadgeTone {
-  switch (status) {
-    case 'approved':
-      return 'pass';
-    case 'in_review':
-      return 'warn';
-    case 'draft':
-      return 'info';
-    default:
-      return 'neutral';
-  }
+/**
+ * Badge meaning and value of each continuity state, for `app-status-badge` (the
+ * shared tone map, docs/ux-guide.md §5). The label stays the module's own
+ * (`labelKey`); the colour comes from the meaning:
+ *
+ * - BIA / plan status and exercise status are lifecycles;
+ * - criticality and impact ratings are severities (low is neutral, not green);
+ * - exercise outcomes and ICT readiness say whether a requirement is met.
+ */
+export interface BadgeSpec {
+  readonly meaning: ToneMeaning;
+  readonly value: string;
 }
 
-export function criticalityTone(criticality: Criticality | string | null): BadgeTone {
-  switch (criticality) {
-    case 'critical':
-      return 'fail';
-    case 'high':
-      return 'warn';
-    case 'medium':
-      return 'info';
-    default:
-      return 'neutral';
-  }
-}
+const REVIEW_VALUE: Readonly<Record<ReviewState, string>> = {
+  overdue: 'overdue',
+  due_soon: 'due',
+  ok: 'effective',
+  not_scheduled: 'draft',
+};
 
-export function reviewStateTone(state: ReviewState): BadgeTone {
-  switch (state) {
-    case 'overdue':
-      return 'fail';
-    case 'due_soon':
-      return 'warn';
-    case 'ok':
-      return 'pass';
-    default:
-      return 'neutral';
-  }
-}
+const OUTCOME_VALUE: Readonly<Record<Outcome, string>> = {
+  successful: 'met',
+  partially_successful: 'partial',
+  unsuccessful: 'not_met',
+};
 
-export function exerciseStatusTone(status: ExerciseStatus | string): BadgeTone {
-  switch (status) {
-    case 'planned':
-      return 'info';
-    case 'completed':
-      return 'pass';
-    default:
-      return 'neutral';
-  }
-}
+const READINESS_VALUE: Readonly<Record<ReadinessState, string>> = {
+  ready: 'met',
+  attention: 'partial',
+  gap: 'not_met',
+  retired: 'not_applicable',
+};
 
-export function outcomeTone(outcome: Outcome | string | null): BadgeTone {
-  switch (outcome) {
-    case 'successful':
-      return 'pass';
-    case 'partially_successful':
-      return 'warn';
-    case 'unsuccessful':
-      return 'fail';
-    default:
-      return 'neutral';
-  }
-}
-
-export function readinessTone(state: ReadinessState): BadgeTone {
-  switch (state) {
-    case 'ready':
-      return 'pass';
-    case 'attention':
-      return 'warn';
-    case 'gap':
-      return 'fail';
-    default:
-      return 'neutral';
-  }
-}
-
-/** Badge tone of an impact rating 0-5. */
-export function impactTone(rating: number | null | undefined): BadgeTone {
-  if (rating === null || rating === undefined) {
-    return 'neutral';
-  }
-  if (rating >= 4) {
-    return 'fail';
-  }
-  if (rating >= 3) {
-    return 'warn';
-  }
-  if (rating >= 1) {
-    return 'info';
-  }
-  return 'neutral';
-}
+export const badge = {
+  controlled: (status: ControlledStatus | string): BadgeSpec => ({
+    meaning: 'lifecycle',
+    value: status,
+  }),
+  criticality: (criticality: Criticality | string | null): BadgeSpec => ({
+    meaning: 'severity',
+    value: criticality ?? '',
+  }),
+  review: (state: ReviewState): BadgeSpec => ({
+    meaning: 'lifecycle',
+    value: REVIEW_VALUE[state] ?? '',
+  }),
+  exercise: (status: ExerciseStatus | string): BadgeSpec => ({
+    meaning: 'lifecycle',
+    value: status,
+  }),
+  outcome: (outcome: Outcome | string | null): BadgeSpec => ({
+    meaning: 'compliance',
+    value: OUTCOME_VALUE[outcome as Outcome] ?? '',
+  }),
+  readiness: (state: ReadinessState | string | null): BadgeSpec => ({
+    meaning: 'compliance',
+    value: READINESS_VALUE[state as ReadinessState] ?? '',
+  }),
+  /** An impact rating 0-5: 4-5 high, 3 medium, 1-2 low, 0 none. */
+  impact: (rating: number | null | undefined): BadgeSpec => ({
+    meaning: 'severity',
+    value:
+      rating === null || rating === undefined
+        ? ''
+        : rating >= 4
+          ? 'high'
+          : rating >= 3
+            ? 'medium'
+            : rating >= 1
+              ? 'low'
+              : 'none',
+  }),
+} as const;
 
 export type DurationUnit = 'minutes' | 'hours' | 'days';
 export const DURATION_UNITS: readonly DurationUnit[] = ['minutes', 'hours', 'days'];
@@ -139,8 +120,8 @@ export function toMinutes(value: string | number | null, unit: DurationUnit): nu
 }
 
 /**
- * The i18n key and params of a duration (`continuity.duration.<unit>` with
- * `{count}`), or the "not set" key for null.
+ * The i18n key and params of a duration in its largest whole unit
+ * (`continuity.duration.<unit>` with `{count}`), or the "not set" key for null.
  */
 export function durationLabel(minutes: number | null | undefined): {
   key: string;
@@ -151,6 +132,49 @@ export function durationLabel(minutes: number | null | undefined): {
   }
   const { value, unit } = splitDuration(minutes);
   return { key: `continuity.duration.${unit}`, params: { count: value } };
+}
+
+export interface DurationPart {
+  readonly key: string;
+  readonly params: Record<string, unknown>;
+}
+
+/**
+ * A duration as readable parts, the same way everywhere: 410 → "6 t" + "50 min",
+ * 1500 → "1 d" + "1 t", 240 → "4 t". Null → the "not set" key.
+ */
+export function durationParts(minutes: number | null | undefined): readonly DurationPart[] {
+  if (minutes === null || minutes === undefined || !Number.isFinite(minutes)) {
+    return [{ key: 'continuity.duration.notSet', params: {} }];
+  }
+  const total = Math.max(0, Math.round(minutes));
+  if (total === 0) {
+    return [{ key: 'continuity.duration.minutes', params: { count: 0 } }];
+  }
+  const days = Math.floor(total / PER_UNIT.days);
+  const hours = Math.floor((total % PER_UNIT.days) / PER_UNIT.hours);
+  const mins = total % PER_UNIT.hours;
+  const parts: DurationPart[] = [];
+  if (days) {
+    parts.push({ key: 'continuity.duration.days', params: { count: days } });
+  }
+  if (hours) {
+    parts.push({ key: 'continuity.duration.hours', params: { count: hours } });
+  }
+  if (mins) {
+    parts.push({ key: 'continuity.duration.minutes', params: { count: mins } });
+  }
+  return parts;
+}
+
+/** A duration as text through a translate function ("6 t 50 min"). */
+export function formatDuration(
+  minutes: number | null | undefined,
+  t: (key: string, params?: Record<string, unknown>) => string,
+): string {
+  return durationParts(minutes)
+    .map((p) => t(p.key, p.params))
+    .join(' ');
 }
 
 /** Blank / whitespace-only strings become null; others are trimmed. */
@@ -196,7 +220,6 @@ export function actionVariant(action: string): 'primary' | 'secondary' | 'ghost'
     case 'submit':
       return 'primary';
     case 'reject':
-    case 'retire':
       return 'danger';
     default:
       return 'secondary';

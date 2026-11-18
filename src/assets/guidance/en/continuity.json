@@ -67,15 +67,18 @@
         },
         "mtpd_minutes": {
           "help": "The maximum tolerable period of disruption: how long the activity can be down before the damage becomes unacceptable.",
-          "example": "3 days for payroll if salaries are paid on the 25th."
+          "example": "3 days for payroll if salaries are paid on the 25th.",
+          "requirements": ["iso27001:A.5.30"]
         },
         "rto_minutes": {
           "help": "The recovery time objective: how quickly you aim to have the activity running again. It must be shorter than the MTPD to leave a safety margin.",
-          "example": "MTPD 3 days, RTO 1 day."
+          "example": "MTPD 3 days, RTO 1 day.",
+          "requirements": ["iso27001:A.5.30", "nis2:21.2.c"]
         },
         "rpo_minutes": {
           "help": "The recovery point objective: how much data you can afford to lose, measured as time back from the disruption. It decides how often you back up or replicate.",
-          "example": "RPO 4 hours means a backup at least every 4 hours."
+          "example": "RPO 4 hours means a backup at least every 4 hours.",
+          "requirements": ["iso27001:A.5.30", "iso27001:A.8.13"]
         },
         "mbco": {
           "help": "The minimum business continuity objective: the reduced level of service that is acceptable while you recover.",
@@ -83,7 +86,13 @@
         },
         "dependencies": {
           "help": "What the activity needs to run. An ICT dependency can point at an ICT service, so ICT readiness can compare what the service can do with what this activity requires.",
-          "example": "People: two trained payroll staff. ICT: the payroll system. Supplier: the bank."
+          "example": "People: two trained payroll staff. ICT: the payroll system. Supplier: the bank.",
+          "requirements": ["iso27001:A.5.30"]
+        },
+        "impact_timeline": {
+          "help": "How bad the impact gets after 4 hours, 1 day, 3 days, 1 week and 2 weeks. The first period rated 4 (serious) or worse suggests the MTPD.",
+          "example": "4 h: 1, 1 day: 3, 3 days: 4 → MTPD about 3 days.",
+          "requirements": ["iso27001:A.5.30"]
         }
       }
     },
@@ -152,23 +161,27 @@
         },
         "activation_criteria": {
           "help": "When and by whom the plan is activated. Make the criteria concrete so nobody hesitates.",
-          "example": "The ERP system is down for more than 2 hours, or the site cannot be used."
+          "example": "The ERP system is down for more than 2 hours, or the site cannot be used.",
+          "requirements": ["iso27001:A.5.29"]
         },
         "roles_responsibilities": {
           "help": "The crisis roles (for example crisis lead, deputy, communications) and what each is responsible for."
         },
         "recovery_strategy": {
-          "help": "How the activities are recovered: alternative sites, manual workarounds, backup systems or suppliers."
+          "help": "How the activities are recovered: alternative sites, manual workarounds, backup systems or suppliers.",
+          "requirements": ["iso27001:A.5.29", "iso27001:A.5.30"]
         },
         "communication_plan": {
-          "help": "Who informs whom, how and when: staff, customers, authorities, suppliers and the media."
+          "help": "Who informs whom, how and when: staff, customers, authorities, suppliers and the media.",
+          "requirements": ["iso27001:A.5.29"]
         },
         "resources": {
           "help": "What is needed to carry out the plan: people, equipment, access, documents and budget."
         },
         "steps": {
           "help": "The actions in order, grouped by phase. Give each step an owner role and a target time.",
-          "example": "Activation: crisis lead decides to activate (15 min). Recovery: restore the ERP from backup (4 h)."
+          "example": "Activation: crisis lead decides to activate (15 min). Recovery: restore the ERP from backup (4 h).",
+          "requirements": ["iso27001:A.5.29", "nis2:21.2.c"]
         }
       }
     },
@@ -230,14 +243,24 @@
       "fields": {
         "exercise_type": {
           "help": "How realistic the exercise is. Start simple (walk-through, tabletop) and build up to simulations and full-scale exercises.",
-          "example": "Tabletop: talk through a ransomware attack. ICT recovery test: restore the ERP to a test server."
+          "example": "Tabletop: talk through a ransomware attack. ICT recovery test: restore the ERP to a test server.",
+          "requirements": ["iso27001:A.5.30", "iso45001:8.2"]
         },
         "ict_system_id": {
           "help": "For a recovery test, the ICT service being tested. Completing the test updates the service's test status and readiness."
         },
         "scenario": {
           "help": "The situation the participants respond to, and the injects (new information) given along the way.",
-          "example": "Monday 08:00: the office is flooded. 08:30: the phone system is down."
+          "example": "Monday 08:00: the office is flooded. 08:30: the phone system is down.",
+          "requirements": ["iso27001:A.5.30"]
+        },
+        "target_recovery_minutes": {
+          "help": "The recovery time this exercise must achieve. Left empty, the plan's RTO (or the ICT requirement) is used."
+        },
+        "success_criteria": {
+          "help": "What must happen for the exercise to count as successful, agreed before it starts.",
+          "example": "The ERP runs again within 4 hours; the crisis team is assembled within 30 minutes.",
+          "requirements": ["iso27001:A.5.30"]
         }
       }
     },
@@ -304,17 +327,28 @@
       "fields": {
         "achievable_rto_minutes": {
           "help": "How quickly the service can realistically be recovered after a failure, with today's setup.",
-          "example": "4 hours to restore from backup to a standby server."
+          "example": "4 hours to restore from backup to a standby server.",
+          "requirements": ["iso27001:A.5.30"]
         },
         "achievable_rpo_minutes": {
           "help": "How much data could be lost, given how often it is backed up or replicated.",
           "example": "Nightly backups mean up to 24 hours of data could be lost."
         },
         "backup_strategy": {
-          "help": "How data is backed up: how often, where it is kept, how it is protected and how restores are tested."
+          "help": "How data is backed up: how often, where it is kept, how it is protected and how restores are tested.",
+          "requirements": ["iso27001:A.8.13"]
         },
         "test_interval_months": {
-          "help": "How often recovery must be tested. When the last test is older than this, the service needs attention."
+          "help": "How often recovery must be tested. When the last test is older than this, the service needs attention.",
+          "requirements": ["iso27001:A.5.30"]
+        },
+        "supplier_id": {
+          "help": "The supplier that runs or provides the service. Its crisis contacts and the contract then show on the service.",
+          "requirements": ["iso27001:A.5.30"]
+        },
+        "sla_rto_minutes": {
+          "help": "The recovery time the contract promises. If it is longer than the business needs, the service is flagged for follow-up.",
+          "example": "The hosting contract promises recovery within 8 hours."
         }
       }
     },
@@ -350,10 +384,12 @@
       "fields": {
         "crisis_role": {
           "help": "The person's role in a crisis, which may differ from their job title.",
-          "example": "Crisis lead, deputy crisis lead, communications, IT recovery."
+          "example": "Crisis lead, deputy crisis lead, communications, IT recovery.",
+          "requirements": ["iso27001:A.5.29"]
         },
         "verified_on": {
-          "help": "When you last confirmed the details are correct, for example by calling the number."
+          "help": "When you last confirmed the details are correct, for example by calling the number.",
+          "requirements": ["iso27001:A.5.29"]
         }
       }
     }
@@ -641,9 +677,19 @@
     ],
     "contacts": [
       {
+        "target": "continuity-contacts-search",
+        "title": "Who do I call?",
+        "body": "Search every list at once: by name, role, organisation or the system that is down."
+      },
+      {
+        "target": "continuity-contacts-pdf",
+        "title": "Keep a copy offline",
+        "body": "Print or download all lists as a PDF. In a real outage CoreFlow itself may be out of reach."
+      },
+      {
         "target": "continuity-sections",
-        "title": "Crisis contacts",
-        "body": "This is the organisation-wide list. Each plan also has its own contacts on the plan page."
+        "title": "Shared and plan lists",
+        "body": "The shared list applies to the whole organisation. Each plan can add its own contacts on the plan page."
       }
     ]
   },

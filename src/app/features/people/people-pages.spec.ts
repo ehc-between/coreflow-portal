@@ -24,6 +24,42 @@ function toasts() {
 
 const people = (path: string) => kitUrl(`people/${path}`);
 
+/** The person's controls as the backend reports them (confidentiality missing). */
+const COMPLIANCE = {
+  employee_id: 'e-1',
+  open: 1,
+  items: [
+    { key: 'confidentiality', clause_refs: ['iso27001:A.6.6'], status: 'missing' },
+    { key: 'security_terms', clause_refs: ['iso27001:A.6.2'], status: 'ok', done_on: '2026-01-05' },
+    { key: 'competence', clause_refs: ['hs:7.2'], status: 'missing', gaps: 1 },
+  ],
+};
+
+/** Answer the sections of the person page that load on their own (lenient). */
+function flushPersonSections(http: HttpTestingController) {
+  for (const req of http.match((r) => r.url === people('employees/e-1/compliance'))) {
+    req.flush(COMPLIANCE);
+  }
+  for (const req of http.match((r) => r.url === people('employees/e-1/training'))) {
+    req.flush({ linked: true, visible: true, assignments: [], records: [] });
+  }
+  for (const req of http.match((r) => r.url === people('employees/e-1/competences'))) {
+    req.flush(makeHeld());
+  }
+  for (const req of http.match((r) => r.url === people('employees/e-1/awareness'))) {
+    req.flush({ items: [], total: 0 });
+  }
+  for (const req of http.match((r) => r.url === people('checklists'))) {
+    req.flush({ items: [], total: 0 });
+  }
+  for (const req of http.match((r) => r.url === people('user-matches'))) {
+    req.flush({ suggestions: [], members_without_employee: [] });
+  }
+  for (const req of http.match((r) => r.url === people('employees/e-1/handover'))) {
+    req.flush({ linked: true, user_active: true, access_revoked_at: null, assets: [], access: [] });
+  }
+}
+
 /** Answer the shared option lists (positions, competences) the pages load. */
 function flushLookups(http: HttpTestingController) {
   for (const req of http.match((r) => r.url === people('positions'))) {
@@ -72,7 +108,7 @@ describe('EmployeesList', () => {
     const rows = el.querySelector('[data-testid="employee-rows"]');
     expect(rows?.textContent).toContain('EMP-0001');
     expect(rows?.textContent).toContain('Ada Lovelace');
-    expect(el.querySelector('[data-testid="people-summary"]')?.textContent).toContain('4');
+    expect(el.querySelector('[data-testid="tile-current"]')?.textContent).toContain('4');
     expect(el.querySelector('[data-testid="new-employee"]')).toBeTruthy();
   });
 
@@ -135,9 +171,9 @@ describe('EmployeeDetail', () => {
     ctx.http.expectOne(people('employees/e-1')).flush(employee);
     await render(ctx.fixture);
     flushLookups(ctx.http);
-    ctx.http.expectOne(people('employees/e-1/competences')).flush(makeHeld());
-    ctx.http.expectOne((r) => r.url === people('checklists')).flush({ items: [], total: 0 });
-    ctx.http.expectOne(people('employees/e-1/awareness')).flush({ items: [], total: 0 });
+    flushPersonSections(ctx.http);
+    await render(ctx.fixture);
+    flushPersonSections(ctx.http);
     await render(ctx.fixture);
     return ctx;
   }
@@ -147,12 +183,20 @@ describe('EmployeeDetail', () => {
     expect(el.querySelector('[data-testid="employee-heading"]')?.textContent).toContain(
       'Ada Lovelace',
     );
-    expect(el.querySelector('[data-testid="confidentiality"]')?.textContent).toContain(
-      'people.detail.notSigned',
+    // Missing controls are amber (warn), never red.
+    expect(
+      el
+        .querySelector('[data-testid="compliance-confidentiality"] [data-tone]')
+        ?.getAttribute('data-tone'),
+    ).toBe('warn');
+    expect(el.querySelector('[data-testid="compliance-items"]')?.textContent).toContain(
+      'people.compliance.keys.confidentiality',
     );
-    expect(el.querySelector('[data-testid="held-rows"]')?.textContent).toContain(
-      'people.cellStatus.gap',
+    expect(el.querySelector('[data-testid="compliance-items"]')?.textContent).toContain(
+      'ISO 27001 · A.6.6',
     );
+    // The gap is shown with "Lukk gapet" (no action planned yet).
+    expect(el.querySelector('[data-testid="close-gap-c-1"]')).toBeTruthy();
     expect(el.querySelector('[data-testid="employee-edit"]')).toBeTruthy();
     // No disciplinary permission: the restricted section is not rendered or requested.
     expect(el.querySelector('#disciplinary')).toBeNull();
@@ -172,7 +216,9 @@ describe('EmployeeDetail', () => {
 
   it('records an assessment and refreshes the list', async () => {
     const { el, http, fixture, notify } = await loaded(['people:read', 'people:write']);
-    el.querySelector<HTMLElement>('[data-testid="assess-c-1"] button')!.click();
+    el.querySelector<HTMLElement>('[data-testid="row-menu-c-1"] [role="menuitem"]')!.click();
+    await render(fixture);
+    flushPersonSections(http);
     await render(fixture);
     const level = document.querySelector<HTMLSelectElement>('[data-testid="assess-level"]')!;
     level.value = '3';
@@ -231,7 +277,7 @@ describe('EmployeeDetail', () => {
       'people:write',
       'people:manage',
     ]);
-    el.querySelector<HTMLElement>('[data-testid="employee-revoke-access"] button')!.click();
+    el.querySelector<HTMLElement>('[data-testid="employee-revoke-access"]')!.click();
     await render(fixture);
     const dialog = document.querySelector('[role="alertdialog"]')!;
     const buttons = Array.from(dialog.querySelectorAll('button'));
@@ -246,11 +292,9 @@ describe('EmployeeDetail', () => {
     expect(notify.success).toHaveBeenCalledWith('people.notices.accessRevoked', {
       name: 'Ada Lovelace',
     });
-    expect(el.querySelector('[data-testid="employee-status"]')?.textContent).toContain(
-      'people.status.former',
-    );
+    expect(el.querySelector('[data-testid="employee-status"]')?.textContent).toContain('Archived');
     expect(el.querySelector('[data-testid="employee-revoke-access"]')).toBeNull();
-    http.expectOne((r) => r.url === people('checklists')).flush({ items: [], total: 0 });
+    flushPersonSections(http);
   });
 
   it('shows the coded error when access may not be revoked', async () => {
@@ -259,7 +303,7 @@ describe('EmployeeDetail', () => {
       'people:write',
       'people:manage',
     ]);
-    el.querySelector<HTMLElement>('[data-testid="employee-revoke-access"] button')!.click();
+    el.querySelector<HTMLElement>('[data-testid="employee-revoke-access"]')!.click();
     await render(fixture);
     const dialog = document.querySelector('[role="alertdialog"]')!;
     const buttons = Array.from(dialog.querySelectorAll('button'));
@@ -275,7 +319,7 @@ describe('EmployeeDetail', () => {
 
   it('asks for the last working day when starting an offboarding', async () => {
     const { el, http, fixture } = await loaded(['people:read', 'people:write']);
-    el.querySelector<HTMLElement>('[data-testid="start-offboarding"] button')!.click();
+    el.querySelector<HTMLElement>('[data-testid="start-offboarding"]')!.click();
     await render(fixture);
     const dialog = document.querySelector('[role="alertdialog"]')!;
     const confirm = () => {
@@ -299,7 +343,7 @@ describe('EmployeeDetail', () => {
       ['people:read', 'people:write'],
       makeEmployee({ end_date: '2026-04-30' }),
     );
-    el.querySelector<HTMLElement>('[data-testid="start-offboarding"] button')!.click();
+    el.querySelector<HTMLElement>('[data-testid="start-offboarding"]')!.click();
     await render(fixture);
     const end = document.querySelector<HTMLInputElement>('[data-testid="start-end-date"]')!;
     expect(end.value).toBe('2026-04-30');

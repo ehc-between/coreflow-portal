@@ -15,12 +15,12 @@ import { RegisterColumn } from '../data/reports.models';
   host: { class: 'block' },
   template: `
     <fieldset>
-      <legend class="mb-1 text-[12.5px] font-semibold text-fg-muted">
+      <legend class="mb-1 text-ui font-semibold text-fg-muted">
         {{ 'reports.columns.legend' | transloco }}
       </legend>
       <div class="flex flex-wrap gap-x-4 gap-y-1">
         @for (column of columns(); track column.key) {
-          <label class="inline-flex items-center gap-1.5 text-[13px] text-fg">
+          <label class="inline-flex min-h-8 items-center gap-1.5 text-ui text-fg">
             <input
               type="checkbox"
               class="h-4 w-4 accent-[var(--accent)]"
@@ -31,7 +31,7 @@ import { RegisterColumn } from '../data/reports.models';
           </label>
         }
       </div>
-      <p class="mt-1 text-[11.5px] text-fg-subtle">{{ 'reports.columns.hint' | transloco }}</p>
+      <p class="mt-1 text-meta text-fg-subtle">{{ 'reports.columns.hint' | transloco }}</p>
     </fieldset>
   `,
 })

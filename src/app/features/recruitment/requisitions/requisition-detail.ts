@@ -11,30 +11,38 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Observable, map } from 'rxjs';
 import { providePageContext } from '../../../core/ai/page-context';
+import { LanguageService } from '../../../core/i18n/language.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { WatchButton } from '../../../shared/activity/watch-button';
 import { AiAssistButton } from '../../../shared/ask/ai-assist-button';
-import { GuideIntro } from '../../../shared/guidance/guide-intro';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
+import { EntityChip } from '../../../shared/kit/entity-chip';
 import { RecordDetailLayout, RecordTab } from '../../../shared/kit/record-detail-layout';
-import { LocalDatePipe, LocalDayPipe } from '../../../shared/locale/locale-pipes';
-import { SupportsRequirements } from '../../../shared/requirement-links/supports-requirements';
+import { LocalDatePipe, LocalDayPipe, formatLocalDate } from '../../../shared/locale/locale-pipes';
 import { EntityTasks } from '../../../shared/tasks/entity-tasks';
 import { Alert } from '../../../shared/ui/alert/alert';
-import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
+import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { FieldItem, FieldList } from '../../../shared/ui/field-list/field-list';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { ModuleNav } from '../../../shared/ui/module-nav/module-nav';
+import { MenuItem } from '../../../shared/ui/overflow-menu/overflow-menu';
+import { Breadcrumb } from '../../../shared/ui/page-header/page-header';
 import { PromptDialog } from '../../../shared/ui/prompt-dialog/prompt-dialog';
+import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { RecruitmentApi } from '../data/recruitment-api';
 import {
   RequisitionAction,
+  groupRequisitionActions,
   isRequisitionClosed,
   requisitionActions,
-  requisitionStatusTone,
-  riskTone,
+  requisitionToneValue,
+  visibleStageTiles,
 } from '../data/recruitment-display';
 import { recruitmentError } from '../data/recruitment-errors';
 import { RecruitmentPeople } from '../data/recruitment-people';
@@ -46,7 +54,12 @@ import {
   SuggestedQuestion,
 } from '../data/recruitment.models';
 import { RecruitmentAiOutput } from '../shared/ai-output';
-import { RecruitmentLessonButton } from '../shared/recruitment-lesson-button';
+import { injectConfirmedRefs } from '../shared/confirmed-refs';
+import {
+  RECRUITMENT_CRUMB,
+  injectRecruitmentNav,
+  settingsLinkFor,
+} from '../shared/recruitment-nav';
 import { injectRecruitmentPerms } from '../shared/recruitment-perms';
 import { TeamEditor } from '../shared/team-editor';
 
@@ -73,6 +86,7 @@ const FIELD_LABELS: Readonly<Record<string, string>> = {
   target_start_date: 'recruitment.fields.targetStartDate',
   hiring_manager_user_id: 'recruitment.fields.hiringManager',
   recruiter_user_id: 'recruitment.fields.recruiter',
+  position_id: 'recruitment.fields.position',
   screening_criteria: 'recruitment.fields.screeningCriteria',
   posting_title: 'recruitment.fields.postingTitle',
   posting_text: 'recruitment.fields.postingText',
@@ -89,7 +103,12 @@ const NOTE_ACTIONS: Partial<Record<RequisitionAction, { readonly required: boole
   cancel: { required: false },
 };
 
-/** A job requisition: facts, criteria, posting, workflow actions, hiring team and history. */
+/**
+ * A job requisition: one next step in the header (send, approve, open), the
+ * candidate flow per stage (each tile opens the matching applications), the role,
+ * criteria and required checks, the job ad, the hiring team, and the shared record
+ * kit (requirements this documents, connections, tasks, activity, revisions).
+ */
 @Component({
   selector: 'app-requisition-detail',
   imports: [
@@ -97,32 +116,37 @@ const NOTE_ACTIONS: Partial<Record<RequisitionAction, { readonly required: boole
     TranslocoPipe,
     WatchButton,
     AiAssistButton,
-    GuideIntro,
     WhyItMatters,
+    EntityChip,
     RecordDetailLayout,
     LocalDatePipe,
     LocalDayPipe,
-    SupportsRequirements,
     EntityTasks,
     Alert,
-    Badge,
     Button,
     Card,
     ConfirmDialog,
+    ErrorState,
+    FieldItem,
+    FieldList,
+    HelpStrip,
     Icon,
+    LoadingState,
+    ModuleNav,
+    MenuItem,
     PromptDialog,
+    StatusBadge,
     RecruitmentAiOutput,
-    RecruitmentLessonButton,
     TeamEditor,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    @if (error(); as key) {
-      <div class="mx-auto max-w-[1180px] px-4 pt-6 sm:px-8">
-        <app-alert>{{ key | transloco }}</app-alert>
+    @if (errorKey(); as key) {
+      <div class="mx-auto max-w-[760px] px-4 pt-8 sm:px-8">
+        <app-error-state [bodyKey]="key" (retry)="reload()" />
         <a
           routerLink="/recruitment/requisitions"
-          class="mt-3 inline-block text-[13px] font-semibold text-accent"
+          class="mt-4 inline-block text-ui font-semibold text-accent"
           >{{ 'recruitment.common.backToList' | transloco }}</a
         >
       </div>
@@ -130,64 +154,104 @@ const NOTE_ACTIONS: Partial<Record<RequisitionAction, { readonly required: boole
       <app-record-detail-layout
         [entityType]="entityType"
         [entityId]="r.id"
+        [title]="r.title"
+        [breadcrumbs]="breadcrumbs()"
+        [settingsLink]="settingsLink()"
         [tabs]="tabs"
         [canEdit]="r.can_edit"
+        [requirementsPanel]="true"
         [fieldLabels]="fieldLabels"
-        backLink="/recruitment/requisitions"
-        backLabelKey="recruitment.common.backToList"
       >
-        <div header>
-          <p class="mb-1 flex flex-wrap items-center gap-2">
-            <span class="font-mono text-[12.5px] text-fg-subtle">{{ r.code }}</span>
-            <app-badge [tone]="statusTone(r.status)">{{
-              'recruitment.requisitionStatus.' + r.status | transloco
-            }}</app-badge>
-            <app-badge [tone]="riskTone(r.role_risk)">{{
-              'recruitment.roleRisk.' + r.role_risk | transloco
-            }}</app-badge>
-          </p>
-          <h1 class="font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]">
-            {{ r.title }}
-          </h1>
-        </div>
-        <div actions class="flex flex-wrap items-center gap-2">
-          <app-watch-button [entityType]="entityType" [entityId]="r.id" />
-          <a [routerLink]="['/recruitment/requisitions', r.id, 'pipeline']">
-            <app-button variant="secondary" size="sm">
-              <app-icon name="people" [size]="15" />
-              {{ 'recruitment.requisition.pipeline' | transloco }}
+        <span meta class="flex flex-wrap items-center gap-x-2 gap-y-1" data-testid="req-meta">
+          <span class="font-mono font-semibold">{{ r.code }}</span>
+          <span aria-hidden="true">·</span>
+          <span>{{ 'recruitment.employmentType.' + r.employment_type | transloco }}</span>
+          <app-status-badge
+            meaning="lifecycle"
+            [value]="statusValue(r.status)"
+            [labelKey]="'recruitment.requisitionStatus.' + r.status"
+            data-testid="req-status"
+          />
+          <app-status-badge
+            meaning="severity"
+            [value]="r.role_risk"
+            [labelKey]="'recruitment.roleRisk.' + r.role_risk"
+          />
+        </span>
+
+        @if (groups().primary; as action) {
+          <app-button
+            primary
+            size="sm"
+            [loading]="busy() === action"
+            [disabled]="busy() !== null"
+            (click)="start(action)"
+            [attr.data-testid]="'req-action-' + action"
+          >
+            {{ 'recruitment.requisition.actions.' + action | transloco }}
+          </app-button>
+        } @else if (canEdit()) {
+          <a primary [routerLink]="['/recruitment/requisitions', r.id, 'edit']">
+            <app-button size="sm" data-testid="req-edit">
+              {{ 'recruitment.common.edit' | transloco }}
             </app-button>
           </a>
-          @if (r.can_edit && !closed()) {
-            <a [routerLink]="['/recruitment/requisitions', r.id, 'edit']">
-              <app-button variant="secondary" size="sm">
-                {{ 'recruitment.common.edit' | transloco }}
-              </app-button>
-            </a>
-          }
-          @for (action of actions(); track action) {
-            <app-button
-              size="sm"
-              [variant]="actionVariant(action)"
-              [loading]="busy() === action"
-              [disabled]="busy() !== null"
-              (click)="start(action)"
-              [attr.data-testid]="'req-action-' + action"
-            >
-              {{ 'recruitment.requisition.actions.' + action | transloco }}
-            </app-button>
-          }
-        </div>
+        }
+        @if (groups().secondary; as action) {
+          <app-button
+            secondary
+            size="sm"
+            variant="secondary"
+            [loading]="busy() === action"
+            [disabled]="busy() !== null"
+            (click)="start(action)"
+            [attr.data-testid]="'req-action-' + action"
+          >
+            {{ 'recruitment.requisition.actions.' + action | transloco }}
+          </app-button>
+        }
+        <a secondary [routerLink]="['/recruitment/requisitions', r.id, 'pipeline']">
+          <app-button variant="secondary" size="sm" data-testid="req-pipeline">
+            <app-icon name="people" [size]="15" />
+            {{ 'recruitment.requisition.pipeline' | transloco }}
+          </app-button>
+        </a>
+        @if (groups().primary && canEdit()) {
+          <button overflow appMenuItem type="button" (click)="edit()" data-testid="req-edit-menu">
+            {{ 'recruitment.common.edit' | transloco }}
+          </button>
+        }
+        @for (action of groups().overflow; track action) {
+          <button
+            overflow
+            appMenuItem
+            type="button"
+            [danger]="action === 'cancel' || action === 'delete'"
+            [disabled]="busy() !== null"
+            (click)="start(action)"
+            [attr.data-testid]="'req-action-' + action"
+          >
+            {{ 'recruitment.requisition.actions.' + action | transloco }}
+          </button>
+        }
+
+        <app-module-nav nav [items]="nav()" labelKey="modules.names.recruitment" />
+        <app-help-strip
+          help
+          scope="recruitment"
+          page="requisition"
+          lesson="screening-proportionate"
+          [subject]="r.title"
+        />
 
         <div class="flex flex-col gap-4">
-          <app-guide-intro scope="recruitment" page="requisition" />
           @if (r.status === 'rejected' && r.decision_note) {
             <app-alert tone="error">
               {{ 'recruitment.requisition.rejectedNote' | transloco: { note: r.decision_note } }}
             </app-alert>
           }
           @if (r.status === 'pending_approval') {
-            <app-alert tone="info">
+            <app-alert tone="info" data-testid="req-awaiting">
               @if (r.can_approve) {
                 {{ 'recruitment.requisition.awaitingYou' | transloco }}
               } @else {
@@ -195,98 +259,133 @@ const NOTE_ACTIONS: Partial<Record<RequisitionAction, { readonly required: boole
               }
             </app-alert>
           }
-
-          <app-card>
-            <dl class="grid gap-x-6 gap-y-3 text-[13px] sm:grid-cols-2">
-              <div>
-                <dt class="text-fg-subtle">{{ 'recruitment.fields.department' | transloco }}</dt>
-                <dd class="text-fg">{{ people.departmentName(r.department_id) ?? '—' }}</dd>
-              </div>
-              <div>
-                <dt class="text-fg-subtle">{{ 'recruitment.fields.location' | transloco }}</dt>
-                <dd class="text-fg">{{ r.location ?? '—' }}</dd>
-              </div>
-              <div>
-                <dt class="text-fg-subtle">
-                  {{ 'recruitment.fields.employmentType' | transloco }}
-                </dt>
-                <dd class="text-fg">
-                  {{ 'recruitment.employmentType.' + r.employment_type | transloco }}
-                </dd>
-              </div>
-              <div>
-                <dt class="text-fg-subtle">{{ 'recruitment.fields.headcount' | transloco }}</dt>
-                <dd class="text-fg">
-                  {{
-                    'recruitment.requisition.hiresOf'
-                      | transloco: { hires: r.hires, headcount: r.headcount }
-                  }}
-                </dd>
-              </div>
-              <div>
-                <dt class="text-fg-subtle">
-                  {{ 'recruitment.fields.targetStartDate' | transloco }}
-                </dt>
-                <dd class="text-fg">
-                  {{ r.target_start_date ? (r.target_start_date | localDay) : '—' }}
-                </dd>
-              </div>
-              <div>
-                <dt class="text-fg-subtle">
-                  {{ 'recruitment.fields.postingClosesAt' | transloco }}
-                </dt>
-                <dd class="text-fg">
-                  {{ r.posting_closes_at ? (r.posting_closes_at | localDate: 'medium') : '—' }}
-                </dd>
-              </div>
-              <div>
-                <dt class="text-fg-subtle">{{ 'recruitment.fields.hiringManager' | transloco }}</dt>
-                <dd class="text-fg">{{ r.hiring_manager?.name ?? '—' }}</dd>
-              </div>
-              <div>
-                <dt class="text-fg-subtle">{{ 'recruitment.fields.recruiter' | transloco }}</dt>
-                <dd class="text-fg">{{ r.recruiter?.name ?? '—' }}</dd>
-              </div>
-              @if (r.decided_by) {
-                <div class="sm:col-span-2">
-                  <dt class="text-fg-subtle">
-                    {{ 'recruitment.requisition.decision' | transloco }}
-                  </dt>
-                  <dd class="text-fg">
-                    {{
-                      'recruitment.requisition.decidedBy'
-                        | transloco
-                          : { name: r.decided_by.name, date: (r.decided_at | localDate: 'medium') }
-                    }}
-                    @if (r.decision_note && r.status !== 'rejected') {
-                      <span class="block text-fg-muted">{{ r.decision_note }}</span>
-                    }
-                  </dd>
-                </div>
-              }
-            </dl>
-          </app-card>
-
-          @if (r.description || r.justification) {
-            <app-card>
-              @if (r.description) {
-                <h2 class="mb-1 text-[13px] font-semibold text-fg-muted">
-                  {{ 'recruitment.fields.description' | transloco }}
-                </h2>
-                <p class="mb-3 text-[13.5px] whitespace-pre-wrap text-fg">{{ r.description }}</p>
-              }
-              @if (r.justification) {
-                <h2 class="mb-1 text-[13px] font-semibold text-fg-muted">
-                  {{ 'recruitment.fields.justification' | transloco }}
-                </h2>
-                <p class="text-[13.5px] whitespace-pre-wrap text-fg">{{ r.justification }}</p>
-              }
-            </app-card>
+          @if (r.status === 'draft' && canEdit()) {
+            <app-alert tone="info">{{ 'recruitment.requisition.draftHint' | transloco }}</app-alert>
           }
 
           <app-card>
+            <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <h2 class="text-card font-bold text-fg">
+                {{ 'recruitment.requisition.pipelineSummary' | transloco }}
+              </h2>
+              <div class="flex flex-wrap items-center gap-2">
+                <a
+                  routerLink="/recruitment/applications"
+                  [queryParams]="{ requisition_id: r.id }"
+                  class="text-ui font-semibold text-accent"
+                  data-testid="req-all-applications"
+                  >{{ 'recruitment.requisition.allApplications' | transloco }}</a
+                >
+                @if (perms().write && r.status === 'open') {
+                  <a
+                    [routerLink]="['/recruitment/applications/new']"
+                    [queryParams]="{ requisition_id: r.id }"
+                  >
+                    <app-button size="sm" variant="secondary">
+                      <app-icon name="userplus" [size]="15" />
+                      {{ 'recruitment.applications.new' | transloco }}
+                    </app-button>
+                  </a>
+                }
+              </div>
+            </div>
+            @if (stageTiles().length === 0) {
+              <p class="text-ui text-fg-muted" data-testid="req-no-applications">
+                {{
+                  (r.status === 'open'
+                    ? 'recruitment.requisition.noApplicationsOpen'
+                    : 'recruitment.requisition.noApplications'
+                  ) | transloco
+                }}
+              </p>
+            } @else {
+              <ul class="grid grid-cols-2 gap-2 sm:grid-cols-4" data-testid="req-stage-tiles">
+                @for (stage of stageTiles(); track stage) {
+                  <li>
+                    <a
+                      routerLink="/recruitment/applications"
+                      [queryParams]="{ requisition_id: r.id, stage: stage }"
+                      class="flex flex-col rounded-tile border border-border px-3 py-2 outline-none hover:border-border-strong hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-accent"
+                      [attr.aria-label]="
+                        'recruitment.requisition.stageTileLabel'
+                          | transloco
+                            : {
+                                count: r.stage_counts[stage] ?? 0,
+                                stage: ('recruitment.stage.' + stage | transloco),
+                              }
+                      "
+                    >
+                      <span class="text-meta text-fg-muted">{{
+                        'recruitment.stage.' + stage | transloco
+                      }}</span>
+                      <span class="text-section font-bold text-fg">{{
+                        r.stage_counts[stage] ?? 0
+                      }}</span>
+                    </a>
+                  </li>
+                }
+              </ul>
+            }
+          </app-card>
+
+          <app-card>
+            <h2 class="mb-3 text-card font-bold text-fg">
+              {{ 'recruitment.requisition.aboutRole' | transloco }}
+            </h2>
+            <app-field-list>
+              <app-field-item
+                labelKey="recruitment.fields.department"
+                [value]="people.departmentName(r.department_id)"
+              />
+              <app-field-item labelKey="recruitment.fields.location" [value]="r.location" />
+              <app-field-item
+                labelKey="recruitment.fields.headcount"
+                [value]="
+                  'recruitment.requisition.hiresOf'
+                    | transloco: { hires: r.hires, headcount: r.headcount }
+                "
+              />
+              <app-field-item
+                labelKey="recruitment.fields.targetStartDate"
+                [value]="r.target_start_date ? (r.target_start_date | localDay) : null"
+              />
+              <app-field-item
+                labelKey="recruitment.fields.hiringManager"
+                [value]="r.hiring_manager?.name"
+              />
+              <app-field-item labelKey="recruitment.fields.recruiter" [value]="r.recruiter?.name" />
+              <app-field-item labelKey="recruitment.fields.position" data-testid="req-position">
+                @if (positionRef(); as ref) {
+                  <app-entity-chip [ref]="ref" [showType]="false" />
+                }
+              </app-field-item>
+              <app-field-item
+                labelKey="recruitment.requisition.approval"
+                [value]="decisionText()"
+                data-testid="req-decision"
+              />
+              @if (r.description) {
+                <app-field-item
+                  labelKey="recruitment.fields.description"
+                  [value]="r.description"
+                  [wide]="true"
+                  [multiline]="true"
+                />
+              }
+              @if (r.justification) {
+                <app-field-item
+                  labelKey="recruitment.fields.justification"
+                  [value]="r.justification"
+                  [wide]="true"
+                  [multiline]="true"
+                />
+              }
+            </app-field-list>
+          </app-card>
+
+          <app-card>
             <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-              <h2 class="font-display text-[15px] font-bold text-fg">
+              <h2 class="text-card font-bold text-fg">
                 {{ 'recruitment.fields.screeningCriteria' | transloco }}
               </h2>
               @if (perms().write && r.screening_criteria.length > 0) {
@@ -300,9 +399,11 @@ const NOTE_ACTIONS: Partial<Record<RequisitionAction, { readonly required: boole
               }
             </div>
             @if (r.screening_criteria.length === 0) {
-              <p class="text-[13px] text-fg-muted">{{ 'recruitment.criteria.none' | transloco }}</p>
+              <p class="text-ui text-fg-muted">
+                {{ 'recruitment.criteria.noneOnRequisition' | transloco }}
+              </p>
             } @else {
-              <ol class="flex list-decimal flex-col gap-1.5 pl-5 text-[13.5px]">
+              <ol class="flex list-decimal flex-col gap-1.5 pl-5 text-body">
                 @for (c of r.screening_criteria; track c.id) {
                   <li>
                     <span class="font-semibold text-fg">{{ c.label }}</span>
@@ -315,11 +416,11 @@ const NOTE_ACTIONS: Partial<Record<RequisitionAction, { readonly required: boole
             }
             @if (questions().length > 0) {
               <app-recruitment-ai-output class="mt-3" (dismissed)="questions.set([])">
-                <ol class="flex list-decimal flex-col gap-2 pl-5 text-[13.5px]">
+                <ol class="flex list-decimal flex-col gap-2 pl-5 text-body">
                   @for (q of questions(); track $index) {
                     <li>
                       @if (criterionLabel(q.criterion_id); as label) {
-                        <span class="block text-[12px] font-semibold text-fg-subtle">{{
+                        <span class="block text-meta font-semibold text-fg-subtle">{{
                           label
                         }}</span>
                       }
@@ -335,25 +436,40 @@ const NOTE_ACTIONS: Partial<Record<RequisitionAction, { readonly required: boole
               </app-recruitment-ai-output>
             }
             <div class="mt-3 border-t border-border pt-3">
-              <h3 class="mb-1 text-[13px] font-semibold text-fg-muted">
+              <h3 class="mb-1 text-ui font-semibold text-fg-muted">
                 {{ 'recruitment.requisition.requiredChecks' | transloco }}
               </h3>
-              <div class="flex flex-wrap gap-1.5">
+              <p class="mb-2 text-meta text-fg-muted">
+                {{
+                  'recruitment.requisition.requiredChecksHint'
+                    | transloco: { risk: ('recruitment.roleRisk.' + r.role_risk | transloco) }
+                }}
+              </p>
+              <div class="flex flex-wrap gap-1.5" data-testid="req-required-checks">
                 @for (c of r.required_checks; track c) {
-                  <app-badge tone="neutral">{{
-                    'recruitment.checkType.' + c | transloco
-                  }}</app-badge>
+                  <app-status-badge
+                    meaning="lifecycle"
+                    value="draft"
+                    [labelKey]="'recruitment.checkType.' + c"
+                  />
+                } @empty {
+                  <span class="text-ui text-fg-muted">{{ 'common.empty.none' | transloco }}</span>
                 }
               </div>
+              @if (showsLegalBasisNote()) {
+                <p class="mt-2 text-meta text-fg-muted">
+                  {{ 'recruitment.requisition.legalBasisNote' | transloco }}
+                </p>
+              }
             </div>
           </app-card>
 
           <app-card>
             <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-              <h2 class="font-display text-[15px] font-bold text-fg">
+              <h2 class="text-card font-bold text-fg">
                 {{ 'recruitment.requisitionForm.postingSection' | transloco }}
               </h2>
-              @if (r.can_edit && !closed()) {
+              @if (canEdit()) {
                 <app-ai-assist-button
                   assist="recruitment.draft_job_ad"
                   labelKey="recruitment.ai.draftJobAd"
@@ -372,47 +488,57 @@ const NOTE_ACTIONS: Partial<Record<RequisitionAction, { readonly required: boole
                 (dismissed)="jobAd.set(null)"
               />
             }
-            @if (r.posting_title || r.posting_text) {
-              @if (r.posting_title) {
-                <h3 class="mb-1 text-[14px] font-semibold text-fg">{{ r.posting_title }}</h3>
-              }
-              <p class="text-[13.5px] whitespace-pre-wrap text-fg">{{ r.posting_text }}</p>
+            @if (r.posting_text) {
+              <div data-testid="req-posting">
+                <h3 class="mb-1 text-body font-semibold text-fg">
+                  {{ r.posting_title || r.title }}
+                </h3>
+                <p class="mb-2 text-meta text-fg-muted">
+                  {{
+                    r.posting_closes_at
+                      ? ('recruitment.requisition.postingDeadline'
+                        | transloco: { date: (r.posting_closes_at | localDate) })
+                      : ('recruitment.requisition.postingNoDeadline' | transloco)
+                  }}
+                  ·
+                  {{
+                    (r.status === 'open'
+                      ? 'recruitment.requisition.postingLive'
+                      : 'recruitment.requisition.postingNotLive'
+                    ) | transloco
+                  }}
+                </p>
+                <p
+                  class="text-body whitespace-pre-wrap text-fg"
+                  [class.line-clamp-6]="!postingExpanded()"
+                >
+                  {{ r.posting_text.trim() }}
+                </p>
+                <button
+                  type="button"
+                  class="mt-1 text-ui font-semibold text-accent"
+                  (click)="postingExpanded.set(!postingExpanded())"
+                >
+                  {{
+                    (postingExpanded()
+                      ? 'recruitment.requisition.showLess'
+                      : 'recruitment.requisition.showAll'
+                    ) | transloco
+                  }}
+                </button>
+              </div>
             } @else {
-              <p class="text-[13px] text-fg-muted">
+              <p class="text-ui text-fg-muted" data-testid="req-no-posting">
                 {{ 'recruitment.requisition.noPosting' | transloco }}
               </p>
-            }
-          </app-card>
-
-          <app-card>
-            <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-              <h2 class="font-display text-[15px] font-bold text-fg">
-                {{ 'recruitment.requisition.pipelineSummary' | transloco }}
-              </h2>
-              @if (perms().write && r.status === 'open') {
+              @if (canEdit()) {
                 <a
-                  [routerLink]="['/recruitment/applications/new']"
-                  [queryParams]="{ requisition_id: r.id }"
+                  [routerLink]="['/recruitment/requisitions', r.id, 'edit']"
+                  class="mt-1 inline-block text-ui font-semibold text-accent"
+                  >{{ 'recruitment.requisition.writePosting' | transloco }}</a
                 >
-                  <app-button size="sm" variant="secondary">
-                    <app-icon name="userplus" [size]="15" />
-                    {{ 'recruitment.applications.new' | transloco }}
-                  </app-button>
-                </a>
               }
-            </div>
-            <ul class="grid grid-cols-2 gap-2 sm:grid-cols-3">
-              @for (stage of stages; track stage) {
-                <li class="rounded-tile border border-border px-3 py-2">
-                  <span class="block text-[12px] text-fg-subtle">{{
-                    'recruitment.stage.' + stage | transloco
-                  }}</span>
-                  <span class="text-[16px] font-bold text-fg">{{
-                    r.stage_counts[stage] ?? 0
-                  }}</span>
-                </li>
-              }
-            </ul>
+            }
           </app-card>
         </div>
 
@@ -430,10 +556,11 @@ const NOTE_ACTIONS: Partial<Record<RequisitionAction, { readonly required: boole
             [canEdit]="perms().write && r.can_edit && !closed()"
             (saved)="req.set($event)"
           />
-          <app-supports-requirements [entityType]="entityType" [entityId]="r.id" />
-          <app-why-it-matters scope="recruitment" page="requisition" />
-          <app-recruitment-lesson-button lesson="screening-proportionate" />
+          <div class="flex justify-start">
+            <app-watch-button [entityType]="entityType" [entityId]="r.id" />
+          </div>
         </ng-container>
+        <app-why-it-matters aside-learn scope="recruitment" page="requisition" />
       </app-record-detail-layout>
 
       <app-prompt-dialog
@@ -443,8 +570,9 @@ const NOTE_ACTIONS: Partial<Record<RequisitionAction, { readonly required: boole
         [label]="'recruitment.requisition.note' | transloco"
         [required]="noteDialog()?.required ?? false"
         [busy]="busy() !== null"
+        [confirmVariant]="pending() === 'cancel' || pending() === 'reject' ? 'danger' : 'primary'"
         [confirmLabel]="noteTitle() | transloco"
-        [cancelLabel]="'common.cancel' | transloco"
+        [cancelLabel]="'recruitment.common.keep' | transloco"
         (confirmed)="confirmNote($event)"
         (cancelled)="pending.set(null)"
       />
@@ -453,15 +581,15 @@ const NOTE_ACTIONS: Partial<Record<RequisitionAction, { readonly required: boole
         [title]="'recruitment.requisition.deleteTitle' | transloco"
         [message]="'recruitment.requisition.deleteMessage' | transloco: { code: r.code }"
         [confirmLabel]="'recruitment.requisition.actions.delete' | transloco"
-        [cancelLabel]="'common.cancel' | transloco"
+        [cancelLabel]="'recruitment.common.keep' | transloco"
         [busy]="busy() === 'delete'"
         (confirmed)="remove()"
         (cancelled)="pending.set(null)"
       />
     } @else {
-      <p class="mx-auto max-w-[1180px] px-8 pt-8 text-[14px] text-fg-muted">
-        {{ 'common.loading' | transloco }}
-      </p>
+      <div class="mx-auto max-w-[1180px] px-4 pt-8 sm:px-8">
+        <app-loading-state [rows]="6" />
+      </div>
     }
   `,
 })
@@ -469,34 +597,89 @@ export class RequisitionDetailPage {
   private readonly api = inject(RecruitmentApi);
   private readonly router = inject(Router);
   private readonly toasts = inject(NotificationService);
+  private readonly language = inject(LanguageService);
   private readonly orgId = inject(SelectedOrgService).currentOrgId;
   protected readonly people = inject(RecruitmentPeople);
   protected readonly perms = injectRecruitmentPerms();
+  protected readonly nav = injectRecruitmentNav(this.perms);
+  protected readonly settingsLink = computed(() => settingsLinkFor(this.perms()));
 
   protected readonly entityType = ENTITY_REQUISITION;
   protected readonly tabs = TABS;
   protected readonly fieldLabels = FIELD_LABELS;
-  protected readonly stages = STAGES;
-  protected readonly statusTone = requisitionStatusTone;
-  protected readonly riskTone = riskTone;
+  protected readonly statusValue = requisitionToneValue;
 
   private readonly id = toSignal(inject(ActivatedRoute).paramMap.pipe(map((p) => p.get('id'))), {
     initialValue: null,
   });
   protected readonly req = signal<RequisitionDetail | null>(null);
-  protected readonly error = signal<string | null>(null);
+  protected readonly errorKey = signal<string | null>(null);
   protected readonly busy = signal<RequisitionAction | 'posting' | null>(null);
   protected readonly pending = signal<RequisitionAction | null>(null);
   protected readonly questions = signal<readonly SuggestedQuestion[]>([]);
   protected readonly jobAd = signal<string | null>(null);
+  protected readonly postingExpanded = signal(false);
+  private readonly version = signal(0);
+  private readonly refs = injectConfirmedRefs(ENTITY_REQUISITION, this.id);
 
   protected readonly closed = computed(() => {
     const r = this.req();
     return r !== null && isRequisitionClosed(r.status);
   });
-  protected readonly actions = computed(() => {
+  protected readonly canEdit = computed(() => {
     const r = this.req();
-    return r ? requisitionActions(r, this.perms()) : [];
+    return !!r && this.perms().write && r.can_edit && !isRequisitionClosed(r.status);
+  });
+  protected readonly groups = computed(() => {
+    const r = this.req();
+    return groupRequisitionActions(r ? requisitionActions(r, this.perms()) : []);
+  });
+  protected readonly breadcrumbs = computed<readonly Breadcrumb[]>(() => [
+    RECRUITMENT_CRUMB,
+    { labelKey: 'recruitment.nav.requisitions', link: '/recruitment/requisitions' },
+    { label: this.req()?.title ?? '' },
+  ]);
+  protected readonly stageTiles = computed(() =>
+    visibleStageTiles(this.req()?.stage_counts ?? {}, STAGES),
+  );
+  protected readonly positionRef = computed(() => {
+    const p = this.req()?.position;
+    return p
+      ? { entity_type: 'position', entity_id: p.id, title: p.title, code: p.code, url: p.url }
+      : null;
+  });
+  protected readonly showsLegalBasisNote = computed(() => this.req()?.role_risk === 'high');
+  protected readonly decisionText = computed(() => {
+    const r = this.req();
+    if (!r) {
+      return null;
+    }
+    const locale = this.language.locale();
+    const date = (value: string | null) => (value ? formatLocalDate(value, 'medium', locale) : '');
+    const parts: string[] = [];
+    if (r.decided_by) {
+      const key =
+        r.decision === 'rejected' || (!r.decision && r.status === 'rejected')
+          ? 'recruitment.requisition.rejectedBy'
+          : 'recruitment.requisition.approvedBy';
+      parts.push(
+        this.language.translate(key, { name: r.decided_by.name, date: date(r.decided_at) }),
+      );
+    } else if (r.status === 'pending_approval') {
+      parts.push(this.language.translate('recruitment.requisition.awaitingShort'));
+    }
+    if (r.submitted_by) {
+      parts.push(
+        this.language.translate('recruitment.requisition.submittedBy', {
+          name: r.submitted_by.name,
+          date: date(r.submitted_at),
+        }),
+      );
+    }
+    if (r.decision_note && r.status !== 'rejected') {
+      parts.push(r.decision_note);
+    }
+    return parts.length > 0 ? parts.join(' · ') : null;
   });
   protected readonly noteDialog = computed(() => {
     const action = this.pending();
@@ -517,29 +700,33 @@ export class RequisitionDetailPage {
       entityId: this.id(),
       view: 'detail',
       title: this.req()?.title ?? null,
+      requirements: this.refs(),
     }));
     effect((onCleanup) => {
       const orgId = this.orgId();
       const id = this.id();
+      this.version();
       if (!orgId || !id) {
         return;
       }
-      this.error.set(null);
+      this.errorKey.set(null);
       const sub = this.api.getRequisition(orgId, id).subscribe({
         next: (r) => this.req.set(r),
-        error: (err) => this.error.set(recruitmentError(err).key),
+        error: (err) => this.errorKey.set(recruitmentError(err).key),
       });
       onCleanup(() => sub.unsubscribe());
     });
   }
 
-  protected actionVariant(action: RequisitionAction): 'primary' | 'secondary' | 'danger' {
-    if (action === 'submit' || action === 'approve' || action === 'open') {
-      return 'primary';
+  protected reload(): void {
+    this.version.update((v) => v + 1);
+  }
+
+  protected edit(): void {
+    const r = this.req();
+    if (r) {
+      void this.router.navigate(['/recruitment/requisitions', r.id, 'edit']);
     }
-    return action === 'reject' || action === 'delete' || action === 'cancel'
-      ? 'danger'
-      : 'secondary';
   }
 
   protected start(action: RequisitionAction): void {

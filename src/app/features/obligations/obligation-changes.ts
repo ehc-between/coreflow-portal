@@ -10,23 +10,31 @@ import {
   signal,
   untracked,
 } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { FieldHelp } from '../../shared/guidance/field-help';
 import { LocalDayPipe } from '../../shared/locale/locale-pipes';
-import { Badge } from '../../shared/ui/badge/badge';
 import { Button } from '../../shared/ui/button/button';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog/confirm-dialog';
 import { FormField } from '../../shared/ui/form-field/form-field';
 import { Icon } from '../../shared/ui/icon/icon';
+import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
 import { ObligationsApi } from './data/obligations-api';
-import { Change, ChangeCreate, ChangeUpdate, IMPACTS, Impact } from './data/obligation.models';
+import {
+  Change,
+  ChangeCreate,
+  ChangeUpdate,
+  IMPACTS,
+  Impact,
+  PREPARE_IMPACTS,
+} from './data/obligation.models';
 import {
   changeStatusKey,
+  changeStatusMeaning,
   impactKey,
-  impactTone,
   safeUrl,
   todayIso,
 } from './data/obligation-display';
@@ -45,20 +53,41 @@ export function sortChanges(items: readonly Change[]): Change[] {
   });
 }
 
+/** Whether a note gets a "prepare for the change" task (medium / high impact with a date). */
+export function preparesTask(change: Pick<Change, 'impact' | 'effective_on'>): boolean {
+  return (PREPARE_IMPACTS as readonly string[]).includes(change.impact) && !!change.effective_on;
+}
+
 /**
  * Change monitoring notes: upcoming amendments, new guidance or rulings that may
  * affect the obligation, each with an impact level. A note is open until someone
- * assesses it and records what (if anything) has to change.
+ * marks it handled with what (if anything) had to change. A medium or high impact
+ * note with a date gets a "prepare for the change" task (in My Work); from such a
+ * note the obligation can be updated with the change as the reason.
  */
 @Component({
   selector: 'app-obligation-changes',
-  imports: [TranslocoPipe, FieldHelp, LocalDayPipe, Badge, Button, ConfirmDialog, FormField, Icon],
+  imports: [
+    RouterLink,
+    TranslocoPipe,
+    FieldHelp,
+    LocalDayPipe,
+    Button,
+    ConfirmDialog,
+    FormField,
+    Icon,
+    StatusBadge,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <section aria-labelledby="cf-ob-changes-h">
-      <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <h2 id="cf-ob-changes-h" class="font-display text-[15px] font-bold text-fg">
+    <section aria-labelledby="cf-ob-changes-h" id="obligation-changes">
+      <div class="mb-1 flex flex-wrap items-center justify-between gap-2">
+        <h2
+          id="cf-ob-changes-h"
+          class="flex items-center gap-1.5 font-display text-card font-bold text-fg"
+        >
           {{ 'obligations.changes.title' | transloco }}
+          <app-field-help scope="obligations" page="detail" field="changes" />
         </h2>
         @if (canEdit() && !adding()) {
           <app-button
@@ -72,7 +101,7 @@ export function sortChanges(items: readonly Change[]): Change[] {
           </app-button>
         }
       </div>
-      <app-field-help scope="obligations" page="detail" field="changes" />
+      <p class="mb-2 text-meta text-fg-muted">{{ 'obligations.changes.subtitle' | transloco }}</p>
 
       @if (adding()) {
         <form
@@ -151,6 +180,11 @@ export function sortChanges(items: readonly Change[]): Change[] {
               (change)="effectiveOn.set($any($event.target).value)"
             />
           </app-form-field>
+          @if (preparesTask({ impact: impact(), effective_on: effectiveOn() || null })) {
+            <p class="text-meta text-fg-muted sm:col-span-2" data-testid="change-task-note">
+              {{ 'obligations.changes.taskNote' | transloco }}
+            </p>
+          }
           <div class="flex justify-end gap-2 sm:col-span-2">
             <app-button variant="ghost" size="sm" (click)="reset()">
               {{ 'common.cancel' | transloco }}
@@ -170,18 +204,18 @@ export function sortChanges(items: readonly Change[]): Change[] {
 
       @switch (state()) {
         @case ('loading') {
-          <p class="mt-2 text-[13px] text-fg-muted" role="status">
+          <p class="mt-2 text-ui text-fg-muted" role="status">
             {{ 'obligations.common.loading' | transloco }}
           </p>
         }
         @case ('error') {
-          <p class="mt-2 text-[13px] text-fail" role="alert">
+          <p class="mt-2 text-ui text-fail-ink" role="alert">
             {{ 'obligations.common.loadFailed' | transloco }}
           </p>
         }
         @default {
           @if (sorted().length === 0) {
-            <p class="mt-2 text-[13px] text-fg-muted">
+            <p class="mt-2 text-ui text-fg-muted">
               {{ 'obligations.changes.none' | transloco }}
             </p>
           } @else {
@@ -192,13 +226,17 @@ export function sortChanges(items: readonly Change[]): Change[] {
                   [class.opacity-70]="c.status === 'assessed'"
                 >
                   <div class="flex flex-wrap items-center gap-2">
-                    <span class="text-[13.5px] font-semibold text-fg">{{ c.title }}</span>
-                    <app-badge [tone]="impactTone(c.impact)">{{
-                      impactKey(c.impact) | transloco
-                    }}</app-badge>
-                    <app-badge [tone]="c.status === 'open' ? 'info' : 'neutral'">{{
-                      changeStatusKey(c.status) | transloco
-                    }}</app-badge>
+                    <span class="text-body font-semibold break-words text-fg">{{ c.title }}</span>
+                    <app-status-badge
+                      meaning="severity"
+                      [value]="c.impact"
+                      [labelKey]="impactKey(c.impact)"
+                    />
+                    <app-status-badge
+                      meaning="lifecycle"
+                      [value]="changeStatusMeaning(c.status)"
+                      [labelKey]="changeStatusKey(c.status)"
+                    />
                     @if (canEdit()) {
                       <span class="ml-auto flex items-center gap-1">
                         @if (c.status === 'open' && assessingId() !== c.id) {
@@ -219,6 +257,7 @@ export function sortChanges(items: readonly Change[]): Change[] {
                           variant="ghost"
                           size="sm"
                           [attr.aria-label]="'obligations.changes.remove' | transloco"
+                          [attr.title]="'obligations.changes.remove' | transloco"
                           (click)="removing.set(c)"
                         >
                           <app-icon name="trash" [size]="14" />
@@ -226,7 +265,7 @@ export function sortChanges(items: readonly Change[]): Change[] {
                       </span>
                     }
                   </div>
-                  <p class="mt-1 flex flex-wrap gap-x-3 text-[12px] text-fg-subtle">
+                  <p class="mt-1 flex flex-wrap gap-x-3 text-meta text-fg-subtle">
                     <span>{{
                       'obligations.changes.noted' | transloco: { date: (c.noted_on | localDay) }
                     }}</span>
@@ -248,10 +287,31 @@ export function sortChanges(items: readonly Change[]): Change[] {
                     }
                   </p>
                   @if (c.details) {
-                    <p class="mt-2 text-[13px] whitespace-pre-line text-fg">{{ c.details }}</p>
+                    <p class="mt-2 text-ui whitespace-pre-line text-fg">{{ c.details }}</p>
+                  }
+                  @if (c.status === 'open' && preparesTask(c)) {
+                    <div
+                      class="mt-2 flex flex-wrap items-center gap-2 rounded-tile bg-surface-2 px-3 py-2 text-meta text-fg-muted"
+                    >
+                      <app-icon name="calendar" [size]="13" />
+                      <span class="min-w-0 flex-1">{{
+                        'obligations.changes.prepareTask'
+                          | transloco: { date: (c.effective_on | localDay) }
+                      }}</span>
+                      @if (canEdit()) {
+                        <a
+                          [routerLink]="['/obligations', obligationId(), 'edit']"
+                          [queryParams]="{ reason: c.title }"
+                          class="font-semibold text-accent hover:underline"
+                          [attr.data-testid]="'change-update-' + c.id"
+                        >
+                          {{ 'obligations.changes.updateObligation' | transloco }}
+                        </a>
+                      }
+                    </div>
                   }
                   @if (c.status === 'assessed') {
-                    <p class="mt-2 text-[12.5px] whitespace-pre-line text-fg-muted">
+                    <p class="mt-2 text-meta whitespace-pre-line text-fg-muted">
                       <span class="font-semibold text-fg">{{
                         'obligations.changes.assessmentBy'
                           | transloco
@@ -326,7 +386,8 @@ export class ObligationChanges {
 
   protected readonly impacts = IMPACTS;
   protected readonly impactKey = impactKey;
-  protected readonly impactTone = impactTone;
+  protected readonly changeStatusMeaning = changeStatusMeaning;
+  protected readonly preparesTask = preparesTask;
   protected readonly changeStatusKey = changeStatusKey;
   protected readonly link = safeUrl;
 

@@ -1,13 +1,15 @@
 import { withUtcDefault } from '../../../core/i18n/locale';
-import { BadgeTone } from '../../../shared/ui/badge/badge';
 import {
   ApplicationDetail,
+  ApplicationSummary,
   Check,
   CheckStatus,
   CheckType,
   CLOSED_STAGES,
+  InterviewStatus,
   MOVE_STAGES,
   MoveStage,
+  OfferBlocker,
   Requisition,
   RequisitionStatus,
   Stage,
@@ -17,60 +19,57 @@ import {
  * Pure display and rule helpers for the recruitment pages. The rules mirror the
  * backend (app/modules/recruitment) so the UI only offers actions that can succeed;
  * the server stays the authority and its coded errors are shown when they differ.
+ *
+ * Colours come from the shared tone map (`app-status-badge meaning="lifecycle"`):
+ * the module's own values are mapped to the nearest lifecycle word below and the
+ * badge keeps the module's label (`labelKey`).
  */
 
-export function requisitionStatusTone(status: RequisitionStatus): BadgeTone {
+/** Lifecycle word for a pipeline stage (applied = new, in progress, hired = done …). */
+export function stageToneValue(stage: Stage): string {
+  switch (stage) {
+    case 'applied':
+      return 'submitted';
+    case 'hired':
+      return 'completed';
+    case 'rejected':
+      return 'rejected';
+    case 'withdrawn':
+      return 'withdrawn';
+    default:
+      return 'in_progress';
+  }
+}
+
+/** Lifecycle word for a requisition status (open = in progress, filled = done). */
+export function requisitionToneValue(status: RequisitionStatus): string {
   switch (status) {
     case 'open':
-      return 'pass';
-    case 'approved':
-      return 'info';
-    case 'pending_approval':
-    case 'on_hold':
-      return 'warn';
-    case 'rejected':
-      return 'fail';
+      return 'in_progress';
     case 'filled':
-      return 'accent';
+      return 'completed';
     default:
-      return 'neutral';
+      return status;
   }
 }
 
-export function stageTone(stage: Stage): BadgeTone {
-  switch (stage) {
-    case 'hired':
-      return 'pass';
-    case 'offer':
-      return 'accent';
-    case 'rejected':
-      return 'fail';
-    case 'withdrawn':
-      return 'neutral';
-    case 'reference_check':
-      return 'warn';
-    default:
-      return 'info';
-  }
-}
-
-export function checkStatusTone(status: CheckStatus): BadgeTone {
+/** Lifecycle word for a background-check status. */
+export function checkToneValue(status: CheckStatus): string {
   switch (status) {
-    case 'passed':
-      return 'pass';
-    case 'waived':
-      return 'neutral';
+    case 'requested':
+      return 'submitted';
     case 'concerns':
-      return 'warn';
-    case 'failed':
-      return 'fail';
+      return 'blocked';
+    case 'waived':
+      return 'cancelled';
     default:
-      return 'info';
+      return status;
   }
 }
 
-export function riskTone(risk: string): BadgeTone {
-  return risk === 'high' ? 'fail' : risk === 'medium' ? 'warn' : 'pass';
+/** Lifecycle word for an interview status (a no-show needs attention). */
+export function interviewToneValue(status: InterviewStatus): string {
+  return status === 'no_show' ? 'blocked' : status;
 }
 
 /** Statuses in which a requisition no longer changes. */
@@ -135,6 +134,24 @@ export function requisitionActions(
   return actions;
 }
 
+/** The header layout of the actions: one next step, at most one secondary, the rest in "Mer". */
+export interface RequisitionActionGroups {
+  readonly primary: RequisitionAction | null;
+  readonly secondary: RequisitionAction | null;
+  readonly overflow: readonly RequisitionAction[];
+}
+
+const PRIMARY_ORDER: readonly RequisitionAction[] = ['approve', 'submit', 'open'];
+
+export function groupRequisitionActions(
+  actions: readonly RequisitionAction[],
+): RequisitionActionGroups {
+  const primary = PRIMARY_ORDER.find((a) => actions.includes(a)) ?? null;
+  const secondary = primary === 'approve' && actions.includes('reject') ? 'reject' : null;
+  const overflow = actions.filter((a) => a !== primary && a !== secondary);
+  return { primary, secondary, overflow };
+}
+
 /** Sum of a requisition's applications in active (not closed) stages. */
 export function activeApplicationCount(req: Pick<Requisition, 'stage_counts'>): number {
   return Object.entries(req.stage_counts)
@@ -153,6 +170,11 @@ export function moveTargets(stage: Stage): MoveStage[] {
 /** Whether moving to `target` needs the candidate's privacy notice (GDPR Art. 13/14). */
 export function needsPrivacyNotice(target: Stage): boolean {
   return !['applied', 'screening', 'rejected', 'withdrawn'].includes(target);
+}
+
+/** Stages after screening: moving there needs every criterion assessed (or a logged reason). */
+export function needsScreening(target: Stage): boolean {
+  return ['interview', 'assessment', 'reference_check', 'offer'].includes(target);
 }
 
 const SETTLED_CHECK: readonly CheckStatus[] = ['passed', 'waived', 'concerns'];
@@ -197,6 +219,60 @@ export function applicationActions(
   return [];
 }
 
+/**
+ * Blockers that explain a disabled "Gi tilbud": the server's list when it sends one,
+ * otherwise derived locally (screening, privacy notice, open required checks).
+ */
+export function offerBlockers(app: ApplicationDetail): readonly OfferBlocker[] {
+  if (app.offer_blockers) {
+    return app.offer_blockers.filter(
+      (b) => b.code !== 'application_closed' && b.code !== 'offer_made',
+    );
+  }
+  const out: OfferBlocker[] = [];
+  if (!app.privacy_notice_given) {
+    out.push({ code: 'privacy_notice_missing' });
+  }
+  const missing = app.screening_missing ?? [];
+  if (missing.length > 0 && !app.screening_override) {
+    out.push({ code: 'screening_incomplete', count: missing.length, missing });
+  }
+  const pending = pendingRequiredChecks(app.required_checks, app.checks);
+  if (pending.length > 0) {
+    out.push({ code: 'checks_open', count: pending.length, check_types: pending });
+  }
+  return out;
+}
+
+/** Whether the offer can be given only with a logged screening override. */
+export function offerNeedsOverride(blockers: readonly OfferBlocker[]): boolean {
+  return blockers.length > 0 && blockers.every((b) => b.code === 'screening_incomplete');
+}
+
+/** Screening progress of a summary row: "2/4" (null when the requisition has no criteria). */
+export function screeningProgress(
+  row: Pick<ApplicationSummary, 'screening_assessed' | 'screening_total'>,
+): { readonly done: number; readonly total: number } | null {
+  const total = row.screening_total ?? 0;
+  return total > 0 ? { done: row.screening_assessed ?? 0, total } : null;
+}
+
+/** Checks progress of a summary row: "2/6" (null when nothing is required). */
+export function checksProgress(
+  row: Pick<ApplicationSummary, 'checks_done' | 'checks_required'>,
+): { readonly done: number; readonly total: number } | null {
+  const total = row.checks_required ?? 0;
+  return total > 0 ? { done: row.checks_done ?? 0, total } : null;
+}
+
+/** Whether a stage count tile is worth showing (non-empty, or an active stage). */
+export function visibleStageTiles(
+  counts: Readonly<Partial<Record<Stage, number>>>,
+  stages: readonly Stage[],
+): Stage[] {
+  return stages.filter((s) => (counts[s] ?? 0) > 0);
+}
+
 /** A naive-UTC backend date-time -> the `datetime-local` input value in local time. */
 export function toLocalInput(value: string | null | undefined): string {
   if (!value) {
@@ -235,4 +311,20 @@ export function retentionDue(value: string | null, days = 0, now = Date.now()): 
 export function blankToNull(value: string | null | undefined): string | null {
   const trimmed = (value ?? '').trim();
   return trimmed ? trimmed : null;
+}
+
+/**
+ * Query params of a portal url the backend sends (`/recruitment/applications?stage=a,b`),
+ * split into a router path and params.
+ */
+export function splitUrl(url: string): {
+  readonly path: string;
+  readonly queryParams: Record<string, string>;
+} {
+  const [path, query = ''] = url.split('?');
+  const queryParams: Record<string, string> = {};
+  for (const [k, v] of new URLSearchParams(query)) {
+    queryParams[k] = v;
+  }
+  return { path, queryParams };
 }

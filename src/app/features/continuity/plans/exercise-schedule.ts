@@ -42,7 +42,7 @@ import { PlanDetail } from '../data/continuity.models';
     <app-card>
       <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
         <div class="flex items-center gap-1">
-          <h2 class="font-display text-[15px] font-bold text-fg">
+          <h2 class="font-display text-card font-bold text-fg">
             {{ 'continuity.schedule.title' | transloco }}
           </h2>
           <app-field-help scope="continuity" page="planDetail" field="exercise_schedule" />
@@ -50,10 +50,10 @@ import { PlanDetail } from '../data/continuity.models';
         @if (p.exercise_schedule_active) {
           <app-badge tone="pass">{{ 'continuity.schedule.active' | transloco }}</app-badge>
         } @else {
-          <app-badge tone="warn">{{ 'continuity.schedule.none' | transloco }}</app-badge>
+          <app-badge>{{ 'continuity.schedule.none' | transloco }}</app-badge>
         }
       </div>
-      <p class="text-[13px] text-fg-muted">
+      <p class="text-ui text-fg-muted">
         @if (p.next_exercise_due_at) {
           {{
             'continuity.schedule.nextDue' | transloco: { date: (p.next_exercise_due_at | localDay) }
@@ -119,7 +119,7 @@ import { PlanDetail } from '../data/continuity.models';
                   (valueChange)="assignee.set($event)"
                 />
               </app-form-field>
-              <p class="mt-1 text-[12px] text-fg-subtle">
+              <p class="mt-1 text-meta text-fg-subtle">
                 {{ 'continuity.schedule.assigneeHint' | transloco }}
               </p>
             </div>

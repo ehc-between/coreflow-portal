@@ -1,19 +1,30 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { asClassificationResult } from '../assessments/assessment-detail';
 import { mergeDraft } from '../assessments/assessment-edit';
-import { isOverdue } from '../assessments/assessments-list';
+import { isOverdue, isReviewOverdue } from '../assessments/assessments-list';
+import { hasAnswers } from '../classification/classification-wizard';
+import { filterPeople } from '../literacy/literacy-page';
 import { attentionItems } from '../overview/ai-governance-overview';
 import { clampMonths } from '../settings/ai-governance-settings';
 import { emptySystemForm, formToRequest, systemToForm } from '../systems/system-form';
 import { parseNumber } from '../systems/system-monitoring';
-import { aiGovernanceErrorKey, missingSections } from './ai-governance-errors';
+import { toneFor } from '../../../shared/ui/tones';
+import { aiGovernanceErrorKey, isDowngradeRefusal, missingSections } from './ai-governance-errors';
 import {
+  assessmentStatusValue,
+  attentionTextKey,
+  countKey,
   emptyAnswers,
+  monitoringValue,
   normalizeAnswers,
+  obligationProgress,
+  obligationValue,
   parseTags,
   reasonText,
-  riskTone,
+  riskValue,
   sectionAnswers,
+  splitUrl,
+  systemStatusValue,
   toggleIn,
 } from './ai-governance-display';
 import { AiGovernanceOverview, AiSystem, AssessmentSummary } from './ai-governance.models';
@@ -79,12 +90,58 @@ describe('AI governance display helpers', () => {
     expect(parseTags(' LLM, classifier,\nLLM ,, ')).toEqual(['LLM', 'classifier']);
   });
 
-  it('keeps only text section answers and picks risk tones', () => {
+  it('keeps only text section answers and maps values onto the shared tone map', () => {
     expect(sectionAnswers({ a: 'x', b: 2, c: null })).toEqual({ a: 'x' });
-    expect(riskTone('prohibited')).toBe('fail');
-    expect(riskTone('high')).toBe('warn');
-    expect(riskTone('minimal')).toBe('pass');
-    expect(riskTone('unclassified')).toBe('neutral');
+    expect(toneFor('severity', riskValue('prohibited'))).toBe('fail');
+    expect(toneFor('severity', riskValue('high'))).toBe('fail');
+    expect(toneFor('severity', riskValue('limited'))).toBe('warn');
+    expect(toneFor('severity', riskValue('minimal'))).toBe('neutral');
+    expect(toneFor('severity', riskValue('unclassified'))).toBe('neutral');
+    expect(toneFor('lifecycle', systemStatusValue('in_use'))).toBe('accent');
+    expect(toneFor('lifecycle', systemStatusValue('suspended'))).toBe('warn');
+    expect(toneFor('lifecycle', assessmentStatusValue('completed'))).toBe('accent');
+    expect(toneFor('lifecycle', assessmentStatusValue('approved'))).toBe('pass');
+    expect(toneFor('compliance', monitoringValue('fail'))).toBe('fail');
+    expect(toneFor('compliance', monitoringValue('info'))).toBe('neutral');
+    expect(toneFor('compliance', obligationValue('met'))).toBe('pass');
+    expect(toneFor('compliance', obligationValue('not_relevant'))).toBe('neutral');
+    expect(toneFor('compliance', obligationValue(undefined))).toBe('neutral');
+  });
+
+  it('counts obligations without the not-relevant ones and picks count keys', () => {
+    expect(
+      obligationProgress({
+        total: 6,
+        not_started: 2,
+        in_progress: 1,
+        met: 2,
+        not_relevant: 1,
+        without_task: 3,
+      }),
+    ).toEqual({ met: 2, total: 5 });
+    expect(obligationProgress(undefined)).toEqual({ met: 0, total: 0 });
+    expect(countKey('a.b', 1)).toBe('a.bOne');
+    expect(countKey('a.b', 3)).toBe('a.b');
+  });
+
+  it('splits deep links and names attention items', () => {
+    expect(splitUrl('/ai-governance/systems?risk_class=high')).toEqual({
+      path: '/ai-governance/systems',
+      query: { risk_class: 'high' },
+    });
+    expect(splitUrl('/ai-governance/settings')).toEqual({
+      path: '/ai-governance/settings',
+      query: null,
+    });
+    expect(attentionTextKey({ key: 'fria_missing', count: 1, params: { name: 'X' } })).toBe(
+      'aiGovernance.attention.fria_missing.named',
+    );
+    expect(attentionTextKey({ key: 'unclassified', count: 1 })).toBe(
+      'aiGovernance.attention.unclassified.one',
+    );
+    expect(attentionTextKey({ key: 'unclassified', count: 4 })).toBe(
+      'aiGovernance.attention.unclassified.many',
+    );
   });
 });
 
@@ -111,6 +168,13 @@ describe('AI governance errors', () => {
     ).toEqual(['mitigations']);
     expect(missingSections(httpError(409, { code: 'assessment_locked' }))).toEqual([]);
   });
+
+  it('recognises a refused downgrade', () => {
+    const err = httpError(409, { code: 'classification_downgrade', from: 'high', to: 'minimal' });
+    expect(isDowngradeRefusal(err)).toBe(true);
+    expect(aiGovernanceErrorKey(err)).toBe('aiGovernance.errors.classification_downgrade');
+    expect(isDowngradeRefusal(httpError(409, { code: 'assessment_locked' }))).toBe(false);
+  });
 });
 
 describe('AI governance page logic', () => {
@@ -128,18 +192,48 @@ describe('AI governance page logic', () => {
       owner: { id: 'u-1', name: 'Ada' },
       department_id: null,
       next_review_at: '2027-01-31T23:59:59',
+      supplier_id: 'sup-1',
+      supplier: { entity_type: 'supplier', entity_id: 'sup-1', title: 'Vendor AS' },
+      processing_activity_id: 'ropa-1',
+      processing_activity: { entity_type: 'ropa_entry', entity_id: 'ropa-1', title: 'HR' },
+      overseers: [{ id: 'u-2', name: 'Bo', literacy_valid: false }],
+      monitoring_metrics: [
+        { key: 'acc', metric: 'Accuracy', kind: 'accuracy', threshold: 0.9, direction: 'min' },
+      ],
     } as unknown as AiSystem;
     const form = systemToForm(system);
     expect(form.models).toBe('m1, m2');
     expect(form.next_review).toBe('2027-01-31');
-    const body = formToRequest({ ...form, description: '  ' });
+    expect(form.supplier?.entity_id).toBe('sup-1');
+    expect(form.overseer_user_ids).toEqual(['u-2']);
+    expect(form.metrics[0].threshold).toBe('0.9');
+    const body = formToRequest({
+      ...form,
+      description: '  ',
+      metrics: [...form.metrics, { ...form.metrics[0], key: null, metric: ' ', threshold: '' }],
+    });
     expect(body).toMatchObject({
       name: 'Bot',
       description: null,
       models: ['m1', 'm2'],
       owner_user_id: 'u-1',
       next_review_at: '2027-01-31T23:59:59',
+      supplier_id: 'sup-1',
+      processing_activity_id: 'ropa-1',
+      overseer_user_ids: ['u-2'],
     });
+    expect(body.monitoring_metrics).toEqual([
+      {
+        key: 'acc',
+        metric: 'Accuracy',
+        kind: 'accuracy',
+        threshold: 0.9,
+        direction: 'min',
+        unit: null,
+      },
+    ]);
+    // No personal data: no processing activity is sent.
+    expect(formToRequest({ ...form, uses_personal_data: false }).processing_activity_id).toBeNull();
     expect(formToRequest(emptySystemForm()).next_review_at).toBeNull();
   });
 
@@ -174,6 +268,22 @@ describe('AI governance page logic', () => {
     expect(isOverdue(base, now)).toBe(true);
     expect(isOverdue({ ...base, status: 'completed' }, now)).toBe(false);
     expect(isOverdue({ ...base, due_at: null }, now)).toBe(false);
+    const done = { status: 'approved', next_review_at: '2026-11-01T00:00:00' } as AssessmentSummary;
+    expect(isReviewOverdue(done, now)).toBe(true);
+    expect(isReviewOverdue({ ...done, status: 'draft' }, now)).toBe(false);
+  });
+
+  it('treats a draft with stored answers as prefilled and searches people', () => {
+    expect(hasAnswers({ role: 'deployer' })).toBe(true);
+    expect(hasAnswers({})).toBe(false);
+    expect(hasAnswers(null)).toBe(false);
+    const people = [
+      { id: '1', name: 'Kari Nordmann', department: 'HR' },
+      { id: '2', name: 'Lars Olsen', department: null },
+    ];
+    expect(filterPeople(people, 'hr').map((p) => p.id)).toEqual(['1']);
+    expect(filterPeople(people, ' lars ').map((p) => p.id)).toEqual(['2']);
+    expect(filterPeople(people, '').length).toBe(2);
   });
 
   it('lists only overview items that need attention', () => {
@@ -190,11 +300,40 @@ describe('AI governance page logic', () => {
       literacy_coverage: 50,
       has_policy: false,
     };
-    expect(attentionItems(overview).map((i) => i.key)).toEqual([
-      'unclassified',
-      'reviewsOverdue',
-      'noPolicy',
-    ]);
+    // Older payloads without attention: derived from the counts.
+    expect(attentionItems(overview).map((i) => i.key)).toEqual(['unclassified', 'no_policy']);
+    // The server's ranked list, with deep links and the system named when there is one.
+    const items = attentionItems({
+      ...overview,
+      attention: [
+        {
+          key: 'fria_missing',
+          count: 1,
+          severity: 'high',
+          url: '/ai-governance/systems/s-4',
+          params: { code: 'AIS-004', name: 'Ranking' },
+        },
+        {
+          key: 'awaiting_approval',
+          count: 4,
+          severity: 'medium',
+          url: '/ai-governance/assessments?status=completed',
+        },
+        { key: 'draft_assessments', count: 0, severity: 'low', url: '/x' },
+      ],
+    });
+    expect(items.map((i) => i.key)).toEqual(['fria_missing', 'awaiting_approval']);
+    expect(items[0]).toMatchObject({
+      textKey: 'aiGovernance.attention.fria_missing.named',
+      path: '/ai-governance/systems/s-4',
+      query: null,
+      params: { code: 'AIS-004', name: 'Ranking', count: 1 },
+    });
+    expect(items[1]).toMatchObject({
+      textKey: 'aiGovernance.attention.awaiting_approval.many',
+      path: '/ai-governance/assessments',
+      query: { status: 'completed' },
+    });
   });
 
   it('clamps months and parses numbers', () => {

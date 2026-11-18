@@ -11,7 +11,8 @@ const toSurveys = { redirectTo: '/feedback/surveys' };
  * already gates the area on the `feedback` module and `feedback:read`; recording
  * feedback needs `feedback:write`, designing surveys `feedback:manage`. The
  * backend links records as `/feedback/items/<id>` and `/feedback/surveys/<id>`.
- * The public answer page (`/survey/<token>`) lives in `feedback-public.routes.ts`.
+ * Module settings (`/feedback/settings`) are readable by everyone, editable with
+ * `feedback:manage` (checked on the page). The public answer page (`/survey/<token>`) lives in `feedback-public.routes.ts`.
  */
 export default [
   {
@@ -40,6 +41,11 @@ export default [
       {
         path: 'insights',
         loadComponent: () => import('./insights/feedback-insights').then((m) => m.FeedbackInsights),
+      },
+      {
+        path: 'settings',
+        loadComponent: () =>
+          import('./settings/feedback-settings').then((m) => m.FeedbackSettingsPage),
       },
       {
         path: 'surveys',

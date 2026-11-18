@@ -15,6 +15,7 @@ import {
   SUGGEST_DELAY_MS,
   SupportsRequirements,
   fieldLabelKey,
+  groupByClause,
   mergeSuggestions,
   linkRow,
 } from './supports-requirements';
@@ -81,12 +82,18 @@ async function setup(
     entityType?: string;
     actions?: { id: string; description: string }[];
     canEdit?: boolean;
+    langs?: Record<string, object>;
   } = {},
 ) {
   TestBed.configureTestingModule({
     imports: [
       SupportsRequirements,
-      TranslocoTestingModule.forRoot({ langs: { en: {}, 'standards/en': {} } }),
+      TranslocoTestingModule.forRoot({
+        langs: options.langs ?? { en: {}, 'standards/en': {} },
+        ...(options.langs
+          ? { translocoConfig: { availableLangs: ['en'], defaultLang: 'en' }, preloadLangs: true }
+          : {}),
+      }),
     ],
     providers: [
       provideZonelessChangeDetection(),
@@ -178,6 +185,28 @@ describe('SupportsRequirements', () => {
     http.expectNone(`${ROOT}/requirement-links/suggest`);
     expect(el.querySelector('[data-testid="find-more"]')).not.toBeNull();
     expect(emitted.at(-1)?.map((l) => l.id)).toEqual(['l-1', 'l-3']);
+  });
+
+  it("names an obligation's clause field by the obligation form's label, not the audit plan's", async () => {
+    const reqs = {
+      fromField: 'From «{{ field }}»',
+      fields: { clause_refs: 'Clauses audited', documented_refs: 'Clauses it documents' },
+    };
+    const { http, render, rows } = await setup(['standards:read'], {
+      entityType: 'compliance_obligation',
+      langs: { en: {}, 'standards/en': { reqs } },
+    });
+    http.expectOne(isList()).flush([
+      link({
+        entity_type: 'compliance_obligation',
+        origin: 'field',
+        origin_field: 'clause_refs',
+      }),
+    ]);
+    await render();
+    const text = rows()[0].row.querySelector('[data-testid="from-field"]')?.textContent ?? '';
+    expect(text).toContain('Clauses it documents');
+    expect(text).not.toContain('Clauses audited');
   });
 
   it('read-only users see links and stored suggestions without actions or suggest calls', async () => {
@@ -375,6 +404,22 @@ describe('supports-requirements helpers', () => {
     expect(fieldLabelKey('contract_type')).toBe('standards.reqs.fields.contract_type');
     expect(fieldLabelKey('mystery')).toBe('standards.reqs.fields.generic');
     expect(fieldLabelKey(null)).toBe('standards.reqs.fields.generic');
+    expect(fieldLabelKey('clause_refs')).toBe('standards.reqs.fields.clause_refs');
+    expect(fieldLabelKey('clause_refs', 'audit_plan')).toBe('standards.reqs.fields.clause_refs');
+    expect(fieldLabelKey('clause_refs', 'compliance_obligation')).toBe(
+      'standards.reqs.fields.documented_refs',
+    );
+    expect(fieldLabelKey('clause_refs', 'obligation_duty')).toBe(
+      'standards.reqs.fields.documented_refs',
+    );
+  });
+
+  it('keeps the record of the links on a grouped clause row', () => {
+    const rows = groupByClause([
+      linkRow(link({ origin: 'field', origin_field: 'clause_refs' }), () => 'ISO 27001'),
+      linkRow(link({ id: 'l-2', entity_id: 'act-1' }), () => 'ISO 27001'),
+    ]);
+    expect(rows.map((r) => r.entityId)).toEqual(['rec-1', 'act-1']);
   });
 
   it('merges stored and virtual suggestions without repeating known or rejected refs', () => {

@@ -8,17 +8,19 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../core/ai/page-context';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
-import { GuideIntro } from '../../shared/guidance/guide-intro';
 import { Alert } from '../../shared/ui/alert/alert';
-import { Icon } from '../../shared/ui/icon/icon';
+import { ErrorState } from '../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
+import { LoadingState } from '../../shared/ui/loading-state/loading-state';
+import { PageHeader } from '../../shared/ui/page-header/page-header';
 import { ObligationsApi } from './data/obligations-api';
-import { Obligation } from './data/obligation.models';
+import { ENTITY_TYPE, Obligation } from './data/obligation.models';
 import { obligationErrorKey } from './data/obligation-errors';
 import {
   ObligationFormValue,
@@ -29,43 +31,54 @@ import {
 import { ObligationForm, ObligationFormSubmit } from './obligation-form';
 import { ObligationProposal, ProposalAccepted } from './requirement-proposal';
 
-/** Edit an obligation's register fields and evaluation schedule (`/obligations/:id/edit`). */
+/**
+ * Edit an obligation's register fields, duties, linked clauses and evaluation plan
+ * (`/obligations/:id/edit`). `?reason=` starts the change reason (from a change
+ * note's "Update the obligation").
+ */
 @Component({
   selector: 'app-obligation-edit',
-  imports: [RouterLink, TranslocoPipe, GuideIntro, Alert, Icon, ObligationForm, ObligationProposal],
+  imports: [
+    TranslocoPipe,
+    Alert,
+    ErrorState,
+    HelpStrip,
+    LoadingState,
+    PageHeader,
+    ObligationForm,
+    ObligationProposal,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[960px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
-      <a
-        [routerLink]="['/obligations', id()]"
-        class="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
-      >
-        <app-icon name="back" [size]="16" />
-        {{ 'obligations.common.backToObligation' | transloco }}
-      </a>
+    <div class="mx-auto max-w-[808px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       @switch (state()) {
         @case ('loading') {
-          <p class="py-10 text-center text-[14px] text-fg-muted" role="status">
-            {{ 'obligations.common.loading' | transloco }}
-          </p>
+          <app-loading-state [rows]="6" />
         }
         @case ('error') {
-          <app-alert tone="error">{{ errorKey() | transloco }}</app-alert>
+          <app-error-state [bodyKey]="errorKey()" (retry)="reload()" />
         }
         @default {
           @if (obligation(); as o) {
-            <h1
-              class="mb-4 font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]"
-            >
-              {{ 'obligations.form.editTitle' | transloco: { code: o.code } }}
-            </h1>
-            <div class="mb-5"><app-guide-intro scope="obligations" page="form" /></div>
+            <app-page-header
+              titleKey="obligations.form.editTitle"
+              [titleParams]="{ code: o.code }"
+              [breadcrumbs]="[
+                { labelKey: 'modules.names.obligations', link: '/obligations' },
+                { label: o.code, link: ['/obligations', o.id] },
+                { labelKey: 'obligations.common.edit' },
+              ]"
+              [backLink]="['/obligations', o.id]"
+              backLabelKey="obligations.common.backToObligation"
+            />
+            <app-help-strip scope="obligations" page="form" lesson="legal-register" />
             @if (!o.can_edit) {
               <app-alert tone="info">{{ 'obligations.form.readOnly' | transloco }}</app-alert>
             } @else if (seed(); as value) {
               <app-obligation-form
                 mode="edit"
                 [value]="value"
+                [reason]="reason"
                 [ownerName]="o.owner?.name ?? null"
                 [busy]="saving()"
                 (changed)="draft.set($event)"
@@ -89,6 +102,11 @@ export class ObligationEdit {
 
   readonly id = input.required<string>();
 
+  /** `?reason=`: the change reason to start from. */
+  protected readonly reason = (
+    inject(ActivatedRoute).snapshot.queryParamMap.get('reason') ?? ''
+  ).slice(0, 1000);
+
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
   protected readonly errorKey = signal('obligations.common.loadFailed');
   protected readonly obligation = signal<Obligation | null>(null);
@@ -104,10 +122,11 @@ export class ObligationEdit {
     inject(DestroyRef).onDestroy(() => this.request.unsubscribe());
     providePageContext(() => ({
       module: 'obligations',
-      entityType: 'compliance_obligation',
+      entityType: ENTITY_TYPE,
       entityId: this.id(),
       view: 'edit',
       title: this.obligation()?.title ?? null,
+      requirements: [...(this.obligation()?.clause_refs ?? [])],
     }));
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();
@@ -151,6 +170,10 @@ export class ObligationEdit {
         this.notifications.error(obligationErrorKey(error));
       },
     });
+  }
+
+  protected reload(): void {
+    this.load(this.selectedOrg.currentOrgId(), this.id());
   }
 
   protected back(): void {

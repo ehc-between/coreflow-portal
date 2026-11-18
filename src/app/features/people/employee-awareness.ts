@@ -2,47 +2,98 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  computed,
   effect,
   inject,
   input,
+  output,
   signal,
   untracked,
 } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
-import { FieldHelp } from '../../shared/guidance/field-help';
+import { Term } from '../../shared/guidance/term';
 import { LocalDayPipe } from '../../shared/locale/locale-pipes';
+import { Badge } from '../../shared/ui/badge/badge';
 import { Button } from '../../shared/ui/button/button';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog/confirm-dialog';
-import { FormField } from '../../shared/ui/form-field/form-field';
+import { ErrorState } from '../../shared/ui/error-state/error-state';
 import { Icon } from '../../shared/ui/icon/icon';
+import { LoadingState } from '../../shared/ui/loading-state/loading-state';
+import { MenuItem, OverflowMenu } from '../../shared/ui/overflow-menu/overflow-menu';
 import { PeopleApi } from './data/people-api';
 import { textOrNull, todayIso } from './data/people-display';
 import { peopleErrorKey } from './data/people-errors';
-import { AWARENESS_KINDS, AwarenessKind, AwarenessRecord } from './data/people.models';
+import { AWARENESS_KINDS, AwarenessIn, AwarenessKind, AwarenessRecord } from './data/people.models';
+import { PeopleDocumentPicker, PickedDocument } from './ui/document-picker';
+import { PeopleField } from './ui/people-field';
 
-interface AwarenessDraft {
+export interface AwarenessDraft {
   readonly id: string | null;
   readonly topic: string;
   readonly kind: AwarenessKind;
   readonly completed_on: string;
+  readonly document: PickedDocument | null;
   readonly notes: string;
 }
 
 /**
- * Awareness records of one employee (ISO HS 7.3, ISO 27001 A.6.3): policies read,
- * security awareness, briefings, campaigns and inductions, with the date completed.
+ * Whether the draft can be saved: a date, a topic unless a document names it, and
+ * for "policy read" the policy document itself (so the record proves which version).
+ */
+export function awarenessDraftValid(d: AwarenessDraft): boolean {
+  if (!d.completed_on) {
+    return false;
+  }
+  if (d.kind === 'policy') {
+    return !!d.document;
+  }
+  return !!d.topic.trim() || !!d.document;
+}
+
+/** The request body of a draft (a document's title stands in for an empty topic). */
+export function toAwarenessIn(d: AwarenessDraft): AwarenessIn {
+  return {
+    topic: textOrNull(d.topic),
+    kind: d.kind,
+    completed_on: d.completed_on,
+    document_id: d.document?.id ?? null,
+    notes: textOrNull(d.notes),
+  };
+}
+
+/**
+ * "Bevisstgjøring" of one person (awareness, HS 7.3 and ISO 27001 A.6.3): policies
+ * read — linked to the document and the version read — security awareness,
+ * briefings and inductions. Read-and-sign acknowledgements from Documents and passed
+ * courses from Training are pulled in automatically and shown read-only.
  */
 @Component({
   selector: 'app-people-employee-awareness',
-  imports: [TranslocoPipe, LocalDayPipe, FieldHelp, Button, ConfirmDialog, FormField, Icon],
+  imports: [
+    RouterLink,
+    TranslocoPipe,
+    LocalDayPipe,
+    Term,
+    Badge,
+    Button,
+    ConfirmDialog,
+    ErrorState,
+    Icon,
+    LoadingState,
+    MenuItem,
+    OverflowMenu,
+    PeopleDocumentPicker,
+    PeopleField,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section aria-labelledby="cf-emp-aw-h" id="awareness">
-      <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <h2 id="cf-emp-aw-h" class="font-display text-[15px] font-bold text-fg">
+      <div class="mb-1 flex flex-wrap items-center justify-between gap-2">
+        <h2 id="cf-emp-aw-h" class="text-card font-bold text-fg">
           {{ 'people.awareness.title' | transloco }}
         </h2>
         @if (canEdit()) {
@@ -57,44 +108,82 @@ interface AwarenessDraft {
           </app-button>
         }
       </div>
+      <p class="mb-3 text-meta text-fg-muted">
+        {{ 'people.awareness.subtitleBefore' | transloco }}
+        <app-term key="awareness" scope="people">{{
+          'people.awareness.term' | transloco
+        }}</app-term>
+        {{ 'people.awareness.subtitleAfter' | transloco }}
+      </p>
       @switch (state()) {
         @case ('loading') {
-          <p class="py-4 text-[13px] text-fg-muted" role="status">
-            {{ 'people.common.loading' | transloco }}
-          </p>
+          <app-loading-state [rows]="2" />
         }
         @case ('error') {
-          <p class="py-4 text-[13px] text-fail" role="alert">
-            {{ 'people.common.loadFailed' | transloco }}
-          </p>
+          <app-error-state (retry)="reload()" />
         }
         @default {
           @if (items().length === 0) {
-            <p class="py-3 text-[13px] text-fg-muted">{{ 'people.awareness.empty' | transloco }}</p>
+            <p class="py-3 text-ui text-fg-muted">{{ 'people.awareness.empty' | transloco }}</p>
           } @else {
             <ul class="divide-y divide-border" data-testid="awareness-rows">
               @for (r of items(); track r.id) {
                 <li class="flex flex-wrap items-start gap-2 py-2.5">
                   <div class="min-w-0 flex-1">
-                    <p class="text-[13.5px] font-semibold text-fg">{{ r.topic }}</p>
-                    <p class="text-[12px] text-fg-subtle">
-                      {{ 'people.awarenessKinds.' + r.kind | transloco }} ·
-                      {{ r.completed_on | localDay }}
+                    <p class="flex flex-wrap items-center gap-1.5">
+                      @if (r.document; as doc) {
+                        <a
+                          [routerLink]="doc.url"
+                          class="text-body font-semibold text-fg hover:underline"
+                        >
+                          @if (doc.code) {
+                            <span class="font-mono text-meta text-fg-subtle">{{ doc.code }}</span>
+                          }
+                          {{ doc.title }}
+                        </a>
+                      } @else if (r.url) {
+                        <a
+                          [routerLink]="r.url"
+                          class="text-body font-semibold text-fg hover:underline"
+                          >{{ r.topic }}</a
+                        >
+                      } @else {
+                        <span class="text-body font-semibold text-fg">{{ r.topic }}</span>
+                      }
+                      @if (r.source && r.source !== 'manual') {
+                        <app-badge tone="info">{{
+                          'people.awareness.sources.' + r.source | transloco
+                        }}</app-badge>
+                      }
+                    </p>
+                    <p class="text-meta text-fg-muted">
+                      {{ 'people.awarenessKinds.' + r.kind | transloco }}
+                      @if (r.completed_on) {
+                        ·
+                        @if (r.revision) {
+                          {{
+                            'people.awareness.versionRead'
+                              | transloco
+                                : { rev: r.revision.rev, date: (r.completed_on | localDay) }
+                          }}
+                        } @else {
+                          {{ r.completed_on | localDay }}
+                        }
+                      }
                     </p>
                     @if (r.notes) {
-                      <p class="mt-1 text-[12.5px] whitespace-pre-line text-fg-muted">
-                        {{ r.notes }}
-                      </p>
+                      <p class="mt-1 text-meta whitespace-pre-line text-fg-muted">{{ r.notes }}</p>
                     }
                   </div>
-                  @if (canEdit()) {
-                    <app-button size="sm" variant="ghost" (click)="open(r)">
-                      {{ 'people.common.edit' | transloco }}
-                    </app-button>
-                    <app-button size="sm" variant="ghost" (click)="removing.set(r)">
-                      <app-icon name="trash" [size]="14" />
-                      <span class="sr-only">{{ 'people.common.delete' | transloco }}</span>
-                    </app-button>
+                  @if (canEdit() && isEditable(r)) {
+                    <app-overflow-menu [iconOnly]="true" labelKey="people.awareness.rowMenu">
+                      <button appMenuItem type="button" (click)="open(r)">
+                        {{ 'people.common.edit' | transloco }}
+                      </button>
+                      <button appMenuItem type="button" [danger]="true" (click)="removing.set(r)">
+                        {{ 'people.common.delete' | transloco }}
+                      </button>
+                    </app-overflow-menu>
                   }
                 </li>
               }
@@ -114,25 +203,19 @@ interface AwarenessDraft {
       [cancelLabel]="'common.cancel' | transloco"
       confirmVariant="primary"
       [busy]="busy()"
-      [confirmDisabled]="!draft()?.topic?.trim() || !draft()?.completed_on"
-      initialFocus="#cf-aw-topic"
+      [confirmDisabled]="!valid()"
+      initialFocus="#cf-aw-kind"
       (confirmed)="save()"
       (cancelled)="draft.set(null)"
     >
       @if (draft(); as d) {
         <div class="mt-4 flex flex-col gap-3">
-          <app-form-field [label]="'people.fields.topic' | transloco" inputId="cf-aw-topic">
-            <input
-              id="cf-aw-topic"
-              type="text"
-              maxlength="200"
-              required
-              [value]="d.topic"
-              (input)="patch({ topic: $any($event.target).value })"
-              data-testid="awareness-topic"
-            />
-          </app-form-field>
-          <app-form-field [label]="'people.fields.awarenessKind' | transloco" inputId="cf-aw-kind">
+          <app-people-field
+            labelKey="people.fields.awarenessKind"
+            inputId="cf-aw-kind"
+            page="detail"
+            help="awareness"
+          >
             <select id="cf-aw-kind" (change)="patch({ kind: $any($event.target).value })">
               @for (k of kinds; track k) {
                 <option [value]="k" [selected]="d.kind === k">
@@ -140,9 +223,43 @@ interface AwarenessDraft {
                 </option>
               }
             </select>
-          </app-form-field>
-          <app-field-help scope="people" page="detail" field="awareness" />
-          <app-form-field [label]="'people.fields.completedOn' | transloco" inputId="cf-aw-date">
+          </app-people-field>
+          <app-people-field
+            labelKey="people.fields.document"
+            inputId="cf-aw-doc"
+            [required]="d.kind === 'policy'"
+            [hintKey]="
+              d.kind === 'policy'
+                ? 'people.awareness.documentHint'
+                : 'people.awareness.documentOptional'
+            "
+          >
+            <app-people-document-picker
+              inputId="cf-aw-doc"
+              [value]="d.document"
+              (valueChange)="patch({ document: $event })"
+            />
+          </app-people-field>
+          <app-people-field
+            labelKey="people.fields.topic"
+            inputId="cf-aw-topic"
+            [required]="!d.document"
+            [hintKey]="d.document ? 'people.awareness.topicFromDocument' : null"
+          >
+            <input
+              id="cf-aw-topic"
+              type="text"
+              maxlength="200"
+              [value]="d.topic"
+              (input)="patch({ topic: $any($event.target).value })"
+              data-testid="awareness-topic"
+            />
+          </app-people-field>
+          <app-people-field
+            labelKey="people.fields.completedOn"
+            inputId="cf-aw-date"
+            [required]="true"
+          >
             <input
               id="cf-aw-date"
               type="date"
@@ -150,8 +267,8 @@ interface AwarenessDraft {
               [value]="d.completed_on"
               (change)="patch({ completed_on: $any($event.target).value })"
             />
-          </app-form-field>
-          <app-form-field [label]="'people.fields.notes' | transloco" inputId="cf-aw-notes">
+          </app-people-field>
+          <app-people-field labelKey="people.fields.awarenessNotes" inputId="cf-aw-notes">
             <textarea
               id="cf-aw-notes"
               rows="2"
@@ -159,7 +276,7 @@ interface AwarenessDraft {
               [value]="d.notes"
               (input)="patch({ notes: $any($event.target).value })"
             ></textarea>
-          </app-form-field>
+          </app-people-field>
         </div>
       }
     </app-confirm-dialog>
@@ -183,6 +300,7 @@ export class EmployeeAwarenessSection {
 
   readonly employeeId = input.required<string>();
   readonly canEdit = input(false);
+  readonly changed = output<void>();
 
   protected readonly kinds = AWARENESS_KINDS;
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
@@ -190,6 +308,10 @@ export class EmployeeAwarenessSection {
   protected readonly draft = signal<AwarenessDraft | null>(null);
   protected readonly removing = signal<AwarenessRecord | null>(null);
   protected readonly busy = signal(false);
+  protected readonly valid = computed(() => {
+    const d = this.draft();
+    return d !== null && awarenessDraftValid(d);
+  });
 
   private request = new Subscription();
 
@@ -202,32 +324,40 @@ export class EmployeeAwarenessSection {
     });
   }
 
-  protected open(record: AwarenessRecord | null): void {
+  /** Opened from the page too ("Registrer" in the compliance card). */
+  open(record: AwarenessRecord | null): void {
+    const kind = record?.kind && record.kind !== 'training' ? record.kind : 'policy';
     this.draft.set({
       id: record?.id ?? null,
-      topic: record?.topic ?? '',
-      kind: record?.kind ?? 'briefing',
+      topic: record && !record.document ? record.topic : '',
+      kind,
       completed_on: record?.completed_on ?? todayIso(),
+      document: record?.document
+        ? { id: record.document.id, code: record.document.code, title: record.document.title }
+        : null,
       notes: record?.notes ?? '',
     });
+  }
+
+  protected isEditable(r: AwarenessRecord): boolean {
+    return r.editable !== false && (r.source ?? 'manual') === 'manual';
   }
 
   protected patch(patch: Partial<AwarenessDraft>): void {
     this.draft.update((d) => (d ? { ...d, ...patch } : d));
   }
 
+  protected reload(): void {
+    this.load(this.selectedOrg.currentOrgId(), this.employeeId());
+  }
+
   protected save(): void {
     const orgId = this.selectedOrg.currentOrgId();
     const d = this.draft();
-    if (!orgId || !d || !d.topic.trim() || !d.completed_on || this.busy()) {
+    if (!orgId || !d || !awarenessDraftValid(d) || this.busy()) {
       return;
     }
-    const body = {
-      topic: d.topic.trim(),
-      kind: d.kind,
-      completed_on: d.completed_on,
-      notes: textOrNull(d.notes),
-    };
+    const body = toAwarenessIn(d);
     this.busy.set(true);
     const call = d.id
       ? this.api.updateAwareness(orgId, d.id, body)
@@ -237,7 +367,8 @@ export class EmployeeAwarenessSection {
         this.busy.set(false);
         this.draft.set(null);
         this.notifications.success('people.notices.awarenessSaved');
-        this.load(orgId, this.employeeId());
+        this.reload();
+        this.changed.emit();
       },
       error: (error: unknown) => {
         this.busy.set(false);
@@ -258,7 +389,8 @@ export class EmployeeAwarenessSection {
         this.busy.set(false);
         this.removing.set(null);
         this.notifications.success('people.notices.awarenessDeleted');
-        this.load(orgId, this.employeeId());
+        this.reload();
+        this.changed.emit();
       },
       error: (error: unknown) => {
         this.busy.set(false);

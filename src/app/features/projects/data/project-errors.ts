@@ -9,12 +9,16 @@ export const PROJECT_ERROR_CODES = [
   'invalid_category',
   'invalid_dates',
   'invalid_department',
+  'invalid_document',
   'invalid_fields',
   'invalid_filter',
   'invalid_kind',
   'invalid_member_role',
+  'invalid_objective_met',
   'invalid_outcome',
   'invalid_phase',
+  'invalid_project',
+  'invalid_revision',
   'invalid_sort',
   'invalid_status',
   'module_disabled',
@@ -24,6 +28,7 @@ export const PROJECT_ERROR_CODES = [
   'project_has_open_items',
   'project_not_closed',
   'title_required',
+  'unsupported_entity_type',
   'user_not_member',
 ] as const;
 
@@ -67,5 +72,6 @@ export function openItemsOf(error: unknown): OpenItemsDetail | null {
     open_milestones: count('open_milestones'),
     pending_design_reviews: count('pending_design_reviews'),
     open_tasks: count('open_tasks'),
+    open_review_actions: count('open_review_actions'),
   };
 }

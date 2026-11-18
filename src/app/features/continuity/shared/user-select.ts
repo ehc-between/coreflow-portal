@@ -55,6 +55,95 @@ export class ContinuityUserSelect {
   }
 }
 
+/**
+ * Several org members (exercise participants): the chosen people as chips with a
+ * remove button, and a select to add one more. Participation then counts as
+ * training evidence on each person.
+ */
+@Component({
+  selector: 'app-continuity-member-picker',
+  imports: [TranslocoPipe],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
+    @if (chosen().length) {
+      <ul class="mb-2 flex flex-wrap gap-1.5" data-testid="member-chips">
+        @for (user of chosen(); track user.id) {
+          <li
+            class="inline-flex items-center gap-1 rounded-full border border-border bg-surface-2 py-0.5 pr-1 pl-2.5 text-meta text-fg"
+          >
+            {{ user.label }}
+            @if (!disabled()) {
+              <button
+                type="button"
+                class="inline-flex h-6 w-6 items-center justify-center rounded-full text-fg-muted hover:bg-surface hover:text-fg"
+                [attr.aria-label]="
+                  'continuity.common.removeNamed' | transloco: { name: user.label }
+                "
+                (click)="remove(user.id)"
+              >
+                ×
+              </button>
+            }
+          </li>
+        }
+      </ul>
+    }
+    <select
+      [id]="inputId()"
+      [disabled]="disabled()"
+      [attr.aria-describedby]="describedBy() || null"
+      (change)="add($any($event.target)); $any($event.target).value = ''"
+    >
+      <option value="" selected>{{ 'continuity.common.addPerson' | transloco }}</option>
+      @for (user of available(); track user.id) {
+        <option [value]="user.id">{{ user.label }}</option>
+      }
+    </select>
+  `,
+})
+export class ContinuityMemberPicker {
+  private readonly options = inject(AssigneeOptionsService);
+
+  readonly inputId = input('');
+  readonly value = input<readonly string[]>([]);
+  /** Names the API already knows (for members missing from the options). */
+  readonly known = input<readonly { id: string; name: string | null }[]>([]);
+  readonly disabled = input(false);
+  readonly describedBy = input('');
+  readonly valueChange = output<string[]>();
+
+  private readonly users = computed(() =>
+    this.options.options().users.map((u) => ({ id: strip(u.value, 'user:'), label: u.label })),
+  );
+  protected readonly chosen = computed(() =>
+    this.value().map((id) => ({
+      id,
+      label:
+        this.users().find((u) => u.id === id)?.label ??
+        this.known().find((k) => k.id === id)?.name ??
+        '—',
+    })),
+  );
+  protected readonly available = computed(() =>
+    this.users().filter((u) => !this.value().includes(u.id)),
+  );
+
+  constructor() {
+    this.options.ensureLoaded();
+  }
+
+  protected add(select: HTMLSelectElement): void {
+    const id = select.value;
+    if (id && !this.value().includes(id)) {
+      this.valueChange.emit([...this.value(), id]);
+    }
+  }
+
+  protected remove(id: string): void {
+    this.valueChange.emit(this.value().filter((v) => v !== id));
+  }
+}
+
 /** Native `<select>` of the current org's departments, valued by id ('' = none). */
 @Component({
   selector: 'app-continuity-department-select',

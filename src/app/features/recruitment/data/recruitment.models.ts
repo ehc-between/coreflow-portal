@@ -125,6 +125,18 @@ export const REQUISITION_SORTS = [
 ] as const;
 export type RequisitionSort = (typeof REQUISITION_SORTS)[number];
 
+export const RETENTION_BASES = ['active', 'closed', 'talent_pool', 'hired'] as const;
+export type RetentionBasis = (typeof RETENTION_BASES)[number];
+
+export const APPLICATION_SORTS = [
+  '-updated_at',
+  '-created_at',
+  'created_at',
+  '-stage_changed_at',
+  'stage_changed_at',
+] as const;
+export type ApplicationSort = (typeof APPLICATION_SORTS)[number];
+
 export const CANDIDATE_SORTS = ['-created_at', 'created_at', 'name', 'retention_until'] as const;
 export type CandidateSort = (typeof CANDIDATE_SORTS)[number];
 
@@ -147,6 +159,20 @@ export interface CriterionInput {
   readonly description?: string | null;
 }
 
+/** A record of another module (code, title, portal url). */
+export interface LinkedRef {
+  readonly id: string;
+  readonly code: string | null;
+  readonly title: string;
+  readonly url: string | null;
+}
+
+/** A linked record of another module, resolved for the caller (null when gone or unreadable). */
+export interface EntityLink extends LinkedRef {
+  readonly entity_type: string;
+  readonly status: string | null;
+}
+
 export interface ListResponse<T> {
   readonly items: readonly T[];
   readonly total: number;
@@ -166,6 +192,8 @@ export interface RequisitionCreate {
   readonly target_start_date?: string | null;
   readonly hiring_manager_user_id?: string | null;
   readonly recruiter_user_id?: string | null;
+  /** The People position this hire is for (optional). */
+  readonly position_id?: string | null;
   readonly screening_criteria: readonly CriterionInput[];
   readonly posting_title?: string | null;
   readonly posting_text?: string | null;
@@ -192,6 +220,7 @@ export interface Requisition {
   readonly target_start_date: string | null;
   readonly hiring_manager: UserRef | null;
   readonly recruiter: UserRef | null;
+  readonly position?: LinkedRef | null;
   readonly screening_criteria: readonly Criterion[];
   readonly posting_title: string | null;
   readonly posting_text: string | null;
@@ -201,6 +230,8 @@ export interface Requisition {
   readonly submitted_by: UserRef | null;
   readonly decided_at: string | null;
   readonly decided_by: UserRef | null;
+  /** Which decision `decided_by` took (null: none yet). */
+  readonly decision?: 'approved' | 'rejected' | null;
   readonly decision_note: string | null;
   readonly approval_task_id: string | null;
   readonly closed_at: string | null;
@@ -233,6 +264,20 @@ export interface RequisitionQuery {
   readonly sort?: RequisitionSort;
   readonly limit?: number;
   readonly offset?: number;
+}
+
+export interface PrefillCriterion extends Criterion {
+  readonly required_level: number | null;
+}
+
+/** New-requisition values from a People position (nothing is saved). */
+export interface PositionPrefill {
+  readonly position: LinkedRef;
+  readonly title: string;
+  readonly description: string | null;
+  readonly department_id: string | null;
+  readonly role_risk: RoleRisk;
+  readonly screening_criteria: readonly PrefillCriterion[];
 }
 
 export interface PipelineColumn {
@@ -285,6 +330,11 @@ export interface Candidate {
   readonly consent_given_at: string | null;
   readonly consent_withdrawn_at: string | null;
   readonly retention_until: string | null;
+  /** Why the candidate is kept until `retention_until`. */
+  readonly retention_basis?: RetentionBasis | null;
+  /** The retention period applied (days). */
+  readonly retention_days?: number | null;
+  readonly latest_stage?: Stage | null;
   readonly created_by: UserRef | null;
   readonly created_at: string;
   readonly updated_at: string;
@@ -293,8 +343,19 @@ export interface Candidate {
   readonly url: string;
 }
 
+/** The exact approved privacy-notice revision a candidate was given. */
+export interface NoticeRevision {
+  readonly document_id: string;
+  readonly code: string | null;
+  readonly title: string;
+  readonly revision: string;
+  readonly approved_at: string | null;
+  readonly url: string;
+}
+
 export interface CandidateDetail extends Candidate {
   readonly applications: readonly ApplicationSummary[];
+  readonly privacy_notice?: NoticeRevision | null;
 }
 
 export interface CandidateQuery {
@@ -324,6 +385,16 @@ export interface ApplicationSummary {
   readonly created_at: string;
   readonly updated_at: string;
   readonly url: string;
+  // Board / list indicators (absent on older servers).
+  readonly screening_assessed?: number;
+  readonly screening_total?: number;
+  readonly screening_complete?: boolean;
+  readonly screening_overridden?: boolean;
+  readonly checks_required?: number;
+  readonly checks_done?: number;
+  readonly scorecards_submitted?: number;
+  readonly days_in_stage?: number;
+  readonly stalled?: boolean;
 }
 
 export interface ScreeningEntry {
@@ -335,6 +406,9 @@ export interface ScreeningEntry {
 export interface Application extends ApplicationSummary {
   readonly cover_note: string | null;
   readonly screening: readonly ScreeningEntry[];
+  /** Criterion ids without a result yet ("unknown" does not count). */
+  readonly screening_missing?: readonly string[];
+  readonly screening_override?: ScreeningOverride | null;
   readonly rejection_reason: RejectionReason | null;
   readonly rejection_note: string | null;
   readonly offer_start_date: string | null;
@@ -349,9 +423,50 @@ export interface Application extends ApplicationSummary {
   readonly can_edit: boolean;
 }
 
+export interface ScreeningOverride {
+  readonly reason: string | null;
+  readonly by: UserRef | null;
+  readonly at: string;
+}
+
+/** What the checks card shows: required types, planned required checks by state, unplanned types. */
+export interface ChecksSummary {
+  readonly required_types: readonly CheckType[];
+  readonly planned: number;
+  readonly open: number;
+  readonly done: number;
+  readonly failed: number;
+  readonly not_planned: readonly CheckType[];
+}
+
+export const OFFER_BLOCKERS = [
+  'application_closed',
+  'offer_made',
+  'requisition_not_open',
+  'privacy_notice_missing',
+  'screening_incomplete',
+  'checks_open',
+  'checks_not_planned',
+  'checks_failed',
+] as const;
+export type OfferBlockerCode = (typeof OFFER_BLOCKERS)[number];
+
+/** Why the offer cannot be made yet. */
+export interface OfferBlocker {
+  readonly code: string;
+  readonly count?: number | null;
+  readonly status?: string | null;
+  readonly missing?: readonly string[] | null;
+  readonly check_types?: readonly string[] | null;
+}
+
 export interface ApplicationDetail extends Application {
   readonly criteria: readonly Criterion[];
   readonly required_checks: readonly CheckType[];
+  readonly checks_summary?: ChecksSummary;
+  readonly offer_blockers?: readonly OfferBlocker[];
+  /** The People record created from this hire (when readable). */
+  readonly employee?: LinkedRef | null;
   readonly interviews: readonly Interview[];
   readonly scorecards: readonly Scorecard[];
   readonly checks: readonly Check[];
@@ -363,6 +478,13 @@ export interface ApplicationQuery {
   readonly candidate_id?: string;
   readonly stage?: readonly Stage[];
   readonly q?: string;
+  /** Active applications where not every criterion has a result. */
+  readonly screening?: 'incomplete';
+  /** Required checks still open / past their due date. */
+  readonly checks?: 'open' | 'overdue';
+  /** No stage change for 14 days. */
+  readonly stalled?: boolean;
+  readonly sort?: ApplicationSort;
   readonly limit?: number;
   readonly offset?: number;
 }
@@ -384,11 +506,14 @@ export interface MoveRequest {
   readonly stage: MoveStage;
   readonly rejection_reason?: RejectionReason | null;
   readonly note?: string | null;
+  /** Logged reason to move past screening before every criterion has a result. */
+  readonly override_reason?: string | null;
 }
 
 export interface OfferRequest {
   readonly start_date?: string | null;
   readonly note?: string | null;
+  readonly override_reason?: string | null;
 }
 
 export interface OfferResponse {
@@ -467,6 +592,9 @@ export interface Check {
   readonly required: boolean;
   readonly status: CheckStatus;
   readonly consent_obtained: boolean;
+  /** The law that allows the check and why (criminal-record and credit checks). */
+  readonly legal_basis?: string | null;
+  readonly needs_legal_basis?: boolean;
   readonly referee_name: string | null;
   readonly referee_contact: string | null;
   readonly notes: string | null;
@@ -481,6 +609,7 @@ export interface CheckCreate {
   readonly check_type: CheckType;
   readonly required: boolean;
   readonly consent_obtained: boolean;
+  readonly legal_basis?: string | null;
   readonly referee_name?: string | null;
   readonly referee_contact?: string | null;
   readonly due_at?: string | null;
@@ -491,6 +620,7 @@ export interface CheckUpdate {
   readonly status?: CheckStatus;
   readonly required?: boolean;
   readonly consent_obtained?: boolean;
+  readonly legal_basis?: string | null;
   readonly referee_name?: string | null;
   readonly referee_contact?: string | null;
   readonly due_at?: string | null;
@@ -499,20 +629,122 @@ export interface CheckUpdate {
 
 // --- settings -------------------------------------------------------------------------
 
+/** Check types that can be planned automatically (criminal-record and credit never are). */
+export const POLICY_CHECK_TYPES = [
+  'identity',
+  'right_to_work',
+  'reference',
+  'employment_history',
+  'education',
+  'other',
+] as const;
+export type PolicyCheckType = (typeof POLICY_CHECK_TYPES)[number];
+
+export type CheckPolicy = Readonly<Record<RoleRisk, readonly CheckType[]>>;
+
+export const LINK_KINDS = ['processing_record', 'dpia', 'ai_system'] as const;
+export type LinkKind = (typeof LINK_KINDS)[number];
+
+export const DPIA_REASONS = ['special_checks', 'ai_assist', 'profiling'] as const;
+
+/**
+ * PUT body. The first four fields are required as before; the others are left
+ * unchanged when omitted, and `null` clears a link (or resets the check policy).
+ */
 export interface RecruitmentSettingsInput {
   readonly retention_days: number;
   readonly talent_pool_days: number;
   readonly privacy_notice?: string | null;
   readonly privacy_notice_version?: string | null;
+  readonly hired_retention_days?: number;
+  readonly check_policy?: Readonly<Record<RoleRisk, readonly PolicyCheckType[]>> | null;
+  readonly privacy_notice_document_id?: string | null;
+  readonly processing_record_id?: string | null;
+  readonly dpia_id?: string | null;
+  readonly ai_system_id?: string | null;
+}
+
+export interface NoticeDocument {
+  readonly id: string;
+  readonly code: string | null;
+  readonly title: string;
+  readonly status: string;
+  readonly url: string;
+  readonly approved_revision: string | null;
+  readonly approved_at: string | null;
+  /** What candidates are recorded with, e.g. "POL-004 rev. B". */
+  readonly version: string | null;
+}
+
+export interface RetentionRun {
+  readonly due_now: number;
+  readonly due_30d: number;
+  readonly last_run_at: string | null;
+  readonly last_run_erased: number | null;
 }
 
 export interface RecruitmentSettings {
   readonly retention_days: number;
   readonly talent_pool_days: number;
+  readonly hired_retention_days?: number;
   readonly privacy_notice: string | null;
   readonly privacy_notice_version: string | null;
+  readonly effective_notice_version?: string | null;
+  readonly privacy_notice_document?: NoticeDocument | null;
   readonly updated_at: string | null;
-  readonly check_policy: Readonly<Record<RoleRisk, readonly CheckType[]>>;
+  readonly check_policy: CheckPolicy;
+  readonly check_policy_custom?: boolean;
+  readonly default_check_policy?: CheckPolicy;
+  readonly legal_basis_checks?: readonly CheckType[];
+  readonly processing_record?: EntityLink | null;
+  readonly dpia?: EntityLink | null;
+  readonly ai_system?: EntityLink | null;
+  readonly dpia_reasons?: readonly string[];
+  readonly ai_use?: { readonly runs_30d: number; readonly last_run_at: string | null };
+  readonly retention_run?: RetentionRun;
+}
+
+/** Values to create recruitment's record of processing, DPIA or AI-system entry. */
+export interface LinkPrefill {
+  readonly kind: LinkKind;
+  readonly entity_type: string;
+  /** Create endpoint under `/api/v1`, e.g. `/orgs/<id>/privacy/ropa`. */
+  readonly api_path: string;
+  readonly portal_route: string;
+  readonly settings_field: 'processing_record_id' | 'dpia_id' | 'ai_system_id';
+  readonly values: Readonly<Record<string, unknown>>;
+}
+
+// --- overview -------------------------------------------------------------------------
+
+export const OVERVIEW_COUNTERS = [
+  'approvals_waiting',
+  'screening_not_done',
+  'checks_overdue',
+  'offers_pending',
+  'stalled',
+  'deletions_next_30d',
+  'open_requisitions',
+  'active_applications',
+  'checks_open',
+  'interviews_next_7d',
+  'deletions_due',
+] as const;
+export type OverviewCounter = (typeof OVERVIEW_COUNTERS)[number];
+
+export interface RecruitmentOverview {
+  readonly counts: Readonly<Record<OverviewCounter, number>>;
+  readonly stages: Readonly<Partial<Record<Stage, number>>>;
+  readonly kpis: {
+    readonly hires_365d: number;
+    readonly median_days_to_hire: number | null;
+    readonly hires_checks_complete_pct: number | null;
+    readonly hires_screening_complete_pct: number | null;
+    readonly rejection_reasons: readonly { readonly key: string; readonly count: number }[];
+    readonly retention_overdue: number;
+  };
+  /** Portal url of the filtered list behind each counter. */
+  readonly links: Readonly<Partial<Record<OverviewCounter, string>>>;
 }
 
 // --- AI assists -----------------------------------------------------------------------

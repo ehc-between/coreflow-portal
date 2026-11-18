@@ -3,92 +3,110 @@
     "overview": {
       "intro": {
         "title": "Miljøstyring på ett blikk",
-        "body": "ISO 14001 krever at dere vet hvordan arbeidet påvirker miljøet, er forberedt på nødsituasjoner og måler prestasjonen. Denne siden samler de tre: registeret over **aspekter og påvirkninger**, **beredskapsplanene** med øvelser, og **måledataene** bak utslippene.",
+        "body": "Siden viser hvordan organisasjonen påvirker miljøet, og hva som må gjøres. Begynn med **Trenger oppfølging**: hver linje åpner postene det gjelder.",
         "steps": [
-          "Registrer miljøaspektene ved de viktigste aktivitetene og vurder hvor vesentlige de er.",
-          "Skriv en beredskapsplan for hvert alvorlig scenario og planlegg øvelser.",
-          "Sett opp måleparametere for energi, vann, avfall og utslipp, og registrer verdier jevnlig."
+          "Registrer miljøaspektene ved de viktigste aktivitetene og gi dem poeng.",
+          "Gi hvert vesentlige aspekt driftskontroller, og hver nødsituasjon en beredskapsplan.",
+          "Mål energi, vann, avfall og utslipp, og sammenlign med målene."
         ]
       },
       "why": {
-        "body": "Et miljøstyringssystem bygger på at dere kjenner de vesentlige aspektene, styrer dem, er forberedt på nødsituasjoner og kontrollerer med data at ting blir bedre. Revisorer begynner her: de ser etter et komplett og oppdatert register, testede beredskapsplaner og overvåking som viser utviklingen.",
-        "clauses": ["iso14001:6.1.2", "iso14001:8.1", "iso14001:8.2", "iso14001:9.1.1"]
+        "body": "ISO 14001 krever at organisasjonen kjenner de vesentlige aspektene sine, styrer dem, er forberedt på nødsituasjoner, oppfyller lovkravene og viser med data at det blir bedre. Revisorer begynner her: de ser etter et komplett register, testede beredskapsplaner, vurderte forpliktelser og målinger som viser utviklingen.",
+        "clauses": [
+          "iso14001:6.1.2",
+          "iso14001:6.1.3",
+          "iso14001:8.1",
+          "iso14001:8.2",
+          "iso14001:9.1.1"
+        ]
       }
     },
     "aspects": {
       "intro": {
         "title": "Registeret over aspekter og påvirkninger",
-        "body": "Et **miljøaspekt** er den delen av en aktivitet, et produkt eller en tjeneste som samvirker med miljøet, for eksempel drivstofforbruk eller avløpsvann. **Påvirkningen** er endringen det fører til, for eksempel klimautslipp eller vannforurensning. Hvert aspekt får poeng, så dere ser hvilke som er **vesentlige** og må styres.",
+        "body": "Et **miljøaspekt** er den delen av en aktivitet som samvirker med miljøet, for eksempel drivstofforbruk eller avløpsvann. **Påvirkningen** er endringen det fører til, for eksempel klimautslipp eller vannforurensning. Hvert aspekt får poeng, så du ser hvilke som er **vesentlige** og må styres.",
         "steps": [
-          "Velg en aktivitet og list aspektene under normale, unormale og nødsituasjoner.",
-          "Tenk i et livsløpsperspektiv: fra råvarer til sluttbehandling.",
-          "Gi hvert aspekt poeng og beskriv driftskontrollene for de vesentlige."
+          "Velg en aktivitet og list aspektene ved normal drift, unormal drift og i nødsituasjoner.",
+          "Gi hvert aspekt poeng med vurderingsmetoden.",
+          "Koble lovene som gjelder, og kontrollene for de vesentlige aspektene."
         ]
       },
       "why": {
-        "body": "Punkt 6.1.2 krever at dere fastsetter aspektene dere kan styre og dem dere kan påvirke, med påvirkningene og et livsløpsperspektiv, og avgjør hvilke som er vesentlige ut fra kriterier dere har fastsatt. De vesentlige aspektene styrer mål og driftskontroller, så registeret må holdes oppdatert når aktivitetene endres.",
+        "body": "Punkt 6.1.2 krever at organisasjonen fastsetter aspektene den kan styre og dem den kan påvirke, med påvirkningene og et livsløpsperspektiv, og avgjør hvilke som er vesentlige etter fastsatte kriterier. De vesentlige aspektene styrer mål og driftskontroller, så registeret må holdes oppdatert når aktivitetene endres.",
         "clauses": ["iso14001:6.1.2", "iso14001:6.1.4", "iso14001:8.1"]
       },
       "empty": {
         "title": "Ingen miljøaspekter ennå",
-        "body": "Begynn med aktivitetene som bruker mest energi, vann eller materialer, eller lager mest avfall. Skriv inn aktiviteten og la assistenten foreslå typiske aspekter som dere kan kontrollere og justere.",
-        "cta": "Registrer det første aspektet"
+        "body": "Begynn med aktivitetene som bruker mest energi, vann eller materialer, eller lager mest avfall. Beskriv aktiviteten og la assistenten foreslå typiske aspekter som du kontrollerer og justerer.",
+        "cta": "Nytt miljøaspekt"
       }
     },
     "aspectForm": {
       "intro": {
         "title": "Registrere et aspekt",
-        "body": "Beskriv **aktiviteten**, **aspektet** (det som samvirker med miljøet) og **påvirkningen** (det som endres). Gi deretter poeng etter organisasjonens kriterier. Poengsum og vesentlighet beregnes underveis.",
+        "body": "Beskriv **aktiviteten**, **aspektet** (det som samvirker med miljøet) og **påvirkningen** (det som endres). Gi deretter poeng etter kriteriene. Poengsum og vesentlighet oppdateres underveis.",
         "steps": [
           "Beskriv aktiviteten og aspektet med enkle ord.",
-          "Velg driftstilstand og livsløpsfasene der det oppstår.",
-          "Gi poeng på alle kriteriene, og beskriv hvordan aspektet styres."
+          "Velg type påvirkning, driftstilstand og livsløpsfaser.",
+          "Gi poeng på alle kriteriene, koble forpliktelsene som gjelder, og beskriv kontrollene."
         ]
       },
       "why": {
-        "body": "En fast metode gjør at aspektene kan sammenlignes rettferdig, og at dere kan forklare en revisor hvorfor ett aspekt er vesentlig og et annet ikke. Når driftskontrollene står ved aspektet, ser man at de vesentlige aspektene faktisk styres.",
-        "clauses": ["iso14001:6.1.2", "iso14001:8.1"]
+        "body": "En fast metode gjør aspektene sammenlignbare, så du kan forklare en revisor hvorfor ett aspekt er vesentlig og et annet ikke. Koblede forpliktelser viser hvilke lover som gjelder (6.1.3), og kontroller ved aspektet viser at de vesentlige aspektene styres (8.1).",
+        "clauses": ["iso14001:6.1.2", "iso14001:6.1.3", "iso14001:8.1"]
       },
       "fields": {
         "activity": {
           "help": "Aktiviteten, produktet eller tjenesten aspektet hører til. Vær så konkret at andre kjenner den igjen.",
-          "example": "Vask av firmabiler på depotet."
+          "example": "Vask av firmabiler på depotet.",
+          "requirements": ["iso14001:6.1.2"]
+        },
+        "process": {
+          "help": "Prosessen i Prosesser som aktiviteten er en del av. Prosessen viser da aspektet.",
+          "example": "Vedlikehold av kjøretøy."
         },
         "aspect": {
           "help": "Den delen av aktiviteten som samvirker med miljøet: noe som går inn eller kommer ut.",
-          "example": "Utslipp av vaskevann med vaskemidler og olje."
+          "example": "Utslipp av vaskevann med vaskemidler og olje.",
+          "requirements": ["iso14001:6.1.2"]
         },
         "impact": {
           "help": "Endringen i miljøet som aspektet fører til eller kan føre til, positiv eller negativ.",
           "example": "Forurensning av bekken i nærheten og skade på livet i vannet."
         },
         "condition": {
-          "help": "Normal er daglig drift, unormal er oppstart, nedstengning eller vedlikehold, og nødsituasjon er en ulykke eller hendelse som et utslipp eller en brann.",
+          "help": "Normal drift er den daglige driften. Unormal drift er oppstart, nedstengning eller vedlikehold. En nødsituasjon er en ulykke, som et utslipp eller en brann.",
           "example": "Overfylling av en tank under påfylling er en nødsituasjon."
         },
         "control_level": {
-          "help": "Om dere styrer aspektet direkte, eller bare kan påvirke det, for eksempel gjennom leverandører, kunder eller produktdesign.",
-          "example": "Utslipp fra egne kjeler er direkte; utslipp når kundene bruker produktet er indirekte."
+          "help": "Om organisasjonen styrer aspektet direkte, eller bare kan påvirke det, for eksempel gjennom leverandører, kunder eller produktdesign.",
+          "example": "Utslipp fra egne kjeler styres direkte. Utslipp når kundene bruker produktet, kan organisasjonen bare påvirke."
         },
         "lifecycle_stages": {
-          "help": "Fasene i produktets eller tjenestens livsløp der aspektet oppstår. Dere trenger ikke en full livsløpsanalyse, bare vurder fasene dere kan styre eller påvirke.",
-          "example": "Emballasjeavfall oppstår i bruks- og sluttbehandlingsfasen."
+          "help": "Fasene i livsløpet der aspektet oppstår. Du trenger ikke en full livsløpsanalyse, bare fasene organisasjonen kan styre eller påvirke.",
+          "example": "Emballasjeavfall oppstår etter bruk og i avfallsbehandlingen."
         },
         "scores": {
-          "help": "Gi hvert kriterium poeng på organisasjonens skala. Når alle kriteriene har poeng, sammenlignes summen med terskelen for å avgjøre vesentligheten.",
+          "help": "Gi hvert kriterium poeng på skalaen. Hvert alternativ sier hva poengene betyr. Når alle kriteriene har poeng, sammenlignes summen med terskelen.",
           "example": "Alvorlighet 4, sannsynlighet 3, omfang 2 og bekymring 4 gir en vektet sum på 13."
         },
-        "legal_requirement": {
-          "help": "Kryss av når en lov, en tillatelse eller et annet krav dere har forpliktet dere til gjelder for aspektet. Med standardmetoden blir det da alltid vesentlig.",
-          "example": "En utslippstillatelse begrenser olje i avløpsvannet."
+        "obligations": {
+          "help": "Lovene, tillatelsene og de andre kravene fra Lover og forskrifter som gjelder for aspektet. Med standardmetoden er et aspekt med en forpliktelse alltid vesentlig.",
+          "example": "En utslippstillatelse begrenser olje i avløpsvannet.",
+          "requirements": ["iso14001:6.1.3"]
         },
         "override": {
-          "help": "Bruk dette bare når metoden gir et resultat dere har god grunn til å være uenige i. Forklar hvorfor, så avgjørelsen kan gjennomgås.",
+          "help": "Bruk dette bare når metoden gir et resultat du har god grunn til å være uenig i. Forklar hvorfor, så avgjørelsen kan gjennomgås.",
           "example": "Fikk lave poeng, men naboer har klaget på det."
         },
         "operational_controls": {
-          "help": "Hvordan aspektet holdes under kontroll: prosedyrer, utstyr, kontroller, opplæring og hvem som er ansvarlig.",
-          "example": "Oljeutskiller tømmes hvert kvartal; vask bare på tett plate; visuell kontroll hver måned."
+          "help": "Hvordan aspektet holdes under kontroll: prosedyrer, utstyr, kontroller, opplæring og hvem som har ansvaret. Koble selve prosedyren fra siden til aspektet.",
+          "example": "Oljeutskilleren tømmes hvert kvartal. Vask bare på tett plate. Visuell kontroll hver måned.",
+          "requirements": ["iso14001:8.1"]
+        },
+        "status": {
+          "help": "Utkast mens du jobber med aspektet. Aktiv når det er en del av registeret. Avsluttet når aktiviteten ikke finnes lenger.",
+          "example": "Sett Avsluttet når den gamle produksjonslinjen legges ned."
         },
         "review_due_at": {
           "help": "Når aspektet skal gjennomgås igjen. Står feltet tomt, settes datoen til ett år fram i tid.",
@@ -99,16 +117,16 @@
     "aspectDetail": {
       "intro": {
         "title": "Holde et aspekt under kontroll",
-        "body": "Denne siden viser aspektet, vurderingen og hvorfor det er vesentlig eller ikke. Bruk **Oppgaver** til tiltak som å installere utstyr, **Relatert** til å koble samsvarsforpliktelser, mål eller risikoer, og **Merk som gjennomgått** når du har kontrollert at det fortsatt stemmer.",
+        "body": "Siden viser aspektet, poengene og hvorfor det er vesentlig eller ikke, lovene som gjelder og hva som styrer det. Gule bokser øverst viser hva som mangler, med en knapp som retter det.",
         "steps": [
-          "Kontroller vurderingen og begrunnelsene for vesentlighet.",
-          "Sørg for at vesentlige aspekter har driftskontroller.",
-          "Koble målene og forpliktelsene som gjelder aspektet."
+          "Kontroller poengene og begrunnelsen for vesentligheten.",
+          "Sørg for at vesentlige aspekter har kontroller: koble en prosedyre, en prosess eller et mål.",
+          "Koble forpliktelsene som gjelder, og en beredskapsplan for nødsituasjoner."
         ]
       },
       "why": {
-        "body": "Vesentlige aspekter må tas hensyn til når dere setter mål og planlegger tiltak, og de må styres i driften. Historikken over alle endringer og gjennomganger viser at registeret er et levende verktøy, ikke en engangsøvelse.",
-        "clauses": ["iso14001:6.1.2", "iso14001:6.1.4", "iso14001:8.1"]
+        "body": "Vesentlige aspekter må tas hensyn til når organisasjonen setter mål og planlegger tiltak, og de må styres i driften. Historikken over alle endringer og gjennomganger viser at registeret er et levende verktøy, ikke en engangsøvelse.",
+        "clauses": ["iso14001:6.1.2", "iso14001:6.1.3", "iso14001:6.1.4", "iso14001:8.1"]
       }
     },
     "plans": {
@@ -116,198 +134,267 @@
         "title": "Vær forberedt før det skjer",
         "body": "En beredskapsplan beskriver et **scenario** som kan skade mennesker eller miljø, som et kjemikalieutslipp, en brann eller en flom, og **tiltakene**: hvem gjør hva, med hvilket utstyr, og hvem skal varsles. Øvelser tester at planen fungerer.",
         "steps": [
-          "Skriv en plan for hvert nødscenario dere finner i aspektregisteret eller risikovurderingen.",
+          "Skriv en plan for hver nødsituasjon i aspektregisteret.",
           "Beskriv tiltakene, ressursene og beredskapskontaktene.",
-          "Planlegg øvelser og registrer hva dere lærte av hver av dem."
+          "Sett en fast øvelsesrytme og registrer hva du lærer av hver øvelse."
         ]
       },
       "why": {
-        "body": "Både ISO 14001 og ISO 45001 krever at dere forbereder dere på og håndterer nødsituasjoner, tester de planlagte tiltakene jevnlig og gjennomgår dem etter øvelser og reelle hendelser. Registrerte øvelser er dokumentasjonen revisorer ber om.",
+        "body": "Både ISO 14001 og ISO 45001 krever at organisasjonen forbereder seg på og håndterer nødsituasjoner, tester tiltakene jevnlig og gjennomgår dem etter øvelser og reelle hendelser. Registrerte øvelser er dokumentasjonen revisorer ber om.",
         "clauses": ["iso14001:8.2", "iso45001:8.2"]
       },
       "empty": {
         "title": "Ingen beredskapsplaner ennå",
-        "body": "Se på aspektene med nødsituasjon som driftstilstand, og begynn med scenarioet som ville gjort mest skade. Assistenten kan lage et utkast til tiltaksplan som dere tilpasser.",
-        "cta": "Opprett den første planen"
+        "body": "Se på aspektene med «Nødsituasjon» som driftstilstand, og begynn med scenarioet som ville gjort mest skade. Assistenten kan lage et utkast til tiltak som du tilpasser.",
+        "cta": "Ny beredskapsplan"
       }
     },
     "planForm": {
       "intro": {
         "title": "Skrive en beredskapsplan",
-        "body": "Hold den kort og praktisk: noen under press må kunne følge den. Beskriv scenarioet, de første tiltakene og hvordan påvirkningen begrenses, utstyret som trengs og hvem som skal kontaktes.",
+        "body": "Hold planen kort og praktisk: noen under press må kunne følge den. Beskriv scenarioet, de første tiltakene, hvordan påvirkningen begrenses, utstyret som trengs og hvem som skal kontaktes.",
         "steps": [
-          "Beskriv scenarioet og den mulige påvirkningen.",
+          "Beskriv scenarioet og den mulige påvirkningen, og koble aspektene planen dekker.",
           "Skriv tiltakene som nummererte trinn, eller la assistenten lage et utkast.",
-          "Legg til beredskapskontakter og planlegg øvelser."
+          "Legg til kontaktene og bestem hvor ofte planen skal øves."
         ]
       },
       "why": {
-        "body": "Når tiltakene er planlagt på forhånd, forhindres eller begrenses skaden når noe går galt. En fast plan for øvelser sikrer at planen testes og at folk kjenner rollene sine.",
+        "body": "En plan som er koblet til aspektene den dekker, viser at hver nødsituasjon er forberedt. En fast øvelsesrytme gir eieren en oppgave når neste øvelse nærmer seg.",
         "clauses": ["iso14001:8.2", "iso45001:8.2"]
       },
       "fields": {
+        "title": {
+          "help": "Et kort navn på nødsituasjonen, så planen er lett å finne.",
+          "example": "Dieselsøl på depotet."
+        },
         "scenario": {
-          "help": "Hva som kan skje, hvor, og hvordan det ville starte. Én plan per scenario gjør tiltakene tydelige.",
-          "example": "Dieselsøl fra tanken på depotet under påfylling."
+          "help": "Hva som kan skje, hvor og hvordan. Én eller to setninger.",
+          "example": "En slange sprekker under påfylling av dieseltanken, og diesel renner mot sluket.",
+          "requirements": ["iso14001:8.2"]
+        },
+        "potential_impact": {
+          "help": "Skaden på mennesker og miljø hvis ingenting gjøres.",
+          "example": "Diesel i bekken, brannfare og damp for de ansatte."
+        },
+        "aspects": {
+          "help": "Aspektene i registeret med unormal drift eller nødsituasjoner som planen håndterer. Da viser ikke aspektene lenger «Mangler beredskapsplan».",
+          "example": "ASP-002 Lagring av løsemidler.",
+          "requirements": ["iso14001:8.2"]
         },
         "response_procedure": {
-          "help": "Trinnene i rekkefølge: varsle, stoppe kilden, begrense, rydde opp, rapportere og gjenopprette. Bruk roller i stedet for navn.",
-          "example": "1. Stopp pumpen. 2. Legg absorberende lenser rundt sluket. 3. Ring driftslederen."
+          "help": "Hva som skal gjøres, i rekkefølge. Korte, nummererte trinn som fungerer under press.",
+          "example": "1. Stopp pumpen. 2. Legg på slukmatten. 3. Bruk søleutstyret. 4. Ring driftslederen.",
+          "requirements": ["iso14001:8.2", "iso45001:8.2"]
         },
         "resources": {
-          "help": "Utstyr, materialer og personer som trengs, og hvor utstyret er.",
-          "example": "Søleberedskapsutstyr i verkstedet, absorberende lenser ved drivstofftanken."
+          "help": "Utstyret og personene som trengs, og hvor utstyret står.",
+          "example": "Søleutstyr ved drivstoffpumpen. Slukmatte i verkstedet."
         },
         "contacts": {
-          "help": "Hvem som skal varsles: interne roller, nødetater, myndigheter og spesialiserte leverandører.",
-          "example": "Driftsleder, brannvesenet, kommunens miljøvernansvarlige."
+          "help": "Hvem som skal ringes: personer i organisasjonen, nødetater, myndigheter og spesialister.",
+          "example": "Driftslederen, brannvesenet, kommunen."
+        },
+        "status": {
+          "help": "Utkast mens du skriver planen. Aktiv når den er i bruk (bare aktive planer regnes som dekning av et aspekt). Avsluttet når den ikke trengs lenger.",
+          "example": "Aktiv når planen er gjennomgått med dem det gjelder."
         },
         "drill_rrule": {
-          "help": "Hvor ofte planen skal testes. Hver gang blir en oppgave for eieren, og registrering av en øvelse fullfører den.",
-          "example": "Én gang i året, pluss en skrivebordsøvelse etter hver revisjon."
+          "help": "Hvor ofte planen skal øves. Eieren får en oppgave når neste øvelse nærmer seg.",
+          "example": "Én gang i året, og en skrivebordsøvelse hver vår."
         }
       }
     },
     "planDetail": {
       "intro": {
-        "title": "En beredskapsplan og øvelsene",
-        "body": "Denne siden har planen, kontaktene og oversikten over øvelser som er holdt. Bruk **Registrer øvelse** etter hver øvelse, skrivebordsøvelse eller reell hendelse, og revider planen når øvelsen viser at den ikke fungerer som tenkt.",
+        "title": "Teste og forbedre planen",
+        "body": "Registrer hver øvelse, skrivebordsøvelse og **reelle hendelse**. Hvis noe ikke fungerte, kryss av for «Planen må revideres»: eieren får da en oppgave. Funn kan bli et avvik eller en oppgave med ett klikk.",
         "steps": [
-          "Hold øvelser etter planen; den neste vises til høyre.",
-          "Registrer resultatet, funnene og erfaringene.",
-          "Revider planen når en øvelse avdekker en svakhet."
+          "Registrer øvelser og hendelser med resultat og hvem som deltok.",
+          "Opprett et avvik eller en oppgave fra funnene.",
+          "Merk planen som gjennomgått når den er oppdatert."
         ]
       },
       "why": {
-        "body": "Å teste tiltakene og lære av det er det som gjør en plan på papiret til reell beredskap. Å gjennomgå planen etter øvelser og hendelser, og ta vare på dokumentasjonen, er et direkte krav i begge standardene.",
+        "body": "Punkt 8.2 krever at tiltakene testes jevnlig og gjennomgås etter øvelser og nødsituasjoner. Øvelser med deltakere, funn og oppfølging er dokumentasjonen på at planen fungerer.",
         "clauses": ["iso14001:8.2", "iso45001:8.2"]
       },
       "fields": {
+        "kind": {
+          "help": "En øvelse er praktisk trening. En skrivebordsøvelse er en gjennomgang rundt et bord. En reell hendelse er noe som faktisk skjedde.",
+          "example": "Et søl under påfylling er en reell hendelse."
+        },
         "outcome": {
-          "help": "Hvor godt tiltakene fungerte sammenlignet med planen. Fungerte delvis eller fungerte ikke betyr som regel at planen eller opplæringen må endres.",
-          "example": "Alarmen virket, men søleutstyret var ikke der planen sa: fungerte delvis."
+          "help": "Hvor godt beredskapen fungerte, ærlig vurdert. «Fungerte delvis» er nyttig: det viser hva som må forbedres.",
+          "example": "Fungerte delvis: søleutstyret var ikke der planen sa.",
+          "requirements": ["iso14001:8.2"]
+        },
+        "participants": {
+          "help": "Personene i organisasjonen som deltok. Legg til andre (innleide, besøkende) som et antall.",
+          "example": "Verkstedet og driftslederen."
+        },
+        "findings": {
+          "help": "Hva du observerte: hva som fungerte og hva som ikke gjorde det.",
+          "example": "Det tok åtte minutter å finne slukmatten."
         }
       }
     },
     "metrics": {
       "intro": {
         "title": "Mål det som betyr noe",
-        "body": "En **måleparameter** er noe dere måler jevnlig, som strømforbruk i kWh eller avfall i tonn. Verdier over tid viser utviklingen, og en **utslippsfaktor** regner verdiene om til klimagassutslipp.",
+        "body": "En **indikator** er noe du måler jevnlig, som strøm i kWh eller avfall i kg. Med et **mål** ser du med en gang om utviklingen går riktig vei.",
         "steps": [
-          "Opprett en måleparameter for hver viktig kilde til energi, vann, avfall eller utslipp.",
-          "Angi enhet, klimagass-scope og utslippsfaktor.",
-          "Registrer verdier jevnlig, for eksempel hver måned fra fakturaer eller måleravlesninger."
+          "Lag indikatorer for de vesentlige aspektene: energi, drivstoff, vann og avfall.",
+          "Sett et mål og et utgangspunkt for hver av dem.",
+          "Registrer verdier jevnlig og legg ved fakturaen eller måleravlesningen."
         ]
       },
       "why": {
-        "body": "Punkt 9.1.1 krever at dere bestemmer hva som skal overvåkes og måles, hvordan og når, og at dere evaluerer miljøprestasjonen. Pålitelige data viser om målene nås og hvor dere bør sette inn tiltak.",
+        "body": "Punkt 9.1.1 krever at organisasjonen bestemmer hva som skal overvåkes og måles, hvordan, og mot hvilke kriterier, og at det finnes dokumentasjon. Mål, utgangspunkt og vedlagte fakturaer gjør tallene til å stole på.",
         "clauses": ["iso14001:9.1.1"]
       },
       "empty": {
-        "title": "Ingen måleparametere ennå",
-        "body": "Begynn med tallene dere allerede har: strøm og oppvarming fra energiregningene, drivstoff til kjøretøy, vannforbruk og avfall fra avfallsselskapet.",
-        "cta": "Opprett den første måleparameteren"
+        "title": "Ingen indikatorer ennå",
+        "body": "Begynn med strøm og drivstoff: fakturaene har allerede tallene. Legg deretter til vann og avfall.",
+        "cta": "Ny indikator"
       }
     },
     "metricForm": {
       "intro": {
-        "title": "Sette opp en måleparameter",
-        "body": "Velg hva som måles, enheten og, for energi og drivstoff, klimagass-scope og utslippsfaktor. En registreringsplan minner eieren på å registrere verdier.",
+        "title": "Sette opp en indikator",
+        "body": "Si hva som måles, i hvilken enhet og hvordan. Sett et **mål** og et **utgangspunkt**, så tallene kan vurderes. Gir indikatoren klimagassutslipp, legger du til utslippskategori og en utslippsfaktor med kilde.",
         "steps": [
-          "Gi måleparameteren et navn så alle vet nøyaktig hva som måles.",
-          "Velg enheten verdiene skal registreres i.",
-          "Legg til utslippsfaktoren hvis måleparameteren gir klimagassutslipp."
+          "Gi indikatoren et navn og velg enhet.",
+          "Sett målet, målåret og et utgangsår.",
+          "Legg til utslippskategori (scope) og utslippsfaktor med kilde."
         ]
       },
       "why": {
-        "body": "Når metoden er fastsatt én gang, med enhet, faktor og plan, blir dataene konsistente over tid, slik at utviklingen er til å stole på og kan sammenlignes fra år til år.",
+        "body": "Målingene må vurderes mot kriterier (9.1.1). Et mål med årstall og et utgangspunkt gjør en liste med tall til dokumentasjon på forbedring, og en dokumentert kilde for faktoren gjør utslippstallene etterprøvbare.",
         "clauses": ["iso14001:9.1.1"]
       },
       "fields": {
+        "name": {
+          "help": "Hva som måles, med ord alle forstår.",
+          "example": "Strøm på hovedkontoret."
+        },
         "unit": {
-          "help": "Enheten verdiene registreres i. Behold den samme så lenge måleparameteren brukes.",
-          "example": "kWh for strøm, liter for diesel, tonn for avfall."
+          "help": "Enheten du registrerer verdiene i. Bruk enheten på fakturaen eller måleren.",
+          "example": "kWh, m3, kg, liter."
+        },
+        "measurement_method": {
+          "help": "Hvor tallet kommer fra og hvordan det måles, så neste person gjør det på samme måte.",
+          "example": "Månedlig faktura fra nettselskapet. Hovedmåler i kjelleren.",
+          "requirements": ["iso14001:9.1.1"]
+        },
+        "direction": {
+          "help": "Om lavere er bedre (energi, avfall) eller høyere er bedre (andel sortert avfall).",
+          "example": "Lavere er bedre for strøm."
+        },
+        "target_value": {
+          "help": "Verdien per år som organisasjonen sikter mot, i indikatorens enhet. Statusen sammenligner de siste 12 månedene med den.",
+          "example": "120 000 kWh per år innen 2027.",
+          "requirements": ["iso14001:9.1.1"]
+        },
+        "baseline_value": {
+          "help": "Verdien per år organisasjonen startet fra, og året den ble målt. Den viser hvor langt organisasjonen har kommet.",
+          "example": "150 000 kWh i 2024."
         },
         "ghg_scope": {
-          "help": "Scope 1 er direkte utslipp fra egne kilder, scope 2 er innkjøpt energi, og scope 3 er andre indirekte utslipp i verdikjeden.",
-          "example": "Diesel til firmabilene er scope 1; innkjøpt strøm er scope 2."
+          "help": "Scope 1 er direkte utslipp fra egne kilder, scope 2 er innkjøpt energi, og scope 3 er resten av verdikjeden.",
+          "example": "Diesel til egne varebiler er scope 1. Strøm er scope 2."
         },
         "emission_factor": {
-          "help": "Hvor mange kilo CO₂-ekvivalenter én enhet gir. Hver måling beholder faktoren som gjaldt da den ble registrert, så en senere endring skriver ikke om historikken.",
-          "example": "Diesel gir omtrent 2,7 kg CO₂e per liter; sjekk gjeldende verdi hos en nasjonal kilde."
+          "help": "Kilo CO₂-ekvivalenter per enhet. Hver måling beholder faktoren den ble registrert med.",
+          "example": "2,68 kg CO₂e per liter diesel.",
+          "requirements": ["iso14001:9.1.1"]
+        },
+        "factor_source": {
+          "help": "Hvor faktoren kommer fra, så tallet kan kontrolleres.",
+          "example": "Miljødirektoratet, 2025."
         },
         "collection_rrule": {
-          "help": "Hvor ofte en verdi skal registreres. Hver gang blir en påminnelsesoppgave for eieren.",
-          "example": "Hver måned den 5., etter at strømregningen har kommet."
+          "help": "Hvor ofte eieren får påminnelse om å registrere en verdi.",
+          "example": "Hver måned, når fakturaen kommer."
         }
       }
     },
     "metricDetail": {
       "intro": {
-        "title": "En måleparameter over tid",
-        "body": "Diagrammet viser utviklingen per måned, kvartal eller år, og tabellen viser alle registrerte verdier. Registrer en ny verdi for hver periode; du kan korrigere verdier du selv har registrert.",
+        "title": "Følge en indikator",
+        "body": "Det øverste kortet viser målet sammenlignet med de siste 12 månedene. Grafen viser utviklingen med målet som en stiplet linje. Registrer nye verdier med **Registrer verdi**, og legg ved fakturaen eller et bilde av måleren som dokumentasjon.",
         "steps": [
-          "Registrer en verdi for hver periode, fra fakturaer eller måleravlesninger.",
-          "Se på utviklingen og spør assistenten hva som kan forklare den.",
-          "Koble måleparameteren til miljømålet den støtter."
+          "Registrer verdier for hver periode, med kilde.",
+          "Legg ved dokumentasjon for hver måling.",
+          "Koble indikatoren til et miljømål eller et nøkkeltall (KPI)."
         ]
       },
       "why": {
-        "body": "Resultatene fra overvåkingen skal analyseres og evalueres, ikke bare samles inn. Når utviklingen står ved siden av rådataene, er det lettere å vurdere om tiltakene virker og om målene er i rute.",
+        "body": "Målinger med kilde og vedlagt faktura er dokumentasjon på overvåkingen (9.1.1). Når indikatoren er koblet til et mål, ser du hvordan miljømålene følges opp.",
         "clauses": ["iso14001:9.1.1"]
       },
       "fields": {
         "period": {
-          "help": "Perioden verdien gjelder, fra én dag til ett år. La sluttdatoen stå tom for én enkelt dag.",
-          "example": "1. til 31. oktober for en månedlig strømregning."
+          "help": "Perioden verdien gjelder, fra én dag til ett år. Bruk perioden på fakturaen.",
+          "example": "1.–31. oktober for en månedlig strømfaktura."
+        },
+        "source": {
+          "help": "Hvor verdien kommer fra. En faktura eller en måleravlesning er bedre dokumentasjon enn et anslag.",
+          "example": "Faktura fra nettselskapet.",
+          "requirements": ["iso14001:9.1.1"]
         }
       }
     },
     "emissions": {
       "intro": {
-        "title": "Klimafotavtrykket deres",
-        "body": "Utslippene beregnes fra målingene og utslippsfaktoren til hver måleparameter, gruppert etter **scope 1, 2 og 3**. Bruk årsvelgeren for å sammenligne år.",
+        "title": "Klimagassutslippene",
+        "body": "Utslippene beregnes fra indikatorene som har utslippsfaktor og utslippskategori (scope). En kategori uten data står som **Ikke kartlagt**, som ikke er det samme som null.",
         "steps": [
-          "Kontroller at alle måleparametere for energi og drivstoff har scope og utslippsfaktor.",
-          "Se hvilket scope og hvilken måleparameter som bidrar mest.",
-          "Sett mål for å redusere de største kildene."
+          "Kontroller at indikatorene som gir utslipp, har faktor og kategori.",
+          "Sammenlign med i fjor.",
+          "Last ned CSV-filen til rapporter."
         ]
       },
       "why": {
-        "body": "Klimaendringer er et relevant miljøforhold for de fleste organisasjoner. Å kjenne utslippene per scope er grunnlaget for reduksjonsmål og for rapportering til kunder, eiere og myndigheter.",
+        "body": "Når utslippene følges år for år, ser organisasjonen om klimapåvirkningen går ned, og kan sette mål for energi og klima. Listen over indikatorer som er utelatt, viser hvor bildet er ufullstendig.",
         "clauses": ["iso14001:9.1.1"]
       },
       "empty": {
-        "title": "Ingen utslipp registrert for dette året",
-        "body": "Utslipp vises når måleparametere med utslippsfaktor har målinger i året. Legg til en faktor på måleparameterne for energi og drivstoff, og registrer verdiene."
+        "title": "Ingen utslipp ennå",
+        "body": "Legg inn utslippsfaktor og utslippskategori på indikatorene som gir utslipp, og registrer verdier.",
+        "cta": "Åpne indikatorene"
       }
     },
     "scoring": {
       "intro": {
-        "title": "Kriteriene for vesentlighet",
-        "body": "Vurderingsmetoden avgjør når et aspekt er **vesentlig**. Velg kriteriene, skalaen, hvordan poengene kombineres og terskelen. Når du lagrer, vurderes alle aspekter på nytt.",
+        "title": "Vurderingsmetoden",
+        "body": "Metoden avgjør når et aspekt er **vesentlig**. Beskriv hvert kriterium og hva hvert poeng betyr: de som vurderer, ser beskrivelsene, så ulike personer gir poeng på samme måte.",
         "steps": [
-          "Velg kriterier som betyr noe for organisasjonen, som alvorlighet, sannsynlighet og interessentenes bekymring.",
-          "Velg sum (med vekter) eller produkt, og en skala.",
-          "Sett terskelen, og se hvilke aspekter som blir vesentlige."
+          "Velg skala og terskel.",
+          "Beskriv hvert kriterium og hvert poeng.",
+          "Lagre: alle aspekter får poeng på nytt, og endringsloggen viser det."
         ]
       },
       "why": {
-        "body": "Standarden lar dere selv velge kriteriene, men de må være fastsatt og brukes konsekvent. Når metoden er dokumentert, og endringer registreres, kan alle forstå hvorfor et aspekt ble vurdert som vesentlig.",
+        "body": "Punkt 6.1.2 krever fastsatte kriterier for vesentlighet. Dokumenterte kriterier med beskrevne poeng gjør vurderingen lik for alle og lett å forklare for en revisor.",
         "clauses": ["iso14001:6.1.2"]
       },
       "fields": {
         "method": {
-          "help": "En vektet sum legger sammen poengene, ganget med vekten til hvert kriterium. Et produkt multipliserer poengene, slik at høye poeng på flere kriterier slår sterkere ut.",
-          "example": "Sum: 4 + 3 + 2 + 4 = 13. Produkt: 4 × 3 × 2 × 4 = 96."
+          "help": "Vektet sum legger sammen poengene (med vekter). Produkt ganger dem, så ett høyt poeng teller mer.",
+          "example": "Vektet sum: 4 + 3 + 2 + 4 = 13."
         },
         "threshold": {
-          "help": "Et aspekt med poengsum på eller over denne verdien er vesentlig. Se på høyest mulige poengsum når du velger den.",
-          "example": "Med fire kriterier fra 1 til 5 som legges sammen, er maksimum 20, og 12 er en vanlig terskel."
+          "help": "Poengsummen et aspekt regnes som vesentlig fra.",
+          "example": "12 på en skala der det høyeste er 20."
+        },
+        "weight": {
+          "help": "Hvor mye kriteriet teller i en vektet sum. 1 er normalt, 2 teller dobbelt.",
+          "example": "Alvorlighet vekt 2, de andre 1."
         },
         "criteria": {
-          "help": "Hvert kriterium får poeng for seg. Endrer du nøkkelen til et kriterium, starter det på nytt uten poeng, så endre navnet i stedet når du bare vil ha ny ordlyd.",
-          "example": "Alvorlighet, sannsynlighet eller frekvens, omfang og varighet, interessentenes bekymring."
+          "help": "Det hvert aspekt vurderes etter, for eksempel alvorlighet, sannsynlighet, omfang og interessentenes bekymring.",
+          "example": "Alvorlighet: hvor stor skade påvirkningen kan gjøre."
         }
       }
     }
@@ -322,12 +409,12 @@
           "body": "Et **aspekt** er årsaken: den delen av aktiviteten som samvirker med miljøet, som forbrenning av drivstoff, vannforbruk eller avfall. **Påvirkningen** er virkningen på miljøet: klimaendringer, vannmangel, forurensning. Ett aspekt kan ha flere påvirkninger."
         },
         {
-          "heading": "Normal, unormal og nødsituasjon",
-          "body": "Se på hver aktivitet under **normal** drift, under **unormale** forhold som oppstart, nedstengning og vedlikehold, og i en **nødsituasjon** som et utslipp eller en brann. Nødsituasjoner har ofte størst påvirkning og fører til beredskapsplaner."
+          "heading": "Normal drift, unormal drift og nødsituasjon",
+          "body": "Se på hver aktivitet ved **normal drift**, ved **unormal drift** som oppstart, nedstengning og vedlikehold, og i en **nødsituasjon** som et utslipp eller en brann. Nødsituasjoner har ofte størst påvirkning og trenger en beredskapsplan."
         },
         {
           "heading": "Et livsløpsperspektiv",
-          "body": "Tenk lenger enn egen port: råvarer, design, produksjon, transport, bruk og sluttbehandling. Dere trenger ikke en full livsløpsanalyse, men dere bør vurdere fasene dere kan **styre** og dem dere kan **påvirke**, for eksempel gjennom leverandører eller produktdesign."
+          "body": "Tenk lenger enn til egen port: råvarer, design, produksjon, transport, bruk, det som skjer etter bruk og avfallsbehandling. Du trenger ikke en full livsløpsanalyse, men vurder fasene organisasjonen **styrer** og dem den kan **påvirke**, for eksempel gjennom leverandører eller produktdesign."
         }
       ],
       "quiz": [
@@ -339,12 +426,12 @@
         },
         {
           "question": "En kjemikalietank kan bli overfylt under påfylling. Hvilken driftstilstand er dette?",
-          "options": ["Normal", "Unormal", "Nødsituasjon"],
+          "options": ["Normal drift", "Unormal drift", "Nødsituasjon"],
           "answer": 2,
-          "explanation": "En overfylling er en ulykke, så det er en nødsituasjon som bør dekkes av en beredskapsplan."
+          "explanation": "En overfylling er en ulykke, så det er en nødsituasjon som en beredskapsplan bør dekke."
         }
       ],
-      "pass_mark": 0.5
+      "pass_mark": 2
     },
     "significance": {
       "title": "Avgjøre hva som er vesentlig",
@@ -352,27 +439,27 @@
       "sections": [
         {
           "heading": "Hvorfor vesentlighet betyr noe",
-          "body": "Dere kan ikke styre alt like mye. **Vesentlige** aspekter er dem dere må ta hensyn til når dere setter mål, planlegger tiltak og utformer driftskontroller."
+          "body": "Organisasjonen kan ikke styre alt like mye. **Vesentlige** aspekter er dem som må tas hensyn til når mål settes, tiltak planlegges og driftskontroller utformes."
         },
         {
           "heading": "Poeng etter kriterier",
-          "body": "Hvert aspekt får poeng etter organisasjonens kriterier, som alvorlighet, sannsynlighet, omfang og interessentenes bekymring. Poengene kombineres, som vektet sum eller produkt, og sammenlignes med en **terskel**. Et lovkrav kan alene gjøre et aspekt vesentlig."
+          "body": "Hvert aspekt får poeng etter organisasjonens kriterier, som alvorlighet, sannsynlighet, omfang og interessentenes bekymring. Hvert poeng har en beskrivelse, så alle vurderer likt. Poengene kombineres og sammenlignes med en **terskel**. En lov som gjelder, kan alene gjøre et aspekt vesentlig."
         },
         {
-          "heading": "Når dere er uenige i resultatet",
-          "body": "Noen ganger gir metoden et resultat som ikke passer, for eksempel når naboer har klaget på støy som får lave poeng. Dere kan sette vesentligheten manuelt, men må gi en begrunnelse, og det opprinnelige resultatet blir stående synlig."
+          "heading": "Når du er uenig i resultatet",
+          "body": "Noen ganger gir metoden et resultat som ikke passer, for eksempel når naboer klager på støy som får lave poeng. Du kan sette vesentligheten manuelt, men må gi en begrunnelse, og det opprinnelige resultatet blir stående synlig."
         }
       ],
       "quiz": [
         {
-          "question": "Metoden sier at et aspekt ikke er vesentlig, men myndighetene har bedt dere redusere det. Hva bør dere gjøre?",
+          "question": "Metoden sier at et aspekt ikke er vesentlig, men myndighetene har bedt organisasjonen redusere det. Hva bør du gjøre?",
           "options": [
             "La det stå som ikke vesentlig",
             "Merk det som vesentlig manuelt og forklar hvorfor",
             "Slett aspektet"
           ],
           "answer": 1,
-          "explanation": "En manuell vurdering med begrunnelse lar dere rette resultatet og samtidig dokumentere hvorfor."
+          "explanation": "En manuell vurdering med begrunnelse retter resultatet og dokumenterer samtidig hvorfor."
         }
       ],
       "pass_mark": 1
@@ -383,27 +470,27 @@
       "sections": [
         {
           "heading": "Planlegg tiltakene",
-          "body": "For hver mulig nødsituasjon beskriver dere hva som skal gjøres først, hvordan skaden på mennesker og miljø begrenses, hvilket utstyr som trengs og hvem som skal varsles. Hold planen kort nok til å kunne brukes under press."
+          "body": "For hver mulig nødsituasjon beskriver du hva som skal gjøres først, hvordan skaden på mennesker og miljø begrenses, hvilket utstyr som trengs og hvem som skal varsles. Koble planen til aspektene den dekker. Hold den kort nok til å kunne brukes under press."
         },
         {
           "heading": "Test den",
-          "body": "En plan som aldri er testet, er en gjetning. Hold **øvelser** eller **skrivebordsøvelser** etter en fast plan, og regn reelle hendelser som tester også. Hver øvelse registreres med resultat, funn og erfaringer."
+          "body": "En plan som aldri er testet, er en gjetning. Hold **øvelser** eller **skrivebordsøvelser** med fast rytme, og regn reelle hendelser som tester også. Hver øvelse registreres med resultat, deltakere, funn og erfaringer."
         },
         {
           "heading": "Lær og revider",
-          "body": "Når en øvelse viser at noe ikke fungerer, som manglende søleutstyr eller en uklar rolle, reviderer dere planen og lærer opp dem det gjelder. Både ISO 14001 og ISO 45001 krever at planen gjennomgås etter øvelser og hendelser."
+          "body": "Når en øvelse viser at noe ikke fungerer, som manglende søleutstyr eller en uklar rolle, krysser du av for «Planen må revideres» og oppretter et avvik eller en oppgave fra funnene. Både ISO 14001 og ISO 45001 krever at planen gjennomgås etter øvelser og hendelser."
         }
       ],
       "quiz": [
         {
           "question": "En øvelse viste at ingen visste hvor søleutstyret var. Hva er det beste neste steget?",
           "options": [
-            "Registrere øvelsen som vellykket",
+            "Registrere at øvelsen fungerte godt",
             "Registrere at den fungerte delvis, og revidere planen og opplæringen",
             "Avlyse senere øvelser"
           ],
           "answer": 1,
-          "explanation": "Øvelsen avdekket en svakhet. Å registrere det ærlig og revidere planen er nettopp hva øvelser er til for."
+          "explanation": "Øvelsen avdekket en svakhet. Å registrere det ærlig og revidere planen er nettopp det øvelser er til for."
         }
       ],
       "pass_mark": 1
@@ -414,15 +501,15 @@
       "sections": [
         {
           "heading": "Velg hva som skal måles",
-          "body": "Mål det som henger sammen med de vesentlige aspektene og målene: energi, drivstoff, vann, avfall og materialer. Bestem enheten, hvor dataene kommer fra og hvor ofte verdier registreres."
+          "body": "Mål det som henger sammen med de vesentlige aspektene og målene: energi, drivstoff, vann, avfall og materialer. Bestem enheten, hvor dataene kommer fra, hvor ofte verdier registreres, og **målet** de sammenlignes med."
         },
         {
           "heading": "Fra verdier til CO₂e",
-          "body": "En **utslippsfaktor** regner en verdi om til kilo CO₂-ekvivalenter, for eksempel liter diesel til kg CO₂e. Hver måling beholder faktoren som gjaldt da den ble registrert, så en oppdatert faktor endrer ikke tidligere år."
+          "body": "En **utslippsfaktor** regner en verdi om til kilo CO₂-ekvivalenter, for eksempel liter diesel til kg CO₂e. Skriv ned hvor faktoren kommer fra. Hver måling beholder faktoren som gjaldt da den ble registrert, så en oppdatert faktor endrer ikke tidligere år."
         },
         {
           "heading": "Scope 1, 2 og 3",
-          "body": "**Scope 1** er direkte utslipp fra egne kilder, **scope 2** er innkjøpt strøm og varme, og **scope 3** er alt annet i verdikjeden, som reiser og transport. Begynn med scope 1 og 2, der dataene er lettest å skaffe."
+          "body": "**Scope 1** er direkte utslipp fra egne kilder, **scope 2** er innkjøpt strøm og varme, og **scope 3** er alt annet i verdikjeden, som reiser og transport. Begynn med scope 1 og 2, der dataene er lettest å skaffe. Et scope uten data er «ikke kartlagt», ikke null."
         }
       ],
       "quiz": [
@@ -430,20 +517,20 @@
           "question": "Hvilket scope hører utslipp fra innkjøpt strøm til?",
           "options": ["Scope 1", "Scope 2", "Scope 3"],
           "answer": 1,
-          "explanation": "Innkjøpt strøm, varme og kjøling er scope 2: indirekte utslipp fra energi dere kjøper."
+          "explanation": "Innkjøpt strøm, varme og kjøling er scope 2: indirekte utslipp fra energi organisasjonen kjøper."
         },
         {
-          "question": "Dere oppdaterer utslippsfaktoren for strøm. Hva skjer med fjorårets utslipp?",
+          "question": "Du oppdaterer utslippsfaktoren for strøm. Hva skjer med fjorårets utslipp?",
           "options": [
             "De beregnes på nytt med den nye faktoren",
-            "De blir stående med faktoren som gjaldt den gangen",
+            "De beholder faktoren som gjaldt den gangen",
             "De slettes"
           ],
           "answer": 1,
           "explanation": "Hver måling beholder faktoren den ble registrert med, så historiske tall blir stående."
         }
       ],
-      "pass_mark": 0.5
+      "pass_mark": 2
     }
   },
   "tours": {
@@ -456,36 +543,31 @@
       {
         "target": "env-aspect-filters",
         "title": "Konsentrer deg om det viktigste",
-        "body": "Filtrer på status, vesentlighet, type påvirkning, driftstilstand eller livsløpsfase, og lagre kombinasjonen som en visning."
+        "body": "Filtrer på status, vesentlighet eller det som trenger oppfølging. Flere filtre og gruppering etter aktivitet finner du under «Flere filtre»."
       }
     ],
     "plans": [
       {
         "target": "env-plan-new",
         "title": "Planlegg for nødsituasjoner",
-        "body": "Opprett en plan for hvert alvorlig scenario. Assistenten kan lage et utkast til tiltakene."
+        "body": "Lag en plan for hvert alvorlig scenario. Assistenten kan lage et utkast til tiltakene."
       },
       {
         "target": "env-plan-filters",
         "title": "Finn de riktige planene",
-        "body": "Filtrer på status og eier. Planer uten øvelse det siste året er merket som forfalt."
+        "body": "Filtrer på status, eller vis planene der øvelsen eller gjennomgangen er forfalt."
       }
     ],
     "metrics": [
       {
         "target": "env-metric-new",
-        "title": "Opprett en måleparameter",
-        "body": "Angi hva som måles, enheten og utslippsfaktoren."
+        "title": "Lag en indikator",
+        "body": "Si hva som måles, enheten, målet og utslippsfaktoren."
       },
       {
         "target": "env-metric-filters",
-        "title": "Filtrer på kategori",
-        "body": "Vis bare måleparametere for energi, vann, avfall, utslipp eller materialer."
-      },
-      {
-        "target": "env-emissions-link",
-        "title": "Se utslippene",
-        "body": "Utslippssiden summerer utslipp i scope 1, 2 og 3 for året."
+        "title": "Filtrer indikatorene",
+        "body": "Vis én kategori, indikatorene som ikke når målet, eller én utslippskategori."
       }
     ]
   },
@@ -497,12 +579,32 @@
     },
     "significant-aspect": {
       "term": "Vesentlig miljøaspekt",
-      "definition": "Et aspekt som har eller kan ha en vesentlig miljøpåvirkning, fastsatt etter organisasjonens egne kriterier.",
+      "definition": "Et aspekt som har eller kan ha en vesentlig miljøpåvirkning, avgjort etter organisasjonens egne kriterier.",
       "clauses": ["iso14001:6.1.2"]
+    },
+    "compliance-obligation": {
+      "term": "Forpliktelse",
+      "definition": "En lov, en tillatelse eller et annet krav organisasjonen må eller har valgt å oppfylle.",
+      "clauses": ["iso14001:6.1.3"]
+    },
+    "operational-control": {
+      "term": "Driftskontroll",
+      "definition": "Det som holder et aspekt under kontroll i det daglige: prosedyrer, utstyr, kontroller og opplæring.",
+      "clauses": ["iso14001:8.1"]
+    },
+    "emergency-preparedness": {
+      "term": "Beredskap",
+      "definition": "Å være klar til å håndtere ulykker og nødsituasjoner, med en testet plan, utstyr og opplærte personer.",
+      "clauses": ["iso14001:8.2"]
     },
     "emission-factor": {
       "term": "Utslippsfaktor",
       "definition": "Klimagassutslippet fra én enhet av en aktivitet, i kilo CO₂-ekvivalenter per enhet.",
+      "clauses": ["iso14001:9.1.1"]
+    },
+    "ghg-scope": {
+      "term": "Utslippskategori (scope)",
+      "definition": "Scope 1: direkte utslipp fra egne kilder. Scope 2: innkjøpt energi. Scope 3: resten av verdikjeden.",
       "clauses": ["iso14001:9.1.1"]
     }
   }

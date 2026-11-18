@@ -9,7 +9,10 @@ import {
   ASSESSMENT_KINDS,
   ASSESSMENT_SORTS,
   ASSESSMENT_STATUSES,
+  ATTENTION_KEYS,
+  LITERACY_SCOPES,
   LITERACY_SOURCES,
+  OBLIGATION_STATUSES,
   MONITORING_KINDS,
   MONITORING_RESULTS,
   RISK_CLASSES,
@@ -20,6 +23,17 @@ import { emptyAnswers } from './data/ai-governance-display';
 import { WIZARD_STEPS } from './classification/classification-questions';
 
 type Tree = Record<string, unknown>;
+
+/** Portal keys of the backend next actions (`ai-governance:next.<key>.title` / `.why`). */
+const NEXT_ACTIONS = [
+  'prohibited',
+  'unclassified',
+  'friaMissing',
+  'obligationsWithoutTask',
+  'documentationIncomplete',
+  'awaitingApproval',
+  'assessmentsNeedReview',
+];
 
 function at(tree: unknown, path: string): unknown {
   return path
@@ -158,14 +172,25 @@ describe('AI governance translations', () => {
         ...['complete', 'approve', 'reopen'].map((a) => `assessmentDetail.done.${a}`),
         ...['governance', 'annex_iv'].map((g) => `docs.groups.${g}`),
         ...EVENTS.flatMap((e) => [`notifications.${e}`, `timeline.${e}`]),
-        ...[
-          'unclassified',
-          'prohibited',
-          'assessmentsOverdue',
-          'reviewsOverdue',
-          'monitoringFailures',
-          'noPolicy',
-        ].map((k) => `overview.attentionItems.${k}`),
+        ...ATTENTION_KEYS.flatMap((k) =>
+          ['one', 'many', 'named'].map((v) => `attention.${k}.${v}`),
+        ),
+        ...NEXT_ACTIONS.flatMap((k) => [`next.${k}.title`, `next.${k}.why`]),
+        ...OBLIGATION_STATUSES.map((st) => `obligationStatus.${st}`),
+        ...ASSESSMENT_KINDS.map((k) => `kindShort.${k}`),
+        ...LITERACY_SCOPES.flatMap((sc) => [
+          `literacy.scope.${sc}`,
+          `settings.scopes.${sc}.label`,
+          `settings.scopes.${sc}.hint`,
+        ]),
+        ...['high', 'medium', 'low'].map((sv) => `overview.severity.${sv}`),
+        ...['iso42001', 'eu_ai_act'].map((f) => `overview.frameworks.${f}`),
+        ...['reclassified', 'system_changed'].map((f) => `assessmentDetail.reviewFlag.${f}`),
+        ...['governance', 'annex_iv'].map((g) => `docs.groupHints.${g}`),
+        ...['deployer', 'other'].flatMap((r) =>
+          ['high', 'limited'].map((c) => `riskExplainByRole.${r}.${c}`),
+        ),
+        'riskExplainByRole.builtin.limited',
         ...['prohibited', 'high_annex_i', 'high_area', 'high_profiling', 'exception_art6_3'].map(
           (k) => `reasons.${k}`,
         ),

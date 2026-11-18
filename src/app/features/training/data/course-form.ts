@@ -53,6 +53,17 @@ export interface CourseForm {
   documentId: string;
   source: CourseSource;
   lessons: LessonForm[];
+  learningObjectives: string;
+  effectivenessCriteria: string;
+  /** Canonical clause refs the course documents (confirmed requirement links). */
+  clauseRefs: string[];
+  /** People competences a pass gives (level 0-4). */
+  competences: CompetenceForm[];
+}
+
+export interface CompetenceForm {
+  competenceId: string;
+  level: number;
 }
 
 let nextKey = 0;
@@ -88,6 +99,10 @@ export function emptyCourseForm(): CourseForm {
     documentId: '',
     source: 'manual',
     lessons: [emptyLesson()],
+    learningObjectives: '',
+    effectivenessCriteria: '',
+    clauseRefs: [],
+    competences: [],
   };
 }
 
@@ -112,6 +127,10 @@ export function courseFormFrom(course: CourseDetail): CourseForm {
     estimatedMinutes: course.estimated_minutes,
     documentId: course.document_id ?? '',
     source: course.source,
+    learningObjectives: course.learning_objectives ?? '',
+    effectivenessCriteria: course.effectiveness_criteria ?? '',
+    clauseRefs: [...(course.clause_refs ?? [])],
+    competences: (course.competences ?? []).map((c) => ({ competenceId: c.id, level: c.level })),
     lessons: [...course.lessons]
       .sort((a, b) => a.position - b.position)
       .map((lesson) => ({
@@ -161,6 +180,15 @@ function fieldsPayload(form: CourseForm) {
     validity_months: numberOrNull(form.validityMonths),
     estimated_minutes: numberOrNull(form.estimatedMinutes),
     document_id: blankToNull(form.documentId),
+    learning_objectives: blankToNull(form.learningObjectives),
+    effectiveness_criteria: blankToNull(form.effectivenessCriteria),
+    clause_refs: [...new Set(form.clauseRefs.filter((r) => r.trim()))],
+    competences: form.competences
+      .filter((c) => !!c.competenceId)
+      .map((c) => ({
+        competence_id: c.competenceId,
+        level: Math.min(4, Math.max(0, Math.round(Number(c.level) || 0))),
+      })),
   };
 }
 

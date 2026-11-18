@@ -8,22 +8,25 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../core/ai/page-context';
 import { LanguageService } from '../../core/i18n/language.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
-import { GuideIntro } from '../../shared/guidance/guide-intro';
 import { TeachingEmpty } from '../../shared/guidance/teaching-empty';
 import { WhyItMatters } from '../../shared/guidance/why-it-matters';
-import { LocalDayPipe } from '../../shared/locale/locale-pipes';
-import { Badge } from '../../shared/ui/badge/badge';
+import { CoverageChip } from '../../shared/requirement-links/coverage-chip';
 import { Card } from '../../shared/ui/card/card';
+import { ErrorState } from '../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
+import { LoadingState } from '../../shared/ui/loading-state/loading-state';
+import { ModuleNav } from '../../shared/ui/module-nav/module-nav';
+import { PageHeader } from '../../shared/ui/page-header/page-header';
 import { Pager } from '../../shared/ui/pager/pager';
-import { ProgressBar } from '../../shared/ui/progress-bar/progress-bar';
+import { RecordRow, RecordRowHeader } from '../../shared/ui/record-row/record-row';
+import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
 import { PeopleApi } from './data/people-api';
-import { FILTER_SELECT_CLASS, checklistStatusTone, todayIso } from './data/people-display';
+import { FILTER_SELECT_CLASS, todayIso } from './data/people-display';
 import {
   CHECKLIST_KINDS,
   CHECKLIST_STATUSES,
@@ -32,42 +35,44 @@ import {
   ChecklistQuery,
   ChecklistStatus,
 } from './data/people.models';
-import { PeopleLessonLink, PeopleSectionNav } from './people-section-nav';
+import { PEOPLE_NAV, PEOPLE_ROOT, PEOPLE_SETTINGS_LINK } from './ui/people-nav';
 
 const PAGE_SIZE = 25;
 
 /**
- * Onboarding and offboarding checklists across the organisation
- * (`/people/checklists`), open ones first by default, with progress and due dates.
- * Checklists are started from an employee's page.
+ * Joiner and leaver checklists across the organisation (`/people/checklists`, "Oppstart
+ * og avslutning"), open ones first, with the person, progress and due date. They are
+ * started from the person's page; the default items are edited under settings.
  */
 @Component({
   selector: 'app-people-checklists-list',
   imports: [
-    RouterLink,
     TranslocoPipe,
-    LocalDayPipe,
-    GuideIntro,
     TeachingEmpty,
     WhyItMatters,
-    Badge,
+    CoverageChip,
     Card,
+    ErrorState,
+    HelpStrip,
+    LoadingState,
+    ModuleNav,
+    PageHeader,
     Pager,
-    ProgressBar,
-    PeopleLessonLink,
-    PeopleSectionNav,
+    RecordRow,
+    RecordRowHeader,
+    StatusBadge,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
-      <h1 class="font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]">
-        {{ 'people.checklists.title' | transloco }}
-      </h1>
-      <div class="mt-1 mb-4 flex flex-col gap-2">
-        <app-people-section-nav />
-        <p class="text-[14px] text-fg-muted">{{ 'people.checklists.subtitle' | transloco }}</p>
-        <app-guide-intro scope="people" page="checklists" />
-      </div>
+      <app-page-header
+        titleKey="people.checklists.title"
+        descriptionKey="people.checklists.subtitle"
+        [breadcrumbs]="[root, { labelKey: 'people.checklists.title' }]"
+        [settingsLink]="settingsLink"
+      />
+      <app-module-nav [items]="nav" labelKey="people.sections.label" />
+      <app-help-strip scope="people" page="checklists" lesson="joiners-and-leavers" />
 
       <div class="mb-4 flex flex-wrap items-center gap-2">
         <label class="sr-only" for="cf-cl-kind">{{ 'people.filters.kind' | transloco }}</label>
@@ -110,74 +115,46 @@ const PAGE_SIZE = 25;
         <app-card [padded]="false">
           @switch (state()) {
             @case ('loading') {
-              <p class="py-10 text-center text-[14px] text-fg-muted" role="status">
-                {{ 'people.common.loading' | transloco }}
-              </p>
+              <app-loading-state [rows]="5" />
             }
             @case ('error') {
-              <p class="py-10 text-center text-[14px] text-fail" role="alert">
-                {{ 'people.common.loadFailed' | transloco }}
-              </p>
+              <app-error-state (retry)="reload()" />
             }
             @default {
               @if (rows().length === 0) {
-                <p class="py-10 text-center text-[14px] text-fg-muted" data-testid="no-match">
+                <p class="px-4 py-10 text-center text-body text-fg-muted" data-testid="no-match">
                   {{ 'people.checklists.noMatch' | transloco }}
                 </p>
               } @else {
-                <ul class="divide-y divide-border" data-testid="checklist-rows">
+                <div role="list" data-testid="checklist-rows">
+                  <app-record-row-header titleKey="people.fields.checklistTitle" dateKind="due" />
                   @for (c of rows(); track c.id) {
-                    <li class="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:gap-3">
-                      <div class="min-w-0 flex-1">
-                        <a
-                          [routerLink]="['/people/checklists', c.id]"
-                          class="text-[13.5px] font-semibold text-fg hover:underline"
-                          >{{ c.title }}</a
-                        >
-                        <p class="text-[12px] text-fg-subtle">
-                          <a
-                            [routerLink]="['/people/employees', c.employee_id]"
-                            class="hover:underline"
-                            >{{ c.employee_name }} ({{ c.employee_code }})</a
-                          >
-                          · {{ 'people.checklistKinds.' + c.kind | transloco }}
-                          @if (c.due_date) {
-                            ·
-                            <span
-                              [class.text-fail]="isOverdue(c)"
-                              [class.font-semibold]="isOverdue(c)"
-                              >{{
-                                'people.checklists.due'
-                                  | transloco: { date: (c.due_date | localDay) }
-                              }}</span
-                            >
-                            @if (isOverdue(c)) {
-                              <span class="sr-only">{{ 'people.common.overdue' | transloco }}</span>
-                            }
-                          }
-                        </p>
-                      </div>
-                      <div class="w-full sm:w-[160px]">
-                        <app-progress-bar
-                          [value]="c.items_total ? (c.items_done / c.items_total) * 100 : 0"
-                          [label]="
-                            'people.checklists.progress'
-                              | transloco: { done: c.items_done, total: c.items_total }
-                          "
+                    <app-record-row
+                      [title]="c.title"
+                      [subtitle]="subtitle(c)"
+                      [link]="['/people/checklists', c.id]"
+                      [owner]="c.owner?.name"
+                      [date]="c.due_date"
+                      dateKind="due"
+                      [overdue]="isOverdue(c)"
+                    >
+                      <app-coverage-chip coverage entityType="people_checklist" [entityId]="c.id" />
+                      <ng-container ngProjectAs="[badges]">
+                        <app-status-badge
+                          meaning="lifecycle"
+                          [value]="c.status"
+                          [labelKey]="'people.checklistStatus.' + c.status"
                         />
-                        <p class="mt-1 text-[11.5px] text-fg-subtle">
-                          {{
-                            'people.checklists.progress'
-                              | transloco: { done: c.items_done, total: c.items_total }
-                          }}
-                        </p>
-                      </div>
-                      <app-badge [tone]="tone(c.status)">{{
-                        'people.checklistStatus.' + c.status | transloco
-                      }}</app-badge>
-                    </li>
+                        <app-status-badge
+                          meaning="progress"
+                          [value]="progress(c)"
+                          labelKey="people.checklists.progress"
+                          [labelParams]="{ done: c.items_done, total: c.items_total }"
+                        />
+                      </ng-container>
+                    </app-record-row>
                   }
-                </ul>
+                </div>
                 <div class="border-t border-border px-4 py-2.5">
                   <app-pager
                     [offset]="offset()"
@@ -193,10 +170,7 @@ const PAGE_SIZE = 25;
         </app-card>
       }
 
-      <div class="mt-6 flex flex-col gap-3">
-        <app-why-it-matters scope="people" page="checklists" />
-        <app-people-lesson-link lesson="joiners-and-leavers" />
-      </div>
+      <div class="mt-8"><app-why-it-matters scope="people" page="checklists" /></div>
     </div>
   `,
 })
@@ -205,11 +179,13 @@ export class ChecklistsList {
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly language = inject(LanguageService);
 
+  protected readonly nav = PEOPLE_NAV;
+  protected readonly root = PEOPLE_ROOT;
+  protected readonly settingsLink = PEOPLE_SETTINGS_LINK;
   protected readonly selectClass = FILTER_SELECT_CLASS;
   protected readonly kinds = CHECKLIST_KINDS;
   protected readonly statuses = CHECKLIST_STATUSES;
   protected readonly pageSize = PAGE_SIZE;
-  protected readonly tone = checklistStatusTone;
 
   protected readonly kind = signal<ChecklistKind | ''>('');
   protected readonly status = signal<ChecklistStatus | ''>('open');
@@ -224,6 +200,7 @@ export class ChecklistsList {
       this.state() === 'ready' && this.total() === 0 && !this.kind() && this.status() === 'open',
   );
 
+  private lastQuery: ChecklistQuery = {};
   private request = new Subscription();
 
   constructor() {
@@ -246,6 +223,14 @@ export class ChecklistsList {
     });
   }
 
+  protected subtitle(c: Checklist): string {
+    return `${c.employee_name} · ${this.language.translate(`people.checklistKinds.${c.kind}`)}`;
+  }
+
+  protected progress(c: Checklist): string {
+    return `${c.items_total ? Math.round((c.items_done / c.items_total) * 100) : 0}`;
+  }
+
   protected isOverdue(c: Checklist): boolean {
     return c.status === 'open' && !!c.due_date && c.due_date < this.today;
   }
@@ -264,8 +249,13 @@ export class ChecklistsList {
     );
   }
 
+  protected reload(): void {
+    this.load(this.selectedOrg.currentOrgId(), this.lastQuery);
+  }
+
   private load(orgId: string | null, query: ChecklistQuery): void {
     this.request.unsubscribe();
+    this.lastQuery = query;
     if (!orgId) {
       return;
     }

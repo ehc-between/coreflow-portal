@@ -17,17 +17,29 @@ import {
   CompetenceAssessment,
   CompetenceFields,
   CompetenceQuery,
+  CompetenceRecord,
   CompetenceUpdate,
+  CourseOption,
   DisciplinaryCase,
   DisciplinaryIn,
   DisciplinaryUpdate,
   Employee,
   EmployeeCompetences,
+  EmployeeCompliance,
   EmployeeCreate,
+  EmployeeHandover,
+  EmployeeTraining,
   EmployeeListQuery,
   EmployeeUpdate,
   Gap,
+  GapAction,
+  GapActionCreate,
+  GapActionUpdate,
   GapQuery,
+  ImportUsersIn,
+  OrgChart,
+  PeopleLang,
+  PositionReviewIn,
   Matrix,
   MatrixQuery,
   Page,
@@ -38,6 +50,7 @@ import {
   PositionUpdate,
   Position,
   RequirementIn,
+  UserMatches,
 } from './people.models';
 
 /** Pages show coded errors themselves, so the generic toast is skipped. */
@@ -56,6 +69,7 @@ export function employeeListParams(query: EmployeeListQuery): QueryParams {
     manager_id: query.manager_id || undefined,
     user_id: query.user_id || undefined,
     employment_type: query.employment_type || undefined,
+    flag: query.flag || undefined,
     sort: query.sort,
     limit: query.limit,
     offset: query.offset,
@@ -396,5 +410,139 @@ export class PeopleApi {
       ...IN_PLACE,
       params: gapParams(query),
     });
+  }
+
+  // --- A11: connected views of one person ---------------------------------------------
+
+  /** The status of each people control for the person, with the clauses it proves. */
+  compliance(orgId: string, id: string): Observable<EmployeeCompliance> {
+    return this.api.get<EmployeeCompliance>(
+      `${this.base(orgId)}/employees/${id}/compliance`,
+      IN_PLACE,
+    );
+  }
+
+  /** Training assignments and records of the person's user account (M11). */
+  training(orgId: string, id: string): Observable<EmployeeTraining> {
+    return this.api.get<EmployeeTraining>(`${this.base(orgId)}/employees/${id}/training`, IN_PLACE);
+  }
+
+  /** Assets the person holds and access-review entries about them (offboarding). */
+  handover(orgId: string, id: string): Observable<EmployeeHandover> {
+    return this.api.get<EmployeeHandover>(`${this.base(orgId)}/employees/${id}/handover`, IN_PLACE);
+  }
+
+  /** Everything for the printable competence record. */
+  competenceRecord(orgId: string, id: string): Observable<CompetenceRecord> {
+    return this.api.get<CompetenceRecord>(
+      `${this.base(orgId)}/employees/${id}/competence-record`,
+      IN_PLACE,
+    );
+  }
+
+  // --- A11: user accounts -------------------------------------------------------------
+
+  userMatches(orgId: string): Observable<UserMatches> {
+    return this.api.get<UserMatches>(`${this.base(orgId)}/user-matches`, IN_PLACE);
+  }
+
+  importUsers(orgId: string, body: ImportUsersIn): Observable<Page<Employee>> {
+    return this.api.post<Page<Employee>>(
+      `${this.base(orgId)}/employees/import-users`,
+      body,
+      IN_PLACE,
+    );
+  }
+
+  // --- A11: checklist templates (people:manage to change) -----------------------------
+
+  checklistTemplatesFor(orgId: string, lang: PeopleLang): Observable<ChecklistTemplates> {
+    return this.api.get<ChecklistTemplates>(`${this.base(orgId)}/checklist-templates`, {
+      ...IN_PLACE,
+      params: { lang },
+    });
+  }
+
+  saveChecklistTemplate(
+    orgId: string,
+    kind: string,
+    lang: PeopleLang,
+    items: readonly ChecklistItemIn[],
+  ): Observable<ChecklistTemplates> {
+    return this.api.put<ChecklistTemplates>(
+      `${this.base(orgId)}/checklist-templates/${kind}`,
+      { items },
+      { ...IN_PLACE, params: { lang } },
+    );
+  }
+
+  resetChecklistTemplate(orgId: string, kind: string): Observable<ChecklistTemplates> {
+    return this.api.delete<ChecklistTemplates>(
+      `${this.base(orgId)}/checklist-templates/${kind}`,
+      IN_PLACE,
+    );
+  }
+
+  // --- A11: positions -----------------------------------------------------------------
+
+  orgChart(orgId: string): Observable<OrgChart> {
+    return this.api.get<OrgChart>(`${this.base(orgId)}/positions/org-chart`, IN_PLACE);
+  }
+
+  markPositionReviewed(
+    orgId: string,
+    id: string,
+    body: PositionReviewIn,
+  ): Observable<PositionDetail> {
+    return this.api.post<PositionDetail>(
+      `${this.base(orgId)}/positions/${id}/reviewed`,
+      body,
+      IN_PLACE,
+    );
+  }
+
+  // --- A11: actions on competence gaps (HS 7.2 c) -------------------------------------
+
+  gapActions(
+    orgId: string,
+    query: { employee_id?: string; competence_id?: string; status?: readonly string[] } = {},
+  ): Observable<Page<GapAction>> {
+    return this.api.get<Page<GapAction>>(`${this.base(orgId)}/competence-actions`, {
+      ...IN_PLACE,
+      params: {
+        employee_id: query.employee_id || undefined,
+        competence_id: query.competence_id || undefined,
+        status: csv(query.status),
+      },
+    });
+  }
+
+  createGapAction(orgId: string, body: GapActionCreate): Observable<GapAction> {
+    return this.api.post<GapAction>(`${this.base(orgId)}/competence-actions`, body, IN_PLACE);
+  }
+
+  updateGapAction(orgId: string, id: string, body: GapActionUpdate): Observable<GapAction> {
+    return this.api.patch<GapAction>(
+      `${this.base(orgId)}/competence-actions/${id}`,
+      body,
+      IN_PLACE,
+    );
+  }
+
+  deleteGapAction(orgId: string, id: string): Observable<void> {
+    return this.api.delete<void>(`${this.base(orgId)}/competence-actions/${id}`, IN_PLACE);
+  }
+
+  /** Published courses (Training) to assign for a gap. */
+  courses(orgId: string): Observable<Page<CourseOption>> {
+    return this.api.get<Page<CourseOption>>(`v1/orgs/${orgId}/training/courses`, {
+      ...IN_PLACE,
+      params: { status: 'published', sort: 'title', limit: 200 },
+    });
+  }
+
+  /** Download a CSV export (`matrix` or `gaps`) with the page's filters. */
+  exportCsv(orgId: string, kind: 'matrix' | 'gaps', params: QueryParams): Observable<Blob> {
+    return this.api.getBlob(`${this.base(orgId)}/${kind}/export`, { ...IN_PLACE, params });
   }
 }
