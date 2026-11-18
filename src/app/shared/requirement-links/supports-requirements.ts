@@ -183,6 +183,8 @@ export interface ClauseRow {
   readonly key: string;
   readonly label: RequirementLabel;
   readonly status: 'confirmed' | 'suggested';
+  /** The record the links belong to (this record, or one of its actions). */
+  readonly entityId: string;
   /** 1-based positions of the linked requirements within the clause. */
   readonly positions: readonly number[];
   readonly rows: readonly PanelRow[];
@@ -210,6 +212,7 @@ export function groupByClause(rows: readonly PanelRow[]): ClauseRow[] {
       key,
       label: list[0].label,
       status: list[0].status,
+      entityId: list[0].entityId,
       positions: list.map((r) => r.label.req_index),
       rows: list,
       fromField: fieldRows.length === list.length,
