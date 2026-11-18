@@ -10,57 +10,51 @@ import {
   signal,
 } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { DocumentControlUpdate, DocumentDetail } from '../../../core/documents/document.models';
 import { documentErrorKey } from '../../../core/documents/document-errors';
 import { DocumentsApi } from '../../../core/documents/documents-api';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
-import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
-import {
-  REVIEW_INTERVALS,
-  reviewLabelKey,
-  reviewState,
-  reviewTone,
-  toDateInput,
-} from './document-review';
+import { REVIEW_INTERVALS, reviewLabelKey, reviewState, toDateInput } from './document-review';
 
 let nextId = 0;
 
 /**
- * Periodic review + acknowledgement settings card for the detail sidebar.
- * Everyone sees the review interval, the next review date and an overdue /
- * due-soon badge. Managers (owner or `documents:approve`) can edit the
- * interval, the next review date and whether readers must acknowledge the
- * approved revision; saving PATCHes the document and emits it via `changed`.
+ * Periodic review card for the detail aside. Everyone sees the review interval,
+ * the next review date and a due / overdue badge. Managers (owner or
+ * `documents:approve`) can change the interval and the next review date;
+ * saving PATCHes the document and emits it via `changed`. Read-and-understood
+ * lives in its own card (`app-document-read-confirm`).
  */
 @Component({
   selector: 'app-document-review-panel',
-  imports: [LocalDayPipe, TranslocoPipe, Badge, Button, Card],
+  imports: [StatusBadge, LocalDayPipe, TranslocoPipe, Button, Card],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-card [padded]="false">
       <div class="flex items-center justify-between gap-2 px-4 pt-3.5 pb-1">
-        <h2 class="font-display text-[15px] font-bold tracking-[-0.02em] text-fg">
+        <h2 class="font-display text-card font-bold tracking-[-0.02em] text-fg">
           {{ 'documents.review.title' | transloco }}
         </h2>
         @if (state(); as s) {
-          <app-badge [tone]="reviewTone(s)">{{ reviewLabelKey(s) | transloco }}</app-badge>
+          <app-status-badge meaning="lifecycle" [value]="s" [labelKey]="reviewLabelKey(s)" />
         }
       </div>
 
       @if (editing()) {
         <form class="flex flex-col gap-3 px-4 pt-2 pb-4" (submit)="save($event)">
           <div class="flex flex-col gap-1.5">
-            <label [attr.for]="ids.interval" class="text-[13px] font-semibold text-fg-muted">
+            <label [attr.for]="ids.interval" class="text-ui font-semibold text-fg-muted">
               {{ 'documents.review.interval' | transloco }}
             </label>
             <select
               [id]="ids.interval"
               [value]="intervalValue()"
               (change)="intervalValue.set(fieldValue($event))"
-              class="h-9 rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg outline-none focus:border-accent"
+              class="h-9 rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent"
             >
               <option value="">{{ 'documents.review.noInterval' | transloco }}</option>
               @for (months of intervals; track months) {
@@ -71,7 +65,7 @@ let nextId = 0;
             </select>
           </div>
           <div class="flex flex-col gap-1.5">
-            <label [attr.for]="ids.next" class="text-[13px] font-semibold text-fg-muted">
+            <label [attr.for]="ids.next" class="text-ui font-semibold text-fg-muted">
               {{ 'documents.review.nextReview' | transloco }}
             </label>
             <input
@@ -79,26 +73,12 @@ let nextId = 0;
               type="date"
               [value]="nextValue()"
               (change)="nextValue.set(fieldValue($event))"
-              class="h-9 rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg outline-none focus:border-accent"
+              class="h-9 rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent"
             />
-            <span class="text-[12px] text-fg-subtle">{{
+            <span class="text-meta text-fg-subtle">{{
               'documents.review.nextReviewHint' | transloco
             }}</span>
           </div>
-          <label class="flex items-start gap-2 text-[13px] text-fg">
-            <input
-              type="checkbox"
-              class="mt-0.5"
-              [checked]="ackValue()"
-              (change)="ackValue.set(checkedValue($event))"
-            />
-            <span>
-              <span class="font-semibold">{{ 'documents.ack.requireLabel' | transloco }}</span>
-              <span class="block text-[12px] text-fg-subtle">{{
-                'documents.ack.requireHint' | transloco
-              }}</span>
-            </span>
-          </label>
           <div class="flex justify-end gap-2">
             <app-button variant="secondary" size="sm" [disabled]="saving()" (click)="cancel()">
               {{ 'common.cancel' | transloco }}
@@ -109,7 +89,7 @@ let nextId = 0;
           </div>
         </form>
       } @else {
-        <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 px-4 pt-2 pb-4 text-[13px]">
+        <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 px-4 pt-2 pb-4 text-ui">
           <dt class="text-fg-subtle">{{ 'documents.review.interval' | transloco }}</dt>
           <dd class="text-fg">
             @if (document().review_interval_months; as months) {
@@ -119,12 +99,12 @@ let nextId = 0;
             }
           </dd>
           <dt class="text-fg-subtle">{{ 'documents.review.nextReview' | transloco }}</dt>
-          <dd [class]="state() === 'overdue' ? 'font-semibold text-fail' : 'text-fg'">
-            {{ document().next_review_at ? (document().next_review_at | localDay) : '—' }}
-          </dd>
-          <dt class="text-fg-subtle">{{ 'documents.ack.required' | transloco }}</dt>
-          <dd class="text-fg">
-            {{ (document().acknowledgement?.required ? 'common.yes' : 'common.no') | transloco }}
+          <dd [class]="state() === 'overdue' ? 'font-semibold text-warn-ink' : 'text-fg'">
+            {{
+              document().next_review_at
+                ? (document().next_review_at | localDay)
+                : ('common.empty.notSet' | transloco)
+            }}
           </dd>
         </dl>
         @if (canManage() && document().status !== 'obsolete') {
@@ -150,7 +130,6 @@ export class DocumentReviewPanel {
   readonly changed = output<DocumentDetail>();
 
   protected readonly intervals = REVIEW_INTERVALS;
-  protected readonly reviewTone = reviewTone;
   protected readonly reviewLabelKey = reviewLabelKey;
   protected readonly ids = {
     interval: `review-interval-${nextId}`,
@@ -173,10 +152,6 @@ export class DocumentReviewPanel {
 
   protected fieldValue(event: Event): string {
     return (event.target as HTMLInputElement | HTMLSelectElement).value;
-  }
-
-  protected checkedValue(event: Event): boolean {
-    return (event.target as HTMLInputElement).checked;
   }
 
   protected cancel(): void {

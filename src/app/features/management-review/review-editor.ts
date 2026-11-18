@@ -9,23 +9,29 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { Subscription } from 'rxjs';
+import { Subscription, catchError, forkJoin, of } from 'rxjs';
 import { providePageContext } from '../../core/ai/page-context';
 import { AuthService } from '../../core/auth/auth.service';
 import { LanguageService } from '../../core/i18n/language.service';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
-import { FieldHelp } from '../../shared/guidance/field-help';
-import { GuideIntro } from '../../shared/guidance/guide-intro';
+import { StandardsApi } from '../../core/standards/standards-api';
+import { StandardSummary } from '../../core/standards/standards.models';
+import { AskAbout } from '../../shared/ask/ask-about';
 import { WhyItMatters } from '../../shared/guidance/why-it-matters';
 import { AssigneeOptionsService } from '../../shared/tasks/assignee-options';
 import { Alert } from '../../shared/ui/alert/alert';
 import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
+import { ErrorState } from '../../shared/ui/error-state/error-state';
 import { FormField } from '../../shared/ui/form-field/form-field';
+import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../shared/ui/icon/icon';
+import { LoadingState } from '../../shared/ui/loading-state/loading-state';
+import { PageHeader } from '../../shared/ui/page-header/page-header';
+import { FieldLabel } from './components/field-label';
 import { UserSelect, userIdOf } from './components/user-select';
 import { ManagementReviewApi } from './data/management-review-api';
 import { mrErrorKey } from './data/management-review-errors';
@@ -33,19 +39,25 @@ import {
   CreateReviewRequest,
   FRAMEWORKS,
   Framework,
+  Planning,
   ReviewDetail,
   UpdateReviewRequest,
 } from './data/management-review.models';
 import {
   MR_MODULE,
   MR_SCOPE,
+  MR_SETTINGS_LINK,
+  dayOf,
   frameworkKey,
   fromLocalInput,
   minutesOrNull,
+  mrCrumbs,
+  nextDay,
   textOrNull,
+  todayIso,
 } from './management-review-display';
 
-/** The standard agenda of a management review (ISO HS 9.3.2), as i18n keys. */
+/** The standard agenda of a management review (ISO 9.3.2), as i18n keys. */
 export const STANDARD_AGENDA = [
   'previousActions',
   'changes',
@@ -90,6 +102,31 @@ export function emptyReviewForm(title: string, ownerId: string | null): ReviewFo
   };
 }
 
+/** The ISO frameworks the organisation has switched on (the ones a review can cover). */
+export function adoptedFrameworks(standards: readonly StandardSummary[]): Framework[] {
+  const on = new Set(standards.filter((s) => s.enabled).map((s) => s.framework ?? ''));
+  return FRAMEWORKS.filter((f) => on.has(f));
+}
+
+/**
+ * The default period of a new review: from the day after the last signed review
+ * was held (else signed) to today; without one, the review interval back from today.
+ */
+export function defaultPeriod(
+  planning: Planning | null,
+  today = todayIso(),
+): { start: string; end: string } {
+  const last = planning?.last_signed;
+  const lastDay = dayOf(last?.held_at || last?.signed_at || null);
+  if (lastDay && lastDay < today) {
+    return { start: nextDay(lastDay), end: today };
+  }
+  const months = planning?.interval_months ?? 12;
+  const [y, m, d] = today.split('-').map(Number);
+  const start = new Date(Date.UTC(y, m - 1 - months, d));
+  return { start: start.toISOString().slice(0, 10), end: today };
+}
+
 /** The create payload of a form value (frameworks omitted when none are picked). */
 export function createReviewPayload(
   f: ReviewFormValue,
@@ -132,276 +169,324 @@ const DEFAULT_TITLE_KEY = 'managementReview.form.defaultTitle';
 let nextId = 0;
 
 /**
- * `/management-review/reviews/new` and `.../:id/edit`. A new review gets a title,
- * the standards it covers, the review period, an owner and its meeting (time,
- * place, chair, attendees, the standard agenda); the inputs are compiled on
- * creation. Editing changes the title, standards, period and owner with a reason.
+ * `/management-review/reviews/new` and `.../:id/edit`. A new review starts
+ * filled in: the standards the organisation has switched on, the period since
+ * the last signed review, the owner and chair (you), and the meeting with the
+ * standard agenda; its inputs are fetched on creation. Editing changes the
+ * title, standards, period and owner, with a reason.
  */
 @Component({
   selector: 'app-mr-review-editor',
   imports: [
-    RouterLink,
     TranslocoPipe,
-    FieldHelp,
-    GuideIntro,
+    AskAbout,
     WhyItMatters,
     Alert,
     Button,
     Card,
+    ErrorState,
     FormField,
+    HelpStrip,
     Icon,
+    LoadingState,
+    PageHeader,
+    FieldLabel,
     UserSelect,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[880px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
-      <a
-        [routerLink]="id() ? ['/management-review/reviews', id()] : ['/management-review/reviews']"
-        class="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
-      >
-        <app-icon name="back" [size]="16" />
-        {{
-          (id() ? 'managementReview.common.backToReview' : 'managementReview.common.backToList')
-            | transloco
-        }}
-      </a>
-      <h1 class="mb-4 font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]">
-        {{
-          (id() ? 'managementReview.form.editTitle' : 'managementReview.form.newTitle') | transloco
-        }}
-      </h1>
-
-      <div class="mb-4"><app-guide-intro [scope]="scope" page="form" /></div>
+    <div class="mx-auto max-w-[808px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+      <app-page-header
+        [titleKey]="id() ? 'managementReview.form.editTitle' : 'managementReview.form.newTitle'"
+        descriptionKey="managementReview.form.description"
+        [breadcrumbs]="crumbs()"
+        [settingsLink]="settingsLink"
+      />
+      <app-help-strip [scope]="scope" page="form" />
 
       @if (state() === 'loading') {
-        <p class="py-10 text-center text-[14px] text-fg-muted">
-          {{ 'managementReview.common.loading' | transloco }}
-        </p>
+        <app-loading-state [rows]="5" />
       } @else if (state() === 'error') {
-        <app-alert tone="error">{{ 'managementReview.common.loadFailed' | transloco }}</app-alert>
+        <app-error-state (retry)="reload()" />
       } @else if (existing()?.can_edit === false) {
         <app-alert tone="info">{{ 'managementReview.detail.readOnly' | transloco }}</app-alert>
       } @else {
-        <app-card>
-          <form class="flex flex-col gap-4" novalidate (submit)="$event.preventDefault(); save()">
-            @if (errorKey(); as key) {
-              <app-alert tone="error">{{ key | transloco }}</app-alert>
-            }
-
-            <div>
-              <app-form-field
-                [label]="'managementReview.fields.title' | transloco"
-                [inputId]="fid('title')"
-              >
-                <input
-                  [id]="fid('title')"
-                  type="text"
-                  maxlength="255"
-                  required
-                  autocomplete="off"
-                  [attr.aria-invalid]="titleMissing() || null"
-                  [value]="form().title"
-                  (input)="set('title', $any($event.target).value)"
-                />
-              </app-form-field>
-              <app-field-help [scope]="scope" page="form" field="title" />
-              @if (titleMissing()) {
-                <p class="mt-1 text-[12.5px] text-fail">
-                  {{ 'managementReview.errors.title_required' | transloco }}
-                </p>
+        <form novalidate (submit)="$event.preventDefault(); save()">
+          <app-card>
+            <div class="flex flex-col gap-5">
+              @if (errorKey(); as key) {
+                <app-alert tone="error">{{ key | transloco }}</app-alert>
               }
-            </div>
 
-            <fieldset>
-              <legend class="mb-1.5 text-[13px] font-semibold text-fg-muted">
-                {{ 'managementReview.fields.frameworks' | transloco }}
-              </legend>
-              <div class="flex flex-wrap gap-2">
-                @for (f of frameworks; track f) {
-                  <label
-                    class="inline-flex items-center gap-1.5 rounded-[10px] border border-border bg-bg px-3 py-2 text-[13px] text-fg"
-                  >
-                    <input
-                      type="checkbox"
-                      [checked]="form().frameworks.includes(f)"
-                      (change)="toggleFramework(f, $any($event.target).checked)"
-                    />
-                    {{ frameworkKey(f) | transloco }}
-                  </label>
-                }
-              </div>
-              <app-field-help [scope]="scope" page="form" field="frameworks" />
-            </fieldset>
-
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
-                <app-form-field
-                  [label]="'managementReview.fields.periodStart' | transloco"
-                  [inputId]="fid('ps')"
-                >
-                  <input
-                    [id]="fid('ps')"
-                    type="date"
-                    [value]="form().period_start"
-                    (input)="set('period_start', $any($event.target).value)"
-                  />
-                </app-form-field>
-                <app-field-help [scope]="scope" page="form" field="period" />
-              </div>
-              <app-form-field
-                [label]="'managementReview.fields.periodEnd' | transloco"
-                [inputId]="fid('pe')"
-              >
-                <input
-                  [id]="fid('pe')"
-                  type="date"
-                  [value]="form().period_end"
-                  (input)="set('period_end', $any($event.target).value)"
+                <app-mr-field-label
+                  [controlId]="fid('title')"
+                  [label]="'managementReview.fields.title' | transloco"
+                  field="title"
                 />
-              </app-form-field>
-              <div>
-                <app-form-field
-                  [label]="'managementReview.fields.owner' | transloco"
-                  [inputId]="fid('owner')"
-                >
-                  <app-mr-user-select
-                    [inputId]="fid('owner')"
-                    [value]="form().owner_user_id"
-                    [currentName]="existing()?.owner?.name ?? null"
-                    (valueChange)="set('owner_user_id', $event)"
-                  />
-                </app-form-field>
-                <app-field-help [scope]="scope" page="form" field="owner" />
-              </div>
-            </div>
-
-            @if (!id()) {
-              <h2 class="mt-2 font-display text-[15px] font-bold text-fg">
-                {{ 'managementReview.form.meetingHeading' | transloco }}
-              </h2>
-              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <app-form-field
-                  [label]="'managementReview.fields.scheduledAt' | transloco"
-                  [inputId]="fid('when')"
-                >
+                <app-form-field [inputId]="fid('title')">
                   <input
-                    [id]="fid('when')"
-                    type="datetime-local"
-                    [value]="form().scheduled_at"
-                    (input)="set('scheduled_at', $any($event.target).value)"
-                  />
-                </app-form-field>
-                <app-form-field
-                  [label]="'managementReview.fields.duration' | transloco"
-                  [inputId]="fid('dur')"
-                >
-                  <input
-                    [id]="fid('dur')"
-                    type="number"
-                    min="1"
-                    max="1440"
-                    [value]="form().duration"
-                    (input)="set('duration', $any($event.target).value)"
-                  />
-                </app-form-field>
-                <app-form-field
-                  [label]="'managementReview.fields.location' | transloco"
-                  [inputId]="fid('loc')"
-                >
-                  <input
-                    [id]="fid('loc')"
+                    [id]="fid('title')"
                     type="text"
                     maxlength="255"
-                    [value]="form().location"
-                    (input)="set('location', $any($event.target).value)"
+                    required
+                    autocomplete="off"
+                    [attr.aria-invalid]="titleMissing() || null"
+                    [attr.aria-describedby]="titleMissing() ? fid('title-err') : null"
+                    [value]="form().title"
+                    (input)="set('title', $any($event.target).value)"
                   />
                 </app-form-field>
+                @if (titleMissing()) {
+                  <p [id]="fid('title-err')" class="mt-1 text-meta text-fail-ink" role="alert">
+                    {{ 'managementReview.errors.title_required' | transloco }}
+                  </p>
+                }
+              </div>
+
+              <fieldset>
+                <legend class="sr-only">
+                  {{ 'managementReview.fields.frameworks' | transloco }}
+                </legend>
+                <app-mr-field-label
+                  [label]="'managementReview.fields.frameworks' | transloco"
+                  field="frameworks"
+                >
+                  <app-ask-about
+                    field="frameworks"
+                    [fieldLabel]="'managementReview.fields.frameworks' | transloco"
+                    [prompt]="'managementReview.ai.prompts.askFrameworks' | transloco"
+                    labelKey="managementReview.ai.askField"
+                  />
+                </app-mr-field-label>
+                <div class="flex flex-wrap gap-2">
+                  @for (f of frameworks(); track f) {
+                    <label
+                      class="inline-flex min-h-10 items-center gap-1.5 rounded-tile border border-border bg-bg px-3 text-ui text-fg has-[:checked]:border-accent has-[:checked]:bg-accent-soft"
+                    >
+                      <input
+                        type="checkbox"
+                        [checked]="form().frameworks.includes(f)"
+                        (change)="toggleFramework(f, $any($event.target).checked)"
+                        [attr.data-testid]="'framework-' + f"
+                      />
+                      {{ frameworkKey(f) | transloco }}
+                    </label>
+                  }
+                </div>
+                @if (limited()) {
+                  <p class="mt-1.5 text-meta text-fg-subtle">
+                    {{ 'managementReview.form.frameworksAdopted' | transloco }}
+                  </p>
+                }
+              </fieldset>
+
+              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
-                  <app-form-field
-                    [label]="'managementReview.fields.chair' | transloco"
-                    [inputId]="fid('chair')"
+                  <app-mr-field-label
+                    [controlId]="fid('ps')"
+                    [label]="'managementReview.fields.periodStart' | transloco"
+                    field="period"
                   >
-                    <app-mr-user-select
-                      [inputId]="fid('chair')"
-                      [value]="form().chair_user_id"
-                      (valueChange)="set('chair_user_id', $event)"
+                    <app-ask-about
+                      field="period"
+                      [fieldLabel]="'managementReview.fields.period' | transloco"
+                      [prompt]="'managementReview.ai.prompts.askPeriod' | transloco"
+                      labelKey="managementReview.ai.askField"
+                    />
+                  </app-mr-field-label>
+                  <app-form-field [inputId]="fid('ps')">
+                    <input
+                      [id]="fid('ps')"
+                      type="date"
+                      [value]="form().period_start"
+                      (input)="set('period_start', $any($event.target).value)"
                     />
                   </app-form-field>
-                  <app-field-help [scope]="scope" page="form" field="chair" />
+                </div>
+                <div>
+                  <app-mr-field-label
+                    [controlId]="fid('pe')"
+                    [label]="'managementReview.fields.periodEnd' | transloco"
+                  />
+                  <app-form-field [inputId]="fid('pe')">
+                    <input
+                      [id]="fid('pe')"
+                      type="date"
+                      [value]="form().period_end"
+                      (input)="set('period_end', $any($event.target).value)"
+                    />
+                  </app-form-field>
+                </div>
+                <div>
+                  <app-mr-field-label
+                    [controlId]="fid('owner')"
+                    [label]="'managementReview.fields.owner' | transloco"
+                    field="owner"
+                  />
+                  <app-form-field [inputId]="fid('owner')">
+                    <app-mr-user-select
+                      [inputId]="fid('owner')"
+                      [value]="form().owner_user_id"
+                      [currentName]="existing()?.owner?.name ?? null"
+                      (valueChange)="set('owner_user_id', $event)"
+                    />
+                  </app-form-field>
                 </div>
               </div>
+            </div>
+          </app-card>
 
-              <div>
-                <p class="mb-1.5 text-[13px] font-semibold text-fg-muted">
-                  {{ 'managementReview.fields.attendees' | transloco }}
-                </p>
-                <ul class="mb-2 flex flex-wrap gap-1.5" data-testid="new-attendees">
-                  @for (uid of form().attendee_ids; track uid) {
-                    <li
-                      class="inline-flex items-center gap-1 rounded-full border border-border bg-surface-2 py-0.5 pr-1 pl-2.5 text-[12.5px] text-fg"
-                    >
-                      {{ userName(uid) }}
-                      <button
-                        type="button"
-                        class="flex rounded-full p-0.5 text-fg-subtle hover:text-fail"
-                        [attr.aria-label]="
-                          'managementReview.attendees.remove' | transloco: { name: userName(uid) }
-                        "
-                        (click)="removeAttendee(uid)"
+          @if (!id()) {
+            <app-card class="mt-4 block">
+              <h2 class="mb-1 font-display text-card font-bold text-fg">
+                {{ 'managementReview.form.meetingHeading' | transloco }}
+              </h2>
+              <p class="mb-4 text-ui text-fg-muted">
+                {{ 'managementReview.form.meetingIntro' | transloco }}
+              </p>
+              <div class="flex flex-col gap-5">
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div>
+                    <app-mr-field-label
+                      [controlId]="fid('when')"
+                      [label]="'managementReview.fields.scheduledAt' | transloco"
+                    />
+                    <app-form-field [inputId]="fid('when')">
+                      <input
+                        [id]="fid('when')"
+                        type="datetime-local"
+                        [value]="form().scheduled_at"
+                        (input)="set('scheduled_at', $any($event.target).value)"
+                      />
+                    </app-form-field>
+                  </div>
+                  <div>
+                    <app-mr-field-label
+                      [controlId]="fid('dur')"
+                      [label]="'managementReview.fields.duration' | transloco"
+                    />
+                    <app-form-field [inputId]="fid('dur')">
+                      <input
+                        [id]="fid('dur')"
+                        type="number"
+                        min="1"
+                        max="1440"
+                        [value]="form().duration"
+                        (input)="set('duration', $any($event.target).value)"
+                      />
+                    </app-form-field>
+                  </div>
+                  <div>
+                    <app-mr-field-label
+                      [controlId]="fid('loc')"
+                      [label]="'managementReview.fields.location' | transloco"
+                    />
+                    <app-form-field [inputId]="fid('loc')">
+                      <input
+                        [id]="fid('loc')"
+                        type="text"
+                        maxlength="255"
+                        [value]="form().location"
+                        (input)="set('location', $any($event.target).value)"
+                      />
+                    </app-form-field>
+                  </div>
+                  <div>
+                    <app-mr-field-label
+                      [controlId]="fid('chair')"
+                      [label]="'managementReview.fields.chair' | transloco"
+                      field="chair"
+                    />
+                    <app-form-field [inputId]="fid('chair')">
+                      <app-mr-user-select
+                        [inputId]="fid('chair')"
+                        [value]="form().chair_user_id"
+                        (valueChange)="set('chair_user_id', $event)"
+                      />
+                    </app-form-field>
+                  </div>
+                </div>
+
+                <div>
+                  <app-mr-field-label
+                    [controlId]="fid('att')"
+                    [label]="'managementReview.fields.attendees' | transloco"
+                    field="attendees"
+                  />
+                  <ul class="mb-2 flex flex-wrap gap-1.5" data-testid="new-attendees">
+                    @for (uid of form().attendee_ids; track uid) {
+                      <li
+                        class="inline-flex items-center gap-1 rounded-full border border-border bg-surface-2 py-0.5 pr-1 pl-2.5 text-meta text-fg"
                       >
-                        <app-icon name="x" [size]="12" />
-                      </button>
-                    </li>
-                  } @empty {
-                    <li class="text-[12.5px] text-fg-subtle">
-                      {{ 'managementReview.attendees.noneYet' | transloco }}
-                    </li>
-                  }
-                </ul>
-                <app-mr-user-select
-                  selectClass="h-10 w-full rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg sm:w-[320px]"
-                  [ariaLabel]="'managementReview.attendees.addPerson' | transloco"
-                  noneKey="managementReview.attendees.addPerson"
-                  [value]="null"
-                  [exclude]="form().attendee_ids"
-                  (valueChange)="addAttendee($event)"
-                />
-                <app-field-help [scope]="scope" page="form" field="attendees" />
-              </div>
+                        {{ userName(uid) }}
+                        <button
+                          type="button"
+                          class="flex h-6 w-6 items-center justify-center rounded-full text-fg-subtle hover:text-fail"
+                          [attr.aria-label]="
+                            'managementReview.attendees.remove' | transloco: { name: userName(uid) }
+                          "
+                          (click)="removeAttendee(uid)"
+                        >
+                          <app-icon name="x" [size]="12" />
+                        </button>
+                      </li>
+                    } @empty {
+                      <li class="text-meta text-fg-subtle">
+                        {{ 'managementReview.attendees.noneYet' | transloco }}
+                      </li>
+                    }
+                  </ul>
+                  <app-mr-user-select
+                    [inputId]="fid('att')"
+                    selectClass="h-10 w-full rounded-tile border border-border bg-bg px-2 text-ui text-fg sm:w-[320px]"
+                    noneKey="managementReview.attendees.addPerson"
+                    [value]="null"
+                    [exclude]="form().attendee_ids"
+                    (valueChange)="addAttendee($event)"
+                  />
+                  <p class="mt-1.5 text-meta text-fg-subtle">
+                    {{ 'managementReview.form.topManagementHint' | transloco }}
+                  </p>
+                </div>
 
-              <label class="inline-flex items-start gap-2 text-[13px] text-fg">
-                <input
-                  type="checkbox"
-                  class="mt-0.5"
-                  [checked]="form().standard_agenda"
-                  (change)="set('standard_agenda', $any($event.target).checked)"
-                />
-                <span>
-                  {{ 'managementReview.form.standardAgenda' | transloco }}
-                  <span class="block text-[12px] text-fg-muted">{{
-                    'managementReview.form.standardAgendaHint' | transloco
-                  }}</span>
-                </span>
-              </label>
-              <label class="inline-flex items-start gap-2 text-[13px] text-fg">
-                <input
-                  type="checkbox"
-                  class="mt-0.5"
-                  [checked]="form().compile_inputs"
-                  (change)="set('compile_inputs', $any($event.target).checked)"
-                />
-                <span>
-                  {{ 'managementReview.form.compileInputs' | transloco }}
-                  <span class="block text-[12px] text-fg-muted">{{
-                    'managementReview.form.compileInputsHint' | transloco
-                  }}</span>
-                </span>
-              </label>
-            } @else {
-              <app-form-field
+                <label class="inline-flex items-start gap-2 text-ui text-fg">
+                  <input
+                    type="checkbox"
+                    class="mt-0.5"
+                    [checked]="form().standard_agenda"
+                    (change)="set('standard_agenda', $any($event.target).checked)"
+                  />
+                  <span>
+                    {{ 'managementReview.form.standardAgenda' | transloco }}
+                    <span class="block text-meta text-fg-muted">{{
+                      'managementReview.form.standardAgendaHint' | transloco
+                    }}</span>
+                  </span>
+                </label>
+                <label class="inline-flex items-start gap-2 text-ui text-fg">
+                  <input
+                    type="checkbox"
+                    class="mt-0.5"
+                    [checked]="form().compile_inputs"
+                    (change)="set('compile_inputs', $any($event.target).checked)"
+                  />
+                  <span>
+                    {{ 'managementReview.form.compileInputs' | transloco }}
+                    <span class="block text-meta text-fg-muted">{{
+                      'managementReview.form.compileInputsHint' | transloco
+                    }}</span>
+                  </span>
+                </label>
+              </div>
+            </app-card>
+          } @else {
+            <app-card class="mt-4 block">
+              <app-mr-field-label
+                [controlId]="fid('reason')"
                 [label]="'managementReview.fields.changeReason' | transloco"
-                [inputId]="fid('reason')"
-              >
+              />
+              <app-form-field [inputId]="fid('reason')">
                 <input
                   [id]="fid('reason')"
                   type="text"
@@ -410,27 +495,30 @@ let nextId = 0;
                   (input)="set('change_reason', $any($event.target).value)"
                 />
               </app-form-field>
-            }
+            </app-card>
+          }
 
-            <div class="flex flex-wrap justify-end gap-2">
-              <app-button variant="secondary" (click)="cancel()">{{
-                'common.cancel' | transloco
-              }}</app-button>
-              <app-button type="submit" [loading]="saving()" [disabled]="saving()">
-                {{
-                  (id() ? 'managementReview.form.save' : 'managementReview.form.create') | transloco
-                }}
-              </app-button>
-            </div>
-          </form>
-        </app-card>
-        <div class="mt-4"><app-why-it-matters [scope]="scope" page="form" /></div>
+          <div
+            class="sticky bottom-0 z-10 -mx-4 mt-4 flex flex-wrap justify-end gap-2 border-t border-border bg-bg/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0"
+          >
+            <app-button variant="secondary" (click)="cancel()">{{
+              'common.cancel' | transloco
+            }}</app-button>
+            <app-button type="submit" [loading]="saving()" data-testid="mr-save-review">
+              {{
+                (id() ? 'managementReview.form.save' : 'managementReview.form.create') | transloco
+              }}
+            </app-button>
+          </div>
+        </form>
+        <div class="mt-8"><app-why-it-matters [scope]="scope" page="form" /></div>
       }
     </div>
   `,
 })
 export class ReviewEditor {
   private readonly api = inject(ManagementReviewApi);
+  private readonly standards = inject(StandardsApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly language = inject(LanguageService);
   private readonly notifications = inject(NotificationService);
@@ -442,7 +530,7 @@ export class ReviewEditor {
   readonly id = input<string | undefined>(undefined);
 
   protected readonly scope = MR_SCOPE;
-  protected readonly frameworks = FRAMEWORKS;
+  protected readonly settingsLink = MR_SETTINGS_LINK;
   protected readonly frameworkKey = frameworkKey;
 
   private readonly uid = ++nextId;
@@ -456,7 +544,31 @@ export class ReviewEditor {
   protected readonly saving = signal(false);
   protected readonly submitted = signal(false);
   protected readonly errorKey = signal<string | null>(null);
+  /** The ISO standards the organisation has switched on (null until known / unknown). */
+  private readonly adopted = signal<readonly Framework[] | null>(null);
+
   protected readonly titleMissing = computed(() => this.submitted() && !this.form().title.trim());
+  /** The standards offered: the adopted ones, plus any the review already covers. */
+  protected readonly frameworks = computed<readonly Framework[]>(() => {
+    const adopted = this.adopted();
+    if (!adopted || adopted.length === 0) {
+      return FRAMEWORKS;
+    }
+    const chosen = this.form().frameworks;
+    return FRAMEWORKS.filter((f) => adopted.includes(f) || chosen.includes(f));
+  });
+  protected readonly limited = computed(() => this.frameworks().length < FRAMEWORKS.length);
+  protected readonly crumbs = computed(() =>
+    mrCrumbs(
+      { labelKey: 'managementReview.nav.reviews', link: '/management-review/reviews' },
+      ...(this.existing()
+        ? [{ label: this.existing()!.code, link: ['/management-review/reviews', this.id()] }]
+        : []),
+      {
+        labelKey: this.id() ? 'managementReview.form.editTitle' : 'managementReview.form.newTitle',
+      },
+    ),
+  );
 
   private request = new Subscription();
   private titleTouched = false;
@@ -528,6 +640,10 @@ export class ReviewEditor {
     );
   }
 
+  protected reload(): void {
+    this.init(this.selectedOrg.currentOrgId(), this.id());
+  }
+
   protected save(): void {
     this.submitted.set(true);
     this.errorKey.set(null);
@@ -574,6 +690,11 @@ export class ReviewEditor {
     this.request.unsubscribe();
     this.submitted.set(false);
     this.errorKey.set(null);
+    if (!orgId) {
+      return;
+    }
+    // The adopted standards (needs `standards:read`; without it all five are offered).
+    const standards$ = this.standards.list(orgId).pipe(catchError(() => of(null)));
     if (!id) {
       this.existing.set(null);
       this.titleTouched = false;
@@ -582,15 +703,26 @@ export class ReviewEditor {
         emptyReviewForm(title === DEFAULT_TITLE_KEY ? '' : title, this.auth.user()?.id ?? null),
       );
       this.state.set('ready');
-      return;
-    }
-    if (!orgId) {
+      const planning$ = this.api.planning(orgId).pipe(catchError(() => of(null)));
+      this.request = forkJoin([standards$, planning$]).subscribe(([standards, planning]) => {
+        const adopted = standards ? adoptedFrameworks(standards) : null;
+        this.adopted.set(adopted);
+        const period = defaultPeriod(planning);
+        // Fill the defaults only where the user has not typed yet.
+        this.form.update((f) => ({
+          ...f,
+          frameworks: f.frameworks.length ? f.frameworks : (adopted ?? []),
+          period_start: f.period_start || period.start,
+          period_end: f.period_end || period.end,
+        }));
+      });
       return;
     }
     this.state.set('loading');
-    this.request = this.api.getReview(orgId, id).subscribe({
-      next: (r) => {
+    this.request = forkJoin([this.api.getReview(orgId, id), standards$]).subscribe({
+      next: ([r, standards]) => {
         this.existing.set(r);
+        this.adopted.set(standards ? adoptedFrameworks(standards) : null);
         this.form.set({
           ...emptyReviewForm(r.title, r.owner?.id ?? null),
           frameworks: r.frameworks,

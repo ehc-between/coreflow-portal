@@ -2,16 +2,16 @@
   "pages": {
     "list": {
       "intro": {
-        "title": "Ledelsens gjennomgang holder ledelsen i førersetet",
-        "body": "**Ledelsens gjennomgang** er et planlagt møte der toppledelsen ser på hvordan styringssystemet fungerer og bestemmer hva som skal endres. CoreFlow samler grunnlaget for deg, dokumenterer møtet og gjør beslutninger om til oppgaver.",
+        "title": "Ledelsens gjennomgang: toppledelsen sjekker at systemet virker",
+        "body": "**Ledelsens gjennomgang** er et planlagt møte der toppledelsen ser på hvordan styringssystemet fungerer, og bestemmer hva som skal endres. CoreFlow henter tallene fra de andre modulene, registrerer møtet og gjør beslutninger til oppgaver.",
         "steps": [
-          "Opprett en gjennomgang for perioden, for eksempel én gang i året, og velg standardene den dekker.",
-          "Gå gjennom hvert grunnlag, skriv notater og merk det som gjennomgått. Hold møtet og skriv referatet.",
-          "Skriv konklusjonene og den samlede vurderingen, send til signering og signer. Da låses rapporten."
+          "Planlegg en gjennomgang for perioden, vanligvis én gang i året. Standardene organisasjonen følger, velges for deg.",
+          "Gå gjennom grunnlaget, hold møtet med toppledelsen og registrer beslutningene.",
+          "Vurder om systemet er egnet, tilstrekkelig og effektivt, og send til signering. Den signerte rapporten tas vare på som dokumentasjon."
         ]
       },
       "why": {
-        "body": "Alle ISO-standarder for styringssystemer krever at toppledelsen gjennomgår systemet med **planlagte mellomrom** for å sikre at det fortsatt er egnet, tilstrekkelig og effektivt. Gjennomgangen skal vurdere bestemte innspill og gi beslutninger om forbedring, endringer og ressurser, oppbevart som dokumentert informasjon.",
+        "body": "Alle ISO-standarder for styringssystemer krever at toppledelsen gjennomgår systemet med **planlagte mellomrom** for å sikre at det fortsatt er egnet, tilstrekkelig og effektivt. Gjennomgangen skal vurdere et fast grunnlag og ende i beslutninger om forbedring, endringer og ressurser. Resultatet skal tas vare på som dokumentert informasjon.",
         "clauses": ["hs:9.3", "hs:5.1", "iso9001:9.3", "iso27001:9.3"]
       },
       "empty": {
@@ -43,11 +43,11 @@
     "detail": {
       "intro": {
         "title": "Slik jobber du med en ledelsens gjennomgang",
-        "body": "Start gjennomgangen, gå gjennom hvert grunnlag og legg inn vurderingen din, og hold deretter møtet. Skriv konklusjonene og velg samlet vurdering. Når møtet er gjennomført, kan du sende gjennomgangen til signering.",
+        "body": "Gjennomgangen har fire steg, som knapper over innholdet: **Grunnlag**, **Møtet**, **Resultater** og **Signering**. Et steg får en hake når ingenting mangler.",
         "steps": [
-          "Oppdater grunnlaget hvis nye avvik, tiltak eller dokumenter er registrert siden det ble samlet.",
-          "Bruk **Lag utkast til oppsummering** for å få en første versjon av oppsummeringen, og rediger den.",
-          "Registrer beslutninger i møtet og kryss av for **Opprett en oppfølgingsoppgave** slik at hvert tiltak har eier og frist."
+          "Grunnlag: åpne hver rad, se på tallene CoreFlow har hentet, skriv hva du ser og huk av for gjennomgått, eller merk raden som ikke relevant med en begrunnelse.",
+          "Møtet: registrer hvem som deltok (merk toppledelsen), skriv og godkjenn referatet, og registrer beslutninger. Tiltak får en oppfølgingsoppgave.",
+          "Resultater: skriv konklusjonene og vurder hvert punkt i 9.3. Signering viser det som fortsatt mangler, med lenke dit."
         ]
       },
       "why": {
@@ -56,39 +56,46 @@
       },
       "fields": {
         "inputs": {
-          "help": "Én rad per tema standardene krever. Samlede rader viser tall fra CoreFlow for perioden; manuelle rader trenger din egen vurdering i notatene. Bare tall kopieres, aldri tekst fra postene.",
-          "example": "Avvik: 12 meldt, 9 lukket, 2 forfalt"
+          "help": "Én rad per tema standardene krever. Rader merket «Automatisk» viser tall CoreFlow henter fra modulen som eier dataene, med endringen siden forrige gjennomgang. Bare tall kopieres, aldri tekst fra postene.",
+          "example": "Avvik: 6 meldt, 1 lukket ▲ 6",
+          "requirements": ["hs:9.3.2"]
         },
         "inputsSummary": {
           "help": "En kort oversikt over hva grunnlaget viser: trender, styrker og bekymringer. Det er dette toppledelsen leser først.",
-          "example": "Færre kundeklager enn i fjor, men to korrigerende tiltak er forfalt."
+          "example": "Færre kundeklager enn i fjor, men to korrigerende tiltak er forfalt.",
+          "requirements": ["hs:9.3.2"]
         },
         "conclusions": {
           "help": "Hva toppledelsen konkluderer om styringssystemet. Må fylles ut før du kan sende til signering.",
-          "example": "Systemet fungerer i produksjonen, men oppfølgingen av leverandører trenger mer oppmerksomhet."
+          "example": "Systemet fungerer i produksjonen, men oppfølgingen av leverandører trenger mer oppmerksomhet.",
+          "requirements": ["hs:9.3.3"]
         },
         "improvementOpportunities": {
-          "help": "Beslutninger om muligheter for forbedring. Registrer hver av dem som en beslutning med eier når de trenger oppfølging."
+          "help": "Beslutninger om muligheter for forbedring. Registrer hver av dem som en beslutning med eier når de trenger oppfølging.",
+          "requirements": ["hs:9.3.3", "hs:10.1"]
         },
         "changeNeeds": {
-          "help": "Endringer som trengs i styringssystemet, for eksempel nye prosesser, policyer eller omfang."
+          "help": "Endringer som trengs i styringssystemet, for eksempel nye prosesser, policyer eller omfang.",
+          "requirements": ["hs:9.3.3"]
         },
         "resourceNeeds": {
-          "help": "Folk, kompetanse, verktøy eller budsjett som trengs for å holde systemet effektivt."
+          "help": "Folk, kompetanse, verktøy eller budsjett som trengs for å holde systemet effektivt.",
+          "requirements": ["hs:9.3.3", "hs:7.1"]
         },
         "systemAssessment": {
-          "help": "Den samlede vurderingen: er styringssystemet egnet, tilstrekkelig og effektivt? Må velges før du kan sende til signering."
+          "help": "Vurder hvert punkt: er styringssystemet egnet (passer for organisasjonen), tilstrekkelig (nok) og effektivt (virker)? For ISO 9001 også om det støtter strategien. Samlet vurdering blir den svakeste vurderingen.",
+          "requirements": ["hs:9.3.1"]
         }
       }
     },
     "meetingDetail": {
       "intro": {
         "title": "Slik gjennomfører du møtet",
-        "body": "Start møtet når det begynner, registrer hvem som deltok og skriv referatet. Registrer hver beslutning med kategori, eier og frist. Merk møtet som gjennomført når det er ferdig; møteleder godkjenner så referatet.",
+        "body": "Start møtet når det begynner, registrer hvem som deltok, og skriv referatet. Registrer hver beslutning med kategori, eier, frist og hva den gjelder. Merk møtet som gjennomført når det er ferdig. Møtelederen godkjenner så referatet, og møtet blir endelig.",
         "steps": [
-          "Bruk **Rediger agenda** for å endre punktene og rekkefølgen.",
+          "Bruk **Rediger agenda** for å endre punktene, rekkefølgen og tiden til hvert punkt.",
           "Skriv stikkord i referatfeltet og bruk **Lag utkast til referat** for å gjøre dem om til et ryddig referat.",
-          "Godkjente referater låses; en leder kan gjenåpne dem med en begrunnelse."
+          "Et godkjent referat låser møtet. For å endre det må du gjenåpne referatet og skrive en begrunnelse."
         ]
       },
       "why": {
@@ -97,25 +104,28 @@
       },
       "fields": {
         "attendance": {
-          "help": "Sett hver person til til stede, fraværende eller meldt forfall. Oppmøte er en del av dokumentasjonen revisor ser på."
+          "help": "Sett hver person til stede, fraværende eller meldt forfall, og merk hvem som er toppledelse. ISO krever at toppledelsen deltar i ledelsens gjennomgang.",
+          "requirements": ["hs:5.1", "hs:9.3"]
         },
         "minutes": {
           "help": "Hva som ble diskutert og avtalt, punkt for punkt. Markdown støttes: bruk overskrifter og punktlister.",
-          "example": "## 1. Tidligere tiltak\n- Leverandørrevisjon utført, lukket."
+          "example": "## 1. Tidligere tiltak\n- Leverandørrevisjon utført, lukket.",
+          "requirements": ["hs:7.5.3"]
         },
         "decisions": {
-          "help": "Hver beslutning eller hvert tiltak, med kategori, eier og frist. Kryss av for oppfølgingsoppgave for å legge den i eierens Mitt arbeid."
+          "help": "Hver beslutning eller hvert tiltak, med kategori, eier, frist og postene det gjelder. Et tiltak får en oppfølgingsoppgave i Mitt arbeid hos eieren.",
+          "requirements": ["hs:9.3.3", "hs:10.1"]
         }
       }
     },
     "form": {
       "intro": {
         "title": "Slik planlegger du en ledelsens gjennomgang",
-        "body": "Gi gjennomgangen en tittel og velg standardene den dekker. Perioden bestemmer hvilke poster grunnlaget samles fra. Møtet opprettes sammen med gjennomgangen.",
+        "body": "CoreFlow fyller inn standardene organisasjonen følger og perioden siden forrige signerte gjennomgang. Møtet opprettes sammen med gjennomgangen, med standardagendaen.",
         "steps": [
-          "Velg én eller flere standarder; hver av dem legger til grunnlaget den krever.",
-          "Sett perioden, vanligvis de tolv månedene siden forrige gjennomgang.",
-          "Inviter toppledelsen og dem som skal legge fram grunnlaget."
+          "Sjekk standardene og perioden. Hver standard legger til grunnlaget den krever.",
+          "Inviter toppledelsen og dem som skal legge fram grunnlaget.",
+          "Lagre. Tallene hentes med en gang."
         ]
       },
       "why": {
@@ -128,19 +138,23 @@
           "example": "Ledelsens gjennomgang 2026"
         },
         "frameworks": {
-          "help": "Standardene denne gjennomgangen dekker. La alle stå tomme for å bruke standardene i organisasjonsprofilen."
+          "help": "Standardene gjennomgangen dekker. Bare standardene organisasjonen følger, vises, og alle er huket av.",
+          "requirements": ["hs:9.3"]
         },
         "period": {
-          "help": "Perioden gjennomgangen ser tilbake på. Grunnlaget samles fra poster i perioden; uten datoer brukes de siste tolv månedene."
+          "help": "Perioden gjennomgangen ser tilbake på, vanligvis fra forrige gjennomgang til i dag. Tallene hentes for denne perioden.",
+          "requirements": ["hs:9.3.1"]
         },
         "owner": {
           "help": "Personen som forbereder og følger opp gjennomgangen, ofte kvalitetslederen."
         },
         "chair": {
-          "help": "Personen som leder møtet og godkjenner referatet, vanligvis daglig leder."
+          "help": "Den som leder møtet og godkjenner referatet, vanligvis daglig leder.",
+          "requirements": ["hs:5.1"]
         },
         "attendees": {
-          "help": "De inviterte får et varsel. Du kan legge til eksterne gjester og endre roller på møtesiden."
+          "help": "De som inviteres, får et varsel. Merk hvem som er toppledelse på møtesiden; de må delta.",
+          "requirements": ["hs:5.1", "hs:9.3"]
         }
       }
     },
@@ -160,7 +174,8 @@
       },
       "fields": {
         "kind": {
-          "help": "Typen forum, for eksempel et utvalg, et prosjektmøte eller et sikkerhetsmøte."
+          "help": "Typen forum, for eksempel et utvalg, et prosjektmøte eller et sikkerhetsmøte.",
+          "requirements": ["hs:7.4"]
         },
         "chair": {
           "help": "Leder møtet og godkjenner referatet."
@@ -170,10 +185,15 @@
         },
         "purpose": {
           "help": "Hvorfor møtet holdes og hva det skal avgjøre.",
-          "example": "Kvartalsvis oppfølging av HMS-tiltak og nye risikoer"
+          "example": "Kvartalsvis oppfølging av HMS-tiltak og nye risikoer",
+          "requirements": ["hs:7.4"]
         },
         "agenda": {
-          "help": "Temaene i den rekkefølgen de tas opp. Én linje per punkt."
+          "help": "Temaene i den rekkefølgen de tas opp. Én linje per punkt.",
+          "requirements": ["hs:7.4"]
+        },
+        "related": {
+          "help": "Postene møtet handler om, for eksempel en revisjon, et prosjekt, et avvik eller en risiko. De kobles til møtet, slik at det er lett å spore beslutningene."
         }
       }
     },
@@ -185,6 +205,25 @@
       "why": {
         "body": "Resultatene av ledelsens gjennomgang skal oppbevares som dokumentert informasjon, som dokumentasjon for revisor.",
         "clauses": ["hs:9.3.3"]
+      }
+    },
+    "settings": {
+      "intro": {
+        "title": "Hvor ofte gjennomgangen holdes",
+        "body": "Neste ledelsens gjennomgang skal holdes ett intervall etter forrige signerte gjennomgang. Fra påminnelsen starter, vises den på oversikten og i Mitt arbeid."
+      },
+      "why": {
+        "body": "ISO krever at toppledelsen gjennomgår styringssystemet med **planlagte mellomrom**. Et fast intervall med påminnelse sørger for at gjennomgangen ikke blir glemt.",
+        "clauses": ["hs:9.3.1"]
+      },
+      "fields": {
+        "interval": {
+          "help": "De fleste organisasjoner holder gjennomgangen én gang i året. Velg kortere intervall hvis mye er i endring.",
+          "requirements": ["hs:9.3.1"]
+        },
+        "reminder": {
+          "help": "Hvor mange dager før fristen CoreFlow minner deg på å planlegge gjennomgangen."
+        }
       }
     }
   },
@@ -311,17 +350,12 @@
       {
         "target": "mr-progress",
         "title": "Hvor gjennomgangen står",
-        "body": "Planlagt, pågår, venter på signering og signert. Sjekklisten viser hva som mangler før du kan sende til signering."
+        "body": "Planlagt, pågår, venter på signering og signert. Under ser du eieren, møtet, oppfølgingstiltak og forrige gjennomgang."
       },
       {
-        "target": "mr-compile",
-        "title": "Oppdater grunnlaget",
-        "body": "Hent de siste tallene fra avvik, tiltak, dokumenter og standardmodenhet for perioden."
-      },
-      {
-        "target": "mr-outputs",
-        "title": "Skriv resultatene",
-        "body": "Konklusjoner, forbedringer, endringer, ressursbehov og samlet vurdering. Be om forslag basert på grunnlaget."
+        "target": "mr-sections",
+        "title": "Fire steg",
+        "body": "Grunnlag, Møtet, Resultater og Signering. Hvert steg får en hake når ingenting mangler; Signering lenker til det som gjenstår."
       }
     ],
     "meetingDetail": [

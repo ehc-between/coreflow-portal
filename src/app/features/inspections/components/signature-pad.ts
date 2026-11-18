@@ -48,7 +48,7 @@ let nextId = 0;
         />
       </app-form-field>
       <div>
-        <p class="mb-1 text-[13px] font-semibold text-fg-muted" [id]="uid + '-draw'">
+        <p class="mb-1 text-ui font-semibold text-fg-muted" [id]="uid + '-draw'">
           {{ 'inspections.signature.draw' | transloco }}
         </p>
         <canvas
@@ -57,7 +57,7 @@ let nextId = 0;
           [attr.height]="height"
           role="img"
           [attr.aria-labelledby]="uid + '-draw'"
-          class="block h-[120px] w-full max-w-[480px] touch-none rounded-[10px] border border-border bg-white sm:h-[160px]"
+          class="block h-[120px] w-full max-w-[480px] touch-none rounded-tile border border-border bg-white sm:h-[160px]"
           [class.opacity-60]="disabled()"
           (pointerdown)="start($event)"
           (pointermove)="draw($event)"
@@ -74,7 +74,7 @@ let nextId = 0;
           >
             {{ 'inspections.signature.clear' | transloco }}
           </app-button>
-          <span class="text-[12px] text-fg-subtle">{{
+          <span class="text-meta text-fg-subtle">{{
             'inspections.signature.optional' | transloco
           }}</span>
         </div>

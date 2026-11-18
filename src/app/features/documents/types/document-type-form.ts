@@ -77,9 +77,19 @@ export function typeToForm(t: DocumentType): TypeFormValue {
   };
 }
 
+/** Numbering formats offered as presets (the text field stays for anything else). */
+export const PATTERN_PRESETS: readonly string[] = [
+  DEFAULT_NUMBERING_PATTERN,
+  '{prefix}-{year}-{seq:03}',
+  '{prefix}{seq:04}',
+  '{prefix}-{seq:02}',
+];
+
+/** The create / update body. An empty key is left out: the server makes one from the name. */
 export function typeBody(v: TypeFormValue): DocumentTypeCreate {
+  const key = v.key.trim();
   return {
-    key: v.key.trim(),
+    ...(key ? { key } : {}),
     name: v.name.trim(),
     description: textOrNull(v.description),
     numbering_prefix: textOrNull(v.prefix),
@@ -139,29 +149,39 @@ export function typeBody(v: TypeFormValue): DocumentTypeCreate {
                     data-testid="type-name"
                   />
                 </app-form-field>
-                <div>
-                  <app-form-field
-                    inputId="type-key"
-                    [label]="'documents.control.types.fields.key' | transloco"
+                <details class="sm:col-span-2" [open]="keyOpen()" data-testid="type-advanced">
+                  <summary
+                    class="cursor-pointer text-ui font-semibold text-fg-muted hover:text-fg"
+                    (click)="keyOpen.set(!keyOpen()); $event.preventDefault()"
                   >
-                    <input
-                      id="type-key"
-                      type="text"
-                      required
-                      maxlength="32"
-                      [readOnly]="!!id()"
-                      [value]="form().key"
-                      (input)="set('key', $any($event.target).value)"
-                      data-testid="type-key"
-                    />
-                  </app-form-field>
-                  <app-field-help scope="documents" page="typeForm" field="key" />
-                  @if (!id() && form().key && !keyValid()) {
-                    <p class="mt-1 text-[12px] text-fail" role="alert">
-                      {{ 'documents.control.errors.invalid_type_key' | transloco }}
-                    </p>
-                  }
-                </div>
+                    {{ 'documents.control.types.advanced' | transloco }}
+                  </summary>
+                  <div class="mt-3 max-w-[360px]">
+                    <div class="mb-1.5 flex flex-wrap items-center gap-1.5">
+                      <label for="type-key" class="text-ui font-semibold text-fg-muted">{{
+                        'documents.control.types.fields.key' | transloco
+                      }}</label>
+                      <app-field-help scope="documents" page="typeForm" field="key" />
+                    </div>
+                    <app-form-field inputId="type-key">
+                      <input
+                        id="type-key"
+                        type="text"
+                        maxlength="32"
+                        [readOnly]="!!id()"
+                        [value]="form().key"
+                        [placeholder]="'documents.control.types.keyAuto' | transloco"
+                        (input)="set('key', $any($event.target).value)"
+                        data-testid="type-key"
+                      />
+                    </app-form-field>
+                    @if (!id() && form().key && !keyValid()) {
+                      <p class="mt-1 text-meta text-fail-ink" role="alert">
+                        {{ 'documents.control.errors.invalid_type_key' | transloco }}
+                      </p>
+                    }
+                  </div>
+                </details>
                 <app-form-field
                   class="sm:col-span-2"
                   inputId="type-description"
@@ -179,7 +199,7 @@ export function typeBody(v: TypeFormValue): DocumentTypeCreate {
             </app-card>
 
             <app-card>
-              <h2 class="mb-3 font-display text-[16px] font-bold text-fg">
+              <h2 class="mb-3 font-display text-card font-bold text-fg">
                 {{ 'documents.control.types.numbering' | transloco }}
               </h2>
               <div
@@ -199,21 +219,45 @@ export function typeBody(v: TypeFormValue): DocumentTypeCreate {
                   />
                 </app-form-field>
                 <div>
-                  <app-form-field
-                    inputId="type-pattern"
-                    [label]="'documents.control.types.fields.pattern' | transloco"
-                  >
-                    <input
-                      id="type-pattern"
-                      type="text"
-                      maxlength="64"
-                      [placeholder]="defaultPattern"
-                      [value]="form().pattern"
-                      (input)="set('pattern', $any($event.target).value)"
-                      data-testid="type-pattern"
-                    />
+                  <div class="mb-1.5 flex flex-wrap items-center gap-1.5">
+                    <label for="type-format" class="text-ui font-semibold text-fg-muted">{{
+                      'documents.control.types.format' | transloco
+                    }}</label>
+                    <app-field-help scope="documents" page="typeForm" field="pattern" />
+                  </div>
+                  <app-form-field inputId="type-format">
+                    <select
+                      id="type-format"
+                      (change)="choosePreset($any($event.target).value)"
+                      data-testid="type-format"
+                    >
+                      @for (p of presets; track p) {
+                        <option [value]="p" [selected]="activePreset() === p">
+                          {{ presetExample(p) }}
+                        </option>
+                      }
+                      <option value="custom" [selected]="activePreset() === 'custom'">
+                        {{ 'documents.control.types.formatCustom' | transloco }}
+                      </option>
+                    </select>
                   </app-form-field>
-                  <app-field-help scope="documents" page="typeForm" field="pattern" />
+                  @if (activePreset() === 'custom') {
+                    <app-form-field
+                      class="mt-2 block"
+                      inputId="type-pattern"
+                      [label]="'documents.control.types.fields.pattern' | transloco"
+                    >
+                      <input
+                        id="type-pattern"
+                        type="text"
+                        maxlength="64"
+                        [placeholder]="defaultPattern"
+                        [value]="form().pattern"
+                        (input)="set('pattern', $any($event.target).value)"
+                        data-testid="type-pattern"
+                      />
+                    </app-form-field>
+                  }
                 </div>
                 @if (id()) {
                   <app-form-field
@@ -230,7 +274,7 @@ export function typeBody(v: TypeFormValue): DocumentTypeCreate {
                   </app-form-field>
                 }
               </div>
-              <p class="mt-3 text-[13px]" aria-live="polite" data-testid="type-preview">
+              <p class="mt-3 text-ui" aria-live="polite" data-testid="type-preview">
                 @if (!numberingOn()) {
                   <span class="text-fg-muted">{{
                     'documents.control.types.numberingOff' | transloco
@@ -249,7 +293,7 @@ export function typeBody(v: TypeFormValue): DocumentTypeCreate {
             </app-card>
 
             <app-card>
-              <h2 class="mb-3 font-display text-[16px] font-bold text-fg">
+              <h2 class="mb-3 font-display text-card font-bold text-fg">
                 {{ 'documents.control.types.defaults' | transloco }}
               </h2>
               <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -287,7 +331,7 @@ export function typeBody(v: TypeFormValue): DocumentTypeCreate {
                     }
                   </select>
                 </app-form-field>
-                <label class="inline-flex items-start gap-2 text-[13.5px] text-fg sm:col-span-2">
+                <label class="inline-flex items-start gap-2 text-ui text-fg sm:col-span-2">
                   <input
                     type="checkbox"
                     class="mt-0.5"
@@ -296,12 +340,12 @@ export function typeBody(v: TypeFormValue): DocumentTypeCreate {
                   />
                   <span>
                     {{ 'documents.control.types.fields.ack' | transloco }}
-                    <span class="block text-[12px] text-fg-subtle">{{
+                    <span class="block text-meta text-fg-subtle">{{
                       'documents.control.types.ackHint' | transloco
                     }}</span>
                   </span>
                 </label>
-                <label class="inline-flex items-center gap-2 text-[13.5px] text-fg sm:col-span-2">
+                <label class="inline-flex items-center gap-2 text-ui text-fg sm:col-span-2">
                   <input
                     type="checkbox"
                     [checked]="form().active"
@@ -361,13 +405,10 @@ export function typeBody(v: TypeFormValue): DocumentTypeCreate {
           backLabelKey="documents.control.types.back"
         >
           <div header>
-            <p class="mb-1 font-mono text-[12.5px] text-fg-subtle">{{ t.key }}</p>
-            <h1
-              class="font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]"
-            >
+            <h1 class="font-display text-page font-bold tracking-[-0.03em] text-fg">
               {{ t.name }}
             </h1>
-            <p class="mt-1 text-[12.5px] text-fg-muted">
+            <p class="mt-1 text-meta text-fg-muted">
               {{ 'documents.control.types.usedBy' | transloco: { count: t.document_count } }}
             </p>
           </div>
@@ -398,7 +439,7 @@ export function typeBody(v: TypeFormValue): DocumentTypeCreate {
           <app-alert tone="error">{{ key | transloco }}</app-alert>
         </div>
       } @else {
-        <p class="py-16 text-center text-[14px] text-fg-muted">
+        <p class="py-16 text-center text-body text-fg-muted">
           {{ 'documents.control.common.loading' | transloco }}
         </p>
       }
@@ -406,14 +447,12 @@ export function typeBody(v: TypeFormValue): DocumentTypeCreate {
       <div class="mx-auto max-w-[860px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
         <a
           routerLink="/documents/types"
-          class="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
+          class="mb-3 inline-flex items-center gap-1.5 text-ui font-semibold text-fg-muted hover:text-fg"
         >
           <app-icon name="back" [size]="16" />
           {{ 'documents.control.types.back' | transloco }}
         </a>
-        <h1
-          class="mb-4 font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]"
-        >
+        <h1 class="mb-4 font-display text-page font-bold tracking-[-0.03em] text-fg">
           {{ 'documents.control.types.new' | transloco }}
         </h1>
         <ng-container [ngTemplateOutlet]="formTpl" />
@@ -433,6 +472,29 @@ export class DocumentTypeFormPage {
 
   protected readonly tabs = TABS;
   protected readonly defaultPattern = DEFAULT_NUMBERING_PATTERN;
+  protected readonly presets = PATTERN_PRESETS;
+  /** "Avansert" (the internal key) starts closed; it opens when the key needs attention. */
+  protected readonly keyOpen = signal(false);
+  /** Whether the pattern is a preset, or "custom" for anything else. */
+  protected readonly customPattern = signal(false);
+  protected readonly activePreset = computed(() => {
+    const pattern = this.form().pattern.trim() || DEFAULT_NUMBERING_PATTERN;
+    return !this.customPattern() && PATTERN_PRESETS.includes(pattern) ? pattern : 'custom';
+  });
+
+  /** "PRO-001" for a preset, with the type's prefix (or an example prefix). */
+  protected presetExample(pattern: string): string {
+    return previewCode(pattern, this.form().prefix.trim() || 'PRO', 1) ?? pattern;
+  }
+
+  protected choosePreset(value: string): void {
+    if (value === 'custom') {
+      this.customPattern.set(true);
+      return;
+    }
+    this.customPattern.set(false);
+    this.set('pattern', value === DEFAULT_NUMBERING_PATTERN ? '' : value);
+  }
   protected readonly current = signal<DocumentType | null>(null);
   protected readonly form = signal<TypeFormValue>(EMPTY);
   protected readonly rules = signal<readonly RetentionRule[]>([]);
@@ -452,7 +514,12 @@ export class DocumentTypeFormPage {
   protected readonly canSave = computed(() => {
     const f = this.form();
     const patternOk = !f.pattern.trim() || isValidPattern(f.pattern.trim());
-    return !!f.name.trim() && (!!this.id() || this.keyValid()) && patternOk && !this.saving();
+    return (
+      !!f.name.trim() &&
+      (!!this.id() || !f.key.trim() || this.keyValid()) &&
+      patternOk &&
+      !this.saving()
+    );
   });
 
   constructor() {

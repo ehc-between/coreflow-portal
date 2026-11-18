@@ -4,11 +4,13 @@ import { Observable } from 'rxjs';
 import { ApiService, QueryParams } from '../../../core/http/api.service';
 import { SKIP_ERROR_TOAST } from '../../../core/http/error.interceptor';
 import {
+  Acknowledgements,
   AnalysisCreate,
   ApproveRequest,
   CommunicateRequest,
   CommunicateResponse,
   ContextAnalysis,
+  FollowUpRequest,
   ContextKind,
   ContextListQuery,
   ContextOverview,
@@ -21,6 +23,7 @@ import {
   Policy,
   PolicyCreate,
   RaciMatrix,
+  RemindResponse,
   Responsibility,
   ResponsibilityCreate,
   RetireRequest,
@@ -113,7 +116,10 @@ export class ContextApi {
     return this.api.delete<void>(this.path(orgId, kind, id), quiet());
   }
 
-  /** Lifecycle step on an analysis, scope or policy. */
+  /**
+   * Lifecycle step on an analysis, scope or policy; `review` also works on
+   * interested parties and responsibilities (periodic review).
+   */
   transition(
     orgId: string,
     kind: ContextKind,
@@ -135,6 +141,67 @@ export class ContextApi {
       body,
       quiet(),
     );
+  }
+
+  /** Link a record created from (or answering) one SWOT / PESTEL factor. */
+  addFollowUp(
+    orgId: string,
+    analysisId: string,
+    itemId: string,
+    body: FollowUpRequest,
+  ): Observable<ContextAnalysis> {
+    return this.api.post<ContextAnalysis>(
+      `${this.path(orgId, 'analysis', analysisId)}/items/${encodeURIComponent(itemId)}/follow-ups`,
+      body,
+      quiet(),
+    );
+  }
+
+  /** Detach a follow-up from a factor (the record link itself stays). */
+  removeFollowUp(
+    orgId: string,
+    analysisId: string,
+    itemId: string,
+    entityType: string,
+    entityId: string,
+  ): Observable<ContextAnalysis> {
+    const item = encodeURIComponent(itemId);
+    return this.api.delete<ContextAnalysis>(
+      `${this.path(orgId, 'analysis', analysisId)}/items/${item}/follow-ups/${entityType}/${entityId}`,
+      quiet(),
+    );
+  }
+
+  /** Who has read and confirmed the current approved version of a policy. */
+  acknowledgements(orgId: string, policyId: string): Observable<Acknowledgements> {
+    return this.api.get<Acknowledgements>(
+      this.path(orgId, 'policy', policyId, 'acknowledgements'),
+      quiet(),
+    );
+  }
+
+  /** Remind the people who have not confirmed the policy yet. */
+  remindAcknowledgements(
+    orgId: string,
+    policyId: string,
+    message: string | null = null,
+  ): Observable<RemindResponse> {
+    return this.api.post<RemindResponse>(
+      `${this.path(orgId, 'policy', policyId, 'acknowledgements')}/remind`,
+      message ? { message } : {},
+      quiet(),
+    );
+  }
+
+  /**
+   * The evidence pack for the certification body (scope, policies, RACI, parties
+   * and analyses with their approval trail) as a PDF or Excel file.
+   */
+  evidencePack(orgId: string, format: 'pdf' | 'xlsx', lang: string): Observable<Blob> {
+    return this.api.getBlob(`${this.base(orgId)}/evidence-pack/export`, {
+      params: { format, lang: lang === 'en' ? 'en' : 'nb' },
+      ...quiet(),
+    });
   }
 
   matrix(

@@ -1,35 +1,45 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { ClausePicker } from '../../../shared/requirement-links/clause-picker';
 import { FormField } from '../../../shared/ui/form-field/form-field';
 import { Icon } from '../../../shared/ui/icon/icon';
-import { ScopeExclusion } from '../data/context.models';
+import { DraftExclusion } from './context-draft';
 
-/** Editor for a scope's excluded requirements, each with its justification (ISO HS 4.3). */
+/**
+ * Editor for a scope's excluded requirements (HS 4.3): each picks a clause of
+ * the scope's standard from the catalogue (no free text) and says why it does
+ * not apply. While the scope is the approved one, those requirements count as
+ * "not applicable" in the standard's coverage.
+ */
 @Component({
   selector: 'app-context-exclusions-editor',
-  imports: [TranslocoPipe, FormField, Icon],
+  imports: [FormsModule, TranslocoPipe, ClausePicker, FormField, Icon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <fieldset>
-      <legend class="mb-1.5 text-[13px] font-semibold text-fg-muted">
+    <fieldset aria-describedby="excl-hint">
+      <legend class="mb-1 text-ui font-semibold text-fg-muted">
         {{ 'context.fields.exclusions' | transloco }}
       </legend>
+      <p id="excl-hint" class="mb-2 text-meta text-fg-muted">
+        {{ 'context.scope.exclusionsFormHint' | transloco }}
+      </p>
       <ul class="flex flex-col gap-2">
         @for (e of exclusions(); track $index; let i = $index) {
           <li
-            class="grid grid-cols-1 gap-2 rounded-tile border border-border p-2 sm:grid-cols-[140px_minmax(0,1fr)_auto]"
+            class="grid grid-cols-1 gap-2 rounded-tile border border-border p-2.5 sm:grid-cols-[220px_minmax(0,1fr)_auto]"
           >
             <app-form-field
               [label]="'context.scope.clause' | transloco"
               [inputId]="'excl-clause-' + i"
             >
-              <input
-                [id]="'excl-clause-' + i"
-                type="text"
-                maxlength="32"
-                [value]="e.clause"
-                [placeholder]="'context.scope.clausePlaceholder' | transloco"
-                (input)="patch(i, { clause: $any($event.target).value })"
+              <app-clause-picker
+                [inputId]="'excl-clause-' + i"
+                [multiple]="false"
+                [frameworks]="pickerFrameworks()"
+                [ngModel]="e.clause || null"
+                (ngModelChange)="patch(i, { clause: $event ?? '' })"
+                [placeholderKey]="'context.scope.clausePlaceholder'"
               />
             </app-form-field>
             <app-form-field
@@ -46,8 +56,8 @@ import { ScopeExclusion } from '../data/context.models';
             </app-form-field>
             <button
               type="button"
-              class="self-end rounded-[6px] p-2 text-fg-subtle hover:text-fail focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
-              [attr.aria-label]="'context.scope.removeExclusion' | transloco"
+              class="flex h-9 w-9 items-center justify-center self-end rounded-md text-fg-subtle hover:text-fail focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+              [attr.aria-label]="'context.scope.removeExclusion' | transloco: { number: i + 1 }"
               (click)="remove(i)"
             >
               <app-icon name="trash" [size]="14" />
@@ -57,7 +67,7 @@ import { ScopeExclusion } from '../data/context.models';
       </ul>
       <button
         type="button"
-        class="mt-2 inline-flex items-center gap-1 text-[12.5px] font-semibold text-accent hover:underline focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+        class="mt-2 inline-flex min-h-8 items-center gap-1 text-meta font-semibold text-accent hover:underline focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
         (click)="add()"
       >
         <app-icon name="plus" [size]="13" />
@@ -67,14 +77,20 @@ import { ScopeExclusion } from '../data/context.models';
   `,
 })
 export class ExclusionsEditor {
-  readonly exclusions = input.required<readonly ScopeExclusion[]>();
-  readonly exclusionsChange = output<readonly ScopeExclusion[]>();
+  readonly exclusions = input.required<readonly DraftExclusion[]>();
+  /** The scope's standard: the picker searches its clauses. */
+  readonly framework = input('');
+  readonly exclusionsChange = output<readonly DraftExclusion[]>();
+
+  protected readonly pickerFrameworks = computed(() =>
+    this.framework() ? [this.framework()] : null,
+  );
 
   protected add(): void {
     this.exclusionsChange.emit([...this.exclusions(), { clause: '', justification: '' }]);
   }
 
-  protected patch(index: number, change: Partial<ScopeExclusion>): void {
+  protected patch(index: number, change: Partial<DraftExclusion>): void {
     this.exclusionsChange.emit(
       this.exclusions().map((e, i) => (i === index ? { ...e, ...change } : e)),
     );

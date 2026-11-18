@@ -25,6 +25,7 @@ import { NotificationService } from '../../../core/notifications/notification.se
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { Badge } from '../../../shared/ui/badge/badge';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { personOptions } from '../deviation-display';
 
 /** A subject (user or department) the user can pick to grant access to. */
 interface PickerSubject {
@@ -54,7 +55,7 @@ interface OwnerOption {
   template: `
     <div class="flex flex-col gap-5">
       <div class="grid gap-1.5">
-        <label for="dev-access-owner" class="text-[13px] font-semibold text-fg-muted">
+        <label for="dev-access-owner" class="text-ui font-semibold text-fg-muted">
           {{ 'deviations.access.owner' | transloco }}
         </label>
         @if (canEditOwnership()) {
@@ -71,14 +72,14 @@ interface OwnerOption {
             </select>
           </div>
         } @else {
-          <p class="text-[13.5px] text-fg">
+          <p class="text-ui text-fg">
             {{ ownerName() || ('deviations.access.unassigned' | transloco) }}
           </p>
         }
       </div>
 
       <div class="grid gap-2">
-        <span class="text-[13px] font-semibold text-fg-muted">
+        <span class="text-ui font-semibold text-fg-muted">
           {{ 'deviations.access.visibility' | transloco }}
         </span>
         @if (canEditOwnership()) {
@@ -95,19 +96,19 @@ interface OwnerOption {
                 class="flex flex-col gap-1 rounded-tile border bg-surface px-3.5 py-3 text-left transition-colors hover:border-border-strong"
               >
                 <span
-                  class="flex items-center gap-2 text-[13.5px] font-semibold"
+                  class="flex items-center gap-2 text-ui font-semibold"
                   [class.text-accent]="visibility() === option.value"
                   [class.text-fg]="visibility() !== option.value"
                 >
                   <app-icon [name]="option.icon" [size]="15" />
                   {{ option.labelKey | transloco }}
                 </span>
-                <span class="text-[12.5px] text-fg-subtle">{{ option.hintKey | transloco }}</span>
+                <span class="text-meta text-fg-subtle">{{ option.hintKey | transloco }}</span>
               </button>
             }
           </div>
         } @else {
-          <span class="flex items-center gap-2 text-[13.5px] text-fg">
+          <span class="flex items-center gap-2 text-ui text-fg">
             <app-icon [name]="visibility() === 'restricted' ? 'lock' : 'people'" [size]="15" />
             {{
               (visibility() === 'restricted'
@@ -121,7 +122,7 @@ interface OwnerOption {
 
       @if (visibility() === 'restricted') {
         <div class="grid gap-2.5">
-          <span class="text-[13px] font-semibold text-fg-muted">
+          <span class="text-ui font-semibold text-fg-muted">
             {{ 'deviations.access.peopleAndDepartments' | transloco }}
           </span>
 
@@ -136,7 +137,7 @@ interface OwnerOption {
                   [placeholder]="'deviations.access.addPlaceholder' | transloco"
                   [attr.aria-label]="'deviations.access.peopleAndDepartments' | transloco"
                   autocomplete="off"
-                  class="h-10 w-full rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-ellipsis text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
+                  class="h-10 w-full rounded-tile border border-border bg-bg px-3 text-ui text-ellipsis text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
                 />
                 @if (pickerOpen() && filteredSubjects().length) {
                   <ul
@@ -147,7 +148,7 @@ interface OwnerOption {
                         <button
                           type="button"
                           (click)="pickSubject(subject)"
-                          class="flex w-full items-center gap-2.5 rounded-[8px] px-2.5 py-2 text-left hover:bg-surface-2"
+                          class="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left hover:bg-surface-2"
                         >
                           <app-icon
                             [name]="subject.subject_type === 'department' ? 'people' : 'userplus'"
@@ -155,11 +156,9 @@ interface OwnerOption {
                             class="flex-none text-fg-subtle"
                           />
                           <span class="min-w-0 flex-1">
-                            <span class="block truncate text-[13.5px] text-fg">{{
-                              subject.name
-                            }}</span>
+                            <span class="block truncate text-ui text-fg">{{ subject.name }}</span>
                             @if (subject.email) {
-                              <span class="block truncate text-[12px] text-fg-subtle">{{
+                              <span class="block truncate text-meta text-fg-subtle">{{
                                 subject.email
                               }}</span>
                             }
@@ -201,7 +200,7 @@ interface OwnerOption {
                     [size]="15"
                     class="flex-none text-fg-subtle"
                   />
-                  <span class="min-w-0 flex-1 truncate text-[13.5px] text-fg">{{
+                  <span class="min-w-0 flex-1 truncate text-ui text-fg">{{
                     grant.subject_name
                   }}</span>
                   <app-badge [tone]="grant.level === 'edit' ? 'accent' : 'neutral'">{{
@@ -213,7 +212,7 @@ interface OwnerOption {
                       type="button"
                       [attr.aria-label]="'deviations.access.remove' | transloco"
                       (click)="removeGrant(grant)"
-                      class="flex flex-none rounded-[8px] p-1 text-fg-subtle hover:bg-surface hover:text-fg"
+                      class="flex flex-none rounded-lg p-1 text-fg-subtle hover:bg-surface hover:text-fg"
                     >
                       <app-icon name="x" [size]="15" />
                     </button>
@@ -222,7 +221,7 @@ interface OwnerOption {
               }
             </ul>
           } @else {
-            <p class="text-[13px] text-fg-subtle">
+            <p class="text-ui text-fg-subtle">
               {{ 'deviations.access.noGrants' | transloco }}
             </p>
           }
@@ -435,7 +434,7 @@ export class DeviationAccessEditor {
   private loadSubjects(orgId: string): void {
     this.api.listAccessSubjects(orgId).subscribe({
       next: (data) => {
-        this.orgUsers.set(data.users.map((u) => ({ id: u.id, name: u.name })));
+        this.orgUsers.set(personOptions(data.users));
         this.subjects.set([
           ...data.users.map((u) => ({
             subject_type: 'user' as const,

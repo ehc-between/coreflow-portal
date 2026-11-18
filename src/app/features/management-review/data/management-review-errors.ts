@@ -39,6 +39,11 @@ export const MR_ERROR_CODES = [
   'title_too_long',
   'too_many_items',
   'module_disabled',
+  'reason_required',
+  'invalid_setting',
+  'invalid_criterion',
+  'invalid_related',
+  'too_many_related',
 ] as const;
 
 export type MrErrorCode = (typeof MR_ERROR_CODES)[number];

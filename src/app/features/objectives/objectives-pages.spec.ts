@@ -19,8 +19,15 @@ import { AskPanelService } from '../ask/ask-panel.service';
 import { AssigneeOptionsService } from '../../shared/tasks/assignee-options';
 import { KpiChart } from './components/kpi-chart';
 import { ObjectivesApi } from './data/objectives-api';
-import { KpiDetail, KpiSeries, Objective, ObjectivesOverview } from './data/objectives.models';
+import {
+  KpiDetail,
+  KpiSeries,
+  Objective,
+  ObjectiveDetail as ObjectiveDetailDto,
+  ObjectivesOverview,
+} from './data/objectives.models';
 import { KpiEditor } from './kpi-editor';
+import { ObjectiveEditor } from './objective-editor';
 import { ObjectivesList } from './objectives-list';
 
 const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
@@ -123,11 +130,11 @@ describe('ObjectivesList', () => {
       'org-1',
       expect.objectContaining({ status: ['draft', 'active'], sort: 'due_date', offset: 0 }),
     );
-    expect(api.overview).toHaveBeenCalledWith('org-1', undefined);
+    expect(api.overview).toHaveBeenCalledWith('org-1', undefined, undefined);
     expect(el.querySelector('[data-testid="objectives-rows"]')?.textContent).toContain(
       'Fewer complaints',
     );
-    expect(el.querySelector('[data-testid="objectives-overview"]')).toBeTruthy();
+    expect(el.querySelector('[data-testid="tile-active"]')?.textContent).toContain('1');
   });
 
   it('filters by management system and status', async () => {
@@ -145,7 +152,7 @@ describe('ObjectivesList', () => {
       'org-1',
       expect.objectContaining({ status: ['achieved'], management_system: 'iso27001' }),
     );
-    expect(api.overview).toHaveBeenLastCalledWith('org-1', 'iso27001');
+    expect(api.overview).toHaveBeenLastCalledWith('org-1', 'iso27001', undefined);
   });
 
   it('hides the create action without objectives:write', async () => {
@@ -161,6 +168,7 @@ describe('KpiEditor', () => {
     const created = { id: 'k-9' } as KpiDetail;
     const api = {
       list: vi.fn(() => of({ items: [makeObjective()], total: 1 })),
+      get: vi.fn(() => of({ ...makeObjective(), kpi_items: [], can_edit: true, can_delete: true })),
       createKpi: vi.fn(() => of(created)),
     };
     TestBed.configureTestingModule({
@@ -305,5 +313,167 @@ describe('KpiChart', () => {
   it('shows an empty state without points', () => {
     const { el } = setup(null);
     expect(el.querySelector('[data-testid="kpi-chart-empty"]')).toBeTruthy();
+  });
+});
+
+describe('ObjectivesList tiles and paging', () => {
+  it('filters the list from a tile and hides the pager when everything fits', async () => {
+    const api = {
+      list: vi.fn(() => of({ items: [makeObjective()], total: 1 })),
+      overview: vi.fn(() =>
+        of({
+          ...OVERVIEW,
+          objectives: {
+            ...OVERVIEW.objectives,
+            by_status: { ...OVERVIEW.objectives.by_status, draft: 2 },
+          },
+        }),
+      ),
+    };
+    TestBed.configureTestingModule({
+      imports: [ObjectivesList, TranslocoTestingModule.forRoot({ langs: { en: {} } })],
+      providers: commonProviders(api as unknown as Partial<ObjectivesApi>, ['objectives:read']),
+    });
+    const fixture = TestBed.createComponent(ObjectivesList);
+    fixture.detectChanges();
+    await flush();
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('app-pager')).toBeNull();
+    el.querySelector<HTMLButtonElement>('[data-testid="tile-draft"]')!.click();
+    fixture.detectChanges();
+    await flush();
+    expect(api.list).toHaveBeenLastCalledWith(
+      'org-1',
+      expect.objectContaining({ status: ['draft'] }),
+    );
+    fixture.detectChanges();
+    expect(el.querySelector('[data-testid="tile-draft"]')?.getAttribute('aria-pressed')).toBe(
+      'true',
+    );
+  });
+});
+
+describe('KpiEditor defaults from the objective', () => {
+  it('takes the objective system, owner and department for a new KPI', async () => {
+    const api = {
+      list: vi.fn(() => of({ items: [makeObjective()], total: 1 })),
+      get: vi.fn(() =>
+        of({
+          ...makeObjective({ department_id: 'd-1' }),
+          kpi_items: [],
+          can_edit: true,
+          can_delete: true,
+        }),
+      ),
+      createKpi: vi.fn(() => of({ id: 'k-9' } as KpiDetail)),
+    };
+    TestBed.configureTestingModule({
+      imports: [KpiEditor, TranslocoTestingModule.forRoot({ langs: { en: {} } })],
+      providers: commonProviders(api as unknown as Partial<ObjectivesApi>, ['objectives:write']),
+    });
+    const fixture = TestBed.createComponent(KpiEditor);
+    fixture.componentRef.setInput('objective', 'o-1');
+    fixture.detectChanges();
+    await flush();
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    const name = el.querySelector<HTMLInputElement>('input[id$="-name"]')!;
+    name.value = 'Complaint rate';
+    name.dispatchEvent(new Event('input'));
+    el.querySelector('form')!.dispatchEvent(new Event('submit'));
+    expect(api.get).toHaveBeenCalledWith('org-1', 'o-1');
+    expect(api.createKpi).toHaveBeenCalledWith(
+      'org-1',
+      expect.objectContaining({
+        objective_id: 'o-1',
+        management_system: 'iso9001',
+        owner_user_id: 'u-1',
+        department_id: 'd-1',
+      }),
+    );
+  });
+
+  it('reads the thresholds back in plain words', async () => {
+    const api = {
+      list: vi.fn(() => of({ items: [], total: 0 })),
+      get: vi.fn(),
+      createKpi: vi.fn(),
+    };
+    TestBed.configureTestingModule({
+      imports: [KpiEditor, TranslocoTestingModule.forRoot({ langs: { en: {} } })],
+      providers: commonProviders(api as unknown as Partial<ObjectivesApi>, ['objectives:write']),
+    });
+    const fixture = TestBed.createComponent(KpiEditor);
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    const type = (selector: string, value: string) => {
+      const input = el.querySelector<HTMLInputElement>(selector)!;
+      input.value = value;
+      input.dispatchEvent(new Event('input'));
+    };
+    type('input[id$="-target_value"]', '95');
+    type('input[id$="-warning_value"]', '90');
+    fixture.detectChanges();
+    expect(el.querySelector('[data-testid="threshold-reading"]')?.textContent).toContain(
+      'objectives.kpiForm.reading.higher',
+    );
+  });
+});
+
+describe('ObjectiveEditor', () => {
+  function setup() {
+    const api = {
+      create: vi.fn(() => of({ id: 'o-9' } as ObjectiveDetailDto)),
+      createKpi: vi.fn(() => of({ id: 'k-1' } as KpiDetail)),
+    };
+    TestBed.configureTestingModule({
+      imports: [ObjectiveEditor, TranslocoTestingModule.forRoot({ langs: { en: {} } })],
+      providers: commonProviders(api as unknown as Partial<ObjectivesApi>, ['objectives:write']),
+    });
+    const fixture = TestBed.createComponent(ObjectiveEditor);
+    fixture.detectChanges();
+    return { fixture, api, el: fixture.nativeElement as HTMLElement };
+  }
+
+  it('creates a draft with every picked system and no status or progress fields', async () => {
+    const { fixture, api, el } = setup();
+    await flush();
+    fixture.detectChanges();
+    expect(el.querySelector('[id$="-status"]')).toBeNull();
+    expect(el.querySelector('[id$="-progress"]')).toBeNull();
+    const title = el.querySelector<HTMLInputElement>('input[id$="-title"]')!;
+    title.value = 'Fewer injuries';
+    title.dispatchEvent(new Event('input'));
+    for (const system of ['iso45001', 'iso9001']) {
+      const box = el.querySelector<HTMLInputElement>(`[data-testid="system-${system}"]`)!;
+      box.checked = true;
+      box.dispatchEvent(new Event('change'));
+      fixture.detectChanges();
+    }
+    fixture.detectChanges();
+    el.querySelector('form')!.dispatchEvent(new Event('submit'));
+    expect(api.create).toHaveBeenCalledWith(
+      'org-1',
+      expect.objectContaining({
+        title: 'Fewer injuries',
+        status: 'draft',
+        management_system: 'iso45001',
+        management_systems: ['iso45001', 'iso9001'],
+        origins: [],
+      }),
+    );
+    const body = (api.create.mock.calls[0] as unknown[])[1] as Record<string, unknown>;
+    expect('progress' in body).toBe(false);
+  });
+
+  it('marks the title as required and blocks saving without it', async () => {
+    const { fixture, api, el } = setup();
+    await flush();
+    el.querySelector('form')!.dispatchEvent(new Event('submit'));
+    fixture.detectChanges();
+    expect(api.create).not.toHaveBeenCalled();
+    expect(el.textContent).toContain('objectives.errors.title_required');
+    expect(el.textContent).toContain('objectives.form.required');
   });
 });

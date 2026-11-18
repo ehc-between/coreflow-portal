@@ -43,13 +43,13 @@ export function addAudience(
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <fieldset class="flex flex-col gap-2" [disabled]="disabled()">
-      <legend class="mb-1 text-[13px] font-semibold text-fg-muted">
+      <legend class="mb-1 text-ui font-semibold text-fg-muted">
         {{ 'documents.control.campaigns.audience.label' | transloco }}
       </legend>
       <ul class="flex flex-wrap gap-1.5" aria-live="polite">
         @for (entry of value(); track key(entry)) {
           <li
-            class="inline-flex items-center gap-1 rounded-full border border-border bg-surface-2 py-0.5 pr-1 pl-2.5 text-[12.5px] text-fg"
+            class="inline-flex items-center gap-1 rounded-full border border-border bg-surface-2 py-0.5 pr-1 pl-2.5 text-meta text-fg"
           >
             <span>{{ label(entry) }}</span>
             @if (!readOnly()) {
@@ -66,7 +66,7 @@ export function addAudience(
             }
           </li>
         } @empty {
-          <li class="text-[12.5px] text-fg-subtle">
+          <li class="text-meta text-fg-subtle">
             {{ 'documents.control.campaigns.audience.none' | transloco }}
           </li>
         }
@@ -74,12 +74,12 @@ export function addAudience(
       @if (!readOnly()) {
         <div class="flex flex-wrap items-end gap-2">
           <div class="flex flex-col gap-1">
-            <label [attr.for]="typeId" class="text-[12px] text-fg-muted">
+            <label [attr.for]="typeId" class="text-meta text-fg-muted">
               {{ 'documents.control.campaigns.audience.type' | transloco }}
             </label>
             <select
               [id]="typeId"
-              class="h-9 rounded-tile border border-border bg-bg px-2 text-[13px] text-fg"
+              class="h-9 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
               (change)="setType($any($event.target).value)"
               data-testid="audience-type"
             >
@@ -92,12 +92,12 @@ export function addAudience(
           </div>
           @if (type() !== 'all') {
             <div class="flex min-w-[180px] flex-1 flex-col gap-1">
-              <label [attr.for]="valueId" class="text-[12px] text-fg-muted">
+              <label [attr.for]="valueId" class="text-meta text-fg-muted">
                 {{ 'documents.control.campaigns.audience.who' | transloco }}
               </label>
               <select
                 [id]="valueId"
-                class="h-9 rounded-tile border border-border bg-bg px-2 text-[13px] text-fg"
+                class="h-9 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
                 (change)="choice.set($any($event.target).value)"
                 data-testid="audience-value"
               >

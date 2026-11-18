@@ -9,6 +9,10 @@ export interface DocumentSummary {
   readonly doc_code: string;
   readonly status: DocumentStatus;
   readonly owner_user_id: string;
+  /** The org document type name ("Prosedyre"); the raw `type` key is never shown. */
+  readonly type_name?: string | null;
+  /** Display name of the owner. */
+  readonly owner_name?: string | null;
   readonly current_rev: string | number | null;
   readonly updated_at: string;
   /** When the next periodic review is due (ISO date); null when no interval is set. */
@@ -69,8 +73,18 @@ export interface DocumentRevision {
   readonly content?: string;
   readonly status: string;
   readonly author_user_id: string;
+  readonly author_name?: string | null;
+  readonly submitted_by_user_id?: string | null;
+  readonly submitted_by_name?: string | null;
+  readonly submitted_at?: string | null;
   readonly approved_by_user_id?: string | null;
+  readonly approved_by_name?: string | null;
   readonly approved_at?: string | null;
+  /** Who the submitter asked to decide ("Venter på"); any approver may still decide. */
+  readonly requested_approver_user_id?: string | null;
+  readonly requested_approver_name?: string | null;
+  /** The approver's note recorded with the decision. */
+  readonly approval_note?: string | null;
   /** Why this revision was made; required once an approved revision exists. */
   readonly change_reason?: string | null;
   readonly created_at: string;
@@ -123,6 +137,16 @@ export interface DocumentDetail {
   readonly doc_code: string;
   readonly status: DocumentStatus;
   readonly owner_user_id: string;
+  /** The org document type name; the raw `type` key is never shown. */
+  readonly type_name?: string | null;
+  readonly owner_name?: string | null;
+  /** When the current approved revision took effect. */
+  readonly effective_from?: string | null;
+  /** Whether authors are barred from approving their own revisions (segregation of duties). */
+  readonly segregation_required?: boolean;
+  readonly created_at?: string | null;
+  readonly updated_at?: string | null;
+  /** Legacy and never written: requirement links are the record of what a document covers. */
   readonly clause_ref?: string | null;
   /** The last approved revision — what readers see. Null until first approval. */
   readonly current_revision: DocumentRevision | null;
@@ -202,6 +226,27 @@ export interface AccessGrantInput {
   readonly level: AccessLevel;
 }
 
+/** A record a new document is linked to when it is created (e.g. its process). */
+export interface RelatedRecordInput {
+  readonly entity_type: string;
+  readonly entity_id: string;
+  readonly link_type?: 'relates_to' | 'implements' | 'evidence_for';
+}
+
+/** Someone who may approve a document (`GET documents/{id}/approvers`). */
+export interface Approver {
+  readonly user_id: string;
+  readonly name: string;
+  readonly email: string;
+}
+
+/** Who can approve a document; the author is left out under segregation of duties. */
+export interface DocumentApprovers {
+  readonly segregation_required: boolean;
+  readonly author_user_id: string | null;
+  readonly approvers: readonly Approver[];
+}
+
 /** Body for creating a new document. */
 export interface CreateDocumentRequest {
   readonly type: string;
@@ -211,6 +256,10 @@ export interface CreateDocumentRequest {
   readonly owner_user_id?: string;
   readonly visibility?: DocumentVisibility;
   readonly access?: readonly AccessGrantInput[];
+  /** Clause or requirement refs this document documents (confirmed links; `standards:read`). */
+  readonly requirement_refs?: readonly string[];
+  /** Records to link the new document to. */
+  readonly related?: readonly RelatedRecordInput[];
 }
 
 /** Lifecycle of an anchored comment. */
@@ -256,19 +305,44 @@ export interface UpdateCommentRequest {
   readonly body?: string;
 }
 
+/** Readable label of a requirement (same shape as on requirement links). */
+export interface ProposalRequirementLabel {
+  readonly ref: string;
+  readonly short: string;
+  readonly number: string;
+  readonly title: string;
+  readonly standard_key: string;
+  readonly framework: string;
+  readonly req_index?: number | null;
+  readonly req_count?: number | null;
+}
+
+/** Review context shared by proposal list items and detail. */
+interface ProposalContext {
+  readonly created_by_name?: string | null;
+  readonly type_name?: string | null;
+  /** The requirement the draft was written for. */
+  readonly requirement_ref?: string | null;
+  readonly requirement_label?: ProposalRequirementLabel | null;
+  readonly submitted_at?: string | null;
+  readonly review_note?: string | null;
+  readonly reviewed_at?: string | null;
+}
+
 /** A pending proposal in the review work-feed. */
-export interface Proposal {
+export interface Proposal extends ProposalContext {
   readonly id: string;
   readonly kind: string;
   readonly title: string;
   readonly summary: string;
   readonly status: string;
+  readonly type?: string | null;
   readonly created_by_user_id: string;
   readonly created_at: string;
 }
 
 /** Full proposal detail, including the draft body, for the review editor. */
-export interface ProposalDetail {
+export interface ProposalDetail extends ProposalContext {
   readonly id: string;
   readonly kind: string;
   readonly title: string;

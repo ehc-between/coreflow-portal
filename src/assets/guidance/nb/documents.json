@@ -144,7 +144,7 @@
         ]
       },
       "why": {
-        "body": "Entydig identifikasjon og jevnlig gjennomgang er grunnleggende kontroller for dokumentert informasjon. Typer gjør dem automatiske.",
+        "body": "Entydig identifikasjon og jevnlig gjennomgang er grunnleggende kontroller for dokumentert informasjon. Med dokumenttyper skjer nummerering og gjennomgangsintervall automatisk.",
         "clauses": ["hs:7.5.2", "hs:7.5"]
       },
       "empty": {
@@ -275,7 +275,7 @@
     "newDocument": {
       "intro": {
         "title": "Lag et dokument",
-        "body": "Velg en type for å få en automatisk kode, start fra en mal eller et KI-utkast, og skriv så innholdet."
+        "body": "Velg en type for å få en automatisk kode, velg hvilke krav dokumentet dokumenterer, og skriv innholdet eller start fra en mal eller et KI-utkast."
       },
       "why": {
         "body": "Hvert styrte dokument trenger en entydig identifikasjon og må gjennomgås og godkjennes før bruk.",
@@ -284,18 +284,29 @@
       "fields": {
         "type": {
           "help": "Hva slags dokument det er. Typer som er satt opp under **Typer**, gir dokumentet en automatisk kode og et standard gjennomgangsintervall.",
-          "example": "Prosedyre"
+          "example": "Prosedyre",
+          "requirements": ["hs:7.5.2"]
         },
         "template": {
           "help": "Start fra en mal for å få strukturen. Dokumentet lages først og åpnes i redigeringsverktøyet.",
-          "example": "Standard prosedyre"
+          "example": "Standard prosedyre",
+          "requirements": ["hs:7.5.2"]
+        },
+        "requirements": {
+          "help": "Kravene i standardene som dette dokumentet hjelper dere å oppfylle. De blir bekreftede koblinger og teller med i kravdekningen.",
+          "example": "ISO 9001 · 7.5.1",
+          "requirements": ["hs:7.5.1"]
+        },
+        "related": {
+          "help": "Prosessen, risikoen eller forpliktelsen dokumentet hører til. Da vises dokumentet på disse registreringene, og de vises her.",
+          "example": "Innkjøpsprosessen"
         }
       }
     },
     "draft": {
       "intro": {
         "title": "Lag utkast med KI",
-        "body": "Oppgi en kravreferanse eller beskriv prosessen, og få et første utkast å jobbe videre med."
+        "body": "Velg kravet dokumentet skal dekke, eller prosessen det beskriver, og få et første utkast du kan redigere. Kravet og prosessen kobles når du bruker utkastet."
       },
       "why": {
         "body": "Et utkast er et utgangspunkt. Organisasjonen bestemmer fortsatt hva dokumentet skal si, og godkjenner det.",
@@ -303,9 +314,58 @@
       },
       "fields": {
         "requirement": {
-          "help": "Et krav i en standard, skrevet som standard og punkt. Utkastet dekker da det kravet ber om.",
-          "example": "iso9001:7.5"
+          "help": "Søk etter kravet med nummer eller ord. Utkastet dekker da det kravet ber om.",
+          "example": "ISO 9001 · 7.5"
         }
+      }
+    },
+    "list": {
+      "intro": {
+        "title": "De styrte dokumentene deres",
+        "body": "Alle policyer, prosedyrer og instrukser organisasjonen jobber etter, med status, eier og neste gjennomgang. Åpne et dokument for å lese det, godkjenne det eller se hvilke krav det dokumenterer.",
+        "steps": [
+          "Bruk **Nytt dokument** for å skrive et dokument, starte fra en mal eller la KI lage et utkast.",
+          "Filtrer på **Uten kravkobling** for å finne dokumenter som ikke teller for noen standard ennå.",
+          "**Periodisk gjennomgang** viser dokumenter som skal kontrolleres på nytt."
+        ]
+      },
+      "why": {
+        "body": "Standardene krever at dokumentert informasjon er identifisert, godkjent før bruk, holdt oppdatert og tilgjengelig der den trengs. Det er her du viser det.",
+        "clauses": ["hs:7.5", "hs:7.5.2", "hs:7.5.3"]
+      },
+      "empty": {
+        "title": "Ingen dokumenter ennå",
+        "body": "Start med dokumentene organisasjonen allerede bruker: kvalitetspolicyen, informasjonssikkerhetspolicyen og de viktigste prosedyrene.",
+        "cta": "Nytt dokument"
+      }
+    },
+    "detail": {
+      "intro": {
+        "title": "Ett styrt dokument",
+        "body": "Les den godkjente versjonen, se hvem som eier og godkjente den, og send endringer til godkjenning. Panelet til høyre viser hvilke krav dokumentet dokumenterer, og hva det er koblet til.",
+        "steps": [
+          "Bruk **Rediger** for å skrive en ny revisjon, og deretter **Send til godkjenning**.",
+          "Godta eller avvis **foreslåtte krav**, så dokumentet teller for de riktige standardene.",
+          "Slå på **Lest og forstått** når de ansatte må bekrefte at de kjenner dokumentet."
+        ]
+      },
+      "why": {
+        "body": "En revisor sjekker at dokumentet er godkjent av en annen enn forfatteren, gjennomgått i tide og kjent for dem som trenger det. Denne siden viser alle tre.",
+        "clauses": ["hs:7.5.2", "hs:7.5.3", "hs:7.3"]
+      }
+    },
+    "editor": {
+      "intro": {
+        "title": "Skriv en ny revisjon",
+        "body": "Endringene lagres som et utkast. Leserne ser den godkjente versjonen til den nye revisjonen er godkjent.",
+        "steps": [
+          "Merk tekst og be KI forbedre, forkorte eller oversette den.",
+          "Lagre, beskriv hva som er endret og hvorfor, og send dokumentet til godkjenning."
+        ]
+      },
+      "why": {
+        "body": "Endringer i dokumentert informasjon skal styres: hvem endret hva, hvorfor, og hvem godkjente det.",
+        "clauses": ["hs:7.5.3"]
       }
     }
   },
@@ -503,6 +563,46 @@
         }
       ],
       "pass_mark": 1
+    },
+    "first-document": {
+      "title": "Fra utkast til godkjent dokument",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Skriv og koble",
+          "body": "Lag dokumentet, velg type og velg **kravene det dokumenterer**. Koble det til prosessen det beskriver. Da teller dokumentet for standardene deres og vises der folk trenger det."
+        },
+        {
+          "heading": "Send til godkjenning",
+          "body": "Når utkastet er klart, bruker du **Send til godkjenning** og velger hvem som skal godkjenne. Forfatteren kan ikke godkjenne sin egen revisjon, så en annen kontrollerer den."
+        },
+        {
+          "heading": "Godkjenn og hold det oppdatert",
+          "body": "Godkjenneren leser utkastet, skriver et kort **godkjenningsnotat** og godkjenner. Den godkjente revisjonen er den alle leser. **Periodisk gjennomgang** minner eieren på når dokumentet skal kontrolleres igjen."
+        },
+        {
+          "heading": "Sørg for at folk kjenner det",
+          "body": "Slå på **Lest og forstått**, eller start en **distribusjon**, så hver person bekrefter at de har lest den nye revisjonen."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Hvem kan godkjenne en revisjon du har skrevet selv?",
+          "options": ["Du", "En annen som kan godkjenne dokumenter", "Ingen"],
+          "answer": 1,
+          "explanation": "Arbeidsdeling: forfatteren godkjenner aldri sin egen revisjon."
+        },
+        {
+          "question": "Hva gjør at et dokument teller for en standard?",
+          "options": [
+            "At standarden nevnes i tittelen",
+            "En bekreftet kobling til kravet det dokumenterer",
+            "At det er godkjent"
+          ],
+          "answer": 1,
+          "explanation": "Bare bekreftede kravkoblinger teller med i kravdekningen."
+        }
+      ]
     }
   },
   "tours": {
@@ -590,6 +690,50 @@
         "target": "documents-compare-history",
         "title": "Revisjoner",
         "body": "Velg de to revisjonene du vil sammenligne."
+      }
+    ],
+    "list": [
+      {
+        "target": "documents-nav-documents",
+        "title": "Dokumenter",
+        "body": "Alle styrte dokumenter. De andre fanene har registeret, distribusjon og oppsettet."
+      },
+      {
+        "target": "documents-new",
+        "title": "Nytt dokument",
+        "body": "Skriv et dokument, start fra en mal eller la KI lage et utkast."
+      },
+      {
+        "target": "documents-filter-unlinked",
+        "title": "Uten kravkobling",
+        "body": "Finn dokumenter som ikke dokumenterer noe krav ennå."
+      },
+      {
+        "target": "documents-rows",
+        "title": "Hver rad",
+        "body": "Kode, tittel, hvor mange krav dokumentet dokumenterer, status, eier og neste gjennomgang."
+      }
+    ],
+    "detail": [
+      {
+        "target": "documents-lifecycle",
+        "title": "Hvor dokumentet er",
+        "body": "Utkast, til godkjenning, godkjent eller utgått."
+      },
+      {
+        "target": "documents-fields",
+        "title": "For revisoren",
+        "body": "Eier, hvem som godkjente og når, når det ble gyldig og neste gjennomgang."
+      },
+      {
+        "target": "documents-requirements",
+        "title": "Krav",
+        "body": "Kravene dette dokumentet dokumenterer. Godta eller avvis forslagene."
+      },
+      {
+        "target": "kit-tabs",
+        "title": "Koblinger og oppgaver",
+        "body": "Relaterte registreringer, oppgaver, aktivitet og vedlegg."
       }
     ]
   }

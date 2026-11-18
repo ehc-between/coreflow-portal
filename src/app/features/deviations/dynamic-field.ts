@@ -26,10 +26,10 @@ export interface DynamicFieldOption {
   template: `
     <div class="flex flex-col gap-1.5">
       @if (field().type !== 'checkbox') {
-        <label [attr.for]="controlId()" class="text-[13px] font-semibold text-fg-muted">
+        <label [attr.for]="controlId()" class="text-ui font-semibold text-fg-muted">
           {{ field().label }}
           @if (field().required) {
-            <span class="text-fail" aria-hidden="true">*</span>
+            <span class="text-fail-ink" aria-hidden="true">*</span>
           }
         </label>
       }
@@ -42,7 +42,7 @@ export interface DynamicFieldOption {
             (ngModelChange)="valueChange.emit($event)"
             [placeholder]="field().placeholder ?? ''"
             rows="3"
-            class="w-full rounded-[10px] border border-border bg-bg px-3 py-2.5 text-[13.5px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
+            class="w-full rounded-tile border border-border bg-bg px-3 py-2.5 text-ui text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
           ></textarea>
         }
         @case ('number') {
@@ -52,7 +52,7 @@ export interface DynamicFieldOption {
             [ngModel]="value()"
             (ngModelChange)="valueChange.emit($event)"
             [placeholder]="field().placeholder ?? ''"
-            class="h-10 w-full rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
+            class="h-10 w-full rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
           />
         }
         @case ('date') {
@@ -61,7 +61,7 @@ export interface DynamicFieldOption {
             type="date"
             [ngModel]="stringValue()"
             (ngModelChange)="valueChange.emit($event)"
-            class="h-10 w-full rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
+            class="h-10 w-full rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
           />
         }
         @case ('select') {
@@ -81,7 +81,7 @@ export interface DynamicFieldOption {
         @case ('multiselect') {
           <div class="flex flex-wrap gap-x-4 gap-y-2">
             @for (option of field().options ?? []; track option) {
-              <label class="flex cursor-pointer items-center gap-2 text-[13.5px] text-fg">
+              <label class="flex cursor-pointer items-center gap-2 text-ui text-fg">
                 <input
                   type="checkbox"
                   [checked]="isSelected(option)"
@@ -94,7 +94,7 @@ export interface DynamicFieldOption {
           </div>
         }
         @case ('checkbox') {
-          <label class="flex cursor-pointer items-center gap-2 text-[13.5px] text-fg">
+          <label class="flex cursor-pointer items-center gap-2 text-ui text-fg">
             <input
               [id]="controlId()"
               type="checkbox"
@@ -104,7 +104,7 @@ export interface DynamicFieldOption {
             />
             {{ field().label }}
             @if (field().required) {
-              <span class="text-fail" aria-hidden="true">*</span>
+              <span class="text-fail-ink" aria-hidden="true">*</span>
             }
           </label>
         }
@@ -130,17 +130,17 @@ export interface DynamicFieldOption {
               (ngModelChange)="valueChange.emit($event)"
               [placeholder]="field().placeholder ?? ''"
               autocomplete="off"
-              class="h-10 w-full rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
+              class="h-10 w-full rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
             />
           }
         }
       }
 
       @if (field().help) {
-        <p class="text-[12px] text-fg-subtle">{{ field().help }}</p>
+        <p class="text-meta text-fg-subtle">{{ field().help }}</p>
       }
       @if (error()) {
-        <p class="text-[12px] font-medium text-fail">{{ error()! | transloco }}</p>
+        <p class="text-meta font-medium text-fail-ink">{{ error()! | transloco }}</p>
       }
     </div>
   `,

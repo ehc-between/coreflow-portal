@@ -99,8 +99,10 @@ describe('describeEvent', () => {
     );
   });
 
-  it('falls back to the backend summary for unknown kinds', () => {
-    expect(describeEvent(ev('comment', 'Some backend text'), t).summary).toBe('Some backend text');
+  it('never shows the English backend summary for unknown kinds', () => {
+    expect(describeEvent(ev('comment', 'Some backend text'), t).summary).toBe(
+      'deviations.events.updated',
+    );
   });
 
   describe('current (coded) API kinds', () => {

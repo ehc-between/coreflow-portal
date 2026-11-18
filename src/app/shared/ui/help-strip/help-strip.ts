@@ -134,7 +134,7 @@ type Stored = 'open' | 'closed' | 'seen' | null;
       @if (lesson(); as key) {
         <app-slide-over
           [open]="lessonOpen()"
-          [title]="lessonContent()?.title ?? ''"
+          [title]="'ui.help.lesson' | transloco"
           [subtitle]="
             lessonContent()?.minutes
               ? ('ui.help.lessonMinutes' | transloco: { minutes: lessonContent()?.minutes })

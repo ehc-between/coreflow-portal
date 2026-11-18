@@ -401,7 +401,11 @@
       "to_risk": "Risk from this finding"
     },
     "inspection_finding": {
-      "to_deviation": "Deviation from this finding"
+      "to_deviation": "Deviation from this finding",
+      "to_risk": "Risk from this finding",
+      "to_task": "Task to follow it up",
+      "to_training": "Training need (course assignment)",
+      "to_document": "Change to a document or procedure"
     },
     "risk": {
       "to_document": "Control document (procedure)",
@@ -409,7 +413,8 @@
       "to_treatment": "Risk treatment",
       "to_task": "Task",
       "to_deviation": "Deviation from this risk",
-      "to_project": "Project to treat the risk"
+      "to_project": "Project to treat the risk",
+      "to_objective": "Objective that reduces the risk"
     },
     "supplier": {
       "to_contract": "Contract with this supplier",
@@ -431,13 +436,69 @@
       "to_deviation": "Deviation from this feedback"
     },
     "management_review": {
-      "to_task": "Action (task)"
+      "to_task": "Action (task)",
+      "to_deviation": "Deviation found in the review",
+      "to_risk": "Risk found in the review",
+      "to_objective": "Objective set in the review",
+      "to_document": "Document change decided in the review"
     },
     "formMissing": "This form is not available yet. Create the record from its own page and link it from the Related tab.",
     "opportunity": {
       "to_task": "Action (task)",
-      "to_objective": "Objective from this opportunity",
+      "to_objective": "Objective that pursues the opportunity",
       "to_project": "Project to realise it"
+    },
+    "context_analysis": {
+      "to_risk": "Risk from the analysis",
+      "to_opportunity": "Opportunity from the analysis",
+      "to_objective": "Objective from the analysis",
+      "to_task": "Follow-up task"
+    },
+    "interested_party": {
+      "to_obligation": "Obligation from the party's requirements",
+      "to_risk": "Risk concerning the party",
+      "to_task": "Follow-up task"
+    },
+    "scope_statement": {
+      "to_risk": "Risk concerning the scope",
+      "to_task": "Follow-up task",
+      "to_deviation": "Deviation from the scope"
+    },
+    "policy": {
+      "to_objective": "Objective from the policy",
+      "to_document": "Policy document",
+      "to_task": "Follow-up task",
+      "to_deviation": "Deviation from the policy"
+    },
+    "responsibility": {
+      "to_task": "Follow-up task",
+      "to_deviation": "Deviation in the responsibilities"
+    },
+    "process": {
+      "to_deviation": "Deviation in the process",
+      "to_risk": "Risk for the process",
+      "to_task": "Task for the process",
+      "to_audit_plan": "Internal audit of the process",
+      "to_kpi": "KPI for the process"
+    },
+    "objective": {
+      "to_kpi": "KPI that measures the objective",
+      "to_task": "Task on the objective"
+    },
+    "kpi": {
+      "to_deviation": "Deviation (corrective action)",
+      "to_task": "Follow-up task"
+    },
+    "meeting": {
+      "to_task": "Task from the meeting",
+      "to_deviation": "Deviation raised in the meeting",
+      "to_risk": "Risk raised in the meeting"
+    },
+    "contract": {
+      "to_risk": "Risk from this contract",
+      "to_deviation": "Deviation about this contract",
+      "to_task": "Task on this contract",
+      "to_dpa": "Data processing agreement for this contract"
     }
   },
   "frameworks": {

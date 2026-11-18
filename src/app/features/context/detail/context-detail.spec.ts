@@ -127,6 +127,58 @@ describe('ContextDetail', () => {
     expect(el.querySelector('[data-testid="context-submit"]')).toBeNull();
   });
 
+  it('keeps delete and retire in the "Mer" menu and communicate as the primary action', () => {
+    const { el } = setup(makePolicy({ status: 'approved', can_approve: true }), [
+      'context:read',
+      'context:write',
+      'context:approve',
+      'context:manage',
+    ]);
+    expect(el.querySelector('[data-testid="context-delete"]')?.getAttribute('role')).toBe(
+      'menuitem',
+    );
+    expect(el.querySelector('[data-testid="context-retire"]')?.getAttribute('role')).toBe(
+      'menuitem',
+    );
+    expect(el.querySelector('[data-testid="context-communicate"]')?.hasAttribute('primary')).toBe(
+      true,
+    );
+  });
+
+  it('shows who has confirmed an approved policy, its objectives and its document', () => {
+    const { el } = setup(
+      makePolicy({
+        status: 'approved',
+        acknowledgements: { total: 5, acknowledged: 3, pending: 2, overdue: 0, percent: 60 },
+        objectives: [
+          {
+            entity_type: 'objective',
+            entity_id: 'o-1',
+            title: 'Satisfied customers',
+            code: 'OBJ-001',
+            url: '/objectives/o-1',
+            status: 'active',
+            module: 'objectives',
+            label_key: null,
+          },
+        ],
+      }),
+      ['context:read', 'context:write'],
+    );
+    expect(el.querySelector('[data-testid="policy-acknowledgements"]')).not.toBeNull();
+    expect(el.querySelector('[data-testid="ack-remind"]')).not.toBeNull();
+    expect(el.querySelector('[data-testid="policy-objectives"]')?.textContent).toContain('OBJ-001');
+    expect(el.querySelector('[data-testid="link-policy-document"]')).not.toBeNull();
+  });
+
+  it('strips a heading that repeats the title from the statement', () => {
+    const { el } = setup(makePolicy({ statement: '# Quality policy\n\nWe put customers first.' }), [
+      'context:read',
+    ]);
+    expect(el.querySelector('.cf-prose h1')).toBeNull();
+    expect(el.textContent).toContain('We put customers first.');
+  });
+
   it('is read-only for a reader', () => {
     const { el } = setup(makePolicy({ can_edit: false, can_approve: false }), ['context:read']);
     expect(el.querySelector('[data-testid="context-edit"]')).toBeNull();

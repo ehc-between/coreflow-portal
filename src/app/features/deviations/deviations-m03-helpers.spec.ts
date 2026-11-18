@@ -1,12 +1,12 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { recordDataErrors, codedErrorMessage } from '../../core/deviations/deviation-errors';
 import { FieldSpec } from '../../core/records/record.models';
-import { deviationStatusTone, humanizeKey, isLegacyStatus } from './deviation-status';
+import { deviationStatusValue, humanizeKey, isLegacyStatus } from './deviation-status';
 import { linksFromParams } from './deviation-new';
 import { dueInDays, usableSuggestions } from './insights/suggested-actions';
 import { publicUrl } from './intake/intake-settings';
 import { isOpenReport } from './intake/intake-report-detail';
-import { intakeStatusTone } from './intake/intake-inbox';
+import { intakeStatusValue, nextDeadline } from './intake/intake-inbox';
 import { normalizeReceipt, publicErrorKey, RECEIPT_PATTERN } from './intake/public-report';
 import {
   createRequest,
@@ -39,21 +39,22 @@ describe('M03 helpers', () => {
     });
 
     it('tones workflow states by category and legacy statuses as before', () => {
-      expect(deviationStatusTone({ status: 'closed' })).toBe('pass');
+      expect(deviationStatusValue({ status: 'closed' })).toBe('closed');
+      expect(deviationStatusValue({ status: 'investigating' })).toBe('in_progress');
       expect(
-        deviationStatusTone({
+        deviationStatusValue({
           status: 'answered',
           status_category: 'done',
           record_type_version_id: 'v1',
         }),
-      ).toBe('pass');
+      ).toBe('closed');
       expect(
-        deviationStatusTone({
+        deviationStatusValue({
           status: 'triage',
           status_category: 'in_progress',
           record_type_version_id: 'v1',
         }),
-      ).toBe('warn');
+      ).toBe('in_progress');
     });
 
     it('humanises unknown state keys', () => {
@@ -213,8 +214,16 @@ describe('M03 helpers', () => {
       const report = { status: 'triaged' } as Parameters<typeof isOpenReport>[0];
       expect(isOpenReport(report)).toBe(true);
       expect(isOpenReport({ ...report, status: 'converted' })).toBe(false);
-      expect(intakeStatusTone('new')).toBe('info');
-      expect(intakeStatusTone('dismissed')).toBe('neutral');
+      expect(intakeStatusValue('new')).toBe('new');
+      expect(intakeStatusValue('dismissed')).toBe('cancelled');
+      expect(
+        nextDeadline({
+          ...report,
+          mode: 'whistleblowing',
+          acknowledge_due_at: '2026-01-08T00:00:00',
+        })?.kind,
+      ).toBe('acknowledge');
+      expect(nextDeadline(report)).toBeNull();
     });
 
     it('normalises receipt codes', () => {

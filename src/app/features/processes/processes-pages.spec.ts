@@ -250,6 +250,20 @@ describe('process detail', () => {
       list: vi.fn(() => of({ items: [], total: 0 })),
       changeStatus: vi.fn(() => of({ ...process, status: 'retired' as const })),
       recordReview: vi.fn(() => of({ ...process, last_reviewed_at: '2026-11-12T00:00:00' })),
+      reviewPrefill: vi.fn(() =>
+        of({
+          checklist: [
+            { key: 'kpis', ok: false, params: { total: 1, measured: 1, off_track: 1 } },
+            { key: 'map', ok: true, params: { steps: 2 } },
+          ],
+          kpis: [],
+          risks: [],
+          open_deviations: 0,
+          last_review: null,
+          suggested_next_review_at: '2027-11-12T00:00:00',
+        }),
+      ),
+      reviews: vi.fn(() => of({ items: [], total: 0 })),
     };
     return { api, ...mount(ProcessDetailPage, api, { id: process.id }, permissions) };
   }
@@ -280,12 +294,53 @@ describe('process detail', () => {
     notes.dispatchEvent(new Event('input'));
     notes.closest('form')!.dispatchEvent(new Event('submit', { cancelable: true }));
     fixture.detectChanges();
+    expect(api.reviewPrefill).toHaveBeenCalledWith('org-1', 'p-1');
     expect(api.recordReview).toHaveBeenCalledWith('org-1', 'p-1', {
       notes: 'Still fine',
-      next_review_at: null,
+      next_review_at: '2027-11-12T00:00:00',
+      outcome: 'suitable',
+      checklist: [
+        { key: 'kpis', ok: false, note: null },
+        { key: 'map', ok: true, note: null },
+      ],
+      actions: [],
     });
-    expect(toasts.success).toHaveBeenCalledWith('processes.notices.reviewed');
+    expect(toasts.success).toHaveBeenCalledWith('processes.notices.reviewed', { count: 0 });
     expect(el).toBeTruthy();
+  });
+
+  it('shows how complete the process is, with fixes for what is missing', async () => {
+    const { el, fixture } = detail(
+      makeProcess({
+        health: {
+          done: 1,
+          total: 2,
+          items: [
+            { key: 'owner', ok: true, fix: 'edit' },
+            { key: 'map', ok: false, fix: 'map' },
+          ],
+        },
+      }),
+    );
+    await tick();
+    fixture.detectChanges();
+    expect(el.querySelector('[data-testid="health-card"]')).not.toBeNull();
+    expect(el.querySelector('[data-testid="health-fix-map"]')).not.toBeNull();
+    expect(el.querySelector('[data-testid="health-fix-owner"]')).toBeNull();
+  });
+
+  it('shows an empty state, not an error toast, when the process does not exist', async () => {
+    const error = new HttpErrorResponse({ status: 404 });
+    const api = {
+      get: vi.fn(() => throwError(() => error)),
+      turtle: vi.fn(() => throwError(() => error)),
+      list: vi.fn(() => of({ items: [], total: 0 })),
+    };
+    const { el, fixture, toasts } = mount(ProcessDetailPage, api, { id: 'nope' });
+    await tick();
+    fixture.detectChanges();
+    expect(el.textContent).toContain('processes.detail.notFoundTitle');
+    expect(toasts.error).not.toHaveBeenCalled();
   });
 
   it('hides edit and manage actions without the rights', async () => {

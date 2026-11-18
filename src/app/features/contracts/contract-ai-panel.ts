@@ -8,10 +8,12 @@ import {
   output,
   signal,
 } from '@angular/core';
+import { Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { catchError, concat, last, of, toArray } from 'rxjs';
 import { Attachment } from '../../core/attachments/attachment.models';
 import { LanguageService } from '../../core/i18n/language.service';
+import { CreateFlowService } from '../../core/kit/create-flow.service';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { AiAssistButton } from '../../shared/ask/ai-assist-button';
@@ -28,6 +30,7 @@ import {
   DpaCheckResult,
   DpaClauseIn,
   ExtractedObligation,
+  ExtractedRisk,
   PERM_WRITE,
   PartyIn,
 } from './data/contract.models';
@@ -59,7 +62,9 @@ export function extractionChanges(
   x: ContractExtraction,
 ): { readonly update: ContractUpdate; readonly parties: readonly PartyIn[] } {
   const current = formFromContract(contract);
-  const merged = applyExtraction(current, x);
+  const extracted = applyExtraction(current, x);
+  // A suggestion never switches automatic renewal off (and so never drops the term).
+  const merged = { ...extracted, auto_renew: current.auto_renew || extracted.auto_renew };
   const update = toUpdateRequest(current, merged, '');
   // The title and type are already set on a registered contract, and a yes/no the
   // user recorded is only ever switched on (never off) by a suggestion.
@@ -76,7 +81,7 @@ export function extractionChanges(
     .filter((p) => p.name.trim() && !known.has(p.name.trim().toLowerCase()))
     .map((p) => ({
       name: p.name.trim(),
-      role: p.role,
+      ...(p.role ? { role: p.role } : {}),
       is_internal: false,
       org_number: p.org_number.trim() || null,
     }));
@@ -94,22 +99,22 @@ export function extractionChanges(
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-card>
-      <h2 class="mb-1 flex items-center gap-2 font-display text-[15px] font-bold text-fg">
+      <h2 class="mb-1 flex items-center gap-2 font-display text-card font-bold text-fg">
         <app-icon name="spark" [size]="15" class="text-accent" />
         {{ 'contracts.ai.title' | transloco }}
       </h2>
-      <p class="mb-3 text-[13px] text-fg-muted">{{ 'contracts.ai.intro' | transloco }}</p>
+      <p class="mb-3 text-ui text-fg-muted">{{ 'contracts.ai.intro' | transloco }}</p>
 
       @if (files().length === 0) {
-        <p class="text-[13px] text-fg-muted" data-testid="ai-no-files">
+        <p class="text-ui text-fg-muted" data-testid="ai-no-files">
           {{ 'contracts.ai.noFiles' | transloco }}
         </p>
       } @else {
         <div class="flex flex-col gap-3">
-          <label class="flex flex-col gap-1 text-[13px] font-semibold text-fg-muted">
+          <label class="flex flex-col gap-1 text-ui font-semibold text-fg-muted">
             {{ 'contracts.ai.file' | transloco }}
             <select
-              class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13.5px] text-fg"
+              class="h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
               (change)="fileId.set($any($event.target).value)"
               data-testid="ai-file"
             >
@@ -147,14 +152,14 @@ export function extractionChanges(
 
       @if (extraction(); as x) {
         <div class="mt-4 border-t border-border pt-4">
-          <h3 class="mb-2 text-[14px] font-semibold text-fg">
+          <h3 class="mb-2 text-body font-semibold text-fg">
             {{ 'contracts.ai.extractResult' | transloco }}
           </h3>
           @if (changeCount() > 0 && contract().can_edit) {
             <div
               class="mb-3 flex flex-wrap items-center gap-2 rounded-tile bg-accent-soft px-3 py-2"
             >
-              <span class="flex-1 text-[13px] text-fg">
+              <span class="flex-1 text-ui text-fg">
                 {{ 'contracts.ai.changes' | transloco: { count: changeCount() } }}
               </span>
               <app-button size="sm" [loading]="busy()" [disabled]="busy()" (click)="apply()">
@@ -162,7 +167,7 @@ export function extractionChanges(
               </app-button>
             </div>
             @if (contract().status === 'in_review' || contract().status === 'approved') {
-              <p class="mb-3 text-[12.5px] text-warn">
+              <p class="mb-3 text-meta text-warn">
                 {{ 'contracts.ai.backToDraft' | transloco }}
               </p>
             }
@@ -170,7 +175,10 @@ export function extractionChanges(
           <app-contract-extraction-summary
             [result]="x"
             [canAddObligations]="contract().can_edit"
+            [canCreate]="!closed()"
             (addObligation)="addObligation($event)"
+            (createRisk)="toRisk($event)"
+            (createTask)="toTask($event)"
           />
           @if (canRecord() && extractionFindings().length) {
             <app-button
@@ -190,20 +198,20 @@ export function extractionChanges(
 
       @if (dpaResult(); as r) {
         <div class="mt-4 border-t border-border pt-4" data-testid="dpa-result">
-          <h3 class="mb-2 text-[14px] font-semibold text-fg">
+          <h3 class="mb-2 text-body font-semibold text-fg">
             {{ 'contracts.ai.dpaResult' | transloco }}
           </h3>
           @if (r.summary) {
-            <p class="mb-2 text-[13px] text-fg">{{ r.summary }}</p>
+            <p class="mb-2 text-ui text-fg">{{ r.summary }}</p>
           }
           @if (r.applies === false) {
-            <p class="text-[13px] text-fg-muted">
+            <p class="text-ui text-fg-muted">
               {{ 'contracts.ai.dpaNotApplicable' | transloco }}
             </p>
           }
           <ul class="flex flex-col gap-1.5">
             @for (c of r.clauses ?? []; track c.key) {
-              <li class="rounded-tile bg-surface-2 px-3 py-2 text-[13px]">
+              <li class="rounded-tile bg-surface-2 px-3 py-2 text-ui">
                 <span class="flex items-center gap-2">
                   <app-badge [tone]="c.present ? 'pass' : 'fail'">
                     {{ (c.present ? 'contracts.ai.present' : 'contracts.ai.missing') | transloco }}
@@ -211,7 +219,7 @@ export function extractionChanges(
                   <span class="text-fg">{{ clauseKey(c.key) | transloco }}</span>
                 </span>
                 @if (c.evidence) {
-                  <span class="mt-0.5 block text-[12px] text-fg-muted italic"
+                  <span class="mt-0.5 block text-meta text-fg-muted italic"
                     >“{{ c.evidence }}”</span
                   >
                 }
@@ -230,7 +238,7 @@ export function extractionChanges(
               >
                 {{ 'contracts.ai.recordClauses' | transloco }}
               </app-button>
-              <span class="text-[12.5px] text-fg-muted">
+              <span class="text-meta text-fg-muted">
                 {{ 'contracts.ai.recordHint' | transloco }}
               </span>
             </div>
@@ -241,6 +249,31 @@ export function extractionChanges(
   `,
 })
 export class ContractAiPanel {
+  private readonly flows = inject(CreateFlowService);
+  private readonly router = inject(Router);
+
+  /** "Add to the risk register": a risk linked to this contract, titled after the finding. */
+  protected toRisk(r: ExtractedRisk): void {
+    void this.flows.start('contract.to_risk', 'contract', this.contract().id, {
+      prefill: {
+        title: r.title.slice(0, 255),
+        ...(r.explanation ? { description: r.explanation } : {}),
+      },
+    });
+  }
+
+  /** "Create task" for a missing Art. 28(3) clause: agree it with the counterparty. */
+  protected toTask(clause: string): void {
+    const c = this.contract();
+    const title = this.language.translate('contracts.extract.clauseTaskTitle', {
+      clause: this.language.translate(dpaClauseKey(clause)),
+      code: c.code,
+    });
+    void this.router.navigate(['/tasks/new'], {
+      queryParams: { entity_type: 'contract', entity_id: c.id, title: title.slice(0, 255) },
+    });
+  }
+
   private readonly api = inject(ContractsApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly notifications = inject(NotificationService);
@@ -270,6 +303,7 @@ export class ContractAiPanel {
     );
   });
 
+  protected readonly closed = computed(() => isClosedContract(this.contract().status));
   protected readonly extraction = signal<ContractExtraction | null>(null);
   protected readonly dpaResult = signal<DpaCheckResult | null>(null);
   protected readonly busy = signal(false);

@@ -23,6 +23,13 @@ export const CONTRACT_ERROR_CODES = [
   'renewal_term_missing',
   'too_many_parties',
   'module_disabled',
+  'self_approval_not_allowed',
+  'review_incomplete',
+  'invalid_review_item',
+  'invalid_review_answer',
+  'invalid_supplier',
+  'not_a_dpa',
+  'link_exists',
 ] as const;
 
 export type ContractErrorCode = (typeof CONTRACT_ERROR_CODES)[number];

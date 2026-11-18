@@ -405,7 +405,8 @@
       "management_review_signoff": "Ledelsens gjennomgang til signering",
       "project_milestone": "Milepæl i prosjekt",
       "training_due": "Opplæring",
-      "other": "Annet"
+      "other": "Annet",
+      "document_periodic_review": "Dokument til periodisk gjennomgang"
     },
     "why": {
       "overdue": "Fristen gikk ut for {{ days }} dager siden",

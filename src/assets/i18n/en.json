@@ -270,7 +270,7 @@
     "status": {
       "all": "All statuses",
       "draft": "Draft",
-      "in_review": "In review",
+      "in_review": "Awaiting approval",
       "approved": "Approved",
       "obsolete": "Obsolete",
       "superseded": "Superseded",
@@ -344,16 +344,16 @@
     },
     "review": {
       "title": "Periodic review",
-      "overdue": "Review overdue",
-      "dueSoon": "Review due",
+      "overdue": "Periodic review overdue",
+      "dueSoon": "Periodic review due",
       "interval": "Review interval",
       "noInterval": "No periodic review",
       "everyMonths": "Every {{months}} months",
       "nextReview": "Next review",
       "nextReviewHint": "Leave empty to schedule it from the interval at the next approval.",
-      "edit": "Edit review settings",
+      "edit": "Change review interval",
       "savedToast": "Review settings saved.",
-      "filter": "Review due"
+      "filter": "Periodic review due"
     },
     "ack": {
       "requireLabel": "Require \"Read and understood\"",
@@ -384,14 +384,14 @@
     }
   },
   "review": {
-    "title": "Needs your review",
-    "subtitle": "Documents waiting for your approval and drafts proposed for the library.",
-    "empty": "You're all caught up. Nothing needs your review.",
+    "title": "Awaiting approval",
+    "subtitle": "Documents sent to you for approval, and drafts proposed for the document library.",
+    "empty": "Nothing is waiting for approval.",
     "queuedAt": "Added {{date}}",
     "open": "Open",
     "reject": "Reject",
-    "backToFeed": "Back to review",
-    "reviewTitle": "Review proposal",
+    "backToFeed": "Back to approvals",
+    "reviewTitle": "Assess the proposed draft",
     "saveDraft": "Save draft",
     "approveAndPublish": "Accept & submit for review",
     "notPending": "This proposal has already been handled and can no longer be edited.",
@@ -401,8 +401,8 @@
     "rejectedToast": "Draft rejected.",
     "documentsHeading": "Documents awaiting approval ({{count}})",
     "proposalsHeading": "Proposed drafts ({{count}})",
-    "submittedAt": "Submitted {{date}}",
-    "reviewDocument": "Review"
+    "submittedAt": "Sent {{date}}",
+    "reviewDocument": "Open"
   },
   "settings": {
     "title": "Org Settings",
@@ -559,7 +559,8 @@
         "checklists": "Checklist templates",
         "intake": "Reporting channel",
         "matrices": "Risk matrices",
-        "settings": "Settings"
+        "settings": "Settings",
+        "retention": "Retention rules"
       },
       "membersSection": "Members, departments and invitations"
     },
@@ -1083,7 +1084,7 @@
   },
   "deviations": {
     "title": "Deviations",
-    "subtitle": "Track nonconformities and corrective actions across your standards.",
+    "subtitle": "Everything that did not go as planned, and how it is put right.",
     "new": "New deviation",
     "empty": "No deviations match your filters.",
     "backToList": "Back to deviations",
@@ -1091,7 +1092,7 @@
     "status": {
       "open": "Open",
       "investigating": "Investigating",
-      "action": "Action",
+      "action": "Action in progress",
       "verification": "Verification",
       "closed": "Closed",
       "cancelled": "Cancelled"
@@ -1188,7 +1189,7 @@
         "severity": "Severity",
         "source": "Source",
         "standards": "Standards",
-        "clauses": "Clauses",
+        "clauses": "Requirements affected",
         "tags": "Tags",
         "owner": "Owner",
         "department": "Department",
@@ -1213,7 +1214,7 @@
       "notProvided": "Not set",
       "owner": "Owner",
       "auditTrail": "Audit trail",
-      "noEvents": "No activity recorded yet.",
+      "noEvents": "Nothing has happened on this case yet.",
       "meta": {
         "raised": "Raised",
         "due": "Due",
@@ -1239,7 +1240,7 @@
       "reasons": {
         "invalid_transition": "This status change is not allowed from the current status.",
         "reason_required": "A reason is required for this status change.",
-        "root_cause_required": "Record a root cause before closing.",
+        "root_cause_required": "Find the root cause first (or state why no analysis is needed) before moving on to actions.",
         "open_actions": "All actions must be done or verified first.",
         "verification_required": "The effectiveness of the corrective actions must be verified first.",
         "deviation_closed": "Reopen the deviation before changing it.",
@@ -1248,7 +1249,7 @@
       }
     },
     "actions": {
-      "title": "Corrective & preventive actions",
+      "title": "Actions",
       "add": "Add action",
       "save": "Save",
       "cancel": "Cancel",
@@ -1257,7 +1258,7 @@
       "unassigned": "Unassigned",
       "dueLabel": "Due {{ date }}",
       "markVerified": "Mark verified",
-      "notVerified": "Not verified",
+      "notVerified": "Not assessed yet",
       "editNotes": "Notes",
       "notesPlaceholder": "Add a verification note…",
       "addedToast": "Action added.",
@@ -1284,7 +1285,7 @@
         "cancelled": "Cancelled"
       },
       "effectiveness": {
-        "pending": "Effectiveness pending",
+        "pending": "Not assessed yet",
         "effective": "Effective",
         "not_effective": "Not effective"
       },
@@ -1345,7 +1346,7 @@
       },
       "editor": {
         "name": "Name",
-        "key": "Key",
+        "key": "Technical key",
         "description": "Description",
         "codePrefix": "Code prefix",
         "codePrefixPlaceholder": "e.g. NC",
@@ -1375,11 +1376,11 @@
         "save": "Save type",
         "cancel": "Cancel",
         "ai": {
-          "title": "Draft with AI",
+          "title": "Suggest a setup from a description",
           "placeholder": "Describe the type, e.g. \"GDPR personal-data breach for ISO 27001\".",
-          "draft": "Draft with AI",
-          "drafting": "Drafting…",
-          "draftedToast": "Draft ready. Review and adjust before saving.",
+          "draft": "Suggest setup",
+          "drafting": "Suggesting…",
+          "draftedToast": "A suggestion is ready. Review it before you save.",
           "notConfigured": "AI isn't set up yet.",
           "failed": "Couldn't draft this — try rephrasing."
         },
@@ -1411,7 +1412,7 @@
       }
     },
     "stats": {
-      "title": "Deviation statistics",
+      "title": "Statistics",
       "subtitle": "Aggregate metrics across your deviations. Filter to focus, click a bar to drill in.",
       "link": "Statistics",
       "empty": "No deviations match these filters yet.",
@@ -1434,12 +1435,12 @@
         "byClause": "By clause (top)"
       },
       "trend": {
-        "title": "Opened over time"
+        "title": "Registered and closed per month"
       }
     },
     "actionsList": {
       "link": "Actions",
-      "title": "Corrective & preventive actions",
+      "title": "Actions",
       "subtitle": "Open actions across all deviations you can see, soonest due first.",
       "scope": "Which actions",
       "scopeOpen": "All open actions",
@@ -1451,7 +1452,8 @@
       "five_why": "5 Whys",
       "fishbone": "Fishbone (Ishikawa)",
       "8d": "8D",
-      "other": "Other"
+      "other": "Other",
+      "not_needed": "No analysis needed"
     },
     "events": {
       "created": "Deviation created",

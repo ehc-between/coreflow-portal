@@ -1,10 +1,12 @@
 import { ContextAnalysis, Policy, Responsibility } from '../data/context.models';
 import { applyAnalysisDraft, applySuggestedParty, suggestedParties } from './ai-apply';
 import {
+  canonicalClause,
   changedFields,
   changesContent,
   createBody,
   draftFrom,
+  draftFromPrefill,
   draftProblems,
   emptyDraft,
   isCreateOnly,
@@ -52,7 +54,7 @@ const policy: Policy = {
 describe('context drafts', () => {
   it('builds create bodies per kind, trimming text and dropping blanks', () => {
     const draft = {
-      ...emptyDraft('policy'),
+      ...emptyDraft(),
       title: '  Security policy ',
       kind: 'information_security' as const,
       statement: '   ',
@@ -71,7 +73,7 @@ describe('context drafts', () => {
     });
 
     const scope = {
-      ...emptyDraft('scope'),
+      ...emptyDraft(),
       title: 'QMS',
       framework: 'iso9001',
       sites: 'Oslo\n\nBergen\nOslo',
@@ -134,13 +136,13 @@ describe('context drafts', () => {
   });
 
   it('reports client-side problems', () => {
-    expect(draftProblems('party', emptyDraft('party'))).toEqual(['context.form.problems.name']);
-    expect(draftProblems('scope', { ...emptyDraft('scope'), title: 'S' })).toEqual([
+    expect(draftProblems('party', emptyDraft())).toEqual(['context.form.problems.name']);
+    expect(draftProblems('scope', { ...emptyDraft(), title: 'S' })).toEqual([
       'context.form.problems.framework',
     ]);
     expect(
       draftProblems('analysis', {
-        ...emptyDraft('analysis'),
+        ...emptyDraft(),
         title: 'A',
         review_interval_months: '99',
       }),
@@ -151,11 +153,71 @@ describe('context drafts', () => {
     ];
     expect(
       draftProblems('responsibility', {
-        ...emptyDraft('responsibility'),
+        ...emptyDraft(),
         title: 'R',
         assignments: two,
       }),
     ).toEqual(['context.errors.multiple_accountable', 'context.errors.duplicate_assignment']);
+  });
+
+  it('sends the connected fields: processes, a process, a document on edit, monitoring', () => {
+    const scope = {
+      ...emptyDraft(),
+      title: 'ISMS',
+      framework: 'iso27001',
+      exclusions: [{ clause: 'A.5.23', justification: 'No cloud services' }],
+      processes: [{ id: 'proc-1', title: 'Sales', code: 'PRO-1' }],
+    };
+    const body = createBody('scope', scope);
+    expect(body['exclusions']).toEqual([
+      { clause: 'iso27001:A.5.23', justification: 'No cloud services' },
+    ]);
+    expect(body['process_ids']).toEqual(['proc-1']);
+    // Empty optional fields stay out of a create body.
+    expect(createBody('scope', { ...scope, processes: [] })).not.toHaveProperty('process_ids');
+    expect(createBody('party', { ...emptyDraft(), title: 'P' })).not.toHaveProperty('monitoring');
+    expect(
+      createBody('party', { ...emptyDraft(), title: 'P', monitoring: ' Survey ' }),
+    ).toMatchObject({ monitoring: 'Survey', review_interval_months: 12 });
+    expect(
+      createBody('responsibility', {
+        ...emptyDraft(),
+        title: 'R',
+        process: { id: 'proc-2', title: 'Purchasing', code: null },
+      }),
+    ).toMatchObject({ process_id: 'proc-2', area: null });
+
+    // Linking a document to an approved policy is not a content change.
+    const original = draftFrom('policy', policy);
+    const linked = changedFields('policy', original, {
+      ...original,
+      document: { id: 'doc-9', title: 'Policy doc', code: 'DOC-9' },
+    });
+    expect(linked).toEqual({ document_id: 'doc-9' });
+    expect(changesContent(linked)).toBe(false);
+  });
+
+  it('keeps canonical exclusion clauses and prefixes bare numbers', () => {
+    expect(canonicalClause('8.3', 'iso9001')).toBe('iso9001:8.3');
+    expect(canonicalClause('iso9001:8.3', 'iso27001')).toBe('iso9001:8.3');
+    expect(canonicalClause(' ', 'iso9001')).toBe('');
+  });
+
+  it('fills empty fields from a create-from-here prefill', () => {
+    const filled = draftFromPrefill(
+      'policy',
+      { ...emptyDraft(), statement: 'Mine' },
+      { title: 'Backup policy', description: 'From risk', kind: 'information_security' },
+    );
+    expect(filled.title).toBe('Backup policy');
+    expect(filled.statement).toBe('Mine');
+    expect(filled.kind).toBe('information_security');
+    const party = draftFromPrefill('party', emptyDraft(), {
+      title: 'Datatilsynet',
+      frameworks: ['gdpr'],
+    });
+    expect(party.title).toBe('Datatilsynet');
+    expect(party.frameworks).toEqual(['gdpr']);
   });
 
   it('seeds a new draft from the URL', () => {
@@ -167,7 +229,7 @@ describe('context drafts', () => {
 
 describe('AI results', () => {
   it('appends drafted factors of the right method and fills an empty summary', () => {
-    const draft = { ...emptyDraft('analysis'), title: 'SWOT' };
+    const draft = { ...emptyDraft(), title: 'SWOT' };
     const next = applyAnalysisDraft(draft, {
       summary: 'Strong team, thin margins.',
       items: [
@@ -191,7 +253,7 @@ describe('AI results', () => {
       parties: [{ name: 'Customers', category: 'customer', influence: 'high' }, { name: ' ' }],
     });
     expect(parties).toHaveLength(1);
-    const filled = applySuggestedParty(emptyDraft('party'), {
+    const filled = applySuggestedParty(emptyDraft(), {
       name: 'Labour Inspection',
       category: 'regulator',
       party_type: 'external',

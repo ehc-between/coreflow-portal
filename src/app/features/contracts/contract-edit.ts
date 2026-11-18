@@ -2,58 +2,61 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  computed,
   effect,
   inject,
   input,
   signal,
   untracked,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../core/ai/page-context';
+import { LanguageService } from '../../core/i18n/language.service';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
-import { GuideIntro } from '../../shared/guidance/guide-intro';
 import { Alert } from '../../shared/ui/alert/alert';
-import { Icon } from '../../shared/ui/icon/icon';
+import { ErrorState } from '../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
+import { LoadingState } from '../../shared/ui/loading-state/loading-state';
+import { Breadcrumb, PageHeader } from '../../shared/ui/page-header/page-header';
 import { ContractForm, ContractFormSubmit } from './contract-form';
+import { CONTRACTS_CRUMB } from './contracts-nav';
 import { ContractsApi } from './data/contracts-api';
 import { Contract } from './data/contract.models';
 import { contractErrorKey } from './data/contract-errors';
-import { ContractFormValue, formFromContract, toUpdateRequest } from './data/contract-form-model';
+import {
+  ContractFormValue,
+  displayAmount,
+  formFromContract,
+  toUpdateRequest,
+} from './data/contract-form-model';
 
 /** Edit a contract's register fields (`/contracts/:id/edit`). */
 @Component({
   selector: 'app-contract-edit',
-  imports: [RouterLink, TranslocoPipe, GuideIntro, Alert, Icon, ContractForm],
+  imports: [TranslocoPipe, Alert, ErrorState, HelpStrip, LoadingState, PageHeader, ContractForm],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[960px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
-      <a
-        [routerLink]="['/contracts', id()]"
-        class="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
-      >
-        <app-icon name="back" [size]="16" />
-        {{ 'contracts.common.backToContract' | transloco }}
-      </a>
+    <div class="mx-auto max-w-[760px] px-4 pt-6 pb-24 sm:px-8 sm:pt-7">
+      <app-page-header
+        titleKey="contracts.form.editTitle"
+        [titleParams]="{ code: contract()?.code ?? '' }"
+        [breadcrumbs]="breadcrumbs()"
+        [backLink]="['/contracts', id()]"
+        backLabelKey="contracts.common.backToContract"
+      />
       @switch (state()) {
         @case ('loading') {
-          <p class="py-10 text-center text-[14px] text-fg-muted" role="status">
-            {{ 'contracts.common.loading' | transloco }}
-          </p>
+          <app-loading-state [rows]="6" />
         }
         @case ('error') {
-          <app-alert tone="error">{{ errorKey() | transloco }}</app-alert>
+          <app-error-state [bodyKey]="errorKey()" (retry)="reload()" />
         }
         @default {
           @if (contract(); as c) {
-            <h1
-              class="mb-4 font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]"
-            >
-              {{ 'contracts.form.editTitle' | transloco: { code: c.code } }}
-            </h1>
-            <div class="mb-5"><app-guide-intro scope="contracts" page="form" /></div>
+            <app-help-strip class="mb-5 block" scope="contracts" page="form" />
             @if (!c.can_edit) {
               <app-alert tone="info">{{ 'contracts.form.readOnly' | transloco }}</app-alert>
             } @else if (seed(); as value) {
@@ -76,6 +79,7 @@ export class ContractEdit {
   private readonly api = inject(ContractsApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly notifications = inject(NotificationService);
+  private readonly language = inject(LanguageService);
   private readonly router = inject(Router);
 
   readonly id = input.required<string>();
@@ -85,6 +89,16 @@ export class ContractEdit {
   protected readonly contract = signal<Contract | null>(null);
   protected readonly seed = signal<ContractFormValue | null>(null);
   protected readonly saving = signal(false);
+  private readonly reloadTick = signal(0);
+
+  protected readonly breadcrumbs = computed<readonly Breadcrumb[]>(() => {
+    const c = this.contract();
+    return [
+      CONTRACTS_CRUMB,
+      ...(c ? [{ label: c.code, link: ['/contracts', c.id] }] : []),
+      { labelKey: 'contracts.form.editCrumb' },
+    ];
+  });
 
   private request = new Subscription();
 
@@ -96,12 +110,18 @@ export class ContractEdit {
       entityId: this.id(),
       view: 'edit',
       title: this.contract()?.title ?? null,
+      requirements: [...(this.contract()?.requirement_refs ?? [])],
     }));
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();
       const id = this.id();
+      this.reloadTick();
       untracked(() => this.load(orgId, id));
     });
+  }
+
+  protected reload(): void {
+    this.reloadTick.update((n) => n + 1);
   }
 
   protected save(event: ContractFormSubmit): void {
@@ -144,7 +164,14 @@ export class ContractEdit {
     this.request = this.api.get(orgId, id).subscribe({
       next: (contract) => {
         this.contract.set(contract);
-        this.seed.set(formFromContract(contract));
+        const value = formFromContract(contract);
+        // The amount reads as people write it ("850 000"), not as stored ("850000.00").
+        this.seed.set({
+          ...value,
+          value_amount: value.value_amount
+            ? displayAmount(value.value_amount, this.language.locale())
+            : '',
+        });
         this.state.set('ready');
       },
       error: (error: unknown) => {

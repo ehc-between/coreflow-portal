@@ -11,26 +11,31 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { providePageContext } from '../../core/ai/page-context';
 import { HasPermissionDirective } from '../../core/auth/has-permission.directive';
+import { LanguageService } from '../../core/i18n/language.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
-import { GuideIntro } from '../../shared/guidance/guide-intro';
-import { LessonView } from '../../shared/guidance/lesson';
 import { TeachingEmpty } from '../../shared/guidance/teaching-empty';
-import { TourButton } from '../../shared/guidance/tour-button';
 import { TourStepDirective } from '../../shared/guidance/tour-step.directive';
 import { WhyItMatters } from '../../shared/guidance/why-it-matters';
+import { pluralKey } from '../../shared/i18n/plural';
 import { RecordListPage } from '../../shared/kit/record-list-page';
 import { SavedView } from '../../shared/kit/saved-views.service';
-import { LocalDayPipe } from '../../shared/locale/locale-pipes';
-import { Badge } from '../../shared/ui/badge/badge';
+import { CoverageChip } from '../../shared/requirement-links/coverage-chip';
 import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
+import { EmptyState } from '../../shared/ui/empty-state/empty-state';
+import { ErrorState } from '../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../shared/ui/icon/icon';
-import { pluralKey } from '../../shared/i18n/plural';
+import { LoadingState } from '../../shared/ui/loading-state/loading-state';
+import { ModuleNav } from '../../shared/ui/module-nav/module-nav';
 import { Pager } from '../../shared/ui/pager/pager';
-import { SlideOver } from '../../shared/ui/slide-over/slide-over';
-import { categoryKey, categoryTone, statusKey, statusTone } from './data/process-display';
+import { RecordRow, RecordRowHeader } from '../../shared/ui/record-row/record-row';
+import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
+import { categoryKey, healthValue, statusKey } from './data/process-display';
+import { PROCESS_NAV } from './data/process-nav';
 import {
   PROCESS_CATEGORIES,
+  PROCESS_ENTITY_TYPE,
   PROCESS_MODULE,
   PROCESS_SORTS,
   PROCESS_STATUSES,
@@ -58,7 +63,7 @@ const SORT_KEYS: Readonly<Record<ProcessSort, string>> = {
 export interface ProcessListFilters {
   readonly status: ProcessStatus | '';
   readonly category: ProcessCategory | '';
-  readonly owner: '' | 'me';
+  readonly owner: '' | 'me' | 'none';
   readonly reviewDue: '' | 'true';
   readonly sort: ProcessSort;
 }
@@ -83,7 +88,7 @@ export function parseFilters(
   return {
     status: pick(raw['status'], ['', ...PROCESS_STATUSES], ''),
     category: pick(raw['category'], ['', ...PROCESS_CATEGORIES], ''),
-    owner: pick(raw['owner'], ['', 'me'] as const, ''),
+    owner: pick(raw['owner'], ['', 'me', 'none'] as const, ''),
     reviewDue: pick(raw['reviewDue'] ?? raw['review_due'], ['', 'true'] as const, ''),
     sort: pick(raw['sort'], PROCESS_SORTS, 'code'),
   };
@@ -103,11 +108,12 @@ export function toQuery(q: string, f: ProcessListFilters, offset: number): Proce
 }
 
 /**
- * The process register (`/processes`): search, filters (status, category, mine,
- * review due), sort, saved views and paging over the org's processes, with links
- * to the interaction map and (with `processes:write`) a New process action. The
- * empty state teaches what a process register is for; a micro-lesson explains the
- * process approach and PDCA.
+ * The process register (`/processes`, "Prosesser"): search, filters (status,
+ * category, owner incl. "no owner", review due, sort), saved views and paging.
+ * Each row shows the code, title, what it is (category, parent, map), how many
+ * requirements it documents, its status, how complete it is ("6 av 9"), the
+ * owner and the next review (overdue in amber with "Forfalt"). The empty
+ * register teaches what processes are; learning sits in the help strip.
  */
 @Component({
   selector: 'app-processes-list',
@@ -116,50 +122,41 @@ export function toQuery(q: string, f: ProcessListFilters, offset: number): Proce
     RouterLink,
     TranslocoPipe,
     HasPermissionDirective,
-    GuideIntro,
-    LessonView,
     TeachingEmpty,
-    TourButton,
     TourStepDirective,
     WhyItMatters,
     RecordListPage,
-    LocalDayPipe,
-    Badge,
+    CoverageChip,
     Button,
     Card,
+    EmptyState,
+    ErrorState,
+    HelpStrip,
     Icon,
+    LoadingState,
+    ModuleNav,
     Pager,
-    SlideOver,
+    RecordRow,
+    RecordRowHeader,
+    StatusBadge,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-record-list-page
-      titleKey="processes.list.title"
+      titleKey="modules.names.processes"
+      descriptionKey="processes.list.subtitle"
       scope="processes"
       searchPlaceholderKey="processes.list.searchPlaceholder"
       [query]="query()"
       [filters]="viewFilters()"
+      [moreFiltersActive]="moreActive()"
       [empty]="isEmptyRegister()"
       (search)="onSearch($event)"
       (viewApplied)="applyView($event)"
     >
       <app-fulfils-requirements help locationKey="processes.register" />
-      <div intro class="mt-1.5 max-w-[640px]">
-        <p class="text-[14px] text-fg-muted">{{ 'processes.list.subtitle' | transloco }}</p>
-      </div>
-      <app-tour-button toolbar scope="processes" tour="list" />
-      <app-button toolbar variant="secondary" (click)="lessonOpen.set(true)">
-        <app-icon name="training" [size]="15" />
-        {{ 'processes.lesson.open' | transloco }}
-      </app-button>
-      <a toolbar routerLink="/processes/interaction-map" appTourStep="processes-interaction-map">
-        <app-button variant="secondary">
-          <app-icon name="projects" [size]="15" />
-          {{ 'processes.list.interactionMap' | transloco }}
-        </app-button>
-      </a>
       <a
-        toolbar
+        primary
         *appHasPermission="'processes:write'"
         routerLink="/processes/new"
         appTourStep="processes-new"
@@ -170,49 +167,67 @@ export function toQuery(q: string, f: ProcessListFilters, offset: number): Proce
         </app-button>
       </a>
 
-      <ng-container ngProjectAs="[filters]">
-        <select
-          class="cf-filter"
-          [attr.aria-label]="'processes.filters.status' | transloco"
-          [value]="filters().status"
-          (change)="setFilter('status', $any($event.target).value)"
-          appTourStep="processes-filters"
-          data-testid="filter-status"
-        >
-          <option value="">{{ 'processes.filters.allStatuses' | transloco }}</option>
-          @for (s of statuses; track s) {
-            <option [value]="s" [selected]="s === filters().status">
-              {{ statusKey(s) | transloco }}
-            </option>
-          }
-        </select>
-        <select
-          class="cf-filter"
-          [attr.aria-label]="'processes.filters.category' | transloco"
-          (change)="setFilter('category', $any($event.target).value)"
-        >
-          <option value="">{{ 'processes.filters.allCategories' | transloco }}</option>
-          @for (c of categories; track c) {
-            <option [value]="c" [selected]="c === filters().category">
-              {{ categoryKey(c) | transloco }}
-            </option>
-          }
-        </select>
-        <select
-          class="cf-filter"
-          [attr.aria-label]="'processes.filters.owner' | transloco"
-          (change)="setFilter('owner', $any($event.target).value)"
-        >
-          <option value="" [selected]="filters().owner === ''">
-            {{ 'processes.filters.anyOwner' | transloco }}
+      <app-module-nav
+        nav
+        class="mb-4 block"
+        labelKey="modules.names.processes"
+        [items]="nav"
+        appTourStep="processes-interaction-map"
+      />
+      <app-help-strip help scope="processes" page="list" tour="list" lesson="process-approach" />
+
+      <select
+        filters
+        class="cf-filter"
+        [attr.aria-label]="'processes.filters.status' | transloco"
+        (change)="setFilter('status', $any($event.target).value)"
+        appTourStep="processes-filters"
+        data-testid="filter-status"
+      >
+        <option value="" [selected]="filters().status === ''">
+          {{ 'processes.filters.allStatuses' | transloco }}
+        </option>
+        @for (s of statuses; track s) {
+          <option [value]="s" [selected]="s === filters().status">
+            {{ statusKey(s) | transloco }}
           </option>
-          <option value="me" [selected]="filters().owner === 'me'">
-            {{ 'processes.filters.mine' | transloco }}
+        }
+      </select>
+      <select
+        filters
+        class="cf-filter"
+        [attr.aria-label]="'processes.filters.category' | transloco"
+        (change)="setFilter('category', $any($event.target).value)"
+      >
+        <option value="" [selected]="filters().category === ''">
+          {{ 'processes.filters.allCategories' | transloco }}
+        </option>
+        @for (c of categories; track c) {
+          <option [value]="c" [selected]="c === filters().category">
+            {{ categoryKey(c) | transloco }}
           </option>
-        </select>
-        <label
-          class="inline-flex h-10 items-center gap-2 rounded-[10px] border border-border bg-bg px-3 text-[13px] text-fg"
-        >
+        }
+      </select>
+      <select
+        filters
+        class="cf-filter"
+        [attr.aria-label]="'processes.filters.owner' | transloco"
+        (change)="setFilter('owner', $any($event.target).value)"
+        data-testid="filter-owner"
+      >
+        <option value="" [selected]="filters().owner === ''">
+          {{ 'processes.filters.anyOwner' | transloco }}
+        </option>
+        <option value="me" [selected]="filters().owner === 'me'">
+          {{ 'processes.filters.mine' | transloco }}
+        </option>
+        <option value="none" [selected]="filters().owner === 'none'">
+          {{ 'processes.filters.noOwner' | transloco }}
+        </option>
+      </select>
+
+      <div more-filters class="flex flex-col gap-3">
+        <label class="inline-flex min-h-8 items-center gap-2 text-ui text-fg">
           <input
             type="checkbox"
             class="h-4 w-4 accent-[var(--accent)]"
@@ -222,100 +237,88 @@ export function toQuery(q: string, f: ProcessListFilters, offset: number): Proce
           />
           {{ 'processes.filters.reviewDue' | transloco }}
         </label>
-        <select
-          class="cf-filter"
-          [attr.aria-label]="'processes.filters.sort' | transloco"
-          (change)="setFilter('sort', $any($event.target).value)"
-        >
-          @for (s of sorts; track s) {
-            <option [value]="s" [selected]="s === filters().sort">
-              {{ 'processes.sort.' + sortKey(s) | transloco }}
-            </option>
-          }
-        </select>
-      </ng-container>
-
-      <app-guide-intro class="mb-3 block" scope="processes" page="list" />
-
-      <app-card [padded]="false">
-        @if (loading() && items().length === 0) {
-          <p class="px-4 py-10 text-center text-[14px] text-fg-muted">
-            {{ 'common.loading' | transloco }}
-          </p>
-        } @else if (items().length === 0) {
-          <p class="px-4 py-10 text-center text-[14px] text-fg-muted" data-testid="no-matches">
-            {{ 'processes.list.noMatches' | transloco }}
-          </p>
-        } @else {
-          <ul [attr.aria-busy]="loading()" data-testid="process-rows">
-            @for (row of items(); track row.id) {
-              <li class="border-b border-border last:border-b-0 hover:bg-surface-2">
-                <a
-                  [routerLink]="['/processes', row.id]"
-                  class="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3 sm:flex-nowrap"
-                >
-                  <span class="w-[72px] flex-none font-mono text-[12px] text-fg-subtle">{{
-                    row.code
-                  }}</span>
-                  <span class="min-w-0 flex-1 basis-[200px]">
-                    <span class="block truncate font-semibold text-fg">{{ row.title }}</span>
-                    <span class="block truncate text-[12.5px] text-fg-muted">
-                      @if (row.parent) {
-                        {{ 'processes.list.partOf' | transloco: { code: row.parent.code } }} ·
-                      }
-                      {{
-                        pluralKey('processes.list.steps', row.step_count)
-                          | transloco: { count: row.step_count }
-                      }}
-                    </span>
-                  </span>
-                  <app-badge [tone]="categoryTone(row.category)">{{
-                    categoryKey(row.category) | transloco
-                  }}</app-badge>
-                  <app-badge [tone]="statusTone(row.status)">{{
-                    statusKey(row.status) | transloco
-                  }}</app-badge>
-                  <span
-                    class="hidden w-[130px] flex-none truncate text-right text-[12.5px] text-fg-subtle md:block"
-                  >
-                    {{ row.owner?.name ?? ('processes.list.noOwner' | transloco) }}
-                  </span>
-                  <span class="w-[110px] flex-none text-right text-[12.5px]">
-                    @if (row.next_review_at) {
-                      <span
-                        [class.text-fail]="row.review_overdue"
-                        [class.font-semibold]="row.review_overdue"
-                        [class.text-fg-subtle]="!row.review_overdue"
-                        [attr.title]="'processes.fields.nextReview' | transloco"
-                      >
-                        {{ row.next_review_at | localDay }}
-                      </span>
-                      @if (row.review_overdue) {
-                        <span class="sr-only">{{ 'processes.review.overdue' | transloco }}</span>
-                      }
-                    } @else {
-                      <span class="text-fg-subtle">—</span>
-                    }
-                  </span>
-                </a>
-              </li>
+        <label class="flex flex-col gap-1 text-ui font-semibold text-fg-muted">
+          {{ 'processes.filters.sort' | transloco }}
+          <select class="cf-filter" (change)="setFilter('sort', $any($event.target).value)">
+            @for (s of sorts; track s) {
+              <option [value]="s" [selected]="s === filters().sort">
+                {{ 'processes.sort.' + sortKey(s) | transloco }}
+              </option>
             }
-          </ul>
-        }
-      </app-card>
-      <div class="mt-3">
-        <app-pager
-          [offset]="offset()"
-          [pageSize]="pageSize"
-          [count]="items().length"
-          [total]="total()"
-          (pageChange)="goTo($event)"
-        />
+          </select>
+        </label>
       </div>
-      <app-why-it-matters class="mt-5 block" scope="processes" page="list" />
+
+      @if (error()) {
+        <app-error-state (retry)="reload()" />
+      } @else if (loading() && items().length === 0) {
+        <app-loading-state [rows]="5" />
+      } @else if (items().length === 0) {
+        <app-card>
+          <app-empty-state
+            icon="search"
+            titleKey="processes.list.noMatchesTitle"
+            bodyKey="processes.list.noMatches"
+            [compact]="true"
+            data-testid="no-matches"
+          />
+          <div class="-mt-2 pb-4 text-center">
+            <app-button variant="secondary" size="sm" (click)="clearFilters()">
+              {{ 'processes.list.clearFilters' | transloco }}
+            </app-button>
+          </div>
+        </app-card>
+      } @else {
+        <app-card [padded]="false">
+          <div role="list" [attr.aria-busy]="loading()" data-testid="process-rows">
+            <app-record-row-header dateKind="next" />
+            @for (row of items(); track row.id) {
+              <app-record-row
+                [code]="row.code"
+                [title]="row.title"
+                [subtitle]="subtitle(row)"
+                [link]="['/processes', row.id]"
+                [owner]="row.owner?.name ?? noOwnerText()"
+                [date]="row.next_review_at"
+                dateKind="next"
+                [overdue]="row.review_overdue"
+              >
+                <app-coverage-chip coverage [entityType]="entityType" [entityId]="row.id" />
+                <app-status-badge
+                  badges
+                  meaning="lifecycle"
+                  [value]="row.status"
+                  [labelKey]="statusKey(row.status)"
+                />
+                @if (row.health; as h) {
+                  <app-status-badge
+                    badges
+                    meaning="progress"
+                    [value]="health(row)"
+                    labelKey="processes.health.short"
+                    [labelParams]="{ done: h.done, total: h.total }"
+                    [attr.title]="
+                      'processes.health.summary' | transloco: { done: h.done, total: h.total }
+                    "
+                    data-testid="row-health"
+                  />
+                }
+              </app-record-row>
+            }
+          </div>
+        </app-card>
+        <div class="mt-3">
+          <app-pager
+            [offset]="offset()"
+            [pageSize]="pageSize"
+            [count]="items().length"
+            [total]="total()"
+            (pageChange)="goTo($event)"
+          />
+        </div>
+      }
 
       <div empty>
-        <app-guide-intro class="mb-3 block" scope="processes" page="list" />
         <app-card>
           <app-teaching-empty
             scope="processes"
@@ -324,21 +327,10 @@ export function toQuery(q: string, f: ProcessListFilters, offset: number): Proce
             (action)="create()"
           />
         </app-card>
-        <app-why-it-matters class="mt-5 block" scope="processes" page="list" />
       </div>
-    </app-record-list-page>
 
-    <app-slide-over
-      [open]="lessonOpen()"
-      [title]="'processes.lesson.title' | transloco"
-      [closeLabel]="'processes.actions.close' | transloco"
-      [width]="560"
-      (closed)="lessonOpen.set(false)"
-    >
-      @if (lessonOpen()) {
-        <app-lesson scope="processes" lesson="process-approach" />
-      }
-    </app-slide-over>
+      <app-why-it-matters below scope="processes" page="list" />
+    </app-record-list-page>
   `,
   styles: [
     `
@@ -348,7 +340,8 @@ export function toQuery(q: string, f: ProcessListFilters, offset: number): Proce
         border: 1px solid var(--border);
         background: var(--bg);
         color: var(--fg);
-        font-size: 13.5px;
+        font-size: 13px;
+        font-weight: 400;
         padding: 0 10px;
         outline: none;
       }
@@ -362,18 +355,18 @@ export function toQuery(q: string, f: ProcessListFilters, offset: number): Proce
 export class ProcessesList {
   private readonly api = inject(ProcessesApi);
   private readonly selectedOrg = inject(SelectedOrgService);
+  private readonly language = inject(LanguageService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 
   protected readonly pageSize = PAGE_SIZE;
+  protected readonly nav = PROCESS_NAV;
+  protected readonly entityType = PROCESS_ENTITY_TYPE;
   protected readonly statuses = PROCESS_STATUSES;
   protected readonly categories = PROCESS_CATEGORIES;
   protected readonly sorts = PROCESS_SORTS;
   protected readonly statusKey = statusKey;
-  protected readonly statusTone = statusTone;
   protected readonly categoryKey = categoryKey;
-  protected readonly categoryTone = categoryTone;
-  protected readonly pluralKey = pluralKey;
 
   protected readonly query = signal('');
   protected readonly filters = signal<ProcessListFilters>(
@@ -383,26 +376,39 @@ export class ProcessesList {
   protected readonly items = signal<readonly ProcessOut[]>([]);
   protected readonly total = signal(0);
   protected readonly loading = signal(false);
+  protected readonly error = signal(false);
   private readonly loaded = signal(false);
-  protected readonly lessonOpen = signal(false);
 
   protected readonly canWrite = computed(
     () => this.selectedOrg.currentOrg()?.permissions.includes('processes:write') ?? false,
   );
 
   protected readonly viewFilters = computed<Record<string, string>>(() => ({ ...this.filters() }));
+  protected readonly moreActive = computed(
+    () =>
+      (this.filters().reviewDue ? 1 : 0) + (this.filters().sort !== DEFAULT_FILTERS.sort ? 1 : 0),
+  );
+  protected readonly noOwnerText = computed(() =>
+    this.language.translate('processes.list.noOwner'),
+  );
 
   /** The register has no processes at all (not just no matches): teach instead. */
   protected readonly isEmptyRegister = computed(
     () =>
       this.loaded() &&
+      !this.error() &&
       this.total() === 0 &&
       !this.query().trim() &&
       JSON.stringify(this.filters()) === JSON.stringify(DEFAULT_FILTERS),
   );
 
   constructor() {
-    providePageContext(() => ({ module: PROCESS_MODULE, view: 'list' }));
+    providePageContext(() => ({
+      module: PROCESS_MODULE,
+      entityType: PROCESS_ENTITY_TYPE,
+      view: 'list',
+      title: this.language.translate('modules.names.processes'),
+    }));
 
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();
@@ -418,6 +424,7 @@ export class ProcessesList {
 
   private load(orgId: string, q: string, filters: ProcessListFilters, offset: number): void {
     this.loading.set(true);
+    this.error.set(false);
     this.api.list(orgId, toQuery(q, filters, offset)).subscribe({
       next: (page) => {
         this.items.set(page.items);
@@ -428,8 +435,37 @@ export class ProcessesList {
       error: () => {
         this.loading.set(false);
         this.loaded.set(true);
+        this.error.set(true);
       },
     });
+  }
+
+  protected reload(): void {
+    const orgId = this.selectedOrg.currentOrgId();
+    if (orgId) {
+      this.load(orgId, this.query(), this.filters(), this.offset());
+    }
+  }
+
+  /** "Kjerne · Del av PR-001 · 7 trinn i kartet" / "… · Ingen kart ennå". */
+  protected subtitle(row: ProcessOut): string {
+    const t = (key: string, params?: Record<string, unknown>) =>
+      this.language.translate(key, params);
+    const parts = [t(categoryKey(row.category))];
+    if (row.parent) {
+      parts.push(t('processes.list.partOf', { code: row.parent.code }));
+    }
+    parts.push(
+      row.step_count > 0
+        ? t(pluralKey('processes.list.steps', row.step_count), { count: row.step_count })
+        : t('processes.list.noMap'),
+    );
+    return parts.join(' · ');
+  }
+
+  protected health(row: ProcessOut): string {
+    const h = row.health;
+    return h && h.total ? String(Math.round((h.done / h.total) * 100)) : healthValue(h);
   }
 
   protected sortKey(sort: ProcessSort): string {
@@ -444,6 +480,12 @@ export class ProcessesList {
   protected setFilter(key: keyof ProcessListFilters, value: string): void {
     this.offset.set(0);
     this.filters.set(parseFilters({ ...this.filters(), [key]: value }));
+  }
+
+  protected clearFilters(): void {
+    this.offset.set(0);
+    this.filters.set(DEFAULT_FILTERS);
+    this.query.set('');
   }
 
   protected applyView(view: SavedView): void {

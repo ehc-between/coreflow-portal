@@ -6,19 +6,19 @@
     "backToContract": "Tilbake til kontrakten",
     "edit": "Rediger",
     "delete": "Slett",
-    "none": "Ikke angitt",
     "overdue": "Forfalt"
   },
   "list": {
-    "title": "Kontrakter",
-    "subtitle": "Alle avtaler virksomheten har inngått: hvem de er med, hva de er verdt, når de utløper og hva de forplikter dere til.",
+    "subtitle": "Alle avtaler organisasjonen har inngått: hvem de er med, hva de er verdt, når de utløper og hva som må følges opp.",
     "searchPlaceholder": "Søk på kode, tittel eller part",
     "new": "Ny kontrakt",
     "noMatch": "Ingen kontrakter passer med filtrene.",
-    "personalData": "Personopplysninger",
-    "owner": "Eier: {{ name }}",
-    "ends": "Utløper {{ date }}",
-    "noEnd": "Ingen sluttdato"
+    "noEnd": "Ingen sluttdato",
+    "export": "Eksporter til CSV",
+    "exportFile": "kontraktsregister",
+    "nextKind": "Neste: {{ kind }}",
+    "noticeIn": "Oppsigelsesfrist om {{ days }} dager",
+    "clearFilters": "Fjern filtrene"
   },
   "filters": {
     "status": "Status",
@@ -31,11 +31,17 @@
     "mine": "Eid av meg",
     "anyExpiry": "Alle sluttdatoer",
     "expiringWithin": "Innen {{ days }} dager",
-    "personalData": "Behandler personopplysninger",
     "statusOptions": {
       "open": "Åpne (ikke avsluttet)",
       "all": "Alle statuser"
-    }
+    },
+    "attention": "Trenger oppfølging",
+    "attentionOptions": {
+      "all": "Alle, uansett oppfølging",
+      "any": "Trenger oppfølging (alle typer)"
+    },
+    "personalDataRole": "Personopplysninger",
+    "anyRole": "Alle"
   },
   "sorts": {
     "updated_atDesc": "Sist oppdatert",
@@ -64,8 +70,8 @@
     "employment": "Arbeidsavtale",
     "sla": "Tjenestenivåavtale",
     "partner": "Partneravtale",
-    "licence": "Lisens",
-    "other": "Annen"
+    "licence": "Lisensavtale",
+    "other": "Annen avtale"
   },
   "partyRoles": {
     "customer": "Kunde",
@@ -76,7 +82,7 @@
     "employee": "Arbeidstaker",
     "employer": "Arbeidsgiver",
     "partner": "Partner",
-    "other": "Annen"
+    "other": "Annen part"
   },
   "valuePeriods": {
     "one_off": "Engangsbeløp",
@@ -88,9 +94,8 @@
   "deadlineKinds": {
     "notice_deadline": "Oppsigelsesfrist",
     "end_date": "Sluttdato",
-    "review_date": "Gjennomgangsdato",
     "renewal": "Fornyelse",
-    "notice": "Varsel",
+    "notice": "Varslingsfrist",
     "review": "Gjennomgang",
     "payment": "Betaling",
     "milestone": "Milepæl",
@@ -107,7 +112,7 @@
     "department": "Avdeling",
     "counterparties": "Motparter",
     "confidential": "Konfidensiell",
-    "processesPersonalData": "Motparten behandler personopplysninger for oss",
+    "processesPersonalData": "Personopplysninger",
     "value": "Verdi",
     "valueAmount": "Beløp",
     "currency": "Valuta",
@@ -125,7 +130,15 @@
     "governingLaw": "Lovvalg",
     "terminationDate": "Sagt opp",
     "currentVersion": "Gjeldende versjon",
-    "approvedBy": "Godkjent av"
+    "approvedBy": "Godkjent av",
+    "personalDataRole": "Personopplysninger",
+    "transferBasis": "Overføring ut av EU/EØS",
+    "transferCountries": "Land",
+    "ictCritical": "IKT- eller sikkerhetskritisk leveranse",
+    "involvesAiSystem": "Gjelder et KI-system",
+    "flags": "I tillegg",
+    "lastReviewed": "Sist gjennomgått",
+    "approvalReview": "Gjennomgang av kravene"
   },
   "form": {
     "newTitle": "Ny kontrakt",
@@ -144,15 +157,25 @@
       "basics": "Kontrakten",
       "terms": "Datoer og fornyelse",
       "value": "Verdi",
-      "parties": "Parter"
+      "parties": "Parter",
+      "privacy": "Personopplysninger og sikkerhet"
     },
     "invalid": {
       "titleRequired": "Gi kontrakten en tittel.",
       "endBeforeStart": "Sluttdatoen er før startdatoen.",
-      "amount": "Skriv et beløp som 12500 eller 12500,50.",
+      "amount": "Skriv et beløp, for eksempel 12 500 eller 12 500,50.",
       "currency": "Bruk en valutakode på tre bokstaver, som NOK eller EUR.",
       "wholeNumber": "Skriv et heltall."
-    }
+    },
+    "editCrumb": "Rediger",
+    "ownerSearch": "Søk på navn eller e-post",
+    "ownerNoMatch": "Ingen treff.",
+    "privacyIntro": "Svarene avgjør om det trengs databehandleravtale, og hvilke krav kontrakten dokumenterer.",
+    "transferUnknown": "Ikke vurdert ennå",
+    "countriesPlaceholder": "For eksempel: USA, India",
+    "ictCriticalHint": "Leveransen er viktig for IT eller informasjonssikkerhet (drift, nettverk, kritisk programvare). Legger til ISO 27001 A.5.21 og NIS2 art. 21 nr. 2 bokstav d.",
+    "aiSystemHint": "Leveransen inneholder eller kjører et KI-system. Legger til ISO 42001 A.10.3 og KI-forordningen.",
+    "fixErrors": "Kontrakten ble ikke lagret. Rett opp {{ count }} markerte felt."
   },
   "parties": {
     "title": "Parter",
@@ -172,7 +195,16 @@
     "remove": "Fjern",
     "removeNamed": "Fjern {{ name }}",
     "removeTitle": "Fjerne denne parten?",
-    "removeMessage": "{{ name }} fjernes fra kontrakten. Endringen beholdes i historikken."
+    "removeMessage": "{{ name }} fjernes fra kontrakten. Endringen beholdes i historikken.",
+    "intro": "Velg motparten fra leverandørregisteret når du kan. Da vises kontrakten på leverandøren, og kontrollen av databehandleravtalen finner den.",
+    "roleFromType": "Ut fra kontrakttypen",
+    "linkedTo": "Koblet til leverandøren {{ supplier }}.",
+    "unlink": "Fjern koblingen",
+    "notInRegister": "Finnes ikke i leverandørregisteret.",
+    "registerSupplier": "Registrer leverandør",
+    "notLinked": "Ikke koblet til leverandørregisteret",
+    "supplierCode": "Leverandør {{ code }}",
+    "criticality": "Kritikalitet: {{ level }}"
   },
   "keyDates": {
     "title": "Viktige datoer",
@@ -203,8 +235,11 @@
     "unsigned": "Ikke signert",
     "markSigned": "Marker som signert",
     "pinCopy": "Knytt signert kopi",
-    "uploadHint": "Last opp den signerte kopien under Vedlegg først, og knytt den deretter til versjonen her.",
-    "save": "Legg til versjon"
+    "save": "Legg til versjon",
+    "copyMissing": "Signert, men ingen signert kopi er lastet opp",
+    "signedNoCopyHint": "Last også opp den signerte kopien, så signeringen er dokumentert.",
+    "uploadCopy": "Last opp signert kopi",
+    "uploading": "Laster opp …"
   },
   "obligations": {
     "title": "Forpliktelser",
@@ -229,7 +264,9 @@
     "activate": "Marker som aktiv",
     "renew": "Forny",
     "terminate": "Si opp",
-    "expire": "Marker som utløpt"
+    "expire": "Marker som utløpt",
+    "review": "Marker som gjennomgått",
+    "endMenu": "Avslutt kontrakten"
   },
   "actionDialog": {
     "note": "Notat (valgfritt)",
@@ -243,27 +280,32 @@
       "activate": "Markere som aktiv?",
       "renew": "Fornye denne kontrakten?",
       "terminate": "Si opp denne kontrakten?",
-      "expire": "Markere som utløpt?"
+      "expire": "Markere som utløpt?",
+      "review": "Registrere en gjennomgang?"
     },
     "messages": {
       "submit": "{{ code }} sendes til alle som godkjenner kontrakter. Du kan fortsatt endre den, men da går den tilbake til utkast.",
-      "approve": "Du bekrefter at {{ code }} er kontrollert og kan signeres.",
+      "approve": "Svar på hvert spørsmål for {{ code }}. Svarene og notatet ditt lagres som dokumentasjon på at kravene er gjennomgått.",
       "reject": "{{ code }} går tilbake til utkast. Forklar hva som må endres.",
       "activate": "{{ code }} er signert og gjelder. Bruk signeringsdatoen hvis den er en annen enn i dag.",
       "renew": "{{ code }} fortsetter til den nye sluttdatoen. Foreslått er dagens sluttdato pluss fornyelsesperioden.",
       "terminate": "{{ code }} avsluttes på datoen du velger. Åpne forpliktelser kanselleres. Skriv hvorfor.",
-      "expire": "{{ code }} har løpt ut. Åpne forpliktelser kanselleres."
-    }
+      "expire": "{{ code }} har løpt ut. Åpne forpliktelser kanselleres.",
+      "review": "Du bekrefter at {{ code }} fortsatt dekker behovet, og at leverandøren følges opp. Neste gjennomgangsdato flyttes fram."
+    },
+    "nextReview": "Neste gjennomgang (la stå tom for vanlig intervall)"
   },
   "workflow": {
     "hint": {
       "draft": "Utkast: fyll ut opplysningene, og send kontrakten til godkjenning.",
       "in_review": "Venter på godkjenning fra noen som godkjenner kontrakter.",
-      "approved": "Godkjent: marker den som aktiv når den er signert.",
-      "active": "Gjelder. Forny den, eller avslutt den når tiden er inne.",
+      "approved": "Godkjent. Signer den, last opp den signerte kopien og marker den som aktiv.",
+      "active": "Kontrakten er aktiv. Forny den eller si den opp før oppsigelsesfristen.",
       "expired": "Denne kontrakten er utløpt.",
       "terminated": "Denne kontrakten er sagt opp."
-    }
+    },
+    "selfApproval": "Du har sendt inn eller eier denne kontrakten, så en annen person må godkjenne den. Organisasjonen krever en uavhengig godkjenner.",
+    "submittedBy": "Sendt inn av {{ name }} {{ date }}."
   },
   "detail": {
     "summary": "Sammendrag",
@@ -276,7 +318,11 @@
     "noAutoRenew": "Fornyes ikke automatisk",
     "closedNotice": "Status: {{ status }}. Kontrakten er avsluttet, beholdes som dokumentasjon og kan ikke lenger endres.",
     "deleteTitle": "Slette denne kontrakten?",
-    "deleteMessage": "{{ code }} fjernes fra registeret, og åpne forpliktelser kanselleres. Den blir stående i revisjonsloggen."
+    "deleteMessage": "{{ code }} fjernes fra registeret, og åpne forpliktelser kanselleres. Den blir stående i revisjonsloggen.",
+    "ask": "Spør",
+    "obligationsTab": "Forpliktelser",
+    "startEvaluation": "Start leverandørvurdering",
+    "notApprovedYet": "Ikke godkjent ennå"
   },
   "dpa": {
     "title": "Databehandleravtale",
@@ -287,13 +333,11 @@
       "incomplete": "Ufullstendig"
     },
     "explain": {
-      "not_required": "Motparten behandler ikke personopplysninger for dere under denne kontrakten.",
+      "not_required": "Ingen behandler personopplysninger for andre under denne kontrakten.",
       "covered": "En signert databehandleravtale, der alle påkrevde klausuler er bekreftet, dekker denne kontrakten.",
-      "missing": "Motparten behandler personopplysninger for dere, men ingen databehandleravtale er koblet til.",
+      "missing": "Det behandles personopplysninger under denne kontrakten, men ingen databehandleravtale dekker det.",
       "incomplete": "Det finnes en databehandleravtale, men den gir ennå ikke full beskyttelse:"
     },
-    "linked": "Koblet avtale {{ n }}",
-    "linkCta": "Registrer databehandleravtalen som en kontrakt, og koble den hit under Relatert.",
     "reasons": {
       "unsigned": "Den er ikke signert og aktiv ennå.",
       "clauses_missing": "Påkrevde klausuler mangler: {{ missing }}.",
@@ -322,7 +366,22 @@
       "negotiationTask": "Opprett forhandlingsoppgave",
       "negotiationTitle": "Forhandle manglende klausuler om databehandling ({{ code }})",
       "negotiationIntro": "Bli enige med motparten om disse klausulene, og registrer dem i sjekklisten:"
-    }
+    },
+    "thisIsDpa": "Denne databehandleravtalen",
+    "notRequiredLine": "Det trengs ingen databehandleravtale: ingen behandler personopplysninger for andre.",
+    "covers": "Dekker",
+    "coversNone": "Ikke koblet til en hovedkontrakt ennå. Koble den fra kontrakten den hører til.",
+    "linkedTitle": "Koblede avtaler",
+    "candidatesTitle": "Avtaler som kan dekke denne kontrakten",
+    "match": {
+      "supplier": "Samme leverandør",
+      "org_number": "Samme organisasjonsnummer",
+      "name": "Samme navn på motparten"
+    },
+    "link": "Koble",
+    "create": "Opprett databehandleravtale",
+    "subProcessors": "Underdatabehandlere",
+    "transfer": "Overføring ut av EU/EØS:"
   },
   "dpaClauses": {
     "subject_matter_and_duration": "Gjenstand, varighet, art og formål med behandlingen",
@@ -355,7 +414,10 @@
     "due": "frist {{ date }}",
     "recurring": "gjentas: {{ rule }}",
     "addObligation": "Legg til som forpliktelse",
-    "addObligationsOnCreate": "Legg også til de foreslåtte forpliktelsene ({{ count }}) som oppgaver når kontrakten opprettes"
+    "addObligationsOnCreate": "Legg også til de foreslåtte forpliktelsene ({{ count }}) som oppgaver når kontrakten opprettes",
+    "toRisk": "Legg til i risikoregisteret",
+    "toTask": "Opprett oppgave",
+    "clauseTaskTitle": "Avtal punktet «{{ clause }}» med motparten ({{ code }})"
   },
   "ai": {
     "title": "Analyser et vedlegg",
@@ -377,23 +439,26 @@
     "recordHint": "Lagres som forslag. En person må bekrefte hver klausul."
   },
   "deadlines": {
-    "link": "Frister",
     "title": "Kontraktfrister",
-    "subtitle": "Oppsigelsesfrister, sluttdatoer, gjennomganger og andre viktige datoer på tvers av alle kontrakter.",
+    "subtitle": "Oppsigelsesfrister, sluttdatoer, gjennomganger og andre viktige datoer på tvers av alle kontrakter, de nærmeste først.",
     "window": "Vis",
     "includeOverdue": "Ta med forfalte",
     "today": "I dag",
     "inDays": "Om {{ days }} dager",
-    "daysAgo": "For {{ days }} dager siden"
-  },
-  "lessons": {
-    "link": "Leksjon: {{ title }} ({{ minutes }} min)"
+    "daysAgo": "For {{ days }} dager siden",
+    "mine": "Bare mine kontrakter",
+    "owner": "Eier: {{ name }}",
+    "noOwner": "ingen eier",
+    "createTask": "Opprett oppgave",
+    "createTaskFor": "Opprett en oppgave for {{ code }}",
+    "exportIcs": "Legg til i kalender",
+    "icsFile": "kontraktsfrister"
   },
   "ask": {
     "summarise": "Oppsummer denne kontrakten: parter, viktige vilkår, frister, forpliktelser og det jeg bør passe på.",
     "noticePeriod": "Hva er en oppsigelsestid, og hvordan bør jeg velge og registrere den for denne kontrakten?",
-    "noticeDeadline": "Hvordan beregnes oppsigelsesfristen for denne kontrakten, og hva skjer hvis vi går glipp av den?",
-    "deadlines": "Hvilke kontraktfrister bør jeg ta tak i først, og hva bør jeg gjøre med hver av dem?"
+    "transferBasis": "Hvilket rettslig grunnlag trenger vi når personopplysninger overføres ut av EU/EØS under denne kontrakten?",
+    "personalDataRole": "Trenger vi databehandleravtale for denne kontrakten, og hvem er databehandler?"
   },
   "notices": {
     "created": "{{ code }} er registrert.",
@@ -410,11 +475,15 @@
       "activate": "{{ code }} er nå aktiv.",
       "renew": "{{ code }} er fornyet.",
       "terminate": "{{ code }} er sagt opp.",
-      "expire": "{{ code }} er markert som utløpt."
+      "expire": "{{ code }} er markert som utløpt.",
+      "review": "Gjennomgangen av {{ code }} er registrert."
     },
     "dpaChecklistSaved": "Klausulsjekklisten er lagret.",
     "dpaFindingsRecorded": "Funnene er registrert i klausulsjekklisten og venter på bekreftelse.",
-    "negotiationTaskAdded": "En forhandlingsoppgave er lagt til under Oppgaver."
+    "negotiationTaskAdded": "En forhandlingsoppgave er lagt til under Oppgaver.",
+    "dpaLinked": "{{ code }} er nå koblet til som databehandleravtale.",
+    "copyUploaded": "Den signerte kopien er lastet opp og lagt til på versjonen.",
+    "settingsSaved": "Innstillingene for kontrakter er lagret."
   },
   "errors": {
     "contract_closed": "Denne kontrakten er avsluttet og kan ikke lenger endres.",
@@ -423,11 +492,11 @@
     "invalid_attachment": "Velg en fil som er vedlagt denne kontrakten.",
     "invalid_contract_type": "Velg en gyldig kontrakttype.",
     "invalid_currency": "Bruk en valutakode på tre bokstaver, som NOK eller EUR.",
-    "invalid_dates": "Kontroller datoene: sluttdatoen kan ikke være før startdatoen.",
+    "invalid_dates": "Sjekk datoene: de må komme i riktig rekkefølge, og neste gjennomgang må ligge fram i tid.",
     "invalid_department": "Avdelingen finnes ikke i denne virksomheten.",
     "invalid_owner": "Eieren må være medlem av denne virksomheten.",
     "invalid_transition": "Kontraktens status er endret. Last inn siden på nytt og prøv igjen.",
-    "note_required": "Skriv et notat som forklarer hvorfor.",
+    "note_required": "Skriv et notat: hva du har kontrollert, eller hvorfor.",
     "renewal_term_missing": "Skriv inn ny sluttdato, eller angi en fornyelsesperiode på kontrakten.",
     "too_many_parties": "En kontrakt kan ha høyst 20 parter.",
     "module_disabled": "Kontraktstyring er slått av for denne virksomheten.",
@@ -438,7 +507,16 @@
     "invalid_clause_state": "Velg finnes, mangler eller fraveket.",
     "invalid_clause_source": "Klausulen kunne ikke lagres. Last inn siden på nytt og prøv igjen.",
     "waiver_reason_required": "Oppgi begrunnelsen for å fravike denne klausulen.",
-    "waiver_requires_person": "Bare en person kan fravike en klausul."
+    "waiver_requires_person": "Bare en person kan fravike en klausul.",
+    "exportFailed": "Eksporten kunne ikke lages. Prøv igjen om litt.",
+    "uploadFailed": "Filen kunne ikke lastes opp. Prøv igjen.",
+    "self_approval_not_allowed": "Du har sendt inn eller eier denne kontrakten, så en annen person må godkjenne den.",
+    "review_incomplete": "Svar på alle spørsmålene i gjennomgangen. Er ett av svarene «Nei», sender du kontrakten tilbake i stedet.",
+    "invalid_review_item": "Spørsmålene i gjennomgangen er endret. Last inn siden på nytt og prøv igjen.",
+    "invalid_review_answer": "Velg ja, nei eller ikke relevant for hvert spørsmål.",
+    "invalid_supplier": "Den leverandøren finnes ikke i leverandørregisteret.",
+    "not_a_dpa": "Velg en databehandleravtale.",
+    "link_exists": "Den avtalen er allerede koblet til."
   },
   "notifications": {
     "ownerChanged": "Du eier nå kontrakten {{ code }}: {{ title }}",
@@ -461,7 +539,8 @@
     "keyDateCompleted": "Viktig dato utført i {{ code }}",
     "keyDateRemoved": "Viktig dato fjernet fra {{ code }}",
     "versionUpdated": "Versjon oppdatert i {{ code }}",
-    "obligationAdded": "Forpliktelse lagt til i {{ code }}"
+    "obligationAdded": "Forpliktelse lagt til i {{ code }}",
+    "reviewed": "Kontrakt gjennomgått: {{ code }} {{ title }}"
   },
   "timeline": {
     "created": "Kontrakt registrert",
@@ -484,6 +563,153 @@
     "keyDateRemoved": "Viktig dato fjernet",
     "versionAdded": "Versjon lagt til",
     "versionUpdated": "Versjon oppdatert",
-    "obligationAdded": "Forpliktelse lagt til"
+    "obligationAdded": "Forpliktelse lagt til",
+    "reviewed": "Gjennomgått"
+  },
+  "nav": {
+    "register": "Register",
+    "deadlines": "Frister"
+  },
+  "kpis": {
+    "active": "Aktive",
+    "dpa_missing": "Mangler databehandleravtale",
+    "notice_soon": "Oppsigelse innen 90 dager",
+    "review": "Gjennomgang forfalt"
+  },
+  "warnings": {
+    "title": "Trenger oppfølging ({{ count }})",
+    "other": "Trenger oppfølging",
+    "dpa_missing": {
+      "label": "Mangler databehandleravtale",
+      "fix": "Koble avtalen i kortet Databehandleravtale, eller opprett en fra denne kontrakten.",
+      "filter": "Personopplysninger uten databehandleravtale"
+    },
+    "dpa_incomplete": {
+      "label": "Ufullstendig databehandleravtale",
+      "fix": "Signer avtalen og bekreft hvert punkt i art. 28 nr. 3 i sjekklisten.",
+      "filter": "Ufullstendig databehandleravtale"
+    },
+    "signed_copy_missing": {
+      "label": "Mangler signert kopi",
+      "fix": "Last opp den signerte kopien på versjonen under Versjoner og signerte kopier.",
+      "filter": "Signert, men uten signert kopi"
+    },
+    "review_overdue": {
+      "label": "Gjennomgang forfalt",
+      "fix": "Gå gjennom kontrakten og registrer det med «Marker som gjennomgått».",
+      "filter": "Gjennomgang forfalt"
+    },
+    "review_date_missing": {
+      "label": "Mangler gjennomgangsdato",
+      "fix": "Sett neste gjennomgangsdato, så leverandøren følges opp jevnlig.",
+      "filter": "Mangler gjennomgangsdato"
+    },
+    "notice_soon": {
+      "label": "Oppsigelsesfristen nærmer seg",
+      "fix": "Bestem nå om dere skal fornye eller si opp, før fristen går ut.",
+      "filter": "Oppsigelsesfrist innen 90 dager"
+    },
+    "end_date_missing": {
+      "label": "Mangler sluttdato",
+      "fix": "Registrer sluttdatoen, eller skriv i fornyelsesvilkårene at den løper til den sies opp.",
+      "filter": "Mangler sluttdato"
+    },
+    "notice_period_missing": {
+      "label": "Mangler oppsigelsestid",
+      "fix": "Registrer oppsigelsestiden, så oppsigelsesfristen kan beregnes.",
+      "filter": "Mangler oppsigelsestid"
+    }
+  },
+  "personalDataRoles": {
+    "none": {
+      "label": "Ingen personopplysninger",
+      "hint": "Ingen av partene behandler personopplysninger for den andre."
+    },
+    "they_process": {
+      "label": "De behandler personopplysninger for oss",
+      "hint": "Motparten er vår databehandler (for eksempel en sky- eller lønnsleverandør). Det kreves databehandleravtale (GDPR art. 28)."
+    },
+    "we_process": {
+      "label": "Vi behandler personopplysninger for dem",
+      "hint": "Vi er motpartens databehandler (for eksempel når vi drifter en tjeneste for en kunde). Det kreves databehandleravtale."
+    },
+    "joint_controllers": {
+      "label": "Felles behandlingsansvarlige",
+      "hint": "Vi bestemmer sammen hvorfor og hvordan opplysningene behandles. Dere trenger en avtale etter GDPR art. 26, ikke en databehandleravtale."
+    }
+  },
+  "transferBases": {
+    "none": "Ingen overføring ut av EU/EØS",
+    "adequacy": "Beslutning om tilstrekkelig beskyttelsesnivå (f.eks. EU–USA-rammeverket)",
+    "scc": "Standard personvernbestemmelser (SCC)",
+    "bcr": "Bindende virksomhetsregler (BCR)",
+    "derogation": "Unntak i en bestemt situasjon (art. 49)",
+    "other": "Annet grunnlag"
+  },
+  "reviewItems": {
+    "requirements_defined": "Omfang, leveranser og krav er tydelige og avtalt",
+    "differences_resolved": "Avvik fra tilbudet eller bestillingen er avklart",
+    "able_to_deliver": "Vi kan levere det vi forplikter oss til (kapasitet, kompetanse og datoer)",
+    "terms_acceptable": "Pris, ansvar, varighet og oppsigelse er akseptabelt",
+    "supplier_approved": "Leverandøren er vurdert og godkjent",
+    "security_clauses": "Krav til informasjonssikkerhet står i kontrakten",
+    "confidentiality_scope": "Det er tydelig hva som er konfidensielt, hvor lenge og hvilke unntak som gjelder",
+    "dpa_in_place": "En databehandleravtale dekker personopplysningene",
+    "dpa_clauses_checked": "Alle påkrevde punkter i GDPR art. 28 nr. 3 er kontrollert",
+    "sub_processors_known": "Underdatabehandlere er oppført og godkjent",
+    "transfers_assessed": "Overføringer ut av EU/EØS har et rettslig grunnlag",
+    "unknown": "Annen kontroll"
+  },
+  "approve": {
+    "checklistTitle": "Gjennomgang av kravene",
+    "submittedBy": "Sendt inn av {{ name }}.",
+    "answers": {
+      "yes": "Ja",
+      "no": "Nei",
+      "na": "Ikke relevant"
+    },
+    "declined": "Du har svart «Nei» på minst ett spørsmål. Send kontrakten tilbake i stedet, og skriv hva som må endres.",
+    "trailTitle": "Godkjenning og gjennomgang av kravene",
+    "trailBy": "Godkjent av {{ name }}, {{ date }}",
+    "note": "Notat"
+  },
+  "signing": {
+    "copy": "Last opp signert kopi",
+    "copyDone": "Den signerte kopien er lagt ved.",
+    "copyTodo": "Last den opp på siste versjon under Versjoner og signerte kopier.",
+    "sign": "Marker versjonen som signert",
+    "signDone": "Siste versjon er signert.",
+    "signTodo": "Bruk «Marker som signert» på siste versjon.",
+    "activate": "Marker kontrakten som aktiv"
+  },
+  "settings": {
+    "title": "Innstillinger for kontrakter",
+    "subtitle": "Hvordan kontrakter godkjennes, og hvor ofte de gjennomgås.",
+    "sodTitle": "Godkjenning av en annen person",
+    "sodBody": "Den som sendte inn en kontrakt, eller eier den, kan ikke godkjenne den selv. Det gir arbeidsdelingen revisorer ser etter.",
+    "sodLabel": "Krev at en annen person godkjenner",
+    "reviewTitle": "Jevnlig gjennomgang",
+    "reviewBody": "Når en leverandøravtale, tjenestenivåavtale eller databehandleravtale blir aktiv, settes neste gjennomgang så mange måneder etter signeringsdatoen. «Marker som gjennomgått» flytter den like langt fram.",
+    "reviewMonths": "Måneder mellom gjennomgangene",
+    "monthsInvalid": "Skriv et helt tall fra 1 til 60.",
+    "readOnly": "Bare de som administrerer kontrakter, kan endre disse innstillingene."
+  },
+  "next": {
+    "notice": {
+      "title": "Oppsigelsesfrist for {{ code }} {{ title }}",
+      "why": "Om {{ days }} dager. Etter det fornyes eller avsluttes kontrakten slik den er skrevet. Bestem dere nå."
+    },
+    "reviewOverdue": {
+      "title": "Gå gjennom {{ code }} {{ title }}",
+      "why": "Gjennomgangen skulle vært gjort {{ date }}. Sjekk at leverandøren fortsatt oppfyller kravene."
+    },
+    "deadlineOverdue": {
+      "title": "Forfalt frist på {{ code }} {{ title }}",
+      "why": "Fristen var {{ date }}. Følg den opp, eller marker datoen som utført."
+    },
+    "deadline": {
+      "title": "Kommer snart på {{ code }} {{ title }}",
+      "why": "Frist {{ date }}, om {{ days }} dager."
+    }
   }
 }

@@ -10,7 +10,18 @@ import {
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { providePageContext } from '../../core/ai/page-context';
 import { AuthService } from '../../core/auth/auth.service';
+import { LanguageService } from '../../core/i18n/language.service';
+import { LocalDatePipe } from '../../shared/locale/locale-pipes';
+import { ErrorState } from '../../shared/ui/error-state/error-state';
+import { LoadingState } from '../../shared/ui/loading-state/loading-state';
+import { PageHeader } from '../../shared/ui/page-header/page-header';
+import { PromptDialog } from '../../shared/ui/prompt-dialog/prompt-dialog';
+import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
+import { DocumentControlApi } from '../documents/data/document-control-api';
+import { DocumentType } from '../documents/data/document-control.models';
+import { proposalRequirementText } from './proposal-label';
 import { HasPermissionDirective } from '../../core/auth/has-permission.directive';
 import {
   AccessGrant,
@@ -21,7 +32,6 @@ import {
 import { DocumentsApi } from '../../core/documents/documents-api';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
-import { Badge } from '../../shared/ui/badge/badge';
 import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
 import { FormField } from '../../shared/ui/form-field/form-field';
@@ -45,8 +55,13 @@ import { DocumentEditor } from '../documents/editor/document-editor';
     RouterLink,
     TranslocoPipe,
     HasPermissionDirective,
+    LocalDatePipe,
+    PageHeader,
+    PromptDialog,
+    StatusBadge,
+    ErrorState,
+    LoadingState,
     Card,
-    Badge,
     Button,
     FormField,
     Icon,
@@ -55,36 +70,68 @@ import { DocumentEditor } from '../documents/editor/document-editor';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[980px] px-8 pt-7 pb-12">
-      <a
-        routerLink="/review"
-        class="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
-      >
-        <app-icon name="back" [size]="16" />
-        {{ 'review.backToFeed' | transloco }}
-      </a>
-
+    <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       @if (loading()) {
-        <app-card>
-          <div class="px-2 py-10 text-center text-[14px] text-fg-muted">
-            {{ 'common.loading' | transloco }}
-          </div>
-        </app-card>
+        <app-loading-state [rows]="6" />
       } @else if (proposal(); as prop) {
-        <div class="mb-[18px] flex items-start justify-between gap-4">
-          <h1 class="font-display text-[26px] font-bold tracking-[-0.025em] text-fg">
-            {{ 'review.reviewTitle' | transloco }}
-          </h1>
-          @if (!editable()) {
-            <app-badge tone="neutral">{{ prop.status }}</app-badge>
-          }
-        </div>
+        <app-page-header
+          titleKey="review.reviewTitle"
+          [breadcrumbs]="[
+            { labelKey: 'nav.myWork', link: '/my-work' },
+            { labelKey: 'review.title', link: '/review' },
+            { label: prop.title },
+          ]"
+          backLink="/review"
+          backLabelKey="review.backToFeed"
+        >
+          <ng-container meta>
+            @if (prop.type_name) {
+              <span>{{
+                'documents.proposals.newOfType' | transloco: { type: prop.type_name }
+              }}</span>
+              <span aria-hidden="true">·</span>
+            }
+            @if (prop.created_by_name) {
+              <span>{{
+                'documents.proposals.proposedBy' | transloco: { name: prop.created_by_name }
+              }}</span>
+              <span aria-hidden="true">·</span>
+            }
+            <span>{{
+              'review.submittedAt'
+                | transloco: { date: (prop.submitted_at ?? prop.created_at | localDate) }
+            }}</span>
+            @if (!editable()) {
+              <app-status-badge
+                meaning="lifecycle"
+                [value]="prop.status"
+                [labelKey]="'documents.proposals.status.' + prop.status"
+              />
+            }
+          </ng-container>
+        </app-page-header>
+
+        @if (requirementText(); as req) {
+          <p
+            class="mb-4 inline-flex items-center gap-1.5 rounded-full border border-border px-2.5 py-1 text-meta text-fg-muted"
+            [title]="prop.requirement_label?.title ?? ''"
+            data-testid="proposal-requirement"
+          >
+            <app-icon name="link" [size]="12" />
+            {{ 'documents.proposals.forRequirement' | transloco: { requirement: req } }}
+          </p>
+        }
 
         @if (!editable()) {
           <app-card>
-            <p class="px-1 py-1 text-[13.5px] text-fg-muted">
+            <p class="px-1 py-1 text-ui text-fg-muted">
               {{ 'review.notPending' | transloco }}
             </p>
+            @if (prop.review_note) {
+              <p class="mt-2 px-1 text-ui text-fg">
+                {{ 'documents.proposals.reasonShown' | transloco: { reason: prop.review_note } }}
+              </p>
+            }
           </app-card>
         }
 
@@ -93,7 +140,15 @@ import { DocumentEditor } from '../documents/editor/document-editor';
             <div class="flex flex-col gap-4">
               <div class="grid gap-4 sm:grid-cols-2">
                 <app-form-field inputId="prop-type" [label]="'documents.fields.type' | transloco">
-                  <input id="prop-type" type="text" formControlName="type" autocomplete="off" />
+                  @if (types().length) {
+                    <select id="prop-type" formControlName="type">
+                      @for (t of typeOptions(); track t.key) {
+                        <option [value]="t.key">{{ t.name }}</option>
+                      }
+                    </select>
+                  } @else {
+                    <input id="prop-type" type="text" formControlName="type" autocomplete="off" />
+                  }
                 </app-form-field>
                 <app-form-field
                   inputId="prop-code"
@@ -118,11 +173,11 @@ import { DocumentEditor } from '../documents/editor/document-editor';
           @if (editable()) {
             <app-card [padded]="false">
               <h2
-                class="px-4 pt-3.5 pb-1 font-display text-[15px] font-bold tracking-[-0.02em] text-fg"
+                class="px-4 pt-3.5 pb-1 font-display text-card font-bold tracking-[-0.02em] text-fg"
               >
                 {{ 'documents.access.sectionTitle' | transloco }}
               </h2>
-              <p class="px-4 pb-3 text-[12.5px] text-fg-subtle">
+              <p class="px-4 pb-3 text-meta text-fg-subtle">
                 {{ 'documents.access.sectionHint' | transloco }}
               </p>
               <div class="border-t border-border px-4 py-4">
@@ -138,16 +193,23 @@ import { DocumentEditor } from '../documents/editor/document-editor';
               </div>
             </app-card>
 
-            <div class="flex items-center gap-2">
+            <div
+              class="sticky bottom-0 z-10 flex flex-wrap items-center justify-end gap-2 border-t border-border bg-bg py-3"
+            >
               <app-button
                 *appHasPermission="'documents:approve'"
                 type="button"
-                [loading]="approving()"
-                (click)="approve()"
+                variant="ghost"
+                [disabled]="rejecting()"
+                (click)="rejectOpen.set(true)"
               >
-                <app-icon name="check" [size]="15" />
-                {{ 'review.approveAndPublish' | transloco }}
+                {{ 'review.reject' | transloco }}
               </app-button>
+              <a routerLink="/review">
+                <app-button type="button" variant="secondary">
+                  {{ 'documents.cancel' | transloco }}
+                </app-button>
+              </a>
               <app-button
                 *appHasPermission="'documents:draft'"
                 type="button"
@@ -160,28 +222,41 @@ import { DocumentEditor } from '../documents/editor/document-editor';
               <app-button
                 *appHasPermission="'documents:approve'"
                 type="button"
-                variant="ghost"
-                [disabled]="rejecting()"
-                (click)="reject()"
+                [loading]="approving()"
+                (click)="approve()"
               >
-                {{ 'review.reject' | transloco }}
+                <app-icon name="check" [size]="15" />
+                {{ 'review.approveAndPublish' | transloco }}
               </app-button>
-              <a routerLink="/review">
-                <app-button type="button" variant="ghost">
-                  {{ 'documents.cancel' | transloco }}
-                </app-button>
-              </a>
             </div>
           }
         </form>
-      } @else {
+      } @else if (notFound()) {
         <app-card>
-          <div class="px-2 py-10 text-center text-[14px] text-fg-muted">
+          <div class="px-2 py-10 text-center text-body text-fg-muted">
             {{ 'review.notFound' | transloco }}
           </div>
         </app-card>
+      } @else {
+        <app-error-state (retry)="reload()" />
       }
     </div>
+
+    <app-prompt-dialog
+      [open]="rejectOpen()"
+      [title]="'documents.proposals.rejectTitle' | transloco: { title: proposal()?.title ?? '' }"
+      [message]="'documents.proposals.rejectBody' | transloco"
+      [label]="'documents.proposals.rejectReason' | transloco"
+      [placeholder]="'documents.proposals.rejectPlaceholder' | transloco"
+      [required]="false"
+      [maxLength]="2000"
+      confirmVariant="danger"
+      [confirmLabel]="'review.reject' | transloco"
+      [cancelLabel]="'common.cancel' | transloco"
+      [busy]="rejecting()"
+      (confirmed)="reject($event)"
+      (cancelled)="rejectOpen.set(false)"
+    />
   `,
 })
 export class ProposalReview {
@@ -191,6 +266,8 @@ export class ProposalReview {
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly notifications = inject(NotificationService);
   private readonly router = inject(Router);
+  private readonly controlApi = inject(DocumentControlApi);
+  private readonly language = inject(LanguageService);
 
   /** Route param `id`, bound via withComponentInputBinding(). */
   readonly id = input.required<string>();
@@ -203,6 +280,25 @@ export class ProposalReview {
   protected readonly saving = signal(false);
   protected readonly approving = signal(false);
   protected readonly rejecting = signal(false);
+  protected readonly rejectOpen = signal(false);
+  protected readonly notFound = signal(false);
+  /** The org's document types (the proposal's type is picked from them). */
+  protected readonly types = signal<readonly DocumentType[]>([]);
+  /** Active types, plus the proposal's own type when it is not among them. */
+  protected readonly typeOptions = computed(() => {
+    const types = this.types()
+      .filter((t) => t.active)
+      .map((t) => ({ key: t.key, name: t.name }));
+    const prop = this.proposal();
+    if (prop?.type && !types.some((t) => t.key === prop.type)) {
+      types.push({ key: prop.type, name: prop.type_name ?? prop.type });
+    }
+    return types;
+  });
+  protected readonly requirementText = computed(() => {
+    const prop = this.proposal();
+    return prop ? proposalRequirementText(prop) : null;
+  });
 
   /** Current editor HTML, streamed from the embedded editor. */
   protected readonly content = signal('');
@@ -223,6 +319,17 @@ export class ProposalReview {
   private currentOrgId: string | null = null;
 
   constructor() {
+    providePageContext(() => {
+      const prop = this.proposal();
+      return {
+        module: 'documents',
+        entityType: 'proposal',
+        entityId: this.id(),
+        view: 'detail',
+        title: prop?.title ?? this.language.translate('review.reviewTitle'),
+        requirements: prop?.requirement_ref ? [prop.requirement_ref] : [],
+      };
+    });
     effect(() => {
       const orgId = this.orgId();
       const id = this.id();
@@ -233,8 +340,19 @@ export class ProposalReview {
       this.currentOrgId = orgId;
       if (orgId) {
         this.load(orgId, id);
+        this.controlApi.listTypes(orgId).subscribe({
+          next: (types) => this.types.set(types),
+          error: () => this.types.set([]),
+        });
       }
     });
+  }
+
+  protected reload(): void {
+    const orgId = this.orgId();
+    if (orgId) {
+      this.load(orgId, this.id());
+    }
   }
 
   protected saveDraft(): void {
@@ -283,15 +401,16 @@ export class ProposalReview {
     });
   }
 
-  protected reject(): void {
+  protected reject(reason: string): void {
     const orgId = this.orgId();
     if (!orgId || this.busy()) {
       return;
     }
     this.rejecting.set(true);
-    this.api.rejectProposal(orgId, this.id()).subscribe({
+    this.api.rejectProposal(orgId, this.id(), reason).subscribe({
       next: () => {
         this.rejecting.set(false);
+        this.rejectOpen.set(false);
         this.notifications.info('review.rejectedToast');
         void this.router.navigateByUrl('/review');
       },
@@ -316,7 +435,8 @@ export class ProposalReview {
 
   private load(orgId: string, id: string): void {
     this.loading.set(true);
-    this.api.getProposal(orgId, id).subscribe({
+    this.notFound.set(false);
+    this.api.getProposal(orgId, id, this.language.active()).subscribe({
       next: (proposal) => {
         this.proposal.set(proposal);
         this.initialHtml.set(proposal.content_html);
@@ -331,9 +451,10 @@ export class ProposalReview {
         }
         this.loading.set(false);
       },
-      error: () => {
+      error: (error: { status?: number }) => {
         this.proposal.set(null);
         this.loading.set(false);
+        this.notFound.set(error.status === 404 || error.status === 403);
       },
     });
   }

@@ -8,32 +8,38 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../core/ai/page-context';
 import { LanguageService } from '../../core/i18n/language.service';
+import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { AskPanelService } from '../ask/ask-panel.service';
-import { GuideIntro } from '../../shared/guidance/guide-intro';
-import { LessonView } from '../../shared/guidance/lesson';
 import { TeachingEmpty } from '../../shared/guidance/teaching-empty';
-import { TourButton } from '../../shared/guidance/tour-button';
 import { TourStepDirective } from '../../shared/guidance/tour-step.directive';
 import { WhyItMatters } from '../../shared/guidance/why-it-matters';
 import { RecordListPage } from '../../shared/kit/record-list-page';
 import { SavedView } from '../../shared/kit/saved-views.service';
-import { LocalDayPipe } from '../../shared/locale/locale-pipes';
-import { Badge } from '../../shared/ui/badge/badge';
+import { CoverageChip } from '../../shared/requirement-links/coverage-chip';
 import { Button } from '../../shared/ui/button/button';
-import { Card } from '../../shared/ui/card/card';
+import { EmptyState } from '../../shared/ui/empty-state/empty-state';
+import { ErrorState } from '../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../shared/ui/icon/icon';
+import { LoadingState } from '../../shared/ui/loading-state/loading-state';
+import { ModuleNav } from '../../shared/ui/module-nav/module-nav';
+import { MenuItem } from '../../shared/ui/overflow-menu/overflow-menu';
 import { Pager } from '../../shared/ui/pager/pager';
-import { ProgressBar } from '../../shared/ui/progress-bar/progress-bar';
-import { ObjectivesOverviewTiles } from './components/objectives-overview';
-import { ObjectivesTabs } from './components/objectives-tabs';
+import { RecordRow, RecordRowHeader } from '../../shared/ui/record-row/record-row';
+import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
+import { ObjectiveProgress } from './components/objective-progress';
+import { ObjectivesTiles, SummaryTile } from './components/summary-tiles';
 import { ObjectivesApi } from './data/objectives-api';
+import { objectivesErrorKey } from './data/objectives-errors';
 import {
+  EXPORT_FORMATS,
+  ExportFormat,
   MANAGEMENT_SYSTEMS,
   ManagementSystem,
   OBJECTIVE_SORTS,
@@ -46,10 +52,16 @@ import {
 import {
   OBJECTIVES_MODULE,
   OBJECTIVES_SCOPE,
+  OBJECTIVE_STATUS_TONE,
   managementSystemKey,
+  countKey,
+  needsAttention,
   objectiveStatusKey,
-  objectiveStatusTone,
+  objectiveSystems,
+  planYears,
+  saveBlob,
 } from './objectives-display';
+import { OBJECTIVES_NAV } from './objectives-nav';
 import { FulfilsRequirements } from '../../shared/requirement-locations/fulfils-requirements';
 
 const PAGE_SIZE = 25;
@@ -69,109 +81,212 @@ export function statusesForFilter(filter: ObjectiveStatusFilter): readonly Objec
   return filter === 'all' ? [] : [filter];
 }
 
+/** The register's headline tiles; each one is a filter (finding 28: objective tiles only). */
+export function objectiveTiles(
+  o: ObjectivesOverview | null,
+  status: ObjectiveStatusFilter,
+  overdue: boolean,
+): SummaryTile[] {
+  if (!o) {
+    return [];
+  }
+  const s = o.objectives.by_status;
+  return [
+    {
+      key: 'active',
+      labelKey: 'objectives.tiles.active',
+      value: s.active ?? 0,
+      tone: 'accent',
+      active: status === 'active' && !overdue,
+    },
+    {
+      key: 'draft',
+      labelKey: 'objectives.tiles.draft',
+      value: s.draft ?? 0,
+      tone: 'info',
+      active: status === 'draft' && !overdue,
+    },
+    {
+      key: 'overdue',
+      labelKey: 'objectives.tiles.overdue',
+      value: o.objectives.overdue,
+      tone: 'warn',
+      active: overdue,
+    },
+    {
+      key: 'achieved',
+      labelKey: 'objectives.tiles.achieved',
+      value: s.achieved ?? 0,
+      tone: 'pass',
+      active: status === 'achieved' && !overdue,
+    },
+    {
+      key: 'not_achieved',
+      labelKey: 'objectives.tiles.notAchieved',
+      value: s.not_achieved ?? 0,
+      tone: 'fail',
+      active: status === 'not_achieved' && !overdue,
+    },
+    {
+      key: 'kpis',
+      labelKey: 'objectives.tiles.kpisNeedAttention',
+      value: needsAttention(o.kpis),
+      tone: 'warn',
+    },
+  ];
+}
+
 /**
- * `/objectives`: the objectives register with headline tiles, search, filters
- * (status, management system, mine, overdue), sorting, saved views and paging.
+ * `/objectives`: the objectives register on the shared list frame. Tiles that
+ * filter, search, three filters (status, management system, plan year) and the
+ * rest under "Flere filtre", saved views, rows with requirement coverage and
+ * progress, the objectives plan export, and a teaching empty state.
  */
 @Component({
   selector: 'app-objectives-list',
   imports: [
     FulfilsRequirements,
-    RouterLink,
     TranslocoPipe,
-    LocalDayPipe,
-    Badge,
-    Button,
-    Card,
-    Icon,
-    Pager,
-    ProgressBar,
-    GuideIntro,
-    LessonView,
     TeachingEmpty,
-    TourButton,
     TourStepDirective,
     WhyItMatters,
     RecordListPage,
-    ObjectivesOverviewTiles,
-    ObjectivesTabs,
+    CoverageChip,
+    Button,
+    EmptyState,
+    ErrorState,
+    HelpStrip,
+    Icon,
+    LoadingState,
+    ModuleNav,
+    MenuItem,
+    Pager,
+    RecordRow,
+    RecordRowHeader,
+    StatusBadge,
+    ObjectiveProgress,
+    ObjectivesTiles,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-record-list-page
-      titleKey="objectives.list.title"
+      titleKey="modules.names.objectives"
+      descriptionKey="objectives.list.description"
       [scope]="scope"
       searchPlaceholderKey="objectives.list.searchPlaceholder"
       [query]="q()"
       [filters]="savedFilters()"
+      [moreFiltersActive]="moreActive()"
+      [empty]="state() === 'ready' && objectives().length === 0 && !isFiltered()"
       (search)="setQuery($event)"
       (viewApplied)="applyView($event)"
     >
       <app-fulfils-requirements help locationKey="objectives.objectives" />
-      <div intro class="mt-1.5 flex flex-col gap-3">
-        <p class="text-[14px] text-fg-muted">{{ 'objectives.list.subtitle' | transloco }}</p>
-      </div>
-
-      <ng-container toolbar>
-        <app-tour-button [scope]="scope" tour="list" />
-        <app-button variant="ghost" size="sm" (click)="askStatus()">
-          <app-icon name="spark" [size]="14" />
-          {{ 'objectives.ai.summariseAll' | transloco }}
+      @if (canWrite()) {
+        <app-button
+          primary
+          appTourStep="objectives-new"
+          (click)="create()"
+          data-testid="objective-new"
+        >
+          <app-icon name="plus" [size]="15" />
+          {{ 'objectives.list.new' | transloco }}
         </app-button>
-        @if (canWrite()) {
-          <app-button size="sm" appTourStep="objectives-new" (click)="create()">
-            <app-icon name="plus" [size]="14" />
-            {{ 'objectives.list.new' | transloco }}
-          </app-button>
-        }
-      </ng-container>
+      }
+      <app-button
+        secondary
+        variant="secondary"
+        [attr.title]="'objectives.ai.opensAssistant' | transloco"
+        (click)="askStatus()"
+      >
+        <app-icon name="spark" [size]="15" />
+        {{ 'objectives.ai.summariseAll' | transloco }}
+      </app-button>
+      @for (format of formats; track format) {
+        <button
+          appMenuItem
+          overflow
+          type="button"
+          [disabled]="exporting()"
+          (click)="exportPlan(format)"
+          [attr.data-testid]="'export-' + format"
+        >
+          {{ 'objectives.export.' + format | transloco: { year: exportYear() } }}
+        </button>
+      }
 
-      <ng-container filters>
-        <label class="sr-only" for="obj-status">{{
-          'objectives.filters.status' | transloco
-        }}</label>
-        <select
-          id="obj-status"
-          class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
-          appTourStep="objectives-filters"
-          (change)="setStatus($any($event.target).value)"
-        >
-          @for (s of statusFilters; track s) {
-            <option [value]="s" [selected]="status() === s">
-              {{ 'objectives.filters.statusOptions.' + s | transloco }}
-            </option>
-          }
-        </select>
-        <label class="sr-only" for="obj-ms">{{ 'objectives.filters.system' | transloco }}</label>
-        <select
-          id="obj-ms"
-          class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
-          (change)="setSystem($any($event.target).value)"
-        >
-          <option value="" [selected]="!system()">
-            {{ 'objectives.filters.allSystems' | transloco }}
+      <app-module-nav nav [items]="nav" labelKey="modules.names.objectives" />
+      <app-help-strip help [scope]="scope" page="list" tour="list" lesson="smart-objectives" />
+
+      <app-objectives-tiles kpis [tiles]="tiles()" (selected)="applyTile($event)" />
+
+      <label filters class="sr-only" for="obj-status">{{
+        'objectives.filters.status' | transloco
+      }}</label>
+      <select
+        filters
+        id="obj-status"
+        class="h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
+        appTourStep="objectives-filters"
+        (change)="setStatus($any($event.target).value)"
+      >
+        @for (s of statusFilters; track s) {
+          <option [value]="s" [selected]="status() === s">
+            {{ 'objectives.filters.statusOptions.' + s | transloco }}
           </option>
-          @for (m of systems; track m) {
-            <option [value]="m" [selected]="system() === m">
-              {{ systemKey(m) | transloco }}
-            </option>
-          }
-        </select>
-        <label class="sr-only" for="obj-sort">{{ 'objectives.filters.sort' | transloco }}</label>
-        <select
-          id="obj-sort"
-          class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
-          (change)="setSort($any($event.target).value)"
-        >
-          @for (s of sorts; track s) {
-            <option [value]="s" [selected]="sort() === s">
-              {{ 'objectives.filters.objectiveSorts.' + s | transloco }}
-            </option>
-          }
-        </select>
-        <label
-          class="inline-flex h-10 items-center gap-1.5 rounded-[10px] border border-border bg-bg px-3 text-[13px] text-fg"
-        >
+        }
+      </select>
+      <label filters class="sr-only" for="obj-ms">{{
+        'objectives.filters.system' | transloco
+      }}</label>
+      <select
+        filters
+        id="obj-ms"
+        class="h-10 max-w-[220px] rounded-tile border border-border bg-bg px-2 text-ui text-fg"
+        (change)="setSystem($any($event.target).value)"
+      >
+        <option value="" [selected]="!system()">
+          {{ 'objectives.filters.allSystems' | transloco }}
+        </option>
+        @for (m of systems; track m) {
+          <option [value]="m" [selected]="system() === m">{{ systemKey(m) | transloco }}</option>
+        }
+      </select>
+      <label filters class="sr-only" for="obj-year">{{
+        'objectives.filters.year' | transloco
+      }}</label>
+      <select
+        filters
+        id="obj-year"
+        class="h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
+        (change)="setYear($any($event.target).value)"
+      >
+        <option value="" [selected]="!year()">
+          {{ 'objectives.filters.allYears' | transloco }}
+        </option>
+        @for (y of years; track y) {
+          <option [value]="y" [selected]="year() === y">
+            {{ 'objectives.filters.planYear' | transloco: { year: y } }}
+          </option>
+        }
+      </select>
+
+      <div more-filters class="flex flex-col gap-3">
+        <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted" for="obj-sort">
+          {{ 'objectives.filters.sort' | transloco }}
+          <select
+            id="obj-sort"
+            class="h-10 rounded-tile border border-border bg-bg px-2 text-ui font-normal text-fg"
+            (change)="setSort($any($event.target).value)"
+          >
+            @for (s of sorts; track s) {
+              <option [value]="s" [selected]="sort() === s">
+                {{ 'objectives.filters.objectiveSorts.' + s | transloco }}
+              </option>
+            }
+          </select>
+        </label>
+        <label class="inline-flex min-h-9 items-center gap-2 text-ui text-fg">
           <input
             type="checkbox"
             [checked]="mine()"
@@ -179,9 +294,7 @@ export function statusesForFilter(filter: ObjectiveStatusFilter): readonly Objec
           />
           {{ 'objectives.filters.mine' | transloco }}
         </label>
-        <label
-          class="inline-flex h-10 items-center gap-1.5 rounded-[10px] border border-border bg-bg px-3 text-[13px] text-fg"
-        >
+        <label class="inline-flex min-h-9 items-center gap-2 text-ui text-fg">
           <input
             type="checkbox"
             [checked]="overdue()"
@@ -189,107 +302,65 @@ export function statusesForFilter(filter: ObjectiveStatusFilter): readonly Objec
           />
           {{ 'objectives.filters.overdue' | transloco }}
         </label>
-      </ng-container>
-
-      <div class="mb-4 flex flex-col gap-4">
-        <app-objectives-tabs />
-        <app-guide-intro [scope]="scope" page="list" />
-        <app-objectives-overview [overview]="overview()" />
       </div>
 
-      <app-card [padded]="false">
-        @switch (state()) {
-          @case ('loading') {
-            <p class="py-10 text-center text-[14px] text-fg-muted">
-              {{ 'objectives.common.loading' | transloco }}
-            </p>
-          }
-          @case ('error') {
-            <p class="py-10 text-center text-[14px] text-fail" role="alert">
-              {{ 'objectives.common.loadFailed' | transloco }}
-            </p>
-          }
-          @default {
-            @if (objectives().length === 0) {
-              @if (isFiltered()) {
-                <p class="py-10 text-center text-[14px] text-fg-muted">
-                  {{ 'objectives.filters.noMatch' | transloco }}
-                </p>
-              } @else {
-                <app-teaching-empty
-                  [scope]="scope"
-                  page="list"
-                  [showAction]="canWrite()"
-                  (action)="create()"
-                />
-              }
-            } @else {
-              <ul class="divide-y divide-border" data-testid="objectives-rows">
+      @switch (state()) {
+        @case ('loading') {
+          <app-loading-state [rows]="5" />
+        }
+        @case ('error') {
+          <app-error-state (retry)="reload()" />
+        }
+        @default {
+          @if (objectives().length === 0) {
+            <app-empty-state
+              icon="search"
+              titleKey="ui.empty.noResults"
+              bodyKey="ui.empty.noResultsBody"
+              ctaKey="ui.empty.clearFilters"
+              ctaVariant="secondary"
+              (cta)="clearFilters()"
+            />
+          } @else {
+            <div class="overflow-hidden rounded-card border border-border bg-surface">
+              <app-record-row-header dateKind="due" />
+              <div
+                role="list"
+                [attr.aria-label]="'modules.names.objectives' | transloco"
+                data-testid="objectives-rows"
+              >
                 @for (o of objectives(); track o.id) {
-                  <li
-                    class="flex flex-col gap-2 px-4 py-3 md:flex-row md:items-center md:gap-4"
-                    [class.bg-fail-soft]="o.overdue"
+                  <app-record-row
+                    [code]="o.code"
+                    [title]="o.title"
+                    [subtitle]="subtitle(o)"
+                    [link]="['/objectives', o.id]"
+                    [owner]="o.owner?.name"
+                    [date]="o.due_date"
+                    dateKind="due"
+                    [overdue]="o.overdue"
                   >
-                    <div class="min-w-0 flex-1">
-                      <a
-                        [routerLink]="['/objectives', o.id]"
-                        class="flex min-w-0 items-baseline gap-2 text-[13.5px] font-semibold text-fg hover:underline"
-                      >
-                        <span class="font-mono text-[12px] text-fg-subtle">{{ o.code }}</span>
-                        <span class="truncate">{{ o.title }}</span>
-                      </a>
-                      <span
-                        class="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[12px] text-fg-subtle"
-                      >
-                        @if (o.management_system) {
-                          <span>{{ systemKey(o.management_system) | transloco }}</span>
-                        }
-                        <span>{{
-                          o.owner?.name ?? ('objectives.common.noOwner' | transloco)
-                        }}</span>
-                        <span>
-                          {{
-                            'objectives.list.kpiSummary'
-                              | transloco
-                                : {
-                                    total: o.kpis.total,
-                                    onTrack: o.kpis.on_track,
-                                    off: o.kpis.at_risk + o.kpis.off_track,
-                                  }
-                          }}
-                        </span>
-                      </span>
-                    </div>
-                    <div class="w-full md:w-[140px]">
-                      <app-progress-bar
-                        [value]="o.progress ?? 0"
-                        [label]="'objectives.list.progress' | transloco: { value: o.progress ?? 0 }"
-                      />
-                    </div>
-                    <span class="flex flex-wrap items-center gap-2 text-[12.5px] text-fg-muted">
-                      <app-badge [tone]="statusTone(o.status)">
-                        {{ statusKey(o.status) | transloco }}
-                      </app-badge>
-                      <span
-                        class="inline-flex min-w-[100px] items-center justify-end gap-1"
-                        [class.text-fail]="o.overdue"
-                        [class.font-semibold]="o.overdue"
-                      >
-                        @if (o.overdue) {
-                          <app-icon name="alert" [size]="13" />
-                          <span class="sr-only">{{ 'objectives.common.overdue' | transloco }}</span>
-                        }
-                        @if (o.due_date) {
-                          {{ o.due_date | localDay }}
-                        } @else {
-                          {{ 'objectives.common.noDueDate' | transloco }}
-                        }
-                      </span>
+                    <span coverage class="block min-w-0 [&_span]:whitespace-normal">
+                      <app-coverage-chip entityType="objective" [entityId]="o.id" />
                     </span>
-                  </li>
+                    <app-status-badge
+                      badges
+                      [meaning]="statusTone[o.status].meaning"
+                      [value]="statusTone[o.status].value"
+                      [labelKey]="statusKey(o.status)"
+                    />
+                    <app-objective-progress
+                      badges
+                      class="w-full"
+                      [objective]="o"
+                      [compact]="true"
+                    />
+                  </app-record-row>
                 }
-              </ul>
-              <div class="border-t border-border px-4 py-2.5">
+              </div>
+            </div>
+            @if (total() > pageSize) {
+              <div class="mt-3">
                 <app-pager
                   [offset]="offset()"
                   [pageSize]="pageSize"
@@ -301,36 +372,39 @@ export function statusesForFilter(filter: ObjectiveStatusFilter): readonly Objec
             }
           }
         }
-      </app-card>
-    </app-record-list-page>
+      }
 
-    <div class="mx-auto -mt-6 flex max-w-[1180px] flex-col gap-4 px-4 pb-12 sm:px-8">
-      <app-why-it-matters [scope]="scope" page="list" />
-      <details class="rounded-card border border-border bg-surface p-4">
-        <summary class="cursor-pointer text-[13.5px] font-semibold text-fg">
-          {{ 'objectives.lessons.smartObjectives' | transloco }}
-        </summary>
-        <div class="mt-3">
-          <app-lesson [scope]="scope" lesson="smart-objectives" />
-        </div>
-      </details>
-    </div>
+      <div empty>
+        <app-teaching-empty
+          [scope]="scope"
+          page="list"
+          [showAction]="canWrite()"
+          (action)="create()"
+        />
+      </div>
+
+      <app-why-it-matters below [scope]="scope" page="list" />
+    </app-record-list-page>
   `,
 })
 export class ObjectivesList {
   private readonly api = inject(ObjectivesApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly language = inject(LanguageService);
+  private readonly notifications = inject(NotificationService);
   private readonly ask = inject(AskPanelService);
   private readonly router = inject(Router);
 
   protected readonly scope = OBJECTIVES_SCOPE;
+  protected readonly nav = OBJECTIVES_NAV;
   protected readonly statusFilters = OBJECTIVE_STATUS_FILTERS;
   protected readonly systems = MANAGEMENT_SYSTEMS;
   protected readonly sorts = OBJECTIVE_SORTS;
+  protected readonly years = planYears();
+  protected readonly formats = EXPORT_FORMATS;
   protected readonly pageSize = PAGE_SIZE;
   protected readonly statusKey = objectiveStatusKey;
-  protected readonly statusTone = objectiveStatusTone;
+  protected readonly statusTone = OBJECTIVE_STATUS_TONE;
   protected readonly systemKey = managementSystemKey;
 
   protected readonly canWrite = computed(() =>
@@ -340,6 +414,7 @@ export class ObjectivesList {
   protected readonly q = signal('');
   protected readonly status = signal<ObjectiveStatusFilter>('open');
   protected readonly system = signal<ManagementSystem | ''>('');
+  protected readonly year = signal<number | null>(null);
   protected readonly sort = signal<ObjectiveSort>('due_date');
   protected readonly mine = signal(false);
   protected readonly overdue = signal(false);
@@ -349,14 +424,28 @@ export class ObjectivesList {
   protected readonly objectives = signal<readonly Objective[]>([]);
   protected readonly total = signal(0);
   protected readonly overview = signal<ObjectivesOverview | null>(null);
+  protected readonly exporting = signal(false);
 
+  protected readonly tiles = computed(() =>
+    objectiveTiles(this.overview(), this.status(), this.overdue()),
+  );
+  protected readonly exportYear = computed(() => this.year() ?? Number(new Date().getFullYear()));
+  protected readonly moreActive = computed(
+    () => (this.sort() !== 'due_date' ? 1 : 0) + (this.mine() ? 1 : 0) + (this.overdue() ? 1 : 0),
+  );
   protected readonly isFiltered = computed(
     () =>
-      !!this.q() || this.status() !== 'open' || !!this.system() || this.mine() || this.overdue(),
+      !!this.q() ||
+      this.status() !== 'open' ||
+      !!this.system() ||
+      this.year() !== null ||
+      this.mine() ||
+      this.overdue(),
   );
   protected readonly savedFilters = computed<Record<string, string>>(() => ({
     status: this.status(),
     system: this.system(),
+    year: this.year() === null ? '' : String(this.year()),
     sort: this.sort(),
     mine: this.mine() ? '1' : '',
     overdue: this.overdue() ? '1' : '',
@@ -374,29 +463,54 @@ export class ObjectivesList {
       module: OBJECTIVES_MODULE,
       entityType: 'objective',
       view: 'list',
-      title: this.language.translate('objectives.list.title'),
+      title: this.language.translate('modules.names.objectives'),
     }));
 
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();
       const system = this.system() || undefined;
-      untracked(() => this.loadOverview(orgId, system));
+      const year = this.year() ?? undefined;
+      untracked(() => this.loadOverview(orgId, system, year));
     });
 
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();
-      const query = {
-        q: this.q() || undefined,
-        status: statusesForFilter(this.status()),
-        management_system: this.system() || undefined,
-        owner: this.mine() ? 'me' : undefined,
-        overdue: this.overdue() || undefined,
-        sort: this.sort(),
-        limit: PAGE_SIZE,
-        offset: this.offset(),
-      };
+      const query = this.query();
       untracked(() => this.load(orgId, query));
     });
+  }
+
+  private readonly query = computed(() => ({
+    q: this.q() || undefined,
+    status: statusesForFilter(this.status()),
+    management_system: this.system() || undefined,
+    period_year: this.year() ?? undefined,
+    owner: this.mine() ? 'me' : undefined,
+    overdue: this.overdue() || undefined,
+    sort: this.sort(),
+    limit: PAGE_SIZE,
+    offset: this.offset(),
+  }));
+
+  /** Systems · KPI health in words ("1 KPI · 1 på sporet"), never "utenfor mål" for at-risk. */
+  protected subtitle(o: Objective): string {
+    const t = (key: string, params?: Record<string, unknown>) =>
+      this.language.translate(key, params);
+    const parts: string[] = objectiveSystems(o).map((s) =>
+      t(`objectives.managementSystemsShort.${s}`),
+    );
+    const k = o.kpis;
+    if (k.total === 0) {
+      parts.push(t('objectives.list.noKpis'));
+    } else {
+      const health = [t(countKey('objectives.list.kpiCount', k.total), { count: k.total })];
+      if (k.on_track) health.push(t('objectives.list.onTrack', { count: k.on_track }));
+      if (k.at_risk) health.push(t('objectives.list.atRisk', { count: k.at_risk }));
+      if (k.off_track) health.push(t('objectives.list.offTrack', { count: k.off_track }));
+      if (k.no_data) health.push(t('objectives.list.noData', { count: k.no_data }));
+      parts.push(health.join(' · '));
+    }
+    return parts.join(' — ');
   }
 
   protected setQuery(value: string): void {
@@ -414,6 +528,11 @@ export class ObjectivesList {
     this.system.set(value);
   }
 
+  protected setYear(value: string): void {
+    this.offset.set(0);
+    this.year.set(value ? Number(value) : null);
+  }
+
   protected setSort(value: ObjectiveSort): void {
     this.offset.set(0);
     this.sort.set(value);
@@ -429,6 +548,33 @@ export class ObjectivesList {
     this.overdue.set(value);
   }
 
+  /** A tile filters the list to what it counts; pressing the active tile clears it. */
+  protected applyTile(key: string): void {
+    this.offset.set(0);
+    if (key === 'kpis') {
+      void this.router.navigate(['/objectives/kpis'], { queryParams: { attention: 1 } });
+      return;
+    }
+    if (key === 'overdue') {
+      const on = !this.overdue();
+      this.overdue.set(on);
+      this.status.set('open');
+      return;
+    }
+    this.overdue.set(false);
+    this.status.set(this.status() === key ? 'open' : (key as ObjectiveStatusFilter));
+  }
+
+  protected clearFilters(): void {
+    this.offset.set(0);
+    this.q.set('');
+    this.status.set('open');
+    this.system.set('');
+    this.year.set(null);
+    this.mine.set(false);
+    this.overdue.set(false);
+  }
+
   protected applyView(view: SavedView): void {
     const f = view.filters;
     this.offset.set(0);
@@ -442,6 +588,8 @@ export class ObjectivesList {
         ? (f['system'] as ManagementSystem)
         : '',
     );
+    const year = Number(f['year']);
+    this.year.set(f['year'] && Number.isInteger(year) ? year : null);
     this.sort.set(
       OBJECTIVE_SORTS.includes(f['sort'] as ObjectiveSort)
         ? (f['sort'] as ObjectiveSort)
@@ -455,16 +603,51 @@ export class ObjectivesList {
     void this.router.navigate(['/objectives/new']);
   }
 
+  protected reload(): void {
+    this.load(this.selectedOrg.currentOrgId(), this.query());
+  }
+
   protected askStatus(): void {
     this.ask.showWith(this.language.translate('objectives.ai.prompts.summariseAll'));
   }
 
-  private loadOverview(orgId: string | null, system: ManagementSystem | undefined): void {
+  /** Download the objectives plan ("Målplan 2026") for the chosen year and system. */
+  protected exportPlan(format: ExportFormat): void {
+    const orgId = this.selectedOrg.currentOrgId();
+    if (!orgId || this.exporting()) {
+      return;
+    }
+    this.exporting.set(true);
+    const year = this.exportYear();
+    this.api
+      .exportPlan(orgId, format, {
+        period_year: year,
+        management_system: this.system() || undefined,
+        lang: this.language.active(),
+      })
+      .subscribe({
+        next: (blob) => {
+          this.exporting.set(false);
+          const name = this.language.translate('objectives.export.fileName', { year });
+          saveBlob(blob, `${name}.${format}`);
+        },
+        error: (error: unknown) => {
+          this.exporting.set(false);
+          this.notifications.error(objectivesErrorKey(error));
+        },
+      });
+  }
+
+  private loadOverview(
+    orgId: string | null,
+    system: ManagementSystem | undefined,
+    year: number | undefined,
+  ): void {
     this.overviewRequest.unsubscribe();
     if (!orgId) {
       return;
     }
-    this.overviewRequest = this.api.overview(orgId, system).subscribe({
+    this.overviewRequest = this.api.overview(orgId, system, year).subscribe({
       next: (overview) => this.overview.set(overview),
       error: () => this.overview.set(null),
     });

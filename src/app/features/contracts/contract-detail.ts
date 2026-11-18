@@ -8,50 +8,63 @@ import {
   input,
   signal,
   untracked,
+  viewChild,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription, map } from 'rxjs';
+import { AiAvailability } from '../../core/ai/ai-availability';
 import { providePageContext } from '../../core/ai/page-context';
 import { AttachmentsApi } from '../../core/attachments/attachments-api';
 import { isDownloadable } from '../../core/attachments/attachment-utils';
 import { Attachment } from '../../core/attachments/attachment.models';
 import { LanguageService } from '../../core/i18n/language.service';
+import { CreateFlowService } from '../../core/kit/create-flow.service';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
+import { AskPanelService } from '../ask/ask-panel.service';
 import { WatchButton } from '../../shared/activity/watch-button';
-import { AskAbout } from '../../shared/ask/ask-about';
-import { GuideIntro } from '../../shared/guidance/guide-intro';
-import { WhyItMatters } from '../../shared/guidance/why-it-matters';
 import { RecordDetailLayout, RecordTab } from '../../shared/kit/record-detail-layout';
-import { LocalDayPipe, LocalNumberPipe } from '../../shared/locale/locale-pipes';
-import { SupportsRequirements } from '../../shared/requirement-links/supports-requirements';
+import { formatLocalDate, formatLocalDay } from '../../shared/locale/locale-pipes';
+import { AssigneeOptionsService } from '../../shared/tasks/assignee-options';
 import { Alert } from '../../shared/ui/alert/alert';
-import { Badge } from '../../shared/ui/badge/badge';
 import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog/confirm-dialog';
+import { ErrorState } from '../../shared/ui/error-state/error-state';
+import { FieldItem, FieldList } from '../../shared/ui/field-list/field-list';
+import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../shared/ui/icon/icon';
+import { LoadingState } from '../../shared/ui/loading-state/loading-state';
+import { ModuleNav } from '../../shared/ui/module-nav/module-nav';
+import { MenuItem } from '../../shared/ui/overflow-menu/overflow-menu';
+import { Breadcrumb } from '../../shared/ui/page-header/page-header';
+import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
 import { ContractAiPanel } from './contract-ai-panel';
+import { ContractDpaCard } from './contract-dpa-card';
 import { ContractDpaChecklist } from './contract-dpa-checklist';
 import { ContractKeyDates } from './contract-key-dates';
+import { ContractLearnMore } from './contract-learn-more';
 import { ContractObligations } from './contract-obligations';
 import { ContractParties } from './contract-parties';
 import { ContractVersions } from './contract-versions';
 import { ContractWorkflowBar, WorkflowRun } from './contract-workflow-bar';
+import { CONTRACTS_CRUMB, CONTRACTS_NAV, CONTRACTS_SETTINGS_LINK } from './contracts-nav';
 import { ContractsApi } from './data/contracts-api';
-import { Contract } from './data/contract.models';
+import { Contract, ContractWarning, PERM_MANAGE } from './data/contract.models';
 import {
   contractStatusKey,
-  contractStatusTone,
   contractTypeKey,
   deadlineKindKey,
-  dpaTone,
+  formatAmount,
   isClosedContract,
+  personalDataRoleKey,
+  reviewItemKey,
+  transferBasisKey,
 } from './data/contract-display';
 import { contractErrorKey } from './data/contract-errors';
-import { ContractLessonLink } from './lesson-link';
+import { roleOf } from './data/contract-form-model';
 
 const TABS: readonly RecordTab[] = [
   'details',
@@ -62,6 +75,11 @@ const TABS: readonly RecordTab[] = [
   'attachments',
   'revisions',
 ];
+
+/** The obligations live in the tasks slot; call the tab what it holds. */
+const TAB_LABELS: Partial<Record<RecordTab, string>> = {
+  tasks: 'contracts.detail.obligationsTab',
+};
 
 /** Revision snapshot field -> i18n key (for the revisions tab). */
 export const CONTRACT_FIELD_LABELS: Readonly<Record<string, string>> = {
@@ -74,6 +92,11 @@ export const CONTRACT_FIELD_LABELS: Readonly<Record<string, string>> = {
   department_id: 'contracts.fields.department',
   confidential: 'contracts.fields.confidential',
   processes_personal_data: 'contracts.fields.processesPersonalData',
+  personal_data_role: 'contracts.fields.personalDataRole',
+  transfer_basis: 'contracts.fields.transferBasis',
+  transfer_countries: 'contracts.fields.transferCountries',
+  ict_critical: 'contracts.fields.ictCritical',
+  involves_ai_system: 'contracts.fields.involvesAiSystem',
   value_amount: 'contracts.fields.valueAmount',
   currency: 'contracts.fields.currency',
   value_period: 'contracts.fields.valuePeriod',
@@ -88,12 +111,30 @@ export const CONTRACT_FIELD_LABELS: Readonly<Record<string, string>> = {
   governing_law: 'contracts.fields.governingLaw',
   termination_date: 'contracts.fields.terminationDate',
   current_version: 'contracts.fields.currentVersion',
+  approval_review: 'contracts.fields.approvalReview',
+  last_reviewed_at: 'contracts.fields.lastReviewed',
 };
 
+/** The guided steps from "approved" to "active": upload the signed copy, mark it signed, activate. */
+export function signingSteps(c: Contract): {
+  readonly copy: boolean;
+  readonly signed: boolean;
+  readonly canActivate: boolean;
+} {
+  const v = c.versions[0];
+  return {
+    copy: !!v?.attachment_id,
+    signed: !!v?.signed,
+    canActivate: c.allowed_actions.includes('activate'),
+  };
+}
+
 /**
- * A contract (`/contracts/:id`): register details, the approval workflow, parties,
- * key dates, versions and signed copies, AI analysis of an attached file, and DPA
- * coverage; obligations in the Tasks tab; related records, activity, comments,
+ * A contract (`/contracts/:id`): what needs attention, the approval workflow (with
+ * the requirements review and segregation of duties), the summary and the approval
+ * trail, parties linked to the supplier register, key dates, versions with signed
+ * copies, AI analysis of an attached file and the DPA check; obligations in their
+ * own tab; requirements, connections, related records, activity, comments,
  * attachments and revision history from the shared record kit.
  */
 @Component({
@@ -101,44 +142,43 @@ export const CONTRACT_FIELD_LABELS: Readonly<Record<string, string>> = {
   imports: [
     RouterLink,
     TranslocoPipe,
-    LocalDayPipe,
-    LocalNumberPipe,
     WatchButton,
-    AskAbout,
-    GuideIntro,
-    WhyItMatters,
     RecordDetailLayout,
-    SupportsRequirements,
     Alert,
-    Badge,
     Button,
     Card,
     ConfirmDialog,
+    ErrorState,
+    FieldItem,
+    FieldList,
+    HelpStrip,
     Icon,
+    LoadingState,
+    ModuleNav,
+    MenuItem,
+    StatusBadge,
     ContractAiPanel,
+    ContractDpaCard,
     ContractDpaChecklist,
     ContractKeyDates,
+    ContractLearnMore,
     ContractObligations,
     ContractParties,
     ContractVersions,
     ContractWorkflowBar,
-    ContractLessonLink,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @switch (state()) {
       @case ('loading') {
-        <p class="py-16 text-center text-[14px] text-fg-muted" role="status">
-          {{ 'contracts.common.loading' | transloco }}
-        </p>
+        <div class="mx-auto max-w-[1180px] px-4 pt-8 sm:px-8">
+          <app-loading-state [rows]="6" />
+        </div>
       }
       @case ('error') {
         <div class="mx-auto max-w-[760px] px-4 pt-8 sm:px-8">
-          <app-alert tone="error">{{ errorKey() | transloco }}</app-alert>
-          <a
-            routerLink="/contracts"
-            class="mt-4 inline-block text-[13px] font-semibold text-accent"
-          >
+          <app-error-state [bodyKey]="errorKey()" (retry)="reload(true)" />
+          <a routerLink="/contracts" class="mt-4 inline-block text-ui font-semibold text-accent">
             {{ 'contracts.common.backToList' | transloco }}
           </a>
         </div>
@@ -148,67 +188,94 @@ export const CONTRACT_FIELD_LABELS: Readonly<Record<string, string>> = {
           <app-record-detail-layout
             entityType="contract"
             [entityId]="c.id"
+            [title]="c.title"
+            [breadcrumbs]="breadcrumbs()"
+            [settingsLink]="canManage() ? settingsLink : null"
             [tabs]="tabs"
+            [tabLabels]="tabLabels"
+            [counts]="counts()"
             [canEdit]="c.can_edit"
+            [requirementsPanel]="true"
             [fieldLabels]="fieldLabels"
-            backLink="/contracts"
-            backLabelKey="contracts.common.backToList"
           >
-            <div header>
-              <p class="mb-1 flex flex-wrap items-center gap-2 text-[12.5px] text-fg-subtle">
-                <span class="font-mono font-semibold">{{ c.code }}</span>
-                <span>{{ typeKey(c.contract_type) | transloco }}</span>
-                @if (c.current_version > 0) {
-                  <span>{{
-                    'contracts.versions.number' | transloco: { n: c.current_version }
-                  }}</span>
-                }
-              </p>
-              <h1
-                class="font-display text-[24px] font-bold tracking-[-0.03em] break-words text-fg sm:text-[26px]"
-                data-testid="contract-heading"
-              >
-                {{ c.title }}
-              </h1>
-              <div class="mt-2 flex flex-wrap items-center gap-2">
-                <app-badge [tone]="statusTone(c.status)" data-testid="contract-status">{{
-                  statusKey(c.status) | transloco
-                }}</app-badge>
-                @if (c.confidential) {
-                  <app-badge tone="neutral">
-                    <app-icon name="lock" [size]="12" />
-                    {{ 'contracts.fields.confidential' | transloco }}
-                  </app-badge>
-                }
-                @if (c.processes_personal_data) {
-                  <app-badge tone="info">{{ 'contracts.list.personalData' | transloco }}</app-badge>
-                }
-              </div>
-            </div>
+            <span
+              meta
+              class="flex flex-wrap items-center gap-x-2 gap-y-1"
+              data-testid="contract-meta"
+            >
+              <span class="font-mono font-semibold">{{ c.code }}</span>
+              <span aria-hidden="true">·</span>
+              <span>{{ typeKey(c.contract_type) | transloco }}</span>
+              @if (c.current_version > 0) {
+                <span aria-hidden="true">·</span>
+                <span>{{ 'contracts.versions.number' | transloco: { n: c.current_version } }}</span>
+              }
+              <app-status-badge
+                meaning="lifecycle"
+                [value]="c.status"
+                [labelKey]="statusKey(c.status)"
+                data-testid="contract-status"
+              />
+              @if (c.confidential) {
+                <span class="inline-flex items-center gap-1 text-meta text-fg-muted">
+                  <app-icon name="lock" [size]="12" />
+                  {{ 'contracts.fields.confidential' | transloco }}
+                </span>
+              }
+            </span>
 
-            <ng-container actions>
-              <app-watch-button entityType="contract" [entityId]="c.id" />
-              <app-ask-about [prompt]="'contracts.ask.summarise' | transloco" />
-              @if (c.can_edit) {
-                <a
-                  [routerLink]="['/contracts', c.id, 'edit']"
-                  class="inline-flex h-8 items-center rounded-tile border border-border px-3 text-[13px] font-semibold text-fg hover:bg-surface-2"
-                  data-testid="contract-edit"
-                >
-                  {{ 'contracts.common.edit' | transloco }}
-                </a>
-              }
-              @if (c.can_delete) {
-                <app-button variant="ghost" size="sm" (click)="deleting.set(true)">
-                  <app-icon name="trash" [size]="14" />
-                  {{ 'contracts.common.delete' | transloco }}
-                </app-button>
-              }
-            </ng-container>
+            @if (c.can_edit) {
+              <app-button primary size="sm" (click)="edit()" data-testid="contract-edit">
+                {{ 'contracts.common.edit' | transloco }}
+              </app-button>
+            }
+            <app-watch-button secondary entityType="contract" [entityId]="c.id" />
+            @if (!ai.unavailable()) {
+              <app-button
+                secondary
+                variant="secondary"
+                size="sm"
+                (click)="askAboutContract()"
+                data-testid="contract-ask"
+              >
+                <app-icon name="spark" [size]="14" />
+                {{ 'contracts.detail.ask' | transloco }}
+              </app-button>
+            }
+            @if (firstSupplierId(); as supplierId) {
+              <button
+                overflow
+                appMenuItem
+                type="button"
+                (click)="startEvaluation(supplierId)"
+                data-testid="start-evaluation"
+              >
+                {{ 'contracts.detail.startEvaluation' | transloco }}
+              </button>
+            }
+            @if (c.can_delete) {
+              <button
+                overflow
+                appMenuItem
+                type="button"
+                [danger]="true"
+                (click)="deleting.set(true)"
+                data-testid="contract-delete"
+              >
+                {{ 'contracts.common.delete' | transloco }}
+              </button>
+            }
+
+            <app-module-nav nav [items]="nav" />
+            <app-help-strip
+              help
+              class="mb-5 block"
+              scope="contracts"
+              page="detail"
+              [lesson]="roleOf(c) !== 'none' ? 'processor-agreements' : 'contract-lifecycle'"
+            />
 
             <div class="flex flex-col gap-6">
-              <app-guide-intro scope="contracts" page="detail" />
-
               @if (closed()) {
                 <app-alert tone="info">
                   {{
@@ -218,174 +285,196 @@ export const CONTRACT_FIELD_LABELS: Readonly<Record<string, string>> = {
                 </app-alert>
               }
 
-              @if (c.allowed_actions.length) {
+              @if (!closed() && warnings().length) {
+                <section
+                  class="rounded-card border border-warn/40 bg-warn-soft px-4 py-3"
+                  aria-labelledby="cf-warnings-h"
+                  data-testid="contract-warnings"
+                >
+                  <h2 id="cf-warnings-h" class="mb-1.5 text-ui font-bold text-warn-ink">
+                    {{ 'contracts.warnings.title' | transloco: { count: warnings().length } }}
+                  </h2>
+                  <ul class="flex flex-col gap-1">
+                    @for (w of warnings(); track w) {
+                      <li class="text-ui text-fg" [attr.data-testid]="'warning-' + w">
+                        <span class="font-semibold">{{
+                          'contracts.warnings.' + w + '.label' | transloco
+                        }}</span>
+                        <span class="text-fg-muted">
+                          · {{ 'contracts.warnings.' + w + '.fix' | transloco }}</span
+                        >
+                      </li>
+                    }
+                  </ul>
+                </section>
+              }
+
+              @if (c.allowed_actions.length || c.approval_blocked_reason) {
                 <app-card>
-                  <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                    <p class="text-[13px] text-fg-muted">
-                      {{ 'contracts.workflow.hint.' + c.status | transloco }}
-                    </p>
+                  <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                    <div class="min-w-0">
+                      <p class="text-ui text-fg">
+                        {{ 'contracts.workflow.hint.' + c.status | transloco }}
+                      </p>
+                      @if (c.approval_blocked_reason === 'self_approval') {
+                        <p class="mt-1 text-meta text-fg-muted" data-testid="self-approval-note">
+                          {{ 'contracts.workflow.selfApproval' | transloco }}
+                        </p>
+                      }
+                      @if (c.status === 'in_review' && c.submitted_by) {
+                        <p class="mt-1 text-meta text-fg-muted">
+                          {{
+                            'contracts.workflow.submittedBy'
+                              | transloco
+                                : {
+                                    name: c.submitted_by.name ?? '',
+                                    date: day(c.submitted_at),
+                                  }
+                          }}
+                        </p>
+                      }
+                    </div>
                     <app-contract-workflow-bar
+                      #workflow
                       [contract]="c"
                       [busy]="acting()"
                       (run)="runAction($event)"
                     />
                   </div>
+
+                  @if (c.status === 'approved') {
+                    @let s = steps();
+                    <ol
+                      class="mt-4 grid grid-cols-1 gap-2 border-t border-border pt-4 md:grid-cols-3"
+                      data-testid="signing-steps"
+                    >
+                      <li
+                        class="rounded-tile border px-3 py-2"
+                        [class]="s.copy ? 'border-pass/40 bg-pass-soft' : 'border-border'"
+                      >
+                        <span class="block text-meta font-semibold text-fg-muted">1</span>
+                        <span class="block text-ui font-semibold text-fg">
+                          {{ 'contracts.signing.copy' | transloco }}
+                        </span>
+                        <span class="block text-meta text-fg-muted">
+                          {{
+                            (s.copy ? 'contracts.signing.copyDone' : 'contracts.signing.copyTodo')
+                              | transloco
+                          }}
+                        </span>
+                      </li>
+                      <li
+                        class="rounded-tile border px-3 py-2"
+                        [class]="s.signed ? 'border-pass/40 bg-pass-soft' : 'border-border'"
+                      >
+                        <span class="block text-meta font-semibold text-fg-muted">2</span>
+                        <span class="block text-ui font-semibold text-fg">
+                          {{ 'contracts.signing.sign' | transloco }}
+                        </span>
+                        <span class="block text-meta text-fg-muted">
+                          {{
+                            (s.signed ? 'contracts.signing.signDone' : 'contracts.signing.signTodo')
+                              | transloco
+                          }}
+                        </span>
+                      </li>
+                      <li class="rounded-tile border border-border px-3 py-2">
+                        <span class="block text-meta font-semibold text-fg-muted">3</span>
+                        <span class="block text-ui font-semibold text-fg">
+                          {{ 'contracts.signing.activate' | transloco }}
+                        </span>
+                        @if (s.canActivate) {
+                          <app-button
+                            class="mt-1"
+                            size="sm"
+                            [variant]="s.copy && s.signed ? 'primary' : 'secondary'"
+                            [disabled]="acting()"
+                            (click)="workflowBar()?.open('activate')"
+                            data-testid="signing-activate"
+                          >
+                            {{ 'contracts.actions.activate' | transloco }}
+                          </app-button>
+                        }
+                      </li>
+                    </ol>
+                  }
                 </app-card>
               }
 
               <app-card>
-                <h2 class="mb-3 font-display text-[15px] font-bold text-fg">
+                <h2 class="mb-3 font-display text-card font-bold text-fg">
                   {{ 'contracts.detail.summary' | transloco }}
                 </h2>
                 @if (c.description) {
-                  <p class="mb-4 text-[13.5px] whitespace-pre-line text-fg">{{ c.description }}</p>
+                  <p class="mb-4 text-body whitespace-pre-line text-fg">{{ c.description }}</p>
                 }
-                <dl
-                  class="grid grid-cols-1 gap-x-6 gap-y-3 text-[13px] sm:grid-cols-2 lg:grid-cols-3"
-                >
-                  <div>
-                    <dt class="text-fg-subtle">{{ 'contracts.fields.owner' | transloco }}</dt>
-                    <dd class="text-fg">
-                      {{ c.owner?.name ?? ('contracts.common.none' | transloco) }}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt class="text-fg-subtle">
-                      {{ 'contracts.fields.counterparties' | transloco }}
-                    </dt>
-                    <dd class="text-fg">
-                      {{
-                        c.counterparties.length
-                          ? c.counterparties.join(', ')
-                          : ('contracts.common.none' | transloco)
-                      }}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt class="text-fg-subtle">{{ 'contracts.fields.value' | transloco }}</dt>
-                    <dd class="text-fg">
-                      @if (c.value_amount) {
-                        {{ c.value_amount | localNumber: '1.0-2' }} {{ c.currency ?? '' }}
-                        @if (c.value_period) {
-                          · {{ 'contracts.valuePeriods.' + c.value_period | transloco }}
-                        }
-                      } @else {
-                        {{ 'contracts.common.none' | transloco }}
-                      }
-                    </dd>
-                  </div>
-                  <div>
-                    <dt class="text-fg-subtle">{{ 'contracts.fields.startDate' | transloco }}</dt>
-                    <dd class="text-fg">
-                      {{
-                        c.start_date
-                          ? (c.start_date | localDay)
-                          : ('contracts.common.none' | transloco)
-                      }}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt class="text-fg-subtle">{{ 'contracts.fields.endDate' | transloco }}</dt>
-                    <dd class="text-fg">
-                      {{
-                        c.end_date ? (c.end_date | localDay) : ('contracts.common.none' | transloco)
-                      }}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt class="text-fg-subtle">{{ 'contracts.fields.signedDate' | transloco }}</dt>
-                    <dd class="text-fg">
-                      {{
-                        c.signed_date
-                          ? (c.signed_date | localDay)
-                          : ('contracts.common.none' | transloco)
-                      }}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt class="flex items-center gap-1 text-fg-subtle">
-                      {{ 'contracts.fields.noticeDeadline' | transloco }}
-                      <app-ask-about
-                        [prompt]="'contracts.ask.noticeDeadline' | transloco"
-                        field="notice_deadline"
-                      />
-                    </dt>
-                    <dd class="text-fg">
-                      {{
-                        c.notice_deadline
-                          ? (c.notice_deadline | localDay)
-                          : ('contracts.common.none' | transloco)
-                      }}
-                      @if (c.notice_period_days !== null) {
-                        <span class="text-fg-subtle">
-                          ({{
-                            'contracts.detail.noticeDays'
-                              | transloco: { days: c.notice_period_days }
-                          }})
-                        </span>
-                      }
-                    </dd>
-                  </div>
-                  <div>
-                    <dt class="text-fg-subtle">{{ 'contracts.fields.renewal' | transloco }}</dt>
-                    <dd class="text-fg">
-                      @if (c.auto_renew) {
-                        {{
-                          c.renewal_term_months
-                            ? ('contracts.detail.autoRenewTerm'
-                              | transloco: { months: c.renewal_term_months })
-                            : ('contracts.detail.autoRenew' | transloco)
-                        }}
-                      } @else {
-                        {{ 'contracts.detail.noAutoRenew' | transloco }}
-                      }
-                    </dd>
-                  </div>
-                  <div>
-                    <dt class="text-fg-subtle">{{ 'contracts.fields.reviewDate' | transloco }}</dt>
-                    <dd class="text-fg">
-                      {{
-                        c.review_date
-                          ? (c.review_date | localDay)
-                          : ('contracts.common.none' | transloco)
-                      }}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt class="text-fg-subtle">
-                      {{ 'contracts.fields.governingLaw' | transloco }}
-                    </dt>
-                    <dd class="text-fg">
-                      {{ c.governing_law ?? ('contracts.common.none' | transloco) }}
-                    </dd>
-                  </div>
+                <app-field-list [columns]="3" data-testid="contract-summary">
+                  <app-field-item labelKey="contracts.fields.owner" [value]="c.owner?.name" />
+                  <app-field-item
+                    labelKey="contracts.fields.department"
+                    [value]="departmentName()"
+                    data-testid="summary-department"
+                  />
+                  <app-field-item
+                    labelKey="contracts.fields.counterparties"
+                    empty="none"
+                    [value]="c.counterparties.join(', ')"
+                  />
+                  <app-field-item labelKey="contracts.fields.value" [value]="valueText()" />
+                  <app-field-item
+                    labelKey="contracts.fields.startDate"
+                    [value]="day(c.start_date)"
+                  />
+                  <app-field-item labelKey="contracts.fields.endDate" [value]="day(c.end_date)" />
+                  <app-field-item
+                    labelKey="contracts.fields.signedDate"
+                    [value]="day(c.signed_date)"
+                  />
+                  <app-field-item
+                    labelKey="contracts.fields.noticeDeadline"
+                    [value]="noticeText()"
+                  />
+                  <app-field-item labelKey="contracts.fields.renewal" [value]="renewalText()" />
+                  <app-field-item
+                    labelKey="contracts.fields.reviewDate"
+                    [value]="day(c.review_date)"
+                  />
+                  <app-field-item
+                    labelKey="contracts.fields.lastReviewed"
+                    [value]="lastReviewText()"
+                  />
+                  <app-field-item
+                    labelKey="contracts.fields.governingLaw"
+                    [value]="c.governing_law"
+                  />
+                  <app-field-item
+                    labelKey="contracts.fields.personalDataRole"
+                    [value]="roleText()"
+                    data-testid="summary-role"
+                  />
+                  @if (c.transfer_basis && c.transfer_basis !== 'none') {
+                    <app-field-item
+                      labelKey="contracts.fields.transferBasis"
+                      [value]="transferText()"
+                    />
+                  }
+                  @if (c.ict_critical || c.involves_ai_system) {
+                    <app-field-item labelKey="contracts.fields.flags" [value]="flagsText()" />
+                  }
                   @if (c.termination_date) {
-                    <div>
-                      <dt class="text-fg-subtle">
-                        {{ 'contracts.fields.terminationDate' | transloco }}
-                      </dt>
-                      <dd class="text-fg">
-                        {{
-                          c.termination_date
-                            ? (c.termination_date | localDay)
-                            : ('contracts.common.none' | transloco)
-                        }}
-                      </dd>
-                    </div>
+                    <app-field-item
+                      labelKey="contracts.fields.terminationDate"
+                      [value]="day(c.termination_date)"
+                    />
                   }
-                  @if (c.approved_by) {
-                    <div>
-                      <dt class="text-fg-subtle">
-                        {{ 'contracts.fields.approvedBy' | transloco }}
-                      </dt>
-                      <dd class="text-fg">
-                        {{ c.approved_by.name ?? '' }} · {{ c.approved_at | localDay }}
-                      </dd>
-                    </div>
-                  }
-                </dl>
+                  <app-field-item
+                    labelKey="contracts.fields.approvedBy"
+                    [value]="approvedText()"
+                    data-testid="summary-approved"
+                  />
+                </app-field-list>
                 @if (c.renewal_notes) {
-                  <p class="mt-4 text-[13px] whitespace-pre-line text-fg-muted">
+                  <p class="mt-4 text-ui whitespace-pre-line text-fg-muted">
                     <span class="font-semibold text-fg"
                       >{{ 'contracts.fields.renewalNotes' | transloco }}:</span
                     >
@@ -393,6 +482,48 @@ export const CONTRACT_FIELD_LABELS: Readonly<Record<string, string>> = {
                   </p>
                 }
               </app-card>
+
+              @if (c.approval_review; as review) {
+                <app-card>
+                  <section aria-labelledby="cf-approval-h" data-testid="approval-review">
+                    <h2 id="cf-approval-h" class="mb-1 font-display text-card font-bold text-fg">
+                      {{ 'contracts.approve.trailTitle' | transloco }}
+                    </h2>
+                    <p class="mb-3 text-meta text-fg-muted">
+                      {{
+                        'contracts.approve.trailBy'
+                          | transloco
+                            : {
+                                name: review.reviewed_by?.name ?? '',
+                                date: dateTime(review.reviewed_at),
+                              }
+                      }}
+                    </p>
+                    @if (review.items.length) {
+                      <ul class="flex flex-col gap-1">
+                        @for (item of review.items; track item.key) {
+                          <li class="flex items-start gap-2 text-ui">
+                            <app-status-badge
+                              meaning="compliance"
+                              [value]="item.answer === 'yes' ? 'met' : 'not_applicable'"
+                              [labelKey]="'contracts.approve.answers.' + item.answer"
+                            />
+                            <span class="text-fg">{{ itemKey(item.key) | transloco }}</span>
+                          </li>
+                        }
+                      </ul>
+                    }
+                    @if (review.note) {
+                      <p class="mt-3 text-ui whitespace-pre-line text-fg-muted">
+                        <span class="font-semibold text-fg"
+                          >{{ 'contracts.approve.note' | transloco }}:</span
+                        >
+                        {{ review.note }}
+                      </p>
+                    }
+                  </section>
+                </app-card>
+              }
 
               @if (c.contract_type === 'dpa' || c.dpa.required) {
                 <app-contract-dpa-checklist
@@ -426,7 +557,7 @@ export const CONTRACT_FIELD_LABELS: Readonly<Record<string, string>> = {
                   [versions]="c.versions"
                   [attachments]="attachments()"
                   [canEdit]="c.can_edit"
-                  (changed)="reload()"
+                  (changed)="onFilesChanged()"
                 />
               </app-card>
 
@@ -449,18 +580,18 @@ export const CONTRACT_FIELD_LABELS: Readonly<Record<string, string>> = {
 
             <ng-container aside>
               <app-card>
-                <h2 class="mb-2 text-[13px] font-semibold text-fg-subtle">
+                <h2 class="mb-2 text-ui font-semibold text-fg-subtle">
                   {{ 'contracts.detail.nextDeadline' | transloco }}
                 </h2>
                 @if (c.next_deadline; as d) {
                   <p
-                    class="text-[15px] font-semibold"
-                    [class.text-fail]="d.overdue"
+                    class="text-card font-semibold"
+                    [class.text-warn-ink]="d.overdue"
                     data-testid="next-deadline"
                   >
-                    {{ d.due_date | localDay }}
+                    {{ day(d.due_date) }}
                   </p>
-                  <p class="text-[13px] text-fg-muted">
+                  <p class="text-ui text-fg-muted">
                     {{ kindKey(d.kind) | transloco }}
                     @if (d.label) {
                       · {{ d.label }}
@@ -470,78 +601,27 @@ export const CONTRACT_FIELD_LABELS: Readonly<Record<string, string>> = {
                     }
                   </p>
                 } @else {
-                  <p class="text-[13px] text-fg-muted">
+                  <p class="text-ui text-fg-muted">
                     {{ 'contracts.detail.noDeadline' | transloco }}
                   </p>
                 }
-                <p class="mt-3 text-[12.5px] text-fg-muted">
+                <a
+                  [routerLink]="[]"
+                  [queryParams]="{ tab: 'tasks' }"
+                  queryParamsHandling="merge"
+                  class="mt-3 inline-block text-meta font-semibold text-accent hover:underline"
+                  data-testid="open-obligations"
+                >
                   {{
                     'contracts.detail.openObligations' | transloco: { count: c.open_obligations }
                   }}
-                </p>
+                </a>
               </app-card>
 
-              <app-card>
-                <h2
-                  class="mb-2 flex items-center justify-between gap-2 text-[13px] font-semibold text-fg-subtle"
-                >
-                  {{ 'contracts.dpa.title' | transloco }}
-                  <app-badge [tone]="dpaTone(c.dpa.status)" data-testid="dpa-status">
-                    {{ 'contracts.dpa.status.' + c.dpa.status | transloco }}
-                  </app-badge>
-                </h2>
-                <p class="text-[13px] text-fg-muted">
-                  {{ 'contracts.dpa.explain.' + c.dpa.status | transloco }}
-                </p>
-                @if (c.dpa.status === 'incomplete' && c.dpa.reasons?.length) {
-                  <ul
-                    class="mt-2 list-disc space-y-0.5 pl-5 text-[12.5px] text-fg"
-                    data-testid="dpa-reasons"
-                  >
-                    @for (reason of c.dpa.reasons; track reason) {
-                      <li>
-                        {{
-                          'contracts.dpa.reasons.' + reason
-                            | transloco
-                              : {
-                                  missing: c.dpa.missing_clauses?.length ?? 0,
-                                  unconfirmed: c.dpa.unconfirmed_clauses?.length ?? 0,
-                                }
-                        }}
-                      </li>
-                    }
-                  </ul>
-                }
-                @if (c.dpa.linked_dpa_ids.length) {
-                  <ul class="mt-2 flex flex-col gap-1">
-                    @for (id of c.dpa.linked_dpa_ids; track id; let i = $index) {
-                      <li>
-                        <a
-                          [routerLink]="['/contracts', id]"
-                          class="text-[13px] font-semibold text-accent hover:underline"
-                        >
-                          {{ 'contracts.dpa.linked' | transloco: { n: i + 1 } }}
-                        </a>
-                      </li>
-                    }
-                  </ul>
-                }
-                @if (c.dpa.status === 'missing' && c.can_edit) {
-                  <p class="mt-2 text-[12.5px] font-semibold text-fg">
-                    {{ 'contracts.dpa.linkCta' | transloco }}
-                  </p>
-                }
-              </app-card>
-
-              <app-supports-requirements entityType="contract" [entityId]="c.id" />
-              <app-why-it-matters scope="contracts" page="detail" />
-              <div class="flex flex-col items-start gap-1">
-                <app-contract-lesson-link lesson="contract-lifecycle" />
-                @if (c.processes_personal_data) {
-                  <app-contract-lesson-link lesson="processor-agreements" />
-                }
-              </div>
+              <app-contract-dpa-card [contract]="c" (changed)="contract.set($event)" />
             </ng-container>
+
+            <app-contract-learn-more aside-learn [requirementRefs]="c.requirement_refs" />
           </app-record-detail-layout>
 
           <app-confirm-dialog
@@ -567,16 +647,23 @@ export class ContractDetail {
   private readonly language = inject(LanguageService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly assignees = inject(AssigneeOptionsService);
+  private readonly askPanel = inject(AskPanelService);
+  private readonly flows = inject(CreateFlowService);
+  protected readonly ai = inject(AiAvailability);
 
   readonly id = input.required<string>();
 
+  protected readonly nav = CONTRACTS_NAV;
+  protected readonly settingsLink = CONTRACTS_SETTINGS_LINK;
   protected readonly tabs = TABS;
+  protected readonly tabLabels = TAB_LABELS;
   protected readonly fieldLabels = CONTRACT_FIELD_LABELS;
   protected readonly statusKey = contractStatusKey;
-  protected readonly statusTone = contractStatusTone;
   protected readonly typeKey = contractTypeKey;
   protected readonly kindKey = deadlineKindKey;
-  protected readonly dpaTone = dpaTone;
+  protected readonly itemKey = reviewItemKey;
+  protected readonly roleOf = roleOf;
 
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
   protected readonly errorKey = signal('contracts.common.loadFailed');
@@ -586,6 +673,113 @@ export class ContractDetail {
   protected readonly deleting = signal(false);
   protected readonly obligationsVersion = signal(0);
   protected readonly closed = computed(() => isClosedContract(this.contract()?.status));
+  protected readonly workflowBar = viewChild<ContractWorkflowBar>('workflow');
+
+  protected readonly canManage = computed(() =>
+    (this.selectedOrg.currentOrg()?.permissions ?? []).includes(PERM_MANAGE),
+  );
+  protected readonly breadcrumbs = computed<readonly Breadcrumb[]>(() => [
+    CONTRACTS_CRUMB,
+    { label: this.contract()?.code ?? '' },
+  ]);
+  protected readonly counts = computed<Partial<Record<RecordTab, number>>>(() => ({
+    tasks: this.contract()?.open_obligations ?? 0,
+    attachments: this.attachments().length,
+  }));
+  protected readonly warnings = computed<readonly ContractWarning[]>(
+    () => this.contract()?.warnings ?? [],
+  );
+  protected readonly steps = computed(() => {
+    const c = this.contract();
+    return c ? signingSteps(c) : { copy: false, signed: false, canActivate: false };
+  });
+  protected readonly firstSupplierId = computed(() => {
+    const c = this.contract();
+    return c?.parties.find((p) => p.supplier_id && !p.is_internal)?.supplier_id ?? null;
+  });
+  protected readonly departmentName = computed(() => {
+    const id = this.contract()?.department_id;
+    if (!id) {
+      return null;
+    }
+    const dept = this.assignees.options().departments.find((d) => d.value === `department:${id}`);
+    return dept?.label ?? null;
+  });
+  protected readonly valueText = computed(() => {
+    const c = this.contract();
+    if (!c?.value_amount) {
+      return null;
+    }
+    const amount =
+      `${formatAmount(c.value_amount, this.language.locale())} ${c.currency ?? ''}`.trim();
+    return c.value_period
+      ? `${amount} · ${this.t(`contracts.valuePeriods.${c.value_period}`)}`
+      : amount;
+  });
+  protected readonly noticeText = computed(() => {
+    const c = this.contract();
+    if (!c) {
+      return null;
+    }
+    const date = this.day(c.notice_deadline);
+    const days =
+      c.notice_period_days !== null
+        ? this.t('contracts.detail.noticeDays', { days: c.notice_period_days })
+        : '';
+    return date ? (days ? `${date} (${days})` : date) : days || null;
+  });
+  protected readonly renewalText = computed(() => {
+    const c = this.contract();
+    if (!c) {
+      return null;
+    }
+    if (!c.auto_renew) {
+      return this.t('contracts.detail.noAutoRenew');
+    }
+    return c.renewal_term_months
+      ? this.t('contracts.detail.autoRenewTerm', { months: c.renewal_term_months })
+      : this.t('contracts.detail.autoRenew');
+  });
+  protected readonly roleText = computed(() => {
+    const c = this.contract();
+    return c ? this.t(personalDataRoleKey(roleOf(c))) : null;
+  });
+  protected readonly transferText = computed(() => {
+    const c = this.contract();
+    if (!c?.transfer_basis) {
+      return null;
+    }
+    const basis = this.t(transferBasisKey(c.transfer_basis));
+    return c.transfer_countries ? `${basis} · ${c.transfer_countries}` : basis;
+  });
+  protected readonly flagsText = computed(() => {
+    const c = this.contract();
+    const flags: string[] = [];
+    if (c?.ict_critical) {
+      flags.push(this.t('contracts.fields.ictCritical'));
+    }
+    if (c?.involves_ai_system) {
+      flags.push(this.t('contracts.fields.involvesAiSystem'));
+    }
+    return flags.join(' · ') || null;
+  });
+  /** "Kari Nordmann · 3 Oct 2026" — always shown, so an auditor sees who approved and when. */
+  protected readonly approvedText = computed(() => {
+    const c = this.contract();
+    if (!c?.approved_by) {
+      return c && ['draft', 'in_review'].includes(c.status)
+        ? this.t('contracts.detail.notApprovedYet')
+        : null;
+    }
+    return [c.approved_by.name, this.day(c.approved_at)].filter(Boolean).join(' · ');
+  });
+  protected readonly lastReviewText = computed(() => {
+    const c = this.contract();
+    if (!c?.last_reviewed_at) {
+      return null;
+    }
+    return [c.last_reviewed_by?.name, this.day(c.last_reviewed_at)].filter(Boolean).join(' · ');
+  });
 
   /** The open tab (`?tab=`), so the file list refreshes when returning to details. */
   private readonly tab = toSignal(this.route.queryParamMap.pipe(map((p) => p.get('tab'))), {
@@ -601,6 +795,7 @@ export class ContractDetail {
       this.request.unsubscribe();
       this.filesRequest.unsubscribe();
     });
+    this.assignees.ensureLoaded();
     providePageContext(() => {
       const c = this.contract();
       return {
@@ -609,6 +804,7 @@ export class ContractDetail {
         entityId: this.id(),
         view: 'detail',
         title: c ? `${c.code} ${c.title}` : null,
+        requirements: [...(c?.requirement_refs ?? [])],
       };
     });
     effect(() => {
@@ -619,19 +815,46 @@ export class ContractDetail {
     effect(() => {
       const tab = this.tab();
       const orgId = this.selectedOrg.currentOrgId();
+      const id = this.id();
       if (!tab || tab === 'details') {
-        untracked(() => this.loadFiles(orgId, this.id()));
+        untracked(() => this.loadFiles(orgId, id));
       }
     });
   }
 
-  protected reload(): void {
-    this.load(this.selectedOrg.currentOrgId(), this.id(), false);
+  protected day(value: string | null | undefined): string | null {
+    return formatLocalDay(value, 'mediumDate', this.language.locale()) || null;
+  }
+
+  protected dateTime(value: string | null | undefined): string {
+    return formatLocalDate(value, 'mediumDate', this.language.locale());
+  }
+
+  protected reload(initial = false): void {
+    this.load(this.selectedOrg.currentOrgId(), this.id(), initial);
   }
 
   protected onObligationAdded(): void {
     this.obligationsVersion.update((v) => v + 1);
     this.reload();
+  }
+
+  /** A signed copy was uploaded or pinned: the file list and the contract both changed. */
+  protected onFilesChanged(): void {
+    this.loadFiles(this.selectedOrg.currentOrgId(), this.id());
+    this.reload();
+  }
+
+  protected edit(): void {
+    void this.router.navigate(['/contracts', this.id(), 'edit']);
+  }
+
+  protected askAboutContract(): void {
+    this.askPanel.askAbout(this.t('contracts.ask.summarise'));
+  }
+
+  protected startEvaluation(supplierId: string): void {
+    void this.flows.start('supplier.to_evaluation', 'supplier', supplierId);
   }
 
   protected runAction(run: WorkflowRun): void {
@@ -677,6 +900,10 @@ export class ContractDetail {
         this.notifications.error(contractErrorKey(error));
       },
     });
+  }
+
+  private t(key: string, params?: Record<string, unknown>): string {
+    return this.language.translate(key, params);
   }
 
   private load(orgId: string | null, id: string, initial: boolean): void {

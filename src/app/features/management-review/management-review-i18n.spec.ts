@@ -11,10 +11,11 @@ import {
   ASSESSMENTS,
   ATTENDANCES,
   ATTENDEE_ROLES,
+  CRITERIA,
   DECISION_CATEGORIES,
   FRAMEWORKS,
   INPUT_CATEGORIES,
-  INPUT_METRICS,
+  LOCK_REASONS,
   MEETING_KINDS,
   MEETING_SORTS,
   MEETING_STATUSES,
@@ -24,7 +25,13 @@ import {
   REVIEW_STATUSES,
   SUBMIT_REQUIREMENTS,
 } from './data/management-review.models';
-import { BREAKDOWN_VALUES } from './management-review-display';
+import {
+  BREAKDOWN_DIMENSIONS,
+  BREAKDOWN_VALUES,
+  INPUT_METRICS,
+  INPUT_SOURCES,
+  REVIEW_SECTIONS,
+} from './management-review-display';
 import { REVIEW_STATUS_FILTERS } from './reviews-list';
 
 type Tree = Record<string, unknown>;
@@ -90,7 +97,11 @@ describe('management review i18n and guidance', () => {
     ['attendance', ATTENDANCES],
     ['decisionCategory', DECISION_CATEGORIES],
     ['reviewActions', REVIEW_ACTIONS],
-    ['missing', SUBMIT_REQUIREMENTS],
+    ['sections', REVIEW_SECTIONS],
+    ['meeting.locked', LOCK_REASONS],
+    ['actionStatus', ['open', 'in_progress', 'blocked', 'done', 'cancelled', 'no_task', 'overdue']],
+    ['inputData', BREAKDOWN_DIMENSIONS],
+    ['inputSources', INPUT_SOURCES.map((s) => s.split('.').join('_'))],
     ['metrics', INPUT_METRICS],
     ['values', BREAKDOWN_VALUES],
     ['errors', MR_ERROR_CODES],
@@ -104,6 +115,33 @@ describe('management review i18n and guidance', () => {
     for (const lang of [en, nb] as Tree[]) {
       for (const value of values) {
         expect(typeof lookup(lang, `${prefix}.${value}`), `${prefix}.${value}`).toBe('string');
+      }
+    }
+  });
+
+  it('explains every sign-off point, both open and done', () => {
+    for (const lang of [en, nb] as Tree[]) {
+      for (const m of SUBMIT_REQUIREMENTS) {
+        expect(typeof lookup(lang, `missing.${m}.todo`), m).toBe('string');
+        expect(typeof lookup(lang, `missing.${m}.done`), m).toBe('string');
+      }
+    }
+  });
+
+  it('names and explains every 9.3 criterion', () => {
+    for (const lang of [en, nb] as Tree[]) {
+      for (const c of CRITERIA) {
+        expect(typeof lookup(lang, `criteria.${c}.label`), c).toBe('string');
+        expect(typeof lookup(lang, `criteria.${c}.hint`), c).toBe('string');
+      }
+    }
+  });
+
+  it('has the texts of the home reminders the backend sends', () => {
+    for (const lang of [en, nb] as Tree[]) {
+      for (const status of ['overdue', 'due_soon', 'never']) {
+        expect(typeof lookup(lang, `nextActions.${status}.title`), status).toBe('string');
+        expect(typeof lookup(lang, `nextActions.${status}.why`), status).toBe('string');
       }
     }
   });
@@ -127,6 +165,7 @@ describe('management review i18n and guidance', () => {
         'form',
         'meetingForm',
         'report',
+        'settings',
       ]) {
         const p = guide.pages?.[page];
         expect(p?.intro?.title, page).toBeTruthy();

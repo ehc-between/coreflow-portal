@@ -71,36 +71,36 @@ export function publicErrorKey(error: unknown): string {
         <header class="flex items-center justify-between gap-3">
           <span class="inline-flex items-center gap-2.5">
             <span
-              class="flex h-[30px] w-[30px] items-center justify-center rounded-[9px] bg-[linear-gradient(135deg,var(--accent),var(--accent-2))] text-white"
+              class="flex h-[30px] w-[30px] items-center justify-center rounded-lg bg-[linear-gradient(135deg,var(--accent),var(--accent-2))] text-white"
               aria-hidden="true"
             >
               <app-icon name="spark" [size]="18" />
             </span>
-            <span class="font-display text-[19px] font-bold tracking-[-0.02em]">CoreFlow</span>
+            <span class="font-display text-section font-bold tracking-[-0.02em]">CoreFlow</span>
           </span>
           <app-language-switcher />
         </header>
 
         @if (loading()) {
           <app-card>
-            <p class="py-6 text-center text-[14px] text-fg-muted">
+            <p class="py-6 text-center text-body text-fg-muted">
               {{ 'common.loading' | transloco }}
             </p>
           </app-card>
         } @else if (intake(); as info) {
           <main class="flex flex-col gap-5">
             <div>
-              <h1 class="font-display text-[24px] font-bold tracking-[-0.025em]">
+              <h1 class="font-display text-page font-bold tracking-[-0.025em]">
                 {{ 'deviations.publicReport.title.' + mode() | transloco: { org: info.org_name } }}
               </h1>
-              <p class="mt-1.5 text-[14px] text-fg-muted">
+              <p class="mt-1.5 text-body text-fg-muted">
                 {{ 'deviations.publicReport.intro.' + mode() | transloco }}
               </p>
             </div>
 
             @if (info.instructions) {
               <app-card>
-                <p class="text-[13.5px] whitespace-pre-line">{{ info.instructions }}</p>
+                <p class="text-ui whitespace-pre-line">{{ info.instructions }}</p>
               </app-card>
             }
 
@@ -112,14 +112,14 @@ export function publicErrorKey(error: unknown): string {
                   aria-live="polite"
                   data-testid="receipt"
                 >
-                  <h2 class="font-display text-[18px] font-bold">
+                  <h2 class="font-display text-section font-bold">
                     {{ 'deviations.publicReport.receipt.title' | transloco }}
                   </h2>
-                  <p class="text-[13.5px] text-fg-muted">
+                  <p class="text-ui text-fg-muted">
                     {{ 'deviations.publicReport.receipt.body' | transloco }}
                   </p>
                   <p
-                    class="rounded-tile border border-accent-border bg-accent-soft/40 px-4 py-3 text-center font-mono text-[20px] font-bold tracking-[0.12em]"
+                    class="rounded-tile border border-accent-border bg-accent-soft/40 px-4 py-3 text-center font-mono text-section font-bold tracking-[0.12em]"
                     data-testid="receipt-code"
                   >
                     {{ r.receipt_code }}
@@ -142,9 +142,9 @@ export function publicErrorKey(error: unknown): string {
                   data-testid="public-report-form"
                 >
                   <div class="flex flex-col gap-1.5">
-                    <label for="pr-title" class="text-[13px] font-semibold text-fg-muted">
+                    <label for="pr-title" class="text-ui font-semibold text-fg-muted">
                       {{ 'deviations.publicReport.fields.title' | transloco }}
-                      <span class="text-fail" aria-hidden="true">*</span>
+                      <span class="text-fail-ink" aria-hidden="true">*</span>
                     </label>
                     <input
                       id="pr-title"
@@ -158,16 +158,16 @@ export function publicErrorKey(error: unknown): string {
                       (ngModelChange)="title.set($event)"
                       [attr.aria-invalid]="showErrors() && !titleValid()"
                       aria-describedby="pr-title-hint"
-                      class="h-10 rounded-[10px] border border-border bg-surface px-3 text-[14px] outline-none focus:border-accent"
+                      class="h-10 rounded-tile border border-border bg-surface px-3 text-body outline-none focus:border-accent"
                     />
-                    <p id="pr-title-hint" class="text-[12px] text-fg-subtle">
+                    <p id="pr-title-hint" class="text-meta text-fg-subtle">
                       {{ 'deviations.publicReport.hints.title' | transloco }}
                     </p>
                   </div>
                   <div class="flex flex-col gap-1.5">
-                    <label for="pr-description" class="text-[13px] font-semibold text-fg-muted">
+                    <label for="pr-description" class="text-ui font-semibold text-fg-muted">
                       {{ 'deviations.publicReport.fields.description' | transloco }}
-                      <span class="text-fail" aria-hidden="true">*</span>
+                      <span class="text-fail-ink" aria-hidden="true">*</span>
                     </label>
                     <textarea
                       id="pr-description"
@@ -180,15 +180,15 @@ export function publicErrorKey(error: unknown): string {
                       (ngModelChange)="description.set($event)"
                       [attr.aria-invalid]="showErrors() && !descriptionValid()"
                       aria-describedby="pr-description-hint"
-                      class="w-full rounded-[10px] border border-border bg-surface px-3 py-2.5 text-[14px] outline-none focus:border-accent"
+                      class="w-full rounded-tile border border-border bg-surface px-3 py-2.5 text-body outline-none focus:border-accent"
                     ></textarea>
-                    <p id="pr-description-hint" class="text-[12px] text-fg-subtle">
+                    <p id="pr-description-hint" class="text-meta text-fg-subtle">
                       {{ 'deviations.publicReport.hints.description' | transloco }}
                     </p>
                   </div>
                   <div class="grid gap-4 sm:grid-cols-2">
                     <div class="flex flex-col gap-1.5">
-                      <label for="pr-date" class="text-[13px] font-semibold text-fg-muted">
+                      <label for="pr-date" class="text-ui font-semibold text-fg-muted">
                         {{ 'deviations.publicReport.fields.occurredOn' | transloco }}
                       </label>
                       <input
@@ -197,11 +197,11 @@ export function publicErrorKey(error: unknown): string {
                         type="date"
                         [ngModel]="occurredOn()"
                         (ngModelChange)="occurredOn.set($event)"
-                        class="h-10 rounded-[10px] border border-border bg-surface px-3 text-[14px] outline-none focus:border-accent"
+                        class="h-10 rounded-tile border border-border bg-surface px-3 text-body outline-none focus:border-accent"
                       />
                     </div>
                     <div class="flex flex-col gap-1.5">
-                      <label for="pr-location" class="text-[13px] font-semibold text-fg-muted">
+                      <label for="pr-location" class="text-ui font-semibold text-fg-muted">
                         {{ 'deviations.publicReport.fields.location' | transloco }}
                       </label>
                       <input
@@ -212,13 +212,13 @@ export function publicErrorKey(error: unknown): string {
                         autocomplete="off"
                         [ngModel]="location()"
                         (ngModelChange)="location.set($event)"
-                        class="h-10 rounded-[10px] border border-border bg-surface px-3 text-[14px] outline-none focus:border-accent"
+                        class="h-10 rounded-tile border border-border bg-surface px-3 text-body outline-none focus:border-accent"
                       />
                     </div>
                   </div>
                   @if (info.allow_contact) {
                     <div class="flex flex-col gap-1.5">
-                      <label for="pr-contact" class="text-[13px] font-semibold text-fg-muted">
+                      <label for="pr-contact" class="text-ui font-semibold text-fg-muted">
                         {{ 'deviations.publicReport.fields.contact' | transloco }}
                       </label>
                       <input
@@ -230,9 +230,9 @@ export function publicErrorKey(error: unknown): string {
                         [ngModel]="contact()"
                         (ngModelChange)="contact.set($event)"
                         aria-describedby="pr-contact-hint"
-                        class="h-10 rounded-[10px] border border-border bg-surface px-3 text-[14px] outline-none focus:border-accent"
+                        class="h-10 rounded-tile border border-border bg-surface px-3 text-body outline-none focus:border-accent"
                       />
-                      <p id="pr-contact-hint" class="text-[12px] text-fg-subtle">
+                      <p id="pr-contact-hint" class="text-meta text-fg-subtle">
                         {{ 'deviations.publicReport.hints.contact' | transloco }}
                       </p>
                     </div>
@@ -264,7 +264,7 @@ export function publicErrorKey(error: unknown): string {
                   @if (submitError(); as key) {
                     <app-alert tone="error">{{ key | transloco }}</app-alert>
                   }
-                  <p class="text-[12.5px] text-fg-muted">
+                  <p class="text-meta text-fg-muted">
                     {{ 'deviations.publicReport.privacy.' + mode() | transloco }}
                   </p>
                   <div>
@@ -282,12 +282,12 @@ export function publicErrorKey(error: unknown): string {
                 (ngSubmit)="checkStatus()"
                 data-testid="status-form"
               >
-                <h2 class="font-display text-[16px] font-bold">
+                <h2 class="font-display text-section font-bold">
                   {{ 'deviations.publicReport.status.title' | transloco }}
                 </h2>
                 <div class="flex flex-col gap-2 sm:flex-row sm:items-end">
                   <div class="flex flex-1 flex-col gap-1.5">
-                    <label for="pr-receipt" class="text-[13px] font-semibold text-fg-muted">
+                    <label for="pr-receipt" class="text-ui font-semibold text-fg-muted">
                       {{ 'deviations.publicReport.status.code' | transloco }}
                     </label>
                     <input
@@ -299,7 +299,7 @@ export function publicErrorKey(error: unknown): string {
                       placeholder="XXXX-XXXX-XXXX-XXXX"
                       [ngModel]="receiptCode()"
                       (ngModelChange)="receiptCode.set($event)"
-                      class="h-10 rounded-[10px] border border-border bg-surface px-3 font-mono text-[14px] tracking-[0.08em] uppercase outline-none focus:border-accent"
+                      class="h-10 rounded-tile border border-border bg-surface px-3 font-mono text-body tracking-[0.08em] uppercase outline-none focus:border-accent"
                     />
                   </div>
                   <app-button
@@ -316,7 +316,7 @@ export function publicErrorKey(error: unknown): string {
                 }
                 @if (status(); as s) {
                   <div
-                    class="rounded-tile border border-border p-3 text-[13.5px]"
+                    class="rounded-tile border border-border p-3 text-ui"
                     role="status"
                     aria-live="polite"
                     data-testid="report-status"
@@ -324,7 +324,7 @@ export function publicErrorKey(error: unknown): string {
                     <p class="font-semibold">
                       {{ 'deviations.publicReport.status.states.' + s.status | transloco }}
                     </p>
-                    <p class="mt-0.5 text-[12.5px] text-fg-muted">
+                    <p class="mt-0.5 text-meta text-fg-muted">
                       {{
                         'deviations.publicReport.status.dates'
                           | transloco
@@ -353,10 +353,10 @@ export function publicErrorKey(error: unknown): string {
               class="flex flex-col items-center gap-2 py-8 text-center"
               data-testid="intake-unavailable"
             >
-              <h1 class="font-display text-[18px] font-bold">
+              <h1 class="font-display text-section font-bold">
                 {{ 'deviations.publicReport.unavailable.title' | transloco }}
               </h1>
-              <p class="max-w-[420px] text-[13.5px] text-fg-muted">
+              <p class="max-w-[420px] text-ui text-fg-muted">
                 {{ 'deviations.publicReport.unavailable.body' | transloco }}
               </p>
             </div>

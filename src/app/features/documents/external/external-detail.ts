@@ -29,7 +29,8 @@ import { Icon } from '../../../shared/ui/icon/icon';
 import { DocumentControlApi } from '../data/document-control-api';
 import { documentControlErrorKey } from '../data/document-control-errors';
 import { ExternalDocument } from '../data/document-control.models';
-import { externalStatusTone, textOrNull } from '../shared/document-control-display';
+import { externalLifecycle, textOrNull } from '../shared/document-control-display';
+import { toneFor } from '../../../shared/ui/tones';
 import { DocumentsPageGuide } from '../shared/documents-page-guide';
 import { DocumentControlPermissions } from '../shared/document-control-permissions';
 
@@ -104,7 +105,7 @@ export function safeExternalUrl(url: string | null | undefined): string | null {
         backLabelKey="documents.control.external.back"
       >
         <div header>
-          <p class="mb-1 flex flex-wrap items-center gap-2 text-[12.5px] text-fg-subtle">
+          <p class="mb-1 flex flex-wrap items-center gap-2 text-meta text-fg-subtle">
             @if (r.code) {
               <span class="font-mono">{{ r.code }}</span>
             }
@@ -116,7 +117,7 @@ export function safeExternalUrl(url: string | null | undefined): string | null {
             }
           </p>
           <h1
-            class="flex items-start gap-1.5 font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]"
+            class="flex items-start gap-1.5 font-display text-page font-bold tracking-[-0.03em] text-fg"
           >
             {{ r.title }}
             <app-ask-about
@@ -163,21 +164,30 @@ export function safeExternalUrl(url: string | null | undefined): string | null {
             <app-alert tone="error">{{ key | transloco }}</app-alert>
           }
           <app-card>
-            <dl class="grid grid-cols-1 gap-3 text-[13.5px] sm:grid-cols-2">
-              <div>
-                <dt class="text-[12px] font-semibold text-fg-muted">
-                  {{ 'documents.control.external.fields.version' | transloco }}
-                </dt>
-                <dd class="text-fg">{{ r.version || '—' }}</dd>
-              </div>
-              <div>
-                <dt class="text-[12px] font-semibold text-fg-muted">
-                  {{ 'documents.control.external.fields.issuedOn' | transloco }}
-                </dt>
-                <dd class="text-fg">{{ r.issued_on ? (r.issued_on | localDay) : '—' }}</dd>
-              </div>
+            <dl class="grid grid-cols-1 gap-3 text-ui sm:grid-cols-2">
+              @if (r.version) {
+                <div>
+                  <dt class="text-meta font-semibold text-fg-muted">
+                    {{ 'documents.control.external.fields.version' | transloco }}
+                  </dt>
+                  <dd class="text-fg">{{ r.version }}</dd>
+                </div>
+              }
+              @if (r.issued_on) {
+                <div>
+                  <dt class="text-meta font-semibold text-fg-muted">
+                    {{ 'documents.control.external.fields.issuedOn' | transloco }}
+                  </dt>
+                  <dd class="text-fg">{{ r.issued_on | localDay }}</dd>
+                </div>
+              }
+              @if (!r.version || !r.issued_on) {
+                <p class="text-meta text-fg-muted sm:col-span-2" data-testid="external-missing">
+                  {{ 'documents.control.external.fillMissing' | transloco }}
+                </p>
+              }
               <div class="sm:col-span-2">
-                <dt class="text-[12px] font-semibold text-fg-muted">
+                <dt class="text-meta font-semibold text-fg-muted">
                   {{ 'documents.control.external.fields.url' | transloco }}
                 </dt>
                 <dd class="break-all text-fg">
@@ -190,13 +200,13 @@ export function safeExternalUrl(url: string | null | undefined): string | null {
                       >{{ href }}</a
                     >
                   } @else {
-                    {{ r.url || '—' }}
+                    {{ r.url || ('common.empty.notSet' | transloco) }}
                   }
                 </dd>
               </div>
               @if (r.notes) {
                 <div class="sm:col-span-2">
-                  <dt class="text-[12px] font-semibold text-fg-muted">
+                  <dt class="text-meta font-semibold text-fg-muted">
                     {{ 'documents.control.external.fields.notes' | transloco }}
                   </dt>
                   <dd class="whitespace-pre-line text-fg">{{ r.notes }}</dd>
@@ -208,9 +218,9 @@ export function safeExternalUrl(url: string | null | undefined): string | null {
 
         <ng-container aside>
           <app-card>
-            <dl class="flex flex-col gap-3 text-[13px]">
+            <dl class="flex flex-col gap-3 text-ui">
               <div>
-                <dt class="text-[12px] font-semibold text-fg-muted">
+                <dt class="text-meta font-semibold text-fg-muted">
                   {{ 'documents.control.fields.owner' | transloco }}
                 </dt>
                 <dd class="text-fg">
@@ -218,13 +228,15 @@ export function safeExternalUrl(url: string | null | undefined): string | null {
                 </dd>
               </div>
               <div>
-                <dt class="text-[12px] font-semibold text-fg-muted">
+                <dt class="text-meta font-semibold text-fg-muted">
                   {{ 'documents.control.fields.type' | transloco }}
                 </dt>
-                <dd class="text-fg">{{ r.document_type_name || '—' }}</dd>
+                <dd class="text-fg">
+                  {{ r.document_type_name || ('common.empty.notSet' | transloco) }}
+                </dd>
               </div>
               <div>
-                <dt class="text-[12px] font-semibold text-fg-muted">
+                <dt class="text-meta font-semibold text-fg-muted">
                   {{ 'documents.control.fields.reviewInterval' | transloco }}
                 </dt>
                 <dd class="text-fg">
@@ -232,28 +244,36 @@ export function safeExternalUrl(url: string | null | undefined): string | null {
                     r.review_interval_months
                       ? ('documents.control.common.months'
                         | transloco: { count: r.review_interval_months })
-                      : '—'
+                      : ('common.empty.notSet' | transloco)
                   }}
                 </dd>
               </div>
               <div>
-                <dt class="text-[12px] font-semibold text-fg-muted">
+                <dt class="text-meta font-semibold text-fg-muted">
                   {{ 'documents.control.external.fields.lastReviewed' | transloco }}
                 </dt>
                 <dd class="text-fg">
-                  {{ r.last_reviewed_at ? (r.last_reviewed_at | localDate: 'mediumDate') : '—' }}
+                  {{
+                    r.last_reviewed_at
+                      ? (r.last_reviewed_at | localDate: 'mediumDate')
+                      : ('common.empty.notSet' | transloco)
+                  }}
                 </dd>
               </div>
               <div>
-                <dt class="text-[12px] font-semibold text-fg-muted">
+                <dt class="text-meta font-semibold text-fg-muted">
                   {{ 'documents.control.fields.nextReview' | transloco }}
                 </dt>
                 <dd [class.text-fail]="r.review_overdue" [class.font-semibold]="r.review_overdue">
-                  {{ r.next_review_at ? (r.next_review_at | localDay) : '—' }}
+                  {{
+                    r.next_review_at
+                      ? (r.next_review_at | localDay)
+                      : ('common.empty.notSet' | transloco)
+                  }}
                 </dd>
               </div>
               <div>
-                <dt class="text-[12px] font-semibold text-fg-muted">
+                <dt class="text-meta font-semibold text-fg-muted">
                   {{ 'documents.control.fields.retentionRule' | transloco }}
                 </dt>
                 <dd class="text-fg">
@@ -269,7 +289,7 @@ export function safeExternalUrl(url: string | null | undefined): string | null {
                 </dd>
               </div>
               <div>
-                <dt class="text-[12px] font-semibold text-fg-muted">
+                <dt class="text-meta font-semibold text-fg-muted">
                   {{ 'documents.control.fields.updatedAt' | transloco }}
                 </dt>
                 <dd class="text-fg">{{ r.updated_at | localDate: 'medium' }}</dd>
@@ -337,13 +357,13 @@ export function safeExternalUrl(url: string | null | undefined): string | null {
         <app-alert tone="error">{{ loadErrorKey() | transloco }}</app-alert>
         <a
           routerLink="/documents/external"
-          class="mt-3 inline-block text-[13px] font-semibold text-accent hover:underline"
+          class="mt-3 inline-block text-ui font-semibold text-accent hover:underline"
         >
           {{ 'documents.control.external.back' | transloco }}
         </a>
       </div>
     } @else {
-      <p class="py-16 text-center text-[14px] text-fg-muted">
+      <p class="py-16 text-center text-body text-fg-muted">
         {{ 'documents.control.common.loading' | transloco }}
       </p>
     }
@@ -371,7 +391,9 @@ export class ExternalDetailPage {
   protected readonly reviewNote = signal('');
   private sub: Subscription | null = null;
 
-  protected readonly tone = computed(() => externalStatusTone(this.row()?.status ?? 'current'));
+  protected readonly tone = computed(() =>
+    toneFor('lifecycle', externalLifecycle(this.row()?.status ?? 'current')),
+  );
   protected readonly safeUrl = computed(() => safeExternalUrl(this.row()?.url));
 
   constructor() {

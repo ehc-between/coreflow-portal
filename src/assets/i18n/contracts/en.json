@@ -6,19 +6,19 @@
     "backToContract": "Back to the contract",
     "edit": "Edit",
     "delete": "Delete",
-    "none": "Not set",
     "overdue": "Overdue"
   },
   "list": {
-    "title": "Contracts",
-    "subtitle": "Every agreement the organisation has made: who it is with, what it is worth, when it ends and what it commits you to.",
+    "subtitle": "Every agreement the organisation has made: who it is with, what it is worth, when it ends and what needs attention.",
     "searchPlaceholder": "Search by code, title or party",
     "new": "New contract",
     "noMatch": "No contracts match these filters.",
-    "personalData": "Personal data",
-    "owner": "Owner: {{ name }}",
-    "ends": "Ends {{ date }}",
-    "noEnd": "No end date"
+    "noEnd": "No end date",
+    "export": "Export to CSV",
+    "exportFile": "contract-register",
+    "nextKind": "Next: {{ kind }}",
+    "noticeIn": "Notice deadline in {{ days }} days",
+    "clearFilters": "Clear filters"
   },
   "filters": {
     "status": "Status",
@@ -31,11 +31,17 @@
     "mine": "Owned by me",
     "anyExpiry": "Any end date",
     "expiringWithin": "Within {{ days }} days",
-    "personalData": "Processes personal data",
     "statusOptions": {
       "open": "Open (not ended)",
       "all": "All statuses"
-    }
+    },
+    "attention": "Needs attention",
+    "attentionOptions": {
+      "all": "Any follow-up status",
+      "any": "Needs attention (any)"
+    },
+    "personalDataRole": "Personal data",
+    "anyRole": "Any"
   },
   "sorts": {
     "updated_atDesc": "Recently updated",
@@ -64,8 +70,8 @@
     "employment": "Employment contract",
     "sla": "Service level agreement",
     "partner": "Partner agreement",
-    "licence": "Licence",
-    "other": "Other"
+    "licence": "Licence agreement",
+    "other": "Other agreement"
   },
   "partyRoles": {
     "customer": "Customer",
@@ -76,7 +82,7 @@
     "employee": "Employee",
     "employer": "Employer",
     "partner": "Partner",
-    "other": "Other"
+    "other": "Other party"
   },
   "valuePeriods": {
     "one_off": "One-off",
@@ -88,9 +94,8 @@
   "deadlineKinds": {
     "notice_deadline": "Notice deadline",
     "end_date": "End date",
-    "review_date": "Review date",
     "renewal": "Renewal",
-    "notice": "Notice",
+    "notice": "Notification deadline",
     "review": "Review",
     "payment": "Payment",
     "milestone": "Milestone",
@@ -107,7 +112,7 @@
     "department": "Department",
     "counterparties": "Counterparties",
     "confidential": "Confidential",
-    "processesPersonalData": "The counterparty processes personal data for us",
+    "processesPersonalData": "Personal data",
     "value": "Value",
     "valueAmount": "Amount",
     "currency": "Currency",
@@ -125,7 +130,15 @@
     "governingLaw": "Governing law",
     "terminationDate": "Terminated on",
     "currentVersion": "Current version",
-    "approvedBy": "Approved by"
+    "approvedBy": "Approved by",
+    "personalDataRole": "Personal data",
+    "transferBasis": "Transfer outside the EU/EEA",
+    "transferCountries": "Countries",
+    "ictCritical": "ICT or security-critical delivery",
+    "involvesAiSystem": "Includes an AI system",
+    "flags": "Also",
+    "lastReviewed": "Last reviewed",
+    "approvalReview": "Requirements review"
   },
   "form": {
     "newTitle": "New contract",
@@ -144,15 +157,25 @@
       "basics": "The contract",
       "terms": "Dates and renewal",
       "value": "Value",
-      "parties": "Parties"
+      "parties": "Parties",
+      "privacy": "Personal data and security"
     },
     "invalid": {
       "titleRequired": "Give the contract a title.",
       "endBeforeStart": "The end date is before the start date.",
-      "amount": "Enter an amount such as 12500 or 12500.50.",
+      "amount": "Enter an amount, such as 12 500 or 12 500,50.",
       "currency": "Use a three-letter currency code, such as NOK or EUR.",
       "wholeNumber": "Enter a whole number."
-    }
+    },
+    "editCrumb": "Edit",
+    "ownerSearch": "Search by name or email",
+    "ownerNoMatch": "Nobody matches.",
+    "privacyIntro": "These answers decide whether a data processing agreement is needed and which requirements the contract documents.",
+    "transferUnknown": "Not assessed yet",
+    "countriesPlaceholder": "For example: USA, India",
+    "ictCriticalHint": "The delivery is important for your IT or information security (hosting, network, critical software). Adds ISO 27001 A.5.21 and NIS2 Art. 21(2)(d).",
+    "aiSystemHint": "The delivery includes or runs an AI system. Adds ISO 42001 A.10.3 and the EU AI Act.",
+    "fixErrors": "The contract could not be saved. Fix the {{ count }} marked field(s)."
   },
   "parties": {
     "title": "Parties",
@@ -172,7 +195,16 @@
     "remove": "Remove",
     "removeNamed": "Remove {{ name }}",
     "removeTitle": "Remove this party?",
-    "removeMessage": "{{ name }} will be removed from the contract. The change is kept in the history."
+    "removeMessage": "{{ name }} will be removed from the contract. The change is kept in the history.",
+    "intro": "Pick the counterparty from the supplier register when you can: the contract then shows on the supplier and the DPA check can match it.",
+    "roleFromType": "Based on the contract type",
+    "linkedTo": "Linked to the supplier {{ supplier }}.",
+    "unlink": "Remove link",
+    "notInRegister": "Not in the supplier register.",
+    "registerSupplier": "Register supplier",
+    "notLinked": "Not linked to the supplier register",
+    "supplierCode": "Supplier {{ code }}",
+    "criticality": "Criticality: {{ level }}"
   },
   "keyDates": {
     "title": "Key dates",
@@ -203,8 +235,11 @@
     "unsigned": "Not signed",
     "markSigned": "Mark signed",
     "pinCopy": "Pin signed copy",
-    "uploadHint": "Upload the signed copy in the Attachments tab first, then pin it to the version here.",
-    "save": "Add version"
+    "save": "Add version",
+    "copyMissing": "Signed, but no signed copy is uploaded",
+    "signedNoCopyHint": "Upload the signed copy as well, so the signature can be documented.",
+    "uploadCopy": "Upload signed copy",
+    "uploading": "Uploading…"
   },
   "obligations": {
     "title": "Obligations",
@@ -229,7 +264,9 @@
     "activate": "Mark as active",
     "renew": "Renew",
     "terminate": "Terminate",
-    "expire": "Mark as expired"
+    "expire": "Mark as expired",
+    "review": "Mark as reviewed",
+    "endMenu": "End the contract"
   },
   "actionDialog": {
     "note": "Note (optional)",
@@ -243,27 +280,32 @@
       "activate": "Mark as active?",
       "renew": "Renew this contract?",
       "terminate": "Terminate this contract?",
-      "expire": "Mark as expired?"
+      "expire": "Mark as expired?",
+      "review": "Record a review?"
     },
     "messages": {
       "submit": "{{ code }} goes to everyone who approves contracts. You can still change it, but that sends it back to draft.",
-      "approve": "You confirm that {{ code }} has been checked and may be signed.",
+      "approve": "Answer each question for {{ code }}. Your answers and note are kept as the record of the requirements review.",
       "reject": "{{ code }} goes back to draft. Explain what must change.",
       "activate": "{{ code }} is signed and in force. Use the signing date if it differs from today.",
       "renew": "{{ code }} continues to the new end date. The current end date plus the renewal term is proposed.",
       "terminate": "{{ code }} ends on the date you choose. Open obligations are cancelled. Record why.",
-      "expire": "{{ code }} has run out. Open obligations are cancelled."
-    }
+      "expire": "{{ code }} has run out. Open obligations are cancelled.",
+      "review": "You confirm that {{ code }} still meets your needs and that the supplier is followed up. The next review date moves on."
+    },
+    "nextReview": "Next review (leave empty for the usual interval)"
   },
   "workflow": {
     "hint": {
       "draft": "Draft: complete the details, then submit the contract for approval.",
       "in_review": "Waiting for approval by someone who approves contracts.",
-      "approved": "Approved: once it is signed, mark it as active.",
-      "active": "In force. Renew it, or end it when the time comes.",
+      "approved": "Approved. Sign it, upload the signed copy and mark it as active.",
+      "active": "The contract is active. Renew it or give notice before the notice deadline.",
       "expired": "This contract has expired.",
       "terminated": "This contract has been terminated."
-    }
+    },
+    "selfApproval": "You submitted or own this contract, so someone else must approve it. The organisation requires an independent approver.",
+    "submittedBy": "Submitted by {{ name }} on {{ date }}."
   },
   "detail": {
     "summary": "Summary",
@@ -276,7 +318,11 @@
     "noAutoRenew": "Does not renew automatically",
     "closedNotice": "Status: {{ status }}. The contract has ended, is kept for the record and can no longer be changed.",
     "deleteTitle": "Delete this contract?",
-    "deleteMessage": "{{ code }} is removed from the register and its open obligations are cancelled. It stays in the audit log."
+    "deleteMessage": "{{ code }} is removed from the register and its open obligations are cancelled. It stays in the audit log.",
+    "ask": "Ask",
+    "obligationsTab": "Obligations",
+    "startEvaluation": "Start supplier evaluation",
+    "notApprovedYet": "Not approved yet"
   },
   "dpa": {
     "title": "Data processing agreement",
@@ -287,13 +333,11 @@
       "incomplete": "Incomplete"
     },
     "explain": {
-      "not_required": "The counterparty does not process personal data for you under this contract.",
+      "not_required": "No personal data is processed for anyone under this contract.",
       "covered": "A signed data processing agreement, with every required clause confirmed, covers this contract.",
-      "missing": "The counterparty processes personal data for you, but no data processing agreement is linked.",
+      "missing": "Personal data is processed under this contract, but no data processing agreement covers it.",
       "incomplete": "There is a data processing agreement, but it does not yet give full protection:"
     },
-    "linked": "Linked agreement {{ n }}",
-    "linkCta": "Register the data processing agreement as a contract, then link it here under Related.",
     "reasons": {
       "unsigned": "It is not signed and active yet.",
       "clauses_missing": "Required clauses are missing: {{ missing }}.",
@@ -322,7 +366,22 @@
       "negotiationTask": "Create negotiation task",
       "negotiationTitle": "Negotiate missing data processing clauses ({{ code }})",
       "negotiationIntro": "Agree these clauses with the counterparty and record them in the checklist:"
-    }
+    },
+    "thisIsDpa": "This data processing agreement",
+    "notRequiredLine": "No data processing agreement is needed: no personal data is processed for anyone.",
+    "covers": "Covers",
+    "coversNone": "Not linked to a main contract yet. Link it from the contract it belongs to.",
+    "linkedTitle": "Linked agreements",
+    "candidatesTitle": "Agreements that may cover this contract",
+    "match": {
+      "supplier": "Same supplier",
+      "org_number": "Same organisation number",
+      "name": "Same counterparty name"
+    },
+    "link": "Link",
+    "create": "Create a data processing agreement",
+    "subProcessors": "Sub-processors",
+    "transfer": "Transfer outside the EU/EEA:"
   },
   "dpaClauses": {
     "subject_matter_and_duration": "Subject matter, duration, nature and purpose of the processing",
@@ -355,7 +414,10 @@
     "due": "due {{ date }}",
     "recurring": "repeats: {{ rule }}",
     "addObligation": "Add as obligation",
-    "addObligationsOnCreate": "Also add the suggested obligations ({{ count }}) as tasks when the contract is created"
+    "addObligationsOnCreate": "Also add the suggested obligations ({{ count }}) as tasks when the contract is created",
+    "toRisk": "Add to the risk register",
+    "toTask": "Create task",
+    "clauseTaskTitle": "Agree the clause \"{{ clause }}\" with the counterparty ({{ code }})"
   },
   "ai": {
     "title": "Analyse an attached file",
@@ -377,23 +439,26 @@
     "recordHint": "Stored as suggestions. A person must confirm each clause."
   },
   "deadlines": {
-    "link": "Deadlines",
     "title": "Contract deadlines",
-    "subtitle": "Notice deadlines, end dates, reviews and other key dates across all contracts.",
+    "subtitle": "Notice deadlines, end dates, reviews and other key dates across all contracts, soonest first.",
     "window": "Show",
     "includeOverdue": "Include overdue",
     "today": "Today",
     "inDays": "In {{ days }} days",
-    "daysAgo": "{{ days }} days ago"
-  },
-  "lessons": {
-    "link": "Lesson: {{ title }} ({{ minutes }} min)"
+    "daysAgo": "{{ days }} days ago",
+    "mine": "Only my contracts",
+    "owner": "Owner: {{ name }}",
+    "noOwner": "no owner",
+    "createTask": "Create task",
+    "createTaskFor": "Create a task for {{ code }}",
+    "exportIcs": "Add to calendar",
+    "icsFile": "contract-deadlines"
   },
   "ask": {
     "summarise": "Summarise this contract: parties, key terms, deadlines, obligations and anything I should watch out for.",
     "noticePeriod": "What is a notice period, and how should I choose and record it for this contract?",
-    "noticeDeadline": "How is the notice deadline of this contract worked out, and what happens if we miss it?",
-    "deadlines": "Which contract deadlines need my attention first, and what should I do about each?"
+    "transferBasis": "What legal basis do we need when personal data is transferred outside the EU/EEA under this contract?",
+    "personalDataRole": "Do we need a data processing agreement for this contract, and who is the processor?"
   },
   "notices": {
     "created": "{{ code }} has been registered.",
@@ -410,11 +475,15 @@
       "activate": "{{ code }} is now active.",
       "renew": "{{ code }} has been renewed.",
       "terminate": "{{ code }} has been terminated.",
-      "expire": "{{ code }} has been marked as expired."
+      "expire": "{{ code }} has been marked as expired.",
+      "review": "The review of {{ code }} has been recorded."
     },
     "dpaChecklistSaved": "The clause checklist has been saved.",
     "dpaFindingsRecorded": "The findings have been recorded in the clause checklist for confirmation.",
-    "negotiationTaskAdded": "A negotiation task has been added under Tasks."
+    "negotiationTaskAdded": "A negotiation task has been added under Tasks.",
+    "dpaLinked": "{{ code }} is now linked as the data processing agreement.",
+    "copyUploaded": "The signed copy has been uploaded and added to the version.",
+    "settingsSaved": "The contract settings have been saved."
   },
   "errors": {
     "contract_closed": "This contract has ended and can no longer be changed.",
@@ -423,11 +492,11 @@
     "invalid_attachment": "Choose a file that is attached to this contract.",
     "invalid_contract_type": "Choose a valid contract type.",
     "invalid_currency": "Use a three-letter currency code, such as NOK or EUR.",
-    "invalid_dates": "Check the dates: the end date cannot be before the start date.",
+    "invalid_dates": "Check the dates: they must be in the right order and the next review in the future.",
     "invalid_department": "That department does not exist in this organisation.",
     "invalid_owner": "The owner must be a member of this organisation.",
     "invalid_transition": "The contract's status has changed. Reload the page and try again.",
-    "note_required": "Add a note explaining why.",
+    "note_required": "Add a note: what you checked, or why.",
     "renewal_term_missing": "Enter the new end date, or set a renewal term on the contract.",
     "too_many_parties": "A contract can have at most 20 parties.",
     "module_disabled": "Contract management is turned off for this organisation.",
@@ -438,7 +507,16 @@
     "invalid_clause_state": "Choose present, missing or waived.",
     "invalid_clause_source": "The clause could not be saved. Reload the page and try again.",
     "waiver_reason_required": "Give the reason for waiving this clause.",
-    "waiver_requires_person": "Only a person can waive a clause."
+    "waiver_requires_person": "Only a person can waive a clause.",
+    "exportFailed": "The export could not be created. Try again in a moment.",
+    "uploadFailed": "The file could not be uploaded. Try again.",
+    "self_approval_not_allowed": "You submitted or own this contract, so someone else must approve it.",
+    "review_incomplete": "Answer every question in the requirements review. If one answer is \"No\", send the contract back instead.",
+    "invalid_review_item": "The review questions have changed. Reload the page and try again.",
+    "invalid_review_answer": "Choose yes, no or not relevant for each question.",
+    "invalid_supplier": "That supplier does not exist in the supplier register.",
+    "not_a_dpa": "Choose a data processing agreement.",
+    "link_exists": "That agreement is already linked."
   },
   "notifications": {
     "ownerChanged": "You now own the contract {{ code }}: {{ title }}",
@@ -461,7 +539,8 @@
     "keyDateCompleted": "Key date done on {{ code }}",
     "keyDateRemoved": "Key date removed from {{ code }}",
     "versionUpdated": "Version updated on {{ code }}",
-    "obligationAdded": "Obligation added to {{ code }}"
+    "obligationAdded": "Obligation added to {{ code }}",
+    "reviewed": "Contract reviewed: {{ code }} {{ title }}"
   },
   "timeline": {
     "created": "Contract registered",
@@ -484,6 +563,153 @@
     "keyDateRemoved": "Key date removed",
     "versionAdded": "Version added",
     "versionUpdated": "Version updated",
-    "obligationAdded": "Obligation added"
+    "obligationAdded": "Obligation added",
+    "reviewed": "Reviewed"
+  },
+  "nav": {
+    "register": "Register",
+    "deadlines": "Deadlines"
+  },
+  "kpis": {
+    "active": "Active",
+    "dpa_missing": "No DPA",
+    "notice_soon": "Notice within 90 days",
+    "review": "Review overdue"
+  },
+  "warnings": {
+    "title": "Needs attention ({{ count }})",
+    "other": "Needs attention",
+    "dpa_missing": {
+      "label": "No data processing agreement",
+      "fix": "Link the agreement in the Data processing agreement card, or create one from this contract.",
+      "filter": "Personal data without a DPA"
+    },
+    "dpa_incomplete": {
+      "label": "DPA incomplete",
+      "fix": "Sign the agreement and confirm every Art. 28(3) clause in the checklist.",
+      "filter": "DPA incomplete"
+    },
+    "signed_copy_missing": {
+      "label": "No signed copy",
+      "fix": "Upload the signed copy on the version under Versions and signed copies.",
+      "filter": "Signed, but no signed copy"
+    },
+    "review_overdue": {
+      "label": "Review overdue",
+      "fix": "Review the contract and record it with \"Mark as reviewed\".",
+      "filter": "Review overdue"
+    },
+    "review_date_missing": {
+      "label": "No review date",
+      "fix": "Set the next review date so the supplier is followed up regularly.",
+      "filter": "No review date"
+    },
+    "notice_soon": {
+      "label": "Notice deadline soon",
+      "fix": "Decide now whether to renew or give notice, before the deadline passes.",
+      "filter": "Notice deadline within 90 days"
+    },
+    "end_date_missing": {
+      "label": "No end date",
+      "fix": "Record the end date, or note in the renewal terms that it runs until further notice.",
+      "filter": "No end date"
+    },
+    "notice_period_missing": {
+      "label": "No notice period",
+      "fix": "Record the notice period so the notice deadline can be worked out.",
+      "filter": "No notice period"
+    }
+  },
+  "personalDataRoles": {
+    "none": {
+      "label": "No personal data",
+      "hint": "Neither side processes personal data for the other."
+    },
+    "they_process": {
+      "label": "They process personal data for us",
+      "hint": "The counterparty is our processor (for example a cloud or payroll provider). A data processing agreement is required (GDPR Art. 28)."
+    },
+    "we_process": {
+      "label": "We process personal data for them",
+      "hint": "We are the counterparty’s processor (for example we run a service for a customer). A data processing agreement is required."
+    },
+    "joint_controllers": {
+      "label": "Joint controllers",
+      "hint": "We decide together why and how the data is processed. You need an arrangement under GDPR Art. 26, not a processor agreement."
+    }
+  },
+  "transferBases": {
+    "none": "No transfer outside the EU/EEA",
+    "adequacy": "Adequacy decision (e.g. the EU-US Data Privacy Framework)",
+    "scc": "Standard contractual clauses (SCC)",
+    "bcr": "Binding corporate rules (BCR)",
+    "derogation": "Exception for a specific situation (Art. 49)",
+    "other": "Other basis"
+  },
+  "reviewItems": {
+    "requirements_defined": "The scope, deliverables and requirements are clear and agreed",
+    "differences_resolved": "Differences from the offer or order are resolved",
+    "able_to_deliver": "We can deliver what we commit to (capacity, competence and dates)",
+    "terms_acceptable": "Price, liability, term and termination are acceptable",
+    "supplier_approved": "The supplier is evaluated and approved",
+    "security_clauses": "Information security requirements are included in the contract",
+    "confidentiality_scope": "It is clear what is confidential, for how long and the exceptions",
+    "dpa_in_place": "A data processing agreement covers the personal data",
+    "dpa_clauses_checked": "Every required clause in GDPR Art. 28(3) is checked",
+    "sub_processors_known": "Sub-processors are listed and approved",
+    "transfers_assessed": "Transfers outside the EU/EEA have a legal basis",
+    "unknown": "Other check"
+  },
+  "approve": {
+    "checklistTitle": "Requirements review",
+    "submittedBy": "Submitted by {{ name }}.",
+    "answers": {
+      "yes": "Yes",
+      "no": "No",
+      "na": "Not relevant"
+    },
+    "declined": "You answered \"No\" to at least one question. Send the contract back instead, and say what must change.",
+    "trailTitle": "Approval and requirements review",
+    "trailBy": "Approved by {{ name }}, {{ date }}",
+    "note": "Note"
+  },
+  "signing": {
+    "copy": "Upload the signed copy",
+    "copyDone": "The signed copy is attached.",
+    "copyTodo": "Upload it on the latest version under Versions and signed copies.",
+    "sign": "Mark the version as signed",
+    "signDone": "The latest version is signed.",
+    "signTodo": "Use \"Mark signed\" on the latest version.",
+    "activate": "Mark the contract as active"
+  },
+  "settings": {
+    "title": "Contract settings",
+    "subtitle": "How contracts are approved and how often they are reviewed.",
+    "sodTitle": "Approval by someone else",
+    "sodBody": "The person who submitted a contract, or owns it, cannot approve it. This gives you the segregation of duties auditors look for.",
+    "sodLabel": "Require another person to approve",
+    "reviewTitle": "Regular review",
+    "reviewBody": "When a supplier, SLA or data processing agreement becomes active, its next review is set this many months after the signing date. \"Mark as reviewed\" moves it on by the same interval.",
+    "reviewMonths": "Months between reviews",
+    "monthsInvalid": "Enter a whole number from 1 to 60.",
+    "readOnly": "Only people who manage contracts can change these settings."
+  },
+  "next": {
+    "notice": {
+      "title": "Notice deadline for {{ code }} {{ title }}",
+      "why": "In {{ days }} days. After that the contract renews or ends as written. Decide now."
+    },
+    "reviewOverdue": {
+      "title": "Review {{ code }} {{ title }}",
+      "why": "The review was due {{ date }}. Check that the supplier still meets your requirements."
+    },
+    "deadlineOverdue": {
+      "title": "Overdue deadline on {{ code }} {{ title }}",
+      "why": "It was due {{ date }}. Deal with it, or mark the key date as done."
+    },
+    "deadline": {
+      "title": "Coming up on {{ code }} {{ title }}",
+      "why": "Due {{ date }}, in {{ days }} days."
+    }
   }
 }

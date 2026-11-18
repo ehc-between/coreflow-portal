@@ -33,7 +33,100 @@ export type StatusCategory = 'open' | 'in_progress' | 'done' | 'cancelled';
 export type Source = 'internal' | 'audit' | 'inspection' | 'customer' | 'incident' | 'other';
 
 /** Structured root-cause analysis method. */
-export type RootCauseMethod = 'five_why' | 'fishbone' | '8d' | 'other';
+export type RootCauseMethod = 'five_why' | 'fishbone' | '8d' | 'other' | 'not_needed';
+
+/**
+ * The standard of a cited clause: a framework key, or `hs` for the clauses every ISO
+ * management system standard shares (Harmonised Structure, e.g. `hs:10.2`).
+ */
+export type ClauseStandard = Standard | 'hs';
+
+/** An authority notification a deviation may trigger (A02). */
+export type ReportingKey =
+  | 'gdpr_33'
+  | 'nis2_early_warning'
+  | 'nis2_notification'
+  | 'nis2_final_report'
+  | 'arbeidstilsynet';
+
+/** The authority a notification goes to. */
+export type ReportingAuthority = 'datatilsynet' | 'csirt' | 'arbeidstilsynet';
+
+/** Where an authority notification stands. */
+export type ReportingStatus =
+  | 'pending'
+  | 'overdue'
+  | 'notified'
+  | 'not_required'
+  | 'closed_unreported';
+
+/** One authority notification that applies to a deviation (computed by the API). */
+export interface ReportingObligation {
+  readonly key: ReportingKey;
+  readonly framework: string;
+  readonly authority: ReportingAuthority;
+  /** Canonical clause ref of the legal basis, e.g. `gdpr:33`. */
+  readonly article: string;
+  readonly hours: number;
+  /** "Without delay" duties (the deadline is a reminder). */
+  readonly immediately: boolean;
+  readonly clock_started_at: string | null;
+  readonly clock_source: 'detected_at' | 'raised_at';
+  readonly deadline_at: string | null;
+  readonly status: ReportingStatus;
+  readonly notified_at?: string | null;
+  readonly reference?: string | null;
+  readonly not_required_reason?: string | null;
+  /** The urgent reminder task for the owner. */
+  readonly task_id?: string | null;
+}
+
+/** What the user records about one notification; an explicit null clears a value. */
+export interface ReportingUpdate {
+  readonly notified_at?: string | null;
+  readonly reference?: string | null;
+  readonly not_required_reason?: string | null;
+}
+
+/** One typical clause of the deviation's type, offered as a one-click requirement link. */
+export interface SuggestedClause {
+  /** Canonical clause ref, e.g. `iso9001:10.2`. */
+  readonly ref: string;
+  readonly framework: string;
+  readonly number: string;
+  readonly title: string;
+  readonly title_nb?: string | null;
+  readonly requirement_count: number;
+  /** Already cited (and so linked) on this deviation. */
+  readonly linked: boolean;
+}
+
+/** The record a deviation was created from (a finding, feedback, breach or report). */
+export interface DeviationOrigin {
+  readonly entity_type: string;
+  readonly id: string;
+  readonly code?: string | null;
+  readonly title?: string | null;
+  readonly url?: string | null;
+  readonly module?: string | null;
+  readonly via: 'flow' | 'link' | 'intake';
+}
+
+/** The checks shown before a deviation is closed. */
+export type ClosureCheckKey =
+  | 'root_cause'
+  | 'actions_done'
+  | 'effectiveness_reviewed'
+  | 'corrective_action_planned'
+  | 'requirements_linked'
+  | 'authorities_notified';
+
+export interface ClosureCheck {
+  readonly key: ClosureCheckKey;
+  readonly done: boolean;
+  /** Required for closing (the others are recommended). */
+  readonly required: boolean;
+}
 
 /** Who may see a deviation: the whole org, or a restricted set of subjects. */
 export type DeviationVisibility = 'organization' | 'restricted';
@@ -90,11 +183,14 @@ export interface DeviationType {
    * bound type use the record type's fields and workflow; `schema` is unused for them.
    */
   readonly record_type_id?: string | null;
+  /** Canonical clause refs offered as one-click requirement links (A02). */
+  readonly default_clauses?: readonly string[];
 }
 
 /** Body for creating or updating a deviation type (admin form-builder). */
 export interface DeviationTypeInput {
-  readonly key: string;
+  /** Optional on create since A02: derived from the name when left out. */
+  readonly key?: string;
   readonly name: string;
   readonly description?: string;
   readonly standards?: readonly Standard[];
@@ -103,6 +199,8 @@ export interface DeviationTypeInput {
   readonly is_active?: boolean;
   /** Bind to an F4 record type (`deviations:admin`); an explicit null unbinds. */
   readonly record_type_id?: string | null;
+  /** Canonical clause refs; `null` = the defaults of the type's standards. */
+  readonly default_clauses?: readonly string[] | null;
 }
 
 /** AI-proposed draft of a deviation type, to populate the editor for review. */
@@ -117,7 +215,7 @@ export interface DeviationTypeDraftResponse {
 
 /** A standard + clause reference pair (e.g. iso9001 / "8.7"). */
 export interface ClauseRef {
-  readonly standard: Standard;
+  readonly standard: ClauseStandard;
   readonly clause: string;
 }
 
@@ -149,6 +247,8 @@ export interface DeviationListItem {
   readonly due_at?: string;
   readonly closed_at?: string;
   readonly created_at: string;
+  /** Open and past its due date (A02; computed by the API). */
+  readonly overdue?: boolean;
 }
 
 /** What a CAPA action is meant to do: contain, correct or prevent recurrence. */
@@ -300,6 +400,19 @@ export interface DeviationDetail extends DeviationListItem {
    * transitions, approvals, definition); null for legacy deviations.
    */
   readonly workflow?: DeviationWorkflow | null;
+  // A02 event facts (naive UTC datetimes).
+  readonly occurred_at?: string | null;
+  readonly detected_at?: string | null;
+  readonly location?: string | null;
+  readonly immediate_action?: string | null;
+  /** The type's typical clauses (enabled standards only), for one-click linking. */
+  readonly suggested_clauses?: readonly SuggestedClause[];
+  /** The standards of the confirmed requirement links (the standard chips). */
+  readonly requirement_standards?: readonly string[];
+  readonly reporting_obligations?: readonly ReportingObligation[];
+  /** Where the deviation came from (only when the user may read it). */
+  readonly origin?: DeviationOrigin | null;
+  readonly closure_checklist?: readonly ClosureCheck[];
 }
 
 /**
@@ -360,6 +473,11 @@ export interface CreateDeviationRequest {
   readonly due_at?: string;
   readonly root_cause?: string;
   readonly root_cause_method?: RootCauseMethod;
+  readonly occurred_at?: string;
+  readonly detected_at?: string;
+  readonly location?: string;
+  readonly immediate_action?: string;
+  readonly reporting?: Partial<Record<ReportingKey, ReportingUpdate>>;
   readonly data: Record<string, unknown>;
   readonly visibility?: DeviationVisibility;
   /** F8 links created from the new deviation (at most 20). */
@@ -404,6 +522,13 @@ export interface UpdateDeviationRequest {
   readonly root_cause?: string;
   /** `null` clears the method. */
   readonly root_cause_method?: RootCauseMethod | null;
+  /** `null` clears the event facts. */
+  readonly occurred_at?: string | null;
+  readonly detected_at?: string | null;
+  readonly location?: string | null;
+  readonly immediate_action?: string | null;
+  /** Merged per obligation; an explicit null clears one value. */
+  readonly reporting?: Partial<Record<ReportingKey, ReportingUpdate>>;
   readonly data?: Record<string, unknown>;
   readonly visibility?: DeviationVisibility;
 }
@@ -478,6 +603,32 @@ export interface DeviationStats {
   readonly opened_over_time: readonly StatsMonthCount[];
   readonly open_actions: number;
   readonly overdue_actions: number;
+  /** Status keys in workflow order (A02). */
+  readonly status_order?: readonly string[];
+  readonly by_source?: Record<string, number>;
+  readonly closed_over_time?: readonly StatsMonthCount[];
+  /** Deviations per linked requirement clause. */
+  readonly by_requirement?: readonly StatsRequirementCount[];
+  readonly kpis?: DeviationKpis | null;
+}
+
+/** Deviations linked to one requirement clause (stats). */
+export interface StatsRequirementCount {
+  readonly framework: string;
+  readonly number: string;
+  readonly title: string;
+  readonly title_nb?: string | null;
+  readonly count: number;
+}
+
+/** The KPIs auditors ask for (null when there is nothing to measure yet). */
+export interface DeviationKpis {
+  readonly median_days_to_close: number | null;
+  readonly avg_days_to_close: number | null;
+  readonly closed_on_time_pct: number | null;
+  readonly actions_effective_pct: number | null;
+  readonly recurring: number;
+  readonly open_age: { readonly lt_30?: number; readonly d30_90?: number; readonly gt_90?: number };
 }
 
 /** The selectable subjects for the user/department pickers, split by kind. */
@@ -502,6 +653,20 @@ export interface DeviationTemplate {
   /** The org's deviation type installed from this template (null: not installed). */
   readonly deviation_type_id: string | null;
   readonly record_type_id: string | null;
+  // A02: typical clauses, a "choose this when…" hint, restricted cases, field preview.
+  readonly clauses?: readonly string[];
+  readonly when_to_use?: Readonly<Record<string, string>>;
+  readonly restricted?: boolean;
+  readonly fields?: readonly DeviationTemplateField[];
+  readonly installed?: boolean;
+}
+
+/** One field of a template's preview. */
+export interface DeviationTemplateField {
+  readonly key: string;
+  readonly label: Readonly<Record<string, string>>;
+  readonly type: string;
+  readonly required: boolean;
 }
 
 export interface DeviationTemplateList {

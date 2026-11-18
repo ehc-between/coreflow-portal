@@ -10,16 +10,26 @@ export interface FilterOption {
 
 let nextId = 0;
 
-/** A compact, labelled list-filter `<select>` (the label is visually hidden). */
+/**
+ * A compact, labelled list-filter `<select>`. In the toolbar the label is
+ * visually hidden (the "all …" option names the filter); inside "Flere filtre"
+ * (`showLabel`) it sits above the control.
+ */
 @Component({
   selector: 'app-context-filter',
   imports: [TranslocoPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'flex flex-col gap-1' },
   template: `
-    <label [attr.for]="id" class="sr-only">{{ labelKey() | transloco }}</label>
+    <label
+      [attr.for]="id"
+      [class]="showLabel() ? 'text-meta font-semibold text-fg-muted' : 'sr-only'"
+      >{{ labelKey() | transloco }}</label
+    >
     <select
       [id]="id"
-      class="h-10 max-w-[220px] rounded-[10px] border border-border bg-bg px-3 text-[13px] text-fg outline-none focus:border-accent"
+      class="h-10 rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent"
+      [class]="showLabel() ? 'w-full' : 'w-auto max-w-[220px]'"
       (change)="valueChange.emit($any($event.target).value)"
     >
       <option value="" [selected]="!value()">{{ allKey() | transloco }}</option>
@@ -41,6 +51,8 @@ export class ContextFilter {
   readonly allKey = input.required<string>();
   readonly options = input.required<readonly FilterOption[]>();
   readonly value = input('');
+  /** Show the label above the control (inside the "Flere filtre" panel). */
+  readonly showLabel = input(false);
   readonly valueChange = output<string>();
 
   protected readonly id = `cf-context-filter-${++nextId}`;

@@ -154,6 +154,7 @@ export const MODULE_SETTINGS_CARDS: readonly ModuleSettingsCard[] = [
     links: [
       { path: '/documents/types', labelKey: 'settings.hub.moduleLinks.types' },
       { path: '/documents/templates', labelKey: 'settings.hub.moduleLinks.templates' },
+      { path: '/documents/retention', labelKey: 'settings.hub.moduleLinks.retention' },
     ],
   },
   {
@@ -174,6 +175,16 @@ export const MODULE_SETTINGS_CARDS: readonly ModuleSettingsCard[] = [
     module: 'risk',
     icon: 'risk',
     links: [{ path: '/risk/matrices', labelKey: 'settings.hub.moduleLinks.matrices' }],
+  },
+  {
+    module: 'management_review',
+    icon: 'calendar',
+    links: [{ path: '/management-review/settings', labelKey: 'settings.hub.moduleLinks.settings' }],
+  },
+  {
+    module: 'contracts',
+    icon: 'contract',
+    links: [{ path: '/contracts/settings', labelKey: 'settings.hub.moduleLinks.settings' }],
   },
   {
     module: 'recruitment',

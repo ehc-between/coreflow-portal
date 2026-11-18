@@ -43,53 +43,76 @@ async function setup(permissions: string[] = []) {
           currentOrg: signal({ id: ORG, name: 'Org', roles: [], permissions }).asReadonly(),
         },
       },
-      { provide: AuthService, useValue: { orgs: signal({}).asReadonly() } },
+      {
+        provide: AuthService,
+        useValue: {
+          orgs: signal({}).asReadonly(),
+          isAuthenticated: signal(false).asReadonly(),
+          user: signal(null).asReadonly(),
+        },
+      },
     ],
   });
   const fixture = TestBed.createComponent(DocumentsList);
   await fixture.whenStable();
-  return {
-    fixture,
-    root: fixture.nativeElement as HTMLElement,
-    http: TestBed.inject(HttpTestingController),
-  };
+  const http = TestBed.inject(HttpTestingController);
+  // The org's document types give the readable type names.
+  http
+    .match((r) => r.url.endsWith('/document-types'))
+    .forEach((r) => r.flush([{ id: 't-1', key: 'procedure', name: 'Prosedyre', active: true }]));
+  return { fixture, root: fixture.nativeElement as HTMLElement, http };
 }
 
+/** Everything else the page loads on the side (guidance, coverage …). */
+function flushRest(http: HttpTestingController): void {
+  flushLocationRequests(http);
+  http
+    .match((r) => r.url !== URL)
+    .forEach((r) =>
+      r.flush(r.request.url.endsWith('/access-subjects') ? { users: [], departments: [] } : {}),
+    );
+}
+
+const rows = (root: HTMLElement) => Array.from(root.querySelectorAll('app-record-row'));
+
 describe('DocumentsList', () => {
-  it('pages the full list client-side', async () => {
+  it('pages the full list client-side, with the type name and never the raw key', async () => {
     const { fixture, root, http } = await setup();
     const all = Array.from({ length: DOCUMENTS_PAGE_SIZE + 3 }, (_, i) => summary(i));
     const req = http.expectOne((r) => r.url === URL);
     expect(req.request.params.has('limit')).toBe(false);
     req.flush(all);
     await fixture.whenStable();
-    expect(root.querySelectorAll('li').length).toBe(DOCUMENTS_PAGE_SIZE);
+    expect(rows(root).length).toBe(DOCUMENTS_PAGE_SIZE);
+    expect(rows(root)[0].textContent).toContain('Prosedyre · Rev A');
+    expect(rows(root)[0].textContent).not.toContain('procedure');
 
-    const next = Array.from(root.querySelectorAll<HTMLButtonElement>('nav button'))[1];
+    const next = Array.from(root.querySelectorAll<HTMLButtonElement>('app-pager button'))[1];
     next.click();
     const second = http.expectOne((r) => r.url === URL);
     second.flush(all);
     await fixture.whenStable();
-    expect(root.querySelectorAll('li').length).toBe(3);
-    flushLocationRequests(http);
-    http.verify();
+    expect(rows(root).length).toBe(3);
+    flushRest(http);
   });
 
-  it('badges overdue reviews and filters to review-due documents', async () => {
+  it('shows the owner and the next review, and filters to review-due documents', async () => {
     const { fixture, root, http } = await setup();
-    const all = [summary(1, { review_overdue: true }), summary(2)];
+    const all = [
+      summary(1, { review_overdue: true, next_review_at: '2026-01-10', owner_name: 'Kari' }),
+      summary(2),
+    ];
     http.expectOne((r) => r.url === URL).flush(all);
     await fixture.whenStable();
-    expect(root.textContent).toContain('documents.review.overdue');
-    expect(root.querySelector('nav')).toBeNull();
+    expect(rows(root)[0].textContent).toContain('Kari');
+    expect(rows(root)[0].textContent).toContain('common.status.overdue');
 
-    root.querySelector<HTMLButtonElement>('button[aria-pressed]')!.click();
+    root.querySelector<HTMLButtonElement>('[data-testid="filter-review"]')!.click();
     http.expectOne((r) => r.url === URL).flush(all);
     await fixture.whenStable();
-    expect(root.querySelectorAll('li').length).toBe(1);
+    expect(rows(root).length).toBe(1);
     expect(root.textContent).toContain('Doc 1');
-    flushLocationRequests(http);
-    http.verify();
+    flushRest(http);
   });
 
   const linked = [
@@ -100,30 +123,19 @@ describe('DocumentsList', () => {
     summary(3, { requirement_links: { confirmed: 0, suggested: 0, refs: [] } }),
   ];
 
-  it('shows requirement chips: confirmed count, suggested hint, and "not linked"', async () => {
+  it('shows requirement coverage chips (documents / suggested / not linked)', async () => {
     const { fixture, root, http } = await setup(['standards:read']);
     http.expectOne((r) => r.url === URL).flush(linked);
     await fixture.whenStable();
     const cells = Array.from(root.querySelectorAll('[data-testid="requirement-cell"]'));
     expect(cells).toHaveLength(3);
-
-    const count = cells[0].querySelector('[data-testid="requirement-count"]')!;
-    expect(count.textContent).toContain('documents.requirements.count');
-    expect(count.getAttribute('title')).toBe('5.2.r1, 7.5.r1');
-    expect(cells[0].querySelector('[data-testid="requirement-suggested"]')?.textContent).toContain(
-      '1',
-    );
-
-    expect(cells[1].querySelector('[data-testid="requirement-count"]')).toBeNull();
-    expect(cells[1].textContent).toContain('documents.requirements.none');
-    expect(cells[1].querySelector('[data-testid="requirement-suggested"]')?.textContent).toContain(
-      '3',
-    );
-
-    expect(cells[2].textContent).toContain('documents.requirements.none');
-    expect(cells[2].querySelector('[data-testid="requirement-suggested"]')).toBeNull();
-    flushLocationRequests(http);
-    http.verify();
+    const state = (cell: Element) =>
+      cell.querySelector('[data-testid="coverage-chip"]')?.getAttribute('data-state');
+    expect(cells.map(state)).toEqual(['documents', 'suggested', 'none']);
+    // Suggestions explain themselves; raw refs are never shown.
+    expect(cells[1].getAttribute('title')).toBeTruthy();
+    expect(root.textContent).not.toContain('5.2.r1');
+    flushRest(http);
   });
 
   it('filters to documents without a confirmed requirement link', async () => {
@@ -136,13 +148,12 @@ describe('DocumentsList', () => {
     http.expectOne((r) => r.url === URL).flush(linked);
     await fixture.whenStable();
     expect(toggle.getAttribute('aria-pressed')).toBe('true');
-    const titles = Array.from(root.querySelectorAll('li')).map((li) => li.textContent);
+    const titles = rows(root).map((row) => row.textContent ?? '');
     expect(titles).toHaveLength(2);
     expect(titles.join(' ')).toContain('Doc 2');
     expect(titles.join(' ')).toContain('Doc 3');
     expect(titles.join(' ')).not.toContain('Doc 1');
-    flushLocationRequests(http);
-    http.verify();
+    flushRest(http);
   });
 
   it('hides the requirement column and filter without standards:read', async () => {
@@ -151,7 +162,15 @@ describe('DocumentsList', () => {
     await fixture.whenStable();
     expect(root.querySelector('[data-testid="requirement-cell"]')).toBeNull();
     expect(root.querySelector('[data-testid="filter-unlinked"]')).toBeNull();
-    flushLocationRequests(http);
-    http.verify();
+    flushRest(http);
+  });
+
+  it('shows the teaching empty state when the organisation has no documents', async () => {
+    const { fixture, root, http } = await setup(['documents:draft']);
+    http.expectOne((r) => r.url === URL).flush([]);
+    await fixture.whenStable();
+    expect(root.querySelector('app-teaching-empty')).not.toBeNull();
+    expect(rows(root)).toHaveLength(0);
+    flushRest(http);
   });
 });

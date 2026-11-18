@@ -1,161 +1,213 @@
-import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { providePageContext } from '../../../core/ai/page-context';
-import { HasPermissionDirective } from '../../../core/auth/has-permission.directive';
+import { hasAnyPermission } from '../../../core/auth/permission';
 import { DeviationIntakeApi } from '../../../core/deviations/intake-api';
 import {
   INTAKE_STATUSES,
   IntakeReport,
+  IntakeSettings,
   IntakeStatus,
 } from '../../../core/deviations/intake.models';
+import { LanguageService } from '../../../core/i18n/language.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { TeachingEmpty } from '../../../shared/guidance/teaching-empty';
 import { LocalDatePipe } from '../../../shared/locale/locale-pipes';
-import { Badge, BadgeTone } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
-import { Card } from '../../../shared/ui/card/card';
+import { EmptyState } from '../../../shared/ui/empty-state/empty-state';
+import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { ModuleNav } from '../../../shared/ui/module-nav/module-nav';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { Pager } from '../../../shared/ui/pager/pager';
-import { DeviationPageGuide } from '../guide/deviation-page-guide';
+import { RecordRow, RecordRowHeader } from '../../../shared/ui/record-row/record-row';
+import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
+import { DEVIATIONS_ROOT_CRUMB, parseUtc } from '../deviation-display';
+import { DeviationFilter, FilterOption } from '../ui/filter-select';
+import { DeviationsNavService } from '../ui/deviations-nav';
 
 const PAGE_SIZE = 25;
 
-/** Badge tone of an intake report status. */
-export function intakeStatusTone(status: string): BadgeTone {
+/** The shared tone-map value of an intake report status. */
+export function intakeStatusValue(status: string): string {
   switch (status) {
-    case 'new':
-      return 'info';
     case 'triaged':
-      return 'warn';
+      return 'in_progress';
     case 'converted':
-      return 'pass';
+      return 'done';
+    case 'dismissed':
+      return 'cancelled';
     default:
-      return 'neutral';
+      return status;
   }
 }
 
+/** The next legal deadline of a whistleblowing report (receipt, then feedback), or null. */
+export function nextDeadline(
+  report: IntakeReport,
+): { readonly kind: 'acknowledge' | 'feedback'; readonly at: string } | null {
+  if (report.acknowledge_due_at && !report.acknowledged_at) {
+    return { kind: 'acknowledge', at: report.acknowledge_due_at };
+  }
+  if (report.feedback_due_at && report.status !== 'dismissed') {
+    return { kind: 'feedback', at: report.feedback_due_at };
+  }
+  return null;
+}
+
 /**
- * The triage inbox of the anonymous / whistleblowing intake
- * (`deviations:intake`): received reports, newest first, filterable by status.
- * Each opens the report detail to triage, dismiss or convert it into a deviation.
+ * "Mottatte rapporter" — the triage inbox of the anonymous / whistleblowing intake
+ * (`deviations:intake`) on the shared page frame: received reports, newest first,
+ * filterable by status, with the legal deadlines of whistleblowing reports
+ * (confirm receipt within 7 days, give feedback within 3 months). When the public
+ * link is off, the empty state says so and offers to turn it on (finding 32).
  */
 @Component({
   selector: 'app-intake-inbox',
   imports: [
-    FormsModule,
     RouterLink,
     TranslocoPipe,
-    HasPermissionDirective,
-    Badge,
     Button,
-    Card,
+    EmptyState,
+    ErrorState,
+    HelpStrip,
     Icon,
-    Pager,
+    LoadingState,
     LocalDatePipe,
+    ModuleNav,
+    PageHeader,
+    Pager,
+    RecordRow,
+    RecordRowHeader,
+    StatusBadge,
     TeachingEmpty,
-    DeviationPageGuide,
+    DeviationFilter,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[1080px] px-4 pt-7 pb-12 sm:px-8">
-      <a
-        routerLink="/deviations"
-        class="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
+    <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+      <app-page-header
+        titleKey="deviations.intake.inbox.title"
+        descriptionKey="deviations.intake.inbox.subtitle"
+        [breadcrumbs]="breadcrumbs"
+        [settingsLink]="isAdmin() ? '/deviations/intake/settings' : null"
       >
-        <app-icon name="back" [size]="16" />
-        {{ 'deviations.backToList' | transloco }}
-      </a>
-      <div class="mb-4 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 class="font-display text-[24px] font-bold tracking-[-0.025em] text-fg sm:text-[26px]">
-            {{ 'deviations.intake.inbox.title' | transloco }}
-          </h1>
-          <p class="mt-1.5 text-[14px] text-fg-muted">
-            {{ 'deviations.intake.inbox.subtitle' | transloco }}
-          </p>
-        </div>
-        <a *appHasPermission="'deviations:admin'" routerLink="/deviations/intake/settings">
-          <app-button variant="secondary">
-            <app-icon name="sliders" [size]="15" />
-            {{ 'deviations.intake.settings.link' | transloco }}
-          </app-button>
-        </a>
-      </div>
-
-      <app-deviation-page-guide class="mb-5" page="intakeInbox" lesson="speaking-up" />
-
-      <div class="mb-3 flex flex-wrap items-center gap-2">
-        <label for="intake-status" class="text-[13px] font-semibold text-fg-muted">
-          {{ 'deviations.intake.inbox.status' | transloco }}
-        </label>
-        <select
-          id="intake-status"
-          [ngModel]="status()"
-          (ngModelChange)="setStatus($event)"
-          class="h-10 rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg outline-none focus:border-accent"
-        >
-          <option value="">{{ 'deviations.intake.inbox.allStatuses' | transloco }}</option>
-          @for (option of statuses; track option) {
-            <option [value]="option">{{ 'deviations.intake.status.' + option | transloco }}</option>
-          }
-        </select>
-      </div>
-
-      <app-card [padded]="false">
-        @if (loading()) {
-          <p class="px-4 py-10 text-center text-[14px] text-fg-muted">
-            {{ 'common.loading' | transloco }}
-          </p>
-        } @else if (items().length === 0) {
-          @if (status()) {
-            <p class="px-4 py-10 text-center text-[14px] text-fg-muted">
-              {{ 'deviations.intake.inbox.noneWithStatus' | transloco }}
-            </p>
-          } @else {
-            <app-teaching-empty scope="deviations" page="intakeInbox" [showAction]="false" />
-          }
-        } @else {
-          <ul>
-            @for (report of items(); track report.id) {
-              <li class="border-b border-border last:border-b-0 hover:bg-surface-2">
-                <a
-                  [routerLink]="['/deviations/intake', report.id]"
-                  class="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3 outline-none focus-visible:ring-2 focus-visible:ring-accent"
-                >
-                  <span class="min-w-0 flex-1">
-                    <span class="block truncate font-semibold text-fg">{{ report.title }}</span>
-                    <span class="block text-[12.5px] text-fg-muted">
-                      {{ 'deviations.intake.modes.' + report.mode | transloco }}
-                      · {{ report.created_at | localDate: 'medium' }}
-                    </span>
-                  </span>
-                  @if (report.deviation_code) {
-                    <span class="font-mono text-[12px] text-fg-subtle">{{
-                      report.deviation_code
-                    }}</span>
-                  }
-                  <app-badge [tone]="tone(report.status)">{{
-                    'deviations.intake.status.' + report.status | transloco
-                  }}</app-badge>
-                </a>
-              </li>
-            }
-          </ul>
+        @if (isAdmin()) {
+          <a secondary routerLink="/deviations/intake/settings" tabindex="-1">
+            <app-button variant="secondary">
+              <app-icon name="sliders" [size]="15" />
+              {{ 'deviations.intake.settings.link' | transloco }}
+            </app-button>
+          </a>
         }
-      </app-card>
+      </app-page-header>
+      <app-module-nav [items]="nav.items()" labelKey="modules.names.deviations" />
+      <app-help-strip scope="deviations" page="intakeInbox" lesson="speaking-up" />
 
-      @if (!loading() && total() > pageSize) {
-        <div class="mt-4">
-          <app-pager
-            [offset]="offset()"
-            [pageSize]="pageSize"
-            [count]="items().length"
-            [total]="total()"
-            (pageChange)="goTo($event)"
-          />
+      @if (linkOff()) {
+        <div
+          class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-tile border border-border bg-surface-2 px-4 py-3"
+          data-testid="link-off"
+        >
+          <p class="text-ui text-fg">{{ 'deviations.intake.inbox.linkOff' | transloco }}</p>
+          @if (isAdmin()) {
+            <a routerLink="/deviations/intake/settings" tabindex="-1">
+              <app-button size="sm">{{ 'deviations.intake.inbox.turnOn' | transloco }}</app-button>
+            </a>
+          }
         </div>
+      }
+
+      <div class="mb-4 flex flex-wrap items-end gap-2">
+        <app-deviation-filter
+          labelKey="deviations.intake.inbox.status"
+          allKey="deviations.intake.inbox.allStatuses"
+          [options]="statusOptions"
+          [value]="status()"
+          (valueChange)="setStatus($any($event))"
+        />
+      </div>
+
+      @if (error()) {
+        <app-error-state (retry)="reload()" />
+      } @else if (loading()) {
+        <app-loading-state [rows]="4" />
+      } @else if (items().length === 0) {
+        @if (status()) {
+          <app-empty-state
+            icon="inbox"
+            titleKey="deviations.intake.inbox.noneWithStatus"
+            [bodyKey]="
+              linkOff()
+                ? 'deviations.intake.inbox.noneLinkOff'
+                : 'deviations.intake.inbox.noneWithStatusBody'
+            "
+            [compact]="true"
+          />
+        } @else {
+          <app-teaching-empty scope="deviations" page="intakeInbox" [showAction]="false" />
+        }
+      } @else {
+        <div class="overflow-hidden rounded-card border border-border bg-surface">
+          <app-record-row-header
+            dateKind="created"
+            [coverage]="false"
+            [owner]="false"
+            codeKey="deviations.intake.inbox.deviationColumn"
+            titleKey="deviations.intake.inbox.reportColumn"
+          />
+          <div role="list" [attr.aria-label]="'deviations.intake.inbox.title' | transloco">
+            @for (report of items(); track report.id) {
+              <app-record-row
+                [code]="report.deviation_code"
+                [title]="report.title"
+                [subtitle]="'deviations.intake.modes.' + report.mode | transloco"
+                [link]="['/deviations/intake', report.id]"
+                [date]="report.created_at"
+                dateKind="created"
+              >
+                <app-status-badge
+                  badges
+                  meaning="lifecycle"
+                  [value]="statusValue(report.status)"
+                  [labelKey]="'deviations.intake.status.' + report.status"
+                />
+                @if (deadline(report); as d) {
+                  <span
+                    badges
+                    class="text-meta"
+                    [class]="isLate(d.at) ? 'font-semibold text-warn-ink' : 'text-fg-muted'"
+                    >{{
+                      'deviations.intake.deadline.' + d.kind
+                        | transloco: { date: (d.at | localDate: 'mediumDate') }
+                    }}</span
+                  >
+                }
+              </app-record-row>
+            }
+          </div>
+        </div>
+        @if (total() > pageSize) {
+          <div class="mt-3">
+            <app-pager
+              [offset]="offset()"
+              [pageSize]="pageSize"
+              [count]="items().length"
+              [total]="total()"
+              (pageChange)="goTo($event)"
+            />
+          </div>
+        }
       }
     </div>
   `,
@@ -163,28 +215,61 @@ export function intakeStatusTone(status: string): BadgeTone {
 export class IntakeInboxPage {
   private readonly api = inject(DeviationIntakeApi);
   private readonly selectedOrg = inject(SelectedOrgService);
+  private readonly language = inject(LanguageService);
+  protected readonly nav = inject(DeviationsNavService);
 
-  protected readonly statuses = INTAKE_STATUSES;
+  protected readonly breadcrumbs = [
+    DEVIATIONS_ROOT_CRUMB,
+    { labelKey: 'deviations.intake.inbox.title' },
+  ];
+  protected readonly statusOptions: readonly FilterOption[] = INTAKE_STATUSES.map((s) => ({
+    value: s,
+    label: `deviations.intake.status.${s}`,
+  }));
   protected readonly pageSize = PAGE_SIZE;
   protected readonly status = signal<IntakeStatus | ''>('new');
   protected readonly offset = signal(0);
   protected readonly items = signal<readonly IntakeReport[]>([]);
   protected readonly total = signal(0);
   protected readonly loading = signal(true);
+  protected readonly error = signal(false);
+  protected readonly settings = signal<IntakeSettings | null>(null);
+
+  protected readonly isAdmin = computed(() =>
+    hasAnyPermission(this.selectedOrg.currentOrg()?.permissions, 'deviations:admin'),
+  );
+  /** The public link is known to be off (admins only can read the settings). */
+  protected readonly linkOff = computed(() => this.settings()?.enabled === false);
+
+  protected readonly statusValue = intakeStatusValue;
+  protected readonly deadline = nextDeadline;
 
   constructor() {
-    providePageContext(() => ({ module: 'deviations', view: 'list', title: null }));
+    providePageContext(() => ({
+      module: 'deviations',
+      entityType: 'intake_report',
+      view: 'list',
+      title: this.language.translate('deviations.intake.inbox.title'),
+    }));
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();
       if (orgId) {
         this.offset.set(0);
         this.load(orgId);
+        this.settings.set(null);
+        if (this.isAdmin()) {
+          this.api.getSettings(orgId).subscribe({
+            next: (s) => this.settings.set(s),
+            error: () => this.settings.set(null),
+          });
+        }
       }
     });
   }
 
-  protected tone(status: string): BadgeTone {
-    return intakeStatusTone(status);
+  protected isLate(at: string): boolean {
+    const date = parseUtc(at);
+    return !!date && date.getTime() < Date.now();
   }
 
   protected setStatus(value: IntakeStatus | ''): void {
@@ -198,7 +283,7 @@ export class IntakeInboxPage {
     this.reload();
   }
 
-  private reload(): void {
+  protected reload(): void {
     const orgId = this.selectedOrg.currentOrgId();
     if (orgId) {
       this.load(orgId);
@@ -207,6 +292,7 @@ export class IntakeInboxPage {
 
   private load(orgId: string): void {
     this.loading.set(true);
+    this.error.set(false);
     this.api
       .listReports(orgId, {
         status: this.status() || undefined,
@@ -219,7 +305,10 @@ export class IntakeInboxPage {
           this.total.set(list.total);
           this.loading.set(false);
         },
-        error: () => this.loading.set(false),
+        error: () => {
+          this.error.set(true);
+          this.loading.set(false);
+        },
       });
   }
 }

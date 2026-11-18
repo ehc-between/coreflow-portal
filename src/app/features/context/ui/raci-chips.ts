@@ -26,11 +26,11 @@ export function raciGroups(assignments: readonly RaciAssignment[]): RaciGroup[] 
     <dl class="grid grid-cols-1 gap-3 sm:grid-cols-2">
       @for (group of groups(); track group.raci) {
         <div class="rounded-tile border border-border p-2.5">
-          <dt class="mb-1.5 flex items-center gap-2 text-[13px] font-semibold text-fg">
+          <dt class="mb-1.5 flex items-center gap-2 text-ui font-semibold text-fg">
             <app-context-raci-letter [raci]="group.raci" />
             {{ 'context.raci.roles.' + group.raci | transloco }}
           </dt>
-          <dd class="text-[13px] text-fg-muted">
+          <dd class="text-ui text-fg-muted">
             @for (a of group.assignments; track a.type + a.value; let last = $last) {
               <span class="text-fg">
                 @if (a.type === 'role') {
@@ -39,7 +39,7 @@ export function raciGroups(assignments: readonly RaciAssignment[]): RaciGroup[] 
                   {{ a.name || a.value }}
                 }
               </span>
-              <span class="text-[11.5px] text-fg-subtle">
+              <span class="text-meta text-fg-subtle">
                 ({{ 'context.assigneeTypes.' + a.type | transloco }})</span
               >{{ last ? '' : ', ' }}
             } @empty {

@@ -61,17 +61,17 @@ export function diffRows(
   imports: [TranslocoPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <ol class="flex flex-col gap-1 text-[13.5px] leading-relaxed" data-testid="diff-rows">
+    <ol class="flex flex-col gap-1 text-ui leading-relaxed" data-testid="diff-rows">
       @for (row of rows(); track $index) {
         @switch (row.kind) {
           @case ('equal') {
-            <li class="rounded-[6px] px-3 py-1 text-fg-muted">{{ row.text }}</li>
+            <li class="rounded-md px-3 py-1 text-fg-muted">{{ row.text }}</li>
           }
           @case ('skip') {
             <li>
               <button
                 type="button"
-                class="w-full rounded-[6px] border border-dashed border-border px-3 py-1 text-left text-[12px] text-fg-subtle hover:text-fg"
+                class="w-full rounded-md border border-dashed border-border px-3 py-1 text-left text-meta text-fg-subtle hover:text-fg"
                 (click)="expand(row.blockIndex)"
               >
                 {{ 'documents.control.compare.unchanged' | transloco: { count: row.count } }}
@@ -79,30 +79,30 @@ export function diffRows(
             </li>
           }
           @case ('insert') {
-            <li class="rounded-[6px] border-l-4 border-pass bg-pass-soft px-3 py-1 text-fg">
+            <li class="rounded-md border-l-4 border-pass bg-pass-soft px-3 py-1 text-fg">
               <span class="sr-only">{{ 'documents.control.compare.added' | transloco }}</span>
               <ins class="no-underline">{{ row.text }}</ins>
             </li>
           }
           @case ('delete') {
-            <li class="rounded-[6px] border-l-4 border-fail bg-fail-soft px-3 py-1 text-fg-muted">
+            <li class="rounded-md border-l-4 border-fail bg-fail-soft px-3 py-1 text-fg-muted">
               <span class="sr-only">{{ 'documents.control.compare.removed' | transloco }}</span>
               <del>{{ row.text }}</del>
             </li>
           }
           @case ('inline') {
-            <li class="rounded-[6px] border-l-4 border-warn bg-warn-soft px-3 py-1 text-fg">
+            <li class="rounded-md border-l-4 border-warn bg-warn-soft px-3 py-1 text-fg">
               <span class="sr-only">{{ 'documents.control.compare.changed' | transloco }}</span>
               @for (seg of row.block.segments; track $index) {
                 @switch (seg.op) {
                   @case ('insert') {
                     <ins
-                      class="rounded-[3px] bg-pass/20 px-0.5 font-semibold text-pass no-underline"
+                      class="rounded-sm bg-pass/20 px-0.5 font-semibold text-pass no-underline"
                       >{{ seg.text }}</ins
                     >
                   }
                   @case ('delete') {
-                    <del class="rounded-[3px] bg-fail/15 px-0.5 text-fail">{{ seg.text }}</del>
+                    <del class="rounded-sm bg-fail/15 px-0.5 text-fail">{{ seg.text }}</del>
                   }
                   @default {
                     <span>{{ seg.text }}</span>

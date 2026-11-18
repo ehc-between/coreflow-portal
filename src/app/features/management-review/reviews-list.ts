@@ -8,7 +8,7 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../core/ai/page-context';
@@ -16,25 +16,29 @@ import { AuthService } from '../../core/auth/auth.service';
 import { LanguageService } from '../../core/i18n/language.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { AskPanelService } from '../ask/ask-panel.service';
-import { GuideIntro } from '../../shared/guidance/guide-intro';
-import { LessonView } from '../../shared/guidance/lesson';
 import { TeachingEmpty } from '../../shared/guidance/teaching-empty';
-import { TourButton } from '../../shared/guidance/tour-button';
 import { TourStepDirective } from '../../shared/guidance/tour-step.directive';
 import { WhyItMatters } from '../../shared/guidance/why-it-matters';
 import { RecordListPage } from '../../shared/kit/record-list-page';
 import { SavedView } from '../../shared/kit/saved-views.service';
-import { LocalDatePipe, LocalDayPipe } from '../../shared/locale/locale-pipes';
-import { Badge } from '../../shared/ui/badge/badge';
+import { CoverageChip } from '../../shared/requirement-links/coverage-chip';
 import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
+import { EmptyState } from '../../shared/ui/empty-state/empty-state';
+import { ErrorState } from '../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../shared/ui/icon/icon';
+import { LoadingState } from '../../shared/ui/loading-state/loading-state';
+import { ModuleNav } from '../../shared/ui/module-nav/module-nav';
 import { Pager } from '../../shared/ui/pager/pager';
-import { MrTabs } from './components/mr-tabs';
+import { RecordRow, RecordRowHeader } from '../../shared/ui/record-row/record-row';
+import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
+import { PlanningCard } from './components/planning-card';
 import { ManagementReviewApi } from './data/management-review-api';
 import {
   FRAMEWORKS,
   Framework,
+  Planning,
   REVIEW_SORTS,
   REVIEW_STATUSES,
   ReviewListQuery,
@@ -44,13 +48,17 @@ import {
 } from './data/management-review.models';
 import {
   MR_MODULE,
+  MR_NAME_KEY,
+  MR_NAV,
   MR_PERMISSIONS,
   MR_SCOPE,
+  MR_SETTINGS_LINK,
   OPEN_REVIEW_STATUSES,
   frameworkKey,
   meetingStatusKey,
+  mrCrumbs,
   reviewStatusKey,
-  reviewStatusTone,
+  toneValue,
 } from './management-review-display';
 import { FulfilsRequirements } from '../../shared/requirement-locations/fulfils-requirements';
 
@@ -71,62 +79,82 @@ export function reviewStatusesFor(filter: ReviewStatusFilter): readonly ReviewSt
   return filter === 'all' ? [] : [filter];
 }
 
+/** The date a review row shows: when it was signed, else when the meeting is. */
+export function reviewRowDate(r: ReviewSummary): {
+  readonly date: string | null;
+  readonly kind: 'date' | 'next';
+} {
+  return r.signed_at ? { date: r.signed_at, kind: 'date' } : { date: r.scheduled_at, kind: 'next' };
+}
+
+const SELECT =
+  'h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg outline-none focus:border-accent';
+
 /**
- * `/management-review/reviews`: the register of management reviews with search,
- * filters (status, standard, mine), sorting, saved views and paging.
+ * `/management-review/reviews` (the module root): where the organisation stands
+ * against its review interval (last signed review, next one, when it is due),
+ * then the register of management reviews with search, filters (status,
+ * standard; sorting and "mine" under "Flere filtre"), saved views and paging.
  */
 @Component({
   selector: 'app-mr-reviews-list',
   imports: [
     FulfilsRequirements,
-    RouterLink,
     TranslocoPipe,
-    LocalDatePipe,
-    LocalDayPipe,
-    Badge,
-    Button,
-    Card,
-    Icon,
-    Pager,
-    GuideIntro,
-    LessonView,
     TeachingEmpty,
-    TourButton,
     TourStepDirective,
     WhyItMatters,
     RecordListPage,
-    MrTabs,
+    CoverageChip,
+    Button,
+    Card,
+    EmptyState,
+    ErrorState,
+    HelpStrip,
+    Icon,
+    LoadingState,
+    ModuleNav,
+    Pager,
+    RecordRow,
+    RecordRowHeader,
+    StatusBadge,
+    PlanningCard,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-record-list-page
-      titleKey="managementReview.list.title"
+      [titleKey]="nameKey"
+      descriptionKey="managementReview.list.subtitle"
+      [breadcrumbs]="crumbs"
+      [settingsLink]="settingsLink"
       [scope]="scope"
       page="reviews"
       searchPlaceholderKey="managementReview.list.searchPlaceholder"
       [query]="q()"
       [filters]="savedFilters()"
+      [moreFiltersActive]="moreActive()"
+      [empty]="isEmptyRegister()"
       (search)="setQuery($event)"
       (viewApplied)="applyView($event)"
     >
       <app-fulfils-requirements help locationKey="management_review.reviews" />
-      <div intro class="mt-1.5">
-        <p class="text-[14px] text-fg-muted">{{ 'managementReview.list.subtitle' | transloco }}</p>
-      </div>
-
-      <ng-container toolbar>
-        <app-tour-button [scope]="scope" tour="list" />
-        <app-button variant="ghost" size="sm" (click)="askStatus()">
-          <app-icon name="spark" [size]="14" />
-          {{ 'managementReview.ai.summariseAll' | transloco }}
+      @if (canWrite()) {
+        <app-button primary appTourStep="mr-new" (click)="create()" data-testid="mr-new-review">
+          <app-icon name="plus" [size]="14" />
+          {{ 'managementReview.list.new' | transloco }}
         </app-button>
-        @if (canWrite()) {
-          <app-button size="sm" appTourStep="mr-new" (click)="create()">
-            <app-icon name="plus" [size]="14" />
-            {{ 'managementReview.list.new' | transloco }}
-          </app-button>
-        }
-      </ng-container>
+      }
+      <app-button secondary variant="ghost" (click)="askStatus()">
+        <app-icon name="spark" [size]="14" />
+        {{ 'managementReview.ai.summariseAll' | transloco }}
+      </app-button>
+
+      <app-module-nav nav [labelKey]="nameKey" [items]="nav" />
+      <app-help-strip help [scope]="scope" page="list" tour="list" lesson="effective-review" />
+
+      @if (planning(); as p) {
+        <app-mr-planning-card kpis class="col-span-full" [planning]="p" (plan)="create()" />
+      }
 
       <ng-container filters>
         <label class="sr-only" for="mr-status">{{
@@ -134,7 +162,7 @@ export function reviewStatusesFor(filter: ReviewStatusFilter): readonly ReviewSt
         }}</label>
         <select
           id="mr-status"
-          class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
+          [class]="select"
           appTourStep="mr-filters"
           (change)="setStatus($any($event.target).value)"
         >
@@ -149,7 +177,7 @@ export function reviewStatusesFor(filter: ReviewStatusFilter): readonly ReviewSt
         }}</label>
         <select
           id="mr-framework"
-          class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
+          [class]="select"
           (change)="setFramework($any($event.target).value)"
         >
           <option value="" [selected]="!framework()">
@@ -161,23 +189,21 @@ export function reviewStatusesFor(filter: ReviewStatusFilter): readonly ReviewSt
             </option>
           }
         </select>
-        <label class="sr-only" for="mr-sort">{{
-          'managementReview.filters.sort' | transloco
-        }}</label>
-        <select
-          id="mr-sort"
-          class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
-          (change)="setSort($any($event.target).value)"
-        >
-          @for (s of sorts; track s) {
-            <option [value]="s" [selected]="sort() === s">
-              {{ 'managementReview.filters.reviewSorts.' + s | transloco }}
-            </option>
-          }
-        </select>
-        <label
-          class="inline-flex h-10 items-center gap-1.5 rounded-[10px] border border-border bg-bg px-3 text-[13px] text-fg"
-        >
+      </ng-container>
+      <ng-container more-filters>
+        <div class="flex flex-col gap-1.5">
+          <label for="mr-sort" class="text-ui font-semibold text-fg-muted">{{
+            'managementReview.filters.sort' | transloco
+          }}</label>
+          <select id="mr-sort" [class]="select" (change)="setSort($any($event.target).value)">
+            @for (s of sorts; track s) {
+              <option [value]="s" [selected]="sort() === s">
+                {{ 'managementReview.filters.reviewSorts.' + s | transloco }}
+              </option>
+            }
+          </select>
+        </div>
+        <label class="inline-flex min-h-9 items-center gap-2 text-ui text-fg">
           <input
             type="checkbox"
             [checked]="mine()"
@@ -187,120 +213,73 @@ export function reviewStatusesFor(filter: ReviewStatusFilter): readonly ReviewSt
         </label>
       </ng-container>
 
-      <div class="mb-4 flex flex-col gap-4">
-        <app-mr-tabs />
-        <app-guide-intro [scope]="scope" page="list" />
-      </div>
-
       <app-card [padded]="false">
         @switch (state()) {
           @case ('loading') {
-            <p class="py-10 text-center text-[14px] text-fg-muted">
-              {{ 'managementReview.common.loading' | transloco }}
-            </p>
+            <div class="p-4"><app-loading-state [rows]="4" /></div>
           }
           @case ('error') {
-            <p class="py-10 text-center text-[14px] text-fail" role="alert">
-              {{ 'managementReview.common.loadFailed' | transloco }}
-            </p>
+            <div class="p-4"><app-error-state (retry)="reload()" /></div>
           }
           @default {
             @if (reviews().length === 0) {
-              @if (isFiltered()) {
-                <p class="py-10 text-center text-[14px] text-fg-muted">
-                  {{ 'managementReview.filters.noMatch' | transloco }}
-                </p>
-              } @else {
-                <app-teaching-empty
-                  [scope]="scope"
-                  page="list"
-                  [showAction]="canWrite()"
-                  (action)="create()"
-                />
-              }
+              <app-empty-state
+                titleKey="ui.empty.noResults"
+                bodyKey="ui.empty.noResultsBody"
+                ctaKey="ui.empty.clearFilters"
+                ctaVariant="secondary"
+                [compact]="true"
+                (cta)="clearFilters()"
+              />
             } @else {
-              <ul class="divide-y divide-border" data-testid="review-rows">
+              <div role="list" data-testid="review-rows">
+                <app-record-row-header dateKind="date" />
                 @for (r of reviews(); track r.id) {
-                  <li class="flex flex-col gap-2 px-4 py-3 md:flex-row md:items-center md:gap-4">
-                    <div class="min-w-0 flex-1">
-                      <a
-                        [routerLink]="['/management-review/reviews', r.id]"
-                        class="flex min-w-0 items-baseline gap-2 text-[13.5px] font-semibold text-fg hover:underline"
-                      >
-                        <span class="font-mono text-[12px] text-fg-subtle">{{ r.code }}</span>
-                        <span class="truncate">{{ r.title }}</span>
-                      </a>
-                      <span
-                        class="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[12px] text-fg-subtle"
-                      >
-                        <span>{{
-                          r.owner?.name ?? ('managementReview.common.noOwner' | transloco)
-                        }}</span>
-                        @if (r.period_start || r.period_end) {
-                          <span>{{
-                            'managementReview.list.period'
-                              | transloco
-                                : {
-                                    from: (r.period_start | localDay) || '…',
-                                    to: (r.period_end | localDay) || '…',
-                                  }
-                          }}</span>
-                        }
-                        @if (r.meeting_status) {
-                          <span>{{
-                            'managementReview.list.meeting'
-                              | transloco
-                                : { status: (meetingStatusKey(r.meeting_status) | transloco) }
-                          }}</span>
-                        }
-                      </span>
-                    </div>
-                    <span class="flex flex-wrap gap-1">
-                      @for (f of r.frameworks; track f) {
-                        <app-badge tone="neutral">{{ frameworkKey(f) | transloco }}</app-badge>
-                      }
-                    </span>
-                    <span class="flex flex-wrap items-center gap-2 text-[12.5px] text-fg-muted">
-                      <app-badge [tone]="statusTone(r.status)">{{
-                        statusKey(r.status) | transloco
-                      }}</app-badge>
-                      <span class="min-w-[110px] text-right">
-                        @if (r.signed_at) {
-                          {{ r.signed_at | localDate }}
-                        } @else if (r.scheduled_at) {
-                          {{ r.scheduled_at | localDate: 'medium' }}
-                        } @else {
-                          {{ 'managementReview.common.notScheduled' | transloco }}
-                        }
-                      </span>
-                    </span>
-                  </li>
+                  <app-record-row
+                    [code]="r.code"
+                    [title]="r.title"
+                    [subtitle]="subtitle(r)"
+                    [link]="['/management-review/reviews', r.id]"
+                    [owner]="r.owner?.name ?? null"
+                    [date]="rowDate(r).date"
+                    [dateKind]="rowDate(r).kind"
+                  >
+                    <app-coverage-chip coverage entityType="management_review" [entityId]="r.id" />
+                    <app-status-badge
+                      badges
+                      meaning="lifecycle"
+                      [value]="tone(r.status)"
+                      [labelKey]="statusKey(r.status)"
+                    />
+                  </app-record-row>
                 }
-              </ul>
-              <div class="border-t border-border px-4 py-2.5">
-                <app-pager
-                  [offset]="offset()"
-                  [pageSize]="pageSize"
-                  [count]="reviews().length"
-                  [total]="total()"
-                  (pageChange)="offset.set($event)"
-                />
               </div>
+              @if (total() > pageSize) {
+                <div class="px-4 py-2.5">
+                  <app-pager
+                    [offset]="offset()"
+                    [pageSize]="pageSize"
+                    [count]="reviews().length"
+                    [total]="total()"
+                    (pageChange)="offset.set($event)"
+                  />
+                </div>
+              }
             }
           }
         }
       </app-card>
-    </app-record-list-page>
 
-    <div class="mx-auto -mt-6 flex max-w-[1180px] flex-col gap-4 px-4 pb-12 sm:px-8">
-      <app-why-it-matters [scope]="scope" page="list" />
-      <details class="rounded-card border border-border bg-surface p-4">
-        <summary class="cursor-pointer text-[13.5px] font-semibold text-fg">
-          {{ 'managementReview.lessons.effectiveReview' | transloco }}
-        </summary>
-        <div class="mt-3"><app-lesson [scope]="scope" lesson="effective-review" /></div>
-      </details>
-    </div>
+      <app-teaching-empty
+        empty
+        [scope]="scope"
+        page="list"
+        [showAction]="canWrite()"
+        (action)="create()"
+      />
+
+      <app-why-it-matters below [scope]="scope" page="list" />
+    </app-record-list-page>
   `,
 })
 export class ReviewsList {
@@ -312,14 +291,19 @@ export class ReviewsList {
   private readonly router = inject(Router);
 
   protected readonly scope = MR_SCOPE;
+  protected readonly nameKey = MR_NAME_KEY;
+  protected readonly nav = MR_NAV;
+  protected readonly settingsLink = MR_SETTINGS_LINK;
+  protected readonly crumbs = mrCrumbs();
+  protected readonly select = SELECT;
   protected readonly statusFilters = REVIEW_STATUS_FILTERS;
   protected readonly frameworks = FRAMEWORKS;
   protected readonly sorts = REVIEW_SORTS;
   protected readonly pageSize = PAGE_SIZE;
   protected readonly statusKey = reviewStatusKey;
-  protected readonly statusTone = reviewStatusTone;
+  protected readonly tone = toneValue;
   protected readonly frameworkKey = frameworkKey;
-  protected readonly meetingStatusKey = meetingStatusKey;
+  protected readonly rowDate = reviewRowDate;
 
   protected readonly canWrite = computed(() =>
     (this.selectedOrg.currentOrg()?.permissions ?? []).includes(MR_PERMISSIONS.write),
@@ -335,9 +319,22 @@ export class ReviewsList {
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
   protected readonly reviews = signal<readonly ReviewSummary[]>([]);
   protected readonly total = signal(0);
+  protected readonly planning = signal<Planning | null>(null);
 
   protected readonly isFiltered = computed(
     () => !!this.q() || this.status() !== 'open' || !!this.framework() || this.mine(),
+  );
+  /** No review at all yet (not a filter that matches nothing): the teaching empty state. */
+  protected readonly isEmptyRegister = computed(
+    () =>
+      this.state() === 'ready' &&
+      this.reviews().length === 0 &&
+      !this.isFiltered() &&
+      !this.planning()?.last_signed &&
+      !this.planning()?.upcoming,
+  );
+  protected readonly moreActive = computed(
+    () => (this.sort() !== '-created_at' ? 1 : 0) + (this.mine() ? 1 : 0),
   );
   protected readonly savedFilters = computed<Record<string, string>>(() => ({
     status: this.status(),
@@ -346,30 +343,57 @@ export class ReviewsList {
     mine: this.mine() ? '1' : '',
   }));
 
+  private readonly query = computed<ReviewListQuery>(() => ({
+    q: this.q() || undefined,
+    status: reviewStatusesFor(this.status()),
+    framework: this.framework() || undefined,
+    owner: this.mine() ? this.auth.user()?.id : undefined,
+    sort: this.sort(),
+    limit: PAGE_SIZE,
+    offset: this.offset(),
+  }));
+
   private request = new Subscription();
+  private planningRequest = new Subscription();
 
   constructor() {
-    inject(DestroyRef).onDestroy(() => this.request.unsubscribe());
+    const destroy = inject(DestroyRef);
+    destroy.onDestroy(() => {
+      this.request.unsubscribe();
+      this.planningRequest.unsubscribe();
+    });
     providePageContext(() => ({
       module: MR_MODULE,
       entityType: 'management_review',
       view: 'list',
-      title: this.language.translate('managementReview.list.title'),
+      title: this.language.translate(MR_NAME_KEY),
     }));
 
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();
-      const query: ReviewListQuery = {
-        q: this.q() || undefined,
-        status: reviewStatusesFor(this.status()),
-        framework: this.framework() || undefined,
-        owner: this.mine() ? this.auth.user()?.id : undefined,
-        sort: this.sort(),
-        limit: PAGE_SIZE,
-        offset: this.offset(),
-      };
+      const query = this.query();
       untracked(() => this.load(orgId, query));
     });
+    effect(() => {
+      const orgId = this.selectedOrg.currentOrgId();
+      untracked(() => this.loadPlanning(orgId));
+    });
+  }
+
+  /** "Periode 1. okt. 2025 – 30. sep. 2026 · ISO 9001 · ISO 27001 · Møte: Planlagt". */
+  protected subtitle(r: ReviewSummary): string {
+    const t = (key: string, params?: Record<string, unknown>) =>
+      this.language.translate(key, params);
+    const parts: string[] = [];
+    if (r.frameworks.length) {
+      parts.push(r.frameworks.map((f) => t(frameworkKey(f))).join(', '));
+    }
+    if (r.meeting_status) {
+      parts.push(
+        t('managementReview.list.meeting', { status: t(meetingStatusKey(r.meeting_status)) }),
+      );
+    }
+    return parts.join(' · ');
   }
 
   protected setQuery(value: string): void {
@@ -397,6 +421,14 @@ export class ReviewsList {
     this.mine.set(value);
   }
 
+  protected clearFilters(): void {
+    this.offset.set(0);
+    this.q.set('');
+    this.status.set('all');
+    this.framework.set('');
+    this.mine.set(false);
+  }
+
   protected applyView(view: SavedView): void {
     const f = view.filters;
     this.offset.set(0);
@@ -422,6 +454,10 @@ export class ReviewsList {
     this.ask.showWith(this.language.translate('managementReview.ai.prompts.summariseAll'));
   }
 
+  protected reload(): void {
+    this.load(this.selectedOrg.currentOrgId(), this.query());
+  }
+
   private load(orgId: string | null, query: ReviewListQuery): void {
     this.request.unsubscribe();
     if (!orgId) {
@@ -435,6 +471,18 @@ export class ReviewsList {
         this.state.set('ready');
       },
       error: () => this.state.set('error'),
+    });
+  }
+
+  private loadPlanning(orgId: string | null): void {
+    this.planningRequest.unsubscribe();
+    if (!orgId) {
+      return;
+    }
+    // Planning is a helpful extra: without it (older server) the list still works.
+    this.planningRequest = this.api.planning(orgId).subscribe({
+      next: (p) => this.planning.set(p),
+      error: () => this.planning.set(null),
     });
   }
 }

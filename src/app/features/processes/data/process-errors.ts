@@ -22,6 +22,9 @@ export const PROCESS_ERROR_CODES = [
   'self_interaction',
   'documents_draft_required',
   'input_required',
+  'invalid_kpi',
+  'invalid_review_check',
+  'unsupported_entity_type',
   'forbidden',
 ] as const;
 

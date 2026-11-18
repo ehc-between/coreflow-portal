@@ -7,7 +7,9 @@ import {
   ADDRESSED_STATUSES,
   ANALYSIS_METHODS,
   ASSIGNEE_TYPES,
+  COLUMN_WARNINGS,
   CONTROLLED_STATUSES,
+  FOLLOW_UP_TYPES,
   FRAMEWORK_KEYS,
   LEVELS,
   PARTY_CATEGORIES,
@@ -17,6 +19,7 @@ import {
   POLICY_KINDS,
   RACI_ROLES,
   RACI_WARNINGS,
+  SETUP_STEP_KEYS,
   SIMPLE_STATUSES,
   SWOT_CATEGORIES,
 } from './data/context.models';
@@ -89,10 +92,50 @@ describe('context i18n', () => {
     ['raci.warnings', RACI_WARNINGS],
     ['raci.warningText', RACI_WARNINGS],
     ['errors', CONTEXT_ERROR_CODES],
-    ['actions', ['submit', 'approve', 'return', 'review', 'retire', 'edit', 'delete']],
+    [
+      'actions',
+      [
+        'submit',
+        'approve',
+        'return',
+        'review',
+        'retire',
+        'edit',
+        'delete',
+        'communicate',
+        'reviewSimple',
+      ],
+    ],
     ['notices', ['submit', 'approve', 'return', 'review', 'retire', 'created', 'saved']],
     ['ai.improve', KIND_ORDER],
     ['ai.prompts.improve', KIND_ORDER],
+    ['list.search', KIND_ORDER],
+    ['list.descriptions', KIND_ORDER],
+    ['overview.setup.steps', SETUP_STEP_KEYS],
+    ['overview.setup.todo', SETUP_STEP_KEYS],
+    ['party.registers.hint', PARTY_CATEGORIES],
+    ['party.registers.open', PARTY_CATEGORIES],
+    ['analysis.followUp', FOLLOW_UP_TYPES],
+    ['analysis.impact', LEVELS],
+    ['raci.warningSummary', [...RACI_WARNINGS, ...COLUMN_WARNINGS]],
+    ['policy.ack.states', ['done', 'open', 'overdue']],
+    [
+      'overview.attention',
+      [
+        'partiesNotAddressed',
+        'withoutAccountable',
+        'withoutResponsible',
+        'segregation',
+        'analysesWithoutFollowUp',
+        'policiesNotCommunicated',
+        'policiesWithoutObjectives',
+        'reviewsOverdue',
+        'inReview',
+        'none',
+      ],
+    ],
+    ['next.reviewOverdue', ['title', 'why']],
+    ['next.policyNotCommunicated', ['title', 'why']],
   ];
 
   it.each(groups)('translates every %s value', (group, values) => {
@@ -103,7 +146,7 @@ describe('context i18n', () => {
 
   it('labels every kind and every sort option', () => {
     for (const kind of KIND_ORDER) {
-      for (const key of ['one', 'plural', 'new', 'edit', 'back']) {
+      for (const key of ['one', 'plural', 'new', 'create', 'edit']) {
         expect(typeof get(en, `kinds.${kind}.${key}`), `${kind}.${key}`).toBe('string');
       }
     }
@@ -128,7 +171,10 @@ describe('context i18n', () => {
       ),
       'scopeSuperseded',
       'policyCommunicated',
+      'policyReminded',
+      'partyReviewed',
       'responsibilityAssigned',
+      'responsibilityReviewed',
     ];
     for (const name of names) {
       expect(typeof get(en, `notifications.${name}`), name).toBe('string');
@@ -180,6 +226,44 @@ describe('context guidance', () => {
         0,
       );
       expect((get(guidanceEn, `lessons.${lesson}.quiz`) as unknown[]).length).toBeGreaterThan(0);
+    }
+  });
+});
+
+describe('kit flow labels', () => {
+  it('labels the 16 context create-from-here flows in both languages', async () => {
+    const kitEn = (await import('../../../assets/i18n/kit/en.json')).default as Dict;
+    const kitNb = (await import('../../../assets/i18n/kit/nb.json')).default as Dict;
+    const flows = [
+      'context_analysis.to_risk',
+      'context_analysis.to_opportunity',
+      'context_analysis.to_objective',
+      'context_analysis.to_task',
+      'interested_party.to_obligation',
+      'interested_party.to_risk',
+      'interested_party.to_task',
+      'scope_statement.to_risk',
+      'scope_statement.to_task',
+      'scope_statement.to_deviation',
+      'policy.to_objective',
+      'policy.to_document',
+      'policy.to_task',
+      'policy.to_deviation',
+      'responsibility.to_task',
+      'responsibility.to_deviation',
+    ];
+    for (const flow of flows) {
+      expect(typeof get(kitEn, `flows.${flow}`), flow).toBe('string');
+      expect(typeof get(kitNb, `flows.${flow}`), flow).toBe('string');
+    }
+  });
+
+  it('never uses the forbidden nb words in the module copy', () => {
+    for (const path of paths(nb)) {
+      const text = get(nb, path);
+      if (typeof text === 'string') {
+        expect(text, path).not.toMatch(/rammeverk|ISO HS|\bklausul|Støtter krav|Ikke angitt/i);
+      }
     }
   });
 });

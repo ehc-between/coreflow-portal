@@ -9,24 +9,28 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { providePageContext } from '../../../core/ai/page-context';
 import { AttachmentsApi } from '../../../core/attachments/attachments-api';
 import { AuthService } from '../../../core/auth/auth.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
+import { LanguageService } from '../../../core/i18n/language.service';
 import { FieldHelp } from '../../../shared/guidance/field-help';
-import { GuideIntro } from '../../../shared/guidance/guide-intro';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { LocalPercentPipe } from '../../../shared/locale/locale-pipes';
 import { Alert } from '../../../shared/ui/alert/alert';
-import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
+import { EmptyState } from '../../../shared/ui/empty-state/empty-state';
 import { FormField } from '../../../shared/ui/form-field/form-field';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { ProgressBar } from '../../../shared/ui/progress-bar/progress-bar';
 import { SlideOver } from '../../../shared/ui/slide-over/slide-over';
+import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { SignaturePad, SignatureValue } from '../components/signature-pad';
 import {
   AnswerDraft,
@@ -37,13 +41,14 @@ import {
   progressOf,
   toAnswerInput,
 } from '../data/answer-model';
-import { resultKey, resultTone } from '../data/inspection-display';
+import { resultKey, severityKey } from '../data/inspection-display';
 import { inspectionErrorKey, questionIdsOf } from '../data/inspection-errors';
 import {
   INSPECTIONS_MODULE,
   INSPECTION_ENTITY_TYPE,
   InspectionDetail,
   Question,
+  Signature,
 } from '../data/inspection.models';
 import { InspectionsApi } from '../data/inspections-api';
 import { AnswerInput, SaveState } from './answer-input';
@@ -53,28 +58,31 @@ const SAVE_DELAY_MS = 600;
 
 /**
  * Perform an inspection (`/inspections/:id/run`), built for a phone on site: the
- * checklist by section with a progress bar, large answer buttons, photo evidence from
- * the camera, notes and N/A. Answers save automatically as you go (the first one
- * starts a planned inspection). "Complete" shows what is missing and the expected
- * result, then takes a summary and a signature; failed answers raise findings (and
- * deviations when the template says so).
+ * checklist by section with a progress bar, large answer buttons that say up front
+ * what does not pass, photos and notes on any answer, and N/A. Answers save
+ * automatically as you go (the first one starts a planned inspection). "Fullfør"
+ * shows what is missing and the expected result, then takes a summary and the one
+ * sign-off; failed answers raise findings (and deviations from the checklist's
+ * severity threshold). The bottom bar leaves room for the assistant button.
  */
 @Component({
   selector: 'app-inspection-run',
   imports: [
-    RouterLink,
     TranslocoPipe,
     FieldHelp,
-    GuideIntro,
     WhyItMatters,
     LocalPercentPipe,
     Alert,
-    Badge,
     Button,
+    EmptyState,
     FormField,
+    HelpStrip,
     Icon,
+    LoadingState,
+    PageHeader,
     ProgressBar,
     SlideOver,
+    StatusBadge,
     SignaturePad,
     AnswerInput,
   ],
@@ -82,26 +90,30 @@ const SAVE_DELAY_MS = 600;
   template: `
     @if (inspection(); as ins) {
       <div class="mx-auto max-w-[860px] px-3 pt-4 pb-6 sm:px-8 sm:pt-7">
-        <a
-          [routerLink]="['/inspections', ins.id]"
-          class="mb-2 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
+        <app-page-header
+          [title]="ins.title"
+          [breadcrumbs]="[
+            { labelKey: 'modules.names.inspections', link: '/inspections' },
+            { label: ins.code, link: '/inspections/' + ins.id },
+            { labelKey: 'inspections.run.crumb' },
+          ]"
+          [backLink]="['/inspections', ins.id]"
+          backLabelKey="inspections.run.back"
         >
-          <app-icon name="back" [size]="16" />
-          {{ 'inspections.run.back' | transloco }}
-        </a>
-        <p class="font-mono text-[12px] text-fg-subtle">{{ ins.code }}</p>
-        <h1 class="font-display text-[22px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]">
-          {{ ins.title }}
-        </h1>
-        @if (ins.location) {
-          <p class="mt-0.5 text-[13px] text-fg-muted">{{ ins.location }}</p>
-        }
+          <ng-container ngProjectAs="[meta]">
+            <span class="font-mono">{{ ins.code }}</span>
+            @if (ins.location) {
+              <span aria-hidden="true">·</span>
+              <span>{{ ins.location }}</span>
+            }
+          </ng-container>
+        </app-page-header>
 
         <div
           class="sticky top-0 z-20 -mx-3 mt-3 border-b border-border bg-bg/95 px-3 py-2.5 backdrop-blur sm:-mx-8 sm:px-8"
           data-testid="run-progress"
         >
-          <div class="mb-1.5 flex flex-wrap items-center justify-between gap-2 text-[13px]">
+          <div class="mb-1.5 flex flex-wrap items-center justify-between gap-2 text-ui">
             <span class="font-semibold text-fg">
               {{
                 'inspections.run.progress'
@@ -116,9 +128,12 @@ const SAVE_DELAY_MS = 600;
                 >
               }
               @if (progress().failed > 0) {
-                <app-badge tone="fail">{{
-                  'inspections.run.failedCount' | transloco: { count: progress().failed }
-                }}</app-badge>
+                <app-status-badge
+                  meaning="lifecycle"
+                  value="failed"
+                  labelKey="inspections.run.failedCount"
+                  [labelParams]="{ count: progress().failed }"
+                />
               }
               <span aria-live="polite">
                 @if (pendingCount() > 0 || inFlight()) {
@@ -143,7 +158,7 @@ const SAVE_DELAY_MS = 600;
               @for (s of sections(); track $index) {
                 <button
                   type="button"
-                  class="h-8 flex-none rounded-full border border-border bg-surface px-3 text-[12.5px] font-semibold whitespace-nowrap text-fg-muted hover:text-fg"
+                  class="h-8 flex-none rounded-full border border-border bg-surface px-3 text-meta font-semibold whitespace-nowrap text-fg-muted hover:text-fg"
                   (click)="jumpTo(s.items[0].id)"
                 >
                   {{ s.title ?? ('inspections.builder.noSection' | transloco) }}
@@ -157,7 +172,7 @@ const SAVE_DELAY_MS = 600;
         </div>
 
         <div class="mt-4 flex flex-col gap-3">
-          <app-guide-intro scope="inspections" page="run" />
+          <app-help-strip scope="inspections" page="run" />
           @if (!ins.permissions.can_perform) {
             <app-alert tone="info">{{ 'inspections.run.readOnly' | transloco }}</app-alert>
           } @else if (ins.status === 'planned') {
@@ -174,7 +189,7 @@ const SAVE_DELAY_MS = 600;
             [attr.aria-label]="s.title ?? ('inspections.builder.noSection' | transloco)"
           >
             @if (s.title) {
-              <h2 class="mb-2 text-[13px] font-bold tracking-wide text-fg-subtle uppercase">
+              <h2 class="mb-2 text-ui font-bold tracking-wide text-fg-subtle uppercase">
                 {{ s.title }}
               </h2>
             }
@@ -198,14 +213,16 @@ const SAVE_DELAY_MS = 600;
           </section>
         }
 
-        <app-why-it-matters class="mt-6 block" scope="inspections" page="run" />
+        <div class="mt-8"><app-why-it-matters scope="inspections" page="run" /></div>
 
         @if (!readOnly()) {
           <div
             class="sticky bottom-0 z-30 -mx-3 mt-6 border-t border-border bg-bg/95 px-3 py-3 backdrop-blur sm:-mx-8 sm:px-8"
           >
-            <div class="mx-auto flex max-w-[860px] items-center justify-between gap-2">
-              <span class="text-[12.5px] text-fg-muted">
+            <div
+              class="mx-auto flex max-w-[860px] items-center justify-between gap-2 pr-16 sm:pr-14"
+            >
+              <span class="text-meta text-fg-muted">
                 {{
                   'inspections.run.requiredLeft'
                     | transloco: { count: progress().missingRequired.length }
@@ -235,7 +252,7 @@ const SAVE_DELAY_MS = 600;
                   | transloco: { count: progress().missingRequired.length }
               }}
             </app-alert>
-            <ul class="flex flex-col gap-1 text-[13px]" data-testid="missing-list">
+            <ul class="flex flex-col gap-1 text-ui" data-testid="missing-list">
               @for (qid of progress().missingRequired; track qid) {
                 <li>
                   <button
@@ -249,19 +266,22 @@ const SAVE_DELAY_MS = 600;
               }
             </ul>
           } @else {
-            <div class="rounded-card border border-border bg-surface-2 p-3 text-[13.5px]">
+            <div class="rounded-card border border-border bg-surface-2 p-3 text-body">
               <p class="flex flex-wrap items-center gap-2">
                 {{ 'inspections.run.expected' | transloco }}
-                <app-badge [tone]="resultTone(expected())">{{
-                  resultKey(expected()) | transloco
-                }}</app-badge>
+                <app-status-badge
+                  meaning="lifecycle"
+                  [value]="expected()"
+                  [labelKey]="resultKey(expected())"
+                />
                 @if (progress().scorePct !== null) {
                   <span class="text-fg-muted">{{ progress().scorePct | localPercent }}</span>
                 }
                 @if (ins.pass_threshold !== null) {
                   <span class="text-fg-muted">
                     ({{
-                      'inspections.library.passMark' | transloco: { value: ins.pass_threshold }
+                      'inspections.library.passMark'
+                        | transloco: { value: (ins.pass_threshold | localPercent) }
                     }})
                   </span>
                 }
@@ -272,7 +292,13 @@ const SAVE_DELAY_MS = 600;
                     (ins.auto_deviation
                       ? 'inspections.run.findingsWithDeviations'
                       : 'inspections.run.findingsOnly'
-                    ) | transloco: { count: progress().failed }
+                    )
+                      | transloco
+                        : {
+                            count: progress().failed,
+                            severity:
+                              (severityKey(ins.deviation_min_severity ?? 'high') | transloco),
+                          }
                   }}
                 </p>
               }
@@ -290,14 +316,19 @@ const SAVE_DELAY_MS = 600;
               ></textarea>
             </app-form-field>
             <div>
-              <h3 class="mb-1 text-[14px] font-bold text-fg">
-                {{ 'inspections.run.signOff' | transloco }}
-              </h3>
-              <app-field-help scope="inspections" page="run" field="signature" />
+              <div class="mb-1 flex items-center gap-1.5">
+                <h3 class="text-card font-bold text-fg">
+                  {{ 'inspections.run.signOff' | transloco }}
+                </h3>
+                <app-field-help scope="inspections" page="run" field="signature" />
+              </div>
+              <p class="mb-2 text-meta text-fg-muted">
+                {{ 'inspections.run.signOffHint' | transloco }}
+              </p>
               <app-signature-pad [value]="signature()" (valueChange)="signature.set($event)" />
             </div>
             <div class="flex flex-wrap justify-end gap-2">
-              <app-button variant="ghost" (click)="completeOpen.set(false)">
+              <app-button variant="secondary" (click)="completeOpen.set(false)">
                 {{ 'inspections.actions.cancel' | transloco }}
               </app-button>
               <app-button
@@ -313,11 +344,19 @@ const SAVE_DELAY_MS = 600;
         </div>
       </app-slide-over>
     } @else if (failed()) {
-      <div class="mx-auto max-w-[720px] px-4 py-10 sm:px-8">
-        <app-alert tone="error">{{ 'inspections.detail.notFound' | transloco }}</app-alert>
+      <div class="mx-auto max-w-[860px] px-4 pt-6 sm:px-8">
+        <app-empty-state
+          icon="search"
+          titleKey="inspections.detail.notFoundTitle"
+          bodyKey="inspections.detail.notFound"
+          ctaKey="inspections.list.back"
+          ctaLink="/inspections"
+        />
       </div>
     } @else {
-      <p class="px-8 py-10 text-[14px] text-fg-muted">{{ 'common.loading' | transloco }}</p>
+      <div class="mx-auto max-w-[860px] px-4 pt-6 sm:px-8">
+        <app-loading-state [rows]="6" />
+      </div>
     }
   `,
 })
@@ -328,12 +367,13 @@ export class InspectionRun {
   private readonly router = inject(Router);
   private readonly notifications = inject(NotificationService);
   private readonly auth = inject(AuthService);
+  private readonly language = inject(LanguageService);
 
   readonly id = input.required<string>();
 
   protected readonly empty = EMPTY_DRAFT;
   protected readonly resultKey = resultKey;
-  protected readonly resultTone = resultTone;
+  protected readonly severityKey = severityKey;
 
   protected readonly inspection = signal<InspectionDetail | null>(null);
   protected readonly failed = signal(false);
@@ -382,7 +422,8 @@ export class InspectionRun {
       entityType: INSPECTION_ENTITY_TYPE,
       entityId: this.id(),
       view: 'edit',
-      title: this.inspection()?.title ?? null,
+      title: this.inspection()?.title ?? this.language.translate('inspections.run.crumb'),
+      requirements: this.inspection()?.clause_refs ?? [],
     }));
 
     effect(() => {
@@ -550,10 +591,22 @@ export class InspectionRun {
     });
   }
 
+  /**
+   * One sign-off: prefilled with a signature an older checklist asked for as a
+   * question, else with the signed-in user's name.
+   */
   protected openComplete(): void {
     if (!this.signature()) {
+      const fromQuestion = this.questions()
+        .filter((q) => q.type === 'signature')
+        .map((q) => this.drafts()[q.id]?.value as Signature | null)
+        .find((v) => !!v && typeof v === 'object' && !!v.name);
       const me = this.auth.user();
-      this.signature.set({ name: me?.full_name || '', image: null });
+      this.signature.set(
+        fromQuestion
+          ? { name: fromQuestion.name, image: fromQuestion.image ?? null }
+          : { name: me?.full_name || '', image: null },
+      );
     }
     this.completeOpen.set(true);
   }

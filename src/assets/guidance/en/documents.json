@@ -144,7 +144,7 @@
         ]
       },
       "why": {
-        "body": "Unique identification and consistent review are basic controls on documented information. Types make them automatic.",
+        "body": "Unique identification and consistent review are basic controls on documented information. With document types, numbering and the review interval happen automatically.",
         "clauses": ["hs:7.5.2", "hs:7.5"]
       },
       "empty": {
@@ -275,7 +275,7 @@
     "newDocument": {
       "intro": {
         "title": "Create a document",
-        "body": "Choose a type to get an automatic code, start from a template or an AI draft, and then write the content."
+        "body": "Choose a type to get a code automatically, say which requirements the document documents, and write the content or start from a template or a KI draft."
       },
       "why": {
         "body": "Every controlled document needs a unique identification and must be reviewed and approved before use.",
@@ -284,18 +284,29 @@
       "fields": {
         "type": {
           "help": "The kind of document. Types set up under **Types** give the document an automatic code and default review interval.",
-          "example": "Procedure"
+          "example": "Procedure",
+          "requirements": ["hs:7.5.2"]
         },
         "template": {
           "help": "Start from a template to get its structure. The document is created first and opened in the editor.",
-          "example": "Standard procedure"
+          "example": "Standard procedure",
+          "requirements": ["hs:7.5.2"]
+        },
+        "requirements": {
+          "help": "The requirements in your standards that this document helps you meet. They become confirmed links and count towards requirement coverage.",
+          "example": "ISO 9001 · 7.5.1",
+          "requirements": ["hs:7.5.1"]
+        },
+        "related": {
+          "help": "The process, risk or obligation the document belongs to. The document then shows up on those records, and they show up here.",
+          "example": "Purchasing process"
         }
       }
     },
     "draft": {
       "intro": {
-        "title": "Draft with AI",
-        "body": "Give a requirement reference or describe the process and get a first draft to edit."
+        "title": "Draft with KI",
+        "body": "Pick the requirement the document should cover, or the process it describes, and get a first draft to edit. The requirement and process are linked when you use the draft."
       },
       "why": {
         "body": "A draft is a starting point. The organisation still decides what the document says and approves it.",
@@ -303,9 +314,58 @@
       },
       "fields": {
         "requirement": {
-          "help": "A requirement in a standard, written as standard and clause. The draft then covers what that requirement asks for.",
-          "example": "iso9001:7.5"
+          "help": "Search for the requirement by number or words. The draft then covers what that requirement asks for.",
+          "example": "ISO 9001 · 7.5"
         }
+      }
+    },
+    "list": {
+      "intro": {
+        "title": "Your controlled documents",
+        "body": "Every policy, procedure and instruction the organisation works by, with its status, owner and next review. Open a document to read it, approve it or see which requirements it documents.",
+        "steps": [
+          "Use **New document** to write one, start from a template or let KI draft it.",
+          "Filter on **Not linked to requirements** to find documents that do not count for any standard yet.",
+          "**Periodic review** shows documents that are due to be checked again."
+        ]
+      },
+      "why": {
+        "body": "Standards require documented information to be identified, approved before use, kept up to date and available where it is needed. This list is where you show that.",
+        "clauses": ["hs:7.5", "hs:7.5.2", "hs:7.5.3"]
+      },
+      "empty": {
+        "title": "No documents yet",
+        "body": "Start with the documents the organisation already uses: the quality policy, the information security policy and your most important procedures.",
+        "cta": "New document"
+      }
+    },
+    "detail": {
+      "intro": {
+        "title": "One controlled document",
+        "body": "Read the approved version, see who owns and approved it, and send changes for approval. The panel on the right shows which requirements the document documents and what it is connected to.",
+        "steps": [
+          "Use **Edit** to write a new revision, then **Send for approval**.",
+          "Accept or reject the **suggested requirements** so the document counts for the right standards.",
+          "Turn on **Read and understood** when people must confirm that they know the document."
+        ]
+      },
+      "why": {
+        "body": "An auditor checks that a document is approved by someone other than the author, reviewed on time and known by the people who need it. This page shows all three.",
+        "clauses": ["hs:7.5.2", "hs:7.5.3", "hs:7.3"]
+      }
+    },
+    "editor": {
+      "intro": {
+        "title": "Write a new revision",
+        "body": "Changes are saved as a draft. Readers keep seeing the approved version until the new revision is approved.",
+        "steps": [
+          "Select text and ask KI to improve, shorten or translate it.",
+          "Save, describe what changed and why, then send the document for approval."
+        ]
+      },
+      "why": {
+        "body": "Changes to documented information must be controlled: who changed what, why, and who approved it.",
+        "clauses": ["hs:7.5.3"]
       }
     }
   },
@@ -503,6 +563,46 @@
         }
       ],
       "pass_mark": 1
+    },
+    "first-document": {
+      "title": "From draft to approved document",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Write and connect",
+          "body": "Create the document, choose its type and pick the **requirements it documents**. Link it to the process it describes. Then the document counts for your standards and shows up where people need it."
+        },
+        {
+          "heading": "Send for approval",
+          "body": "When the draft is ready, use **Send for approval** and choose who should approve it. The author cannot approve their own revision, so someone else checks it."
+        },
+        {
+          "heading": "Approve and keep it current",
+          "body": "The approver reads the draft, writes a short **approval note** and approves it. The approved revision is what everyone reads. **Periodic review** reminds the owner when it is time to check it again."
+        },
+        {
+          "heading": "Make sure people know it",
+          "body": "Turn on **Read and understood**, or start a **distribution**, so each person confirms they have read the new revision."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Who can approve a revision you wrote yourself?",
+          "options": ["You", "Someone else who can approve documents", "Nobody"],
+          "answer": 1,
+          "explanation": "Segregation of duties: the author never approves their own revision."
+        },
+        {
+          "question": "What makes a document count for a standard?",
+          "options": [
+            "Mentioning the standard in the title",
+            "A confirmed link to the requirement it documents",
+            "Being approved"
+          ],
+          "answer": 1,
+          "explanation": "Only confirmed requirement links count towards requirement coverage."
+        }
+      ]
     }
   },
   "tours": {
@@ -590,6 +690,50 @@
         "target": "documents-compare-history",
         "title": "Revisions",
         "body": "Pick the two revisions to compare."
+      }
+    ],
+    "list": [
+      {
+        "target": "documents-nav-documents",
+        "title": "Documents",
+        "body": "All controlled documents. The other tabs hold the register, distribution and the setup."
+      },
+      {
+        "target": "documents-new",
+        "title": "New document",
+        "body": "Write a document, start from a template or let KI draft it."
+      },
+      {
+        "target": "documents-filter-unlinked",
+        "title": "Not linked",
+        "body": "Find documents that do not document any requirement yet."
+      },
+      {
+        "target": "documents-rows",
+        "title": "Each row",
+        "body": "Code, title, how many requirements it documents, status, owner and next review."
+      }
+    ],
+    "detail": [
+      {
+        "target": "documents-lifecycle",
+        "title": "Where it is",
+        "body": "Draft, awaiting approval, approved or obsolete."
+      },
+      {
+        "target": "documents-fields",
+        "title": "For the auditor",
+        "body": "Owner, who approved it and when, when it took effect and the next review."
+      },
+      {
+        "target": "documents-requirements",
+        "title": "Requirements",
+        "body": "The requirements this document documents. Accept or reject the suggestions."
+      },
+      {
+        "target": "kit-tabs",
+        "title": "Connections and tasks",
+        "body": "Related records, tasks, activity and attachments."
       }
     ]
   }

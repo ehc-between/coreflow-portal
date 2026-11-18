@@ -74,6 +74,17 @@ describe('answer model', () => {
       value: 'no',
       is_na: false,
       note: 'blocked',
+      attachment_ids: [],
+    });
+    // A photo backs up a failed yes/no answer.
+    expect(toAnswerInput(QUESTIONS[0], draft('no', { attachment_ids: ['p1'] }))).toMatchObject({
+      value: 'no',
+      attachment_ids: ['p1'],
+    });
+    // A photo alone keeps the answer row (it is not cleared).
+    expect(toAnswerInput(QUESTIONS[0], draft(null, { attachment_ids: ['p1'] }))).toMatchObject({
+      value: null,
+      attachment_ids: ['p1'],
     });
     expect(toAnswerInput(QUESTIONS[0], EMPTY_DRAFT)).toEqual({ question_id: 'q1', clear: true });
     expect(toAnswerInput(QUESTIONS[0], draft(null, { is_na: true }))).toMatchObject({

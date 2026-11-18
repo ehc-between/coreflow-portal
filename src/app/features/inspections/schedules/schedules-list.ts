@@ -11,29 +11,45 @@ import {
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { providePageContext } from '../../../core/ai/page-context';
+import { LanguageService } from '../../../core/i18n/language.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { FieldHelp } from '../../../shared/guidance/field-help';
-import { GuideIntro } from '../../../shared/guidance/guide-intro';
 import { TeachingEmpty } from '../../../shared/guidance/teaching-empty';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { LocalDayPipe } from '../../../shared/locale/locale-pipes';
 import { RecurrencePicker } from '../../../shared/tasks/recurrence-picker';
 import { RuleSummary } from '../../../shared/tasks/rule-summary';
-import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
+import { ErrorState } from '../../../shared/ui/error-state/error-state';
 import { FormField } from '../../../shared/ui/form-field/form-field';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { ModuleNav } from '../../../shared/ui/module-nav/module-nav';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { Pager } from '../../../shared/ui/pager/pager';
 import { SlideOver } from '../../../shared/ui/slide-over/slide-over';
-import { InspectionsTabs } from '../components/inspections-tabs';
+import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { RefSelect } from '../components/ref-select';
-import { dateInputToIso, isoToDateInput } from '../data/inspection-display';
+import { NO_SUBJECT, SubjectPicker, SubjectValue } from '../components/subject-picker';
+import {
+  INSPECTIONS_NAV,
+  INSPECTIONS_SETTINGS_LINK,
+  dateInputToIso,
+  isoToDateInput,
+  subjectTypeKey,
+} from '../data/inspection-display';
 import { inspectionErrorKey } from '../data/inspection-errors';
 import { InspectionReferences, NamedRef } from '../data/inspection-references';
-import { INSPECTIONS_MODULE, Schedule, ScheduleFields } from '../data/inspection.models';
+import {
+  INSPECTIONS_MODULE,
+  Schedule,
+  ScheduleFields,
+  SubjectType,
+} from '../data/inspection.models';
 import { InspectionsApi } from '../data/inspections-api';
 
 const PAGE_SIZE = 25;
@@ -49,6 +65,7 @@ export interface ScheduleForm {
   readonly ownerId: string;
   readonly departmentId: string;
   readonly active: boolean;
+  readonly subject: SubjectValue;
 }
 
 export const EMPTY_SCHEDULE_FORM: ScheduleForm = {
@@ -62,6 +79,7 @@ export const EMPTY_SCHEDULE_FORM: ScheduleForm = {
   ownerId: '',
   departmentId: '',
   active: true,
+  subject: NO_SUBJECT,
 };
 
 export function formFromSchedule(s: Schedule): ScheduleForm {
@@ -76,10 +94,16 @@ export function formFromSchedule(s: Schedule): ScheduleForm {
     ownerId: s.owner?.id ?? '',
     departmentId: s.department_id ?? '',
     active: s.active,
+    subject: {
+      type: s.subject_type ?? null,
+      id: s.subject_id ?? null,
+      title: null,
+    },
   };
 }
 
 export function toScheduleFields(f: ScheduleForm): ScheduleFields {
+  const subject = f.subject.type && f.subject.id ? f.subject : null;
   return {
     rrule: f.rrule,
     dtstart: dateInputToIso(f.startDate) ?? '',
@@ -90,15 +114,19 @@ export function toScheduleFields(f: ScheduleForm): ScheduleFields {
     owner_user_id: f.ownerId || null,
     department_id: f.departmentId || null,
     active: f.active,
+    subject_type: subject?.type ?? null,
+    subject_id: subject?.id ?? null,
   };
 }
 
 /**
- * Recurring inspections (`/inspections/schedules`): each schedule plans the next
- * inspection from an active template on its recurrence (at most one open at a time,
- * created `lead_days` before it is due). Everyone with `inspections:read` sees them;
- * managers (`inspections:manage`) create, change, pause and delete them.
- * `?template=<id>&new=1` opens the form for a template.
+ * Recurring inspections (`/inspections/schedules`, "Faste inspeksjoner"): each one
+ * creates the next inspection from an active checklist on its rhythm (one open at a
+ * time, a set number of days before it is due), so routine checks are never
+ * forgotten. Rows show the checklist, place and subject, the rhythm in words,
+ * whether it is running, the next due date and the open inspection. Everyone with
+ * `inspections:read` sees them; managers (`inspections:manage`) create, change,
+ * pause and delete them. `?template=<id>&new=1` opens the form for a template.
  */
 @Component({
   selector: 'app-schedules-list',
@@ -106,47 +134,51 @@ export function toScheduleFields(f: ScheduleForm): ScheduleFields {
     RouterLink,
     TranslocoPipe,
     FieldHelp,
-    GuideIntro,
     TeachingEmpty,
     WhyItMatters,
     LocalDayPipe,
     RecurrencePicker,
     RuleSummary,
-    Badge,
     Button,
     Card,
     ConfirmDialog,
+    ErrorState,
     FormField,
+    HelpStrip,
     Icon,
+    LoadingState,
+    ModuleNav,
+    PageHeader,
     Pager,
     SlideOver,
-    InspectionsTabs,
+    StatusBadge,
     RefSelect,
+    SubjectPicker,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
-      <div class="mb-5 flex flex-wrap items-start justify-between gap-3">
-        <div class="min-w-0">
-          <h1 class="font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]">
-            {{ 'inspections.schedules.title' | transloco }}
-          </h1>
-          <p class="mt-1.5 max-w-[680px] text-[14px] text-fg-muted">
-            {{ 'inspections.schedules.subtitle' | transloco }}
-          </p>
-          <app-inspections-tabs active="schedules" />
-        </div>
+      <app-page-header
+        titleKey="inspections.schedules.title"
+        descriptionKey="inspections.schedules.subtitle"
+        [breadcrumbs]="breadcrumbs"
+        [settingsLink]="settingsLink"
+      >
         @if (canManage()) {
-          <app-button (click)="openNew()" data-testid="new-schedule">
+          <app-button primary (click)="openNew()" data-testid="new-schedule">
             <app-icon name="plus" [size]="15" />
             {{ 'inspections.schedules.new' | transloco }}
           </app-button>
         }
-      </div>
+      </app-page-header>
+      <app-module-nav class="mb-4 block" labelKey="modules.names.inspections" [items]="nav" />
+      <app-help-strip scope="inspections" page="schedules" lesson="inspection-basics" />
 
-      <app-guide-intro class="mb-3 block" scope="inspections" page="schedules" />
-
-      @if (loaded() && total() === 0) {
+      @if (error()) {
+        <app-error-state (retry)="reload()" />
+      } @else if (!loaded()) {
+        <app-loading-state [rows]="4" />
+      } @else if (total() === 0) {
         <app-card>
           <app-teaching-empty
             scope="inspections"
@@ -157,75 +189,88 @@ export function toScheduleFields(f: ScheduleForm): ScheduleFields {
         </app-card>
       } @else {
         <app-card [padded]="false">
-          @if (!loaded()) {
-            <p class="px-4 py-10 text-center text-[14px] text-fg-muted">
-              {{ 'common.loading' | transloco }}
-            </p>
-          } @else {
-            <ul data-testid="schedule-rows">
-              @for (s of items(); track s.id) {
-                <li
-                  class="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-border px-4 py-3 last:border-b-0"
-                >
-                  <span class="min-w-0 flex-1 basis-[220px]">
-                    <span class="block truncate font-semibold text-fg">
-                      {{ s.title || s.template?.title }}
-                    </span>
-                    <span class="block truncate text-[12.5px] text-fg-muted">
-                      @if (s.template; as t) {
-                        <a [routerLink]="['/inspections/templates', t.id]" class="hover:underline">
-                          {{ t.code }} · {{ t.title }}
-                        </a>
-                      }
-                      @if (s.location) {
-                        · {{ s.location }}
-                      }
-                    </span>
-                    <span class="block text-[12.5px] text-fg-muted">
-                      <app-rule-summary [rrule]="s.rrule" />
-                    </span>
-                  </span>
-                  <app-badge [tone]="s.active ? 'pass' : 'neutral'">{{
-                    (s.active ? 'inspections.schedules.active' : 'inspections.schedules.paused')
-                      | transloco
-                  }}</app-badge>
-                  <span class="w-[150px] flex-none text-[12.5px] text-fg-subtle">
-                    @if (s.next_due_at) {
-                      {{
-                        'inspections.schedules.nextDue'
-                          | transloco: { date: (s.next_due_at | localDay) }
-                      }}
-                    } @else {
-                      {{ 'inspections.schedules.noNext' | transloco }}
+          <ul data-testid="schedule-rows">
+            @for (s of items(); track s.id) {
+              <li
+                class="flex flex-col gap-2 border-b border-border px-4 py-3 last:border-b-0 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4"
+              >
+                <div class="min-w-0 sm:flex-1 sm:basis-[260px]">
+                  <p class="truncate text-body font-semibold text-fg">
+                    {{ s.title || s.template?.title }}
+                  </p>
+                  <p class="truncate text-meta text-fg-muted">
+                    @if (s.template; as t) {
+                      <a [routerLink]="['/inspections/templates', t.id]" class="hover:underline">{{
+                        t.title
+                      }}</a>
                     }
-                  </span>
+                    @if (s.location) {
+                      · {{ s.location }}
+                    }
+                    @if (s.subject_type) {
+                      · {{ subjectTypeKey(s.subject_type) | transloco }}
+                    }
+                  </p>
+                  <p class="text-meta text-fg-muted">
+                    <app-rule-summary [rrule]="s.rrule" />
+                    @if (s.inspector?.name; as name) {
+                      · {{ 'inspections.schedules.inspector' | transloco: { name } }}
+                    }
+                  </p>
+                </div>
+                <app-status-badge
+                  meaning="lifecycle"
+                  [value]="s.active ? 'active' : 'on_hold'"
+                  [labelKey]="
+                    s.active ? 'inspections.schedules.active' : 'inspections.schedules.paused'
+                  "
+                />
+                <span class="text-meta text-fg-muted sm:w-[160px] sm:flex-none">
+                  @if (s.next_due_at) {
+                    {{
+                      'inspections.schedules.nextDue'
+                        | transloco: { date: (s.next_due_at | localDay) }
+                    }}
+                  } @else {
+                    {{ 'inspections.schedules.noNext' | transloco }}
+                  }
+                </span>
+                <span class="flex flex-wrap items-center gap-1 sm:flex-none">
                   @if (s.open_inspection_id) {
                     <a
                       [routerLink]="['/inspections', s.open_inspection_id]"
-                      class="text-[12.5px] font-semibold text-accent hover:underline"
+                      class="inline-flex min-h-8 items-center px-2 text-meta font-semibold text-accent hover:underline"
                     >
                       {{ 'inspections.schedules.openInspection' | transloco }}
                     </a>
                   }
+                  <a
+                    [routerLink]="['/inspections']"
+                    [queryParams]="{ template: s.template?.id }"
+                    class="inline-flex min-h-8 items-center px-2 text-meta font-semibold text-accent hover:underline"
+                  >
+                    {{ 'inspections.schedules.history' | transloco }}
+                  </a>
                   @if (canManage()) {
-                    <span class="flex gap-1">
-                      <app-button variant="ghost" size="sm" (click)="openEdit(s)">
-                        {{ 'inspections.actions.edit' | transloco }}
-                      </app-button>
-                      <app-button
-                        variant="ghost"
-                        size="sm"
-                        (click)="toDelete.set(s)"
-                        [attr.aria-label]="'inspections.schedules.delete' | transloco"
-                      >
-                        <app-icon name="trash" [size]="14" />
-                      </app-button>
-                    </span>
+                    <app-button variant="ghost" size="sm" (click)="openEdit(s)">
+                      {{ 'inspections.actions.edit' | transloco }}
+                    </app-button>
+                    <app-button
+                      variant="ghost"
+                      size="sm"
+                      (click)="toDelete.set(s)"
+                      [attr.aria-label]="
+                        'inspections.schedules.deleteNamed'
+                          | transloco: { name: s.title || s.template?.title }
+                      "
+                    >
+                      <app-icon name="trash" [size]="14" />
+                    </app-button>
                   }
-                </li>
-              }
-            </ul>
-          }
+                </span>
+              </li>
+            }
+          </ul>
         </app-card>
         <div class="mt-3">
           <app-pager
@@ -237,7 +282,7 @@ export function toScheduleFields(f: ScheduleForm): ScheduleFields {
           />
         </div>
       }
-      <app-why-it-matters class="mt-5 block" scope="inspections" page="schedules" />
+      <div class="mt-8"><app-why-it-matters scope="inspections" page="schedules" /></div>
     </div>
 
     <app-slide-over
@@ -251,7 +296,7 @@ export function toScheduleFields(f: ScheduleForm): ScheduleFields {
       (closed)="formOpen.set(false)"
     >
       @if (formOpen()) {
-        <form class="flex flex-col gap-3" (submit)="$event.preventDefault(); save()">
+        <form class="flex flex-col gap-4" (submit)="$event.preventDefault(); save()">
           @if (!editing()) {
             <app-form-field
               [label]="'inspections.fields.template' | transloco"
@@ -271,6 +316,7 @@ export function toScheduleFields(f: ScheduleForm): ScheduleFields {
               id="sf-title"
               maxlength="255"
               [value]="form().title"
+              [placeholder]="'inspections.schedules.titlePlaceholder' | transloco"
               (input)="set('title', $any($event.target).value)"
             />
           </app-form-field>
@@ -282,8 +328,15 @@ export function toScheduleFields(f: ScheduleForm): ScheduleFields {
               (input)="set('location', $any($event.target).value)"
             />
           </app-form-field>
+          <app-form-field [label]="'inspections.subject.label' | transloco" inputId="sf-subject">
+            <app-subject-picker
+              inputId="sf-subject"
+              [value]="form().subject"
+              (valueChange)="set('subject', $event)"
+            />
+          </app-form-field>
           <app-recurrence-picker [rrule]="form().rrule" (rruleChange)="set('rrule', $event)" />
-          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <app-form-field [label]="'inspections.schedules.start' | transloco" inputId="sf-start">
               <input
                 id="sf-start"
@@ -304,24 +357,29 @@ export function toScheduleFields(f: ScheduleForm): ScheduleFields {
                   min="0"
                   max="366"
                   [value]="form().leadDays"
+                  aria-describedby="sf-lead-hint"
                   (change)="set('leadDays', toInt($any($event.target).value))"
                 />
               </app-form-field>
-              <app-field-help scope="inspections" page="schedules" field="leadDays" />
+              <p id="sf-lead-hint" class="mt-1 text-meta text-fg-muted">
+                {{ 'inspections.schedules.leadDaysHint' | transloco: { count: form().leadDays } }}
+              </p>
             </div>
-            <app-form-field
-              [label]="'inspections.fields.inspector' | transloco"
-              inputId="sf-inspector"
-            >
-              <app-ref-select
+            <div>
+              <app-form-field
+                [label]="'inspections.fields.inspector' | transloco"
                 inputId="sf-inspector"
-                [options]="references.users()"
-                [value]="form().inspectorId"
-                [currentName]="editing()?.inspector?.name ?? null"
-                [noneLabel]="'inspections.form.anyInspector' | transloco"
-                (valueChange)="set('inspectorId', $event)"
-              />
-            </app-form-field>
+              >
+                <app-ref-select
+                  inputId="sf-inspector"
+                  [options]="references.users()"
+                  [value]="form().inspectorId"
+                  [currentName]="editing()?.inspector?.name ?? null"
+                  [noneLabel]="'inspections.form.anyInspector' | transloco"
+                  (valueChange)="set('inspectorId', $event)"
+                />
+              </app-form-field>
+            </div>
             <app-form-field [label]="'inspections.fields.owner' | transloco" inputId="sf-owner">
               <app-ref-select
                 inputId="sf-owner"
@@ -342,7 +400,8 @@ export function toScheduleFields(f: ScheduleForm): ScheduleFields {
               />
             </app-form-field>
           </div>
-          <label class="inline-flex items-center gap-2 text-[13.5px] text-fg">
+          <p class="text-meta text-fg-muted">{{ 'inspections.form.rolesHint' | transloco }}</p>
+          <label class="inline-flex min-h-8 items-center gap-2 text-ui text-fg">
             <input
               type="checkbox"
               class="h-4 w-4 accent-[var(--accent)]"
@@ -351,8 +410,11 @@ export function toScheduleFields(f: ScheduleForm): ScheduleFields {
             />
             {{ 'inspections.schedules.activeLabel' | transloco }}
           </label>
-          <div class="flex justify-end gap-2">
-            <app-button variant="ghost" (click)="formOpen.set(false)">
+          <app-field-help scope="inspections" page="schedules" field="leadDays" />
+          <div
+            class="sticky bottom-0 flex justify-end gap-2 border-t border-border bg-bg py-3 sm:static"
+          >
+            <app-button variant="secondary" (click)="formOpen.set(false)">
               {{ 'inspections.actions.cancel' | transloco }}
             </app-button>
             <app-button
@@ -384,6 +446,7 @@ export class SchedulesList {
   private readonly api = inject(InspectionsApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly notifications = inject(NotificationService);
+  private readonly language = inject(LanguageService);
   protected readonly references = inject(InspectionReferences);
 
   /** `?template=<id>` preselects a template; `?new=1` opens the form. */
@@ -391,10 +454,18 @@ export class SchedulesList {
   readonly new = input<string | undefined>(undefined);
 
   protected readonly pageSize = PAGE_SIZE;
+  protected readonly nav = INSPECTIONS_NAV;
+  protected readonly settingsLink = INSPECTIONS_SETTINGS_LINK;
+  protected readonly subjectTypeKey = subjectTypeKey;
+  protected readonly breadcrumbs = [
+    { labelKey: 'modules.names.inspections', link: '/inspections' },
+    { labelKey: 'inspections.schedules.title' },
+  ];
   protected readonly items = signal<readonly Schedule[]>([]);
   protected readonly total = signal(0);
   protected readonly offset = signal(0);
   protected readonly loaded = signal(false);
+  protected readonly error = signal(false);
   protected readonly formOpen = signal(false);
   protected readonly editing = signal<Schedule | null>(null);
   protected readonly form = signal<ScheduleForm>(EMPTY_SCHEDULE_FORM);
@@ -415,7 +486,12 @@ export class SchedulesList {
   });
 
   constructor() {
-    providePageContext(() => ({ module: INSPECTIONS_MODULE, view: 'list' }));
+    providePageContext(() => ({
+      module: INSPECTIONS_MODULE,
+      entityType: 'inspection_schedule',
+      view: 'list',
+      title: this.language.translate('inspections.schedules.title'),
+    }));
 
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();
@@ -440,14 +516,25 @@ export class SchedulesList {
   }
 
   private load(orgId: string, offset: number): void {
+    this.error.set(false);
     this.api.listSchedules(orgId, { limit: PAGE_SIZE, offset }).subscribe({
       next: (page) => {
         this.items.set(page.items);
         this.total.set(page.total);
         this.loaded.set(true);
       },
-      error: () => this.loaded.set(true),
+      error: () => {
+        this.loaded.set(true);
+        this.error.set(true);
+      },
     });
+  }
+
+  protected reload(): void {
+    const orgId = this.selectedOrg.currentOrgId();
+    if (orgId) {
+      this.load(orgId, this.offset());
+    }
   }
 
   protected set<K extends keyof ScheduleForm>(key: K, value: ScheduleForm[K]): void {
@@ -475,7 +562,19 @@ export class SchedulesList {
   protected openEdit(s: Schedule): void {
     this.references.ensurePeople();
     this.editing.set(s);
-    this.form.set(formFromSchedule(s));
+    const form = formFromSchedule(s);
+    this.form.set(
+      s.subject_type && s.subject_id
+        ? {
+            ...form,
+            subject: {
+              type: s.subject_type as SubjectType,
+              id: s.subject_id,
+              title: this.language.translate('inspections.subject.current'),
+            },
+          }
+        : form,
+    );
     this.formOpen.set(true);
   }
 

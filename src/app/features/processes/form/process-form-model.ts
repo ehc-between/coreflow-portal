@@ -31,6 +31,8 @@ export interface ProcessFormValue {
   readonly methods: readonly string[];
   readonly risks: readonly string[];
   readonly kpis: readonly Kpi[];
+  /** Framework keys the process serves (narrow the suggested requirements). */
+  readonly frameworks: readonly string[];
 }
 
 export function emptyForm(ownerUserId = ''): ProcessFormValue {
@@ -52,6 +54,7 @@ export function emptyForm(ownerUserId = ''): ProcessFormValue {
     methods: [],
     risks: [],
     kpis: [],
+    frameworks: [],
   };
 }
 
@@ -74,6 +77,7 @@ export function formFromDetail(p: ProcessDetail): ProcessFormValue {
     methods: p.methods,
     risks: p.risks,
     kpis: p.kpis,
+    frameworks: p.frameworks ?? [],
   };
 }
 
@@ -110,6 +114,7 @@ function cleanKpis(kpis: readonly Kpi[]): Kpi[] {
       target: k.target?.trim() || null,
       unit: k.unit?.trim() || null,
       frequency: k.frequency?.trim() || null,
+      kpi_id: k.kpi_id || null,
     }));
 }
 
@@ -135,6 +140,7 @@ export function toCreateRequest(form: ProcessFormValue): CreateProcessRequest {
     methods: form.methods,
     risks: form.risks,
     kpis: cleanKpis(form.kpis),
+    frameworks: form.frameworks,
   };
 }
 

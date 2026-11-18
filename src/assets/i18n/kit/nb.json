@@ -165,10 +165,10 @@
     "count": "{{ count }} kommentarer"
   },
   "revisions": {
-    "title": "Revisjonshistorikk",
-    "empty": "Ingen revisjoner registrert ennå.",
-    "emptyHint": "Hver lagrede endring av en styrt post gir en revisjon: hvem som endret hva, når og hvorfor. ISO-standardene kaller dette å holde dokumentert informasjon under kontroll.",
-    "revision": "Revisjon {{ no }}",
+    "title": "Versjoner",
+    "empty": "Ingen versjoner lagret ennå.",
+    "emptyHint": "Hver lagrede endring av en styrt post gir en ny versjon: hvem som endret hva, når og hvorfor. ISO-standardene kaller dette å holde dokumentert informasjon under kontroll.",
+    "revision": "Versjon {{ no }}",
     "by": "av {{ name }}",
     "byAssistant": "av assistenten",
     "bySystem": "av systemet",
@@ -176,19 +176,19 @@
     "reason": "Begrunnelse: {{ reason }}",
     "changed": "Endret: {{ fields }}",
     "created": "Opprettet",
-    "select": "Velg revisjon {{ no }} for sammenligning",
-    "compareHint": "Velg to revisjoner for å sammenligne dem side om side.",
+    "select": "Velg versjon {{ no }} for sammenligning",
+    "compareHint": "Velg to versjoner for å sammenligne dem side om side.",
     "compare": "Sammenlign",
     "compareSelected": "Sammenlign valgte",
     "showChanges": "Vis endringer",
     "showSnapshot": "Vis innhold",
     "hide": "Skjul",
-    "comparing": "Sammenligner revisjon {{ from }} med revisjon {{ to }}",
+    "comparing": "Sammenligner versjon {{ from }} med versjon {{ to }}",
     "field": "Felt",
-    "before": "Revisjon {{ no }}",
-    "after": "Revisjon {{ no }}",
-    "noChanges": "De to revisjonene har samme innhold.",
-    "snapshotTitle": "Innholdet i revisjon {{ no }}",
+    "before": "Versjon {{ no }}",
+    "after": "Versjon {{ no }}",
+    "noChanges": "De to versjonene har samme innhold.",
+    "snapshotTitle": "Innholdet i versjon {{ no }}",
     "value": "Verdi",
     "emptyValue": "(tom)",
     "yes": "Ja",
@@ -200,7 +200,7 @@
     "empty": "Ingen aktivitet ennå.",
     "emptyHint": "Endringer, kommentarer, koblinger og statusoppdateringer vises her etter hvert som de skjer, nyeste først.",
     "loadMore": "Vis eldre aktivitet",
-    "includeAudit": "Ta med revisjonsloggen",
+    "includeAudit": "Ta med endringsloggen",
     "fallback": "{{ actor }}: {{ kind }}",
     "someone": "Noen",
     "assistant": "Assistenten",
@@ -247,14 +247,14 @@
       "activity": "Aktivitet",
       "comments": "Kommentarer",
       "attachments": "Vedlegg",
-      "revisions": "Revisjoner",
+      "revisions": "Versjoner",
       "tasks": "Oppgaver"
     }
   },
   "ai": {
     "summariseComments": "Oppsummer diskusjonen i kommentarene på denne posten ({{ type }}, posttype {{ entity_type }}, id {{ entity_id }}). List opp åpne spørsmål og eventuelle beslutninger.",
     "suggestRelated": "Hvilke andre poster bør denne posten ({{ type }}, posttype {{ entity_type }}, id {{ entity_id }}) kobles til? Se på de eksisterende koblingene og foreslå relevante dokumenter, avvik eller tiltak, med en begrunnelse for hvert forslag.",
-    "explainRevisions": "Forklar med enkle ord hva som ble endret mellom revisjon {{ from }} og revisjon {{ to }} av denne posten ({{ type }}, posttype {{ entity_type }}, id {{ entity_id }}), og hvorfor det kan ha betydning for etterlevelsen."
+    "explainRevisions": "Forklar med enkle ord hva som ble endret mellom versjon {{ from }} og versjon {{ to }} av denne posten ({{ type }}, posttype {{ entity_type }}, id {{ entity_id }}), og hvorfor det kan ha betydning for etterlevelsen."
   },
   "errors": {
     "generic": "Noe gikk galt. Prøv igjen.",
@@ -276,8 +276,8 @@
     "not_commentable": "Denne posten tar ikke imot kommentarer.",
     "not_comment_author": "Bare forfatteren kan redigere en kommentar.",
     "comment_not_found": "Denne kommentaren finnes ikke lenger.",
-    "revision_not_found": "Revisjonen ble ikke funnet.",
-    "revision_mismatch": "Disse revisjonene tilhører forskjellige poster.",
+    "revision_not_found": "Versjonen ble ikke funnet.",
+    "revision_mismatch": "Disse versjonene tilhører forskjellige poster.",
     "suggestion_not_found": "Forslaget finnes ikke lenger.",
     "suggestion_decided": "Noen har allerede tatt stilling til dette forslaget.",
     "flow_not_found": "Dette valget er ikke tilgjengelig for denne posten.",
@@ -401,7 +401,11 @@
       "to_risk": "Risiko fra funnet"
     },
     "inspection_finding": {
-      "to_deviation": "Avvik fra funnet"
+      "to_deviation": "Avvik fra funnet",
+      "to_risk": "Risiko fra funnet",
+      "to_task": "Oppgave for oppfølging",
+      "to_training": "Opplæringsbehov (kurstildeling)",
+      "to_document": "Endring i et dokument eller en prosedyre"
     },
     "risk": {
       "to_document": "Kontrolldokument (prosedyre)",
@@ -409,7 +413,8 @@
       "to_treatment": "Risikobehandling",
       "to_task": "Oppgave",
       "to_deviation": "Avvik fra denne risikoen",
-      "to_project": "Prosjekt for å behandle risikoen"
+      "to_project": "Prosjekt for å behandle risikoen",
+      "to_objective": "Mål som skal redusere risikoen"
     },
     "supplier": {
       "to_contract": "Kontrakt med leverandøren",
@@ -431,13 +436,69 @@
       "to_deviation": "Avvik fra tilbakemeldingen"
     },
     "management_review": {
-      "to_task": "Tiltak (oppgave)"
+      "to_task": "Tiltak (oppgave)",
+      "to_deviation": "Avvik fra gjennomgangen",
+      "to_risk": "Risiko fra gjennomgangen",
+      "to_objective": "Mål fra gjennomgangen",
+      "to_document": "Dokumentendring fra gjennomgangen"
     },
     "formMissing": "Dette skjemaet finnes ikke ennå. Opprett posten fra sin egen side og koble den fra fanen Relatert.",
     "opportunity": {
       "to_task": "Tiltak (oppgave)",
-      "to_objective": "Mål fra denne muligheten",
+      "to_objective": "Mål som følger opp muligheten",
       "to_project": "Prosjekt for å realisere den"
+    },
+    "context_analysis": {
+      "to_risk": "Risiko fra analysen",
+      "to_opportunity": "Mulighet fra analysen",
+      "to_objective": "Mål fra analysen",
+      "to_task": "Oppgave for oppfølging"
+    },
+    "interested_party": {
+      "to_obligation": "Forpliktelse fra interessentens krav",
+      "to_risk": "Risiko knyttet til interessenten",
+      "to_task": "Oppgave for oppfølging"
+    },
+    "scope_statement": {
+      "to_risk": "Risiko knyttet til omfanget",
+      "to_task": "Oppgave for oppfølging",
+      "to_deviation": "Avvik mot omfanget"
+    },
+    "policy": {
+      "to_objective": "Mål fra policyen",
+      "to_document": "Policydokument",
+      "to_task": "Oppgave for oppfølging",
+      "to_deviation": "Avvik fra policyen"
+    },
+    "responsibility": {
+      "to_task": "Oppgave for oppfølging",
+      "to_deviation": "Avvik i ansvarsfordelingen"
+    },
+    "process": {
+      "to_deviation": "Avvik i prosessen",
+      "to_risk": "Risiko for prosessen",
+      "to_task": "Oppgave for prosessen",
+      "to_audit_plan": "Internrevisjon av prosessen",
+      "to_kpi": "Nøkkeltall for prosessen"
+    },
+    "objective": {
+      "to_kpi": "KPI som måler målet",
+      "to_task": "Oppgave på målet"
+    },
+    "kpi": {
+      "to_deviation": "Avvik (korrigerende tiltak)",
+      "to_task": "Oppgave for oppfølging"
+    },
+    "meeting": {
+      "to_task": "Oppgave fra møtet",
+      "to_deviation": "Avvik fra møtet",
+      "to_risk": "Risiko fra møtet"
+    },
+    "contract": {
+      "to_risk": "Risiko fra kontrakten",
+      "to_deviation": "Avvik knyttet til kontrakten",
+      "to_task": "Oppgave på kontrakten",
+      "to_dpa": "Databehandleravtale for kontrakten"
     }
   },
   "frameworks": {

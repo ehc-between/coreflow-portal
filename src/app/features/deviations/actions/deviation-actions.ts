@@ -17,8 +17,9 @@ import {
 } from '../../../core/deviations/deviation-errors';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
-import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
+import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
+import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { Attachments } from '../../../shared/attachments/attachments';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { FieldHelp } from '../../../shared/guidance/field-help';
@@ -28,9 +29,10 @@ import {
   EFFECTIVENESS_OPTIONS,
   actionKindLabelKey,
   actionStatusLabelKey,
-  actionStatusTone,
+  actionStatusToneValue,
+  canJudgeEffect,
   effectivenessLabelKey,
-  effectivenessTone,
+  effectivenessToneValue,
   isActionOverdue,
 } from '../deviation-enums';
 
@@ -56,19 +58,23 @@ interface OwnerOption {
     FormsModule,
     RouterLink,
     TranslocoPipe,
-    Badge,
     Button,
+    ConfirmDialog,
     Icon,
     Attachments,
     FieldHelp,
+    StatusBadge,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div>
       <div class="mb-3 flex items-center justify-between gap-3">
-        <h2 class="font-display text-[16px] font-bold tracking-[-0.02em] text-fg">
-          {{ 'deviations.actions.title' | transloco }}
-        </h2>
+        <div>
+          <h2 class="font-display text-section font-bold text-fg">
+            {{ 'deviations.actions.title' | transloco }}
+          </h2>
+          <p class="mt-0.5 text-meta text-fg-muted">{{ 'deviations.capa.intro' | transloco }}</p>
+        </div>
         @if (canEdit() && !adding()) {
           <app-button variant="secondary" size="sm" (click)="startAdd()">
             <app-icon name="plus" [size]="15" />
@@ -81,7 +87,7 @@ interface OwnerOption {
         <div class="mb-3 flex flex-col gap-3 rounded-tile border border-border bg-surface-2 p-3.5">
           <div class="grid gap-3 sm:grid-cols-2">
             <div class="flex flex-col gap-1.5">
-              <label for="new-action-kind" class="text-[13px] font-semibold text-fg-muted">
+              <label for="new-action-kind" class="text-ui font-semibold text-fg-muted">
                 {{ 'deviations.actions.fields.kind' | transloco }}
               </label>
               <div class="cf-select">
@@ -95,9 +101,12 @@ interface OwnerOption {
                   }
                 </select>
               </div>
+              <p class="text-meta text-fg-muted" data-testid="kind-help">
+                {{ 'deviations.capa.kindHelp.' + newKind() | transloco }}
+              </p>
             </div>
             <div class="flex flex-col gap-1.5">
-              <label for="new-action-owner" class="text-[13px] font-semibold text-fg-muted">
+              <label for="new-action-owner" class="text-ui font-semibold text-fg-muted">
                 {{ 'deviations.actions.fields.owner' | transloco }}
               </label>
               <div class="cf-select">
@@ -115,21 +124,21 @@ interface OwnerOption {
             </div>
           </div>
           <div class="flex flex-col gap-1.5">
-            <label for="new-action-desc" class="text-[13px] font-semibold text-fg-muted">
+            <label for="new-action-desc" class="text-ui font-semibold text-fg-muted">
               {{ 'deviations.actions.fields.description' | transloco }}
-              <span class="text-fail" aria-hidden="true">*</span>
+              <span class="text-fail-ink" aria-hidden="true">*</span>
             </label>
             <textarea
               id="new-action-desc"
               [ngModel]="newDescription()"
               (ngModelChange)="newDescription.set($event)"
               rows="2"
-              class="w-full rounded-[10px] border border-border bg-bg px-3 py-2.5 text-[13.5px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
+              class="w-full rounded-tile border border-border bg-bg px-3 py-2.5 text-ui text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
             ></textarea>
           </div>
           <div class="grid gap-3 sm:grid-cols-2">
             <div class="flex flex-col gap-1.5">
-              <label for="new-action-due" class="text-[13px] font-semibold text-fg-muted">
+              <label for="new-action-due" class="text-ui font-semibold text-fg-muted">
                 {{ 'deviations.actions.fields.due' | transloco }}
               </label>
               <input
@@ -137,13 +146,18 @@ interface OwnerOption {
                 type="date"
                 [ngModel]="newDue()"
                 (ngModelChange)="newDue.set($event)"
-                class="h-10 w-full rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
+                class="h-10 w-full rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
               />
             </div>
             <div class="flex flex-col gap-1.5">
               <span class="flex items-center gap-1.5">
-                <label for="new-action-review" class="text-[13px] font-semibold text-fg-muted">
+                <label for="new-action-review" class="text-ui font-semibold text-fg-muted">
                   {{ 'deviations.capa.reviewDue' | transloco }}
+                  @if (newKind() === 'containment') {
+                    <span class="font-normal text-fg-muted"
+                      >({{ 'deviations.capa.optional' | transloco }})</span
+                    >
+                  }
                 </label>
                 <app-field-help scope="deviations" page="detail" field="effectiveness_review" />
               </span>
@@ -152,7 +166,7 @@ interface OwnerOption {
                 type="date"
                 [ngModel]="newReviewDue()"
                 (ngModelChange)="newReviewDue.set($event)"
-                class="h-10 w-full rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
+                class="h-10 w-full rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
               />
             </div>
           </div>
@@ -168,7 +182,7 @@ interface OwnerOption {
       }
 
       @if (actions().length === 0 && !adding()) {
-        <p class="py-4 text-center text-[13.5px] text-fg-muted">
+        <p class="py-4 text-center text-ui text-fg-muted">
           {{ 'deviations.actions.empty' | transloco }}
         </p>
       } @else {
@@ -185,23 +199,27 @@ interface OwnerOption {
               <div class="flex items-start gap-2.5">
                 <span class="min-w-0 flex-1">
                   <span class="mb-1 flex flex-wrap items-center gap-1.5">
-                    <app-badge tone="neutral">{{
+                    <span class="text-meta font-semibold text-fg-muted">{{
                       actionKindLabelKey(action.kind) | transloco
-                    }}</app-badge>
-                    <app-badge [tone]="actionStatusTone(action.status)">{{
-                      actionStatusLabelKey(action.status) | transloco
-                    }}</app-badge>
-                    @if (action.effectiveness) {
-                      <app-badge [tone]="effectivenessTone(action.effectiveness)">{{
-                        effectivenessLabelKey(action.effectiveness) | transloco
-                      }}</app-badge>
+                    }}</span>
+                    <app-status-badge
+                      meaning="lifecycle"
+                      [value]="actionStatusToneValue(action.status)"
+                      [labelKey]="actionStatusLabelKey(action.status)"
+                    />
+                    @if (action.effectiveness && canJudge(action)) {
+                      <app-status-badge
+                        meaning="lifecycle"
+                        [value]="effectivenessToneValue(action.effectiveness)"
+                        [labelKey]="effectivenessLabelKey(action.effectiveness)"
+                      />
                     }
                   </span>
-                  <span class="block text-[13.5px] whitespace-pre-line text-fg">{{
+                  <span class="block text-ui whitespace-pre-line text-fg">{{
                     action.description
                   }}</span>
                   <span
-                    class="mt-1 flex flex-wrap items-center gap-x-4 gap-y-0.5 text-[12px] text-fg-subtle"
+                    class="mt-1 flex flex-wrap items-center gap-x-4 gap-y-0.5 text-meta text-fg-subtle"
                   >
                     @if (action.owner_name) {
                       <span class="inline-flex items-center gap-1">
@@ -211,7 +229,7 @@ interface OwnerOption {
                     @if (action.due_at) {
                       <span
                         class="inline-flex items-center gap-1"
-                        [class.text-fail]="overdue(action)"
+                        [class.text-warn-ink]="overdue(action)"
                         [class.font-semibold]="overdue(action)"
                       >
                         <app-icon name="calendar" [size]="13" />{{
@@ -247,19 +265,25 @@ interface OwnerOption {
                 @if (canEdit()) {
                   <button
                     type="button"
-                    [attr.aria-label]="'deviations.actions.delete' | transloco"
+                    [attr.aria-label]="
+                      'deviations.actions.deleteNamed' | transloco: { action: action.description }
+                    "
+                    [title]="'deviations.actions.delete' | transloco"
                     [disabled]="busyId() === action.id"
-                    (click)="remove(action)"
-                    class="flex flex-none rounded-[8px] p-1.5 text-fg-subtle hover:bg-surface-2 hover:text-fail disabled:opacity-60"
+                    (click)="confirmRemove.set(action)"
+                    class="flex flex-none items-center gap-1 rounded-lg px-2 py-1.5 text-meta font-semibold text-fg-muted hover:bg-fail-soft hover:text-fail-ink disabled:opacity-60"
                   >
-                    <app-icon name="x" [size]="15" />
+                    <app-icon name="trash" [size]="14" />
+                    <span class="hidden sm:inline">{{
+                      'deviations.actions.delete' | transloco
+                    }}</span>
                   </button>
                 }
               </div>
 
               @if (action.notes) {
                 <p
-                  class="mt-2 rounded-[8px] bg-surface-2 px-3 py-2 text-[12.5px] whitespace-pre-line text-fg-muted"
+                  class="mt-2 rounded-lg bg-surface-2 px-3 py-2 text-meta whitespace-pre-line text-fg-muted"
                 >
                   {{ action.notes }}
                 </p>
@@ -275,7 +299,7 @@ interface OwnerOption {
               @if (canEdit()) {
                 <div class="mt-3 flex flex-wrap items-end gap-3 border-t border-border pt-3">
                   <div class="flex flex-col gap-1">
-                    <span class="text-[11px] font-semibold text-fg-subtle">{{
+                    <span class="text-micro font-semibold text-fg-subtle">{{
                       'deviations.actions.fields.status' | transloco
                     }}</span>
                     <div class="cf-select">
@@ -294,44 +318,47 @@ interface OwnerOption {
                     </div>
                   </div>
 
-                  <div class="flex flex-col gap-1">
-                    <span class="text-[11px] font-semibold text-fg-subtle">{{
-                      'deviations.actions.fields.effectiveness' | transloco
-                    }}</span>
-                    <div class="cf-select">
-                      <select
-                        [ngModel]="action.effectiveness ?? ''"
-                        (ngModelChange)="changeEffectiveness(action, $event)"
-                        [disabled]="busyId() === action.id"
-                        [attr.aria-label]="'deviations.actions.fields.effectiveness' | transloco"
-                      >
-                        <option value="">{{ 'deviations.actions.notVerified' | transloco }}</option>
-                        @for (option of effectivenessOptions; track option) {
-                          <option [value]="option">
-                            {{ effectivenessLabelKey(option) | transloco }}
-                          </option>
-                        }
-                      </select>
+                  @if (canJudge(action)) {
+                    <div class="flex flex-col gap-1">
+                      <span class="text-meta font-semibold text-fg-muted">{{
+                        'deviations.actions.fields.effectiveness' | transloco
+                      }}</span>
+                      <div class="cf-select">
+                        <select
+                          [ngModel]="action.effectiveness ?? 'pending'"
+                          (ngModelChange)="changeEffectiveness(action, $event)"
+                          [disabled]="busyId() === action.id"
+                          [attr.aria-label]="'deviations.actions.fields.effectiveness' | transloco"
+                        >
+                          @for (option of effectivenessOptions; track option) {
+                            <option [value]="option">
+                              {{ effectivenessLabelKey(option) | transloco }}
+                            </option>
+                          }
+                        </select>
+                      </div>
                     </div>
-                  </div>
+                  }
 
-                  <div class="flex flex-col gap-1">
-                    <label
-                      [for]="'review-' + action.id"
-                      class="text-[11px] font-semibold text-fg-subtle"
-                      >{{ 'deviations.capa.reviewDue' | transloco }}</label
-                    >
-                    <input
-                      [id]="'review-' + action.id"
-                      type="date"
-                      [ngModel]="dayOf(action.effectiveness_review_due_at)"
-                      (ngModelChange)="changeReviewDue(action, $event)"
-                      [disabled]="busyId() === action.id"
-                      class="h-9 rounded-[10px] border border-border bg-bg px-3 text-[13px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
-                    />
-                  </div>
+                  @if (canJudge(action) || action.effectiveness_review_due_at) {
+                    <div class="flex flex-col gap-1">
+                      <label
+                        [for]="'review-' + action.id"
+                        class="text-micro font-semibold text-fg-subtle"
+                        >{{ 'deviations.capa.reviewDue' | transloco }}</label
+                      >
+                      <input
+                        [id]="'review-' + action.id"
+                        type="date"
+                        [ngModel]="dayOf(action.effectiveness_review_due_at)"
+                        (ngModelChange)="changeReviewDue(action, $event)"
+                        [disabled]="busyId() === action.id"
+                        class="h-9 rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
+                      />
+                    </div>
+                  }
 
-                  @if (action.status !== 'verified') {
+                  @if (action.status === 'done') {
                     <app-button
                       variant="secondary"
                       size="sm"
@@ -346,7 +373,8 @@ interface OwnerOption {
                   <button
                     type="button"
                     (click)="toggleNotes(action.id)"
-                    class="text-[12.5px] font-semibold text-accent hover:underline"
+                    [attr.aria-expanded]="notesOpenId() === action.id"
+                    class="inline-flex h-9 items-center text-ui font-semibold text-accent hover:underline"
                   >
                     {{ 'deviations.actions.editNotes' | transloco }}
                   </button>
@@ -359,7 +387,7 @@ interface OwnerOption {
                       (ngModelChange)="notesDraft.set($event)"
                       rows="2"
                       [placeholder]="'deviations.actions.notesPlaceholder' | transloco"
-                      class="w-full rounded-[10px] border border-border bg-bg px-3 py-2.5 text-[13.5px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
+                      class="w-full rounded-tile border border-border bg-bg px-3 py-2.5 text-ui text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
                     ></textarea>
                     <div class="flex items-center gap-2">
                       <app-button
@@ -381,6 +409,17 @@ interface OwnerOption {
         </ul>
       }
     </div>
+
+    <app-confirm-dialog
+      [open]="confirmRemove() !== null"
+      [busy]="busyId() !== null"
+      [title]="'deviations.actions.deleteTitle' | transloco"
+      [message]="'deviations.actions.deleteConfirm' | transloco"
+      [confirmLabel]="'deviations.actions.delete' | transloco"
+      [cancelLabel]="'deviations.actions.cancel' | transloco"
+      (confirmed)="removeConfirmed()"
+      (cancelled)="confirmRemove.set(null)"
+    />
   `,
   styles: [
     `
@@ -436,9 +475,11 @@ export class DeviationActions {
   protected readonly effectivenessOptions = EFFECTIVENESS_OPTIONS;
   protected readonly actionKindLabelKey = actionKindLabelKey;
   protected readonly actionStatusLabelKey = actionStatusLabelKey;
-  protected readonly actionStatusTone = actionStatusTone;
+  protected readonly actionStatusToneValue = actionStatusToneValue;
   protected readonly effectivenessLabelKey = effectivenessLabelKey;
-  protected readonly effectivenessTone = effectivenessTone;
+  protected readonly effectivenessToneValue = effectivenessToneValue;
+  /** The action waiting for the delete confirmation. */
+  protected readonly confirmRemove = signal<Action | null>(null);
 
   protected readonly adding = signal(false);
   protected readonly saving = signal(false);
@@ -452,6 +493,19 @@ export class DeviationActions {
 
   protected readonly notesOpenId = signal<string | null>(null);
   protected readonly notesDraft = signal('');
+
+  /** Effect is judged once the action is done (finding 21). */
+  protected canJudge(action: Action): boolean {
+    return canJudgeEffect(action.status);
+  }
+
+  protected removeConfirmed(): void {
+    const action = this.confirmRemove();
+    this.confirmRemove.set(null);
+    if (action) {
+      this.remove(action);
+    }
+  }
 
   protected overdue(action: Action): boolean {
     return isActionOverdue(action.due_at, action.status);

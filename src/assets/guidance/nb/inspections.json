@@ -3,11 +3,11 @@
     "list": {
       "intro": {
         "title": "Planlagte kontroller som viser at ting fungerer",
-        "body": "En **inspeksjon** er en planlagt kontroll av en arbeidsplass, en maskin, en rutine eller et område, utført med en **sjekkliste**. Svarene gir en poengsum og et resultat, og alt som ikke er i orden blir et **funn** som noen følger opp.",
+        "body": "En **inspeksjon** er en planlagt kontroll av en arbeidsplass, en maskin, en rutine eller et område, gjort med en **sjekkliste**. Alt som ikke er i orden, blir et **funn** som noen følger opp. Alvorlige funn blir **avvik**, slik at årsaken blir funnet og rettet.",
         "steps": [
-          "Start med forfalte inspeksjoner (rødt), deretter dem med nær frist.",
+          "Start med inspeksjoner merket **Forfalt**, og deretter dem med nærmest frist.",
           "Åpne en inspeksjon og trykk **Start** eller **Fortsett** for å gjennomføre den på mobil eller nettbrett.",
-          "Bruk **Funn** for å følge opp det som ble funnet, og **Planer** for å gjenta faste kontroller automatisk."
+          "Bruk **Funn** for å følge opp det som ble funnet, og **Faste inspeksjoner** for å gjenta kontroller automatisk."
         ]
       },
       "why": {
@@ -17,16 +17,16 @@
       "empty": {
         "title": "Ingen inspeksjoner ennå",
         "body": "En inspeksjon gjør en sjekkliste om til en registrert kontroll: hvem som så etter, når, hva de fant og hva som skjer videre. Start med å importere en sjekkliste fra malbiblioteket, publiser den og planlegg den første inspeksjonen.",
-        "cta": "Planlegg en inspeksjon"
+        "cta": "Planlegg inspeksjon"
       }
     },
     "findings": {
       "intro": {
         "title": "Alt inspeksjonene har funnet",
-        "body": "Et **funn** opprettes automatisk for hvert svar som ikke er godkjent, og inspektører kan legge til funn manuelt. Hvert funn har alvorlighet, eier og frist, og kan bli et **avvik** for årsaksanalyse og korrigerende tiltak.",
+        "body": "Et **funn** opprettes automatisk for hvert svar som ikke er godkjent, og inspektører kan legge til funn selv. Hvert funn har alvorlighet, eier og frist. Det lukkes med en beskrivelse av hva som ble gjort, og senere sjekker du at tiltaket virker.",
         "steps": [
-          "Filtrer på **Åpent** og **Eies av meg** for å se hva som venter på deg.",
-          "Åpne et funn for å legge til oppfølgingstiltak, gjøre det om til avvik eller lukke det.",
+          "Filtrer på **Åpent**, eller velg **Eies av meg** under Flere filtre, for å se hva som venter på deg.",
+          "Åpne et funn for å legge til oppfølgingsoppgaver, opprette avvik eller lukke det.",
           "Funn med høy eller kritisk alvorlighet bør bli avvik, slik at årsaken blir funnet og rettet."
         ]
       },
@@ -43,11 +43,11 @@
     "templates": {
       "intro": {
         "title": "Sjekklister du kan gjenbruke",
-        "body": "En **sjekklistemal** inneholder spørsmålene en inspeksjon stiller: ja/nei, poeng, målinger med akseptabelt område, fritekst, bilder og signaturer. Publiser en mal for å bruke den; endrer du en publisert mal, får den ny versjon.",
+        "body": "En **sjekklistemal** inneholder spørsmålene en inspeksjon stiller. Hvert spørsmål kan vise til punktene i standardene det kontrollerer, slik at inspeksjonene blir dokumentasjon for kravene. Publiser malen for å bruke den.",
         "steps": [
           "Start fra **Malbiblioteket** eller lag din egen mal.",
-          "La assistenten lage spørsmål fra en beskrivelse eller et standardpunkt, og gå gjennom dem.",
-          "Publiser malen og planlegg inspeksjoner eller en plan fra den."
+          "Knytt spørsmålene til kravene de kontrollerer, for eksempel ISO 45001 · 8.1.2.",
+          "Publiser malen og planlegg en inspeksjon, eller gjør den til en fast inspeksjon."
         ]
       },
       "why": {
@@ -63,7 +63,7 @@
     "library": {
       "intro": {
         "title": "Ferdige sjekklister",
-        "body": "Disse sjekklistene dekker vanlige inspeksjoner. Når du importerer en, opprettes et **utkast** i organisasjonen som du kan endre fritt før du publiserer det.",
+        "body": "Disse sjekklistene dekker vanlige inspeksjoner, og hvert spørsmål viser hvilke krav det kontrollerer. Når du importerer en, får organisasjonen et **utkast** du kan endre fritt før du publiserer det.",
         "steps": [
           "Forhåndsvis en sjekkliste for å se spørsmålene og poenggivningen.",
           "Importer den og tilpass spørsmålene til dine steder og rutiner.",
@@ -78,11 +78,11 @@
     "templateDetail": {
       "intro": {
         "title": "En sjekklistemal",
-        "body": "Her ser du alle spørsmålene per seksjon, hvordan svarene gir poeng og hva som skjer når et svar ikke er godkjent. Bruk **Planlegg inspeksjon** for å gjennomføre den én gang, eller **Lag plan** for å gjenta den.",
+        "body": "Her ser du spørsmålene per seksjon, hva som ikke godkjennes, og hvilke krav hvert spørsmål kontrollerer. Bruk **Planlegg inspeksjon** for å gjennomføre den én gang, eller gjør den til en **fast inspeksjon** under Mer.",
         "steps": [
           "Sjekk at hvert spørsmål kan besvares ved å se, måle eller spørre.",
           "Sett en grense for godkjent hvis den samlede poengsummen skal avgjøre resultatet.",
-          "Knytt malen til standardpunktene den gir dokumentasjon for."
+          "Se under **Krav dette dokumenterer** hvilke krav malen gir dokumentasjon for."
         ]
       },
       "why": {
@@ -91,7 +91,7 @@
       },
       "fields": {
         "version": {
-          "help": "Versjonen øker når spørsmålene eller godkjentgrensen i en aktiv mal endres. Hver inspeksjon beholder en kopi av spørsmålene den ble opprettet med, så gamle resultater endres aldri.",
+          "help": "Versjonen øker når spørsmålene eller grensen for godkjent i en aktiv mal endres. Hver inspeksjon beholder en kopi av spørsmålene den ble opprettet med, så gamle resultater endres aldri.",
           "example": "Versjon 3: et spørsmål om nødlys ble lagt til."
         }
       }
@@ -99,7 +99,7 @@
     "builder": {
       "intro": {
         "title": "Slik lager du en sjekkliste",
-        "body": "Skriv hvert spørsmål som noe inspektøren kan kontrollere på stedet, velg svartype og bestem hva som regnes som ikke godkjent. Grupper spørsmålene i **seksjoner** i den rekkefølgen inspektøren går gjennom området.",
+        "body": "Skriv hvert spørsmål som noe inspektøren kan kontrollere på stedet, velg svartype og bestem hva som ikke godkjennes. Knytt spørsmålet til kravene det kontrollerer, så teller inspeksjonene som dokumentasjon.",
         "steps": [
           "Gi malen en tydelig tittel og kategori.",
           "Legg til spørsmål etter type, eller la assistenten lage dem og gå gjennom resultatet.",
@@ -117,30 +117,41 @@
         },
         "passThreshold": {
           "help": "Laveste samlede poengsum (i %) for at inspeksjonen skal være godkjent. La feltet stå tomt hvis ett ikke godkjent svar skal gi ikke godkjent inspeksjon.",
-          "example": "80"
+          "example": "80",
+          "requirements": ["hs:9.1"]
         },
         "autoDeviation": {
-          "help": "Når dette er på, blir hvert funn fra et ikke godkjent svar også et avvik, slik at det går inn i arbeidet med korrigerende tiltak uten ekstra innsats.",
-          "example": "På for vernerunder og brannkontroller; av for enkle ryddekontroller."
+          "help": "Funn med den valgte alvorligheten eller høyere blir også avvik, slik at årsaken blir funnet og rettet. Mindre funn følges opp som funn. Standardvalget er høy og kritisk.",
+          "example": "Høy og kritisk for vernerunder og brannkontroller; bare kritiske for ryddekontroller.",
+          "requirements": ["hs:10.2"]
         },
         "questionType": {
-          "help": "**Ja / nei** for ting som er enten riktig eller galt, **Poeng** for kvalitetsvurderinger, **Tall** for målinger med akseptabelt område, **Tekst** for observasjoner, **Bilde** for dokumentasjon og **Signatur** for godkjenning.",
+          "help": "**Ja / nei** for ting som er enten riktig eller galt, **Poeng** for vurderinger, **Tall** for målinger med akseptabelt område, **Tekst** for observasjoner, **Bilde** for dokumentasjon og **Signatur** når noen andre enn inspektøren må bekrefte. Inspektøren signerer selv når inspeksjonen fullføres.",
           "example": "«Er nødutgangene frie for hindringer?» – Ja / nei, ikke godkjent ved «Nei»."
         },
         "weight": {
           "help": "Hvor mye dette spørsmålet teller i poengsummen sammenlignet med andre. Gi høyere vekt til spørsmål som betyr mer.",
           "example": "2 for «Er brannalarmen testet?», 1 for «Er oppslagstavlen oppdatert?»"
+        },
+        "clauseRefs": {
+          "help": "Velg punktene i standardene som spørsmålet kontrollerer. Når inspeksjonen fullføres, kobles den til disse kravene og teller som dokumentasjon. Et funn fra spørsmålet blir foreslått mot de samme kravene.",
+          "example": "ISO 45001 · 8.1.2 for «Er farlige områder sikret?»",
+          "requirements": ["hs:9.1"]
+        },
+        "frameworks": {
+          "help": "Standardene sjekklisten er laget for. De styrer hvilke krav som foreslås, men gir ingen dokumentasjon alene: det er punktene på spørsmålene som teller.",
+          "example": "ISO 45001 for en vernerunde"
         }
       }
     },
     "form": {
       "intro": {
         "title": "Slik planlegger du en inspeksjon",
-        "body": "Velg en aktiv sjekklistemal, hvor inspeksjonen skal gjøres, hvem som utfører den og når fristen er. Inspektøren får påminnelse når fristen nærmer seg.",
+        "body": "Velg en aktiv sjekkliste, hva som skal kontrolleres og hvor, hvem som gjennomfører inspeksjonen og når fristen er. Inspektøren får påminnelse når fristen nærmer seg.",
         "steps": [
-          "Velg malen; spørsmålene kopieres inn i inspeksjonen.",
-          "Angi inspektør og eventuelt en annen eier som følger opp resultatene.",
-          "Sett en frist, så vises inspeksjonen i Mitt arbeid og i påminnelser."
+          "Velg sjekklisten; spørsmålene kopieres inn i inspeksjonen.",
+          "Koble gjerne eiendelen, prosessen, leverandøren eller risikoen som kontrolleres.",
+          "Velg inspektør og eier, og sett en frist, så vises inspeksjonen i Mitt arbeid."
         ]
       },
       "why": {
@@ -150,30 +161,37 @@
       "fields": {
         "template": {
           "help": "Bare aktive maler kan brukes. Inspeksjonen beholder sin egen kopi av spørsmålene.",
-          "example": "CL-003 Brannsikkerhetskontroll"
+          "example": "CL-003 Brannsikkerhetskontroll",
+          "requirements": ["hs:9.1"]
         },
         "location": {
           "help": "Hvor inspeksjonen gjøres, slik at inspektøren vet hvor hun eller han skal, og resultatene kan sammenlignes per sted.",
           "example": "Lager B, lasterampe"
         },
         "inspector": {
-          "help": "Personen som utfører inspeksjonen. La feltet stå tomt hvis alle med tilgang skal kunne gjennomføre den.",
-          "example": "Verneombudet på stedet"
+          "help": "Personen som gjennomfører inspeksjonen. Velg «Ikke tildelt» hvis alle med tilgang skal kunne gjøre den. Velg noen som har kompetanse på området.",
+          "example": "Verneombudet på stedet",
+          "requirements": ["hs:7.2"]
         },
         "owner": {
-          "help": "Personen som er ansvarlig for resultatet og oppfølgingen. Eieren får beskjed når inspeksjonen er fullført.",
+          "help": "Personen som følger opp resultatet og funnene. Eieren får beskjed når inspeksjonen er fullført.",
           "example": "Lagersjefen"
+        },
+        "subject": {
+          "help": "Det inspeksjonen kontrollerer: en eiendel (maskin, kjøretøy), en prosess, en leverandør eller en risiko. Da vises inspeksjonen på siden til posten, og du ser historikken der.",
+          "example": "Gaffeltruck T-03, eller risikoen «Fall fra høyde»",
+          "requirements": ["iso45001:8.1.2", "iso45001:6.1.2"]
         }
       }
     },
     "detail": {
       "intro": {
         "title": "En inspeksjon og resultatene",
-        "body": "Se planen, fremdriften eller resultatet, alle svar per seksjon og funnene som ble registrert. Inspektøren gjennomfører inspeksjonen på gjennomføringssiden; resultat og poengsum regnes ut når den fullføres.",
+        "body": "Se hva som kontrolleres, fremdriften eller resultatet, alle svar per seksjon med kravene de dekker, og funnene. Resultat og poengsum regnes ut når inspeksjonen fullføres.",
         "steps": [
           "Trykk **Start** eller **Fortsett** for å svare på sjekklisten.",
           "Etter fullføring går du gjennom svarene som ikke ble godkjent, og funnene deres.",
-          "Gi funnene eier og tiltak, eller gjør dem om til avvik."
+          "Gi funnene eier og oppgaver, opprett avvik for de alvorlige, og last ned rapporten ved behov."
         ]
       },
       "why": {
@@ -182,31 +200,34 @@
       },
       "fields": {
         "score": {
-          "help": "Hvert svar som gir poeng, bidrar: ja/nei- og områdespørsmål gir full uttelling når de er godkjent, poengspørsmål gir uttelling forholdsmessig. Svar som ikke er relevante, teller ikke.",
-          "example": "17 av 20 poeng = 85 %"
+          "help": "Hvert svar som gir poeng, bidrar: ja/nei- og måle-spørsmål gir full uttelling når de er godkjent, poengspørsmål gir uttelling forholdsmessig. Svar som ikke er relevante, teller ikke.",
+          "example": "17 av 20 poeng = 85 %",
+          "requirements": ["hs:9.1"]
         },
         "findings": {
           "help": "Et funn opprettes automatisk for hvert svar som ikke er godkjent, når spørsmålet er satt opp for det. Du kan også legge til funn manuelt når inspeksjonen er startet.",
           "example": "FND-0012 Blokkert nødutgang (høy)"
         },
         "finding": {
-          "help": "Gi hvert funn en eier og en frist. Legg til oppfølgingstiltak som oppgaver, eller opprett et avvik når årsaken må undersøkes.",
-          "example": "Eier: lagersjefen, frist om 7 dager"
+          "help": "Gi funnet en eier og en frist, skriv hva som ble gjort på stedet og hva årsaken var. Lukk det med en beskrivelse av hva som ble gjort, og bekreft senere at tiltaket virker.",
+          "example": "Eier: lagersjefen, frist om 7 dager",
+          "requirements": ["hs:10.2"]
         },
         "severity": {
-          "help": "Hvor alvorlig funnet er: **kritisk** krever umiddelbar handling, **høy** rask handling, **middels** planlagt handling og **lav** en forbedring.",
-          "example": "Et manglende brannslukningsapparat er høy; et falmet skilt er lav."
+          "help": "Hvor alvorlig funnet er: **kritisk** må rettes straks, **høy** raskt, **middels** etter en plan, og **lav** er et forbedringspunkt.",
+          "example": "Et manglende brannslukningsapparat er høy; et falmet skilt er lav.",
+          "requirements": ["hs:10.2"]
         }
       }
     },
     "run": {
       "intro": {
         "title": "Slik gjennomfører du en inspeksjon",
-        "body": "Svar på hvert spørsmål underveis. Svarene **lagres automatisk**, så du kan stoppe og fortsette senere. Legg til et notat eller et bilde når noe ikke er i orden; det hjelper den som skal følge opp.",
+        "body": "Svar på spørsmålene underveis. Svarene **lagres automatisk**, så du kan stoppe og fortsette senere. Når noe ikke er i orden, skriver du hva du så eller tar et bilde: det blir grunnlaget for funnet.",
         "steps": [
-          "Bruk seksjonsknappene for å hoppe rundt i sjekklisten.",
+          "Under hvert spørsmål står det hva som ikke godkjennes.",
           "Merk et spørsmål som **Ikke relevant** bare når det virkelig ikke gjelder her.",
-          "Trykk **Fullfør** til slutt, skriv en kort oppsummering og signer."
+          "Trykk **Fullfør** til slutt, skriv en kort oppsummering og signer én gang."
         ]
       },
       "why": {
@@ -216,32 +237,33 @@
       "fields": {
         "signature": {
           "help": "Skriv fullt navn for å signere; å tegne signaturen er valgfritt. Signaturen viser hvem som gjennomførte og godkjente inspeksjonen.",
-          "example": "Kari Nordmann"
+          "example": "Kari Nordmann",
+          "requirements": ["hs:7.5"]
         }
       }
     },
     "schedules": {
       "intro": {
         "title": "Faste kontroller som planlegger seg selv",
-        "body": "En **plan** gjentar en inspeksjon fra en mal, for eksempel hver måned. Neste inspeksjon opprettes automatisk noen dager før fristen, og bare én er åpen om gangen.",
+        "body": "En **fast inspeksjon** gjentar en sjekkliste, for eksempel hver måned. Neste inspeksjon opprettes automatisk noen dager før fristen, og bare én er åpen om gangen.",
         "steps": [
-          "Velg mal, gjentakelse og første frist.",
-          "Angi hvor mange dager i forveien inspeksjonen skal opprettes.",
-          "Sett en plan på pause i stedet for å slette den hvis rutinen stopper en periode."
+          "Velg sjekkliste, hvor ofte og første frist.",
+          "Velg hvor mange dager før fristen inspeksjonen skal opprettes.",
+          "Sett den på pause i stedet for å slette den hvis rutinen stopper en periode."
         ]
       },
       "why": {
-        "body": "Standardene krever at du bestemmer **når** overvåking skal utføres. En plan gjør den beslutningen synlig og sørger for at den blir fulgt.",
+        "body": "Standardene krever at du bestemmer **når** overvåking skal gjøres. En fast inspeksjon gjør den beslutningen synlig og sørger for at den blir fulgt.",
         "clauses": ["hs:9.1", "iso45001:9.1.1"]
       },
       "empty": {
-        "title": "Ingen planer ennå",
+        "title": "Ingen faste inspeksjoner ennå",
         "body": "Gjør faste inspeksjoner gjentakende: månedlige vernerunder, kvartalsvise brannkontroller eller en årlig miljøkontroll. Inspektøren får inspeksjonen i Mitt arbeid før fristen.",
-        "cta": "Lag en plan"
+        "cta": "Ny fast inspeksjon"
       },
       "fields": {
         "leadDays": {
-          "help": "Hvor mange dager før fristen inspeksjonen opprettes og tildeles.",
+          "help": "Hvor mange dager før fristen inspeksjonen opprettes og tildeles inspektøren.",
           "example": "7 for en månedlig kontroll"
         }
       }
@@ -266,7 +288,7 @@
         },
         {
           "heading": "Fra funn til forbedring",
-          "body": "Et svar som ikke er godkjent, gir et **funn** med alvorlighet og eier. Små funn rettes med et oppfølgingstiltak; alvorlige eller gjentatte funn blir et **avvik**, der du leter etter grunnårsaken og setter inn korrigerende tiltak. Lukk funnet når det er håndtert."
+          "body": "Et svar som ikke er godkjent, gir et **funn** med alvorlighet og eier. Små funn rettes med en oppfølgingsoppgave; alvorlige eller gjentatte funn blir et **avvik**, der du finner grunnårsaken og setter inn korrigerende tiltak. Lukk funnet med en beskrivelse av hva som ble gjort, og sjekk senere at tiltaket virker."
         }
       ],
       "quiz": [

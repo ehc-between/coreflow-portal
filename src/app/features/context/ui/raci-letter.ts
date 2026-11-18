@@ -1,10 +1,14 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { Raci } from '../data/context.models';
 
+/**
+ * Letter colours. Accountable (A) is the strongest accent, never red: red means
+ * an error everywhere else in the app.
+ */
 const TONE: Readonly<Record<Raci, string>> = {
-  R: 'bg-accent text-white',
-  A: 'bg-fail text-white',
-  C: 'bg-info-soft text-info',
+  R: 'bg-accent-soft text-accent',
+  A: 'bg-accent text-white',
+  C: 'bg-info-soft text-info-ink',
   I: 'bg-surface-2 text-fg-muted',
 };
 
@@ -15,7 +19,7 @@ const TONE: Readonly<Record<Raci, string>> = {
   host: { class: 'inline-flex' },
   template: `
     <span
-      class="inline-flex h-6 w-6 items-center justify-center rounded-[6px] font-mono text-[12px] font-bold"
+      class="inline-flex h-6 w-6 items-center justify-center rounded-md font-mono text-meta font-bold"
       [class]="tone()"
       aria-hidden="true"
       >{{ raci() }}</span

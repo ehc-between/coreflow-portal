@@ -1,7 +1,8 @@
 /**
  * Objectives, KPIs and measurement (M08) DTOs. They mirror coreflow-core
  * `app/modules/objectives/schemas.py` (routes under `/api/v1/orgs/{org}/objectives`).
- * Dates are `YYYY-MM-DD`; datetimes are naive UTC ISO strings.
+ * Dates are `YYYY-MM-DD`; datetimes are naive UTC ISO strings. Fields added in the
+ * A10 polish pass are optional so the pages keep working against an older server.
  */
 
 export const MANAGEMENT_SYSTEMS = [
@@ -71,6 +72,21 @@ export const KPI_SORTS = [
 ] as const;
 export type KpiSort = (typeof KPI_SORTS)[number];
 
+/** Where an objective's progress figure comes from. */
+export const PROGRESS_SOURCES = ['kpis', 'manual', 'none'] as const;
+export type ProgressSource = (typeof PROGRESS_SOURCES)[number];
+
+/** Record types an objective can come from (HS 6.1 / 6.2; stored as `derived_from` links). */
+export const ORIGIN_TYPES = [
+  'policy',
+  'context_analysis',
+  'interested_party',
+  'risk',
+  'opportunity',
+  'compliance_obligation',
+] as const;
+export type OriginType = (typeof ORIGIN_TYPES)[number];
+
 export interface UserRef {
   readonly id: string;
   readonly name: string;
@@ -82,12 +98,31 @@ export interface ObjectiveRef {
   readonly title: string;
 }
 
+/** A linked record as the platform resolves it (the `EntityRefDto` shape). */
+export interface OriginRef {
+  readonly entity_type: string;
+  readonly entity_id: string;
+  readonly title: string;
+  readonly code: string | null;
+  readonly url: string | null;
+  readonly status: string | null;
+  readonly module: string | null;
+  readonly label_key: string | null;
+}
+
+export interface OriginIn {
+  readonly entity_type: OriginType;
+  readonly entity_id: string;
+}
+
 export interface KpiSummary {
   readonly total: number;
   readonly on_track: number;
   readonly at_risk: number;
   readonly off_track: number;
   readonly no_data: number;
+  /** at_risk + off_track. */
+  readonly needs_attention?: number;
 }
 
 export interface Objective {
@@ -96,7 +131,10 @@ export interface Objective {
   readonly code: string;
   readonly title: string;
   readonly description: string | null;
+  /** The primary system (the first of `management_systems`). */
   readonly management_system: ManagementSystem | null;
+  /** Every system the objective serves (integrated management systems). */
+  readonly management_systems?: readonly ManagementSystem[];
   readonly status: ObjectiveStatus;
   readonly owner: UserRef | null;
   readonly department_id: string | null;
@@ -107,7 +145,25 @@ export interface Objective {
   readonly start_date: string | null;
   readonly due_date: string | null;
   readonly overdue: boolean;
+  /** The manual value (an override of the computed one), else null. */
   readonly progress: number | null;
+  /** Why the manual value overrides the computed one. */
+  readonly progress_note?: string | null;
+  /** Mean KPI progress from baseline to target. */
+  readonly computed_progress?: number | null;
+  /** How many KPIs `computed_progress` is based on. */
+  readonly computed_progress_kpis?: number;
+  /** What to show: the manual value when set, else the computed one. */
+  readonly effective_progress?: number | null;
+  readonly progress_source?: ProgressSource;
+  /** The plan year the objective belongs to ("Målplan 2026"). */
+  readonly period_year?: number | null;
+  readonly approved_by?: UserRef | null;
+  readonly approved_at?: string | null;
+  readonly communicated_to?: string | null;
+  readonly last_communicated_on?: string | null;
+  /** Records the objective comes from (policy, risks, …). */
+  readonly origins?: readonly OriginRef[];
   readonly closed_at: string | null;
   readonly closing_note: string | null;
   readonly kpis: KpiSummary;
@@ -131,7 +187,9 @@ export interface ObjectiveList {
 export interface ObjectiveListQuery {
   readonly q?: string;
   readonly status?: readonly ObjectiveStatus[];
+  /** Matches any of an objective's systems. */
   readonly management_system?: ManagementSystem;
+  readonly period_year?: number;
   readonly owner?: string;
   readonly department_id?: string;
   readonly overdue?: boolean;
@@ -144,6 +202,7 @@ export interface CreateObjectiveRequest {
   readonly title: string;
   readonly description?: string | null;
   readonly management_system?: ManagementSystem | null;
+  readonly management_systems?: readonly ManagementSystem[];
   readonly status?: 'draft' | 'active';
   readonly owner_user_id?: string | null;
   readonly department_id?: string | null;
@@ -154,6 +213,13 @@ export interface CreateObjectiveRequest {
   readonly start_date?: string | null;
   readonly due_date?: string | null;
   readonly progress?: number | null;
+  readonly progress_note?: string | null;
+  readonly period_year?: number | null;
+  readonly approved_by?: string | null;
+  readonly communicated_to?: string | null;
+  readonly last_communicated_on?: string | null;
+  /** On update this replaces the whole set of origin links. */
+  readonly origins?: readonly OriginIn[];
 }
 
 export interface UpdateObjectiveRequest extends Omit<Partial<CreateObjectiveRequest>, 'status'> {
@@ -175,7 +241,17 @@ export interface ObjectivesOverview {
     readonly off_track: number;
     readonly no_data: number;
     readonly measurement_overdue: number;
+    readonly needs_attention?: number;
   };
+}
+
+export const EXPORT_FORMATS = ['xlsx', 'pdf', 'csv'] as const;
+export type ExportFormat = (typeof EXPORT_FORMATS)[number];
+
+export interface ExportQuery {
+  readonly period_year?: number;
+  readonly management_system?: ManagementSystem;
+  readonly lang?: string;
 }
 
 export interface Kpi {
@@ -195,6 +271,10 @@ export interface Kpi {
   readonly warning_value: number | null;
   readonly frequency: KpiFrequency;
   readonly data_source: string | null;
+  /** Who analyses and evaluates the results (HS 9.1). */
+  readonly evaluated_by?: UserRef | null;
+  /** Where and how often the results are reviewed. */
+  readonly review_forum?: string | null;
   readonly status: KpiStatus;
   readonly start_date: string | null;
   readonly measurement_reminders: boolean;
@@ -209,10 +289,30 @@ export interface Kpi {
   readonly updated_at: string;
 }
 
+/** The calendar period the next measurement covers (`complete`: it has ended). */
+export interface NextPeriod {
+  readonly start: string;
+  readonly end: string;
+  readonly complete: boolean;
+}
+
+/** The open (recurring) task that asks the owner to record the next value. */
+export interface MeasurementTask {
+  readonly id: string;
+  readonly title: string;
+  readonly status: string;
+  readonly due_at: string | null;
+  readonly assignee: UserRef | null;
+  readonly recurring: boolean;
+  readonly url: string;
+}
+
 export interface KpiDetail extends Kpi {
   readonly can_edit: boolean;
   readonly can_delete: boolean;
   readonly can_measure: boolean;
+  readonly next_period?: NextPeriod | null;
+  readonly measurement_task?: MeasurementTask | null;
 }
 
 export interface KpiList {
@@ -228,6 +328,7 @@ export interface KpiListQuery {
   readonly management_system?: ManagementSystem;
   readonly owner?: string;
   readonly department_id?: string;
+  readonly measurement_overdue?: boolean;
   readonly sort?: KpiSort;
   readonly limit?: number;
   readonly offset?: number;
@@ -247,6 +348,8 @@ export interface CreateKpiRequest {
   readonly warning_value?: number | null;
   readonly frequency?: KpiFrequency;
   readonly data_source?: string | null;
+  readonly evaluated_by_user_id?: string | null;
+  readonly review_forum?: string | null;
   readonly start_date?: string | null;
   readonly measurement_reminders?: boolean;
 }

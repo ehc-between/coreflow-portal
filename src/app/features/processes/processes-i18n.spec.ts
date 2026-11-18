@@ -1,5 +1,7 @@
 import guideEn from '../../../assets/guidance/en/processes.json';
 import guideNb from '../../../assets/guidance/nb/processes.json';
+import kitEn from '../../../assets/i18n/kit/en.json';
+import kitNb from '../../../assets/i18n/kit/nb.json';
 import en from '../../../assets/i18n/processes/en.json';
 import nb from '../../../assets/i18n/processes/nb.json';
 import { expectKeyParity } from '../../../testing/i18n-parity';
@@ -7,9 +9,14 @@ import { GuidanceFile } from '../../core/guidance/guidance.models';
 import { PROCESS_FIELD_LABELS, STATUS_ACTIONS } from './detail/process-detail';
 import { PROCESS_ERROR_CODES } from './data/process-errors';
 import {
+  HEALTH_KEYS,
   MAP_NODE_TYPES,
   PROCESS_CATEGORIES,
+  PROCESS_FRAMEWORKS,
   PROCESS_STATUSES,
+  REVIEW_CHECKS,
+  REVIEW_OUTCOMES,
+  TURTLE_LEGS,
   TURTLE_LIST_FIELDS,
 } from './data/process.models';
 
@@ -90,10 +97,46 @@ describe('processes i18n and guidance', () => {
       );
       ['self', 'duplicate', 'missing', 'limit'].forEach((k) => has(`map.connectErrors.${k}`));
       ['list.steps', 'list.stepsOne', 'review.months', 'review.monthsOne'].forEach(has);
+      HEALTH_KEYS.forEach((k) => {
+        has(`health.items.${k}`);
+        has(`health.fix.${k}`);
+      });
+      REVIEW_CHECKS.forEach((k) => {
+        has(`review.checks.${k}`);
+        has(`review.data.${k}`);
+      });
+      REVIEW_OUTCOMES.forEach((o) => {
+        has(`review.outcome.${o}`);
+        has(`review.outcomeHint.${o}`);
+      });
+      PROCESS_FRAMEWORKS.forEach((f) => has(`frameworks.${f}`));
+      TURTLE_LEGS.forEach((leg) => {
+        has(`turtle.${leg}`);
+        has(`linkLeg.subtitle.${leg}`);
+      });
+      ['on_track', 'at_risk', 'off_track', 'no_target', 'none'].forEach((k) =>
+        has(`kpi.result.${k}`),
+      );
+      ['yes', 'no', 'unset'].forEach((k) => has(`review.answer.${k}`));
+      ['everyMonth', 'everyYear', 'everyNYears', 'everyNMonths'].forEach((k) => has(`review.${k}`));
+      ['map', 'table'].forEach((k) => has(`interactionMap.view.${k}`));
+      ['process', 'party'].forEach((k) => has(`interactions.kind.${k}`));
+      // Keys the backend sends (scoped `processes:` keys).
+      ['tasks.reviewTitle', 'nextActions.firstReview', 'nextActions.firstReviewWhy'].forEach(has);
+      ['nextActions.noOwner', 'nextActions.noOwnerWhy'].forEach(has);
       EVENT_KEYS.forEach((k) => {
         has(`notifications.${k}`);
         has(`timeline.${k}`);
       });
+    }
+  });
+
+  it('labels the create-from-here flows the backend registers for a process', () => {
+    for (const kit of [kitEn, kitNb]) {
+      const flows = (kit as { flows: { process?: Record<string, string> } }).flows.process ?? {};
+      for (const key of ['to_deviation', 'to_risk', 'to_task', 'to_audit_plan', 'to_kpi']) {
+        expect(typeof flows[key], key).toBe('string');
+      }
     }
   });
 
@@ -111,8 +154,20 @@ describe('processes i18n and guidance', () => {
     }
     expect(file.tours?.['list']?.length).toBeGreaterThan(0);
     expect(file.tours?.['map']?.length).toBeGreaterThan(0);
-    for (const field of [...TURTLE_LIST_FIELDS, 'title', 'purpose', 'kpis', 'owner']) {
+    for (const field of [
+      ...TURTLE_LIST_FIELDS,
+      'title',
+      'purpose',
+      'kpis',
+      'owner',
+      'frameworks',
+    ]) {
       expect(file.pages?.['form']?.fields?.[field]?.help, field).toBeTruthy();
     }
+    const withRequirements = Object.values(file.pages?.['form']?.fields ?? {}).filter(
+      (f) => (f.requirements?.length ?? 0) > 0,
+    );
+    expect(withRequirements.length).toBeGreaterThanOrEqual(3);
+    expect(file.glossary?.['turtle']?.term).toBeTruthy();
   });
 });

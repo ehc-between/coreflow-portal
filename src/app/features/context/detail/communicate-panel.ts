@@ -10,6 +10,7 @@ import {
 import { TranslocoPipe } from '@jsverse/transloco';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
+import { pluralKey } from '../../../shared/i18n/plural';
 import { AssigneeSelect } from '../../../shared/tasks/assignee-select';
 import { Button } from '../../../shared/ui/button/button';
 import { FormField } from '../../../shared/ui/form-field/form-field';
@@ -43,7 +44,8 @@ export function communicateBody(
 
 /**
  * "Communicate policy": asks a person, role or department to read and
- * acknowledge an approved policy (one acknowledgement task, ISO HS 5.2 / 7.3).
+ * confirm an approved policy (HS 5.2 / 7.3). A role or department becomes one
+ * task per person, so the policy page can show who has confirmed.
  */
 @Component({
   selector: 'app-context-communicate-panel',
@@ -58,7 +60,7 @@ export function communicateBody(
       (closed)="closed.emit()"
     >
       <form class="flex flex-col gap-4" (submit)="$event.preventDefault(); send()">
-        <p class="text-[13px] text-fg-muted">{{ 'context.communicate.intro' | transloco }}</p>
+        <p class="text-ui text-fg-muted">{{ 'context.communicate.intro' | transloco }}</p>
         <app-form-field
           [label]="'context.communicate.assignee' | transloco"
           inputId="cf-comm-assignee"
@@ -132,8 +134,18 @@ export class CommunicatePanel {
         this.assignee.set('');
         this.dueDay.set('');
         this.message.set('');
-        this.notifications.success('context.communicate.sent');
-        this.sent.emit(result.task_id);
+        const created = result.created ?? (result.task_id ? 1 : 0);
+        const skipped = result.skipped ?? 0;
+        if (created > 0) {
+          const key =
+            skipped > 0
+              ? 'context.communicate.sentWithSkipped'
+              : pluralKey('context.communicate.sent', created);
+          this.notifications.success(key, { count: created, skipped });
+        } else {
+          this.notifications.info('context.communicate.alreadyAsked', { count: skipped });
+        }
+        this.sent.emit(result.task_id ?? '');
       },
       error: (error: unknown) => {
         this.busy.set(false);

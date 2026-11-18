@@ -1,163 +1,192 @@
 import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
-import { providePageContext } from '../../../core/ai/page-context';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { providePageContext } from '../../../core/ai/page-context';
 import { DeviationType } from '../../../core/deviations/deviation.models';
 import { notifyDeviationError } from '../../../core/deviations/deviation-errors';
 import { DeviationsApi } from '../../../core/deviations/deviations-api';
+import { LanguageService } from '../../../core/i18n/language.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
-import { Card } from '../../../shared/ui/card/card';
+import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
+import { EmptyState } from '../../../shared/ui/empty-state/empty-state';
+import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
+import { Switch } from '../../../shared/ui/switch/switch';
+import { DEVIATIONS_ROOT_CRUMB } from '../deviation-display';
 import { standardLabelKey } from '../deviation-enums';
-import { DeviationPageGuide } from '../guide/deviation-page-guide';
 
 /**
- * Admin list of the org's deviation types. Shows each type's name, key,
- * code prefix, standards, field count and active state, with create / edit /
- * delete. Toggling active patches `is_active`; delete handles the backend's
- * 409 (type in use) with a clear toast. Gated upstream on `deviations:admin`.
- * Reloads on org switch.
+ * Admin list of the org's deviation types on the shared page frame: name, code
+ * prefix, standards, number of fields (or "own workflow") and an active switch.
+ * The technical key is not shown (finding 28). "Maler" opens the built-in
+ * templates; delete asks first and explains a type in use. Gated upstream on
+ * `deviations:admin`.
  */
 @Component({
   selector: 'app-deviation-types-list',
-  imports: [RouterLink, TranslocoPipe, Card, Badge, Button, Icon, DeviationPageGuide],
+  imports: [
+    RouterLink,
+    TranslocoPipe,
+    Badge,
+    Button,
+    ConfirmDialog,
+    EmptyState,
+    ErrorState,
+    HelpStrip,
+    Icon,
+    LoadingState,
+    PageHeader,
+    Switch,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[1080px] px-4 pt-7 pb-12 sm:px-8">
-      <a
-        routerLink="/deviations"
-        class="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
+    <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+      <app-page-header
+        titleKey="deviations.types.title"
+        descriptionKey="deviations.types.subtitle"
+        [breadcrumbs]="breadcrumbs"
+        backLink="/deviations"
       >
-        <app-icon name="back" [size]="16" />
-        {{ 'deviations.backToList' | transloco }}
-      </a>
+        <a secondary routerLink="/deviations/templates" tabindex="-1">
+          <app-button variant="secondary">
+            <app-icon name="template" [size]="15" />
+            {{ 'deviations.templates.link' | transloco }}
+          </app-button>
+        </a>
+        <a primary routerLink="/deviations/types/new" tabindex="-1">
+          <app-button>
+            <app-icon name="plus" [size]="15" />
+            {{ 'deviations.types.new' | transloco }}
+          </app-button>
+        </a>
+      </app-page-header>
+      <app-help-strip scope="deviations" page="types" lesson="designing-your-process" />
 
-      <div class="mb-[18px] flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 class="font-display text-[26px] font-bold tracking-[-0.025em] text-fg">
-            {{ 'deviations.types.title' | transloco }}
-          </h1>
-          <div class="mt-1.5 text-[14px] text-fg-muted">
-            {{ 'deviations.types.subtitle' | transloco }}
-          </div>
-        </div>
-        <div class="flex flex-wrap items-center gap-2">
-          <a routerLink="/deviations/templates">
-            <app-button variant="secondary">
-              <app-icon name="spark" [size]="15" />
-              {{ 'deviations.templates.link' | transloco }}
-            </app-button>
-          </a>
-          <a routerLink="/deviations/types/new">
-            <app-button>
-              <app-icon name="plus" [size]="15" />
-              {{ 'deviations.types.new' | transloco }}
-            </app-button>
-          </a>
-        </div>
-      </div>
-
-      <app-deviation-page-guide class="mb-5" page="types" lesson="designing-your-process" />
-
-      <app-card [padded]="false">
-        @if (loading()) {
-          <div class="px-4 py-10 text-center text-[14px] text-fg-muted">
-            {{ 'common.loading' | transloco }}
-          </div>
-        } @else if (types().length === 0) {
-          <div class="px-4 py-12 text-center">
-            <p class="text-[14px] text-fg-muted">{{ 'deviations.types.empty' | transloco }}</p>
-          </div>
-        } @else {
-          <ul>
-            @for (type of types(); track type.id) {
-              <li class="border-b border-border last:border-b-0 hover:bg-surface-2">
-                <div class="flex items-center gap-3 px-4 py-3">
-                  <a
-                    [routerLink]="['/deviations/types', type.id]"
-                    class="flex min-w-0 flex-1 gap-3"
-                  >
-                    <span class="w-[88px] flex-none font-mono text-[12px] text-fg-subtle">{{
-                      type.code_prefix
+      @if (error()) {
+        <app-error-state (retry)="reload()" />
+      } @else if (loading()) {
+        <app-loading-state [rows]="4" />
+      } @else if (types().length === 0) {
+        <app-empty-state
+          icon="template"
+          titleKey="deviations.types.empty"
+          bodyKey="deviations.types.emptyBody"
+          ctaKey="deviations.templates.link"
+          ctaLink="/deviations/templates"
+        />
+      } @else {
+        <ul class="overflow-hidden rounded-card border border-border bg-surface">
+          @for (type of types(); track type.id) {
+            <li
+              class="flex flex-col gap-2 border-b border-border px-4 py-3 last:border-b-0 sm:flex-row sm:items-center sm:gap-4"
+            >
+              <a
+                [routerLink]="['/deviations/types', type.id]"
+                class="flex min-w-0 flex-1 items-center gap-3 hover:underline"
+              >
+                <span class="w-[64px] flex-none font-mono text-meta text-fg-subtle">{{
+                  type.code_prefix
+                }}</span>
+                <span class="min-w-0 flex-1">
+                  <span class="block truncate text-body font-semibold text-fg">{{
+                    type.name
+                  }}</span>
+                  @if (type.description) {
+                    <span class="block truncate text-meta text-fg-muted">{{
+                      type.description
                     }}</span>
-                    <span class="min-w-0 flex-1">
-                      <span class="block truncate font-semibold text-fg">{{ type.name }}</span>
-                      <span class="block truncate font-mono text-[12px] text-fg-subtle">{{
-                        type.key
-                      }}</span>
-                    </span>
-                  </a>
-                  <span class="hidden flex-none gap-1 lg:flex">
-                    @for (std of type.standards; track std) {
-                      <app-badge tone="neutral">{{ standardLabelKey(std) | transloco }}</app-badge>
-                    }
-                  </span>
-                  @if (type.record_type_id) {
-                    <span class="flex w-[84px] flex-none justify-end">
-                      <app-badge tone="accent">{{
-                        'deviations.wf.workflowBadge' | transloco
-                      }}</app-badge>
-                    </span>
-                  } @else {
-                    <span class="w-[84px] flex-none text-right text-[12.5px] text-fg-muted">
-                      {{
-                        (type.schema.length === 1
-                          ? 'deviations.types.fieldCountOne'
-                          : 'deviations.types.fieldCount'
-                        ) | transloco: { count: type.schema.length }
-                      }}
-                    </span>
                   }
-                  <button
-                    type="button"
-                    (click)="toggleActive(type)"
-                    [disabled]="busyId() === type.id"
-                    [attr.aria-pressed]="type.is_active"
-                    class="flex w-[88px] flex-none justify-center"
-                  >
-                    <app-badge [tone]="type.is_active ? 'pass' : 'neutral'">
-                      {{
-                        (type.is_active ? 'deviations.types.active' : 'deviations.types.inactive')
-                          | transloco
-                      }}
-                    </app-badge>
-                  </button>
-                  <button
-                    type="button"
-                    (click)="remove(type)"
-                    [disabled]="busyId() === type.id"
-                    [attr.aria-label]="'deviations.types.delete' | transloco"
-                    class="flex flex-none rounded-[8px] p-2 text-fg-subtle hover:bg-surface-2 hover:text-fail disabled:opacity-50"
-                  >
-                    <app-icon name="x" [size]="16" />
-                  </button>
-                </div>
-              </li>
-            }
-          </ul>
-        }
-      </app-card>
+                </span>
+              </a>
+              <span class="flex flex-wrap items-center gap-1.5">
+                @for (std of type.standards; track std) {
+                  <app-badge tone="neutral">{{ standardLabelKey(std) | transloco }}</app-badge>
+                }
+                @if (type.record_type_id) {
+                  <app-badge tone="accent">{{
+                    'deviations.wf.workflowBadge' | transloco
+                  }}</app-badge>
+                } @else {
+                  <span class="text-meta text-fg-muted">
+                    {{
+                      (type.schema.length === 1
+                        ? 'deviations.types.fieldCountOne'
+                        : 'deviations.types.fieldCount'
+                      ) | transloco: { count: type.schema.length }
+                    }}
+                  </span>
+                }
+              </span>
+              <span class="flex flex-none items-center gap-3">
+                <app-switch [checked]="type.is_active" (checkedChange)="toggleActive(type)">
+                  {{
+                    (type.is_active ? 'deviations.types.active' : 'deviations.types.inactive')
+                      | transloco
+                  }}
+                </app-switch>
+                <button
+                  type="button"
+                  (click)="confirmDelete.set(type)"
+                  [disabled]="busyId() === type.id"
+                  [attr.aria-label]="
+                    'deviations.types.deleteNamed' | transloco: { name: type.name }
+                  "
+                  [title]="'deviations.types.delete' | transloco"
+                  class="flex flex-none items-center gap-1 rounded-lg px-2 py-1.5 text-meta font-semibold text-fg-muted hover:bg-fail-soft hover:text-fail-ink disabled:opacity-50"
+                >
+                  <app-icon name="trash" [size]="14" />
+                  <span class="hidden sm:inline">{{ 'deviations.types.delete' | transloco }}</span>
+                </button>
+              </span>
+            </li>
+          }
+        </ul>
+      }
     </div>
+
+    <app-confirm-dialog
+      [open]="confirmDelete() !== null"
+      [busy]="busyId() !== null"
+      [title]="'deviations.types.deleteTitle' | transloco"
+      [message]="
+        'deviations.types.deleteConfirm' | transloco: { name: confirmDelete()?.name ?? '' }
+      "
+      [confirmLabel]="'deviations.types.delete' | transloco"
+      [cancelLabel]="'common.cancel' | transloco"
+      (confirmed)="removeConfirmed()"
+      (cancelled)="confirmDelete.set(null)"
+    />
   `,
 })
 export class DeviationTypesList {
   private readonly api = inject(DeviationsApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly notifications = inject(NotificationService);
-  private readonly router = inject(Router);
+  private readonly language = inject(LanguageService);
 
+  protected readonly breadcrumbs = [DEVIATIONS_ROOT_CRUMB, { labelKey: 'deviations.types.title' }];
   protected readonly orgId = this.selectedOrg.currentOrgId;
   protected readonly standardLabelKey = standardLabelKey;
 
   protected readonly types = signal<readonly DeviationType[]>([]);
   protected readonly loading = signal(false);
+  protected readonly error = signal(false);
   protected readonly busyId = signal<string | null>(null);
+  protected readonly confirmDelete = signal<DeviationType | null>(null);
 
   constructor() {
-    providePageContext(() => ({ module: 'deviations', view: 'settings' }));
+    providePageContext(() => ({
+      module: 'deviations',
+      entityType: 'deviation_type',
+      view: 'settings',
+      title: this.language.translate('deviations.types.title'),
+    }));
     effect(() => {
       const orgId = this.orgId();
       this.types.set([]);
@@ -165,6 +194,13 @@ export class DeviationTypesList {
         this.load(orgId);
       }
     });
+  }
+
+  protected reload(): void {
+    const orgId = this.orgId();
+    if (orgId) {
+      this.load(orgId);
+    }
   }
 
   protected toggleActive(type: DeviationType): void {
@@ -185,9 +221,10 @@ export class DeviationTypesList {
     });
   }
 
-  protected remove(type: DeviationType): void {
+  protected removeConfirmed(): void {
+    const type = this.confirmDelete();
     const orgId = this.orgId();
-    if (!orgId || this.busyId()) {
+    if (!type || !orgId || this.busyId()) {
       return;
     }
     this.busyId.set(type.id);
@@ -195,11 +232,12 @@ export class DeviationTypesList {
       next: () => {
         this.types.set(this.types().filter((t) => t.id !== type.id));
         this.busyId.set(null);
+        this.confirmDelete.set(null);
         this.notifications.success('deviations.types.deletedToast');
       },
       error: (error: unknown) => {
         this.busyId.set(null);
-        // A legacy (uncoded) 409 on delete always meant "in use".
+        this.confirmDelete.set(null);
         notifyDeviationError(this.notifications, error, 'deviations.types.inUseToast');
       },
     });
@@ -207,12 +245,16 @@ export class DeviationTypesList {
 
   private load(orgId: string): void {
     this.loading.set(true);
+    this.error.set(false);
     this.api.listTypes(orgId).subscribe({
       next: (types) => {
         this.types.set(types);
         this.loading.set(false);
       },
-      error: () => this.loading.set(false),
+      error: () => {
+        this.error.set(true);
+        this.loading.set(false);
+      },
     });
   }
 }

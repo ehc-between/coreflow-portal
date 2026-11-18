@@ -8,29 +8,37 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { providePageContext } from '../../../core/ai/page-context';
 import { AuthService } from '../../../core/auth/auth.service';
+import { LanguageService } from '../../../core/i18n/language.service';
+import { CreateFlowService } from '../../../core/kit/create-flow.service';
+import { SearchHit } from '../../../core/kit/kit.models';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { AiAssistButton } from '../../../shared/ask/ai-assist-button';
 import { AskAbout } from '../../../shared/ask/ask-about';
 import { FieldHelp } from '../../../shared/guidance/field-help';
-import { GuideIntro } from '../../../shared/guidance/guide-intro';
+import { Term } from '../../../shared/guidance/term';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
+import { FlowBanner } from '../../../shared/kit/flow-banner';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
-import { FormField } from '../../../shared/ui/form-field/form-field';
+import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
-import { categoryKey } from '../data/process-display';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
+import { categoryKey, frameworkKey } from '../data/process-display';
 import { processErrorKey } from '../data/process-errors';
 import { ProcessReferences } from '../data/process-references';
 import {
   Kpi,
   PROCESS_CATEGORIES,
   PROCESS_ENTITY_TYPE,
+  PROCESS_FRAMEWORKS,
   PROCESS_MODULE,
   ProcessCategory,
   ProcessDetail,
@@ -39,6 +47,8 @@ import {
   TurtleListField,
 } from '../data/process.models';
 import { ProcessesApi } from '../data/processes-api';
+import { RecordSearch } from '../shared/record-search';
+import { ProcessField } from './process-field';
 import {
   ProcessFormValue,
   emptyForm,
@@ -62,13 +72,15 @@ type TextField =
   | 'next_review_at';
 
 /**
- * Create (`/processes/new`) and edit (`/processes/:id/edit`) a process: the
- * register facts (title, code, category, owner, department, parent, purpose,
- * scope), the review cycle, and the turtle-diagram facts (inputs, outputs,
- * resources, competence, methods, KPIs, risks). An AI button drafts the turtle
- * facts from the title and purpose; suggestions are added, never overwritten.
- * Editing sends only the changed fields, with an optional change reason for the
- * revision history.
+ * Create (`/processes/new`, "Ny prosess") and edit (`/processes/:id/edit`) a
+ * process: the basics (title, code, category, owner, department, parent,
+ * purpose, scope, the standards it serves), the process on one page (inputs,
+ * outputs, resources, competence, methods, risks and KPIs, where each KPI can be
+ * linked to a KPI in "Mål og KPI-er"), and the review cycle. Every field has a
+ * visible hint and a "?" with more help; "Foreslå innhold" drafts the turtle
+ * facts (added, never overwritten). Editing sends only the changed fields with
+ * an optional change reason. `?fromRequirement=` opens it as evidence for a
+ * requirement (P1/P4 create-from-here).
  */
 @Component({
   selector: 'app-process-form-page',
@@ -78,132 +90,152 @@ type TextField =
     AiAssistButton,
     AskAbout,
     FieldHelp,
-    GuideIntro,
+    Term,
     WhyItMatters,
+    FlowBanner,
     Alert,
     Button,
     Card,
-    FormField,
+    ErrorState,
+    HelpStrip,
     Icon,
+    LoadingState,
+    PageHeader,
+    ProcessField,
+    RecordSearch,
     StringListEditor,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[980px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
-      <a
-        [routerLink]="id() ? ['/processes', id()] : ['/processes']"
-        class="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
-      >
-        <app-icon name="back" [size]="16" />
-        {{ (id() ? 'processes.form.backToProcess' : 'processes.form.backToList') | transloco }}
-      </a>
-      <h1 class="mb-3 font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]">
-        {{ (id() ? 'processes.form.editTitle' : 'processes.form.newTitle') | transloco }}
-      </h1>
-      <app-guide-intro class="mb-4" scope="processes" page="form" />
+    <div class="mx-auto max-w-[760px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+      <app-page-header
+        [titleKey]="id() ? 'processes.form.editTitle' : 'processes.form.newTitle'"
+        [breadcrumbs]="breadcrumbs()"
+        [backLink]="id() ? ['/processes', id()] : '/processes'"
+        [backLabelKey]="id() ? 'processes.form.backToProcess' : 'processes.form.backToList'"
+      />
+      <app-flow-banner [flow]="flow()" />
+      <app-help-strip scope="processes" page="form" />
 
-      @if (loadError(); as err) {
-        <app-alert tone="error">{{ err | transloco }}</app-alert>
+      @if (loadError()) {
+        <app-error-state (retry)="reload()" />
       } @else if (id() && !original()) {
-        <p class="text-[14px] text-fg-muted">{{ 'common.loading' | transloco }}</p>
+        <app-loading-state [rows]="6" />
       } @else {
-        <form class="flex flex-col gap-4" (submit)="$event.preventDefault(); submit()" novalidate>
+        <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); submit()" novalidate>
           <app-card>
-            <h2 class="mb-3 text-[15px] font-bold text-fg">
-              {{ 'processes.form.sections.register' | transloco }}
+            <h2 class="text-section font-bold text-fg">
+              {{ 'processes.form.sections.basics' | transloco }}
             </h2>
-            <div class="grid grid-cols-1 gap-4 md:grid-cols-[1fr_180px]">
-              <div>
-                <app-form-field [label]="'processes.fields.title' | transloco" inputId="pf-title">
-                  <input
-                    id="pf-title"
-                    required
-                    maxlength="255"
-                    aria-describedby="pf-title-help"
-                    [value]="form().title"
-                    (input)="set('title', $any($event.target).value)"
-                    data-testid="field-title"
-                  />
-                </app-form-field>
-                <app-field-help id="pf-title-help" scope="processes" page="form" field="title" />
-              </div>
-              <div>
-                <app-form-field [label]="'processes.fields.code' | transloco" inputId="pf-code">
-                  <input
-                    id="pf-code"
-                    maxlength="32"
-                    [placeholder]="'processes.form.codePlaceholder' | transloco"
-                    [value]="form().code"
-                    (input)="set('code', $any($event.target).value)"
-                  />
-                </app-form-field>
-                <app-field-help scope="processes" page="form" field="code" />
-              </div>
+            @if (!id()) {
+              <p class="mt-1 text-meta text-fg-muted">
+                {{ 'processes.form.draftHint' | transloco }}
+              </p>
+            }
+            <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-[1fr_170px]">
+              <app-process-field
+                labelKey="processes.fields.title"
+                inputId="pf-title"
+                help="title"
+                hintKey="processes.form.hints.title"
+              >
+                <input
+                  id="pf-title"
+                  required
+                  maxlength="255"
+                  aria-describedby="pf-title-hint"
+                  [attr.aria-invalid]="attempted() && !form().title.trim()"
+                  [value]="form().title"
+                  (input)="set('title', $any($event.target).value)"
+                  data-testid="field-title"
+                />
+              </app-process-field>
+              <app-process-field
+                labelKey="processes.fields.code"
+                inputId="pf-code"
+                help="code"
+                [optional]="!id()"
+              >
+                <input
+                  id="pf-code"
+                  maxlength="32"
+                  [placeholder]="'processes.form.codePlaceholder' | transloco"
+                  [value]="form().code"
+                  (input)="set('code', $any($event.target).value)"
+                />
+              </app-process-field>
             </div>
-            <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
-              <div>
-                <app-form-field
-                  [label]="'processes.fields.category' | transloco"
-                  inputId="pf-category"
+            <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <app-process-field
+                labelKey="processes.fields.category"
+                inputId="pf-category"
+                help="category"
+                hintKey="processes.form.hints.category"
+              >
+                <select
+                  id="pf-category"
+                  aria-describedby="pf-category-hint"
+                  (change)="setCategory($any($event.target).value)"
                 >
-                  <select
-                    id="pf-category"
-                    [value]="form().category"
-                    (change)="setCategory($any($event.target).value)"
-                  >
-                    @for (c of categories; track c) {
-                      <option [value]="c" [selected]="c === form().category">
-                        {{ categoryKey(c) | transloco }}
-                      </option>
-                    }
-                  </select>
-                </app-form-field>
-                <app-field-help scope="processes" page="form" field="category" />
-              </div>
-              <div>
-                <app-form-field [label]="'processes.fields.owner' | transloco" inputId="pf-owner">
-                  <select id="pf-owner" (change)="set('owner_user_id', $any($event.target).value)">
-                    <option value="" [selected]="!form().owner_user_id">
-                      {{ 'processes.form.noOwner' | transloco }}
+                  @for (c of categories; track c) {
+                    <option [value]="c" [selected]="c === form().category">
+                      {{ categoryKey(c) | transloco }}
                     </option>
-                    @if (orphanOwner(); as orphan) {
-                      <option [value]="orphan.id" selected>{{ orphan.name }}</option>
-                    }
-                    @for (u of references.users(); track u.id) {
-                      <option [value]="u.id" [selected]="u.id === form().owner_user_id">
-                        {{ u.name }}
-                      </option>
-                    }
-                  </select>
-                </app-form-field>
-                <app-field-help scope="processes" page="form" field="owner" />
-              </div>
-              <div>
-                <app-form-field
-                  [label]="'processes.fields.department' | transloco"
-                  inputId="pf-department"
+                  }
+                </select>
+              </app-process-field>
+              <app-process-field
+                labelKey="processes.fields.owner"
+                inputId="pf-owner"
+                help="owner"
+                hintKey="processes.form.hints.owner"
+              >
+                <select
+                  id="pf-owner"
+                  aria-describedby="pf-owner-hint"
+                  (change)="set('owner_user_id', $any($event.target).value)"
                 >
-                  <select
-                    id="pf-department"
-                    (change)="set('department_id', $any($event.target).value)"
-                  >
-                    <option value="" [selected]="!form().department_id">
-                      {{ 'processes.form.noDepartment' | transloco }}
+                  <option value="" [selected]="!form().owner_user_id">
+                    {{ 'processes.form.noOwner' | transloco }}
+                  </option>
+                  @if (orphanOwner(); as orphan) {
+                    <option [value]="orphan.id" selected>{{ orphan.name }}</option>
+                  }
+                  @for (u of references.users(); track u.id) {
+                    <option [value]="u.id" [selected]="u.id === form().owner_user_id">
+                      {{ u.name }}
                     </option>
-                    @if (orphanDepartment(); as orphan) {
-                      <option [value]="orphan.id" selected>{{ orphan.name }}</option>
-                    }
-                    @for (d of references.departments(); track d.id) {
-                      <option [value]="d.id" [selected]="d.id === form().department_id">
-                        {{ d.name }}
-                      </option>
-                    }
-                  </select>
-                </app-form-field>
-              </div>
-            </div>
-            <div class="mt-4">
-              <app-form-field [label]="'processes.fields.parent' | transloco" inputId="pf-parent">
+                  }
+                </select>
+              </app-process-field>
+              <app-process-field
+                labelKey="processes.fields.department"
+                inputId="pf-department"
+                [optional]="true"
+              >
+                <select
+                  id="pf-department"
+                  (change)="set('department_id', $any($event.target).value)"
+                >
+                  <option value="" [selected]="!form().department_id">
+                    {{ 'processes.form.noDepartment' | transloco }}
+                  </option>
+                  @if (orphanDepartment(); as orphan) {
+                    <option [value]="orphan.id" selected>{{ orphan.name }}</option>
+                  }
+                  @for (d of references.departments(); track d.id) {
+                    <option [value]="d.id" [selected]="d.id === form().department_id">
+                      {{ d.name }}
+                    </option>
+                  }
+                </select>
+              </app-process-field>
+              <app-process-field
+                labelKey="processes.fields.parent"
+                inputId="pf-parent"
+                help="parent"
+                [optional]="true"
+              >
                 <select id="pf-parent" (change)="set('parent_id', $any($event.target).value)">
                   <option value="" [selected]="!form().parent_id">
                     {{ 'processes.form.noParent' | transloco }}
@@ -214,48 +246,99 @@ type TextField =
                     </option>
                   }
                 </select>
-              </app-form-field>
-              <app-field-help scope="processes" page="form" field="parent" />
+              </app-process-field>
             </div>
-            <div class="mt-4">
-              <div class="flex items-center justify-between gap-2">
-                <label for="pf-purpose" class="text-[13px] font-semibold text-fg-muted">
-                  {{ 'processes.fields.purpose' | transloco }}
-                </label>
-                <app-ask-about [prompt]="'processes.form.askPurpose' | transloco" field="purpose" />
+            <app-process-field
+              class="mt-4"
+              labelKey="processes.fields.purpose"
+              inputId="pf-purpose"
+              help="purpose"
+              hintKey="processes.form.hints.purpose"
+            >
+              <app-ask-about
+                label-extra
+                [prompt]="'processes.form.askPurpose' | transloco"
+                field="purpose"
+              />
+              <textarea
+                id="pf-purpose"
+                rows="3"
+                maxlength="10000"
+                aria-describedby="pf-purpose-hint"
+                [value]="form().purpose"
+                (input)="set('purpose', $any($event.target).value)"
+              ></textarea>
+            </app-process-field>
+            <app-process-field
+              class="mt-4"
+              labelKey="processes.fields.scope"
+              inputId="pf-scope"
+              help="scope"
+              hintKey="processes.form.hints.scope"
+            >
+              <app-ask-about
+                label-extra
+                [prompt]="'processes.form.askScope' | transloco"
+                field="scope"
+              />
+              <textarea
+                id="pf-scope"
+                rows="2"
+                maxlength="10000"
+                aria-describedby="pf-scope-hint"
+                [value]="form().scope"
+                (input)="set('scope', $any($event.target).value)"
+              ></textarea>
+            </app-process-field>
+            <fieldset class="mt-4">
+              <legend class="mb-1.5 flex items-center gap-1.5 text-ui font-semibold text-fg-muted">
+                {{ 'processes.fields.frameworks' | transloco }}
+                <app-field-help
+                  scope="processes"
+                  page="form"
+                  field="frameworks"
+                  [label]="'processes.fields.frameworks' | transloco"
+                />
+              </legend>
+              <div class="flex flex-wrap gap-1.5" data-testid="field-frameworks">
+                @for (key of frameworks; track key) {
+                  <label
+                    class="inline-flex min-h-8 cursor-pointer items-center gap-1.5 rounded-full border px-3 text-meta font-semibold focus-within:ring-2 focus-within:ring-accent"
+                    [class]="
+                      form().frameworks.includes(key)
+                        ? 'border-accent bg-accent-soft text-accent'
+                        : 'border-border text-fg-muted hover:text-fg'
+                    "
+                  >
+                    <input
+                      type="checkbox"
+                      class="sr-only"
+                      [checked]="form().frameworks.includes(key)"
+                      (change)="toggleFramework(key, $any($event.target).checked)"
+                    />
+                    {{ frameworkKey(key) | transloco }}
+                  </label>
+                }
               </div>
-              <app-form-field>
-                <textarea
-                  id="pf-purpose"
-                  rows="3"
-                  maxlength="10000"
-                  [value]="form().purpose"
-                  (input)="set('purpose', $any($event.target).value)"
-                ></textarea>
-              </app-form-field>
-              <app-field-help scope="processes" page="form" field="purpose" />
-            </div>
-            <div class="mt-4">
-              <app-form-field [label]="'processes.fields.scope' | transloco" inputId="pf-scope">
-                <textarea
-                  id="pf-scope"
-                  rows="2"
-                  maxlength="10000"
-                  [value]="form().scope"
-                  (input)="set('scope', $any($event.target).value)"
-                ></textarea>
-              </app-form-field>
-              <app-field-help scope="processes" page="form" field="scope" />
-            </div>
+              <p class="mt-1 text-meta text-fg-muted">
+                {{ 'processes.form.hints.frameworks' | transloco }}
+              </p>
+            </fieldset>
           </app-card>
 
           <app-card>
-            <div class="mb-1 flex flex-wrap items-start justify-between gap-2">
-              <div>
-                <h2 class="text-[15px] font-bold text-fg">
-                  {{ 'processes.form.sections.turtle' | transloco }}
+            <div class="flex flex-wrap items-start justify-between gap-2">
+              <div class="min-w-0 flex-1">
+                <h2 class="text-section font-bold text-fg">
+                  {{ 'processes.turtle.titleLead' | transloco }}
+                  <span class="font-normal text-fg-muted"
+                    >(<app-term key="turtle" scope="processes">{{
+                      'processes.turtle.titleTerm' | transloco
+                    }}</app-term
+                    >)</span
+                  >
                 </h2>
-                <p class="mt-0.5 text-[12.5px] text-fg-muted">
+                <p class="mt-0.5 text-meta text-fg-muted">
                   {{ 'processes.form.turtleHint' | transloco }}
                 </p>
               </div>
@@ -269,73 +352,147 @@ type TextField =
                 (result)="onTurtleDraft($event)"
               />
             </div>
-            <div class="mt-3 grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div class="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2">
               @for (field of listFields; track field) {
                 <div>
-                  <p class="mb-1.5 text-[13px] font-semibold text-fg-muted">
-                    {{ 'processes.fields.' + field | transloco }}
-                  </p>
+                  <div class="mb-1.5 flex min-h-6 items-center gap-1.5">
+                    <p class="text-ui font-semibold text-fg-muted">
+                      {{ 'processes.fields.' + field | transloco }}
+                    </p>
+                    <app-field-help
+                      scope="processes"
+                      page="form"
+                      [field]="field"
+                      [label]="'processes.fields.' + field | transloco"
+                    />
+                  </div>
                   <app-string-list-editor
                     [name]="field"
                     [label]="'processes.fields.' + field | transloco"
                     [items]="form()[field]"
                     (itemsChange)="setList(field, $event)"
                   />
-                  <app-field-help scope="processes" page="form" [field]="field" />
+                  <p class="mt-1 text-meta text-fg-muted">
+                    {{ 'processes.form.hints.' + field | transloco }}
+                  </p>
                 </div>
               }
             </div>
-            <div class="mt-5">
-              <p class="mb-1.5 text-[13px] font-semibold text-fg-muted">
-                {{ 'processes.fields.kpis' | transloco }}
+            @if (id()) {
+              <p class="mt-4 rounded-tile bg-surface-2 px-3 py-2 text-meta text-fg-muted">
+                {{ 'processes.form.linkOnPage' | transloco }}
               </p>
-              <app-field-help scope="processes" page="form" field="kpis" />
+            }
+
+            <div class="mt-6">
+              <div class="mb-1 flex min-h-6 items-center gap-1.5">
+                <h3 class="text-card font-bold text-fg">
+                  {{ 'processes.fields.kpis' | transloco }}
+                </h3>
+                <app-field-help
+                  scope="processes"
+                  page="form"
+                  field="kpis"
+                  [label]="'processes.fields.kpis' | transloco"
+                />
+                <span class="ml-auto">
+                  <app-ask-about [prompt]="'processes.form.askKpis' | transloco" field="kpis" />
+                </span>
+              </div>
+              <p class="text-meta text-fg-muted">{{ 'processes.form.hints.kpis' | transloco }}</p>
               <div class="mt-2 flex flex-col gap-2">
                 @for (kpi of form().kpis; track $index; let i = $index) {
-                  <div
-                    class="grid grid-cols-2 gap-2 rounded-[10px] border border-border p-2 md:grid-cols-[2fr_1fr_1fr_1fr_auto]"
-                    data-testid="kpi-row"
-                  >
-                    <input
-                      class="cf-kpi"
-                      maxlength="200"
-                      [attr.aria-label]="'processes.kpi.name' | transloco"
-                      [placeholder]="'processes.kpi.name' | transloco"
-                      [value]="kpi.name"
-                      (input)="setKpi(i, { name: $any($event.target).value })"
-                    />
-                    <input
-                      class="cf-kpi"
-                      maxlength="200"
-                      [attr.aria-label]="'processes.kpi.target' | transloco"
-                      [placeholder]="'processes.kpi.target' | transloco"
-                      [value]="kpi.target ?? ''"
-                      (input)="setKpi(i, { target: $any($event.target).value })"
-                    />
-                    <input
-                      class="cf-kpi"
-                      maxlength="50"
-                      [attr.aria-label]="'processes.kpi.unit' | transloco"
-                      [placeholder]="'processes.kpi.unit' | transloco"
-                      [value]="kpi.unit ?? ''"
-                      (input)="setKpi(i, { unit: $any($event.target).value })"
-                    />
-                    <input
-                      class="cf-kpi"
-                      maxlength="50"
-                      [attr.aria-label]="'processes.kpi.frequency' | transloco"
-                      [placeholder]="'processes.kpi.frequency' | transloco"
-                      [value]="kpi.frequency ?? ''"
-                      (input)="setKpi(i, { frequency: $any($event.target).value })"
-                    />
-                    <button
-                      type="button"
-                      class="flex h-9 w-9 items-center justify-center rounded-[8px] text-fg-subtle hover:text-fail"
-                      [attr.aria-label]="'processes.kpi.remove' | transloco: { name: kpi.name }"
-                      (click)="removeKpi(i)"
-                    >
-                      <app-icon name="x" [size]="14" />
-                    </button>
+                  <div class="rounded-tile border border-border p-2" data-testid="kpi-row">
+                    <div class="grid grid-cols-2 gap-2 sm:grid-cols-[2fr_1fr_1fr_1fr_auto]">
+                      <input
+                        class="cf-kpi col-span-2 sm:col-span-1"
+                        maxlength="200"
+                        [attr.aria-label]="'processes.kpi.name' | transloco"
+                        [placeholder]="'processes.kpi.name' | transloco"
+                        [value]="kpi.name"
+                        (input)="setKpi(i, { name: $any($event.target).value })"
+                      />
+                      <input
+                        class="cf-kpi"
+                        maxlength="200"
+                        [attr.aria-label]="'processes.kpi.target' | transloco"
+                        [placeholder]="'processes.kpi.target' | transloco"
+                        [value]="kpi.target ?? ''"
+                        (input)="setKpi(i, { target: $any($event.target).value })"
+                      />
+                      <input
+                        class="cf-kpi"
+                        maxlength="50"
+                        [attr.aria-label]="'processes.kpi.unit' | transloco"
+                        [placeholder]="'processes.kpi.unit' | transloco"
+                        [value]="kpi.unit ?? ''"
+                        (input)="setKpi(i, { unit: $any($event.target).value })"
+                      />
+                      <input
+                        class="cf-kpi"
+                        maxlength="50"
+                        [attr.aria-label]="'processes.kpi.frequency' | transloco"
+                        [placeholder]="'processes.kpi.frequency' | transloco"
+                        [value]="kpi.frequency ?? ''"
+                        (input)="setKpi(i, { frequency: $any($event.target).value })"
+                      />
+                      <button
+                        type="button"
+                        class="flex h-9 w-9 items-center justify-center rounded-lg text-fg-subtle hover:text-fail focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                        [attr.aria-label]="'processes.kpi.remove' | transloco: { name: kpi.name }"
+                        (click)="removeKpi(i)"
+                      >
+                        <app-icon name="x" [size]="14" />
+                      </button>
+                    </div>
+                    <div class="mt-2 flex flex-wrap items-center gap-2 text-meta">
+                      @if (kpi.kpi_id) {
+                        <span
+                          class="inline-flex items-center gap-1.5 text-fg"
+                          data-testid="kpi-linked"
+                        >
+                          <app-icon name="link" [size]="13" class="text-accent" />
+                          {{
+                            'processes.kpi.linkedTo' | transloco: { title: kpiLabel(kpi.kpi_id) }
+                          }}
+                        </span>
+                        <button
+                          type="button"
+                          class="font-semibold text-accent hover:underline"
+                          (click)="setKpi(i, { kpi_id: null })"
+                        >
+                          {{ 'processes.kpi.unlink' | transloco }}
+                        </button>
+                      } @else if (linkingKpi() === i) {
+                        <div class="w-full">
+                          <app-process-record-search
+                            [types]="kpiTypes"
+                            labelKey="processes.kpi.searchLabel"
+                            placeholderKey="processes.kpi.searchPlaceholder"
+                            (picked)="linkKpi(i, $event)"
+                          />
+                          <button
+                            type="button"
+                            class="mt-1 font-semibold text-fg-muted hover:text-fg"
+                            (click)="linkingKpi.set(null)"
+                          >
+                            {{ 'common.cancel' | transloco }}
+                          </button>
+                        </div>
+                      } @else {
+                        <span class="text-fg-muted">{{
+                          'processes.kpi.notLinked' | transloco
+                        }}</span>
+                        <button
+                          type="button"
+                          class="font-semibold text-accent hover:underline"
+                          (click)="linkingKpi.set(i)"
+                          data-testid="kpi-link"
+                        >
+                          {{ 'processes.kpi.link' | transloco }}
+                        </button>
+                      }
+                    </div>
                   </div>
                 }
               </div>
@@ -349,62 +506,66 @@ type TextField =
           </app-card>
 
           <app-card>
-            <h2 class="mb-3 text-[15px] font-bold text-fg">
+            <h2 class="text-section font-bold text-fg">
               {{ 'processes.form.sections.review' | transloco }}
             </h2>
-            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <div>
-                <app-form-field
-                  [label]="'processes.fields.reviewInterval' | transloco"
-                  inputId="pf-interval"
-                >
-                  <input
-                    id="pf-interval"
-                    type="number"
-                    min="1"
-                    max="60"
-                    step="1"
-                    [value]="form().review_interval_months"
-                    (input)="set('review_interval_months', $any($event.target).value)"
-                  />
-                </app-form-field>
-                <app-field-help scope="processes" page="form" field="reviewInterval" />
-              </div>
-              <div>
-                <app-form-field
-                  [label]="'processes.fields.nextReview' | transloco"
-                  inputId="pf-next-review"
-                >
-                  <input
-                    id="pf-next-review"
-                    type="date"
-                    [value]="form().next_review_at"
-                    (input)="set('next_review_at', $any($event.target).value)"
-                  />
-                </app-form-field>
-                <app-field-help scope="processes" page="form" field="nextReview" />
-              </div>
+            <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <app-process-field
+                labelKey="processes.fields.reviewInterval"
+                inputId="pf-interval"
+                help="reviewInterval"
+              >
+                <input
+                  id="pf-interval"
+                  type="number"
+                  min="1"
+                  max="60"
+                  step="1"
+                  aria-describedby="pf-review-hint"
+                  [value]="form().review_interval_months"
+                  (input)="set('review_interval_months', $any($event.target).value)"
+                />
+              </app-process-field>
+              <app-process-field
+                labelKey="processes.fields.nextReview"
+                inputId="pf-next-review"
+                help="nextReview"
+                [optional]="true"
+              >
+                <input
+                  id="pf-next-review"
+                  type="date"
+                  [attr.lang]="language.active()"
+                  aria-describedby="pf-review-hint"
+                  [value]="form().next_review_at"
+                  (input)="set('next_review_at', $any($event.target).value)"
+                />
+              </app-process-field>
             </div>
+            <p id="pf-review-hint" class="mt-1.5 text-meta text-fg-muted">
+              {{ 'processes.form.hints.review' | transloco }}
+            </p>
             @if (id()) {
-              <div class="mt-4">
-                <app-form-field
-                  [label]="'processes.fields.changeReason' | transloco"
-                  inputId="pf-reason"
-                >
-                  <input
-                    id="pf-reason"
-                    maxlength="1000"
-                    [value]="changeReason()"
-                    (input)="changeReason.set($any($event.target).value)"
-                  />
-                </app-form-field>
-                <app-field-help scope="processes" page="form" field="changeReason" />
-              </div>
+              <app-process-field
+                class="mt-4"
+                labelKey="processes.fields.changeReason"
+                inputId="pf-reason"
+                help="changeReason"
+                [optional]="true"
+              >
+                <input
+                  id="pf-reason"
+                  maxlength="1000"
+                  [value]="changeReason()"
+                  (input)="changeReason.set($any($event.target).value)"
+                />
+              </app-process-field>
             }
           </app-card>
 
           @if (problems().length > 0 && attempted()) {
             <app-alert tone="error">
+              <p class="font-semibold">{{ 'processes.form.errors.intro' | transloco }}</p>
               <ul class="list-disc pl-4">
                 @for (p of problems(); track p) {
                   <li>{{ p | transloco }}</li>
@@ -413,7 +574,9 @@ type TextField =
             </app-alert>
           }
 
-          <div class="flex flex-wrap items-center justify-end gap-2">
+          <div
+            class="sticky bottom-0 z-10 -mx-4 flex flex-wrap items-center justify-end gap-2 border-t border-border bg-bg px-4 py-3 sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0"
+          >
             <a [routerLink]="id() ? ['/processes', id()] : ['/processes']">
               <app-button variant="secondary">{{ 'common.cancel' | transloco }}</app-button>
             </a>
@@ -427,7 +590,7 @@ type TextField =
             </app-button>
           </div>
         </form>
-        <app-why-it-matters class="mt-5" scope="processes" page="form" />
+        <app-why-it-matters class="mt-8 block" scope="processes" page="form" />
       }
     </div>
   `,
@@ -457,15 +620,25 @@ export class ProcessFormPage {
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly notifications = inject(NotificationService);
   private readonly router = inject(Router);
+  private readonly flows = inject(CreateFlowService);
+  protected readonly language = inject(LanguageService);
   protected readonly references = inject(ProcessReferences);
 
   /** Route param; set on `/processes/:id/edit`, absent on `/processes/new`. */
   readonly id = input<string | undefined>(undefined);
 
   protected readonly categories = PROCESS_CATEGORIES;
+  protected readonly frameworks = PROCESS_FRAMEWORKS;
   protected readonly categoryKey = categoryKey;
+  protected readonly frameworkKey = frameworkKey;
   protected readonly listFields = TURTLE_LIST_FIELDS;
   protected readonly entityType = PROCESS_ENTITY_TYPE;
+  protected readonly kpiTypes = ['kpi'];
+
+  /** A create-from-here / "document this requirement" flow the form was opened with. */
+  protected readonly flow = this.flows.consume(inject(ActivatedRoute), {
+    targetType: PROCESS_ENTITY_TYPE,
+  });
 
   protected readonly form = signal<ProcessFormValue>(emptyForm(this.auth.user()?.id ?? ''));
   protected readonly original = signal<ProcessDetail | null>(null);
@@ -473,9 +646,24 @@ export class ProcessFormPage {
   protected readonly saving = signal(false);
   protected readonly attempted = signal(false);
   protected readonly changeReason = signal('');
+  protected readonly linkingKpi = signal<number | null>(null);
+  /** Labels of KPI records picked in this session (id -> "KPI-3 Title"). */
+  private readonly kpiLabels = signal<Readonly<Record<string, string>>>({});
 
   protected readonly problems = computed(() => validateForm(this.form()));
   protected readonly canDraft = computed(() => this.form().title.trim().length > 0);
+
+  protected readonly breadcrumbs = computed(() => {
+    const original = this.original();
+    const crumbs: { labelKey?: string; label?: string; link?: string | readonly unknown[] }[] = [
+      { labelKey: 'modules.names.processes', link: '/processes' },
+    ];
+    if (original) {
+      crumbs.push({ label: original.title, link: ['/processes', original.id] });
+    }
+    crumbs.push({ labelKey: this.id() ? 'processes.form.editTitle' : 'processes.form.newTitle' });
+    return crumbs;
+  });
 
   protected readonly parentOptions = computed(() => {
     const id = this.id();
@@ -540,6 +728,28 @@ export class ProcessFormPage {
         }
       });
     });
+
+    // Prefill a new process from the flow it was opened with (title / description).
+    effect(() => {
+      const flow = this.flow();
+      if (!flow || this.id()) {
+        return;
+      }
+      untracked(() => {
+        const prefill = flow.prefill;
+        this.form.update((f) => ({
+          ...f,
+          title: f.title || (typeof prefill.title === 'string' ? prefill.title : ''),
+          purpose:
+            f.purpose ||
+            (typeof prefill['purpose'] === 'string'
+              ? prefill['purpose']
+              : typeof prefill.description === 'string'
+                ? prefill.description
+                : ''),
+        }));
+      });
+    });
   }
 
   private load(orgId: string, id: string): void {
@@ -548,9 +758,28 @@ export class ProcessFormPage {
       next: (process) => {
         this.original.set(process);
         this.form.set(formFromDetail(process));
+        const labels: Record<string, string> = {};
+        for (const s of process.kpi_status ?? []) {
+          if (s.kpi_id) {
+            labels[s.kpi_id] = [s.code, s.title].filter(Boolean).join(' ') || s.name;
+          }
+        }
+        this.kpiLabels.set(labels);
       },
       error: (error) => this.loadError.set(processErrorKey(error)),
     });
+  }
+
+  protected reload(): void {
+    const orgId = this.selectedOrg.currentOrgId();
+    const id = this.id();
+    if (orgId && id) {
+      this.load(orgId, id);
+    }
+  }
+
+  protected kpiLabel(id: string): string {
+    return this.kpiLabels()[id] ?? this.language.translate('processes.kpi.aKpi');
   }
 
   protected set(field: TextField, value: string): void {
@@ -559,6 +788,15 @@ export class ProcessFormPage {
 
   protected setCategory(value: string): void {
     this.form.update((f) => ({ ...f, category: value as ProcessCategory }));
+  }
+
+  protected toggleFramework(key: string, on: boolean): void {
+    this.form.update((f) => ({
+      ...f,
+      frameworks: on
+        ? PROCESS_FRAMEWORKS.filter((k) => k === key || f.frameworks.includes(k))
+        : f.frameworks.filter((k) => k !== key),
+    }));
   }
 
   protected setList(field: TurtleListField, items: readonly string[]): void {
@@ -574,6 +812,16 @@ export class ProcessFormPage {
       ...f,
       kpis: f.kpis.map((k, i) => (i === index ? { ...k, ...patch } : k)),
     }));
+  }
+
+  protected linkKpi(index: number, hit: SearchHit): void {
+    this.kpiLabels.update((labels) => ({
+      ...labels,
+      [hit.entity_id]: [hit.code, hit.title].filter(Boolean).join(' '),
+    }));
+    const current = this.form().kpis[index];
+    this.setKpi(index, { kpi_id: hit.entity_id, name: current?.name.trim() || hit.title });
+    this.linkingKpi.set(null);
   }
 
   protected removeKpi(index: number): void {
@@ -618,6 +866,9 @@ export class ProcessFormPage {
       next: (created) => {
         this.saving.set(false);
         this.references.ensureProcesses(true);
+        if (this.flow()) {
+          this.flows.complete(created.id, PROCESS_ENTITY_TYPE).subscribe();
+        }
         this.notifications.success('processes.notices.created', { code: created.code });
         void this.router.navigate(['/processes', created.id]);
       },

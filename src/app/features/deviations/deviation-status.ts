@@ -6,9 +6,9 @@ import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { localize } from '../../core/records/localized';
 import { LocalizedText } from '../../core/records/record.models';
 import { RecordsApi } from '../../core/records/records-api';
-import { categoryTone } from '../../shared/records/workflow-panel';
 import { BadgeTone } from '../../shared/ui/badge/badge';
-import { STATUS_OPTIONS, statusLabelKey, statusTone } from './deviation-enums';
+import { toneFor } from '../../shared/ui/tones';
+import { STATUS_OPTIONS, statusLabelKey, statusToneValue } from './deviation-enums';
 
 /** Lifecycle categories in display order (the list's category filter). */
 export const STATUS_CATEGORIES: readonly StatusCategory[] = [
@@ -45,11 +45,16 @@ export function isLegacyStatus(subject: StatusSubject): boolean {
   );
 }
 
-/** Badge tone: legacy statuses keep their tones, workflow states follow their category. */
-export function deviationStatusTone(subject: StatusSubject): BadgeTone {
-  return isLegacyStatus(subject)
-    ? statusTone(subject.status)
-    : categoryTone(subject.status_category ?? 'open');
+/**
+ * The shared tone-map value of a deviation's status: legacy statuses map onto the
+ * lifecycle words, workflow states follow their category.
+ */
+export function deviationStatusValue(subject: StatusSubject): string {
+  if (isLegacyStatus(subject)) {
+    return statusToneValue(subject.status);
+  }
+  const category = subject.status_category ?? 'open';
+  return category === 'done' ? 'closed' : category;
 }
 
 /**
@@ -94,8 +99,9 @@ export class DeviationStatusLabels {
     return humanizeKey(subject.status);
   }
 
+  /** Badge colour from the shared tone map (docs/ux-guide.md, "Tone map"). */
   tone(subject: StatusSubject): BadgeTone {
-    return deviationStatusTone(subject);
+    return toneFor('lifecycle', deviationStatusValue(subject));
   }
 
   /** Force a reload (e.g. after a template was installed). */

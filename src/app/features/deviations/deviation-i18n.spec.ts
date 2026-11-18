@@ -4,8 +4,6 @@ import {
   WORKFLOW_ERROR_CODES,
   deviationErrorKey,
 } from '../../core/deviations/deviation-errors';
-import en from '../../../assets/i18n/en.json';
-import nb from '../../../assets/i18n/nb.json';
 import {
   ACTION_KIND_OPTIONS,
   ACTION_STATUS_OPTIONS,
@@ -33,9 +31,13 @@ import {
 } from './deviation-enums';
 import { EVENT_FIELD_NAMES, actionNounKey, eventFieldKey } from './deviation-events';
 import { workflowReasonKey } from './deviation-workflow';
+import { deviationsLang } from './deviations.testing';
 
 type Dict = Record<string, unknown>;
 
+// Global strings plus the deviations scope, as the running app has them.
+const en = deviationsLang('en');
+const nb = deviationsLang('nb');
 const LANGS: Record<string, Dict> = { en, nb };
 
 function lookup(dict: Dict, key: string): unknown {

@@ -37,9 +37,53 @@ export function niceTicks(min: number, max: number, count = TICKS): number[] {
 }
 
 /**
+ * A step line through the thresholds in force at each measurement (they are stored
+ * per period), continuing with the current value to the right edge. Null when no
+ * period nor the KPI has the threshold.
+ */
+export function stepPath(
+  points: readonly { readonly x: number; readonly point: SeriesPoint }[],
+  pick: (p: SeriesPoint) => number | null,
+  current: number | null,
+  y: (v: number) => number,
+  left: number,
+  right: number,
+): string | null {
+  // Ranges [from, to] with the threshold that applied there; the boundary between
+  // two periods is half-way between their markers, and after the last marker the
+  // KPI's current threshold applies.
+  const ranges: { from: number; to: number; value: number | null }[] = points.map((p, i) => ({
+    from: i === 0 ? left : (points[i - 1].x + p.x) / 2,
+    to: i === points.length - 1 ? p.x : (p.x + points[i + 1].x) / 2,
+    value: pick(p.point) ?? current,
+  }));
+  if (points.length > 0) {
+    ranges.push({
+      from: points[points.length - 1].x,
+      to: right,
+      value: current ?? pick(points[points.length - 1].point),
+    });
+  }
+  let d = '';
+  let drawing = false;
+  for (const r of ranges) {
+    if (r.value === null) {
+      drawing = false;
+      continue;
+    }
+    d += drawing ? ` V${y(r.value)} H${r.to}` : `${d ? ' ' : ''}M${r.from},${y(r.value)} H${r.to}`;
+    drawing = true;
+  }
+  return d || null;
+}
+
+/**
  * Line chart of a KPI's measurements over time: one line (2px) with a marker per
- * period coloured and labelled by its status, the target as a dashed reference
- * line and the warning threshold as a dotted one (both labelled directly). Each
+ * period coloured and labelled by its status, the target as a dashed step
+ * line and the warning threshold as a dotted one, each following the thresholds in
+ * force per period (labelled directly), the baseline as a faint reference line,
+ * a legend for the marker colours, and a y-axis that starts at zero for
+ * non-negative data. Each
  * marker is focusable and shows its period, value and status on hover/focus.
  * The measurement table on the page is the accessible table view of the data.
  */
@@ -77,38 +121,56 @@ export function niceTicks(min: number, max: number, count = TICKS): number[] {
               {{ t.label }}
             </text>
           }
-          @if (p.targetY !== null) {
+          @if (p.baselineY !== null) {
             <line
               [attr.x1]="pad.left"
               [attr.x2]="width - pad.right"
-              [attr.y1]="p.targetY"
-              [attr.y2]="p.targetY"
-              stroke="var(--pass)"
-              stroke-width="1.5"
-              stroke-dasharray="6 4"
+              [attr.y1]="p.baselineY"
+              [attr.y2]="p.baselineY"
+              stroke="var(--fg-subtle)"
+              stroke-width="1"
+              stroke-dasharray="1 3"
+              data-testid="kpi-chart-baseline"
             />
             <text
               [attr.x]="width - pad.right + 6"
-              [attr.y]="p.targetY + 4"
+              [attr.y]="p.baselineY + 4"
+              font-size="11"
+              fill="var(--fg-muted)"
+            >
+              {{ 'objectives.chart.baseline' | transloco }}
+            </text>
+          }
+          @if (p.targetPath) {
+            <path
+              [attr.d]="p.targetPath"
+              fill="none"
+              stroke="var(--pass)"
+              stroke-width="1.5"
+              stroke-dasharray="6 4"
+              data-testid="kpi-chart-target"
+            />
+            <text
+              [attr.x]="width - pad.right + 6"
+              [attr.y]="p.targetLabelY + 4"
               font-size="11"
               fill="var(--fg-muted)"
             >
               {{ 'objectives.chart.target' | transloco }}
             </text>
           }
-          @if (p.warningY !== null) {
-            <line
-              [attr.x1]="pad.left"
-              [attr.x2]="width - pad.right"
-              [attr.y1]="p.warningY"
-              [attr.y2]="p.warningY"
+          @if (p.warningPath) {
+            <path
+              [attr.d]="p.warningPath"
+              fill="none"
               stroke="var(--warn)"
               stroke-width="1.5"
               stroke-dasharray="2 4"
+              data-testid="kpi-chart-warning"
             />
             <text
               [attr.x]="width - pad.right + 6"
-              [attr.y]="p.warningY + 4"
+              [attr.y]="p.warningLabelY + 4"
               font-size="11"
               fill="var(--fg-muted)"
             >
@@ -164,9 +226,32 @@ export function niceTicks(min: number, max: number, count = TICKS): number[] {
             </text>
           }
         </svg>
+        <ul
+          class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-meta text-fg-muted"
+          data-testid="kpi-chart-legend"
+        >
+          @for (item of legend; track item.key) {
+            <li class="inline-flex items-center gap-1.5">
+              <span
+                class="h-2.5 w-2.5 rounded-full"
+                [style.background]="item.color"
+                aria-hidden="true"
+              ></span>
+              {{ item.key | transloco }}
+            </li>
+          }
+          <li class="inline-flex items-center gap-1.5">
+            <span class="w-4 border-t-2 border-dashed border-pass" aria-hidden="true"></span>
+            {{ 'objectives.chart.targetLegend' | transloco }}
+          </li>
+          <li class="inline-flex items-center gap-1.5">
+            <span class="w-4 border-t-2 border-dotted border-warn" aria-hidden="true"></span>
+            {{ 'objectives.chart.warningLegend' | transloco }}
+          </li>
+        </ul>
         @if (tooltip(); as tip) {
           <div
-            class="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-full rounded-[8px] border border-border bg-surface px-2.5 py-1.5 text-[12px] whitespace-nowrap text-fg shadow-card"
+            class="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-full rounded-tile border border-border bg-surface px-2.5 py-1.5 text-meta whitespace-nowrap text-fg shadow-card"
             [style.left.%]="tip.left"
             [style.top.%]="tip.top"
             role="status"
@@ -177,7 +262,7 @@ export function niceTicks(min: number, max: number, count = TICKS): number[] {
         }
       </div>
     } @else {
-      <p class="py-8 text-center text-[13.5px] text-fg-muted" data-testid="kpi-chart-empty">
+      <p class="py-8 text-center text-body text-fg-muted" data-testid="kpi-chart-empty">
         {{ 'objectives.chart.empty' | transloco }}
       </p>
     }
@@ -192,6 +277,11 @@ export class KpiChart {
   protected readonly height = H;
   protected readonly pad = PAD;
   protected readonly active = signal<number | null>(null);
+  protected readonly legend = [
+    { key: 'objectives.health.on_track', color: healthColor('on_track') },
+    { key: 'objectives.health.at_risk', color: healthColor('at_risk') },
+    { key: 'objectives.health.off_track', color: healthColor('off_track') },
+  ];
 
   protected readonly plot = computed(() => {
     const series = this.series();
@@ -205,12 +295,21 @@ export class KpiChart {
     const unit = series.unit ? ` ${series.unit}` : '';
 
     const values = points.map((p) => p.value);
-    for (const ref of [series.target_value, series.warning_value]) {
+    for (const ref of [series.target_value, series.warning_value, series.baseline_value]) {
       if (ref !== null) {
         values.push(ref);
       }
     }
-    const ticks = niceTicks(Math.min(...values), Math.max(...values));
+    for (const p of points) {
+      for (const ref of [p.target_value, p.warning_value]) {
+        if (ref !== null) {
+          values.push(ref);
+        }
+      }
+    }
+    // Start at zero for non-negative data, so a small change does not look dramatic.
+    const min = Math.min(...values);
+    const ticks = niceTicks(min >= 0 ? 0 : min, Math.max(...values));
     const lo = ticks[0];
     const hi = ticks[ticks.length - 1];
     const plotW = W - PAD.left - PAD.right;
@@ -236,8 +335,25 @@ export class KpiChart {
       points: plotted,
       line: plotted.map((p) => `${p.x},${p.y}`).join(' '),
       ticks: ticks.map((value) => ({ value, y: y(value), label: num(value) })),
-      targetY: series.target_value !== null ? y(series.target_value) : null,
-      warningY: series.warning_value !== null ? y(series.warning_value) : null,
+      baselineY: series.baseline_value !== null ? y(series.baseline_value) : null,
+      targetPath: stepPath(
+        plotted,
+        (p) => p.target_value,
+        series.target_value,
+        y,
+        PAD.left,
+        W - PAD.right,
+      ),
+      targetLabelY: y(series.target_value ?? points[points.length - 1].target_value ?? 0),
+      warningPath: stepPath(
+        plotted,
+        (p) => p.warning_value,
+        series.warning_value,
+        y,
+        PAD.left,
+        W - PAD.right,
+      ),
+      warningLabelY: y(series.warning_value ?? points[points.length - 1].warning_value ?? 0),
       first: { x: first.x, date: day(first.point.period_end) },
       last: plotted.length > 1 ? { x: last.x, date: day(last.point.period_end) } : null,
     };

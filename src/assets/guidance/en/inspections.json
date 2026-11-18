@@ -3,11 +3,11 @@
     "list": {
       "intro": {
         "title": "Planned checks that prove things work",
-        "body": "An **inspection** is a planned check of a workplace, a machine, a routine or a site, performed with a **checklist**. The answers give a score and a result, and anything that is not right becomes a **finding** that someone follows up.",
+        "body": "An **inspection** is a planned check of a workplace, a machine, a routine or an area, done with a **checklist**. Anything not in order becomes a **finding** that someone follows up. Serious findings become **deviations**, so the cause is found and corrected.",
         "steps": [
-          "Start with overdue inspections (red), then what is due soon.",
-          "Open an inspection and press **Start** or **Continue** to perform it on your phone or tablet.",
-          "Use **Findings** to follow up what was found, and **Schedules** to make routine checks recur automatically."
+          "Start with inspections marked **Overdue**, then the ones due soonest.",
+          "Open an inspection and press **Start** or **Continue** to carry it out on a phone or tablet.",
+          "Use **Findings** to follow up what was found, and **Recurring** to repeat checks automatically."
         ]
       },
       "why": {
@@ -17,17 +17,17 @@
       "empty": {
         "title": "No inspections yet",
         "body": "Inspections turn a checklist into a recorded check: who looked, when, what they found and what happens next. Start by importing a checklist from the template library, publish it, then plan your first inspection.",
-        "cta": "Plan an inspection"
+        "cta": "Plan inspection"
       }
     },
     "findings": {
       "intro": {
         "title": "Everything inspections found",
-        "body": "A **finding** is raised automatically for every failed answer, and inspectors can add findings by hand. Each one has a severity, an owner and a due date, and can become a **deviation** for root-cause analysis and corrective action.",
+        "body": "A **finding** is created automatically for every answer that does not pass, and inspectors can add their own. Each finding has a severity, an owner and a due date. It is closed with a note on what was done, and later you check that the correction works.",
         "steps": [
-          "Filter on **Open** and **Owned by me** to see what is waiting on you.",
-          "Open a finding to add follow-up actions, escalate it to a deviation or close it.",
-          "High and critical findings deserve a deviation, so the cause is found and fixed."
+          "Filter on **Open**, or choose **Owned by me** under More filters, to see what is waiting for you.",
+          "Open a finding to add follow-up tasks, create a deviation or close it.",
+          "High and critical findings should become deviations, so the cause is found and corrected."
         ]
       },
       "why": {
@@ -43,11 +43,11 @@
     "templates": {
       "intro": {
         "title": "Checklists you can reuse",
-        "body": "A **checklist template** holds the questions an inspection asks: yes/no, scores, readings with acceptable ranges, free text, photos and signatures. Publish a template to use it; editing a published template creates a new version.",
+        "body": "A **checklist template** holds the questions an inspection asks. Each question can cite the clauses of the standards it checks, so the inspections become evidence for those requirements. Publish a template to use it.",
         "steps": [
-          "Start from the **Template library** or build your own template.",
-          "Let the assistant draft questions from a description or a standard clause, then review them.",
-          "Publish the template, then plan inspections or a schedule from it."
+          "Start from the **Template library** or build your own.",
+          "Link the questions to the requirements they check, for example ISO 45001 · 8.1.2.",
+          "Publish the template and plan an inspection, or make it recurring."
         ]
       },
       "why": {
@@ -63,7 +63,7 @@
     "library": {
       "intro": {
         "title": "Ready-made checklists",
-        "body": "These checklists cover common inspections. Importing one creates a **draft** in your organisation that you can change freely before you publish it.",
+        "body": "These checklists cover common inspections, and every question shows which requirements it checks. Importing one creates a **draft** in your organisation that you can change freely before you publish it.",
         "steps": [
           "Preview a checklist to see its questions and scoring.",
           "Import it, then adjust the questions to your own sites and routines.",
@@ -78,11 +78,11 @@
     "templateDetail": {
       "intro": {
         "title": "A checklist template",
-        "body": "Here you see every question by section, how answers are scored and what happens when one fails. Use **Plan inspection** to perform it once, or **Schedule** to repeat it.",
+        "body": "Here you see the questions by section, what does not pass, and which requirements each question checks. Use **Plan inspection** to run it once, or make it a **recurring inspection** under More.",
         "steps": [
-          "Check that each question can be answered by looking, measuring or asking.",
+          "Check that every question can be answered by looking, measuring or asking.",
           "Set a pass mark if the overall score should decide the result.",
-          "Link the template to the clauses it gives evidence for."
+          "See under **Requirements this documents** which requirements the template is evidence for."
         ]
       },
       "why": {
@@ -99,7 +99,7 @@
     "builder": {
       "intro": {
         "title": "Building a checklist",
-        "body": "Write each question as something an inspector can check on the spot, choose the answer type and decide what counts as a failure. Group questions in **sections** in the order the inspector walks through the site.",
+        "body": "Write each question as something the inspector can check on site, choose the answer type and decide what does not pass. Link the question to the requirements it checks, so the inspections count as evidence.",
         "steps": [
           "Give the template a clear title and category.",
           "Add questions by type, or let the assistant draft them and review the result.",
@@ -117,30 +117,41 @@
         },
         "passThreshold": {
           "help": "The lowest overall score (in %) for the inspection to pass. Leave it empty to fail the inspection whenever any answer fails.",
-          "example": "80"
+          "example": "80",
+          "requirements": ["hs:9.1"]
         },
         "autoDeviation": {
-          "help": "When on, every finding raised from a failed answer also becomes a deviation, so it enters your corrective action process without extra work.",
-          "example": "On for safety and fire checks; off for light housekeeping checks."
+          "help": "Findings at the chosen severity or above also become deviations, so the cause is found and corrected. Smaller findings are followed up as findings. The default is high and critical.",
+          "example": "High and critical for safety walks and fire checks; only critical for housekeeping checks.",
+          "requirements": ["hs:10.2"]
         },
         "questionType": {
-          "help": "**Yes / no** for things that are either right or wrong, **Score** for quality ratings, **Number** for readings with an acceptable range, **Text** for observations, **Photo** for evidence and **Signature** for sign-off.",
+          "help": "**Yes / no** for things that are either right or wrong, **Score** for ratings, **Number** for measurements with an acceptable range, **Text** for observations, **Photo** for evidence and **Signature** when someone other than the inspector must confirm. The inspector signs once when completing the inspection.",
           "example": "\"Are emergency exits free of obstructions?\" – Yes / no, fails on \"No\"."
         },
         "weight": {
           "help": "How much this question counts in the score compared with others. Use a higher weight for questions that matter more.",
           "example": "2 for \"Is the fire alarm tested?\", 1 for \"Is the notice board up to date?\""
+        },
+        "clauseRefs": {
+          "help": "Choose the clauses of the standards this question checks. When the inspection is completed, it is linked to these requirements and counts as evidence. A finding from the question is suggested against the same requirements.",
+          "example": "ISO 45001 · 8.1.2 for \"Are hazardous areas secured?\"",
+          "requirements": ["hs:9.1"]
+        },
+        "frameworks": {
+          "help": "The standards the checklist is made for. They steer which requirements are suggested, but are no evidence on their own: the clauses on the questions are what counts.",
+          "example": "ISO 45001 for a safety walk"
         }
       }
     },
     "form": {
       "intro": {
         "title": "Planning an inspection",
-        "body": "Choose an active checklist template, where the inspection takes place, who performs it and when it is due. The inspector is reminded as the due date approaches.",
+        "body": "Choose an active checklist, what is inspected and where, who carries it out and when it is due. The inspector is reminded as the due date gets close.",
         "steps": [
-          "Pick the template; the questions are copied into the inspection.",
-          "Name the inspector and, if different, the owner who follows up the results.",
-          "Set a due date so the inspection shows up in My Work and in reminders."
+          "Choose the checklist; its questions are copied into the inspection.",
+          "Link the asset, process, supplier or risk being checked, if there is one.",
+          "Choose the inspector and owner and set a due date, so it shows in My work."
         ]
       },
       "why": {
@@ -150,30 +161,37 @@
       "fields": {
         "template": {
           "help": "Only active templates can be used. The inspection keeps its own copy of the questions.",
-          "example": "CL-003 Fire safety check"
+          "example": "CL-003 Fire safety check",
+          "requirements": ["hs:9.1"]
         },
         "location": {
           "help": "Where the inspection takes place, so the inspector knows where to go and results can be compared per site.",
           "example": "Warehouse B, loading bay"
         },
         "inspector": {
-          "help": "The person who performs the inspection. Leave empty to let anyone with access perform it.",
-          "example": "The site safety representative"
+          "help": "The person who carries out the inspection. Choose \"Not assigned\" if anyone with access may do it. Choose someone competent in the area.",
+          "example": "The site safety representative",
+          "requirements": ["hs:7.2"]
         },
         "owner": {
-          "help": "The person responsible for the result and its follow-up. They are told when the inspection is completed.",
+          "help": "The person who follows up the result and the findings. The owner is told when the inspection is completed.",
           "example": "The warehouse manager"
+        },
+        "subject": {
+          "help": "What the inspection checks: an asset (a machine, a vehicle), a process, a supplier or a risk. The inspection then shows on that record, with its history.",
+          "example": "Forklift T-03, or the risk \"Fall from height\"",
+          "requirements": ["iso45001:8.1.2", "iso45001:6.1.2"]
         }
       }
     },
     "detail": {
       "intro": {
         "title": "An inspection and its results",
-        "body": "See the plan, the progress or the result, every answer by section and the findings that were raised. The inspector performs the inspection on the run page; the result and score are calculated when it is completed.",
+        "body": "See what is inspected, the progress or result, every answer by section with the requirements it covers, and the findings. The result and score are worked out when the inspection is completed.",
         "steps": [
           "Press **Start** or **Continue** to answer the checklist.",
-          "After completion, review the failed answers and their findings.",
-          "Assign owners and actions to findings, or escalate them to deviations."
+          "After completion, review the answers that did not pass and their findings.",
+          "Give findings an owner and tasks, create deviations for the serious ones, and download the report when needed."
         ]
       },
       "why": {
@@ -182,31 +200,34 @@
       },
       "fields": {
         "score": {
-          "help": "Each scored answer adds points: yes/no and range questions give full points when they pass, scores give points in proportion. N/A answers do not count.",
-          "example": "17 of 20 points = 85 %"
+          "help": "Every scored answer counts: yes/no and measurement questions earn full points when they pass, score questions earn points in proportion. Answers marked not applicable do not count.",
+          "example": "17 of 20 points = 85 %",
+          "requirements": ["hs:9.1"]
         },
         "findings": {
           "help": "A finding is raised automatically for each failed answer whose question is set to raise one. You can also add findings by hand once the inspection has started.",
           "example": "FND-0012 Blocked emergency exit (high)"
         },
         "finding": {
-          "help": "Give each finding an owner and a due date. Add follow-up actions as tasks, or create a deviation when the cause needs to be investigated.",
-          "example": "Owner: warehouse manager, due in 7 days"
+          "help": "Give the finding an owner and a due date, note what was done on the spot and what the cause was. Close it with a note on what was done, and later confirm the correction works.",
+          "example": "Owner: warehouse manager, due in 7 days",
+          "requirements": ["hs:10.2"]
         },
         "severity": {
           "help": "How serious the finding is: **critical** needs immediate action, **high** quick action, **medium** planned action and **low** an improvement.",
-          "example": "A missing fire extinguisher is high; a faded sign is low."
+          "example": "A missing fire extinguisher is high; a faded sign is low.",
+          "requirements": ["hs:10.2"]
         }
       }
     },
     "run": {
       "intro": {
         "title": "Performing an inspection",
-        "body": "Answer each question as you go. Answers are **saved automatically**, so you can stop and continue later. Add a note or a photo when something is not right; it helps whoever follows up.",
+        "body": "Answer the questions as you go. Answers are **saved automatically**, so you can stop and continue later. When something is not in order, write what you saw or take a photo: the finding is built from it.",
         "steps": [
-          "Use the section buttons to jump around the checklist.",
-          "Mark a question **Not applicable** only when it truly does not apply here.",
-          "Press **Complete** at the end, write a short summary and sign."
+          "Each question says what does not pass.",
+          "Mark a question **Not applicable** only when it really does not apply here.",
+          "Press **Complete** at the end, write a short summary and sign once."
         ]
       },
       "why": {
@@ -216,32 +237,33 @@
       "fields": {
         "signature": {
           "help": "Type your full name to sign; drawing the signature is optional. The signature records who performed and approved the inspection.",
-          "example": "Kari Nordmann"
+          "example": "Kari Nordmann",
+          "requirements": ["hs:7.5"]
         }
       }
     },
     "schedules": {
       "intro": {
         "title": "Routine checks that plan themselves",
-        "body": "A **schedule** repeats an inspection from a template, for example every month. The next inspection is planned automatically some days before it is due, and only one is open at a time.",
+        "body": "A **recurring inspection** repeats a checklist, for example every month. The next inspection is created automatically a few days before it is due, and only one is open at a time.",
         "steps": [
-          "Choose the template, the recurrence and the first due date.",
-          "Set how many days ahead the inspection should be planned.",
-          "Pause a schedule instead of deleting it if the routine stops for a while."
+          "Choose the checklist, how often and the first due date.",
+          "Choose how many days before the due date the inspection is created.",
+          "Pause it instead of deleting it if the routine stops for a while."
         ]
       },
       "why": {
-        "body": "The standards ask you to decide **when** monitoring is performed. A schedule makes that decision visible and makes sure it happens.",
+        "body": "The standards require you to decide **when** monitoring is done. A recurring inspection makes that decision visible and makes sure it is followed.",
         "clauses": ["hs:9.1", "iso45001:9.1.1"]
       },
       "empty": {
-        "title": "No schedules yet",
+        "title": "No recurring inspections yet",
         "body": "Make routine inspections recur automatically: monthly safety walks, quarterly fire checks or a yearly environmental site check. The inspector gets the inspection in My Work before it is due.",
-        "cta": "Create a schedule"
+        "cta": "New recurring inspection"
       },
       "fields": {
         "leadDays": {
-          "help": "How many days before the due date the inspection is created and assigned.",
+          "help": "How many days before the due date the inspection is created and assigned to the inspector.",
           "example": "7 for a monthly check"
         }
       }
@@ -266,7 +288,7 @@
         },
         {
           "heading": "From finding to improvement",
-          "body": "A failed answer raises a **finding** with a severity and an owner. Small findings are fixed with a follow-up action; serious or repeated ones become a **deviation**, where you look for the root cause and take corrective action. Close the finding when it is dealt with."
+          "body": "An answer that does not pass gives a **finding** with a severity and an owner. Small findings are fixed with a follow-up task; serious or repeated findings become a **deviation**, where you find the root cause and put corrective actions in place. Close the finding with a note on what was done, and later check that the correction works."
         }
       ],
       "quiz": [

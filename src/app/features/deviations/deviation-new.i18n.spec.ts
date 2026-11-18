@@ -11,9 +11,17 @@ import { DeviationsApi } from '../../core/deviations/deviations-api';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { DeviationNew } from './deviation-new';
-import { deviationsLang } from './deviations.testing';
+import guidanceNb from '../../../assets/i18n/guidance/nb.json';
+import searchNb from '../../../assets/i18n/search/nb.json';
+import standardsNb from '../../../assets/i18n/standards/nb.json';
+import { deviationsLang, mergeTranslations } from './deviations.testing';
 
-const nb = deviationsLang('nb');
+// The shared scopes the form uses (field help, requirement picker), as loaded in the app.
+const nb = mergeTranslations(deviationsLang('nb'), {
+  guidance: guidanceNb,
+  search: searchNb,
+  standards: standardsNb,
+});
 
 /**
  * Renders /deviations/new in Norwegian with a realistic, Norwegian-authored type
@@ -94,6 +102,18 @@ const TYPE: DeviationType = {
       section: 'Oppfølging',
     },
   ],
+};
+
+/** A second type, so the type picker shows (one type is picked automatically). */
+const OTHER_TYPE: DeviationType = {
+  ...TYPE,
+  id: 't2',
+  key: 'kundeklage',
+  name: 'Kundeklage',
+  description: 'Klager fra kunder.',
+  standards: ['iso9001'],
+  code_prefix: 'KLG',
+  schema: [],
 };
 
 /**
@@ -194,7 +214,7 @@ async function setup(createError?: unknown): Promise<{
   notify: { success: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> };
 }> {
   const api = {
-    listTypes: vi.fn(() => of([TYPE])),
+    listTypes: vi.fn(() => of([TYPE, OTHER_TYPE])),
     listAccessSubjects: vi.fn(() =>
       of({
         users: [{ id: 'u1', name: 'Kari Nordmann', email: 'kari@example.no' }],
@@ -260,12 +280,7 @@ describe('DeviationNew (nb)', () => {
   it('renders the whole form in Norwegian, including options and attributes', async () => {
     const { fixture, root } = await setup();
     await pickType(fixture, root);
-    // Open a clause row and add a tag so the classification editor's row
-    // controls (aria-labels, placeholders) are on screen too.
-    Array.from(root.querySelectorAll<HTMLButtonElement>('button'))
-      .find((b) => b.textContent?.includes('Legg til punkt'))!
-      .click();
-    await fixture.whenStable();
+    // Add a tag so the classification editor's chip controls are on screen too.
     const tagInput = root.querySelector<HTMLInputElement>('#dev-tag')!;
     tagInput.value = 'lager';
     tagInput.dispatchEvent(new Event('input'));
@@ -280,16 +295,24 @@ describe('DeviationNew (nb)', () => {
       'Intern',
       'Ikke tildelt',
       'Hele organisasjonen',
-      'Rotårsaksmetode',
-      'Fiskebeinsdiagram (Ishikawa)',
+      'Hva skjedde',
+      'Når ble det oppdaget?',
+      'Strakstiltak',
+      'Klassifiser',
+      'Krav som er berørt',
+      'Ansvar',
       'Velg…',
-      'Fjern punkt',
-      'Standard for punktet',
-      'Punktnummer',
-      'Fjern etikett',
+      'Fjern etiketten lager',
       'Skade',
       'Oppfølging',
     ]) {
+      expect(text).toContain(expected);
+    }
+    // Root cause is found on the case, not asked for at registration.
+    for (const absent of ['Rotårsaksmetode', 'Legg til punkt']) {
+      expect(text).not.toContain(absent);
+    }
+    for (const expected of [] as string[]) {
       expect(text).toContain(expected);
     }
     expectNorwegianOnly(visibleChunks(root));

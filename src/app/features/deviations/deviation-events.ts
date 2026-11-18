@@ -25,6 +25,8 @@ export const EVENT_KINDS = [
   'action_removed',
   'access_granted',
   'access_revoked',
+  'root_cause_added',
+  'root_cause_applied',
   // Legacy (pre-coded API): grant / revoke / removal shared these kinds.
   'access_changed',
 ] as const;
@@ -46,6 +48,12 @@ export const EVENT_FIELD_NAMES = [
   'department',
   'visibility',
   'status',
+  // A02 event facts and authority reporting.
+  'occurred_at',
+  'detected_at',
+  'location',
+  'immediate_action',
+  'reporting',
 ] as const;
 
 const ACTION_KINDS = ['containment', 'corrective', 'preventive'];
@@ -212,8 +220,12 @@ export function describeEvent(
         detail: null,
       };
     }
+    case 'root_cause_added':
+      return { summary: t('deviations.events.rootCauseAdded'), detail: null };
+    case 'root_cause_applied':
+      return { summary: t('deviations.events.rootCauseApplied'), detail: null };
     default:
-      // Unknown kind: the backend's own (English) summary is the best we have.
-      return { summary: event.summary, detail: null };
+      // Unknown kind: a neutral sentence rather than the backend's English summary.
+      return { summary: t('deviations.events.updated'), detail: null };
   }
 }

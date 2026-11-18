@@ -25,18 +25,12 @@ import { documentErrorKey } from '../../../core/documents/document-errors';
 import { DocumentsApi } from '../../../core/documents/documents-api';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
-import { Badge, BadgeTone } from '../../../shared/ui/badge/badge';
+import { Badge } from '../../../shared/ui/badge/badge';
+import { toneFor } from '../../../shared/ui/tones';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { anchorFromSelection, findAnchorRange, resolveOffset } from '../comment-anchor';
-
-const STATUS_TONE: Record<Comment['status'], BadgeTone> = {
-  open: 'warn',
-  accepted: 'accent',
-  resolved: 'pass',
-  rejected: 'neutral',
-};
 
 const STATUS_LABEL_KEY: Record<Comment['status'], string> = {
   open: 'documents.comments.statusOpen',
@@ -91,12 +85,12 @@ interface SuggestState {
               rows="3"
               [placeholder]="'documents.comments.placeholder' | transloco"
               [attr.aria-label]="'documents.comments.add' | transloco"
-              class="w-full resize-none rounded-[8px] border border-border bg-bg px-2.5 py-2 text-[13px] text-fg outline-none focus:border-accent"
+              class="w-full resize-none rounded-tile border border-border bg-bg px-2.5 py-2 text-ui text-fg outline-none focus:border-accent"
             ></textarea>
             <div class="flex items-center justify-end gap-2">
               <button
                 type="button"
-                class="h-8 rounded-[8px] px-3 text-[13px] font-semibold text-fg-muted hover:bg-surface-2 hover:text-fg"
+                class="h-8 rounded-tile px-3 text-ui font-semibold text-fg-muted hover:bg-surface-2 hover:text-fg"
                 (click)="cancelCompose()"
               >
                 {{ 'documents.cancel' | transloco }}
@@ -104,7 +98,7 @@ interface SuggestState {
               <button
                 type="button"
                 [disabled]="!draftBody().trim() || saving()"
-                class="inline-flex h-8 items-center gap-1.5 rounded-[8px] bg-accent px-3 text-[13px] font-semibold text-white hover:bg-accent-2 disabled:opacity-60"
+                class="inline-flex h-8 items-center gap-1.5 rounded-tile bg-accent px-3 text-ui font-semibold text-white hover:bg-accent-2 disabled:opacity-60"
                 (click)="saveComment()"
               >
                 @if (saving()) {
@@ -119,7 +113,7 @@ interface SuggestState {
         } @else {
           <button
             type="button"
-            class="animate-cf-pop inline-flex items-center gap-1.5 rounded-tile border border-border bg-surface px-3 py-1.5 text-[13px] font-semibold text-fg shadow-pop hover:bg-surface-2"
+            class="animate-cf-pop inline-flex items-center gap-1.5 rounded-tile border border-border bg-surface px-3 py-1.5 text-ui font-semibold text-fg shadow-pop hover:bg-surface-2"
             (click)="openComposer()"
           >
             <app-icon name="comment" [size]="15" />
@@ -131,7 +125,7 @@ interface SuggestState {
 
     <app-card [padded]="false">
       <div class="flex items-start justify-between gap-2 px-4 pt-3.5 pb-1">
-        <h2 class="font-display text-[15px] font-bold tracking-[-0.02em] text-fg">
+        <h2 class="font-display text-card font-bold tracking-[-0.02em] text-fg">
           {{ 'documents.comments.title' | transloco }}
         </h2>
         @if (canEdit() && acceptedCount() > 0) {
@@ -142,11 +136,11 @@ interface SuggestState {
         }
       </div>
       @if (loading()) {
-        <p class="px-4 py-6 text-center text-[13.5px] text-fg-muted">
+        <p class="px-4 py-6 text-center text-ui text-fg-muted">
           {{ 'common.loading' | transloco }}
         </p>
       } @else if (comments().length === 0) {
-        <p class="px-4 py-6 text-center text-[13.5px] text-fg-muted">
+        <p class="px-4 py-6 text-center text-ui text-fg-muted">
           {{ 'documents.comments.empty' | transloco }}
         </p>
       } @else {
@@ -158,24 +152,27 @@ interface SuggestState {
               class="rounded-tile border border-border bg-surface-2/40 px-3 py-2.5"
             >
               <div class="flex items-center justify-between gap-2">
-                <span class="truncate text-[13px] font-semibold text-fg">{{
+                <span class="truncate text-ui font-semibold text-fg">{{
                   comment.author_name
                 }}</span>
-                <app-badge [tone]="statusTone(comment.status)">{{
-                  statusLabelKey(comment.status) | transloco
-                }}</app-badge>
+                <app-badge
+                  [tone]="
+                    toneFor('lifecycle', comment.status === 'accepted' ? 'pending' : comment.status)
+                  "
+                  >{{ statusLabelKey(comment.status) | transloco }}</app-badge
+                >
               </div>
 
               <button
                 type="button"
                 (click)="focusAnchor(comment)"
-                class="mt-1.5 block w-full border-l-2 border-warn/60 bg-warn-soft/40 px-2 py-1 text-left text-[12px] text-fg-muted italic hover:border-accent"
+                class="mt-1.5 block w-full border-l-2 border-warn/60 bg-warn-soft/40 px-2 py-1 text-left text-meta text-fg-muted italic hover:border-accent"
               >
                 &ldquo;{{ comment.anchor_quote }}&rdquo;
               </button>
 
-              <p class="mt-1.5 text-[13px] whitespace-pre-wrap text-fg">{{ comment.body }}</p>
-              <div class="mt-1 text-[11.5px] text-fg-subtle">
+              <p class="mt-1.5 text-ui whitespace-pre-wrap text-fg">{{ comment.body }}</p>
+              <div class="mt-1 text-micro text-fg-subtle">
                 {{ comment.created_at | localDate: 'medium' }}
               </div>
 
@@ -183,7 +180,7 @@ interface SuggestState {
                 @let state = suggestState(comment.id);
                 <div class="mt-2.5 border-t border-border pt-2.5">
                   @if (comment.suggestion_html) {
-                    <div class="text-[11px] font-bold tracking-[0.08em] text-fg-subtle uppercase">
+                    <div class="text-micro font-bold tracking-[0.08em] text-fg-subtle uppercase">
                       {{ 'documents.comments.suggestion' | transloco }}
                     </div>
                     @if (state.editing) {
@@ -192,16 +189,16 @@ interface SuggestState {
                         (ngModelChange)="setDraft(comment.id, $event)"
                         rows="4"
                         [attr.aria-label]="'documents.comments.suggestion' | transloco"
-                        class="mt-1.5 w-full resize-y rounded-[8px] border border-border bg-bg px-2.5 py-2 font-mono text-[12px] text-fg outline-none focus:border-accent"
+                        class="mt-1.5 w-full resize-y rounded-tile border border-border bg-bg px-2.5 py-2 font-mono text-meta text-fg outline-none focus:border-accent"
                       ></textarea>
                     } @else {
                       <div
-                        class="cf-doc mt-1.5 !max-w-none !rounded-[8px] !border !border-border !bg-surface !p-2.5 !text-[13px] !shadow-none"
+                        class="cf-doc mt-1.5 !max-w-none !rounded-tile !border !border-border !bg-surface !p-2.5 !text-ui !shadow-none"
                         [innerHTML]="preview(comment.suggestion_html)"
                       ></div>
                     }
                     @if (comment.suggestion_rationale) {
-                      <p class="mt-1.5 text-[12px] text-fg-muted">
+                      <p class="mt-1.5 text-meta text-fg-muted">
                         {{ comment.suggestion_rationale }}
                       </p>
                     }
@@ -272,7 +269,7 @@ interface SuggestState {
                 <div class="mt-2 flex justify-end">
                   <button
                     type="button"
-                    class="text-[12px] font-semibold text-fg-subtle hover:text-fail"
+                    class="text-meta font-semibold text-fg-subtle hover:text-fail"
                     (click)="remove(comment)"
                   >
                     {{ 'documents.comments.delete' | transloco }}
@@ -306,7 +303,7 @@ export class DocumentComments {
   /** Emitted after an approval applies a new revision, so the host can reload. */
   readonly revisionApplied = output<void>();
 
-  protected readonly statusTone = (status: Comment['status']): BadgeTone => STATUS_TONE[status];
+  protected readonly toneFor = toneFor;
   protected readonly statusLabelKey = (status: Comment['status']): string =>
     STATUS_LABEL_KEY[status];
 

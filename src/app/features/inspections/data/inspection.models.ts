@@ -62,7 +62,38 @@ export const LIBRARY_KEYS = [
   'infosec_walkthrough',
 ] as const;
 
+/** The standards this module's checklists can cite (`GET /inspections/frameworks`, in order). */
+export const SUPPORTED_FRAMEWORKS = ['iso9001', 'iso14001', 'iso45001', 'iso27001'] as const;
+
+/** What an inspection or a recurring schedule checks (an optional subject record). */
+export const SUBJECT_TYPES = ['asset', 'process', 'supplier', 'risk'] as const;
+export type SubjectType = (typeof SUBJECT_TYPES)[number];
+
+export const EXPORT_FORMATS = ['csv', 'xlsx', 'pdf'] as const;
+export type ExportFormat = (typeof EXPORT_FORMATS)[number];
+
 export type Lang = 'en' | 'nb';
+
+/** `GET /inspections/frameworks`: a supported standard and whether the org has it on. */
+export interface FrameworkOption {
+  readonly key: string;
+  readonly enabled: boolean;
+}
+
+/**
+ * A record reference (`EntityRefDto`), e.g. an inspection's subject. Fits
+ * `app-entity-chip`.
+ */
+export interface SubjectRef {
+  readonly entity_type: string;
+  readonly entity_id: string;
+  readonly title: string;
+  readonly code?: string | null;
+  readonly url?: string | null;
+  readonly status?: string | null;
+  readonly module?: string | null;
+  readonly label_key?: string | null;
+}
 
 export interface UserRef {
   readonly id: string;
@@ -115,7 +146,11 @@ export interface Template {
   readonly question_count: number;
   readonly pass_threshold: number | null;
   readonly auto_deviation: boolean;
+  /** With `auto_deviation`: findings of at least this severity become deviations. */
+  readonly deviation_min_severity?: Severity;
   readonly deviation_type_id: string | null;
+  /** Every clause its questions cite, canonical (`iso45001:9.1.1`). */
+  readonly clause_refs?: readonly string[];
   readonly library_key: string | null;
   readonly published_at: string | null;
   readonly created_by: UserRef | null;
@@ -148,6 +183,7 @@ export interface TemplateFields {
   readonly questions?: readonly QuestionInput[];
   readonly pass_threshold?: number | null;
   readonly auto_deviation?: boolean;
+  readonly deviation_min_severity?: Severity;
   readonly deviation_type_id?: string | null;
   readonly change_reason?: string | null;
 }
@@ -166,6 +202,9 @@ export interface LibraryItem {
   readonly frameworks: readonly string[];
   readonly question_count: number;
   readonly pass_threshold: number | null;
+  readonly clause_refs?: readonly string[];
+  readonly auto_deviation?: boolean;
+  readonly deviation_min_severity?: Severity;
 }
 
 export interface LibraryDetail extends LibraryItem {
@@ -208,6 +247,13 @@ export interface Inspection {
   readonly failed_count: number;
   readonly finding_count: number;
   readonly open_finding_count: number;
+  /** What the inspection checks (an asset, process, supplier or risk). */
+  readonly subject_type?: SubjectType | null;
+  readonly subject_id?: string | null;
+  /** The subject record, or null when there is none or the caller cannot read it. */
+  readonly subject?: SubjectRef | null;
+  /** Every clause its questions cite (canonical refs). */
+  readonly clause_refs?: readonly string[];
   readonly created_by: UserRef | null;
   readonly created_at: string;
   readonly updated_at: string;
@@ -249,6 +295,7 @@ export interface InspectionDetail extends Inspection {
   readonly signature: Signature | null;
   readonly cancel_reason: string | null;
   readonly auto_deviation: boolean;
+  readonly deviation_min_severity?: Severity;
   readonly deviation_type_id: string | null;
   readonly questions: readonly Question[];
   readonly responses: readonly InspectionResponse[];
@@ -261,6 +308,8 @@ export interface InspectionListQuery {
   readonly status?: readonly InspectionStatus[];
   readonly template_id?: string;
   readonly schedule_id?: string;
+  readonly subject_type?: SubjectType;
+  readonly subject_id?: string;
   readonly inspector?: string;
   readonly result?: InspectionResult;
   readonly due_before?: string;
@@ -279,6 +328,8 @@ export interface InspectionFields {
   readonly owner_user_id?: string | null;
   readonly department_id?: string | null;
   readonly due_at?: string | null;
+  readonly subject_type?: SubjectType | null;
+  readonly subject_id?: string | null;
 }
 
 export interface CreateInspectionRequest extends InspectionFields {
@@ -311,6 +362,12 @@ export interface InspectionStats {
   readonly failed: number;
   readonly average_score_pct: number | null;
   readonly open_findings: number;
+  readonly open_findings_by_severity?: Readonly<Partial<Record<Severity, number>>>;
+  readonly open_high_findings_without_deviation?: number;
+  readonly overdue_findings?: number;
+  readonly next_due_at?: string | null;
+  readonly last_completed_at?: string | null;
+  readonly active_schedules?: number;
 }
 
 // --- findings ----------------------------------------------------------------------
@@ -344,10 +401,31 @@ export interface Finding {
   readonly deviation: DeviationRef | null;
   readonly closed_at: string | null;
   readonly closed_by: UserRef | null;
+  /** Clauses the failed question cites (the finding's suggested requirements). */
+  readonly question_clause_refs?: readonly string[];
+  /** The failed answer behind an automatic finding (its note and photos). */
+  readonly answer?: FindingAnswer | null;
+  readonly immediate_correction?: string | null;
+  readonly root_cause?: string | null;
+  readonly closure_note?: string | null;
+  readonly effectiveness_checked_at?: string | null;
+  readonly effectiveness_checked_by?: UserRef | null;
+  readonly effectiveness_note?: string | null;
+  /** Follow-up tasks (all / still open). */
+  readonly action_count?: number;
+  readonly open_action_count?: number;
+  readonly template_id?: string | null;
   readonly created_by: UserRef | null;
   readonly created_at: string;
   readonly updated_at: string;
   readonly url: string;
+}
+
+export interface FindingAnswer {
+  readonly value: AnswerValue;
+  readonly is_na: boolean;
+  readonly note: string | null;
+  readonly attachment_ids: readonly string[];
 }
 
 export interface FindingListQuery {
@@ -356,6 +434,10 @@ export interface FindingListQuery {
   readonly severity?: readonly Severity[];
   readonly owner?: string;
   readonly has_deviation?: boolean;
+  readonly template_id?: string;
+  /** Naive-UTC datetimes: registered on or after / before. */
+  readonly created_from?: string;
+  readonly created_to?: string;
   readonly q?: string;
   readonly sort?: FindingSort;
   readonly limit?: number;
@@ -392,6 +474,20 @@ export interface UpdateFindingRequest {
   readonly severity?: Severity;
   readonly owner_user_id?: string | null;
   readonly due_at?: string | null;
+  readonly immediate_correction?: string | null;
+  readonly root_cause?: string | null;
+  readonly closure_note?: string | null;
+  readonly effectiveness_note?: string | null;
+}
+
+/** `POST /findings/{id}/close`: a closure note is required (ISO 9001 / 45001 10.2). */
+export interface CloseFindingRequest {
+  readonly closure_note: string;
+  readonly immediate_correction?: string | null;
+  readonly root_cause?: string | null;
+  /** The correction was checked and works (recorded now, by the caller). */
+  readonly effectiveness_checked?: boolean;
+  readonly effectiveness_note?: string | null;
 }
 
 export interface ActionCreated {
@@ -421,6 +517,8 @@ export interface Schedule {
   readonly next_due_at: string | null;
   readonly active: boolean;
   readonly open_inspection_id: string | null;
+  readonly subject_type?: SubjectType | null;
+  readonly subject_id?: string | null;
   readonly created_by: UserRef | null;
   readonly created_at: string;
   readonly updated_at: string;
@@ -443,6 +541,8 @@ export interface ScheduleFields {
   readonly owner_user_id?: string | null;
   readonly department_id?: string | null;
   readonly active?: boolean;
+  readonly subject_type?: SubjectType | null;
+  readonly subject_id?: string | null;
 }
 
 export interface CreateScheduleRequest extends ScheduleFields {

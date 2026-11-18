@@ -26,6 +26,7 @@ import StarterKit from '@tiptap/starter-kit';
 import { AiEditApi, AiEditStream } from '../../../core/ai/ai-edit-api';
 import { AiEditMode } from '../../../core/ai/ai-edit.models';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
+import { Button } from '../../../shared/ui/button/button';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { AI_MODE_LABEL_KEYS, AI_QUICK_ACTIONS, TRANSLATE_PRESETS } from './ai-edit';
 
@@ -67,7 +68,7 @@ interface AiSession {
  */
 @Component({
   selector: 'app-document-editor',
-  imports: [FormsModule, TranslocoPipe, Icon],
+  imports: [FormsModule, TranslocoPipe, Icon, Button],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: './document-editor.css',
   templateUrl: './document-editor.html',
