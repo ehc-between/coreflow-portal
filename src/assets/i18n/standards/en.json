@@ -18,7 +18,7 @@
   },
   "readiness": {
     "title": "Requirement coverage by standard",
-    "subtitle": "How much of each enabled standard is documented, based on what applies, the evidence linked from every module and how recent it is.",
+    "subtitle": "How much of each enabled standard is documented: the share of the requirements that apply to you with confirmed evidence, linked from every module.",
     "back": "Back to standards",
     "loadError": "Couldn't load the requirement coverage. Try again.",
     "score": "Requirement coverage",
@@ -33,7 +33,7 @@
       "missing": "Not started"
     },
     "segment": "{{label}}: {{count}}",
-    "weights": "Covered with recent evidence counts in full, covered with older evidence 60 %, partly covered 50 %, and not started nothing.",
+    "weights": "The percentage is covered requirements out of the requirements that apply. Partly covered and not started requirements are part of what remains; the bar shows how recent the evidence is.",
     "summarise": "Summarise",
     "summarisePrompt": "Summarise our requirement coverage for {{name}}: {{score}}%, {{applicable}} applicable requirements, {{fresh}} covered with recent evidence, {{stale}} covered with older evidence, {{partial}} partly covered and {{missing}} not started. What should we do first, and why?",
     "empty": {
@@ -278,7 +278,7 @@
     },
     "fromRegister": "From the register"
   },
-  "scoreHint": "Requirement coverage: requirements covered with recent evidence count in full, older evidence 60 %, partly covered 50 %. Only requirements that apply to you count.",
+  "scoreHint": "Requirement coverage: covered requirements out of the requirements that apply to you. Partly covered requirements count as remaining.",
   "scoreLine": "Requirement coverage {{pct}} %",
   "notSet": "Not set",
   "adopted": "Adopted {{edition}}",

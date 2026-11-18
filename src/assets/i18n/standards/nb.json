@@ -18,7 +18,7 @@
   },
   "readiness": {
     "title": "Kravdekning per standard",
-    "subtitle": "Hvor mye av hver aktiverte standard som er dokumentert, basert på hva som gjelder, dokumentasjon koblet fra alle moduler og hvor fersk den er.",
+    "subtitle": "Hvor mye av hver aktiverte standard som er dokumentert: andelen av kravene som gjelder dere, med bekreftet dokumentasjon koblet fra alle moduler.",
     "back": "Tilbake til standarder",
     "loadError": "Kunne ikke laste kravdekningen. Prøv igjen.",
     "score": "Kravdekning",
@@ -33,7 +33,7 @@
       "missing": "Ikke startet"
     },
     "segment": "{{label}}: {{count}}",
-    "weights": "Dekket med fersk dokumentasjon teller fullt, dekket med eldre dokumentasjon teller 60 %, delvis dekket teller 50 %, og ikke startet teller ingenting.",
+    "weights": "Prosenten er dekkede krav av kravene som gjelder. Delvis dekkede og ikke startede krav er en del av det som gjenstår. Stolpen viser hvor fersk dokumentasjonen er.",
     "summarise": "Oppsummer",
     "summarisePrompt": "Oppsummer kravdekningen vår for {{name}}: {{score}} %, {{applicable}} gjeldende krav, {{fresh}} dekket med fersk dokumentasjon, {{stale}} dekket med eldre dokumentasjon, {{partial}} delvis dekket og {{missing}} ikke startet. Hva bør vi gjøre først, og hvorfor?",
     "empty": {
@@ -278,7 +278,7 @@
     },
     "fromRegister": "Fra registeret"
   },
-  "scoreHint": "Kravdekning: krav som er dekket med fersk dokumentasjon teller fullt, eldre dokumentasjon 60 % og delvis dekket 50 %. Bare krav som gjelder dere, teller.",
+  "scoreHint": "Kravdekning: dekkede krav av kravene som gjelder dere. Delvis dekkede krav regnes som gjenstående.",
   "scoreLine": "Kravdekning {{pct}} %",
   "notSet": "Ikke satt",
   "adopted": "Vedtatt {{edition}}",
