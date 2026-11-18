@@ -16,6 +16,7 @@ import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { KpiBand } from '../../../shared/ui/kpi-band/kpi-band';
 import { KpiTile } from '../../../shared/ui/kpi-tile/kpi-tile';
 import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
@@ -85,6 +86,7 @@ export function setupSteps(
     Card,
     HelpStrip,
     Icon,
+    KpiBand,
     KpiTile,
     PageHeader,
     StatusBadge,
@@ -109,12 +111,7 @@ export function setupSteps(
 
       <app-audit-load-state [state]="data.state()" [rows]="6" (retry)="reload()" />
       @if (data.value(); as o) {
-        <div
-          class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5"
-          role="group"
-          [attr.aria-label]="'audits.overview.kpiGroup' | transloco"
-          [appTourStep]="'audits-kpis'"
-        >
+        <app-kpi-band scope="audits.overview" [appTourStep]="'audits-kpis'">
           @for (k of kpis(); track k.key) {
             <app-kpi-tile
               [link]="k.link"
@@ -125,7 +122,7 @@ export function setupSteps(
               [tone]="k.tone"
             />
           }
-        </div>
+        </app-kpi-band>
 
         @if (steps(); as steps) {
           <app-card class="mt-5 block" data-testid="audits-getting-started">
@@ -434,13 +431,6 @@ export class AuditsOverviewPage {
         params: { status: 'in_progress' },
       },
       {
-        key: 'closed',
-        value: o.plans_by_status['closed'] ?? 0,
-        tone: 'pass' as const,
-        link: '/audits/plans',
-        params: { status: 'closed' },
-      },
-      {
         key: 'openFindings',
         value: open,
         tone: 'warn' as const,
@@ -453,6 +443,14 @@ export class AuditsOverviewPage {
         tone: o.findings_overdue ? ('warn' as const) : ('neutral' as const),
         link: '/audits/findings',
         params: { status: 'unresolved', overdue: '1' },
+      },
+      // Past audits last: the band shows four tiles first (U30).
+      {
+        key: 'closed',
+        value: o.plans_by_status['closed'] ?? 0,
+        tone: 'pass' as const,
+        link: '/audits/plans',
+        params: { status: 'closed' },
       },
     ];
   });

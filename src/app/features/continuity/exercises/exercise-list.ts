@@ -92,8 +92,8 @@ const SELECT =
   'h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg focus:border-accent focus:outline-none';
 
 /**
- * Exercises and tests (`/continuity/exercises`): search, filters on status, type and
- * overdue (owner and sort under "More filters"), saved views and paging. Each row
+ * Exercises and tests (`/continuity/exercises`): search, filters on status and
+ * overdue (type, owner and sort under "More filters"), saved views and paging. Each row
  * shows what is exercised (a plan and/or an ICT service), the requirements it
  * documents, the status or outcome and one date (held on, else planned for).
  */
@@ -175,23 +175,6 @@ const SELECT =
             </option>
           }
         </select>
-        <label class="sr-only" for="ex-f-type">{{
-          'continuity.fields.exerciseType' | transloco
-        }}</label>
-        <select
-          id="ex-f-type"
-          [class]="select"
-          (change)="setFilter('type', $any($event.target).value)"
-        >
-          <option value="" [selected]="!filters().type">
-            {{ 'continuity.filters.anyType' | transloco }}
-          </option>
-          @for (t of types; track t) {
-            <option [value]="t" [selected]="filters().type === t">
-              {{ 'continuity.exerciseType.' + t | transloco }}
-            </option>
-          }
-        </select>
         <label class="sr-only" for="ex-f-overdue">{{
           'continuity.filters.show' | transloco
         }}</label>
@@ -210,6 +193,23 @@ const SELECT =
       </ng-container>
 
       <div more-filters class="flex flex-col gap-3">
+        <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted" for="ex-f-type">
+          {{ 'continuity.fields.exerciseType' | transloco }}
+          <select
+            id="ex-f-type"
+            [class]="select"
+            (change)="setFilter('type', $any($event.target).value)"
+          >
+            <option value="" [selected]="!filters().type">
+              {{ 'continuity.filters.anyType' | transloco }}
+            </option>
+            @for (t of types; track t) {
+              <option [value]="t" [selected]="filters().type === t">
+                {{ 'continuity.exerciseType.' + t | transloco }}
+              </option>
+            }
+          </select>
+        </label>
         <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted" for="ex-f-owner">
           {{ 'continuity.fields.owner' | transloco }}
           <select
@@ -356,7 +356,10 @@ export class ExerciseList {
     () => ({ ...this.filters() }) as Record<string, string>,
   );
   protected readonly moreActive = computed(
-    () => (this.filters().owner ? 1 : 0) + (this.filters().sort !== '-scheduled_on' ? 1 : 0),
+    () =>
+      (this.filters().type ? 1 : 0) +
+      (this.filters().owner ? 1 : 0) +
+      (this.filters().sort !== '-scheduled_on' ? 1 : 0),
   );
   private readonly isFiltered = computed(
     () => !!this.q() || Object.entries(this.filters()).some(([k, v]) => k !== 'sort' && !!v),

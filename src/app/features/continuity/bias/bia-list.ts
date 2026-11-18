@@ -100,8 +100,8 @@ const SELECT =
   'h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg focus:border-accent focus:outline-none';
 
 /**
- * The business impact analyses (`/continuity/bias`): search, filters on status,
- * criticality and coverage (owner and sort under "More filters"), saved views and
+ * The business impact analyses (`/continuity/bias`): search, filters on status and
+ * coverage (criticality, owner and sort under "More filters"), saved views and
  * paging. Each row shows the recovery targets, the requirements it documents, the
  * criticality, the highest impact, the status and how many plans cover it.
  */
@@ -178,23 +178,6 @@ const SELECT =
             </option>
           }
         </select>
-        <label class="sr-only" for="bia-f-crit">{{
-          'continuity.fields.criticality' | transloco
-        }}</label>
-        <select
-          id="bia-f-crit"
-          [class]="select"
-          (change)="setFilter('criticality', $any($event.target).value)"
-        >
-          <option value="" [selected]="!filters().criticality">
-            {{ 'continuity.filters.anyCriticality' | transloco }}
-          </option>
-          @for (c of criticalities; track c) {
-            <option [value]="c" [selected]="filters().criticality === c">
-              {{ 'continuity.criticality.' + c | transloco }}
-            </option>
-          }
-        </select>
         <label class="sr-only" for="bia-f-flag">{{ 'continuity.filters.show' | transloco }}</label>
         <select
           id="bia-f-flag"
@@ -214,6 +197,23 @@ const SELECT =
       </ng-container>
 
       <div more-filters class="flex flex-col gap-3">
+        <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted" for="bia-f-crit">
+          {{ 'continuity.fields.criticality' | transloco }}
+          <select
+            id="bia-f-crit"
+            [class]="select"
+            (change)="setFilter('criticality', $any($event.target).value)"
+          >
+            <option value="" [selected]="!filters().criticality">
+              {{ 'continuity.filters.anyCriticality' | transloco }}
+            </option>
+            @for (c of criticalities; track c) {
+              <option [value]="c" [selected]="filters().criticality === c">
+                {{ 'continuity.criticality.' + c | transloco }}
+              </option>
+            }
+          </select>
+        </label>
         <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted" for="bia-f-owner">
           {{ 'continuity.fields.owner' | transloco }}
           <select
@@ -371,7 +371,10 @@ export class BiaList {
     () => ({ ...this.filters() }) as Record<string, string>,
   );
   protected readonly moreActive = computed(
-    () => (this.filters().owner ? 1 : 0) + (this.filters().sort !== 'code' ? 1 : 0),
+    () =>
+      (this.filters().criticality ? 1 : 0) +
+      (this.filters().owner ? 1 : 0) +
+      (this.filters().sort !== 'code' ? 1 : 0),
   );
   private readonly isFiltered = computed(
     () => !!this.q() || Object.entries(this.filters()).some(([k, v]) => k !== 'sort' && !!v),

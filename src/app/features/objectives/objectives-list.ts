@@ -138,7 +138,7 @@ export function objectiveTiles(
 
 /**
  * `/objectives`: the objectives register on the shared list frame. Tiles that
- * filter, search, three filters (status, management system, plan year) and the
+ * filter, search, two filters (status, plan year; management system under "Flere filtre") and the
  * rest under "Flere filtre", saved views, rows with requirement coverage and
  * progress, the objectives plan export, and a teaching empty state.
  */
@@ -236,22 +236,6 @@ export function objectiveTiles(
           </option>
         }
       </select>
-      <label filters class="sr-only" for="obj-ms">{{
-        'objectives.filters.system' | transloco
-      }}</label>
-      <select
-        filters
-        id="obj-ms"
-        class="h-10 max-w-[220px] rounded-tile border border-border bg-bg px-2 text-ui text-fg"
-        (change)="setSystem($any($event.target).value)"
-      >
-        <option value="" [selected]="!system()">
-          {{ 'objectives.filters.allSystems' | transloco }}
-        </option>
-        @for (m of systems; track m) {
-          <option [value]="m" [selected]="system() === m">{{ systemKey(m) | transloco }}</option>
-        }
-      </select>
       <label filters class="sr-only" for="obj-year">{{
         'objectives.filters.year' | transloco
       }}</label>
@@ -271,6 +255,23 @@ export function objectiveTiles(
         }
       </select>
 
+      <div more-filters class="flex flex-col gap-1">
+        <label for="obj-ms" class="text-meta font-semibold text-fg-muted">{{
+          'objectives.filters.system' | transloco
+        }}</label>
+        <select
+          id="obj-ms"
+          class="h-10 max-w-[220px] rounded-tile border border-border bg-bg px-2 text-ui text-fg"
+          (change)="setSystem($any($event.target).value)"
+        >
+          <option value="" [selected]="!system()">
+            {{ 'objectives.filters.allSystems' | transloco }}
+          </option>
+          @for (m of systems; track m) {
+            <option [value]="m" [selected]="system() === m">{{ systemKey(m) | transloco }}</option>
+          }
+        </select>
+      </div>
       <div more-filters class="flex flex-col gap-3">
         <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted" for="obj-sort">
           {{ 'objectives.filters.sort' | transloco }}
@@ -431,7 +432,11 @@ export class ObjectivesList {
   );
   protected readonly exportYear = computed(() => this.year() ?? Number(new Date().getFullYear()));
   protected readonly moreActive = computed(
-    () => (this.sort() !== 'due_date' ? 1 : 0) + (this.mine() ? 1 : 0) + (this.overdue() ? 1 : 0),
+    () =>
+      (this.system() ? 1 : 0) +
+      (this.sort() !== 'due_date' ? 1 : 0) +
+      (this.mine() ? 1 : 0) +
+      (this.overdue() ? 1 : 0),
   );
   protected readonly isFiltered = computed(
     () =>

@@ -81,7 +81,7 @@ export const DEFAULT_CHANGE_FILTERS: ChangeFilters = {
   sort: '-updated_at',
 };
 
-const MORE_FILTERS: readonly (keyof ChangeFilters)[] = ['category', 'owner'];
+const MORE_FILTERS: readonly (keyof ChangeFilters)[] = ['risk', 'category', 'owner'];
 
 export function changeFiltersFromView(values: Readonly<Record<string, string>>): ChangeFilters {
   const pick = <T extends string>(value: string | undefined, allowed: readonly T[]): T | '' =>
@@ -258,28 +258,28 @@ interface Summary {
               </option>
             }
           </select>
-          <label class="sr-only" for="chg-f-risk">{{
-            'assets.fields.riskLevel' | transloco
-          }}</label>
-          <select
-            id="chg-f-risk"
-            [class]="selectClass"
-            (change)="setFilter('risk', $any($event.target).value)"
-          >
-            <option value="" [selected]="!filters().risk">
-              {{ 'assets.filters.anyRisk' | transloco }}
-            </option>
-            @for (r of risks; track r) {
-              <option [value]="r" [selected]="filters().risk === r">
-                {{ 'assets.criticality.' + r | transloco }}
-              </option>
-            }
-          </select>
         }
       </ng-container>
 
       <div more-filters class="flex flex-col gap-3">
         @if (hasAny()) {
+          <label [class]="moreLabelClass">
+            {{ 'assets.fields.riskLevel' | transloco }}
+            <select
+              id="chg-f-risk"
+              [class]="moreSelectClass"
+              (change)="setFilter('risk', $any($event.target).value)"
+            >
+              <option value="" [selected]="!filters().risk">
+                {{ 'assets.filters.anyRisk' | transloco }}
+              </option>
+              @for (r of risks; track r) {
+                <option [value]="r" [selected]="filters().risk === r">
+                  {{ 'assets.criticality.' + r | transloco }}
+                </option>
+              }
+            </select>
+          </label>
           <label [class]="moreLabelClass">
             {{ 'assets.fields.changeCategory' | transloco }}
             <select

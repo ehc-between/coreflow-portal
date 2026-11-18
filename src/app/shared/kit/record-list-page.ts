@@ -17,6 +17,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { debounceTime, distinctUntilChanged, skip } from 'rxjs';
 import { LanguageService } from '../../core/i18n/language.service';
 import { Icon } from '../ui/icon/icon';
+import { KpiBand } from '../ui/kpi-band/kpi-band';
 import { Breadcrumb, PageHeader } from '../ui/page-header/page-header';
 import { PromptDialog } from '../ui/prompt-dialog/prompt-dialog';
 import { provideKitScope } from './kit-scope';
@@ -30,8 +31,9 @@ let nextId = 0;
  *
  *   app-page-header (breadcrumbs, h1 = module name on the module root, description,
  *   `[primary]` / `[secondary]` / `[overflow]` actions, settings gear) →
- *   `[nav]` (app-module-nav) → `[help]` (app-help-strip) → `[kpis]` (≤ 6 tiles) →
- *   one toolbar row: search · `[filters]` (≤ 3) · "Flere filtre" (`[more-filters]`) ·
+ *   `[nav]` (app-module-nav, ≤ 4 tabs + "Mer") → `[help]` (app-help-strip) → `[kpis]`
+ *   (app-kpi-band: collapsible, ≤ 4 tiles + "Vis alle") → one toolbar row: search ·
+ *   `[filters]` (≤ 2, U30) · "Flere filtre" (`[more-filters]`) ·
  *   saved views → the list (default slot) or `[empty]` → `[below]` (why-it-matters).
  *
  * The older `[toolbar]` slot still works (it sits with the secondary actions).
@@ -51,7 +53,7 @@ let nextId = 0;
  */
 @Component({
   selector: 'app-record-list-page',
-  imports: [TranslocoPipe, Icon, PageHeader, PromptDialog],
+  imports: [TranslocoPipe, Icon, KpiBand, PageHeader, PromptDialog],
   viewProviders: [provideKitScope()],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
@@ -86,17 +88,10 @@ let nextId = 0;
       <ng-content select="[nav]" />
       <ng-content select="[help]" />
 
-      <div
-        #kpis
-        class="mb-5 grid grid-cols-2 gap-3 empty:hidden sm:grid-cols-3 lg:grid-cols-6"
-        [attr.aria-label]="hasKpis() ? ('ui.list.kpis' | transloco) : null"
-        [attr.role]="hasKpis() ? 'group' : null"
-      >
-        <ng-content select="[kpis]" />
-      </div>
+      <app-kpi-band [scope]="scope() + '.' + page()"><ng-content select="[kpis]" /></app-kpi-band>
 
       <div
-        class="mb-4 flex flex-wrap items-center gap-2"
+        class="relative mb-4 flex flex-wrap items-center gap-2"
         role="search"
         [attr.aria-label]="'ui.list.toolbar' | transloco"
       >
@@ -117,7 +112,7 @@ let nextId = 0;
         </div>
         <ng-content select="[filters]" />
 
-        <div class="relative" #moreHost [class.hidden]="!hasMoreFilters()">
+        <div class="sm:relative" #moreHost [class.hidden]="!hasMoreFilters()">
           <button
             type="button"
             class="inline-flex h-10 items-center gap-1.5 rounded-tile border border-border bg-bg px-3 text-ui font-semibold text-fg-muted hover:text-fg focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
@@ -279,14 +274,12 @@ export class RecordListPage {
   private readonly menuHost = viewChild<ElementRef<HTMLElement>>('menuHost');
   private readonly moreHost = viewChild<ElementRef<HTMLElement>>('moreHost');
   private readonly morePanel = viewChild<ElementRef<HTMLElement>>('morePanel');
-  private readonly kpis = viewChild<ElementRef<HTMLElement>>('kpis');
 
   protected readonly searchId = `cf-list-search-${++nextId}`;
   protected readonly menuId = `cf-list-views-${nextId}`;
   protected readonly moreId = `cf-list-more-${nextId}`;
   protected readonly moreOpen = signal(false);
   protected readonly hasMoreFilters = signal(false);
-  protected readonly hasKpis = signal(false);
   protected readonly text = linkedSignal(() => this.query());
   protected readonly menuOpen = signal(false);
   protected readonly saveOpen = signal(false);
@@ -299,15 +292,11 @@ export class RecordListPage {
   protected readonly views = computed(() => this.savedViews.views(this.scope(), this.page())());
 
   constructor() {
-    // Show the "Flere filtre" button / KPI group only when a page projects them.
+    // Show the "Flere filtre" button only when a page projects filters into it.
     afterEveryRender(() => {
       const more = (this.morePanel()?.nativeElement.childElementCount ?? 0) > 0;
       if (more !== this.hasMoreFilters()) {
         this.hasMoreFilters.set(more);
-      }
-      const kpis = (this.kpis()?.nativeElement.childElementCount ?? 0) > 0;
-      if (kpis !== this.hasKpis()) {
-        this.hasKpis.set(kpis);
       }
     });
     const sub = toObservable(this.text)

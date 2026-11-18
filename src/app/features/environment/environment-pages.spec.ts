@@ -68,7 +68,17 @@ describe('EnvironmentOverviewPage', () => {
     http.expectOne(env('overview')).flush(makeOverview());
     await render(fixture);
     expect(el.querySelector('[data-testid="page-title"]')?.textContent).toContain('Environment');
-    expect(el.querySelector('[data-testid="overview-aspects"]')?.textContent).toContain('5');
+    expect(el.querySelector('[data-testid="tile-aspectsTotal"]')?.textContent).toContain('5');
+    // U30: one key-figures band; four headline tiles first, the rest behind "Show all".
+    const band = el.querySelector('[data-testid="overview-tiles"]')!;
+    const tiles = Array.from(band.querySelectorAll<HTMLElement>('a[data-testid^="tile-"]'));
+    expect(tiles.slice(0, 4).map((t) => t.dataset['testid'])).toEqual([
+      'tile-aspectsTotal',
+      'tile-aspectsSignificant',
+      'tile-plansActive',
+      'tile-emissionsYtd',
+    ]);
+    expect(tiles.filter((t) => !t.hasAttribute('data-kpi-extra')).length).toBe(4);
     const attention = el.querySelector('[data-testid="overview-attention"]');
     expect(attention?.querySelectorAll('li').length).toBe(2);
     const drill = el.querySelector<HTMLAnchorElement>('[data-testid="attention-plansDrill"]')!;

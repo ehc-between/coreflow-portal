@@ -46,7 +46,7 @@ app-page-header      breadcrumbs (Module › Sub-area › Record)
                      h1 (= nav label on module roots: modules.names.<key>)
                      one-line description
                      actions, right: [secondary] (≤ 2) · [primary] (1) · "Mer ⋯" [overflow] · ⚙ settingsLink
-app-module-nav       sub-pages as underline tabs, directly under the header
+app-module-nav       sub-pages as underline tabs, directly under the header (≤ 4 + "Mer")
 app-help-strip       intro + Omvisning + Leksjon · N min + Forklar denne siden (one row)
 …page content…
 ```
@@ -69,8 +69,8 @@ Use `app-record-list-page`:
 app-page-header  (titleKey, descriptionKey, breadcrumbs, settingsLink; [primary] [secondary] [overflow])
 [nav]            app-module-nav
 [help]           app-help-strip
-[kpis]           ≤ 6 app-kpi-tile
-toolbar          search · [filters] (≤ 3 visible) · "Flere filtre" ([more-filters]) · saved views
+[kpis]           app-kpi-band "Nøkkeltall": collapsible, ≤ 4 app-kpi-tile (more behind "Vis alle (N)")
+toolbar          search · [filters] (≤ 2 visible) · "Flere filtre" ([more-filters]) · saved views
 list             app-record-row-header + app-record-row … (or a table with the same columns)
 [empty]          app-teaching-empty with the same CTA words as the primary button
 [below]          app-why-it-matters
@@ -82,8 +82,15 @@ list             app-record-row-header + app-record-row … (or a table with the
   amber and adds "Forfalt").
 - Column headers (`app-record-row-header`) show from 1024 px. Below 640 px the row stacks.
 - Wrap the rows in an element with `role="list"`; the whole row is clickable.
-- Filters beyond three go into `[more-filters]`; pass `moreFiltersActive` so the button
-  says "Flere filtre (2)".
+- U30 "list diet": search plus **two** filters chosen per register; everything else (sort,
+  "mine", secondary dimensions) goes into `[more-filters]`. Pass `moreFiltersActive` so the
+  button says "Flere filtre (2)".
+- `app-module-nav` shows at most **four** tabs; the rest sit under "Mer", whose button shows
+  the current page's name when that page is in the menu. Put the daily work first. Mark a tab
+  `empty: true` when it has no records: beginners do not see it (unless it is open).
+- Key-figure tiles go in `app-kpi-band` (the list frame does this for `[kpis]`; overview pages
+  use it directly). It shows four tiles, the most useful first; the user can collapse it
+  (remembered per page) or open "Vis alle (N)".
 - While loading: `app-loading-state [rows]="5"`. On error: `app-error-state (retry)`.
   An empty filter result (not an empty register): `app-empty-state` with
   `ui.empty.noResults` and "Fjern filtrene".

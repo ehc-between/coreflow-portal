@@ -22,6 +22,7 @@ import { LocalDayPipe } from '../../shared/locale/locale-pipes';
 import { Card } from '../../shared/ui/card/card';
 import { ErrorState } from '../../shared/ui/error-state/error-state';
 import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
+import { KpiBand } from '../../shared/ui/kpi-band/kpi-band';
 import { KpiTile } from '../../shared/ui/kpi-tile/kpi-tile';
 import { LoadingState } from '../../shared/ui/loading-state/loading-state';
 import { ModuleNav } from '../../shared/ui/module-nav/module-nav';
@@ -72,6 +73,7 @@ const ATTENTION_LINKS: Readonly<Record<AttentionGroup, string>> = {
     EntityChip,
     ErrorState,
     HelpStrip,
+    KpiBand,
     KpiTile,
     LoadingState,
     ModuleNav,
@@ -113,8 +115,8 @@ const ATTENTION_LINKS: Readonly<Record<AttentionGroup, string>> = {
         }
         @default {
           @if (overview(); as o) {
-            <div
-              class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5"
+            <app-kpi-band
+              scope="continuity.overview"
               appTourStep="continuity-figures"
               data-testid="overview-tiles"
             >
@@ -170,7 +172,7 @@ const ATTENTION_LINKS: Readonly<Record<AttentionGroup, string>> = {
                   [tone]="o.contacts.needs_verification ? 'warn' : 'neutral'"
                 />
               </a>
-            </div>
+            </app-kpi-band>
 
             @if (o.exercises.next; as next) {
               <p class="mt-4 text-body text-fg">

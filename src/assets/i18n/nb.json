@@ -2543,7 +2543,9 @@
       "back": "Tilbake"
     },
     "moduleNav": {
-      "label": "Deler av modulen"
+      "label": "Deler av modulen",
+      "more": "Mer",
+      "moreCurrent": "Flere deler, viser nå {{name}}"
     },
     "help": {
       "label": "Hjelp på denne siden",
@@ -2612,6 +2614,11 @@
       "remove": "Fjern {{ name }}",
       "flagged": "Kontroller denne verdien",
       "none": "Ikke satt"
+    },
+    "kpiBand": {
+      "title": "Nøkkeltall",
+      "showAll": "Vis alle ({{count}})",
+      "showFewer": "Vis færre"
     }
   },
   "account": {

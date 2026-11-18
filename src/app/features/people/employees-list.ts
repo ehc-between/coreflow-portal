@@ -261,24 +261,25 @@ function isFlag(value: string | null | undefined): value is EmployeeFlag {
           </option>
         }
       </select>
-      <label filters class="sr-only" for="cf-emp-position">
-        {{ 'people.filters.position' | transloco }}
-      </label>
-      <select
-        filters
-        id="cf-emp-position"
-        [class]="selectClass"
-        (change)="setPosition($any($event.target).value)"
-        data-testid="filter-position"
-      >
-        <option value="" [selected]="!positionId()">
-          {{ 'people.filters.anyPosition' | transloco }}
-        </option>
-        @for (p of lookups.positions(); track p.id) {
-          <option [value]="p.id" [selected]="positionId() === p.id">{{ p.title }}</option>
-        }
-      </select>
 
+      <div more-filters class="flex flex-col gap-1">
+        <label for="cf-emp-position" class="text-meta font-semibold text-fg-muted">
+          {{ 'people.filters.position' | transloco }}
+        </label>
+        <select
+          id="cf-emp-position"
+          [class]="selectClass"
+          (change)="setPosition($any($event.target).value)"
+          data-testid="filter-position"
+        >
+          <option value="" [selected]="!positionId()">
+            {{ 'people.filters.anyPosition' | transloco }}
+          </option>
+          @for (p of lookups.positions(); track p.id) {
+            <option [value]="p.id" [selected]="positionId() === p.id">{{ p.title }}</option>
+          }
+        </select>
+      </div>
       <div more-filters class="flex flex-col gap-1">
         <label class="text-meta font-semibold text-fg-muted" for="cf-emp-type">
           {{ 'people.filters.employmentType' | transloco }}
@@ -474,7 +475,11 @@ export class EmployeesList {
   });
 
   protected readonly moreActive = computed(
-    () => (this.type() ? 1 : 0) + (this.departmentId() ? 1 : 0) + (this.sort() !== 'name' ? 1 : 0),
+    () =>
+      (this.positionId() ? 1 : 0) +
+      (this.type() ? 1 : 0) +
+      (this.departmentId() ? 1 : 0) +
+      (this.sort() !== 'name' ? 1 : 0),
   );
 
   protected readonly isFiltered = computed(

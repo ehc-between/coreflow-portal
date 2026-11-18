@@ -232,7 +232,7 @@ describe('FeedbackList as one register (U23)', () => {
     flushOthers(http);
     await render(fixture);
 
-    const tiles = el.querySelectorAll('[data-testid^="kpi-"]');
+    const tiles = el.querySelectorAll('[data-testid^="kpi-"]:not([data-testid^="kpi-band"])');
     expect(tiles.length).toBe(4);
     const href = (key: string) =>
       el.querySelector<HTMLAnchorElement>(`[data-testid="kpi-${key}"]`)?.getAttribute('href');

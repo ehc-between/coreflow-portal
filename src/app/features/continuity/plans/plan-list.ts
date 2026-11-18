@@ -100,8 +100,8 @@ const SELECT =
   'h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg focus:border-accent focus:outline-none';
 
 /**
- * Continuity plans (`/continuity/plans`): search, filters on status, plan type and
- * review due (owner and sort under "More filters"), saved views and paging. Each row
+ * Continuity plans (`/continuity/plans`): search, filters on status and
+ * review due (plan type, owner and sort under "More filters"), saved views and paging. Each row
  * shows the plan's recovery targets (the strictest of the BIAs it covers), the
  * requirements it documents, an ICT gap, and when it was last exercised.
  */
@@ -180,23 +180,6 @@ const SELECT =
             </option>
           }
         </select>
-        <label class="sr-only" for="plan-f-type">{{
-          'continuity.fields.planType' | transloco
-        }}</label>
-        <select
-          id="plan-f-type"
-          [class]="select"
-          (change)="setFilter('type', $any($event.target).value)"
-        >
-          <option value="" [selected]="!filters().type">
-            {{ 'continuity.filters.anyType' | transloco }}
-          </option>
-          @for (t of types; track t) {
-            <option [value]="t" [selected]="filters().type === t">
-              {{ 'continuity.planType.' + t | transloco }}
-            </option>
-          }
-        </select>
         <label class="sr-only" for="plan-f-review">{{
           'continuity.filters.show' | transloco
         }}</label>
@@ -215,6 +198,23 @@ const SELECT =
       </ng-container>
 
       <div more-filters class="flex flex-col gap-3">
+        <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted" for="plan-f-type">
+          {{ 'continuity.fields.planType' | transloco }}
+          <select
+            id="plan-f-type"
+            [class]="select"
+            (change)="setFilter('type', $any($event.target).value)"
+          >
+            <option value="" [selected]="!filters().type">
+              {{ 'continuity.filters.anyType' | transloco }}
+            </option>
+            @for (t of types; track t) {
+              <option [value]="t" [selected]="filters().type === t">
+                {{ 'continuity.planType.' + t | transloco }}
+              </option>
+            }
+          </select>
+        </label>
         <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted" for="plan-f-owner">
           {{ 'continuity.fields.owner' | transloco }}
           <select
@@ -368,7 +368,10 @@ export class PlanList {
     () => ({ ...this.filters() }) as Record<string, string>,
   );
   protected readonly moreActive = computed(
-    () => (this.filters().owner ? 1 : 0) + (this.filters().sort !== 'code' ? 1 : 0),
+    () =>
+      (this.filters().type ? 1 : 0) +
+      (this.filters().owner ? 1 : 0) +
+      (this.filters().sort !== 'code' ? 1 : 0),
   );
   private readonly isFiltered = computed(
     () => !!this.q() || Object.entries(this.filters()).some(([k, v]) => k !== 'sort' && !!v),

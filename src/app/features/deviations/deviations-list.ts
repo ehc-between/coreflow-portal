@@ -80,6 +80,7 @@ export type ListFilterKey = (typeof LIST_FILTER_KEYS)[number];
 
 /** The filters that live under "Flere filtre" on wide screens. */
 const MORE_KEYS: readonly ListFilterKey[] = [
+  'owner_user_id',
   'severity',
   'source',
   'standard',
@@ -180,7 +181,7 @@ export function filtersFromParams(params: {
 /**
  * Deviations register on the shared list frame (docs/ux-guide.md, "List"): page
  * header with "Nytt avvik" and "Eksporter (CSV)", the module sub-navigation,
- * the help strip, search plus three filters (Status, Type, Owner) and the rest in
+ * the help strip, search plus two filters (Status, Type; U30) and the rest (Owner …) in
  * "Flere filtre", saved views, rows with requirement coverage and a "Forfalt"
  * marker, pagination, a teaching empty state and why-it-matters below. Filters
  * are mirrored in the URL so drill-downs and reloads keep them.
@@ -283,15 +284,6 @@ export function filtersFromParams(params: {
         [value]="filters()['type_id'] ?? ''"
         (valueChange)="setFilter('type_id', $event)"
       />
-      <app-deviation-filter
-        filters
-        [style.display]="wide() ? null : 'none'"
-        labelKey="deviations.filters.owner"
-        allKey="deviations.filters.allOwners"
-        [options]="ownerOptions()"
-        [value]="filters()['owner_user_id'] ?? ''"
-        (valueChange)="setFilter('owner_user_id', $event)"
-      />
 
       <div more-filters class="flex flex-col gap-3">
         @if (!wide()) {
@@ -311,15 +303,15 @@ export function filtersFromParams(params: {
             [showLabel]="true"
             (valueChange)="setFilter('type_id', $event)"
           />
-          <app-deviation-filter
-            labelKey="deviations.filters.owner"
-            allKey="deviations.filters.allOwners"
-            [options]="ownerOptions()"
-            [value]="filters()['owner_user_id'] ?? ''"
-            [showLabel]="true"
-            (valueChange)="setFilter('owner_user_id', $event)"
-          />
         }
+        <app-deviation-filter
+          labelKey="deviations.filters.owner"
+          allKey="deviations.filters.allOwners"
+          [options]="ownerOptions()"
+          [value]="filters()['owner_user_id'] ?? ''"
+          [showLabel]="true"
+          (valueChange)="setFilter('owner_user_id', $event)"
+        />
         <app-deviation-filter
           labelKey="deviations.filters.severity"
           allKey="deviations.filters.allSeverities"
