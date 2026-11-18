@@ -3,15 +3,15 @@
     "list": {
       "intro": {
         "title": "Avvik, hendelser og forbedringer",
-        "body": "Ett register for alt som ikke gikk som planlagt, og for ideer til å gjøre det bedre: avvik, kundeklager, sikkerhets-, miljø- og HMS-hendelser, KI-hendelser og forbedringsforslag.",
+        "body": "Ett register for alt som ikke gikk som planlagt, og for ideer til å gjøre det bedre. Hver sak følges til årsaken er rettet og tiltaket har virket.",
         "steps": [
           "Registrer det som skjedde så snart du oppdager det, selv om det virker lite.",
           "Finn rotårsaken med en 5 hvorfor- eller fiskebeinanalyse.",
-          "Planlegg korrigerende tiltak og sett en dato for å sjekke at de virket."
+          "Planlegg tiltak og sett en dato for å sjekke at de virket."
         ]
       },
       "why": {
-        "body": "Alle ledelsessystemstandarder krever at dere **reagerer på avvik, finner årsakene og retter dem** (punkt 10.2), og at dere lærer av hendelser. Revisorer ser etter et register som brukes, årsaker som er analysert og tiltak der effekten er sjekket.",
+        "body": "Alle ledelsessystemstandarder krever at organisasjonen **reagerer på avvik, finner årsakene og retter dem** (punkt 10.2), og at organisasjonen lærer av hendelser. Revisorer ser etter et register som brukes, årsaker som er analysert og tiltak der effekten er sjekket.",
         "clauses": [
           "hs:10.2",
           "hs:10.1",
@@ -36,7 +36,7 @@
     "new": {
       "intro": {
         "title": "Registrer et avvik",
-        "body": "Beskriv hva som skjedde med enkle ord. Du kan skrive fritt og la KI fylle ut skjemaet, og så sjekke hvert felt før du lagrer.",
+        "body": "Beskriv hva som skjedde med vanlige ord. Årsak og tiltak legger du til på saken etterpå.",
         "steps": [
           "Velg typen som passer best: et avvik, en klage, en hendelse eller en idé.",
           "Si hva som skjedde, hvor og når. Hold deg til fakta, ikke skyld.",
@@ -54,12 +54,60 @@
       },
       "fields": {
         "severity": {
-          "help": "Hvor alvorlige konsekvensene er, eller kunne ha vært.",
-          "example": "En feil levering til en kunde er vanligvis mer alvorlig enn en skrivefeil i et internt skjema."
+          "help": "Hvor alvorlige konsekvensene er, eller kunne ha blitt.",
+          "example": "Feil levering til en kunde er som regel mer alvorlig enn en skrivefeil i et internt skjema.",
+          "requirements": ["hs:10.2"]
         },
         "root_cause": {
-          "help": "Den underliggende grunnen til at problemet oppstod. Du kan la feltet stå tomt nå og finne den senere med årsaksverktøyene.",
-          "example": "Ikke «operatøren glemte», men «sjekklisten har ikke et trinn for dette»."
+          "help": "Den underliggende grunnen til at problemet oppsto. Finn den med analysen på saken.",
+          "example": "Ikke «operatøren glemte», men «sjekklisten mangler dette trinnet».",
+          "requirements": ["hs:10.2"]
+        },
+        "title": {
+          "help": "Et kort navn på det som skjedde, så andre kjenner igjen saken.",
+          "example": "Feil etikett på levering til Nordbygg",
+          "requirements": ["hs:10.2"]
+        },
+        "description": {
+          "help": "Hva som skjedde, med vanlige ord. Hold deg til fakta, ikke skyld.",
+          "example": "To paller ble levert med etikettene til en annen ordre.",
+          "requirements": ["hs:10.2", "hs:7.5"]
+        },
+        "occurred_at": {
+          "help": "Når selve hendelsen skjedde. La stå tomt hvis du ikke vet det.",
+          "requirements": ["hs:10.2"]
+        },
+        "detected_at": {
+          "help": "Når noen oppdaget det. Fristene for å melde til myndighetene (GDPR 72 t, NIS2 24 t) regnes herfra.",
+          "example": "Kunden ringte kl. 08.15 mandag.",
+          "requirements": ["gdpr:33", "nis2:23"]
+        },
+        "location": {
+          "help": "Hvor det skjedde: et sted, et bygg, et system eller en kunde."
+        },
+        "immediate_action": {
+          "help": "Hva som ble gjort med en gang for å begrense skaden. ISO kaller dette å «reagere på avviket».",
+          "example": "Stoppet linjen og satte partiet i karantene.",
+          "requirements": ["hs:10.2"]
+        },
+        "source": {
+          "help": "Hvor avviket ble funnet: egne ansatte, en revisjon, en inspeksjon, en kunde eller en hendelse.",
+          "requirements": ["hs:9.2", "iso9001:9.1.2"]
+        },
+        "requirements": {
+          "help": "Kravene som ikke ble oppfylt, eller som saken er dokumentasjon for. Hvert krav blir en kobling som teller på standardsidene.",
+          "example": "En forsinket leveranse: ISO 9001 · 8.4.1. Et personvernbrudd: GDPR · 33.",
+          "requirements": ["hs:10.2"]
+        },
+        "owner": {
+          "help": "Personen som sørger for at saken blir fulgt opp og lukket.",
+          "requirements": ["hs:5.3"]
+        },
+        "due": {
+          "help": "Når saken bør være lukket. Forfalte saker vises på oversikten og i Mitt arbeid."
+        },
+        "visibility": {
+          "help": "Begrensede saker vises bare for eieren og dem du deler dem med, f.eks. ved varsling eller personalsaker."
         }
       }
     },
@@ -74,7 +122,7 @@
         ]
       },
       "why": {
-        "body": "Målet er ikke å lukke avviket, men å **fjerne årsaken**. Punkt 10.2 krever at dere vurderer effekten av korrigerende tiltak, og at dere dokumenterer avvikets art, tiltakene og resultatene.",
+        "body": "Målet er ikke å lukke avviket, men å **fjerne årsaken**. Punkt 10.2 krever at organisasjonen vurderer effekten av korrigerende tiltak, og at organisasjonen dokumenterer avvikets art, tiltakene og resultatene.",
         "clauses": [
           "hs:10.2",
           "iso27001:A.5.26",
@@ -91,6 +139,62 @@
         "effectiveness_review": {
           "help": "Datoen dere skal sjekke at tiltaket virkelig hindret at problemet kom tilbake. Det opprettes en oppgave til avvikets eier.",
           "example": "Tre måneder etter at en ny sjekkliste er tatt i bruk, sjekk om den samme feilen har skjedd igjen."
+        },
+        "title": {
+          "help": "Et kort navn på det som skjedde, så andre kjenner igjen saken.",
+          "example": "Feil etikett på levering til Nordbygg",
+          "requirements": ["hs:10.2"]
+        },
+        "description": {
+          "help": "Hva som skjedde, med vanlige ord. Hold deg til fakta, ikke skyld.",
+          "example": "To paller ble levert med etikettene til en annen ordre.",
+          "requirements": ["hs:10.2", "hs:7.5"]
+        },
+        "occurred_at": {
+          "help": "Når selve hendelsen skjedde. La stå tomt hvis du ikke vet det.",
+          "requirements": ["hs:10.2"]
+        },
+        "detected_at": {
+          "help": "Når noen oppdaget det. Fristene for å melde til myndighetene (GDPR 72 t, NIS2 24 t) regnes herfra.",
+          "example": "Kunden ringte kl. 08.15 mandag.",
+          "requirements": ["gdpr:33", "nis2:23"]
+        },
+        "location": {
+          "help": "Hvor det skjedde: et sted, et bygg, et system eller en kunde."
+        },
+        "immediate_action": {
+          "help": "Hva som ble gjort med en gang for å begrense skaden. ISO kaller dette å «reagere på avviket».",
+          "example": "Stoppet linjen og satte partiet i karantene.",
+          "requirements": ["hs:10.2"]
+        },
+        "severity": {
+          "help": "Hvor alvorlige konsekvensene er, eller kunne ha blitt.",
+          "example": "Feil levering til en kunde er som regel mer alvorlig enn en skrivefeil i et internt skjema.",
+          "requirements": ["hs:10.2"]
+        },
+        "source": {
+          "help": "Hvor avviket ble funnet: egne ansatte, en revisjon, en inspeksjon, en kunde eller en hendelse.",
+          "requirements": ["hs:9.2", "iso9001:9.1.2"]
+        },
+        "requirements": {
+          "help": "Kravene som ikke ble oppfylt, eller som saken er dokumentasjon for. Hvert krav blir en kobling som teller på standardsidene.",
+          "example": "En forsinket leveranse: ISO 9001 · 8.4.1. Et personvernbrudd: GDPR · 33.",
+          "requirements": ["hs:10.2"]
+        },
+        "owner": {
+          "help": "Personen som sørger for at saken blir fulgt opp og lukket.",
+          "requirements": ["hs:5.3"]
+        },
+        "due": {
+          "help": "Når saken bør være lukket. Forfalte saker vises på oversikten og i Mitt arbeid."
+        },
+        "visibility": {
+          "help": "Begrensede saker vises bare for eieren og dem du deler dem med, f.eks. ved varsling eller personalsaker."
+        },
+        "root_cause": {
+          "help": "Den underliggende grunnen til at problemet oppsto. Finn den med analysen på saken.",
+          "example": "Ikke «operatøren glemte», men «sjekklisten mangler dette trinnet».",
+          "requirements": ["hs:10.2"]
         }
       }
     },
@@ -187,6 +291,34 @@
       "why": {
         "body": "Å beskytte identiteten til dem som melder er avgjørende for tilliten, og ved varsling ofte en lovpålagt plikt.",
         "clauses": ["iso27001:A.6.8"]
+      }
+    },
+    "actions": {
+      "intro": {
+        "title": "Tiltak på tvers av alle avvik",
+        "body": "Alle åpne tiltak fra avvikene du har tilgang til, med nærmest frist først. Åpne avviket for å oppdatere et tiltak.",
+        "steps": [
+          "Filtrer på dine egne tiltak med «Tildelt meg».",
+          "Forfalte tiltak er merket og vises også i Mitt arbeid."
+        ]
+      },
+      "why": {
+        "body": "Et tiltak teller først når det er gjennomført og effekten er sjekket. Revisorer ser etter tiltak med eier, frist og registrert effekt.",
+        "clauses": ["hs:10.2", "hs:10.3"]
+      }
+    },
+    "stats": {
+      "intro": {
+        "title": "Hvordan avvikene blir håndtert",
+        "body": "Tallene ledelsens gjennomgang og revisorer spør etter: hvor mange, hvor raskt de lukkes, og om tiltakene virker.",
+        "steps": [
+          "Klikk på en stolpe for å se sakene bak den.",
+          "Bruk «Etter krav» for å finne kravene som oftest svikter."
+        ]
+      },
+      "why": {
+        "body": "Standardene krever at organisasjonen vurderer hvor godt styringssystemet virker (punkt 9.1), og tar trender i avvik med til ledelsens gjennomgang (9.3).",
+        "clauses": ["hs:9.1", "hs:9.3", "hs:10.2"]
       }
     }
   },

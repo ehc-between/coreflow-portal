@@ -15,7 +15,7 @@ import { StatBar } from './stats-bars';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (bars().length === 0) {
-      <p class="py-2 text-[13px] text-fg-subtle">
+      <p class="py-2 text-ui text-fg-subtle">
         {{ 'deviations.stats.noData' | transloco }}
       </p>
     } @else {
@@ -29,10 +29,10 @@ import { StatBar } from './stats-bars';
               class="group block w-full text-left enabled:cursor-pointer"
             >
               <div class="mb-1 flex items-baseline justify-between gap-3">
-                <span class="truncate text-[13px] text-fg group-enabled:group-hover:text-accent">{{
+                <span class="truncate text-ui text-fg group-enabled:group-hover:text-accent">{{
                   bar.label
                 }}</span>
-                <span class="flex-none text-[12.5px] font-semibold text-fg-muted">
+                <span class="flex-none text-meta font-semibold text-fg-muted">
                   {{ bar.count | localNumber }}
                   <span class="text-fg-subtle">· {{ bar.percent | localPercent }}</span>
                 </span>

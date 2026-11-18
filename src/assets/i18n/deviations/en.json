@@ -46,7 +46,9 @@
     "type_required": "Choose a deviation type, or set a default type for the report link.",
     "report_closed": "This report has already been handled.",
     "text_required": "Describe what happened first.",
-    "deviation_required": "Open a deviation first."
+    "deviation_required": "Open a deviation first.",
+    "invalid_event_times": "Check the times: they cannot be in the future, and it cannot be detected before it happened.",
+    "invalid_reporting_value": "Check the reporting time: it must be a date and not in the future."
   },
   "rootCauses": {
     "title": "Root cause analysis",
@@ -114,11 +116,20 @@
     "describePlaceholder": "For example: The customer received 40 units instead of 400 on Tuesday. The picking list was printed from an old order.",
     "registerFromText": "Fill in the form for me",
     "describeHint": "AI picks the type and fills in the fields. You review everything before saving.",
-    "missing": "Still missing: {{ fields }}"
+    "missing": "Still missing: {{ fields }}",
+    "summaryCardTitle": "Short summary",
+    "summaryCardHint": "Get the case summed up in a few sentences, e.g. for a meeting."
   },
   "capa": {
-    "reviewDue": "Effectiveness review",
-    "reviewDueLabel": "Review effectiveness {{ date }}"
+    "reviewDue": "Review the effect by",
+    "reviewDueLabel": "Review the effect by {{ date }}",
+    "intro": "Contain the problem now, remove the cause, then check that it worked.",
+    "optional": "optional",
+    "kindHelp": {
+      "containment": "Limits the harm right now (ISO 10.2 a). Checking the effect is optional.",
+      "corrective": "Removes the cause so it does not happen again (ISO 10.2 b–c).",
+      "preventive": "Stops a similar problem elsewhere. If it is a risk, create a risk with \"Create from this\"."
+    }
   },
   "guide": {
     "lessonButton": "Lesson: {{ title }}",
@@ -135,7 +146,10 @@
     "openDesigner": "Edit fields and workflow",
     "install": "Install",
     "empty": "No templates are available.",
-    "installedToast": "{{ name }} is installed."
+    "installedToast": "{{ name }} is installed.",
+    "whenToUse": "Choose this when:",
+    "showFields": "See the fields",
+    "restricted": "Cases are always restricted to the people handling them."
   },
   "intake": {
     "backToInbox": "Back to received reports",
@@ -174,7 +188,12 @@
       "rotateConfirm": "The current link stops working at once. Receipt codes still work with the new link.",
       "savedToast": "Settings saved.",
       "rotatedToast": "The link is replaced.",
-      "copiedToast": "Link copied."
+      "copiedToast": "Link copied.",
+      "whistleblowingDuties": "Whistleblowing (Working Environment Act ch. 2 A): confirm receipt within 7 days and give feedback within 3 months. Cases should go to a restricted type.",
+      "qrLabel": "QR code for the reporting form",
+      "posterHint": "Put the poster on a notice board or in the staff room, so everyone can find the form.",
+      "poster": "Download poster",
+      "preview": "Open the form"
     },
     "inbox": {
       "link": "Received reports",
@@ -182,7 +201,13 @@
       "subtitle": "Reports sent through the anonymous link. Handle them, close them or register them as deviations.",
       "status": "Status",
       "allStatuses": "All statuses",
-      "noneWithStatus": "No reports with this status."
+      "noneWithStatus": "No reports with this status.",
+      "linkOff": "The reporting link is switched off, so nobody can send reports yet.",
+      "turnOn": "Turn on the link",
+      "noneWithStatusBody": "Choose another status to see other reports.",
+      "noneLinkOff": "The reporting link is off. Turn it on to receive reports.",
+      "deviationColumn": "Deviation",
+      "reportColumn": "Report"
     },
     "fields": {
       "description": "What happened",
@@ -211,6 +236,25 @@
       "ownerMe": "Me",
       "submit": "Register deviation",
       "convertedToast": "Deviation {{ code }} is registered."
+    },
+    "warnings": {
+      "no_default_type": "Choose a default deviation type, so received reports can be registered in one step.",
+      "whistleblowing_type_not_dedicated": "Whistleblowing reports go to a type that is not restricted. Install the \"Whistleblowing case\" template and choose it as the default type."
+    },
+    "deadline": {
+      "acknowledge": "Confirm receipt by {{ date }}",
+      "feedback": "Give feedback by {{ date }}",
+      "acknowledgeLabel": "Confirm receipt by",
+      "feedbackLabel": "Give feedback by",
+      "doneOn": "done {{ date }}"
+    },
+    "poster": {
+      "title": "Report a concern",
+      "titleWhistle": "Report censurable conditions",
+      "body": "Seen something that should be fixed? Report it here — you can stay anonymous.",
+      "bodyWhistle": "You may report censurable conditions at work. The report is handled confidentially, and you can stay anonymous.",
+      "scan": "Scan the code with your phone camera, or type the address:",
+      "file": "reporting-poster"
     }
   },
   "publicReport": {
@@ -294,5 +338,253 @@
     "intakeReceived": "Anonymous report received",
     "intakeConverted": "Registered from an anonymous report",
     "intakeDismissed": "Anonymous report closed"
+  },
+  "list": {
+    "description": "Everything that did not go as planned — nonconformities, incidents, complaints and near misses — and how each one is put right.",
+    "export": "Export (CSV)",
+    "exportFile": "deviations",
+    "exportFailed": "Could not export the register. Try again.",
+    "templates": "Templates",
+    "intakeSettings": "Anonymous reporting link"
+  },
+  "nav": {
+    "all": "All deviations",
+    "actions": "Actions",
+    "intake": "Received reports",
+    "stats": "Statistics"
+  },
+  "form": {
+    "requiredSr": "required",
+    "requirements": "Requirements affected",
+    "requirementsHint": "Which requirements were not met, or which this case documents. Each one you add becomes evidence on the requirement.",
+    "requirementsPlaceholder": "Search clause or article, e.g. 10.2 or A.5.24",
+    "typical": "Typical for this type:",
+    "addTypical": "Add {{ short }} · {{ number }}",
+    "tagsHint": "Your organisation's own grouping, e.g. a site or a product."
+  },
+  "facts": {
+    "occurredAt": "When did it happen?",
+    "detectedAt": "When was it detected?",
+    "detectedHint": "Deadlines for notifying authorities start from this time.",
+    "location": "Where did it happen?",
+    "locationPlaceholder": "Site, building, system or customer",
+    "immediateAction": "Immediate action",
+    "immediateHint": "What was done straight away to limit the harm or contain the problem?",
+    "errors": {
+      "future": "A time cannot be in the future. Check the dates under \"What happened\".",
+      "order": "It cannot have been detected before it happened. Check the two times."
+    }
+  },
+  "create": {
+    "description": "Register what happened. You can add the cause and the actions afterwards.",
+    "typeLabel": "Type:",
+    "fixTitle": "Could not save. Fill in the title.",
+    "removeTagNamed": "Remove the tag {{ tag }}",
+    "sections": {
+      "what": "What happened",
+      "whatHint": "Describe the event in plain words: what, when and where.",
+      "classify": "Classify",
+      "classifyHint": "How serious it is, where it came from and which requirements it affects.",
+      "typeFields": "More about the {{ type }}",
+      "who": "Responsibility",
+      "whoHint": "Who follows it up, and by when."
+    }
+  },
+  "detail": {
+    "sections": {
+      "what": "About the deviation",
+      "rootCause": "Root cause"
+    },
+    "createdFrom": "created from",
+    "citedHint": "These links count as evidence on the requirements (see \"Requirements this documents\").",
+    "noRequirements": "No requirements are cited on this case yet. Add a typical one below, or choose them with \"Edit\".",
+    "typicalForType": "Typical for this type:",
+    "clauseLinkedToast": "The requirement is linked.",
+    "noRootCause": "No root cause yet. Use the analysis below to find it.",
+    "notNeededReason": "Why no analysis is needed",
+    "rootCauseOverride": "Root cause (manual)",
+    "rootCauseOverrideHint": "Normally filled in from the analysis with \"Use as root cause\". Change it here only to correct it.",
+    "responsibility": "Responsibility and access",
+    "notFoundBody": "It may have been deleted, or you do not have access to it."
+  },
+  "reporting": {
+    "title": "Duty to notify authorities",
+    "intro": "This case may have to be reported. Record when it was reported, or why it was not needed.",
+    "authority": {
+      "datatilsynet": "Norwegian Data Protection Authority (Datatilsynet)",
+      "csirt": "National CSIRT (NSM NorCERT)",
+      "arbeidstilsynet": "Norwegian Labour Inspection Authority (Arbeidstilsynet)"
+    },
+    "obligation": {
+      "gdpr_33": "Personal data breach notification",
+      "nis2_early_warning": "NIS2 early warning",
+      "nis2_notification": "NIS2 incident notification",
+      "nis2_final_report": "NIS2 final report",
+      "arbeidstilsynet": "Notification of serious injury"
+    },
+    "article": {
+      "gdpr_33": "GDPR art. 33 · within 72 hours",
+      "nis2_early_warning": "NIS2 art. 23 · within 24 hours",
+      "nis2_notification": "NIS2 art. 23 · within 72 hours",
+      "nis2_final_report": "NIS2 art. 23 · within one month",
+      "arbeidstilsynet": "Working Environment Act § 5-2 · immediately"
+    },
+    "status": {
+      "pending": "To report",
+      "overdue": "Deadline passed",
+      "notified": "Reported",
+      "not_required": "Not required",
+      "closed_unreported": "Closed without report"
+    },
+    "immediately": "Report without delay.",
+    "deadline": "Deadline {{ date }}",
+    "hoursLeft": "{{ hours }} h left",
+    "lateBy": "{{ hours }} h overdue",
+    "clockDetected": "The clock started when it was detected ({{ date }}).",
+    "clockRaised": "The clock started when it was registered ({{ date }}). Add when it was detected.",
+    "notifiedOn": "Reported {{ date }}",
+    "referenceShown": "reference {{ ref }}",
+    "notRequiredBecause": "Not required: {{ reason }}",
+    "openTask": "Open the reminder task",
+    "recordNotified": "Record that it was reported",
+    "recordNotRequired": "Not required",
+    "notifiedAt": "Reported at",
+    "reference": "Reference (optional)",
+    "referencePlaceholder": "Case number from the authority",
+    "notRequiredReason": "Why no report is needed",
+    "notRequiredPlaceholder": {
+      "gdpr_33": "E.g. the data was encrypted, so the breach is unlikely to put anyone at risk.",
+      "nis2_early_warning": "E.g. the incident is not significant under NIS2.",
+      "nis2_notification": "E.g. the incident is not significant under NIS2.",
+      "nis2_final_report": "E.g. the incident was closed in the notification.",
+      "arbeidstilsynet": "E.g. nobody was seriously injured."
+    },
+    "save": "Save",
+    "undo": "Undo",
+    "savedToast": "The notification is recorded.",
+    "task": {
+      "gdpr_33": "Report the personal data breach in {{ code }} to Datatilsynet (72 hours)",
+      "nis2_early_warning": "Send the NIS2 early warning for {{ code }} (24 hours)",
+      "nis2_notification": "Send the NIS2 incident notification for {{ code }} (72 hours)",
+      "nis2_final_report": "Send the NIS2 final report for {{ code }} (one month)",
+      "arbeidstilsynet": "Notify Arbeidstilsynet about the injury in {{ code }}"
+    }
+  },
+  "next": {
+    "reporting": {
+      "title": "Report {{ code }} to the authorities",
+      "why": "The deadline for notifying the authority is close. Record the report, or why it is not needed."
+    }
+  },
+  "checklist": {
+    "title": "Ready to close?",
+    "intro": "What the standards expect before a deviation is closed.",
+    "ready": "Everything required is done. You can close the deviation.",
+    "progress": "{{ done }} of {{ total }}",
+    "recommended": "recommended",
+    "doneSr": "Done:",
+    "todoSr": "Not done:",
+    "items": {
+      "root_cause": "The root cause is found (or why it is not needed)",
+      "actions_done": "All actions are done",
+      "effectiveness_reviewed": "The effect of the actions is checked",
+      "corrective_action_planned": "At least one corrective action is planned",
+      "requirements_linked": "Linked to the requirements it concerns",
+      "authorities_notified": "Authorities notified where required"
+    }
+  },
+  "history": {
+    "title": "History",
+    "more": "Show older entries"
+  },
+  "print": {
+    "menu": "Print / save as PDF",
+    "print": "Print / save as PDF",
+    "back": "Back to {{ code }}",
+    "caseFile": "Case file",
+    "printedAt": "printed {{ date }}"
+  },
+  "filters": {
+    "groups": {
+      "work": "Work",
+      "phase": "Phase",
+      "status": "Status"
+    },
+    "tagLabel": "Tag",
+    "clauseLabel": "Clause",
+    "clausePlaceholder": "E.g. 10.2",
+    "dueFrom": "Due from",
+    "dueTo": "Due to"
+  },
+  "events": {
+    "rootCauseAdded": "Root cause analysis added",
+    "rootCauseApplied": "Root cause set from the analysis",
+    "fields": {
+      "occurred_at": "when it happened",
+      "detected_at": "when it was detected",
+      "location": "where",
+      "immediate_action": "immediate action",
+      "reporting": "authority notification"
+    }
+  },
+  "actions": {
+    "deleteNamed": "Delete the action \"{{ action }}\"",
+    "deleteTitle": "Delete this action?",
+    "deleteConfirm": "The action and its notes are removed from the deviation."
+  },
+  "actionsList": {
+    "emptyBody": "Open actions from every deviation you can see show up here.",
+    "deviationColumn": "Deviation",
+    "actionColumn": "Action"
+  },
+  "stats": {
+    "kpisLabel": "Key figures",
+    "toReview": "To management review",
+    "emptyBody": "Statistics appear when deviations are registered.",
+    "cards": {
+      "ofTotal": "of {{ total }} in total"
+    },
+    "kpis": {
+      "medianDays": "Median days to close",
+      "daysValue": "{{ days }} days",
+      "avgDays": "average {{ days }}",
+      "onTime": "Closed on time",
+      "effective": "Actions that worked",
+      "recurring": "Recurring causes"
+    },
+    "age": {
+      "title": "Age of open cases",
+      "hint": "How long open deviations have waited since they were registered.",
+      "lt_30": "Under 30 days",
+      "d30_90": "30–90 days",
+      "gt_90": "Over 90 days"
+    },
+    "actionsLine": "{{ open }} open actions, {{ overdue }} overdue",
+    "trend": {
+      "hint": "Registered and closed per month. Months without cases show as empty.",
+      "opened": "Registered",
+      "closed": "Closed",
+      "aria": "{{ months }} months: {{ opened }} registered, {{ closed }} closed"
+    },
+    "breakdowns": {
+      "byStatusHint": "In the order of the workflow.",
+      "bySource": "By source",
+      "bySourceHint": "Where deviations are found — audits, inspections, customers or your own staff.",
+      "byRequirement": "By requirement",
+      "byRequirementHint": "The requirements deviations are linked to most often."
+    }
+  },
+  "types": {
+    "emptyBody": "Start from a template: it gives you ready-made fields, workflow and typical requirements.",
+    "deleteNamed": "Delete the type {{ name }}",
+    "deleteTitle": "Delete this type?",
+    "deleteConfirm": "{{ name }} is deleted. A type that is in use cannot be deleted; switch it off instead.",
+    "editor": {
+      "intro": "A type decides which fields a deviation has and which requirements it usually concerns.",
+      "advanced": "Advanced",
+      "keyHint": "Made from the name. Change it only if an integration needs a fixed key.",
+      "defaultClauses": "Typical requirements",
+      "defaultClausesHint": "Offered as one-click links on deviations of this type. Leave empty to use the defaults of the standards."
+    }
   }
 }

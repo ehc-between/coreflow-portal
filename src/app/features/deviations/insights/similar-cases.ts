@@ -30,7 +30,7 @@ import { DeviationStatusLabels, StatusSubject } from '../deviation-status';
   template: `
     <section [attr.aria-label]="'deviations.similar.title' | transloco">
       <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <h2 class="font-display text-[16px] font-bold tracking-[-0.02em] text-fg">
+        <h2 class="font-display text-section font-bold tracking-[-0.02em] text-fg">
           {{ 'deviations.similar.title' | transloco }}
         </h2>
         @if (items().length) {
@@ -45,42 +45,42 @@ import { DeviationStatusLabels, StatusSubject } from '../deviation-status';
       </div>
       @if (analysis()) {
         <div
-          class="mb-3 rounded-tile border border-accent-border bg-accent-soft/30 px-3 py-2.5 text-[13px] text-fg"
+          class="mb-3 rounded-tile border border-accent-border bg-accent-soft/30 px-3 py-2.5 text-ui text-fg"
           aria-live="polite"
           data-testid="similar-analysis"
         >
           <div [innerHTML]="analysis() | appMarkdown"></div>
-          <p class="mt-1.5 text-[11.5px] text-fg-subtle">
+          <p class="mt-1.5 text-meta text-fg-subtle">
             {{ 'deviations.assist.reviewNote' | transloco }}
           </p>
         </div>
       }
       @if (loading()) {
-        <p class="text-[13px] text-fg-muted">{{ 'common.loading' | transloco }}</p>
+        <p class="text-ui text-fg-muted">{{ 'common.loading' | transloco }}</p>
       } @else if (items().length === 0) {
-        <p class="text-[13px] text-fg-muted">{{ 'deviations.similar.empty' | transloco }}</p>
+        <p class="text-ui text-fg-muted">{{ 'deviations.similar.empty' | transloco }}</p>
       } @else {
         <ul class="flex flex-col divide-y divide-border">
           @for (item of items(); track item.id) {
             <li class="py-2.5">
               <a
                 [routerLink]="['/deviations', item.id]"
-                class="group flex flex-col gap-0.5 rounded-[8px] outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                class="group flex flex-col gap-0.5 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-accent"
               >
                 <span class="flex flex-wrap items-center gap-1.5">
-                  <span class="font-mono text-[12px] text-fg-subtle">{{ item.code }}</span>
+                  <span class="font-mono text-meta text-fg-subtle">{{ item.code }}</span>
                   <app-badge [tone]="labels.tone(statusOf(item))">{{
                     labels.label(statusOf(item))
                   }}</app-badge>
-                  <span class="text-[12px] text-fg-subtle">{{
+                  <span class="text-meta text-fg-subtle">{{
                     item.raised_at | localDate: 'mediumDate'
                   }}</span>
                 </span>
-                <span class="text-[13.5px] font-semibold text-fg group-hover:underline">{{
+                <span class="text-ui font-semibold text-fg group-hover:underline">{{
                   item.title
                 }}</span>
                 @if (item.root_cause) {
-                  <span class="line-clamp-2 text-[12.5px] text-fg-muted">
+                  <span class="line-clamp-2 text-meta text-fg-muted">
                     {{ 'deviations.similar.rootCause' | transloco: { cause: item.root_cause } }}
                   </span>
                 }

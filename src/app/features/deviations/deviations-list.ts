@@ -1,32 +1,47 @@
-import { LocalDayPipe, LocalNumberPipe } from '../../shared/locale/locale-pipes';
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   computed,
   effect,
   inject,
   signal,
+  untracked,
 } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 import { HasPermissionDirective } from '../../core/auth/has-permission.directive';
+import { hasAnyPermission } from '../../core/auth/permission';
+import { providePageContext } from '../../core/ai/page-context';
 import {
   DeviationFilters,
   DeviationListItem,
   DeviationType,
   StatusCategory,
-  Severity,
-  Source,
-  Standard,
 } from '../../core/deviations/deviation.models';
 import { DeviationsApi } from '../../core/deviations/deviations-api';
+import { LanguageService } from '../../core/i18n/language.service';
+import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
+import { TeachingEmpty } from '../../shared/guidance/teaching-empty';
+import { TourStepDirective } from '../../shared/guidance/tour-step.directive';
+import { WhyItMatters } from '../../shared/guidance/why-it-matters';
+import { RecordListPage } from '../../shared/kit/record-list-page';
+import { SavedView } from '../../shared/kit/saved-views.service';
+import { CoverageChip } from '../../shared/requirement-links/coverage-chip';
 import { Badge } from '../../shared/ui/badge/badge';
 import { Button } from '../../shared/ui/button/button';
-import { Card } from '../../shared/ui/card/card';
+import { EmptyState } from '../../shared/ui/empty-state/empty-state';
+import { ErrorState } from '../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../shared/ui/icon/icon';
+import { LoadingState } from '../../shared/ui/loading-state/loading-state';
+import { ModuleNav } from '../../shared/ui/module-nav/module-nav';
+import { MenuItem } from '../../shared/ui/overflow-menu/overflow-menu';
+import { Pager } from '../../shared/ui/pager/pager';
+import { RecordRow, RecordRowHeader } from '../../shared/ui/record-row/record-row';
+import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
+import { personOptions, saveBlob } from './deviation-display';
 import {
   SEVERITY_OPTIONS,
   SOURCE_OPTIONS,
@@ -34,674 +49,641 @@ import {
   STATUS_OPTIONS,
   isOverdue,
   severityLabelKey,
-  severityTone,
   sourceLabelKey,
   standardLabelKey,
   statusLabelKey,
-  statusTone,
 } from './deviation-enums';
-import { providePageContext } from '../../core/ai/page-context';
-import { hasAnyPermission } from '../../core/auth/permission';
-import { TeachingEmpty } from '../../shared/guidance/teaching-empty';
-import { TourStepDirective } from '../../shared/guidance/tour-step.directive';
 import { DeviationStatusLabels, STATUS_CATEGORIES } from './deviation-status';
-import { DeviationPageGuide } from './guide/deviation-page-guide';
+import { DeviationFilter, FilterGroup, FilterOption } from './ui/filter-select';
+import { DeviationsNavService } from './ui/deviations-nav';
 
 const PAGE_SIZE = 25;
+const WIDE_QUERY = '(min-width: 640px)';
+
+/** URL / saved-view filter keys of the list (the list endpoint's param names). */
+export const LIST_FILTER_KEYS = [
+  'state',
+  'type_id',
+  'owner_user_id',
+  'severity',
+  'source',
+  'standard',
+  'department_id',
+  'tag',
+  'clause',
+  'due_after',
+  'due_before',
+  'sort',
+] as const;
+export type ListFilterKey = (typeof LIST_FILTER_KEYS)[number];
+
+/** The filters that live under "Flere filtre" on wide screens. */
+const MORE_KEYS: readonly ListFilterKey[] = [
+  'severity',
+  'source',
+  'standard',
+  'department_id',
+  'tag',
+  'clause',
+  'due_after',
+  'due_before',
+  'sort',
+];
+
+export const SORT_OPTIONS: readonly FilterOption[] = [
+  { value: 'raised_at', label: 'deviations.sort.oldest' },
+  { value: 'due_at', label: 'deviations.sort.dueSoonest' },
+  { value: '-severity', label: 'deviations.sort.severity' },
+  { value: 'code', label: 'deviations.sort.code' },
+];
 
 /**
- * Server-side open-state filter: `active` hides closed / cancelled deviations,
- * `overdue` additionally keeps only those past their due date.
+ * The one "Status" filter value: `scope:active|overdue` (open work), `cat:<category>`
+ * (a lifecycle phase) or a status / workflow state key. Splits it into list params.
  */
-type DeviationScope = '' | 'active' | 'overdue';
+export function stateFilter(
+  value: string,
+): Pick<DeviationFilters, 'active' | 'overdue' | 'category' | 'status'> {
+  if (!value) {
+    return {};
+  }
+  if (value === 'scope:active') {
+    return { active: true };
+  }
+  if (value === 'scope:overdue') {
+    return { overdue: true };
+  }
+  if (value.startsWith('cat:')) {
+    return { category: value.slice(4) as StatusCategory };
+  }
+  return { status: value };
+}
 
-/** A sortable column option for the list. */
-interface SortOption {
-  readonly value: string;
-  readonly labelKey: string;
+/** The list params of the current filter values (also used by the export). */
+export function toDeviationFilters(
+  query: string,
+  filters: Readonly<Record<string, string>>,
+): DeviationFilters {
+  const v = (key: ListFilterKey) => (filters[key] ?? '').trim() || undefined;
+  return {
+    q: query.trim() || undefined,
+    ...stateFilter(filters['state'] ?? ''),
+    type_id: v('type_id'),
+    owner_user_id: v('owner_user_id'),
+    severity: v('severity') as DeviationFilters['severity'],
+    source: v('source') as DeviationFilters['source'],
+    standard: v('standard') as DeviationFilters['standard'],
+    department_id: v('department_id'),
+    tag: v('tag'),
+    clause: v('clause'),
+    due_after: v('due_after'),
+    due_before: v('due_before'),
+    sort: v('sort') ?? '-raised_at',
+  };
 }
 
 /**
- * Deviations list, scoped to the currently selected org. A filterable, sortable,
- * paginated table over the org's deviations, with a New deviation action (gated
- * on `deviations:write`). Filters, the search box, sort and pagination all feed
- * the list endpoint's query params. Drill-downs seed the filters from the URL
- * (`?status=`, `?active=true`, `?overdue=true`, `?sort=`, …). Reloads on org switch.
+ * Filters from drill-down links (`?status=`, `?category=`, `?active=true`,
+ * `?overdue=true`, `?type_id=` …, e.g. from the statistics page and the home page).
+ */
+export function filtersFromParams(params: {
+  get(name: string): string | null;
+}): Record<string, string> {
+  const out: Record<string, string> = {};
+  const state =
+    params.get('state') ??
+    (params.get('overdue') === 'true'
+      ? 'scope:overdue'
+      : params.get('active') === 'true'
+        ? 'scope:active'
+        : params.get('category')
+          ? `cat:${params.get('category')}`
+          : params.get('status'));
+  if (state) {
+    out['state'] = state;
+  }
+  for (const key of LIST_FILTER_KEYS) {
+    const value = params.get(key);
+    if (key !== 'state' && value) {
+      out[key] = value;
+    }
+  }
+  return out;
+}
+
+/**
+ * Deviations register on the shared list frame (docs/ux-guide.md, "List"): page
+ * header with "Nytt avvik" and "Eksporter (CSV)", the module sub-navigation,
+ * the help strip, search plus three filters (Status, Type, Owner) and the rest in
+ * "Flere filtre", saved views, rows with requirement coverage and a "Forfalt"
+ * marker, pagination, a teaching empty state and why-it-matters below. Filters
+ * are mirrored in the URL so drill-downs and reloads keep them.
  */
 @Component({
   selector: 'app-deviations-list',
   imports: [
-    LocalDayPipe,
-    LocalNumberPipe,
-    FormsModule,
     RouterLink,
     TranslocoPipe,
     HasPermissionDirective,
-    Card,
-    Badge,
-    Button,
-    Icon,
     TeachingEmpty,
     TourStepDirective,
-    DeviationPageGuide,
+    WhyItMatters,
+    RecordListPage,
+    CoverageChip,
+    Badge,
+    Button,
+    EmptyState,
+    ErrorState,
+    HelpStrip,
+    Icon,
+    LoadingState,
+    MenuItem,
+    ModuleNav,
+    Pager,
+    RecordRow,
+    RecordRowHeader,
+    StatusBadge,
+    DeviationFilter,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[1180px] px-4 pt-7 pb-12 sm:px-8">
-      <div class="mb-[18px] flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 class="font-display text-[26px] font-bold tracking-[-0.025em] text-fg">
-            {{ 'deviations.title' | transloco }}
-          </h1>
-          <div class="mt-1.5 text-[14px] text-fg-muted">
-            {{ 'deviations.subtitle' | transloco }}
-          </div>
-        </div>
-        <div class="flex flex-wrap items-center gap-2">
-          <a *appHasPermission="'deviations:intake'" routerLink="/deviations/intake">
-            <app-button variant="secondary">
-              <app-icon name="inbox" [size]="15" />
-              {{ 'deviations.intake.inbox.link' | transloco }}
-            </app-button>
+    <app-record-list-page
+      titleKey="modules.names.deviations"
+      descriptionKey="deviations.list.description"
+      scope="deviations"
+      page="list"
+      searchPlaceholderKey="deviations.searchPlaceholder"
+      [settingsLink]="isAdmin() ? '/deviations/types' : null"
+      [query]="query()"
+      [filters]="filters()"
+      [moreFiltersActive]="moreActive()"
+      [empty]="ready() && !error() && items().length === 0 && !hasCriteria()"
+      (search)="onSearch($event)"
+      (viewApplied)="applyView($event)"
+    >
+      <a
+        primary
+        *appHasPermission="'deviations:write'"
+        routerLink="/deviations/new"
+        tabindex="-1"
+        appTourStep="deviations-new"
+      >
+        <app-button data-testid="deviation-new">
+          <app-icon name="plus" [size]="15" />
+          {{ 'deviations.new' | transloco }}
+        </app-button>
+      </a>
+      <app-button
+        secondary
+        variant="secondary"
+        [loading]="exporting()"
+        (click)="exportCsv()"
+        data-testid="deviation-export"
+      >
+        <app-icon name="upload" [size]="15" class="rotate-180" />
+        {{ 'deviations.list.export' | transloco }}
+      </app-button>
+      <ng-container ngProjectAs="[overflow]">
+        @if (isAdmin()) {
+          <a appMenuItem routerLink="/deviations/types">
+            <app-icon name="sliders" [size]="15" />
+            {{ 'deviations.types.link' | transloco }}
           </a>
-          <a routerLink="/deviations/actions">
-            <app-button variant="secondary">
-              <app-icon name="check" [size]="15" />
-              {{ 'deviations.actionsList.link' | transloco }}
-            </app-button>
+          <a appMenuItem routerLink="/deviations/templates">
+            <app-icon name="template" [size]="15" />
+            {{ 'deviations.list.templates' | transloco }}
           </a>
-          <a routerLink="/deviations/stats">
-            <app-button variant="secondary">
-              <app-icon name="reports" [size]="15" />
-              {{ 'deviations.stats.link' | transloco }}
-            </app-button>
+          <a appMenuItem routerLink="/deviations/intake/settings">
+            <app-icon name="inbox" [size]="15" />
+            {{ 'deviations.list.intakeSettings' | transloco }}
           </a>
-          <a *appHasPermission="'deviations:admin'" routerLink="/deviations/types">
-            <app-button variant="secondary">
-              <app-icon name="sliders" [size]="15" />
-              {{ 'deviations.types.link' | transloco }}
-            </app-button>
-          </a>
-          <a
-            *appHasPermission="'deviations:write'"
-            routerLink="/deviations/new"
-            appTourStep="deviations-new"
-          >
-            <app-button>
-              <app-icon name="plus" [size]="15" />
-              {{ 'deviations.new' | transloco }}
-            </app-button>
-          </a>
-        </div>
-      </div>
+        }
+      </ng-container>
 
-      <app-deviation-page-guide class="mb-5" page="list" lesson="deviations-basics" tour="list" />
+      <app-module-nav nav [items]="nav.items()" labelKey="modules.names.deviations" />
+      <app-help-strip help scope="deviations" page="list" tour="list" lesson="deviations-basics" />
 
-      <div class="mb-3 flex flex-wrap items-center gap-2.5" appTourStep="deviations-search">
-        <div
-          class="flex h-10 min-w-[220px] flex-1 items-center gap-2.5 rounded-[10px] border border-border bg-bg px-3"
-        >
-          <span class="flex text-fg-subtle"><app-icon name="search" [size]="17" /></span>
+      <app-deviation-filter
+        filters
+        appTourStep="deviations-search"
+        [style.display]="wide() ? null : 'none'"
+        labelKey="deviations.filters.status"
+        allKey="deviations.filters.allStatuses"
+        [groups]="stateGroups()"
+        [value]="filters()['state'] ?? ''"
+        testId="filter-state"
+        (valueChange)="setFilter('state', $event)"
+      />
+      <app-deviation-filter
+        filters
+        [style.display]="wide() ? null : 'none'"
+        labelKey="deviations.filters.type"
+        allKey="deviations.filters.allTypes"
+        [options]="typeOptions()"
+        [value]="filters()['type_id'] ?? ''"
+        (valueChange)="setFilter('type_id', $event)"
+      />
+      <app-deviation-filter
+        filters
+        [style.display]="wide() ? null : 'none'"
+        labelKey="deviations.filters.owner"
+        allKey="deviations.filters.allOwners"
+        [options]="ownerOptions()"
+        [value]="filters()['owner_user_id'] ?? ''"
+        (valueChange)="setFilter('owner_user_id', $event)"
+      />
+
+      <div more-filters class="flex flex-col gap-3">
+        @if (!wide()) {
+          <app-deviation-filter
+            labelKey="deviations.filters.status"
+            allKey="deviations.filters.allStatuses"
+            [groups]="stateGroups()"
+            [value]="filters()['state'] ?? ''"
+            [showLabel]="true"
+            (valueChange)="setFilter('state', $event)"
+          />
+          <app-deviation-filter
+            labelKey="deviations.filters.type"
+            allKey="deviations.filters.allTypes"
+            [options]="typeOptions()"
+            [value]="filters()['type_id'] ?? ''"
+            [showLabel]="true"
+            (valueChange)="setFilter('type_id', $event)"
+          />
+          <app-deviation-filter
+            labelKey="deviations.filters.owner"
+            allKey="deviations.filters.allOwners"
+            [options]="ownerOptions()"
+            [value]="filters()['owner_user_id'] ?? ''"
+            [showLabel]="true"
+            (valueChange)="setFilter('owner_user_id', $event)"
+          />
+        }
+        <app-deviation-filter
+          labelKey="deviations.filters.severity"
+          allKey="deviations.filters.allSeverities"
+          [options]="severityOptions"
+          [value]="filters()['severity'] ?? ''"
+          [showLabel]="true"
+          (valueChange)="setFilter('severity', $event)"
+        />
+        <app-deviation-filter
+          labelKey="deviations.filters.source"
+          allKey="deviations.filters.allSources"
+          [options]="sourceOptions"
+          [value]="filters()['source'] ?? ''"
+          [showLabel]="true"
+          (valueChange)="setFilter('source', $event)"
+        />
+        <app-deviation-filter
+          labelKey="deviations.filters.standard"
+          allKey="deviations.filters.allStandards"
+          [options]="standardOptions"
+          [value]="filters()['standard'] ?? ''"
+          [showLabel]="true"
+          (valueChange)="setFilter('standard', $event)"
+        />
+        @if (departmentOptions().length) {
+          <app-deviation-filter
+            labelKey="deviations.filters.department"
+            allKey="deviations.filters.allDepartments"
+            [options]="departmentOptions()"
+            [value]="filters()['department_id'] ?? ''"
+            [showLabel]="true"
+            (valueChange)="setFilter('department_id', $event)"
+          />
+        }
+        <div class="flex flex-col gap-1">
+          <label for="dev-filter-tag" class="text-meta font-semibold text-fg-muted">{{
+            'deviations.filters.tagLabel' | transloco
+          }}</label>
           <input
-            type="search"
-            [ngModel]="query()"
-            (ngModelChange)="onQueryChange($event)"
-            [placeholder]="'deviations.searchPlaceholder' | transloco"
-            [attr.aria-label]="'deviations.searchPlaceholder' | transloco"
-            class="h-full flex-1 bg-transparent text-[13.5px] text-fg outline-none"
+            id="dev-filter-tag"
+            type="text"
+            autocomplete="off"
+            [value]="filters()['tag'] ?? ''"
+            [placeholder]="'deviations.filters.tag' | transloco"
+            (change)="setFilter('tag', $any($event.target).value)"
+            class="h-10 rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent"
           />
         </div>
-        <div class="cf-select">
-          <select
-            [ngModel]="sort()"
-            (ngModelChange)="onSortChange($event)"
-            [attr.aria-label]="'deviations.filters.sort' | transloco"
-          >
-            @for (option of sortOptions; track option.value) {
-              <option [value]="option.value">{{ option.labelKey | transloco }}</option>
-            }
-          </select>
+        <div class="flex flex-col gap-1">
+          <label for="dev-filter-clause" class="text-meta font-semibold text-fg-muted">{{
+            'deviations.filters.clauseLabel' | transloco
+          }}</label>
+          <input
+            id="dev-filter-clause"
+            type="text"
+            autocomplete="off"
+            [value]="filters()['clause'] ?? ''"
+            [placeholder]="'deviations.filters.clausePlaceholder' | transloco"
+            (change)="setFilter('clause', $any($event.target).value)"
+            class="h-10 rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent"
+          />
         </div>
-      </div>
-
-      <div
-        class="mb-4 grid grid-cols-1 gap-2.5 min-[420px]:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4"
-      >
-        <div class="cf-select">
-          <select
-            [ngModel]="category()"
-            (ngModelChange)="onFilterChange('category', $event)"
-            [attr.aria-label]="'deviations.category.filter' | transloco"
-          >
-            <option value="">{{ 'deviations.category.all' | transloco }}</option>
-            @for (option of categoryOptions; track option) {
-              <option [value]="option">{{ 'deviations.category.' + option | transloco }}</option>
-            }
-          </select>
+        <div class="grid grid-cols-2 gap-2">
+          <div class="flex min-w-0 flex-col gap-1">
+            <label for="dev-filter-due-from" class="text-meta font-semibold text-fg-muted">{{
+              'deviations.filters.dueFrom' | transloco
+            }}</label>
+            <input
+              id="dev-filter-due-from"
+              type="date"
+              [value]="filters()['due_after'] ?? ''"
+              (change)="setFilter('due_after', $any($event.target).value)"
+              class="h-10 min-w-0 rounded-tile border border-border bg-bg px-2 text-ui text-fg outline-none focus:border-accent"
+            />
+          </div>
+          <div class="flex min-w-0 flex-col gap-1">
+            <label for="dev-filter-due-to" class="text-meta font-semibold text-fg-muted">{{
+              'deviations.filters.dueTo' | transloco
+            }}</label>
+            <input
+              id="dev-filter-due-to"
+              type="date"
+              [value]="filters()['due_before'] ?? ''"
+              (change)="setFilter('due_before', $any($event.target).value)"
+              class="h-10 min-w-0 rounded-tile border border-border bg-bg px-2 text-ui text-fg outline-none focus:border-accent"
+            />
+          </div>
         </div>
-        <div class="cf-select">
-          <select
-            [ngModel]="status()"
-            (ngModelChange)="onFilterChange('status', $event)"
-            [attr.aria-label]="'deviations.filters.status' | transloco"
-          >
-            <option value="">{{ 'deviations.filters.allStatuses' | transloco }}</option>
-            @for (option of statusOptions; track option) {
-              <option [value]="option">{{ statusLabelKey(option) | transloco }}</option>
-            }
-            @if (workflowStates().length) {
-              <optgroup [label]="'deviations.wf.statesGroup' | transloco">
-                @for (state of workflowStates(); track state.key) {
-                  <option [value]="state.key">{{ state.text }}</option>
-                }
-              </optgroup>
-            }
-          </select>
-        </div>
-        <div class="cf-select">
-          <select
-            [ngModel]="scope()"
-            (ngModelChange)="onFilterChange('scope', $event)"
-            [attr.aria-label]="'deviations.filters.scope' | transloco"
-          >
-            <option value="">{{ 'deviations.filters.allScopes' | transloco }}</option>
-            <option value="active">{{ 'deviations.filters.scopeActive' | transloco }}</option>
-            <option value="overdue">{{ 'deviations.filters.scopeOverdue' | transloco }}</option>
-          </select>
-        </div>
-        <div class="cf-select">
-          <select
-            [ngModel]="typeId()"
-            (ngModelChange)="onFilterChange('typeId', $event)"
-            [attr.aria-label]="'deviations.filters.type' | transloco"
-          >
-            <option value="">{{ 'deviations.filters.allTypes' | transloco }}</option>
-            @for (type of types(); track type.id) {
-              <option [value]="type.id">{{ type.name }}</option>
-            }
-          </select>
-        </div>
-        <div class="cf-select">
-          <select
-            [ngModel]="standard()"
-            (ngModelChange)="onFilterChange('standard', $event)"
-            [attr.aria-label]="'deviations.filters.standard' | transloco"
-          >
-            <option value="">{{ 'deviations.filters.allStandards' | transloco }}</option>
-            @for (option of standardOptions; track option) {
-              <option [value]="option">{{ standardLabelKey(option) | transloco }}</option>
-            }
-          </select>
-        </div>
-        <div class="cf-select">
-          <select
-            [ngModel]="severity()"
-            (ngModelChange)="onFilterChange('severity', $event)"
-            [attr.aria-label]="'deviations.filters.severity' | transloco"
-          >
-            <option value="">{{ 'deviations.filters.allSeverities' | transloco }}</option>
-            @for (option of severityOptions; track option) {
-              <option [value]="option">{{ severityLabelKey(option) | transloco }}</option>
-            }
-          </select>
-        </div>
-        <div class="cf-select">
-          <select
-            [ngModel]="source()"
-            (ngModelChange)="onFilterChange('source', $event)"
-            [attr.aria-label]="'deviations.filters.source' | transloco"
-          >
-            <option value="">{{ 'deviations.filters.allSources' | transloco }}</option>
-            @for (option of sourceOptions; track option) {
-              <option [value]="option">{{ sourceLabelKey(option) | transloco }}</option>
-            }
-          </select>
-        </div>
-        <div class="cf-select">
-          <select
-            [ngModel]="ownerId()"
-            (ngModelChange)="onFilterChange('owner', $event)"
-            [attr.aria-label]="'deviations.filters.owner' | transloco"
-          >
-            <option value="">{{ 'deviations.filters.allOwners' | transloco }}</option>
-            @for (user of users(); track user.id) {
-              <option [value]="user.id">{{ user.name }}</option>
-            }
-          </select>
-        </div>
-        <div class="cf-select">
-          <select
-            [ngModel]="departmentId()"
-            (ngModelChange)="onFilterChange('department', $event)"
-            [attr.aria-label]="'deviations.filters.department' | transloco"
-          >
-            <option value="">{{ 'deviations.filters.allDepartments' | transloco }}</option>
-            @for (dept of departments(); track dept.id) {
-              <option [value]="dept.id">{{ dept.name }}</option>
-            }
-          </select>
-        </div>
-        <input
-          type="text"
-          [ngModel]="tag()"
-          (ngModelChange)="onTagChange($event)"
-          [placeholder]="'deviations.filters.tag' | transloco"
-          [attr.aria-label]="'deviations.filters.tag' | transloco"
-          autocomplete="off"
-          class="h-10 rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
+        <app-deviation-filter
+          labelKey="deviations.filters.sort"
+          allKey="deviations.sort.newest"
+          [options]="sortOptions"
+          [value]="filters()['sort'] ?? ''"
+          [showLabel]="true"
+          (valueChange)="setFilter('sort', $event)"
         />
-        <input
-          type="date"
-          [ngModel]="dueAfter()"
-          (ngModelChange)="onFilterChange('dueAfter', $event)"
-          [attr.aria-label]="'deviations.filters.dueAfter' | transloco"
-          [title]="'deviations.filters.dueAfter' | transloco"
-          class="h-10 rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
-        />
-        <input
-          type="date"
-          [ngModel]="dueBefore()"
-          (ngModelChange)="onFilterChange('dueBefore', $event)"
-          [attr.aria-label]="'deviations.filters.dueBefore' | transloco"
-          [title]="'deviations.filters.dueBefore' | transloco"
-          class="h-10 rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
-        />
-        @if (hasActiveFilters()) {
+        @if (hasFilters()) {
           <button
             type="button"
+            class="inline-flex h-9 items-center justify-center gap-1.5 rounded-tile border border-border px-3 text-ui font-semibold text-fg-muted hover:text-fg"
             (click)="clearFilters()"
-            class="flex h-10 items-center justify-center gap-1.5 rounded-[10px] border border-border bg-surface px-3 text-[13px] font-semibold text-fg-muted hover:bg-surface-2 hover:text-fg"
           >
-            <app-icon name="x" [size]="15" />
+            <app-icon name="x" [size]="14" />
             {{ 'deviations.filters.clear' | transloco }}
           </button>
         }
       </div>
 
-      <app-card [padded]="false">
-        @if (loading()) {
-          <div class="px-4 py-10 text-center text-[14px] text-fg-muted">
-            {{ 'common.loading' | transloco }}
-          </div>
-        } @else if (items().length === 0) {
-          @if (hasActiveFilters()) {
-            <div class="px-4 py-12 text-center">
-              <p class="text-[14px] text-fg-muted">{{ 'deviations.empty' | transloco }}</p>
-            </div>
-          } @else {
-            <app-teaching-empty
-              scope="deviations"
-              page="list"
-              [showAction]="canWrite()"
-              (action)="openNew()"
-            >
-              <div class="px-4 py-12 text-center">
-                <p class="text-[14px] text-fg-muted">{{ 'deviations.empty' | transloco }}</p>
-              </div>
-            </app-teaching-empty>
-          }
-        } @else {
-          <ul>
+      @if (error()) {
+        <app-error-state (retry)="load()" />
+      } @else if (!ready()) {
+        <app-loading-state [rows]="6" />
+      } @else if (items().length === 0) {
+        <app-empty-state
+          icon="search"
+          titleKey="ui.empty.noResults"
+          bodyKey="ui.empty.noResultsBody"
+          ctaKey="ui.empty.clearFilters"
+          ctaVariant="secondary"
+          (cta)="clearAll()"
+        />
+      } @else {
+        <div class="overflow-hidden rounded-card border border-border bg-surface">
+          <app-record-row-header dateKind="due" />
+          <div role="list" [attr.aria-label]="'modules.names.deviations' | transloco">
             @for (row of items(); track row.id) {
-              <li class="border-b border-border last:border-b-0 hover:bg-surface-2">
-                <a
-                  [routerLink]="['/deviations', row.id]"
-                  class="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3 outline-none focus-visible:ring-2 focus-visible:ring-accent sm:flex-nowrap"
-                >
-                  <span class="w-[96px] flex-none font-mono text-[12px] text-fg-subtle">{{
-                    row.code
-                  }}</span>
-                  <span class="min-w-0 flex-1">
-                    <span class="block truncate font-semibold text-fg">{{ row.title }}</span>
-                    @if (row.type_name) {
-                      <span class="block truncate text-[12.5px] text-fg-muted">{{
-                        row.type_name
-                      }}</span>
-                    }
-                  </span>
-                  <span class="hidden flex-none gap-1 lg:flex">
-                    @for (std of row.standards; track std) {
-                      <app-badge tone="neutral">{{ standardLabelKey(std) | transloco }}</app-badge>
-                    }
-                  </span>
-                  <app-badge [tone]="severityTone(row.severity)">{{
-                    severityLabelKey(row.severity) | transloco
-                  }}</app-badge>
-                  <app-badge [tone]="statusLabels.tone(row)">{{
-                    statusLabels.label(row)
-                  }}</app-badge>
-                  <span
-                    class="hidden w-[120px] flex-none truncate text-right text-[12.5px] text-fg-subtle sm:block"
-                  >
-                    {{ row.owner_name ?? '' }}
-                  </span>
-                  <span class="w-[96px] flex-none text-right text-[12.5px]">
-                    @if (row.due_at) {
-                      <span
-                        [class.text-fail]="overdue(row)"
-                        [class.font-semibold]="overdue(row)"
-                        [class.text-fg-subtle]="!overdue(row)"
-                      >
-                        {{ row.due_at | localDay }}
-                      </span>
-                    } @else {
-                      <span class="text-fg-subtle">—</span>
-                    }
-                  </span>
-                </a>
-              </li>
+              <app-record-row
+                [code]="row.code"
+                [title]="row.title"
+                [subtitle]="row.type_name"
+                [link]="['/deviations', row.id]"
+                [owner]="row.owner_name"
+                [date]="row.due_at"
+                dateKind="due"
+                [overdue]="overdue(row)"
+              >
+                <span coverage class="block min-w-0 [&_span]:whitespace-normal">
+                  <app-coverage-chip entityType="deviation" [entityId]="row.id" />
+                </span>
+                <app-badge badges [tone]="statusLabels.tone(row)" data-testid="row-status">{{
+                  statusLabels.label(row)
+                }}</app-badge>
+                <app-status-badge
+                  badges
+                  meaning="severity"
+                  [value]="row.severity"
+                  [labelKey]="severityLabelKey(row.severity)"
+                />
+              </app-record-row>
             }
-          </ul>
-        }
-      </app-card>
-
-      @if (!loading() && total() > pageSize) {
-        <div class="mt-4 flex items-center justify-between gap-4">
-          <span class="text-[13px] text-fg-subtle">
-            {{
-              'deviations.pagination.range'
-                | transloco
-                  : {
-                      from: (rangeFrom() | localNumber),
-                      to: (rangeTo() | localNumber),
-                      total: (total() | localNumber),
-                    }
-            }}
-          </span>
-          <div class="flex items-center gap-2">
-            <app-button
-              variant="secondary"
-              size="sm"
-              [disabled]="offset() === 0"
-              (click)="prevPage()"
-            >
-              {{ 'deviations.pagination.prev' | transloco }}
-            </app-button>
-            <app-button
-              variant="secondary"
-              size="sm"
-              [disabled]="rangeTo() >= total()"
-              (click)="nextPage()"
-            >
-              {{ 'deviations.pagination.next' | transloco }}
-            </app-button>
           </div>
         </div>
+        <div class="mt-3">
+          <app-pager
+            [offset]="offset()"
+            [pageSize]="pageSize"
+            [count]="items().length"
+            [total]="total()"
+            (pageChange)="goTo($event)"
+          />
+        </div>
       }
-    </div>
+
+      <div empty>
+        <app-teaching-empty
+          scope="deviations"
+          page="list"
+          [showAction]="canWrite()"
+          (action)="openNew()"
+        />
+      </div>
+
+      <app-why-it-matters below scope="deviations" page="list" />
+    </app-record-list-page>
   `,
-  styles: [
-    `
-      .cf-select select {
-        width: 100%;
-        height: 40px;
-        border-radius: 10px;
-        border: 1px solid var(--border);
-        background: var(--bg);
-        color: var(--fg);
-        font-family: inherit;
-        font-size: 13.5px;
-        padding: 0 12px;
-        outline: none;
-        transition:
-          border-color 0.15s ease,
-          box-shadow 0.15s ease;
-      }
-      .cf-select select:focus {
-        border-color: var(--accent);
-        box-shadow: 0 0 0 3px var(--accent-soft);
-      }
-    `,
-  ],
 })
 export class DeviationsList {
   private readonly api = inject(DeviationsApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly language = inject(LanguageService);
+  private readonly notifications = inject(NotificationService);
   protected readonly statusLabels = inject(DeviationStatusLabels);
-  protected readonly categoryOptions = STATUS_CATEGORIES;
-  protected readonly workflowStates = this.statusLabels.workflowStates;
-  protected readonly category = signal<StatusCategory | ''>('');
-  protected readonly canWrite = computed(() =>
-    hasAnyPermission(this.selectedOrg.currentOrg()?.permissions, 'deviations:write'),
-  );
+  protected readonly nav = inject(DeviationsNavService);
 
   protected readonly orgId = this.selectedOrg.currentOrgId;
   protected readonly pageSize = PAGE_SIZE;
-
-  protected readonly statusOptions = STATUS_OPTIONS;
-  protected readonly severityOptions = SEVERITY_OPTIONS;
-  protected readonly sourceOptions = SOURCE_OPTIONS;
-  protected readonly standardOptions = STANDARD_OPTIONS;
-  protected readonly statusTone = statusTone;
-  protected readonly severityTone = severityTone;
-  protected readonly statusLabelKey = statusLabelKey;
+  protected readonly sortOptions = SORT_OPTIONS;
   protected readonly severityLabelKey = severityLabelKey;
-  protected readonly sourceLabelKey = sourceLabelKey;
-  protected readonly standardLabelKey = standardLabelKey;
 
-  protected readonly sortOptions: readonly SortOption[] = [
-    { value: '-raised_at', labelKey: 'deviations.sort.newest' },
-    { value: 'raised_at', labelKey: 'deviations.sort.oldest' },
-    { value: 'due_at', labelKey: 'deviations.sort.dueSoonest' },
-    { value: '-severity', labelKey: 'deviations.sort.severity' },
-    { value: 'code', labelKey: 'deviations.sort.code' },
-  ];
+  protected readonly canWrite = computed(() =>
+    hasAnyPermission(this.selectedOrg.currentOrg()?.permissions, 'deviations:write'),
+  );
+  protected readonly isAdmin = computed(() =>
+    hasAnyPermission(this.selectedOrg.currentOrg()?.permissions, 'deviations:admin'),
+  );
 
-  protected readonly query = signal('');
-  protected readonly status = signal('');
-  protected readonly scope = signal<DeviationScope>('');
-  protected readonly typeId = signal('');
-  protected readonly standard = signal<Standard | ''>('');
-  protected readonly severity = signal<Severity | ''>('');
-  protected readonly source = signal<Source | ''>('');
-  protected readonly tag = signal('');
-  protected readonly clause = signal('');
-  protected readonly ownerId = signal('');
-  protected readonly departmentId = signal('');
-  protected readonly dueBefore = signal('');
-  protected readonly dueAfter = signal('');
-  protected readonly sort = signal('-raised_at');
+  protected readonly severityOptions: readonly FilterOption[] = SEVERITY_OPTIONS.map((s) => ({
+    value: s,
+    label: severityLabelKey(s),
+  }));
+  protected readonly sourceOptions: readonly FilterOption[] = SOURCE_OPTIONS.map((s) => ({
+    value: s,
+    label: sourceLabelKey(s),
+  }));
+  protected readonly standardOptions: readonly FilterOption[] = STANDARD_OPTIONS.map((s) => ({
+    value: s,
+    label: standardLabelKey(s),
+  }));
+
+  protected readonly query = signal(this.route.snapshot.queryParamMap.get('q') ?? '');
+  protected readonly filters = signal<Readonly<Record<string, string>>>(
+    filtersFromParams(this.route.snapshot.queryParamMap),
+  );
   protected readonly offset = signal(0);
 
   protected readonly items = signal<readonly DeviationListItem[]>([]);
   protected readonly total = signal(0);
-  protected readonly loading = signal(false);
+  protected readonly ready = signal(false);
+  protected readonly error = signal(false);
+  protected readonly exporting = signal(false);
 
   protected readonly types = signal<readonly DeviationType[]>([]);
-  protected readonly users = signal<readonly { id: string; name: string }[]>([]);
+  protected readonly users = signal<
+    readonly { readonly id: string; readonly name: string; readonly email: string }[]
+  >([]);
   protected readonly departments = signal<readonly { id: string; name: string }[]>([]);
 
-  protected readonly rangeFrom = computed(() => (this.total() === 0 ? 0 : this.offset() + 1));
-  protected readonly rangeTo = computed(() =>
-    Math.min(this.offset() + this.items().length, this.total()),
+  /** Phones show every filter in the "Flere filtre" panel. */
+  protected readonly wide = signal(matchesWide());
+
+  protected readonly typeOptions = computed<FilterOption[]>(() =>
+    this.types().map((t) => ({ value: t.id, label: t.name, literal: true })),
+  );
+  protected readonly ownerOptions = computed<FilterOption[]>(() =>
+    personOptions(this.users()).map((u) => ({ value: u.id, label: u.name, literal: true })),
+  );
+  protected readonly departmentOptions = computed<FilterOption[]>(() =>
+    this.departments().map((d) => ({ value: d.id, label: d.name, literal: true })),
   );
 
-  protected readonly hasActiveFilters = computed(
-    () =>
-      this.query() !== '' ||
-      this.category() !== '' ||
-      this.status() !== '' ||
-      this.scope() !== '' ||
-      this.typeId() !== '' ||
-      this.standard() !== '' ||
-      this.severity() !== '' ||
-      this.source() !== '' ||
-      this.tag() !== '' ||
-      this.clause() !== '' ||
-      this.ownerId() !== '' ||
-      this.departmentId() !== '' ||
-      this.dueBefore() !== '' ||
-      this.dueAfter() !== '',
-  );
+  /** One Status filter: open work, phases, statuses and workflow states as groups. */
+  protected readonly stateGroups = computed<FilterGroup[]>(() => [
+    {
+      labelKey: 'deviations.filters.groups.work',
+      options: [
+        { value: 'scope:active', label: 'deviations.filters.scopeActive' },
+        { value: 'scope:overdue', label: 'deviations.filters.scopeOverdue' },
+      ],
+    },
+    {
+      labelKey: 'deviations.filters.groups.phase',
+      options: STATUS_CATEGORIES.map((c) => ({
+        value: `cat:${c}`,
+        label: `deviations.category.${c}`,
+      })),
+    },
+    {
+      labelKey: 'deviations.filters.groups.status',
+      options: STATUS_OPTIONS.map((s) => ({ value: s, label: statusLabelKey(s) })),
+    },
+    {
+      labelKey: 'deviations.wf.statesGroup',
+      options: this.statusLabels
+        .workflowStates()
+        .filter((s) => !(STATUS_OPTIONS as readonly string[]).includes(s.key))
+        .map((s) => ({ value: s.key, label: s.text, literal: true })),
+    },
+  ]);
 
-  private readonly reload$ = new Subject<void>();
+  protected readonly moreActive = computed(() => {
+    const filters = this.filters();
+    const keys = this.wide() ? MORE_KEYS : LIST_FILTER_KEYS;
+    return keys.filter((key) => !!filters[key]).length;
+  });
+  protected readonly hasFilters = computed(() =>
+    Object.values(this.filters()).some((value) => !!value),
+  );
+  protected readonly hasCriteria = computed(() => this.hasFilters() || !!this.query().trim());
+
+  private currentOrg: string | null = null;
 
   constructor() {
-    // The assistant knows the user is on the deviations list (F5 page context).
-    providePageContext(() => ({ module: 'deviations', view: 'list' }));
+    providePageContext(() => ({
+      module: 'deviations',
+      entityType: 'deviation',
+      view: 'list',
+      title: this.language.translate('modules.names.deviations'),
+    }));
 
-    this.reload$.pipe(debounceTime(250), distinctUntilChanged()).subscribe(() => this.load());
+    if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
+      const media = window.matchMedia(WIDE_QUERY);
+      const listener = (event: MediaQueryListEvent) => this.wide.set(event.matches);
+      media.addEventListener?.('change', listener);
+      inject(DestroyRef).onDestroy(() => media.removeEventListener?.('change', listener));
+    }
 
     effect(() => {
       const orgId = this.orgId();
-      this.resetFilters();
-      this.applyQueryParams();
-      this.items.set([]);
-      this.total.set(0);
-      this.types.set([]);
-      this.users.set([]);
-      this.departments.set([]);
-      if (orgId) {
-        this.loadReferences(orgId);
-        this.load();
-      }
+      untracked(() => {
+        if (this.currentOrg !== null && orgId !== this.currentOrg) {
+          // Another org: its types, owners and departments differ.
+          this.filters.set({});
+          this.query.set('');
+        }
+        this.currentOrg = orgId;
+        this.items.set([]);
+        this.total.set(0);
+        this.offset.set(0);
+        if (orgId) {
+          this.loadReferences(orgId);
+          this.load();
+        }
+      });
     });
   }
 
-  /** Seeds filters from drill-down query params (e.g. from the stats dashboard). */
-  private applyQueryParams(): void {
-    const params = this.route.snapshot.queryParamMap;
-    const status = params.get('status');
-    const category = params.get('category');
-    if (category && (STATUS_CATEGORIES as readonly string[]).includes(category)) {
-      this.category.set(category as StatusCategory);
-    }
-    const typeId = params.get('type_id');
-    const standard = params.get('standard');
-    const severity = params.get('severity');
-    const source = params.get('source');
-    const department = params.get('department_id');
-    const owner = params.get('owner_user_id');
-    const clause = params.get('clause');
-    const tag = params.get('tag');
-    const sort = params.get('sort');
-    if (params.get('overdue') === 'true') {
-      this.scope.set('overdue');
-    } else if (params.get('active') === 'true') {
-      this.scope.set('active');
-    }
-    if (status) {
-      this.status.set(status);
-    }
-    if (typeId) {
-      this.typeId.set(typeId);
-    }
-    if (standard) {
-      this.standard.set(standard as Standard);
-    }
-    if (severity) {
-      this.severity.set(severity as Severity);
-    }
-    if (source) {
-      this.source.set(source as Source);
-    }
-    if (department) {
-      this.departmentId.set(department);
-    }
-    if (owner) {
-      this.ownerId.set(owner);
-    }
-    if (clause) {
-      this.clause.set(clause);
-    }
-    if (tag) {
-      this.tag.set(tag);
-    }
-    if (sort && this.sortOptions.some((option) => option.value === sort)) {
-      this.sort.set(sort);
-    }
-  }
-
   protected overdue(row: DeviationListItem): boolean {
-    return isOverdue(row.due_at, row.status);
+    return row.overdue ?? isOverdue(row.due_at, row.status);
   }
 
-  protected onQueryChange(value: string): void {
-    this.query.set(value);
+  protected onSearch(text: string): void {
+    this.query.set(text);
     this.offset.set(0);
-    this.reload$.next();
-  }
-
-  protected onTagChange(value: string): void {
-    this.tag.set(value);
-    this.offset.set(0);
-    this.reload$.next();
-  }
-
-  protected onSortChange(value: string): void {
-    this.sort.set(value);
-    this.offset.set(0);
+    this.syncUrl();
     this.load();
   }
 
-  protected onFilterChange(
-    key:
-      | 'category'
-      | 'status'
-      | 'scope'
-      | 'typeId'
-      | 'standard'
-      | 'severity'
-      | 'source'
-      | 'owner'
-      | 'department'
-      | 'dueBefore'
-      | 'dueAfter',
-    value: string,
-  ): void {
-    switch (key) {
-      case 'category':
-        this.category.set(value as StatusCategory | '');
-        break;
-      case 'status':
-        this.status.set(value);
-        break;
-      case 'scope':
-        this.scope.set(value as DeviationScope);
-        break;
-      case 'typeId':
-        this.typeId.set(value);
-        break;
-      case 'standard':
-        this.standard.set(value as Standard | '');
-        break;
-      case 'severity':
-        this.severity.set(value as Severity | '');
-        break;
-      case 'source':
-        this.source.set(value as Source | '');
-        break;
-      case 'owner':
-        this.ownerId.set(value);
-        break;
-      case 'department':
-        this.departmentId.set(value);
-        break;
-      case 'dueBefore':
-        this.dueBefore.set(value);
-        break;
-      case 'dueAfter':
-        this.dueAfter.set(value);
-        break;
+  protected setFilter(key: string, value: string): void {
+    const next = { ...this.filters() };
+    if (value) {
+      next[key] = value;
+    } else {
+      delete next[key];
     }
+    this.filters.set(next);
     this.offset.set(0);
+    this.syncUrl();
     this.load();
   }
 
   protected clearFilters(): void {
-    this.resetFilters();
+    this.filters.set({});
+    this.offset.set(0);
+    this.syncUrl();
     this.load();
   }
 
-  protected prevPage(): void {
-    this.offset.set(Math.max(0, this.offset() - this.pageSize));
+  protected clearAll(): void {
+    this.query.set('');
+    this.clearFilters();
+  }
+
+  protected applyView(view: SavedView): void {
+    this.filters.set({ ...view.filters });
+    this.query.set(view.query);
+    this.offset.set(0);
+    this.syncUrl();
     this.load();
   }
 
-  protected nextPage(): void {
-    this.offset.set(this.offset() + this.pageSize);
+  protected goTo(offset: number): void {
+    this.offset.set(offset);
     this.load();
   }
 
@@ -709,71 +691,80 @@ export class DeviationsList {
     void this.router.navigateByUrl('/deviations/new');
   }
 
-  private resetFilters(): void {
-    this.query.set('');
-    this.category.set('');
-    this.status.set('');
-    this.scope.set('');
-    this.typeId.set('');
-    this.standard.set('');
-    this.severity.set('');
-    this.source.set('');
-    this.tag.set('');
-    this.clause.set('');
-    this.ownerId.set('');
-    this.departmentId.set('');
-    this.dueBefore.set('');
-    this.dueAfter.set('');
-    this.sort.set('-raised_at');
-    this.offset.set(0);
+  /** Download the filtered register as CSV (opens in Excel; nb headers and `;`). */
+  protected exportCsv(): void {
+    const orgId = this.orgId();
+    if (!orgId || this.exporting()) {
+      return;
+    }
+    this.exporting.set(true);
+    const lang = this.language.active() === 'nb' ? 'nb' : 'en';
+    this.api
+      .exportDeviations(orgId, toDeviationFilters(this.query(), this.filters()), lang)
+      .subscribe({
+        next: (blob) => {
+          this.exporting.set(false);
+          const day = new Date().toISOString().slice(0, 10);
+          saveBlob(blob, `${this.language.translate('deviations.list.exportFile')}-${day}.csv`);
+        },
+        error: () => {
+          this.exporting.set(false);
+          this.notifications.error('deviations.list.exportFailed');
+        },
+      });
   }
 
-  private load(): void {
+  load(): void {
     const orgId = this.orgId();
     if (!orgId) {
       return;
     }
-    this.loading.set(true);
-    this.api.listDeviations(orgId, this.buildFilters()).subscribe({
-      next: (response) => {
-        this.items.set(response.items);
-        this.total.set(response.total);
-        this.loading.set(false);
-      },
-      error: () => this.loading.set(false),
-    });
+    this.error.set(false);
+    this.ready.set(false);
+    this.api
+      .listDeviations(orgId, {
+        ...toDeviationFilters(this.query(), this.filters()),
+        limit: PAGE_SIZE,
+        offset: this.offset(),
+      })
+      .subscribe({
+        next: (response) => {
+          this.items.set(response.items);
+          this.total.set(response.total);
+          this.ready.set(true);
+        },
+        error: () => {
+          this.error.set(true);
+          this.ready.set(true);
+        },
+      });
   }
 
-  private buildFilters(): DeviationFilters {
-    return {
-      q: this.query().trim() || undefined,
-      status: this.status() || undefined,
-      category: this.category() || undefined,
-      active: this.scope() === 'active' || undefined,
-      overdue: this.scope() === 'overdue' || undefined,
-      type_id: this.typeId() || undefined,
-      standard: this.standard() || undefined,
-      severity: this.severity() || undefined,
-      source: this.source() || undefined,
-      tag: this.tag().trim() || undefined,
-      clause: this.clause().trim() || undefined,
-      owner_user_id: this.ownerId() || undefined,
-      department_id: this.departmentId() || undefined,
-      due_before: this.dueBefore() || undefined,
-      due_after: this.dueAfter() || undefined,
-      sort: this.sort(),
-      limit: this.pageSize,
-      offset: this.offset(),
-    };
+  private syncUrl(): void {
+    const queryParams: Record<string, string | null> = { q: this.query().trim() || null };
+    for (const key of [...LIST_FILTER_KEYS, 'status', 'category', 'active', 'overdue']) {
+      queryParams[key] = this.filters()[key] || null;
+    }
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams,
+      replaceUrl: true,
+    });
   }
 
   private loadReferences(orgId: string): void {
     this.api.listTypes(orgId).subscribe({ next: (types) => this.types.set(types) });
     this.api.listAccessSubjects(orgId).subscribe({
       next: (subjects) => {
-        this.users.set(subjects.users.map((u) => ({ id: u.id, name: u.name })));
+        this.users.set(subjects.users);
         this.departments.set(subjects.departments.map((d) => ({ id: d.id, name: d.name })));
       },
     });
   }
+}
+
+function matchesWide(): boolean {
+  return typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+    ? window.matchMedia(WIDE_QUERY).matches
+    : true;
 }

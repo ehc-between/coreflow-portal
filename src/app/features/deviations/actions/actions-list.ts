@@ -3,23 +3,29 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
-  computed,
   effect,
   inject,
   signal,
   untracked,
 } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { LocalNumberPipe } from '../../../shared/locale/locale-pipes';
 import { Subscription } from 'rxjs';
 import { ActionListItem } from '../../../core/deviations/deviation.models';
 import { DeviationsApi } from '../../../core/deviations/deviations-api';
+import { LanguageService } from '../../../core/i18n/language.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
-import { Button } from '../../../shared/ui/button/button';
-import { Card } from '../../../shared/ui/card/card';
-import { Icon } from '../../../shared/ui/icon/icon';
+import { EmptyState } from '../../../shared/ui/empty-state/empty-state';
+import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { ModuleNav } from '../../../shared/ui/module-nav/module-nav';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
+import { Pager } from '../../../shared/ui/pager/pager';
+import { RecordRowHeader } from '../../../shared/ui/record-row/record-row';
+import { DEVIATIONS_ROOT_CRUMB } from '../deviation-display';
+import { DeviationFilter, FilterOption } from '../ui/filter-select';
+import { DeviationsNavService } from '../ui/deviations-nav';
 import { ActionListRow } from './action-list-row';
 import {
   ActionListQuery,
@@ -41,147 +47,103 @@ const PAGE_SIZE = 25;
 @Component({
   selector: 'app-actions-list',
   imports: [
-    FormsModule,
-    RouterLink,
     TranslocoPipe,
-    LocalNumberPipe,
-    Button,
-    Card,
-    Icon,
+    EmptyState,
+    ErrorState,
+    HelpStrip,
+    LoadingState,
+    ModuleNav,
+    PageHeader,
+    Pager,
+    RecordRowHeader,
     ActionListRow,
+    DeviationFilter,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[1180px] px-8 pt-7 pb-12">
-      <a
-        routerLink="/deviations"
-        class="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
-      >
-        <app-icon name="back" [size]="16" />
-        {{ 'deviations.backToList' | transloco }}
-      </a>
-      <div class="mb-[18px]">
-        <h1 class="font-display text-[26px] font-bold tracking-[-0.025em] text-fg">
-          {{ 'deviations.actionsList.title' | transloco }}
-        </h1>
-        <div class="mt-1.5 text-[14px] text-fg-muted">
-          {{ 'deviations.actionsList.subtitle' | transloco }}
-        </div>
+    <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+      <app-page-header
+        titleKey="deviations.actionsList.title"
+        descriptionKey="deviations.actionsList.subtitle"
+        [breadcrumbs]="breadcrumbs"
+      />
+      <app-module-nav [items]="nav.items()" labelKey="modules.names.deviations" />
+      <app-help-strip scope="deviations" page="actions" />
+
+      <div class="mb-4 flex flex-wrap items-end gap-2">
+        <app-deviation-filter
+          labelKey="deviations.actionsList.scope"
+          allKey="deviations.actionsList.scopeOpen"
+          [options]="scopeOptions"
+          [value]="query().scope === 'overdue' ? 'overdue' : ''"
+          (valueChange)="onScopeChange($any($event || 'open'))"
+        />
+        <app-deviation-filter
+          labelKey="deviations.filters.owner"
+          allKey="deviations.filters.allOwners"
+          [options]="ownerOptions"
+          [value]="query().owner === 'me' ? 'me' : ''"
+          (valueChange)="onOwnerChange($any($event || 'all'))"
+        />
       </div>
 
-      <div class="mb-4 grid grid-cols-2 gap-2.5 sm:max-w-[480px]">
-        <div class="cf-select">
-          <select
-            [ngModel]="query().scope"
-            (ngModelChange)="onScopeChange($event)"
-            [attr.aria-label]="'deviations.actionsList.scope' | transloco"
-          >
-            <option value="open">{{ 'deviations.actionsList.scopeOpen' | transloco }}</option>
-            <option value="overdue">
-              {{ 'deviations.actionsList.scopeOverdue' | transloco }}
-            </option>
-          </select>
-        </div>
-        <div class="cf-select">
-          <select
-            [ngModel]="query().owner"
-            (ngModelChange)="onOwnerChange($event)"
-            [attr.aria-label]="'deviations.filters.owner' | transloco"
-          >
-            <option value="all">{{ 'deviations.filters.allOwners' | transloco }}</option>
-            <option value="me">{{ 'deviations.actionsList.ownerMe' | transloco }}</option>
-          </select>
-        </div>
-      </div>
-
-      <app-card [padded]="false">
-        @if (loading()) {
-          <div class="px-4 py-10 text-center text-[14px] text-fg-muted">
-            {{ 'common.loading' | transloco }}
-          </div>
-        } @else if (failed()) {
-          <div class="px-4 py-10 text-center text-[14px] text-fail">
-            {{ 'myWork.loadFailed' | transloco }}
-          </div>
-        } @else if (items().length === 0) {
-          <div class="px-4 py-12 text-center text-[14px] text-fg-muted">
-            {{ 'deviations.actionsList.empty' | transloco }}
-          </div>
-        } @else {
-          <ul class="divide-y divide-border">
+      @if (failed()) {
+        <app-error-state (retry)="goTo(offset())" />
+      } @else if (loading()) {
+        <app-loading-state [rows]="5" />
+      } @else if (items().length === 0) {
+        <app-empty-state
+          icon="checkcircle"
+          titleKey="deviations.actionsList.empty"
+          bodyKey="deviations.actionsList.emptyBody"
+          [compact]="true"
+        />
+      } @else {
+        <div class="overflow-hidden rounded-card border border-border bg-surface">
+          <app-record-row-header
+            dateKind="due"
+            [coverage]="false"
+            codeKey="deviations.actionsList.deviationColumn"
+            titleKey="deviations.actionsList.actionColumn"
+          />
+          <div role="list" [attr.aria-label]="'deviations.actionsList.title' | transloco">
             @for (action of items(); track action.id) {
-              <li><app-action-list-row [action]="action" [showOwner]="true" /></li>
+              <app-action-list-row [action]="action" [showOwner]="true" />
             }
-          </ul>
-        }
-      </app-card>
-
-      @if (!loading() && total() > pageSize) {
-        <div class="mt-4 flex items-center justify-between gap-4">
-          <span class="text-[13px] text-fg-subtle">
-            {{
-              'deviations.pagination.range'
-                | transloco
-                  : {
-                      from: (rangeFrom() | localNumber),
-                      to: (rangeTo() | localNumber),
-                      total: (total() | localNumber),
-                    }
-            }}
-          </span>
-          <div class="flex items-center gap-2">
-            <app-button
-              variant="secondary"
-              size="sm"
-              [disabled]="offset() === 0"
-              (click)="goTo(offset() - pageSize)"
-            >
-              {{ 'deviations.pagination.prev' | transloco }}
-            </app-button>
-            <app-button
-              variant="secondary"
-              size="sm"
-              [disabled]="rangeTo() >= total()"
-              (click)="goTo(offset() + pageSize)"
-            >
-              {{ 'deviations.pagination.next' | transloco }}
-            </app-button>
           </div>
+        </div>
+        <div class="mt-3">
+          <app-pager
+            [offset]="offset()"
+            [pageSize]="pageSize"
+            [count]="items().length"
+            [total]="total()"
+            (pageChange)="goTo($event)"
+          />
         </div>
       }
     </div>
   `,
-  styles: [
-    `
-      .cf-select select {
-        width: 100%;
-        height: 40px;
-        border-radius: 10px;
-        border: 1px solid var(--border);
-        background: var(--bg);
-        color: var(--fg);
-        font-family: inherit;
-        font-size: 13.5px;
-        padding: 0 12px;
-        outline: none;
-        transition:
-          border-color 0.15s ease,
-          box-shadow 0.15s ease;
-      }
-      .cf-select select:focus {
-        border-color: var(--accent);
-        box-shadow: 0 0 0 3px var(--accent-soft);
-      }
-    `,
-  ],
 })
 export class ActionsList {
   private readonly api = inject(DeviationsApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly language = inject(LanguageService);
 
+  protected readonly nav = inject(DeviationsNavService);
   protected readonly pageSize = PAGE_SIZE;
+  protected readonly breadcrumbs = [
+    DEVIATIONS_ROOT_CRUMB,
+    { labelKey: 'deviations.actionsList.title' },
+  ];
+  protected readonly scopeOptions: readonly FilterOption[] = [
+    { value: 'overdue', label: 'deviations.actionsList.scopeOverdue' },
+  ];
+  protected readonly ownerOptions: readonly FilterOption[] = [
+    { value: 'me', label: 'deviations.actionsList.ownerMe' },
+  ];
 
   protected readonly query = signal<ActionListQuery>(
     parseActionListQuery(this.route.snapshot.queryParamMap),
@@ -192,11 +154,6 @@ export class ActionsList {
   protected readonly loading = signal(false);
   protected readonly failed = signal(false);
 
-  protected readonly rangeFrom = computed(() => (this.total() === 0 ? 0 : this.offset() + 1));
-  protected readonly rangeTo = computed(() =>
-    Math.min(this.offset() + this.items().length, this.total()),
-  );
-
   private request = new Subscription();
 
   constructor() {
@@ -204,6 +161,7 @@ export class ActionsList {
       module: 'deviations',
       entityType: 'deviation_action',
       view: 'list',
+      title: this.language.translate('deviations.actionsList.title'),
     }));
     inject(DestroyRef).onDestroy(() => this.request.unsubscribe());
 

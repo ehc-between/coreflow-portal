@@ -46,7 +46,9 @@
     "type_required": "Velg en avvikstype, eller sett en standardtype for rapportlenken.",
     "report_closed": "Rapporten er allerede behandlet.",
     "text_required": "Beskriv først hva som skjedde.",
-    "deviation_required": "Åpne et avvik først."
+    "deviation_required": "Åpne et avvik først.",
+    "invalid_event_times": "Sjekk tidspunktene: de kan ikke være fram i tid, og det kan ikke være oppdaget før det skjedde.",
+    "invalid_reporting_value": "Sjekk tidspunktet for meldingen: det må være en dato og ikke fram i tid."
   },
   "rootCauses": {
     "title": "Årsaksanalyse",
@@ -114,11 +116,20 @@
     "describePlaceholder": "For eksempel: Kunden fikk 40 enheter i stedet for 400 på tirsdag. Plukklisten ble skrevet ut fra en gammel ordre.",
     "registerFromText": "Fyll ut skjemaet for meg",
     "describeHint": "KI velger type og fyller ut feltene. Du går gjennom alt før du lagrer.",
-    "missing": "Mangler fortsatt: {{ fields }}"
+    "missing": "Mangler fortsatt: {{ fields }}",
+    "summaryCardTitle": "Kort oppsummert",
+    "summaryCardHint": "Få saken oppsummert i noen få setninger, f.eks. til et møte."
   },
   "capa": {
-    "reviewDue": "Effektivitetsvurdering",
-    "reviewDueLabel": "Vurder effekt {{ date }}"
+    "reviewDue": "Vurder effekten innen",
+    "reviewDueLabel": "Vurder effekten innen {{ date }}",
+    "intro": "Begrens problemet nå, fjern årsaken og sjekk deretter at det virket.",
+    "optional": "valgfritt",
+    "kindHelp": {
+      "containment": "Begrenser skaden her og nå (ISO 10.2 a). Effektkontroll er valgfritt.",
+      "corrective": "Fjerner årsaken, så det ikke skjer igjen (ISO 10.2 b–c).",
+      "preventive": "Hindrer at noe lignende skjer andre steder. Er det en risiko, opprett den med «Lag ny fra denne»."
+    }
   },
   "guide": {
     "lessonButton": "Leksjon: {{ title }}",
@@ -135,7 +146,10 @@
     "openDesigner": "Rediger felt og arbeidsflyt",
     "install": "Installer",
     "empty": "Ingen maler er tilgjengelige.",
-    "installedToast": "{{ name }} er installert."
+    "installedToast": "{{ name }} er installert.",
+    "whenToUse": "Velg denne når:",
+    "showFields": "Se feltene",
+    "restricted": "Sakene er alltid begrenset til dem som behandler dem."
   },
   "intake": {
     "backToInbox": "Tilbake til mottatte rapporter",
@@ -174,7 +188,12 @@
       "rotateConfirm": "Den nåværende lenken slutter å virke med en gang. Kvitteringskoder virker fortsatt med den nye lenken.",
       "savedToast": "Innstillingene er lagret.",
       "rotatedToast": "Lenken er erstattet.",
-      "copiedToast": "Lenken er kopiert."
+      "copiedToast": "Lenken er kopiert.",
+      "whistleblowingDuties": "Varsling (arbeidsmiljøloven kap. 2 A): bekreft mottak innen 7 dager og gi tilbakemelding innen 3 måneder. Sakene bør gå til en begrenset type.",
+      "qrLabel": "QR-kode til rapportskjemaet",
+      "posterHint": "Heng opp plakaten på en oppslagstavle eller i pauserommet, så alle finner skjemaet.",
+      "poster": "Last ned plakat",
+      "preview": "Åpne skjemaet"
     },
     "inbox": {
       "link": "Mottatte rapporter",
@@ -182,7 +201,13 @@
       "subtitle": "Rapporter sendt via den anonyme lenken. Behandle dem, lukk dem eller registrer dem som avvik.",
       "status": "Status",
       "allStatuses": "Alle statuser",
-      "noneWithStatus": "Ingen rapporter med denne statusen."
+      "noneWithStatus": "Ingen rapporter med denne statusen.",
+      "linkOff": "Lenken for rapporter er slått av, så ingen kan sende rapporter ennå.",
+      "turnOn": "Slå på lenken",
+      "noneWithStatusBody": "Velg en annen status for å se andre rapporter.",
+      "noneLinkOff": "Lenken for rapporter er slått av. Slå den på for å ta imot rapporter.",
+      "deviationColumn": "Avvik",
+      "reportColumn": "Rapport"
     },
     "fields": {
       "description": "Hva skjedde",
@@ -211,6 +236,25 @@
       "ownerMe": "Meg",
       "submit": "Registrer avvik",
       "convertedToast": "Avvik {{ code }} er registrert."
+    },
+    "warnings": {
+      "no_default_type": "Velg en standard avvikstype, så mottatte rapporter kan registreres i ett steg.",
+      "whistleblowing_type_not_dedicated": "Varslinger går til en type som ikke er begrenset. Installer malen «Varslingssak» og velg den som standardtype."
+    },
+    "deadline": {
+      "acknowledge": "Bekreft mottak innen {{ date }}",
+      "feedback": "Gi tilbakemelding innen {{ date }}",
+      "acknowledgeLabel": "Bekreft mottak innen",
+      "feedbackLabel": "Gi tilbakemelding innen",
+      "doneOn": "gjort {{ date }}"
+    },
+    "poster": {
+      "title": "Meld fra om noe",
+      "titleWhistle": "Varsle om kritikkverdige forhold",
+      "body": "Har du sett noe som bør rettes? Meld fra her – du kan være anonym.",
+      "bodyWhistle": "Du har rett til å varsle om kritikkverdige forhold på arbeidsplassen. Varselet behandles fortrolig, og du kan være anonym.",
+      "scan": "Skann koden med mobilkameraet, eller skriv inn adressen:",
+      "file": "plakat-rapporter"
     }
   },
   "publicReport": {
@@ -294,5 +338,253 @@
     "intakeReceived": "Anonym rapport mottatt",
     "intakeConverted": "Registrert fra en anonym rapport",
     "intakeDismissed": "Anonym rapport lukket"
+  },
+  "list": {
+    "description": "Alt som ikke gikk som planlagt – avvik, hendelser, klager og nestenulykker – og hvordan hver sak blir rettet opp.",
+    "export": "Eksporter (CSV)",
+    "exportFile": "avvik",
+    "exportFailed": "Kunne ikke eksportere registeret. Prøv igjen.",
+    "templates": "Maler",
+    "intakeSettings": "Lenke for anonyme rapporter"
+  },
+  "nav": {
+    "all": "Alle avvik",
+    "actions": "Tiltak",
+    "intake": "Mottatte rapporter",
+    "stats": "Statistikk"
+  },
+  "form": {
+    "requiredSr": "påkrevd",
+    "requirements": "Krav som er berørt",
+    "requirementsHint": "Hvilke krav som ikke ble oppfylt, eller som saken dokumenterer. Hvert krav du legger til, blir dokumentasjon på kravet.",
+    "requirementsPlaceholder": "Søk punkt eller artikkel, f.eks. 10.2 eller A.5.24",
+    "typical": "Typisk for denne typen:",
+    "addTypical": "Legg til {{ short }} · {{ number }}",
+    "tagsHint": "Organisasjonens egen gruppering, f.eks. et anlegg eller et produkt."
+  },
+  "facts": {
+    "occurredAt": "Når skjedde det?",
+    "detectedAt": "Når ble det oppdaget?",
+    "detectedHint": "Frister for å melde til myndighetene regnes fra dette tidspunktet.",
+    "location": "Hvor skjedde det?",
+    "locationPlaceholder": "Sted, bygg, system eller kunde",
+    "immediateAction": "Strakstiltak",
+    "immediateHint": "Hva ble gjort med en gang for å begrense skaden eller stoppe problemet?",
+    "errors": {
+      "future": "Et tidspunkt kan ikke være fram i tid. Sjekk datoene under «Hva skjedde».",
+      "order": "Det kan ikke være oppdaget før det skjedde. Sjekk de to tidspunktene."
+    }
+  },
+  "create": {
+    "description": "Registrer hva som skjedde. Årsak og tiltak kan du legge til etterpå.",
+    "typeLabel": "Type:",
+    "fixTitle": "Kunne ikke lagre. Fyll ut tittel.",
+    "removeTagNamed": "Fjern etiketten {{ tag }}",
+    "sections": {
+      "what": "Hva skjedde",
+      "whatHint": "Beskriv hendelsen med vanlige ord: hva, når og hvor.",
+      "classify": "Klassifiser",
+      "classifyHint": "Hvor alvorlig det er, hvor det ble funnet og hvilke krav det berører.",
+      "typeFields": "Mer om saken ({{ type }})",
+      "who": "Ansvar",
+      "whoHint": "Hvem som følger opp, og innen når."
+    }
+  },
+  "detail": {
+    "sections": {
+      "what": "Om avviket",
+      "rootCause": "Rotårsak"
+    },
+    "createdFrom": "opprettet fra",
+    "citedHint": "Koblingene teller som dokumentasjon på kravene (se «Krav dette dokumenterer»).",
+    "noRequirements": "Ingen krav er oppgitt i saken ennå. Legg til et typisk krav under, eller velg krav med «Rediger».",
+    "typicalForType": "Typisk for denne typen:",
+    "clauseLinkedToast": "Kravet er koblet.",
+    "noRootCause": "Ingen rotårsak ennå. Bruk analysen under for å finne den.",
+    "notNeededReason": "Hvorfor analyse ikke trengs",
+    "rootCauseOverride": "Rotårsak (manuelt)",
+    "rootCauseOverrideHint": "Fylles vanligvis ut fra analysen med «Bruk som rotårsak». Endre her bare for å rette den.",
+    "responsibility": "Ansvar og tilgang",
+    "notFoundBody": "Det kan være slettet, eller du har ikke tilgang til det."
+  },
+  "reporting": {
+    "title": "Meldeplikt",
+    "intro": "Saken kan være meldepliktig. Registrer når den ble meldt, eller hvorfor det ikke trengs.",
+    "authority": {
+      "datatilsynet": "Datatilsynet",
+      "csirt": "Nasjonalt responsmiljø (NSM NorCERT)",
+      "arbeidstilsynet": "Arbeidstilsynet"
+    },
+    "obligation": {
+      "gdpr_33": "Melding om personvernbrudd",
+      "nis2_early_warning": "Tidlig varsel etter NIS2",
+      "nis2_notification": "Hendelsesvarsel etter NIS2",
+      "nis2_final_report": "Sluttrapport etter NIS2",
+      "arbeidstilsynet": "Melding om alvorlig personskade"
+    },
+    "article": {
+      "gdpr_33": "GDPR art. 33 · innen 72 timer",
+      "nis2_early_warning": "NIS2 art. 23 · innen 24 timer",
+      "nis2_notification": "NIS2 art. 23 · innen 72 timer",
+      "nis2_final_report": "NIS2 art. 23 · innen én måned",
+      "arbeidstilsynet": "Arbeidsmiljøloven § 5-2 · straks"
+    },
+    "status": {
+      "pending": "Skal meldes",
+      "overdue": "Fristen er ute",
+      "notified": "Meldt",
+      "not_required": "Ikke meldepliktig",
+      "closed_unreported": "Lukket uten melding"
+    },
+    "immediately": "Meld uten opphold.",
+    "deadline": "Frist {{ date }}",
+    "hoursLeft": "{{ hours }} t igjen",
+    "lateBy": "{{ hours }} t over fristen",
+    "clockDetected": "Fristen regnes fra da det ble oppdaget ({{ date }}).",
+    "clockRaised": "Fristen regnes fra da det ble registrert ({{ date }}). Legg inn når det ble oppdaget.",
+    "notifiedOn": "Meldt {{ date }}",
+    "referenceShown": "referanse {{ ref }}",
+    "notRequiredBecause": "Ikke meldepliktig: {{ reason }}",
+    "openTask": "Åpne påminnelsen",
+    "recordNotified": "Registrer at det er meldt",
+    "recordNotRequired": "Ikke meldepliktig",
+    "notifiedAt": "Meldt tidspunkt",
+    "reference": "Referanse (valgfritt)",
+    "referencePlaceholder": "Saksnummer fra myndigheten",
+    "notRequiredReason": "Hvorfor melding ikke trengs",
+    "notRequiredPlaceholder": {
+      "gdpr_33": "F.eks. dataene var kryptert, så bruddet gir neppe risiko for noen.",
+      "nis2_early_warning": "F.eks. hendelsen er ikke vesentlig etter NIS2.",
+      "nis2_notification": "F.eks. hendelsen er ikke vesentlig etter NIS2.",
+      "nis2_final_report": "F.eks. hendelsen ble avsluttet i varselet.",
+      "arbeidstilsynet": "F.eks. ingen ble alvorlig skadet."
+    },
+    "save": "Lagre",
+    "undo": "Angre",
+    "savedToast": "Meldingen er registrert.",
+    "task": {
+      "gdpr_33": "Meld personvernbruddet i {{ code }} til Datatilsynet (72 timer)",
+      "nis2_early_warning": "Send tidlig varsel etter NIS2 for {{ code }} (24 timer)",
+      "nis2_notification": "Send hendelsesvarsel etter NIS2 for {{ code }} (72 timer)",
+      "nis2_final_report": "Send sluttrapport etter NIS2 for {{ code }} (én måned)",
+      "arbeidstilsynet": "Meld personskaden i {{ code }} til Arbeidstilsynet"
+    }
+  },
+  "next": {
+    "reporting": {
+      "title": "Meld {{ code }} til myndighetene",
+      "why": "Fristen for å melde fra nærmer seg. Registrer meldingen, eller hvorfor den ikke trengs."
+    }
+  },
+  "checklist": {
+    "title": "Klar til å lukke?",
+    "intro": "Det standardene forventer før et avvik lukkes.",
+    "ready": "Alt som kreves, er gjort. Du kan lukke avviket.",
+    "progress": "{{ done }} av {{ total }}",
+    "recommended": "anbefalt",
+    "doneSr": "Gjort:",
+    "todoSr": "Ikke gjort:",
+    "items": {
+      "root_cause": "Rotårsaken er funnet (eller hvorfor den ikke trengs)",
+      "actions_done": "Alle tiltak er fullført",
+      "effectiveness_reviewed": "Effekten av tiltakene er vurdert",
+      "corrective_action_planned": "Minst ett korrigerende tiltak er planlagt",
+      "requirements_linked": "Koblet til kravene saken gjelder",
+      "authorities_notified": "Myndighetene er varslet der det kreves"
+    }
+  },
+  "history": {
+    "title": "Historikk",
+    "more": "Vis eldre oppføringer"
+  },
+  "print": {
+    "menu": "Skriv ut / lagre som PDF",
+    "print": "Skriv ut / lagre som PDF",
+    "back": "Tilbake til {{ code }}",
+    "caseFile": "Saksmappe",
+    "printedAt": "skrevet ut {{ date }}"
+  },
+  "filters": {
+    "groups": {
+      "work": "Arbeid",
+      "phase": "Fase",
+      "status": "Status"
+    },
+    "tagLabel": "Etikett",
+    "clauseLabel": "Punkt",
+    "clausePlaceholder": "F.eks. 10.2",
+    "dueFrom": "Frist fra",
+    "dueTo": "Frist til"
+  },
+  "events": {
+    "rootCauseAdded": "Årsaksanalyse lagt til",
+    "rootCauseApplied": "Rotårsak satt fra analysen",
+    "fields": {
+      "occurred_at": "når det skjedde",
+      "detected_at": "når det ble oppdaget",
+      "location": "sted",
+      "immediate_action": "strakstiltak",
+      "reporting": "melding til myndighet"
+    }
+  },
+  "actions": {
+    "deleteNamed": "Slett tiltaket «{{ action }}»",
+    "deleteTitle": "Slette tiltaket?",
+    "deleteConfirm": "Tiltaket og notatene fjernes fra avviket."
+  },
+  "actionsList": {
+    "emptyBody": "Åpne tiltak fra alle avvik du har tilgang til, vises her.",
+    "deviationColumn": "Avvik",
+    "actionColumn": "Tiltak"
+  },
+  "stats": {
+    "kpisLabel": "Nøkkeltall",
+    "toReview": "Til ledelsens gjennomgang",
+    "emptyBody": "Statistikken vises når avvik blir registrert.",
+    "cards": {
+      "ofTotal": "av {{ total }} totalt"
+    },
+    "kpis": {
+      "medianDays": "Median dager til lukking",
+      "daysValue": "{{ days }} dager",
+      "avgDays": "snitt {{ days }}",
+      "onTime": "Lukket innen fristen",
+      "effective": "Tiltak som virket",
+      "recurring": "Gjentatte årsaker"
+    },
+    "age": {
+      "title": "Alder på åpne saker",
+      "hint": "Hvor lenge åpne avvik har ventet siden de ble registrert.",
+      "lt_30": "Under 30 dager",
+      "d30_90": "30–90 dager",
+      "gt_90": "Over 90 dager"
+    },
+    "actionsLine": "{{ open }} åpne tiltak, {{ overdue }} forfalt",
+    "trend": {
+      "hint": "Registrert og lukket per måned. Måneder uten saker vises som tomme.",
+      "opened": "Registrert",
+      "closed": "Lukket",
+      "aria": "{{ months }} måneder: {{ opened }} registrert, {{ closed }} lukket"
+    },
+    "breakdowns": {
+      "byStatusHint": "I samme rekkefølge som arbeidsflyten.",
+      "bySource": "Etter kilde",
+      "bySourceHint": "Hvor avvikene blir funnet – revisjoner, inspeksjoner, kunder eller egne ansatte.",
+      "byRequirement": "Etter krav",
+      "byRequirementHint": "Kravene avvikene oftest er koblet til."
+    }
+  },
+  "types": {
+    "emptyBody": "Start med en mal: den gir ferdige felt, arbeidsflyt og typiske krav.",
+    "deleteNamed": "Slett typen {{ name }}",
+    "deleteTitle": "Slette typen?",
+    "deleteConfirm": "{{ name }} slettes. En type som er i bruk, kan ikke slettes – slå den av i stedet.",
+    "editor": {
+      "intro": "En type bestemmer hvilke felt et avvik har, og hvilke krav det vanligvis gjelder.",
+      "advanced": "Avansert",
+      "keyHint": "Lages fra navnet. Endre den bare hvis en integrasjon trenger en fast nøkkel.",
+      "defaultClauses": "Typiske krav",
+      "defaultClausesHint": "Tilbys som koblinger med ett klikk på avvik av denne typen. La stå tomt for å bruke standardenes forslag."
+    }
   }
 }

@@ -70,12 +70,31 @@ export class WhyItMatters {
 
   readonly scope = input.required<string>();
   readonly page = input.required<string>();
+  /**
+   * Narrow the clause links to these frameworks (e.g. the record's standards), so a
+   * customer complaint does not teach ISO 27001 incident clauses. Shared ISO clauses
+   * (`hs:`) always stay. Unset or empty shows every clause.
+   */
+  readonly frameworks = input<readonly string[] | null | undefined>(null);
 
   protected readonly headingId = `why-${nextId++}`;
   protected readonly bodyId = `${this.headingId}-body`;
-  protected readonly why = computed(
-    () => this.content.readPage(this.scope(), this.page())?.why ?? null,
-  );
+  protected readonly why = computed(() => {
+    const why = this.content.readPage(this.scope(), this.page())?.why ?? null;
+    const frameworks = this.frameworks();
+    if (!why || !frameworks?.length || !why.clauses?.length) {
+      return why;
+    }
+    const allowed = new Set(frameworks);
+    const clauses = why.clauses.filter((ref) => {
+      const framework = ref
+        .split(':')[0]
+        .replace(/-\d{4}$/, '')
+        .replace(/-/g, '_');
+      return framework === 'hs' || allowed.has(framework);
+    });
+    return { ...why, clauses };
+  });
   protected readonly expert = this.guidance.isExpert;
   protected readonly showBody = linkedSignal(() => !this.guidance.isExpert());
 }

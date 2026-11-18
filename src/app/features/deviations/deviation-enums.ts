@@ -1,4 +1,3 @@
-import { BadgeTone } from '../../shared/ui/badge/badge';
 import {
   ActionEffectiveness,
   ActionKind,
@@ -35,43 +34,34 @@ export const SOURCE_OPTIONS: readonly Source[] = [
   'other',
 ];
 
-/** Standards in display order. */
+/** Standards in display order (every framework the API accepts on a deviation). */
 export const STANDARD_OPTIONS: readonly Standard[] = [
   'iso9001',
   'iso14001',
   'iso45001',
   'iso27001',
+  'iso42001',
   'gdpr',
+  'nis2',
+  'eu_ai_act',
 ];
 
-/** Maps a deviation status to a design-system badge tone. */
-export function statusTone(status: string): BadgeTone {
+/** Frameworks a cited clause may belong to (the clause picker's search scope). */
+export const CLAUSE_FRAMEWORKS: readonly string[] = [...STANDARD_OPTIONS];
+
+/**
+ * The shared tone-map value (`toneFor('lifecycle', …)`) of a legacy deviation status:
+ * open is new work, the three working stages are in progress, closed is done.
+ */
+export function statusToneValue(status: string): string {
   switch (status) {
-    case 'closed':
-      return 'pass';
     case 'investigating':
     case 'action':
+      return 'in_progress';
     case 'verification':
-      return 'warn';
-    case 'cancelled':
-      return 'neutral';
-    case 'open':
+      return 'under_review';
     default:
-      return 'info';
-  }
-}
-
-/** Maps a severity to a design-system badge tone. */
-export function severityTone(severity: string): BadgeTone {
-  switch (severity) {
-    case 'critical':
-    case 'high':
-      return 'fail';
-    case 'medium':
-      return 'warn';
-    case 'low':
-    default:
-      return 'neutral';
+      return status;
   }
 }
 
@@ -147,41 +137,29 @@ export const ACTION_STATUS_OPTIONS: readonly ActionStatus[] = [
   'cancelled',
 ];
 
-/** Effectiveness outcomes in display order. */
+/**
+ * Effectiveness outcomes in display order. `pending` reads "Not assessed yet", so
+ * one control covers "not judged", "effective" and "not effective".
+ */
 export const EFFECTIVENESS_OPTIONS: readonly ActionEffectiveness[] = [
   'pending',
   'effective',
   'not_effective',
 ];
 
-/** Maps an action status to a design-system badge tone. */
-export function actionStatusTone(status: string): BadgeTone {
-  switch (status) {
-    case 'verified':
-      return 'pass';
-    case 'done':
-      return 'accent';
-    case 'in_progress':
-      return 'warn';
-    case 'cancelled':
-      return 'neutral';
-    case 'open':
-    default:
-      return 'info';
-  }
+/** The shared tone-map value of an action status (done waits for verification). */
+export function actionStatusToneValue(status: string): string {
+  return status === 'done' ? 'under_review' : status;
 }
 
-/** Maps an effectiveness outcome to a design-system badge tone. */
-export function effectivenessTone(effectiveness: string): BadgeTone {
-  switch (effectiveness) {
-    case 'effective':
-      return 'pass';
-    case 'not_effective':
-      return 'fail';
-    case 'pending':
-    default:
-      return 'warn';
-  }
+/** The shared tone-map value of an effectiveness outcome. */
+export function effectivenessToneValue(effectiveness: string): string {
+  return effectiveness === 'not_effective' ? 'failed' : effectiveness;
+}
+
+/** Whether an action is finished, so its effect can be judged. */
+export function canJudgeEffect(status: string): boolean {
+  return status === 'done' || status === 'verified';
 }
 
 /** i18n key for an action kind label. */
@@ -221,6 +199,7 @@ export const ROOT_CAUSE_METHOD_OPTIONS: readonly RootCauseMethod[] = [
   'fishbone',
   '8d',
   'other',
+  'not_needed',
 ];
 
 /**

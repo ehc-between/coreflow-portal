@@ -1,5 +1,6 @@
 import { DeviationDetail } from '../../core/deviations/deviation.models';
-import { buildDeviationPatch, editFormFrom, toClauseRefs } from './deviation-edit';
+import { utcToLocal } from './deviation-display';
+import { buildDeviationPatch, editFormFrom } from './deviation-edit';
 
 const base: DeviationDetail = {
   id: 'd1',
@@ -16,6 +17,7 @@ const base: DeviationDetail = {
   raised_at: '2026-01-01T00:00:00Z',
   created_at: '2026-01-01T00:00:00Z',
   due_at: '2026-02-01T00:00:00Z',
+  occurred_at: '2026-01-01T08:00:00',
   visibility: 'organization',
   data: { a: 1 },
   actions: [],
@@ -27,36 +29,40 @@ describe('buildDeviationPatch', () => {
     expect(buildDeviationPatch(base, editFormFrom(base))).toEqual({});
   });
 
-  it('sends changed standards, clauses and tags', () => {
+  it('starts the requirement picker from the cited clauses', () => {
+    expect(editFormFrom(base).refs).toEqual(['iso9001:8.7']);
+  });
+
+  it('sends cited requirements as canonical clause rows, never the standards', () => {
     const form = {
       ...editFormFrom(base),
-      standards: ['iso9001', 'iso14001'] as const,
-      clauses: [
-        { standard: 'iso9001' as const, clause: ' 8.7 ' },
-        { standard: 'iso14001' as const, clause: '6.1' },
-        { standard: 'iso9001' as const, clause: '  ' },
-      ],
+      refs: ['iso9001:8.7', 'iso14001-2015:6.1', 'hs:10.2', 'iso9001:8.7'],
       tags: ['valve', 'leak'],
     };
     expect(buildDeviationPatch(base, form)).toEqual({
-      standards: ['iso9001', 'iso14001'],
       clauses: [
         { standard: 'iso9001', clause: '8.7' },
         { standard: 'iso14001', clause: '6.1' },
+        { standard: 'hs', clause: '10.2' },
       ],
       tags: ['valve', 'leak'],
     });
   });
 
-  it('ignores blank clause rows and whitespace when comparing clauses', () => {
+  it('sends changed event facts and clears them with null', () => {
     const form = {
       ...editFormFrom(base),
-      clauses: [
-        { standard: 'iso9001' as const, clause: '8.7 ' },
-        { standard: 'iso9001' as const, clause: '' },
-      ],
+      occurredAt: '',
+      detectedAt: utcToLocal('2026-01-01T09:30:00'),
+      location: ' Lager 2 ',
+      immediateAction: 'Stopped the line',
     };
-    expect(buildDeviationPatch(base, form)).toEqual({});
+    expect(buildDeviationPatch(base, form)).toEqual({
+      occurred_at: null,
+      detected_at: '2026-01-01T09:30:00',
+      location: 'Lager 2',
+      immediate_action: 'Stopped the line',
+    });
   });
 
   it('changes and clears the department (null clears)', () => {
@@ -85,15 +91,16 @@ describe('buildDeviationPatch root cause method', () => {
       root_cause_method: null,
     });
   });
-});
 
-describe('toClauseRefs', () => {
-  it('drops blank rows and trims', () => {
-    expect(
-      toClauseRefs([
-        { standard: 'iso9001', clause: ' 4.1 ' },
-        { standard: 'iso9001', clause: '' },
-      ]),
-    ).toEqual([{ standard: 'iso9001', clause: '4.1' }]);
+  it('accepts "not needed" with a reason', () => {
+    const patch = buildDeviationPatch(base, {
+      ...editFormFrom(base),
+      rootCauseMethod: 'not_needed',
+      rootCause: 'One-off typo, fixed at once.',
+    });
+    expect(patch).toEqual({
+      root_cause_method: 'not_needed',
+      root_cause: 'One-off typo, fixed at once.',
+    });
   });
 });

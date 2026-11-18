@@ -37,10 +37,13 @@ import { Alert } from '../../../shared/ui/alert/alert';
 import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
-import { Icon } from '../../../shared/ui/icon/icon';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
+import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
+import { DEVIATIONS_ROOT_CRUMB, personOptions } from '../deviation-display';
 import { SEVERITY_OPTIONS, severityLabelKey } from '../deviation-enums';
-import { DeviationPageGuide } from '../guide/deviation-page-guide';
-import { intakeStatusTone } from './intake-inbox';
+import { intakeStatusValue } from './intake-inbox';
 
 /** Reports that can still be triaged, dismissed or converted. */
 export function isOpenReport(report: IntakeReport): boolean {
@@ -65,70 +68,94 @@ export function isOpenReport(report: IntakeReport): boolean {
     Badge,
     Button,
     Card,
-    Icon,
     LocalDatePipe,
     LocalDayPipe,
     DynamicForm,
     AiAssistButton,
-    DeviationPageGuide,
+    HelpStrip,
+    LoadingState,
+    PageHeader,
+    StatusBadge,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[980px] px-4 pt-7 pb-12 sm:px-8">
-      <a
-        routerLink="/deviations/intake"
-        class="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
-      >
-        <app-icon name="back" [size]="16" />
-        {{ 'deviations.intake.backToInbox' | transloco }}
-      </a>
-
+    <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       @if (loading()) {
-        <app-card>
-          <p class="py-6 text-center text-[14px] text-fg-muted">
-            {{ 'common.loading' | transloco }}
-          </p>
-        </app-card>
+        <app-loading-state [rows]="5" />
       } @else if (report(); as r) {
-        <div class="mb-4 flex flex-wrap items-center gap-2">
-          <app-badge [tone]="tone(r.status)">{{
-            'deviations.intake.status.' + r.status | transloco
-          }}</app-badge>
-          <app-badge tone="neutral">{{
-            'deviations.intake.modes.' + r.mode | transloco
-          }}</app-badge>
-          <span class="text-[12.5px] text-fg-subtle">{{
-            'deviations.intake.report.received'
-              | transloco: { date: (r.created_at | localDate: 'medium') }
-          }}</span>
-        </div>
-        <h1 class="mb-4 font-display text-[24px] font-bold tracking-[-0.025em] text-fg">
-          {{ r.title }}
-        </h1>
-
-        <app-deviation-page-guide class="mb-5" page="intakeReport" />
+        <app-page-header
+          [title]="r.title"
+          [breadcrumbs]="breadcrumbs()"
+          backLink="/deviations/intake"
+        >
+          <ng-container ngProjectAs="[meta]">
+            <app-status-badge
+              meaning="lifecycle"
+              [value]="statusValue(r.status)"
+              [labelKey]="'deviations.intake.status.' + r.status"
+            />
+            <app-badge tone="neutral">{{
+              'deviations.intake.modes.' + r.mode | transloco
+            }}</app-badge>
+            <span>{{
+              'deviations.intake.report.received'
+                | transloco: { date: (r.created_at | localDate: 'medium') }
+            }}</span>
+          </ng-container>
+        </app-page-header>
+        <app-help-strip scope="deviations" page="intakeReport" lesson="speaking-up" />
 
         @if (r.mode === 'whistleblowing') {
-          <div class="mb-4">
+          <div class="mb-4 flex flex-col gap-2">
             <app-alert tone="info">{{
               'deviations.intake.report.whistleblowingNote' | transloco
             }}</app-alert>
+            @if (r.acknowledge_due_at || r.feedback_due_at) {
+              <div
+                class="flex flex-wrap gap-x-6 gap-y-1 rounded-tile border border-border bg-surface px-4 py-3 text-ui"
+                data-testid="whistle-deadlines"
+              >
+                @if (r.acknowledge_due_at) {
+                  <span>
+                    <span class="font-semibold"
+                      >{{ 'deviations.intake.deadline.acknowledgeLabel' | transloco }}:</span
+                    >
+                    @if (r.acknowledged_at) {
+                      {{
+                        'deviations.intake.deadline.doneOn'
+                          | transloco: { date: (r.acknowledged_at | localDate: 'mediumDate') }
+                      }}
+                    } @else {
+                      {{ r.acknowledge_due_at | localDate: 'mediumDate' }}
+                    }
+                  </span>
+                }
+                @if (r.feedback_due_at) {
+                  <span>
+                    <span class="font-semibold"
+                      >{{ 'deviations.intake.deadline.feedbackLabel' | transloco }}:</span
+                    >
+                    {{ r.feedback_due_at | localDate: 'mediumDate' }}
+                  </span>
+                }
+              </div>
+            }
           </div>
         }
 
         <div class="grid gap-5 lg:grid-cols-[1fr_320px]">
           <div class="flex flex-col gap-5">
             <app-card>
-              <dl class="flex flex-col gap-3 text-[13.5px]">
+              <dl class="flex flex-col gap-3 text-ui">
                 <div>
-                  <dt class="text-[11px] font-bold tracking-[0.08em] text-fg-subtle uppercase">
+                  <dt class="text-micro font-bold tracking-[0.08em] text-fg-subtle uppercase">
                     {{ 'deviations.intake.fields.description' | transloco }}
                   </dt>
                   <dd class="mt-1 whitespace-pre-line text-fg">{{ r.description }}</dd>
                 </div>
                 <div class="grid gap-3 sm:grid-cols-2">
                   <div>
-                    <dt class="text-[11px] font-bold tracking-[0.08em] text-fg-subtle uppercase">
+                    <dt class="text-micro font-bold tracking-[0.08em] text-fg-subtle uppercase">
                       {{ 'deviations.intake.fields.occurredOn' | transloco }}
                     </dt>
                     <dd class="mt-1 text-fg">
@@ -136,14 +163,14 @@ export function isOpenReport(report: IntakeReport): boolean {
                     </dd>
                   </div>
                   <div>
-                    <dt class="text-[11px] font-bold tracking-[0.08em] text-fg-subtle uppercase">
+                    <dt class="text-micro font-bold tracking-[0.08em] text-fg-subtle uppercase">
                       {{ 'deviations.intake.fields.location' | transloco }}
                     </dt>
                     <dd class="mt-1 text-fg">{{ r.location || '—' }}</dd>
                   </div>
                 </div>
                 <div>
-                  <dt class="text-[11px] font-bold tracking-[0.08em] text-fg-subtle uppercase">
+                  <dt class="text-micro font-bold tracking-[0.08em] text-fg-subtle uppercase">
                     {{ 'deviations.intake.fields.contact' | transloco }}
                   </dt>
                   <dd class="mt-1 whitespace-pre-line text-fg">
@@ -152,7 +179,7 @@ export function isOpenReport(report: IntakeReport): boolean {
                 </div>
                 @if (r.public_note) {
                   <div>
-                    <dt class="text-[11px] font-bold tracking-[0.08em] text-fg-subtle uppercase">
+                    <dt class="text-micro font-bold tracking-[0.08em] text-fg-subtle uppercase">
                       {{ 'deviations.intake.fields.publicNote' | transloco }}
                     </dt>
                     <dd class="mt-1 whitespace-pre-line text-fg">{{ r.public_note }}</dd>
@@ -165,7 +192,7 @@ export function isOpenReport(report: IntakeReport): boolean {
               <app-card>
                 <form class="flex flex-col gap-4" (ngSubmit)="convert()" data-testid="convert-form">
                   <div class="flex flex-wrap items-center justify-between gap-2">
-                    <h2 class="font-display text-[16px] font-bold tracking-[-0.02em] text-fg">
+                    <h2 class="font-display text-section font-bold tracking-[-0.02em] text-fg">
                       {{ 'deviations.intake.convert.title' | transloco }}
                     </h2>
                     <app-ai-assist-button
@@ -177,7 +204,7 @@ export function isOpenReport(report: IntakeReport): boolean {
                   </div>
                   <div class="grid gap-4 sm:grid-cols-2">
                     <div class="flex flex-col gap-1.5">
-                      <label for="convert-type" class="text-[13px] font-semibold text-fg-muted">
+                      <label for="convert-type" class="text-ui font-semibold text-fg-muted">
                         {{ 'deviations.intake.convert.type' | transloco }}
                       </label>
                       <select
@@ -185,7 +212,7 @@ export function isOpenReport(report: IntakeReport): boolean {
                         name="type"
                         [ngModel]="typeId()"
                         (ngModelChange)="selectType($event)"
-                        class="h-10 rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg outline-none focus:border-accent"
+                        class="h-10 rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent"
                       >
                         <option value="">
                           {{ 'deviations.intake.convert.defaultType' | transloco }}
@@ -196,7 +223,7 @@ export function isOpenReport(report: IntakeReport): boolean {
                       </select>
                     </div>
                     <div class="flex flex-col gap-1.5">
-                      <label for="convert-severity" class="text-[13px] font-semibold text-fg-muted">
+                      <label for="convert-severity" class="text-ui font-semibold text-fg-muted">
                         {{ 'deviations.create.fields.severity' | transloco }}
                       </label>
                       <select
@@ -204,7 +231,7 @@ export function isOpenReport(report: IntakeReport): boolean {
                         name="severity"
                         [ngModel]="severity()"
                         (ngModelChange)="severity.set($event)"
-                        class="h-10 rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg outline-none focus:border-accent"
+                        class="h-10 rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent"
                       >
                         @for (option of severityOptions; track option) {
                           <option [value]="option">
@@ -215,7 +242,7 @@ export function isOpenReport(report: IntakeReport): boolean {
                     </div>
                   </div>
                   <div class="flex flex-col gap-1.5">
-                    <label for="convert-title" class="text-[13px] font-semibold text-fg-muted">
+                    <label for="convert-title" class="text-ui font-semibold text-fg-muted">
                       {{ 'deviations.create.fields.title' | transloco }}
                     </label>
                     <input
@@ -225,12 +252,12 @@ export function isOpenReport(report: IntakeReport): boolean {
                       maxlength="255"
                       [ngModel]="title()"
                       (ngModelChange)="title.set($event)"
-                      class="h-10 rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg outline-none focus:border-accent"
+                      class="h-10 rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent"
                     />
                   </div>
                   <div class="grid gap-4 sm:grid-cols-2">
                     <div class="flex flex-col gap-1.5">
-                      <label for="convert-owner" class="text-[13px] font-semibold text-fg-muted">
+                      <label for="convert-owner" class="text-ui font-semibold text-fg-muted">
                         {{ 'deviations.detail.owner' | transloco }}
                       </label>
                       <select
@@ -238,7 +265,7 @@ export function isOpenReport(report: IntakeReport): boolean {
                         name="owner"
                         [ngModel]="ownerId()"
                         (ngModelChange)="ownerId.set($event)"
-                        class="h-10 rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg outline-none focus:border-accent"
+                        class="h-10 rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent"
                       >
                         <option value="">
                           {{ 'deviations.intake.convert.ownerMe' | transloco }}
@@ -249,7 +276,7 @@ export function isOpenReport(report: IntakeReport): boolean {
                       </select>
                     </div>
                     <div class="flex flex-col gap-1.5">
-                      <label for="convert-dept" class="text-[13px] font-semibold text-fg-muted">
+                      <label for="convert-dept" class="text-ui font-semibold text-fg-muted">
                         {{ 'deviations.create.fields.department' | transloco }}
                       </label>
                       <select
@@ -257,7 +284,7 @@ export function isOpenReport(report: IntakeReport): boolean {
                         name="department"
                         [ngModel]="departmentId()"
                         (ngModelChange)="departmentId.set($event)"
-                        class="h-10 rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg outline-none focus:border-accent"
+                        class="h-10 rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent"
                       >
                         <option value="">{{ 'deviations.create.none' | transloco }}</option>
                         @for (dept of departments(); track dept.id) {
@@ -280,7 +307,7 @@ export function isOpenReport(report: IntakeReport): boolean {
                     </div>
                   }
                   <div class="flex flex-col gap-1.5">
-                    <label for="convert-note" class="text-[13px] font-semibold text-fg-muted">
+                    <label for="convert-note" class="text-ui font-semibold text-fg-muted">
                       {{ 'deviations.intake.fields.publicNote' | transloco }}
                     </label>
                     <textarea
@@ -291,7 +318,7 @@ export function isOpenReport(report: IntakeReport): boolean {
                       [ngModel]="note()"
                       (ngModelChange)="note.set($event)"
                       [placeholder]="'deviations.intake.report.notePlaceholder' | transloco"
-                      class="w-full rounded-[10px] border border-border bg-bg px-3 py-2.5 text-[13.5px] text-fg outline-none focus:border-accent"
+                      class="w-full rounded-tile border border-border bg-bg px-3 py-2.5 text-ui text-fg outline-none focus:border-accent"
                     ></textarea>
                   </div>
                   <div>
@@ -311,19 +338,19 @@ export function isOpenReport(report: IntakeReport): boolean {
           <div class="flex flex-col gap-4">
             @if (r.deviation_id) {
               <app-card>
-                <p class="text-[13px] text-fg-muted">
+                <p class="text-ui text-fg-muted">
                   {{ 'deviations.intake.report.convertedTo' | transloco }}
                 </p>
                 <a
                   [routerLink]="['/deviations', r.deviation_id]"
-                  class="mt-1 inline-block font-mono text-[14px] font-semibold text-accent hover:underline"
+                  class="mt-1 inline-block font-mono text-body font-semibold text-accent hover:underline"
                   >{{ r.deviation_code }}</a
                 >
               </app-card>
             }
             @if (r.triaged_by_name) {
               <app-card>
-                <p class="text-[13px] text-fg-muted">
+                <p class="text-ui text-fg-muted">
                   {{
                     'deviations.intake.report.triagedBy'
                       | transloco
@@ -338,7 +365,7 @@ export function isOpenReport(report: IntakeReport): boolean {
             @if (open()) {
               <app-card>
                 <div class="flex flex-col gap-3">
-                  <label for="triage-note" class="text-[13px] font-semibold text-fg-muted">
+                  <label for="triage-note" class="text-ui font-semibold text-fg-muted">
                     {{ 'deviations.intake.fields.publicNote' | transloco }}
                   </label>
                   <textarea
@@ -348,7 +375,7 @@ export function isOpenReport(report: IntakeReport): boolean {
                     [ngModel]="note()"
                     (ngModelChange)="note.set($event)"
                     [placeholder]="'deviations.intake.report.notePlaceholder' | transloco"
-                    class="w-full rounded-[10px] border border-border bg-bg px-3 py-2.5 text-[13.5px] text-fg outline-none focus:border-accent"
+                    class="w-full rounded-tile border border-border bg-bg px-3 py-2.5 text-ui text-fg outline-none focus:border-accent"
                   ></textarea>
                   <div class="flex flex-wrap gap-2">
                     @if (r.status === 'new') {
@@ -378,7 +405,7 @@ export function isOpenReport(report: IntakeReport): boolean {
         </div>
       } @else {
         <app-card>
-          <p class="py-6 text-center text-[14px] text-fg-muted">
+          <p class="py-6 text-center text-body text-fg-muted">
             {{ 'deviations.intake.report.notFound' | transloco }}
           </p>
         </app-card>
@@ -437,6 +464,8 @@ export class IntakeReportDetailPage {
   constructor() {
     providePageContext(() => ({
       module: 'deviations',
+      entityType: 'intake_report',
+      entityId: this.id(),
       view: 'detail',
       title: this.report()?.title ?? null,
     }));
@@ -449,9 +478,12 @@ export class IntakeReportDetailPage {
     });
   }
 
-  protected tone(status: string) {
-    return intakeStatusTone(status);
-  }
+  protected readonly statusValue = intakeStatusValue;
+  protected readonly breadcrumbs = computed(() => [
+    DEVIATIONS_ROOT_CRUMB,
+    { labelKey: 'deviations.intake.inbox.title', link: '/deviations/intake' },
+    { label: this.report()?.title ?? '' },
+  ]);
 
   protected selectType(typeId: string): void {
     this.typeId.set(typeId);
@@ -601,7 +633,7 @@ export class IntakeReportDetailPage {
     });
     this.deviations.listAccessSubjects(orgId).subscribe({
       next: (subjects) => {
-        this.users.set(subjects.users.map((u) => ({ id: u.id, name: u.name })));
+        this.users.set(personOptions(subjects.users));
         this.departments.set(subjects.departments.map((d) => ({ id: d.id, name: d.name })));
       },
     });

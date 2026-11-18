@@ -1,109 +1,108 @@
-import { ChangeDetectionStrategy, Component, input, model, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, model, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { Standard } from '../../core/deviations/deviation.models';
+import { provideSharedScope } from '../../core/i18n/shared-scope';
+import { AskAbout } from '../../shared/ask/ask-about';
+import { ClausePicker, parseClause } from '../../shared/requirement-links/clause-picker';
+import { fixedShortName, shortNameKey } from '../../shared/requirement-links/requirement-label';
 import { Icon } from '../../shared/ui/icon/icon';
-import { STANDARD_OPTIONS, standardLabelKey } from './deviation-enums';
-import { ClauseRow } from './deviation-edit';
+import { CLAUSE_FRAMEWORKS } from './deviation-enums';
+import { DeviationFormRow } from './ui/form-row';
+
+/** A typical clause rendered as a one-click "add" chip. */
+interface TypicalChip {
+  readonly ref: string;
+  readonly shortKey: string | null;
+  readonly short: string;
+  readonly number: string;
+}
 
 /**
- * Editor for a deviation's classification: standards (checkboxes), clause
- * references (standard + free-text clause rows) and free-form tags. Two-way
- * bound via `model()`s, so it is shared by the create form and the detail
- * page's edit mode:
+ * The one place a deviation points at standards (audit finding 1): "Krav som er
+ * berørt", a requirement picker over the catalogue whose value is canonical clause
+ * refs (`iso9001:10.2`, `hs:10.2`). Every cited clause becomes a confirmed
+ * requirement link on save, and the standard chips follow from those links. The
+ * type's typical clauses are offered as one-click chips (never added
+ * automatically). Free-form tags stay for the organisation's own grouping.
+ * Two-way bound, shared by the create form and the edit form:
  *
- *   <app-deviation-classification-fields
- *     idPrefix="dev"
- *     [(standards)]="standards" [(clauses)]="clauses" [(tags)]="tags" />
+ *   <app-deviation-classification-fields idPrefix="dev" [typical]="type.default_clauses"
+ *     [(refs)]="refs" [(tags)]="tags" />
  */
 @Component({
   selector: 'app-deviation-classification-fields',
-  imports: [TranslocoPipe, Icon],
+  imports: [FormsModule, TranslocoPipe, AskAbout, ClausePicker, Icon, DeviationFormRow],
+  viewProviders: [provideSharedScope('standards')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="flex flex-col gap-4">
-      <div class="flex flex-col gap-2">
-        <span class="text-[13px] font-semibold text-fg-muted">
-          {{ 'deviations.create.fields.standards' | transloco }}
-        </span>
-        <div class="flex flex-wrap gap-x-4 gap-y-2">
-          @for (option of standardOptions; track option) {
-            <label class="flex cursor-pointer items-center gap-2 text-[13.5px] text-fg">
-              <input
-                type="checkbox"
-                [checked]="standards().includes(option)"
-                (change)="toggleStandard(option)"
-                class="h-4 w-4 accent-[var(--accent)]"
-              />
-              {{ standardLabelKey(option) | transloco }}
-            </label>
-          }
-        </div>
-      </div>
+      <app-deviation-form-row
+        labelKey="deviations.form.requirements"
+        [inputId]="idPrefix() + '-requirements'"
+        [page]="page()"
+        help="requirements"
+        hintKey="deviations.form.requirementsHint"
+        [plain]="true"
+      >
+        <app-ask-about
+          ask
+          field="requirements"
+          [fieldLabel]="'deviations.form.requirements' | transloco"
+          [requirements]="refs()"
+        />
+        <app-clause-picker
+          [inputId]="idPrefix() + '-requirements'"
+          [frameworks]="frameworks"
+          [ngModel]="refs()"
+          (ngModelChange)="refs.set($event ?? [])"
+          [ariaLabel]="'deviations.form.requirements' | transloco"
+          placeholderKey="deviations.form.requirementsPlaceholder"
+        />
+      </app-deviation-form-row>
 
-      <div class="flex flex-col gap-2">
-        <span class="text-[13px] font-semibold text-fg-muted">
-          {{ 'deviations.create.fields.clauses' | transloco }}
-        </span>
-        @for (row of clauses(); track $index) {
-          <div class="flex items-center gap-2">
-            <div class="cf-select w-[160px] flex-none">
-              <select
-                [value]="row.standard"
-                [attr.aria-label]="'deviations.create.clauseStandardLabel' | transloco"
-                (change)="setClauseStandard($index, $any($event.target).value)"
-              >
-                @for (option of standardOptions; track option) {
-                  <option [value]="option" [selected]="option === row.standard">
-                    {{ standardLabelKey(option) | transloco }}
-                  </option>
-                }
-              </select>
-            </div>
-            <input
-              type="text"
-              [value]="row.clause"
-              (input)="setClauseValue($index, $any($event.target).value)"
-              [attr.aria-label]="'deviations.create.clauseLabel' | transloco"
-              [placeholder]="'deviations.create.clausePlaceholder' | transloco"
-              autocomplete="off"
-              class="h-10 flex-1 rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
-            />
+      @if (typicalChips().length) {
+        <div class="-mt-2 flex flex-wrap items-center gap-1.5" data-testid="typical-clauses">
+          <span class="text-meta text-fg-muted">{{ 'deviations.form.typical' | transloco }}</span>
+          @for (chip of typicalChips(); track chip.ref) {
             <button
               type="button"
-              [attr.aria-label]="'deviations.create.removeClause' | transloco"
-              (click)="removeClause($index)"
-              class="flex flex-none rounded-[8px] p-2 text-fg-subtle hover:bg-surface-2 hover:text-fg"
+              class="inline-flex min-h-7 items-center gap-1 rounded-full border border-dashed border-border-strong bg-surface px-2.5 text-meta font-semibold text-fg-muted hover:border-accent hover:text-accent"
+              [attr.aria-label]="
+                'deviations.form.addTypical'
+                  | transloco
+                    : {
+                        short: chip.shortKey ? (chip.shortKey | transloco) : chip.short,
+                        number: chip.number,
+                      }
+              "
+              (click)="addTypical(chip.ref)"
             >
-              <app-icon name="x" [size]="15" />
+              <app-icon name="plus" [size]="12" />
+              {{ chip.shortKey ? (chip.shortKey | transloco) : chip.short }} · {{ chip.number }}
             </button>
-          </div>
-        }
-        <button
-          type="button"
-          (click)="addClause()"
-          class="inline-flex w-fit items-center gap-1.5 text-[12.5px] font-semibold text-accent hover:underline"
-        >
-          <app-icon name="plus" [size]="14" />
-          {{ 'deviations.create.addClause' | transloco }}
-        </button>
-      </div>
+          }
+        </div>
+      }
 
-      <div class="flex flex-col gap-2">
-        <label [for]="idPrefix() + '-tag'" class="text-[13px] font-semibold text-fg-muted">
-          {{ 'deviations.create.fields.tags' | transloco }}
-        </label>
+      <app-deviation-form-row
+        labelKey="deviations.create.fields.tags"
+        [inputId]="idPrefix() + '-tag'"
+        [page]="page()"
+        hintKey="deviations.form.tagsHint"
+        [plain]="true"
+      >
         @if (tags().length) {
-          <div class="flex flex-wrap gap-1.5">
+          <div class="mb-1.5 flex flex-wrap gap-1.5">
             @for (t of tags(); track t) {
               <span
-                class="inline-flex items-center gap-1 rounded-full border border-border bg-surface-2 px-2.5 py-0.5 text-[12px] font-medium text-fg"
+                class="inline-flex items-center gap-1 rounded-full border border-border bg-surface-2 py-0.5 pr-1 pl-2.5 text-meta font-medium text-fg"
               >
                 {{ t }}
                 <button
                   type="button"
-                  [attr.aria-label]="'deviations.create.removeTag' | transloco"
+                  [attr.aria-label]="'deviations.create.removeTagNamed' | transloco: { tag: t }"
                   (click)="removeTag(t)"
-                  class="flex text-fg-subtle hover:text-fg"
+                  class="flex rounded-full p-0.5 text-fg-subtle hover:bg-surface hover:text-fg"
                 >
                   <app-icon name="x" [size]="13" />
                 </button>
@@ -120,67 +119,45 @@ import { ClauseRow } from './deviation-edit';
           (blur)="commitTagDraft()"
           [placeholder]="'deviations.create.tagPlaceholder' | transloco"
           autocomplete="off"
-          class="h-10 w-full rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
+          class="h-10 w-full rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent"
         />
-      </div>
+      </app-deviation-form-row>
     </div>
   `,
-  styles: [
-    `
-      .cf-select select {
-        width: 100%;
-        height: 40px;
-        border-radius: 10px;
-        border: 1px solid var(--border);
-        background: var(--bg);
-        color: var(--fg);
-        font-family: inherit;
-        font-size: 13.5px;
-        padding: 0 12px;
-        outline: none;
-        transition:
-          border-color 0.15s ease,
-          box-shadow 0.15s ease;
-      }
-      .cf-select select:focus {
-        border-color: var(--accent);
-        box-shadow: 0 0 0 3px var(--accent-soft);
-      }
-    `,
-  ],
 })
 export class DeviationClassificationFields {
-  /** Prefix for element ids, so two instances never collide. */
+  /** Prefix for the control ids (unique per form). */
   readonly idPrefix = input('dev');
-  readonly standards = model<readonly Standard[]>([]);
-  readonly clauses = model<readonly ClauseRow[]>([]);
+  /** Guidance page of the field help (`new` / `detail`). */
+  readonly page = input('new');
+  /** Canonical clause refs the deviation cites (the requirement links). */
+  readonly refs = model<readonly string[]>([]);
   readonly tags = model<readonly string[]>([]);
+  /** The type's typical clauses, offered as one-click chips. */
+  readonly typical = input<readonly string[] | null | undefined>([]);
 
-  protected readonly standardOptions = STANDARD_OPTIONS;
-  protected readonly standardLabelKey = standardLabelKey;
+  protected readonly frameworks = CLAUSE_FRAMEWORKS;
   protected readonly tagDraft = signal('');
 
-  protected toggleStandard(standard: Standard): void {
-    const current = this.standards();
-    this.standards.set(
-      current.includes(standard) ? current.filter((s) => s !== standard) : [...current, standard],
-    );
-  }
+  protected readonly typicalChips = computed<TypicalChip[]>(() => {
+    const cited = new Set(this.refs());
+    return (this.typical() ?? [])
+      .filter((ref) => !cited.has(ref))
+      .map((ref) => {
+        const p = parseClause(ref);
+        return {
+          ref,
+          shortKey: shortNameKey(p.framework),
+          short: fixedShortName(p.framework) ?? p.framework,
+          number: p.number,
+        };
+      });
+  });
 
-  protected addClause(): void {
-    this.clauses.set([...this.clauses(), { standard: STANDARD_OPTIONS[0], clause: '' }]);
-  }
-
-  protected removeClause(index: number): void {
-    this.clauses.set(this.clauses().filter((_, i) => i !== index));
-  }
-
-  protected setClauseStandard(index: number, standard: Standard): void {
-    this.clauses.set(this.clauses().map((row, i) => (i === index ? { ...row, standard } : row)));
-  }
-
-  protected setClauseValue(index: number, clause: string): void {
-    this.clauses.set(this.clauses().map((row, i) => (i === index ? { ...row, clause } : row)));
+  protected addTypical(ref: string): void {
+    if (!this.refs().includes(ref)) {
+      this.refs.set([...this.refs(), ref]);
+    }
   }
 
   protected addTag(event: Event): void {
@@ -188,7 +165,6 @@ export class DeviationClassificationFields {
     this.commitTagDraft();
   }
 
-  /** Adds the typed tag (if any, and not a duplicate) and clears the draft. */
   protected commitTagDraft(): void {
     const value = this.tagDraft().trim();
     if (value && !this.tags().includes(value)) {
