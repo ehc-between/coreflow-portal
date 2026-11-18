@@ -37,8 +37,13 @@ export function distributionRows(q: QuestionResult): DistributionRow[] {
   template: `
     @let r = results();
     <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
-      <app-kpi-tile [label]="'feedback.results.responses' | transloco" [value]="r.response_count" />
       <app-kpi-tile
+        noLink="shownBelow"
+        [label]="'feedback.results.responses' | transloco"
+        [value]="r.response_count"
+      />
+      <app-kpi-tile
+        noLink="average"
         [label]="'feedback.results.averageScore' | transloco"
         [value]="score() ?? '–'"
         [tone]="scoreLevel(r.average_score)"
@@ -46,6 +51,7 @@ export function distributionRows(q: QuestionResult): DistributionRow[] {
         deltaTone="neutral"
       />
       <app-kpi-tile
+        noLink="average"
         [label]="'feedback.results.nps' | transloco"
         [value]="nps() ?? '–'"
         [delta]="
@@ -55,6 +61,7 @@ export function distributionRows(q: QuestionResult): DistributionRow[] {
         [tone]="npsLevel(r.nps)"
       />
       <app-kpi-tile
+        noLink="average"
         [label]="'feedback.results.promoters' | transloco"
         [value]="promoterShare()"
         tone="pass"

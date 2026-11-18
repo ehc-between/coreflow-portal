@@ -100,6 +100,11 @@ type FilterKey = 'type_id' | 'standard' | 'severity' | 'source' | 'department_id
         descriptionKey="deviations.stats.subtitle"
         [breadcrumbs]="breadcrumbs"
       >
+        <a secondary routerLink="/deviations" [queryParams]="{ kpi: '1' }" tabindex="-1">
+          <app-button variant="secondary" data-testid="stats-to-register">
+            {{ 'deviations.stats.showOnRegister' | transloco }}
+          </app-button>
+        </a>
         @if (canReview()) {
           <a secondary routerLink="/management-review" tabindex="-1">
             <app-button variant="secondary">
@@ -181,32 +186,44 @@ type FilterKey = 'type_id' | 'standard' | 'severity' | 'source' | 'department_id
             [attr.aria-label]="'deviations.stats.kpisLabel' | transloco"
           >
             <app-kpi-tile
+              link="/deviations"
+              [queryParams]="drill({ active: 'true' })"
+              data-testid="stats-open"
               [label]="'deviations.stats.cards.open' | transloco"
               [value]="s.open"
               [delta]="'deviations.stats.cards.ofTotal' | transloco: { total: s.total }"
               tone="accent"
             />
             <app-kpi-tile
+              link="/deviations"
+              [queryParams]="drill({ overdue: 'true' })"
+              data-testid="stats-overdue"
               [label]="'deviations.stats.cards.overdue' | transloco"
               [value]="s.overdue"
               [tone]="s.overdue > 0 ? 'warn' : 'neutral'"
             />
             <app-kpi-tile
+              noLink="average"
               [label]="'deviations.stats.kpis.medianDays' | transloco"
               [value]="days(s.kpis?.median_days_to_close)"
               [delta]="avgText(s.kpis?.avg_days_to_close)"
             />
             <app-kpi-tile
+              link="/deviations"
+              [queryParams]="drill({ closed: 'true' })"
+              data-testid="stats-on-time"
               [label]="'deviations.stats.kpis.onTime' | transloco"
               [value]="pct(s.kpis?.closed_on_time_pct)"
               [tone]="tone(s.kpis?.closed_on_time_pct)"
             />
             <app-kpi-tile
+              noLink="average"
               [label]="'deviations.stats.kpis.effective' | transloco"
               [value]="pct(s.kpis?.actions_effective_pct)"
               [tone]="tone(s.kpis?.actions_effective_pct)"
             />
             <app-kpi-tile
+              noLink="average"
               [label]="'deviations.stats.kpis.recurring' | transloco"
               [value]="s.kpis?.recurring ?? 0"
               [tone]="(s.kpis?.recurring ?? 0) > 0 ? 'warn' : 'neutral'"
@@ -483,6 +500,11 @@ export class DeviationStatsPage {
   protected clearFilters(): void {
     this.filters.set({});
     this.load();
+  }
+
+  /** U24: the register filtered to a tile's rows, within the page's filters. */
+  protected drill(extra: Record<string, string>): Record<string, string> {
+    return { ...this.filters(), ...extra };
   }
 
   protected drillDown(filterKey: string | null, value: string): void {

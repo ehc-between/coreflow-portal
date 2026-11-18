@@ -59,6 +59,24 @@ import { privacyNavItems, privacyPermissions } from './privacy-nav';
 
 const PAGE_SIZE = 25;
 
+/** U24: per register, the overview tile behind each `?attention=` key. */
+const ATTENTION_TILES: Readonly<Record<string, Readonly<Record<string, string>>>> = {
+  ropa: { review_overdue: 'reviewsOverdue' },
+  dpia: { open: 'dpiasOpen', required_undecided: 'dpiasRequiredUndecided' },
+  dsr: { open: 'dsrOpen' },
+  breach: {
+    open: 'breachesOpen',
+    active: 'breachesActive',
+    awaiting_closure: 'breachesAwaitingClosure',
+  },
+  processor: { without_dpa: 'processorsWithoutDpa' },
+  transfer: {
+    missing_tia: 'transfersMissingTia',
+    unsigned_safeguards: 'transfersUnsignedSafeguards',
+  },
+  retention: { execution_due: 'retentionExecutionsDue' },
+};
+
 /** The lesson offered on each register page (kept for callers; the register holds it). */
 export const REGISTER_LESSONS: Readonly<Record<RegisterKey, string>> = Object.fromEntries(
   Object.values(REGISTERS).map((r) => [r.key, r.lesson]),
@@ -162,6 +180,19 @@ export function statusesFor(register: RegisterKey, filter: string): readonly str
         }
       </select>
 
+      @if (attention()) {
+        <button
+          filters
+          type="button"
+          class="inline-flex h-10 items-center gap-1.5 rounded-tile border border-accent bg-accent-soft px-3 text-ui font-semibold text-accent"
+          data-testid="filter-attention"
+          (click)="attention.set(''); setStatus('open')"
+        >
+          {{ 'privacy.overview.tiles.' + attentionTile() | transloco }}
+          <span aria-hidden="true">✕</span>
+          <span class="sr-only">{{ 'privacy.list.clearAttention' | transloco }}</span>
+        </button>
+      }
       @for (f of def().filters; track f.param) {
         <ng-container filters>
           <label class="sr-only" [for]="id(f.param)">
@@ -343,7 +374,12 @@ export class PrivacyRegisterList {
   );
 
   protected readonly q = signal('');
-  protected readonly status = signal('open');
+  /** U24: `?attention=<key>`, the named filter behind an overview tile. */
+  protected readonly attention = signal(
+    inject(ActivatedRoute).snapshot.queryParamMap.get('attention') ?? '',
+  );
+  // A tile counts across all statuses, so its list starts on "all".
+  protected readonly status = signal(this.attention() ? 'all' : 'open');
   protected readonly owner = signal<'' | 'me'>('');
   protected readonly sort = signal<string>('-created_at');
   protected readonly overdue = signal(
@@ -366,6 +402,7 @@ export class PrivacyRegisterList {
       this.status() !== 'open' ||
       !!this.owner() ||
       this.overdue() ||
+      !!this.attention() ||
       Object.values(this.extra()).some(Boolean),
   );
   protected readonly showEmpty = computed(
@@ -431,12 +468,17 @@ export class PrivacyRegisterList {
         owner: this.owner() || undefined,
         sort: this.sort(),
         overdue: def.overdue && this.overdue() ? true : undefined,
-        extra: this.extra(),
+        extra: { ...this.extra(), attention: this.attention() || undefined },
         limit: PAGE_SIZE,
         offset: this.offset(),
       };
       untracked(() => this.load(orgId, query));
     });
+  }
+
+  /** The overview tile an `?attention=` key comes from (for the chip label). */
+  protected attentionTile(): string {
+    return ATTENTION_TILES[this.def().key]?.[this.attention()] ?? 'attention';
   }
 
   protected id(name: string): string {

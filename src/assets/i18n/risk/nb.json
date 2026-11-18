@@ -352,6 +352,29 @@
       "cancelled": "avbrutt"
     }
   },
+  "treatmentPlan": {
+    "title": "Tiltaksplan",
+    "subtitle": "Alle tiltak på tvers av risikoene: hva som gjøres, av hvem og innen når.",
+    "searchPlaceholder": "Søk i tiltak",
+    "overdueOnly": "Bare forfalte",
+    "needsCheck": "Fullført, effekt ikke kontrollert",
+    "empty": "Ingen tiltak ennå. Legg dem til på hver risiko.",
+    "toRisks": "Gå til risikolisten",
+    "statusFilters": {
+      "open": "Åpne (planlagt eller pågår)",
+      "all": "Alle",
+      "planned": "Planlagt",
+      "in_progress": "Pågår",
+      "done": "Fullført",
+      "cancelled": "Avbrutt"
+    },
+    "sorts": {
+      "due_at": "Frist, tidligste først",
+      "-due_at": "Frist, seneste først",
+      "-created_at": "Nyeste først",
+      "risk": "Etter risiko"
+    }
+  },
   "opportunities": {
     "title": "Muligheter",
     "new": "Ny mulighet",

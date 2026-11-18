@@ -1464,7 +1464,8 @@
       "scope": "Aktive / forfalte",
       "allScopes": "Åpne og lukkede",
       "scopeActive": "Kun aktive",
-      "scopeOverdue": "Kun forfalte"
+      "scopeOverdue": "Kun forfalte",
+      "scopeClosed": "Kun lukkede"
     },
     "sort": {
       "newest": "Nyeste først",
@@ -1760,7 +1761,9 @@
       },
       "trend": {
         "title": "Registrert og lukket per måned"
-      }
+      },
+      "fullStats": "Full statistikk",
+      "showOnRegister": "Vis i registeret"
     },
     "actionsList": {
       "link": "Tiltak",

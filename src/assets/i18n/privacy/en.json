@@ -30,7 +30,8 @@
       "transfersUnsignedSafeguards": "Transfers on standard contractual clauses (SCC) without a signed agreement",
       "breachesActive": "Breaches being assessed (72-hour clock)",
       "retentionExecutionsDue": "Deletions overdue",
-      "breachesAwaitingClosure": "Notified breaches waiting to be closed"
+      "breachesAwaitingClosure": "Notified breaches waiting to be closed",
+      "attention": "Selection from the overview"
     },
     "breachesNow": "Personal data breaches that need action",
     "noBreaches": "No breaches with a running 72-hour deadline. Report a breach the moment you become aware of it.",
@@ -156,7 +157,8 @@
     "receivedOn": "Received {{ date }}",
     "awareOn": "Aware since {{ date }}",
     "givenOn": "Given {{ date }}",
-    "noLegalBasis": "No legal basis yet"
+    "noLegalBasis": "No legal basis yet",
+    "clearAttention": "Show all"
   },
   "sorts": {
     "created_atDesc": "Newest first",

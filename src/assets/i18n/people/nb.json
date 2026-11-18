@@ -439,7 +439,8 @@
     "cellHintEdit": "Tallene er nivået personen har (0–4), og fargene viser statusen. Velg en celle for å registrere en vurdering.",
     "cellAction": "{{ name }}, {{ label }}. Registrer en vurdering",
     "gapTotalOne": "1 mangel totalt",
-    "export": "Eksporter til CSV"
+    "export": "Eksporter til CSV",
+    "assignTraining": "Tildel opplæring: {{ course }}"
   },
   "checklists": {
     "title": "Oppstart og avslutning",

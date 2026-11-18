@@ -66,7 +66,8 @@ export interface RiskFilters {
   readonly status: RiskStatusFilter;
   readonly register: string;
   readonly level: string;
-  readonly owner: '' | 'me';
+  /** `none` (U24): the overview's "no owner" count. */
+  readonly owner: '' | 'me' | 'none';
   readonly review: '' | 'due';
   readonly appetite: '' | 'above';
   readonly sort: RiskSort;
@@ -90,7 +91,7 @@ export function parseRiskFilters(raw: Readonly<Record<string, string | undefined
     status: pick(raw['status'], RISK_STATUS_FILTERS, DEFAULT_FILTERS.status),
     register: raw['register'] ?? '',
     level: raw['level'] ?? '',
-    owner: raw['owner'] === 'me' ? 'me' : '',
+    owner: raw['owner'] === 'me' || raw['owner'] === 'none' ? raw['owner'] : '',
     review: raw['review'] === 'due' ? 'due' : '',
     appetite: raw['appetite'] === 'above' ? 'above' : '',
     sort: pick(raw['sort'], RISK_SORTS, DEFAULT_FILTERS.sort),
