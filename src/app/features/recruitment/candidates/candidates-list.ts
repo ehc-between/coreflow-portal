@@ -91,6 +91,7 @@ type RetentionFilter = '' | 'soon';
       searchPlaceholderKey="recruitment.candidates.search"
       [query]="q()"
       [filters]="viewFilters()"
+      [moreFiltersActive]="sort() !== '-created_at' ? 1 : 0"
       [empty]="!loading() && !errorKey() && items().length === 0 && !filtered()"
       (search)="onSearch($event)"
       (viewApplied)="applyView($event)"
@@ -136,7 +137,11 @@ type RetentionFilter = '' | 'soon';
             {{ 'recruitment.filters.retentionSoon' | transloco: { days: dueSoonDays } }}
           </option>
         </select>
-        <label class="sr-only" for="cand-sort">{{ 'recruitment.filters.sort' | transloco }}</label>
+      </ng-container>
+      <div more-filters class="flex flex-col gap-1 empty:hidden">
+        <label class="text-meta font-semibold text-fg-muted" for="cand-sort">{{
+          'recruitment.filters.sort' | transloco
+        }}</label>
         <select id="cand-sort" class="cf-filter" (change)="setSort($any($event.target).value)">
           @for (s of sorts; track s) {
             <option [value]="s" [selected]="sort() === s">
@@ -144,7 +149,7 @@ type RetentionFilter = '' | 'soon';
             </option>
           }
         </select>
-      </ng-container>
+      </div>
 
       @if (errorKey(); as key) {
         <app-error-state [bodyKey]="key" (retry)="reload()" />

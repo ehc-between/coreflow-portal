@@ -91,6 +91,7 @@ export const OWNER_FILTERS: readonly OwnerFilter[] = ['all', 'me'];
       searchPlaceholderKey="reports.definitions.search"
       [query]="q()"
       [filters]="viewFilters()"
+      [moreFiltersActive]="sort() !== 'name' ? 1 : 0"
       [empty]="loaded() && !error() && items().length === 0 && !filtered()"
       (search)="setSearch($event)"
       (viewApplied)="applyView($event)"
@@ -134,7 +135,9 @@ export const OWNER_FILTERS: readonly OwnerFilter[] = ['all', 'me'];
             </option>
           }
         </select>
-        <label for="def-sort" class="sr-only">{{
+      </ng-container>
+      <div more-filters class="flex flex-col gap-1 empty:hidden">
+        <label for="def-sort" class="text-meta font-semibold text-fg-muted">{{
           'reports.definitions.sortLabel' | transloco
         }}</label>
         <select
@@ -148,7 +151,7 @@ export const OWNER_FILTERS: readonly OwnerFilter[] = ['all', 'me'];
             </option>
           }
         </select>
-      </ng-container>
+      </div>
 
       @if (error(); as key) {
         <app-error-state [bodyKey]="key" (retry)="reload()" />

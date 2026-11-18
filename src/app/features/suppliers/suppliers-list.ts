@@ -91,8 +91,14 @@ export const DEFAULT_FILTERS: SupplierFilters = {
   sort: 'name',
 };
 
-/** The filters under "Flere filtre" (search, status, follow-up and criticality stay visible). */
-const MORE_FILTERS: readonly (keyof SupplierFilters)[] = ['category', 'due', 'flag', 'owner'];
+/** The filters under "Flere filtre" (search, status and follow-up stay visible; U30). */
+const MORE_FILTERS: readonly (keyof SupplierFilters)[] = [
+  'criticality',
+  'category',
+  'due',
+  'flag',
+  'owner',
+];
 
 /** Restore filters from a saved view or the URL, ignoring unknown values. */
 export function filtersFromView(values: Readonly<Record<string, string>>): SupplierFilters {
@@ -276,26 +282,26 @@ interface Kpi {
             </option>
           }
         </select>
-        <label class="sr-only" for="sup-f-crit">
-          {{ 'suppliers.fields.criticality' | transloco }}
-        </label>
-        <select
-          id="sup-f-crit"
-          class="h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
-          (change)="setFilter('criticality', $any($event.target).value)"
-        >
-          <option value="" [selected]="!filters().criticality">
-            {{ 'suppliers.filters.anyCriticality' | transloco }}
-          </option>
-          @for (c of criticalities; track c) {
-            <option [value]="c" [selected]="filters().criticality === c">
-              {{ 'suppliers.criticality.' + c | transloco }}
-            </option>
-          }
-        </select>
       </ng-container>
 
       <div more-filters class="flex flex-col gap-3">
+        <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted">
+          {{ 'suppliers.fields.criticality' | transloco }}
+          <select
+            id="sup-f-crit"
+            class="h-10 rounded-tile border border-border bg-bg px-2 text-ui font-normal text-fg"
+            (change)="setFilter('criticality', $any($event.target).value)"
+          >
+            <option value="" [selected]="!filters().criticality">
+              {{ 'suppliers.filters.anyCriticality' | transloco }}
+            </option>
+            @for (c of criticalities; track c) {
+              <option [value]="c" [selected]="filters().criticality === c">
+                {{ 'suppliers.criticality.' + c | transloco }}
+              </option>
+            }
+          </select>
+        </label>
         <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted">
           {{ 'suppliers.fields.category' | transloco }}
           <select

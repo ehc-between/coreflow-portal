@@ -128,6 +128,7 @@ export function riskQuery(filters: RiskFilters, q: string, offset: number): Risk
 export function moreFiltersCount(filters: RiskFilters): number {
   return (
     (filters.sort !== DEFAULT_FILTERS.sort ? 1 : 0) +
+    (filters.register ? 1 : 0) +
     (filters.owner ? 1 : 0) +
     (filters.review ? 1 : 0) +
     (filters.appetite ? 1 : 0)
@@ -221,23 +222,6 @@ export function moreFiltersCount(filters: RiskFilters): number {
             </option>
           }
         </select>
-        @if (registers().length > 1) {
-          <label class="sr-only" for="risk-f-register">{{
-            'risk.fields.register' | transloco
-          }}</label>
-          <select
-            id="risk-f-register"
-            class="h-10 max-w-[200px] rounded-tile border border-border bg-bg px-2 text-ui text-fg"
-            (change)="patch({ register: $any($event.target).value })"
-          >
-            <option value="" [selected]="!filters().register">
-              {{ 'risk.filters.allRegisters' | transloco }}
-            </option>
-            @for (r of registers(); track r.id) {
-              <option [value]="r.id" [selected]="r.id === filters().register">{{ r.name }}</option>
-            }
-          </select>
-        }
         <label class="sr-only" for="risk-f-level">{{ 'risk.filters.level' | transloco }}</label>
         <select
           id="risk-f-level"
@@ -253,6 +237,25 @@ export function moreFiltersCount(filters: RiskFilters): number {
         </select>
       </ng-container>
 
+      <div more-filters class="flex flex-col gap-1 empty:hidden">
+        @if (registers().length > 1) {
+          <label class="text-meta font-semibold text-fg-muted" for="risk-f-register">{{
+            'risk.fields.register' | transloco
+          }}</label>
+          <select
+            id="risk-f-register"
+            class="h-10 max-w-[200px] rounded-tile border border-border bg-bg px-2 text-ui text-fg"
+            (change)="patch({ register: $any($event.target).value })"
+          >
+            <option value="" [selected]="!filters().register">
+              {{ 'risk.filters.allRegisters' | transloco }}
+            </option>
+            @for (r of registers(); track r.id) {
+              <option [value]="r.id" [selected]="r.id === filters().register">{{ r.name }}</option>
+            }
+          </select>
+        }
+      </div>
       <div more-filters class="flex flex-col gap-3">
         <div class="flex flex-col gap-1">
           <label class="text-meta font-semibold text-fg-muted" for="risk-f-sort">{{

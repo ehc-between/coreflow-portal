@@ -105,8 +105,8 @@ export function ppeSortKey(sort: PpeSort): string {
 }
 
 /**
- * `/hse/ppe` ("Verneutstyr"): the PPE register with search, status / category /
- * due filters, "held by me", sorting, saved views and paging. Each row shows
+ * `/hse/ppe` ("Verneutstyr"): the PPE register with search, status / due filters
+ * (category, "held by me" and sorting under "Flere filtre"), saved views and paging. Each row shows
  * the code, the item, its category and holder (or how many are in stock), the
  * requirements it documents, the status plus a red "Kontroll forfalt" /
  * "Utløpt" badge when it must not be used, and the next due date.
@@ -190,23 +190,24 @@ export function ppeSortKey(sort: PpeSort): string {
           </option>
         }
       </select>
-      <select
-        filters
-        class="cf-filter"
-        [attr.aria-label]="'hse.ppe.fields.category' | transloco"
-        (change)="setFilter('category', $any($event.target).value)"
-        data-testid="ppe-filter-category"
-      >
-        <option value="" [selected]="filters().category === ''">
-          {{ 'hse.ppe.list.allCategories' | transloco }}
-        </option>
-        @for (c of categories; track c) {
-          <option [value]="c" [selected]="c === filters().category">
-            {{ 'hse.ppeCategory.' + c | transloco }}
-          </option>
-        }
-      </select>
       <div more-filters class="flex flex-col gap-3">
+        <label class="flex flex-col gap-1 text-ui font-semibold text-fg-muted">
+          {{ 'hse.ppe.fields.category' | transloco }}
+          <select
+            class="cf-filter"
+            (change)="setFilter('category', $any($event.target).value)"
+            data-testid="ppe-filter-category"
+          >
+            <option value="" [selected]="filters().category === ''">
+              {{ 'hse.ppe.list.allCategories' | transloco }}
+            </option>
+            @for (c of categories; track c) {
+              <option [value]="c" [selected]="c === filters().category">
+                {{ 'hse.ppeCategory.' + c | transloco }}
+              </option>
+            }
+          </select>
+        </label>
         <label class="inline-flex min-h-8 items-center gap-2 text-ui text-fg">
           <input
             type="checkbox"
@@ -366,7 +367,9 @@ export class PpeList {
   protected readonly viewFilters = computed<Record<string, string>>(() => ({ ...this.filters() }));
   protected readonly moreActive = computed(
     () =>
-      (this.filters().mine ? 1 : 0) + (this.filters().sort !== PPE_DEFAULT_FILTERS.sort ? 1 : 0),
+      (this.filters().category ? 1 : 0) +
+      (this.filters().mine ? 1 : 0) +
+      (this.filters().sort !== PPE_DEFAULT_FILTERS.sort ? 1 : 0),
   );
   protected readonly isEmptyRegister = computed(
     () =>

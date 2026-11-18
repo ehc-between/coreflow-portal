@@ -116,7 +116,7 @@ export function rowBadges(kind: ContextKind, row: ContextRecord): BadgeSpec[] {
 
 /**
  * A register list (`/context/<segment>`, the kind comes from route data) on the
- * shared list frame: search, three filters in the toolbar and the rest under
+ * shared list frame: search, two filters in the toolbar and the rest under
  * "Flere filtre" (all of them on phones), saved views, rows with requirement
  * coverage, pagination and a teaching empty state. Filters are mirrored in the
  * URL so drill-downs from the overview (and reloads) keep them.

@@ -18,6 +18,7 @@ import { Card } from '../../../shared/ui/card/card';
 import { ErrorState } from '../../../shared/ui/error-state/error-state';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { KpiBand } from '../../../shared/ui/kpi-band/kpi-band';
 import { KpiTile, KpiTone } from '../../../shared/ui/kpi-tile/kpi-tile';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
 import { ModuleNav } from '../../../shared/ui/module-nav/module-nav';
@@ -85,6 +86,7 @@ interface Tile {
     ErrorState,
     HelpStrip,
     Icon,
+    KpiBand,
     KpiTile,
     LoadingState,
     ModuleNav,
@@ -123,7 +125,7 @@ interface Tile {
           <h2 id="ov-attention" class="mb-3 text-section font-bold text-fg">
             {{ 'recruitment.overview.attention' | transloco }}
           </h2>
-          <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          <app-kpi-band scope="recruitment.overview">
             @for (t of attention(); track t.key) {
               <a
                 [routerLink]="t.path"
@@ -140,7 +142,7 @@ interface Tile {
                 />
               </a>
             }
-          </div>
+          </app-kpi-band>
           @if (allClear()) {
             <p class="mt-3 text-ui text-fg-muted" data-testid="ov-all-clear">
               {{ 'recruitment.overview.allClear' | transloco }}

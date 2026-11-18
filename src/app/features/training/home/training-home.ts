@@ -21,6 +21,7 @@ import { Card } from '../../../shared/ui/card/card';
 import { ErrorState } from '../../../shared/ui/error-state/error-state';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { KpiBand } from '../../../shared/ui/kpi-band/kpi-band';
 import { KpiTile } from '../../../shared/ui/kpi-tile/kpi-tile';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
 import { ModuleNav } from '../../../shared/ui/module-nav/module-nav';
@@ -79,6 +80,7 @@ export function needAction(need: NeedItem): 'record' | 'start' | 'retake' | null
     ErrorState,
     HelpStrip,
     Icon,
+    KpiBand,
     KpiTile,
     LoadingState,
     ModuleNav,
@@ -299,8 +301,9 @@ export function needAction(need: NeedItem): 'record' | 'start' | 'retake' | null
           <h2 id="training-stats-heading" class="mb-3 font-display text-section font-bold text-fg">
             {{ 'training.stats.label' | transloco }}
           </h2>
-          <div
-            class="grid auto-rows-fr grid-cols-2 gap-3 sm:grid-cols-3 [&>*>*]:h-full"
+          <app-kpi-band
+            scope="training.home"
+            class="[&_app-kpi-tile>*]:h-full"
             data-testid="training-stats"
             [appTourStep]="'training-stats'"
           >
@@ -351,7 +354,7 @@ export function needAction(need: NeedItem): 'record' | 'start' | 'retake' | null
               [label]="'training.stats.published' | transloco"
               [value]="s.courses_published | localNumber"
             />
-          </div>
+          </app-kpi-band>
           <p class="mt-2 text-meta text-fg-muted" data-testid="completion-formula">
             {{ 'training.stats.completionRateHelp' | transloco }}
           </p>

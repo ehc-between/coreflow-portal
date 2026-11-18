@@ -107,8 +107,8 @@ const KPIS: readonly Kpi[] = [
 ];
 
 /**
- * The contract register (`/contracts`): search, filters (status, type, what needs
- * attention; owner, end date, GDPR role and sort under "More filters"), saved
+ * The contract register (`/contracts`): search, filters (status, what needs
+ * attention; type, owner, end date, GDPR role and sort under "More filters"), saved
  * views, CSV export and paging. Each row shows the counterparties, the status, the
  * most important warning (no DPA, notice deadline soon, review overdue …), how many
  * requirements it documents and the next deadline.
@@ -226,25 +226,6 @@ const KPIS: readonly Kpi[] = [
           </option>
         }
       </select>
-      <label filters class="sr-only" for="cf-contract-type">
-        {{ 'contracts.filters.type' | transloco }}
-      </label>
-      <select
-        filters
-        id="cf-contract-type"
-        class="h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
-        (change)="setType($any($event.target).value)"
-        data-testid="filter-type"
-      >
-        <option value="" [selected]="!type()">
-          {{ 'contracts.filters.allTypes' | transloco }}
-        </option>
-        @for (t of types; track t) {
-          <option [value]="t" [selected]="type() === t">
-            {{ 'contracts.types.' + t | transloco }}
-          </option>
-        }
-      </select>
       <label filters class="sr-only" for="cf-contract-attention">
         {{ 'contracts.filters.attention' | transloco }}
       </label>
@@ -262,6 +243,26 @@ const KPIS: readonly Kpi[] = [
         }
       </select>
 
+      <div more-filters class="flex flex-col gap-1">
+        <label for="cf-contract-type" class="text-meta font-semibold text-fg-muted">
+          {{ 'contracts.filters.type' | transloco }}
+        </label>
+        <select
+          id="cf-contract-type"
+          class="h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
+          (change)="setType($any($event.target).value)"
+          data-testid="filter-type"
+        >
+          <option value="" [selected]="!type()">
+            {{ 'contracts.filters.allTypes' | transloco }}
+          </option>
+          @for (t of types; track t) {
+            <option [value]="t" [selected]="type() === t">
+              {{ 'contracts.types.' + t | transloco }}
+            </option>
+          }
+        </select>
+      </div>
       <div more-filters class="flex flex-col gap-1">
         <label for="cf-contract-owner" class="text-meta font-semibold text-fg-muted">
           {{ 'contracts.filters.owner' | transloco }}
@@ -473,6 +474,7 @@ export class ContractsList {
 
   protected readonly moreFiltersActive = computed(
     () =>
+      Number(!!this.type()) +
       Number(!!this.owner()) +
       Number(!!this.expiring()) +
       Number(!!this.role()) +

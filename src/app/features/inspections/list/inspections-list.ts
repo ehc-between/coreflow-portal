@@ -129,7 +129,7 @@ export function toInspectionQuery(
 /**
  * Inspections (`/inspections`, "Inspeksjoner"): key figures over all inspections, each
  * one a shortcut to the matching filter (open, overdue, completed, open findings,
- * serious findings without a deviation); then search, filters (status, result, mine;
+ * serious findings without a deviation); then search, filters (status, result; mine,
  * overdue, checklist and sort under "Flere filtre"), saved views and paging. Every row
  * shows the checklist and place only when the title does not already say it, what
  * it checks, the inspector, how far it got or its result, the requirements it
@@ -319,21 +319,18 @@ export function toInspectionQuery(
           </option>
         }
       </select>
-      <select
-        filters
-        class="cf-filter"
-        [attr.aria-label]="'inspections.filters.inspector' | transloco"
-        (change)="setFilter('inspector', $any($event.target).value)"
-      >
-        <option value="" [selected]="filters().inspector === ''">
-          {{ 'inspections.filters.anyInspector' | transloco }}
-        </option>
-        <option value="me" [selected]="filters().inspector === 'me'">
-          {{ 'inspections.filters.mine' | transloco }}
-        </option>
-      </select>
-
       <div more-filters class="flex flex-col gap-3">
+        <label class="flex flex-col gap-1 text-ui font-semibold text-fg-muted">
+          {{ 'inspections.filters.inspector' | transloco }}
+          <select class="cf-filter" (change)="setFilter('inspector', $any($event.target).value)">
+            <option value="" [selected]="filters().inspector === ''">
+              {{ 'inspections.filters.anyInspector' | transloco }}
+            </option>
+            <option value="me" [selected]="filters().inspector === 'me'">
+              {{ 'inspections.filters.mine' | transloco }}
+            </option>
+          </select>
+        </label>
         <label class="inline-flex min-h-8 items-center gap-2 text-ui text-fg">
           <input
             type="checkbox"
@@ -548,6 +545,7 @@ export class InspectionsList {
   protected readonly moreActive = computed(() => {
     const f = this.filters();
     return (
+      (f.inspector ? 1 : 0) +
       (f.overdue ? 1 : 0) +
       (f.template ? 1 : 0) +
       (f.sort !== DEFAULT_INSPECTION_FILTERS.sort ? 1 : 0)

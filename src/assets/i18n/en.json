@@ -2535,7 +2535,9 @@
       "back": "Back"
     },
     "moduleNav": {
-      "label": "Sections"
+      "label": "Sections",
+      "more": "More",
+      "moreCurrent": "More sections, now showing {{name}}"
     },
     "help": {
       "label": "Help on this page",
@@ -2604,6 +2606,11 @@
       "remove": "Remove {{ name }}",
       "flagged": "Check this value",
       "none": "Not set"
+    },
+    "kpiBand": {
+      "title": "Key figures",
+      "showAll": "Show all ({{count}})",
+      "showFewer": "Show fewer"
     }
   },
   "account": {

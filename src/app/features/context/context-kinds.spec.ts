@@ -106,10 +106,16 @@ describe('list config', () => {
     expect(listFilters('party')[0].options.map((o) => o.value)).toEqual(['active', 'archived']);
   });
 
-  it('keeps three filters in the toolbar and counts the rest', () => {
+  it('keeps two filters in the toolbar and counts the rest', () => {
     const { visible, more } = splitFilters(listFilters('party'));
-    expect(visible.map((f) => f.key)).toEqual(['status', 'addressed_status', 'category']);
-    expect(more.map((f) => f.key)).toEqual(['party_type', 'framework', 'owner', 'review_due']);
+    expect(visible.map((f) => f.key)).toEqual(['status', 'addressed_status']);
+    expect(more.map((f) => f.key)).toEqual([
+      'category',
+      'party_type',
+      'framework',
+      'owner',
+      'review_due',
+    ]);
     expect(moreFiltersActive(more, { owner: 'me', status: 'active', sort: 'title' })).toBe(2);
     expect(moreFiltersActive(more, { sort: '-updated_at' })).toBe(0);
     expect(listFilters('analysis', ['iso27001'])[2].options.map((o) => o.value)).toEqual([
