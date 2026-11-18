@@ -319,7 +319,7 @@ export function scopeGaps(
                   }
                   @if (m.enabled && m.portal_path) {
                     <a
-                      [routerLink]="['/', m.portal_path]"
+                      [routerLink]="'/' + m.portal_path"
                       class="self-start text-ui font-semibold text-accent hover:underline"
                     >
                       {{ 'modules.settings.open' | transloco }}

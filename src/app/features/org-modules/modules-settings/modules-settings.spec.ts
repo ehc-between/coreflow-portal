@@ -81,6 +81,8 @@ describe('ModulesSettings', () => {
         mod('documents', true, { required_by: ['audits'] }),
         mod('audits', false, { depends_on: ['documents'] }),
         mod('tasks', true, { always_on: true }),
+        // A module whose page sits below another route (encoded '/' once broke it).
+        mod('records', true, { always_on: true, portal_path: 'settings/record-types' }),
       ]);
     // A26: the profile's frameworks drive the scope-gap hints.
     http.expectOne(`${BASE}/v1/orgs/${ORG}/profile`).flush({ frameworks: [] });
@@ -99,9 +101,14 @@ describe('ModulesSettings', () => {
   const toggle = (key: string) => card(key).querySelector('[role="switch"]') as HTMLButtonElement;
 
   it('renders a card per module, always-on without a switch', () => {
-    expect(el().querySelectorAll('[data-module]').length).toBe(3);
+    expect(el().querySelectorAll('[data-module]').length).toBe(4);
     expect(toggle('tasks')).toBeNull();
     expect(toggle('audits').getAttribute('aria-checked')).toBe('false');
+  });
+
+  it('links a module with a nested path without encoding the slash (U01)', () => {
+    const link = card('records').querySelector('a[href]') as HTMLAnchorElement;
+    expect(link.getAttribute('href')).toBe('/settings/record-types');
   });
 
   it('turns a module on directly and reloads the nav', async () => {
