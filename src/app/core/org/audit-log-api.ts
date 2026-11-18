@@ -34,6 +34,12 @@ export interface AuditEvent {
   readonly user_agent: string | null;
   readonly request_id: string | null;
   readonly created_at: string;
+  /** Module the row belongs to (the output's module for documents), or `platform`. */
+  readonly module?: string;
+  /** Output key of a generated document (e.g. `privacy.ropa`), when there is one. */
+  readonly output_key?: string | null;
+  /** True for generated, exported, downloaded or shared documents. */
+  readonly is_output?: boolean;
 }
 
 export interface AuditEventPage {
@@ -56,6 +62,14 @@ export interface AuditFacets {
   /** `prefix` ends in "." and is passed as `action`. */
   readonly action_groups: readonly { readonly prefix: string; readonly count: number }[];
   readonly actor_kinds: readonly { readonly actor_kind: string; readonly count: number }[];
+  /** Each count equals the total `?module=<module>` returns; `name_key` is null for platform. */
+  readonly modules?: readonly {
+    readonly module: string;
+    readonly name_key: string | null;
+    readonly count: number;
+  }[];
+  readonly outputs?: readonly { readonly output_key: string; readonly count: number }[];
+  readonly categories?: readonly { readonly category: string; readonly count: number }[];
 }
 
 /** Filters shared by the list and the CSV export. Empty values are omitted. */
@@ -70,7 +84,19 @@ export interface AuditFilters {
   /** ISO dates (`YYYY-MM-DD`). */
   readonly from?: string | null;
   readonly to?: string | null;
+  /** A module key, or `platform` for members, roles, settings and sign-in. */
+  readonly module?: string | null;
+  /** Only `outputs`: generated, exported, downloaded or shared documents. */
+  readonly category?: string | null;
+  /** Exact output key (`privacy.ropa`) or a prefix ending in "." (`privacy.`). */
+  readonly output_key?: string | null;
 }
+
+/** The `category` value of the "documents made and shared" view. */
+export const AUDIT_OUTPUTS_CATEGORY = 'outputs';
+
+/** The module bucket of rows no module owns (members, roles, settings, sign-in). */
+export const AUDIT_PLATFORM_MODULE = 'platform';
 
 /** Most rows the API returns per page. */
 export const AUDIT_PAGE_MAX = 200;

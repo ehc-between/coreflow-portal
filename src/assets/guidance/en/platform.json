@@ -243,7 +243,7 @@
         "title": "The audit log",
         "body": "Every change to records, settings and access is logged here with who, what and when.",
         "steps": [
-          "Filter by person, record type, kind of change or dates.",
+          "Filter by module, person, kind of change or dates. \"Documents made and shared\" lists every document someone made, downloaded or shared.",
           "Open a row to see exactly what changed, or jump to the record.",
           "Export the filtered rows as CSV for an audit."
         ]
