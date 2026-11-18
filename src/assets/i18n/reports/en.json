@@ -572,7 +572,10 @@
     "sourceBuiltinRole": "The built-in layout for {{ role }}",
     "customise": "Customise the cards",
     "loadFailed": "The cards could not be loaded.",
-    "unavailable": "You cannot see this data, or the module is switched off.",
+    "unavailableModuleOff": "The “{{ module }}” module is switched off for the organisation.",
+    "unavailableNoAccess": "You do not have access to this data.",
+    "unavailableFailed": "The numbers could not be fetched right now.",
+    "retry": "Try again",
     "empty": "No cards are chosen for your role.",
     "open": "Open {{ title }}",
     "readiness": {
