@@ -104,7 +104,8 @@ describe('NotificationPreferences', () => {
 describe('NotificationPreferences sections', () => {
   it('hosts the guidance, category and quiet-hours sections', () => {
     const { el, api } = setup();
-    expect(el.querySelector('[data-testid="activity-guide"]')).not.toBeNull();
+    expect(el.querySelector('app-help-strip')).not.toBeNull();
+    expect(el.querySelector('app-why-it-matters')).not.toBeNull();
     expect(el.querySelectorAll('[data-testid="category-row"]').length).toBe(1);
     expect(el.querySelector('[data-testid="quiet-hours"]')).not.toBeNull();
     expect(api.getCategories).toHaveBeenCalledWith('org-1');

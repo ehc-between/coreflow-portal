@@ -126,7 +126,8 @@
     "records": "Registertyper og arbeidsflyter",
     "tasks": "Oppgaver",
     "kit": "Arbeid med registreringer",
-    "search": "Søk og assistenten"
+    "search": "Søk og assistenten",
+    "settings": "Innstillinger"
   },
   "tour": {
     "start": "Omvisning",

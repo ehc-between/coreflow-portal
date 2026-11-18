@@ -27,7 +27,8 @@ import { NotificationRulesApi } from '../../../core/notifications/notification-r
 import { OrgMember, OrgRole } from '../../../core/org/org.models';
 import { OrgMembersApi } from '../../../core/org/org-members-api';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
-import { ActivityGuide } from '../../../shared/activity/activity-guide';
+import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
@@ -68,7 +69,8 @@ export type NotificationTab = (typeof NOTIFICATION_TABS)[number];
   imports: [
     TranslocoPipe,
     PageHeader,
-    ActivityGuide,
+    HelpStrip,
+    WhyItMatters,
     Alert,
     Badge,
     Button,
@@ -97,12 +99,11 @@ export type NotificationTab = (typeof NOTIFICATION_TABS)[number];
               <app-icon name="spark" [size]="15" />
               {{ 'activity.ai.suggest' | transloco }}
             </app-button>
-            <app-button variant="ghost" data-testid="ai-explain" (click)="explainPage()">
-              {{ 'activity.ai.explain' | transloco }}
-            </app-button>
           </ng-container>
         }
       </app-page-header>
+
+      <app-help-strip scope="settings" page="notifications" lesson="reminders-and-escalation" />
 
       @if (!orgId()) {
         <app-card>
@@ -112,8 +113,6 @@ export type NotificationTab = (typeof NOTIFICATION_TABS)[number];
         </app-card>
       } @else {
         <div class="flex flex-col gap-6">
-          <app-activity-guide page="rules" (explain)="ask.showWith($event)" />
-
           <div
             role="tablist"
             class="flex gap-1 overflow-x-auto border-b border-border"
@@ -380,6 +379,8 @@ export type NotificationTab = (typeof NOTIFICATION_TABS)[number];
               }
             </div>
           }
+
+          <app-why-it-matters scope="settings" page="notifications" />
         </div>
 
         <app-rule-editor
@@ -467,12 +468,27 @@ export class NotificationSettingsPage {
   private readonly labelLookup: Lookup = (key, params) => {
     const prefix = 'activity.kinds.';
     if (key.startsWith(prefix)) {
+      const labels = this.kindLabels();
       const kind = key.slice(prefix.length);
-      const rule = this.rules().find((r) => r.event_kind === kind);
-      return this.lookup(key, params) ?? (rule ? this.templateLabel(rule) : null);
+      if (labels.has(kind)) return labels.get(kind) ?? null;
     }
     return this.lookup(key, params);
   };
+
+  /**
+   * The label of every rule's kind, worked out once per rules / language / scope
+   * load, so sorting and filtering do not translate (and miss) the same keys
+   * thousands of times.
+   */
+  private readonly kindLabels = computed(() => {
+    const labels = new Map<string, string | null>();
+    for (const rule of this.rules()) {
+      const kind = rule.event_kind;
+      if (labels.has(kind)) continue;
+      labels.set(kind, this.lookup(`activity.kinds.${kind}`) ?? this.templateLabel(rule));
+    }
+    return labels;
+  });
 
   constructor() {
     providePageContext(() => ({
@@ -676,9 +692,5 @@ export class NotificationSettingsPage {
         kinds,
       }),
     );
-  }
-
-  protected explainPage(): void {
-    this.ask.showWith(this.language.translate('activity.ai.explainPagePrompt'));
   }
 }

@@ -39,7 +39,10 @@ import {
   RequirementEvidence,
 } from '../../core/standards/standards.models';
 import { EntityChip } from '../../shared/kit/entity-chip';
-import { fieldLabelKey } from '../../shared/requirement-links/supports-requirements';
+import {
+  fieldLabelKey,
+  fieldSourceKey,
+} from '../../shared/requirement-links/supports-requirements';
 import { RequirementLocations } from '../../shared/requirement-locations/requirement-locations';
 import { Badge } from '../../shared/ui/badge/badge';
 import { Button } from '../../shared/ui/button/button';
@@ -688,6 +691,7 @@ export class RequirementCard {
 
   /** "Fra feltet «Kontroller»", "Foreslått av KI", "Lagt til manuelt", … */
   protected originKey(link: EvidenceLink): string {
+    if (link.origin === 'field') return fieldSourceKey(link.origin_field);
     return `standards.reqs.origin.${link.origin}`;
   }
 

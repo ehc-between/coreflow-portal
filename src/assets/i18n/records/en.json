@@ -9,8 +9,6 @@
   "list": {
     "title": "Record types and workflows",
     "subtitle": "Decide what each kind of record captures and the steps it goes through, from registration to closure.",
-    "explain": "Explain this page",
-    "explainPrompt": "Explain how record types and workflows work in CoreFlow: what a record type is, what a workflow is, how versions work and how approvals and SLAs fit in. Keep it short and practical.",
     "newType": "New record type",
     "newWorkflow": "New workflow",
     "describe": "Describe your process",
@@ -43,7 +41,7 @@
     "installed": "Installed",
     "install": "Install template",
     "installedToast": "“{{ name }}” is installed. Review it and adjust it to how you work.",
-    "documents": "Documents:"
+    "documents": "Usually supports:"
   },
   "designer": {
     "newTitle": "New record type",
@@ -108,7 +106,7 @@
     "deletedToast": "The record type is deleted.",
     "blockKeyEmpty": "Add a key under the name.",
     "codePrefixPlaceholder": "NC",
-    "requirementsHint": "Records of this type count as documentation for these requirements once someone fills in the linked fields."
+    "requirementsHint": "These are the requirements this kind of record usually supports. They stay suggestions: a requirement only counts as covered once a record of this type exists with the linked fields filled in."
   },
   "workflow": {
     "newTitle": "New workflow",
@@ -326,18 +324,6 @@
     "line": "{{ transition }} · requested by {{ name }} {{ when }}"
   },
   "guide": {
-    "introLabel": "About this page",
-    "show": "Show",
-    "hide": "Hide",
-    "whyTitle": "Why this matters",
-    "explainClause": "Explain {{ clause }}",
-    "clausePrompt": "Explain what {{ clause }} requires, in plain language, and how configurable record types and workflows in CoreFlow help meet it. End with one short check question.",
-    "lessonButton": "Lesson ({{ minutes }} min)",
-    "lessonMinutes": "{{ minutes }} minute lesson",
-    "close": "Close",
-    "quiz": "Check your understanding",
-    "correct": "Correct.",
-    "incorrect": "Not quite.",
     "example": "For example: {{example}}"
   },
   "langs": {

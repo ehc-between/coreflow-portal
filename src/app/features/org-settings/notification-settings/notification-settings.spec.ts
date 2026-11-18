@@ -107,6 +107,9 @@ describe('eventLabelFromTemplate', () => {
     expect(eventLabelFromTemplate('Du er nå eier av eiendelen {{ code }} {{ title }}')).toBe(
       'Du er nå eier av eiendelen …',
     );
+    expect(eventLabelFromTemplate('Avvik {{ code }} {{ title }} har endret status')).toBe(
+      'Avvik har endret status',
+    );
     expect(eventLabelFromTemplate('{{ code }}')).toBeNull();
     expect(eventLabelFromTemplate(null)).toBeNull();
   });
@@ -120,7 +123,8 @@ describe('NotificationSettingsPage', () => {
     expect(qa('[data-testid="rule-row"]')).toHaveLength(2);
     expect(q('[data-testid="rules-short-list"]')).not.toBeNull();
     expect(el.textContent).toContain('activity.rules.status.custom');
-    expect(el.querySelector('[data-testid="activity-guide"]')).not.toBeNull();
+    expect(el.querySelector('app-help-strip')).not.toBeNull();
+    expect(el.querySelector('app-why-it-matters')).not.toBeNull();
     // Every kind can be configured, also timeline-only ones.
     q('[data-testid="rules-show-all"] button')!.click();
     render();
@@ -263,13 +267,11 @@ describe('NotificationSettingsPage', () => {
     expect(api.setDepartmentLead).toHaveBeenCalledWith('org-1', 'dep-1', 'u-1');
   });
 
-  it('opens the assistant from the AI buttons', () => {
+  it('opens the assistant to suggest a setup', () => {
     const { q, ask } = setup();
     q('[data-testid="ai-suggest"]')!.querySelector('button')!.click();
     expect(ask.showWith).toHaveBeenCalledWith(expect.stringContaining('activity.ai.suggestPrompt'));
-    q('[data-testid="ai-explain"]')!.querySelector('button')!.click();
-    expect(ask.showWith).toHaveBeenLastCalledWith(
-      expect.stringContaining('activity.ai.explainPagePrompt'),
-    );
+    // Explaining the page lives in the help strip only (one place for learning).
+    expect(q('[data-testid="ai-explain"]')).toBeNull();
   });
 });

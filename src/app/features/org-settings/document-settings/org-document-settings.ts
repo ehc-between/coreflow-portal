@@ -18,21 +18,21 @@ import { Card } from '../../../shared/ui/card/card';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section data-testid="settings-documents">
-      <h2 class="mb-3 font-display text-[18px] font-bold tracking-[-0.02em] text-fg">
+      <h2 class="mb-3 font-display text-section font-bold tracking-[-0.02em] text-fg">
         {{ 'settings.documents.title' | transloco }}
       </h2>
       <app-card>
         @if (loading()) {
-          <p class="text-[13px] text-fg-muted">{{ 'common.loading' | transloco }}</p>
+          <p class="text-ui text-fg-muted">{{ 'common.loading' | transloco }}</p>
         } @else if (loadError()) {
           <app-alert>{{ 'settings.documents.loadError' | transloco }}</app-alert>
         } @else {
           <div class="flex items-center gap-4">
             <div class="min-w-0 flex-1">
-              <div id="segregation-label" class="text-[13.5px] font-semibold text-fg">
+              <div id="segregation-label" class="text-ui font-semibold text-fg">
                 {{ 'settings.documents.segregation' | transloco }}
               </div>
-              <div id="segregation-hint" class="mt-0.5 text-[12.5px] text-fg-muted">
+              <div id="segregation-hint" class="mt-0.5 text-meta text-fg-muted">
                 {{ 'settings.documents.segregationHint' | transloco }}
               </div>
             </div>

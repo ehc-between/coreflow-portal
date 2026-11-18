@@ -40,14 +40,9 @@ import { Icon } from '../../../shared/ui/icon/icon';
 import { AskPanelService } from '../../ask/ask-panel.service';
 import { HomeApi } from '../../dashboard/data/home-api';
 import { apiErrorCode, hasJourney, journeyUrl } from '../../dashboard/data/home-format';
-import {
-  GUIDE_CLAUSES,
-  frameworkDescriptionKey,
-  frameworkNameKey,
-  frameworkShortKey,
-} from '../frameworks';
-import { ModulesGuide } from '../guide/modules-guide';
-import { ModulesLesson } from '../guide/modules-lesson';
+import { frameworkDescriptionKey, frameworkNameKey, frameworkShortKey } from '../frameworks';
+import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { moduleDescriptionKey, moduleNameKey, moduleNameList } from '../module-names';
 import {
   createProfileForm,
@@ -104,31 +99,31 @@ type TaskOutcome = 'created' | 'unavailable' | 'failed' | null;
     Card,
     FormField,
     Icon,
-    ModulesGuide,
-    ModulesLesson,
+    HelpStrip,
+    WhyItMatters,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @let w = 'modules.setup';
     <div class="mx-auto max-w-[880px] px-4 pt-7 pb-12 sm:px-8">
       <div class="mb-[18px]">
-        <h1 class="font-display text-[26px] font-bold tracking-[-0.025em] text-fg">
+        <h1 class="font-display text-page font-bold text-fg">
           {{ w + '.title' | transloco }}
         </h1>
-        <p class="mt-1.5 text-[14px] text-fg-muted">{{ w + '.subtitle' | transloco }}</p>
+        <p class="mt-1.5 text-body text-fg-muted">{{ w + '.subtitle' | transloco }}</p>
       </div>
 
-      <app-modules-guide class="mb-5 block" page="setup" [steps]="3" [clauses]="clauses" />
+      <app-help-strip scope="settings" page="setup" lesson="modules-basics" />
 
       @if (!orgId()) {
         <app-card>
-          <p class="py-8 text-center text-[14px] text-fg-muted">
+          <p class="py-8 text-center text-body text-fg-muted">
             {{ 'modules.common.noOrg' | transloco }}
           </p>
         </app-card>
       } @else if (loading()) {
         <app-card>
-          <p class="py-10 text-center text-[14px] text-fg-muted">
+          <p class="py-10 text-center text-body text-fg-muted">
             {{ 'common.loading' | transloco }}
           </p>
         </app-card>
@@ -147,7 +142,7 @@ type TaskOutcome = 'created' | 'unavailable' | 'failed' | null;
         >
           @for (s of steps; track s; let i = $index) {
             <li
-              class="flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[12px] font-semibold"
+              class="flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-meta font-semibold"
               [class]="
                 s === step()
                   ? 'border-accent bg-accent text-white'
@@ -164,10 +159,10 @@ type TaskOutcome = 'created' | 'unavailable' | 'failed' | null;
         </ol>
 
         <app-card>
-          <h2 class="mb-1 text-[18px] font-bold text-fg" tabindex="-1" #stepHeading>
+          <h2 class="mb-1 text-section font-bold text-fg" tabindex="-1" #stepHeading>
             {{ w + '.' + step() + '.title' | transloco }}
           </h2>
-          <p class="mb-4 text-[13.5px] text-fg-muted">
+          <p class="mb-4 text-ui text-fg-muted">
             {{ w + '.' + step() + '.body' | transloco }}
           </p>
 
@@ -216,13 +211,13 @@ type TaskOutcome = 'created' | 'unavailable' | 'failed' | null;
                     />
                   </app-form-field>
                   @if (form.controls.countries.invalid && form.controls.countries.touched) {
-                    <p role="alert" class="mt-1 text-[12px] font-medium text-fail">
+                    <p role="alert" class="mt-1 text-meta font-medium text-fail">
                       {{ 'modules.profile.errors.countries' | transloco }}
                     </p>
                   }
                 </div>
                 <fieldset class="md:col-span-2">
-                  <legend class="mb-2 text-[13px] font-semibold text-fg-muted">
+                  <legend class="mb-2 text-ui font-semibold text-fg-muted">
                     {{ 'modules.profile.aiActRole' | transloco }}
                   </legend>
                   <div class="grid gap-2 sm:grid-cols-2">
@@ -237,10 +232,10 @@ type TaskOutcome = 'created' | 'unavailable' | 'failed' | null;
                           [value]="role"
                         />
                         <span>
-                          <span class="block text-[13px] font-semibold text-fg">{{
+                          <span class="block text-ui font-semibold text-fg">{{
                             'modules.aiActRoles.' + role + '.name' | transloco
                           }}</span>
-                          <span class="block text-[12px] text-fg-muted">{{
+                          <span class="block text-meta text-fg-muted">{{
                             'modules.aiActRoles.' + role + '.description' | transloco
                           }}</span>
                         </span>
@@ -265,10 +260,10 @@ type TaskOutcome = 'created' | 'unavailable' | 'failed' | null;
                         [formControlName]="fw"
                       />
                       <span>
-                        <span class="block text-[13.5px] font-semibold text-fg">{{
+                        <span class="block text-ui font-semibold text-fg">{{
                           frameworkNameKey(fw) | transloco
                         }}</span>
-                        <span class="block text-[12.5px] text-fg-muted">{{
+                        <span class="block text-meta text-fg-muted">{{
                           frameworkDescriptionKey(fw) | transloco
                         }}</span>
                       </span>
@@ -276,13 +271,13 @@ type TaskOutcome = 'created' | 'unavailable' | 'failed' | null;
                   }
                 </div>
               </fieldset>
-              <p class="mt-3 text-[12.5px] text-fg-subtle">
+              <p class="mt-3 text-meta text-fg-subtle">
                 {{ w + '.frameworks.hint' | transloco }}
               </p>
             }
             @case ('modules') {
               <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-                <p class="text-[13px] text-fg-muted" role="status">
+                <p class="text-ui text-fg-muted" role="status">
                   {{ w + '.modules.selectedCount' | transloco: { count: selected().size } }}
                 </p>
                 <app-button
@@ -297,7 +292,7 @@ type TaskOutcome = 'created' | 'unavailable' | 'failed' | null;
               </div>
               @if (choices().length === 0) {
                 <p
-                  class="rounded-tile border border-dashed border-border px-3 py-6 text-center text-[13px] text-fg-muted"
+                  class="rounded-tile border border-dashed border-border px-3 py-6 text-center text-ui text-fg-muted"
                 >
                   {{ w + '.modules.empty' | transloco }}
                 </p>
@@ -319,7 +314,7 @@ type TaskOutcome = 'created' | 'unavailable' | 'failed' | null;
                       />
                       <span class="min-w-0 flex-1">
                         <span class="flex flex-wrap items-center gap-2">
-                          <span class="text-[14px] font-bold text-fg">{{
+                          <span class="text-body font-bold text-fg">{{
                             moduleNameKey(c.key) | transloco
                           }}</span>
                           @if (c.recommended) {
@@ -333,16 +328,16 @@ type TaskOutcome = 'created' | 'unavailable' | 'failed' | null;
                             }}</app-badge>
                           }
                         </span>
-                        <span class="mt-0.5 block text-[12.5px] text-fg-muted">{{
+                        <span class="mt-0.5 block text-meta text-fg-muted">{{
                           moduleDescriptionKey(c.key) | transloco
                         }}</span>
                         @if (c.recommended) {
-                          <span class="mt-1 block text-[12.5px] text-fg">{{
+                          <span class="mt-1 block text-meta text-fg">{{
                             c.reasonKey | transloco
                           }}</span>
                         }
                         @if (c.dependsOn.length) {
-                          <span class="mt-1 block text-[12px] text-fg-subtle">
+                          <span class="mt-1 block text-meta text-fg-subtle">
                             {{
                               'modules.settings.dependsOn'
                                 | transloco: { modules: names(c.dependsOn) }
@@ -374,7 +369,7 @@ type TaskOutcome = 'created' | 'unavailable' | 'failed' | null;
                     "
                   >
                     <span class="flex flex-wrap items-center gap-2">
-                      <span class="text-[13.5px] font-bold text-fg">{{
+                      <span class="text-ui font-bold text-fg">{{
                         roleNameKey(role) | transloco
                       }}</span>
                       @if (suggestedRoles().has(role)) {
@@ -383,7 +378,7 @@ type TaskOutcome = 'created' | 'unavailable' | 'failed' | null;
                         }}</app-badge>
                       }
                     </span>
-                    <span class="mt-0.5 block text-[12.5px] text-fg-muted">{{
+                    <span class="mt-0.5 block text-meta text-fg-muted">{{
                       roleDescriptionKey(role) | transloco
                     }}</span>
                   </li>
@@ -392,7 +387,7 @@ type TaskOutcome = 'created' | 'unavailable' | 'failed' | null;
               <div class="mt-4 flex flex-wrap gap-2">
                 <a
                   routerLink="/settings"
-                  class="inline-flex h-8 items-center gap-2 rounded-tile border border-border bg-surface px-3 text-[13px] font-semibold text-fg hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-accent"
+                  class="inline-flex h-8 items-center gap-2 rounded-tile border border-border bg-surface px-3 text-ui font-semibold text-fg hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-accent"
                 >
                   <app-icon name="userplus" [size]="15" /> {{ w + '.roles.invite' | transloco }}
                 </a>
@@ -426,10 +421,10 @@ type TaskOutcome = 'created' | 'unavailable' | 'failed' | null;
                           (change)="toggleTask(task.id, $any($event.target).checked)"
                         />
                         <span>
-                          <span class="block text-[13.5px] font-semibold text-fg">{{
+                          <span class="block text-ui font-semibold text-fg">{{
                             w + '.tasks.items.' + task.id + '.title' | transloco
                           }}</span>
-                          <span class="block text-[12.5px] text-fg-muted">
+                          <span class="block text-meta text-fg-muted">
                             {{ w + '.tasks.items.' + task.id + '.description' | transloco }}
                             {{ w + '.tasks.dueIn' | transloco: { days: task.dueInDays } }}
                           </span>
@@ -459,7 +454,7 @@ type TaskOutcome = 'created' | 'unavailable' | 'failed' | null;
                   w + '.done.finished' | transloco
                 }}</app-alert>
                 @if (result.length) {
-                  <p class="text-[13.5px] text-fg">
+                  <p class="text-ui text-fg">
                     {{ w + '.done.enabledList' | transloco: { modules: names(result) } }}
                   </p>
                 }
@@ -495,19 +490,19 @@ type TaskOutcome = 'created' | 'unavailable' | 'failed' | null;
                 <div class="mt-4 flex flex-wrap gap-2">
                   <a
                     routerLink="/dashboard"
-                    class="inline-flex h-9 items-center gap-2 rounded-tile border border-transparent bg-accent px-4 text-[13.5px] font-semibold text-white hover:bg-accent-2 focus-visible:outline-2 focus-visible:outline-accent"
+                    class="inline-flex h-9 items-center gap-2 rounded-tile border border-transparent bg-accent px-4 text-ui font-semibold text-white hover:bg-accent-2 focus-visible:outline-2 focus-visible:outline-accent"
                   >
                     {{ w + '.done.toDashboard' | transloco }}
                   </a>
                   <a
                     routerLink="/settings/modules"
-                    class="inline-flex h-9 items-center gap-2 rounded-tile border border-border bg-surface px-4 text-[13.5px] font-semibold text-fg hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-accent"
+                    class="inline-flex h-9 items-center gap-2 rounded-tile border border-border bg-surface px-4 text-ui font-semibold text-fg hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-accent"
                   >
                     {{ w + '.done.toModules' | transloco }}
                   </a>
                 </div>
               } @else {
-                <p class="text-[13.5px] text-fg">
+                <p class="text-ui text-fg">
                   {{
                     (selected().size ? w + '.done.summary' : w + '.done.summaryNone')
                       | transloco: { modules: names(selectedList()) }
@@ -547,11 +542,9 @@ type TaskOutcome = 'created' | 'unavailable' | 'failed' | null;
             </div>
           }
         </app-card>
-
-        @if (step() === 'modules' || step() === 'frameworks') {
-          <app-modules-lesson class="mt-5 block" />
-        }
       }
+
+      <app-why-it-matters class="mt-6 block" scope="settings" page="setup" />
     </div>
   `,
 })
@@ -570,7 +563,6 @@ export class SetupWizard {
   private readonly router = inject(Router);
   private readonly heading = viewChild<ElementRef<HTMLElement>>('stepHeading');
 
-  protected readonly clauses = GUIDE_CLAUSES.setup;
   protected readonly steps = SETUP_STEPS;
   protected readonly frameworks = FRAMEWORK_KEYS;
   protected readonly sizeBands = SIZE_BANDS;

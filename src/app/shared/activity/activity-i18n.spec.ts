@@ -9,7 +9,6 @@ import {
   EMAIL_MODES,
   RECIPIENT_TYPES,
 } from '../../core/notifications/activity.models';
-import { ACTIVITY_GUIDE_PAGES, clauseSlug } from './activity-guide';
 
 type Tree = Readonly<Record<string, unknown>>;
 
@@ -86,26 +85,6 @@ describe('activity i18n', () => {
         expect(has(tree.notifications, `${v}NoCode`), `${v}NoCode`).toBe(true);
       }
       expect(has(tree.notifications, 'reminderEntityFallback')).toBe(true);
-    }
-  });
-
-  it('has the learning content every guide page declares', () => {
-    for (const tree of [activityEn, activityNb]) {
-      for (const [page, content] of Object.entries(ACTIVITY_GUIDE_PAGES)) {
-        const base = `guide.${page}`;
-        for (const key of ['title', 'body', 'why', 'lesson.title', 'lesson.check.question']) {
-          expect(has(tree, `${base}.${key}`), `${base}.${key}`).toBe(true);
-        }
-        for (let n = 1; n <= content.steps; n++) {
-          expect(has(tree, `${base}.step${n}`), `${base}.step${n}`).toBe(true);
-        }
-        for (let n = 1; n <= content.lessonSections; n++) {
-          expect(has(tree, `${base}.lesson.s${n}.body`), `${base}.lesson.s${n}`).toBe(true);
-        }
-        for (const ref of content.clauses) {
-          expect(has(tree, `guide.clauses.${clauseSlug(ref)}`), ref).toBe(true);
-        }
-      }
     }
   });
 

@@ -119,7 +119,11 @@ describe('SetupWizard', () => {
     http = TestBed.inject(HttpTestingController);
   });
 
-  afterEach(() => http.verify());
+  afterEach(() => {
+    // The help strip loads its guidance file; the page requests are what is verified here.
+    http.match((req) => req.url.startsWith('/assets/guidance/'));
+    http.verify();
+  });
 
   it('starts at the profile and saves it before moving on', async () => {
     await open(null);

@@ -1,25 +1,25 @@
 <div class="mx-auto max-w-[1080px] px-8 pt-7 pb-12">
   <div class="mb-[18px]">
-    <h1 class="font-display text-[26px] font-bold tracking-[-0.025em] text-fg">
+    <h1 class="font-display text-page font-bold text-fg">
       {{ 'admin.org.title' | transloco }}
     </h1>
-    <div class="mt-1.5 text-[14px] text-fg-muted">{{ 'admin.org.subtitle' | transloco }}</div>
+    <div class="mt-1.5 text-body text-fg-muted">{{ 'admin.org.subtitle' | transloco }}</div>
   </div>
 
   <div class="grid gap-5 lg:grid-cols-[1fr_320px]">
     <app-card [padded]="false">
       @if (loading()) {
-        <div class="px-4 py-10 text-center text-[14px] text-fg-muted">
+        <div class="px-4 py-10 text-center text-body text-fg-muted">
           {{ 'common.loading' | transloco }}
         </div>
       } @else if (orgs().length === 0) {
-        <div class="px-4 py-10 text-center text-[14px] text-fg-muted">
+        <div class="px-4 py-10 text-center text-body text-fg-muted">
           {{ 'admin.org.empty' | transloco }}
         </div>
       } @else {
-        <table class="w-full text-left text-[13.5px]">
+        <table class="w-full text-left text-ui">
           <thead>
-            <tr class="border-b border-border text-[12px] font-semibold text-fg-subtle">
+            <tr class="border-b border-border text-meta font-semibold text-fg-subtle">
               <th class="px-4 py-3 font-semibold">{{ 'admin.org.name' | transloco }}</th>
               <th class="px-4 py-3 font-semibold">{{ 'admin.org.slug' | transloco }}</th>
               <th class="px-4 py-3 text-right font-semibold">
@@ -52,7 +52,7 @@
     </app-card>
 
     <app-card>
-      <h2 class="font-display text-[16px] font-bold tracking-[-0.02em] text-fg">
+      <h2 class="font-display text-section font-bold tracking-[-0.02em] text-fg">
         {{ 'admin.org.create' | transloco }}
       </h2>
       <form class="mt-4 flex flex-col gap-4" [formGroup]="form" (ngSubmit)="create()">
@@ -67,7 +67,7 @@
         @if (slugTaken()) {
           <p
             role="alert"
-            class="rounded-tile border border-fail/30 bg-fail-soft px-3 py-2 text-[13px] font-medium text-fail"
+            class="rounded-tile border border-fail/30 bg-fail-soft px-3 py-2 text-ui font-medium text-fail"
           >
             {{ 'admin.org.slugTaken' | transloco }}
           </p>

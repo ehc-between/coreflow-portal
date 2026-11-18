@@ -1,6 +1,6 @@
 <div class="mx-auto max-w-[1080px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
   @if (loading()) {
-    <div class="py-10 text-center text-[14px] text-fg-muted">
+    <div class="py-10 text-center text-body text-fg-muted">
       {{ 'common.loading' | transloco }}
     </div>
   } @else if (org(); as org) {
@@ -78,18 +78,18 @@
       <div class="flex flex-col gap-5">
         <app-card [padded]="false">
           <div class="border-b border-border px-4 py-3">
-            <h2 class="font-display text-[16px] font-bold tracking-[-0.02em] text-fg">
+            <h2 class="font-display text-section font-bold tracking-[-0.02em] text-fg">
               {{ 'admin.members.title' | transloco }}
             </h2>
           </div>
           @if (org.members.length === 0) {
-            <div class="px-4 py-8 text-center text-[14px] text-fg-muted">
+            <div class="px-4 py-8 text-center text-body text-fg-muted">
               {{ 'admin.members.empty' | transloco }}
             </div>
           } @else {
-            <table class="w-full text-left text-[13.5px]">
+            <table class="w-full text-left text-ui">
               <thead>
-                <tr class="border-b border-border text-[12px] font-semibold text-fg-subtle">
+                <tr class="border-b border-border text-meta font-semibold text-fg-subtle">
                   <th class="px-4 py-3 font-semibold">{{ 'admin.members.email' | transloco }}</th>
                   <th class="px-4 py-3 font-semibold">{{ 'admin.members.name' | transloco }}</th>
                   <th class="px-4 py-3 font-semibold">{{ 'admin.members.roles' | transloco }}</th>
@@ -162,18 +162,18 @@
 
         <app-card [padded]="false">
           <div class="border-b border-border px-4 py-3">
-            <h2 class="font-display text-[16px] font-bold tracking-[-0.02em] text-fg">
+            <h2 class="font-display text-section font-bold tracking-[-0.02em] text-fg">
               {{ 'admin.invite.pending' | transloco }}
             </h2>
           </div>
           @if (invitations().length === 0) {
-            <div class="px-4 py-8 text-center text-[14px] text-fg-muted">
+            <div class="px-4 py-8 text-center text-body text-fg-muted">
               {{ 'admin.invite.pendingEmpty' | transloco }}
             </div>
           } @else {
-            <table class="w-full text-left text-[13.5px]">
+            <table class="w-full text-left text-ui">
               <thead>
-                <tr class="border-b border-border text-[12px] font-semibold text-fg-subtle">
+                <tr class="border-b border-border text-meta font-semibold text-fg-subtle">
                   <th class="px-4 py-3 font-semibold">{{ 'admin.members.email' | transloco }}</th>
                   <th class="px-4 py-3 font-semibold">{{ 'admin.invite.role' | transloco }}</th>
                   <th class="px-4 py-3 font-semibold">{{ 'admin.invite.expires' | transloco }}</th>
@@ -206,7 +206,7 @@
       </div>
 
       <app-card>
-        <h2 class="font-display text-[16px] font-bold tracking-[-0.02em] text-fg">
+        <h2 class="font-display text-section font-bold tracking-[-0.02em] text-fg">
           {{ 'admin.invite.title' | transloco }}
         </h2>
         <form class="mt-4 flex flex-col gap-4" [formGroup]="form" (ngSubmit)="invite()">
@@ -225,7 +225,7 @@
           @if (inviteConflict()) {
             <p
               role="alert"
-              class="rounded-tile border border-fail/30 bg-fail-soft px-3 py-2 text-[13px] font-medium text-fail"
+              class="rounded-tile border border-fail/30 bg-fail-soft px-3 py-2 text-ui font-medium text-fail"
             >
               {{ 'admin.invite.conflict' | transloco }}
             </p>
@@ -236,17 +236,17 @@
             {{ 'admin.invite.send' | transloco }}
           </app-button>
 
-          <p class="text-[12px] leading-snug text-fg-subtle">
+          <p class="text-meta leading-snug text-fg-subtle">
             {{ 'admin.invite.emailNote' | transloco }}
           </p>
         </form>
 
         @if (lastInvite()?.accept_url; as acceptUrl) {
           <div class="mt-5 rounded-tile border border-accent-border bg-accent-soft p-3">
-            <p class="text-[13px] font-semibold text-accent">
+            <p class="text-ui font-semibold text-accent">
               {{ 'admin.invite.linkTitle' | transloco }}
             </p>
-            <p class="mt-0.5 text-[12px] text-fg-muted">
+            <p class="mt-0.5 text-meta text-fg-muted">
               {{ 'admin.invite.linkHint' | transloco }}
             </p>
             <div class="mt-2 flex items-center gap-2">
@@ -256,7 +256,7 @@
                 [value]="acceptUrl"
                 [attr.aria-label]="'admin.invite.linkTitle' | transloco"
                 (focus)="$any($event.target).select()"
-                class="h-9 w-full rounded-[10px] border border-border bg-bg px-3 text-[12.5px] text-fg outline-none"
+                class="h-9 w-full rounded-tile border border-border bg-bg px-3 text-meta text-fg outline-none"
               />
               <app-button variant="secondary" size="sm" (click)="copyAcceptUrl()">
                 <app-icon name="link" [size]="15" />
@@ -268,7 +268,7 @@
       </app-card>
     </div>
   } @else {
-    <div class="py-10 text-center text-[14px] text-fg-muted">
+    <div class="py-10 text-center text-body text-fg-muted">
       {{ 'admin.org.notFound' | transloco }}
     </div>
   }

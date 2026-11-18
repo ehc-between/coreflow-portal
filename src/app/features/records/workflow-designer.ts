@@ -7,6 +7,8 @@ import {
   signal,
   untracked,
 } from '@angular/core';
+import { WhyItMatters } from '../../shared/guidance/why-it-matters';
+import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -51,12 +53,7 @@ import {
 import { AiDraftPanel } from './designer/ai-draft-panel';
 import { VersionEntry, VersionHistory } from './designer/version-history';
 import { WorkflowEditor } from './designer/workflow-editor';
-import {
-  RecordsFieldHelp,
-  RecordsGuideIntro,
-  RecordsLesson,
-  RecordsWhy,
-} from './guidance/records-guidance';
+import { RecordsFieldHelp } from './guidance/records-guidance';
 import { providePageContext } from '../../core/ai/page-context';
 
 /**
@@ -72,6 +69,8 @@ import { providePageContext } from '../../core/ai/page-context';
     FormsModule,
     RouterLink,
     TranslocoPipe,
+    HelpStrip,
+    WhyItMatters,
     Alert,
     Badge,
     Button,
@@ -82,9 +81,6 @@ import { providePageContext } from '../../core/ai/page-context';
     AiDraftPanel,
     VersionHistory,
     WorkflowEditor,
-    RecordsGuideIntro,
-    RecordsWhy,
-    RecordsLesson,
     RecordsFieldHelp,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -93,31 +89,31 @@ import { providePageContext } from '../../core/ai/page-context';
       <a
         routerLink="/settings/record-types"
         [queryParams]="{ tab: 'workflows' }"
-        class="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
+        class="mb-3 inline-flex items-center gap-1.5 text-ui font-semibold text-fg-muted hover:text-fg"
       >
         <app-icon name="back" [size]="16" />
         {{ 'records.backToList' | transloco }}
       </a>
 
       @if (loading()) {
-        <p class="py-10 text-center text-[14px] text-fg-muted">
+        <p class="py-10 text-center text-body text-fg-muted">
           {{ 'common.loading' | transloco }}
         </p>
       } @else if (notFound()) {
         <app-card>
-          <p class="px-2 py-8 text-center text-[14px] text-fg-muted">
+          <p class="px-2 py-8 text-center text-body text-fg-muted">
             {{ 'records.workflow.notFound' | transloco }}
           </p>
         </app-card>
       } @else {
         <div class="mb-4 flex flex-wrap items-end justify-between gap-4">
           <div class="min-w-0">
-            <h1 class="font-display text-[24px] font-bold tracking-[-0.025em] text-fg">
+            <h1 class="font-display text-page font-bold text-fg">
               {{ isNew() ? ('records.workflow.newTitle' | transloco) : name() || workflow()?.name }}
             </h1>
-            <div class="mt-1.5 flex flex-wrap items-center gap-2 text-[13px] text-fg-muted">
+            <div class="mt-1.5 flex flex-wrap items-center gap-2 text-ui text-fg-muted">
               @if (workflow(); as wf) {
-                <span class="font-mono text-[12px]">{{ wf.key }}</span>
+                <span class="font-mono text-meta">{{ wf.key }}</span>
                 <app-badge tone="neutral">{{ moduleLabel(wf.module) | transloco }}</app-badge>
                 @if (wf.current_version) {
                   <app-badge tone="accent">
@@ -143,13 +139,10 @@ import { providePageContext } from '../../core/ai/page-context';
                 {{ 'records.list.describe' | transloco }}
               </app-button>
             }
-            <app-records-lesson lesson="workflows-101" />
           </div>
         </div>
 
-        <div class="mb-5">
-          <app-records-guide-intro page="workflow" />
-        </div>
+        <app-help-strip scope="records" page="workflow" lesson="workflows-101" />
 
         @if (viewingOld()) {
           <div class="mb-4 flex flex-wrap items-center gap-3">
@@ -229,10 +222,10 @@ import { providePageContext } from '../../core/ai/page-context';
           <aside class="flex flex-col gap-4">
             @if (canAdmin() && !viewingOld()) {
               <app-card>
-                <h2 class="mb-2 text-[12px] font-bold tracking-[0.06em] text-fg-subtle uppercase">
+                <h2 class="mb-2 text-meta font-bold tracking-[0.06em] text-fg-subtle uppercase">
                   {{ 'records.designer.publish' | transloco }}
                 </h2>
-                <p class="mb-3 text-[12.5px] text-fg-muted">
+                <p class="mb-3 text-meta text-fg-muted">
                   {{
                     (dirtyDefinition() || isNew()
                       ? 'records.workflow.publishHint'
@@ -254,7 +247,7 @@ import { providePageContext } from '../../core/ai/page-context';
                   ></textarea>
                 </app-form-field>
                 @if (visibleBlockers().length) {
-                  <ul class="mt-2 text-[12px] font-medium text-fail" role="alert">
+                  <ul class="mt-2 text-meta font-medium text-fail" role="alert">
                     @for (b of visibleBlockers(); track b) {
                       <li>{{ b | transloco }}</li>
                     }
@@ -275,11 +268,11 @@ import { providePageContext } from '../../core/ai/page-context';
               </app-card>
             }
 
-            <app-records-why page="workflow" />
+            <app-why-it-matters scope="records" page="workflow" />
 
             @if (!isNew()) {
               <app-card>
-                <h2 class="mb-2 text-[12px] font-bold tracking-[0.06em] text-fg-subtle uppercase">
+                <h2 class="mb-2 text-meta font-bold tracking-[0.06em] text-fg-subtle uppercase">
                   {{ 'records.workflow.usedBy' | transloco }}
                 </h2>
                 @if (usedBy().length) {
@@ -288,7 +281,7 @@ import { providePageContext } from '../../core/ai/page-context';
                       <li>
                         <a
                           [routerLink]="['/settings/record-types', rt.id]"
-                          class="text-[13px] font-semibold text-accent hover:underline"
+                          class="text-ui font-semibold text-accent hover:underline"
                         >
                           {{ rt.name }}
                         </a>
@@ -296,7 +289,7 @@ import { providePageContext } from '../../core/ai/page-context';
                     }
                   </ul>
                 } @else {
-                  <p class="text-[12.5px] text-fg-muted">
+                  <p class="text-meta text-fg-muted">
                     {{ 'records.workflow.unused' | transloco }}
                   </p>
                 }

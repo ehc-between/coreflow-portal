@@ -23,11 +23,11 @@ import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog'
 import { Icon } from '../../../shared/ui/icon/icon';
 import { Switch } from '../../../shared/ui/switch/switch';
 import { AskPanelService } from '../../ask/ask-panel.service';
-import { GUIDE_CLAUSES, frameworkShortKey } from '../frameworks';
-import { ModulesGuide } from '../guide/modules-guide';
+import { frameworkShortKey } from '../frameworks';
+import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { providePageContext } from '../../../core/ai/page-context';
-import { ModulesLesson } from '../guide/modules-lesson';
 import { moduleDescriptionKey, moduleNameKey, moduleNameList } from '../module-names';
 
 export type ModuleStatusFilter = 'all' | 'enabled' | 'disabled';
@@ -101,8 +101,8 @@ export function scopeGaps(
     ConfirmDialog,
     Icon,
     Switch,
-    ModulesGuide,
-    ModulesLesson,
+    HelpStrip,
+    WhyItMatters,
     PageHeader,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -124,7 +124,7 @@ export function scopeGaps(
           </app-button>
           <a
             routerLink="/setup"
-            class="inline-flex h-8 items-center gap-2 rounded-tile border border-border bg-surface px-3 text-[13px] font-semibold text-fg hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-accent"
+            class="inline-flex h-8 items-center gap-2 rounded-tile border border-border bg-surface px-3 text-ui font-semibold text-fg hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-accent"
           >
             <app-icon name="sliders" [size]="15" />
             {{ 'modules.settings.runWizard' | transloco }}
@@ -132,7 +132,7 @@ export function scopeGaps(
         </div>
       </div>
 
-      <app-modules-guide class="mb-5 block" page="modules" [steps]="3" [clauses]="clauses" />
+      <app-help-strip scope="settings" page="modules" lesson="modules-basics" />
 
       @for (gap of gaps(); track gap.module.key) {
         <p
@@ -159,26 +159,26 @@ export function scopeGaps(
 
       @if (!orgId()) {
         <app-card>
-          <p class="py-8 text-center text-[14px] text-fg-muted">
+          <p class="py-8 text-center text-body text-fg-muted">
             {{ 'modules.common.noOrg' | transloco }}
           </p>
         </app-card>
       } @else {
         <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end" role="search">
-          <label class="flex flex-1 flex-col gap-1 text-[12.5px] font-semibold text-fg-muted">
+          <label class="flex flex-1 flex-col gap-1 text-meta font-semibold text-fg-muted">
             {{ 'modules.settings.search' | transloco }}
             <input
               type="search"
-              class="h-9 rounded-[10px] border border-border bg-bg px-3 text-[13.5px] font-normal text-fg outline-none focus:border-accent"
+              class="h-9 rounded-tile border border-border bg-bg px-3 text-ui font-normal text-fg outline-none focus:border-accent"
               [value]="query()"
               (input)="query.set($any($event.target).value)"
               [placeholder]="'modules.settings.searchPlaceholder' | transloco"
             />
           </label>
-          <label class="flex flex-col gap-1 text-[12.5px] font-semibold text-fg-muted">
+          <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted">
             {{ 'modules.settings.statusFilter' | transloco }}
             <select
-              class="h-9 rounded-[10px] border border-border bg-bg px-2 text-[13.5px] font-normal text-fg outline-none focus:border-accent"
+              class="h-9 rounded-tile border border-border bg-bg px-2 text-ui font-normal text-fg outline-none focus:border-accent"
               [value]="status()"
               (change)="status.set($any($event.target).value)"
             >
@@ -189,10 +189,10 @@ export function scopeGaps(
               }
             </select>
           </label>
-          <label class="flex flex-col gap-1 text-[12.5px] font-semibold text-fg-muted">
+          <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted">
             {{ 'modules.settings.frameworkFilter' | transloco }}
             <select
-              class="h-9 rounded-[10px] border border-border bg-bg px-2 text-[13.5px] font-normal text-fg outline-none focus:border-accent"
+              class="h-9 rounded-tile border border-border bg-bg px-2 text-ui font-normal text-fg outline-none focus:border-accent"
               [value]="framework()"
               (change)="framework.set($any($event.target).value)"
             >
@@ -210,14 +210,14 @@ export function scopeGaps(
 
         @if (loading()) {
           <app-card>
-            <p class="py-10 text-center text-[14px] text-fg-muted">
+            <p class="py-10 text-center text-body text-fg-muted">
               {{ 'common.loading' | transloco }}
             </p>
           </app-card>
         } @else if (loadFailed()) {
           <app-card>
             <div class="flex flex-col items-center gap-3 py-10 text-center">
-              <p class="text-[14px] text-fg-muted">{{ 'modules.common.loadFailed' | transloco }}</p>
+              <p class="text-body text-fg-muted">{{ 'modules.common.loadFailed' | transloco }}</p>
               <app-button size="sm" variant="secondary" (click)="load()">
                 {{ 'modules.common.retry' | transloco }}
               </app-button>
@@ -226,16 +226,16 @@ export function scopeGaps(
         } @else if (modules().length === 0) {
           <app-card>
             <div class="flex flex-col items-center gap-2 py-10 text-center">
-              <p class="text-[15px] font-bold text-fg">
+              <p class="text-card font-bold text-fg">
                 {{ 'modules.settings.empty.title' | transloco }}
               </p>
-              <p class="max-w-md text-[13.5px] text-fg-muted">
+              <p class="max-w-md text-ui text-fg-muted">
                 {{ 'modules.settings.empty.body' | transloco }}
               </p>
             </div>
           </app-card>
         } @else {
-          <p class="mb-2 text-[13px] text-fg-muted" role="status">
+          <p class="mb-2 text-ui text-fg-muted" role="status">
             {{
               'modules.settings.count'
                 | transloco
@@ -244,7 +244,7 @@ export function scopeGaps(
           </p>
           @if (visible().length === 0) {
             <app-card>
-              <p class="py-8 text-center text-[14px] text-fg-muted">
+              <p class="py-8 text-center text-body text-fg-muted">
                 {{ 'modules.settings.noMatches' | transloco }}
               </p>
             </app-card>
@@ -258,10 +258,10 @@ export function scopeGaps(
                 >
                   <div class="flex items-start gap-3">
                     <div class="min-w-0 flex-1">
-                      <h2 class="text-[15px] font-bold text-fg" [id]="'module-' + m.key">
+                      <h2 class="text-card font-bold text-fg" [id]="'module-' + m.key">
                         {{ nameKey(m) | transloco }}
                       </h2>
-                      <p class="mt-0.5 text-[13px] text-fg-muted">
+                      <p class="mt-0.5 text-ui text-fg-muted">
                         {{ descriptionKey(m) | transloco }}
                       </p>
                     </div>
@@ -304,14 +304,14 @@ export function scopeGaps(
                     </div>
                   }
                   @if (m.depends_on.length) {
-                    <p class="text-[12.5px] text-fg-subtle">
+                    <p class="text-meta text-fg-subtle">
                       {{
                         'modules.settings.dependsOn' | transloco: { modules: names(m.depends_on) }
                       }}
                     </p>
                   }
                   @if (m.required_by.length) {
-                    <p class="text-[12.5px] text-fg-subtle">
+                    <p class="text-meta text-fg-subtle">
                       {{
                         'modules.settings.requiredBy' | transloco: { modules: names(m.required_by) }
                       }}
@@ -320,7 +320,7 @@ export function scopeGaps(
                   @if (m.enabled && m.portal_path) {
                     <a
                       [routerLink]="['/', m.portal_path]"
-                      class="self-start text-[13px] font-semibold text-accent hover:underline"
+                      class="self-start text-ui font-semibold text-accent hover:underline"
                     >
                       {{ 'modules.settings.open' | transloco }}
                     </a>
@@ -330,8 +330,6 @@ export function scopeGaps(
             </ul>
           }
         }
-
-        <app-modules-lesson class="mt-6 block" />
       }
 
       <app-confirm-dialog
@@ -345,6 +343,8 @@ export function scopeGaps(
         (confirmed)="confirmDisable()"
         (cancelled)="pendingDisable.set(null)"
       />
+
+      <app-why-it-matters class="mt-6 block" scope="settings" page="modules" />
     </div>
   `,
 })
@@ -357,7 +357,6 @@ export class ModulesSettings {
   private readonly ask = inject(AskPanelService);
   private readonly language = inject(LanguageService);
 
-  protected readonly clauses = GUIDE_CLAUSES.modules;
   protected readonly frameworks = FRAMEWORK_KEYS;
   protected readonly statusOptions: readonly ModuleStatusFilter[] = ['all', 'enabled', 'disabled'];
   protected readonly frameworkShortKey = frameworkShortKey;

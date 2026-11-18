@@ -9,8 +9,6 @@
   "list": {
     "title": "Registertyper og arbeidsflyter",
     "subtitle": "Bestem hva hver type registrering skal inneholde og hvilke steg den går gjennom, fra registrering til lukking.",
-    "explain": "Forklar denne siden",
-    "explainPrompt": "Forklar hvordan registertyper og arbeidsflyter fungerer i CoreFlow: hva en registertype er, hva en arbeidsflyt er, hvordan versjoner fungerer og hvordan godkjenninger og frister henger sammen. Hold det kort og praktisk.",
     "newType": "Ny registertype",
     "newWorkflow": "Ny arbeidsflyt",
     "describe": "Beskriv prosessen din",
@@ -43,7 +41,7 @@
     "installed": "Installert",
     "install": "Installer mal",
     "installedToast": "«{{ name }}» er installert. Gå gjennom den og tilpass den til hvordan dere jobber.",
-    "documents": "Dokumenterer:"
+    "documents": "Støtter vanligvis:"
   },
   "designer": {
     "newTitle": "Ny registertype",
@@ -108,7 +106,7 @@
     "deletedToast": "Registertypen er slettet.",
     "blockKeyEmpty": "Legg inn en nøkkel under navnet.",
     "codePrefixPlaceholder": "AV",
-    "requirementsHint": "Poster av denne typen teller som dokumentasjon for disse kravene når noen fyller ut de koblede feltene."
+    "requirementsHint": "Dette er kravene denne typen post vanligvis støtter. De er bare forslag: et krav regnes som dekket først når det finnes en post av denne typen der de koblede feltene er fylt ut."
   },
   "workflow": {
     "newTitle": "Ny arbeidsflyt",
@@ -326,18 +324,6 @@
     "line": "{{ transition }} · forespurt av {{ name }} {{ when }}"
   },
   "guide": {
-    "introLabel": "Om denne siden",
-    "show": "Vis",
-    "hide": "Skjul",
-    "whyTitle": "Hvorfor dette er viktig",
-    "explainClause": "Forklar {{ clause }}",
-    "clausePrompt": "Forklar med enkle ord hva {{ clause }} krever, og hvordan konfigurerbare registertyper og arbeidsflyter i CoreFlow hjelper med å oppfylle det. Avslutt med ett kort kontrollspørsmål.",
-    "lessonButton": "Leksjon ({{ minutes }} min)",
-    "lessonMinutes": "Leksjon på {{ minutes }} minutter",
-    "close": "Lukk",
-    "quiz": "Sjekk hva du har lært",
-    "correct": "Riktig.",
-    "incorrect": "Ikke helt.",
     "example": "For eksempel: {{example}}"
   },
   "langs": {

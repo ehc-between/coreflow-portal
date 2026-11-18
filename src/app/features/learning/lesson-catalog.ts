@@ -39,6 +39,7 @@ export const LESSON_SCOPES: readonly string[] = [
   'tasks',
   'kit',
   'search',
+  'settings',
 ];
 
 export type LessonStatus = 'not_started' | 'in_progress' | 'completed';

@@ -78,16 +78,16 @@ export function sortSummary(
     <div class="mx-auto max-w-[1080px] px-4 pt-7 pb-12 sm:px-8">
       <a
         routerLink="/settings"
-        class="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
+        class="mb-3 inline-flex items-center gap-1.5 text-ui font-semibold text-fg-muted hover:text-fg"
       >
         <app-icon name="back" [size]="15" />
         {{ 'guidance.settings.backToSettings' | transloco }}
       </a>
       <div class="mb-[18px]">
-        <h1 class="font-display text-[26px] font-bold tracking-[-0.025em] text-fg">
+        <h1 class="font-display text-page font-bold text-fg">
           {{ 'guidance.settings.title' | transloco }}
         </h1>
-        <div class="mt-1.5 text-[14px] text-fg-muted">
+        <div class="mt-1.5 text-body text-fg-muted">
           {{ 'guidance.settings.subtitle' | transloco }}
         </div>
       </div>
@@ -99,16 +99,13 @@ export function sortSummary(
 
       @if (!orgId()) {
         <app-card>
-          <p class="px-2 py-8 text-center text-[14px] text-fg-muted">
+          <p class="px-2 py-8 text-center text-body text-fg-muted">
             {{ 'guidance.settings.noOrg' | transloco }}
           </p>
         </app-card>
       } @else if (!canManage() && !canReadLearning()) {
         <app-card>
-          <p
-            data-testid="guidance-no-access"
-            class="px-2 py-8 text-center text-[14px] text-fg-muted"
-          >
+          <p data-testid="guidance-no-access" class="px-2 py-8 text-center text-body text-fg-muted">
             {{ 'guidance.settings.noAccess' | transloco }}
           </p>
         </app-card>
@@ -118,13 +115,13 @@ export function sortSummary(
             <div class="mb-1 flex items-center gap-2">
               <h2
                 id="org-default-title"
-                class="font-display text-[18px] font-bold tracking-[-0.02em] text-fg"
+                class="font-display text-section font-bold tracking-[-0.02em] text-fg"
               >
                 {{ 'guidance.settings.defaultTitle' | transloco }}
               </h2>
               <app-field-help scope="platform" page="guidance-settings" field="default_level" />
             </div>
-            <p class="mb-3 text-[13px] text-fg-muted">
+            <p class="mb-3 text-ui text-fg-muted">
               {{ 'guidance.settings.defaultHint' | transloco }}
             </p>
             @if (defaultError()) {
@@ -148,7 +145,7 @@ export function sortSummary(
                   </app-button>
                 </div>
               } @else {
-                <p class="mt-2 text-[12.5px] text-fg-subtle">
+                <p class="mt-2 text-meta text-fg-subtle">
                   {{ 'guidance.settings.readOnly' | transloco }}
                 </p>
               }
@@ -159,7 +156,7 @@ export function sortSummary(
             <section data-testid="member-learning" aria-labelledby="member-learning-title">
               <h2
                 id="member-learning-title"
-                class="mb-3 font-display text-[18px] font-bold tracking-[-0.02em] text-fg"
+                class="mb-3 font-display text-section font-bold tracking-[-0.02em] text-fg"
               >
                 {{ 'guidance.settings.membersTitle' | transloco }}
               </h2>
@@ -167,7 +164,7 @@ export function sortSummary(
                 <input
                   type="search"
                   data-testid="member-search"
-                  class="h-9 min-w-0 flex-1 rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg outline-none focus:border-accent"
+                  class="h-9 min-w-0 flex-1 rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent"
                   [attr.aria-label]="'guidance.settings.searchMembers' | transloco"
                   [placeholder]="'guidance.settings.searchMembers' | transloco"
                   [value]="query()"
@@ -175,7 +172,7 @@ export function sortSummary(
                 />
                 <select
                   data-testid="member-scope"
-                  class="h-9 rounded-[10px] border border-border bg-bg px-2 text-[13.5px] text-fg outline-none focus:border-accent"
+                  class="h-9 rounded-tile border border-border bg-bg px-2 text-ui text-fg outline-none focus:border-accent"
                   [attr.aria-label]="'guidance.settings.filterScope' | transloco"
                   [value]="scopeFilter()"
                   (change)="setScope($any($event.target).value)"
@@ -187,7 +184,7 @@ export function sortSummary(
                 </select>
                 <select
                   data-testid="member-sort"
-                  class="h-9 rounded-[10px] border border-border bg-bg px-2 text-[13.5px] text-fg outline-none focus:border-accent"
+                  class="h-9 rounded-tile border border-border bg-bg px-2 text-ui text-fg outline-none focus:border-accent"
                   [attr.aria-label]="'guidance.centre.sort' | transloco"
                   [value]="sort()"
                   (change)="sort.set($any($event.target).value)"
@@ -205,7 +202,7 @@ export function sortSummary(
 
               <app-card [padded]="false">
                 @if (summaryLoading()) {
-                  <p class="px-4 py-8 text-center text-[13.5px] text-fg-muted">
+                  <p class="px-4 py-8 text-center text-ui text-fg-muted">
                     {{ 'guidance.loading' | transloco }}
                   </p>
                 } @else if (summaryError()) {
@@ -219,14 +216,14 @@ export function sortSummary(
                     [showAction]="false"
                   />
                 } @else if (rows().length === 0) {
-                  <p class="px-4 py-8 text-center text-[13.5px] text-fg-muted">
+                  <p class="px-4 py-8 text-center text-ui text-fg-muted">
                     {{ 'guidance.settings.noMatches' | transloco }}
                   </p>
                 } @else {
                   <div class="overflow-x-auto">
-                    <table class="w-full min-w-[560px] text-left text-[13px]">
+                    <table class="w-full min-w-[560px] text-left text-ui">
                       <thead>
-                        <tr class="border-b border-border text-[12px] text-fg-subtle">
+                        <tr class="border-b border-border text-meta text-fg-subtle">
                           <th scope="col" class="px-4 py-2.5 font-semibold">
                             {{ 'guidance.settings.colMember' | transloco }}
                           </th>

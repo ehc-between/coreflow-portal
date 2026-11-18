@@ -20,8 +20,8 @@ import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { AskPanelService } from '../../ask/ask-panel.service';
-import { GUIDE_CLAUSES } from '../frameworks';
-import { ModulesGuide } from '../guide/modules-guide';
+import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { providePageContext } from '../../../core/ai/page-context';
 import { TermRow, buildTermsForm, readTermsForm } from './terminology-form';
@@ -44,7 +44,8 @@ type Defaults = Readonly<Record<string, Readonly<Record<string, { one: string; o
     Card,
     ConfirmDialog,
     Icon,
-    ModulesGuide,
+    HelpStrip,
+    WhyItMatters,
     PageHeader,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -65,26 +66,26 @@ type Defaults = Readonly<Record<string, Readonly<Record<string, { one: string; o
         </app-button>
       </app-page-header>
 
-      <app-modules-guide class="mb-5 block" page="terminology" [steps]="3" [clauses]="clauses" />
+      <app-help-strip scope="settings" page="terminology" />
 
       <app-card class="mb-5 block">
-        <p class="text-[12px] font-bold tracking-[0.04em] text-fg-subtle uppercase">
+        <p class="text-meta font-bold tracking-[0.04em] text-fg-subtle uppercase">
           {{ t + '.previewLabel' | transloco }}
         </p>
-        <p class="mt-1 text-[14px] text-fg" data-testid="terminology-preview">
+        <p class="mt-1 text-body text-fg" data-testid="terminology-preview">
           {{ t + '.preview' | transloco }}
         </p>
       </app-card>
 
       @if (!orgId()) {
         <app-card>
-          <p class="py-8 text-center text-[14px] text-fg-muted">
+          <p class="py-8 text-center text-body text-fg-muted">
             {{ 'modules.common.noOrg' | transloco }}
           </p>
         </app-card>
       } @else if (loading()) {
         <app-card>
-          <p class="py-10 text-center text-[14px] text-fg-muted">
+          <p class="py-10 text-center text-body text-fg-muted">
             {{ 'common.loading' | transloco }}
           </p>
         </app-card>
@@ -92,7 +93,7 @@ type Defaults = Readonly<Record<string, Readonly<Record<string, { one: string; o
         <form [formGroup]="terms" (ngSubmit)="save()" novalidate>
           <app-card [padded]="false">
             <div
-              class="hidden grid-cols-[1.2fr_repeat(4,1fr)] gap-3 border-b border-border px-4 py-2.5 text-[12px] font-bold text-fg-subtle uppercase md:grid"
+              class="hidden grid-cols-[1.2fr_repeat(4,1fr)] gap-3 border-b border-border px-4 py-2.5 text-meta font-bold text-fg-subtle uppercase md:grid"
             >
               <span>{{ t + '.term' | transloco }}</span>
               @for (lang of langs; track lang) {
@@ -110,12 +111,12 @@ type Defaults = Readonly<Record<string, Readonly<Record<string, { one: string; o
                   class="grid gap-3 border-b border-border px-4 py-3 last:border-b-0 md:grid-cols-[1.2fr_repeat(4,1fr)] md:items-center"
                   [formGroupName]="key"
                 >
-                  <div class="text-[13.5px] font-semibold text-fg" [id]="'term-' + key">
+                  <div class="text-ui font-semibold text-fg" [id]="'term-' + key">
                     {{ label(key) }}
                   </div>
                   @for (lang of langs; track lang) {
                     @for (form of forms; track form) {
-                      <label class="flex flex-col gap-1 text-[12px] text-fg-subtle">
+                      <label class="flex flex-col gap-1 text-meta text-fg-subtle">
                         <span class="md:sr-only">
                           {{
                             t + (form === 'one' ? '.singular' : '.plural')
@@ -125,7 +126,7 @@ type Defaults = Readonly<Record<string, Readonly<Record<string, { one: string; o
                         <input
                           type="text"
                           maxlength="64"
-                          class="h-9 rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg outline-none focus:border-accent"
+                          class="h-9 rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent"
                           [formControlName]="lang + '_' + form"
                           [placeholder]="placeholder(key, lang, form)"
                           [attr.aria-describedby]="'term-' + key"
@@ -134,7 +135,7 @@ type Defaults = Readonly<Record<string, Readonly<Record<string, { one: string; o
                     }
                   }
                   @if (rowIncomplete(terms.controls[key])) {
-                    <p role="alert" class="text-[12px] font-medium text-fail md:col-span-5">
+                    <p role="alert" class="text-meta font-medium text-fail md:col-span-5">
                       {{ t + '.errors.incomplete' | transloco }}
                     </p>
                   }
@@ -172,6 +173,8 @@ type Defaults = Readonly<Record<string, Readonly<Record<string, { one: string; o
         (confirmed)="resetAll()"
         (cancelled)="confirmReset.set(false)"
       />
+
+      <app-why-it-matters class="mt-6 block" scope="settings" page="terminology" />
     </div>
   `,
 })
@@ -184,7 +187,6 @@ export class TerminologySettings {
   private readonly transloco = inject(TranslocoService);
   private readonly ask = inject(AskPanelService);
 
-  protected readonly clauses = GUIDE_CLAUSES.terminology;
   protected readonly langs = TERM_LANGS;
   protected readonly forms = ['one', 'other'] as const;
 

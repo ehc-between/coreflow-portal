@@ -62,19 +62,19 @@ import { lessonStatus } from '../lesson-catalog';
 
       @if (!canRead()) {
         <app-card>
-          <p class="px-2 py-8 text-center text-[14px] text-fg-muted">
+          <p class="px-2 py-8 text-center text-body text-fg-muted">
             {{ 'guidance.settings.noAccess' | transloco }}
           </p>
         </app-card>
       } @else if (error()) {
         <app-alert>{{ 'guidance.settings.loadError' | transloco }}</app-alert>
       } @else if (loading()) {
-        <p class="text-[13.5px] text-fg-muted">{{ 'guidance.loading' | transloco }}</p>
+        <p class="text-ui text-fg-muted">{{ 'guidance.loading' | transloco }}</p>
       } @else if (rows().length === 0) {
         <app-card>
           <p
             data-testid="member-progress-empty"
-            class="px-2 py-8 text-center text-[14px] text-fg-muted"
+            class="px-2 py-8 text-center text-body text-fg-muted"
           >
             {{ 'guidance.member.empty' | transloco }}
           </p>
@@ -82,9 +82,9 @@ import { lessonStatus } from '../lesson-catalog';
       } @else {
         <app-card [padded]="false">
           <div class="overflow-x-auto">
-            <table class="w-full min-w-[620px] text-left text-[13px]">
+            <table class="w-full min-w-[620px] text-left text-ui">
               <thead>
-                <tr class="border-b border-border text-[12px] text-fg-subtle">
+                <tr class="border-b border-border text-meta text-fg-subtle">
                   <th scope="col" class="px-4 py-2.5 font-semibold">
                     {{ 'guidance.member.colLesson' | transloco }}
                   </th>

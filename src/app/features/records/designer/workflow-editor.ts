@@ -74,7 +74,7 @@ function issuesAt(issues: readonly DefinitionIssue[], prefix: string): string[] 
 
       @if (globalIssues().length) {
         <ul
-          class="rounded-tile border border-fail/30 bg-fail-soft px-3 py-2 text-[12.5px] font-medium text-fail"
+          class="rounded-tile border border-fail/30 bg-fail-soft px-3 py-2 text-meta font-medium text-fail"
           role="alert"
         >
           @for (code of globalIssues(); track code) {
@@ -85,7 +85,7 @@ function issuesAt(issues: readonly DefinitionIssue[], prefix: string): string[] 
 
       <section [attr.aria-labelledby]="id + '-states'">
         <div class="mb-2 flex items-center justify-between gap-3">
-          <h3 [id]="id + '-states'" class="font-display text-[15px] font-bold text-fg">
+          <h3 [id]="id + '-states'" class="font-display text-card font-bold text-fg">
             {{ 'records.states.title' | transloco }}
           </h3>
           @if (!readonly()) {
@@ -162,13 +162,13 @@ function issuesAt(issues: readonly DefinitionIssue[], prefix: string): string[] 
                     (ngModelChange)="patchState(i, { sla_hours: toInt($event) })"
                   />
                   @if (state.sla_hours && state.sla_hours >= 24) {
-                    <p class="text-[11.5px] text-fg-subtle">
+                    <p class="text-micro text-fg-subtle">
                       {{ 'records.states.slaDays' | transloco: { days: slaDays(state.sla_hours) } }}
                     </p>
                   }
                 </app-form-field>
                 <div class="flex items-end gap-2 pb-1">
-                  <label class="flex items-center gap-1.5 text-[12.5px] text-fg">
+                  <label class="flex items-center gap-1.5 text-meta text-fg">
                     <input
                       type="radio"
                       class="h-4 w-4 accent-[var(--accent)]"
@@ -181,7 +181,7 @@ function issuesAt(issues: readonly DefinitionIssue[], prefix: string): string[] 
                   @if (!readonly()) {
                     <button
                       type="button"
-                      class="flex rounded-[8px] p-1.5 text-fg-subtle hover:bg-surface-2 hover:text-fail disabled:opacity-40"
+                      class="flex rounded-lg p-1.5 text-fg-subtle hover:bg-surface-2 hover:text-fail disabled:opacity-40"
                       [disabled]="def.states.length <= 1"
                       [attr.aria-label]="
                         'records.states.remove' | transloco: { name: stateName(state) }
@@ -194,7 +194,7 @@ function issuesAt(issues: readonly DefinitionIssue[], prefix: string): string[] 
                 </div>
               </fieldset>
               @if (stateIssues(i).length) {
-                <ul class="mt-2 text-[12px] font-medium text-fail">
+                <ul class="mt-2 text-meta font-medium text-fail">
                   @for (code of stateIssues(i); track code) {
                     <li>{{ issueText(code) | transloco }}</li>
                   }
@@ -207,7 +207,7 @@ function issuesAt(issues: readonly DefinitionIssue[], prefix: string): string[] 
 
       <section [attr.aria-labelledby]="id + '-transitions'">
         <div class="mb-2 flex items-center justify-between gap-3">
-          <h3 [id]="id + '-transitions'" class="font-display text-[15px] font-bold text-fg">
+          <h3 [id]="id + '-transitions'" class="font-display text-card font-bold text-fg">
             {{ 'records.transitions.title' | transloco }}
           </h3>
           @if (!readonly()) {
@@ -236,7 +236,7 @@ function issuesAt(issues: readonly DefinitionIssue[], prefix: string): string[] 
             </li>
           } @empty {
             <li
-              class="rounded-tile border border-dashed border-border px-4 py-6 text-center text-[13px] text-fg-muted"
+              class="rounded-tile border border-dashed border-border px-4 py-6 text-center text-ui text-fg-muted"
             >
               {{ 'records.transitions.empty' | transloco }}
             </li>

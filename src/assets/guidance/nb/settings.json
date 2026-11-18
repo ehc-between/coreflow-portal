@@ -1,0 +1,191 @@
+{
+  "pages": {
+    "notifications": {
+      "intro": {
+        "title": "Få med de riktige personene til riktig tid",
+        "body": "Alt som skjer i CoreFlow, registreres som aktivitet. Regler bestemmer hvilke aktiviteter som gir varsel, påminnelser holder fristene synlige, og eskalering sørger for at forsinket arbeid når noen som kan gjøre noe med det.",
+        "steps": [
+          "Gå gjennom reglene nedenfor. Hver varseltype har et fornuftig standardoppsett; endre det bare når organisasjonen trenger noe annet.",
+          "Angi hvor mange dager i forveien påminnelser sendes, og etter hvor mange dager over fristen arbeid eskaleres.",
+          "Gi hver avdeling en leder, slik at eskaleringer og regler for «avdelingsleder» når en faktisk person."
+        ]
+      },
+      "why": {
+        "body": "Standarder for styringssystemer forventer at dere bestemmer hva som kommuniseres, til hvem, når og hvordan, og at ansvar er tydelig. Konsekvente varsler og eskalering viser dette i praksis, og revisjonsloggen registrerer alle endringer i disse innstillingene.",
+        "clauses": ["hs:7.4", "hs:5.3"]
+      }
+    },
+    "notification-preferences": {
+      "intro": {
+        "title": "Få varslene til å fungere for deg",
+        "body": "Organisasjonen bestemmer hvilke varseltyper som når deg. Her velger du hvordan de når deg: i appen, på e-post med en gang, i en daglig oppsummering eller ikke på e-post i det hele tatt.",
+        "steps": [
+          "Velg organisasjon i toppfeltet, og juster deretter hver kategori.",
+          "Bruk daglig oppsummering for ting du bare trenger å skumme, og e-post med en gang for ting du må gjøre noe med.",
+          "Angi stilletid, slik at hastemeldinger på e-post venter til arbeidsdagen starter."
+        ]
+      },
+      "why": {
+        "body": "Tydelig kommunikasjon i rett tid er et krav, ikke bare høflighet. Når du tilpasser varslene, forblir viktige meldinger synlige i stedet for å drukne i støy.",
+        "clauses": ["hs:7.4"]
+      }
+    },
+    "modules": {
+      "intro": {
+        "title": "Moduler tilpasser CoreFlow til styringssystemet",
+        "body": "Hver modul dekker ett område standardene krever, for eksempel risiko, revisjoner eller opplæring. Slå bare på det dere trenger; dere kan legge til mer etter hvert som systemet vokser.",
+        "steps": [
+          "Start med modulene oppsettsveiviseren anbefaler for standardene deres.",
+          "Hvert kort viser standardene modulen støtter. Klikk på en standard for å se alle modulene for den.",
+          "Når en modul slås av, skjules den, men registreringene beholdes."
+        ]
+      },
+      "why": {
+        "body": "Standardene forventer et definert sett med prosesser (prosesstilnærmingen) og risikobasert planlegging. Et bevisst valg av moduler dokumenterer hvilke prosesser systemet omfatter.",
+        "clauses": ["hs:4.4", "hs:6.1", "iso27001:6.1.3"]
+      }
+    },
+    "profile": {
+      "intro": {
+        "title": "Profilen beskriver konteksten deres",
+        "body": "ISO-styringssystemer starter med å forstå organisasjonen, interessentene og omfanget. Profilen er kortversjonen av den konteksten.",
+        "steps": [
+          "Fyll inn bransje, størrelse og landene dere driver i.",
+          "Kryss av standardene i omfang, og legg til sertifiseringsmål med datoer.",
+          "Velg rollen etter EUs KI-forordning. «Usikker foreløpig» er greit inntil videre."
+        ]
+      },
+      "why": {
+        "body": "Kapittel 4.1 til 4.3 krever at dere forstår konteksten, interessentenes behov og omfanget av systemet. Revisorer starter ofte her.",
+        "clauses": ["hs:4.1", "hs:4.2", "hs:4.3", "eu_ai_act:3"]
+      }
+    },
+    "terminology": {
+      "intro": {
+        "title": "Snakk organisasjonens språk",
+        "body": "Folk følger et system lettere når det bruker deres ord. Endre ordbruken her, så bruker CoreFlow den overalt.",
+        "steps": [
+          "Velg begrepene dere kaller noe annet, for eksempel «uoverensstemmelse» for avvik.",
+          "Fyll inn entall og flertall for hvert språk dere bruker.",
+          "Lagre, og se på forhåndsvisningen over listen."
+        ]
+      },
+      "why": {
+        "body": "Bevissthet og kommunikasjon (kapittel 7.4) fungerer bedre med kjent språk, og styrte dokumenter (kapittel 7.5) bør bruke begreper konsekvent.",
+        "clauses": ["hs:7.4", "hs:7.5"]
+      }
+    },
+    "setup": {
+      "intro": {
+        "title": "Kom i gang på noen minutter",
+        "body": "Veiviseren tar deg gjennom det grunnleggende i et styringssystem: kontekst, omfang, riktige moduler, roller og de første oppgavene.",
+        "steps": [
+          "Beskriv organisasjonen og velg rammeverkene i omfang.",
+          "Se gjennom de anbefalte modulene. Bruk «Spør hvorfor» hvis noe er uklart.",
+          "Inviter folk og start med noen få oppgaver."
+        ]
+      },
+      "why": {
+        "body": "Omfanget (kapittel 4.3), roller og ansvar (kapittel 5.3) og planlegging for risiko (kapittel 6.1) er grunnmuren alle senere revisjoner sjekker.",
+        "clauses": ["hs:4.3", "hs:5.3", "hs:6.1"]
+      }
+    }
+  },
+  "lessons": {
+    "reminders-and-escalation": {
+      "title": "Slik virker påminnelser og eskalering",
+      "minutes": 3,
+      "sections": [
+        {
+          "heading": "Påminnelser",
+          "body": "Hver morgen sjekker CoreFlow åpne elementer med frist. Elementer med frist innenfor påminnelsesvinduet sender en påminnelse om at fristen nærmer seg, til eiere og ansvarlige, og elementer over fristen sender en påminnelse om at fristen er passert. Hver person får høyst én av hver per element per dag."
+        },
+        {
+          "heading": "Eskalering",
+          "body": "Når et element har vært over fristen i hele eskaleringsperioden, eskaleres det én gang til avdelingslederen og/eller alle med eskaleringsrollen. Etter enda en hel periode eskaleres det igjen på neste nivå."
+        },
+        {
+          "heading": "Kanaler",
+          "body": "Varsler i appen vises under bjella. E-post kan sendes med en gang eller samles i den daglige oppsummeringen. Hver person kan finjustere kategorier og stilletid i sine egne varslingsinnstillinger."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Eskalering er satt til 3 dager. Et element er 7 dager over fristen. Hvor mange ganger har det blitt eskalert?",
+          "options": ["Én gang", "To ganger", "Sju ganger, én gang per dag"],
+          "answer": 1,
+          "explanation": "To ganger: én gang ved 3 dager over fristen (nivå 1) og én gang ved 6 dager over fristen (nivå 2)."
+        }
+      ],
+      "pass_mark": 1
+    },
+    "following-records": {
+      "title": "Følge poster",
+      "minutes": 2,
+      "sections": [
+        {
+          "heading": "Følg det du bryr deg om",
+          "body": "Bruk Følg-knappen på en post for å bli varslet om endringer, også når du ikke er eier eller ansvarlig. Den som oppretter og eier en post, blir ofte lagt til automatisk."
+        },
+        {
+          "heading": "Stilletid",
+          "body": "I stilletiden holdes e-post som skulle gått med en gang, tilbake til neste daglige oppsummering. Varsler i appen kommer fortsatt, så ingenting går tapt."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Du slår av varsler i appen for kommentarer, men beholder e-post Med en gang. Hva skjer når noen kommenterer?",
+          "options": [
+            "En e-post med en gang (med mindre det er i stilletiden din), men ingen oppføring under bjella",
+            "En oppføring under bjella, men ingen e-post",
+            "Ingenting før den daglige oppsummeringen"
+          ],
+          "answer": 0,
+          "explanation": "Du får en e-post med en gang (med mindre det er i stilletiden din), men ingen oppføring under bjella."
+        }
+      ],
+      "pass_mark": 1
+    },
+    "modules-basics": {
+      "title": "Rammeverk, moduler og styringssystemet",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "Én struktur, mange standarder",
+          "body": "ISO 9001, 27001, 14001, 42001 og 45001 deler samme kapittelstruktur, fra kontekst (4) til forbedring (10). Arbeid dere gjør én gang, for eksempel ledelsens gjennomgang, kan telle for flere standarder."
+        },
+        {
+          "heading": "Rammeverkene bestemmer kravene",
+          "body": "Et rammeverk er standarden eller regelverket dere følger. Det avgjør hva dere må kunne vise en revisor, for eksempel en risikovurdering eller opplæringsregistreringer."
+        },
+        {
+          "heading": "Modulene er der arbeidet skjer",
+          "body": "En modul er delen av CoreFlow der dere gjør arbeidet og tar vare på bevisene. Slå på modulene rammeverkene krever, og la resten være av til dere trenger dem."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Hva avgjør hvilke krav dere må oppfylle?",
+          "options": [
+            "Modulene dere slår på",
+            "Rammeverkene i omfang",
+            "Størrelsen på organisasjonen"
+          ],
+          "answer": 1,
+          "explanation": "Rammeverkene avgjør kravene; modulene er der dere oppfyller dem."
+        },
+        {
+          "question": "Hva skjer med registreringene når en modul slås av?",
+          "options": [
+            "De slettes",
+            "De flyttes til en annen modul",
+            "De beholdes og kommer tilbake når modulen slås på"
+          ],
+          "answer": 2,
+          "explanation": "Å slå av en modul skjuler den bare; registreringene blir liggende."
+        }
+      ],
+      "pass_mark": 0.8
+    }
+  }
+}

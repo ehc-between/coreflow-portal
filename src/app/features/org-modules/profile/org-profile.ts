@@ -31,13 +31,9 @@ import { Card } from '../../../shared/ui/card/card';
 import { FormField } from '../../../shared/ui/form-field/form-field';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { AskPanelService } from '../../ask/ask-panel.service';
-import {
-  GUIDE_CLAUSES,
-  frameworkDescriptionKey,
-  frameworkNameKey,
-  frameworkShortKey,
-} from '../frameworks';
-import { ModulesGuide } from '../guide/modules-guide';
+import { frameworkDescriptionKey, frameworkNameKey, frameworkShortKey } from '../frameworks';
+import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import {
   PROFILE_COUNTRY_CODES,
   SITE_KINDS,
@@ -68,7 +64,8 @@ import {
     Card,
     FormField,
     Icon,
-    ModulesGuide,
+    HelpStrip,
+    WhyItMatters,
     CountryPicker,
     PageHeader,
   ],
@@ -96,24 +93,24 @@ import {
         </app-button>
       </app-page-header>
 
-      <app-modules-guide class="mb-5 block" page="profile" [steps]="3" [clauses]="clauses" />
+      <app-help-strip scope="settings" page="profile" />
 
       @if (!orgId()) {
         <app-card>
-          <p class="py-8 text-center text-[14px] text-fg-muted">
+          <p class="py-8 text-center text-body text-fg-muted">
             {{ 'modules.common.noOrg' | transloco }}
           </p>
         </app-card>
       } @else if (loading()) {
         <app-card>
-          <p class="py-10 text-center text-[14px] text-fg-muted">
+          <p class="py-10 text-center text-body text-fg-muted">
             {{ 'common.loading' | transloco }}
           </p>
         </app-card>
       } @else {
         <form class="flex flex-col gap-5" [formGroup]="form" (ngSubmit)="save()" novalidate>
           <app-card>
-            <h2 class="mb-3 text-[16px] font-bold text-fg">
+            <h2 class="mb-3 text-section font-bold text-fg">
               {{ p + '.sections.basics' | transloco }}
             </h2>
             <div class="grid gap-4 md:grid-cols-2">
@@ -128,7 +125,7 @@ import {
                     autocomplete="off"
                   />
                 </app-form-field>
-                <p id="profile-industry-help" class="mt-1 text-[12px] text-fg-subtle">
+                <p id="profile-industry-help" class="mt-1 text-meta text-fg-subtle">
                   {{ help + '.industry.help' | transloco }}
                 </p>
               </div>
@@ -152,11 +149,11 @@ import {
                     (valueChange)="setCountries($event)"
                   />
                 </app-form-field>
-                <p id="profile-countries-help" class="mt-1 text-[12px] text-fg-subtle">
+                <p id="profile-countries-help" class="mt-1 text-meta text-fg-subtle">
                   {{ help + '.countries.help' | transloco }}
                 </p>
                 @if (form.controls.countries.invalid && form.controls.countries.touched) {
-                  <p role="alert" class="mt-1 text-[12px] font-medium text-fail">
+                  <p role="alert" class="mt-1 text-meta font-medium text-fail">
                     {{ p + '.errors.countries' | transloco }}
                   </p>
                 }
@@ -174,7 +171,7 @@ import {
                     aria-describedby="profile-description-help"
                   ></textarea>
                 </app-form-field>
-                <p id="profile-description-help" class="mt-1 text-[12px] text-fg-subtle">
+                <p id="profile-description-help" class="mt-1 text-meta text-fg-subtle">
                   {{ help + '.description.help' | transloco }}
                 </p>
               </div>
@@ -182,8 +179,8 @@ import {
           </app-card>
 
           <app-card>
-            <h2 class="mb-1 text-[16px] font-bold text-fg">{{ p + '.scopeTitle' | transloco }}</h2>
-            <p class="text-[13px] text-fg-muted">{{ p + '.scopeBody' | transloco }}</p>
+            <h2 class="mb-1 text-section font-bold text-fg">{{ p + '.scopeTitle' | transloco }}</h2>
+            <p class="text-ui text-fg-muted">{{ p + '.scopeBody' | transloco }}</p>
             <a
               routerLink="/context/scopes"
               class="mt-2 inline-flex text-ui font-semibold text-accent hover:underline"
@@ -194,10 +191,10 @@ import {
 
           <app-card>
             <fieldset>
-              <legend class="mb-1 text-[16px] font-bold text-fg">
+              <legend class="mb-1 text-section font-bold text-fg">
                 {{ p + '.sections.frameworks' | transloco }}
               </legend>
-              <p class="mb-3 text-[12.5px] text-fg-subtle">
+              <p class="mb-3 text-meta text-fg-subtle">
                 {{ help + '.frameworks.help' | transloco }}
               </p>
               <div class="grid gap-2 sm:grid-cols-2" formGroupName="frameworks">
@@ -211,10 +208,10 @@ import {
                       [formControlName]="fw"
                     />
                     <span>
-                      <span class="block text-[13.5px] font-semibold text-fg">{{
+                      <span class="block text-ui font-semibold text-fg">{{
                         frameworkNameKey(fw) | transloco
                       }}</span>
-                      <span class="block text-[12.5px] text-fg-muted">{{
+                      <span class="block text-meta text-fg-muted">{{
                         frameworkDescriptionKey(fw) | transloco
                       }}</span>
                       @if (standardOf(fw); as std) {
@@ -250,10 +247,10 @@ import {
 
           <app-card>
             <fieldset>
-              <legend class="mb-1 text-[16px] font-bold text-fg">
+              <legend class="mb-1 text-section font-bold text-fg">
                 {{ p + '.aiActRole' | transloco }}
               </legend>
-              <p class="mb-3 text-[12.5px] text-fg-subtle">
+              <p class="mb-3 text-meta text-fg-subtle">
                 {{ help + '.aiActRole.help' | transloco }}
               </p>
               <div class="grid gap-2 sm:grid-cols-2">
@@ -268,10 +265,10 @@ import {
                       [value]="role"
                     />
                     <span>
-                      <span class="block text-[13.5px] font-semibold text-fg">{{
+                      <span class="block text-ui font-semibold text-fg">{{
                         'modules.aiActRoles.' + role + '.name' | transloco
                       }}</span>
-                      <span class="block text-[12.5px] text-fg-muted">{{
+                      <span class="block text-meta text-fg-muted">{{
                         'modules.aiActRoles.' + role + '.description' | transloco
                       }}</span>
                     </span>
@@ -283,14 +280,14 @@ import {
 
           <app-card>
             <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-              <h2 class="text-[16px] font-bold text-fg">
+              <h2 class="text-section font-bold text-fg">
                 {{ p + '.sections.targets' | transloco }}
               </h2>
               <app-button variant="secondary" size="sm" (click)="addTarget()">
                 <app-icon name="plus" [size]="14" /> {{ p + '.addTarget' | transloco }}
               </app-button>
             </div>
-            <p class="mb-3 text-[12.5px] text-fg-subtle">
+            <p class="mb-3 text-meta text-fg-subtle">
               {{ help + '.targets.help' | transloco }}
             </p>
             <p
@@ -306,7 +303,7 @@ import {
             </p>
             @if (form.controls.certification_targets.length === 0) {
               <p
-                class="rounded-tile border border-dashed border-border px-3 py-4 text-center text-[13px] text-fg-muted"
+                class="rounded-tile border border-dashed border-border px-3 py-4 text-center text-ui text-fg-muted"
               >
                 {{ p + '.noTargets' | transloco }}
               </p>
@@ -370,15 +367,17 @@ import {
 
           <app-card>
             <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-              <h2 class="text-[16px] font-bold text-fg">{{ p + '.sections.sites' | transloco }}</h2>
+              <h2 class="text-section font-bold text-fg">
+                {{ p + '.sections.sites' | transloco }}
+              </h2>
               <app-button variant="secondary" size="sm" (click)="addSite()">
                 <app-icon name="plus" [size]="14" /> {{ p + '.addSite' | transloco }}
               </app-button>
             </div>
-            <p class="mb-3 text-[12.5px] text-fg-subtle">{{ help + '.sites.help' | transloco }}</p>
+            <p class="mb-3 text-meta text-fg-subtle">{{ help + '.sites.help' | transloco }}</p>
             @if (form.controls.sites.length === 0) {
               <p
-                class="rounded-tile border border-dashed border-border px-3 py-4 text-center text-[13px] text-fg-muted"
+                class="rounded-tile border border-dashed border-border px-3 py-4 text-center text-ui text-fg-muted"
               >
                 {{ p + '.noSites' | transloco }}
               </p>
@@ -443,7 +442,7 @@ import {
                     {{ 'modules.common.remove' | transloco }}
                   </app-button>
                   @if (row.invalid && row.touched) {
-                    <p role="alert" class="text-[12px] font-medium text-fail sm:col-span-5">
+                    <p role="alert" class="text-meta font-medium text-fail sm:col-span-5">
                       {{ p + '.errors.site' | transloco }}
                     </p>
                   }
@@ -466,6 +465,8 @@ import {
           </div>
         </form>
       }
+
+      <app-why-it-matters class="mt-6 block" scope="settings" page="profile" />
     </div>
   `,
 })
@@ -477,7 +478,6 @@ export class OrgProfilePage {
   private readonly transloco = inject(TranslocoService);
   private readonly ask = inject(AskPanelService);
 
-  protected readonly clauses = GUIDE_CLAUSES.profile;
   protected readonly frameworks = FRAMEWORK_KEYS;
   protected readonly sizeBands = SIZE_BANDS;
   protected readonly aiActRoles = AI_ACT_ROLES;

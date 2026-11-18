@@ -196,6 +196,8 @@
     "moreLabelOne": "Show 1 more linked requirement",
     "fromField": "From the field “{{field}}”",
     "fromFieldHint": "Change the field on the record to remove this link.",
+    "fromRecordField": "From a field on the record",
+    "fromRecordType": "From the record type's setup",
     "managedByField": "This link comes from a field on the record. Change the field to remove it.",
     "error": "Couldn't update the requirement links. Try again.",
     "loadError": "Couldn't load the requirements. Try again.",
@@ -212,9 +214,7 @@
       "article_refs": "Articles",
       "requirements": "Requirements",
       "generic": "a field on the record",
-      "contract_type": "Contract type",
-      "record_fields": "a field on the record",
-      "template_requirements": "the record type"
+      "contract_type": "Contract type"
     },
     "origin": {
       "manual": "Added by hand",

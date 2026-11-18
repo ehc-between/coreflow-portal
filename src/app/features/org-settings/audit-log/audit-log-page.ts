@@ -74,6 +74,11 @@ export function actionVerb(action: string): string {
   return parts[parts.length - 1] ?? action;
 }
 
+/** Snapshot fields that hold an entity type key (`entity_type`, `target_entity_type`). */
+export function isEntityTypeField(field: string): boolean {
+  return field === 'entity_type' || field.endsWith('_entity_type');
+}
+
 /** Changed field names between `before` and `after` (a row's snapshot diff). */
 export function changedFields(event: Pick<AuditEvent, 'before' | 'after'>): string[] {
   const keys = new Set([...Object.keys(event.before ?? {}), ...Object.keys(event.after ?? {})]);
@@ -362,8 +367,13 @@ const EMPTY: FilterState = {
                           @for (field of fields; track field) {
                             <dt class="truncate font-mono">{{ field }}</dt>
                             <dd class="min-w-0 break-words">
-                              <span class="line-through">{{ value(event.before?.[field]) }}</span>
-                              → <span class="text-fg">{{ value(event.after?.[field]) }}</span>
+                              <span class="line-through">{{
+                                fieldValue(field, event.before?.[field])
+                              }}</span>
+                              →
+                              <span class="text-fg">{{
+                                fieldValue(field, event.after?.[field])
+                              }}</span>
                             </dd>
                           }
                         </dl>
@@ -513,7 +523,18 @@ export class AuditLogPage {
     return changedFields(event);
   }
 
-  protected value(v: unknown): string {
+  /**
+   * A changed value for the diff. Entity type fields (`entity_type`, `source_entity_type`,
+   * …) show the readable type name ("Anvendelseserklæring" for `soa_entry`) when there is
+   * one; everything else is the stored value.
+   */
+  protected fieldValue(field: string, v: unknown): string {
+    if (typeof v === 'string' && v && isEntityTypeField(field)) {
+      for (const key of [`settings.audit.types.${v}`, `modules.entities.${v}`, `terms.${v}.one`]) {
+        const label = this.language.translate(key);
+        if (label !== key) return label.charAt(0).toUpperCase() + label.slice(1);
+      }
+    }
     return snapshotValue(v);
   }
 

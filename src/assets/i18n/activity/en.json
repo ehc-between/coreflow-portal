@@ -16,75 +16,8 @@
   },
   "ai": {
     "suggest": "Suggest a setup",
-    "explain": "Explain this page",
     "suggestPrompt": "Suggest notification rules and reminder/escalation settings for our organization. We currently send reminders {{reminderDays}} days before the due date and escalate after {{escalationDays}} days overdue. The events we can configure are: {{kinds}}. For each suggestion, say who should be notified, on which channel (in-app, email or daily digest), and why. Keep it practical and avoid notifying people who don't need to act.",
-    "explainPagePrompt": "Explain how notification rules, followers, due-date reminders, escalation and department leads work together in CoreFlow, and how they support the communication requirements in management system standards. Use short steps.",
     "explainClausePrompt": "Explain {{clause}} in plain language and how notifications, reminders and escalation help an organization meet it. Give one practical example."
-  },
-  "guide": {
-    "show": "Show guidance",
-    "hide": "Hide guidance",
-    "whyTitle": "Why this matters",
-    "clausesLabel": "Related requirements",
-    "explainClause": "Ask the assistant to explain this requirement",
-    "lessonLabel": "Micro-lesson",
-    "checkLabel": "Check yourself:",
-    "showAnswer": "Show answer",
-    "clauses": {
-      "iso9001_7_4": "ISO 9001 · 7.4 Communication",
-      "iso27001_7_4": "ISO/IEC 27001 · 7.4 Communication",
-      "iso9001_5_3": "ISO 9001 · 5.3 Roles and responsibilities"
-    },
-    "rules": {
-      "title": "Getting the right people involved at the right time",
-      "body": "Every change in CoreFlow is recorded as an event. Rules turn events into notifications, reminders keep deadlines visible, and escalation makes sure overdue work reaches someone who can act.",
-      "step1": "Review the rules below. Each event starts with a sensible default; change it only when your organization needs something different.",
-      "step2": "Set how many days ahead reminders go out and after how many overdue days work escalates.",
-      "step3": "Give each department a lead, so escalations and \"department lead\" rules reach a real person.",
-      "why": "Management system standards expect you to decide what is communicated, to whom, when and how, and to make responsibilities clear. Consistent notifications and escalation show that in practice, and the audit log records every change to these settings.",
-      "lesson": {
-        "title": "How reminders and escalation work",
-        "s1": {
-          "heading": "Reminders",
-          "body": "Every morning CoreFlow checks open items with a due date. Items due within the reminder window send a \"due soon\" reminder to their owners and assignees, and overdue items send an \"overdue\" reminder. Each person gets at most one of each per item per day."
-        },
-        "s2": {
-          "heading": "Escalation",
-          "body": "When an item has been overdue for the escalation period, it escalates once to the department lead and/or everyone holding the escalation role. After another full period it escalates again at the next level."
-        },
-        "s3": {
-          "heading": "Channels",
-          "body": "In-app notifications appear under the bell. Email can be sent immediately or collected in the daily digest. Each person can fine-tune categories and quiet hours in their own notification settings."
-        },
-        "check": {
-          "question": "Escalation is set to 3 days. An item is 7 days overdue. How many times has it escalated?",
-          "answer": "Twice: once at 3 days overdue (level 1) and once at 6 days overdue (level 2)."
-        }
-      }
-    },
-    "preferences": {
-      "title": "Make notifications work for you",
-      "body": "Your organization decides which events reach you. Here you choose how they reach you: in the app, by email right away, in a daily digest, or not by email at all.",
-      "step1": "Choose the organization in the top bar, then adjust each category.",
-      "step2": "Use the daily digest for things you only need to scan, and immediate email for things you must act on.",
-      "step3": "Set quiet hours so urgent emails wait until your working day starts.",
-      "why": "Clear, timely communication is a requirement, not a courtesy. Tuning your notifications keeps important messages visible instead of lost in noise.",
-      "lesson": {
-        "title": "Following records",
-        "s1": {
-          "heading": "Follow what you care about",
-          "body": "Use the Follow button on a record to be notified about its changes, even if you aren't the owner or an assignee. Creators and owners are often added automatically."
-        },
-        "s2": {
-          "heading": "Quiet hours",
-          "body": "During quiet hours, immediate emails are held for the next daily digest. In-app notifications still arrive, so nothing is lost."
-        },
-        "check": {
-          "question": "You turn off in-app notifications for comments but keep email on Immediately. What happens when someone comments?",
-          "answer": "You get an email straight away (unless it's during your quiet hours), but no entry under the bell."
-        }
-      }
-    }
   },
   "rules": {
     "title": "Notification rules",

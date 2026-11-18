@@ -94,6 +94,18 @@ export function fieldLabelKey(field: string | null | undefined): string {
     : 'standards.reqs.fields.generic';
 }
 
+/**
+ * i18n key of a field link's source line. A named field reads "Fra feltet «Kontroller»";
+ * a record type's own fields read "Fra et felt på posten", and a record type's
+ * built-in references read "Fra oppsettet av registertypen".
+ */
+export function fieldSourceKey(field: string | null | undefined): string {
+  if (field && KNOWN_FIELDS.has(field)) return 'standards.reqs.fromField';
+  return field === 'template_requirements'
+    ? 'standards.reqs.fromRecordType'
+    : 'standards.reqs.fromRecordField';
+}
+
 /** A stored link as a panel row (label from the backend, else a local fallback). */
 export function linkRow(link: RequirementLink, short: (key: string) => string): PanelRow {
   return {
@@ -403,7 +415,7 @@ export function groupByClause(rows: readonly PanelRow[]): ClauseRow[] {
               >
                 <app-icon name="lock" [size]="11" />
                 {{
-                  'standards.reqs.fromField'
+                  fieldSourceKey(row.originField)
                     | transloco: { field: (fieldKey(row.originField) | transloco) }
                 }}
               </p>
@@ -570,6 +582,7 @@ export class SupportsRequirements {
   );
 
   protected readonly fieldKey = fieldLabelKey;
+  protected readonly fieldSourceKey = fieldSourceKey;
 
   private sub: Subscription | null = null;
   private actionSub: Subscription | null = null;

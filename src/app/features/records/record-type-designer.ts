@@ -7,6 +7,8 @@ import {
   signal,
   untracked,
 } from '@angular/core';
+import { WhyItMatters } from '../../shared/guidance/why-it-matters';
+import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -67,12 +69,7 @@ import { FieldBuilder } from './designer/field-builder';
 import { VersionEntry, VersionHistory } from './designer/version-history';
 import { WorkflowEditor } from './designer/workflow-editor';
 import { RecordDraftStore } from './draft-store';
-import {
-  RecordsFieldHelp,
-  RecordsGuideIntro,
-  RecordsLesson,
-  RecordsWhy,
-} from './guidance/records-guidance';
+import { RecordsFieldHelp } from './guidance/records-guidance';
 import { providePageContext } from '../../core/ai/page-context';
 import { SupportsRequirements } from '../../shared/requirement-links/supports-requirements';
 
@@ -100,6 +97,8 @@ interface PendingWorkflow {
     FormsModule,
     RouterLink,
     TranslocoPipe,
+    HelpStrip,
+    WhyItMatters,
     DynamicForm,
     WorkflowDiagram,
     Alert,
@@ -114,9 +113,6 @@ interface PendingWorkflow {
     FieldBuilder,
     VersionHistory,
     WorkflowEditor,
-    RecordsGuideIntro,
-    RecordsWhy,
-    RecordsLesson,
     RecordsFieldHelp,
     SupportsRequirements,
   ],
@@ -125,33 +121,33 @@ interface PendingWorkflow {
     <div class="mx-auto max-w-[1180px] px-4 pt-7 pb-12 sm:px-8">
       <a
         routerLink="/settings/record-types"
-        class="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
+        class="mb-3 inline-flex items-center gap-1.5 text-ui font-semibold text-fg-muted hover:text-fg"
       >
         <app-icon name="back" [size]="16" />
         {{ 'records.backToList' | transloco }}
       </a>
 
       @if (loading()) {
-        <p class="py-10 text-center text-[14px] text-fg-muted">
+        <p class="py-10 text-center text-body text-fg-muted">
           {{ 'common.loading' | transloco }}
         </p>
       } @else if (notFound()) {
         <app-card>
-          <p class="px-2 py-8 text-center text-[14px] text-fg-muted">
+          <p class="px-2 py-8 text-center text-body text-fg-muted">
             {{ 'records.designer.notFound' | transloco }}
           </p>
         </app-card>
       } @else {
         <div class="mb-4 flex flex-wrap items-end justify-between gap-4">
           <div class="min-w-0">
-            <h1 class="font-display text-[24px] font-bold tracking-[-0.025em] text-fg">
+            <h1 class="font-display text-page font-bold text-fg">
               {{
                 isNew() ? ('records.designer.newTitle' | transloco) : name() || recordType()?.name
               }}
             </h1>
-            <div class="mt-1.5 flex flex-wrap items-center gap-2 text-[13px] text-fg-muted">
+            <div class="mt-1.5 flex flex-wrap items-center gap-2 text-ui text-fg-muted">
               @if (recordType(); as rt) {
-                <span class="font-mono text-[12px]">{{ rt.key }}</span>
+                <span class="font-mono text-meta">{{ rt.key }}</span>
                 <app-badge tone="neutral">{{ moduleLabel(rt.module) | transloco }}</app-badge>
                 @if (rt.current_version) {
                   <app-badge tone="accent">
@@ -182,13 +178,10 @@ interface PendingWorkflow {
                 {{ 'records.list.describe' | transloco }}
               </app-button>
             }
-            <app-records-lesson lesson="designing-record-types" />
           </div>
         </div>
 
-        <div class="mb-5">
-          <app-records-guide-intro page="designer" />
-        </div>
+        <app-help-strip scope="records" page="designer" lesson="designing-record-types" />
 
         @if (fromDraft()) {
           <div class="mb-4">
@@ -290,7 +283,7 @@ interface PendingWorkflow {
                 </div>
               </fieldset>
               @if (keyInvalid() || prefixInvalid()) {
-                <div class="mt-3 flex flex-col gap-1 text-[12px] font-medium text-fail">
+                <div class="mt-3 flex flex-col gap-1 text-meta font-medium text-fail">
                   @if (keyInvalid()) {
                     <p>{{ 'records.designer.keyInvalid' | transloco }}</p>
                   }
@@ -314,7 +307,7 @@ interface PendingWorkflow {
                   [attr.aria-selected]="tab() === t"
                   [attr.aria-controls]="'rt-panel-' + t"
                   [attr.tabindex]="tab() === t ? 0 : -1"
-                  class="-mb-px border-b-2 px-3 py-2 text-[13.5px] font-semibold whitespace-nowrap"
+                  class="-mb-px border-b-2 px-3 py-2 text-ui font-semibold whitespace-nowrap"
                   [class]="
                     tab() === t
                       ? 'border-accent text-fg'
@@ -326,7 +319,7 @@ interface PendingWorkflow {
                 >
                   {{ 'records.designer.tab.' + t | transloco }}
                   @if (t === 'fields' && fieldProblemCount()) {
-                    <span class="ml-1 rounded-full bg-fail-soft px-1.5 text-[11px] text-fail">{{
+                    <span class="ml-1 rounded-full bg-fail-soft px-1.5 text-micro text-fail">{{
                       fieldProblemCount()
                     }}</span>
                   }
@@ -402,7 +395,7 @@ interface PendingWorkflow {
                         <app-records-field-help page="designer" field="workflow" />
                       </app-form-field>
                       @if (pinnedOlder()) {
-                        <p class="text-[12.5px] text-warn">
+                        <p class="text-meta text-warn">
                           {{ 'records.designer.olderHint' | transloco }}
                         </p>
                       }
@@ -411,13 +404,13 @@ interface PendingWorkflow {
                         <div>
                           <a
                             [routerLink]="['/settings/record-types/workflows', wf.id]"
-                            class="text-[13px] font-semibold text-accent hover:underline"
+                            class="text-ui font-semibold text-accent hover:underline"
                           >
                             {{ 'records.designer.openWorkflow' | transloco: { name: wf.name } }}
                           </a>
                         </div>
                       } @else if (!workflowVersionId()) {
-                        <p class="text-[13px] text-fg-muted">
+                        <p class="text-ui text-fg-muted">
                           {{ 'records.designer.noWorkflowHint' | transloco }}
                         </p>
                       }
@@ -439,7 +432,7 @@ interface PendingWorkflow {
                 }
                 @case ('preview') {
                   <app-card>
-                    <p class="mb-4 text-[13px] text-fg-muted">
+                    <p class="mb-4 text-ui text-fg-muted">
                       {{ 'records.designer.previewIntro' | transloco }}
                     </p>
                     <app-dynamic-form
@@ -488,10 +481,10 @@ interface PendingWorkflow {
           <aside class="flex flex-col gap-4">
             @if (canAdmin() && !viewingOld()) {
               <app-card>
-                <h2 class="mb-2 text-[12px] font-bold tracking-[0.06em] text-fg-subtle uppercase">
+                <h2 class="mb-2 text-meta font-bold tracking-[0.06em] text-fg-subtle uppercase">
                   {{ 'records.designer.publish' | transloco }}
                 </h2>
-                <p class="mb-3 text-[12.5px] text-fg-muted">
+                <p class="mb-3 text-meta text-fg-muted">
                   {{
                     (dirtySchema() || isNew()
                       ? 'records.designer.publishHint'
@@ -513,7 +506,7 @@ interface PendingWorkflow {
                   ></textarea>
                 </app-form-field>
                 @if (visibleBlockers().length) {
-                  <ul class="mt-2 text-[12px] font-medium text-fail" role="alert">
+                  <ul class="mt-2 text-meta font-medium text-fail" role="alert">
                     @for (b of visibleBlockers(); track b) {
                       <li>{{ b | transloco }}</li>
                     }
@@ -540,12 +533,12 @@ interface PendingWorkflow {
                   [entityId]="rt.id"
                   [canEdit]="canAdmin()"
                 />
-                <p class="mt-2 text-[12px] text-fg-muted">
+                <p class="mt-2 text-meta text-fg-muted">
                   {{ 'records.designer.requirementsHint' | transloco }}
                 </p>
               </app-card>
             }
-            <app-records-why page="designer" />
+            <app-why-it-matters scope="records" page="designer" />
             @if (!isNew()) {
               <app-card>
                 <app-version-history

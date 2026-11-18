@@ -88,7 +88,11 @@ describe('ModulesSettings', () => {
     await fixture.whenStable();
   });
 
-  afterEach(() => http.verify());
+  afterEach(() => {
+    // The help strip loads its guidance file; the page requests are what is verified here.
+    http.match((req) => req.url.startsWith('/assets/guidance/'));
+    http.verify();
+  });
 
   const el = () => fixture.nativeElement as HTMLElement;
   const card = (key: string) => el().querySelector(`[data-module="${key}"]`) as HTMLElement;
