@@ -240,16 +240,16 @@ describe('permissionGuard', () => {
     }
 
     it('redirects the old deviation configuration URLs to Settings (U10)', () => {
-      expect(find(deviationChildren, 'types').redirectTo).toBe(
+      expect(find(deviationChildren, 'types').data?.['moduleConfigTarget']).toBe(
         '/settings/modules/deviations/types',
       );
-      expect(find(deviationChildren, 'types/:id').redirectTo).toBe(
+      expect(find(deviationChildren, 'types/:id').data?.['moduleConfigTarget']).toBe(
         '/settings/modules/deviations/types/:id',
       );
-      expect(find(deviationChildren, 'templates').redirectTo).toBe(
+      expect(find(deviationChildren, 'templates').data?.['moduleConfigTarget']).toBe(
         '/settings/modules/deviations/templates',
       );
-      expect(find(deviationChildren, 'intake/settings').redirectTo).toBe(
+      expect(find(deviationChildren, 'intake/settings').data?.['moduleConfigTarget']).toBe(
         '/settings/modules/deviations/intake',
       );
     });

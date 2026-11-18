@@ -1,4 +1,6 @@
-import { Route, Routes } from '@angular/router';
+import { Component } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
+import { provideRouter, Route, Router, Routes } from '@angular/router';
 import aiGovernanceRoutes from '../../features/ai-governance/ai-governance.routes';
 import { AI_GOV_NAV_ITEMS } from '../../features/ai-governance/ui/ai-nav';
 import contractsRoutes from '../../features/contracts/contracts.routes';
@@ -92,10 +94,10 @@ describe('module configuration (U10)', () => {
     expect(moduleConfigLink('risk')).toBe('/settings/modules/risk');
     expect(moduleConfigLink('risk', '')).toBe('/settings/modules/risk');
     expect(moduleConfigLink('risk', 'matrices', 7)).toBe('/settings/modules/risk/matrices/7');
-    expect(moduleConfigRedirect('matrices/:id', 'risk')).toEqual({
+    expect(moduleConfigRedirect('matrices/:id', 'risk')).toMatchObject({
       path: 'matrices/:id',
       pathMatch: 'full',
-      redirectTo: '/settings/modules/risk/matrices/:id',
+      data: { moduleConfigTarget: '/settings/modules/risk/matrices/:id' },
     });
     expect(moduleConfigCrumbs('risk')).toEqual([
       { labelKey: 'nav.settings', link: '/settings' },
@@ -118,10 +120,38 @@ describe('module configuration (U10)', () => {
     }
   });
 
+  it('keeps route params, query params and the fragment when redirecting', async () => {
+    @Component({ template: '' })
+    class Blank {}
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter([
+          {
+            path: 'risk',
+            children: [
+              moduleConfigRedirect('matrices/:id', 'risk'),
+              moduleConfigRedirect('matrices', 'risk'),
+            ],
+          },
+          { path: 'settings/modules/risk/matrices', component: Blank },
+          { path: 'settings/modules/risk/matrices/:id', component: Blank },
+        ]),
+      ],
+    });
+    const router = TestBed.inject(Router);
+    await router.navigateByUrl('/risk/matrices/m-7?tab=cells#top');
+    expect(router.url).toBe('/settings/modules/risk/matrices/m-7?tab=cells#top');
+    await router.navigateByUrl('/risk/matrices?q=5x5');
+    expect(router.url).toBe('/settings/modules/risk/matrices?q=5x5');
+  });
+
   it('redirects every old configuration URL to a page that exists', async () => {
     for (const [routes, slug, oldPath, target] of OLD_URLS) {
       const redirect = flatten(routes).find((r) => r.path === oldPath);
-      expect(redirect?.redirectTo, `/${slug}/${oldPath}`).toBe(moduleConfigLink(slug, target));
+      expect(redirect?.data?.['moduleConfigTarget'], `/${slug}/${oldPath}`).toBe(
+        moduleConfigLink(slug, target),
+      );
+      expect(typeof redirect?.redirectTo).toBe('function');
       expect(redirect?.loadComponent).toBeUndefined();
       const paths = flatten(await configRoutes(slug)).map((r) => r.path);
       expect(paths, `${slug}/${target}`).toContain(target);

@@ -1,4 +1,5 @@
-import { Route } from '@angular/router';
+import { inject } from '@angular/core';
+import { Route, Router } from '@angular/router';
 
 /**
  * U10: module configuration (types, templates, matrices, questionnaires, intake
@@ -146,8 +147,24 @@ export function moduleConfigCrumbs(
 /**
  * A redirect from an old module-local configuration URL to its new home, for the
  * module's own routes file: `moduleConfigRedirect('matrices/:id', 'risk', 'matrices/:id')`.
- * Route params are carried over by name; query params and the fragment are kept.
+ * Route params are carried over by name; query params and the fragment are kept
+ * (an absolute `redirectTo` string would drop them). The target template is in
+ * `data.moduleConfigTarget`.
  */
 export function moduleConfigRedirect(path: string, slug: string, target = path): Route {
-  return { path, pathMatch: 'full', redirectTo: moduleConfigLink(slug, target) };
+  const template = moduleConfigLink(slug, target);
+  return {
+    path,
+    pathMatch: 'full',
+    data: { moduleConfigTarget: template },
+    redirectTo: ({ params, queryParams, fragment }) => {
+      const url = template.replace(/:(\w+)/g, (_, name: string) =>
+        encodeURIComponent(String(params[name] ?? '')),
+      );
+      const tree = inject(Router).parseUrl(url);
+      tree.queryParams = { ...queryParams };
+      tree.fragment = fragment;
+      return tree;
+    },
+  };
 }
