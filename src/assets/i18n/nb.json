@@ -828,7 +828,7 @@
       "type": "Posttype",
       "allTypes": "Alle posttyper",
       "actor": "Person",
-      "allActors": "Alle",
+      "allActors": "Alle personer",
       "actorKind": "Utført av",
       "allActorKinds": "Personer, assistent og system",
       "actorKinds": {
@@ -897,7 +897,17 @@
         "entity_link": "Kobling",
         "record_type": "Registertype",
         "workflow_definition": "Arbeidsflyt",
-        "attachment": "Vedlegg"
+        "attachment": "Vedlegg",
+        "link": "Kobling",
+        "link_suggestion": "Koblingsforslag",
+        "requirement_links": "Kravkoblinger",
+        "requirement_applicability": "Gjeldende krav",
+        "org_standard": "Standard",
+        "demo": "Demodata",
+        "demo_seed": "Demodata",
+        "auth": "Innlogging",
+        "task_recurrence": "Gjentakende oppgave",
+        "privacy": "Personvern"
       }
     },
     "security": {

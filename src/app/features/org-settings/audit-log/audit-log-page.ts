@@ -74,6 +74,19 @@ export function actionVerb(action: string): string {
   return parts[parts.length - 1] ?? action;
 }
 
+/**
+ * i18n keys that may name an entity type or action group, best first: the backend
+ * label key, the audit log's own platform types, the module entity names and the terms.
+ */
+export function typeLabelKeys(entityType: string, labelKey?: string | null): string[] {
+  return [
+    ...(labelKey ? [labelKey] : []),
+    `settings.audit.types.${entityType}`,
+    `modules.entities.${entityType}`,
+    `terms.${entityType}.one`,
+  ];
+}
+
 /** Snapshot fields that hold an entity type key (`entity_type`, `target_entity_type`). */
 export function isEntityTypeField(field: string): boolean {
   return field === 'entity_type' || field.endsWith('_entity_type');
@@ -494,8 +507,7 @@ export class AuditLogPage {
   }
 
   protected typeLabel(entityType: string, labelKey: string | null | undefined): string {
-    for (const key of [labelKey, `settings.audit.types.${entityType}`, `terms.${entityType}.one`]) {
-      if (!key) continue;
+    for (const key of typeLabelKeys(entityType, labelKey)) {
       const label = this.language.translate(key);
       if (label !== key) return label.charAt(0).toUpperCase() + label.slice(1);
     }
@@ -530,7 +542,7 @@ export class AuditLogPage {
    */
   protected fieldValue(field: string, v: unknown): string {
     if (typeof v === 'string' && v && isEntityTypeField(field)) {
-      for (const key of [`settings.audit.types.${v}`, `modules.entities.${v}`, `terms.${v}.one`]) {
+      for (const key of typeLabelKeys(v)) {
         const label = this.language.translate(key);
         if (label !== key) return label.charAt(0).toUpperCase() + label.slice(1);
       }

@@ -897,7 +897,17 @@
         "entity_link": "Connection",
         "record_type": "Record type",
         "workflow_definition": "Workflow",
-        "attachment": "Attachment"
+        "attachment": "Attachment",
+        "link": "Connection",
+        "link_suggestion": "Connection suggestion",
+        "requirement_links": "Requirement links",
+        "requirement_applicability": "Applicable requirements",
+        "org_standard": "Standard",
+        "demo": "Demo data",
+        "demo_seed": "Demo data",
+        "auth": "Sign-in",
+        "task_recurrence": "Recurring task",
+        "privacy": "Privacy"
       }
     },
     "security": {

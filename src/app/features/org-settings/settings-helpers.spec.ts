@@ -2,7 +2,12 @@ import en from '../../../assets/i18n/en.json';
 import nb from '../../../assets/i18n/nb.json';
 import { relevantRoles } from '../../core/org/roles';
 import { OrgMember, OrgRole } from '../../core/org/org.models';
-import { actionVerb, changedFields, snapshotValue } from './audit-log/audit-log-page';
+import {
+  actionVerb,
+  changedFields,
+  snapshotValue,
+  typeLabelKeys,
+} from './audit-log/audit-log-page';
 import { countKey, departmentsWithoutLead } from './departments/departments-page';
 import {
   EMPTY_MEMBER_FILTER,
@@ -98,6 +103,21 @@ describe('audit log helpers', () => {
     ]);
     expect(snapshotValue(null)).toBe('—');
     expect(snapshotValue(['x'])).toBe('["x"]');
+  });
+
+  it('names platform types and module records in both languages', () => {
+    const lookup = (tree: unknown, key: string): unknown =>
+      key
+        .split('.')
+        .reduce<unknown>((node, part) => (node as Record<string, unknown>)?.[part], tree);
+    const named = (tree: unknown, type: string) =>
+      typeLabelKeys(type).some((key) => typeof lookup(tree, key) === 'string');
+    // Action groups seen in a real log: platform types and module entities without a label key.
+    for (const type of ['link', 'link_suggestion', 'org_standard', 'auth', 'demo', 'policy']) {
+      expect(named(en, type), type).toBe(true);
+      expect(named(nb, type), type).toBe(true);
+    }
+    expect(typeLabelKeys('risk', 'risk:entities.risk')[0]).toBe('risk:entities.risk');
   });
 });
 
