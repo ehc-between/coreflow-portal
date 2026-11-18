@@ -100,6 +100,8 @@ const KNOWN_FIELDS = new Set([
   'obligations',
   'documentation',
   'kind',
+  // A17: a privacy record that is the register entry of its article ("Fra registeret").
+  'register_entry',
 ]);
 
 /**
@@ -440,17 +442,21 @@ export function groupByClause(rows: readonly PanelRow[]): ClauseRow[] {
                 data-testid="from-field"
               >
                 <app-icon name="lock" [size]="11" />
-                {{
-                  'standards.reqs.fromField'
-                    | transloco
-                      : {
-                          field:
-                            (fieldKey(
-                              row.originField,
-                              row.entityId === entityId() ? entityType() : 'deviation_action'
-                            ) | transloco),
-                        }
-                }}
+                @if (row.originField === 'register_entry') {
+                  {{ 'standards.reqs.fromRegister' | transloco }}
+                } @else {
+                  {{
+                    'standards.reqs.fromField'
+                      | transloco
+                        : {
+                            field:
+                              (fieldKey(
+                                row.originField,
+                                row.entityId === entityId() ? entityType() : 'deviation_action'
+                              ) | transloco),
+                          }
+                  }}
+                }
               </p>
             } @else if (row.status === 'suggested' && row.rationale) {
               <p class="mt-0.5 text-micro text-fg-subtle">{{ row.rationale }}</p>

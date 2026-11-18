@@ -104,6 +104,15 @@ export const DEROGATIONS = [
   'vital_interests',
   'public_register',
 ] as const;
+/** Where a country stands under GDPR chapter V (`country_status` on processors and transfers). */
+export const COUNTRY_STATUSES = [
+  'eea',
+  'adequacy',
+  'adequacy_partial',
+  'third_country',
+  'unknown',
+] as const;
+export type CountryStatus = (typeof COUNTRY_STATUSES)[number];
 export const TIA_STATUSES = ['not_required', 'in_progress', 'completed'] as const;
 export const TIA_CONCLUSIONS = ['adequate', 'supplementary_measures', 'not_adequate'] as const;
 export const TRANSFER_STATUSES = ['draft', 'active', 'suspended', 'retired'] as const;
@@ -170,6 +179,26 @@ export interface RopaEntry extends PrivacyRecord {
   readonly transfer_countries: readonly string[];
   readonly department_id: string | null;
   readonly review_due_at: string | null;
+  /** Processors that receive the data (recipients as links, Art. 30(1)(d)). */
+  readonly processor_ids?: readonly string[];
+  /** Systems and assets that hold the data (asset register). */
+  readonly asset_ids?: readonly string[];
+  /** Where the data comes from when not from the person (Art. 14). */
+  readonly data_source?: string | null;
+  /** The privacy notice (Art. 13/14) as a controlled document. */
+  readonly privacy_notice_document_id?: string | null;
+  readonly automated_decisions?: boolean;
+  readonly automated_decision_logic?: string | null;
+  /** The Art. 30 facts held and missing. */
+  readonly completeness?: RopaCompleteness | null;
+}
+
+/** `RopaOut.completeness`: Art. 30(1) for a controller, 30(2) for a processor. */
+export interface RopaCompleteness {
+  readonly filled: number;
+  readonly total: number;
+  /** Field keys still empty (e.g. `legal_basis`, `security_measures`). */
+  readonly missing: readonly string[];
 }
 
 export interface DpiaRisk {
@@ -215,6 +244,43 @@ export interface DataSubjectRequest extends PrivacyRecord {
   readonly responded_at: string | null;
   readonly closed_at: string | null;
   readonly task_id: string | null;
+  /** The person record (people register) the request concerns, if any. */
+  readonly employee_id?: string | null;
+  /** The handling checklist in order. */
+  readonly steps?: readonly DsrStep[];
+}
+
+/** The steps of handling a request (Art. 12, 15-22), in order. */
+export const DSR_STEP_KEYS = [
+  'verify_identity',
+  'search_systems',
+  'draft_reply',
+  'send_reply',
+] as const;
+export type DsrStepKey = (typeof DSR_STEP_KEYS)[number];
+
+export interface DsrStep {
+  readonly key: DsrStepKey;
+  readonly done: boolean;
+  readonly done_at: string | null;
+}
+
+/** `GET /data-subject-requests/{id}/systems`: where to look for the person's data. */
+export interface DsrSystem {
+  readonly ropa_entry_id: string;
+  readonly code: string;
+  readonly title: string;
+  readonly url: string;
+  readonly systems: readonly string[];
+  readonly asset_ids: readonly string[];
+  readonly processor_ids: readonly string[];
+  readonly data_categories: readonly string[];
+  readonly retention_period: string | null;
+}
+
+export interface DsrSystemsOut {
+  readonly items: readonly DsrSystem[];
+  readonly total: number;
 }
 
 export interface DataBreach extends PrivacyRecord {
@@ -243,6 +309,14 @@ export interface DataBreach extends PrivacyRecord {
   readonly subjects_notified_at: string | null;
   readonly closed_at: string | null;
   readonly task_id: string | null;
+  /** Processing activities whose data was affected. */
+  readonly ropa_entry_ids?: readonly string[];
+  /** The processor where the breach happened, if any. */
+  readonly processor_id?: string | null;
+  /** Affected systems and assets. */
+  readonly asset_ids?: readonly string[];
+  /** Notified, not closed yet. */
+  readonly awaiting_closure?: boolean;
 }
 
 export interface Processor extends PrivacyRecord {
@@ -257,6 +331,13 @@ export interface Processor extends PrivacyRecord {
   readonly risk_rating: Level | null;
   readonly last_assessed_at: string | null;
   readonly review_due_at: string | null;
+  /** The same company in the supplier register. */
+  readonly supplier_id?: string | null;
+  /** The signed data processing agreement in the contract register. */
+  readonly dpa_contract_id?: string | null;
+  /** The agreement as a document (when it is not in the contract register). */
+  readonly dpa_document_id?: string | null;
+  readonly country_status?: CountryStatus;
 }
 
 export interface TransferAssessment extends PrivacyRecord {
@@ -273,6 +354,7 @@ export interface TransferAssessment extends PrivacyRecord {
   readonly tia_summary: string | null;
   readonly supplementary_measures: string | null;
   readonly review_due_at: string | null;
+  readonly country_status?: CountryStatus;
 }
 
 export interface RetentionSchedule extends PrivacyRecord {
@@ -284,6 +366,38 @@ export interface RetentionSchedule extends PrivacyRecord {
   readonly legal_reference: string | null;
   readonly disposal_method: string;
   readonly review_due_at: string | null;
+  /** How often the deletion is carried out (months). */
+  readonly execution_interval_months?: number | null;
+  readonly last_executed_at?: string | null;
+  readonly next_execution_due_at?: string | null;
+  readonly execution_overdue?: boolean;
+}
+
+/** One logged deletion run of a retention rule (append-only). */
+export interface RetentionExecution {
+  readonly id: string;
+  readonly retention_schedule_id: string;
+  readonly executed_at: string;
+  readonly executed_by: string | null;
+  readonly method: string;
+  readonly records_affected: number | null;
+  readonly notes: string | null;
+  readonly evidence_reference: string | null;
+  readonly created_at: string;
+}
+
+export interface RetentionExecutionList {
+  readonly items: readonly RetentionExecution[];
+  readonly total: number;
+}
+
+/** `POST /retention-schedules/{id}/executions`. */
+export interface RetentionExecutionBody {
+  readonly executed_at?: string | null;
+  readonly method?: string | null;
+  readonly records_affected?: number | null;
+  readonly notes?: string | null;
+  readonly evidence_reference?: string | null;
 }
 
 export interface ConsentRecord extends PrivacyRecord {
@@ -294,6 +408,8 @@ export interface ConsentRecord extends PrivacyRecord {
   readonly notice_version: string | null;
   readonly evidence_reference: string | null;
   readonly withdrawn_at: string | null;
+  /** The privacy notice the person saw, as a controlled document. */
+  readonly notice_document_id?: string | null;
 }
 
 export interface LegalBasisAssessment extends PrivacyRecord {
@@ -363,7 +479,132 @@ export interface PrivacyOverview {
   /** Active SCC transfers whose linked agreement is missing or not signed. */
   readonly transfers_unsigned_safeguards?: number;
   readonly reviews_overdue: number;
+  /** Open or assessing: still being assessed (the "breaches now" card). */
+  readonly breaches_active?: number;
+  /** Notified, waiting to be closed. */
+  readonly breaches_awaiting_closure?: number;
+  readonly retention_executions_due?: number;
+  readonly gaps_total?: number;
+  readonly gaps_by_kind?: Readonly<Record<string, number>>;
+  readonly setup?: PrivacySetup | null;
 }
+
+/** The steps of the overview's "start here" checklist, in order. */
+export const SETUP_STEP_KEYS = [
+  'settings',
+  'ropa',
+  'processors',
+  'retention',
+  'dpia',
+  'requests',
+  'breaches',
+] as const;
+
+/** One step of the overview's "start here" checklist. */
+export interface PrivacySetupStep {
+  /** `settings` | `ropa` | `processors` | `retention` | `dpia` | `requests` | `breaches`. */
+  readonly key: string;
+  readonly done: boolean;
+  /** Ticked by the user (the two routines), not computed from the data. */
+  readonly manual: boolean;
+  readonly count?: number | null;
+  readonly url: string;
+}
+
+export interface PrivacySetup {
+  readonly done: number;
+  readonly total: number;
+  readonly steps: readonly PrivacySetupStep[];
+}
+
+// --- gaps across registers --------------------------------------------------------
+
+export const GAP_KINDS = [
+  'lia_missing',
+  'dpia_missing',
+  'transfer_missing',
+  'dpa_missing',
+  'retention_missing',
+  'ropa_incomplete',
+  'deletion_overdue',
+  'supplier_not_processor',
+] as const;
+export type GapSeverity = 'high' | 'medium' | 'low';
+
+export interface GapFix {
+  readonly action: 'create' | 'edit';
+  readonly entity_type: string;
+  /** Portal route; create routes carry the prefill as snake_case query parameters. */
+  readonly url: string;
+  readonly prefill: Readonly<Record<string, unknown>>;
+}
+
+/** `GET /gaps` item: a missing link between registers, with a prefilled fix. */
+export interface PrivacyGap {
+  readonly key: string;
+  readonly kind: string;
+  readonly severity: GapSeverity;
+  /** Canonical clause ref, e.g. `gdpr:6`. */
+  readonly article: string;
+  readonly entity_type: string;
+  readonly entity_id: string;
+  readonly code: string;
+  readonly title: string;
+  readonly url: string;
+  /** e.g. `fields`, `reasons`, `countries`, `dpa_status`, `due_at`, `has_period`. */
+  readonly params: Readonly<Record<string, unknown>>;
+  readonly fix: GapFix;
+}
+
+export interface PrivacyGapList {
+  readonly total: number;
+  readonly by_kind: Readonly<Record<string, number>>;
+  readonly items: readonly PrivacyGap[];
+}
+
+// --- settings, countries, exports ---------------------------------------------------
+
+/** `GET /settings`: the controller and DPO contacts of the organisation. */
+export interface PrivacySettings {
+  readonly controller_name: string | null;
+  readonly controller_contact: string | null;
+  readonly dpo_name: string | null;
+  readonly dpo_email: string | null;
+  readonly dpo_phone: string | null;
+  readonly representative: string | null;
+  readonly checklist: Readonly<
+    Record<string, { readonly done_at?: string | null; readonly done_by?: string | null }>
+  >;
+  readonly updated_at: string | null;
+  readonly updated_by: string | null;
+}
+
+export const SETTINGS_FIELDS = [
+  'controller_name',
+  'controller_contact',
+  'dpo_name',
+  'dpo_email',
+  'dpo_phone',
+  'representative',
+] as const;
+export type SettingsField = (typeof SETTINGS_FIELDS)[number];
+
+/** `PUT /settings` (privacy:manage): every field optional; `checklist` ticks a routine. */
+export type PrivacySettingsBody = Partial<Record<SettingsField, string | null>> & {
+  readonly checklist?: Readonly<Partial<Record<'requests' | 'breaches', boolean>>>;
+};
+
+/** `GET /countries`: ISO alpha-2 codes by chapter V status (names come from Intl). */
+export interface PrivacyCountries {
+  readonly eea: readonly string[];
+  readonly adequacy: readonly string[];
+  readonly adequacy_partial: readonly string[];
+}
+
+export const EXPORT_KINDS = ['ropa', 'breaches', 'requests', 'processors'] as const;
+export type ExportKind = (typeof EXPORT_KINDS)[number];
+export const EXPORT_FORMATS = ['pdf', 'xlsx', 'csv'] as const;
+export type ExportFormat = (typeof EXPORT_FORMATS)[number];
 
 /** A contract linked to a processor, as `GET /processors/{id}/dpa-coverage` lists it. */
 export interface DpaCoverageContract {
@@ -413,6 +654,15 @@ export interface ScreeningSuggestion {
   readonly summary: string | null;
   readonly result: ScreeningResult;
   readonly met: readonly string[];
+}
+
+/** `privacy.draft_lia` assist result: the three-part legitimate-interest test. */
+export interface LiaDraft {
+  readonly purpose_test?: string | null;
+  readonly necessity_test?: string | null;
+  readonly balancing_test?: string | null;
+  readonly safeguards?: string | null;
+  readonly notes?: string | null;
 }
 
 /** `privacy.draft_ropa` assist result. */

@@ -1,4 +1,4 @@
-import { DpiaRisk, PrivacyRecord, RopaDraft } from './privacy.models';
+import { DpiaRisk, LiaDraft, PrivacyRecord, RopaDraft } from './privacy.models';
 import { fromDateInput, fromDateTimeInput, toDateInput, toDateTimeInput } from './privacy-dates';
 import { FieldDef, FormValues, RegisterDef } from './privacy-registers';
 
@@ -52,10 +52,16 @@ export function isVisible(field: FieldDef, values: FormValues): boolean {
   return field.showIf ? field.showIf(values) : true;
 }
 
+/** Kinds whose value is a list. */
+const LIST_KINDS = new Set(['tags', 'multi', 'refs', 'entities', 'countries']);
+
 function emptyValue(field: FieldDef): unknown {
   switch (field.kind) {
     case 'tags':
     case 'multi':
+    case 'refs':
+    case 'entities':
+    case 'countries':
     case 'risks':
       return [];
     case 'boolean':
@@ -108,6 +114,9 @@ export function valuesFromRecord(register: RegisterDef, record: PrivacyRecord): 
         break;
       case 'tags':
       case 'multi':
+      case 'refs':
+      case 'entities':
+      case 'countries':
         out[f.key] = Array.isArray(raw) ? [...raw] : [];
         break;
       case 'risks':
@@ -149,6 +158,9 @@ export function wireValue(field: FieldDef, value: unknown): unknown {
     }
     case 'tags':
     case 'multi':
+    case 'refs':
+    case 'entities':
+    case 'countries':
       return Array.isArray(value) ? value : [];
     case 'risks':
       return (Array.isArray(value) ? (value as DpiaRisk[]) : [])
@@ -245,6 +257,17 @@ export function validate(
       errors[f.key] = 'privacy.form.notInFuture';
     }
   }
+  // A retention rule needs its period: in months, or in words ("5 years after …").
+  if (
+    register.key === 'retention' &&
+    wireValue(
+      { key: 'retention_months', kind: 'number', section: 'rule' },
+      values['retention_months'],
+    ) === null &&
+    !String(values['retention_period'] ?? '').trim()
+  ) {
+    errors['retention_months'] = 'privacy.form.periodRequired';
+  }
   if (
     mode === 'edit' &&
     context.original &&
@@ -284,9 +307,92 @@ export function mergeRopaDraft(values: FormValues, draft: RopaDraft): FormValues
   setList('special_categories');
   setList('recipients');
   setList('systems');
-  setList('transfer_countries');
+  // Countries are stored as ISO codes; a draft naming a country in words is left out.
+  if (Array.isArray(draft.transfer_countries)) {
+    const codes = draft.transfer_countries
+      .map((c) => String(c).trim().toUpperCase())
+      .filter((c) => /^[A-Z]{2}$/.test(c));
+    if (codes.length) {
+      out['transfer_countries'] = codes;
+    }
+  }
   if (typeof draft.international_transfers === 'boolean') {
     out['international_transfers'] = draft.international_transfers;
+  }
+  return out;
+}
+
+/**
+ * Prefill values for a new record from the route's query string (the gap fixes link to
+ * `/privacy/<segment>/new?ropa_entry_id=…&legal_basis=…`) or from a create-from-here flow:
+ * only fields of the register, converted to the form's value types. Unknown keys and
+ * invalid option values are dropped.
+ */
+export function prefillValues(
+  register: RegisterDef,
+  source: Readonly<Record<string, unknown>>,
+): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const f of fieldsFor(register, 'create')) {
+    const raw = source[f.key];
+    if (raw === undefined || raw === null || raw === '') {
+      continue;
+    }
+    if (LIST_KINDS.has(f.kind)) {
+      const list = (Array.isArray(raw) ? raw : String(raw).split(','))
+        .map((v) => String(v).trim())
+        .filter(Boolean);
+      const allowed = f.options ? list.filter((v) => f.options!.includes(v)) : list;
+      if (allowed.length) {
+        out[f.key] = f.kind === 'countries' ? allowed.map((c) => c.toUpperCase()) : allowed;
+      }
+      continue;
+    }
+    switch (f.kind) {
+      case 'boolean':
+        out[f.key] = raw === true || raw === 'true' || raw === '1';
+        break;
+      case 'tristate':
+        out[f.key] =
+          raw === true || raw === 'true' ? true : raw === false || raw === 'false' ? false : null;
+        break;
+      case 'select':
+        if (f.options?.includes(String(raw))) {
+          out[f.key] = String(raw);
+        }
+        break;
+      case 'number':
+        if (Number.isFinite(Number(raw))) {
+          out[f.key] = String(Math.trunc(Number(raw)));
+        }
+        break;
+      case 'date':
+        out[f.key] = toDateInput(String(raw));
+        break;
+      case 'datetime':
+        out[f.key] = toDateTimeInput(String(raw));
+        break;
+      case 'country':
+        out[f.key] = String(raw).trim().toUpperCase();
+        break;
+      case 'screening':
+      case 'risks':
+        break;
+      default:
+        out[f.key] = String(raw).slice(0, f.maxLength ?? 10000);
+    }
+  }
+  return out;
+}
+
+/** Merge an assistant legitimate-interest draft into the form (empty fields only). */
+export function mergeLiaDraft(values: FormValues, draft: LiaDraft): FormValues {
+  const out: Record<string, unknown> = { ...values };
+  for (const key of ['purpose_test', 'necessity_test', 'balancing_test', 'safeguards'] as const) {
+    const v = draft[key];
+    if (typeof v === 'string' && v.trim() && !String(values[key] ?? '').trim()) {
+      out[key] = v.trim().slice(0, 10000);
+    }
   }
   return out;
 }

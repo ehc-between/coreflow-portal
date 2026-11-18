@@ -1,4 +1,5 @@
 import {
+  type ExportKind,
   BREACH_RISKS,
   BREACH_STATUSES,
   BREACH_TYPES,
@@ -54,8 +55,11 @@ export type RegisterKey = (typeof REGISTER_KEYS)[number];
  * - `tags`: free-text list;
  * - `boolean`: checkbox; `tristate`: undecided / yes / no (nullable boolean);
  * - `date`: a calendar day; `datetime`: a moment (local time in the form, naive UTC on the wire);
- * - `ref`: a record of another register (`ref`); `owner`: an org member; `department`;
- * - `contract`: a contract of the contract register (the transfer's signed safeguard);
+ * - `ref` / `refs`: one / several records of another privacy register (`ref`);
+ * - `entity` / `entities`: one / several records of another module (`entity`: supplier,
+ *   contract, document, asset, employee), stored as ids and shown as record chips;
+ * - `country` / `countries`: ISO 3166-1 alpha-2 codes, named in the UI language;
+ * - `owner`: an org member; `department`;
  * - `screening`: the DPIA screening checklist; `risks`: the DPIA risk table.
  */
 export type FieldKind =
@@ -70,11 +74,19 @@ export type FieldKind =
   | 'date'
   | 'datetime'
   | 'ref'
-  | 'contract'
+  | 'refs'
+  | 'entity'
+  | 'entities'
+  | 'country'
+  | 'countries'
   | 'owner'
   | 'department'
   | 'screening'
   | 'risks';
+
+/** Records of other modules a privacy record links to (`entity` / `entities` fields). */
+export const LINKED_ENTITIES = ['supplier', 'contract', 'document', 'asset', 'employee'] as const;
+export type LinkedEntity = (typeof LINKED_ENTITIES)[number];
 
 export type FormValues = Readonly<Record<string, unknown>>;
 
@@ -86,7 +98,11 @@ export interface FieldDef {
   readonly options?: readonly string[];
   readonly optionSet?: string;
   readonly ref?: RegisterKey;
+  /** The module record an `entity` / `entities` field links to. */
+  readonly entity?: LinkedEntity;
   readonly required?: boolean;
+  /** An Art. 30 fact: flagged on the detail page while it is missing. */
+  readonly art30?: boolean;
   /** Only on create (the backend has no PATCH for it). */
   readonly createOnly?: boolean;
   /** Only on edit (PATCH-only fields such as decisions and outcomes). */
@@ -153,6 +169,10 @@ export interface RegisterDef {
   readonly filters: readonly FilterDef[];
   /** Clause references shown with the register (`gdpr:30`, `iso27001:A.5.34`). */
   readonly clauses: readonly string[];
+  /** The server export of the register (`GET /exports/<kind>`), if it has one. */
+  readonly exportKind?: ExportKind;
+  /** The lesson offered in the help strip of the register's pages. */
+  readonly lesson: string;
 }
 
 const isTrue = (key: string) => (v: FormValues) => v[key] === true;
@@ -218,19 +238,51 @@ export const REGISTERS: Readonly<Record<RegisterKey, RegisterDef>> = {
         kind: 'text',
         section: 'basics',
         maxLength: 255,
+        art30: true,
+        showIf: equals('role', 'processor'),
       },
       description,
-      { key: 'purposes', kind: 'textarea', section: 'processing', wide: true, maxLength: 10000 },
+      {
+        key: 'purposes',
+        kind: 'textarea',
+        section: 'processing',
+        wide: true,
+        maxLength: 10000,
+        art30: true,
+      },
       {
         key: 'legal_basis',
         kind: 'select',
         options: LEGAL_BASES,
         optionSet: 'legalBasis',
         section: 'processing',
+        art30: true,
       },
-      { key: 'retention_period', kind: 'text', section: 'processing', maxLength: 255 },
-      { key: 'data_subject_categories', kind: 'tags', section: 'data' },
-      { key: 'data_categories', kind: 'tags', section: 'data' },
+      {
+        key: 'retention_period',
+        kind: 'text',
+        section: 'processing',
+        maxLength: 255,
+        art30: true,
+      },
+      { key: 'data_source', kind: 'textarea', section: 'processing', wide: true, maxLength: 10000 },
+      {
+        key: 'privacy_notice_document_id',
+        kind: 'entity',
+        entity: 'document',
+        section: 'processing',
+      },
+      { key: 'automated_decisions', kind: 'boolean', section: 'processing' },
+      {
+        key: 'automated_decision_logic',
+        kind: 'textarea',
+        section: 'processing',
+        wide: true,
+        maxLength: 10000,
+        showIf: isTrue('automated_decisions'),
+      },
+      { key: 'data_subject_categories', kind: 'tags', section: 'data', art30: true },
+      { key: 'data_categories', kind: 'tags', section: 'data', art30: true },
       { key: 'special_categories', kind: 'tags', section: 'data' },
       {
         key: 'special_category_condition',
@@ -238,9 +290,12 @@ export const REGISTERS: Readonly<Record<RegisterKey, RegisterDef>> = {
         options: SPECIAL_CATEGORY_CONDITIONS,
         optionSet: 'specialCondition',
         section: 'data',
+        art30: true,
         showIf: hasItems('special_categories'),
       },
-      { key: 'recipients', kind: 'tags', section: 'data' },
+      { key: 'processor_ids', kind: 'refs', ref: 'processor', section: 'data', wide: true },
+      { key: 'recipients', kind: 'tags', section: 'data', art30: true },
+      { key: 'asset_ids', kind: 'entities', entity: 'asset', section: 'data', wide: true },
       { key: 'systems', kind: 'tags', section: 'data' },
       {
         key: 'security_measures',
@@ -248,12 +303,15 @@ export const REGISTERS: Readonly<Record<RegisterKey, RegisterDef>> = {
         section: 'security',
         wide: true,
         maxLength: 10000,
+        art30: true,
       },
       { key: 'international_transfers', kind: 'boolean', section: 'security' },
       {
         key: 'transfer_countries',
-        kind: 'tags',
+        kind: 'countries',
         section: 'security',
+        wide: true,
+        art30: true,
         showIf: isTrue('international_transfers'),
       },
       reviewDue,
@@ -264,6 +322,8 @@ export const REGISTERS: Readonly<Record<RegisterKey, RegisterDef>> = {
       { param: 'legal_basis', options: LEGAL_BASES, optionSet: 'legalBasis' },
     ],
     clauses: ['gdpr:30', 'gdpr:5', 'gdpr:6'],
+    exportKind: 'ropa',
+    lesson: 'gdpr-principles',
   },
   dpia: {
     key: 'dpia',
@@ -314,6 +374,7 @@ export const REGISTERS: Readonly<Record<RegisterKey, RegisterDef>> = {
       { param: 'screening_result', options: SCREENING_RESULTS, optionSet: 'screeningResult' },
     ],
     clauses: ['gdpr:35', 'gdpr:36', 'gdpr:32'],
+    lesson: 'when-dpia',
   },
   dsr: {
     key: 'dsr',
@@ -367,6 +428,7 @@ export const REGISTERS: Readonly<Record<RegisterKey, RegisterDef>> = {
       },
       { key: 'requester_contact', kind: 'text', section: 'requester', maxLength: 255 },
       { key: 'subject_reference', kind: 'text', section: 'requester', maxLength: 255 },
+      { key: 'employee_id', kind: 'entity', entity: 'employee', section: 'requester' },
       { key: 'identity_verified_at', kind: 'datetime', section: 'handling', editOnly: true },
       { key: 'responded_at', kind: 'datetime', section: 'handling', editOnly: true },
       {
@@ -387,6 +449,8 @@ export const REGISTERS: Readonly<Record<RegisterKey, RegisterDef>> = {
     ],
     filters: [{ param: 'request_type', options: DSR_TYPES, optionSet: 'dsrType' }],
     clauses: ['gdpr:12', 'gdpr:15', 'gdpr:17'],
+    exportKind: 'requests',
+    lesson: 'data-subject-rights',
   },
   breach: {
     key: 'breach',
@@ -428,6 +492,9 @@ export const REGISTERS: Readonly<Record<RegisterKey, RegisterDef>> = {
         section: 'impact',
         wide: true,
       },
+      { key: 'ropa_entry_ids', kind: 'refs', ref: 'ropa', section: 'impact', wide: true },
+      { key: 'processor_id', kind: 'ref', ref: 'processor', section: 'impact' },
+      { key: 'asset_ids', kind: 'entities', entity: 'asset', section: 'impact', wide: true },
       { key: 'data_categories', kind: 'tags', section: 'impact' },
       { key: 'special_categories', kind: 'boolean', section: 'impact' },
       { key: 'approx_subjects', kind: 'number', section: 'impact' },
@@ -519,6 +586,8 @@ export const REGISTERS: Readonly<Record<RegisterKey, RegisterDef>> = {
     ],
     filters: [{ param: 'risk_level', options: BREACH_RISKS, optionSet: 'breachRisk' }],
     clauses: ['gdpr:33', 'gdpr:34', 'iso27001:A.5.34'],
+    exportKind: 'breaches',
+    lesson: 'breach-72-hours',
   },
   processor: {
     key: 'processor',
@@ -535,11 +604,12 @@ export const REGISTERS: Readonly<Record<RegisterKey, RegisterDef>> = {
     overdue: true,
     hasDue: true,
     personal: false,
-    icon: 'parts',
+    icon: 'contract',
     fields: [
       ...COMMON_HEAD,
+      { key: 'supplier_id', kind: 'entity', entity: 'supplier', section: 'basics' },
       { key: 'contact', kind: 'text', section: 'basics', maxLength: 255 },
-      { key: 'country', kind: 'text', section: 'basics', maxLength: 64 },
+      { key: 'country', kind: 'country', section: 'basics' },
       description,
       { key: 'is_sub_processor', kind: 'boolean', section: 'basics' },
       {
@@ -557,6 +627,8 @@ export const REGISTERS: Readonly<Record<RegisterKey, RegisterDef>> = {
         optionSet: 'dpaStatus',
         section: 'dpa',
       },
+      { key: 'dpa_contract_id', kind: 'entity', entity: 'contract', section: 'dpa' },
+      { key: 'dpa_document_id', kind: 'entity', entity: 'document', section: 'dpa' },
       { key: 'dpa_signed_at', kind: 'date', section: 'dpa' },
       { key: 'dpa_expires_at', kind: 'date', section: 'dpa' },
       {
@@ -575,6 +647,8 @@ export const REGISTERS: Readonly<Record<RegisterKey, RegisterDef>> = {
       { param: 'risk_rating', options: LEVELS, optionSet: 'level' },
     ],
     clauses: ['gdpr:28', 'iso27001:A.5.20'],
+    exportKind: 'processors',
+    lesson: 'processors-and-transfers',
   },
   transfer: {
     key: 'transfer',
@@ -599,10 +673,9 @@ export const REGISTERS: Readonly<Record<RegisterKey, RegisterDef>> = {
       description,
       {
         key: 'destination_country',
-        kind: 'text',
+        kind: 'country',
         section: 'mechanism',
         required: true,
-        maxLength: 64,
       },
       {
         key: 'mechanism',
@@ -611,6 +684,7 @@ export const REGISTERS: Readonly<Record<RegisterKey, RegisterDef>> = {
         optionSet: 'mechanism',
         section: 'mechanism',
         required: true,
+        labelKey: 'privacy.fields.mechanismTool',
       },
       {
         key: 'scc_module',
@@ -622,7 +696,8 @@ export const REGISTERS: Readonly<Record<RegisterKey, RegisterDef>> = {
       },
       {
         key: 'contract_id',
-        kind: 'contract',
+        kind: 'entity',
+        entity: 'contract',
         section: 'mechanism',
         showIf: oneOf('mechanism', ['sccs', 'bcrs', 'other']),
       },
@@ -640,6 +715,7 @@ export const REGISTERS: Readonly<Record<RegisterKey, RegisterDef>> = {
         options: TIA_STATUSES,
         optionSet: 'tiaStatus',
         section: 'tia',
+        labelKey: 'privacy.fields.tiaProgress',
       },
       {
         key: 'tia_conclusion',
@@ -664,6 +740,7 @@ export const REGISTERS: Readonly<Record<RegisterKey, RegisterDef>> = {
       { param: 'tia_status', options: TIA_STATUSES, optionSet: 'tiaStatus' },
     ],
     clauses: ['gdpr:44', 'gdpr:46', 'gdpr:49'],
+    lesson: 'processors-and-transfers',
   },
   retention: {
     key: 'retention',
@@ -692,14 +769,14 @@ export const REGISTERS: Readonly<Record<RegisterKey, RegisterDef>> = {
         required: true,
         maxLength: 255,
       },
+      { key: 'retention_months', kind: 'number', section: 'rule' },
       {
         key: 'retention_period',
         kind: 'text',
         section: 'rule',
-        required: true,
         maxLength: 120,
+        labelKey: 'privacy.fields.retentionPeriodText',
       },
-      { key: 'retention_months', kind: 'number', section: 'rule' },
       { key: 'trigger_event', kind: 'text', section: 'rule', maxLength: 255 },
       { key: 'legal_reference', kind: 'text', section: 'rule', maxLength: 255 },
       {
@@ -709,11 +786,14 @@ export const REGISTERS: Readonly<Record<RegisterKey, RegisterDef>> = {
         optionSet: 'disposal',
         section: 'rule',
       },
+      { key: 'execution_interval_months', kind: 'number', section: 'execution' },
+      { key: 'next_execution_due_at', kind: 'date', section: 'execution' },
       reviewDue,
     ],
     facts: [],
     filters: [{ param: 'disposal_method', options: DISPOSAL_METHODS, optionSet: 'disposal' }],
     clauses: ['gdpr:5', 'gdpr:17', 'iso27001:A.5.33'],
+    lesson: 'gdpr-principles',
   },
   consent: {
     key: 'consent',
@@ -759,6 +839,7 @@ export const REGISTERS: Readonly<Record<RegisterKey, RegisterDef>> = {
         optionSet: 'consentMethod',
         section: 'evidence',
       },
+      { key: 'notice_document_id', kind: 'entity', entity: 'document', section: 'evidence' },
       { key: 'notice_version', kind: 'text', section: 'evidence', maxLength: 64 },
       { key: 'evidence_reference', kind: 'text', section: 'evidence', maxLength: 255 },
     ],
@@ -768,6 +849,7 @@ export const REGISTERS: Readonly<Record<RegisterKey, RegisterDef>> = {
     ],
     filters: [{ param: 'method', options: CONSENT_METHODS, optionSet: 'consentMethod' }],
     clauses: ['gdpr:7'],
+    lesson: 'lawful-basis',
   },
   lba: {
     key: 'lba',
@@ -828,6 +910,7 @@ export const REGISTERS: Readonly<Record<RegisterKey, RegisterDef>> = {
     facts: [{ key: 'is_lia', kind: 'boolean' }, ...decided],
     filters: [{ param: 'legal_basis', options: LEGAL_BASES, optionSet: 'legalBasis' }],
     clauses: ['gdpr:6', 'gdpr:9'],
+    lesson: 'lawful-basis',
   },
 };
 
@@ -879,4 +962,23 @@ export function revisionFieldLabels(register: RegisterDef): Readonly<Record<stri
     labels[f.key] = fieldLabelKey(f);
   }
   return labels;
+}
+
+/** The module root crumb: the nav label (`modules.names.privacy`). */
+export const PRIVACY_CRUMB = { labelKey: 'modules.names.privacy', link: '/privacy' } as const;
+
+/** The gear on the module's page headers (shown to holders of `privacy:manage`). */
+export const PRIVACY_SETTINGS_LINK = '/privacy/settings';
+
+/** The register's crumb (`Personvern › Behandlingsprotokoll`). */
+export function registerCrumb(register: RegisterDef) {
+  return {
+    labelKey: `privacy.registers.${register.key}.plural`,
+    link: ['/privacy', register.segment],
+  } as const;
+}
+
+/** A register by its portal / API segment (`ropa`, `dpias`, …). */
+export function registerBySegment(segment: string): RegisterDef | null {
+  return REGISTER_LIST.find((r) => r.segment === segment) ?? null;
 }

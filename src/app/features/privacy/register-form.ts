@@ -13,13 +13,18 @@ import { LanguageService } from '../../core/i18n/language.service';
 import { AiAssistButton } from '../../shared/ask/ai-assist-button';
 import { AskAbout } from '../../shared/ask/ask-about';
 import { FieldHelp } from '../../shared/guidance/field-help';
+import { locationName } from '../../shared/locale/countries';
 import { MarkdownPipe } from '../../shared/markdown/markdown.pipe';
 import { Alert } from '../../shared/ui/alert/alert';
 import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
+import { CountryPicker } from '../../shared/ui/country-picker/country-picker';
 import { FormField } from '../../shared/ui/form-field/form-field';
 import { Icon } from '../../shared/ui/icon/icon';
-import { DpiaRisk, RopaDraft, ScreeningSuggestion } from './data/privacy.models';
+import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
+import { DpiaRisk, LiaDraft, RopaDraft, ScreeningSuggestion } from './data/privacy.models';
+import { ISO_COUNTRY_CODES } from './data/privacy-countries';
+import { classifyCountry, countryStatusKey, suggestedMechanism } from './data/privacy-display';
 import { PrivacyErrorMessage } from './data/privacy-errors';
 import {
   FormMode,
@@ -27,11 +32,13 @@ import {
   changedReasonFields,
   fieldsFor,
   isVisible,
+  mergeLiaDraft,
   mergeRopaDraft,
   validate,
 } from './data/privacy-form-model';
 import { PrivacyRefsService } from './data/privacy-refs.service';
 import { FieldDef, FormValues, RegisterDef, fieldLabelKey } from './data/privacy-registers';
+import { RecordPicker } from './fields/record-picker';
 import { RisksField } from './fields/risks-field';
 import { ScreeningField } from './fields/screening-field';
 import { TagInput } from './fields/tag-input';
@@ -54,13 +61,24 @@ const ASK_FIELDS = new Set([
   'balancing_test',
   'subjects_exemption',
   'risk_level',
+  'automated_decisions',
+  'necessity_assessment',
+  'dpa_status',
+  'disposal_method',
 ]);
+
+/** The three fields of "Registrer raskt": enough to start the 72-hour clock. */
+const QUICK_BREACH_FIELDS = new Set(['title', 'aware_at', 'description']);
 
 /**
  * The create / edit form of any privacy register, rendered from the register
  * descriptor (`data/privacy-registers.ts`): sections, field kinds, conditional
- * fields, field help and required checks. AI helpers: draft a ROPA entry from a
- * description, screen the DPIA need, and draft a breach assessment.
+ * fields, inline field help and required checks. Links to other records are picked
+ * from their registers, countries from the ISO list (with their chapter V status).
+ * AI helpers: draft a ROPA entry from a description and check its Art. 30
+ * completeness, screen the DPIA need, draft a breach assessment, a legitimate-interest
+ * assessment and a transfer assessment. A new breach starts in "Registrer raskt" (three
+ * fields) so the clock starts at once.
  */
 @Component({
   selector: 'app-privacy-register-form',
@@ -73,8 +91,11 @@ const ASK_FIELDS = new Set([
     Alert,
     Button,
     Card,
+    CountryPicker,
     FormField,
     Icon,
+    StatusBadge,
+    RecordPicker,
     RisksField,
     ScreeningField,
     TagInput,
@@ -82,13 +103,27 @@ const ASK_FIELDS = new Set([
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); submit()" novalidate>
-      @if (register().key === 'ropa') {
+      @if (quickMode()) {
+        <app-alert tone="info" data-testid="breach-quick">
+          {{ 'privacy.form.quickIntro' | transloco }}
+          <button
+            type="button"
+            class="ml-1 font-semibold text-accent underline"
+            (click)="quick.set(false)"
+            data-testid="breach-quick-off"
+          >
+            {{ 'privacy.form.quickAll' | transloco }}
+          </button>
+        </app-alert>
+      }
+
+      @if (register().key === 'ropa' && mode() === 'create') {
         <app-card>
-          <h2 class="mb-1 flex items-center gap-2 font-display text-[15px] font-bold text-fg">
+          <h2 class="mb-1 flex items-center gap-2 font-display text-card font-bold text-fg">
             <app-icon name="spark" [size]="16" />
             {{ 'privacy.ai.ropaTitle' | transloco }}
           </h2>
-          <p class="mb-3 text-[13px] text-fg-muted">{{ 'privacy.ai.ropaHint' | transloco }}</p>
+          <p class="mb-3 text-ui text-fg-muted">{{ 'privacy.ai.ropaHint' | transloco }}</p>
           <label class="sr-only" for="cf-pf-ai-description">
             {{ 'privacy.ai.describeLabel' | transloco }}
           </label>
@@ -96,7 +131,7 @@ const ASK_FIELDS = new Set([
             id="cf-pf-ai-description"
             rows="3"
             maxlength="6000"
-            class="w-full rounded-[10px] border border-border bg-bg px-3 py-2 text-[13.5px] text-fg outline-none focus:border-accent"
+            class="w-full rounded-tile border border-border bg-bg px-3 py-2 text-body text-fg outline-none focus:border-accent"
             [placeholder]="'privacy.ai.ropaPlaceholder' | transloco"
             [value]="aiDescription()"
             (input)="aiDescription.set($any($event.target).value)"
@@ -117,22 +152,64 @@ const ASK_FIELDS = new Set([
             </app-alert>
           }
           @if (aiApplied()) {
-            <p class="mt-2 text-[12.5px] text-fg-muted" role="status">
+            <p class="mt-2 text-meta text-fg-muted" role="status">
               {{ 'privacy.ai.applied' | transloco }}
             </p>
           }
         </app-card>
       }
 
-      @for (section of sections(); track section.key) {
+      @if (register().key === 'ropa' && mode() === 'edit' && entityId()) {
         <app-card>
-          <h2 class="mb-4 font-display text-[16px] font-bold text-fg">
+          <h2 class="mb-1 flex items-center gap-2 font-display text-card font-bold text-fg">
+            <app-icon name="spark" [size]="16" />
+            {{ 'privacy.ai.checkRopaTitle' | transloco }}
+          </h2>
+          <p class="mb-3 text-ui text-fg-muted">{{ 'privacy.ai.checkRopaHint' | transloco }}</p>
+          <app-ai-assist-button
+            assist="privacy.check_ropa"
+            entityType="ropa_entry"
+            [entityId]="entityId()"
+            labelKey="privacy.ai.checkRopa"
+            (text)="ropaCheck.set($event)"
+          />
+          @if (ropaCheck(); as text) {
+            <div
+              class="mt-3 max-h-[360px] overflow-y-auto rounded-tile bg-surface-2 p-3 text-ui text-fg"
+              [innerHTML]="text | appMarkdown"
+              aria-live="polite"
+              data-testid="ropa-check"
+            ></div>
+          }
+        </app-card>
+      }
+
+      @for (section of sections(); track section.key) {
+        <app-card [attr.data-section]="section.key">
+          <h2 class="mb-4 font-display text-section font-bold text-fg">
             {{ 'privacy.form.sections.' + section.key | transloco }}
           </h2>
           @if (section.key === 'authority' || section.key === 'subjects') {
-            <p class="-mt-2 mb-4 text-[13px] text-fg-muted">
+            <p class="-mt-2 mb-4 text-ui text-fg-muted">
               {{ 'privacy.breach.decisionHint.' + section.key | transloco }}
             </p>
+          }
+          @if (section.key === 'tests' && register().key === 'lba' && isLia()) {
+            <div class="-mt-1 mb-4 flex flex-wrap items-center gap-2">
+              <app-ai-assist-button
+                assist="privacy.draft_lia"
+                [input]="liaInput()"
+                [entityType]="entityId() ? 'legal_basis_assessment' : null"
+                [entityId]="entityId()"
+                labelKey="privacy.ai.draftLia"
+                (result)="applyLiaDraft($event)"
+              />
+              @if (liaApplied()) {
+                <span class="text-meta text-fg-muted" role="status">
+                  {{ 'privacy.ai.applied' | transloco }}
+                </span>
+              }
+            </div>
           }
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
             @for (f of section.fields; track f.key) {
@@ -153,7 +230,7 @@ const ASK_FIELDS = new Set([
                         (result)="applyScreening($event)"
                       />
                       @if (screeningSummary(); as summary) {
-                        <p class="text-[12.5px] text-fg-muted" role="status">{{ summary }}</p>
+                        <p class="text-meta text-fg-muted" role="status">{{ summary }}</p>
                       }
                     </div>
                   }
@@ -165,27 +242,40 @@ const ASK_FIELDS = new Set([
                     <app-field-help scope="privacy" [page]="register().key" field="risks" />
                   }
                   @case ('boolean') {
-                    <label class="flex items-center gap-2 pt-1 text-[13.5px] text-fg">
-                      <input
-                        type="checkbox"
-                        class="h-4 w-4 accent-[var(--accent)]"
-                        [id]="fid(f)"
-                        [checked]="form()[f.key] === true"
-                        (change)="set(f.key, $any($event.target).checked)"
-                        [attr.data-testid]="'field-' + f.key"
-                      />
-                      {{ label(f) | transloco }}
-                    </label>
-                    <app-field-help scope="privacy" [page]="register().key" [field]="f.key" />
+                    <div class="flex flex-wrap items-center gap-x-2 gap-y-1 pt-1">
+                      <label class="flex items-center gap-2 text-body text-fg">
+                        <input
+                          type="checkbox"
+                          class="h-4 w-4 accent-[var(--accent)]"
+                          [id]="fid(f)"
+                          [checked]="form()[f.key] === true"
+                          (change)="set(f.key, $any($event.target).checked)"
+                          [attr.data-testid]="'field-' + f.key"
+                        />
+                        {{ label(f) | transloco }}
+                      </label>
+                      <app-field-help scope="privacy" [page]="register().key" [field]="f.key" />
+                      @if (askable(f.key)) {
+                        <app-ask-about
+                          [field]="f.key"
+                          [fieldLabel]="labelText(f)"
+                          labelKey="privacy.ask.fieldTooltip"
+                          [prompt]="'privacy.ask.field' | transloco: { field: labelText(f) }"
+                        />
+                      }
+                    </div>
                   }
                   @case ('multi') {
                     <fieldset>
-                      <legend class="mb-1.5 text-[13px] font-semibold text-fg-muted">
+                      <legend
+                        class="mb-1.5 flex items-center gap-2 text-ui font-semibold text-fg-muted"
+                      >
                         {{ label(f) | transloco }}
+                        <app-field-help scope="privacy" [page]="register().key" [field]="f.key" />
                       </legend>
                       <div class="flex flex-wrap gap-3">
                         @for (o of f.options ?? []; track o) {
-                          <label class="flex items-center gap-2 text-[13.5px] text-fg">
+                          <label class="flex items-center gap-2 text-body text-fg">
                             <input
                               type="checkbox"
                               class="h-4 w-4 accent-[var(--accent)]"
@@ -197,10 +287,23 @@ const ASK_FIELDS = new Set([
                         }
                       </div>
                     </fieldset>
-                    <app-field-help scope="privacy" [page]="register().key" [field]="f.key" />
                   }
                   @default {
-                    <app-form-field [label]="labelText(f)" [inputId]="fid(f)">
+                    <app-form-field [inputId]="fid(f)">
+                      <div class="flex flex-wrap items-center gap-x-1.5 gap-y-1">
+                        <label [for]="fid(f)" class="text-ui font-semibold text-fg-muted">
+                          {{ labelText(f) }}
+                        </label>
+                        @if (askable(f.key)) {
+                          <app-ask-about
+                            [field]="f.key"
+                            [fieldLabel]="labelText(f)"
+                            labelKey="privacy.ask.fieldTooltip"
+                            [prompt]="'privacy.ask.field' | transloco: { field: labelText(f) }"
+                          />
+                        }
+                        <app-field-help scope="privacy" [page]="register().key" [field]="f.key" />
+                      </div>
                       @switch (f.kind) {
                         @case ('textarea') {
                           <textarea
@@ -251,6 +354,73 @@ const ASK_FIELDS = new Set([
                         @case ('tags') {
                           <app-privacy-tag-input
                             [inputId]="fid(f)"
+                            [value]="listValue(f.key)"
+                            (valueChange)="set(f.key, $event)"
+                          />
+                        }
+                        @case ('country') {
+                          <app-country-picker
+                            [inputId]="fid(f)"
+                            [multiple]="false"
+                            [options]="countryCodes"
+                            [value]="text(f.key) ? [text(f.key)] : []"
+                            [invalid]="!!shownErrors()[f.key]"
+                            [attr.data-testid]="'field-' + f.key"
+                            (valueChange)="set(f.key, $event[0] ?? '')"
+                          />
+                          @if (countryHint(f.key); as hint) {
+                            <p
+                              class="mt-1 flex flex-wrap items-center gap-2 text-meta text-fg-muted"
+                              [attr.data-testid]="'country-hint-' + f.key"
+                            >
+                              <app-status-badge
+                                [meaning]="
+                                  hint.status === 'third_country' ? 'lifecycle' : 'compliance'
+                                "
+                                [value]="hint.status === 'third_country' ? 'due' : 'met'"
+                                [labelKey]="countryStatusKey(hint.status)"
+                              />
+                              @if (hint.mechanism) {
+                                {{
+                                  'privacy.form.mechanismHint'
+                                    | transloco
+                                      : {
+                                          mechanism:
+                                            ('privacy.options.mechanism.' + hint.mechanism
+                                            | transloco),
+                                        }
+                                }}
+                              }
+                            </p>
+                          }
+                        }
+                        @case ('countries') {
+                          <app-country-picker
+                            [inputId]="fid(f)"
+                            [options]="countryCodes"
+                            [value]="listValue(f.key)"
+                            [label]="labelText(f)"
+                            [flagged]="thirdCountries(f.key)"
+                            [attr.data-testid]="'field-' + f.key"
+                            (valueChange)="set(f.key, $event)"
+                          />
+                        }
+                        @case ('refs') {
+                          <app-privacy-record-picker
+                            [inputId]="fid(f)"
+                            [testId]="'field-' + f.key"
+                            [label]="labelText(f)"
+                            [options]="refOptions(f)"
+                            [value]="listValue(f.key)"
+                            (valueChange)="set(f.key, $event)"
+                          />
+                        }
+                        @case ('entities') {
+                          <app-privacy-record-picker
+                            [inputId]="fid(f)"
+                            [testId]="'field-' + f.key"
+                            [label]="labelText(f)"
+                            [options]="entityOptions(f)"
                             [value]="listValue(f.key)"
                             (valueChange)="set(f.key, $event)"
                           />
@@ -312,7 +482,7 @@ const ASK_FIELDS = new Set([
                             }
                           </select>
                         }
-                        @case ('contract') {
+                        @case ('entity') {
                           <select
                             [id]="fid(f)"
                             (change)="set(f.key, $any($event.target).value)"
@@ -322,12 +492,12 @@ const ASK_FIELDS = new Set([
                             <option value="" [selected]="!form()[f.key]">
                               {{ 'privacy.common.notSet' | transloco }}
                             </option>
-                            @if (orphan(f.key, contractOptions())) {
+                            @if (orphan(f.key, entityOptions(f))) {
                               <option [value]="form()[f.key]" selected>
                                 {{ 'privacy.form.currentValue' | transloco }}
                               </option>
                             }
-                            @for (o of contractOptions(); track o.id) {
+                            @for (o of entityOptions(f); track o.id) {
                               <option [value]="o.id" [selected]="form()[f.key] === o.id">
                                 {{ o.label }}
                               </option>
@@ -350,25 +520,16 @@ const ASK_FIELDS = new Set([
                         }
                       }
                     </app-form-field>
-                    <div class="mt-1 flex items-start gap-2">
-                      <app-field-help scope="privacy" [page]="register().key" [field]="f.key" />
-                      @if (askable(f.key)) {
-                        <app-ask-about
-                          [field]="f.key"
-                          [prompt]="'privacy.ask.field' | transloco: { field: labelText(f) }"
-                        />
-                      }
-                    </div>
                     @if (mode() === 'edit' && f.editHintKey) {
                       <p
-                        class="mt-1 text-[12px] text-fg-subtle"
+                        class="mt-1 text-meta text-fg-subtle"
                         [attr.data-testid]="'edit-hint-' + f.key"
                       >
                         {{ f.editHintKey | transloco }}
                       </p>
                     }
                     @if (shownErrors()[f.key]; as key) {
-                      <p [id]="fid(f) + '-err'" class="mt-1 text-[12px] text-fail">
+                      <p [id]="fid(f) + '-err'" class="mt-1 text-meta text-fail">
                         {{ key | transloco }}
                       </p>
                     }
@@ -378,7 +539,7 @@ const ASK_FIELDS = new Set([
             }
           </div>
           @if (register().key === 'breach' && section.key === 'impact') {
-            <div class="mt-4 rounded-tile border border-border p-3">
+            <div class="mt-4">
               <app-ai-assist-button
                 assist="privacy.draft_breach_assessment"
                 [input]="{ description: breachText() }"
@@ -390,7 +551,7 @@ const ASK_FIELDS = new Set([
               />
               @if (breachDraft(); as draft) {
                 <div
-                  class="prose-sm mt-3 max-h-[360px] overflow-y-auto text-[13px] text-fg"
+                  class="mt-3 max-h-[360px] overflow-y-auto rounded-tile bg-surface-2 p-3 text-ui text-fg"
                   [innerHTML]="draft | appMarkdown"
                   aria-live="polite"
                   data-testid="breach-draft"
@@ -398,6 +559,32 @@ const ASK_FIELDS = new Set([
                 <div class="mt-2">
                   <app-button variant="secondary" size="sm" (click)="useBreachDraft()">
                     {{ 'privacy.ai.useAsConsequences' | transloco }}
+                  </app-button>
+                </div>
+              }
+            </div>
+          }
+          @if (register().key === 'transfer' && section.key === 'tia') {
+            <div class="mt-4">
+              <app-ai-assist-button
+                assist="privacy.draft_tia"
+                [input]="tiaInput()"
+                [entityType]="entityId() ? 'transfer_assessment' : null"
+                [entityId]="entityId()"
+                labelKey="privacy.ai.draftTia"
+                [disabled]="!entityId() && !text('destination_country')"
+                (text)="tiaDraft.set($event)"
+              />
+              @if (tiaDraft(); as draft) {
+                <div
+                  class="mt-3 max-h-[360px] overflow-y-auto rounded-tile bg-surface-2 p-3 text-ui text-fg"
+                  [innerHTML]="draft | appMarkdown"
+                  aria-live="polite"
+                  data-testid="tia-draft"
+                ></div>
+                <div class="mt-2">
+                  <app-button variant="secondary" size="sm" (click)="useTiaDraft()">
+                    {{ 'privacy.ai.useAsTiaSummary' | transloco }}
                   </app-button>
                 </div>
               }
@@ -427,11 +614,11 @@ const ASK_FIELDS = new Set([
               data-testid="change-reason"
             />
           </app-form-field>
-          <p class="mt-1 text-[12px] text-fg-subtle">
+          <p class="mt-1 text-meta text-fg-subtle">
             {{ 'privacy.form.changeReasonHint' | transloco }}
           </p>
           @if (shownErrors()[reasonField]; as key) {
-            <p id="cf-pf-reason-err" class="mt-1 text-[12px] text-fail">
+            <p id="cf-pf-reason-err" class="mt-1 text-meta text-fail">
               {{ key | transloco }}
             </p>
           }
@@ -444,12 +631,14 @@ const ASK_FIELDS = new Set([
         </app-alert>
       }
 
-      <div class="flex flex-wrap justify-end gap-2">
+      <div
+        class="sticky bottom-0 z-10 -mx-4 flex flex-wrap justify-end gap-2 border-t border-border bg-bg/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none"
+      >
         <app-button variant="secondary" (click)="cancelled.emit()">
           {{ 'privacy.common.cancel' | transloco }}
         </app-button>
         <app-button type="submit" [loading]="busy()" data-testid="privacy-save">
-          {{ (mode() === 'create' ? 'privacy.form.create' : 'privacy.form.save') | transloco }}
+          {{ saveLabel() | transloco }}
         </app-button>
       </div>
     </form>
@@ -462,12 +651,14 @@ export class PrivacyRegisterForm {
   readonly register = input.required<RegisterDef>();
   readonly mode = input<FormMode>('create');
   readonly value = input.required<FormValues>();
-  /** The record id in edit mode (lets the breach assistant read the stored record). */
+  /** The record id in edit mode (lets the assistants read the stored record). */
   readonly entityId = input<string | null>(null);
   readonly busy = input(false);
   readonly error = input<PrivacyErrorMessage | null>(null);
   /** The caller's permissions (fields with `editPermission` are shown only to holders). */
   readonly permissions = input<ReadonlySet<string>>(new Set());
+  /** Start a new breach in "Registrer raskt" (three fields). */
+  readonly quickStart = input(false);
 
   readonly submitted = output<PrivacyFormSubmit>();
   readonly cancelled = output<void>();
@@ -475,23 +666,33 @@ export class PrivacyRegisterForm {
   protected readonly form = linkedSignal(() => this.value());
   protected readonly changeReason = signal('');
   private readonly attempted = signal(false);
+  protected readonly quick = linkedSignal(
+    () => this.quickStart() && this.register().key === 'breach' && this.mode() === 'create',
+  );
+  protected readonly quickMode = computed(() => this.quick());
 
   protected readonly aiDescription = signal('');
   protected readonly aiNotes = signal<string | null>(null);
   protected readonly aiApplied = signal(false);
+  protected readonly liaApplied = signal(false);
   protected readonly rationale = signal<Readonly<Record<string, string>>>({});
   protected readonly screeningSummary = signal<string | null>(null);
   protected readonly breachDraft = signal<string | null>(null);
+  protected readonly tiaDraft = signal<string | null>(null);
+  protected readonly ropaCheck = signal<string | null>(null);
 
   protected readonly users = this.refs.users;
   protected readonly departments = this.refs.departments;
+  protected readonly countryCodes = ISO_COUNTRY_CODES;
+  protected readonly countryStatusKey = countryStatusKey;
 
   protected readonly sections = computed<readonly Section[]>(() => {
     const values = this.form();
+    const quick = this.quick();
     const order: string[] = [];
     const grouped = new Map<string, FieldDef[]>();
     for (const f of fieldsFor(this.register(), this.mode(), this.can())) {
-      if (!isVisible(f, values)) {
+      if (!isVisible(f, values) || (quick && !QUICK_BREACH_FIELDS.has(f.key))) {
         continue;
       }
       if (!grouped.has(f.section)) {
@@ -522,6 +723,30 @@ export class PrivacyRegisterForm {
     }),
   );
   protected readonly shownErrors = computed(() => (this.attempted() ? this.errors() : {}));
+
+  protected readonly saveLabel = computed(() => {
+    if (this.mode() === 'edit') {
+      return 'privacy.form.save';
+    }
+    return this.quick() ? 'privacy.form.quickSave' : 'privacy.form.create';
+  });
+
+  protected readonly isLia = computed(() => this.form()['legal_basis'] === 'legitimate_interests');
+  protected readonly liaInput = computed(() => ({
+    ropa_entry_id: this.text('ropa_entry_id') || undefined,
+    description: [this.form()['title'], this.form()['description'], this.form()['justification']]
+      .map((v) => String(v ?? '').trim())
+      .filter(Boolean)
+      .join('\n\n'),
+  }));
+  protected readonly tiaInput = computed(() => ({
+    destination_country: this.text('destination_country') || undefined,
+    mechanism: this.text('mechanism') || undefined,
+    description: [this.form()['title'], this.form()['description']]
+      .map((v) => String(v ?? '').trim())
+      .filter(Boolean)
+      .join('\n\n'),
+  }));
 
   protected readonly screeningValue = computed(
     () => (this.form()['screening'] as Readonly<Record<string, boolean>>) ?? {},
@@ -558,8 +783,8 @@ export class PrivacyRegisterForm {
     return this.translate(fieldLabelKey(f)) + (f.required ? ' *' : '');
   }
 
-  private translate(key: string): string {
-    return this.i18n.translate(key);
+  private translate(key: string, params?: Record<string, unknown>): string {
+    return this.i18n.translate(key, params);
   }
 
   protected inputType(f: FieldDef): string {
@@ -585,12 +810,35 @@ export class PrivacyRegisterForm {
     return Array.isArray(v) ? (v as string[]) : [];
   }
 
-  protected contractOptions() {
-    return this.refs.contracts();
-  }
-
   protected refOptions(f: FieldDef) {
     return f.ref ? this.refs.options(f.ref) : [];
+  }
+
+  protected entityOptions(f: FieldDef) {
+    return f.entity ? this.refs.entityOptions(f.entity) : [];
+  }
+
+  /** Where the picked country stands (EEA / adequacy / third country) and the usual tool. */
+  protected countryHint(key: string) {
+    const code = this.text(key);
+    if (!code) {
+      return null;
+    }
+    const status = classifyCountry(code, this.refs.countries());
+    if (status === 'unknown') {
+      return null;
+    }
+    return {
+      status,
+      name: locationName(code, this.i18n),
+      mechanism: this.register().key === 'transfer' ? suggestedMechanism(status) : null,
+    };
+  }
+
+  /** Countries outside the EEA without an adequacy decision (flagged in the picker). */
+  protected thirdCountries(key: string): readonly string[] {
+    const lists = this.refs.countries();
+    return this.listValue(key).filter((c) => classifyCountry(c, lists) === 'third_country');
   }
 
   protected orphan(key: string, options: readonly { id: string }[]): boolean {
@@ -629,6 +877,14 @@ export class PrivacyRegisterForm {
     this.aiApplied.set(true);
   }
 
+  protected applyLiaDraft(result: unknown): void {
+    if (!result || typeof result !== 'object') {
+      return;
+    }
+    this.form.update((v) => mergeLiaDraft(v, result as LiaDraft));
+    this.liaApplied.set(true);
+  }
+
   protected applyScreening(result: unknown): void {
     if (!result || typeof result !== 'object') {
       return;
@@ -645,6 +901,13 @@ export class PrivacyRegisterForm {
     const draft = this.breachDraft();
     if (draft) {
       this.set('consequences', draft.slice(0, 10000));
+    }
+  }
+
+  protected useTiaDraft(): void {
+    const draft = this.tiaDraft();
+    if (draft) {
+      this.set('tia_summary', draft.slice(0, 10000));
     }
   }
 

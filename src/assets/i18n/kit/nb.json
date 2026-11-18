@@ -428,7 +428,8 @@
       "to_transfer": "Overføringsvurdering (data utenfor EU/EØS)"
     },
     "dpia": {
-      "to_risk": "Risiko fra DPIA-en"
+      "to_risk": "Risiko fra DPIA-en",
+      "to_task": "Oppgave for tiltakene"
     },
     "ai_system": {
       "to_dpia": "DPIA for KI-systemet",
@@ -636,6 +637,25 @@
     },
     "course": {
       "to_task": "Oppgave for å forbedre kurset"
+    },
+    "data_breach": {
+      "to_deviation": "Avvik med korrigerende tiltak",
+      "to_risk": "Risiko som bruddet avdekker",
+      "to_task": "Oppgave for oppfølging"
+    },
+    "ropa_entry": {
+      "to_dpia": "DPIA for denne behandlingen",
+      "to_legal_basis": "Vurdering av behandlingsgrunnlag",
+      "to_transfer": "Overføring ut av EØS",
+      "to_retention": "Lagringsregel",
+      "to_consent": "Samtykke"
+    },
+    "processor": {
+      "to_transfer": "Overføring til denne databehandleren",
+      "to_contract": "Databehandleravtale (kontrakt)"
+    },
+    "retention_schedule": {
+      "to_task": "Gjentakende sletteoppgave"
     }
   },
   "frameworks": {

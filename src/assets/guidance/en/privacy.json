@@ -2,8 +2,8 @@
   "pages": {
     "overview": {
       "intro": {
-        "title": "Privacy in one place",
-        "body": "The GDPR asks you to know what personal data you hold, why you hold it, and to be able to prove that you handle it lawfully. These registers are that proof.",
+        "title": "Your privacy work in one place",
+        "body": "Start with **Start here** if you are new. **Needs action** shows only what is urgent, and **What is missing** shows gaps between the registers, each with a button that fixes it.",
         "steps": [
           "Start with the records of processing: list each activity that uses personal data.",
           "Screen new or risky processing for a DPIA.",
@@ -29,8 +29,8 @@
     },
     "detail": {
       "intro": {
-        "title": "Working with the record",
-        "body": "Deadlines and decisions are at the top. Use the tabs for tasks, linked records, the activity log, comments, attachments and the revision history."
+        "title": "Working on the record",
+        "body": "The next step is the main button at the top; other statuses are under **More**. Deadlines, decisions and what is missing come first, then the details. **Related** and the panel on the right show what the record is linked to."
       }
     },
     "ropa": {
@@ -60,11 +60,13 @@
         },
         "purposes": {
           "help": "Why you process the data. Be specific; \"business purposes\" is too vague.",
-          "example": "Pay salaries and report tax and pension contributions."
+          "example": "Pay salaries and report tax and pension contributions.",
+          "requirements": ["gdpr:30", "gdpr:5"]
         },
         "legal_basis": {
           "help": "Every processing needs one of the six legal bases in Article 6. Choose the one that really applies; you cannot swap it later to suit you.",
-          "example": "Payroll: legal obligation and contract."
+          "example": "Payroll: legal obligation and contract.",
+          "requirements": ["gdpr:6"]
         },
         "special_categories": {
           "help": "Health, ethnicity, religion, political opinions, union membership, sexual orientation, genetic and biometric data. These need an extra condition under Article 9.",
@@ -72,14 +74,33 @@
         },
         "retention_period": {
           "help": "How long the data is kept, or the rule that decides it.",
-          "example": "Five years after the end of the financial year."
+          "example": "Five years after the end of the financial year.",
+          "requirements": ["gdpr:30", "gdpr:5"]
         },
         "security_measures": {
           "help": "A general description of the technical and organisational measures (Art. 32).",
-          "example": "Access by role, encryption at rest, logging, annual access review."
+          "example": "Access by role, encryption at rest, logging, annual access review.",
+          "requirements": ["gdpr:30", "gdpr:32"]
         },
         "international_transfers": {
           "help": "Tick if the data leaves the EEA, including through a supplier or its sub-processors. Then document the transfer in the transfer register."
+        },
+        "processor_ids": {
+          "help": "The processors that receive the data. Linking them here counts as the recipients of Art. 30 and shows the activity on the processor.",
+          "requirements": ["gdpr:30", "gdpr:28"]
+        },
+        "asset_ids": {
+          "help": "The systems and assets that hold the data, from the asset register. A request or a breach then shows where to look."
+        },
+        "data_source": {
+          "help": "Where the data comes from when it is not collected from the person, for example a public register or a partner (Art. 14)."
+        },
+        "privacy_notice_document_id": {
+          "help": "The privacy notice that tells people about this processing (Art. 13/14), as a controlled document.",
+          "requirements": ["gdpr:13"]
+        },
+        "automated_decisions": {
+          "help": "Tick if decisions about people are made by a system without a human, or if people are profiled (Art. 22). This usually needs a DPIA."
         }
       }
     },
@@ -106,17 +127,20 @@
       "fields": {
         "screening": {
           "help": "Two or more criteria met: a DPIA is required. One: it is recommended. When in doubt, carry it out.",
-          "example": "Employee monitoring with a new tool: systematic monitoring + vulnerable people (employees) = required."
+          "example": "Employee monitoring with a new tool: systematic monitoring + vulnerable people (employees) = required.",
+          "requirements": ["gdpr:35"]
         },
         "necessity_assessment": {
-          "help": "Why the processing is needed for the purpose, and why less intrusive ways are not enough."
+          "help": "Why the processing is needed for the purpose, and why a less intrusive way would not do.",
+          "requirements": ["gdpr:35"]
         },
         "risks": {
           "help": "Risks to the people whose data it is, not to the organisation: loss of control, discrimination, identity theft, financial loss, reputational harm.",
           "example": "Unauthorised access to health data in the case system."
         },
         "residual_risk": {
-          "help": "The risk that remains after the measures. High residual risk means prior consultation with the authority."
+          "help": "The risk that remains after the measures. High residual risk means prior consultation with the authority.",
+          "requirements": ["gdpr:35", "gdpr:36"]
         },
         "dpo_advice": {
           "help": "Article 35(2) requires you to seek the advice of the data protection officer, where one is appointed."
@@ -146,7 +170,8 @@
       "fields": {
         "request_type": {
           "help": "The right the person is exercising. A request does not need to use legal words to count.",
-          "example": "\"Please send me everything you have about me\" is an access request."
+          "example": "\"Please send me everything you have about me\" is an access request.",
+          "requirements": ["gdpr:12", "gdpr:15"]
         },
         "received_at": {
           "help": "When the request reached anyone in the organisation, by any channel. The one-month deadline runs from here."
@@ -158,7 +183,11 @@
           "help": "When you confirmed who the requester is. Only ask for proof when you have reasonable doubts."
         },
         "outcome": {
-          "help": "What you did, or why you refused. A refusal must mention the right to complain to the authority and to seek a judicial remedy."
+          "help": "What you did, or why you refused. A refusal must mention the right to complain to the authority and to seek a judicial remedy.",
+          "requirements": ["gdpr:12"]
+        },
+        "employee_id": {
+          "help": "If the request comes from an employee, link the person record so the people register shows it."
         }
       }
     },
@@ -184,7 +213,8 @@
       },
       "fields": {
         "aware_at": {
-          "help": "When you had a reasonable degree of certainty that personal data was affected. This starts the 72-hour clock."
+          "help": "When you had a reasonable degree of certainty that personal data was affected. This starts the 72-hour clock.",
+          "requirements": ["gdpr:33"]
         },
         "breach_types": {
           "help": "Confidentiality: seen by someone who should not. Integrity: changed. Availability: lost or temporarily unavailable."
@@ -194,13 +224,24 @@
           "example": "Passwords leaked in clear text: high risk."
         },
         "authority_notification_required": {
-          "help": "Notify unless the breach is unlikely to result in a risk to people's rights and freedoms. When you decide not to, write down why."
+          "help": "Notify unless the breach is unlikely to result in a risk to people's rights and freedoms. When you decide not to, write down why.",
+          "requirements": ["gdpr:33"]
         },
         "authority_delay_reason": {
           "help": "If you notify after 72 hours, the notification must give the reasons for the delay."
         },
         "subjects_exemption": {
           "help": "You may skip telling the people only if the data was unintelligible to others, the high risk is no longer likely, or it would take disproportionate effort (then make a public announcement)."
+        },
+        "ropa_entry_ids": {
+          "help": "The processing activities whose data was affected. They tell you what kind of data and how many people are involved.",
+          "requirements": ["gdpr:33"]
+        },
+        "processor_id": {
+          "help": "The processor where the breach happened, if any. Their agreement says how fast they must tell you."
+        },
+        "asset_ids": {
+          "help": "The systems or devices involved, from the asset register."
         }
       }
     },
@@ -226,13 +267,28 @@
       },
       "fields": {
         "dpa_status": {
-          "help": "A processor can only be marked active with a signed agreement, or when you have documented that no agreement is required."
+          "help": "A processor can only be marked active with a signed agreement, or when you have documented that no agreement is required.",
+          "requirements": ["gdpr:28"]
         },
         "is_sub_processor": {
           "help": "A sub-processor is engaged by your processor. Your agreement must require your approval for new sub-processors."
         },
         "risk_rating": {
           "help": "Your assessment of the risk the processor brings, based on the data, the volume and the security they offer."
+        },
+        "supplier_id": {
+          "help": "The same company in the supplier register, so supplier evaluations and the processor record stay together."
+        },
+        "dpa_contract_id": {
+          "help": "The signed data processing agreement in the contract register. It is what proves Art. 28(3).",
+          "requirements": ["gdpr:28"]
+        },
+        "dpa_document_id": {
+          "help": "Use this if the agreement is kept as a document instead of a contract."
+        },
+        "country": {
+          "help": "Where the processor processes the data. A country outside the EEA without an adequacy decision needs a transfer record.",
+          "requirements": ["gdpr:44"]
         }
       }
     },
@@ -258,10 +314,12 @@
       },
       "fields": {
         "mechanism": {
-          "help": "Adequacy needs no TIA. SCCs, BCRs and other tools need a completed TIA before the transfer is active. Derogations are for occasional transfers only."
+          "help": "Adequacy needs no TIA. SCCs, BCRs and other tools need a completed TIA before the transfer is active. Derogations are for occasional transfers only.",
+          "requirements": ["gdpr:44", "gdpr:46"]
         },
         "tia_conclusion": {
-          "help": "Whether the protection in the destination country is essentially equivalent, possibly with supplementary measures."
+          "help": "Whether the protection in the destination country is essentially equivalent, possibly with supplementary measures.",
+          "requirements": ["gdpr:46"]
         },
         "supplementary_measures": {
           "help": "Technical, contractual or organisational measures that close the gaps the TIA found.",
@@ -269,6 +327,10 @@
         },
         "contract_id": {
           "help": "The contract that holds the signed standard contractual clauses (or other safeguard). A transfer under SCCs can only be active when this agreement is signed and active in the contract register."
+        },
+        "destination_country": {
+          "help": "The country the data goes to. The form tells you whether it is in the EEA, has an adequacy decision or is a third country.",
+          "requirements": ["gdpr:44"]
         }
       }
     },
@@ -302,7 +364,15 @@
           "example": "End of employment."
         },
         "disposal_method": {
-          "help": "What happens when the period ends. Anonymised data is no longer personal data."
+          "help": "What happens when the period ends. Anonymised data is no longer personal data.",
+          "requirements": ["gdpr:5"]
+        },
+        "retention_months": {
+          "help": "How long the data is kept, in months. Use the text field instead if the period depends on an event, for example \"5 years after the end of the contract\".",
+          "requirements": ["gdpr:5"]
+        },
+        "execution_interval_months": {
+          "help": "How often someone carries out the deletion. Each run is logged as evidence that the rule is followed."
         }
       }
     },
@@ -332,6 +402,13 @@
         },
         "notice_version": {
           "help": "The version of the privacy notice the person saw when they consented."
+        },
+        "method": {
+          "requirements": ["gdpr:7"]
+        },
+        "notice_document_id": {
+          "help": "The privacy notice the person saw when consenting, as a controlled document with its version.",
+          "requirements": ["gdpr:7"]
         }
       }
     },
@@ -357,18 +434,49 @@
       },
       "fields": {
         "legal_basis": {
-          "help": "Legitimate interests is flexible but needs the three-part test. Consent must be freely given, which is hard in an employment relationship."
+          "help": "Legitimate interests is flexible but needs the three-part test. Consent must be freely given, which is hard in an employment relationship.",
+          "requirements": ["gdpr:6"]
         },
         "purpose_test": {
           "help": "What is the interest, and is it legitimate?",
-          "example": "Preventing fraud in online payments."
+          "example": "Preventing fraud in online payments.",
+          "requirements": ["gdpr:6"]
         },
         "necessity_test": {
           "help": "Is the processing necessary for that interest, or is there a less intrusive way?"
         },
         "balancing_test": {
           "help": "Weigh your interest against the impact on the people: their reasonable expectations, the nature of the data and any vulnerability.",
-          "example": "Customers expect fraud checks; the data is limited to the transaction."
+          "example": "Customers expect fraud checks; the data is limited to the transaction.",
+          "requirements": ["gdpr:6"]
+        }
+      }
+    },
+    "settings": {
+      "intro": {
+        "title": "Who is responsible",
+        "body": "Name the controller and the data protection officer once. They head the exported record of processing and are what people and the authority need to contact you."
+      },
+      "fields": {
+        "controller_name": {
+          "help": "The legal name of the organisation that decides why and how personal data is processed.",
+          "example": "CoreFlow Demo AS"
+        },
+        "controller_contact": {
+          "help": "Postal address, organisation number and a general contact address for privacy questions."
+        },
+        "representative": {
+          "help": "Only for controllers outside the EU/EEA that offer services here (Art. 27). Leave empty otherwise."
+        },
+        "dpo_name": {
+          "help": "The data protection officer, if you have one (Art. 37). Public bodies and some large-scale processing need one."
+        },
+        "dpo_email": {
+          "help": "A mailbox people can use to reach the officer. A shared address survives staff changes.",
+          "example": "personvern@example.no"
+        },
+        "dpo_phone": {
+          "help": "Optional: a phone number for urgent questions, for example about a breach."
         }
       }
     }
@@ -586,18 +694,18 @@
     "overview": [
       {
         "target": "privacy-kpis",
-        "title": "Key figures",
-        "body": "Open breaches, overdue requests, processors without an agreement and more. Click a figure to open the list behind it."
+        "title": "Needs action",
+        "body": "Only what needs follow-up shows here: breaches on the clock, overdue requests, missing agreements. Click a tile to open the records behind it."
       },
       {
         "target": "privacy-breaches",
-        "title": "What needs attention now",
-        "body": "Breaches on the 72-hour clock and requests sorted by deadline."
+        "title": "What is urgent",
+        "body": "Breaches with the 72-hour clock running, breaches waiting to be closed, and the nearest request deadlines."
       },
       {
         "target": "privacy-registers",
         "title": "The registers",
-        "body": "Each register covers one part of the GDPR. Start with the records of processing."
+        "body": "Each register covers one part of the GDPR. Start with the record of processing; everything else links back to it."
       }
     ]
   },
@@ -616,6 +724,36 @@
       "term": "Transfer impact assessment",
       "definition": "An assessment of whether the law and practice in a third country undermine the protection given by a transfer tool such as SCCs.",
       "clauses": ["gdpr:46"]
+    },
+    "dpa": {
+      "term": "Data processing agreement (DPA)",
+      "definition": "The contract a controller must have with every processor (Art. 28(3)). It says what the processor may do with the data.",
+      "clauses": ["gdpr:28"]
+    },
+    "scc": {
+      "term": "Standard contractual clauses (SCC)",
+      "definition": "Contract terms adopted by the European Commission that protect data sent to a country outside the EEA.",
+      "clauses": ["gdpr:46"]
+    },
+    "bcr": {
+      "term": "Binding corporate rules (BCR)",
+      "definition": "Approved internal rules that let a group of companies transfer data between its members outside the EEA.",
+      "clauses": ["gdpr:46"]
+    },
+    "lia": {
+      "term": "Legitimate interest assessment (LIA)",
+      "definition": "The three-part test you document before relying on legitimate interest: a legitimate purpose, necessary processing, and a balance that respects the people concerned.",
+      "clauses": ["gdpr:6"]
+    },
+    "eea": {
+      "term": "EEA",
+      "definition": "The EU countries plus Norway, Iceland and Liechtenstein. Data can move freely inside the EEA.",
+      "clauses": ["gdpr:44"]
+    },
+    "dpia": {
+      "term": "Data protection impact assessment (DPIA)",
+      "definition": "An assessment of the risk to people before you start processing that is likely to carry a high risk.",
+      "clauses": ["gdpr:35"]
     }
   }
 }

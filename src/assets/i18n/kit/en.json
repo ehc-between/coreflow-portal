@@ -428,7 +428,8 @@
       "to_transfer": "Transfer assessment (data outside the EU/EEA)"
     },
     "dpia": {
-      "to_risk": "Risk from this DPIA"
+      "to_risk": "Risk from this DPIA",
+      "to_task": "Task for the measures"
     },
     "ai_system": {
       "to_dpia": "DPIA for this AI system",
@@ -636,6 +637,25 @@
     },
     "course": {
       "to_task": "Task to improve the course"
+    },
+    "data_breach": {
+      "to_deviation": "Deviation with corrective action",
+      "to_risk": "Risk revealed by the breach",
+      "to_task": "Task to follow it up"
+    },
+    "ropa_entry": {
+      "to_dpia": "DPIA for this processing",
+      "to_legal_basis": "Legal basis assessment",
+      "to_transfer": "Transfer out of the EEA",
+      "to_retention": "Retention rule",
+      "to_consent": "Consent record"
+    },
+    "processor": {
+      "to_transfer": "Transfer to this processor",
+      "to_contract": "Data processing agreement (contract)"
+    },
+    "retention_schedule": {
+      "to_task": "Recurring deletion task"
     }
   },
   "frameworks": {

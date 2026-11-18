@@ -13,14 +13,14 @@ import { LanguageService } from '../../core/i18n/language.service';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { AiAssistButton } from '../../shared/ask/ai-assist-button';
-import { LocalDatePipe } from '../../shared/locale/locale-pipes';
+import { LocalDatePipe, LocalDayPipe } from '../../shared/locale/locale-pipes';
 import { MarkdownPipe } from '../../shared/markdown/markdown.pipe';
 import { Alert } from '../../shared/ui/alert/alert';
-import { Badge } from '../../shared/ui/badge/badge';
 import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
 import { Icon } from '../../shared/ui/icon/icon';
 import { PromptDialog } from '../../shared/ui/prompt-dialog/prompt-dialog';
+import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
 import { PrivacyApi } from './data/privacy-api';
 import {
   DataBreach,
@@ -38,44 +38,51 @@ import { REGISTERS, RegisterKey } from './data/privacy-registers';
 /** The one-month deadline of a data subject request, and the one-time extension. */
 @Component({
   selector: 'app-privacy-dsr-panel',
-  imports: [TranslocoPipe, LocalDatePipe, Alert, Badge, Button, Card, Icon, PromptDialog],
+  imports: [TranslocoPipe, LocalDayPipe, Alert, Button, Card, Icon, PromptDialog, StatusBadge],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @let r = request();
     <app-card>
-      <h2 class="mb-3 flex items-center gap-2 font-display text-[15px] font-bold text-fg">
+      <h2 class="mb-3 flex items-center gap-2 font-display text-card font-bold text-fg">
         <app-icon name="clock" [size]="16" />
         {{ 'privacy.dsr.deadlineTitle' | transloco }}
       </h2>
       <div class="flex flex-wrap items-center gap-3" data-testid="dsr-deadline">
-        <span class="text-[22px] font-bold text-fg">
-          {{ r.effective_due_at | localDate: 'mediumDate' }}
+        <span class="font-display text-page font-bold text-fg">
+          {{ r.effective_due_at | localDay: 'mediumDate' }}
         </span>
         @if (r.closed_at) {
-          <app-badge tone="neutral">{{ 'privacy.dsr.closed' | transloco }}</app-badge>
+          <app-status-badge meaning="lifecycle" value="closed" labelKey="privacy.dsr.closed" />
         } @else if (r.is_overdue) {
-          <app-badge tone="fail">{{ 'privacy.dsr.overdueBadge' | transloco }}</app-badge>
+          <app-status-badge meaning="severity" value="high" labelKey="privacy.dsr.overdueBadge" />
         } @else if (r.days_remaining !== null) {
-          <app-badge [tone]="r.days_remaining <= 7 ? 'warn' : 'info'">
-            {{ 'privacy.dsr.daysLeft' | transloco: { days: r.days_remaining } }}
-          </app-badge>
+          <app-status-badge
+            meaning="lifecycle"
+            [value]="r.days_remaining <= 7 ? 'due' : 'received'"
+            labelKey="privacy.dsr.daysLeft"
+            [labelParams]="{ days: r.days_remaining }"
+          />
         }
         @if (r.extended) {
-          <app-badge tone="neutral">{{ 'privacy.dsr.extendedBadge' | transloco }}</app-badge>
+          <app-status-badge
+            meaning="lifecycle"
+            value="archived"
+            labelKey="privacy.dsr.extendedBadge"
+          />
         }
       </div>
-      <p class="mt-2 text-[13px] text-fg-muted">
+      <p class="mt-2 text-ui text-fg-muted">
         {{
           'privacy.dsr.deadlineExplain'
             | transloco
               : {
-                  received: (r.received_at | localDate: 'mediumDate'),
-                  due: (r.due_at | localDate: 'mediumDate'),
+                  received: (r.received_at | localDay: 'mediumDate'),
+                  due: (r.due_at | localDay: 'mediumDate'),
                 }
         }}
       </p>
       @if (r.extended && r.extension_reason) {
-        <p class="mt-2 text-[13px] text-fg">
+        <p class="mt-2 text-ui text-fg">
           {{ 'privacy.dsr.extensionReasonShown' | transloco: { reason: r.extension_reason } }}
         </p>
       }
@@ -89,7 +96,7 @@ import { REGISTERS, RegisterKey } from './data/privacy-registers';
           >
             {{ 'privacy.dsr.extend' | transloco }}
           </app-button>
-          <p class="mt-1 text-[12px] text-fg-subtle">{{ 'privacy.dsr.extendHint' | transloco }}</p>
+          <p class="mt-1 text-meta text-fg-subtle">{{ 'privacy.dsr.extendHint' | transloco }}</p>
         </div>
       }
       @if (error(); as e) {
@@ -150,7 +157,11 @@ export class DsrPanel {
   }
 }
 
-/** The 72-hour clock of a breach, the notification decisions, and the AI draft assessment. */
+/**
+ * The 72-hour clock of a breach, the two notification decisions (what is still open,
+ * and what to do), and the AI draft assessment. A notified breach says it is waiting
+ * to be closed instead of showing a clock that no longer runs.
+ */
 @Component({
   selector: 'app-privacy-breach-panel',
   imports: [
@@ -159,37 +170,47 @@ export class DsrPanel {
     LocalDatePipe,
     MarkdownPipe,
     AiAssistButton,
-    Badge,
     Card,
     Icon,
+    StatusBadge,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @let b = breach();
+    @let c = clock();
     <app-card>
-      <h2 class="mb-3 flex items-center gap-2 font-display text-[15px] font-bold text-fg">
+      <h2 class="mb-3 flex items-center gap-2 font-display text-card font-bold text-fg">
         <app-icon name="clock" [size]="16" />
         {{ 'privacy.breach.clockTitle' | transloco }}
       </h2>
       <div class="flex flex-wrap items-center gap-3" data-testid="breach-clock">
-        <span class="text-[22px] font-bold text-fg">
-          {{ b.notification_deadline | localDate: 'medium' }}
+        <span class="font-display text-section font-bold text-fg">
+          {{ b.notification_deadline | localDate }}
         </span>
-        <app-badge [tone]="clockTone()">{{ clock().key | transloco: clock().params }}</app-badge>
+        @if (b.status === 'notified') {
+          <app-status-badge
+            meaning="lifecycle"
+            value="pending"
+            labelKey="privacy.breach.awaitingClosure"
+          />
+        } @else {
+          <app-status-badge
+            [meaning]="c.meaning"
+            [value]="c.value"
+            [labelKey]="c.key"
+            [labelParams]="c.params"
+          />
+        }
       </div>
-      <p class="mt-2 text-[13px] text-fg-muted">
-        {{
-          'privacy.breach.clockExplain' | transloco: { aware: (b.aware_at | localDate: 'medium') }
-        }}
+      <p class="mt-2 text-ui text-fg-muted">
+        {{ 'privacy.breach.clockExplain' | transloco: { aware: (b.aware_at | localDate) } }}
       </p>
 
-      <dl class="mt-4 grid grid-cols-1 gap-3 text-[13px] sm:grid-cols-2">
+      <dl class="mt-4 grid grid-cols-1 gap-3 text-ui sm:grid-cols-2">
         <div class="rounded-tile border border-border p-3">
           <dt class="font-semibold text-fg">{{ 'privacy.breach.authorityTitle' | transloco }}</dt>
           <dd class="mt-1 text-fg-muted" data-testid="authority-decision">
-            {{
-              authorityKey() | transloco: { date: (b.authority_notified_at | localDate: 'medium') }
-            }}
+            {{ authorityKey() | transloco: { date: (b.authority_notified_at | localDate) } }}
             @if (b.authority_reference) {
               <span class="block">{{
                 'privacy.breach.reference' | transloco: { ref: b.authority_reference }
@@ -200,9 +221,7 @@ export class DsrPanel {
         <div class="rounded-tile border border-border p-3">
           <dt class="font-semibold text-fg">{{ 'privacy.breach.subjectsTitle' | transloco }}</dt>
           <dd class="mt-1 text-fg-muted" data-testid="subjects-decision">
-            {{
-              subjectsKey() | transloco: { date: (b.subjects_notified_at | localDate: 'medium') }
-            }}
+            {{ subjectsKey() | transloco: { date: (b.subjects_notified_at | localDate) } }}
             @if (b.subjects_exemption) {
               <span class="block">{{
                 'privacy.options.subjectsExemption.' + b.subjects_exemption | transloco
@@ -214,7 +233,7 @@ export class DsrPanel {
       @if (canWrite() && b.status !== 'closed') {
         <a
           [routerLink]="['/privacy', 'breaches', b.id, 'edit']"
-          class="mt-3 inline-flex h-8 items-center rounded-tile border border-border px-3 text-[13px] font-semibold text-fg hover:bg-surface-2"
+          class="mt-3 inline-flex h-9 items-center rounded-tile border border-border px-3 text-ui font-semibold text-fg hover:bg-surface-2"
           data-testid="breach-decide"
         >
           {{ 'privacy.breach.recordDecisions' | transloco }}
@@ -223,7 +242,7 @@ export class DsrPanel {
 
       @if (canWrite()) {
         <div class="mt-4 border-t border-border pt-4">
-          <p class="mb-2 text-[13px] text-fg-muted">{{ 'privacy.ai.breachHint' | transloco }}</p>
+          <p class="mb-2 text-ui text-fg-muted">{{ 'privacy.ai.breachHint' | transloco }}</p>
           <app-ai-assist-button
             assist="privacy.draft_breach_assessment"
             entityType="data_breach"
@@ -233,12 +252,12 @@ export class DsrPanel {
           />
           @if (draft(); as text) {
             <div
-              class="mt-3 max-h-[420px] overflow-y-auto rounded-tile bg-surface-2 p-3 text-[13px] text-fg"
+              class="mt-3 max-h-[420px] overflow-y-auto rounded-tile bg-surface-2 p-3 text-ui text-fg"
               [innerHTML]="text | appMarkdown"
               aria-live="polite"
               data-testid="breach-assessment"
             ></div>
-            <p class="mt-1 text-[12px] text-fg-subtle">{{ 'privacy.ai.disclaimer' | transloco }}</p>
+            <p class="mt-1 text-meta text-fg-subtle">{{ 'privacy.ai.disclaimer' | transloco }}</p>
           }
         </div>
       }
@@ -251,10 +270,6 @@ export class BreachPanel {
 
   protected readonly draft = signal<string | null>(null);
   protected readonly clock = computed(() => clockFact(this.breach()));
-  protected readonly clockTone = computed(() => {
-    const tone = this.clock().tone;
-    return tone === 'plain' ? 'neutral' : tone;
-  });
 
   protected readonly authorityKey = computed(() => {
     const b = this.breach();
@@ -285,60 +300,137 @@ export class BreachPanel {
   });
 }
 
+/** The three stages of a DPIA, and where this one is. */
+export const DPIA_STAGES = ['screening', 'assessment', 'decision'] as const;
+
+export function dpiaStage(d: Dpia): (typeof DPIA_STAGES)[number] | 'done' {
+  switch (d.status) {
+    case 'screening':
+      return 'screening';
+    case 'in_progress':
+      return 'assessment';
+    case 'awaiting_decision':
+      return 'decision';
+    default:
+      return 'done';
+  }
+}
+
+/**
+ * "Forhåndsvurdering → Vurdering → Beslutning": where the DPIA stands, and what the
+ * next stage asks for. The step buttons sit in the page header.
+ */
+@Component({
+  selector: 'app-privacy-dpia-steps',
+  imports: [TranslocoPipe, Card, Icon],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
+    @let d = dpia();
+    <app-card>
+      <ol class="grid grid-cols-1 gap-2 sm:grid-cols-3" data-testid="dpia-steps">
+        @for (s of stages; track s; let i = $index) {
+          <li
+            class="rounded-tile border px-3 py-2"
+            [class]="
+              stateOf(i) === 'done'
+                ? 'border-pass/40 bg-pass-soft/60'
+                : stateOf(i) === 'current'
+                  ? 'border-accent bg-accent-soft/60'
+                  : 'border-border'
+            "
+            [attr.aria-current]="stateOf(i) === 'current' ? 'step' : null"
+          >
+            <span class="flex items-center gap-1.5 text-meta font-semibold text-fg-muted">
+              @if (stateOf(i) === 'done') {
+                <app-icon name="check" [size]="12" />
+              } @else {
+                {{ i + 1 }}
+              }
+              {{ 'privacy.dpia.stage.' + s + '.title' | transloco }}
+            </span>
+            <span class="mt-0.5 block text-ui text-fg">
+              {{ 'privacy.dpia.stage.' + s + '.body' | transloco }}
+            </span>
+          </li>
+        }
+      </ol>
+      @if (d.status === 'screening') {
+        <p class="mt-3 text-ui text-fg" data-testid="dpia-screening-outcome">
+          {{ 'privacy.dpia.screeningOutcome.' + d.screening_result | transloco }}
+        </p>
+      } @else if (d.status === 'not_required') {
+        <p class="mt-3 text-ui text-fg-muted">{{ 'privacy.dpia.closedNotRequired' | transloco }}</p>
+      }
+    </app-card>
+  `,
+})
+export class DpiaSteps {
+  readonly dpia = input.required<Dpia>();
+  protected readonly stages = DPIA_STAGES;
+
+  protected stateOf(index: number): 'done' | 'current' | 'todo' {
+    const stage = dpiaStage(this.dpia());
+    if (stage === 'done') {
+      return this.dpia().status === 'not_required' && index > 0 ? 'todo' : 'done';
+    }
+    const current = DPIA_STAGES.indexOf(stage);
+    return index < current ? 'done' : index === current ? 'current' : 'todo';
+  }
+}
+
 /**
  * The decision on a DPIA or a legal basis assessment: who decided and when, and
  * Approve / Reject (with a comment) for `privacy:approve` while it awaits a decision.
+ * Prior consultation (Art. 36) is only raised once the residual risk is set.
  */
 @Component({
   selector: 'app-privacy-decision-panel',
-  imports: [TranslocoPipe, LocalDatePipe, Alert, Badge, Button, Card, Icon, PromptDialog],
+  imports: [TranslocoPipe, LocalDayPipe, Alert, Button, Card, Icon, PromptDialog, StatusBadge],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @let r = record();
     <app-card>
-      <h2 class="mb-3 flex items-center gap-2 font-display text-[15px] font-bold text-fg">
+      <h2 class="mb-3 flex items-center gap-2 font-display text-card font-bold text-fg">
         <app-icon name="checkcircle" [size]="16" />
         {{ 'privacy.decision.title' | transloco }}
       </h2>
       @if (register() === 'dpia') {
         @let d = asDpia();
-        <div class="mb-3 flex flex-wrap items-center gap-2 text-[13px]">
-          <span class="text-fg-muted">{{ 'privacy.fields.screening_result' | transloco }}</span>
-          <app-badge [tone]="d.screening_result === 'required' ? 'warn' : 'neutral'">
-            {{ 'privacy.options.screeningResult.' + d.screening_result | transloco }}
-          </app-badge>
-          @if (d.prior_consultation_required) {
-            <app-badge tone="fail">{{ 'privacy.dpia.priorConsultation' | transloco }}</app-badge>
-          }
-        </div>
-        @if (d.prior_consultation_required) {
+        @if (d.residual_risk && d.prior_consultation_required) {
+          <div class="mb-3 flex flex-wrap items-center gap-2 text-ui">
+            <app-status-badge
+              meaning="severity"
+              value="high"
+              labelKey="privacy.dpia.priorConsultation"
+            />
+          </div>
           <app-alert tone="info" class="mb-3 block">
             {{ 'privacy.dpia.priorConsultationExplain' | transloco }}
           </app-alert>
         }
       }
       @if (register() === 'lba' && asLba().is_lia) {
-        <p class="mb-3 text-[13px] text-fg-muted">{{ 'privacy.lba.liaExplain' | transloco }}</p>
+        <p class="mb-3 text-ui text-fg-muted">{{ 'privacy.lba.liaExplain' | transloco }}</p>
       }
       @if (r.decided_at) {
-        <p class="text-[13px] text-fg" data-testid="decision-summary">
+        <p class="text-ui text-fg" data-testid="decision-summary">
           {{
             'privacy.decision.decided'
               | transloco
                 : {
                     status: ('privacy.status.' + r.status | transloco),
                     name: deciderName(),
-                    date: (r.decided_at | localDate: 'mediumDate'),
+                    date: (r.decided_at | localDay: 'mediumDate'),
                   }
           }}
         </p>
         @if (r.decision_comment) {
-          <p class="mt-1 text-[13px] whitespace-pre-line text-fg-muted">{{ r.decision_comment }}</p>
+          <p class="mt-1 text-ui whitespace-pre-line text-fg-muted">{{ r.decision_comment }}</p>
         }
       } @else if (r.status === 'awaiting_decision') {
-        <p class="text-[13px] text-fg-muted">{{ 'privacy.decision.awaiting' | transloco }}</p>
+        <p class="text-ui text-fg-muted">{{ 'privacy.decision.awaiting' | transloco }}</p>
       } @else {
-        <p class="text-[13px] text-fg-muted">
+        <p class="text-ui text-fg-muted">
           {{ 'privacy.decision.notYet.' + register() | transloco }}
         </p>
       }
@@ -357,7 +449,7 @@ export class BreachPanel {
           </app-button>
         </div>
       } @else if (r.status === 'awaiting_decision' && !canApprove()) {
-        <p class="mt-2 text-[12px] text-fg-subtle">
+        <p class="mt-2 text-meta text-fg-subtle">
           {{ 'privacy.decision.needsApprover' | transloco }}
         </p>
       }

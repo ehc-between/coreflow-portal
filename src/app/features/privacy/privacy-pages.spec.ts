@@ -65,7 +65,8 @@ describe('PrivacyRegisterList', () => {
     await render(fixture);
     const rows = el.querySelector('[data-testid="privacy-rows"]');
     expect(rows?.textContent).toContain('DSR-0001');
-    expect(rows?.textContent).toContain('privacy.dsr.daysLeft');
+    // Status plus the deadline badge (19 days left: not urgent yet).
+    expect(rows?.querySelectorAll('app-status-badge').length).toBe(2);
     expect(el.querySelector('[data-testid="privacy-new"]')).toBeTruthy();
   });
 
@@ -142,8 +143,15 @@ describe('PrivacyOverview', () => {
       .flush({ items: [makeBreach()], total: 1 });
     http.expectNone((r) => r.url === kitUrl('privacy/data-subject-requests'));
     await render(fixture);
-    expect(el.querySelector('[data-testid="kpi-ropaActive"]')?.textContent).toContain('3');
-    expect(el.querySelector('[data-testid="kpi-dsrOpen"]')).toBeNull();
+    // Only alerts that are not zero are tiles; the counts sit in the stats strip.
+    expect(el.querySelector('[data-testid="kpi-processorsWithoutDpa"]')?.textContent).toContain(
+      '2',
+    );
+    expect(el.querySelector('[data-testid="kpi-reviewsOverdue"]')).toBeNull();
+    expect(el.querySelector('[data-testid="privacy-stats"]')?.textContent).toContain(
+      'privacy.overview.stat.ropa',
+    );
+    expect(el.querySelector('[data-testid="kpi-dsrOverdue"]')).toBeNull();
     expect(el.querySelector('[data-testid="attention-breaches"]')?.textContent).toContain(
       'BR-0001',
     );
@@ -174,9 +182,8 @@ describe('PrivacyRegisterDetail', () => {
     http.expectOne(kitUrl('privacy/data-subject-requests/d-1')).flush(makeDsr());
     await render(fixture);
     flushSide(http);
-    expect(el.querySelector('[data-testid="dsr-deadline"]')?.textContent).toContain(
-      'privacy.dsr.daysLeft',
-    );
+    expect(el.querySelector('[data-testid="dsr-deadline"]')?.textContent).toContain('2026');
+    expect(el.querySelector('[data-testid="dsr-deadline"] app-status-badge')).toBeTruthy();
     el.querySelector<HTMLElement>('[data-testid="dsr-extend"] button')!.click();
     await render(fixture);
     const textarea = document.querySelector<HTMLTextAreaElement>(
@@ -205,9 +212,7 @@ describe('PrivacyRegisterDetail', () => {
     http.expectOne(kitUrl('privacy/breaches/b-1')).flush(makeBreach());
     await render(fixture);
     flushSide(http);
-    expect(el.querySelector('[data-testid="breach-clock"]')?.textContent).toContain(
-      'privacy.breach.clock.hoursLeft',
-    );
+    expect(el.querySelector('[data-testid="breach-clock"] app-status-badge')).toBeTruthy();
     expect(el.querySelector('[data-testid="tab-revisions"]')).toBeTruthy();
     expect(el.querySelector('[data-testid="breach-decide"]')).toBeTruthy();
   });
@@ -245,7 +250,8 @@ describe('PrivacyRegisterDetail', () => {
     expect(el.querySelector('[data-testid="decide-approve"]')).toBeNull();
     expect(el.querySelector('[data-testid="privacy-edit"]')).toBeNull();
     expect(el.querySelector('[data-testid="privacy-delete"]')).toBeNull();
-    expect(el.querySelector('[data-testid="status-select"]')).toBeNull();
+    expect(el.querySelector('[data-testid^="status-to-"]')).toBeNull();
+    expect(el.querySelector('[data-testid="privacy-next-step"]')).toBeNull();
   });
 
   it('asks for an outcome before completing a request', async () => {
@@ -254,11 +260,8 @@ describe('PrivacyRegisterDetail', () => {
     http.expectOne(kitUrl('privacy/data-subject-requests/d-1')).flush(makeDsr());
     await render(fixture);
     flushSide(http);
-    const select = el.querySelector<HTMLSelectElement>('[data-testid="status-select"]')!;
-    select.value = 'completed';
-    select.dispatchEvent(new Event('change'));
-    await render(fixture);
-    el.querySelector<HTMLElement>('[data-testid="status-apply"] button')!.click();
+    // Every other status sits in the "More" menu of the header.
+    el.querySelector<HTMLElement>('[data-testid="status-to-completed"]')!.click();
     await render(fixture);
     http.expectNone(kitUrl('privacy/data-subject-requests/d-1'));
     const textarea = document.querySelector<HTMLTextAreaElement>(

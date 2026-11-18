@@ -226,7 +226,8 @@
       "offer": "Tilbud",
       "obligations": "Forpliktelser",
       "documentation": "Teknisk dokumentasjon",
-      "kind": "Fullført vurdering"
+      "kind": "Fullført vurdering",
+      "register_entry": "registeret"
     },
     "origin": {
       "manual": "Lagt til manuelt",
@@ -313,6 +314,7 @@
       "notEnabledBody": "Aktiver den i standardoversikten for å se hva som mangler.",
       "toOverview": "Gå til standardoversikten",
       "loadError": "Kunne ikke laste manglene. Prøv igjen."
-    }
+    },
+    "fromRegister": "Fra registeret"
   }
 }

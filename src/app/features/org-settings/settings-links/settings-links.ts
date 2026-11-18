@@ -221,6 +221,11 @@ export const MODULE_SETTINGS_CARDS: readonly ModuleSettingsCard[] = [
     icon: 'reports',
     links: [{ path: '/reports/dashboards', labelKey: 'settings.hub.moduleLinks.roleOverviews' }],
   },
+  {
+    module: 'privacy',
+    icon: 'shield',
+    links: [{ path: '/privacy/settings', labelKey: 'settings.hub.moduleLinks.settings' }],
+  },
 ];
 
 /** The settings hub: organisation cards, then one card per enabled module with settings. */
