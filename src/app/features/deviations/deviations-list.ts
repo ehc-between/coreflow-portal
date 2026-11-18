@@ -37,7 +37,6 @@ import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../shared/ui/icon/icon';
 import { LoadingState } from '../../shared/ui/loading-state/loading-state';
 import { ModuleNav } from '../../shared/ui/module-nav/module-nav';
-import { MenuItem } from '../../shared/ui/overflow-menu/overflow-menu';
 import { Pager } from '../../shared/ui/pager/pager';
 import { RecordRow, RecordRowHeader } from '../../shared/ui/record-row/record-row';
 import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
@@ -199,7 +198,6 @@ export function filtersFromParams(params: {
     HelpStrip,
     Icon,
     LoadingState,
-    MenuItem,
     ModuleNav,
     Pager,
     RecordRow,
@@ -216,7 +214,7 @@ export function filtersFromParams(params: {
       scope="deviations"
       page="list"
       searchPlaceholderKey="deviations.searchPlaceholder"
-      [settingsLink]="isAdmin() ? '/deviations/types' : null"
+      [settingsLink]="isAdmin() ? '/settings/modules/deviations' : null"
       [query]="query()"
       [filters]="filters()"
       [moreFiltersActive]="moreActive()"
@@ -247,23 +245,6 @@ export function filtersFromParams(params: {
         <app-icon name="upload" [size]="15" class="rotate-180" />
         {{ 'deviations.list.export' | transloco }}
       </app-button>
-      <ng-container ngProjectAs="[overflow]">
-        @if (isAdmin()) {
-          <a appMenuItem routerLink="/deviations/types">
-            <app-icon name="sliders" [size]="15" />
-            {{ 'deviations.types.link' | transloco }}
-          </a>
-          <a appMenuItem routerLink="/deviations/templates">
-            <app-icon name="template" [size]="15" />
-            {{ 'deviations.list.templates' | transloco }}
-          </a>
-          <a appMenuItem routerLink="/deviations/intake/settings">
-            <app-icon name="inbox" [size]="15" />
-            {{ 'deviations.list.intakeSettings' | transloco }}
-          </a>
-        }
-      </ng-container>
-
       <app-module-nav nav [items]="nav.items()" labelKey="modules.names.deviations" />
       <app-help-strip help scope="deviations" page="list" tour="list" lesson="deviations-basics" />
 

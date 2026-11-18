@@ -23,9 +23,9 @@ import { DocumentControlApi } from '../data/document-control-api';
 import { RetentionDueItem, RetentionRule } from '../data/document-control.models';
 import { portalLink } from '../shared/document-control-display';
 import { DocumentsPageGuide } from '../shared/documents-page-guide';
-import { DocumentsNav } from '../shared/documents-nav';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { DocumentControlPermissions } from '../shared/document-control-permissions';
+import { ModuleConfigNav } from '../../../shared/ui/module-config-nav/module-config-nav';
 
 /** Look-ahead windows of the "due for disposition" report, in days. */
 export const DUE_WINDOWS = [0, 30, 90, 365] as const;
@@ -59,7 +59,7 @@ export function matchesRule(rule: RetentionRule, q: string): boolean {
     Card,
     Icon,
     DocumentsPageGuide,
-    DocumentsNav,
+    ModuleConfigNav,
     WhyItMatters,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -67,10 +67,10 @@ export function matchesRule(rule: RetentionRule, q: string): boolean {
     <app-record-list-page
       titleKey="documents.control.retention.title"
       [breadcrumbs]="[
-        { labelKey: 'modules.names.documents', link: '/documents' },
+        { labelKey: 'nav.settings', link: '/settings' },
+        { labelKey: 'modules.names.documents' },
         { labelKey: 'documents.control.retention.title' },
       ]"
-      settingsLink="/documents/types"
       scope="documents"
       page="retention"
       searchPlaceholderKey="documents.control.retention.searchPlaceholder"
@@ -78,7 +78,7 @@ export function matchesRule(rule: RetentionRule, q: string): boolean {
       [empty]="state() === 'ready' && rules().length === 0"
       (search)="q.set($event)"
     >
-      <app-documents-nav nav />
+      <app-module-config-nav nav module="documents" />
       <app-documents-page-guide help page="retention" lesson="retention-basics" tour="retention" />
       <app-why-it-matters below scope="documents" page="retention" />
       @if (perms.canManage()) {
@@ -138,7 +138,7 @@ export function matchesRule(rule: RetentionRule, q: string): boolean {
                         <tr class="align-top hover:bg-surface-2" data-testid="retention-row">
                           <td class="px-4 py-2.5">
                             <a
-                              [routerLink]="['/documents/retention', r.id]"
+                              [routerLink]="['/settings/modules/documents/retention', r.id]"
                               class="font-semibold text-fg hover:underline"
                               >{{ r.name }}</a
                             >
@@ -346,6 +346,6 @@ export class RetentionListPage {
   }
 
   protected create(): void {
-    void this.router.navigateByUrl('/documents/retention/new');
+    void this.router.navigateByUrl('/settings/modules/documents/retention/new');
   }
 }

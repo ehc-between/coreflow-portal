@@ -6,6 +6,8 @@ import { GuidanceFile } from '../../core/guidance/guidance.models';
 import { provideFakeGuidance } from '../../core/guidance/guidance.testing';
 import { TutorService } from '../../core/guidance/tutor.service';
 import { LanguageService } from '../../core/i18n/language.service';
+import { firstSentence } from '../../core/guidance/page-help.registry';
+import { HelpStrip } from '../ui/help-strip/help-strip';
 import { FieldHelp } from './field-help';
 import { GuideIntro } from './guide-intro';
 import { TeachMe } from './teach-me';
@@ -166,5 +168,80 @@ describe('guidance components', () => {
     ai.unavailable.set(true);
     render();
     expect(buttons()).toHaveLength(0);
+  });
+});
+
+describe('One help entry point per page (U38)', () => {
+  @Component({
+    imports: [HelpStrip, WhyItMatters, TeachingEmpty],
+    template: `
+      <app-help-strip scope="risk" page="list" />
+      <app-why-it-matters scope="risk" page="list" />
+      <app-teaching-empty scope="risk" page="list" />
+    `,
+  })
+  class PageWithHelp {}
+
+  function setupPage(level: 'beginner' | 'standard') {
+    const fake = provideFakeGuidance(FILES, level);
+    const tutor = { teach: vi.fn(), explainClause: vi.fn() };
+    TestBed.configureTestingModule({
+      imports: [
+        PageWithHelp,
+        TranslocoTestingModule.forRoot({ langs: { en: {}, 'guidance/en': {} } }),
+      ],
+      providers: [
+        provideZonelessChangeDetection(),
+        ...fake.providers,
+        { provide: TutorService, useValue: tutor },
+        { provide: AiAvailability, useValue: { unavailable: signal(false) } },
+        { provide: LanguageService, useValue: { translate: (key: string) => key } },
+      ],
+    });
+    const fixture = TestBed.createComponent(PageWithHelp);
+    fixture.detectChanges();
+    return { fixture, el: fixture.nativeElement as HTMLElement };
+  }
+
+  it('moves "why this matters" behind the "?" and shows it in the panel', async () => {
+    const { fixture, el } = setupPage('standard');
+    await fixture.whenStable();
+    expect(el.querySelector('app-why-it-matters [data-testid="why-it-matters"]')).toBeNull();
+    expect(el.querySelector('[data-testid="help-strip-lead"]')?.textContent).toContain(
+      'Risk intro',
+    );
+
+    el.querySelector<HTMLButtonElement>('[data-testid="help-strip-toggle"]')!.click();
+    await fixture.whenStable();
+    const panel = el.querySelector('[data-testid="help-panel"]')!;
+    expect(panel.textContent).toContain('Intro body');
+    expect(panel.textContent).toContain('Step one');
+    expect(panel.querySelectorAll('[data-testid="why-it-matters"]')).toHaveLength(1);
+    expect(panel.textContent).toContain('Why body');
+  });
+
+  it('shows beginners the first sentence of the intro instead of the whole intro', async () => {
+    const { fixture, el } = setupPage('beginner');
+    await fixture.whenStable();
+    expect(el.querySelector('[data-testid="help-strip-lead"]')?.textContent?.trim()).toBe(
+      'Intro body',
+    );
+    expect(el.textContent).not.toContain('Step one');
+    // The empty state keeps its call to action but leaves "Teach me" to the "?".
+    expect(el.querySelector('[data-testid="teaching-empty"]')?.textContent).toContain('No risks');
+    expect(el.querySelector('[data-testid="teach-me"]')).toBeNull();
+  });
+});
+
+describe('firstSentence', () => {
+  it('takes the first sentence as plain text', () => {
+    expect(firstSentence('Her **samler** dere [klager](/x). Hver sak har en eier.')).toBe(
+      'Her samler dere klager.',
+    );
+    expect(firstSentence('Se f.eks. kap. 4 i standarden. Neste.')).toBe(
+      'Se f.eks. kap. 4 i standarden.',
+    );
+    expect(firstSentence('No full stop')).toBe('No full stop');
+    expect(firstSentence(null)).toBe('');
   });
 });

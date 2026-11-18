@@ -23,7 +23,6 @@ import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog'
 import { ErrorState } from '../../../shared/ui/error-state/error-state';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
-import { ModuleNav } from '../../../shared/ui/module-nav/module-nav';
 import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { RecruitmentApi } from '../data/recruitment-api';
@@ -43,9 +42,10 @@ import {
   RoleRisk,
 } from '../data/recruitment.models';
 import { RecordSearchPicker } from '../shared/record-search-picker';
-import { RECRUITMENT_CRUMB, injectRecruitmentNav } from '../shared/recruitment-nav';
 import { RecruitmentField } from '../shared/recruitment-field';
 import { injectRecruitmentPerms } from '../shared/recruitment-perms';
+import { ModuleConfigNav } from '../../../shared/ui/module-config-nav/module-config-nav';
+import { moduleConfigCrumbs } from '../../../core/modules/module-config';
 
 const MIN_DAYS = 30;
 const MAX_DAYS = 3650;
@@ -104,7 +104,7 @@ function toRef(link: EntityLink | null | undefined): EntityChipRef | null {
     ErrorState,
     HelpStrip,
     LoadingState,
-    ModuleNav,
+    ModuleConfigNav,
     PageHeader,
     StatusBadge,
     RecordSearchPicker,
@@ -118,7 +118,7 @@ function toRef(link: EntityLink | null | undefined): EntityChipRef | null {
         descriptionKey="recruitment.settings.description"
         [breadcrumbs]="breadcrumbs"
       />
-      <app-module-nav [items]="nav()" labelKey="modules.names.recruitment" />
+      <app-module-config-nav module="recruitment" />
       <app-help-strip scope="recruitment" page="settings" lesson="candidate-privacy" />
 
       @if (loadError(); as key) {
@@ -553,8 +553,10 @@ export class RecruitmentSettingsPage {
   private readonly language = inject(LanguageService);
   private readonly orgId = inject(SelectedOrgService).currentOrgId;
   protected readonly perms = injectRecruitmentPerms();
-  protected readonly nav = injectRecruitmentNav(this.perms);
-  protected readonly breadcrumbs = [RECRUITMENT_CRUMB, { labelKey: 'recruitment.settings.title' }];
+  protected readonly breadcrumbs = [
+    ...moduleConfigCrumbs('recruitment'),
+    { labelKey: 'recruitment.settings.title' },
+  ];
 
   protected readonly risks = ROLE_RISKS;
   protected readonly policyTypes = POLICY_CHECK_TYPES;

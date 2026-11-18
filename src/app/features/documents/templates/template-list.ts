@@ -21,9 +21,9 @@ import { Icon } from '../../../shared/ui/icon/icon';
 import { DocumentControlApi } from '../data/document-control-api';
 import { DocumentTemplate, DocumentType } from '../data/document-control.models';
 import { DocumentsPageGuide } from '../shared/documents-page-guide';
-import { DocumentsNav } from '../shared/documents-nav';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { DocumentControlPermissions } from '../shared/document-control-permissions';
+import { ModuleConfigNav } from '../../../shared/ui/module-config-nav/module-config-nav';
 
 export function matchesTemplate(t: DocumentTemplate, q: string): boolean {
   const needle = q.trim().toLowerCase();
@@ -49,7 +49,7 @@ export function matchesTemplate(t: DocumentTemplate, q: string): boolean {
     Card,
     Icon,
     DocumentsPageGuide,
-    DocumentsNav,
+    ModuleConfigNav,
     WhyItMatters,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -57,10 +57,10 @@ export function matchesTemplate(t: DocumentTemplate, q: string): boolean {
     <app-record-list-page
       titleKey="documents.control.templates.title"
       [breadcrumbs]="[
-        { labelKey: 'modules.names.documents', link: '/documents' },
+        { labelKey: 'nav.settings', link: '/settings' },
+        { labelKey: 'modules.names.documents' },
         { labelKey: 'documents.control.templates.title' },
       ]"
-      settingsLink="/documents/types"
       scope="documents"
       page="templates"
       searchPlaceholderKey="documents.control.templates.searchPlaceholder"
@@ -70,7 +70,7 @@ export function matchesTemplate(t: DocumentTemplate, q: string): boolean {
       (search)="q.set($event)"
       (viewApplied)="typeId.set($event.filters['type'] ?? '')"
     >
-      <app-documents-nav nav />
+      <app-module-config-nav nav module="documents" />
       <app-documents-page-guide
         help
         page="templates"
@@ -127,7 +127,7 @@ export function matchesTemplate(t: DocumentTemplate, q: string): boolean {
               @for (t of rows(); track t.id) {
                 <li data-testid="template-card">
                   <a
-                    [routerLink]="['/documents/templates', t.id]"
+                    [routerLink]="['/settings/modules/documents/templates', t.id]"
                     class="flex h-full flex-col rounded-card border border-border bg-surface p-4 hover:border-accent focus-visible:outline-2 focus-visible:outline-accent"
                   >
                     <span class="flex items-center gap-2 font-semibold text-fg">
@@ -212,6 +212,6 @@ export class TemplateListPage {
   }
 
   protected create(): void {
-    void this.router.navigateByUrl('/documents/templates/new');
+    void this.router.navigateByUrl('/settings/modules/documents/templates/new');
   }
 }

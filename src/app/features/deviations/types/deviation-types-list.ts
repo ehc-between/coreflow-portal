@@ -18,8 +18,9 @@ import { Icon } from '../../../shared/ui/icon/icon';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
 import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { Switch } from '../../../shared/ui/switch/switch';
-import { DEVIATIONS_ROOT_CRUMB } from '../deviation-display';
 import { standardLabelKey } from '../deviation-enums';
+import { ModuleConfigNav } from '../../../shared/ui/module-config-nav/module-config-nav';
+import { moduleConfigCrumbs } from '../../../core/modules/module-config';
 
 /**
  * Admin list of the org's deviation types on the shared page frame: name, code
@@ -31,6 +32,7 @@ import { standardLabelKey } from '../deviation-enums';
 @Component({
   selector: 'app-deviation-types-list',
   imports: [
+    ModuleConfigNav,
     RouterLink,
     TranslocoPipe,
     Badge,
@@ -51,21 +53,16 @@ import { standardLabelKey } from '../deviation-enums';
         titleKey="deviations.types.title"
         descriptionKey="deviations.types.subtitle"
         [breadcrumbs]="breadcrumbs"
-        backLink="/deviations"
+        backLink="/settings"
       >
-        <a secondary routerLink="/deviations/templates" tabindex="-1">
-          <app-button variant="secondary">
-            <app-icon name="template" [size]="15" />
-            {{ 'deviations.templates.link' | transloco }}
-          </app-button>
-        </a>
-        <a primary routerLink="/deviations/types/new" tabindex="-1">
+        <a primary routerLink="/settings/modules/deviations/types/new" tabindex="-1">
           <app-button>
             <app-icon name="plus" [size]="15" />
             {{ 'deviations.types.new' | transloco }}
           </app-button>
         </a>
       </app-page-header>
+      <app-module-config-nav module="deviations" />
       <app-help-strip scope="deviations" page="types" lesson="designing-your-process" />
 
       @if (error()) {
@@ -78,7 +75,7 @@ import { standardLabelKey } from '../deviation-enums';
           titleKey="deviations.types.empty"
           bodyKey="deviations.types.emptyBody"
           ctaKey="deviations.templates.link"
-          ctaLink="/deviations/templates"
+          ctaLink="/settings/modules/deviations/templates"
         />
       } @else {
         <ul class="overflow-hidden rounded-card border border-border bg-surface">
@@ -87,7 +84,7 @@ import { standardLabelKey } from '../deviation-enums';
               class="flex flex-col gap-2 border-b border-border px-4 py-3 last:border-b-0 sm:flex-row sm:items-center sm:gap-4"
             >
               <a
-                [routerLink]="['/deviations/types', type.id]"
+                [routerLink]="['/settings/modules/deviations/types', type.id]"
                 class="flex min-w-0 flex-1 items-center gap-3 hover:underline"
               >
                 <span class="w-[64px] flex-none font-mono text-meta text-fg-subtle">{{
@@ -170,7 +167,10 @@ export class DeviationTypesList {
   private readonly notifications = inject(NotificationService);
   private readonly language = inject(LanguageService);
 
-  protected readonly breadcrumbs = [DEVIATIONS_ROOT_CRUMB, { labelKey: 'deviations.types.title' }];
+  protected readonly breadcrumbs = [
+    ...moduleConfigCrumbs('deviations'),
+    { labelKey: 'deviations.types.title' },
+  ];
   protected readonly orgId = this.selectedOrg.currentOrgId;
   protected readonly standardLabelKey = standardLabelKey;
 

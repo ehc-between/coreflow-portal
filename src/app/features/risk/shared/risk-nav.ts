@@ -12,11 +12,12 @@ export const RISK_NAV_ITEMS: readonly ModuleNavItem[] = [
     testId: 'risk-nav-opportunities',
   },
   { labelKey: 'risk.nav.soa', link: '/risk/soa', testId: 'risk-nav-soa' },
-  { labelKey: 'risk.nav.registers', link: '/risk/registers', testId: 'risk-nav-registers' },
-  { labelKey: 'risk.nav.matrices', link: '/risk/matrices', testId: 'risk-nav-matrices' },
 ];
 
-/** Sub-navigation of the risk module: overview, risks, opportunities, SoA, registers, matrices. */
+/**
+ * Sub-navigation of the risk module: overview, risks, opportunities, SoA. Registers and
+ * matrices are configuration (U10), behind the gear at /settings/modules/risk.
+ */
 @Component({
   selector: 'app-risk-nav',
   imports: [ModuleNav, TourStepDirective],

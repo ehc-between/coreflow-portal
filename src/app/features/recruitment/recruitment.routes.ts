@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { provideTranslocoScope } from '@jsverse/transloco';
 import { permissionGuard } from '../../core/auth/permission.guard';
+import { moduleConfigRedirect } from '../../core/modules/module-config';
 
 const toList = { redirectTo: '/recruitment/requisitions' };
 
@@ -84,12 +85,8 @@ export default [
         loadComponent: () =>
           import('./applications/application-detail').then((m) => m.ApplicationDetailPage),
       },
-      {
-        path: 'settings',
-        canActivate: [permissionGuard('recruitment:manage', toList)],
-        loadComponent: () =>
-          import('./settings/recruitment-settings').then((m) => m.RecruitmentSettingsPage),
-      },
+      // U10: the module's configuration lives under /settings/modules/recruitment.
+      moduleConfigRedirect('settings', 'recruitment', ''),
     ],
   },
 ] satisfies Routes;

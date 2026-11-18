@@ -525,7 +525,7 @@ export class ApplicationDetailPage {
   private readonly language = inject(LanguageService);
   private readonly orgId = inject(SelectedOrgService).currentOrgId;
   protected readonly perms = injectRecruitmentPerms();
-  protected readonly nav = injectRecruitmentNav(this.perms);
+  protected readonly nav = injectRecruitmentNav();
   protected readonly settingsLink = computed(() => settingsLinkFor(this.perms()));
   private readonly auth = inject(AuthService);
   protected readonly userId = computed(() => this.auth.user()?.id ?? null);

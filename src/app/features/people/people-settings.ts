@@ -38,6 +38,7 @@ import {
   TemplateItem,
 } from './data/people.models';
 import { PEOPLE_ROOT } from './ui/people-nav';
+import { ModuleConfigNav } from '../../shared/ui/module-config-nav/module-config-nav';
 
 /** One editable template row. System rows (ticked by CoreFlow) are kept as they are. */
 export interface TemplateRow {
@@ -75,7 +76,7 @@ export function toTemplateItems(rows: readonly TemplateRow[]): ChecklistItemIn[]
 }
 
 /**
- * People settings (`/people/settings`): the organisation's own default checklists
+ * People settings (`/settings/modules/people`): the organisation's own default checklists
  * for joiners and leavers, in Norwegian and English. Each item has a category, can
  * be required, and can record a fact on the person when ticked (e.g. "Taushetserklæring
  * signert" sets the date on the person). "Tilbakestill" goes back to CoreFlow's
@@ -84,6 +85,7 @@ export function toTemplateItems(rows: readonly TemplateRow[]): ChecklistItemIn[]
 @Component({
   selector: 'app-people-settings',
   imports: [
+    ModuleConfigNav,
     TranslocoPipe,
     Badge,
     Button,
@@ -103,10 +105,11 @@ export function toTemplateItems(rows: readonly TemplateRow[]): ChecklistItemIn[]
         descriptionKey="people.settings.subtitle"
         [breadcrumbs]="[
           { labelKey: 'people.settings.hub', link: '/settings' },
-          root,
+          { labelKey: root.labelKey },
           { labelKey: 'people.settings.title' },
         ]"
       />
+      <app-module-config-nav module="people" />
       <app-help-strip scope="people" page="settings" lesson="joiners-and-leavers" />
 
       <div class="mb-4 flex flex-wrap items-center gap-2">

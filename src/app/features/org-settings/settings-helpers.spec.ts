@@ -148,7 +148,11 @@ describe('settings navigation', () => {
   it('groups the hub cards in the fixed section order', () => {
     const sections = hubSections(['org:manage', 'users:invite', 'records:admin', 'audit:read']);
     expect(sections.map((s) => s.group)).toEqual([...SETTINGS_GROUPS]);
-    expect(hubSections(['audit:read']).map((s) => s.group)).toEqual(['people', 'trace']);
+    expect(hubSections(['audit:read']).map((s) => s.group)).toEqual([
+      'people',
+      'trace',
+      'advanced',
+    ]);
   });
 });
 

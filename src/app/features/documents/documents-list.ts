@@ -109,7 +109,7 @@ interface Row {
       scope="documents"
       page="list"
       searchPlaceholderKey="documents.searchPlaceholder"
-      settingsLink="/documents/types"
+      settingsLink="/settings/modules/documents"
       [query]="query()"
       [filters]="viewFilters()"
       [empty]="registerEmpty()"

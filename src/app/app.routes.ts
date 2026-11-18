@@ -119,6 +119,13 @@ export const routes: Routes = [
         loadChildren: () => import('./features/my-work/tasks.routes'),
       },
       {
+        // U10: which modules are on, and each module's configuration (types, templates,
+        // matrices…). Guarded per module inside, so it sits before the Settings shell.
+        path: 'settings/modules',
+        canActivate: [authGuard],
+        loadChildren: () => import('./features/org-settings/module-config.routes'),
+      },
+      {
         path: 'settings',
         title: 'nav.settings',
         canActivate: [authGuard, settingsGuard],

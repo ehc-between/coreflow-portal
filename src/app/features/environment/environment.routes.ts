@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { provideTranslocoScope } from '@jsverse/transloco';
 import { permissionGuard } from '../../core/auth/permission.guard';
+import { moduleConfigRedirect } from '../../core/modules/module-config';
 
 const toAspects = { redirectTo: '/environment/aspects' };
 const toPlans = { redirectTo: '/environment/emergency-plans' };
@@ -82,11 +83,8 @@ export default [
         path: 'emissions',
         loadComponent: () => import('./emissions-page').then((m) => m.EmissionsPage),
       },
-      {
-        path: 'scoring',
-        canActivate: [permissionGuard('environment:manage', { redirectTo: '/environment' })],
-        loadComponent: () => import('./scoring-settings').then((m) => m.ScoringSettings),
-      },
+      // U10: the module's configuration lives under /settings/modules/environment.
+      moduleConfigRedirect('scoring', 'environment', ''),
     ],
   },
 ] satisfies Routes;

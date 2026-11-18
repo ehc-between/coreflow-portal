@@ -1,14 +1,15 @@
 import { Routes } from '@angular/router';
 import { provideTranslocoScope } from '@jsverse/transloco';
 import { permissionGuard } from '../../core/auth/permission.guard';
+import { moduleConfigRedirect } from '../../core/modules/module-config';
 
 const toList = { redirectTo: '/inspections' };
-const toTemplates = { redirectTo: '/inspections/templates' };
 
 /**
  * `/inspections` (scope `inspections`, M05): inspections (list, plan, detail, run),
- * findings, checklist templates (list, library, detail, builder) and recurring
- * schedules. `app.routes` already gates the area on the `inspections` module and
+ * findings and recurring schedules. Checklist templates (list, library, detail,
+ * builder) are configuration under `/settings/modules/inspections/templates` (U10,
+ * `inspections-config.routes.ts`); their old URLs here redirect. `app.routes` already gates the area on the `inspections` module and
  * `inspections:read`; planning and editing need `inspections:write`, designing
  * templates `inspections:templates`. The backend's entity URLs are
  * `/inspections/<id>`, `/inspections/<id>?finding=<id>` and
@@ -38,29 +39,12 @@ export default [
         path: 'schedules',
         loadComponent: () => import('./schedules/schedules-list').then((m) => m.SchedulesList),
       },
-      {
-        path: 'templates',
-        loadComponent: () => import('./templates/templates-list').then((m) => m.TemplatesList),
-      },
-      {
-        path: 'templates/library',
-        loadComponent: () => import('./templates/template-library').then((m) => m.TemplateLibrary),
-      },
-      {
-        path: 'templates/new',
-        canActivate: [permissionGuard('inspections:templates', toTemplates)],
-        loadComponent: () => import('./templates/template-builder').then((m) => m.TemplateBuilder),
-      },
-      {
-        path: 'templates/:id',
-        loadComponent: () =>
-          import('./templates/template-detail').then((m) => m.TemplateDetailPage),
-      },
-      {
-        path: 'templates/:id/edit',
-        canActivate: [permissionGuard('inspections:templates', toTemplates)],
-        loadComponent: () => import('./templates/template-builder').then((m) => m.TemplateBuilder),
-      },
+      // U10: checklist templates are configuration (/settings/modules/inspections).
+      moduleConfigRedirect('templates', 'inspections'),
+      moduleConfigRedirect('templates/library', 'inspections'),
+      moduleConfigRedirect('templates/new', 'inspections'),
+      moduleConfigRedirect('templates/:id', 'inspections'),
+      moduleConfigRedirect('templates/:id/edit', 'inspections'),
       {
         path: ':id',
         loadComponent: () =>

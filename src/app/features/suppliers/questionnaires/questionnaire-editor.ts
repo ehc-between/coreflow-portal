@@ -45,7 +45,7 @@ import {
 } from '../shared/question-editor';
 
 /**
- * Create or edit an org questionnaire template (`/suppliers/questionnaires/new`,
+ * Create or edit an org questionnaire template (`/settings/modules/suppliers/questionnaires/new`,
  * `…/:qid/edit`; `suppliers:manage`). `?from=<template id>` starts from a copy (e.g.
  * of a built-in template). The assistant can draft questions for the kind and focus.
  */
@@ -72,15 +72,19 @@ import {
           qid() ? 'suppliers.questionnaires.editTitle' : 'suppliers.questionnaires.newTitle'
         "
         [breadcrumbs]="[
-          { labelKey: 'modules.names.suppliers', link: '/suppliers' },
-          { labelKey: 'suppliers.questionnaires.title', link: '/suppliers/questionnaires' },
+          { labelKey: 'nav.settings', link: '/settings' },
+          { labelKey: 'modules.names.suppliers' },
+          {
+            labelKey: 'suppliers.questionnaires.title',
+            link: '/settings/modules/suppliers/questionnaires',
+          },
           {
             labelKey: qid()
               ? 'suppliers.questionnaires.editTitle'
               : 'suppliers.questionnaires.newTitle',
           },
         ]"
-        backLink="/suppliers/questionnaires"
+        backLink="/settings/modules/suppliers/questionnaires"
         backLabelKey="suppliers.questionnaires.back"
       />
       <app-help-strip scope="suppliers" page="questionnaire" />
@@ -299,7 +303,7 @@ export class QuestionnaireEditor {
   }
 
   protected back(): void {
-    void this.router.navigate(['/suppliers/questionnaires']);
+    void this.router.navigate(['/settings/modules/suppliers/questionnaires']);
   }
 
   private loadSource(orgId: string, id: string, copying: boolean): void {
