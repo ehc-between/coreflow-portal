@@ -61,6 +61,7 @@ import {
   todayIso,
   warningKey,
 } from './data/contract-display';
+import { FulfilsRequirements } from '../../shared/requirement-locations/fulfils-requirements';
 
 const PAGE_SIZE = 25;
 /** Notice deadlines this close are called out on the row ("Notice deadline in 31 days"). */
@@ -115,6 +116,7 @@ const KPIS: readonly Kpi[] = [
 @Component({
   selector: 'app-contracts-list',
   imports: [
+    FulfilsRequirements,
     TranslocoPipe,
     TeachingEmpty,
     TourStepDirective,
@@ -151,6 +153,7 @@ const KPIS: readonly Kpi[] = [
       (search)="setQuery($event)"
       (viewApplied)="applyView($event)"
     >
+      <app-fulfils-requirements help locationKey="contracts.register" />
       <app-module-nav nav [items]="nav" appTourStep="contracts-deadlines" />
       <app-help-strip
         help

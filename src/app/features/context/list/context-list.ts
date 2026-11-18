@@ -55,6 +55,7 @@ import {
   splitFilters,
   toListQuery,
 } from './list-config';
+import { FulfilsRequirements } from '../../../shared/requirement-locations/fulfils-requirements';
 
 const PAGE_SIZE = 25;
 const WIDE_QUERY = '(min-width: 640px)';
@@ -123,6 +124,7 @@ export function rowBadges(kind: ContextKind, row: ContextRecord): BadgeSpec[] {
 @Component({
   selector: 'app-context-list',
   imports: [
+    FulfilsRequirements,
     RouterLink,
     TranslocoPipe,
     TeachingEmpty,
@@ -159,6 +161,7 @@ export function rowBadges(kind: ContextKind, row: ContextRecord): BadgeSpec[] {
       (search)="onSearch($event)"
       (viewApplied)="applyView($event)"
     >
+      <app-fulfils-requirements help />
       @if (perms.canWrite()) {
         <a primary [routerLink]="newLink()" tabindex="-1" [appTourStep]="'context-new-' + kind()">
           <app-button data-testid="context-new">

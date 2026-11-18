@@ -18,6 +18,7 @@ import {
 } from '../../../core/standards/standards.models';
 import { StandardWorkspace } from './standard-workspace';
 import { tocDomId, workspaceMatcher } from './workspace-data';
+import { flushLocationRequests } from '../../../shared/requirement-locations/requirement-locations.testing';
 
 const BASE = 'http://test/api';
 const ORG = 'org-1';
@@ -178,6 +179,7 @@ describe('StandardWorkspace', () => {
       .forEach((r) =>
         r.flush(r.request.url.endsWith('/entity-types') ? { items: [], link_types: [] } : null),
       );
+    flushLocationRequests(http); // requirement-locations (L4)
     http.verify();
     vi.restoreAllMocks();
   });

@@ -259,7 +259,8 @@
       "allTypes": "All types"
     },
     "card": {
-      "evidenceTitle": "Evidence",
+      "evidenceTitle": "Specific evidence",
+      "evidenceHint": "Link single records as extra evidence",
       "suggestions": "Suggested evidence ({{count}})",
       "loadError": "Couldn't load the evidence. Try again.",
       "canBeEvidencedBy": "Can be documented with",

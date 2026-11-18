@@ -40,6 +40,7 @@ import {
 import { RecruitmentLessonButton } from '../shared/recruitment-lesson-button';
 import { RecruitmentNav } from '../shared/recruitment-nav';
 import { injectRecruitmentPerms } from '../shared/recruitment-perms';
+import { FulfilsRequirements } from '../../../shared/requirement-locations/fulfils-requirements';
 
 const PAGE_SIZE = 25;
 
@@ -47,6 +48,7 @@ const PAGE_SIZE = 25;
 @Component({
   selector: 'app-requisitions-list',
   imports: [
+    FulfilsRequirements,
     RouterLink,
     TranslocoPipe,
     RecordListPage,
@@ -77,6 +79,7 @@ const PAGE_SIZE = 25;
       (search)="onSearch($event)"
       (viewApplied)="applyView($event)"
     >
+      <app-fulfils-requirements help locationKey="recruitment.requisitions" />
       <div intro class="mt-3 flex flex-col gap-3">
         <app-recruitment-nav />
         <app-guide-intro scope="recruitment" page="requisitions" />

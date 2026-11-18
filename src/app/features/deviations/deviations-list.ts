@@ -56,6 +56,7 @@ import {
 import { DeviationStatusLabels, STATUS_CATEGORIES } from './deviation-status';
 import { DeviationFilter, FilterGroup, FilterOption } from './ui/filter-select';
 import { DeviationsNavService } from './ui/deviations-nav';
+import { FulfilsRequirements } from '../../shared/requirement-locations/fulfils-requirements';
 
 const PAGE_SIZE = 25;
 const WIDE_QUERY = '(min-width: 640px)';
@@ -182,6 +183,7 @@ export function filtersFromParams(params: {
 @Component({
   selector: 'app-deviations-list',
   imports: [
+    FulfilsRequirements,
     RouterLink,
     TranslocoPipe,
     HasPermissionDirective,
@@ -221,6 +223,7 @@ export function filtersFromParams(params: {
       (search)="onSearch($event)"
       (viewApplied)="applyView($event)"
     >
+      <app-fulfils-requirements help locationKey="deviations.register" />
       <a
         primary
         *appHasPermission="'deviations:write'"

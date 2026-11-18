@@ -60,6 +60,7 @@ import {
   reviewStatusKey,
   toneValue,
 } from './management-review-display';
+import { FulfilsRequirements } from '../../shared/requirement-locations/fulfils-requirements';
 
 const PAGE_SIZE = 25;
 
@@ -98,6 +99,7 @@ const SELECT =
 @Component({
   selector: 'app-mr-reviews-list',
   imports: [
+    FulfilsRequirements,
     TranslocoPipe,
     TeachingEmpty,
     TourStepDirective,
@@ -135,6 +137,7 @@ const SELECT =
       (search)="setQuery($event)"
       (viewApplied)="applyView($event)"
     >
+      <app-fulfils-requirements help locationKey="management_review.reviews" />
       @if (canWrite()) {
         <app-button primary appTourStep="mr-new" (click)="create()" data-testid="mr-new-review">
           <app-icon name="plus" [size]="14" />

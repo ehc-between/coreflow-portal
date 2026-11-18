@@ -62,6 +62,7 @@ import {
   saveBlob,
 } from './objectives-display';
 import { OBJECTIVES_NAV } from './objectives-nav';
+import { FulfilsRequirements } from '../../shared/requirement-locations/fulfils-requirements';
 
 const PAGE_SIZE = 25;
 
@@ -144,6 +145,7 @@ export function objectiveTiles(
 @Component({
   selector: 'app-objectives-list',
   imports: [
+    FulfilsRequirements,
     TranslocoPipe,
     TeachingEmpty,
     TourStepDirective,
@@ -179,6 +181,7 @@ export function objectiveTiles(
       (search)="setQuery($event)"
       (viewApplied)="applyView($event)"
     >
+      <app-fulfils-requirements help locationKey="objectives.objectives" />
       @if (canWrite()) {
         <app-button
           primary

@@ -9,6 +9,7 @@ import { APP_CONFIG } from '../../core/config/app-config';
 import { DocumentSummary } from '../../core/documents/document.models';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { DOCUMENTS_PAGE_SIZE, DocumentsList } from './documents-list';
+import { flushLocationRequests } from '../../shared/requirement-locations/requirement-locations.testing';
 
 const BASE = 'http://test/api';
 const ORG = 'org-1';
@@ -64,6 +65,7 @@ async function setup(permissions: string[] = []) {
 
 /** Everything else the page loads on the side (guidance, coverage …). */
 function flushRest(http: HttpTestingController): void {
+  flushLocationRequests(http);
   http
     .match((r) => r.url !== URL)
     .forEach((r) =>

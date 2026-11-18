@@ -27,6 +27,7 @@ import {
   StandardSummary,
 } from '../../../core/standards/standards.models';
 import { RequirementChip } from '../../../shared/requirement-links/requirement-chip';
+import { LocationFillIn } from '../../../shared/requirement-locations/location-fill-in';
 import {
   fixedShortName,
   frameworkOf,
@@ -73,6 +74,7 @@ export function fixActions(gap: RequirementGap): readonly EvidencingType[] {
     PageHeader,
     Pager,
     RequirementChip,
+    LocationFillIn, // requirement-locations (L4)
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -151,6 +153,8 @@ export function fixActions(gap: RequirementGap): readonly EvidencingType[] {
                       @if (gap.text) {
                         <p class="mt-0.5 text-ui text-fg-muted">{{ gap.text }}</p>
                       }
+                      <!-- requirement-locations (L4): "Fyll ut i" -->
+                      <app-location-fill-in [gap]="gap" />
                       @if (fixes(gap).length > 0) {
                         <div class="mt-2.5 flex flex-wrap items-center gap-1.5">
                           <span class="text-meta font-semibold text-fg-subtle">{{

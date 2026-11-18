@@ -14,6 +14,7 @@ import {
 } from '../../core/standards/standards.models';
 import { groupHits } from './evidence-picker';
 import { RequirementCard, evidenceByModule } from './requirement-card';
+import { flushLocationRequests } from '../../shared/requirement-locations/requirement-locations.testing';
 
 const BASE = 'http://test/api';
 const ORG = 'org-1';
@@ -171,7 +172,11 @@ describe('RequirementCard', () => {
     return { fixture, http, el, render };
   }
 
-  afterEach(() => TestBed.inject(HttpTestingController).verify());
+  afterEach(() => {
+    const http = TestBed.inject(HttpTestingController);
+    flushLocationRequests(http); // requirement-locations (L4)
+    http.verify();
+  });
 
   it('shows evidence from every module, suggestions, and what could document the requirement', async () => {
     const { http, el, render } = await setup(['standards:read', 'standards:manage']);

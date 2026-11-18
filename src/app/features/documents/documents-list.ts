@@ -42,6 +42,7 @@ import { STATUS_FILTERS, documentTypeName, statusLabelKey } from './document-sta
 import { DocumentsNav } from './shared/documents-nav';
 import { DocumentsPageGuide } from './shared/documents-page-guide';
 import { ReviewState, reviewLabelKey, reviewState } from './workflow/document-review';
+import { FulfilsRequirements } from '../../shared/requirement-locations/fulfils-requirements';
 
 /** Rows per page of the documents list. */
 export const DOCUMENTS_PAGE_SIZE = 25;
@@ -78,6 +79,7 @@ interface Row {
 @Component({
   selector: 'app-documents-list',
   imports: [
+    FulfilsRequirements,
     TranslocoPipe,
     HasPermissionDirective,
     TourStepDirective,
@@ -113,6 +115,7 @@ interface Row {
       (search)="onQueryChange($event)"
       (viewApplied)="applyView($event.filters)"
     >
+      <app-fulfils-requirements help locationKey="documents.register" />
       @if (!registerEmpty()) {
         <app-button
           primary
