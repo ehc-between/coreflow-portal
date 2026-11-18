@@ -41,6 +41,7 @@ import { Card } from '../../../shared/ui/card/card';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { Pager } from '../../../shared/ui/pager/pager';
 import { provideTasksPageContext } from '../tasks-page-context';
+import { FulfilsRequirements } from '../../../shared/requirement-locations/fulfils-requirements';
 
 const PAGE_SIZE = 25;
 
@@ -72,6 +73,7 @@ export function statusesFor(filter: StatusFilter): readonly TaskStatus[] {
 @Component({
   selector: 'app-task-list',
   imports: [
+    FulfilsRequirements,
     RouterLink,
     TranslocoPipe,
     LocalDayPipe,
@@ -123,6 +125,8 @@ export function statusesFor(filter: StatusFilter): readonly TaskStatus[] {
           }
         </div>
       </header>
+
+      <app-fulfils-requirements locationKey="tasks.register" />
 
       <div class="mb-4 flex flex-col gap-3">
         <app-task-guide-intro page="list" />

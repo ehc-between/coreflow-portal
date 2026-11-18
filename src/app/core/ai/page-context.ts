@@ -88,6 +88,9 @@ interface Entry {
 export class PageContextService {
   private readonly entries = signal<readonly Entry[]>([]);
   private readonly selection = signal<PageSelection | null>(null);
+  // requirement-locations: refs a nested component adds to whichever page context is
+  // active (the "Dette oppfyller" strip on a module list), without replacing it.
+  private readonly supplements = signal<ReadonlyMap<object, readonly string[]>>(new Map());
 
   /** The active page context (with the live selection merged in), or null. */
   readonly current: Signal<PageContext | null> = computed(() => {
@@ -96,11 +99,28 @@ export class PageContextService {
       const ctx = entries[i].ctx;
       if (ctx) {
         const selection = this.selection() ?? ctx.selection ?? null;
-        return selection === (ctx.selection ?? null) ? ctx : { ...ctx, selection };
+        const base = selection === (ctx.selection ?? null) ? ctx : { ...ctx, selection };
+        const extra = [...this.supplements().values()].flat();
+        return extra.length === 0
+          ? base
+          : { ...base, requirements: [...(base.requirements ?? []), ...extra] };
       }
     }
     return null;
   });
+
+  /** Add requirement refs to the active page context for `owner` (null or [] removes them). */
+  supplement(owner: object, requirements: readonly string[] | null): void {
+    this.supplements.update((map) => {
+      const next = new Map(map);
+      if (requirements && requirements.length > 0) {
+        next.set(owner, requirements);
+      } else {
+        next.delete(owner);
+      }
+      return next;
+    });
+  }
 
   /** Register (or replace) the context for `owner`. */
   set(owner: object, ctx: PageContext | null): void {

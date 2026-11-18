@@ -408,7 +408,9 @@
       "to_document": "Kontrolldokument (prosedyre)",
       "to_policy": "Policy som håndterer risikoen",
       "to_treatment": "Risikobehandling",
-      "to_task": "Oppgave"
+      "to_task": "Oppgave",
+      "to_deviation": "Avvik fra denne risikoen",
+      "to_project": "Prosjekt for å behandle risikoen"
     },
     "supplier": {
       "to_contract": "Kontrakt med leverandøren",
@@ -432,7 +434,12 @@
     "management_review": {
       "to_task": "Tiltak (oppgave)"
     },
-    "formMissing": "Dette skjemaet finnes ikke ennå. Opprett posten fra sin egen side og koble den fra fanen Relatert."
+    "formMissing": "Dette skjemaet finnes ikke ennå. Opprett posten fra sin egen side og koble den fra fanen Relatert.",
+    "opportunity": {
+      "to_task": "Tiltak (oppgave)",
+      "to_objective": "Mål fra denne muligheten",
+      "to_project": "Prosjekt for å realisere den"
+    }
   },
   "frameworks": {
     "iso9001": "ISO 9001",

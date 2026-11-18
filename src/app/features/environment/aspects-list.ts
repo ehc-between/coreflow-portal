@@ -44,6 +44,7 @@ import {
 import { sortKey, statusTone, statusesForFilter } from './data/environment-display';
 import { EnvironmentTabs } from './environment-tabs';
 import { EnvLessonLink } from './lesson-link';
+import { FulfilsRequirements } from '../../shared/requirement-locations/fulfils-requirements';
 
 const PAGE_SIZE = 25;
 
@@ -62,6 +63,7 @@ function oneOf<T extends string>(values: readonly T[], value: string, fallback: 
 @Component({
   selector: 'app-env-aspects-list',
   imports: [
+    FulfilsRequirements,
     RouterLink,
     TranslocoPipe,
     LocalDayPipe,
@@ -94,6 +96,7 @@ function oneOf<T extends string>(values: readonly T[], value: string, fallback: 
       (search)="setQuery($event)"
       (viewApplied)="applyView($event)"
     >
+      <app-fulfils-requirements help locationKey="environment.aspects" />
       <div intro class="mt-1 flex flex-col gap-2">
         <p class="text-[14px] text-fg-muted">{{ 'environment.aspects.subtitle' | transloco }}</p>
         <app-guide-intro scope="environment" page="aspects" />

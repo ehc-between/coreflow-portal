@@ -44,13 +44,12 @@
     },
     "form": {
       "intro": {
-        "title": "Assessing a risk step by step",
-        "body": "A good risk description answers three questions: **what is at risk**, **what could happen** to it, and **what would the consequence be**. Then you rate it, decide how to treat it, and rate it again for the situation after treatment.",
+        "title": "Assessing a risk in three steps",
+        "body": "A good risk description answers three questions: **what is at risk**, **what could happen** to it, and **what would the consequence be**. Then you rate it, and decide what to do about it.",
         "steps": [
-          "Name the risk and pick the register it belongs to.",
-          "Describe the threat, the vulnerability it exploits and the consequence. Use **Suggest threats** if you are stuck.",
-          "Rate the inherent risk on the matrix, choose a treatment strategy, then rate the residual risk.",
-          "Give it an owner and a review date."
+          "**Describe**: name the risk, choose the owner and say what is at risk. Link the real supplier, asset or process when there is one.",
+          "**Assess**: pick the cell on the matrix that fits the risk as it is today.",
+          "**Treat**: choose a strategy, pick the controls from the catalogue, and rate the risk you expect after treatment."
         ]
       },
       "why": {
@@ -60,7 +59,8 @@
       "fields": {
         "title": {
           "help": "A short name for the scenario, so everyone recognises it in a list.",
-          "example": "Loss of customer data through a stolen laptop"
+          "example": "Loss of customer data through a stolen laptop",
+          "requirements": ["iso27001:6.1.2"]
         },
         "register": {
           "help": "The register decides which matrix the risk is rated on and how often it is reviewed by default."
@@ -86,23 +86,31 @@
         },
         "inherent": {
           "help": "How likely the scenario is and how bad it would be **today**, with the controls you already have, before any new treatment. Pick the cell that fits best; you can always revise it.",
-          "example": "Likelihood 3 (possible), consequence 4 (major) = 12"
+          "example": "Likelihood 3 (possible), consequence 4 (major) = 12",
+          "requirements": ["iso27001:6.1.2", "iso45001:6.1.2"]
         },
         "strategy": {
-          "help": "Mitigate = reduce the likelihood or consequence; accept = knowingly retain it; avoid = stop the activity; transfer = share it, for example through insurance or a contract."
+          "help": "Mitigate = reduce the likelihood or consequence; accept = knowingly retain it; avoid = stop the activity; transfer = share it, for example through insurance or a contract.",
+          "requirements": ["iso27001:6.1.3"]
         },
         "controls": {
-          "help": "Catalogue controls the treatment relies on, as standard:number. They appear in the Statement of Applicability under 'risk assessment'.",
-          "example": "iso27001-2022:A.8.24"
+          "help": "The controls that reduce the risk, picked from the catalogue by number or title. Each one is shown in the Statement of Applicability, and the risk counts as documentation for it.",
+          "example": "A.8.13 Information backup",
+          "requirements": ["iso27001:6.1.3"]
         },
         "residual": {
           "help": "The rating you expect once the planned treatments are in place. If it is still above the risk appetite, plan more treatment or have it formally accepted."
         },
         "owner": {
-          "help": "The person accountable for the risk: they make sure it is treated and reviewed. Usually the manager of the area concerned."
+          "help": "The person accountable for the risk: makes sure it is treated and reviewed, and approves the residual risk. Usually the manager of the area it concerns.",
+          "requirements": ["iso27001:6.1.2", "iso45001:6.1.2"]
         },
         "review": {
           "help": "How often the risk is reviewed. Leave empty to use the register's interval. A review is also due when something changes."
+        },
+        "subject": {
+          "help": "Pick the real record the risk is about. The risk then shows up on that record, and the record on the risk.",
+          "example": "Supplier: Nimbus Data Platform"
         }
       }
     },
@@ -127,8 +135,9 @@
           "help": "The person who carries out the treatment. They get a task in My Work. Defaults to the risk owner."
         },
         "controls": {
-          "help": "The controls this action implements, as standard:number.",
-          "example": "iso27001-2022:A.8.13"
+          "help": "The controls this action puts in place, picked from the catalogue.",
+          "example": "A.8.24 Use of cryptography",
+          "requirements": ["iso27001:6.1.3", "iso27001:8.3"]
         }
       }
     },
@@ -163,7 +172,8 @@
       },
       "fields": {
         "benefit": {
-          "help": "How much the organisation would gain: 1 = very little, 5 = a great deal."
+          "help": "How much the organisation would gain: 1 = very little, 5 = a great deal.",
+          "requirements": ["iso9001:6.1"]
         },
         "feasibility": {
           "help": "How realistic it is to achieve with the resources you have: 1 = very hard, 5 = easy."
@@ -171,6 +181,14 @@
         "actionPlan": {
           "help": "The concrete steps, who takes them and by when.",
           "example": "Pilot the new scheduling tool in one team in Q1, then decide on rollout"
+        },
+        "title": {
+          "help": "A short name for the improvement, so everyone recognises it in a list.",
+          "example": "Automate the monthly supplier report",
+          "requirements": ["iso9001:6.1"]
+        },
+        "concerns": {
+          "help": "What the opportunity is about: a process, a supplier, a project and so on. Link the real record when there is one."
         }
       }
     },
@@ -222,7 +240,8 @@
         },
         "justification": {
           "help": "One to three sentences an auditor can follow. For an exclusion, explain why the control is not relevant.",
-          "example": "Excluded: the organisation does not develop software; all systems are bought as services."
+          "example": "Excluded: the organisation does not develop software; all systems are bought as services.",
+          "requirements": ["iso27001:6.1.3"]
         }
       }
     },
@@ -287,7 +306,8 @@
         },
         "appetite": {
           "help": "Risks scoring at or below this value are acceptable without more treatment. Risks above it need treatment or a documented acceptance.",
-          "example": "4 on a 5x5 matrix"
+          "example": "4 on a 5x5 matrix",
+          "requirements": ["iso27001:6.1.2"]
         },
         "likelihoodLevels": {
           "help": "How probable the scenario is, from lowest to highest. Describe each level with a frequency, such as 'less than once in ten years'."
@@ -483,7 +503,7 @@
         "body": "Start a new risk assessment here."
       },
       {
-        "target": "risk-nav-soa",
+        "target": "risk-nav",
         "title": "Statement of Applicability",
         "body": "Decide and justify each Annex A control here."
       }
@@ -500,7 +520,7 @@
         "body": "Record a new risk and rate it on the matrix."
       },
       {
-        "target": "risk-nav-registers",
+        "target": "risk-nav",
         "title": "Registers",
         "body": "Organise risks by area, each with its own matrix."
       }
@@ -555,6 +575,16 @@
       "term": "Risk owner",
       "definition": "The person accountable for managing a risk and approving its treatment and residual risk.",
       "clauses": ["iso27001:6.1.2", "iso27001:6.1.3"]
+    },
+    "current-rating": {
+      "term": "Current rating",
+      "definition": "The rating a risk is judged on today: the residual rating once the risk is rated after treatment, otherwise the inherent rating.",
+      "clauses": ["iso27001:6.1.2"]
+    },
+    "risk-treatment": {
+      "term": "Risk treatment",
+      "definition": "The actions that change a risk: reduce, avoid, share or accept it. Each action has an owner, a due date and, once done, a check that it worked.",
+      "clauses": ["iso27001:6.1.3", "iso27001:8.3"]
     }
   }
 }

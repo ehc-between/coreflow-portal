@@ -47,6 +47,7 @@ import { AuditsApi } from '../data/audits-api';
 import { AuditsNav } from '../shared/audits-nav';
 import { AuditLoadState } from '../shared/load-state';
 import { loadable } from '../shared/loadable';
+import { FulfilsRequirements } from '../../../shared/requirement-locations/fulfils-requirements';
 
 const PAGE_SIZE = 25;
 
@@ -66,6 +67,7 @@ export function planStatusParam(filter: string): string | undefined {
 @Component({
   selector: 'app-audit-plan-list',
   imports: [
+    FulfilsRequirements,
     TranslocoPipe,
     Button,
     Card,
@@ -103,6 +105,7 @@ export function planStatusParam(filter: string): string | undefined {
       (search)="setQuery($event)"
       (viewApplied)="applyView($event)"
     >
+      <app-fulfils-requirements help locationKey="audits.plans" />
       @if (access.canWrite()) {
         <app-button primary (click)="create()" [appTourStep]="'audits-new'">
           <app-icon name="plus" [size]="14" />

@@ -9,6 +9,7 @@ import { APP_CONFIG } from '../../core/config/app-config';
 import { DocumentSummary } from '../../core/documents/document.models';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { DOCUMENTS_PAGE_SIZE, DocumentsList } from './documents-list';
+import { flushLocationRequests } from '../../shared/requirement-locations/requirement-locations.testing';
 
 const BASE = 'http://test/api';
 const ORG = 'org-1';
@@ -70,6 +71,7 @@ describe('DocumentsList', () => {
     second.flush(all);
     await fixture.whenStable();
     expect(root.querySelectorAll('li').length).toBe(3);
+    flushLocationRequests(http);
     http.verify();
   });
 
@@ -86,6 +88,7 @@ describe('DocumentsList', () => {
     await fixture.whenStable();
     expect(root.querySelectorAll('li').length).toBe(1);
     expect(root.textContent).toContain('Doc 1');
+    flushLocationRequests(http);
     http.verify();
   });
 
@@ -119,6 +122,7 @@ describe('DocumentsList', () => {
 
     expect(cells[2].textContent).toContain('documents.requirements.none');
     expect(cells[2].querySelector('[data-testid="requirement-suggested"]')).toBeNull();
+    flushLocationRequests(http);
     http.verify();
   });
 
@@ -137,6 +141,7 @@ describe('DocumentsList', () => {
     expect(titles.join(' ')).toContain('Doc 2');
     expect(titles.join(' ')).toContain('Doc 3');
     expect(titles.join(' ')).not.toContain('Doc 1');
+    flushLocationRequests(http);
     http.verify();
   });
 
@@ -146,6 +151,7 @@ describe('DocumentsList', () => {
     await fixture.whenStable();
     expect(root.querySelector('[data-testid="requirement-cell"]')).toBeNull();
     expect(root.querySelector('[data-testid="filter-unlinked"]')).toBeNull();
+    flushLocationRequests(http);
     http.verify();
   });
 });

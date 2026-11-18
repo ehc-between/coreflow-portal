@@ -53,7 +53,8 @@ interface GridRow {
   template: `
     <div class="overflow-x-auto">
       <div
-        class="grid min-w-[280px] gap-1"
+        class="grid gap-1"
+        [style.min-width.px]="minWidth()"
         [style.grid-template-columns]="columns()"
         [attr.role]="mode() === 'preview' ? 'img' : 'group'"
         [attr.aria-label]="ariaLabel() || ('risk.matrix.gridLabel' | transloco)"
@@ -61,14 +62,14 @@ interface GridRow {
       >
         @for (row of rows(); track row.likelihood; let ri = $index) {
           <div
-            class="flex items-center justify-end pr-1 text-right text-[11.5px] leading-tight text-fg-muted"
+            class="flex items-center justify-end pr-1 text-right text-micro leading-tight text-fg-muted"
           >
             <span class="line-clamp-2">{{ row.likelihood }} · {{ row.label }}</span>
           </div>
           @for (cell of row.cells; track cell.key; let ci = $index) {
             @if (mode() === 'preview') {
               <div
-                class="flex min-h-[38px] items-center justify-center rounded-[6px] text-[12px] font-semibold"
+                class="flex min-h-[38px] items-center justify-center rounded-md text-meta font-semibold"
                 [style.background]="cell.color"
                 [style.color]="textColor(cell.color)"
                 [attr.title]="cell.text"
@@ -82,7 +83,7 @@ interface GridRow {
               <button
                 #cellButton
                 type="button"
-                class="flex min-h-[40px] items-center justify-center rounded-[6px] text-[12.5px] font-semibold outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:cursor-default"
+                class="flex min-h-[40px] items-center justify-center rounded-md text-meta font-semibold outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:cursor-default"
                 [style.background]="cell.color"
                 [style.color]="textColor(cell.color)"
                 [class.opacity-60]="mode() === 'heatmap' && cell.count === 0"
@@ -110,19 +111,19 @@ interface GridRow {
         }
         <div></div>
         @for (c of consequenceLabels(); track c.value) {
-          <div class="pt-1 text-center text-[11.5px] leading-tight text-fg-muted">
+          <div class="pt-1 text-center text-micro leading-tight text-fg-muted">
             <span class="line-clamp-2">{{ c.value }} · {{ c.label }}</span>
           </div>
         }
       </div>
     </div>
-    <div class="mt-2 flex flex-wrap items-center justify-between gap-2 text-[11.5px] text-fg-muted">
+    <div class="mt-2 flex flex-wrap items-center justify-between gap-2 text-micro text-fg-muted">
       <span>{{ 'risk.matrix.axes' | transloco }}</span>
       <ul class="flex flex-wrap gap-2" [attr.aria-label]="'risk.matrix.legend' | transloco">
         @for (band of legend(); track band.key) {
           <li class="inline-flex items-center gap-1">
             <span
-              class="inline-block h-3 w-3 rounded-[3px]"
+              class="inline-block h-3 w-3 rounded-sm"
               [style.background]="band.color"
               aria-hidden="true"
             ></span>
@@ -161,8 +162,11 @@ export class MatrixGrid {
 
   protected readonly columnsCount = computed(() => this.matrix().consequence_levels.length);
 
+  /** Cells never shrink below a tap target: narrow screens scroll the grid sideways. */
+  protected readonly minWidth = computed(() => 88 + this.columnsCount() * 48);
+
   protected readonly columns = computed(
-    () => `minmax(72px, 0.9fr) repeat(${this.columnsCount()}, minmax(36px, 1fr))`,
+    () => `minmax(84px, 0.9fr) repeat(${this.columnsCount()}, minmax(44px, 1fr))`,
   );
 
   protected readonly consequenceLabels = computed(() =>

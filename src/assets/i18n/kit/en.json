@@ -408,7 +408,9 @@
       "to_document": "Control document (procedure)",
       "to_policy": "Policy that addresses the risk",
       "to_treatment": "Risk treatment",
-      "to_task": "Task"
+      "to_task": "Task",
+      "to_deviation": "Deviation from this risk",
+      "to_project": "Project to treat the risk"
     },
     "supplier": {
       "to_contract": "Contract with this supplier",
@@ -432,7 +434,12 @@
     "management_review": {
       "to_task": "Action (task)"
     },
-    "formMissing": "This form is not available yet. Create the record from its own page and link it from the Related tab."
+    "formMissing": "This form is not available yet. Create the record from its own page and link it from the Related tab.",
+    "opportunity": {
+      "to_task": "Action (task)",
+      "to_objective": "Objective from this opportunity",
+      "to_project": "Project to realise it"
+    }
   },
   "frameworks": {
     "iso9001": "ISO 9001",

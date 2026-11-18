@@ -10,10 +10,8 @@ import {
 } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { NotificationService } from '../../../core/notifications/notification.service';
-import { FieldHelp } from '../../../shared/guidance/field-help';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
-import { FormField } from '../../../shared/ui/form-field/form-field';
 import { SlideOver } from '../../../shared/ui/slide-over/slide-over';
 import { RiskApi } from '../data/risk-api';
 import { riskErrorKey } from '../data/risk-errors';
@@ -27,6 +25,7 @@ import {
 } from '../data/risk.models';
 import { PersonSelect } from '../shared/person-select';
 import { RiskPermissions } from '../shared/risk-permissions';
+import { RiskField } from '../shared/risk-field';
 
 interface RegisterForm {
   readonly name: string;
@@ -55,7 +54,7 @@ function toForm(r: Register | null, matrices: readonly Matrix[]): RegisterForm {
 /** Side panel to create (`register` null) or edit a risk register (`risk:manage`). */
 @Component({
   selector: 'app-register-form-panel',
-  imports: [TranslocoPipe, FieldHelp, Alert, Button, FormField, SlideOver, PersonSelect],
+  imports: [TranslocoPipe, Alert, Button, SlideOver, PersonSelect, RiskField],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-slide-over
@@ -65,7 +64,7 @@ function toForm(r: Register | null, matrices: readonly Matrix[]): RegisterForm {
       (closed)="closed.emit()"
     >
       <form class="flex flex-col gap-4" (submit)="$event.preventDefault(); save()" novalidate>
-        <app-form-field [label]="'risk.registers.name' | transloco" inputId="register-name">
+        <app-risk-field inputId="register-name" labelKey="risk.registers.name">
           <input
             id="register-name"
             required
@@ -73,8 +72,13 @@ function toForm(r: Register | null, matrices: readonly Matrix[]): RegisterForm {
             [value]="form().name"
             (input)="set('name', $any($event.target).value)"
           />
-        </app-form-field>
-        <app-form-field [label]="'risk.fields.category' | transloco" inputId="register-category">
+        </app-risk-field>
+        <app-risk-field
+          inputId="register-category"
+          labelKey="risk.fields.category"
+          helpPage="registers"
+          helpField="category"
+        >
           <select id="register-category" (change)="set('category', $any($event.target).value)">
             @for (c of categories; track c) {
               <option [value]="c" [selected]="c === form().category">
@@ -82,9 +86,13 @@ function toForm(r: Register | null, matrices: readonly Matrix[]): RegisterForm {
               </option>
             }
           </select>
-          <app-field-help scope="risk" page="registers" field="category" />
-        </app-form-field>
-        <app-form-field [label]="'risk.registers.matrix' | transloco" inputId="register-matrix">
+        </app-risk-field>
+        <app-risk-field
+          inputId="register-matrix"
+          labelKey="risk.registers.matrix"
+          helpPage="registers"
+          helpField="matrix"
+        >
           <select id="register-matrix" (change)="set('matrix_id', $any($event.target).value)">
             @if (!matrices().length) {
               <option value="">{{ 'risk.registers.defaultMatrix' | transloco }}</option>
@@ -93,30 +101,28 @@ function toForm(r: Register | null, matrices: readonly Matrix[]): RegisterForm {
               <option [value]="m.id" [selected]="m.id === form().matrix_id">{{ m.name }}</option>
             }
           </select>
-          <app-field-help scope="risk" page="registers" field="matrix" />
-        </app-form-field>
-        <app-form-field
-          [label]="'risk.fields.description' | transloco"
-          inputId="register-description"
-        >
+        </app-risk-field>
+        <app-risk-field inputId="register-description" labelKey="risk.fields.description">
           <textarea
             id="register-description"
             rows="3"
             [value]="form().description"
             (input)="set('description', $any($event.target).value)"
           ></textarea>
-        </app-form-field>
-        <app-form-field [label]="'risk.fields.owner' | transloco" inputId="register-owner">
+        </app-risk-field>
+        <app-risk-field inputId="register-owner" labelKey="risk.fields.owner">
           <app-person-select
             inputId="register-owner"
             [value]="form().owner_user_id"
             [currentName]="register()?.owner?.name ?? null"
             (valueChange)="set('owner_user_id', $event)"
           />
-        </app-form-field>
-        <app-form-field
-          [label]="'risk.fields.reviewInterval' | transloco"
+        </app-risk-field>
+        <app-risk-field
           inputId="register-interval"
+          labelKey="risk.fields.reviewInterval"
+          helpPage="registers"
+          helpField="interval"
         >
           <input
             id="register-interval"
@@ -126,9 +132,8 @@ function toForm(r: Register | null, matrices: readonly Matrix[]): RegisterForm {
             [value]="form().review_interval_months"
             (input)="set('review_interval_months', $any($event.target).value)"
           />
-          <app-field-help scope="risk" page="registers" field="interval" />
-        </app-form-field>
-        <label class="inline-flex items-center gap-2 text-[13px] text-fg">
+        </app-risk-field>
+        <label class="inline-flex items-center gap-2 text-ui text-fg">
           <input
             type="checkbox"
             [checked]="form().is_default"
@@ -137,7 +142,7 @@ function toForm(r: Register | null, matrices: readonly Matrix[]): RegisterForm {
           {{ 'risk.registers.isDefault' | transloco }}
         </label>
         @if (register()) {
-          <label class="inline-flex items-center gap-2 text-[13px] text-fg">
+          <label class="inline-flex items-center gap-2 text-ui text-fg">
             <input
               type="checkbox"
               [checked]="form().status === 'archived'"
