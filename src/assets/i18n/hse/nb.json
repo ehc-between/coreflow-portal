@@ -668,7 +668,7 @@
       "why": "Utstyr med forfalt kontroll eller utløpsdato skal ikke brukes. Det første er {{ code }} {{ title }}."
     },
     "consultationUnrecorded": {
-      "title": "Registrer {{ count }} medvirkningsmøter",
+      "title": "Følg opp medvirkningsmøter med passert dato ({{ count }})",
       "why": "Den planlagte datoen er passert. Registrer hva dere ble enige om, eller avlys møtet. Det første er {{ code }} {{ title }}."
     }
   },

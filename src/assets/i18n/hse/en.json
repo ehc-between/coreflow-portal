@@ -668,7 +668,7 @@
       "why": "Gear that is overdue for inspection or expired must not be used. The first is {{ code }} {{ title }}."
     },
     "consultationUnrecorded": {
-      "title": "Record {{ count }} participation meetings",
+      "title": "Follow up participation meetings past their date ({{ count }})",
       "why": "The planned date has passed. Record what was agreed, or cancel the meeting. The first is {{ code }} {{ title }}."
     }
   },

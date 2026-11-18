@@ -1,7 +1,16 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  input,
+  output,
+  untracked,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { LanguageService } from '../../../core/i18n/language.service';
+import { parseScopedKey } from '../../../core/notifications/notification-text';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { MenuItem, OverflowMenu } from '../../../shared/ui/overflow-menu/overflow-menu';
 import { actionView, splitUrl } from '../data/home-format';
@@ -97,6 +106,9 @@ export const SNOOZE_DAYS = 7;
 })
 export class NextActions {
   private readonly language = inject(LanguageService);
+  private readonly transloco = inject(TranslocoService);
+  /** `<scope>/<lang>` files already requested (Transloco caches the loads too). */
+  private readonly requested = new Set<string>();
 
   readonly actions = input.required<readonly NextAction[]>();
   readonly dismissed = output<DismissRequest>();
@@ -104,11 +116,31 @@ export class NextActions {
   protected readonly snoozeDays = SNOOZE_DAYS;
 
   protected readonly rows = computed(() => {
+    const actions = this.actions();
+    const lang = this.language.active();
+    // Module actions carry keys in their own scope (`hse:next.…`), which Home does
+    // not provide: load it on demand. `translate()` re-runs once the file arrives.
+    untracked(() => this.ensureScopes(actions, lang));
     const t = (key: string, params?: Record<string, unknown>) =>
       this.language.translate(key, params);
-    return this.actions().map((action) => ({
+    return actions.map((action) => ({
       view: actionView(action, t),
       link: splitUrl(action.url),
     }));
   });
+
+  private ensureScopes(actions: readonly NextAction[], lang: string): void {
+    for (const action of actions) {
+      for (const key of [action.title_key, action.why_key]) {
+        const scope = parseScopedKey(key ?? '')?.scope;
+        const path = scope ? `${scope}/${lang}` : null;
+        if (!path || this.requested.has(path)) {
+          continue;
+        }
+        this.requested.add(path);
+        // A missing scope file leaves the key; nothing else to do.
+        this.transloco.load(path).subscribe({ error: () => undefined });
+      }
+    }
+  }
 }
