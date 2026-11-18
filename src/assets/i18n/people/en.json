@@ -872,20 +872,21 @@
     "notRemoved": "Not removed"
   },
   "import": {
-    "open": "Import users as people",
-    "title": "Import users as people",
-    "message": "Members of the organisation who have no person record yet. Training, tasks and access reviews reach people through this link.",
+    "title": "Create employee cards",
+    "message": "Members of the organisation who have no employee card yet. Training, tasks and access reviews reach people through their card.",
     "suggestionsTitle": "Suggested links to existing people",
     "reason": {
       "email": "Same email address",
       "name": "Same name"
     },
-    "membersTitle": "Members without a person record",
-    "none": "Every member already has a person record.",
+    "membersTitle": "Members without an employee card",
+    "none": "Every member already has an employee card.",
     "selectAll": "Select all",
-    "statusLabel": "Status of the new records",
-    "confirm": "Import {{ count }} people",
-    "confirmOne": "Import 1 person"
+    "statusLabel": "Status of the new cards",
+    "confirm": "Create {{ count }} employee cards",
+    "confirmOne": "Create 1 employee card",
+    "typeLabel": "Employment type",
+    "typeHint": "Choose \"Contractor\" for consultants, auditors and other external people."
   },
   "documents": {
     "placeholder": "Search for a document by title or code",
@@ -975,8 +976,15 @@
       "whyOne": "Roles and competence requirements should be checked regularly (common ISO requirement 5.3 and 7.2)."
     },
     "membersWithoutEmployee": {
-      "title": "{{ count }} users have no person record",
-      "why": "Training, competence and access reviews need a person record for everyone who works here."
+      "title": "{{ count }} users have no employee card",
+      "why": "Training, competence and access reviews need an employee card for everyone who does the work."
     }
+  },
+  "gap": {
+    "title": "{{ count }} users have no employee card",
+    "titleOne": "1 user has no employee card",
+    "namesMore": "{{ names }} and {{ count }} more",
+    "why": "They can own risks, tasks and training, but are missing from the register. Give them a card so their competence and training can be shown.",
+    "create": "Create employee card"
   }
 }

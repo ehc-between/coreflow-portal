@@ -872,20 +872,21 @@
     "notRemoved": "Ikke fjernet"
   },
   "import": {
-    "open": "Importer brukere som personer",
-    "title": "Importer brukere som personer",
-    "message": "Medlemmer av virksomheten som ikke har en personoppføring ennå. Opplæring, oppgaver og tilgangsgjennomganger når frem til personen gjennom denne koblingen.",
+    "title": "Opprett ansattkort",
+    "message": "Medlemmer av virksomheten som ikke har ansattkort ennå. Opplæring, oppgaver og tilgangsgjennomganger når frem til personen gjennom ansattkortet.",
     "suggestionsTitle": "Forslag til kobling mot eksisterende personer",
     "reason": {
       "email": "Samme e-postadresse",
       "name": "Samme navn"
     },
-    "membersTitle": "Medlemmer uten personoppføring",
-    "none": "Alle medlemmer har allerede en personoppføring.",
+    "membersTitle": "Medlemmer uten ansattkort",
+    "none": "Alle medlemmer har allerede ansattkort.",
     "selectAll": "Velg alle",
-    "statusLabel": "Status for de nye oppføringene",
-    "confirm": "Importer {{ count }} personer",
-    "confirmOne": "Importer 1 person"
+    "statusLabel": "Status for de nye ansattkortene",
+    "confirm": "Opprett {{ count }} ansattkort",
+    "confirmOne": "Opprett 1 ansattkort",
+    "typeLabel": "Ansettelsesform",
+    "typeHint": "Velg «Innleid» for konsulenter, revisorer og andre eksterne."
   },
   "documents": {
     "placeholder": "Søk etter et dokument på tittel eller kode",
@@ -975,8 +976,15 @@
       "whyOne": "Roller og kompetansekrav bør kontrolleres jevnlig (felles ISO-krav 5.3 og 7.2)."
     },
     "membersWithoutEmployee": {
-      "title": "{{ count }} brukere har ingen personoppføring",
-      "why": "Opplæring, kompetanse og tilgangsgjennomganger trenger en personoppføring for alle som jobber her."
+      "title": "{{ count }} brukere mangler ansattkort",
+      "why": "Opplæring, kompetanse og tilgangsgjennomganger trenger et ansattkort for alle som gjør jobben."
     }
+  },
+  "gap": {
+    "title": "{{ count }} brukere mangler ansattkort",
+    "titleOne": "1 bruker mangler ansattkort",
+    "namesMore": "{{ names }} og {{ count }} til",
+    "why": "De kan eie risikoer, oppgaver og opplæring, men står ikke i registeret. Gi dem et ansattkort, så kompetansen og opplæringen deres kan vises.",
+    "create": "Opprett ansattkort"
   }
 }

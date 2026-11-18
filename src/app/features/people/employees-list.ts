@@ -58,6 +58,7 @@ import {
   PeopleSummary,
 } from './data/people.models';
 import { ImportUsersDialog } from './ui/import-users-dialog';
+import { RegisterGap } from './ui/register-gap';
 import { PEOPLE_NAV, PEOPLE_SETTINGS_LINK } from './ui/people-nav';
 import { FulfilsRequirements } from '../../shared/requirement-locations/fulfils-requirements';
 
@@ -121,8 +122,8 @@ function isFlag(value: string | null | undefined): value is EmployeeFlag {
 /**
  * The people register (`/people/employees`, h1 "Personer"): six tiles that each open
  * a filter (gaps, expiring competences, missing agreements, background checks, people
- * without a user account), search, filters, saved views and paging; "Importer brukere
- * som personer" for members who have no record yet (`?import=users`).
+ * without a user account), search, filters, saved views and paging; U26: members with
+ * no employee card are shown as a gap with "Opprett ansattkort" (`?import=users`).
  */
 @Component({
   selector: 'app-people-employees-list',
@@ -148,6 +149,7 @@ function isFlag(value: string | null | undefined): value is EmployeeFlag {
     RecordRowHeader,
     StatusBadge,
     ImportUsersDialog,
+    RegisterGap,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -177,24 +179,17 @@ function isFlag(value: string | null | undefined): value is EmployeeFlag {
           {{ 'people.employees.new' | transloco }}
         </app-button>
       }
-      @if (canWrite()) {
-        <app-button
-          secondary
-          variant="secondary"
-          (click)="importOpen.set(true)"
-          data-testid="import-users"
-        >
-          {{ 'people.import.open' | transloco }}
-          @if (summary()?.members_without_employee; as n) {
-            <span class="rounded-full bg-accent-soft px-1.5 text-micro font-bold text-accent">{{
-              n
-            }}</span>
-          }
-        </app-button>
-      }
+      <!-- U26: "Opprett ansattkort" (and the suggested account links) live in the gap
+           strip below. Without a gap there is nothing to create or link, so no button. -->
 
       <app-module-nav nav [items]="nav" labelKey="people.sections.label" />
       <app-help-strip help scope="people" page="list" tour="list" lesson="competence-basics" />
+      <app-people-register-gap
+        help
+        [count]="summary()?.members_without_employee ?? 0"
+        [canWrite]="canWrite()"
+        (create)="importOpen.set(true)"
+      />
 
       <div kpis class="contents" appTourStep="people-summary" data-testid="people-summary">
         @for (tile of tiles(); track tile.key) {
@@ -420,13 +415,6 @@ function isFlag(value: string | null | undefined): value is EmployeeFlag {
             [showAction]="canWrite()"
             (action)="newEmployee()"
           />
-          @if (canWrite() && summary()?.members_without_employee) {
-            <div class="mt-3 text-center">
-              <app-button variant="secondary" (click)="importOpen.set(true)">
-                {{ 'people.import.open' | transloco }}
-              </app-button>
-            </div>
-          }
         </app-card>
         <app-why-it-matters scope="people" page="list" />
       </div>
