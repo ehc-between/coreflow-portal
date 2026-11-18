@@ -14,11 +14,11 @@ const MAX_TAGS = 50;
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div
-      class="flex min-h-10 flex-wrap items-center gap-1.5 rounded-[10px] border border-border bg-bg px-2 py-1.5 focus-within:border-accent focus-within:shadow-[0_0_0_3px_var(--accent-soft)]"
+      class="flex min-h-10 flex-wrap items-center gap-1.5 rounded-tile border border-border bg-bg px-2 py-1.5 focus-within:border-accent focus-within:shadow-[0_0_0_3px_var(--accent-soft)]"
     >
       @for (tag of value(); track $index) {
         <span
-          class="inline-flex items-center gap-1 rounded-full bg-surface-2 py-0.5 pr-1 pl-2.5 text-[12.5px] text-fg"
+          class="inline-flex items-center gap-1 rounded-full bg-surface-2 py-0.5 pr-1 pl-2.5 text-meta text-fg"
         >
           {{ tag }}
           <button
@@ -35,7 +35,7 @@ const MAX_TAGS = 50;
         [id]="inputId()"
         type="text"
         maxlength="255"
-        class="min-w-[140px] flex-1 border-0 bg-transparent px-1 text-[13.5px] text-fg outline-none"
+        class="min-w-[140px] flex-1 border-0 bg-transparent px-1 text-body text-fg outline-none"
         [placeholder]="'privacy.form.tagPlaceholder' | transloco"
         [value]="draft()"
         (input)="draft.set($any($event.target).value)"

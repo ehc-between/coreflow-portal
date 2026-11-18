@@ -43,6 +43,11 @@ export default [
         pathMatch: 'full',
         loadComponent: () => import('./privacy-overview').then((m) => m.PrivacyOverview),
       },
+      {
+        // Controller and DPO contacts (read by every privacy reader, changed by privacy:manage).
+        path: 'settings',
+        loadComponent: () => import('./privacy-settings').then((m) => m.PrivacySettingsPage),
+      },
       ...REGISTER_LIST.map(registerRoutes),
       { path: '**', redirectTo: '' },
     ],

@@ -14,21 +14,33 @@ import { Subscription } from 'rxjs';
 import { providePageContext } from '../../core/ai/page-context';
 import { LanguageService } from '../../core/i18n/language.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
-import { GuideIntro } from '../../shared/guidance/guide-intro';
-import { TeachMe } from '../../shared/guidance/teach-me';
-import { TourButton } from '../../shared/guidance/tour-button';
 import { TourStepDirective } from '../../shared/guidance/tour-step.directive';
 import { WhyItMatters } from '../../shared/guidance/why-it-matters';
-import { LocalDatePipe } from '../../shared/locale/locale-pipes';
-import { Badge } from '../../shared/ui/badge/badge';
+import { LocalDayPipe } from '../../shared/locale/locale-pipes';
 import { Card } from '../../shared/ui/card/card';
+import { ErrorState } from '../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../shared/ui/icon/icon';
 import { KpiTile, KpiTone } from '../../shared/ui/kpi-tile/kpi-tile';
+import { LoadingState } from '../../shared/ui/loading-state/loading-state';
+import { ModuleNav } from '../../shared/ui/module-nav/module-nav';
+import { PageHeader } from '../../shared/ui/page-header/page-header';
+import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
 import { PrivacyApi } from './data/privacy-api';
-import { DataBreach, DataSubjectRequest, PrivacyOverview as Overview } from './data/privacy.models';
+import {
+  DataBreach,
+  DataSubjectRequest,
+  PERM_MANAGE,
+  PERM_WRITE,
+  PrivacyGap,
+  PrivacyOverview as Overview,
+} from './data/privacy.models';
 import { clockFact } from './data/privacy-display';
-import { REGISTERS, REGISTER_LIST } from './data/privacy-registers';
-import { PrivacyLessonLink, PrivacyNav, privacyPermissions } from './privacy-nav';
+import { PRIVACY_SETTINGS_LINK, REGISTERS, REGISTER_LIST } from './data/privacy-registers';
+import { PrivacyExportMenu } from './privacy-export';
+import { PrivacyGaps } from './privacy-gaps';
+import { privacyNavItems, privacyPermissions } from './privacy-nav';
+import { PrivacySetupCard } from './privacy-setup';
 
 interface Tile {
   readonly key: string;
@@ -36,6 +48,12 @@ interface Tile {
   readonly tone: KpiTone;
   readonly link: readonly unknown[];
   readonly query?: Readonly<Record<string, string>>;
+}
+
+interface Stat {
+  readonly key: string;
+  readonly params: Readonly<Record<string, number>>;
+  readonly link: readonly unknown[];
 }
 
 /** Lessons offered on the overview (keys in `assets/guidance/<lang>/privacy.json`). */
@@ -47,153 +65,227 @@ export const OVERVIEW_LESSONS = [
 ] as const;
 
 /**
- * The privacy overview (`/privacy`): headline numbers (`GET /overview`), what
- * needs attention now (breaches on the 72-hour clock, requests nearing their
- * deadline), and a card per register.
+ * The privacy overview (`/privacy`): where to start (the setup checklist), what needs
+ * action now (only non-zero alerts), what is missing between the registers (gaps with
+ * prefilled fixes), breaches on the 72-hour clock or waiting to be closed, the nearest
+ * request deadlines, a slim strip of counts, and a card per register.
  */
 @Component({
   selector: 'app-privacy-overview',
   imports: [
     RouterLink,
     TranslocoPipe,
-    LocalDatePipe,
-    GuideIntro,
-    TeachMe,
-    TourButton,
+    LocalDayPipe,
     TourStepDirective,
     WhyItMatters,
-    Badge,
     Card,
+    ErrorState,
+    HelpStrip,
     Icon,
     KpiTile,
-    PrivacyNav,
-    PrivacyLessonLink,
+    LoadingState,
+    ModuleNav,
+    PageHeader,
+    StatusBadge,
+    PrivacyExportMenu,
+    PrivacyGaps,
+    PrivacySetupCard,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
-      <header class="mb-4 flex flex-wrap items-start justify-between gap-3">
-        <div class="min-w-0 flex-1">
-          <h1 class="font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]">
-            {{ 'privacy.overview.title' | transloco }}
-          </h1>
-          <p class="mt-1 text-[14px] text-fg-muted">
-            {{ 'privacy.overview.subtitle' | transloco }}
-          </p>
-        </div>
-        <div class="flex flex-wrap items-center gap-2">
-          <app-tour-button scope="privacy" tour="overview" />
-          <app-teach-me topic="privacy.overview" />
-        </div>
-      </header>
+      <app-page-header
+        titleKey="modules.names.privacy"
+        descriptionKey="privacy.overview.subtitle"
+        [settingsLink]="canManage() ? settingsLink : null"
+      >
+        @if (canWrite()) {
+          <a
+            primary
+            [routerLink]="['/privacy', 'breaches', 'new']"
+            [queryParams]="{ quick: 1 }"
+            class="inline-flex h-9 items-center gap-1.5 rounded-tile bg-accent px-3.5 text-ui font-semibold text-white hover:bg-accent-2 focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:outline-none"
+            data-testid="overview-report-breach"
+          >
+            <app-icon name="alert" [size]="15" />
+            {{ 'privacy.overview.reportBreach' | transloco }}
+          </a>
+        }
+        <app-privacy-export-menu secondary kind="ropa" />
+      </app-page-header>
 
-      <app-privacy-nav active="overview" />
-      <app-guide-intro scope="privacy" page="overview" />
+      <app-module-nav labelKey="modules.names.privacy" [items]="nav()" />
+      <app-help-strip scope="privacy" page="overview" tour="overview" lesson="gdpr-principles" />
 
       @switch (state()) {
         @case ('loading') {
-          <p class="py-10 text-center text-[14px] text-fg-muted" role="status">
-            {{ 'privacy.common.loading' | transloco }}
-          </p>
+          <app-loading-state [rows]="6" />
         }
         @case ('error') {
-          <p class="py-10 text-center text-[14px] text-fail" role="alert">
-            {{ 'privacy.common.loadFailed' | transloco }}
-          </p>
+          <app-error-state (retry)="reload()" />
         }
         @default {
-          <section
-            class="mt-5 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4"
-            appTourStep="privacy-kpis"
-            [attr.aria-label]="'privacy.overview.kpis' | transloco"
-            data-testid="privacy-kpis"
-          >
-            @for (t of tiles(); track t.key) {
-              <a
-                [routerLink]="t.link"
-                [queryParams]="t.query ?? null"
-                class="rounded-card outline-none focus-visible:ring-2 focus-visible:ring-accent"
-                [attr.data-testid]="'kpi-' + t.key"
-              >
-                <app-kpi-tile
-                  [label]="'privacy.overview.tiles.' + t.key | transloco"
-                  [value]="t.value"
-                  [tone]="t.tone"
+          @if (overview(); as o) {
+            <div class="flex flex-col gap-6">
+              @if (o.setup; as setup) {
+                <app-privacy-setup
+                  [setup]="setup"
+                  [canManage]="canManage()"
+                  (changed)="reload()"
+                  data-testid="privacy-setup"
                 />
-              </a>
-            }
-          </section>
+              }
+
+              <section
+                appTourStep="privacy-kpis"
+                [attr.aria-label]="'privacy.overview.attention' | transloco"
+                data-testid="privacy-kpis"
+              >
+                <h2 class="mb-3 font-display text-section font-bold text-fg">
+                  {{ 'privacy.overview.attention' | transloco }}
+                </h2>
+                @if (tiles().length) {
+                  <div class="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
+                    @for (t of tiles(); track t.key) {
+                      <a
+                        [routerLink]="t.link"
+                        [queryParams]="t.query ?? null"
+                        class="rounded-card outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                        [attr.data-testid]="'kpi-' + t.key"
+                      >
+                        <app-kpi-tile
+                          [label]="'privacy.overview.tiles.' + t.key | transloco"
+                          [value]="t.value"
+                          [tone]="t.tone"
+                        />
+                      </a>
+                    }
+                  </div>
+                } @else {
+                  <p
+                    class="flex items-center gap-2 rounded-tile border border-pass/30 bg-pass-soft/60 px-4 py-3 text-ui text-fg"
+                    data-testid="nothing-urgent"
+                  >
+                    <app-icon name="checkcircle" [size]="16" />
+                    {{ 'privacy.overview.nothingUrgent' | transloco }}
+                  </p>
+                }
+              </section>
+
+              <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                <app-privacy-gaps
+                  class="lg:col-span-2"
+                  [gaps]="gaps()"
+                  [canFix]="canWrite()"
+                  data-testid="overview-gaps"
+                />
+
+                <app-card appTourStep="privacy-breaches">
+                  <h2 class="mb-3 flex items-center gap-2 font-display text-card font-bold text-fg">
+                    <app-icon name="alert" [size]="16" />
+                    {{ 'privacy.overview.breachesNow' | transloco }}
+                  </h2>
+                  @if (breaches().length === 0) {
+                    <p class="text-ui text-fg-muted" data-testid="no-breaches">
+                      {{ 'privacy.overview.noBreaches' | transloco }}
+                    </p>
+                  } @else {
+                    <ul class="divide-y divide-border" data-testid="attention-breaches">
+                      @for (b of breaches(); track b.id) {
+                        <li class="flex flex-wrap items-center justify-between gap-2 py-2">
+                          <a
+                            [routerLink]="['/privacy', 'breaches', b.id]"
+                            class="min-w-0 truncate text-ui font-semibold text-fg hover:underline"
+                          >
+                            <span class="font-mono text-meta text-fg-subtle">{{ b.code }}</span>
+                            {{ b.title }}
+                          </a>
+                          @if (b.status === 'notified') {
+                            <app-status-badge
+                              meaning="lifecycle"
+                              value="pending"
+                              labelKey="privacy.breach.awaitingClosure"
+                            />
+                          } @else {
+                            @let c = clock(b);
+                            <app-status-badge
+                              [meaning]="c.meaning"
+                              [value]="c.value"
+                              [labelKey]="c.key"
+                              [labelParams]="c.params"
+                            />
+                          }
+                        </li>
+                      }
+                    </ul>
+                  }
+                </app-card>
+
+                @if (canRequests()) {
+                  <app-card>
+                    <h2
+                      class="mb-3 flex items-center gap-2 font-display text-card font-bold text-fg"
+                    >
+                      <app-icon name="inbox" [size]="16" />
+                      {{ 'privacy.overview.requestsNow' | transloco }}
+                    </h2>
+                    @if (requests().length === 0) {
+                      <p class="text-ui text-fg-muted">
+                        {{ 'privacy.overview.noRequests' | transloco }}
+                      </p>
+                    } @else {
+                      <ul class="divide-y divide-border" data-testid="attention-requests">
+                        @for (r of requests(); track r.id) {
+                          <li class="flex flex-wrap items-center justify-between gap-2 py-2">
+                            <a
+                              [routerLink]="['/privacy', 'data-subject-requests', r.id]"
+                              class="min-w-0 truncate text-ui font-semibold text-fg hover:underline"
+                            >
+                              <span class="font-mono text-meta text-fg-subtle">{{ r.code }}</span>
+                              {{ 'privacy.options.dsrType.' + r.request_type | transloco }}
+                            </a>
+                            <span
+                              class="text-ui"
+                              [class.text-fail]="r.is_overdue"
+                              [class.font-semibold]="r.is_overdue"
+                            >
+                              {{
+                                (r.is_overdue
+                                  ? 'privacy.overview.overdueSince'
+                                  : 'privacy.overview.dueOn'
+                                )
+                                  | transloco
+                                    : { date: (r.effective_due_at | localDay: 'mediumDate') }
+                              }}
+                            </span>
+                          </li>
+                        }
+                      </ul>
+                    }
+                  </app-card>
+                }
+              </div>
+
+              <section [attr.aria-label]="'privacy.overview.stats' | transloco">
+                <ul
+                  class="flex flex-wrap gap-x-5 gap-y-2 rounded-tile border border-border bg-surface px-4 py-3 text-ui text-fg-muted"
+                  data-testid="privacy-stats"
+                >
+                  @for (s of stats(); track s.key) {
+                    <li>
+                      <a [routerLink]="s.link" class="hover:text-fg hover:underline">
+                        {{ 'privacy.overview.stat.' + s.key | transloco: s.params }}
+                      </a>
+                    </li>
+                  }
+                </ul>
+              </section>
+            </div>
+          }
         }
       }
 
-      <div class="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <app-card appTourStep="privacy-breaches">
-          <h2 class="mb-3 flex items-center gap-2 font-display text-[15px] font-bold text-fg">
-            <app-icon name="alert" [size]="16" />
-            {{ 'privacy.overview.breachesNow' | transloco }}
-          </h2>
-          @if (breaches().length === 0) {
-            <p class="text-[13px] text-fg-muted">{{ 'privacy.overview.noBreaches' | transloco }}</p>
-          } @else {
-            <ul class="divide-y divide-border" data-testid="attention-breaches">
-              @for (b of breaches(); track b.id) {
-                <li class="flex flex-wrap items-center justify-between gap-2 py-2">
-                  <a
-                    [routerLink]="['/privacy', 'breaches', b.id]"
-                    class="min-w-0 truncate text-[13px] font-semibold text-fg hover:underline"
-                  >
-                    <span class="font-mono text-[12px] text-fg-subtle">{{ b.code }}</span>
-                    {{ b.title }}
-                  </a>
-                  <app-badge [tone]="clockTone(b)">{{
-                    clock(b).key | transloco: clock(b).params
-                  }}</app-badge>
-                </li>
-              }
-            </ul>
-          }
-        </app-card>
-
-        @if (canRequests()) {
-          <app-card>
-            <h2 class="mb-3 flex items-center gap-2 font-display text-[15px] font-bold text-fg">
-              <app-icon name="inbox" [size]="16" />
-              {{ 'privacy.overview.requestsNow' | transloco }}
-            </h2>
-            @if (requests().length === 0) {
-              <p class="text-[13px] text-fg-muted">
-                {{ 'privacy.overview.noRequests' | transloco }}
-              </p>
-            } @else {
-              <ul class="divide-y divide-border" data-testid="attention-requests">
-                @for (r of requests(); track r.id) {
-                  <li class="flex flex-wrap items-center justify-between gap-2 py-2">
-                    <a
-                      [routerLink]="['/privacy', 'data-subject-requests', r.id]"
-                      class="min-w-0 truncate text-[13px] font-semibold text-fg hover:underline"
-                    >
-                      <span class="font-mono text-[12px] text-fg-subtle">{{ r.code }}</span>
-                      {{ 'privacy.options.dsrType.' + r.request_type | transloco }}
-                    </a>
-                    <span
-                      class="text-[12.5px]"
-                      [class.text-fail]="r.is_overdue"
-                      [class.font-semibold]="r.is_overdue"
-                    >
-                      {{
-                        'privacy.overview.dueOn'
-                          | transloco: { date: (r.effective_due_at | localDate: 'mediumDate') }
-                      }}
-                    </span>
-                  </li>
-                }
-              </ul>
-            }
-          </app-card>
-        }
-      </div>
-
-      <h2 class="mt-8 mb-3 font-display text-[16px] font-bold text-fg">
+      <h2 class="mt-8 mb-3 font-display text-section font-bold text-fg">
         {{ 'privacy.overview.registers' | transloco }}
       </h2>
       <div
@@ -212,10 +304,10 @@ export const OVERVIEW_LESSONS = [
               <app-icon [name]="r.icon" [size]="17" />
             </span>
             <span class="min-w-0">
-              <span class="block text-[14px] font-semibold text-fg group-hover:underline">
+              <span class="block text-body font-semibold text-fg group-hover:underline">
                 {{ 'privacy.registers.' + r.key + '.plural' | transloco }}
               </span>
-              <span class="mt-0.5 block text-[12.5px] leading-snug text-fg-muted">
+              <span class="mt-0.5 block text-meta leading-snug text-fg-muted">
                 {{ 'privacy.registers.' + r.key + '.description' | transloco }}
               </span>
             </span>
@@ -223,13 +315,8 @@ export const OVERVIEW_LESSONS = [
         }
       </div>
 
-      <div class="mt-8 flex flex-col gap-3">
+      <div class="mt-8">
         <app-why-it-matters scope="privacy" page="overview" />
-        <div class="flex flex-wrap gap-2" data-testid="overview-lessons">
-          @for (l of lessons; track l) {
-            <app-privacy-lesson-link [lesson]="l" />
-          }
-        </div>
       </div>
     </div>
   `,
@@ -240,101 +327,156 @@ export class PrivacyOverview {
   private readonly language = inject(LanguageService);
   private readonly perms = privacyPermissions();
 
-  protected readonly lessons = OVERVIEW_LESSONS;
+  protected readonly nav = privacyNavItems(this.perms);
+  protected readonly settingsLink = PRIVACY_SETTINGS_LINK;
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
   protected readonly overview = signal<Overview | null>(null);
+  protected readonly gaps = signal<readonly PrivacyGap[]>([]);
   protected readonly breaches = signal<readonly DataBreach[]>([]);
   protected readonly requests = signal<readonly DataSubjectRequest[]>([]);
 
   protected readonly canRequests = computed(() => this.perms().has(REGISTERS.dsr.readPermission));
+  protected readonly canWrite = computed(() => this.perms().has(PERM_WRITE));
+  protected readonly canManage = computed(() => this.perms().has(PERM_MANAGE));
   protected readonly registers = computed(() =>
     REGISTER_LIST.filter((r) => this.perms().has(r.readPermission)),
   );
 
+  /** "Krever handling": only the alerts that are not zero, most urgent first. */
   protected readonly tiles = computed<readonly Tile[]>(() => {
     const o = this.overview();
     if (!o) {
       return [];
     }
-    const warn = (n: number): KpiTone => (n > 0 ? 'warn' : 'pass');
-    const fail = (n: number): KpiTone => (n > 0 ? 'fail' : 'pass');
-    const tiles: Tile[] = [
-      { key: 'ropaActive', value: o.ropa_active, tone: 'accent', link: ['/privacy', 'ropa'] },
-      {
-        key: 'breachesOpen',
-        value: o.breaches_open,
-        tone: warn(o.breaches_open),
-        link: ['/privacy', 'breaches'],
-      },
+    const all: Tile[] = [
       {
         key: 'breachesOverdue',
         value: o.breaches_overdue,
-        tone: fail(o.breaches_overdue),
+        tone: 'fail',
         link: ['/privacy', 'breaches'],
         query: { overdue: '1' },
       },
-      { key: 'dpiasOpen', value: o.dpias_open, tone: 'info', link: ['/privacy', 'dpias'] },
+      {
+        key: 'breachesActive',
+        value: o.breaches_active ?? o.breaches_clock_running,
+        tone: 'warn',
+        link: ['/privacy', 'breaches'],
+      },
+      {
+        key: 'dsrOverdue',
+        value: o.dsr_overdue ?? 0,
+        tone: 'fail',
+        link: ['/privacy', 'data-subject-requests'],
+        query: { overdue: '1' },
+      },
       {
         key: 'dpiasRequiredUndecided',
         value: o.dpias_required_undecided,
-        tone: warn(o.dpias_required_undecided),
+        tone: 'warn',
         link: ['/privacy', 'dpias'],
       },
       {
         key: 'processorsWithoutDpa',
         value: o.processors_without_dpa,
-        tone: warn(o.processors_without_dpa),
+        tone: 'warn',
         link: ['/privacy', 'processors'],
       },
       {
         key: 'transfersMissingTia',
         value: o.transfers_missing_tia,
-        tone: warn(o.transfers_missing_tia),
+        tone: 'warn',
         link: ['/privacy', 'transfers'],
       },
       {
         key: 'transfersUnsignedSafeguards',
         value: o.transfers_unsigned_safeguards ?? 0,
-        tone: fail(o.transfers_unsigned_safeguards ?? 0),
+        tone: 'warn',
         link: ['/privacy', 'transfers'],
+      },
+      {
+        key: 'retentionExecutionsDue',
+        value: o.retention_executions_due ?? 0,
+        tone: 'warn',
+        link: ['/privacy', 'retention-schedules'],
+      },
+      {
+        key: 'breachesAwaitingClosure',
+        value: o.breaches_awaiting_closure ?? 0,
+        tone: 'info',
+        link: ['/privacy', 'breaches'],
       },
       {
         key: 'reviewsOverdue',
         value: o.reviews_overdue,
-        tone: fail(o.reviews_overdue),
+        tone: 'warn',
         link: ['/privacy', 'ropa'],
         query: { overdue: '1' },
       },
     ];
-    if (o.dsr_open !== null) {
-      tiles.splice(3, 0, {
-        key: 'dsrOpen',
-        value: o.dsr_open,
-        tone: 'info',
-        link: ['/privacy', 'data-subject-requests'],
-      });
-    }
-    if (o.dsr_overdue !== null) {
-      tiles.splice(4, 0, {
-        key: 'dsrOverdue',
-        value: o.dsr_overdue,
-        tone: fail(o.dsr_overdue),
-        link: ['/privacy', 'data-subject-requests'],
-        query: { overdue: '1' },
-      });
-    }
-    return tiles;
+    return all.filter((t) => t.value > 0);
   });
 
-  private requestsSub = new Subscription();
+  /** The slim strip of counts (no colours: these are facts, not alerts). */
+  protected readonly stats = computed<readonly Stat[]>(() => {
+    const o = this.overview();
+    if (!o) {
+      return [];
+    }
+    const out: Stat[] = [
+      {
+        key: 'ropa',
+        params: { active: o.ropa_active, total: o.ropa_total },
+        link: ['/privacy', 'ropa'],
+      },
+      { key: 'dpias', params: { count: o.dpias_open }, link: ['/privacy', 'dpias'] },
+    ];
+    if (o.dsr_open !== null) {
+      out.push({
+        key: 'requests',
+        params: { count: o.dsr_open },
+        link: ['/privacy', 'data-subject-requests'],
+      });
+    }
+    out.push({
+      key: 'breaches',
+      params: { count: o.breaches_open },
+      link: ['/privacy', 'breaches'],
+    });
+    out.push({
+      key: 'gaps',
+      params: { count: o.gaps_total ?? this.gaps().length },
+      link: ['/privacy'],
+    });
+    return out;
+  });
+
+  private sub = new Subscription();
 
   constructor() {
-    inject(DestroyRef).onDestroy(() => this.requestsSub.unsubscribe());
-    providePageContext(() => ({
-      module: 'privacy',
-      view: 'dashboard',
-      title: this.language.translate('privacy.overview.title'),
-    }));
+    inject(DestroyRef).onDestroy(() => this.sub.unsubscribe());
+    providePageContext(() => {
+      const o = this.overview();
+      const title = this.language.translate('modules.names.privacy');
+      if (!o) {
+        return { module: 'privacy', view: 'dashboard', title };
+      }
+      // The assistant sees the same picture as the user: what needs action and what is missing.
+      const summary = this.language.translate('privacy.overview.contextSummary', {
+        gaps: o.gaps_total ?? this.gaps().length,
+        breaches: o.breaches_active ?? o.breaches_clock_running,
+        requests: o.dsr_open ?? 0,
+        dpias: o.dpias_required_undecided,
+      });
+      const kinds = Object.entries(o.gaps_by_kind ?? {})
+        .filter(([, n]) => n > 0)
+        .map(([kind, n]) => `${this.language.translate(`privacy.gaps.kindShort.${kind}`)}: ${n}`)
+        .join(', ');
+      return {
+        module: 'privacy',
+        view: 'dashboard',
+        title: kinds ? `${title}. ${summary} (${kinds})` : `${title}. ${summary}`,
+      };
+    });
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();
       const requests = this.canRequests();
@@ -346,19 +488,20 @@ export class PrivacyOverview {
     return clockFact(b);
   }
 
-  protected clockTone(b: DataBreach) {
-    const tone = clockFact(b).tone;
-    return tone === 'plain' ? 'neutral' : tone;
+  protected reload(): void {
+    this.load(this.selectedOrg.currentOrgId(), this.canRequests());
   }
 
   private load(orgId: string | null, requests: boolean): void {
-    this.requestsSub.unsubscribe();
-    this.requestsSub = new Subscription();
+    this.sub.unsubscribe();
+    this.sub = new Subscription();
     if (!orgId) {
       return;
     }
-    this.state.set('loading');
-    this.requestsSub.add(
+    if (!this.overview()) {
+      this.state.set('loading');
+    }
+    this.sub.add(
       this.api.overview(orgId).subscribe({
         next: (o) => {
           this.overview.set(o);
@@ -367,17 +510,23 @@ export class PrivacyOverview {
         error: () => this.state.set('error'),
       }),
     );
-    this.requestsSub.add(
+    this.sub.add(
+      this.api.gaps(orgId).subscribe({
+        next: (g) => this.gaps.set(g.items),
+        error: () => this.gaps.set([]),
+      }),
+    );
+    this.sub.add(
       this.api
         .list<DataBreach>(orgId, REGISTERS.breach, {
-          status: ['open', 'assessing'],
+          status: ['open', 'assessing', 'notified'],
           sort: 'due',
-          limit: 5,
+          limit: 6,
         })
         .subscribe({ next: (p) => this.breaches.set(p.items), error: () => this.breaches.set([]) }),
     );
     if (requests) {
-      this.requestsSub.add(
+      this.sub.add(
         this.api
           .list<DataSubjectRequest>(orgId, REGISTERS.dsr, {
             status: ['received', 'verifying', 'in_progress'],

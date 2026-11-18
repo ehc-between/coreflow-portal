@@ -226,7 +226,8 @@
       "offer": "Offer",
       "obligations": "Obligations",
       "documentation": "Technical documentation",
-      "kind": "Completed assessment"
+      "kind": "Completed assessment",
+      "register_entry": "the register"
     },
     "origin": {
       "manual": "Added by hand",
@@ -313,6 +314,7 @@
       "notEnabledBody": "Enable it on the standards overview to see what is missing.",
       "toOverview": "Go to the standards overview",
       "loadError": "Couldn't load the gaps. Try again."
-    }
+    },
+    "fromRegister": "From the register"
   }
 }
