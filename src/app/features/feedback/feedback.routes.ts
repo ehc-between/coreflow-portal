@@ -49,6 +49,11 @@ export default [
       { path: 'insights', pathMatch: 'full', redirectTo: insightsRedirect },
       // U10: the module's configuration lives under /settings/modules/feedback.
       moduleConfigRedirect('settings', 'feedback', ''),
+      // U23: every survey's answers in one table ("Svar fra undersøkelser").
+      {
+        path: 'answers',
+        loadComponent: () => import('./surveys/all-answers-page').then((m) => m.AllAnswersPage),
+      },
       {
         path: 'surveys',
         loadComponent: () => import('./surveys/surveys-list').then((m) => m.SurveysList),

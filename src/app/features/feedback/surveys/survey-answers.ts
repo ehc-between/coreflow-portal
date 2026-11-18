@@ -30,6 +30,7 @@ import { FeedbackApi } from '../data/feedback-api';
 import { feedbackErrorKey } from '../data/feedback-errors';
 import {
   FEEDBACK_ENTITY,
+  NpsGroup,
   Survey,
   SurveyResponse,
   SurveyResponseQuery,
@@ -42,16 +43,39 @@ const PAGE = 20;
 export const HAS_FEEDBACK_FILTERS = ['', 'yes', 'no'] as const;
 export type HasFeedbackFilter = (typeof HAS_FEEDBACK_FILTERS)[number];
 
+/**
+ * A count the answers were opened from (a results bar, the promoters, the stats
+ * period): the server filter plus the words shown above the table.
+ */
+export interface AnswerScope {
+  readonly question_id?: string;
+  readonly value?: string;
+  readonly nps_group?: NpsGroup;
+  readonly submitted_from?: string;
+  readonly submitted_to?: string;
+  readonly survey_id?: string;
+  /** What the scope is, in words ("Hvor fornøyd …: 4"). */
+  readonly label: string;
+}
+
 /** The request filters for the answers table. */
 export function answersQuery(
   q: string,
   low: boolean,
   hasFeedback: HasFeedbackFilter,
+  scope: AnswerScope | null = null,
 ): SurveyResponseQuery {
+  const answer = !!scope?.question_id && !!scope.value;
   return {
     q: q.trim() || undefined,
     low: low || undefined,
     has_feedback: hasFeedback === '' ? undefined : hasFeedback === 'yes',
+    question_id: answer ? scope?.question_id : undefined,
+    value: answer ? scope?.value : undefined,
+    nps_group: scope?.nps_group,
+    submitted_from: scope?.submitted_from,
+    submitted_to: scope?.submitted_to,
+    survey_id: scope?.survey_id,
   };
 }
 
@@ -59,7 +83,9 @@ const CONTROL =
   'h-9 max-w-full rounded-tile border border-border bg-bg px-2 text-ui text-fg focus:border-accent focus:outline-none';
 
 /**
- * A survey's answers as a register (the survey's "Svar" view): newest first, search,
+ * Survey answers as a register: one survey's (its "Svar" view) or, without a
+ * survey, every survey's ("Svar fra undersøkelser", each row naming its survey).
+ * Newest first, search,
  * "Bare lave score" and "Har tilbakemelding" filters, low scores flagged, the
  * follow-up record per answer, and per row "Lag tilbakemelding" (the answer
  * becomes a feedback record in the register) or "Lag avvik" (via that record,
@@ -127,7 +153,23 @@ const CONTROL =
           }
         </select>
       </form>
-      @if (threshold() !== null) {
+      @if (scope(); as sc) {
+        <p
+          class="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-meta text-fg-muted"
+          data-testid="answers-scope"
+        >
+          <span>{{ 'feedback.answers.scope' | transloco: { label: sc.label } }}</span>
+          <button
+            type="button"
+            class="font-semibold text-accent hover:underline"
+            (click)="scopeCleared.emit()"
+            data-testid="answers-scope-clear"
+          >
+            {{ 'feedback.answers.clearScope' | transloco }}
+          </button>
+        </p>
+      }
+      @if (survey() && threshold() !== null) {
         <p class="mb-2 text-meta text-fg-muted">
           {{ 'feedback.answers.thresholdNote' | transloco: { threshold: threshold() } }}
         </p>
@@ -172,6 +214,14 @@ const CONTROL =
                     <p class="text-fg-muted">
                       {{ respondent(r) || ('feedback.answers.anonymous' | transloco) }}
                     </p>
+                    @if (!survey() && r.survey_id) {
+                      <a
+                        [routerLink]="['/feedback/surveys', r.survey_id]"
+                        class="font-semibold break-words text-accent hover:underline"
+                        [attr.data-testid]="'answer-survey-' + r.id"
+                        >{{ r.survey_code }} {{ r.survey_title }}</a
+                      >
+                    }
                   </div>
                   <div class="min-w-0 text-ui">
                     @if (r.comment) {
@@ -179,21 +229,25 @@ const CONTROL =
                     } @else {
                       <p class="text-fg-muted">{{ 'feedback.answers.noComment' | transloco }}</p>
                     }
-                    <details class="mt-1">
-                      <summary class="cursor-pointer text-meta font-semibold text-accent">
-                        {{ 'feedback.answers.showAll' | transloco }}
-                      </summary>
-                      <dl
-                        class="mt-2 grid grid-cols-1 gap-x-4 gap-y-1.5 text-meta sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]"
-                      >
-                        @for (q of survey().questions; track q.id) {
-                          @if (answerText(r, q.id); as a) {
-                            <dt class="text-fg-muted">{{ q.label }}</dt>
-                            <dd class="mb-1 font-semibold break-words text-fg sm:mb-0">{{ a }}</dd>
+                    @if (survey(); as sv) {
+                      <details class="mt-1">
+                        <summary class="cursor-pointer text-meta font-semibold text-accent">
+                          {{ 'feedback.answers.showAll' | transloco }}
+                        </summary>
+                        <dl
+                          class="mt-2 grid grid-cols-1 gap-x-4 gap-y-1.5 text-meta sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]"
+                        >
+                          @for (q of sv.questions; track q.id) {
+                            @if (answerText(r, q.id); as a) {
+                              <dt class="text-fg-muted">{{ q.label }}</dt>
+                              <dd class="mb-1 font-semibold break-words text-fg sm:mb-0">
+                                {{ a }}
+                              </dd>
+                            }
                           }
-                        }
-                      </dl>
-                    </details>
+                        </dl>
+                      </details>
+                    }
                   </div>
                   <div class="flex flex-wrap items-center gap-1.5">
                     @if (r.score !== null) {
@@ -292,7 +346,11 @@ export class SurveyAnswers {
   private readonly language = inject(LanguageService);
   private readonly flows = inject(CreateFlowService);
 
-  readonly survey = input.required<Survey>();
+  /** One survey's answers; null lists every survey's ("Svar fra undersøkelser"). */
+  readonly survey = input<Survey | null>(null);
+  /** The count the answers were opened from (cleared with `scopeCleared`). */
+  readonly scope = input<AnswerScope | null>(null);
+  readonly scopeCleared = output<void>();
   readonly canWrite = input(false);
   readonly canManage = input(false);
   /** The user may register deviations (`deviations:write`). */
@@ -321,7 +379,9 @@ export class SurveyAnswers {
   protected readonly busy = signal<string | null>(null);
   protected readonly deleting = signal<SurveyResponse | null>(null);
 
-  protected readonly filtered = computed(() => !!this.q() || this.low() || !!this.hasFeedback());
+  protected readonly filtered = computed(
+    () => !!this.q() || this.low() || !!this.hasFeedback() || !!this.scope(),
+  );
 
   private request = new Subscription();
 
@@ -329,8 +389,8 @@ export class SurveyAnswers {
     inject(DestroyRef).onDestroy(() => this.request.unsubscribe());
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();
-      const id = this.survey().id;
-      const query = answersQuery(this.q(), this.low(), this.hasFeedback());
+      const id = this.survey()?.id ?? null;
+      const query = answersQuery(this.q(), this.low(), this.hasFeedback(), this.scope());
       const offset = this.offset();
       this.reloads();
       untracked(() => this.load(orgId, id, query, offset));
@@ -403,7 +463,7 @@ export class SurveyAnswers {
       return;
     }
     this.busy.set(response.id + ':delete');
-    this.api.deleteResponse(orgId, this.survey().id, response.id).subscribe({
+    this.api.deleteResponse(orgId, this.surveyOf(response), response.id).subscribe({
       next: () => {
         this.busy.set(null);
         this.deleting.set(null);
@@ -429,7 +489,7 @@ export class SurveyAnswers {
     }
     this.busy.set(`${r.id}:${purpose}`);
     this.api
-      .responseToFeedback(orgId, this.survey().id, r.id, {
+      .responseToFeedback(orgId, this.surveyOf(r), r.id, {
         kind: purpose === 'deviation' ? 'complaint' : undefined,
       })
       .subscribe({
@@ -450,6 +510,11 @@ export class SurveyAnswers {
       });
   }
 
+  /** The survey an answer belongs to (each row names it in the cross-survey list). */
+  private surveyOf(r: SurveyResponse): string {
+    return this.survey()?.id ?? r.survey_id ?? '';
+  }
+
   private patch(responseId: string, feedbackId: string, code: string | null): void {
     this.items.update((items) =>
       items.map((i) =>
@@ -458,13 +523,21 @@ export class SurveyAnswers {
     );
   }
 
-  private load(orgId: string | null, id: string, query: SurveyResponseQuery, offset: number): void {
+  private load(
+    orgId: string | null,
+    id: string | null,
+    query: SurveyResponseQuery,
+    offset: number,
+  ): void {
     this.request.unsubscribe();
     if (!orgId) {
       return;
     }
     this.state.set('loading');
-    this.request = this.api.responses(orgId, id, PAGE, offset, query).subscribe({
+    const page = id
+      ? this.api.responses(orgId, id, PAGE, offset, query)
+      : this.api.allResponses(orgId, PAGE, offset, query);
+    this.request = page.subscribe({
       next: (page) => {
         this.items.set(page.items);
         this.total.set(page.total);
@@ -480,5 +553,14 @@ export class SurveyAnswers {
 }
 
 function answersFiltered(query: SurveyResponseQuery): boolean {
-  return !!query.q || !!query.low || query.has_feedback !== undefined;
+  return (
+    !!query.q ||
+    !!query.low ||
+    query.has_feedback !== undefined ||
+    !!query.value ||
+    !!query.nps_group ||
+    !!query.submitted_from ||
+    !!query.submitted_to ||
+    !!query.survey_id
+  );
 }

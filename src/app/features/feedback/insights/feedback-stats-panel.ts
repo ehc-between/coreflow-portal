@@ -109,6 +109,34 @@ export function periodQuery(
   return stats ? { received_from: stats.from_date, received_to: stats.to_date } : {};
 }
 
+/**
+ * One month of the trend as a received-on window, clamped to the period so the
+ * list it opens counts exactly the month's bar (`month` is `YYYY-MM`).
+ */
+export function monthQuery(
+  month: string,
+  stats: Pick<FeedbackStats, 'from_date' | 'to_date'> | null,
+): Readonly<Record<string, string>> {
+  const [year, mon] = month.split('-').map(Number);
+  const first = `${month}-01`;
+  const last = addDays(0, new Date(year, mon, 0));
+  const from = stats && stats.from_date > first ? stats.from_date : first;
+  const to = stats && stats.to_date < last ? stats.to_date : last;
+  return { received_from: from, received_to: to };
+}
+
+/** The complaint-handling rows; each opens the complaints it counts in the period. */
+export const HANDLING_ROWS = ['assessed', 'justified', 'replied'] as const;
+export type HandlingRow = (typeof HANDLING_ROWS)[number];
+
+/** The register filter behind a complaint-handling row (the same rules as the stats). */
+export function handlingQuery(key: HandlingRow): Readonly<Record<string, string>> {
+  if (key === 'justified') {
+    return { kind: 'complaint', justified: 'yes' };
+  }
+  return { kind: 'complaint', [key]: 'true' };
+}
+
 interface PanelTile {
   readonly key: string;
   readonly value: string | number;
@@ -244,35 +272,33 @@ interface PanelTile {
               } @else {
                 <ul class="flex flex-col gap-2" data-testid="complaint-handling">
                   @for (h of handling(); track h.key) {
-                    <li
-                      class="grid grid-cols-[minmax(0,1fr)_88px] items-center gap-3 text-ui sm:grid-cols-[220px_minmax(0,1fr)_88px]"
-                    >
-                      <span class="text-fg">{{
-                        'feedback.insights.handling.' + h.key | transloco
-                      }}</span>
-                      <span
-                        class="hidden h-2.5 overflow-hidden rounded-full bg-surface-2 sm:block"
-                        aria-hidden="true"
+                    <li>
+                      <a
+                        routerLink="/feedback"
+                        [queryParams]="h.query"
+                        class="grid grid-cols-[minmax(0,1fr)_88px] items-center gap-3 rounded-tile px-1 py-1 text-ui hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none sm:grid-cols-[220px_minmax(0,1fr)_88px]"
+                        [attr.data-testid]="'handling-' + h.key"
                       >
+                        <span class="text-fg">{{
+                          'feedback.insights.handling.' + h.key | transloco
+                        }}</span>
                         <span
-                          class="block h-full rounded-full bg-accent"
-                          [style.width.%]="h.percent"
-                        ></span>
-                      </span>
-                      <span class="text-right text-fg-muted">{{
-                        'feedback.insights.handling.ofTotal'
-                          | transloco: { count: h.count, total: s.complaints, percent: h.percent }
-                      }}</span>
+                          class="hidden h-2.5 overflow-hidden rounded-full bg-surface-2 sm:block"
+                          aria-hidden="true"
+                        >
+                          <span
+                            class="block h-full rounded-full bg-accent"
+                            [style.width.%]="h.percent"
+                          ></span>
+                        </span>
+                        <span class="text-right font-semibold text-accent">{{
+                          'feedback.insights.handling.ofTotal'
+                            | transloco: { count: h.count, total: s.complaints, percent: h.percent }
+                        }}</span>
+                      </a>
                     </li>
                   }
                 </ul>
-                <a
-                  routerLink="/feedback"
-                  [queryParams]="justifiedQuery()"
-                  class="mt-3 inline-block text-meta font-semibold text-accent hover:underline"
-                >
-                  {{ 'feedback.insights.handling.openJustified' | transloco }}
-                </a>
               }
             </app-card>
 
@@ -350,24 +376,45 @@ interface PanelTile {
                 </p>
                 <div
                   class="flex h-40 items-end gap-1.5 overflow-x-auto border-b border-border pb-0.5 sm:gap-3"
-                  role="img"
+                  role="group"
                   [attr.aria-label]="'feedback.insights.chartLabel' | transloco"
                   data-testid="insights-chart"
                 >
                   @for (m of months(); track m.month) {
-                    <div class="flex h-full min-w-8 flex-1 flex-col items-center justify-end gap-1">
-                      <span class="text-micro text-fg-muted">{{ m.total || '' }}</span>
-                      <div
-                        class="flex w-full max-w-10 flex-col justify-end overflow-hidden rounded-t-md"
-                        [style.height.%]="barHeight(m.total)"
+                    @if (m.total) {
+                      <a
+                        routerLink="/feedback"
+                        [queryParams]="m.query"
+                        class="group flex h-full min-w-8 flex-1 flex-col items-center justify-end gap-1 rounded-t-md focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                        [attr.aria-label]="
+                          'feedback.insights.monthLabel'
+                            | transloco
+                              : {
+                                  month: (m.month + '-01' | localDay: 'MMMM y'),
+                                  count: m.total,
+                                  complaints: m.complaints,
+                                }
+                        "
+                        [attr.data-testid]="'month-' + m.month"
                       >
+                        <span class="text-micro font-semibold text-accent">{{ m.total }}</span>
                         <span
-                          class="block w-full bg-accent"
-                          [style.flex-grow]="m.total - m.complaints"
-                        ></span>
-                        <span class="block w-full bg-warn" [style.flex-grow]="m.complaints"></span>
-                      </div>
-                    </div>
+                          class="flex w-full max-w-10 flex-col justify-end overflow-hidden rounded-t-md group-hover:opacity-80"
+                          [style.height.%]="barHeight(m.total)"
+                        >
+                          <span
+                            class="block w-full bg-accent"
+                            [style.flex-grow]="m.total - m.complaints"
+                          ></span>
+                          <span
+                            class="block w-full bg-warn"
+                            [style.flex-grow]="m.complaints"
+                          ></span>
+                        </span>
+                      </a>
+                    } @else {
+                      <span class="min-w-8 flex-1" aria-hidden="true"></span>
+                    }
                   }
                 </div>
                 <div class="mt-1 flex gap-1.5 overflow-x-auto sm:gap-3" aria-hidden="true">
@@ -411,9 +458,21 @@ interface PanelTile {
                             <th scope="row" class="py-1.5 pr-3 font-normal text-fg">
                               {{ m.month + '-01' | localDay: 'MMMM y' }}
                             </th>
-                            <td class="py-1.5 pr-3">{{ m.total }}</td>
-                            <td class="py-1.5 pr-3">{{ m.complaints }}</td>
-                            <td class="py-1.5 pr-3">{{ m.compliments }}</td>
+                            @for (c of m.cells; track c.key) {
+                              <td class="py-1.5 pr-3">
+                                @if (c.count) {
+                                  <a
+                                    routerLink="/feedback"
+                                    [queryParams]="c.query"
+                                    class="font-semibold text-accent hover:underline"
+                                    [attr.data-testid]="'trend-' + m.month + '-' + c.key"
+                                    >{{ c.count }}</a
+                                  >
+                                } @else {
+                                  0
+                                }
+                              </td>
+                            }
                             <td class="py-1.5">
                               {{
                                 m.average_satisfaction === null
@@ -461,12 +520,6 @@ export class FeedbackStatsPanel {
   protected readonly themesInput = computed(() => ({ from: this.from() }));
   private readonly window = computed(() => periodQuery(this.stats()));
 
-  protected readonly justifiedQuery = computed(() => ({
-    ...this.window(),
-    kind: 'complaint',
-    justified: 'yes',
-  }));
-
   protected readonly tiles = computed<PanelTile[]>(() => {
     const s = this.stats();
     if (!s) {
@@ -498,8 +551,9 @@ export class FeedbackStatsPanel {
         tone: scoreLevel(s.survey_average_score),
         hintKey: 'feedback.insights.hints.surveyScore',
         hintParams: { count: s.survey_responses },
-        link: '/feedback/surveys',
-        query: null,
+        // The answers the score is built from, in the same period (the hint's count).
+        link: '/feedback/answers',
+        query: { submitted_from: s.from_date, submitted_to: s.to_date },
       },
       {
         key: 'nps',
@@ -516,12 +570,18 @@ export class FeedbackStatsPanel {
   protected readonly handling = computed(() => {
     const s = this.stats();
     const total = s?.complaints ?? 0;
-    const row = (key: string, count: number) => ({ key, count, percent: percentOf(count, total) });
-    return [
-      row('assessed', s?.complaints_assessed ?? 0),
-      row('justified', s?.complaints_justified ?? 0),
-      row('replied', s?.complaints_replied ?? 0),
-    ];
+    const counts: Record<HandlingRow, number> = {
+      assessed: s?.complaints_assessed ?? 0,
+      justified: s?.complaints_justified ?? 0,
+      replied: s?.complaints_replied ?? 0,
+    };
+    const win = this.window();
+    return HANDLING_ROWS.map((key) => ({
+      key,
+      count: counts[key],
+      percent: percentOf(counts[key], total),
+      query: { ...win, ...handlingQuery(key) },
+    }));
   });
 
   protected readonly breakdowns = computed(() => {
@@ -566,9 +626,22 @@ export class FeedbackStatsPanel {
     ];
   });
 
-  protected readonly months = computed<readonly MonthlyStat[]>(() =>
-    trimmedMonths(this.stats()?.monthly ?? []),
-  );
+  /** The trend months; each bar and table count opens that month's records. */
+  protected readonly months = computed(() => {
+    const s = this.stats();
+    return trimmedMonths(s?.monthly ?? []).map((m: MonthlyStat) => {
+      const query = monthQuery(m.month, s);
+      return {
+        ...m,
+        query,
+        cells: [
+          { key: 'total', count: m.total, query },
+          { key: 'complaints', count: m.complaints, query: { ...query, kind: 'complaint' } },
+          { key: 'compliments', count: m.compliments, query: { ...query, kind: 'compliment' } },
+        ],
+      };
+    });
+  });
   private readonly maxMonthly = computed(() => Math.max(1, ...this.months().map((m) => m.total)));
 
   private request = new Subscription();

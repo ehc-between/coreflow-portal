@@ -169,6 +169,10 @@ export interface ListFiltersFromUrl {
   readonly department: string;
   readonly from: string;
   readonly to: string;
+  /** `?assessed=true`: complaints whose justification is decided (the stats' "Vurdert"). */
+  readonly assessed: boolean;
+  /** `?replied=true`: a reply logged or the customer informed (the stats' "Svar logget"). */
+  readonly replied: boolean;
 }
 
 export function filtersFromParams(params: ParamMap): ListFiltersFromUrl {
@@ -195,6 +199,8 @@ export function filtersFromParams(params: ParamMap): ListFiltersFromUrl {
       : '',
     from: isoDayOrEmpty(params.get('received_from')),
     to: isoDayOrEmpty(params.get('received_to')),
+    assessed: flag(params.get('assessed')),
+    replied: flag(params.get('replied')),
   };
 }
 
@@ -572,7 +578,7 @@ interface BandTile {
         </div>
       }
 
-      @if (surveyId() || from() || to()) {
+      @if (hasScope()) {
         <p
           class="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-meta text-fg-muted"
           data-testid="scope-filters"
@@ -605,6 +611,18 @@ interface BandTile {
                 (click)="clearPeriod()"
               >
                 {{ 'feedback.list.clearPeriod' | transloco }}
+              </button>
+            </span>
+          }
+          @for (h of handlingScopes(); track h) {
+            <span [attr.data-testid]="h + '-filter'">
+              {{ 'feedback.list.handlingFilter.' + h | transloco }}
+              <button
+                type="button"
+                class="font-semibold text-accent hover:underline"
+                (click)="clearHandling(h)"
+              >
+                {{ 'feedback.list.clearHandling' | transloco }}
               </button>
             </span>
           }
@@ -828,6 +846,8 @@ export class FeedbackList {
   protected readonly department = signal(this.initial.department);
   protected readonly from = signal(this.initial.from);
   protected readonly to = signal(this.initial.to);
+  protected readonly assessed = signal(this.initial.assessed);
+  protected readonly replied = signal(this.initial.replied);
   protected readonly sort = signal<FeedbackSort>(DEFAULT_SORT);
   protected readonly offset = signal(0);
 
@@ -872,6 +892,8 @@ export class FeedbackList {
     survey_id: this.surveyId() || undefined,
     received_from: this.from() || undefined,
     received_to: this.to() || undefined,
+    assessed: this.assessed() || undefined,
+    replied: this.replied() || undefined,
     sort: this.sort(),
   }));
 
@@ -899,10 +921,17 @@ export class FeedbackList {
       !!this.surveyId() ||
       !!this.from() ||
       !!this.to() ||
+      this.assessed() ||
+      this.replied() ||
       this.status() !== 'all' ||
       !!this.source() ||
       this.moreActive() > 0,
   );
+  /** URL-only scopes (a survey, a period, the stats' handling rows) are set. */
+  protected readonly hasScope = computed(
+    () => !!this.surveyId() || !!this.from() || !!this.to() || this.assessed() || this.replied(),
+  );
+
   /** The teaching empty state: the register itself is empty (not just this filter). */
   protected readonly showEmpty = computed(
     () => this.state() === 'ready' && this.total() === 0 && !this.isFiltered(),
@@ -1006,6 +1035,18 @@ export class FeedbackList {
       },
     ];
     return tiles;
+  });
+
+  /** The stats' handling rows the list is scoped to ("Vurdert", "Svar logget"). */
+  protected readonly handlingScopes = computed(() => {
+    const scopes: ('assessed' | 'replied')[] = [];
+    if (this.assessed()) {
+      scopes.push('assessed');
+    }
+    if (this.replied()) {
+      scopes.push('replied');
+    }
+    return scopes;
   });
 
   protected readonly selectedIds = computed(() => [...this.selected()]);
@@ -1188,8 +1229,14 @@ export class FeedbackList {
     this.q.set('');
     this.applyFilters(filtersFromParams(convertToParamMap({})));
     this.sort.set(DEFAULT_SORT);
-    if (this.surveyId() || this.from() || this.to()) {
-      this.clearScope({ survey: null, received_from: null, received_to: null });
+    if (this.hasScope()) {
+      this.clearScope({
+        survey: null,
+        received_from: null,
+        received_to: null,
+        assessed: null,
+        replied: null,
+      });
     }
   }
 
@@ -1225,6 +1272,10 @@ export class FeedbackList {
 
   protected clearPeriod(): void {
     this.clearScope({ received_from: null, received_to: null });
+  }
+
+  protected clearHandling(key: 'assessed' | 'replied'): void {
+    this.clearScope({ [key]: null });
   }
 
   protected isSelected(id: string): boolean {
@@ -1295,9 +1346,11 @@ export class FeedbackList {
     this.department.set(f.department);
     this.from.set(f.from);
     this.to.set(f.to);
+    this.assessed.set(f.assessed);
+    this.replied.set(f.replied);
   }
 
-  /** Drop URL-only scopes (survey, period) without resetting the other filters. */
+  /** Drop URL-only scopes (survey, period, handling) without resetting the other filters. */
   private clearScope(params: Record<string, null>): void {
     if ('survey' in params) {
       this.surveyId.set('');
@@ -1305,6 +1358,12 @@ export class FeedbackList {
     if ('received_from' in params) {
       this.from.set('');
       this.to.set('');
+    }
+    if ('assessed' in params) {
+      this.assessed.set(false);
+    }
+    if ('replied' in params) {
+      this.replied.set(false);
     }
     this.offset.set(0);
     const tree = this.router.createUrlTree([], {

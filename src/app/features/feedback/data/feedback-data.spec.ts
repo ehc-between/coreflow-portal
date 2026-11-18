@@ -376,8 +376,8 @@ describe('feedback helpers', () => {
       comments: [],
     });
     expect(rows).toEqual([
-      { label: 'feedback.answer.yes', labelIsKey: true, count: 3, percent: 75 },
-      { label: 'feedback.answer.no', labelIsKey: true, count: 1, percent: 25 },
+      { key: 'yes', label: 'feedback.answer.yes', labelIsKey: true, count: 3, percent: 75 },
+      { key: 'no', label: 'feedback.answer.no', labelIsKey: true, count: 1, percent: 25 },
     ]);
   });
 });

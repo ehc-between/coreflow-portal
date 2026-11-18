@@ -58,8 +58,27 @@ import {
 } from '../data/feedback.models';
 import { FEEDBACK_SETTINGS_LINK } from '../feedback-nav';
 import { FeedbackThemes } from '../themes-panel';
-import { SurveyAnswers } from './survey-answers';
-import { SurveyResultsView } from './survey-results';
+import { AnswerScope, SurveyAnswers } from './survey-answers';
+import { ResultsDrill, SurveyResultsView } from './survey-results';
+
+/** The answers filter (and its words) behind a results count. */
+export function answerScopeFor(
+  drill: ResultsDrill,
+  t: (key: string, params?: Record<string, unknown>) => string,
+): AnswerScope | null {
+  if (drill.kind === 'answer') {
+    const value = drill.row.labelIsKey ? t(drill.row.label) : drill.row.label;
+    return {
+      question_id: drill.question.id,
+      value: drill.row.key,
+      label: t('feedback.answers.scopeAnswer', { question: drill.question.label, value }),
+    };
+  }
+  if (drill.kind === 'nps') {
+    return { nps_group: drill.group, label: t(`feedback.answers.scopeNps.${drill.group}`) };
+  }
+  return null;
+}
 
 const TABS: readonly RecordTab[] = [
   'details',
@@ -301,6 +320,8 @@ export function primarySurveyAction(s: Pick<Survey, 'allowed_actions'>): SurveyA
                     [canWrite]="canWrite()"
                     [canManage]="canManage()"
                     [canDeviate]="canDeviate()"
+                    [scope]="answerScope()"
+                    (scopeCleared)="answerScope.set(null)"
                     (counted)="onCounted($event)"
                     (changed)="reloadExtras()"
                   />
@@ -444,7 +465,7 @@ export function primarySurveyAction(s: Pick<Survey, 'allowed_actions'>): SurveyA
                     {{ 'feedback.results.title' | transloco }}
                   </h2>
                   @if (results(); as r) {
-                    <app-survey-results [results]="r" />
+                    <app-survey-results [results]="r" (drill)="openAnswers($event)" />
                   } @else if (resultsFailed()) {
                     <app-error-state (retry)="reloadExtras()" />
                   } @else {
@@ -506,7 +527,16 @@ export function primarySurveyAction(s: Pick<Survey, 'allowed_actions'>): SurveyA
                     <dt class="text-meta text-fg-subtle">
                       {{ 'feedback.results.responses' | transloco }}
                     </dt>
-                    <dd class="text-fg">{{ s.response_count }}</dd>
+                    <dd>
+                      <button
+                        type="button"
+                        class="font-semibold text-accent hover:underline"
+                        (click)="openAnswers({ kind: 'all' })"
+                        data-testid="summary-responses"
+                      >
+                        {{ s.response_count }}
+                      </button>
+                    </dd>
                   </div>
                   @if (s.published_at) {
                     <div>
@@ -617,6 +647,8 @@ export class SurveyDetail {
   protected readonly view = linkedSignal<SurveyView>(() =>
     (this.survey()?.response_count ?? 0) > 0 ? 'answers' : 'overview',
   );
+  /** The results count the Svar view was opened on (null: every answer). */
+  protected readonly answerScope = signal<AnswerScope | null>(null);
   protected readonly acting = signal(false);
   protected readonly deleting = signal(false);
   protected readonly regenerating = signal(false);
@@ -681,6 +713,17 @@ export class SurveyDetail {
       const id = this.id();
       untracked(() => this.load(orgId, id));
     });
+  }
+
+  /** A count in the results (or the summary): the Svar view, filtered on that count. */
+  protected openAnswers(drill: ResultsDrill): void {
+    this.answerScope.set(
+      answerScopeFor(drill, (key, params) => this.language.translate(key, params)),
+    );
+    this.view.set('answers');
+    if (typeof window !== 'undefined') {
+      window.scrollTo?.({ top: 0 });
+    }
   }
 
   protected onCounted(total: number): void {

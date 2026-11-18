@@ -14,7 +14,8 @@
   "tabs": {
     "label": "Customer feedback sections",
     "register": "Feedback and answers",
-    "surveys": "Surveys"
+    "surveys": "Surveys",
+    "answers": "Survey answers"
   },
   "list": {
     "subtitle": "Every complaint, compliment, suggestion and question from customers, including survey follow-ups. Newest first.",
@@ -29,7 +30,12 @@
     "categoryValue": "Category: {{ category }}",
     "periodFilter": "Received {{ from }}–{{ to }}.",
     "clearPeriod": "Any date",
-    "lowScore": "Low score ({{ score }})"
+    "lowScore": "Low score ({{ score }})",
+    "handlingFilter": {
+      "assessed": "Only assessed complaints.",
+      "replied": "Only complaints with a reply logged."
+    },
+    "clearHandling": "Show all"
   },
   "filters": {
     "status": "Status",
@@ -420,7 +426,6 @@
     "averageScore": "Average score (0–100)",
     "nps": "Net promoter score",
     "promoters": "Promoters",
-    "splitDelta": "{{ promoters }} promoters · {{ passives }} passives · {{ detractors }} detractors",
     "lastResponse": "Last answer {{ date }}",
     "none": "No answers yet.",
     "answered": "{{ count }} answered",
@@ -428,7 +433,16 @@
     "npsValue": "NPS {{ value }}",
     "noComments": "No comments yet.",
     "scoreHint": "0–100, where 100 is best",
-    "scales": "The score turns every rating answer into 0–100. NPS goes from −100 to 100: the share who would recommend you minus the share who would not."
+    "scales": "The score turns every rating answer into 0–100. NPS goes from −100 to 100: the share who would recommend you minus the share who would not.",
+    "openAnswers": "Show the answers",
+    "npsHint": "−100 to 100 · above 0 is good",
+    "ofNpsAnswers": "{{ count }} answered 9–10",
+    "npsGroups": {
+      "promoter": "{{ count }} promoters",
+      "passive": "{{ count }} passives",
+      "detractor": "{{ count }} detractors"
+    },
+    "rowLabel": "{{ label }}: {{ count }}. Show the answers"
   },
   "responses": {
     "title": "Responses",
@@ -511,15 +525,15 @@
       "assessed": "Assessed",
       "justified": "Justified",
       "replied": "Reply logged",
-      "ofTotal": "{{ count }} of {{ total }} ({{ percent }} %)",
-      "openJustified": "Show the justified complaints"
+      "ofTotal": "{{ count }} of {{ total }} ({{ percent }} %)"
     },
     "byCategory": "By category",
     "rowLabel": "{{ label }}: {{ count }}. Show them",
     "legendOther": "Other feedback",
     "chartLabel": "Feedback per month, complaints shown separately",
     "showTable": "Show as a table",
-    "bySource": "By source"
+    "bySource": "By source",
+    "monthLabel": "{{ month }}: {{ count }} received, {{ complaints }} complaints. Show them"
   },
   "ask": {
     "summarise": "Summarise this customer feedback: what happened, how it has been handled and what is still open.",
@@ -859,6 +873,20 @@
       "answer": "Comment",
       "score": "Score",
       "followUp": "Follow-up"
-    }
+    },
+    "scope": "Showing: {{ label }}.",
+    "clearScope": "Show all answers",
+    "scopeAnswer": "{{ question }}: {{ value }}",
+    "scopeNps": {
+      "promoter": "promoters (9–10)",
+      "passive": "passives (7–8)",
+      "detractor": "detractors (0–6)"
+    },
+    "scopeSurvey": "one survey",
+    "scopePeriod": "answered {{ from }}–{{ to }}"
+  },
+  "allAnswers": {
+    "title": "Survey answers",
+    "subtitle": "Every answer to your surveys in one place, newest first. Low scores are flagged, and any answer can become feedback or a deviation."
   }
 }

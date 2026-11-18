@@ -14,7 +14,8 @@
   "tabs": {
     "label": "Deler av kundetilbakemeldinger",
     "register": "Tilbakemeldinger og svar",
-    "surveys": "Undersøkelser"
+    "surveys": "Undersøkelser",
+    "answers": "Svar fra undersøkelser"
   },
   "list": {
     "subtitle": "Alle klager, ros, forslag og spørsmål fra kunder, også oppfølging av svar på undersøkelser. Nyeste først.",
@@ -29,7 +30,12 @@
     "categoryValue": "Kategori: {{ category }}",
     "periodFilter": "Mottatt {{ from }}–{{ to }}.",
     "clearPeriod": "Alle datoer",
-    "lowScore": "Lav score ({{ score }})"
+    "lowScore": "Lav score ({{ score }})",
+    "handlingFilter": {
+      "assessed": "Bare vurderte klager.",
+      "replied": "Bare klager der svar er logget."
+    },
+    "clearHandling": "Vis alle"
   },
   "filters": {
     "status": "Status",
@@ -420,7 +426,6 @@
     "averageScore": "Gjennomsnittlig score (0–100)",
     "nps": "Netto anbefalingsscore (NPS)",
     "promoters": "Ambassadører",
-    "splitDelta": "{{ promoters }} ambassadører · {{ passives }} passive · {{ detractors }} kritikere",
     "lastResponse": "Siste svar {{ date }}",
     "none": "Ingen svar ennå.",
     "answered": "{{ count }} har svart",
@@ -428,7 +433,16 @@
     "npsValue": "NPS {{ value }}",
     "noComments": "Ingen kommentarer ennå.",
     "scoreHint": "0–100, der 100 er best",
-    "scales": "Scoren gjør om alle vurderingssvar til 0–100. NPS går fra −100 til 100: andelen som vil anbefale dere, minus andelen som ikke vil."
+    "scales": "Scoren gjør om alle vurderingssvar til 0–100. NPS går fra −100 til 100: andelen som vil anbefale dere, minus andelen som ikke vil.",
+    "openAnswers": "Vis svarene",
+    "npsHint": "−100 til 100 · over 0 er bra",
+    "ofNpsAnswers": "{{ count }} svarte 9–10",
+    "npsGroups": {
+      "promoter": "{{ count }} ambassadører",
+      "passive": "{{ count }} passive",
+      "detractor": "{{ count }} kritikere"
+    },
+    "rowLabel": "{{ label }}: {{ count }}. Vis svarene"
   },
   "responses": {
     "title": "Svar",
@@ -511,15 +525,15 @@
       "assessed": "Vurdert",
       "justified": "Berettiget",
       "replied": "Svar logget",
-      "ofTotal": "{{ count }} av {{ total }} ({{ percent }} %)",
-      "openJustified": "Vis de berettigede klagene"
+      "ofTotal": "{{ count }} av {{ total }} ({{ percent }} %)"
     },
     "byCategory": "Etter kategori",
     "rowLabel": "{{ label }}: {{ count }}. Vis dem",
     "legendOther": "Andre tilbakemeldinger",
     "chartLabel": "Tilbakemeldinger per måned, med klager vist for seg",
     "showTable": "Vis som tabell",
-    "bySource": "Etter kilde"
+    "bySource": "Etter kilde",
+    "monthLabel": "{{ month }}: {{ count }} mottatt, {{ complaints }} klager. Vis dem"
   },
   "ask": {
     "summarise": "Oppsummer denne kundetilbakemeldingen: hva som skjedde, hvordan den er håndtert og hva som fortsatt er åpent.",
@@ -859,6 +873,20 @@
       "answer": "Kommentar",
       "score": "Score",
       "followUp": "Oppfølging"
-    }
+    },
+    "scope": "Viser: {{ label }}.",
+    "clearScope": "Vis alle svar",
+    "scopeAnswer": "{{ question }}: {{ value }}",
+    "scopeNps": {
+      "promoter": "ambassadører (9–10)",
+      "passive": "passive (7–8)",
+      "detractor": "kritikere (0–6)"
+    },
+    "scopeSurvey": "én undersøkelse",
+    "scopePeriod": "besvart {{ from }}–{{ to }}"
+  },
+  "allAnswers": {
+    "title": "Svar fra undersøkelser",
+    "subtitle": "Alle svar på undersøkelsene deres samlet, nyeste først. Lave score er merket, og alle svar kan bli en tilbakemelding eller et avvik."
   }
 }

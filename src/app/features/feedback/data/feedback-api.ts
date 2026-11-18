@@ -68,6 +68,8 @@ export function feedbackFilterParams(query: FeedbackListQuery): QueryParams {
     sentiment: csv(query.sentiment),
     source: csv(query.source),
     unanswered_days: query.unanswered_days,
+    assessed: query.assessed,
+    replied: query.replied,
   };
 }
 
@@ -77,6 +79,12 @@ export function responseListParams(query: SurveyResponseQuery): QueryParams {
     q: query.q?.trim() || undefined,
     low: query.low || undefined,
     has_feedback: query.has_feedback,
+    question_id: query.question_id && query.value ? query.question_id : undefined,
+    value: query.question_id && query.value ? query.value : undefined,
+    nps_group: query.nps_group,
+    submitted_from: query.submitted_from || undefined,
+    submitted_to: query.submitted_to || undefined,
+    survey_id: query.survey_id || undefined,
     limit: query.limit,
     offset: query.offset,
   };
@@ -332,6 +340,19 @@ export class FeedbackApi {
     query: SurveyResponseQuery = {},
   ): Observable<SurveyResponseList> {
     return this.api.get<SurveyResponseList>(`${this.base(orgId)}/surveys/${id}/responses`, {
+      ...IN_PLACE,
+      params: responseListParams({ ...query, limit, offset }),
+    });
+  }
+
+  /** Answers from every survey, newest first, each naming its survey ("Svar fra undersøkelser"). */
+  allResponses(
+    orgId: string,
+    limit = 25,
+    offset = 0,
+    query: SurveyResponseQuery = {},
+  ): Observable<SurveyResponseList> {
+    return this.api.get<SurveyResponseList>(`${this.base(orgId)}/survey-responses`, {
       ...IN_PLACE,
       params: responseListParams({ ...query, limit, offset }),
     });

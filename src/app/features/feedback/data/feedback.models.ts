@@ -273,6 +273,10 @@ export interface FeedbackListQuery {
   readonly source?: readonly FeedbackSource[];
   /** Open, customer not informed, received at least this many days ago. */
   readonly unanswered_days?: number;
+  /** Complaint assessed: `complaint_justified` is set (the stats' "Vurdert"). */
+  readonly assessed?: boolean;
+  /** A reply is logged or the customer marked informed (the stats' "Svar logget"). */
+  readonly replied?: boolean;
   readonly sort?: FeedbackSort;
   readonly limit?: number;
   readonly offset?: number;
@@ -514,6 +518,10 @@ export interface SurveyResponse {
   readonly low_score?: boolean;
   /** The free-text answers joined, or null. */
   readonly comment?: string | null;
+  /** The survey the answer belongs to (named in the cross-survey answers list). */
+  readonly survey_id?: string | null;
+  readonly survey_code?: string | null;
+  readonly survey_title?: string | null;
 }
 
 export interface SurveyResponseList {
@@ -527,9 +535,22 @@ export interface SurveyResponseQuery {
   /** Only answers at or under the threshold. */
   readonly low?: boolean;
   readonly has_feedback?: boolean;
+  /** With `value`: answers that gave this results distribution key to the question. */
+  readonly question_id?: string;
+  readonly value?: string;
+  /** The response-level NPS group (the results' promoters / passives / detractors). */
+  readonly nps_group?: NpsGroup;
+  /** Inclusive days (the stats period). */
+  readonly submitted_from?: string;
+  readonly submitted_to?: string;
+  /** Cross-survey list only: one survey. */
+  readonly survey_id?: string;
   readonly limit?: number;
   readonly offset?: number;
 }
+
+export const NPS_GROUPS = ['promoter', 'passive', 'detractor'] as const;
+export type NpsGroup = (typeof NPS_GROUPS)[number];
 
 /** `POST surveys/{id}/responses/{rid}/feedback`: turn one answer into a feedback record. */
 export interface ResponseToFeedback {
