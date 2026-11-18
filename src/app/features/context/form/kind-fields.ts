@@ -1,35 +1,48 @@
-import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  input,
+  output,
+  signal,
+} from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { AskAbout } from '../../../shared/ask/ask-about';
 import { AiAssistButton } from '../../../shared/ask/ai-assist-button';
-import { Badge } from '../../../shared/ui/badge/badge';
+import { EntityChip } from '../../../shared/kit/entity-chip';
 import { Button } from '../../../shared/ui/button/button';
+import { Icon } from '../../../shared/ui/icon/icon';
+import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
+import { ContextFrameworks } from '../data/context-frameworks';
 import {
   ADDRESSED_STATUSES,
   ANALYSIS_METHODS,
   ContextKind,
-  FRAMEWORK_KEYS,
+  EntityRef,
   LEVELS,
   PARTY_CATEGORIES,
   PARTY_TYPES,
   POLICY_KINDS,
   SuggestedParty,
 } from '../data/context.models';
-import { partyPriority, priorityTone } from '../context-kinds';
+import { partyPriority, priorityBadge } from '../context-kinds';
 import { FormRow } from '../ui/form-row';
 import { FrameworkPicker } from '../ui/framework-picker';
+import { PickedRecord, RecordSearch } from '../ui/record-search';
 import { applyAnalysisDraft, applySuggestedParty, suggestedParties } from './ai-apply';
 import { AnalysisItemsEditor, itemsOutside } from './analysis-items-editor';
 import { ContextDraft } from './context-draft';
-import { DocumentPicker } from './document-picker';
 import { ExclusionsEditor } from './exclusions-editor';
 import { RaciEditor } from './raci-editor';
 
 /**
  * The kind-specific part of the M01 form (everything except title, owner,
  * review settings and the change reason), with the module's AI buttons:
- * draft a SWOT / PESTLE, suggest interested parties, draft a policy or a scope
+ * draft a SWOT / PESTEL, suggest interested parties, draft a policy or a scope
  * statement. AI output only fills the form; nothing is saved until "Save".
+ * Fields that name records use pickers: processes, the policy document, the
+ * excluded requirements of a scope.
  */
 @Component({
   selector: 'app-context-kind-fields',
@@ -37,17 +50,19 @@ import { RaciEditor } from './raci-editor';
     TranslocoPipe,
     AskAbout,
     AiAssistButton,
-    Badge,
+    EntityChip,
     Button,
+    Icon,
+    StatusBadge,
     FormRow,
     FrameworkPicker,
+    RecordSearch,
     AnalysisItemsEditor,
-    DocumentPicker,
     ExclusionsEditor,
     RaciEditor,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'flex flex-col gap-4' },
+  host: { class: 'flex flex-col gap-5' },
   template: `
     @switch (kind()) {
       @case ('analysis') {
@@ -57,6 +72,7 @@ import { RaciEditor } from './raci-editor';
             inputId="f-method"
             [page]="page()"
             help="method"
+            [required]="true"
           >
             <select
               id="f-method"
@@ -80,7 +96,7 @@ import { RaciEditor } from './raci-editor';
               <option value="" [selected]="!draft().framework">
                 {{ 'context.fields.allFrameworks' | transloco }}
               </option>
-              @for (fw of frameworks; track fw) {
+              @for (fw of frameworkOrder(); track fw) {
                 <option [value]="fw" [selected]="fw === draft().framework">
                   {{ 'context.frameworks.' + fw | transloco }}
                 </option>
@@ -113,7 +129,7 @@ import { RaciEditor } from './raci-editor';
             }"
             (result)="draftChange.emit(applyAnalysis($event))"
           />
-          <span class="text-[12px] text-fg-subtle">{{ 'context.ai.draftHint' | transloco }}</span>
+          <span class="text-meta text-fg-muted">{{ 'context.ai.draftHint' | transloco }}</span>
         </div>
         <app-context-analysis-items-editor
           [method]="draft().method"
@@ -133,14 +149,14 @@ import { RaciEditor } from './raci-editor';
             }"
             (result)="suggestions.set(parseSuggestions($event))"
           />
-          <span class="text-[12px] text-fg-subtle">{{ 'context.ai.suggestHint' | transloco }}</span>
+          <span class="text-meta text-fg-muted">{{ 'context.ai.suggestHint' | transloco }}</span>
         </div>
         @if (suggestions().length) {
           <section
             class="rounded-card border border-accent-border bg-accent-soft/40 p-3"
             [attr.aria-label]="'context.ai.suggestionsTitle' | transloco"
           >
-            <h3 class="mb-2 text-[13px] font-semibold text-fg">
+            <h3 class="mb-2 text-ui font-semibold text-fg">
               {{ 'context.ai.suggestionsTitle' | transloco }}
             </h3>
             <ul class="flex flex-col gap-1.5">
@@ -148,10 +164,10 @@ import { RaciEditor } from './raci-editor';
                 <li
                   class="flex flex-wrap items-center justify-between gap-2 rounded-tile bg-surface px-2.5 py-1.5"
                 >
-                  <span class="min-w-0 text-[13px] text-fg">
+                  <span class="min-w-0 text-ui text-fg">
                     <span class="font-semibold">{{ s.name }}</span>
                     @if (s.needs) {
-                      <span class="block truncate text-[12px] text-fg-muted">{{ s.needs }}</span>
+                      <span class="block truncate text-meta text-fg-muted">{{ s.needs }}</span>
                     }
                   </span>
                   <app-button size="sm" variant="secondary" (click)="useSuggestion(s)">
@@ -241,6 +257,7 @@ import { RaciEditor } from './raci-editor';
           inputId="f-req"
           [page]="page()"
           help="requirements"
+          hintKey="context.form.hints.requirements"
         >
           <textarea
             id="f-req"
@@ -250,15 +267,27 @@ import { RaciEditor } from './raci-editor';
             (input)="patch({ requirements: $any($event.target).value })"
           ></textarea>
         </app-context-form-row>
-        <label class="flex items-center gap-2 text-[13px] text-fg">
-          <input
-            type="checkbox"
-            class="h-4 w-4"
-            [checked]="draft().is_compliance_obligation"
-            (change)="patch({ is_compliance_obligation: $any($event.target).checked })"
-          />
-          {{ 'context.fields.isComplianceObligation' | transloco }}
-        </label>
+        <div class="flex flex-col gap-1">
+          <label class="flex min-h-6 items-center gap-2 text-ui text-fg">
+            <input
+              type="checkbox"
+              class="h-4 w-4"
+              aria-describedby="f-oblig-hint"
+              [checked]="draft().is_compliance_obligation"
+              (change)="patch({ is_compliance_obligation: $any($event.target).checked })"
+            />
+            {{ 'context.fields.isComplianceObligation' | transloco }}
+            <app-ask-about
+              [prompt]="'context.ai.prompts.obligation' | transloco"
+              field="is_compliance_obligation"
+              [fieldLabel]="'context.fields.isComplianceObligation' | transloco"
+              [requirements]="['iso14001:6.1.3', 'iso45001:6.1.3']"
+            />
+          </label>
+          <p id="f-oblig-hint" class="pl-6 text-meta text-fg-muted">
+            {{ 'context.form.hints.obligation' | transloco }}
+          </p>
+        </div>
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <app-context-form-row
             labelKey="context.fields.influence"
@@ -289,33 +318,30 @@ import { RaciEditor } from './raci-editor';
             </select>
           </app-context-form-row>
           <div>
-            <p class="mb-1.5 text-[13px] font-semibold text-fg-muted">
+            <p class="mb-1.5 text-ui font-semibold text-fg-muted">
               {{ 'context.fields.priority' | transloco }}
             </p>
-            <app-badge [tone]="priorityTone(priority())">{{
-              'context.priorities.' + priority() | transloco
-            }}</app-badge>
-            <p class="mt-1 text-[12px] text-fg-subtle">
+            @let pr = priorityView();
+            <app-status-badge [meaning]="pr.meaning" [value]="pr.value" [labelKey]="pr.labelKey" />
+            <p class="mt-1 text-meta text-fg-muted">
               {{ 'context.priorityHints.' + priority() | transloco }}
             </p>
           </div>
         </div>
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <app-context-form-row
-            labelKey="context.fields.addressedStatus"
-            inputId="f-addr"
-            [page]="page()"
-            help="addressed_status"
-          >
-            <select id="f-addr" (change)="patch({ addressed_status: $any($event.target).value })">
-              @for (a of addressed; track a) {
-                <option [value]="a" [selected]="a === draft().addressed_status">
-                  {{ 'context.addressed.' + a | transloco }}
-                </option>
-              }
-            </select>
-          </app-context-form-row>
-        </div>
+        <app-context-form-row
+          labelKey="context.fields.addressedStatus"
+          inputId="f-addr"
+          [page]="page()"
+          help="addressed_status"
+        >
+          <select id="f-addr" (change)="patch({ addressed_status: $any($event.target).value })">
+            @for (a of addressed; track a) {
+              <option [value]="a" [selected]="a === draft().addressed_status">
+                {{ 'context.addressed.' + a | transloco }}
+              </option>
+            }
+          </select>
+        </app-context-form-row>
         <app-context-form-row
           labelKey="context.fields.howAddressed"
           inputId="f-how"
@@ -330,6 +356,21 @@ import { RaciEditor } from './raci-editor';
             (input)="patch({ how_addressed: $any($event.target).value })"
           ></textarea>
         </app-context-form-row>
+        <app-context-form-row
+          labelKey="context.fields.monitoring"
+          inputId="f-monitor"
+          [page]="page()"
+          help="monitoring"
+          hintKey="context.form.hints.monitoring"
+        >
+          <textarea
+            id="f-monitor"
+            rows="2"
+            maxlength="20000"
+            [value]="draft().monitoring"
+            (input)="patch({ monitoring: $any($event.target).value })"
+          ></textarea>
+        </app-context-form-row>
         <app-context-framework-picker
           [value]="draft().frameworks"
           (valueChange)="patch({ frameworks: $event })"
@@ -342,16 +383,18 @@ import { RaciEditor } from './raci-editor';
           inputId="f-sfw"
           [page]="page()"
           help="framework"
+          [required]="true"
         >
           <select
             id="f-sfw"
             [disabled]="editing()"
+            aria-required="true"
             (change)="patch({ framework: $any($event.target).value })"
           >
             <option value="" [selected]="!draft().framework" disabled>
               {{ 'context.fields.chooseFramework' | transloco }}
             </option>
-            @for (fw of frameworks; track fw) {
+            @for (fw of frameworkOrder(); track fw) {
               <option [value]="fw" [selected]="fw === draft().framework">
                 {{ 'context.frameworks.' + fw | transloco }}
               </option>
@@ -380,10 +423,7 @@ import { RaciEditor } from './raci-editor';
             [input]="{ framework: draft().framework, notes: notesForScope() }"
             (text)="patch({ statement: $event })"
           />
-          <app-ask-about
-            [prompt]="'context.ai.prompts.scopeExclusions' | transloco"
-            field="exclusions"
-          />
+          <span class="text-meta text-fg-muted">{{ 'context.ai.draftHint' | transloco }}</span>
         </div>
         <app-context-form-row
           labelKey="context.fields.boundaries"
@@ -414,6 +454,39 @@ import { RaciEditor } from './raci-editor';
           ></textarea>
         </app-context-form-row>
         <app-context-form-row
+          labelKey="context.fields.processes"
+          inputId="f-processes"
+          [page]="page()"
+          help="processes"
+          hintKey="context.form.hints.processes"
+        >
+          @if (draft().processes.length) {
+            <ul class="mb-2 flex flex-col gap-1.5">
+              @for (p of draft().processes; track p.id) {
+                <li class="flex items-center gap-2">
+                  <app-entity-chip [ref]="processRef(p)" [showType]="false" class="min-w-0" />
+                  <button
+                    type="button"
+                    class="flex h-7 w-7 flex-none items-center justify-center rounded-md text-fg-subtle hover:text-fail focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                    [attr.aria-label]="'context.form.removeProcess' | transloco: { name: p.title }"
+                    (click)="removeProcess(p.id)"
+                  >
+                    <app-icon name="x" [size]="13" />
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+          <app-context-record-search
+            inputId="f-processes"
+            [types]="['process']"
+            placeholderKey="context.form.processPlaceholder"
+            noMatchesKey="context.form.noProcessMatches"
+            [excluded]="processIds()"
+            (picked)="addProcess($event)"
+          />
+        </app-context-form-row>
+        <app-context-form-row
           labelKey="context.fields.sites"
           inputId="f-sites"
           [page]="page()"
@@ -427,10 +500,20 @@ import { RaciEditor } from './raci-editor';
             (input)="patch({ sites: $any($event.target).value })"
           ></textarea>
         </app-context-form-row>
-        <app-context-exclusions-editor
-          [exclusions]="draft().exclusions"
-          (exclusionsChange)="patch({ exclusions: $event })"
-        />
+        <div class="flex items-start gap-1">
+          <div class="min-w-0 flex-1">
+            <app-context-exclusions-editor
+              [exclusions]="draft().exclusions"
+              [framework]="draft().framework"
+              (exclusionsChange)="patch({ exclusions: $event })"
+            />
+          </div>
+          <app-ask-about
+            [prompt]="'context.ai.prompts.scopeExclusions' | transloco"
+            field="exclusions"
+            [fieldLabel]="'context.fields.exclusions' | transloco"
+          />
+        </div>
       }
 
       @case ('policy') {
@@ -439,6 +522,7 @@ import { RaciEditor } from './raci-editor';
           inputId="f-pkind"
           [page]="page()"
           help="kind"
+          [required]="true"
         >
           <select id="f-pkind" (change)="patch({ kind: $any($event.target).value })">
             @for (k of policyKinds; track k) {
@@ -453,6 +537,7 @@ import { RaciEditor } from './raci-editor';
           inputId="f-pstmt"
           [page]="page()"
           help="statement"
+          hintKey="context.form.hints.policyStatement"
         >
           <textarea
             id="f-pstmt"
@@ -469,41 +554,127 @@ import { RaciEditor } from './raci-editor';
             [input]="{ kind: draft().kind, notes: draft().title || null }"
             (text)="patch({ statement: $event })"
           />
-          <span class="text-[12px] text-fg-subtle">{{ 'context.ai.draftHint' | transloco }}</span>
+          <app-ask-about
+            [prompt]="'context.ai.prompts.policyContent' | transloco"
+            field="statement"
+            [fieldLabel]="'context.fields.statement' | transloco"
+            [requirements]="['hs:5.2']"
+          />
+          <span class="text-meta text-fg-muted">{{ 'context.ai.draftHint' | transloco }}</span>
         </div>
         <app-context-framework-picker
           [value]="draft().frameworks"
           (valueChange)="patch({ frameworks: $event })"
         />
-        @if (!editing()) {
-          <div>
-            <app-context-document-picker
-              [value]="draft().document"
-              (valueChange)="patch({ document: $event })"
+        <app-context-form-row
+          labelKey="context.policy.document"
+          inputId="f-pdoc"
+          [page]="page()"
+          help="document"
+          hintKey="context.policy.documentHint"
+        >
+          @if (existingDocuments().length) {
+            <ul class="mb-2 flex flex-col gap-1.5">
+              @for (doc of existingDocuments(); track doc.entity_id) {
+                <li><app-entity-chip [ref]="doc" [statusText]="true" /></li>
+              }
+            </ul>
+          }
+          @if (draft().document; as doc) {
+            <div
+              class="flex items-center justify-between gap-2 rounded-tile border border-border bg-surface px-3 py-2"
+            >
+              <span class="min-w-0 truncate text-ui text-fg">
+                <app-icon name="documents" [size]="14" class="mr-1 align-middle text-fg-subtle" />
+                @if (doc.code) {
+                  <span class="font-mono text-meta text-fg-muted">{{ doc.code }}</span>
+                }
+                {{ doc.title }}
+              </span>
+              <button
+                type="button"
+                class="flex h-7 w-7 items-center justify-center rounded-md text-fg-subtle hover:text-fail focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                [attr.aria-label]="'context.policy.clearDocument' | transloco"
+                (click)="patch({ document: null })"
+              >
+                <app-icon name="x" [size]="14" />
+              </button>
+            </div>
+          } @else {
+            <app-context-record-search
+              inputId="f-pdoc"
+              [types]="['document']"
+              placeholderKey="context.policy.documentPlaceholder"
+              noMatchesKey="context.policy.noDocumentMatches"
+              [excluded]="existingDocumentIds()"
+              (picked)="patch({ document: $event })"
             />
-            <p class="mt-1 text-[12px] text-fg-subtle">
-              {{ 'context.policy.documentHint' | transloco }}
-            </p>
-          </div>
-        }
+          }
+        </app-context-form-row>
+        <div class="flex flex-col gap-1">
+          <label class="flex min-h-6 items-center gap-2 text-ui text-fg">
+            <input
+              type="checkbox"
+              class="h-4 w-4"
+              aria-describedby="f-avail-hint"
+              [checked]="draft().available_to_interested_parties"
+              (change)="patch({ available_to_interested_parties: $any($event.target).checked })"
+            />
+            {{ 'context.fields.availableToParties' | transloco }}
+          </label>
+          <p id="f-avail-hint" class="pl-6 text-meta text-fg-muted">
+            {{ 'context.form.hints.available' | transloco }}
+          </p>
+        </div>
       }
 
       @case ('responsibility') {
         <app-context-form-row
-          labelKey="context.fields.area"
-          inputId="f-area"
+          labelKey="context.fields.process"
+          inputId="f-rproc"
           [page]="page()"
           help="area"
+          hintKey="context.form.hints.process"
         >
-          <input
-            id="f-area"
-            type="text"
-            maxlength="255"
-            [value]="draft().area"
-            [placeholder]="'context.raci.areaPlaceholder' | transloco"
-            (input)="patch({ area: $any($event.target).value })"
-          />
+          @if (draft().process; as p) {
+            <div class="flex items-center gap-2">
+              <app-entity-chip [ref]="processRef(p)" [showType]="false" class="min-w-0" />
+              <button
+                type="button"
+                class="flex h-7 w-7 flex-none items-center justify-center rounded-md text-fg-subtle hover:text-fail focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                [attr.aria-label]="'context.form.removeProcess' | transloco: { name: p.title }"
+                (click)="patch({ process: null })"
+              >
+                <app-icon name="x" [size]="13" />
+              </button>
+            </div>
+          } @else {
+            <app-context-record-search
+              inputId="f-rproc"
+              [types]="['process']"
+              placeholderKey="context.form.processPlaceholder"
+              noMatchesKey="context.form.noProcessMatches"
+              (picked)="patch({ process: $event, area: '' })"
+            />
+          }
         </app-context-form-row>
+        @if (!draft().process) {
+          <app-context-form-row
+            labelKey="context.fields.area"
+            inputId="f-area"
+            [page]="page()"
+            hintKey="context.form.hints.area"
+          >
+            <input
+              id="f-area"
+              type="text"
+              maxlength="255"
+              [value]="draft().area"
+              [placeholder]="'context.raci.areaPlaceholder' | transloco"
+              (input)="patch({ area: $any($event.target).value })"
+            />
+          </app-context-form-row>
+        }
         <app-context-form-row
           labelKey="context.fields.description"
           inputId="f-rdesc"
@@ -518,10 +689,21 @@ import { RaciEditor } from './raci-editor';
             (input)="patch({ description: $any($event.target).value })"
           ></textarea>
         </app-context-form-row>
-        <app-context-raci-editor
-          [assignments]="draft().assignments"
-          (assignmentsChange)="patch({ assignments: $event })"
-        />
+        <div class="flex items-start gap-1">
+          <div class="min-w-0 flex-1">
+            <app-context-raci-editor
+              [assignments]="draft().assignments"
+              [showWarnings]="submitted()"
+              (assignmentsChange)="patch({ assignments: $event })"
+            />
+          </div>
+          <app-ask-about
+            [prompt]="'context.ai.prompts.raci' | transloco"
+            field="assignments"
+            [fieldLabel]="'context.fields.assignments' | transloco"
+            [requirements]="['hs:5.3']"
+          />
+        </div>
         <app-context-form-row
           labelKey="context.fields.authorities"
           inputId="f-auth"
@@ -545,34 +727,71 @@ import { RaciEditor } from './raci-editor';
   `,
 })
 export class KindFields {
+  private readonly frameworks = inject(ContextFrameworks);
+
   readonly kind = input.required<ContextKind>();
   readonly draft = input.required<ContextDraft>();
   /** Editing an existing record (create-only fields are locked). */
   readonly editing = input(false);
   /** Guidance page key for field help. */
   readonly page = input('');
+  /** The user tried to save (show warnings that wait for input otherwise). */
+  readonly submitted = input(false);
+  /** Documents the policy already carries (edit). */
+  readonly existingDocuments = input<readonly EntityRef[]>([]);
   readonly draftChange = output<ContextDraft>();
 
   protected readonly methods = ANALYSIS_METHODS;
-  protected readonly frameworks = FRAMEWORK_KEYS;
   protected readonly levels = LEVELS;
   protected readonly partyCategories = PARTY_CATEGORIES;
   protected readonly partyTypes = PARTY_TYPES;
   protected readonly addressed = ADDRESSED_STATUSES;
   protected readonly policyKinds = POLICY_KINDS;
-  protected readonly priorityTone = priorityTone;
+  protected readonly frameworkOrder = this.frameworks.ordered;
 
   protected readonly suggestions = signal<readonly SuggestedParty[]>([]);
   protected readonly priority = computed(() =>
     partyPriority(this.draft().influence, this.draft().interest),
+  );
+  protected readonly priorityView = computed(() => priorityBadge(this.priority()));
+  protected readonly processIds = computed(() => this.draft().processes.map((p) => p.id));
+  protected readonly existingDocumentIds = computed(() =>
+    this.existingDocuments().map((doc) => doc.entity_id),
   );
   protected readonly notesForScope = computed(() => {
     const d = this.draft();
     return [d.title, d.products_services, d.sites].filter((s) => s.trim()).join('\n') || null;
   });
 
+  constructor() {
+    this.frameworks.ensureLoaded();
+  }
+
   protected patch(change: Partial<ContextDraft>): void {
     this.draftChange.emit({ ...this.draft(), ...change });
+  }
+
+  protected processRef(p: PickedRecord) {
+    return {
+      entity_type: 'process',
+      entity_id: p.id,
+      title: p.title,
+      code: p.code,
+      label_key: null,
+      url: null,
+      status: null,
+      module: 'processes',
+    };
+  }
+
+  protected addProcess(p: PickedRecord): void {
+    if (!this.draft().processes.some((x) => x.id === p.id)) {
+      this.patch({ processes: [...this.draft().processes, p] });
+    }
+  }
+
+  protected removeProcess(id: string): void {
+    this.patch({ processes: this.draft().processes.filter((p) => p.id !== id) });
   }
 
   protected setMethod(method: ContextDraft['method']): void {

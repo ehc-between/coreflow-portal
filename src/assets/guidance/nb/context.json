@@ -3,16 +3,16 @@
     "overview": {
       "intro": {
         "title": "Kontekst er fundamentet i alle ISO-standarder",
-        "body": "Før dere kan styre kvalitet, informasjonssikkerhet, miljø eller KI, må dere vite **hvem dere er, hva som påvirker dere og hva dere styrer**. Alle ISO-standarder for styringssystemer starter på samme sted: punkt 4 og 5 i den harmoniserte strukturen.",
+        "body": "Før organisasjonen kan styre kvalitet, informasjonssikkerhet, miljø eller KI, må den vite **hvem den er, hva som påvirker den og hva den styrer**. Alle ISO-standarder for styringssystemer starter på samme sted: punkt 4 og 5 i den felles strukturen.",
         "steps": [
           "Analyser interne og eksterne forhold med en SWOT- eller PESTEL-analyse.",
-          "Registrer interessentene som betyr noe, og hva de trenger fra dere.",
+          "Registrer interessentene som betyr noe, og hva de trenger fra organisasjonen.",
           "Skriv en omfangserklæring for hvert styringssystem: hva som er med, hva som er utenfor og hvorfor.",
           "Fastsett policyene ledelsen står bak, og gjør det tydelig hvem som har ansvar for hva."
         ]
       },
       "why": {
-        "body": "Revisorer starter her. Er konteksten, interessentene og omfanget uklare, blir alle risikoer, mål og tiltak som bygger på dem vanskelige å begrunne. Punkt 5 krever deretter at toppledelsen viser lederskap: godkjenner policyene og fordeler ansvar og myndighet.",
+        "body": "Revisorer starter her. Er konteksten, interessentene og omfanget uklare, blir alle risikoer, mål og tiltak som bygger på dem vanskelige å begrunne. Punkt 5 krever at toppledelsen viser lederskap: godkjenner policyene og fordeler ansvar og myndighet.",
         "clauses": ["hs:4.1", "hs:4.2", "hs:4.3", "hs:5.1", "hs:5.2", "hs:5.3"]
       }
     },
@@ -27,19 +27,19 @@
         ]
       },
       "why": {
-        "body": "Punkt 4.1 krever at dere bestemmer eksterne og interne forhold som er relevante for formålet, og at dere overvåker og gjennomgår dem. Forholdene gir grunnlag for risikoer og muligheter (6.1) og for ledelsens gjennomgang (9.3).",
+        "body": "Punkt 4.1 krever at organisasjonen bestemmer interne og eksterne forhold som er relevante for formålet, og at den følger med på dem. Forholdene gir grunnlag for risikoer og muligheter (6.1) og for ledelsens gjennomgang (9.3).",
         "clauses": ["hs:4.1", "hs:6.1", "hs:9.3"]
       },
       "empty": {
         "title": "Ingen kontekstanalyse ennå",
-        "body": "Start med en SWOT-analyse. Assistenten kan lage et utkast fra virksomhetsprofilen, og dere bestemmer hva som skal med.",
-        "cta": "Start en analyse"
+        "body": "Start med en SWOT-analyse. Assistenten kan lage et utkast fra virksomhetsprofilen, og du bestemmer hva som skal med.",
+        "cta": "Ny kontekstanalyse"
       }
     },
     "analyses-detail": {
       "intro": {
-        "title": "Slik leser du en kontekstanalyse",
-        "body": "Interne faktorer (styrker og svakheter) er forhold dere styrer selv; eksterne faktorer (muligheter og trusler, eller PESTEL-områdene) er forhold dere må forholde dere til. Faktorer med høy betydning bør finnes igjen i risikoregisteret."
+        "title": "Om denne kontekstanalysen",
+        "body": "Interne faktorer (styrker og svakheter) er forhold organisasjonen styrer selv. Eksterne faktorer (muligheter og trusler, eller PESTEL-områdene) er forhold den må forholde seg til. Bruk **Følg opp** på en faktor for å lage risikoen, muligheten eller målet den fører til."
       },
       "why": {
         "body": "En godkjent analyse som gjennomgås jevnlig, er dokumentasjonen på at forholdene er bestemt, overvåket og gjennomgått slik punkt 4.1 krever.",
@@ -58,24 +58,29 @@
       "fields": {
         "title": {
           "help": "Et navn folk kjenner igjen i lister og rapporter.",
-          "example": "SWOT for virksomheten 2026"
+          "example": "SWOT for virksomheten 2026",
+          "requirements": ["hs:4.1"]
         },
         "method": {
-          "help": "SWOT ser på styrker, svakheter, muligheter og trusler. PESTEL ser på seks eksterne områder. Metoden kan ikke endres senere."
+          "help": "SWOT ser på styrker, svakheter, muligheter og trusler. PESTEL ser på seks eksterne områder. Metoden kan ikke endres senere.",
+          "requirements": ["hs:4.1"]
         },
         "framework": {
           "help": "La feltet stå tomt når analysen gjelder alle styringssystemer; velg ett når den er spesifikk, for eksempel kontekst for informasjonssikkerhet."
         },
         "summary": {
-          "help": "De to eller tre viktigste konklusjonene. Det er dette ledelsen leser først."
+          "help": "De to eller tre viktigste konklusjonene. Det er dette ledelsen leser først.",
+          "requirements": ["hs:4.1", "hs:9.3"]
         },
-        "owner": { "help": "Personen som holder analysen oppdatert." },
+        "owner": {
+          "help": "Personen som holder analysen oppdatert."
+        },
         "review_interval_months": {
           "help": "Hvor ofte analysen skal gjennomgås. Tolv måneder er vanlig.",
           "example": "12"
         },
         "next_review_at": {
-          "help": "La feltet stå tomt for å beregne datoen fra intervallet når analysen godkjennes."
+          "help": "Settes automatisk når du velger hvor ofte. Du kan også velge en dato selv."
         },
         "change_reason": {
           "help": "Forklar hva som er endret og hvorfor. Det lagres i revisjonshistorikken."
@@ -84,74 +89,106 @@
     },
     "parties-list": {
       "intro": {
-        "title": "Hvem har interesse i det dere gjør?",
-        "body": "**Interessenter** er personer og organisasjoner som kan påvirke, bli påvirket av eller oppfatter seg som påvirket av beslutningene deres: kunder, ansatte, eiere, myndigheter, leverandører, naboer. Registrer hva de trenger og forventer, og om dere håndterer det.",
+        "title": "Hvem har krav til organisasjonen?",
+        "body": "**Interessenter** er personer og organisasjoner som kan påvirke, bli påvirket av eller mene seg påvirket av beslutningene deres: kunder, ansatte, eiere, myndigheter, leverandører og naboer. Registrer hva de trenger og forventer, og om organisasjonen håndterer det.",
         "steps": [
           "List opp interessentene som er relevante for styringssystemene; hopp over dem som ikke er det.",
-          "Skriv behov og forventninger, og marker hvilke som blir etterlevelsesforpliktelser.",
+          "Skriv behov og forventninger, og marker hvilke som er lovkrav eller forpliktelser.",
           "Vurder innflytelse og interesse for å avgjøre hvor tett hver interessent skal følges opp."
         ]
       },
       "why": {
-        "body": "Punkt 4.2 spør hvilke interessenter som er relevante, hvilke krav de har, og hvilke av kravene dere skal håndtere gjennom styringssystemet.",
+        "body": "Punkt 4.2 spør hvilke interessenter som er relevante, hvilke krav de har, og hvilke av kravene organisasjonen skal håndtere gjennom styringssystemet.",
         "clauses": ["hs:4.2", "iso14001:6.1.3"]
       },
       "empty": {
         "title": "Ingen interessenter ennå",
-        "body": "Start med de åpenbare: kunder, ansatte, eiere og myndighetene som fører tilsyn med dere. Assistenten kan foreslå flere fra virksomhetsprofilen.",
-        "cta": "Legg til en interessent"
+        "body": "Start med de åpenbare: kunder, ansatte, eiere og myndighetene som fører tilsyn med organisasjonen. Assistenten kan foreslå flere fra virksomhetsprofilen.",
+        "cta": "Ny interessent"
       }
     },
     "parties-detail": {
       "intro": {
-        "title": "Én interessent",
-        "body": "Prioriteten følger av innflytelse og interesse. Sørg for at behovene til alle interessenter med høy prioritet er håndtert, og koble dokumentene, risikoene eller målene som håndterer dem under **Relaterte elementer**."
+        "title": "Om denne interessenten",
+        "body": "Prioriteten følger av innflytelse og interesse. Sørg for at behovene til interessenter med høy prioritet er håndtert, og koble interessenten til leverandørene, kontraktene eller forpliktelsene den gjelder."
       },
       "why": {
-        "body": "Det er når dere viser hvordan hvert relevant krav håndteres, at en liste med navn blir dokumentasjon for punkt 4.2.",
+        "body": "Det er når du viser hvordan hvert relevant krav håndteres og følges med på, at en liste med navn blir dokumentasjon for punkt 4.2.",
         "clauses": ["hs:4.2"]
       }
     },
     "parties-form": {
       "intro": {
         "title": "Beskriv interessenten",
-        "body": "Vær konkret: «kunder i offentlig sektor» er mer nyttig enn «kunder». Skriv behov og forventninger med deres ord, og beskriv hvordan dere oppfyller dem."
+        "body": "Vær konkret: «kunder i offentlig sektor» er mer nyttig enn «kunder». Skriv behov og forventninger med interessentens egne ord, og beskriv hvordan organisasjonen oppfyller dem."
       },
       "why": {
-        "body": "Krav dere velger å håndtere, blir en del av styringssystemet og er ofte etterlevelsesforpliktelser.",
+        "body": "Krav organisasjonen velger å håndtere, blir en del av styringssystemet. Lovkrav og avtalekrav registrerer du som forpliktelser.",
         "clauses": ["hs:4.2"]
       },
       "fields": {
-        "name": { "help": "Hvem interessenten er.", "example": "Arbeidstilsynet" },
-        "category": { "help": "Hva slags interessent det er. Brukes til filtrering og rapporter." },
+        "name": {
+          "help": "Hvem interessenten er.",
+          "example": "Arbeidstilsynet",
+          "requirements": ["hs:4.2"]
+        },
+        "category": {
+          "help": "Hva slags interessent det er. Brukes til filtrering og rapporter."
+        },
         "party_type": {
           "help": "Interne interessenter er innenfor virksomheten (ansatte, eiere); eksterne er utenfor."
         },
-        "description": { "help": "En kort beskrivelse av interessenten og forholdet til dere." },
-        "needs": { "help": "Hva de trenger fra dere for å være fornøyde eller bli værende." },
-        "expectations": { "help": "Hva de forventer, også om det ikke står skrevet noe sted." },
+        "description": {
+          "help": "En kort beskrivelse av interessenten og forholdet til organisasjonen."
+        },
+        "needs": {
+          "help": "Hva de trenger fra organisasjonen for å være fornøyde eller bli værende.",
+          "requirements": ["hs:4.2"]
+        },
+        "expectations": {
+          "help": "Hva de forventer, også om det ikke står skrevet noe sted."
+        },
         "requirements": {
-          "help": "Kravene som gjelder: lover, avtalevilkår, standarder de krever."
+          "help": "Kravene som gjelder: lover, avtalevilkår og standarder de krever. Lovkrav registrerer du også som forpliktelser.",
+          "requirements": ["hs:4.2", "iso14001:6.1.3", "iso45001:6.1.3"]
         },
         "addressed_status": {
           "help": "Hvor langt styringssystemet allerede oppfyller kravene deres."
         },
         "how_addressed": {
-          "help": "Prosessene, dokumentene eller tiltakene som oppfyller kravene."
+          "help": "Prosessene, dokumentene eller tiltakene som oppfyller kravene.",
+          "requirements": ["hs:4.2"]
         },
-        "influence": { "help": "Hvor mye interessenten kan påvirke resultatene deres." },
-        "interest": { "help": "Hvor opptatt interessenten er av det dere gjør." },
-        "owner": { "help": "Personen som følger med på denne interessenten." },
-        "next_review_at": { "help": "Når oppføringen bør sjekkes på nytt." },
-        "change_reason": { "help": "Valgfri merknad til revisjonshistorikken." }
+        "influence": {
+          "help": "Hvor mye interessenten kan påvirke resultatene til organisasjonen."
+        },
+        "interest": {
+          "help": "Hvor opptatt interessenten er av det organisasjonen gjør."
+        },
+        "owner": {
+          "help": "Personen som følger med på denne interessenten."
+        },
+        "next_review_at": {
+          "help": "Når oppføringen bør sjekkes på nytt."
+        },
+        "change_reason": {
+          "help": "Valgfri merknad til revisjonshistorikken."
+        },
+        "monitoring": {
+          "help": "Hvordan organisasjonen følger med på kravene og endringer i dem.",
+          "example": "Kundeundersøkelse hvert år"
+        },
+        "review_interval_months": {
+          "help": "Hvor ofte interessenten skal gjennomgås. Tolv måneder er vanlig."
+        }
       }
     },
     "scopes-list": {
       "intro": {
         "title": "Fastsett grensene for hvert styringssystem",
-        "body": "En **omfangserklæring** sier hva et styringssystem omfatter: produktene og tjenestene, lokasjonene, enhetene og eventuelle krav dere unntar med begrunnelse. Dere trenger ett godkjent omfang per rammeverk dere arbeider med.",
+        "body": "En **omfangserklæring** sier hva et styringssystem omfatter: produktene og tjenestene, lokasjonene, prosessene og eventuelle krav som ikke gjelder, med begrunnelse. Organisasjonen trenger ett godkjent omfang per standard den følger.",
         "steps": [
-          "Opprett én omfangserklæring per rammeverk (ISO 9001, ISO/IEC 27001 og så videre).",
+          "Opprett én omfangserklæring per standard (ISO 9001, ISO/IEC 27001 og så videre).",
           "Bygg den på kontekstanalysen og interessentene.",
           "Godkjenn den. Når en ny versjon godkjennes, settes den forrige automatisk som utgått."
         ]
@@ -163,13 +200,13 @@
       "empty": {
         "title": "Ingen omfangserklæringer ennå",
         "body": "Skriv omfanget for det første styringssystemet. Assistenten kan lage et utkast fra virksomhetsprofilen.",
-        "cta": "Skriv en omfangserklæring"
+        "cta": "Ny omfangserklæring"
       }
     },
     "scopes-detail": {
       "intro": {
-        "title": "Én omfangserklæring",
-        "body": "Bare ett omfang per rammeverk er godkjent om gangen. Unntak må ha en begrunnelse en revisor godtar."
+        "title": "Om denne omfangserklæringen",
+        "body": "Bare ett omfang per standard er godkjent om gangen. Krav som ikke gjelder, må ha en begrunnelse en revisor godtar. Mens omfanget er godkjent, regnes de som ikke relevante i kravdekningen."
       },
       "why": {
         "body": "Et tydelig, godkjent omfang forteller alle, også sertifiseringsorganet, nøyaktig hva som sertifiseres.",
@@ -186,34 +223,55 @@
         "clauses": ["hs:4.3", "hs:4.1", "hs:4.2"]
       },
       "fields": {
-        "title": { "help": "Et kort navn på omfanget.", "example": "ISMS-omfang 2026" },
-        "framework": { "help": "Styringssystemet omfanget gjelder. Det kan ikke endres senere." },
+        "title": {
+          "help": "Et kort navn på omfanget.",
+          "example": "ISMS-omfang 2026"
+        },
+        "framework": {
+          "help": "Styringssystemet omfanget gjelder. Det kan ikke endres senere."
+        },
         "statement": {
           "help": "Omfanget slik det skal stå på sertifikatet.",
-          "example": "Utvikling, drift og støtte av programvareplattformen CoreFlow fra kontoret vårt i Oslo."
+          "example": "Utvikling, drift og støtte av programvareplattformen CoreFlow fra kontoret vårt i Oslo.",
+          "requirements": ["hs:4.3"]
         },
         "boundaries": {
-          "help": "Hva som er utenfor omfanget, og grensesnittene mot det som er utenfor."
+          "help": "Hva som er utenfor omfanget, og grensesnittene mot det som er utenfor.",
+          "requirements": ["hs:4.3"]
         },
-        "products_services": { "help": "Produktene og tjenestene styringssystemet omfatter." },
-        "sites": { "help": "Lokasjonene som omfattes, én per linje." },
-        "owner": { "help": "Personen som har ansvar for at omfanget er riktig." },
+        "products_services": {
+          "help": "Produktene og tjenestene styringssystemet omfatter."
+        },
+        "sites": {
+          "help": "Lokasjonene som omfattes, én per linje."
+        },
+        "owner": {
+          "help": "Personen som har ansvar for at omfanget er riktig."
+        },
         "review_interval_months": {
           "help": "Hvor ofte omfanget skal gjennomgås.",
           "example": "12"
         },
         "next_review_at": {
-          "help": "La feltet stå tomt for å beregne datoen fra intervallet når omfanget godkjennes."
+          "help": "Settes automatisk når du velger hvor ofte. Du kan også velge en dato selv."
         },
         "change_reason": {
           "help": "Forklar hva som er endret og hvorfor. Det lagres i revisjonshistorikken."
+        },
+        "processes": {
+          "help": "Prosessene i prosessregisteret som omfattes av styringssystemet.",
+          "requirements": ["hs:4.3", "hs:4.4"]
+        },
+        "exclusions": {
+          "help": "Krav i standarden som ikke gjelder for organisasjonen, med begrunnelse.",
+          "requirements": ["hs:4.3"]
         }
       }
     },
     "policies-list": {
       "intro": {
         "title": "Forpliktelsene ledelsen står bak",
-        "body": "En **policy** beskriver virksomhetens intensjoner og retning, godkjent av toppledelsen: kvalitet, informasjonssikkerhet, miljø, KI, personvern, helse og sikkerhet. Hver standard forventer sin egen policy, eller én samlet policy som dekker alle.",
+        "body": "En **policy** beskriver organisasjonens intensjoner og retning, godkjent av toppledelsen: kvalitet, informasjonssikkerhet, miljø, KI, personvern og HMS. Hver standard forventer sin egen policy, eller én samlet policy som dekker alle.",
         "steps": [
           "Lag et utkast til policyen (assistenten kan hjelpe), og send den til godkjenning.",
           "Koble det styrte dokumentet som inneholder den godkjente teksten.",
@@ -221,19 +279,19 @@
         ]
       },
       "why": {
-        "body": "Punkt 5.2 krever en policy som passer formålet, gir et rammeverk for mål og forplikter til å oppfylle krav og til kontinuerlig forbedring. Den må kommuniseres og være tilgjengelig.",
+        "body": "Punkt 5.2 krever en policy som passer formålet, gir rammer for målene og forplikter til å oppfylle krav og til stadig forbedring. Den må kommuniseres og være tilgjengelig.",
         "clauses": ["hs:5.2", "iso27001:A.5.1", "iso42001:A.2.2", "gdpr:24"]
       },
       "empty": {
         "title": "Ingen policyer ennå",
         "body": "Start med policyen for hovedstyringssystemet. Assistenten kan lage en første versjon fra virksomhetsprofilen.",
-        "cta": "Opprett en policy"
+        "cta": "Ny policy"
       }
     },
     "policies-detail": {
       "intro": {
-        "title": "Én policy",
-        "body": "Når policyen er godkjent, bruker du **Kommuniser** for å opprette bekreftelsesoppgaver. Redigerer du en godkjent policy, startes en ny versjon som må godkjennes på nytt."
+        "title": "Om denne policyen",
+        "body": "Når policyen er godkjent, bruker du **Kommuniser** for å be de ansatte lese og bekrefte den. Her ser du hvem som har bekreftet. Sett mål ut fra policyen, og koble det styrte dokumentet med policyteksten."
       },
       "why": {
         "body": "Revisorer sjekker at policyen er godkjent av toppledelsen, kommunisert og forstått, og gjennomgått for fortsatt egnethet.",
@@ -243,7 +301,7 @@
     "policies-form": {
       "intro": {
         "title": "Skriv policyen",
-        "body": "Hold den kort og tilpasset virksomheten. En god policy sier hva dere forplikter dere til, ikke hvordan dere gjør det; prosedyrene beskriver hvordan."
+        "body": "Hold den kort og tilpasset organisasjonen. En god policy sier hva ledelsen forplikter seg til, ikke hvordan arbeidet gjøres. Det beskriver prosedyrene."
       },
       "why": {
         "body": "Policyteksten må inneholde forpliktelsene standarden krever, for eksempel å oppfylle gjeldende krav og å forbedre kontinuerlig.",
@@ -254,9 +312,13 @@
           "help": "Navnet på policyen slik folk vil se det.",
           "example": "Informasjonssikkerhetspolicy"
         },
-        "kind": { "help": "Hvilket styringssystem policyen hører til." },
+        "kind": {
+          "help": "Hvilket styringssystem policyen hører til.",
+          "requirements": ["hs:5.2"]
+        },
         "statement": {
-          "help": "Policyteksten. Du kan bruke enkel formatering som lister og fet skrift."
+          "help": "Policyteksten. Du kan bruke enkel formatering som lister og fet skrift.",
+          "requirements": ["hs:5.2"]
         },
         "owner": {
           "help": "Vanligvis et medlem av toppledelsen, eller lederen som forvalter policyen."
@@ -266,10 +328,14 @@
           "example": "12"
         },
         "next_review_at": {
-          "help": "La feltet stå tomt for å beregne datoen fra intervallet når policyen godkjennes."
+          "help": "Settes automatisk når du velger hvor ofte. Du kan også velge en dato selv."
         },
         "change_reason": {
           "help": "Forklar hva som er endret og hvorfor. Det lagres i revisjonshistorikken."
+        },
+        "document": {
+          "help": "Det styrte dokumentet med den godkjente policyteksten.",
+          "requirements": ["hs:5.2", "hs:7.5"]
         }
       }
     },
@@ -290,13 +356,13 @@
       "empty": {
         "title": "Ingen ansvar ennå",
         "body": "Start med selve styringssystemet: hvem er ansvarlig for det, og hvem driver det i hverdagen?",
-        "cta": "Legg til et ansvar"
+        "cta": "Nytt ansvar"
       }
     },
     "responsibilities-detail": {
       "intro": {
-        "title": "Ett ansvar",
-        "body": "Mangler A, eier ingen resultatet; mangler R, er det ingen som gjør arbeidet. Rett opp begge før en revisjon."
+        "title": "Om dette ansvaret",
+        "body": "Mangler A, står ingen ansvarlig for resultatet. Mangler R, er det ingen som gjør arbeidet. Gjør samme person både arbeidet og godkjenningen, bør oppgavene deles. Rett opp før en revisjon."
       },
       "why": {
         "body": "Revisorer ser etter tydelig ansvar og atskillelse av oppgaver som er i konflikt.",
@@ -306,7 +372,7 @@
     "responsibilities-form": {
       "intro": {
         "title": "Beskriv ansvaret",
-        "body": "Angi prosessen eller området, legg til personene, rollene eller avdelingene med RACI-bokstav, og skriv ned myndigheten: hva de kan bestemme eller godkjenne."
+        "body": "Velg prosessen ansvaret hører til, legg til personene, rollene eller avdelingene med RACI-bokstav, og skriv ned myndigheten: hva de kan bestemme eller godkjenne."
       },
       "why": {
         "body": "Ansvar og myndighet må fordeles, kommuniseres og forstås.",
@@ -315,23 +381,43 @@
       "fields": {
         "title": {
           "help": "Hva ansvaret gjelder.",
-          "example": "Håndtering av informasjonssikkerhetshendelser"
+          "example": "Håndtering av informasjonssikkerhetshendelser",
+          "requirements": ["hs:5.3"]
         },
-        "area": { "help": "Prosessen eller området det hører til." },
-        "description": { "help": "Hva ansvaret omfatter." },
+        "area": {
+          "help": "Prosessen ansvaret hører til. Finnes den ikke i prosessregisteret, skriver du et område.",
+          "requirements": ["hs:5.3"]
+        },
+        "description": {
+          "help": "Hva ansvaret omfatter."
+        },
         "authorities": {
           "help": "Hva de ansvarlige kan bestemme, godkjenne eller stanse.",
-          "example": "Kan stenge systemer under en hendelse."
+          "example": "Kan stenge systemer under en hendelse.",
+          "requirements": ["hs:5.3"]
         },
-        "owner": { "help": "Personen som holder dette ansvaret oppdatert." },
-        "next_review_at": { "help": "Når ansvaret bør sjekkes på nytt." },
-        "change_reason": { "help": "Valgfri merknad til revisjonshistorikken." }
+        "owner": {
+          "help": "Personen som holder dette ansvaret oppdatert."
+        },
+        "next_review_at": {
+          "help": "Når ansvaret bør sjekkes på nytt."
+        },
+        "change_reason": {
+          "help": "Valgfri merknad til revisjonshistorikken."
+        },
+        "assignments": {
+          "help": "Hvem som utfører (R), står ansvarlig (A), rådføres (C) og informeres (I).",
+          "requirements": ["hs:5.3"]
+        },
+        "review_interval_months": {
+          "help": "Hvor ofte ansvaret skal gjennomgås. Tolv måneder er vanlig."
+        }
       }
     },
     "raci-matrix": {
       "intro": {
         "title": "RACI-matrisen",
-        "body": "Radene er ansvar, kolonnene er rollene, avdelingene og personene som er involvert. Se etter rader uten A eller R, og kolonner med for mange A-er."
+        "body": "Radene er ansvar, kolonnene er rollene, avdelingene og personene som er involvert. Under hver rolle ser du hvem som har den i dag. Se etter rader uten A eller R, og roller ingen har."
       },
       "why": {
         "body": "Matrisen er en rask måte å vise en revisor at ansvar og myndighet er fordelt, og at oppgaver i konflikt er atskilt.",
@@ -346,7 +432,7 @@
       "sections": [
         {
           "heading": "Hvorfor alle standarder starter med kontekst",
-          "body": "ISO 9001, ISO/IEC 27001, ISO 14001, ISO 45001 og ISO/IEC 42001 har samme overordnede struktur. Punkt 4 spør alltid om det samme først: **forstå virksomheten og dens kontekst** før dere bestemmer hva som skal styres."
+          "body": "ISO 9001, ISO/IEC 27001, ISO 14001, ISO 45001 og ISO/IEC 42001 har samme overordnede struktur. Punkt 4 spør alltid om det samme først: **forstå organisasjonen og konteksten den er i** før du bestemmer hva som skal styres."
         },
         {
           "heading": "Interne og eksterne forhold",
@@ -363,7 +449,7 @@
       ],
       "quiz": [
         {
-          "question": "Hvilket punkt krever at dere bestemmer interne og eksterne forhold?",
+          "question": "Hvilket punkt krever at organisasjonen bestemmer interne og eksterne forhold?",
           "options": ["Punkt 4.1", "Punkt 6.2", "Punkt 9.2"],
           "answer": 0,
           "explanation": "Punkt 4.1, forståelse av virksomheten og dens kontekst."
@@ -372,11 +458,11 @@
           "question": "Hvor bør forhold med høy betydning fra analysen vanligvis havne?",
           "options": [
             "Ingen steder, analysen er nok",
-            "I risikoene og mulighetene dere planlegger for",
+            "I risikoene og mulighetene organisasjonen planlegger for",
             "Bare i omfangserklæringen"
           ],
           "answer": 1,
-          "explanation": "Punkt 6.1 krever at dere tar hensyn til forholdene fra 4.1 når dere planlegger for risikoer og muligheter."
+          "explanation": "Punkt 6.1 krever at organisasjonen tar hensyn til forholdene fra 4.1 når den planlegger for risikoer og muligheter."
         },
         {
           "question": "Hva må en omfangserklæring gjøre med unntatte krav?",
@@ -393,11 +479,11 @@
       "sections": [
         {
           "heading": "Relevante, ikke alle",
-          "body": "Dere trenger ikke liste opp alle. Punkt 4.2 spør etter interessentene som er **relevante** for styringssystemet, og etter deres **relevante krav**."
+          "body": "Du trenger ikke liste opp alle. Punkt 4.2 spør etter interessentene som er **relevante** for styringssystemet, og etter deres **relevante krav**."
         },
         {
           "heading": "Behov, forventninger og forpliktelser",
-          "body": "Behov er det en interessent krever; forventninger er det de tar for gitt. Noen krav er obligatoriske (lover, avtaler) og blir **etterlevelsesforpliktelser**; andre velger dere å følge."
+          "body": "Behov er det en interessent krever. Forventninger er det de tar for gitt. Noen krav er obligatoriske (lover, avtaler) og blir **forpliktelser**. Andre velger organisasjonen å følge."
         },
         {
           "heading": "Innflytelse og interesse",
@@ -406,7 +492,7 @@
       ],
       "quiz": [
         {
-          "question": "En interessent har høy innflytelse, men liten interesse for det dere gjør i hverdagen. Hva er vanlig tilnærming?",
+          "question": "En interessent har stor innflytelse, men liten interesse for det organisasjonen gjør i hverdagen. Hva er vanlig tilnærming?",
           "options": ["Følg tett opp", "Hold fornøyd", "Overse dem"],
           "answer": 1,
           "explanation": "Høy innflytelse, lavere interesse: sørg for at kravene deres oppfylles, så de forblir fornøyde."
@@ -419,7 +505,7 @@
             "En konkurrents markedsføring"
           ],
           "answer": 0,
-          "explanation": "Lov- og avtalekrav er forpliktelser dere må oppfylle."
+          "explanation": "Lov- og avtalekrav er forpliktelser organisasjonen må oppfylle."
         }
       ],
       "pass_mark": 0.5
@@ -434,7 +520,7 @@
         },
         {
           "heading": "En god policy",
-          "body": "En policy passer virksomhetens formål, gir et rammeverk for mål og forplikter til å oppfylle krav og til kontinuerlig forbedring. Den er godkjent, kommunisert og tilgjengelig."
+          "body": "En policy passer organisasjonens formål, gir rammer for målene og forplikter til å oppfylle krav og til stadig forbedring. Den er godkjent, kommunisert og tilgjengelig."
         },
         {
           "heading": "RACI på ett minutt",
@@ -472,7 +558,7 @@
       {
         "target": "context-gaps",
         "title": "Dette trenger oppmerksomhet",
-        "body": "Rammeverk uten godkjent omfang, policytyper som mangler, og gjennomganger som er forfalt."
+        "body": "Standarder uten godkjent omfang, policytyper som mangler, ansvar uten A eller R og annet som venter. Hver linje åpner listen som viser det."
       }
     ],
     "analyses": [
@@ -486,13 +572,13 @@
       {
         "target": "context-new-party",
         "title": "Legg til en interessent",
-        "body": "Registrer hvem som har interesse i styringssystemet, hva de trenger, og hvordan dere håndterer det."
+        "body": "Registrer hvem som har krav til styringssystemet, hva de trenger, og hvordan organisasjonen håndterer det."
       }
     ],
     "scopes": [
       {
         "target": "context-new-scope",
-        "title": "Ett omfang per rammeverk",
+        "title": "Ett omfang per standard",
         "body": "Skriv en omfangserklæring for hvert styringssystem. Når en ny godkjennes, settes den forrige som utgått."
       }
     ],
@@ -510,5 +596,11 @@
         "body": "Legg til et ansvar per prosess eller område og gi det en RACI: én A, minst én R."
       }
     ]
+  },
+  "glossary": {
+    "raci": {
+      "term": "RACI",
+      "definition": "En måte å fordele ansvar på: R utfører arbeidet, A står ansvarlig for resultatet (én person), C rådføres før, og I informeres etterpå."
+    }
   }
 }

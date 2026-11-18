@@ -3,7 +3,7 @@ import { DOCUMENT } from '@angular/common';
 import { DestroyRef, Injectable, Signal, inject, signal } from '@angular/core';
 import { AbstractControl, FormGroup } from '@angular/forms';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
-import { Observable, catchError, finalize, map, of, tap } from 'rxjs';
+import { Observable, Subject, catchError, finalize, map, of, tap } from 'rxjs';
 import { NotificationService } from '../notifications/notification.service';
 import { SelectedOrgService } from '../org/selected-org.service';
 import { EntityRefDto } from '../entities/entity.models';
@@ -53,6 +53,27 @@ interface StoredFlow extends FlowContext {
   readonly orgId: string;
 }
 
+/** A flow that finished: the new record is saved and linked back to its source. */
+export interface FlowCompletion {
+  readonly key: string;
+  /** The flow token (null for a plain `?fromRequirement=` form). */
+  readonly token: string | null;
+  readonly targetType: string;
+  readonly targetId: string;
+  readonly source: EntityRefDto | null;
+}
+
+/** Options of {@link CreateFlowService.start}. */
+export interface StartFlowOptions {
+  /**
+   * Values that replace the server's prefill (e.g. the title of a SWOT factor
+   * instead of the analysis title). `from` and `requirement` are kept.
+   */
+  readonly prefill?: Readonly<Record<string, unknown>>;
+  /** Called with the flow token once the flow is underway (before navigating). */
+  readonly onStarted?: (token: string) => void;
+}
+
 /**
  * "Create from here" (P4, polish plan 2.5). A source record offers flows such as
  * "deviation → risk"; starting one asks the backend for prefill values and a
@@ -85,6 +106,14 @@ export class CreateFlowService {
 
   /** Key of the flow being started (for a loading state on the menu item). */
   readonly starting = signal<string | null>(null);
+
+  private readonly completions = new Subject<FlowCompletion>();
+  /**
+   * Every flow that completed (the link was written). Root services use it to do
+   * follow-up work that outlives the source page, e.g. attaching the new record
+   * to the SWOT factor it was created from.
+   */
+  readonly completed: Observable<FlowCompletion> = this.completions.asObservable();
 
   private active: StoredFlow | null = null;
   /** Tokens whose completion is in flight or done (never complete twice). */
@@ -119,6 +148,7 @@ export class CreateFlowService {
     flow: CreateFlowItem | string,
     sourceType: string,
     source: string | { readonly id?: string | null; readonly ref?: string | null },
+    options: StartFlowOptions = {},
   ): Promise<boolean> {
     const orgId = this.selectedOrg.currentOrgId();
     const key = typeof flow === 'string' ? flow : flow.key;
@@ -133,8 +163,10 @@ export class CreateFlowService {
         .prefillFlow(orgId, key, { sourceId, sourceRef })
         .pipe(finalize(() => this.starting.set(null)))
         .subscribe({
-          next: (res) => {
+          next: (response) => {
+            const res = withPrefill(response, options.prefill);
             const ctx = this.remember(orgId, res, sourceType === 'standard_requirement');
+            options.onStarted?.(res.token);
             this.consumed = false;
             void this.router.navigateByUrl(ctx.targetRoute).then((ok) => {
               if (ok && pathOf(this.router.url) !== pathOf(ctx.targetRoute)) {
@@ -273,6 +305,13 @@ export class CreateFlowService {
       tap((res) => {
         this.forget(ctx);
         this.announce(res);
+        this.completions.next({
+          key: ctx.key,
+          token: ctx.token,
+          targetType: (targetType || ctx.targetType) ?? '',
+          targetId,
+          source: ctx.source,
+        });
       }),
       map((res): CompleteFlowResponse | null => res),
       catchError((error: unknown) => {
@@ -515,6 +554,22 @@ export function patchFromPrefill(form: FormGroup, prefill: FlowPrefillValues): v
       control.markAsDirty();
     }
   }
+}
+
+/** A prefill response with caller overrides applied (`from` / `requirement` are kept). */
+export function withPrefill(
+  res: PrefillResponse,
+  overrides: Readonly<Record<string, unknown>> | null | undefined,
+): PrefillResponse {
+  if (!overrides) {
+    return res;
+  }
+  const extra = Object.fromEntries(
+    Object.entries(overrides).filter(
+      ([key, value]) => key !== 'from' && key !== 'requirement' && value !== undefined,
+    ),
+  );
+  return { ...res, prefill: { ...res.prefill, ...extra } };
 }
 
 /** The claims of a flow token (read only to recover after a reload; the server verifies it). */

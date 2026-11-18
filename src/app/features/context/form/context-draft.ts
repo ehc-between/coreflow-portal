@@ -5,6 +5,7 @@ import {
   ContextAnalysis,
   ContextKind,
   ContextRecord,
+  EntityRef,
   InterestedParty,
   Level,
   PartyCategory,
@@ -18,17 +19,20 @@ import {
   SimpleStatus,
 } from '../data/context.models';
 import { dayOf, dayToWire, linesOf } from '../context-kinds';
+import { PickedRecord } from '../ui/record-search';
 
 /** An analysis item being edited (always has a local id for tracking). */
 export interface DraftItem extends AnalysisItem {
   readonly id: string;
 }
 
-/** A document picked to carry a policy (create only). */
-export interface DraftDocument {
-  readonly id: string;
-  readonly title: string;
-  readonly code: string | null;
+/** A document picked to carry a policy. */
+export type DraftDocument = PickedRecord;
+
+/** An excluded requirement being edited (`clause` is a canonical ref, or '' while unpicked). */
+export interface DraftExclusion {
+  readonly clause: string;
+  readonly justification: string;
 }
 
 /**
@@ -54,6 +58,7 @@ export interface ContextDraft {
   readonly is_compliance_obligation: boolean;
   readonly addressed_status: AddressedStatus;
   readonly how_addressed: string;
+  readonly monitoring: string;
   readonly influence: Level;
   readonly interest: Level;
   readonly frameworks: readonly string[];
@@ -63,12 +68,16 @@ export interface ContextDraft {
   readonly products_services: string;
   /** One site per line. */
   readonly sites: string;
-  readonly exclusions: readonly ScopeExclusion[];
+  readonly exclusions: readonly DraftExclusion[];
+  readonly processes: readonly PickedRecord[];
   // policy
   readonly kind: PolicyKind;
+  /** A document to link on save (create and edit). */
   readonly document: DraftDocument | null;
+  readonly available_to_interested_parties: boolean;
   // responsibility
   readonly area: string;
+  readonly process: PickedRecord | null;
   readonly authorities: string;
   readonly assignments: readonly RaciAssignment[];
   // common
@@ -88,7 +97,11 @@ export function localItemId(): string {
   return `n${Date.now().toString(36)}${nextLocalId.toString(36)}`.slice(0, 36);
 }
 
-export function emptyDraft(kind: ContextKind): ContextDraft {
+/** The review interval a new record starts with (months). */
+export const DEFAULT_INTERVAL = '12';
+
+/** A blank draft (the same shape for every kind; each kind reads its own fields). */
+export function emptyDraft(): ContextDraft {
   return {
     title: '',
     method: 'swot',
@@ -104,6 +117,7 @@ export function emptyDraft(kind: ContextKind): ContextDraft {
     is_compliance_obligation: false,
     addressed_status: 'not_addressed',
     how_addressed: '',
+    monitoring: '',
     influence: 'medium',
     interest: 'medium',
     frameworks: [],
@@ -112,26 +126,34 @@ export function emptyDraft(kind: ContextKind): ContextDraft {
     products_services: '',
     sites: '',
     exclusions: [],
+    processes: [],
     kind: 'quality',
     document: null,
+    available_to_interested_parties: false,
     area: '',
+    process: null,
     authorities: '',
     assignments: [],
     owner_user_id: '',
-    review_interval_months:
-      kind === 'analysis' || kind === 'scope' || kind === 'policy' ? '12' : '',
+    review_interval_months: DEFAULT_INTERVAL,
     next_review_day: '',
     status: 'active',
     change_reason: '',
   };
 }
 
+function picked(ref: EntityRef): PickedRecord {
+  return { id: ref.entity_id, title: ref.title, code: ref.code };
+}
+
 /** The draft for editing an existing record. */
 export function draftFrom(kind: ContextKind, record: ContextRecord): ContextDraft {
-  const base = emptyDraft(kind);
+  const base = emptyDraft();
+  const withInterval = record as { review_interval_months?: number | null };
   const common = {
     owner_user_id: record.owner?.id ?? '',
     next_review_day: dayOf((record as { next_review_at?: string | null }).next_review_at),
+    review_interval_months: intervalText(withInterval.review_interval_months),
   };
   switch (kind) {
     case 'analysis': {
@@ -149,7 +171,6 @@ export function draftFrom(kind: ContextKind, record: ContextRecord): ContextDraf
           text: item.text,
           impact: item.impact,
         })),
-        review_interval_months: intervalText(r.review_interval_months),
       };
     }
     case 'party': {
@@ -167,6 +188,7 @@ export function draftFrom(kind: ContextKind, record: ContextRecord): ContextDraf
         is_compliance_obligation: r.is_compliance_obligation,
         addressed_status: r.addressed_status,
         how_addressed: r.how_addressed ?? '',
+        monitoring: r.monitoring ?? '',
         influence: r.influence,
         interest: r.interest,
         frameworks: r.frameworks,
@@ -184,8 +206,11 @@ export function draftFrom(kind: ContextKind, record: ContextRecord): ContextDraf
         boundaries: r.boundaries ?? '',
         products_services: r.products_services ?? '',
         sites: r.sites.join('\n'),
-        exclusions: r.exclusions.map((e) => ({ clause: e.clause, justification: e.justification })),
-        review_interval_months: intervalText(r.review_interval_months),
+        exclusions: r.exclusions.map((e: ScopeExclusion) => ({
+          clause: canonicalClause(e.clause, r.framework),
+          justification: e.justification,
+        })),
+        processes: (r.processes ?? []).map(picked),
       };
     }
     case 'policy': {
@@ -197,7 +222,7 @@ export function draftFrom(kind: ContextKind, record: ContextRecord): ContextDraf
         kind: r.kind,
         statement: r.statement ?? '',
         frameworks: r.frameworks,
-        review_interval_months: intervalText(r.review_interval_months),
+        available_to_interested_parties: !!r.available_to_interested_parties,
       };
     }
     case 'responsibility': {
@@ -206,7 +231,8 @@ export function draftFrom(kind: ContextKind, record: ContextRecord): ContextDraf
         ...base,
         ...common,
         title: r.title,
-        area: r.area ?? '',
+        area: r.process ? '' : (r.area ?? ''),
+        process: r.process ? picked(r.process) : null,
         description: r.description ?? '',
         authorities: r.authorities ?? '',
         frameworks: r.frameworks,
@@ -215,6 +241,15 @@ export function draftFrom(kind: ContextKind, record: ContextRecord): ContextDraf
       };
     }
   }
+}
+
+/** A clause as a canonical ref: `8.3` on an ISO 9001 scope becomes `iso9001:8.3`. */
+export function canonicalClause(clause: string, framework: string): string {
+  const value = clause.trim();
+  if (!value || value.includes(':') || !framework) {
+    return value;
+  }
+  return `${framework}:${value}`;
 }
 
 function intervalText(value: number | null | undefined): string {
@@ -231,13 +266,21 @@ function interval(value: string): number | null {
   return value.trim() && Number.isInteger(n) && n >= 1 && n <= 60 ? n : null;
 }
 
-/** Fields that change content (vs. the admin fields owner / review settings). */
-const ADMIN_FIELDS = new Set(['owner_user_id', 'review_interval_months', 'next_review_at']);
+/** Fields that do not change content (no new version, no change reason). */
+const ADMIN_FIELDS = new Set([
+  'owner_user_id',
+  'review_interval_months',
+  'next_review_at',
+  'document_id',
+]);
 
 /** The full wire payload of the editable fields of a kind (create shape, no change reason). */
 export function payloadOf(kind: ContextKind, d: ContextDraft): Record<string, unknown> {
   const owner = { owner_user_id: d.owner_user_id || null };
-  const review = { next_review_at: dayToWire(d.next_review_day) };
+  const review = {
+    review_interval_months: interval(d.review_interval_months),
+    next_review_at: dayToWire(d.next_review_day),
+  };
   switch (kind) {
     case 'analysis':
       return {
@@ -254,7 +297,6 @@ export function payloadOf(kind: ContextKind, d: ContextDraft): Record<string, un
             impact: item.impact,
           })),
         ...owner,
-        review_interval_months: interval(d.review_interval_months),
         ...review,
       };
     case 'party':
@@ -269,6 +311,7 @@ export function payloadOf(kind: ContextKind, d: ContextDraft): Record<string, un
         is_compliance_obligation: d.is_compliance_obligation,
         addressed_status: d.addressed_status,
         how_addressed: text(d.how_addressed),
+        monitoring: text(d.monitoring),
         influence: d.influence,
         interest: d.interest,
         frameworks: [...d.frameworks],
@@ -285,9 +328,12 @@ export function payloadOf(kind: ContextKind, d: ContextDraft): Record<string, un
         sites: linesOf(d.sites),
         exclusions: d.exclusions
           .filter((e) => e.clause.trim() && e.justification.trim())
-          .map((e) => ({ clause: e.clause.trim(), justification: e.justification.trim() })),
+          .map((e) => ({
+            clause: canonicalClause(e.clause, d.framework),
+            justification: e.justification.trim(),
+          })),
+        process_ids: d.processes.map((p) => p.id),
         ...owner,
-        review_interval_months: interval(d.review_interval_months),
         ...review,
       };
     case 'policy':
@@ -296,14 +342,15 @@ export function payloadOf(kind: ContextKind, d: ContextDraft): Record<string, un
         title: d.title.trim(),
         statement: text(d.statement),
         frameworks: [...d.frameworks],
+        available_to_interested_parties: d.available_to_interested_parties,
         ...owner,
-        review_interval_months: interval(d.review_interval_months),
         ...review,
       };
     case 'responsibility':
       return {
         title: d.title.trim(),
         area: text(d.area),
+        process_id: d.process?.id ?? null,
         description: text(d.description),
         authorities: text(d.authorities),
         frameworks: [...d.frameworks],
@@ -314,9 +361,23 @@ export function payloadOf(kind: ContextKind, d: ContextDraft): Record<string, un
   }
 }
 
+/** Fields a create leaves out while they hold their "nothing" value (keeps bodies small). */
+const OPTIONAL_EMPTY = [
+  'monitoring',
+  'process_ids',
+  'process_id',
+  'available_to_interested_parties',
+] as const;
+
 /** POST body for a new record. */
 export function createBody(kind: ContextKind, d: ContextDraft): Record<string, unknown> {
   const body = payloadOf(kind, d);
+  for (const key of OPTIONAL_EMPTY) {
+    const value = body[key];
+    if (value === null || value === false || (Array.isArray(value) && value.length === 0)) {
+      delete body[key];
+    }
+  }
   if (kind === 'policy' && d.document) {
     body['document_id'] = d.document.id;
   }
@@ -358,10 +419,13 @@ export function changedFields(
   if ((kind === 'party' || kind === 'responsibility') && current.status !== original.status) {
     changes['status'] = current.status;
   }
+  if (kind === 'policy' && current.document && current.document.id !== original.document?.id) {
+    changes['document_id'] = current.document.id;
+  }
   return changes;
 }
 
-/** Whether the changes touch content (not only owner / review settings). */
+/** Whether the changes touch content (not only owner / review settings / a linked document). */
 export function changesContent(changes: Readonly<Record<string, unknown>>): boolean {
   return Object.keys(changes).some((key) => !ADMIN_FIELDS.has(key));
 }
@@ -405,4 +469,61 @@ export function draftProblems(kind: ContextKind, d: ContextDraft): string[] {
     problems.push('context.form.problems.exclusion');
   }
   return problems;
+}
+
+/**
+ * Prefill from a "create from here" flow: only empty fields are filled, in the
+ * kind's own field names (`title` -> the party's name, `description` -> a policy
+ * or scope statement, an analysis summary).
+ */
+export function draftFromPrefill(
+  kind: ContextKind,
+  draft: ContextDraft,
+  prefill: Readonly<Record<string, unknown>>,
+): ContextDraft {
+  const str = (key: string): string => {
+    const value = prefill[key];
+    return typeof value === 'string' ? value : '';
+  };
+  const list = (key: string): string[] => {
+    const value = prefill[key];
+    return Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string') : [];
+  };
+  const next: Record<string, unknown> = { ...draft };
+  const fill = (field: keyof ContextDraft, value: string) => {
+    if (value && !String(draft[field] ?? '').trim()) {
+      next[field] = value;
+    }
+  };
+  fill('title', str('title') || str('name'));
+  const body = str('statement') || str('description');
+  switch (kind) {
+    case 'analysis':
+      fill('summary', str('summary') || body);
+      fill('framework', str('framework'));
+      break;
+    case 'party':
+      fill('description', str('description'));
+      fill('needs', str('needs'));
+      break;
+    case 'scope':
+      fill('statement', body);
+      fill('framework', str('framework'));
+      break;
+    case 'policy':
+      fill('statement', body);
+      if (str('kind')) {
+        next['kind'] = str('kind');
+      }
+      break;
+    case 'responsibility':
+      fill('description', str('description'));
+      fill('area', str('area'));
+      break;
+  }
+  const frameworks = list('frameworks');
+  if (frameworks.length && draft.frameworks.length === 0) {
+    next['frameworks'] = frameworks;
+  }
+  return next as unknown as ContextDraft;
 }

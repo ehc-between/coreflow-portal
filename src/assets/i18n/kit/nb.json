@@ -438,6 +438,32 @@
       "to_task": "Tiltak (oppgave)",
       "to_objective": "Mål fra denne muligheten",
       "to_project": "Prosjekt for å realisere den"
+    },
+    "context_analysis": {
+      "to_risk": "Risiko fra analysen",
+      "to_opportunity": "Mulighet fra analysen",
+      "to_objective": "Mål fra analysen",
+      "to_task": "Oppgave for oppfølging"
+    },
+    "interested_party": {
+      "to_obligation": "Forpliktelse fra interessentens krav",
+      "to_risk": "Risiko knyttet til interessenten",
+      "to_task": "Oppgave for oppfølging"
+    },
+    "scope_statement": {
+      "to_risk": "Risiko knyttet til omfanget",
+      "to_task": "Oppgave for oppfølging",
+      "to_deviation": "Avvik mot omfanget"
+    },
+    "policy": {
+      "to_objective": "Mål fra policyen",
+      "to_document": "Policydokument",
+      "to_task": "Oppgave for oppfølging",
+      "to_deviation": "Avvik fra policyen"
+    },
+    "responsibility": {
+      "to_task": "Oppgave for oppfølging",
+      "to_deviation": "Avvik i ansvarsfordelingen"
     }
   },
   "frameworks": {

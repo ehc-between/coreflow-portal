@@ -15,6 +15,7 @@ import {
   patchFromPrefill,
   pathOf,
   withParam,
+  withPrefill,
 } from './create-flow.service';
 
 const BASE = 'http://test/api';
@@ -111,6 +112,14 @@ function route(params: Record<string, string>): ActivatedRoute {
 }
 
 describe('create-flow helpers', () => {
+  it('overrides prefill values but keeps where the record comes from', () => {
+    const res = prefill();
+    const out = withPrefill(res, { title: 'Factor', from: 'nope', requirement: 'x' });
+    expect(out.prefill.title).toBe('Factor');
+    expect(out.prefill.from).toEqual(res.prefill.from);
+    expect(withPrefill(res, null)).toBe(res);
+  });
+
   it('reads paths and sets query parameters', () => {
     expect(pathOf('/risk/risks/new?flow=x#top')).toBe('/risk/risks/new');
     expect(pathOf('/risk/risks/')).toBe('/risk/risks');
@@ -195,6 +204,36 @@ describe('CreateFlowService', () => {
     // Done: completing again is a no-op.
     service.complete(NEW_ID).subscribe();
     http.expectNone(url('create-flows/complete'));
+  });
+
+  it('applies prefill overrides and reports the completed flow', async () => {
+    const { service, http } = setup();
+    const done: { targetId: string; targetType: string; token: string | null }[] = [];
+    const sub = service.completed.subscribe((c) => done.push(c));
+    let startedToken: string | null = null;
+    const started = service.start('deviation.to_risk', 'deviation', SOURCE_ID, {
+      prefill: { title: 'Weak backup routine', from: undefined },
+      onStarted: (token) => (startedToken = token),
+    });
+    http.expectOne(url('create-flows/deviation.to_risk/prefill')).flush(prefill());
+    await started;
+    expect(startedToken).toBe(TOKEN);
+    const flow = service.consume(route({ flow: TOKEN }), { targetType: 'risk' });
+    expect(flow()?.prefill.title).toBe('Weak backup routine');
+    expect(flow()?.source?.code).toBe('AVV-3');
+    service.complete(NEW_ID).subscribe();
+    http.expectOne(url('create-flows/complete')).flush({
+      flow_key: 'deviation.to_risk',
+      link: null,
+      requirement_link_id: null,
+      requirement_suggestions: 0,
+      source: prefill().source,
+      target: null,
+    });
+    expect(done).toEqual([
+      expect.objectContaining({ targetId: NEW_ID, targetType: 'risk', token: TOKEN }),
+    ]);
+    sub.unsubscribe();
   });
 
   it('completes on its own when the form opens the new record', async () => {

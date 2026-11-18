@@ -81,6 +81,7 @@ const KNOWN_FIELDS = new Set([
   'soa',
   'standards',
   'frameworks',
+  'framework',
   'article_refs',
   'requirements',
 ]);

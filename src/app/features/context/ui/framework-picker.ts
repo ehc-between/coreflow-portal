@@ -1,23 +1,54 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  input,
+  output,
+  signal,
+} from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { FRAMEWORK_KEYS } from '../data/context.models';
+import { ContextFrameworks } from '../data/context-frameworks';
 
 let nextId = 0;
 
-/** Toggle chips for the management-system frameworks a record applies to. */
+/** The keys to show: adopted (and already chosen) ones, or every key when expanded. */
+export function visibleFrameworks(
+  adopted: readonly string[],
+  chosen: readonly string[],
+  showAll: boolean,
+): string[] {
+  const known = FRAMEWORK_KEYS as readonly string[];
+  if (showAll || adopted.length === 0) {
+    const first = known.filter((k) => adopted.includes(k));
+    return [...first, ...known.filter((k) => !first.includes(k))];
+  }
+  return known.filter((k) => adopted.includes(k) || chosen.includes(k));
+}
+
+/**
+ * Which management systems (standards) a record applies to, as toggle chips.
+ * The organisation's adopted standards come first; the rest are behind "Vis
+ * alle". The hint explains the effect: the record then documents the matching
+ * requirement in each chosen standard automatically.
+ */
 @Component({
   selector: 'app-context-framework-picker',
   imports: [TranslocoPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <fieldset>
-      <legend class="mb-1.5 text-[13px] font-semibold text-fg-muted">
+    <fieldset [attr.aria-describedby]="id + '-hint'">
+      <legend class="mb-1 text-ui font-semibold text-fg-muted">
         {{ labelKey() | transloco }}
       </legend>
+      <p [id]="id + '-hint'" class="mb-2 text-meta text-fg-muted">
+        {{ hintKey() | transloco }}
+      </p>
       <div class="flex flex-wrap gap-1.5">
-        @for (key of frameworks; track key) {
+        @for (key of shown(); track key) {
           <label
-            class="inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1 text-[12.5px] font-semibold focus-within:ring-2 focus-within:ring-accent"
+            class="inline-flex min-h-8 cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1 text-meta font-semibold focus-within:ring-2 focus-within:ring-accent"
             [class]="
               value().includes(key)
                 ? 'border-accent bg-accent-soft text-accent'
@@ -35,18 +66,38 @@ let nextId = 0;
             {{ 'context.frameworks.' + key | transloco }}
           </label>
         }
+        @if (hiddenCount() > 0) {
+          <button
+            type="button"
+            class="inline-flex min-h-8 items-center rounded-full px-3 text-meta font-semibold text-accent hover:underline focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+            (click)="showAll.set(true)"
+          >
+            {{ 'context.form.showAllFrameworks' | transloco: { count: hiddenCount() } }}
+          </button>
+        }
       </div>
     </fieldset>
   `,
 })
 export class FrameworkPicker {
+  private readonly frameworks = inject(ContextFrameworks);
+
   readonly value = input<readonly string[]>([]);
   readonly labelKey = input('context.fields.frameworks');
+  readonly hintKey = input('context.form.frameworksHint');
   readonly disabled = input(false);
   readonly valueChange = output<readonly string[]>();
 
-  protected readonly frameworks = FRAMEWORK_KEYS;
   protected readonly id = `cf-fw-${++nextId}`;
+  protected readonly showAll = signal(false);
+  protected readonly shown = computed(() =>
+    visibleFrameworks(this.frameworks.adopted(), this.value(), this.showAll()),
+  );
+  protected readonly hiddenCount = computed(() => FRAMEWORK_KEYS.length - this.shown().length);
+
+  constructor() {
+    this.frameworks.ensureLoaded();
+  }
 
   protected toggle(key: string, on: boolean): void {
     const current = this.value().filter((k) => k !== key);
