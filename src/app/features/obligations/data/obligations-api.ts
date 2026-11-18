@@ -8,9 +8,11 @@ import {
   Change,
   ChangeCreate,
   ChangeUpdate,
+  ClauseDefaults,
   Evaluation,
   EvaluationCreate,
   EvaluationCreated,
+  ExportFormat,
   FollowUpIn,
   Obligation,
   ObligationCreate,
@@ -38,6 +40,9 @@ export function obligationListParams(query: ObligationListQuery): QueryParams {
     owner: query.owner || undefined,
     evaluation_overdue: query.evaluation_overdue,
     expiring_within_days: query.expiring_within_days,
+    without_schedule: query.without_schedule,
+    renewal_due: query.renewal_due,
+    clause_ref: query.clause_ref || undefined,
     sort: query.sort,
     limit: query.limit,
     offset: query.offset,
@@ -64,6 +69,25 @@ export class ObligationsApi {
     return this.api.get<ObligationSummary>(`${this.base(orgId)}/summary`, {
       ...IN_PLACE,
       params: { expiring_within_days: expiringWithinDays },
+    });
+  }
+
+  /** The clauses the clause picker proposes per ticked framework. */
+  clauseDefaults(orgId: string): Observable<ClauseDefaults> {
+    return this.api.get<ClauseDefaults>(`${this.base(orgId)}/clause-defaults`, IN_PLACE);
+  }
+
+  /** The register as a file ("Lovregister"), with the list filters (paging is ignored). */
+  export(
+    orgId: string,
+    format: ExportFormat,
+    lang: string,
+    query: ObligationListQuery = {},
+  ): Observable<Blob> {
+    const params = obligationListParams({ ...query, limit: undefined, offset: undefined });
+    return this.api.getBlob(`${this.base(orgId)}/export`, {
+      ...IN_PLACE,
+      params: { ...params, sort: undefined, format, lang },
     });
   }
 
@@ -99,6 +123,20 @@ export class ObligationsApi {
     );
   }
 
+  /** Link (or unlink with null) the deviation that follows up an evaluation. */
+  setEvaluationDeviation(
+    orgId: string,
+    id: string,
+    evaluationId: string,
+    deviationId: string | null,
+  ): Observable<Evaluation> {
+    return this.api.put<Evaluation>(
+      `${this.base(orgId)}/${id}/evaluations/${evaluationId}/deviation`,
+      { deviation_id: deviationId },
+      IN_PLACE,
+    );
+  }
+
   removeEvaluation(orgId: string, id: string, evaluationId: string): Observable<void> {
     return this.api.delete<void>(`${this.base(orgId)}/${id}/evaluations/${evaluationId}`, IN_PLACE);
   }
@@ -111,6 +149,20 @@ export class ObligationsApi {
 
   addAction(orgId: string, id: string, body: FollowUpIn): Observable<TaskDetail> {
     return this.api.post<TaskDetail>(`${this.base(orgId)}/${id}/actions`, body, IN_PLACE);
+  }
+
+  /** A follow-up task on one duty (assigned to the duty owner, due in 30 days by default). */
+  addDutyAction(
+    orgId: string,
+    id: string,
+    dutyId: string,
+    body: FollowUpIn,
+  ): Observable<TaskDetail> {
+    return this.api.post<TaskDetail>(
+      `${this.base(orgId)}/${id}/duties/${dutyId}/actions`,
+      body,
+      IN_PLACE,
+    );
   }
 
   // --- change monitoring notes ------------------------------------------------------

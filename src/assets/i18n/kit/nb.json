@@ -435,7 +435,8 @@
       "to_assessment": "KI-vurdering",
       "to_incident": "KI-hendelse for dette systemet",
       "to_risk": "KI-risiko for dette systemet",
-      "to_task": "Oppgave for dette systemet"
+      "to_task": "Oppgave for dette systemet",
+      "to_obligation": "Plikter etter KI-forordningen for dette systemet"
     },
     "asset": {
       "to_ict_system": "IKT-tjeneste for kontinuitet"
@@ -456,7 +457,11 @@
     },
     "obligation": {
       "to_policy": "Policy som oppfyller forpliktelsen",
-      "to_document": "Dokument som oppfyller forpliktelsen"
+      "to_document": "Dokument som oppfyller forpliktelsen",
+      "to_deviation": "Avvik for mangelen som ble funnet",
+      "to_risk": "Risiko for ikke å oppfylle forpliktelsen",
+      "to_task": "Oppgave",
+      "to_training": "Opplæring så de ansatte kjenner pliktene"
     },
     "customer_feedback": {
       "to_deviation": "Avvik fra denne tilbakemeldingen",
@@ -489,7 +494,7 @@
       "to_task": "Oppgave for oppfølging"
     },
     "interested_party": {
-      "to_obligation": "Forpliktelse fra interessentens krav",
+      "to_obligation": "Forpliktelse fra kravene til denne interessenten",
       "to_risk": "Risiko knyttet til interessenten",
       "to_task": "Oppgave for oppfølging"
     },
@@ -533,7 +538,8 @@
       "to_risk": "Risiko fra kontrakten",
       "to_deviation": "Avvik knyttet til kontrakten",
       "to_task": "Oppgave på kontrakten",
-      "to_dpa": "Databehandleravtale for kontrakten"
+      "to_dpa": "Databehandleravtale for kontrakten",
+      "to_obligation": "Forpliktelse fra denne avtalen"
     },
     "bia": {
       "to_plan": "Kontinuitetsplan for aktiviteten",
@@ -555,7 +561,8 @@
       "to_risk": "Risiko eller mulighet fra dette aspektet",
       "to_document": "Prosedyre som styrer aspektet",
       "to_task": "Oppgave til oppfølging",
-      "to_emergency_plan": "Beredskapsplan for dette aspektet"
+      "to_emergency_plan": "Beredskapsplan for dette aspektet",
+      "to_obligation": "Lovkrav eller tillatelse for dette miljøaspektet"
     },
     "emergency_plan": {
       "to_deviation": "Avvik fra denne hendelsen",

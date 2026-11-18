@@ -68,7 +68,7 @@ export function normaliseProposal(raw: unknown): RequirementProposal | null {
         data-testid="propose-requirements"
       />
       @if (!text() && !entityId()) {
-        <span class="text-[12px] text-fg-muted">{{
+        <span class="text-meta text-fg-muted">{{
           'obligations.proposal.needText' | transloco
         }}</span>
       }
@@ -80,10 +80,7 @@ export function normaliseProposal(raw: unknown): RequirementProposal | null {
         data-testid="proposal"
       >
         <div class="mb-2 flex items-center justify-between gap-2">
-          <h3
-            id="cf-o-proposal-h"
-            class="flex items-center gap-2 text-[14px] font-semibold text-fg"
-          >
+          <h3 id="cf-o-proposal-h" class="flex items-center gap-2 text-body font-semibold text-fg">
             <app-icon name="spark" [size]="14" class="text-accent" />
             {{ 'obligations.proposal.title' | transloco }}
           </h3>
@@ -96,13 +93,13 @@ export function normaliseProposal(raw: unknown): RequirementProposal | null {
             <app-icon name="x" [size]="14" />
           </app-button>
         </div>
-        <p class="mb-3 text-[12px] text-fg-muted">
+        <p class="mb-3 text-meta text-fg-muted">
           {{ 'obligations.proposal.review' | transloco }}
         </p>
         @if (p.summary) {
-          <p class="mb-3 text-[13px] whitespace-pre-line text-fg">{{ p.summary }}</p>
+          <p class="mb-3 text-ui whitespace-pre-line text-fg">{{ p.summary }}</p>
         }
-        <dl class="mb-3 grid grid-cols-1 gap-2 text-[12.5px] sm:grid-cols-2">
+        <dl class="mb-3 grid grid-cols-1 gap-2 text-meta sm:grid-cols-2">
           @if (p.obligation_type) {
             <div>
               <dt class="text-fg-subtle">{{ 'obligations.fields.obligationType' | transloco }}</dt>
@@ -136,13 +133,13 @@ export function normaliseProposal(raw: unknown): RequirementProposal | null {
         </dl>
         @if (p.requirements?.length) {
           <fieldset>
-            <legend class="mb-1 text-[13px] font-semibold text-fg">
+            <legend class="mb-1 text-ui font-semibold text-fg">
               {{ 'obligations.proposal.requirements' | transloco }}
             </legend>
             <ul class="flex flex-col gap-2">
               @for (r of p.requirements; track $index; let i = $index) {
                 <li>
-                  <label class="flex items-start gap-2 text-[13px] text-fg">
+                  <label class="flex items-start gap-2 text-ui text-fg">
                     <input
                       type="checkbox"
                       class="mt-0.5 h-4 w-4 flex-none accent-[var(--accent)]"
@@ -152,7 +149,7 @@ export function normaliseProposal(raw: unknown): RequirementProposal | null {
                     <span>
                       {{ r.text }}
                       @if (r.rationale) {
-                        <span class="block text-[12px] text-fg-muted">{{ r.rationale }}</span>
+                        <span class="block text-meta text-fg-muted">{{ r.rationale }}</span>
                       }
                     </span>
                   </label>
@@ -161,14 +158,14 @@ export function normaliseProposal(raw: unknown): RequirementProposal | null {
             </ul>
           </fieldset>
         } @else {
-          <p class="text-[13px] text-fg-muted">{{ 'obligations.proposal.none' | transloco }}</p>
+          <p class="text-ui text-fg-muted">{{ 'obligations.proposal.none' | transloco }}</p>
         }
         @if (p.evidence?.length) {
           <div class="mt-3">
-            <h4 class="mb-1 text-[13px] font-semibold text-fg">
+            <h4 class="mb-1 text-ui font-semibold text-fg">
               {{ 'obligations.proposal.evidence' | transloco }}
             </h4>
-            <ul class="list-disc pl-5 text-[12.5px] text-fg-muted">
+            <ul class="list-disc pl-5 text-meta text-fg-muted">
               @for (e of p.evidence; track $index) {
                 <li>{{ e }}</li>
               }

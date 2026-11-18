@@ -435,7 +435,8 @@
       "to_assessment": "AI assessment",
       "to_incident": "AI incident for this system",
       "to_risk": "AI risk for this system",
-      "to_task": "Task for this system"
+      "to_task": "Task for this system",
+      "to_obligation": "AI Act duties for this system"
     },
     "asset": {
       "to_ict_system": "ICT service for continuity"
@@ -456,7 +457,11 @@
     },
     "obligation": {
       "to_policy": "Policy that meets the obligation",
-      "to_document": "Document that meets the obligation"
+      "to_document": "Document that meets the obligation",
+      "to_deviation": "Deviation for the gap found",
+      "to_risk": "Risk of not meeting the obligation",
+      "to_task": "Task",
+      "to_training": "Training so people know the duties"
     },
     "customer_feedback": {
       "to_deviation": "Deviation from this feedback",
@@ -489,7 +494,7 @@
       "to_task": "Follow-up task"
     },
     "interested_party": {
-      "to_obligation": "Obligation from the party's requirements",
+      "to_obligation": "Obligation from this party's requirements",
       "to_risk": "Risk concerning the party",
       "to_task": "Follow-up task"
     },
@@ -533,7 +538,8 @@
       "to_risk": "Risk from this contract",
       "to_deviation": "Deviation about this contract",
       "to_task": "Task on this contract",
-      "to_dpa": "Data processing agreement for this contract"
+      "to_dpa": "Data processing agreement for this contract",
+      "to_obligation": "Obligation from this contract"
     },
     "bia": {
       "to_plan": "Continuity plan for the activity",
@@ -555,7 +561,8 @@
       "to_risk": "Risk or opportunity from this aspect",
       "to_document": "Procedure that controls this aspect",
       "to_task": "Task to follow it up",
-      "to_emergency_plan": "Emergency plan for this aspect"
+      "to_emergency_plan": "Emergency plan for this aspect",
+      "to_obligation": "Legal requirement or permit for this aspect"
     },
     "emergency_plan": {
       "to_deviation": "Deviation from this event",

@@ -20,7 +20,11 @@ function toasts() {
 const SUMMARY = {
   total: 3,
   by_status: { active: 3 },
-  by_compliance_status: { compliant: 2, non_compliant: 1 },
+  by_compliance_status: { compliant: 1, partially_compliant: 1, non_compliant: 1 },
+  not_fully_compliant: 2,
+  not_evaluated: 0,
+  without_schedule: 1,
+  renewal_due: 0,
   evaluations_overdue: 1,
   expiring_soon: 0,
   expiring_within_days: 60,
@@ -52,8 +56,8 @@ describe('ObligationsList', () => {
     const rows = el.querySelector('[data-testid="obligation-rows"]');
     expect(rows?.textContent).toContain('OB-0001');
     expect(rows?.textContent).toContain('Pollution Control Act permit');
-    expect(rows?.textContent).toContain('obligations.compliance.compliant');
-    expect(el.querySelector('[data-testid="obligation-summary"]')).toBeTruthy();
+    expect(rows?.textContent).toContain('Compliant');
+    expect(el.querySelector('[data-testid="tile-not-fully"]')?.textContent).toContain('2');
     expect(el.querySelector('[data-testid="new-obligation"]')).toBeTruthy();
   });
 
@@ -78,7 +82,25 @@ describe('ObligationsList', () => {
     await render(fixture);
     const overdue = http.expectOne((r) => r.url === listUrl);
     expect(overdue.request.params.get('evaluation_overdue')).toBe('true');
+    expect(overdue.request.params.get('compliance')).toBeNull();
     overdue.flush({ items: [], total: 0 });
+    await render(fixture);
+
+    el.querySelector<HTMLButtonElement>('[data-testid="tile-not-fully"]')!.click();
+    await render(fixture);
+    const notFully = http.expectOne((r) => r.url === listUrl);
+    expect(notFully.request.params.get('compliance')).toBe('partially_compliant,non_compliant');
+    expect(notFully.request.params.get('evaluation_overdue')).toBeNull();
+    notFully.flush({ items: [], total: 0 });
+    await render(fixture);
+
+    el.querySelector<HTMLButtonElement>('[data-testid="tile-without-schedule"]')!.click();
+    await render(fixture);
+    const unplanned = http.expectOne((r) => r.url === listUrl);
+    expect(unplanned.request.params.get('without_schedule')).toBe('true');
+    unplanned.flush({ items: [makeObligationItem({ needs_schedule: true })], total: 1 });
+    await render(fixture);
+    expect(el.querySelector('[data-testid="row-no-plan"]')).toBeTruthy();
   });
 
   it('shows the teaching empty state for an empty register and hides "new" without write', async () => {
@@ -129,16 +151,18 @@ describe('ObligationDetail', () => {
     return ctx;
   }
 
-  it('renders the obligation, its requirements and the evaluation history', async () => {
+  it('renders the obligation, its duties, the next step and the evaluation history', async () => {
     const { el } = await loaded();
-    expect(el.querySelector('[data-testid="obligation-heading"]')?.textContent).toContain(
+    expect(el.querySelector('[data-testid="page-title"]')?.textContent).toContain(
       'Pollution Control Act permit',
     );
-    expect(el.querySelector('[data-testid="requirements"]')?.textContent).toContain(
+    expect(el.querySelector('[data-testid="duty-rows"]')?.textContent).toContain(
       'Measure noise every quarter',
     );
+    expect(el.querySelector('[data-testid="duty-rows"]')?.textContent).toContain('OB-0001-2');
+    expect(el.querySelector('[data-testid="next-step"]')?.getAttribute('data-kind')).toBe('ok');
     expect(el.querySelector('[data-testid="obligation-compliance"]')?.textContent).toContain(
-      'obligations.compliance.compliant',
+      'Compliant',
     );
     expect(el.querySelector('[data-testid="evaluation-rows"]')?.textContent).toContain(
       'Noise within limits.',
@@ -150,12 +174,21 @@ describe('ObligationDetail', () => {
     const { el, http, fixture, notify } = await loaded();
     el.querySelector<HTMLElement>('[data-testid="evaluation-add"] button')!.click();
     await render(fixture);
-    const result = el.querySelector<HTMLSelectElement>('[data-testid="evaluation-result"]')!;
-    result.value = 'non_compliant';
-    result.dispatchEvent(new Event('change'));
+    const duty = el.querySelector<HTMLSelectElement>('[data-testid="evaluation-duty-OB-0001-1"]')!;
+    duty.value = 'non_compliant';
+    duty.dispatchEvent(new Event('change'));
     await render(fixture);
     expect(el.querySelector('[data-testid="evaluation-followup"]')).toBeTruthy();
+    // Without findings the evaluation is not sent.
+    el.querySelector<HTMLElement>('[data-testid="evaluation-save"] button')!.click();
+    await render(fixture);
+    http.expectNone({ method: 'POST', url: kitUrl('obligations/o-1/evaluations') });
+    expect(el.textContent).toContain('obligations.evaluations.problems.findings');
+    const notes = el.querySelector<HTMLTextAreaElement>('[data-testid="evaluation-notes"]')!;
+    notes.value = 'Q3 measurement missing';
+    notes.dispatchEvent(new Event('input'));
     const title = el.querySelector<HTMLInputElement>('[data-testid="evaluation-followup-title"]')!;
+    expect(title.value).toBe('OB-0001-1: Measure noise every quarter');
     title.value = 'Replace the filter';
     title.dispatchEvent(new Event('input'));
     await render(fixture);
@@ -163,9 +196,17 @@ describe('ObligationDetail', () => {
     await render(fixture);
 
     const req = http.expectOne({ method: 'POST', url: kitUrl('obligations/o-1/evaluations') });
-    expect(req.request.body.result).toBe('non_compliant');
+    // The overall result is derived on the server from the duty results.
+    expect(req.request.body.result).toBeNull();
+    expect(req.request.body.duty_results).toEqual([
+      { duty_id: 'd-1', result: 'non_compliant', note: null },
+    ]);
+    expect(req.request.body.notes).toBe('Q3 measurement missing');
     expect(req.request.body.evaluated_on).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     expect(req.request.body.follow_up.title).toBe('Replace the filter');
+    expect(req.request.body.follow_up.assignee).toEqual({ type: 'user', value: 'u-1' });
+    expect(req.request.body.follow_up.due_at).toBeTruthy();
+    expect(req.request.body.create_deviation).toBe(false);
     req.flush({
       evaluation: makeEvaluation({ id: 'e-2', result: 'non_compliant', notes: null }),
       follow_up_task_id: 't-9',
@@ -180,14 +221,14 @@ describe('ObligationDetail', () => {
       code: 'OB-0001',
     });
     expect(el.querySelector('[data-testid="obligation-compliance"]')?.textContent).toContain(
-      'obligations.compliance.non_compliant',
+      'Non compliant',
     );
   });
 
   it('hides recording for a retired obligation', async () => {
     const { el } = await loaded(makeObligation({ status: 'retired' }));
     expect(el.querySelector('[data-testid="evaluation-add"]')).toBeNull();
-    expect(el.textContent).toContain('obligations.detail.retiredNotice');
+    expect(el.textContent).toContain('obligations.next.retired.title');
   });
 
   it('shows a coded error when the obligation cannot be loaded', async () => {

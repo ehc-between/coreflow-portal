@@ -26,19 +26,33 @@ import {
   isClosedStatus,
   taskPriorityKey,
   taskStatusKey,
-  taskStatusTone,
 } from '../../shared/tasks/task-display';
-import { Badge } from '../../shared/ui/badge/badge';
 import { Button } from '../../shared/ui/button/button';
 import { FormField } from '../../shared/ui/form-field/form-field';
 import { Icon } from '../../shared/ui/icon/icon';
+import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
 import { ObligationsApi } from './data/obligations-api';
-import { FollowUpIn } from './data/obligation.models';
+import { DEFAULT_FOLLOW_UP_DAYS, FollowUpIn } from './data/obligation.models';
+import { addDaysIso } from './data/obligation-display';
 import { provideSharedScope } from '../../core/i18n/shared-scope';
 import { obligationErrorKey } from './data/obligation-errors';
 
 /** Task kinds of the module: the scheduled evaluation and follow-up actions. */
 export const EVALUATION_TASK_KIND = 'obligation_evaluation';
+
+/** Task kind -> `obligations.actions.kinds.<key>`. */
+const KIND_KEYS: Readonly<Record<string, string>> = {
+  obligation_evaluation: 'evaluation',
+  obligation_renewal: 'renewal',
+  obligation_change: 'change',
+  obligation_action: 'action',
+};
+
+/** i18n key of a task's kind; a follow-up on a duty says so. */
+export function taskKindKey(kind: string | null | undefined, onDuty: boolean): string {
+  const key = KIND_KEYS[kind ?? ''] ?? 'action';
+  return `obligations.actions.kinds.${key === 'action' && onDuty ? 'dutyAction' : key}`;
+}
 
 /** Open tasks first (soonest due first), then closed ones. */
 export function sortTasks(tasks: readonly Task[]): Task[] {
@@ -51,8 +65,11 @@ export function sortTasks(tasks: readonly Task[]): Task[] {
 
 /**
  * The obligation's work (Tasks tab): the scheduled compliance evaluations
- * (kind `obligation_evaluation`, one open at a time) and follow-up actions
- * (`obligation_action`), all platform tasks that show in the assignee's My Work.
+ * (kind `obligation_evaluation`, one open at a time), renewal tasks before a permit
+ * or contract runs out, "prepare for the change" tasks from change notes and
+ * follow-up actions (on the obligation or one of its duties). All are platform
+ * tasks that show in the assignee's My Work. The evaluation history itself is on
+ * the Details tab.
  */
 @Component({
   selector: 'app-obligation-actions',
@@ -63,32 +80,31 @@ export function sortTasks(tasks: readonly Task[]): Task[] {
     LocalDayPipe,
     AssigneeLabel,
     AssigneeSelect,
-    Badge,
     Button,
     FormField,
     Icon,
+    StatusBadge,
   ],
   viewProviders: [provideSharedScope('tasks')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section aria-labelledby="cf-ob-actions-h">
-      <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <h2 id="cf-ob-actions-h" class="font-display text-[15px] font-bold text-fg">
+      <div class="mb-1 flex flex-wrap items-center justify-between gap-2">
+        <h2
+          id="cf-ob-actions-h"
+          class="flex items-center gap-1.5 font-display text-card font-bold text-fg"
+        >
           {{ 'obligations.actions.title' | transloco }}
+          <app-field-help scope="obligations" page="detail" field="actions" />
         </h2>
         @if (canEdit() && !adding()) {
-          <app-button
-            variant="secondary"
-            size="sm"
-            (click)="adding.set(true)"
-            data-testid="action-add"
-          >
+          <app-button variant="secondary" size="sm" (click)="startAdd()" data-testid="action-add">
             <app-icon name="plus" [size]="14" />
             {{ 'obligations.actions.add' | transloco }}
           </app-button>
         }
       </div>
-      <app-field-help scope="obligations" page="detail" field="actions" />
+      <p class="mb-3 text-meta text-fg-muted">{{ 'obligations.actions.subtitle' | transloco }}</p>
 
       @if (adding()) {
         <form
@@ -173,18 +189,18 @@ export function sortTasks(tasks: readonly Task[]): Task[] {
 
       @switch (state()) {
         @case ('loading') {
-          <p class="text-[13px] text-fg-muted" role="status">
+          <p class="text-ui text-fg-muted" role="status">
             {{ 'obligations.common.loading' | transloco }}
           </p>
         }
         @case ('error') {
-          <p class="text-[13px] text-fail" role="alert">
+          <p class="text-ui text-fail-ink" role="alert">
             {{ 'obligations.common.loadFailed' | transloco }}
           </p>
         }
         @default {
           @if (tasks().length === 0) {
-            <p class="text-[13px] text-fg-muted">{{ 'obligations.actions.none' | transloco }}</p>
+            <p class="text-ui text-fg-muted">{{ 'obligations.actions.none' | transloco }}</p>
           } @else {
             <ul
               class="divide-y divide-border rounded-tile border border-border"
@@ -198,29 +214,33 @@ export function sortTasks(tasks: readonly Task[]): Task[] {
                   <span class="min-w-0 flex-1">
                     <a
                       [routerLink]="['/tasks', t.id]"
-                      class="block truncate text-[13.5px] font-semibold text-fg hover:underline"
+                      class="block truncate text-body font-semibold text-fg hover:underline"
                     >
                       {{ t.title }}
                     </a>
-                    <span class="flex flex-wrap items-center gap-x-3 text-[12px] text-fg-subtle">
+                    <span class="flex flex-wrap items-center gap-x-3 text-meta text-fg-subtle">
                       <span class="inline-flex items-center gap-1">
                         @if (t.kind === evaluationKind) {
                           <app-icon name="history" [size]="12" />
-                          {{ 'obligations.actions.kinds.evaluation' | transloco }}
-                        } @else {
-                          {{ 'obligations.actions.kinds.action' | transloco }}
                         }
+                        {{ kindKey(t.kind, t.entity_type === 'obligation_duty') | transloco }}
                       </span>
                       <app-assignee-label [assignee]="t.assignee" />
                     </span>
                   </span>
-                  <span class="flex items-center gap-2 text-[12.5px]">
-                    <app-badge [tone]="statusTone(t.status)">{{
-                      statusKey(t.status) | transloco
-                    }}</app-badge>
+                  <span class="flex items-center gap-2 text-meta">
+                    <app-status-badge
+                      meaning="lifecycle"
+                      [value]="t.overdue && !closed(t.status) ? 'overdue' : t.status"
+                      [labelKey]="
+                        t.overdue && !closed(t.status)
+                          ? 'common.status.overdue'
+                          : statusKey(t.status)
+                      "
+                    />
                     <span
-                      class="w-[100px] text-right"
-                      [class.text-fail]="t.overdue"
+                      class="text-right sm:w-[100px]"
+                      [class.text-warn-ink]="t.overdue"
                       [class.font-semibold]="t.overdue"
                     >
                       @if (t.due_at) {
@@ -254,7 +274,7 @@ export class ObligationActions {
   protected readonly priorities = TASK_PRIORITIES;
   protected readonly priorityKey = taskPriorityKey;
   protected readonly statusKey = taskStatusKey;
-  protected readonly statusTone = taskStatusTone;
+  protected readonly kindKey = taskKindKey;
   protected readonly closed = isClosedStatus;
 
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
@@ -279,6 +299,12 @@ export class ObligationActions {
       this.refresh();
       untracked(() => this.load(orgId, id));
     });
+  }
+
+  protected startAdd(): void {
+    this.reset();
+    this.dueDay.set(addDaysIso(DEFAULT_FOLLOW_UP_DAYS));
+    this.adding.set(true);
   }
 
   protected reset(): void {

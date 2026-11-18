@@ -2,7 +2,7 @@
   "common": {
     "loading": "Loading…",
     "loadFailed": "Could not load the data. Try again in a moment.",
-    "backToList": "Back to compliance obligations",
+    "backToList": "Back to laws and regulations",
     "backToObligation": "Back to the obligation",
     "edit": "Edit",
     "delete": "Delete",
@@ -10,22 +10,31 @@
     "overdue": "Overdue"
   },
   "list": {
-    "title": "Compliance obligations",
-    "subtitle": "Laws, regulations, permits, contracts and voluntary commitments the organisation must meet, with who owns them and when compliance was last evaluated.",
-    "searchPlaceholder": "Search by title, code, issuer or reference",
+    "subtitle": "The laws, regulations, permits, contracts and commitments the organisation must meet: who owns each one, which duties it brings and when compliance was last evaluated.",
+    "searchPlaceholder": "Search laws and obligations",
     "new": "New obligation",
-    "noMatch": "No obligations match these filters.",
-    "owner": "Owner: {{ name }}",
-    "nextEvaluation": "Evaluation due {{ date }}",
-    "validUntil": "Valid until {{ date }}",
-    "noSchedule": "No evaluation scheduled"
+    "noMatch": "No obligations match these filters",
+    "noMatchBody": "Try fewer filters, or clear them to see the whole register.",
+    "resetFilters": "Clear filters",
+    "showing": "{{ count }} shown",
+    "duties": "{{ count }} duties",
+    "noPlan": "No evaluation plan",
+    "renewalDue": "Renewal due"
+  },
+  "export": {
+    "button": "Export register",
+    "xlsx": "Excel (.xlsx)",
+    "pdf": "PDF for management review",
+    "csv": "CSV",
+    "started": "Preparing the export…"
   },
   "summary": {
-    "total": "Obligations",
+    "notFullyCompliant": "Not fully compliant",
+    "notEvaluated": "Not evaluated",
+    "withoutSchedule": "No evaluation plan",
     "overdue": "Evaluations overdue",
-    "nonCompliant": "Non-compliant",
-    "expiring": "Ending within {{ days }} days",
-    "openChanges": "Open change notes"
+    "renewalDue": "Renewal due",
+    "expiring": "Ending within {{ days }} days"
   },
   "filters": {
     "status": "Status",
@@ -37,8 +46,9 @@
     "allTypes": "All types",
     "compliance": "Compliance",
     "anyCompliance": "Any compliance status",
-    "framework": "Framework",
-    "anyFramework": "Any framework",
+    "notFully": "Not fully compliant",
+    "framework": "Standard",
+    "anyFramework": "Any standard",
     "owner": "Owner",
     "anyOwner": "Any owner",
     "mine": "Owned by me",
@@ -46,7 +56,10 @@
     "expiringWithin": "Ending within {{ days }} days",
     "anyExpiry": "Any validity end",
     "sort": "Sort",
-    "overdue": "Evaluation overdue"
+    "attention": "Needs attention",
+    "overdue": "Evaluation overdue",
+    "withoutSchedule": "No evaluation plan",
+    "renewalDue": "Renewal due"
   },
   "sorts": {
     "updated_atDesc": "Recently updated",
@@ -94,8 +107,8 @@
     "unknown": "Unknown impact"
   },
   "changeStatus": {
-    "open": "Open",
-    "assessed": "Assessed",
+    "open": "To handle",
+    "assessed": "Handled",
     "unknown": "Unknown"
   },
   "frameworks": {
@@ -107,7 +120,14 @@
     "gdpr": "GDPR",
     "eu_ai_act": "EU AI Act",
     "nis2": "NIS2",
-    "unknown": "Other framework"
+    "unknown": "Other standard"
+  },
+  "jurisdictions": {
+    "NO": "Norway",
+    "EU": "EU",
+    "EEA": "EEA",
+    "INT": "International",
+    "other": "Other (municipality, region, country …)"
   },
   "fields": {
     "code": "Code",
@@ -117,151 +137,427 @@
     "complianceStatus": "Compliance status",
     "description": "Description",
     "applicability": "How it applies to us",
-    "requirements": "Applicable requirements",
-    "frameworks": "Related frameworks",
-    "jurisdiction": "Jurisdiction",
-    "issuer": "Issued by",
-    "reference": "Reference",
-    "sourceUrl": "Source link",
+    "requirements": "Duties",
+    "frameworks": "Standards it concerns",
+    "clauseRefs": "Clauses and articles it documents",
+    "jurisdiction": "Applies in",
+    "issuer": "Authority",
+    "reference": "Law, regulation or permit number",
+    "sourceUrl": "Link to the legal text",
     "owner": "Owner",
     "department": "Department",
     "validFrom": "Valid from",
     "validUntil": "Valid until",
+    "renewalLeadDays": "Apply for renewal (days before the end)",
+    "renewalDueOn": "Apply for renewal by",
     "evaluationRrule": "Evaluation frequency",
     "evaluationStart": "First evaluation due",
     "evaluationLeadDays": "Show in My Work (days before)"
   },
   "form": {
-    "newTitle": "New compliance obligation",
+    "newTitle": "New obligation",
     "editTitle": "Edit {{ code }}",
     "readOnly": "You can view this obligation but not change it.",
     "create": "Create obligation",
     "sections": {
       "basics": "The obligation",
       "source": "Source and validity",
-      "requirements": "Requirements and applicability",
+      "requirements": "Duties and how they apply",
+      "standards": "Requirements in the standards",
       "evaluation": "Periodic compliance evaluation"
     },
+    "titlePlaceholder": "For example: Working Environment Act",
     "ownerMe": "Me",
     "currentOwner": "Current owner",
     "noDepartment": "No department",
-    "jurisdictionPlaceholder": "For example NO, EU or Oslo municipality",
-    "noRequirements": "No requirements listed yet. Add the specific duties this obligation places on you.",
-    "requirementLabel": "Requirement {{ n }}",
-    "removeRequirement": "Remove requirement {{ n }}",
-    "addRequirement": "Add requirement",
+    "jurisdictionNone": "Not set",
+    "jurisdictionOther": "Where it applies",
+    "jurisdictionPlaceholder": "For example: Oslo municipality",
+    "issuerPlaceholder": "For example: the Labour Inspection Authority",
+    "referencePlaceholder": "For example: LOV-2005-06-17-62 or permit 2019.0412.T",
+    "renewalHint": "Leave empty to use {{ days }} days. A renewal task is added to the owner's My Work.",
+    "applicabilityPlaceholder": "Which sites, activities, products or people are covered, and what is out of scope.",
+    "noRequirements": "No duties yet. Add the concrete things the obligation requires of you, or pick a law from the library.",
+    "requirementLabel": "Duty {{ n }}",
+    "requirementPlaceholder": "Something you must do, measure, report or keep",
+    "removeRequirement": "Remove duty {{ n }}",
+    "addRequirement": "Add duty",
+    "dutyOwner": "Responsible",
+    "dutyOwnerDefault": "The obligation's owner",
+    "dutyClauses": "Clauses it documents",
+    "standardsHelp": "Tick the standards this obligation concerns. CoreFlow proposes the usual clauses; adjust them as needed. The clauses you keep count as documentation in the standards.",
+    "clausesProposed": "{{ count }} clauses were proposed. Remove any that do not fit.",
     "scheduleEvaluation": "Evaluate compliance on a regular schedule",
     "evaluationStartHint": "Leave empty to start from today.",
     "scheduleStops": "Saving stops the evaluation schedule and cancels the open evaluation task.",
+    "noScheduleWarning": "Without a plan nobody is reminded to check compliance. The standards expect evaluation at planned intervals.",
     "changeReason": "Reason for the change",
     "changeReasonPlaceholder": "For example: amended regulation in force from 1 January",
     "retireNotice": "Retiring the obligation stops its evaluation schedule and cancels the open evaluation task. Setting it back to active resumes the schedule.",
     "errors": {
-      "titleRequired": "Give the obligation a title."
+      "titleRequired": "Give the obligation a title.",
+      "renewalLeadDays": "Choose between 0 and {{ max }} days.",
+      "fix": "Could not save. Check the fields marked in red."
+    }
+  },
+  "library": {
+    "title": "Start from a common law",
+    "body": "Pick one to fill in the authority, the link to the legal text, typical duties and the standards' clauses. Adjust everything to your organisation before saving.",
+    "applied": "The form is filled in. Check the duties and describe how they apply to you.",
+    "entries": {
+      "arbeidsmiljoloven": {
+        "short": "Working Environment Act",
+        "title": "Working Environment Act (arbeidsmiljøloven)",
+        "issuer": "Norwegian Labour Inspection Authority",
+        "description": "Requirements for a safe and healthy working environment, working hours and employee involvement.",
+        "duties": {
+          "d1": "Assess the risks in the working environment and follow up with an action plan.",
+          "d2": "Have a safety representative, and a working environment committee when there are 50 or more employees.",
+          "d3": "Register and follow up injuries and accidents.",
+          "d4": "Keep records of working hours and overtime."
+        }
+      },
+      "internkontrollforskriften": {
+        "short": "Internal Control Regulations",
+        "title": "Internal Control Regulations (internkontrollforskriften)",
+        "issuer": "Norwegian Labour Inspection Authority",
+        "description": "Systematic health, safety and environment work: goals, responsibilities, risk assessment and an annual review.",
+        "duties": {
+          "d1": "Set written goals for health, safety and the environment.",
+          "d2": "Describe how HSE work is organised and who is responsible for what.",
+          "d3": "Identify hazards, assess the risk and make plans to reduce it.",
+          "d4": "Monitor and review the internal control at least once a year."
+        }
+      },
+      "personopplysningsloven": {
+        "short": "Personal Data Act (GDPR)",
+        "title": "Personal Data Act and GDPR (personopplysningsloven)",
+        "issuer": "Norwegian Data Protection Authority",
+        "description": "Rules for processing personal data, in force in Norway through the Personal Data Act.",
+        "duties": {
+          "d1": "Keep a record of processing activities (Art. 30).",
+          "d2": "Have a lawful basis for each processing and inform the people concerned (Art. 6 and 13).",
+          "d3": "Answer requests from data subjects within one month (Art. 12).",
+          "d4": "Report personal data breaches to the Data Protection Authority within 72 hours (Art. 33).",
+          "d5": "Have data processing agreements with all processors (Art. 28)."
+        }
+      },
+      "forurensningsloven": {
+        "short": "Discharge permit (Pollution Control Act)",
+        "title": "Discharge permit under the Pollution Control Act",
+        "issuer": "County Governor (Statsforvalteren)",
+        "description": "A permit that sets limits for discharges and requires measurement and annual reporting.",
+        "duties": {
+          "d1": "Keep discharges within the limits set in the permit.",
+          "d2": "Measure discharges as the permit's measurement programme requires.",
+          "d3": "Report annual discharges to the authority by the deadline."
+        }
+      },
+      "brannvernloven": {
+        "short": "Fire and Explosion Protection Act",
+        "title": "Fire and Explosion Protection Act (brann- og eksplosjonsvernloven)",
+        "issuer": "Norwegian Directorate for Civil Protection (DSB) and the local fire service",
+        "description": "Duties to prevent fire and explosions and to be prepared if they happen.",
+        "duties": {
+          "d1": "Check and maintain fire safety equipment.",
+          "d2": "Hold fire drills and train employees.",
+          "d3": "Store hazardous substances safely and keep the register of them up to date."
+        }
+      },
+      "apenhetsloven": {
+        "short": "Transparency Act",
+        "title": "Transparency Act (åpenhetsloven)",
+        "issuer": "Norwegian Consumer Authority",
+        "description": "Larger companies must carry out due diligence for human rights and decent working conditions in the supply chain.",
+        "duties": {
+          "d1": "Carry out due diligence assessments of suppliers and business partners.",
+          "d2": "Publish an account of the due diligence by 30 June each year.",
+          "d3": "Answer requests for information within three weeks."
+        }
+      },
+      "bokforingsloven": {
+        "short": "Bookkeeping Act",
+        "title": "Bookkeeping Act (bokføringsloven)",
+        "issuer": "Norwegian Tax Administration",
+        "description": "Requirements for bookkeeping, documentation and how long accounting records are kept.",
+        "duties": {
+          "d1": "Record transactions on time with proper documentation.",
+          "d2": "Keep the primary accounting records for five years."
+        }
+      },
+      "digitalsikkerhetsloven": {
+        "short": "Digital Security Act (NIS)",
+        "title": "Digital Security Act (digitalsikkerhetsloven)",
+        "issuer": "Norwegian National Security Authority (NSM)",
+        "description": "Security requirements for providers of essential and digital services. It implements the NIS directive; NIS2 is expected to follow.",
+        "duties": {
+          "d1": "Take appropriate technical and organisational security measures.",
+          "d2": "Report serious incidents to the authority without undue delay.",
+          "d3": "Make sure management follows up and is trained in the security work."
+        }
+      },
+      "ki_forordningen": {
+        "short": "AI Act (as deployer)",
+        "title": "EU AI Act: duties as a deployer of AI systems",
+        "issuer": "EU (the national supervisory authority is to be appointed)",
+        "description": "Duties for organisations that use AI systems, especially high-risk systems.",
+        "duties": {
+          "d1": "Make sure the people who use AI systems have sufficient AI literacy (Art. 4).",
+          "d2": "Use high-risk AI systems according to the instructions, with human oversight and monitoring (Art. 26).",
+          "d3": "Tell people when they interact with AI or see AI-generated content (Art. 50)."
+        }
+      }
     }
   },
   "ask": {
+    "title": "Ask CoreFlow",
+    "explain": "Explain this obligation in plain language: what it requires of us, and how we can show that we comply.",
+    "missingEvidence": "Which duties in this obligation lack documentation or have not been evaluated?",
+    "nextStep": "What should we do next to be compliant with this obligation?",
     "applicability": "Help me describe how this obligation applies to our organisation, and what is in or out of scope.",
-    "explain": "Explain this compliance obligation in plain language: what it requires of us, and how we can show that we comply."
+    "applicabilityLabel": "Ask for help describing how it applies"
   },
   "proposal": {
-    "run": "Propose requirements",
+    "run": "Suggest duties",
     "needText": "Fill in a title or description first.",
-    "title": "Suggested requirements",
+    "title": "Suggested duties",
     "dismiss": "Dismiss",
-    "review": "These are suggestions. Check each one against the source text before you rely on it; nothing is saved until you save the form.",
+    "review": "These are suggestions. Check each one against the legal text before you rely on it; nothing is saved until you save the form.",
     "frequency": "Suggested evaluation frequency",
-    "requirements": "Requirements to add",
-    "none": "No specific requirements were suggested.",
-    "evidence": "Evidence usually kept",
+    "requirements": "Duties to add",
+    "none": "No specific duties were suggested.",
+    "evidence": "Documentation usually kept",
     "apply": "Add {{ count }} to the form",
     "applied": "The suggestions were added to the form. Review them before saving."
   },
   "summarise": {
-    "title": "Plain-language summary",
-    "run": "Summarise",
-    "hint": "Get a short explanation of what this obligation requires, who it applies to, its key duties and deadlines, and the evidence normally kept."
+    "run": "Explain in plain words"
   },
   "detail": {
-    "summary": "Summary",
-    "retiredNotice": "This obligation is retired. It is kept for the record but is no longer evaluated.",
-    "draftNotice": "This obligation is a draft. Set it to active once the requirements and owner are confirmed.",
+    "about": "About the obligation",
+    "renewalBadge": "Renewal due",
+    "retire": "Mark as retired",
+    "reactivate": "Make active again",
     "noEnd": "No end date",
     "endsIn": "in {{ days }} days",
     "endedAgo": "ended {{ days }} days ago",
-    "openSource": "Open the source",
+    "validUntilWithDays": "{{ date }} ({{ days }})",
     "noApplicability": "Not described yet.",
-    "noRequirements": "No requirements listed yet.",
-    "addRequirements": "Add requirements",
-    "schedule": "Evaluation schedule",
-    "noSchedule": "No periodic evaluation is scheduled.",
+    "schedule": "Evaluation plan",
+    "noSchedule": "No evaluation plan",
     "nextDue": "Next evaluation due {{ date }}",
     "overdueSince": "Evaluation overdue since {{ date }}",
     "lastEvaluated": "Last evaluated",
     "never": "Never",
     "latestResult": "Latest result",
     "evaluationCount": "Evaluations recorded",
-    "openChanges": "Open change notes",
-    "deleteTitle": "Delete this obligation?",
-    "deleteMessage": "{{ code }} is removed from the register, its open tasks are cancelled and its evaluation schedule stops. The history stays in the audit log."
+    "openChanges": "Changes to handle",
+    "deleteTitle": "Delete {{ code }}?",
+    "deleteMessage": "Deleting removes the obligation from the register, cancels its open tasks and stops its evaluation plan. Only delete an obligation that was registered by mistake.",
+    "deleteAnyway": "Delete anyway",
+    "retireInstead": "Does the obligation no longer apply? Mark it as retired instead. The history and evaluations are kept for the auditor.",
+    "retireInsteadAction": "Mark as retired instead"
+  },
+  "next": {
+    "retired": {
+      "title": "This obligation is retired",
+      "body": "It is kept for the record but no longer evaluated. Make it active again if it applies once more."
+    },
+    "draft": {
+      "title": "This obligation is a draft",
+      "body": "Make it active once the duties and the owner are confirmed. Only active obligations are evaluated."
+    },
+    "overdue": {
+      "title": "The evaluation is overdue (due {{ date }})",
+      "body": "Check whether the organisation still meets each duty and record the result with documentation."
+    },
+    "firstEvaluation": {
+      "title": "Not evaluated yet",
+      "body": "Record the first compliance evaluation: go through the duties and note what is in place."
+    },
+    "noFollowUp": {
+      "title": "The latest evaluation found gaps with no follow-up",
+      "body": "Register a deviation or a follow-up task so the gap is closed, or justify why nothing is needed."
+    },
+    "noSchedule": {
+      "title": "No evaluation plan",
+      "body": "Nobody is reminded to check compliance. ISO 14001 and ISO 45001 expect evaluation at planned intervals."
+    },
+    "renewal": {
+      "title": "Apply for renewal by {{ date }}",
+      "body": "The permit or contract runs out soon. A renewal task is in the owner's My Work."
+    },
+    "expired": {
+      "title": "The validity ended on {{ date }}",
+      "body": "Update the validity if it was renewed, or mark the obligation as retired."
+    },
+    "changes": {
+      "title": "Changes to handle: {{ count }}",
+      "body": "Assess what the change means for you and update the duties before it takes effect."
+    },
+    "ok": {
+      "title": "All in order",
+      "body": "The obligation is evaluated, followed up and has a plan. The next evaluation is due {{ date }}."
+    },
+    "actions": {
+      "evaluate": "Record evaluation",
+      "createDeviation": "Register deviation",
+      "planYearly": "Plan a yearly evaluation",
+      "activate": "Make active",
+      "updateValidity": "Update validity",
+      "showChanges": "Show changes"
+    }
+  },
+  "duties": {
+    "title": "Duties",
+    "subtitle": "What the obligation requires of you, one checkable duty at a time. Each is evaluated and documented on its own.",
+    "editAll": "Edit duties",
+    "add": "Add duties",
+    "none": "No duties yet. Add the concrete things the obligation requires, so each one can be evaluated and documented.",
+    "owner": "Responsible: {{ name }}",
+    "ownerDefault": "Responsible: the obligation's owner",
+    "lastEvaluated": "Evaluated {{ date }}",
+    "neverEvaluated": "Not evaluated yet",
+    "openActions": "Open tasks: {{ count }}",
+    "clauses": "Clauses it documents",
+    "lastNote": "Latest finding",
+    "documentation": "Documented by",
+    "noDocumentation": "Nothing linked yet.",
+    "linkDocumentation": "Link documentation",
+    "newTask": "New task",
+    "linkHelp": "Find the procedure, record or other document that shows the duty is met.",
+    "linkAction": "Link",
+    "taskPlaceholder": "For example: update the routine for safety rounds",
+    "taskDefaults": "Without a choice the task goes to the person responsible for the duty, due in 30 days."
+  },
+  "picker": {
+    "label": "Search for a record",
+    "placeholder": "Search documents, procedures, inspections, records …",
+    "hint": "Type at least two characters.",
+    "choose": "Choose",
+    "chosen": "Chosen"
   },
   "evaluations": {
     "title": "Compliance evaluations",
     "record": "Record evaluation",
     "retired": "Retired obligations are not evaluated.",
-    "result": "Result",
+    "formTitle": "New compliance evaluation",
     "evaluatedOn": "Evaluated on",
+    "dutiesTitle": "Result per duty",
+    "dutiesHelp": "Go through each duty. The overall result follows from them unless you choose one yourself.",
+    "dutyResult": "Result for {{ code }}",
+    "dutyNotChecked": "Not checked",
+    "dutyNote": "What is missing for {{ code }}",
+    "dutyNotePlaceholder": "What is missing?",
+    "result": "Overall result",
+    "derived": "From the duties: {{ result }}",
+    "derivedNone": "From the duties (none checked yet)",
+    "chooseResult": "Choose a result",
     "notes": "Findings",
-    "evidenceSummary": "Evidence",
-    "evidenceFiles": "Evidence files",
-    "noFiles": "No files are attached to this obligation yet. Upload evidence in the Attachments tab to link it here.",
-    "followUp": "Follow-up action",
-    "createFollowUp": "Create a follow-up action to close the gap",
+    "notesRequired": "Findings (required)",
+    "notesPlaceholder": "What did you check, and what is in place or missing?",
+    "evidenceTitle": "Documentation",
+    "evidenceRecords": "Records in CoreFlow",
+    "removeEvidence": "Remove {{ title }}",
+    "evidencePlaceholder": "Search for a document, inspection, record …",
+    "evidenceHint": "Link the records you looked at. Each one is linked to the obligation as documentation.",
+    "evidenceLinks": "Web links",
+    "addLink": "Add link",
+    "removeLink": "Remove link",
+    "evidenceFiles": "Files on this obligation",
+    "noFiles": "No files are attached yet. Upload them in the Attachments tab to choose them here.",
+    "evidenceSummary": "What you looked at",
+    "evidenceSummaryPlaceholder": "For example: measurement report Q3 and the sampling log",
+    "followUpTitle": "How is the gap followed up?",
+    "followUpHelp": "When the result is not fully compliant, choose one way forward. It is required.",
+    "resolutions": {
+      "task": "Create a follow-up task",
+      "deviation_new": "Register a deviation",
+      "deviation_existing": "Link an existing deviation",
+      "justification": "No action now"
+    },
+    "resolutionHelp": {
+      "task": "For a small gap one person can close.",
+      "deviation_new": "For a real nonconformity: the deviation form opens after saving and is linked to this evaluation.",
+      "deviation_existing": "When the gap is already registered as a deviation.",
+      "justification": "Explain why no action is needed, for example an accepted risk."
+    },
+    "taskPlaceholder": "For example: close the gap in the safety rounds",
+    "deviationNewNote": "When you save, the deviation form opens with the findings filled in.",
+    "changeDeviation": "Choose another",
+    "deviationPlaceholder": "Search deviations by code or title",
+    "deviationHint": "Type at least two characters.",
+    "justification": "Justification",
+    "justificationPlaceholder": "Why is no action needed now?",
+    "problems": {
+      "date": "Choose a date that is not in the future.",
+      "result": "Choose a result, or a result for at least one duty.",
+      "findings": "Describe the findings: what is missing?",
+      "task": "Write what the follow-up task is about.",
+      "deviation_existing": "Choose the deviation to link.",
+      "justification": "Write the justification."
+    },
+    "saveAndDeviation": "Save and register deviation",
     "save": "Save evaluation",
     "none": "No evaluations recorded yet.",
     "by": "by {{ name }}",
     "remove": "Delete evaluation",
+    "followUp": "Follow-up:",
+    "openTask": "Open the follow-up task",
+    "justified": "No action, justified",
+    "noFollowUp": "None yet",
+    "createDeviation": "Register deviation",
+    "linkDeviation": "Link deviation",
+    "linkAction": "Link",
     "removeTitle": "Delete this evaluation?",
     "removeMessage": "Only delete an evaluation that was recorded in error. The compliance status falls back to the latest remaining evaluation."
   },
   "actions": {
-    "title": "Evaluations and follow-up actions",
-    "add": "Add action",
+    "title": "Planned evaluations and tasks",
+    "subtitle": "Evaluation, renewal and follow-up tasks for this obligation and its duties. They show in each person's My Work. The evaluation history is on the Details tab.",
+    "add": "Add task",
     "titleLabel": "What needs to be done",
     "description": "Details",
     "assignee": "Assigned to",
     "priority": "Priority",
     "dueDate": "Due date",
-    "save": "Add action",
-    "none": "No evaluation tasks or actions yet.",
+    "save": "Add task",
+    "none": "No planned evaluations or tasks yet.",
     "noDue": "No due date",
     "kinds": {
       "evaluation": "Scheduled evaluation",
-      "action": "Follow-up action"
+      "renewal": "Apply for renewal",
+      "change": "Prepare for a change",
+      "action": "Follow-up task",
+      "dutyAction": "Follow-up task on a duty"
     }
   },
   "changes": {
     "title": "Change monitoring",
+    "subtitle": "Note coming amendments, new guidance or rulings, and what they mean for you.",
     "add": "Note a change",
     "titleLabel": "What is changing",
     "details": "Details",
     "impact": "Impact on us",
-    "sourceUrl": "Source link",
+    "sourceUrl": "Link to the source",
     "notedOn": "Noted on",
     "effectiveOn": "Takes effect on",
     "save": "Save note",
-    "none": "No changes noted. Record upcoming amendments, new guidance or rulings here.",
-    "assess": "Assess",
+    "none": "No changes noted. Record coming amendments, new guidance or rulings here.",
+    "assess": "Mark as handled",
     "reopen": "Reopen",
     "remove": "Delete note",
     "noted": "Noted {{ date }}",
     "effective": "Takes effect {{ date }}",
     "source": "Source",
-    "assessmentBy": "Assessed by {{ name }} on {{ date }}:",
-    "assessment": "Assessment: what does this mean for us?",
-    "markAssessed": "Mark as assessed",
+    "assessmentBy": "Handled by {{ name }} on {{ date }}:",
+    "assessment": "What does this mean for us, and what was done?",
+    "markAssessed": "Mark as handled",
     "removeTitle": "Delete this change note?",
-    "removeMessage": "The note \"{{ title }}\" is removed from the obligation."
+    "removeMessage": "The note \"{{ title }}\" is removed from the obligation.",
+    "taskNote": "With medium or high impact and a date, a \"prepare for the change\" task is added to the owner's My Work.",
+    "prepareTask": "A task to prepare for the change is in My Work (takes effect {{ date }}).",
+    "updateObligation": "Update the obligation"
   },
   "notices": {
     "created": "{{ code }} was added to the register.",
@@ -270,44 +566,72 @@
     "deleted": "{{ code }} was deleted.",
     "evaluated": "The evaluation of {{ code }} was recorded.",
     "evaluationRemoved": "The evaluation was deleted.",
-    "actionAdded": "The action was added.",
+    "actionAdded": "The task was added.",
     "changeAdded": "The change note was added.",
     "changeUpdated": "The change note was updated.",
-    "changeRemoved": "The change note was deleted."
+    "changeRemoved": "The change note was deleted.",
+    "dutyLinked": "The documentation was linked to {{ code }}.",
+    "deviationLinked": "{{ code }} was linked to the evaluation.",
+    "planned": "A yearly evaluation is planned for {{ code }}.",
+    "retired": "{{ code }} is marked as retired.",
+    "activated": "{{ code }} is active."
+  },
+  "tasks": {
+    "renewalTitle": "Apply for renewal: {{ code }} {{ title }} (ends {{ date }})",
+    "changeTitle": "Prepare for the change: {{ code }} {{ title }} (from {{ date }})"
+  },
+  "nextActions": {
+    "noSchedule": "Plan the evaluation of your obligations ({{ count }})",
+    "noScheduleWhy": "{{ count }} of your obligations have no evaluation plan, so nobody is reminded to check compliance.",
+    "noFollowUp": "Follow up the gap in {{ code }} {{ title }}",
+    "noFollowUpWhy": "The latest evaluation of {{ code }} found gaps, but there is no deviation or follow-up task.",
+    "renewal": "Apply for renewal of {{ code }} {{ title }}",
+    "renewalWhy": "{{ code }} {{ title }} runs out soon. Apply by {{ date }}."
   },
   "errors": {
     "field_required": "A required field is missing.",
-    "invalid_attachment": "Evidence must be a file attached to this obligation.",
+    "findings_required": "Describe the findings: what is missing?",
+    "follow_up_required": "Choose how the gap is followed up: a task, a deviation or a justification.",
+    "invalid_attachment": "Evidence files must be attached to this obligation.",
+    "invalid_clause_ref": "One of the clauses is not recognised. Pick it from the list.",
     "invalid_dates": "Check the dates: the end cannot be before the start, and an evaluation cannot be in the future.",
     "invalid_department": "That department does not exist.",
-    "invalid_framework": "One of the frameworks is not recognised.",
+    "invalid_deviation": "That deviation was not found, or you cannot open it.",
+    "invalid_duty": "One of the duties no longer exists. Reload the page and try again.",
+    "invalid_evidence": "One of the linked records was not found, or you cannot open it.",
+    "invalid_framework": "One of the standards is not recognised.",
     "invalid_lead_days": "Choose between 0 and 366 days.",
     "invalid_owner": "The owner must be a member of the organisation.",
+    "invalid_result": "Choose a valid result.",
     "invalid_rrule": "That evaluation frequency is not supported.",
-    "invalid_assignee": "The action cannot be assigned to that person, role or department.",
-    "module_disabled": "The compliance obligations module is turned off for this organisation.",
+    "invalid_url": "Links must start with http:// or https://.",
+    "invalid_assignee": "The task cannot be assigned to that person, role or department.",
+    "module_disabled": "Laws and regulations is turned off for this organisation.",
+    "note_too_long": "A note can be at most 2000 characters.",
+    "obligation_not_found": "The obligation was not found. It may have been deleted.",
     "obligation_retired": "The obligation is retired. Make it active again first.",
-    "requirement_too_long": "Each requirement can be at most 1000 characters.",
+    "requirement_too_long": "Each duty can be at most 1000 characters.",
+    "result_required": "Choose a result, or a result for at least one duty.",
     "text_required": "Fill in a title or description first.",
     "too_many_attachments": "Link at most 20 evidence files.",
-    "too_many_requirements": "List at most {{ max }} requirements.",
+    "too_many_clause_refs": "Link at most 30 clauses.",
+    "too_many_evidence_refs": "Link at most 20 records as documentation.",
+    "too_many_requirements": "List at most {{ max }} duties.",
+    "too_many_urls": "Add at most 10 links.",
     "forbidden": "You do not have permission to do that.",
     "notFound": "The obligation was not found. It may have been deleted."
-  },
-  "lessons": {
-    "link": "Lesson: {{ title }} ({{ minutes }} min)"
   },
   "notifications": {
     "created": "Obligation registered: {{ code }} {{ title }}",
     "updated": "Obligation updated: {{ code }} {{ title }}",
     "ownerChanged": "You now own the obligation {{ code }}: {{ title }}",
     "statusChanged": "Obligation status changed: {{ code }} {{ title }}",
-    "scheduleChanged": "Evaluation schedule changed: {{ code }} {{ title }}",
+    "scheduleChanged": "Evaluation plan changed: {{ code }} {{ title }}",
     "evaluated": "Compliance evaluated: {{ code }} {{ title }}",
     "nonCompliant": "Compliance gap found: {{ code }} {{ title }}",
     "evaluationRemoved": "Evaluation deleted on {{ code }}",
-    "actionAdded": "Action added to {{ code }}",
-    "changeNoted": "Upcoming change noted: {{ code }} {{ title }}",
+    "actionAdded": "Task added to {{ code }}",
+    "changeNoted": "Coming change noted: {{ code }} {{ title }}",
     "changeUpdated": "Change note updated on {{ code }}",
     "changeRemoved": "Change note deleted from {{ code }}",
     "deleted": "Obligation deleted: {{ code }} {{ title }}"
@@ -317,11 +641,11 @@
     "updated": "Obligation updated",
     "ownerChanged": "Owner changed",
     "statusChanged": "Status changed",
-    "scheduleChanged": "Evaluation schedule changed",
+    "scheduleChanged": "Evaluation plan changed",
     "evaluated": "Compliance evaluated",
     "nonCompliant": "Compliance gap found",
     "evaluationRemoved": "Evaluation deleted",
-    "actionAdded": "Action added",
+    "actionAdded": "Task added",
     "changeNoted": "Change noted",
     "changeUpdated": "Change note updated",
     "changeRemoved": "Change note deleted",
