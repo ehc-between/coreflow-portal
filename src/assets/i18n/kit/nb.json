@@ -431,7 +431,27 @@
     "management_review": {
       "to_task": "Tiltak (oppgave)"
     },
-    "formMissing": "Dette skjemaet finnes ikke ennå. Opprett posten fra sin egen side og koble den fra fanen Relatert."
+    "formMissing": "Dette skjemaet finnes ikke ennå. Opprett posten fra sin egen side og koble den fra fanen Relatert.",
+    "env_aspect": {
+      "to_objective": "Miljømål for dette aspektet",
+      "to_risk": "Risiko eller mulighet fra dette aspektet",
+      "to_document": "Prosedyre som styrer aspektet",
+      "to_task": "Oppgave til oppfølging",
+      "to_emergency_plan": "Beredskapsplan for dette aspektet"
+    },
+    "emergency_plan": {
+      "to_deviation": "Avvik fra denne hendelsen",
+      "to_task": "Oppgave til oppfølging"
+    },
+    "env_drill": {
+      "to_deviation": "Avvik fra denne øvelsen eller hendelsen",
+      "to_task": "Oppgave fra erfaringene"
+    },
+    "env_metric": {
+      "to_objective": "Miljømål for denne indikatoren",
+      "to_kpi": "Nøkkeltall (KPI) som følger indikatoren",
+      "to_deviation": "Avvik: når ikke målet"
+    }
   },
   "frameworks": {
     "iso9001": "ISO 9001",

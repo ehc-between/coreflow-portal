@@ -176,6 +176,16 @@ export const MODULE_SETTINGS_CARDS: readonly ModuleSettingsCard[] = [
     links: [{ path: '/risk/matrices', labelKey: 'settings.hub.moduleLinks.matrices' }],
   },
   {
+    module: 'environment',
+    icon: 'leaf',
+    links: [
+      {
+        path: '/environment/scoring',
+        labelKey: 'settings.hub.moduleLinks.significanceMethod',
+      },
+    ],
+  },
+  {
     module: 'recruitment',
     icon: 'userplus',
     links: [{ path: '/recruitment/settings', labelKey: 'settings.hub.moduleLinks.settings' }],

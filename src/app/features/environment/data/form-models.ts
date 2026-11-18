@@ -12,10 +12,13 @@ import {
   GhgScope,
   ImpactType,
   LifecycleStage,
+  LinkedRecord,
   MeasurementCreate,
+  MeasurementSource,
   Metric,
   MetricCategory,
   MetricCreate,
+  MetricDirection,
   MetricStatus,
   MetricUpdate,
   PlanCreate,
@@ -29,6 +32,14 @@ import { dayToDatetime, localDay, localToUtc, toDay } from './environment-displa
 export type FormErrors = Readonly<Record<string, string>>;
 
 const REQUIRED = 'environment.form.errors.required';
+
+/** A picked record of another module (obligation, process, aspect) shown as a chip. */
+export interface PickedRecord {
+  readonly id: string;
+  readonly code: string | null;
+  readonly title: string;
+  readonly url?: string | null;
+}
 
 function text(value: string): string | null {
   const trimmed = value.trim();
@@ -46,15 +57,52 @@ function pick<T extends object>(source: T, keys: readonly (keyof T)[]): Partial<
   return Object.fromEntries(keys.map((k) => [k, source[k]])) as Partial<T>;
 }
 
+function picked(records: readonly LinkedRecord[] | null | undefined): PickedRecord[] {
+  return (records ?? []).map((r) => ({ id: r.id, code: r.code, title: r.title, url: r.url }));
+}
+
+/** Parse a decimal typed with a comma or a dot (spaces as thousand separators); NaN when not a number. */
+export function parseDecimal(value: string): number {
+  const cleaned = value.trim().replace(/\s/g, '').replace(',', '.');
+  return cleaned === '' || !/^-?\d*\.?\d+$/.test(cleaned) ? NaN : Number(cleaned);
+}
+
+function decimalOrNull(value: string): number | null {
+  return value.trim() ? parseDecimal(value) : null;
+}
+
+function yearOrNull(value: string): number | null {
+  return /^\d{4}$/.test(value.trim()) ? Number(value.trim()) : null;
+}
+
+function checkDecimal(errors: Record<string, string>, key: string, value: string): void {
+  if (value.trim()) {
+    const n = parseDecimal(value);
+    if (!Number.isFinite(n) || n < 0) {
+      errors[key] = 'environment.form.errors.nonNegative';
+    }
+  }
+}
+
+function checkYear(errors: Record<string, string>, key: string, value: string): void {
+  const v = value.trim();
+  if (v && (!/^\d{4}$/.test(v) || Number(v) < 1990 || Number(v) > 2100)) {
+    errors[key] = 'environment.form.errors.year';
+  }
+}
+
 // --- aspects ------------------------------------------------------------------------
 
 export type OverrideChoice = '' | 'significant' | 'not_significant';
 
 export interface AspectFormValue {
   readonly activity: string;
+  /** The process the activity belongs to (Processes), or null. */
+  readonly process: PickedRecord | null;
   readonly aspect: string;
   readonly impact: string;
-  readonly impact_type: ImpactType;
+  /** '' until the user picks one ("Velg …"; required). */
+  readonly impact_type: ImpactType | '';
   readonly condition: Condition;
   readonly lifecycle_stages: readonly LifecycleStage[];
   readonly control_level: ControlLevel;
@@ -62,7 +110,8 @@ export interface AspectFormValue {
   readonly scores: Readonly<Record<string, number | null>>;
   readonly override: OverrideChoice;
   readonly override_reason: string;
-  readonly legal_requirement: boolean;
+  /** Obligations from "Lover og forskrifter" that apply (6.1.3). */
+  readonly obligations: readonly PickedRecord[];
   readonly operational_controls: string;
   readonly status: RecordStatus;
   readonly owner_user_id: string;
@@ -74,9 +123,10 @@ export interface AspectFormValue {
 export function emptyAspectForm(patch: Partial<AspectFormValue> = {}): AspectFormValue {
   return {
     activity: '',
+    process: null,
     aspect: '',
     impact: '',
-    impact_type: 'other',
+    impact_type: '',
     condition: 'normal',
     lifecycle_stages: [],
     control_level: 'direct',
@@ -84,7 +134,7 @@ export function emptyAspectForm(patch: Partial<AspectFormValue> = {}): AspectFor
     scores: {},
     override: '',
     override_reason: '',
-    legal_requirement: false,
+    obligations: [],
     operational_controls: '',
     status: 'active',
     owner_user_id: '',
@@ -97,6 +147,7 @@ export function emptyAspectForm(patch: Partial<AspectFormValue> = {}): AspectFor
 export function aspectFormFrom(a: Aspect): AspectFormValue {
   return {
     activity: a.activity,
+    process: a.process ? picked([a.process])[0] : null,
     aspect: a.aspect,
     impact: a.impact ?? '',
     impact_type: a.impact_type,
@@ -112,7 +163,7 @@ export function aspectFormFrom(a: Aspect): AspectFormValue {
           ? 'significant'
           : 'not_significant',
     override_reason: a.override_reason ?? '',
-    legal_requirement: a.legal_requirement,
+    obligations: picked(a.obligations),
     operational_controls: a.operational_controls ?? '',
     status: a.status,
     owner_user_id: a.owner_user_id ?? '',
@@ -123,13 +174,11 @@ export function aspectFormFrom(a: Aspect): AspectFormValue {
 
 /** A form seeded from an AI suggestion (always a draft for the user to check). */
 export function aspectFormFromSuggestion(
-  activity: string,
-  site: string,
+  base: AspectFormValue,
   s: SuggestedAspect,
 ): AspectFormValue {
-  return emptyAspectForm({
-    activity,
-    site,
+  return {
+    ...base,
     aspect: s.aspect,
     impact: s.impact,
     impact_type: s.impact_type,
@@ -137,7 +186,7 @@ export function aspectFormFromSuggestion(
     lifecycle_stages: [...s.lifecycle_stages],
     operational_controls: s.suggested_controls,
     status: 'draft',
-  });
+  };
 }
 
 export function validateAspectForm(v: AspectFormValue): FormErrors {
@@ -147,6 +196,9 @@ export function validateAspectForm(v: AspectFormValue): FormErrors {
   }
   if (!v.aspect.trim()) {
     errors['aspect'] = REQUIRED;
+  }
+  if (!v.impact_type) {
+    errors['impact_type'] = 'environment.form.errors.chooseOne';
   }
   if (v.override && !v.override_reason.trim()) {
     errors['override_reason'] = 'environment.form.errors.overrideReason';
@@ -159,7 +211,7 @@ export function toAspectCreate(v: AspectFormValue): AspectCreate {
     activity: v.activity.trim(),
     aspect: v.aspect.trim(),
     impact: text(v.impact),
-    impact_type: v.impact_type,
+    impact_type: v.impact_type || 'other',
     condition: v.condition,
     lifecycle_stages: v.lifecycle_stages,
     control_level: v.control_level,
@@ -167,12 +219,13 @@ export function toAspectCreate(v: AspectFormValue): AspectCreate {
     scores: Object.fromEntries(Object.entries(v.scores).filter(([, s]) => s !== null)),
     significance_override: v.override === '' ? null : v.override === 'significant',
     override_reason: v.override ? text(v.override_reason) : null,
-    legal_requirement: v.legal_requirement,
     operational_controls: text(v.operational_controls),
     status: v.status,
     owner_user_id: v.owner_user_id || null,
     department_id: v.department_id || null,
     review_due_at: dayToDatetime(v.review_due),
+    process_id: v.process?.id ?? null,
+    obligation_ids: v.obligations.map((o) => o.id),
   };
 }
 
@@ -209,7 +262,10 @@ export function toAspectUpdate(
 
 // --- emergency plans ----------------------------------------------------------------
 
+/** One contact row: a member of the organisation (`user_id`) or an external contact. */
 export interface ContactDraft {
+  readonly kind: 'member' | 'external';
+  readonly user_id: string;
   readonly name: string;
   readonly role: string;
   readonly phone: string;
@@ -225,6 +281,8 @@ export interface PlanFormValue {
   readonly response_procedure: string;
   readonly resources: string;
   readonly contacts: readonly ContactDraft[];
+  /** The aspects (abnormal or emergency situations) the plan covers. */
+  readonly aspects: readonly PickedRecord[];
   readonly site: string;
   readonly status: RecordStatus;
   readonly owner_user_id: string;
@@ -236,8 +294,8 @@ export interface PlanFormValue {
   readonly review_due: string;
 }
 
-export function emptyContact(): ContactDraft {
-  return { name: '', role: '', phone: '', email: '' };
+export function emptyContact(kind: ContactDraft['kind'] = 'member'): ContactDraft {
+  return { kind, user_id: '', name: '', role: '', phone: '', email: '' };
 }
 
 export function emptyPlanForm(patch: Partial<PlanFormValue> = {}): PlanFormValue {
@@ -248,15 +306,27 @@ export function emptyPlanForm(patch: Partial<PlanFormValue> = {}): PlanFormValue
     response_procedure: '',
     resources: '',
     contacts: [],
+    aspects: [],
     site: '',
-    status: 'draft',
+    status: 'active',
     owner_user_id: '',
     department_id: '',
-    drill_enabled: false,
+    drill_enabled: true,
     drill_rrule: 'FREQ=YEARLY',
     drill_start: '',
     review_due: '',
     ...patch,
+  };
+}
+
+export function contactDraftFrom(c: EmergencyContact): ContactDraft {
+  return {
+    kind: c.user_id ? 'member' : 'external',
+    user_id: c.user_id ?? '',
+    name: c.name ?? '',
+    role: c.role ?? '',
+    phone: c.phone ?? '',
+    email: c.email ?? '',
   };
 }
 
@@ -267,12 +337,8 @@ export function planFormFrom(p: EmergencyPlan): PlanFormValue {
     potential_impact: p.potential_impact ?? '',
     response_procedure: p.response_procedure ?? '',
     resources: p.resources ?? '',
-    contacts: p.contacts.map((c) => ({
-      name: c.name,
-      role: c.role ?? '',
-      phone: c.phone ?? '',
-      email: c.email ?? '',
-    })),
+    contacts: p.contacts.map(contactDraftFrom),
+    aspects: picked(p.aspects),
     site: p.site ?? '',
     status: p.status,
     owner_user_id: p.owner_user_id ?? '',
@@ -284,14 +350,19 @@ export function planFormFrom(p: EmergencyPlan): PlanFormValue {
   };
 }
 
+function contactFilled(c: ContactDraft): boolean {
+  return c.kind === 'member'
+    ? !!c.user_id
+    : !!(c.name.trim() || c.role.trim() || c.phone.trim() || c.email.trim());
+}
+
 export function validatePlanForm(v: PlanFormValue): FormErrors {
   const errors: Record<string, string> = {};
   if (!v.title.trim()) {
     errors['title'] = REQUIRED;
   }
   v.contacts.forEach((c, i) => {
-    const filled = c.role.trim() || c.phone.trim() || c.email.trim();
-    if (filled && !c.name.trim()) {
+    if (c.kind === 'external' && contactFilled(c) && !c.name.trim()) {
       errors[`contacts.${i}`] = 'environment.form.errors.contactName';
     }
   });
@@ -299,14 +370,21 @@ export function validatePlanForm(v: PlanFormValue): FormErrors {
 }
 
 function contactsOut(contacts: readonly ContactDraft[]): EmergencyContact[] {
-  return contacts
-    .filter((c) => c.name.trim())
-    .map((c) => ({
-      name: c.name.trim(),
-      role: text(c.role),
-      phone: text(c.phone),
-      email: text(c.email),
-    }));
+  return contacts.filter(contactFilled).map((c) =>
+    c.kind === 'member'
+      ? {
+          user_id: c.user_id,
+          role: text(c.role),
+          phone: text(c.phone),
+          email: text(c.email),
+        }
+      : {
+          name: c.name.trim(),
+          role: text(c.role),
+          phone: text(c.phone),
+          email: text(c.email),
+        },
+  );
 }
 
 export function toPlanCreate(v: PlanFormValue): PlanCreate {
@@ -317,6 +395,7 @@ export function toPlanCreate(v: PlanFormValue): PlanCreate {
     response_procedure: text(v.response_procedure),
     resources: text(v.resources),
     contacts: contactsOut(v.contacts),
+    aspect_ids: v.aspects.map((a) => a.id),
     site: text(v.site),
     status: v.status,
     owner_user_id: v.owner_user_id || null,
@@ -360,9 +439,18 @@ export interface MetricFormValue {
   readonly name: string;
   readonly category: MetricCategory;
   readonly unit: string;
+  readonly direction: MetricDirection;
+  /** Decimal text or ''. */
+  readonly target_value: string;
+  readonly target_year: string;
+  readonly baseline_value: string;
+  readonly baseline_year: string;
+  readonly measurement_method: string;
   readonly ghg_scope: GhgScope | '';
   /** Decimal text (kg CO2e per unit) or ''. */
   readonly emission_factor: string;
+  readonly factor_source: string;
+  readonly factor_year: string;
   readonly description: string;
   readonly site: string;
   readonly status: MetricStatus;
@@ -378,18 +466,30 @@ export function emptyMetricForm(patch: Partial<MetricFormValue> = {}): MetricFor
     name: '',
     category: 'energy',
     unit: '',
+    direction: 'decrease',
+    target_value: '',
+    target_year: '',
+    baseline_value: '',
+    baseline_year: '',
+    measurement_method: '',
     ghg_scope: '',
     emission_factor: '',
+    factor_source: '',
+    factor_year: '',
     description: '',
     site: '',
     status: 'active',
     owner_user_id: '',
     department_id: '',
-    collection_enabled: false,
+    collection_enabled: true,
     collection_rrule: 'FREQ=MONTHLY',
     collection_start: '',
     ...patch,
   };
+}
+
+function numText(value: number | null | undefined): string {
+  return value === null || value === undefined ? '' : String(value);
 }
 
 export function metricFormFrom(m: Metric): MetricFormValue {
@@ -397,8 +497,16 @@ export function metricFormFrom(m: Metric): MetricFormValue {
     name: m.name,
     category: m.category,
     unit: m.unit,
+    direction: m.direction ?? 'decrease',
+    target_value: numText(m.target_value),
+    target_year: numText(m.target_year),
+    baseline_value: numText(m.baseline_value),
+    baseline_year: numText(m.baseline_year),
+    measurement_method: m.measurement_method ?? '',
     ghg_scope: m.ghg_scope ?? '',
-    emission_factor: m.emission_factor === null ? '' : String(m.emission_factor),
+    emission_factor: numText(m.emission_factor),
+    factor_source: m.factor_source ?? '',
+    factor_year: numText(m.factor_year),
     description: m.description ?? '',
     site: m.site ?? '',
     status: m.status,
@@ -410,12 +518,6 @@ export function metricFormFrom(m: Metric): MetricFormValue {
   };
 }
 
-/** Parse a decimal typed with a comma or a dot; NaN when not a number. */
-export function parseDecimal(value: string): number {
-  const cleaned = value.trim().replace(/\s/g, '').replace(',', '.');
-  return cleaned === '' || !/^-?\d*\.?\d+$/.test(cleaned) ? NaN : Number(cleaned);
-}
-
 export function validateMetricForm(v: MetricFormValue): FormErrors {
   const errors: Record<string, string> = {};
   if (!v.name.trim()) {
@@ -424,23 +526,33 @@ export function validateMetricForm(v: MetricFormValue): FormErrors {
   if (!v.unit.trim()) {
     errors['unit'] = REQUIRED;
   }
-  if (v.emission_factor.trim()) {
-    const n = parseDecimal(v.emission_factor);
-    if (!Number.isFinite(n) || n < 0) {
-      errors['emission_factor'] = 'environment.form.errors.nonNegative';
-    }
+  checkDecimal(errors, 'emission_factor', v.emission_factor);
+  checkDecimal(errors, 'target_value', v.target_value);
+  checkDecimal(errors, 'baseline_value', v.baseline_value);
+  checkYear(errors, 'target_year', v.target_year);
+  checkYear(errors, 'baseline_year', v.baseline_year);
+  checkYear(errors, 'factor_year', v.factor_year);
+  if (v.target_value.trim() && !v.target_year.trim() && !errors['target_year']) {
+    errors['target_year'] = 'environment.form.errors.targetYear';
   }
   return errors;
 }
 
 export function toMetricCreate(v: MetricFormValue): MetricCreate {
-  const factor = v.emission_factor.trim() ? parseDecimal(v.emission_factor) : null;
   return {
     name: v.name.trim(),
     category: v.category,
     unit: v.unit.trim(),
+    direction: v.direction,
+    target_value: decimalOrNull(v.target_value),
+    target_year: yearOrNull(v.target_year),
+    baseline_value: decimalOrNull(v.baseline_value),
+    baseline_year: yearOrNull(v.baseline_year),
+    measurement_method: text(v.measurement_method),
     ghg_scope: v.ghg_scope || null,
-    emission_factor: factor,
+    emission_factor: decimalOrNull(v.emission_factor),
+    factor_source: text(v.factor_source),
+    factor_year: yearOrNull(v.factor_year),
     description: text(v.description),
     site: text(v.site),
     status: v.status,
@@ -472,6 +584,7 @@ export interface MeasurementFormValue {
   readonly period_start: string;
   readonly period_end: string;
   readonly value: string;
+  readonly source: MeasurementSource | '';
   readonly site: string;
   readonly note: string;
 }
@@ -484,6 +597,7 @@ export function emptyMeasurementForm(now = new Date()): MeasurementFormValue {
     period_start: localDay(0, first),
     period_end: localDay(0, last),
     value: '',
+    source: '',
     site: '',
     note: '',
   };
@@ -526,6 +640,7 @@ export function toMeasurementCreate(v: MeasurementFormValue): MeasurementCreate 
     period_start: v.period_start,
     period_end: v.period_end || null,
     value: parseDecimal(v.value),
+    source: v.source || null,
     site: text(v.site),
     note: text(v.note),
   };
@@ -536,7 +651,10 @@ export interface DrillFormValue {
   readonly held_at: string;
   readonly kind: DrillKind;
   readonly outcome: DrillOutcome | '';
-  readonly participants: string;
+  /** Org members who took part. */
+  readonly participant_user_ids: readonly string[];
+  /** Everyone else (contractors, visitors), as a number on top of the members. */
+  readonly others: string;
   readonly findings: string;
   readonly lessons_learned: string;
   readonly plan_revision_needed: boolean;
@@ -547,7 +665,8 @@ export function emptyDrillForm(heldAt = ''): DrillFormValue {
     held_at: heldAt,
     kind: 'drill',
     outcome: '',
-    participants: '',
+    participant_user_ids: [],
+    others: '',
     findings: '',
     lessons_learned: '',
     plan_revision_needed: false,
@@ -565,10 +684,17 @@ export function validateDrillForm(v: DrillFormValue, now = new Date()): FormErro
   if (!v.outcome) {
     errors['outcome'] = REQUIRED;
   }
-  if (v.participants.trim() && !/^\d+$/.test(v.participants.trim())) {
-    errors['participants'] = 'environment.form.errors.wholeNumber';
+  if (v.others.trim() && !/^\d+$/.test(v.others.trim())) {
+    errors['others'] = 'environment.form.errors.wholeNumber';
   }
   return errors;
+}
+
+/** The total head count: picked members plus the number of others (null when neither). */
+export function drillHeadCount(v: DrillFormValue): number | null {
+  const others = /^\d+$/.test(v.others.trim()) ? Number(v.others.trim()) : 0;
+  const total = v.participant_user_ids.length + others;
+  return total > 0 ? total : null;
 }
 
 export function toDrillCreate(v: DrillFormValue): DrillCreate {
@@ -576,7 +702,8 @@ export function toDrillCreate(v: DrillFormValue): DrillCreate {
     held_at: localToUtc(v.held_at) ?? '',
     kind: v.kind,
     outcome: v.outcome as DrillOutcome,
-    participants: v.participants.trim() ? Number(v.participants.trim()) : null,
+    participants: drillHeadCount(v),
+    participant_user_ids: v.participant_user_ids,
     findings: text(v.findings),
     lessons_learned: text(v.lessons_learned),
     plan_revision_needed: v.plan_revision_needed,

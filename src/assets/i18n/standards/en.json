@@ -210,7 +210,11 @@
       "frameworks": "Standards",
       "article_refs": "Articles",
       "requirements": "Requirements",
-      "generic": "a field on the record"
+      "generic": "a field on the record",
+      "aspect_evaluation": "Aspect evaluation",
+      "emergency_preparedness": "Emergency plan",
+      "drill_result": "Drill result",
+      "monitoring": "Monitoring"
     },
     "origin": {
       "manual": "Added by hand",

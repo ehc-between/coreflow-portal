@@ -210,7 +210,11 @@
       "frameworks": "Standarder",
       "article_refs": "Artikler",
       "requirements": "Krav",
-      "generic": "et felt på posten"
+      "generic": "et felt på posten",
+      "aspect_evaluation": "Vurdering av aspektet",
+      "emergency_preparedness": "Beredskapsplan",
+      "drill_result": "Resultat av øvelsen",
+      "monitoring": "Overvåking"
     },
     "origin": {
       "manual": "Lagt til manuelt",

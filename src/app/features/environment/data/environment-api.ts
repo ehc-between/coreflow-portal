@@ -51,6 +51,8 @@ export function aspectListParams(query: AspectListQuery): QueryParams {
     owner: query.owner || undefined,
     department_id: query.department_id || undefined,
     site: query.site?.trim() || undefined,
+    process_id: query.process_id || undefined,
+    attention: query.attention || undefined,
     sort: query.sort,
     limit: query.limit,
     offset: query.offset,
@@ -64,6 +66,7 @@ export function planListParams(query: PlanListQuery): QueryParams {
     status: csv(query.status),
     owner: query.owner || undefined,
     site: query.site?.trim() || undefined,
+    attention: query.attention || undefined,
     sort: query.sort,
     limit: query.limit,
     offset: query.offset,
@@ -79,6 +82,7 @@ export function metricListParams(query: MetricListQuery): QueryParams {
     status: csv(query.status),
     owner: query.owner || undefined,
     site: query.site?.trim() || undefined,
+    target: query.target || undefined,
     sort: query.sort,
     limit: query.limit,
     offset: query.offset,
@@ -274,6 +278,14 @@ export class EnvironmentApi {
     return this.api.get<Emissions>(`${this.base(orgId)}/emissions`, {
       ...IN_PLACE,
       params: { year },
+    });
+  }
+
+  /** The year's emissions report as CSV (nb: semicolons and decimal commas). */
+  exportEmissions(orgId: string, year: number, lang: 'en' | 'nb'): Observable<Blob> {
+    return this.api.getBlob(`${this.base(orgId)}/emissions/export`, {
+      ...IN_PLACE,
+      params: { year, lang },
     });
   }
 }

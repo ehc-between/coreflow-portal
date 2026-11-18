@@ -559,7 +559,8 @@
         "checklists": "Checklist templates",
         "intake": "Reporting channel",
         "matrices": "Risk matrices",
-        "settings": "Settings"
+        "settings": "Settings",
+        "significanceMethod": "Significance method"
       },
       "membersSection": "Members, departments and invitations"
     },

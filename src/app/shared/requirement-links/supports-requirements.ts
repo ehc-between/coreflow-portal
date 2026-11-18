@@ -83,6 +83,10 @@ const KNOWN_FIELDS = new Set([
   'frameworks',
   'article_refs',
   'requirements',
+  'aspect_evaluation',
+  'emergency_preparedness',
+  'drill_result',
+  'monitoring',
 ]);
 
 /** i18n key of a field's display name in "Fra feltet «…»". */
