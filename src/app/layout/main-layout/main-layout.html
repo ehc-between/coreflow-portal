@@ -58,11 +58,11 @@
   }
 
   <app-notifications />
-  <!-- Loaded the first time they open, to keep the initial bundle small (X01). -->
-  @defer (when ask.open()) {
+  <!-- Kept out of the initial bundle (X01): fetched once the page is idle, created the first time they open. -->
+  @defer (when ask.open(); prefetch on idle) {
     <app-ask-panel />
   }
-  @defer (when palette.open()) {
+  @defer (when palette.open(); prefetch on idle) {
     <app-command-palette />
   }
 </div>
