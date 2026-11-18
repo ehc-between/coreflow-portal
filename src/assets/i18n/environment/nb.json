@@ -475,7 +475,7 @@
     },
     "significance": "Vesentlighet",
     "significanceOptions": {
-      "any": "All vesentlighet",
+      "any": "Vesentlighet: alle",
       "significant": "Bare vesentlige",
       "not_significant": "Ikke vesentlige"
     },
