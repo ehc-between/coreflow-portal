@@ -3,16 +3,16 @@
     "list": {
       "intro": {
         "title": "Every customer voice in one place",
-        "body": "The feedback register collects what customers tell you: complaints, compliments, suggestions and questions, whichever way they arrive. Each record has an owner and a reply date, so nothing is forgotten, and complaints follow a simple path from received to resolved and closed.",
+        "body": "The feedback register collects what customers tell you: complaints, compliments, suggestions and questions, whichever way they arrive. Each record has an owner and a reply date, so nothing is forgotten.",
         "steps": [
           "Register feedback as soon as it arrives, in the customer's own words.",
-          "Acknowledge it, handle it and record how it was resolved.",
-          "Link complaints that reveal a real problem to a deviation, so the cause is fixed."
+          "Acknowledge it, assess it and log what you told the customer.",
+          "Link a justified complaint to a deviation, so the cause is fixed."
         ]
       },
       "why": {
-        "body": "ISO 9001 asks you to communicate with customers about their feedback and complaints, and to monitor how satisfied they are. A complete register is your evidence: it shows that complaints are taken seriously, answered in time and used to improve.",
-        "clauses": ["iso9001:8.2.1", "iso9001:9.1.2"]
+        "body": "ISO 9001 asks you to communicate with customers about their feedback, to handle complaints as nonconformities when they are justified, and to monitor how satisfied customers are. A complete register is your evidence.",
+        "clauses": ["iso9001:8.2.1", "iso9001:10.2.1", "iso9001:9.1.2"]
       },
       "empty": {
         "title": "No customer feedback registered yet",
@@ -32,44 +32,84 @@
       },
       "why": {
         "body": "Recording feedback in a structured way lets you answer on time, spot patterns and show an auditor how customer communication is handled. Keep personal details to what you need to reply.",
-        "clauses": ["iso9001:8.2.1"]
+        "clauses": ["iso9001:8.2.1", "iso9001:9.1.2"]
       },
       "fields": {
         "kind": {
           "help": "A complaint is an expression of dissatisfaction where the customer expects an answer or a fix. A compliment is praise, a suggestion is an idea, and a question asks for information.",
-          "example": "\"The delivery arrived two days late and nobody told us\" is a complaint."
+          "example": "\"The delivery arrived two days late and nobody told us\" is a complaint.",
+          "requirements": ["iso9001:8.2.1", "iso9001:10.2.1"]
         },
         "severity": {
           "help": "How much the issue affects the customer or your business. Use high or critical when there is a safety, legal or contractual impact, or a risk of losing the customer.",
-          "example": "A wrong invoice is medium; a defect that injured someone is critical."
+          "example": "A wrong invoice is medium; a defect that injured someone is critical.",
+          "requirements": ["iso9001:10.2.1"]
         },
         "customer": {
           "help": "Who gave the feedback. Leave it empty if the customer wants to stay anonymous. Email and phone are hidden in the audit log and never shared with the assistant.",
           "example": "Kari Nordmann, Nordic Retail AS."
         },
         "satisfaction_score": {
-          "help": "If the customer told you how satisfied they are, record it from 1 (very dissatisfied) to 5 (very satisfied). It feeds the satisfaction statistics.",
-          "example": "\"Overall we're happy, but this was annoying\" might be a 3."
+          "help": "Only if the customer said how satisfied they are: 1 is very dissatisfied, 5 is very satisfied. Leave it as \"Not known\" otherwise. It feeds the satisfaction figures on the insights page.",
+          "example": "\"Overall we're happy, but this was annoying\" might be a 3.",
+          "requirements": ["iso9001:9.1.2"]
         },
         "response_due_on": {
-          "help": "When the customer should hear back from you. The owner gets a reminder, and the record is shown as overdue after this date.",
-          "example": "Many organisations promise a first answer to complaints within 3 working days."
+          "help": "When the customer should hear back from you. It is filled in from the default reply time in the settings; change it if you promised something else. The owner gets a reminder, and the record shows as overdue after this date.",
+          "example": "Many organisations promise a first answer to complaints within 3 working days.",
+          "requirements": ["iso9001:8.2.1"]
+        },
+        "sentiment": {
+          "help": "Your overall impression of the message: positive, neutral or negative. Optional; it helps sort compliments from complaints in the statistics.",
+          "example": "A polite question can be neutral even if it mentions a problem."
+        },
+        "subjects": {
+          "help": "The supplier, contract, process, asset, project or AI system the feedback is about. The feedback then shows on that record too, so you can see all complaints about a supplier in one place.",
+          "example": "A late delivery: link the carrier (supplier) and the delivery process.",
+          "requirements": ["iso9001:8.4.1"]
         }
       }
     },
     "detail": {
       "intro": {
         "title": "Handling a feedback record",
-        "body": "Move the record through its steps as you work on it. For a complaint, describe the resolution, tell the customer, and link a deviation if something in your own processes went wrong.",
+        "body": "Take the record one step at a time with the button at the top. For a complaint, assess it, log what you told the customer and link a deviation when something in your own processes went wrong.",
         "steps": [
-          "Acknowledge the feedback so the customer knows it was received.",
-          "Add follow-up tasks for the work that needs doing.",
-          "Record the resolution, tell the customer and close the record."
+          "Confirm receipt, so the customer knows you have it.",
+          "Assess the complaint and log your reply to the customer.",
+          "Record the resolution and close it when the customer has accepted it."
         ]
       },
       "why": {
-        "body": "Auditors look for evidence that complaints were answered, that the customer was informed, and that real problems led to corrective action. The timeline, resolution and linked deviations give that evidence.",
-        "clauses": ["iso9001:8.2.1", "iso9001:9.1.2"]
+        "body": "Auditors look for evidence that complaints were answered, that the customer was informed, and that justified complaints led to corrective action. The assessment, the reply log and the linked deviations give that evidence.",
+        "clauses": ["iso9001:8.2.1", "iso9001:10.2.1", "iso9001:9.1.2"]
+      },
+      "fields": {
+        "complaint_justified": {
+          "help": "Justified means the customer was right: your product, service or communication did not meet what was agreed or could reasonably be expected. A justified complaint is a nonconformity.",
+          "example": "Delivery promised on Monday, arrived Wednesday: justified. The customer ordered the wrong size: not justified.",
+          "requirements": ["iso9001:10.2.1"]
+        },
+        "root_cause": {
+          "help": "Why it happened, not what happened. Ask \"why\" until you reach something you can change.",
+          "example": "Not \"the parcel was late\", but \"the carrier has no slot for our area on Mondays\".",
+          "requirements": ["iso9001:10.2.1"]
+        },
+        "corrective_action_required": {
+          "help": "Yes when the cause can happen again and should be removed. Then register a deviation, so the corrective action is planned and followed up.",
+          "example": "A one-off typo on an invoice may need no corrective action; a recurring billing error does.",
+          "requirements": ["iso9001:10.2.1"]
+        },
+        "customer_accepted": {
+          "help": "Whether the customer said they were satisfied with how it was handled. Ask when you give them the outcome.",
+          "example": "The customer accepted the credit note and thanked you: yes.",
+          "requirements": ["iso9001:8.2.1"]
+        },
+        "subjects": {
+          "help": "The supplier, contract, process or other record the feedback concerns. Linked records list the feedback too.",
+          "example": "Complaints about the courier, linked to the supplier record, show up in the supplier evaluation.",
+          "requirements": ["iso9001:8.4.1"]
+        }
       }
     },
     "surveys": {
@@ -112,12 +152,18 @@
           "example": "A yearly satisfaction survey is usually anonymous; a follow-up after a support case may not be."
         },
         "low_score_threshold": {
-          "help": "When a response scores at or below this value (0–100), a feedback record is created for the survey owner to follow up. Leave it empty to turn this off.",
-          "example": "With a threshold of 40, a customer who answers 2 out of 5 triggers a follow-up."
+          "help": "When an answer scores at or below this value, a feedback record is created for the survey owner to follow up. Scores run from 0 to 100; 40 is about 2 of 5 on a rating question. Leave it empty to turn this off.",
+          "example": "With 40, a customer who answers 2 of 5 gets a follow-up.",
+          "requirements": ["iso9001:9.1.2"]
         },
         "questions": {
           "help": "Rating questions give a score; the recommendation question (0–10) gives a net promoter score; choice and yes/no questions show distributions; free text collects comments.",
-          "example": "\"How satisfied are you with our delivery times?\" on a 1–5 scale."
+          "example": "\"How satisfied are you with our delivery times?\" on a 1–5 scale.",
+          "requirements": ["iso9001:9.1.2"]
+        },
+        "language": {
+          "help": "The language the respondents see the survey page in. Write the questions in the same language.",
+          "example": "A survey for Norwegian customers: Norwegian (Bokmål)."
         }
       }
     },
@@ -139,16 +185,72 @@
     "insights": {
       "intro": {
         "title": "Customer satisfaction at a glance",
-        "body": "These figures combine the feedback register and your surveys for the chosen period. Use them in management review to show how satisfied customers are and how well complaints are handled.",
+        "body": "These figures combine the feedback register and your surveys for the chosen period. Click a tile or a bar to see the records behind it, and take the figures to the management review.",
         "steps": [
           "Choose the period.",
-          "Look at open and overdue complaints first.",
-          "Ask the assistant for themes, then decide what to improve."
+          "Look at open and overdue complaints first, then how complaints are handled.",
+          "Ask the assistant for themes, decide what to improve and export the figures for the review."
         ]
       },
       "why": {
-        "body": "ISO 9001 asks you to analyse customer satisfaction and use the results in management review. A trend over months says more than a single number.",
+        "body": "ISO 9001 asks you to analyse customer satisfaction and use the results in the management review. A trend over months says more than a single number.",
+        "clauses": ["iso9001:9.1.2", "iso9001:9.1.3"]
+      }
+    },
+    "edit": {
+      "intro": {
+        "title": "Updating a feedback record",
+        "body": "Correct the details, link what it is about, and for a complaint record the assessment and outcome. The reason for the change is kept in the revision history.",
+        "steps": [
+          "Change what was wrong or missing.",
+          "For a complaint: say whether it was justified and what the root cause was.",
+          "Write a short reason for the change and save."
+        ]
+      },
+      "why": {
+        "body": "A record that is kept up to date, with the reason for each change, is evidence an auditor can trust.",
+        "clauses": ["iso9001:8.2.1"]
+      }
+    },
+    "surveyEdit": {
+      "intro": {
+        "title": "Changing a survey",
+        "body": "You can change the title, dates and follow-up rule at any time. Once a survey is published its questions are locked, so every answer was given to the same questions.",
+        "steps": [
+          "Change the settings you need.",
+          "Save, and check the public page if you changed the language."
+        ]
+      },
+      "why": {
+        "body": "Unchanged questions make results comparable over time.",
         "clauses": ["iso9001:9.1.2"]
+      }
+    },
+    "settings": {
+      "intro": {
+        "title": "Setting up customer feedback",
+        "body": "Choose how quickly you promise to answer each kind of feedback, and link your privacy notice for surveys that collect names or email.",
+        "steps": [
+          "Set the reply time per kind (for example 3 working days for complaints).",
+          "Paste the address of your privacy notice.",
+          "Save. New feedback gets its reply date from here."
+        ]
+      },
+      "why": {
+        "body": "A promised reply time that is tracked shows that customer communication is planned. When you collect personal data in a survey, people must be told who is responsible and why.",
+        "clauses": ["iso9001:8.2.1", "gdpr:13"]
+      },
+      "fields": {
+        "response_days": {
+          "help": "The number of days from receipt to the reply date. Leave it empty for no default for that kind.",
+          "example": "Complaints 3, questions 5, compliments and suggestions 10.",
+          "requirements": ["iso9001:8.2.1"]
+        },
+        "privacy_notice_url": {
+          "help": "The web page that explains how you process personal data. It is linked from public surveys that ask for a name or email.",
+          "example": "https://www.example.no/personvern",
+          "requirements": ["gdpr:13"]
+        }
       }
     }
   },
@@ -166,8 +268,8 @@
           "body": "Confirm that you have received the complaint and say when the customer can expect an answer. A fast acknowledgement often matters more than a fast solution. Set a **reply date** so the owner is reminded."
         },
         {
-          "heading": "Resolve and record",
-          "body": "Find out what happened, put it right for the customer, and write down the **resolution**. Tell the customer the outcome and tick *customer informed*. A complaint can only be closed once it is resolved."
+          "heading": "Assess, resolve and record",
+          "body": "Decide whether the complaint is **justified** and write down the **root cause**. Put it right for the customer, record the **resolution**, and use *Log a reply to the customer* to save what you told them. A complaint can only be resolved once it is assessed, and closed once it is resolved."
         },
         {
           "heading": "Fix the cause, not just the case",
@@ -177,9 +279,13 @@
       "quiz": [
         {
           "question": "What must a complaint have before it can be marked as resolved?",
-          "options": ["An owner", "A written resolution", "A satisfaction score"],
+          "options": [
+            "An owner",
+            "A written resolution and an answer to \"was it justified?\"",
+            "A satisfaction score"
+          ],
           "answer": 1,
-          "explanation": "A complaint needs a description of how it was resolved; that is the evidence an auditor looks for."
+          "explanation": "An auditor looks for how the complaint was resolved and whether it was justified. A justified complaint is handled as a nonconformity."
         },
         {
           "question": "A complaint reveals that your delivery process skipped a quality check. What should you do?",

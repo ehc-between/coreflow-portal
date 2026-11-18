@@ -6,6 +6,8 @@ import { expectKeyParity } from '../../../testing/i18n-parity';
 import { sortKey } from './data/feedback-display';
 import { FEEDBACK_ERROR_CODES } from './data/feedback-errors';
 import {
+  ASSESSMENT_GAPS,
+  EXPORT_FORMATS,
   FEEDBACK_ACTIONS,
   FEEDBACK_CHANNELS,
   FEEDBACK_KINDS,
@@ -14,11 +16,14 @@ import {
   FEEDBACK_SORTS,
   FEEDBACK_STATUSES,
   QUESTION_TYPES,
+  REPLY_CHANNELS,
+  SUBJECT_TYPES,
   SURVEY_ACTIONS,
+  SURVEY_LANGUAGES,
   SURVEY_SORTS,
   SURVEY_STATUSES,
 } from './data/feedback.models';
-import { STATUS_FILTERS } from './items/feedback-list';
+import { LIST_KPIS, STATUS_FILTERS } from './items/feedback-list';
 
 type Tree = Record<string, unknown>;
 
@@ -96,6 +101,18 @@ describe('feedback i18n and guidance', () => {
     ['notifications', EVENT_KEYS],
     ['timeline', EVENT_KEYS],
     ['form.scoreOption', ['1', '2', '3', '4', '5']],
+    ['form.kindHint', FEEDBACK_KINDS],
+    ['replyChannels', REPLY_CHANNELS],
+    ['subjectTypes', SUBJECT_TYPES],
+    ['gaps', ASSESSMENT_GAPS],
+    ['export.formats', EXPORT_FORMATS],
+    ['export.as', EXPORT_FORMATS],
+    ['surveyLanguages', SURVEY_LANGUAGES],
+    ['kpis', LIST_KPIS],
+    ['filters.justifiedOptions', ['any', 'yes', 'no']],
+    ['assessment.answers', ['yes', 'no', 'unset']],
+    ['insights.handling', ['assessed', 'justified', 'replied']],
+    ['next.unacknowledged', ['title', 'why']],
   ])('translates every %s value', (prefix, values) => {
     for (const lang of [en, nb]) {
       for (const value of values) {
@@ -116,7 +133,18 @@ describe('feedback i18n and guidance', () => {
   });
 
   it('gives every guided page an intro and a why note with clauses, and lessons a valid quiz', () => {
-    const pages = ['list', 'form', 'detail', 'surveys', 'surveyForm', 'surveyDetail', 'insights'];
+    const pages = [
+      'list',
+      'form',
+      'edit',
+      'detail',
+      'surveys',
+      'surveyForm',
+      'surveyEdit',
+      'surveyDetail',
+      'insights',
+      'settings',
+    ];
     for (const guide of [guideEn, guideNb]) {
       for (const page of pages) {
         const p = (guide.pages as Tree)[page] as Tree;
@@ -135,7 +163,13 @@ describe('feedback i18n and guidance', () => {
   });
 
   it('only references the clauses the module declares', () => {
-    const declared = new Set(['iso9001:9.1.2', 'iso9001:8.2.1']);
+    const declared = new Set([
+      'iso9001:9.1.2',
+      'iso9001:8.2.1',
+      'iso9001:10.2.1',
+      'iso9001:9.1.3',
+      'gdpr:13',
+    ]);
     for (const guide of [guideEn, guideNb]) {
       for (const page of Object.values(guide.pages as Tree)) {
         for (const ref of ((page as Tree)['why'] as Tree)['clauses'] as string[]) {

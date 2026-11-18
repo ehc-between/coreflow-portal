@@ -433,7 +433,12 @@
       "to_document": "Document that meets the obligation"
     },
     "customer_feedback": {
-      "to_deviation": "Deviation from this feedback"
+      "to_deviation": "Deviation from this feedback",
+      "to_risk": "Risk this feedback reveals",
+      "to_task": "Follow-up task",
+      "to_objective": "Improvement goal",
+      "to_incident": "Security incident",
+      "to_data_subject_request": "Data subject request"
     },
     "management_review": {
       "to_task": "Action (task)",
@@ -443,6 +448,9 @@
       "to_document": "Document change decided in the review"
     },
     "formMissing": "This form is not available yet. Create the record from its own page and link it from the Related tab.",
+    "survey": {
+      "to_task": "Task from the results"
+    },
     "opportunity": {
       "to_task": "Action (task)",
       "to_objective": "Objective that pursues the opportunity",

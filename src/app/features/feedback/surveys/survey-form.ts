@@ -17,8 +17,14 @@ import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { FormField } from '../../../shared/ui/form-field/form-field';
 import { Icon } from '../../../shared/ui/icon/icon';
-import { questionTypeKey } from '../data/feedback-display';
-import { AnswerValue, QUESTION_TYPES, Question, QuestionType } from '../data/feedback.models';
+import { questionTypeKey, thresholdOnFive } from '../data/feedback-display';
+import {
+  AnswerValue,
+  QUESTION_TYPES,
+  Question,
+  QuestionType,
+  SURVEY_LANGUAGES,
+} from '../data/feedback.models';
 import {
   MAX_OPTIONS,
   MAX_QUESTIONS,
@@ -40,9 +46,9 @@ export interface SurveyFormSubmit {
 }
 
 const INPUT =
-  'h-10 w-full rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg outline-none focus:border-accent';
+  'h-10 w-full rounded-tile border border-border bg-bg px-3 text-body text-fg outline-none focus:border-accent';
 const TEXTAREA =
-  'w-full rounded-[10px] border border-border bg-bg px-3 py-2 text-[13.5px] text-fg outline-none focus:border-accent';
+  'w-full rounded-tile border border-border bg-bg px-3 py-2 text-body text-fg outline-none focus:border-accent';
 
 /**
  * The survey form with its question builder (create and edit). Questions can be
@@ -56,7 +62,7 @@ const TEXTAREA =
   template: `
     <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); submit()" novalidate>
       <app-card>
-        <h2 class="mb-4 font-display text-[16px] font-bold text-fg">
+        <h2 class="mb-4 font-display text-section font-bold text-fg">
           {{ 'feedback.surveyForm.sections.basics' | transloco }}
         </h2>
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -77,11 +83,11 @@ const TEXTAREA =
               />
             </app-form-field>
             @if (shownErrors()['title']; as e) {
-              <p class="mt-1 text-[12px] text-fail">{{ e | transloco }}</p>
+              <p class="mt-1 text-meta text-fail">{{ e | transloco }}</p>
             }
           </div>
           <div class="sm:col-span-2">
-            <label for="cf-sv-desc" class="mb-1.5 block text-[13px] font-semibold text-fg-muted">
+            <label for="cf-sv-desc" class="mb-1.5 block text-ui font-semibold text-fg-muted">
               {{ 'feedback.surveyFields.description' | transloco }}
             </label>
             <textarea
@@ -92,7 +98,7 @@ const TEXTAREA =
               [value]="form().description"
               (input)="set('description', $any($event.target).value)"
             ></textarea>
-            <p class="mt-1 text-[12px] text-fg-subtle">
+            <p class="mt-1 text-meta text-fg-subtle">
               {{ 'feedback.surveyForm.descriptionHint' | transloco }}
             </p>
           </div>
@@ -121,11 +127,11 @@ const TEXTAREA =
               />
             </app-form-field>
             @if (shownErrors()['closes_on']; as e) {
-              <p class="mt-1 text-[12px] text-fail">{{ e | transloco }}</p>
+              <p class="mt-1 text-meta text-fail">{{ e | transloco }}</p>
             }
           </div>
           <div>
-            <label class="inline-flex items-center gap-2 text-[13px] text-fg">
+            <label class="inline-flex items-center gap-2 text-ui text-fg">
               <input
                 type="checkbox"
                 class="h-4 w-4 accent-[var(--accent)]"
@@ -140,7 +146,7 @@ const TEXTAREA =
           <div>
             <label
               for="cf-sv-threshold"
-              class="mb-1.5 flex items-center gap-1 text-[13px] font-semibold text-fg-muted"
+              class="mb-1.5 flex items-center gap-1 text-ui font-semibold text-fg-muted"
             >
               {{ 'feedback.surveyFields.lowScoreThreshold' | transloco }}
               <app-field-help scope="feedback" page="surveyForm" field="low_score_threshold" />
@@ -155,10 +161,44 @@ const TEXTAREA =
               [value]="form().low_score_threshold"
               (input)="set('low_score_threshold', $any($event.target).value)"
               [attr.aria-invalid]="!!shownErrors()['low_score_threshold']"
+              aria-describedby="cf-sv-threshold-hint"
+              data-testid="survey-threshold"
             />
+            <p id="cf-sv-threshold-hint" class="mt-1 text-meta text-fg-subtle">
+              @if (thresholdFive(); as five) {
+                {{ 'feedback.surveyForm.thresholdHint' | transloco: { five } }}
+              } @else {
+                {{ 'feedback.surveyForm.thresholdOff' | transloco }}
+              }
+            </p>
             @if (shownErrors()['low_score_threshold']; as e) {
-              <p class="mt-1 text-[12px] text-fail">{{ e | transloco }}</p>
+              <p class="mt-1 text-meta text-fail">{{ e | transloco }}</p>
             }
+          </div>
+          <div>
+            <label
+              for="cf-sv-language"
+              class="mb-1.5 flex items-center gap-1 text-ui font-semibold text-fg-muted"
+            >
+              {{ 'feedback.surveyFields.language' | transloco }}
+              <app-field-help scope="feedback" page="surveyForm" field="language" />
+            </label>
+            <app-form-field inputId="cf-sv-language">
+              <select
+                id="cf-sv-language"
+                (change)="set('language', $any($event.target).value)"
+                data-testid="survey-language"
+              >
+                @for (l of languages; track l) {
+                  <option [value]="l" [selected]="form().language === l">
+                    {{ 'feedback.surveyLanguages.' + l | transloco }}
+                  </option>
+                }
+              </select>
+            </app-form-field>
+            <p class="mt-1 text-meta text-fg-subtle">
+              {{ 'feedback.surveyForm.languageHint' | transloco }}
+            </p>
           </div>
           <app-form-field [label]="'feedback.fields.owner' | transloco" inputId="cf-sv-owner">
             <select id="cf-sv-owner" (change)="set('owner_user_id', $any($event.target).value)">
@@ -181,7 +221,7 @@ const TEXTAREA =
             </select>
           </app-form-field>
           <div class="sm:col-span-2">
-            <label for="cf-sv-thanks" class="mb-1.5 block text-[13px] font-semibold text-fg-muted">
+            <label for="cf-sv-thanks" class="mb-1.5 block text-ui font-semibold text-fg-muted">
               {{ 'feedback.surveyFields.thankYouMessage' | transloco }}
             </label>
             <textarea
@@ -198,7 +238,7 @@ const TEXTAREA =
 
       <app-card>
         <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <h2 class="flex items-center gap-1 font-display text-[16px] font-bold text-fg">
+          <h2 class="flex items-center gap-1 font-display text-section font-bold text-fg">
             {{ 'feedback.surveyForm.sections.questions' | transloco }}
             <app-field-help scope="feedback" page="surveyForm" field="questions" />
           </h2>
@@ -220,11 +260,11 @@ const TEXTAREA =
 
         @if (questionsLocked()) {
           <app-alert tone="info">{{ 'feedback.surveyForm.locked' | transloco }}</app-alert>
-          <ol class="mt-3 flex flex-col gap-1 text-[13.5px] text-fg">
+          <ol class="mt-3 flex flex-col gap-1 text-body text-fg">
             @for (q of form().questions; track q.key; let i = $index) {
               <li>
                 <span class="text-fg-subtle">{{ i + 1 }}.</span> {{ q.label }}
-                <span class="text-[12px] text-fg-subtle">({{ typeKey(q.type) | transloco }})</span>
+                <span class="text-meta text-fg-subtle">({{ typeKey(q.type) | transloco }})</span>
               </li>
             }
           </ol>
@@ -242,7 +282,7 @@ const TEXTAREA =
         } @else {
           @if (form().questions.length === 0) {
             <div class="rounded-tile border border-dashed border-border p-4 text-center">
-              <p class="text-[13px] text-fg-muted">
+              <p class="text-ui text-fg-muted">
                 {{ 'feedback.surveyForm.noQuestions' | transloco }}
               </p>
               <app-button
@@ -260,7 +300,7 @@ const TEXTAREA =
             @for (q of form().questions; track q.key; let i = $index; let last = $last) {
               <li class="rounded-tile border border-border p-3">
                 <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-                  <span class="text-[12.5px] font-semibold text-fg-subtle">
+                  <span class="text-meta font-semibold text-fg-subtle">
                     {{ 'feedback.surveyForm.questionN' | transloco: { n: i + 1 } }}
                   </span>
                   <span class="flex gap-1">
@@ -343,7 +383,7 @@ const TEXTAREA =
 
                 @if (isChoice(q.type)) {
                   <fieldset class="mt-3">
-                    <legend class="mb-1 text-[12.5px] font-semibold text-fg-muted">
+                    <legend class="mb-1 text-meta font-semibold text-fg-muted">
                       {{ 'feedback.surveyFields.options' | transloco }}
                     </legend>
                     <div class="flex flex-col gap-1.5">
@@ -390,7 +430,7 @@ const TEXTAREA =
                 }
 
                 <div class="mt-3 flex flex-wrap items-center gap-4">
-                  <label class="inline-flex items-center gap-2 text-[13px] text-fg">
+                  <label class="inline-flex items-center gap-2 text-ui text-fg">
                     <input
                       type="checkbox"
                       class="h-4 w-4 accent-[var(--accent)]"
@@ -400,10 +440,10 @@ const TEXTAREA =
                     {{ 'feedback.surveyFields.required' | transloco }}
                   </label>
                   @if (q.type === 'rating') {
-                    <label class="inline-flex items-center gap-2 text-[13px] text-fg">
+                    <label class="inline-flex items-center gap-2 text-ui text-fg">
                       {{ 'feedback.surveyFields.scale' | transloco }}
                       <select
-                        class="h-8 rounded-[8px] border border-border bg-bg px-2 text-[13px]"
+                        class="h-8 rounded-tile border border-border bg-bg px-2 text-ui"
                         (change)="patch(i, { scale: +$any($event.target).value })"
                       >
                         @for (n of scales; track n) {
@@ -414,19 +454,19 @@ const TEXTAREA =
                   }
                 </div>
                 @for (p of problemsFor(i + 1); track p) {
-                  <p class="mt-2 text-[12px] text-fail">{{ p | transloco }}</p>
+                  <p class="mt-2 text-meta text-fail">{{ p | transloco }}</p>
                 }
               </li>
             }
           </ol>
           @if (form().questions.length < maxQuestions) {
             <div class="mt-3 flex flex-wrap items-center gap-2">
-              <label for="cf-sv-add-type" class="text-[13px] font-semibold text-fg-muted">
+              <label for="cf-sv-add-type" class="text-ui font-semibold text-fg-muted">
                 {{ 'feedback.surveyForm.addLabel' | transloco }}
               </label>
               <select
                 id="cf-sv-add-type"
-                class="h-9 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
+                class="h-9 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
                 (change)="newType.set($any($event.target).value)"
               >
                 @for (t of types; track t) {
@@ -493,6 +533,7 @@ export class SurveyForm {
   protected readonly iconButton =
     'inline-flex h-8 w-8 items-center justify-center rounded-tile text-fg-subtle outline-none hover:bg-surface-2 hover:text-fg focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-40';
   protected readonly types = QUESTION_TYPES;
+  protected readonly languages = SURVEY_LANGUAGES;
   protected readonly scales = [3, 4, 5, 6, 7, 8, 9, 10];
   protected readonly maxOptions = MAX_OPTIONS;
   protected readonly maxQuestions = MAX_QUESTIONS;
@@ -507,6 +548,11 @@ export class SurveyForm {
   protected readonly newType = signal<QuestionType>('rating');
 
   protected readonly errors = computed(() => validateSurveyForm(this.form()));
+  /** The follow-up threshold on a 1–5 rating ("2 av 5"), or null when it is off. */
+  protected readonly thresholdFive = computed(() => {
+    const raw = this.form().low_score_threshold;
+    return raw === '' || this.errors()['low_score_threshold'] ? null : thresholdOnFive(Number(raw));
+  });
   protected readonly questionProblems = computed(() =>
     this.questionsLocked() ? [] : validateQuestions(this.form().questions),
   );

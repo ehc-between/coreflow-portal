@@ -433,7 +433,12 @@
       "to_document": "Dokument som oppfyller forpliktelsen"
     },
     "customer_feedback": {
-      "to_deviation": "Avvik fra tilbakemeldingen"
+      "to_deviation": "Avvik fra denne tilbakemeldingen",
+      "to_risk": "Risiko tilbakemeldingen avdekker",
+      "to_task": "Oppfølgingsoppgave",
+      "to_objective": "Forbedringsmål",
+      "to_incident": "Sikkerhetshendelse",
+      "to_data_subject_request": "Henvendelse fra registrert"
     },
     "management_review": {
       "to_task": "Tiltak (oppgave)",
@@ -443,6 +448,9 @@
       "to_document": "Dokumentendring fra gjennomgangen"
     },
     "formMissing": "Dette skjemaet finnes ikke ennå. Opprett posten fra sin egen side og koble den fra fanen Relatert.",
+    "survey": {
+      "to_task": "Oppgave fra resultatene"
+    },
     "opportunity": {
       "to_task": "Tiltak (oppgave)",
       "to_objective": "Mål som følger opp muligheten",
