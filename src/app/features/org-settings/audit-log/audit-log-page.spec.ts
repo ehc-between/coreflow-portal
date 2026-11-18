@@ -87,6 +87,11 @@ describe('audit log filters', () => {
     expect(actionVerbKey('generated_output.created')).toBe('outputCreated');
     expect(actionVerbKey('risk.exported')).toBe('exported');
     expect(actionVerbKey('risk.weird_thing')).toBeNull();
+    // Compound document actions (the backend counts them as documents) are not "Changed".
+    expect(actionVerbKey('risk.register_exported')).toBe('exported');
+    expect(actionVerbKey('report_definition.run_downloaded')).toBe('downloaded');
+    expect(actionVerbKey('context.evidence_pack_exported')).toBe('exported');
+    expect(actionVerbKey('auth.mfa_recovery_codes_generated')).toBeNull();
     for (const tree of [en, nb]) {
       for (const verb of ['outputCreated', 'downloaded', 'shareCreated', 'shareRevoked']) {
         expect(typeof lookup(tree, `settings.audit.verbs.${verb}`), verb).toBe('string');

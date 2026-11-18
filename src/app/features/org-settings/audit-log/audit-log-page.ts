@@ -95,8 +95,15 @@ export function actionVerbKey(action: string): string | null {
   const whole = AUDIT_ACTION_VERBS[action];
   if (whole) return whole;
   const verb = actionVerb(action);
-  return (AUDIT_VERBS as readonly string[]).includes(verb) ? verb : null;
+  if ((AUDIT_VERBS as readonly string[]).includes(verb)) return verb;
+  // Compound document actions (`risk.register_exported`, `report_definition.run_downloaded`)
+  // name their result last; they count as documents, so they must not read "Changed".
+  const tail = verb.slice(verb.lastIndexOf('_') + 1);
+  return verb.includes('_') && AUDIT_COMPOUND_VERBS.includes(tail) ? tail : null;
 }
+
+/** Last words of compound document actions that have their own wording. */
+const AUDIT_COMPOUND_VERBS: readonly string[] = ['exported', 'downloaded', 'shared'];
 
 /**
  * i18n keys that may name an entity type or action group, best first: the backend
