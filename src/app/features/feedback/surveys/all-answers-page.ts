@@ -69,22 +69,24 @@ export function answersScopeFromParams(
   imports: [Card, ModuleNav, PageHeader, SurveyAnswers],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <app-page-header
-      titleKey="feedback.allAnswers.title"
-      descriptionKey="feedback.allAnswers.subtitle"
-      [breadcrumbs]="crumbs"
-      [settingsLink]="settingsLink"
-    />
-    <app-module-nav labelKey="modules.names.feedback" [items]="nav" />
-    <app-card>
-      <app-survey-answers
-        [scope]="scope()"
-        [canWrite]="canWrite()"
-        [canManage]="canManage()"
-        [canDeviate]="canDeviate()"
-        (scopeCleared)="clearScope()"
+    <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+      <app-page-header
+        titleKey="feedback.allAnswers.title"
+        descriptionKey="feedback.allAnswers.subtitle"
+        [breadcrumbs]="crumbs"
+        [settingsLink]="settingsLink"
       />
-    </app-card>
+      <app-module-nav labelKey="modules.names.feedback" [items]="nav" />
+      <app-card>
+        <app-survey-answers
+          [scope]="scope()"
+          [canWrite]="canWrite()"
+          [canManage]="canManage()"
+          [canDeviate]="canDeviate()"
+          (scopeCleared)="clearScope()"
+        />
+      </app-card>
+    </div>
   `,
 })
 export class AllAnswersPage {
