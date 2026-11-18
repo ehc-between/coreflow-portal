@@ -2062,7 +2062,7 @@
     },
     "overview": {
       "noneEnabled": "No standards enabled yet",
-      "noneEnabledHint": "Enable a standard below to start mapping your documents and deviations to its requirements.",
+      "noneEnabledHint": "Turn on a standard below to start linking risks, documents, suppliers and other records to its requirements.",
       "available": "Available standards",
       "chapters": "Completeness per chapter",
       "open": "Open",
@@ -2074,7 +2074,7 @@
     },
     "view": {
       "coveredOf": "{{covered}} of {{total}} requirements covered",
-      "mapWithAi": "Map with AI",
+      "mapWithAi": "Find evidence with AI",
       "notEnabled": "This standard is not enabled for your organisation, so progress is not tracked.",
       "collapseAll": "Collapse all",
       "expand": "Expand {{number}}",
@@ -2097,7 +2097,7 @@
       "stalled": "The job is waiting for a worker. It will run when one is available — check back later."
     },
     "licensed": {
-      "title": "Your licensed copy",
+      "title": "The standard’s text (your copy)",
       "hint": "Upload your organisation's own licensed PDF of the standard to show its clause text next to our explanations. It is only visible inside your organisation.",
       "extracted": "Clause text available",
       "extract": "Extract clause text"
@@ -2106,7 +2106,7 @@
       "control": "Annex A control",
       "explanationHint": "CoreFlow's own explanation — not the text of the standard.",
       "licensedText": "Standard text",
-      "licensedBadge": "From your licensed copy",
+      "licensedBadge": "From your copy",
       "licensedHint": "Taken from the copy of the standard your organisation uploaded.",
       "requirements": "Requirements ({{count}})",
       "guidance": "Guidance",
@@ -2188,13 +2188,13 @@
       "next": "Next section",
       "sectionNav": "Navigate from section {{number}}",
       "breadcrumb": "Location in the standard",
-      "licensedCopy": "Licensed copy",
+      "licensedCopy": "Standard text (your copy)",
       "close": "Close",
       "noLicensedText": "Your copy has no text for this clause.",
       "licensedError": "Couldn't load the text from your copy. Try again.",
       "empty": "This standard has no sections.",
-      "hasAiSuggestions": "Has AI suggestions",
-      "noAiSuggestions": "No requirements have AI suggestions to review."
+      "hasAiSuggestions": "Has suggestions",
+      "noAiSuggestions": "No requirements have suggestions to review."
     },
     "ai": {
       "title": "AI help",

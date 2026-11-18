@@ -2062,7 +2062,7 @@
     },
     "overview": {
       "noneEnabled": "Ingen standarder er aktivert ennå",
-      "noneEnabledHint": "Aktiver en standard nedenfor for å begynne å koble dokumenter og avvik til kravene.",
+      "noneEnabledHint": "Aktiver en standard nedenfor for å begynne å koble risikoer, dokumenter, leverandører og andre poster til kravene.",
       "available": "Tilgjengelige standarder",
       "chapters": "Kravdekning per kapittel",
       "open": "Åpne",
@@ -2074,7 +2074,7 @@
     },
     "view": {
       "coveredOf": "{{covered}} av {{total}} krav dekket",
-      "mapWithAi": "Koble med KI",
+      "mapWithAi": "Finn dokumentasjon med KI",
       "notEnabled": "Denne standarden er ikke aktivert for organisasjonen, så fremdriften følges ikke.",
       "collapseAll": "Skjul alle",
       "expand": "Utvid {{number}}",
@@ -2097,7 +2097,7 @@
       "stalled": "Jobben venter på en ledig prosess. Den kjøres når en blir ledig — sjekk igjen senere."
     },
     "licensed": {
-      "title": "Organisasjonens lisensierte eksemplar",
+      "title": "Standardteksten (deres kopi)",
       "hint": "Last opp organisasjonens egen lisensierte PDF av standarden for å vise teksten ved siden av forklaringene våre. Den er bare synlig i organisasjonen.",
       "extracted": "Teksten fra standarden er tilgjengelig",
       "extract": "Hent teksten fra standarden"
@@ -2106,7 +2106,7 @@
       "control": "Kontroll i vedlegg A",
       "explanationHint": "CoreFlows egen forklaring — ikke teksten i standarden.",
       "licensedText": "Standardens tekst",
-      "licensedBadge": "Fra organisasjonens lisensierte eksemplar",
+      "licensedBadge": "Fra deres kopi",
       "licensedHint": "Hentet fra eksemplaret av standarden som organisasjonen har lastet opp.",
       "requirements": "Krav ({{count}})",
       "guidance": "Veiledning",
@@ -2188,13 +2188,13 @@
       "next": "Neste avsnitt",
       "sectionNav": "Naviger fra avsnitt {{number}}",
       "breadcrumb": "Plassering i standarden",
-      "licensedCopy": "Lisensiert eksemplar",
+      "licensedCopy": "Standardteksten (deres kopi)",
       "close": "Lukk",
       "noLicensedText": "Organisasjonens eksemplar har ingen tekst for dette punktet.",
       "licensedError": "Kunne ikke hente teksten fra eksemplaret. Prøv igjen.",
       "empty": "Denne standarden har ingen avsnitt.",
-      "hasAiSuggestions": "Har KI-forslag",
-      "noAiSuggestions": "Ingen krav har KI-forslag til gjennomgang."
+      "hasAiSuggestions": "Har forslag",
+      "noAiSuggestions": "Ingen krav har forslag til gjennomgang."
     },
     "ai": {
       "title": "KI-hjelp",

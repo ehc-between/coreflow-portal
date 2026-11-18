@@ -18,6 +18,23 @@ import { FrameworkView } from '../../core/standards/frameworks-data';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { StandardsApi } from '../../core/standards/standards-api';
 import { ChapterBar, chapterBars, pctColor } from '../../core/standards/standards-data';
+import {
+  editionKey,
+  headlineScore,
+  legalFormKey,
+  legalFormOf,
+  legalFormTone,
+  standardName,
+} from '../../core/standards/standards-display';
+import { pluralKey } from '../../shared/i18n/plural';
+import { LocalDatePipe } from '../../shared/locale/locale-pipes';
+import { EmptyState } from '../../shared/ui/empty-state/empty-state';
+import { ErrorState } from '../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
+import { LoadingState } from '../../shared/ui/loading-state/loading-state';
+import { MenuItem, OverflowMenu } from '../../shared/ui/overflow-menu/overflow-menu';
+import { PageHeader } from '../../shared/ui/page-header/page-header';
+import { TourStepDirective } from '../../shared/guidance/tour-step.directive';
 import { ClauseNode, StandardSummary } from '../../core/standards/standards.models';
 import { LanguageService } from '../../core/i18n/language.service';
 import { Badge } from '../../shared/ui/badge/badge';
@@ -29,7 +46,6 @@ import { ProgressBar } from '../../shared/ui/progress-bar/progress-bar';
 import { ProgressRing } from '../../shared/ui/progress-ring/progress-ring';
 import { AskPanelService } from '../ask/ask-panel.service';
 import { loadFrameworks } from './frameworks/frameworks-load';
-import { StandardsGuide } from './guide/standards-guide';
 
 /**
  * Standards & regulations overview for the current org: every enabled
@@ -50,105 +66,113 @@ import { StandardsGuide } from './guide/standards-guide';
     Button,
     Card,
     ConfirmDialog,
+    EmptyState,
+    ErrorState,
+    HelpStrip,
     Icon,
+    LoadingState,
+    LocalDatePipe,
+    MenuItem,
+    OverflowMenu,
+    PageHeader,
     ProgressBar,
     ProgressRing,
-    StandardsGuide,
+    TourStepDirective,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mx-auto max-w-[1180px] px-4 pt-7 pb-12 sm:px-8">
-      <div class="mb-[18px] flex flex-wrap items-start gap-3">
-        <div class="min-w-0 flex-1">
-          <h1 class="font-display text-[26px] font-bold tracking-[-0.025em] text-fg">
-            {{ 'standards.title' | transloco }}
-          </h1>
-          <div class="mt-1.5 text-[14px] text-fg-muted">
-            {{ 'standards.subtitle' | transloco }}
-          </div>
-        </div>
-        <div class="flex flex-wrap items-center gap-2">
-          @if (!aiUnavailable() && !loading() && !loadError()) {
-            <app-button variant="ghost" size="sm" (click)="explainReadiness()">
-              <app-icon name="spark" [size]="14" />
-              {{ 'standards.frameworks.explain' | transloco }}
-            </app-button>
-          }
-          <a
-            routerLink="/standards/readiness"
-            class="inline-flex h-8 items-center justify-center gap-2 rounded-tile border border-border bg-surface px-3 text-[13px] font-semibold text-fg transition-colors hover:border-border-strong hover:bg-surface-2"
-          >
-            {{ 'standards.frameworks.readinessDetails' | transloco }}
-            <app-icon name="arrow" [size]="14" />
-          </a>
-        </div>
-      </div>
+      <app-page-header
+        titleKey="modules.names.standards"
+        descriptionKey="standards.subtitle"
+        [breadcrumbs]="[{ labelKey: 'modules.names.standards' }]"
+      >
+        @if (!aiUnavailable() && !loading() && !loadError()) {
+          <app-button secondary variant="ghost" size="sm" (click)="explainReadiness()">
+            <app-icon name="spark" [size]="14" />
+            {{ 'standards.frameworks.explain' | transloco }}
+          </app-button>
+        }
+        <a
+          secondary
+          appTourStep="standards-readiness"
+          routerLink="/standards/readiness"
+          class="inline-flex h-9 items-center justify-center gap-2 rounded-tile border border-border bg-surface px-3 text-ui font-semibold text-fg transition-colors hover:border-border-strong hover:bg-surface-2"
+        >
+          {{ 'standards.frameworks.readinessDetails' | transloco }}
+          <app-icon name="arrow" [size]="14" />
+        </a>
+      </app-page-header>
 
-      <app-standards-guide page="overview" [clauses]="guideClauses" />
+      <app-help-strip
+        scope="standards"
+        page="overview"
+        tour="overview"
+        lesson="requirements-and-evidence"
+      />
 
       @if (loading()) {
-        <app-card>
-          <div class="px-2 py-10 text-center text-[14px] text-fg-muted">
-            {{ 'common.loading' | transloco }}
-          </div>
-        </app-card>
+        <app-loading-state [rows]="3" />
       } @else if (loadError()) {
-        <app-card>
-          <div class="px-2 py-10 text-center text-[14px] text-fg-muted">
-            {{ 'standards.loadError' | transloco }}
-          </div>
-        </app-card>
+        <app-error-state (retry)="reload()" />
       } @else {
         @if (enabled().length === 0) {
-          <app-card>
-            <div class="flex flex-col items-center gap-2 py-10 text-center">
-              <span class="flex text-fg-subtle"><app-icon name="iso" [size]="28" /></span>
-              <p class="text-[14px] font-semibold text-fg">
-                {{ 'standards.overview.noneEnabled' | transloco }}
-              </p>
-              <p class="max-w-md text-[13px] text-fg-muted">
-                {{ 'standards.overview.noneEnabledHint' | transloco }}
-              </p>
-            </div>
-          </app-card>
+          <app-empty-state
+            icon="iso"
+            titleKey="standards.overview.noneEnabled"
+            bodyKey="standards.overview.noneEnabledHint"
+          />
         } @else {
-          <div class="grid gap-5 md:grid-cols-2">
+          <div class="grid gap-5 lg:grid-cols-2" appTourStep="standards-cards">
             @for (std of enabled(); track std.key) {
-              @let view = viewOf(std.key);
-              @let score = view?.readiness ?? std.completeness.pct;
+              @let score = scoreOf(std);
+              @let form = formOf(std);
               <app-card>
-                <div class="flex items-start gap-4">
-                  <app-progress-ring
-                    [value]="score"
-                    [size]="76"
-                    [color]="pctColor(score)"
-                    [label]="'standards.frameworks.readiness' | transloco"
-                  />
+                <div class="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start">
+                  <span
+                    class="flex-none self-start"
+                    [title]="'standards.scoreHint' | transloco"
+                    data-testid="overview-score"
+                  >
+                    <app-progress-ring
+                      [value]="score"
+                      [size]="76"
+                      [color]="pctColor(score)"
+                      [label]="'standards.completeness' | transloco"
+                    />
+                  </span>
                   <div class="min-w-0 flex-1">
                     <a
                       [routerLink]="['/standards', std.key]"
-                      class="font-display text-[17px] font-bold tracking-[-0.02em] text-fg hover:text-accent"
+                      class="font-display text-card font-bold text-fg [overflow-wrap:anywhere] hover:text-accent"
                     >
-                      {{ std.name }}
+                      {{ nameOf(std) }}
                     </a>
-                    <div class="text-[12.5px] text-fg-subtle">
-                      {{ 'standards.edition' | transloco: { edition: std.edition } }}
-                    </div>
                     <div class="mt-1.5 flex flex-wrap items-center gap-1.5">
-                      <app-badge [tone]="kindOf(std.key) === 'regulation' ? 'info' : 'neutral'">
-                        {{ 'standards.frameworks.kind.' + kindOf(std.key) | transloco }}
-                      </app-badge>
-                      @if (view?.inProfile) {
-                        <app-badge tone="accent">
-                          <span [title]="'standards.frameworks.inProfileHint' | transloco">{{
-                            'standards.frameworks.inProfile' | transloco
-                          }}</span>
-                        </app-badge>
-                      }
-                      <span class="text-[12px] text-fg-muted">{{
-                        'standards.frameworks.coverage' | transloco: { pct: std.completeness.pct }
+                      <app-badge [tone]="legalFormTone(form)">{{
+                        legalFormKey(form) | transloco
+                      }}</app-badge>
+                      <span class="text-meta text-fg-subtle">{{
+                        editionKey(form) | transloco: { edition: std.edition }
                       }}</span>
+                      @if (viewOf(std.key)?.inProfile) {
+                        <span [title]="'standards.frameworks.inProfileHint' | transloco">
+                          <app-badge tone="accent">{{
+                            'standards.frameworks.inProfile' | transloco
+                          }}</app-badge>
+                        </span>
+                      }
                     </div>
+                    <p class="mt-1.5 text-meta text-fg-muted">
+                      {{
+                        'standards.view.coveredOf'
+                          | transloco
+                            : {
+                                covered: std.completeness.covered,
+                                total: std.completeness.applicable,
+                              }
+                      }}
+                    </p>
                     <div class="mt-2 flex flex-wrap gap-1.5">
                       <app-badge tone="pass">
                         {{
@@ -156,13 +180,15 @@ import { StandardsGuide } from './guide/standards-guide';
                             | transloco: { count: std.completeness.covered }
                         }}
                       </app-badge>
-                      <app-badge tone="warn">
-                        {{
-                          'standards.counts.partial'
-                            | transloco: { count: std.completeness.partial }
-                        }}
-                      </app-badge>
-                      <app-badge tone="fail">
+                      @if (std.completeness.partial > 0) {
+                        <app-badge tone="warn">
+                          {{
+                            'standards.counts.partial'
+                              | transloco: { count: std.completeness.partial }
+                          }}
+                        </app-badge>
+                      }
+                      <app-badge tone="neutral">
                         {{
                           'standards.counts.not_started'
                             | transloco: { count: std.completeness.not_started }
@@ -177,6 +203,31 @@ import { StandardsGuide } from './guide/standards-guide';
                         </app-badge>
                       }
                     </div>
+                    @if (std.certification; as cert) {
+                      <p class="mt-2 text-meta text-fg-muted" data-testid="overview-certification">
+                        <app-icon
+                          name="shield"
+                          [size]="13"
+                          class="mr-1 inline-block align-[-2px]"
+                        />
+                        <a
+                          [routerLink]="cert.url"
+                          class="font-semibold text-accent hover:underline"
+                          >{{
+                            'standards.cert.label' | transloco: { body: cert.certification_body }
+                          }}</a
+                        >
+                        · {{ certStatusKey(cert.status) | transloco }}
+                        @if (cert.next_surveillance_at) {
+                          ·
+                          {{
+                            'standards.cert.nextSurveillance'
+                              | transloco
+                                : { date: (cert.next_surveillance_at | localDate: 'mediumDate') }
+                          }}
+                        }
+                      </p>
+                    }
                   </div>
                 </div>
 
@@ -186,13 +237,13 @@ import { StandardsGuide } from './guide/standards-guide';
                     [attr.aria-label]="'standards.overview.chapters' | transloco"
                   >
                     @for (bar of list; track bar.number) {
-                      <li>
+                      <li class="min-w-0">
                         <a
-                          [routerLink]="['/standards', std.key, bar.number]"
-                          class="group mb-1 flex items-center gap-2 text-[12.5px]"
+                          [routerLink]="['/standards', std.key, bar.segment]"
+                          class="group mb-1 flex min-w-0 items-center gap-2 text-meta"
                         >
-                          <span class="w-9 flex-none font-mono text-fg-subtle">{{
-                            bar.number
+                          <span class="max-w-[7rem] flex-none truncate font-mono text-fg-subtle">{{
+                            bar.label
                           }}</span>
                           <span
                             class="min-w-0 flex-1 truncate text-fg group-hover:text-accent"
@@ -204,30 +255,53 @@ import { StandardsGuide } from './guide/standards-guide';
                         <app-progress-bar
                           [value]="bar.pct"
                           [color]="pctColor(bar.pct)"
-                          [label]="bar.number + ' ' + bar.title"
+                          [label]="bar.label + ' ' + bar.title"
                         />
                       </li>
                     }
                   </ul>
                 }
 
-                <div class="mt-4 flex items-center justify-between gap-2">
+                <div class="mt-4 flex flex-wrap items-center gap-2">
                   <a
                     [routerLink]="['/standards', std.key]"
-                    class="inline-flex h-8 items-center justify-center gap-2 rounded-tile border border-border bg-surface px-3 text-[13px] font-semibold text-fg transition-colors hover:border-border-strong hover:bg-surface-2"
+                    class="inline-flex h-9 items-center justify-center gap-2 rounded-tile border border-border bg-surface px-3 text-ui font-semibold text-fg transition-colors hover:border-border-strong hover:bg-surface-2"
                   >
                     {{ 'standards.overview.open' | transloco }}
                     <app-icon name="arrow" [size]="14" />
                   </a>
-                  <app-button
+                  @if (std.completeness.not_started + std.completeness.partial > 0) {
+                    <a
+                      [routerLink]="['/standards/gaps', std.key]"
+                      class="inline-flex h-9 items-center justify-center rounded-tile px-3 text-ui font-semibold text-accent hover:bg-accent-soft"
+                      data-testid="overview-gaps"
+                    >
+                      {{
+                        plural(
+                          'standards.reqs.readiness.gaps',
+                          std.completeness.not_started + std.completeness.partial
+                        )
+                          | transloco
+                            : { count: std.completeness.not_started + std.completeness.partial }
+                      }}
+                    </a>
+                  }
+                  <span class="flex-1"></span>
+                  <app-overflow-menu
                     *appHasPermission="'standards:manage'"
-                    variant="ghost"
-                    size="sm"
-                    [loading]="togglingKey() === std.key"
-                    (click)="pendingDisable.set(std)"
+                    [iconOnly]="true"
+                    data-testid="overview-more"
                   >
-                    {{ 'standards.overview.disable' | transloco }}
-                  </app-button>
+                    <button
+                      appMenuItem
+                      type="button"
+                      [danger]="true"
+                      [disabled]="togglingKey() !== null"
+                      (click)="pendingDisable.set(std)"
+                    >
+                      {{ 'standards.overview.disable' | transloco }}
+                    </button>
+                  </app-overflow-menu>
                 </div>
               </app-card>
             }
@@ -235,28 +309,34 @@ import { StandardsGuide } from './guide/standards-guide';
         }
 
         @if (available().length > 0) {
-          <h2 class="mt-8 mb-1 font-display text-[16px] font-bold tracking-[-0.02em] text-fg">
+          <h2
+            class="mt-8 mb-1 font-display text-section font-bold text-fg"
+            appTourStep="standards-available"
+          >
             {{ 'standards.overview.available' | transloco }}
           </h2>
-          <p class="mb-3 text-[12.5px] text-fg-muted">
+          <p class="mb-3 text-meta text-fg-muted">
             {{ 'standards.frameworks.availableHint' | transloco }}
           </p>
           <app-card [padded]="false">
             <ul class="divide-y divide-border">
               @for (std of available(); track std.key) {
+                @let form = formOf(std);
                 <li class="flex flex-wrap items-center gap-3 px-4 py-3">
                   <span class="flex flex-none text-fg-subtle"
                     ><app-icon name="iso" [size]="18"
                   /></span>
                   <span class="min-w-0 flex-1">
-                    <span class="block text-[13.5px] font-semibold text-fg">{{ std.name }}</span>
+                    <span class="block text-ui font-semibold text-fg [overflow-wrap:anywhere]">{{
+                      nameOf(std)
+                    }}</span>
                     <span class="mt-0.5 flex flex-wrap items-center gap-1.5">
-                      <span class="text-[12px] text-fg-subtle">{{
-                        'standards.edition' | transloco: { edition: std.edition }
+                      <app-badge [tone]="legalFormTone(form)">{{
+                        legalFormKey(form) | transloco
+                      }}</app-badge>
+                      <span class="text-meta text-fg-subtle">{{
+                        editionKey(form) | transloco: { edition: std.edition }
                       }}</span>
-                      <app-badge [tone]="kindOf(std.key) === 'regulation' ? 'info' : 'neutral'">
-                        {{ 'standards.frameworks.kind.' + kindOf(std.key) | transloco }}
-                      </app-badge>
                       @if (viewOf(std.key)?.inProfile) {
                         <app-badge tone="accent">{{
                           'standards.frameworks.inProfile' | transloco
@@ -285,7 +365,8 @@ import { StandardsGuide } from './guide/standards-guide';
           confirmVariant="danger"
           [title]="'standards.overview.disableTitle' | transloco"
           [message]="
-            'standards.overview.disableMessage' | transloco: { name: pendingDisable()?.name ?? '' }
+            'standards.overview.disableMessage'
+              | transloco: { name: pendingDisable() ? nameOf(pendingDisable()!) : '' }
           "
           [confirmLabel]="'standards.overview.disable' | transloco"
           [cancelLabel]="'standards.requirement.cancel' | transloco"
@@ -294,7 +375,7 @@ import { StandardsGuide } from './guide/standards-guide';
         />
 
         @if (toggleError()) {
-          <p class="mt-3 text-[13px] text-fail" role="alert">
+          <p class="mt-3 text-ui text-fail" role="alert">
             {{ 'standards.overview.toggleError' | transloco }}
           </p>
         }
@@ -309,9 +390,6 @@ export class StandardsOverview {
   private readonly ask = inject(AskPanelService);
   private readonly transloco = inject(TranslocoService);
   protected readonly aiUnavailable = inject(AiAvailability).unavailable;
-
-  /** The shared ISO structure the overview guide teaches. */
-  protected readonly guideClauses = ['hs:4.1', 'hs:6.1', 'hs:9.1'];
 
   protected readonly standards = signal<readonly StandardSummary[]>([]);
   /** Every framework with its readiness, in framework order. */
@@ -347,6 +425,10 @@ export class StandardsOverview {
   protected readonly available = computed(() => this.ordered().filter((s) => !s.enabled));
 
   protected readonly pctColor = pctColor;
+  protected readonly plural = pluralKey;
+  protected readonly legalFormKey = legalFormKey;
+  protected readonly legalFormTone = legalFormTone;
+  protected readonly editionKey = editionKey;
 
   private sub: Subscription | null = null;
   private barsSub: Subscription | null = null;
@@ -367,16 +449,34 @@ export class StandardsOverview {
     return this.viewsByKey().get(key) ?? null;
   }
 
-  protected kindOf(key: string): string {
-    return this.viewOf(key)?.kind ?? 'standard';
+  /** The standard's name in the UI language. */
+  protected nameOf(std: StandardSummary): string {
+    return standardName(std, this.language.active());
+  }
+
+  protected formOf(std: StandardSummary) {
+    return legalFormOf(std, this.viewOf(std.key)?.kind);
+  }
+
+  /** THE headline number: one score everywhere (the weighted readiness). */
+  protected scoreOf(std: StandardSummary): number {
+    return headlineScore(std, this.viewOf(std.key)?.readiness);
+  }
+
+  protected certStatusKey(status: string): string {
+    return `standards.cert.status.${status}`;
+  }
+
+  protected reload(): void {
+    this.load(this.selectedOrg.currentOrgId());
   }
 
   /** Open the assistant on the org's readiness across its enabled frameworks. */
   protected explainReadiness(): void {
     const items = this.enabled().map((s) =>
       this.transloco.translate('standards.frameworks.summaryItem', {
-        name: s.name,
-        score: this.viewOf(s.key)?.readiness ?? s.completeness.pct,
+        name: this.nameOf(s),
+        score: this.scoreOf(s),
       }),
     );
     this.ask.showWith(

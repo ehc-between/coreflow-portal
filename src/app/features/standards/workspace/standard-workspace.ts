@@ -18,7 +18,24 @@ import {
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { Subscription, debounceTime, forkJoin } from 'rxjs';
+import { Subscription, catchError, debounceTime, forkJoin, of } from 'rxjs';
+import { AttachmentsApi } from '../../../core/attachments/attachments-api';
+import { NotificationService } from '../../../core/notifications/notification.service';
+import { internalLink } from '../../../core/search/internal-link';
+import {
+  clauseLabel,
+  clauseSegment,
+  editionKey,
+  headlineScore,
+  legalFormKey,
+  legalFormOf,
+  legalFormTone,
+  resolveClause,
+  standardName,
+} from '../../../core/standards/standards-display';
+import { LocalDatePipe } from '../../../shared/locale/locale-pipes';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
+import { MenuItem, OverflowMenu } from '../../../shared/ui/overflow-menu/overflow-menu';
 import { providePageContext } from '../../../core/ai/page-context';
 import { pluralKey } from '../../../shared/i18n/plural';
 import { fixedShortName, frameworkOf } from '../../../shared/requirement-links/requirement-label';
@@ -30,6 +47,7 @@ import { StandardsApi } from '../../../core/standards/standards-api';
 import { localized, pctColor, standardsErrorKey } from '../../../core/standards/standards-data';
 import {
   ClauseNode,
+  ExportFormat,
   LocalizedText,
   RequirementDetail,
   StandardJob,
@@ -54,7 +72,9 @@ import {
   clauseOfRequirement,
   ContentFilter,
   countGaps,
+  countStale,
   countWithSuggestions,
+  firstGap,
   effectiveTocExpansion,
   filterRequirements,
   flattenSections,
@@ -93,9 +113,27 @@ const SCROLL_KEYS = new Set(['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home
 const TOC_MIN = 240;
 const TOC_MAX = 520;
 const TOC_DEFAULT = 320;
+/** Wide screens get a wider TOC, so long control titles fit (two lines at most). */
+const TOC_DEFAULT_WIDE = 360;
+const WIDE_SCREEN = 1536;
+/** Dismissed "find evidence" banners, per org and standard. */
+const BANNER_KEY = 'cf.standards.mapBanner';
+/** Delay before the standard's headline score is refreshed after an edit. */
+const SUMMARY_REFRESH_MS = 1200;
 const PREFS_KEY = 'cf.standards.workspace';
 
 type ScrollMode = 'smooth' | 'instant';
+
+/** The workspace's "Neste anbefalte steg". */
+export interface NextStep {
+  readonly kind: 'suggestions' | 'gap' | 'stale';
+  readonly params: Record<string, unknown>;
+  /** For `gap`: the requirement to open. */
+  readonly ref?: string;
+}
+
+/** Content filters a link may preselect (`?filter=gaps|stale|suggestions`). */
+const URL_FILTERS = new Set(['gaps', 'stale', 'suggestions']);
 
 interface WorkspacePrefs {
   readonly tocWidth?: number;
@@ -135,7 +173,11 @@ function clampWidth(width: number): number {
     Attachments,
     Badge,
     Button,
+    HelpStrip,
     Icon,
+    LocalDatePipe,
+    MenuItem,
+    OverflowMenu,
     ProgressRing,
     SlideOver,
     StandardJobProgress,
@@ -149,13 +191,13 @@ function clampWidth(width: number): number {
   host: { class: 'block h-full', '(document:keydown)': 'onKeydown($event)' },
   template: `
     @if (loading()) {
-      <div class="flex h-full items-center justify-center text-[14px] text-fg-muted">
+      <div class="flex h-full items-center justify-center text-body text-fg-muted">
         {{ 'common.loading' | transloco }}
       </div>
     } @else if (!standard()) {
       <div class="flex h-full flex-col items-center justify-center gap-3 px-6 text-center">
-        <p class="text-[14px] text-fg-muted">{{ 'standards.notFound' | transloco }}</p>
-        <a routerLink="/standards" class="text-[13px] font-semibold text-accent hover:underline">
+        <p class="text-body text-fg-muted">{{ 'standards.notFound' | transloco }}</p>
+        <a routerLink="/standards" class="text-ui font-semibold text-accent hover:underline">
           {{ 'standards.backToOverview' | transloco }}
         </a>
       </div>
@@ -196,10 +238,13 @@ function clampWidth(width: number): number {
             [gapCount]="gapCount()"
             [suggestionsOnly]="suggestionsOnly()"
             [suggestionCount]="suggestionCount()"
+            [staleOnly]="staleOnly()"
+            [staleCount]="staleCount()"
             [drawer]="!isDesktop()"
             (queryChange)="tocQuery.set($event)"
             (gapsOnlyChange)="setGapsOnly($event)"
             (suggestionsOnlyChange)="setSuggestionsOnly($event)"
+            (staleOnlyChange)="setStaleOnly($event)"
             (nodeToggled)="toggleTocNode($event)"
             (navigate)="onNavigate($event)"
             (collapseAll)="collapseToc()"
@@ -231,7 +276,7 @@ function clampWidth(width: number): number {
               <button
                 #tocButton
                 type="button"
-                class="flex flex-none items-center gap-1.5 rounded-[8px] border border-border px-2.5 py-1.5 text-[12.5px] font-semibold text-fg hover:bg-surface-2"
+                class="flex flex-none items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-meta font-semibold text-fg hover:bg-surface-2"
                 aria-controls="standard-toc"
                 [attr.aria-expanded]="isDesktop() ? !tocHidden() : drawerOpen()"
                 (click)="showToc()"
@@ -242,30 +287,31 @@ function clampWidth(width: number): number {
                 }}</span>
               </button>
             }
-            <app-progress-ring
-              class="hidden sm:inline-flex"
-              [value]="completeness().pct"
-              [size]="40"
-              [stroke]="4"
-              [color]="pctColor(completeness().pct)"
-              [label]="'standards.completeness' | transloco"
-            />
+            <span class="hidden sm:inline-flex" [title]="'standards.scoreHint' | transloco">
+              <app-progress-ring
+                [value]="headline()"
+                [size]="40"
+                [stroke]="4"
+                [color]="pctColor(headline())"
+                [label]="'standards.completeness' | transloco"
+              />
+            </span>
             <div class="min-w-0 flex-1">
               <div class="flex min-w-0 items-baseline gap-2">
                 <a
                   routerLink="/standards"
-                  class="hidden flex-none text-[12px] font-semibold text-fg-subtle hover:text-fg md:inline"
+                  class="hidden flex-none text-meta font-semibold text-fg-subtle hover:text-fg md:inline"
                   >{{ 'standards.title' | transloco }} /</a
                 >
-                <span class="truncate text-[14px] font-bold text-fg">{{ std.name }}</span>
-                <span class="hidden flex-none text-[12px] text-fg-subtle sm:inline">{{
+                <span class="truncate text-body font-bold text-fg">{{ stdName() }}</span>
+                <span class="hidden flex-none text-meta text-fg-subtle sm:inline">{{
                   'standards.view.coveredOf'
                     | transloco
                       : { covered: completeness().covered, total: completeness().applicable }
                 }}</span>
               </div>
               <nav [attr.aria-label]="'standards.workspace.breadcrumb' | transloco">
-                <ol class="flex min-w-0 items-center gap-1 text-[12.5px] text-fg-muted">
+                <ol class="flex min-w-0 items-center gap-1 text-meta text-fg-muted">
                   @for (crumb of breadcrumb(); track crumb.number; let last = $last) {
                     <li
                       class="min-w-0 items-center gap-1"
@@ -273,15 +319,15 @@ function clampWidth(width: number): number {
                     >
                       @if (last) {
                         <span class="truncate font-medium text-fg"
-                          ><span class="font-mono text-fg-subtle">{{ crumb.number }}</span>
+                          ><span class="font-mono text-fg-subtle">{{ crumb.label }}</span>
                           {{ text(crumb.title) }}</span
                         >
                       } @else {
                         <a
-                          [routerLink]="['/standards', std.key, crumb.number]"
+                          [routerLink]="['/standards', std.key, crumb.segment]"
                           class="max-w-[180px] truncate hover:text-accent"
                           (click)="onNavigateLink($event, crumb.number)"
-                          ><span class="font-mono">{{ crumb.number }}</span>
+                          ><span class="font-mono">{{ crumb.label }}</span>
                           {{ text(crumb.title) }}</a
                         >
                         <span class="flex-none text-fg-subtle" aria-hidden="true">›</span>
@@ -294,11 +340,11 @@ function clampWidth(width: number): number {
 
             <div class="flex flex-none items-center gap-1">
               <a
-                class="flex rounded-[8px] p-1.5 text-fg-muted hover:bg-surface-2 hover:text-fg"
+                class="flex rounded-lg p-1.5 text-fg-muted hover:bg-surface-2 hover:text-fg"
                 [class.pointer-events-none]="!nav().prev"
                 [class.opacity-40]="!nav().prev"
                 [attr.aria-disabled]="!nav().prev"
-                [routerLink]="nav().prev ? ['/standards', std.key, nav().prev] : null"
+                [routerLink]="nav().prev ? ['/standards', std.key, segmentOf(nav().prev)] : null"
                 [attr.aria-label]="'standards.workspace.previous' | transloco"
                 [title]="('standards.workspace.previous' | transloco) + ' (k)'"
                 (click)="onNavigateLink($event, nav().prev)"
@@ -306,11 +352,11 @@ function clampWidth(width: number): number {
                 <app-icon name="chevron" [size]="17" class="rotate-180" />
               </a>
               <a
-                class="flex rounded-[8px] p-1.5 text-fg-muted hover:bg-surface-2 hover:text-fg"
+                class="flex rounded-lg p-1.5 text-fg-muted hover:bg-surface-2 hover:text-fg"
                 [class.pointer-events-none]="!nav().next"
                 [class.opacity-40]="!nav().next"
                 [attr.aria-disabled]="!nav().next"
-                [routerLink]="nav().next ? ['/standards', std.key, nav().next] : null"
+                [routerLink]="nav().next ? ['/standards', std.key, segmentOf(nav().next)] : null"
                 [attr.aria-label]="'standards.workspace.next' | transloco"
                 [title]="('standards.workspace.next' | transloco) + ' (j)'"
                 (click)="onNavigateLink($event, nav().next)"
@@ -325,23 +371,23 @@ function clampWidth(width: number): number {
                   [title]="'standards.reqs.gaps.linkTitle' | transloco"
                 >
                   <app-icon name="target" [size]="14" />
-                  <span class="hidden lg:inline">{{
+                  <span class="hidden 2xl:inline">{{
                     plural('standards.reqs.readiness.gaps', gapCount())
                       | transloco: { count: gapCount() }
                   }}</span>
-                  <span class="sr-only lg:hidden">{{
+                  <span class="sr-only 2xl:hidden">{{
                     plural('standards.reqs.readiness.gaps', gapCount())
                       | transloco: { count: gapCount() }
                   }}</span>
                 </a>
               }
               @if (std.org_standard_id) {
-                <app-button variant="secondary" size="sm" (click)="licensedPanelOpen.set(true)">
+                <app-button variant="secondary" size="sm" (click)="openLicensedPanel()">
                   <app-icon name="lock" [size]="14" />
-                  <span class="hidden lg:inline">{{
+                  <span class="hidden 2xl:inline">{{
                     'standards.workspace.licensedCopy' | transloco
                   }}</span>
-                  <span class="sr-only lg:hidden">{{
+                  <span class="sr-only 2xl:hidden">{{
                     'standards.workspace.licensedCopy' | transloco
                   }}</span>
                 </app-button>
@@ -355,12 +401,42 @@ function clampWidth(width: number): number {
                   (click)="startMap()"
                 >
                   <app-icon name="spark" [size]="14" />
-                  <span class="hidden md:inline">{{ 'standards.view.mapWithAi' | transloco }}</span>
-                  <span class="sr-only md:hidden">{{
+                  <span class="hidden xl:inline">{{ 'standards.view.mapWithAi' | transloco }}</span>
+                  <span class="sr-only xl:hidden">{{
                     'standards.view.mapWithAi' | transloco
                   }}</span>
                 </app-button>
               }
+              <app-overflow-menu [iconOnly]="true" data-testid="workspace-more">
+                @if (std.enabled && canManage()) {
+                  <button
+                    appMenuItem
+                    type="button"
+                    data-testid="suggest-from-records"
+                    [disabled]="suggesting()"
+                    (click)="suggestFromRecords(null)"
+                  >
+                    <app-icon name="link" [size]="15" />
+                    {{ 'standards.bulk.suggestAll' | transloco }}
+                  </button>
+                }
+                @for (format of exportFormats; track format) {
+                  <button
+                    appMenuItem
+                    type="button"
+                    [attr.data-testid]="'export-' + format"
+                    [disabled]="exporting()"
+                    (click)="exportMatrix(format)"
+                  >
+                    <app-icon name="reports" [size]="15" />
+                    {{ 'standards.export.' + format | transloco }}
+                  </button>
+                }
+                <a appMenuItem routerLink="/reports/audit-packs" data-testid="audit-pack-link">
+                  <app-icon name="qa" [size]="15" />
+                  {{ 'standards.export.auditPack' | transloco }}
+                </a>
+              </app-overflow-menu>
             </div>
           </header>
 
@@ -381,14 +457,14 @@ function clampWidth(width: number): number {
                   [canMap]="canManage()"
                   [aiOff]="aiOff()"
                   [starting]="startingMap()"
-                  [pendingCount]="suggestionCount()"
-                  [suggestionsOnly]="suggestionsOnly()"
+                  [suggesting]="suggesting()"
                   (map)="startMap()"
-                  (showSuggestions)="setSuggestionsOnly(true)"
+                  (suggestFromRecords)="suggestFromRecords(null)"
+                  (dismiss)="dismissMappingBanner()"
                 />
               }
               @if (mapStartError(); as key) {
-                <p class="text-[13px] text-fail" role="alert">{{ key | transloco }}</p>
+                <p class="text-ui text-fail" role="alert">{{ key | transloco }}</p>
               }
             </div>
           }
@@ -397,17 +473,21 @@ function clampWidth(width: number): number {
           <div #scroller class="min-h-0 flex-1 overflow-y-auto" tabindex="-1">
             <article class="mx-auto w-full max-w-[800px] px-5 pt-8 pb-[40vh] sm:px-10">
               <div class="border-b border-border pb-6">
-                <div
-                  class="mb-1 text-[12px] font-semibold tracking-[0.08em] text-fg-subtle uppercase"
-                >
-                  {{ 'standards.edition' | transloco: { edition: std.edition } }}
+                <div class="mb-1 flex flex-wrap items-center gap-2">
+                  <app-badge [tone]="legalFormTone(form())">{{
+                    legalFormKey(form()) | transloco
+                  }}</app-badge>
+                  <span class="text-meta font-semibold text-fg-subtle">{{
+                    editionKey(form()) | transloco: { edition: std.edition }
+                  }}</span>
                 </div>
-                <h1
-                  class="font-display text-[30px] leading-tight font-bold tracking-[-0.03em] text-fg"
-                >
-                  {{ std.name }}
+                <h1 class="font-display text-page leading-tight font-bold text-fg">
+                  {{ stdName() }}
                 </h1>
-                <p class="mt-2 text-[14px] text-fg-muted">
+                <p class="mt-2 text-body text-fg-muted">
+                  <span [title]="'standards.scoreHint' | transloco"
+                    >{{ 'standards.scoreLine' | transloco: { pct: headline() } }} ·</span
+                  >
                   {{
                     'standards.view.coveredOf'
                       | transloco
@@ -419,6 +499,12 @@ function clampWidth(width: number): number {
                       'standards.workspace.onlyGaps' | transloco
                     }}</app-badge>
                   }
+                  @if (staleOnly()) {
+                    ·
+                    <app-badge tone="warn">{{
+                      'standards.workspace.onlyStale' | transloco
+                    }}</app-badge>
+                  }
                   @if (suggestionsOnly()) {
                     ·
                     <app-badge tone="accent">{{
@@ -426,17 +512,66 @@ function clampWidth(width: number): number {
                     }}</app-badge>
                   }
                 </p>
+                @if (std.certification; as cert) {
+                  <p class="mt-1.5 text-meta text-fg-muted" data-testid="workspace-certification">
+                    <a
+                      [href]="cert.url"
+                      class="font-semibold text-accent hover:underline"
+                      (click)="navigateTo($event, cert.url)"
+                      >{{
+                        'standards.cert.label' | transloco: { body: cert.certification_body }
+                      }}</a
+                    >
+                    · {{ certStatusKey(cert.status) | transloco }}
+                    @if (cert.next_surveillance_at) {
+                      ·
+                      {{
+                        'standards.cert.nextSurveillance'
+                          | transloco
+                            : { date: (cert.next_surveillance_at | localDate: 'mediumDate') }
+                      }}
+                    }
+                  </p>
+                }
                 @if (!std.enabled) {
                   <div
-                    class="mt-4 rounded-tile border border-border bg-surface-2 px-3 py-2 text-[13px] text-fg-muted"
+                    class="mt-4 rounded-tile border border-border bg-surface-2 px-3 py-2 text-ui text-fg-muted"
                   >
                     {{ 'standards.view.notEnabled' | transloco }}
                   </div>
                 }
               </div>
 
+              <div class="mt-6">
+                <app-help-strip
+                  scope="standards"
+                  page="workspace"
+                  lesson="requirements-and-evidence"
+                />
+              </div>
+
+              @if (nextStep(); as step) {
+                <div
+                  class="flex flex-col gap-2 rounded-card border border-accent-border bg-accent-soft/40 px-4 py-3 sm:flex-row sm:items-center"
+                  data-testid="next-step"
+                >
+                  <span class="min-w-0 flex-1">
+                    <span class="block text-micro font-bold tracking-wide text-accent uppercase">{{
+                      'standards.nextStep.title' | transloco
+                    }}</span>
+                    <span class="block text-ui text-fg">{{
+                      'standards.nextStep.' + step.kind | transloco: step.params
+                    }}</span>
+                  </span>
+                  <app-button size="sm" variant="secondary" (click)="takeNextStep(step)">
+                    {{ 'standards.nextStep.' + step.kind + 'Action' | transloco }}
+                    <app-icon name="arrow" [size]="13" />
+                  </app-button>
+                </div>
+              }
+
               @if (units().length === 0) {
-                <p class="py-16 text-center text-[14px] text-fg-muted">
+                <p class="py-16 text-center text-body text-fg-muted">
                   {{ emptyKey() | transloco }}
                 </p>
               }
@@ -453,8 +588,10 @@ function clampWidth(width: number): number {
                       [guidanceOpen]="openGuidance().has(section.number)"
                       [expandedRefs]="expandedRefs()"
                       [highlightRef]="highlightRef()"
+                      [standardEnabled]="std.enabled"
                       [prev]="links().get(section.number)?.prev ?? null"
                       [next]="links().get(section.number)?.next ?? null"
+                      [showSectionNav]="sectionNavVisible(section.number)"
                       (guidanceToggled)="toggleIn(openGuidance, section.number)"
                       (licensedToggled)="toggleLicensed(section.number)"
                       (requirementToggled)="toggleIn(expandedRefs, $event)"
@@ -482,13 +619,16 @@ function clampWidth(width: number): number {
       <app-slide-over
         [open]="licensedPanelOpen()"
         [title]="'standards.licensed.title' | transloco"
-        [subtitle]="std.name"
+        [subtitle]="stdName()"
         [closeLabel]="'standards.workspace.close' | transloco"
         (closed)="licensedPanelOpen.set(false)"
       >
         @if (std.org_standard_id; as orgStandardId) {
-          <p class="mb-3 text-[13px] leading-relaxed text-fg-muted">
+          <p class="mb-2 text-ui leading-relaxed text-fg-muted">
             {{ 'standards.licensed.hint' | transloco }}
+          </p>
+          <p class="mb-3 text-meta leading-relaxed text-fg-subtle">
+            {{ 'standards.licensed.copyright' | transloco }}
           </p>
           @if (std.has_licensed_text) {
             <div class="mb-3">
@@ -498,11 +638,13 @@ function clampWidth(width: number): number {
               </app-badge>
             </div>
           }
-          <app-attachments
-            entityType="standard"
-            [entityId]="orgStandardId"
-            [canEdit]="canManage()"
-          />
+          <div (change)="licensedFilesChanged()" (drop)="licensedFilesChanged()">
+            <app-attachments
+              entityType="standard"
+              [entityId]="orgStandardId"
+              [canEdit]="canManage()"
+            />
+          </div>
           @if (canManage()) {
             <div class="mt-4 flex flex-col gap-2">
               @if (extractJobId(); as jobId) {
@@ -514,17 +656,23 @@ function clampWidth(width: number): number {
                 />
               }
               @if (extractStartError(); as key) {
-                <p class="text-[12.5px] text-fail" role="alert">{{ key | transloco }}</p>
+                <p class="text-meta text-fail" role="alert">{{ key | transloco }}</p>
               }
               <app-button
                 variant="secondary"
                 size="sm"
+                data-testid="extract-licensed"
                 [loading]="startingExtract()"
-                [disabled]="extractRunning()"
+                [disabled]="extractRunning() || !hasLicensedPdf()"
                 (click)="startExtract()"
               >
                 {{ 'standards.licensed.extract' | transloco }}
               </app-button>
+              @if (!hasLicensedPdf()) {
+                <p class="text-meta text-fg-subtle" data-testid="extract-needs-pdf">
+                  {{ 'standards.licensed.needsPdf' | transloco }}
+                </p>
+              }
             </div>
           }
         }
@@ -545,6 +693,8 @@ export class StandardWorkspace {
   readonly key = input.required<string>();
   readonly number = input<string | undefined>(undefined);
   readonly req = input<string | undefined>(undefined);
+  /** `?filter=gaps|stale|suggestions` preselects a content filter (readiness links). */
+  readonly filter = input<string | undefined>(undefined);
 
   protected readonly standard = signal<StandardSummary | null>(null);
   protected readonly tree = signal<readonly ClauseNode[]>([]);
@@ -555,6 +705,8 @@ export class StandardWorkspace {
   protected readonly gapsOnly = signal(false);
   /** Show only requirements with AI suggestions waiting for review. */
   protected readonly suggestionsOnly = signal(false);
+  /** Show only requirements whose evidence is old or weak. */
+  protected readonly staleOnly = signal(false);
   /** Requirements kept visible under a content filter after the user worked on them. */
   private readonly keepRefs = signal<ReadonlySet<string>>(new Set());
   protected readonly tocQuery = signal('');
@@ -585,6 +737,15 @@ export class StandardWorkspace {
   protected readonly extractRunning = signal(false);
   protected readonly startingExtract = signal(false);
   protected readonly extractStartError = signal<string | null>(null);
+  /** The org's copy has a PDF attached (null until checked). */
+  private readonly licensedFiles = signal<number | null>(null);
+  protected readonly hasLicensedPdf = computed(() => (this.licensedFiles() ?? 0) > 0);
+  protected readonly suggesting = signal(false);
+  protected readonly exporting = signal(false);
+  protected readonly exportFormats: readonly ExportFormat[] = ['xlsx', 'csv', 'pdf'];
+  private readonly dismissedBanners = signal<ReadonlySet<string>>(new Set());
+  private readonly notifications = inject(NotificationService);
+  private readonly attachmentsApi = inject(AttachmentsApi);
 
   protected readonly pctColor = pctColor;
   protected readonly plural = pluralKey;
@@ -613,10 +774,66 @@ export class StandardWorkspace {
   protected readonly completeness = computed(() => treeCompleteness(this.tree()));
   protected readonly gapCount = computed(() => countGaps(this.tree()));
   protected readonly suggestionCount = computed(() => countWithSuggestions(this.tree()));
+  protected readonly staleCount = computed(() => countStale(this.tree()));
+
+  protected readonly stdName = computed(() =>
+    standardName(this.standard(), this.language.active()),
+  );
+  protected readonly form = computed(() => legalFormOf(this.standard()));
+  /** THE headline number (the API's weighted score; the covered share on older APIs). */
+  protected readonly headline = computed(() => {
+    const std = this.standard();
+    return std ? headlineScore({ ...std, completeness: this.completeness() }) : 0;
+  });
+  protected readonly legalFormKey = legalFormKey;
+  protected readonly legalFormTone = legalFormTone;
+  protected readonly editionKey = editionKey;
+
+  /** URL segment (slug, else number) of every section, for links and the URL. */
+  private readonly segments = computed(() => {
+    const map = new Map<string, string>();
+    for (const node of this.index().nodes.values()) {
+      map.set(node.number, clauseSegment(node));
+    }
+    return map;
+  });
+
+  /** The route's clause (a number, or its slug), resolved to a clause number. */
+  private readonly routeNumber = computed(() =>
+    resolveClause(this.index().nodes, this.number() ?? null),
+  );
+
+  /** "Neste anbefalte steg": review suggestions, then the first gap, then old evidence. */
+  protected readonly nextStep = computed<NextStep | null>(() => {
+    const std = this.standard();
+    if (!std?.enabled || this.filtered()) {
+      return null;
+    }
+    const suggestions = this.suggestionCount();
+    if (suggestions > 0) {
+      return { kind: 'suggestions', params: { count: suggestions } };
+    }
+    const gap = firstGap(this.tree());
+    if (gap) {
+      const node = this.index().nodes.get(gap.clause);
+      return {
+        kind: 'gap',
+        ref: gap.ref,
+        params: {
+          clause: clauseLabel(node, this.language.active()),
+          title: node ? localized(node.title, this.language.active()) : '',
+          count: this.gapCount(),
+        },
+      };
+    }
+    const stale = this.staleCount();
+    return stale > 0 ? { kind: 'stale', params: { count: stale } } : null;
+  });
 
   private readonly contentFilter = computed<ContentFilter>(() => ({
     gaps: this.gapsOnly(),
     suggestions: this.suggestionsOnly(),
+    stale: this.staleOnly(),
   }));
   private readonly filtered = computed(() => isContentFiltered(this.contentFilter()));
 
@@ -632,15 +849,22 @@ export class StandardWorkspace {
   protected readonly emptyKey = computed(() =>
     this.suggestionsOnly()
       ? 'standards.workspace.noAiSuggestions'
-      : this.gapsOnly()
-        ? 'standards.gaps.none'
-        : 'standards.workspace.empty',
+      : this.staleOnly()
+        ? 'standards.workspace.noStale'
+        : this.gapsOnly()
+          ? 'standards.gaps.none'
+          : 'standards.workspace.empty',
   );
 
   /** The AI mapping status line shows for enabled standards whose API reports `last_mapping`. */
   protected readonly showMappingStatus = computed(() => {
     const std = this.standard();
-    return !!std && std.enabled && std.last_mapping !== undefined;
+    if (!std || !std.enabled || std.last_mapping === undefined) {
+      return false;
+    }
+    // The "never searched" banner is shown once per standard, until dismissed or used.
+    const never = mappingState(std.last_mapping) === 'never';
+    return !never || (this.canManage() && !this.dismissedBanners().has(this.bannerId(std.key)));
   });
   /** Document positions of the full tree (filtered views keep this order). */
   private readonly fullOrder = computed(
@@ -696,8 +920,12 @@ export class StandardWorkspace {
         return null;
       }
       const prev = this.linkCache.get(node.number);
+      const label = clauseLabel(node, this.language.active());
+      const segment = clauseSegment(node);
       const view =
-        prev && prev.title === node.title ? prev : { number: node.number, title: node.title };
+        prev && prev.title === node.title && prev.label === label
+          ? prev
+          : { number: node.number, title: node.title, label, segment };
       cache.set(node.number, view);
       return view;
     };
@@ -733,7 +961,12 @@ export class StandardWorkspace {
     return this.activePath()
       .map((number) => nodes.get(number))
       .filter((node): node is ClauseNode => !!node)
-      .map((node) => ({ number: node.number, title: node.title }));
+      .map((node) => ({
+        number: node.number,
+        title: node.title,
+        label: clauseLabel(node, this.language.active()),
+        segment: clauseSegment(node),
+      }));
   });
 
   protected readonly tocClasses = computed(() => {
@@ -784,7 +1017,7 @@ export class StandardWorkspace {
     this.watchViewport();
     // The assistant knows the standard, and the requirement when one is open.
     providePageContext(() => {
-      const name = this.standard()?.name ?? this.key();
+      const name = this.stdName() || this.key();
       const ref = this.focusedRef();
       if (ref) {
         const number = ref.slice(ref.indexOf(':') + 1).replace(/\.r\d+$/, '');
@@ -795,16 +1028,25 @@ export class StandardWorkspace {
           module: 'standards',
           entityType: 'standard_requirement',
           view: 'detail',
-          title: [`${short} · ${number}`, title].filter((part) => !!part).join(' — '),
+          title: [`${short} · ${clauseLabel(node ?? { number }, this.language.active())}`, title]
+            .filter((part) => !!part)
+            .join(' — '),
           selection: { field: ref },
+          requirements: [ref],
+          standardKey: this.key(),
         };
       }
       const section = this.active();
+      const node = section ? this.index().nodes.get(section) : undefined;
       return {
         module: 'standards',
         entityType: 'standard',
         view: 'detail',
-        title: section ? `${name} · ${section}` : name,
+        title: node
+          ? `${name} · ${clauseLabel(node, this.language.active())} ${localized(node.title, this.language.active())}`
+          : name,
+        requirements: section ? [`${this.key()}:${section}`] : [],
+        standardKey: this.key(),
       };
     });
 
@@ -820,7 +1062,8 @@ export class StandardWorkspace {
 
     // Route → document: deep links, back / forward, legacy ?req= links.
     effect(() => {
-      const number = this.number() ?? null;
+      const raw = this.number() ?? null;
+      const number = raw === null ? null : (this.routeNumber() ?? raw);
       const req = this.req() ?? null;
       const ready = !this.loading() && this.tree().length > 0;
       if (ready) {
@@ -855,9 +1098,13 @@ export class StandardWorkspace {
       this.clauseSubs.forEach((s) => s.unsubscribe());
       this.remember();
       this.detachScroll?.();
-      [this.urlTimer, this.settleTimer, this.highlightTimer, this.pinTimer].forEach(
-        (t) => t && clearTimeout(t),
-      );
+      [
+        this.urlTimer,
+        this.settleTimer,
+        this.highlightTimer,
+        this.pinTimer,
+        this.summaryTimer,
+      ].forEach((t) => t && clearTimeout(t));
     });
   }
 
@@ -894,7 +1141,7 @@ export class StandardWorkspace {
   /** Programmatic navigation (keyboard): scroll and push a history entry. */
   private go(number: string): void {
     this.onNavigate(number);
-    void this.router.navigate(['/standards', this.key(), number]);
+    void this.router.navigate(['/standards', this.key(), this.segmentOf(number)]);
   }
 
   protected onKeydown(event: KeyboardEvent): void {
@@ -993,6 +1240,7 @@ export class StandardWorkspace {
       // The target is filtered out by a content filter: show everything again.
       this.gapsOnly.set(false);
       this.suggestionsOnly.set(false);
+      this.staleOnly.set(false);
     }
     const unit = this.unitOf().get(number);
     if (!unit) {
@@ -1117,11 +1365,14 @@ export class StandardWorkspace {
     this.urlTimer = setTimeout(
       () => {
         this.urlTimer = null;
-        if (this.active() !== number || this.number() === number) {
+        if (this.active() !== number || this.routeNumber() === number) {
           return;
         }
         this.expectedNumber = number;
-        void this.router.navigate(['/standards', this.key(), number], { replaceUrl: true });
+        void this.router.navigate(['/standards', this.key(), this.segmentOf(number)], {
+          replaceUrl: true,
+          queryParams: this.filter() ? { filter: this.filter() } : {},
+        });
       },
       Math.max(URL_SYNC_MS, this.urlHoldUntil - Date.now()),
     );
@@ -1207,6 +1458,10 @@ export class StandardWorkspace {
 
   protected setSuggestionsOnly(on: boolean): void {
     this.applyFilter(() => this.suggestionsOnly.set(on));
+  }
+
+  protected setStaleOnly(on: boolean): void {
+    this.applyFilter(() => this.staleOnly.set(on));
   }
 
   private applyFilter(change: () => void): void {
@@ -1307,6 +1562,7 @@ export class StandardWorkspace {
       this.keepRefs.update((set) => new Set(set).add(detail.ref));
     }
     this.tree.update((tree) => applyRequirementDetails(tree, [detail]));
+    this.scheduleSummaryRefresh();
   }
 
   /** Evidence changed: the server recomputes the status, so refetch that clause and patch it in. */
@@ -1326,6 +1582,7 @@ export class StandardWorkspace {
         next: (detail) => {
           this.tree.update((tree) => applyRequirementDetails(tree, detail.requirements));
           this.setLicensed(clause, { status: 'loaded', text: detail.licensed_text });
+          this.scheduleSummaryRefresh();
         },
         error: () => undefined,
       }),
@@ -1355,6 +1612,226 @@ export class StandardWorkspace {
 
   private setLicensed(number: string, state: LicensedState): void {
     this.licensed.update((map) => new Map(map).set(number, state));
+  }
+
+  // --- Links, slugs, filters ------------------------------------------------
+
+  /** URL segment of a section (its slug when the API has one, else the number). */
+  protected segmentOf(number: string | null): string {
+    return number ? (this.segments().get(number) ?? number) : '';
+  }
+
+  /**
+   * The previous / next footer after a section only where it helps: at the end
+   * of a chapter, or when the table of contents is hidden (mobile, or folded away).
+   */
+  protected sectionNavVisible(number: string): boolean {
+    if (!this.isDesktop() || this.tocHidden()) {
+      return true;
+    }
+    const order = this.order();
+    const next = order[order.indexOf(number) + 1];
+    if (!next) {
+      return true;
+    }
+    return sectionPath(this.index(), next).length <= 1;
+  }
+
+  protected certStatusKey(status: string): string {
+    return `standards.cert.status.${status}`;
+  }
+
+  /** In-app navigation for API urls (certification, SoA, audit links). */
+  protected navigateTo(event: MouseEvent, url: string): void {
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+      return;
+    }
+    if (internalLink(url)) {
+      event.preventDefault();
+      void this.router.navigateByUrl(url);
+    }
+  }
+
+  /** Apply `?filter=` (from the readiness page) when the standard opens. */
+  private applyUrlFilter(): void {
+    const filter = this.filter();
+    if (!filter || !URL_FILTERS.has(filter)) {
+      return;
+    }
+    this.keepRefs.set(new Set());
+    this.gapsOnly.set(filter === 'gaps');
+    this.staleOnly.set(filter === 'stale');
+    this.suggestionsOnly.set(filter === 'suggestions');
+  }
+
+  protected takeNextStep(step: NextStep): void {
+    if (step.kind === 'suggestions') {
+      this.setSuggestionsOnly(true);
+    } else if (step.kind === 'stale') {
+      this.setStaleOnly(true);
+    } else if (step.ref) {
+      const clause = clauseOfRequirement(this.tree(), step.ref);
+      if (clause) {
+        this.expectedNumber = clause;
+        void this.router.navigate(['/standards', this.key(), this.segmentOf(clause)]);
+        this.revealRequirement(step.ref, clause);
+      }
+    }
+  }
+
+  // --- Bulk actions, export and the licensed copy ----------------------------
+
+  /** "Foreslå koblinger fra eksisterende poster": keyword suggestions from every module (no AI). */
+  protected suggestFromRecords(entityType: string | null): void {
+    const orgId = this.selectedOrg.currentOrgId();
+    const std = this.standard();
+    if (!orgId || !std || this.suggesting()) {
+      return;
+    }
+    this.suggesting.set(true);
+    this.api.suggestFromRecords(orgId, std.key, entityType).subscribe({
+      next: (res) => {
+        this.suggesting.set(false);
+        this.dismissMappingBanner();
+        if (res.created > 0) {
+          this.notifications.success('standards.bulk.suggested', {
+            count: res.created,
+            records: res.records_checked,
+          });
+          this.load(orgId, std.key, false);
+          this.suggestionsOnly.set(true);
+        } else {
+          this.notifications.info('standards.bulk.suggestedNone', {
+            records: res.records_checked,
+          });
+        }
+      },
+      error: (err: unknown) => {
+        this.suggesting.set(false);
+        this.notifications.error(standardsErrorKey(err, 'map'));
+      },
+    });
+  }
+
+  /** Download the compliance matrix (requirement, status, evidence, owner …). */
+  protected exportMatrix(format: ExportFormat): void {
+    const orgId = this.selectedOrg.currentOrgId();
+    const std = this.standard();
+    if (!orgId || !std || this.exporting()) {
+      return;
+    }
+    this.exporting.set(true);
+    this.api.exportMatrix(orgId, std.key, format).subscribe({
+      next: (blob) => {
+        this.exporting.set(false);
+        this.saveFile(blob, `${std.key}-${this.language.active()}.${format}`);
+      },
+      error: () => {
+        this.exporting.set(false);
+        this.notifications.error('standards.export.error');
+      },
+    });
+  }
+
+  private saveFile(blob: Blob, filename: string): void {
+    const view = this.document.defaultView;
+    if (!view?.URL?.createObjectURL) {
+      return;
+    }
+    const url = view.URL.createObjectURL(blob);
+    const a = this.document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    this.document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => view.URL.revokeObjectURL(url), 1000);
+  }
+
+  protected dismissMappingBanner(): void {
+    const key = this.standard()?.key;
+    if (!key) {
+      return;
+    }
+    const next = new Set(this.dismissedBanners()).add(this.bannerId(key));
+    this.dismissedBanners.set(next);
+    try {
+      this.document.defaultView?.localStorage.setItem(BANNER_KEY, JSON.stringify([...next]));
+    } catch {
+      // Not persisted: the banner comes back next visit, which is harmless.
+    }
+  }
+
+  private bannerId(key: string): string {
+    return `${this.selectedOrg.currentOrgId() ?? ''}:${key}`;
+  }
+
+  private readDismissedBanners(): ReadonlySet<string> {
+    try {
+      const raw = this.document.defaultView?.localStorage.getItem(BANNER_KEY);
+      const list = raw ? (JSON.parse(raw) as unknown) : [];
+      return new Set(Array.isArray(list) ? list.filter((x) => typeof x === 'string') : []);
+    } catch {
+      return new Set();
+    }
+  }
+
+  protected openLicensedPanel(): void {
+    this.licensedPanelOpen.set(true);
+    this.checkLicensedFiles();
+  }
+
+  /** An upload or removal in the panel: re-check once the upload has had time to finish. */
+  protected licensedFilesChanged(): void {
+    setTimeout(() => this.checkLicensedFiles(), 2500);
+  }
+
+  private checkLicensedFiles(): void {
+    const orgId = this.selectedOrg.currentOrgId();
+    const id = this.standard()?.org_standard_id;
+    if (!orgId || !id) {
+      return;
+    }
+    this.attachmentsApi
+      .list(orgId, 'standard', id)
+      .pipe(catchError(() => of(null)))
+      .subscribe((files) => {
+        if (files) {
+          this.licensedFiles.set(
+            files.filter((f) => f.content_type === 'application/pdf' || /\.pdf$/i.test(f.filename))
+              .length,
+          );
+        } else {
+          // Unknown: leave the button usable; the server explains a missing PDF.
+          this.licensedFiles.set(1);
+        }
+      });
+  }
+
+  private summaryTimer: ReturnType<typeof setTimeout> | null = null;
+
+  /** Edits change the weighted score server-side: refresh the headline quietly. */
+  private scheduleSummaryRefresh(): void {
+    if (this.summaryTimer) {
+      clearTimeout(this.summaryTimer);
+    }
+    this.summaryTimer = setTimeout(() => {
+      this.summaryTimer = null;
+      const orgId = this.selectedOrg.currentOrgId();
+      const key = this.key();
+      if (!orgId) {
+        return;
+      }
+      this.api.list(orgId).subscribe({
+        next: (list) => {
+          const std = list.find((s) => s.key === key);
+          if (std && this.key() === key) {
+            this.standard.set(std);
+          }
+        },
+        error: () => undefined,
+      });
+    }, SUMMARY_REFRESH_MS);
   }
 
   // --- Jobs ----------------------------------------------------------------
@@ -1469,6 +1946,9 @@ export class StandardWorkspace {
         this.tree.set(tree);
         this.watchRunningMapping(std);
         this.loading.set(false);
+        if (showSpinner) {
+          this.applyUrlFilter();
+        }
       },
       error: () => {
         if (showSpinner) {
@@ -1497,6 +1977,7 @@ export class StandardWorkspace {
       tocUserExpanded: this.tocUserExpanded(),
       gapsOnly: this.gapsOnly(),
       suggestionsOnly: this.suggestionsOnly(),
+      staleOnly: this.staleOnly(),
       keepRefs: this.keepRefs(),
     });
   }
@@ -1516,6 +1997,7 @@ export class StandardWorkspace {
     }
     this.gapsOnly.set(snap.gapsOnly);
     this.suggestionsOnly.set(snap.suggestionsOnly);
+    this.staleOnly.set(snap.staleOnly ?? false);
     this.keepRefs.set(snap.keepRefs);
     this.expandedRefs.set(snap.expandedRefs);
     this.openGuidance.set(snap.openGuidance);
@@ -1578,6 +2060,11 @@ export class StandardWorkspace {
   }
 
   private restorePrefs(): void {
+    const width = this.document.defaultView?.innerWidth ?? 0;
+    if (width >= WIDE_SCREEN) {
+      this.tocWidth.set(TOC_DEFAULT_WIDE);
+    }
+    this.dismissedBanners.set(this.readDismissedBanners());
     try {
       const raw = this.document.defaultView?.localStorage.getItem(PREFS_KEY);
       const prefs = raw ? (JSON.parse(raw) as WorkspacePrefs) : null;

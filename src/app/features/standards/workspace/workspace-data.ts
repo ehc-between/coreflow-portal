@@ -1,4 +1,5 @@
 import { UrlMatchResult, UrlSegment } from '@angular/router';
+import { clauseLabel, clauseSegment } from '../../../core/standards/standards-display';
 import {
   completenessPct,
   effectiveStatus,
@@ -232,19 +233,80 @@ export function filterGaps(
   return filterRequirements(nodes, isGap, keep);
 }
 
-/** The workspace's content filters ("only gaps", "has AI suggestions"); both may be on. */
+/**
+ * The workspace's content filters ("only gaps", "has suggestions", "old or weak
+ * evidence"); several may be on at once.
+ */
 export interface ContentFilter {
   readonly gaps: boolean;
   readonly suggestions: boolean;
+  readonly stale?: boolean;
 }
 
 export function isContentFiltered(filter: ContentFilter): boolean {
-  return filter.gaps || filter.suggestions;
+  return filter.gaps || filter.suggestions || !!filter.stale;
 }
 
 /** Whether a requirement passes every active content filter. */
 export function matchesContentFilter(req: Requirement, filter: ContentFilter): boolean {
-  return (!filter.gaps || isGap(req)) && (!filter.suggestions || hasPendingSuggestions(req));
+  return (
+    (!filter.gaps || isGap(req)) &&
+    (!filter.suggestions || hasPendingSuggestions(req)) &&
+    (!filter.stale || hasStaleEvidence(req))
+  );
+}
+
+/**
+ * Applicable requirement whose confirmed evidence is old (> 1 year) or weak (only
+ * drafts, obsolete documents or documents past their review date).
+ */
+export function hasStaleEvidence(
+  req: Pick<Requirement, 'status' | 'applicable' | 'evidence_state' | 'weak_evidence'>,
+): boolean {
+  if (effectiveStatus(req) === 'not_applicable') {
+    return false;
+  }
+  return req.evidence_state === 'stale' || req.evidence_state === 'weak' || !!req.weak_evidence;
+}
+
+/** Number of requirements with old or weak evidence. */
+export function countStale(nodes: readonly ClauseNode[]): number {
+  let count = 0;
+  const visit = (node: ClauseNode): void => {
+    count += node.requirements.filter(hasStaleEvidence).length;
+    node.children.forEach(visit);
+  };
+  nodes.forEach(visit);
+  return count;
+}
+
+/**
+ * The first requirement nobody has started on, in document order (else the
+ * first partial one): the workspace's "Neste anbefalte steg".
+ */
+export function firstGap(
+  nodes: readonly ClauseNode[],
+): { readonly ref: string; readonly clause: string } | null {
+  let partial: { ref: string; clause: string } | null = null;
+  const visit = (list: readonly ClauseNode[]): { ref: string; clause: string } | null => {
+    for (const node of list) {
+      for (const req of node.requirements) {
+        const status = effectiveStatus(req);
+        if (status === 'not_started') {
+          return { ref: req.ref, clause: node.number };
+        }
+        if (status === 'partial' && !partial) {
+          partial = { ref: req.ref, clause: node.number };
+        }
+      }
+      const inChild = visit(orderedChildren(node));
+      if (inChild) {
+        return inChild;
+      }
+    }
+    return null;
+  };
+  return visit(nodes) ?? partial;
 }
 
 /** Number of requirements in the tree with AI suggestions waiting for review. */
@@ -306,6 +368,10 @@ export function mappingState(
 
 export interface TocRow {
   readonly number: string;
+  /** The number as shown in the UI language ("Kapittel II", "Art. 5"). */
+  readonly label: string;
+  /** URL segment (slug, else the number). */
+  readonly segment: string;
   readonly depth: number;
   readonly title: LocalizedText;
   readonly hasChildren: boolean;
@@ -350,9 +416,11 @@ export function tocRows(nodes: readonly ClauseNode[], options: TocOptions): TocR
         childRows.push(rows);
       }
     }
+    const label = clauseLabel(node, lang);
     const selfHit =
       !q ||
       node.number.toLowerCase().startsWith(q) ||
+      label.toLowerCase().startsWith(q) ||
       localized(node.title, lang).toLowerCase().includes(q);
     if (!selfHit && childRows.length === 0) {
       return null;
@@ -360,6 +428,8 @@ export function tocRows(nodes: readonly ClauseNode[], options: TocOptions): TocR
     const expanded = q ? childRows.length > 0 : options.expanded.has(node.number);
     const row: TocRow = {
       number: node.number,
+      label,
+      segment: clauseSegment(node),
       depth,
       title: node.title,
       hasChildren: childRows.length > 0,
@@ -560,6 +630,20 @@ export function requirementPatchFromDetail(detail: RequirementDetail): Partial<R
     justification: detail.justification,
     status_override: detail.status_override,
     note: detail.note,
+    // A03 auditor fields: only patched when the API sends them (older APIs omit them).
+    ...pickDefined(detail, [
+      'owner',
+      'due_date',
+      'reviewed_at',
+      'reviewed_by',
+      'override_by',
+      'override_at',
+      'applicability_set_by',
+      'exclusion',
+      'evidence_state',
+      'weak_evidence',
+      'soa',
+    ]),
     // EU AI Act applicability facts change with every decision / reset.
     ...(detail.applicability_source !== undefined
       ? {
@@ -591,6 +675,20 @@ export function applyRequirementDetails(
     (tree, detail) => replaceRequirement(tree, detail.ref, requirementPatchFromDetail(detail)),
     [...nodes],
   );
+}
+
+/** The listed keys of `source` that are present (not undefined). */
+function pickDefined<T extends object, K extends keyof T>(
+  source: T,
+  keys: readonly K[],
+): Partial<Pick<T, K>> {
+  const out: Partial<Pick<T, K>> = {};
+  for (const key of keys) {
+    if (source[key] !== undefined) {
+      out[key] = source[key];
+    }
+  }
+  return out;
 }
 
 /** The clause number that holds requirement `ref`, or null. */

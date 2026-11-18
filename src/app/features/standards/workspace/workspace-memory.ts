@@ -11,6 +11,7 @@ export interface WorkspaceSnapshot {
   readonly tocUserExpanded: ReadonlySet<string>;
   readonly gapsOnly: boolean;
   readonly suggestionsOnly: boolean;
+  readonly staleOnly?: boolean;
   readonly keepRefs: ReadonlySet<string>;
 }
 

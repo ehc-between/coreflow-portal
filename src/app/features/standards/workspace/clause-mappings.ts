@@ -5,6 +5,7 @@ import {
   computed,
   inject,
   input,
+  output,
   signal,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
@@ -15,7 +16,8 @@ import { LanguageService } from '../../../core/i18n/language.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { entityTypeLabelKey, groupMappings } from '../../../core/standards/frameworks-data';
 import { StandardsApi } from '../../../core/standards/standards-api';
-import { localized } from '../../../core/standards/standards-data';
+import { localized, standardsErrorKey } from '../../../core/standards/standards-data';
+import { standardName } from '../../../core/standards/standards-display';
 import {
   ClauseMappingItem,
   ClauseSupport,
@@ -53,7 +55,7 @@ type PanelState =
     <div class="rounded-tile border border-border bg-surface-2/60">
       <button
         type="button"
-        class="flex w-full items-center gap-2 px-3.5 py-2.5 text-left text-[13px] font-semibold text-fg"
+        class="flex w-full items-center gap-2 px-3.5 py-2.5 text-left text-ui font-semibold text-fg"
         [attr.aria-expanded]="open()"
         [attr.aria-controls]="panelId()"
         (click)="toggle()"
@@ -72,19 +74,17 @@ type PanelState =
           @let s = state();
           @if (s.status === 'loaded') {
             @if (s.mappings === null) {
-              <p class="text-[13px] text-fail" role="alert">
+              <p class="text-ui text-fail" role="alert">
                 {{ 'standards.mappings.error' | transloco }}
               </p>
             } @else if (s.mappings.length === 0) {
-              <p class="text-[13px] text-fg-muted">{{ 'standards.mappings.none' | transloco }}</p>
+              <p class="text-ui text-fg-muted">{{ 'standards.mappings.none' | transloco }}</p>
             } @else {
-              <p class="mb-2 text-[12.5px] text-fg-muted">
+              <p class="mb-2 text-meta text-fg-muted">
                 {{ 'standards.mappings.hint' | transloco }}
               </p>
               @for (group of groups(); track group.relation) {
-                <div
-                  class="mt-2 mb-1 text-[11.5px] font-bold tracking-[0.08em] text-fg-subtle uppercase"
-                >
+                <div class="mt-2 mb-1 text-micro font-bold tracking-wide text-fg-subtle uppercase">
                   {{ 'standards.mappings.relation.' + group.relation | transloco }}
                 </div>
                 <ul class="flex flex-col gap-1.5">
@@ -93,7 +93,7 @@ type PanelState =
                       <div class="flex flex-wrap items-center gap-2">
                         <a
                           [routerLink]="['/standards', item.standard_key, item.number]"
-                          class="min-w-0 flex-1 text-[13px] font-medium text-fg hover:text-accent hover:underline"
+                          class="min-w-0 flex-1 text-ui font-medium text-fg hover:text-accent hover:underline"
                         >
                           <span class="text-fg-subtle">{{ nameOf(item.standard_key) }}</span>
                           · <span class="font-mono">{{ item.number }}</span>
@@ -108,10 +108,27 @@ type PanelState =
                         }
                         @if (!isEnabled(item.standard_key)) {
                           <app-badge>{{ 'standards.mappings.notEnabled' | transloco }}</app-badge>
+                        } @else if (canManage() && standardEnabled()) {
+                          <button
+                            type="button"
+                            class="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-meta font-semibold text-accent hover:bg-accent-soft disabled:opacity-60"
+                            data-testid="reuse-evidence"
+                            [disabled]="reusing() !== null"
+                            [title]="'standards.mappings.reuseHint' | transloco"
+                            (click)="reuse(item)"
+                          >
+                            <app-icon name="link" [size]="12" />
+                            {{ 'standards.mappings.reuse' | transloco }}
+                          </button>
                         }
                       </div>
+                      @if (reuseResult()?.id === item.standard_key + ':' + item.number) {
+                        <p class="mt-1 text-meta text-fg-muted" role="status">
+                          {{ reuseResult()!.messageKey | transloco: reuseResult()!.params }}
+                        </p>
+                      }
                       @if (text(item.note); as note) {
-                        <p class="mt-1 text-[12.5px] leading-[1.55] text-fg-muted">{{ note }}</p>
+                        <p class="mt-1 text-meta leading-[1.55] text-fg-muted">{{ note }}</p>
                       }
                     </li>
                   }
@@ -120,7 +137,7 @@ type PanelState =
               @if (!aiUnavailable()) {
                 <button
                   type="button"
-                  class="mt-3 inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-accent hover:underline"
+                  class="mt-3 inline-flex items-center gap-1.5 text-meta font-semibold text-accent hover:underline"
                   (click)="askHowTheyRelate()"
                 >
                   <app-icon name="spark" [size]="13" />
@@ -129,15 +146,13 @@ type PanelState =
               }
             }
 
-            <div
-              class="mt-4 mb-1 text-[11.5px] font-bold tracking-[0.08em] text-fg-subtle uppercase"
-            >
+            <div class="mt-4 mb-1 text-micro font-bold tracking-wide text-fg-subtle uppercase">
               {{ 'standards.support.title' | transloco }}
             </div>
             @if (s.support === null) {
-              <p class="text-[12.5px] text-fail">{{ 'standards.support.error' | transloco }}</p>
+              <p class="text-meta text-fail">{{ 'standards.support.error' | transloco }}</p>
             } @else if (s.support.modules.length === 0) {
-              <p class="text-[12.5px] text-fg-muted">{{ 'standards.support.none' | transloco }}</p>
+              <p class="text-meta text-fg-muted">{{ 'standards.support.none' | transloco }}</p>
             } @else {
               <ul class="flex flex-wrap gap-1.5">
                 @for (module of s.support.modules; track module.key) {
@@ -157,7 +172,7 @@ type PanelState =
               </ul>
             }
           } @else {
-            <p class="text-[13px] text-fg-muted">{{ 'standards.mappings.loading' | transloco }}</p>
+            <p class="text-ui text-fg-muted">{{ 'standards.mappings.loading' | transloco }}</p>
           }
         </div>
       }
@@ -174,6 +189,19 @@ export class ClauseMappings {
 
   readonly standardKey = input.required<string>();
   readonly number = input.required<string>();
+  /** The user may change evidence (`standards:manage`). */
+  readonly canManage = input(false);
+  /** This standard is enabled (reuse writes suggestions into it). */
+  readonly standardEnabled = input(false);
+  /** Reused evidence was suggested on this clause: the workspace refetches it. */
+  readonly reused = output<void>();
+
+  protected readonly reusing = signal<string | null>(null);
+  protected readonly reuseResult = signal<{
+    readonly id: string;
+    readonly messageKey: string;
+    readonly params: Record<string, unknown>;
+  } | null>(null);
 
   protected readonly open = signal(false);
   protected readonly state = signal<PanelState>({ status: 'idle' });
@@ -214,7 +242,42 @@ export class ClauseMappings {
   }
 
   protected nameOf(key: string): string {
-    return this.standardsByKey().get(key)?.name ?? key;
+    const std = this.standardsByKey().get(key);
+    return std ? standardName(std, this.language.active()) : key;
+  }
+
+  /** "Gjenbruk dokumentasjon": the mapped clause's confirmed evidence as suggestions here. */
+  protected reuse(item: ClauseMappingItem): void {
+    const orgId = this.selectedOrg.currentOrgId();
+    const id = `${item.standard_key}:${item.number}`;
+    if (!orgId || this.reusing()) {
+      return;
+    }
+    this.reusing.set(id);
+    this.reuseResult.set(null);
+    this.api
+      .reuseEvidence(orgId, this.standardKey(), this.number(), {
+        standardKey: item.standard_key,
+        number: item.number,
+      })
+      .subscribe({
+        next: (res) => {
+          this.reusing.set(null);
+          this.reuseResult.set({
+            id,
+            messageKey:
+              res.suggested > 0 ? 'standards.mappings.reused' : 'standards.mappings.reusedNone',
+            params: { count: res.suggested, records: res.records },
+          });
+          if (res.suggested > 0) {
+            this.reused.emit();
+          }
+        },
+        error: (err: unknown) => {
+          this.reusing.set(null);
+          this.reuseResult.set({ id, messageKey: standardsErrorKey(err, 'save'), params: {} });
+        },
+      });
   }
 
   protected isEnabled(key: string): boolean {

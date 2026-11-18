@@ -8,7 +8,9 @@ import {
   statusLabelKey,
   statusTone,
 } from '../../../core/standards/standards-data';
+import { evidenceStateKey, initials, isPastDate } from '../../../core/standards/standards-display';
 import { Requirement, RequirementDetail } from '../../../core/standards/standards.models';
+import { LocalDatePipe } from '../../../shared/locale/locale-pipes';
 import { Badge } from '../../../shared/ui/badge/badge';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { RequirementCard, requirementAnchorId } from '../requirement-card';
@@ -26,7 +28,15 @@ import { LocationHint } from '../../../shared/requirement-locations/location-hin
  */
 @Component({
   selector: 'app-requirement-row',
-  imports: [TranslocoPipe, Badge, Icon, RequirementCard, RequirementAiHelp, LocationHint],
+  imports: [
+    TranslocoPipe,
+    LocalDatePipe,
+    Badge,
+    Icon,
+    RequirementCard,
+    RequirementAiHelp,
+    LocationHint,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @let req = requirement();
@@ -58,23 +68,53 @@ import { LocationHint } from '../../../shared/requirement-locations/location-hin
             }}</span>
           }
           <span
-            class="block text-[14px] leading-relaxed text-fg"
+            class="block text-body leading-relaxed text-fg"
             [class.line-clamp-2]="!expanded()"
             >{{ text() }}</span
           >
         </span>
-        <span class="mt-0.5 flex flex-none items-center gap-2.5 text-[12px] text-fg-subtle">
+        <span class="mt-0.5 flex flex-none items-center gap-2.5 text-meta text-fg-subtle">
           <!-- requirement-locations (L4) -->
           <app-location-hint class="hidden lg:inline-flex" [requirement]="req" />
+          @if (staleKey(); as key) {
+            <span
+              class="hidden rounded-full border border-warn/40 bg-warn-soft px-2 py-px text-micro font-semibold text-warn-ink sm:inline"
+              data-testid="evidence-state"
+              >{{ key | transloco }}</span
+            >
+          }
+          @if (req.due_date) {
+            <span
+              class="hidden items-center gap-1 sm:inline-flex"
+              data-testid="requirement-due"
+              [class.font-semibold]="overdue()"
+              [class.text-fail-ink]="overdue()"
+              [title]="(overdue() ? 'standards.owner.overdue' : 'standards.owner.due') | transloco"
+              ><app-icon name="calendar" [size]="12" />{{
+                req.due_date | localDate: 'mediumDate'
+              }}</span
+            >
+          }
+          @if (req.owner) {
+            <span
+              class="inline-flex h-6 w-6 flex-none items-center justify-center rounded-full bg-accent-soft text-micro font-bold text-accent"
+              data-testid="requirement-owner"
+              [title]="'standards.owner.ownerIs' | transloco: { name: req.owner.name || '' }"
+              [attr.aria-label]="
+                'standards.owner.ownerIs' | transloco: { name: req.owner.name || '' }
+              "
+              >{{ ownerInitials() }}</span
+            >
+          }
           @if (req.status_override) {
             <span
-              class="hidden rounded-full border border-border px-2 py-px text-[11px] font-semibold sm:inline"
+              class="hidden rounded-full border border-border px-2 py-px text-micro font-semibold sm:inline"
               >{{ 'standards.requirement.manual' | transloco }}</span
             >
           }
           @if (derivedNotApplicable()) {
             <span
-              class="hidden rounded-full border border-border px-2 py-px text-[11px] font-semibold sm:inline"
+              class="hidden rounded-full border border-border px-2 py-px text-micro font-semibold sm:inline"
               data-testid="derived-chip"
               [title]="'standards.requirement.derivedTitle' | transloco"
               >{{ 'standards.requirement.derived' | transloco }}</span
@@ -94,7 +134,7 @@ import { LocationHint } from '../../../shared/requirement-locations/location-hin
           </span>
           @if (req.suggested_links.length > 0) {
             <span
-              class="inline-flex items-center gap-1 rounded-full border border-accent-border bg-accent-soft px-2 py-px text-[11.5px] font-semibold whitespace-nowrap text-accent"
+              class="inline-flex items-center gap-1 rounded-full border border-accent-border bg-accent-soft px-2 py-px text-micro font-semibold whitespace-nowrap text-accent"
               data-testid="ai-suggestion-badge"
               [title]="
                 'standards.view.suggestionCount' | transloco: { count: req.suggested_links.length }
@@ -167,6 +207,19 @@ export class RequirementRow {
   protected readonly derivedNotApplicable = computed(() =>
     isDerivedNotApplicable(this.requirement()),
   );
+  protected readonly staleKey = computed(() => {
+    const req = this.requirement();
+    return this.status() === 'not_applicable'
+      ? null
+      : evidenceStateKey(req.weak_evidence ? 'weak' : req.evidence_state);
+  });
+  protected readonly overdue = computed(() => {
+    const req = this.requirement();
+    return (
+      this.status() !== 'covered' && this.status() !== 'not_applicable' && isPastDate(req.due_date)
+    );
+  });
+  protected readonly ownerInitials = computed(() => initials(this.requirement().owner?.name));
   /** The card's input shape; recomputed whenever the tree patches this requirement. */
   protected readonly detail = computed(() => toRequirementDetail(this.requirement()));
 }

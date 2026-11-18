@@ -19,6 +19,12 @@ import { LanguageService } from '../../core/i18n/language.service';
 import { EntityTypesService } from '../../core/kit/entity-types.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { internalLink } from '../../core/search/internal-link';
+import {
+  exclusionHintKey,
+  isPastDate,
+  qualityKey,
+  qualityTone,
+} from '../../core/standards/standards-display';
 import { StandardsApi } from '../../core/standards/standards-api';
 import {
   applicabilitySource,
@@ -44,11 +50,14 @@ import {
   fieldSourceKey,
 } from '../../shared/requirement-links/supports-requirements';
 import { RequirementLocations } from '../../shared/requirement-locations/requirement-locations';
+import { LocatedRequirementFields } from '../../core/locations/locations.models';
 import { Badge } from '../../shared/ui/badge/badge';
 import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
 import { FormField } from '../../shared/ui/form-field/form-field';
 import { Icon } from '../../shared/ui/icon/icon';
+import { LocalDatePipe } from '../../shared/locale/locale-pipes';
+import { PersonSelect } from '../risk/shared/person-select';
 import { EvidencePick, EvidencePicker, PickerType, moduleName } from './evidence-picker';
 
 /** Status choices for the manual override ('' = automatic, from the evidence). */
@@ -113,6 +122,8 @@ export function evidenceByModule(evidence: RequirementEvidence | null): ModuleEv
     Icon,
     EvidencePicker,
     RequirementLocations, // requirement-locations (L4)
+    LocalDatePipe,
+    PersonSelect,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -154,7 +165,7 @@ export function evidenceByModule(evidence: RequirementEvidence | null): ModuleEv
 
       @if (checklist().length > 0) {
         <div [class.mt-3]="!embedded()">
-          <div class="mb-1 text-micro font-bold tracking-[0.08em] text-fg-subtle uppercase">
+          <div class="mb-1 text-micro font-bold tracking-wide text-fg-subtle uppercase">
             {{ 'standards.requirement.evidenceExamples' | transloco }}
           </div>
           <ul class="flex flex-col gap-1">
@@ -172,7 +183,7 @@ export function evidenceByModule(evidence: RequirementEvidence | null): ModuleEv
 
       @if (derivedNotApplicable()) {
         <div
-          class="mt-3 rounded-tile border border-border bg-surface-2 px-3 py-2 text-[12.5px] text-fg-muted"
+          class="mt-3 rounded-tile border border-border bg-surface-2 px-3 py-2 text-meta text-fg-muted"
           data-testid="derived-not-applicable"
         >
           <p>
@@ -200,7 +211,7 @@ export function evidenceByModule(evidence: RequirementEvidence | null): ModuleEv
         </div>
       } @else if (overridesDerivation()) {
         <div
-          class="mt-3 rounded-tile border border-border bg-surface-2 px-3 py-2 text-[12.5px] text-fg-muted"
+          class="mt-3 rounded-tile border border-border bg-surface-2 px-3 py-2 text-meta text-fg-muted"
           data-testid="applicability-overridden"
         >
           <p>
@@ -230,7 +241,7 @@ export function evidenceByModule(evidence: RequirementEvidence | null): ModuleEv
         </div>
       }
       @if (applicabilityError()) {
-        <p class="mt-2 text-[12.5px] text-fail" role="alert">
+        <p class="mt-2 text-meta text-fail" role="alert">
           {{ 'standards.requirement.applicabilityError' | transloco }}
         </p>
       }
@@ -247,6 +258,73 @@ export function evidenceByModule(evidence: RequirementEvidence | null): ModuleEv
         <p class="mt-2 rounded-tile bg-surface-2 px-3 py-2 text-meta text-fg-muted">
           <span class="font-semibold text-fg">{{ 'standards.requirement.note' | transloco }}</span>
           {{ req.note }}
+        </p>
+      }
+
+      @if (hasAuditorFields()) {
+        <dl
+          class="mt-3 grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1 text-meta"
+          data-testid="requirement-facts"
+        >
+          <dt class="font-semibold text-fg-muted">{{ 'standards.owner.owner' | transloco }}</dt>
+          <dd class="text-fg">{{ req.owner?.name || ('standards.notSet' | transloco) }}</dd>
+          <dt class="font-semibold text-fg-muted">{{ 'standards.owner.dueDate' | transloco }}</dt>
+          <dd [class]="overdue() ? 'font-semibold text-fail-ink' : 'text-fg'">
+            @if (req.due_date) {
+              {{ req.due_date | localDate: 'mediumDate' }}
+              @if (overdue()) {
+                · {{ 'standards.owner.overdue' | transloco }}
+              }
+            } @else {
+              {{ 'standards.notSet' | transloco }}
+            }
+          </dd>
+          <dt class="font-semibold text-fg-muted">{{ 'standards.owner.reviewed' | transloco }}</dt>
+          <dd class="text-fg">
+            @if (req.reviewed_at) {
+              {{
+                'standards.owner.reviewedBy'
+                  | transloco
+                    : {
+                        date: (req.reviewed_at | localDate: 'mediumDate'),
+                        name: req.reviewed_by?.name || '—',
+                      }
+              }}
+            } @else {
+              {{ 'standards.owner.neverReviewed' | transloco }}
+            }
+          </dd>
+          @if (req.status_override && req.override_at) {
+            <dt class="font-semibold text-fg-muted">
+              {{ 'standards.owner.statusSet' | transloco }}
+            </dt>
+            <dd class="text-fg">
+              {{
+                'standards.owner.statusSetBy'
+                  | transloco
+                    : {
+                        status: (statusLabelKey(req.status_override) | transloco),
+                        name: req.override_by?.name || '—',
+                        date: (req.override_at | localDate: 'mediumDate'),
+                      }
+              }}
+            </dd>
+          }
+          @if (req.applicability_set_by?.entity_type === 'soa_entry') {
+            <dt class="font-semibold text-fg-muted">
+              {{ 'standards.requirement.applicable' | transloco }}
+            </dt>
+            <dd class="text-fg">{{ 'standards.soa.setBySoa' | transloco }}</dd>
+          }
+        </dl>
+      }
+
+      @if (weakNotice()) {
+        <p
+          class="mt-3 rounded-tile border border-warn/40 bg-warn-soft px-3 py-2 text-meta text-warn-ink"
+          data-testid="weak-evidence"
+        >
+          {{ 'standards.quality.weakNotice' | transloco }}
         </p>
       }
 
@@ -385,7 +463,29 @@ export function evidenceByModule(evidence: RequirementEvidence | null): ModuleEv
                                       | transloco),
                                   }
                           }}
+                          @if (link.document_version) {
+                            ·
+                            {{
+                              'standards.quality.version'
+                                | transloco: { version: link.document_version }
+                            }}
+                          }
+                          @if (link.document_approved_at) {
+                            ·
+                            {{
+                              'standards.quality.approvedOn'
+                                | transloco
+                                  : { date: (link.document_approved_at | localDate: 'mediumDate') }
+                            }}
+                          }
                         </span>
+                        @if (link.evidence_quality && link.evidence_quality !== 'current') {
+                          <span class="mt-0.5 inline-block">
+                            <app-badge [tone]="qualityTone(link.evidence_quality)">{{
+                              qualityKey(link.evidence_quality) | transloco
+                            }}</app-badge>
+                          </span>
+                        }
                       </span>
                       @if (canManage() && link.origin !== 'field') {
                         <button
@@ -436,10 +536,38 @@ export function evidenceByModule(evidence: RequirementEvidence | null): ModuleEv
                     {{ moduleLabel(t.module) }}
                     @if (!t.enabled) {
                       · {{ 'standards.support.moduleOff' | transloco }}
+                    } @else if (t.record_count !== null && t.record_count !== undefined) {
+                      ·
+                      @if (t.list_url && t.record_count > 0) {
+                        <a
+                          [href]="t.list_url"
+                          class="font-semibold text-accent hover:underline"
+                          data-testid="evidencing-count"
+                          (click)="navigate($event, t.list_url)"
+                          >{{
+                            'standards.bulk.recordCount' | transloco: { count: t.record_count }
+                          }}</a
+                        >
+                      } @else {
+                        {{ 'standards.bulk.recordCount' | transloco: { count: t.record_count } }}
+                      }
                     }
                   </span>
                 </span>
                 @if (t.enabled) {
+                  @if (canManage() && (t.record_count ?? 0) > 0) {
+                    <button
+                      type="button"
+                      class="inline-flex h-7 items-center gap-1 rounded-lg px-2 text-meta font-semibold text-accent hover:bg-accent-soft disabled:opacity-60"
+                      data-testid="suggest-from-type"
+                      [disabled]="suggestingType() !== null"
+                      [title]="'standards.bulk.suggestTypeHint' | transloco"
+                      (click)="suggestFromType(t)"
+                    >
+                      <app-icon name="spark" [size]="12" />
+                      {{ 'standards.bulk.suggestType' | transloco }}
+                    </button>
+                  }
                   @if (createLink(t); as target) {
                     <a
                       [href]="t.create_url"
@@ -469,6 +597,11 @@ export function evidenceByModule(evidence: RequirementEvidence | null): ModuleEv
         </div>
       }
 
+      @if (bulkMessage(); as msg) {
+        <p class="mt-2 text-meta text-fg-muted" role="status">
+          {{ msg.key | transloco: msg.params }}
+        </p>
+      }
       @if (linkError()) {
         <p class="mt-2 text-meta text-fail" role="alert">
           {{ 'standards.evidence.error' | transloco }}
@@ -491,17 +624,35 @@ export function evidenceByModule(evidence: RequirementEvidence | null): ModuleEv
               {{ 'standards.requirement.assess' | transloco }}
             </button>
           } @else {
-            <div class="flex flex-col gap-3">
+            <div class="flex flex-col gap-3" data-testid="assessment-form">
+              @if (req.soa) {
+                <p
+                  class="rounded-tile bg-surface-2 px-3 py-2 text-meta text-fg-muted"
+                  data-testid="soa-form-hint"
+                >
+                  {{
+                    (soaLocked() ? 'standards.soa.lockedHint' : 'standards.soa.formHint')
+                      | transloco
+                  }}
+                </p>
+              }
               <label class="flex items-center gap-2 text-ui text-fg">
                 <input
                   type="checkbox"
+                  data-testid="assess-applicable"
+                  [disabled]="exclusionLocked() || soaLocked()"
                   [ngModel]="formApplicable()"
                   (ngModelChange)="formApplicable.set($event)"
                 />
                 {{ 'standards.requirement.applicable' | transloco }}
               </label>
+              @if (exclusionHint(); as key) {
+                <p class="-mt-1 text-meta text-fg-muted" data-testid="exclusion-hint">
+                  {{ key | transloco }}
+                </p>
+              }
               @if (!formApplicable() && keepsDerivedNotApplicable()) {
-                <p class="-mt-1 text-[12px] text-fg-muted">
+                <p class="-mt-1 text-meta text-fg-muted">
                   {{ 'standards.requirement.derivedEditHint' | transloco }}
                 </p>
               } @else if (!formApplicable()) {
@@ -512,6 +663,7 @@ export function evidenceByModule(evidence: RequirementEvidence | null): ModuleEv
                   <textarea
                     [id]="anchorId() + '-just'"
                     rows="2"
+                    [readonly]="soaLocked()"
                     [ngModel]="formJustification()"
                     (ngModelChange)="formJustification.set($event)"
                   ></textarea>
@@ -542,8 +694,39 @@ export function evidenceByModule(evidence: RequirementEvidence | null): ModuleEv
                   </select>
                 </app-form-field>
               }
+              @if (hasAuditorFields()) {
+                <div class="grid gap-3 sm:grid-cols-2">
+                  <app-form-field
+                    [label]="'standards.owner.owner' | transloco"
+                    [inputId]="anchorId() + '-owner'"
+                  >
+                    <app-person-select
+                      [inputId]="anchorId() + '-owner'"
+                      [value]="formOwner()"
+                      [currentName]="req.owner?.name ?? null"
+                      (valueChange)="formOwner.set($event)"
+                    />
+                  </app-form-field>
+                  <app-form-field
+                    [label]="'standards.owner.dueDate' | transloco"
+                    [inputId]="anchorId() + '-due'"
+                  >
+                    <input
+                      type="date"
+                      [id]="anchorId() + '-due'"
+                      [ngModel]="formDue()"
+                      (ngModelChange)="formDue.set($event ?? '')"
+                    />
+                  </app-form-field>
+                </div>
+              }
               <app-form-field
-                [label]="'standards.requirement.note' | transloco"
+                [label]="
+                  (noteRequired()
+                    ? 'standards.owner.noteRequiredLabel'
+                    : 'standards.requirement.note'
+                  ) | transloco
+                "
                 [inputId]="anchorId() + '-note'"
               >
                 <textarea
@@ -553,6 +736,22 @@ export function evidenceByModule(evidence: RequirementEvidence | null): ModuleEv
                   (ngModelChange)="formNote.set($event)"
                 ></textarea>
               </app-form-field>
+              @if (noteMissing()) {
+                <p class="-mt-2 text-meta text-fail" role="alert">
+                  {{ 'standards.actionErrors.noteRequired' | transloco }}
+                </p>
+              }
+              @if (hasAuditorFields()) {
+                <label class="flex items-center gap-2 text-ui text-fg">
+                  <input
+                    type="checkbox"
+                    data-testid="assess-reviewed"
+                    [ngModel]="formReviewed()"
+                    (ngModelChange)="formReviewed.set($event)"
+                  />
+                  {{ 'standards.owner.markReviewed' | transloco }}
+                </label>
+              }
               @if (saveError(); as key) {
                 <p class="text-meta text-fail" role="alert">
                   {{ key | transloco }}
@@ -609,6 +808,59 @@ export class RequirementCard {
   protected readonly formOverride = signal<'' | CoverageOverride>('');
   protected readonly formNote = signal('');
   protected readonly justificationMissing = signal(false);
+  /** Owner user id ('' = nobody), target date (YYYY-MM-DD or ''), "reviewed now". */
+  protected readonly formOwner = signal('');
+  protected readonly formDue = signal('');
+  protected readonly formReviewed = signal(false);
+  protected readonly noteMissing = signal(false);
+  /** The record type whose existing records are being suggested ("Foreslå fra disse"). */
+  protected readonly suggestingType = signal<string | null>(null);
+  protected readonly bulkMessage = signal<{
+    readonly key: string;
+    readonly params: Record<string, unknown>;
+  } | null>(null);
+
+  /**
+   * "Only weak evidence, so partly covered" is true only when the links decide the
+   * status. A location ("where you fill this in") or a manual status wins over it
+   * (requirement-locations 4.1), so the notice is hidden then.
+   */
+  protected readonly weakNotice = computed(() => {
+    const req = this.requirement();
+    const basis = (req as Partial<LocatedRequirementFields>).basis ?? 'links';
+    return !!req.weak_evidence && basis === 'links';
+  });
+
+  /** The API knows owner / due date / review (A03); older APIs omit `exclusion`. */
+  protected readonly hasAuditorFields = computed(() => this.requirement().exclusion !== undefined);
+  protected readonly overdue = computed(() => {
+    const status = this.status();
+    return (
+      status !== 'covered' && status !== 'not_applicable' && isPastDate(this.requirement().due_date)
+    );
+  });
+  /** ISO clauses 4–10 can't be excluded: the box stays ticked (it can always be re-ticked). */
+  protected readonly exclusionLocked = computed(
+    () => this.requirement().exclusion === 'not_allowed' && this.requirement().applicable,
+  );
+  /**
+   * Annex A controls with an SoA entry: applicability is written through to the SoA,
+   * which needs `risk:manage` (the backend answers 403 `soa_manage_required`).
+   */
+  protected readonly soaLocked = computed(
+    () =>
+      !!this.requirement().soa &&
+      !(this.selectedOrg.currentOrg()?.permissions ?? []).includes('risk:manage'),
+  );
+  protected readonly exclusionHint = computed(() => exclusionHintKey(this.requirement().exclusion));
+  /** A manual "covered" / "partial" needs a note saying why (auditors ask). */
+  protected readonly noteRequired = computed(
+    () =>
+      this.formApplicable() &&
+      (this.formOverride() === 'covered' || this.formOverride() === 'partial'),
+  );
+  protected readonly qualityKey = qualityKey;
+  protected readonly qualityTone = qualityTone;
   /** The quick "mark applicable" / "use the derived value" actions. */
   protected readonly applicabilitySaving = signal(false);
   protected readonly applicabilityError = signal(false);
@@ -761,6 +1013,10 @@ export class RequirementCard {
     this.formJustification.set(req.justification ?? '');
     this.formOverride.set(req.status_override ?? '');
     this.formNote.set(req.note ?? '');
+    this.formOwner.set(req.owner?.id ?? '');
+    this.formDue.set(req.due_date ?? '');
+    this.formReviewed.set(false);
+    this.noteMissing.set(false);
     this.justificationMissing.set(false);
     this.saveError.set(null);
     this.editing.set(true);
@@ -777,18 +1033,31 @@ export class RequirementCard {
     // Only send an applicability decision when the user made one: an unchanged
     // box would otherwise turn a default / derived value into a manual decision.
     const decides =
-      applicable !== req.applicable || (!applicable && applicabilitySource(req) === 'manual');
+      !this.soaLocked() &&
+      (applicable !== req.applicable || (!applicable && applicabilitySource(req) === 'manual'));
     if (decides && !applicable && !justification) {
       this.justificationMissing.set(true);
       return;
     }
     this.justificationMissing.set(false);
+    const note = this.formNote().trim();
+    if (this.noteRequired() && !note) {
+      this.noteMissing.set(true);
+      return;
+    }
+    this.noteMissing.set(false);
+    const owner = this.formOwner() || null;
+    const due = this.formDue() || null;
     this.saving.set(true);
     this.saveError.set(null);
     const patch: RequirementPatch = {
       ...(decides ? { applicable, justification: applicable ? null : justification } : {}),
       status_override: applicable ? this.formOverride() || null : null,
-      note: this.formNote().trim() || null,
+      note: note || null,
+      // Only send what changed, so older APIs never see the A03 fields.
+      ...(owner !== (req.owner?.id ?? null) ? { owner_user_id: owner } : {}),
+      ...(due !== (req.due_date ?? null) ? { due_date: due } : {}),
+      ...(this.formReviewed() ? { reviewed: true } : {}),
     };
     this.api.updateRequirement(orgId, req.ref, patch).subscribe({
       next: (req) => {
@@ -824,6 +1093,38 @@ export class RequirementCard {
       error: () => {
         this.applicabilitySaving.set(false);
         this.applicabilityError.set(true);
+      },
+    });
+  }
+
+  /**
+   * "Foreslå fra disse": rank the org's existing records of one type against this
+   * standard's requirements (keyword match, no AI). The results are suggestions
+   * the user confirms one by one; they never count before that.
+   */
+  protected suggestFromType(t: EvidencingType): void {
+    const orgId = this.selectedOrg.currentOrgId();
+    const key = this.evidence()?.requirement.standard_key ?? standardKeyOf(this.requirement().ref);
+    if (!orgId || !key || this.suggestingType()) {
+      return;
+    }
+    this.suggestingType.set(t.entity_type);
+    this.bulkMessage.set(null);
+    this.api.suggestFromRecords(orgId, key, t.entity_type).subscribe({
+      next: (res) => {
+        this.suggestingType.set(null);
+        this.bulkMessage.set({
+          key: res.created > 0 ? 'standards.bulk.suggested' : 'standards.bulk.suggestedNone',
+          params: { count: res.created, records: res.records_checked },
+        });
+        if (res.created > 0) {
+          this.linksChanged.emit();
+          this.loadEvidence(orgId, this.requirement().ref, false);
+        }
+      },
+      error: (err: unknown) => {
+        this.suggestingType.set(null);
+        this.bulkMessage.set({ key: standardsErrorKey(err, 'map'), params: {} });
       },
     });
   }
@@ -869,6 +1170,12 @@ export class RequirementCard {
       },
     });
   }
+}
+
+/** The standard key of a requirement ref ("iso27001-2022:A.5.15.r1" → "iso27001-2022"). */
+export function standardKeyOf(ref: string): string | null {
+  const i = ref.indexOf(':');
+  return i > 0 ? ref.slice(0, i) : null;
 }
 
 /** DOM id for a requirement's card (refs may contain characters invalid in ids). */

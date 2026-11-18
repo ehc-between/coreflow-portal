@@ -33,14 +33,15 @@
       "missing": "Not started"
     },
     "segment": "{{label}}: {{count}}",
-    "weights": "Covered with recent evidence counts in full, covered with older evidence counts 60%, partly covered counts 50%, and not started counts nothing.",
+    "weights": "Covered with recent evidence counts in full, covered with older evidence 60 %, partly covered 50 %, and not started nothing.",
     "summarise": "Summarise",
     "summarisePrompt": "Summarise our requirement coverage for {{name}}: {{score}}%, {{applicable}} applicable requirements, {{fresh}} covered with recent evidence, {{stale}} covered with older evidence, {{partial}} partly covered and {{missing}} not started. What should we do first, and why?",
     "empty": {
       "title": "No standards enabled yet",
       "body": "Requirement coverage is calculated for each standard your organisation has enabled. Enable ISO 9001, ISO/IEC 27001, GDPR or another standard from the standards overview to see it here.",
       "cta": "Go to the standards overview"
-    }
+    },
+    "crumb": "Coverage"
   },
   "kinds": {
     "article": "Article",
@@ -48,7 +49,7 @@
     "annex": "Annex"
   },
   "hs": {
-    "badge": "Shared ISO {{clause}}",
+    "badge": "Shared ISO clause {{clause}}",
     "title": "Shared ISO requirement, clause {{clause}}: the same requirement appears in every ISO management system standard, so one piece of evidence can serve them all."
   },
   "aiAct": {
@@ -88,7 +89,11 @@
     "notEnabled": "Not enabled",
     "ask": "Ask how these relate",
     "askPrompt": "Explain how clause {{number}} of {{standard}} relates to these clauses in other standards, and how one piece of evidence can serve them all: {{targets}}.",
-    "hsBadge": "Shared ISO"
+    "hsBadge": "Shared ISO",
+    "reuse": "Reuse evidence",
+    "reuseHint": "Suggest the confirmed evidence of that clause here. You confirm each suggestion.",
+    "reused": "Suggestions added: {{count}}. Confirm them in the requirements below.",
+    "reusedNone": "That clause has no confirmed evidence to reuse yet."
   },
   "support": {
     "title": "Records that can document this",
@@ -102,70 +107,22 @@
     "none": "No suggestions. Search to find a requirement.",
     "searchAll": "Or search every requirement:"
   },
-  "guide": {
-    "show": "Show guidance",
-    "hide": "Hide guidance",
-    "stepsTitle": "How to use this page",
-    "whyTitle": "Why this matters",
-    "clauseAsk": "Ask about {{clause}}",
-    "clausePrompt": "Teach me what {{clause}} requires, in plain language, with a short example from an organisation like ours.",
-    "overview": {
-      "title": "Your standards in one place",
-      "body": "Each card is a standard or regulation your organisation works towards. The ring shows requirement coverage: how much of the standard is documented by records you have linked, and how recent they are.",
-      "step1": "Enable the standards that are in scope. Start with the ones your customers or regulators ask about.",
-      "step2": "Open a standard to assess each requirement: mark what does not apply, and link risks, documents, suppliers or any other record as evidence.",
-      "step3": "Open the gaps list to see what is missing and how to close it, and keep evidence up to date so the coverage stays high.",
-      "why": "Management system standards ask you to plan, implement and show evidence. Clauses 4 to 10 share one structure across ISO standards, so one well-kept record often serves several standards at once."
-    },
-    "readiness": {
-      "title": "What requirement coverage tells you",
-      "body": "The score summarises how prepared you are for an audit or a regulator's review. It only counts requirements you have marked as applicable.",
-      "step1": "Look at the grey segment first: requirements nobody has started on yet.",
-      "step2": "Then refresh evidence older than a year. Auditors expect records to be current.",
-      "step3": "Open the standard to link evidence, or ask for a summary of what to do next.",
-      "why": "ISO standards require you to monitor and evaluate your management system and review it at management level. Requirement coverage per standard is a simple input to that review."
-    }
-  },
-  "lesson": {
-    "badge": "Lesson",
-    "minutes": "{{count}} min",
-    "start": "Start the lesson",
-    "close": "Close the lesson",
-    "check": "Check answer",
-    "correct": "Correct.",
-    "incorrect": "Not quite.",
-    "questionLabel": "Check your understanding",
-    "readiness": {
-      "title": "How requirement coverage is calculated",
-      "s1Heading": "Only applicable requirements count",
-      "s1Body": "When a requirement does not apply to you, mark it as not applicable and write a short justification. It then leaves the calculation, so the score reflects what you actually have to do.",
-      "s2Heading": "Evidence makes a requirement covered",
-      "s2Body": "A requirement is covered when you have confirmed at least one live record as evidence, or set the status to covered yourself. A partly covered requirement counts half.",
-      "s3Heading": "Recent evidence counts in full",
-      "s3Body": "Evidence confirmed or updated within the last 365 days counts in full. Older evidence counts 60%, because auditors expect records to be kept up to date.",
-      "question": "You cover a requirement with a procedure last reviewed two years ago. How much does it count?",
-      "option1": "Nothing",
-      "option2": "60%",
-      "option3": "In full",
-      "explanation": "It is still covered, but the evidence is older than a year, so it counts 60%. Review the procedure to make it count in full again."
-    }
-  },
   "notifications": {
-    "evidenceLinked": "Evidence linked to clause {{clause_number}} ({{standard_key}})",
-    "evidenceRejected": "Suggested evidence rejected for clause {{clause_number}} ({{standard_key}})",
-    "evidenceUnlinked": "Evidence removed from clause {{clause_number}} ({{standard_key}})",
-    "standardEnabled": "Standard enabled: {{standard_key}}",
-    "standardDisabled": "Standard disabled: {{standard_key}}",
-    "requirementUpdated": "Requirement {{ref}} updated",
+    "evidenceLinked": "Evidence linked to {{requirement_label}}",
+    "evidenceRejected": "Suggested evidence rejected for {{requirement_label}}",
+    "evidenceUnlinked": "Evidence removed from {{requirement_label}}",
+    "standardEnabled": "The standard {{standard_name}} was turned on",
+    "standardDisabled": "The standard {{standard_name}} was turned off",
+    "requirementUpdated": "A requirement assessment was updated in {{standard_name}}",
     "requirementLinksSynced": "Requirement links updated from a field on the record"
   },
   "timeline": {
-    "evidenceLinked": "linked this record as evidence for clause {{clause_number}} ({{standard_key}})",
-    "evidenceRejected": "rejected the suggestion that this record is evidence for clause {{clause_number}} ({{standard_key}})",
-    "evidenceUnlinked": "removed this record as evidence for clause {{clause_number}} ({{standard_key}})",
-    "standardEnabled": "enabled the standard {{standard_key}}",
-    "standardDisabled": "disabled the standard {{standard_key}}",
-    "requirementUpdated": "updated the assessment of requirement {{ref}}",
+    "evidenceLinked": "linked this record as evidence for {{requirement_label}}",
+    "evidenceRejected": "rejected the suggestion that this record documents {{requirement_label}}",
+    "evidenceUnlinked": "removed this record as evidence for {{requirement_label}}",
+    "standardEnabled": "turned on the standard {{standard_name}}",
+    "standardDisabled": "turned off the standard {{standard_name}}",
+    "requirementUpdated": "updated a requirement assessment in {{standard_name}}",
     "requirementLinksSynced": "updated the requirement links from a field on the record ({{added}} added, {{removed}} removed)"
   },
   "reqs": {
@@ -289,7 +246,9 @@
       "never": "Your records have not been searched for evidence for this standard yet.",
       "neverHint": "Let AI suggest which records, in every module, document each requirement. You confirm every suggestion.",
       "findAll": "Find evidence in all modules",
-      "running": "Looking for evidence in all modules …"
+      "running": "Looking for evidence in all modules …",
+      "neverHintNoAi": "CoreFlow can suggest which of your existing records document each requirement. You confirm every suggestion.",
+      "dismiss": "Hide this message"
     },
     "readiness": {
       "documentedBy": "Documented by:",
@@ -318,5 +277,146 @@
       "loadError": "Couldn't load the gaps. Try again."
     },
     "fromRegister": "From the register"
+  },
+  "scoreHint": "Requirement coverage: requirements covered with recent evidence count in full, older evidence 60 %, partly covered 50 %. Only requirements that apply to you count.",
+  "scoreLine": "Requirement coverage {{pct}} %",
+  "notSet": "Not set",
+  "adopted": "Adopted {{edition}}",
+  "legalForm": {
+    "standard": "ISO standard",
+    "regulation": "EU regulation",
+    "directive": "EU directive"
+  },
+  "cert": {
+    "label": "Certification · {{body}}",
+    "nextSurveillance": "next surveillance audit {{date}}",
+    "status": {
+      "planned": "Planned",
+      "in_progress": "In progress",
+      "certified": "Certified",
+      "suspended": "Suspended",
+      "withdrawn": "Withdrawn",
+      "expired": "Expired"
+    }
+  },
+  "export": {
+    "menu": "Export",
+    "xlsx": "Export requirement matrix (Excel)",
+    "csv": "Export requirement matrix (CSV)",
+    "pdf": "Export requirement matrix (PDF)",
+    "auditPack": "Build an audit pack",
+    "error": "Could not export the requirement matrix. Try again."
+  },
+  "bulk": {
+    "suggestAll": "Suggest evidence from existing records",
+    "suggestAllShort": "Suggest from existing records",
+    "suggested": "{{count}} new suggestions. Records checked: {{records}}. Confirm the ones that fit.",
+    "suggestedNone": "No new suggestions. Records checked: {{records}}.",
+    "recordCount": "{{count}} in the register",
+    "suggestType": "Suggest from these",
+    "suggestTypeHint": "Find records of this type that match the requirements of this standard. You confirm each suggestion; nothing counts before that."
+  },
+  "nextStep": {
+    "title": "Recommended next step",
+    "suggestions": "{{count}} requirements have suggestions waiting for you.",
+    "suggestionsAction": "Review suggestions",
+    "gap": "Document {{clause}} {{title}}. {{count}} requirements still lack evidence.",
+    "gapAction": "Open the requirement",
+    "stale": "{{count}} requirements have old or weak evidence.",
+    "staleAction": "Show them"
+  },
+  "workspace": {
+    "onlyStale": "Old or weak evidence",
+    "noStale": "No requirements have old or weak evidence."
+  },
+  "licensed": {
+    "copyright": "The standard’s own text is protected by copyright, so CoreFlow shows its own explanations. Upload the PDF you have bought to see the official text alongside them.",
+    "needsPdf": "Upload the PDF of the standard first."
+  },
+  "mapping": {
+    "lastMappedOn": "Last searched with AI {{date}}"
+  },
+  "actionErrors": {
+    "exclusionNotAllowed": "This requirement cannot be marked not applicable: clauses 4–10 of an ISO standard always apply.",
+    "noteRequired": "Write a note on why the requirement is covered or partly covered.",
+    "invalidUser": "The owner must be a member of the organisation.",
+    "notMapped": "These clauses are not mapped to each other, so evidence cannot be reused.",
+    "notDeclared": "Records of this type cannot document this standard.",
+    "soaManageRequired": "Only someone who maintains the Statement of Applicability can change whether this control applies."
+  },
+  "soa": {
+    "title": "Statement of Applicability",
+    "applicable": "Applies",
+    "notApplicable": "Does not apply",
+    "open": "Open in the Statement of Applicability",
+    "justification": "Justification",
+    "reasons": "Reasons for inclusion",
+    "owner": "Owner",
+    "reviewed": "Last reviewed",
+    "risks": "Risks",
+    "treatments": "Risk treatments: {{count}}",
+    "hint": "Applicability and justification for this control are decided in the Statement of Applicability, and apply to all its requirements.",
+    "setBySoa": "Set by the Statement of Applicability",
+    "formHint": "Saving “Applies” and the justification updates the Statement of Applicability, for every requirement of this control.",
+    "lockedHint": "Whether this control applies is decided in the Statement of Applicability. Ask someone who maintains it to change it.",
+    "reason": {
+      "risk_assessment": "Risk assessment",
+      "legal": "Legal requirement",
+      "contractual": "Contractual requirement",
+      "business": "Business requirement",
+      "best_practice": "Best practice"
+    },
+    "implementation": {
+      "not_started": "Not started",
+      "planned": "Planned",
+      "partial": "Partly implemented",
+      "implemented": "Implemented"
+    }
+  },
+  "audit": {
+    "lastAudited": "Last audited {{date}}",
+    "neverAudited": "Not audited yet",
+    "nextAudit": "Next audit {{date}}",
+    "openFindings": "Open findings: {{count}} (nonconformities: {{nc}})"
+  },
+  "exclusion": {
+    "notAllowed": "Clauses 4–10 of an ISO standard always apply and cannot be excluded.",
+    "conditional": "Requirements in clause 8 may only be excluded when your scope (4.3) justifies it. Give the reason in the justification.",
+    "badge": "Always applies"
+  },
+  "clauseLink": {
+    "start": "Link one record to all {{count}} requirements",
+    "done": "Linked to {{count}} requirements.",
+    "pickHint": "Find the record that documents this clause.",
+    "confirmTitle": "Link “{{record}}” to these requirements:",
+    "confirmHint": "Untick the requirements the record does not document.",
+    "save": "Link to {{count}} requirements"
+  },
+  "quality": {
+    "current": "Approved",
+    "draft": "Draft",
+    "review_overdue": "Review overdue",
+    "obsolete": "Obsolete",
+    "weakNotice": "The evidence is only drafts, obsolete documents or documents past their review date, so the requirement counts as partly covered. Approve or review the document to make it count in full.",
+    "version": "version {{version}}",
+    "approvedOn": "approved {{date}}"
+  },
+  "evidenceState": {
+    "stale": "Old evidence",
+    "weak": "Weak evidence"
+  },
+  "owner": {
+    "owner": "Owner",
+    "dueDate": "Target date",
+    "due": "Target date",
+    "overdue": "overdue",
+    "ownerIs": "Owner: {{name}}",
+    "reviewed": "Last reviewed",
+    "reviewedBy": "{{date}} by {{name}}",
+    "neverReviewed": "Not reviewed yet",
+    "statusSet": "Status set",
+    "statusSetBy": "{{status}} by {{name}}, {{date}}",
+    "markReviewed": "Mark as reviewed now",
+    "noteRequiredLabel": "Note (required)"
   }
 }
