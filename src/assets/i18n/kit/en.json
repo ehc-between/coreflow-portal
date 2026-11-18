@@ -568,6 +568,19 @@
     },
     "supplier_evaluation": {
       "to_deviation": "Deviation from this evaluation"
+    },
+    "project": {
+      "to_risk": "Risk for the project",
+      "to_opportunity": "Opportunity from the project",
+      "to_deviation": "Deviation in the project",
+      "to_task": "Task in the project",
+      "to_document": "Design output (document)",
+      "to_dpia": "DPIA for the project",
+      "to_change_request": "Change request"
+    },
+    "project_design_review": {
+      "to_task": "Action from the review (task)",
+      "to_deviation": "Deviation from the review"
     }
   },
   "frameworks": {
