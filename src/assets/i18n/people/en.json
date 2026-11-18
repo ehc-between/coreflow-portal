@@ -871,7 +871,6 @@
     "notRemoved": "Not removed"
   },
   "import": {
-    "open": "Link user accounts",
     "title": "Create employee cards",
     "message": "Members of the organisation who have no employee card yet. Training, tasks and access reviews reach people through their card.",
     "suggestionsTitle": "Suggested links to existing people",

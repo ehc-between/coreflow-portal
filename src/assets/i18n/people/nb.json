@@ -871,7 +871,6 @@
     "notRemoved": "Ikke fjernet"
   },
   "import": {
-    "open": "Koble til brukerkontoer",
     "title": "Opprett ansattkort",
     "message": "Medlemmer av virksomheten som ikke har ansattkort ennå. Opplæring, oppgaver og tilgangsgjennomganger når frem til personen gjennom ansattkortet.",
     "suggestionsTitle": "Forslag til kobling mot eksisterende personer",

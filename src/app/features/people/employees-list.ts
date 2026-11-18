@@ -168,18 +168,8 @@ function isFlag(value: string | null | undefined): value is EmployeeFlag {
           {{ 'people.employees.new' | transloco }}
         </app-button>
       }
-      <!-- U26: with a gap the strip below carries "Opprett ansattkort"; otherwise this
-           opens the same dialog for linking accounts to existing people. -->
-      @if (canWrite() && !summary()?.members_without_employee) {
-        <app-button
-          secondary
-          variant="secondary"
-          (click)="importOpen.set(true)"
-          data-testid="import-users"
-        >
-          {{ 'people.import.open' | transloco }}
-        </app-button>
-      }
+      <!-- U26: "Opprett ansattkort" (and the suggested account links) live in the gap
+           strip below. Without a gap there is nothing to create or link, so no button. -->
 
       <app-module-nav nav [items]="nav" labelKey="people.sections.label" />
       <app-help-strip help scope="people" page="list" tour="list" lesson="competence-basics" />
