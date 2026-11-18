@@ -16,6 +16,7 @@ import { provideI18n } from './core/i18n/i18n.providers';
 import { LanguageService } from './core/i18n/language.service';
 import { provideSentry } from './core/monitoring/sentry';
 import { ThemeService } from './core/theme/theme.service';
+import { UxMetricsService } from './core/ux-metrics/ux-metrics.service';
 import { CoreflowTitleStrategy } from './shared/ui/title/title.service';
 
 export const appConfig: ApplicationConfig = {
@@ -47,5 +48,9 @@ export const appConfig: ApplicationConfig = {
       inject(LanguageService);
     }),
     ...provideSentry(),
+    // Org-level click-source counters (route templates only; see UxMetricsService).
+    provideAppInitializer(() => {
+      inject(UxMetricsService).start();
+    }),
   ],
 };
