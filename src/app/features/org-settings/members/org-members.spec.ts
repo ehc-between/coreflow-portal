@@ -124,10 +124,19 @@ describe('OrgMembers', () => {
         person: null,
       },
       { ...MEMBERS[3], user_id: 'ops-2', person: null },
+      {
+        user_id: 'u-off',
+        email: 'gone@x.no',
+        full_name: 'Gone',
+        is_active: false,
+        roles: ['member'],
+        person: null,
+      },
     ]);
     expect(row(fixture, 'u-3')?.querySelector('[data-testid="member-no-card"]')).not.toBeNull();
     expect(row(fixture, 'u-1')?.querySelector('[data-testid="member-no-card"]')).toBeNull();
     expect(row(fixture, 'me')?.querySelector('[data-testid="member-no-card"]')).toBeNull();
+    expect(row(fixture, 'u-off')?.querySelector('[data-testid="member-no-card"]')).toBeNull();
     const summary = (fixture.nativeElement as HTMLElement).querySelector(
       '[data-testid="members-without-card"]',
     );

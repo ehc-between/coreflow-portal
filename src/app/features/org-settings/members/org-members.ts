@@ -215,10 +215,11 @@ export class OrgMembers {
 
   /**
    * U26: a staff member with no People-register entry. Only when the backend sends
-   * `person` (an absent field means "unknown", not a gap); operators are not staff.
+   * `person` (an absent field means "unknown", not a gap); operators and deactivated
+   * accounts are not counted (the People register gap leaves them out too).
    */
   protected lacksCard(member: OrgMember): boolean {
-    return !member.is_platform_operator && member.person === null;
+    return !member.is_platform_operator && member.is_active && member.person === null;
   }
 
   protected hasName(member: OrgMember): boolean {
