@@ -831,6 +831,19 @@
     "audit": {
       "title": "Revisjonslogg",
       "description": "Hvem som endret hva, og når. Bruk den til å svare revisorer og følge opp endringer.",
+      "views": "Hva som vises",
+      "viewAll": "Alle endringer",
+      "viewOutputs": "Dokumenter laget og delt",
+      "module": "Modul",
+      "allModules": "Alle moduler",
+      "output": "Dokument",
+      "allOutputs": "Alle dokumenter",
+      "outputBadge": "Dokument",
+      "total": "{{ count }} hendelser",
+      "totalOutputs": "{{ count }} dokumenter laget, eksportert, lastet ned eller delt",
+      "emptyOutputsTitle": "Ingen dokumenter laget ennå",
+      "emptyOutputsBody": "Hver gang noen lager, laster ned eller deler et dokument eller en eksport, logges det her.",
+      "sameOutput": "Vis alle utgaver av dette dokumentet",
       "export": "Eksporter som CSV",
       "exportFailed": "Kunne ikke eksportere revisjonsloggen. Prøv igjen.",
       "search": "Søk i revisjonsloggen",
@@ -889,6 +902,12 @@
         "logout": "Logget ut",
         "password_changed": "Passord endret",
         "synced": "Oppdatert automatisk",
+        "generated": "Laget",
+        "downloaded": "Lastet ned",
+        "shared": "Delt",
+        "outputCreated": "Dokument laget",
+        "shareCreated": "Delt med sikker lenke",
+        "shareRevoked": "Sikker lenke trukket tilbake",
         "other": "Endret"
       },
       "types": {
@@ -917,7 +936,9 @@
         "demo_seed": "Demodata",
         "auth": "Innlogging",
         "task_recurrence": "Gjentakende oppgave",
-        "privacy": "Personvern"
+        "privacy": "Personvern",
+        "generated_output": "Dokument",
+        "output_share": "Delt lenke"
       }
     },
     "security": {

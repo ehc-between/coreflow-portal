@@ -243,7 +243,7 @@
         "title": "Revisjonsloggen",
         "body": "Alle endringer i poster, innstillinger og tilganger logges her med hvem, hva og når.",
         "steps": [
-          "Filtrer på person, posttype, type endring eller datoer.",
+          "Filtrer på modul, person, type endring eller datoer. «Dokumenter laget og delt» viser hvert dokument noen har laget, lastet ned eller delt.",
           "Åpne en rad for å se nøyaktig hva som ble endret, eller gå til posten.",
           "Eksporter de filtrerte radene som CSV til en revisjon."
         ]

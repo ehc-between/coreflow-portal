@@ -831,6 +831,19 @@
     "audit": {
       "title": "Audit log",
       "description": "Who changed what, and when. Use it to answer auditors and to follow up changes.",
+      "views": "What to show",
+      "viewAll": "All changes",
+      "viewOutputs": "Documents made and shared",
+      "module": "Module",
+      "allModules": "All modules",
+      "output": "Document",
+      "allOutputs": "All documents",
+      "outputBadge": "Document",
+      "total": "{{ count }} entries",
+      "totalOutputs": "{{ count }} documents made, exported, downloaded or shared",
+      "emptyOutputsTitle": "No documents made yet",
+      "emptyOutputsBody": "Every document or export someone makes, downloads or shares is logged here.",
+      "sameOutput": "Show every copy of this document",
       "export": "Export as CSV",
       "exportFailed": "Could not export the audit log. Try again.",
       "search": "Search the audit log",
@@ -889,6 +902,12 @@
         "logout": "Signed out",
         "password_changed": "Password changed",
         "synced": "Updated automatically",
+        "generated": "Generated",
+        "downloaded": "Downloaded",
+        "shared": "Shared",
+        "outputCreated": "Document made",
+        "shareCreated": "Shared by secure link",
+        "shareRevoked": "Secure link withdrawn",
         "other": "Changed"
       },
       "types": {
@@ -917,7 +936,9 @@
         "demo_seed": "Demo data",
         "auth": "Sign-in",
         "task_recurrence": "Recurring task",
-        "privacy": "Privacy"
+        "privacy": "Privacy",
+        "generated_output": "Document",
+        "output_share": "Shared link"
       }
     },
     "security": {
