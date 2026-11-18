@@ -110,7 +110,7 @@ function issuesAt(issues: readonly DefinitionIssue[], prefix: string): string[] 
               [attr.data-state]="state.key"
             >
               <fieldset
-                class="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_140px_150px_120px_auto]"
+                class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(220px,1fr)_140px_150px_140px_auto]"
                 [disabled]="readonly()"
               >
                 <app-localized-input
@@ -161,6 +161,11 @@ function issuesAt(issues: readonly DefinitionIssue[], prefix: string): string[] 
                     [ngModel]="state.sla_hours ?? null"
                     (ngModelChange)="patchState(i, { sla_hours: toInt($event) })"
                   />
+                  @if (state.sla_hours && state.sla_hours >= 24) {
+                    <p class="text-[11.5px] text-fg-subtle">
+                      {{ 'records.states.slaDays' | transloco: { days: slaDays(state.sla_hours) } }}
+                    </p>
+                  }
                 </app-form-field>
                 <div class="flex items-end gap-2 pb-1">
                   <label class="flex items-center gap-1.5 text-[12.5px] text-fg">
@@ -281,6 +286,12 @@ export class WorkflowEditor {
 
   protected stateName(state: StateDef): string {
     return localize(state.label, this.language.active()) || state.key;
+  }
+
+  /** Hours as days, rounded to one decimal (for the "= N dager" hint). */
+  protected slaDays(hours: number): string {
+    const days = Math.round((hours / 24) * 10) / 10;
+    return String(days).replace('.', this.language.active() === 'nb' ? ',' : '.');
   }
 
   protected toInt(raw: unknown): number | null {

@@ -39,7 +39,8 @@ import {
   RecordsTeachingEmpty,
   RecordsWhy,
 } from './guidance/records-guidance';
-import { providePageContext } from './page-context';
+import { providePageContext } from '../../core/ai/page-context';
+import { ClauseChips } from '../../shared/guidance/clause-chips';
 
 export type ListTab = 'types' | 'workflows' | 'templates';
 export type ListSort = 'name' | 'updated';
@@ -85,6 +86,7 @@ export function filterAndSort<
     RecordsWhy,
     RecordsLesson,
     RecordsTeachingEmpty,
+    ClauseChips,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -379,6 +381,17 @@ export function filterAndSort<
                   <p class="mt-2 text-[13px] leading-relaxed text-fg-muted">
                     {{ text(tpl.description) }}
                   </p>
+                  @if (tpl.requirements?.length) {
+                    <p
+                      class="mt-2 flex flex-wrap items-baseline gap-x-1.5"
+                      data-testid="template-requirements"
+                    >
+                      <span class="text-meta font-semibold text-fg-muted">{{
+                        'records.templates.documents' | transloco
+                      }}</span>
+                      <app-clause-chips [clauses]="tpl.requirements ?? []" />
+                    </p>
+                  }
                   @if (!tpl.installed) {
                     <div class="mt-3">
                       <app-button

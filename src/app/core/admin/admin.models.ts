@@ -35,6 +35,8 @@ export interface OrgDetail {
   readonly slug: string;
   readonly created_at: string;
   readonly members: readonly OrgMember[];
+  /** A26: what the organisation uses and when it was last active (absent on older backends). */
+  readonly overview?: AdminOrgOverview | null;
 }
 
 /** Response from creating an invitation. */
@@ -80,4 +82,14 @@ export interface AdminUser {
   readonly full_name: string | null;
   readonly is_active: boolean;
   readonly is_superuser: boolean;
+}
+
+/** `GET admin/organizations/{id}` overview (super-admin). */
+export interface AdminOrgOverview {
+  readonly modules_enabled: readonly string[];
+  readonly frameworks: readonly string[];
+  readonly standards_enabled: readonly string[];
+  readonly pending_invitations: number;
+  readonly last_activity_at: string | null;
+  readonly setup_completed_at: string | null;
 }

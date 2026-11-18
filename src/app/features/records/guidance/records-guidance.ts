@@ -10,6 +10,7 @@ import {
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { RecordsGuidanceService } from '../../../core/records/records-guidance.service';
 import { MarkdownPipe } from '../../../shared/markdown/markdown.pipe';
+import { ClauseChips } from '../../../shared/guidance/clause-chips';
 import { Button } from '../../../shared/ui/button/button';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { SlideOver } from '../../../shared/ui/slide-over/slide-over';
@@ -98,7 +99,7 @@ export class RecordsGuideIntro {
 /** "Why this matters" with clause chips that open the assistant to explain the clause. */
 @Component({
   selector: 'app-records-why',
-  imports: [TranslocoPipe, MarkdownPipe],
+  imports: [TranslocoPipe, MarkdownPipe, ClauseChips],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (content(); as why) {
@@ -114,19 +115,9 @@ export class RecordsGuideIntro {
           [innerHTML]="why.body | appMarkdown"
         ></div>
         @if (why.clauses?.length) {
-          <div class="mt-3 flex flex-wrap gap-1.5">
-            @for (clause of why.clauses; track clause) {
-              <button
-                type="button"
-                class="rounded-full border border-border bg-surface-2 px-2.5 py-0.5 font-mono text-[11.5px] font-semibold text-fg-muted hover:border-accent hover:text-accent"
-                [attr.aria-label]="
-                  'records.guide.explainClause' | transloco: { clause: clauseLabel(clause) }
-                "
-                (click)="explain(clause)"
-              >
-                {{ clauseLabel(clause) }}
-              </button>
-            }
+          <!-- Teaching links (plan 2.1): the shared clause chips, never pills or "HS". -->
+          <div class="mt-3">
+            <app-clause-chips [clauses]="why.clauses ?? []" [lead]="true" />
           </div>
         }
       </section>
@@ -164,13 +155,16 @@ export class RecordsWhy {
 /** Inline field help (and an example, when the content has one). */
 @Component({
   selector: 'app-records-field-help',
+  imports: [TranslocoPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (content(); as help) {
       <p class="text-[11.5px] leading-snug text-fg-subtle">
         {{ help.help }}
         @if (help.example) {
-          <span class="block italic">{{ help.example }}</span>
+          <span class="block">{{
+            'records.guide.example' | transloco: { example: help.example }
+          }}</span>
         }
       </p>
     }

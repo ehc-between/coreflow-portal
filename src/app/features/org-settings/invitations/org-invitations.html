@@ -1,100 +1,187 @@
-<section>
-  <h2 class="mb-1 font-display text-[18px] font-bold tracking-[-0.02em] text-fg">
-    {{ 'settings.invitations.title' | transloco }}
-  </h2>
-  <p class="mb-3 text-[13.5px] text-fg-muted">{{ 'settings.invitations.subtitle' | transloco }}</p>
+<div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+  <app-page-header
+    titleKey="settings.members.pageTitle"
+    descriptionKey="settings.invitations.subtitle"
+    [breadcrumbs]="[
+      { labelKey: 'settings.hub.title', link: '/settings' },
+      { labelKey: 'settings.invitations.title' },
+    ]"
+  />
+  <app-settings-people-nav />
+  <div class="mb-4">
+    <app-help-strip scope="platform" page="settings-invitations" />
+  </div>
 
-  <div class="grid gap-5 lg:grid-cols-[1fr_320px]">
+  <div class="grid gap-5 lg:grid-cols-[1fr_360px]">
     <app-card [padded]="false">
       <div class="border-b border-border px-4 py-3">
-        <h3 class="font-display text-[15px] font-bold tracking-[-0.02em] text-fg">
+        <h2 class="font-display text-card font-bold text-fg">
           {{ 'settings.invitations.pending' | transloco }}
-        </h3>
+        </h2>
       </div>
       @if (loading() && invitations().length === 0) {
-        <div class="px-4 py-10 text-center text-[14px] text-fg-muted">
-          {{ 'common.loading' | transloco }}
-        </div>
+        <app-loading-state [rows]="3" />
       } @else if (invitations().length === 0) {
-        <div class="px-4 py-10 text-center text-[14px] text-fg-muted">
-          {{ 'settings.invitations.empty' | transloco }}
-        </div>
+        <app-empty-state
+          icon="userplus"
+          titleKey="settings.invitations.empty"
+          bodyKey="settings.invitations.emptyBody"
+          [compact]="true"
+        />
       } @else {
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-[13.5px]">
-            <thead>
-              <tr class="border-b border-border text-[12px] font-semibold text-fg-subtle">
-                <th class="px-4 py-3 font-semibold">
-                  {{ 'settings.invitations.email' | transloco }}
-                </th>
-                <th class="px-4 py-3 font-semibold">
-                  {{ 'settings.invitations.role' | transloco }}
-                </th>
-                <th class="px-4 py-3 font-semibold">
-                  {{ 'settings.invitations.expires' | transloco }}
-                </th>
-                <th class="px-4 py-3">
-                  <span class="sr-only">{{ 'settings.members.actions' | transloco }}</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (invitation of invitations(); track invitation.id) {
-                <tr class="border-b border-border last:border-b-0">
-                  <td class="px-4 py-3 text-fg">{{ invitation.email }}</td>
-                  <td class="px-4 py-3">
-                    <app-badge tone="neutral">{{ roleName(invitation.role_key) }}</app-badge>
-                  </td>
-                  <td class="px-4 py-3 text-fg-muted" [attr.data-invitation-id]="invitation.id">
-                    <span class="flex flex-wrap items-center gap-1.5">
-                      {{ invitation.expires_at | localDate: 'medium' }}
-                      @if (isExpired(invitation)) {
-                        <app-badge tone="warn">{{
-                          'settings.invitations.expired' | transloco
-                        }}</app-badge>
-                      }
-                    </span>
-                  </td>
-                  <td class="px-4 py-3">
-                    <span class="flex justify-end gap-1">
-                      @if (acceptUrl(invitation); as url) {
-                        <app-button variant="ghost" size="sm" (click)="copy(url)">
-                          <app-icon name="link" [size]="15" />
-                          {{ 'settings.invitations.copyLink' | transloco }}
-                        </app-button>
-                      }
-                      <app-button variant="ghost" size="sm" (click)="askRevoke(invitation)">
-                        {{ 'settings.invitations.revoke' | transloco }}
-                      </app-button>
-                    </span>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-        <p class="border-t border-border px-4 py-2 text-[12px] text-fg-subtle">
+        <ul>
+          @for (invitation of invitations(); track invitation.id) {
+            <li
+              class="flex flex-wrap items-center gap-x-3 gap-y-1.5 border-b border-border px-4 py-3 last:border-b-0"
+              [attr.data-invitation-id]="invitation.id"
+            >
+              <div class="min-w-0 flex-1">
+                <div class="truncate font-semibold text-fg">{{ invitation.email }}</div>
+                <div
+                  class="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-meta text-fg-muted"
+                >
+                  <app-badge tone="neutral">{{ roleName(invitation.role_key) }}</app-badge>
+                  @if (invitation.department_name) {
+                    <span>{{ invitation.department_name }}</span>
+                  }
+                  @if (invitation.invited_by_name) {
+                    <span>{{
+                      'settings.invitations.invitedBy'
+                        | transloco: { name: invitation.invited_by_name }
+                    }}</span>
+                  }
+                  @if (isExpired(invitation)) {
+                    <app-badge tone="warn">{{
+                      'settings.invitations.expired' | transloco
+                    }}</app-badge>
+                  } @else if (daysLeft(invitation); as days) {
+                    <span [attr.title]="invitation.expires_at | localDate">{{
+                      (days === 1
+                        ? 'settings.invitations.expiresInOne'
+                        : 'settings.invitations.expiresIn'
+                      ) | transloco: { count: days }
+                    }}</span>
+                  } @else {
+                    <span [attr.title]="invitation.expires_at | localDate">{{
+                      'settings.invitations.expiresToday' | transloco
+                    }}</span>
+                  }
+                </div>
+              </div>
+              <span class="flex gap-1">
+                @if (acceptUrl(invitation); as url) {
+                  <app-button variant="ghost" size="sm" (click)="copy(url)">
+                    <app-icon name="link" [size]="15" />
+                    {{ 'settings.invitations.copyLink' | transloco }}
+                  </app-button>
+                }
+                <app-button
+                  variant="ghost"
+                  size="sm"
+                  [attr.aria-label]="
+                    'settings.invitations.revokeLabel' | transloco: { email: invitation.email }
+                  "
+                  (click)="askRevoke(invitation)"
+                >
+                  {{ 'settings.invitations.revoke' | transloco }}
+                </app-button>
+              </span>
+            </li>
+          }
+        </ul>
+        <p class="border-t border-border px-4 py-2 text-meta text-fg-subtle">
           {{ 'settings.invitations.linkOnceNote' | transloco }}
         </p>
       }
     </app-card>
 
     <app-card>
-      <h3 class="font-display text-[16px] font-bold tracking-[-0.02em] text-fg">
+      <h2 class="font-display text-card font-bold text-fg">
         {{ 'settings.invitations.invite' | transloco }}
-      </h3>
+      </h2>
       @if (grantable().length === 0 && roles().length > 0) {
-        <p class="mt-3 text-[13px] text-fg-muted">
+        <p class="mt-3 text-ui text-fg-muted">
           {{ 'settings.invitations.noGrantable' | transloco }}
         </p>
       } @else {
-        <form class="mt-4 flex flex-col gap-4" [formGroup]="form" (ngSubmit)="invite()">
-          <app-form-field
-            inputId="org-invite-email"
-            [label]="'settings.invitations.email' | transloco"
+        <div
+          class="mt-3 inline-flex rounded-tile border border-border p-0.5"
+          role="group"
+          [attr.aria-label]="'settings.invitations.mode' | transloco"
+        >
+          <button
+            type="button"
+            class="rounded-md px-3 py-1 text-ui font-semibold"
+            [class]="!bulk() ? 'bg-surface-2 text-fg' : 'text-fg-muted hover:text-fg'"
+            [attr.aria-pressed]="!bulk()"
+            (click)="bulk.set(false)"
           >
-            <input id="org-invite-email" type="email" formControlName="email" autocomplete="off" />
-          </app-form-field>
+            {{ 'settings.invitations.single' | transloco }}
+          </button>
+          <button
+            type="button"
+            data-testid="invite-bulk-mode"
+            class="rounded-md px-3 py-1 text-ui font-semibold"
+            [class]="bulk() ? 'bg-surface-2 text-fg' : 'text-fg-muted hover:text-fg'"
+            [attr.aria-pressed]="bulk()"
+            (click)="bulk.set(true)"
+          >
+            {{ 'settings.invitations.several' | transloco }}
+          </button>
+        </div>
+
+        <form class="mt-4 flex flex-col gap-4" [formGroup]="form" (ngSubmit)="invite()">
+          @if (bulk()) {
+            <app-form-field
+              inputId="org-invite-emails"
+              [label]="'settings.invitations.emails' | transloco"
+            >
+              <textarea
+                id="org-invite-emails"
+                rows="5"
+                data-testid="invite-emails"
+                [value]="bulkText()"
+                (input)="bulkText.set($any($event.target).value)"
+              ></textarea>
+              <p class="text-meta text-fg-subtle">
+                {{ 'settings.invitations.emailsHint' | transloco: { max: bulkMax } }}
+              </p>
+            </app-form-field>
+            @if (bulkParsed().valid.length || bulkParsed().invalid.length) {
+              <p class="-mt-2 text-meta text-fg-muted" aria-live="polite">
+                {{
+                  'settings.invitations.emailsCount'
+                    | transloco: { count: bulkParsed().valid.length }
+                }}
+                @if (bulkParsed().invalid.length) {
+                  <span class="text-fail">
+                    ·
+                    {{
+                      'settings.invitations.emailsInvalid'
+                        | transloco: { list: bulkParsed().invalid.join(', ') }
+                    }}
+                  </span>
+                }
+                @if (bulkParsed().valid.length > bulkMax) {
+                  <span class="text-fail">
+                    · {{ 'settings.invitations.emailsTooMany' | transloco: { max: bulkMax } }}
+                  </span>
+                }
+              </p>
+            }
+          } @else {
+            <app-form-field
+              inputId="org-invite-email"
+              [label]="'settings.invitations.email' | transloco"
+            >
+              <input
+                id="org-invite-email"
+                type="email"
+                formControlName="email"
+                autocomplete="off"
+              />
+            </app-form-field>
+          }
 
           <app-form-field
             inputId="org-invite-role"
@@ -107,26 +194,79 @@
             </select>
           </app-form-field>
           @if (selectedRole(); as roleKey) {
-            <p class="-mt-2 text-[12px] leading-snug text-fg-subtle">
+            <p class="-mt-2 text-meta leading-snug text-fg-subtle">
               {{ roleDescription(roleKey) }}
+              <a routerLink="/settings/roles" class="font-semibold text-accent hover:underline">{{
+                'settings.members.seeMatrix' | transloco
+              }}</a>
             </p>
+          }
+
+          @if (departments().length) {
+            <app-form-field
+              inputId="org-invite-department"
+              [label]="'settings.invitations.department' | transloco"
+            >
+              <select id="org-invite-department" formControlName="department_id">
+                <option value="">{{ 'settings.invitations.noDepartment' | transloco }}</option>
+                @for (department of departments(); track department.id) {
+                  <option [value]="department.id">{{ department.name }}</option>
+                }
+              </select>
+              <p class="text-meta text-fg-subtle">
+                {{ 'settings.invitations.departmentHint' | transloco }}
+              </p>
+            </app-form-field>
           }
 
           @if (inviteErrorKey(); as key) {
             <p
               role="alert"
-              class="rounded-tile border border-fail/30 bg-fail-soft px-3 py-2 text-[13px] font-medium text-fail"
+              class="rounded-tile border border-fail/30 bg-fail-soft px-3 py-2 text-ui font-medium text-fail"
             >
               {{ key | transloco }}
             </p>
           }
 
-          <app-button type="submit" [full]="true" [loading]="inviting()" class="mt-1">
+          @if (bulkSkipped().length) {
+            <div
+              role="status"
+              class="rounded-tile border border-border bg-surface-2 px-3 py-2 text-meta text-fg-muted"
+              data-testid="invite-skipped"
+            >
+              <p class="font-semibold text-fg">
+                {{ 'settings.invitations.skippedTitle' | transloco }}
+              </p>
+              <ul class="mt-1">
+                @for (skip of bulkSkipped(); track skip.email) {
+                  <li>
+                    {{ skip.email }} —
+                    {{ 'settings.invitations.skipped.' + skip.code | transloco }}
+                  </li>
+                }
+              </ul>
+            </div>
+          }
+
+          <app-button
+            type="submit"
+            [full]="true"
+            [loading]="inviting()"
+            [disabled]="
+              bulk() && (bulkParsed().valid.length === 0 || bulkParsed().valid.length > bulkMax)
+            "
+          >
             <app-icon name="userplus" [size]="15" />
-            {{ 'settings.invitations.send' | transloco }}
+            @if (bulk()) {
+              {{
+                'settings.invitations.sendMany' | transloco: { count: bulkParsed().valid.length }
+              }}
+            } @else {
+              {{ 'settings.invitations.send' | transloco }}
+            }
           </app-button>
 
-          <p class="text-[12px] leading-snug text-fg-subtle">
+          <p class="text-meta leading-snug text-fg-subtle">
             {{ 'settings.invitations.emailNote' | transloco }}
           </p>
         </form>
@@ -134,10 +274,10 @@
 
       @if (lastInvite()?.accept_url; as acceptUrl) {
         <div class="mt-5 rounded-tile border border-accent-border bg-accent-soft p-3">
-          <p class="text-[13px] font-semibold text-accent">
+          <p class="text-ui font-semibold text-accent">
             {{ 'settings.invitations.linkTitle' | transloco }}
           </p>
-          <p class="mt-0.5 text-[12px] text-fg-muted">
+          <p class="mt-0.5 text-meta text-fg-muted">
             {{ 'settings.invitations.linkHint' | transloco: { email: lastInvite()?.email ?? '' } }}
           </p>
           <div class="mt-2 flex items-center gap-2">
@@ -147,7 +287,7 @@
               [value]="acceptUrl"
               [attr.aria-label]="'settings.invitations.linkTitle' | transloco"
               (focus)="$any($event.target).select()"
-              class="h-9 w-full rounded-[10px] border border-border bg-bg px-3 text-[12.5px] text-fg outline-none"
+              class="h-9 w-full rounded-tile border border-border bg-bg px-3 text-meta text-fg outline-none"
             />
             <app-button variant="secondary" size="sm" (click)="copy(acceptUrl)">
               <app-icon name="link" [size]="15" />
@@ -171,4 +311,4 @@
     (confirmed)="confirmRevoke()"
     (cancelled)="cancelRevoke()"
   />
-</section>
+</div>

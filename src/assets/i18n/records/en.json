@@ -42,7 +42,8 @@
     "meta": "{{ fields }} fields · {{ states }} states · {{ transitions }} transitions",
     "installed": "Installed",
     "install": "Install template",
-    "installedToast": "“{{ name }}” is installed. Review it and adjust it to how you work."
+    "installedToast": "“{{ name }}” is installed. Review it and adjust it to how you work.",
+    "documents": "Documents:"
   },
   "designer": {
     "newTitle": "New record type",
@@ -104,7 +105,10 @@
     "delete": "Delete record type",
     "deleteTitle": "Delete this record type?",
     "deleteMessage": "“{{ name }}” is removed from the designer. Records created with it keep their data and history.",
-    "deletedToast": "The record type is deleted."
+    "deletedToast": "The record type is deleted.",
+    "blockKeyEmpty": "Add a key under the name.",
+    "codePrefixPlaceholder": "NC",
+    "requirementsHint": "Records of this type count as documentation for these requirements once someone fills in the linked fields."
   },
   "workflow": {
     "newTitle": "New workflow",
@@ -121,7 +125,8 @@
     "delete": "Delete workflow",
     "deleteTitle": "Delete this workflow?",
     "deleteMessage": "“{{ name }}” is removed. A workflow that a record type still uses can't be deleted.",
-    "deletedToast": "The workflow is deleted."
+    "deletedToast": "The workflow is deleted.",
+    "create": "Create workflow"
   },
   "fields": {
     "title": "Fields",
@@ -157,7 +162,9 @@
     "visibleEquals": "has the value",
     "moveUp": "Move {{ name }} up",
     "moveDown": "Move {{ name }} down",
-    "remove": "Remove {{ name }}"
+    "remove": "Remove {{ name }}",
+    "requirements": "Requirements this field documents",
+    "requirementsHint": "Optional, at most {{max}}. When the field is filled in, the record counts as documentation for these requirements."
   },
   "layout": {
     "title": "Form sections",
@@ -180,7 +187,8 @@
     "sla": "Deadline (hours)",
     "initial": "Start",
     "remove": "Remove state {{ name }}",
-    "newLabel": "New state"
+    "newLabel": "New state",
+    "slaDays": "= {{days}} days"
   },
   "transitions": {
     "title": "Steps",
@@ -329,7 +337,8 @@
     "close": "Close",
     "quiz": "Check your understanding",
     "correct": "Correct.",
-    "incorrect": "Not quite."
+    "incorrect": "Not quite.",
+    "example": "For example: {{example}}"
   },
   "langs": {
     "en": "English",

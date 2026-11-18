@@ -2,11 +2,18 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideZonelessChangeDetection, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { TranslocoTestingModule } from '@jsverse/transloco';
 import { APP_CONFIG } from '../../../core/config/app-config';
+import { provideFakeGuidance } from '../../../core/guidance/guidance.testing';
 import { OrgInvitation, OrgRole } from '../../../core/org/org.models';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
-import { OrgInvitations, isInvitationExpired } from './org-invitations';
+import {
+  OrgInvitations,
+  daysUntilExpiry,
+  isInvitationExpired,
+  parseEmails,
+} from './org-invitations';
 
 const BASE = 'http://test/api';
 const ORG = 'org-1';
@@ -27,7 +34,7 @@ const PENDING: OrgInvitation = {
 };
 
 interface InvitationsInternals {
-  form: { setValue(v: { email: string; role_key: string }): void; getRawValue(): unknown };
+  form: { patchValue(v: { email: string; role_key: string }): void; getRawValue(): unknown };
   invite(): void;
   askRevoke(i: OrgInvitation): void;
   confirmRevoke(): void;
@@ -45,6 +52,8 @@ function setup(): {
     imports: [OrgInvitations, TranslocoTestingModule.forRoot({ langs: { en: {} } })],
     providers: [
       provideZonelessChangeDetection(),
+      ...provideFakeGuidance().providers,
+      provideRouter([]),
       provideHttpClient(),
       provideHttpClientTesting(),
       { provide: APP_CONFIG, useValue: { apiBaseUrl: BASE } },
@@ -72,6 +81,24 @@ describe('isInvitationExpired', () => {
   });
 });
 
+describe('parseEmails', () => {
+  it('splits, dedupes and separates invalid addresses', () => {
+    expect(parseEmails('a@x.no, b@x.no;\nA@x.no  nope <c@y.org>')).toEqual({
+      valid: ['a@x.no', 'b@x.no', 'c@y.org'],
+      invalid: ['nope'],
+    });
+  });
+});
+
+describe('daysUntilExpiry', () => {
+  it('counts whole days left', () => {
+    const now = Date.parse('2026-10-10T00:00:00Z');
+    expect(daysUntilExpiry({ expires_at: '2026-10-13T06:00:00Z' }, now)).toBe(3);
+    expect(daysUntilExpiry({ expires_at: '2026-10-10T06:00:00Z' }, now)).toBe(0);
+    expect(daysUntilExpiry({ expires_at: 'x' }, now)).toBeNull();
+  });
+});
+
 describe('OrgInvitations', () => {
   afterEach(() => TestBed.inject(HttpTestingController).verify());
 
@@ -81,12 +108,12 @@ describe('OrgInvitations', () => {
       '#org-invite-role',
     )!;
     expect(Array.from(select.options).map((o) => o.value)).toEqual(['auditor', 'member']);
-    expect(cmp.form.getRawValue()).toEqual({ email: '', role_key: 'member' });
+    expect(cmp.form.getRawValue()).toEqual({ email: '', role_key: 'member', department_id: '' });
   });
 
   it('does not send an invite with a non-grantable role', () => {
     const { http, cmp } = setup();
-    cmp.form.setValue({ email: 'new@x.no', role_key: 'admin' });
+    cmp.form.patchValue({ email: 'new@x.no', role_key: 'admin' });
     cmp.invite();
     http.expectNone(`${BASE}/v1/orgs/${ORG}/invitations`);
     expect(cmp.inviteErrorKey()).toBe('settings.errors.escalation');
@@ -94,12 +121,16 @@ describe('OrgInvitations', () => {
 
   it('creates an invite, remembers its accept link and reloads the list', () => {
     const { http, cmp } = setup();
-    cmp.form.setValue({ email: 'new@x.no', role_key: 'auditor' });
+    cmp.form.patchValue({ email: 'new@x.no', role_key: 'auditor' });
     cmp.invite();
     const req = http.expectOne(
       (r) => r.method === 'POST' && r.url === `${BASE}/v1/orgs/${ORG}/invitations`,
     );
-    expect(req.request.body).toEqual({ email: 'new@x.no', role_key: 'auditor' });
+    expect(req.request.body).toEqual({
+      email: 'new@x.no',
+      role_key: 'auditor',
+      department_id: null,
+    });
     req.flush({
       id: 'i-2',
       email: 'new@x.no',
@@ -116,7 +147,7 @@ describe('OrgInvitations', () => {
 
   it('shows no link to the inviter when the server withholds it (outside development)', () => {
     const { fixture, http, cmp } = setup();
-    cmp.form.setValue({ email: 'victim@x.no', role_key: 'member' });
+    cmp.form.patchValue({ email: 'victim@x.no', role_key: 'member' });
     cmp.invite();
     http
       .expectOne((r) => r.method === 'POST')
@@ -141,7 +172,7 @@ describe('OrgInvitations', () => {
 
   it('maps a 409 pending-invite conflict to a translated message', () => {
     const { http, cmp } = setup();
-    cmp.form.setValue({ email: 'old@x.no', role_key: 'member' });
+    cmp.form.patchValue({ email: 'old@x.no', role_key: 'member' });
     cmp.invite();
     http
       .expectOne((r) => r.method === 'POST')

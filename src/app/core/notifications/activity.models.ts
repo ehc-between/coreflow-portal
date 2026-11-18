@@ -48,7 +48,12 @@ export interface NotificationRule {
   readonly module: string;
   readonly category: string;
   readonly title_key: string;
-  /** False for timeline-only kinds (e.g. `module.enabled`): no rule can be set. */
+  /** A26: the kind's timeline line ("<scope>:<key>"), a readable label for the event. */
+  readonly timeline_key?: string | null;
+  /**
+   * The kind's DEFAULT: false = timeline only until the org opts in. Every kind can
+   * be configured; `enabled` is the effective on/off state.
+   */
   readonly notify: boolean;
   readonly recipients: readonly RecipientSpec[];
   readonly channels: readonly Channel[];

@@ -153,7 +153,10 @@
       "requiredBy": "{{ module }} brukes av {{ modules }}. Slå av dem først.",
       "alwaysOn": "{{ module }} er alltid på og kan ikke slås av.",
       "unknown": "Den modulen finnes ikke lenger. Last inn siden på nytt."
-    }
+    },
+    "scopeGap": "{{framework}} er i omfang, men {{module}} er slått av.",
+    "turnOn": "Slå på {{module}}",
+    "filterByFramework": "Vis modulene for {{framework}}"
   },
   "profile": {
     "title": "Organisasjonsprofil",
@@ -163,7 +166,7 @@
     "askAiRolePrompt": "Vi er en organisasjon i bransjen «{{ industry }}» og har valgt rollen «{{ role }}» etter KI-forordningen. Forklar på enkelt språk hva rollen betyr, hvilke plikter som vanligvis følger, og hvordan vi kan sjekke at rollen er riktig.",
     "sections": {
       "basics": "Om organisasjonen",
-      "frameworks": "Rammeverk i omfang",
+      "frameworks": "Standarder i omfang",
       "targets": "Sertifiseringsmål",
       "sites": "Lokasjoner"
     },
@@ -191,7 +194,29 @@
       "site": "En lokasjon trenger et navn og en landkode på to bokstaver.",
       "save": "Profilen kunne ikke lagres. Sjekk feltene og prøv igjen."
     },
-    "savedToast": "Organisasjonsprofilen er lagret."
+    "savedToast": "Organisasjonsprofilen er lagret.",
+    "standardOn": "Slått på i Standarder og krav",
+    "standardOff": "Slås på i Standarder og krav når du lagrer",
+    "standardUnavailable": "Finnes ikke i kravkatalogen ennå",
+    "frameworksSync": "Standardene du krysser av her, slås på i Standarder og krav, og de du fjerner, slås av.",
+    "openStandards": "Åpne Standarder og krav",
+    "certificatesLive": "Mål er planer. Sertifikater dere har (nummer, gyldig til, neste overvåkingsrevisjon), registreres under Revisjoner.",
+    "openCertificates": "Åpne sertifiseringer",
+    "scopeTitle": "Omfanget av styringssystemet",
+    "scopeBody": "Beskrivelsen over er ikke omfanget. Skriv omfangserklæringen, med eventuelle unntak og begrunnelse, under Kontekst.",
+    "scopeLink": "Åpne omfangserklæringer",
+    "siteKindNone": "Ikke satt",
+    "siteKinds": {
+      "head_office": "Hovedkontor",
+      "office": "Kontor",
+      "production": "Produksjon",
+      "warehouse": "Lager",
+      "data_centre": "Datasenter",
+      "store": "Butikk",
+      "construction_site": "Byggeplass",
+      "remote": "Fjernarbeid",
+      "other": "Annet"
+    }
   },
   "terminology": {
     "title": "Terminologi",
@@ -341,8 +366,8 @@
           "title": "Moduler tilpasser CoreFlow til styringssystemet",
           "body": "Hver modul dekker ett område standardene krever, for eksempel risiko, revisjoner eller opplæring. Slå bare på det dere trenger; dere kan legge til mer etter hvert som systemet vokser.",
           "steps": {
-            "s1": "Start med modulene oppsettsveiviseren anbefaler for rammeverkene deres.",
-            "s2": "Se på «Krever»: noen moduler bygger på andre.",
+            "s1": "Start med modulene oppsettsveiviseren anbefaler for standardene deres.",
+            "s2": "Hvert kort viser standardene modulen støtter. Klikk på en standard for å se alle modulene for den.",
             "s3": "Når en modul slås av, skjules den, men registreringene beholdes."
           }
         },
@@ -356,7 +381,7 @@
           "body": "ISO-styringssystemer starter med å forstå organisasjonen, interessentene og omfanget. Profilen er kortversjonen av den konteksten.",
           "steps": {
             "s1": "Fyll inn bransje, størrelse og landene dere driver i.",
-            "s2": "Kryss av rammeverkene i omfang og legg til sertifiseringsmål med datoer.",
+            "s2": "Kryss av standardene i omfang, og legg til sertifiseringsmål med datoer.",
             "s3": "Velg rollen etter EUs KI-forordning. «Usikker foreløpig» er greit inntil videre."
           }
         },
@@ -368,7 +393,7 @@
             "help": "Med egne ord, for eksempel «matproduksjon» eller «IT-rådgivning»."
           },
           "countries": {
-            "help": "Koder på to bokstaver, skilt med komma. Lover og tilsyn avhenger av dem."
+            "help": "Velg fra listen. Hvilke lover og tilsyn som gjelder, avhenger av hvor dere driver."
           },
           "description": {
             "help": "Hva dere gjør, for hvem og hvor. Noen setninger er nok."

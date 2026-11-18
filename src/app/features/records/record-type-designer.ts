@@ -73,7 +73,8 @@ import {
   RecordsLesson,
   RecordsWhy,
 } from './guidance/records-guidance';
-import { providePageContext } from './page-context';
+import { providePageContext } from '../../core/ai/page-context';
+import { SupportsRequirements } from '../../shared/requirement-links/supports-requirements';
 
 type DesignerTab = 'fields' | 'workflow' | 'preview' | 'history';
 
@@ -117,6 +118,7 @@ interface PendingWorkflow {
     RecordsWhy,
     RecordsLesson,
     RecordsFieldHelp,
+    SupportsRequirements,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -260,7 +262,7 @@ interface PendingWorkflow {
                     [ngModel]="codePrefix()"
                     (ngModelChange)="codePrefix.set(($event ?? '').toUpperCase())"
                     [attr.aria-invalid]="prefixInvalid() || null"
-                    placeholder="NC"
+                    [placeholder]="'records.designer.codePrefixPlaceholder' | transloco"
                   />
                   <app-records-field-help page="designer" field="code_prefix" />
                 </app-form-field>
@@ -510,9 +512,9 @@ interface PendingWorkflow {
                     [placeholder]="'records.designer.changeNotePlaceholder' | transloco"
                   ></textarea>
                 </app-form-field>
-                @if (blockers().length) {
-                  <ul class="mt-2 text-[12px] font-medium text-fail">
-                    @for (b of blockers(); track b) {
+                @if (visibleBlockers().length) {
+                  <ul class="mt-2 text-[12px] font-medium text-fail" role="alert">
+                    @for (b of visibleBlockers(); track b) {
                       <li>{{ b | transloco }}</li>
                     }
                   </ul>
@@ -521,7 +523,7 @@ interface PendingWorkflow {
                   <app-button
                     [full]="true"
                     [loading]="saving()"
-                    [disabled]="!canSave()"
+                    [disabled]="!canPress()"
                     (click)="save()"
                   >
                     {{
@@ -529,6 +531,18 @@ interface PendingWorkflow {
                     }}
                   </app-button>
                 </div>
+              </app-card>
+            }
+            @if (!isNew() && recordType(); as rt) {
+              <app-card>
+                <app-supports-requirements
+                  entityType="record_type"
+                  [entityId]="rt.id"
+                  [canEdit]="canAdmin()"
+                />
+                <p class="mt-2 text-[12px] text-fg-muted">
+                  {{ 'records.designer.requirementsHint' | transloco }}
+                </p>
               </app-card>
             }
             <app-records-why page="designer" />
@@ -631,6 +645,11 @@ export class RecordTypeDesigner {
   protected readonly previewChecked = signal(false);
   protected readonly previewOk = computed(() => Object.keys(this.previewErrors()).length === 0);
 
+  /** The user changed something on a new form (name or fields). */
+  protected readonly touched = computed(
+    () => !!this.name().trim() || this.fields().length > 0 || !!this.description().trim(),
+  );
+
   /** What was last loaded / published, for the "unsaved changes" checks. */
   private readonly baseline = signal({ schema: '', meta: '' });
 
@@ -680,7 +699,7 @@ export class RecordTypeDesigner {
   );
 
   protected readonly keyInvalid = computed(
-    () => this.isNew() && !!this.key() && !TYPE_KEY_RE.test(this.key()),
+    () => this.isNew() && !!this.key() && this.keyTouched() && !TYPE_KEY_RE.test(this.key()),
   );
   protected readonly prefixInvalid = computed(
     () => !!this.codePrefix() && !CODE_PREFIX_RE.test(this.codePrefix()),
@@ -705,10 +724,16 @@ export class RecordTypeDesigner {
   protected readonly dirtySchema = computed(() => this.schemaPrint() !== this.baseline().schema);
   private readonly dirtyMeta = computed(() => this.metaPrint() !== this.baseline().meta);
 
+  /** Set on the first publish attempt: blank-form problems are shown only after it. */
+  protected readonly attempted = signal(false);
   protected readonly blockers = computed(() => {
     const out: string[] = [];
     if (!this.name().trim()) out.push('records.designer.blockName');
-    if (this.isNew() && !TYPE_KEY_RE.test(this.key())) out.push('records.designer.blockKey');
+    if (this.isNew() && !this.key()) {
+      if (this.name().trim()) out.push('records.designer.blockKeyEmpty');
+    } else if (this.isNew() && !TYPE_KEY_RE.test(this.key())) {
+      out.push('records.designer.blockKey');
+    }
     if (this.prefixInvalid()) out.push('records.designer.blockPrefix');
     if (this.fields().length === 0) out.push('records.designer.blockFields');
     if (checkFields(this.fields()).length) out.push('records.designer.blockFieldIssues');
@@ -717,6 +742,12 @@ export class RecordTypeDesigner {
     }
     return out;
   });
+  /** Problems to show: on an untouched new form, only after a publish attempt. */
+  protected readonly visibleBlockers = computed(() =>
+    this.isNew() && !this.attempted() && !this.touched() ? [] : this.blockers(),
+  );
+  /** The publish button works on a new form even with problems (it then shows them). */
+  protected readonly canPress = computed(() => !this.saving() && (this.isNew() || this.canSave()));
   protected readonly canSave = computed(
     () =>
       !this.saving() &&
@@ -842,6 +873,7 @@ export class RecordTypeDesigner {
 
   protected save(): void {
     const orgId = this.selectedOrg.currentOrgId();
+    this.attempted.set(true);
     if (!orgId || !this.canSave()) {
       return;
     }

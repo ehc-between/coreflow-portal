@@ -410,17 +410,27 @@
     "noOrg": "Velg en organisasjon for å administrere innstillingene.",
     "deletedDocuments": {
       "title": "Slettede dokumenter",
-      "subtitle": "Dokumenter som er fjernet fra organisasjonen, nyeste først.",
+      "subtitle": "Dokumenter som er fjernet fra organisasjonen, nyeste først. Du kan gjenopprette dem.",
       "open": "Vis slettede dokumenter",
       "back": "Tilbake til innstillinger",
-      "empty": "Ingen dokumenter er slettet.",
+      "empty": "Ingen dokumenter er slettet",
       "loadError": "Kunne ikke laste slettede dokumenter.",
       "document": "Dokument",
       "deletedAt": "Slettet",
       "deletedBy": "Slettet av",
       "reason": "Begrunnelse",
       "unknownUser": "Ukjent bruker",
-      "noReason": "Ingen begrunnelse oppgitt"
+      "noReason": "Ingen begrunnelse oppgitt",
+      "emptyBody": "Slettede dokumenter vises her og kan gjenopprettes.",
+      "openDocuments": "Gå til dokumenter",
+      "restore": "Gjenopprett",
+      "restoreLabel": "Gjenopprett {{title}}",
+      "restoreTitle": "Gjenopprett dokument",
+      "restoreConfirm": "Gjenopprette «{{title}}»? Dokumentet kommer tilbake i dokumentregisteret med historikken sin.",
+      "restoredToast": "«{{title}}» er gjenopprettet.",
+      "restoreFailed": "Kunne ikke gjenopprette dokumentet. Prøv igjen.",
+      "restoreNote": "Sletting og gjenoppretting registreres i",
+      "auditLink": "revisjonsloggen"
     },
     "save": "Lagre",
     "cancel": "Avbryt",
@@ -439,7 +449,40 @@
       "createdToast": "Avdeling opprettet.",
       "renamedToast": "Avdeling fikk nytt navn.",
       "deletedToast": "Avdeling slettet.",
-      "deleteTitle": "Slett avdeling"
+      "deleteTitle": "Slett avdeling",
+      "description": "Avdelinger samler folk, og lederen får eskaleringer når arbeid i avdelingen er forsinket.",
+      "emptyTitle": "Ingen avdelinger ennå",
+      "emptyBody": "Opprett avdelingene organisasjonen har, og velg en leder for hver av dem.",
+      "createHint": "For eksempel «Kvalitet og HMS» eller «IT».",
+      "memberCountOne": "1 medlem",
+      "employeeCount": "{{count}} i personregisteret",
+      "employeeCountOne": "1 i personregisteret",
+      "leadIs": "Leder: {{name}}",
+      "noLead": "Ingen leder",
+      "noLeadWarning": "{{count}} avdelinger mangler leder ({{names}}). Forsinket arbeid der eskaleres ikke til noen.",
+      "noLeadWarningOne": "Én avdeling mangler leder ({{names}}). Forsinket arbeid der eskaleres ikke til noen.",
+      "renameLabel": "Gi {{name}} nytt navn",
+      "deleteLabel": "Slett {{name}}",
+      "lead": "Avdelingsleder",
+      "leadHint": "Får eskaleringer når arbeid i avdelingen er forsinket.",
+      "chooseLead": "Velg leder",
+      "noLeadOption": "Ingen leder",
+      "inDepartment": "I denne avdelingen",
+      "otherMembers": "Andre medlemmer",
+      "leadNotMember": "Lederen er ikke medlem av avdelingen. Legg vedkommende til nedenfor.",
+      "leadSaved": "Avdelingslederen er oppdatert.",
+      "leadFailed": "Kunne ikke oppdatere avdelingslederen. Prøv igjen.",
+      "escalationGap": "Avdelingen har ingen leder, så påminnelser som eskaleres til avdelingslederen, når ingen. Velg en leder.",
+      "membersHint": "Personer med CoreFlow-konto i denne avdelingen.",
+      "membersEmptyBody": "Legg til medlemmene som jobber i avdelingen.",
+      "employeesTitle": "I personregisteret",
+      "employeesHint": "Ansatte som er plassert i denne avdelingen i personregisteret.",
+      "employeesEmpty": "Ingen i personregisteret er plassert her",
+      "employeesEmptyBody": "Angi avdeling på hver ansatt i personregisteret.",
+      "openPeople": "Åpne personregisteret",
+      "noAccount": "Ingen CoreFlow-konto",
+      "relatedTitle": "Henger sammen med",
+      "relatedEscalation": "Påminnelser og eskalering"
     },
     "member": {
       "title": "Medlemmer",
@@ -453,14 +496,15 @@
       "allAdded": "Alle medlemmer i organisasjonen er allerede i denne avdelingen.",
       "addedToast": "Medlem lagt til.",
       "removedToast": "Medlem fjernet.",
-      "addFailed": "Kunne ikke legge til medlemmet. Prøv igjen."
+      "addFailed": "Kunne ikke legge til medlemmet. Prøv igjen.",
+      "removeLabel": "Fjern {{name}} fra avdelingen"
     },
     "members": {
       "title": "Medlemmer",
       "subtitle": "Personer med tilgang til organisasjonen, rollen de har, og kontostatus.",
       "name": "Navn",
       "email": "E-post",
-      "role": "Rolle",
+      "role": "Tilgangsnivå",
       "status": "Status",
       "actions": "Handlinger",
       "active": "Aktiv",
@@ -476,11 +520,68 @@
       "roleChangeHint": "Rolleendringer trer i kraft neste gang medlemmets økt fornyes (innen 15 minutter).",
       "empty": "Ingen medlemmer ennå.",
       "aboutRoles": "Om rollene",
-      "multipleRoles": "Flere roller"
+      "multipleRoles": "Flere roller",
+      "pageTitle": "Personer og tilgang",
+      "pageDescription": "Alle som har tilgang til organisasjonen, tilgangsnivået deres, avdelinger og påloggingsstatus.",
+      "invite": "Inviter personer",
+      "startAccessReview": "Start tilgangsgjennomgang",
+      "accessExplainer": "Tilgangsnivået bestemmer hva personen kan se og gjøre i CoreFlow. Ansvar i styringssystemet (for eksempel hvem som er HMS-ansvarlig) beskriver du under",
+      "responsibilitiesLink": "Kontekst → Roller og ansvar",
+      "search": "Søk i medlemmer",
+      "searchPlaceholder": "Søk etter navn, e-post eller avdeling",
+      "filterRole": "Filtrer på tilgangsnivå",
+      "allRoles": "Alle tilgangsnivåer",
+      "filterDepartment": "Filtrer på avdeling",
+      "allDepartments": "Alle avdelinger",
+      "noDepartment": "Uten avdeling",
+      "filterStatus": "Filtrer på status",
+      "statusFilter": {
+        "all": "Alle statuser",
+        "active": "Aktive",
+        "inactive": "Deaktiverte",
+        "no_mfa": "Uten totrinnsbekreftelse"
+      },
+      "showOperators": "Vis tjenestekontoer",
+      "summary": "Viser {{shown}} av {{total}} medlemmer",
+      "withoutMfa": "{{count}} uten totrinnsbekreftelse",
+      "withoutMfaOne": "1 uten totrinnsbekreftelse",
+      "operatorsHidden": "{{count}} tjenestekontoer er skjult",
+      "operator": "Tjenestekonto",
+      "openPerson": "Åpne personen i personregisteret",
+      "lastActive": "Sist aktiv {{when}}",
+      "neverActive": "Har ikke logget inn ennå",
+      "joined": "Ble med {{date}}",
+      "mfaOn": "Totrinnsbekreftelse på",
+      "mfaOff": "Ingen totrinnsbekreftelse",
+      "changeAccess": "Endre tilgang",
+      "moreFor": "Flere valg",
+      "emptyTitle": "Ingen medlemmer ennå",
+      "emptyBody": "Inviter dem som skal jobbe i CoreFlow. De får en e-post med lenke for å opprette konto.",
+      "noMatch": "Ingen medlemmer passer med disse filtrene.",
+      "clearFilters": "Fjern filtre",
+      "seeMatrix": "Se hva hvert tilgangsnivå kan gjøre",
+      "editor": {
+        "title": "Endre tilgang for {{name}}",
+        "intro": "Velg ett eller flere tilgangsnivåer. Personen får alt de valgte nivåene gir til sammen.",
+        "levels": "Tilgangsnivåer",
+        "notGrantable": "Du kan ikke gi dette nivået, fordi det gir mer enn du har selv.",
+        "summary": "Dette endres",
+        "noChange": "Ingenting endres ennå. Kryss av eller fjern et tilgangsnivå.",
+        "from": "Nå: {{roles}}",
+        "to": "Etter lagring: {{roles}}",
+        "gains": "Får tilgang til: {{modules}}",
+        "gainsRights": "Får {{count}} flere rettigheter i moduler personen allerede bruker",
+        "loses": "Mister tilgang til: {{modules}}",
+        "losesRights": "Mister {{count}} rettigheter i moduler personen beholder",
+        "needOne": "Velg minst ett tilgangsnivå.",
+        "none": "ingen tilgang",
+        "seeMatrix": "Se alle rettigheter",
+        "save": "Lagre tilgang"
+      }
     },
     "invitations": {
       "title": "Invitasjoner",
-      "subtitle": "Inviter personer på e-post og hold oversikt over invitasjoner som ikke er godtatt ennå.",
+      "subtitle": "Inviter personer på e-post, og følg invitasjonene som ikke er godtatt ennå.",
       "pending": "Ventende invitasjoner",
       "empty": "Ingen ventende invitasjoner.",
       "email": "E-post",
@@ -502,7 +603,32 @@
       "revokeConfirm": "Trekke tilbake invitasjonen til {{email}}? Lenken slutter å virke.",
       "revokedToast": "Invitasjonen er trukket tilbake.",
       "noGrantable": "Du har ikke tilgang til å invitere med noen rolle.",
-      "expired": "Utløpt"
+      "expired": "Utløpt",
+      "emptyBody": "Invitasjoner du sender, vises her til de er godtatt eller utløpt.",
+      "mode": "Hvor mange vil du invitere",
+      "single": "Én person",
+      "several": "Flere personer",
+      "emails": "E-postadresser",
+      "emailsHint": "Lim inn opptil {{max}} adresser, skilt med komma, mellomrom eller linjeskift.",
+      "emailsCount": "{{count}} adresser",
+      "emailsInvalid": "Ikke gyldig: {{list}}",
+      "emailsTooMany": "Høyst {{max}} om gangen",
+      "sendMany": "Send {{count}} invitasjoner",
+      "department": "Avdeling (valgfritt)",
+      "departmentHint": "Personen blir med i avdelingen når invitasjonen godtas.",
+      "noDepartment": "Ingen avdeling",
+      "invitedBy": "Invitert av {{name}}",
+      "expiresIn": "Utløper om {{count}} dager",
+      "expiresInOne": "Utløper om 1 dag",
+      "expiresToday": "Utløper i dag",
+      "revokeLabel": "Trekk tilbake invitasjonen til {{email}}",
+      "bulkCreated": "{{count}} invitasjoner er sendt.",
+      "bulkCreatedOne": "1 invitasjon er sendt.",
+      "skippedTitle": "Ikke invitert",
+      "skipped": {
+        "already_invited": "har allerede en ventende invitasjon",
+        "already_member": "er allerede medlem"
+      }
     },
     "errors": {
       "invitePending": "Det finnes allerede en ventende invitasjon for denne e-postadressen.",
@@ -527,15 +653,15 @@
     },
     "hub": {
       "title": "Innstillinger",
-      "description": "Sett opp organisasjonen, medlemmene og modulene. Dine egne innstillinger finner du i kontomenyen.",
+      "description": "Sett opp organisasjonen, hvem som har tilgang, varsler og registertyper. Dine egne innstillinger finner du i kontomenyen.",
       "general": "Organisasjon",
       "moduleSettings": "Innstillinger per modul",
       "moduleSettingsHint": "Typer, maler og andre innstillinger for hver modul organisasjonen bruker.",
       "cards": {
         "organisation": "Organisasjonsprofil",
         "organisationHint": "Bransje, størrelse, lokasjoner, standarder og sertifiseringsmål.",
-        "members": "Medlemmer og roller",
-        "membersHint": "Hvem som har tilgang, roller, avdelinger og invitasjoner.",
+        "members": "Medlemmer",
+        "membersHint": "Hvem som har tilgang, tilgangsnivå, avdelinger og totrinnsbekreftelse.",
         "modules": "Moduler",
         "modulesHint": "Velg hvilke moduler organisasjonen bruker.",
         "notifications": "Varsler",
@@ -546,12 +672,22 @@
         "guidanceHint": "Hvor mye hjelp folk får, og obligatoriske leksjoner.",
         "recordTypes": "Registertyper og arbeidsflyter",
         "recordTypesHint": "Egne registre, skjemaer og godkjenningstrinn.",
-        "deleted": "Slettede elementer",
+        "deleted": "Slettede dokumenter",
         "deletedHint": "Gjenopprett dokumenter som ble slettet ved en feil.",
         "setup": "Oppsettsveiviser",
         "setupHint": "Gå gjennom profil, standarder, moduler, roller og de første oppgavene på nytt.",
         "attachmentDeletions": "Logg over slettede filer",
-        "attachmentDeletionsHint": "Se hvilke vedleggsfiler som er slettet permanent, og hvorfor."
+        "attachmentDeletionsHint": "Se hvilke vedleggsfiler som er slettet permanent, og hvorfor.",
+        "departments": "Avdelinger",
+        "departmentsHint": "Avdelingene, lederne deres og hvem som jobber der.",
+        "invitations": "Invitasjoner",
+        "invitationsHint": "Inviter én eller flere personer om gangen, og følg ventende invitasjoner.",
+        "roles": "Roller og tilganger",
+        "rolesHint": "Hva hvert tilgangsnivå kan se og gjøre, modul for modul.",
+        "security": "Sikkerhetsregler",
+        "securityHint": "Totrinnsbekreftelse, godkjenning av dokumenter og filtyper for vedlegg.",
+        "auditLog": "Revisjonslogg",
+        "auditLogHint": "Hvem som endret hva, og når. Filtrer og eksporter til revisjoner."
       },
       "moduleLinks": {
         "types": "Typer",
@@ -562,7 +698,14 @@
         "settings": "Innstillinger",
         "retention": "Oppbevaringsregler"
       },
-      "membersSection": "Medlemmer, avdelinger og invitasjoner"
+      "membersSection": "Medlemmer, avdelinger og invitasjoner",
+      "groups": {
+        "organisation": "Organisasjon",
+        "people": "Personer og tilgang",
+        "work": "Varsler og arbeidsflyter",
+        "learning": "Læring",
+        "trace": "Sporbarhet"
+      }
     },
     "mfa": {
       "title": "Totrinnsbekreftelse",
@@ -615,6 +758,149 @@
         "quarantine": "Karantene",
         "rejected": "Avvist opplasting"
       }
+    },
+    "people": {
+      "title": "Personer og tilgang",
+      "nav": {
+        "members": "Medlemmer",
+        "departments": "Avdelinger",
+        "invitations": "Invitasjoner",
+        "roles": "Roller og tilganger"
+      }
+    },
+    "roles": {
+      "title": "Roller og tilganger",
+      "description": "Hva hvert tilgangsnivå kan se og gjøre, modul for modul.",
+      "intro": "Tabellen kan bare leses. Du endrer en persons tilgangsnivå under Medlemmer. Ansvar i styringssystemet beskriver du under",
+      "export": "Eksporter som CSV",
+      "module": "Modul",
+      "moduleOff": "Slått av",
+      "noAccess": "Ingen tilgang",
+      "memberCount": "{{count}} medlemmer",
+      "memberCountOne": "1 medlem",
+      "showAllRoles": "Vis alle roller ({{count}})",
+      "showDisabledModules": "Vis moduler som er slått av",
+      "legend": "Lese = se poster. Skrive = opprette og redigere. Godkjenne = godkjenne og signere. Administrere = innstillinger og sletting.",
+      "actions": {
+        "read": "Lese",
+        "write": "Skrive",
+        "manage": "Administrere",
+        "approve": "Godkjenne",
+        "admin": "Styre oppsettet",
+        "view": "Se",
+        "intake": "Motta meldinger",
+        "distribute": "Distribuere",
+        "draft": "Lage utkast",
+        "record": "Registrere",
+        "templates": "Maler",
+        "sign": "Signere",
+        "measure": "Måle",
+        "evaluate": "Vurdere",
+        "disciplinary": "Personalsaker",
+        "requests": "Henvendelser",
+        "audit_pack": "Revisjonspakker",
+        "accept": "Akseptere",
+        "assign": "Tildele",
+        "report": "Rapportere",
+        "invite": "Invitere"
+      },
+      "areas": {
+        "platform": "Plattform og innstillinger",
+        "org": "Organisasjonsinnstillinger",
+        "users": "Brukere og invitasjoner",
+        "audit": "Revisjonslogg",
+        "dashboard": "Oversikt",
+        "records": "Registertyper",
+        "learning": "Læring",
+        "tasks": "Oppgaver",
+        "other": "Andre områder"
+      }
+    },
+    "audit": {
+      "title": "Revisjonslogg",
+      "description": "Hvem som endret hva, og når. Bruk den til å svare revisorer og følge opp endringer.",
+      "export": "Eksporter som CSV",
+      "exportFailed": "Kunne ikke eksportere revisjonsloggen. Prøv igjen.",
+      "search": "Søk i revisjonsloggen",
+      "searchPlaceholder": "Søk etter tekst, kode eller tittel",
+      "type": "Posttype",
+      "allTypes": "Alle posttyper",
+      "actor": "Person",
+      "allActors": "Alle",
+      "actorKind": "Utført av",
+      "allActorKinds": "Personer, assistent og system",
+      "actorKinds": {
+        "user": "En person",
+        "ai": "Assistenten",
+        "system": "Systemet"
+      },
+      "action": "Type endring",
+      "allActions": "Alle endringer",
+      "from": "Fra",
+      "to": "Til",
+      "apply": "Bruk",
+      "clear": "Nullstill",
+      "oneRecord": "Viser historikken til én post.",
+      "showAll": "Vis alt",
+      "emptyTitle": "Ingenting i revisjonsloggen ennå",
+      "emptyBody": "Endringer i poster, innstillinger og tilganger logges her automatisk.",
+      "noMatch": "Ingenting passer med disse filtrene.",
+      "technical": "Teknisk navn",
+      "recordHistory": "Vis historikken til denne posten",
+      "verbs": {
+        "created": "Opprettet",
+        "updated": "Oppdatert",
+        "deleted": "Slettet",
+        "restored": "Gjenopprettet",
+        "archived": "Arkivert",
+        "approved": "Godkjent",
+        "rejected": "Avvist",
+        "submitted": "Sendt til godkjenning",
+        "published": "Publisert",
+        "status_changed": "Status endret",
+        "owner_changed": "Eier endret",
+        "assigned": "Tildelt",
+        "closed": "Lukket",
+        "reopened": "Åpnet igjen",
+        "linked": "Koblet",
+        "unlinked": "Kobling fjernet",
+        "enabled": "Slått på",
+        "disabled": "Slått av",
+        "exported": "Eksportert",
+        "invited": "Invitert",
+        "revoked": "Trukket tilbake",
+        "accepted": "Godtatt",
+        "role_changed": "Tilgangsnivå endret",
+        "removed": "Fjernet",
+        "login_succeeded": "Logget inn",
+        "login_failed": "Mislykket innlogging",
+        "logout": "Logget ut",
+        "password_changed": "Passord endret",
+        "synced": "Oppdatert automatisk",
+        "other": "Endret"
+      },
+      "types": {
+        "user": "Bruker",
+        "org": "Organisasjon",
+        "organization": "Organisasjon",
+        "membership": "Medlemskap",
+        "invitation": "Invitasjon",
+        "department": "Avdeling",
+        "notification_rule": "Varslingsregel",
+        "role": "Rolle",
+        "org_settings": "Organisasjonsinnstillinger",
+        "org_profile": "Organisasjonsprofil",
+        "org_module": "Modul",
+        "requirement_link": "Kravkobling",
+        "entity_link": "Kobling",
+        "record_type": "Registertype",
+        "workflow_definition": "Arbeidsflyt",
+        "attachment": "Vedlegg"
+      }
+    },
+    "security": {
+      "title": "Sikkerhetsregler",
+      "description": "Regler for pålogging og dokumenter som gjelder alle i organisasjonen."
     }
   },
   "auth": {
@@ -885,14 +1171,14 @@
       "subtitle": "Opprett og administrer organisasjoner på tvers av plattformen.",
       "create": "Opprett organisasjon",
       "name": "Navn",
-      "slug": "Slug",
-      "slugOptional": "Slug (valgfritt)",
+      "slug": "Kortnavn i adressen",
+      "slugOptional": "Kortnavn i adressen (valgfritt)",
       "members": "Medlemmer",
       "created": "Opprettet",
       "empty": "Ingen organisasjoner ennå.",
       "notFound": "Fant ikke organisasjonen.",
       "backToList": "Alle organisasjoner",
-      "slugTaken": "Denne slug-en er allerede i bruk. Velg en annen.",
+      "slugTaken": "Dette kortnavnet er allerede i bruk. Velg et annet.",
       "createdToast": "Organisasjon opprettet."
     },
     "members": {
@@ -936,6 +1222,17 @@
       "resetMfaConfirm": "Tilbakestille totrinnsbekreftelse for {{name}}? Alle metodene og gjenopprettingskodene fjernes, og vedkommende logges ut overalt. Gjør dette bare etter at du har bekreftet hvem vedkommende er.",
       "resetMfaToast": "Totrinnsbekreftelse er tilbakestilt for {{name}}.",
       "resetMfaFailed": "Kunne ikke tilbakestille totrinnsbekreftelse. Prøv igjen."
+    },
+    "overview": {
+      "title": "Oversikt",
+      "lastActivity": "Siste aktivitet",
+      "never": "Ingen aktivitet ennå",
+      "setup": "Oppsett fullført",
+      "setupPending": "Ikke fullført",
+      "pendingInvitations": "Ventende invitasjoner",
+      "modules": "Moduler i bruk",
+      "standards": "Standarder som er slått på",
+      "none": "Ingen"
     }
   },
   "invite": {
@@ -1953,7 +2250,8 @@
       "documents": "Dokumenter",
       "standards": "Standarder og krav",
       "guidance": "Veiledning og opplæring",
-      "records": "Registertyper og arbeidsflyter"
+      "records": "Registertyper og arbeidsflyter",
+      "platform": "Plattform og innstillinger"
     },
     "descriptions": {
       "tasks": "Tildel, følg opp og gjenta arbeid på tvers av alle moduler.",
@@ -2148,6 +2446,50 @@
     "employee": {
       "one": "ansatt",
       "other": "ansatte"
+    },
+    "ai_system": {
+      "one": "KI-system",
+      "other": "KI-systemer"
+    },
+    "asset": {
+      "one": "eiendel",
+      "other": "eiendeler"
+    },
+    "candidate": {
+      "one": "kandidat",
+      "other": "kandidater"
+    },
+    "change_request": {
+      "one": "endringsforespørsel",
+      "other": "endringsforespørsler"
+    },
+    "complaint": {
+      "one": "klage",
+      "other": "klager"
+    },
+    "contract": {
+      "one": "kontrakt",
+      "other": "kontrakter"
+    },
+    "course": {
+      "one": "kurs",
+      "other": "kurs"
+    },
+    "customer_feedback": {
+      "one": "kundetilbakemelding",
+      "other": "kundetilbakemeldinger"
+    },
+    "inspection": {
+      "one": "inspeksjon",
+      "other": "inspeksjoner"
+    },
+    "project": {
+      "one": "prosjekt",
+      "other": "prosjekter"
+    },
+    "survey": {
+      "one": "undersøkelse",
+      "other": "undersøkelser"
     }
   },
   "ui": {
@@ -2227,6 +2569,16 @@
       "remove": "Fjern {{ name }}",
       "flagged": "Kontroller denne verdien",
       "none": "Ikke satt"
+    }
+  },
+  "account": {
+    "title": "Min konto",
+    "nav": {
+      "password": "Passord",
+      "security": "Totrinnsbekreftelse",
+      "sessions": "Pålogginger",
+      "notifications": "Varsler",
+      "learning": "Læring"
     }
   }
 }

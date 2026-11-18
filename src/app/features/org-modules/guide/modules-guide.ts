@@ -3,6 +3,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { AskPanelService } from '../../ask/ask-panel.service';
 import { ClauseRef, clauseFramework, clauseNumber } from '../frameworks';
+import { ClauseChips } from '../../../shared/guidance/clause-chips';
 
 /** The F1 pages that carry learning-mode guidance (`modules.guide.pages.<page>`). */
 export type GuidePage = 'modules' | 'profile' | 'terminology' | 'setup';
@@ -19,7 +20,7 @@ const STORAGE_PREFIX = 'coreflow.guide.modules.';
  */
 @Component({
   selector: 'app-modules-guide',
-  imports: [TranslocoPipe, Icon],
+  imports: [TranslocoPipe, Icon, ClauseChips],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @let base = 'modules.guide.pages.' + page();
@@ -55,18 +56,9 @@ const STORAGE_PREFIX = 'coreflow.guide.modules.';
                 {{ base + '.why.body' | transloco }}
               </p>
               @if (clauses().length) {
-                <div class="mt-2 flex flex-wrap gap-1.5">
-                  @for (clause of clauses(); track clause) {
-                    <button
-                      type="button"
-                      class="inline-flex items-center gap-1 rounded-full border border-border bg-surface-2 px-2.5 py-1 text-[12px] font-semibold text-fg hover:border-accent hover:text-accent focus-visible:outline-2 focus-visible:outline-accent"
-                      (click)="explain(clause)"
-                    >
-                      <span class="sr-only">{{ 'modules.guide.explainClause' | transloco }}</span>
-                      {{ 'modules.frameworks.' + framework(clause) + '.short' | transloco }}
-                      {{ number(clause) }}
-                    </button>
-                  }
+                <!-- Teaching links (plan 2.1): shared clause chips, never "ISO HS" pills. -->
+                <div class="mt-2">
+                  <app-clause-chips [clauses]="clauses()" [lead]="true" />
                 </div>
               }
             </div>

@@ -11,9 +11,12 @@ export const orgManageGuard: CanActivateFn = permissionGuard('org:manage', {
 });
 
 /** The Settings area: reachable with `org:manage` OR `users:invite` (invitations only)
- *  OR `records:admin` (the record type and workflow designer). */
+ *  OR `records:admin` (the record type and workflow designer) OR `audit:read`
+ *  (the audit log and the role matrix). */
 export const settingsGuard: CanActivateFn = permissionGuard([
   'org:manage',
   'users:invite',
   'records:admin',
+  // A26: auditors read the audit log and the role matrix under Settings.
+  'audit:read',
 ]);

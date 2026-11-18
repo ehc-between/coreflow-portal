@@ -1,12 +1,18 @@
 {
   "page": {
-    "title": "Notifications and escalation",
-    "subtitle": "Decide who hears about what, how reminders go out, and where overdue work escalates.",
+    "title": "Notifications",
+    "subtitle": "Who hears about what, how reminders go out, and where overdue work is escalated.",
     "back": "Back to settings",
-    "noOrg": "Select an organization to manage its notifications.",
+    "noOrg": "Select an organisation to manage its notifications.",
     "loading": "Loading…",
     "loadError": "Couldn't load the notification settings.",
-    "retry": "Try again"
+    "retry": "Try again",
+    "tabs": "Parts of the notification settings",
+    "tab": {
+      "rules": "Notification rules",
+      "reminders": "Reminders and escalation",
+      "leads": "Department leads"
+    }
   },
   "ai": {
     "suggest": "Suggest a setup",
@@ -82,23 +88,23 @@
   },
   "rules": {
     "title": "Notification rules",
-    "subtitle": "For each event: who is notified, and on which channels.",
-    "search": "Search events",
+    "subtitle": "For each kind of activity: who is notified, and on which channels.",
+    "search": "Search kinds of activity",
     "moduleFilter": "Filter by module",
     "allModules": "All modules",
     "customOnly": "Customized only",
-    "emptyTitle": "No events to configure yet",
-    "emptyBody": "Events appear here as modules are enabled. Each one starts with a default rule that you can adjust.",
-    "noMatch": "No events match these filters.",
+    "emptyTitle": "Nothing to set up yet",
+    "emptyBody": "Kinds of activity show up here as modules are switched on. Each starts with a default rule you can adjust.",
+    "noMatch": "No kinds of activity match these filters.",
     "clearFilters": "Clear filters",
     "columns": {
-      "event": "Event",
+      "event": "Kind of activity",
       "recipients": "Who is notified",
       "channels": "Channels",
       "status": "Status",
       "actions": "Actions"
     },
-    "timelineOnly": "Shown on the timeline only",
+    "timelineOnly": "Only shown on the timeline",
     "nobody": "Nobody",
     "status": {
       "timeline": "Timeline",
@@ -112,7 +118,7 @@
     "restored": "Default rule restored.",
     "editor": {
       "close": "Close",
-      "enabled": "Send notifications for this event",
+      "enabled": "Send notifications for this kind of activity",
       "recipients": "Who is notified",
       "recipientsHint": "The person who triggered the event is not notified about their own action.",
       "add": "Add…",
@@ -125,31 +131,57 @@
       "resetMessage": "Your organization's changes to this rule will be removed and the default recipients and channels will apply again.",
       "cancel": "Cancel",
       "save": "Save rule"
-    }
+    },
+    "showAll": "Show all kinds of activity ({{count}})",
+    "technical": "Show technical names",
+    "shortList": "Showing the {{count}} kinds of activity that notify someone. {{total}} kinds exist in total; switch on \"Show all\" to notify about more, for example when a new deviation is registered.",
+    "nobodyOff": "Switched off",
+    "turnOn": "Switch on"
   },
   "recipients": {
-    "owner": { "label": "Owner", "hint": "The record's owner or owners." },
+    "owner": {
+      "label": "Owner",
+      "hint": "The record's owner or owners."
+    },
     "assignee": {
       "label": "Assignees",
       "hint": "People, roles or departments the record is assigned to."
     },
-    "watchers": { "label": "Followers", "hint": "Everyone following the record." },
+    "watchers": {
+      "label": "Followers",
+      "hint": "Everyone following the record."
+    },
     "department_lead": {
       "label": "Department lead",
       "hint": "The lead of the record's department."
     },
-    "role": { "label": "Role", "hint": "Everyone holding a role." },
-    "department": { "label": "Department", "hint": "Everyone in a department." },
-    "user": { "label": "Specific people", "hint": "Named members of the organization." },
+    "role": {
+      "label": "Role",
+      "hint": "Everyone holding a role."
+    },
+    "department": {
+      "label": "Department",
+      "hint": "Everyone in a department."
+    },
+    "user": {
+      "label": "Specific people",
+      "hint": "Named members of the organization."
+    },
     "withValue": "{{type}}: {{name}}"
   },
   "channels": {
-    "in_app": { "label": "In-app", "hint": "Shown under the bell in CoreFlow." },
+    "in_app": {
+      "label": "In-app",
+      "hint": "Shown under the bell in CoreFlow."
+    },
     "email": {
       "label": "Email",
       "hint": "Sent by email, immediately or in the digest according to each person's preference."
     },
-    "digest": { "label": "Daily digest", "hint": "Included in the daily summary email." }
+    "digest": {
+      "label": "Daily digest",
+      "hint": "Included in the daily summary email."
+    }
   },
   "kinds": {
     "reminder": {
@@ -163,15 +195,37 @@
     }
   },
   "modules": {
-    "events": "Reminders and platform"
+    "events": "Reminders and platform",
+    "assistant": "Assistant",
+    "kit": "Connections and tasks",
+    "modules": "Modules",
+    "platform": "Platform"
   },
   "categories": {
-    "assignments": { "label": "Assignments", "hint": "When something is assigned to you." },
-    "reminders": { "label": "Reminders", "hint": "Due dates approaching, passed or escalated." },
-    "workflow": { "label": "Workflow", "hint": "Approvals, reviews and status changes." },
-    "mentions": { "label": "Mentions", "hint": "When someone mentions you." },
-    "comments": { "label": "Comments", "hint": "New comments on records you follow." },
-    "system": { "label": "System", "hint": "Organization and module changes." }
+    "assignments": {
+      "label": "Assignments",
+      "hint": "When something is assigned to you."
+    },
+    "reminders": {
+      "label": "Reminders",
+      "hint": "Due dates approaching, passed or escalated."
+    },
+    "workflow": {
+      "label": "Workflow",
+      "hint": "Approvals, reviews and status changes."
+    },
+    "mentions": {
+      "label": "Mentions",
+      "hint": "When someone mentions you."
+    },
+    "comments": {
+      "label": "Comments",
+      "hint": "New comments on records you follow."
+    },
+    "system": {
+      "label": "System",
+      "hint": "Organization and module changes."
+    }
   },
   "categoriesPage": {
     "title": "Categories",
@@ -180,7 +234,8 @@
     "loadError": "Couldn't load your category settings.",
     "inApp": "In-app",
     "email": "Email",
-    "saved": "Notification categories saved."
+    "saved": "Notification categories saved.",
+    "digestOff": "Your daily summary is switched off for this organisation, so categories set to \"Daily summary\" send no email. Switch the summary on below."
   },
   "emailModes": {
     "immediate": "Immediately",
@@ -222,7 +277,9 @@
     "emptyTitle": "No departments yet",
     "emptyBody": "Create departments in the organization settings, then choose a lead for each one.",
     "emptyCta": "Go to departments",
-    "saved": "Department lead updated."
+    "saved": "Department lead updated.",
+    "gap": "No lead: escalations here reach nobody",
+    "openDepartment": "Open the department"
   },
   "errors": {
     "unknown_event_kind": "This event no longer exists. Reload the page.",

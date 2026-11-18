@@ -54,6 +54,8 @@ export interface FieldSpec {
   readonly formula?: string | null;
   readonly visible_if?: VisibleIf | null;
   readonly default?: unknown;
+  /** A26: canonical requirement refs this field documents (at most 8); null when none. */
+  readonly requirements?: readonly string[] | null;
 }
 
 /** A form layout section. */
@@ -326,6 +328,10 @@ export interface RecordTemplate {
   readonly state_count: number;
   readonly transition_count: number;
   readonly installed: boolean;
+  /** A26: requirements a record of this type documents once installed. */
+  readonly requirements?: readonly string[];
+  /** A26: per field key, the requirements that field documents. */
+  readonly field_requirements?: Readonly<Record<string, readonly string[]>>;
 }
 
 export interface InstallTemplateRequest {

@@ -163,6 +163,95 @@
         "body": "Sertifiseringsrevisjonen sjekker at hvert krav er oppfylt **og dokumentert**. Når du følger reisen, bygger du dokumentasjonen underveis, og den teller i kravdekningen.",
         "clauses": ["hs:4.4", "hs:6.1", "hs:9.2"]
       }
+    },
+    "settings": {
+      "intro": {
+        "title": "Innstillinger for hele organisasjonen",
+        "body": "Her bestemmer du hvem som har tilgang, hvilke moduler og standarder dere bruker, hvem som varsles og hvordan registre settes opp.",
+        "steps": [
+          "Fyll først ut organisasjonsprofilen og standardene i omfang.",
+          "Inviter personer, og gi hver av dem tilgangsnivået de trenger.",
+          "Gi hver avdeling en leder, så forsinket arbeid eskaleres til noen."
+        ]
+      },
+      "why": {
+        "body": "Revisorer sjekker at tilgang er styrt, at ansvar er tydelig, og at endringer kan spores.",
+        "clauses": ["hs:5.3", "iso27001:A.5.15", "iso27001:A.8.15"]
+      }
+    },
+    "settings-members": {
+      "intro": {
+        "title": "Hvem som har tilgang, og til hva",
+        "body": "Hvert medlem har ett eller flere tilgangsnivåer. Tilgangsnivået bestemmer hva personen kan se og gjøre i CoreFlow.",
+        "steps": [
+          "Søk eller filtrer for å finne en person.",
+          "Klikk «Endre tilgang» for å se hva personen får eller mister før du lagrer.",
+          "Gå gjennom tilgangene jevnlig. «Start tilgangsgjennomgang» registrerer gjennomgangen som dokumentasjon."
+        ]
+      },
+      "why": {
+        "body": "At hver person bare får tilgangen de trenger, og at dette sjekkes jevnlig, er en sentral sikkerhetskontroll.",
+        "clauses": ["iso27001:A.5.15", "iso27001:A.5.18", "iso27001:A.8.2"]
+      },
+      "empty": {
+        "title": "Ingen medlemmer ennå",
+        "body": "Inviter dem som skal jobbe i CoreFlow."
+      }
+    },
+    "settings-departments": {
+      "intro": {
+        "title": "Avdelinger og lederne deres",
+        "body": "Avdelinger samler folk. Lederen får eskaleringer når arbeid i avdelingen er forsinket.",
+        "steps": [
+          "Opprett avdelingene organisasjonen har.",
+          "Åpne hver avdeling og velg en leder.",
+          "Plasser også de ansatte i avdelinger i personregisteret."
+        ]
+      },
+      "why": {
+        "body": "Tydelig ansvar betyr at forsinkede avvik og oppgaver alltid når noen som kan gjøre noe med dem.",
+        "clauses": ["hs:5.3"]
+      }
+    },
+    "settings-invitations": {
+      "intro": {
+        "title": "Inviter personer",
+        "body": "Inviter én person, eller lim inn en liste med adresser. Velg tilgangsnivå og eventuelt avdeling.",
+        "steps": [
+          "Velg «Én person» eller «Flere personer».",
+          "Velg tilgangsnivå. Teksten under forteller hva det gir tilgang til.",
+          "Personen får en e-post og blir med når invitasjonen godtas."
+        ]
+      }
+    },
+    "settings-roles": {
+      "intro": {
+        "title": "Hva hvert tilgangsnivå kan gjøre",
+        "body": "Tabellen viser, modul for modul, hva hvert tilgangsnivå gir tilgang til. Den kan bare leses.",
+        "steps": [
+          "Les en rad for å sammenligne tilgangsnivåene i én modul.",
+          "Eksporter tabellen når en revisor ber om tilgangspolicyen deres."
+        ]
+      },
+      "why": {
+        "body": "En dokumentert tilgangspolicy viser at tilgang følger rollen, ikke personen.",
+        "clauses": ["iso27001:A.5.15", "iso27001:A.8.2"]
+      }
+    },
+    "settings-audit-log": {
+      "intro": {
+        "title": "Revisjonsloggen",
+        "body": "Alle endringer i poster, innstillinger og tilganger logges her med hvem, hva og når.",
+        "steps": [
+          "Filtrer på person, posttype, type endring eller datoer.",
+          "Åpne en rad for å se nøyaktig hva som ble endret, eller gå til posten.",
+          "Eksporter de filtrerte radene som CSV til en revisjon."
+        ]
+      },
+      "why": {
+        "body": "Logger over hvem som gjorde hva, er dokumentasjon på at endringer er styrt og kan spores.",
+        "clauses": ["iso27001:A.8.15", "hs:7.5"]
+      }
     }
   },
   "lessons": {
@@ -350,6 +439,28 @@
           "body": "Se etter introduksjonen øverst på siden, notatet «Hvorfor dette er viktig» med henvisninger til krav, **?** ved siden av felt og prikkede begreper du kan holde musepekeren over for å se en definisjon. «Lær meg» åpner assistenten som en personlig lærer."
         }
       ]
+    },
+    "people-and-access": {
+      "title": "Personer, tilgangsnivåer og ansvar",
+      "minutes": 3,
+      "sections": [
+        {
+          "heading": "Tilgangsnivå er ikke det samme som ansvar",
+          "body": "**Tilgangsnivået** bestemmer hva noen kan gjøre i CoreFlow, for eksempel lese risikoer eller godkjenne dokumenter. Et **ansvar** i styringssystemet, som «HMS-ansvarlig», beskriver du under Kontekst → Roller og ansvar."
+        },
+        {
+          "heading": "Gi bare det som trengs",
+          "body": "Start med **Medlem**, og legg til nivåer når arbeidet krever det. «Endre tilgang» viser hva personen får eller mister før du lagrer."
+        },
+        {
+          "heading": "Avdelinger og eskalering",
+          "body": "Hver avdeling bør ha en **leder**. Når arbeid er forsinket, eskaleres påminnelser til lederen. Uten leder får ingen beskjed."
+        },
+        {
+          "heading": "Gå gjennom tilgangene",
+          "body": "Sjekk tilgangene jevnlig, for eksempel hvert halvår, og når folk bytter jobb eller slutter. Registrer gjennomgangen som en tilgangsgjennomgang under Eiendeler, så har dere dokumentasjon."
+        }
+      ]
     }
   },
   "tours": {
@@ -373,6 +484,23 @@
         "target": "learning-glossary",
         "title": "Ordliste",
         "body": "Slå opp begrepene som brukes i standarder og revisjoner, med kravene de kommer fra."
+      }
+    ],
+    "members": [
+      {
+        "target": "members-access-levels",
+        "title": "Tilgangsnivåer",
+        "body": "Her forklares forskjellen på tilgang i CoreFlow og ansvar i styringssystemet."
+      },
+      {
+        "target": "members-filters",
+        "title": "Finn personer",
+        "body": "Søk etter navn, e-post eller avdeling, og filtrer på tilgangsnivå eller status, for eksempel medlemmer uten totrinnsbekreftelse."
+      },
+      {
+        "target": "members-list",
+        "title": "Medlemmer",
+        "body": "Hver rad viser tilgangsnivå, avdelinger og siste aktivitet. Klikk på et navn for å åpne personen i personregisteret."
       }
     ]
   }

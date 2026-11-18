@@ -108,6 +108,21 @@ export interface OrgProfile extends OrgProfileUpdate {
   readonly updated_by: string | null;
   readonly created_at: string | null;
   readonly updated_at: string | null;
+  /**
+   * A26: frameworks in scope and the matching standard in Standards (kept in sync
+   * both ways by the backend). Absent on older backends.
+   */
+  readonly standards?: readonly ProfileStandard[];
+}
+
+/** One framework of the profile and its standard in the Standards module. */
+export interface ProfileStandard {
+  readonly framework: string;
+  readonly standard_key: string | null;
+  readonly in_scope: boolean;
+  readonly standard_enabled: boolean;
+  /** Whether the catalogue has a standard for this framework. */
+  readonly available: boolean;
 }
 
 export interface TermForms {

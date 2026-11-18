@@ -1,7 +1,9 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   effect,
+  input,
   inject,
   signal,
   untracked,
@@ -54,6 +56,15 @@ import { Switch } from '../../../shared/ui/switch/switch';
           <app-alert>{{ 'activity.categoriesPage.loadError' | transloco }}</app-alert>
         </div>
       } @else if (items().length > 0) {
+        @if (digestOff() && usesDigest()) {
+          <p
+            class="border-b border-border bg-warn-soft px-4 py-2.5 text-[12.5px] text-warn-ink"
+            role="status"
+            data-testid="digest-off-hint"
+          >
+            {{ 'activity.categoriesPage.digestOff' | transloco }}
+          </p>
+        }
         <ul class="divide-y divide-border" aria-labelledby="categories-title">
           @for (pref of items(); track pref.category) {
             <li
@@ -105,6 +116,9 @@ import { Switch } from '../../../shared/ui/switch/switch';
   `,
 })
 export class CategoryPreferences {
+  /** The user's daily digest is off for this org (set by the page). */
+  readonly digestOff = input(false);
+  protected readonly usesDigest = computed(() => this.items().some((p) => p.email === 'digest'));
   private readonly api = inject(UserNotificationsApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly toasts = inject(NotificationService);

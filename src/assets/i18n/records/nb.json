@@ -42,7 +42,8 @@
     "meta": "{{ fields }} felt · {{ states }} statuser · {{ transitions }} overganger",
     "installed": "Installert",
     "install": "Installer mal",
-    "installedToast": "«{{ name }}» er installert. Gå gjennom den og tilpass den til hvordan dere jobber."
+    "installedToast": "«{{ name }}» er installert. Gå gjennom den og tilpass den til hvordan dere jobber.",
+    "documents": "Dokumenterer:"
   },
   "designer": {
     "newTitle": "Ny registertype",
@@ -104,7 +105,10 @@
     "delete": "Slett registertype",
     "deleteTitle": "Slette denne registertypen?",
     "deleteMessage": "«{{ name }}» fjernes fra designeren. Registreringer som er laget med den, beholder data og historikk.",
-    "deletedToast": "Registertypen er slettet."
+    "deletedToast": "Registertypen er slettet.",
+    "blockKeyEmpty": "Legg inn en nøkkel under navnet.",
+    "codePrefixPlaceholder": "AV",
+    "requirementsHint": "Poster av denne typen teller som dokumentasjon for disse kravene når noen fyller ut de koblede feltene."
   },
   "workflow": {
     "newTitle": "Ny arbeidsflyt",
@@ -121,7 +125,8 @@
     "delete": "Slett arbeidsflyt",
     "deleteTitle": "Slette denne arbeidsflyten?",
     "deleteMessage": "«{{ name }}» fjernes. En arbeidsflyt som fortsatt brukes av en registertype, kan ikke slettes.",
-    "deletedToast": "Arbeidsflyten er slettet."
+    "deletedToast": "Arbeidsflyten er slettet.",
+    "create": "Opprett arbeidsflyt"
   },
   "fields": {
     "title": "Felt",
@@ -157,7 +162,9 @@
     "visibleEquals": "har verdien",
     "moveUp": "Flytt {{ name }} opp",
     "moveDown": "Flytt {{ name }} ned",
-    "remove": "Fjern {{ name }}"
+    "remove": "Fjern {{ name }}",
+    "requirements": "Krav dette feltet dokumenterer",
+    "requirementsHint": "Valgfritt, høyst {{max}}. Når feltet er fylt ut, teller posten som dokumentasjon for disse kravene."
   },
   "layout": {
     "title": "Skjemaseksjoner",
@@ -180,7 +187,8 @@
     "sla": "Frist (timer)",
     "initial": "Start",
     "remove": "Fjern statusen {{ name }}",
-    "newLabel": "Ny status"
+    "newLabel": "Ny status",
+    "slaDays": "= {{days}} dager"
   },
   "transitions": {
     "title": "Steg",
@@ -329,7 +337,8 @@
     "close": "Lukk",
     "quiz": "Sjekk hva du har lært",
     "correct": "Riktig.",
-    "incorrect": "Ikke helt."
+    "incorrect": "Ikke helt.",
+    "example": "For eksempel: {{example}}"
   },
   "langs": {
     "en": "Engelsk",

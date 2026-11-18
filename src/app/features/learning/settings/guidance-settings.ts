@@ -26,6 +26,7 @@ import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { LESSON_SCOPES, matchesQuery } from '../lesson-catalog';
+import { OrgMembersApi } from '../../../core/org/org-members-api';
 
 export type SummarySort = 'name' | 'completed' | 'quizzes' | 'activity';
 
@@ -254,7 +255,11 @@ export function sortSummary(
                                 [routerLink]="['/settings/guidance/members', row.user_id]"
                                 class="font-semibold text-accent hover:underline"
                               >
-                                {{ row.name || ('guidance.settings.unnamed' | transloco) }}
+                                {{
+                                  row.name ||
+                                    emailOf(row.user_id) ||
+                                    ('guidance.settings.unnamed' | transloco)
+                                }}
                               </a>
                             </td>
                             <td class="px-3 py-2.5 text-right tabular-nums">
@@ -292,6 +297,13 @@ export class GuidanceSettings {
   private readonly guidance = inject(GuidanceService);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly toasts = inject(NotificationService);
+  private readonly membersApi = inject(OrgMembersApi);
+  /** user id → email, for members without a name. */
+  private readonly emails = signal<ReadonlyMap<string, string>>(new Map());
+
+  protected emailOf(userId: string): string {
+    return this.emails().get(userId) ?? '';
+  }
 
   protected readonly scopes = LESSON_SCOPES;
   protected readonly orgId = this.selectedOrg.currentOrgId;
@@ -389,6 +401,10 @@ export class GuidanceSettings {
   }
 
   private loadSummary(orgId: string): void {
+    this.membersApi.listMembers(orgId).subscribe({
+      next: (members) => this.emails.set(new Map(members.map((m) => [m.user_id, m.email]))),
+      error: () => undefined,
+    });
     this.summaryLoading.set(true);
     this.summaryError.set(false);
     this.subs.push(

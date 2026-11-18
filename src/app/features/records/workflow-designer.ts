@@ -57,7 +57,7 @@ import {
   RecordsLesson,
   RecordsWhy,
 } from './guidance/records-guidance';
-import { providePageContext } from './page-context';
+import { providePageContext } from '../../core/ai/page-context';
 
 /**
  * The workflow designer (`/settings/record-types/workflows/new` and `/:id`):
@@ -253,9 +253,9 @@ import { providePageContext } from './page-context';
                     [placeholder]="'records.designer.changeNotePlaceholder' | transloco"
                   ></textarea>
                 </app-form-field>
-                @if (blockers().length) {
-                  <ul class="mt-2 text-[12px] font-medium text-fail">
-                    @for (b of blockers(); track b) {
+                @if (visibleBlockers().length) {
+                  <ul class="mt-2 text-[12px] font-medium text-fail" role="alert">
+                    @for (b of visibleBlockers(); track b) {
                       <li>{{ b | transloco }}</li>
                     }
                   </ul>
@@ -264,11 +264,11 @@ import { providePageContext } from './page-context';
                   <app-button
                     [full]="true"
                     [loading]="saving()"
-                    [disabled]="!canSave()"
+                    [disabled]="!canPress()"
                     (click)="save()"
                   >
                     {{
-                      (isNew() ? 'records.designer.create' : 'records.designer.save') | transloco
+                      (isNew() ? 'records.workflow.create' : 'records.designer.save') | transloco
                     }}
                   </app-button>
                 </div>
@@ -409,14 +409,28 @@ export class WorkflowDesigner {
     () => this.definitionPrint() !== this.baseline().definition,
   );
   private readonly dirtyMeta = computed(() => this.metaPrint() !== this.baseline().meta);
+  /** The user changed something on a new form. */
+  protected readonly touched = computed(() => !!this.name().trim());
 
+  /** Set on the first publish attempt: blank-form problems are shown only after it. */
+  protected readonly attempted = signal(false);
   protected readonly blockers = computed(() => {
     const out: string[] = [];
     if (!this.name().trim()) out.push('records.designer.blockName');
-    if (this.isNew() && !TYPE_KEY_RE.test(this.key())) out.push('records.designer.blockKey');
+    if (this.isNew() && !this.key()) {
+      if (this.name().trim()) out.push('records.designer.blockKeyEmpty');
+    } else if (this.isNew() && !TYPE_KEY_RE.test(this.key())) {
+      out.push('records.designer.blockKey');
+    }
     if (checkDefinition(this.definition()).length) out.push('records.designer.blockWorkflowIssues');
     return out;
   });
+  /** Problems to show: on an untouched new form, only after a publish attempt. */
+  protected readonly visibleBlockers = computed(() =>
+    this.isNew() && !this.attempted() && !this.touched() ? [] : this.blockers(),
+  );
+  /** The publish button works on a new form even with problems (it then shows them). */
+  protected readonly canPress = computed(() => !this.saving() && (this.isNew() || this.canSave()));
   protected readonly canSave = computed(
     () =>
       !this.saving() &&
@@ -521,6 +535,7 @@ export class WorkflowDesigner {
 
   protected save(): void {
     const orgId = this.selectedOrg.currentOrgId();
+    this.attempted.set(true);
     if (!orgId || !this.canSave()) {
       return;
     }

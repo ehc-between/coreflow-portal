@@ -163,6 +163,95 @@
         "body": "Certification audits check that every requirement is met **and documented**. Following the journey builds the evidence as you go, so it counts towards requirement coverage.",
         "clauses": ["hs:4.4", "hs:6.1", "hs:9.2"]
       }
+    },
+    "settings": {
+      "intro": {
+        "title": "Settings for the whole organisation",
+        "body": "Here you decide who has access, which modules and standards you use, who is notified and how records are set up.",
+        "steps": [
+          "Fill in the organisation profile and the standards in scope first.",
+          "Invite people and give each the access level they need.",
+          "Give every department a lead, so overdue work is escalated to someone."
+        ]
+      },
+      "why": {
+        "body": "Auditors check that access is controlled, that responsibilities are clear and that changes are traceable.",
+        "clauses": ["hs:5.3", "iso27001:A.5.15", "iso27001:A.8.15"]
+      }
+    },
+    "settings-members": {
+      "intro": {
+        "title": "Who has access, and to what",
+        "body": "Each member has one or more access levels. The access level decides what the person can see and do in CoreFlow.",
+        "steps": [
+          "Search or filter to find a person.",
+          "Click \"Change access\" to see what the person gains or loses before you save.",
+          "Review access regularly. \"Start access review\" records the review as evidence."
+        ]
+      },
+      "why": {
+        "body": "Giving each person only the access they need, and checking it regularly, is a core security control.",
+        "clauses": ["iso27001:A.5.15", "iso27001:A.5.18", "iso27001:A.8.2"]
+      },
+      "empty": {
+        "title": "No members yet",
+        "body": "Invite the people who will work in CoreFlow."
+      }
+    },
+    "settings-departments": {
+      "intro": {
+        "title": "Departments and their leads",
+        "body": "Departments group people. The lead receives escalations when work in the department is overdue.",
+        "steps": [
+          "Create the departments the organisation has.",
+          "Open each department and choose a lead.",
+          "Place employees in departments in the People register as well."
+        ]
+      },
+      "why": {
+        "body": "Clear responsibility means overdue deviations and tasks always reach someone who can act.",
+        "clauses": ["hs:5.3"]
+      }
+    },
+    "settings-invitations": {
+      "intro": {
+        "title": "Invite people",
+        "body": "Invite one person or paste a list of addresses. Choose the access level and, if you like, the department.",
+        "steps": [
+          "Choose \"One person\" or \"Several people\".",
+          "Pick the access level. The text below it says what it allows.",
+          "The person gets an email and joins when they accept."
+        ]
+      }
+    },
+    "settings-roles": {
+      "intro": {
+        "title": "What each access level may do",
+        "body": "The table shows, module by module, what each access level allows. It is read-only.",
+        "steps": [
+          "Read across a row to compare access levels for one module.",
+          "Export the table when an auditor asks for your access policy."
+        ]
+      },
+      "why": {
+        "body": "A documented access policy shows that access follows the role, not the person.",
+        "clauses": ["iso27001:A.5.15", "iso27001:A.8.2"]
+      }
+    },
+    "settings-audit-log": {
+      "intro": {
+        "title": "The audit log",
+        "body": "Every change to records, settings and access is logged here with who, what and when.",
+        "steps": [
+          "Filter by person, record type, kind of change or dates.",
+          "Open a row to see exactly what changed, or jump to the record.",
+          "Export the filtered rows as CSV for an audit."
+        ]
+      },
+      "why": {
+        "body": "Logs of who did what are evidence that changes are controlled and can be traced.",
+        "clauses": ["iso27001:A.8.15", "hs:7.5"]
+      }
     }
   },
   "lessons": {
@@ -344,6 +433,28 @@
           "body": "Look for the page introduction at the top, the \"Why this matters\" note with clause references, the **?** next to fields and dotted terms you can hover for a definition. \"Teach me\" opens the assistant as a personal tutor."
         }
       ]
+    },
+    "people-and-access": {
+      "title": "People, access levels and responsibilities",
+      "minutes": 3,
+      "sections": [
+        {
+          "heading": "Access level is not the same as responsibility",
+          "body": "The **access level** decides what someone can do in CoreFlow, for example read risks or approve documents. A **responsibility** in the management system, such as \"HSE lead\", is described under Context → Roles and responsibilities."
+        },
+        {
+          "heading": "Give only what is needed",
+          "body": "Start with **Member** and add levels when the work needs them. \"Change access\" shows what the person gains or loses before you save."
+        },
+        {
+          "heading": "Departments and escalation",
+          "body": "Every department should have a **lead**. When work is overdue, reminders escalate to the lead. Without a lead, nobody is told."
+        },
+        {
+          "heading": "Review access",
+          "body": "Check access regularly, for example every six months, and when people change jobs or leave. Record the review as an access review under Assets, so you have evidence."
+        }
+      ]
     }
   },
   "tours": {
@@ -367,6 +478,23 @@
         "target": "learning-glossary",
         "title": "Glossary",
         "body": "Look up the terms used in standards and audits, with the clauses they come from."
+      }
+    ],
+    "members": [
+      {
+        "target": "members-access-levels",
+        "title": "Access levels",
+        "body": "This explains the difference between access in CoreFlow and responsibilities in the management system."
+      },
+      {
+        "target": "members-filters",
+        "title": "Find people",
+        "body": "Search by name, email or department, and filter by access level or status, for example members without two-step sign-in."
+      },
+      {
+        "target": "members-list",
+        "title": "Members",
+        "body": "Each row shows the access level, departments and last activity. Click a name to open the person in the People register."
       }
     ]
   }

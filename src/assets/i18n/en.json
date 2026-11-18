@@ -410,17 +410,27 @@
     "noOrg": "Select an organization to manage its settings.",
     "deletedDocuments": {
       "title": "Deleted documents",
-      "subtitle": "Documents removed from this organization, newest first.",
+      "subtitle": "Documents removed from the organisation, newest first. You can restore them.",
       "open": "View deleted documents",
       "back": "Back to settings",
-      "empty": "No documents have been deleted.",
+      "empty": "No documents are deleted",
       "loadError": "Couldn't load deleted documents.",
       "document": "Document",
       "deletedAt": "Deleted",
       "deletedBy": "Deleted by",
       "reason": "Reason",
       "unknownUser": "Unknown user",
-      "noReason": "No reason given"
+      "noReason": "No reason given",
+      "emptyBody": "Deleted documents show up here, and can be restored.",
+      "openDocuments": "Go to documents",
+      "restore": "Restore",
+      "restoreLabel": "Restore {{title}}",
+      "restoreTitle": "Restore document",
+      "restoreConfirm": "Restore «{{title}}»? It returns to the document register with its history.",
+      "restoredToast": "«{{title}}» is restored.",
+      "restoreFailed": "Could not restore the document. Try again.",
+      "restoreNote": "Deleting and restoring are recorded in the",
+      "auditLink": "audit log"
     },
     "save": "Save",
     "cancel": "Cancel",
@@ -439,7 +449,40 @@
       "createdToast": "Department created.",
       "renamedToast": "Department renamed.",
       "deletedToast": "Department deleted.",
-      "deleteTitle": "Delete department"
+      "deleteTitle": "Delete department",
+      "description": "Departments group people, and their lead receives escalations when work in the department is overdue.",
+      "emptyTitle": "No departments yet",
+      "emptyBody": "Create the departments the organisation has, then choose a lead for each.",
+      "createHint": "For example \"Quality and HSE\" or \"IT\".",
+      "memberCountOne": "1 member",
+      "employeeCount": "{{count}} in the People register",
+      "employeeCountOne": "1 in the People register",
+      "leadIs": "Lead: {{name}}",
+      "noLead": "No lead",
+      "noLeadWarning": "{{count}} departments have no lead ({{names}}). Overdue work in them is not escalated to anyone.",
+      "noLeadWarningOne": "One department has no lead ({{names}}). Overdue work in it is not escalated to anyone.",
+      "renameLabel": "Rename {{name}}",
+      "deleteLabel": "Delete {{name}}",
+      "lead": "Department lead",
+      "leadHint": "Receives escalations when work in the department is overdue.",
+      "chooseLead": "Choose the lead",
+      "noLeadOption": "No lead",
+      "inDepartment": "In this department",
+      "otherMembers": "Other members",
+      "leadNotMember": "The lead is not a member of the department. Add them below.",
+      "leadSaved": "The department lead is updated.",
+      "leadFailed": "Could not update the department lead. Try again.",
+      "escalationGap": "This department has no lead, so overdue reminders that escalate to the department lead reach nobody. Choose a lead.",
+      "membersHint": "People with a CoreFlow account in this department.",
+      "membersEmptyBody": "Add the members who work in this department.",
+      "employeesTitle": "In the People register",
+      "employeesHint": "Employees whose People-register entry is placed in this department.",
+      "employeesEmpty": "Nobody in the People register is placed here",
+      "employeesEmptyBody": "Set the department on each employee in the People register.",
+      "openPeople": "Open the People register",
+      "noAccount": "No CoreFlow account",
+      "relatedTitle": "Related",
+      "relatedEscalation": "Reminders and escalation"
     },
     "member": {
       "title": "Members",
@@ -453,14 +496,15 @@
       "allAdded": "All organization members are already in this department.",
       "addedToast": "Member added.",
       "removedToast": "Member removed.",
-      "addFailed": "Couldn't add that member. Please try again."
+      "addFailed": "Couldn't add that member. Please try again.",
+      "removeLabel": "Remove {{name}} from the department"
     },
     "members": {
       "title": "Members",
       "subtitle": "People with access to this organization, their role and account status.",
       "name": "Name",
       "email": "Email",
-      "role": "Role",
+      "role": "Access level",
       "status": "Status",
       "actions": "Actions",
       "active": "Active",
@@ -476,11 +520,68 @@
       "roleChangeHint": "Role changes take effect the next time the member's session refreshes (within 15 minutes).",
       "empty": "No members yet.",
       "aboutRoles": "About the roles",
-      "multipleRoles": "Multiple roles"
+      "multipleRoles": "Multiple roles",
+      "pageTitle": "People and access",
+      "pageDescription": "Everyone with access to the organisation, their access level, departments and sign-in status.",
+      "invite": "Invite people",
+      "startAccessReview": "Start access review",
+      "accessExplainer": "The access level decides what a person can see and do in CoreFlow. Responsibilities in the management system (for example who is the HSE lead) are described under",
+      "responsibilitiesLink": "Context → Roles and responsibilities",
+      "search": "Search members",
+      "searchPlaceholder": "Search by name, email or department",
+      "filterRole": "Filter by access level",
+      "allRoles": "All access levels",
+      "filterDepartment": "Filter by department",
+      "allDepartments": "All departments",
+      "noDepartment": "No department",
+      "filterStatus": "Filter by status",
+      "statusFilter": {
+        "all": "All statuses",
+        "active": "Active",
+        "inactive": "Deactivated",
+        "no_mfa": "Without two-step sign-in"
+      },
+      "showOperators": "Show service accounts",
+      "summary": "Showing {{shown}} of {{total}} members",
+      "withoutMfa": "{{count}} without two-step sign-in",
+      "withoutMfaOne": "1 without two-step sign-in",
+      "operatorsHidden": "{{count}} service accounts hidden",
+      "operator": "Service account",
+      "openPerson": "Open the person in the People register",
+      "lastActive": "Last active {{when}}",
+      "neverActive": "Not signed in yet",
+      "joined": "Joined {{date}}",
+      "mfaOn": "Two-step sign-in on",
+      "mfaOff": "No two-step sign-in",
+      "changeAccess": "Change access",
+      "moreFor": "More actions",
+      "emptyTitle": "No members yet",
+      "emptyBody": "Invite the people who will work in CoreFlow. They get an email with a sign-up link.",
+      "noMatch": "No members match these filters.",
+      "clearFilters": "Clear filters",
+      "seeMatrix": "See what each access level may do",
+      "editor": {
+        "title": "Change access for {{name}}",
+        "intro": "Choose one or more access levels. The person gets everything the chosen levels allow together.",
+        "levels": "Access levels",
+        "notGrantable": "You cannot give this level, because it allows more than you have yourself.",
+        "summary": "What changes",
+        "noChange": "Nothing changes yet. Tick or untick an access level.",
+        "from": "Now: {{roles}}",
+        "to": "After saving: {{roles}}",
+        "gains": "Gets access to: {{modules}}",
+        "gainsRights": "Gets {{count}} more permissions in modules they already use",
+        "loses": "Loses access to: {{modules}}",
+        "losesRights": "Loses {{count}} permissions in modules they keep",
+        "needOne": "Choose at least one access level.",
+        "none": "no access level",
+        "seeMatrix": "See all permissions",
+        "save": "Save access"
+      }
     },
     "invitations": {
       "title": "Invitations",
-      "subtitle": "Invite people by email and keep track of invitations that are not accepted yet.",
+      "subtitle": "Invite people by email and follow the invitations that are not accepted yet.",
       "pending": "Pending invitations",
       "empty": "No pending invitations.",
       "email": "Email",
@@ -502,7 +603,32 @@
       "revokeConfirm": "Revoke the invitation to {{email}}? The link will stop working.",
       "revokedToast": "Invitation revoked.",
       "noGrantable": "You don't have permission to invite with any role.",
-      "expired": "Expired"
+      "expired": "Expired",
+      "emptyBody": "Invitations you send show up here until they are accepted or expire.",
+      "mode": "How many to invite",
+      "single": "One person",
+      "several": "Several people",
+      "emails": "Email addresses",
+      "emailsHint": "Paste up to {{max}} addresses, separated by commas, spaces or new lines.",
+      "emailsCount": "{{count}} addresses",
+      "emailsInvalid": "Not valid: {{list}}",
+      "emailsTooMany": "At most {{max}} at a time",
+      "sendMany": "Send {{count}} invitations",
+      "department": "Department (optional)",
+      "departmentHint": "The person joins this department when they accept.",
+      "noDepartment": "No department",
+      "invitedBy": "Invited by {{name}}",
+      "expiresIn": "Expires in {{count}} days",
+      "expiresInOne": "Expires in 1 day",
+      "expiresToday": "Expires today",
+      "revokeLabel": "Revoke the invitation to {{email}}",
+      "bulkCreated": "{{count}} invitations sent.",
+      "bulkCreatedOne": "1 invitation sent.",
+      "skippedTitle": "Not invited",
+      "skipped": {
+        "already_invited": "already has a pending invitation",
+        "already_member": "is already a member"
+      }
     },
     "errors": {
       "invitePending": "There is already a pending invitation for this email.",
@@ -527,15 +653,15 @@
     },
     "hub": {
       "title": "Settings",
-      "description": "Set up the organisation, members and modules. Your own settings are in the account menu.",
+      "description": "Set up the organisation, who has access, notifications and record types. Your own settings are in the account menu.",
       "general": "Organisation",
       "moduleSettings": "Module settings",
       "moduleSettingsHint": "Types, templates and other settings for each module you use.",
       "cards": {
         "organisation": "Organisation profile",
         "organisationHint": "Industry, size, sites, standards and certification goals.",
-        "members": "Members and roles",
-        "membersHint": "Who has access, their roles, departments and invitations.",
+        "members": "Members",
+        "membersHint": "Who has access, their access level, departments and two-step sign-in.",
         "modules": "Modules",
         "modulesHint": "Choose which modules the organisation uses.",
         "notifications": "Notifications",
@@ -546,12 +672,22 @@
         "guidanceHint": "How much help people get, and required lessons.",
         "recordTypes": "Record types and workflows",
         "recordTypesHint": "Your own registers, forms and approval steps.",
-        "deleted": "Deleted items",
+        "deleted": "Deleted documents",
         "deletedHint": "Restore documents that were deleted by mistake.",
         "setup": "Setup wizard",
         "setupHint": "Go through profile, standards, modules, roles and first tasks again.",
         "attachmentDeletions": "File deletion log",
-        "attachmentDeletionsHint": "See which attachment files were permanently deleted and why."
+        "attachmentDeletionsHint": "See which attachment files were permanently deleted and why.",
+        "departments": "Departments",
+        "departmentsHint": "Departments, their leads and the people in them.",
+        "invitations": "Invitations",
+        "invitationsHint": "Invite one person or several at once, and follow pending invitations.",
+        "roles": "Roles and permissions",
+        "rolesHint": "What each access level may see and do, module by module.",
+        "security": "Security rules",
+        "securityHint": "Two-step sign-in, document approval and attachment types.",
+        "auditLog": "Audit log",
+        "auditLogHint": "Who changed what, and when. Filter and export for audits."
       },
       "moduleLinks": {
         "types": "Types",
@@ -562,7 +698,14 @@
         "settings": "Settings",
         "retention": "Retention rules"
       },
-      "membersSection": "Members, departments and invitations"
+      "membersSection": "Members, departments and invitations",
+      "groups": {
+        "organisation": "Organisation",
+        "people": "People and access",
+        "work": "Notifications and workflows",
+        "learning": "Learning",
+        "trace": "Traceability"
+      }
     },
     "mfa": {
       "title": "Two-step verification",
@@ -615,6 +758,149 @@
         "quarantine": "Quarantine",
         "rejected": "Rejected upload"
       }
+    },
+    "people": {
+      "title": "People and access",
+      "nav": {
+        "members": "Members",
+        "departments": "Departments",
+        "invitations": "Invitations",
+        "roles": "Roles and permissions"
+      }
+    },
+    "roles": {
+      "title": "Roles and permissions",
+      "description": "What each access level may see and do, module by module.",
+      "intro": "This table is read-only. Change a person’s access level on the Members tab. Responsibilities in the management system are described under",
+      "export": "Export as CSV",
+      "module": "Module",
+      "moduleOff": "Switched off",
+      "noAccess": "No access",
+      "memberCount": "{{count}} members",
+      "memberCountOne": "1 member",
+      "showAllRoles": "Show all roles ({{count}})",
+      "showDisabledModules": "Show switched-off modules",
+      "legend": "Read = see records. Write = create and edit. Approve = approve and sign off. Manage = settings and deleting.",
+      "actions": {
+        "read": "Read",
+        "write": "Write",
+        "manage": "Manage",
+        "approve": "Approve",
+        "admin": "Administer",
+        "view": "View",
+        "intake": "Receive reports",
+        "distribute": "Distribute",
+        "draft": "Draft",
+        "record": "Record",
+        "templates": "Templates",
+        "sign": "Sign",
+        "measure": "Measure",
+        "evaluate": "Evaluate",
+        "disciplinary": "Disciplinary cases",
+        "requests": "Requests",
+        "audit_pack": "Audit packs",
+        "accept": "Accept",
+        "assign": "Assign",
+        "report": "Report",
+        "invite": "Invite"
+      },
+      "areas": {
+        "platform": "Platform and settings",
+        "org": "Organisation settings",
+        "users": "Users and invitations",
+        "audit": "Audit log",
+        "dashboard": "Overview",
+        "records": "Record types",
+        "learning": "Learning",
+        "tasks": "Tasks",
+        "other": "Other areas"
+      }
+    },
+    "audit": {
+      "title": "Audit log",
+      "description": "Who changed what, and when. Use it to answer auditors and to follow up changes.",
+      "export": "Export as CSV",
+      "exportFailed": "Could not export the audit log. Try again.",
+      "search": "Search the audit log",
+      "searchPlaceholder": "Search text, code or title",
+      "type": "Record type",
+      "allTypes": "All record types",
+      "actor": "Person",
+      "allActors": "Everyone",
+      "actorKind": "Done by",
+      "allActorKinds": "People, assistant and system",
+      "actorKinds": {
+        "user": "A person",
+        "ai": "Assistant",
+        "system": "System"
+      },
+      "action": "Kind of change",
+      "allActions": "All changes",
+      "from": "From",
+      "to": "To",
+      "apply": "Apply",
+      "clear": "Clear",
+      "oneRecord": "Showing the history of one record.",
+      "showAll": "Show everything",
+      "emptyTitle": "Nothing in the audit log yet",
+      "emptyBody": "Changes to records, settings and access are logged here automatically.",
+      "noMatch": "Nothing matches these filters.",
+      "technical": "Technical name",
+      "recordHistory": "Show this record’s history",
+      "verbs": {
+        "created": "Created",
+        "updated": "Updated",
+        "deleted": "Deleted",
+        "restored": "Restored",
+        "archived": "Archived",
+        "approved": "Approved",
+        "rejected": "Rejected",
+        "submitted": "Submitted for approval",
+        "published": "Published",
+        "status_changed": "Status changed",
+        "owner_changed": "Owner changed",
+        "assigned": "Assigned",
+        "closed": "Closed",
+        "reopened": "Reopened",
+        "linked": "Linked",
+        "unlinked": "Link removed",
+        "enabled": "Switched on",
+        "disabled": "Switched off",
+        "exported": "Exported",
+        "invited": "Invited",
+        "revoked": "Revoked",
+        "accepted": "Accepted",
+        "role_changed": "Access level changed",
+        "removed": "Removed",
+        "login_succeeded": "Signed in",
+        "login_failed": "Failed sign-in",
+        "logout": "Signed out",
+        "password_changed": "Password changed",
+        "synced": "Updated automatically",
+        "other": "Changed"
+      },
+      "types": {
+        "user": "User",
+        "org": "Organisation",
+        "organization": "Organisation",
+        "membership": "Membership",
+        "invitation": "Invitation",
+        "department": "Department",
+        "notification_rule": "Notification rule",
+        "role": "Role",
+        "org_settings": "Organisation settings",
+        "org_profile": "Organisation profile",
+        "org_module": "Module",
+        "requirement_link": "Requirement link",
+        "entity_link": "Connection",
+        "record_type": "Record type",
+        "workflow_definition": "Workflow",
+        "attachment": "Attachment"
+      }
+    },
+    "security": {
+      "title": "Security rules",
+      "description": "Rules for sign-in and documents that apply to everyone in the organisation."
     }
   },
   "auth": {
@@ -885,14 +1171,14 @@
       "subtitle": "Create and manage organizations across the platform.",
       "create": "Create organization",
       "name": "Name",
-      "slug": "Slug",
-      "slugOptional": "Slug (optional)",
+      "slug": "Short name in the address",
+      "slugOptional": "Short name in the address (optional)",
       "members": "Members",
       "created": "Created",
       "empty": "No organizations yet.",
       "notFound": "Organization not found.",
       "backToList": "All organizations",
-      "slugTaken": "That slug is already taken. Choose another.",
+      "slugTaken": "This short name is already in use. Choose another.",
       "createdToast": "Organization created."
     },
     "members": {
@@ -936,6 +1222,17 @@
       "resetMfaConfirm": "Reset two-step verification for {{name}}? All their methods and recovery codes are removed and they are signed out everywhere. Only do this after confirming who they are.",
       "resetMfaToast": "Two-step verification was reset for {{name}}.",
       "resetMfaFailed": "Could not reset two-step verification. Please try again."
+    },
+    "overview": {
+      "title": "Overview",
+      "lastActivity": "Last activity",
+      "never": "No activity yet",
+      "setup": "Setup completed",
+      "setupPending": "Not completed",
+      "pendingInvitations": "Pending invitations",
+      "modules": "Modules in use",
+      "standards": "Standards switched on",
+      "none": "None"
     }
   },
   "invite": {
@@ -1953,7 +2250,8 @@
       "documents": "Documents",
       "standards": "Standards and requirements",
       "guidance": "Guidance and learning",
-      "records": "Record types and workflows"
+      "records": "Record types and workflows",
+      "platform": "Platform and settings"
     },
     "descriptions": {
       "tasks": "Assign, track and repeat work across every module.",
@@ -2148,6 +2446,50 @@
     "employee": {
       "one": "employee",
       "other": "employees"
+    },
+    "ai_system": {
+      "one": "AI system",
+      "other": "AI systems"
+    },
+    "asset": {
+      "one": "asset",
+      "other": "assets"
+    },
+    "candidate": {
+      "one": "candidate",
+      "other": "candidates"
+    },
+    "change_request": {
+      "one": "change request",
+      "other": "change requests"
+    },
+    "complaint": {
+      "one": "complaint",
+      "other": "complaints"
+    },
+    "contract": {
+      "one": "contract",
+      "other": "contracts"
+    },
+    "course": {
+      "one": "course",
+      "other": "courses"
+    },
+    "customer_feedback": {
+      "one": "customer feedback",
+      "other": "customer feedback"
+    },
+    "inspection": {
+      "one": "inspection",
+      "other": "inspections"
+    },
+    "project": {
+      "one": "project",
+      "other": "projects"
+    },
+    "survey": {
+      "one": "survey",
+      "other": "surveys"
     }
   },
   "ui": {
@@ -2227,6 +2569,16 @@
       "remove": "Remove {{ name }}",
       "flagged": "Check this value",
       "none": "Not set"
+    }
+  },
+  "account": {
+    "title": "My account",
+    "nav": {
+      "password": "Password",
+      "security": "Two-step sign-in",
+      "sessions": "Sessions",
+      "notifications": "Notifications",
+      "learning": "Learning"
     }
   }
 }

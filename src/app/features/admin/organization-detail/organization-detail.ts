@@ -10,7 +10,6 @@ import {
   signal,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { AdminApi } from '../../../core/admin/admin-api';
 import {
@@ -24,6 +23,7 @@ import { AuthService } from '../../../core/auth/auth.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { memberErrorKey } from '../../../core/org/member-errors';
 import { OrgMembersApi } from '../../../core/org/org-members-api';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { ROLE_KEYS, roleLabel } from '../../../core/org/roles';
 import { Badge } from '../../../shared/ui/badge/badge';
@@ -44,7 +44,6 @@ const ROLE_OPTIONS: readonly RoleKey[] = ROLE_KEYS;
   selector: 'app-organization-detail',
   imports: [
     ReactiveFormsModule,
-    RouterLink,
     TranslocoPipe,
     LocalDatePipe,
     Card,
@@ -53,6 +52,7 @@ const ROLE_OPTIONS: readonly RoleKey[] = ROLE_KEYS;
     Badge,
     Icon,
     ConfirmDialog,
+    PageHeader,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './organization-detail.html',

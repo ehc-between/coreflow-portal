@@ -1,21 +1,78 @@
-<div class="mx-auto max-w-[1080px] px-8 pt-7 pb-12">
-  <a
-    routerLink="/admin/organizations"
-    class="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
-  >
-    <app-icon name="back" [size]="16" />
-    {{ 'admin.org.backToList' | transloco }}
-  </a>
-
+<div class="mx-auto max-w-[1080px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
   @if (loading()) {
     <div class="py-10 text-center text-[14px] text-fg-muted">
       {{ 'common.loading' | transloco }}
     </div>
   } @else if (org(); as org) {
-    <div class="mb-[18px]">
-      <h1 class="font-display text-[26px] font-bold tracking-[-0.025em] text-fg">{{ org.name }}</h1>
-      <div class="mt-1.5 text-[14px] text-fg-muted">{{ org.slug }}</div>
-    </div>
+    <app-page-header
+      [title]="org.name"
+      [breadcrumbs]="[
+        { labelKey: 'admin.org.title', link: '/admin/organizations' },
+        { label: org.name },
+      ]"
+    >
+      <p meta class="text-ui text-fg-muted">
+        {{ 'admin.org.slug' | transloco }}: <span class="font-mono">{{ org.slug }}</span>
+      </p>
+    </app-page-header>
+
+    @if (org.overview; as o) {
+      <app-card class="mb-5 block" data-testid="admin-org-overview">
+        <h2 class="mb-3 font-display text-card font-bold text-fg">
+          {{ 'admin.overview.title' | transloco }}
+        </h2>
+        <dl class="grid gap-x-6 gap-y-3 text-ui sm:grid-cols-2 lg:grid-cols-3">
+          <div>
+            <dt class="text-meta text-fg-subtle">
+              {{ 'admin.overview.lastActivity' | transloco }}
+            </dt>
+            <dd class="text-fg">
+              {{
+                o.last_activity_at
+                  ? (o.last_activity_at | localDate)
+                  : ('admin.overview.never' | transloco)
+              }}
+            </dd>
+          </div>
+          <div>
+            <dt class="text-meta text-fg-subtle">{{ 'admin.overview.setup' | transloco }}</dt>
+            <dd class="text-fg">
+              {{
+                o.setup_completed_at
+                  ? (o.setup_completed_at | localDate)
+                  : ('admin.overview.setupPending' | transloco)
+              }}
+            </dd>
+          </div>
+          <div>
+            <dt class="text-meta text-fg-subtle">
+              {{ 'admin.overview.pendingInvitations' | transloco }}
+            </dt>
+            <dd class="text-fg">{{ o.pending_invitations }}</dd>
+          </div>
+          <div class="sm:col-span-2 lg:col-span-3">
+            <dt class="text-meta text-fg-subtle">{{ 'admin.overview.modules' | transloco }}</dt>
+            <dd class="mt-1 flex flex-wrap gap-1">
+              @for (m of o.modules_enabled; track m) {
+                <app-badge tone="accent">{{ 'modules.names.' + m | transloco }}</app-badge>
+              } @empty {
+                <span class="text-fg-muted">{{ 'admin.overview.none' | transloco }}</span>
+              }
+            </dd>
+          </div>
+          <div class="sm:col-span-2 lg:col-span-3">
+            <dt class="text-meta text-fg-subtle">{{ 'admin.overview.standards' | transloco }}</dt>
+            <dd class="mt-1 flex flex-wrap gap-1">
+              @for (s of o.standards_enabled; track s) {
+                <app-badge>{{ s }}</app-badge>
+              } @empty {
+                <span class="text-fg-muted">{{ 'admin.overview.none' | transloco }}</span>
+              }
+            </dd>
+          </div>
+        </dl>
+      </app-card>
+    }
 
     <div class="grid gap-5 lg:grid-cols-[1fr_340px]">
       <div class="flex flex-col gap-5">

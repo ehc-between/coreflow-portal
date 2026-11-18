@@ -25,6 +25,8 @@ import { Switch } from '../../../shared/ui/switch/switch';
 import { AskPanelService } from '../../ask/ask-panel.service';
 import { GUIDE_CLAUSES, frameworkShortKey } from '../frameworks';
 import { ModulesGuide } from '../guide/modules-guide';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
+import { providePageContext } from '../../../core/ai/page-context';
 import { ModulesLesson } from '../guide/modules-lesson';
 import { moduleDescriptionKey, moduleNameKey, moduleNameList } from '../module-names';
 
@@ -50,6 +52,37 @@ export function filterModules(
 }
 
 /**
+ * The module that carries most of a framework's day-to-day work: when the
+ * framework is in scope but this module is off, the page says so.
+ */
+export const FRAMEWORK_KEY_MODULE: Readonly<Record<string, string>> = {
+  iso9001: 'deviations',
+  iso27001: 'risk',
+  iso14001: 'environment',
+  iso45001: 'hse',
+  iso42001: 'ai_governance',
+  eu_ai_act: 'ai_governance',
+  gdpr: 'privacy',
+  nis2: 'continuity',
+};
+
+/** Frameworks in scope whose key module exists but is switched off. */
+export function scopeGaps(
+  frameworks: readonly string[],
+  modules: readonly OrgModule[],
+): { framework: string; module: OrgModule }[] {
+  const out: { framework: string; module: OrgModule }[] = [];
+  for (const framework of frameworks) {
+    const key = FRAMEWORK_KEY_MODULE[framework];
+    const module = modules.find((m) => m.key === key);
+    if (module && !module.enabled && !out.some((g) => g.module.key === module.key)) {
+      out.push({ framework, module });
+    }
+  }
+  return out;
+}
+
+/**
  * Settings → Modules (`org:manage`): every module of the platform as a card
  * with an on/off switch, its frameworks and dependency hints. Turning a module
  * off asks first (data is kept; members lose access until it's back on). The
@@ -70,24 +103,20 @@ export function filterModules(
     Switch,
     ModulesGuide,
     ModulesLesson,
+    PageHeader,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mx-auto max-w-[1080px] px-4 pt-7 pb-12 sm:px-8">
-      <nav class="mb-2 text-[13px]" [attr.aria-label]="'modules.common.breadcrumb' | transloco">
-        <a routerLink="/settings" class="font-semibold text-accent hover:underline">
-          {{ 'nav.settings' | transloco }}
-        </a>
-      </nav>
-      <div class="mb-[18px] flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 class="font-display text-[26px] font-bold tracking-[-0.025em] text-fg">
-            {{ 'modules.settings.title' | transloco }}
-          </h1>
-          <p class="mt-1.5 text-[14px] text-fg-muted">
-            {{ 'modules.settings.subtitle' | transloco }}
-          </p>
-        </div>
+      <app-page-header
+        titleKey="modules.settings.title"
+        descriptionKey="modules.settings.subtitle"
+        [breadcrumbs]="[
+          { labelKey: 'settings.hub.title', link: '/settings' },
+          { labelKey: 'modules.settings.title' },
+        ]"
+      />
+      <div class="mb-[18px] -mt-2 flex flex-wrap items-start justify-end gap-3">
         <div class="flex flex-wrap gap-2">
           <app-button variant="secondary" size="sm" (click)="askFit()">
             <app-icon name="spark" [size]="15" />
@@ -104,6 +133,29 @@ export function filterModules(
       </div>
 
       <app-modules-guide class="mb-5 block" page="modules" [steps]="3" [clauses]="clauses" />
+
+      @for (gap of gaps(); track gap.module.key) {
+        <p
+          class="mb-3 flex flex-wrap items-center gap-2 rounded-tile border border-warn/30 bg-warn-soft px-3 py-2 text-ui text-warn-ink"
+          role="status"
+          data-testid="scope-gap"
+        >
+          <app-icon name="alert" [size]="15" />
+          <span class="min-w-0 flex-1">{{
+            'modules.settings.scopeGap'
+              | transloco
+                : {
+                    framework: (frameworkShortKey(gap.framework) | transloco),
+                    module: (nameKey(gap.module) | transloco),
+                  }
+          }}</span>
+          <app-button size="sm" variant="secondary" (click)="request(gap.module, true)">
+            {{
+              'modules.settings.turnOn' | transloco: { module: (nameKey(gap.module) | transloco) }
+            }}
+          </app-button>
+        </p>
+      }
 
       @if (!orgId()) {
         <app-card>
@@ -237,7 +289,17 @@ export function filterModules(
                   @if (m.frameworks.length) {
                     <div class="flex flex-wrap gap-1">
                       @for (fw of m.frameworks; track fw) {
-                        <app-badge>{{ frameworkShortKey(fw) | transloco }}</app-badge>
+                        <button
+                          type="button"
+                          class="rounded-full focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                          [attr.aria-label]="
+                            'modules.settings.filterByFramework'
+                              | transloco: { framework: (frameworkShortKey(fw) | transloco) }
+                          "
+                          (click)="framework.set(fw)"
+                        >
+                          <app-badge>{{ frameworkShortKey(fw) | transloco }}</app-badge>
+                        </button>
                       }
                     </div>
                   }
@@ -312,14 +374,24 @@ export class ModulesSettings {
   protected readonly status = signal<ModuleStatusFilter>('all');
   protected readonly framework = signal('');
 
+  /** Frameworks in the organisation profile (for the scope-gap hints). */
+  protected readonly profileFrameworks = signal<readonly string[]>([]);
+  protected readonly gaps = computed(() => scopeGaps(this.profileFrameworks(), this.modules()));
+
   protected readonly visible = computed(() => {
+    const collator = new Intl.Collator(this.language.active() === 'nb' ? 'nb' : 'en');
     return filterModules(this.modules(), {
       status: this.status(),
       framework: this.framework(),
       query: this.query(),
       text: (m) =>
         `${this.language.translate(moduleNameKey(m.key))} ${this.language.translate(moduleDescriptionKey(m.key))} ${m.key}`,
-    });
+    }).sort((a, b) =>
+      collator.compare(
+        this.language.translate(moduleNameKey(a.key)),
+        this.language.translate(moduleNameKey(b.key)),
+      ),
+    );
   });
   protected readonly enabledCount = computed(() => this.modules().filter((m) => m.enabled).length);
   protected readonly pendingName = computed(() => {
@@ -328,13 +400,27 @@ export class ModulesSettings {
   });
 
   constructor() {
+    providePageContext(() => ({
+      module: null,
+      entityType: 'org_module',
+      view: 'settings',
+      title: this.language.translate('modules.settings.title'),
+    }));
+
     effect(() => {
       const orgId = this.orgId();
       untracked(() => {
         this.modules.set([]);
+        this.profileFrameworks.set([]);
         this.error.set(null);
         if (orgId) {
           this.load();
+          this.api.getProfile(orgId).subscribe({
+            next: (profile) => {
+              if (this.orgId() === orgId) this.profileFrameworks.set(profile.frameworks ?? []);
+            },
+            error: () => undefined,
+          });
         }
       });
     });

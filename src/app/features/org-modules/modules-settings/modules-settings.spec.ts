@@ -10,7 +10,7 @@ import { OrgModule } from '../../../core/modules/module.models';
 import { ModuleService } from '../../../core/modules/module.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { AskPanelService } from '../../ask/ask-panel.service';
-import { ModulesSettings } from './modules-settings';
+import { ModulesSettings, scopeGaps } from './modules-settings';
 
 const BASE = 'http://test/api';
 const ORG = 'org-1';
@@ -29,6 +29,14 @@ function mod(key: string, enabled: boolean, extra: Partial<OrgModule> = {}): Org
     ...extra,
   };
 }
+
+describe('scopeGaps', () => {
+  it('flags a framework in scope whose key module is off', () => {
+    const modules = [mod('hse', false), mod('privacy', true)];
+    expect(scopeGaps(['iso45001', 'gdpr'], modules).map((g) => g.module.key)).toEqual(['hse']);
+    expect(scopeGaps(['nis2'], modules)).toEqual([]);
+  });
+});
 
 describe('ModulesSettings', () => {
   let fixture: ComponentFixture<ModulesSettings>;
@@ -74,6 +82,8 @@ describe('ModulesSettings', () => {
         mod('audits', false, { depends_on: ['documents'] }),
         mod('tasks', true, { always_on: true }),
       ]);
+    // A26: the profile's frameworks drive the scope-gap hints.
+    http.expectOne(`${BASE}/v1/orgs/${ORG}/profile`).flush({ frameworks: [] });
     fixture.detectChanges();
     await fixture.whenStable();
   });

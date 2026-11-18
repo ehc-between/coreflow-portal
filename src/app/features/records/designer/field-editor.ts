@@ -16,6 +16,10 @@ import { Icon } from '../../../shared/ui/icon/icon';
 import { NUMERIC_TYPES, OPTION_TYPES, SectionDraft, uniqueKey } from '../designer-model';
 import { RecordsFieldHelp } from '../guidance/records-guidance';
 import { LocalizedInput } from './localized-input';
+import { ClausePicker } from '../../../shared/requirement-links/clause-picker';
+
+/** Most requirements one field can name (backend limit). */
+export const FIELD_REQUIREMENTS_MAX = 8;
 
 let nextId = 0;
 
@@ -28,7 +32,16 @@ const TEXT_TYPES: readonly FieldType[] = ['text', 'textarea', 'richtext'];
  */
 @Component({
   selector: 'app-field-editor',
-  imports: [FormsModule, TranslocoPipe, Badge, FormField, Icon, LocalizedInput, RecordsFieldHelp],
+  imports: [
+    FormsModule,
+    TranslocoPipe,
+    Badge,
+    ClausePicker,
+    FormField,
+    Icon,
+    LocalizedInput,
+    RecordsFieldHelp,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @let f = field();
@@ -181,6 +194,22 @@ const TEXT_TYPES: readonly FieldType[] = ['text', 'textarea', 'richtext'];
                 [value]="f.help"
                 (valueChange)="patch({ help: $event })"
               />
+            </div>
+
+            <div class="sm:col-span-2" data-testid="field-requirements">
+              <app-form-field
+                [label]="'records.fields.requirements' | transloco"
+                [inputId]="id + '-requirements'"
+              >
+                <app-clause-picker
+                  [inputId]="id + '-requirements'"
+                  [ngModel]="f.requirements ?? []"
+                  (ngModelChange)="setRequirements($event)"
+                />
+                <p class="text-[11.5px] text-fg-subtle">
+                  {{ 'records.fields.requirementsHint' | transloco: { max: requirementsMax } }}
+                </p>
+              </app-form-field>
             </div>
 
             @if (isText() || f.type === 'number') {
@@ -449,6 +478,14 @@ export class FieldEditor {
 
   protected sectionName(section: SectionDraft): string {
     return localize(section.label, this.lang()) || section.key;
+  }
+
+  protected readonly requirementsMax = FIELD_REQUIREMENTS_MAX;
+
+  /** The requirements this field documents (canonical refs, at most 8; empty = none). */
+  protected setRequirements(refs: unknown): void {
+    const list = Array.isArray(refs) ? refs.filter((r): r is string => typeof r === 'string') : [];
+    this.patch({ requirements: list.length ? list.slice(0, FIELD_REQUIREMENTS_MAX) : null });
   }
 
   protected patch(changes: Partial<FieldSpec>): void {

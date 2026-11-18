@@ -7,8 +7,12 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { ActivatedRoute, Router } from '@angular/router';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { providePageContext } from '../../../core/ai/page-context';
+import { flattenScopedKey } from '../../../core/notifications/notification-text';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
+import { eventLabelFromTemplate, scopeOfKey } from './event-label';
 import { catchError, forkJoin, of } from 'rxjs';
 import { AiAvailability } from '../../../core/ai/ai-availability';
 import { LanguageService } from '../../../core/i18n/language.service';
@@ -46,16 +50,24 @@ import {
   moduleLabel,
 } from './rule-helpers';
 
+/** Tabs of the notifications page (`?tab=`). */
+export const NOTIFICATION_TABS = ['rules', 'reminders', 'leads'] as const;
+export type NotificationTab = (typeof NOTIFICATION_TABS)[number];
+
 /**
- * `/settings/notifications` (org:manage): the notification rules matrix (who
- * hears about each event kind, and how), reminder / escalation settings and
- * department leads, with learning-mode guidance and assistant shortcuts.
+ * `/settings/notifications` (org:manage), in three tabs: the rules (who hears
+ * about each kind of activity, and how; by default only the kinds that notify
+ * someone, with a switch for all), reminders and escalation, and department
+ * leads. Every kind can be switched on, including those that by default only
+ * appear on the timeline (e.g. "a new deviation is registered"). Kinds are named
+ * from their notification text in the UI language; technical names are hidden
+ * behind a switch.
  */
 @Component({
   selector: 'app-notification-settings',
   imports: [
     TranslocoPipe,
-    RouterLink,
+    PageHeader,
     ActivityGuide,
     Alert,
     Badge,
@@ -70,23 +82,17 @@ import {
   viewProviders: [provideSharedScope('activity')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[1080px] px-4 pt-7 pb-12 sm:px-8">
-      <a
-        routerLink="/settings"
-        class="mb-3 inline-flex items-center gap-1 text-[12.5px] font-medium text-fg-muted hover:text-fg focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+    <div class="mx-auto max-w-[1080px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+      <app-page-header
+        titleKey="activity.page.title"
+        descriptionKey="activity.page.subtitle"
+        [breadcrumbs]="[
+          { labelKey: 'settings.hub.title', link: '/settings' },
+          { labelKey: 'activity.page.title' },
+        ]"
       >
-        <app-icon name="back" [size]="14" />
-        {{ 'activity.page.back' | transloco }}
-      </a>
-      <div class="mb-5 flex flex-wrap items-start justify-between gap-3">
-        <div class="min-w-0">
-          <h1 class="font-display text-[26px] font-bold tracking-[-0.025em] text-fg">
-            {{ 'activity.page.title' | transloco }}
-          </h1>
-          <p class="mt-1.5 text-[14px] text-fg-muted">{{ 'activity.page.subtitle' | transloco }}</p>
-        </div>
         @if (aiAvailable() && orgId()) {
-          <div class="flex flex-wrap gap-2">
+          <ng-container secondary>
             <app-button variant="secondary" data-testid="ai-suggest" (click)="suggestSetup()">
               <app-icon name="spark" [size]="15" />
               {{ 'activity.ai.suggest' | transloco }}
@@ -94,23 +100,52 @@ import {
             <app-button variant="ghost" data-testid="ai-explain" (click)="explainPage()">
               {{ 'activity.ai.explain' | transloco }}
             </app-button>
-          </div>
+          </ng-container>
         }
-      </div>
+      </app-page-header>
 
       @if (!orgId()) {
         <app-card>
-          <p class="px-2 py-8 text-center text-[14px] text-fg-muted">
+          <p class="px-2 py-8 text-center text-body text-fg-muted">
             {{ 'activity.page.noOrg' | transloco }}
           </p>
         </app-card>
       } @else {
-        <div class="flex flex-col gap-8">
+        <div class="flex flex-col gap-6">
           <app-activity-guide page="rules" (explain)="ask.showWith($event)" />
+
+          <div
+            role="tablist"
+            class="flex gap-1 overflow-x-auto border-b border-border"
+            [attr.aria-label]="'activity.page.tabs' | transloco"
+          >
+            @for (t of tabs; track t) {
+              <button
+                type="button"
+                role="tab"
+                [id]="'notif-tab-' + t"
+                [attr.aria-selected]="tab() === t"
+                [attr.aria-controls]="'notif-panel-' + t"
+                [attr.tabindex]="tab() === t ? 0 : -1"
+                [attr.data-testid]="'notif-tab-' + t"
+                class="-mb-px min-h-10 border-b-2 px-3 py-2 text-ui font-semibold whitespace-nowrap"
+                [class]="
+                  tab() === t
+                    ? 'border-accent text-fg'
+                    : 'border-transparent text-fg-muted hover:text-fg'
+                "
+                (click)="selectTab(t)"
+                (keydown.arrowRight)="cycleTab(1)"
+                (keydown.arrowLeft)="cycleTab(-1)"
+              >
+                {{ 'activity.page.tab.' + t | transloco }}
+              </button>
+            }
+          </div>
 
           @if (loading()) {
             <app-card>
-              <p class="px-2 py-8 text-center text-[14px] text-fg-muted" data-testid="loading">
+              <p class="px-2 py-8 text-center text-body text-fg-muted" data-testid="loading">
                 {{ 'activity.page.loading' | transloco }}
               </p>
             </app-card>
@@ -124,193 +159,198 @@ import {
               </div>
             </app-card>
           } @else {
-            <section aria-labelledby="rules-title" data-testid="rules-section">
-              <div class="mb-3 flex flex-wrap items-end justify-between gap-3">
-                <div>
-                  <h2
-                    id="rules-title"
-                    class="font-display text-[18px] font-bold tracking-[-0.02em] text-fg"
-                  >
-                    {{ 'activity.rules.title' | transloco }}
-                  </h2>
-                  <p class="mt-0.5 text-[13px] text-fg-muted">
-                    {{ 'activity.rules.subtitle' | transloco }}
-                  </p>
-                </div>
-              </div>
+            <div
+              role="tabpanel"
+              [id]="'notif-panel-' + tab()"
+              [attr.aria-labelledby]="'notif-tab-' + tab()"
+            >
+              @switch (tab()) {
+                @case ('reminders') {
+                  <app-reminder-settings-form
+                    [orgId]="orgId()!"
+                    [settings]="settings()"
+                    [roles]="roles()"
+                    [roleName]="roleName"
+                    (saved)="settings.set($event)"
+                  />
+                }
+                @case ('leads') {
+                  <app-department-leads
+                    [orgId]="orgId()!"
+                    [leads]="leads()"
+                    [members]="members()"
+                    (changed)="replaceLead($event)"
+                  />
+                }
+                @default {
+                  <section aria-labelledby="rules-title" data-testid="rules-section">
+                    <h2 id="rules-title" class="sr-only">
+                      {{ 'activity.rules.title' | transloco }}
+                    </h2>
+                    <p class="mb-3 text-ui text-fg-muted">
+                      {{ 'activity.rules.subtitle' | transloco }}
+                    </p>
 
-              <div class="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center">
-                <label class="sr-only" for="rules-search">{{
-                  'activity.rules.search' | transloco
-                }}</label>
-                <input
-                  id="rules-search"
-                  type="search"
-                  data-testid="rules-search"
-                  [value]="query()"
-                  (input)="query.set($any($event.target).value)"
-                  [placeholder]="'activity.rules.search' | transloco"
-                  class="h-9 w-full rounded-[10px] border border-border bg-bg px-3 text-[13px] text-fg outline-none focus:border-accent sm:w-64"
-                />
-                <label class="sr-only" for="rules-module">{{
-                  'activity.rules.moduleFilter' | transloco
-                }}</label>
-                <select
-                  id="rules-module"
-                  data-testid="rules-module"
-                  (change)="moduleFilter.set($any($event.target).value || null)"
-                  class="h-9 rounded-[10px] border border-border bg-bg px-2.5 text-[13px] text-fg outline-none focus:border-accent"
-                >
-                  <option value="">{{ 'activity.rules.allModules' | transloco }}</option>
-                  @for (m of modules(); track m.module) {
-                    <option [value]="m.module" [selected]="m.module === moduleFilter()">
-                      {{ m.label }}
-                    </option>
-                  }
-                </select>
-                <div class="sm:ml-2">
-                  <app-switch [checked]="customOnly()" (checkedChange)="customOnly.set($event)">
-                    {{ 'activity.rules.customOnly' | transloco }}
-                  </app-switch>
-                </div>
-              </div>
-
-              @if (rules().length === 0) {
-                <app-card>
-                  <div class="px-2 py-8 text-center" data-testid="rules-empty">
-                    <p class="text-[14px] font-semibold text-fg">
-                      {{ 'activity.rules.emptyTitle' | transloco }}
-                    </p>
-                    <p class="mx-auto mt-1 max-w-md text-[13px] text-fg-muted">
-                      {{ 'activity.rules.emptyBody' | transloco }}
-                    </p>
-                  </div>
-                </app-card>
-              } @else if (groups().length === 0) {
-                <app-card>
-                  <div class="px-2 py-8 text-center" data-testid="rules-no-match">
-                    <p class="text-[13.5px] text-fg-muted">
-                      {{ 'activity.rules.noMatch' | transloco }}
-                    </p>
-                    <button
-                      type="button"
-                      (click)="clearFilters()"
-                      class="mt-2 text-[13px] font-semibold text-accent hover:underline focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
-                    >
-                      {{ 'activity.rules.clearFilters' | transloco }}
-                    </button>
-                  </div>
-                </app-card>
-              } @else {
-                <app-card [padded]="false">
-                  <div class="overflow-x-auto">
-                    <table class="w-full min-w-[720px] text-left text-[13px]">
-                      <caption class="sr-only">
+                    <div class="mb-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+                      <label class="sr-only" for="rules-search">{{
+                        'activity.rules.search' | transloco
+                      }}</label>
+                      <input
+                        id="rules-search"
+                        type="search"
+                        data-testid="rules-search"
+                        [value]="query()"
+                        (input)="query.set($any($event.target).value)"
+                        [placeholder]="'activity.rules.search' | transloco"
+                        class="h-9 w-full rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent sm:w-64"
+                      />
+                      <label class="sr-only" for="rules-module">{{
+                        'activity.rules.moduleFilter' | transloco
+                      }}</label>
+                      <select
+                        id="rules-module"
+                        data-testid="rules-module"
+                        (change)="moduleFilter.set($any($event.target).value || null)"
+                        class="h-9 rounded-tile border border-border bg-bg px-2.5 text-ui text-fg outline-none focus:border-accent"
+                      >
+                        <option value="">{{ 'activity.rules.allModules' | transloco }}</option>
+                        @for (m of modules(); track m.module) {
+                          <option [value]="m.module" [selected]="m.module === moduleFilter()">
+                            {{ m.label }}
+                          </option>
+                        }
+                      </select>
+                      <div class="flex flex-wrap gap-x-4 gap-y-2 sm:ml-2">
+                        <app-switch
+                          [checked]="!notifyingOnly()"
+                          (checkedChange)="notifyingOnly.set(!$event)"
+                          data-testid="rules-show-all"
+                        >
+                          {{ 'activity.rules.showAll' | transloco: { count: rules().length } }}
+                        </app-switch>
+                        <app-switch
+                          [checked]="customOnly()"
+                          (checkedChange)="customOnly.set($event)"
+                        >
+                          {{ 'activity.rules.customOnly' | transloco }}
+                        </app-switch>
+                        <app-switch [checked]="technical()" (checkedChange)="technical.set($event)">
+                          {{ 'activity.rules.technical' | transloco }}
+                        </app-switch>
+                      </div>
+                    </div>
+                    @if (notifyingOnly()) {
+                      <p class="mb-3 text-meta text-fg-subtle" data-testid="rules-short-list">
                         {{
-                          'activity.rules.title' | transloco
+                          'activity.rules.shortList'
+                            | transloco: { count: notifyingCount(), total: rules().length }
                         }}
-                      </caption>
-                      <thead>
-                        <tr class="border-b border-border text-[12px] text-fg-subtle">
-                          <th scope="col" class="px-4 py-2.5 font-semibold">
-                            {{ 'activity.rules.columns.event' | transloco }}
-                          </th>
-                          <th scope="col" class="px-4 py-2.5 font-semibold">
-                            {{ 'activity.rules.columns.recipients' | transloco }}
-                          </th>
-                          <th scope="col" class="px-4 py-2.5 font-semibold">
-                            {{ 'activity.rules.columns.channels' | transloco }}
-                          </th>
-                          <th scope="col" class="px-4 py-2.5 font-semibold">
-                            {{ 'activity.rules.columns.status' | transloco }}
-                          </th>
-                          <th scope="col" class="px-4 py-2.5">
-                            <span class="sr-only">{{
-                              'activity.rules.columns.actions' | transloco
-                            }}</span>
-                          </th>
-                        </tr>
-                      </thead>
-                      @for (group of groups(); track group.module) {
-                        <tbody>
-                          <tr class="bg-surface-2">
-                            <th
-                              scope="colgroup"
-                              colspan="5"
-                              class="px-4 py-1.5 text-[11.5px] font-semibold tracking-wide text-fg-muted uppercase"
-                            >
-                              {{ group.label }}
-                            </th>
-                          </tr>
-                          @for (rule of group.rules; track rule.event_kind) {
-                            <tr
-                              class="border-b border-border align-top last:border-b-0"
-                              data-testid="rule-row"
-                            >
-                              <th scope="row" class="px-4 py-3 font-normal">
-                                <span class="block font-semibold text-fg">{{
-                                  kindName(rule.event_kind)
-                                }}</span>
-                                <span class="mt-0.5 block text-[12px] text-fg-subtle">
-                                  {{ categoryName(rule.category) }} ·
-                                  <span class="font-mono">{{ rule.event_kind }}</span>
-                                </span>
-                              </th>
-                              <td class="px-4 py-3">
-                                @if (!rule.notify) {
-                                  <span class="text-fg-muted">{{
-                                    'activity.rules.timelineOnly' | transloco
+                      </p>
+                    }
+
+                    @if (rules().length === 0) {
+                      <app-card>
+                        <div class="px-2 py-8 text-center" data-testid="rules-empty">
+                          <p class="text-body font-semibold text-fg">
+                            {{ 'activity.rules.emptyTitle' | transloco }}
+                          </p>
+                          <p class="mx-auto mt-1 max-w-md text-ui text-fg-muted">
+                            {{ 'activity.rules.emptyBody' | transloco }}
+                          </p>
+                        </div>
+                      </app-card>
+                    } @else if (groups().length === 0) {
+                      <app-card>
+                        <div class="px-2 py-8 text-center" data-testid="rules-no-match">
+                          <p class="text-ui text-fg-muted">
+                            {{ 'activity.rules.noMatch' | transloco }}
+                          </p>
+                          <button
+                            type="button"
+                            (click)="clearFilters()"
+                            class="mt-2 text-ui font-semibold text-accent hover:underline focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                          >
+                            {{ 'activity.rules.clearFilters' | transloco }}
+                          </button>
+                        </div>
+                      </app-card>
+                    } @else {
+                      <app-card [padded]="false">
+                        @for (group of groups(); track group.module) {
+                          <h3
+                            class="border-b border-border bg-surface-2 px-4 py-1.5 text-micro font-semibold tracking-wide text-fg-muted uppercase"
+                          >
+                            {{ group.label }}
+                          </h3>
+                          <ul>
+                            @for (rule of group.rules; track rule.event_kind) {
+                              <li
+                                class="grid grid-cols-1 gap-x-4 gap-y-1.5 border-b border-border px-4 py-3 last:border-b-0 md:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_auto_auto] md:items-center"
+                                data-testid="rule-row"
+                              >
+                                <div class="min-w-0">
+                                  <span class="block font-semibold text-fg">{{
+                                    kindName(rule.event_kind)
                                   }}</span>
-                                } @else if (rule.recipients.length === 0) {
-                                  <span class="text-fg-muted">{{
-                                    'activity.rules.nobody' | transloco
-                                  }}</span>
-                                } @else {
-                                  <ul class="flex flex-wrap gap-1">
-                                    @for (r of rule.recipients; track $index) {
-                                      <li>
-                                        <app-badge tone="neutral">{{ recipientName(r) }}</app-badge>
-                                      </li>
+                                  <span class="mt-0.5 block text-meta text-fg-subtle">
+                                    {{ categoryName(rule.category) }}
+                                    @if (technical()) {
+                                      · <span class="font-mono">{{ rule.event_kind }}</span>
                                     }
-                                  </ul>
-                                }
-                              </td>
-                              <td class="px-4 py-3">
-                                @if (rule.notify) {
-                                  <ul class="flex flex-wrap gap-1">
-                                    @for (channel of channels; track channel) {
-                                      @if (rule.channels.includes(channel)) {
+                                  </span>
+                                </div>
+                                <div class="min-w-0 text-ui">
+                                  @if (!rule.enabled) {
+                                    <span class="text-fg-muted">{{
+                                      (rule.notify
+                                        ? 'activity.rules.nobodyOff'
+                                        : 'activity.rules.timelineOnly'
+                                      ) | transloco
+                                    }}</span>
+                                  } @else if (rule.recipients.length === 0) {
+                                    <span class="text-fg-muted">{{
+                                      'activity.rules.nobody' | transloco
+                                    }}</span>
+                                  } @else {
+                                    <ul class="flex flex-wrap gap-1">
+                                      @for (r of rule.recipients; track $index) {
                                         <li>
-                                          <app-badge tone="accent">{{
-                                            'activity.channels.' + channel + '.label' | transloco
+                                          <app-badge tone="neutral">{{
+                                            recipientName(r)
                                           }}</app-badge>
                                         </li>
                                       }
-                                    }
-                                  </ul>
-                                }
-                              </td>
-                              <td class="px-4 py-3">
-                                @if (!rule.notify) {
-                                  <app-badge tone="neutral">{{
-                                    'activity.rules.status.timeline' | transloco
-                                  }}</app-badge>
-                                } @else if (!rule.enabled) {
-                                  <app-badge tone="warn">{{
-                                    'activity.rules.status.off' | transloco
-                                  }}</app-badge>
-                                } @else if (rule.is_default) {
-                                  <app-badge tone="neutral">{{
-                                    'activity.rules.status.default' | transloco
-                                  }}</app-badge>
-                                } @else {
-                                  <app-badge tone="pass">{{
-                                    'activity.rules.status.custom' | transloco
-                                  }}</app-badge>
-                                }
-                              </td>
-                              <td class="px-4 py-3 text-right">
-                                @if (rule.notify) {
+                                      @for (channel of channels; track channel) {
+                                        @if (rule.channels.includes(channel)) {
+                                          <li>
+                                            <app-badge tone="accent">{{
+                                              'activity.channels.' + channel + '.label' | transloco
+                                            }}</app-badge>
+                                          </li>
+                                        }
+                                      }
+                                    </ul>
+                                  }
+                                </div>
+                                <div>
+                                  @if (!rule.enabled) {
+                                    <app-badge tone="neutral">{{
+                                      (rule.notify
+                                        ? 'activity.rules.status.off'
+                                        : 'activity.rules.status.timeline'
+                                      ) | transloco
+                                    }}</app-badge>
+                                  } @else if (rule.is_default) {
+                                    <app-badge tone="neutral">{{
+                                      'activity.rules.status.default' | transloco
+                                    }}</app-badge>
+                                  } @else {
+                                    <app-badge tone="pass">{{
+                                      'activity.rules.status.custom' | transloco
+                                    }}</app-badge>
+                                  }
+                                </div>
+                                <div class="md:text-right">
                                   <app-button
                                     variant="ghost"
                                     size="sm"
@@ -321,34 +361,23 @@ import {
                                     "
                                     (click)="editing.set(rule)"
                                   >
-                                    {{ 'activity.rules.edit' | transloco }}
+                                    {{
+                                      (rule.enabled
+                                        ? 'activity.rules.edit'
+                                        : 'activity.rules.turnOn'
+                                      ) | transloco
+                                    }}
                                   </app-button>
-                                }
-                              </td>
-                            </tr>
-                          }
-                        </tbody>
-                      }
-                    </table>
-                  </div>
-                </app-card>
+                                </div>
+                              </li>
+                            }
+                          </ul>
+                        }
+                      </app-card>
+                    }
+                  </section>
+                }
               }
-            </section>
-
-            <div class="grid gap-5 lg:grid-cols-2">
-              <app-reminder-settings-form
-                [orgId]="orgId()!"
-                [settings]="settings()"
-                [roles]="roles()"
-                [roleName]="roleName"
-                (saved)="settings.set($event)"
-              />
-              <app-department-leads
-                [orgId]="orgId()!"
-                [leads]="leads()"
-                [members]="members()"
-                (changed)="replaceLead($event)"
-              />
             </div>
           }
         </div>
@@ -359,6 +388,7 @@ import {
           [roles]="roles()"
           [departments]="leads()"
           [members]="members()"
+          [kindLabel]="editing() ? kindName(editing()!.event_kind) : ''"
           (saved)="replaceRule($event)"
           (restored)="restored()"
           (closed)="editing.set(null)"
@@ -373,6 +403,16 @@ export class NotificationSettingsPage {
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly language = inject(LanguageService);
   private readonly ai = inject(AiAvailability);
+  private readonly transloco = inject(TranslocoService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  protected readonly tabs = NOTIFICATION_TABS;
+  protected readonly tab = signal<NotificationTab>(this.initialTab());
+  /** Only kinds that notify someone (the short list); off = every kind. */
+  protected readonly notifyingOnly = signal(true);
+  protected readonly technical = signal(false);
+  /** Scope files already requested for kind labels. */
+  private readonly requestedScopes = new Set<string>();
   protected readonly ask = inject(AskPanelService);
 
   protected readonly orgId = this.selectedOrg.currentOrgId;
@@ -408,8 +448,10 @@ export class NotificationSettingsPage {
       module: this.moduleFilter(),
       customOnly: this.customOnly(),
     };
-    return groupRules(filterRules(this.rules(), filter, this.lookup), this.lookup);
+    const rules = this.notifyingOnly() ? this.rules().filter((r) => r.enabled) : this.rules();
+    return groupRules(filterRules(rules, filter, this.labelLookup), this.labelLookup);
   });
+  protected readonly notifyingCount = computed(() => this.rules().filter((r) => r.enabled).length);
 
   protected readonly roleName = (role: OrgRole): string =>
     this.lookup(`roles.${role.key}.name`) ?? role.name;
@@ -417,11 +459,104 @@ export class NotificationSettingsPage {
   /** Incremented per load so a response for a previous org is dropped. */
   private generation = 0;
 
+  /**
+   * Like `lookup`, but `activity.kinds.<kind>` falls back to the kind's own
+   * notification / timeline text, so the helpers sort and search by the label
+   * the user sees.
+   */
+  private readonly labelLookup: Lookup = (key, params) => {
+    const prefix = 'activity.kinds.';
+    if (key.startsWith(prefix)) {
+      const kind = key.slice(prefix.length);
+      const rule = this.rules().find((r) => r.event_kind === kind);
+      return this.lookup(key, params) ?? (rule ? this.templateLabel(rule) : null);
+    }
+    return this.lookup(key, params);
+  };
+
   constructor() {
+    providePageContext(() => ({
+      module: null,
+      entityType: 'notification_rule',
+      view: 'settings',
+      title: this.language.translate('activity.page.title'),
+    }));
+
     effect(() => {
       const orgId = this.orgId();
       untracked(() => this.load(orgId));
     });
+
+    // Load the module translation files the kind labels come from.
+    effect(() => {
+      const lang = this.language.active();
+      const scopes = new Set<string>();
+      for (const rule of this.rules()) {
+        for (const key of [rule.title_key, rule.timeline_key]) {
+          const scope = scopeOfKey(key);
+          if (scope) scopes.add(scope);
+        }
+      }
+      untracked(() => {
+        for (const scope of scopes) {
+          const path = `${scope}/${lang}`;
+          if (this.requestedScopes.has(path)) continue;
+          this.requestedScopes.add(path);
+          this.transloco.load(path).subscribe({ error: () => undefined });
+        }
+      });
+    });
+  }
+
+  private initialTab(): NotificationTab {
+    const tab = this.route.snapshot.queryParamMap.get('tab');
+    return (NOTIFICATION_TABS as readonly string[]).includes(tab ?? '')
+      ? (tab as NotificationTab)
+      : 'rules';
+  }
+
+  protected selectTab(tab: NotificationTab): void {
+    this.tab.set(tab);
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { tab: tab === 'rules' ? null : tab },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+  }
+
+  protected cycleTab(step: number): void {
+    const index = NOTIFICATION_TABS.indexOf(this.tab());
+    const next =
+      NOTIFICATION_TABS[(index + step + NOTIFICATION_TABS.length) % NOTIFICATION_TABS.length];
+    this.selectTab(next);
+    queueMicrotask(() => document.getElementById(`notif-tab-${next}`)?.focus());
+  }
+
+  /** The kind's notification (or timeline) text with placeholders removed. */
+  private templateLabel(rule: NotificationRule): string | null {
+    for (const key of [rule.title_key, rule.timeline_key]) {
+      if (!key) continue;
+      const flat = flattenScopedKey(key);
+      // Tracks language changes and scope loads.
+      const translated = this.language.translate(flat);
+      if (translated === flat) continue;
+      const raw = this.rawTranslation(flat) ?? translated;
+      const label = eventLabelFromTemplate(raw);
+      if (label) return label;
+    }
+    return null;
+  }
+
+  private rawTranslation(flat: string): string | null {
+    const all = this.transloco.getTranslation(this.language.active()) as Record<string, unknown>;
+    const direct = all[flat];
+    if (typeof direct === 'string') return direct;
+    let node: unknown = all;
+    for (const part of flat.split('.')) {
+      node = node && typeof node === 'object' ? (node as Record<string, unknown>)[part] : undefined;
+    }
+    return typeof node === 'string' ? node : null;
   }
 
   protected reload(): void {
@@ -476,7 +611,7 @@ export class NotificationSettingsPage {
   }
 
   protected kindName(kind: string): string {
-    return kindLabel(kind, this.lookup);
+    return kindLabel(kind, this.labelLookup);
   }
 
   protected categoryName(category: string): string {
@@ -524,6 +659,7 @@ export class NotificationSettingsPage {
     this.query.set('');
     this.moduleFilter.set(null);
     this.customOnly.set(false);
+    this.notifyingOnly.set(false);
   }
 
   /** Ask the assistant for a rule and escalation setup suited to this organisation. */

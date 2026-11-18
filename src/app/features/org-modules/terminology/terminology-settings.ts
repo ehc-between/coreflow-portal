@@ -7,7 +7,6 @@ import {
   untracked,
 } from '@angular/core';
 import { FormBuilder, FormRecord, ReactiveFormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { forkJoin } from 'rxjs';
 import { TERM_LANGS, Terminology } from '../../../core/modules/module.models';
@@ -23,6 +22,8 @@ import { Icon } from '../../../shared/ui/icon/icon';
 import { AskPanelService } from '../../ask/ask-panel.service';
 import { GUIDE_CLAUSES } from '../frameworks';
 import { ModulesGuide } from '../guide/modules-guide';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
+import { providePageContext } from '../../../core/ai/page-context';
 import { TermRow, buildTermsForm, readTermsForm } from './terminology-form';
 
 type Defaults = Readonly<Record<string, Readonly<Record<string, { one: string; other: string }>>>>;
@@ -37,7 +38,6 @@ type Defaults = Readonly<Record<string, Readonly<Record<string, { one: string; o
   selector: 'app-terminology-settings',
   imports: [
     ReactiveFormsModule,
-    RouterLink,
     TranslocoPipe,
     Alert,
     Button,
@@ -45,28 +45,25 @@ type Defaults = Readonly<Record<string, Readonly<Record<string, { one: string; o
     ConfirmDialog,
     Icon,
     ModulesGuide,
+    PageHeader,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @let t = 'modules.terminology';
     <div class="mx-auto max-w-[1080px] px-4 pt-7 pb-12 sm:px-8">
-      <nav class="mb-2 text-[13px]" [attr.aria-label]="'modules.common.breadcrumb' | transloco">
-        <a routerLink="/settings" class="font-semibold text-accent hover:underline">
-          {{ 'nav.settings' | transloco }}
-        </a>
-      </nav>
-      <div class="mb-[18px] flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 class="font-display text-[26px] font-bold tracking-[-0.025em] text-fg">
-            {{ t + '.title' | transloco }}
-          </h1>
-          <p class="mt-1.5 text-[14px] text-fg-muted">{{ t + '.subtitle' | transloco }}</p>
-        </div>
-        <app-button variant="secondary" size="sm" (click)="askSuggest()">
+      <app-page-header
+        [titleKey]="t + '.title'"
+        [descriptionKey]="t + '.subtitle'"
+        [breadcrumbs]="[
+          { labelKey: 'settings.hub.title', link: '/settings' },
+          { labelKey: t + '.title' },
+        ]"
+      >
+        <app-button secondary variant="secondary" size="sm" (click)="askSuggest()">
           <app-icon name="spark" [size]="15" />
           {{ t + '.askSuggest' | transloco }}
         </app-button>
-      </div>
+      </app-page-header>
 
       <app-modules-guide class="mb-5 block" page="terminology" [steps]="3" [clauses]="clauses" />
 
@@ -202,6 +199,13 @@ export class TerminologySettings {
   protected readonly hasOverrides = signal(false);
 
   constructor() {
+    providePageContext(() => ({
+      module: null,
+      entityType: 'terminology',
+      view: 'settings',
+      title: this.transloco.translate('modules.terminology.title'),
+    }));
+
     effect(() => {
       const orgId = this.orgId();
       untracked(() => {

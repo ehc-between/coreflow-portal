@@ -44,7 +44,7 @@ import { Card } from '../../../shared/ui/card/card';
             {{ 'activity.leads.emptyBody' | transloco }}
           </p>
           <a
-            routerLink="/settings"
+            routerLink="/settings/departments"
             class="mt-3 inline-block text-[13px] font-semibold text-accent hover:underline focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
           >
             {{ 'activity.leads.emptyCta' | transloco }}
@@ -54,12 +54,24 @@ import { Card } from '../../../shared/ui/card/card';
         <ul class="divide-y divide-border">
           @for (lead of leads(); track lead.department_id) {
             <li class="flex flex-col gap-2 px-5 py-3 sm:flex-row sm:items-center sm:gap-4">
-              <label
-                [for]="'lead-' + lead.department_id"
-                class="min-w-0 flex-1 truncate text-[13.5px] font-semibold text-fg"
-              >
-                {{ lead.name }}
-              </label>
+              <div class="min-w-0 flex-1">
+                <label
+                  [for]="'lead-' + lead.department_id"
+                  class="block truncate text-[13.5px] font-semibold text-fg"
+                >
+                  {{ lead.name }}
+                </label>
+                @if (!lead.lead_user_id) {
+                  <span class="text-meta text-warn" data-testid="lead-gap">{{
+                    'activity.leads.gap' | transloco
+                  }}</span>
+                }
+                <a
+                  [routerLink]="['/settings/departments', lead.department_id]"
+                  class="block text-meta text-accent hover:underline"
+                  >{{ 'activity.leads.openDepartment' | transloco }}</a
+                >
+              </div>
               <select
                 [id]="'lead-' + lead.department_id"
                 data-testid="lead-select"
@@ -101,7 +113,9 @@ export class DepartmentLeads {
 
   protected readonly saving = signal<ReadonlySet<string>>(new Set());
   protected readonly errorKey = signal<string | null>(null);
-  protected readonly activeMembers = computed(() => this.members().filter((m) => m.is_active));
+  protected readonly activeMembers = computed(() =>
+    this.members().filter((m) => m.is_active && !m.is_platform_operator),
+  );
 
   protected change(lead: DepartmentLead, event: Event): void {
     const select = event.target as HTMLSelectElement;

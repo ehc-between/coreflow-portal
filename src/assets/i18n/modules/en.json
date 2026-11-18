@@ -153,7 +153,10 @@
       "requiredBy": "{{ module }} is used by {{ modules }}. Turn those off first.",
       "alwaysOn": "{{ module }} is always on and can't be turned off.",
       "unknown": "That module doesn't exist any more. Reload the page."
-    }
+    },
+    "scopeGap": "{{framework}} is in scope, but {{module}} is switched off.",
+    "turnOn": "Switch on {{module}}",
+    "filterByFramework": "Show the modules for {{framework}}"
   },
   "profile": {
     "title": "Organisation profile",
@@ -163,7 +166,7 @@
     "askAiRolePrompt": "We are an organisation in the industry \"{{ industry }}\" and have chosen the AI Act role \"{{ role }}\". Explain in plain language what this role means, which obligations typically follow, and how we can check that the role is right.",
     "sections": {
       "basics": "About the organisation",
-      "frameworks": "Frameworks in scope",
+      "frameworks": "Standards in scope",
       "targets": "Certification targets",
       "sites": "Sites and locations"
     },
@@ -191,7 +194,29 @@
       "site": "A site needs a name and a two-letter country code.",
       "save": "The profile could not be saved. Check the fields and try again."
     },
-    "savedToast": "The organisation profile is saved."
+    "savedToast": "The organisation profile is saved.",
+    "standardOn": "Switched on in Standards and requirements",
+    "standardOff": "Switches on in Standards and requirements when you save",
+    "standardUnavailable": "Not in the requirement catalogue yet",
+    "frameworksSync": "The standards you tick here are switched on in Standards and requirements, and unticked ones are switched off.",
+    "openStandards": "Open Standards and requirements",
+    "certificatesLive": "Targets are plans. Certificates you hold (number, valid until, next surveillance audit) are kept under Audits.",
+    "openCertificates": "Open certifications",
+    "scopeTitle": "Scope of the management system",
+    "scopeBody": "The description above is not the scope. Write the scope statement, with any exclusions and why, under Context.",
+    "scopeLink": "Open scope statements",
+    "siteKindNone": "Not set",
+    "siteKinds": {
+      "head_office": "Head office",
+      "office": "Office",
+      "production": "Production",
+      "warehouse": "Warehouse",
+      "data_centre": "Data centre",
+      "store": "Shop",
+      "construction_site": "Construction site",
+      "remote": "Remote work",
+      "other": "Other"
+    }
   },
   "terminology": {
     "title": "Terminology",
@@ -341,8 +366,8 @@
           "title": "Modules match CoreFlow to your management system",
           "body": "Each module covers one area the standards ask for, such as risk, audits or training. Turn on only what you need; you can add more as your system grows.",
           "steps": {
-            "s1": "Start with the modules the setup wizard recommends for your frameworks.",
-            "s2": "Check the \"Needs\" hint: some modules build on others.",
+            "s1": "Start with the modules the setup wizard recommends for your standards.",
+            "s2": "Each card shows the standards the module supports. Click a standard to see all its modules.",
             "s3": "Turning a module off hides it but keeps its records."
           }
         },
@@ -356,7 +381,7 @@
           "body": "ISO management systems start with understanding the organisation, the interested parties and the scope. The profile is the short version of that context.",
           "steps": {
             "s1": "Fill in industry, size and the countries you operate in.",
-            "s2": "Tick the frameworks in scope and add certification targets with dates.",
+            "s2": "Tick the standards in scope and add certification targets with dates.",
             "s3": "Choose your role under the EU AI Act. \"Not sure yet\" is fine for now."
           }
         },
@@ -368,7 +393,7 @@
             "help": "In your own words, for example \"food production\" or \"IT consulting\"."
           },
           "countries": {
-            "help": "Two-letter codes, separated by commas. Laws and regulators depend on them."
+            "help": "Pick from the list. Laws and regulators depend on where you operate."
           },
           "description": {
             "help": "What you do, for whom and where. A few sentences are enough."

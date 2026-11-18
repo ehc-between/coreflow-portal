@@ -21,6 +21,7 @@ import { activityErrorKey } from '../../../core/notifications/activity-errors';
 import { NotificationRulesApi } from '../../../core/notifications/notification-rules-api';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { OrgMember, OrgRole } from '../../../core/org/org.models';
+import { relevantRoles } from '../../../core/org/roles';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
@@ -225,6 +226,8 @@ export class RuleEditor {
   readonly roles = input<readonly OrgRole[]>([]);
   readonly departments = input<readonly DepartmentLead[]>([]);
   readonly members = input<readonly OrgMember[]>([]);
+  /** The kind's readable name from the host (its notification text); falls back to the kind. */
+  readonly kindLabel = input<string>('');
 
   readonly saved = output<NotificationRule>();
   /** The org rule was deleted; the host reloads to get the default back. */
@@ -253,17 +256,20 @@ export class RuleEditor {
 
   protected readonly title = computed(() => {
     const rule = this.rule();
-    return rule ? kindLabel(rule.event_kind, this.lookup) : '';
+    return rule ? this.kindLabel() || kindLabel(rule.event_kind, this.lookup) : '';
   });
 
   private readonly options = computed<Record<ValueRecipientType, RecipientOption[]>>(() => ({
-    role: this.roles().map((r) => ({
+    role: relevantRoles(
+      this.roles(),
+      this.members().flatMap((m) => m.roles),
+    ).map((r) => ({
       value: r.key,
       label: this.lookup(`roles.${r.key}.name`) ?? r.name,
     })),
     department: this.departments().map((d) => ({ value: d.department_id, label: d.name })),
     user: this.members()
-      .filter((m) => m.is_active)
+      .filter((m) => m.is_active && !m.is_platform_operator)
       .map((m) => ({ value: m.user_id, label: m.full_name || m.email })),
   }));
 
@@ -273,7 +279,11 @@ export class RuleEditor {
       untracked(() => {
         this.errorKey.set(null);
         this.confirmReset.set(false);
-        if (rule) this.draft.set(draftFromRule(rule));
+        if (rule) {
+          const draft = draftFromRule(rule);
+          // Opening a kind that is off by default means "turn it on": start enabled.
+          this.draft.set(!rule.notify && rule.is_default ? { ...draft, enabled: true } : draft);
+        }
       });
     });
   }

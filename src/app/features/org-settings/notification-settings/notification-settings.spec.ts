@@ -15,6 +15,7 @@ import { OrgMembersApi } from '../../../core/org/org-members-api';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { AskPanelService } from '../../ask/ask-panel.service';
 import { NotificationSettingsPage } from './notification-settings';
+import { eventLabelFromTemplate } from './event-label';
 
 function makeRule(event_kind: string, extra: Partial<NotificationRule> = {}): NotificationRule {
   return {
@@ -37,7 +38,13 @@ const RULES: NotificationRule[] = [
     is_default: false,
     recipients: [{ type: 'role', value: 'auditor' }],
   }),
-  makeRule('module.enabled', { notify: false, category: 'system', recipients: [], channels: [] }),
+  makeRule('module.enabled', {
+    notify: false,
+    enabled: false,
+    category: 'system',
+    recipients: [],
+    channels: [],
+  }),
 ];
 const SETTINGS: NotificationSettings = {
   reminder_days: 3,
@@ -92,23 +99,71 @@ function setup(listRules: () => ReturnType<NotificationRulesApi['listRules']> = 
   return { fixture, el, api, ask, toasts, setRule$, q, qa, render: () => fixture.detectChanges() };
 }
 
+describe('eventLabelFromTemplate', () => {
+  it('names the kind from its notification text', () => {
+    expect(eventLabelFromTemplate('Eiendel registrert: {{ code }} {{ title }}')).toBe(
+      'Eiendel registrert',
+    );
+    expect(eventLabelFromTemplate('Du er nå eier av eiendelen {{ code }} {{ title }}')).toBe(
+      'Du er nå eier av eiendelen …',
+    );
+    expect(eventLabelFromTemplate('{{ code }}')).toBeNull();
+    expect(eventLabelFromTemplate(null)).toBeNull();
+  });
+});
+
 describe('NotificationSettingsPage', () => {
-  it('loads the rules matrix, settings and leads for the org', () => {
-    const { api, qa, el } = setup();
+  it('lists the kinds that notify, and every kind on request', () => {
+    const { api, qa, q, el, render } = setup();
     expect(api.listRules).toHaveBeenCalledWith('org-1');
-    expect(qa('[data-testid="rule-row"]')).toHaveLength(3);
-    // Timeline-only kinds cannot be edited.
-    expect(qa('[data-testid="rule-edit"]')).toHaveLength(2);
+    // By default only the kinds that notify someone.
+    expect(qa('[data-testid="rule-row"]')).toHaveLength(2);
+    expect(q('[data-testid="rules-short-list"]')).not.toBeNull();
     expect(el.textContent).toContain('activity.rules.status.custom');
-    expect(el.querySelector('[data-testid="reminder-settings"]')).not.toBeNull();
-    expect(qa('[data-testid="lead-select"]')).toHaveLength(1);
     expect(el.querySelector('[data-testid="activity-guide"]')).not.toBeNull();
+    // Every kind can be configured, also timeline-only ones.
+    q('[data-testid="rules-show-all"] button')!.click();
+    render();
+    expect(qa('[data-testid="rule-row"]')).toHaveLength(3);
+    expect(qa('[data-testid="rule-edit"]')).toHaveLength(3);
+  });
+
+  it('shows reminders and department leads in their own tabs', () => {
+    const { q, qa, render, el } = setup();
+    expect(el.querySelector('[data-testid="reminder-settings"]')).toBeNull();
+    q('[data-testid="notif-tab-reminders"]')!.click();
+    render();
+    expect(el.querySelector('[data-testid="reminder-settings"]')).not.toBeNull();
+    q('[data-testid="notif-tab-leads"]')!.click();
+    render();
+    expect(qa('[data-testid="lead-select"]')).toHaveLength(1);
+    expect(q('[data-testid="lead-gap"]')).not.toBeNull();
+  });
+
+  it('switches on a timeline-only kind', () => {
+    const { q, qa, render, api } = setup();
+    q('[data-testid="rules-show-all"] button')!.click();
+    render();
+    const rows = qa('[data-testid="rule-row"]');
+    const row = rows.find((r) => r.textContent?.includes('activity.rules.status.timeline'))!;
+    row.querySelector<HTMLElement>('[data-testid="rule-edit"] button')!.click();
+    render();
+    q<HTMLInputElement>('[data-testid="recipient-owner"]')!.click();
+    q<HTMLInputElement>('[data-testid="channel-in_app"]')!.click();
+    render();
+    q('[data-testid="rule-save"]')!.querySelector('button')!.click();
+    render();
+    expect(api.setRule).toHaveBeenCalledWith(
+      'org-1',
+      'module.enabled',
+      expect.objectContaining({ enabled: true }),
+    );
   });
 
   it('filters the rules and offers to clear the filters', () => {
     const { q, qa, render } = setup();
     const search = q<HTMLInputElement>('[data-testid="rules-search"]')!;
-    search.value = 'module.enabled';
+    search.value = 'reminder.overdue';
     search.dispatchEvent(new Event('input'));
     render();
     expect(qa('[data-testid="rule-row"]')).toHaveLength(1);
@@ -172,6 +227,8 @@ describe('NotificationSettingsPage', () => {
 
   it('saves reminder and escalation settings', () => {
     const { q, render, api } = setup();
+    q('[data-testid="notif-tab-reminders"]')!.click();
+    render();
     const days = q<HTMLInputElement>('#escalation-days')!;
     days.value = '5';
     days.dispatchEvent(new Event('input'));
@@ -183,6 +240,8 @@ describe('NotificationSettingsPage', () => {
 
   it('rejects out-of-range settings without calling the API', () => {
     const { q, render, api, el } = setup();
+    q('[data-testid="notif-tab-reminders"]')!.click();
+    render();
     const days = q<HTMLInputElement>('#reminder-days')!;
     days.value = '400';
     days.dispatchEvent(new Event('input'));
@@ -195,6 +254,8 @@ describe('NotificationSettingsPage', () => {
 
   it('sets a department lead', () => {
     const { q, render, api } = setup();
+    q('[data-testid="notif-tab-leads"]')!.click();
+    render();
     const select = q<HTMLSelectElement>('[data-testid="lead-select"]')!;
     select.value = 'u-1';
     select.dispatchEvent(new Event('change'));

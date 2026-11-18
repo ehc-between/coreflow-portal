@@ -212,7 +212,9 @@
       "article_refs": "Artikler",
       "requirements": "Krav",
       "generic": "et felt på posten",
-      "contract_type": "Kontrakttype"
+      "contract_type": "Kontrakttype",
+      "record_fields": "et felt på posten",
+      "template_requirements": "registertypen"
     },
     "origin": {
       "manual": "Lagt til manuelt",

@@ -1,4 +1,12 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
+import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { NotificationPreference } from '../../../core/notifications/user-notification.models';
@@ -32,7 +40,7 @@ import { QuietHours } from './quiet-hours';
 
       <app-activity-guide class="mt-6 block" page="preferences" (explain)="ask.showWith($event)" />
 
-      <app-category-preferences class="mt-6 block" />
+      <app-category-preferences class="mt-6 block" [digestOff]="digestOff()" />
 
       <app-card class="mt-6 block" [padded]="false" data-testid="digest-card">
         <div class="border-b border-border px-4 py-3.5">
@@ -105,6 +113,13 @@ export class NotificationPreferences implements OnInit {
   private readonly api = inject(UserNotificationsApi);
   private readonly toasts = inject(NotificationService);
   protected readonly ask = inject(AskPanelService);
+  private readonly selectedOrg = inject(SelectedOrgService);
+  /** The daily digest is off for the current org, so "digest" categories send no email. */
+  protected readonly digestOff = computed(
+    () =>
+      this.items().find((p) => p.org_id === this.selectedOrg.currentOrgId())?.email_digest ===
+      false,
+  );
 
   protected readonly items = signal<readonly NotificationPreference[]>([]);
   protected readonly loading = signal(true);
