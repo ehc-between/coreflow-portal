@@ -3,7 +3,7 @@
     "overview": {
       "intro": {
         "title": "Om Rapporter",
-        "body": "Her ser du tallene ledelsen og revisorene spør om først: **kravdekning** per standard, **forfalte frister** i alle områder, **åpne avvik og funn**, og hvordan tallene har **utviklet seg** måned for måned. Alt følger tilgangen din: du ser bare tall for poster du kan lese.",
+        "body": "Her ser du tallene ledelsen og revisorene spør om først: **forfalte frister** i alle områder, **åpne avvik og funn**, og hvordan tallene har **utviklet seg** måned for måned. Kravdekningen per standard finner du under **Standarder og krav**. Alt følger tilgangen din: du ser bare tall for poster du kan lese.",
         "steps": [
           "Velg en standard øverst for å se bare tallene for den, eller behold «Alle standarder».",
           "Begynn med de forfalte fristene. Velg «Lag oppgave» for å fordele oppfølgingen.",
@@ -13,13 +13,6 @@
       "why": {
         "body": "Alle ISO-standarder for styringssystemer krever at organisasjonen **overvåker, måler, analyserer og evaluerer** resultatene (punkt 9.1), og at resultatene og **trendene** tas med til **ledelsens gjennomgang** (9.3). En samlet oversikt som alltid er oppdatert, gjør at disse innspillene er klare når dere trenger dem.",
         "clauses": ["hs:9.1", "hs:9.3", "iso27001:9.1"]
-      },
-      "fields": {
-        "readiness": {
-          "help": "Kravdekning er andelen gjeldende krav som har minst én bekreftet kobling til dokumentasjon, for eksempel et dokument, en risiko eller en revisjon. Krav som er satt til «ikke aktuelt» i anvendelseserklæringen, telles ikke med.",
-          "example": "120 av 364 krav dokumentert gir 33 %. Velg «krav mangler dokumentasjon» for å se hvilke.",
-          "requirements": ["hs:9.1", "hs:9.3"]
-        }
       }
     },
     "calendar": {
@@ -303,12 +296,12 @@
       {
         "target": "reports-framework",
         "title": "Se på én standard",
-        "body": "Velg en standard for å se bare dens kravdekning, frister og avvik."
+        "body": "Velg en standard for å se bare dens frister, avvik og utvikling."
       },
       {
         "target": "reports-kpis",
         "title": "Nøkkeltallene",
-        "body": "Kravdekning, forfalte frister, åpne avvik og funn, og forfalte oppgaver. Hvert tall viser utviklingen siden forrige måned og åpner listen bak tallet."
+        "body": "Forfalte frister, åpne avvik og funn, og forfalte oppgaver. Hvert tall viser utviklingen siden forrige måned og åpner listen bak tallet."
       },
       {
         "target": "reports-narrative",

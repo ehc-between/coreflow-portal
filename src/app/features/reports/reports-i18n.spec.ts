@@ -112,7 +112,6 @@ const PACK_KINDS = [
 const PLURAL_KEYS = [
   'runs.rows',
   'definitions.runCount',
-  'overview.coverage.gaps',
   'overview.kpi.dueSoon',
   'overview.overdue.areaLink',
   'packs.notApplicable',

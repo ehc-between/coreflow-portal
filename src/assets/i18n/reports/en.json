@@ -134,11 +134,9 @@
     "consequence": "Consequence"
   },
   "overview": {
-    "description": "The numbers management review and auditors ask for first: requirement coverage, overdue deadlines, open deviations and how they have developed.",
+    "description": "The numbers management review and auditors ask for first: overdue deadlines, open deviations and findings, and how they have developed. This is also where you make reports and audit packs.",
     "generatedAt": "Figures as of {{ date }}",
     "kpi": {
-      "coverage": "Requirement coverage",
-      "noStandards": "No standards are switched on",
       "overdue": "Overdue deadlines (all areas)",
       "overdueHint": "Tasks, reviews, actions and other deadlines that have passed",
       "findings": "Open deviations and findings",
@@ -150,13 +148,8 @@
       "tasksUnavailable": "You do not have access to tasks"
     },
     "coverage": {
-      "title": "Requirement coverage per standard",
-      "definition": "The share of applicable requirements with confirmed evidence. The details and the gaps are under Standards and requirements.",
-      "open": "See all standards",
-      "gaps": "{{ count }} requirements lack evidence",
-      "gapsOne": "1 requirement lacks evidence",
-      "ask": "Explain how requirement coverage for our standards is calculated, and what would raise it most.",
-      "unavailable": "Requirement coverage needs the Standards and requirements module and access to read standards."
+      "pointer": "Requirement coverage per standard, and the requirements that lack evidence, are under Standards and requirements.",
+      "open": "Go to Standards and requirements"
     },
     "overdue": {
       "title": "Overdue deadlines",

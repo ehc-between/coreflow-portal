@@ -3,7 +3,7 @@
     "overview": {
       "intro": {
         "title": "About Reports",
-        "body": "Here you see the numbers management and auditors ask for first: **requirement coverage** per standard, **overdue deadlines** in every area, **open deviations and findings**, and how the figures have **developed** month by month. Everything follows your access: you only see figures for records you can read.",
+        "body": "Here you see the numbers management and auditors ask for first: **overdue deadlines** in every area, **open deviations and findings**, and how the figures have **developed** month by month. Requirement coverage per standard is under **Standards and requirements**. Everything follows your access: you only see figures for records you can read.",
         "steps": [
           "Choose a standard at the top to see only its figures, or keep «All standards».",
           "Start with the overdue deadlines. Choose «Create task» to share out the follow-up.",
@@ -13,13 +13,6 @@
       "why": {
         "body": "Every ISO management-system standard asks the organisation to **monitor, measure, analyse and evaluate** its results (clause 9.1), and to bring the results and **trends** to **management review** (9.3). One overview that is always up to date means those inputs are ready when you need them.",
         "clauses": ["hs:9.1", "hs:9.3", "iso27001:9.1"]
-      },
-      "fields": {
-        "readiness": {
-          "help": "Requirement coverage is the share of applicable requirements with at least one confirmed link to evidence, such as a document, a risk or an audit. Requirements marked «not applicable» in the Statement of Applicability are not counted.",
-          "example": "120 of 364 requirements documented gives 33 %. Choose «requirements lack evidence» to see which.",
-          "requirements": ["hs:9.1", "hs:9.3"]
-        }
       }
     },
     "calendar": {
@@ -303,12 +296,12 @@
       {
         "target": "reports-framework",
         "title": "Look at one standard",
-        "body": "Choose a standard to see only its requirement coverage, deadlines and deviations."
+        "body": "Choose a standard to see only its deadlines, deviations and trends."
       },
       {
         "target": "reports-kpis",
         "title": "The key numbers",
-        "body": "Requirement coverage, overdue deadlines, open deviations and findings, and overdue tasks. Each number shows the change since last month and opens the list behind it."
+        "body": "Overdue deadlines, open deviations and findings, and overdue tasks. Each number shows the change since last month and opens the list behind it."
       },
       {
         "target": "reports-narrative",

@@ -19,7 +19,6 @@ import { packCoverage } from '../audit-packs/audit-pack-detail';
 import { packStandardKeys } from '../audit-packs/audit-packs-list';
 import { prefillFromFlow, validPeriod } from '../audit-packs/generate-pack-dialog';
 import { shortHash } from '../definitions/definition-detail';
-import { averageSeries } from '../overview/compliance-overview';
 import {
   calendarState,
   calendarTone,
@@ -40,9 +39,9 @@ import {
   percentOf,
   readHeatMap,
   readPercent,
-  scoreTone,
   sparklinePoints,
-  stateTone,
+  STATE_TONE,
+  scoreColor,
   trendDirection,
   widgetLink,
 } from './report-display';
@@ -129,7 +128,7 @@ describe('report display helpers', () => {
     expect(calendarState(item({ due_at: '2026-10-10T00:00:00' }), now)).toBe('due_soon');
     // The backend's state wins.
     expect(calendarState(item({ state: 'due_soon' }), now)).toBe('due_soon');
-    expect(stateTone('due_soon')).toBe('accent');
+    expect(STATE_TONE.due_soon).toBe('accent');
   });
 
   it('groups alike items of a day (seven assignments of one course)', () => {
@@ -249,11 +248,10 @@ describe('report display helpers', () => {
   });
 
   it('maps scores, sizes, links and bytes (coverage is never red)', () => {
-    expect(scoreTone(100)).toBe('pass');
-    expect(scoreTone(60)).toBe('accent');
-    expect(scoreTone(1)).toBe('accent');
-    expect(scoreTone(0)).toBe('neutral');
-    expect(scoreTone(null)).toBe('neutral');
+    expect(scoreColor(100)).toBe('var(--pass)');
+    expect(scoreColor(60)).toBe('var(--accent)');
+    expect(scoreColor(0)).toBe('var(--fg-subtle)');
+    expect(scoreColor(null)).toBe('var(--fg-subtle)');
     expect(widgetLink('risk.heat_map', { url: '/risk/risks' })).toEqual({ path: '/risk/risks' });
     expect(widgetLink('x.y', { url: '/reports/calendar?overdue=1' })).toEqual({
       path: '/reports/calendar',
@@ -371,26 +369,6 @@ describe('form and designer helpers', () => {
     expect(registerStatusLabel(reg, 'open', translate, 'nb')).toBe('Åpen');
     expect(registerStatusLabel(reg, 'done', translate, 'nb')).toBe('Ferdig');
     expect(registerStatusLabel(null, 'in_treatment', translate, 'nb')).toBe('In treatment');
-  });
-
-  it('averages coverage series per month', () => {
-    const series = (values: number[]) => ({
-      key: 'standards.readiness',
-      scope: 's',
-      scope_label: null,
-      label: { en: 'Coverage' },
-      module: 'standards',
-      unit: 'percent',
-      better: 'up',
-      points: values.map((value, i) => ({ period: `2026-0${i + 1}-01`, value })),
-      latest: values.at(-1) ?? null,
-      previous: values.at(-2) ?? null,
-      delta: null,
-    });
-    const avg = averageSeries([series([10, 20]), series([30, 40])]);
-    expect(avg?.points.map((p) => p.value)).toEqual([20, 30]);
-    expect(avg?.delta).toBe(10);
-    expect(averageSeries([])).toBeNull();
   });
 
   it('prefills the audit pack drawer from an audit and checks the period', () => {

@@ -48,7 +48,7 @@ import {
   monthKey,
   moduleLabelKey,
   parseMonth,
-  stateTone,
+  STATE_TONE,
 } from '../data/report-display';
 import {
   CALENDAR_STATES,
@@ -663,15 +663,15 @@ export class OrgCalendar {
   }
 
   protected chipClass(item: CalendarItem): string {
-    return CHIP[stateTone(calendarState(item))];
+    return CHIP[STATE_TONE[calendarState(item)]];
   }
 
   protected swatch(state: CalendarItemState): string {
-    return SWATCH[stateTone(state)];
+    return SWATCH[STATE_TONE[state]];
   }
 
   protected tone(item: CalendarItem): CalendarTone {
-    return stateTone(calendarState(item));
+    return STATE_TONE[calendarState(item)];
   }
 
   protected stateLabel(item: CalendarItem): string {

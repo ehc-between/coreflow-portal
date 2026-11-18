@@ -18,7 +18,6 @@ import { NotificationService } from '../../../core/notifications/notification.se
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { internalLink } from '../../../core/search/internal-link';
 import { AiAssistButton } from '../../../shared/ask/ai-assist-button';
-import { FieldHelp } from '../../../shared/guidance/field-help';
 import { TourStepDirective } from '../../../shared/guidance/tour-step.directive';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { LocalDatePipe, LocalDayPipe, LocalNumberPipe } from '../../../shared/locale/locale-pipes';
@@ -30,8 +29,6 @@ import { ErrorState } from '../../../shared/ui/error-state/error-state';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
 import { PageHeader } from '../../../shared/ui/page-header/page-header';
-import { ProgressBar } from '../../../shared/ui/progress-bar/progress-bar';
-import { ReportsAsk } from '../components/ask-button';
 import { FollowUpTask } from '../components/follow-up-task';
 import { FrameworkSelect } from '../components/framework-select';
 import { MetricView } from '../components/metric-view';
@@ -42,13 +39,10 @@ import { Sparkline } from '../components/sparkline';
 import { reportErrorKey } from '../data/report-errors';
 import {
   calendarTone,
-  frameworkLabelKey,
   labelOr,
   localized,
   metricFieldLabel,
   moduleLabelKey,
-  percentOf,
-  scoreColor,
   trendDirection,
 } from '../data/report-display';
 import {
@@ -81,46 +75,10 @@ export const PERIOD_OPTIONS: readonly number[] = [30, 90, 180, 365];
 const FINDING_FIELDS = ['overdue', 'open_actions', 'overdue_actions', 'overdue_inspections'];
 
 /**
- * The average of several monthly series (coverage per standard → one coverage line),
- * matched by period. Null when there is nothing to average.
- */
-export function averageSeries(series: readonly TrendSeries[]): TrendSeries | null {
-  if (series.length === 0) {
-    return null;
-  }
-  if (series.length === 1) {
-    return series[0];
-  }
-  const sums = new Map<string, { sum: number; n: number }>();
-  for (const s of series) {
-    for (const p of s.points) {
-      const entry = sums.get(p.period) ?? { sum: 0, n: 0 };
-      entry.sum += p.value;
-      entry.n += 1;
-      sums.set(p.period, entry);
-    }
-  }
-  const points = [...sums.entries()]
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([period, { sum, n }]) => ({ period, value: Math.round((sum / n) * 10) / 10 }));
-  const latest = points.at(-1)?.value ?? null;
-  const previous = points.at(-2)?.value ?? null;
-  return {
-    ...series[0],
-    scope: null,
-    scope_label: null,
-    points,
-    latest,
-    previous,
-    delta: latest !== null && previous !== null ? Math.round((latest - previous) * 10) / 10 : null,
-  };
-}
-
-/**
  * `/reports`: the reporting overview, the numbers management review and auditors
  * ask for first (ISO 9.1 and 9.3). Key numbers with a one-line explanation and a
- * 12-month trend; requirement coverage per standard (a summary; the detail and the
- * gaps live in Standards); overdue deadlines with "Lag oppgave"; open deviations and
+ * 12-month trend; a link to Standards for requirement coverage (plan decision 10: the
+ * coverage answer lives on Home and Standards, not here); overdue deadlines with "Lag oppgave"; open deviations and
  * findings from every module that has them; the risk heat map, training completion
  * and document reviews when those modules are on; the monthly trends; the caller's
  * role overview; and the written "state of compliance" summary. The standard is kept
@@ -136,7 +94,6 @@ export function averageSeries(series: readonly TrendSeries[]): TrendSeries | nul
     LocalNumberPipe,
     MarkdownPipe,
     AiAssistButton,
-    FieldHelp,
     TourStepDirective,
     WhyItMatters,
     Badge,
@@ -146,8 +103,6 @@ export function averageSeries(series: readonly TrendSeries[]): TrendSeries | nul
     HelpStrip,
     LoadingState,
     PageHeader,
-    ProgressBar,
-    ReportsAsk,
     FollowUpTask,
     FrameworkSelect,
     MetricView,
@@ -197,19 +152,10 @@ export function averageSeries(series: readonly TrendSeries[]): TrendSeries | nul
         @case ('ready') {
           @if (data(); as d) {
             <div
-              class="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4"
+              class="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-3"
               [appTourStep]="'reports-kpis'"
               data-testid="overview-kpis"
             >
-              <app-report-kpi
-                testId="kpi-coverage"
-                [label]="'reports.overview.kpi.coverage' | transloco"
-                [value]="coverageValue()"
-                [hint]="coverageHint()"
-                [tone]="coverageTone()"
-                link="/standards"
-                [trend]="coverageTrend()"
-              />
               <app-report-kpi
                 testId="kpi-overdue"
                 [label]="'reports.overview.kpi.overdue' | transloco"
@@ -238,86 +184,17 @@ export function averageSeries(series: readonly TrendSeries[]): TrendSeries | nul
                 [trend]="trend('tasks.overdue')"
               />
             </div>
+            <p
+              class="mb-6 flex flex-wrap items-center gap-x-2 gap-y-1 text-meta text-fg-muted"
+              data-testid="overview-coverage-link"
+            >
+              <span>{{ 'reports.overview.coverage.pointer' | transloco }}</span>
+              <a routerLink="/standards" class="font-semibold text-accent hover:underline">{{
+                'reports.overview.coverage.open' | transloco
+              }}</a>
+            </p>
 
             <div class="grid gap-4 lg:grid-cols-2">
-              <app-card>
-                <section aria-labelledby="ov-readiness" data-testid="overview-coverage">
-                  <div class="mb-1 flex flex-wrap items-center justify-between gap-2">
-                    <h2 id="ov-readiness" class="text-card font-semibold text-fg">
-                      {{ 'reports.overview.coverage.title' | transloco }}
-                    </h2>
-                    <a
-                      routerLink="/standards"
-                      class="text-meta font-semibold text-accent hover:underline"
-                    >
-                      {{ 'reports.overview.coverage.open' | transloco }}
-                    </a>
-                  </div>
-                  <p class="mb-3 text-meta text-fg-muted">
-                    {{ 'reports.overview.coverage.definition' | transloco }}
-                  </p>
-                  @if (d.readiness; as readiness) {
-                    <ul class="flex flex-col gap-3">
-                      @for (item of readiness.items; track item.standard_key) {
-                        <li class="min-w-0">
-                          <div class="flex items-baseline justify-between gap-2 text-ui">
-                            <a
-                              [routerLink]="item.url || '/standards'"
-                              class="min-w-0 truncate font-semibold text-fg hover:text-accent hover:underline"
-                              >{{
-                                standardName(item.framework ?? item.standard_key, item.names)
-                              }}</a
-                            >
-                            <span class="flex-none font-mono text-fg-muted"
-                              >{{ item.score }} %</span
-                            >
-                          </div>
-                          <app-progress-bar
-                            class="mt-1 block"
-                            [value]="item.score"
-                            [color]="color(item.score)"
-                            [label]="standardName(item.framework ?? item.standard_key, item.names)"
-                          />
-                          <p
-                            class="mt-1 flex flex-wrap items-center justify-between gap-x-3 text-meta text-fg-muted"
-                          >
-                            <span>{{
-                              'reports.metric.documentedOf'
-                                | transloco: { covered: item.covered, applicable: item.applicable }
-                            }}</span>
-                            @if (item.gaps_url && (item.missing ?? 0) > 0) {
-                              <a
-                                [routerLink]="item.gaps_url"
-                                class="font-semibold text-accent hover:underline"
-                                >{{
-                                  plural('reports.overview.coverage.gaps', item.missing ?? 0)
-                                    | transloco: { count: item.missing }
-                                }}</a
-                              >
-                            }
-                          </p>
-                        </li>
-                      } @empty {
-                        <li class="text-ui text-fg-muted">
-                          {{ 'reports.metric.noStandards' | transloco }}
-                        </li>
-                      }
-                    </ul>
-                  } @else {
-                    <p class="text-ui text-fg-muted">
-                      {{ 'reports.overview.coverage.unavailable' | transloco }}
-                    </p>
-                  }
-                  <div class="mt-3 flex flex-wrap items-center justify-between gap-2">
-                    <app-field-help scope="reports" page="overview" field="readiness" />
-                    <app-reports-ask
-                      [prompt]="'reports.overview.coverage.ask' | transloco"
-                      [field]="'reports.overview.coverage.title' | transloco"
-                    />
-                  </div>
-                </section>
-              </app-card>
-
               <app-card>
                 <section aria-labelledby="ov-overdue" data-testid="overview-overdue">
                   <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
@@ -731,38 +608,6 @@ export class ComplianceOverview {
     return s.status === 'error' ? s.messageKey : 'ui.error.body';
   });
 
-  /** Coverage across the shown standards: covered of applicable (never a red number). */
-  private readonly coverage = computed(() => {
-    const readiness = this.data()?.readiness;
-    if (!readiness) {
-      return null;
-    }
-    const applicable =
-      readiness.applicable ?? readiness.items.reduce((sum, i) => sum + i.applicable, 0);
-    const covered = readiness.covered ?? readiness.items.reduce((sum, i) => sum + i.covered, 0);
-    return { applicable, covered, percent: percentOf(covered, applicable) };
-  });
-  protected readonly coverageValue = computed(() => {
-    const c = this.coverage();
-    return c ? `${c.percent} %` : '—';
-  });
-  protected readonly coverageHint = computed(() => {
-    const c = this.coverage();
-    return c
-      ? this.language.translate('reports.metric.documentedOf', {
-          covered: c.covered,
-          applicable: c.applicable,
-        })
-      : this.language.translate('reports.overview.kpi.noStandards');
-  });
-  protected readonly coverageTone = computed(() => {
-    const percent = this.coverage()?.percent ?? 0;
-    return percent >= 100 ? 'pass' : percent > 0 ? 'accent' : 'neutral';
-  });
-  protected readonly coverageTrend = computed(() =>
-    averageSeries(this.trends().filter((t) => t.key === 'standards.readiness')),
-  );
-
   protected readonly tasksHint = computed(() => {
     const tasks = this.data()?.tasks;
     if (!tasks) {
@@ -842,11 +687,6 @@ export class ComplianceOverview {
     return labelOr((k) => this.language.translate(k), moduleLabelKey(module), module);
   }
 
-  protected standardName(key: string, names?: Readonly<Partial<Record<string, string>>>): string {
-    const named = localized(names, this.language.active(), '');
-    return named || labelOr((k) => this.language.translate(k), frameworkLabelKey(key), key);
-  }
-
   protected blockTitle(block: MetricBlock): string {
     const own = localized(block.title, this.language.active(), '');
     return this.scoped.text(block.title_key, own || this.moduleName(block.module));
@@ -883,10 +723,6 @@ export class ComplianceOverview {
 
   protected link(url: string | null) {
     return internalLink(url);
-  }
-
-  protected color(score: number): string {
-    return scoreColor(score);
   }
 
   protected tone(item: CalendarItem) {

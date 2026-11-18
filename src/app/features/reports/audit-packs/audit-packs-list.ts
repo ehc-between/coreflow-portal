@@ -10,6 +10,7 @@ import {
   untracked,
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { toneFor } from '../../../shared/ui/tones';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../../core/ai/page-context';
@@ -42,7 +43,6 @@ import {
   labelOr,
   localized,
   packReadiness,
-  scoreTone,
 } from '../data/report-display';
 import {
   AuditPack,
@@ -345,7 +345,7 @@ export class AuditPacksList {
   }
 
   protected tone(score: number) {
-    return scoreTone(score);
+    return toneFor('progress', score);
   }
 
   protected size(bytes: number): string {

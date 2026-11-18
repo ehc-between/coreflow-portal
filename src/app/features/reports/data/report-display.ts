@@ -1,5 +1,6 @@
 import { humanize } from '../../../core/kit/entity-types.service';
 import { frameworkOf } from '../../../shared/requirement-links/requirement-label';
+import { toneFor } from '../../../shared/ui/tones';
 import {
   CalendarItem,
   CalendarItemState,
@@ -117,20 +118,12 @@ export function formatBytes(bytes: number, lang = 'en'): string {
 }
 
 /**
- * Tone of a requirement-coverage score (0–100). Coverage is a to-do, never a
- * failure (polish plan decision 11): 100 is done, anything above 0 is progress,
- * 0 or unknown is neutral. Never red.
+ * CSS colour of a requirement-coverage score (for rings and bars), from the shared
+ * `progress` tone: 100 is done, above 0 is progress, 0 or unknown is neutral. Never
+ * red (polish plan decision 11).
  */
-export function scoreTone(score: number | null | undefined): 'pass' | 'accent' | 'neutral' {
-  if (score === null || score === undefined || !Number.isFinite(score) || score <= 0) {
-    return 'neutral';
-  }
-  return score >= 100 ? 'pass' : 'accent';
-}
-
-/** CSS colour of a coverage score (for rings and bars). */
 export function scoreColor(score: number | null | undefined): string {
-  switch (scoreTone(score)) {
+  switch (toneFor('progress', score)) {
     case 'pass':
       return 'var(--pass)';
     case 'accent':
@@ -292,22 +285,17 @@ export type CalendarTone = 'warn' | 'accent' | 'info' | 'neutral';
  * Colour of a calendar state, from the shared tone map: overdue is warn (always
  * with the word "Forfalt"), due soon accent, reviews info, the rest neutral.
  */
-export function stateTone(state: CalendarItemState): CalendarTone {
-  switch (state) {
-    case 'overdue':
-      return 'warn';
-    case 'due_soon':
-      return 'accent';
-    case 'review':
-      return 'info';
-    default:
-      return 'neutral';
-  }
-}
+export const STATE_TONE: Readonly<Record<CalendarItemState, CalendarTone>> = {
+  overdue: 'warn',
+  due_soon: 'accent',
+  review: 'info',
+  action: 'neutral',
+  due: 'neutral',
+};
 
 /** Badge tone of a calendar item. */
 export function calendarTone(item: CalendarItem, now: Date = new Date()): CalendarTone {
-  return stateTone(calendarState(item, now));
+  return STATE_TONE[calendarState(item, now)];
 }
 
 /** Items of one day that look the same (e.g. seven assignments of one course). */

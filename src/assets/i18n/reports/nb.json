@@ -134,11 +134,9 @@
     "consequence": "Konsekvens"
   },
   "overview": {
-    "description": "Tallene ledelsens gjennomgang og revisorer spør om først: kravdekning, forfalte frister, åpne avvik og hvordan det har utviklet seg.",
+    "description": "Tallene ledelsens gjennomgang og revisorer spør om først: forfalte frister, åpne avvik og funn, og hvordan tallene har utviklet seg. Herfra lager du også rapporter og revisjonspakker.",
     "generatedAt": "Tall per {{ date }}",
     "kpi": {
-      "coverage": "Kravdekning",
-      "noStandards": "Ingen standarder er slått på",
       "overdue": "Forfalte frister (alle områder)",
       "overdueHint": "Oppgaver, gjennomganger, tiltak og andre frister som har passert",
       "findings": "Åpne avvik og funn",
@@ -150,13 +148,8 @@
       "tasksUnavailable": "Du har ikke tilgang til oppgaver"
     },
     "coverage": {
-      "title": "Kravdekning per standard",
-      "definition": "Andelen gjeldende krav som har bekreftet dokumentasjon. Detaljene og manglene finner du under Standarder og krav.",
-      "open": "Se alle standarder",
-      "gaps": "{{ count }} krav mangler dokumentasjon",
-      "gapsOne": "1 krav mangler dokumentasjon",
-      "ask": "Forklar hvordan kravdekningen for standardene våre beregnes, og hva som vil heve den mest.",
-      "unavailable": "Kravdekning krever modulen Standarder og krav og tilgang til å lese standarder."
+      "pointer": "Kravdekning per standard og kravene som mangler dokumentasjon, finner du under Standarder og krav.",
+      "open": "Gå til Standarder og krav"
     },
     "overdue": {
       "title": "Forfalte frister",

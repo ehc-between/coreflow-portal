@@ -346,9 +346,7 @@ export function shortHash(sha: string | null | undefined): string {
                       </p>
                       <p class="text-meta text-fg-muted">
                         {{ 'reports.formats.' + run.format | transloco }} ·
-                        {{
-                          plural('reports.runs.rows', run.rows) | transloco: { count: run.rows }
-                        }}
+                        {{ plural('reports.runs.rows', run.rows) | transloco: { count: run.rows } }}
                         · {{ size(run.size_bytes) }} ·
                         <span class="font-mono" [title]="run.sha256">{{ hash(run.sha256) }}</span>
                         @if (run.task_id) {
