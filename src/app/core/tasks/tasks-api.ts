@@ -159,6 +159,9 @@ export class TasksApi {
         include: query.include?.length ? query.include.join(',') : undefined,
         module: query.module,
         group: query.group,
+        lane: query.lane,
+        scope: query.scope === 'all' ? 'all' : undefined,
+        recurring: query.recurring,
       },
     });
   }

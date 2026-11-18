@@ -132,6 +132,56 @@ describe('MyWork', () => {
     expect(api.update).toHaveBeenCalledWith('org-1', 't-2', { status: 'in_progress' });
   });
 
+  it('lists read-and-confirm and training items in their own tabs (U08)', () => {
+    const extra = [
+      ...ITEMS,
+      work({ id: 'd-9', source: 'document_ack', title: 'Read the policy', url: '/documents/d-9' }),
+      work({
+        id: 'c-1',
+        source: 'training_due',
+        title: 'Fire safety',
+        lane: 'training',
+        url: '/training/assignments/c-1',
+      }),
+    ];
+    const { el, api, fixture } = setup({ tab: 'acknowledge' });
+    api.myWork.mockReturnValue(of({ items: extra }));
+    (fixture.componentInstance as unknown as { reload(): void }).reload();
+    fixture.detectChanges();
+    const titles = () =>
+      Array.from(el.querySelectorAll('[data-testid="work-row"] a')).map((a) =>
+        a.textContent?.trim(),
+      );
+    expect(titles()).toEqual(['Read the policy']);
+    expect(el.querySelector('[data-testid="work-count-acknowledge"]')?.textContent).toBe('1');
+    expect(el.querySelector('[data-testid="work-count-training"]')?.textContent).toBe('1');
+  });
+
+  it('switches to everyone’s work and flags what is not mine (U08)', () => {
+    const { el, api, fixture, query } = setup({ scope: 'all', tab: 'later' });
+    expect(api.myWork).toHaveBeenLastCalledWith('org-1', { scope: 'all' });
+    api.myWork.mockReturnValue(
+      of({ items: [work({ id: 't-9', title: 'Their task', mine: false })] }),
+    );
+    query.next(convertToParamMap({ scope: 'all', tab: 'later', x: '1' }));
+    fixture.detectChanges();
+    (fixture.componentInstance as unknown as { reload(): void }).reload();
+    fixture.detectChanges();
+    expect(el.querySelector('[data-testid="work-not-mine"]')).not.toBeNull();
+    expect(el.querySelector('[data-testid="work-scope-all"]')?.getAttribute('aria-pressed')).toBe(
+      'true',
+    );
+  });
+
+  it('opens the calendar as a tab', () => {
+    const { el, api } = setup({ tab: 'calendar' });
+    expect(
+      el.querySelector('[data-testid="work-tab-calendar"]')?.getAttribute('aria-selected'),
+    ).toBe('true');
+    const [, q] = api.myWork.mock.calls.at(-1) as unknown as [string, { from: string }];
+    expect(q.from).toMatch(/T00:00:00$/);
+  });
+
   it('loads the calendar month window', () => {
     const { api } = setup({ view: 'calendar' });
     const [, query] = api.myWork.mock.calls.at(-1) as unknown as [

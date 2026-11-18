@@ -5,7 +5,9 @@ import { ApiService } from '../http/api.service';
 import { SKIP_ERROR_TOAST } from '../http/error.interceptor';
 import { CategoryPref, NotificationSchedule } from './activity.models';
 import {
+  BELL_FEED,
   MarkAllReadResponse,
+  NotificationFeed,
   NotificationPreferencesResponse,
   UnreadCountResponse,
   UnreadCountsByOrgResponse,
@@ -37,21 +39,26 @@ export class UserNotificationsApi {
         unread_only: query.unread_only,
         limit: query.limit,
         offset: query.offset,
+        feed: query.feed ?? BELL_FEED,
       },
       context: skipToast(),
     });
   }
 
-  unreadCount(orgId?: string | null): Observable<UnreadCountResponse> {
+  unreadCount(
+    orgId?: string | null,
+    feed: NotificationFeed = BELL_FEED,
+  ): Observable<UnreadCountResponse> {
     return this.api.get<UnreadCountResponse>('v1/me/notifications/unread-count', {
-      params: { org_id: orgId },
+      params: { org_id: orgId, feed },
       context: skipToast(),
     });
   }
 
   /** Unread counts for every org the user belongs to (the org switcher's badges). */
-  unreadCountsByOrg(): Observable<UnreadCountsByOrgResponse> {
+  unreadCountsByOrg(feed: NotificationFeed = BELL_FEED): Observable<UnreadCountsByOrgResponse> {
     return this.api.get<UnreadCountsByOrgResponse>('v1/me/notifications/unread-counts', {
+      params: { feed },
       context: skipToast(),
     });
   }
@@ -63,12 +70,15 @@ export class UserNotificationsApi {
     );
   }
 
-  markAllRead(orgId?: string | null): Observable<MarkAllReadResponse> {
+  markAllRead(
+    orgId?: string | null,
+    feed: NotificationFeed = BELL_FEED,
+  ): Observable<MarkAllReadResponse> {
     return this.api.post<MarkAllReadResponse>(
       'v1/me/notifications/read-all',
       {},
       {
-        params: { org_id: orgId },
+        params: { org_id: orgId, feed },
         context: skipToast(),
       },
     );

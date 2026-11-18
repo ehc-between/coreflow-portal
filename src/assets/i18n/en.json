@@ -1882,7 +1882,8 @@
       "empty": "You're all caught up.",
       "loadMore": "Load more",
       "unread": "Unread",
-      "settings": "Notification settings"
+      "settings": "Notification settings",
+      "myWork": "Things to do are in My Work →"
     },
     "preferences": {
       "title": "Notification settings",

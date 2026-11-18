@@ -35,6 +35,8 @@ describe('UserNotificationsApi', () => {
     expect(req.request.params.get('limit')).toBe('20');
     expect(req.request.params.get('offset')).toBe('40');
     expect(req.request.params.has('unread_only')).toBe(false);
+    // U08: the bell lists news only; to-dos live in My Work.
+    expect(req.request.params.get('feed')).toBe('news');
     req.flush({ items: [], total: 0, unread_count: 0, limit: 20, offset: 40 });
   });
 
@@ -42,6 +44,7 @@ describe('UserNotificationsApi', () => {
     api.unreadCount('org-1').subscribe();
     const req = http.expectOne((r) => r.url === `${BASE}/v1/me/notifications/unread-count`);
     expect(req.request.params.get('org_id')).toBe('org-1');
+    expect(req.request.params.get('feed')).toBe('news');
     req.flush({ count: 2 });
   });
 

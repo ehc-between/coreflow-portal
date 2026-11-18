@@ -1,18 +1,18 @@
-import { Routes } from '@angular/router';
+import { inject } from '@angular/core';
+import { Router, Routes } from '@angular/router';
 import { provideTranslocoScope } from '@jsverse/transloco';
 import { authGuard } from '../../core/auth/auth.guard';
 import { permissionGuard } from '../../core/auth/permission.guard';
 
-/** Review feature routes (scoped to the current org). The list is gated on
- *  `documents:approve`; the per-proposal editor only requires `documents:read`
- *  (Save/Approve/Reject are gated per-action inside the page). */
+/** Review feature routes (scoped to the current org). `/review` itself is My Work's
+ *  "Til gjennomgang" tab (U08: one inbox, one count); the per-proposal editor only
+ *  requires `documents:read` (Save/Approve/Reject are gated per-action inside the page). */
 const routes: Routes = [
   {
-    // The proposal feed and editor use the documents wording (`documents.proposals.*`).
-    providers: [provideTranslocoScope('documents')],
     path: '',
-    canActivate: [authGuard, permissionGuard('documents:approve')],
-    loadComponent: () => import('./review').then((m) => m.Review),
+    pathMatch: 'full',
+    redirectTo: () =>
+      inject(Router).createUrlTree(['/my-work'], { queryParams: { tab: 'review' } }),
   },
   {
     providers: [provideTranslocoScope('documents')],
