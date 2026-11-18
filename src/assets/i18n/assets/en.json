@@ -315,6 +315,7 @@
     "securityOptional": "Information security (optional)",
     "securityOptionalHint": "Confidentiality, integrity and availability are rarely needed for measuring equipment or premises. Rate them under Edit if the asset holds or processes information.",
     "processingLinked": "Linked to {{ count }} processing activities",
+    "processingLinkedOne": "Linked to 1 processing activity",
     "processingNone": "Not linked to the record of processing activities",
     "lastReview": "Last review",
     "nextReview": "Next review",
@@ -472,6 +473,7 @@
     "toCarryOut": "Revocations carried out",
     "revocationsTitle": "Revocations to carry out",
     "revocationsOpen": "{{ count }} access changes are still to be carried out. Tick each account off below when it is done; its task closes at the same time.",
+    "revocationsOpenOne": "1 access change is still to be carried out. Tick the account off below when it is done; its task closes at the same time.",
     "revocationsDone": "Every revocation and change has been carried out."
   },
   "reviewItems": {
@@ -503,7 +505,9 @@
     "csvPlaceholder": "name;account;access\nKari Nordmann;kari@example.no;Administrator",
     "csvImport": "Import",
     "csvImported": "{{ count }} accounts imported.",
+    "csvImportedOne": "1 account imported.",
     "flaggedNote": "{{ count }} accounts belong to people who have left, are leaving or are no longer members. They are listed first, and Revoke is suggested for them.",
+    "flaggedNoteOne": "1 account belongs to a person who has left, is leaving or is no longer a member. It is listed first, and Revoke is suggested.",
     "suggestRevoke": "Suggested: revoke (the holder has left or is leaving)."
   },
   "changes": {

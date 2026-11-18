@@ -11,6 +11,7 @@ import {
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { pluralKey } from '../../../shared/i18n/plural';
 import { Subscription, catchError, concatMap, from, last, of } from 'rxjs';
 import { AiAvailability } from '../../../core/ai/ai-availability';
 import { providePageContext } from '../../../core/ai/page-context';
@@ -302,7 +303,7 @@ export function reviewNextStep(r: AccessReviewDetail): ReviewNextStep {
                     <p class="mb-3 text-ui text-fg-muted">
                       @if (r.counts.unremediated) {
                         {{
-                          'assets.reviewDetail.revocationsOpen'
+                          pluralKey('assets.reviewDetail.revocationsOpen', r.counts.unremediated)
                             | transloco: { count: r.counts.unremediated }
                         }}
                       } @else {
@@ -522,6 +523,7 @@ export function reviewNextStep(r: AccessReviewDetail): ReviewNextStep {
   `,
 })
 export class AccessReviewDetailPage {
+  protected readonly pluralKey = pluralKey;
   private readonly api = inject(AssetsApi);
   private readonly standards = inject(StandardsApi);
   private readonly selectedOrg = inject(SelectedOrgService);
@@ -714,9 +716,8 @@ export class AccessReviewDetailPage {
       next: (res) => {
         this.busy.set(false);
         this.csvOpen.set(false);
-        this.notifications.success('assets.reviewItems.csvImported', {
-          count: Math.max(res.items.length - before, 0),
-        });
+        const count = Math.max(res.items.length - before, 0);
+        this.notifications.success(pluralKey('assets.reviewItems.csvImported', count), { count });
         this.reload();
       },
       error: (err: unknown) => {

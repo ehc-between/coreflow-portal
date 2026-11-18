@@ -315,6 +315,7 @@
     "securityOptional": "Informasjonssikkerhet (valgfritt)",
     "securityOptionalHint": "Konfidensialitet, integritet og tilgjengelighet trengs sjelden for måleutstyr eller lokaler. Vurder dem under Rediger hvis eiendelen lagrer eller behandler informasjon.",
     "processingLinked": "Koblet til {{ count }} behandlingsaktiviteter",
+    "processingLinkedOne": "Koblet til 1 behandlingsaktivitet",
     "processingNone": "Ikke koblet til behandlingsprotokollen",
     "lastReview": "Siste gjennomgang",
     "nextReview": "Neste gjennomgang",
@@ -472,6 +473,7 @@
     "toCarryOut": "Fjerninger gjennomført",
     "revocationsTitle": "Fjerninger som skal gjennomføres",
     "revocationsOpen": "{{ count }} tilgangsendringer gjenstår. Kryss av hver konto nedenfor når den er gjennomført, så lukkes oppgaven samtidig.",
+    "revocationsOpenOne": "1 tilgangsendring gjenstår. Kryss av kontoen nedenfor når den er gjennomført, så lukkes oppgaven samtidig.",
     "revocationsDone": "Alle fjerninger og endringer er gjennomført."
   },
   "reviewItems": {
@@ -503,7 +505,9 @@
     "csvPlaceholder": "navn;e-post;tilgang\nKari Nordmann;kari@example.no;Administrator",
     "csvImport": "Importer",
     "csvImported": "{{ count }} kontoer er importert.",
+    "csvImportedOne": "1 konto er importert.",
     "flaggedNote": "{{ count }} kontoer tilhører personer som har sluttet, slutter snart eller ikke lenger er medlemmer. De står først, og Fjern er foreslått for dem.",
+    "flaggedNoteOne": "1 konto tilhører en person som har sluttet, slutter snart eller ikke lenger er medlem. Den står først, og Fjern er foreslått.",
     "suggestRevoke": "Forslag: fjern tilgangen (personen har sluttet eller slutter snart)."
   },
   "changes": {

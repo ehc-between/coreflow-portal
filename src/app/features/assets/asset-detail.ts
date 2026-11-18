@@ -12,6 +12,7 @@ import {
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { pluralKey } from '../../shared/i18n/plural';
 import { Subscription, catchError, of } from 'rxjs';
 import { AiAvailability } from '../../core/ai/ai-availability';
 import { providePageContext } from '../../core/ai/page-context';
@@ -468,7 +469,7 @@ export function securityUnset(a: AssetDetail): boolean {
                     <app-field-item labelKey="assets.fields.processingActivities">
                       @if (a.processing_activities) {
                         {{
-                          'assets.detail.processingLinked'
+                          pluralKey('assets.detail.processingLinked', a.processing_activities)
                             | transloco: { count: a.processing_activities }
                         }}
                       } @else {
@@ -824,6 +825,7 @@ export function securityUnset(a: AssetDetail): boolean {
   `,
 })
 export class AssetDetailPage {
+  protected readonly pluralKey = pluralKey;
   private readonly api = inject(AssetsApi);
   private readonly kit = inject(KitApi);
   private readonly standards = inject(StandardsApi);

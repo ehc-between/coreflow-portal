@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { pluralKey } from '../../../shared/i18n/plural';
 import { FieldHelp } from '../../../shared/guidance/field-help';
 import { EntityChip } from '../../../shared/kit/entity-chip';
 import { LocalDatePipe } from '../../../shared/locale/locale-pipes';
@@ -110,7 +111,10 @@ export interface ItemChange {
         role="note"
         data-testid="flagged-note"
       >
-        {{ 'assets.reviewItems.flaggedNote' | transloco: { count: flaggedCount() } }}
+        {{
+          pluralKey('assets.reviewItems.flaggedNote', flaggedCount())
+            | transloco: { count: flaggedCount() }
+        }}
       </p>
     }
 
@@ -370,6 +374,7 @@ export interface ItemChange {
   `,
 })
 export class ReviewItems {
+  protected readonly pluralKey = pluralKey;
   readonly items = input.required<readonly ReviewItem[]>();
   /** Decisions can be recorded (review open, caller may work it). */
   readonly editable = input(false);

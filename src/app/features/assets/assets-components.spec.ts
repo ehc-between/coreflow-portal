@@ -157,7 +157,7 @@ describe('assets components', () => {
     expect(rows[0].getAttribute('data-flagged')).toBe('true');
     expect(rows[0].textContent).toContain('Has left');
     expect(rows[0].textContent).toContain('Suggested: revoke');
-    expect(root.querySelector('[data-testid="flagged-note"]')?.textContent).toContain('1 accounts');
+    expect(root.querySelector('[data-testid="flagged-note"]')?.textContent).toContain('1 account belongs');
     const keepAll = [...root.querySelectorAll<HTMLButtonElement>('app-review-items button')].find(
       (b) => b.textContent?.includes('Keep all'),
     );
