@@ -299,6 +299,24 @@ Mennesker:       Personer · Rekruttering · Opplæring
   `/review` still works.
 - Every module icon is distinct.
 
+### 8.1 Shell v2 (U03, behind the per-org flag `coreflow.nav.v2`)
+
+```
+[+ Registrer] · Hjem · Mitt arbeid · Standarder · Registre · Dokumenter og rapporter · (Festet ≤ 5) · Innstillinger
+Top bar: Finn eller spør (Ctrl K) · ? Hjelp og læring (Mine leksjoner, Spør assistenten) · bell · account menu
+```
+
+- Defined in `src/app/layout/nav-v2.ts` (labels in the `shell` scope); `nav.ts` stays the
+  data source for the old menu and for Registre (`/registers`, grouped by job area).
+- Off by default. An admin turns it on in Innstillinger → Meny (`nav_v2` in org settings);
+  each member can switch back, or opt in early, in the account menu (`/me/orgs/{org}/preferences`).
+- Role decides what shows: an employee (only the `member` role) gets Registrer, Hjem, Mitt
+  arbeid and Dokumenter og rapporter; "Vis alt" in the account menu shows the rest.
+  Permissions and enabled modules always apply.
+- Pins: the user's own (stored on the server), else role defaults (DPO: Behandlingsprotokoll,
+  Personvernbrudd; HMS: SJA, Avvik; …). Pin and unpin on Registre.
+- Theme and language live in the account menu at every width.
+
 ## 9. Mobile and accessibility rules
 
 - Works at **375 px**: no horizontal scroll (`scrollWidth ≤ innerWidth`), the list is in the

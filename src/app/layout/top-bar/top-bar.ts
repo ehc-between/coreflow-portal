@@ -1,12 +1,14 @@
-import { ChangeDetectionStrategy, Component, HostListener, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostListener, inject, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { provideSharedScope } from '../../core/i18n/shared-scope';
 import { ThemeService } from '../../core/theme/theme.service';
 import { AskPanelService } from '../../features/ask/ask-panel.service';
 import { CommandPaletteService } from '../../features/command-palette/command-palette.service';
 import { LanguageSwitcher } from '../../shared/language-switcher/language-switcher';
 import { Icon } from '../../shared/ui/icon/icon';
 import { AccountMenu } from '../account-menu/account-menu';
+import { HelpMenu } from '../help-menu/help-menu';
 import { NavDrawerService } from '../nav-drawer.service';
 import { NotificationBell } from '../notification-bell/notification-bell';
 
@@ -15,10 +17,22 @@ import { NotificationBell } from '../notification-bell/notification-bell';
  * that opens the command palette (an icon below `md`), theme and language (from
  * `md`; on phones they live in the account menu), notifications and the account
  * menu. The assistant is opened from the floating Ask button or Ctrl/Cmd + J.
+ *
+ * With `v2` (shell v2, U03) the box reads "Finn eller spør", a "?" help menu sits
+ * before the bell, and theme and language move into the account menu at every width.
  */
 @Component({
   selector: 'app-top-bar',
-  imports: [RouterLink, TranslocoPipe, Icon, LanguageSwitcher, AccountMenu, NotificationBell],
+  imports: [
+    RouterLink,
+    TranslocoPipe,
+    Icon,
+    LanguageSwitcher,
+    AccountMenu,
+    HelpMenu,
+    NotificationBell,
+  ],
+  viewProviders: [provideSharedScope('shell')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <header
@@ -81,7 +95,7 @@ import { NotificationBell } from '../notification-bell/notification-bell';
           </span>
         } @else {
           <span class="min-w-0 flex-1 truncate text-left">{{
-            'topbar.searchPlaceholder' | transloco
+            (v2() ? 'shell.search.placeholder' : 'topbar.searchPlaceholder') | transloco
           }}</span>
         }
         <span class="flex flex-none items-center gap-[3px]" aria-hidden="true">
@@ -105,20 +119,28 @@ import { NotificationBell } from '../notification-bell/notification-bell';
           <app-icon name="search" [size]="19" />
         </button>
 
-        <button
-          type="button"
-          (click)="theme.toggle()"
-          [attr.aria-label]="'theme.toggle' | transloco"
-          class="hidden h-9 w-9 items-center justify-center rounded-tile border border-transparent bg-transparent text-fg-muted hover:bg-surface-2 hover:text-fg focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none md:flex"
-        >
-          <app-icon [name]="theme.theme() === 'dark' ? 'sun' : 'moon'" [size]="18" />
-        </button>
+        @if (v2()) {
+          @defer (on immediate) {
+            <app-help-menu />
+          } @placeholder {
+            <span class="block h-10 w-10"></span>
+          }
+        } @else {
+          <button
+            type="button"
+            (click)="theme.toggle()"
+            [attr.aria-label]="'theme.toggle' | transloco"
+            class="hidden h-9 w-9 items-center justify-center rounded-tile border border-transparent bg-transparent text-fg-muted hover:bg-surface-2 hover:text-fg focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none md:flex"
+          >
+            <app-icon [name]="theme.theme() === 'dark' ? 'sun' : 'moon'" [size]="18" />
+          </button>
 
-        <app-language-switcher class="hidden md:block" />
+          <app-language-switcher class="hidden md:block" />
+        }
 
         <app-notification-bell />
 
-        <app-account-menu />
+        <app-account-menu [v2]="v2()" />
       </div>
     </header>
   `,
@@ -128,6 +150,9 @@ export class TopBar {
   protected readonly ask = inject(AskPanelService);
   protected readonly palette = inject(CommandPaletteService);
   protected readonly drawer = inject(NavDrawerService);
+
+  /** Shell v2 top bar (see the class comment). */
+  readonly v2 = input(false);
 
   private readonly apple = isApplePlatform();
   /** "⌘ K" on Apple platforms, "Ctrl K" elsewhere. */
