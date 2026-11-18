@@ -28,6 +28,7 @@ import { PageHeader } from '../ui/page-header/page-header';
 import { GenerateDialog } from './generate-dialog';
 import { LIBRARY_SECTIONS } from './library-nav';
 import { OutputCard } from './output-card';
+import { OutputsPanel } from './outputs-panel';
 import {
   OUTPUT_ERROR_CODES,
   clauseText,
@@ -436,6 +437,41 @@ describe('OutputCard', () => {
     expect(el.querySelector('[data-testid="output-open-flow"]')?.getAttribute('href')).toBe(
       '/reports/audit-packs',
     );
+  });
+});
+
+describe('OutputsPanel', () => {
+  it('leaves out excluded kinds', async () => {
+    const http = configure();
+    const fixture = TestBed.createComponent(OutputsPanel);
+    fixture.componentRef.setInput('excludeKinds', ['register_export']);
+    fixture.detectChanges();
+    await tick();
+    http
+      .expectOne((r) => r.url === `${ROOT}/outputs`)
+      .flush({
+        items: [
+          output(),
+          output({
+            key: 'standards.coverage_report',
+            kind: 'compiled_controlled',
+            title: { en: 'Status report', nb: 'Statusrapport' },
+          }),
+        ],
+        audiences: [],
+        kinds: [],
+      });
+    await tick();
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.textContent).toContain('Status report');
+    expect(el.textContent).not.toContain('Deviation log');
+
+    fixture.componentRef.setInput('excludeKinds', []);
+    fixture.detectChanges();
+    await tick();
+    fixture.detectChanges();
+    expect(el.textContent).toContain('Deviation log');
   });
 });
 

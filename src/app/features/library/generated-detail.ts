@@ -15,6 +15,7 @@ import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { OutputsApi } from '../../core/outputs/outputs-api';
 import { GeneratedOutput, Output, SourceCheck } from '../../core/outputs/outputs.models';
 import { internalLink } from '../../core/search/internal-link';
+import { StandardsApi } from '../../core/standards/standards-api';
 import { LocalDatePipe } from '../../shared/locale/locale-pipes';
 import { GenerateDialog } from '../../shared/outputs/generate-dialog';
 import {
@@ -174,7 +175,7 @@ type State =
                 @if (f.standard_key) {
                   <app-field-item
                     labelKey="outputs.generated.fields.standard"
-                    [value]="f.standard_key"
+                    [value]="standardName() || f.standard_key"
                   />
                 }
                 @if (f.rows > 0) {
@@ -262,6 +263,7 @@ export class GeneratedDetailPage {
   private readonly api = inject(OutputsApi);
   private readonly language = inject(LanguageService);
   private readonly router = inject(Router);
+  private readonly standardsApi = inject(StandardsApi);
   private readonly selectedOrg = inject(SelectedOrgService);
 
   /** Route param. */
@@ -270,6 +272,8 @@ export class GeneratedDetailPage {
   protected readonly state = signal<State>({ status: 'loading' });
   protected readonly output = signal<Output | null>(null);
   protected readonly source = signal<SourceCheck | null>(null);
+  /** The standard's name (the file only stores its key). */
+  protected readonly standardName = signal('');
   protected readonly dialogOpen = signal(false);
   protected readonly downloading = signal(false);
   protected readonly downloadError = signal<string | null>(null);
@@ -350,6 +354,7 @@ export class GeneratedDetailPage {
     this.api.generatedOne(orgId, id).subscribe({
       next: (file) => {
         this.state.set({ status: 'loaded', file });
+        this.loadStandardName(orgId, file.standard_key);
         // The output (for "Lag ny versjon") and the source check are extras: the
         // page works without them.
         this.api
@@ -363,6 +368,17 @@ export class GeneratedDetailPage {
       },
       error: (err: { status?: number }) =>
         this.state.set({ status: 'error', notFound: err?.status === 404 }),
+    });
+  }
+
+  private loadStandardName(orgId: string, key: string | null): void {
+    this.standardName.set('');
+    if (!key) {
+      return;
+    }
+    this.standardsApi.listFrameworks(orgId).subscribe({
+      next: (items) => this.standardName.set(items.find((i) => i.standard_key === key)?.name ?? ''),
+      error: () => this.standardName.set(''),
     });
   }
 

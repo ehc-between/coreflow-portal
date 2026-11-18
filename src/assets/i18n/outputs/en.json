@@ -19,7 +19,8 @@
     "ofKind": "Showing: {{ kind }}.",
     "showAll": "Show all",
     "recent": "Recently made",
-    "seeAll": "Open the archive ({{ count }})"
+    "seeAll": "Open the archive ({{ count }})",
+    "registerExports": "Also show register exports: each register as a table you can download"
   },
   "panel": {
     "emptyTitle": "No documents to make yet",

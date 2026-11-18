@@ -109,6 +109,8 @@ export class OutputsPanel {
   readonly entityId = input<string | null>(null);
   readonly audience = input<string | null>(null);
   readonly kind = input<string | null>(null);
+  /** Kinds left out (the library hides register exports until the user narrows it). */
+  readonly excludeKinds = input<readonly string[]>([]);
   /** Free-text filter on title and description (client side). */
   readonly query = input('');
   /** Split into audience sections (the library). */
@@ -124,12 +126,16 @@ export class OutputsPanel {
     if (state.status !== 'loaded') {
       return [];
     }
+    const exclude = this.excludeKinds();
+    const items = exclude.length
+      ? state.items.filter((o) => !exclude.includes(o.kind))
+      : state.items;
     const needle = this.query().trim().toLocaleLowerCase();
     if (!needle) {
-      return state.items;
+      return items;
     }
     const lang = this.language.active();
-    return state.items.filter((o) =>
+    return items.filter((o) =>
       `${localized(o.title, lang)} ${localized(o.description, lang)}`
         .toLocaleLowerCase()
         .includes(needle),

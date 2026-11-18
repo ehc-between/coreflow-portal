@@ -19,7 +19,8 @@
     "ofKind": "Viser: {{ kind }}.",
     "showAll": "Vis alle",
     "recent": "Sist laget",
-    "seeAll": "Åpne arkivet ({{ count }})"
+    "seeAll": "Åpne arkivet ({{ count }})",
+    "registerExports": "Vis også registereksporter: hvert register som en tabell du kan laste ned"
   },
   "panel": {
     "emptyTitle": "Ingen dokumenter å lage ennå",

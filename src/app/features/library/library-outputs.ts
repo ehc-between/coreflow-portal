@@ -126,9 +126,23 @@ const RECENT = 5;
         [module]="module() ?? null"
         [standardKey]="standard() ?? null"
         [kind]="kind() ?? null"
+        [excludeKinds]="hidesRegisterExports() ? registerExportKind : []"
         [query]="search()"
         [standards]="standards()"
       />
+
+      @if (hidesRegisterExports()) {
+        <p class="mt-4 text-ui" data-testid="library-register-exports">
+          <a
+            routerLink="."
+            [queryParams]="{ kind: 'register_export' }"
+            queryParamsHandling="merge"
+            [class]="textLink"
+          >
+            {{ 'outputs.library.registerExports' | transloco }}
+          </a>
+        </p>
+      }
 
       @if (recent().length > 0) {
         <section class="mt-8" data-testid="library-recent">
@@ -169,6 +183,16 @@ export class LibraryOutputs {
   protected readonly recentTotal = signal(0);
   protected readonly secondaryLink = SECONDARY_LINK;
   protected readonly textLink = TEXT_LINK;
+  protected readonly registerExportKind: readonly string[] = ['register_export'];
+
+  /**
+   * Unnarrowed, "Hent ut" lists the named documents only: one table export per
+   * register would bury them (about 30 near-identical cards). Register exports show
+   * once the user searches, comes from a module or picks them (the link below).
+   */
+  protected readonly hidesRegisterExports = computed(
+    () => !this.module() && !this.kind() && !this.search().trim(),
+  );
 
   protected readonly moduleName = computed(() => {
     const key = this.module();
